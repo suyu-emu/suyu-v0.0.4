@@ -31,6 +31,10 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     fun putSetting(setting: AbstractSetting) {
+        if (setting.section == null) {
+            return
+        }
+
         val section = settings.getSection(setting.section!!)!!
         if (section.getSetting(setting.key!!) == null) {
             section.putSetting(setting)
