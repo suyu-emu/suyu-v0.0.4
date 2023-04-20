@@ -7,7 +7,7 @@
         <item name="postSplashScreenTheme">@style/Theme.Yuzu.Main</item>
     </style>
 
-    <style name="Theme.Yuzu" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.Yuzu.Main" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/yuzu_primary</item>
         <item name="colorOnPrimary">@color/yuzu_onPrimary</item>
         <item name="colorPrimaryContainer">@color/yuzu_primaryContainer</item>
@@ -42,9 +42,9 @@
         <item name="sliderStyle">@style/YuzuSlider</item>
 
         <item name="android:windowLayoutInDisplayCutoutMode">default</item>
-    </style>
 
-    <!-- Trick for API >= 29 specific changes -->
-    <style name="Theme.Yuzu.Main" parent="Theme.Yuzu" />
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
 
 </resources>
