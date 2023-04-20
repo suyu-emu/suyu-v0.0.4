@@ -24,9 +24,9 @@ using DrgbOutput = std::array<u8, 0x20>;
 struct HashSeed {
     u16_be magic;
     std::array<u8, 0xE> padding;
-    UniqueSerialNumber uid_1;
+    NFC::UniqueSerialNumber uid_1;
     u8 nintendo_id_1;
-    UniqueSerialNumber uid_2;
+    NFC::UniqueSerialNumber uid_2;
     u8 nintendo_id_2;
     std::array<u8, 0x20> keygen_salt;
 };
