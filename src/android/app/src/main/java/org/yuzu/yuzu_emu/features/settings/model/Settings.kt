@@ -107,6 +107,7 @@ class Settings {
         const val SECTION_RENDERER = "Renderer"
         const val SECTION_AUDIO = "Audio"
         const val SECTION_CPU = "Cpu"
+        const val SECTION_THEME = "Theme"
 
         const val PREF_OVERLAY_INIT = "OverlayInit"
         const val PREF_CONTROL_SCALE = "controlScale"
@@ -134,6 +135,7 @@ class Settings {
         const val PREF_MENU_SETTINGS_SHOW_OVERLAY = "EmulationMenuSettings_ShowOverlay"
 
         const val PREF_FIRST_APP_LAUNCH = "FirstApplicationLaunch"
+        const val PREF_THEME = "Theme"
 
         private val configFileSectionsMap: MutableMap<String, List<String>> = HashMap()
 

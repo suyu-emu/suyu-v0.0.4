@@ -103,6 +103,7 @@
     <string name="preferences_system">System</string>
     <string name="preferences_graphics">Graphics</string>
     <string name="preferences_audio">Audio</string>
+    <string name="preferences_theme">Theme and Color</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Your ROM is encrypted</string>
@@ -228,5 +229,10 @@
     <!-- Disk shader cache -->
     <string name="preparing_shaders">Preparing shaders</string>
     <string name="building_shaders">Building shaders</string>
+
+    <!-- Theme options -->
+    <string name="change_app_theme">Change App Theme</string>
+    <string name="theme_default">Default</string>
+    <string name="theme_material_you">Material You</string>
 
 </resources>

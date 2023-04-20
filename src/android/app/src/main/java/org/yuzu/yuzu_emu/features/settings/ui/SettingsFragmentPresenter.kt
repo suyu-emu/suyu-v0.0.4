@@ -3,11 +3,15 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
+import android.content.SharedPreferences
+import android.os.Build
 import android.text.TextUtils
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
-import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.view.*
@@ -21,12 +25,15 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     private val settingsActivity get() = fragmentView.activityView as AppCompatActivity
     private val settings get() = fragmentView.activityView!!.settings
 
+    private lateinit var preferences: SharedPreferences
+
     fun onCreate(menuTag: String, gameId: String) {
         this.gameId = gameId
         this.menuTag = menuTag
     }
 
     fun onViewCreated() {
+        preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
         loadSettingsList()
     }
 
@@ -55,6 +62,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             Settings.SECTION_SYSTEM -> addSystemSettings(sl)
             Settings.SECTION_RENDERER -> addGraphicsSettings(sl)
             Settings.SECTION_AUDIO -> addAudioSettings(sl)
+            Settings.SECTION_THEME -> addThemeSettings(sl)
             else -> {
                 fragmentView.showToastMessage("Unimplemented menu", false)
                 return
@@ -97,6 +105,14 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.preferences_audio,
                     0,
                     Settings.SECTION_AUDIO
+                )
+            )
+            add(
+                SubmenuSetting(
+                    null,
+                    R.string.preferences_theme,
+                    0,
+                    Settings.SECTION_THEME
                 )
             )
         }
@@ -299,5 +315,46 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 100
             )
         )
+    }
+
+    private fun addThemeSettings(sl: ArrayList<SettingsItem>) {
+        settingsActivity.setTitle(R.string.preferences_theme)
+        sl.apply {
+            val theme: AbstractIntSetting = object : AbstractIntSetting {
+                override var int: Int
+                    get() = preferences.getInt(Settings.PREF_THEME, 0)
+                    set(value) {
+                        preferences.edit().putInt(Settings.PREF_THEME, value).apply()
+                        settingsActivity.recreate()
+                    }
+                override val key: String? = null
+                override val section: String? = null
+                override val isRuntimeEditable: Boolean = true
+                override val valueAsString: String
+                    get() = preferences.getInt(Settings.PREF_THEME, 0).toString()
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                add(
+                    SingleChoiceSetting(
+                        theme,
+                        R.string.change_app_theme,
+                        0,
+                        R.array.themeEntriesA12,
+                        R.array.themeValuesA12
+                    )
+                )
+            } else {
+                add(
+                    SingleChoiceSetting(
+                        theme,
+                        R.string.change_app_theme,
+                        0,
+                        R.array.themeEntries,
+                        R.array.themeValues
+                    )
+                )
+            }
+        }
     }
 }

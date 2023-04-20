@@ -39,11 +39,13 @@ import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.*
 import java.io.IOException
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var binding: ActivityMainBinding
 
     private val homeViewModel: HomeViewModel by viewModels()
     private val gamesViewModel: GamesViewModel by viewModels()
+
+    override var themeId: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -166,6 +168,11 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
+    override fun onResume() {
+        ThemeHelper.setCorrectTheme(this)
+        super.onResume()
+    }
+
     override fun onDestroy() {
         EmulationActivity.tryDismissRunningNotification(this)
         super.onDestroy()
@@ -179,6 +186,11 @@ class MainActivity : AppCompatActivity() {
             binding.statusBarShade.layoutParams = mlpShade
             windowInsets
         }
+
+    override fun setTheme(resId: Int) {
+        super.setTheme(resId)
+        themeId = resId
+    }
 
     private fun hasExtension(path: String, extension: String): Boolean {
         return path.substring(path.lastIndexOf(".") + 1).contains(extension)
