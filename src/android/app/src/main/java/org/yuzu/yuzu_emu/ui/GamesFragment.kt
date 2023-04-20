@@ -18,6 +18,7 @@ import androidx.fragment.app.activityViewModels
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.search.SearchView
 import com.google.android.material.search.SearchView.TransitionState
+import com.google.android.material.transition.MaterialFadeThrough
 import info.debatty.java.stringsimilarity.Jaccard
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.GameAdapter
@@ -34,6 +35,11 @@ class GamesFragment : Fragment() {
 
     private val gamesViewModel: GamesViewModel by activityViewModels()
     private val homeViewModel: HomeViewModel by activityViewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enterTransition = MaterialFadeThrough()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,

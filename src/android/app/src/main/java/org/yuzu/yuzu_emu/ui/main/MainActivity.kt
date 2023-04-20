@@ -3,10 +3,13 @@
 
 package org.yuzu.yuzu_emu.ui.main
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.animation.PathInterpolator
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -14,20 +17,33 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import androidx.preference.PreferenceManager
 import com.google.android.material.color.MaterialColors
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.elevation.ElevationOverlayProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
+import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
+import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.*
+import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private val homeViewModel: HomeViewModel by viewModels()
+    private val gamesViewModel: GamesViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -52,10 +68,9 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
-        // Set up a central host fragment that is controlled via bottom navigation with xml navigation
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
-        binding.navigationBar.setupWithNavController(navHostFragment.navController)
+        setUpNavigation(navHostFragment.navController)
 
         binding.statusBarShade.setBackgroundColor(
             ThemeHelper.getColorWithOpacity(
@@ -83,6 +98,32 @@ class MainActivity : AppCompatActivity() {
         EmulationActivity.tryDismissRunningNotification(this)
 
         setInsets()
+    }
+
+    fun finishSetup(navController: NavController) {
+        navController.navigate(R.id.action_firstTimeSetupFragment_to_gamesFragment)
+        binding.navigationBar.setupWithNavController(navController)
+        showNavigation(true)
+
+        ThemeHelper.setNavigationBarColor(
+            this,
+            ElevationOverlayProvider(binding.navigationBar.context).compositeOverlay(
+                MaterialColors.getColor(binding.navigationBar, R.attr.colorSurface),
+                binding.navigationBar.elevation
+            )
+        )
+    }
+
+    private fun setUpNavigation(navController: NavController) {
+        val firstTimeSetup = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+            .getBoolean(Settings.PREF_FIRST_APP_LAUNCH, true)
+
+        if (firstTimeSetup && !homeViewModel.navigatedToSetup) {
+            navController.navigate(R.id.firstTimeSetupFragment)
+            homeViewModel.navigatedToSetup = true
+        } else {
+            binding.navigationBar.setupWithNavController(navController)
+        }
     }
 
     private fun showNavigation(visible: Boolean) {
@@ -137,5 +178,151 @@ class MainActivity : AppCompatActivity() {
             mlpShade.height = insets.top
             binding.statusBarShade.layoutParams = mlpShade
             windowInsets
+        }
+
+    val getGamesDirectory =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
+            if (result == null)
+                return@registerForActivityResult
+
+            val takeFlags =
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            contentResolver.takePersistableUriPermission(
+                result,
+                takeFlags
+            )
+
+            // When a new directory is picked, we currently will reset the existing games
+            // database. This effectively means that only one game directory is supported.
+            PreferenceManager.getDefaultSharedPreferences(applicationContext).edit()
+                .putString(GameHelper.KEY_GAME_PATH, result.toString())
+                .apply()
+
+            Toast.makeText(
+                applicationContext,
+                R.string.games_dir_selected,
+                Toast.LENGTH_LONG
+            ).show()
+
+            gamesViewModel.reloadGames(true)
+        }
+
+    val getProdKey =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result == null)
+                return@registerForActivityResult
+
+            val takeFlags =
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            contentResolver.takePersistableUriPermission(
+                result,
+                takeFlags
+            )
+
+            val dstPath = DirectoryInitialization.userDirectory + "/keys/"
+            if (FileUtil.copyUriToInternalStorage(applicationContext, result, dstPath, "prod.keys")) {
+                if (NativeLibrary.reloadKeys()) {
+                    Toast.makeText(
+                        applicationContext,
+                        R.string.install_keys_success,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    gamesViewModel.reloadGames(true)
+                } else {
+                    Toast.makeText(
+                        applicationContext,
+                        R.string.install_keys_failure,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+
+    val getAmiiboKey =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result == null)
+                return@registerForActivityResult
+
+            val takeFlags =
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            contentResolver.takePersistableUriPermission(
+                result,
+                takeFlags
+            )
+
+            val dstPath = DirectoryInitialization.userDirectory + "/keys/"
+            if (FileUtil.copyUriToInternalStorage(
+                    applicationContext,
+                    result,
+                    dstPath,
+                    "key_retail.bin"
+                )
+            ) {
+                if (NativeLibrary.reloadKeys()) {
+                    Toast.makeText(
+                        applicationContext,
+                        R.string.install_keys_success,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        applicationContext,
+                        R.string.install_amiibo_keys_failure,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+
+    val getDriver =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result == null)
+                return@registerForActivityResult
+
+            val takeFlags =
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            contentResolver.takePersistableUriPermission(
+                result,
+                takeFlags
+            )
+
+            val progressBinding = DialogProgressBarBinding.inflate(layoutInflater)
+            progressBinding.progressBar.isIndeterminate = true
+            val installationDialog = MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.installing_driver)
+                .setView(progressBinding.root)
+                .show()
+
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    // Ignore file exceptions when a user selects an invalid zip
+                    try {
+                        GpuDriverHelper.installCustomDriver(applicationContext, result)
+                    } catch (_: IOException) {
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        installationDialog.dismiss()
+
+                        val driverName = GpuDriverHelper.customDriverName
+                        if (driverName != null) {
+                            Toast.makeText(
+                                applicationContext,
+                                getString(
+                                    R.string.select_gpu_driver_install_success,
+                                    driverName
+                                ),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                applicationContext,
+                                R.string.select_gpu_driver_error,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
+            }
         }
 }

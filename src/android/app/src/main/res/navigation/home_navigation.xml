@@ -14,4 +14,13 @@
         android:name="org.yuzu.yuzu_emu.fragments.OptionsFragment"
         android:label="OptionsFragment" />
 
+    <fragment
+        android:id="@+id/firstTimeSetupFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.SetupFragment"
+        android:label="FirstTimeSetupFragment" >
+        <action
+            android:id="@+id/action_firstTimeSetupFragment_to_gamesFragment"
+            app:destination="@id/gamesFragment" />
+    </fragment>
+
 </navigation>

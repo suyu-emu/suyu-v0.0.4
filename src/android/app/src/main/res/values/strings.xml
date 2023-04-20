@@ -9,12 +9,28 @@
     <string name="app_notification_channel_description">yuzu Switch emulator notifications</string>
     <string name="app_notification_running">yuzu is running</string>
 
+    <!-- Setup strings -->
+    <string name="welcome">Welcome!</string>
+    <string name="welcome_description">Learn how to setup &lt;b>yuzu&lt;/b> and jump into emulation.</string>
+    <string name="get_started">Get started</string>
+    <string name="keys">Keys</string>
+    <string name="keys_description">Select your &lt;b>prod.keys&lt;/b> file with the button below.</string>
+    <string name="select_keys">Select Keys</string>
+    <string name="games">Games</string>
+    <string name="games_description">Select your &lt;b>Games&lt;/b> folder with the button below.</string>
+    <string name="done">Done</string>
+    <string name="done_description">You\'re all set.\nEnjoy your games!</string>
+    <string name="text_continue">Continue</string>
+    <string name="next">Next</string>
+    <string name="back">Back</string>
+
     <!-- Home strings -->
     <string name="home_games">Games</string>
     <string name="home_options">Options</string>
     <string name="add_games">Add Games</string>
     <string name="add_games_description">Select your games folder</string>
     <string name="home_search_games">Search Games</string>
+    <string name="games_dir_selected">Games directory selected</string>
     <string name="install_prod_keys">Install Prod.keys</string>
     <string name="install_prod_keys_description">Required to decrypt retail games</string>
     <string name="install_amiibo_keys">Install Amiibo Keys</string>

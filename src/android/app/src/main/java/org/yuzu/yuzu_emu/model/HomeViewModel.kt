@@ -11,6 +11,8 @@ class HomeViewModel : ViewModel() {
     private val _statusBarShadeVisible = MutableLiveData(true)
     val statusBarShadeVisible: LiveData<Boolean> get() = _statusBarShadeVisible
 
+    var navigatedToSetup = false
+
     fun setNavigationVisibility(visible: Boolean) {
         if (_navigationVisible.value == visible) {
             return
