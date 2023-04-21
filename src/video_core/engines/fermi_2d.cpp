@@ -77,6 +77,14 @@ void Fermi2D::Blit() {
     const auto bytes_per_pixel = BytesPerBlock(PixelFormatFromRenderTargetFormat(src.format));
     const bool delegate_to_gpu = src.width > 512 && src.height > 512 && bytes_per_pixel <= 8 &&
                                  src.format != regs.dst.format;
+
+    auto srcX = args.src_x0;
+    auto srcY = args.src_y0;
+    if (args.sample_mode.origin == Origin::Corner) {
+        srcX -= (args.du_dx >> 33) << 32;
+        srcY -= (args.dv_dy >> 33) << 32;
+    }
+
     Config config{
         .operation = regs.operation,
         .filter = args.sample_mode.filter,
@@ -86,10 +94,10 @@ void Fermi2D::Blit() {
         .dst_y0 = args.dst_y0,
         .dst_x1 = args.dst_x0 + args.dst_width,
         .dst_y1 = args.dst_y0 + args.dst_height,
-        .src_x0 = static_cast<s32>(args.src_x0 >> 32),
-        .src_y0 = static_cast<s32>(args.src_y0 >> 32),
-        .src_x1 = static_cast<s32>((args.du_dx * args.dst_width + args.src_x0) >> 32),
-        .src_y1 = static_cast<s32>((args.dv_dy * args.dst_height + args.src_y0) >> 32),
+        .src_x0 = static_cast<s32>(srcX >> 32),
+        .src_y0 = static_cast<s32>(srcY >> 32),
+        .src_x1 = static_cast<s32>((srcX + args.du_dx * args.dst_width) >> 32),
+        .src_y1 = static_cast<s32>((srcY + args.dv_dy * args.dst_height) >> 32),
     };
 
     const auto need_align_to_pitch =
