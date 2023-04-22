@@ -1807,7 +1807,7 @@ void IApplicationFunctions::GetFriendInvitationStorageChannelEvent(HLERequestCon
 }
 
 void IApplicationFunctions::TryPopFromFriendInvitationStorageChannel(HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    LOG_DEBUG(Service_AM, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(AM::ResultNoDataInChannel);
