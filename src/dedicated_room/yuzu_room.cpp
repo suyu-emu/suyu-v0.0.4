@@ -49,6 +49,7 @@ static void PrintHelp(const char* argv0) {
              " [options] <filename>\n"
              "--room-name         The name of the room\n"
              "--room-description  The room description\n"
+             "--bind-address      The bind address for the room\n"
              "--port              The port used for the room\n"
              "--max_members       The maximum number of players for this room\n"
              "--password          The password for the room\n"
@@ -195,6 +196,7 @@ int main(int argc, char** argv) {
     std::string web_api_url;
     std::string ban_list_file;
     std::string log_file = "yuzu-room.log";
+    std::string bind_address;
     u64 preferred_game_id = 0;
     u32 port = Network::DefaultRoomPort;
     u32 max_members = 16;
@@ -203,6 +205,7 @@ int main(int argc, char** argv) {
     static struct option long_options[] = {
         {"room-name", required_argument, 0, 'n'},
         {"room-description", required_argument, 0, 'd'},
+        {"bind-address", required_argument, 0, 's'},
         {"port", required_argument, 0, 'p'},
         {"max_members", required_argument, 0, 'm'},
         {"password", required_argument, 0, 'w'},
@@ -222,7 +225,8 @@ int main(int argc, char** argv) {
     InitializeLogging(log_file);
 
     while (optind < argc) {
-        int arg = getopt_long(argc, argv, "n:d:p:m:w:g:u:t:a:i:l:hv", long_options, &option_index);
+        int arg =
+            getopt_long(argc, argv, "n:d:s:p:m:w:g:u:t:a:i:l:hv", long_options, &option_index);
         if (arg != -1) {
             switch (static_cast<char>(arg)) {
             case 'n':
@@ -230,6 +234,9 @@ int main(int argc, char** argv) {
                 break;
             case 'd':
                 room_description.assign(optarg);
+                break;
+            case 's':
+                bind_address.assign(optarg);
                 break;
             case 'p':
                 port = strtoul(optarg, &endarg, 0);
@@ -295,6 +302,9 @@ int main(int argc, char** argv) {
         PrintHelp(argv[0]);
         return -1;
     }
+    if (bind_address.empty()) {
+        LOG_INFO(Network, "Bind address is empty: defaulting to 0.0.0.0");
+    }
     if (port > UINT16_MAX) {
         LOG_ERROR(Network, "Port needs to be in the range 0 - 65535!");
         PrintHelp(argv[0]);
@@ -358,8 +368,8 @@ int main(int argc, char** argv) {
     if (auto room = network.GetRoom().lock()) {
         AnnounceMultiplayerRoom::GameInfo preferred_game_info{.name = preferred_game,
                                                               .id = preferred_game_id};
-        if (!room->Create(room_name, room_description, "", port, password, max_members, username,
-                          preferred_game_info, std::move(verify_backend), ban_list,
+        if (!room->Create(room_name, room_description, bind_address, port, password, max_members,
+                          username, preferred_game_info, std::move(verify_backend), ban_list,
                           enable_yuzu_mods)) {
             LOG_INFO(Network, "Failed to create room: ");
             return -1;
