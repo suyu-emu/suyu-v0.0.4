@@ -17,6 +17,7 @@
 #include <boost/pool/detail/mutex.hpp>
 #undef BOOST_NO_MT
 #include <boost/icl/interval_set.hpp>
+#include <boost/icl/split_interval_map.hpp>
 #include <boost/pool/pool.hpp>
 #include <boost/pool/pool_alloc.hpp>
 
@@ -44,8 +45,7 @@
 
 namespace boost {
 template <typename T>
-class fast_pool_allocator<T, default_user_allocator_new_delete, details::pool::default_mutex, 4096,
-                          0>;
+class fast_pool_allocator<T, default_user_allocator_new_delete, details::pool::null_mutex, 4096, 0>;
 }
 
 namespace VideoCommon {
@@ -122,6 +122,31 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<VideoCommon::ChannelI
     using IntervalSet =
         boost::icl::interval_set<VAddr, IntervalCompare, IntervalInstance, IntervalAllocator>;
     using IntervalType = typename IntervalSet::interval_type;
+
+    template <typename Type>
+    struct counter_add_functor : public boost::icl::identity_based_inplace_combine<Type> {
+        // types
+        typedef counter_add_functor<Type> type;
+        typedef boost::icl::identity_based_inplace_combine<Type> base_type;
+
+        // public member functions
+        void operator()(Type& current, const Type& added) const {
+            current += added;
+            if (current < base_type::identity_element()) {
+                current = base_type::identity_element();
+            }
+        }
+
+        // public static functions
+        static void version(Type&){};
+    };
+
+    using OverlapCombine = ICL_COMBINE_INSTANCE(counter_add_functor, int);
+    using OverlapSection = ICL_SECTION_INSTANCE(boost::icl::inter_section, int);
+    using OverlapCounter =
+        boost::icl::split_interval_map<VAddr, int, boost::icl::partial_absorber, IntervalCompare,
+                                       OverlapCombine, OverlapSection, IntervalInstance,
+                                       IntervalAllocator>;
 
     struct Empty {};
 
@@ -219,12 +244,9 @@ public:
     /// Commit asynchronous downloads
     void CommitAsyncFlushes();
     void CommitAsyncFlushesHigh();
-    void CommitAsyncQueries();
 
     /// Pop asynchronous downloads
     void PopAsyncFlushes();
-
-    void PopAsyncQueries();
     void PopAsyncBuffers();
 
     bool DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 amount);
@@ -302,12 +324,42 @@ private:
         }
     }
 
+    template <typename Func>
+    void ForEachInOverlapCounter(OverlapCounter& current_range, VAddr cpu_addr, u64 size,
+                                 Func&& func) {
+        const VAddr start_address = cpu_addr;
+        const VAddr end_address = start_address + size;
+        const IntervalType search_interval{start_address, end_address};
+        auto it = current_range.lower_bound(search_interval);
+        if (it == current_range.end()) {
+            return;
+        }
+        auto end_it = current_range.upper_bound(search_interval);
+        for (; it != end_it; it++) {
+            auto& inter = it->first;
+            VAddr inter_addr_end = inter.upper();
+            VAddr inter_addr = inter.lower();
+            if (inter_addr_end > end_address) {
+                inter_addr_end = end_address;
+            }
+            if (inter_addr < start_address) {
+                inter_addr = start_address;
+            }
+            if (it->second <= 0) {
+                __debugbreak();
+            }
+            func(inter_addr, inter_addr_end, it->second);
+        }
+    }
+
     static bool IsRangeGranular(VAddr cpu_addr, size_t size) {
         return (cpu_addr & ~Core::Memory::YUZU_PAGEMASK) ==
                ((cpu_addr + size) & ~Core::Memory::YUZU_PAGEMASK);
     }
 
     void RunGarbageCollector();
+
+    void WaitOnAsyncFlushes(VAddr cpu_addr, u64 size);
 
     void BindHostIndexBuffer();
 
@@ -474,10 +526,11 @@ private:
     IntervalSet uncommitted_ranges;
     IntervalSet common_ranges;
     IntervalSet cached_ranges;
+    IntervalSet pending_ranges;
     std::deque<IntervalSet> committed_ranges;
 
     // Async Buffers
-    std::deque<IntervalSet> async_downloads;
+    OverlapCounter async_downloads;
     std::deque<std::optional<Async_Buffer>> async_buffers;
     std::deque<boost::container::small_vector<BufferCopy, 4>> pending_downloads;
     std::optional<Async_Buffer> current_buffer;
