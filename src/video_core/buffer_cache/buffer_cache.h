@@ -22,6 +22,8 @@ BufferCache<P>::BufferCache(VideoCore::RasterizerInterface& rasterizer_,
     void(slot_buffers.insert(runtime, NullBufferParams{}));
     common_ranges.clear();
 
+    active_async_buffers = IMPLEMENTS_ASYNC_DOWNLOADS && !Settings::IsGPULevelHigh();
+
     if (!runtime.CanReportMemoryUsage()) {
         minimum_memory = DEFAULT_EXPECTED_MEMORY;
         critical_memory = DEFAULT_CRITICAL_MEMORY;
@@ -71,6 +73,8 @@ void BufferCache<P>::TickFrame() {
                 uniform_cache_shots.begin() + 1);
     uniform_cache_hits[0] = 0;
     uniform_cache_shots[0] = 0;
+
+    active_async_buffers = IMPLEMENTS_ASYNC_DOWNLOADS && !Settings::IsGPULevelHigh();
 
     const bool skip_preferred = hits * 256 < shots * 251;
     uniform_buffer_skip_cache_size = skip_preferred ? DEFAULT_SKIP_CACHE_SIZE : 0;
@@ -130,7 +134,7 @@ void BufferCache<P>::WaitOnAsyncFlushes(VAddr cpu_addr, u64 size) {
 
 template <class P>
 void BufferCache<P>::ClearDownload(IntervalType subtract_interval) {
-    async_downloads -= std::make_pair(subtract_interval, std::numeric_limits<int>::max());
+    RemoveEachInOverlapCounter(async_downloads, subtract_interval, -1024);
     uncommitted_ranges.subtract(subtract_interval);
     pending_ranges.subtract(subtract_interval);
     for (auto& interval_set : committed_ranges) {
@@ -173,18 +177,14 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     }};
 
     boost::container::small_vector<IntervalType, 4> tmp_intervals;
-    const bool is_high_accuracy =
-        Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::High;
     auto mirror = [&](VAddr base_address, VAddr base_address_end) {
         const u64 size = base_address_end - base_address;
         const VAddr diff = base_address - *cpu_src_address;
         const VAddr new_base_address = *cpu_dest_address + diff;
         const IntervalType add_interval{new_base_address, new_base_address + size};
         tmp_intervals.push_back(add_interval);
-        if (is_high_accuracy) {
-            uncommitted_ranges.add(add_interval);
-            pending_ranges.add(add_interval);
-        }
+        uncommitted_ranges.add(add_interval);
+        pending_ranges.add(add_interval);
     };
     ForEachInRangeSet(common_ranges, *cpu_src_address, amount, mirror);
     // This subtraction in this order is important for overlapping copies.
@@ -468,7 +468,7 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
     AccumulateFlushes();
 
     if (committed_ranges.empty()) {
-        if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
+        if (active_async_buffers) {
             async_buffers.emplace_back(std::optional<Async_Buffer>{});
         }
         return;
@@ -529,31 +529,33 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
     }
     committed_ranges.clear();
     if (downloads.empty()) {
-        if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
+        if (active_async_buffers) {
             async_buffers.emplace_back(std::optional<Async_Buffer>{});
         }
         return;
     }
-    if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
-        auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes, true);
-        boost::container::small_vector<BufferCopy, 4> normalized_copies;
-        IntervalSet new_async_range{};
-        runtime.PreCopyBarrier();
-        for (auto& [copy, buffer_id] : downloads) {
-            copy.dst_offset += download_staging.offset;
-            const std::array copies{copy};
-            BufferCopy second_copy{copy};
-            Buffer& buffer = slot_buffers[buffer_id];
-            second_copy.src_offset = static_cast<size_t>(buffer.CpuAddr()) + copy.src_offset;
-            VAddr orig_cpu_addr = static_cast<VAddr>(second_copy.src_offset);
-            const IntervalType base_interval{orig_cpu_addr, orig_cpu_addr + copy.size};
-            async_downloads += std::make_pair(base_interval, 1);
-            runtime.CopyBuffer(download_staging.buffer, buffer, copies, false);
-            normalized_copies.push_back(second_copy);
+    if (active_async_buffers) {
+        if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
+            auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes, true);
+            boost::container::small_vector<BufferCopy, 4> normalized_copies;
+            IntervalSet new_async_range{};
+            runtime.PreCopyBarrier();
+            for (auto& [copy, buffer_id] : downloads) {
+                copy.dst_offset += download_staging.offset;
+                const std::array copies{copy};
+                BufferCopy second_copy{copy};
+                Buffer& buffer = slot_buffers[buffer_id];
+                second_copy.src_offset = static_cast<size_t>(buffer.CpuAddr()) + copy.src_offset;
+                VAddr orig_cpu_addr = static_cast<VAddr>(second_copy.src_offset);
+                const IntervalType base_interval{orig_cpu_addr, orig_cpu_addr + copy.size};
+                async_downloads += std::make_pair(base_interval, 1);
+                runtime.CopyBuffer(download_staging.buffer, buffer, copies, false);
+                normalized_copies.push_back(second_copy);
+            }
+            runtime.PostCopyBarrier();
+            pending_downloads.emplace_back(std::move(normalized_copies));
+            async_buffers.emplace_back(download_staging);
         }
-        runtime.PostCopyBarrier();
-        pending_downloads.emplace_back(std::move(normalized_copies));
-        async_buffers.emplace_back(download_staging);
     } else {
         if constexpr (USE_MEMORY_MAPS) {
             auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes);
@@ -624,7 +626,8 @@ void BufferCache<P>::PopAsyncBuffers() {
                         common_ranges.subtract(base_interval);
                     }
                 });
-            async_downloads -= std::make_pair(IntervalType(cpu_addr, cpu_addr + copy.size), 1);
+            const IntervalType subtract_interval{cpu_addr, cpu_addr + copy.size};
+            RemoveEachInOverlapCounter(async_downloads, subtract_interval, -1);
         }
         runtime.FreeDeferredStagingBuffer(*async_buffer);
         async_buffers.pop_front();
@@ -1198,10 +1201,8 @@ void BufferCache<P>::MarkWrittenBuffer(BufferId buffer_id, VAddr cpu_addr, u32 s
 
     const IntervalType base_interval{cpu_addr, cpu_addr + size};
     common_ranges.add(base_interval);
-    if (Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::High) {
-        uncommitted_ranges.add(base_interval);
-        pending_ranges.add(base_interval);
-    }
+    uncommitted_ranges.add(base_interval);
+    pending_ranges.add(base_interval);
 }
 
 template <class P>
@@ -1542,7 +1543,7 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, VAddr cpu_addr, u64 si
                     .size = new_size,
                 });
                 // Align up to avoid cache conflicts
-                constexpr u64 align = 8ULL;
+                constexpr u64 align = 64ULL;
                 constexpr u64 mask = ~(align - 1ULL);
                 total_size_bytes += (new_size + align - 1) & mask;
                 largest_copy = std::max(largest_copy, new_size);

@@ -345,11 +345,28 @@ private:
             if (inter_addr < start_address) {
                 inter_addr = start_address;
             }
-            if (it->second <= 0) {
-                __debugbreak();
-            }
             func(inter_addr, inter_addr_end, it->second);
         }
+    }
+
+    void RemoveEachInOverlapCounter(OverlapCounter& current_range, const IntervalType search_interval, int subtract_value) {
+        bool any_removals = false;
+        current_range.add(std::make_pair(search_interval, subtract_value));
+        do {
+            any_removals = false;
+            auto it = current_range.lower_bound(search_interval);
+            if (it == current_range.end()) {
+                return;
+            }
+            auto end_it = current_range.upper_bound(search_interval);
+            for (; it != end_it; it++) {
+                if (it->second <= 0) {
+                    any_removals = true;
+                    current_range.erase(it);
+                    break;
+                }
+            }
+        } while (any_removals);
     }
 
     static bool IsRangeGranular(VAddr cpu_addr, size_t size) {
@@ -553,6 +570,8 @@ private:
     u64 total_used_memory = 0;
     u64 minimum_memory = 0;
     u64 critical_memory = 0;
+
+    bool active_async_buffers = false;
 
     std::array<BufferId, ((1ULL << 39) >> PAGE_BITS)> page_table;
 };

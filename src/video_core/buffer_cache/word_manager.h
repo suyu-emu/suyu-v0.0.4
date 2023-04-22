@@ -273,7 +273,7 @@ public:
                 untracked_words[word_index] &= ~bits;
                 NotifyRasterizer<true>(word_index, current_bits, ~u64{0});
             }
-            const u64 word = current_word;
+            const u64 word = current_word & ~(type == Type::GPU ? untracked_words[word_index] : 0);
             u64 page = page_begin;
             page_begin = 0;
 
@@ -321,6 +321,7 @@ public:
     [[nodiscard]] bool IsRegionModified(u64 offset, u64 size) const noexcept {
         static_assert(type != Type::Untracked);
 
+        const u64* const untracked_words = Array<Type::Untracked>();
         const u64* const state_words = Array<type>();
         const u64 num_query_words = size / BYTES_PER_WORD + 1;
         const u64 word_begin = offset / BYTES_PER_WORD;
@@ -328,7 +329,8 @@ public:
         const u64 page_limit = Common::DivCeil(offset + size, BYTES_PER_PAGE);
         u64 page_index = (offset / BYTES_PER_PAGE) % PAGES_PER_WORD;
         for (u64 word_index = word_begin; word_index < word_end; ++word_index, page_index = 0) {
-            const u64 word = state_words[word_index];
+            const u64 off_word = type == Type::GPU ? untracked_words[word_index] : 0;
+            const u64 word = state_words[word_index] & ~off_word;
             if (word == 0) {
                 continue;
             }
