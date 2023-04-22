@@ -4,6 +4,7 @@
 #pragma once
 
 #include <unordered_set>
+#include <boost/container/small_vector.hpp>
 
 #include "common/alignment.h"
 #include "common/settings.h"
@@ -17,15 +18,10 @@
 
 namespace VideoCommon {
 
-using Tegra::Texture::SwizzleSource;
-using Tegra::Texture::TextureType;
 using Tegra::Texture::TICEntry;
 using Tegra::Texture::TSCEntry;
 using VideoCore::Surface::GetFormatType;
-using VideoCore::Surface::IsCopyCompatible;
 using VideoCore::Surface::PixelFormat;
-using VideoCore::Surface::PixelFormatFromDepthFormat;
-using VideoCore::Surface::PixelFormatFromRenderTargetFormat;
 using VideoCore::Surface::SurfaceType;
 using namespace Common::Literals;
 
@@ -674,7 +670,8 @@ void TextureCache<P>::CommitAsyncFlushes() {
         bool any_none_dma = false;
         for (PendingDownload& download_info : download_ids) {
             if (download_info.is_swizzle) {
-                total_size_bytes += slot_images[download_info.object_id].unswizzled_size_bytes;
+                total_size_bytes +=
+                    Common::AlignUp(slot_images[download_info.object_id].unswizzled_size_bytes, 64);
                 any_none_dma = true;
                 download_info.async_buffer_id = last_async_buffer_id;
             }
@@ -868,12 +865,16 @@ std::pair<typename TextureCache<P>::Image*, BufferImageCopy> TextureCache<P>::Dm
 }
 
 template <class P>
-void TextureCache<P>::DownloadImageIntoBuffer(
-    typename TextureCache<P>::Image* image, typename TextureCache<P>::BufferType buffer,
-    size_t buffer_offset, std::span<const VideoCommon::BufferImageCopy> copies, GPUVAddr address, size_t size) {
+void TextureCache<P>::DownloadImageIntoBuffer(typename TextureCache<P>::Image* image,
+                                              typename TextureCache<P>::BufferType buffer,
+                                              size_t buffer_offset,
+                                              std::span<const VideoCommon::BufferImageCopy> copies,
+                                              GPUVAddr address, size_t size) {
     if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
-        auto slot = slot_buffer_downloads.insert(address, size);
-        uncommitted_downloads.emplace_back(false, uncommitted_async_buffers.size(), slot);
+        const BufferDownload new_buffer_download{address, size};
+        auto slot = slot_buffer_downloads.insert(new_buffer_download);
+        const PendingDownload new_download{false, uncommitted_async_buffers.size(), slot};
+        uncommitted_downloads.emplace_back(new_download);
         auto download_map = runtime.DownloadStagingBuffer(size, true);
         uncommitted_async_buffers.emplace_back(download_map);
         std::array buffers{
@@ -2269,7 +2270,8 @@ void TextureCache<P>::BindRenderTarget(ImageViewId* old_id, ImageViewId new_id) 
     if (new_id) {
         const ImageViewBase& old_view = slot_image_views[new_id];
         if (True(old_view.flags & ImageViewFlagBits::PreemtiveDownload)) {
-            uncommitted_downloads.emplace_back(true, 0, old_view.image_id);
+            const PendingDownload new_download{true, 0, old_view.image_id};
+            uncommitted_downloads.emplace_back(new_download);
         }
     }
     *old_id = new_id;

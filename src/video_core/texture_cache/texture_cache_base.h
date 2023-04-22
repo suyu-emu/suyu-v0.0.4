@@ -40,14 +40,9 @@ struct ChannelState;
 
 namespace VideoCommon {
 
-using Tegra::Texture::SwizzleSource;
 using Tegra::Texture::TICEntry;
 using Tegra::Texture::TSCEntry;
-using VideoCore::Surface::GetFormatType;
-using VideoCore::Surface::IsCopyCompatible;
 using VideoCore::Surface::PixelFormat;
-using VideoCore::Surface::PixelFormatFromDepthFormat;
-using VideoCore::Surface::PixelFormatFromRenderTargetFormat;
 using namespace Common::Literals;
 
 struct ImageViewInOut {
