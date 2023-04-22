@@ -98,8 +98,9 @@ HostCounter::HostCounter(QueryCache& cache_, std::shared_ptr<HostCounter> depend
       query{cache_.AllocateQuery(type_)}, tick{cache_.GetScheduler().CurrentTick()} {
     const vk::Device* logical = &cache.GetDevice().GetLogical();
     cache.GetScheduler().Record([logical, query = query](vk::CommandBuffer cmdbuf) {
+        const bool use_precise = Settings::IsGPULevelHigh();
         logical->ResetQueryPool(query.first, query.second, 1);
-        cmdbuf.BeginQuery(query.first, query.second, VK_QUERY_CONTROL_PRECISE_BIT);
+        cmdbuf.BeginQuery(query.first, query.second, use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
     });
 }
 

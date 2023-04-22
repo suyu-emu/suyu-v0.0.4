@@ -675,7 +675,7 @@ bool RasterizerVulkan::AccelerateConditionalRendering() {
     const GPUVAddr condition_address{maxwell3d->regs.render_enable.Address()};
     Maxwell::ReportSemaphore::Compare cmp;
     if (gpu_memory->IsMemoryDirty(condition_address, sizeof(cmp),
-                                  VideoCommon::CacheType::BufferCache)) {
+                                  VideoCommon::CacheType::BufferCache | VideoCommon::CacheType::QueryCache)) {
         return true;
     }
     return false;
