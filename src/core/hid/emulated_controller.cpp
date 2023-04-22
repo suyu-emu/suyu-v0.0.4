@@ -280,6 +280,10 @@ void EmulatedController::LoadVirtualGamepadParams() {
     virtual_stick_params[Settings::NativeAnalog::LStick].Set("axis_y", 1);
     virtual_stick_params[Settings::NativeAnalog::RStick].Set("axis_x", 2);
     virtual_stick_params[Settings::NativeAnalog::RStick].Set("axis_y", 3);
+    virtual_stick_params[Settings::NativeAnalog::LStick].Set("deadzone", 0.0f);
+    virtual_stick_params[Settings::NativeAnalog::LStick].Set("range", 1.0f);
+    virtual_stick_params[Settings::NativeAnalog::RStick].Set("deadzone", 0.0f);
+    virtual_stick_params[Settings::NativeAnalog::RStick].Set("range", 1.0f);
 }
 
 void EmulatedController::ReloadInput() {
