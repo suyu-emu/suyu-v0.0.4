@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <functional>
 #include <iterator>
 #include <list>
 #include <memory>
@@ -101,10 +102,10 @@ class QueryCacheBase : public VideoCommon::ChannelSetupCaches<VideoCommon::Chann
 public:
     explicit QueryCacheBase(VideoCore::RasterizerInterface& rasterizer_,
                             Core::Memory::Memory& cpu_memory_)
-        : rasterizer{rasterizer_}, cpu_memory{cpu_memory_}, streams{
-                                       {CounterStream{static_cast<QueryCache&>(*this),
-                                                      VideoCore::QueryType::SamplesPassed}}} {
-        (void) slot_async_jobs.insert(); // Null value
+        : rasterizer{rasterizer_},
+          cpu_memory{cpu_memory_}, streams{{CounterStream{static_cast<QueryCache&>(*this),
+                                                          VideoCore::QueryType::SamplesPassed}}} {
+        (void)slot_async_jobs.insert(); // Null value
     }
 
     void InvalidateRegion(VAddr addr, std::size_t size) {
@@ -136,7 +137,7 @@ public:
             query = Register(type, *cpu_addr, host_ptr, timestamp.has_value());
         }
 
-        auto result = query->BindCounter(Stream(type).Current());
+        auto result = query->BindCounter(Stream(type).Current(), timestamp);
         if (result) {
             auto async_job_id = query->GetAsyncJob();
             auto& async_job = slot_async_jobs[async_job_id];
@@ -294,15 +295,17 @@ private:
     void AsyncFlushQuery(CachedQuery* query, std::optional<u64> timestamp,
                          std::unique_lock<std::recursive_mutex>& lock) {
         const AsyncJobId new_async_job_id = slot_async_jobs.insert();
-        AsyncJob& async_job = slot_async_jobs[new_async_job_id];
-        query->SetAsyncJob(new_async_job_id);
-        async_job.query_location = query->GetCpuAddr();
-        async_job.collected = false;
+        {
+            AsyncJob& async_job = slot_async_jobs[new_async_job_id];
+            query->SetAsyncJob(new_async_job_id);
+            async_job.query_location = query->GetCpuAddr();
+            async_job.collected = false;
 
-        if (!uncommitted_flushes) {
-            uncommitted_flushes = std::make_shared<std::vector<AsyncJobId>>();
+            if (!uncommitted_flushes) {
+                uncommitted_flushes = std::make_shared<std::vector<AsyncJobId>>();
+            }
+            uncommitted_flushes->push_back(new_async_job_id);
         }
-        uncommitted_flushes->push_back(new_async_job_id);
         lock.unlock();
         std::function<void()> operation([this, new_async_job_id, timestamp] {
             std::unique_lock local_lock{mutex};
@@ -408,11 +411,20 @@ public:
         // When counter is nullptr it means that it's just been reset. We are supposed to write a
         // zero in these cases.
         const u64 value = counter ? counter->Query(async) : 0;
+        if (async) {
+            return value;
+        }
+        std::memcpy(host_ptr, &value, sizeof(u64));
+
+        if (timestamp) {
+            std::memcpy(host_ptr + TIMESTAMP_OFFSET, &*timestamp, sizeof(u64));
+        }
         return value;
     }
 
     /// Binds a counter to this query.
-    std::optional<u64> BindCounter(std::shared_ptr<HostCounter> counter_) {
+    std::optional<u64> BindCounter(std::shared_ptr<HostCounter> counter_,
+                                   std::optional<u64> timestamp_) {
         std::optional<u64> result{};
         if (counter) {
             // If there's an old counter set it means the query is being rewritten by the game.
@@ -420,6 +432,7 @@ public:
             result = std::make_optional(Flush());
         }
         counter = std::move(counter_);
+        timestamp = timestamp_;
         return result;
     }
 

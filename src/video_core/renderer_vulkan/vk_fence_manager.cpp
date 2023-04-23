@@ -10,7 +10,6 @@
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 
-
 namespace Vulkan {
 
 InnerFence::InnerFence(Scheduler& scheduler_, bool is_stubbed_)
