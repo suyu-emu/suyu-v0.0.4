@@ -554,11 +554,7 @@ private:
     std::deque<boost::container::small_vector<BufferCopy, 4>> pending_downloads;
     std::optional<Async_Buffer> current_buffer;
 
-    // queries
-    boost::container::small_vector<std::pair<VAddr, size_t>, 8> pending_queries;
-    std::deque<boost::container::small_vector<BufferCopy, 8>> committed_queries;
-    boost::container::small_vector<u64, 8> flushed_queries;
-    std::deque<std::optional<Async_Buffer>> query_async_buffers;
+    std::deque<Async_Buffer> async_buffers_death_ring;
 
     size_t immediate_buffer_capacity = 0;
     Common::ScratchBuffer<u8> immediate_buffer_alloc;

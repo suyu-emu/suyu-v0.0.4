@@ -22,7 +22,7 @@ BufferCache<P>::BufferCache(VideoCore::RasterizerInterface& rasterizer_,
     void(slot_buffers.insert(runtime, NullBufferParams{}));
     common_ranges.clear();
 
-    active_async_buffers = IMPLEMENTS_ASYNC_DOWNLOADS && !Settings::IsGPULevelHigh();
+    active_async_buffers = !Settings::IsGPULevelHigh();
 
     if (!runtime.CanReportMemoryUsage()) {
         minimum_memory = DEFAULT_EXPECTED_MEMORY;
@@ -74,7 +74,7 @@ void BufferCache<P>::TickFrame() {
     uniform_cache_hits[0] = 0;
     uniform_cache_shots[0] = 0;
 
-    active_async_buffers = IMPLEMENTS_ASYNC_DOWNLOADS && !Settings::IsGPULevelHigh();
+    active_async_buffers = !Settings::IsGPULevelHigh();
 
     const bool skip_preferred = hits * 256 < shots * 251;
     uniform_buffer_skip_cache_size = skip_preferred ? DEFAULT_SKIP_CACHE_SIZE : 0;
@@ -88,6 +88,13 @@ void BufferCache<P>::TickFrame() {
     }
     ++frame_tick;
     delayed_destruction_ring.Tick();
+
+    if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
+        for (auto& buffer : async_buffers_death_ring) {
+            runtime.FreeDeferredStagingBuffer(buffer);
+        }
+        async_buffers_death_ring.clear();
+    }
 }
 
 template <class P>
@@ -468,8 +475,10 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
     AccumulateFlushes();
 
     if (committed_ranges.empty()) {
-        if (active_async_buffers) {
-            async_buffers.emplace_back(std::optional<Async_Buffer>{});
+        if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
+            if (active_async_buffers) {
+                async_buffers.emplace_back(std::optional<Async_Buffer>{});
+            }
         }
         return;
     }
@@ -529,8 +538,10 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
     }
     committed_ranges.clear();
     if (downloads.empty()) {
-        if (active_async_buffers) {
-            async_buffers.emplace_back(std::optional<Async_Buffer>{});
+        if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
+            if (active_async_buffers) {
+                async_buffers.emplace_back(std::optional<Async_Buffer>{});
+            }
         }
         return;
     }
@@ -555,6 +566,9 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
             runtime.PostCopyBarrier();
             pending_downloads.emplace_back(std::move(normalized_copies));
             async_buffers.emplace_back(download_staging);
+        } else {
+            committed_ranges.clear();
+            uncommitted_ranges.clear();
         }
     } else {
         if constexpr (USE_MEMORY_MAPS) {
@@ -629,7 +643,7 @@ void BufferCache<P>::PopAsyncBuffers() {
             const IntervalType subtract_interval{cpu_addr, cpu_addr + copy.size};
             RemoveEachInOverlapCounter(async_downloads, subtract_interval, -1);
         }
-        runtime.FreeDeferredStagingBuffer(*async_buffer);
+        async_buffers_death_ring.emplace_back(*async_buffer);
         async_buffers.pop_front();
         pending_downloads.pop_front();
     }
