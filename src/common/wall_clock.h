@@ -5,6 +5,7 @@
 
 #include <chrono>
 #include <memory>
+#include <ratio>
 
 #include "common/common_types.h"
 
@@ -12,50 +13,43 @@ namespace Common {
 
 class WallClock {
 public:
-    static constexpr u64 NS_RATIO = 1'000'000'000;
-    static constexpr u64 US_RATIO = 1'000'000;
-    static constexpr u64 MS_RATIO = 1'000;
+    static constexpr u64 CNTFRQ = 19'200'000; // CNTPCT_EL0 Frequency = 19.2 MHz
 
     virtual ~WallClock() = default;
 
-    /// Returns current wall time in nanoseconds
-    [[nodiscard]] virtual std::chrono::nanoseconds GetTimeNS() = 0;
+    /// @returns The time in nanoseconds since the construction of this clock.
+    virtual std::chrono::nanoseconds GetTimeNS() const = 0;
 
-    /// Returns current wall time in microseconds
-    [[nodiscard]] virtual std::chrono::microseconds GetTimeUS() = 0;
+    /// @returns The time in microseconds since the construction of this clock.
+    virtual std::chrono::microseconds GetTimeUS() const = 0;
 
-    /// Returns current wall time in milliseconds
-    [[nodiscard]] virtual std::chrono::milliseconds GetTimeMS() = 0;
+    /// @returns The time in milliseconds since the construction of this clock.
+    virtual std::chrono::milliseconds GetTimeMS() const = 0;
 
-    /// Returns current wall time in emulated clock cycles
-    [[nodiscard]] virtual u64 GetClockCycles() = 0;
+    /// @returns The guest CNTPCT ticks since the construction of this clock.
+    virtual u64 GetCNTPCT() const = 0;
 
-    /// Returns current wall time in emulated cpu cycles
-    [[nodiscard]] virtual u64 GetCPUCycles() = 0;
+    /// @returns The raw host timer ticks since an indeterminate epoch.
+    virtual u64 GetHostTicksNow() const = 0;
 
-    virtual void Pause(bool is_paused) = 0;
+    /// @returns The raw host timer ticks since the construction of this clock.
+    virtual u64 GetHostTicksElapsed() const = 0;
 
-    /// Tells if the wall clock, uses the host CPU's hardware clock
-    [[nodiscard]] bool IsNative() const {
-        return is_native;
-    }
+    /// @returns Whether the clock directly uses the host's hardware clock.
+    virtual bool IsNative() const = 0;
 
 protected:
-    explicit WallClock(u64 emulated_cpu_frequency_, u64 emulated_clock_frequency_, bool is_native_)
-        : emulated_cpu_frequency{emulated_cpu_frequency_},
-          emulated_clock_frequency{emulated_clock_frequency_}, is_native{is_native_} {}
+    using NsRatio = std::nano;
+    using UsRatio = std::micro;
+    using MsRatio = std::milli;
 
-    u64 emulated_cpu_frequency;
-    u64 emulated_clock_frequency;
-
-private:
-    bool is_native;
+    using NsToUsRatio = std::ratio_divide<std::nano, std::micro>;
+    using NsToMsRatio = std::ratio_divide<std::nano, std::milli>;
+    using NsToCNTPCTRatio = std::ratio<CNTFRQ, std::nano::den>;
 };
 
-[[nodiscard]] std::unique_ptr<WallClock> CreateBestMatchingClock(u64 emulated_cpu_frequency,
-                                                                 u64 emulated_clock_frequency);
+std::unique_ptr<WallClock> CreateOptimalClock();
 
-[[nodiscard]] std::unique_ptr<WallClock> CreateStandardWallClock(u64 emulated_cpu_frequency,
-                                                                 u64 emulated_clock_frequency);
+std::unique_ptr<WallClock> CreateStandardWallClock();
 
 } // namespace Common

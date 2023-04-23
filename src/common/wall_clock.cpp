@@ -2,88 +2,71 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/steady_clock.h"
-#include "common/uint128.h"
 #include "common/wall_clock.h"
 
 #ifdef ARCHITECTURE_x86_64
 #include "common/x64/cpu_detect.h"
 #include "common/x64/native_clock.h"
+#include "common/x64/rdtsc.h"
 #endif
 
 namespace Common {
 
 class StandardWallClock final : public WallClock {
 public:
-    explicit StandardWallClock(u64 emulated_cpu_frequency_, u64 emulated_clock_frequency_)
-        : WallClock{emulated_cpu_frequency_, emulated_clock_frequency_, false},
-          start_time{SteadyClock::Now()} {}
+    explicit StandardWallClock() : start_time{SteadyClock::Now()} {}
 
-    std::chrono::nanoseconds GetTimeNS() override {
+    std::chrono::nanoseconds GetTimeNS() const override {
         return SteadyClock::Now() - start_time;
     }
 
-    std::chrono::microseconds GetTimeUS() override {
-        return std::chrono::duration_cast<std::chrono::microseconds>(GetTimeNS());
+    std::chrono::microseconds GetTimeUS() const override {
+        return static_cast<std::chrono::microseconds>(GetHostTicksElapsed() / NsToUsRatio::den);
     }
 
-    std::chrono::milliseconds GetTimeMS() override {
-        return std::chrono::duration_cast<std::chrono::milliseconds>(GetTimeNS());
+    std::chrono::milliseconds GetTimeMS() const override {
+        return static_cast<std::chrono::milliseconds>(GetHostTicksElapsed() / NsToMsRatio::den);
     }
 
-    u64 GetClockCycles() override {
-        const u128 temp = Common::Multiply64Into128(GetTimeNS().count(), emulated_clock_frequency);
-        return Common::Divide128On32(temp, NS_RATIO).first;
+    u64 GetCNTPCT() const override {
+        return GetHostTicksElapsed() * NsToCNTPCTRatio::num / NsToCNTPCTRatio::den;
     }
 
-    u64 GetCPUCycles() override {
-        const u128 temp = Common::Multiply64Into128(GetTimeNS().count(), emulated_cpu_frequency);
-        return Common::Divide128On32(temp, NS_RATIO).first;
+    u64 GetHostTicksNow() const override {
+        return static_cast<u64>(SteadyClock::Now().time_since_epoch().count());
     }
 
-    void Pause([[maybe_unused]] bool is_paused) override {
-        // Do nothing in this clock type.
+    u64 GetHostTicksElapsed() const override {
+        return static_cast<u64>(GetTimeNS().count());
+    }
+
+    bool IsNative() const override {
+        return false;
     }
 
 private:
     SteadyClock::time_point start_time;
 };
 
+std::unique_ptr<WallClock> CreateOptimalClock() {
 #ifdef ARCHITECTURE_x86_64
-
-std::unique_ptr<WallClock> CreateBestMatchingClock(u64 emulated_cpu_frequency,
-                                                   u64 emulated_clock_frequency) {
     const auto& caps = GetCPUCaps();
-    u64 rtsc_frequency = 0;
-    if (caps.invariant_tsc) {
-        rtsc_frequency = caps.tsc_frequency ? caps.tsc_frequency : EstimateRDTSCFrequency();
-    }
 
-    // Fallback to StandardWallClock if the hardware TSC does not have the precision greater than:
-    // - A nanosecond
-    // - The emulated CPU frequency
-    // - The emulated clock counter frequency (CNTFRQ)
-    if (rtsc_frequency <= WallClock::NS_RATIO || rtsc_frequency <= emulated_cpu_frequency ||
-        rtsc_frequency <= emulated_clock_frequency) {
-        return std::make_unique<StandardWallClock>(emulated_cpu_frequency,
-                                                   emulated_clock_frequency);
+    if (caps.invariant_tsc && caps.tsc_frequency >= WallClock::CNTFRQ) {
+        return std::make_unique<X64::NativeClock>(caps.tsc_frequency);
     } else {
-        return std::make_unique<X64::NativeClock>(emulated_cpu_frequency, emulated_clock_frequency,
-                                                  rtsc_frequency);
+        // Fallback to StandardWallClock if the hardware TSC
+        // - Is not invariant
+        // - Is not more precise than CNTFRQ
+        return std::make_unique<StandardWallClock>();
     }
-}
-
 #else
-
-std::unique_ptr<WallClock> CreateBestMatchingClock(u64 emulated_cpu_frequency,
-                                                   u64 emulated_clock_frequency) {
-    return std::make_unique<StandardWallClock>(emulated_cpu_frequency, emulated_clock_frequency);
+    return std::make_unique<StandardWallClock>();
+#endif
 }
 
-#endif
-
-std::unique_ptr<WallClock> CreateStandardWallClock(u64 emulated_cpu_frequency,
-                                                   u64 emulated_clock_frequency) {
-    return std::make_unique<StandardWallClock>(emulated_cpu_frequency, emulated_clock_frequency);
+std::unique_ptr<WallClock> CreateStandardWallClock() {
+    return std::make_unique<StandardWallClock>();
 }
 
 } // namespace Common
