@@ -33,7 +33,13 @@ object ThemeHelper {
             DEFAULT -> activity.setTheme(R.style.Theme_Yuzu_Main)
             MATERIAL_YOU -> activity.setTheme(R.style.Theme_Yuzu_Main_MaterialYou)
         }
-        if (preferences.getBoolean(Settings.PREF_BLACK_BACKGROUNDS, false)) {
+
+        // Using a specific night mode check because this could apply incorrectly when using the
+        // light app mode, dark system mode, and black backgrounds. Launching the settings activity
+        // will then show light mode colors/navigation bars but with black backgrounds.
+        if (preferences.getBoolean(Settings.PREF_BLACK_BACKGROUNDS, false)
+            && isNightMode(activity)
+        ) {
             activity.setTheme(R.style.ThemeOverlay_Yuzu_Dark)
         }
     }
@@ -84,15 +90,21 @@ object ThemeHelper {
             activity.window,
             activity.window.decorView
         )
-        val systemReportedThemeMode =
-            activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         when (themeMode) {
-            AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM -> when (systemReportedThemeMode) {
-                Configuration.UI_MODE_NIGHT_NO -> setLightModeSystemBars(windowController)
-                Configuration.UI_MODE_NIGHT_YES -> setDarkModeSystemBars(windowController)
+            AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM -> when (isNightMode(activity)) {
+                false -> setLightModeSystemBars(windowController)
+                true -> setDarkModeSystemBars(windowController)
             }
             AppCompatDelegate.MODE_NIGHT_NO -> setLightModeSystemBars(windowController)
             AppCompatDelegate.MODE_NIGHT_YES -> setDarkModeSystemBars(windowController)
+        }
+    }
+
+    private fun isNightMode(activity: AppCompatActivity): Boolean {
+        return when (activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
+            Configuration.UI_MODE_NIGHT_NO -> false
+            Configuration.UI_MODE_NIGHT_YES -> true
+            else -> false
         }
     }
 
