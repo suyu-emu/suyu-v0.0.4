@@ -26,4 +26,13 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
+    <View
+        android:id="@+id/navigation_bar_shade"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@android:color/transparent"
+        android:clickable="false"
+        android:focusable="false"
+        android:layout_gravity="bottom|center_horizontal" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

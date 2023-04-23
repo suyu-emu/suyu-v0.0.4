@@ -8,6 +8,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -51,9 +52,11 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         setSupportActionBar(binding.toolbarSettings)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-        ThemeHelper.setNavigationBarColor(
-            this,
-            MaterialColors.getColor(window.decorView, R.attr.colorSurface)
+        binding.navigationBarShade.setBackgroundColor(
+            ThemeHelper.getColorWithOpacity(
+                MaterialColors.getColor(binding.navigationBarShade, R.attr.colorSurface),
+                ThemeHelper.SYSTEM_BAR_ALPHA
+            )
         )
 
         setInsets()
@@ -164,6 +167,11 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.updatePadding(left = insets.left, right = insets.right)
             InsetsHelper.insetAppBar(insets, binding.appbarSettings)
+
+            val mlpShade = binding.navigationBarShade.layoutParams as ViewGroup.MarginLayoutParams
+            mlpShade.height = insets.bottom
+            binding.navigationBarShade.layoutParams = mlpShade
+
             windowInsets
         }
     }
