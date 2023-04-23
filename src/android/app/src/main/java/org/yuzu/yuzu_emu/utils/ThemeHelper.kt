@@ -33,6 +33,9 @@ object ThemeHelper {
             DEFAULT -> activity.setTheme(R.style.Theme_Yuzu_Main)
             MATERIAL_YOU -> activity.setTheme(R.style.Theme_Yuzu_Main_MaterialYou)
         }
+        if (preferences.getBoolean(Settings.PREF_BLACK_BACKGROUNDS, false)) {
+            activity.setTheme(R.style.ThemeOverlay_Yuzu_Dark)
+        }
     }
 
     @JvmStatic

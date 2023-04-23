@@ -137,6 +137,7 @@ class Settings {
         const val PREF_FIRST_APP_LAUNCH = "FirstApplicationLaunch"
         const val PREF_THEME = "Theme"
         const val PREF_THEME_MODE = "ThemeMode"
+        const val PREF_BLACK_BACKGROUNDS = "BlackBackgrounds"
 
         private val configFileSectionsMap: MutableMap<String, List<String>> = HashMap()
 

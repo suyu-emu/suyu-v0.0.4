@@ -241,4 +241,8 @@
     <string name="theme_mode_light">Light</string>
     <string name="theme_mode_dark">Dark</string>
 
+    <!-- Black backgrounds theme -->
+    <string name="use_black_backgrounds">Use Black Backgrounds</string>
+    <string name="use_black_backgrounds_description">When using the dark theme, apply black backgrounds.</string>
+
 </resources>

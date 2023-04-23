@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.features.settings.model.AbstractBooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
@@ -378,6 +379,28 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     0,
                     R.array.themeModeEntries,
                     R.array.themeModeValues
+                )
+            )
+
+            val blackBackgrounds: AbstractBooleanSetting = object : AbstractBooleanSetting {
+                override var boolean: Boolean
+                    get() = preferences.getBoolean(Settings.PREF_BLACK_BACKGROUNDS, false)
+                    set(value) {
+                        preferences.edit().putBoolean(Settings.PREF_BLACK_BACKGROUNDS, value).apply()
+                        settingsActivity.recreate()
+                    }
+                override val key: String? = null
+                override val section: String? = null
+                override val isRuntimeEditable: Boolean = true
+                override val valueAsString: String
+                    get() = preferences.getBoolean(Settings.PREF_BLACK_BACKGROUNDS, false).toString()
+            }
+
+            add(
+                SwitchSetting(
+                    blackBackgrounds,
+                    R.string.use_black_backgrounds,
+                    R.string.use_black_backgrounds_description
                 )
             )
         }
