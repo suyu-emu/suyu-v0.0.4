@@ -66,9 +66,10 @@ void QueryPool::Reserve(std::pair<VkQueryPool, u32> query) {
     }
 }
 
-QueryCache::QueryCache(VideoCore::RasterizerInterface& rasterizer_, const Device& device_,
+QueryCache::QueryCache(VideoCore::RasterizerInterface& rasterizer_,
+                       Core::Memory::Memory& cpu_memory_, const Device& device_,
                        Scheduler& scheduler_)
-    : QueryCacheBase{rasterizer_}, device{device_}, scheduler{scheduler_},
+    : QueryCacheBase{rasterizer_, cpu_memory_}, device{device_}, scheduler{scheduler_},
       query_pools{
           QueryPool{device_, scheduler_, QueryType::SamplesPassed},
       } {}
@@ -100,7 +101,8 @@ HostCounter::HostCounter(QueryCache& cache_, std::shared_ptr<HostCounter> depend
     cache.GetScheduler().Record([logical, query = query](vk::CommandBuffer cmdbuf) {
         const bool use_precise = Settings::IsGPULevelHigh();
         logical->ResetQueryPool(query.first, query.second, 1);
-        cmdbuf.BeginQuery(query.first, query.second, use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
+        cmdbuf.BeginQuery(query.first, query.second,
+                          use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
     });
 }
 
@@ -113,8 +115,10 @@ void HostCounter::EndQuery() {
         [query = query](vk::CommandBuffer cmdbuf) { cmdbuf.EndQuery(query.first, query.second); });
 }
 
-u64 HostCounter::BlockingQuery() const {
-    cache.GetScheduler().Wait(tick);
+u64 HostCounter::BlockingQuery(bool async) const {
+    if (!async) {
+        cache.GetScheduler().Wait(tick);
+    }
     u64 data;
     const VkResult query_result = cache.GetDevice().GetLogical().GetQueryResults(
         query.first, query.second, 1, sizeof(data), &data, sizeof(data),

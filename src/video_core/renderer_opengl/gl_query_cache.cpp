@@ -26,8 +26,8 @@ constexpr GLenum GetTarget(VideoCore::QueryType type) {
 
 } // Anonymous namespace
 
-QueryCache::QueryCache(RasterizerOpenGL& rasterizer_)
-    : QueryCacheBase(rasterizer_), gl_rasterizer{rasterizer_} {}
+QueryCache::QueryCache(RasterizerOpenGL& rasterizer_, Core::Memory::Memory& cpu_memory_)
+    : QueryCacheBase(rasterizer_, cpu_memory_), gl_rasterizer{rasterizer_} {}
 
 QueryCache::~QueryCache() = default;
 
@@ -74,7 +74,7 @@ void HostCounter::EndQuery() {
     glEndQuery(GetTarget(type));
 }
 
-u64 HostCounter::BlockingQuery() const {
+u64 HostCounter::BlockingQuery([[maybe_unused]] bool async) const {
     GLint64 value;
     glGetQueryObjecti64v(query.handle, GL_QUERY_RESULT, &value);
     return static_cast<u64>(value);
@@ -96,7 +96,7 @@ CachedQuery& CachedQuery::operator=(CachedQuery&& rhs) noexcept {
     return *this;
 }
 
-void CachedQuery::Flush() {
+u64 CachedQuery::Flush([[maybe_unused]] bool async) {
     // Waiting for a query while another query of the same target is enabled locks Nvidia's driver.
     // To avoid this disable and re-enable keeping the dependency stream.
     // But we only have to do this if we have pending waits to be done.
@@ -106,11 +106,13 @@ void CachedQuery::Flush() {
         stream.Update(false);
     }
 
-    VideoCommon::CachedQueryBase<HostCounter>::Flush();
+    auto result = VideoCommon::CachedQueryBase<HostCounter>::Flush();
 
     if (slice_counter) {
         stream.Update(true);
     }
+
+    return result;
 }
 
 } // namespace OpenGL
