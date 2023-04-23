@@ -9,19 +9,11 @@
 
 #include "common/x64/cpu_detect.h"
 #include "common/x64/cpu_wait.h"
+#include "common/x64/rdtsc.h"
 
 namespace Common::X64 {
 
 #ifdef _MSC_VER
-__forceinline static u64 FencedRDTSC() {
-    _mm_lfence();
-    _ReadWriteBarrier();
-    const u64 result = __rdtsc();
-    _mm_lfence();
-    _ReadWriteBarrier();
-    return result;
-}
-
 __forceinline static void TPAUSE() {
     // 100,000 cycles is a reasonable amount of time to wait to save on CPU resources.
     // For reference:
@@ -32,16 +24,6 @@ __forceinline static void TPAUSE() {
     _tpause(0, FencedRDTSC() + PauseCycles);
 }
 #else
-static u64 FencedRDTSC() {
-    u64 eax;
-    u64 edx;
-    asm volatile("lfence\n\t"
-                 "rdtsc\n\t"
-                 "lfence\n\t"
-                 : "=a"(eax), "=d"(edx));
-    return (edx << 32) | eax;
-}
-
 static void TPAUSE() {
     // 100,000 cycles is a reasonable amount of time to wait to save on CPU resources.
     // For reference:

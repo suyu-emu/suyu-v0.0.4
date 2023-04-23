@@ -14,6 +14,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/x64/cpu_detect.h"
+#include "common/x64/rdtsc.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -187,6 +188,8 @@ static CPUCaps Detect() {
             caps.tsc_frequency = static_cast<u64>(caps.crystal_frequency) *
                                  caps.tsc_crystal_ratio_numerator /
                                  caps.tsc_crystal_ratio_denominator;
+        } else {
+            caps.tsc_frequency = X64::EstimateRDTSCFrequency();
         }
     }
 
