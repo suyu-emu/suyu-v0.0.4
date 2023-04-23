@@ -449,6 +449,7 @@ private:
     std::deque<std::vector<PendingDownload>> committed_downloads;
     std::vector<AsyncBuffer> uncommitted_async_buffers;
     std::deque<std::vector<AsyncBuffer>> async_buffers;
+    std::deque<AsyncBuffer> async_buffers_death_ring;
 
     struct LRUItemParams {
         using ObjectType = ImageId;

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -137,6 +137,9 @@ public:
 
     void UploadMemory(const StagingBufferRef& map,
                       std::span<const VideoCommon::BufferImageCopy> copies);
+
+    void DownloadMemory(VkBuffer buffer, VkDeviceSize offset,
+                        std::span<const VideoCommon::BufferImageCopy> copies);
 
     void DownloadMemory(std::span<VkBuffer> buffers, std::span<VkDeviceSize> offsets,
                         std::span<const VideoCommon::BufferImageCopy> copies);

@@ -139,6 +139,13 @@ void TextureCache<P>::TickFrame() {
     runtime.TickFrame();
     critical_gc = 0;
     ++frame_tick;
+
+    if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
+        for (auto& buffer : async_buffers_death_ring) {
+            runtime.FreeDeferredStagingBuffer(buffer);
+        }
+        async_buffers_death_ring.clear();
+    }
 }
 
 template <class P>
@@ -688,10 +695,10 @@ void TextureCache<P>::CommitAsyncFlushes() {
             }
             uncommitted_async_buffers.emplace_back(download_map);
         }
+        async_buffers.emplace_back(std::move(uncommitted_async_buffers));
+        uncommitted_async_buffers.clear();
     }
     committed_downloads.emplace_back(std::move(uncommitted_downloads));
-    async_buffers.emplace_back(std::move(uncommitted_async_buffers));
-    uncommitted_async_buffers.clear();
     uncommitted_downloads.clear();
 }
 
@@ -729,7 +736,7 @@ void TextureCache<P>::PopAsyncFlushes() {
             }
         }
         for (auto& download_buffer : download_map) {
-            runtime.FreeDeferredStagingBuffer(download_buffer);
+            async_buffers_death_ring.emplace_back(download_buffer);
         }
         committed_downloads.pop_front();
         async_buffers.pop_front();
@@ -748,7 +755,7 @@ void TextureCache<P>::PopAsyncFlushes() {
         auto download_map = runtime.DownloadStagingBuffer(total_size_bytes);
         const size_t original_offset = download_map.offset;
         for (const PendingDownload& download_info : download_ids) {
-            if (download_info.is_swizzle) {
+            if (!download_info.is_swizzle) {
                 continue;
             }
             Image& image = slot_images[download_info.object_id];
@@ -761,7 +768,7 @@ void TextureCache<P>::PopAsyncFlushes() {
         download_map.offset = original_offset;
         std::span<u8> download_span = download_map.mapped_span;
         for (const PendingDownload& download_info : download_ids) {
-            if (download_info.is_swizzle) {
+            if (!download_info.is_swizzle) {
                 continue;
             }
             const ImageBase& image = slot_images[download_info.object_id];
@@ -887,10 +894,7 @@ void TextureCache<P>::DownloadImageIntoBuffer(typename TextureCache<P>::Image* i
         };
         image->DownloadMemory(buffers, buffer_offsets, copies);
     } else {
-        std::array buffers{
-            buffer,
-        };
-        image->DownloadMemory(buffers, buffer_offset, copies);
+        image->DownloadMemory(buffer, buffer_offset, copies);
     }
 }
 

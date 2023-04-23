@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
@@ -1340,6 +1340,17 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
 
 void Image::UploadMemory(const StagingBufferRef& map, std::span<const BufferImageCopy> copies) {
     UploadMemory(map.buffer, map.offset, copies);
+}
+
+void Image::DownloadMemory(VkBuffer buffer, VkDeviceSize offset,
+                           std::span<const VideoCommon::BufferImageCopy> copies) {
+    std::array buffer_handles{
+        buffer,
+    };
+    std::array buffer_offsets{
+        offset,
+    };
+    DownloadMemory(buffer_handles, buffer_offsets, copies);
 }
 
 void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<VkDeviceSize> offsets_span,
