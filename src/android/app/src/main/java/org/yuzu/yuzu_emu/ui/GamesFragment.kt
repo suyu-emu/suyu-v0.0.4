@@ -140,6 +140,9 @@ class GamesFragment : Fragment() {
 
         // Make sure the loading indicator appears even if the layout is told to refresh before being fully drawn
         binding.swipeRefresh.post {
+            if (_binding == null) {
+                return@post
+            }
             binding.swipeRefresh.isRefreshing = gamesViewModel.isReloading.value!!
         }
     }
