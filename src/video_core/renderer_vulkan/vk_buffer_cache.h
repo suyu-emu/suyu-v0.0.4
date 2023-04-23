@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "video_core/buffer_cache/buffer_cache.h"
+#include "video_core/buffer_cache/buffer_cache_base.h"
 #include "video_core/buffer_cache/memory_tracker_base.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"

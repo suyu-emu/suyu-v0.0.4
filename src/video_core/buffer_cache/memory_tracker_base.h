@@ -35,67 +35,71 @@ public:
     /// Returns the inclusive CPU modified range in a begin end pair
     [[nodiscard]] std::pair<u64, u64> ModifiedCpuRegion(VAddr query_cpu_addr,
                                                         u64 query_size) noexcept {
-        return IteratePairs<true>(query_cpu_addr, query_size,
-                                  [](Manager* manager, u64 offset, size_t size) {
-                                      return manager->ModifiedRegion<Type::CPU>(offset, size);
-                                  });
+        return IteratePairs<true>(
+            query_cpu_addr, query_size, [](Manager* manager, u64 offset, size_t size) {
+                return manager->template ModifiedRegion<Type::CPU>(offset, size);
+            });
     }
 
     /// Returns the inclusive GPU modified range in a begin end pair
     [[nodiscard]] std::pair<u64, u64> ModifiedGpuRegion(VAddr query_cpu_addr,
                                                         u64 query_size) noexcept {
-        return IteratePairs<false>(query_cpu_addr, query_size,
-                                   [](Manager* manager, u64 offset, size_t size) {
-                                       return manager->ModifiedRegion<Type::GPU>(offset, size);
-                                   });
+        return IteratePairs<false>(
+            query_cpu_addr, query_size, [](Manager* manager, u64 offset, size_t size) {
+                return manager->template ModifiedRegion<Type::GPU>(offset, size);
+            });
     }
 
     /// Returns true if a region has been modified from the CPU
     [[nodiscard]] bool IsRegionCpuModified(VAddr query_cpu_addr, u64 query_size) noexcept {
-        return IteratePages<true>(query_cpu_addr, query_size,
-                                  [](Manager* manager, u64 offset, size_t size) {
-                                      return manager->IsRegionModified<Type::CPU>(offset, size);
-                                  });
+        return IteratePages<true>(
+            query_cpu_addr, query_size, [](Manager* manager, u64 offset, size_t size) {
+                return manager->template IsRegionModified<Type::CPU>(offset, size);
+            });
     }
 
     /// Returns true if a region has been modified from the GPU
     [[nodiscard]] bool IsRegionGpuModified(VAddr query_cpu_addr, u64 query_size) noexcept {
-        return IteratePages<false>(query_cpu_addr, query_size,
-                                   [](Manager* manager, u64 offset, size_t size) {
-                                       return manager->IsRegionModified<Type::GPU>(offset, size);
-                                   });
+        return IteratePages<false>(
+            query_cpu_addr, query_size, [](Manager* manager, u64 offset, size_t size) {
+                return manager->template IsRegionModified<Type::GPU>(offset, size);
+            });
     }
 
     /// Mark region as CPU modified, notifying the rasterizer about this change
     void MarkRegionAsCpuModified(VAddr dirty_cpu_addr, u64 query_size) {
-        IteratePages<true>(
-            dirty_cpu_addr, query_size, [](Manager* manager, u64 offset, size_t size) {
-                manager->ChangeRegionState<Type::CPU, true>(manager->GetCpuAddr() + offset, size);
-            });
+        IteratePages<true>(dirty_cpu_addr, query_size,
+                           [](Manager* manager, u64 offset, size_t size) {
+                               manager->template ChangeRegionState<Type::CPU, true>(
+                                   manager->GetCpuAddr() + offset, size);
+                           });
     }
 
     /// Unmark region as CPU modified, notifying the rasterizer about this change
     void UnmarkRegionAsCpuModified(VAddr dirty_cpu_addr, u64 query_size) {
-        IteratePages<true>(
-            dirty_cpu_addr, query_size, [](Manager* manager, u64 offset, size_t size) {
-                manager->ChangeRegionState<Type::CPU, false>(manager->GetCpuAddr() + offset, size);
-            });
+        IteratePages<true>(dirty_cpu_addr, query_size,
+                           [](Manager* manager, u64 offset, size_t size) {
+                               manager->template ChangeRegionState<Type::CPU, false>(
+                                   manager->GetCpuAddr() + offset, size);
+                           });
     }
 
     /// Mark region as modified from the host GPU
     void MarkRegionAsGpuModified(VAddr dirty_cpu_addr, u64 query_size) noexcept {
-        IteratePages<true>(
-            dirty_cpu_addr, query_size, [](Manager* manager, u64 offset, size_t size) {
-                manager->ChangeRegionState<Type::GPU, true>(manager->GetCpuAddr() + offset, size);
-            });
+        IteratePages<true>(dirty_cpu_addr, query_size,
+                           [](Manager* manager, u64 offset, size_t size) {
+                               manager->template ChangeRegionState<Type::GPU, true>(
+                                   manager->GetCpuAddr() + offset, size);
+                           });
     }
 
     /// Unmark region as modified from the host GPU
     void UnmarkRegionAsGpuModified(VAddr dirty_cpu_addr, u64 query_size) noexcept {
-        IteratePages<true>(
-            dirty_cpu_addr, query_size, [](Manager* manager, u64 offset, size_t size) {
-                manager->ChangeRegionState<Type::GPU, false>(manager->GetCpuAddr() + offset, size);
-            });
+        IteratePages<true>(dirty_cpu_addr, query_size,
+                           [](Manager* manager, u64 offset, size_t size) {
+                               manager->template ChangeRegionState<Type::GPU, false>(
+                                   manager->GetCpuAddr() + offset, size);
+                           });
     }
 
     /// Mark region as modified from the CPU
@@ -104,7 +108,7 @@ public:
         IteratePages<true>(
             dirty_cpu_addr, query_size, [this](Manager* manager, u64 offset, size_t size) {
                 const VAddr cpu_address = manager->GetCpuAddr() + offset;
-                manager->ChangeRegionState<Type::CachedCPU, true>(cpu_address, size);
+                manager->template ChangeRegionState<Type::CachedCPU, true>(cpu_address, size);
                 cached_pages.insert(static_cast<u32>(cpu_address >> HIGHER_PAGE_BITS));
             });
     }
@@ -128,7 +132,7 @@ public:
     void ForEachUploadRange(VAddr query_cpu_range, u64 query_size, Func&& func) {
         IteratePages<true>(query_cpu_range, query_size,
                            [&func](Manager* manager, u64 offset, size_t size) {
-                               manager->ForEachModifiedRange<Type::CPU>(
+                               manager->template ForEachModifiedRange<Type::CPU>(
                                    manager->GetCpuAddr() + offset, size, true, func);
                            });
     }
@@ -138,7 +142,7 @@ public:
     void ForEachDownloadRange(VAddr query_cpu_range, u64 query_size, bool clear, Func&& func) {
         IteratePages<false>(query_cpu_range, query_size,
                             [&func, clear](Manager* manager, u64 offset, size_t size) {
-                                manager->ForEachModifiedRange<Type::GPU>(
+                                manager->template ForEachModifiedRange<Type::GPU>(
                                     manager->GetCpuAddr() + offset, size, clear, func);
                             });
     }
@@ -147,7 +151,7 @@ public:
     void ForEachDownloadRangeAndClear(VAddr query_cpu_range, u64 query_size, Func&& func) {
         IteratePages<false>(query_cpu_range, query_size,
                             [&func](Manager* manager, u64 offset, size_t size) {
-                                manager->ForEachModifiedRange<Type::GPU>(
+                                manager->template ForEachModifiedRange<Type::GPU>(
                                     manager->GetCpuAddr() + offset, size, true, func);
                             });
     }
@@ -218,7 +222,11 @@ private:
             page_offset = 0;
             remaining_size -= copy_amount;
         }
-        return begin < end ? std::make_pair(begin, end) : std::make_pair(0ULL, 0ULL);
+        if (begin < end) {
+            return std::make_pair(begin, end);
+        } else {
+            return std::make_pair(0ULL, 0ULL);
+        }
     }
 
     void CreateRegion(std::size_t page_index) {

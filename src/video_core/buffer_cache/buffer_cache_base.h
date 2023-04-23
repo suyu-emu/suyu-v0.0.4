@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <numeric>
@@ -16,10 +17,13 @@
 #define BOOST_NO_MT
 #include <boost/pool/detail/mutex.hpp>
 #undef BOOST_NO_MT
+#include <boost/icl/interval.hpp>
+#include <boost/icl/interval_base_set.hpp>
 #include <boost/icl/interval_set.hpp>
 #include <boost/icl/split_interval_map.hpp>
 #include <boost/pool/pool.hpp>
 #include <boost/pool/pool_alloc.hpp>
+#include <boost/pool/poolfwd.hpp>
 
 #include "common/common_types.h"
 #include "common/div_ceil.h"
@@ -41,7 +45,6 @@
 #include "video_core/surface.h"
 #include "video_core/texture_cache/slot_vector.h"
 #include "video_core/texture_cache/types.h"
-
 
 namespace boost {
 template <typename T>
@@ -116,11 +119,10 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<VideoCommon::ChannelI
     using Async_Buffer = typename P::Async_Buffer;
     using MemoryTracker = typename P::MemoryTracker;
 
-    using IntervalCompare = ICL_COMPARE_INSTANCE(ICL_COMPARE_DEFAULT, VAddr);
-    using IntervalInstance = ICL_INTERVAL_INSTANCE(ICL_INTERVAL_DEFAULT, VAddr, IntervalCompare);
-    using IntervalAllocator = boost::fast_pool_allocator;
-    using IntervalSet =
-        boost::icl::interval_set<VAddr, IntervalCompare, IntervalInstance, IntervalAllocator>;
+    using IntervalCompare = std::less<VAddr>;
+    using IntervalInstance = boost::icl::interval_type_default<VAddr, std::less>;
+    using IntervalAllocator = boost::fast_pool_allocator<VAddr>;
+    using IntervalSet = boost::icl::interval_set<VAddr>;
     using IntervalType = typename IntervalSet::interval_type;
 
     template <typename Type>
@@ -141,12 +143,9 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<VideoCommon::ChannelI
         static void version(Type&){};
     };
 
-    using OverlapCombine = ICL_COMBINE_INSTANCE(counter_add_functor, int);
-    using OverlapSection = ICL_SECTION_INSTANCE(boost::icl::inter_section, int);
-    using OverlapCounter =
-        boost::icl::split_interval_map<VAddr, int, boost::icl::partial_absorber, IntervalCompare,
-                                       OverlapCombine, OverlapSection, IntervalInstance,
-                                       IntervalAllocator>;
+    using OverlapCombine = counter_add_functor<int>;
+    using OverlapSection = boost::icl::inter_section<int>;
+    using OverlapCounter = boost::icl::split_interval_map<VAddr, int>;
 
     struct Empty {};
 
@@ -262,7 +261,8 @@ public:
     /// Return true when a CPU region is modified from the CPU
     [[nodiscard]] bool IsRegionCpuModified(VAddr addr, size_t size);
 
-    void SetDrawIndirect(const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect_) {
+    void SetDrawIndirect(
+        const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect_) {
         current_draw_indirect = current_draw_indirect_;
     }
 
@@ -349,7 +349,8 @@ private:
         }
     }
 
-    void RemoveEachInOverlapCounter(OverlapCounter& current_range, const IntervalType search_interval, int subtract_value) {
+    void RemoveEachInOverlapCounter(OverlapCounter& current_range,
+                                    const IntervalType search_interval, int subtract_value) {
         bool any_removals = false;
         current_range.add(std::make_pair(search_interval, subtract_value));
         do {
@@ -469,7 +470,8 @@ private:
 
     void NotifyBufferDeletion();
 
-    [[nodiscard]] Binding StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index, bool is_written) const;
+    [[nodiscard]] Binding StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
+                                               bool is_written) const;
 
     [[nodiscard]] TextureBufferBinding GetTextureBufferBinding(GPUVAddr gpu_addr, u32 size,
                                                                PixelFormat format);

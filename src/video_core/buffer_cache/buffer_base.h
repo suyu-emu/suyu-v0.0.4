@@ -55,53 +55,53 @@ public:
     [[nodiscard]] std::pair<u64, u64> ModifiedCpuRegion(VAddr query_cpu_addr,
                                                         u64 query_size) const noexcept {
         const u64 offset = query_cpu_addr - cpu_addr;
-        return word_manager.ModifiedRegion<Type::CPU>(offset, query_size);
+        return word_manager.template ModifiedRegion<Type::CPU>(offset, query_size);
     }
 
     /// Returns the inclusive GPU modified range in a begin end pair
     [[nodiscard]] std::pair<u64, u64> ModifiedGpuRegion(VAddr query_cpu_addr,
                                                         u64 query_size) const noexcept {
         const u64 offset = query_cpu_addr - cpu_addr;
-        return word_manager.ModifiedRegion<Type::GPU>(offset, query_size);
+        return word_manager.template ModifiedRegion<Type::GPU>(offset, query_size);
     }
 
     /// Returns true if a region has been modified from the CPU
     [[nodiscard]] bool IsRegionCpuModified(VAddr query_cpu_addr, u64 query_size) const noexcept {
         const u64 offset = query_cpu_addr - cpu_addr;
-        return word_manager.IsRegionModified<Type::CPU>(offset, query_size);
+        return word_manager.template IsRegionModified<Type::CPU>(offset, query_size);
     }
 
     /// Returns true if a region has been modified from the GPU
     [[nodiscard]] bool IsRegionGpuModified(VAddr query_cpu_addr, u64 query_size) const noexcept {
         const u64 offset = query_cpu_addr - cpu_addr;
-        return word_manager.IsRegionModified<Type::GPU>(offset, query_size);
+        return word_manager.template IsRegionModified<Type::GPU>(offset, query_size);
     }
 
     /// Mark region as CPU modified, notifying the rasterizer about this change
     void MarkRegionAsCpuModified(VAddr dirty_cpu_addr, u64 size) {
-        word_manager.ChangeRegionState<Type::CPU, true>(dirty_cpu_addr, size);
+        word_manager.template ChangeRegionState<Type::CPU, true>(dirty_cpu_addr, size);
     }
 
     /// Unmark region as CPU modified, notifying the rasterizer about this change
     void UnmarkRegionAsCpuModified(VAddr dirty_cpu_addr, u64 size) {
-        word_manager.ChangeRegionState<Type::CPU, false>(dirty_cpu_addr, size);
+        word_manager.template ChangeRegionState<Type::CPU, false>(dirty_cpu_addr, size);
     }
 
     /// Mark region as modified from the host GPU
     void MarkRegionAsGpuModified(VAddr dirty_cpu_addr, u64 size) noexcept {
-        word_manager.ChangeRegionState<Type::GPU, true>(dirty_cpu_addr, size);
+        word_manager.template ChangeRegionState<Type::GPU, true>(dirty_cpu_addr, size);
     }
 
     /// Unmark region as modified from the host GPU
     void UnmarkRegionAsGpuModified(VAddr dirty_cpu_addr, u64 size) noexcept {
-        word_manager.ChangeRegionState<Type::GPU, false>(dirty_cpu_addr, size);
+        word_manager.template ChangeRegionState<Type::GPU, false>(dirty_cpu_addr, size);
     }
 
     /// Mark region as modified from the CPU
     /// but don't mark it as modified until FlusHCachedWrites is called.
     void CachedCpuWrite(VAddr dirty_cpu_addr, u64 size) {
         flags |= BufferFlagBits::CachedWrites;
-        word_manager.ChangeRegionState<Type::CachedCPU, true>(dirty_cpu_addr, size);
+        word_manager.template ChangeRegionState<Type::CachedCPU, true>(dirty_cpu_addr, size);
     }
 
     /// Flushes cached CPU writes, and notify the rasterizer about the deltas
@@ -113,24 +113,24 @@ public:
     /// Call 'func' for each CPU modified range and unmark those pages as CPU modified
     template <typename Func>
     void ForEachUploadRange(VAddr query_cpu_range, u64 size, Func&& func) {
-        word_manager.ForEachModifiedRange<Type::CPU>(query_cpu_range, size, true, func);
+        word_manager.template ForEachModifiedRange<Type::CPU>(query_cpu_range, size, true, func);
     }
 
     /// Call 'func' for each GPU modified range and unmark those pages as GPU modified
     template <typename Func>
     void ForEachDownloadRange(VAddr query_cpu_range, u64 size, bool clear, Func&& func) {
-        word_manager.ForEachModifiedRange<Type::GPU>(query_cpu_range, size, clear, func);
+        word_manager.template ForEachModifiedRange<Type::GPU>(query_cpu_range, size, clear, func);
     }
 
     template <typename Func>
     void ForEachDownloadRangeAndClear(VAddr query_cpu_range, u64 size, Func&& func) {
-        word_manager.ForEachModifiedRange<Type::GPU>(query_cpu_range, size, true, func);
+        word_manager.template ForEachModifiedRange<Type::GPU>(query_cpu_range, size, true, func);
     }
 
     /// Call 'func' for each GPU modified range and unmark those pages as GPU modified
     template <typename Func>
     void ForEachDownloadRange(Func&& func) {
-        word_manager.ForEachModifiedRange<Type::GPU>(cpu_addr, SizeBytes(), true, func);
+        word_manager.template ForEachModifiedRange<Type::GPU>(cpu_addr, SizeBytes(), true, func);
     }
 
     /// Mark buffer as picked

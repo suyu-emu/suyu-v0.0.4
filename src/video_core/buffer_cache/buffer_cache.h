@@ -1395,10 +1395,10 @@ bool BufferCache<P>::SynchronizeBufferNoModified(Buffer& buffer, VAddr cpu_addr,
     auto make_copies = [&] {
         for (auto& interval : found_sets) {
             const std::size_t sub_size = interval.upper() - interval.lower();
-            const VAddr cpu_addr = interval.lower();
+            const VAddr cpu_addr_ = interval.lower();
             copies.push_back(BufferCopy{
                 .src_offset = total_size_bytes,
-                .dst_offset = cpu_addr - buffer.CpuAddr(),
+                .dst_offset = cpu_addr_ - buffer.CpuAddr(),
                 .size = sub_size,
             });
             total_size_bytes += sub_size;
