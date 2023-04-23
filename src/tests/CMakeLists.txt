@@ -15,7 +15,7 @@ add_executable(tests
     core/core_timing.cpp
     core/internal_network/network.cpp
     precompiled_headers.h
-    video_core/buffer_base.cpp
+    video_core/memory_tracker.cpp
     input_common/calibration_configuration_job.cpp
 )
 
