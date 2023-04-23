@@ -38,6 +38,22 @@ public:
     /// @returns Whether the clock directly uses the host's hardware clock.
     virtual bool IsNative() const = 0;
 
+    static inline u64 NSToCNTPCT(u64 ns) {
+        return ns * NsToCNTPCTRatio::num / NsToCNTPCTRatio::den;
+    }
+
+    static inline u64 USToCNTPCT(u64 us) {
+        return us * UsToCNTPCTRatio::num / UsToCNTPCTRatio::den;
+    }
+
+    static inline u64 CNTPCTToNS(u64 cntpct) {
+        return cntpct * NsToCNTPCTRatio::den / NsToCNTPCTRatio::num;
+    }
+
+    static inline u64 CNTPCTToUS(u64 cntpct) {
+        return cntpct * UsToCNTPCTRatio::den / UsToCNTPCTRatio::num;
+    }
+
 protected:
     using NsRatio = std::nano;
     using UsRatio = std::micro;
@@ -46,6 +62,7 @@ protected:
     using NsToUsRatio = std::ratio_divide<std::nano, std::micro>;
     using NsToMsRatio = std::ratio_divide<std::nano, std::milli>;
     using NsToCNTPCTRatio = std::ratio<CNTFRQ, std::nano::den>;
+    using UsToCNTPCTRatio = std::ratio<CNTFRQ, std::micro::den>;
 };
 
 std::unique_ptr<WallClock> CreateOptimalClock();

@@ -184,7 +184,8 @@ u64 KScheduler::UpdateHighestPriorityThread(KThread* highest_thread) {
         prev_highest_thread != highest_thread) [[likely]] {
         if (prev_highest_thread != nullptr) [[likely]] {
             IncrementScheduledCount(prev_highest_thread);
-            prev_highest_thread->SetLastScheduledTick(m_kernel.System().CoreTiming().GetCPUTicks());
+            prev_highest_thread->SetLastScheduledTick(
+                m_kernel.System().CoreTiming().GetClockTicks());
         }
         if (m_state.should_count_idle) {
             if (highest_thread != nullptr) [[likely]] {
@@ -351,7 +352,7 @@ void KScheduler::SwitchThread(KThread* next_thread) {
 
     // Update the CPU time tracking variables.
     const s64 prev_tick = m_last_context_switch_time;
-    const s64 cur_tick = m_kernel.System().CoreTiming().GetCPUTicks();
+    const s64 cur_tick = m_kernel.System().CoreTiming().GetClockTicks();
     const s64 tick_diff = cur_tick - prev_tick;
     cur_thread->AddCpuTime(m_core_id, tick_diff);
     if (cur_process != nullptr) {

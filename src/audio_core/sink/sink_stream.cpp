@@ -15,7 +15,6 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "core/core_timing_util.h"
 
 namespace AudioCore::Sink {
 

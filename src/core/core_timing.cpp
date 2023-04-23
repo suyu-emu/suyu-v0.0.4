@@ -16,7 +16,6 @@
 
 #include "common/microprofile.h"
 #include "core/core_timing.h"
-#include "core/core_timing_util.h"
 #include "core/hardware_properties.h"
 
 namespace Core::Timing {
@@ -45,9 +44,7 @@ struct CoreTiming::Event {
     }
 };
 
-CoreTiming::CoreTiming()
-    : cpu_clock{Common::CreateBestMatchingClock(Hardware::BASE_CLOCK_RATE, Hardware::CNTFREQ)},
-      event_clock{Common::CreateStandardWallClock(Hardware::BASE_CLOCK_RATE, Hardware::CNTFREQ)} {}
+CoreTiming::CoreTiming() : clock{Common::CreateOptimalClock()} {}
 
 CoreTiming::~CoreTiming() {
     Reset();
@@ -180,7 +177,7 @@ void CoreTiming::AddTicks(u64 ticks_to_add) {
 void CoreTiming::Idle() {
     if (!event_queue.empty()) {
         const u64 next_event_time = event_queue.front().time;
-        const u64 next_ticks = nsToCycles(std::chrono::nanoseconds(next_event_time)) + 10U;
+        const u64 next_ticks = Common::WallClock::NSToCNTPCT(next_event_time) + 10U;
         if (next_ticks > ticks) {
             ticks = next_ticks;
         }
@@ -193,18 +190,11 @@ void CoreTiming::ResetTicks() {
     downcount = MAX_SLICE_LENGTH;
 }
 
-u64 CoreTiming::GetCPUTicks() const {
-    if (is_multicore) [[likely]] {
-        return cpu_clock->GetCPUCycles();
-    }
-    return ticks;
-}
-
 u64 CoreTiming::GetClockTicks() const {
     if (is_multicore) [[likely]] {
-        return cpu_clock->GetClockCycles();
+        return clock->GetCNTPCT();
     }
-    return CpuCyclesToClockCycles(ticks);
+    return ticks;
 }
 
 std::optional<s64> CoreTiming::Advance() {
@@ -297,9 +287,7 @@ void CoreTiming::ThreadLoop() {
         }
 
         paused_set = true;
-        event_clock->Pause(true);
         pause_event.Wait();
-        event_clock->Pause(false);
     }
 }
 
@@ -315,25 +303,18 @@ void CoreTiming::Reset() {
     has_started = false;
 }
 
-std::chrono::nanoseconds CoreTiming::GetCPUTimeNs() const {
-    if (is_multicore) [[likely]] {
-        return cpu_clock->GetTimeNS();
-    }
-    return CyclesToNs(ticks);
-}
-
 std::chrono::nanoseconds CoreTiming::GetGlobalTimeNs() const {
     if (is_multicore) [[likely]] {
-        return event_clock->GetTimeNS();
+        return clock->GetTimeNS();
     }
-    return CyclesToNs(ticks);
+    return std::chrono::nanoseconds{Common::WallClock::CNTPCTToNS(ticks)};
 }
 
 std::chrono::microseconds CoreTiming::GetGlobalTimeUs() const {
     if (is_multicore) [[likely]] {
-        return event_clock->GetTimeUS();
+        return clock->GetTimeUS();
     }
-    return CyclesToUs(ticks);
+    return std::chrono::microseconds{Common::WallClock::CNTPCTToUS(ticks)};
 }
 
 } // namespace Core::Timing
