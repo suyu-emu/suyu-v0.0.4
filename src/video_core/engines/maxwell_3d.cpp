@@ -4,6 +4,7 @@
 #include <cstring>
 #include <optional>
 #include "common/assert.h"
+#include "common/bit_util.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "core/core.h"
@@ -259,12 +260,13 @@ u32 Maxwell3D::GetMaxCurrentVertices() {
 size_t Maxwell3D::EstimateIndexBufferSize() {
     GPUVAddr start_address = regs.index_buffer.StartAddress();
     GPUVAddr end_address = regs.index_buffer.EndAddress();
-    static constexpr std::array<size_t, 4> max_sizes = {
-        std::numeric_limits<u8>::max(), std::numeric_limits<u16>::max(),
-        std::numeric_limits<u32>::max(), std::numeric_limits<u32>::max()};
+    static constexpr std::array<size_t, 3> max_sizes = {std::numeric_limits<u8>::max(),
+                                                        std::numeric_limits<u16>::max(),
+                                                        std::numeric_limits<u32>::max()};
     const size_t byte_size = regs.index_buffer.FormatSizeInBytes();
+    const size_t log2_byte_size = Common::Log2Ceil64(byte_size);
     return std::min<size_t>(
-        memory_manager.GetMemoryLayoutSize(start_address, byte_size * max_sizes[byte_size]) /
+        memory_manager.GetMemoryLayoutSize(start_address, byte_size * max_sizes[log2_byte_size]) /
             byte_size,
         static_cast<size_t>(end_address - start_address));
 }
