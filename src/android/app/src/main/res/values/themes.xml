@@ -40,6 +40,7 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
 
         <item name="sliderStyle">@style/YuzuSlider</item>
+        <item name="materialAlertDialogTheme">@style/YuzuMaterialDialog</item>
 
         <item name="android:windowLayoutInDisplayCutoutMode">default</item>
 

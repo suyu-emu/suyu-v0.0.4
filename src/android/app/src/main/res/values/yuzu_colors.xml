@@ -3,7 +3,7 @@
 
     <color name="yuzu_primary">#990E00</color>
     <color name="yuzu_onPrimary">#FFFFFF</color>
-    <color name="yuzu_primaryContainer">#FFDAD4</color>
+    <color name="yuzu_primaryContainer">#EEDEDD</color>
     <color name="yuzu_onPrimaryContainer">#400200</color>
     <color name="yuzu_secondary">#775650</color>
     <color name="yuzu_onSecondary">#FFFFFF</color>

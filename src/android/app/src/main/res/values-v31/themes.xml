@@ -24,6 +24,8 @@
         <item name="colorOnSurfaceInverse">@color/m3_sys_color_dynamic_light_on_surface_variant</item>
         <item name="colorSurfaceInverse">@color/m3_sys_color_dynamic_light_surface_variant</item>
         <item name="colorPrimaryInverse">@color/m3_sys_color_dynamic_light_inverse_primary</item>
+
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
     </style>
 
 </resources>
