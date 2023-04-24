@@ -11,7 +11,7 @@
     <dimen name="spacing_refresh_start">32dp</dimen>
     <dimen name="spacing_refresh_end">96dp</dimen>
     <dimen name="menu_width">256dp</dimen>
-    <dimen name="card_width">160dp</dimen>
+    <dimen name="card_width">165dp</dimen>
 
     <dimen name="dialog_margin">20dp</dimen>
     <dimen name="elevated_app_bar">3dp</dimen>

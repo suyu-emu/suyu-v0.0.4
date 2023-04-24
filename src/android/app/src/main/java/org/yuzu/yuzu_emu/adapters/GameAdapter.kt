@@ -6,6 +6,7 @@ package org.yuzu.yuzu_emu.adapters
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,7 +32,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameViewHolder {
         // Create a new view.
         val binding = CardGameBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        binding.root.setOnClickListener(this)
+        binding.cardGame.setOnClickListener(this)
 
         // Use that view to create a ViewHolder.
         return GameViewHolder(binding)
@@ -58,7 +59,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
         lateinit var game: Game
 
         init {
-            itemView.tag = this
+            binding.cardGame.tag = this
         }
 
         fun bind(game: Game) {
@@ -73,11 +74,14 @@ class GameAdapter(private val activity: AppCompatActivity) :
             }
 
             binding.textGameTitle.text = game.title.replace("[\\t\\n\\r]+".toRegex(), " ")
-            binding.textGameCaption.text = game.company
 
-            if (game.company.isEmpty()) {
-                binding.textGameCaption.visibility = View.GONE
-            }
+            binding.textGameTitle.postDelayed(
+                {
+                    binding.textGameTitle.ellipsize = TextUtils.TruncateAt.MARQUEE
+                    binding.textGameTitle.isSelected = true
+                },
+                3000
+            )
         }
     }
 
