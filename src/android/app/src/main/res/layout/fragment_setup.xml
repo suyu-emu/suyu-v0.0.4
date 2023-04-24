@@ -22,6 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:text="@string/next"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -32,6 +33,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:text="@string/back"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

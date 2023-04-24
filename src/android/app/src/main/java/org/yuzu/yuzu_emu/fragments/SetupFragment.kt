@@ -110,23 +110,24 @@ class SetupFragment : Fragment() {
         }
 
         binding.viewPager2.registerOnPageChangeCallback(object : OnPageChangeCallback() {
-            override fun onPageScrolled(
-                position: Int,
-                positionOffset: Float,
-                positionOffsetPixels: Int
-            ) {
-                super.onPageScrolled(position, positionOffset, positionOffsetPixels)
-                if (position == 0) {
-                    hideView(binding.buttonBack)
-                } else {
-                    showView(binding.buttonBack)
-                }
+            var previousPosition: Int = 0
 
-                if (position == pages.size - 1 || position == 0) {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+
+                if (position == 1 && previousPosition == 0) {
+                    showView(binding.buttonNext)
+                    showView(binding.buttonBack)
+                } else if (position == 0 && previousPosition == 1) {
+                    hideView(binding.buttonBack)
                     hideView(binding.buttonNext)
-                } else {
+                } else if (position == pages.size - 1 && previousPosition == pages.size - 2) {
+                    hideView(binding.buttonNext)
+                } else if (position == pages.size - 2 && previousPosition == pages.size - 1) {
                     showView(binding.buttonNext)
                 }
+
+                previousPosition = position
             }
         })
 
@@ -154,10 +155,6 @@ class SetupFragment : Fragment() {
     }
 
     private fun showView(view: View) {
-        if (view.visibility == View.VISIBLE) {
-            return
-        }
-
         view.apply {
             alpha = 0f
             visibility = View.VISIBLE
@@ -169,7 +166,7 @@ class SetupFragment : Fragment() {
     }
 
     private fun hideView(view: View) {
-        if (view.visibility == View.GONE) {
+        if (view.visibility == View.INVISIBLE) {
             return
         }
 
