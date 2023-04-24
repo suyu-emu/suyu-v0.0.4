@@ -65,6 +65,18 @@ VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, u32 wi
     return extent;
 }
 
+VkCompositeAlphaFlagBitsKHR ChooseAlphaFlags(const VkSurfaceCapabilitiesKHR& capabilities) {
+    if (capabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) {
+        return VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    } else if (capabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR) {
+        return VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
+    } else {
+        LOG_ERROR(Render_Vulkan, "Unknown composite alpha flags value {:#x}",
+                  capabilities.supportedCompositeAlpha);
+        return VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    }
+}
+
 } // Anonymous namespace
 
 Swapchain::Swapchain(VkSurfaceKHR surface_, const Device& device_, Scheduler& scheduler_,
@@ -155,6 +167,7 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, bo
     const auto formats{physical_device.GetSurfaceFormatsKHR(surface)};
     const auto present_modes{physical_device.GetSurfacePresentModesKHR(surface)};
 
+    const VkCompositeAlphaFlagBitsKHR alpha_flags{ChooseAlphaFlags(capabilities)};
     const VkSurfaceFormatKHR surface_format{ChooseSwapSurfaceFormat(formats)};
     present_mode = ChooseSwapPresentMode(present_modes);
 
@@ -185,7 +198,7 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, bo
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
         .preTransform = capabilities.currentTransform,
-        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        .compositeAlpha = alpha_flags,
         .presentMode = present_mode,
         .clipped = VK_FALSE,
         .oldSwapchain = nullptr,
