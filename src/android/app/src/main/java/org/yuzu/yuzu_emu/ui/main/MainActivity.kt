@@ -180,6 +180,10 @@ class MainActivity : AppCompatActivity() {
             windowInsets
         }
 
+    private fun hasExtension(path: String, extension: String): Boolean {
+        return path.substring(path.lastIndexOf(".") + 1).contains(extension)
+    }
+
     val getGamesDirectory =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
             if (result == null)
@@ -212,6 +216,15 @@ class MainActivity : AppCompatActivity() {
             if (result == null)
                 return@registerForActivityResult
 
+            if (!hasExtension(result.toString(), "keys")) {
+                Toast.makeText(
+                    applicationContext,
+                    R.string.invalid_keys_file,
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@registerForActivityResult
+            }
+
             val takeFlags =
                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
             contentResolver.takePersistableUriPermission(
@@ -242,6 +255,15 @@ class MainActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
             if (result == null)
                 return@registerForActivityResult
+
+            if (!hasExtension(result.toString(), "bin")) {
+                Toast.makeText(
+                    applicationContext,
+                    R.string.invalid_keys_file,
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@registerForActivityResult
+            }
 
             val takeFlags =
                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
