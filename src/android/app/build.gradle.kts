@@ -131,7 +131,8 @@ android {
                     "-DBUNDLE_SPEEX=ON",
                     "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
                     "-DYUZU_USE_BUNDLED_VCPKG=ON",
-                    "-DYUZU_USE_BUNDLED_FFMPEG=ON"
+                    "-DYUZU_USE_BUNDLED_FFMPEG=ON",
+                    "-DYUZU_ENABLE_LTO=ON"
                 )
 
                 abiFilters("arm64-v8a", "x86_64")
