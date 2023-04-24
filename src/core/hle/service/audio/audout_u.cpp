@@ -49,12 +49,6 @@ public:
         };
         // clang-format on
         RegisterHandlers(functions);
-
-        if (impl->GetSystem()
-                .Initialize(device_name, in_params, handle, applet_resource_user_id)
-                .IsError()) {
-            LOG_ERROR(Service_Audio, "Failed to initialize the AudioOut System!");
-        }
     }
 
     ~IAudioOut() override {
@@ -287,6 +281,14 @@ void AudOutU::OpenAudioOut(HLERequestContext& ctx) {
 
     auto audio_out = std::make_shared<IAudioOut>(system, *impl, new_session_id, device_name,
                                                  in_params, handle, applet_resource_user_id);
+    result = audio_out->GetImpl()->GetSystem().Initialize(device_name, in_params, handle,
+                                                          applet_resource_user_id);
+    if (result.IsError()) {
+        LOG_ERROR(Service_Audio, "Failed to initialize the AudioOut System!");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
 
     impl->sessions[new_session_id] = audio_out->GetImpl();
     impl->applet_resource_user_ids[new_session_id] = applet_resource_user_id;
