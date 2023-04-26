@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -194,11 +195,9 @@ class GamesFragment : Fragment() {
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val extraListSpacing = resources.getDimensionPixelSize(R.dimen.spacing_med)
 
-            view.setPadding(
-                insets.left,
-                insets.top + resources.getDimensionPixelSize(R.dimen.spacing_search),
-                insets.right,
-                insets.bottom + resources.getDimensionPixelSize(R.dimen.spacing_navigation) + extraListSpacing
+            view.updatePadding(
+                top = insets.top + resources.getDimensionPixelSize(R.dimen.spacing_search),
+                bottom = insets.bottom + resources.getDimensionPixelSize(R.dimen.spacing_navigation) + extraListSpacing
             )
             binding.gridSearch.updatePadding(
                 left = insets.left,
@@ -215,6 +214,11 @@ class GamesFragment : Fragment() {
                 insets.top + resources.getDimensionPixelSize(R.dimen.spacing_refresh_start),
                 insets.top + resources.getDimensionPixelSize(R.dimen.spacing_refresh_end)
             )
+
+            val mlpSwipe = binding.swipeRefresh.layoutParams as MarginLayoutParams
+            mlpSwipe.rightMargin = insets.right
+            mlpSwipe.leftMargin = insets.left
+            binding.swipeRefresh.layoutParams = mlpSwipe
 
             windowInsets
         }
