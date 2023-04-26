@@ -68,7 +68,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
             activity.lifecycleScope.launch {
                 val bitmap = decodeGameIcon(game.path)
                 binding.imageGameScreen.load(bitmap) {
-                    error(R.drawable.no_icon)
+                    error(R.drawable.default_icon)
                 }
             }
 
