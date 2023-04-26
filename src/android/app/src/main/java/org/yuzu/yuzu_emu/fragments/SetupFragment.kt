@@ -13,6 +13,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
@@ -35,6 +37,11 @@ class SetupFragment : Fragment() {
     private val homeViewModel: HomeViewModel by activityViewModels()
 
     private lateinit var mainActivity: MainActivity
+
+    companion object {
+        const val KEY_NEXT_VISIBILITY = "NextButtonVisibility"
+        const val KEY_BACK_VISIBILITY = "BackButtonVisibility"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -134,12 +141,25 @@ class SetupFragment : Fragment() {
         binding.buttonNext.setOnClickListener { pageForward() }
         binding.buttonBack.setOnClickListener { pageBackward() }
 
-        if (binding.viewPager2.currentItem == 0) {
-            binding.buttonNext.visibility = View.INVISIBLE
-            binding.buttonBack.visibility = View.INVISIBLE
+        if (savedInstanceState != null) {
+            val nextIsVisible = savedInstanceState.getBoolean(KEY_NEXT_VISIBILITY)
+            val backIsVisible = savedInstanceState.getBoolean(KEY_BACK_VISIBILITY)
+
+            if (nextIsVisible) {
+                binding.buttonNext.visibility = View.VISIBLE
+            }
+            if (backIsVisible) {
+                binding.buttonBack.visibility = View.VISIBLE
+            }
         }
 
         setInsets()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_NEXT_VISIBILITY, binding.buttonNext.isVisible)
+        outState.putBoolean(KEY_BACK_VISIBILITY, binding.buttonBack.isVisible)
     }
 
     override fun onDestroyView() {
@@ -190,7 +210,7 @@ class SetupFragment : Fragment() {
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.setupRoot) { view: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view: View, windowInsets: WindowInsetsCompat ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(
                 insets.left,
