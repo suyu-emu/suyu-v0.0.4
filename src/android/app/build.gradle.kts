@@ -47,7 +47,7 @@ android {
         applicationId = "org.yuzu.yuzu_emu"
         minSdk = 30
         targetSdk = 33
-        versionCode = autoVersion
+        versionCode = 1
         versionName = getVersion()
 
         ndk {
