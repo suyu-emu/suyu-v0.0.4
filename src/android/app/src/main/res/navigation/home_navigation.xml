@@ -20,7 +20,9 @@
         android:label="FirstTimeSetupFragment" >
         <action
             android:id="@+id/action_firstTimeSetupFragment_to_gamesFragment"
-            app:destination="@id/gamesFragment" />
+            app:destination="@id/gamesFragment"
+            app:popUpTo="@id/firstTimeSetupFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
 </navigation>
