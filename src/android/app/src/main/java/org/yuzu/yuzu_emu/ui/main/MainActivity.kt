@@ -75,11 +75,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         setUpNavigation(navHostFragment.navController)
 
         binding.statusBarShade.setBackgroundColor(
-            ThemeHelper.getColorWithOpacity(
-                MaterialColors.getColor(
-                    binding.root,
-                    R.attr.colorSurface
-                ), ThemeHelper.SYSTEM_BAR_ALPHA
+            MaterialColors.getColor(
+                binding.root,
+                R.attr.colorSurface
             )
         )
 

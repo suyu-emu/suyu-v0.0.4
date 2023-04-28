@@ -125,6 +125,7 @@ class GamesFragment : Fragment() {
                 TransitionState.HIDING -> {
                     gamesViewModel.setSearchedGames(emptyList())
                     searchHidden()
+                    binding.appBarSearch.setExpanded(true)
                 }
             }
         }
