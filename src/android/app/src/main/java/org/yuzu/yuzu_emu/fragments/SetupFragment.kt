@@ -14,7 +14,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
@@ -38,9 +37,12 @@ class SetupFragment : Fragment() {
 
     private lateinit var mainActivity: MainActivity
 
+    private lateinit var hasBeenWarned: BooleanArray
+
     companion object {
         const val KEY_NEXT_VISIBILITY = "NextButtonVisibility"
         const val KEY_BACK_VISIBILITY = "BackButtonVisibility"
+        const val KEY_HAS_BEEN_WARNED = "HasBeenWarned"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,36 +86,51 @@ class SetupFragment : Fragment() {
                 R.string.welcome_description,
                 0,
                 true,
-                R.string.get_started
-            ) { pageForward() },
+                R.string.get_started,
+                { pageForward() },
+                false
+            ),
             SetupPage(
                 R.drawable.ic_key,
                 R.string.keys,
                 R.string.keys_description,
                 R.drawable.ic_add,
                 true,
-                R.string.select_keys
-            ) { mainActivity.getProdKey.launch(arrayOf("*/*")) },
+                R.string.select_keys,
+                { mainActivity.getProdKey.launch(arrayOf("*/*")) },
+                true,
+                R.string.install_prod_keys_warning,
+                R.string.install_prod_keys_warning_description,
+                R.string.install_prod_keys_warning_help
+            ),
             SetupPage(
                 R.drawable.ic_controller,
                 R.string.games,
                 R.string.games_description,
                 R.drawable.ic_add,
                 true,
-                R.string.add_games
-            ) { mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data) },
+                R.string.add_games,
+                { mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data) },
+                true,
+                R.string.add_games_warning,
+                R.string.add_games_warning_description,
+                0
+            ),
             SetupPage(
                 R.drawable.ic_check,
                 R.string.done,
                 R.string.done_description,
                 R.drawable.ic_arrow_forward,
                 false,
-                R.string.text_continue
-            ) { finishSetup() }
+                R.string.text_continue,
+                { finishSetup() },
+                false
+            )
         )
         binding.viewPager2.apply {
             adapter = SetupAdapter(requireActivity() as AppCompatActivity, pages)
             offscreenPageLimit = 2
+            isUserInputEnabled = false
         }
 
         binding.viewPager2.registerOnPageChangeCallback(object : OnPageChangeCallback() {
@@ -138,12 +155,26 @@ class SetupFragment : Fragment() {
             }
         })
 
-        binding.buttonNext.setOnClickListener { pageForward() }
+        binding.buttonNext.setOnClickListener {
+            val index = binding.viewPager2.currentItem
+            val currentPage = pages[index]
+            if (currentPage.hasWarning && !hasBeenWarned[index]) {
+                SetupWarningDialogFragment.newInstance(
+                    currentPage.warningTitleId,
+                    currentPage.warningDescriptionId,
+                    currentPage.warningHelpLinkId,
+                    index
+                ).show(childFragmentManager, SetupWarningDialogFragment.TAG)
+            } else {
+                pageForward()
+            }
+        }
         binding.buttonBack.setOnClickListener { pageBackward() }
 
         if (savedInstanceState != null) {
             val nextIsVisible = savedInstanceState.getBoolean(KEY_NEXT_VISIBILITY)
             val backIsVisible = savedInstanceState.getBoolean(KEY_BACK_VISIBILITY)
+            hasBeenWarned = savedInstanceState.getBooleanArray(KEY_HAS_BEEN_WARNED)!!
 
             if (nextIsVisible) {
                 binding.buttonNext.visibility = View.VISIBLE
@@ -151,6 +182,8 @@ class SetupFragment : Fragment() {
             if (backIsVisible) {
                 binding.buttonBack.visibility = View.VISIBLE
             }
+        } else {
+            hasBeenWarned = BooleanArray(pages.size)
         }
 
         setInsets()
@@ -160,6 +193,7 @@ class SetupFragment : Fragment() {
         super.onSaveInstanceState(outState)
         outState.putBoolean(KEY_NEXT_VISIBILITY, binding.buttonNext.isVisible)
         outState.putBoolean(KEY_BACK_VISIBILITY, binding.buttonBack.isVisible)
+        outState.putBooleanArray(KEY_HAS_BEEN_WARNED, hasBeenWarned)
     }
 
     override fun onDestroyView() {
@@ -201,12 +235,16 @@ class SetupFragment : Fragment() {
         }
     }
 
-    private fun pageForward() {
+    fun pageForward() {
         binding.viewPager2.currentItem = binding.viewPager2.currentItem + 1
     }
 
-    private fun pageBackward() {
+    fun pageBackward() {
         binding.viewPager2.currentItem = binding.viewPager2.currentItem - 1
+    }
+
+    fun setPageWarned(page: Int) {
+        hasBeenWarned[page] = true
     }
 
     private fun setInsets() =

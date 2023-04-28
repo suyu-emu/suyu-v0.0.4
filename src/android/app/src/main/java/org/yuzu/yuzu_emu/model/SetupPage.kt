@@ -10,5 +10,9 @@ data class SetupPage(
     val buttonIconId: Int,
     val leftAlignedIcon: Boolean,
     val buttonTextId: Int,
-    val buttonAction: () -> Unit
+    val buttonAction: () -> Unit,
+    val hasWarning: Boolean,
+    val warningTitleId: Int = 0,
+    val warningDescriptionId: Int = 0,
+    val warningHelpLinkId: Int = 0
 )
