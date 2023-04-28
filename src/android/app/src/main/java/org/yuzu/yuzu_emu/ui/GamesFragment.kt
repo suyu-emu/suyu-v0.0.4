@@ -138,6 +138,14 @@ class GamesFragment : Fragment() {
             searchHidden()
         }
 
+        // Check if the user reselected the games menu item and then scroll to top of the list
+        gamesViewModel.shouldScrollToTop.observe(viewLifecycleOwner) { shouldScroll ->
+            if (shouldScroll) {
+                scrollToTop()
+                gamesViewModel.setShouldScrollToTop(false)
+            }
+        }
+
         setInsets()
 
         // Make sure the loading indicator appears even if the layout is told to refresh before being fully drawn
@@ -188,6 +196,12 @@ class GamesFragment : Fragment() {
                 }
             }.sortedByDescending { it.score }.map { it.item }
             gamesViewModel.setSearchedGames(sortedList)
+        }
+    }
+
+    fun scrollToTop() {
+        if (_binding != null) {
+            binding.gridGames.smoothScrollToPosition(0)
         }
     }
 

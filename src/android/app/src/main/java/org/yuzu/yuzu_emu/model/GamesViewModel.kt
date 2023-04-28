@@ -26,6 +26,9 @@ class GamesViewModel : ViewModel() {
     private val _shouldSwapData = MutableLiveData(false)
     val shouldSwapData: LiveData<Boolean> get() = _shouldSwapData
 
+    private val _shouldScrollToTop = MutableLiveData(false)
+    val shouldScrollToTop: LiveData<Boolean> get() = _shouldScrollToTop
+
     init {
         reloadGames(false)
     }
@@ -36,6 +39,10 @@ class GamesViewModel : ViewModel() {
 
     fun setShouldSwapData(shouldSwap: Boolean) {
         _shouldSwapData.postValue(shouldSwap)
+    }
+
+    fun setShouldScrollToTop(shouldScroll: Boolean) {
+        _shouldScrollToTop.postValue(shouldScroll)
     }
 
     fun reloadGames(directoryChanged: Boolean) {

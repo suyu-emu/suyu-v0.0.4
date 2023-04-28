@@ -25,6 +25,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.elevation.ElevationOverlayProvider
+import com.google.android.material.navigation.NavigationBarView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -73,6 +74,11 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         setUpNavigation(navHostFragment.navController)
+        (binding.navigationBar as NavigationBarView).setOnItemReselectedListener {
+            if (it.itemId == R.id.gamesFragment) {
+                gamesViewModel.setShouldScrollToTop(true)
+            }
+        }
 
         binding.statusBarShade.setBackgroundColor(
             MaterialColors.getColor(
@@ -243,7 +249,13 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             )
 
             val dstPath = DirectoryInitialization.userDirectory + "/keys/"
-            if (FileUtil.copyUriToInternalStorage(applicationContext, result, dstPath, "prod.keys")) {
+            if (FileUtil.copyUriToInternalStorage(
+                    applicationContext,
+                    result,
+                    dstPath,
+                    "prod.keys"
+                )
+            ) {
                 if (NativeLibrary.reloadKeys()) {
                     Toast.makeText(
                         applicationContext,
