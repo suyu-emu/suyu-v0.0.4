@@ -214,7 +214,8 @@ public slots:
 
 private:
     /// Updates an action's shortcut and text to reflect an updated hotkey from the hotkey registry.
-    void LinkActionShortcut(QAction* action, const QString& action_name);
+    void LinkActionShortcut(QAction* action, const QString& action_name,
+                            const bool tas_allowed = false);
 
     void RegisterMetaTypes();
 

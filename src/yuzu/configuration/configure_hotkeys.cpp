@@ -48,7 +48,9 @@ ConfigureHotkeys::ConfigureHotkeys(Core::HID::HIDCore& hid_core, QWidget* parent
 
     connect(poll_timer.get(), &QTimer::timeout, [this] {
         const auto buttons = controller->GetNpadButtons();
-        if (buttons.raw != Core::HID::NpadButton::None) {
+        const auto home_pressed = controller->GetHomeButtons().home != 0;
+        const auto capture_pressed = controller->GetCaptureButtons().capture != 0;
+        if (home_pressed || capture_pressed) {
             SetPollingResult(buttons.raw, false);
             return;
         }
@@ -154,8 +156,10 @@ void ConfigureHotkeys::ConfigureController(QModelIndex index) {
             model->setData(index, previous_key);
             return;
         }
-
-        const QString button_string = tr("Home+%1").arg(GetButtonName(button));
+        const auto home_pressed = this->controller->GetHomeButtons().home != 0;
+        const auto capture_pressed = this->controller->GetCaptureButtons().capture != 0;
+        const QString button_string =
+            GetButtonCombinationName(button, home_pressed, capture_pressed);
 
         const auto [key_sequence_used, used_action] = IsUsedControllerKey(button_string);
 
@@ -174,72 +178,83 @@ void ConfigureHotkeys::ConfigureController(QModelIndex index) {
     poll_timer->start(200);     // Check for new inputs every 200ms
     // We need to disable configuration to be able to read npad buttons
     controller->DisableConfiguration();
-    controller->DisableSystemButtons();
 }
 
 void ConfigureHotkeys::SetPollingResult(Core::HID::NpadButton button, const bool cancel) {
     timeout_timer->stop();
     poll_timer->stop();
+    (*input_setter)(button, cancel);
     // Re-Enable configuration
     controller->EnableConfiguration();
-    controller->EnableSystemButtons();
-
-    (*input_setter)(button, cancel);
 
     input_setter = std::nullopt;
 }
 
-QString ConfigureHotkeys::GetButtonName(Core::HID::NpadButton button) const {
+QString ConfigureHotkeys::GetButtonCombinationName(Core::HID::NpadButton button,
+                                                   const bool home = false,
+                                                   const bool capture = false) const {
     Core::HID::NpadButtonState state{button};
+    QString button_combination;
+    if (home) {
+        button_combination.append(QStringLiteral("Home+"));
+    }
+    if (capture) {
+        button_combination.append(QStringLiteral("Screenshot+"));
+    }
     if (state.a) {
-        return QStringLiteral("A");
+        button_combination.append(QStringLiteral("A+"));
     }
     if (state.b) {
-        return QStringLiteral("B");
+        button_combination.append(QStringLiteral("B+"));
     }
     if (state.x) {
-        return QStringLiteral("X");
+        button_combination.append(QStringLiteral("X+"));
     }
     if (state.y) {
-        return QStringLiteral("Y");
+        button_combination.append(QStringLiteral("Y+"));
     }
     if (state.l || state.right_sl || state.left_sl) {
-        return QStringLiteral("L");
+        button_combination.append(QStringLiteral("L+"));
     }
     if (state.r || state.right_sr || state.left_sr) {
-        return QStringLiteral("R");
+        button_combination.append(QStringLiteral("R+"));
     }
     if (state.zl) {
-        return QStringLiteral("ZL");
+        button_combination.append(QStringLiteral("ZL+"));
     }
     if (state.zr) {
-        return QStringLiteral("ZR");
+        button_combination.append(QStringLiteral("ZR+"));
     }
     if (state.left) {
-        return QStringLiteral("Dpad_Left");
+        button_combination.append(QStringLiteral("Dpad_Left+"));
     }
     if (state.right) {
-        return QStringLiteral("Dpad_Right");
+        button_combination.append(QStringLiteral("Dpad_Right+"));
     }
     if (state.up) {
-        return QStringLiteral("Dpad_Up");
+        button_combination.append(QStringLiteral("Dpad_Up+"));
     }
     if (state.down) {
-        return QStringLiteral("Dpad_Down");
+        button_combination.append(QStringLiteral("Dpad_Down+"));
     }
     if (state.stick_l) {
-        return QStringLiteral("Left_Stick");
+        button_combination.append(QStringLiteral("Left_Stick+"));
     }
     if (state.stick_r) {
-        return QStringLiteral("Right_Stick");
+        button_combination.append(QStringLiteral("Right_Stick+"));
     }
     if (state.minus) {
-        return QStringLiteral("Minus");
+        button_combination.append(QStringLiteral("Minus+"));
     }
     if (state.plus) {
-        return QStringLiteral("Plus");
+        button_combination.append(QStringLiteral("Plus+"));
     }
-    return tr("Invalid");
+    if (button_combination.isEmpty()) {
+        return tr("Invalid");
+    } else {
+        button_combination.chop(1);
+        return button_combination;
+    }
 }
 
 std::pair<bool, QString> ConfigureHotkeys::IsUsedKey(QKeySequence key_sequence) const {
