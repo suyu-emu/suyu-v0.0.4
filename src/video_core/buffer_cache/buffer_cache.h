@@ -21,6 +21,7 @@ BufferCache<P>::BufferCache(VideoCore::RasterizerInterface& rasterizer_,
     // Ensure the first slot is used for the null buffer
     void(slot_buffers.insert(runtime, NullBufferParams{}));
     common_ranges.clear();
+    inline_buffer_id = NULL_BUFFER_ID;
 
     active_async_buffers = !Settings::IsGPULevelHigh();
 
@@ -442,9 +443,6 @@ template <class P>
 void BufferCache<P>::FlushCachedWrites() {
     cached_write_buffer_ids.clear();
     memory_tracker.FlushCachedWrites();
-    for (auto& interval : cached_ranges) {
-        ClearDownload(interval);
-    }
     cached_ranges.clear();
 }
 
@@ -659,8 +657,8 @@ bool BufferCache<P>::IsRegionGpuModified(VAddr addr, size_t size) {
 template <class P>
 bool BufferCache<P>::IsRegionRegistered(VAddr addr, size_t size) {
     const VAddr end_addr = addr + size;
-    const u64 page_end = Common::DivCeil(end_addr, PAGE_SIZE);
-    for (u64 page = addr >> PAGE_BITS; page < page_end;) {
+    const u64 page_end = Common::DivCeil(end_addr, CACHING_PAGESIZE);
+    for (u64 page = addr >> CACHING_PAGEBITS; page < page_end;) {
         const BufferId buffer_id = page_table[page];
         if (!buffer_id) {
             ++page;
@@ -672,7 +670,7 @@ bool BufferCache<P>::IsRegionRegistered(VAddr addr, size_t size) {
         if (buf_start_addr < end_addr && addr < buf_end_addr) {
             return true;
         }
-        page = Common::DivCeil(end_addr, PAGE_SIZE);
+        page = Common::DivCeil(end_addr, CACHING_PAGESIZE);
     }
     return false;
 }
@@ -689,7 +687,7 @@ void BufferCache<P>::BindHostIndexBuffer() {
     const u32 offset = buffer.Offset(index_buffer.cpu_addr);
     const u32 size = index_buffer.size;
     const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
-    if (!draw_state.inline_index_draw_indexes.empty()) {
+    if (!draw_state.inline_index_draw_indexes.empty()) [[unlikely]] {
         if constexpr (USE_MEMORY_MAPS) {
             auto upload_staging = runtime.UploadStagingBuffer(size);
             std::array<BufferCopy, 1> copies{
@@ -1001,12 +999,20 @@ void BufferCache<P>::UpdateIndexBuffer() {
         return;
     }
     flags[Dirty::IndexBuffer] = false;
-    if (!draw_state.inline_index_draw_indexes.empty()) {
+    if (!draw_state.inline_index_draw_indexes.empty()) [[unlikely]] {
         auto inline_index_size = static_cast<u32>(draw_state.inline_index_draw_indexes.size());
+        u32 buffer_size = Common::AlignUp(inline_index_size, CACHING_PAGESIZE);
+        if (inline_buffer_id == NULL_BUFFER_ID) [[unlikely]] {
+            inline_buffer_id = CreateBuffer(0, buffer_size);
+        }
+        if (slot_buffers[inline_buffer_id].SizeBytes() < buffer_size) [[unlikely]] {
+            slot_buffers.erase(inline_buffer_id);
+            inline_buffer_id = CreateBuffer(0, buffer_size);
+        }
         index_buffer = Binding{
             .cpu_addr = 0,
             .size = inline_index_size,
-            .buffer_id = FindBuffer(0, inline_index_size),
+            .buffer_id = inline_buffer_id,
         };
         return;
     }
@@ -1224,7 +1230,7 @@ BufferId BufferCache<P>::FindBuffer(VAddr cpu_addr, u32 size) {
     if (cpu_addr == 0) {
         return NULL_BUFFER_ID;
     }
-    const u64 page = cpu_addr >> PAGE_BITS;
+    const u64 page = cpu_addr >> CACHING_PAGEBITS;
     const BufferId buffer_id = page_table[page];
     if (!buffer_id) {
         return CreateBuffer(cpu_addr, size);
@@ -1253,8 +1259,9 @@ typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(VAddr cpu
             .has_stream_leap = has_stream_leap,
         };
     }
-    for (; cpu_addr >> PAGE_BITS < Common::DivCeil(end, PAGE_SIZE); cpu_addr += PAGE_SIZE) {
-        const BufferId overlap_id = page_table[cpu_addr >> PAGE_BITS];
+    for (; cpu_addr >> CACHING_PAGEBITS < Common::DivCeil(end, CACHING_PAGESIZE);
+         cpu_addr += CACHING_PAGESIZE) {
+        const BufferId overlap_id = page_table[cpu_addr >> CACHING_PAGEBITS];
         if (!overlap_id) {
             continue;
         }
@@ -1280,11 +1287,11 @@ typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(VAddr cpu
             // as a stream buffer. Increase the size to skip constantly recreating buffers.
             has_stream_leap = true;
             if (expands_right) {
-                begin -= PAGE_SIZE * 256;
+                begin -= CACHING_PAGESIZE * 256;
                 cpu_addr = begin;
             }
             if (expands_left) {
-                end += PAGE_SIZE * 256;
+                end += CACHING_PAGESIZE * 256;
             }
         }
     }
@@ -1317,6 +1324,9 @@ void BufferCache<P>::JoinOverlap(BufferId new_buffer_id, BufferId overlap_id,
 
 template <class P>
 BufferId BufferCache<P>::CreateBuffer(VAddr cpu_addr, u32 wanted_size) {
+    VAddr cpu_addr_end = Common::AlignUp(cpu_addr + wanted_size, CACHING_PAGESIZE);
+    cpu_addr = Common::AlignDown(cpu_addr, CACHING_PAGESIZE);
+    wanted_size = static_cast<u32>(cpu_addr_end - cpu_addr);
     const OverlapResult overlap = ResolveOverlaps(cpu_addr, wanted_size);
     const u32 size = static_cast<u32>(overlap.end - overlap.begin);
     const BufferId new_buffer_id = slot_buffers.insert(runtime, rasterizer, overlap.begin, size);
@@ -1354,8 +1364,8 @@ void BufferCache<P>::ChangeRegister(BufferId buffer_id) {
     }
     const VAddr cpu_addr_begin = buffer.CpuAddr();
     const VAddr cpu_addr_end = cpu_addr_begin + size;
-    const u64 page_begin = cpu_addr_begin / PAGE_SIZE;
-    const u64 page_end = Common::DivCeil(cpu_addr_end, PAGE_SIZE);
+    const u64 page_begin = cpu_addr_begin / CACHING_PAGESIZE;
+    const u64 page_end = Common::DivCeil(cpu_addr_end, CACHING_PAGESIZE);
     for (u64 page = page_begin; page != page_end; ++page) {
         if constexpr (insert) {
             page_table[page] = buffer_id;

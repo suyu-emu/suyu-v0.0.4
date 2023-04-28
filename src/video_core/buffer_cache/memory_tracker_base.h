@@ -132,8 +132,8 @@ public:
     void ForEachUploadRange(VAddr query_cpu_range, u64 query_size, Func&& func) {
         IteratePages<true>(query_cpu_range, query_size,
                            [&func](Manager* manager, u64 offset, size_t size) {
-                               manager->template ForEachModifiedRange<Type::CPU>(
-                                   manager->GetCpuAddr() + offset, size, true, func);
+                               manager->template ForEachModifiedRange<Type::CPU, true>(
+                                   manager->GetCpuAddr() + offset, size, func);
                            });
     }
 
@@ -142,8 +142,13 @@ public:
     void ForEachDownloadRange(VAddr query_cpu_range, u64 query_size, bool clear, Func&& func) {
         IteratePages<false>(query_cpu_range, query_size,
                             [&func, clear](Manager* manager, u64 offset, size_t size) {
-                                manager->template ForEachModifiedRange<Type::GPU>(
-                                    manager->GetCpuAddr() + offset, size, clear, func);
+                                if (clear) {
+                                    manager->template ForEachModifiedRange<Type::GPU, true>(
+                                        manager->GetCpuAddr() + offset, size, func);
+                                } else {
+                                    manager->template ForEachModifiedRange<Type::GPU, false>(
+                                        manager->GetCpuAddr() + offset, size, func);
+                                }
                             });
     }
 
@@ -151,8 +156,8 @@ public:
     void ForEachDownloadRangeAndClear(VAddr query_cpu_range, u64 query_size, Func&& func) {
         IteratePages<false>(query_cpu_range, query_size,
                             [&func](Manager* manager, u64 offset, size_t size) {
-                                manager->template ForEachModifiedRange<Type::GPU>(
-                                    manager->GetCpuAddr() + offset, size, true, func);
+                                manager->template ForEachModifiedRange<Type::GPU, true>(
+                                    manager->GetCpuAddr() + offset, size, func);
                             });
     }
 

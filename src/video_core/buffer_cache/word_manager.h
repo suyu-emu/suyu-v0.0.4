@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <bit>
 #include <limits>
+#include <span>
 #include <utility>
 
 #include "common/alignment.h"
@@ -20,9 +21,16 @@ constexpr u64 PAGES_PER_WORD = 64;
 constexpr u64 BYTES_PER_PAGE = Core::Memory::YUZU_PAGESIZE;
 constexpr u64 BYTES_PER_WORD = PAGES_PER_WORD * BYTES_PER_PAGE;
 
+enum class Type {
+    CPU,
+    GPU,
+    CachedCPU,
+    Untracked,
+};
+
 /// Vector tracking modified pages tightly packed with small vector optimization
 template <size_t stack_words = 1>
-union WordsArray {
+struct WordsArray {
     /// Returns the pointer to the words state
     [[nodiscard]] const u64* Pointer(bool is_short) const noexcept {
         return is_short ? stack.data() : heap;
@@ -41,13 +49,13 @@ template <size_t stack_words = 1>
 struct Words {
     explicit Words() = default;
     explicit Words(u64 size_bytes_) : size_bytes{size_bytes_} {
+        num_words = Common::DivCeil(size_bytes, BYTES_PER_WORD);
         if (IsShort()) {
             cpu.stack.fill(~u64{0});
             gpu.stack.fill(0);
             cached_cpu.stack.fill(0);
             untracked.stack.fill(~u64{0});
         } else {
-            const size_t num_words = NumWords();
             // Share allocation between CPU and GPU pages and set their default values
             u64* const alloc = new u64[num_words * 4];
             cpu.heap = alloc;
@@ -75,6 +83,7 @@ struct Words {
     Words& operator=(Words&& rhs) noexcept {
         Release();
         size_bytes = rhs.size_bytes;
+        num_words = rhs.num_words;
         cpu = rhs.cpu;
         gpu = rhs.gpu;
         cached_cpu = rhs.cached_cpu;
@@ -84,7 +93,7 @@ struct Words {
     }
 
     Words(Words&& rhs) noexcept
-        : size_bytes{rhs.size_bytes}, cpu{rhs.cpu}, gpu{rhs.gpu},
+        : size_bytes{rhs.size_bytes}, num_words{rhs.num_words}, cpu{rhs.cpu}, gpu{rhs.gpu},
           cached_cpu{rhs.cached_cpu}, untracked{rhs.untracked} {
         rhs.cpu.heap = nullptr;
     }
@@ -94,12 +103,12 @@ struct Words {
 
     /// Returns true when the buffer fits in the small vector optimization
     [[nodiscard]] bool IsShort() const noexcept {
-        return size_bytes <= stack_words * BYTES_PER_WORD;
+        return num_words <= stack_words;
     }
 
     /// Returns the number of words of the buffer
     [[nodiscard]] size_t NumWords() const noexcept {
-        return Common::DivCeil(size_bytes, BYTES_PER_WORD);
+        return num_words;
     }
 
     /// Release buffer resources
@@ -110,18 +119,38 @@ struct Words {
         }
     }
 
+    template <Type type>
+    std::span<u64> Span() noexcept {
+        if constexpr (type == Type::CPU) {
+            return std::span<u64>(cpu.Pointer(IsShort()), num_words);
+        } else if constexpr (type == Type::GPU) {
+            return std::span<u64>(gpu.Pointer(IsShort()), num_words);
+        } else if constexpr (type == Type::CachedCPU) {
+            return std::span<u64>(cached_cpu.Pointer(IsShort()), num_words);
+        } else if constexpr (type == Type::Untracked) {
+            return std::span<u64>(untracked.Pointer(IsShort()), num_words);
+        }
+    }
+
+    template <Type type>
+    std::span<const u64> Span() const noexcept {
+        if constexpr (type == Type::CPU) {
+            return std::span<const u64>(cpu.Pointer(IsShort()), num_words);
+        } else if constexpr (type == Type::GPU) {
+            return std::span<const u64>(gpu.Pointer(IsShort()), num_words);
+        } else if constexpr (type == Type::CachedCPU) {
+            return std::span<const u64>(cached_cpu.Pointer(IsShort()), num_words);
+        } else if constexpr (type == Type::Untracked) {
+            return std::span<const u64>(untracked.Pointer(IsShort()), num_words);
+        }
+    }
+
     u64 size_bytes = 0;
+    size_t num_words = 0;
     WordsArray<stack_words> cpu;
     WordsArray<stack_words> gpu;
     WordsArray<stack_words> cached_cpu;
     WordsArray<stack_words> untracked;
-};
-
-enum class Type {
-    CPU,
-    GPU,
-    CachedCPU,
-    Untracked,
 };
 
 template <class RasterizerInterface, size_t stack_words = 1>
@@ -140,6 +169,69 @@ public:
         return cpu_addr;
     }
 
+    static u64 ExtractBits(u64 word, size_t page_start, size_t page_end) {
+        constexpr size_t number_bits = sizeof(u64) * 8;
+        const size_t limit_page_end = number_bits - std::min(page_end, number_bits);
+        u64 bits = (word >> page_start) << page_start;
+        bits = (bits << limit_page_end) >> limit_page_end;
+        return bits;
+    }
+
+    static std::pair<size_t, size_t> GetWordPage(VAddr address) {
+        const size_t converted_address = static_cast<size_t>(address);
+        const size_t word_number = converted_address / BYTES_PER_WORD;
+        const size_t amount_pages = converted_address % BYTES_PER_WORD;
+        return std::make_pair(word_number, amount_pages / BYTES_PER_PAGE);
+    }
+
+    template <typename Func>
+    void IterateWords(size_t offset, size_t size, Func&& func) const {
+        using FuncReturn = std::invoke_result_t<Func, std::size_t, u64>;
+        static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
+        const size_t start = static_cast<size_t>(std::max<s64>(static_cast<s64>(offset), 0LL));
+        const size_t end = static_cast<size_t>(std::max<s64>(static_cast<s64>(offset + size), 0LL));
+        if (start >= SizeBytes() || end <= start) {
+            return;
+        }
+        auto [start_word, start_page] = GetWordPage(start);
+        auto [end_word, end_page] = GetWordPage(end + BYTES_PER_PAGE - 1ULL);
+        const size_t num_words = NumWords();
+        start_word = std::min(start_word, num_words);
+        end_word = std::min(end_word, num_words);
+        const size_t diff = end_word - start_word;
+        end_word += (end_page + PAGES_PER_WORD - 1ULL) / PAGES_PER_WORD;
+        end_word = std::min(end_word, num_words);
+        end_page += diff * PAGES_PER_WORD;
+        constexpr u64 base_mask{~0ULL};
+        for (size_t word_index = start_word; word_index < end_word; word_index++) {
+            const u64 mask = ExtractBits(base_mask, start_page, end_page);
+            start_page = 0;
+            end_page -= PAGES_PER_WORD;
+            if constexpr (BOOL_BREAK) {
+                if (func(word_index, mask)) {
+                    return;
+                }
+            } else {
+                func(word_index, mask);
+            }
+        }
+    }
+
+    template <typename Func>
+    void IteratePages(u64 mask, Func&& func) const {
+        size_t offset = 0;
+        while (mask != 0) {
+            const size_t empty_bits = std::countr_zero(mask);
+            offset += empty_bits;
+            mask = mask >> empty_bits;
+
+            const size_t continuous_bits = std::countr_one(mask);
+            func(offset, continuous_bits);
+            mask = continuous_bits < PAGES_PER_WORD ? (mask >> continuous_bits) : 0;
+            offset += continuous_bits;
+        }
+    }
+
     /**
      * Change the state of a range of pages
      *
@@ -147,47 +239,33 @@ public:
      * @param size          Size in bytes to mark or unmark as modified
      */
     template <Type type, bool enable>
-    void ChangeRegionState(u64 dirty_addr, s64 size) noexcept(type == Type::GPU) {
-        const s64 difference = dirty_addr - cpu_addr;
-        const u64 offset = std::max<s64>(difference, 0);
-        size += std::min<s64>(difference, 0);
-        if (offset >= SizeBytes() || size < 0) {
-            return;
-        }
-        u64* const untracked_words = Array<Type::Untracked>();
-        u64* const state_words = Array<type>();
-        const u64 offset_end = std::min(offset + size, SizeBytes());
-        const u64 begin_page_index = offset / BYTES_PER_PAGE;
-        const u64 begin_word_index = begin_page_index / PAGES_PER_WORD;
-        const u64 end_page_index = Common::DivCeil(offset_end, BYTES_PER_PAGE);
-        const u64 end_word_index = Common::DivCeil(end_page_index, PAGES_PER_WORD);
-        u64 page_index = begin_page_index % PAGES_PER_WORD;
-        u64 word_index = begin_word_index;
-        while (word_index < end_word_index) {
-            const u64 next_word_first_page = (word_index + 1) * PAGES_PER_WORD;
-            const u64 left_offset =
-                std::min(next_word_first_page - end_page_index, PAGES_PER_WORD) % PAGES_PER_WORD;
-            const u64 right_offset = page_index;
-            u64 bits = ~u64{0};
-            bits = (bits >> right_offset) << right_offset;
-            bits = (bits << left_offset) >> left_offset;
+    void ChangeRegionState(u64 dirty_addr, u64 size) noexcept(type == Type::GPU) {
+        std::span<u64> state_words = words.template Span<type>();
+        [[maybe_unused]] std::span<u64> untracked_words = words.template Span<Type::Untracked>();
+        [[maybe_unused]] std::span<u64> cached_words = words.template Span<Type::CachedCPU>();
+        IterateWords(dirty_addr - cpu_addr, size, [&](size_t index, u64 mask) {
             if constexpr (type == Type::CPU || type == Type::CachedCPU) {
-                NotifyRasterizer<!enable>(word_index, untracked_words[word_index], bits);
+                NotifyRasterizer<!enable>(index, untracked_words[index], mask);
             }
             if constexpr (enable) {
-                state_words[word_index] |= bits;
+                state_words[index] |= mask;
                 if constexpr (type == Type::CPU || type == Type::CachedCPU) {
-                    untracked_words[word_index] |= bits;
+                    untracked_words[index] |= mask;
+                }
+                if constexpr (type == Type::CPU) {
+                    cached_words[index] &= ~mask;
                 }
             } else {
-                state_words[word_index] &= ~bits;
+                if constexpr (type == Type::CPU) {
+                    const u64 word = state_words[index] & mask;
+                    cached_words[index] &= ~word;
+                }
+                state_words[index] &= ~mask;
                 if constexpr (type == Type::CPU || type == Type::CachedCPU) {
-                    untracked_words[word_index] &= ~bits;
+                    untracked_words[index] &= ~mask;
                 }
             }
-            page_index = 0;
-            ++word_index;
-        }
+        });
     }
 
     /**
@@ -198,117 +276,57 @@ public:
      * @param size            Size in bytes of the CPU range to loop over
      * @param func            Function to call for each turned off region
      */
-    template <Type type, typename Func>
-    void ForEachModifiedRange(VAddr query_cpu_range, s64 size, bool clear, Func&& func) {
+    template <Type type, bool clear, typename Func>
+    void ForEachModifiedRange(VAddr query_cpu_range, s64 size, Func&& func) {
         static_assert(type != Type::Untracked);
 
-        const s64 difference = query_cpu_range - cpu_addr;
-        const u64 query_begin = std::max<s64>(difference, 0);
-        size += std::min<s64>(difference, 0);
-        if (query_begin >= SizeBytes() || size < 0) {
-            return;
-        }
-        [[maybe_unused]] u64* const untracked_words = Array<Type::Untracked>();
-        [[maybe_unused]] u64* const cpu_words = Array<Type::CPU>();
-        u64* const state_words = Array<type>();
-        const u64 query_end = query_begin + std::min(static_cast<u64>(size), SizeBytes());
-        u64* const words_begin = state_words + query_begin / BYTES_PER_WORD;
-        u64* const words_end = state_words + Common::DivCeil(query_end, BYTES_PER_WORD);
-        u64 first_page = (query_begin / BYTES_PER_PAGE) % PAGES_PER_WORD;
-
-        const auto modified = [](u64 word) { return word != 0; };
-        const auto first_modified_word = std::find_if(words_begin, words_end, modified);
-        if (first_modified_word == words_end) {
-            // Exit early when the buffer is not modified
-            return;
-        }
-        if (first_modified_word != words_begin) {
-            first_page = 0;
-        }
-        std::reverse_iterator<u64*> first_word_reverse(first_modified_word);
-        std::reverse_iterator<u64*> last_word_iterator(words_end);
-        auto last_word_result = std::find_if(last_word_iterator, first_word_reverse, modified);
-        u64* const last_modified_word = &(*last_word_result) + 1;
-
-        const u64 word_index_begin = std::distance(state_words, first_modified_word);
-        const u64 word_index_end = std::distance(state_words, last_modified_word);
-        const unsigned local_page_begin = std::countr_zero(*first_modified_word);
-        const unsigned local_page_end =
-            static_cast<unsigned>(PAGES_PER_WORD) - std::countl_zero(last_modified_word[-1]);
-        const u64 word_page_begin = word_index_begin * PAGES_PER_WORD;
-        const u64 word_page_end = (word_index_end - 1) * PAGES_PER_WORD;
-        const u64 query_page_begin = query_begin / BYTES_PER_PAGE;
-        const u64 query_page_end = Common::DivCeil(query_end, BYTES_PER_PAGE);
-        const u64 page_index_begin = std::max(word_page_begin + local_page_begin, query_page_begin);
-        const u64 page_index_end = std::min(word_page_end + local_page_end, query_page_end);
-        const u64 first_word_page_begin = page_index_begin % PAGES_PER_WORD;
-        const u64 last_word_page_end = (page_index_end - 1) % PAGES_PER_WORD + 1;
-
-        u64 page_begin = std::max(first_word_page_begin, first_page);
-        u64 current_base = 0;
-        u64 current_size = 0;
-        bool on_going = false;
-        for (u64 word_index = word_index_begin; word_index < word_index_end; ++word_index) {
-            const bool is_last_word = word_index + 1 == word_index_end;
-            const u64 page_end = is_last_word ? last_word_page_end : PAGES_PER_WORD;
-            const u64 right_offset = page_begin;
-            const u64 left_offset = PAGES_PER_WORD - page_end;
-            u64 bits = ~u64{0};
-            bits = (bits >> right_offset) << right_offset;
-            bits = (bits << left_offset) >> left_offset;
-
-            const u64 current_word = state_words[word_index] & bits;
-            if (clear) {
-                state_words[word_index] &= ~bits;
-            }
-
-            if constexpr (type == Type::CachedCPU) {
-                NotifyRasterizer<false>(word_index, untracked_words[word_index], current_word);
-                untracked_words[word_index] |= current_word;
-                cpu_words[word_index] |= current_word;
-            }
-
-            if constexpr (type == Type::CPU) {
-                const u64 current_bits = untracked_words[word_index] & bits;
-                untracked_words[word_index] &= ~bits;
-                NotifyRasterizer<true>(word_index, current_bits, ~u64{0});
-            }
-            const u64 word = current_word & ~(type == Type::GPU ? untracked_words[word_index] : 0);
-            u64 page = page_begin;
-            page_begin = 0;
-
-            while (page < page_end) {
-                const int empty_bits = std::countr_zero(word >> page);
-                if (on_going && empty_bits != 0) {
-                    InvokeModifiedRange(func, current_size, current_base);
-                    current_size = 0;
-                    on_going = false;
+        std::span<u64> state_words = words.template Span<type>();
+        [[maybe_unused]] std::span<u64> untracked_words = words.template Span<Type::Untracked>();
+        [[maybe_unused]] std::span<u64> cached_words = words.template Span<Type::CachedCPU>();
+        const size_t offset = query_cpu_range - cpu_addr;
+        bool pending = false;
+        size_t pending_offset{};
+        size_t pending_pointer{};
+        const auto release = [&]() {
+            func(cpu_addr + pending_offset * BYTES_PER_PAGE,
+                 (pending_pointer - pending_offset) * BYTES_PER_PAGE);
+        };
+        IterateWords(offset, size, [&](size_t index, u64 mask) {
+            const u64 word = state_words[index] & mask;
+            if constexpr (clear) {
+                if constexpr (type == Type::CPU || type == Type::CachedCPU) {
+                    NotifyRasterizer<true>(index, untracked_words[index], mask);
                 }
-                if (empty_bits == PAGES_PER_WORD) {
-                    break;
+                state_words[index] &= ~mask;
+                if constexpr (type == Type::CPU || type == Type::CachedCPU) {
+                    untracked_words[index] &= ~mask;
                 }
-                page += empty_bits;
-
-                const int continuous_bits = std::countr_one(word >> page);
-                if (!on_going && continuous_bits != 0) {
-                    current_base = word_index * PAGES_PER_WORD + page;
-                    on_going = true;
+                if constexpr (type == Type::CPU) {
+                    cached_words[index] &= ~word;
                 }
-                current_size += continuous_bits;
-                page += continuous_bits;
             }
+            const size_t base_offset = index * PAGES_PER_WORD;
+            IteratePages(word, [&](size_t pages_offset, size_t pages_size) {
+                const auto reset = [&]() {
+                    pending_offset = base_offset + pages_offset;
+                    pending_pointer = base_offset + pages_offset + pages_size;
+                };
+                if (!pending) {
+                    reset();
+                    pending = true;
+                    return;
+                }
+                if (pending_pointer == base_offset + pages_offset) {
+                    pending_pointer += pages_size;
+                    return;
+                }
+                release();
+                reset();
+            });
+        });
+        if (pending) {
+            release();
         }
-        if (on_going && current_size > 0) {
-            InvokeModifiedRange(func, current_size, current_base);
-        }
-    }
-
-    template <typename Func>
-    void InvokeModifiedRange(Func&& func, u64 current_size, u64 current_base) {
-        const u64 current_size_bytes = current_size * BYTES_PER_PAGE;
-        const u64 offset_begin = current_base * BYTES_PER_PAGE;
-        const u64 offset_end = std::min(offset_begin + current_size_bytes, SizeBytes());
-        func(cpu_addr + offset_begin, offset_end - offset_begin);
     }
 
     /**
@@ -321,27 +339,17 @@ public:
     [[nodiscard]] bool IsRegionModified(u64 offset, u64 size) const noexcept {
         static_assert(type != Type::Untracked);
 
-        const u64* const untracked_words = Array<Type::Untracked>();
-        const u64* const state_words = Array<type>();
-        const u64 num_query_words = size / BYTES_PER_WORD + 1;
-        const u64 word_begin = offset / BYTES_PER_WORD;
-        const u64 word_end = std::min(word_begin + num_query_words, NumWords());
-        const u64 page_limit = Common::DivCeil(offset + size, BYTES_PER_PAGE);
-        u64 page_index = (offset / BYTES_PER_PAGE) % PAGES_PER_WORD;
-        for (u64 word_index = word_begin; word_index < word_end; ++word_index, page_index = 0) {
-            const u64 off_word = type == Type::GPU ? untracked_words[word_index] : 0;
-            const u64 word = state_words[word_index] & ~off_word;
-            if (word == 0) {
-                continue;
-            }
-            const u64 page_end = std::min((word_index + 1) * PAGES_PER_WORD, page_limit);
-            const u64 local_page_end = page_end % PAGES_PER_WORD;
-            const u64 page_end_shift = (PAGES_PER_WORD - local_page_end) % PAGES_PER_WORD;
-            if (((word >> page_index) << page_index) << page_end_shift != 0) {
+        const std::span<const u64> state_words = words.template Span<type>();
+        bool result = false;
+        IterateWords(offset, size, [&](size_t index, u64 mask) {
+            const u64 word = state_words[index] & mask;
+            if (word != 0) {
+                result = true;
                 return true;
             }
-        }
-        return false;
+            return false;
+        });
+        return result;
     }
 
     /**
@@ -353,34 +361,20 @@ public:
     template <Type type>
     [[nodiscard]] std::pair<u64, u64> ModifiedRegion(u64 offset, u64 size) const noexcept {
         static_assert(type != Type::Untracked);
-        const u64* const state_words = Array<type>();
-        const u64 num_query_words = size / BYTES_PER_WORD + 1;
-        const u64 word_begin = offset / BYTES_PER_WORD;
-        const u64 word_end = std::min(word_begin + num_query_words, NumWords());
-        const u64 page_base = offset / BYTES_PER_PAGE;
-        u64 page_begin = page_base & (PAGES_PER_WORD - 1);
-        u64 page_end =
-            Common::DivCeil(offset + size, BYTES_PER_PAGE) - (page_base & ~(PAGES_PER_WORD - 1));
+        const std::span<const u64> state_words = words.template Span<type>();
         u64 begin = std::numeric_limits<u64>::max();
         u64 end = 0;
-        for (u64 word_index = word_begin; word_index < word_end; ++word_index) {
-            const u64 base_mask = (1ULL << page_begin) - 1ULL;
-            const u64 end_mask = page_end >= PAGES_PER_WORD ? 0ULL : ~((1ULL << page_end) - 1ULL);
-            const u64 off_word = end_mask | base_mask;
-            const u64 word = state_words[word_index] & ~off_word;
+        IterateWords(offset, size, [&](size_t index, u64 mask) {
+            const u64 word = state_words[index] & mask;
             if (word == 0) {
-                page_begin = 0;
-                page_end -= PAGES_PER_WORD;
-                continue;
+                return;
             }
             const u64 local_page_begin = std::countr_zero(word);
             const u64 local_page_end = PAGES_PER_WORD - std::countl_zero(word);
-            const u64 page_index = word_index * PAGES_PER_WORD;
+            const u64 page_index = index * PAGES_PER_WORD;
             begin = std::min(begin, page_index + local_page_begin);
             end = page_index + local_page_end;
-            page_begin = 0;
-            page_end -= PAGES_PER_WORD;
-        }
+        });
         static constexpr std::pair<u64, u64> EMPTY{0, 0};
         return begin < end ? std::make_pair(begin * BYTES_PER_PAGE, end * BYTES_PER_PAGE) : EMPTY;
     }
@@ -454,18 +448,10 @@ private:
     void NotifyRasterizer(u64 word_index, u64 current_bits, u64 new_bits) const {
         u64 changed_bits = (add_to_rasterizer ? current_bits : ~current_bits) & new_bits;
         VAddr addr = cpu_addr + word_index * BYTES_PER_WORD;
-        while (changed_bits != 0) {
-            const int empty_bits = std::countr_zero(changed_bits);
-            addr += empty_bits * BYTES_PER_PAGE;
-            changed_bits >>= empty_bits;
-
-            const u32 continuous_bits = std::countr_one(changed_bits);
-            const u64 size = continuous_bits * BYTES_PER_PAGE;
-            const VAddr begin_addr = addr;
-            addr += size;
-            changed_bits = continuous_bits < PAGES_PER_WORD ? (changed_bits >> continuous_bits) : 0;
-            rasterizer->UpdatePagesCachedCount(begin_addr, size, add_to_rasterizer ? 1 : -1);
-        }
+        IteratePages(changed_bits, [&](size_t offset, size_t size) {
+            rasterizer->UpdatePagesCachedCount(addr + offset * BYTES_PER_PAGE,
+                                               size * BYTES_PER_PAGE, add_to_rasterizer ? 1 : -1);
+        });
     }
 
     VAddr cpu_addr = 0;

@@ -90,10 +90,8 @@ template <typename P>
 class BufferCache : public VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
     // Page size for caching purposes.
     // This is unrelated to the CPU page size and it can be changed as it seems optimal.
-    static constexpr u32 PAGE_BITS = 16;
-    static constexpr u64 PAGE_SIZE = u64{1} << PAGE_BITS;
-    static constexpr u32 CPU_PAGE_BITS = 12;
-    static constexpr u64 CPU_PAGE_SIZE = u64{1} << CPU_PAGE_BITS;
+    static constexpr u32 CACHING_PAGEBITS = 16;
+    static constexpr u64 CACHING_PAGESIZE = u64{1} << CACHING_PAGEBITS;
 
     static constexpr bool IS_OPENGL = P::IS_OPENGL;
     static constexpr bool HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS =
@@ -111,6 +109,10 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<VideoCommon::ChannelI
     static constexpr s64 DEFAULT_EXPECTED_MEMORY = 512_MiB;
     static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB;
     static constexpr s64 TARGET_THRESHOLD = 4_GiB;
+
+    // Debug Flags.
+
+    static constexpr bool DISABLE_DOWNLOADS = true;
 
     using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
@@ -286,8 +288,8 @@ private:
 
     template <typename Func>
     void ForEachBufferInRange(VAddr cpu_addr, u64 size, Func&& func) {
-        const u64 page_end = Common::DivCeil(cpu_addr + size, PAGE_SIZE);
-        for (u64 page = cpu_addr >> PAGE_BITS; page < page_end;) {
+        const u64 page_end = Common::DivCeil(cpu_addr + size, CACHING_PAGESIZE);
+        for (u64 page = cpu_addr >> CACHING_PAGEBITS; page < page_end;) {
             const BufferId buffer_id = page_table[page];
             if (!buffer_id) {
                 ++page;
@@ -297,7 +299,7 @@ private:
             func(buffer_id, buffer);
 
             const VAddr end_addr = buffer.CpuAddr() + buffer.SizeBytes();
-            page = Common::DivCeil(end_addr, PAGE_SIZE);
+            page = Common::DivCeil(end_addr, CACHING_PAGESIZE);
         }
     }
 
@@ -568,10 +570,11 @@ private:
     u64 total_used_memory = 0;
     u64 minimum_memory = 0;
     u64 critical_memory = 0;
+    BufferId inline_buffer_id;
 
     bool active_async_buffers = false;
 
-    std::array<BufferId, ((1ULL << 39) >> PAGE_BITS)> page_table;
+    std::array<BufferId, ((1ULL << 39) >> CACHING_PAGEBITS)> page_table;
 };
 
 } // namespace VideoCommon

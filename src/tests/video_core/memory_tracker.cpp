@@ -427,7 +427,7 @@ TEST_CASE("MemoryTracker: Single page in large region", "[video_core]") {
 
     memory_track->MarkRegionAsCpuModified(c + WORD * 12 + PAGE * 8, PAGE);
     REQUIRE(memory_track->IsRegionCpuModified(c, WORD * 16));
-    REQUIRE(memory_track->IsRegionCpuModified(c + WORD * 10, WORD * 2));
+    REQUIRE(!memory_track->IsRegionCpuModified(c + WORD * 10, WORD * 2));
     REQUIRE(memory_track->IsRegionCpuModified(c + WORD * 11, WORD * 2));
     REQUIRE(memory_track->IsRegionCpuModified(c + WORD * 12, WORD * 2));
     REQUIRE(memory_track->IsRegionCpuModified(c + WORD * 12 + PAGE * 4, PAGE * 8));
@@ -535,6 +535,8 @@ TEST_CASE("MemoryTracker: Cached write downloads") {
     memory_track->MarkRegionAsGpuModified(c + PAGE, PAGE);
     int num = 0;
     memory_track->ForEachDownloadRangeAndClear(c, WORD, [&](u64 offset, u64 size) { ++num; });
+    REQUIRE(num == 1);
+    num = 0;
     memory_track->ForEachUploadRange(c, WORD, [&](u64 offset, u64 size) { ++num; });
     REQUIRE(num == 0);
     REQUIRE(!memory_track->IsRegionCpuModified(c + PAGE, PAGE));
