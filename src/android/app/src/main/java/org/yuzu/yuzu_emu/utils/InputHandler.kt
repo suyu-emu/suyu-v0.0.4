@@ -1,14 +1,14 @@
 package org.yuzu.yuzu_emu.utils
 
-import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import org.yuzu.yuzu_emu.NativeLibrary
+import kotlin.math.sqrt
 
 class InputHandler {
     fun initialize() {
         // Connect first controller
-        NativeLibrary.onGamePadConnectEvent(getPlayerNumber(NativeLibrary.Player1Device));
+        NativeLibrary.onGamePadConnectEvent(getPlayerNumber(NativeLibrary.Player1Device))
     }
 
     fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -42,7 +42,7 @@ class InputHandler {
         val device = event.device
         // Check every axis input available on the controller
         for (range in device.motionRanges) {
-            val axis = range.axis;
+            val axis = range.axis
             when (device.vendorId) {
                 0x045E -> setGenericAxisInput(event, axis)
                 0x054C -> setGenericAxisInput(event, axis)
@@ -67,6 +67,32 @@ class InputHandler {
             8 -> NativeLibrary.Player8Device
             else -> if (NativeLibrary.isHandheldOnly()) NativeLibrary.ConsoleDevice else NativeLibrary.Player1Device
         }
+    }
+
+    private fun setStickState(playerNumber: Int, index: Int, xAxis: Float, yAxis: Float) {
+        // Calculate vector size
+        val r2 = xAxis * xAxis + yAxis * yAxis
+        var r = sqrt(r2.toDouble()).toFloat()
+
+        // Adjust range of joystick
+        val deadzone = 0.15f
+        val deadzoneFactor = 1.0f / r * (r - deadzone) / (1.0f - deadzone)
+        var x = xAxis * deadzoneFactor
+        var y = yAxis * deadzoneFactor
+        r *= deadzoneFactor
+
+        // Normalize joystick
+        if (r > 1.0f) {
+            x /= r
+            y /= r
+        }
+
+        NativeLibrary.onGamePadJoystickEvent(
+            playerNumber,
+            index,
+            x,
+            -y
+        )
     }
 
     private fun getAxisToButton(axis: Float): Int {
@@ -197,25 +223,25 @@ class InputHandler {
 
         when (axis) {
             MotionEvent.AXIS_X, MotionEvent.AXIS_Y ->
-                NativeLibrary.onGamePadJoystickEvent(
+                setStickState(
                     playerNumber,
                     NativeLibrary.StickType.STICK_L,
                     event.getAxisValue(MotionEvent.AXIS_X),
-                    -event.getAxisValue(MotionEvent.AXIS_Y)
+                    event.getAxisValue(MotionEvent.AXIS_Y)
                 )
             MotionEvent.AXIS_RX, MotionEvent.AXIS_RY ->
-                NativeLibrary.onGamePadJoystickEvent(
+                setStickState(
                     playerNumber,
                     NativeLibrary.StickType.STICK_R,
                     event.getAxisValue(MotionEvent.AXIS_RX),
-                    -event.getAxisValue(MotionEvent.AXIS_RY)
+                    event.getAxisValue(MotionEvent.AXIS_RY)
                 )
             MotionEvent.AXIS_Z, MotionEvent.AXIS_RZ ->
-                NativeLibrary.onGamePadJoystickEvent(
+                setStickState(
                     playerNumber,
                     NativeLibrary.StickType.STICK_R,
                     event.getAxisValue(MotionEvent.AXIS_Z),
-                    -event.getAxisValue(MotionEvent.AXIS_RZ)
+                    event.getAxisValue(MotionEvent.AXIS_RZ)
                 )
             MotionEvent.AXIS_LTRIGGER ->
                 NativeLibrary.onGamePadButtonEvent(
@@ -257,25 +283,25 @@ class InputHandler {
 
         when (axis) {
             MotionEvent.AXIS_X, MotionEvent.AXIS_Y ->
-                NativeLibrary.onGamePadJoystickEvent(
+                setStickState(
                     playerNumber,
                     NativeLibrary.StickType.STICK_L,
                     event.getAxisValue(MotionEvent.AXIS_X),
-                    -event.getAxisValue(MotionEvent.AXIS_Y)
+                    event.getAxisValue(MotionEvent.AXIS_Y)
                 )
             MotionEvent.AXIS_Z, MotionEvent.AXIS_RZ ->
-                NativeLibrary.onGamePadJoystickEvent(
+                setStickState(
                     playerNumber,
                     NativeLibrary.StickType.STICK_R,
                     event.getAxisValue(MotionEvent.AXIS_Z),
-                    -event.getAxisValue(MotionEvent.AXIS_RZ)
+                    event.getAxisValue(MotionEvent.AXIS_RZ)
                 )
             MotionEvent.AXIS_RX, MotionEvent.AXIS_RY ->
-                NativeLibrary.onGamePadJoystickEvent(
+                setStickState(
                     playerNumber,
                     NativeLibrary.StickType.STICK_R,
                     event.getAxisValue(MotionEvent.AXIS_RX),
-                    -event.getAxisValue(MotionEvent.AXIS_RY)
+                    event.getAxisValue(MotionEvent.AXIS_RY)
                 )
         }
     }
@@ -285,18 +311,18 @@ class InputHandler {
 
         when (axis) {
             MotionEvent.AXIS_X, MotionEvent.AXIS_Y ->
-                NativeLibrary.onGamePadJoystickEvent(
+                setStickState(
                     playerNumber,
                     NativeLibrary.StickType.STICK_L,
                     event.getAxisValue(MotionEvent.AXIS_X),
-                    -event.getAxisValue(MotionEvent.AXIS_Y)
+                    event.getAxisValue(MotionEvent.AXIS_Y)
                 )
             MotionEvent.AXIS_Z, MotionEvent.AXIS_RZ ->
-                NativeLibrary.onGamePadJoystickEvent(
+                setStickState(
                     playerNumber,
                     NativeLibrary.StickType.STICK_R,
                     event.getAxisValue(MotionEvent.AXIS_Z),
-                    -event.getAxisValue(MotionEvent.AXIS_RZ)
+                    event.getAxisValue(MotionEvent.AXIS_RZ)
                 )
             MotionEvent.AXIS_BRAKE ->
                 NativeLibrary.onGamePadButtonEvent(
