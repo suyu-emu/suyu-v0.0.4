@@ -696,6 +696,13 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
 std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     ShaderPools& pools, const ComputePipelineCacheKey& key, Shader::Environment& env,
     PipelineStatistics* statistics, bool build_in_parallel) try {
+    // TODO: Remove this when Intel fixes their shader compiler.
+    //       https://github.com/IGCIT/Intel-GPU-Community-Issue-Tracker-IGCIT/issues/159
+    if (device.GetDriverID() == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
+        LOG_ERROR(Render_Vulkan, "Skipping 0x{:016x}", key.Hash());
+        return nullptr;
+    }
+
     LOG_INFO(Render_Vulkan, "0x{:016x}", key.Hash());
 
     Shader::Maxwell::Flow::CFG cfg{env, pools.flow_block, env.StartAddress()};
