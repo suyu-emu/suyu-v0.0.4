@@ -310,16 +310,22 @@ private:
         std::function<void()> operation([this, new_async_job_id, timestamp] {
             std::unique_lock local_lock{mutex};
             AsyncJob& async_job = slot_async_jobs[new_async_job_id];
+            u64 value = async_job.value;
+            VAddr address = async_job.query_location;
+            slot_async_jobs.erase(new_async_job_id);
+            local_lock.unlock();
             if (timestamp) {
                 u64 timestamp_value = *timestamp;
-                cpu_memory.WriteBlockUnsafe(async_job.query_location + sizeof(u64),
-                                            &timestamp_value, sizeof(8));
-                cpu_memory.WriteBlockUnsafe(async_job.query_location, &async_job.value, sizeof(8));
+                cpu_memory.WriteBlockUnsafe(address + sizeof(u64), &timestamp_value, sizeof(u64));
+                cpu_memory.WriteBlockUnsafe(address, &value, sizeof(u64));
+                rasterizer.InvalidateRegion(address, sizeof(u64) * 2,
+                                            VideoCommon::CacheType::NoQueryCache);
             } else {
-                u32 small_value = static_cast<u32>(async_job.value);
-                cpu_memory.WriteBlockUnsafe(async_job.query_location, &small_value, sizeof(u32));
+                u32 small_value = static_cast<u32>(value);
+                cpu_memory.WriteBlockUnsafe(address, &small_value, sizeof(u32));
+                rasterizer.InvalidateRegion(address, sizeof(u32),
+                                            VideoCommon::CacheType::NoQueryCache);
             }
-            slot_async_jobs.erase(new_async_job_id);
         });
         rasterizer.SyncOperation(std::move(operation));
     }
