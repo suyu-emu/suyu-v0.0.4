@@ -5,6 +5,7 @@
 
 #include <atomic>
 #include <map>
+#include <mutex>
 #include <optional>
 #include <vector>
 
@@ -215,6 +216,9 @@ private:
 
     std::vector<u64> big_page_continuous;
     std::vector<std::pair<VAddr, std::size_t>> page_stash{};
+    std::vector<std::pair<VAddr, std::size_t>> page_stash2{};
+
+    mutable std::mutex guard;
 
     static constexpr size_t continuous_bits = 64;
 
