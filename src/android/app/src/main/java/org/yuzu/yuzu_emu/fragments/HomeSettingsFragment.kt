@@ -95,7 +95,7 @@ class HomeSettingsFragment : Fragment() {
             .setTitle(getString(R.string.select_gpu_driver_title))
             .setMessage(driverName)
             .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(R.string.select_gpu_driver_default) { _: DialogInterface?, _: Int ->
+            .setNeutralButton(R.string.select_gpu_driver_default) { _: DialogInterface?, _: Int ->
                 GpuDriverHelper.installDefaultDriver(requireContext())
                 Toast.makeText(
                     requireContext(),
@@ -103,7 +103,7 @@ class HomeSettingsFragment : Fragment() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
-            .setNeutralButton(R.string.select_gpu_driver_install) { _: DialogInterface?, _: Int ->
+            .setPositiveButton(R.string.select_gpu_driver_install) { _: DialogInterface?, _: Int ->
                 mainActivity.getDriver.launch(arrayOf("application/zip"))
             }
             .show()
