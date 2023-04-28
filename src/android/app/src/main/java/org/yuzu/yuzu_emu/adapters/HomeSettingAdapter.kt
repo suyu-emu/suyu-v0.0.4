@@ -7,10 +7,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
 import org.yuzu.yuzu_emu.databinding.CardHomeOptionBinding
-import org.yuzu.yuzu_emu.model.HomeOption
+import org.yuzu.yuzu_emu.model.HomeSetting
 
-class HomeOptionAdapter(private val activity: AppCompatActivity, var options: List<HomeOption>) :
-    RecyclerView.Adapter<HomeOptionAdapter.HomeOptionViewHolder>(),
+class HomeSettingAdapter(private val activity: AppCompatActivity, var options: List<HomeSetting>) :
+    RecyclerView.Adapter<HomeSettingAdapter.HomeOptionViewHolder>(),
     View.OnClickListener {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HomeOptionViewHolder {
         val binding = CardHomeOptionBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -33,13 +33,13 @@ class HomeOptionAdapter(private val activity: AppCompatActivity, var options: Li
 
     inner class HomeOptionViewHolder(val binding: CardHomeOptionBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        lateinit var option: HomeOption
+        lateinit var option: HomeSetting
 
         init {
             itemView.tag = this
         }
 
-        fun bind(option: HomeOption) {
+        fun bind(option: HomeSetting) {
             this.option = option
             binding.optionTitle.text = activity.resources.getString(option.titleId)
             binding.optionDescription.text = activity.resources.getString(option.descriptionId)

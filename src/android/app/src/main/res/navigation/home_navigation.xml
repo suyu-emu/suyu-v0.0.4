@@ -10,9 +10,9 @@
         android:label="PlatformGamesFragment" />
 
     <fragment
-        android:id="@+id/optionsFragment"
-        android:name="org.yuzu.yuzu_emu.fragments.OptionsFragment"
-        android:label="OptionsFragment" />
+        android:id="@+id/homeSettingsFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.HomeSettingsFragment"
+        android:label="HomeSettingsFragment" />
 
     <fragment
         android:id="@+id/firstTimeSetupFragment"

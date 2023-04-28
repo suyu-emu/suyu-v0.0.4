@@ -7,8 +7,8 @@
         android:title="@string/home_games" />
 
     <item
-        android:id="@+id/optionsFragment"
-        android:icon="@drawable/ic_options"
-        android:title="@string/home_options" />
+        android:id="@+id/homeSettingsFragment"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/home_settings" />
 
 </menu>

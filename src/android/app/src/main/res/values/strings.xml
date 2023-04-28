@@ -26,7 +26,7 @@
 
     <!-- Home strings -->
     <string name="home_games">Games</string>
-    <string name="home_options">Options</string>
+    <string name="home_settings">Settings</string>
     <string name="add_games">Add Games</string>
     <string name="add_games_description">Select your games folder</string>
     <string name="home_search_games">Search Games</string>
@@ -41,7 +41,7 @@
     <string name="install_amiibo_keys_failure">Keys file (key_retail.bin) is invalid</string>
     <string name="install_gpu_driver">Install GPU Driver</string>
     <string name="install_gpu_driver_description">Use a different driver for potentially better performance or accuracy</string>
-    <string name="settings">Settings</string>
+    <string name="advanced_settings">Advanced Settings</string>
     <string name="settings_description">Configure emulator settings</string>
 
     <!-- General settings strings -->

@@ -3,7 +3,7 @@
 
 package org.yuzu.yuzu_emu.model
 
-data class HomeOption(
+data class HomeSetting(
     val titleId: Int,
     val descriptionId: Int,
     val iconId: Int,

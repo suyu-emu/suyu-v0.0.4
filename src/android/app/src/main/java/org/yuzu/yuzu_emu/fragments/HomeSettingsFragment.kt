@@ -17,16 +17,16 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.adapters.HomeOptionAdapter
-import org.yuzu.yuzu_emu.databinding.FragmentOptionsBinding
+import org.yuzu.yuzu_emu.adapters.HomeSettingAdapter
+import org.yuzu.yuzu_emu.databinding.FragmentHomeSettingsBinding
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
-import org.yuzu.yuzu_emu.model.HomeOption
+import org.yuzu.yuzu_emu.model.HomeSetting
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 
-class OptionsFragment : Fragment() {
-    private var _binding: FragmentOptionsBinding? = null
+class HomeSettingsFragment : Fragment() {
+    private var _binding: FragmentHomeSettingsBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var mainActivity: MainActivity
@@ -36,44 +36,44 @@ class OptionsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentOptionsBinding.inflate(layoutInflater)
+        _binding = FragmentHomeSettingsBinding.inflate(layoutInflater)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainActivity = requireActivity() as MainActivity
 
-        val optionsList: List<HomeOption> = listOf(
-            HomeOption(
-                R.string.add_games,
-                R.string.add_games_description,
-                R.drawable.ic_add
-            ) { mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data) },
-            HomeOption(
-                R.string.install_prod_keys,
-                R.string.install_prod_keys_description,
-                R.drawable.ic_unlock
-            ) { mainActivity.getProdKey.launch(arrayOf("*/*")) },
-            HomeOption(
-                R.string.install_amiibo_keys,
-                R.string.install_amiibo_keys_description,
-                R.drawable.ic_nfc
-            ) { mainActivity.getAmiiboKey.launch(arrayOf("*/*")) },
-            HomeOption(
+        val optionsList: List<HomeSetting> = listOf(
+            HomeSetting(
+                R.string.advanced_settings,
+                R.string.settings_description,
+                R.drawable.ic_settings
+            ) { SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "") },
+            HomeSetting(
                 R.string.install_gpu_driver,
                 R.string.install_gpu_driver_description,
                 R.drawable.ic_input
             ) { driverInstaller() },
-            HomeOption(
-                R.string.settings,
-                R.string.settings_description,
-                R.drawable.ic_settings
-            ) { SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "") }
+            HomeSetting(
+                R.string.install_amiibo_keys,
+                R.string.install_amiibo_keys_description,
+                R.drawable.ic_nfc
+            ) { mainActivity.getAmiiboKey.launch(arrayOf("*/*")) },
+            HomeSetting(
+                R.string.add_games,
+                R.string.add_games_description,
+                R.drawable.ic_add
+            ) { mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data) },
+            HomeSetting(
+                R.string.install_prod_keys,
+                R.string.install_prod_keys_description,
+                R.drawable.ic_unlock
+            ) { mainActivity.getProdKey.launch(arrayOf("*/*")) }
         )
 
-        binding.optionsList.apply {
+        binding.homeSettingsList.apply {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = HomeOptionAdapter(requireActivity() as AppCompatActivity, optionsList)
+            adapter = HomeSettingAdapter(requireActivity() as AppCompatActivity, optionsList)
         }
 
         setInsets()
@@ -110,7 +110,7 @@ class OptionsFragment : Fragment() {
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.scrollViewOptions) { view: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.scrollViewSettings) { view: View, windowInsets: WindowInsetsCompat ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(
                 insets.left,
