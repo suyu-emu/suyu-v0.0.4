@@ -5,19 +5,23 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class HomeViewModel : ViewModel() {
-    private val _navigationVisible = MutableLiveData(true)
-    val navigationVisible: LiveData<Boolean> get() = _navigationVisible
+    private val _navigationVisible = MutableLiveData<Pair<Boolean, Boolean>>()
+    val navigationVisible: LiveData<Pair<Boolean, Boolean>> get() = _navigationVisible
 
     private val _statusBarShadeVisible = MutableLiveData(true)
     val statusBarShadeVisible: LiveData<Boolean> get() = _statusBarShadeVisible
 
     var navigatedToSetup = false
 
-    fun setNavigationVisibility(visible: Boolean) {
-        if (_navigationVisible.value == visible) {
+    init {
+        _navigationVisible.value = Pair(false, false)
+    }
+
+    fun setNavigationVisibility(visible: Boolean, animated: Boolean) {
+        if (_navigationVisible.value?.first == visible) {
             return
         }
-        _navigationVisible.value = visible
+        _navigationVisible.value = Pair(visible, animated)
     }
 
     fun setStatusBarShadeVisibility(visible: Boolean) {

@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
+import android.view.WindowManager
 import android.view.animation.PathInterpolator
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -60,6 +61,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         setContentView(binding.root)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
 
         window.statusBarColor =
             ContextCompat.getColor(applicationContext, android.R.color.transparent)
@@ -75,26 +77,30 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         setUpNavigation(navHostFragment.navController)
         (binding.navigationBar as NavigationBarView).setOnItemReselectedListener {
-            if (it.itemId == R.id.gamesFragment) {
-                gamesViewModel.setShouldScrollToTop(true)
+            when (it.itemId) {
+                R.id.gamesFragment -> gamesViewModel.setShouldScrollToTop(true)
+                R.id.searchFragment -> gamesViewModel.setSearchFocused(true)
             }
         }
 
         binding.statusBarShade.setBackgroundColor(
-            MaterialColors.getColor(
-                binding.root,
-                R.attr.colorSurface
+            ThemeHelper.getColorWithOpacity(
+                MaterialColors.getColor(
+                    binding.root,
+                    R.attr.colorSurface
+                ),
+                ThemeHelper.SYSTEM_BAR_ALPHA
             )
         )
 
         // Prevents navigation from being drawn for a short time on recreation if set to hidden
-        if (homeViewModel.navigationVisible.value == false) {
+        if (!homeViewModel.navigationVisible.value?.first!!) {
             binding.navigationBar.visibility = View.INVISIBLE
             binding.statusBarShade.visibility = View.INVISIBLE
         }
 
-        homeViewModel.navigationVisible.observe(this) { visible ->
-            showNavigation(visible)
+        homeViewModel.navigationVisible.observe(this) {
+            showNavigation(it.first, it.second)
         }
         homeViewModel.statusBarShadeVisible.observe(this) { visible ->
             showStatusBarShade(visible)
@@ -109,7 +115,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     fun finishSetup(navController: NavController) {
         navController.navigate(R.id.action_firstTimeSetupFragment_to_gamesFragment)
         binding.navigationBar.setupWithNavController(navController)
-        showNavigation(true)
+        showNavigation(visible = true, animated = true)
 
         ThemeHelper.setNavigationBarColor(
             this,
@@ -132,7 +138,16 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         }
     }
 
-    private fun showNavigation(visible: Boolean) {
+    private fun showNavigation(visible: Boolean, animated: Boolean) {
+        if (!animated) {
+            if (visible) {
+                binding.navigationBar.visibility = View.VISIBLE
+            } else {
+                binding.navigationBar.visibility = View.INVISIBLE
+            }
+            return
+        }
+
         binding.navigationBar.animate().apply {
             if (visible) {
                 binding.navigationBar.visibility = View.VISIBLE
@@ -196,10 +211,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         themeId = resId
     }
 
-    private fun hasExtension(path: String, extension: String): Boolean {
-        return path.substring(path.lastIndexOf(".") + 1).contains(extension)
-    }
-
     val getGamesDirectory =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
             if (result == null)
@@ -232,7 +243,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             if (result == null)
                 return@registerForActivityResult
 
-            if (!hasExtension(result.toString(), "keys")) {
+            if (!FileUtil.hasExtension(result.toString(), "keys")) {
                 Toast.makeText(
                     applicationContext,
                     R.string.invalid_keys_file,
@@ -278,7 +289,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             if (result == null)
                 return@registerForActivityResult
 
-            if (!hasExtension(result.toString(), "bin")) {
+            if (!FileUtil.hasExtension(result.toString(), "bin")) {
                 Toast.makeText(
                     applicationContext,
                     R.string.invalid_keys_file,

@@ -32,7 +32,10 @@
 
     <!-- Home strings -->
     <string name="home_games">Games</string>
+    <string name="home_search">Search</string>
     <string name="home_settings">Settings</string>
+    <string name="empty_gamelist">No files were found or no game directory has been selected yet.</string>
+    <string name="search_and_filter_games">Search and filter games</string>
     <string name="select_games_folder">Select games folder</string>
     <string name="select_games_folder_description">Allows yuzu to populate the games list</string>
     <string name="add_games_warning">Skip selecting games folder?</string>
@@ -58,6 +61,10 @@
     <string name="install_gpu_driver_description">Install alternative drivers for potentially better performance or accuracy</string>
     <string name="advanced_settings">Advanced settings</string>
     <string name="settings_description">Configure emulator settings</string>
+    <string name="search_recently_played">Recently Played</string>
+    <string name="search_recently_added">Recently Added</string>
+    <string name="search_retail">Retail</string>
+    <string name="search_homebrew">Homebrew</string>
     <string name="open_user_folder">Open yuzu folder</string>
     <string name="open_user_folder_description">Manage yuzu\'s internal files</string>
     <string name="no_file_manager">No file manager found</string>
@@ -150,8 +157,6 @@
     <string name="emulation_game_loading">Game loading…</string>
 
     <string name="load_settings">Loading Settings…</string>
-
-    <string name="empty_gamelist">No files were found or no game directory has been selected yet.</string>
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Software Keyboard</string>

@@ -25,4 +25,9 @@
             app:popUpToInclusive="true" />
     </fragment>
 
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.SearchFragment"
+        android:label="SearchFragment" />
+
 </navigation>

@@ -52,19 +52,7 @@ class GamesFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // Use custom back navigation so the user doesn't back out of the app when trying to back
-        // out of the search view
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
-            object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    if (binding.searchView.currentTransitionState == TransitionState.SHOWN) {
-                        binding.searchView.hide()
-                    } else {
-                        requireActivity().finish()
-                    }
-                }
-            })
+        homeViewModel.setNavigationVisibility(visible = true, animated = false)
 
         binding.gridGames.apply {
             layoutManager = AutofitGridLayoutManager(
@@ -73,7 +61,6 @@ class GamesFragment : Fragment() {
             )
             adapter = GameAdapter(requireActivity() as AppCompatActivity)
         }
-        setUpSearch()
 
         // Add swipe down to refresh gesture
         binding.swipeRefresh.setOnRefreshListener {
@@ -91,51 +78,21 @@ class GamesFragment : Fragment() {
         // Watch for when we get updates to any of our games lists
         gamesViewModel.isReloading.observe(viewLifecycleOwner) { isReloading ->
             binding.swipeRefresh.isRefreshing = isReloading
-
-            if (!isReloading) {
-                if (gamesViewModel.games.value!!.isEmpty()) {
-                    binding.noticeText.visibility = View.VISIBLE
-                } else {
-                    binding.noticeText.visibility = View.GONE
-                }
-            }
         }
         gamesViewModel.games.observe(viewLifecycleOwner) {
             (binding.gridGames.adapter as GameAdapter).submitList(it)
+            if (it.isEmpty()) {
+                binding.noticeText.visibility = View.VISIBLE
+            } else {
+                binding.noticeText.visibility = View.GONE
+            }
         }
-        gamesViewModel.searchedGames.observe(viewLifecycleOwner) {
-            (binding.gridSearch.adapter as GameAdapter).submitList(it)
-        }
+
         gamesViewModel.shouldSwapData.observe(viewLifecycleOwner) { shouldSwapData ->
             if (shouldSwapData) {
                 (binding.gridGames.adapter as GameAdapter).submitList(gamesViewModel.games.value)
                 gamesViewModel.setShouldSwapData(false)
             }
-        }
-
-        // Hide bottom navigation and FAB when using the search view
-        binding.searchView.addTransitionListener { _: SearchView, _: TransitionState, newState: TransitionState ->
-            when (newState) {
-                TransitionState.SHOWING,
-                TransitionState.SHOWN -> {
-                    (binding.gridSearch.adapter as GameAdapter).submitList(emptyList())
-                    searchShown()
-                }
-                TransitionState.HIDDEN,
-                TransitionState.HIDING -> {
-                    gamesViewModel.setSearchedGames(emptyList())
-                    searchHidden()
-                    binding.appBarSearch.setExpanded(true)
-                }
-            }
-        }
-
-        // Ensure that bottom navigation or FAB don't appear upon recreation
-        val searchState = binding.searchView.currentTransitionState
-        if (searchState == TransitionState.SHOWN) {
-            searchShown()
-        } else if (searchState == TransitionState.HIDDEN) {
-            searchHidden()
         }
 
         // Check if the user reselected the games menu item and then scroll to top of the list
@@ -162,71 +119,24 @@ class GamesFragment : Fragment() {
         _binding = null
     }
 
-    private fun searchShown() {
-        homeViewModel.setNavigationVisibility(false)
-        homeViewModel.setStatusBarShadeVisibility(false)
-    }
-
-    private fun searchHidden() {
-        homeViewModel.setNavigationVisibility(true)
-        homeViewModel.setStatusBarShadeVisibility(true)
-    }
-
-    private inner class ScoredGame(val score: Double, val item: Game)
-
-    private fun setUpSearch() {
-        binding.gridSearch.apply {
-            layoutManager = AutofitGridLayoutManager(
-                requireContext(),
-                requireContext().resources.getDimensionPixelSize(R.dimen.card_width)
-            )
-            adapter = GameAdapter(requireActivity() as AppCompatActivity)
-        }
-
-        binding.searchView.editText.doOnTextChanged { text: CharSequence?, _: Int, _: Int, _: Int ->
-            val searchTerm = text.toString().lowercase(Locale.getDefault())
-            val searchAlgorithm = Jaccard(2)
-            val sortedList: List<Game> = gamesViewModel.games.value!!.mapNotNull { game ->
-                val title = game.title.lowercase(Locale.getDefault())
-                val score = searchAlgorithm.similarity(searchTerm, title)
-                if (score > 0.03) {
-                    ScoredGame(score, game)
-                } else {
-                    null
-                }
-            }.sortedByDescending { it.score }.map { it.item }
-            gamesViewModel.setSearchedGames(sortedList)
-        }
-    }
-
-    fun scrollToTop() {
+    private fun scrollToTop() {
         if (_binding != null) {
             binding.gridGames.smoothScrollToPosition(0)
         }
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.gridGames) { view: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view: View, windowInsets: WindowInsetsCompat ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val extraListSpacing = resources.getDimensionPixelSize(R.dimen.spacing_med)
+            val extraListSpacing = resources.getDimensionPixelSize(R.dimen.spacing_large)
 
-            view.updatePadding(
-                top = insets.top + resources.getDimensionPixelSize(R.dimen.spacing_search),
+            binding.gridGames.updatePadding(
+                top = insets.top + extraListSpacing,
                 bottom = insets.bottom + resources.getDimensionPixelSize(R.dimen.spacing_navigation) + extraListSpacing
             )
-            binding.gridSearch.updatePadding(
-                left = insets.left,
-                top = extraListSpacing,
-                right = insets.right,
-                bottom = insets.bottom + extraListSpacing
-            )
 
-            binding.swipeRefresh.setSlingshotDistance(
-                resources.getDimensionPixelSize(R.dimen.spacing_refresh_slingshot)
-            )
-            binding.swipeRefresh.setProgressViewOffset(
+            binding.swipeRefresh.setProgressViewEndTarget(
                 false,
-                insets.top + resources.getDimensionPixelSize(R.dimen.spacing_refresh_start),
                 insets.top + resources.getDimensionPixelSize(R.dimen.spacing_refresh_end)
             )
 

@@ -292,4 +292,8 @@ object FileUtil {
             }
         }
     }
+
+    fun hasExtension(path: String, extension: String): Boolean {
+        return path.substring(path.lastIndexOf(".") + 1).contains(extension)
+    }
 }

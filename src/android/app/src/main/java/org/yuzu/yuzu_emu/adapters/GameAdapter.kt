@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.AsyncDifferConfig
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -21,6 +22,7 @@ import coil.load
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.databinding.CardGameBinding
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.model.Game
@@ -51,6 +53,14 @@ class GameAdapter(private val activity: AppCompatActivity) :
      */
     override fun onClick(view: View) {
         val holder = view.tag as GameViewHolder
+        val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+        preferences.edit()
+            .putLong(
+                holder.game.keyLastPlayedTime,
+                System.currentTimeMillis()
+            )
+            .apply()
+
         EmulationActivity.launch(activity, holder.game)
     }
 

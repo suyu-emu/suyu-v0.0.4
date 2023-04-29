@@ -16,6 +16,9 @@ class Game(
     val gameId: String,
     val company: String
 ) : Parcelable {
+    val keyAddedToLibraryTime get() = "${gameId}_AddedToLibraryTime"
+    val keyLastPlayedTime get() = "${gameId}_LastPlayed"
+
     companion object {
         val extensions: Set<String> = HashSet(
             listOf(".xci", ".nsp", ".nca", ".nro")

@@ -71,7 +71,7 @@ class SetupFragment : Fragment() {
 
         mainActivity = requireActivity() as MainActivity
 
-        homeViewModel.setNavigationVisibility(false)
+        homeViewModel.setNavigationVisibility(visible = false, animated = false)
 
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,

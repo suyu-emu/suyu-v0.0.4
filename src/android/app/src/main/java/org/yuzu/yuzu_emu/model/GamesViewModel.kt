@@ -29,6 +29,9 @@ class GamesViewModel : ViewModel() {
     private val _shouldScrollToTop = MutableLiveData(false)
     val shouldScrollToTop: LiveData<Boolean> get() = _shouldScrollToTop
 
+    private val _searchFocused = MutableLiveData(false)
+    val searchFocused: LiveData<Boolean> get() = _searchFocused
+
     init {
         reloadGames(false)
     }
@@ -43,6 +46,10 @@ class GamesViewModel : ViewModel() {
 
     fun setShouldScrollToTop(shouldScroll: Boolean) {
         _shouldScrollToTop.postValue(shouldScroll)
+    }
+
+    fun setSearchFocused(searchFocused: Boolean) {
+        _searchFocused.postValue(searchFocused)
     }
 
     fun reloadGames(directoryChanged: Boolean) {

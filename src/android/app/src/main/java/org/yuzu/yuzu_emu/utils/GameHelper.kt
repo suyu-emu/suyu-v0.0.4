@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.utils
 
+import android.content.SharedPreferences
 import android.net.Uri
 import androidx.preference.PreferenceManager
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -14,12 +15,15 @@ import kotlin.collections.ArrayList
 object GameHelper {
     const val KEY_GAME_PATH = "game_path"
 
+    private lateinit var preferences: SharedPreferences
+
     fun getGames(): ArrayList<Game> {
         val games = ArrayList<Game>()
         val context = YuzuApplication.appContext
         val gamesDir =
             PreferenceManager.getDefaultSharedPreferences(context).getString(KEY_GAME_PATH, "")
         val gamesUri = Uri.parse(gamesDir)
+        preferences = PreferenceManager.getDefaultSharedPreferences(context)
 
         // Ensure keys are loaded so that ROM metadata can be decrypted.
         NativeLibrary.reloadKeys()
@@ -60,7 +64,7 @@ object GameHelper {
             )
         }
 
-        return Game(
+        val newGame = Game(
             name,
             NativeLibrary.getDescription(filePath).replace("\n", " "),
             NativeLibrary.getRegions(filePath),
@@ -68,5 +72,14 @@ object GameHelper {
             gameId,
             NativeLibrary.getCompany(filePath)
         )
+
+        val addedTime = preferences.getLong(newGame.keyAddedToLibraryTime, 0L)
+        if (addedTime == 0L) {
+            preferences.edit()
+                .putLong(newGame.keyAddedToLibraryTime, System.currentTimeMillis())
+                .apply()
+        }
+
+        return newGame
     }
 }
