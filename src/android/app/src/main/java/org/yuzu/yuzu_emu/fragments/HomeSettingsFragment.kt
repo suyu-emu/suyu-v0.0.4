@@ -60,8 +60,8 @@ class HomeSettingsFragment : Fragment() {
                 R.drawable.ic_nfc
             ) { mainActivity.getAmiiboKey.launch(arrayOf("*/*")) },
             HomeSetting(
-                R.string.add_games,
-                R.string.add_games_description,
+                R.string.select_games_folder,
+                R.string.select_games_folder_description,
                 R.drawable.ic_add
             ) { mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data) },
             HomeSetting(
