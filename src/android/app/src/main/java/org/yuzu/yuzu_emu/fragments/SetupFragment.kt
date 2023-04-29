@@ -28,6 +28,9 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.model.SetupPage
 import org.yuzu.yuzu_emu.ui.main.MainActivity
+import org.yuzu.yuzu_emu.utils.DirectoryInitialization
+import org.yuzu.yuzu_emu.utils.GameHelper
+import java.io.File
 
 class SetupFragment : Fragment() {
     private var _binding: FragmentSetupBinding? = null
@@ -101,7 +104,8 @@ class SetupFragment : Fragment() {
                 true,
                 R.string.install_prod_keys_warning,
                 R.string.install_prod_keys_warning_description,
-                R.string.install_prod_keys_warning_help
+                R.string.install_prod_keys_warning_help,
+                { File(DirectoryInitialization.userDirectory + "/keys/prod.keys").exists() }
             ),
             SetupPage(
                 R.drawable.ic_controller,
@@ -114,7 +118,12 @@ class SetupFragment : Fragment() {
                 true,
                 R.string.add_games_warning,
                 R.string.add_games_warning_description,
-                0
+                R.string.add_games_warning_help,
+                {
+                    val preferences =
+                        PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+                    preferences.getString(GameHelper.KEY_GAME_PATH, "")!!.isNotEmpty()
+                }
             ),
             SetupPage(
                 R.drawable.ic_check,
@@ -158,16 +167,25 @@ class SetupFragment : Fragment() {
         binding.buttonNext.setOnClickListener {
             val index = binding.viewPager2.currentItem
             val currentPage = pages[index]
-            if (currentPage.hasWarning && !hasBeenWarned[index]) {
-                SetupWarningDialogFragment.newInstance(
-                    currentPage.warningTitleId,
-                    currentPage.warningDescriptionId,
-                    currentPage.warningHelpLinkId,
-                    index
-                ).show(childFragmentManager, SetupWarningDialogFragment.TAG)
-            } else {
-                pageForward()
+
+            // Checks if the user has completed the task on the current page
+            if (currentPage.hasWarning) {
+                if (currentPage.taskCompleted.invoke()) {
+                    pageForward()
+                    return@setOnClickListener
+                }
+
+                if (!hasBeenWarned[index]) {
+                    SetupWarningDialogFragment.newInstance(
+                        currentPage.warningTitleId,
+                        currentPage.warningDescriptionId,
+                        currentPage.warningHelpLinkId,
+                        index
+                    ).show(childFragmentManager, SetupWarningDialogFragment.TAG)
+                    return@setOnClickListener
+                }
             }
+            pageForward()
         }
         binding.buttonBack.setOnClickListener { pageBackward() }
 

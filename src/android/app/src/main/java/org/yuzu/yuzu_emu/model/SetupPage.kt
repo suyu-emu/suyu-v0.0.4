@@ -14,5 +14,6 @@ data class SetupPage(
     val hasWarning: Boolean,
     val warningTitleId: Int = 0,
     val warningDescriptionId: Int = 0,
-    val warningHelpLinkId: Int = 0
+    val warningHelpLinkId: Int = 0,
+    val taskCompleted: () -> Boolean = { true }
 )

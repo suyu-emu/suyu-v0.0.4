@@ -31,6 +31,7 @@
     <string name="add_games_description">Select your games folder</string>
     <string name="add_games_warning">Skip selecting games folder?</string>
     <string name="add_games_warning_description">Games won\'t be displayed in the Games list if a folder isn\'t selected.</string>
+    <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Search Games</string>
     <string name="games_dir_selected">Games directory selected</string>
     <string name="install_prod_keys">Install Prod.keys</string>
