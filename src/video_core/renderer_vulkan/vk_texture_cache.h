@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
@@ -139,6 +139,9 @@ public:
                       std::span<const VideoCommon::BufferImageCopy> copies);
 
     void DownloadMemory(VkBuffer buffer, VkDeviceSize offset,
+                        std::span<const VideoCommon::BufferImageCopy> copies);
+
+    void DownloadMemory(std::span<VkBuffer> buffers, std::span<VkDeviceSize> offsets,
                         std::span<const VideoCommon::BufferImageCopy> copies);
 
     void DownloadMemory(const StagingBufferRef& map,
@@ -371,6 +374,7 @@ struct TextureCacheParams {
     using Sampler = Vulkan::Sampler;
     using Framebuffer = Vulkan::Framebuffer;
     using AsyncBuffer = Vulkan::StagingBufferRef;
+    using BufferType = VkBuffer;
 };
 
 using TextureCache = VideoCommon::TextureCache<TextureCacheParams>;

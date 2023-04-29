@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -40,14 +40,9 @@ struct ChannelState;
 
 namespace VideoCommon {
 
-using Tegra::Texture::SwizzleSource;
 using Tegra::Texture::TICEntry;
 using Tegra::Texture::TSCEntry;
-using VideoCore::Surface::GetFormatType;
-using VideoCore::Surface::IsCopyCompatible;
 using VideoCore::Surface::PixelFormat;
-using VideoCore::Surface::PixelFormatFromDepthFormat;
-using VideoCore::Surface::PixelFormatFromRenderTargetFormat;
 using namespace Common::Literals;
 
 struct ImageViewInOut {
@@ -119,6 +114,7 @@ class TextureCache : public VideoCommon::ChannelSetupCaches<TextureCacheChannelI
     using Sampler = typename P::Sampler;
     using Framebuffer = typename P::Framebuffer;
     using AsyncBuffer = typename P::AsyncBuffer;
+    using BufferType = typename P::BufferType;
 
     struct BlitImages {
         ImageId dst_id;
@@ -214,6 +210,10 @@ public:
     [[nodiscard]] std::pair<Image*, BufferImageCopy> DmaBufferImageCopy(
         const Tegra::DMA::ImageCopy& copy_info, const Tegra::DMA::BufferOperand& buffer_operand,
         const Tegra::DMA::ImageOperand& image_operand, ImageId image_id, bool modifies_image);
+
+    void DownloadImageIntoBuffer(Image* image, BufferType buffer, size_t buffer_offset,
+                                 std::span<const VideoCommon::BufferImageCopy> copies,
+                                 GPUVAddr address = 0, size_t size = 0);
 
     /// Return true when a CPU region is modified from the GPU
     [[nodiscard]] bool IsRegionGpuModified(VAddr addr, size_t size);
@@ -424,17 +424,32 @@ private:
     u64 critical_memory;
     size_t critical_gc;
 
+    struct BufferDownload {
+        GPUVAddr address;
+        size_t size;
+    };
+
+    struct PendingDownload {
+        bool is_swizzle;
+        size_t async_buffer_id;
+        SlotId object_id;
+    };
+
     SlotVector<Image> slot_images;
     SlotVector<ImageMapView> slot_map_views;
     SlotVector<ImageView> slot_image_views;
     SlotVector<ImageAlloc> slot_image_allocs;
     SlotVector<Sampler> slot_samplers;
     SlotVector<Framebuffer> slot_framebuffers;
+    SlotVector<BufferDownload> slot_buffer_downloads;
 
     // TODO: This data structure is not optimal and it should be reworked
-    std::vector<ImageId> uncommitted_downloads;
-    std::deque<std::vector<ImageId>> committed_downloads;
-    std::deque<std::optional<AsyncBuffer>> async_buffers;
+
+    std::vector<PendingDownload> uncommitted_downloads;
+    std::deque<std::vector<PendingDownload>> committed_downloads;
+    std::vector<AsyncBuffer> uncommitted_async_buffers;
+    std::deque<std::vector<AsyncBuffer>> async_buffers;
+    std::deque<AsyncBuffer> async_buffers_death_ring;
 
     struct LRUItemParams {
         using ObjectType = ImageId;
