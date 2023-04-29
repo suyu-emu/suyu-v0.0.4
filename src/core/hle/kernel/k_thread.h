@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#include <boost/intrusive/list.hpp>
+#include "common/intrusive_list.h"
 
 #include "common/intrusive_red_black_tree.h"
 #include "common/spin_lock.h"
@@ -119,7 +119,7 @@ s32 GetCurrentCoreId(KernelCore& kernel);
 Core::Memory::Memory& GetCurrentMemory(KernelCore& kernel);
 
 class KThread final : public KAutoObjectWithSlabHeapAndContainer<KThread, KWorkerTask>,
-                      public boost::intrusive::list_base_hook<>,
+                      public Common::IntrusiveListBaseNode<KThread>,
                       public KTimerTask {
     KERNEL_AUTOOBJECT_TRAITS(KThread, KSynchronizationObject);
 
@@ -138,7 +138,7 @@ public:
 public:
     using ThreadContext32 = Core::ARM_Interface::ThreadContext32;
     using ThreadContext64 = Core::ARM_Interface::ThreadContext64;
-    using WaiterList = boost::intrusive::list<KThread>;
+    using WaiterList = Common::IntrusiveListBaseTraits<KThread>::ListType;
 
     /**
      * Gets the thread's current priority
@@ -750,8 +750,9 @@ private:
         ConditionVariableThreadTreeTraits::TreeType<LockWithPriorityInheritanceComparator>;
 
 public:
-    class LockWithPriorityInheritanceInfo : public KSlabAllocated<LockWithPriorityInheritanceInfo>,
-                                            public boost::intrusive::list_base_hook<> {
+    class LockWithPriorityInheritanceInfo
+        : public KSlabAllocated<LockWithPriorityInheritanceInfo>,
+          public Common::IntrusiveListBaseNode<LockWithPriorityInheritanceInfo> {
     public:
         explicit LockWithPriorityInheritanceInfo(KernelCore&) {}
 
@@ -839,7 +840,7 @@ public:
 
 private:
     using LockWithPriorityInheritanceInfoList =
-        boost::intrusive::list<LockWithPriorityInheritanceInfo>;
+        Common::IntrusiveListBaseTraits<LockWithPriorityInheritanceInfo>::ListType;
 
     ConditionVariableThreadTree* m_condvar_tree{};
     u64 m_condvar_key{};

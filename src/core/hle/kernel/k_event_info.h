@@ -5,14 +5,15 @@
 
 #include <array>
 
-#include <boost/intrusive/list.hpp>
+#include "common/intrusive_list.h"
 
 #include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/kernel/svc_types.h"
 
 namespace Kernel {
 
-class KEventInfo : public KSlabAllocated<KEventInfo>, public boost::intrusive::list_base_hook<> {
+class KEventInfo : public KSlabAllocated<KEventInfo>,
+                   public Common::IntrusiveListBaseNode<KEventInfo> {
 public:
     struct InfoCreateThread {
         u32 thread_id{};

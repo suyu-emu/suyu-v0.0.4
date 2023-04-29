@@ -7,7 +7,7 @@
 #include <string>
 #include <utility>
 
-#include <boost/intrusive/list.hpp>
+#include "common/intrusive_list.h"
 
 #include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/k_synchronization_object.h"
@@ -42,7 +42,7 @@ public:
     bool IsSignaled() const override;
 
 private:
-    using SessionList = boost::intrusive::list<KServerSession>;
+    using SessionList = Common::IntrusiveListBaseTraits<KServerSession>::ListType;
 
     void CleanupSessions();
 
