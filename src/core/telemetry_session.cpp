@@ -85,7 +85,7 @@ static const char* TranslateNvdecEmulation(Settings::NvdecEmulation backend) {
     return "Unknown";
 }
 
-constexpr const char* TranslateVSyncMode(Settings::VSyncMode mode) {
+static constexpr const char* TranslateVSyncMode(Settings::VSyncMode mode) {
     switch (mode) {
     case Settings::VSyncMode::Immediate:
         return "Immediate";
