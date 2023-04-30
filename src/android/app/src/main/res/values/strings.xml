@@ -51,7 +51,7 @@
     <string name="install_keys_failure">Keys file (prod.keys) is invalid</string>
     <string name="install_amiibo_keys_failure">Keys file (key_retail.bin) is invalid</string>
     <string name="install_gpu_driver">Install GPU Driver</string>
-    <string name="install_gpu_driver_description">Use a different driver for potentially better performance or accuracy</string>
+    <string name="install_gpu_driver_description">Install alternative drivers for potentially better performance or accuracy</string>
     <string name="advanced_settings">Advanced Settings</string>
     <string name="settings_description">Configure emulator settings</string>
 
