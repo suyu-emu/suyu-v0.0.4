@@ -163,6 +163,7 @@ public:
             case Settings::VSyncMode::Mailbox:
                 return 2;
             }
+            return 0;
         }();
 
         format.setSwapInterval(main_surface ? swap_interval : 0);
