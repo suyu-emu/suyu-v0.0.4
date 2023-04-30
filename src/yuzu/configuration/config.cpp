@@ -6,6 +6,7 @@
 #include <QSettings>
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/hid/controllers/npad.h"
@@ -709,7 +710,6 @@ void Config::ReadRendererValues() {
     ReadGlobalSetting(Settings::values.nvdec_emulation);
     ReadGlobalSetting(Settings::values.accelerate_astc);
     ReadGlobalSetting(Settings::values.async_astc);
-    ReadGlobalSetting(Settings::values.use_vsync);
     ReadGlobalSetting(Settings::values.shader_backend);
     ReadGlobalSetting(Settings::values.use_asynchronous_shaders);
     ReadGlobalSetting(Settings::values.use_fast_gpu_time);
@@ -720,6 +720,10 @@ void Config::ReadRendererValues() {
     ReadGlobalSetting(Settings::values.bg_blue);
 
     if (global) {
+        Settings::values.vsync_mode.SetValue(static_cast<Settings::VSyncMode>(
+            ReadSetting(QString::fromStdString(Settings::values.vsync_mode.GetLabel()),
+                        static_cast<u32>(Settings::values.vsync_mode.GetDefault()))
+                .value<u32>()));
         ReadBasicSetting(Settings::values.renderer_debug);
         ReadBasicSetting(Settings::values.renderer_shader_feedback);
         ReadBasicSetting(Settings::values.enable_nsight_aftermath);
@@ -1352,7 +1356,6 @@ void Config::SaveRendererValues() {
                  Settings::values.nvdec_emulation.UsingGlobal());
     WriteGlobalSetting(Settings::values.accelerate_astc);
     WriteGlobalSetting(Settings::values.async_astc);
-    WriteGlobalSetting(Settings::values.use_vsync);
     WriteSetting(QString::fromStdString(Settings::values.shader_backend.GetLabel()),
                  static_cast<u32>(Settings::values.shader_backend.GetValue(global)),
                  static_cast<u32>(Settings::values.shader_backend.GetDefault()),
@@ -1366,6 +1369,9 @@ void Config::SaveRendererValues() {
     WriteGlobalSetting(Settings::values.bg_blue);
 
     if (global) {
+        WriteSetting(QString::fromStdString(Settings::values.vsync_mode.GetLabel()),
+                     static_cast<u32>(Settings::values.vsync_mode.GetValue()),
+                     static_cast<u32>(Settings::values.vsync_mode.GetDefault()));
         WriteBasicSetting(Settings::values.renderer_debug);
         WriteBasicSetting(Settings::values.renderer_shader_feedback);
         WriteBasicSetting(Settings::values.enable_nsight_aftermath);

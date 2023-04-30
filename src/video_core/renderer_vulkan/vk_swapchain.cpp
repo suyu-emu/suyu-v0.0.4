@@ -34,21 +34,22 @@ VkSurfaceFormatKHR ChooseSwapSurfaceFormat(vk::Span<VkSurfaceFormatKHR> formats)
 }
 
 VkPresentModeKHR ChooseSwapPresentMode(vk::Span<VkPresentModeKHR> modes) {
-    // Mailbox (triple buffering) doesn't lock the application like fifo (vsync),
-    // prefer it if vsync option is not selected
-    const auto found_mailbox = std::find(modes.begin(), modes.end(), VK_PRESENT_MODE_MAILBOX_KHR);
-    if (Settings::values.fullscreen_mode.GetValue() == Settings::FullscreenMode::Borderless &&
-        found_mailbox != modes.end() && !Settings::values.use_vsync.GetValue()) {
+    // Mailbox (triple buffering) doesn't lock the application like FIFO (vsync)
+    // FIFO present mode locks the framerate to the monitor's refresh rate
+    const bool has_mailbox =
+        std::find(modes.begin(), modes.end(), VK_PRESENT_MODE_MAILBOX_KHR) != modes.end();
+    const bool has_imm =
+        std::find(modes.begin(), modes.end(), VK_PRESENT_MODE_IMMEDIATE_KHR) != modes.end();
+    const Settings::VSyncMode mode = Settings::values.vsync_mode.GetValue();
+
+    if (mode == Settings::VSyncMode::Immediate && has_imm) {
+        LOG_INFO(Render_Vulkan, "Using swap present mode Immediate");
+        return VK_PRESENT_MODE_IMMEDIATE_KHR;
+    } else if (mode == Settings::VSyncMode::Mailbox && has_mailbox) {
+        LOG_INFO(Render_Vulkan, "Using swap present mode Mailbox");
         return VK_PRESENT_MODE_MAILBOX_KHR;
     }
-    if (!Settings::values.use_speed_limit.GetValue()) {
-        // FIFO present mode locks the framerate to the monitor's refresh rate,
-        // Find an alternative to surpass this limitation if FPS is unlocked.
-        const auto found_imm = std::find(modes.begin(), modes.end(), VK_PRESENT_MODE_IMMEDIATE_KHR);
-        if (found_imm != modes.end()) {
-            return VK_PRESENT_MODE_IMMEDIATE_KHR;
-        }
-    }
+    LOG_INFO(Render_Vulkan, "Using swap present mode FIFO");
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 

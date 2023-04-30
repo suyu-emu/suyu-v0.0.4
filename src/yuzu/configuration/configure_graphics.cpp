@@ -99,6 +99,7 @@ void ConfigureGraphics::SetConfiguration() {
     ui->nvdec_emulation_widget->setEnabled(runtime_lock);
     ui->resolution_combobox->setEnabled(runtime_lock);
     ui->accelerate_astc->setEnabled(runtime_lock);
+    ui->vsync_mode_combobox->setEnabled(runtime_lock);
     ui->use_disk_shader_cache->setChecked(Settings::values.use_disk_shader_cache.GetValue());
     ui->use_asynchronous_gpu_emulation->setChecked(
         Settings::values.use_asynchronous_gpu_emulation.GetValue());
@@ -118,6 +119,9 @@ void ConfigureGraphics::SetConfiguration() {
         ui->fsr_sharpening_slider->setValue(Settings::values.fsr_sharpening_slider.GetValue());
         ui->anti_aliasing_combobox->setCurrentIndex(
             static_cast<int>(Settings::values.anti_aliasing.GetValue()));
+
+        ui->vsync_mode_combobox->setCurrentIndex(
+            static_cast<int>(Settings::values.vsync_mode.GetValue()));
     } else {
         ConfigurationShared::SetPerGameSetting(ui->api, &Settings::values.renderer_backend);
         ConfigurationShared::SetHighlight(ui->api_widget,
@@ -232,6 +236,9 @@ void ConfigureGraphics::ApplyConfiguration() {
             Settings::values.anti_aliasing.SetValue(anti_aliasing);
         }
         Settings::values.fsr_sharpening_slider.SetValue(ui->fsr_sharpening_slider->value());
+
+        Settings::values.vsync_mode.SetValue(
+            static_cast<Settings::VSyncMode>(ui->vsync_mode_combobox->currentIndex()));
     } else {
         if (ui->resolution_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
             Settings::values.resolution_setup.SetGlobal(true);
@@ -465,4 +472,6 @@ void ConfigureGraphics::SetupPerGameUI() {
         ui->api, static_cast<int>(Settings::values.renderer_backend.GetValue(true)));
     ConfigurationShared::InsertGlobalItem(
         ui->nvdec_emulation, static_cast<int>(Settings::values.nvdec_emulation.GetValue(true)));
+
+    ui->vsync_mode_layout->setVisible(false);
 }

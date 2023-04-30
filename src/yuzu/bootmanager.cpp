@@ -154,7 +154,18 @@ public:
 
         // disable vsync for any shared contexts
         auto format = share_context->format();
-        format.setSwapInterval(main_surface ? Settings::values.use_vsync.GetValue() : 0);
+        const int swap_interval = [&]() {
+            switch (Settings::values.vsync_mode.GetValue()) {
+            case Settings::VSyncMode::Immediate:
+                return 0;
+            case Settings::VSyncMode::FIFO:
+                return 1;
+            case Settings::VSyncMode::Mailbox:
+                return 2;
+            }
+        }();
+
+        format.setSwapInterval(main_surface ? swap_interval : 0);
 
         context = std::make_unique<QOpenGLContext>();
         context->setShareContext(share_context);
