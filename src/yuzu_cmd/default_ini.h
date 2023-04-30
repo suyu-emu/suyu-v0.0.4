@@ -325,8 +325,14 @@ aspect_ratio =
 # 0: Default, 1: 2x, 2: 4x, 3: 8x, 4: 16x
 max_anisotropy =
 
-# Whether to enable V-Sync (caps the framerate at 60FPS) or not.
-# 0 (default): Off, 1: On
+# Whether to enable VSync or not.
+# OpenGL: Values other than 0 enable VSync
+# Vulkan: FIFO is selected if the requested mode is not supported by the driver.
+# FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen refresh rate.
+# FIFO Relaxed is similar to FIFO but allows tearing as it recovers from a slow down.
+# Mailbox can have lower latency than FIFO and does not tear but may drop frames.
+# Immediate (no synchronization) just presents whatever is available and can exhibit tearing.
+# 0: Immediate (Off), 1: Mailbox, 2 (Default): FIFO (On), 3: FIFO Relaxed
 use_vsync =
 
 # Selects the OpenGL shader backend. NV_gpu_program5 is required for GLASM. If NV_gpu_program5 is
