@@ -223,7 +223,7 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
     write_buffer.resize_destructive(dst_size);
 
     memory_manager.ReadBlock(src_operand.address, read_buffer.data(), src_size);
-    memory_manager.ReadBlockUnsafe(dst_operand.address, write_buffer.data(), dst_size);
+    memory_manager.ReadBlock(dst_operand.address, write_buffer.data(), dst_size);
 
     UnswizzleSubrect(write_buffer, read_buffer, bytes_per_pixel, width, height, depth, x_offset,
                      src_params.origin.y, x_elements, regs.line_count, block_height, block_depth,
@@ -288,11 +288,7 @@ void MaxwellDMA::CopyPitchToBlockLinear() {
     write_buffer.resize_destructive(dst_size);
 
     memory_manager.ReadBlock(regs.offset_in, read_buffer.data(), src_size);
-    if (Settings::IsGPULevelExtreme()) {
-        memory_manager.ReadBlock(regs.offset_out, write_buffer.data(), dst_size);
-    } else {
-        memory_manager.ReadBlockUnsafe(regs.offset_out, write_buffer.data(), dst_size);
-    }
+    memory_manager.ReadBlock(regs.offset_out, write_buffer.data(), dst_size);
 
     // If the input is linear and the output is tiled, swizzle the input and copy it over.
     SwizzleSubrect(write_buffer, read_buffer, bytes_per_pixel, width, height, depth, x_offset,

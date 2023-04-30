@@ -13,10 +13,13 @@
 #include "common/swap.h"
 #include "core/core.h"
 #include "core/device_memory.h"
+#include "core/hardware_properties.h"
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/memory.h"
 #include "video_core/gpu.h"
+#include "video_core/rasterizer_download_area.h"
+
 
 namespace Core::Memory {
 
@@ -243,7 +246,7 @@ struct Memory::Impl {
             [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
                 const u8* const host_ptr) {
                 if constexpr (!UNSAFE) {
-                    system.GPU().FlushRegion(GetInteger(current_vaddr), copy_amount);
+                    HandleRasterizerDownload(GetInteger(current_vaddr), copy_amount);
                 }
                 std::memcpy(dest_buffer, host_ptr, copy_amount);
             },
@@ -334,7 +337,7 @@ struct Memory::Impl {
             },
             [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
                 u8* const host_ptr) {
-                system.GPU().FlushRegion(GetInteger(current_vaddr), copy_amount);
+                HandleRasterizerDownload(GetInteger(current_vaddr), copy_amount);
                 WriteBlockImpl<false>(process, dest_addr, host_ptr, copy_amount);
             },
             [&](const std::size_t copy_amount) {
@@ -373,7 +376,7 @@ struct Memory::Impl {
                                  const std::size_t block_size) {
             // dc ivac: Invalidate to point of coherency
             // GPU flush -> CPU invalidate
-            system.GPU().FlushRegion(GetInteger(current_vaddr), block_size);
+            HandleRasterizerDownload(GetInteger(current_vaddr), block_size);
         };
         return PerformCacheOperation(process, dest_addr, size, on_rasterizer);
     }
@@ -462,8 +465,7 @@ struct Memory::Impl {
         }
 
         if (Settings::IsFastmemEnabled()) {
-            const bool is_read_enable = !Settings::IsGPULevelExtreme() || !cached;
-            system.DeviceMemory().buffer.Protect(vaddr, size, is_read_enable, !cached);
+            system.DeviceMemory().buffer.Protect(vaddr, size, !cached, !cached);
         }
 
         // Iterate over a contiguous CPU address space, which corresponds to the specified GPU
@@ -651,7 +653,9 @@ struct Memory::Impl {
                 LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8,
                           GetInteger(vaddr));
             },
-            [&]() { system.GPU().FlushRegion(GetInteger(vaddr), sizeof(T)); });
+            [&]() {
+                HandleRasterizerDownload(GetInteger(vaddr), sizeof(T));
+            });
         if (ptr) {
             std::memcpy(&result, ptr, sizeof(T));
         }
@@ -712,7 +716,18 @@ struct Memory::Impl {
         return true;
     }
 
+    void HandleRasterizerDownload(VAddr address, size_t size) {
+        const size_t core = system.GetCurrentHostThreadID();
+        auto& current_area = rasterizer_areas[core];
+        const VAddr end_address = address + size;
+        if (current_area.start_address <= address && end_address <= current_area.end_address) [[likely]] {
+            return;
+        }
+        current_area = system.GPU().OnCPURead(address, size);
+    }
+
     Common::PageTable* current_page_table = nullptr;
+    std::array<VideoCore::RasterizerDownloadArea, Core::Hardware::NUM_CPU_CORES> rasterizer_areas{};
     Core::System& system;
 };
 

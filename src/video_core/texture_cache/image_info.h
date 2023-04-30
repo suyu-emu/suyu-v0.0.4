@@ -39,6 +39,7 @@ struct ImageInfo {
     u32 tile_width_spacing = 0;
     bool rescaleable = false;
     bool downscaleable = false;
+    bool forced_flushed = false;
 };
 
 } // namespace VideoCommon

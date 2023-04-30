@@ -12,6 +12,7 @@
 #include "video_core/cache_types.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/gpu.h"
+#include "video_core/rasterizer_download_area.h"
 
 namespace Tegra {
 class MemoryManager;
@@ -94,6 +95,8 @@ public:
     /// Check if the the specified memory area requires flushing to CPU Memory.
     virtual bool MustFlushRegion(VAddr addr, u64 size,
                                  VideoCommon::CacheType which = VideoCommon::CacheType::All) = 0;
+
+    virtual RasterizerDownloadArea GetFlushArea(VAddr addr, u64 size) = 0;
 
     /// Notify rasterizer that any caches of the specified region should be invalidated
     virtual void InvalidateRegion(VAddr addr, u64 size,

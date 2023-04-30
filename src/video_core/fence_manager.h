@@ -55,8 +55,8 @@ public:
 
     // Unlike other fences, this one doesn't
     void SignalOrdering() {
-        std::scoped_lock lock{buffer_cache.mutex};
-        buffer_cache.AccumulateFlushes();
+        std::function<void()> do_nothing([]{});
+        SignalFence(std::move(do_nothing));
     }
 
     void SyncOperation(std::function<void()>&& func) {

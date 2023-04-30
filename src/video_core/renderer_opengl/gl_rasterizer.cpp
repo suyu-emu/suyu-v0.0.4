@@ -433,6 +433,29 @@ bool RasterizerOpenGL::MustFlushRegion(VAddr addr, u64 size, VideoCommon::CacheT
     return false;
 }
 
+VideoCore::RasterizerDownloadArea RasterizerOpenGL::GetFlushArea(VAddr addr, u64 size) {
+    {
+        std::scoped_lock lock{texture_cache.mutex};
+        auto area = texture_cache.GetFlushArea(addr, size);
+        if (area) {
+            return *area;
+        }
+    }
+    {
+        std::scoped_lock lock{buffer_cache.mutex};
+        auto area = buffer_cache.GetFlushArea(addr, size);
+        if (area) {
+            return *area;
+        }
+    }
+    VideoCore::RasterizerDownloadArea new_area{
+        .start_address = Common::AlignDown(addr, Core::Memory::YUZU_PAGESIZE),
+        .end_address = Common::AlignUp(addr + size, Core::Memory::YUZU_PAGESIZE),
+        .preemtive = true,
+    };
+    return new_area;
+}
+
 void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size, VideoCommon::CacheType which) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     if (addr == 0 || size == 0) {

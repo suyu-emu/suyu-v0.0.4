@@ -491,6 +491,32 @@ void TextureCache<P>::DownloadMemory(VAddr cpu_addr, size_t size) {
 }
 
 template <class P>
+std::optional<VideoCore::RasterizerDownloadArea> TextureCache<P>::GetFlushArea(VAddr cpu_addr,
+                                                                               u64 size) {
+    std::optional<VideoCore::RasterizerDownloadArea> area{};
+    ForEachImageInRegion(cpu_addr, size, [&](ImageId, ImageBase& image) {
+        if (False(image.flags & ImageFlagBits::GpuModified)) {
+            return;
+        }
+        if (!area) {
+            area.emplace();
+            area->start_address = cpu_addr;
+            area->end_address = cpu_addr + size;
+            area->preemtive = true;
+        }
+        area->start_address = std::min(area->start_address, image.cpu_addr);
+        area->end_address = std::max(area->end_address, image.cpu_addr_end);
+        for (auto image_view_id : image.image_view_ids) {
+            auto& image_view = slot_image_views[image_view_id];
+            image_view.flags |= ImageViewFlagBits::PreemtiveDownload;
+        }
+        area->preemtive &= image.info.forced_flushed;
+        image.info.forced_flushed = true;
+    });
+    return area;
+}
+
+template <class P>
 void TextureCache<P>::UnmapMemory(VAddr cpu_addr, size_t size) {
     std::vector<ImageId> deleted_images;
     ForEachImageInRegion(cpu_addr, size, [&](ImageId id, Image&) { deleted_images.push_back(id); });
@@ -789,9 +815,13 @@ ImageId TextureCache<P>::DmaImageId(const Tegra::DMA::ImageOperand& operand) {
     if (!dst_id) {
         return NULL_IMAGE_ID;
     }
-    const auto& image = slot_images[dst_id];
+    auto& image = slot_images[dst_id];
     if (False(image.flags & ImageFlagBits::GpuModified)) {
         // No need to waste time on an image that's synced with guest
+        return NULL_IMAGE_ID;
+    }
+    if (!image.info.forced_flushed) {
+        image.info.forced_flushed = true;
         return NULL_IMAGE_ID;
     }
     const auto base = image.TryFindBase(operand.address);

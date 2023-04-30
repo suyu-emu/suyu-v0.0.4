@@ -111,9 +111,24 @@ void BufferCache<P>::WriteMemory(VAddr cpu_addr, u64 size) {
 template <class P>
 void BufferCache<P>::CachedWriteMemory(VAddr cpu_addr, u64 size) {
     memory_tracker.CachedCpuWrite(cpu_addr, size);
-    const IntervalType add_interval{Common::AlignDown(cpu_addr, YUZU_PAGESIZE),
-                                    Common::AlignUp(cpu_addr + size, YUZU_PAGESIZE)};
-    cached_ranges.add(add_interval);
+}
+
+template <class P>
+std::optional<VideoCore::RasterizerDownloadArea> BufferCache<P>::GetFlushArea(VAddr cpu_addr,
+                                                                              u64 size) {
+    std::optional<VideoCore::RasterizerDownloadArea> area{};
+    area.emplace();
+    VAddr cpu_addr_start_aligned = Common::AlignDown(cpu_addr, Core::Memory::YUZU_PAGESIZE);
+    VAddr cpu_addr_end_aligned = Common::AlignUp(cpu_addr + size, Core::Memory::YUZU_PAGESIZE);
+    area->start_address = cpu_addr_start_aligned;
+    area->end_address = cpu_addr_end_aligned;
+    if (memory_tracker.IsRegionPreflushable(cpu_addr, size)) {
+        area->preemtive = true;
+        return area;
+    };
+    memory_tracker.MarkRegionAsPreflushable(cpu_addr_start_aligned, cpu_addr_end_aligned - cpu_addr_start_aligned);
+    area->preemtive = !IsRegionGpuModified(cpu_addr, size);
+    return area;
 }
 
 template <class P>
@@ -191,8 +206,10 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
         const VAddr new_base_address = *cpu_dest_address + diff;
         const IntervalType add_interval{new_base_address, new_base_address + size};
         tmp_intervals.push_back(add_interval);
-        uncommitted_ranges.add(add_interval);
-        pending_ranges.add(add_interval);
+        if (memory_tracker.IsRegionPreflushable(new_base_address, new_base_address + size)) {
+            uncommitted_ranges.add(add_interval);
+            pending_ranges.add(add_interval);
+        }
     };
     ForEachInRangeSet(common_ranges, *cpu_src_address, amount, mirror);
     // This subtraction in this order is important for overlapping copies.
@@ -205,7 +222,7 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     if (has_new_downloads) {
         memory_tracker.MarkRegionAsGpuModified(*cpu_dest_address, amount);
     }
-    std::vector<u8> tmp_buffer(amount);
+    tmp_buffer.resize(amount);
     cpu_memory.ReadBlockUnsafe(*cpu_src_address, tmp_buffer.data(), amount);
     cpu_memory.WriteBlockUnsafe(*cpu_dest_address, tmp_buffer.data(), amount);
     return true;
@@ -441,9 +458,7 @@ void BufferCache<P>::BindComputeTextureBuffer(size_t tbo_index, GPUVAddr gpu_add
 
 template <class P>
 void BufferCache<P>::FlushCachedWrites() {
-    cached_write_buffer_ids.clear();
     memory_tracker.FlushCachedWrites();
-    cached_ranges.clear();
 }
 
 template <class P>
@@ -1221,6 +1236,9 @@ void BufferCache<P>::MarkWrittenBuffer(BufferId buffer_id, VAddr cpu_addr, u32 s
 
     const IntervalType base_interval{cpu_addr, cpu_addr + size};
     common_ranges.add(base_interval);
+    if (!memory_tracker.IsRegionPreflushable(cpu_addr, cpu_addr + size)) {
+        return;
+    }
     uncommitted_ranges.add(base_interval);
     pending_ranges.add(base_interval);
 }
@@ -1629,7 +1647,6 @@ void BufferCache<P>::DeleteBuffer(BufferId buffer_id, bool do_not_mark) {
     replace(transform_feedback_buffers);
     replace(compute_uniform_buffers);
     replace(compute_storage_buffers);
-    std::erase(cached_write_buffer_ids, buffer_id);
 
     // Mark the whole buffer as CPU written to stop tracking CPU writes
     if (!do_not_mark) {

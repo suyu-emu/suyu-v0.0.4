@@ -222,6 +222,8 @@ public:
     /// Prepare the core emulation for a reschedule
     void PrepareReschedule(u32 core_index);
 
+    [[nodiscard]] size_t GetCurrentHostThreadID() const;
+
     /// Gets and resets core performance statistics
     [[nodiscard]] PerfStatsResults GetAndResetPerfStats();
 

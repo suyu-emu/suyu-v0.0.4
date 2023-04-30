@@ -26,8 +26,7 @@ ImageViewBase::ImageViewBase(const ImageViewInfo& info, const ImageInfo& image_i
     ASSERT_MSG(VideoCore::Surface::IsViewCompatible(image_info.format, info.format, false, true),
                "Image view format {} is incompatible with image format {}", info.format,
                image_info.format);
-    const bool is_async = Settings::values.use_asynchronous_gpu_emulation.GetValue();
-    if (image_info.type == ImageType::Linear && is_async) {
+    if (image_info.forced_flushed) {
         flags |= ImageViewFlagBits::PreemtiveDownload;
     }
     if (image_info.type == ImageType::e3D && info.type != ImageViewType::e3D) {
