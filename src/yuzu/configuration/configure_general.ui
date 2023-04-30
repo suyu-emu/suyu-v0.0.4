@@ -62,13 +62,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="use_extended_memory_layout">
-            <property name="text">
-             <string>Extended memory layout (8GB DRAM)</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QCheckBox" name="toggle_check_exit">
             <property name="text">
              <string>Confirm exit while emulation is running</string>

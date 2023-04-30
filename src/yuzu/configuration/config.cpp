@@ -497,7 +497,7 @@ void Config::ReadCoreValues() {
     qt_config->beginGroup(QStringLiteral("Core"));
 
     ReadGlobalSetting(Settings::values.use_multi_core);
-    ReadGlobalSetting(Settings::values.use_extended_memory_layout);
+    ReadGlobalSetting(Settings::values.use_unsafe_extended_memory_layout);
 
     qt_config->endGroup();
 }
@@ -1161,7 +1161,7 @@ void Config::SaveCoreValues() {
     qt_config->beginGroup(QStringLiteral("Core"));
 
     WriteGlobalSetting(Settings::values.use_multi_core);
-    WriteGlobalSetting(Settings::values.use_extended_memory_layout);
+    WriteGlobalSetting(Settings::values.use_unsafe_extended_memory_layout);
 
     qt_config->endGroup();
 }

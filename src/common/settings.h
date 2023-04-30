@@ -388,7 +388,8 @@ struct Values {
 
     // Core
     SwitchableSetting<bool> use_multi_core{true, "use_multi_core"};
-    SwitchableSetting<bool> use_extended_memory_layout{false, "use_extended_memory_layout"};
+    SwitchableSetting<bool> use_unsafe_extended_memory_layout{false,
+                                                              "use_unsafe_extended_memory_layout"};
 
     // Cpu
     SwitchableSetting<CPUAccuracy, true> cpu_accuracy{CPUAccuracy::Auto, CPUAccuracy::Auto,
