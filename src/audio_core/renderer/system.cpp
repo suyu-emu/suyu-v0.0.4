@@ -436,10 +436,7 @@ void System::Stop() {
     }
 
     if (execution_mode == ExecutionMode::Auto) {
-        // Should wait for the system to terminate here, but core timing (should have) already
-        // stopped, so this isn't needed. Find a way to make this definite.
-
-        // terminate_event.Wait();
+        terminate_event.Wait();
     }
 }
 
