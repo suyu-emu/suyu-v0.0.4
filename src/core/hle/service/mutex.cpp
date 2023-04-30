@@ -12,6 +12,9 @@ Mutex::Mutex(Core::System& system) : m_system(system) {
     m_event = Kernel::KEvent::Create(system.Kernel());
     m_event->Initialize(nullptr);
 
+    // Register the event.
+    Kernel::KEvent::Register(system.Kernel(), m_event);
+
     ASSERT(R_SUCCEEDED(m_event->Signal()));
 }
 

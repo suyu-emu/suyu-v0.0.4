@@ -182,8 +182,8 @@ public:
     explicit KAutoObjectWithList(KernelCore& kernel) : KAutoObject(kernel) {}
 
     static int Compare(const KAutoObjectWithList& lhs, const KAutoObjectWithList& rhs) {
-        const u64 lid = lhs.GetId();
-        const u64 rid = rhs.GetId();
+        const uintptr_t lid = reinterpret_cast<uintptr_t>(std::addressof(lhs));
+        const uintptr_t rid = reinterpret_cast<uintptr_t>(std::addressof(rhs));
 
         if (lid < rid) {
             return -1;

@@ -64,6 +64,9 @@ Result ServiceManager::RegisterService(std::string name, u32 max_sessions,
     auto* port = Kernel::KPort::Create(kernel);
     port->Initialize(ServerSessionCountMax, false, 0);
 
+    // Register the port.
+    Kernel::KPort::Register(kernel, port);
+
     service_ports.emplace(name, port);
     registered_services.emplace(name, handler);
     if (deferral_event) {

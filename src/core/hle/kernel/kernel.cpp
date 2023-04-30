@@ -95,7 +95,7 @@ struct KernelCore::Impl {
                                        pt_heap_region.GetSize());
         }
 
-        InitializeHackSharedMemory();
+        InitializeHackSharedMemory(kernel);
         RegisterHostThread(nullptr);
     }
 
@@ -216,10 +216,12 @@ struct KernelCore::Impl {
             auto* main_thread{Kernel::KThread::Create(system.Kernel())};
             main_thread->SetCurrentCore(core);
             ASSERT(Kernel::KThread::InitializeMainThread(system, main_thread, core).IsSuccess());
+            KThread::Register(system.Kernel(), main_thread);
 
             auto* idle_thread{Kernel::KThread::Create(system.Kernel())};
             idle_thread->SetCurrentCore(core);
             ASSERT(Kernel::KThread::InitializeIdleThread(system, idle_thread, core).IsSuccess());
+            KThread::Register(system.Kernel(), idle_thread);
 
             schedulers[i]->Initialize(main_thread, idle_thread, core);
         }
@@ -230,6 +232,7 @@ struct KernelCore::Impl {
                                        const Core::Timing::CoreTiming& core_timing) {
         system_resource_limit = KResourceLimit::Create(system.Kernel());
         system_resource_limit->Initialize(&core_timing);
+        KResourceLimit::Register(kernel, system_resource_limit);
 
         const auto sizes{memory_layout->GetTotalAndKernelMemorySizes()};
         const auto total_size{sizes.first};
@@ -355,6 +358,7 @@ struct KernelCore::Impl {
             ASSERT(KThread::InitializeHighPriorityThread(system, shutdown_threads[core_id], {}, {},
                                                          core_id)
                        .IsSuccess());
+            KThread::Register(system.Kernel(), shutdown_threads[core_id]);
         }
     }
 
@@ -729,7 +733,7 @@ struct KernelCore::Impl {
         memory_manager->Initialize(management_region.GetAddress(), management_region.GetSize());
     }
 
-    void InitializeHackSharedMemory() {
+    void InitializeHackSharedMemory(KernelCore& kernel) {
         // Setup memory regions for emulated processes
         // TODO(bunnei): These should not be hardcoded regions initialized within the kernel
         constexpr std::size_t hid_size{0x40000};
@@ -746,14 +750,23 @@ struct KernelCore::Impl {
 
         hid_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
                                    Svc::MemoryPermission::Read, hid_size);
+        KSharedMemory::Register(kernel, hid_shared_mem);
+
         font_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
                                     Svc::MemoryPermission::Read, font_size);
+        KSharedMemory::Register(kernel, font_shared_mem);
+
         irs_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
                                    Svc::MemoryPermission::Read, irs_size);
+        KSharedMemory::Register(kernel, irs_shared_mem);
+
         time_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
                                     Svc::MemoryPermission::Read, time_size);
+        KSharedMemory::Register(kernel, time_shared_mem);
+
         hidbus_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
                                       Svc::MemoryPermission::Read, hidbus_size);
+        KSharedMemory::Register(kernel, hidbus_shared_mem);
     }
 
     std::mutex registered_objects_lock;
@@ -1072,12 +1085,15 @@ static std::jthread RunHostThreadFunc(KernelCore& kernel, KProcess* process,
     // Commit the thread reservation.
     thread_reservation.Commit();
 
+    // Register the thread.
+    KThread::Register(kernel, thread);
+
     return std::jthread(
         [&kernel, thread, thread_name{std::move(thread_name)}, func{std::move(func)}] {
             // Set the thread name.
             Common::SetCurrentThreadName(thread_name.c_str());
 
-            // Register the thread.
+            // Set the thread as current.
             kernel.RegisterHostThread(thread);
 
             // Run the callback.
@@ -1098,6 +1114,9 @@ std::jthread KernelCore::RunOnHostCoreProcess(std::string&& process_name,
 
     // Ensure that we don't hold onto any extra references.
     SCOPE_EXIT({ process->Close(); });
+
+    // Register the new process.
+    KProcess::Register(*this, process);
 
     // Run the host thread.
     return RunHostThreadFunc(*this, process, std::move(process_name), std::move(func));
@@ -1124,6 +1143,9 @@ void KernelCore::RunOnGuestCoreProcess(std::string&& process_name, std::function
     // Ensure that we don't hold onto any extra references.
     SCOPE_EXIT({ process->Close(); });
 
+    // Register the new process.
+    KProcess::Register(*this, process);
+
     // Reserve a new thread from the process resource limit.
     KScopedResourceReservation thread_reservation(process, LimitableResource::ThreadCountMax);
     ASSERT(thread_reservation.Succeeded());
@@ -1135,6 +1157,9 @@ void KernelCore::RunOnGuestCoreProcess(std::string&& process_name, std::function
 
     // Commit the thread reservation.
     thread_reservation.Commit();
+
+    // Register the new thread.
+    KThread::Register(*this, thread);
 
     // Begin running the thread.
     ASSERT(R_SUCCEEDED(thread->Run()));

@@ -33,6 +33,9 @@ ServerManager::ServerManager(Core::System& system) : m_system{system}, m_serve_m
     // Initialize event.
     m_event = Kernel::KEvent::Create(system.Kernel());
     m_event->Initialize(nullptr);
+
+    // Register event.
+    Kernel::KEvent::Register(system.Kernel(), m_event);
 }
 
 ServerManager::~ServerManager() {
@@ -159,6 +162,9 @@ Result ServerManager::ManageDeferral(Kernel::KEvent** out_event) {
 
     // Initialize the event.
     m_deferral_event->Initialize(nullptr);
+
+    // Register the event.
+    Kernel::KEvent::Register(m_system.Kernel(), m_deferral_event);
 
     // Set the output.
     *out_event = m_deferral_event;
