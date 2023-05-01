@@ -191,7 +191,7 @@ fun getVersion(): String {
 
 fun getGitHash(): String {
     try {
-        val processBuilder = ProcessBuilder("git", "rev-parse", "HEAD")
+        val processBuilder = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
         processBuilder.directory(project.rootDir)
         val process = processBuilder.start()
         val inputStream = process.inputStream
