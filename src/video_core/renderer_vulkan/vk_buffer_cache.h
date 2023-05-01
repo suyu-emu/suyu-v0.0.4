@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include "video_core/buffer_cache/buffer_cache.h"
+#include "video_core/buffer_cache/buffer_cache_base.h"
+#include "video_core/buffer_cache/memory_tracker_base.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
@@ -75,7 +76,9 @@ public:
 
     [[nodiscard]] StagingBufferRef UploadStagingBuffer(size_t size);
 
-    [[nodiscard]] StagingBufferRef DownloadStagingBuffer(size_t size);
+    [[nodiscard]] StagingBufferRef DownloadStagingBuffer(size_t size, bool deferred = false);
+
+    void FreeDeferredStagingBuffer(StagingBufferRef& ref);
 
     void PreCopyBarrier();
 
@@ -142,6 +145,8 @@ private:
 struct BufferCacheParams {
     using Runtime = Vulkan::BufferCacheRuntime;
     using Buffer = Vulkan::Buffer;
+    using Async_Buffer = Vulkan::StagingBufferRef;
+    using MemoryTracker = VideoCommon::MemoryTrackerBase<VideoCore::RasterizerInterface>;
 
     static constexpr bool IS_OPENGL = false;
     static constexpr bool HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS = false;
@@ -150,6 +155,7 @@ struct BufferCacheParams {
     static constexpr bool NEEDS_BIND_STORAGE_INDEX = false;
     static constexpr bool USE_MEMORY_MAPS = true;
     static constexpr bool SEPARATE_IMAGE_BUFFER_BINDINGS = false;
+    static constexpr bool IMPLEMENTS_ASYNC_DOWNLOADS = true;
 };
 
 using BufferCache = VideoCommon::BufferCache<BufferCacheParams>;

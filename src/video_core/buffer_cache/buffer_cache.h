@@ -1,485 +1,29 @@
-// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
 #include <algorithm>
-#include <array>
 #include <memory>
-#include <mutex>
 #include <numeric>
-#include <span>
-#include <vector>
 
-#include <boost/container/small_vector.hpp>
-#include <boost/icl/interval_set.hpp>
-
-#include "common/common_types.h"
-#include "common/div_ceil.h"
-#include "common/literals.h"
-#include "common/lru_cache.h"
-#include "common/microprofile.h"
-#include "common/polyfill_ranges.h"
-#include "common/scratch_buffer.h"
-#include "common/settings.h"
-#include "core/memory.h"
-#include "video_core/buffer_cache/buffer_base.h"
-#include "video_core/control/channel_state_cache.h"
-#include "video_core/delayed_destruction_ring.h"
-#include "video_core/dirty_flags.h"
-#include "video_core/engines/draw_manager.h"
-#include "video_core/engines/kepler_compute.h"
-#include "video_core/engines/maxwell_3d.h"
-#include "video_core/memory_manager.h"
-#include "video_core/rasterizer_interface.h"
-#include "video_core/surface.h"
-#include "video_core/texture_cache/slot_vector.h"
-#include "video_core/texture_cache/types.h"
+#include "video_core/buffer_cache/buffer_cache_base.h"
 
 namespace VideoCommon {
 
-MICROPROFILE_DECLARE(GPU_PrepareBuffers);
-MICROPROFILE_DECLARE(GPU_BindUploadBuffers);
-MICROPROFILE_DECLARE(GPU_DownloadMemory);
-
-using BufferId = SlotId;
-
-using VideoCore::Surface::PixelFormat;
-using namespace Common::Literals;
-
-constexpr u32 NUM_VERTEX_BUFFERS = 32;
-constexpr u32 NUM_TRANSFORM_FEEDBACK_BUFFERS = 4;
-constexpr u32 NUM_GRAPHICS_UNIFORM_BUFFERS = 18;
-constexpr u32 NUM_COMPUTE_UNIFORM_BUFFERS = 8;
-constexpr u32 NUM_STORAGE_BUFFERS = 16;
-constexpr u32 NUM_TEXTURE_BUFFERS = 16;
-constexpr u32 NUM_STAGES = 5;
-
-enum class ObtainBufferSynchronize : u32 {
-    NoSynchronize = 0,
-    FullSynchronize = 1,
-    SynchronizeNoDirty = 2,
-};
-
-enum class ObtainBufferOperation : u32 {
-    DoNothing = 0,
-    MarkAsWritten = 1,
-    DiscardWrite = 2,
-    MarkQuery = 3,
-};
-
-using UniformBufferSizes = std::array<std::array<u32, NUM_GRAPHICS_UNIFORM_BUFFERS>, NUM_STAGES>;
-using ComputeUniformBufferSizes = std::array<u32, NUM_COMPUTE_UNIFORM_BUFFERS>;
-
-template <typename P>
-class BufferCache : public VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
-
-    // Page size for caching purposes.
-    // This is unrelated to the CPU page size and it can be changed as it seems optimal.
-    static constexpr u32 YUZU_PAGEBITS = 16;
-    static constexpr u64 YUZU_PAGESIZE = u64{1} << YUZU_PAGEBITS;
-
-    static constexpr bool IS_OPENGL = P::IS_OPENGL;
-    static constexpr bool HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS =
-        P::HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS;
-    static constexpr bool HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT =
-        P::HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT;
-    static constexpr bool NEEDS_BIND_UNIFORM_INDEX = P::NEEDS_BIND_UNIFORM_INDEX;
-    static constexpr bool NEEDS_BIND_STORAGE_INDEX = P::NEEDS_BIND_STORAGE_INDEX;
-    static constexpr bool USE_MEMORY_MAPS = P::USE_MEMORY_MAPS;
-    static constexpr bool SEPARATE_IMAGE_BUFFERS_BINDINGS = P::SEPARATE_IMAGE_BUFFER_BINDINGS;
-
-    static constexpr BufferId NULL_BUFFER_ID{0};
-
-    static constexpr s64 DEFAULT_EXPECTED_MEMORY = 512_MiB;
-    static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB;
-    static constexpr s64 TARGET_THRESHOLD = 4_GiB;
-
-    using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-
-    using Runtime = typename P::Runtime;
-    using Buffer = typename P::Buffer;
-
-    using IntervalSet = boost::icl::interval_set<VAddr>;
-    using IntervalType = typename IntervalSet::interval_type;
-
-    struct Empty {};
-
-    struct OverlapResult {
-        std::vector<BufferId> ids;
-        VAddr begin;
-        VAddr end;
-        bool has_stream_leap = false;
-    };
-
-    struct Binding {
-        VAddr cpu_addr{};
-        u32 size{};
-        BufferId buffer_id;
-    };
-
-    struct TextureBufferBinding : Binding {
-        PixelFormat format;
-    };
-
-    static constexpr Binding NULL_BINDING{
-        .cpu_addr = 0,
-        .size = 0,
-        .buffer_id = NULL_BUFFER_ID,
-    };
-
-public:
-    static constexpr u32 DEFAULT_SKIP_CACHE_SIZE = static_cast<u32>(4_KiB);
-
-    explicit BufferCache(VideoCore::RasterizerInterface& rasterizer_,
-                         Core::Memory::Memory& cpu_memory_, Runtime& runtime_);
-
-    void TickFrame();
-
-    void WriteMemory(VAddr cpu_addr, u64 size);
-
-    void CachedWriteMemory(VAddr cpu_addr, u64 size);
-
-    void DownloadMemory(VAddr cpu_addr, u64 size);
-
-    bool InlineMemory(VAddr dest_address, size_t copy_size, std::span<const u8> inlined_buffer);
-
-    void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr, u32 size);
-
-    void DisableGraphicsUniformBuffer(size_t stage, u32 index);
-
-    void UpdateGraphicsBuffers(bool is_indexed);
-
-    void UpdateComputeBuffers();
-
-    void BindHostGeometryBuffers(bool is_indexed);
-
-    void BindHostStageBuffers(size_t stage);
-
-    void BindHostComputeBuffers();
-
-    void SetUniformBuffersState(const std::array<u32, NUM_STAGES>& mask,
-                                const UniformBufferSizes* sizes);
-
-    void SetComputeUniformBufferState(u32 mask, const ComputeUniformBufferSizes* sizes);
-
-    void UnbindGraphicsStorageBuffers(size_t stage);
-
-    void BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, u32 cbuf_index, u32 cbuf_offset,
-                                   bool is_written);
-
-    void UnbindGraphicsTextureBuffers(size_t stage);
-
-    void BindGraphicsTextureBuffer(size_t stage, size_t tbo_index, GPUVAddr gpu_addr, u32 size,
-                                   PixelFormat format, bool is_written, bool is_image);
-
-    void UnbindComputeStorageBuffers();
-
-    void BindComputeStorageBuffer(size_t ssbo_index, u32 cbuf_index, u32 cbuf_offset,
-                                  bool is_written);
-
-    void UnbindComputeTextureBuffers();
-
-    void BindComputeTextureBuffer(size_t tbo_index, GPUVAddr gpu_addr, u32 size, PixelFormat format,
-                                  bool is_written, bool is_image);
-
-    void FlushCachedWrites();
-
-    /// Return true when there are uncommitted buffers to be downloaded
-    [[nodiscard]] bool HasUncommittedFlushes() const noexcept;
-
-    void AccumulateFlushes();
-
-    /// Return true when the caller should wait for async downloads
-    [[nodiscard]] bool ShouldWaitAsyncFlushes() const noexcept;
-
-    /// Commit asynchronous downloads
-    void CommitAsyncFlushes();
-    void CommitAsyncFlushesHigh();
-
-    /// Pop asynchronous downloads
-    void PopAsyncFlushes();
-
-    bool DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 amount);
-
-    bool DMAClear(GPUVAddr src_address, u64 amount, u32 value);
-
-    [[nodiscard]] std::pair<Buffer*, u32> ObtainBuffer(GPUVAddr gpu_addr, u32 size,
-                                                       ObtainBufferSynchronize sync_info,
-                                                       ObtainBufferOperation post_op);
-
-    /// Return true when a CPU region is modified from the GPU
-    [[nodiscard]] bool IsRegionGpuModified(VAddr addr, size_t size);
-
-    /// Return true when a region is registered on the cache
-    [[nodiscard]] bool IsRegionRegistered(VAddr addr, size_t size);
-
-    /// Return true when a CPU region is modified from the CPU
-    [[nodiscard]] bool IsRegionCpuModified(VAddr addr, size_t size);
-
-    void SetDrawIndirect(
-        const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect_) {
-        current_draw_indirect = current_draw_indirect_;
-    }
-
-    [[nodiscard]] std::pair<Buffer*, u32> GetDrawIndirectCount();
-
-    [[nodiscard]] std::pair<Buffer*, u32> GetDrawIndirectBuffer();
-
-    std::recursive_mutex mutex;
-    Runtime& runtime;
-
-private:
-    template <typename Func>
-    static void ForEachEnabledBit(u32 enabled_mask, Func&& func) {
-        for (u32 index = 0; enabled_mask != 0; ++index, enabled_mask >>= 1) {
-            const int disabled_bits = std::countr_zero(enabled_mask);
-            index += disabled_bits;
-            enabled_mask >>= disabled_bits;
-            func(index);
-        }
-    }
-
-    template <typename Func>
-    void ForEachBufferInRange(VAddr cpu_addr, u64 size, Func&& func) {
-        const u64 page_end = Common::DivCeil(cpu_addr + size, YUZU_PAGESIZE);
-        for (u64 page = cpu_addr >> YUZU_PAGEBITS; page < page_end;) {
-            const BufferId buffer_id = page_table[page];
-            if (!buffer_id) {
-                ++page;
-                continue;
-            }
-            Buffer& buffer = slot_buffers[buffer_id];
-            func(buffer_id, buffer);
-
-            const VAddr end_addr = buffer.CpuAddr() + buffer.SizeBytes();
-            page = Common::DivCeil(end_addr, YUZU_PAGESIZE);
-        }
-    }
-
-    template <typename Func>
-    void ForEachWrittenRange(VAddr cpu_addr, u64 size, Func&& func) {
-        const VAddr start_address = cpu_addr;
-        const VAddr end_address = start_address + size;
-        const VAddr search_base =
-            static_cast<VAddr>(std::min<s64>(0LL, static_cast<s64>(start_address - size)));
-        const IntervalType search_interval{search_base, search_base + 1};
-        auto it = common_ranges.lower_bound(search_interval);
-        if (it == common_ranges.end()) {
-            it = common_ranges.begin();
-        }
-        for (; it != common_ranges.end(); it++) {
-            VAddr inter_addr_end = it->upper();
-            VAddr inter_addr = it->lower();
-            if (inter_addr >= end_address) {
-                break;
-            }
-            if (inter_addr_end <= start_address) {
-                continue;
-            }
-            if (inter_addr_end > end_address) {
-                inter_addr_end = end_address;
-            }
-            if (inter_addr < start_address) {
-                inter_addr = start_address;
-            }
-            func(inter_addr, inter_addr_end);
-        }
-    }
-
-    static bool IsRangeGranular(VAddr cpu_addr, size_t size) {
-        return (cpu_addr & ~Core::Memory::YUZU_PAGEMASK) ==
-               ((cpu_addr + size) & ~Core::Memory::YUZU_PAGEMASK);
-    }
-
-    void RunGarbageCollector();
-
-    void BindHostIndexBuffer();
-
-    void BindHostVertexBuffers();
-
-    void BindHostDrawIndirectBuffers();
-
-    void BindHostGraphicsUniformBuffers(size_t stage);
-
-    void BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 binding_index, bool needs_bind);
-
-    void BindHostGraphicsStorageBuffers(size_t stage);
-
-    void BindHostGraphicsTextureBuffers(size_t stage);
-
-    void BindHostTransformFeedbackBuffers();
-
-    void BindHostComputeUniformBuffers();
-
-    void BindHostComputeStorageBuffers();
-
-    void BindHostComputeTextureBuffers();
-
-    void DoUpdateGraphicsBuffers(bool is_indexed);
-
-    void DoUpdateComputeBuffers();
-
-    void UpdateIndexBuffer();
-
-    void UpdateVertexBuffers();
-
-    void UpdateVertexBuffer(u32 index);
-
-    void UpdateDrawIndirect();
-
-    void UpdateUniformBuffers(size_t stage);
-
-    void UpdateStorageBuffers(size_t stage);
-
-    void UpdateTextureBuffers(size_t stage);
-
-    void UpdateTransformFeedbackBuffers();
-
-    void UpdateTransformFeedbackBuffer(u32 index);
-
-    void UpdateComputeUniformBuffers();
-
-    void UpdateComputeStorageBuffers();
-
-    void UpdateComputeTextureBuffers();
-
-    void MarkWrittenBuffer(BufferId buffer_id, VAddr cpu_addr, u32 size);
-
-    [[nodiscard]] BufferId FindBuffer(VAddr cpu_addr, u32 size);
-
-    [[nodiscard]] OverlapResult ResolveOverlaps(VAddr cpu_addr, u32 wanted_size);
-
-    void JoinOverlap(BufferId new_buffer_id, BufferId overlap_id, bool accumulate_stream_score);
-
-    [[nodiscard]] BufferId CreateBuffer(VAddr cpu_addr, u32 wanted_size);
-
-    void Register(BufferId buffer_id);
-
-    void Unregister(BufferId buffer_id);
-
-    template <bool insert>
-    void ChangeRegister(BufferId buffer_id);
-
-    void TouchBuffer(Buffer& buffer, BufferId buffer_id) noexcept;
-
-    bool SynchronizeBuffer(Buffer& buffer, VAddr cpu_addr, u32 size);
-
-    bool SynchronizeBufferImpl(Buffer& buffer, VAddr cpu_addr, u32 size);
-
-    void UploadMemory(Buffer& buffer, u64 total_size_bytes, u64 largest_copy,
-                      std::span<BufferCopy> copies);
-
-    void ImmediateUploadMemory(Buffer& buffer, u64 largest_copy,
-                               std::span<const BufferCopy> copies);
-
-    void MappedUploadMemory(Buffer& buffer, u64 total_size_bytes, std::span<BufferCopy> copies);
-
-    void DownloadBufferMemory(Buffer& buffer_id);
-
-    void DownloadBufferMemory(Buffer& buffer_id, VAddr cpu_addr, u64 size);
-
-    void DeleteBuffer(BufferId buffer_id);
-
-    void NotifyBufferDeletion();
-
-    [[nodiscard]] Binding StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
-                                               bool is_written = false) const;
-
-    [[nodiscard]] TextureBufferBinding GetTextureBufferBinding(GPUVAddr gpu_addr, u32 size,
-                                                               PixelFormat format);
-
-    [[nodiscard]] std::span<const u8> ImmediateBufferWithData(VAddr cpu_addr, size_t size);
-
-    [[nodiscard]] std::span<u8> ImmediateBuffer(size_t wanted_capacity);
-
-    [[nodiscard]] bool HasFastUniformBufferBound(size_t stage, u32 binding_index) const noexcept;
-
-    void ClearDownload(IntervalType subtract_interval);
-
-    VideoCore::RasterizerInterface& rasterizer;
-    Core::Memory::Memory& cpu_memory;
-
-    SlotVector<Buffer> slot_buffers;
-    DelayedDestructionRing<Buffer, 8> delayed_destruction_ring;
-
-    const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect{};
-
-    u32 last_index_count = 0;
-
-    Binding index_buffer;
-    std::array<Binding, NUM_VERTEX_BUFFERS> vertex_buffers;
-    std::array<std::array<Binding, NUM_GRAPHICS_UNIFORM_BUFFERS>, NUM_STAGES> uniform_buffers;
-    std::array<std::array<Binding, NUM_STORAGE_BUFFERS>, NUM_STAGES> storage_buffers;
-    std::array<std::array<TextureBufferBinding, NUM_TEXTURE_BUFFERS>, NUM_STAGES> texture_buffers;
-    std::array<Binding, NUM_TRANSFORM_FEEDBACK_BUFFERS> transform_feedback_buffers;
-    Binding count_buffer_binding;
-    Binding indirect_buffer_binding;
-
-    std::array<Binding, NUM_COMPUTE_UNIFORM_BUFFERS> compute_uniform_buffers;
-    std::array<Binding, NUM_STORAGE_BUFFERS> compute_storage_buffers;
-    std::array<TextureBufferBinding, NUM_TEXTURE_BUFFERS> compute_texture_buffers;
-
-    std::array<u32, NUM_STAGES> enabled_uniform_buffer_masks{};
-    u32 enabled_compute_uniform_buffer_mask = 0;
-
-    const UniformBufferSizes* uniform_buffer_sizes{};
-    const ComputeUniformBufferSizes* compute_uniform_buffer_sizes{};
-
-    std::array<u32, NUM_STAGES> enabled_storage_buffers{};
-    std::array<u32, NUM_STAGES> written_storage_buffers{};
-    u32 enabled_compute_storage_buffers = 0;
-    u32 written_compute_storage_buffers = 0;
-
-    std::array<u32, NUM_STAGES> enabled_texture_buffers{};
-    std::array<u32, NUM_STAGES> written_texture_buffers{};
-    std::array<u32, NUM_STAGES> image_texture_buffers{};
-    u32 enabled_compute_texture_buffers = 0;
-    u32 written_compute_texture_buffers = 0;
-    u32 image_compute_texture_buffers = 0;
-
-    std::array<u32, 16> uniform_cache_hits{};
-    std::array<u32, 16> uniform_cache_shots{};
-
-    u32 uniform_buffer_skip_cache_size = DEFAULT_SKIP_CACHE_SIZE;
-
-    bool has_deleted_buffers = false;
-
-    std::conditional_t<HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS, std::array<u32, NUM_STAGES>, Empty>
-        dirty_uniform_buffers{};
-    std::conditional_t<IS_OPENGL, std::array<u32, NUM_STAGES>, Empty> fast_bound_uniform_buffers{};
-    std::conditional_t<HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS,
-                       std::array<std::array<u32, NUM_GRAPHICS_UNIFORM_BUFFERS>, NUM_STAGES>, Empty>
-        uniform_buffer_binding_sizes{};
-
-    std::vector<BufferId> cached_write_buffer_ids;
-
-    IntervalSet uncommitted_ranges;
-    IntervalSet common_ranges;
-    std::deque<IntervalSet> committed_ranges;
-
-    Common::ScratchBuffer<u8> immediate_buffer_alloc;
-
-    struct LRUItemParams {
-        using ObjectType = BufferId;
-        using TickType = u64;
-    };
-    Common::LeastRecentlyUsedCache<LRUItemParams> lru_cache;
-    u64 frame_tick = 0;
-    u64 total_used_memory = 0;
-    u64 minimum_memory = 0;
-    u64 critical_memory = 0;
-
-    std::array<BufferId, ((1ULL << 39) >> YUZU_PAGEBITS)> page_table;
-};
+using Core::Memory::YUZU_PAGESIZE;
 
 template <class P>
 BufferCache<P>::BufferCache(VideoCore::RasterizerInterface& rasterizer_,
                             Core::Memory::Memory& cpu_memory_, Runtime& runtime_)
-    : runtime{runtime_}, rasterizer{rasterizer_}, cpu_memory{cpu_memory_} {
+    : runtime{runtime_}, rasterizer{rasterizer_}, cpu_memory{cpu_memory_}, memory_tracker{
+                                                                               rasterizer} {
     // Ensure the first slot is used for the null buffer
     void(slot_buffers.insert(runtime, NullBufferParams{}));
     common_ranges.clear();
+    inline_buffer_id = NULL_BUFFER_ID;
+
+    active_async_buffers = !Settings::IsGPULevelHigh();
 
     if (!runtime.CanReportMemoryUsage()) {
         minimum_memory = DEFAULT_EXPECTED_MEMORY;
@@ -531,6 +75,8 @@ void BufferCache<P>::TickFrame() {
     uniform_cache_hits[0] = 0;
     uniform_cache_shots[0] = 0;
 
+    active_async_buffers = !Settings::IsGPULevelHigh();
+
     const bool skip_preferred = hits * 256 < shots * 251;
     uniform_buffer_skip_cache_size = skip_preferred ? DEFAULT_SKIP_CACHE_SIZE : 0;
 
@@ -543,35 +89,62 @@ void BufferCache<P>::TickFrame() {
     }
     ++frame_tick;
     delayed_destruction_ring.Tick();
+
+    if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
+        for (auto& buffer : async_buffers_death_ring) {
+            runtime.FreeDeferredStagingBuffer(buffer);
+        }
+        async_buffers_death_ring.clear();
+    }
 }
 
 template <class P>
 void BufferCache<P>::WriteMemory(VAddr cpu_addr, u64 size) {
-    ForEachBufferInRange(cpu_addr, size, [&](BufferId, Buffer& buffer) {
-        buffer.MarkRegionAsCpuModified(cpu_addr, size);
-    });
+    memory_tracker.MarkRegionAsCpuModified(cpu_addr, size);
+    if (memory_tracker.IsRegionGpuModified(cpu_addr, size)) {
+        const IntervalType subtract_interval{cpu_addr, cpu_addr + size};
+        ClearDownload(subtract_interval);
+        common_ranges.subtract(subtract_interval);
+    }
 }
 
 template <class P>
 void BufferCache<P>::CachedWriteMemory(VAddr cpu_addr, u64 size) {
-    ForEachBufferInRange(cpu_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
-        if (!buffer.HasCachedWrites()) {
-            cached_write_buffer_ids.push_back(buffer_id);
-        }
-        buffer.CachedCpuWrite(cpu_addr, size);
-    });
+    memory_tracker.CachedCpuWrite(cpu_addr, size);
+    const IntervalType add_interval{Common::AlignDown(cpu_addr, YUZU_PAGESIZE),
+                                    Common::AlignUp(cpu_addr + size, YUZU_PAGESIZE)};
+    cached_ranges.add(add_interval);
 }
 
 template <class P>
 void BufferCache<P>::DownloadMemory(VAddr cpu_addr, u64 size) {
+    WaitOnAsyncFlushes(cpu_addr, size);
     ForEachBufferInRange(cpu_addr, size, [&](BufferId, Buffer& buffer) {
         DownloadBufferMemory(buffer, cpu_addr, size);
     });
 }
 
 template <class P>
+void BufferCache<P>::WaitOnAsyncFlushes(VAddr cpu_addr, u64 size) {
+    bool must_wait = false;
+    ForEachInOverlapCounter(async_downloads, cpu_addr, size,
+                            [&](VAddr, VAddr, int) { must_wait = true; });
+    bool must_release = false;
+    ForEachInRangeSet(pending_ranges, cpu_addr, size, [&](VAddr, VAddr) { must_release = true; });
+    if (must_release) {
+        std::function<void()> tmp([]() {});
+        rasterizer.SignalFence(std::move(tmp));
+    }
+    if (must_wait || must_release) {
+        rasterizer.ReleaseFences();
+    }
+}
+
+template <class P>
 void BufferCache<P>::ClearDownload(IntervalType subtract_interval) {
+    RemoveEachInOverlapCounter(async_downloads, subtract_interval, -1024);
     uncommitted_ranges.subtract(subtract_interval);
+    pending_ranges.subtract(subtract_interval);
     for (auto& interval_set : committed_ranges) {
         interval_set.subtract(subtract_interval);
     }
@@ -591,6 +164,7 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     }
 
     const IntervalType subtract_interval{*cpu_dest_address, *cpu_dest_address + amount};
+    WaitOnAsyncFlushes(*cpu_src_address, static_cast<u32>(amount));
     ClearDownload(subtract_interval);
 
     BufferId buffer_a;
@@ -616,10 +190,11 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
         const VAddr diff = base_address - *cpu_src_address;
         const VAddr new_base_address = *cpu_dest_address + diff;
         const IntervalType add_interval{new_base_address, new_base_address + size};
-        uncommitted_ranges.add(add_interval);
         tmp_intervals.push_back(add_interval);
+        uncommitted_ranges.add(add_interval);
+        pending_ranges.add(add_interval);
     };
-    ForEachWrittenRange(*cpu_src_address, amount, mirror);
+    ForEachInRangeSet(common_ranges, *cpu_src_address, amount, mirror);
     // This subtraction in this order is important for overlapping copies.
     common_ranges.subtract(subtract_interval);
     const bool has_new_downloads = tmp_intervals.size() != 0;
@@ -628,7 +203,7 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     }
     runtime.CopyBuffer(dest_buffer, src_buffer, copies);
     if (has_new_downloads) {
-        dest_buffer.MarkRegionAsGpuModified(*cpu_dest_address, amount);
+        memory_tracker.MarkRegionAsGpuModified(*cpu_dest_address, amount);
     }
     std::vector<u8> tmp_buffer(amount);
     cpu_memory.ReadBlockUnsafe(*cpu_src_address, tmp_buffer.data(), amount);
@@ -866,10 +441,9 @@ void BufferCache<P>::BindComputeTextureBuffer(size_t tbo_index, GPUVAddr gpu_add
 
 template <class P>
 void BufferCache<P>::FlushCachedWrites() {
-    for (const BufferId buffer_id : cached_write_buffer_ids) {
-        slot_buffers[buffer_id].FlushCachedWrites();
-    }
     cached_write_buffer_ids.clear();
+    memory_tracker.FlushCachedWrites();
+    cached_ranges.clear();
 }
 
 template <class P>
@@ -879,10 +453,6 @@ bool BufferCache<P>::HasUncommittedFlushes() const noexcept {
 
 template <class P>
 void BufferCache<P>::AccumulateFlushes() {
-    if (Settings::values.gpu_accuracy.GetValue() != Settings::GPUAccuracy::High) {
-        uncommitted_ranges.clear();
-        return;
-    }
     if (uncommitted_ranges.empty()) {
         return;
     }
@@ -891,7 +461,11 @@ void BufferCache<P>::AccumulateFlushes() {
 
 template <class P>
 bool BufferCache<P>::ShouldWaitAsyncFlushes() const noexcept {
-    return false;
+    if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
+        return (!async_buffers.empty() && async_buffers.front().has_value());
+    } else {
+        return false;
+    }
 }
 
 template <class P>
@@ -899,12 +473,16 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
     AccumulateFlushes();
 
     if (committed_ranges.empty()) {
+        if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
+            if (active_async_buffers) {
+                async_buffers.emplace_back(std::optional<Async_Buffer>{});
+            }
+        }
         return;
     }
     MICROPROFILE_SCOPE(GPU_DownloadMemory);
-    const bool is_accuracy_normal =
-        Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::Normal;
 
+    pending_ranges.clear();
     auto it = committed_ranges.begin();
     while (it != committed_ranges.end()) {
         auto& current_intervals = *it;
@@ -926,11 +504,12 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
             const std::size_t size = interval.upper() - interval.lower();
             const VAddr cpu_addr = interval.lower();
             ForEachBufferInRange(cpu_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
-                buffer.ForEachDownloadRangeAndClear(
-                    cpu_addr, size, [&](u64 range_offset, u64 range_size) {
-                        if (is_accuracy_normal) {
-                            return;
-                        }
+                const VAddr buffer_start = buffer.CpuAddr();
+                const VAddr buffer_end = buffer_start + buffer.SizeBytes();
+                const VAddr new_start = std::max(buffer_start, cpu_addr);
+                const VAddr new_end = std::min(buffer_end, cpu_addr + size);
+                memory_tracker.ForEachDownloadRange(
+                    new_start, new_end - new_start, false, [&](u64 cpu_addr_out, u64 range_size) {
                         const VAddr buffer_addr = buffer.CpuAddr();
                         const auto add_download = [&](VAddr start, VAddr end) {
                             const u64 new_offset = start - buffer_addr;
@@ -944,92 +523,142 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
                                 buffer_id,
                             });
                             // Align up to avoid cache conflicts
-                            constexpr u64 align = 8ULL;
+                            constexpr u64 align = 64ULL;
                             constexpr u64 mask = ~(align - 1ULL);
                             total_size_bytes += (new_size + align - 1) & mask;
                             largest_copy = std::max(largest_copy, new_size);
                         };
 
-                        const VAddr start_address = buffer_addr + range_offset;
-                        const VAddr end_address = start_address + range_size;
-                        ForEachWrittenRange(start_address, range_size, add_download);
-                        const IntervalType subtract_interval{start_address, end_address};
-                        common_ranges.subtract(subtract_interval);
+                        ForEachInRangeSet(common_ranges, cpu_addr_out, range_size, add_download);
                     });
             });
         }
     }
     committed_ranges.clear();
     if (downloads.empty()) {
+        if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
+            if (active_async_buffers) {
+                async_buffers.emplace_back(std::optional<Async_Buffer>{});
+            }
+        }
         return;
     }
-    if constexpr (USE_MEMORY_MAPS) {
-        auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes);
-        runtime.PreCopyBarrier();
-        for (auto& [copy, buffer_id] : downloads) {
-            // Have in mind the staging buffer offset for the copy
-            copy.dst_offset += download_staging.offset;
-            const std::array copies{copy};
-            runtime.CopyBuffer(download_staging.buffer, slot_buffers[buffer_id], copies, false);
-        }
-        runtime.PostCopyBarrier();
-        runtime.Finish();
-        for (const auto& [copy, buffer_id] : downloads) {
-            const Buffer& buffer = slot_buffers[buffer_id];
-            const VAddr cpu_addr = buffer.CpuAddr() + copy.src_offset;
-            // Undo the modified offset
-            const u64 dst_offset = copy.dst_offset - download_staging.offset;
-            const u8* read_mapped_memory = download_staging.mapped_span.data() + dst_offset;
-            cpu_memory.WriteBlockUnsafe(cpu_addr, read_mapped_memory, copy.size);
+    if (active_async_buffers) {
+        if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
+            auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes, true);
+            boost::container::small_vector<BufferCopy, 4> normalized_copies;
+            IntervalSet new_async_range{};
+            runtime.PreCopyBarrier();
+            for (auto& [copy, buffer_id] : downloads) {
+                copy.dst_offset += download_staging.offset;
+                const std::array copies{copy};
+                BufferCopy second_copy{copy};
+                Buffer& buffer = slot_buffers[buffer_id];
+                second_copy.src_offset = static_cast<size_t>(buffer.CpuAddr()) + copy.src_offset;
+                VAddr orig_cpu_addr = static_cast<VAddr>(second_copy.src_offset);
+                const IntervalType base_interval{orig_cpu_addr, orig_cpu_addr + copy.size};
+                async_downloads += std::make_pair(base_interval, 1);
+                runtime.CopyBuffer(download_staging.buffer, buffer, copies, false);
+                normalized_copies.push_back(second_copy);
+            }
+            runtime.PostCopyBarrier();
+            pending_downloads.emplace_back(std::move(normalized_copies));
+            async_buffers.emplace_back(download_staging);
+        } else {
+            committed_ranges.clear();
+            uncommitted_ranges.clear();
         }
     } else {
-        const std::span<u8> immediate_buffer = ImmediateBuffer(largest_copy);
-        for (const auto& [copy, buffer_id] : downloads) {
-            Buffer& buffer = slot_buffers[buffer_id];
-            buffer.ImmediateDownload(copy.src_offset, immediate_buffer.subspan(0, copy.size));
-            const VAddr cpu_addr = buffer.CpuAddr() + copy.src_offset;
-            cpu_memory.WriteBlockUnsafe(cpu_addr, immediate_buffer.data(), copy.size);
+        if constexpr (USE_MEMORY_MAPS) {
+            auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes);
+            runtime.PreCopyBarrier();
+            for (auto& [copy, buffer_id] : downloads) {
+                // Have in mind the staging buffer offset for the copy
+                copy.dst_offset += download_staging.offset;
+                const std::array copies{copy};
+                runtime.CopyBuffer(download_staging.buffer, slot_buffers[buffer_id], copies, false);
+            }
+            runtime.PostCopyBarrier();
+            runtime.Finish();
+            for (const auto& [copy, buffer_id] : downloads) {
+                const Buffer& buffer = slot_buffers[buffer_id];
+                const VAddr cpu_addr = buffer.CpuAddr() + copy.src_offset;
+                // Undo the modified offset
+                const u64 dst_offset = copy.dst_offset - download_staging.offset;
+                const u8* read_mapped_memory = download_staging.mapped_span.data() + dst_offset;
+                cpu_memory.WriteBlockUnsafe(cpu_addr, read_mapped_memory, copy.size);
+            }
+        } else {
+            const std::span<u8> immediate_buffer = ImmediateBuffer(largest_copy);
+            for (const auto& [copy, buffer_id] : downloads) {
+                Buffer& buffer = slot_buffers[buffer_id];
+                buffer.ImmediateDownload(copy.src_offset, immediate_buffer.subspan(0, copy.size));
+                const VAddr cpu_addr = buffer.CpuAddr() + copy.src_offset;
+                cpu_memory.WriteBlockUnsafe(cpu_addr, immediate_buffer.data(), copy.size);
+            }
         }
     }
 }
 
 template <class P>
 void BufferCache<P>::CommitAsyncFlushes() {
-    if (Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::High) {
-        CommitAsyncFlushesHigh();
-    } else {
-        uncommitted_ranges.clear();
-        committed_ranges.clear();
+    CommitAsyncFlushesHigh();
+}
+
+template <class P>
+void BufferCache<P>::PopAsyncFlushes() {
+    MICROPROFILE_SCOPE(GPU_DownloadMemory);
+    PopAsyncBuffers();
+}
+
+template <class P>
+void BufferCache<P>::PopAsyncBuffers() {
+    if (async_buffers.empty()) {
+        return;
+    }
+    if (!async_buffers.front().has_value()) {
+        async_buffers.pop_front();
+        return;
+    }
+    if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
+        auto& downloads = pending_downloads.front();
+        auto& async_buffer = async_buffers.front();
+        u8* base = async_buffer->mapped_span.data();
+        const size_t base_offset = async_buffer->offset;
+        for (const auto& copy : downloads) {
+            const VAddr cpu_addr = static_cast<VAddr>(copy.src_offset);
+            const u64 dst_offset = copy.dst_offset - base_offset;
+            const u8* read_mapped_memory = base + dst_offset;
+            ForEachInOverlapCounter(
+                async_downloads, cpu_addr, copy.size, [&](VAddr start, VAddr end, int count) {
+                    cpu_memory.WriteBlockUnsafe(start, &read_mapped_memory[start - cpu_addr],
+                                                end - start);
+                    if (count == 1) {
+                        const IntervalType base_interval{start, end};
+                        common_ranges.subtract(base_interval);
+                    }
+                });
+            const IntervalType subtract_interval{cpu_addr, cpu_addr + copy.size};
+            RemoveEachInOverlapCounter(async_downloads, subtract_interval, -1);
+        }
+        async_buffers_death_ring.emplace_back(*async_buffer);
+        async_buffers.pop_front();
+        pending_downloads.pop_front();
     }
 }
 
 template <class P>
-void BufferCache<P>::PopAsyncFlushes() {}
-
-template <class P>
 bool BufferCache<P>::IsRegionGpuModified(VAddr addr, size_t size) {
-    const u64 page_end = Common::DivCeil(addr + size, YUZU_PAGESIZE);
-    for (u64 page = addr >> YUZU_PAGEBITS; page < page_end;) {
-        const BufferId image_id = page_table[page];
-        if (!image_id) {
-            ++page;
-            continue;
-        }
-        Buffer& buffer = slot_buffers[image_id];
-        if (buffer.IsRegionGpuModified(addr, size)) {
-            return true;
-        }
-        const VAddr end_addr = buffer.CpuAddr() + buffer.SizeBytes();
-        page = Common::DivCeil(end_addr, YUZU_PAGESIZE);
-    }
-    return false;
+    bool is_dirty = false;
+    ForEachInRangeSet(common_ranges, addr, size, [&](VAddr, VAddr) { is_dirty = true; });
+    return is_dirty;
 }
 
 template <class P>
 bool BufferCache<P>::IsRegionRegistered(VAddr addr, size_t size) {
     const VAddr end_addr = addr + size;
-    const u64 page_end = Common::DivCeil(end_addr, YUZU_PAGESIZE);
-    for (u64 page = addr >> YUZU_PAGEBITS; page < page_end;) {
+    const u64 page_end = Common::DivCeil(end_addr, CACHING_PAGESIZE);
+    for (u64 page = addr >> CACHING_PAGEBITS; page < page_end;) {
         const BufferId buffer_id = page_table[page];
         if (!buffer_id) {
             ++page;
@@ -1041,28 +670,14 @@ bool BufferCache<P>::IsRegionRegistered(VAddr addr, size_t size) {
         if (buf_start_addr < end_addr && addr < buf_end_addr) {
             return true;
         }
-        page = Common::DivCeil(end_addr, YUZU_PAGESIZE);
+        page = Common::DivCeil(end_addr, CACHING_PAGESIZE);
     }
     return false;
 }
 
 template <class P>
 bool BufferCache<P>::IsRegionCpuModified(VAddr addr, size_t size) {
-    const u64 page_end = Common::DivCeil(addr + size, YUZU_PAGESIZE);
-    for (u64 page = addr >> YUZU_PAGEBITS; page < page_end;) {
-        const BufferId image_id = page_table[page];
-        if (!image_id) {
-            ++page;
-            continue;
-        }
-        Buffer& buffer = slot_buffers[image_id];
-        if (buffer.IsRegionCpuModified(addr, size)) {
-            return true;
-        }
-        const VAddr end_addr = buffer.CpuAddr() + buffer.SizeBytes();
-        page = Common::DivCeil(end_addr, YUZU_PAGESIZE);
-    }
-    return false;
+    return memory_tracker.IsRegionCpuModified(addr, size);
 }
 
 template <class P>
@@ -1072,7 +687,7 @@ void BufferCache<P>::BindHostIndexBuffer() {
     const u32 offset = buffer.Offset(index_buffer.cpu_addr);
     const u32 size = index_buffer.size;
     const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
-    if (!draw_state.inline_index_draw_indexes.empty()) {
+    if (!draw_state.inline_index_draw_indexes.empty()) [[unlikely]] {
         if constexpr (USE_MEMORY_MAPS) {
             auto upload_staging = runtime.UploadStagingBuffer(size);
             std::array<BufferCopy, 1> copies{
@@ -1155,7 +770,7 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     TouchBuffer(buffer, binding.buffer_id);
     const bool use_fast_buffer = binding.buffer_id != NULL_BUFFER_ID &&
                                  size <= uniform_buffer_skip_cache_size &&
-                                 !buffer.IsRegionGpuModified(cpu_addr, size);
+                                 !memory_tracker.IsRegionGpuModified(cpu_addr, size);
     if (use_fast_buffer) {
         if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
@@ -1378,27 +993,36 @@ void BufferCache<P>::UpdateIndexBuffer() {
     // We have to check for the dirty flags and index count
     // The index count is currently changed without updating the dirty flags
     const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
-    const auto& index_array = draw_state.index_buffer;
+    const auto& index_buffer_ref = draw_state.index_buffer;
     auto& flags = maxwell3d->dirty.flags;
     if (!flags[Dirty::IndexBuffer]) {
         return;
     }
     flags[Dirty::IndexBuffer] = false;
-    last_index_count = index_array.count;
-    if (!draw_state.inline_index_draw_indexes.empty()) {
+    if (!draw_state.inline_index_draw_indexes.empty()) [[unlikely]] {
         auto inline_index_size = static_cast<u32>(draw_state.inline_index_draw_indexes.size());
+        u32 buffer_size = Common::AlignUp(inline_index_size, CACHING_PAGESIZE);
+        if (inline_buffer_id == NULL_BUFFER_ID) [[unlikely]] {
+            inline_buffer_id = CreateBuffer(0, buffer_size);
+        }
+        if (slot_buffers[inline_buffer_id].SizeBytes() < buffer_size) [[unlikely]] {
+            slot_buffers.erase(inline_buffer_id);
+            inline_buffer_id = CreateBuffer(0, buffer_size);
+        }
         index_buffer = Binding{
             .cpu_addr = 0,
             .size = inline_index_size,
-            .buffer_id = CreateBuffer(0, inline_index_size),
+            .buffer_id = inline_buffer_id,
         };
         return;
     }
-    const GPUVAddr gpu_addr_begin = index_array.StartAddress();
-    const GPUVAddr gpu_addr_end = index_array.EndAddress();
+
+    const GPUVAddr gpu_addr_begin = index_buffer_ref.StartAddress();
+    const GPUVAddr gpu_addr_end = index_buffer_ref.EndAddress();
     const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr_begin);
     const u32 address_size = static_cast<u32>(gpu_addr_end - gpu_addr_begin);
-    const u32 draw_size = (index_array.count + index_array.first) * index_array.FormatSizeInBytes();
+    const u32 draw_size =
+        (index_buffer_ref.count + index_buffer_ref.first) * index_buffer_ref.FormatSizeInBytes();
     const u32 size = std::min(address_size, draw_size);
     if (size == 0 || !cpu_addr) {
         index_buffer = NULL_BINDING;
@@ -1434,17 +1058,15 @@ void BufferCache<P>::UpdateVertexBuffer(u32 index) {
     const GPUVAddr gpu_addr_begin = array.Address();
     const GPUVAddr gpu_addr_end = limit.Address() + 1;
     const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr_begin);
-    u32 address_size = static_cast<u32>(
-        std::min(gpu_addr_end - gpu_addr_begin, static_cast<u64>(std::numeric_limits<u32>::max())));
-    if (array.enable == 0 || address_size == 0 || !cpu_addr) {
+    const u32 address_size = static_cast<u32>(gpu_addr_end - gpu_addr_begin);
+    u32 size = address_size; // TODO: Analyze stride and number of vertices
+    if (array.enable == 0 || size == 0 || !cpu_addr) {
         vertex_buffers[index] = NULL_BINDING;
         return;
     }
     if (!gpu_memory->IsWithinGPUAddressRange(gpu_addr_end)) {
-        address_size =
-            static_cast<u32>(gpu_memory->MaxContinuousRange(gpu_addr_begin, address_size));
+        size = static_cast<u32>(gpu_memory->MaxContinuousRange(gpu_addr_begin, size));
     }
-    const u32 size = address_size; // TODO: Analyze stride and number of vertices
     vertex_buffers[index] = Binding{
         .cpu_addr = *cpu_addr,
         .size = size,
@@ -1591,17 +1213,16 @@ void BufferCache<P>::UpdateComputeTextureBuffers() {
 
 template <class P>
 void BufferCache<P>::MarkWrittenBuffer(BufferId buffer_id, VAddr cpu_addr, u32 size) {
-    Buffer& buffer = slot_buffers[buffer_id];
-    buffer.MarkRegionAsGpuModified(cpu_addr, size);
+    memory_tracker.MarkRegionAsGpuModified(cpu_addr, size);
+
+    if (memory_tracker.IsRegionCpuModified(cpu_addr, size)) {
+        SynchronizeBuffer(slot_buffers[buffer_id], cpu_addr, size);
+    }
 
     const IntervalType base_interval{cpu_addr, cpu_addr + size};
     common_ranges.add(base_interval);
-
-    const bool is_async = Settings::values.use_asynchronous_gpu_emulation.GetValue();
-    if (!is_async) {
-        return;
-    }
     uncommitted_ranges.add(base_interval);
+    pending_ranges.add(base_interval);
 }
 
 template <class P>
@@ -1609,7 +1230,7 @@ BufferId BufferCache<P>::FindBuffer(VAddr cpu_addr, u32 size) {
     if (cpu_addr == 0) {
         return NULL_BUFFER_ID;
     }
-    const u64 page = cpu_addr >> YUZU_PAGEBITS;
+    const u64 page = cpu_addr >> CACHING_PAGEBITS;
     const BufferId buffer_id = page_table[page];
     if (!buffer_id) {
         return CreateBuffer(cpu_addr, size);
@@ -1638,9 +1259,9 @@ typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(VAddr cpu
             .has_stream_leap = has_stream_leap,
         };
     }
-    for (; cpu_addr >> YUZU_PAGEBITS < Common::DivCeil(end, YUZU_PAGESIZE);
-         cpu_addr += YUZU_PAGESIZE) {
-        const BufferId overlap_id = page_table[cpu_addr >> YUZU_PAGEBITS];
+    for (; cpu_addr >> CACHING_PAGEBITS < Common::DivCeil(end, CACHING_PAGESIZE);
+         cpu_addr += CACHING_PAGESIZE) {
+        const BufferId overlap_id = page_table[cpu_addr >> CACHING_PAGEBITS];
         if (!overlap_id) {
             continue;
         }
@@ -1666,11 +1287,11 @@ typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(VAddr cpu
             // as a stream buffer. Increase the size to skip constantly recreating buffers.
             has_stream_leap = true;
             if (expands_right) {
-                begin -= YUZU_PAGESIZE * 256;
+                begin -= CACHING_PAGESIZE * 256;
                 cpu_addr = begin;
             }
             if (expands_left) {
-                end += YUZU_PAGESIZE * 256;
+                end += CACHING_PAGESIZE * 256;
             }
         }
     }
@@ -1690,25 +1311,22 @@ void BufferCache<P>::JoinOverlap(BufferId new_buffer_id, BufferId overlap_id,
     if (accumulate_stream_score) {
         new_buffer.IncreaseStreamScore(overlap.StreamScore() + 1);
     }
-    std::vector<BufferCopy> copies;
+    boost::container::small_vector<BufferCopy, 1> copies;
     const size_t dst_base_offset = overlap.CpuAddr() - new_buffer.CpuAddr();
-    overlap.ForEachDownloadRange([&](u64 begin, u64 range_size) {
-        copies.push_back(BufferCopy{
-            .src_offset = begin,
-            .dst_offset = dst_base_offset + begin,
-            .size = range_size,
-        });
-        new_buffer.UnmarkRegionAsCpuModified(begin, range_size);
-        new_buffer.MarkRegionAsGpuModified(begin, range_size);
+    copies.push_back(BufferCopy{
+        .src_offset = 0,
+        .dst_offset = dst_base_offset,
+        .size = overlap.SizeBytes(),
     });
-    if (!copies.empty()) {
-        runtime.CopyBuffer(slot_buffers[new_buffer_id], overlap, copies);
-    }
-    DeleteBuffer(overlap_id);
+    runtime.CopyBuffer(new_buffer, overlap, copies);
+    DeleteBuffer(overlap_id, true);
 }
 
 template <class P>
 BufferId BufferCache<P>::CreateBuffer(VAddr cpu_addr, u32 wanted_size) {
+    VAddr cpu_addr_end = Common::AlignUp(cpu_addr + wanted_size, CACHING_PAGESIZE);
+    cpu_addr = Common::AlignDown(cpu_addr, CACHING_PAGESIZE);
+    wanted_size = static_cast<u32>(cpu_addr_end - cpu_addr);
     const OverlapResult overlap = ResolveOverlaps(cpu_addr, wanted_size);
     const u32 size = static_cast<u32>(overlap.end - overlap.begin);
     const BufferId new_buffer_id = slot_buffers.insert(runtime, rasterizer, overlap.begin, size);
@@ -1718,7 +1336,7 @@ BufferId BufferCache<P>::CreateBuffer(VAddr cpu_addr, u32 wanted_size) {
         JoinOverlap(new_buffer_id, overlap_id, !overlap.has_stream_leap);
     }
     Register(new_buffer_id);
-    TouchBuffer(slot_buffers[new_buffer_id], new_buffer_id);
+    TouchBuffer(new_buffer, new_buffer_id);
     return new_buffer_id;
 }
 
@@ -1746,8 +1364,8 @@ void BufferCache<P>::ChangeRegister(BufferId buffer_id) {
     }
     const VAddr cpu_addr_begin = buffer.CpuAddr();
     const VAddr cpu_addr_end = cpu_addr_begin + size;
-    const u64 page_begin = cpu_addr_begin / YUZU_PAGESIZE;
-    const u64 page_end = Common::DivCeil(cpu_addr_end, YUZU_PAGESIZE);
+    const u64 page_begin = cpu_addr_begin / CACHING_PAGESIZE;
+    const u64 page_end = Common::DivCeil(cpu_addr_end, CACHING_PAGESIZE);
     for (u64 page = page_begin; page != page_end; ++page) {
         if constexpr (insert) {
             page_table[page] = buffer_id;
@@ -1766,9 +1384,6 @@ void BufferCache<P>::TouchBuffer(Buffer& buffer, BufferId buffer_id) noexcept {
 
 template <class P>
 bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, VAddr cpu_addr, u32 size) {
-    if (buffer.CpuAddr() == 0) {
-        return true;
-    }
     return SynchronizeBufferImpl(buffer, cpu_addr, size);
 }
 
@@ -1777,10 +1392,11 @@ bool BufferCache<P>::SynchronizeBufferImpl(Buffer& buffer, VAddr cpu_addr, u32 s
     boost::container::small_vector<BufferCopy, 4> copies;
     u64 total_size_bytes = 0;
     u64 largest_copy = 0;
-    buffer.ForEachUploadRange(cpu_addr, size, [&](u64 range_offset, u64 range_size) {
+    VAddr buffer_start = buffer.CpuAddr();
+    memory_tracker.ForEachUploadRange(cpu_addr, size, [&](u64 cpu_addr_out, u64 range_size) {
         copies.push_back(BufferCopy{
             .src_offset = total_size_bytes,
-            .dst_offset = range_offset,
+            .dst_offset = cpu_addr_out - buffer_start,
             .size = range_size,
         });
         total_size_bytes += range_size;
@@ -1795,6 +1411,51 @@ bool BufferCache<P>::SynchronizeBufferImpl(Buffer& buffer, VAddr cpu_addr, u32 s
 }
 
 template <class P>
+bool BufferCache<P>::SynchronizeBufferNoModified(Buffer& buffer, VAddr cpu_addr, u32 size) {
+    boost::container::small_vector<BufferCopy, 4> copies;
+    u64 total_size_bytes = 0;
+    u64 largest_copy = 0;
+    IntervalSet found_sets{};
+    auto make_copies = [&] {
+        for (auto& interval : found_sets) {
+            const std::size_t sub_size = interval.upper() - interval.lower();
+            const VAddr cpu_addr_ = interval.lower();
+            copies.push_back(BufferCopy{
+                .src_offset = total_size_bytes,
+                .dst_offset = cpu_addr_ - buffer.CpuAddr(),
+                .size = sub_size,
+            });
+            total_size_bytes += sub_size;
+            largest_copy = std::max(largest_copy, sub_size);
+        }
+        const std::span<BufferCopy> copies_span(copies.data(), copies.size());
+        UploadMemory(buffer, total_size_bytes, largest_copy, copies_span);
+    };
+    memory_tracker.ForEachUploadRange(cpu_addr, size, [&](u64 cpu_addr_out, u64 range_size) {
+        const VAddr base_adr = cpu_addr_out;
+        const VAddr end_adr = base_adr + range_size;
+        const IntervalType add_interval{base_adr, end_adr};
+        found_sets.add(add_interval);
+    });
+    if (found_sets.empty()) {
+        return true;
+    }
+    const IntervalType search_interval{cpu_addr, cpu_addr + size};
+    auto it = common_ranges.lower_bound(search_interval);
+    auto it_end = common_ranges.upper_bound(search_interval);
+    if (it == common_ranges.end()) {
+        make_copies();
+        return false;
+    }
+    while (it != it_end) {
+        found_sets.subtract(*it);
+        it++;
+    }
+    make_copies();
+    return false;
+}
+
+template <class P>
 void BufferCache<P>::UploadMemory(Buffer& buffer, u64 total_size_bytes, u64 largest_copy,
                                   std::span<BufferCopy> copies) {
     if constexpr (USE_MEMORY_MAPS) {
@@ -1805,39 +1466,45 @@ void BufferCache<P>::UploadMemory(Buffer& buffer, u64 total_size_bytes, u64 larg
 }
 
 template <class P>
-void BufferCache<P>::ImmediateUploadMemory(Buffer& buffer, u64 largest_copy,
-                                           std::span<const BufferCopy> copies) {
-    std::span<u8> immediate_buffer;
-    for (const BufferCopy& copy : copies) {
-        std::span<const u8> upload_span;
-        const VAddr cpu_addr = buffer.CpuAddr() + copy.dst_offset;
-        if (IsRangeGranular(cpu_addr, copy.size)) {
-            upload_span = std::span(cpu_memory.GetPointer(cpu_addr), copy.size);
-        } else {
-            if (immediate_buffer.empty()) {
-                immediate_buffer = ImmediateBuffer(largest_copy);
+void BufferCache<P>::ImmediateUploadMemory([[maybe_unused]] Buffer& buffer,
+                                           [[maybe_unused]] u64 largest_copy,
+                                           [[maybe_unused]] std::span<const BufferCopy> copies) {
+    if constexpr (!USE_MEMORY_MAPS) {
+        std::span<u8> immediate_buffer;
+        for (const BufferCopy& copy : copies) {
+            std::span<const u8> upload_span;
+            const VAddr cpu_addr = buffer.CpuAddr() + copy.dst_offset;
+            if (IsRangeGranular(cpu_addr, copy.size)) {
+                upload_span = std::span(cpu_memory.GetPointer(cpu_addr), copy.size);
+            } else {
+                if (immediate_buffer.empty()) {
+                    immediate_buffer = ImmediateBuffer(largest_copy);
+                }
+                cpu_memory.ReadBlockUnsafe(cpu_addr, immediate_buffer.data(), copy.size);
+                upload_span = immediate_buffer.subspan(0, copy.size);
             }
-            cpu_memory.ReadBlockUnsafe(cpu_addr, immediate_buffer.data(), copy.size);
-            upload_span = immediate_buffer.subspan(0, copy.size);
+            buffer.ImmediateUpload(copy.dst_offset, upload_span);
         }
-        buffer.ImmediateUpload(copy.dst_offset, upload_span);
     }
 }
 
 template <class P>
-void BufferCache<P>::MappedUploadMemory(Buffer& buffer, u64 total_size_bytes,
-                                        std::span<BufferCopy> copies) {
-    auto upload_staging = runtime.UploadStagingBuffer(total_size_bytes);
-    const std::span<u8> staging_pointer = upload_staging.mapped_span;
-    for (BufferCopy& copy : copies) {
-        u8* const src_pointer = staging_pointer.data() + copy.src_offset;
-        const VAddr cpu_addr = buffer.CpuAddr() + copy.dst_offset;
-        cpu_memory.ReadBlockUnsafe(cpu_addr, src_pointer, copy.size);
+void BufferCache<P>::MappedUploadMemory([[maybe_unused]] Buffer& buffer,
+                                        [[maybe_unused]] u64 total_size_bytes,
+                                        [[maybe_unused]] std::span<BufferCopy> copies) {
+    if constexpr (USE_MEMORY_MAPS) {
+        auto upload_staging = runtime.UploadStagingBuffer(total_size_bytes);
+        const std::span<u8> staging_pointer = upload_staging.mapped_span;
+        for (BufferCopy& copy : copies) {
+            u8* const src_pointer = staging_pointer.data() + copy.src_offset;
+            const VAddr cpu_addr = buffer.CpuAddr() + copy.dst_offset;
+            cpu_memory.ReadBlockUnsafe(cpu_addr, src_pointer, copy.size);
 
-        // Apply the staging offset
-        copy.src_offset += upload_staging.offset;
+            // Apply the staging offset
+            copy.src_offset += upload_staging.offset;
+        }
+        runtime.CopyBuffer(buffer, upload_staging.buffer, copies);
     }
-    runtime.CopyBuffer(buffer, upload_staging.buffer, copies);
 }
 
 template <class P>
@@ -1847,7 +1514,9 @@ bool BufferCache<P>::InlineMemory(VAddr dest_address, size_t copy_size,
     if (!is_dirty) {
         return false;
     }
-    if (!IsRegionGpuModified(dest_address, copy_size)) {
+    VAddr aligned_start = Common::AlignDown(dest_address, YUZU_PAGESIZE);
+    VAddr aligned_end = Common::AlignUp(dest_address + copy_size, YUZU_PAGESIZE);
+    if (!IsRegionGpuModified(aligned_start, aligned_end - aligned_start)) {
         return false;
     }
 
@@ -1886,30 +1555,31 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, VAddr cpu_addr, u64 si
     boost::container::small_vector<BufferCopy, 1> copies;
     u64 total_size_bytes = 0;
     u64 largest_copy = 0;
-    buffer.ForEachDownloadRangeAndClear(cpu_addr, size, [&](u64 range_offset, u64 range_size) {
-        const VAddr buffer_addr = buffer.CpuAddr();
-        const auto add_download = [&](VAddr start, VAddr end) {
-            const u64 new_offset = start - buffer_addr;
-            const u64 new_size = end - start;
-            copies.push_back(BufferCopy{
-                .src_offset = new_offset,
-                .dst_offset = total_size_bytes,
-                .size = new_size,
-            });
-            // Align up to avoid cache conflicts
-            constexpr u64 align = 256ULL;
-            constexpr u64 mask = ~(align - 1ULL);
-            total_size_bytes += (new_size + align - 1) & mask;
-            largest_copy = std::max(largest_copy, new_size);
-        };
+    memory_tracker.ForEachDownloadRangeAndClear(
+        cpu_addr, size, [&](u64 cpu_addr_out, u64 range_size) {
+            const VAddr buffer_addr = buffer.CpuAddr();
+            const auto add_download = [&](VAddr start, VAddr end) {
+                const u64 new_offset = start - buffer_addr;
+                const u64 new_size = end - start;
+                copies.push_back(BufferCopy{
+                    .src_offset = new_offset,
+                    .dst_offset = total_size_bytes,
+                    .size = new_size,
+                });
+                // Align up to avoid cache conflicts
+                constexpr u64 align = 64ULL;
+                constexpr u64 mask = ~(align - 1ULL);
+                total_size_bytes += (new_size + align - 1) & mask;
+                largest_copy = std::max(largest_copy, new_size);
+            };
 
-        const VAddr start_address = buffer_addr + range_offset;
-        const VAddr end_address = start_address + range_size;
-        ForEachWrittenRange(start_address, range_size, add_download);
-        const IntervalType subtract_interval{start_address, end_address};
-        ClearDownload(subtract_interval);
-        common_ranges.subtract(subtract_interval);
-    });
+            const VAddr start_address = cpu_addr_out;
+            const VAddr end_address = start_address + range_size;
+            ForEachInRangeSet(common_ranges, start_address, range_size, add_download);
+            const IntervalType subtract_interval{start_address, end_address};
+            ClearDownload(subtract_interval);
+            common_ranges.subtract(subtract_interval);
+        });
     if (total_size_bytes == 0) {
         return;
     }
@@ -1943,7 +1613,7 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, VAddr cpu_addr, u64 si
 }
 
 template <class P>
-void BufferCache<P>::DeleteBuffer(BufferId buffer_id) {
+void BufferCache<P>::DeleteBuffer(BufferId buffer_id, bool do_not_mark) {
     const auto scalar_replace = [buffer_id](Binding& binding) {
         if (binding.buffer_id == buffer_id) {
             binding.buffer_id = BufferId{};
@@ -1962,8 +1632,10 @@ void BufferCache<P>::DeleteBuffer(BufferId buffer_id) {
     std::erase(cached_write_buffer_ids, buffer_id);
 
     // Mark the whole buffer as CPU written to stop tracking CPU writes
-    Buffer& buffer = slot_buffers[buffer_id];
-    buffer.MarkRegionAsCpuModified(buffer.CpuAddr(), buffer.SizeBytes());
+    if (!do_not_mark) {
+        Buffer& buffer = slot_buffers[buffer_id];
+        memory_tracker.MarkRegionAsCpuModified(buffer.CpuAddr(), buffer.SizeBytes());
+    }
 
     Unregister(buffer_id);
     delayed_destruction_ring.Push(std::move(slot_buffers[buffer_id]));
@@ -2011,7 +1683,7 @@ typename BufferCache<P>::Binding BufferCache<P>::StorageBufferBinding(GPUVAddr s
         LOG_WARNING(HW_GPU, "Failed to find storage buffer for cbuf index {}", cbuf_index);
         return NULL_BINDING;
     }
-    const VAddr cpu_end = Common::AlignUp(*cpu_addr + size, Core::Memory::YUZU_PAGESIZE);
+    const VAddr cpu_end = Common::AlignUp(*cpu_addr + size, YUZU_PAGESIZE);
     const Binding binding{
         .cpu_addr = *cpu_addr,
         .size = is_written ? size : static_cast<u32>(cpu_end - *cpu_addr),

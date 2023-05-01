@@ -314,8 +314,12 @@ StagingBufferRef BufferCacheRuntime::UploadStagingBuffer(size_t size) {
     return staging_pool.Request(size, MemoryUsage::Upload);
 }
 
-StagingBufferRef BufferCacheRuntime::DownloadStagingBuffer(size_t size) {
-    return staging_pool.Request(size, MemoryUsage::Download);
+StagingBufferRef BufferCacheRuntime::DownloadStagingBuffer(size_t size, bool deferred) {
+    return staging_pool.Request(size, MemoryUsage::Download, deferred);
+}
+
+void BufferCacheRuntime::FreeDeferredStagingBuffer(StagingBufferRef& ref) {
+    staging_pool.FreeDeferred(ref);
 }
 
 u64 BufferCacheRuntime::GetDeviceLocalMemory() const {

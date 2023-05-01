@@ -8,6 +8,7 @@
 
 #include "common/common_types.h"
 #include "video_core/buffer_cache/buffer_cache.h"
+#include "video_core/buffer_cache/memory_tracker_base.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
@@ -200,6 +201,8 @@ private:
 struct BufferCacheParams {
     using Runtime = OpenGL::BufferCacheRuntime;
     using Buffer = OpenGL::Buffer;
+    using Async_Buffer = u32;
+    using MemoryTracker = VideoCommon::MemoryTrackerBase<VideoCore::RasterizerInterface>;
 
     static constexpr bool IS_OPENGL = true;
     static constexpr bool HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS = true;
@@ -208,6 +211,7 @@ struct BufferCacheParams {
     static constexpr bool NEEDS_BIND_STORAGE_INDEX = true;
     static constexpr bool USE_MEMORY_MAPS = false;
     static constexpr bool SEPARATE_IMAGE_BUFFER_BINDINGS = true;
+    static constexpr bool IMPLEMENTS_ASYNC_DOWNLOADS = false;
 };
 
 using BufferCache = VideoCommon::BufferCache<BufferCacheParams>;
