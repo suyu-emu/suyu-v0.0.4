@@ -75,7 +75,8 @@ private:
     std::mutex queue_mutex;
     std::mutex free_mutex;
     std::jthread present_thread;
-    bool blit_supported{};
+    bool blit_supported;
+    bool use_present_thread;
     std::size_t image_count;
 };
 

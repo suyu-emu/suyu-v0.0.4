@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/microprofile.h"
+#include "common/settings.h"
 #include "common/thread.h"
 #include "video_core/renderer_vulkan/vk_present_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
@@ -97,6 +98,7 @@ PresentManager::PresentManager(Core::Frontend::EmuWindow& render_window_, const 
     : render_window{render_window_}, device{device_},
       memory_allocator{memory_allocator_}, scheduler{scheduler_}, swapchain{swapchain_},
       blit_supported{CanBlitToSwapchain(device.GetPhysical(), swapchain.GetImageViewFormat())},
+      use_present_thread{Settings::values.async_presentation.GetValue()},
       image_count{swapchain.GetImageCount()} {
 
     auto& dld = device.GetLogical();
@@ -126,7 +128,9 @@ PresentManager::PresentManager(Core::Frontend::EmuWindow& render_window_, const 
         free_queue.push(&frame);
     }
 
-    present_thread = std::jthread([this](std::stop_token token) { PresentThread(token); });
+    if (use_present_thread) {
+        present_thread = std::jthread([this](std::stop_token token) { PresentThread(token); });
+    }
 }
 
 PresentManager::~PresentManager() = default;
@@ -150,6 +154,12 @@ Frame* PresentManager::GetRenderFrame() {
 }
 
 void PresentManager::PushFrame(Frame* frame) {
+    if (!use_present_thread) {
+        CopyToSwapchain(frame);
+        free_queue.push(frame);
+        return;
+    }
+
     std::unique_lock lock{queue_mutex};
     present_queue.push(frame);
     frame_cv.notify_one();
@@ -227,6 +237,10 @@ void PresentManager::RecreateFrame(Frame* frame, u32 width, u32 height, bool is_
 }
 
 void PresentManager::WaitPresent() {
+    if (!use_present_thread) {
+        return;
+    }
+
     // Wait for the present queue to be empty
     {
         std::unique_lock queue_lock{queue_mutex};
