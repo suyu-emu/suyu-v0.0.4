@@ -76,10 +76,18 @@ class InputHandler {
 
         // Adjust range of joystick
         val deadzone = 0.15f
-        val deadzoneFactor = 1.0f / r * (r - deadzone) / (1.0f - deadzone)
-        var x = xAxis * deadzoneFactor
-        var y = yAxis * deadzoneFactor
-        r *= deadzoneFactor
+        var x = xAxis
+        var y = yAxis
+
+        if (r > deadzone) {
+            val deadzoneFactor = 1.0f / r * (r - deadzone) / (1.0f - deadzone)
+            x *= deadzoneFactor
+            y *= deadzoneFactor
+            r *= deadzoneFactor
+        } else {
+            x = 0.0f
+            y = 0.0f
+        }
 
         // Normalize joystick
         if (r > 1.0f) {
