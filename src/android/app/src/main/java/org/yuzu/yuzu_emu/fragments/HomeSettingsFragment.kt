@@ -13,6 +13,7 @@ import android.provider.DocumentsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -241,12 +242,18 @@ class HomeSettingsFragment : Fragment() {
             val spacingNavigationRail =
                 resources.getDimensionPixelSize(R.dimen.spacing_navigation_rail)
 
-            binding.scrollViewSettings.setPadding(
-                barInsets.left + cutoutInsets.left,
-                barInsets.top,
-                barInsets.right + cutoutInsets.right,
-                barInsets.bottom
+            val leftInsets = barInsets.left + cutoutInsets.left
+            val rightInsets = barInsets.right + cutoutInsets.right
+
+            binding.scrollViewSettings.updatePadding(
+                top = barInsets.top,
+                bottom = barInsets.bottom
             )
+
+            val mlpScrollSettings = binding.scrollViewSettings.layoutParams as MarginLayoutParams
+            mlpScrollSettings.leftMargin = leftInsets
+            mlpScrollSettings.rightMargin = rightInsets
+            binding.scrollViewSettings.layoutParams = mlpScrollSettings
 
             binding.linearLayoutSettings.updatePadding(bottom = spacingNavigation)
 
