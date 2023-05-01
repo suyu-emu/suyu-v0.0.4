@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.fragments
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
@@ -222,8 +223,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         popup.menuInflater.inflate(R.menu.menu_overlay_options, popup.menu)
 
-        popup.menu.findItem(R.id.menu_rel_stick_center).isChecked = EmulationMenuSettings.joystickRelCenter
+        popup.menu.findItem(R.id.menu_rel_stick_center).isChecked =
+            EmulationMenuSettings.joystickRelCenter
         popup.menu.findItem(R.id.menu_dpad_slide).isChecked = EmulationMenuSettings.dpadSlide
+        popup.menu.findItem(R.id.menu_show_overlay).isChecked = EmulationMenuSettings.showOverlay
 
         popup.setOnMenuItemClickListener {
             when (it.itemId) {
@@ -241,7 +244,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         optionsArray[i] = preferences.getBoolean("buttonToggle$i", i < 13)
                     }
 
-                    MaterialAlertDialogBuilder(requireContext())
+                    val dialog = MaterialAlertDialogBuilder(requireContext())
                         .setTitle(R.string.emulation_toggle_controls)
                         .setMultiChoiceItems(
                             R.array.gamepadButtons,
@@ -254,12 +257,27 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         .setPositiveButton(android.R.string.ok) { _, _ ->
                             refreshInputOverlay()
                         }
-                        .setNeutralButton(R.string.emulation_toggle_all) { _, _ ->
-                            EmulationMenuSettings.showOverlay = !EmulationMenuSettings.showOverlay
-                            refreshInputOverlay()
-                        }
+                        .setNeutralButton(R.string.emulation_toggle_all) { _, _ -> }
                         .show()
 
+                    // Override normal behaviour so the dialog doesn't close
+                    dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
+                        .setOnClickListener {
+                            val isChecked = !optionsArray[0];
+                            for (i in 0..14) {
+                                optionsArray[i] = isChecked;
+                                dialog.listView.setItemChecked(i, isChecked)
+                                preferences.edit()
+                                    .putBoolean("buttonToggle$i", isChecked)
+                                    .apply()
+                            }
+                        }
+                    true
+                }
+                R.id.menu_show_overlay -> {
+                    it.isChecked = !it.isChecked
+                    EmulationMenuSettings.showOverlay = it.isChecked
+                    refreshInputOverlay()
                     true
                 }
                 R.id.menu_rel_stick_center -> {
