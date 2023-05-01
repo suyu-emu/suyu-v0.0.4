@@ -65,23 +65,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         window.statusBarColor =
             ContextCompat.getColor(applicationContext, android.R.color.transparent)
-        ThemeHelper.setNavigationBarColor(
-            this,
-            ElevationOverlayProvider(binding.navigationView.context).compositeOverlay(
-                MaterialColors.getColor(binding.navigationView, R.attr.colorSurface),
-                binding.navigationView.elevation
-            )
-        )
-
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
-        setUpNavigation(navHostFragment.navController)
-        (binding.navigationView as NavigationBarView).setOnItemReselectedListener {
-            when (it.itemId) {
-                R.id.gamesFragment -> gamesViewModel.setShouldScrollToTop(true)
-                R.id.searchFragment -> gamesViewModel.setSearchFocused(true)
-            }
-        }
+        window.navigationBarColor =
+            ContextCompat.getColor(applicationContext, android.R.color.transparent)
 
         binding.statusBarShade.setBackgroundColor(
             ThemeHelper.getColorWithOpacity(
@@ -92,6 +77,27 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 ThemeHelper.SYSTEM_BAR_ALPHA
             )
         )
+        if (InsetsHelper.getSystemGestureType(applicationContext) != InsetsHelper.GESTURE_NAVIGATION) {
+            binding.navigationBarShade.setBackgroundColor(
+                ThemeHelper.getColorWithOpacity(
+                    MaterialColors.getColor(
+                        binding.root,
+                        R.attr.colorSurface
+                    ),
+                    ThemeHelper.SYSTEM_BAR_ALPHA
+                )
+            )
+        }
+
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
+        setUpNavigation(navHostFragment.navController)
+        (binding.navigationView as NavigationBarView).setOnItemReselectedListener {
+            when (it.itemId) {
+                R.id.gamesFragment -> gamesViewModel.setShouldScrollToTop(true)
+                R.id.searchFragment -> gamesViewModel.setSearchFocused(true)
+            }
+        }
 
         // Prevents navigation from being drawn for a short time on recreation if set to hidden
         if (!homeViewModel.navigationVisible.value?.first!!) {
@@ -116,14 +122,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         navController.navigate(R.id.action_firstTimeSetupFragment_to_gamesFragment)
         (binding.navigationView as NavigationBarView).setupWithNavController(navController)
         showNavigation(visible = true, animated = true)
-
-        ThemeHelper.setNavigationBarColor(
-            this,
-            ElevationOverlayProvider(binding.navigationView.context).compositeOverlay(
-                MaterialColors.getColor(binding.navigationView, R.attr.colorSurface),
-                binding.navigationView.elevation
-            )
-        )
     }
 
     private fun setUpNavigation(navController: NavController) {
@@ -210,11 +208,18 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.statusBarShade) { view: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _: View, windowInsets: WindowInsetsCompat ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val mlpShade = view.layoutParams as MarginLayoutParams
-            mlpShade.height = insets.top
-            binding.statusBarShade.layoutParams = mlpShade
+            val mlpStatusShade = binding.statusBarShade.layoutParams as MarginLayoutParams
+            mlpStatusShade.height = insets.top
+            binding.statusBarShade.layoutParams = mlpStatusShade
+
+            // The only situation where we care to have a nav bar shade is when it's at the bottom
+            // of the screen where scrolling list elements can go behind it.
+            val mlpNavShade = binding.navigationBarShade.layoutParams as MarginLayoutParams
+            mlpNavShade.height = insets.bottom
+            binding.navigationBarShade.layoutParams = mlpNavShade
+
             windowInsets
         }
 
