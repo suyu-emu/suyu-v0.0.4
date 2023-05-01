@@ -1368,8 +1368,8 @@ Bu seçenek belleğe yazma/okuma işlemlerindeki güvenlik kontrolünü kaldıra
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="67"/>
-        <source>Extended memory layout (6GB DRAM)</source>
-        <translation>Artırılmış hafıza düzeni (6GB DRAM)</translation>
+        <source>Extended memory layout (8GB DRAM)</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="74"/>

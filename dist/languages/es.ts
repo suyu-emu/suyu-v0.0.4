@@ -381,17 +381,17 @@ Esto banearía su nombre del foro y su dirección IP.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_audio.ui" line="42"/>
         <source>Output Device:</source>
-        <translation type="unfinished"/>
+        <translation>Dispositivo de salida:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_audio.ui" line="56"/>
         <source>Input Device:</source>
-        <translation type="unfinished"/>
+        <translation>Dispositivo de entrada:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_audio.ui" line="70"/>
         <source>Sound Output Mode:</source>
-        <translation type="unfinished"/>
+        <translation>Método de salida de sonido:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_audio.ui" line="78"/>
@@ -1383,8 +1383,8 @@ Esto banearía su nombre del foro y su dirección IP.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="67"/>
-        <source>Extended memory layout (6GB DRAM)</source>
-        <translation>Interfaz de memoria extendida (6GB DRAM)</translation>
+        <source>Extended memory layout (8GB DRAM)</source>
+        <translation>Interfaz de memoria extendida (8GB DRAM)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="74"/>
@@ -1638,7 +1638,7 @@ Esto banearía su nombre del foro y su dirección IP.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics.ui" line="463"/>
         <source>AMD FidelityFX™️ Super Resolution</source>
-        <translation type="unfinished"/>
+        <translation>AMD FidelityFX™️ Super Resolution</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics.ui" line="489"/>
@@ -1753,12 +1753,12 @@ Esto banearía su nombre del foro y su dirección IP.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_advanced.ui" line="95"/>
         <source>Enables asynchronous ASTC texture decoding, which may reduce load time stutter. This feature is experimental.</source>
-        <translation type="unfinished"/>
+        <translation>Activa la decodificación de texturas asíncrona de ASTC, lo cuál podría reducir la duración de los parones. Esta función es experimental.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_advanced.ui" line="98"/>
         <source>Decode ASTC textures asynchronously (Hack)</source>
-        <translation type="unfinished"/>
+        <translation>Decodificar texturas ASTC de manera asíncrona (Hack)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_advanced.ui" line="105"/>
@@ -2268,12 +2268,12 @@ Esto banearía su nombre del foro y su dirección IP.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2710"/>
         <source>Enable direct JoyCon driver</source>
-        <translation type="unfinished"/>
+        <translation>Activar driver directo JoyCon</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2726"/>
         <source>Enable direct Pro Controller driver [EXPERIMENTAL]</source>
-        <translation type="unfinished"/>
+        <translation>Activar driver directo Pro Controller [EXPERIMENTAL]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2739"/>
@@ -2637,7 +2637,7 @@ Esto banearía su nombre del foro y su dirección IP.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="399"/>
         <source>Turbo button</source>
-        <translation type="unfinished"/>
+        <translation>Botón Turbo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="407"/>
@@ -3339,7 +3339,7 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="52"/>
         <source>Virtual Ring Sensor Parameters</source>
-        <translation type="unfinished"/>
+        <translation>Parámetros del sensor Ring virtual</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="84"/>
@@ -3361,29 +3361,29 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="233"/>
         <source>Direct Joycon Driver</source>
-        <translation type="unfinished"/>
+        <translation>Driver directo del JoyCon</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="293"/>
         <source>Enable Ring Input</source>
-        <translation type="unfinished"/>
+        <translation>Activar entrada del Ring</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="300"/>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="314"/>
         <source>Enable</source>
-        <translation type="unfinished"/>
+        <translation>Activar</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="307"/>
         <source>Ring Sensor Value</source>
-        <translation type="unfinished"/>
+        <translation>Valor del sensor Ring</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="314"/>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="282"/>
         <source>Not connected</source>
-        <translation type="unfinished"/>
+        <translation>No conectado</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="344"/>
@@ -3414,12 +3414,12 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="279"/>
         <source>Error enabling ring input</source>
-        <translation type="unfinished"/>
+        <translation>Error al activar la entrada del Ring</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="285"/>
         <source>Direct Joycon driver is not enabled</source>
-        <translation type="unfinished"/>
+        <translation>El driver directo JoyCon no está activo.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="290"/>
@@ -3429,17 +3429,17 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="302"/>
         <source>The current mapped device doesn&apos;t support the ring controller</source>
-        <translation type="unfinished"/>
+        <translation>El dispositivo de entrada actual no soporta el control Ring.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="306"/>
         <source>The current mapped device doesn&apos;t have a ring attached</source>
-        <translation type="unfinished"/>
+        <translation>El dispositivo de entrada actual no tiene puesto el Ring</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="310"/>
         <source>Unexpected driver result %1</source>
-        <translation type="unfinished"/>
+        <translation>Resultado inesperado del driver %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="333"/>
@@ -4498,12 +4498,12 @@ Arrastra los puntos para cambiar de posición, o haz doble clic en las celdas de
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.ui" line="47"/>
         <source>Server Address</source>
-        <translation type="unfinished"/>
+        <translation>Dirección del Servidor</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.ui" line="54"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Server address of the host&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Dirección del servidor del anfitrión&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.ui" line="64"/>
@@ -4617,12 +4617,12 @@ Arrastra los puntos para cambiar de posición, o haz doble clic en las celdas de
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1230"/>
         <source>Emulated mouse is enabled</source>
-        <translation type="unfinished"/>
+        <translation>El ratón emulado está activado</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1231"/>
         <source>Real mouse input and mouse panning are incompatible. Please disable the emulated mouse in input advanced settings to allow mouse panning.</source>
-        <translation type="unfinished"/>
+        <translation>La entrada de un ratón real y la panoramización del ratón son incompatibles. Por favor, desactive el ratón emulado en la configuración avanzada de entrada para permitir así la panoramización del ratón.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1453"/>
@@ -5489,13 +5489,13 @@ Por favor, utiliza esta función sólo para instalar actualizaciones y DLCs.</tr
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4069"/>
         <source>VOLUME: MUTE</source>
-        <translation type="unfinished"/>
+        <translation>VOLUMEN: SILENCIO</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4072"/>
         <source>VOLUME: %1%</source>
         <comment>Volume percentage (e.g. 50%)</comment>
-        <translation type="unfinished"/>
+        <translation>VOLUMEN: %1%</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="4153"/>
@@ -6227,7 +6227,7 @@ Mensaje de depuración: </translation>
     <message>
         <location filename="../../src/yuzu/multiplayer/lobby.ui" line="83"/>
         <source>Hide Empty Rooms</source>
-        <translation type="unfinished"/>
+        <translation>Ocultar salas vacías</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/lobby.ui" line="90"/>
@@ -7152,12 +7152,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="78"/>
         <source>Stick L</source>
-        <translation type="unfinished"/>
+        <translation>Palanca L</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="80"/>
         <source>Stick R</source>
-        <translation type="unfinished"/>
+        <translation>Palanca R</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="92"/>
@@ -7214,19 +7214,19 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="191"/>
         <source>%1%2%3%4</source>
-        <translation type="unfinished"/>
+        <translation>%1%2%3%4</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="205"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="229"/>
         <source>%1%2%3Hat %4</source>
-        <translation type="unfinished"/>
+        <translation>%1%2%3Rotación %4</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="223"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="238"/>
         <source>%1%2%3Button %4</source>
-        <translation type="unfinished"/>
+        <translation>%1%2%3Botón %4</translation>
     </message>
 </context>
 <context>
@@ -7647,7 +7647,7 @@ Por favor, inténtalo de nuevo o contacta con el desarrollador del software.</tr
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="166"/>
         <source>Profile Creator</source>
-        <translation type="unfinished"/>
+        <translation>Creador de perfil</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="169"/>
@@ -7658,57 +7658,57 @@ Por favor, inténtalo de nuevo o contacta con el desarrollador del software.</tr
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="172"/>
         <source>Profile Icon Editor</source>
-        <translation type="unfinished"/>
+        <translation>Editor de icono de perfil</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="175"/>
         <source>Profile Nickname Editor</source>
-        <translation type="unfinished"/>
+        <translation>Editor de nombre de perfil</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="197"/>
         <source>Who will receive the points?</source>
-        <translation type="unfinished"/>
+        <translation>¿Quién recibirá los puntos?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="200"/>
         <source>Who is using Nintendo eShop?</source>
-        <translation type="unfinished"/>
+        <translation>¿Quién va a utilizar Nintendo eShop?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="203"/>
         <source>Who is making this purchase?</source>
-        <translation type="unfinished"/>
+        <translation>¿Quién está haciendo la compra?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="206"/>
         <source>Who is posting?</source>
-        <translation type="unfinished"/>
+        <translation>¿Quién está publicando esto?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="209"/>
         <source>Select a user to link to a Nintendo Account.</source>
-        <translation type="unfinished"/>
+        <translation>Elige un usuario para vincularlo a una Cuenta Nintendo.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="212"/>
         <source>Change settings for which user?</source>
-        <translation type="unfinished"/>
+        <translation>¿Para qué usuario desea cambiar la configuración?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="215"/>
         <source>Format data for which user?</source>
-        <translation type="unfinished"/>
+        <translation>¿Para qué usuario se borrarán sus datos?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="218"/>
         <source>Which user will be transferred to another console?</source>
-        <translation type="unfinished"/>
+        <translation>¿Qué usuario será transferido a otra consola?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="221"/>
         <source>Send save data for which user?</source>
-        <translation type="unfinished"/>
+        <translation>¿A qué usuario se le enviarán los datos de guardado?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="225"/>
@@ -7774,7 +7774,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="158"/>
         <source>[%1] %2</source>
-        <translation type="unfinished"/>
+        <translation>[%1] %2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="184"/>

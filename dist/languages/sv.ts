@@ -122,7 +122,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/multiplayer/chat_room.cpp" line="330"/>
         <source>%1 has been unbanned</source>
-        <translation type="unfinished"/>
+        <translation>%1 har haft dess bannlysning upphävd.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/chat_room.cpp" line="446"/>
@@ -242,22 +242,22 @@ Detta kommer bannlysa både dennes användarnamn på forum samt IP-adress.</tran
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="77"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Does the game boot?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Startar Spelet? &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="100"/>
         <source>Yes   The game starts to output video or audio</source>
-        <translation type="unfinished"/>
+        <translation>Ja   Spelet öppnar till utmatning av video eller audio</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="107"/>
         <source>No    The game doesn&apos;t get past the &quot;Launching...&quot; screen</source>
-        <translation type="unfinished"/>
+        <translation>Nej Spelet öppnar ej förbi &quot;Startar...&quot; skärmen</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="124"/>
         <source>Yes   The game gets past the intro/menu and into gameplay</source>
-        <translation type="unfinished"/>
+        <translation>Ja   Spelet öppnar förbi introt/menyn och in i själva spelandet</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="131"/>
@@ -1031,7 +1031,7 @@ avgjord kod.&lt;/div&gt;
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="325"/>
         <source>Disable Web Applet</source>
-        <translation type="unfinished"/>
+        <translation>Avaktivera Webbappletten</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="332"/>
@@ -1360,8 +1360,8 @@ avgjord kod.&lt;/div&gt;
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="67"/>
-        <source>Extended memory layout (6GB DRAM)</source>
-        <translation>Utökad minnesöversikt (6GB DRAM)</translation>
+        <source>Extended memory layout (8GB DRAM)</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="74"/>
@@ -3320,13 +3320,13 @@ UUID: %2</source>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="84"/>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="123"/>
         <source>Pull</source>
-        <translation type="unfinished"/>
+        <translation>Dra</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="133"/>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="172"/>
         <source>Push</source>
-        <translation type="unfinished"/>
+        <translation>Knuff</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="206"/>
@@ -3347,7 +3347,7 @@ UUID: %2</source>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="300"/>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="314"/>
         <source>Enable</source>
-        <translation type="unfinished"/>
+        <translation>Aktivera</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="307"/>
@@ -4493,17 +4493,17 @@ Dra punkter för att ändra position, eller dubbelklicka tabellceller för att r
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.ui" line="97"/>
         <source>Nickname</source>
-        <translation type="unfinished"/>
+        <translation>Smeknamn</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.ui" line="111"/>
         <source>Password</source>
-        <translation type="unfinished"/>
+        <translation>Lösenord</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.ui" line="153"/>
         <source>Connect</source>
-        <translation type="unfinished"/>
+        <translation>Anslut</translation>
     </message>
 </context>
 <context>
@@ -4511,12 +4511,12 @@ Dra punkter för att ändra position, eller dubbelklicka tabellceller för att r
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.cpp" line="120"/>
         <source>Connecting</source>
-        <translation type="unfinished"/>
+        <translation>Ansluter</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.cpp" line="125"/>
         <source>Connect</source>
-        <translation type="unfinished"/>
+        <translation>Anslut</translation>
     </message>
 </context>
 <context>
@@ -4534,7 +4534,7 @@ Dra punkter för att ändra position, eller dubbelklicka tabellceller för att r
     <message>
         <location filename="../../src/yuzu/main.cpp" line="432"/>
         <source>Broken Vulkan Installation Detected</source>
-        <translation type="unfinished"/>
+        <translation>Felaktig Vulkaninstallation Upptäckt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="433"/>
@@ -4550,7 +4550,7 @@ Dra punkter för att ändra position, eller dubbelklicka tabellceller för att r
         <location filename="../../src/yuzu/main.cpp" line="874"/>
         <location filename="../../src/yuzu/main.cpp" line="877"/>
         <source>Disable Web Applet</source>
-        <translation type="unfinished"/>
+        <translation>Avaktivera Webbappletten</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="878"/>
@@ -4591,7 +4591,7 @@ Dra punkter för att ändra position, eller dubbelklicka tabellceller för att r
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1230"/>
         <source>Emulated mouse is enabled</source>
-        <translation type="unfinished"/>
+        <translation>Emulerad datormus är aktiverad</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1231"/>
@@ -5171,7 +5171,7 @@ Please, only use this feature to install updates and DLC.</source>
         <location filename="../../src/yuzu/main.cpp" line="3182"/>
         <location filename="../../src/yuzu/main.cpp" line="3201"/>
         <source>Hardware requirements not met</source>
-        <translation type="unfinished"/>
+        <translation> Hårdvarukraven uppfylls ej</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3183"/>
@@ -5202,17 +5202,17 @@ Please, only use this feature to install updates and DLC.</source>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3514"/>
         <source>TAS Recording</source>
-        <translation type="unfinished"/>
+        <translation>TAS Inspelning</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3515"/>
         <source>Overwrite file of player 1?</source>
-        <translation type="unfinished"/>
+        <translation>Överskriv spelare 1:s fil?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3541"/>
         <source>Invalid config detected</source>
-        <translation type="unfinished"/>
+        <translation>Ogiltig konfiguration upptäckt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3542"/>
@@ -5223,13 +5223,13 @@ Please, only use this feature to install updates and DLC.</source>
         <location filename="../../src/yuzu/main.cpp" line="3712"/>
         <location filename="../../src/yuzu/main.cpp" line="3740"/>
         <source>Amiibo</source>
-        <translation type="unfinished"/>
+        <translation>Amiibo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3712"/>
         <location filename="../../src/yuzu/main.cpp" line="3740"/>
         <source>The current amiibo has been removed</source>
-        <translation type="unfinished"/>
+        <translation>Den aktuella amiibon har avlägsnats</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3717"/>
@@ -5240,7 +5240,7 @@ Please, only use this feature to install updates and DLC.</source>
         <location filename="../../src/yuzu/main.cpp" line="3717"/>
         <location filename="../../src/yuzu/main.cpp" line="3752"/>
         <source>The current game is not looking for amiibos</source>
-        <translation type="unfinished"/>
+        <translation>Det aktuella spelet letar ej efter amiibos</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3723"/>
@@ -5260,17 +5260,17 @@ Please, only use this feature to install updates and DLC.</source>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3746"/>
         <source>The selected file is not a valid amiibo</source>
-        <translation type="unfinished"/>
+        <translation>Den valda filen är inte en giltig amiibo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3749"/>
         <source>The selected file is already on use</source>
-        <translation type="unfinished"/>
+        <translation>Den valda filen är redan använd</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3755"/>
         <source>An unknown error occurred</source>
-        <translation type="unfinished"/>
+        <translation>Ett okänt fel har inträffat</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3807"/>
@@ -5285,22 +5285,22 @@ Please, only use this feature to install updates and DLC.</source>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3891"/>
         <source>TAS state: Running %1/%2</source>
-        <translation type="unfinished"/>
+        <translation>TAStillstånd: pågående %1/%2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3895"/>
         <source>TAS state: Recording %1</source>
-        <translation type="unfinished"/>
+        <translation>TAStillstånd: spelar in %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3897"/>
         <source>TAS state: Idle %1/%2</source>
-        <translation type="unfinished"/>
+        <translation>TAStillstånd: inaktiv %1/%2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3901"/>
         <source>TAS State: Invalid</source>
-        <translation type="unfinished"/>
+        <translation>TAStillstånd: ogiltigt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3915"/>
@@ -5902,7 +5902,7 @@ Vill du strunta i detta och avsluta ändå?</translation>
     <message>
         <location filename="../../src/yuzu/multiplayer/host_room.ui" line="118"/>
         <source>Password</source>
-        <translation type="unfinished"/>
+        <translation>Lösenord</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/host_room.ui" line="125"/>
@@ -6169,7 +6169,7 @@ Debug Message: </source>
         <location filename="../../src/yuzu/multiplayer/lobby.ui" line="32"/>
         <location filename="../../src/yuzu/multiplayer/lobby.ui" line="39"/>
         <source>Nickname</source>
-        <translation type="unfinished"/>
+        <translation>Smeknamn</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/lobby.ui" line="59"/>

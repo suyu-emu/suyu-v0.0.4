@@ -1368,8 +1368,8 @@ Questo bannerà sia il suo nome utente del forum che il suo indirizzo IP.</trans
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="67"/>
-        <source>Extended memory layout (6GB DRAM)</source>
-        <translation>Layout di memoria esteso (6GB DRAM)</translation>
+        <source>Extended memory layout (8GB DRAM)</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="74"/>
@@ -1846,7 +1846,7 @@ Questo bannerà sia il suo nome utente del forum che il suo indirizzo IP.</trans
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.ui" line="52"/>
         <source>Restore Defaults</source>
-        <translation>Ripristina predefiniti</translation>
+        <translation>Ripristina predefinite</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="98"/>
@@ -1894,7 +1894,7 @@ Questo bannerà sia il suo nome utente del forum che il suo indirizzo IP.</trans
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="343"/>
         <source>Restore Default</source>
-        <translation>Ripristina predefinito</translation>
+        <translation>Ripristina predefinita</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="344"/>
@@ -3886,7 +3886,7 @@ UUID: %2</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="77"/>
         <source>Pause execution during loads</source>
-        <translation type="unfinished"/>
+        <translation>Metti in pausa l&apos;esecuzione durante i caricamenti</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="91"/>
@@ -5352,7 +5352,7 @@ Configurazione &amp;gt; Web.</translation>
         <location filename="../../src/yuzu/main.cpp" line="3949"/>
         <source>Scale: %1x</source>
         <comment>%1 is the resolution scaling factor</comment>
-        <translation type="unfinished"/>
+        <translation>Risoluzione: %1x</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="3952"/>
@@ -5601,7 +5601,7 @@ Desideri uscire comunque?</translation>
     <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="992"/>
         <source>yuzu has not been compiled with OpenGL support.</source>
-        <translation>yuzu non è stato compilato con il supporto OpenGL.</translation>
+        <translation>yuzu è stato compilato senza il supporto a OpenGL.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="1016"/>

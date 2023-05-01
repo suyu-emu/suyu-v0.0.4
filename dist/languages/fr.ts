@@ -1382,8 +1382,8 @@ Cette option améliore la vitesse en réduisant la précision des instructions f
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="67"/>
-        <source>Extended memory layout (6GB DRAM)</source>
-        <translation>Disposition de la mémoire étendue (6GB DRAM)</translation>
+        <source>Extended memory layout (8GB DRAM)</source>
+        <translation>Disposition de la mémoire étendue (8 Go de DRAM)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="74"/>
@@ -7637,7 +7637,7 @@ Veuillez essayer à nouveau ou contactez le développeur du logiciel.</translati
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="166"/>
         <source>Profile Creator</source>
-        <translation type="unfinished"/>
+        <translation>Créateur de profil</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="169"/>
@@ -7648,57 +7648,57 @@ Veuillez essayer à nouveau ou contactez le développeur du logiciel.</translati
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="172"/>
         <source>Profile Icon Editor</source>
-        <translation type="unfinished"/>
+        <translation>Éditeur d&apos;icônes de profil</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="175"/>
         <source>Profile Nickname Editor</source>
-        <translation type="unfinished"/>
+        <translation>Éditeur de surnom de profil</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="197"/>
         <source>Who will receive the points?</source>
-        <translation type="unfinished"/>
+        <translation>Qui recevra les points ?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="200"/>
         <source>Who is using Nintendo eShop?</source>
-        <translation type="unfinished"/>
+        <translation>Qui utilise le Nintendo eShop ?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="203"/>
         <source>Who is making this purchase?</source>
-        <translation type="unfinished"/>
+        <translation>Qui effectue cet achat ?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="206"/>
         <source>Who is posting?</source>
-        <translation type="unfinished"/>
+        <translation>Qui publie ?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="209"/>
         <source>Select a user to link to a Nintendo Account.</source>
-        <translation type="unfinished"/>
+        <translation>Sélectionnez un utilisateur à associer à un compte Nintendo.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="212"/>
         <source>Change settings for which user?</source>
-        <translation type="unfinished"/>
+        <translation>Modifier les paramètres pour quel utilisateur ?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="215"/>
         <source>Format data for which user?</source>
-        <translation type="unfinished"/>
+        <translation>Formater les données pour quel utilisateur ?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="218"/>
         <source>Which user will be transferred to another console?</source>
-        <translation type="unfinished"/>
+        <translation>Quel utilisateur sera transféré sur une autre console ?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="221"/>
         <source>Send save data for which user?</source>
-        <translation type="unfinished"/>
+        <translation>Envoyer les données de sauvegarde pour quel utilisateur ?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="225"/>

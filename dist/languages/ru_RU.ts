@@ -381,17 +381,17 @@ This would ban both their forum username and their IP address.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_audio.ui" line="42"/>
         <source>Output Device:</source>
-        <translation type="unfinished"/>
+        <translation>Устройство вывода:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_audio.ui" line="56"/>
         <source>Input Device:</source>
-        <translation type="unfinished"/>
+        <translation>Устройство ввода:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_audio.ui" line="70"/>
         <source>Sound Output Mode:</source>
-        <translation type="unfinished"/>
+        <translation>Режим вывода звука:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_audio.ui" line="78"/>
@@ -551,13 +551,13 @@ This would ban both their forum username and their IP address.</source>
             &lt;div&gt;This option improves speed by reducing accuracy of fused-multiply-add instructions on CPUs without native FMA support.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;Эта опция повышает скорость, уменьшая точность сложенных умноженных инструкций на ЦП без поддержки FMA.&lt;/div&gt;
+            &lt;div&gt;Эта опция повышает скорость за счет снижения точности инструкций fused-multiply-add на ЦП без встроенной поддержки FMA.&lt;/div&gt;
            </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="106"/>
         <source>Unfuse FMA (improve performance on CPUs without FMA)</source>
-        <translation>Не использовать FMA (улучшает производительность на ЦП без FMA)</translation>
+        <translation>Отключить FMA (улучшает производительность на ЦП без FMA)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="113"/>
@@ -565,7 +565,7 @@ This would ban both their forum username and their IP address.</source>
             &lt;div&gt;This option improves the speed of some approximate floating-point functions by using less accurate native approximations.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;Эта опция повышает скорость некоторых аппроксимирующих функций с плавающей точкой за счет использования менее точных нативных приближений.&lt;/div&gt;
+            &lt;div&gt;Эта опция повышает скорость некоторых приближенных функций с плавающей точкой за счет использования менее точных нативных приближений&lt;/div&gt;
            </translation>
     </message>
     <message>
@@ -579,13 +579,13 @@ This would ban both their forum username and their IP address.</source>
             &lt;div&gt;This option improves the speed of 32 bits ASIMD floating-point functions by running with incorrect rounding modes.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;Эта опция улучшает скорость 32-битных ASIMD-функций с плавающей запятой путём работы с некорректными режимами округления.&lt;/div&gt;
+            &lt;div&gt;Эта опция повышает скорость работы 32-битных ASIMD-функций с плавающей запятой, работая с неправильными режимами округления.&lt;/div&gt;
            </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="130"/>
         <source>Faster ASIMD instructions (32 bits only)</source>
-        <translation>Более быстрые инструкции ASIMD (только 32 бит)</translation>
+        <translation>Ускоренные инструкции ASIMD (только 32 бит)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="137"/>
@@ -593,20 +593,22 @@ This would ban both their forum username and their IP address.</source>
             &lt;div&gt;This option improves speed by removing NaN checking. Please note this also reduces accuracy of certain floating-point instructions.&lt;/div&gt;
            </source>
         <translation>
-            &lt;div&gt;Эта опция повышает скорость, убирая проверку на NaN. Обратите внимание, что это также снижает точность некоторых инструкций с плавающей точкой.&lt;/div&gt;
+            &lt;div&gt;Эта опция повышает скорость, удаляя проверку NaN. Обратите внимание, что это также снижает точность некоторых инструкций с плавающей точкой.&lt;/div&gt;
            </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="142"/>
         <source>Inaccurate NaN handling</source>
-        <translation>Неправильная обработка NaN</translation>
+        <translation>Неточная обработка NaN</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="149"/>
         <source>
             &lt;div&gt;This option improves speed by eliminating a safety check before every memory read/write in guest. Disabling it may allow a game to read/write the emulator's memory.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div&gt;Эта опция повышает скорость за счет исключения проверки безопасности перед каждым чтением/записью памяти в гостевом режиме. Отключение этой опции может позволить игре читать/записывать память эмулятора.
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="154"/>
@@ -618,12 +620,14 @@ This would ban both their forum username and their IP address.</source>
         <source>
             &lt;div&gt;This option improves speed by relying only on the semantics of cmpxchg to ensure safety of exclusive access instructions. Please note this may result in deadlocks and other race conditions.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div&gt;Эта опция повышает скорость, полагаясь только на семантику cmpxchg для обеспечения безопасности инструкций исключительного доступа. Обратите внимание, что это может привести к полным зависаниям и другим условиям гонки.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="166"/>
         <source>Ignore global monitor</source>
-        <translation type="unfinished"/>
+        <translation>Игнорировать глобальный мониторинг</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="191"/>
@@ -660,7 +664,11 @@ This would ban both their forum username and their IP address.</source>
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Enabling it inlines accesses to PageTable::pointers into emitted code.&lt;/div&gt;
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Disabling this forces all memory accesses to go through the Memory::Read/Memory::Write functions.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Эта оптимизация ускоряет доступ гостевой программы к памяти.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt; Включение этой оптимизации встраивает доступ к указателям PageTable::pointers в эмулируемый код.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Отключение этой функции заставляет все обращения к памяти проходить через функции Memory::Read/Memory::Write.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="48"/>
@@ -672,7 +680,9 @@ This would ban both their forum username and their IP address.</source>
         <source>
             &lt;div&gt;This optimization avoids dispatcher lookups by allowing emitted basic blocks to jump directly to other basic blocks if the destination PC is static.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div&gt;Эта оптимизация позволяет избежать поиска диспетчера, позволяя эмитированным базовым блокам переходить непосредственно к другим базовым блокам, если конечный ПК статичен.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="60"/>
@@ -684,7 +694,9 @@ This would ban both their forum username and their IP address.</source>
         <source>
             &lt;div&gt;This optimization avoids dispatcher lookups by keeping track potential return addresses of BL instructions. This approximates what happens with a return stack buffer on a real CPU.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div&gt;Эта оптимизация позволяет избежать поиска диспетчера, отслеживая потенциальные адреса возврата инструкций BL. Это приближено к тому, что происходит с буфером стека возврата на реальном ЦП.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="72"/>
@@ -696,7 +708,9 @@ This would ban both their forum username and their IP address.</source>
         <source>
             &lt;div&gt;Enable a two-tiered dispatch system. A faster dispatcher written in assembly has a small MRU cache of jump destinations is used first. If that fails, dispatch falls back to the slower C++ dispatcher.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div&gt;Включите двухуровневую систему диспетчеризации. Сначала используется более быстрый диспетчер, написанный на ассемблере и имеющий небольшой кэш MRU для мест назначения переходов. Если он не справляется, диспетчеризация возвращается к более медленному диспетчеру на C++.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="84"/>
@@ -708,7 +722,9 @@ This would ban both their forum username and their IP address.</source>
         <source>
             &lt;div&gt;Enables an IR optimization that reduces unnecessary accesses to the CPU context structure.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div&gt;Включает IR-оптимизацию, которая уменьшает ненужные обращения к структуре контекста ЦП.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="96"/>
@@ -720,19 +736,23 @@ This would ban both their forum username and their IP address.</source>
         <source>
             &lt;div&gt;Enables IR optimizations that involve constant propagation.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div&gt;Включает IR-оптимизацию, которая включает распространение констант.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="108"/>
         <source>Enable constant propagation</source>
-        <translation>Включить постоянное распространение</translation>
+        <translation>Включить распространение констант</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="115"/>
         <source>
             &lt;div&gt;Enables miscellaneous IR optimizations.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div&gt;Включает различные IR-оптимизации.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="120"/>
@@ -745,12 +765,15 @@ This would ban both their forum username and their IP address.</source>
             &lt;div style=&quot;white-space: nowrap&quot;&gt;When enabled, a misalignment is only triggered when an access crosses a page boundary.&lt;/div&gt;
             &lt;div style=&quot;white-space: nowrap&quot;&gt;When disabled, a misalignment is triggered on all misaligned accesses.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Если функция включена, смещение срабатывает только тогда, когда доступ пересекает границу страницы.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Если отключено, смещение срабатывает при всех смещенных доступах.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="133"/>
         <source>Enable misalignment check reduction</source>
-        <translation type="unfinished"/>
+        <translation>Включить уменьшение проверки несоосности</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="140"/>
@@ -759,12 +782,16 @@ This would ban both their forum username and their IP address.</source>
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Enabling it causes guest memory reads/writes to be done directly into memory and make use of Host's MMU.&lt;/div&gt;
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Disabling this forces all memory accesses to use Software MMU Emulation.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Эта оптимизация ускоряет доступ гостевой программы к памяти.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt; Включение этой оптимизации приводит к тому, что чтение/запись гостевой памяти производится непосредственно в память и использует MMU хоста.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Отключение этой функции заставляет все обращения к памяти использовать программную эмуляцию MMU.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="147"/>
         <source>Enable Host MMU Emulation (general memory instructions)</source>
-        <translation type="unfinished"/>
+        <translation>Включить эмуляцию MMU хоста (инструкции общей памяти)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="154"/>
@@ -773,12 +800,16 @@ This would ban both their forum username and their IP address.</source>
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Enabling it causes guest exclusive memory reads/writes to be done directly into memory and make use of Host's MMU.&lt;/div&gt;
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Disabling this forces all exclusive memory accesses to use Software MMU Emulation.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Эта оптимизация ускоряет доступ гостевой программы к эксклюзивной памяти.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Включение этой оптимизации приводит к тому, что чтение/запись в эксклюзивную память гостя выполняется непосредственно в память и использует MMU хоста.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt; Отключение этой функции заставляет все эксклюзивные доступы к памяти использовать эмуляцию программного MMU.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="161"/>
         <source>Enable Host MMU Emulation (exclusive memory instructions)</source>
-        <translation type="unfinished"/>
+        <translation>Включить эмуляцию MMU хоста (инструкции исключительной памяти)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="168"/>
@@ -786,12 +817,15 @@ This would ban both their forum username and their IP address.</source>
             &lt;div style=&quot;white-space: nowrap&quot;&gt;This optimization speeds up exclusive memory accesses by the guest program.&lt;/div&gt;
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Enabling it reduces the overhead of fastmem failure of exclusive memory accesses.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Эта оптимизация ускоряет обращение гостевой программы к исключительной памяти.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Ее включение снижает накладные расходы, связанные с отказом fastmem при доступе к исключительной памяти.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="174"/>
         <source>Enable recompilation of exclusive memory instructions</source>
-        <translation type="unfinished"/>
+        <translation>Разрешить перекомпиляцию инструкций исключительной памяти</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="181"/>
@@ -799,7 +833,10 @@ This would ban both their forum username and their IP address.</source>
             &lt;div style=&quot;white-space: nowrap&quot;&gt;This optimization speeds up memory accesses by allowing invalid memory accesses to succeed.&lt;/div&gt;
             &lt;div style=&quot;white-space: nowrap&quot;&gt;Enabling it reduces the overhead of all memory accesses and has no impact on programs that don't access invalid memory.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Эта оптимизация ускоряет обращение к памяти, позволяя успешное обращение к недопустимой памяти.&lt;/div&gt;
+            &lt;div style=&quot;white-space: nowrap&quot;&gt;Включение этой оптимизации снижает накладные расходы на все обращения к памяти и не влияет на программы, которые не обращаются к недопустимой памяти.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="187"/>
@@ -917,17 +954,17 @@ This would ban both their forum username and their IP address.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="198"/>
         <source>When checked, it disables the macro Just In Time compiler. Enabling this makes games run slower</source>
-        <translation>Если включено, отключает компилятор макроса Just In Time. Включение опции делает игры медленнее</translation>
+        <translation>Если включено, отключает компилятор макроса Just In Time. Включение этого параметра замедляет работу игр</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="201"/>
         <source>Disable Macro JIT</source>
-        <translation>Отключить Macro JIT</translation>
+        <translation>Отключить макрос JIT</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="211"/>
         <source>When checked, it disables the macro HLE functions. Enabling this makes games run slower</source>
-        <translation type="unfinished"/>
+        <translation>Если флажок установлен, он отключает функции макроса HLE. Включение этого параметра замедляет работу игр</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="214"/>
@@ -947,12 +984,12 @@ This would ban both their forum username and their IP address.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="231"/>
         <source>When checked, it executes shaders without loop logic changes</source>
-        <translation type="unfinished"/>
+        <translation>Если включено, шейдеры выполняются без изменения логики цикла</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="234"/>
         <source>Disable Loop safety checks</source>
-        <translation type="unfinished"/>
+        <translation>Отключить проверку безопасности цикла</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="244"/>
@@ -967,12 +1004,12 @@ This would ban both their forum username and their IP address.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="257"/>
         <source>Enable FS Access Log</source>
-        <translation type="unfinished"/>
+        <translation>Включить журнал доступа к ФС</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="264"/>
         <source>Enable this to output the latest generated audio command list to the console. Only affects games using the audio renderer.</source>
-        <translation type="unfinished"/>
+        <translation>Включите эту опцию, чтобы вывести на консоль последний сгенерированный список аудиокоманд. Влияет только на игры, использующие аудио рендерер.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="267"/>
@@ -1007,7 +1044,7 @@ This would ban both their forum username and their IP address.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="311"/>
         <source>Enable Auto-Stub**</source>
-        <translation type="unfinished"/>
+        <translation>Включить автоподставку**</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="318"/>
@@ -1346,8 +1383,8 @@ This would ban both their forum username and their IP address.</source>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="67"/>
-        <source>Extended memory layout (6GB DRAM)</source>
-        <translation>Расширенная компоновка памяти (6 ГБ DRAM)</translation>
+        <source>Extended memory layout (8GB DRAM)</source>
+        <translation>Расширенная компоновка памяти (8 ГБ DRAM)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="74"/>
@@ -1716,12 +1753,12 @@ This would ban both their forum username and their IP address.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_advanced.ui" line="95"/>
         <source>Enables asynchronous ASTC texture decoding, which may reduce load time stutter. This feature is experimental.</source>
-        <translation type="unfinished"/>
+        <translation>Включает асинхронное декодирование текстур ASTC, что может уменьшить фризы при загрузке. Эта функция является экспериментальной.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_advanced.ui" line="98"/>
         <source>Decode ASTC textures asynchronously (Hack)</source>
-        <translation type="unfinished"/>
+        <translation>Асинхронное декодирование текстур ASTC (Хак)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_advanced.ui" line="105"/>
@@ -2236,7 +2273,7 @@ This would ban both their forum username and their IP address.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2726"/>
         <source>Enable direct Pro Controller driver [EXPERIMENTAL]</source>
-        <translation type="unfinished"/>
+        <translation>Включить прямой драйвер Pro Controller [ЭКСПЕРИМЕНТАЛЬНО]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2739"/>
@@ -4580,12 +4617,12 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1230"/>
         <source>Emulated mouse is enabled</source>
-        <translation type="unfinished"/>
+        <translation>Эмулированная мышь включена</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1231"/>
         <source>Real mouse input and mouse panning are incompatible. Please disable the emulated mouse in input advanced settings to allow mouse panning.</source>
-        <translation type="unfinished"/>
+        <translation>Ввод реальной мыши и панорамирование мышью несовместимы. Пожалуйста, отключите эмулированную мышь в расширенных настройках ввода, чтобы разрешить панорамирование мышью.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.cpp" line="1453"/>
@@ -7613,7 +7650,7 @@ Please try again or contact the developer of the software.</source>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="166"/>
         <source>Profile Creator</source>
-        <translation type="unfinished"/>
+        <translation>Создатель профиля</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="169"/>
@@ -7624,57 +7661,57 @@ Please try again or contact the developer of the software.</source>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="172"/>
         <source>Profile Icon Editor</source>
-        <translation type="unfinished"/>
+        <translation>Редактор иконки профиля</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="175"/>
         <source>Profile Nickname Editor</source>
-        <translation type="unfinished"/>
+        <translation>Редактор никнейма профиля</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="197"/>
         <source>Who will receive the points?</source>
-        <translation type="unfinished"/>
+        <translation>Кто будет получать очки?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="200"/>
         <source>Who is using Nintendo eShop?</source>
-        <translation type="unfinished"/>
+        <translation>Кто использует Nintendo eShop?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="203"/>
         <source>Who is making this purchase?</source>
-        <translation type="unfinished"/>
+        <translation>Кто совершает эту покупку?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="206"/>
         <source>Who is posting?</source>
-        <translation type="unfinished"/>
+        <translation>Кто публикует?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="209"/>
         <source>Select a user to link to a Nintendo Account.</source>
-        <translation type="unfinished"/>
+        <translation>Выберите пользователя для привязки к учетной записи Nintendo.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="212"/>
         <source>Change settings for which user?</source>
-        <translation type="unfinished"/>
+        <translation>Изменить настройки для какого пользователя?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="215"/>
         <source>Format data for which user?</source>
-        <translation type="unfinished"/>
+        <translation>Форматировать данные для какого пользователя?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="218"/>
         <source>Which user will be transferred to another console?</source>
-        <translation type="unfinished"/>
+        <translation>Какой пользователь будет переходить на другую консоль?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="221"/>
         <source>Send save data for which user?</source>
-        <translation type="unfinished"/>
+        <translation>Отправить сохранение какому пользователю?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="225"/>
@@ -7740,7 +7777,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="158"/>
         <source>[%1] %2</source>
-        <translation type="unfinished"/>
+        <translation>[%1] %2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="184"/>
@@ -7753,17 +7790,17 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="202"/>
         <source>runnable</source>
-        <translation type="unfinished"/>
+        <translation>runnable</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="204"/>
         <source>paused</source>
-        <translation type="unfinished"/>
+        <translation>paused</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="210"/>
         <source>sleeping</source>
-        <translation type="unfinished"/>
+        <translation>sleeping</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="213"/>
@@ -7778,32 +7815,32 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="219"/>
         <source>waiting for condition variable</source>
-        <translation type="unfinished"/>
+        <translation>waiting for condition variable</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="222"/>
         <source>waiting for address arbiter</source>
-        <translation type="unfinished"/>
+        <translation>waiting for address arbiter</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="225"/>
         <source>waiting for suspend resume</source>
-        <translation type="unfinished"/>
+        <translation>waiting for suspend resume</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="228"/>
         <source>waiting</source>
-        <translation type="unfinished"/>
+        <translation>waiting</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="233"/>
         <source>initialized</source>
-        <translation type="unfinished"/>
+        <translation>initialized</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="236"/>
         <source>terminated</source>
-        <translation type="unfinished"/>
+        <translation>terminated</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="239"/>
@@ -7818,7 +7855,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="294"/>
         <source>ideal</source>
-        <translation type="unfinished"/>
+        <translation>ideal</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="297"/>
@@ -7848,7 +7885,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="309"/>
         <source>last running ticks = %1</source>
-        <translation type="unfinished"/>
+        <translation>last running ticks = %1</translation>
     </message>
 </context>
 <context>

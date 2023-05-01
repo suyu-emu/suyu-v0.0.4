@@ -1380,8 +1380,8 @@ This would ban both their forum username and their IP address.</source>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="67"/>
-        <source>Extended memory layout (6GB DRAM)</source>
-        <translation>扩展的内存布局 (6GB DRAM)</translation>
+        <source>Extended memory layout (8GB DRAM)</source>
+        <translation>扩展的内存布局 (8GB DRAM)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="74"/>
