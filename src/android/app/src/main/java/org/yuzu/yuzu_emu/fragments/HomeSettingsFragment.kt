@@ -20,6 +20,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -107,26 +108,30 @@ class HomeSettingsFragment : Fragment() {
         try {
             startActivity(getFileManagerIntentOnDocumentProvider(Intent.ACTION_VIEW))
             return
-        } catch (_: ActivityNotFoundException) {}
+        } catch (_: ActivityNotFoundException) {
+        }
 
         try {
             startActivity(getFileManagerIntentOnDocumentProvider("android.provider.action.BROWSE"))
             return
-        } catch (_: ActivityNotFoundException) {}
+        } catch (_: ActivityNotFoundException) {
+        }
 
         // Just try to open the file manager, try the package name used on "normal" phones
         try {
             startActivity(getFileManagerIntent("com.google.android.documentsui"))
             showNoLinkNotification()
             return
-        } catch (_: ActivityNotFoundException) {}
+        } catch (_: ActivityNotFoundException) {
+        }
 
         try {
             // Next, try the AOSP package name
             startActivity(getFileManagerIntent("com.android.documentsui"))
             showNoLinkNotification()
             return
-        } catch (_: ActivityNotFoundException) {}
+        } catch (_: ActivityNotFoundException) {
+        }
 
         Toast.makeText(
             requireContext(),
@@ -153,7 +158,10 @@ class HomeSettingsFragment : Fragment() {
     }
 
     private fun showNoLinkNotification() {
-        val builder = NotificationCompat.Builder(requireContext(), getString(R.string.notice_notification_channel_id))
+        val builder = NotificationCompat.Builder(
+            requireContext(),
+            getString(R.string.notice_notification_channel_id)
+        )
             .setSmallIcon(R.drawable.ic_stat_notification_logo)
             .setContentTitle(getString(R.string.notification_no_directory_link))
             .setContentText(getString(R.string.notification_no_directory_link_description))
@@ -204,14 +212,28 @@ class HomeSettingsFragment : Fragment() {
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.scrollViewSettings) { view: View, windowInsets: WindowInsetsCompat ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(
-                insets.left,
-                insets.top,
-                insets.right,
-                insets.bottom + resources.getDimensionPixelSize(R.dimen.spacing_navigation)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view: View, windowInsets: WindowInsetsCompat ->
+            val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            val spacingNavigation = resources.getDimensionPixelSize(R.dimen.spacing_navigation)
+            val spacingNavigationRail =
+                resources.getDimensionPixelSize(R.dimen.spacing_navigation_rail)
+
+            binding.scrollViewSettings.setPadding(
+                barInsets.left + cutoutInsets.left,
+                barInsets.top,
+                barInsets.right + cutoutInsets.right,
+                barInsets.bottom
             )
+
+            binding.linearLayoutSettings.updatePadding(bottom = spacingNavigation)
+
+            if (ViewCompat.getLayoutDirection(view) == ViewCompat.LAYOUT_DIRECTION_LTR) {
+                binding.linearLayoutSettings.updatePadding(left = spacingNavigationRail)
+            } else {
+                binding.linearLayoutSettings.updatePadding(right = spacingNavigationRail)
+            }
+
             windowInsets
         }
 }

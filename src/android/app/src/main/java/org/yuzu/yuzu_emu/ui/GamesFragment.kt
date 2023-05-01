@@ -8,27 +8,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.color.MaterialColors
-import com.google.android.material.search.SearchView
-import com.google.android.material.search.SearchView.TransitionState
 import com.google.android.material.transition.MaterialFadeThrough
-import info.debatty.java.stringsimilarity.Jaccard
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.GameAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentGamesBinding
 import org.yuzu.yuzu_emu.layout.AutofitGridLayoutManager
-import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
-import java.util.Locale
 
 class GamesFragment : Fragment() {
     private var _binding: FragmentGamesBinding? = null
@@ -127,23 +120,36 @@ class GamesFragment : Fragment() {
 
     private fun setInsets() =
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view: View, windowInsets: WindowInsetsCompat ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
             val extraListSpacing = resources.getDimensionPixelSize(R.dimen.spacing_large)
+            val spacingNavigation = resources.getDimensionPixelSize(R.dimen.spacing_navigation)
+            val spacingNavigationRail =
+                resources.getDimensionPixelSize(R.dimen.spacing_navigation_rail)
 
             binding.gridGames.updatePadding(
-                top = insets.top + extraListSpacing,
-                bottom = insets.bottom + resources.getDimensionPixelSize(R.dimen.spacing_navigation) + extraListSpacing
+                top = barInsets.top + extraListSpacing,
+                bottom = barInsets.bottom + spacingNavigation + extraListSpacing
             )
 
             binding.swipeRefresh.setProgressViewEndTarget(
                 false,
-                insets.top + resources.getDimensionPixelSize(R.dimen.spacing_refresh_end)
+                barInsets.top + resources.getDimensionPixelSize(R.dimen.spacing_refresh_end)
             )
 
+            val leftInsets = barInsets.left + cutoutInsets.left
+            val rightInsets = barInsets.right + cutoutInsets.right
             val mlpSwipe = binding.swipeRefresh.layoutParams as MarginLayoutParams
-            mlpSwipe.rightMargin = insets.right
-            mlpSwipe.leftMargin = insets.left
+            if (ViewCompat.getLayoutDirection(view) == ViewCompat.LAYOUT_DIRECTION_LTR) {
+                mlpSwipe.leftMargin = leftInsets + spacingNavigationRail
+                mlpSwipe.rightMargin = rightInsets
+            } else {
+                mlpSwipe.leftMargin = leftInsets
+                mlpSwipe.rightMargin = rightInsets + spacingNavigationRail
+            }
             binding.swipeRefresh.layoutParams = mlpSwipe
+
+            binding.noticeText.updatePadding(bottom = spacingNavigation)
 
             windowInsets
         }

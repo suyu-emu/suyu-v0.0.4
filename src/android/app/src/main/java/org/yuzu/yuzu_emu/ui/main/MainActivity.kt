@@ -67,16 +67,16 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             ContextCompat.getColor(applicationContext, android.R.color.transparent)
         ThemeHelper.setNavigationBarColor(
             this,
-            ElevationOverlayProvider(binding.navigationBar.context).compositeOverlay(
-                MaterialColors.getColor(binding.navigationBar, R.attr.colorSurface),
-                binding.navigationBar.elevation
+            ElevationOverlayProvider(binding.navigationView.context).compositeOverlay(
+                MaterialColors.getColor(binding.navigationView, R.attr.colorSurface),
+                binding.navigationView.elevation
             )
         )
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         setUpNavigation(navHostFragment.navController)
-        (binding.navigationBar as NavigationBarView).setOnItemReselectedListener {
+        (binding.navigationView as NavigationBarView).setOnItemReselectedListener {
             when (it.itemId) {
                 R.id.gamesFragment -> gamesViewModel.setShouldScrollToTop(true)
                 R.id.searchFragment -> gamesViewModel.setSearchFocused(true)
@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         // Prevents navigation from being drawn for a short time on recreation if set to hidden
         if (!homeViewModel.navigationVisible.value?.first!!) {
-            binding.navigationBar.visibility = View.INVISIBLE
+            binding.navigationView.visibility = View.INVISIBLE
             binding.statusBarShade.visibility = View.INVISIBLE
         }
 
@@ -114,14 +114,14 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     fun finishSetup(navController: NavController) {
         navController.navigate(R.id.action_firstTimeSetupFragment_to_gamesFragment)
-        binding.navigationBar.setupWithNavController(navController)
+        (binding.navigationView as NavigationBarView).setupWithNavController(navController)
         showNavigation(visible = true, animated = true)
 
         ThemeHelper.setNavigationBarColor(
             this,
-            ElevationOverlayProvider(binding.navigationBar.context).compositeOverlay(
-                MaterialColors.getColor(binding.navigationBar, R.attr.colorSurface),
-                binding.navigationBar.elevation
+            ElevationOverlayProvider(binding.navigationView.context).compositeOverlay(
+                MaterialColors.getColor(binding.navigationView, R.attr.colorSurface),
+                binding.navigationView.elevation
             )
         )
     }
@@ -134,35 +134,35 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             navController.navigate(R.id.firstTimeSetupFragment)
             homeViewModel.navigatedToSetup = true
         } else {
-            binding.navigationBar.setupWithNavController(navController)
+            (binding.navigationView as NavigationBarView).setupWithNavController(navController)
         }
     }
 
     private fun showNavigation(visible: Boolean, animated: Boolean) {
         if (!animated) {
             if (visible) {
-                binding.navigationBar.visibility = View.VISIBLE
+                binding.navigationView.visibility = View.VISIBLE
             } else {
-                binding.navigationBar.visibility = View.INVISIBLE
+                binding.navigationView.visibility = View.INVISIBLE
             }
             return
         }
 
-        binding.navigationBar.animate().apply {
+        binding.navigationView.animate().apply {
             if (visible) {
-                binding.navigationBar.visibility = View.VISIBLE
-                binding.navigationBar.translationY = binding.navigationBar.height.toFloat() * 2
+                binding.navigationView.visibility = View.VISIBLE
+                binding.navigationView.translationY = binding.navigationView.height.toFloat() * 2
                 duration = 300
                 translationY(0f)
                 interpolator = PathInterpolator(0.05f, 0.7f, 0.1f, 1f)
             } else {
                 duration = 300
-                translationY(binding.navigationBar.height.toFloat() * 2)
+                translationY(binding.navigationView.height.toFloat() * 2)
                 interpolator = PathInterpolator(0.3f, 0f, 0.8f, 0.15f)
             }
         }.withEndAction {
             if (!visible) {
-                binding.navigationBar.visibility = View.INVISIBLE
+                binding.navigationView.visibility = View.INVISIBLE
             }
         }.start()
     }
@@ -177,7 +177,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 interpolator = PathInterpolator(0.05f, 0.7f, 0.1f, 1f)
             } else {
                 duration = 300
-                translationY(binding.navigationBar.height.toFloat() * -2)
+                translationY(binding.navigationView.height.toFloat() * -2)
                 interpolator = PathInterpolator(0.3f, 0f, 0.8f, 0.15f)
             }
         }.withEndAction {

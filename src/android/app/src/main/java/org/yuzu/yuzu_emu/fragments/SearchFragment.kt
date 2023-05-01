@@ -141,7 +141,8 @@ class SearchFragment : Fragment() {
         }
 
         if (binding.searchText.text.toString().isEmpty()
-            && binding.chipGroup.checkedChipId != View.NO_ID) {
+            && binding.chipGroup.checkedChipId != View.NO_ID
+        ) {
             gamesViewModel.setSearchedGames(filteredList)
             return
         }
@@ -182,40 +183,50 @@ class SearchFragment : Fragment() {
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _: View, windowInsets: WindowInsetsCompat ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view: View, windowInsets: WindowInsetsCompat ->
+            val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
             val extraListSpacing = resources.getDimensionPixelSize(R.dimen.spacing_med)
-            val navigationSpacing = resources.getDimensionPixelSize(R.dimen.spacing_navigation)
+            val spacingNavigation = resources.getDimensionPixelSize(R.dimen.spacing_navigation)
+            val spacingNavigationRail =
+                resources.getDimensionPixelSize(R.dimen.spacing_navigation_rail)
             val chipSpacing = resources.getDimensionPixelSize(R.dimen.spacing_chip)
 
-            binding.frameSearch.updatePadding(
-                left = insets.left,
-                top = insets.top,
-                right = insets.right
+            binding.constraintSearch.updatePadding(
+                left = barInsets.left + cutoutInsets.left,
+                top = barInsets.top,
+                right = barInsets.right + cutoutInsets.right
             )
 
-            binding.gridGamesSearch.setPadding(
-                insets.left,
-                extraListSpacing,
-                insets.right,
-                insets.bottom + resources.getDimensionPixelSize(R.dimen.spacing_navigation) + extraListSpacing
+            binding.gridGamesSearch.updatePadding(
+                top = extraListSpacing,
+                bottom = barInsets.bottom + spacingNavigation + extraListSpacing
             )
-
-            binding.noResultsView.updatePadding(
-                left = insets.left,
-                right = insets.right,
-                bottom = insets.bottom + navigationSpacing
-            )
+            binding.noResultsView.updatePadding(bottom = spacingNavigation + barInsets.bottom)
 
             val mlpDivider = binding.divider.layoutParams as ViewGroup.MarginLayoutParams
-            mlpDivider.leftMargin = insets.left + chipSpacing
-            mlpDivider.rightMargin = insets.right + chipSpacing
+            if (ViewCompat.getLayoutDirection(view) == ViewCompat.LAYOUT_DIRECTION_LTR) {
+                binding.frameSearch.updatePadding(left = spacingNavigationRail)
+                binding.gridGamesSearch.updatePadding(left = spacingNavigationRail)
+                binding.noResultsView.updatePadding(left = spacingNavigationRail)
+                binding.chipGroup.updatePadding(
+                    left = chipSpacing + spacingNavigationRail,
+                    right = chipSpacing
+                )
+                mlpDivider.leftMargin = chipSpacing + spacingNavigationRail
+                mlpDivider.rightMargin = chipSpacing
+            } else {
+                binding.frameSearch.updatePadding(right = spacingNavigationRail)
+                binding.gridGamesSearch.updatePadding(right = spacingNavigationRail)
+                binding.noResultsView.updatePadding(right = spacingNavigationRail)
+                binding.chipGroup.updatePadding(
+                    left = chipSpacing,
+                    right = chipSpacing + spacingNavigationRail
+                )
+                mlpDivider.leftMargin = chipSpacing
+                mlpDivider.rightMargin = chipSpacing + spacingNavigationRail
+            }
             binding.divider.layoutParams = mlpDivider
-
-            binding.chipGroup.updatePadding(
-                left = insets.left + chipSpacing,
-                right = insets.right + chipSpacing
-            )
 
             windowInsets
         }

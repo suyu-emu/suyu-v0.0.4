@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import android.view.ViewGroup.MarginLayoutParams
 import androidx.core.view.updatePadding
 import com.google.android.material.color.MaterialColors
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -52,12 +53,14 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         setSupportActionBar(binding.toolbarSettings)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-        binding.navigationBarShade.setBackgroundColor(
-            ThemeHelper.getColorWithOpacity(
-                MaterialColors.getColor(binding.navigationBarShade, R.attr.colorSurface),
-                ThemeHelper.SYSTEM_BAR_ALPHA
+        if (InsetsHelper.getSystemGestureType(applicationContext) != InsetsHelper.GESTURE_NAVIGATION) {
+            binding.navigationBarShade.setBackgroundColor(
+                ThemeHelper.getColorWithOpacity(
+                    MaterialColors.getColor(binding.navigationBarShade, R.attr.colorSurface),
+                    ThemeHelper.SYSTEM_BAR_ALPHA
+                )
             )
-        )
+        }
 
         setInsets()
     }
@@ -164,12 +167,20 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
 
     private fun setInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.frameContent) { view: View, windowInsets: WindowInsetsCompat ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.updatePadding(left = insets.left, right = insets.right)
-            InsetsHelper.insetAppBar(insets, binding.appbarSettings)
+            val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            view.updatePadding(
+                left = barInsets.left + cutoutInsets.left,
+                right = barInsets.right + cutoutInsets.right
+            )
 
-            val mlpShade = binding.navigationBarShade.layoutParams as ViewGroup.MarginLayoutParams
-            mlpShade.height = insets.bottom
+            val mlpAppBar = binding.appbarSettings.layoutParams as MarginLayoutParams
+            mlpAppBar.leftMargin = barInsets.left + cutoutInsets.left
+            mlpAppBar.rightMargin = barInsets.right + cutoutInsets.right
+            binding.appbarSettings.layoutParams = mlpAppBar
+
+            val mlpShade = binding.navigationBarShade.layoutParams as MarginLayoutParams
+            mlpShade.height = barInsets.bottom
             binding.navigationBarShade.layoutParams = mlpShade
 
             windowInsets

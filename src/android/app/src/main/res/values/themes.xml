@@ -42,7 +42,7 @@
         <item name="sliderStyle">@style/YuzuSlider</item>
         <item name="materialAlertDialogTheme">@style/YuzuMaterialDialog</item>
 
-        <item name="android:windowLayoutInDisplayCutoutMode">default</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
 
         <item name="android:enforceStatusBarContrast">false</item>
         <item name="android:enforceNavigationBarContrast">false</item>

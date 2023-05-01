@@ -8,6 +8,7 @@
     android:clipToPadding="false">
 
     <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/linear_layout_settings"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
