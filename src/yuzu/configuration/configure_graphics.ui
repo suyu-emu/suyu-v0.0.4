@@ -206,7 +206,7 @@
            <item>
             <widget class="QLabel" name="vsync_mode_label">
              <property name="text">
-              <string>V-Sync Mode</string>
+              <string>V-Sync Mode:</string>
              </property>
             </widget>
            </item>
