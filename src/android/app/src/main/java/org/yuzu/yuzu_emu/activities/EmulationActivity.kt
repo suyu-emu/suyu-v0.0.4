@@ -147,17 +147,19 @@ open class EmulationActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        // Handling the case where the back button is pressed.
-        if (event.keyCode == KeyEvent.KEYCODE_BACK) {
-            onBackPressedDispatcher.onBackPressed()
-            return true
+        if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
+            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD
+        ) {
+            return super.dispatchKeyEvent(event)
         }
 
         return inputHandler.dispatchKeyEvent(event)
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        if (event.source and InputDevice.SOURCE_CLASS_JOYSTICK === 0) {
+        if (event.source and InputDevice.SOURCE_JOYSTICK != InputDevice.SOURCE_JOYSTICK &&
+            event.source and InputDevice.SOURCE_GAMEPAD != InputDevice.SOURCE_GAMEPAD
+        ) {
             return super.dispatchGenericMotionEvent(event)
         }
 
