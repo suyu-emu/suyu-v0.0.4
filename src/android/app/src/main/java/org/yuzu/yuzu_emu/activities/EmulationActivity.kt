@@ -76,6 +76,7 @@ open class EmulationActivity : AppCompatActivity(), SensorEventListener {
         enableFullscreenImmersive()
 
         setContentView(R.layout.activity_emulation)
+        window.decorView.setBackgroundColor(getColor(android.R.color.black))
 
         // Find or create the EmulationFragment
         emulationFragment =
