@@ -4,11 +4,13 @@
 package org.yuzu.yuzu_emu.fragments
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -63,6 +65,10 @@ class SetupFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pushNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+
         mainActivity = requireActivity() as MainActivity
 
         homeViewModel.setNavigationVisibility(false)
@@ -218,6 +224,11 @@ class SetupFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+    private val pushNotificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+            // TODO: Show proper notification request reason and confirmation
+        }
 
     private fun finishSetup() {
         PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext).edit()

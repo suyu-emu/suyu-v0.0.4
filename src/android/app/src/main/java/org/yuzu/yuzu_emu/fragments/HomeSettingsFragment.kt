@@ -3,14 +3,21 @@
 
 package org.yuzu.yuzu_emu.fragments
 
+import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
@@ -19,6 +26,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.HomeSettingAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentHomeSettingsBinding
+import org.yuzu.yuzu_emu.features.DocumentProvider
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.HomeSetting
@@ -49,6 +57,11 @@ class HomeSettingsFragment : Fragment() {
                 R.string.settings_description,
                 R.drawable.ic_settings
             ) { SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "") },
+            HomeSetting(
+                R.string.open_user_folder,
+                R.string.open_user_folder_description,
+                R.drawable.ic_folder
+            ) { openFileManager() },
             HomeSetting(
                 R.string.install_gpu_driver,
                 R.string.install_gpu_driver_description,
@@ -82,6 +95,82 @@ class HomeSettingsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun openFileManager() {
+        // First, try to open the user data folder directly
+        try {
+            startActivity(getFileManagerIntentOnDocumentProvider(Intent.ACTION_VIEW))
+            return
+        } catch (_: ActivityNotFoundException) {}
+
+        try {
+            startActivity(getFileManagerIntentOnDocumentProvider("android.provider.action.BROWSE"))
+            return
+        } catch (_: ActivityNotFoundException) {}
+
+        // Just try to open the file manager, try the package name used on "normal" phones
+        try {
+            startActivity(getFileManagerIntent("com.google.android.documentsui"))
+            showNoLinkNotification()
+            return
+        } catch (_: ActivityNotFoundException) {}
+
+        try {
+            // Next, try the AOSP package name
+            startActivity(getFileManagerIntent("com.android.documentsui"))
+            showNoLinkNotification()
+            return
+        } catch (_: ActivityNotFoundException) {}
+
+        Toast.makeText(
+            requireContext(),
+            resources.getString(R.string.no_file_manager),
+            Toast.LENGTH_LONG
+        ).show()
+    }
+
+    private fun getFileManagerIntent(packageName: String): Intent {
+        // Fragile, but some phones don't expose the system file manager in any better way
+        val intent = Intent(Intent.ACTION_MAIN)
+        intent.setClassName(packageName, "com.android.documentsui.files.FilesActivity")
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        return intent
+    }
+
+    private fun getFileManagerIntentOnDocumentProvider(action: String): Intent {
+        val authority = "${requireContext().packageName}.user"
+        val intent = Intent(action)
+        intent.addCategory(Intent.CATEGORY_DEFAULT)
+        intent.data = DocumentsContract.buildRootUri(authority, DocumentProvider.ROOT_ID)
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or Intent.FLAG_GRANT_PREFIX_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        return intent
+    }
+
+    private fun showNoLinkNotification() {
+        val builder = NotificationCompat.Builder(requireContext(), getString(R.string.notice_notification_channel_id))
+            .setSmallIcon(R.drawable.ic_stat_notification_logo)
+            .setContentTitle(getString(R.string.notification_no_directory_link))
+            .setContentText(getString(R.string.notification_no_directory_link_description))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+        // TODO: Make the click action for this notification lead to a help article
+
+        with(NotificationManagerCompat.from(requireContext())) {
+            if (ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                Toast.makeText(
+                    requireContext(),
+                    resources.getString(R.string.notification_permission_not_granted),
+                    Toast.LENGTH_LONG
+                ).show()
+                return
+            }
+            notify(0, builder.build())
+        }
     }
 
     private fun driverInstaller() {

@@ -4,10 +4,14 @@
     <!-- General application strings -->
     <string name="app_name" translatable="false">yuzu</string>
     <string name="app_disclaimer">This software will run games for the Nintendo Switch game console. No game titles or keys are included.&lt;br /&gt;&lt;br /&gt;Before you begin, please locate your <![CDATA[<b> prod.keys </b>]]> file on your device storage.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href="https://yuzu-emu.org/help/quickstart">Learn more</a>]]></string>
-    <string name="app_notification_channel_name" translatable="false">yuzu</string>
-    <string name="app_notification_channel_id" translatable="false">yuzu</string>
-    <string name="app_notification_channel_description">yuzu Switch emulator notifications</string>
-    <string name="app_notification_running">yuzu is running</string>
+    <string name="emulation_notification_channel_name">Emulation is Active</string>
+    <string name="emulation_notification_channel_id" translatable="false">emulationIsActive</string>
+    <string name="emulation_notification_channel_description">Shows a persistent notification when emulation is running.</string>
+    <string name="emulation_notification_running">yuzu is running</string>
+    <string name="notice_notification_channel_name">Notices and errors</string>
+    <string name="notice_notification_channel_id" translatable="false">noticesAndErrors</string>
+    <string name="notice_notification_channel_description">Shows notifications when something goes wrong.</string>
+    <string name="notification_permission_not_granted">Notification permission not granted!</string>
 
     <!-- Setup strings -->
     <string name="welcome">Welcome!</string>
@@ -29,14 +33,14 @@
     <!-- Home strings -->
     <string name="home_games">Games</string>
     <string name="home_settings">Settings</string>
-    <string name="select_games_folder">Select Games Folder</string>
+    <string name="select_games_folder">Select games folder</string>
     <string name="select_games_folder_description">Allows yuzu to populate the games list</string>
     <string name="add_games_warning">Skip selecting games folder?</string>
     <string name="add_games_warning_description">Games won\'t be displayed in the Games list if a folder isn\'t selected.</string>
     <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Search Games</string>
     <string name="games_dir_selected">Games directory selected</string>
-    <string name="install_prod_keys">Install Prod.keys</string>
+    <string name="install_prod_keys">Install prod.keys</string>
     <string name="install_prod_keys_description">Required to decrypt retail games</string>
     <string name="install_prod_keys_warning">Skip adding keys?</string>
     <string name="install_prod_keys_warning_description">Valid keys are required to emulate retail games. Only homebrew apps will function if you continue.</string>
@@ -44,16 +48,21 @@
     <string name="warning_help">Help</string>
     <string name="warning_skip">Skip</string>
     <string name="warning_cancel">Cancel</string>
-    <string name="install_amiibo_keys">Install Amiibo Keys</string>
+    <string name="install_amiibo_keys">Install Amiibo keys</string>
     <string name="install_amiibo_keys_description">Required to use Amiibo in game</string>
     <string name="invalid_keys_file">Invalid keys file selected</string>
     <string name="install_keys_success">Keys successfully installed</string>
     <string name="install_keys_failure">Keys file (prod.keys) is invalid</string>
     <string name="install_amiibo_keys_failure">Keys file (key_retail.bin) is invalid</string>
-    <string name="install_gpu_driver">Install GPU Driver</string>
+    <string name="install_gpu_driver">Install GPU driver</string>
     <string name="install_gpu_driver_description">Install alternative drivers for potentially better performance or accuracy</string>
-    <string name="advanced_settings">Advanced Settings</string>
+    <string name="advanced_settings">Advanced settings</string>
     <string name="settings_description">Configure emulator settings</string>
+    <string name="open_user_folder">Open yuzu folder</string>
+    <string name="open_user_folder_description">Manage yuzu\'s internal files</string>
+    <string name="no_file_manager">No file manager found</string>
+    <string name="notification_no_directory_link">Couldn\'t open yuzu directory</string>
+    <string name="notification_no_directory_link_description">Please locate the user folder with the file manager\'s side panel manually.</string>
 
     <!-- General settings strings -->
     <string name="frame_limit_enable">Enable limit speed</string>

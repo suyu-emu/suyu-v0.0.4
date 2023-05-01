@@ -29,10 +29,10 @@ class ForegroundService : Service() {
             PendingIntent.FLAG_IMMUTABLE
         )
         val builder =
-            NotificationCompat.Builder(this, getString(R.string.app_notification_channel_id))
+            NotificationCompat.Builder(this, getString(R.string.emulation_notification_channel_id))
                 .setSmallIcon(R.drawable.ic_stat_notification_logo)
                 .setContentTitle(getString(R.string.app_name))
-                .setContentText(getString(R.string.app_notification_running))
+                .setContentText(getString(R.string.emulation_notification_running))
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true)
                 .setVibrate(null)

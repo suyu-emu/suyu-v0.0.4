@@ -15,23 +15,29 @@ import java.io.File
 fun Context.getPublicFilesDir() : File = getExternalFilesDir(null) ?: filesDir
 
 class YuzuApplication : Application() {
-    private fun createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        val name: CharSequence = getString(R.string.app_notification_channel_name)
-        val description = getString(R.string.app_notification_channel_description)
-        val channel = NotificationChannel(
-            getString(R.string.app_notification_channel_id),
-            name,
+    private fun createNotificationChannels() {
+        val emulationChannel = NotificationChannel(
+            getString(R.string.emulation_notification_channel_id),
+            getString(R.string.emulation_notification_channel_name),
             NotificationManager.IMPORTANCE_LOW
         )
-        channel.description = description
-        channel.setSound(null, null)
-        channel.vibrationPattern = null
+        emulationChannel.description = getString(R.string.emulation_notification_channel_description)
+        emulationChannel.setSound(null, null)
+        emulationChannel.vibrationPattern = null
+
+        val noticeChannel = NotificationChannel(
+            getString(R.string.notice_notification_channel_id),
+            getString(R.string.notice_notification_channel_name),
+            NotificationManager.IMPORTANCE_HIGH
+        )
+        noticeChannel.description = getString(R.string.notice_notification_channel_description)
+        noticeChannel.setSound(null, null)
+
         // Register the channel with the system; you can't change the importance
         // or other notification behaviors after this
         val notificationManager = getSystemService(NotificationManager::class.java)
-        notificationManager.createNotificationChannel(channel)
+        notificationManager.createNotificationChannel(emulationChannel)
+        notificationManager.createNotificationChannel(noticeChannel)
     }
 
     override fun onCreate() {
@@ -42,8 +48,7 @@ class YuzuApplication : Application() {
         GpuDriverHelper.initializeDriverParameters(applicationContext)
         NativeLibrary.logDeviceInfo()
 
-        // TODO(bunnei): Disable notifications until we support app suspension.
-        //createNotificationChannel();
+        createNotificationChannels();
     }
 
     companion object {
