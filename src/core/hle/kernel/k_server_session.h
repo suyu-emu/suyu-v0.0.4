@@ -8,7 +8,7 @@
 #include <string>
 #include <utility>
 
-#include <boost/intrusive/list.hpp>
+#include "common/intrusive_list.h"
 
 #include "core/hle/kernel/k_light_lock.h"
 #include "core/hle/kernel/k_session_request.h"
@@ -27,7 +27,7 @@ class KSession;
 class KThread;
 
 class KServerSession final : public KSynchronizationObject,
-                             public boost::intrusive::list_base_hook<> {
+                             public Common::IntrusiveListBaseNode<KServerSession> {
     KERNEL_AUTOOBJECT_TRAITS(KServerSession, KSynchronizationObject);
 
     friend class ServiceThread;
@@ -67,7 +67,8 @@ private:
     KSession* m_parent{};
 
     /// List of threads which are pending a reply.
-    boost::intrusive::list<KSessionRequest> m_request_list{};
+    using RequestList = Common::IntrusiveListBaseTraits<KSessionRequest>::ListType;
+    RequestList m_request_list{};
     KSessionRequest* m_current_request{};
 
     KLightLock m_lock;

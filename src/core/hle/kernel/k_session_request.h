@@ -5,6 +5,8 @@
 
 #include <array>
 
+#include "common/intrusive_list.h"
+
 #include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_memory_block.h"
@@ -16,7 +18,7 @@ namespace Kernel {
 
 class KSessionRequest final : public KSlabAllocated<KSessionRequest>,
                               public KAutoObject,
-                              public boost::intrusive::list_base_hook<> {
+                              public Common::IntrusiveListBaseNode<KSessionRequest> {
     KERNEL_AUTOOBJECT_TRAITS(KSessionRequest, KAutoObject);
 
 public:

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <boost/intrusive/list.hpp>
+#include "common/intrusive_list.h"
 
 #include "core/hle/kernel/slab_helpers.h"
 
@@ -12,7 +12,7 @@ namespace Kernel {
 class KSharedMemory;
 
 class KSharedMemoryInfo final : public KSlabAllocated<KSharedMemoryInfo>,
-                                public boost::intrusive::list_base_hook<> {
+                                public Common::IntrusiveListBaseNode<KSharedMemoryInfo> {
 
 public:
     explicit KSharedMemoryInfo(KernelCore&) {}

@@ -5,7 +5,8 @@
 
 #include <array>
 #include <memory>
-#include <boost/intrusive/list.hpp>
+
+#include "common/intrusive_list.h"
 
 #include "core/hle/kernel/k_light_lock.h"
 #include "core/hle/kernel/slab_helpers.h"
@@ -15,13 +16,14 @@ namespace Kernel {
 
 class KObjectNameGlobalData;
 
-class KObjectName : public KSlabAllocated<KObjectName>, public boost::intrusive::list_base_hook<> {
+class KObjectName : public KSlabAllocated<KObjectName>,
+                    public Common::IntrusiveListBaseNode<KObjectName> {
 public:
     explicit KObjectName(KernelCore&) {}
     virtual ~KObjectName() = default;
 
     static constexpr size_t NameLengthMax = 12;
-    using List = boost::intrusive::list<KObjectName>;
+    using List = Common::IntrusiveListBaseTraits<KObjectName>::ListType;
 
     static Result NewFromName(KernelCore& kernel, KAutoObject* obj, const char* name);
     static Result Delete(KernelCore& kernel, KAutoObject* obj, const char* name);
