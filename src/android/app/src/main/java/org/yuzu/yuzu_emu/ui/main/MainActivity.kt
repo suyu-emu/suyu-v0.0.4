@@ -148,17 +148,29 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             return
         }
 
+        val smallLayout = resources.getBoolean(R.bool.small_layout)
         binding.navigationView.animate().apply {
             if (visible) {
                 binding.navigationView.visibility = View.VISIBLE
-                binding.navigationView.translationY = binding.navigationView.height.toFloat() * 2
                 duration = 300
-                translationY(0f)
                 interpolator = PathInterpolator(0.05f, 0.7f, 0.1f, 1f)
+
+                if (smallLayout) {
+                    binding.navigationView.translationY = binding.navigationView.height.toFloat() * 2
+                    translationY(0f)
+                } else {
+                    binding.navigationView.translationX = binding.navigationView.width.toFloat() * -2
+                    translationX(0f)
+                }
             } else {
                 duration = 300
-                translationY(binding.navigationView.height.toFloat() * 2)
                 interpolator = PathInterpolator(0.3f, 0f, 0.8f, 0.15f)
+
+                if (smallLayout) {
+                    translationY(binding.navigationView.height.toFloat() * 2)
+                } else {
+                    translationX(binding.navigationView.width.toFloat() * -2)
+                }
             }
         }.withEndAction {
             if (!visible) {
