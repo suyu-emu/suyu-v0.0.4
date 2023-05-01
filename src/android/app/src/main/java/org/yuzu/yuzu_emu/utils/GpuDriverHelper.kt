@@ -7,6 +7,7 @@ import android.content.Context
 import android.net.Uri
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.utils.FileUtil.copyUriToInternalStorage
+import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -28,12 +29,17 @@ object GpuDriverHelper {
         if (!dir.exists()) dir.mkdirs()
 
         // Unpack the files.
-        val zis = ZipInputStream(FileInputStream(zipFilePath))
+        val inputStream = FileInputStream(zipFilePath)
+        val zis = ZipInputStream(BufferedInputStream(inputStream))
         val buffer = ByteArray(1024)
         var ze = zis.nextEntry
         while (ze != null) {
-            val fileName = ze.name
-            val newFile = File(destDir + fileName)
+            val newFile = File(destDir, ze.name)
+            val canonicalPath = newFile.canonicalPath
+            if (!canonicalPath.startsWith(destDir + ze.name)) {
+                throw SecurityException("Zip file attempted path traversal! " + ze.name)
+            }
+
             newFile.parentFile!!.mkdirs()
             val fos = FileOutputStream(newFile)
             var len: Int
