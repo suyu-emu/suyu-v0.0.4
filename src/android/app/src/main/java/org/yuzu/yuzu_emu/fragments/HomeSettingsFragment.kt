@@ -23,8 +23,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.transition.MaterialSharedAxis
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.HomeSettingAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentHomeSettingsBinding
@@ -44,6 +46,11 @@ class HomeSettingsFragment : Fragment() {
 
     private val homeViewModel: HomeViewModel by activityViewModels()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -54,7 +61,6 @@ class HomeSettingsFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        homeViewModel.setNavigationVisibility(visible = true, animated = false)
         mainActivity = requireActivity() as MainActivity
 
         val optionsList: List<HomeSetting> = listOf(
@@ -87,7 +93,16 @@ class HomeSettingsFragment : Fragment() {
                 R.string.install_prod_keys,
                 R.string.install_prod_keys_description,
                 R.drawable.ic_unlock
-            ) { mainActivity.getProdKey.launch(arrayOf("*/*")) }
+            ) { mainActivity.getProdKey.launch(arrayOf("*/*")) },
+            HomeSetting(
+                R.string.about,
+                R.string.about_description,
+                R.drawable.ic_info_outline
+            ) {
+                exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+                parentFragmentManager.primaryNavigationFragment?.findNavController()
+                    ?.navigate(R.id.action_homeSettingsFragment_to_aboutFragment)
+            }
         )
 
         binding.homeSettingsList.apply {
@@ -96,6 +111,13 @@ class HomeSettingsFragment : Fragment() {
         }
 
         setInsets()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        exitTransition = null
+        homeViewModel.setNavigationVisibility(visible = true, animated = true)
+        homeViewModel.setStatusBarShadeVisibility(visible = true)
     }
 
     override fun onDestroyView() {

@@ -12,7 +12,11 @@
     <fragment
         android:id="@+id/homeSettingsFragment"
         android:name="org.yuzu.yuzu_emu.fragments.HomeSettingsFragment"
-        android:label="HomeSettingsFragment" />
+        android:label="HomeSettingsFragment" >
+        <action
+            android:id="@+id/action_homeSettingsFragment_to_aboutFragment"
+            app:destination="@id/aboutFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/firstTimeSetupFragment"
@@ -29,5 +33,10 @@
         android:id="@+id/searchFragment"
         android:name="org.yuzu.yuzu_emu.fragments.SearchFragment"
         android:label="SearchFragment" />
+
+    <fragment
+        android:id="@+id/aboutFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.AboutFragment"
+        android:label="AboutFragment" />
 
 </navigation>
