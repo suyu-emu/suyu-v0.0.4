@@ -709,18 +709,43 @@ void TextureCache<P>::CommitAsyncFlushes() {
                 download_info.async_buffer_id = last_async_buffer_id;
             }
         }
+
         if (any_none_dma) {
+            bool all_pre_sync = true;
             auto download_map = runtime.DownloadStagingBuffer(total_size_bytes, true);
             for (const PendingDownload& download_info : download_ids) {
                 if (download_info.is_swizzle) {
                     Image& image = slot_images[download_info.object_id];
+                    all_pre_sync &= image.info.dma_downloaded;
+                    image.info.dma_downloaded = true;
                     const auto copies = FullDownloadCopies(image.info);
                     image.DownloadMemory(download_map, copies);
                     download_map.offset += Common::AlignUp(image.unswizzled_size_bytes, 64);
                 }
             }
-            uncommitted_async_buffers.emplace_back(download_map);
+            if (!all_pre_sync) {
+                runtime.Finish();
+                auto it = download_ids.begin();
+                while (it != download_ids.end()) {
+                    const PendingDownload& download_info = *it;
+                    if (download_info.is_swizzle) {
+                        const ImageBase& image = slot_images[download_info.object_id];
+                        const auto copies = FullDownloadCopies(image.info);
+                        download_map.offset -= Common::AlignUp(image.unswizzled_size_bytes, 64);
+                        std::span<u8> download_span =
+                            download_map.mapped_span.subspan(download_map.offset);
+                        SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, download_span,
+                                     swizzle_data_buffer);
+                        it = download_ids.erase(it);
+                    } else {
+                        it++;
+                    }
+                }
+            } else {
+                uncommitted_async_buffers.emplace_back(download_map);
+            }
         }
+
         async_buffers.emplace_back(std::move(uncommitted_async_buffers));
         uncommitted_async_buffers.clear();
     }
@@ -820,8 +845,9 @@ ImageId TextureCache<P>::DmaImageId(const Tegra::DMA::ImageOperand& operand) {
         // No need to waste time on an image that's synced with guest
         return NULL_IMAGE_ID;
     }
-    if (!image.info.forced_flushed) {
-        image.info.forced_flushed = true;
+    if (!image.info.dma_downloaded) {
+        // Force a full sync.
+        image.info.dma_downloaded = true;
         return NULL_IMAGE_ID;
     }
     const auto base = image.TryFindBase(operand.address);

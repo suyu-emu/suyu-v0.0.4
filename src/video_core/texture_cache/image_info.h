@@ -40,6 +40,7 @@ struct ImageInfo {
     bool rescaleable = false;
     bool downscaleable = false;
     bool forced_flushed = false;
+    bool dma_downloaded = false;
 };
 
 } // namespace VideoCommon
