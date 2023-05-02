@@ -48,9 +48,11 @@ public:
 
     void SetCachedSize(size_t size_bytes);
 
-    [[nodiscard]] size_t CachedSize() const noexcept;
+    [[nodiscard]] size_t CachedSizeWords() const noexcept;
 
-    [[nodiscard]] size_t ReadSize() const noexcept;
+    [[nodiscard]] size_t CachedSizeBytes() const noexcept;
+
+    [[nodiscard]] size_t ReadSizeBytes() const noexcept;
 
     [[nodiscard]] bool CanBeSerialized() const noexcept;
 
