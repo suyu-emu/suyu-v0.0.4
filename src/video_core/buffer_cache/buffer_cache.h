@@ -1426,7 +1426,7 @@ bool BufferCache<P>::SynchronizeBufferNoModified(Buffer& buffer, VAddr cpu_addr,
                 .size = sub_size,
             });
             total_size_bytes += sub_size;
-            largest_copy = std::max(largest_copy, sub_size);
+            largest_copy = std::max<u64>(largest_copy, sub_size);
         }
         const std::span<BufferCopy> copies_span(copies.data(), copies.size());
         UploadMemory(buffer, total_size_bytes, largest_copy, copies_span);
