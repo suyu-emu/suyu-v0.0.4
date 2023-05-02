@@ -14,6 +14,7 @@
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "vulkan/vulkan_core.h"
 
 namespace Vulkan {
 
@@ -33,24 +34,47 @@ VkSurfaceFormatKHR ChooseSwapSurfaceFormat(vk::Span<VkSurfaceFormatKHR> formats)
     return found != formats.end() ? *found : formats[0];
 }
 
-VkPresentModeKHR ChooseSwapPresentMode(vk::Span<VkPresentModeKHR> modes) {
-    // Mailbox (triple buffering) doesn't lock the application like FIFO (vsync)
+static constexpr VkPresentModeKHR ChooseSwapPresentMode(bool has_imm, bool has_mailbox,
+                                                        bool has_fifo_relaxed) {
+    // Mailbox doesn't lock the application like FIFO (vsync)
     // FIFO present mode locks the framerate to the monitor's refresh rate
-    const bool has_mailbox =
-        std::find(modes.begin(), modes.end(), VK_PRESENT_MODE_MAILBOX_KHR) != modes.end();
-    const bool has_imm =
-        std::find(modes.begin(), modes.end(), VK_PRESENT_MODE_IMMEDIATE_KHR) != modes.end();
-    const Settings::VSyncMode mode = Settings::values.vsync_mode.GetValue();
-
-    if (mode == Settings::VSyncMode::Immediate && has_imm) {
-        LOG_INFO(Render_Vulkan, "Using swap present mode Immediate");
-        return VK_PRESENT_MODE_IMMEDIATE_KHR;
-    } else if (mode == Settings::VSyncMode::Mailbox && has_mailbox) {
-        LOG_INFO(Render_Vulkan, "Using swap present mode Mailbox");
-        return VK_PRESENT_MODE_MAILBOX_KHR;
+    Settings::VSyncMode setting = [has_imm, has_mailbox]() {
+        // Choose Mailbox or Immediate if unlocked and those modes are supported
+        const auto mode = Settings::values.vsync_mode.GetValue();
+        if (Settings::values.use_speed_limit.GetValue()) {
+            return mode;
+        }
+        switch (mode) {
+        case Settings::VSyncMode::FIFO:
+        case Settings::VSyncMode::FIFORelaxed:
+            if (has_mailbox) {
+                return Settings::VSyncMode::Mailbox;
+            } else if (has_imm) {
+                return Settings::VSyncMode::Immediate;
+            }
+            [[fallthrough]];
+        default:
+            return mode;
+        }
+    }();
+    if ((setting == Settings::VSyncMode::Mailbox && !has_mailbox) ||
+        (setting == Settings::VSyncMode::Immediate && !has_imm) ||
+        (setting == Settings::VSyncMode::FIFORelaxed && !has_fifo_relaxed)) {
+        setting = Settings::VSyncMode::FIFO;
     }
-    LOG_INFO(Render_Vulkan, "Using swap present mode FIFO");
-    return VK_PRESENT_MODE_FIFO_KHR;
+
+    switch (setting) {
+    case Settings::VSyncMode::Immediate:
+        return VK_PRESENT_MODE_IMMEDIATE_KHR;
+    case Settings::VSyncMode::Mailbox:
+        return VK_PRESENT_MODE_MAILBOX_KHR;
+    case Settings::VSyncMode::FIFO:
+        return VK_PRESENT_MODE_FIFO_KHR;
+    case Settings::VSyncMode::FIFORelaxed:
+        return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
+    default:
+        return VK_PRESENT_MODE_FIFO_KHR;
+    }
 }
 
 VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, u32 width, u32 height) {
@@ -168,11 +192,17 @@ void Swapchain::Present(VkSemaphore render_semaphore) {
 void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, bool srgb) {
     const auto physical_device{device.GetPhysical()};
     const auto formats{physical_device.GetSurfaceFormatsKHR(surface)};
-    const auto present_modes{physical_device.GetSurfacePresentModesKHR(surface)};
+    const auto present_modes = physical_device.GetSurfacePresentModesKHR(surface);
+    has_mailbox = std::find(present_modes.begin(), present_modes.end(),
+                            VK_PRESENT_MODE_MAILBOX_KHR) != present_modes.end();
+    has_imm = std::find(present_modes.begin(), present_modes.end(),
+                        VK_PRESENT_MODE_IMMEDIATE_KHR) != present_modes.end();
+    has_fifo_relaxed = std::find(present_modes.begin(), present_modes.end(),
+                                 VK_PRESENT_MODE_FIFO_RELAXED_KHR) != present_modes.end();
 
     const VkCompositeAlphaFlagBitsKHR alpha_flags{ChooseAlphaFlags(capabilities)};
     surface_format = ChooseSwapSurfaceFormat(formats);
-    present_mode = ChooseSwapPresentMode(present_modes);
+    present_mode = ChooseSwapPresentMode(has_imm, has_mailbox, has_fifo_relaxed);
 
     u32 requested_image_count{capabilities.minImageCount + 1};
     // Ensure Triple buffering if possible.
@@ -233,7 +263,6 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, bo
 
     extent = swapchain_ci.imageExtent;
     current_srgb = srgb;
-    current_fps_unlocked = !Settings::values.use_speed_limit.GetValue();
 
     images = swapchain.GetImages();
     image_count = static_cast<u32>(images.size());
@@ -255,14 +284,9 @@ void Swapchain::Destroy() {
     swapchain.reset();
 }
 
-bool Swapchain::HasFpsUnlockChanged() const {
-    return current_fps_unlocked != !Settings::values.use_speed_limit.GetValue();
-}
-
 bool Swapchain::NeedsPresentModeUpdate() const {
-    // Mailbox present mode is the ideal for all scenarios. If it is not available,
-    // A different present mode is needed to support unlocked FPS above the monitor's refresh rate.
-    return present_mode != VK_PRESENT_MODE_MAILBOX_KHR && HasFpsUnlockChanged();
+    const auto requested_mode = ChooseSwapPresentMode(has_imm, has_mailbox, has_fifo_relaxed);
+    return present_mode != requested_mode;
 }
 
 } // namespace Vulkan
