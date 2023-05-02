@@ -6,19 +6,22 @@ package org.yuzu.yuzu_emu.utils
 import android.content.SharedPreferences
 import android.net.Uri
 import androidx.preference.PreferenceManager
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.Game
 import java.util.*
-import kotlin.collections.ArrayList
 
 object GameHelper {
     const val KEY_GAME_PATH = "game_path"
+    const val KEY_GAMES = "Games"
 
     private lateinit var preferences: SharedPreferences
 
-    fun getGames(): ArrayList<Game> {
-        val games = ArrayList<Game>()
+    fun getGames(): List<Game> {
+        val games = mutableListOf<Game>()
         val context = YuzuApplication.appContext
         val gamesDir =
             PreferenceManager.getDefaultSharedPreferences(context).getString(KEY_GAME_PATH, "")
@@ -44,7 +47,17 @@ object GameHelper {
             }
         }
 
-        return games
+        // Cache list of games found on disk
+        val serializedGames = mutableSetOf<String>()
+        games.forEach {
+            serializedGames.add(Json.encodeToString(it))
+        }
+        preferences.edit()
+            .remove(KEY_GAMES)
+            .putStringSet(KEY_GAMES, serializedGames)
+            .apply()
+
+        return games.toList()
     }
 
     private fun getGame(filePath: String): Game {

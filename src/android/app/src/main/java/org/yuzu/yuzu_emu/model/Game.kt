@@ -5,9 +5,11 @@ package org.yuzu.yuzu_emu.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import java.util.HashSet
 
 @Parcelize
+@Serializable
 class Game(
     val title: String,
     val description: String,
@@ -18,6 +20,18 @@ class Game(
 ) : Parcelable {
     val keyAddedToLibraryTime get() = "${gameId}_AddedToLibraryTime"
     val keyLastPlayedTime get() = "${gameId}_LastPlayed"
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is Game)
+            return false
+
+        return title == other.title
+                && description == other.description
+                && regions == other.regions
+                && path == other.path
+                && gameId == other.gameId
+                && company == other.company
+    }
 
     companion object {
         val extensions: Set<String> = HashSet(

@@ -100,7 +100,6 @@ class GameAdapter(private val activity: AppCompatActivity) :
             return oldItem.gameId == newItem.gameId
         }
 
-        @SuppressLint("DiffUtilEquals")
         override fun areContentsTheSame(oldItem: Game, newItem: Game): Boolean {
             return oldItem == newItem
         }

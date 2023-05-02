@@ -7,11 +7,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import org.yuzu.yuzu_emu.NativeLibrary
+import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.utils.GameHelper
+import java.util.Locale
 
 class GamesViewModel : ViewModel() {
     private val _games = MutableLiveData<List<Game>>(emptyList())
@@ -33,7 +38,28 @@ class GamesViewModel : ViewModel() {
     val searchFocused: LiveData<Boolean> get() = _searchFocused
 
     init {
+        // Retrieve list of cached games
+        val storedGames = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+            .getStringSet(GameHelper.KEY_GAMES, emptySet())
+        if (storedGames!!.isNotEmpty()) {
+            val deserializedGames = mutableSetOf<Game>()
+            storedGames.forEach {
+                deserializedGames.add(Json.decodeFromString(it))
+            }
+            setGames(deserializedGames.toList())
+        }
         reloadGames(false)
+    }
+
+    fun setGames(games: List<Game>) {
+        val sortedList = games.sortedWith(
+            compareBy(
+                { it.title.lowercase(Locale.getDefault()) },
+                { it.path }
+            )
+        )
+
+        _games.postValue(sortedList)
     }
 
     fun setSearchedGames(games: List<Game>) {
@@ -60,7 +86,7 @@ class GamesViewModel : ViewModel() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 NativeLibrary.resetRomMetadata()
-                _games.postValue(GameHelper.getGames())
+                setGames(GameHelper.getGames())
                 _isReloading.postValue(false)
 
                 if (directoryChanged) {
