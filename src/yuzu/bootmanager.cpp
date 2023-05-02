@@ -153,17 +153,8 @@ public:
 
         // disable vsync for any shared contexts
         auto format = share_context->format();
-        const int swap_interval = [&]() {
-            switch (Settings::values.vsync_mode.GetValue()) {
-            case Settings::VSyncMode::Immediate:
-                return 0;
-            case Settings::VSyncMode::FIFO:
-                return 1;
-            case Settings::VSyncMode::Mailbox:
-                return 2;
-            }
-            return 0;
-        }();
+        const int swap_interval =
+            Settings::values.vsync_mode.GetValue() == Settings::VSyncMode::Immediate ? 0 : 1;
 
         format.setSwapInterval(main_surface ? swap_interval : 0);
 
