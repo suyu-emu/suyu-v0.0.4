@@ -1,36 +1,48 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstring>
+#include <string>
+#include <tuple>
+#include <type_traits>
 #include <glad/glad.h>
 
-#include <QApplication>
+#include <QtCore/qglobal.h>
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#include <QCamera>
 #include <QCameraImageCapture>
 #include <QCameraInfo>
 #endif
+#include <QCursor>
+#include <QEvent>
+#include <QGuiApplication>
 #include <QHBoxLayout>
+#include <QKeyEvent>
+#include <QLayout>
+#include <QList>
 #include <QMessageBox>
-#include <QPainter>
 #include <QScreen>
-#include <QString>
-#include <QStringList>
+#include <QSize>
+#include <QStringLiteral>
+#include <QSurfaceFormat>
+#include <QTimer>
 #include <QWindow>
+#include <QtCore/qobjectdefs.h>
 
 #ifdef HAS_OPENGL
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
 #endif
 
-#if !defined(WIN32)
-#include <qpa/qplatformnativeinterface.h>
-#endif
-
-#include <fmt/format.h>
-
-#include "common/assert.h"
 #include "common/microprofile.h"
+#include "common/polyfill_thread.h"
 #include "common/scm_rev.h"
 #include "common/settings.h"
+#include "common/settings_input.h"
+#include "common/thread.h"
 #include "core/core.h"
 #include "core/cpu_manager.h"
 #include "core/frontend/framebuffer_layout.h"
@@ -40,10 +52,16 @@
 #include "input_common/drivers/tas_input.h"
 #include "input_common/drivers/touch_screen.h"
 #include "input_common/main.h"
+#include "video_core/gpu.h"
+#include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
 #include "yuzu/bootmanager.h"
 #include "yuzu/main.h"
 #include "yuzu/qt_common.h"
+
+class QObject;
+class QPaintEngine;
+class QSurface;
 
 EmuThread::EmuThread(Core::System& system) : m_system{system} {}
 
