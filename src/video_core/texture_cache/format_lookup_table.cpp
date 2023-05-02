@@ -210,6 +210,8 @@ PixelFormat PixelFormatFromTextureInfo(TextureFormat format, ComponentType red, 
         return PixelFormat::ASTC_2D_6X6_SRGB;
     case Hash(TextureFormat::ASTC_2D_10X6, UNORM, LINEAR):
         return PixelFormat::ASTC_2D_10X6_UNORM;
+    case Hash(TextureFormat::ASTC_2D_10X6, UNORM, SRGB):
+        return PixelFormat::ASTC_2D_10X6_SRGB;
     case Hash(TextureFormat::ASTC_2D_10X5, UNORM, LINEAR):
         return PixelFormat::ASTC_2D_10X5_UNORM;
     case Hash(TextureFormat::ASTC_2D_10X5, UNORM, SRGB):
@@ -218,6 +220,10 @@ PixelFormat PixelFormatFromTextureInfo(TextureFormat format, ComponentType red, 
         return PixelFormat::ASTC_2D_10X10_UNORM;
     case Hash(TextureFormat::ASTC_2D_10X10, UNORM, SRGB):
         return PixelFormat::ASTC_2D_10X10_SRGB;
+    case Hash(TextureFormat::ASTC_2D_12X10, UNORM, LINEAR):
+        return PixelFormat::ASTC_2D_12X10_UNORM;
+    case Hash(TextureFormat::ASTC_2D_12X10, UNORM, SRGB):
+        return PixelFormat::ASTC_2D_12X10_SRGB;
     case Hash(TextureFormat::ASTC_2D_12X12, UNORM, LINEAR):
         return PixelFormat::ASTC_2D_12X12_UNORM;
     case Hash(TextureFormat::ASTC_2D_12X12, UNORM, SRGB):

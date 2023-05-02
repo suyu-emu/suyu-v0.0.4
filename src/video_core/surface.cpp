@@ -250,10 +250,13 @@ bool IsPixelFormatASTC(PixelFormat format) {
     case PixelFormat::ASTC_2D_6X6_UNORM:
     case PixelFormat::ASTC_2D_6X6_SRGB:
     case PixelFormat::ASTC_2D_10X6_UNORM:
+    case PixelFormat::ASTC_2D_10X6_SRGB:
     case PixelFormat::ASTC_2D_10X5_UNORM:
     case PixelFormat::ASTC_2D_10X5_SRGB:
     case PixelFormat::ASTC_2D_10X10_UNORM:
     case PixelFormat::ASTC_2D_10X10_SRGB:
+    case PixelFormat::ASTC_2D_12X10_UNORM:
+    case PixelFormat::ASTC_2D_12X10_SRGB:
     case PixelFormat::ASTC_2D_12X12_UNORM:
     case PixelFormat::ASTC_2D_12X12_SRGB:
     case PixelFormat::ASTC_2D_8X6_UNORM:
@@ -279,11 +282,13 @@ bool IsPixelFormatSRGB(PixelFormat format) {
     case PixelFormat::ASTC_2D_8X5_SRGB:
     case PixelFormat::ASTC_2D_5X4_SRGB:
     case PixelFormat::ASTC_2D_5X5_SRGB:
+    case PixelFormat::ASTC_2D_10X6_SRGB:
     case PixelFormat::ASTC_2D_10X8_SRGB:
     case PixelFormat::ASTC_2D_6X6_SRGB:
     case PixelFormat::ASTC_2D_10X5_SRGB:
     case PixelFormat::ASTC_2D_10X10_SRGB:
     case PixelFormat::ASTC_2D_12X12_SRGB:
+    case PixelFormat::ASTC_2D_12X10_SRGB:
     case PixelFormat::ASTC_2D_8X6_SRGB:
     case PixelFormat::ASTC_2D_6X5_SRGB:
         return true;
