@@ -113,6 +113,9 @@ else()
 
         $<$<CXX_COMPILER_ID:Clang>:-Wno-braced-scalar-init>
         $<$<CXX_COMPILER_ID:Clang>:-Wno-unused-private-field>
+        $<$<CXX_COMPILER_ID:Clang>:-Werror=shadow-uncaptured-local>
+        $<$<CXX_COMPILER_ID:Clang>:-Werror=implicit-fallthrough>
+        $<$<CXX_COMPILER_ID:Clang>:-Werror=type-limits>
         $<$<CXX_COMPILER_ID:AppleClang>:-Wno-braced-scalar-init>
         $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-private-field>
     )
