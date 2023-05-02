@@ -27,6 +27,7 @@
 #include "configuration/configure_input.h"
 #include "configuration/configure_per_game.h"
 #include "configuration/configure_tas.h"
+#include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/frontend/applets/cabinet.h"
@@ -4171,6 +4172,8 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
     }
 
     Core::Crypto::KeyManager& keys = Core::Crypto::KeyManager::Instance();
+    bool all_keys_present{true};
+
     if (keys.BaseDeriveNecessary()) {
         Core::Crypto::PartitionDataManager pdm{vfs->OpenDirectory("", FileSys::Mode::Read)};
 
@@ -4195,6 +4198,7 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
             errors += tr(" - Missing PRODINFO");
         }
         if (!errors.isEmpty()) {
+            all_keys_present = false;
             QMessageBox::warning(
                 this, tr("Derivation Components Missing"),
                 tr("Encryption keys are missing. "
@@ -4222,9 +4226,38 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
 
     system->GetFileSystemController().CreateFactories(*vfs);
 
+    if (all_keys_present && !this->CheckSystemArchiveDecryption()) {
+        LOG_WARNING(Frontend, "Mii model decryption failed");
+        QMessageBox::warning(
+            this, tr("System Archive Decryption Failed"),
+            tr("Encryption keys failed to decrypt firmware. "
+               "<br>Please follow <a href='https://yuzu-emu.org/help/quickstart/'>the yuzu "
+               "quickstart guide</a> to get all your keys, firmware and "
+               "games."));
+    }
+
     if (behavior == ReinitializeKeyBehavior::Warning) {
         game_list->PopulateAsync(UISettings::values.game_dirs);
     }
+}
+
+bool GMainWindow::CheckSystemArchiveDecryption() {
+    constexpr u64 MiiModelId = 0x0100000000000802;
+
+    auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        // Not having system BIS files is not an error.
+        return true;
+    }
+
+    auto mii_nca = bis_system->GetEntry(MiiModelId, FileSys::ContentRecordType::Data);
+    if (!mii_nca) {
+        // Not having the Mii model is not an error.
+        return true;
+    }
+
+    // Return whether we are able to decrypt the RomFS of the Mii model.
+    return mii_nca->GetRomFS().get() != nullptr;
 }
 
 std::optional<u64> GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installed,
