@@ -1572,7 +1572,8 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
             Decorate(frag_depth, spv::Decoration::BuiltIn, spv::BuiltIn::FragDepth);
         }
         if (info.stores_sample_mask) {
-            sample_mask = DefineOutput(*this, U32[1], std::nullopt);
+            const Id array_type{TypeArray(U32[1], Const(1U))};
+            sample_mask = DefineOutput(*this, array_type, std::nullopt);
             Decorate(sample_mask, spv::Decoration::BuiltIn, spv::BuiltIn::SampleMask);
         }
         break;
