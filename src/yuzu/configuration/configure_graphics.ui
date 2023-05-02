@@ -212,24 +212,15 @@
            </item>
            <item>
             <widget class="QComboBox" name="vsync_mode_combobox">
-             <property name="currentText">
-              <string>Off (Immediate)</string>
+             <property name="toolTip">
+              <string>FIFO (V-Sync) does not drop frames or exhibit tearing but is limited by the screen refresh rate.
+FIFO Relaxed is similar to FIFO but allows tearing as it recovers from a slow down.
+Mailbox can have lower latency than FIFO and does not tear but may drop frames.
+Immediate (no synchronization) just presents whatever is available and can exhibit tearing.</string>
              </property>
-             <item>
-              <property name="text">
-               <string>Off (Immediate)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Double Buffering (FIFO)</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Triple Buffering (Mailbox)</string>
-              </property>
-             </item>
+             <property name="currentText">
+              <string/>
+             </property>
             </widget>
            </item>
           </layout>
