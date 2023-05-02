@@ -43,8 +43,7 @@
 #include "video_core/renderer_base.h"
 #include "yuzu/bootmanager.h"
 #include "yuzu/main.h"
-
-static Core::Frontend::WindowSystemType GetWindowSystemType();
+#include "yuzu/qt_common.h"
 
 EmuThread::EmuThread(Core::System& system) : m_system{system} {}
 
@@ -233,7 +232,7 @@ public:
     explicit RenderWidget(GRenderWindow* parent) : QWidget(parent), render_window(parent) {
         setAttribute(Qt::WA_NativeWindow);
         setAttribute(Qt::WA_PaintOnScreen);
-        if (GetWindowSystemType() == Core::Frontend::WindowSystemType::Wayland) {
+        if (YuzuQtCommon::GetWindowSystemType() == Core::Frontend::WindowSystemType::Wayland) {
             setAttribute(Qt::WA_DontCreateNativeAncestors);
         }
     }
@@ -270,46 +269,6 @@ struct VulkanRenderWidget : public RenderWidget {
 struct NullRenderWidget : public RenderWidget {
     explicit NullRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {}
 };
-
-static Core::Frontend::WindowSystemType GetWindowSystemType() {
-    // Determine WSI type based on Qt platform.
-    QString platform_name = QGuiApplication::platformName();
-    if (platform_name == QStringLiteral("windows"))
-        return Core::Frontend::WindowSystemType::Windows;
-    else if (platform_name == QStringLiteral("xcb"))
-        return Core::Frontend::WindowSystemType::X11;
-    else if (platform_name == QStringLiteral("wayland"))
-        return Core::Frontend::WindowSystemType::Wayland;
-    else if (platform_name == QStringLiteral("wayland-egl"))
-        return Core::Frontend::WindowSystemType::Wayland;
-    else if (platform_name == QStringLiteral("cocoa"))
-        return Core::Frontend::WindowSystemType::Cocoa;
-    else if (platform_name == QStringLiteral("android"))
-        return Core::Frontend::WindowSystemType::Android;
-
-    LOG_CRITICAL(Frontend, "Unknown Qt platform {}!", platform_name.toStdString());
-    return Core::Frontend::WindowSystemType::Windows;
-}
-
-static Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window) {
-    Core::Frontend::EmuWindow::WindowSystemInfo wsi;
-    wsi.type = GetWindowSystemType();
-
-    // Our Win32 Qt external doesn't have the private API.
-#if defined(WIN32) || defined(__APPLE__)
-    wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
-#else
-    QPlatformNativeInterface* pni = QGuiApplication::platformNativeInterface();
-    wsi.display_connection = pni->nativeResourceForWindow("display", window);
-    if (wsi.type == Core::Frontend::WindowSystemType::Wayland)
-        wsi.render_surface = window ? pni->nativeResourceForWindow("surface", window) : nullptr;
-    else
-        wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
-#endif
-    wsi.render_surface_scale = window ? static_cast<float>(window->devicePixelRatio()) : 1.0f;
-
-    return wsi;
-}
 
 GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
                              std::shared_ptr<InputCommon::InputSubsystem> input_subsystem_,
@@ -916,7 +875,7 @@ bool GRenderWindow::InitRenderTarget() {
     }
 
     // Update the Window System information with the new render target
-    window_info = GetWindowSystemInfo(child_widget->windowHandle());
+    window_info = YuzuQtCommon::GetWindowSystemInfo(child_widget->windowHandle());
 
     child_widget->resize(Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height);
     layout()->addWidget(child_widget);
