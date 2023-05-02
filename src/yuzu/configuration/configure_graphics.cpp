@@ -272,7 +272,7 @@ void ConfigureGraphics::SetConfiguration() {
     PopulateVSyncModeSelection(); //< must happen after UpdateAPILayout
     SetFSRIndicatorText(ui->fsr_sharpening_slider->sliderPosition());
 
-    // V-Sync setting needs to be determined after populating the V-Sync combobox
+    // VSync setting needs to be determined after populating the VSync combobox
     if (Settings::IsConfiguringGlobal()) {
         const auto vsync_mode_setting = Settings::values.vsync_mode.GetValue();
         const auto vsync_mode = VSyncSettingToMode(vsync_mode_setting);
@@ -300,13 +300,13 @@ const QString ConfigureGraphics::TranslateVSyncMode(VkPresentModeKHR mode,
     case VK_PRESENT_MODE_IMMEDIATE_KHR:
         return backend == Settings::RendererBackend::OpenGL
                    ? tr("Off")
-                   : QStringLiteral("Immediate (%1)").arg(tr("V-Sync Off"));
+                   : QStringLiteral("Immediate (%1)").arg(tr("VSync Off"));
     case VK_PRESENT_MODE_MAILBOX_KHR:
         return QStringLiteral("Mailbox (%1)").arg(tr("Recommended"));
     case VK_PRESENT_MODE_FIFO_KHR:
         return backend == Settings::RendererBackend::OpenGL
                    ? tr("On")
-                   : QStringLiteral("FIFO (%1)").arg(tr("V-Sync On"));
+                   : QStringLiteral("FIFO (%1)").arg(tr("VSync On"));
     case VK_PRESENT_MODE_FIFO_RELAXED_KHR:
         return QStringLiteral("FIFO Relaxed");
     default:

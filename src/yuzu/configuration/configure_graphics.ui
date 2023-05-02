@@ -206,14 +206,14 @@
            <item>
             <widget class="QLabel" name="vsync_mode_label">
              <property name="text">
-              <string>V-Sync Mode:</string>
+              <string>VSync Mode:</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QComboBox" name="vsync_mode_combobox">
              <property name="toolTip">
-              <string>FIFO (V-Sync) does not drop frames or exhibit tearing but is limited by the screen refresh rate.
+              <string>FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen refresh rate.
 FIFO Relaxed is similar to FIFO but allows tearing as it recovers from a slow down.
 Mailbox can have lower latency than FIFO and does not tear but may drop frames.
 Immediate (no synchronization) just presents whatever is available and can exhibit tearing.</string>
