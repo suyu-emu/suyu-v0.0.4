@@ -617,7 +617,9 @@ bool Device::ShouldBoostClocks() const {
 
     const bool is_steam_deck = vendor_id == 0x1002 && device_id == 0x163F;
 
-    return validated_driver && !is_steam_deck;
+    const bool is_debugging = this->HasDebuggingToolAttached();
+
+    return validated_driver && !is_steam_deck && !is_debugging;
 }
 
 bool Device::GetSuitability(bool requires_swapchain) {
