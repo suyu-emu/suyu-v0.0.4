@@ -20,8 +20,10 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.GameAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentGamesBinding
 import org.yuzu.yuzu_emu.layout.AutofitGridLayoutManager
+import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import java.util.Locale
 
 class GamesFragment : Fragment() {
     private var _binding: FragmentGamesBinding? = null
@@ -73,7 +75,7 @@ class GamesFragment : Fragment() {
             binding.swipeRefresh.isRefreshing = isReloading
         }
         gamesViewModel.games.observe(viewLifecycleOwner) {
-            (binding.gridGames.adapter as GameAdapter).submitList(it)
+            submitGamesList(it)
             if (it.isEmpty()) {
                 binding.noticeText.visibility = View.VISIBLE
             } else {
@@ -83,7 +85,7 @@ class GamesFragment : Fragment() {
 
         gamesViewModel.shouldSwapData.observe(viewLifecycleOwner) { shouldSwapData ->
             if (shouldSwapData) {
-                (binding.gridGames.adapter as GameAdapter).submitList(gamesViewModel.games.value)
+                submitGamesList(gamesViewModel.games.value!!)
                 gamesViewModel.setShouldSwapData(false)
             }
         }
@@ -105,6 +107,11 @@ class GamesFragment : Fragment() {
             }
             binding.swipeRefresh.isRefreshing = gamesViewModel.isReloading.value!!
         }
+    }
+
+    private fun submitGamesList(gameList: List<Game>) {
+        val sortedList = gameList.sortedBy { it.title.lowercase(Locale.getDefault()) }
+        (binding.gridGames.adapter as GameAdapter).submitList(sortedList)
     }
 
     override fun onDestroyView() {
