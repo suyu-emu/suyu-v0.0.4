@@ -66,12 +66,12 @@ class HomeSettingsFragment : Fragment() {
             HomeSetting(
                 R.string.open_user_folder,
                 R.string.open_user_folder_description,
-                R.drawable.ic_folder
+                R.drawable.ic_folder_open
             ) { openFileManager() },
             HomeSetting(
                 R.string.install_gpu_driver,
                 R.string.install_gpu_driver_description,
-                R.drawable.ic_input
+                R.drawable.ic_exit
             ) { driverInstaller() },
             HomeSetting(
                 R.string.install_amiibo_keys,
