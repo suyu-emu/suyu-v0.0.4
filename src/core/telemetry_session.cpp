@@ -89,10 +89,12 @@ static constexpr const char* TranslateVSyncMode(Settings::VSyncMode mode) {
     switch (mode) {
     case Settings::VSyncMode::Immediate:
         return "Immediate";
-    case Settings::VSyncMode::FIFO:
-        return "FIFO";
     case Settings::VSyncMode::Mailbox:
         return "Mailbox";
+    case Settings::VSyncMode::FIFO:
+        return "FIFO";
+    case Settings::VSyncMode::FIFORelaxed:
+        return "FIFO Relaxed";
     }
     return "Unknown";
 }
