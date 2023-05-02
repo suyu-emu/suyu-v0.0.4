@@ -4,19 +4,33 @@
 // Include this early to include Vulkan headers how we want to
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
+#include <algorithm>
+#include <iosfwd>
+#include <iterator>
+#include <string>
+#include <tuple>
+#include <utility>
 #include <vector>
+#include <QBoxLayout>
+#include <QCheckBox>
 #include <QColorDialog>
-#include <QGuiApplication>
-#include <QVulkanInstance>
-#include <QWindow>
+#include <QComboBox>
+#include <QIcon>
+#include <QLabel>
+#include <QPixmap>
+#include <QPushButton>
+#include <QSlider>
+#include <QStringLiteral>
+#include <QtCore/qobjectdefs.h>
+#include <qcoreevent.h>
+#include <qglobal.h>
 #include <vulkan/vulkan_core.h>
 
-#include "bootmanager.h"
 #include "common/common_types.h"
+#include "common/dynamic_library.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "core/core.h"
-#include "core/frontend/emu_window.h"
 #include "ui_configure_graphics.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"

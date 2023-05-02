@@ -5,10 +5,21 @@
 
 #include <memory>
 #include <vector>
+#include <QColor>
 #include <QString>
 #include <QWidget>
+#include <qobjectdefs.h>
 #include <vulkan/vulkan_core.h>
-#include "common/settings.h"
+#include "common/common_types.h"
+
+class QEvent;
+class QObject;
+
+namespace Settings {
+enum class NvdecEmulation : u32;
+enum class RendererBackend : u32;
+enum class ShaderBackend : u32;
+} // namespace Settings
 
 namespace Core {
 class System;
