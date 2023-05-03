@@ -295,6 +295,11 @@ public:
         return features.features.textureCompressionASTC_LDR;
     }
 
+    /// Returns true if descriptor aliasing is natively supported.
+    bool IsDescriptorAliasingSupported() const {
+        return GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+    }
+
     /// Returns true if the device supports float16 natively.
     bool IsFloat16Supported() const {
         return features.shader_float16_int8.shaderFloat16;
