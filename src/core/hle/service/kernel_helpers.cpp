@@ -25,6 +25,9 @@ ServiceContext::ServiceContext(Core::System& system_, std::string name_)
                                         Kernel::KProcess::ProcessType::KernelInternal,
                                         kernel.GetSystemResourceLimit())
                .IsSuccess());
+
+    // Register the process.
+    Kernel::KProcess::Register(kernel, process);
     process_created = true;
 }
 

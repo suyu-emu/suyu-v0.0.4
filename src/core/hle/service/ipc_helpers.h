@@ -156,6 +156,7 @@ public:
 
             auto* session = Kernel::KSession::Create(kernel);
             session->Initialize(nullptr, 0);
+            Kernel::KSession::Register(kernel, session);
 
             auto next_manager = std::make_shared<Service::SessionRequestManager>(
                 kernel, manager->GetServerManager());

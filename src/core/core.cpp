@@ -293,6 +293,7 @@ struct System::Impl {
         ASSERT(Kernel::KProcess::Initialize(main_process, system, "main",
                                             Kernel::KProcess::ProcessType::Userland, resource_limit)
                    .IsSuccess());
+        Kernel::KProcess::Register(system.Kernel(), main_process);
         kernel.MakeApplicationProcess(main_process);
         const auto [load_result, load_parameters] = app_loader->Load(*main_process, system);
         if (load_result != Loader::ResultStatus::Success) {

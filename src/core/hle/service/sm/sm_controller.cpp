@@ -49,6 +49,9 @@ void Controller::CloneCurrentObject(HLERequestContext& ctx) {
     // Commit the session reservation.
     session_reservation.Commit();
 
+    // Register the session.
+    Kernel::KSession::Register(system.Kernel(), session);
+
     // Register with server manager.
     session_manager->GetServerManager().RegisterSession(&session->GetServerSession(),
                                                         session_manager);
