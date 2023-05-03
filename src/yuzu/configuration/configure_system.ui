@@ -478,6 +478,13 @@
             </property>
            </widget>
           </item>
+          <item row="7" column="0">
+           <widget class="QCheckBox" name="use_unsafe_extended_memory_layout">
+            <property name="text">
+             <string>Unsafe extended memory layout (8GB DRAM)</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>

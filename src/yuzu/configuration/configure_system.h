@@ -41,6 +41,7 @@ private:
     bool enabled = false;
 
     ConfigurationShared::CheckState use_rng_seed;
+    ConfigurationShared::CheckState use_unsafe_extended_memory_layout;
 
     Core::System& system;
 };

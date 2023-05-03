@@ -111,6 +111,9 @@ void ConfigureSystem::SetConfiguration() {
     ui->custom_rtc_edit->setDateTime(QDateTime::fromSecsSinceEpoch(rtc_time));
     ui->device_name_edit->setText(
         QString::fromUtf8(Settings::values.device_name.GetValue().c_str()));
+    ui->use_unsafe_extended_memory_layout->setEnabled(enabled);
+    ui->use_unsafe_extended_memory_layout->setChecked(
+        Settings::values.use_unsafe_extended_memory_layout.GetValue());
 
     if (Settings::IsConfiguringGlobal()) {
         ui->combo_language->setCurrentIndex(Settings::values.language_index.GetValue());
@@ -160,6 +163,9 @@ void ConfigureSystem::ApplyConfiguration() {
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.region_index, ui->combo_region);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.time_zone_index,
                                              ui->combo_time_zone);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_unsafe_extended_memory_layout,
+                                             ui->use_unsafe_extended_memory_layout,
+                                             use_unsafe_extended_memory_layout);
 
     if (Settings::IsConfiguringGlobal()) {
         // Guard if during game and set to game-specific value
@@ -214,6 +220,10 @@ void ConfigureSystem::SetupPerGameUI() {
         ui->rng_seed_checkbox, Settings::values.rng_seed.UsingGlobal(),
         Settings::values.rng_seed.GetValue().has_value(),
         Settings::values.rng_seed.GetValue(true).has_value(), use_rng_seed);
+
+    ConfigurationShared::SetColoredTristate(ui->use_unsafe_extended_memory_layout,
+                                            Settings::values.use_unsafe_extended_memory_layout,
+                                            use_unsafe_extended_memory_layout);
 
     ui->custom_rtc_checkbox->setVisible(false);
     ui->custom_rtc_edit->setVisible(false);
