@@ -507,7 +507,7 @@ void ConfigureGraphics::RetrieveVulkanDevices() try {
     using namespace Vulkan;
 
     auto* window = this->window()->windowHandle();
-    auto wsi = YuzuQtCommon::GetWindowSystemInfo(window);
+    auto wsi = QtCommon::GetWindowSystemInfo(window);
 
     vk::InstanceDispatch dld;
     const Common::DynamicLibrary library = OpenLibrary();

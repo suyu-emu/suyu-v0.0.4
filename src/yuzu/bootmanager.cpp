@@ -241,7 +241,7 @@ public:
     explicit RenderWidget(GRenderWindow* parent) : QWidget(parent), render_window(parent) {
         setAttribute(Qt::WA_NativeWindow);
         setAttribute(Qt::WA_PaintOnScreen);
-        if (YuzuQtCommon::GetWindowSystemType() == Core::Frontend::WindowSystemType::Wayland) {
+        if (QtCommon::GetWindowSystemType() == Core::Frontend::WindowSystemType::Wayland) {
             setAttribute(Qt::WA_DontCreateNativeAncestors);
         }
     }
@@ -884,7 +884,7 @@ bool GRenderWindow::InitRenderTarget() {
     }
 
     // Update the Window System information with the new render target
-    window_info = YuzuQtCommon::GetWindowSystemInfo(child_widget->windowHandle());
+    window_info = QtCommon::GetWindowSystemInfo(child_widget->windowHandle());
 
     child_widget->resize(Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height);
     layout()->addWidget(child_widget);

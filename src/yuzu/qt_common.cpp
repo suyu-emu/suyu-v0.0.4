@@ -12,7 +12,7 @@
 #include <qpa/qplatformnativeinterface.h>
 #endif
 
-namespace YuzuQtCommon {
+namespace QtCommon {
 Core::Frontend::WindowSystemType GetWindowSystemType() {
     // Determine WSI type based on Qt platform.
     QString platform_name = QGuiApplication::platformName();
@@ -52,4 +52,4 @@ Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window)
 
     return wsi;
 }
-} // namespace YuzuQtCommon
+} // namespace QtCommon
