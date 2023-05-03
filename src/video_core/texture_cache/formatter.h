@@ -179,6 +179,8 @@ struct fmt::formatter<VideoCore::Surface::PixelFormat> : fmt::formatter<fmt::str
                 return "ASTC_2D_6X6_SRGB";
             case PixelFormat::ASTC_2D_10X6_UNORM:
                 return "ASTC_2D_10X6_UNORM";
+            case PixelFormat::ASTC_2D_10X6_SRGB:
+                return "ASTC_2D_10X6_SRGB";
             case PixelFormat::ASTC_2D_10X5_UNORM:
                 return "ASTC_2D_10X5_UNORM";
             case PixelFormat::ASTC_2D_10X5_SRGB:
@@ -187,6 +189,10 @@ struct fmt::formatter<VideoCore::Surface::PixelFormat> : fmt::formatter<fmt::str
                 return "ASTC_2D_10X10_UNORM";
             case PixelFormat::ASTC_2D_10X10_SRGB:
                 return "ASTC_2D_10X10_SRGB";
+            case PixelFormat::ASTC_2D_12X10_UNORM:
+                return "ASTC_2D_12X10_UNORM";
+            case PixelFormat::ASTC_2D_12X10_SRGB:
+                return "ASTC_2D_12X10_SRGB";
             case PixelFormat::ASTC_2D_12X12_UNORM:
                 return "ASTC_2D_12X12_UNORM";
             case PixelFormat::ASTC_2D_12X12_SRGB:
