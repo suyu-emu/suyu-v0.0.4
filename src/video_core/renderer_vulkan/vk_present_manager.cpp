@@ -153,16 +153,19 @@ Frame* PresentManager::GetRenderFrame() {
     return frame;
 }
 
-void PresentManager::PushFrame(Frame* frame) {
+void PresentManager::Present(Frame* frame) {
     if (!use_present_thread) {
+        scheduler.WaitWorker();
         CopyToSwapchain(frame);
         free_queue.push(frame);
         return;
     }
 
-    std::unique_lock lock{queue_mutex};
-    present_queue.push(frame);
-    frame_cv.notify_one();
+    scheduler.Record([this, frame](vk::CommandBuffer) {
+        std::unique_lock lock{queue_mutex};
+        present_queue.push(frame);
+        frame_cv.notify_one();
+    });
 }
 
 void PresentManager::RecreateFrame(Frame* frame, u32 width, u32 height, bool is_srgb,

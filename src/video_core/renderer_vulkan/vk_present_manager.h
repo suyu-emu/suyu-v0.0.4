@@ -45,7 +45,7 @@ public:
     Frame* GetRenderFrame();
 
     /// Pushes a frame for presentation
-    void PushFrame(Frame* frame);
+    void Present(Frame* frame);
 
     /// Recreates the present frame to match the provided parameters
     void RecreateFrame(Frame* frame, u32 width, u32 height, bool is_srgb,

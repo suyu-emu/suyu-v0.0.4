@@ -134,7 +134,7 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     Frame* frame = present_manager.GetRenderFrame();
     blit_screen.DrawToSwapchain(frame, *framebuffer, use_accelerated, is_srgb);
     scheduler.Flush(*frame->render_ready);
-    scheduler.Record([this, frame](vk::CommandBuffer) { present_manager.PushFrame(frame); });
+    present_manager.Present(frame);
 
     gpu.RendererFrameEndNotify();
     rasterizer.TickFrame();
