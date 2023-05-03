@@ -170,6 +170,7 @@ void MemoryManager::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) 
 
 GPUVAddr MemoryManager::Map(GPUVAddr gpu_addr, VAddr cpu_addr, std::size_t size, PTEKind kind,
                             bool is_big_pages) {
+    std::unique_lock<std::mutex> lock(guard);
     if (is_big_pages) [[likely]] {
         return BigPageTableOp<EntryType::Mapped>(gpu_addr, cpu_addr, size, kind);
     }
@@ -177,6 +178,7 @@ GPUVAddr MemoryManager::Map(GPUVAddr gpu_addr, VAddr cpu_addr, std::size_t size,
 }
 
 GPUVAddr MemoryManager::MapSparse(GPUVAddr gpu_addr, std::size_t size, bool is_big_pages) {
+    std::unique_lock<std::mutex> lock(guard);
     if (is_big_pages) [[likely]] {
         return BigPageTableOp<EntryType::Reserved>(gpu_addr, 0, size, PTEKind::INVALID);
     }
@@ -187,6 +189,7 @@ void MemoryManager::Unmap(GPUVAddr gpu_addr, std::size_t size) {
     if (size == 0) {
         return;
     }
+    std::unique_lock<std::mutex> lock(guard);
     GetSubmappedRangeImpl<false>(gpu_addr, size, page_stash);
 
     for (const auto& [map_addr, map_size] : page_stash) {
@@ -553,6 +556,7 @@ size_t MemoryManager::MaxContinuousRange(GPUVAddr gpu_addr, size_t size) const {
 }
 
 size_t MemoryManager::GetMemoryLayoutSize(GPUVAddr gpu_addr, size_t max_size) const {
+    std::unique_lock<std::mutex> lock(guard);
     return kind_map.GetContinuousSizeFrom(gpu_addr);
 }
 
@@ -745,10 +749,10 @@ void MemoryManager::FlushCaching() {
         return;
     }
     accumulator->Callback([this](GPUVAddr addr, size_t size) {
-        GetSubmappedRangeImpl<false>(addr, size, page_stash);
+        GetSubmappedRangeImpl<false>(addr, size, page_stash2);
     });
-    rasterizer->InnerInvalidation(page_stash);
-    page_stash.clear();
+    rasterizer->InnerInvalidation(page_stash2);
+    page_stash2.clear();
     accumulator->Clear();
 }
 

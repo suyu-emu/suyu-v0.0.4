@@ -63,7 +63,7 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra
       buffer_cache(*this, cpu_memory_, buffer_cache_runtime),
       shader_cache(*this, emu_window_, device, texture_cache, buffer_cache, program_manager,
                    state_tracker, gpu.ShaderNotify()),
-      query_cache(*this), accelerate_dma(buffer_cache, texture_cache),
+      query_cache(*this, cpu_memory_), accelerate_dma(buffer_cache, texture_cache),
       fence_manager(*this, gpu, texture_cache, buffer_cache, query_cache),
       blit_image(program_manager_) {}
 

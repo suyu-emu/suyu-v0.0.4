@@ -28,7 +28,7 @@ using CounterStream = VideoCommon::CounterStreamBase<QueryCache, HostCounter>;
 class QueryCache final
     : public VideoCommon::QueryCacheBase<QueryCache, CachedQuery, CounterStream, HostCounter> {
 public:
-    explicit QueryCache(RasterizerOpenGL& rasterizer_);
+    explicit QueryCache(RasterizerOpenGL& rasterizer_, Core::Memory::Memory& cpu_memory_);
     ~QueryCache();
 
     OGLQuery AllocateQuery(VideoCore::QueryType type);
@@ -51,7 +51,7 @@ public:
     void EndQuery();
 
 private:
-    u64 BlockingQuery() const override;
+    u64 BlockingQuery(bool async = false) const override;
 
     QueryCache& cache;
     const VideoCore::QueryType type;
@@ -70,7 +70,7 @@ public:
     CachedQuery(const CachedQuery&) = delete;
     CachedQuery& operator=(const CachedQuery&) = delete;
 
-    void Flush() override;
+    u64 Flush(bool async = false) override;
 
 private:
     QueryCache* cache;

@@ -52,7 +52,8 @@ private:
 class QueryCache final
     : public VideoCommon::QueryCacheBase<QueryCache, CachedQuery, CounterStream, HostCounter> {
 public:
-    explicit QueryCache(VideoCore::RasterizerInterface& rasterizer_, const Device& device_,
+    explicit QueryCache(VideoCore::RasterizerInterface& rasterizer_,
+                        Core::Memory::Memory& cpu_memory_, const Device& device_,
                         Scheduler& scheduler_);
     ~QueryCache();
 
@@ -83,7 +84,7 @@ public:
     void EndQuery();
 
 private:
-    u64 BlockingQuery() const override;
+    u64 BlockingQuery(bool async = false) const override;
 
     QueryCache& cache;
     const VideoCore::QueryType type;

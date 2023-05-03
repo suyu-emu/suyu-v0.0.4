@@ -172,7 +172,8 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
       buffer_cache(*this, cpu_memory_, buffer_cache_runtime),
       pipeline_cache(*this, device, scheduler, descriptor_pool, update_descriptor_queue,
                      render_pass_cache, buffer_cache, texture_cache, gpu.ShaderNotify()),
-      query_cache{*this, device, scheduler}, accelerate_dma(buffer_cache, texture_cache, scheduler),
+      query_cache{*this, cpu_memory_, device, scheduler},
+      accelerate_dma(buffer_cache, texture_cache, scheduler),
       fence_manager(*this, gpu, texture_cache, buffer_cache, query_cache, device, scheduler),
       wfi_event(device.GetLogical().CreateEvent()) {
     scheduler.SetQueryCache(query_cache);
@@ -675,7 +676,8 @@ bool RasterizerVulkan::AccelerateConditionalRendering() {
     const GPUVAddr condition_address{maxwell3d->regs.render_enable.Address()};
     Maxwell::ReportSemaphore::Compare cmp;
     if (gpu_memory->IsMemoryDirty(condition_address, sizeof(cmp),
-                                  VideoCommon::CacheType::BufferCache)) {
+                                  VideoCommon::CacheType::BufferCache |
+                                      VideoCommon::CacheType::QueryCache)) {
         return true;
     }
     return false;

@@ -4,13 +4,20 @@
 #pragma once
 
 #include <algorithm>
+#include <condition_variable>
 #include <cstring>
 #include <deque>
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <thread>
 #include <queue>
 
 #include "common/common_types.h"
+#include "common/microprofile.h"
+#include "common/scope_exit.h"
+#include "common/settings.h"
+#include "common/thread.h"
 #include "video_core/delayed_destruction_ring.h"
 #include "video_core/gpu.h"
 #include "video_core/host1x/host1x.h"
@@ -23,15 +30,26 @@ class FenceBase {
 public:
     explicit FenceBase(bool is_stubbed_) : is_stubbed{is_stubbed_} {}
 
+    bool IsStubbed() const {
+        return is_stubbed;
+    }
+
 protected:
     bool is_stubbed;
 };
 
-template <typename TFence, typename TTextureCache, typename TTBufferCache, typename TQueryCache>
+template <typename Traits>
 class FenceManager {
+    using TFence = typename Traits::FenceType;
+    using TTextureCache = typename Traits::TextureCacheType;
+    using TBufferCache = typename Traits::BufferCacheType;
+    using TQueryCache = typename Traits::QueryCacheType;
+    static constexpr bool can_async_check = Traits::HAS_ASYNC_CHECK;
+
 public:
     /// Notify the fence manager about a new frame
     void TickFrame() {
+        std::unique_lock lock(ring_guard);
         delayed_destruction_ring.Tick();
     }
 
@@ -46,16 +64,32 @@ public:
     }
 
     void SignalFence(std::function<void()>&& func) {
-        TryReleasePendingFences();
+        rasterizer.InvalidateGPUCache();
+        bool delay_fence = Settings::IsGPULevelHigh();
+        if constexpr (!can_async_check) {
+            TryReleasePendingFences<false>();
+        }
         const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
-        uncommitted_operations.emplace_back(std::move(func));
-        CommitOperations();
         TFence new_fence = CreateFence(!should_flush);
-        fences.push(new_fence);
+        if constexpr (can_async_check) {
+            guard.lock();
+        }
+        if (delay_fence) {
+            uncommitted_operations.emplace_back(std::move(func));
+        }
+        pending_operations.emplace_back(std::move(uncommitted_operations));
         QueueFence(new_fence);
+        if (!delay_fence) {
+            func();
+        }
+        fences.push(std::move(new_fence));
         if (should_flush) {
             rasterizer.FlushCommands();
+        }
+        if constexpr (can_async_check) {
+            guard.unlock();
+            cv.notify_all();
         }
     }
 
@@ -66,29 +100,30 @@ public:
     }
 
     void WaitPendingFences() {
-        while (!fences.empty()) {
-            TFence& current_fence = fences.front();
-            if (ShouldWait()) {
-                WaitFence(current_fence);
-            }
-            PopAsyncFlushes();
-            auto operations = std::move(pending_operations.front());
-            pending_operations.pop_front();
-            for (auto& operation : operations) {
-                operation();
-            }
-            PopFence();
+        if constexpr (!can_async_check) {
+            TryReleasePendingFences<true>();
         }
     }
 
 protected:
     explicit FenceManager(VideoCore::RasterizerInterface& rasterizer_, Tegra::GPU& gpu_,
-                          TTextureCache& texture_cache_, TTBufferCache& buffer_cache_,
+                          TTextureCache& texture_cache_, TBufferCache& buffer_cache_,
                           TQueryCache& query_cache_)
         : rasterizer{rasterizer_}, gpu{gpu_}, syncpoint_manager{gpu.Host1x().GetSyncpointManager()},
-          texture_cache{texture_cache_}, buffer_cache{buffer_cache_}, query_cache{query_cache_} {}
+          texture_cache{texture_cache_}, buffer_cache{buffer_cache_}, query_cache{query_cache_} {
+        if constexpr (can_async_check) {
+            fence_thread =
+                std::jthread([this](std::stop_token token) { ReleaseThreadFunc(token); });
+        }
+    }
 
-    virtual ~FenceManager() = default;
+    virtual ~FenceManager() {
+        if constexpr (can_async_check) {
+            fence_thread.request_stop();
+            cv.notify_all();
+            fence_thread.join();
+        }
+    }
 
     /// Creates a Fence Interface, does not create a backend fence if 'is_stubbed' is
     /// true
@@ -104,15 +139,20 @@ protected:
     Tegra::GPU& gpu;
     Tegra::Host1x::SyncpointManager& syncpoint_manager;
     TTextureCache& texture_cache;
-    TTBufferCache& buffer_cache;
+    TBufferCache& buffer_cache;
     TQueryCache& query_cache;
 
 private:
+    template <bool force_wait>
     void TryReleasePendingFences() {
         while (!fences.empty()) {
             TFence& current_fence = fences.front();
             if (ShouldWait() && !IsFenceSignaled(current_fence)) {
-                return;
+                if constexpr (force_wait) {
+                    WaitFence(current_fence);
+                } else {
+                    return;
+                }
             }
             PopAsyncFlushes();
             auto operations = std::move(pending_operations.front());
@@ -120,7 +160,49 @@ private:
             for (auto& operation : operations) {
                 operation();
             }
-            PopFence();
+            {
+                std::unique_lock lock(ring_guard);
+                delayed_destruction_ring.Push(std::move(current_fence));
+            }
+            fences.pop();
+        }
+    }
+
+    void ReleaseThreadFunc(std::stop_token stop_token) {
+        std::string name = "GPUFencingThread";
+        MicroProfileOnThreadCreate(name.c_str());
+
+        // Cleanup
+        SCOPE_EXIT({ MicroProfileOnThreadExit(); });
+
+        Common::SetCurrentThreadName(name.c_str());
+        Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
+
+        TFence current_fence;
+        std::deque<std::function<void()>> current_operations;
+        while (!stop_token.stop_requested()) {
+            {
+                std::unique_lock lock(guard);
+                cv.wait(lock, [&] { return stop_token.stop_requested() || !fences.empty(); });
+                if (stop_token.stop_requested()) [[unlikely]] {
+                    return;
+                }
+                current_fence = std::move(fences.front());
+                current_operations = std::move(pending_operations.front());
+                fences.pop();
+                pending_operations.pop_front();
+            }
+            if (!current_fence->IsStubbed()) {
+                WaitFence(current_fence);
+            }
+            PopAsyncFlushes();
+            for (auto& operation : current_operations) {
+                operation();
+            }
+            {
+                std::unique_lock lock(ring_guard);
+                delayed_destruction_ring.Push(std::move(current_fence));
+            }
         }
     }
 
@@ -154,18 +236,15 @@ private:
         query_cache.CommitAsyncFlushes();
     }
 
-    void PopFence() {
-        delayed_destruction_ring.Push(std::move(fences.front()));
-        fences.pop();
-    }
-
-    void CommitOperations() {
-        pending_operations.emplace_back(std::move(uncommitted_operations));
-    }
-
     std::queue<TFence> fences;
     std::deque<std::function<void()>> uncommitted_operations;
     std::deque<std::deque<std::function<void()>>> pending_operations;
+
+    std::mutex guard;
+    std::mutex ring_guard;
+    std::condition_variable cv;
+
+    std::jthread fence_thread;
 
     DelayedDestructionRing<TFence, 6> delayed_destruction_ring;
 };

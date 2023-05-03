@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <functional>
 #include <iterator>
 #include <list>
 #include <memory>
@@ -17,12 +18,18 @@
 
 #include "common/assert.h"
 #include "common/settings.h"
+#include "core/memory.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
+#include "video_core/texture_cache/slot_vector.h"
 
 namespace VideoCommon {
+
+using AsyncJobId = SlotId;
+
+static constexpr AsyncJobId NULL_ASYNC_JOB_ID{0};
 
 template <class QueryCache, class HostCounter>
 class CounterStreamBase {
@@ -93,9 +100,13 @@ private:
 template <class QueryCache, class CachedQuery, class CounterStream, class HostCounter>
 class QueryCacheBase : public VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
 public:
-    explicit QueryCacheBase(VideoCore::RasterizerInterface& rasterizer_)
-        : rasterizer{rasterizer_}, streams{{CounterStream{static_cast<QueryCache&>(*this),
-                                                          VideoCore::QueryType::SamplesPassed}}} {}
+    explicit QueryCacheBase(VideoCore::RasterizerInterface& rasterizer_,
+                            Core::Memory::Memory& cpu_memory_)
+        : rasterizer{rasterizer_},
+          cpu_memory{cpu_memory_}, streams{{CounterStream{static_cast<QueryCache&>(*this),
+                                                          VideoCore::QueryType::SamplesPassed}}} {
+        (void)slot_async_jobs.insert(); // Null value
+    }
 
     void InvalidateRegion(VAddr addr, std::size_t size) {
         std::unique_lock lock{mutex};
@@ -126,10 +137,15 @@ public:
             query = Register(type, *cpu_addr, host_ptr, timestamp.has_value());
         }
 
-        query->BindCounter(Stream(type).Current(), timestamp);
-        if (Settings::values.use_asynchronous_gpu_emulation.GetValue()) {
-            AsyncFlushQuery(*cpu_addr);
+        auto result = query->BindCounter(Stream(type).Current(), timestamp);
+        if (result) {
+            auto async_job_id = query->GetAsyncJob();
+            auto& async_job = slot_async_jobs[async_job_id];
+            async_job.collected = true;
+            async_job.value = *result;
+            query->SetAsyncJob(NULL_ASYNC_JOB_ID);
         }
+        AsyncFlushQuery(query, timestamp, lock);
     }
 
     /// Updates counters from GPU state. Expected to be called once per draw, clear or dispatch.
@@ -173,15 +189,18 @@ public:
     }
 
     void CommitAsyncFlushes() {
+        std::unique_lock lock{mutex};
         committed_flushes.push_back(uncommitted_flushes);
         uncommitted_flushes.reset();
     }
 
     bool HasUncommittedFlushes() const {
+        std::unique_lock lock{mutex};
         return uncommitted_flushes != nullptr;
     }
 
     bool ShouldWaitAsyncFlushes() const {
+        std::unique_lock lock{mutex};
         if (committed_flushes.empty()) {
             return false;
         }
@@ -189,6 +208,7 @@ public:
     }
 
     void PopAsyncFlushes() {
+        std::unique_lock lock{mutex};
         if (committed_flushes.empty()) {
             return;
         }
@@ -197,15 +217,25 @@ public:
             committed_flushes.pop_front();
             return;
         }
-        for (VAddr query_address : *flush_list) {
-            FlushAndRemoveRegion(query_address, 4);
+        for (AsyncJobId async_job_id : *flush_list) {
+            AsyncJob& async_job = slot_async_jobs[async_job_id];
+            if (!async_job.collected) {
+                FlushAndRemoveRegion(async_job.query_location, 2, true);
+            }
         }
         committed_flushes.pop_front();
     }
 
 private:
+    struct AsyncJob {
+        bool collected = false;
+        u64 value = 0;
+        VAddr query_location = 0;
+        std::optional<u64> timestamp{};
+    };
+
     /// Flushes a memory range to guest memory and removes it from the cache.
-    void FlushAndRemoveRegion(VAddr addr, std::size_t size) {
+    void FlushAndRemoveRegion(VAddr addr, std::size_t size, bool async = false) {
         const u64 addr_begin = addr;
         const u64 addr_end = addr_begin + size;
         const auto in_range = [addr_begin, addr_end](const CachedQuery& query) {
@@ -226,7 +256,16 @@ private:
                     continue;
                 }
                 rasterizer.UpdatePagesCachedCount(query.GetCpuAddr(), query.SizeInBytes(), -1);
-                query.Flush();
+                AsyncJobId async_job_id = query.GetAsyncJob();
+                auto flush_result = query.Flush(async);
+                if (async_job_id == NULL_ASYNC_JOB_ID) {
+                    ASSERT_MSG(false, "This should not be reachable at all");
+                    continue;
+                }
+                AsyncJob& async_job = slot_async_jobs[async_job_id];
+                async_job.collected = true;
+                async_job.value = flush_result;
+                query.SetAsyncJob(NULL_ASYNC_JOB_ID);
             }
             std::erase_if(contents, in_range);
         }
@@ -253,26 +292,60 @@ private:
         return found != std::end(contents) ? &*found : nullptr;
     }
 
-    void AsyncFlushQuery(VAddr addr) {
-        if (!uncommitted_flushes) {
-            uncommitted_flushes = std::make_shared<std::vector<VAddr>>();
+    void AsyncFlushQuery(CachedQuery* query, std::optional<u64> timestamp,
+                         std::unique_lock<std::recursive_mutex>& lock) {
+        const AsyncJobId new_async_job_id = slot_async_jobs.insert();
+        {
+            AsyncJob& async_job = slot_async_jobs[new_async_job_id];
+            query->SetAsyncJob(new_async_job_id);
+            async_job.query_location = query->GetCpuAddr();
+            async_job.collected = false;
+
+            if (!uncommitted_flushes) {
+                uncommitted_flushes = std::make_shared<std::vector<AsyncJobId>>();
+            }
+            uncommitted_flushes->push_back(new_async_job_id);
         }
-        uncommitted_flushes->push_back(addr);
+        lock.unlock();
+        std::function<void()> operation([this, new_async_job_id, timestamp] {
+            std::unique_lock local_lock{mutex};
+            AsyncJob& async_job = slot_async_jobs[new_async_job_id];
+            u64 value = async_job.value;
+            VAddr address = async_job.query_location;
+            slot_async_jobs.erase(new_async_job_id);
+            local_lock.unlock();
+            if (timestamp) {
+                u64 timestamp_value = *timestamp;
+                cpu_memory.WriteBlockUnsafe(address + sizeof(u64), &timestamp_value, sizeof(u64));
+                cpu_memory.WriteBlockUnsafe(address, &value, sizeof(u64));
+                rasterizer.InvalidateRegion(address, sizeof(u64) * 2,
+                                            VideoCommon::CacheType::NoQueryCache);
+            } else {
+                u32 small_value = static_cast<u32>(value);
+                cpu_memory.WriteBlockUnsafe(address, &small_value, sizeof(u32));
+                rasterizer.InvalidateRegion(address, sizeof(u32),
+                                            VideoCommon::CacheType::NoQueryCache);
+            }
+        });
+        rasterizer.SyncOperation(std::move(operation));
     }
 
     static constexpr std::uintptr_t YUZU_PAGESIZE = 4096;
     static constexpr unsigned YUZU_PAGEBITS = 12;
 
-    VideoCore::RasterizerInterface& rasterizer;
+    SlotVector<AsyncJob> slot_async_jobs;
 
-    std::recursive_mutex mutex;
+    VideoCore::RasterizerInterface& rasterizer;
+    Core::Memory::Memory& cpu_memory;
+
+    mutable std::recursive_mutex mutex;
 
     std::unordered_map<u64, std::vector<CachedQuery>> cached_queries;
 
     std::array<CounterStream, VideoCore::NumQueryTypes> streams;
 
-    std::shared_ptr<std::vector<VAddr>> uncommitted_flushes{};
-    std::list<std::shared_ptr<std::vector<VAddr>>> committed_flushes;
+    std::shared_ptr<std::vector<AsyncJobId>> uncommitted_flushes{};
+    std::list<std::shared_ptr<std::vector<AsyncJobId>>> committed_flushes;
 };
 
 template <class QueryCache, class HostCounter>
@@ -291,12 +364,12 @@ public:
     virtual ~HostCounterBase() = default;
 
     /// Returns the current value of the query.
-    u64 Query() {
+    u64 Query(bool async = false) {
         if (result) {
             return *result;
         }
 
-        u64 value = BlockingQuery() + base_result;
+        u64 value = BlockingQuery(async) + base_result;
         if (dependency) {
             value += dependency->Query();
             dependency = nullptr;
@@ -317,7 +390,7 @@ public:
 
 protected:
     /// Returns the value of query from the backend API blocking as needed.
-    virtual u64 BlockingQuery() const = 0;
+    virtual u64 BlockingQuery(bool async = false) const = 0;
 
 private:
     std::shared_ptr<HostCounter> dependency; ///< Counter to add to this value.
@@ -340,26 +413,33 @@ public:
     CachedQueryBase& operator=(const CachedQueryBase&) = delete;
 
     /// Flushes the query to guest memory.
-    virtual void Flush() {
+    virtual u64 Flush(bool async = false) {
         // When counter is nullptr it means that it's just been reset. We are supposed to write a
         // zero in these cases.
-        const u64 value = counter ? counter->Query() : 0;
+        const u64 value = counter ? counter->Query(async) : 0;
+        if (async) {
+            return value;
+        }
         std::memcpy(host_ptr, &value, sizeof(u64));
 
         if (timestamp) {
             std::memcpy(host_ptr + TIMESTAMP_OFFSET, &*timestamp, sizeof(u64));
         }
+        return value;
     }
 
     /// Binds a counter to this query.
-    void BindCounter(std::shared_ptr<HostCounter> counter_, std::optional<u64> timestamp_) {
+    std::optional<u64> BindCounter(std::shared_ptr<HostCounter> counter_,
+                                   std::optional<u64> timestamp_) {
+        std::optional<u64> result{};
         if (counter) {
             // If there's an old counter set it means the query is being rewritten by the game.
             // To avoid losing the data forever, flush here.
-            Flush();
+            result = std::make_optional(Flush());
         }
         counter = std::move(counter_);
         timestamp = timestamp_;
+        return result;
     }
 
     VAddr GetCpuAddr() const noexcept {
@@ -372,6 +452,14 @@ public:
 
     static constexpr u64 SizeInBytes(bool with_timestamp) noexcept {
         return with_timestamp ? LARGE_QUERY_SIZE : SMALL_QUERY_SIZE;
+    }
+
+    void SetAsyncJob(AsyncJobId assigned_async_job_) {
+        assigned_async_job = assigned_async_job_;
+    }
+
+    AsyncJobId GetAsyncJob() const {
+        return assigned_async_job;
     }
 
 protected:
@@ -389,6 +477,7 @@ private:
     u8* host_ptr;                         ///< Writable host pointer.
     std::shared_ptr<HostCounter> counter; ///< Host counter to query, owns the dependency tree.
     std::optional<u64> timestamp;         ///< Timestamp to flush to guest memory.
+    AsyncJobId assigned_async_job;
 };
 
 } // namespace VideoCommon
