@@ -42,7 +42,6 @@ private:
     ConfigurationShared::CheckState async_astc;
     ConfigurationShared::CheckState use_asynchronous_shaders;
     ConfigurationShared::CheckState use_fast_gpu_time;
-    ConfigurationShared::CheckState use_pessimistic_flushes;
     ConfigurationShared::CheckState use_vulkan_driver_pipeline_cache;
 
     const Core::System& system;
