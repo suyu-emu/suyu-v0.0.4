@@ -34,7 +34,6 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
     ui->async_astc->setChecked(Settings::values.async_astc.GetValue());
     ui->use_asynchronous_shaders->setChecked(Settings::values.use_asynchronous_shaders.GetValue());
     ui->use_fast_gpu_time->setChecked(Settings::values.use_fast_gpu_time.GetValue());
-    ui->use_pessimistic_flushes->setChecked(Settings::values.use_pessimistic_flushes.GetValue());
     ui->use_vulkan_driver_pipeline_cache->setChecked(
         Settings::values.use_vulkan_driver_pipeline_cache.GetValue());
 
@@ -71,8 +70,6 @@ void ConfigureGraphicsAdvanced::ApplyConfiguration() {
                                              use_asynchronous_shaders);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_fast_gpu_time,
                                              ui->use_fast_gpu_time, use_fast_gpu_time);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_pessimistic_flushes,
-                                             ui->use_pessimistic_flushes, use_pessimistic_flushes);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_vulkan_driver_pipeline_cache,
                                              ui->use_vulkan_driver_pipeline_cache,
                                              use_vulkan_driver_pipeline_cache);
@@ -102,8 +99,6 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
         ui->use_asynchronous_shaders->setEnabled(
             Settings::values.use_asynchronous_shaders.UsingGlobal());
         ui->use_fast_gpu_time->setEnabled(Settings::values.use_fast_gpu_time.UsingGlobal());
-        ui->use_pessimistic_flushes->setEnabled(
-            Settings::values.use_pessimistic_flushes.UsingGlobal());
         ui->use_vulkan_driver_pipeline_cache->setEnabled(
             Settings::values.use_vulkan_driver_pipeline_cache.UsingGlobal());
         ui->anisotropic_filtering_combobox->setEnabled(
@@ -125,9 +120,6 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
                                             use_asynchronous_shaders);
     ConfigurationShared::SetColoredTristate(ui->use_fast_gpu_time,
                                             Settings::values.use_fast_gpu_time, use_fast_gpu_time);
-    ConfigurationShared::SetColoredTristate(ui->use_pessimistic_flushes,
-                                            Settings::values.use_pessimistic_flushes,
-                                            use_pessimistic_flushes);
     ConfigurationShared::SetColoredTristate(ui->use_vulkan_driver_pipeline_cache,
                                             Settings::values.use_vulkan_driver_pipeline_cache,
                                             use_vulkan_driver_pipeline_cache);
