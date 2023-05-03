@@ -170,7 +170,8 @@ private:
         std::size_t page_index{cpu_address >> HIGHER_PAGE_BITS};
         u64 page_offset{cpu_address & HIGHER_PAGE_MASK};
         while (remaining_size > 0) {
-            const std::size_t copy_amount{std::min(HIGHER_PAGE_SIZE - page_offset, remaining_size)};
+            const std::size_t copy_amount{
+                std::min<std::size_t>(HIGHER_PAGE_SIZE - page_offset, remaining_size)};
             auto* manager{top_tier[page_index]};
             if (manager) {
                 if constexpr (BOOL_BREAK) {
@@ -206,7 +207,8 @@ private:
         u64 begin = std::numeric_limits<u64>::max();
         u64 end = 0;
         while (remaining_size > 0) {
-            const std::size_t copy_amount{std::min(HIGHER_PAGE_SIZE - page_offset, remaining_size)};
+            const std::size_t copy_amount{
+                std::min<std::size_t>(HIGHER_PAGE_SIZE - page_offset, remaining_size)};
             auto* manager{top_tier[page_index]};
             const auto execute = [&] {
                 auto [new_begin, new_end] = func(manager, page_offset, copy_amount);
