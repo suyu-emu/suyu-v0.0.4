@@ -264,6 +264,10 @@ cpuopt_unsafe_ignore_global_monitor =
 # 0: OpenGL, 1 (default): Vulkan
 backend =
 
+# Whether to enable asynchronous presentation (Vulkan only)
+# 0 (default): Off, 1: On
+async_presentation =
+
 # Enable graphics API debugging mode.
 # 0 (default): Disabled, 1: Enabled
 debug =

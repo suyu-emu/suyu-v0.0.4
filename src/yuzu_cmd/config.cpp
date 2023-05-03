@@ -300,6 +300,7 @@ void Config::ReadValues() {
 
     // Renderer
     ReadSetting("Renderer", Settings::values.renderer_backend);
+    ReadSetting("Renderer", Settings::values.async_presentation);
     ReadSetting("Renderer", Settings::values.renderer_force_max_clock);
     ReadSetting("Renderer", Settings::values.renderer_debug);
     ReadSetting("Renderer", Settings::values.renderer_shader_feedback);

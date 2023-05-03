@@ -22,11 +22,13 @@ ConfigureGraphicsAdvanced::~ConfigureGraphicsAdvanced() = default;
 void ConfigureGraphicsAdvanced::SetConfiguration() {
     const bool runtime_lock = !system.IsPoweredOn();
     ui->use_vsync->setEnabled(runtime_lock);
+    ui->async_present->setEnabled(runtime_lock);
     ui->renderer_force_max_clock->setEnabled(runtime_lock);
     ui->async_astc->setEnabled(runtime_lock);
     ui->use_asynchronous_shaders->setEnabled(runtime_lock);
     ui->anisotropic_filtering_combobox->setEnabled(runtime_lock);
 
+    ui->async_present->setChecked(Settings::values.async_presentation.GetValue());
     ui->renderer_force_max_clock->setChecked(Settings::values.renderer_force_max_clock.GetValue());
     ui->use_vsync->setChecked(Settings::values.use_vsync.GetValue());
     ui->async_astc->setChecked(Settings::values.async_astc.GetValue());
@@ -54,6 +56,8 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
 
 void ConfigureGraphicsAdvanced::ApplyConfiguration() {
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.gpu_accuracy, ui->gpu_accuracy);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.async_presentation,
+                                             ui->async_present, async_present);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.renderer_force_max_clock,
                                              ui->renderer_force_max_clock,
                                              renderer_force_max_clock);
@@ -90,6 +94,7 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
     // Disable if not global (only happens during game)
     if (Settings::IsConfiguringGlobal()) {
         ui->gpu_accuracy->setEnabled(Settings::values.gpu_accuracy.UsingGlobal());
+        ui->async_present->setEnabled(Settings::values.async_presentation.UsingGlobal());
         ui->renderer_force_max_clock->setEnabled(
             Settings::values.renderer_force_max_clock.UsingGlobal());
         ui->use_vsync->setEnabled(Settings::values.use_vsync.UsingGlobal());
@@ -107,6 +112,8 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
         return;
     }
 
+    ConfigurationShared::SetColoredTristate(ui->async_present, Settings::values.async_presentation,
+                                            async_present);
     ConfigurationShared::SetColoredTristate(ui->renderer_force_max_clock,
                                             Settings::values.renderer_force_max_clock,
                                             renderer_force_max_clock);

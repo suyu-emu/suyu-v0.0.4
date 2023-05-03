@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>404</width>
-    <height>321</height>
+    <height>376</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -70,6 +70,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="async_present">
+          <property name="text">
+           <string>Enable asynchronous presentation (Vulkan only)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QCheckBox" name="renderer_force_max_clock">
           <property name="toolTip">
            <string>Runs work in the background while waiting for graphics commands to keep the GPU from lowering its clock speed.</string>
@@ -112,7 +119,7 @@
         <item>
          <widget class="QCheckBox" name="use_fast_gpu_time">
           <property name="toolTip">
-            <string>Enables Fast GPU Time. This option will force most games to run at their highest native resolution.</string>
+           <string>Enables Fast GPU Time. This option will force most games to run at their highest native resolution.</string>
           </property>
           <property name="text">
            <string>Use Fast GPU Time (Hack)</string>
@@ -122,7 +129,7 @@
         <item>
          <widget class="QCheckBox" name="use_pessimistic_flushes">
           <property name="toolTip">
-            <string>Enables pessimistic buffer flushes. This option will force unmodified buffers to be flushed, which can cost performance.</string>
+           <string>Enables pessimistic buffer flushes. This option will force unmodified buffers to be flushed, which can cost performance.</string>
           </property>
           <property name="text">
            <string>Use pessimistic buffer flushes (Hack)</string>
@@ -132,7 +139,7 @@
         <item>
          <widget class="QCheckBox" name="use_vulkan_driver_pipeline_cache">
           <property name="toolTip">
-            <string>Enables GPU vendor-specific pipeline cache. This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files internally.</string>
+           <string>Enables GPU vendor-specific pipeline cache. This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files internally.</string>
           </property>
           <property name="text">
            <string>Use Vulkan pipeline cache</string>
