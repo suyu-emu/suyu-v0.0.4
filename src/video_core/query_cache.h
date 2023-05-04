@@ -255,7 +255,6 @@ private:
                 if (!in_range(query)) {
                     continue;
                 }
-                rasterizer.UpdatePagesCachedCount(query.GetCpuAddr(), query.SizeInBytes(), -1);
                 AsyncJobId async_job_id = query.GetAsyncJob();
                 auto flush_result = query.Flush(async);
                 if (async_job_id == NULL_ASYNC_JOB_ID) {
@@ -273,7 +272,6 @@ private:
 
     /// Registers the passed parameters as cached and returns a pointer to the stored cached query.
     CachedQuery* Register(VideoCore::QueryType type, VAddr cpu_addr, u8* host_ptr, bool timestamp) {
-        rasterizer.UpdatePagesCachedCount(cpu_addr, CachedQuery::SizeInBytes(timestamp), 1);
         const u64 page = static_cast<u64>(cpu_addr) >> YUZU_PAGEBITS;
         return &cached_queries[page].emplace_back(static_cast<QueryCache&>(*this), type, cpu_addr,
                                                   host_ptr);
