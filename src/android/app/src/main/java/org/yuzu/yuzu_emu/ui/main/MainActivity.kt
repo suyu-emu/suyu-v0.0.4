@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             ThemeHelper.getColorWithOpacity(
                 MaterialColors.getColor(
                     binding.root,
-                    R.attr.colorSurface
+                    com.google.android.material.R.attr.colorSurface
                 ),
                 ThemeHelper.SYSTEM_BAR_ALPHA
             )
@@ -82,7 +82,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 ThemeHelper.getColorWithOpacity(
                     MaterialColors.getColor(
                         binding.root,
-                        R.attr.colorSurface
+                        com.google.android.material.R.attr.colorSurface
                     ),
                     ThemeHelper.SYSTEM_BAR_ALPHA
                 )

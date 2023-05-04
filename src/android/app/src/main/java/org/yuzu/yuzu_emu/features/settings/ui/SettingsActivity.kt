@@ -56,7 +56,10 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         if (InsetsHelper.getSystemGestureType(applicationContext) != InsetsHelper.GESTURE_NAVIGATION) {
             binding.navigationBarShade.setBackgroundColor(
                 ThemeHelper.getColorWithOpacity(
-                    MaterialColors.getColor(binding.navigationBarShade, R.attr.colorSurface),
+                    MaterialColors.getColor(
+                        binding.navigationBarShade,
+                        com.google.android.material.R.attr.colorSurface
+                    ),
                     ThemeHelper.SYSTEM_BAR_ALPHA
                 )
             )

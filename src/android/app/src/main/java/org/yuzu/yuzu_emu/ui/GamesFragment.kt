@@ -64,10 +64,16 @@ class GamesFragment : Fragment() {
 
         // Set theme color to the refresh animation's background
         binding.swipeRefresh.setProgressBackgroundColorSchemeColor(
-            MaterialColors.getColor(binding.swipeRefresh, R.attr.colorPrimary)
+            MaterialColors.getColor(
+                binding.swipeRefresh,
+                com.google.android.material.R.attr.colorPrimary
+            )
         )
         binding.swipeRefresh.setColorSchemeColors(
-            MaterialColors.getColor(binding.swipeRefresh, R.attr.colorOnPrimary)
+            MaterialColors.getColor(
+                binding.swipeRefresh,
+                com.google.android.material.R.attr.colorOnPrimary
+            )
         )
 
         // Watch for when we get updates to any of our games lists
