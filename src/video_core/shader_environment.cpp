@@ -170,15 +170,19 @@ std::optional<u64> GenericEnvironment::Analyze() {
 void GenericEnvironment::SetCachedSize(size_t size_bytes) {
     cached_lowest = start_address;
     cached_highest = start_address + static_cast<u32>(size_bytes);
-    code.resize(CachedSize());
+    code.resize(CachedSizeWords());
     gpu_memory->ReadBlock(program_base + cached_lowest, code.data(), code.size() * sizeof(u64));
 }
 
-size_t GenericEnvironment::CachedSize() const noexcept {
-    return cached_highest - cached_lowest + INST_SIZE;
+size_t GenericEnvironment::CachedSizeWords() const noexcept {
+    return CachedSizeBytes() / INST_SIZE;
 }
 
-size_t GenericEnvironment::ReadSize() const noexcept {
+size_t GenericEnvironment::CachedSizeBytes() const noexcept {
+    return static_cast<size_t>(cached_highest) - cached_lowest + INST_SIZE;
+}
+
+size_t GenericEnvironment::ReadSizeBytes() const noexcept {
     return read_highest - read_lowest + INST_SIZE;
 }
 
@@ -187,7 +191,7 @@ bool GenericEnvironment::CanBeSerialized() const noexcept {
 }
 
 u64 GenericEnvironment::CalculateHash() const {
-    const size_t size{ReadSize()};
+    const size_t size{ReadSizeBytes()};
     const auto data{std::make_unique<char[]>(size)};
     gpu_memory->ReadBlock(program_base + read_lowest, data.get(), size);
     return Common::CityHash64(data.get(), size);
@@ -198,7 +202,7 @@ void GenericEnvironment::Dump(u64 hash) {
 }
 
 void GenericEnvironment::Serialize(std::ofstream& file) const {
-    const u64 code_size{static_cast<u64>(CachedSize())};
+    const u64 code_size{static_cast<u64>(CachedSizeBytes())};
     const u64 num_texture_types{static_cast<u64>(texture_types.size())};
     const u64 num_texture_pixel_formats{static_cast<u64>(texture_pixel_formats.size())};
     const u64 num_cbuf_values{static_cast<u64>(cbuf_values.size())};

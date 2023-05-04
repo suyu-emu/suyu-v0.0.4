@@ -228,14 +228,14 @@ const ShaderInfo* ShaderCache::MakeShaderInfo(GenericEnvironment& env, VAddr cpu
     auto info = std::make_unique<ShaderInfo>();
     if (const std::optional<u64> cached_hash{env.Analyze()}) {
         info->unique_hash = *cached_hash;
-        info->size_bytes = env.CachedSize();
+        info->size_bytes = env.CachedSizeBytes();
     } else {
         // Slow path, not really hit on commercial games
         // Build a control flow graph to get the real shader size
         Shader::ObjectPool<Shader::Maxwell::Flow::Block> flow_block;
         Shader::Maxwell::Flow::CFG cfg{env, flow_block, env.StartAddress()};
         info->unique_hash = env.CalculateHash();
-        info->size_bytes = env.ReadSize();
+        info->size_bytes = env.ReadSizeBytes();
     }
     const size_t size_bytes{info->size_bytes};
     const ShaderInfo* const result{info.get()};
