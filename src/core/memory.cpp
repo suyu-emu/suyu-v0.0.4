@@ -20,7 +20,6 @@
 #include "video_core/gpu.h"
 #include "video_core/rasterizer_download_area.h"
 
-
 namespace Core::Memory {
 
 // Implementation class used to keep the specifics of the memory subsystem hidden
@@ -465,7 +464,8 @@ struct Memory::Impl {
         }
 
         if (Settings::IsFastmemEnabled()) {
-            const bool is_read_enable = !Settings::values.use_reactive_flushing.GetValue() || !cached;
+            const bool is_read_enable =
+                !Settings::values.use_reactive_flushing.GetValue() || !cached;
             system.DeviceMemory().buffer.Protect(vaddr, size, is_read_enable, !cached);
         }
 
@@ -654,9 +654,7 @@ struct Memory::Impl {
                 LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8,
                           GetInteger(vaddr));
             },
-            [&]() {
-                HandleRasterizerDownload(GetInteger(vaddr), sizeof(T));
-            });
+            [&]() { HandleRasterizerDownload(GetInteger(vaddr), sizeof(T)); });
         if (ptr) {
             std::memcpy(&result, ptr, sizeof(T));
         }
@@ -721,7 +719,8 @@ struct Memory::Impl {
         const size_t core = system.GetCurrentHostThreadID();
         auto& current_area = rasterizer_areas[core];
         const VAddr end_address = address + size;
-        if (current_area.start_address <= address && end_address <= current_area.end_address) [[likely]] {
+        if (current_area.start_address <= address && end_address <= current_area.end_address)
+            [[likely]] {
             return;
         }
         current_area = system.GPU().OnCPURead(address, size);

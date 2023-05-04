@@ -55,7 +55,12 @@ public:
 
     // Unlike other fences, this one doesn't
     void SignalOrdering() {
-        std::function<void()> do_nothing([]{});
+        std::scoped_lock lock{buffer_cache.mutex};
+        buffer_cache.AccumulateFlushes();
+    }
+
+    void SignalReference() {
+        std::function<void()> do_nothing([] {});
         SignalFence(std::move(do_nothing));
     }
 
