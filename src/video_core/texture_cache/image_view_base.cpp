@@ -4,7 +4,6 @@
 #include <algorithm>
 
 #include "common/assert.h"
-#include "common/settings.h"
 #include "video_core/compatible_formats.h"
 #include "video_core/surface.h"
 #include "video_core/texture_cache/formatter.h"
@@ -26,9 +25,7 @@ ImageViewBase::ImageViewBase(const ImageViewInfo& info, const ImageInfo& image_i
     ASSERT_MSG(VideoCore::Surface::IsViewCompatible(image_info.format, info.format, false, true),
                "Image view format {} is incompatible with image format {}", info.format,
                image_info.format);
-    const bool preemptive =
-        !Settings::values.use_reactive_flushing.GetValue() && image_info.type == ImageType::Linear;
-    if (image_info.forced_flushed || preemptive) {
+    if (image_info.forced_flushed) {
         flags |= ImageViewFlagBits::PreemtiveDownload;
     }
     if (image_info.type == ImageType::e3D && info.type != ImageViewType::e3D) {
