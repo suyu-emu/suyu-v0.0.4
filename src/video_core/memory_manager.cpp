@@ -82,6 +82,7 @@ void MemoryManager::SetEntry(size_t position, MemoryManager::EntryType entry) {
 }
 
 PTEKind MemoryManager::GetPageKind(GPUVAddr gpu_addr) const {
+    std::unique_lock<std::mutex> lock(guard);
     return kind_map.GetValueAt(gpu_addr);
 }
 
@@ -160,7 +161,10 @@ GPUVAddr MemoryManager::BigPageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr
         }
         remaining_size -= big_page_size;
     }
-    kind_map.Map(gpu_addr, gpu_addr + size, kind);
+    {
+        std::unique_lock<std::mutex> lock(guard);
+        kind_map.Map(gpu_addr, gpu_addr + size, kind);
+    }
     return gpu_addr;
 }
 
@@ -170,7 +174,6 @@ void MemoryManager::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) 
 
 GPUVAddr MemoryManager::Map(GPUVAddr gpu_addr, VAddr cpu_addr, std::size_t size, PTEKind kind,
                             bool is_big_pages) {
-    std::unique_lock<std::mutex> lock(guard);
     if (is_big_pages) [[likely]] {
         return BigPageTableOp<EntryType::Mapped>(gpu_addr, cpu_addr, size, kind);
     }
@@ -178,7 +181,6 @@ GPUVAddr MemoryManager::Map(GPUVAddr gpu_addr, VAddr cpu_addr, std::size_t size,
 }
 
 GPUVAddr MemoryManager::MapSparse(GPUVAddr gpu_addr, std::size_t size, bool is_big_pages) {
-    std::unique_lock<std::mutex> lock(guard);
     if (is_big_pages) [[likely]] {
         return BigPageTableOp<EntryType::Reserved>(gpu_addr, 0, size, PTEKind::INVALID);
     }
@@ -189,7 +191,6 @@ void MemoryManager::Unmap(GPUVAddr gpu_addr, std::size_t size) {
     if (size == 0) {
         return;
     }
-    std::unique_lock<std::mutex> lock(guard);
     GetSubmappedRangeImpl<false>(gpu_addr, size, page_stash);
 
     for (const auto& [map_addr, map_size] : page_stash) {
