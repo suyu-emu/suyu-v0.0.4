@@ -302,6 +302,9 @@ public:
                  (pending_pointer - pending_offset) * BYTES_PER_PAGE);
         };
         IterateWords(offset, size, [&](size_t index, u64 mask) {
+            if constexpr (type == Type::GPU) {
+                mask &= ~untracked_words[index];
+            }
             const u64 word = state_words[index] & mask;
             if constexpr (clear) {
                 if constexpr (type == Type::CPU || type == Type::CachedCPU) {
@@ -350,8 +353,13 @@ public:
         static_assert(type != Type::Untracked);
 
         const std::span<const u64> state_words = words.template Span<type>();
+        [[maybe_unused]] const std::span<const u64> untracked_words =
+            words.template Span<Type::Untracked>();
         bool result = false;
         IterateWords(offset, size, [&](size_t index, u64 mask) {
+            if constexpr (type == Type::GPU) {
+                mask &= ~untracked_words[index];
+            }
             const u64 word = state_words[index] & mask;
             if (word != 0) {
                 result = true;
@@ -372,9 +380,14 @@ public:
     [[nodiscard]] std::pair<u64, u64> ModifiedRegion(u64 offset, u64 size) const noexcept {
         static_assert(type != Type::Untracked);
         const std::span<const u64> state_words = words.template Span<type>();
+        [[maybe_unused]] const std::span<const u64> untracked_words =
+            words.template Span<Type::Untracked>();
         u64 begin = std::numeric_limits<u64>::max();
         u64 end = 0;
         IterateWords(offset, size, [&](size_t index, u64 mask) {
+            if constexpr (type == Type::GPU) {
+                mask &= ~untracked_words[index];
+            }
             const u64 word = state_words[index] & mask;
             if (word == 0) {
                 return;

@@ -572,8 +572,6 @@ private:
     u64 critical_memory = 0;
     BufferId inline_buffer_id;
 
-    bool active_async_buffers = false;
-
     std::array<BufferId, ((1ULL << 39) >> CACHING_PAGEBITS)> page_table;
     std::vector<u8> tmp_buffer;
 };

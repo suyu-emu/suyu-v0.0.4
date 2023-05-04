@@ -535,12 +535,12 @@ TEST_CASE("MemoryTracker: Cached write downloads") {
     memory_track->MarkRegionAsGpuModified(c + PAGE, PAGE);
     int num = 0;
     memory_track->ForEachDownloadRangeAndClear(c, WORD, [&](u64 offset, u64 size) { ++num; });
-    REQUIRE(num == 1);
+    REQUIRE(num == 0);
     num = 0;
     memory_track->ForEachUploadRange(c, WORD, [&](u64 offset, u64 size) { ++num; });
     REQUIRE(num == 0);
     REQUIRE(!memory_track->IsRegionCpuModified(c + PAGE, PAGE));
-    REQUIRE(!memory_track->IsRegionGpuModified(c + PAGE, PAGE));
+    REQUIRE(memory_track->IsRegionGpuModified(c + PAGE, PAGE));
     memory_track->FlushCachedWrites();
     REQUIRE(memory_track->IsRegionCpuModified(c + PAGE, PAGE));
     REQUIRE(!memory_track->IsRegionGpuModified(c + PAGE, PAGE));
