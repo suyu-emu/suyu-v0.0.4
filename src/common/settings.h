@@ -5,6 +5,8 @@
 
 #include <algorithm>
 #include <array>
+#include <forward_list>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
@@ -124,6 +126,8 @@ struct ResolutionScalingInfo {
         return std::max((value * up_scale) >> down_shift, 1U);
     }
 };
+
+static std::forward_list<std::function<void()>> global_reset_registry;
 
 /** The Setting class is a simple resource manager. It defines a label and default value alongside
  * the actual value of the setting for simpler and less-error prone use with frontend
@@ -255,7 +259,9 @@ public:
      */
     explicit SwitchableSetting(const Type& default_val, const std::string& name)
         requires(!ranged)
-        : Setting<Type>{default_val, name} {}
+        : Setting<Type>{default_val, name} {
+        global_reset_registry.push_front([this]() { this->SetGlobal(true); });
+    }
     virtual ~SwitchableSetting() = default;
 
     /**
@@ -269,7 +275,9 @@ public:
     explicit SwitchableSetting(const Type& default_val, const Type& min_val, const Type& max_val,
                                const std::string& name)
         requires(ranged)
-        : Setting<Type, true>{default_val, min_val, max_val, name} {}
+        : Setting<Type, true>{default_val, min_val, max_val, name} {
+        global_reset_registry.push_front([this]() { this->SetGlobal(true); });
+    }
 
     /**
      * Tells this setting to represent either the global or custom setting when other member

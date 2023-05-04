@@ -7,6 +7,7 @@
 #include <exception>
 #include <stdexcept>
 #endif
+#include <functional>
 #include <string_view>
 
 #include "common/assert.h"
@@ -210,65 +211,9 @@ void RestoreGlobalState(bool is_powered_on) {
         return;
     }
 
-    // Audio
-    values.volume.SetGlobal(true);
-
-    // Core
-    values.use_multi_core.SetGlobal(true);
-    values.use_unsafe_extended_memory_layout.SetGlobal(true);
-
-    // CPU
-    values.cpu_accuracy.SetGlobal(true);
-    values.cpuopt_unsafe_unfuse_fma.SetGlobal(true);
-    values.cpuopt_unsafe_reduce_fp_error.SetGlobal(true);
-    values.cpuopt_unsafe_ignore_standard_fpcr.SetGlobal(true);
-    values.cpuopt_unsafe_inaccurate_nan.SetGlobal(true);
-    values.cpuopt_unsafe_fastmem_check.SetGlobal(true);
-    values.cpuopt_unsafe_ignore_global_monitor.SetGlobal(true);
-
-    // Renderer
-    values.fsr_sharpening_slider.SetGlobal(true);
-    values.renderer_backend.SetGlobal(true);
-    values.async_presentation.SetGlobal(true);
-    values.renderer_force_max_clock.SetGlobal(true);
-    values.vulkan_device.SetGlobal(true);
-    values.fullscreen_mode.SetGlobal(true);
-    values.aspect_ratio.SetGlobal(true);
-    values.resolution_setup.SetGlobal(true);
-    values.scaling_filter.SetGlobal(true);
-    values.anti_aliasing.SetGlobal(true);
-    values.max_anisotropy.SetGlobal(true);
-    values.use_speed_limit.SetGlobal(true);
-    values.speed_limit.SetGlobal(true);
-    values.use_disk_shader_cache.SetGlobal(true);
-    values.gpu_accuracy.SetGlobal(true);
-    values.use_asynchronous_gpu_emulation.SetGlobal(true);
-    values.nvdec_emulation.SetGlobal(true);
-    values.accelerate_astc.SetGlobal(true);
-    values.astc_recompression.SetGlobal(true);
-    values.use_reactive_flushing.SetGlobal(true);
-    values.shader_backend.SetGlobal(true);
-    values.use_asynchronous_shaders.SetGlobal(true);
-    values.use_fast_gpu_time.SetGlobal(true);
-    values.use_vulkan_driver_pipeline_cache.SetGlobal(true);
-    values.bg_red.SetGlobal(true);
-    values.bg_green.SetGlobal(true);
-    values.bg_blue.SetGlobal(true);
-    values.enable_compute_pipelines.SetGlobal(true);
-    values.use_video_framerate.SetGlobal(true);
-
-    // System
-    values.language_index.SetGlobal(true);
-    values.region_index.SetGlobal(true);
-    values.time_zone_index.SetGlobal(true);
-    values.rng_seed.SetGlobal(true);
-    values.sound_index.SetGlobal(true);
-
-    // Controls
-    values.players.SetGlobal(true);
-    values.use_docked_mode.SetGlobal(true);
-    values.vibration_enabled.SetGlobal(true);
-    values.motion_enabled.SetGlobal(true);
+    for (const auto& reset : global_reset_registry) {
+        reset();
+    }
 }
 
 } // namespace Settings
