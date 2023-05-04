@@ -230,6 +230,10 @@ void Config::ReadValues() {
     Settings::values.renderer_force_max_clock =
         config->GetBoolean("Renderer", "force_max_clock", true);
 
+    // Enable asynchronous presentation by default on Android
+    Settings::values.async_presentation =
+        config->GetBoolean("Renderer", "async_presentation", true);
+
     // Audio
     ReadSetting("Audio", Settings::values.sink_id);
     ReadSetting("Audio", Settings::values.audio_output_device_id);
