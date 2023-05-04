@@ -194,14 +194,13 @@ void ConfigureGraphics::SetConfiguration() {
     ui->use_disk_shader_cache->setEnabled(runtime_lock);
     ui->nvdec_emulation_widget->setEnabled(runtime_lock);
     ui->resolution_combobox->setEnabled(runtime_lock);
-    ui->accelerate_astc->setEnabled(runtime_lock);
+    ui->astc_decode_mode_combobox->setEnabled(runtime_lock);
     ui->vsync_mode_layout->setEnabled(runtime_lock ||
                                       Settings::values.renderer_backend.GetValue() ==
                                           Settings::RendererBackend::Vulkan);
     ui->use_disk_shader_cache->setChecked(Settings::values.use_disk_shader_cache.GetValue());
     ui->use_asynchronous_gpu_emulation->setChecked(
         Settings::values.use_asynchronous_gpu_emulation.GetValue());
-    ui->accelerate_astc->setChecked(Settings::values.accelerate_astc.GetValue());
 
     if (Settings::IsConfiguringGlobal()) {
         ui->api->setCurrentIndex(static_cast<int>(Settings::values.renderer_backend.GetValue()));
@@ -221,6 +220,11 @@ void ConfigureGraphics::SetConfiguration() {
         ConfigurationShared::SetPerGameSetting(ui->api, &Settings::values.renderer_backend);
         ConfigurationShared::SetHighlight(ui->api_widget,
                                           !Settings::values.renderer_backend.UsingGlobal());
+
+        ConfigurationShared::SetPerGameSetting(ui->astc_decode_mode_combobox,
+                                               &Settings::values.accelerate_astc);
+        ConfigurationShared::SetHighlight(ui->astc_decode_mode_layout,
+                                          !Settings::values.accelerate_astc.UsingGlobal());
 
         ConfigurationShared::SetPerGameSetting(ui->nvdec_emulation,
                                                &Settings::values.nvdec_emulation);
@@ -337,8 +341,8 @@ void ConfigureGraphics::ApplyConfiguration() {
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_asynchronous_gpu_emulation,
                                              ui->use_asynchronous_gpu_emulation,
                                              use_asynchronous_gpu_emulation);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.accelerate_astc, ui->accelerate_astc,
-                                             accelerate_astc);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.accelerate_astc,
+                                             ui->astc_decode_mode_combobox);
 
     if (Settings::IsConfiguringGlobal()) {
         // Guard if during game and set to game-specific value
@@ -555,7 +559,7 @@ void ConfigureGraphics::SetupPerGameUI() {
         ui->use_asynchronous_gpu_emulation->setEnabled(
             Settings::values.use_asynchronous_gpu_emulation.UsingGlobal());
         ui->nvdec_emulation->setEnabled(Settings::values.nvdec_emulation.UsingGlobal());
-        ui->accelerate_astc->setEnabled(Settings::values.accelerate_astc.UsingGlobal());
+        ui->astc_decode_mode_combobox->setEnabled(Settings::values.accelerate_astc.UsingGlobal());
         ui->use_disk_shader_cache->setEnabled(Settings::values.use_disk_shader_cache.UsingGlobal());
         ui->bg_button->setEnabled(Settings::values.bg_red.UsingGlobal());
         ui->fsr_slider_layout->setEnabled(Settings::values.fsr_sharpening_slider.UsingGlobal());
@@ -577,8 +581,6 @@ void ConfigureGraphics::SetupPerGameUI() {
 
     ConfigurationShared::SetColoredTristate(
         ui->use_disk_shader_cache, Settings::values.use_disk_shader_cache, use_disk_shader_cache);
-    ConfigurationShared::SetColoredTristate(ui->accelerate_astc, Settings::values.accelerate_astc,
-                                            accelerate_astc);
     ConfigurationShared::SetColoredTristate(ui->use_asynchronous_gpu_emulation,
                                             Settings::values.use_asynchronous_gpu_emulation,
                                             use_asynchronous_gpu_emulation);
@@ -597,6 +599,9 @@ void ConfigureGraphics::SetupPerGameUI() {
     ConfigurationShared::SetColoredComboBox(
         ui->anti_aliasing_combobox, ui->anti_aliasing_label,
         static_cast<int>(Settings::values.anti_aliasing.GetValue(true)));
+    ConfigurationShared::SetColoredComboBox(
+        ui->astc_decode_mode_combobox, ui->astc_decode_mode_label,
+        static_cast<int>(Settings::values.accelerate_astc.GetValue(true)));
     ConfigurationShared::InsertGlobalItem(
         ui->api, static_cast<int>(Settings::values.renderer_backend.GetValue(true)));
     ConfigurationShared::InsertGlobalItem(

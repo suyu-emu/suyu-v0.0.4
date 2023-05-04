@@ -99,6 +99,18 @@ static constexpr const char* TranslateVSyncMode(Settings::VSyncMode mode) {
     return "Unknown";
 }
 
+static constexpr const char* TranslateASTCDecodeMode(Settings::AstcDecodeMode mode) {
+    switch (mode) {
+    case Settings::AstcDecodeMode::CPU:
+        return "CPU";
+    case Settings::AstcDecodeMode::GPU:
+        return "GPU";
+    case Settings::AstcDecodeMode::CPUAsynchronous:
+        return "CPU Asynchronous";
+    }
+    return "Unknown";
+}
+
 u64 GetTelemetryId() {
     u64 telemetry_id{};
     const auto filename = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "telemetry_id";
@@ -254,7 +266,8 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader,
              Settings::values.use_asynchronous_gpu_emulation.GetValue());
     AddField(field_type, "Renderer_NvdecEmulation",
              TranslateNvdecEmulation(Settings::values.nvdec_emulation.GetValue()));
-    AddField(field_type, "Renderer_AccelerateASTC", Settings::values.accelerate_astc.GetValue());
+    AddField(field_type, "Renderer_AccelerateASTC",
+             TranslateASTCDecodeMode(Settings::values.accelerate_astc.GetValue()));
     AddField(field_type, "Renderer_UseVsync",
              TranslateVSyncMode(Settings::values.vsync_mode.GetValue()));
     AddField(field_type, "Renderer_ShaderBackend",

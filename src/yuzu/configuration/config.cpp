@@ -764,10 +764,8 @@ void Config::ReadRendererValues() {
     ReadGlobalSetting(Settings::values.use_asynchronous_gpu_emulation);
     ReadGlobalSetting(Settings::values.nvdec_emulation);
     ReadGlobalSetting(Settings::values.accelerate_astc);
-    ReadGlobalSetting(Settings::values.async_astc);
     ReadGlobalSetting(Settings::values.astc_recompression);
     ReadGlobalSetting(Settings::values.use_reactive_flushing);
-    ReadGlobalSetting(Settings::values.shader_backend);
     ReadGlobalSetting(Settings::values.use_asynchronous_shaders);
     ReadGlobalSetting(Settings::values.use_fast_gpu_time);
     ReadGlobalSetting(Settings::values.use_vulkan_driver_pipeline_cache);
@@ -1428,13 +1426,19 @@ void Config::SaveRendererValues() {
                  static_cast<u32>(Settings::values.nvdec_emulation.GetValue(global)),
                  static_cast<u32>(Settings::values.nvdec_emulation.GetDefault()),
                  Settings::values.nvdec_emulation.UsingGlobal());
-    WriteGlobalSetting(Settings::values.accelerate_astc);
-    WriteGlobalSetting(Settings::values.async_astc);
+    WriteSetting(QString::fromStdString(Settings::values.accelerate_astc.GetLabel()),
+                 static_cast<u32>(Settings::values.accelerate_astc.GetValue(global)),
+                 static_cast<u32>(Settings::values.accelerate_astc.GetDefault()),
+                 Settings::values.accelerate_astc.UsingGlobal());
     WriteSetting(QString::fromStdString(Settings::values.astc_recompression.GetLabel()),
                  static_cast<u32>(Settings::values.astc_recompression.GetValue(global)),
                  static_cast<u32>(Settings::values.astc_recompression.GetDefault()),
                  Settings::values.astc_recompression.UsingGlobal());
     WriteGlobalSetting(Settings::values.use_reactive_flushing);
+    WriteSetting(QString::fromStdString(Settings::values.accelerate_astc.GetLabel()),
+                 static_cast<u32>(Settings::values.accelerate_astc.GetValue(global)),
+                 static_cast<u32>(Settings::values.accelerate_astc.GetDefault()),
+                 Settings::values.shader_backend.UsingGlobal());
     WriteSetting(QString::fromStdString(Settings::values.shader_backend.GetLabel()),
                  static_cast<u32>(Settings::values.shader_backend.GetValue(global)),
                  static_cast<u32>(Settings::values.shader_backend.GetDefault()),

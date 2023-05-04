@@ -16,6 +16,12 @@
 
 namespace Settings {
 
+enum class AstcDecodeMode : u32 {
+    CPU = 0,
+    GPU = 1,
+    CPUAsynchronous = 2,
+};
+
 enum class VSyncMode : u32 {
     Immediate = 0,
     Mailbox = 1,
@@ -467,8 +473,9 @@ struct Values {
                                                       GPUAccuracy::Extreme, "gpu_accuracy"};
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{true, "use_asynchronous_gpu_emulation"};
     SwitchableSetting<NvdecEmulation> nvdec_emulation{NvdecEmulation::GPU, "nvdec_emulation"};
-    SwitchableSetting<bool> accelerate_astc{true, "accelerate_astc"};
-    SwitchableSetting<bool> async_astc{false, "async_astc"};
+    SwitchableSetting<AstcDecodeMode, true> accelerate_astc{
+        AstcDecodeMode::CPU, AstcDecodeMode::CPU, AstcDecodeMode::CPUAsynchronous,
+        "accelerate_astc"};
     Setting<VSyncMode, true> vsync_mode{VSyncMode::FIFO, VSyncMode::Immediate,
                                         VSyncMode::FIFORelaxed, "use_vsync"};
     SwitchableSetting<bool> use_reactive_flushing{true, "use_reactive_flushing"};
