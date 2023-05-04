@@ -126,7 +126,8 @@ std::optional<VideoCore::RasterizerDownloadArea> BufferCache<P>::GetFlushArea(VA
         area->preemtive = true;
         return area;
     };
-    memory_tracker.MarkRegionAsPreflushable(cpu_addr_start_aligned, cpu_addr_end_aligned - cpu_addr_start_aligned);
+    memory_tracker.MarkRegionAsPreflushable(cpu_addr_start_aligned,
+                                            cpu_addr_end_aligned - cpu_addr_start_aligned);
     area->preemtive = !IsRegionGpuModified(cpu_addr, size);
     return area;
 }
@@ -206,7 +207,8 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
         const VAddr new_base_address = *cpu_dest_address + diff;
         const IntervalType add_interval{new_base_address, new_base_address + size};
         tmp_intervals.push_back(add_interval);
-        if (memory_tracker.IsRegionPreflushable(new_base_address, new_base_address + size)) {
+        if (!Settings::values.use_reactive_flushing.GetValue() ||
+            memory_tracker.IsRegionPreflushable(new_base_address, new_base_address + size)) {
             uncommitted_ranges.add(add_interval);
             pending_ranges.add(add_interval);
         }
@@ -1236,7 +1238,8 @@ void BufferCache<P>::MarkWrittenBuffer(BufferId buffer_id, VAddr cpu_addr, u32 s
 
     const IntervalType base_interval{cpu_addr, cpu_addr + size};
     common_ranges.add(base_interval);
-    if (!memory_tracker.IsRegionPreflushable(cpu_addr, cpu_addr + size)) {
+    if (Settings::values.use_reactive_flushing.GetValue() &&
+        !memory_tracker.IsRegionPreflushable(cpu_addr, cpu_addr + size)) {
         return;
     }
     uncommitted_ranges.add(base_interval);

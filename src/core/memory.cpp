@@ -465,7 +465,8 @@ struct Memory::Impl {
         }
 
         if (Settings::IsFastmemEnabled()) {
-            system.DeviceMemory().buffer.Protect(vaddr, size, !cached, !cached);
+            const bool is_read_enable = !Settings::values.use_reactive_flushing.GetValue() || !cached;
+            system.DeviceMemory().buffer.Protect(vaddr, size, is_read_enable, !cached);
         }
 
         // Iterate over a contiguous CPU address space, which corresponds to the specified GPU

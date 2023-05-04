@@ -340,6 +340,10 @@ use_vsync =
 # 0: GLSL, 1 (default): GLASM, 2: SPIR-V
 shader_backend =
 
+# Uses reactive flushing instead of predictive flushing. Allowing a more accurate syncing of memory.
+# 0: Off, 1 (default): On
+use_reactive_flushing =
+
 # Whether to allow asynchronous shader building.
 # 0 (default): Off, 1: On
 use_asynchronous_shaders =

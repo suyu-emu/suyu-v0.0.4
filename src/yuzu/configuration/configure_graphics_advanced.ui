@@ -97,6 +97,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="use_reactive_flushing">
+          <property name="toolTip">
+           <string>Uses reactive flushing instead of predictive flushing. Allowing a more accurate syncing of memory.</string>
+          </property>
+          <property name="text">
+           <string>Enable Reactive Flushing</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QCheckBox" name="use_asynchronous_shaders">
           <property name="toolTip">
            <string>Enables asynchronous shader compilation, which may reduce shader stutter. This feature is experimental.</string>

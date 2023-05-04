@@ -312,6 +312,7 @@ void Config::ReadValues() {
     ReadSetting("Renderer", Settings::values.use_asynchronous_gpu_emulation);
     ReadSetting("Renderer", Settings::values.vsync_mode);
     ReadSetting("Renderer", Settings::values.shader_backend);
+    ReadSetting("Renderer", Settings::values.use_reactive_flushing);
     ReadSetting("Renderer", Settings::values.use_asynchronous_shaders);
     ReadSetting("Renderer", Settings::values.nvdec_emulation);
     ReadSetting("Renderer", Settings::values.accelerate_astc);
