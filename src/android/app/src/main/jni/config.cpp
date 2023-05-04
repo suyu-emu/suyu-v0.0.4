@@ -217,6 +217,7 @@ void Config::ReadValues() {
     ReadSetting("Renderer", Settings::values.accelerate_astc);
     ReadSetting("Renderer", Settings::values.use_fast_gpu_time);
     ReadSetting("Renderer", Settings::values.use_vulkan_driver_pipeline_cache);
+    ReadSetting("Renderer", Settings::values.async_presentation);
 
     // Use GPU accuracy normal by default on Android
     Settings::values.gpu_accuracy = static_cast<Settings::GPUAccuracy>(config->GetInteger(
@@ -229,10 +230,6 @@ void Config::ReadValues() {
     // Enable force_max_clock by default on Android
     Settings::values.renderer_force_max_clock =
         config->GetBoolean("Renderer", "force_max_clock", true);
-
-    // Enable asynchronous presentation by default on Android
-    Settings::values.async_presentation =
-        config->GetBoolean("Renderer", "async_presentation", true);
 
     // Audio
     ReadSetting("Audio", Settings::values.sink_id);

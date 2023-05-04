@@ -54,9 +54,6 @@ public:
 private:
     InputCommon::InputSubsystem* m_input_subsystem{};
 
-    ANativeWindow* m_render_window{};
-    ANativeWindow* m_host_window{};
-
     float m_window_width{};
     float m_window_height{};
 

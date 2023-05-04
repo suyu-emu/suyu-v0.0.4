@@ -8,7 +8,7 @@
 #include "jni/emu_window/emu_window.h"
 
 void EmuWindow_Android::OnSurfaceChanged(ANativeWindow* surface) {
-    m_render_window = surface;
+    window_info.render_surface = reinterpret_cast<void*>(surface);
 }
 
 void EmuWindow_Android::OnTouchPressed(int id, float x, float y) {
@@ -37,7 +37,7 @@ void EmuWindow_Android::OnGamepadMotionEvent(int player_index, u64 delta_timesta
                                              float gyro_y, float gyro_z, float accel_x,
                                              float accel_y, float accel_z) {
     m_input_subsystem->GetVirtualGamepad()->SetMotionState(
-            player_index, delta_timestamp, gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z);
+        player_index, delta_timestamp, gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z);
 }
 
 void EmuWindow_Android::OnReadNfcTag(std::span<u8> data) {
@@ -65,9 +65,8 @@ EmuWindow_Android::EmuWindow_Android(InputCommon::InputSubsystem* input_subsyste
     // Ensures that we emulate with the correct aspect ratio.
     UpdateCurrentFramebufferLayout(m_window_width, m_window_height);
 
-    m_host_window = surface;
     window_info.type = Core::Frontend::WindowSystemType::Android;
-    window_info.render_surface = reinterpret_cast<void*>(m_host_window);
+    window_info.render_surface = reinterpret_cast<void*>(surface);
 
     m_input_subsystem->Initialize();
 }
