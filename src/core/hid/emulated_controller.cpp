@@ -551,6 +551,8 @@ void EmulatedController::EnableSystemButtons() {
 void EmulatedController::DisableSystemButtons() {
     std::scoped_lock lock{mutex};
     system_buttons_enabled = false;
+    controller.home_button_state.raw = 0;
+    controller.capture_button_state.raw = 0;
 }
 
 void EmulatedController::ResetSystemButtons() {
@@ -734,6 +736,8 @@ void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback
     if (is_configuring) {
         controller.npad_button_state.raw = NpadButton::None;
         controller.debug_pad_button_state.raw = 0;
+        controller.home_button_state.raw = 0;
+        controller.capture_button_state.raw = 0;
         lock.unlock();
         TriggerOnChange(ControllerTriggerType::Button, false);
         return;
