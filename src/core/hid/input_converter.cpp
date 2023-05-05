@@ -54,6 +54,7 @@ Common::Input::ButtonStatus TransformToButton(const Common::Input::CallbackStatu
     case Common::Input::InputType::Analog:
         status.value = TransformToTrigger(callback).pressed.value;
         status.toggle = callback.analog_status.properties.toggle;
+        status.inverted = callback.analog_status.properties.inverted_button;
         break;
     case Common::Input::InputType::Trigger:
         status.value = TransformToTrigger(callback).pressed.value;

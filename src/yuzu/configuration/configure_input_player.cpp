@@ -206,7 +206,7 @@ QString ConfigureInputPlayer::ButtonToText(const Common::ParamPackage& param) {
         }
         if (param.Has("axis")) {
             const QString axis = QString::fromStdString(param.Get("axis", ""));
-            return QObject::tr("%1%2Axis %3").arg(toggle, invert, axis);
+            return QObject::tr("%1%2%3Axis %4").arg(toggle, inverted, invert, axis);
         }
         if (param.Has("axis_x") && param.Has("axis_y") && param.Has("axis_z")) {
             const QString axis_x = QString::fromStdString(param.Get("axis_x", ""));
@@ -229,7 +229,7 @@ QString ConfigureInputPlayer::ButtonToText(const Common::ParamPackage& param) {
         return QObject::tr("%1%2%3Hat %4").arg(turbo, toggle, inverted, button_name);
     }
     if (param.Has("axis")) {
-        return QObject::tr("%1%2Axis %3").arg(toggle, inverted, button_name);
+        return QObject::tr("%1%2%3Axis %4").arg(toggle, inverted, invert, button_name);
     }
     if (param.Has("motion")) {
         return QObject::tr("%1%2Axis %3").arg(toggle, inverted, button_name);
@@ -407,6 +407,12 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                         context_menu.addAction(tr("Invert axis"), [&] {
                             const bool toggle_value = !(param.Get("invert", "+") == "-");
                             param.Set("invert", toggle_value ? "-" : "+");
+                            button_map[button_id]->setText(ButtonToText(param));
+                            emulated_controller->SetButtonParam(button_id, param);
+                        });
+                        context_menu.addAction(tr("Invert button"), [&] {
+                            const bool invert_value = !param.Get("inverted", false);
+                            param.Set("inverted", invert_value);
                             button_map[button_id]->setText(ButtonToText(param));
                             emulated_controller->SetButtonParam(button_id, param);
                         });

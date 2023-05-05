@@ -939,6 +939,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateAnalogDevice(
         .threshold = std::clamp(params.Get("threshold", 0.5f), 0.0f, 1.0f),
         .offset = std::clamp(params.Get("offset", 0.0f), -1.0f, 1.0f),
         .inverted = params.Get("invert", "+") == "-",
+        .inverted_button = params.Get("inverted", false) != 0,
         .toggle = params.Get("toggle", false) != 0,
     };
     input_engine->PreSetController(identifier);

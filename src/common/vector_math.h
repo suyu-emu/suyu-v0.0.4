@@ -265,7 +265,7 @@ public:
         z = std::sin(roll) * temp + std::cos(roll) * z;
 
         temp = x;
-        x = std::cosf(pitch) * x + std::sin(pitch) * z;
+        x = std::cos(pitch) * x + std::sin(pitch) * z;
         z = -std::sin(pitch) * temp + std::cos(pitch) * z;
 
         temp = x;
