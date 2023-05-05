@@ -111,6 +111,8 @@ struct AnalogProperties {
     float offset{};
     // Invert direction of the sensor data
     bool inverted{};
+    // Invert the state if it's converted to a button
+    bool inverted_button{};
     // Press once to activate, press again to release
     bool toggle{};
 };
