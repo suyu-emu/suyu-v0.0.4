@@ -5,9 +5,22 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QWidget>
+#include <qobjectdefs.h>
 #include "common/settings.h"
 
 namespace ConfigurationShared {
+
+class Tab : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit Tab(QWidget* parent = nullptr);
+    ~Tab();
+
+    virtual void ApplyConfiguration() = 0;
+    virtual void SetConfiguration() = 0;
+};
 
 constexpr int USE_GLOBAL_INDEX = 0;
 constexpr int USE_GLOBAL_SEPARATOR_INDEX = 1;

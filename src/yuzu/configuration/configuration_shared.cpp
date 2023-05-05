@@ -4,9 +4,18 @@
 #include <QCheckBox>
 #include <QObject>
 #include <QString>
+#include <QWidget>
 #include "common/settings.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_per_game.h"
+
+namespace ConfigurationShared {
+
+Tab::Tab(QWidget* parent) : QWidget(parent) {}
+
+Tab::~Tab() {}
+
+} // namespace ConfigurationShared
 
 void ConfigurationShared::ApplyPerGameSetting(Settings::SwitchableSetting<bool>* setting,
                                               const QCheckBox* checkbox,
