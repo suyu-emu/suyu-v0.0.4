@@ -4,18 +4,8 @@
 #include <memory>
 #include <optional>
 #include <sstream>
-
-// Ignore -Wimplicit-fallthrough due to https://github.com/libsdl-org/SDL/issues/4307
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wimplicit-fallthrough"
-#endif
-#include <SDL.h>
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-
 #include <INIReader.h>
+#include <SDL.h>
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"

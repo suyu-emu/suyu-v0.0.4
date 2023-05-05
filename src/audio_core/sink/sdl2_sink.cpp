@@ -3,22 +3,13 @@
 
 #include <span>
 #include <vector>
+#include <SDL.h>
 
 #include "audio_core/common/common.h"
 #include "audio_core/sink/sdl2_sink.h"
 #include "audio_core/sink/sink_stream.h"
 #include "common/logging/log.h"
 #include "core/core.h"
-
-// Ignore -Wimplicit-fallthrough due to https://github.com/libsdl-org/SDL/issues/4307
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wimplicit-fallthrough"
-#endif
-#include <SDL.h>
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
 
 namespace AudioCore::Sink {
 /**
