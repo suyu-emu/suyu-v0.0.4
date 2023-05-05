@@ -35,6 +35,7 @@ public:
     void SetAcceleration(const Common::Vec3f& acceleration);
     void SetGyroscope(const Common::Vec3f& gyroscope);
     void SetQuaternion(const Common::Quaternion<f32>& quaternion);
+    void SetEulerAngles(const Common::Vec3f& euler_angles);
     void SetGyroBias(const Common::Vec3f& bias);
     void SetGyroThreshold(f32 threshold);
 
@@ -54,6 +55,7 @@ public:
     [[nodiscard]] Common::Vec3f GetGyroBias() const;
     [[nodiscard]] Common::Vec3f GetRotations() const;
     [[nodiscard]] Common::Quaternion<f32> GetQuaternion() const;
+    [[nodiscard]] Common::Vec3f GetEulerAngles() const;
 
     [[nodiscard]] bool IsMoving(f32 sensitivity) const;
     [[nodiscard]] bool IsCalibrated(f32 sensitivity) const;

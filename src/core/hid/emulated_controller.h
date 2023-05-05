@@ -106,6 +106,7 @@ struct ControllerMotion {
     Common::Vec3f accel{};
     Common::Vec3f gyro{};
     Common::Vec3f rotation{};
+    Common::Vec3f euler{};
     std::array<Common::Vec3f, 3> orientation{};
     bool is_at_rest{};
 };
