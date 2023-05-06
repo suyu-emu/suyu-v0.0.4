@@ -72,7 +72,7 @@ MAP_MEMBER(void)::MapLocked(VaType virt, PaType phys, VaType size, ExtraBlockInf
                 }
             }()};
 
-            if (block_end_predecessor->virt >= virt) {
+            if (block_end_predecessor != blocks.begin() && block_end_predecessor->virt >= virt) {
                 // If this block's start would be overlapped by the map then reuse it as a tail
                 // block
                 block_end_predecessor->virt = virt_end;
