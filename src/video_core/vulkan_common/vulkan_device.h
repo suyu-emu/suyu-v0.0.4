@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "common/settings.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 // Define all features which may be used by the implementation here.
@@ -510,7 +511,7 @@ public:
 
     /// Returns true when a known debugging tool is attached.
     bool HasDebuggingToolAttached() const {
-        return has_renderdoc || has_nsight_graphics;
+        return has_renderdoc || has_nsight_graphics || Settings::values.renderer_debug.GetValue();
     }
 
     /// Returns true when the device does not properly support cube compatibility.

@@ -1126,7 +1126,8 @@ bool Image::ScaleDown(bool ignore) {
 
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info,
                      ImageId image_id_, Image& image, const SlotVector<Image>&)
-    : VideoCommon::ImageViewBase{info, image.info, image_id_}, views{runtime.null_image_views} {
+    : VideoCommon::ImageViewBase{info, image.info, image_id_, image.gpu_addr},
+      views{runtime.null_image_views} {
     const Device& device = runtime.device;
     if (True(image.flags & ImageFlagBits::Converted)) {
         internal_format = IsPixelFormatSRGB(info.format) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
@@ -1217,12 +1218,12 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
 
 ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo& info,
                      const VideoCommon::ImageViewInfo& view_info, GPUVAddr gpu_addr_)
-    : VideoCommon::ImageViewBase{info, view_info}, gpu_addr{gpu_addr_},
+    : VideoCommon::ImageViewBase{info, view_info, gpu_addr_},
       buffer_size{VideoCommon::CalculateGuestSizeInBytes(info)} {}
 
 ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo& info,
                      const VideoCommon::ImageViewInfo& view_info)
-    : VideoCommon::ImageViewBase{info, view_info} {}
+    : VideoCommon::ImageViewBase{info, view_info, 0} {}
 
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageViewParams& params)
     : VideoCommon::ImageViewBase{params}, views{runtime.null_image_views} {}
@@ -1282,7 +1283,7 @@ GLuint ImageView::MakeView(Shader::TextureType view_type, GLenum view_format) {
         ApplySwizzle(view.handle, format, casted_swizzle);
     }
     if (set_object_label) {
-        const std::string name = VideoCommon::Name(*this);
+        const std::string name = VideoCommon::Name(*this, gpu_addr);
         glObjectLabel(GL_TEXTURE, view.handle, static_cast<GLsizei>(name.size()), name.data());
     }
     return view.handle;

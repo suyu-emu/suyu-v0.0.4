@@ -314,7 +314,6 @@ private:
     std::unique_ptr<StorageViews> storage_views;
     GLenum internal_format = GL_NONE;
     GLuint default_handle = 0;
-    GPUVAddr gpu_addr = 0;
     u32 buffer_size = 0;
     GLuint original_texture = 0;
     int num_samples = 0;

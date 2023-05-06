@@ -274,7 +274,7 @@ struct RenderTargets;
 
 [[nodiscard]] std::string Name(const ImageBase& image);
 
-[[nodiscard]] std::string Name(const ImageViewBase& image_view);
+[[nodiscard]] std::string Name(const ImageViewBase& image_view, GPUVAddr addr);
 
 [[nodiscard]] std::string Name(const RenderTargets& render_targets);
 

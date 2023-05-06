@@ -108,7 +108,8 @@ bool IsASTCSupported() {
 
 [[nodiscard]] bool IsDebugToolAttached(std::span<const std::string_view> extensions) {
     const bool nsight = std::getenv("NVTX_INJECTION64_PATH") || std::getenv("NSIGHT_LAUNCHED");
-    return nsight || HasExtension(extensions, "GL_EXT_debug_tool");
+    return nsight || HasExtension(extensions, "GL_EXT_debug_tool") ||
+           Settings::values.renderer_debug.GetValue();
 }
 } // Anonymous namespace
 
