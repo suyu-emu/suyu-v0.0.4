@@ -42,22 +42,22 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
                                    std::vector<VkDeviceInfo::Record>& vk_device_records,
                                    Core::System& system_)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigurePerGame>()), title_id{title_id_},
-      system{system_}, group{std::make_shared<std::forward_list<ConfigurationShared::Tab*>>()} {
+      system{system_}, tab_group{std::make_shared<std::forward_list<ConfigurationShared::Tab*>>()} {
     const auto file_path = std::filesystem::path(Common::FS::ToU8String(file_name));
     const auto config_file_name = title_id == 0 ? Common::FS::PathToUTF8String(file_path.filename())
                                                 : fmt::format("{:016X}", title_id);
     game_config = std::make_unique<Config>(config_file_name, Config::ConfigType::PerGameConfig);
 
     addons_tab = std::make_unique<ConfigurePerGameAddons>(system_, this);
-    audio_tab = std::make_unique<ConfigureAudio>(system_, group, this);
-    cpu_tab = std::make_unique<ConfigureCpu>(system_, group, this);
-    general_tab = std::make_unique<ConfigureGeneral>(system_, group, this);
-    graphics_advanced_tab = std::make_unique<ConfigureGraphicsAdvanced>(system_, group, this);
+    audio_tab = std::make_unique<ConfigureAudio>(system_, tab_group, this);
+    cpu_tab = std::make_unique<ConfigureCpu>(system_, tab_group, this);
+    general_tab = std::make_unique<ConfigureGeneral>(system_, tab_group, this);
+    graphics_advanced_tab = std::make_unique<ConfigureGraphicsAdvanced>(system_, tab_group, this);
     graphics_tab = std::make_unique<ConfigureGraphics>(
-        system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); }, group,
-        this);
+        system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
+        tab_group, this);
     input_tab = std::make_unique<ConfigureInputPerGame>(system_, game_config.get(), this);
-    system_tab = std::make_unique<ConfigureSystem>(system_, group, this);
+    system_tab = std::make_unique<ConfigureSystem>(system_, tab_group, this);
 
     ui->setupUi(this);
 
@@ -90,7 +90,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
 ConfigurePerGame::~ConfigurePerGame() = default;
 
 void ConfigurePerGame::ApplyConfiguration() {
-    for (const auto tab : *group) {
+    for (const auto tab : *tab_group) {
         tab->ApplyConfiguration();
     }
     addons_tab->ApplyConfiguration();

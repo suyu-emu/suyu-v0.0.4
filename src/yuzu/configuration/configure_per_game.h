@@ -75,7 +75,8 @@ private:
     std::unique_ptr<Config> game_config;
 
     Core::System& system;
-    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group;
+    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> tab_group;
+
     std::unique_ptr<ConfigurePerGameAddons> addons_tab;
     std::unique_ptr<ConfigureAudio> audio_tab;
     std::unique_ptr<ConfigureCpu> cpu_tab;
