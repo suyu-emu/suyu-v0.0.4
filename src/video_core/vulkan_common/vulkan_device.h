@@ -500,6 +500,10 @@ public:
     }
 
     bool HasTimelineSemaphore() const {
+        if (GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
+            // Timeline semaphores do not work properly on all Qualcomm drivers.
+            return false;
+        }
         return features.timeline_semaphore.timelineSemaphore;
     }
 

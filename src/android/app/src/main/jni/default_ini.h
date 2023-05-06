@@ -333,7 +333,7 @@ use_asynchronous_shaders =
 nvdec_emulation =
 
 # Accelerate ASTC texture decoding.
-# 0: Off, 1 (default): On
+# 0 (default): Off, 1: On
 accelerate_astc =
 
 # Turns on the speed limiter, which will limit the emulation speed to the desired speed limit value

@@ -214,7 +214,6 @@ void Config::ReadValues() {
     ReadSetting("Renderer", Settings::values.shader_backend);
     ReadSetting("Renderer", Settings::values.use_asynchronous_shaders);
     ReadSetting("Renderer", Settings::values.nvdec_emulation);
-    ReadSetting("Renderer", Settings::values.accelerate_astc);
     ReadSetting("Renderer", Settings::values.use_fast_gpu_time);
     ReadSetting("Renderer", Settings::values.use_vulkan_driver_pipeline_cache);
     ReadSetting("Renderer", Settings::values.async_presentation);
@@ -226,6 +225,9 @@ void Config::ReadValues() {
     ReadSetting("Renderer", Settings::values.bg_red);
     ReadSetting("Renderer", Settings::values.bg_green);
     ReadSetting("Renderer", Settings::values.bg_blue);
+
+    // Disable ASTC compute by default on Android
+    Settings::values.accelerate_astc = config->GetBoolean("Renderer", "accelerate_astc", false);
 
     // Enable force_max_clock by default on Android
     Settings::values.renderer_force_max_clock =
