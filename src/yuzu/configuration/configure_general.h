@@ -6,34 +6,30 @@
 #include <functional>
 #include <memory>
 #include <QWidget>
+#include "yuzu/configuration/configuration_shared.h"
 
 namespace Core {
 class System;
 }
 
 class ConfigureDialog;
-
-namespace ConfigurationShared {
-enum class CheckState;
-}
-
 class HotkeyRegistry;
 
 namespace Ui {
 class ConfigureGeneral;
 }
 
-class ConfigureGeneral : public QWidget {
-    Q_OBJECT
-
+class ConfigureGeneral : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureGeneral(const Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureGeneral(const Core::System& system_,
+                              std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                              QWidget* parent = nullptr);
     ~ConfigureGeneral() override;
 
     void SetResetCallback(std::function<void()> callback);
     void ResetDefaults();
-    void ApplyConfiguration();
-    void SetConfiguration();
+    void ApplyConfiguration() override;
+    void SetConfiguration() override;
 
 private:
     void changeEvent(QEvent* event) override;

@@ -5,28 +5,26 @@
 
 #include <memory>
 #include <QWidget>
+#include "yuzu/configuration/configuration_shared.h"
 
 namespace Core {
 class System;
-}
-
-namespace ConfigurationShared {
-enum class CheckState;
 }
 
 namespace Ui {
 class ConfigureGraphicsAdvanced;
 }
 
-class ConfigureGraphicsAdvanced : public QWidget {
-    Q_OBJECT
-
+class ConfigureGraphicsAdvanced : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureGraphicsAdvanced(const Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureGraphicsAdvanced(
+        const Core::System& system_,
+        std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+        QWidget* parent = nullptr);
     ~ConfigureGraphicsAdvanced() override;
 
-    void ApplyConfiguration();
-    void SetConfiguration();
+    void ApplyConfiguration() override;
+    void SetConfiguration() override;
 
     void ExposeComputeOption();
 

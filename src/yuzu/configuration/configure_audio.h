@@ -5,28 +5,25 @@
 
 #include <memory>
 #include <QWidget>
+#include "yuzu/configuration/configuration_shared.h"
 
 namespace Core {
 class System;
-}
-
-namespace ConfigurationShared {
-enum class CheckState;
 }
 
 namespace Ui {
 class ConfigureAudio;
 }
 
-class ConfigureAudio : public QWidget {
-    Q_OBJECT
-
+class ConfigureAudio : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureAudio(const Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureAudio(const Core::System& system_,
+                            std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                            QWidget* parent = nullptr);
     ~ConfigureAudio() override;
 
-    void ApplyConfiguration();
-    void SetConfiguration();
+    void ApplyConfiguration() override;
+    void SetConfiguration() override;
 
 private:
     void changeEvent(QEvent* event) override;

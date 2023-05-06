@@ -37,8 +37,10 @@ static bool IsValidLocale(u32 region_index, u32 language_index) {
     return ((LOCALE_BLOCKLIST.at(region_index) >> language_index) & 1) == 0;
 }
 
-ConfigureSystem::ConfigureSystem(Core::System& system_, QWidget* parent)
-    : QWidget(parent), ui{std::make_unique<Ui::ConfigureSystem>()}, system{system_} {
+ConfigureSystem::ConfigureSystem(
+    Core::System& system_, std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+    QWidget* parent)
+    : Tab(group, parent), ui{std::make_unique<Ui::ConfigureSystem>()}, system{system_} {
     ui->setupUi(this);
 
     connect(ui->rng_seed_checkbox, &QCheckBox::stateChanged, this, [this](int state) {

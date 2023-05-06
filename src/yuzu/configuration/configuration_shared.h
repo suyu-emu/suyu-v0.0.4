@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <forward_list>
+#include <iterator>
+#include <memory>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QWidget>
@@ -15,11 +18,14 @@ class Tab : public QWidget {
     Q_OBJECT
 
 public:
-    explicit Tab(QWidget* parent = nullptr);
+    explicit Tab(std::shared_ptr<std::forward_list<Tab*>> group_, QWidget* parent = nullptr);
     ~Tab();
 
     virtual void ApplyConfiguration() = 0;
     virtual void SetConfiguration() = 0;
+
+private:
+    std::shared_ptr<std::forward_list<Tab*>> group;
 };
 
 constexpr int USE_GLOBAL_INDEX = 0;

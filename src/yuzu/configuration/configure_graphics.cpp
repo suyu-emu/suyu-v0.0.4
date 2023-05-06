@@ -70,12 +70,12 @@ static constexpr Settings::VSyncMode PresentModeToSetting(VkPresentModeKHR mode)
     }
 }
 
-ConfigureGraphics::ConfigureGraphics(const Core::System& system_,
-                                     std::vector<VkDeviceInfo::Record>& records_,
-                                     const std::function<void()>& expose_compute_option_,
-                                     QWidget* parent)
-    : QWidget(parent), ui{std::make_unique<Ui::ConfigureGraphics>()}, records{records_},
-      expose_compute_option{expose_compute_option_}, system{system_} {
+ConfigureGraphics::ConfigureGraphics(
+    const Core::System& system_, std::vector<VkDeviceInfo::Record>& records_,
+    const std::function<void()>& expose_compute_option_,
+    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group, QWidget* parent)
+    : ConfigurationShared::Tab(group, parent), ui{std::make_unique<Ui::ConfigureGraphics>()},
+      records{records_}, expose_compute_option{expose_compute_option_}, system{system_} {
     vulkan_device = Settings::values.vulkan_device.GetValue();
     RetrieveVulkanDevices();
 

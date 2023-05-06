@@ -13,6 +13,7 @@
 #include <vulkan/vulkan_core.h>
 #include "common/common_types.h"
 #include "vk_device_info.h"
+#include "yuzu/configuration/configuration_shared.h"
 
 class QEvent;
 class QObject;
@@ -27,26 +28,21 @@ namespace Core {
 class System;
 }
 
-namespace ConfigurationShared {
-enum class CheckState;
-}
-
 namespace Ui {
 class ConfigureGraphics;
 }
 
-class ConfigureGraphics : public QWidget {
-    Q_OBJECT
-
+class ConfigureGraphics : public ConfigurationShared::Tab {
 public:
     explicit ConfigureGraphics(const Core::System& system_,
                                std::vector<VkDeviceInfo::Record>& records,
                                const std::function<void()>& expose_compute_option_,
+                               std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
                                QWidget* parent = nullptr);
     ~ConfigureGraphics() override;
 
-    void ApplyConfiguration();
-    void SetConfiguration();
+    void ApplyConfiguration() override;
+    void SetConfiguration() override;
 
 private:
     void changeEvent(QEvent* event) override;

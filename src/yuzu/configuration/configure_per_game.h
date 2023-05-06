@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <forward_list>
 #include <memory>
 #include <string>
 #include <vector>
@@ -13,6 +14,7 @@
 #include "core/file_sys/vfs_types.h"
 #include "vk_device_info.h"
 #include "yuzu/configuration/config.h"
+#include "yuzu/configuration/configuration_shared.h"
 
 namespace Core {
 class System;
@@ -73,7 +75,7 @@ private:
     std::unique_ptr<Config> game_config;
 
     Core::System& system;
-
+    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group;
     std::unique_ptr<ConfigurePerGameAddons> addons_tab;
     std::unique_ptr<ConfigureAudio> audio_tab;
     std::unique_ptr<ConfigureCpu> cpu_tab;

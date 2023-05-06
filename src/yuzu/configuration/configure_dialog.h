@@ -3,9 +3,11 @@
 
 #pragma once
 
+#include <forward_list>
 #include <memory>
 #include <vector>
 #include <QDialog>
+#include "configuration/configuration_shared.h"
 #include "yuzu/vk_device_info.h"
 
 namespace Core {
@@ -69,6 +71,7 @@ private:
     HotkeyRegistry& registry;
 
     Core::System& system;
+    std::forward_list<ConfigurationShared::Tab*> tab_group;
 
     std::unique_ptr<ConfigureAudio> audio_tab;
     std::unique_ptr<ConfigureCpu> cpu_tab;

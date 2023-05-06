@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <forward_list>
+#include <memory>
 #include "common/common_types.h"
 #include "common/settings.h"
 #include "core/core.h"
@@ -8,8 +10,10 @@
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_cpu.h"
 
-ConfigureCpu::ConfigureCpu(const Core::System& system_, QWidget* parent)
-    : QWidget(parent), ui{std::make_unique<Ui::ConfigureCpu>()}, system{system_} {
+ConfigureCpu::ConfigureCpu(const Core::System& system_,
+                           std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                           QWidget* parent)
+    : Tab(group, parent), ui{std::make_unique<Ui::ConfigureCpu>()}, system{system_} {
     ui->setupUi(this);
 
     SetupPerGameUI();

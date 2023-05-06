@@ -32,21 +32,21 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
                                  std::vector<VkDeviceInfo::Record>& vk_device_records,
                                  Core::System& system_, bool enable_web_config)
     : QDialog(parent), ui{std::make_unique<Ui::ConfigureDialog>()},
-      registry(registry_), system{system_}, audio_tab{std::make_unique<ConfigureAudio>(system_,
-                                                                                       this)},
-      cpu_tab{std::make_unique<ConfigureCpu>(system_, this)},
+      registry(registry_), system{system_}, audio_tab{std::make_unique<ConfigureAudio>(
+                                                system_, nullptr, this)},
+      cpu_tab{std::make_unique<ConfigureCpu>(system_, nullptr, this)},
       debug_tab_tab{std::make_unique<ConfigureDebugTab>(system_, this)},
       filesystem_tab{std::make_unique<ConfigureFilesystem>(this)},
-      general_tab{std::make_unique<ConfigureGeneral>(system_, this)},
-      graphics_advanced_tab{std::make_unique<ConfigureGraphicsAdvanced>(system_, this)},
+      general_tab{std::make_unique<ConfigureGeneral>(system_, nullptr, this)},
+      graphics_advanced_tab{std::make_unique<ConfigureGraphicsAdvanced>(system_, nullptr, this)},
       graphics_tab{std::make_unique<ConfigureGraphics>(
           system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
-          this)},
+          nullptr, this)},
       hotkeys_tab{std::make_unique<ConfigureHotkeys>(system_.HIDCore(), this)},
       input_tab{std::make_unique<ConfigureInput>(system_, this)},
       network_tab{std::make_unique<ConfigureNetwork>(system_, this)},
       profile_tab{std::make_unique<ConfigureProfileManager>(system_, this)},
-      system_tab{std::make_unique<ConfigureSystem>(system_, this)},
+      system_tab{std::make_unique<ConfigureSystem>(system_, nullptr, this)},
       ui_tab{std::make_unique<ConfigureUi>(system_, this)}, web_tab{std::make_unique<ConfigureWeb>(
                                                                 this)} {
     Settings::SetConfiguringGlobal(true);

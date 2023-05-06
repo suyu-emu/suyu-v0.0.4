@@ -5,28 +5,25 @@
 
 #include <memory>
 #include <QWidget>
+#include "yuzu/configuration/configuration_shared.h"
 
 namespace Core {
 class System;
-}
-
-namespace ConfigurationShared {
-enum class CheckState;
 }
 
 namespace Ui {
 class ConfigureCpu;
 }
 
-class ConfigureCpu : public QWidget {
-    Q_OBJECT
-
+class ConfigureCpu : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureCpu(const Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureCpu(const Core::System& system_,
+                          std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                          QWidget* parent = nullptr);
     ~ConfigureCpu() override;
 
-    void ApplyConfiguration();
-    void SetConfiguration();
+    void ApplyConfiguration() override;
+    void SetConfiguration() override;
 
 private:
     void changeEvent(QEvent* event) override;

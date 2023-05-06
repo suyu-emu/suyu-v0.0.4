@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <memory>
 #include <QCheckBox>
 #include <QObject>
 #include <QString>
@@ -11,9 +12,14 @@
 
 namespace ConfigurationShared {
 
-Tab::Tab(QWidget* parent) : QWidget(parent) {}
+Tab::Tab(std::shared_ptr<std::forward_list<Tab*>> group_, QWidget* parent)
+    : QWidget(parent), group{group_} {
+    if (group != nullptr) {
+        group->push_front(this);
+    }
+}
 
-Tab::~Tab() {}
+Tab::~Tab() = default;
 
 } // namespace ConfigurationShared
 

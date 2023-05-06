@@ -7,8 +7,10 @@
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics_advanced.h"
 
-ConfigureGraphicsAdvanced::ConfigureGraphicsAdvanced(const Core::System& system_, QWidget* parent)
-    : QWidget(parent), ui{std::make_unique<Ui::ConfigureGraphicsAdvanced>()}, system{system_} {
+ConfigureGraphicsAdvanced::ConfigureGraphicsAdvanced(
+    const Core::System& system_,
+    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group, QWidget* parent)
+    : Tab(group, parent), ui{std::make_unique<Ui::ConfigureGraphicsAdvanced>()}, system{system_} {
 
     ui->setupUi(this);
 

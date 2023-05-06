@@ -6,28 +6,25 @@
 #include <memory>
 
 #include <QWidget>
+#include "yuzu/configuration/configuration_shared.h"
 
 namespace Core {
 class System;
-}
-
-namespace ConfigurationShared {
-enum class CheckState;
 }
 
 namespace Ui {
 class ConfigureSystem;
 }
 
-class ConfigureSystem : public QWidget {
-    Q_OBJECT
-
+class ConfigureSystem : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureSystem(Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureSystem(Core::System& system_,
+                             std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                             QWidget* parent = nullptr);
     ~ConfigureSystem() override;
 
-    void ApplyConfiguration();
-    void SetConfiguration();
+    void ApplyConfiguration() override;
+    void SetConfiguration() override;
 
 private:
     void changeEvent(QEvent* event) override;

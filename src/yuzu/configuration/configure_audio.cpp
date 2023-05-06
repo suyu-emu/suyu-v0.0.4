@@ -12,8 +12,10 @@
 #include "yuzu/configuration/configure_audio.h"
 #include "yuzu/uisettings.h"
 
-ConfigureAudio::ConfigureAudio(const Core::System& system_, QWidget* parent)
-    : QWidget(parent), ui(std::make_unique<Ui::ConfigureAudio>()), system{system_} {
+ConfigureAudio::ConfigureAudio(const Core::System& system_,
+                               std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                               QWidget* parent)
+    : Tab(group, parent), ui(std::make_unique<Ui::ConfigureAudio>()), system{system_} {
     ui->setupUi(this);
 
     InitializeAudioSinkComboBox();
