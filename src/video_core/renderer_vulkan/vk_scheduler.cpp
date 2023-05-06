@@ -239,7 +239,14 @@ u64 Scheduler::SubmitExecution(VkSemaphore signal_semaphore, VkSemaphore wait_se
 void Scheduler::AllocateNewContext() {
     // Enable counters once again. These are disabled when a command buffer is finished.
     if (query_cache) {
+#if ANDROID
+        if (Settings::IsGPULevelHigh()) {
+            // This is problematic on Android, disable on GPU Normal.
+            query_cache->UpdateCounters();
+        }
+#else
         query_cache->UpdateCounters();
+#endif
     }
 }
 
@@ -250,7 +257,14 @@ void Scheduler::InvalidateState() {
 }
 
 void Scheduler::EndPendingOperations() {
+#if ANDROID
+    if (Settings::IsGPULevelHigh()) {
+        // This is problematic on Android, disable on GPU Normal.
+        query_cache->DisableStreams();
+    }
+#else
     query_cache->DisableStreams();
+#endif
     EndRenderPass();
 }
 

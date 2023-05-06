@@ -188,7 +188,14 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     FlushWork();
     gpu_memory->FlushCaching();
 
+#if ANDROID
+    if (Settings::IsGPULevelHigh()) {
+        // This is problematic on Android, disable on GPU Normal.
+        query_cache.UpdateCounters();
+    }
+#else
     query_cache.UpdateCounters();
+#endif
 
     GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
     if (!pipeline) {
@@ -272,7 +279,14 @@ void RasterizerVulkan::DrawTexture() {
     SCOPE_EXIT({ gpu.TickWork(); });
     FlushWork();
 
+#if ANDROID
+    if (Settings::IsGPULevelHigh()) {
+        // This is problematic on Android, disable on GPU Normal.
+        query_cache.UpdateCounters();
+    }
+#else
     query_cache.UpdateCounters();
+#endif
 
     texture_cache.SynchronizeGraphicsDescriptors();
     texture_cache.UpdateRenderTargets(false);
