@@ -16,8 +16,8 @@
 namespace VideoCommon {
 
 ImageViewBase::ImageViewBase(const ImageViewInfo& info, const ImageInfo& image_info,
-                             ImageId image_id_)
-    : image_id{image_id_}, format{info.format}, type{info.type}, range{info.range},
+                             ImageId image_id_, GPUVAddr addr)
+    : image_id{image_id_}, gpu_addr{addr}, format{info.format}, type{info.type}, range{info.range},
       size{
           .width = std::max(image_info.size.width >> range.base.level, 1u),
           .height = std::max(image_info.size.height >> range.base.level, 1u),
@@ -35,8 +35,8 @@ ImageViewBase::ImageViewBase(const ImageViewInfo& info, const ImageInfo& image_i
     }
 }
 
-ImageViewBase::ImageViewBase(const ImageInfo& info, const ImageViewInfo& view_info)
-    : image_id{NULL_IMAGE_ID}, format{info.format}, type{ImageViewType::Buffer},
+ImageViewBase::ImageViewBase(const ImageInfo& info, const ImageViewInfo& view_info, GPUVAddr addr)
+    : image_id{NULL_IMAGE_ID}, gpu_addr{addr}, format{info.format}, type{ImageViewType::Buffer},
       size{
           .width = info.size.width,
           .height = 1,

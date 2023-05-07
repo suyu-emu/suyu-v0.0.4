@@ -1584,8 +1584,9 @@ bool Image::NeedsScaleHelper() const {
 
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info,
                      ImageId image_id_, Image& image)
-    : VideoCommon::ImageViewBase{info, image.info, image_id_}, device{&runtime.device},
-      image_handle{image.Handle()}, samples(ConvertSampleCount(image.info.num_samples)) {
+    : VideoCommon::ImageViewBase{info, image.info, image_id_, image.gpu_addr},
+      device{&runtime.device}, image_handle{image.Handle()},
+      samples(ConvertSampleCount(image.info.num_samples)) {
     using Shader::TextureType;
 
     const VkImageAspectFlags aspect_mask = ImageViewAspectMask(info);
@@ -1631,7 +1632,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         }
         vk::ImageView handle = device->GetLogical().CreateImageView(ci);
         if (device->HasDebuggingToolAttached()) {
-            handle.SetObjectNameEXT(VideoCommon::Name(*this).c_str());
+            handle.SetObjectNameEXT(VideoCommon::Name(*this, gpu_addr).c_str());
         }
         image_views[static_cast<size_t>(tex_type)] = std::move(handle);
     };
@@ -1672,7 +1673,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
 
 ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo& info,
                      const VideoCommon::ImageViewInfo& view_info, GPUVAddr gpu_addr_)
-    : VideoCommon::ImageViewBase{info, view_info}, gpu_addr{gpu_addr_},
+    : VideoCommon::ImageViewBase{info, view_info, gpu_addr_},
       buffer_size{VideoCommon::CalculateGuestSizeInBytes(info)} {}
 
 ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::NullImageViewParams& params)
