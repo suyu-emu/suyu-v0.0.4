@@ -5,6 +5,7 @@
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QObject>
 #include <QString>
 #include <QWidget>
@@ -55,9 +56,8 @@ static std::pair<QWidget*, std::function<void()>> CreateCheckBox(Settings::Basic
     return {checkbox, load_func};
 }
 
-static std::pair<QWidget*, std::function<void()>> CreateCombobox(Settings::BasicSetting* setting,
-                                                                 const QString& label,
-                                                                 QWidget* parent) {
+static std::tuple<QWidget*, void*, std::function<void()>> CreateCombobox(
+    Settings::BasicSetting* setting, const QString& label, QWidget* parent) {
     const auto type = setting->TypeId();
 
     QWidget* group = new QWidget(parent);
@@ -110,15 +110,34 @@ static std::pair<QWidget*, std::function<void()>> CreateCombobox(Settings::Basic
         }
     };
 
-    return {group, load_func};
+    return {group, combobox, load_func};
 }
 
-QWidget* CreateWidget(Settings::BasicSetting* setting, const TranslationMap& translations,
-                      QWidget* parent, bool runtime_lock,
-                      std::forward_list<std::function<void(bool)>>& apply_funcs,
-                      std::list<CheckState>& trackers) {
+static std::tuple<QWidget*, void*, std::function<void()>> CreateLineEdit(
+    Settings::BasicSetting* setting, const QString& label, QWidget* parent) {
+    QWidget* widget = new QWidget(parent);
+    QHBoxLayout* layout = new QHBoxLayout(widget);
+
+    QLabel* q_label = new QLabel(label, widget);
+    QLineEdit* line_edit = new QLineEdit(widget);
+
+    layout->addWidget(q_label);
+    layout->addStretch();
+    layout->addWidget(line_edit);
+
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    return {widget, line_edit, []() {}};
+}
+
+std::pair<QWidget*, void*> CreateWidget(Settings::BasicSetting* setting,
+                                        const TranslationMap& translations, QWidget* parent,
+                                        bool runtime_lock,
+                                        std::forward_list<std::function<void(bool)>>& apply_funcs,
+                                        std::list<CheckState>& trackers, RequestType request) {
     const auto type = setting->TypeId();
     QWidget* widget{nullptr};
+    void* extra{nullptr};
 
     std::function<void()> load_func;
 
@@ -135,7 +154,7 @@ QWidget* CreateWidget(Settings::BasicSetting* setting, const TranslationMap& tra
     if (label == QStringLiteral("")) {
         LOG_DEBUG(Frontend, "Translation table has emtpy entry for \"{}\", skipping...",
                   setting->GetLabel());
-        return widget;
+        return {nullptr, nullptr};
     }
 
     if (type == typeid(bool)) {
@@ -143,14 +162,36 @@ QWidget* CreateWidget(Settings::BasicSetting* setting, const TranslationMap& tra
         widget = pair.first;
         load_func = pair.second;
     } else if (setting->IsEnum()) {
-        auto pair = CreateCombobox(setting, label, parent);
-        widget = pair.first;
-        load_func = pair.second;
+        auto tuple = CreateCombobox(setting, label, parent);
+        widget = std::get<0>(tuple);
+        extra = std::get<1>(tuple);
+        load_func = std::get<2>(tuple);
+    } else if (type == typeid(u32) || type == typeid(int)) {
+        switch (request) {
+        case RequestType::Default: {
+            auto tuple = CreateLineEdit(setting, label, parent);
+            widget = std::get<0>(tuple);
+            extra = std::get<1>(tuple);
+            load_func = std::get<2>(tuple);
+            break;
+        }
+        case RequestType::ComboBox: {
+            auto tuple = CreateCombobox(setting, label, parent);
+            widget = std::get<0>(tuple);
+            extra = std::get<1>(tuple);
+            load_func = std::get<2>(tuple);
+            break;
+        }
+        case RequestType::SpinBox:
+        case RequestType::Slider:
+        case RequestType::MaxEnum:
+            break;
+        }
     }
 
     if (widget == nullptr) {
         LOG_ERROR(Frontend, "No widget was created for \"{}\"", setting->GetLabel());
-        return widget;
+        return {nullptr, nullptr};
     }
 
     apply_funcs.push_front([load_func, setting](bool powered_on) {
@@ -162,13 +203,14 @@ QWidget* CreateWidget(Settings::BasicSetting* setting, const TranslationMap& tra
     bool enable = runtime_lock || setting->RuntimeModfiable();
     enable &=
         setting->Switchable() && !(Settings::IsConfiguringGlobal() && !setting->UsingGlobal());
-
+    enable |= !setting->Switchable() && Settings::IsConfiguringGlobal() && runtime_lock;
     widget->setEnabled(enable);
+
     widget->setVisible(Settings::IsConfiguringGlobal() || setting->Switchable());
 
     widget->setToolTip(tooltip);
 
-    return widget;
+    return {widget, extra};
 }
 
 Tab::Tab(std::shared_ptr<std::forward_list<Tab*>> group_, QWidget* parent)

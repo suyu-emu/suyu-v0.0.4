@@ -36,6 +36,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
 
     // Cpu
     INSERT("cpu_accuracy", "Accuracy:", "");
+    INSERT("cpu_accuracy_first_time", "", "");
 
     // Cpu Debug
     INSERT("cpu_debug_mode", "Enable CPU Debugging", "");
@@ -75,13 +76,16 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT("use_disk_shader_cache", "Use disk pipeline cache", "");
     INSERT("use_asynchronous_gpu_emulation", "Use asynchronous GPU emulation", "");
     INSERT("nvdec_emulation", "NVDEC emulation:", "");
-    INSERT("acclerate_astc", "ASTC Decoding Method:", "");
+    INSERT("accelerate_astc", "ASTC Decoding Method:", "");
     INSERT(
         "use_vsync", "VSync Mode:",
         "FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen refresh "
         "rate. FIFO Relaxed is similar to FIFO but allows tearing as it recovers from a slow down. "
         "Mailbox can have lower latency than FIFO and does not tear but may drop frames. Immediate "
         "(no synchronization) just presents whatever is available and can exhibit tearing.");
+    INSERT("bg_red", "", "");
+    INSERT("bg_green", "", "");
+    INSERT("bg_blue", "", "");
 
     // Renderer (Advanced Graphics)
     INSERT("async_presentation", "Enable asynchronous presentation (Vulkan only)", "");
@@ -104,9 +108,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            "Enable compute pipelines, required by some games.\nThis setting only exists for Intel "
            "proprietary drivers, and may crash if enabled.\nCompute pipelines are always enabled "
            "on all other drivers.");
-    INSERT("bg_red", "Background Color:", "");
-    INSERT("bg_green", "Background Color:", "");
-    INSERT("bg_blue", "Background Color:", "");
 
     // Renderer (Debug)
     INSERT("debug", "Enable Graphics Debugging",

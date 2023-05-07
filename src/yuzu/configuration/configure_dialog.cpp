@@ -43,7 +43,7 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
           std::make_unique<ConfigureGraphicsAdvanced>(system_, nullptr, *translations, this)},
       graphics_tab{std::make_unique<ConfigureGraphics>(
           system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
-          nullptr, this)},
+          nullptr, *translations, this)},
       hotkeys_tab{std::make_unique<ConfigureHotkeys>(system_.HIDCore(), this)},
       input_tab{std::make_unique<ConfigureInput>(system_, this)},
       network_tab{std::make_unique<ConfigureNetwork>(system_, this)},

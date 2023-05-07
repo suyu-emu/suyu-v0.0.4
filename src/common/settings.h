@@ -733,7 +733,7 @@ struct Values {
         linkage,          ShaderBackend::GLSL, ShaderBackend::GLSL, ShaderBackend::SPIRV,
         "shader_backend", Category::Renderer};
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
-                                                     Category::Renderer};
+                                                     Category::RendererAdvanced};
     SwitchableSetting<bool, false, true, true> use_fast_gpu_time{linkage, true, "use_fast_gpu_time",
                                                                  Category::RendererAdvanced};
     SwitchableSetting<bool, false, true, true> use_vulkan_driver_pipeline_cache{

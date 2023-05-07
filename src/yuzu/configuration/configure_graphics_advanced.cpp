@@ -32,8 +32,8 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
 
     for (auto setting :
          Settings::values.linkage.by_category[Settings::Category::RendererAdvanced]) {
-        QWidget* widget = ConfigurationShared::CreateWidget(setting, translations, this,
-                                                            runtime_lock, apply_funcs, trackers);
+        auto [widget, extra] = ConfigurationShared::CreateWidget(
+            setting, translations, this, runtime_lock, apply_funcs, trackers);
 
         if (widget == nullptr) {
             continue;

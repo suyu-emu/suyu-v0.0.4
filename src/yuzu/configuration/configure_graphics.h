@@ -17,6 +17,7 @@
 
 class QEvent;
 class QObject;
+class QComboBox;
 
 namespace Settings {
 enum class NvdecEmulation : u32;
@@ -38,6 +39,7 @@ public:
                                std::vector<VkDeviceInfo::Record>& records,
                                const std::function<void()>& expose_compute_option_,
                                std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                               const ConfigurationShared::TranslationMap& translations_,
                                QWidget* parent = nullptr);
     ~ConfigureGraphics() override;
 
@@ -70,10 +72,8 @@ private:
     std::unique_ptr<Ui::ConfigureGraphics> ui;
     QColor bg_color;
 
-    ConfigurationShared::CheckState use_nvdec_emulation;
-    ConfigurationShared::CheckState accelerate_astc;
-    ConfigurationShared::CheckState use_disk_shader_cache;
-    ConfigurationShared::CheckState use_asynchronous_gpu_emulation;
+    std::list<ConfigurationShared::CheckState> trackers{};
+    std::forward_list<std::function<void(bool)>> apply_funcs{};
 
     std::vector<VkDeviceInfo::Record>& records;
     std::vector<QString> vulkan_devices;
@@ -86,4 +86,12 @@ private:
     const std::function<void()>& expose_compute_option;
 
     const Core::System& system;
+    const ConfigurationShared::TranslationMap& translations;
+
+    QComboBox* vulkan_device_combobox;
+    QComboBox* api_combobox;
+    QComboBox* shader_backend_combobox;
+    QComboBox* vsync_mode_combobox;
+    QWidget* vulkan_device_widget;
+    QWidget* shader_backend_widget;
 };

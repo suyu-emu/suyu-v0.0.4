@@ -41,10 +41,20 @@ enum class CheckState {
     Count,  // Simply the number of states, not a valid checkbox state
 };
 
-QWidget* CreateWidget(Settings::BasicSetting* setting, const TranslationMap& translations,
-                      QWidget* parent, bool runtime_lock,
-                      std::forward_list<std::function<void(bool)>>& apply_funcs,
-                      std::list<CheckState>& trackers);
+enum class RequestType {
+    Default,
+    ComboBox,
+    SpinBox,
+    Slider,
+    MaxEnum,
+};
+
+std::pair<QWidget*, void*> CreateWidget(Settings::BasicSetting* setting,
+                                        const TranslationMap& translations, QWidget* parent,
+                                        bool runtime_lock,
+                                        std::forward_list<std::function<void(bool)>>& apply_funcs,
+                                        std::list<CheckState>& trackers,
+                                        RequestType request = RequestType::Default);
 
 // Global-aware apply and set functions
 
