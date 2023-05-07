@@ -710,6 +710,7 @@ void Config::ReadRendererValues() {
     ReadGlobalSetting(Settings::values.nvdec_emulation);
     ReadGlobalSetting(Settings::values.accelerate_astc);
     ReadGlobalSetting(Settings::values.async_astc);
+    ReadGlobalSetting(Settings::values.use_reactive_flushing);
     ReadGlobalSetting(Settings::values.shader_backend);
     ReadGlobalSetting(Settings::values.use_asynchronous_shaders);
     ReadGlobalSetting(Settings::values.use_fast_gpu_time);
@@ -1355,6 +1356,7 @@ void Config::SaveRendererValues() {
                  Settings::values.nvdec_emulation.UsingGlobal());
     WriteGlobalSetting(Settings::values.accelerate_astc);
     WriteGlobalSetting(Settings::values.async_astc);
+    WriteGlobalSetting(Settings::values.use_reactive_flushing);
     WriteSetting(QString::fromStdString(Settings::values.shader_backend.GetLabel()),
                  static_cast<u32>(Settings::values.shader_backend.GetValue(global)),
                  static_cast<u32>(Settings::values.shader_backend.GetDefault()),

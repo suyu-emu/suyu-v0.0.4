@@ -59,6 +59,11 @@ public:
         buffer_cache.AccumulateFlushes();
     }
 
+    void SignalReference() {
+        std::function<void()> do_nothing([] {});
+        SignalFence(std::move(do_nothing));
+    }
+
     void SyncOperation(std::function<void()>&& func) {
         uncommitted_operations.emplace_back(std::move(func));
     }

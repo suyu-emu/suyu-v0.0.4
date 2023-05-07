@@ -612,6 +612,10 @@ void System::PrepareReschedule(const u32 core_index) {
     impl->kernel.PrepareReschedule(core_index);
 }
 
+size_t System::GetCurrentHostThreadID() const {
+    return impl->kernel.GetCurrentHostThreadID();
+}
+
 PerfStatsResults System::GetAndResetPerfStats() {
     return impl->GetAndResetPerfStats();
 }

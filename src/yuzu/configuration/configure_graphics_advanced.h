@@ -40,6 +40,7 @@ private:
     ConfigurationShared::CheckState renderer_force_max_clock;
     ConfigurationShared::CheckState use_vsync;
     ConfigurationShared::CheckState async_astc;
+    ConfigurationShared::CheckState use_reactive_flushing;
     ConfigurationShared::CheckState use_asynchronous_shaders;
     ConfigurationShared::CheckState use_fast_gpu_time;
     ConfigurationShared::CheckState use_vulkan_driver_pipeline_cache;

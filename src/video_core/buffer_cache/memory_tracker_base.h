@@ -66,6 +66,14 @@ public:
             });
     }
 
+    /// Returns true if a region has been marked as Preflushable
+    [[nodiscard]] bool IsRegionPreflushable(VAddr query_cpu_addr, u64 query_size) noexcept {
+        return IteratePages<false>(
+            query_cpu_addr, query_size, [](Manager* manager, u64 offset, size_t size) {
+                return manager->template IsRegionModified<Type::Preflushable>(offset, size);
+            });
+    }
+
     /// Mark region as CPU modified, notifying the rasterizer about this change
     void MarkRegionAsCpuModified(VAddr dirty_cpu_addr, u64 query_size) {
         IteratePages<true>(dirty_cpu_addr, query_size,
@@ -93,11 +101,29 @@ public:
                            });
     }
 
+    /// Mark region as modified from the host GPU
+    void MarkRegionAsPreflushable(VAddr dirty_cpu_addr, u64 query_size) noexcept {
+        IteratePages<true>(dirty_cpu_addr, query_size,
+                           [](Manager* manager, u64 offset, size_t size) {
+                               manager->template ChangeRegionState<Type::Preflushable, true>(
+                                   manager->GetCpuAddr() + offset, size);
+                           });
+    }
+
     /// Unmark region as modified from the host GPU
     void UnmarkRegionAsGpuModified(VAddr dirty_cpu_addr, u64 query_size) noexcept {
         IteratePages<true>(dirty_cpu_addr, query_size,
                            [](Manager* manager, u64 offset, size_t size) {
                                manager->template ChangeRegionState<Type::GPU, false>(
+                                   manager->GetCpuAddr() + offset, size);
+                           });
+    }
+
+    /// Unmark region as modified from the host GPU
+    void UnmarkRegionAsPreflushable(VAddr dirty_cpu_addr, u64 query_size) noexcept {
+        IteratePages<true>(dirty_cpu_addr, query_size,
+                           [](Manager* manager, u64 offset, size_t size) {
+                               manager->template ChangeRegionState<Type::Preflushable, false>(
                                    manager->GetCpuAddr() + offset, size);
                            });
     }

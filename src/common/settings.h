@@ -465,6 +465,7 @@ struct Values {
     SwitchableSetting<bool> async_astc{false, "async_astc"};
     Setting<VSyncMode, true> vsync_mode{VSyncMode::FIFO, VSyncMode::Immediate,
                                         VSyncMode::FIFORelaxed, "use_vsync"};
+    SwitchableSetting<bool> use_reactive_flushing{true, "use_reactive_flushing"};
     SwitchableSetting<ShaderBackend, true> shader_backend{ShaderBackend::GLSL, ShaderBackend::GLSL,
                                                           ShaderBackend::SPIRV, "shader_backend"};
     SwitchableSetting<bool> use_asynchronous_shaders{false, "use_asynchronous_shaders"};

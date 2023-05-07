@@ -21,6 +21,7 @@ ConfigureGraphicsAdvanced::~ConfigureGraphicsAdvanced() = default;
 
 void ConfigureGraphicsAdvanced::SetConfiguration() {
     const bool runtime_lock = !system.IsPoweredOn();
+    ui->use_reactive_flushing->setEnabled(runtime_lock);
     ui->async_present->setEnabled(runtime_lock);
     ui->renderer_force_max_clock->setEnabled(runtime_lock);
     ui->async_astc->setEnabled(runtime_lock);
@@ -29,6 +30,7 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
 
     ui->async_present->setChecked(Settings::values.async_presentation.GetValue());
     ui->renderer_force_max_clock->setChecked(Settings::values.renderer_force_max_clock.GetValue());
+    ui->use_reactive_flushing->setChecked(Settings::values.use_reactive_flushing.GetValue());
     ui->async_astc->setChecked(Settings::values.async_astc.GetValue());
     ui->use_asynchronous_shaders->setChecked(Settings::values.use_asynchronous_shaders.GetValue());
     ui->use_fast_gpu_time->setChecked(Settings::values.use_fast_gpu_time.GetValue());
@@ -60,6 +62,8 @@ void ConfigureGraphicsAdvanced::ApplyConfiguration() {
                                              renderer_force_max_clock);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.max_anisotropy,
                                              ui->anisotropic_filtering_combobox);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_reactive_flushing,
+                                             ui->use_reactive_flushing, use_reactive_flushing);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.async_astc, ui->async_astc,
                                              async_astc);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_asynchronous_shaders,
@@ -91,6 +95,7 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
         ui->async_present->setEnabled(Settings::values.async_presentation.UsingGlobal());
         ui->renderer_force_max_clock->setEnabled(
             Settings::values.renderer_force_max_clock.UsingGlobal());
+        ui->use_reactive_flushing->setEnabled(Settings::values.use_reactive_flushing.UsingGlobal());
         ui->async_astc->setEnabled(Settings::values.async_astc.UsingGlobal());
         ui->use_asynchronous_shaders->setEnabled(
             Settings::values.use_asynchronous_shaders.UsingGlobal());
@@ -108,6 +113,8 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
     ConfigurationShared::SetColoredTristate(ui->renderer_force_max_clock,
                                             Settings::values.renderer_force_max_clock,
                                             renderer_force_max_clock);
+    ConfigurationShared::SetColoredTristate(
+        ui->use_reactive_flushing, Settings::values.use_reactive_flushing, use_reactive_flushing);
     ConfigurationShared::SetColoredTristate(ui->async_astc, Settings::values.async_astc,
                                             async_astc);
     ConfigurationShared::SetColoredTristate(ui->use_asynchronous_shaders,

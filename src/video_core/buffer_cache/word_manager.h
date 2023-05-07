@@ -26,6 +26,7 @@ enum class Type {
     GPU,
     CachedCPU,
     Untracked,
+    Preflushable,
 };
 
 /// Vector tracking modified pages tightly packed with small vector optimization
@@ -55,17 +56,20 @@ struct Words {
             gpu.stack.fill(0);
             cached_cpu.stack.fill(0);
             untracked.stack.fill(~u64{0});
+            preflushable.stack.fill(0);
         } else {
             // Share allocation between CPU and GPU pages and set their default values
-            u64* const alloc = new u64[num_words * 4];
+            u64* const alloc = new u64[num_words * 5];
             cpu.heap = alloc;
             gpu.heap = alloc + num_words;
             cached_cpu.heap = alloc + num_words * 2;
             untracked.heap = alloc + num_words * 3;
+            preflushable.heap = alloc + num_words * 4;
             std::fill_n(cpu.heap, num_words, ~u64{0});
             std::fill_n(gpu.heap, num_words, 0);
             std::fill_n(cached_cpu.heap, num_words, 0);
             std::fill_n(untracked.heap, num_words, ~u64{0});
+            std::fill_n(preflushable.heap, num_words, 0);
         }
         // Clean up tailing bits
         const u64 last_word_size = size_bytes % BYTES_PER_WORD;
@@ -88,13 +92,14 @@ struct Words {
         gpu = rhs.gpu;
         cached_cpu = rhs.cached_cpu;
         untracked = rhs.untracked;
+        preflushable = rhs.preflushable;
         rhs.cpu.heap = nullptr;
         return *this;
     }
 
     Words(Words&& rhs) noexcept
         : size_bytes{rhs.size_bytes}, num_words{rhs.num_words}, cpu{rhs.cpu}, gpu{rhs.gpu},
-          cached_cpu{rhs.cached_cpu}, untracked{rhs.untracked} {
+          cached_cpu{rhs.cached_cpu}, untracked{rhs.untracked}, preflushable{rhs.preflushable} {
         rhs.cpu.heap = nullptr;
     }
 
@@ -129,6 +134,8 @@ struct Words {
             return std::span<u64>(cached_cpu.Pointer(IsShort()), num_words);
         } else if constexpr (type == Type::Untracked) {
             return std::span<u64>(untracked.Pointer(IsShort()), num_words);
+        } else if constexpr (type == Type::Preflushable) {
+            return std::span<u64>(preflushable.Pointer(IsShort()), num_words);
         }
     }
 
@@ -142,6 +149,8 @@ struct Words {
             return std::span<const u64>(cached_cpu.Pointer(IsShort()), num_words);
         } else if constexpr (type == Type::Untracked) {
             return std::span<const u64>(untracked.Pointer(IsShort()), num_words);
+        } else if constexpr (type == Type::Preflushable) {
+            return std::span<const u64>(preflushable.Pointer(IsShort()), num_words);
         }
     }
 
@@ -151,6 +160,7 @@ struct Words {
     WordsArray<stack_words> gpu;
     WordsArray<stack_words> cached_cpu;
     WordsArray<stack_words> untracked;
+    WordsArray<stack_words> preflushable;
 };
 
 template <class RasterizerInterface, size_t stack_words = 1>
@@ -292,6 +302,9 @@ public:
                  (pending_pointer - pending_offset) * BYTES_PER_PAGE);
         };
         IterateWords(offset, size, [&](size_t index, u64 mask) {
+            if constexpr (type == Type::GPU) {
+                mask &= ~untracked_words[index];
+            }
             const u64 word = state_words[index] & mask;
             if constexpr (clear) {
                 if constexpr (type == Type::CPU || type == Type::CachedCPU) {
@@ -340,8 +353,13 @@ public:
         static_assert(type != Type::Untracked);
 
         const std::span<const u64> state_words = words.template Span<type>();
+        [[maybe_unused]] const std::span<const u64> untracked_words =
+            words.template Span<Type::Untracked>();
         bool result = false;
         IterateWords(offset, size, [&](size_t index, u64 mask) {
+            if constexpr (type == Type::GPU) {
+                mask &= ~untracked_words[index];
+            }
             const u64 word = state_words[index] & mask;
             if (word != 0) {
                 result = true;
@@ -362,9 +380,14 @@ public:
     [[nodiscard]] std::pair<u64, u64> ModifiedRegion(u64 offset, u64 size) const noexcept {
         static_assert(type != Type::Untracked);
         const std::span<const u64> state_words = words.template Span<type>();
+        [[maybe_unused]] const std::span<const u64> untracked_words =
+            words.template Span<Type::Untracked>();
         u64 begin = std::numeric_limits<u64>::max();
         u64 end = 0;
         IterateWords(offset, size, [&](size_t index, u64 mask) {
+            if constexpr (type == Type::GPU) {
+                mask &= ~untracked_words[index];
+            }
             const u64 word = state_words[index] & mask;
             if (word == 0) {
                 return;

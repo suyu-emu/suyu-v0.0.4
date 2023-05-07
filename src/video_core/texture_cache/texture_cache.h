@@ -491,6 +491,32 @@ void TextureCache<P>::DownloadMemory(VAddr cpu_addr, size_t size) {
 }
 
 template <class P>
+std::optional<VideoCore::RasterizerDownloadArea> TextureCache<P>::GetFlushArea(VAddr cpu_addr,
+                                                                               u64 size) {
+    std::optional<VideoCore::RasterizerDownloadArea> area{};
+    ForEachImageInRegion(cpu_addr, size, [&](ImageId, ImageBase& image) {
+        if (False(image.flags & ImageFlagBits::GpuModified)) {
+            return;
+        }
+        if (!area) {
+            area.emplace();
+            area->start_address = cpu_addr;
+            area->end_address = cpu_addr + size;
+            area->preemtive = true;
+        }
+        area->start_address = std::min(area->start_address, image.cpu_addr);
+        area->end_address = std::max(area->end_address, image.cpu_addr_end);
+        for (auto image_view_id : image.image_view_ids) {
+            auto& image_view = slot_image_views[image_view_id];
+            image_view.flags |= ImageViewFlagBits::PreemtiveDownload;
+        }
+        area->preemtive &= image.info.forced_flushed;
+        image.info.forced_flushed = true;
+    });
+    return area;
+}
+
+template <class P>
 void TextureCache<P>::UnmapMemory(VAddr cpu_addr, size_t size) {
     std::vector<ImageId> deleted_images;
     ForEachImageInRegion(cpu_addr, size, [&](ImageId id, Image&) { deleted_images.push_back(id); });
@@ -683,6 +709,7 @@ void TextureCache<P>::CommitAsyncFlushes() {
                 download_info.async_buffer_id = last_async_buffer_id;
             }
         }
+
         if (any_none_dma) {
             auto download_map = runtime.DownloadStagingBuffer(total_size_bytes, true);
             for (const PendingDownload& download_info : download_ids) {
@@ -695,6 +722,7 @@ void TextureCache<P>::CommitAsyncFlushes() {
             }
             uncommitted_async_buffers.emplace_back(download_map);
         }
+
         async_buffers.emplace_back(std::move(uncommitted_async_buffers));
         uncommitted_async_buffers.clear();
     }
@@ -783,15 +811,20 @@ void TextureCache<P>::PopAsyncFlushes() {
 }
 
 template <class P>
-ImageId TextureCache<P>::DmaImageId(const Tegra::DMA::ImageOperand& operand) {
+ImageId TextureCache<P>::DmaImageId(const Tegra::DMA::ImageOperand& operand, bool is_upload) {
     const ImageInfo dst_info(operand);
     const ImageId dst_id = FindDMAImage(dst_info, operand.address);
     if (!dst_id) {
         return NULL_IMAGE_ID;
     }
-    const auto& image = slot_images[dst_id];
+    auto& image = slot_images[dst_id];
     if (False(image.flags & ImageFlagBits::GpuModified)) {
         // No need to waste time on an image that's synced with guest
+        return NULL_IMAGE_ID;
+    }
+    if (!is_upload && !image.info.dma_downloaded) {
+        // Force a full sync.
+        image.info.dma_downloaded = true;
         return NULL_IMAGE_ID;
     }
     const auto base = image.TryFindBase(operand.address);
@@ -1290,7 +1323,6 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
             all_siblings.push_back(overlap_id);
         } else {
             bad_overlap_ids.push_back(overlap_id);
-            overlap.flags |= ImageFlagBits::BadOverlap;
         }
     };
     ForEachImageInRegion(cpu_addr, size_bytes, region_check);
@@ -1401,7 +1433,12 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
         ImageBase& aliased = slot_images[aliased_id];
         aliased.overlapping_images.push_back(new_image_id);
         new_image.overlapping_images.push_back(aliased_id);
-        new_image.flags |= ImageFlagBits::BadOverlap;
+        if (aliased.info.resources.levels == 1 && aliased.overlapping_images.size() > 1) {
+            aliased.flags |= ImageFlagBits::BadOverlap;
+        }
+        if (new_image.info.resources.levels == 1 && new_image.overlapping_images.size() > 1) {
+            new_image.flags |= ImageFlagBits::BadOverlap;
+        }
     }
     RegisterImage(new_image_id);
     return new_image_id;

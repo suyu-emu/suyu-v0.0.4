@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/alignment.h"
+#include "core/memory.h"
 #include "video_core/host1x/host1x.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_null/null_rasterizer.h"
@@ -46,6 +48,14 @@ bool RasterizerNull::MustFlushRegion(VAddr addr, u64 size, VideoCommon::CacheTyp
 }
 void RasterizerNull::InvalidateRegion(VAddr addr, u64 size, VideoCommon::CacheType) {}
 void RasterizerNull::OnCPUWrite(VAddr addr, u64 size) {}
+VideoCore::RasterizerDownloadArea RasterizerNull::GetFlushArea(VAddr addr, u64 size) {
+    VideoCore::RasterizerDownloadArea new_area{
+        .start_address = Common::AlignDown(addr, Core::Memory::YUZU_PAGESIZE),
+        .end_address = Common::AlignUp(addr + size, Core::Memory::YUZU_PAGESIZE),
+        .preemtive = true,
+    };
+    return new_area;
+}
 void RasterizerNull::InvalidateGPUCache() {}
 void RasterizerNull::UnmapMemory(VAddr addr, u64 size) {}
 void RasterizerNull::ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) {}

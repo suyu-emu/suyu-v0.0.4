@@ -4,6 +4,7 @@
 #include <fmt/format.h>
 
 #include "common/assert.h"
+#include "common/settings.h"
 #include "video_core/surface.h"
 #include "video_core/texture_cache/format_lookup_table.h"
 #include "video_core/texture_cache/image_info.h"
@@ -22,6 +23,8 @@ using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::SurfaceType;
 
 ImageInfo::ImageInfo(const TICEntry& config) noexcept {
+    forced_flushed = config.IsPitchLinear() && !Settings::values.use_reactive_flushing.GetValue();
+    dma_downloaded = forced_flushed;
     format = PixelFormatFromTextureInfo(config.format, config.r_type, config.g_type, config.b_type,
                                         config.a_type, config.srgb_conversion);
     num_samples = NumSamples(config.msaa_mode);
@@ -117,6 +120,9 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
 
 ImageInfo::ImageInfo(const Maxwell3D::Regs::RenderTargetConfig& ct,
                      Tegra::Texture::MsaaMode msaa_mode) noexcept {
+    forced_flushed =
+        ct.tile_mode.is_pitch_linear && !Settings::values.use_reactive_flushing.GetValue();
+    dma_downloaded = forced_flushed;
     format = VideoCore::Surface::PixelFormatFromRenderTargetFormat(ct.format);
     rescaleable = false;
     if (ct.tile_mode.is_pitch_linear) {
@@ -155,6 +161,9 @@ ImageInfo::ImageInfo(const Maxwell3D::Regs::RenderTargetConfig& ct,
 
 ImageInfo::ImageInfo(const Maxwell3D::Regs::Zeta& zt, const Maxwell3D::Regs::ZetaSize& zt_size,
                      Tegra::Texture::MsaaMode msaa_mode) noexcept {
+    forced_flushed =
+        zt.tile_mode.is_pitch_linear && !Settings::values.use_reactive_flushing.GetValue();
+    dma_downloaded = forced_flushed;
     format = VideoCore::Surface::PixelFormatFromDepthFormat(zt.format);
     size.width = zt_size.width;
     size.height = zt_size.height;
@@ -195,6 +204,9 @@ ImageInfo::ImageInfo(const Maxwell3D::Regs::Zeta& zt, const Maxwell3D::Regs::Zet
 
 ImageInfo::ImageInfo(const Fermi2D::Surface& config) noexcept {
     UNIMPLEMENTED_IF_MSG(config.layer != 0, "Surface layer is not zero");
+    forced_flushed = config.linear == Fermi2D::MemoryLayout::Pitch &&
+                     !Settings::values.use_reactive_flushing.GetValue();
+    dma_downloaded = forced_flushed;
     format = VideoCore::Surface::PixelFormatFromRenderTargetFormat(config.format);
     rescaleable = false;
     if (config.linear == Fermi2D::MemoryLayout::Pitch) {

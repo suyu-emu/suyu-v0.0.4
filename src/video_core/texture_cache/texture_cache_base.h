@@ -179,6 +179,8 @@ public:
     /// Download contents of host images to guest memory in a region
     void DownloadMemory(VAddr cpu_addr, size_t size);
 
+    std::optional<VideoCore::RasterizerDownloadArea> GetFlushArea(VAddr cpu_addr, u64 size);
+
     /// Remove images in a region
     void UnmapMemory(VAddr cpu_addr, size_t size);
 
@@ -205,7 +207,7 @@ public:
     /// Pop asynchronous downloads
     void PopAsyncFlushes();
 
-    [[nodiscard]] ImageId DmaImageId(const Tegra::DMA::ImageOperand& operand);
+    [[nodiscard]] ImageId DmaImageId(const Tegra::DMA::ImageOperand& operand, bool is_upload);
 
     [[nodiscard]] std::pair<Image*, BufferImageCopy> DmaBufferImageCopy(
         const Tegra::DMA::ImageCopy& copy_info, const Tegra::DMA::BufferOperand& buffer_operand,

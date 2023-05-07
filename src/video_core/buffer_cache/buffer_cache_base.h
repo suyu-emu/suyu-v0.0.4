@@ -188,6 +188,8 @@ public:
 
     void DownloadMemory(VAddr cpu_addr, u64 size);
 
+    std::optional<VideoCore::RasterizerDownloadArea> GetFlushArea(VAddr cpu_addr, u64 size);
+
     bool InlineMemory(VAddr dest_address, size_t copy_size, std::span<const u8> inlined_buffer);
 
     void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr, u32 size);
@@ -541,8 +543,6 @@ private:
                        std::array<std::array<u32, NUM_GRAPHICS_UNIFORM_BUFFERS>, NUM_STAGES>, Empty>
         uniform_buffer_binding_sizes{};
 
-    std::vector<BufferId> cached_write_buffer_ids;
-
     MemoryTracker memory_tracker;
     IntervalSet uncommitted_ranges;
     IntervalSet common_ranges;
@@ -572,9 +572,8 @@ private:
     u64 critical_memory = 0;
     BufferId inline_buffer_id;
 
-    bool active_async_buffers = false;
-
     std::array<BufferId, ((1ULL << 39) >> CACHING_PAGEBITS)> page_table;
+    std::vector<u8> tmp_buffer;
 };
 
 } // namespace VideoCommon

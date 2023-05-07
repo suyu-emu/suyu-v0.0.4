@@ -54,6 +54,7 @@ public:
     void InvalidateRegion(VAddr addr, u64 size,
                           VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
     void OnCPUWrite(VAddr addr, u64 size) override;
+    VideoCore::RasterizerDownloadArea GetFlushArea(VAddr addr, u64 size) override;
     void InvalidateGPUCache() override;
     void UnmapMemory(VAddr addr, u64 size) override;
     void ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) override;

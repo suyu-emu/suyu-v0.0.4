@@ -10,6 +10,7 @@
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "video_core/cdma_pusher.h"
 #include "video_core/framebuffer_config.h"
+#include "video_core/rasterizer_download_area.h"
 
 namespace Core {
 class System;
@@ -239,6 +240,9 @@ public:
 
     /// Swap buffers (render frame)
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer);
+
+    /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
+    [[nodiscard]] VideoCore::RasterizerDownloadArea OnCPURead(VAddr addr, u64 size);
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
     void FlushRegion(VAddr addr, u64 size);
