@@ -811,7 +811,7 @@ void TextureCache<P>::PopAsyncFlushes() {
 }
 
 template <class P>
-ImageId TextureCache<P>::DmaImageId(const Tegra::DMA::ImageOperand& operand) {
+ImageId TextureCache<P>::DmaImageId(const Tegra::DMA::ImageOperand& operand, bool is_upload) {
     const ImageInfo dst_info(operand);
     const ImageId dst_id = FindDMAImage(dst_info, operand.address);
     if (!dst_id) {
@@ -822,7 +822,7 @@ ImageId TextureCache<P>::DmaImageId(const Tegra::DMA::ImageOperand& operand) {
         // No need to waste time on an image that's synced with guest
         return NULL_IMAGE_ID;
     }
-    if (!image.info.dma_downloaded) {
+    if (!is_upload && !image.info.dma_downloaded) {
         // Force a full sync.
         image.info.dma_downloaded = true;
         return NULL_IMAGE_ID;
