@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include <forward_list>
 #include <map>
 #include <memory>
