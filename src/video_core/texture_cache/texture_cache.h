@@ -1359,6 +1359,12 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
         ScaleDown(new_image);
     }
 
+    std::ranges::sort(overlap_ids, [this](const ImageId lhs, const ImageId rhs) {
+        const ImageBase& lhs_image = slot_images[lhs];
+        const ImageBase& rhs_image = slot_images[rhs];
+        return lhs_image.modification_tick < rhs_image.modification_tick;
+    });
+
     for (const ImageId overlap_id : overlap_ids) {
         Image& overlap = slot_images[overlap_id];
         if (True(overlap.flags & ImageFlagBits::GpuModified)) {
