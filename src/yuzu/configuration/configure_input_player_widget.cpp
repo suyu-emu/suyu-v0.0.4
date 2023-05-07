@@ -180,6 +180,10 @@ void PlayerControlPreview::ControllerUpdate(Core::HID::ControllerTriggerType typ
         battery_values = controller->GetBatteryValues();
         needs_redraw = true;
         break;
+    case Core::HID::ControllerTriggerType::Motion:
+        motion_values = controller->GetMotions();
+        needs_redraw = true;
+        break;
     default:
         break;
     }
@@ -313,6 +317,15 @@ void PlayerControlPreview::DrawLeftController(QPainter& p, const QPointF center)
         DrawRawJoystick(p, center + QPointF(-140, 90), QPointF(0, 0));
     }
 
+    {
+        // Draw motion cubes
+        using namespace Settings::NativeMotion;
+        p.setPen(colors.outline);
+        p.setBrush(colors.transparent);
+        Draw3dCube(p, center + QPointF(-140, 90),
+                   motion_values[Settings::NativeMotion::MotionLeft].euler, 20.0f);
+    }
+
     using namespace Settings::NativeButton;
 
     // D-pad constants
@@ -435,6 +448,15 @@ void PlayerControlPreview::DrawRightController(QPainter& p, const QPointF center
         DrawRawJoystick(p, QPointF(0, 0), center + QPointF(140, 90));
     }
 
+    {
+        // Draw motion cubes
+        using namespace Settings::NativeMotion;
+        p.setPen(colors.outline);
+        p.setBrush(colors.transparent);
+        Draw3dCube(p, center + QPointF(140, 90),
+                   motion_values[Settings::NativeMotion::MotionRight].euler, 20.0f);
+    }
+
     using namespace Settings::NativeButton;
 
     // Face buttons constants
@@ -555,6 +577,17 @@ void PlayerControlPreview::DrawDualController(QPainter& p, const QPointF center)
         DrawRawJoystick(p, center + QPointF(-180, 90), center + QPointF(180, 90));
     }
 
+    {
+        // Draw motion cubes
+        using namespace Settings::NativeMotion;
+        p.setPen(colors.outline);
+        p.setBrush(colors.transparent);
+        Draw3dCube(p, center + QPointF(-180, -5),
+                   motion_values[Settings::NativeMotion::MotionLeft].euler, 20.0f);
+        Draw3dCube(p, center + QPointF(180, -5),
+                   motion_values[Settings::NativeMotion::MotionRight].euler, 20.0f);
+    }
+
     using namespace Settings::NativeButton;
 
     // Face buttons constants
@@ -645,6 +678,15 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
         DrawJoystick(p, center + QPointF(-171, -41) + (l_stick * 4), 1.0f, l_button);
         DrawJoystick(p, center + QPointF(171, 8) + (r_stick * 4), 1.0f, r_button);
         DrawRawJoystick(p, center + QPointF(-50, 0), center + QPointF(50, 0));
+    }
+
+    {
+        // Draw motion cubes
+        using namespace Settings::NativeMotion;
+        p.setPen(colors.outline);
+        p.setBrush(colors.transparent);
+        Draw3dCube(p, center + QPointF(0, -115),
+                   motion_values[Settings::NativeMotion::MotionLeft].euler, 15.0f);
     }
 
     using namespace Settings::NativeButton;
@@ -748,6 +790,15 @@ void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) 
         DrawProJoystick(p, center + QPointF(51, 0), r_stick, 11,
                         button_values[Settings::NativeButton::RStick]);
         DrawRawJoystick(p, center + QPointF(-50, 105), center + QPointF(50, 105));
+    }
+
+    {
+        // Draw motion cubes
+        using namespace Settings::NativeMotion;
+        p.setPen(colors.button);
+        p.setBrush(colors.transparent);
+        Draw3dCube(p, center + QPointF(0, -100),
+                   motion_values[Settings::NativeMotion::MotionLeft].euler, 15.0f);
     }
 
     using namespace Settings::NativeButton;
@@ -2869,6 +2920,46 @@ void PlayerControlPreview::DrawArrow(QPainter& p, const QPointF center, const Di
     }
 
     DrawPolygon(p, arrow_symbol);
+}
+
+// Draw motion functions
+void PlayerControlPreview::Draw3dCube(QPainter& p, QPointF center, const Common::Vec3f& euler,
+                                      float size) {
+    std::array<Common::Vec3f, 8> cube{
+        Common::Vec3f{-1, -1, -1},
+        {-1, 1, -1},
+        {1, 1, -1},
+        {1, -1, -1},
+        {-1, -1, 1},
+        {-1, 1, 1},
+        {1, 1, 1},
+        {1, -1, 1},
+    };
+
+    for (Common::Vec3f& point : cube) {
+        point.RotateFromOrigin(euler.x, euler.y, euler.z);
+        point *= size;
+    }
+
+    const std::array<QPointF, 4> front_face{
+        center + QPointF{cube[0].x, cube[0].y},
+        center + QPointF{cube[1].x, cube[1].y},
+        center + QPointF{cube[2].x, cube[2].y},
+        center + QPointF{cube[3].x, cube[3].y},
+    };
+    const std::array<QPointF, 4> back_face{
+        center + QPointF{cube[4].x, cube[4].y},
+        center + QPointF{cube[5].x, cube[5].y},
+        center + QPointF{cube[6].x, cube[6].y},
+        center + QPointF{cube[7].x, cube[7].y},
+    };
+
+    DrawPolygon(p, front_face);
+    DrawPolygon(p, back_face);
+    p.drawLine(center + QPointF{cube[0].x, cube[0].y}, center + QPointF{cube[4].x, cube[4].y});
+    p.drawLine(center + QPointF{cube[1].x, cube[1].y}, center + QPointF{cube[5].x, cube[5].y});
+    p.drawLine(center + QPointF{cube[2].x, cube[2].y}, center + QPointF{cube[6].x, cube[6].y});
+    p.drawLine(center + QPointF{cube[3].x, cube[3].y}, center + QPointF{cube[7].x, cube[7].y});
 }
 
 template <size_t N>

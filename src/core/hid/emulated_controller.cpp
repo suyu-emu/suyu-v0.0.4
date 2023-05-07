@@ -376,6 +376,7 @@ void EmulatedController::ReloadInput() {
         motion.accel = emulated_motion.GetAcceleration();
         motion.gyro = emulated_motion.GetGyroscope();
         motion.rotation = emulated_motion.GetRotations();
+        motion.euler = emulated_motion.GetEulerAngles();
         motion.orientation = emulated_motion.GetOrientation();
         motion.is_at_rest = !emulated_motion.IsMoving(motion_sensitivity);
     }
@@ -980,14 +981,11 @@ void EmulatedController::SetMotion(const Common::Input::CallbackStatus& callback
     emulated.UpdateOrientation(raw_status.delta_timestamp);
     force_update_motion = raw_status.force_update;
 
-    if (is_configuring) {
-        return;
-    }
-
     auto& motion = controller.motion_state[index];
     motion.accel = emulated.GetAcceleration();
     motion.gyro = emulated.GetGyroscope();
     motion.rotation = emulated.GetRotations();
+    motion.euler = emulated.GetEulerAngles();
     motion.orientation = emulated.GetOrientation();
     motion.is_at_rest = !emulated.IsMoving(motion_sensitivity);
 }

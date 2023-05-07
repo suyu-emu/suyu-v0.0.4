@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <cmath>
+
 #include "common/math_util.h"
 #include "core/hid/motion_input.h"
 
@@ -49,6 +51,20 @@ void MotionInput::SetGyroscope(const Common::Vec3f& gyroscope) {
 
 void MotionInput::SetQuaternion(const Common::Quaternion<f32>& quaternion) {
     quat = quaternion;
+}
+
+void MotionInput::SetEulerAngles(const Common::Vec3f& euler_angles) {
+    const float cr = std::cos(euler_angles.x * 0.5f);
+    const float sr = std::sin(euler_angles.x * 0.5f);
+    const float cp = std::cos(euler_angles.y * 0.5f);
+    const float sp = std::sin(euler_angles.y * 0.5f);
+    const float cy = std::cos(euler_angles.z * 0.5f);
+    const float sy = std::sin(euler_angles.z * 0.5f);
+
+    quat.w = cr * cp * cy + sr * sp * sy;
+    quat.xyz.x = sr * cp * cy - cr * sp * sy;
+    quat.xyz.y = cr * sp * cy + sr * cp * sy;
+    quat.xyz.z = cr * cp * sy - sr * sp * cy;
 }
 
 void MotionInput::SetGyroBias(const Common::Vec3f& bias) {
@@ -220,6 +236,26 @@ Common::Quaternion<f32> MotionInput::GetQuaternion() const {
 
 Common::Vec3f MotionInput::GetRotations() const {
     return rotations;
+}
+
+Common::Vec3f MotionInput::GetEulerAngles() const {
+    // roll (x-axis rotation)
+    const float sinr_cosp = 2 * (quat.w * quat.xyz.x + quat.xyz.y * quat.xyz.z);
+    const float cosr_cosp = 1 - 2 * (quat.xyz.x * quat.xyz.x + quat.xyz.y * quat.xyz.y);
+
+    // pitch (y-axis rotation)
+    const float sinp = std::sqrt(1 + 2 * (quat.w * quat.xyz.y - quat.xyz.x * quat.xyz.z));
+    const float cosp = std::sqrt(1 - 2 * (quat.w * quat.xyz.y - quat.xyz.x * quat.xyz.z));
+
+    // yaw (z-axis rotation)
+    const float siny_cosp = 2 * (quat.w * quat.xyz.z + quat.xyz.x * quat.xyz.y);
+    const float cosy_cosp = 1 - 2 * (quat.xyz.y * quat.xyz.y + quat.xyz.z * quat.xyz.z);
+
+    return {
+        std::atan2(sinr_cosp, cosr_cosp),
+        2 * std::atan2(sinp, cosp) - Common::PI / 2,
+        std::atan2(siny_cosp, cosy_cosp),
+    };
 }
 
 void MotionInput::ResetOrientation() {

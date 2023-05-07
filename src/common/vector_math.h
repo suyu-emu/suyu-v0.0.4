@@ -259,6 +259,20 @@ public:
         return *this;
     }
 
+    void RotateFromOrigin(float roll, float pitch, float yaw) {
+        float temp = y;
+        y = std::cos(roll) * y - std::sin(roll) * z;
+        z = std::sin(roll) * temp + std::cos(roll) * z;
+
+        temp = x;
+        x = std::cos(pitch) * x + std::sin(pitch) * z;
+        z = -std::sin(pitch) * temp + std::cos(pitch) * z;
+
+        temp = x;
+        x = std::cos(yaw) * x - std::sin(yaw) * y;
+        y = std::sin(yaw) * temp + std::cos(yaw) * y;
+    }
+
     [[nodiscard]] constexpr T Length2() const {
         return x * x + y * y + z * z;
     }

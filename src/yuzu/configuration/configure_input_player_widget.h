@@ -9,6 +9,7 @@
 
 #include "common/input.h"
 #include "common/settings_input.h"
+#include "common/vector_math.h"
 #include "core/hid/emulated_controller.h"
 #include "core/hid/hid_types.h"
 
@@ -193,6 +194,9 @@ private:
     void DrawSymbol(QPainter& p, QPointF center, Symbol symbol, float icon_size);
     void DrawArrow(QPainter& p, QPointF center, Direction direction, float size);
 
+    // Draw motion functions
+    void Draw3dCube(QPainter& p, QPointF center, const Common::Vec3f& euler, float size);
+
     // Draw primitive types
     template <size_t N>
     void DrawPolygon(QPainter& p, const std::array<QPointF, N>& polygon);
@@ -222,4 +226,5 @@ private:
     Core::HID::SticksValues stick_values{};
     Core::HID::TriggerValues trigger_values{};
     Core::HID::BatteryValues battery_values{};
+    Core::HID::MotionState motion_values{};
 };
