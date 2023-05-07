@@ -316,7 +316,7 @@ max_anisotropy =
 # FIFO Relaxed is similar to FIFO but allows tearing as it recovers from a slow down.
 # Mailbox can have lower latency than FIFO and does not tear but may drop frames.
 # Immediate (no synchronization) just presents whatever is available and can exhibit tearing.
-# 0: Immediate (Off), 1: Mailbox, 2 (Default): FIFO (On), 3: FIFO Relaxed
+# 0: Immediate (Off), 1 (Default): Mailbox (On), 2: FIFO, 3: FIFO Relaxed
 use_vsync =
 
 # Selects the OpenGL shader backend. NV_gpu_program5 is required for GLASM. If NV_gpu_program5 is
