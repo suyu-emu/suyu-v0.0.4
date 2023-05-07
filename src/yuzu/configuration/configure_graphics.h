@@ -5,9 +5,21 @@
 
 #include <memory>
 #include <vector>
+#include <QColor>
 #include <QString>
 #include <QWidget>
-#include "common/settings.h"
+#include <qobjectdefs.h>
+#include <vulkan/vulkan_core.h>
+#include "common/common_types.h"
+
+class QEvent;
+class QObject;
+
+namespace Settings {
+enum class NvdecEmulation : u32;
+enum class RendererBackend : u32;
+enum class ShaderBackend : u32;
+} // namespace Settings
 
 namespace Core {
 class System;
@@ -35,6 +47,7 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
+    void PopulateVSyncModeSelection();
     void UpdateBackgroundColorButton(QColor color);
     void UpdateAPILayout();
     void UpdateDeviceSelection(int device);
@@ -43,6 +56,10 @@ private:
     void RetrieveVulkanDevices();
 
     void SetFSRIndicatorText(int percentage);
+    /* Turns a Vulkan present mode into a textual string for a UI
+     * (and eventually for a human to read) */
+    const QString TranslateVSyncMode(VkPresentModeKHR mode,
+                                     Settings::RendererBackend backend) const;
 
     void SetupPerGameUI();
 
@@ -58,6 +75,10 @@ private:
     ConfigurationShared::CheckState use_asynchronous_gpu_emulation;
 
     std::vector<QString> vulkan_devices;
+    std::vector<std::vector<VkPresentModeKHR>> device_present_modes;
+    std::vector<VkPresentModeKHR>
+        vsync_mode_combobox_enum_map; //< Keeps track of which present mode corresponds to which
+                                      // selection in the combobox
     u32 vulkan_device{};
     Settings::ShaderBackend shader_backend{};
 

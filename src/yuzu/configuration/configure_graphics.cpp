@@ -4,19 +4,75 @@
 // Include this early to include Vulkan headers how we want to
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
+#include <algorithm>
+#include <iosfwd>
+#include <iterator>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
+#include <QBoxLayout>
+#include <QCheckBox>
 #include <QColorDialog>
-#include <QVulkanInstance>
+#include <QComboBox>
+#include <QIcon>
+#include <QLabel>
+#include <QPixmap>
+#include <QPushButton>
+#include <QSlider>
+#include <QStringLiteral>
+#include <QtCore/qobjectdefs.h>
+#include <qcoreevent.h>
+#include <qglobal.h>
+#include <vulkan/vulkan_core.h>
 
 #include "common/common_types.h"
+#include "common/dynamic_library.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "ui_configure_graphics.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"
+#include "video_core/vulkan_common/vulkan_surface.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics.h"
+#include "yuzu/qt_common.h"
 #include "yuzu/uisettings.h"
+
+static const std::vector<VkPresentModeKHR> default_present_modes{VK_PRESENT_MODE_IMMEDIATE_KHR,
+                                                                 VK_PRESENT_MODE_FIFO_KHR};
+
+// Converts a setting to a present mode (or vice versa)
+static constexpr VkPresentModeKHR VSyncSettingToMode(Settings::VSyncMode mode) {
+    switch (mode) {
+    case Settings::VSyncMode::Immediate:
+        return VK_PRESENT_MODE_IMMEDIATE_KHR;
+    case Settings::VSyncMode::Mailbox:
+        return VK_PRESENT_MODE_MAILBOX_KHR;
+    case Settings::VSyncMode::FIFO:
+        return VK_PRESENT_MODE_FIFO_KHR;
+    case Settings::VSyncMode::FIFORelaxed:
+        return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
+    default:
+        return VK_PRESENT_MODE_FIFO_KHR;
+    }
+}
+
+static constexpr Settings::VSyncMode PresentModeToSetting(VkPresentModeKHR mode) {
+    switch (mode) {
+    case VK_PRESENT_MODE_IMMEDIATE_KHR:
+        return Settings::VSyncMode::Immediate;
+    case VK_PRESENT_MODE_MAILBOX_KHR:
+        return Settings::VSyncMode::Mailbox;
+    case VK_PRESENT_MODE_FIFO_KHR:
+        return Settings::VSyncMode::FIFO;
+    case VK_PRESENT_MODE_FIFO_RELAXED_KHR:
+        return Settings::VSyncMode::FIFORelaxed;
+    default:
+        return Settings::VSyncMode::FIFO;
+    }
+}
 
 ConfigureGraphics::ConfigureGraphics(const Core::System& system_, QWidget* parent)
     : QWidget(parent), ui{std::make_unique<Ui::ConfigureGraphics>()}, system{system_} {
@@ -39,13 +95,16 @@ ConfigureGraphics::ConfigureGraphics(const Core::System& system_, QWidget* paren
 
     connect(ui->api, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
         UpdateAPILayout();
+        PopulateVSyncModeSelection();
         if (!Settings::IsConfiguringGlobal()) {
             ConfigurationShared::SetHighlight(
                 ui->api_widget, ui->api->currentIndex() != ConfigurationShared::USE_GLOBAL_INDEX);
         }
     });
-    connect(ui->device, qOverload<int>(&QComboBox::activated), this,
-            [this](int device) { UpdateDeviceSelection(device); });
+    connect(ui->device, qOverload<int>(&QComboBox::activated), this, [this](int device) {
+        UpdateDeviceSelection(device);
+        PopulateVSyncModeSelection();
+    });
     connect(ui->backend, qOverload<int>(&QComboBox::activated), this,
             [this](int backend) { UpdateShaderBackendSelection(backend); });
 
@@ -68,6 +127,43 @@ ConfigureGraphics::ConfigureGraphics(const Core::System& system_, QWidget* paren
             &ConfigureGraphics::SetFSRIndicatorText);
     ui->fsr_sharpening_combobox->setVisible(!Settings::IsConfiguringGlobal());
     ui->fsr_sharpening_label->setVisible(Settings::IsConfiguringGlobal());
+}
+
+void ConfigureGraphics::PopulateVSyncModeSelection() {
+    const Settings::RendererBackend backend{GetCurrentGraphicsBackend()};
+    if (backend == Settings::RendererBackend::Null) {
+        ui->vsync_mode_combobox->setEnabled(false);
+        return;
+    }
+    ui->vsync_mode_combobox->setEnabled(true);
+
+    const int current_index = //< current selected vsync mode from combobox
+        ui->vsync_mode_combobox->currentIndex();
+    const auto current_mode = //< current selected vsync mode as a VkPresentModeKHR
+        current_index == -1 ? VSyncSettingToMode(Settings::values.vsync_mode.GetValue())
+                            : vsync_mode_combobox_enum_map[current_index];
+    int index{};
+    const int device{ui->device->currentIndex()}; //< current selected Vulkan device
+    const auto& present_modes = //< relevant vector of present modes for the selected device or API
+        backend == Settings::RendererBackend::Vulkan ? device_present_modes[device]
+                                                     : default_present_modes;
+
+    ui->vsync_mode_combobox->clear();
+    vsync_mode_combobox_enum_map.clear();
+    vsync_mode_combobox_enum_map.reserve(present_modes.size());
+    for (const auto present_mode : present_modes) {
+        const auto mode_name = TranslateVSyncMode(present_mode, backend);
+        if (mode_name.isEmpty()) {
+            continue;
+        }
+
+        ui->vsync_mode_combobox->insertItem(index, mode_name);
+        vsync_mode_combobox_enum_map.push_back(present_mode);
+        if (present_mode == current_mode) {
+            ui->vsync_mode_combobox->setCurrentIndex(index);
+        }
+        index++;
+    }
 }
 
 void ConfigureGraphics::UpdateDeviceSelection(int device) {
@@ -99,6 +195,9 @@ void ConfigureGraphics::SetConfiguration() {
     ui->nvdec_emulation_widget->setEnabled(runtime_lock);
     ui->resolution_combobox->setEnabled(runtime_lock);
     ui->accelerate_astc->setEnabled(runtime_lock);
+    ui->vsync_mode_layout->setEnabled(runtime_lock ||
+                                      Settings::values.renderer_backend.GetValue() ==
+                                          Settings::RendererBackend::Vulkan);
     ui->use_disk_shader_cache->setChecked(Settings::values.use_disk_shader_cache.GetValue());
     ui->use_asynchronous_gpu_emulation->setChecked(
         Settings::values.use_asynchronous_gpu_emulation.GetValue());
@@ -170,12 +269,50 @@ void ConfigureGraphics::SetConfiguration() {
                                                 Settings::values.bg_green.GetValue(),
                                                 Settings::values.bg_blue.GetValue()));
     UpdateAPILayout();
+    PopulateVSyncModeSelection(); //< must happen after UpdateAPILayout
     SetFSRIndicatorText(ui->fsr_sharpening_slider->sliderPosition());
+
+    // VSync setting needs to be determined after populating the VSync combobox
+    if (Settings::IsConfiguringGlobal()) {
+        const auto vsync_mode_setting = Settings::values.vsync_mode.GetValue();
+        const auto vsync_mode = VSyncSettingToMode(vsync_mode_setting);
+        int index{};
+        for (const auto mode : vsync_mode_combobox_enum_map) {
+            if (mode == vsync_mode) {
+                break;
+            }
+            index++;
+        }
+        if (static_cast<unsigned long>(index) < vsync_mode_combobox_enum_map.size()) {
+            ui->vsync_mode_combobox->setCurrentIndex(index);
+        }
+    }
 }
 
 void ConfigureGraphics::SetFSRIndicatorText(int percentage) {
     ui->fsr_sharpening_value->setText(
         tr("%1%", "FSR sharpening percentage (e.g. 50%)").arg(100 - (percentage / 2)));
+}
+
+const QString ConfigureGraphics::TranslateVSyncMode(VkPresentModeKHR mode,
+                                                    Settings::RendererBackend backend) const {
+    switch (mode) {
+    case VK_PRESENT_MODE_IMMEDIATE_KHR:
+        return backend == Settings::RendererBackend::OpenGL
+                   ? tr("Off")
+                   : QStringLiteral("Immediate (%1)").arg(tr("VSync Off"));
+    case VK_PRESENT_MODE_MAILBOX_KHR:
+        return QStringLiteral("Mailbox (%1)").arg(tr("Recommended"));
+    case VK_PRESENT_MODE_FIFO_KHR:
+        return backend == Settings::RendererBackend::OpenGL
+                   ? tr("On")
+                   : QStringLiteral("FIFO (%1)").arg(tr("VSync On"));
+    case VK_PRESENT_MODE_FIFO_RELAXED_KHR:
+        return QStringLiteral("FIFO Relaxed");
+    default:
+        return {};
+        break;
+    }
 }
 
 void ConfigureGraphics::ApplyConfiguration() {
@@ -232,6 +369,10 @@ void ConfigureGraphics::ApplyConfiguration() {
             Settings::values.anti_aliasing.SetValue(anti_aliasing);
         }
         Settings::values.fsr_sharpening_slider.SetValue(ui->fsr_sharpening_slider->value());
+
+        const auto mode = vsync_mode_combobox_enum_map[ui->vsync_mode_combobox->currentIndex()];
+        const auto vsync_mode = PresentModeToSetting(mode);
+        Settings::values.vsync_mode.SetValue(vsync_mode);
     } else {
         if (ui->resolution_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
             Settings::values.resolution_setup.SetGlobal(true);
@@ -345,7 +486,9 @@ void ConfigureGraphics::UpdateAPILayout() {
         ui->backend_widget->setVisible(true);
         break;
     case Settings::RendererBackend::Vulkan:
-        ui->device->setCurrentIndex(vulkan_device);
+        if (static_cast<int>(vulkan_device) < ui->device->count()) {
+            ui->device->setCurrentIndex(vulkan_device);
+        }
         ui->device_widget->setVisible(true);
         ui->backend_widget->setVisible(false);
         break;
@@ -363,16 +506,27 @@ void ConfigureGraphics::RetrieveVulkanDevices() try {
 
     using namespace Vulkan;
 
+    auto* window = this->window()->windowHandle();
+    auto wsi = QtCommon::GetWindowSystemInfo(window);
+
     vk::InstanceDispatch dld;
     const Common::DynamicLibrary library = OpenLibrary();
-    const vk::Instance instance = CreateInstance(library, dld, VK_API_VERSION_1_1);
+    const vk::Instance instance = CreateInstance(library, dld, VK_API_VERSION_1_1, wsi.type);
     const std::vector<VkPhysicalDevice> physical_devices = instance.EnumeratePhysicalDevices();
+    vk::SurfaceKHR surface = //< needed to view present modes for a device
+        CreateSurface(instance, wsi);
 
     vulkan_devices.clear();
     vulkan_devices.reserve(physical_devices.size());
+    device_present_modes.clear();
+    device_present_modes.reserve(physical_devices.size());
     for (const VkPhysicalDevice device : physical_devices) {
-        const std::string name = vk::PhysicalDevice(device, dld).GetProperties().deviceName;
+        const auto physical_device = vk::PhysicalDevice(device, dld);
+        const std::string name = physical_device.GetProperties().deviceName;
+        const std::vector<VkPresentModeKHR> present_modes =
+            physical_device.GetSurfacePresentModesKHR(*surface);
         vulkan_devices.push_back(QString::fromStdString(name));
+        device_present_modes.push_back(present_modes);
     }
 } catch (const Vulkan::vk::Exception& exception) {
     LOG_ERROR(Frontend, "Failed to enumerate devices with error: {}", exception.what());
@@ -465,4 +619,6 @@ void ConfigureGraphics::SetupPerGameUI() {
         ui->api, static_cast<int>(Settings::values.renderer_backend.GetValue(true)));
     ConfigurationShared::InsertGlobalItem(
         ui->nvdec_emulation, static_cast<int>(Settings::values.nvdec_emulation.GetValue(true)));
+
+    ui->vsync_mode_layout->setVisible(false);
 }

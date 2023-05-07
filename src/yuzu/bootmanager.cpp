@@ -1,36 +1,48 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstring>
+#include <string>
+#include <tuple>
+#include <type_traits>
 #include <glad/glad.h>
 
-#include <QApplication>
+#include <QtCore/qglobal.h>
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
+#include <QCamera>
 #include <QCameraImageCapture>
 #include <QCameraInfo>
 #endif
+#include <QCursor>
+#include <QEvent>
+#include <QGuiApplication>
 #include <QHBoxLayout>
+#include <QKeyEvent>
+#include <QLayout>
+#include <QList>
 #include <QMessageBox>
-#include <QPainter>
 #include <QScreen>
-#include <QString>
-#include <QStringList>
+#include <QSize>
+#include <QStringLiteral>
+#include <QSurfaceFormat>
+#include <QTimer>
 #include <QWindow>
+#include <QtCore/qobjectdefs.h>
 
 #ifdef HAS_OPENGL
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
 #endif
 
-#if !defined(WIN32)
-#include <qpa/qplatformnativeinterface.h>
-#endif
-
-#include <fmt/format.h>
-
-#include "common/assert.h"
 #include "common/microprofile.h"
+#include "common/polyfill_thread.h"
 #include "common/scm_rev.h"
 #include "common/settings.h"
+#include "common/settings_input.h"
+#include "common/thread.h"
 #include "core/core.h"
 #include "core/cpu_manager.h"
 #include "core/frontend/framebuffer_layout.h"
@@ -40,11 +52,16 @@
 #include "input_common/drivers/tas_input.h"
 #include "input_common/drivers/touch_screen.h"
 #include "input_common/main.h"
+#include "video_core/gpu.h"
+#include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
 #include "yuzu/bootmanager.h"
 #include "yuzu/main.h"
+#include "yuzu/qt_common.h"
 
-static Core::Frontend::WindowSystemType GetWindowSystemType();
+class QObject;
+class QPaintEngine;
+class QSurface;
 
 EmuThread::EmuThread(Core::System& system) : m_system{system} {}
 
@@ -154,7 +171,10 @@ public:
 
         // disable vsync for any shared contexts
         auto format = share_context->format();
-        format.setSwapInterval(main_surface ? Settings::values.use_vsync.GetValue() : 0);
+        const int swap_interval =
+            Settings::values.vsync_mode.GetValue() == Settings::VSyncMode::Immediate ? 0 : 1;
+
+        format.setSwapInterval(main_surface ? swap_interval : 0);
 
         context = std::make_unique<QOpenGLContext>();
         context->setShareContext(share_context);
@@ -221,7 +241,7 @@ public:
     explicit RenderWidget(GRenderWindow* parent) : QWidget(parent), render_window(parent) {
         setAttribute(Qt::WA_NativeWindow);
         setAttribute(Qt::WA_PaintOnScreen);
-        if (GetWindowSystemType() == Core::Frontend::WindowSystemType::Wayland) {
+        if (QtCommon::GetWindowSystemType() == Core::Frontend::WindowSystemType::Wayland) {
             setAttribute(Qt::WA_DontCreateNativeAncestors);
         }
     }
@@ -258,46 +278,6 @@ struct VulkanRenderWidget : public RenderWidget {
 struct NullRenderWidget : public RenderWidget {
     explicit NullRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {}
 };
-
-static Core::Frontend::WindowSystemType GetWindowSystemType() {
-    // Determine WSI type based on Qt platform.
-    QString platform_name = QGuiApplication::platformName();
-    if (platform_name == QStringLiteral("windows"))
-        return Core::Frontend::WindowSystemType::Windows;
-    else if (platform_name == QStringLiteral("xcb"))
-        return Core::Frontend::WindowSystemType::X11;
-    else if (platform_name == QStringLiteral("wayland"))
-        return Core::Frontend::WindowSystemType::Wayland;
-    else if (platform_name == QStringLiteral("wayland-egl"))
-        return Core::Frontend::WindowSystemType::Wayland;
-    else if (platform_name == QStringLiteral("cocoa"))
-        return Core::Frontend::WindowSystemType::Cocoa;
-    else if (platform_name == QStringLiteral("android"))
-        return Core::Frontend::WindowSystemType::Android;
-
-    LOG_CRITICAL(Frontend, "Unknown Qt platform {}!", platform_name.toStdString());
-    return Core::Frontend::WindowSystemType::Windows;
-}
-
-static Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window) {
-    Core::Frontend::EmuWindow::WindowSystemInfo wsi;
-    wsi.type = GetWindowSystemType();
-
-    // Our Win32 Qt external doesn't have the private API.
-#if defined(WIN32) || defined(__APPLE__)
-    wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
-#else
-    QPlatformNativeInterface* pni = QGuiApplication::platformNativeInterface();
-    wsi.display_connection = pni->nativeResourceForWindow("display", window);
-    if (wsi.type == Core::Frontend::WindowSystemType::Wayland)
-        wsi.render_surface = window ? pni->nativeResourceForWindow("surface", window) : nullptr;
-    else
-        wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
-#endif
-    wsi.render_surface_scale = window ? static_cast<float>(window->devicePixelRatio()) : 1.0f;
-
-    return wsi;
-}
 
 GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
                              std::shared_ptr<InputCommon::InputSubsystem> input_subsystem_,
@@ -904,7 +884,7 @@ bool GRenderWindow::InitRenderTarget() {
     }
 
     // Update the Window System information with the new render target
-    window_info = GetWindowSystemInfo(child_widget->windowHandle());
+    window_info = QtCommon::GetWindowSystemInfo(child_widget->windowHandle());
 
     child_widget->resize(Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height);
     layout()->addWidget(child_widget);

@@ -5,27 +5,46 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <cstddef>
 #include <memory>
 #include <mutex>
+#include <stop_token>
+#include <utility>
+#include <vector>
 
+#include <QByteArray>
 #include <QImage>
+#include <QObject>
+#include <QPoint>
+#include <QString>
 #include <QStringList>
 #include <QThread>
-#include <QTouchEvent>
 #include <QWidget>
+#include <qglobal.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
 
+#include "common/common_types.h"
+#include "common/logging/log.h"
 #include "common/polyfill_thread.h"
 #include "common/thread.h"
 #include "core/frontend/emu_window.h"
 
-class GRenderWindow;
 class GMainWindow;
 class QCamera;
 class QCameraImageCapture;
+class QCloseEvent;
+class QFocusEvent;
 class QKeyEvent;
+class QMouseEvent;
+class QObject;
+class QResizeEvent;
+class QShowEvent;
+class QTimer;
+class QTouchEvent;
+class QWheelEvent;
 
 namespace Core {
-enum class SystemResultStatus : u32;
 class System;
 } // namespace Core
 
@@ -40,7 +59,6 @@ enum class TasState;
 
 namespace VideoCore {
 enum class LoadCallbackStage;
-class RendererBase;
 } // namespace VideoCore
 
 class EmuThread final : public QThread {

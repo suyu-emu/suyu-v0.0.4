@@ -23,10 +23,10 @@
 
 namespace Vulkan {
 
-vk::SurfaceKHR CreateSurface(const vk::Instance& instance,
-                             const Core::Frontend::EmuWindow& emu_window) {
+vk::SurfaceKHR CreateSurface(
+    const vk::Instance& instance,
+    [[maybe_unused]] const Core::Frontend::EmuWindow::WindowSystemInfo& window_info) {
     [[maybe_unused]] const vk::InstanceDispatch& dld = instance.Dispatch();
-    [[maybe_unused]] const auto& window_info = emu_window.GetWindowInfo();
     VkSurfaceKHR unsafe_surface = nullptr;
 
 #ifdef _WIN32

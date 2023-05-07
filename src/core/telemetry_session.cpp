@@ -85,6 +85,20 @@ static const char* TranslateNvdecEmulation(Settings::NvdecEmulation backend) {
     return "Unknown";
 }
 
+static constexpr const char* TranslateVSyncMode(Settings::VSyncMode mode) {
+    switch (mode) {
+    case Settings::VSyncMode::Immediate:
+        return "Immediate";
+    case Settings::VSyncMode::Mailbox:
+        return "Mailbox";
+    case Settings::VSyncMode::FIFO:
+        return "FIFO";
+    case Settings::VSyncMode::FIFORelaxed:
+        return "FIFO Relaxed";
+    }
+    return "Unknown";
+}
+
 u64 GetTelemetryId() {
     u64 telemetry_id{};
     const auto filename = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "telemetry_id";
@@ -241,7 +255,8 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader,
     AddField(field_type, "Renderer_NvdecEmulation",
              TranslateNvdecEmulation(Settings::values.nvdec_emulation.GetValue()));
     AddField(field_type, "Renderer_AccelerateASTC", Settings::values.accelerate_astc.GetValue());
-    AddField(field_type, "Renderer_UseVsync", Settings::values.use_vsync.GetValue());
+    AddField(field_type, "Renderer_UseVsync",
+             TranslateVSyncMode(Settings::values.vsync_mode.GetValue()));
     AddField(field_type, "Renderer_ShaderBackend",
              static_cast<u32>(Settings::values.shader_backend.GetValue()));
     AddField(field_type, "Renderer_UseAsynchronousShaders",

@@ -189,6 +189,8 @@ add_executable(yuzu
     multiplayer/state.h
     multiplayer/validation.h
     precompiled_headers.h
+    qt_common.cpp
+    qt_common.h
     startup_checks.cpp
     startup_checks.h
     uisettings.cpp

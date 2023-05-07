@@ -61,7 +61,7 @@ void LogSettings() {
     log_setting("Renderer_NvdecEmulation", values.nvdec_emulation.GetValue());
     log_setting("Renderer_AccelerateASTC", values.accelerate_astc.GetValue());
     log_setting("Renderer_AsyncASTC", values.async_astc.GetValue());
-    log_setting("Renderer_UseVsync", values.use_vsync.GetValue());
+    log_setting("Renderer_UseVsync", values.vsync_mode.GetValue());
     log_setting("Renderer_ShaderBackend", values.shader_backend.GetValue());
     log_setting("Renderer_UseAsynchronousShaders", values.use_asynchronous_shaders.GetValue());
     log_setting("Renderer_AnisotropicFilteringLevel", values.max_anisotropy.GetValue());
@@ -223,7 +223,6 @@ void RestoreGlobalState(bool is_powered_on) {
     values.nvdec_emulation.SetGlobal(true);
     values.accelerate_astc.SetGlobal(true);
     values.async_astc.SetGlobal(true);
-    values.use_vsync.SetGlobal(true);
     values.shader_backend.SetGlobal(true);
     values.use_asynchronous_shaders.SetGlobal(true);
     values.use_fast_gpu_time.SetGlobal(true);
