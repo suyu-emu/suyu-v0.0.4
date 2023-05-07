@@ -12,7 +12,7 @@
 class QWidget;
 
 namespace ConfigurationShared {
-using TranslationMap = std::map<std::string, std::pair<QString, QString>>;
+using TranslationMap = std::map<u32, std::pair<QString, QString>>;
 
 std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent);
 

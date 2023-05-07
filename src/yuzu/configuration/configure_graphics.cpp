@@ -214,13 +214,13 @@ void ConfigureGraphics::SetConfiguration() {
     QLayout& api_layout = *ui->api_widget->layout();
     QLayout& graphics_layout = *ui->graphics_widget->layout();
 
-    std::map<std::string, QWidget*> hold_graphics;
+    std::map<bool, std::map<std::string, QWidget*>> hold_graphics;
 
     for (const auto setting : Settings::values.linkage.by_category[Settings::Category::Renderer]) {
         const auto& setting_label = setting->GetLabel();
 
         auto [widget, extra] = [&]() {
-            if (setting_label == "vulkan_device") {
+            if (setting->Id() == Settings::values.vulkan_device.Id()) {
                 return ConfigurationShared::CreateWidget(
                     setting, translations, this, runtime_lock, apply_funcs, trackers,
                     ConfigurationShared::RequestType::ComboBox);
@@ -233,28 +233,29 @@ void ConfigureGraphics::SetConfiguration() {
             continue;
         }
 
-        if (setting_label == "backend") {
+        if (setting->Id() == Settings::values.vulkan_device.Id()) {
             api_layout.addWidget(widget);
             api_combobox = reinterpret_cast<QComboBox*>(extra);
-        } else if (setting_label == "vulkan_device") {
+        } else if (setting->Id() == Settings::values.vulkan_device.Id()) {
             api_layout.addWidget(widget);
             vulkan_device_combobox = reinterpret_cast<QComboBox*>(extra);
             vulkan_device_widget = widget;
-        } else if (setting_label == "shader_backend") {
+        } else if (setting->Id() == Settings::values.shader_backend.Id()) {
             api_layout.addWidget(widget);
             shader_backend_combobox = reinterpret_cast<QComboBox*>(extra);
             shader_backend_widget = widget;
-        } else {
-            hold_graphics.insert(std::pair(setting_label, widget));
-        }
-
-        if (setting_label == "use_vsync") {
+        } else if (setting->Id() == Settings::values.vsync_mode.Id()) {
             vsync_mode_combobox = reinterpret_cast<QComboBox*>(extra);
+            hold_graphics[setting->IsEnum()][setting_label] = widget;
+        } else {
+            hold_graphics[setting->IsEnum()][setting_label] = widget;
         }
     }
 
-    for (const auto& [label, widget] : hold_graphics) {
-        graphics_layout.addWidget(widget);
+    for (const auto& [_, settings] : hold_graphics) {
+        for (const auto& [label, widget] : settings) {
+            graphics_layout.addWidget(widget);
+        }
     }
 
     // ui->api_widget->setEnabled(runtime_lock);

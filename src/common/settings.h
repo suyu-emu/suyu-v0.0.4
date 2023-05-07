@@ -191,7 +191,7 @@ public:
     virtual bool IsEnum() const = 0;
     virtual bool RuntimeModfiable() const = 0;
     virtual void SetGlobal(bool global) {}
-    virtual u32 Id() const = 0;
+    virtual constexpr u32 Id() const = 0;
     virtual bool UsingGlobal() const {
         return false;
     }
@@ -423,7 +423,7 @@ public:
         return std::type_index(typeid(Type));
     }
 
-    virtual u32 Id() const override {
+    virtual constexpr u32 Id() const override {
         return id;
     }
 

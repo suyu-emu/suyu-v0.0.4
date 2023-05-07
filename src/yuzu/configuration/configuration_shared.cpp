@@ -136,6 +136,7 @@ std::pair<QWidget*, void*> CreateWidget(Settings::BasicSetting* setting,
                                         std::forward_list<std::function<void(bool)>>& apply_funcs,
                                         std::list<CheckState>& trackers, RequestType request) {
     const auto type = setting->TypeId();
+    const int id = setting->Id();
     QWidget* widget{nullptr};
     void* extra{nullptr};
 
@@ -143,9 +144,8 @@ std::pair<QWidget*, void*> CreateWidget(Settings::BasicSetting* setting,
 
     const auto [label, tooltip] = [&]() {
         const auto& setting_label = setting->GetLabel();
-        if (translations.contains(setting_label)) {
-            return std::pair{translations.at(setting_label).first,
-                             translations.at(setting_label).second};
+        if (translations.contains(id)) {
+            return std::pair{translations.at(id).first, translations.at(id).second};
         }
         LOG_ERROR(Frontend, "Translation table lacks entry for \"{}\"", setting_label);
         return std::pair{QString::fromStdString(setting_label), QStringLiteral("")};

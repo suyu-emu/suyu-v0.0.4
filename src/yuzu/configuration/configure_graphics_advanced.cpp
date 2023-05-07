@@ -45,7 +45,7 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
             layout.addWidget(widget);
         }
 
-        if (setting->GetLabel() == "enable_compute_pipelines") {
+        if (setting->Id() == Settings::values.enable_compute_pipelines.Id()) {
             checkbox_enable_compute_pipelines = widget;
         }
     }
