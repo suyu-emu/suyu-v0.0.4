@@ -223,11 +223,15 @@ void Config::ReadValues() {
     ReadCategory(Settings::Category::Audio);
     ReadCategory(Settings::Category::Core);
     ReadCategory(Settings::Category::Cpu);
+    ReadCategory(Settings::Category::CpuDebug);
+    ReadCategory(Settings::Category::CpuUnsafe);
     ReadCategory(Settings::Category::Renderer);
-    ReadCategory(Settings::Category::AdvancedGraphics);
+    ReadCategory(Settings::Category::RendererAdvanced);
+    ReadCategory(Settings::Category::RendererDebug);
     ReadCategory(Settings::Category::System);
     ReadCategory(Settings::Category::DataStorage);
     ReadCategory(Settings::Category::Debugging);
+    ReadCategory(Settings::Category::DebuggingGraphics);
     ReadCategory(Settings::Category::Miscellaneous);
     ReadCategory(Settings::Category::Network);
     ReadCategory(Settings::Category::WebService);

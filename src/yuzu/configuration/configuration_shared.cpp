@@ -128,9 +128,15 @@ QWidget* CreateWidget(Settings::BasicSetting* setting, const TranslationMap& tra
             return std::pair{translations.at(setting_label).first,
                              translations.at(setting_label).second};
         }
-        LOG_ERROR(Frontend, "Translation map lacks entry for \"{}\"", setting_label);
+        LOG_ERROR(Frontend, "Translation table lacks entry for \"{}\"", setting_label);
         return std::pair{QString::fromStdString(setting_label), QStringLiteral("")};
     }();
+
+    if (label == QStringLiteral("")) {
+        LOG_DEBUG(Frontend, "Translation table has emtpy entry for \"{}\", skipping...",
+                  setting->GetLabel());
+        return widget;
+    }
 
     if (type == typeid(bool)) {
         auto pair = CreateCheckBox(setting, label, parent, trackers);

@@ -151,14 +151,19 @@ const char* TranslateCategory(Category category) {
     case Category::Core:
         return "Core";
     case Category::Cpu:
+    case Category::CpuDebug:
+    case Category::CpuUnsafe:
         return "Cpu";
     case Category::Renderer:
+    case Category::RendererAdvanced:
+    case Category::RendererDebug:
         return "Renderer";
     case Category::System:
         return "System";
     case Category::DataStorage:
         return "Data Storage";
     case Category::Debugging:
+    case Category::DebuggingGraphics:
         return "Debugging";
     case Category::Miscellaneous:
         return "Miscellaneous";
@@ -188,8 +193,6 @@ const char* TranslateCategory(Category category) {
         return "Paths";
     case Category::MaxEnum:
         break;
-    case Category::AdvancedGraphics:
-        return "Renderer";
     }
     return "Miscellaneous";
 }

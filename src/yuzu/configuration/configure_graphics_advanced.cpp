@@ -31,7 +31,7 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
     std::map<std::string, QWidget*> hold{}; // A map will sort the data for us
 
     for (auto setting :
-         Settings::values.linkage.by_category[Settings::Category::AdvancedGraphics]) {
+         Settings::values.linkage.by_category[Settings::Category::RendererAdvanced]) {
         QWidget* widget = ConfigurationShared::CreateWidget(setting, translations, this,
                                                             runtime_lock, apply_funcs, trackers);
 

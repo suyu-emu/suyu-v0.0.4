@@ -120,11 +120,15 @@ enum class Category : u32 {
     Audio,
     Core,
     Cpu,
+    CpuDebug,
+    CpuUnsafe,
     Renderer,
-    AdvancedGraphics,
+    RendererAdvanced,
+    RendererDebug,
     System,
     DataStorage,
     Debugging,
+    DebuggingGraphics,
     Miscellaneous,
     Network,
     WebService,
@@ -624,53 +628,56 @@ struct Values {
                                                       "cpu_accuracy",    Category::Cpu};
     // TODO: remove cpu_accuracy_first_time, migration setting added 8 July 2021
     Setting<bool> cpu_accuracy_first_time{linkage, true, "cpu_accuracy_first_time", Category::Cpu};
-    Setting<bool> cpu_debug_mode{linkage, false, "cpu_debug_mode", Category::Cpu};
+    Setting<bool> cpu_debug_mode{linkage, false, "cpu_debug_mode", Category::CpuDebug};
 
-    Setting<bool> cpuopt_page_tables{linkage, true, "cpuopt_page_tables", Category::Cpu};
-    Setting<bool> cpuopt_block_linking{linkage, true, "cpuopt_block_linking", Category::Cpu};
+    Setting<bool> cpuopt_page_tables{linkage, true, "cpuopt_page_tables", Category::CpuDebug};
+    Setting<bool> cpuopt_block_linking{linkage, true, "cpuopt_block_linking", Category::CpuDebug};
     Setting<bool> cpuopt_return_stack_buffer{linkage, true, "cpuopt_return_stack_buffer",
-                                             Category::Cpu};
-    Setting<bool> cpuopt_fast_dispatcher{linkage, true, "cpuopt_fast_dispatcher", Category::Cpu};
+                                             Category::CpuDebug};
+    Setting<bool> cpuopt_fast_dispatcher{linkage, true, "cpuopt_fast_dispatcher",
+                                         Category::CpuDebug};
     Setting<bool> cpuopt_context_elimination{linkage, true, "cpuopt_context_elimination",
-                                             Category::Cpu};
-    Setting<bool> cpuopt_const_prop{linkage, true, "cpuopt_const_prop", Category::Cpu};
-    Setting<bool> cpuopt_misc_ir{linkage, true, "cpuopt_misc_ir", Category::Cpu};
+                                             Category::CpuDebug};
+    Setting<bool> cpuopt_const_prop{linkage, true, "cpuopt_const_prop", Category::CpuDebug};
+    Setting<bool> cpuopt_misc_ir{linkage, true, "cpuopt_misc_ir", Category::CpuDebug};
     Setting<bool> cpuopt_reduce_misalign_checks{linkage, true, "cpuopt_reduce_misalign_checks",
-                                                Category::Cpu};
-    Setting<bool> cpuopt_fastmem{linkage, true, "cpuopt_fastmem", Category::Cpu};
+                                                Category::CpuDebug};
+    Setting<bool> cpuopt_fastmem{linkage, true, "cpuopt_fastmem", Category::CpuDebug};
     Setting<bool> cpuopt_fastmem_exclusives{linkage, true, "cpuopt_fastmem_exclusives",
-                                            Category::Cpu};
+                                            Category::CpuDebug};
     Setting<bool> cpuopt_recompile_exclusives{linkage, true, "cpuopt_recompile_exclusives",
-                                              Category::Cpu};
+                                              Category::CpuDebug};
     Setting<bool> cpuopt_ignore_memory_aborts{linkage, true, "cpuopt_ignore_memory_aborts",
-                                              Category::Cpu};
+                                              Category::CpuDebug};
 
     SwitchableSetting<bool> cpuopt_unsafe_unfuse_fma{linkage, true, "cpuopt_unsafe_unfuse_fma",
-                                                     Category::Cpu};
+                                                     Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_reduce_fp_error{
-        linkage, true, "cpuopt_unsafe_reduce_fp_error", Category::Cpu};
+        linkage, true, "cpuopt_unsafe_reduce_fp_error", Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_ignore_standard_fpcr{
-        linkage, true, "cpuopt_unsafe_ignore_standard_fpcr", Category::Cpu};
+        linkage, true, "cpuopt_unsafe_ignore_standard_fpcr", Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_inaccurate_nan{
-        linkage, true, "cpuopt_unsafe_inaccurate_nan", Category::Cpu};
+        linkage, true, "cpuopt_unsafe_inaccurate_nan", Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_fastmem_check{
-        linkage, true, "cpuopt_unsafe_fastmem_check", Category::Cpu};
+        linkage, true, "cpuopt_unsafe_fastmem_check", Category::CpuUnsafe};
     SwitchableSetting<bool> cpuopt_unsafe_ignore_global_monitor{
-        linkage, true, "cpuopt_unsafe_ignore_global_monitor", Category::Cpu};
+        linkage, true, "cpuopt_unsafe_ignore_global_monitor", Category::CpuUnsafe};
 
     // Renderer
     SwitchableSetting<RendererBackend, true> renderer_backend{
         linkage,   RendererBackend::Vulkan, RendererBackend::OpenGL, RendererBackend::Null,
         "backend", Category::Renderer};
     SwitchableSetting<bool> async_presentation{linkage, false, "async_presentation",
-                                               Category::AdvancedGraphics};
+                                               Category::RendererAdvanced};
     SwitchableSetting<bool> renderer_force_max_clock{linkage, false, "force_max_clock",
-                                                     Category::AdvancedGraphics};
-    Setting<bool> renderer_debug{linkage, false, "debug", Category::Renderer};
-    Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback", Category::Renderer};
-    Setting<bool> enable_nsight_aftermath{linkage, false, "nsight_aftermath", Category::Renderer};
+                                                     Category::RendererAdvanced};
+    Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
+    Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",
+                                           Category::RendererDebug};
+    Setting<bool> enable_nsight_aftermath{linkage, false, "nsight_aftermath",
+                                          Category::RendererDebug};
     Setting<bool> disable_shader_loop_safety_checks{
-        linkage, false, "disable_shader_loop_safety_checks", Category::Renderer};
+        linkage, false, "disable_shader_loop_safety_checks", Category::RendererDebug};
     SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer};
 
     ResolutionScalingInfo resolution_info{};
@@ -697,7 +704,7 @@ struct Values {
     SwitchableSetting<int, true> aspect_ratio{linkage, 0, 0, 4, "aspect_ratio", Category::Renderer};
     SwitchableSetting<AnisotropyMode, true> max_anisotropy{
         linkage,          AnisotropyMode::Automatic, AnisotropyMode::Automatic, AnisotropyMode::X16,
-        "max_anisotropy", Category::AdvancedGraphics};
+        "max_anisotropy", Category::RendererAdvanced};
     SwitchableSetting<bool, false, false> use_speed_limit{linkage, true, "use_speed_limit",
                                                           Category::Renderer};
     SwitchableSetting<u16, true> speed_limit{linkage, 100,           0,
@@ -706,7 +713,7 @@ struct Values {
                                                   Category::Renderer};
     SwitchableSetting<GPUAccuracy, true, true, true> gpu_accuracy{
         linkage,        GPUAccuracy::High,         GPUAccuracy::Normal, GPUAccuracy::Extreme,
-        "gpu_accuracy", Category::AdvancedGraphics};
+        "gpu_accuracy", Category::RendererAdvanced};
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{
         linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
     SwitchableSetting<NvdecEmulation> nvdec_emulation{linkage, NvdecEmulation::GPU,
@@ -728,21 +735,21 @@ struct Values {
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::Renderer};
     SwitchableSetting<bool, false, true, true> use_fast_gpu_time{linkage, true, "use_fast_gpu_time",
-                                                                 Category::AdvancedGraphics};
+                                                                 Category::RendererAdvanced};
     SwitchableSetting<bool, false, true, true> use_vulkan_driver_pipeline_cache{
-        linkage, true, "use_vulkan_driver_pipeline_cache", Category::AdvancedGraphics};
+        linkage, true, "use_vulkan_driver_pipeline_cache", Category::RendererAdvanced};
     SwitchableSetting<bool> enable_compute_pipelines{linkage, false, "enable_compute_pipelines",
-                                                     Category::AdvancedGraphics};
+                                                     Category::RendererAdvanced};
     SwitchableSetting<AstcRecompression, true> astc_recompression{linkage,
                                                                   AstcRecompression::Uncompressed,
                                                                   AstcRecompression::Uncompressed,
                                                                   AstcRecompression::Bc3,
                                                                   "astc_recompression",
-                                                                  Category::AdvancedGraphics};
+                                                                  Category::RendererAdvanced};
     SwitchableSetting<bool> use_video_framerate{linkage, false, "use_video_framerate",
-                                                Category::AdvancedGraphics};
+                                                Category::RendererAdvanced};
     SwitchableSetting<bool> barrier_feedback_loops{linkage, true, "barrier_feedback_loops",
-                                                   Category::AdvancedGraphics};
+                                                   Category::RendererAdvanced};
 
     SwitchableSetting<u8> bg_red{linkage, 0, "bg_red", Category::Renderer};
     SwitchableSetting<u8> bg_green{linkage, 0, "bg_green", Category::Renderer};
@@ -855,14 +862,18 @@ struct Values {
     Setting<std::string> program_args{linkage, std::string(), "program_args", Category::Debugging};
     Setting<bool> dump_exefs{linkage, false, "dump_exefs", Category::Debugging};
     Setting<bool> dump_nso{linkage, false, "dump_nso", Category::Debugging};
-    Setting<bool, false, false> dump_shaders{linkage, false, "dump_shaders", Category::Debugging};
-    Setting<bool, false, false> dump_macros{linkage, false, "dump_macros", Category::Debugging};
+    Setting<bool, false, false> dump_shaders{linkage, false, "dump_shaders",
+                                             Category::DebuggingGraphics};
+    Setting<bool, false, false> dump_macros{linkage, false, "dump_macros",
+                                            Category::DebuggingGraphics};
     Setting<bool> enable_fs_access_log{linkage, false, "enable_fs_access_log", Category::Debugging};
     Setting<bool, false, false> reporting_services{linkage, false, "reporting_services",
                                                    Category::Debugging};
     Setting<bool> quest_flag{linkage, false, "quest_flag", Category::Debugging};
-    Setting<bool> disable_macro_jit{linkage, false, "disable_macro_jit", Category::Debugging};
-    Setting<bool> disable_macro_hle{linkage, false, "disable_macro_hle", Category::Debugging};
+    Setting<bool> disable_macro_jit{linkage, false, "disable_macro_jit",
+                                    Category::DebuggingGraphics};
+    Setting<bool> disable_macro_hle{linkage, false, "disable_macro_hle",
+                                    Category::DebuggingGraphics};
     Setting<bool, false, false> extended_logging{linkage, false, "extended_logging",
                                                  Category::Debugging};
     Setting<bool> use_debug_asserts{linkage, false, "use_debug_asserts", Category::Debugging};

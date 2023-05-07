@@ -550,6 +550,7 @@ void Config::ReadDebuggingValues() {
         qt_config->value(QStringLiteral("record_frame_times"), false).toBool();
 
     ReadCategory(Settings::Category::Debugging);
+    ReadCategory(Settings::Category::DebuggingGraphics);
 
     qt_config->endGroup();
 }
@@ -635,6 +636,8 @@ void Config::ReadCpuValues() {
     qt_config->beginGroup(QStringLiteral("Cpu"));
 
     ReadCategory(Settings::Category::Cpu);
+    ReadCategory(Settings::Category::CpuDebug);
+    ReadCategory(Settings::Category::CpuUnsafe);
 
     if (Settings::values.cpu_accuracy_first_time) {
         Settings::values.cpu_accuracy.SetValue(Settings::values.cpu_accuracy.GetDefault());
@@ -648,7 +651,8 @@ void Config::ReadRendererValues() {
     qt_config->beginGroup(QStringLiteral("Renderer"));
 
     ReadCategory(Settings::Category::Renderer);
-    ReadCategory(Settings::Category::AdvancedGraphics);
+    ReadCategory(Settings::Category::RendererAdvanced);
+    ReadCategory(Settings::Category::RendererDebug);
 
     qt_config->endGroup();
 }
@@ -1016,6 +1020,7 @@ void Config::SaveDebuggingValues() {
     qt_config->setValue(QStringLiteral("record_frame_times"), Settings::values.record_frame_times);
 
     WriteCategory(Settings::Category::Debugging);
+    WriteCategory(Settings::Category::DebuggingGraphics);
 
     qt_config->endGroup();
 }
@@ -1079,6 +1084,8 @@ void Config::SaveCpuValues() {
     qt_config->beginGroup(QStringLiteral("Cpu"));
 
     WriteCategory(Settings::Category::Cpu);
+    WriteCategory(Settings::Category::CpuDebug);
+    WriteCategory(Settings::Category::CpuUnsafe);
 
     qt_config->endGroup();
 }
@@ -1086,8 +1093,9 @@ void Config::SaveCpuValues() {
 void Config::SaveRendererValues() {
     qt_config->beginGroup(QStringLiteral("Renderer"));
 
-    WriteCategory(Settings::Category::AdvancedGraphics);
     WriteCategory(Settings::Category::Renderer);
+    WriteCategory(Settings::Category::RendererAdvanced);
+    WriteCategory(Settings::Category::RendererDebug);
 
     qt_config->endGroup();
 }
