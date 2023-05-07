@@ -132,6 +132,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
 std::forward_list<QString> ComboboxEnumeration(std::type_index type, QWidget* parent) {
     const auto& tr = [&](const char* text) { return parent->tr(text); };
 
+    // Intentionally skipping VSyncMode to let the UI fill that one out
+
     if (type == typeid(Settings::AstcDecodeMode)) {
         return {
             tr("CPU"),
@@ -198,6 +200,11 @@ std::forward_list<QString> ComboboxEnumeration(std::type_index type, QWidget* pa
             tr("None"),
             tr("FXAA"),
             tr("SMAA"),
+        };
+    } else if (type == typeid(Settings::AspectRatio)) {
+        return {
+            tr("Default (16:9)"), tr("Force 4:3"),         tr("Force 21:9"),
+            tr("Force 16:10"),    tr("Stretch to Window"),
         };
     } else if (type == typeid(Settings::AnisotropyMode)) {
         return {

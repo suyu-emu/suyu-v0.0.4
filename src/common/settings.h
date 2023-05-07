@@ -116,6 +116,14 @@ enum class AstcRecompression : u32 {
     Bc3 = 2,
 };
 
+enum class AspectRatio : u32 {
+    R16_9,
+    R4_3,
+    R21_9,
+    R16_10,
+    Stretch,
+};
+
 enum class Category : u32 {
     Audio,
     Core,
