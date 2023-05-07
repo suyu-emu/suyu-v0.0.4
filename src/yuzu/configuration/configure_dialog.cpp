@@ -32,13 +32,15 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
                                  std::vector<VkDeviceInfo::Record>& vk_device_records,
                                  Core::System& system_, bool enable_web_config)
     : QDialog(parent), ui{std::make_unique<Ui::ConfigureDialog>()},
-      registry(registry_), system{system_}, audio_tab{std::make_unique<ConfigureAudio>(
-                                                system_, nullptr, this)},
+      registry(registry_), system{system_},
+      translations{ConfigurationShared::InitializeTranslations(this)},
+      audio_tab{std::make_unique<ConfigureAudio>(system_, nullptr, this)},
       cpu_tab{std::make_unique<ConfigureCpu>(system_, nullptr, this)},
       debug_tab_tab{std::make_unique<ConfigureDebugTab>(system_, this)},
       filesystem_tab{std::make_unique<ConfigureFilesystem>(this)},
       general_tab{std::make_unique<ConfigureGeneral>(system_, nullptr, this)},
-      graphics_advanced_tab{std::make_unique<ConfigureGraphicsAdvanced>(system_, nullptr, this)},
+      graphics_advanced_tab{
+          std::make_unique<ConfigureGraphicsAdvanced>(system_, nullptr, *translations, this)},
       graphics_tab{std::make_unique<ConfigureGraphics>(
           system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
           nullptr, this)},

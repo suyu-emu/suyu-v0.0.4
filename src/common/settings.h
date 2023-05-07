@@ -20,6 +20,15 @@
 
 namespace Settings {
 
+enum class AnisotropyMode : u32 {
+    Automatic = 0,
+    Default = 1,
+    X2 = 2,
+    X4 = 3,
+    X8 = 4,
+    X16 = 5,
+};
+
 enum class AstcDecodeMode : u32 {
     CPU = 0,
     GPU = 1,
@@ -49,6 +58,7 @@ enum class GPUAccuracy : u32 {
     Normal = 0,
     High = 1,
     Extreme = 2,
+    MaxEnum = 3,
 };
 
 enum class CPUAccuracy : u32 {
@@ -166,11 +176,16 @@ public:
     virtual Category Category() const = 0;
     virtual constexpr bool Switchable() const = 0;
     virtual std::string ToString() const = 0;
+    virtual std::string ToStringGlobal() const {
+        return {};
+    }
     virtual void LoadString(const std::string& load) = 0;
     virtual const std::string& GetLabel() const = 0;
     virtual std::string DefaultToString() const = 0;
     virtual bool Save() const = 0;
     virtual std::type_index TypeId() const = 0;
+    virtual bool IsEnum() const = 0;
+    virtual bool RuntimeModfiable() const = 0;
     virtual void SetGlobal(bool global) {}
     virtual bool UsingGlobal() const {
         return false;
@@ -188,7 +203,7 @@ public:
  * configurations. Specifying a default value and label is required. A minimum and maximum range
  * can be specified for sanitization.
  */
-template <typename Type, bool ranged = false, bool save = true>
+template <typename Type, bool ranged = false, bool save = true, bool runtime_modifiable = false>
 class Setting : public BasicSetting {
 protected:
     Setting() = default;
@@ -282,6 +297,14 @@ public:
         return category;
     }
 
+    [[nodiscard]] bool RuntimeModfiable() const override {
+        return runtime_modifiable;
+    }
+
+    [[nodiscard]] bool IsEnum() const override {
+        return std::is_enum<Type>::value;
+    }
+
     /**
      * Returns whether the current setting is Switchable.
      *
@@ -291,7 +314,7 @@ public:
         return false;
     }
 
-private:
+protected:
     std::string ToString(const Type& value_) const {
         if constexpr (std::is_same<Type, std::string>()) {
             return value_;
@@ -408,8 +431,8 @@ protected:
  *
  * By default, the global setting is used.
  */
-template <typename Type, bool ranged = false, bool save = true>
-class SwitchableSetting : virtual public Setting<Type, ranged, save> {
+template <typename Type, bool ranged = false, bool save = true, bool runtime_modifiable = false>
+class SwitchableSetting : virtual public Setting<Type, ranged, save, runtime_modifiable> {
 public:
     /**
      * Sets a default value, label, and setting value.
@@ -422,7 +445,7 @@ public:
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const std::string& name,
                                Category category)
         requires(!ranged)
-        : Setting<Type, false, save>{linkage, default_val, name, category} {
+        : Setting<Type, false, save, runtime_modifiable>{linkage, default_val, name, category} {
         linkage.restore_functions.emplace_back([this]() { this->SetGlobal(true); });
     }
     virtual ~SwitchableSetting() = default;
@@ -440,7 +463,8 @@ public:
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const Type& min_val,
                                const Type& max_val, const std::string& name, Category category)
         requires(ranged)
-        : Setting<Type, true, save>{linkage, default_val, min_val, max_val, name, category} {
+        : Setting<Type, true, save, runtime_modifiable>{linkage, default_val, min_val,
+                                                        max_val, name,        category} {
         linkage.restore_functions.emplace_back([this]() { this->SetGlobal(true); });
     }
 
@@ -500,6 +524,10 @@ public:
 
     [[nodiscard]] virtual constexpr bool Switchable() const override {
         return true;
+    }
+
+    [[nodiscard]] virtual std::string ToStringGlobal() const override {
+        return this->ToString(this->value);
     }
 
     /**
@@ -667,15 +695,16 @@ struct Values {
                                                             "fullscreen_mode",
                                                             Category::Renderer};
     SwitchableSetting<int, true> aspect_ratio{linkage, 0, 0, 4, "aspect_ratio", Category::Renderer};
-    SwitchableSetting<int, true> max_anisotropy{
-        linkage, 0, 0, 5, "max_anisotropy", Category::AdvancedGraphics};
+    SwitchableSetting<AnisotropyMode, true> max_anisotropy{
+        linkage,          AnisotropyMode::Automatic, AnisotropyMode::Automatic, AnisotropyMode::X16,
+        "max_anisotropy", Category::AdvancedGraphics};
     SwitchableSetting<bool, false, false> use_speed_limit{linkage, true, "use_speed_limit",
                                                           Category::Renderer};
     SwitchableSetting<u16, true> speed_limit{linkage, 100,           0,
                                              9999,    "speed_limit", Category::Renderer};
     SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
                                                   Category::Renderer};
-    SwitchableSetting<GPUAccuracy, true> gpu_accuracy{
+    SwitchableSetting<GPUAccuracy, true, true, true> gpu_accuracy{
         linkage,        GPUAccuracy::High,         GPUAccuracy::Normal, GPUAccuracy::Extreme,
         "gpu_accuracy", Category::AdvancedGraphics};
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{
@@ -698,9 +727,9 @@ struct Values {
         "shader_backend", Category::Renderer};
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::Renderer};
-    SwitchableSetting<bool> use_fast_gpu_time{linkage, true, "use_fast_gpu_time",
-                                              Category::AdvancedGraphics};
-    SwitchableSetting<bool> use_vulkan_driver_pipeline_cache{
+    SwitchableSetting<bool, false, true, true> use_fast_gpu_time{linkage, true, "use_fast_gpu_time",
+                                                                 Category::AdvancedGraphics};
+    SwitchableSetting<bool, false, true, true> use_vulkan_driver_pipeline_cache{
         linkage, true, "use_vulkan_driver_pipeline_cache", Category::AdvancedGraphics};
     SwitchableSetting<bool> enable_compute_pipelines{linkage, false, "enable_compute_pipelines",
                                                      Category::AdvancedGraphics};

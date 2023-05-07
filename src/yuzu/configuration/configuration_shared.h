@@ -11,6 +11,7 @@
 #include <QWidget>
 #include <qobjectdefs.h>
 #include "common/settings.h"
+#include "yuzu/configuration/shared_translation.h"
 
 namespace ConfigurationShared {
 
@@ -39,6 +40,11 @@ enum class CheckState {
     Global, // Checkbox defers to the global state
     Count,  // Simply the number of states, not a valid checkbox state
 };
+
+QWidget* CreateWidget(Settings::BasicSetting* setting, const TranslationMap& translations,
+                      QWidget* parent, bool runtime_lock,
+                      std::forward_list<std::function<void(bool)>>& apply_funcs,
+                      std::list<CheckState>& trackers);
 
 // Global-aware apply and set functions
 

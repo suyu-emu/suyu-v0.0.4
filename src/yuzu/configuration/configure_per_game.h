@@ -75,6 +75,7 @@ private:
     std::unique_ptr<Config> game_config;
 
     Core::System& system;
+    std::unique_ptr<ConfigurationShared::TranslationMap> translations;
     std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> tab_group;
 
     std::unique_ptr<ConfigurePerGameAddons> addons_tab;

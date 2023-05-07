@@ -143,6 +143,8 @@ add_executable(yuzu
     configuration/configure_web.ui
     configuration/input_profiles.cpp
     configuration/input_profiles.h
+    configuration/shared_translation.cpp
+    configuration/shared_translation.h
     debugger/console.cpp
     debugger/console.h
     debugger/controller.cpp

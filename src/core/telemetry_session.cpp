@@ -69,6 +69,8 @@ static const char* TranslateGPUAccuracyLevel(Settings::GPUAccuracy backend) {
         return "High";
     case Settings::GPUAccuracy::Extreme:
         return "Extreme";
+    case Settings::GPUAccuracy::MaxEnum:
+        break;
     }
     return "Unknown";
 }

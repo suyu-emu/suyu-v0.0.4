@@ -20,7 +20,7 @@ public:
     explicit ConfigureGraphicsAdvanced(
         const Core::System& system_,
         std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-        QWidget* parent = nullptr);
+        const ConfigurationShared::TranslationMap& translations_, QWidget* parent = nullptr);
     ~ConfigureGraphicsAdvanced() override;
 
     void ApplyConfiguration() override;
@@ -32,21 +32,13 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
-    void SetupPerGameUI();
-
     std::unique_ptr<Ui::ConfigureGraphicsAdvanced> ui;
 
-    ConfigurationShared::CheckState async_present;
-    ConfigurationShared::CheckState renderer_force_max_clock;
-    ConfigurationShared::CheckState use_vsync;
-    ConfigurationShared::CheckState async_astc;
-    ConfigurationShared::CheckState use_reactive_flushing;
-    ConfigurationShared::CheckState use_asynchronous_shaders;
-    ConfigurationShared::CheckState use_fast_gpu_time;
-    ConfigurationShared::CheckState use_vulkan_driver_pipeline_cache;
-    ConfigurationShared::CheckState enable_compute_pipelines;
-    ConfigurationShared::CheckState use_video_framerate;
-    ConfigurationShared::CheckState barrier_feedback_loops;
+    std::list<ConfigurationShared::CheckState> trackers{};
 
     const Core::System& system;
+    const ConfigurationShared::TranslationMap& translations;
+    std::forward_list<std::function<void(bool)>> apply_funcs;
+
+    QWidget* checkbox_enable_compute_pipelines{};
 };

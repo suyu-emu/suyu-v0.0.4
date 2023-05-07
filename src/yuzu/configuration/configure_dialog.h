@@ -71,6 +71,7 @@ private:
     HotkeyRegistry& registry;
 
     Core::System& system;
+    std::unique_ptr<ConfigurationShared::TranslationMap> translations;
     std::forward_list<ConfigurationShared::Tab*> tab_group;
 
     std::unique_ptr<ConfigureAudio> audio_tab;
