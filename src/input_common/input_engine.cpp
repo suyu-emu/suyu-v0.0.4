@@ -58,8 +58,6 @@ void InputEngine::SetHatButton(const PadIdentifier& identifier, int button, u8 v
 }
 
 void InputEngine::SetAxis(const PadIdentifier& identifier, int axis, f32 value) {
-    value /= 2.0f;
-    value -= 0.5f;
     {
         std::scoped_lock lock{mutex};
         ControllerData& controller = controller_list.at(identifier);
