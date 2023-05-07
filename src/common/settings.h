@@ -191,6 +191,7 @@ public:
     virtual bool IsEnum() const = 0;
     virtual bool RuntimeModfiable() const = 0;
     virtual void SetGlobal(bool global) {}
+    virtual u32 Id() const = 0;
     virtual bool UsingGlobal() const {
         return false;
     }
@@ -200,6 +201,7 @@ class Linkage {
 public:
     std::map<Category, std::forward_list<BasicSetting*>> by_category;
     std::vector<std::function<void()>> restore_functions;
+    u32 count;
 };
 
 /** The Setting class is a simple resource manager. It defines a label and default value
@@ -232,8 +234,10 @@ public:
     explicit Setting(Linkage& linkage, const Type& default_val, const std::string& name,
                      enum Category category_)
         requires(!ranged)
-        : value{default_val}, default_value{default_val}, label{name}, category{category_} {
+        : value{default_val},
+          default_value{default_val}, label{name}, category{category_}, id{linkage.count} {
         linkage.by_category[category].push_front(this);
+        linkage.count++;
     }
     virtual ~Setting() = default;
 
@@ -251,8 +255,9 @@ public:
                      const Type& max_val, const std::string& name, enum Category category_)
         requires(ranged)
         : value{default_val}, default_value{default_val}, maximum{max_val}, minimum{min_val},
-          label{name}, category{category_} {
+          label{name}, category{category_}, id{linkage.count} {
         linkage.by_category[category].push_front(this);
+        linkage.count++;
     }
 
     /**
@@ -418,6 +423,10 @@ public:
         return std::type_index(typeid(Type));
     }
 
+    virtual u32 Id() const override {
+        return id;
+    }
+
 protected:
     Type value{};                 ///< The setting
     const Type default_value{};   ///< The default value
@@ -425,6 +434,7 @@ protected:
     const Type minimum{};         ///< Minimum allowed value of the setting
     const std::string label{};    ///< The setting's label
     const enum Category category; ///< The setting's category AKA INI group
+    const u32 id;
 };
 
 /**
@@ -728,7 +738,7 @@ struct Values {
         linkage,     VSyncMode::FIFO,   VSyncMode::Immediate, VSyncMode::FIFORelaxed,
         "use_vsync", Category::Renderer};
     SwitchableSetting<bool> use_reactive_flushing{linkage, true, "use_reactive_flushing",
-                                                  Category::Renderer};
+                                                  Category::RendererAdvanced};
     SwitchableSetting<ShaderBackend, true> shader_backend{
         linkage,          ShaderBackend::GLSL, ShaderBackend::GLSL, ShaderBackend::SPIRV,
         "shader_backend", Category::Renderer};
