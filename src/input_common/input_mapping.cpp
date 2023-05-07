@@ -82,6 +82,9 @@ void MappingFactory::RegisterButton(const MappingData& data) {
         new_input.Set("axis", data.index);
         new_input.Set("threshold", 0.5f);
         break;
+    case EngineInputType::Motion:
+        new_input.Set("motion", data.index);
+        break;
     default:
         return;
     }

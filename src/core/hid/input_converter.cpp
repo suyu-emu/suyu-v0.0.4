@@ -62,6 +62,9 @@ Common::Input::ButtonStatus TransformToButton(const Common::Input::CallbackStatu
     case Common::Input::InputType::Button:
         status = callback.button_status;
         break;
+    case Common::Input::InputType::Motion:
+        status.value = std::abs(callback.motion_status.gyro.x.raw_value) > 1.0f;
+        break;
     default:
         LOG_ERROR(Input, "Conversion from type {} to button not implemented", callback.type);
         break;
@@ -226,6 +229,10 @@ Common::Input::TriggerStatus TransformToTrigger(const Common::Input::CallbackSta
     case Common::Input::InputType::Trigger:
         status = callback.trigger_status;
         calculate_button_value = false;
+        break;
+    case Common::Input::InputType::Motion:
+        status.analog.properties.range = 1.0f;
+        raw_value = callback.motion_status.accel.x.raw_value;
         break;
     default:
         LOG_ERROR(Input, "Conversion from type {} to trigger not implemented", callback.type);
