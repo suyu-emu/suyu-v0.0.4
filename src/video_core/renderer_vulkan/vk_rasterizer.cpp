@@ -510,13 +510,6 @@ VideoCore::RasterizerDownloadArea RasterizerVulkan::GetFlushArea(VAddr addr, u64
             return *area;
         }
     }
-    {
-        std::scoped_lock lock{buffer_cache.mutex};
-        auto area = buffer_cache.GetFlushArea(addr, size);
-        if (area) {
-            return *area;
-        }
-    }
     VideoCore::RasterizerDownloadArea new_area{
         .start_address = Common::AlignDown(addr, Core::Memory::YUZU_PAGESIZE),
         .end_address = Common::AlignUp(addr + size, Core::Memory::YUZU_PAGESIZE),
