@@ -21,6 +21,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
 #define INSERT(LABEL, NAME, TOOLTIP)                                                               \
     translations->insert(std::pair{(LABEL), std::pair{tr((NAME)), tr((TOOLTIP))}})
 
+    // A setting can be ignored by giving it a blank name
+
     // Audio
     INSERT("output_engine", "Output Engine:", "");
     INSERT("output_device", "Output Device:", "");
@@ -34,6 +36,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
 
     // Cpu
     INSERT("cpu_accuracy", "Accuracy:", "");
+
+    // Cpu Debug
     INSERT("cpu_debug_mode", "Enable CPU Debugging", "");
     INSERT("cpuopt_page_tables", "Enable inline page tables", "");
     INSERT("cpuopt_block_linking", "Enable block linking", "");
@@ -50,6 +54,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            "");
     INSERT("cpuopt_ignore_memory_aborts", "Enable fallbacks for invalid memory accesses", "");
 
+    // Cpu Unsafe
     INSERT("cpuopt_unsafe_unfuse_fma", "Unfuse FMA (improve performance on CPUs without FMA)", "");
     INSERT("cpuopt_unsafe_reduce_fp_error", "Faster FRSQRTE and FRECPE", "");
     INSERT("cpuopt_unsafe_ignore_standard_fpcr", "Faster ASIMD instructions (32 bits only)", "");
@@ -127,7 +132,81 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT("region_index", "Region:", "");
     INSERT("time_zone_index", "Time Zone:", "");
     INSERT("sound_index", "Sound Output Mode:", "");
-    INSERT("use_docked_mode", "Docked", "");
+    INSERT("use_docked_mode", "", "");
+
+    // Controls
+    INSERT("enable_raw_input", "", "");
+    INSERT("controller_navigation", "", "");
+    INSERT("enable_joycon_driver", "", "");
+    INSERT("enable_procon_driver", "", "");
+    INSERT("vibration_enabled", "", "");
+    INSERT("enable_accurate_vibrations", "", "");
+    INSERT("motion_enabled", "", "");
+    INSERT("udp_input_servers", "", "");
+    INSERT("enable_udp_controller", "", "");
+    INSERT("pause_tas_on_load", "", "");
+    INSERT("tas_enable", "", "");
+    INSERT("tas_loop", "", "");
+    INSERT("mouse_panning", "", "");
+    INSERT("mouse_panning_sensitivity", "", "");
+    INSERT("mouse_enabled", "", "");
+    INSERT("emulate_analog_keyboard", "", "");
+    INSERT("keyboard_enabled", "", "");
+    INSERT("debug_pad_enabled", "", "");
+    INSERT("touch_device", "", "");
+    INSERT("touch_from_button_map", "", "");
+    INSERT("enable_ring_controller", "", "");
+    INSERT("enable_ir_sensor", "", "");
+    INSERT("ir_sensor_device", "", "");
+
+    // Data Storage
+    INSERT("use_virtual_sd", "", "");
+    INSERT("gamecard_inserted", "Inserted", "");
+    INSERT("gamecard_current_game", "Current Game", "");
+    INSERT("gamecard_path", "Path", "");
+
+    // Debugging
+    INSERT("use_gdbstub", "Enable GDB Stub", "");
+    INSERT("gdbstub_port", "Port:", "");
+    INSERT("program_args", "Arguments String", "");
+    INSERT("dump_exefs", "Dump ExeFS", "");
+    INSERT("dump_nso", "Dump Decompressed NSOs", "");
+    INSERT("enable_fs_access_log", "Enable FS Access Log", "");
+    INSERT("reporting_services", "Enable Verbose Repoting Services**", "");
+    INSERT("quest_flag", "Kiosk (Quest) Mode", "");
+    INSERT("extended_logging", "Enable Extended Logging**",
+           "When checked, the max size of the log increases from 100 MB to 1 GB");
+    INSERT("use_debug_asserts", "Enable Debug Asserts", "");
+    INSERT("use_auto_stub", "Enable Auto-Stub**", "");
+    INSERT("enable_all_controllers", "Enable All Controller Types", "");
+    INSERT("create_crash_dumps", "Create Minidump After Crash", "");
+    INSERT("perform_vulkan_check", "Perform Startup Vulkan Check",
+           "Enables yuzu to check for a working Vulkan environment when the program starts up. "
+           "Disable this if this is causing issues with external programs seeing yuzu.");
+    INSERT("log_filter", "Global Log Filter", "");
+    INSERT("use_dev_keys", "", "");
+
+    // Debugging Graphics
+    INSERT("dump_shaders", "Dump Game Shaders",
+           "When checked, it will dump all the original assembler shaders from the disk shader "
+           "cache or game as found");
+    INSERT("disable_macro_jit", "Disable Macro JIT",
+           "When checked, it disables the macro Just In Time compiler. Enabling this makes games "
+           "run slower");
+    INSERT(
+        "disable_macro_hle", "Disable Macro HLE",
+        "When checked, it disables the macro HLE functions. Enabling this makes games run slower");
+    INSERT("dump_macros", "Dump Maxwell Macros",
+           "When checked, it will dump all the macro programs of the GPU");
+
+    // Network
+    INSERT("network_interface", "Network Interface", "");
+
+    // Web Service
+    INSERT("enable_telemetry", "Share anonymous usage data with the yuzu team", "");
+    INSERT("web_api_url", "", "");
+    INSERT("yuzu_username", "", "");
+    INSERT("yuzu_token", "Token:", "");
 
 #undef INSERT
 
