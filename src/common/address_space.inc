@@ -336,7 +336,7 @@ ALLOC_MEMBER(VaType)::Allocate(VaType size) {
             ASSERT_MSG(false, "Unexpected allocator state!");
         }
 
-        auto search_predecessor{this->blocks.begin()};
+        auto search_predecessor{std::next(this->blocks.begin())};
         auto search_successor{std::next(search_predecessor)};
 
         while (search_successor != this->blocks.end() &&
