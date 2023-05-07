@@ -1,7 +1,5 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
-
-#include <array>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -26,21 +24,22 @@
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/mii/mii_manager.h"
 #include "core/hle/service/mii/types.h"
-#include "core/hle/service/nfp/amiibo_crypto.h"
-#include "core/hle/service/nfp/nfp_device.h"
-#include "core/hle/service/nfp/nfp_result.h"
+#include "core/hle/service/nfc/common/amiibo_crypto.h"
+#include "core/hle/service/nfc/common/device.h"
+#include "core/hle/service/nfc/mifare_result.h"
+#include "core/hle/service/nfc/nfc_result.h"
 #include "core/hle/service/time/time_manager.h"
 #include "core/hle/service/time/time_zone_content_manager.h"
 #include "core/hle/service/time/time_zone_types.h"
 
-namespace Service::NFP {
-NfpDevice::NfpDevice(Core::HID::NpadIdType npad_id_, Core::System& system_,
+namespace Service::NFC {
+NfcDevice::NfcDevice(Core::HID::NpadIdType npad_id_, Core::System& system_,
                      KernelHelpers::ServiceContext& service_context_,
                      Kernel::KEvent* availability_change_event_)
     : npad_id{npad_id_}, system{system_}, service_context{service_context_},
       availability_change_event{availability_change_event_} {
-    activate_event = service_context.CreateEvent("IUser:NFPActivateEvent");
-    deactivate_event = service_context.CreateEvent("IUser:NFPDeactivateEvent");
+    activate_event = service_context.CreateEvent("NFC:ActivateEvent");
+    deactivate_event = service_context.CreateEvent("NFC:DeactivateEvent");
     npad_device = system.HIDCore().GetEmulatedController(npad_id);
 
     Core::HID::ControllerUpdateCallback engine_callback{
@@ -54,9 +53,9 @@ NfpDevice::NfpDevice(Core::HID::NpadIdType npad_id_, Core::System& system_,
     current_posix_time = standard_steady_clock.GetCurrentTimePoint(system).time_point;
 }
 
-NfpDevice::~NfpDevice() {
-    activate_event->Close();
-    deactivate_event->Close();
+NfcDevice::~NfcDevice() {
+    service_context.CloseEvent(activate_event);
+    service_context.CloseEvent(deactivate_event);
     if (!is_controller_set) {
         return;
     }
@@ -64,7 +63,7 @@ NfpDevice::~NfpDevice() {
     is_controller_set = false;
 };
 
-void NfpDevice::NpadUpdate(Core::HID::ControllerTriggerType type) {
+void NfcDevice::NpadUpdate(Core::HID::ControllerTriggerType type) {
     if (!is_initalized) {
         return;
     }
@@ -92,14 +91,14 @@ void NfpDevice::NpadUpdate(Core::HID::ControllerTriggerType type) {
     const auto nfc_status = npad_device->GetNfc();
     switch (nfc_status.state) {
     case Common::Input::NfcState::NewAmiibo:
-        LoadAmiibo(nfc_status.data);
+        LoadNfcTag(nfc_status.data);
         break;
     case Common::Input::NfcState::AmiiboRemoved:
         if (device_state == DeviceState::Initialized || device_state == DeviceState::TagRemoved) {
             break;
         }
         if (device_state != DeviceState::SearchingForTag) {
-            CloseAmiibo();
+            CloseNfcTag();
         }
         break;
     default:
@@ -107,28 +106,29 @@ void NfpDevice::NpadUpdate(Core::HID::ControllerTriggerType type) {
     }
 }
 
-bool NfpDevice::LoadAmiibo(std::span<const u8> data) {
+bool NfcDevice::LoadNfcTag(std::span<const u8> data) {
     if (device_state != DeviceState::SearchingForTag) {
-        LOG_ERROR(Service_NFP, "Game is not looking for amiibos, current state {}", device_state);
+        LOG_ERROR(Service_NFC, "Game is not looking for nfc tag, current state {}", device_state);
         return false;
     }
 
-    if (data.size() != sizeof(EncryptedNTAG215File)) {
-        LOG_ERROR(Service_NFP, "Not an amiibo, size={}", data.size());
+    if (data.size() < sizeof(NFP::EncryptedNTAG215File)) {
+        LOG_ERROR(Service_NFC, "Not an amiibo, size={}", data.size());
         return false;
     }
 
-    // TODO: Filter by allowed_protocols here
+    mifare_data.resize(data.size());
+    memcpy(mifare_data.data(), data.data(), data.size());
 
-    memcpy(&tag_data, data.data(), sizeof(EncryptedNTAG215File));
-    is_plain_amiibo = AmiiboCrypto::IsAmiiboValid(tag_data);
+    memcpy(&tag_data, data.data(), sizeof(NFP::EncryptedNTAG215File));
+    is_plain_amiibo = NFP::AmiiboCrypto::IsAmiiboValid(tag_data);
 
     if (is_plain_amiibo) {
-        encrypted_tag_data = AmiiboCrypto::EncodedDataToNfcData(tag_data);
+        encrypted_tag_data = NFP::AmiiboCrypto::EncodedDataToNfcData(tag_data);
         LOG_INFO(Service_NFP, "Using plain amiibo");
     } else {
         tag_data = {};
-        memcpy(&encrypted_tag_data, data.data(), sizeof(EncryptedNTAG215File));
+        memcpy(&encrypted_tag_data, data.data(), sizeof(NFP::EncryptedNTAG215File));
     }
 
     device_state = DeviceState::TagFound;
@@ -137,8 +137,8 @@ bool NfpDevice::LoadAmiibo(std::span<const u8> data) {
     return true;
 }
 
-void NfpDevice::CloseAmiibo() {
-    LOG_INFO(Service_NFP, "Remove amiibo");
+void NfcDevice::CloseNfcTag() {
+    LOG_INFO(Service_NFC, "Remove nfc tag");
 
     if (device_state == DeviceState::TagMounted) {
         Unmount();
@@ -147,26 +147,28 @@ void NfpDevice::CloseAmiibo() {
     device_state = DeviceState::TagRemoved;
     encrypted_tag_data = {};
     tag_data = {};
+    mifare_data = {};
     activate_event->GetReadableEvent().Clear();
     deactivate_event->Signal();
 }
 
-Kernel::KReadableEvent& NfpDevice::GetActivateEvent() const {
+Kernel::KReadableEvent& NfcDevice::GetActivateEvent() const {
     return activate_event->GetReadableEvent();
 }
 
-Kernel::KReadableEvent& NfpDevice::GetDeactivateEvent() const {
+Kernel::KReadableEvent& NfcDevice::GetDeactivateEvent() const {
     return deactivate_event->GetReadableEvent();
 }
 
-void NfpDevice::Initialize() {
+void NfcDevice::Initialize() {
     device_state = npad_device->HasNfc() ? DeviceState::Initialized : DeviceState::Unavailable;
     encrypted_tag_data = {};
     tag_data = {};
+    mifare_data = {};
     is_initalized = true;
 }
 
-void NfpDevice::Finalize() {
+void NfcDevice::Finalize() {
     if (device_state == DeviceState::TagMounted) {
         Unmount();
     }
@@ -177,17 +179,17 @@ void NfpDevice::Finalize() {
     is_initalized = false;
 }
 
-Result NfpDevice::StartDetection(TagProtocol allowed_protocol) {
+Result NfcDevice::StartDetection(NfcProtocol allowed_protocol) {
     if (device_state != DeviceState::Initialized && device_state != DeviceState::TagRemoved) {
-        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
-        return WrongDeviceState;
+        LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
+        return ResultWrongDeviceState;
     }
 
     if (npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
                                     Common::Input::PollingMode::NFC) !=
         Common::Input::DriverResult::Success) {
-        LOG_ERROR(Service_NFP, "Nfc not supported");
-        return NfcDisabled;
+        LOG_ERROR(Service_NFC, "Nfc not supported");
+        return ResultNfcDisabled;
     }
 
     device_state = DeviceState::SearchingForTag;
@@ -195,7 +197,7 @@ Result NfpDevice::StartDetection(TagProtocol allowed_protocol) {
     return ResultSuccess;
 }
 
-Result NfpDevice::StopDetection() {
+Result NfcDevice::StopDetection() {
     npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
                                 Common::Input::PollingMode::Active);
 
@@ -204,7 +206,7 @@ Result NfpDevice::StopDetection() {
     }
 
     if (device_state == DeviceState::TagFound || device_state == DeviceState::TagMounted) {
-        CloseAmiibo();
+        CloseNfcTag();
     }
 
     if (device_state == DeviceState::SearchingForTag || device_state == DeviceState::TagRemoved) {
@@ -212,22 +214,194 @@ Result NfpDevice::StopDetection() {
         return ResultSuccess;
     }
 
-    LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
-    return WrongDeviceState;
+    LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
+    return ResultWrongDeviceState;
 }
 
-Result NfpDevice::Flush() {
+Result NfcDevice::GetTagInfo(NFP::TagInfo& tag_info, bool is_mifare) const {
+    if (device_state != DeviceState::TagFound && device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return ResultTagRemoved;
+        }
+        return ResultWrongDeviceState;
+    }
+
+    if (is_mifare) {
+        tag_info = {
+            .uuid = encrypted_tag_data.uuid.uid,
+            .uuid_extension = {},
+            .uuid_length = static_cast<u8>(encrypted_tag_data.uuid.uid.size()),
+            .protocol = NfcProtocol::TypeA,
+            .tag_type = TagType::Type4,
+        };
+        return ResultSuccess;
+    }
+
+    // Protocol and tag type may change here
+    tag_info = {
+        .uuid = encrypted_tag_data.uuid.uid,
+        .uuid_extension = {},
+        .uuid_length = static_cast<u8>(encrypted_tag_data.uuid.uid.size()),
+        .protocol = NfcProtocol::TypeA,
+        .tag_type = TagType::Type2,
+    };
+
+    return ResultSuccess;
+}
+
+Result NfcDevice::ReadMifare(std::span<const MifareReadBlockParameter> parameters,
+                             std::span<MifareReadBlockData> read_block_data) const {
+    Result result = ResultSuccess;
+
+    for (std::size_t i = 0; i < parameters.size(); i++) {
+        result = ReadMifare(parameters[i], read_block_data[i]);
+        if (result.IsError()) {
+            break;
+        }
+    }
+
+    return result;
+}
+
+Result NfcDevice::ReadMifare(const MifareReadBlockParameter& parameter,
+                             MifareReadBlockData& read_block_data) const {
+    const std::size_t sector_index = parameter.sector_number * sizeof(DataBlock);
+    read_block_data.sector_number = parameter.sector_number;
+
+    if (device_state != DeviceState::TagFound && device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return ResultTagRemoved;
+        }
+        return ResultWrongDeviceState;
+    }
+
+    if (mifare_data.size() < sector_index + sizeof(DataBlock)) {
+        return Mifare::ResultReadError;
+    }
+
+    // TODO: Use parameter.sector_key to read encrypted data
+    memcpy(read_block_data.data.data(), mifare_data.data() + sector_index, sizeof(DataBlock));
+
+    return ResultSuccess;
+}
+
+Result NfcDevice::WriteMifare(std::span<const MifareWriteBlockParameter> parameters) {
+    Result result = ResultSuccess;
+
+    for (std::size_t i = 0; i < parameters.size(); i++) {
+        result = WriteMifare(parameters[i]);
+        if (result.IsError()) {
+            break;
+        }
+    }
+
+    if (!npad_device->WriteNfc(mifare_data)) {
+        LOG_ERROR(Service_NFP, "Error writing to file");
+        return Mifare::ResultReadError;
+    }
+
+    return result;
+}
+
+Result NfcDevice::WriteMifare(const MifareWriteBlockParameter& parameter) {
+    const std::size_t sector_index = parameter.sector_number * sizeof(DataBlock);
+
+    if (device_state != DeviceState::TagFound && device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return ResultTagRemoved;
+        }
+        return ResultWrongDeviceState;
+    }
+
+    if (mifare_data.size() < sector_index + sizeof(DataBlock)) {
+        return Mifare::ResultReadError;
+    }
+
+    // TODO: Use parameter.sector_key to encrypt the data
+    memcpy(mifare_data.data() + sector_index, parameter.data.data(), sizeof(DataBlock));
+
+    return ResultSuccess;
+}
+
+Result NfcDevice::SendCommandByPassThrough(const Time::Clock::TimeSpanType& timeout,
+                                           std::span<const u8> command_data,
+                                           std::span<u8> out_data) {
+    // Not implemented
+    return ResultSuccess;
+}
+
+Result NfcDevice::Mount(NFP::ModelType model_type, NFP::MountTarget mount_target_) {
+    if (device_state != DeviceState::TagFound) {
+        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        return ResultWrongDeviceState;
+    }
+
+    // The loaded amiibo is not encrypted
+    if (is_plain_amiibo) {
+        device_state = DeviceState::TagMounted;
+        mount_target = mount_target_;
+        return ResultSuccess;
+    }
+
+    if (!NFP::AmiiboCrypto::IsAmiiboValid(encrypted_tag_data)) {
+        LOG_ERROR(Service_NFP, "Not an amiibo");
+        return ResultNotAnAmiibo;
+    }
+
+    // Mark amiibos as read only when keys are missing
+    if (!NFP::AmiiboCrypto::IsKeyAvailable()) {
+        LOG_ERROR(Service_NFP, "No keys detected");
+        device_state = DeviceState::TagMounted;
+        mount_target = NFP::MountTarget::Rom;
+        return ResultSuccess;
+    }
+
+    if (!NFP::AmiiboCrypto::DecodeAmiibo(encrypted_tag_data, tag_data)) {
+        LOG_ERROR(Service_NFP, "Can't decode amiibo {}", device_state);
+        return ResultCorruptedData;
+    }
+
+    device_state = DeviceState::TagMounted;
+    mount_target = mount_target_;
+    return ResultSuccess;
+}
+
+Result NfcDevice::Unmount() {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    // Save data before unloading the amiibo
+    if (is_data_moddified) {
+        Flush();
+    }
+
+    device_state = DeviceState::TagFound;
+    mount_target = NFP::MountTarget::None;
+    is_app_area_open = false;
+
+    return ResultSuccess;
+}
+
+Result NfcDevice::Flush() {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return ResultTagRemoved;
+        }
+        return ResultWrongDeviceState;
+    }
+
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     auto& settings = tag_data.settings;
@@ -240,49 +414,49 @@ Result NfpDevice::Flush() {
 
     tag_data.write_counter++;
 
-    FlushWithBreak(BreakType::Normal);
+    FlushWithBreak(NFP::BreakType::Normal);
 
     is_data_moddified = false;
 
     return ResultSuccess;
 }
 
-Result NfpDevice::FlushDebug() {
+Result NfcDevice::FlushDebug() {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     tag_data.write_counter++;
 
-    FlushWithBreak(BreakType::Normal);
+    FlushWithBreak(NFP::BreakType::Normal);
 
     is_data_moddified = false;
 
     return ResultSuccess;
 }
 
-Result NfpDevice::FlushWithBreak(BreakType break_type) {
-    if (break_type != BreakType::Normal) {
+Result NfcDevice::FlushWithBreak(NFP::BreakType break_type) {
+    if (break_type != NFP::BreakType::Normal) {
         LOG_ERROR(Service_NFC, "Break type not implemented {}", break_type);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    std::vector<u8> data(sizeof(EncryptedNTAG215File));
+    std::vector<u8> data(sizeof(NFP::EncryptedNTAG215File));
     if (is_plain_amiibo) {
         memcpy(data.data(), &tag_data, sizeof(tag_data));
     } else {
-        if (!AmiiboCrypto::EncodeAmiibo(tag_data, encrypted_tag_data)) {
+        if (!NFP::AmiiboCrypto::EncodeAmiibo(tag_data, encrypted_tag_data)) {
             LOG_ERROR(Service_NFP, "Failed to encode data");
-            return WriteAmiiboFailed;
+            return ResultWriteAmiiboFailed;
         }
 
         memcpy(data.data(), &encrypted_tag_data, sizeof(encrypted_tag_data));
@@ -290,100 +464,43 @@ Result NfpDevice::FlushWithBreak(BreakType break_type) {
 
     if (!npad_device->WriteNfc(data)) {
         LOG_ERROR(Service_NFP, "Error writing to file");
-        return WriteAmiiboFailed;
+        return ResultWriteAmiiboFailed;
     }
 
     return ResultSuccess;
 }
 
-Result NfpDevice::Mount(MountTarget mount_target_) {
-    if (device_state != DeviceState::TagFound) {
-        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
-        return WrongDeviceState;
-    }
-
-    // The loaded amiibo is not encrypted
-    if (is_plain_amiibo) {
-        device_state = DeviceState::TagMounted;
-        mount_target = mount_target_;
-        return ResultSuccess;
-    }
-
-    if (!AmiiboCrypto::IsAmiiboValid(encrypted_tag_data)) {
-        LOG_ERROR(Service_NFP, "Not an amiibo");
-        return NotAnAmiibo;
-    }
-
-    // Mark amiibos as read only when keys are missing
-    if (!AmiiboCrypto::IsKeyAvailable()) {
-        LOG_ERROR(Service_NFP, "No keys detected");
-        device_state = DeviceState::TagMounted;
-        mount_target = MountTarget::Rom;
-        return ResultSuccess;
-    }
-
-    if (!AmiiboCrypto::DecodeAmiibo(encrypted_tag_data, tag_data)) {
-        LOG_ERROR(Service_NFP, "Can't decode amiibo {}", device_state);
-        return CorruptedData;
-    }
-
-    device_state = DeviceState::TagMounted;
-    mount_target = mount_target_;
-    return ResultSuccess;
-}
-
-Result NfpDevice::Unmount() {
+Result NfcDevice::Restore() {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    // Save data before unloading the amiibo
-    if (is_data_moddified) {
-        Flush();
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
+        LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
+        return ResultWrongDeviceState;
     }
 
-    device_state = DeviceState::TagFound;
-    mount_target = MountTarget::None;
-    is_app_area_open = false;
-
+    // TODO: Load amiibo from backup on system
+    LOG_ERROR(Service_NFP, "Not Implemented");
     return ResultSuccess;
 }
 
-Result NfpDevice::GetTagInfo(TagInfo& tag_info) const {
-    if (device_state != DeviceState::TagFound && device_state != DeviceState::TagMounted) {
-        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
-        if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
-        }
-        return WrongDeviceState;
-    }
-
-    tag_info = {
-        .uuid = encrypted_tag_data.uuid.uid,
-        .uuid_length = static_cast<u8>(encrypted_tag_data.uuid.uid.size()),
-        .protocol = TagProtocol::TypeA,
-        .tag_type = TagType::Type2,
-    };
-
-    return ResultSuccess;
-}
-
-Result NfpDevice::GetCommonInfo(CommonInfo& common_info) const {
+Result NfcDevice::GetCommonInfo(NFP::CommonInfo& common_info) const {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     const auto& settings = tag_data.settings;
@@ -393,18 +510,18 @@ Result NfpDevice::GetCommonInfo(CommonInfo& common_info) const {
         .last_write_date = settings.write_date.GetWriteDate(),
         .write_counter = tag_data.write_counter,
         .version = tag_data.amiibo_version,
-        .application_area_size = sizeof(ApplicationArea),
+        .application_area_size = sizeof(NFP::ApplicationArea),
     };
     return ResultSuccess;
 }
 
-Result NfpDevice::GetModelInfo(ModelInfo& model_info) const {
+Result NfcDevice::GetModelInfo(NFP::ModelInfo& model_info) const {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     const auto& model_info_data = encrypted_tag_data.user_memory.model_info;
@@ -418,22 +535,22 @@ Result NfpDevice::GetModelInfo(ModelInfo& model_info) const {
     return ResultSuccess;
 }
 
-Result NfpDevice::GetRegisterInfo(RegisterInfo& register_info) const {
+Result NfcDevice::GetRegisterInfo(NFP::RegisterInfo& register_info) const {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     if (tag_data.settings.settings.amiibo_initialized == 0) {
-        return RegistrationIsNotInitialized;
+        return ResultRegistrationIsNotInitialized;
     }
 
     Service::Mii::MiiManager manager;
@@ -450,22 +567,22 @@ Result NfpDevice::GetRegisterInfo(RegisterInfo& register_info) const {
     return ResultSuccess;
 }
 
-Result NfpDevice::GetRegisterInfoPrivate(RegisterInfoPrivate& register_info) const {
+Result NfcDevice::GetRegisterInfoPrivate(NFP::RegisterInfoPrivate& register_info) const {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     if (tag_data.settings.settings.amiibo_initialized == 0) {
-        return RegistrationIsNotInitialized;
+        return ResultRegistrationIsNotInitialized;
     }
 
     Service::Mii::MiiManager manager;
@@ -482,18 +599,18 @@ Result NfpDevice::GetRegisterInfoPrivate(RegisterInfoPrivate& register_info) con
     return ResultSuccess;
 }
 
-Result NfpDevice::GetAdminInfo(AdminInfo& admin_info) const {
+Result NfcDevice::GetAdminInfo(NFP::AdminInfo& admin_info) const {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     u8 flags = static_cast<u8>(tag_data.settings.settings.raw >> 0x4);
@@ -503,17 +620,18 @@ Result NfpDevice::GetAdminInfo(AdminInfo& admin_info) const {
 
     u64 application_id = 0;
     u32 application_area_id = 0;
-    AppAreaVersion app_area_version = AppAreaVersion::NotSet;
+    NFP::AppAreaVersion app_area_version = NFP::AppAreaVersion::NotSet;
     if (tag_data.settings.settings.appdata_initialized != 0) {
         application_id = tag_data.application_id;
-        app_area_version =
-            static_cast<AppAreaVersion>(application_id >> application_id_version_offset & 0xf);
+        app_area_version = static_cast<NFP::AppAreaVersion>(
+            application_id >> NFP::application_id_version_offset & 0xf);
 
         // Restore application id to original value
         if (application_id >> 0x38 != 0) {
             const u8 application_byte = tag_data.application_id_byte & 0xf;
-            application_id = RemoveVersionByte(application_id) |
-                             (static_cast<u64>(application_byte) << application_id_version_offset);
+            application_id =
+                RemoveVersionByte(application_id) |
+                (static_cast<u64>(application_byte) << NFP::application_id_version_offset);
         }
 
         application_area_id = tag_data.application_area_id;
@@ -532,22 +650,22 @@ Result NfpDevice::GetAdminInfo(AdminInfo& admin_info) const {
     return ResultSuccess;
 }
 
-Result NfpDevice::DeleteRegisterInfo() {
+Result NfcDevice::DeleteRegisterInfo() {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     if (tag_data.settings.settings.amiibo_initialized == 0) {
-        return RegistrationIsNotInitialized;
+        return ResultRegistrationIsNotInitialized;
     }
 
     Common::TinyMT rng{};
@@ -564,18 +682,18 @@ Result NfpDevice::DeleteRegisterInfo() {
     return Flush();
 }
 
-Result NfpDevice::SetRegisterInfoPrivate(const AmiiboName& amiibo_name) {
+Result NfcDevice::SetRegisterInfoPrivate(const NFP::RegisterInfoPrivate& register_info) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     Service::Mii::MiiManager manager;
@@ -587,7 +705,7 @@ Result NfpDevice::SetRegisterInfoPrivate(const AmiiboName& amiibo_name) {
         settings.write_date.raw_date = 0;
     }
 
-    SetAmiiboName(settings, amiibo_name);
+    SetAmiiboName(settings, register_info.amiibo_name);
     tag_data.owner_mii = manager.BuildFromStoreData(mii);
     tag_data.mii_extension = manager.SetFromStoreData(mii);
     tag_data.unknown = 0;
@@ -601,18 +719,18 @@ Result NfpDevice::SetRegisterInfoPrivate(const AmiiboName& amiibo_name) {
     return Flush();
 }
 
-Result NfpDevice::RestoreAmiibo() {
+Result NfcDevice::RestoreAmiibo() {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     // TODO: Load amiibo from backup on system
@@ -620,7 +738,7 @@ Result NfpDevice::RestoreAmiibo() {
     return ResultSuccess;
 }
 
-Result NfpDevice::Format() {
+Result NfcDevice::Format() {
     auto result1 = DeleteApplicationArea();
     auto result2 = DeleteRegisterInfo();
 
@@ -635,28 +753,28 @@ Result NfpDevice::Format() {
     return Flush();
 }
 
-Result NfpDevice::OpenApplicationArea(u32 access_id) {
+Result NfcDevice::OpenApplicationArea(u32 access_id) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     if (tag_data.settings.settings.appdata_initialized.Value() == 0) {
         LOG_WARNING(Service_NFP, "Application area is not initialized");
-        return ApplicationAreaIsNotInitialized;
+        return ResultApplicationAreaIsNotInitialized;
     }
 
     if (tag_data.application_area_id != access_id) {
         LOG_WARNING(Service_NFP, "Wrong application area id");
-        return WrongApplicationAreaId;
+        return ResultWrongApplicationAreaId;
     }
 
     is_app_area_open = true;
@@ -664,25 +782,25 @@ Result NfpDevice::OpenApplicationArea(u32 access_id) {
     return ResultSuccess;
 }
 
-Result NfpDevice::GetApplicationAreaId(u32& application_area_id) const {
+Result NfcDevice::GetApplicationAreaId(u32& application_area_id) const {
     application_area_id = {};
 
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     if (tag_data.settings.settings.appdata_initialized.Value() == 0) {
         LOG_WARNING(Service_NFP, "Application area is not initialized");
-        return ApplicationAreaIsNotInitialized;
+        return ResultApplicationAreaIsNotInitialized;
     }
 
     application_area_id = tag_data.application_area_id;
@@ -690,64 +808,61 @@ Result NfpDevice::GetApplicationAreaId(u32& application_area_id) const {
     return ResultSuccess;
 }
 
-Result NfpDevice::GetApplicationArea(std::vector<u8>& data) const {
+Result NfcDevice::GetApplicationArea(std::span<u8> data) const {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     if (!is_app_area_open) {
         LOG_ERROR(Service_NFP, "Application area is not open");
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     if (tag_data.settings.settings.appdata_initialized.Value() == 0) {
         LOG_ERROR(Service_NFP, "Application area is not initialized");
-        return ApplicationAreaIsNotInitialized;
+        return ResultApplicationAreaIsNotInitialized;
     }
 
-    if (data.size() > sizeof(ApplicationArea)) {
-        data.resize(sizeof(ApplicationArea));
-    }
-
-    memcpy(data.data(), tag_data.application_area.data(), data.size());
+    memcpy(data.data(), tag_data.application_area.data(),
+           std::min(data.size(), sizeof(NFP::ApplicationArea)));
 
     return ResultSuccess;
 }
 
-Result NfpDevice::SetApplicationArea(std::span<const u8> data) {
+Result NfcDevice::SetApplicationArea(std::span<const u8> data) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     if (!is_app_area_open) {
         LOG_ERROR(Service_NFP, "Application area is not open");
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     if (tag_data.settings.settings.appdata_initialized.Value() == 0) {
         LOG_ERROR(Service_NFP, "Application area is not initialized");
-        return ApplicationAreaIsNotInitialized;
+        return ResultApplicationAreaIsNotInitialized;
     }
 
-    if (data.size() > sizeof(ApplicationArea)) {
+    if (data.size() > sizeof(NFP::ApplicationArea)) {
         LOG_ERROR(Service_NFP, "Wrong data size {}", data.size());
         return ResultUnknown;
     }
@@ -756,9 +871,9 @@ Result NfpDevice::SetApplicationArea(std::span<const u8> data) {
     std::memcpy(tag_data.application_area.data(), data.data(), data.size());
     // Fill remaining data with random numbers
     rng.GenerateRandomBytes(tag_data.application_area.data() + data.size(),
-                            sizeof(ApplicationArea) - data.size());
+                            sizeof(NFP::ApplicationArea) - data.size());
 
-    if (tag_data.application_write_counter != counter_limit) {
+    if (tag_data.application_write_counter != NFP::counter_limit) {
         tag_data.application_write_counter++;
     }
 
@@ -767,64 +882,64 @@ Result NfpDevice::SetApplicationArea(std::span<const u8> data) {
     return ResultSuccess;
 }
 
-Result NfpDevice::CreateApplicationArea(u32 access_id, std::span<const u8> data) {
+Result NfcDevice::CreateApplicationArea(u32 access_id, std::span<const u8> data) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     if (tag_data.settings.settings.appdata_initialized.Value() != 0) {
         LOG_ERROR(Service_NFP, "Application area already exist");
-        return ApplicationAreaExist;
+        return ResultApplicationAreaExist;
     }
 
     return RecreateApplicationArea(access_id, data);
 }
 
-Result NfpDevice::RecreateApplicationArea(u32 access_id, std::span<const u8> data) {
+Result NfcDevice::RecreateApplicationArea(u32 access_id, std::span<const u8> data) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     if (is_app_area_open) {
         LOG_ERROR(Service_NFP, "Application area is open");
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (data.size() > sizeof(ApplicationArea)) {
+    if (data.size() > sizeof(NFP::ApplicationArea)) {
         LOG_ERROR(Service_NFP, "Wrong data size {}", data.size());
-        return WrongApplicationAreaSize;
+        return ResultWrongApplicationAreaSize;
     }
 
     Common::TinyMT rng{};
     std::memcpy(tag_data.application_area.data(), data.data(), data.size());
     // Fill remaining data with random numbers
     rng.GenerateRandomBytes(tag_data.application_area.data() + data.size(),
-                            sizeof(ApplicationArea) - data.size());
+                            sizeof(NFP::ApplicationArea) - data.size());
 
-    if (tag_data.application_write_counter != counter_limit) {
+    if (tag_data.application_write_counter != NFP::counter_limit) {
         tag_data.application_write_counter++;
     }
 
     const u64 application_id = system.GetApplicationProcessProgramID();
 
     tag_data.application_id_byte =
-        static_cast<u8>(application_id >> application_id_version_offset & 0xf);
+        static_cast<u8>(application_id >> NFP::application_id_version_offset & 0xf);
     tag_data.application_id =
-        RemoveVersionByte(application_id) |
-        (static_cast<u64>(AppAreaVersion::NintendoSwitch) << application_id_version_offset);
+        RemoveVersionByte(application_id) | (static_cast<u64>(NFP::AppAreaVersion::NintendoSwitch)
+                                             << NFP::application_id_version_offset);
     tag_data.settings.settings.appdata_initialized.Assign(1);
     tag_data.application_area_id = access_id;
     tag_data.unknown = {};
@@ -835,30 +950,30 @@ Result NfpDevice::RecreateApplicationArea(u32 access_id, std::span<const u8> dat
     return Flush();
 }
 
-Result NfpDevice::DeleteApplicationArea() {
+Result NfcDevice::DeleteApplicationArea() {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     if (tag_data.settings.settings.appdata_initialized == 0) {
-        return ApplicationAreaIsNotInitialized;
+        return ResultApplicationAreaIsNotInitialized;
     }
 
-    if (tag_data.application_write_counter != counter_limit) {
+    if (tag_data.application_write_counter != NFP::counter_limit) {
         tag_data.application_write_counter++;
     }
 
     Common::TinyMT rng{};
-    rng.GenerateRandomBytes(tag_data.application_area.data(), sizeof(ApplicationArea));
+    rng.GenerateRandomBytes(tag_data.application_area.data(), sizeof(NFP::ApplicationArea));
     rng.GenerateRandomBytes(&tag_data.application_id, sizeof(u64));
     rng.GenerateRandomBytes(&tag_data.application_area_id, sizeof(u32));
     rng.GenerateRandomBytes(&tag_data.application_id_byte, sizeof(u8));
@@ -872,18 +987,18 @@ Result NfpDevice::DeleteApplicationArea() {
     return Flush();
 }
 
-Result NfpDevice::ExistApplicationArea(bool& has_application_area) {
+Result NfcDevice::ExistsApplicationArea(bool& has_application_area) const {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     has_application_area = tag_data.settings.settings.appdata_initialized.Value() != 0;
@@ -891,21 +1006,21 @@ Result NfpDevice::ExistApplicationArea(bool& has_application_area) {
     return ResultSuccess;
 }
 
-Result NfpDevice::GetAll(NfpData& data) const {
+Result NfcDevice::GetAll(NFP::NfpData& data) const {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    CommonInfo common_info{};
+    NFP::CommonInfo common_info{};
     Service::Mii::MiiManager manager;
     const u64 application_id = tag_data.application_id;
 
@@ -930,8 +1045,8 @@ Result NfpDevice::GetAll(NfpData& data) const {
         .settings_crc_counter = tag_data.settings.crc_counter,
         .font_region = tag_data.settings.settings.font_region,
         .tag_type = PackedTagType::Type2,
-        .console_type =
-            static_cast<AppAreaVersion>(application_id >> application_id_version_offset & 0xf),
+        .console_type = static_cast<NFP::AppAreaVersion>(
+            application_id >> NFP::application_id_version_offset & 0xf),
         .application_id_byte = tag_data.application_id_byte,
         .application_area = tag_data.application_area,
     };
@@ -939,18 +1054,18 @@ Result NfpDevice::GetAll(NfpData& data) const {
     return ResultSuccess;
 }
 
-Result NfpDevice::SetAll(const NfpData& data) {
+Result NfcDevice::SetAll(const NFP::NfpData& data) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     tag_data.constant_value = data.magic;
@@ -977,18 +1092,18 @@ Result NfpDevice::SetAll(const NfpData& data) {
     return ResultSuccess;
 }
 
-Result NfpDevice::BreakTag(BreakType break_type) {
+Result NfcDevice::BreakTag(NFP::BreakType break_type) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     // TODO: Complete this implementation
@@ -996,28 +1111,28 @@ Result NfpDevice::BreakTag(BreakType break_type) {
     return FlushWithBreak(break_type);
 }
 
-Result NfpDevice::ReadBackupData() {
+Result NfcDevice::ReadBackupData(std::span<u8> data) const {
     // Not implemented
     return ResultSuccess;
 }
 
-Result NfpDevice::WriteBackupData() {
+Result NfcDevice::WriteBackupData(std::span<const u8> data) {
     // Not implemented
     return ResultSuccess;
 }
 
-Result NfpDevice::WriteNtf() {
+Result NfcDevice::WriteNtf(std::span<const u8> data) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
-            return TagRemoved;
+            return ResultTagRemoved;
         }
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
-    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
         LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
-        return WrongDeviceState;
+        return ResultWrongDeviceState;
     }
 
     // Not implemented
@@ -1025,29 +1140,12 @@ Result NfpDevice::WriteNtf() {
     return ResultSuccess;
 }
 
-u64 NfpDevice::GetHandle() const {
-    // Generate a handle based of the npad id
-    return static_cast<u64>(npad_id);
-}
-
-u32 NfpDevice::GetApplicationAreaSize() const {
-    return sizeof(ApplicationArea);
-}
-
-DeviceState NfpDevice::GetCurrentState() const {
-    return device_state;
-}
-
-Core::HID::NpadIdType NfpDevice::GetNpadId() const {
-    return npad_id;
-}
-
-AmiiboName NfpDevice::GetAmiiboName(const AmiiboSettings& settings) const {
-    std::array<char16_t, amiibo_name_length> settings_amiibo_name{};
-    AmiiboName amiibo_name{};
+NFP::AmiiboName NfcDevice::GetAmiiboName(const NFP::AmiiboSettings& settings) const {
+    std::array<char16_t, NFP::amiibo_name_length> settings_amiibo_name{};
+    NFP::AmiiboName amiibo_name{};
 
     // Convert from big endian to little endian
-    for (std::size_t i = 0; i < amiibo_name_length; i++) {
+    for (std::size_t i = 0; i < NFP::amiibo_name_length; i++) {
         settings_amiibo_name[i] = static_cast<u16>(settings.amiibo_name[i]);
     }
 
@@ -1058,8 +1156,8 @@ AmiiboName NfpDevice::GetAmiiboName(const AmiiboSettings& settings) const {
     return amiibo_name;
 }
 
-void NfpDevice::SetAmiiboName(AmiiboSettings& settings, const AmiiboName& amiibo_name) {
-    std::array<char16_t, amiibo_name_length> settings_amiibo_name{};
+void NfcDevice::SetAmiiboName(NFP::AmiiboSettings& settings, const NFP::AmiiboName& amiibo_name) {
+    std::array<char16_t, NFP::amiibo_name_length> settings_amiibo_name{};
 
     // Convert from utf8 to utf16
     const auto amiibo_name_utf16 = Common::UTF8ToUTF16(amiibo_name.data());
@@ -1067,16 +1165,16 @@ void NfpDevice::SetAmiiboName(AmiiboSettings& settings, const AmiiboName& amiibo
            amiibo_name_utf16.size() * sizeof(char16_t));
 
     // Convert from little endian to big endian
-    for (std::size_t i = 0; i < amiibo_name_length; i++) {
+    for (std::size_t i = 0; i < NFP::amiibo_name_length; i++) {
         settings.amiibo_name[i] = static_cast<u16_be>(settings_amiibo_name[i]);
     }
 }
 
-AmiiboDate NfpDevice::GetAmiiboDate(s64 posix_time) const {
+NFP::AmiiboDate NfcDevice::GetAmiiboDate(s64 posix_time) const {
     const auto& time_zone_manager =
         system.GetTimeManager().GetTimeZoneContentManager().GetTimeZoneManager();
     Time::TimeZone::CalendarInfo calendar_info{};
-    AmiiboDate amiibo_date{};
+    NFP::AmiiboDate amiibo_date{};
 
     amiibo_date.SetYear(2000);
     amiibo_date.SetMonth(1);
@@ -1091,14 +1189,14 @@ AmiiboDate NfpDevice::GetAmiiboDate(s64 posix_time) const {
     return amiibo_date;
 }
 
-u64 NfpDevice::RemoveVersionByte(u64 application_id) const {
-    return application_id & ~(0xfULL << application_id_version_offset);
+u64 NfcDevice::RemoveVersionByte(u64 application_id) const {
+    return application_id & ~(0xfULL << NFP::application_id_version_offset);
 }
 
-void NfpDevice::UpdateSettingsCrc() {
+void NfcDevice::UpdateSettingsCrc() {
     auto& settings = tag_data.settings;
 
-    if (settings.crc_counter != counter_limit) {
+    if (settings.crc_counter != NFP::counter_limit) {
         settings.crc_counter++;
     }
 
@@ -1109,7 +1207,7 @@ void NfpDevice::UpdateSettingsCrc() {
     settings.crc = crc.checksum();
 }
 
-void NfpDevice::UpdateRegisterInfoCrc() {
+void NfcDevice::UpdateRegisterInfoCrc() {
 #pragma pack(push, 1)
     struct CrcData {
         Mii::Ver3StoreData mii;
@@ -1134,4 +1232,18 @@ void NfpDevice::UpdateRegisterInfoCrc() {
     tag_data.register_info_crc = crc.checksum();
 }
 
-} // namespace Service::NFP
+u64 NfcDevice::GetHandle() const {
+    // Generate a handle based of the npad id
+    return static_cast<u64>(npad_id);
+}
+
+DeviceState NfcDevice::GetCurrentState() const {
+    return device_state;
+}
+
+Result NfcDevice::GetNpadId(Core::HID::NpadIdType& out_npad_id) const {
+    out_npad_id = npad_id;
+    return ResultSuccess;
+}
+
+} // namespace Service::NFC

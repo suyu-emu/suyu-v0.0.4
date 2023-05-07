@@ -12,7 +12,7 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
-#include "core/hle/service/nfp/amiibo_crypto.h"
+#include "core/hle/service/nfc/common/amiibo_crypto.h"
 
 namespace Service::NFP::AmiiboCrypto {
 
@@ -55,7 +55,7 @@ bool IsAmiiboValid(const EncryptedNTAG215File& ntag_file) {
     if (amiibo_data.constant_value != 0xA5) {
         return false;
     }
-    if (amiibo_data.model_info.tag_type != PackedTagType::Type2) {
+    if (amiibo_data.model_info.tag_type != NFC::PackedTagType::Type2) {
         return false;
     }
     if ((ntag_file.dynamic_lock & 0xFFFFFF) != 0x0F0001U) {

@@ -3,26 +3,17 @@
 
 #pragma once
 
-#include <array>
-#include <memory>
-#include <optional>
-
 #include "core/hle/service/kernel_helpers.h"
+#include "core/hle/service/nfc/nfc_types.h"
 #include "core/hle/service/service.h"
 
 namespace Service::NFC {
-class NfcDevice;
+class DeviceManager;
 
-class IUser final : public ServiceFramework<IUser> {
+class NfcInterface : public ServiceFramework<NfcInterface> {
 public:
-    explicit IUser(Core::System& system_);
-    ~IUser();
-
-private:
-    enum class State : u32 {
-        NonInitialized,
-        Initialized,
-    };
+    explicit NfcInterface(Core::System& system_, const char* name, BackendType service_backend);
+    ~NfcInterface();
 
     void Initialize(HLERequestContext& ctx);
     void Finalize(HLERequestContext& ctx);
@@ -37,16 +28,22 @@ private:
     void GetTagInfo(HLERequestContext& ctx);
     void AttachActivateEvent(HLERequestContext& ctx);
     void AttachDeactivateEvent(HLERequestContext& ctx);
+    void ReadMifare(HLERequestContext& ctx);
+    void WriteMifare(HLERequestContext& ctx);
     void SendCommandByPassThrough(HLERequestContext& ctx);
 
-    std::optional<std::shared_ptr<NfcDevice>> GetNfcDevice(u64 handle);
+protected:
+    std::shared_ptr<DeviceManager> GetManager();
+    BackendType GetBackendType() const;
+    Result TranslateResultToServiceError(Result result) const;
+    Result TranslateResultToNfp(Result result) const;
+    Result TranslateResultToMifare(Result result) const;
 
     KernelHelpers::ServiceContext service_context;
 
-    std::array<std::shared_ptr<NfcDevice>, 10> devices{};
-
+    BackendType backend_type;
     State state{State::NonInitialized};
-    Kernel::KEvent* availability_change_event;
+    std::shared_ptr<DeviceManager> device_manager = nullptr;
 };
 
 } // namespace Service::NFC
