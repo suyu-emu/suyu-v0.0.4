@@ -266,6 +266,7 @@ std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(vk::Physica
     return format_properties;
 }
 
+#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
 void OverrideBcnFormats(std::unordered_map<VkFormat, VkFormatProperties>& format_properties) {
     // These properties are extracted from Adreno driver 512.687.0
     constexpr VkFormatFeatureFlags tiling_features{
@@ -289,6 +290,7 @@ void OverrideBcnFormats(std::unordered_map<VkFormat, VkFormatProperties>& format
         format_properties[format].bufferFeatures = buffer_features;
     }
 }
+#endif
 
 NvidiaArchitecture GetNvidiaArchitecture(vk::PhysicalDevice physical,
                                          const std::set<std::string, std::less<>>& exts) {
