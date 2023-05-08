@@ -64,10 +64,7 @@ private:
     const QString TranslateVSyncMode(VkPresentModeKHR mode,
                                      Settings::RendererBackend backend) const;
 
-    void SetupPerGameUI();
-
     Settings::RendererBackend GetCurrentGraphicsBackend() const;
-    Settings::NvdecEmulation GetCurrentNvdecEmulation() const;
 
     std::unique_ptr<Ui::ConfigureGraphics> ui;
     QColor bg_color;
@@ -93,5 +90,6 @@ private:
     QComboBox* shader_backend_combobox;
     QComboBox* vsync_mode_combobox;
     QWidget* vulkan_device_widget;
+    QWidget* api_widget;
     QWidget* shader_backend_widget;
 };

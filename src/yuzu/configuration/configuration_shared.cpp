@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QString>
 #include <QWidget>
+#include <qcheckbox.h>
 #include <qnamespace.h>
 #include "common/settings.h"
 #include "yuzu/configuration/configuration_shared.h"
@@ -57,7 +58,7 @@ static std::pair<QWidget*, std::function<void()>> CreateCheckBox(Settings::Basic
 }
 
 static std::tuple<QWidget*, void*, std::function<void()>> CreateCombobox(
-    Settings::BasicSetting* setting, const QString& label, QWidget* parent) {
+    Settings::BasicSetting* setting, const QString& label, QWidget* parent, bool managed) {
     const auto type = setting->TypeId();
 
     QWidget* group = new QWidget(parent);
@@ -78,7 +79,7 @@ static std::tuple<QWidget*, void*, std::function<void()>> CreateCombobox(
     combobox_layout->setSpacing(6);
     combobox_layout->setContentsMargins(0, 0, 0, 0);
 
-    if (setting->Switchable() && !Settings::IsConfiguringGlobal()) {
+    if (setting->Switchable() && !Settings::IsConfiguringGlobal() && managed) {
         int current = std::stoi(setting->ToString());
         int global_value = std::stoi(setting->ToStringGlobal());
         SetColoredComboBox(combobox, group, global_value);
@@ -92,23 +93,26 @@ static std::tuple<QWidget*, void*, std::function<void()>> CreateCombobox(
         combobox->setCurrentIndex(std::stoi(setting->ToString()));
     }
 
-    const auto load_func = [combobox, setting]() {
-        if (Settings::IsConfiguringGlobal()) {
-            setting->LoadString(std::to_string(combobox->currentIndex()));
-        }
+    std::function<void()> load_func = []() {};
+    if (managed) {
+        load_func = [combobox, setting]() {
+            if (Settings::IsConfiguringGlobal()) {
+                setting->LoadString(std::to_string(combobox->currentIndex()));
+            }
 
-        if (Settings::IsConfiguringGlobal() || !setting->Switchable()) {
-            return;
-        }
+            if (Settings::IsConfiguringGlobal() || !setting->Switchable()) {
+                return;
+            }
 
-        bool using_global = combobox->currentIndex() == USE_GLOBAL_INDEX;
-        int index = combobox->currentIndex() - USE_GLOBAL_OFFSET;
+            bool using_global = combobox->currentIndex() == USE_GLOBAL_INDEX;
+            int index = combobox->currentIndex() - USE_GLOBAL_OFFSET;
 
-        setting->SetGlobal(using_global);
-        if (!using_global) {
-            setting->LoadString(std::to_string(index));
-        }
-    };
+            setting->SetGlobal(using_global);
+            if (!using_global) {
+                setting->LoadString(std::to_string(index));
+            }
+        };
+    }
 
     return {group, combobox, load_func};
 }
@@ -116,25 +120,68 @@ static std::tuple<QWidget*, void*, std::function<void()>> CreateCombobox(
 static std::tuple<QWidget*, void*, std::function<void()>> CreateLineEdit(
     Settings::BasicSetting* setting, const QString& label, QWidget* parent) {
     QWidget* widget = new QWidget(parent);
+    widget->setObjectName(label);
+
     QHBoxLayout* layout = new QHBoxLayout(widget);
+    QLineEdit* line_edit = new QLineEdit(parent);
 
-    QLabel* q_label = new QLabel(label, widget);
-    QLineEdit* line_edit = new QLineEdit(widget);
+    const QString text = QString::fromStdString(setting->ToString());
+    line_edit->setText(text);
 
-    layout->addWidget(q_label);
-    layout->addStretch();
+    std::function<void()> load_func;
+
+    // setSizePolicy lets widget expand and take an equal part of the space as the line edit
+    if (Settings::IsConfiguringGlobal()) {
+        QLabel* q_label = new QLabel(label, widget);
+        q_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        layout->addWidget(q_label);
+
+        load_func = [&]() {
+            std::string load_text = line_edit->text().toStdString();
+            setting->LoadString(load_text);
+        };
+    } else {
+        QCheckBox* checkbox = new QCheckBox(label, parent);
+        checkbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        layout->addWidget(checkbox);
+
+        const auto highlight_func = [widget, line_edit](int state) {
+            bool using_global = state != Qt::Checked;
+            SetHighlight(widget, !using_global);
+            line_edit->setEnabled(!using_global);
+        };
+
+        QObject::connect(checkbox, qOverload<int>(&QCheckBox::stateChanged), widget,
+                         highlight_func);
+
+        checkbox->setCheckState(setting->UsingGlobal() ? Qt::Unchecked : Qt::Checked);
+        highlight_func(checkbox->checkState());
+
+        load_func = [&]() {
+            if (checkbox->checkState() == Qt::Checked) {
+                setting->SetGlobal(false);
+
+                std::string load_text = line_edit->text().toStdString();
+                setting->LoadString(load_text);
+            } else {
+                setting->SetGlobal(true);
+            }
+        };
+    }
+
     layout->addWidget(line_edit);
 
     layout->setContentsMargins(0, 0, 0, 0);
 
-    return {widget, line_edit, []() {}};
+    return {widget, line_edit, load_func};
 }
 
 std::pair<QWidget*, void*> CreateWidget(Settings::BasicSetting* setting,
                                         const TranslationMap& translations, QWidget* parent,
                                         bool runtime_lock,
                                         std::forward_list<std::function<void(bool)>>& apply_funcs,
-                                        std::list<CheckState>& trackers, RequestType request) {
+                                        std::list<CheckState>& trackers, RequestType request,
+                                        bool managed) {
     const auto type = setting->TypeId();
     const int id = setting->Id();
     QWidget* widget{nullptr};
@@ -162,7 +209,7 @@ std::pair<QWidget*, void*> CreateWidget(Settings::BasicSetting* setting,
         widget = pair.first;
         load_func = pair.second;
     } else if (setting->IsEnum()) {
-        auto tuple = CreateCombobox(setting, label, parent);
+        auto tuple = CreateCombobox(setting, label, parent, managed);
         widget = std::get<0>(tuple);
         extra = std::get<1>(tuple);
         load_func = std::get<2>(tuple);
@@ -176,7 +223,7 @@ std::pair<QWidget*, void*> CreateWidget(Settings::BasicSetting* setting,
             break;
         }
         case RequestType::ComboBox: {
-            auto tuple = CreateCombobox(setting, label, parent);
+            auto tuple = CreateCombobox(setting, label, parent, managed);
             widget = std::get<0>(tuple);
             extra = std::get<1>(tuple);
             load_func = std::get<2>(tuple);
@@ -201,9 +248,9 @@ std::pair<QWidget*, void*> CreateWidget(Settings::BasicSetting* setting,
     });
 
     bool enable = runtime_lock || setting->RuntimeModfiable();
-    enable &=
-        setting->Switchable() && !(Settings::IsConfiguringGlobal() && !setting->UsingGlobal());
-    enable |= !setting->Switchable() && Settings::IsConfiguringGlobal() && runtime_lock;
+    if (setting->Switchable() && Settings::IsConfiguringGlobal() && !runtime_lock) {
+        enable &= !setting->UsingGlobal();
+    }
     widget->setEnabled(enable);
 
     widget->setVisible(Settings::IsConfiguringGlobal() || setting->Switchable());

@@ -54,7 +54,8 @@ std::pair<QWidget*, void*> CreateWidget(Settings::BasicSetting* setting,
                                         bool runtime_lock,
                                         std::forward_list<std::function<void(bool)>>& apply_funcs,
                                         std::list<CheckState>& trackers,
-                                        RequestType request = RequestType::Default);
+                                        RequestType request = RequestType::Default,
+                                        bool managed = true);
 
 // Global-aware apply and set functions
 
