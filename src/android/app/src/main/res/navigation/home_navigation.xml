@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_homeSettingsFragment_to_aboutFragment"
             app:destination="@id/aboutFragment" />
+        <action
+            android:id="@+id/action_homeSettingsFragment_to_earlyAccessFragment"
+            app:destination="@id/earlyAccessFragment" />
     </fragment>
 
     <fragment
@@ -38,5 +41,10 @@
         android:id="@+id/aboutFragment"
         android:name="org.yuzu.yuzu_emu.fragments.AboutFragment"
         android:label="AboutFragment" />
+
+    <fragment
+        android:id="@+id/earlyAccessFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.EarlyAccessFragment"
+        android:label="EarlyAccessFragment" />
 
 </navigation>

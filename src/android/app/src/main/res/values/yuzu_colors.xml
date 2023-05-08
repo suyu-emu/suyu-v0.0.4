@@ -31,4 +31,7 @@
     <color name="yuzu_surfaceTint">#B52612</color>
     <color name="yuzu_outlineVariant">#D8C2BE</color>
 
+    <color name="yuzu_ea_background_start">#99FFE1</color>
+    <color name="yuzu_ea_background_end">#76C5FF</color>
+
 </resources>

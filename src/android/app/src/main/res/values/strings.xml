@@ -85,6 +85,20 @@
     <string name="website_link">https://yuzu-emu.org/</string>
     <string name="github_link">https://github.com/yuzu-emu</string>
 
+    <!-- Early access upgrade strings -->
+    <string name="early_access">Early Access</string>
+    <string name="get_early_access">Get Early Access</string>
+    <string name="play_store_link">https://play.google.com/store/apps/details?id=org.yuzu.yuzu_emu.ea</string>
+    <string name="get_early_access_description">Cutting-edge features, early access to updates, and more</string>
+    <string name="early_access_benefits">Early Access Benefits</string>
+    <string name="cutting_edge_features">Cutting-edge features</string>
+    <string name="early_access_updates">Early access to updates</string>
+    <string name="no_manual_installation">No manual installation</string>
+    <string name="prioritized_support">Prioritized support</string>
+    <string name="helping_game_preservation">Helping game preservation</string>
+    <string name="our_eternal_gratitude">Our eternal gratitude</string>
+    <string name="are_you_interested">Are you interested?</string>
+
     <!-- General settings strings -->
     <string name="frame_limit_enable">Enable limit speed</string>
     <string name="frame_limit_enable_description">When enabled, emulation speed will be limited to a specified percentage of normal speed.</string>

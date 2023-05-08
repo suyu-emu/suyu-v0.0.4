@@ -14,6 +14,7 @@
     android:focusable="true">
 
     <LinearLayout
+        android:id="@+id/option_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 

@@ -28,6 +28,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.transition.MaterialSharedAxis
+import org.yuzu.yuzu_emu.BuildConfig
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.HomeSettingAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentHomeSettingsBinding
@@ -64,7 +65,7 @@ class HomeSettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainActivity = requireActivity() as MainActivity
 
-        val optionsList: List<HomeSetting> = listOf(
+        val optionsList: MutableList<HomeSetting> = mutableListOf(
             HomeSetting(
                 R.string.advanced_settings,
                 R.string.settings_description,
@@ -105,6 +106,21 @@ class HomeSettingsFragment : Fragment() {
                     ?.navigate(R.id.action_homeSettingsFragment_to_aboutFragment)
             }
         )
+
+        if (!BuildConfig.PREMIUM) {
+            optionsList.add(
+                0,
+                HomeSetting(
+                    R.string.get_early_access,
+                    R.string.get_early_access_description,
+                    R.drawable.ic_diamond
+                ) {
+                    exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+                    parentFragmentManager.primaryNavigationFragment?.findNavController()
+                        ?.navigate(R.id.action_homeSettingsFragment_to_earlyAccessFragment)
+                }
+            )
+        }
 
         binding.homeSettingsList.apply {
             layoutManager = LinearLayoutManager(requireContext())

@@ -112,6 +112,12 @@ android {
     productFlavors {
         create("mainline") {
             dimension = "version"
+            buildConfigField("Boolean", "PREMIUM", "false")
+        }
+
+        create("ea") {
+            dimension = "version"
+            buildConfigField("Boolean", "PREMIUM", "true")
         }
     }
 
