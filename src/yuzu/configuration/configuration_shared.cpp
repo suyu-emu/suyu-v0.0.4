@@ -253,8 +253,7 @@ void ConfigurationShared::SetHighlight(QWidget* widget, bool highlighted) {
         widget->setStyleSheet(QStringLiteral("QWidget#%1 { background-color:rgba(0,203,255,0.5) }")
                                   .arg(widget->objectName()));
     } else {
-        widget->setStyleSheet(QStringLiteral("QWidget#%1 { background-color:rgba(0,0,0,0) }")
-                                  .arg(widget->objectName()));
+        widget->setStyleSheet(QStringLiteral(""));
     }
     widget->show();
 }
