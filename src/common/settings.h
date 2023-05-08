@@ -701,32 +701,33 @@ struct Values {
     ResolutionScalingInfo resolution_info{};
     SwitchableSetting<ResolutionSetup> resolution_setup{linkage, ResolutionSetup::Res1X,
                                                         "resolution_setup", Category::Renderer};
-    SwitchableSetting<ScalingFilter> scaling_filter{linkage, ScalingFilter::Bilinear,
-                                                    "scaling_filter", Category::Renderer};
-    SwitchableSetting<int, true> fsr_sharpening_slider{
+    SwitchableSetting<ScalingFilter, false, true, true> scaling_filter{
+        linkage, ScalingFilter::Bilinear, "scaling_filter", Category::Renderer};
+    SwitchableSetting<int, true, true, true> fsr_sharpening_slider{
         linkage, 25, 0, 200, "fsr_sharpening_slider", Category::Renderer};
-    SwitchableSetting<AntiAliasing> anti_aliasing{linkage, AntiAliasing::None, "anti_aliasing",
-                                                  Category::Renderer};
+    SwitchableSetting<AntiAliasing, false, true, true> anti_aliasing{
+        linkage, AntiAliasing::None, "anti_aliasing", Category::Renderer};
     // *nix platforms may have issues with the borderless windowed fullscreen mode.
     // Default to exclusive fullscreen on these platforms for now.
-    SwitchableSetting<FullscreenMode, true> fullscreen_mode{linkage,
+    SwitchableSetting<FullscreenMode, true, true, true> fullscreen_mode{linkage,
 #ifdef _WIN32
-                                                            FullscreenMode::Borderless,
+                                                                        FullscreenMode::Borderless,
 #else
-                                                            FullscreenMode::Exclusive,
+                                                                        FullscreenMode::Exclusive,
 #endif
-                                                            FullscreenMode::Borderless,
-                                                            FullscreenMode::Exclusive,
-                                                            "fullscreen_mode",
-                                                            Category::Renderer};
-    SwitchableSetting<int, true> aspect_ratio{linkage, 0, 0, 4, "aspect_ratio", Category::Renderer};
+                                                                        FullscreenMode::Borderless,
+                                                                        FullscreenMode::Exclusive,
+                                                                        "fullscreen_mode",
+                                                                        Category::Renderer};
+    SwitchableSetting<int, true, true, true> aspect_ratio{
+        linkage, 0, 0, 4, "aspect_ratio", Category::Renderer};
     SwitchableSetting<AnisotropyMode, true> max_anisotropy{
         linkage,          AnisotropyMode::Automatic, AnisotropyMode::Automatic, AnisotropyMode::X16,
         "max_anisotropy", Category::RendererAdvanced};
-    SwitchableSetting<bool, false, false> use_speed_limit{linkage, true, "use_speed_limit",
-                                                          Category::Renderer};
-    SwitchableSetting<u16, true> speed_limit{linkage, 100,           0,
-                                             9999,    "speed_limit", Category::Renderer};
+    SwitchableSetting<bool, false, false, true> use_speed_limit{linkage, true, "use_speed_limit",
+                                                                Category::Renderer};
+    SwitchableSetting<u16, true, true, true> speed_limit{
+        linkage, 100, 0, 9999, "speed_limit", Category::Renderer};
     SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
                                                   Category::Renderer};
     SwitchableSetting<GPUAccuracy, true, true, true> gpu_accuracy{
@@ -742,7 +743,7 @@ struct Values {
                                                             AstcDecodeMode::CPUAsynchronous,
                                                             "accelerate_astc",
                                                             Category::Renderer};
-    Setting<VSyncMode, true> vsync_mode{
+    Setting<VSyncMode, true, true, true> vsync_mode{
         linkage,     VSyncMode::FIFO,   VSyncMode::Immediate, VSyncMode::FIFORelaxed,
         "use_vsync", Category::Renderer};
     SwitchableSetting<bool> use_reactive_flushing{linkage, true, "use_reactive_flushing",
@@ -769,9 +770,9 @@ struct Values {
     SwitchableSetting<bool> barrier_feedback_loops{linkage, true, "barrier_feedback_loops",
                                                    Category::RendererAdvanced};
 
-    SwitchableSetting<u8> bg_red{linkage, 0, "bg_red", Category::Renderer};
-    SwitchableSetting<u8> bg_green{linkage, 0, "bg_green", Category::Renderer};
-    SwitchableSetting<u8> bg_blue{linkage, 0, "bg_blue", Category::Renderer};
+    SwitchableSetting<u8, false, true, true> bg_red{linkage, 0, "bg_red", Category::Renderer};
+    SwitchableSetting<u8, false, true, true> bg_green{linkage, 0, "bg_green", Category::Renderer};
+    SwitchableSetting<u8, false, true, true> bg_blue{linkage, 0, "bg_blue", Category::Renderer};
 
     // System
     SwitchableSetting<bool> rng_seed_enabled{linkage, false, "rng_seed_enabled", Category::System};
