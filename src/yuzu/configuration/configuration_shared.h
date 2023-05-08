@@ -13,6 +13,8 @@
 #include "common/settings.h"
 #include "yuzu/configuration/shared_translation.h"
 
+class QPushButton;
+
 namespace ConfigurationShared {
 
 class Tab : public QWidget {
@@ -49,13 +51,11 @@ enum class RequestType {
     MaxEnum,
 };
 
-std::pair<QWidget*, void*> CreateWidget(Settings::BasicSetting* setting,
-                                        const TranslationMap& translations, QWidget* parent,
-                                        bool runtime_lock,
-                                        std::forward_list<std::function<void(bool)>>& apply_funcs,
-                                        std::list<CheckState>& trackers,
-                                        RequestType request = RequestType::Default,
-                                        bool managed = true);
+std::tuple<QWidget*, void*, QPushButton*> CreateWidget(
+    Settings::BasicSetting* setting, const TranslationMap& translations, QWidget* parent,
+    bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs,
+    std::list<CheckState>& trackers, RequestType request = RequestType::Default,
+    bool managed = true);
 
 // Global-aware apply and set functions
 

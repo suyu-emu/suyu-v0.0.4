@@ -20,8 +20,11 @@
 #include <QSlider>
 #include <QStringLiteral>
 #include <QtCore/qobjectdefs.h>
+#include <qabstractbutton.h>
+#include <qboxlayout.h>
 #include <qcoreevent.h>
 #include <qglobal.h>
+#include <qgridlayout.h>
 #include <vulkan/vulkan_core.h>
 
 #include "common/common_types.h"
@@ -112,7 +115,7 @@ ConfigureGraphics::ConfigureGraphics(
         }
     }
 
-    connect(api_combobox, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
+    connect(api_combobox, qOverload<int>(&QComboBox::activated), this, [this] {
         UpdateAPILayout();
         PopulateVSyncModeSelection();
     });
@@ -146,6 +149,10 @@ ConfigureGraphics::ConfigureGraphics(
 }
 
 void ConfigureGraphics::PopulateVSyncModeSelection() {
+    if (!Settings::IsConfiguringGlobal()) {
+        return;
+    }
+
     const Settings::RendererBackend backend{GetCurrentGraphicsBackend()};
     if (backend == Settings::RendererBackend::Null) {
         vsync_mode_combobox->setEnabled(false);
@@ -204,7 +211,12 @@ ConfigureGraphics::~ConfigureGraphics() = default;
 
 void ConfigureGraphics::SetConfiguration() {
     const bool runtime_lock = !system.IsPoweredOn();
-    QLayout& api_layout = *ui->api_widget->layout();
+    QLayout* api_layout = ui->api_widget->layout();
+    QWidget* api_grid_widget = new QWidget(this);
+    QVBoxLayout* api_grid_layout = new QVBoxLayout(api_grid_widget);
+    api_grid_layout->setContentsMargins(0, 0, 0, 0);
+    api_layout->addWidget(api_grid_widget);
+
     QLayout& graphics_layout = *ui->graphics_widget->layout();
 
     std::map<bool, std::map<std::string, QWidget*>> hold_graphics;
@@ -213,7 +225,7 @@ void ConfigureGraphics::SetConfiguration() {
     for (const auto setting : Settings::values.linkage.by_category[Settings::Category::Renderer]) {
         const auto& setting_label = setting->GetLabel();
 
-        auto [widget, extra] = [&]() {
+        auto [widget, extra, button] = [&]() {
             if (setting->Id() == Settings::values.vulkan_device.Id() ||
                 setting->Id() == Settings::values.shader_backend.Id() ||
                 setting->Id() == Settings::values.vsync_mode.Id()) {
@@ -230,8 +242,20 @@ void ConfigureGraphics::SetConfiguration() {
             continue;
         }
 
-        if (setting->Id() == Settings::values.vulkan_device.Id()) {
-            api_layout.addWidget(widget);
+        if (setting->Id() == Settings::values.renderer_backend.Id()) {
+            api_grid_layout->addWidget(widget);
+            api_combobox = reinterpret_cast<QComboBox*>(extra);
+            api_restore_global_button = button;
+
+            if (!Settings::IsConfiguringGlobal()) {
+                QObject::connect(api_restore_global_button, &QAbstractButton::clicked,
+                                 [=](bool) { UpdateAPILayout(); });
+
+                widget->layout()->removeWidget(api_restore_global_button);
+                api_layout->addWidget(api_restore_global_button);
+            }
+        } else if (setting->Id() == Settings::values.vulkan_device.Id()) {
+            api_layout->addWidget(widget);
             api_combobox = reinterpret_cast<QComboBox*>(extra);
         } else if (setting->Id() == Settings::values.vulkan_device.Id()) {
             hold_api.push_front(widget);
@@ -256,7 +280,7 @@ void ConfigureGraphics::SetConfiguration() {
     }
 
     for (auto widget : hold_api) {
-        api_layout.addWidget(widget);
+        api_grid_layout->addWidget(widget);
     }
 }
 
@@ -297,6 +321,25 @@ void ConfigureGraphics::ApplyConfiguration() {
         const auto vsync_mode = PresentModeToSetting(mode);
         Settings::values.vsync_mode.SetValue(vsync_mode);
     }
+
+    Settings::values.shader_backend.SetGlobal(true);
+    Settings::values.vulkan_device.SetGlobal(true);
+    if (!Settings::IsConfiguringGlobal() && api_restore_global_button->isEnabled()) {
+        auto backend = static_cast<Settings::RendererBackend>(api_combobox->currentIndex());
+        switch (backend) {
+        case Settings::RendererBackend::OpenGL:
+            Settings::values.shader_backend.SetGlobal(false);
+            Settings::values.shader_backend.SetValue(
+                static_cast<Settings::ShaderBackend>(shader_backend_combobox->currentIndex()));
+            break;
+        case Settings::RendererBackend::Vulkan:
+            Settings::values.vulkan_device.SetGlobal(false);
+            Settings::values.vulkan_device.SetValue(vulkan_device_combobox->currentIndex());
+            break;
+        case Settings::RendererBackend::Null:
+            break;
+        }
+    }
 }
 
 void ConfigureGraphics::changeEvent(QEvent* event) {
@@ -322,8 +365,7 @@ void ConfigureGraphics::UpdateBackgroundColorButton(QColor color) {
 }
 
 void ConfigureGraphics::UpdateAPILayout() {
-    if (!Settings::IsConfiguringGlobal() &&
-        api_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
+    if (!Settings::IsConfiguringGlobal() && !api_restore_global_button->isEnabled()) {
         vulkan_device = Settings::values.vulkan_device.GetValue(true);
         shader_backend = Settings::values.shader_backend.GetValue(true);
         vulkan_device_widget->setEnabled(false);
@@ -371,15 +413,8 @@ void ConfigureGraphics::RetrieveVulkanDevices() {
 }
 
 Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {
-    if (Settings::IsConfiguringGlobal()) {
-        return static_cast<Settings::RendererBackend>(api_combobox->currentIndex());
+    if (!Settings::IsConfiguringGlobal() && !api_restore_global_button->isEnabled()) {
+        return Settings::values.renderer_backend.GetValue(true);
     }
-
-    if (api_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-        Settings::values.renderer_backend.SetGlobal(true);
-        return Settings::values.renderer_backend.GetValue();
-    }
-    Settings::values.renderer_backend.SetGlobal(false);
-    return static_cast<Settings::RendererBackend>(api_combobox->currentIndex() -
-                                                  ConfigurationShared::USE_GLOBAL_OFFSET);
+    return static_cast<Settings::RendererBackend>(api_combobox->currentIndex());
 }

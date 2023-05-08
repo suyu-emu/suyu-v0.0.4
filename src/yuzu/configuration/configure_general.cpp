@@ -139,8 +139,8 @@ void ConfigureGeneral::SetupPerGameUI() {
 
     ui->button_reset_defaults->setVisible(false);
 
-    ConfigurationShared::SetColoredTristate(ui->toggle_speed_limit,
-                                            Settings::values.use_speed_limit, use_speed_limit);
+    // ConfigurationShared::SetColoredTristate(ui->toggle_speed_limit,
+    //                                         Settings::values.use_speed_limit, use_speed_limit);
     ConfigurationShared::SetColoredTristate(ui->use_multi_core, Settings::values.use_multi_core,
                                             use_multi_core);
 

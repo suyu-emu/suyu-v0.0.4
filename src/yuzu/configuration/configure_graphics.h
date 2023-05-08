@@ -85,6 +85,7 @@ private:
     const Core::System& system;
     const ConfigurationShared::TranslationMap& translations;
 
+    QPushButton* api_restore_global_button;
     QComboBox* vulkan_device_combobox;
     QComboBox* api_combobox;
     QComboBox* shader_backend_combobox;

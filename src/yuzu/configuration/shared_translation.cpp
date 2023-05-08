@@ -93,6 +93,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            "Enable compute pipelines, required by some games.\nThis setting only exists for Intel "
            "proprietary drivers, and may crash if enabled.\nCompute pipelines are always enabled "
            "on all other drivers.");
+    INSERT(use_reactive_flushing, "Enable Reactive Flushing",
+           "Uses reactive flushing instead of predictive flushing, allowing more accurate memory "
+           "syncing.");
 
     // Renderer (Debug)
 
