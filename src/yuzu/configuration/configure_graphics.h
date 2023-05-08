@@ -58,7 +58,6 @@ private:
 
     void RetrieveVulkanDevices();
 
-    void SetFSRIndicatorText(int percentage);
     /* Turns a Vulkan present mode into a textual string for a UI
      * (and eventually for a human to read) */
     const QString TranslateVSyncMode(VkPresentModeKHR mode,
@@ -69,7 +68,6 @@ private:
     std::unique_ptr<Ui::ConfigureGraphics> ui;
     QColor bg_color;
 
-    std::list<ConfigurationShared::CheckState> trackers{};
     std::forward_list<std::function<void(bool)>> apply_funcs{};
 
     std::vector<VkDeviceInfo::Record>& records;

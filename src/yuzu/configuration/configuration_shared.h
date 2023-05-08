@@ -48,14 +48,16 @@ enum class RequestType {
     ComboBox,
     SpinBox,
     Slider,
+    ReverseSlider,
+    LineEdit,
     MaxEnum,
 };
 
 std::tuple<QWidget*, void*, QPushButton*> CreateWidget(
     Settings::BasicSetting* setting, const TranslationMap& translations, QWidget* parent,
     bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs,
-    std::list<CheckState>& trackers, RequestType request = RequestType::Default,
-    bool managed = true);
+    RequestType request = RequestType::Default, bool managed = true, float multiplier = 1.0f,
+    const std::string& text_box_default = "");
 
 // Global-aware apply and set functions
 

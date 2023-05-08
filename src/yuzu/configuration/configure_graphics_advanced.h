@@ -34,8 +34,6 @@ private:
 
     std::unique_ptr<Ui::ConfigureGraphicsAdvanced> ui;
 
-    std::list<ConfigurationShared::CheckState> trackers{};
-
     const Core::System& system;
     const ConfigurationShared::TranslationMap& translations;
     std::forward_list<std::function<void(bool)>> apply_funcs;

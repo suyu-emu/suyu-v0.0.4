@@ -33,7 +33,7 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
     for (auto setting :
          Settings::values.linkage.by_category[Settings::Category::RendererAdvanced]) {
         auto [widget, extra, button] = ConfigurationShared::CreateWidget(
-            setting, translations, this, runtime_lock, apply_funcs, trackers);
+            setting, translations, this, runtime_lock, apply_funcs);
 
         if (widget == nullptr) {
             continue;

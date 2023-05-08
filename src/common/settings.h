@@ -200,6 +200,8 @@ public:
     virtual bool RuntimeModfiable() const = 0;
     virtual void SetGlobal(bool global) {}
     virtual constexpr u32 Id() const = 0;
+    virtual std::string MinVal() const = 0;
+    virtual std::string MaxVal() const = 0;
     virtual bool UsingGlobal() const {
         return false;
     }
@@ -336,7 +338,7 @@ protected:
         if constexpr (std::is_same<Type, std::string>()) {
             return value_;
         } else if constexpr (std::is_same<Type, std::optional<u32>>()) {
-            return value_.has_value() ? std::to_string(*value_) : "0";
+            return value_.has_value() ? std::to_string(*value_) : "none";
         } else if constexpr (std::is_same<Type, bool>()) {
             return value_ ? "true" : "false";
         } else {
@@ -401,7 +403,7 @@ public:
             if constexpr (std::is_same<Type, std::string>()) {
                 this->SetValue(input);
             } else if constexpr (std::is_same<Type, std::optional<u32>>()) {
-                this->SetValue(static_cast<u32>(std::stoll(input)));
+                this->SetValue(static_cast<u32>(std::stoul(input)));
             } else if constexpr (std::is_same<Type, bool>()) {
                 this->SetValue(input == "true");
             } else {
@@ -433,6 +435,13 @@ public:
 
     virtual constexpr u32 Id() const override {
         return id;
+    }
+
+    virtual std::string MinVal() const override {
+        return this->ToString(minimum);
+    }
+    virtual std::string MaxVal() const override {
+        return this->ToString(maximum);
     }
 
 protected:

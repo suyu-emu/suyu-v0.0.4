@@ -13,10 +13,14 @@
 #include <QStyle>
 #include <QWidget>
 #include <qabstractbutton.h>
+#include <qabstractslider.h>
+#include <qboxlayout.h>
 #include <qcheckbox.h>
 #include <qcombobox.h>
 #include <qnamespace.h>
+#include <qsize.h>
 #include <qsizepolicy.h>
+#include <qsurfaceformat.h>
 #include "common/settings.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_per_game.h"
@@ -24,7 +28,7 @@
 
 namespace ConfigurationShared {
 
-static QPushButton* CreateClearGlobalButton(QWidget* parent, Settings::BasicSetting* setting) {
+static QPushButton* CreateRestoreGlobalButton(QWidget* parent, Settings::BasicSetting* setting) {
     QStyle* style = parent->style();
     QIcon* icon = new QIcon(style->standardIcon(QStyle::SP_DialogResetButton));
     QPushButton* button = new QPushButton(*icon, QStringLiteral(""), parent);
@@ -40,10 +44,8 @@ static QPushButton* CreateClearGlobalButton(QWidget* parent, Settings::BasicSett
     return button;
 }
 
-static std::pair<QWidget*, std::function<void()>> CreateCheckBox(Settings::BasicSetting* setting,
-                                                                 const QString& label,
-                                                                 QWidget* parent,
-                                                                 std::list<CheckState>& trackers) {
+static std::tuple<QWidget*, void*, QPushButton*, std::function<void()>> CreateCheckBox(
+    Settings::BasicSetting* setting, const QString& label, QWidget* parent) {
     QWidget* widget = new QWidget(parent);
     QHBoxLayout* layout = new QHBoxLayout(widget);
 
@@ -54,13 +56,15 @@ static std::pair<QWidget*, std::function<void()>> CreateCheckBox(Settings::Basic
 
     std::function<void()> load_func;
 
+    QPushButton* button{nullptr};
+
     layout->addWidget(checkbox);
     if (Settings::IsConfiguringGlobal()) {
         load_func = [setting, checkbox]() {
             setting->LoadString(checkbox->checkState() == Qt::Checked ? "true" : "false");
         };
     } else {
-        auto* button = CreateClearGlobalButton(parent, setting);
+        button = CreateRestoreGlobalButton(parent, setting);
         layout->addWidget(button);
 
         QObject::connect(checkbox, &QCheckBox::stateChanged, [button](int) {
@@ -86,7 +90,7 @@ static std::pair<QWidget*, std::function<void()>> CreateCheckBox(Settings::Basic
 
     layout->setContentsMargins(0, 0, 0, 0);
 
-    return {widget, load_func};
+    return {widget, checkbox, button, load_func};
 }
 
 static std::tuple<QWidget*, QComboBox*, QPushButton*, std::function<void()>> CreateCombobox(
@@ -122,7 +126,7 @@ static std::tuple<QWidget*, QComboBox*, QPushButton*, std::function<void()>> Cre
             setting->LoadString(std::to_string(combobox->currentIndex()));
         };
     } else if (managed) {
-        button = CreateClearGlobalButton(parent, setting);
+        button = CreateRestoreGlobalButton(parent, setting);
         layout->addWidget(button);
 
         QObject::connect(button, &QAbstractButton::clicked, [button, combobox, setting](bool) {
@@ -149,8 +153,8 @@ static std::tuple<QWidget*, QComboBox*, QPushButton*, std::function<void()>> Cre
     return {group, combobox, button, load_func};
 }
 
-static std::tuple<QWidget*, void*, std::function<void()>> CreateLineEdit(
-    Settings::BasicSetting* setting, const QString& label, QWidget* parent) {
+static std::tuple<QWidget*, void*, QPushButton*, std::function<void()>> CreateLineEdit(
+    Settings::BasicSetting* setting, const QString& label, QWidget* parent, bool managed = true) {
     QWidget* widget = new QWidget(parent);
     widget->setObjectName(label);
 
@@ -160,58 +164,140 @@ static std::tuple<QWidget*, void*, std::function<void()>> CreateLineEdit(
     const QString text = QString::fromStdString(setting->ToString());
     line_edit->setText(text);
 
-    std::function<void()> load_func;
+    std::function<void()> load_func = []() {};
 
+    QLabel* q_label = new QLabel(label, widget);
     // setSizePolicy lets widget expand and take an equal part of the space as the line edit
-    if (Settings::IsConfiguringGlobal()) {
-        QLabel* q_label = new QLabel(label, widget);
-        q_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        layout->addWidget(q_label);
+    q_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    layout->addWidget(q_label);
 
+    layout->addWidget(line_edit);
+
+    QPushButton* button{nullptr};
+
+    if (Settings::IsConfiguringGlobal() && !managed) {
         load_func = [line_edit, setting]() {
             std::string load_text = line_edit->text().toStdString();
             setting->LoadString(load_text);
         };
-    } else {
-        QCheckBox* checkbox = new QCheckBox(label, parent);
-        checkbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        layout->addWidget(checkbox);
+    } else if (!managed) {
+        button = CreateRestoreGlobalButton(parent, setting);
+        layout->addWidget(button);
 
-        const auto highlight_func = [widget, line_edit](int state) {
-            bool using_global = state != Qt::Checked;
-            SetHighlight(widget, !using_global);
-            line_edit->setEnabled(!using_global);
-        };
+        QObject::connect(button, &QAbstractButton::clicked, [=](bool) {
+            button->setEnabled(false);
+            button->setVisible(false);
 
-        QObject::connect(checkbox, qOverload<int>(&QCheckBox::stateChanged), widget,
-                         highlight_func);
+            line_edit->setText(QString::fromStdString(setting->ToStringGlobal()));
+        });
 
-        checkbox->setCheckState(setting->UsingGlobal() ? Qt::Unchecked : Qt::Checked);
-        highlight_func(checkbox->checkState());
+        QObject::connect(line_edit, &QLineEdit::textChanged, [=](QString) {
+            button->setEnabled(true);
+            button->setVisible(true);
+        });
 
-        load_func = [checkbox, setting, line_edit]() {
-            if (checkbox->checkState() == Qt::Checked) {
-                setting->SetGlobal(false);
-
-                std::string load_text = line_edit->text().toStdString();
-                setting->LoadString(load_text);
-            } else {
-                setting->SetGlobal(true);
+        load_func = [=]() {
+            bool using_global = !button->isEnabled();
+            setting->SetGlobal(using_global);
+            if (!using_global) {
+                setting->LoadString(line_edit->text().toStdString());
             }
         };
     }
 
-    layout->addWidget(line_edit);
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    return {widget, line_edit, button, load_func};
+}
+
+static std::tuple<QWidget*, void*, QPushButton*, std::function<void()>> CreateSlider(
+    Settings::BasicSetting* setting, const QString& name, QWidget* parent, bool reversed,
+    float multiplier) {
+    QWidget* widget = new QWidget(parent);
+    QHBoxLayout* layout = new QHBoxLayout(widget);
+    QSlider* slider = new QSlider(Qt::Horizontal, widget);
+    QLabel* label = new QLabel(name, widget);
+    QPushButton* button{nullptr};
+    QLabel* feedback = new QLabel(widget);
+
+    layout->addWidget(label);
+    layout->addWidget(slider);
+    layout->addWidget(feedback);
+
+    label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     layout->setContentsMargins(0, 0, 0, 0);
 
-    return {widget, line_edit, load_func};
+    int max_val = std::stoi(setting->MaxVal());
+
+    QObject::connect(slider, &QAbstractSlider::valueChanged, [=](int value) {
+        int present = (reversed ? max_val - value : value) * multiplier;
+        feedback->setText(
+            QStringLiteral("%1%").arg(QString::fromStdString(std::to_string(present))));
+    });
+
+    slider->setValue(std::stoi(setting->ToString()));
+    slider->setMinimum(std::stoi(setting->MinVal()));
+    slider->setMaximum(max_val);
+
+    if (reversed) {
+        slider->setInvertedAppearance(true);
+    }
+
+    std::function<void()> load_func;
+
+    if (Settings::IsConfiguringGlobal()) {
+        load_func = [=]() { setting->LoadString(std::to_string(slider->value())); };
+    } else {
+        button = CreateRestoreGlobalButton(parent, setting);
+        layout->addWidget(button);
+
+        QObject::connect(button, &QAbstractButton::clicked, [=](bool) {
+            slider->setValue(std::stoi(setting->ToStringGlobal()));
+
+            button->setEnabled(false);
+            button->setVisible(false);
+        });
+
+        QObject::connect(slider, &QAbstractSlider::sliderMoved, [=](int) {
+            button->setEnabled(true);
+            button->setVisible(true);
+        });
+
+        load_func = [=]() {
+            bool using_global = !button->isEnabled();
+            setting->SetGlobal(using_global);
+            if (!using_global) {
+                setting->LoadString(std::to_string(slider->value()));
+            }
+        };
+    }
+
+    return {widget, slider, button, []() {}};
+}
+
+static std::tuple<QWidget*, void*, void*, QPushButton*, std::function<void()>>
+CreateCheckBoxWithLineEdit(Settings::BasicSetting* setting, const QString& label, QWidget* parent) {
+    auto tuple = CreateCheckBox(setting, label, parent);
+    auto* widget = std::get<0>(tuple);
+    auto* checkbox = std::get<1>(tuple);
+    auto* button = std::get<2>(tuple);
+    auto load_func = std::get<3>(tuple);
+    QHBoxLayout* layout = dynamic_cast<QHBoxLayout*>(widget->layout());
+
+    auto line_edit_tuple = CreateLineEdit(setting, label, parent, false);
+    auto* line_edit_widget = std::get<0>(line_edit_tuple);
+    auto* line_edit = std::get<1>(line_edit_tuple);
+
+    layout->insertWidget(1, line_edit_widget);
+
+    return {widget, checkbox, line_edit, button, load_func};
 }
 
 std::tuple<QWidget*, void*, QPushButton*> CreateWidget(
     Settings::BasicSetting* setting, const TranslationMap& translations, QWidget* parent,
     bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs,
-    std::list<CheckState>& trackers, RequestType request, bool managed) {
+    RequestType request, bool managed, float multiplier, const std::string& text_box_default) {
     if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
         LOG_DEBUG(Frontend, "\"{}\" is not switchable, skipping...", setting->GetLabel());
         return {nullptr, nullptr, nullptr};
@@ -242,9 +328,27 @@ std::tuple<QWidget*, void*, QPushButton*> CreateWidget(
     QPushButton* button;
 
     if (type == typeid(bool)) {
-        auto pair = CreateCheckBox(setting, label, parent, trackers);
-        widget = pair.first;
-        load_func = pair.second;
+        switch (request) {
+        case RequestType::Default: {
+            auto tuple = CreateCheckBox(setting, label, parent);
+            widget = std::get<0>(tuple);
+            extra = std::get<1>(tuple);
+            button = std::get<2>(tuple);
+            load_func = std::get<3>(tuple);
+            break;
+        }
+        case RequestType::LineEdit: {
+            auto tuple = CreateCheckBoxWithLineEdit(setting, label, parent);
+            widget = std::get<0>(tuple);
+            break;
+        }
+        case RequestType::ComboBox:
+        case RequestType::SpinBox:
+        case RequestType::Slider:
+        case RequestType::ReverseSlider:
+        case RequestType::MaxEnum:
+            break;
+        }
     } else if (setting->IsEnum()) {
         auto tuple = CreateCombobox(setting, label, parent, managed);
         widget = std::get<0>(tuple);
@@ -253,11 +357,13 @@ std::tuple<QWidget*, void*, QPushButton*> CreateWidget(
         load_func = std::get<3>(tuple);
     } else if (type == typeid(u32) || type == typeid(int)) {
         switch (request) {
+        case RequestType::LineEdit:
         case RequestType::Default: {
             auto tuple = CreateLineEdit(setting, label, parent);
             widget = std::get<0>(tuple);
             extra = std::get<1>(tuple);
-            load_func = std::get<2>(tuple);
+            button = std::get<2>(tuple);
+            load_func = std::get<3>(tuple);
             break;
         }
         case RequestType::ComboBox: {
@@ -268,8 +374,17 @@ std::tuple<QWidget*, void*, QPushButton*> CreateWidget(
             load_func = std::get<3>(tuple);
             break;
         }
-        case RequestType::SpinBox:
         case RequestType::Slider:
+        case RequestType::ReverseSlider: {
+            auto tuple = CreateSlider(setting, label, parent, request == RequestType::ReverseSlider,
+                                      multiplier);
+            widget = std::get<0>(tuple);
+            extra = std::get<1>(tuple);
+            button = std::get<2>(tuple);
+            load_func = std::get<3>(tuple);
+            break;
+        }
+        case RequestType::SpinBox:
         case RequestType::MaxEnum:
             break;
         }

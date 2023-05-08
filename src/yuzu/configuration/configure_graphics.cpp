@@ -97,7 +97,6 @@ ConfigureGraphics::ConfigureGraphics(
                                                 Settings::values.bg_blue.GetValue()));
     UpdateAPILayout();
     PopulateVSyncModeSelection(); //< must happen after UpdateAPILayout
-    // SetFSRIndicatorText(ui->fsr_sharpening_slider->sliderPosition());
 
     // VSync setting needs to be determined after populating the VSync combobox
     if (Settings::IsConfiguringGlobal()) {
@@ -134,18 +133,13 @@ ConfigureGraphics::ConfigureGraphics(
     //     }
     //     UpdateBackgroundColorButton(new_bg_color);
     // });
+    // ui->bg_label->setVisible(Settings::IsConfiguringGlobal());
+    // ui->bg_combobox->setVisible(!Settings::IsConfiguringGlobal());
 
     api_combobox->setEnabled(!UISettings::values.has_broken_vulkan && api_combobox->isEnabled());
     ui->api_widget->setEnabled(
         (!UISettings::values.has_broken_vulkan || Settings::IsConfiguringGlobal()) &&
         ui->api_widget->isEnabled());
-    // ui->bg_label->setVisible(Settings::IsConfiguringGlobal());
-    // ui->bg_combobox->setVisible(!Settings::IsConfiguringGlobal());
-
-    // connect(ui->fsr_sharpening_slider, &QSlider::valueChanged, this,
-    //         &ConfigureGraphics::SetFSRIndicatorText);
-    // ui->fsr_sharpening_combobox->setVisible(!Settings::IsConfiguringGlobal());
-    // ui->fsr_sharpening_label->setVisible(Settings::IsConfiguringGlobal());
 }
 
 void ConfigureGraphics::PopulateVSyncModeSelection() {
@@ -230,11 +224,19 @@ void ConfigureGraphics::SetConfiguration() {
                 setting->Id() == Settings::values.shader_backend.Id() ||
                 setting->Id() == Settings::values.vsync_mode.Id()) {
                 return ConfigurationShared::CreateWidget(
-                    setting, translations, this, runtime_lock, apply_funcs, trackers,
+                    setting, translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::ComboBox, false);
+            } else if (setting->Id() == Settings::values.fsr_sharpening_slider.Id()) {
+                return ConfigurationShared::CreateWidget(
+                    setting, translations, this, runtime_lock, apply_funcs,
+                    ConfigurationShared::RequestType::ReverseSlider, true, 0.5f);
+            } else if (setting->Id() == Settings::values.use_speed_limit.Id()) {
+                return ConfigurationShared::CreateWidget(
+                    setting, translations, this, runtime_lock, apply_funcs,
+                    ConfigurationShared::RequestType::LineEdit, true, 1.0f, setting->ToString());
             } else {
                 return ConfigurationShared::CreateWidget(setting, translations, this, runtime_lock,
-                                                         apply_funcs, trackers);
+                                                         apply_funcs);
             }
         }();
 
@@ -251,12 +253,10 @@ void ConfigureGraphics::SetConfiguration() {
                 QObject::connect(api_restore_global_button, &QAbstractButton::clicked,
                                  [=](bool) { UpdateAPILayout(); });
 
+                // Detach API's restore button and place it where we want
                 widget->layout()->removeWidget(api_restore_global_button);
                 api_layout->addWidget(api_restore_global_button);
             }
-        } else if (setting->Id() == Settings::values.vulkan_device.Id()) {
-            api_layout->addWidget(widget);
-            api_combobox = reinterpret_cast<QComboBox*>(extra);
         } else if (setting->Id() == Settings::values.vulkan_device.Id()) {
             hold_api.push_front(widget);
             vulkan_device_combobox = reinterpret_cast<QComboBox*>(extra);
@@ -282,11 +282,6 @@ void ConfigureGraphics::SetConfiguration() {
     for (auto widget : hold_api) {
         api_grid_layout->addWidget(widget);
     }
-}
-
-void ConfigureGraphics::SetFSRIndicatorText(int percentage) {
-    // ui->fsr_sharpening_value->setText(
-    //     tr("%1%", "FSR sharpening percentage (e.g. 50%)").arg(100 - (percentage / 2)));
 }
 
 const QString ConfigureGraphics::TranslateVSyncMode(VkPresentModeKHR mode,
