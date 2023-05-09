@@ -7,6 +7,7 @@
 #include <memory>
 #include <QWidget>
 #include "yuzu/configuration/configuration_shared.h"
+#include "yuzu/configuration/shared_widget.h"
 
 namespace Core {
 class System;
@@ -23,6 +24,7 @@ class ConfigureGeneral : public ConfigurationShared::Tab {
 public:
     explicit ConfigureGeneral(const Core::System& system_,
                               std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                              const ConfigurationShared::TranslationMap& translations_,
                               QWidget* parent = nullptr);
     ~ConfigureGeneral() override;
 
@@ -35,14 +37,12 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
-    void SetupPerGameUI();
-
     std::function<void()> reset_callback;
 
     std::unique_ptr<Ui::ConfigureGeneral> ui;
 
-    ConfigurationShared::CheckState use_speed_limit;
-    ConfigurationShared::CheckState use_multi_core;
+    std::forward_list<std::function<void(bool)>> apply_funcs{};
 
     const Core::System& system;
+    const ConfigurationShared::TranslationMap& translations;
 };
