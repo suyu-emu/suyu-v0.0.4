@@ -27,7 +27,6 @@
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_audio.h"
 #include "yuzu/configuration/configure_cpu.h"
-#include "yuzu/configuration/configure_general.h"
 #include "yuzu/configuration/configure_graphics.h"
 #include "yuzu/configuration/configure_graphics_advanced.h"
 #include "yuzu/configuration/configure_input_per_game.h"
@@ -53,7 +52,6 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
     addons_tab = std::make_unique<ConfigurePerGameAddons>(system_, this);
     audio_tab = std::make_unique<ConfigureAudio>(system_, tab_group, this);
     cpu_tab = std::make_unique<ConfigureCpu>(system_, tab_group, this);
-    general_tab = std::make_unique<ConfigureGeneral>(system_, tab_group, *translations, this);
     graphics_advanced_tab =
         std::make_unique<ConfigureGraphicsAdvanced>(system_, tab_group, *translations, this);
     graphics_tab = std::make_unique<ConfigureGraphics>(
@@ -65,7 +63,6 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
     ui->setupUi(this);
 
     ui->tabWidget->addTab(addons_tab.get(), tr("Add-Ons"));
-    ui->tabWidget->addTab(general_tab.get(), tr("General"));
     ui->tabWidget->addTab(system_tab.get(), tr("System"));
     ui->tabWidget->addTab(cpu_tab.get(), tr("CPU"));
     ui->tabWidget->addTab(graphics_tab.get(), tr("Graphics"));
