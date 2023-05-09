@@ -77,11 +77,10 @@ void SetPerGameSetting(QComboBox* combobox,
 void SetHighlight(QWidget* widget, bool highlighted);
 
 // Sets up a QCheckBox like a tristate one, given a Setting
-template <bool ranged, bool save, bool runtime_modifiable>
-void SetColoredTristate(
-    QCheckBox* checkbox,
-    const Settings::SwitchableSetting<bool, ranged, save, runtime_modifiable>& setting,
-    CheckState& tracker) {
+template <bool ranged>
+void SetColoredTristate(QCheckBox* checkbox,
+                        const Settings::SwitchableSetting<bool, ranged>& setting,
+                        CheckState& tracker) {
     if (setting.UsingGlobal()) {
         tracker = CheckState::Global;
     } else {
