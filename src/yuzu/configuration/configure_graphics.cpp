@@ -240,7 +240,7 @@ void ConfigureGraphics::Setup() {
                 return new ConfigurationShared::Widget(
                     setting, translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::LineEdit, true, 1.0f,
-                    Settings::values.speed_limit.ToString());
+                    &Settings::values.speed_limit, QString::fromStdString("%"));
             } else {
                 return new ConfigurationShared::Widget(setting, translations, this, runtime_lock,
                                                        apply_funcs);

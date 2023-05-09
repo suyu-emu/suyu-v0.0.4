@@ -6,6 +6,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSizePolicy>
+#include <QSpinBox>
 #include <QWidget>
 #include <qabstractbutton.h>
 #include "common/settings.h"
@@ -234,7 +235,8 @@ void Widget::CreateSlider(const QString& name, bool reversed, float multiplier,
     }
 }
 
-void Widget::CreateCheckBoxWithLineEdit(const QString& label, const std::string& text_box_default,
+void Widget::CreateCheckBoxWithLineEdit(const QString& label,
+                                        const Settings::BasicSetting* other_setting,
                                         std::function<void()>& load_func) {
     created = true;
 
@@ -243,7 +245,7 @@ void Widget::CreateCheckBoxWithLineEdit(const QString& label, const std::string&
     QHBoxLayout* layout = reinterpret_cast<QHBoxLayout*>(this->layout());
 
     line_edit = new QLineEdit(this);
-    line_edit->setText(QString::fromStdString(text_box_default));
+    line_edit->setText(QString::fromStdString(other_setting->ToString()));
 
     checkbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
@@ -254,10 +256,45 @@ void Widget::CreateCheckBoxWithLineEdit(const QString& label, const std::string&
 
     if (!Settings::IsConfiguringGlobal()) {
         QObject::connect(restore_button, &QAbstractButton::clicked, [=](bool) {
-            line_edit->setText(QString::fromStdString(text_box_default));
+            line_edit->setText(QString::fromStdString(other_setting->ToString()));
         });
 
         QObject::connect(line_edit, &QLineEdit::textEdited, [=](const QString&) {
+            restore_button->setEnabled(true);
+            restore_button->setVisible(true);
+        });
+    }
+}
+
+void Widget::CreateCheckBoxWithSpinBox(const QString& label,
+                                       const Settings::BasicSetting* other_setting,
+                                       std::function<void()>& load_func, const QString& suffix) {
+    created = true;
+
+    CreateCheckBox(label, load_func);
+    checkbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    QHBoxLayout* layout = reinterpret_cast<QHBoxLayout*>(this->layout());
+
+    spinbox = new QSpinBox(this);
+    const int min_val = std::stoi(other_setting->MinVal());
+    const int max_val = std::stoi(other_setting->MaxVal());
+    spinbox->setRange(min_val, max_val);
+    spinbox->setValue(std::stoi(other_setting->ToString()));
+    spinbox->setSuffix(suffix);
+    spinbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    layout->insertWidget(1, spinbox);
+
+    QObject::connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged),
+                     [this](int) { checkbox->setCheckState(Qt::Checked); });
+
+    if (!Settings::IsConfiguringGlobal()) {
+        QObject::connect(restore_button, &QAbstractButton::clicked, [this, other_setting](bool) {
+            spinbox->setValue(std::stoi(other_setting->ToString()));
+        });
+
+        QObject::connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged), [this](int) {
             restore_button->setEnabled(true);
             restore_button->setVisible(true);
         });
@@ -273,7 +310,8 @@ Widget::~Widget() = default;
 Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translations_,
                QWidget* parent_, bool runtime_lock,
                std::forward_list<std::function<void(bool)>>& apply_funcs, RequestType request,
-               bool managed, float multiplier, const std::string& text_box_default)
+               bool managed, float multiplier, const Settings::BasicSetting* other_setting,
+               const QString& format)
     : QWidget(parent_), parent{parent_}, translations{translations_}, setting{*setting_} {
     if (!Settings::IsConfiguringGlobal() && !setting.Switchable()) {
         LOG_DEBUG(Frontend, "\"{}\" is not switchable, skipping...", setting.GetLabel());
@@ -306,8 +344,10 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
             CreateCheckBox(label, load_func);
             break;
         case RequestType::LineEdit:
+            CreateCheckBoxWithLineEdit(label, other_setting, load_func);
+            break;
         case RequestType::SpinBox:
-            CreateCheckBoxWithLineEdit(label, text_box_default, load_func);
+            CreateCheckBoxWithSpinBox(label, other_setting, load_func, format);
             break;
         case RequestType::ComboBox:
         case RequestType::Slider:

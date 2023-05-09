@@ -4,6 +4,7 @@
 #include "yuzu/configuration/shared_translation.h"
 
 class QPushButton;
+class QSpinBox;
 class QComboBox;
 class QLineEdit;
 class QSlider;
@@ -32,7 +33,8 @@ public:
     Widget(Settings::BasicSetting* setting, const TranslationMap& translations, QWidget* parent,
            bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs,
            RequestType request = RequestType::Default, bool managed = true, float multiplier = 1.0f,
-           const std::string& text_box_default = "");
+           const Settings::BasicSetting* other_setting = nullptr,
+           const QString& format = QStringLiteral(""));
     virtual ~Widget();
 
     bool Valid();
@@ -42,16 +44,19 @@ public:
 
     QPushButton* restore_button{};
     QLineEdit* line_edit{};
+    QSpinBox* spinbox{};
     QCheckBox* checkbox{};
     QSlider* slider{};
     QComboBox* combobox{};
 
 private:
     void CreateCheckBox(const QString& label, std::function<void()>& load_func);
-    void CreateCheckBoxWithLineEdit(const QString& label, const std::string& text_box_default,
+    void CreateCheckBoxWithLineEdit(const QString& label,
+                                    const Settings::BasicSetting* other_setting,
                                     std::function<void()>& load_func);
-    void CreateCheckBoxWithSpinBox(const QString& label, const std::string& text_box_default,
-                                   std::function<void()>& load_func);
+    void CreateCheckBoxWithSpinBox(const QString& label,
+                                   const Settings::BasicSetting* other_setting,
+                                   std::function<void()>& load_func, const QString& suffix);
     void CreateCombobox(const QString& label, bool managed, std::function<void()>& load_func);
     void CreateLineEdit(const QString& label, bool managed, std::function<void()>& load_func);
     void CreateSlider(const QString& label, bool reversed, float multiplier,
