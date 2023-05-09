@@ -14,10 +14,10 @@
 
 namespace ConfigurationShared {
 
-void Widget::CreateRestoreGlobalButton() {
-    QStyle* style = this->style();
+QPushButton* Widget::CreateRestoreGlobalButton(Settings::BasicSetting& setting, QWidget* parent) {
+    QStyle* style = parent->style();
     QIcon* icon = new QIcon(style->standardIcon(QStyle::SP_DialogResetButton));
-    restore_button = new QPushButton(*icon, QStringLiteral(""), this);
+    QPushButton* restore_button = new QPushButton(*icon, QStringLiteral(""), parent);
     restore_button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Expanding);
 
     QSizePolicy sp_retain = restore_button->sizePolicy();
@@ -26,6 +26,8 @@ void Widget::CreateRestoreGlobalButton() {
 
     restore_button->setEnabled(!setting.UsingGlobal());
     restore_button->setVisible(!setting.UsingGlobal());
+
+    return restore_button;
 }
 
 void Widget::CreateCheckBox(const QString& label, std::function<void()>& load_func) {
@@ -44,7 +46,7 @@ void Widget::CreateCheckBox(const QString& label, std::function<void()>& load_fu
             setting.LoadString(checkbox->checkState() == Qt::Checked ? "true" : "false");
         };
     } else {
-        CreateRestoreGlobalButton();
+        restore_button = CreateRestoreGlobalButton(setting, this);
         layout->addWidget(restore_button);
 
         QObject::connect(checkbox, &QCheckBox::stateChanged, [&](int) {
@@ -97,7 +99,7 @@ void Widget::CreateCombobox(const QString& label, bool managed, std::function<vo
     if (Settings::IsConfiguringGlobal() && managed) {
         load_func = [=]() { setting.LoadString(std::to_string(combobox->currentIndex())); };
     } else if (managed) {
-        CreateRestoreGlobalButton();
+        restore_button = CreateRestoreGlobalButton(setting, this);
         layout->addWidget(restore_button);
 
         QObject::connect(restore_button, &QAbstractButton::clicked, [&](bool) {
@@ -144,7 +146,7 @@ void Widget::CreateLineEdit(const QString& label, bool managed, std::function<vo
             setting.LoadString(load_text);
         };
     } else if (!managed) {
-        CreateRestoreGlobalButton();
+        restore_button = CreateRestoreGlobalButton(setting, this);
         layout->addWidget(restore_button);
 
         QObject::connect(restore_button, &QAbstractButton::clicked, [&](bool) {
@@ -207,7 +209,7 @@ void Widget::CreateSlider(const QString& name, bool reversed, float multiplier,
     if (Settings::IsConfiguringGlobal()) {
         load_func = [=]() { setting.LoadString(std::to_string(slider->value())); };
     } else {
-        CreateRestoreGlobalButton();
+        restore_button = CreateRestoreGlobalButton(setting, this);
         layout->addWidget(restore_button);
 
         QObject::connect(restore_button, &QAbstractButton::clicked, [=](bool) {
@@ -340,7 +342,6 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
     }
 
     apply_funcs.push_front([load_func, setting_](bool powered_on) {
-        LOG_DEBUG(Frontend, "{}", setting_->GetLabel());
         if (setting_->RuntimeModfiable() || !powered_on) {
             load_func();
         }

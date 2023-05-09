@@ -37,6 +37,9 @@ public:
 
     bool Valid();
 
+    [[nodiscard]] static QPushButton* CreateRestoreGlobalButton(Settings::BasicSetting& setting,
+                                                                QWidget* parent);
+
     QPushButton* restore_button{};
     QLineEdit* line_edit{};
     QCheckBox* checkbox{};
@@ -53,8 +56,6 @@ private:
     void CreateLineEdit(const QString& label, bool managed, std::function<void()>& load_func);
     void CreateSlider(const QString& label, bool reversed, float multiplier,
                       std::function<void()>& load_func);
-
-    void CreateRestoreGlobalButton();
 
     QWidget* parent;
     const TranslationMap& translations;
