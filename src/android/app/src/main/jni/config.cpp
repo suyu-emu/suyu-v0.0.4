@@ -221,9 +221,12 @@ void Config::ReadValues() {
     Settings::values.gpu_accuracy = static_cast<Settings::GPUAccuracy>(config->GetInteger(
         "Renderer", "gpu_accuracy", static_cast<u32>(Settings::GPUAccuracy::Normal)));
 
-    // Use Mailbox VSync by default on Android.
+    // Use Mailbox VSync by default on Android
     Settings::values.vsync_mode = static_cast<Settings::VSyncMode>(config->GetInteger(
         "Renderer", "use_vsync", static_cast<u32>(Settings::VSyncMode::Mailbox)));
+
+    // Use GPU default anisotropic filtering on Android
+    Settings::values.max_anisotropy = config->GetInteger("Renderer", "max_anisotropy", 1);
 
     ReadSetting("Renderer", Settings::values.bg_red);
     ReadSetting("Renderer", Settings::values.bg_green);
