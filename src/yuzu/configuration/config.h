@@ -204,8 +204,6 @@ private:
     void ReadSettingGeneric(Settings::BasicSetting* const setting);
     void WriteSettingGeneric(Settings::BasicSetting* const setting) const;
 
-    std::map<Settings::Category, std::forward_list<Settings::BasicSetting*>> settings_map;
-
     const ConfigType type;
     std::unique_ptr<QSettings> qt_config;
     std::string qt_config_loc;

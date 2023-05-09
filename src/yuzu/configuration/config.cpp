@@ -19,10 +19,6 @@ namespace FS = Common::FS;
 
 Config::Config(const std::string& config_name, ConfigType config_type)
     : type(config_type), global{config_type == ConfigType::GlobalConfig} {
-
-    settings_map = Settings::values.linkage.by_category;
-    settings_map.merge(UISettings::values.linkage.by_category);
-
     Initialize(config_name);
 }
 
@@ -1311,14 +1307,22 @@ const std::string& Config::GetConfigFilePath() const {
     return qt_config_loc;
 }
 
+static auto FindRelevantList(Settings::Category category) {
+    auto& map = Settings::values.linkage.by_category;
+    if (map.contains(category)) {
+        return Settings::values.linkage.by_category[category];
+    }
+    return UISettings::values.linkage.by_category[category];
+}
+
 void Config::ReadCategory(Settings::Category category) {
-    const auto& settings = settings_map[category];
+    const auto& settings = FindRelevantList(category);
     std::for_each(settings.begin(), settings.end(),
                   [&](const auto& setting) { ReadSettingGeneric(setting); });
 }
 
 void Config::WriteCategory(Settings::Category category) {
-    const auto& settings = settings_map[category];
+    const auto& settings = FindRelevantList(category);
     std::for_each(settings.begin(), settings.end(),
                   [&](const auto& setting) { WriteSettingGeneric(setting); });
 }
@@ -1346,11 +1350,8 @@ void Config::ReadSettingGeneric(Settings::BasicSetting* const setting) {
 
 void Config::WriteSettingGeneric(Settings::BasicSetting* const setting) const {
     if (!setting->Save()) {
-        LOG_DEBUG(Frontend, "Skipping \"{}\" marked for not saving", setting->GetLabel());
         return;
     }
-    LOG_DEBUG(Frontend, "Saving {} setting \"{}\"...", global ? "global" : "custom",
-              setting->GetLabel());
     const QVariant value = QVariant::fromValue(QString::fromStdString(setting->ToString()));
     const QVariant default_value =
         QVariant::fromValue(QString::fromStdString(setting->DefaultToString()));
