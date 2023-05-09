@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -119,6 +120,13 @@ class HomeSettingsFragment : Fragment() {
                     parentFragmentManager.primaryNavigationFragment?.findNavController()
                         ?.navigate(R.id.action_homeSettingsFragment_to_earlyAccessFragment)
                 }
+            )
+        } else {
+            binding.logoImage.setImageDrawable(
+                ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.ic_yuzu_ea_full
+                )
             )
         }
 

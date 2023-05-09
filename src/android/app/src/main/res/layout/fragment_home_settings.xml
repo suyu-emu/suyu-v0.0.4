@@ -17,6 +17,7 @@
         android:background="?attr/colorSurface">
 
         <ImageView
+            android:id="@+id/logo_image"
             android:layout_width="128dp"
             android:layout_height="128dp"
             android:layout_margin="64dp"
