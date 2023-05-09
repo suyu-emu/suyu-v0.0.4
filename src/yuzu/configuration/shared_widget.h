@@ -1,3 +1,5 @@
+#pragma once
+
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/shared_translation.h"
 
