@@ -239,8 +239,8 @@ void ConfigureGraphics::Setup() {
             } else if (setting->Id() == Settings::values.use_speed_limit.Id()) {
                 return new ConfigurationShared::Widget(
                     setting, translations, this, runtime_lock, apply_funcs,
-                    ConfigurationShared::RequestType::LineEdit, true, 1.0f,
-                    &Settings::values.speed_limit, QString::fromStdString("%"));
+                    ConfigurationShared::RequestType::SpinBox, true, 1.0f,
+                    &Settings::values.speed_limit, QStringLiteral("%"));
             } else {
                 return new ConfigurationShared::Widget(setting, translations, this, runtime_lock,
                                                        apply_funcs);
