@@ -15,6 +15,7 @@
 #include <QComboBox>
 #include <QIcon>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPixmap>
 #include <QPushButton>
 #include <QSlider>
@@ -35,6 +36,7 @@
 #include "ui_configure_graphics.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics.h"
+#include "yuzu/configuration/shared_widget.h"
 #include "yuzu/qt_common.h"
 #include "yuzu/uisettings.h"
 #include "yuzu/vk_device_info.h"
@@ -219,35 +221,38 @@ void ConfigureGraphics::SetConfiguration() {
     for (const auto setting : Settings::values.linkage.by_category[Settings::Category::Renderer]) {
         const auto& setting_label = setting->GetLabel();
 
-        auto [widget, extra, button] = [&]() {
+        ConfigurationShared::Widget* widget = [&]() {
             if (setting->Id() == Settings::values.vulkan_device.Id() ||
                 setting->Id() == Settings::values.shader_backend.Id() ||
                 setting->Id() == Settings::values.vsync_mode.Id()) {
-                return ConfigurationShared::CreateWidget(
+                return new ConfigurationShared::Widget(
                     setting, translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::ComboBox, false);
             } else if (setting->Id() == Settings::values.fsr_sharpening_slider.Id()) {
-                return ConfigurationShared::CreateWidget(
+                return new ConfigurationShared::Widget(
                     setting, translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::ReverseSlider, true, 0.5f);
             } else if (setting->Id() == Settings::values.use_speed_limit.Id()) {
-                return ConfigurationShared::CreateWidget(
+                return new ConfigurationShared::Widget(
                     setting, translations, this, runtime_lock, apply_funcs,
-                    ConfigurationShared::RequestType::LineEdit, true, 1.0f, setting->ToString());
+                    ConfigurationShared::RequestType::LineEdit, true, 1.0f,
+                    Settings::values.speed_limit.ToString());
             } else {
-                return ConfigurationShared::CreateWidget(setting, translations, this, runtime_lock,
-                                                         apply_funcs);
+                return new ConfigurationShared::Widget(setting, translations, this, runtime_lock,
+                                                       apply_funcs);
             }
         }();
 
-        if (widget == nullptr) {
+        if (!widget->Valid()) {
+            LOG_DEBUG(Frontend, "Deleted widget for \"{}\"", setting->GetLabel());
+            delete widget;
             continue;
         }
 
         if (setting->Id() == Settings::values.renderer_backend.Id()) {
             api_grid_layout->addWidget(widget);
-            api_combobox = reinterpret_cast<QComboBox*>(extra);
-            api_restore_global_button = button;
+            api_combobox = widget->combobox;
+            api_restore_global_button = widget->restore_button;
 
             if (!Settings::IsConfiguringGlobal()) {
                 QObject::connect(api_restore_global_button, &QAbstractButton::clicked,
@@ -259,14 +264,33 @@ void ConfigureGraphics::SetConfiguration() {
             }
         } else if (setting->Id() == Settings::values.vulkan_device.Id()) {
             hold_api.push_front(widget);
-            vulkan_device_combobox = reinterpret_cast<QComboBox*>(extra);
+            vulkan_device_combobox = widget->combobox;
             vulkan_device_widget = widget;
         } else if (setting->Id() == Settings::values.shader_backend.Id()) {
             hold_api.push_front(widget);
-            shader_backend_combobox = reinterpret_cast<QComboBox*>(extra);
+            shader_backend_combobox = widget->combobox;
             shader_backend_widget = widget;
+        } else if (setting->Id() == Settings::values.use_speed_limit.Id()) {
+            apply_funcs.push_front([setting, widget](bool powered_on) {
+                if (!setting->RuntimeModfiable() && powered_on) {
+                    return;
+                }
+
+                u16 value = QVariant(widget->line_edit->text()).value<u16>();
+                auto& speed_limit = Settings::values.speed_limit;
+                if (Settings::IsConfiguringGlobal()) {
+                    speed_limit.SetValue(value);
+                } else {
+                    bool using_global = !widget->restore_button->isVisible();
+                    speed_limit.SetGlobal(using_global);
+                    if (!using_global) {
+                        speed_limit.SetValue(value);
+                    }
+                }
+            });
+            hold_graphics[setting->IsEnum()][setting_label] = widget;
         } else if (setting->Id() == Settings::values.vsync_mode.Id()) {
-            vsync_mode_combobox = reinterpret_cast<QComboBox*>(extra);
+            vsync_mode_combobox = widget->combobox;
             hold_graphics[setting->IsEnum()][setting_label] = widget;
         } else {
             hold_graphics[setting->IsEnum()][setting_label] = widget;
@@ -360,6 +384,7 @@ void ConfigureGraphics::UpdateBackgroundColorButton(QColor color) {
 }
 
 void ConfigureGraphics::UpdateAPILayout() {
+    bool runtime_lock = !system.IsPoweredOn();
     if (!Settings::IsConfiguringGlobal() && !api_restore_global_button->isEnabled()) {
         vulkan_device = Settings::values.vulkan_device.GetValue(true);
         shader_backend = Settings::values.shader_backend.GetValue(true);
@@ -368,8 +393,8 @@ void ConfigureGraphics::UpdateAPILayout() {
     } else {
         vulkan_device = Settings::values.vulkan_device.GetValue();
         shader_backend = Settings::values.shader_backend.GetValue();
-        vulkan_device_widget->setEnabled(true);
-        shader_backend_widget->setEnabled(true);
+        vulkan_device_widget->setEnabled(runtime_lock);
+        shader_backend_widget->setEnabled(runtime_lock);
     }
 
     switch (GetCurrentGraphicsBackend()) {

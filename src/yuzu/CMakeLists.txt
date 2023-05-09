@@ -145,6 +145,8 @@ add_executable(yuzu
     configuration/input_profiles.h
     configuration/shared_translation.cpp
     configuration/shared_translation.h
+    configuration/shared_widget.cpp
+    configuration/shared_widget.h
     debugger/console.cpp
     debugger/console.h
     debugger/controller.cpp

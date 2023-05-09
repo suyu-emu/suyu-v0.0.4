@@ -1346,8 +1346,11 @@ void Config::ReadSettingGeneric(Settings::BasicSetting* const setting) {
 
 void Config::WriteSettingGeneric(Settings::BasicSetting* const setting) const {
     if (!setting->Save()) {
+        LOG_DEBUG(Frontend, "Skipping \"{}\" marked for not saving", setting->GetLabel());
         return;
     }
+    LOG_DEBUG(Frontend, "Saving {} setting \"{}\"...", global ? "global" : "custom",
+              setting->GetLabel());
     const QVariant value = QVariant::fromValue(QString::fromStdString(setting->ToString()));
     const QVariant default_value =
         QVariant::fromValue(QString::fromStdString(setting->DefaultToString()));

@@ -15,6 +15,7 @@
 #include "vk_device_info.h"
 #include "yuzu/configuration/configuration_shared.h"
 
+class QPushButton;
 class QEvent;
 class QObject;
 class QComboBox;

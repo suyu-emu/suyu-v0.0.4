@@ -21,10 +21,10 @@ ConfigureGeneral::ConfigureGeneral(
 
     SetConfiguration();
 
-    if (Settings::IsConfiguringGlobal()) {
-        connect(ui->toggle_speed_limit, &QCheckBox::clicked, ui->speed_limit,
-                [this]() { ui->speed_limit->setEnabled(ui->toggle_speed_limit->isChecked()); });
-    }
+    // if (Settings::IsConfiguringGlobal()) {
+    //     connect(ui->toggle_speed_limit, &QCheckBox::clicked, ui->speed_limit,
+    //             [this]() { ui->speed_limit->setEnabled(ui->toggle_speed_limit->isChecked()); });
+    // }
 
     connect(ui->button_reset_defaults, &QPushButton::clicked, this,
             &ConfigureGeneral::ResetDefaults);
@@ -46,17 +46,17 @@ void ConfigureGeneral::SetConfiguration() {
     ui->toggle_controller_applet_disabled->setChecked(
         UISettings::values.controller_applet_disabled.GetValue());
 
-    ui->toggle_speed_limit->setChecked(Settings::values.use_speed_limit.GetValue());
-    ui->speed_limit->setValue(Settings::values.speed_limit.GetValue());
+    // ui->toggle_speed_limit->setChecked(Settings::values.use_speed_limit.GetValue());
+    // ui->speed_limit->setValue(Settings::values.speed_limit.GetValue());
 
     ui->button_reset_defaults->setEnabled(runtime_lock);
 
-    if (Settings::IsConfiguringGlobal()) {
-        ui->speed_limit->setEnabled(Settings::values.use_speed_limit.GetValue());
-    } else {
-        ui->speed_limit->setEnabled(Settings::values.use_speed_limit.GetValue() &&
-                                    use_speed_limit != ConfigurationShared::CheckState::Global);
-    }
+    // if (Settings::IsConfiguringGlobal()) {
+    //     ui->speed_limit->setEnabled(Settings::values.use_speed_limit.GetValue());
+    // } else {
+    //     ui->speed_limit->setEnabled(Settings::values.use_speed_limit.GetValue() &&
+    //                                 use_speed_limit != ConfigurationShared::CheckState::Global);
+    // }
 }
 
 // Called to set the callback when resetting settings to defaults
@@ -91,20 +91,20 @@ void ConfigureGeneral::ApplyConfiguration() {
             ui->toggle_controller_applet_disabled->isChecked();
 
         // Guard if during game and set to game-specific value
-        if (Settings::values.use_speed_limit.UsingGlobal()) {
-            Settings::values.use_speed_limit.SetValue(ui->toggle_speed_limit->checkState() ==
-                                                      Qt::Checked);
-            Settings::values.speed_limit.SetValue(ui->speed_limit->value());
-        }
+        // if (Settings::values.use_speed_limit.UsingGlobal()) {
+        //     Settings::values.use_speed_limit.SetValue(ui->toggle_speed_limit->checkState() ==
+        //                                               Qt::Checked);
+        //     Settings::values.speed_limit.SetValue(ui->speed_limit->value());
+        // }
     } else {
-        bool global_speed_limit = use_speed_limit == ConfigurationShared::CheckState::Global;
-        Settings::values.use_speed_limit.SetGlobal(global_speed_limit);
-        Settings::values.speed_limit.SetGlobal(global_speed_limit);
-        if (!global_speed_limit) {
-            Settings::values.use_speed_limit.SetValue(ui->toggle_speed_limit->checkState() ==
-                                                      Qt::Checked);
-            Settings::values.speed_limit.SetValue(ui->speed_limit->value());
-        }
+        // bool global_speed_limit = use_speed_limit == ConfigurationShared::CheckState::Global;
+        // Settings::values.use_speed_limit.SetGlobal(global_speed_limit);
+        // Settings::values.speed_limit.SetGlobal(global_speed_limit);
+        // if (!global_speed_limit) {
+        //     Settings::values.use_speed_limit.SetValue(ui->toggle_speed_limit->checkState() ==
+        //                                               Qt::Checked);
+        //     Settings::values.speed_limit.SetValue(ui->speed_limit->value());
+        // }
     }
 }
 
@@ -125,8 +125,8 @@ void ConfigureGeneral::SetupPerGameUI() {
         // Disables each setting if:
         //  - A game is running (thus settings in use), and
         //  - A non-global setting is applied.
-        ui->toggle_speed_limit->setEnabled(Settings::values.use_speed_limit.UsingGlobal());
-        ui->speed_limit->setEnabled(Settings::values.speed_limit.UsingGlobal());
+        // ui->toggle_speed_limit->setEnabled(Settings::values.use_speed_limit.UsingGlobal());
+        // ui->speed_limit->setEnabled(Settings::values.speed_limit.UsingGlobal());
 
         return;
     }
@@ -144,8 +144,9 @@ void ConfigureGeneral::SetupPerGameUI() {
     ConfigurationShared::SetColoredTristate(ui->use_multi_core, Settings::values.use_multi_core,
                                             use_multi_core);
 
-    connect(ui->toggle_speed_limit, &QCheckBox::clicked, ui->speed_limit, [this]() {
-        ui->speed_limit->setEnabled(ui->toggle_speed_limit->isChecked() &&
-                                    (use_speed_limit != ConfigurationShared::CheckState::Global));
-    });
+    // connect(ui->toggle_speed_limit, &QCheckBox::clicked, ui->speed_limit, [this]() {
+    //     ui->speed_limit->setEnabled(ui->toggle_speed_limit->isChecked() &&
+    //                                 (use_speed_limit !=
+    //                                 ConfigurationShared::CheckState::Global));
+    // });
 }

@@ -8,6 +8,7 @@
 #include "ui_configure_graphics_advanced.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics_advanced.h"
+#include "yuzu/configuration/shared_widget.h"
 
 ConfigureGraphicsAdvanced::ConfigureGraphicsAdvanced(
     const Core::System& system_,
@@ -32,10 +33,11 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
 
     for (auto setting :
          Settings::values.linkage.by_category[Settings::Category::RendererAdvanced]) {
-        auto [widget, extra, button] = ConfigurationShared::CreateWidget(
-            setting, translations, this, runtime_lock, apply_funcs);
+        ConfigurationShared::Widget* widget =
+            new ConfigurationShared::Widget(setting, translations, this, runtime_lock, apply_funcs);
 
-        if (widget == nullptr) {
+        if (!widget->Valid()) {
+            delete widget;
             continue;
         }
 

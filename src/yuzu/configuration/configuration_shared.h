@@ -13,8 +13,6 @@
 #include "common/settings.h"
 #include "yuzu/configuration/shared_translation.h"
 
-class QPushButton;
-
 namespace ConfigurationShared {
 
 class Tab : public QWidget {
@@ -42,22 +40,6 @@ enum class CheckState {
     Global, // Checkbox defers to the global state
     Count,  // Simply the number of states, not a valid checkbox state
 };
-
-enum class RequestType {
-    Default,
-    ComboBox,
-    SpinBox,
-    Slider,
-    ReverseSlider,
-    LineEdit,
-    MaxEnum,
-};
-
-std::tuple<QWidget*, void*, QPushButton*> CreateWidget(
-    Settings::BasicSetting* setting, const TranslationMap& translations, QWidget* parent,
-    bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs,
-    RequestType request = RequestType::Default, bool managed = true, float multiplier = 1.0f,
-    const std::string& text_box_default = "");
 
 // Global-aware apply and set functions
 
