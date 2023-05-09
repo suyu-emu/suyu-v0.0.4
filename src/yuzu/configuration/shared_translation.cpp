@@ -11,6 +11,7 @@
 #include <QWidget>
 #include "common/settings.h"
 #include "yuzu/configuration/shared_translation.h"
+#include "yuzu/uisettings.h"
 
 namespace ConfigurationShared {
 
@@ -18,102 +19,105 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     std::unique_ptr<TranslationMap> translations = std::make_unique<TranslationMap>();
     const auto& tr = [parent](const char* text) -> QString { return parent->tr(text); };
 
-#define INSERT(ID, NAME, TOOLTIP)                                                                  \
-    translations->insert(std::pair{Settings::values.ID.Id(), std::pair{tr((NAME)), tr((TOOLTIP))}})
+#define INSERT(SETTINGS, ID, NAME, TOOLTIP)                                                        \
+    translations->insert(std::pair{SETTINGS::values.ID.Id(), std::pair{tr((NAME)), tr((TOOLTIP))}})
 
     // A setting can be ignored by giving it a blank name
 
     // Audio
-    INSERT(sink_id, "Output Engine:", "");
-    INSERT(audio_output_device_id, "Output Device:", "");
-    INSERT(audio_input_device_id, "Input Device:", "");
-    INSERT(audio_muted, "Mute audio when in background", "");
-    INSERT(volume, "Volume:", "");
+    INSERT(Settings, sink_id, "Output Engine:", "");
+    INSERT(Settings, audio_output_device_id, "Output Device:", "");
+    INSERT(Settings, audio_input_device_id, "Input Device:", "");
+    INSERT(Settings, audio_muted, "Mute audio when in background", "");
+    INSERT(Settings, volume, "Volume:", "");
 
     // Core
-    INSERT(use_multi_core, "Multicore CPU Emulation", "");
-    INSERT(use_unsafe_extended_memory_layout, "Unsafe extended memory layout (8GB DRAM)", "");
+    INSERT(Settings, use_multi_core, "Multicore CPU Emulation", "");
+    INSERT(Settings, use_unsafe_extended_memory_layout, "Unsafe extended memory layout (8GB DRAM)",
+           "");
 
     // Cpu
-    INSERT(cpu_accuracy, "Accuracy:", "");
-    INSERT(cpu_accuracy_first_time, "", "");
+    INSERT(Settings, cpu_accuracy, "Accuracy:", "");
+    INSERT(Settings, cpu_accuracy_first_time, "", "");
 
     // Cpu Debug
 
     // Cpu Unsafe
-    INSERT(cpuopt_unsafe_unfuse_fma, "Unfuse FMA (improve performance on CPUs without FMA)", "");
-    INSERT(cpuopt_unsafe_reduce_fp_error, "Faster FRSQRTE and FRECPE", "");
-    INSERT(cpuopt_unsafe_ignore_standard_fpcr, "Faster ASIMD instructions (32 bits only)", "");
-    INSERT(cpuopt_unsafe_inaccurate_nan, "Inaccurate NaN handling", "");
-    INSERT(cpuopt_unsafe_fastmem_check, "Disable address space checks", "");
-    INSERT(cpuopt_unsafe_ignore_global_monitor, "Ignore global monitor", "");
+    INSERT(Settings, cpuopt_unsafe_unfuse_fma,
+           "Unfuse FMA (improve performance on CPUs without FMA)", "");
+    INSERT(Settings, cpuopt_unsafe_reduce_fp_error, "Faster FRSQRTE and FRECPE", "");
+    INSERT(Settings, cpuopt_unsafe_ignore_standard_fpcr, "Faster ASIMD instructions (32 bits only)",
+           "");
+    INSERT(Settings, cpuopt_unsafe_inaccurate_nan, "Inaccurate NaN handling", "");
+    INSERT(Settings, cpuopt_unsafe_fastmem_check, "Disable address space checks", "");
+    INSERT(Settings, cpuopt_unsafe_ignore_global_monitor, "Ignore global monitor", "");
 
     // Renderer
-    INSERT(renderer_backend, "API:", "");
-    INSERT(vulkan_device, "Device:", "");
-    INSERT(shader_backend, "Shader Backend:", "");
-    INSERT(resolution_setup, "Resolution:", "");
-    INSERT(scaling_filter, "Window Adapting Filter:", "");
-    INSERT(fsr_sharpening_slider, "AMD FidelityFX™ Super Resolution Sharpness:", "");
-    INSERT(anti_aliasing, "Anti-Aliasing Method:", "");
-    INSERT(fullscreen_mode, "Fullscreen Mode:", "");
-    INSERT(aspect_ratio, "Aspect Ratio:", "");
-    INSERT(use_disk_shader_cache, "Use disk pipeline cache", "");
-    INSERT(use_asynchronous_gpu_emulation, "Use asynchronous GPU emulation", "");
-    INSERT(nvdec_emulation, "NVDEC emulation:", "");
-    INSERT(accelerate_astc, "ASTC Decoding Method:", "");
-    INSERT(vsync_mode, "VSync Mode:",
+    INSERT(Settings, renderer_backend, "API:", "");
+    INSERT(Settings, vulkan_device, "Device:", "");
+    INSERT(Settings, shader_backend, "Shader Backend:", "");
+    INSERT(Settings, resolution_setup, "Resolution:", "");
+    INSERT(Settings, scaling_filter, "Window Adapting Filter:", "");
+    INSERT(Settings, fsr_sharpening_slider, "AMD FidelityFX™ Super Resolution Sharpness:", "");
+    INSERT(Settings, anti_aliasing, "Anti-Aliasing Method:", "");
+    INSERT(Settings, fullscreen_mode, "Fullscreen Mode:", "");
+    INSERT(Settings, aspect_ratio, "Aspect Ratio:", "");
+    INSERT(Settings, use_disk_shader_cache, "Use disk pipeline cache", "");
+    INSERT(Settings, use_asynchronous_gpu_emulation, "Use asynchronous GPU emulation", "");
+    INSERT(Settings, nvdec_emulation, "NVDEC emulation:", "");
+    INSERT(Settings, accelerate_astc, "ASTC Decoding Method:", "");
+    INSERT(Settings, vsync_mode, "VSync Mode:",
            "FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen "
            "refresh rate.\nFIFO Relaxed is similar to FIFO but allows tearing as it recovers from "
            "a slow down.\nMailbox can have lower latency than FIFO and does not tear but may drop "
            "frames.\nImmediate (no synchronization) just presents whatever is available and can "
            "exhibit tearing.");
-    INSERT(bg_red, "", "");
-    INSERT(bg_green, "", "");
-    INSERT(bg_blue, "", "");
+    INSERT(Settings, bg_red, "", "");
+    INSERT(Settings, bg_green, "", "");
+    INSERT(Settings, bg_blue, "", "");
 
     // Renderer (Advanced Graphics)
-    INSERT(async_presentation, "Enable asynchronous presentation (Vulkan only)", "");
-    INSERT(renderer_force_max_clock, "Force maximum clocks (Vulkan only)",
+    INSERT(Settings, async_presentation, "Enable asynchronous presentation (Vulkan only)", "");
+    INSERT(Settings, renderer_force_max_clock, "Force maximum clocks (Vulkan only)",
            "Runs work in the background while waiting for graphics commands to keep the GPU from "
            "lowering its clock speed.");
-    INSERT(max_anisotropy, "Anisotropic Filtering:", "");
-    INSERT(gpu_accuracy, "Accuracy Level:", "");
-    INSERT(use_asynchronous_shaders, "Use asynchronous shader building (Hack)",
+    INSERT(Settings, max_anisotropy, "Anisotropic Filtering:", "");
+    INSERT(Settings, gpu_accuracy, "Accuracy Level:", "");
+    INSERT(Settings, use_asynchronous_shaders, "Use asynchronous shader building (Hack)",
            "Enables asynchronous shader compilation, which may reduce shader stutter. This feature "
            "is experimental.");
-    INSERT(use_fast_gpu_time, "Use Fast GPU Time (Hack)",
+    INSERT(Settings, use_fast_gpu_time, "Use Fast GPU Time (Hack)",
            "Enables Fast GPU Time. This option will force most games to run at their highest "
            "native resolution.");
-    INSERT(use_vulkan_driver_pipeline_cache, "Use Vulkan pipeline cache",
+    INSERT(Settings, use_vulkan_driver_pipeline_cache, "Use Vulkan pipeline cache",
            "Enables GPU vendor-specific pipeline cache. This option can improve shader loading "
            "time significantly in cases where the Vulkan driver does not store pipeline cache "
            "files internally.");
-    INSERT(enable_compute_pipelines, "Enable Compute Pipelines (Intel Vulkan Only)",
+    INSERT(Settings, enable_compute_pipelines, "Enable Compute Pipelines (Intel Vulkan Only)",
            "Enable compute pipelines, required by some games.\nThis setting only exists for Intel "
            "proprietary drivers, and may crash if enabled.\nCompute pipelines are always enabled "
            "on all other drivers.");
-    INSERT(use_reactive_flushing, "Enable Reactive Flushing",
+    INSERT(Settings, use_reactive_flushing, "Enable Reactive Flushing",
            "Uses reactive flushing instead of predictive flushing, allowing more accurate memory "
            "syncing.");
 
     // Renderer (Debug)
 
     // Renderer (General)
-    INSERT(use_speed_limit, "Limit Speed Percent", "");
-    INSERT(speed_limit, "Limit Speed Percent", "");
+    INSERT(Settings, use_speed_limit, "", "");
+    INSERT(Settings, speed_limit, "Limit Speed Percent", "");
 
     // System
-    INSERT(rng_seed_enabled, "RNG Seed", "");
-    INSERT(rng_seed, "RNG Seed", "");
-    INSERT(device_name, "Device Name", "");
-    INSERT(custom_rtc_enabled, "Custom RTC", "");
-    INSERT(custom_rtc, "Custom RTC", "");
-    INSERT(language_index, "Language:", "");
-    INSERT(region_index, "Region:", "");
-    INSERT(time_zone_index, "Time Zone:", "");
-    INSERT(sound_index, "Sound Output Mode:", "");
-    INSERT(use_docked_mode, "", "");
+    INSERT(Settings, rng_seed_enabled, "RNG Seed", "");
+    INSERT(Settings, rng_seed, "RNG Seed", "");
+    INSERT(Settings, device_name, "Device Name", "");
+    INSERT(Settings, custom_rtc_enabled, "Custom RTC", "");
+    INSERT(Settings, custom_rtc, "Custom RTC", "");
+    INSERT(Settings, language_index, "Language:", "");
+    INSERT(Settings, region_index, "Region:", "");
+    INSERT(Settings, time_zone_index, "Time Zone:", "");
+    INSERT(Settings, sound_index, "Sound Output Mode:", "");
+    INSERT(Settings, use_docked_mode, "", "");
 
     // Controls
 
@@ -126,6 +130,20 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     // Network
 
     // Web Service
+
+    // Ui
+
+    // Ui General
+    INSERT(UISettings, select_user_on_boot, "Prompt for user on game boot", "");
+    INSERT(UISettings, pause_when_in_background, "Pause emulation when in background", "");
+    INSERT(UISettings, confirm_before_closing, "Confirm exit while emulation is running", "");
+    INSERT(UISettings, hide_mouse, "Hide mouse on inactivity", "");
+
+    // Ui Debugging
+
+    // Ui Multiplayer
+
+    // Ui Games list
 
 #undef INSERT
 
