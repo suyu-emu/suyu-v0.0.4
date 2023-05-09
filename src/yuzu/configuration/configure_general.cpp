@@ -32,9 +32,11 @@ void ConfigureGeneral::SetConfiguration() {
     const bool runtime_lock = !system.IsPoweredOn();
     QLayout& layout = *ui->general_widget->layout();
 
+    std::map<std::string, QWidget*> hold{};
+
     for (const auto setting :
          UISettings::values.linkage.by_category[Settings::Category::UiGeneral]) {
-        ConfigurationShared::Widget* widget =
+        auto* widget =
             new ConfigurationShared::Widget(setting, translations, this, runtime_lock, apply_funcs);
 
         if (!widget->Valid()) {
@@ -42,6 +44,10 @@ void ConfigureGeneral::SetConfiguration() {
             continue;
         }
 
+        hold.insert({setting->GetLabel(), widget});
+    }
+
+    for (const auto& [label, widget] : hold) {
         layout.addWidget(widget);
     }
 }
