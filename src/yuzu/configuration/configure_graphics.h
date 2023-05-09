@@ -51,6 +51,8 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
+    void Setup();
+
     void PopulateVSyncModeSelection();
     void UpdateBackgroundColorButton(QColor color);
     void UpdateAPILayout();

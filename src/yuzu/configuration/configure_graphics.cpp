@@ -88,7 +88,7 @@ ConfigureGraphics::ConfigureGraphics(
 
     ui->setupUi(this);
 
-    SetConfiguration();
+    Setup();
 
     for (const auto& device : vulkan_devices) {
         vulkan_device_combobox->addItem(device);
@@ -128,20 +128,22 @@ ConfigureGraphics::ConfigureGraphics(
     connect(shader_backend_combobox, qOverload<int>(&QComboBox::activated), this,
             [this](int backend) { UpdateShaderBackendSelection(backend); });
 
-    // connect(ui->bg_button, &QPushButton::clicked, this, [this] {
-    //     const QColor new_bg_color = QColorDialog::getColor(bg_color);
-    //     if (!new_bg_color.isValid()) {
-    //         return;
-    //     }
-    //     UpdateBackgroundColorButton(new_bg_color);
-    // });
-    // ui->bg_label->setVisible(Settings::IsConfiguringGlobal());
-    // ui->bg_combobox->setVisible(!Settings::IsConfiguringGlobal());
+    connect(ui->bg_button, &QPushButton::clicked, this, [this] {
+        const QColor new_bg_color = QColorDialog::getColor(bg_color);
+        if (!new_bg_color.isValid()) {
+            return;
+        }
+        UpdateBackgroundColorButton(new_bg_color);
+    });
 
     api_combobox->setEnabled(!UISettings::values.has_broken_vulkan && api_combobox->isEnabled());
     ui->api_widget->setEnabled(
         (!UISettings::values.has_broken_vulkan || Settings::IsConfiguringGlobal()) &&
         ui->api_widget->isEnabled());
+
+    if (Settings::IsConfiguringGlobal()) {
+        ui->bg_widget->setEnabled(Settings::values.bg_red.UsingGlobal());
+    }
 }
 
 void ConfigureGraphics::PopulateVSyncModeSelection() {
@@ -205,7 +207,9 @@ void ConfigureGraphics::UpdateShaderBackendSelection(int backend) {
 
 ConfigureGraphics::~ConfigureGraphics() = default;
 
-void ConfigureGraphics::SetConfiguration() {
+void ConfigureGraphics::SetConfiguration() {}
+
+void ConfigureGraphics::Setup() {
     const bool runtime_lock = !system.IsPoweredOn();
     QLayout* api_layout = ui->api_widget->layout();
     QWidget* api_grid_widget = new QWidget(this);
@@ -305,6 +309,46 @@ void ConfigureGraphics::SetConfiguration() {
     for (auto widget : hold_api) {
         api_grid_layout->addWidget(widget);
     }
+
+    if (Settings::IsConfiguringGlobal()) {
+        apply_funcs.push_front([this](bool powered_on) {
+            Settings::values.bg_red.SetValue(static_cast<u8>(bg_color.red()));
+            Settings::values.bg_green.SetValue(static_cast<u8>(bg_color.green()));
+            Settings::values.bg_blue.SetValue(static_cast<u8>(bg_color.blue()));
+        });
+    } else {
+        QPushButton* bg_restore_button = ConfigurationShared::Widget::CreateRestoreGlobalButton(
+            Settings::values.bg_red, ui->bg_widget);
+        ui->bg_widget->layout()->addWidget(bg_restore_button);
+
+        QObject::connect(bg_restore_button, &QAbstractButton::clicked,
+                         [bg_restore_button, this](bool) {
+                             const int r = Settings::values.bg_red.GetValue(true);
+                             const int g = Settings::values.bg_green.GetValue(true);
+                             const int b = Settings::values.bg_blue.GetValue(true);
+                             UpdateBackgroundColorButton(QColor::fromRgb(r, g, b));
+
+                             bg_restore_button->setVisible(false);
+                             bg_restore_button->setEnabled(false);
+                         });
+
+        QObject::connect(ui->bg_button, &QAbstractButton::clicked, [bg_restore_button](bool) {
+            bg_restore_button->setVisible(true);
+            bg_restore_button->setEnabled(true);
+        });
+
+        apply_funcs.push_front([bg_restore_button, this](bool powered_on) {
+            const bool using_global = !bg_restore_button->isEnabled();
+            Settings::values.bg_red.SetGlobal(using_global);
+            Settings::values.bg_green.SetGlobal(using_global);
+            Settings::values.bg_blue.SetGlobal(using_global);
+            if (!using_global) {
+                Settings::values.bg_red.SetValue(static_cast<u8>(bg_color.red()));
+                Settings::values.bg_green.SetValue(static_cast<u8>(bg_color.green()));
+                Settings::values.bg_blue.SetValue(static_cast<u8>(bg_color.blue()));
+            }
+        });
+    }
 }
 
 const QString ConfigureGraphics::TranslateVSyncMode(VkPresentModeKHR mode,
@@ -375,11 +419,11 @@ void ConfigureGraphics::RetranslateUI() {
 void ConfigureGraphics::UpdateBackgroundColorButton(QColor color) {
     bg_color = color;
 
-    // QPixmap pixmap(ui->bg_button->size());
-    // pixmap.fill(bg_color);
+    QPixmap pixmap(ui->bg_button->size());
+    pixmap.fill(bg_color);
 
-    // const QIcon color_icon(pixmap);
-    // ui->bg_button->setIcon(color_icon);
+    const QIcon color_icon(pixmap);
+    ui->bg_button->setIcon(color_icon);
 }
 
 void ConfigureGraphics::UpdateAPILayout() {
