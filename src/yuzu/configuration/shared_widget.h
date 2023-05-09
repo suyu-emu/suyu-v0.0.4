@@ -33,7 +33,7 @@ public:
     Widget(Settings::BasicSetting* setting, const TranslationMap& translations, QWidget* parent,
            bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs,
            RequestType request = RequestType::Default, bool managed = true, float multiplier = 1.0f,
-           const Settings::BasicSetting* other_setting = nullptr,
+           Settings::BasicSetting* other_setting = nullptr,
            const QString& format = QStringLiteral(""));
     virtual ~Widget();
 
@@ -51,11 +51,9 @@ public:
 
 private:
     void CreateCheckBox(const QString& label, std::function<void()>& load_func);
-    void CreateCheckBoxWithLineEdit(const QString& label,
-                                    const Settings::BasicSetting* other_setting,
+    void CreateCheckBoxWithLineEdit(const QString& label, Settings::BasicSetting* other_setting,
                                     std::function<void()>& load_func);
-    void CreateCheckBoxWithSpinBox(const QString& label,
-                                   const Settings::BasicSetting* other_setting,
+    void CreateCheckBoxWithSpinBox(const QString& label, Settings::BasicSetting* other_setting,
                                    std::function<void()>& load_func, const QString& suffix);
     void CreateCombobox(const QString& label, bool managed, std::function<void()>& load_func);
     void CreateLineEdit(const QString& label, bool managed, std::function<void()>& load_func);

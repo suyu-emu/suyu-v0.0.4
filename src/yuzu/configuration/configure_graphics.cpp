@@ -273,25 +273,6 @@ void ConfigureGraphics::Setup() {
             hold_api.push_front(widget);
             shader_backend_combobox = widget->combobox;
             shader_backend_widget = widget;
-        } else if (setting->Id() == Settings::values.use_speed_limit.Id()) {
-            apply_funcs.push_front([setting, widget](bool powered_on) {
-                if (!setting->RuntimeModfiable() && powered_on) {
-                    return;
-                }
-
-                u16 value = QVariant(widget->line_edit->text()).value<u16>();
-                auto& speed_limit = Settings::values.speed_limit;
-                if (Settings::IsConfiguringGlobal()) {
-                    speed_limit.SetValue(value);
-                } else {
-                    bool using_global = !widget->restore_button->isVisible();
-                    speed_limit.SetGlobal(using_global);
-                    if (!using_global) {
-                        speed_limit.SetValue(value);
-                    }
-                }
-            });
-            hold_graphics[setting->IsEnum()][setting_label] = widget;
         } else if (setting->Id() == Settings::values.vsync_mode.Id()) {
             vsync_mode_combobox = widget->combobox;
             hold_graphics[setting->IsEnum()][setting_label] = widget;

@@ -9,11 +9,17 @@
 #include <QSpinBox>
 #include <QWidget>
 #include <qabstractbutton.h>
+#include "common/common_types.h"
 #include "common/settings.h"
+#include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/shared_translation.h"
 #include "yuzu/configuration/shared_widget.h"
 
 namespace ConfigurationShared {
+
+static bool IsInt(const std::type_index& type) {
+    return type == typeid(u32) || type == typeid(s32) || type == typeid(u16) || type == typeid(s16);
+}
 
 QPushButton* Widget::CreateRestoreGlobalButton(Settings::BasicSetting& setting, QWidget* parent) {
     QStyle* style = parent->style();
@@ -235,43 +241,63 @@ void Widget::CreateSlider(const QString& name, bool reversed, float multiplier,
     }
 }
 
-void Widget::CreateCheckBoxWithLineEdit(const QString& label,
-                                        const Settings::BasicSetting* other_setting,
+void Widget::CreateCheckBoxWithLineEdit(const QString& label, Settings::BasicSetting* other_setting,
                                         std::function<void()>& load_func) {
+    if (other_setting == nullptr) {
+        LOG_WARNING(Frontend, "Extra setting is null or not an integer");
+        return;
+    }
     created = true;
 
-    CreateCheckBox(label, load_func);
+    std::function<void()> checkbox_load_func;
+    CreateCheckBox(label, checkbox_load_func);
 
     QHBoxLayout* layout = reinterpret_cast<QHBoxLayout*>(this->layout());
+    const QString default_val = QString::fromStdString(other_setting->ToString());
 
     line_edit = new QLineEdit(this);
-    line_edit->setText(QString::fromStdString(other_setting->ToString()));
+    line_edit->setText(default_val);
 
     checkbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     layout->insertWidget(1, line_edit);
 
-    QObject::connect(line_edit, &QLineEdit::textEdited,
-                     [=](const QString&) { checkbox->setCheckState(Qt::Checked); });
-
-    if (!Settings::IsConfiguringGlobal()) {
-        QObject::connect(restore_button, &QAbstractButton::clicked, [=](bool) {
-            line_edit->setText(QString::fromStdString(other_setting->ToString()));
-        });
+    if (Settings::IsConfiguringGlobal()) {
+        load_func = [=]() {
+            checkbox_load_func();
+            other_setting->LoadString(line_edit->text().toStdString());
+        };
+    } else {
+        QObject::connect(restore_button, &QAbstractButton::clicked,
+                         [=](bool) { line_edit->setText(default_val); });
 
         QObject::connect(line_edit, &QLineEdit::textEdited, [=](const QString&) {
             restore_button->setEnabled(true);
             restore_button->setVisible(true);
         });
+
+        load_func = [=]() {
+            checkbox_load_func();
+
+            const bool using_global = !restore_button->isVisible();
+            other_setting->SetGlobal(using_global);
+            if (!using_global) {
+                other_setting->LoadString(line_edit->text().toStdString());
+            }
+        };
     }
 }
 
-void Widget::CreateCheckBoxWithSpinBox(const QString& label,
-                                       const Settings::BasicSetting* other_setting,
+void Widget::CreateCheckBoxWithSpinBox(const QString& label, Settings::BasicSetting* other_setting,
                                        std::function<void()>& load_func, const QString& suffix) {
+    if (other_setting == nullptr && IsInt(other_setting->TypeId())) {
+        LOG_WARNING(Frontend, "Extra setting is null or not an integer");
+        return;
+    }
     created = true;
 
-    CreateCheckBox(label, load_func);
+    std::function<void()> checkbox_load_func;
+    CreateCheckBox(label, checkbox_load_func);
     checkbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     QHBoxLayout* layout = reinterpret_cast<QHBoxLayout*>(this->layout());
@@ -279,17 +305,20 @@ void Widget::CreateCheckBoxWithSpinBox(const QString& label,
     spinbox = new QSpinBox(this);
     const int min_val = std::stoi(other_setting->MinVal());
     const int max_val = std::stoi(other_setting->MaxVal());
+    const int default_val = std::stoi(other_setting->ToString());
     spinbox->setRange(min_val, max_val);
-    spinbox->setValue(std::stoi(other_setting->ToString()));
+    spinbox->setValue(default_val);
     spinbox->setSuffix(suffix);
     spinbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     layout->insertWidget(1, spinbox);
 
-    QObject::connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged),
-                     [this](int) { checkbox->setCheckState(Qt::Checked); });
-
-    if (!Settings::IsConfiguringGlobal()) {
+    if (Settings::IsConfiguringGlobal()) {
+        load_func = [=]() {
+            checkbox_load_func();
+            other_setting->LoadString(std::to_string(spinbox->value()));
+        };
+    } else {
         QObject::connect(restore_button, &QAbstractButton::clicked, [this, other_setting](bool) {
             spinbox->setValue(std::stoi(other_setting->ToString()));
         });
@@ -298,6 +327,16 @@ void Widget::CreateCheckBoxWithSpinBox(const QString& label,
             restore_button->setEnabled(true);
             restore_button->setVisible(true);
         });
+
+        load_func = [=]() {
+            checkbox_load_func();
+
+            const bool using_global = !restore_button->isVisible();
+            other_setting->SetGlobal(using_global);
+            if (!using_global) {
+                other_setting->LoadString(std::to_string(spinbox->value()));
+            }
+        };
     }
 }
 
@@ -310,7 +349,7 @@ Widget::~Widget() = default;
 Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translations_,
                QWidget* parent_, bool runtime_lock,
                std::forward_list<std::function<void(bool)>>& apply_funcs, RequestType request,
-               bool managed, float multiplier, const Settings::BasicSetting* other_setting,
+               bool managed, float multiplier, Settings::BasicSetting* other_setting,
                const QString& format)
     : QWidget(parent_), parent{parent_}, translations{translations_}, setting{*setting_} {
     if (!Settings::IsConfiguringGlobal() && !setting.Switchable()) {
@@ -340,14 +379,14 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
 
     if (type == typeid(bool)) {
         switch (request) {
+        case RequestType::SpinBox:
+            CreateCheckBoxWithSpinBox(label, other_setting, load_func, format);
+            break;
         case RequestType::Default:
             CreateCheckBox(label, load_func);
             break;
         case RequestType::LineEdit:
             CreateCheckBoxWithLineEdit(label, other_setting, load_func);
-            break;
-        case RequestType::SpinBox:
-            CreateCheckBoxWithSpinBox(label, other_setting, load_func, format);
             break;
         case RequestType::ComboBox:
         case RequestType::Slider:
@@ -377,7 +416,7 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
     }
 
     if (!created) {
-        LOG_ERROR(Frontend, "No widget was created for \"{}\"", setting.GetLabel());
+        LOG_WARNING(Frontend, "No widget was created for \"{}\"", setting.GetLabel());
         return;
     }
 
