@@ -143,6 +143,7 @@ enum class Category : u32 {
     AddOns,
     Controls,
     Ui,
+    UiGeneral,
     UiLayout,
     UiGameList,
     Screenshots,
@@ -209,8 +210,10 @@ public:
 
 class Linkage {
 public:
-    std::map<Category, std::forward_list<BasicSetting*>> by_category;
-    std::vector<std::function<void()>> restore_functions;
+    explicit Linkage();
+    ~Linkage();
+    std::map<Category, std::forward_list<BasicSetting*>> by_category{};
+    std::vector<std::function<void()>> restore_functions{};
     u32 count;
 };
 

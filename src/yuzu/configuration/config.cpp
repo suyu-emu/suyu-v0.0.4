@@ -717,6 +717,7 @@ void Config::ReadUIValues() {
     ReadMultiplayerValues();
 
     ReadCategory(Settings::Category::Ui);
+    ReadCategory(Settings::Category::UiGeneral);
 
     qt_config->endGroup();
 }

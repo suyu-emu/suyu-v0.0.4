@@ -144,6 +144,9 @@ float Volume() {
     return values.volume.GetValue() / static_cast<f32>(values.volume.GetDefault());
 }
 
+Linkage::Linkage() = default;
+Linkage::~Linkage() = default;
+
 const char* TranslateCategory(Category category) {
     switch (category) {
     case Category::Audio:
@@ -176,6 +179,7 @@ const char* TranslateCategory(Category category) {
     case Category::Controls:
         return "Controls";
     case Category::Ui:
+    case Category::UiGeneral:
         return "UI";
     case Category::UiLayout:
         return "UiLayout";
