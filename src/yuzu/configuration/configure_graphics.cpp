@@ -244,7 +244,6 @@ void ConfigureGraphics::SetConfiguration() {
         }();
 
         if (!widget->Valid()) {
-            LOG_DEBUG(Frontend, "Deleted widget for \"{}\"", setting->GetLabel());
             delete widget;
             continue;
         }
