@@ -24,6 +24,10 @@ ConfigureGeneral::ConfigureGeneral(
 
     connect(ui->button_reset_defaults, &QPushButton::clicked, this,
             &ConfigureGeneral::ResetDefaults);
+
+    if (!Settings::IsConfiguringGlobal()) {
+        ui->button_reset_defaults->setVisible(false);
+    }
 }
 
 ConfigureGeneral::~ConfigureGeneral() = default;
