@@ -1,5 +1,7 @@
 #include <functional>
+#include <limits>
 #include <QCheckBox>
+#include <QDateTimeEdit>
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QLabel>
@@ -9,6 +11,9 @@
 #include <QSpinBox>
 #include <QWidget>
 #include <qabstractbutton.h>
+#include <qabstractspinbox.h>
+#include <qnamespace.h>
+#include <qvalidator.h>
 #include "common/common_types.h"
 #include "common/settings.h"
 #include "yuzu/configuration/configuration_shared.h"
@@ -25,7 +30,7 @@ QPushButton* Widget::CreateRestoreGlobalButton(Settings::BasicSetting& setting, 
     QStyle* style = parent->style();
     QIcon* icon = new QIcon(style->standardIcon(QStyle::SP_DialogResetButton));
     QPushButton* restore_button = new QPushButton(*icon, QStringLiteral(""), parent);
-    restore_button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Expanding);
+    restore_button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
 
     QSizePolicy sp_retain = restore_button->sizePolicy();
     sp_retain.setRetainSizeWhenHidden(true);
@@ -241,6 +246,67 @@ void Widget::CreateSlider(const QString& name, bool reversed, float multiplier,
     }
 }
 
+void Widget::CreateCheckBoxWithHexEdit(const QString& label, Settings::BasicSetting* other_setting,
+                                       std::function<void()>& load_func) {
+    if (other_setting == nullptr) {
+        LOG_WARNING(Frontend, "Extra setting is null or not an integer");
+        return;
+    }
+    created = true;
+
+    std::function<void()> checkbox_load_func;
+    CreateCheckBox(label, checkbox_load_func);
+
+    auto to_hex = [=](const std::string& input) {
+        return QString::fromStdString(fmt::format("{:08x}", std::stoi(input)));
+    };
+
+    QHBoxLayout* layout = reinterpret_cast<QHBoxLayout*>(this->layout());
+    const QString default_val = to_hex(other_setting->ToString());
+
+    line_edit = new QLineEdit(this);
+    line_edit->setText(default_val);
+
+    checkbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    layout->insertWidget(1, line_edit);
+
+    line_edit->setMaxLength(8);
+    QRegExpValidator* regex =
+        new QRegExpValidator{QRegExp{QStringLiteral("^[0-9a-fA-F]{0,8}$")}, line_edit};
+    line_edit->setValidator(regex);
+
+    auto hex_to_dec = [=]() -> std::string {
+        return std::to_string(std::stoul(line_edit->text().toStdString(), nullptr, 16));
+    };
+
+    if (Settings::IsConfiguringGlobal()) {
+        load_func = [=]() {
+            checkbox_load_func();
+            other_setting->LoadString(hex_to_dec());
+        };
+    } else {
+        QObject::connect(restore_button, &QAbstractButton::clicked, [=](bool) {
+            line_edit->setText(to_hex(other_setting->ToStringGlobal()));
+        });
+
+        QObject::connect(line_edit, &QLineEdit::textEdited, [=](const QString&) {
+            restore_button->setEnabled(true);
+            restore_button->setVisible(true);
+        });
+
+        load_func = [=]() {
+            checkbox_load_func();
+
+            const bool using_global = !restore_button->isEnabled();
+            other_setting->SetGlobal(using_global);
+            if (!using_global) {
+                other_setting->LoadString(hex_to_dec());
+            }
+        };
+    }
+}
+
 void Widget::CreateCheckBoxWithLineEdit(const QString& label, Settings::BasicSetting* other_setting,
                                         std::function<void()>& load_func) {
     if (other_setting == nullptr) {
@@ -268,8 +334,9 @@ void Widget::CreateCheckBoxWithLineEdit(const QString& label, Settings::BasicSet
             other_setting->LoadString(line_edit->text().toStdString());
         };
     } else {
-        QObject::connect(restore_button, &QAbstractButton::clicked,
-                         [=](bool) { line_edit->setText(default_val); });
+        QObject::connect(restore_button, &QAbstractButton::clicked, [=](bool) {
+            line_edit->setText(QString::fromStdString(other_setting->ToStringGlobal()));
+        });
 
         QObject::connect(line_edit, &QLineEdit::textEdited, [=](const QString&) {
             restore_button->setEnabled(true);
@@ -279,7 +346,7 @@ void Widget::CreateCheckBoxWithLineEdit(const QString& label, Settings::BasicSet
         load_func = [=]() {
             checkbox_load_func();
 
-            const bool using_global = !restore_button->isVisible();
+            const bool using_global = !restore_button->isEnabled();
             other_setting->SetGlobal(using_global);
             if (!using_global) {
                 other_setting->LoadString(line_edit->text().toStdString());
@@ -289,7 +356,8 @@ void Widget::CreateCheckBoxWithLineEdit(const QString& label, Settings::BasicSet
 }
 
 void Widget::CreateCheckBoxWithSpinBox(const QString& label, Settings::BasicSetting* other_setting,
-                                       std::function<void()>& load_func, const QString& suffix) {
+                                       std::function<void()>& load_func,
+                                       const std::string& suffix) {
     if (other_setting == nullptr && IsInt(other_setting->TypeId())) {
         LOG_WARNING(Frontend, "Extra setting is null or not an integer");
         return;
@@ -308,7 +376,7 @@ void Widget::CreateCheckBoxWithSpinBox(const QString& label, Settings::BasicSett
     const int default_val = std::stoi(other_setting->ToString());
     spinbox->setRange(min_val, max_val);
     spinbox->setValue(default_val);
-    spinbox->setSuffix(suffix);
+    spinbox->setSuffix(QString::fromStdString(suffix));
     spinbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     layout->insertWidget(1, spinbox);
@@ -320,7 +388,7 @@ void Widget::CreateCheckBoxWithSpinBox(const QString& label, Settings::BasicSett
         };
     } else {
         QObject::connect(restore_button, &QAbstractButton::clicked, [this, other_setting](bool) {
-            spinbox->setValue(std::stoi(other_setting->ToString()));
+            spinbox->setValue(std::stoi(other_setting->ToStringGlobal()));
         });
 
         QObject::connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged), [this](int) {
@@ -331,10 +399,85 @@ void Widget::CreateCheckBoxWithSpinBox(const QString& label, Settings::BasicSett
         load_func = [=]() {
             checkbox_load_func();
 
-            const bool using_global = !restore_button->isVisible();
+            const bool using_global = !restore_button->isEnabled();
             other_setting->SetGlobal(using_global);
             if (!using_global) {
                 other_setting->LoadString(std::to_string(spinbox->value()));
+            }
+        };
+    }
+}
+
+// Currently tailored to custom_rtc
+void Widget::CreateCheckBoxWithDateTimeEdit(const QString& label,
+                                            Settings::BasicSetting* other_setting,
+                                            std::function<void()>& load_func) {
+    if (other_setting == nullptr) {
+        LOG_WARNING(Frontend, "Extra setting is null or not an integer");
+        return;
+    }
+    created = true;
+
+    std::function<void()> checkbox_load_func;
+    CreateCheckBox(label, checkbox_load_func);
+
+    QHBoxLayout* layout = reinterpret_cast<QHBoxLayout*>(this->layout());
+    const bool disabled = setting.ToString() != "true";
+    const long long current_time = QDateTime::currentSecsSinceEpoch();
+    const s64 the_time = disabled ? current_time : std::stoll(other_setting->ToString());
+    const auto default_val = QDateTime::fromSecsSinceEpoch(the_time);
+
+    date_time_edit = new QDateTimeEdit(this);
+    date_time_edit->setDateTime(default_val);
+
+    date_time_edit->setMinimumDateTime(QDateTime::fromSecsSinceEpoch(0));
+
+    date_time_edit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    checkbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    layout->insertWidget(1, date_time_edit);
+
+    if (Settings::IsConfiguringGlobal()) {
+        load_func = [=]() {
+            checkbox_load_func();
+            if (checkbox->checkState() == Qt::Unchecked) {
+                return;
+            }
+
+            other_setting->LoadString(
+                std::to_string(date_time_edit->dateTime().toSecsSinceEpoch()));
+        };
+    } else {
+        auto get_clear_val = [=]() {
+            return QDateTime::fromSecsSinceEpoch([=]() {
+                if (checkbox->checkState() == Qt::Checked) {
+                    return std::stoll(other_setting->ToStringGlobal());
+                }
+                return current_time;
+            }());
+        };
+
+        QObject::connect(restore_button, &QAbstractButton::clicked,
+                         [=](bool) { date_time_edit->setDateTime(get_clear_val()); });
+
+        QObject::connect(date_time_edit, &QDateTimeEdit::editingFinished, [=]() {
+            if (date_time_edit->dateTime() != get_clear_val()) {
+                restore_button->setEnabled(true);
+                restore_button->setVisible(true);
+            }
+        });
+
+        load_func = [=]() {
+            checkbox_load_func();
+            if (checkbox->checkState() == Qt::Unchecked) {
+                return;
+            }
+
+            const bool using_global = !restore_button->isEnabled();
+            other_setting->SetGlobal(using_global);
+            if (!using_global) {
+                other_setting->LoadString(
+                    std::to_string(date_time_edit->dateTime().toSecsSinceEpoch()));
             }
         };
     }
@@ -350,7 +493,7 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
                QWidget* parent_, bool runtime_lock,
                std::forward_list<std::function<void(bool)>>& apply_funcs, RequestType request,
                bool managed, float multiplier, Settings::BasicSetting* other_setting,
-               const QString& format)
+               const std::string& string)
     : QWidget(parent_), parent{parent_}, translations{translations_}, setting{*setting_} {
     if (!Settings::IsConfiguringGlobal() && !setting.Switchable()) {
         LOG_DEBUG(Frontend, "\"{}\" is not switchable, skipping...", setting.GetLabel());
@@ -379,19 +522,26 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
 
     if (type == typeid(bool)) {
         switch (request) {
-        case RequestType::SpinBox:
-            CreateCheckBoxWithSpinBox(label, other_setting, load_func, format);
-            break;
         case RequestType::Default:
             CreateCheckBox(label, load_func);
             break;
+        case RequestType::SpinBox:
+            CreateCheckBoxWithSpinBox(label, other_setting, load_func, string);
+            break;
+        case RequestType::HexEdit:
+            CreateCheckBoxWithHexEdit(label, other_setting, load_func);
+            break;
         case RequestType::LineEdit:
             CreateCheckBoxWithLineEdit(label, other_setting, load_func);
+            break;
+        case RequestType::DateTimeEdit:
+            CreateCheckBoxWithDateTimeEdit(label, other_setting, load_func);
             break;
         case RequestType::ComboBox:
         case RequestType::Slider:
         case RequestType::ReverseSlider:
         case RequestType::MaxEnum:
+            LOG_DEBUG(Frontend, "Requested widget is unimplemented.");
             break;
         }
     } else if (setting.IsEnum()) {
@@ -409,10 +559,15 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
         case RequestType::ComboBox:
             CreateCombobox(label, managed, load_func);
             break;
+        case RequestType::DateTimeEdit:
         case RequestType::SpinBox:
+        case RequestType::HexEdit:
         case RequestType::MaxEnum:
+            LOG_DEBUG(Frontend, "Requested widget is unimplemented.");
             break;
         }
+    } else if (type == typeid(std::string)) {
+        CreateLineEdit(label, managed, load_func);
     }
 
     if (!created) {

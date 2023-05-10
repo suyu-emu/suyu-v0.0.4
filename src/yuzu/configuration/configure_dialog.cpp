@@ -48,7 +48,7 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
       input_tab{std::make_unique<ConfigureInput>(system_, this)},
       network_tab{std::make_unique<ConfigureNetwork>(system_, this)},
       profile_tab{std::make_unique<ConfigureProfileManager>(system_, this)},
-      system_tab{std::make_unique<ConfigureSystem>(system_, nullptr, this)},
+      system_tab{std::make_unique<ConfigureSystem>(system_, nullptr, *translations, this)},
       ui_tab{std::make_unique<ConfigureUi>(system_, this)}, web_tab{std::make_unique<ConfigureWeb>(
                                                                 this)} {
     Settings::SetConfiguringGlobal(true);

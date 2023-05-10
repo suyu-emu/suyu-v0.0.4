@@ -109,15 +109,16 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
 
     // System
     INSERT(Settings, rng_seed_enabled, "RNG Seed", "");
-    INSERT(Settings, rng_seed, "RNG Seed", "");
+    INSERT(Settings, rng_seed, "", "");
     INSERT(Settings, device_name, "Device Name", "");
     INSERT(Settings, custom_rtc_enabled, "Custom RTC", "");
-    INSERT(Settings, custom_rtc, "Custom RTC", "");
+    INSERT(Settings, custom_rtc, "", "");
     INSERT(Settings, language_index, "Language:", "");
     INSERT(Settings, region_index, "Region:", "");
     INSERT(Settings, time_zone_index, "Time Zone:", "");
     INSERT(Settings, sound_index, "Sound Output Mode:", "");
     INSERT(Settings, use_docked_mode, "", "");
+    INSERT(Settings, current_user, "", "");
 
     // Controls
 
@@ -230,6 +231,44 @@ std::forward_list<QString> ComboboxEnumeration(std::type_index type, QWidget* pa
     } else if (type == typeid(Settings::AnisotropyMode)) {
         return {
             tr("Automatic"), tr("Default"), tr("2x"), tr("4x"), tr("8x"), tr("16x"),
+        };
+    } else if (type == typeid(Settings::Language)) {
+        return {
+            tr("Japanese (日本語)"),
+            tr("American English"),
+            tr("French (français)"),
+            tr("German (Deutsch)"),
+            tr("Italian (italiano)"),
+            tr("Spanish (español)"),
+            tr("Chinese"),
+            tr("Korean (한국어)"),
+            tr("Dutch (Nederlands)"),
+            tr("Portuguese (português)"),
+            tr("Russian (Русский)"),
+            tr("Taiwanese"),
+            tr("British English"),
+            tr("Canadian French"),
+            tr("Latin American Spanish"),
+            tr("Simplified Chinese"),
+            tr("Traditional Chinese (正體中文)"),
+            tr("Brazilian Portuguese (português do Brasil)"),
+        };
+    } else if (type == typeid(Settings::Region)) {
+        return {
+            tr("Japan"), tr("USA"),   tr("Europe"), tr("Australia"),
+            tr("China"), tr("Korea"), tr("Taiwan"),
+        };
+    } else if (type == typeid(Settings::TimeZone)) {
+        return {
+            tr("Auto"),    tr("Default"),   tr("CET"),       tr("CST6CDT"),   tr("Cuba"),
+            tr("EET"),     tr("Egypt"),     tr("Eire"),      tr("EST"),       tr("EST5EDT"),
+            tr("GB"),      tr("GB-Eire"),   tr("GMT"),       tr("GMT+0"),     tr("GMT-0"),
+            tr("GMT0"),    tr("Greenwich"), tr("Hongkong"),  tr("HST"),       tr("Iceland"),
+            tr("Iran"),    tr("Israel"),    tr("Jamaica"),   tr("Kwajalein"), tr("Libya"),
+            tr("MET"),     tr("MST"),       tr("MST7MDT"),   tr("Navajo"),    tr("NZ"),
+            tr("NZ-CHAT"), tr("Poland"),    tr("Portugal"),  tr("PRC"),       tr("PST8PDT"),
+            tr("ROC"),     tr("ROK"),       tr("Singapore"), tr("Turkey"),    tr("UCT"),
+            tr("W-SU"),    tr("WET"),       tr("Zulu"),
         };
     }
 

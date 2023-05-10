@@ -162,6 +162,7 @@ const char* TranslateCategory(Category category) {
     case Category::RendererDebug:
         return "Renderer";
     case Category::System:
+    case Category::SystemAudio:
         return "System";
     case Category::DataStorage:
         return "Data Storage";

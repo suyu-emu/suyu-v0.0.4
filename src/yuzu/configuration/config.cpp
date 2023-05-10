@@ -696,6 +696,7 @@ void Config::ReadSystemValues() {
     qt_config->beginGroup(QStringLiteral("System"));
 
     ReadCategory(Settings::Category::System);
+    ReadCategory(Settings::Category::SystemAudio);
 
     qt_config->endGroup();
 }
@@ -1134,6 +1135,7 @@ void Config::SaveSystemValues() {
     qt_config->beginGroup(QStringLiteral("System"));
 
     WriteCategory(Settings::Category::System);
+    WriteCategory(Settings::Category::SystemAudio);
 
     qt_config->endGroup();
 }

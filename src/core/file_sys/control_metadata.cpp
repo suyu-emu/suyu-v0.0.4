@@ -68,7 +68,8 @@ NACP::NACP(VirtualFile file) {
 NACP::~NACP() = default;
 
 const LanguageEntry& NACP::GetLanguageEntry() const {
-    Language language = language_to_codes[Settings::values.language_index.GetValue()];
+    Language language =
+        language_to_codes[static_cast<s32>(Settings::values.language_index.GetValue())];
 
     {
         const auto& language_entry = raw.language_entries.at(static_cast<u8>(language));

@@ -229,6 +229,7 @@ void Config::ReadValues() {
     ReadCategory(Settings::Category::RendererAdvanced);
     ReadCategory(Settings::Category::RendererDebug);
     ReadCategory(Settings::Category::System);
+    ReadCategory(Settings::Category::SystemAudio);
     ReadCategory(Settings::Category::DataStorage);
     ReadCategory(Settings::Category::Debugging);
     ReadCategory(Settings::Category::DebuggingGraphics);

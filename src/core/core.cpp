@@ -145,13 +145,7 @@ struct System::Impl {
         core_timing.SetMulticore(is_multicore);
         core_timing.Initialize([&system]() { system.RegisterHostThread(); });
 
-        const auto posix_time = std::chrono::system_clock::now().time_since_epoch();
-        const auto current_time =
-            std::chrono::duration_cast<std::chrono::seconds>(posix_time).count();
-        Settings::values.custom_rtc_differential =
-            (Settings::values.custom_rtc_enabled ? Settings::values.custom_rtc.GetValue()
-                                                 : current_time) -
-            current_time;
+        RefreshTime();
 
         // Create a default fs if one doesn't already exist.
         if (virtual_filesystem == nullptr) {
@@ -186,6 +180,16 @@ struct System::Impl {
         extended_memory_layout = Settings::values.use_unsafe_extended_memory_layout.GetValue();
 
         Initialize(system);
+    }
+
+    void RefreshTime() {
+        const auto posix_time = std::chrono::system_clock::now().time_since_epoch();
+        const auto current_time =
+            std::chrono::duration_cast<std::chrono::seconds>(posix_time).count();
+        Settings::values.custom_rtc_differential =
+            (Settings::values.custom_rtc_enabled ? Settings::values.custom_rtc.GetValue()
+                                                 : current_time) -
+            current_time;
     }
 
     void Run() {
@@ -1022,6 +1026,8 @@ void System::Exit() {
 }
 
 void System::ApplySettings() {
+    impl->RefreshTime();
+
     if (IsPoweredOn()) {
         Renderer().RefreshBaseSettings();
     }

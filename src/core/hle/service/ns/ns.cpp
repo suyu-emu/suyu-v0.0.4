@@ -409,7 +409,7 @@ ResultVal<u8> IApplicationManagerInterface::GetApplicationDesiredLanguage(
 
     // Get language code from settings
     const auto language_code =
-        Set::GetLanguageCodeFromIndex(Settings::values.language_index.GetValue());
+        Set::GetLanguageCodeFromIndex(static_cast<s32>(Settings::values.language_index.GetValue()));
 
     // Convert to application language, get priority list
     const auto application_language = ConvertToApplicationLanguage(language_code);

@@ -58,7 +58,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
         system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
         tab_group, *translations, this);
     input_tab = std::make_unique<ConfigureInputPerGame>(system_, game_config.get(), this);
-    system_tab = std::make_unique<ConfigureSystem>(system_, tab_group, this);
+    system_tab = std::make_unique<ConfigureSystem>(system_, tab_group, *translations, this);
 
     ui->setupUi(this);
 

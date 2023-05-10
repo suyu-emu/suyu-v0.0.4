@@ -20,6 +20,86 @@
 
 namespace Settings {
 
+enum class Language : u32 {
+    Japanese,
+    EnglishAmerican,
+    French,
+    German,
+    Italian,
+    Spanish,
+    Chinese,
+    Korean,
+    Dutch,
+    Portuguese,
+    Russian,
+    Taiwanese,
+    EnglishBritish,
+    FrenchCanadian,
+    SpanishLatin,
+    ChineseSimplified,
+    ChineseTraditional,
+    PortugueseBrazilian,
+};
+
+enum class Region : u32 {
+    Japan,
+    USA,
+    Europe,
+    Australia,
+    China,
+    Korea,
+    Taiwan,
+};
+
+enum class TimeZone : u32 {
+    Auto,
+    Default,
+    CET,
+    CST6CDT,
+    Cuba,
+    EET,
+    Egypt,
+    Eire,
+    EST,
+    EST5EDT,
+    GB,
+    GBEire,
+    GMT,
+    GMTPlusZero,
+    GMTMinusZero,
+    GMTZero,
+    Greenwich,
+    Hongkong,
+    HST,
+    Iceland,
+    Iran,
+    Israel,
+    Jamaica,
+    Japan,
+    Kwajalein,
+    Libya,
+    MET,
+    MST,
+    MST7MDT,
+    Navajo,
+    NZ,
+    NZCHAT,
+    Poland,
+    Portugal,
+    PRC,
+    PST8PDT,
+    ROC,
+    ROK,
+    Singapore,
+    Turkey,
+    UCT,
+    Universal,
+    UTC,
+    W_SU,
+    WET,
+    Zulu,
+};
+
 enum class AnisotropyMode : u32 {
     Automatic = 0,
     Default = 1,
@@ -134,6 +214,7 @@ enum class Category : u32 {
     RendererAdvanced,
     RendererDebug,
     System,
+    SystemAudio,
     DataStorage,
     Debugging,
     DebuggingGraphics,
@@ -810,22 +891,31 @@ struct Values {
     SwitchableSetting<u8, false> bg_blue{linkage, 0, "bg_blue", Category::Renderer, true, true};
 
     // System
-    SwitchableSetting<bool> rng_seed_enabled{linkage, false, "rng_seed_enabled", Category::System};
-    SwitchableSetting<u32> rng_seed{linkage, 0, "rng_seed", Category::System};
-    Setting<std::string> device_name{linkage, "Yuzu", "device_name", Category::System};
+    SwitchableSetting<bool> rng_seed_enabled{linkage,          false, "rng_seed_enabled",
+                                             Category::System, true,  true};
+    SwitchableSetting<u32> rng_seed{linkage, 0, "rng_seed", Category::System, true, true};
+    Setting<std::string> device_name{linkage, "Yuzu", "device_name", Category::System, true, true};
     // Measured in seconds since epoch
-    Setting<bool> custom_rtc_enabled{linkage, false, "custom_rtc_enabled", Category::System};
-    Setting<s64> custom_rtc{linkage, 0, "custom_rtc", Category::System};
+    SwitchableSetting<bool> custom_rtc_enabled{linkage,          false, "custom_rtc_enabled",
+                                               Category::System, true,  true};
+    SwitchableSetting<s64> custom_rtc{linkage, 0, "custom_rtc", Category::System, true, true};
     // Set on game boot, reset on stop. Seconds difference between current time and `custom_rtc`
     s64 custom_rtc_differential;
 
     Setting<s32> current_user{linkage, 0, "current_user", Category::System};
-    SwitchableSetting<s32, true> language_index{linkage,         1, 0, 17, "language_index",
-                                                Category::System};
-    SwitchableSetting<s32, true> region_index{linkage, 1, 0, 6, "region_index", Category::System};
-    SwitchableSetting<s32, true> time_zone_index{linkage,         0, 0, 45, "time_zone_index",
-                                                 Category::System};
-    SwitchableSetting<s32, true> sound_index{linkage, 1, 0, 2, "sound_index", Category::System};
+    SwitchableSetting<Language, true> language_index{linkage,
+                                                     Language::EnglishAmerican,
+                                                     Language::Japanese,
+                                                     Language::PortugueseBrazilian,
+                                                     "language_index",
+                                                     Category::System};
+    SwitchableSetting<Region, true> region_index{linkage,        Region::USA,    Region::Japan,
+                                                 Region::Taiwan, "region_index", Category::System};
+    SwitchableSetting<TimeZone, true> time_zone_index{linkage,           TimeZone::Auto,
+                                                      TimeZone::Auto,    TimeZone::Zulu,
+                                                      "time_zone_index", Category::System};
+    SwitchableSetting<s32, true> sound_index{
+        linkage, 1, 0, 2, "sound_index", Category::SystemAudio};
 
     SwitchableSetting<bool> use_docked_mode{linkage, true, "use_docked_mode", Category::System};
 
@@ -837,7 +927,7 @@ struct Values {
 #ifdef _WIN32
                                           true
 #else
-                                           false
+                                          false
 #endif
     };
     Setting<bool> controller_navigation{linkage, true, "controller_navigation", Category::Controls};
