@@ -13,9 +13,12 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
-import android.view.*
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.Surface
+import android.view.View
+import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
@@ -49,6 +52,7 @@ open class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private val gyro = FloatArray(3)
     private val accel = FloatArray(3)
     private var motionTimestamp: Long = 0
+    private var flipMotionOrientation: Boolean = false
 
     private lateinit var game: Game
 
@@ -173,15 +177,33 @@ open class EmulationActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent) {
+        val rotation = this.display?.rotation
+        if (rotation == Surface.ROTATION_90) {
+            flipMotionOrientation = true
+        }
+        if (rotation == Surface.ROTATION_270) {
+            flipMotionOrientation = false
+        }
+
         if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            accel[0] = -event.values[1] / SensorManager.GRAVITY_EARTH
-            accel[1] = event.values[0] / SensorManager.GRAVITY_EARTH
+            if (flipMotionOrientation) {
+                accel[0] = event.values[1] / SensorManager.GRAVITY_EARTH
+                accel[1] = -event.values[0] / SensorManager.GRAVITY_EARTH
+            } else {
+                accel[0] = -event.values[1] / SensorManager.GRAVITY_EARTH
+                accel[1] = event.values[0] / SensorManager.GRAVITY_EARTH
+            }
             accel[2] = -event.values[2] / SensorManager.GRAVITY_EARTH
         }
         if (event.sensor.type == Sensor.TYPE_GYROSCOPE) {
             // Investigate why sensor value is off by 6x
-            gyro[0] = event.values[1] / 6.0f
-            gyro[1] = -event.values[0] / 6.0f
+            if (flipMotionOrientation) {
+                gyro[0] = -event.values[1] / 6.0f
+                gyro[1] = event.values[0] / 6.0f
+            } else {
+                gyro[0] = event.values[1] / 6.0f
+                gyro[1] = -event.values[0] / 6.0f
+            }
             gyro[2] = event.values[2] / 6.0f
         }
 
