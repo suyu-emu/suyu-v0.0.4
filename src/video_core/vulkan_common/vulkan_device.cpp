@@ -332,6 +332,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_suitable = GetSuitability(surface != nullptr);
 
     const VkDriverId driver_id = properties.driver.driverID;
+    const auto device_id = properties.properties.deviceID;
     const bool is_radv = driver_id == VK_DRIVER_ID_MESA_RADV;
     const bool is_amd_driver =
         driver_id == VK_DRIVER_ID_AMD_PROPRIETARY || driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE;
@@ -342,6 +343,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
+    const bool is_s8gen2 = device_id == 0x43050a01;
 
     if ((is_mvk || is_qualcomm || is_turnip) && !is_suitable) {
         LOG_WARNING(Render_Vulkan, "Unsuitable driver, continuing anyway");
@@ -553,7 +555,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan, "Intel proprietary drivers do not support MSAA image blits");
         cant_blit_msaa = true;
     }
-    if (is_intel_anv || is_qualcomm) {
+    if (is_intel_anv || (is_qualcomm && !is_s8gen2)) {
         LOG_WARNING(Render_Vulkan, "Driver does not support native BGR format");
         must_emulate_bgr565 = true;
     }
