@@ -154,6 +154,11 @@ void AudioRenderer::ThreadFunc() {
             return;
 
         case RenderMessage::AudioRenderer_Render: {
+            if (system.IsShuttingDown()) [[unlikely]] {
+                std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                mailbox->ADSPSendMessage(RenderMessage::AudioRenderer_RenderResponse);
+                continue;
+            }
             std::array<bool, MaxRendererSessions> buffers_reset{};
             std::array<u64, MaxRendererSessions> render_times_taken{};
             const auto start_time{system.CoreTiming().GetClockTicks()};
