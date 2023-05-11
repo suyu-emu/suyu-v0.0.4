@@ -3,6 +3,8 @@
 
 package org.yuzu.yuzu_emu.model
 
+import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -44,7 +46,13 @@ class GamesViewModel : ViewModel() {
         if (storedGames!!.isNotEmpty()) {
             val deserializedGames = mutableSetOf<Game>()
             storedGames.forEach {
-                deserializedGames.add(Json.decodeFromString(it))
+                val game: Game = Json.decodeFromString(it)
+                val gameExists =
+                    DocumentFile.fromSingleUri(YuzuApplication.appContext, Uri.parse(game.path))
+                        ?.exists()
+                if (gameExists == true) {
+                    deserializedGames.add(game)
+                }
             }
             setGames(deserializedGames.toList())
         }
