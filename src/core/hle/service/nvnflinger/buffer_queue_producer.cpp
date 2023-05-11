@@ -793,6 +793,7 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
     std::scoped_lock lock{core->mutex};
 
     slots[slot] = {};
+    slots[slot].fence = Fence::NoFence();
     slots[slot].graphic_buffer = buffer;
     slots[slot].frame_number = 0;
 
