@@ -109,14 +109,6 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     Settings.SECTION_AUDIO
                 )
             )
-            add(
-                SubmenuSetting(
-                    null,
-                    R.string.preferences_theme,
-                    0,
-                    Settings.SECTION_THEME
-                )
-            )
         }
     }
 

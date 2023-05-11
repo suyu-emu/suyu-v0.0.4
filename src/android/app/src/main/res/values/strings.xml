@@ -69,6 +69,7 @@
     <string name="search_homebrew">Homebrew</string>
     <string name="open_user_folder">Open yuzu folder</string>
     <string name="open_user_folder_description">Manage yuzu\'s internal files</string>
+    <string name="theme_and_color_description">Modify the look of the app</string>
     <string name="no_file_manager">No file manager found</string>
     <string name="notification_no_directory_link">Couldn\'t open yuzu directory</string>
     <string name="notification_no_directory_link_description">Please locate the user folder with the file manager\'s side panel manually.</string>
@@ -158,7 +159,7 @@
     <string name="preferences_system">System</string>
     <string name="preferences_graphics">Graphics</string>
     <string name="preferences_audio">Audio</string>
-    <string name="preferences_theme">Theme and Color</string>
+    <string name="preferences_theme">Theme and color</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Your ROM is encrypted</string>

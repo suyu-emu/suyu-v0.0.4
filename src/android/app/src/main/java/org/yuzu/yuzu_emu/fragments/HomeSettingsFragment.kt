@@ -34,6 +34,7 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.HomeSettingAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentHomeSettingsBinding
 import org.yuzu.yuzu_emu.features.DocumentProvider
+import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.HomeSetting
@@ -77,6 +78,11 @@ class HomeSettingsFragment : Fragment() {
                 R.string.open_user_folder_description,
                 R.drawable.ic_folder_open
             ) { openFileManager() },
+            HomeSetting(
+                R.string.preferences_theme,
+                R.string.theme_and_color_description,
+                R.drawable.ic_palette
+            ) { SettingsActivity.launch(requireContext(), Settings.SECTION_THEME, "") },
             HomeSetting(
                 R.string.install_gpu_driver,
                 R.string.install_gpu_driver_description,
