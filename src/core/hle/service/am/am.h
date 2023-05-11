@@ -333,6 +333,7 @@ private:
     void GetPseudoDeviceId(HLERequestContext& ctx);
     void ExtendSaveData(HLERequestContext& ctx);
     void GetSaveDataSize(HLERequestContext& ctx);
+    void CreateCacheStorage(HLERequestContext& ctx);
     void BeginBlockingHomeButtonShortAndLongPressed(HLERequestContext& ctx);
     void EndBlockingHomeButtonShortAndLongPressed(HLERequestContext& ctx);
     void BeginBlockingHomeButton(HLERequestContext& ctx);
