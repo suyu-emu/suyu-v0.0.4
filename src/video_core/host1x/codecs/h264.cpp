@@ -111,7 +111,7 @@ const std::vector<u8>& H264::ComposeFrame(const Host1x::NvdecCommon::NvdecRegist
     writer.WriteUe(0);
 
     writer.WriteBit(context.h264_parameter_set.entropy_coding_mode_flag != 0);
-    writer.WriteBit(false);
+    writer.WriteBit(context.h264_parameter_set.pic_order_present_flag != 0);
     writer.WriteUe(0);
     writer.WriteUe(context.h264_parameter_set.num_refidx_l0_default_active);
     writer.WriteUe(context.h264_parameter_set.num_refidx_l1_default_active);
@@ -129,7 +129,7 @@ const std::vector<u8>& H264::ComposeFrame(const Host1x::NvdecCommon::NvdecRegist
     writer.WriteBit(context.h264_parameter_set.redundant_pic_cnt_present_flag != 0);
     writer.WriteBit(context.h264_parameter_set.transform_8x8_mode_flag != 0);
 
-    writer.WriteBit(true);
+    writer.WriteBit(true); // pic_scaling_matrix_present_flag
 
     for (s32 index = 0; index < 6; index++) {
         writer.WriteBit(true);
