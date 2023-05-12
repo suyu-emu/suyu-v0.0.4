@@ -1864,6 +1864,7 @@ void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
         num_layers = std::max(num_layers, color_buffer->range.extent.layers);
         images[num_images] = color_buffer->ImageHandle();
         image_ranges[num_images] = MakeSubresourceRange(color_buffer);
+        rt_map[index] = num_images;
         samples = color_buffer->Samples();
         ++num_images;
     }
