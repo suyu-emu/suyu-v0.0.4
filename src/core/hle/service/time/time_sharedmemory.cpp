@@ -30,6 +30,25 @@ void SharedMemory::SetupStandardSteadyClock(const Common::UUID& clock_source_id,
 }
 
 void SharedMemory::UpdateLocalSystemClockContext(const Clock::SystemClockContext& context) {
+    // lower and upper are related to the measurement point for the steady time point,
+    // and compare equal on boot
+    const s64 time_point_ns = context.steady_time_point.time_point * 1'000'000'000LL;
+
+    // This adjusts for some sort of time skew
+    // Both 0 on boot
+    const s64 diff_scale = 0;
+    const u32 shift_amount = 0;
+
+    const Clock::ContinuousAdjustmentTimePoint adjustment{
+        .measurement_offset = system.CoreTiming().GetGlobalTimeNs().count(),
+        .diff_scale = diff_scale,
+        .shift_amount = shift_amount,
+        .lower = time_point_ns,
+        .upper = time_point_ns,
+        .clock_source_id = context.steady_time_point.clock_source_id,
+    };
+
+    StoreToLockFreeAtomicType(&GetFormat()->continuous_adjustment_timepoint, adjustment);
     StoreToLockFreeAtomicType(&GetFormat()->standard_local_system_clock_context, context);
 }
 

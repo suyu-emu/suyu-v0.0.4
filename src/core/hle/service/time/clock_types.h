@@ -59,6 +59,18 @@ static_assert(sizeof(SystemClockContext) == 0x20, "SystemClockContext is incorre
 static_assert(std::is_trivially_copyable_v<SystemClockContext>,
               "SystemClockContext must be trivially copyable");
 
+struct ContinuousAdjustmentTimePoint {
+    s64 measurement_offset;
+    s64 diff_scale;
+    u32 shift_amount;
+    s64 lower;
+    s64 upper;
+    Common::UUID clock_source_id;
+};
+static_assert(sizeof(ContinuousAdjustmentTimePoint) == 0x38);
+static_assert(std::is_trivially_copyable_v<ContinuousAdjustmentTimePoint>,
+              "ContinuousAdjustmentTimePoint must be trivially copyable");
+
 /// https://switchbrew.org/wiki/Glue_services#TimeSpanType
 struct TimeSpanType {
     s64 nanoseconds{};

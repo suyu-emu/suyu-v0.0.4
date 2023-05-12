@@ -65,14 +65,15 @@ public:
         LockFreeAtomicType<Clock::SystemClockContext> standard_local_system_clock_context;
         LockFreeAtomicType<Clock::SystemClockContext> standard_network_system_clock_context;
         LockFreeAtomicType<bool> is_standard_user_system_clock_automatic_correction_enabled;
-        u32 format_version;
+        LockFreeAtomicType<Clock::ContinuousAdjustmentTimePoint> continuous_adjustment_timepoint;
     };
     static_assert(offsetof(Format, standard_steady_clock_timepoint) == 0x0);
     static_assert(offsetof(Format, standard_local_system_clock_context) == 0x38);
     static_assert(offsetof(Format, standard_network_system_clock_context) == 0x80);
     static_assert(offsetof(Format, is_standard_user_system_clock_automatic_correction_enabled) ==
                   0xc8);
-    static_assert(sizeof(Format) == 0xd8, "Format is an invalid size");
+    static_assert(offsetof(Format, continuous_adjustment_timepoint) == 0xd0);
+    static_assert(sizeof(Format) == 0x148, "Format is an invalid size");
 
     void SetupStandardSteadyClock(const Common::UUID& clock_source_id,
                                   Clock::TimeSpanType current_time_point);
