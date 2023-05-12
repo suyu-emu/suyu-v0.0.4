@@ -13,6 +13,7 @@
 #include "core/file_sys/savedata_factory.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_transfer_memory.h"
+#include "core/hle/result.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
@@ -1335,7 +1336,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
         {24, nullptr, "GetLaunchStorageInfoForDebug"},
         {25, &IApplicationFunctions::ExtendSaveData, "ExtendSaveData"},
         {26, &IApplicationFunctions::GetSaveDataSize, "GetSaveDataSize"},
-        {27, nullptr, "CreateCacheStorage"},
+        {27, &IApplicationFunctions::CreateCacheStorage, "CreateCacheStorage"},
         {28, nullptr, "GetSaveDataSizeMax"},
         {29, nullptr, "GetCacheStorageMax"},
         {30, &IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed, "BeginBlockingHomeButtonShortAndLongPressed"},
@@ -1736,6 +1737,36 @@ void IApplicationFunctions::GetSaveDataSize(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
     rb.Push(size.normal);
     rb.Push(size.journal);
+}
+
+void IApplicationFunctions::CreateCacheStorage(HLERequestContext& ctx) {
+    struct InputParameters {
+        u16 index;
+        s64 size;
+        s64 journal_size;
+    };
+    static_assert(sizeof(InputParameters) == 24);
+
+    struct OutputParameters {
+        u32 storage_target;
+        u64 required_size;
+    };
+    static_assert(sizeof(OutputParameters) == 16);
+
+    IPC::RequestParser rp{ctx};
+    const auto params = rp.PopRaw<InputParameters>();
+
+    LOG_WARNING(Service_AM, "(STUBBED) called with index={}, size={:#x}, journal_size={:#x}",
+                params.index, params.size, params.journal_size);
+
+    const OutputParameters resp{
+        .storage_target = 1,
+        .required_size = 0,
+    };
+
+    IPC::ResponseBuilder rb{ctx, 6};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(resp);
 }
 
 void IApplicationFunctions::QueryApplicationPlayStatistics(HLERequestContext& ctx) {

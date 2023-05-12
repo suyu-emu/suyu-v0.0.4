@@ -82,9 +82,9 @@ std::string GetFutureSaveDataPath(SaveDataSpaceId space_id, SaveDataType type, u
     // Only detect account/device saves from the future location.
     switch (type) {
     case SaveDataType::SaveData:
-        return fmt::format("{}/account/{}/{:016X}/1", space_id_path, uuid.RawString(), title_id);
+        return fmt::format("{}/account/{}/{:016X}/0", space_id_path, uuid.RawString(), title_id);
     case SaveDataType::DeviceSaveData:
-        return fmt::format("{}/device/{:016X}/1", space_id_path, title_id);
+        return fmt::format("{}/device/{:016X}/0", space_id_path, title_id);
     default:
         return "";
     }

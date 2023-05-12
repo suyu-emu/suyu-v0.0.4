@@ -24,8 +24,10 @@
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/system_archive/system_archive.h"
 #include "core/file_sys/vfs.h"
+#include "core/hle/result.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/filesystem/fsp_srv.h"
+#include "core/hle/service/hle_ipc.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/reporter.h"
 
@@ -552,9 +554,9 @@ public:
         // Write the data to memory
         ctx.WriteBuffer(begin, range_size);
 
-        IPC::ResponseBuilder rb{ctx, 3};
+        IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(ResultSuccess);
-        rb.Push<u32>(static_cast<u32>(actual_entries));
+        rb.Push<u64>(actual_entries);
     }
 
 private:
@@ -712,7 +714,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {59, nullptr, "WriteSaveDataFileSystemExtraData"},
         {60, nullptr, "OpenSaveDataInfoReader"},
         {61, &FSP_SRV::OpenSaveDataInfoReaderBySaveDataSpaceId, "OpenSaveDataInfoReaderBySaveDataSpaceId"},
-        {62, nullptr, "OpenCacheStorageList"},
+        {62, &FSP_SRV::OpenSaveDataInfoReaderOnlyCacheStorage, "OpenSaveDataInfoReaderOnlyCacheStorage"},
         {64, nullptr, "OpenSaveDataInternalStorageFileSystem"},
         {65, nullptr, "UpdateSaveDataMacForDebug"},
         {66, nullptr, "WriteSaveDataFileSystemExtraData2"},
@@ -919,6 +921,15 @@ void FSP_SRV::OpenSaveDataInfoReaderBySaveDataSpaceId(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
     rb.PushIpcInterface<ISaveDataInfoReader>(
         std::make_shared<ISaveDataInfoReader>(system, space, fsc));
+}
+
+void FSP_SRV::OpenSaveDataInfoReaderOnlyCacheStorage(HLERequestContext& ctx) {
+    LOG_WARNING(Service_FS, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(ResultSuccess);
+    rb.PushIpcInterface<ISaveDataInfoReader>(system, FileSys::SaveDataSpaceId::TemporaryStorage,
+                                             fsc);
 }
 
 void FSP_SRV::WriteSaveDataFileSystemExtraDataBySaveDataAttribute(HLERequestContext& ctx) {

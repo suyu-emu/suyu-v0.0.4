@@ -42,6 +42,7 @@ private:
     void OpenSaveDataFileSystem(HLERequestContext& ctx);
     void OpenReadOnlySaveDataFileSystem(HLERequestContext& ctx);
     void OpenSaveDataInfoReaderBySaveDataSpaceId(HLERequestContext& ctx);
+    void OpenSaveDataInfoReaderOnlyCacheStorage(HLERequestContext& ctx);
     void WriteSaveDataFileSystemExtraDataBySaveDataAttribute(HLERequestContext& ctx);
     void ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(HLERequestContext& ctx);
     void OpenDataStorageByCurrentProcess(HLERequestContext& ctx);
