@@ -793,6 +793,7 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
     std::scoped_lock lock{core->mutex};
 
     slots[slot] = {};
+    slots[slot].fence = Fence::NoFence();
     slots[slot].graphic_buffer = buffer;
     slots[slot].frame_number = 0;
 
@@ -854,7 +855,7 @@ void BufferQueueProducer::Transact(HLERequestContext& ctx, TransactionId code, u
         status = DequeueBuffer(&slot, &fence, is_async, width, height, pixel_format, usage);
 
         parcel_out.Write(slot);
-        parcel_out.WriteObject(&fence);
+        parcel_out.WriteFlattenedObject(&fence);
         break;
     }
     case TransactionId::RequestBuffer: {
@@ -864,7 +865,7 @@ void BufferQueueProducer::Transact(HLERequestContext& ctx, TransactionId code, u
 
         status = RequestBuffer(slot, &buf);
 
-        parcel_out.WriteObject(buf);
+        parcel_out.WriteFlattenedObject(buf);
         break;
     }
     case TransactionId::QueueBuffer: {

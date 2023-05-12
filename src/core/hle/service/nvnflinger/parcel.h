@@ -117,61 +117,67 @@ private:
 
 class OutputParcel final {
 public:
-    static constexpr std::size_t DefaultBufferSize = 0x40;
-
-    OutputParcel() : buffer(DefaultBufferSize) {}
-
-    template <typename T>
-    explicit OutputParcel(const T& out_data) : buffer(DefaultBufferSize) {
-        Write(out_data);
-    }
+    OutputParcel() = default;
 
     template <typename T>
     void Write(const T& val) {
-        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable.");
-
-        if (buffer.size() < write_index + sizeof(T)) {
-            buffer.resize(buffer.size() + sizeof(T) + DefaultBufferSize);
-        }
-
-        std::memcpy(buffer.data() + write_index, &val, sizeof(T));
-        write_index += sizeof(T);
-        write_index = Common::AlignUp(write_index, 4);
+        this->WriteImpl(val, m_data_buffer);
     }
 
     template <typename T>
-    void WriteObject(const T* ptr) {
-        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable.");
-
+    void WriteFlattenedObject(const T* ptr) {
         if (!ptr) {
-            Write<u32>(0);
+            this->Write<u32>(0);
             return;
         }
 
-        Write<u32>(1);
-        Write<s64>(sizeof(T));
-        Write(*ptr);
+        this->Write<u32>(1);
+        this->Write<s64>(sizeof(T));
+        this->Write(*ptr);
     }
 
     template <typename T>
-    void WriteObject(const std::shared_ptr<T> ptr) {
-        WriteObject(ptr.get());
+    void WriteFlattenedObject(const std::shared_ptr<T> ptr) {
+        this->WriteFlattenedObject(ptr.get());
+    }
+
+    template <typename T>
+    void WriteInterface(const T& val) {
+        this->WriteImpl(val, m_data_buffer);
+        this->WriteImpl(0U, m_object_buffer);
     }
 
     std::vector<u8> Serialize() const {
-        ParcelHeader header{};
-        header.data_size = static_cast<u32>(write_index - sizeof(ParcelHeader));
-        header.data_offset = sizeof(ParcelHeader);
-        header.objects_size = 4;
-        header.objects_offset = static_cast<u32>(sizeof(ParcelHeader) + header.data_size);
-        std::memcpy(buffer.data(), &header, sizeof(ParcelHeader));
+        std::vector<u8> output_buffer(sizeof(ParcelHeader) + m_data_buffer.size() +
+                                      m_object_buffer.size());
 
-        return buffer;
+        ParcelHeader header{};
+        header.data_size = static_cast<u32>(m_data_buffer.size());
+        header.data_offset = sizeof(ParcelHeader);
+        header.objects_size = static_cast<u32>(m_object_buffer.size());
+        header.objects_offset = header.data_offset + header.data_size;
+
+        std::memcpy(output_buffer.data(), &header, sizeof(header));
+        std::ranges::copy(m_data_buffer, output_buffer.data() + header.data_offset);
+        std::ranges::copy(m_object_buffer, output_buffer.data() + header.objects_offset);
+
+        return output_buffer;
     }
 
 private:
-    mutable std::vector<u8> buffer;
-    std::size_t write_index = sizeof(ParcelHeader);
+    template <typename T>
+        requires(std::is_trivially_copyable_v<T>)
+    void WriteImpl(const T& val, std::vector<u8>& buffer) {
+        const size_t aligned_size = Common::AlignUp(sizeof(T), 4);
+        const size_t old_size = buffer.size();
+        buffer.resize(old_size + aligned_size);
+
+        std::memcpy(buffer.data() + old_size, &val, sizeof(T));
+    }
+
+private:
+    std::vector<u8> m_data_buffer;
+    std::vector<u8> m_object_buffer;
 };
 
 } // namespace Service::android

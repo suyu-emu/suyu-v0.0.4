@@ -64,8 +64,8 @@ public:
 private:
     const u32 magic = 2;
     const u32 process_id = 1;
-    const u32 id;
-    INSERT_PADDING_WORDS(3);
+    const u64 id;
+    INSERT_PADDING_WORDS(2);
     std::array<u8, 8> dispdrv = {'d', 'i', 's', 'p', 'd', 'r', 'v', '\0'};
     INSERT_PADDING_WORDS(2);
 };
@@ -608,7 +608,9 @@ private:
             return;
         }
 
-        const auto parcel = android::OutputParcel{NativeWindow{*buffer_queue_id}};
+        android::OutputParcel parcel;
+        parcel.WriteInterface(NativeWindow{*buffer_queue_id});
+
         const auto buffer_size = ctx.WriteBuffer(parcel.Serialize());
 
         IPC::ResponseBuilder rb{ctx, 4};
@@ -654,7 +656,9 @@ private:
             return;
         }
 
-        const auto parcel = android::OutputParcel{NativeWindow{*buffer_queue_id}};
+        android::OutputParcel parcel;
+        parcel.WriteInterface(NativeWindow{*buffer_queue_id});
+
         const auto buffer_size = ctx.WriteBuffer(parcel.Serialize());
 
         IPC::ResponseBuilder rb{ctx, 6};
