@@ -381,8 +381,6 @@ private:
 
     void RunGarbageCollector();
 
-    void WaitOnAsyncFlushes(VAddr cpu_addr, u64 size);
-
     void BindHostIndexBuffer();
 
     void BindHostVertexBuffers();
@@ -547,7 +545,6 @@ private:
     IntervalSet uncommitted_ranges;
     IntervalSet common_ranges;
     IntervalSet cached_ranges;
-    IntervalSet pending_ranges;
     std::deque<IntervalSet> committed_ranges;
 
     // Async Buffers

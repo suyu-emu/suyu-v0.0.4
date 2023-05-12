@@ -131,33 +131,15 @@ std::optional<VideoCore::RasterizerDownloadArea> BufferCache<P>::GetFlushArea(VA
 
 template <class P>
 void BufferCache<P>::DownloadMemory(VAddr cpu_addr, u64 size) {
-    WaitOnAsyncFlushes(cpu_addr, size);
     ForEachBufferInRange(cpu_addr, size, [&](BufferId, Buffer& buffer) {
         DownloadBufferMemory(buffer, cpu_addr, size);
     });
 }
 
 template <class P>
-void BufferCache<P>::WaitOnAsyncFlushes(VAddr cpu_addr, u64 size) {
-    bool must_wait = false;
-    ForEachInOverlapCounter(async_downloads, cpu_addr, size,
-                            [&](VAddr, VAddr, int) { must_wait = true; });
-    bool must_release = false;
-    ForEachInRangeSet(pending_ranges, cpu_addr, size, [&](VAddr, VAddr) { must_release = true; });
-    if (must_release) {
-        std::function<void()> tmp([]() {});
-        rasterizer.SignalFence(std::move(tmp));
-    }
-    if (must_wait || must_release) {
-        rasterizer.ReleaseFences();
-    }
-}
-
-template <class P>
 void BufferCache<P>::ClearDownload(IntervalType subtract_interval) {
     RemoveEachInOverlapCounter(async_downloads, subtract_interval, -1024);
     uncommitted_ranges.subtract(subtract_interval);
-    pending_ranges.subtract(subtract_interval);
     for (auto& interval_set : committed_ranges) {
         interval_set.subtract(subtract_interval);
     }
@@ -177,7 +159,6 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     }
 
     const IntervalType subtract_interval{*cpu_dest_address, *cpu_dest_address + amount};
-    WaitOnAsyncFlushes(*cpu_src_address, static_cast<u32>(amount));
     ClearDownload(subtract_interval);
 
     BufferId buffer_a;
@@ -205,7 +186,6 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
         const IntervalType add_interval{new_base_address, new_base_address + size};
         tmp_intervals.push_back(add_interval);
         uncommitted_ranges.add(add_interval);
-        pending_ranges.add(add_interval);
     };
     ForEachInRangeSet(common_ranges, *cpu_src_address, amount, mirror);
     // This subtraction in this order is important for overlapping copies.
@@ -492,7 +472,6 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
     }
     MICROPROFILE_SCOPE(GPU_DownloadMemory);
 
-    pending_ranges.clear();
     auto it = committed_ranges.begin();
     while (it != committed_ranges.end()) {
         auto& current_intervals = *it;
@@ -1232,7 +1211,6 @@ void BufferCache<P>::MarkWrittenBuffer(BufferId buffer_id, VAddr cpu_addr, u32 s
     const IntervalType base_interval{cpu_addr, cpu_addr + size};
     common_ranges.add(base_interval);
     uncommitted_ranges.add(base_interval);
-    pending_ranges.add(base_interval);
 }
 
 template <class P>
@@ -1677,14 +1655,15 @@ typename BufferCache<P>::Binding BufferCache<P>::StorageBufferBinding(GPUVAddr s
         const bool is_nvn_cbuf = cbuf_index == 0;
         // The NVN driver buffer (index 0) is known to pack the SSBO address followed by its size.
         if (is_nvn_cbuf) {
-            return gpu_memory->Read<u32>(ssbo_addr + 8);
+            const u32 ssbo_size = gpu_memory->Read<u32>(ssbo_addr + 8);
+            if (ssbo_size != 0) {
+                return ssbo_size;
+            }
         }
         // Other titles (notably Doom Eternal) may use STG/LDG on buffer addresses in custom defined
         // cbufs, which do not store the sizes adjacent to the addresses, so use the fully
         // mapped buffer size for now.
         const u32 memory_layout_size = static_cast<u32>(gpu_memory->GetMemoryLayoutSize(gpu_addr));
-        LOG_INFO(HW_GPU, "Binding storage buffer for cbuf index {}, MemoryLayoutSize 0x{:X}",
-                 cbuf_index, memory_layout_size);
         return memory_layout_size;
     }();
     const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
