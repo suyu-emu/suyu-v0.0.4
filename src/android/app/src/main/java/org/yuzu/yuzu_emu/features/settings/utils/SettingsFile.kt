@@ -209,6 +209,13 @@ object SettingsFile {
             floatSetting.float = value.toFloat()
             return floatSetting
         }
+
+        val stringSetting = StringSetting.from(key)
+        if (stringSetting != null) {
+            stringSetting.string = value
+            return stringSetting
+        }
+
         return StringSetting.from(key)
     }
 

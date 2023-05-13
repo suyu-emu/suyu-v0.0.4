@@ -8,8 +8,7 @@ enum class BooleanSetting(
     override val section: String,
     override val defaultValue: Boolean
 ) : AbstractBooleanSetting {
-    // No boolean settings currently exist
-    EMPTY_SETTING("", "", false);
+    USE_CUSTOM_RTC("custom_rtc_enabled", Settings.SECTION_SYSTEM, false);
 
     override var boolean: Boolean = defaultValue
 
@@ -27,7 +26,9 @@ enum class BooleanSetting(
         }
 
     companion object {
-        private val NOT_RUNTIME_EDITABLE = emptyList<BooleanSetting>()
+        private val NOT_RUNTIME_EDITABLE = listOf(
+            USE_CUSTOM_RTC
+        )
 
         fun from(key: String): BooleanSetting? =
             BooleanSetting.values().firstOrNull { it.key == key }

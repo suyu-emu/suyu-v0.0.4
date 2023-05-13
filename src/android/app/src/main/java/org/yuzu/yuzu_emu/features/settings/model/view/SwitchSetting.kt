@@ -15,14 +15,14 @@ class SwitchSetting(
     titleId: Int,
     descriptionId: Int,
     val key: String? = null,
-    val defaultValue: Boolean? = null
+    val defaultValue: Any? = null
 ) : SettingsItem(setting, titleId, descriptionId) {
     override val type = TYPE_SWITCH
 
     val isChecked: Boolean
         get() {
             if (setting == null) {
-                return defaultValue!!
+                return defaultValue as Boolean
             }
 
             // Try integer setting
@@ -38,7 +38,7 @@ class SwitchSetting(
                 return setting.boolean
             } catch (_: ClassCastException) {
             }
-            return defaultValue!!
+            return defaultValue as Boolean
         }
 
     /**

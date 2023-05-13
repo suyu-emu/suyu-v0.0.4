@@ -8,8 +8,7 @@ enum class StringSetting(
     override val section: String,
     override val defaultValue: String
 ) : AbstractStringSetting {
-    // No string settings currently exist
-    EMPTY_SETTING("", "", "");
+    CUSTOM_RTC("custom_rtc", Settings.SECTION_SYSTEM, "0");
 
     override var string: String = defaultValue
 
@@ -27,7 +26,9 @@ enum class StringSetting(
         }
 
     companion object {
-        private val NOT_RUNTIME_EDITABLE = emptyList<StringSetting>()
+        private val NOT_RUNTIME_EDITABLE = listOf(
+            CUSTOM_RTC
+        )
 
         fun from(key: String): StringSetting? = StringSetting.values().firstOrNull { it.key == key }
     }

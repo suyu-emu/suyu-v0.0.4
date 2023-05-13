@@ -182,10 +182,11 @@ class SettingsAdapter(
             epochTime += timePicker.minute.toLong() * 60
             val rtcString = epochTime.toString()
             if (item.value != rtcString) {
-                notifyItemChanged(clickedPosition)
                 fragmentView.onSettingChanged()
             }
-            item.setSelectedValue(rtcString)
+            notifyItemChanged(clickedPosition)
+            val setting = item.setSelectedValue(rtcString)
+            fragmentView.putSetting(setting)
             clickedItem = null
         }
         datePicker.show(

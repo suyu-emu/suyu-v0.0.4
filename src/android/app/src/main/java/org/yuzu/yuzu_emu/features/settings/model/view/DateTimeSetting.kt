@@ -7,10 +7,10 @@ import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractStringSetting
 
 class DateTimeSetting(
-    val key: String? = null,
     setting: AbstractSetting?,
     titleId: Int,
     descriptionId: Int,
+    val key: String? = null,
     private val defaultValue: String? = null
 ) : SettingsItem(setting, titleId, descriptionId) {
     override val type = TYPE_DATETIME_SETTING

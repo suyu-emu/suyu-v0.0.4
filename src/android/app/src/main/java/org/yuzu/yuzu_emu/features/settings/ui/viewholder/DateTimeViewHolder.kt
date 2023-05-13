@@ -5,10 +5,14 @@ package org.yuzu.yuzu_emu.features.settings.ui.viewholder
 
 import android.view.View
 import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
-import org.yuzu.yuzu_emu.features.settings.model.AbstractStringSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.DateTimeSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
@@ -21,7 +25,11 @@ class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
             binding.textSettingDescription.setText(item.descriptionId)
             binding.textSettingDescription.visibility = View.VISIBLE
         } else {
-            binding.textSettingDescription.visibility = View.GONE
+            val epochTime = setting.value.toLong()
+            val instant = Instant.ofEpochMilli(epochTime * 1000)
+            val zonedTime = ZonedDateTime.ofInstant(instant, ZoneId.of("UTC"))
+            val dateFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+            binding.textSettingDescription.text = dateFormatter.format(zonedTime)
         }
     }
 

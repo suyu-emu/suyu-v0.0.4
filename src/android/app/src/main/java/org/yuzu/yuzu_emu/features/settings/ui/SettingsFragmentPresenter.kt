@@ -13,8 +13,10 @@ import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.features.settings.model.AbstractBooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.utils.ThemeHelper
@@ -121,7 +123,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.frame_limit_enable,
                     R.string.frame_limit_enable_description,
                     IntSetting.RENDERER_USE_SPEED_LIMIT.key,
-                    true
+                    IntSetting.RENDERER_USE_SPEED_LIMIT.defaultValue
                 )
             )
             add(
@@ -133,7 +135,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     200,
                     "%",
                     IntSetting.RENDERER_SPEED_LIMIT.key,
-                    100
+                    IntSetting.RENDERER_SPEED_LIMIT.defaultValue
                 )
             )
             add(
@@ -144,7 +146,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.array.cpuAccuracyNames,
                     R.array.cpuAccuracyValues,
                     IntSetting.CPU_ACCURACY.key,
-                    0
+                    IntSetting.CPU_ACCURACY.defaultValue
                 )
             )
         }
@@ -159,7 +161,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.use_docked_mode,
                     R.string.use_docked_mode_description,
                     IntSetting.USE_DOCKED_MODE.key,
-                    false
+                    IntSetting.USE_DOCKED_MODE.defaultValue
                 )
             )
             add(
@@ -170,7 +172,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.array.regionNames,
                     R.array.regionValues,
                     IntSetting.REGION_INDEX.key,
-                    -1
+                    IntSetting.REGION_INDEX.defaultValue
                 )
             )
             add(
@@ -181,7 +183,25 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.array.languageNames,
                     R.array.languageValues,
                     IntSetting.LANGUAGE_INDEX.key,
-                    1
+                    IntSetting.LANGUAGE_INDEX.defaultValue
+                )
+            )
+            add(
+                SwitchSetting(
+                    BooleanSetting.USE_CUSTOM_RTC,
+                    R.string.use_custom_rtc,
+                    R.string.use_custom_rtc_description,
+                    BooleanSetting.USE_CUSTOM_RTC.key,
+                    BooleanSetting.USE_CUSTOM_RTC.defaultValue
+                )
+            )
+            add(
+                DateTimeSetting(
+                    StringSetting.CUSTOM_RTC,
+                    R.string.set_custom_rtc,
+                    0,
+                    StringSetting.CUSTOM_RTC.key,
+                    StringSetting.CUSTOM_RTC.defaultValue
                 )
             )
         }
@@ -198,7 +218,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.array.rendererApiNames,
                     R.array.rendererApiValues,
                     IntSetting.RENDERER_BACKEND.key,
-                    1
+                    IntSetting.RENDERER_BACKEND.defaultValue
                 )
             )
             add(
@@ -209,7 +229,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.array.rendererAccuracyNames,
                     R.array.rendererAccuracyValues,
                     IntSetting.RENDERER_ACCURACY.key,
-                    0
+                    IntSetting.RENDERER_ACCURACY.defaultValue
                 )
             )
             add(
@@ -220,7 +240,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.array.rendererResolutionNames,
                     R.array.rendererResolutionValues,
                     IntSetting.RENDERER_RESOLUTION.key,
-                    2
+                    IntSetting.RENDERER_RESOLUTION.defaultValue
                 )
             )
             add(
@@ -231,7 +251,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.array.rendererScalingFilterNames,
                     R.array.rendererScalingFilterValues,
                     IntSetting.RENDERER_SCALING_FILTER.key,
-                    1
+                    IntSetting.RENDERER_SCALING_FILTER.defaultValue
                 )
             )
             add(
@@ -242,7 +262,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.array.rendererAntiAliasingNames,
                     R.array.rendererAntiAliasingValues,
                     IntSetting.RENDERER_ANTI_ALIASING.key,
-                    0
+                    IntSetting.RENDERER_ANTI_ALIASING.defaultValue
                 )
             )
             add(
@@ -253,7 +273,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.array.rendererAspectRatioNames,
                     R.array.rendererAspectRatioValues,
                     IntSetting.RENDERER_ASPECT_RATIO.key,
-                    0
+                    IntSetting.RENDERER_ASPECT_RATIO.defaultValue
                 )
             )
             add(
@@ -262,7 +282,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.use_disk_shader_cache,
                     R.string.use_disk_shader_cache_description,
                     IntSetting.RENDERER_USE_DISK_SHADER_CACHE.key,
-                    true
+                    IntSetting.RENDERER_USE_DISK_SHADER_CACHE.defaultValue
                 )
             )
             add(
@@ -271,7 +291,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_force_max_clock,
                     R.string.renderer_force_max_clock_description,
                     IntSetting.RENDERER_FORCE_MAX_CLOCK.key,
-                    true
+                    IntSetting.RENDERER_FORCE_MAX_CLOCK.defaultValue
                 )
             )
             add(
@@ -280,7 +300,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_asynchronous_shaders,
                     R.string.renderer_asynchronous_shaders_description,
                     IntSetting.RENDERER_ASYNCHRONOUS_SHADERS.key,
-                    false
+                    IntSetting.RENDERER_ASYNCHRONOUS_SHADERS.defaultValue
                 )
             )
             add(
@@ -289,7 +309,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_debug,
                     R.string.renderer_debug_description,
                     IntSetting.RENDERER_DEBUG.key,
-                    false
+                    IntSetting.RENDERER_DEBUG.defaultValue
                 )
             )
         }
@@ -306,7 +326,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 100,
                 "%",
                 IntSetting.AUDIO_VOLUME.key,
-                100
+                IntSetting.AUDIO_VOLUME.defaultValue
             )
         )
     }
