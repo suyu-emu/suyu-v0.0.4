@@ -326,6 +326,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 override val isRuntimeEditable: Boolean = false
                 override val valueAsString: String
                     get() = preferences.getInt(Settings.PREF_THEME, 0).toString()
+                override val defaultValue: Any = 0
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -362,6 +363,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 override val isRuntimeEditable: Boolean = false
                 override val valueAsString: String
                     get() = preferences.getInt(Settings.PREF_THEME_MODE, -1).toString()
+                override val defaultValue: Any = -1
             }
 
             add(
@@ -386,6 +388,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 override val isRuntimeEditable: Boolean = false
                 override val valueAsString: String
                     get() = preferences.getBoolean(Settings.PREF_BLACK_BACKGROUNDS, false).toString()
+                override val defaultValue: Any = false
             }
 
             add(

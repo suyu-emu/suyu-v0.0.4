@@ -6,7 +6,7 @@ package org.yuzu.yuzu_emu.features.settings.model
 enum class IntSetting(
     override val key: String,
     override val section: String,
-    val defaultValue: Int
+    override val defaultValue: Int
 ) : AbstractIntSetting {
     RENDERER_USE_SPEED_LIMIT(
         "use_speed_limit",

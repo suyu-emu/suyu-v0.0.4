@@ -5,6 +5,7 @@ package org.yuzu.yuzu_emu.features.settings.ui.viewholder
 
 import android.view.View
 import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
+import org.yuzu.yuzu_emu.features.settings.model.AbstractStringSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.DateTimeSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
@@ -28,5 +29,12 @@ class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
         if (setting.isEditable) {
             adapter.onDateTimeClick(setting, bindingAdapterPosition)
         }
+    }
+
+    override fun onLongClick(clicked: View): Boolean {
+        if (setting.isEditable) {
+            return adapter.onLongClick(setting.setting!!, bindingAdapterPosition)
+        }
+        return false
     }
 }

@@ -22,4 +22,9 @@ class HeaderViewHolder(val binding: ListItemSettingsHeaderBinding, adapter: Sett
     override fun onClick(clicked: View) {
         // no-op
     }
+
+    override fun onLongClick(clicked: View): Boolean {
+        // no-op
+        return true
+    }
 }

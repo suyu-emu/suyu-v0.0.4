@@ -6,7 +6,7 @@ package org.yuzu.yuzu_emu.features.settings.model
 enum class BooleanSetting(
     override val key: String,
     override val section: String,
-    val defaultValue: Boolean
+    override val defaultValue: Boolean
 ) : AbstractBooleanSetting {
     // No boolean settings currently exist
     EMPTY_SETTING("", "", false);

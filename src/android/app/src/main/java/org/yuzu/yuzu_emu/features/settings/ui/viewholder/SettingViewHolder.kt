@@ -9,10 +9,11 @@ import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 
 abstract class SettingViewHolder(itemView: View, protected val adapter: SettingsAdapter) :
-    RecyclerView.ViewHolder(itemView), View.OnClickListener {
+    RecyclerView.ViewHolder(itemView), View.OnClickListener, View.OnLongClickListener {
 
     init {
         itemView.setOnClickListener(this)
+        itemView.setOnLongClickListener(this)
     }
 
     /**
@@ -30,4 +31,6 @@ abstract class SettingViewHolder(itemView: View, protected val adapter: Settings
      * @param clicked The view that was clicked on.
      */
     abstract override fun onClick(clicked: View)
+
+    abstract override fun onLongClick(clicked: View): Boolean
 }

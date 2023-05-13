@@ -6,7 +6,7 @@ package org.yuzu.yuzu_emu.features.settings.model
 enum class StringSetting(
     override val key: String,
     override val section: String,
-    defaultValue: String
+    override val defaultValue: String
 ) : AbstractStringSetting {
     // No string settings currently exist
     EMPTY_SETTING("", "", "");

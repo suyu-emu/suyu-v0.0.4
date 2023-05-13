@@ -5,7 +5,6 @@ package org.yuzu.yuzu_emu.features.settings.model.view
 
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractStringSetting
-import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 
 class DateTimeSetting(
     val key: String? = null,

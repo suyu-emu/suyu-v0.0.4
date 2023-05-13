@@ -6,7 +6,7 @@ package org.yuzu.yuzu_emu.features.settings.model
 enum class FloatSetting(
     override val key: String,
     override val section: String,
-    val defaultValue: Float
+    override val defaultValue: Float
 ) : AbstractFloatSetting {
     // No float settings currently exist
     EMPTY_SETTING("", "", 0f);

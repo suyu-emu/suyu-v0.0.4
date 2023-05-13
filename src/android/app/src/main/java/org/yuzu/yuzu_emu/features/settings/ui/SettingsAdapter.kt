@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.setFragmentResultListener
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -24,6 +25,11 @@ import org.yuzu.yuzu_emu.databinding.DialogSliderBinding
 import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
 import org.yuzu.yuzu_emu.databinding.ListItemSettingSwitchBinding
 import org.yuzu.yuzu_emu.databinding.ListItemSettingsHeaderBinding
+import org.yuzu.yuzu_emu.features.settings.model.AbstractBooleanSetting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractFloatSetting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractStringSetting
 import org.yuzu.yuzu_emu.features.settings.model.FloatSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.*
@@ -52,21 +58,27 @@ class SettingsAdapter(
             SettingsItem.TYPE_HEADER -> {
                 HeaderViewHolder(ListItemSettingsHeaderBinding.inflate(inflater), this)
             }
+
             SettingsItem.TYPE_SWITCH -> {
                 SwitchSettingViewHolder(ListItemSettingSwitchBinding.inflate(inflater), this)
             }
+
             SettingsItem.TYPE_SINGLE_CHOICE, SettingsItem.TYPE_STRING_SINGLE_CHOICE -> {
                 SingleChoiceViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
+
             SettingsItem.TYPE_SLIDER -> {
                 SliderViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
+
             SettingsItem.TYPE_SUBMENU -> {
                 SubmenuViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
+
             SettingsItem.TYPE_DATETIME_SETTING -> {
                 DateTimeViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
+
             else -> {
                 // TODO: Create an error view since we can't return null now
                 HeaderViewHolder(ListItemSettingsHeaderBinding.inflate(inflater), this)
@@ -176,7 +188,10 @@ class SettingsAdapter(
             item.setSelectedValue(rtcString)
             clickedItem = null
         }
-        datePicker.show((fragmentView.activityView as AppCompatActivity).supportFragmentManager, "DatePicker")
+        datePicker.show(
+            (fragmentView.activityView as AppCompatActivity).supportFragmentManager,
+            "DatePicker"
+        )
     }
 
     fun onSliderClick(item: SliderSetting, position: Int) {
@@ -231,6 +246,7 @@ class SettingsAdapter(
                 fragmentView.putSetting(setting)
                 closeDialog()
             }
+
             is StringSingleChoiceSetting -> {
                 val scSetting = clickedItem as StringSingleChoiceSetting
                 val value = scSetting.getValueAt(which)
@@ -239,6 +255,7 @@ class SettingsAdapter(
                 fragmentView.putSetting(setting)
                 closeDialog()
             }
+
             is SliderSetting -> {
                 val sliderSetting = clickedItem as SliderSetting
                 if (sliderSetting.selectedValue != sliderProgress) {
@@ -257,6 +274,25 @@ class SettingsAdapter(
         }
         clickedItem = null
         sliderProgress = -1
+    }
+
+    fun onLongClick(setting: AbstractSetting, position: Int): Boolean {
+        MaterialAlertDialogBuilder(context)
+            .setMessage(R.string.reset_setting_confirmation)
+            .setPositiveButton(android.R.string.ok) { dialog: DialogInterface, which: Int ->
+                when (setting) {
+                    is AbstractBooleanSetting -> setting.boolean = setting.defaultValue as Boolean
+                    is AbstractFloatSetting -> setting.float = setting.defaultValue as Float
+                    is AbstractIntSetting -> setting.int = setting.defaultValue as Int
+                    is AbstractStringSetting -> setting.string = setting.defaultValue as String
+                }
+                notifyItemChanged(position)
+                fragmentView.onSettingChanged()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+
+        return true
     }
 
     fun closeDialog() {

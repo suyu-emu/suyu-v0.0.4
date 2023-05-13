@@ -8,4 +8,5 @@ interface AbstractSetting {
     val section: String?
     val isRuntimeEditable: Boolean
     val valueAsString: String
+    val defaultValue: Any
 }

@@ -27,4 +27,9 @@ class SubmenuViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAd
     override fun onClick(clicked: View) {
         adapter.onSubmenuClick(item)
     }
+
+    override fun onLongClick(clicked: View): Boolean {
+        // no-op
+        return true
+    }
 }

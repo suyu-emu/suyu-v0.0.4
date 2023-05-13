@@ -141,6 +141,7 @@
     <string name="gameid_saved">Saved settings for %1$s</string>
     <string name="error_saving">Error saving %1$s.ini: %2$s</string>
     <string name="loading">Loading...</string>
+    <string name="reset_setting_confirmation">Do you want to reset this setting back to its default value?</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>
