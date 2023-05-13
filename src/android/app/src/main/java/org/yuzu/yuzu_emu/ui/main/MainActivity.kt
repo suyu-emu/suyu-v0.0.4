@@ -35,6 +35,8 @@ import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
+import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.*
@@ -95,6 +97,11 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             when (it.itemId) {
                 R.id.gamesFragment -> gamesViewModel.setShouldScrollToTop(true)
                 R.id.searchFragment -> gamesViewModel.setSearchFocused(true)
+                R.id.homeSettingsFragment -> SettingsActivity.launch(
+                    this,
+                    SettingsFile.FILE_NAME_CONFIG,
+                    ""
+                )
             }
         }
 
@@ -153,10 +160,12 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 interpolator = PathInterpolator(0.05f, 0.7f, 0.1f, 1f)
 
                 if (smallLayout) {
-                    binding.navigationView.translationY = binding.navigationView.height.toFloat() * 2
+                    binding.navigationView.translationY =
+                        binding.navigationView.height.toFloat() * 2
                     translationY(0f)
                 } else {
-                    binding.navigationView.translationX = binding.navigationView.width.toFloat() * -2
+                    binding.navigationView.translationX =
+                        binding.navigationView.width.toFloat() * -2
                     translationX(0f)
                 }
             } else {
