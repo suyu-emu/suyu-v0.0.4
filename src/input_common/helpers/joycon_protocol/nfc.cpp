@@ -72,6 +72,11 @@ DriverResult NfcProtocol::StartNFCPollingMode() {
 }
 
 DriverResult NfcProtocol::ScanAmiibo(std::vector<u8>& data) {
+    if (update_counter++ < AMIIBO_UPDATE_DELAY) {
+        return DriverResult::Delayed;
+    }
+    update_counter = 0;
+
     LOG_DEBUG(Input, "Start NFC pooling Mode");
     ScopedSetBlocking sb(this);
     DriverResult result{DriverResult::Success};
@@ -87,7 +92,7 @@ DriverResult NfcProtocol::ScanAmiibo(std::vector<u8>& data) {
         result = WaitUntilNfcIsReady();
     }
     if (result == DriverResult::Success) {
-        result = StartPolling(tag_data);
+        result = StartPolling(tag_data, 7);
     }
     if (result == DriverResult::Success) {
         result = GetAmiiboData(data);
@@ -129,9 +134,8 @@ DriverResult NfcProtocol::WaitUntilNfcIsReady() {
     return DriverResult::Success;
 }
 
-DriverResult NfcProtocol::StartPolling(TagFoundData& data) {
+DriverResult NfcProtocol::StartPolling(TagFoundData& data, std::size_t timeout_limit) {
     LOG_DEBUG(Input, "Start Polling for tag");
-    constexpr std::size_t timeout_limit = 7;
     MCUCommandResponse output{};
     std::size_t tries = 0;
 
