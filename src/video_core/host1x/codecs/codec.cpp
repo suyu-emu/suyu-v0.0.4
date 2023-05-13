@@ -5,6 +5,7 @@
 #include <fstream>
 #include <vector>
 #include "common/assert.h"
+#include "common/scope_exit.h"
 #include "common/settings.h"
 #include "video_core/host1x/codecs/codec.h"
 #include "video_core/host1x/codecs/h264.h"
@@ -14,6 +15,8 @@
 #include "video_core/memory_manager.h"
 
 extern "C" {
+#include <libavfilter/buffersink.h>
+#include <libavfilter/buffersrc.h>
 #include <libavutil/opt.h>
 #ifdef LIBVA_FOUND
 // for querying VAAPI driver information
@@ -85,6 +88,10 @@ Codec::~Codec() {
     // Free libav memory
     avcodec_free_context(&av_codec_ctx);
     av_buffer_unref(&av_gpu_decoder);
+
+    if (filters_initialized) {
+        avfilter_graph_free(&av_filter_graph);
+    }
 }
 
 bool Codec::CreateGpuAvDevice() {
@@ -165,6 +172,62 @@ void Codec::InitializeGpuDecoder() {
     ASSERT_MSG(hw_device_ctx, "av_buffer_ref failed");
     av_codec_ctx->hw_device_ctx = hw_device_ctx;
     av_codec_ctx->get_format = GetGpuFormat;
+}
+
+void Codec::InitializeAvFilters(AVFrame* frame) {
+    const AVFilter* buffer_src = avfilter_get_by_name("buffer");
+    const AVFilter* buffer_sink = avfilter_get_by_name("buffersink");
+    AVFilterInOut* inputs = avfilter_inout_alloc();
+    AVFilterInOut* outputs = avfilter_inout_alloc();
+    SCOPE_EXIT({
+        avfilter_inout_free(&inputs);
+        avfilter_inout_free(&outputs);
+    });
+
+    // Don't know how to get the accurate time_base but it doesn't matter for yadif filter
+    // so just use 1/1 to make buffer filter happy
+    std::string args = fmt::format("video_size={}x{}:pix_fmt={}:time_base=1/1", frame->width,
+                                   frame->height, frame->format);
+
+    av_filter_graph = avfilter_graph_alloc();
+    int ret = avfilter_graph_create_filter(&av_filter_src_ctx, buffer_src, "in", args.c_str(),
+                                           nullptr, av_filter_graph);
+    if (ret < 0) {
+        LOG_ERROR(Service_NVDRV, "avfilter_graph_create_filter source error: {}", ret);
+        return;
+    }
+
+    ret = avfilter_graph_create_filter(&av_filter_sink_ctx, buffer_sink, "out", nullptr, nullptr,
+                                       av_filter_graph);
+    if (ret < 0) {
+        LOG_ERROR(Service_NVDRV, "avfilter_graph_create_filter sink error: {}", ret);
+        return;
+    }
+
+    inputs->name = av_strdup("out");
+    inputs->filter_ctx = av_filter_sink_ctx;
+    inputs->pad_idx = 0;
+    inputs->next = nullptr;
+
+    outputs->name = av_strdup("in");
+    outputs->filter_ctx = av_filter_src_ctx;
+    outputs->pad_idx = 0;
+    outputs->next = nullptr;
+
+    const char* description = "yadif=1:-1:0";
+    ret = avfilter_graph_parse_ptr(av_filter_graph, description, &inputs, &outputs, nullptr);
+    if (ret < 0) {
+        LOG_ERROR(Service_NVDRV, "avfilter_graph_parse_ptr error: {}", ret);
+        return;
+    }
+
+    ret = avfilter_graph_config(av_filter_graph, nullptr);
+    if (ret < 0) {
+        LOG_ERROR(Service_NVDRV, "avfilter_graph_config error: {}", ret);
+        return;
+    }
+
+    filters_initialized = true;
 }
 
 void Codec::Initialize() {
@@ -271,8 +334,34 @@ void Codec::Decode() {
         UNIMPLEMENTED_MSG("Unexpected video format: {}", final_frame->format);
         return;
     }
-    av_frames.push(std::move(final_frame));
-    if (av_frames.size() > 10) {
+    if (!final_frame->interlaced_frame) {
+        av_frames.push(std::move(final_frame));
+    } else {
+        if (!filters_initialized) {
+            InitializeAvFilters(final_frame.get());
+        }
+        if (const int ret = av_buffersrc_add_frame_flags(av_filter_src_ctx, final_frame.get(),
+                                                         AV_BUFFERSRC_FLAG_KEEP_REF);
+            ret) {
+            LOG_DEBUG(Service_NVDRV, "av_buffersrc_add_frame_flags error {}", ret);
+            return;
+        }
+        while (true) {
+            auto filter_frame = AVFramePtr{av_frame_alloc(), AVFrameDeleter};
+
+            int ret = av_buffersink_get_frame(av_filter_sink_ctx, filter_frame.get());
+
+            if (ret == AVERROR(EAGAIN) || ret == AVERROR(AVERROR_EOF))
+                break;
+            if (ret < 0) {
+                LOG_DEBUG(Service_NVDRV, "av_buffersink_get_frame error {}", ret);
+                return;
+            }
+
+            av_frames.push(std::move(filter_frame));
+        }
+    }
+    while (av_frames.size() > 10) {
         LOG_TRACE(Service_NVDRV, "av_frames.push overflow dropped frame");
         av_frames.pop();
     }

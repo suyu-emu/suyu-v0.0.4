@@ -453,6 +453,7 @@ endif()
 # List of all FFmpeg components required
 set(FFmpeg_COMPONENTS
     avcodec
+    avfilter
     avutil
     swscale)
 

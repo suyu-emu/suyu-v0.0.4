@@ -131,7 +131,6 @@ if (NOT WIN32)
         COMMAND
             /bin/bash ${FFmpeg_PREFIX}/configure
                 --disable-avdevice
-                --disable-avfilter
                 --disable-avformat
                 --disable-doc
                 --disable-everything
@@ -143,6 +142,7 @@ if (NOT WIN32)
                 --enable-decoder=h264
                 --enable-decoder=vp8
                 --enable-decoder=vp9
+                --enable-filter=yadif
                 --cc="${FFmpeg_CC}"
                 --cxx="${FFmpeg_CXX}"
                 ${FFmpeg_HWACCEL_FLAGS}
@@ -199,7 +199,7 @@ if (NOT WIN32)
     endif()
 else(WIN32)
     # Use yuzu FFmpeg binaries
-    set(FFmpeg_EXT_NAME "ffmpeg-4.4")
+    set(FFmpeg_EXT_NAME "ffmpeg-5.1.3")
     set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}")
     download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "")
     set(FFmpeg_FOUND YES)
@@ -210,6 +210,7 @@ else(WIN32)
     set(FFmpeg_LIBRARIES
     ${FFmpeg_LIBRARY_DIR}/swscale.lib
     ${FFmpeg_LIBRARY_DIR}/avcodec.lib
+    ${FFmpeg_LIBRARY_DIR}/avfilter.lib
     ${FFmpeg_LIBRARY_DIR}/avutil.lib
     CACHE PATH "Paths to FFmpeg libraries" FORCE)
     # exported variables

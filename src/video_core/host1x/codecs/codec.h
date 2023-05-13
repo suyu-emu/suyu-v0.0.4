@@ -15,6 +15,7 @@ extern "C" {
 #pragma GCC diagnostic ignored "-Wconversion"
 #endif
 #include <libavcodec/avcodec.h>
+#include <libavfilter/avfilter.h>
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
@@ -61,16 +62,23 @@ public:
 private:
     void InitializeAvCodecContext();
 
+    void InitializeAvFilters(AVFrame* frame);
+
     void InitializeGpuDecoder();
 
     bool CreateGpuAvDevice();
 
     bool initialized{};
+    bool filters_initialized{};
     Host1x::NvdecCommon::VideoCodec current_codec{Host1x::NvdecCommon::VideoCodec::None};
 
     const AVCodec* av_codec{nullptr};
     AVCodecContext* av_codec_ctx{nullptr};
     AVBufferRef* av_gpu_decoder{nullptr};
+
+    AVFilterContext* av_filter_src_ctx{nullptr};
+    AVFilterContext* av_filter_sink_ctx{nullptr};
+    AVFilterGraph* av_filter_graph{nullptr};
 
     Host1x::Host1x& host1x;
     const Host1x::NvdecCommon::NvdecRegisters& state;
