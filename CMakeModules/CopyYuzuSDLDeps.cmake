@@ -3,6 +3,6 @@
 
 function(copy_yuzu_SDL_deps target_dir)
     include(WindowsCopyFiles)
-    set(DLL_DEST "${CMAKE_BINARY_DIR}/bin/$<CONFIG>/")
+    set(DLL_DEST "$<TARGET_FILE_DIR:${target_dir}>/")
     windows_copy_files(${target_dir} ${SDL2_DLL_DIR} ${DLL_DEST} SDL2.dll)
 endfunction(copy_yuzu_SDL_deps)
