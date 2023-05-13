@@ -127,13 +127,6 @@ class HomeSettingsFragment : Fragment() {
                         ?.navigate(R.id.action_homeSettingsFragment_to_earlyAccessFragment)
                 }
             )
-        } else {
-            binding.logoImage.setImageDrawable(
-                ContextCompat.getDrawable(
-                    requireContext(),
-                    R.drawable.ic_yuzu_ea_full
-                )
-            )
         }
 
         binding.homeSettingsList.apply {

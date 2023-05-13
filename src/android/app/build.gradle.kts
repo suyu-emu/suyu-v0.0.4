@@ -48,7 +48,6 @@ android {
         applicationId = "org.yuzu.yuzu_emu"
         minSdk = 30
         targetSdk = 33
-        versionCode = 1
         versionName = getVersion()
 
         ndk {
@@ -85,26 +84,39 @@ android {
                 getDefaultProguardFile("proguard-android.txt"),
                 "proguard-rules.pro"
             )
+            defaultConfig.versionCode = 1
+        }
+
+        register("relWithVersionCode") {
+            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            isDebuggable = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android.txt"),
+                "proguard-rules.pro"
+            )
+            defaultConfig.versionCode = autoVersion
         }
 
         // builds a release build that doesn't need signing
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         register("relWithDebInfo") {
-            initWith(getByName("release"))
-            versionNameSuffix = "-debug"
             signingConfig = signingConfigs.getByName("debug")
-            enableAndroidTestCoverage = false
+            isMinifyEnabled = true
             isDebuggable = true
+            versionNameSuffix = "-debug"
+            enableAndroidTestCoverage = false
             isJniDebuggable = true
+            defaultConfig.versionCode = 1
         }
 
         // Signed by debug key disallowing distribution on Play Store.
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {
-            // TODO If this is ever modified, change application_id in debug/strings.xml
-            versionNameSuffix = "-debug"
             isDebuggable = true
             isJniDebuggable = true
+            versionNameSuffix = "-debug"
+            defaultConfig.versionCode = 1
         }
     }
 
@@ -118,6 +130,7 @@ android {
         create("ea") {
             dimension = "version"
             buildConfigField("Boolean", "PREMIUM", "true")
+            applicationIdSuffix = ".ea"
         }
     }
 

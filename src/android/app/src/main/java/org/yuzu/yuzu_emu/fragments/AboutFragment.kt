@@ -88,15 +88,6 @@ class AboutFragment : Fragment() {
         binding.buttonWebsite.setOnClickListener { openLink(getString(R.string.website_link)) }
         binding.buttonGithub.setOnClickListener { openLink(getString(R.string.github_link)) }
 
-        if (BuildConfig.PREMIUM) {
-            binding.imageLogo.setImageDrawable(
-                ContextCompat.getDrawable(
-                    requireContext(),
-                    R.drawable.ic_yuzu_ea_title
-                )
-            )
-        }
-
         setInsets()
     }
 
