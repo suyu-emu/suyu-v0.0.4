@@ -1009,6 +1009,8 @@ void Device::CollectPhysicalMemoryInfo() {
         device_access_memory += mem_properties.memoryHeaps[element].size;
     }
     if (!is_integrated) {
+        const u64 reserve_memory = std::min<u64>(device_access_memory / 8, 1_GiB);
+        device_access_memory -= reserve_memory;
         return;
     }
     const s64 available_memory = static_cast<s64>(device_access_memory - device_initial_usage);
