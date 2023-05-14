@@ -147,7 +147,7 @@ public:
 
     /// Returns whether this allocation is compatible with the arguments.
     [[nodiscard]] bool IsCompatible(VkMemoryPropertyFlags flags, u32 type_mask) const {
-        return (flags & property_flags) == property_flags && (type_mask & shifted_memory_type) != 0;
+        return (flags & property_flags) == flags && (type_mask & shifted_memory_type) != 0;
     }
 
 private:
