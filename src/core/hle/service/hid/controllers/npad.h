@@ -112,8 +112,8 @@ public:
                            const Core::HID::VibrationValue& vibration_value);
 
     void VibrateControllers(
-        const std::vector<Core::HID::VibrationDeviceHandle>& vibration_device_handles,
-        const std::vector<Core::HID::VibrationValue>& vibration_values);
+        std::span<const Core::HID::VibrationDeviceHandle> vibration_device_handles,
+        std::span<const Core::HID::VibrationValue> vibration_values);
 
     Core::HID::VibrationValue GetLastVibration(
         const Core::HID::VibrationDeviceHandle& vibration_device_handle) const;

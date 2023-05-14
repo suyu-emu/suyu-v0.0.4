@@ -979,8 +979,8 @@ void Controller_NPad::VibrateController(
 }
 
 void Controller_NPad::VibrateControllers(
-    const std::vector<Core::HID::VibrationDeviceHandle>& vibration_device_handles,
-    const std::vector<Core::HID::VibrationValue>& vibration_values) {
+    std::span<const Core::HID::VibrationDeviceHandle> vibration_device_handles,
+    std::span<const Core::HID::VibrationValue> vibration_values) {
     if (!Settings::values.vibration_enabled.GetValue() && !permit_vibration_session_enabled) {
         return;
     }
