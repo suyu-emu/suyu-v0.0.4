@@ -18,7 +18,7 @@ class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: Setti
         setting = item
         binding.textSettingName.setText(item.nameId)
         binding.textSettingDescription.visibility = View.VISIBLE
-        if (item.descriptionId!! > 0) {
+        if (item.descriptionId != 0) {
             binding.textSettingDescription.setText(item.descriptionId)
         } else if (item is SingleChoiceSetting) {
             val resMgr = binding.textSettingDescription.context.resources

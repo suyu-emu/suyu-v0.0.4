@@ -21,7 +21,7 @@ class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
     override fun bind(item: SettingsItem) {
         setting = item as DateTimeSetting
         binding.textSettingName.setText(item.nameId)
-        if (item.descriptionId!! > 0) {
+        if (item.descriptionId != 0) {
             binding.textSettingDescription.setText(item.descriptionId)
             binding.textSettingDescription.visibility = View.VISIBLE
         } else {

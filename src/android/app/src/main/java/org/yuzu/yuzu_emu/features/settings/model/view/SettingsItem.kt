@@ -16,7 +16,7 @@ import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 abstract class SettingsItem(
     var setting: AbstractSetting?,
     val nameId: Int,
-    val descriptionId: Int?
+    val descriptionId: Int
 ) {
     abstract val type: Int
 
@@ -34,5 +34,6 @@ abstract class SettingsItem(
         const val TYPE_SUBMENU = 4
         const val TYPE_STRING_SINGLE_CHOICE = 5
         const val TYPE_DATETIME_SETTING = 6
+        const val TYPE_RUNNABLE = 7
     }
 }

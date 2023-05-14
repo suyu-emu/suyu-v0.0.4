@@ -143,8 +143,12 @@
     <string name="ini_saved">Saved settings</string>
     <string name="gameid_saved">Saved settings for %1$s</string>
     <string name="error_saving">Error saving %1$s.ini: %2$s</string>
-    <string name="loading">Loading...</string>
+    <string name="loading">Loading…</string>
     <string name="reset_setting_confirmation">Do you want to reset this setting back to its default value?</string>
+    <string name="reset_to_default">Reset to default</string>
+    <string name="reset_all_settings">Reset all settings?</string>
+    <string name="reset_all_settings_description">All Advanced Settings will be reset to their default configuration. This can not be undone.</string>
+    <string name="settings_reset">Settings reset</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>

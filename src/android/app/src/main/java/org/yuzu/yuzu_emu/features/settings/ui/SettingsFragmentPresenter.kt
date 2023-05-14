@@ -6,8 +6,8 @@ package org.yuzu.yuzu_emu.features.settings.ui
 import android.content.SharedPreferences
 import android.os.Build
 import android.text.TextUtils
-import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.features.settings.model.AbstractBooleanSetting
@@ -26,7 +26,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     private lateinit var gameId: String
     private var settingsList: ArrayList<SettingsItem>? = null
 
-    private val settingsActivity get() = fragmentView.activityView as AppCompatActivity
+    private val settingsActivity get() = fragmentView.activityView as SettingsActivity
     private val settings get() = fragmentView.activityView!!.settings
 
     private lateinit var preferences: SharedPreferences
@@ -110,6 +110,12 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     0,
                     Settings.SECTION_AUDIO
                 )
+            )
+            add(
+                RunnableSetting(
+                    R.string.reset_to_default,
+                    0
+                ) { resetSettings() }
             )
         }
     }
@@ -338,7 +344,9 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 override var int: Int
                     get() = preferences.getInt(Settings.PREF_THEME, 0)
                     set(value) {
-                        preferences.edit().putInt(Settings.PREF_THEME, value).apply()
+                        preferences.edit()
+                            .putInt(Settings.PREF_THEME, value)
+                            .apply()
                         settingsActivity.recreate()
                     }
                 override val key: String? = null
@@ -375,7 +383,9 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 override var int: Int
                     get() = preferences.getInt(Settings.PREF_THEME_MODE, -1)
                     set(value) {
-                        preferences.edit().putInt(Settings.PREF_THEME_MODE, value).apply()
+                        preferences.edit()
+                            .putInt(Settings.PREF_THEME_MODE, value)
+                            .apply()
                         ThemeHelper.setThemeMode(settingsActivity)
                     }
                 override val key: String? = null
@@ -400,14 +410,17 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 override var boolean: Boolean
                     get() = preferences.getBoolean(Settings.PREF_BLACK_BACKGROUNDS, false)
                     set(value) {
-                        preferences.edit().putBoolean(Settings.PREF_BLACK_BACKGROUNDS, value).apply()
+                        preferences.edit()
+                            .putBoolean(Settings.PREF_BLACK_BACKGROUNDS, value)
+                            .apply()
                         settingsActivity.recreate()
                     }
                 override val key: String? = null
                 override val section: String? = null
                 override val isRuntimeEditable: Boolean = false
                 override val valueAsString: String
-                    get() = preferences.getBoolean(Settings.PREF_BLACK_BACKGROUNDS, false).toString()
+                    get() = preferences.getBoolean(Settings.PREF_BLACK_BACKGROUNDS, false)
+                        .toString()
                 override val defaultValue: Any = false
             }
 
@@ -419,5 +432,16 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 )
             )
         }
+    }
+
+    private fun resetSettings() {
+        MaterialAlertDialogBuilder(settingsActivity)
+            .setTitle(R.string.reset_all_settings)
+            .setMessage(R.string.reset_all_settings_description)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                settingsActivity.onSettingsReset()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 }

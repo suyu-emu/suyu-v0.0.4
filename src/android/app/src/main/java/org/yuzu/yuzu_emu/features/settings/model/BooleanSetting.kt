@@ -32,5 +32,7 @@ enum class BooleanSetting(
 
         fun from(key: String): BooleanSetting? =
             BooleanSetting.values().firstOrNull { it.key == key }
+
+        fun clear() = BooleanSetting.values().forEach { it.boolean = it.defaultValue }
     }
 }

@@ -119,5 +119,7 @@ enum class IntSetting(
         )
 
         fun from(key: String): IntSetting? = IntSetting.values().firstOrNull { it.key == key }
+
+        fun clear() = IntSetting.values().forEach { it.int = it.defaultValue }
     }
 }

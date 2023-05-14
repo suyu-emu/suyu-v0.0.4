@@ -31,5 +31,7 @@ enum class StringSetting(
         )
 
         fun from(key: String): StringSetting? = StringSetting.values().firstOrNull { it.key == key }
+
+        fun clear() = StringSetting.values().forEach { it.string = it.defaultValue }
     }
 }

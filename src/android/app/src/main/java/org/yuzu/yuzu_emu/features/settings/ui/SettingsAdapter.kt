@@ -79,6 +79,10 @@ class SettingsAdapter(
                 DateTimeViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
 
+            SettingsItem.TYPE_RUNNABLE -> {
+                RunnableViewHolder(ListItemSettingBinding.inflate(inflater), this)
+            }
+
             else -> {
                 // TODO: Create an error view since we can't return null now
                 HeaderViewHolder(ListItemSettingsHeaderBinding.inflate(inflater), this)

@@ -5,16 +5,16 @@ package org.yuzu.yuzu_emu.features.settings.ui.viewholder
 
 import android.view.View
 import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
+import org.yuzu.yuzu_emu.features.settings.model.view.RunnableSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
-import org.yuzu.yuzu_emu.features.settings.model.view.SubmenuSetting
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 
-class SubmenuViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
+class RunnableViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
-    private lateinit var item: SubmenuSetting
+    private lateinit var setting: RunnableSetting
 
     override fun bind(item: SettingsItem) {
-        this.item = item as SubmenuSetting
+        setting = item as RunnableSetting
         binding.textSettingName.setText(item.nameId)
         if (item.descriptionId != 0) {
             binding.textSettingDescription.setText(item.descriptionId)
@@ -25,7 +25,7 @@ class SubmenuViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAd
     }
 
     override fun onClick(clicked: View) {
-        adapter.onSubmenuClick(item)
+        setting.runnable.invoke()
     }
 
     override fun onLongClick(clicked: View): Boolean {

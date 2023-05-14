@@ -22,7 +22,7 @@ import java.util.*
 object SettingsFile {
     const val FILE_NAME_CONFIG = "config"
 
-    private val sectionsMap = BiMap<String?, String?>()
+    private var sectionsMap = BiMap<String?, String?>()
 
     /**
      * Reads a given .ini file from disk and returns it as a HashMap of Settings, themselves
@@ -154,7 +154,7 @@ object SettingsFile {
         } else generalSectionName
     }
 
-    private fun getSettingsFile(fileName: String): File {
+    fun getSettingsFile(fileName: String): File {
         return File(
             DirectoryInitialization.userDirectory + "/config/" + fileName + ".ini"
         )
@@ -182,13 +182,11 @@ object SettingsFile {
     private fun settingFromLine(line: String): AbstractSetting? {
         val splitLine = line.split("=".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         if (splitLine.size != 2) {
-            Log.warning("Skipping invalid config line \"$line\"")
             return null
         }
         val key = splitLine[0].trim { it <= ' ' }
         val value = splitLine[1].trim { it <= ' ' }
         if (value.isEmpty()) {
-            Log.warning("Skipping null value in config line \"$line\"")
             return null
         }
 
@@ -216,7 +214,7 @@ object SettingsFile {
             return stringSetting
         }
 
-        return StringSetting.from(key)
+        return null
     }
 
     /**

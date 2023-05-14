@@ -6,9 +6,6 @@ package org.yuzu.yuzu_emu.features.settings.model.view
 import org.yuzu.yuzu_emu.features.settings.model.AbstractBooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
-import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
-import org.yuzu.yuzu_emu.features.settings.model.IntSetting
-import org.yuzu.yuzu_emu.utils.Log
 
 class SwitchSetting(
     setting: AbstractSetting,

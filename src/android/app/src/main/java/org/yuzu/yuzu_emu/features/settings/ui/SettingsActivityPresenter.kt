@@ -70,6 +70,10 @@ class SettingsActivityPresenter(private val activityView: SettingsActivityView) 
         shouldSave = true
     }
 
+    fun onSettingsReset() {
+        shouldSave = false
+    }
+
     fun saveState(outState: Bundle) {
         outState.putBoolean(KEY_SHOULD_SAVE, shouldSave)
     }

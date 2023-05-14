@@ -8,7 +8,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -21,9 +20,15 @@ import com.google.android.material.color.MaterialColors
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
+import org.yuzu.yuzu_emu.features.settings.model.FloatSetting
+import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.SettingsViewModel
+import org.yuzu.yuzu_emu.features.settings.model.StringSetting
+import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.utils.*
+import java.io.IOException
 
 class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     private val presenter = SettingsActivityPresenter(this)
@@ -163,6 +168,26 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
 
     override fun onSettingChanged() {
         presenter.onSettingChanged()
+    }
+
+    fun onSettingsReset() {
+        // Prevents saving to a non-existent settings file
+        presenter.onSettingsReset()
+
+        // Reset the static memory representation of each setting
+        BooleanSetting.clear()
+        FloatSetting.clear()
+        IntSetting.clear()
+        StringSetting.clear()
+
+        // Delete settings file because the user may have changed values that do not exist in the UI
+        val settingsFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_CONFIG)
+        if (!settingsFile.delete()) {
+            throw IOException("Failed to delete $settingsFile")
+        }
+
+        showToastMessage(getString(R.string.settings_reset), true)
+        finish()
     }
 
     private val settingsFragment: SettingsFragment?

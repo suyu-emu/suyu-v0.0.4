@@ -30,5 +30,7 @@ enum class FloatSetting(
         private val NOT_RUNTIME_EDITABLE = emptyList<FloatSetting>()
 
         fun from(key: String): FloatSetting? = FloatSetting.values().firstOrNull { it.key == key }
+
+        fun clear() = FloatSetting.values().forEach { it.float = it.defaultValue }
     }
 }
