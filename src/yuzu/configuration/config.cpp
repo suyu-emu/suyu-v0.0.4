@@ -716,6 +716,7 @@ void Config::ReadRendererValues() {
     ReadGlobalSetting(Settings::values.use_asynchronous_shaders);
     ReadGlobalSetting(Settings::values.use_fast_gpu_time);
     ReadGlobalSetting(Settings::values.use_vulkan_driver_pipeline_cache);
+    ReadGlobalSetting(Settings::values.enable_compute_pipelines);
     ReadGlobalSetting(Settings::values.bg_red);
     ReadGlobalSetting(Settings::values.bg_green);
     ReadGlobalSetting(Settings::values.bg_blue);
@@ -1366,6 +1367,7 @@ void Config::SaveRendererValues() {
     WriteGlobalSetting(Settings::values.use_asynchronous_shaders);
     WriteGlobalSetting(Settings::values.use_fast_gpu_time);
     WriteGlobalSetting(Settings::values.use_vulkan_driver_pipeline_cache);
+    WriteGlobalSetting(Settings::values.enable_compute_pipelines);
     WriteGlobalSetting(Settings::values.bg_red);
     WriteGlobalSetting(Settings::values.bg_green);
     WriteGlobalSetting(Settings::values.bg_blue);
