@@ -104,6 +104,10 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isDebuggable = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android.txt"),
+                "proguard-rules.pro"
+            )
             versionNameSuffix = "-debug"
             enableAndroidTestCoverage = false
             isJniDebuggable = true
