@@ -1601,16 +1601,16 @@ void Hid::SendVibrationValues(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    const auto handles = ctx.ReadBuffer(0);
-    const auto vibrations = ctx.ReadBuffer(1);
+    const auto handle_data = ctx.ReadBuffer(0);
+    const auto handle_count = ctx.GetReadBufferNumElements<Core::HID::VibrationDeviceHandle>(0);
+    const auto vibration_data = ctx.ReadBuffer(1);
+    const auto vibration_count = ctx.GetReadBufferNumElements<Core::HID::VibrationValue>(1);
 
-    std::vector<Core::HID::VibrationDeviceHandle> vibration_device_handles(
-        handles.size() / sizeof(Core::HID::VibrationDeviceHandle));
-    std::vector<Core::HID::VibrationValue> vibration_values(vibrations.size() /
-                                                            sizeof(Core::HID::VibrationValue));
-
-    std::memcpy(vibration_device_handles.data(), handles.data(), handles.size());
-    std::memcpy(vibration_values.data(), vibrations.data(), vibrations.size());
+    auto vibration_device_handles =
+        std::span(reinterpret_cast<const Core::HID::VibrationDeviceHandle*>(handle_data.data()),
+                  handle_count);
+    auto vibration_values = std::span(
+        reinterpret_cast<const Core::HID::VibrationValue*>(vibration_data.data()), vibration_count);
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
         .VibrateControllers(vibration_device_handles, vibration_values);
