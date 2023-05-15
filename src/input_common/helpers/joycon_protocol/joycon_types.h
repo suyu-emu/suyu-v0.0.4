@@ -394,6 +394,7 @@ enum class DriverResult {
     InvalidHandle,
     NotSupported,
     Disabled,
+    Delayed,
     Unknown,
 };
 
