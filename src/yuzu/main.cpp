@@ -1164,7 +1164,8 @@ void GMainWindow::InitializeRecentFileMenuActions() {
     UpdateRecentFiles();
 }
 
-void GMainWindow::LinkActionShortcut(QAction* action, const QString& action_name) {
+void GMainWindow::LinkActionShortcut(QAction* action, const QString& action_name,
+                                     const bool tas_allowed) {
     static const QString main_window = QStringLiteral("Main Window");
     action->setShortcut(hotkey_registry.GetKeySequence(main_window, action_name));
     action->setShortcutContext(hotkey_registry.GetShortcutContext(main_window, action_name));
@@ -1176,7 +1177,14 @@ void GMainWindow::LinkActionShortcut(QAction* action, const QString& action_name
     const auto* controller_hotkey =
         hotkey_registry.GetControllerHotkey(main_window, action_name, controller);
     connect(
-        controller_hotkey, &ControllerShortcut::Activated, this, [action] { action->trigger(); },
+        controller_hotkey, &ControllerShortcut::Activated, this,
+        [action, tas_allowed, this] {
+            auto [tas_status, current_tas_frame, total_tas_frames] =
+                input_subsystem->GetTas()->GetStatus();
+            if (tas_allowed || tas_status == InputCommon::TasInput::TasState::Stopped) {
+                action->trigger();
+            }
+        },
         Qt::QueuedConnection);
 }
 
@@ -1193,9 +1201,9 @@ void GMainWindow::InitializeHotkeys() {
     LinkActionShortcut(ui->action_Show_Status_Bar, QStringLiteral("Toggle Status Bar"));
     LinkActionShortcut(ui->action_Fullscreen, QStringLiteral("Fullscreen"));
     LinkActionShortcut(ui->action_Capture_Screenshot, QStringLiteral("Capture Screenshot"));
-    LinkActionShortcut(ui->action_TAS_Start, QStringLiteral("TAS Start/Stop"));
-    LinkActionShortcut(ui->action_TAS_Record, QStringLiteral("TAS Record"));
-    LinkActionShortcut(ui->action_TAS_Reset, QStringLiteral("TAS Reset"));
+    LinkActionShortcut(ui->action_TAS_Start, QStringLiteral("TAS Start/Stop"), true);
+    LinkActionShortcut(ui->action_TAS_Record, QStringLiteral("TAS Record"), true);
+    LinkActionShortcut(ui->action_TAS_Reset, QStringLiteral("TAS Reset"), true);
 
     static const QString main_window = QStringLiteral("Main Window");
     const auto connect_shortcut = [&]<typename Fn>(const QString& action_name, const Fn& function) {

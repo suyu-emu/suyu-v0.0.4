@@ -59,7 +59,7 @@ private:
     QStandardItemModel* model;
 
     void SetPollingResult(Core::HID::NpadButton button, bool cancel);
-    QString GetButtonName(Core::HID::NpadButton button) const;
+    QString GetButtonCombinationName(Core::HID::NpadButton button, bool home, bool capture) const;
     Core::HID::EmulatedController* controller;
     std::unique_ptr<QTimer> timeout_timer;
     std::unique_ptr<QTimer> poll_timer;
