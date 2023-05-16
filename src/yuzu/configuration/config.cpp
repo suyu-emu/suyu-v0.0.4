@@ -65,6 +65,42 @@ const std::array<int, 2> Config::default_ringcon_analogs{{
     Qt::Key_D,
 }};
 
+const std::map<Settings::AntiAliasing, QString> Config::anti_aliasing_texts_map = {
+    {Settings::AntiAliasing::None, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "None"))},
+    {Settings::AntiAliasing::Fxaa, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "FXAA"))},
+    {Settings::AntiAliasing::Smaa, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "SMAA"))},
+};
+
+const std::map<Settings::ScalingFilter, QString> Config::scaling_filter_texts_map = {
+    {Settings::ScalingFilter::NearestNeighbor,
+     QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Nearest"))},
+    {Settings::ScalingFilter::Bilinear,
+     QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Bilinear"))},
+    {Settings::ScalingFilter::Bicubic, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Bicubic"))},
+    {Settings::ScalingFilter::Gaussian,
+     QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Gaussian"))},
+    {Settings::ScalingFilter::ScaleForce,
+     QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "ScaleForce"))},
+    {Settings::ScalingFilter::Fsr, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "FSR"))},
+};
+
+const std::map<bool, QString> Config::use_docked_mode_texts_map = {
+    {true, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Docked"))},
+    {false, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Handheld"))},
+};
+
+const std::map<Settings::GPUAccuracy, QString> Config::gpu_accuracy_texts_map = {
+    {Settings::GPUAccuracy::Normal, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Normal"))},
+    {Settings::GPUAccuracy::High, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "High"))},
+    {Settings::GPUAccuracy::Extreme, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Extreme"))},
+};
+
+const std::map<Settings::RendererBackend, QString> Config::renderer_backend_texts_map = {
+    {Settings::RendererBackend::Vulkan, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Vulkan"))},
+    {Settings::RendererBackend::OpenGL, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "OpenGL"))},
+    {Settings::RendererBackend::Null, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Null"))},
+};
+
 // This shouldn't have anything except static initializers (no functions). So
 // QKeySequence(...).toString() is NOT ALLOWED HERE.
 // This must be in alphabetical order according to action name as it must have the same order as

@@ -1054,6 +1054,24 @@ void GMainWindow::InitializeWidgets() {
         bottomLeft.setY(bottomLeft.y() - volume_popup->geometry().height());
         volume_popup->setGeometry(QRect(bottomLeft, QSize(rect.width(), rect.height())));
     });
+    volume_button->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(volume_button, &QPushButton::customContextMenuRequested,
+            [this](const QPoint& menu_location) {
+                QMenu context_menu;
+                context_menu.addAction(
+                    Settings::values.audio_muted ? tr("Unmute") : tr("Mute"), [this] {
+                        Settings::values.audio_muted = !Settings::values.audio_muted;
+                        UpdateVolumeUI();
+                    });
+
+                context_menu.addAction(tr("Reset Volume"), [this] {
+                    Settings::values.volume.SetValue(100);
+                    UpdateVolumeUI();
+                });
+
+                context_menu.exec(volume_button->mapToGlobal(menu_location));
+                volume_button->repaint();
+            });
     statusBar()->insertPermanentWidget(0, volume_button);
 
     // setup AA button
@@ -1074,6 +1092,19 @@ void GMainWindow::InitializeWidgets() {
     UpdateAAText();
     aa_status_button->setCheckable(true);
     aa_status_button->setChecked(true);
+    aa_status_button->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(aa_status_button, &QPushButton::customContextMenuRequested,
+            [this](const QPoint& menu_location) {
+                QMenu context_menu;
+                for (auto const& aa_text_pair : Config::anti_aliasing_texts_map) {
+                    context_menu.addAction(aa_text_pair.second, [this, aa_text_pair] {
+                        Settings::values.anti_aliasing.SetValue(aa_text_pair.first);
+                        UpdateAAText();
+                    });
+                }
+                context_menu.exec(aa_status_button->mapToGlobal(menu_location));
+                aa_status_button->repaint();
+            });
     statusBar()->insertPermanentWidget(0, aa_status_button);
 
     // Setup Filter button
@@ -1085,6 +1116,19 @@ void GMainWindow::InitializeWidgets() {
     UpdateFilterText();
     filter_status_button->setCheckable(true);
     filter_status_button->setChecked(true);
+    filter_status_button->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(filter_status_button, &QPushButton::customContextMenuRequested,
+            [this](const QPoint& menu_location) {
+                QMenu context_menu;
+                for (auto const& filter_text_pair : Config::scaling_filter_texts_map) {
+                    context_menu.addAction(filter_text_pair.second, [this, filter_text_pair] {
+                        Settings::values.scaling_filter.SetValue(filter_text_pair.first);
+                        UpdateFilterText();
+                    });
+                }
+                context_menu.exec(filter_status_button->mapToGlobal(menu_location));
+                filter_status_button->repaint();
+            });
     statusBar()->insertPermanentWidget(0, filter_status_button);
 
     // Setup Dock button
@@ -1094,14 +1138,47 @@ void GMainWindow::InitializeWidgets() {
     connect(dock_status_button, &QPushButton::clicked, this, &GMainWindow::OnToggleDockedMode);
     dock_status_button->setCheckable(true);
     UpdateDockedButton();
+    dock_status_button->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(dock_status_button, &QPushButton::customContextMenuRequested,
+            [this](const QPoint& menu_location) {
+                QMenu context_menu;
+
+                for (auto const& docked_mode_pair : Config::use_docked_mode_texts_map) {
+                    context_menu.addAction(docked_mode_pair.second, [this, docked_mode_pair] {
+                        if (docked_mode_pair.first != Settings::values.use_docked_mode.GetValue()) {
+                            OnToggleDockedMode();
+                        }
+                    });
+                }
+                context_menu.exec(dock_status_button->mapToGlobal(menu_location));
+                dock_status_button->repaint();
+            });
     statusBar()->insertPermanentWidget(0, dock_status_button);
 
+    // Setup GPU Accuracy button
     gpu_accuracy_button = new QPushButton();
     gpu_accuracy_button->setObjectName(QStringLiteral("GPUStatusBarButton"));
     gpu_accuracy_button->setCheckable(true);
     gpu_accuracy_button->setFocusPolicy(Qt::NoFocus);
     connect(gpu_accuracy_button, &QPushButton::clicked, this, &GMainWindow::OnToggleGpuAccuracy);
     UpdateGPUAccuracyButton();
+    gpu_accuracy_button->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(gpu_accuracy_button, &QPushButton::customContextMenuRequested,
+            [this](const QPoint& menu_location) {
+                QMenu context_menu;
+
+                for (auto const& gpu_accuracy_pair : Config::gpu_accuracy_texts_map) {
+                    if (gpu_accuracy_pair.first == Settings::GPUAccuracy::Extreme) {
+                        continue;
+                    }
+                    context_menu.addAction(gpu_accuracy_pair.second, [this, gpu_accuracy_pair] {
+                        Settings::values.gpu_accuracy.SetValue(gpu_accuracy_pair.first);
+                        UpdateGPUAccuracyButton();
+                    });
+                }
+                context_menu.exec(gpu_accuracy_button->mapToGlobal(menu_location));
+                gpu_accuracy_button->repaint();
+            });
     statusBar()->insertPermanentWidget(0, gpu_accuracy_button);
 
     // Setup Renderer API button
@@ -1114,6 +1191,24 @@ void GMainWindow::InitializeWidgets() {
     renderer_status_button->setCheckable(true);
     renderer_status_button->setChecked(Settings::values.renderer_backend.GetValue() ==
                                        Settings::RendererBackend::Vulkan);
+    renderer_status_button->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(renderer_status_button, &QPushButton::customContextMenuRequested,
+            [this](const QPoint& menu_location) {
+                QMenu context_menu;
+
+                for (auto const& renderer_backend_pair : Config::renderer_backend_texts_map) {
+                    if (renderer_backend_pair.first == Settings::RendererBackend::Null) {
+                        continue;
+                    }
+                    context_menu.addAction(
+                        renderer_backend_pair.second, [this, renderer_backend_pair] {
+                            Settings::values.renderer_backend.SetValue(renderer_backend_pair.first);
+                            UpdateAPIText();
+                        });
+                }
+                context_menu.exec(renderer_status_button->mapToGlobal(menu_location));
+                renderer_status_button->repaint();
+            });
     statusBar()->insertPermanentWidget(0, renderer_status_button);
 
     statusBar()->setVisible(true);
@@ -3980,94 +4075,38 @@ void GMainWindow::UpdateStatusBar() {
 }
 
 void GMainWindow::UpdateGPUAccuracyButton() {
-    switch (Settings::values.gpu_accuracy.GetValue()) {
-    case Settings::GPUAccuracy::Normal: {
-        gpu_accuracy_button->setText(tr("GPU NORMAL"));
-        gpu_accuracy_button->setChecked(false);
-        break;
-    }
-    case Settings::GPUAccuracy::High: {
-        gpu_accuracy_button->setText(tr("GPU HIGH"));
-        gpu_accuracy_button->setChecked(true);
-        break;
-    }
-    case Settings::GPUAccuracy::Extreme: {
-        gpu_accuracy_button->setText(tr("GPU EXTREME"));
-        gpu_accuracy_button->setChecked(true);
-        break;
-    }
-    default: {
-        gpu_accuracy_button->setText(tr("GPU ERROR"));
-        gpu_accuracy_button->setChecked(true);
-        break;
-    }
-    }
+    const auto gpu_accuracy = Settings::values.gpu_accuracy.GetValue();
+    const auto gpu_accuracy_text = Config::gpu_accuracy_texts_map.find(gpu_accuracy)->second;
+    gpu_accuracy_button->setText(gpu_accuracy_text.toUpper());
+    gpu_accuracy_button->setChecked(gpu_accuracy != Settings::GPUAccuracy::Normal);
 }
 
 void GMainWindow::UpdateDockedButton() {
     const bool is_docked = Settings::values.use_docked_mode.GetValue();
     dock_status_button->setChecked(is_docked);
-    dock_status_button->setText(is_docked ? tr("DOCKED") : tr("HANDHELD"));
+    dock_status_button->setText(
+        Config::use_docked_mode_texts_map.find(is_docked)->second.toUpper());
 }
 
 void GMainWindow::UpdateAPIText() {
     const auto api = Settings::values.renderer_backend.GetValue();
-    switch (api) {
-    case Settings::RendererBackend::OpenGL:
-        renderer_status_button->setText(tr("OPENGL"));
-        break;
-    case Settings::RendererBackend::Vulkan:
-        renderer_status_button->setText(tr("VULKAN"));
-        break;
-    case Settings::RendererBackend::Null:
-        renderer_status_button->setText(tr("NULL"));
-        break;
-    }
+    const auto renderer_status_text = Config::renderer_backend_texts_map.find(api)->second;
+    renderer_status_button->setText(renderer_status_text.toUpper());
 }
 
 void GMainWindow::UpdateFilterText() {
     const auto filter = Settings::values.scaling_filter.GetValue();
-    switch (filter) {
-    case Settings::ScalingFilter::NearestNeighbor:
-        filter_status_button->setText(tr("NEAREST"));
-        break;
-    case Settings::ScalingFilter::Bilinear:
-        filter_status_button->setText(tr("BILINEAR"));
-        break;
-    case Settings::ScalingFilter::Bicubic:
-        filter_status_button->setText(tr("BICUBIC"));
-        break;
-    case Settings::ScalingFilter::Gaussian:
-        filter_status_button->setText(tr("GAUSSIAN"));
-        break;
-    case Settings::ScalingFilter::ScaleForce:
-        filter_status_button->setText(tr("SCALEFORCE"));
-        break;
-    case Settings::ScalingFilter::Fsr:
-        filter_status_button->setText(tr("FSR"));
-        break;
-    default:
-        filter_status_button->setText(tr("BILINEAR"));
-        break;
-    }
+    const auto filter_text = Config::scaling_filter_texts_map.find(filter)->second;
+    filter_status_button->setText(filter == Settings::ScalingFilter::Fsr ? tr("FSR")
+                                                                         : filter_text.toUpper());
 }
 
 void GMainWindow::UpdateAAText() {
     const auto aa_mode = Settings::values.anti_aliasing.GetValue();
-    switch (aa_mode) {
-    case Settings::AntiAliasing::None:
-        aa_status_button->setText(tr("NO AA"));
-        break;
-    case Settings::AntiAliasing::Fxaa:
-        aa_status_button->setText(tr("FXAA"));
-        break;
-    case Settings::AntiAliasing::Smaa:
-        aa_status_button->setText(tr("SMAA"));
-        break;
-    default:
-        aa_status_button->setText(tr("NO AA"));
-        break;
-    }
+    const auto aa_text = Config::anti_aliasing_texts_map.find(aa_mode)->second;
+    aa_status_button->setText(aa_mode == Settings::AntiAliasing::None
+                                  ? QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "NO AA"))
+                                  : aa_text.toUpper());
 }
 
 void GMainWindow::UpdateVolumeUI() {

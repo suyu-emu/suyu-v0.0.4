@@ -49,6 +49,12 @@ public:
     static const std::array<int, Settings::NativeKeyboard::NumKeyboardMods> default_keyboard_mods;
     static const std::array<UISettings::Shortcut, 22> default_hotkeys;
 
+    static const std::map<Settings::AntiAliasing, QString> anti_aliasing_texts_map;
+    static const std::map<Settings::ScalingFilter, QString> scaling_filter_texts_map;
+    static const std::map<bool, QString> use_docked_mode_texts_map;
+    static const std::map<Settings::GPUAccuracy, QString> gpu_accuracy_texts_map;
+    static const std::map<Settings::RendererBackend, QString> renderer_backend_texts_map;
+
     static constexpr UISettings::Theme default_theme{
 #ifdef _WIN32
         UISettings::Theme::DarkColorful
