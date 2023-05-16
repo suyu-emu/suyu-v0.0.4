@@ -164,9 +164,15 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                         binding.navigationView.height.toFloat() * 2
                     translationY(0f)
                 } else {
-                    binding.navigationView.translationX =
-                        binding.navigationView.width.toFloat() * -2
-                    translationX(0f)
+                    if (ViewCompat.getLayoutDirection(binding.navigationView) == ViewCompat.LAYOUT_DIRECTION_LTR) {
+                        binding.navigationView.translationX =
+                            binding.navigationView.width.toFloat() * -2
+                        translationX(0f)
+                    } else {
+                        binding.navigationView.translationX =
+                            binding.navigationView.width.toFloat() * 2
+                        translationX(0f)
+                    }
                 }
             } else {
                 duration = 300
@@ -175,7 +181,11 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 if (smallLayout) {
                     translationY(binding.navigationView.height.toFloat() * 2)
                 } else {
-                    translationX(binding.navigationView.width.toFloat() * -2)
+                    if (ViewCompat.getLayoutDirection(binding.navigationView) == ViewCompat.LAYOUT_DIRECTION_LTR) {
+                        translationX(binding.navigationView.width.toFloat() * -2)
+                    } else {
+                        translationX(binding.navigationView.width.toFloat() * 2)
+                    }
                 }
             }
         }.withEndAction {
