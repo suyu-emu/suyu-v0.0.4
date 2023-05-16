@@ -81,7 +81,8 @@ private:
     void OnMotionUpdate(std::size_t port, Joycon::ControllerType type, int id,
                         const Joycon::MotionData& value);
     void OnRingConUpdate(f32 ring_data);
-    void OnAmiiboUpdate(std::size_t port, const std::vector<u8>& amiibo_data);
+    void OnAmiiboUpdate(std::size_t port, Joycon::ControllerType type,
+                        const std::vector<u8>& amiibo_data);
     void OnCameraUpdate(std::size_t port, const std::vector<u8>& camera_data,
                         Joycon::IrsResolution format);
 

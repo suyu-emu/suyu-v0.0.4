@@ -195,8 +195,8 @@ void Joycons::RegisterNewDevice(SDL_hid_device_info* device_info) {
                 OnMotionUpdate(port, type, id, value);
             }},
             .on_ring_data = {[this](f32 ring_data) { OnRingConUpdate(ring_data); }},
-            .on_amiibo_data = {[this, port](const std::vector<u8>& amiibo_data) {
-                OnAmiiboUpdate(port, amiibo_data);
+            .on_amiibo_data = {[this, port, type](const std::vector<u8>& amiibo_data) {
+                OnAmiiboUpdate(port, type, amiibo_data);
             }},
             .on_camera_data = {[this, port](const std::vector<u8>& camera_data,
                                             Joycon::IrsResolution format) {
@@ -398,8 +398,9 @@ void Joycons::OnRingConUpdate(f32 ring_data) {
     SetAxis(identifier, 100, ring_data);
 }
 
-void Joycons::OnAmiiboUpdate(std::size_t port, const std::vector<u8>& amiibo_data) {
-    const auto identifier = GetIdentifier(port, Joycon::ControllerType::Right);
+void Joycons::OnAmiiboUpdate(std::size_t port, Joycon::ControllerType type,
+                             const std::vector<u8>& amiibo_data) {
+    const auto identifier = GetIdentifier(port, type);
     const auto nfc_state = amiibo_data.empty() ? Common::Input::NfcState::AmiiboRemoved
                                                : Common::Input::NfcState::NewAmiibo;
     SetNfc(identifier, {nfc_state, amiibo_data});

@@ -265,7 +265,7 @@ DriverResult JoyconCommonProtocol::SendMCUData(ReportMode report_mode, MCUSubCom
 
 DriverResult JoyconCommonProtocol::WaitSetMCUMode(ReportMode report_mode, MCUMode mode) {
     MCUCommandResponse output{};
-    constexpr std::size_t MaxTries{8};
+    constexpr std::size_t MaxTries{16};
     std::size_t tries{};
 
     do {
