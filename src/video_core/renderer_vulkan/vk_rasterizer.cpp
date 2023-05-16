@@ -348,25 +348,12 @@ void RasterizerVulkan::Clear(u32 layer_count) {
 
     const u32 color_attachment = regs.clear_surface.RT;
     if (use_color && framebuffer->HasAspectColorBit(color_attachment)) {
-        VkClearValue clear_value;
-        bool is_integer = false;
-        bool is_signed = false;
-        size_t int_size = 8;
-        for (std::size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; ++i) {
-            const auto& this_rt = regs.rt[i];
-            if (this_rt.Address() == 0) {
-                continue;
-            }
-            if (this_rt.format == Tegra::RenderTargetFormat::NONE) {
-                continue;
-            }
-            const auto format =
-                VideoCore::Surface::PixelFormatFromRenderTargetFormat(this_rt.format);
-            is_integer = IsPixelFormatInteger(format);
-            is_signed = IsPixelFormatSignedInteger(format);
-            int_size = PixelComponentSizeBitsInteger(format);
-            break;
-        }
+        const auto format =
+            VideoCore::Surface::PixelFormatFromRenderTargetFormat(regs.rt[color_attachment].format);
+        bool is_integer = IsPixelFormatInteger(format);
+        bool is_signed = IsPixelFormatSignedInteger(format);
+        size_t int_size = PixelComponentSizeBitsInteger(format);
+        VkClearValue clear_value{};
         if (!is_integer) {
             std::memcpy(clear_value.color.float32, regs.clear_color.data(),
                         regs.clear_color.size() * sizeof(f32));
