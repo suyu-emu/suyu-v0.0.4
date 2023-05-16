@@ -326,14 +326,12 @@ open class EmulationActivity : AppCompatActivity(), SensorEventListener {
         const val EXTRA_SELECTED_GAME = "SelectedGame"
         private const val EMULATION_RUNNING_NOTIFICATION = 0x1000
 
-        @JvmStatic
         fun launch(activity: AppCompatActivity, game: Game) {
             val launcher = Intent(activity, EmulationActivity::class.java)
             launcher.putExtra(EXTRA_SELECTED_GAME, game)
             activity.startActivity(launcher)
         }
 
-        @JvmStatic
         fun tryDismissRunningNotification(activity: Activity?) {
             // TODO(bunnei): Disable notifications until we support app suspension.
             //NotificationManagerCompat.from(activity).cancel(EMULATION_RUNNING_NOTIFICATION);

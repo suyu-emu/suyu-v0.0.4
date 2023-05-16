@@ -12,7 +12,6 @@ object DirectoryInitialization {
 
     var areDirectoriesReady: Boolean = false
 
-    @JvmStatic
     fun start(context: Context) {
         if (!areDirectoriesReady) {
             initializeInternalStorage(context)

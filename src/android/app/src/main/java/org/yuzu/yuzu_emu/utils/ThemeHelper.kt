@@ -25,7 +25,6 @@ object ThemeHelper {
     private const val DEFAULT = 0
     private const val MATERIAL_YOU = 1
 
-    @JvmStatic
     fun setTheme(activity: AppCompatActivity) {
         val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
         setThemeMode(activity)

@@ -53,7 +53,6 @@ object GpuDriverHelper {
         zis.closeEntry()
     }
 
-    @JvmStatic
     fun initializeDriverParameters(context: Context) {
         try {
             // Initialize the file redirection directory.

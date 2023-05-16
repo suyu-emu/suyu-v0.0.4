@@ -34,7 +34,6 @@ object EmulationMenuSettings {
                 .apply()
         }
 
-    @JvmStatic
     var landscapeScreenLayout: Int
         get() = preferences.getInt(
             Settings.PREF_MENU_SETTINGS_LANDSCAPE,

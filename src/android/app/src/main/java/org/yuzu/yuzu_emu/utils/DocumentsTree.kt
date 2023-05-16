@@ -103,7 +103,6 @@ class DocumentsTree {
     }
 
     companion object {
-        @JvmStatic
         fun isNativePath(path: String): Boolean {
             return if (path.isNotEmpty()) {
                 path[0] == '/'

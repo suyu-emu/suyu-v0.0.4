@@ -237,7 +237,6 @@ object FileUtil {
         return size
     }
 
-    @JvmStatic
     fun copyUriToInternalStorage(
         context: Context,
         sourceUri: Uri?,

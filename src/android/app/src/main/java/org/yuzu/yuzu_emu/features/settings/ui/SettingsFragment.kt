@@ -110,7 +110,6 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         private const val ARGUMENT_MENU_TAG = "menu_tag"
         private const val ARGUMENT_GAME_ID = "game_id"
 
-        @JvmStatic
         fun newInstance(menuTag: String?, gameId: String?): Fragment {
             val fragment = SettingsFragment()
             val arguments = Bundle()

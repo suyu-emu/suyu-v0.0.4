@@ -220,7 +220,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         private const val ARG_GAME_ID = "game_id"
         private const val FRAGMENT_TAG = "settings"
 
-        @JvmStatic
         fun launch(context: Context, menuTag: String?, gameId: String?) {
             val settings = Intent(context, SettingsActivity::class.java)
             settings.putExtra(ARG_MENU_TAG, menuTag)

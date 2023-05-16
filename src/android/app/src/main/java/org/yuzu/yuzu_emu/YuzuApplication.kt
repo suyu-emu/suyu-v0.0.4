@@ -52,11 +52,9 @@ class YuzuApplication : Application() {
     }
 
     companion object {
-        @JvmField
         var documentsTree: DocumentsTree? = null
         lateinit var application: YuzuApplication
 
-        @JvmStatic
         val appContext: Context
             get() = application.applicationContext
     }
