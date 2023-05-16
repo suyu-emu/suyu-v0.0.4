@@ -278,12 +278,13 @@ class SetupFragment : Fragment() {
 
     private fun setInsets() =
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view: View, windowInsets: WindowInsetsCompat ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
             view.setPadding(
-                insets.left,
-                insets.top,
-                insets.right,
-                insets.bottom
+                barInsets.left + cutoutInsets.left,
+                barInsets.top + cutoutInsets.top,
+                barInsets.right + cutoutInsets.right,
+                barInsets.bottom + cutoutInsets.bottom
             )
             windowInsets
         }
