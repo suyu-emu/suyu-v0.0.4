@@ -406,6 +406,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
         features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
         dynamic_state3_blending = false;
+
+        const u32 version = (properties.properties.driverVersion << 3) >> 3;
+        if (version < VK_MAKE_API_VERSION(0, 23, 1, 0)) {
+            LOG_WARNING(Render_Vulkan,
+                        "RADV versions older than 23.1.0 have broken depth clamp dynamic state");
+            features.extended_dynamic_state3.extendedDynamicState3DepthClampEnable = false;
+            dynamic_state3_enables = false;
+        }
     }
     if (extensions.vertex_input_dynamic_state && is_radv) {
         // TODO(ameerj): Blacklist only offending driver versions
