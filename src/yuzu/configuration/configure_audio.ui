@@ -21,80 +21,14 @@
      </property>
      <layout class="QVBoxLayout">
       <item>
-       <layout class="QHBoxLayout" name="engine_layout">
-        <item>
-         <widget class="QLabel" name="sink_label">
-          <property name="text">
-           <string>Output Engine:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="sink_combo_box"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="output_layout">
-        <item>
-         <widget class="QLabel" name="output_label">
-          <property name="text">
-           <string>Output Device:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="output_combo_box"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="input_layout">
-        <item>
-         <widget class="QLabel" name="input_label">
-          <property name="text">
-           <string>Input Device:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="input_combo_box"/>
-        </item>
-       </layout>
-      </item>
-       <item>
-       <layout class="QHBoxLayout" name="mode_layout">
-        <item>
-         <widget class="QLabel" name="mode_label">
-          <property name="text">
-           <string>Sound Output Mode:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-          <widget class="QComboBox" name="combo_sound">
-            <item>
-              <property name="text">
-                <string>Mono</string>
-              </property>
-            </item>
-            <item>
-              <property name="text">
-                <string>Stereo</string>
-              </property>
-            </item>
-            <item>
-              <property name="text">
-                <string>Surround</string>
-              </property>
-            </item>
-          </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QWidget" name="volume_layout" native="true">
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <widget class="QWidget" name="audio_widget" native="true">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777213</height>
+         </size>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -107,88 +41,8 @@
          <property name="bottomMargin">
           <number>0</number>
          </property>
-         <item>
-          <widget class="QComboBox" name="volume_combo_box">
-           <item>
-            <property name="text">
-             <string>Use global volume</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Set volume:</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="volume_label">
-           <property name="text">
-            <string>Volume:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>30</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QSlider" name="volume_slider">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximum">
-            <number>200</number>
-           </property>
-           <property name="pageStep">
-            <number>5</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="volume_indicator">
-           <property name="minimumSize">
-            <size>
-             <width>32</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>0 %</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
         </layout>
        </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="mute_layout">
-         <item>
-           <widget class="QCheckBox" name="toggle_background_mute">
-             <property name="text">
-               <string>Mute audio when in background</string>
-             </property>
-           </widget>
-         </item>
-       </layout>
       </item>
      </layout>
     </widget>

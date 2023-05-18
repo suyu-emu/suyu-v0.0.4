@@ -24,7 +24,7 @@
 
 namespace ConfigurationShared {
 
-QPushButton* Widget::CreateRestoreGlobalButton(Settings::BasicSetting& setting, QWidget* parent) {
+QPushButton* Widget::CreateRestoreGlobalButton(bool using_global, QWidget* parent) {
     QStyle* style = parent->style();
     QIcon* icon = new QIcon(style->standardIcon(QStyle::SP_LineEditClearButton));
     QPushButton* restore_button = new QPushButton(*icon, QStringLiteral(""), parent);
@@ -34,8 +34,8 @@ QPushButton* Widget::CreateRestoreGlobalButton(Settings::BasicSetting& setting, 
     sp_retain.setRetainSizeWhenHidden(true);
     restore_button->setSizePolicy(sp_retain);
 
-    restore_button->setEnabled(!setting.UsingGlobal());
-    restore_button->setVisible(!setting.UsingGlobal());
+    restore_button->setEnabled(!using_global);
+    restore_button->setVisible(!using_global);
 
     return restore_button;
 }
@@ -57,6 +57,10 @@ QHBoxLayout* Widget::CreateCheckBox(Settings::BasicSetting* bool_setting, const 
                                                                : Qt::CheckState::Unchecked);
     checkbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
+    if (!bool_setting->Save() && !Settings::IsConfiguringGlobal() && runtime_lock) {
+        checkbox->setEnabled(false);
+    }
+
     layout->addWidget(checkbox);
 
     layout->setContentsMargins(0, 0, 0, 0);
@@ -70,7 +74,8 @@ QHBoxLayout* Widget::CreateCheckBox(Settings::BasicSetting* bool_setting, const 
             bool_setting->LoadString(checkbox->checkState() == Qt::Checked ? "true" : "false");
         };
     } else {
-        restore_button = CreateRestoreGlobalButton(*bool_setting, this);
+        restore_button =
+            CreateRestoreGlobalButton(bool_setting->UsingGlobal() && setting.UsingGlobal(), this);
         layout->addWidget(restore_button);
 
         QObject::connect(checkbox, &QCheckBox::stateChanged, [=](int) {
@@ -128,7 +133,7 @@ void Widget::CreateCombobox(const QString& label, std::function<void()>& load_fu
     if (Settings::IsConfiguringGlobal()) {
         load_func = [=]() { setting.LoadString(std::to_string(combobox->currentIndex())); };
     } else {
-        restore_button = CreateRestoreGlobalButton(setting, this);
+        restore_button = CreateRestoreGlobalButton(setting.UsingGlobal(), this);
         layout->addWidget(restore_button);
 
         QObject::connect(restore_button, &QAbstractButton::clicked, [&](bool) {
@@ -194,7 +199,7 @@ void Widget::CreateLineEdit(const QString& label, std::function<void()>& load_fu
         };
     } else {
         if (!has_checkbox) {
-            restore_button = CreateRestoreGlobalButton(setting, this);
+            restore_button = CreateRestoreGlobalButton(setting.UsingGlobal(), this);
             layout->addWidget(restore_button);
         }
 
@@ -223,7 +228,7 @@ void Widget::CreateLineEdit(const QString& label, std::function<void()>& load_fu
 }
 
 void Widget::CreateSlider(const QString& label, bool reversed, float multiplier,
-                          std::function<void()>& load_func, bool managed,
+                          std::function<void()>& load_func, bool managed, const QString& format,
                           Settings::BasicSetting* const other_setting) {
     created = true;
 
@@ -242,15 +247,16 @@ void Widget::CreateSlider(const QString& label, bool reversed, float multiplier,
 
     int max_val = std::stoi(setting.MaxVal());
 
+    const QString use_format = format == QStringLiteral("") ? QStringLiteral("%1") : format;
+
     QObject::connect(slider, &QAbstractSlider::valueChanged, [=](int value) {
-        int present = (reversed ? max_val - value : value) * multiplier;
-        feedback->setText(
-            QStringLiteral("%1%").arg(QString::fromStdString(std::to_string(present))));
+        int present = (reversed ? max_val - value : value) * multiplier + 0.5f;
+        feedback->setText(use_format.arg(QVariant::fromValue(present).value<QString>()));
     });
 
-    slider->setValue(std::stoi(setting.ToString()));
     slider->setMinimum(std::stoi(setting.MinVal()));
     slider->setMaximum(max_val);
+    slider->setValue(std::stoi(setting.ToString()));
 
     slider->setInvertedAppearance(reversed);
 
@@ -261,7 +267,7 @@ void Widget::CreateSlider(const QString& label, bool reversed, float multiplier,
     if (Settings::IsConfiguringGlobal()) {
         load_func = [=]() { setting.LoadString(std::to_string(slider->value())); };
     } else {
-        restore_button = CreateRestoreGlobalButton(setting, this);
+        restore_button = CreateRestoreGlobalButton(setting.UsingGlobal(), this);
         layout->addWidget(restore_button);
 
         QObject::connect(restore_button, &QAbstractButton::clicked, [=](bool) {
@@ -287,7 +293,7 @@ void Widget::CreateSlider(const QString& label, bool reversed, float multiplier,
 }
 
 void Widget::CreateSpinBox(const QString& label, std::function<void()>& load_func, bool managed,
-                           const std::string& suffix, Settings::BasicSetting* other_setting) {
+                           const QString& suffix, Settings::BasicSetting* other_setting) {
     const bool has_checkbox = other_setting != nullptr;
     if (has_checkbox && other_setting->TypeId() != typeid(bool)) {
         LOG_WARNING(Frontend, "Extra setting requested but setting is not boolean");
@@ -315,7 +321,7 @@ void Widget::CreateSpinBox(const QString& label, std::function<void()>& load_fun
     spinbox = new QSpinBox(this);
     spinbox->setRange(min_val, max_val);
     spinbox->setValue(default_val);
-    spinbox->setSuffix(QString::fromStdString(suffix));
+    spinbox->setSuffix(suffix);
     spinbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     layout->insertWidget(1, spinbox);
@@ -327,7 +333,8 @@ void Widget::CreateSpinBox(const QString& label, std::function<void()>& load_fun
         };
     } else {
         if (!has_checkbox) {
-            restore_button = CreateRestoreGlobalButton(setting, this);
+            restore_button = CreateRestoreGlobalButton(setting.UsingGlobal(), this);
+            layout->addWidget(restore_button);
         }
 
         QObject::connect(restore_button, &QAbstractButton::clicked,
@@ -382,7 +389,7 @@ void Widget::CreateHexEdit(const QString& label, std::function<void()>& load_fun
             setting.LoadString(hex_to_dec());
         };
     } else {
-        restore_button = CreateRestoreGlobalButton(setting, this);
+        restore_button = CreateRestoreGlobalButton(setting.UsingGlobal(), this);
         layout->addWidget(restore_button);
 
         QObject::connect(restore_button, &QAbstractButton::clicked, [=](bool) {
@@ -465,7 +472,7 @@ void Widget::CreateDateTimeEdit(const QString& label, std::function<void()>& loa
         };
     } else {
         if (!has_checkbox) {
-            restore_button = CreateRestoreGlobalButton(setting, this);
+            restore_button = CreateRestoreGlobalButton(setting.UsingGlobal(), this);
             layout->addWidget(restore_button);
         }
 
@@ -515,12 +522,12 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
       apply_funcs{apply_funcs_} {}
 
 Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translations_,
-               QWidget* parent_, bool runtime_lock,
+               QWidget* parent_, bool runtime_lock_,
                std::forward_list<std::function<void(bool)>>& apply_funcs_, RequestType request,
                bool managed, float multiplier, Settings::BasicSetting* other_setting,
-               const std::string& string)
+               const QString& string)
     : QWidget(parent_), parent{parent_}, translations{translations_}, setting{*setting_},
-      apply_funcs{apply_funcs_} {
+      apply_funcs{apply_funcs_}, runtime_lock{runtime_lock_} {
     if (!Settings::IsConfiguringGlobal() && !setting.Switchable()) {
         LOG_DEBUG(Frontend, "\"{}\" is not switchable, skipping...", setting.GetLabel());
         return;
@@ -547,23 +554,16 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
     std::function<void()> load_func = []() {};
 
     if (type == typeid(bool)) {
-        switch (request) {
-        case RequestType::Default:
-            CreateCheckBox(&setting, label, load_func, managed);
-            break;
-        default:
-            LOG_WARNING(Frontend, "Requested widget is unimplemented.");
-            break;
-        }
+        CreateCheckBox(&setting, label, load_func, managed);
     } else if (setting.IsEnum()) {
         CreateCombobox(label, load_func, managed);
     } else if (type == typeid(u32) || type == typeid(int) || type == typeid(u16) ||
-               type == typeid(s64)) {
+               type == typeid(s64) || type == typeid(u8)) {
         switch (request) {
         case RequestType::Slider:
         case RequestType::ReverseSlider:
             CreateSlider(label, request == RequestType::ReverseSlider, multiplier, load_func,
-                         managed);
+                         managed, string);
             break;
         case RequestType::LineEdit:
         case RequestType::Default:
@@ -586,7 +586,23 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
             break;
         }
     } else if (type == typeid(std::string)) {
-        CreateLineEdit(label, load_func, managed);
+        switch (request) {
+        case RequestType::Default:
+        case RequestType::LineEdit:
+            CreateLineEdit(label, load_func, managed);
+            break;
+        case RequestType::ComboBox:
+            CreateCombobox(label, load_func, false);
+            break;
+        case RequestType::SpinBox:
+        case RequestType::Slider:
+        case RequestType::ReverseSlider:
+        case RequestType::HexEdit:
+        case RequestType::DateTimeEdit:
+        case RequestType::MaxEnum:
+            LOG_WARNING(Frontend, "Requested widget is unimplemented.");
+            break;
+        }
     }
 
     if (!created) {

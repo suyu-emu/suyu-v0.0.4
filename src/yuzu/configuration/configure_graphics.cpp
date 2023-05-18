@@ -240,12 +240,14 @@ void ConfigureGraphics::Setup() {
             } else if (setting->Id() == Settings::values.fsr_sharpening_slider.Id()) {
                 return new ConfigurationShared::Widget(
                     setting, translations, this, runtime_lock, apply_funcs,
-                    ConfigurationShared::RequestType::ReverseSlider, true, 0.5f);
+                    ConfigurationShared::RequestType::ReverseSlider, true, 0.5f, nullptr,
+                    tr("%1%", "FSR sharpening percentage (e.g. 50%)"));
             } else if (setting->Id() == Settings::values.speed_limit.Id()) {
                 return new ConfigurationShared::Widget(
                     setting, translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::SpinBox, true, 1.0f,
-                    &Settings::values.use_speed_limit, "%");
+                    &Settings::values.use_speed_limit,
+                    tr("%", "Limit speed percentage (e.g. 50%)"));
             } else {
                 return new ConfigurationShared::Widget(setting, translations, this, runtime_lock,
                                                        apply_funcs);
@@ -304,7 +306,7 @@ void ConfigureGraphics::Setup() {
         });
     } else {
         QPushButton* bg_restore_button = ConfigurationShared::Widget::CreateRestoreGlobalButton(
-            Settings::values.bg_red, ui->bg_widget);
+            Settings::values.bg_red.UsingGlobal(), ui->bg_widget);
         ui->bg_widget->layout()->addWidget(bg_restore_button);
 
         QObject::connect(bg_restore_button, &QAbstractButton::clicked,

@@ -244,6 +244,8 @@ protected:
             return value_.has_value() ? std::to_string(*value_) : "none";
         } else if constexpr (std::is_same<Type, bool>()) {
             return value_ ? "true" : "false";
+        } else if (std::is_same<Type, AudioEngine>()) {
+            return TranslateEnum(value_);
         } else {
             return std::to_string(static_cast<u64>(value_));
         }
@@ -309,6 +311,8 @@ public:
                 this->SetValue(static_cast<u32>(std::stoul(input)));
             } else if constexpr (std::is_same<Type, bool>()) {
                 this->SetValue(input == "true");
+            } else if constexpr (std::is_same<Type, AudioEngine>()) {
+                this->SetValue(ToEnum<Type>(input));
             } else {
                 this->SetValue(static_cast<Type>(std::stoll(input)));
             }
@@ -542,7 +546,7 @@ struct Values {
     Linkage linkage{};
 
     // Audio
-    Setting<std::string> sink_id{linkage, "auto", "output_engine", Category::Audio};
+    Setting<AudioEngine> sink_id{linkage, AudioEngine::Auto, "output_engine", Category::Audio};
     Setting<std::string> audio_output_device_id{linkage, "auto", "output_device", Category::Audio};
     Setting<std::string> audio_input_device_id{linkage, "auto", "input_device", Category::Audio};
     Setting<bool, false> audio_muted{linkage, false, "audio_muted", Category::Audio, false};
@@ -731,8 +735,9 @@ struct Values {
     SwitchableSetting<TimeZone, true> time_zone_index{linkage,           TimeZone::Auto,
                                                       TimeZone::Auto,    TimeZone::Zulu,
                                                       "time_zone_index", Category::System};
-    SwitchableSetting<s32, true> sound_index{
-        linkage, 1, 0, 2, "sound_index", Category::SystemAudio};
+    SwitchableSetting<AudioMode, true> sound_index{linkage,         AudioMode::Stereo,
+                                                   AudioMode::Mono, AudioMode::Surround,
+                                                   "sound_index",   Category::SystemAudio};
 
     SwitchableSetting<bool> use_docked_mode{linkage, true, "use_docked_mode", Category::System};
 

@@ -3,9 +3,14 @@
 
 #pragma once
 
+#include <forward_list>
+#include <functional>
 #include <memory>
 #include <QWidget>
 #include "yuzu/configuration/configuration_shared.h"
+#include "yuzu/configuration/shared_translation.h"
+
+class QPushButton;
 
 namespace Core {
 class System;
@@ -19,6 +24,7 @@ class ConfigureAudio : public ConfigurationShared::Tab {
 public:
     explicit ConfigureAudio(const Core::System& system_,
                             std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                            const ConfigurationShared::TranslationMap& translations_,
                             QWidget* parent = nullptr);
     ~ConfigureAudio() override;
 
@@ -36,11 +42,17 @@ private:
 
     void SetOutputSinkFromSinkID();
     void SetAudioDevicesFromDeviceID();
-    void SetVolumeIndicatorText(int percentage);
 
-    void SetupPerGameUI();
+    void Setup();
 
     std::unique_ptr<Ui::ConfigureAudio> ui;
 
     const Core::System& system;
+    const ConfigurationShared::TranslationMap& translations;
+
+    std::forward_list<std::function<void(bool)>> apply_funcs{};
+
+    QComboBox* sink_combo_box;
+    QComboBox* output_device_combo_box;
+    QComboBox* input_device_combo_box;
 };

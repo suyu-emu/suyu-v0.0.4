@@ -38,15 +38,15 @@ public:
     Widget(Settings::BasicSetting* setting, const TranslationMap& translations, QWidget* parent,
            bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs_,
            RequestType request = RequestType::Default, bool managed = true, float multiplier = 1.0f,
-           Settings::BasicSetting* other_setting = nullptr, const std::string& format = "");
+           Settings::BasicSetting* other_setting = nullptr,
+           const QString& string = QStringLiteral(""));
     Widget(Settings::BasicSetting* setting_, const TranslationMap& translations_, QWidget* parent_,
            std::forward_list<std::function<void(bool)>>& apply_funcs_);
     virtual ~Widget();
 
     bool Valid();
 
-    [[nodiscard]] static QPushButton* CreateRestoreGlobalButton(Settings::BasicSetting& setting,
-                                                                QWidget* parent);
+    [[nodiscard]] static QPushButton* CreateRestoreGlobalButton(bool using_global, QWidget* parent);
 
     QPushButton* restore_button{};
     QLineEdit* line_edit{};
@@ -68,12 +68,12 @@ private:
     void CreateHexEdit(const QString& label, std::function<void()>& load_func, bool managed,
                        Settings::BasicSetting* const other_setting = nullptr);
     void CreateSlider(const QString& label, bool reversed, float multiplier,
-                      std::function<void()>& load_func, bool managed,
+                      std::function<void()>& load_func, bool managed, const QString& format,
                       Settings::BasicSetting* const other_setting = nullptr);
     void CreateDateTimeEdit(const QString& label, std::function<void()>& load_func, bool managed,
                             bool restrict, Settings::BasicSetting* const other_setting = nullptr);
     void CreateSpinBox(const QString& label, std::function<void()>& load_func, bool managed,
-                       const std::string& suffix, Settings::BasicSetting* other_setting = nullptr);
+                       const QString& suffix, Settings::BasicSetting* other_setting = nullptr);
 
     QWidget* parent;
     const TranslationMap& translations;
@@ -81,6 +81,7 @@ private:
     std::forward_list<std::function<void(bool)>>& apply_funcs;
 
     bool created{false};
+    bool runtime_lock{false};
 };
 
 } // namespace ConfigurationShared

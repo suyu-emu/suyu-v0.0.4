@@ -30,6 +30,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, audio_input_device_id, "Input Device:", "");
     INSERT(Settings, audio_muted, "Mute audio when in background", "");
     INSERT(Settings, volume, "Volume:", "");
+    INSERT(Settings, dump_audio_commands, "", "");
 
     // Core
     INSERT(Settings, use_multi_core, "Multicore CPU Emulation", "");
@@ -269,6 +270,12 @@ std::forward_list<QString> ComboboxEnumeration(std::type_index type, QWidget* pa
             tr("NZ-CHAT"), tr("Poland"),    tr("Portugal"),  tr("PRC"),       tr("PST8PDT"),
             tr("ROC"),     tr("ROK"),       tr("Singapore"), tr("Turkey"),    tr("UCT"),
             tr("W-SU"),    tr("WET"),       tr("Zulu"),
+        };
+    } else if (type == typeid(Settings::AudioMode)) {
+        return {
+            tr("Mono"),
+            tr("Stereo"),
+            tr("Surround"),
         };
     }
 
