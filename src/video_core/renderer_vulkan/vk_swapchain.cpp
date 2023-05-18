@@ -34,8 +34,8 @@ VkSurfaceFormatKHR ChooseSwapSurfaceFormat(vk::Span<VkSurfaceFormatKHR> formats)
     return found != formats.end() ? *found : formats[0];
 }
 
-static constexpr VkPresentModeKHR ChooseSwapPresentMode(bool has_imm, bool has_mailbox,
-                                                        bool has_fifo_relaxed) {
+static VkPresentModeKHR ChooseSwapPresentMode(bool has_imm, bool has_mailbox,
+                                              bool has_fifo_relaxed) {
     // Mailbox doesn't lock the application like FIFO (vsync)
     // FIFO present mode locks the framerate to the monitor's refresh rate
     Settings::VSyncMode setting = [has_imm, has_mailbox]() {
