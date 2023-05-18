@@ -26,7 +26,7 @@ namespace ConfigurationShared {
 
 QPushButton* Widget::CreateRestoreGlobalButton(Settings::BasicSetting& setting, QWidget* parent) {
     QStyle* style = parent->style();
-    QIcon* icon = new QIcon(style->standardIcon(QStyle::SP_DialogResetButton));
+    QIcon* icon = new QIcon(style->standardIcon(QStyle::SP_LineEditClearButton));
     QPushButton* restore_button = new QPushButton(*icon, QStringLiteral(""), parent);
     restore_button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
 
@@ -271,7 +271,7 @@ void Widget::CreateSlider(const QString& label, bool reversed, float multiplier,
             restore_button->setVisible(false);
         });
 
-        QObject::connect(slider, &QAbstractSlider::sliderMoved, [=](int) {
+        QObject::connect(slider, &QAbstractSlider::valueChanged, [=]() {
             restore_button->setEnabled(true);
             restore_button->setVisible(true);
         });
@@ -461,8 +461,7 @@ void Widget::CreateDateTimeEdit(const QString& label, std::function<void()>& loa
                 return;
             }
 
-            other_setting->LoadString(
-                std::to_string(date_time_edit->dateTime().toSecsSinceEpoch()));
+            setting.LoadString(std::to_string(date_time_edit->dateTime().toSecsSinceEpoch()));
         };
     } else {
         if (!has_checkbox) {
@@ -473,7 +472,7 @@ void Widget::CreateDateTimeEdit(const QString& label, std::function<void()>& loa
         auto get_clear_val = [=]() {
             return QDateTime::fromSecsSinceEpoch([=]() {
                 if (restrict && checkbox->checkState() == Qt::Checked) {
-                    return std::stoll(other_setting->ToStringGlobal());
+                    return std::stoll(setting.ToStringGlobal());
                 }
                 return current_time;
             }());
@@ -498,8 +497,7 @@ void Widget::CreateDateTimeEdit(const QString& label, std::function<void()>& loa
             const bool using_global = !restore_button->isEnabled();
             other_setting->SetGlobal(using_global);
             if (!using_global) {
-                other_setting->LoadString(
-                    std::to_string(date_time_edit->dateTime().toSecsSinceEpoch()));
+                setting.LoadString(std::to_string(date_time_edit->dateTime().toSecsSinceEpoch()));
             }
         };
     }
