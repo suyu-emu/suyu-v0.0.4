@@ -492,6 +492,26 @@ DriverResult JoyconDriver::SetRingConMode() {
     return result;
 }
 
+DriverResult JoyconDriver::WriteNfcData(std::span<const u8> data) {
+    std::scoped_lock lock{mutex};
+    disable_input_thread = true;
+
+    if (!supported_features.nfc) {
+        return DriverResult::NotSupported;
+    }
+    if (!nfc_protocol->IsEnabled()) {
+        return DriverResult::Disabled;
+    }
+    if (!amiibo_detected) {
+        return DriverResult::ErrorWritingData;
+    }
+
+    const auto result = nfc_protocol->WriteAmiibo(data);
+
+    disable_input_thread = false;
+    return result;
+}
+
 bool JoyconDriver::IsConnected() const {
     std::scoped_lock lock{mutex};
     return is_connected.load();

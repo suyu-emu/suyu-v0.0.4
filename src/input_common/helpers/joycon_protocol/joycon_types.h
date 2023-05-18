@@ -23,6 +23,7 @@ constexpr std::array<u8, 8> DefaultVibrationBuffer{0x0, 0x1, 0x40, 0x40, 0x0, 0x
 
 using MacAddress = std::array<u8, 6>;
 using SerialNumber = std::array<u8, 15>;
+using TagUUID = std::array<u8, 7>;
 
 enum class ControllerType : u8 {
     None = 0x00,
@@ -276,12 +277,13 @@ enum class MCUPacketFlag : u8 {
     LastCommandPacket = 0x08,
 };
 
-enum class NFCReadCommand : u8 {
+enum class NFCCommand : u8 {
     CancelAll = 0x00,
     StartPolling = 0x01,
     StopPolling = 0x02,
     StartWaitingRecieve = 0x04,
-    Ntag = 0x06,
+    ReadNtag = 0x06,
+    WriteNtag = 0x08,
     Mifare = 0x0F,
 };
 
@@ -292,14 +294,19 @@ enum class NFCTagType : u8 {
 
 enum class NFCPages {
     Block0 = 0,
+    Block3 = 3,
     Block45 = 45,
     Block135 = 135,
     Block231 = 231,
 };
 
 enum class NFCStatus : u8 {
+    Ready = 0x00,
+    Polling = 0x01,
     LastPackage = 0x04,
+    WriteDone = 0x05,
     TagLost = 0x07,
+    WriteReady = 0x09,
 };
 
 enum class IrsMode : u8 {
@@ -559,12 +566,31 @@ static_assert(sizeof(NFCReadBlockCommand) == 0x9, "NFCReadBlockCommand is an inv
 struct NFCReadCommandData {
     u8 unknown;
     u8 uuid_length;
-    u8 unknown_2;
-    std::array<u8, 6> uid;
+    TagUUID uid;
     NFCTagType tag_type;
     NFCReadBlockCommand read_block;
 };
 static_assert(sizeof(NFCReadCommandData) == 0x13, "NFCReadCommandData is an invalid size");
+
+#pragma pack(push, 1)
+struct NFCWriteCommandData {
+    u8 unknown;
+    u8 uuid_length;
+    TagUUID uid;
+    NFCTagType tag_type;
+    u8 unknown2;
+    u8 unknown3;
+    u8 unknown4;
+    u8 unknown5;
+    u8 unknown6;
+    u8 unknown7;
+    u8 unknown8;
+    u8 magic;
+    u16_be write_count;
+    u8 amiibo_version;
+};
+static_assert(sizeof(NFCWriteCommandData) == 0x15, "NFCWriteCommandData is an invalid size");
+#pragma pack(pop)
 
 struct NFCPollingCommandData {
     u8 enable_mifare;
@@ -576,8 +602,8 @@ struct NFCPollingCommandData {
 static_assert(sizeof(NFCPollingCommandData) == 0x05, "NFCPollingCommandData is an invalid size");
 
 struct NFCRequestState {
-    NFCReadCommand command_argument;
-    INSERT_PADDING_BYTES(0x1);
+    NFCCommand command_argument;
+    u8 block_id;
     u8 packet_id;
     MCUPacketFlag packet_flag;
     u8 data_length;
@@ -590,6 +616,18 @@ struct NFCRequestState {
     INSERT_PADDING_BYTES(0x1);
 };
 static_assert(sizeof(NFCRequestState) == 0x26, "NFCRequestState is an invalid size");
+
+struct NFCDataChunk {
+    u8 nfc_page;
+    u8 data_size;
+    std::array<u8, 0xFF> data;
+};
+
+struct NFCWritePackage {
+    NFCWriteCommandData command_data;
+    u8 number_of_chunks;
+    std::array<NFCDataChunk, 4> data_chunks;
+};
 
 struct IrsConfigure {
     MCUCommand command;

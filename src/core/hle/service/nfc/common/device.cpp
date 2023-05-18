@@ -421,11 +421,11 @@ Result NfcDevice::Flush() {
 
     tag_data.write_counter++;
 
-    FlushWithBreak(NFP::BreakType::Normal);
+    const auto result = FlushWithBreak(NFP::BreakType::Normal);
 
     is_data_moddified = false;
 
-    return ResultSuccess;
+    return result;
 }
 
 Result NfcDevice::FlushDebug() {
@@ -444,11 +444,11 @@ Result NfcDevice::FlushDebug() {
 
     tag_data.write_counter++;
 
-    FlushWithBreak(NFP::BreakType::Normal);
+    const auto result = FlushWithBreak(NFP::BreakType::Normal);
 
     is_data_moddified = false;
 
-    return ResultSuccess;
+    return result;
 }
 
 Result NfcDevice::FlushWithBreak(NFP::BreakType break_type) {
