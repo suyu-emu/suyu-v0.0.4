@@ -550,7 +550,7 @@ struct Values {
     Setting<std::string> audio_output_device_id{linkage, "auto", "output_device", Category::Audio};
     Setting<std::string> audio_input_device_id{linkage, "auto", "input_device", Category::Audio};
     Setting<bool, false> audio_muted{linkage, false, "audio_muted", Category::Audio, false};
-    SwitchableSetting<u8, true> volume{linkage, 100, 0, 200, "volume", Category::Audio};
+    SwitchableSetting<u8, true> volume{linkage, 100, 0, 200, "volume", Category::Audio, true, true};
     Setting<bool, false> dump_audio_commands{linkage, false, "dump_audio_commands", Category::Audio,
                                              false};
 
