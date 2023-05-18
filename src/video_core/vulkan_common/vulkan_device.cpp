@@ -471,6 +471,17 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan, "ANV driver does not support native BGR format");
         must_emulate_bgr565 = true;
     }
+    if (extensions.push_descriptor && is_intel_anv) {
+        const u32 version = (properties.properties.driverVersion << 3) >> 3;
+        if (version >= VK_MAKE_API_VERSION(0, 22, 3, 0)) {
+            // Disable VK_KHR_push_descriptor due to
+            // mesa/mesa/-/commit/ff91c5ca42bc80aa411cb3fd8f550aa6fdd16bdc
+            LOG_WARNING(Render_Vulkan,
+                        "ANV drivers 22.3.0 and later have broken VK_KHR_push_descriptor");
+            extensions.push_descriptor = false;
+            loaded_extensions.erase(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+        }
+    }
     if (is_mvk) {
         LOG_WARNING(Render_Vulkan,
                     "MVK driver breaks when using more than 16 vertex attributes/bindings");
