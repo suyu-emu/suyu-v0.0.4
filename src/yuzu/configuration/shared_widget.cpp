@@ -124,10 +124,16 @@ void Widget::CreateCombobox(const QString& label, std::function<void()>& load_fu
     layout->setSpacing(6);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    combobox->setCurrentIndex(std::stoi(setting.ToString()));
-
     if (!managed) {
         return;
+    }
+
+    // TODO: Remove audio engine specialization
+    if (setting.TypeId() != typeid(Settings::AudioEngine)) {
+        combobox->setCurrentIndex(std::stoi(setting.ToString()));
+    } else {
+        combobox->setCurrentIndex(
+            static_cast<u32>(Settings::ToEnum<Settings::AudioEngine>(setting.ToString())));
     }
 
     if (Settings::IsConfiguringGlobal()) {
