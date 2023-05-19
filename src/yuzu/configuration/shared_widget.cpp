@@ -18,6 +18,7 @@
 #include <qboxlayout.h>
 #include <qnamespace.h>
 #include <qpushbutton.h>
+#include <qsizepolicy.h>
 #include <qvalidator.h>
 #include "common/common_types.h"
 #include "common/settings.h"
@@ -27,11 +28,20 @@
 
 namespace ConfigurationShared {
 
+static int restore_button_count = 0;
+
 QPushButton* Widget::CreateRestoreGlobalButton(bool using_global, QWidget* parent) {
+    restore_button_count++;
+
     QStyle* style = parent->style();
     QIcon* icon = new QIcon(style->standardIcon(QStyle::SP_LineEditClearButton));
     QPushButton* restore_button = new QPushButton(*icon, QStringLiteral(""), parent);
-    restore_button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+    restore_button->setObjectName(QStringLiteral("RestoreButton%1").arg(restore_button_count));
+    restore_button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+
+    // Workaround for dark theme causing min-width to be much larger than 0
+    restore_button->setStyleSheet(
+        QStringLiteral("QAbstractButton#%1 { min-width: 0px }").arg(restore_button->objectName()));
 
     QSizePolicy sp_retain = restore_button->sizePolicy();
     sp_retain.setRetainSizeWhenHidden(true);
@@ -113,8 +123,9 @@ void Widget::CreateCombobox(const QString& label, std::function<void()>& load_fu
 
     QLayout* layout = new QHBoxLayout(this);
 
-    QLabel* qt_label = new QLabel(label, this);
+    QLabel* qt_label = CreateLabel(label);
     combobox = new QComboBox(this);
+    combobox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     layout->addWidget(qt_label);
     layout->addWidget(combobox);
