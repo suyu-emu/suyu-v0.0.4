@@ -15,6 +15,7 @@
 #include "vk_device_info.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configuration_shared.h"
+#include "yuzu/configuration/shared_translation.h"
 
 namespace Core {
 class System;

@@ -9,7 +9,11 @@
 
 #include <QWidget>
 #include "yuzu/configuration/configuration_shared.h"
+#include "yuzu/configuration/shared_translation.h"
 
+class QCheckBox;
+class QLineEdit;
+class QComboBox;
 class QDateTimeEdit;
 
 namespace Core {
@@ -42,9 +46,6 @@ private:
 
     std::unique_ptr<Ui::ConfigureSystem> ui;
     bool enabled = false;
-
-    ConfigurationShared::CheckState use_rng_seed;
-    ConfigurationShared::CheckState use_unsafe_extended_memory_layout;
 
     Core::System& system;
     const ConfigurationShared::TranslationMap& translations;

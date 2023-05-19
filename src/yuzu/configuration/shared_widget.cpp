@@ -1,6 +1,7 @@
 #include <functional>
 #include <limits>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDateTimeEdit>
 #include <QHBoxLayout>
 #include <QIcon>
@@ -8,7 +9,9 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSizePolicy>
+#include <QSlider>
 #include <QSpinBox>
+#include <QStyle>
 #include <QWidget>
 #include <qabstractbutton.h>
 #include <qabstractspinbox.h>

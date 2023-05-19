@@ -5,6 +5,8 @@
 #include <forward_list>
 #include <optional>
 
+#include <QCheckBox>
+#include <QComboBox>
 #include <QDateTimeEdit>
 #include <QFileDialog>
 #include <QGraphicsItem>

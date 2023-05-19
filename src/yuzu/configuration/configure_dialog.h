@@ -7,7 +7,8 @@
 #include <memory>
 #include <vector>
 #include <QDialog>
-#include "configuration/configuration_shared.h"
+#include "yuzu/configuration/configuration_shared.h"
+#include "yuzu/configuration/shared_translation.h"
 #include "yuzu/vk_device_info.h"
 
 namespace Core {

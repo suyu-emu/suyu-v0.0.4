@@ -3,6 +3,7 @@
 
 #include <forward_list>
 #include <memory>
+#include <QComboBox>
 #include "common/common_types.h"
 #include "common/settings.h"
 #include "configuration/shared_widget.h"

@@ -3,6 +3,7 @@
 
 #include <forward_list>
 #include <memory>
+#include <QComboBox>
 
 #include "audio_core/sink/sink.h"
 #include "audio_core/sink/sink_details.h"

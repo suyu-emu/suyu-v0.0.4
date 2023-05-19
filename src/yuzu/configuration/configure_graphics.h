@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <memory>
+#include <type_traits>
 #include <vector>
 #include <QColor>
 #include <QString>
@@ -14,6 +15,7 @@
 #include "common/common_types.h"
 #include "vk_device_info.h"
 #include "yuzu/configuration/configuration_shared.h"
+#include "yuzu/configuration/shared_translation.h"
 
 class QPushButton;
 class QEvent;
