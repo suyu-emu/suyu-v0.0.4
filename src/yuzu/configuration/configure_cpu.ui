@@ -16,9 +16,12 @@
   <property name="accessibleName">
    <string>CPU</string>
   </property>
-  <layout class="QVBoxLayout">
+  <layout class="QVBoxLayout" name="vboxlayout_2" stretch="0">
    <item>
-    <layout class="QVBoxLayout">
+    <layout class="QVBoxLayout" name="vboxlayout">
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
      <item>
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
@@ -56,10 +59,6 @@
        </layout>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QVBoxLayout">
      <item>
       <widget class="QGroupBox" name="unsafe_group">
        <property name="title">
@@ -97,30 +96,23 @@
        </layout>
       </widget>
      </item>
+     <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Expanding</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
     </layout>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_disable_info">
-     <property name="text">
-      <string>CPU settings are available only when game is not running.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
    </item>
   </layout>
  </widget>

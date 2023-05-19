@@ -43,6 +43,16 @@
           </layout>
          </widget>
         </item>
+        <item>
+         <widget class="QLabel" name="label_warn_invalid_locale">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -85,26 +95,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_warn_invalid_locale">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_disable_info">
-       <property name="text">
-        <string>System settings are available only when game is not running.</string>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
-       </property>
-      </widget>
      </item>
     </layout>
    </item>
