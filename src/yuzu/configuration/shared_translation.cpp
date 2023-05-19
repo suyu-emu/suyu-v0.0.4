@@ -45,13 +45,26 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
 
     // Cpu Unsafe
     INSERT(Settings, cpuopt_unsafe_unfuse_fma,
-           "Unfuse FMA (improve performance on CPUs without FMA)", "");
-    INSERT(Settings, cpuopt_unsafe_reduce_fp_error, "Faster FRSQRTE and FRECPE", "");
+           "Unfuse FMA (improve performance on CPUs without FMA)",
+           "This option improves speed by reducing accuracy of fused-multiply-add instructions on "
+           "CPUs without native FMA support.");
+    INSERT(Settings, cpuopt_unsafe_reduce_fp_error, "Faster FRSQRTE and FRECPE",
+           "This option improves the speed of some approximate floating-point functions by using "
+           "less accurate native approximations.");
     INSERT(Settings, cpuopt_unsafe_ignore_standard_fpcr, "Faster ASIMD instructions (32 bits only)",
-           "");
-    INSERT(Settings, cpuopt_unsafe_inaccurate_nan, "Inaccurate NaN handling", "");
-    INSERT(Settings, cpuopt_unsafe_fastmem_check, "Disable address space checks", "");
-    INSERT(Settings, cpuopt_unsafe_ignore_global_monitor, "Ignore global monitor", "");
+           "This option improves the speed of 32 bits ASIMD floating-point functions by running "
+           "with incorrect rounding modes.");
+    INSERT(Settings, cpuopt_unsafe_inaccurate_nan, "Inaccurate NaN handling",
+           "This option improves speed by removing NaN checking. Please note this also reduces "
+           "accuracy of certain floating-point instructions.");
+    INSERT(
+        Settings, cpuopt_unsafe_fastmem_check, "Disable address space checks",
+        "This option improves speed by eliminating a safety check before every memory read/write "
+        "in guest. Disabling it may allow a game to read/write the emulator's memory.");
+    INSERT(Settings, cpuopt_unsafe_ignore_global_monitor, "Ignore global monitor",
+           "This option improves speed by relying only on the semantics of cmpxchg to ensure "
+           "safety of exclusive access instructions. Please note this may result in deadlocks and "
+           "other race conditions.");
 
     // Renderer
     INSERT(Settings, renderer_backend, "API:", "");
@@ -114,7 +127,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, device_name, "Device Name", "");
     INSERT(Settings, custom_rtc, "Custom RTC", "");
     INSERT(Settings, custom_rtc_enabled, "", "");
-    INSERT(Settings, language_index, "Language:", "");
+    INSERT(Settings, language_index,
+           "Language:", "Note: this can be overridden when region setting is auto-select");
     INSERT(Settings, region_index, "Region:", "");
     INSERT(Settings, time_zone_index, "Time Zone:", "");
     INSERT(Settings, sound_index, "Sound Output Mode:", "");
