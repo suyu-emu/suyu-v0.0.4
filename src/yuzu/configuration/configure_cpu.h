@@ -19,6 +19,8 @@ class ConfigureCpu : public ConfigurationShared::Tab {
 public:
     explicit ConfigureCpu(const Core::System& system_,
                           std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                          const ConfigurationShared::TranslationMap& translations,
+                          const ConfigurationShared::ComboboxTranslationMap& combobox_translations,
                           QWidget* parent = nullptr);
     ~ConfigureCpu() override;
 
@@ -31,7 +33,7 @@ private:
 
     void UpdateGroup(int index);
 
-    void SetupPerGameUI();
+    void Setup();
 
     std::unique_ptr<Ui::ConfigureCpu> ui;
 
@@ -43,4 +45,11 @@ private:
     ConfigurationShared::CheckState cpuopt_unsafe_ignore_global_monitor;
 
     const Core::System& system;
+
+    const ConfigurationShared::TranslationMap& translations;
+    const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
+
+    std::forward_list<std::function<void(bool)>> apply_funcs{};
+
+    QComboBox* accuracy_combobox;
 };

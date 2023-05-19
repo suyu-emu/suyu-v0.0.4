@@ -53,7 +53,8 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
     addons_tab = std::make_unique<ConfigurePerGameAddons>(system_, this);
     audio_tab = std::make_unique<ConfigureAudio>(system_, tab_group, *translations,
                                                  *combobox_translations, this);
-    cpu_tab = std::make_unique<ConfigureCpu>(system_, tab_group, this);
+    cpu_tab = std::make_unique<ConfigureCpu>(system_, tab_group, *translations,
+                                             *combobox_translations, this);
     graphics_advanced_tab = std::make_unique<ConfigureGraphicsAdvanced>(
         system_, tab_group, *translations, *combobox_translations, this);
     graphics_tab = std::make_unique<ConfigureGraphics>(
