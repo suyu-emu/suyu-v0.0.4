@@ -42,9 +42,9 @@ private:
 
     DriverResult WaitUntilNfcIsReady();
 
-    DriverResult StartPolling(TagFoundData& data, std::size_t timeout_limit = 1);
+    DriverResult WaitUntilNfcIsPolling();
 
-    DriverResult ReadTag(const TagFoundData& data);
+    DriverResult IsTagInRange(TagFoundData& data, std::size_t timeout_limit = 1);
 
     DriverResult GetAmiiboData(std::vector<u8>& data);
 
@@ -52,7 +52,7 @@ private:
 
     DriverResult SendStopPollingRequest(MCUCommandResponse& output);
 
-    DriverResult SendStartWaitingRecieveRequest(MCUCommandResponse& output);
+    DriverResult SendNextPackageRequest(MCUCommandResponse& output, u8 packet_id);
 
     DriverResult SendReadAmiiboRequest(MCUCommandResponse& output, NFCPages ntag_pages);
 

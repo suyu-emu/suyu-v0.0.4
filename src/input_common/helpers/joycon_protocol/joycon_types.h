@@ -577,8 +577,8 @@ static_assert(sizeof(NFCPollingCommandData) == 0x05, "NFCPollingCommandData is a
 
 struct NFCRequestState {
     NFCReadCommand command_argument;
-    u8 packet_id;
     INSERT_PADDING_BYTES(0x1);
+    u8 packet_id;
     MCUPacketFlag packet_flag;
     u8 data_length;
     union {
