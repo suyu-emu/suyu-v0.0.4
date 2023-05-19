@@ -20,7 +20,9 @@ public:
     explicit ConfigureGraphicsAdvanced(
         const Core::System& system_,
         std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-        const ConfigurationShared::TranslationMap& translations_, QWidget* parent = nullptr);
+        const ConfigurationShared::TranslationMap& translations_,
+        const ConfigurationShared::ComboboxTranslationMap& combobox_translations_,
+        QWidget* parent = nullptr);
     ~ConfigureGraphicsAdvanced() override;
 
     void ApplyConfiguration() override;
@@ -36,6 +38,7 @@ private:
 
     const Core::System& system;
     const ConfigurationShared::TranslationMap& translations;
+    const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
     std::forward_list<std::function<void(bool)>> apply_funcs;
 
     QWidget* checkbox_enable_compute_pipelines{};

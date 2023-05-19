@@ -72,6 +72,7 @@ private:
 
     Core::System& system;
     std::unique_ptr<ConfigurationShared::TranslationMap> translations;
+    std::unique_ptr<ConfigurationShared::ComboboxTranslationMap> combobox_translations;
     std::forward_list<ConfigurationShared::Tab*> tab_group;
 
     std::unique_ptr<ConfigureAudio> audio_tab;

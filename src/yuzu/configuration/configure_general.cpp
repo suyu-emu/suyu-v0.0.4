@@ -15,9 +15,10 @@
 ConfigureGeneral::ConfigureGeneral(
     const Core::System& system_,
     std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-    const ConfigurationShared::TranslationMap& translations_, QWidget* parent)
+    const ConfigurationShared::TranslationMap& translations_,
+    const ConfigurationShared::ComboboxTranslationMap& combobox_translations_, QWidget* parent)
     : Tab(group, parent), ui{std::make_unique<Ui::ConfigureGeneral>()}, system{system_},
-      translations{translations_} {
+      translations{translations_}, combobox_translations{combobox_translations_} {
     ui->setupUi(this);
 
     SetConfiguration();
@@ -40,8 +41,8 @@ void ConfigureGeneral::SetConfiguration() {
 
     for (const auto setting :
          UISettings::values.linkage.by_category[Settings::Category::UiGeneral]) {
-        auto* widget =
-            new ConfigurationShared::Widget(setting, translations, this, runtime_lock, apply_funcs);
+        auto* widget = new ConfigurationShared::Widget(setting, translations, combobox_translations,
+                                                       this, runtime_lock, apply_funcs);
 
         if (!widget->Valid()) {
             delete widget;

@@ -43,6 +43,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
     : QDialog(parent),
       ui(std::make_unique<Ui::ConfigurePerGame>()), title_id{title_id_}, system{system_},
       translations{ConfigurationShared::InitializeTranslations(this)},
+      combobox_translations{ConfigurationShared::ComboboxEnumeration(this)},
       tab_group{std::make_shared<std::forward_list<ConfigurationShared::Tab*>>()} {
     const auto file_path = std::filesystem::path(Common::FS::ToU8String(file_name));
     const auto config_file_name = title_id == 0 ? Common::FS::PathToUTF8String(file_path.filename())
@@ -50,15 +51,17 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
     game_config = std::make_unique<Config>(config_file_name, Config::ConfigType::PerGameConfig);
 
     addons_tab = std::make_unique<ConfigurePerGameAddons>(system_, this);
-    audio_tab = std::make_unique<ConfigureAudio>(system_, tab_group, *translations, this);
+    audio_tab = std::make_unique<ConfigureAudio>(system_, tab_group, *translations,
+                                                 *combobox_translations, this);
     cpu_tab = std::make_unique<ConfigureCpu>(system_, tab_group, this);
-    graphics_advanced_tab =
-        std::make_unique<ConfigureGraphicsAdvanced>(system_, tab_group, *translations, this);
+    graphics_advanced_tab = std::make_unique<ConfigureGraphicsAdvanced>(
+        system_, tab_group, *translations, *combobox_translations, this);
     graphics_tab = std::make_unique<ConfigureGraphics>(
         system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
-        tab_group, *translations, this);
+        tab_group, *translations, *combobox_translations, this);
     input_tab = std::make_unique<ConfigureInputPerGame>(system_, game_config.get(), this);
-    system_tab = std::make_unique<ConfigureSystem>(system_, tab_group, *translations, this);
+    system_tab = std::make_unique<ConfigureSystem>(system_, tab_group, *translations,
+                                                   *combobox_translations, this);
 
     ui->setupUi(this);
 

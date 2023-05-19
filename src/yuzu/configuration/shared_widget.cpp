@@ -113,40 +113,51 @@ void Widget::CreateCombobox(const QString& label, std::function<void()>& load_fu
     QLabel* qt_label = new QLabel(label, this);
     combobox = new QComboBox(this);
 
-    std::forward_list<QString> combobox_enumerations = ComboboxEnumeration(type, this);
-    for (const auto& item : combobox_enumerations) {
-        combobox->addItem(item);
-    }
-
     layout->addWidget(qt_label);
     layout->addWidget(combobox);
 
     layout->setSpacing(6);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    if (!managed) {
+    const ComboboxTranslations* enumeration{nullptr};
+    if (combobox_enumerations.contains(type)) {
+        enumeration = &combobox_enumerations.at(type);
+        for (const auto& [id, name] : *enumeration) {
+            combobox->addItem(name);
+        }
+    }
+
+    if (!managed || enumeration == nullptr) {
         return;
     }
 
-    // TODO: Remove audio engine specialization
-    if (setting.TypeId() != typeid(Settings::AudioEngine)) {
-        combobox->setCurrentIndex(std::stoi(setting.ToString()));
-    } else {
-        combobox->setCurrentIndex(
-            static_cast<u32>(Settings::ToEnum<Settings::AudioEngine>(setting.ToString())));
-    }
+    const auto find_index = [=](u32 value) -> int {
+        for (u32 i = 0; i < enumeration->size(); i++) {
+            if (enumeration->at(i).first == value) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    const u32 setting_value = std::stoi(setting.ToString());
+    combobox->setCurrentIndex(find_index(setting_value));
 
     if (Settings::IsConfiguringGlobal()) {
-        load_func = [=]() { setting.LoadString(std::to_string(combobox->currentIndex())); };
+        load_func = [=]() {
+            int current = combobox->currentIndex();
+            setting.LoadString(std::to_string(enumeration->at(current).first));
+        };
     } else {
         restore_button = CreateRestoreGlobalButton(setting.UsingGlobal(), this);
         layout->addWidget(restore_button);
 
-        QObject::connect(restore_button, &QAbstractButton::clicked, [&](bool) {
+        QObject::connect(restore_button, &QAbstractButton::clicked, [=](bool) {
             restore_button->setEnabled(false);
             restore_button->setVisible(false);
 
-            combobox->setCurrentIndex(std::stoi(setting.ToStringGlobal()));
+            const u32 global_value = std::stoi(setting.ToStringGlobal());
+            combobox->setCurrentIndex(find_index(global_value));
         });
 
         QObject::connect(combobox, QOverload<int>::of(&QComboBox::activated), [=](int) {
@@ -158,7 +169,8 @@ void Widget::CreateCombobox(const QString& label, std::function<void()>& load_fu
             bool using_global = !restore_button->isEnabled();
             setting.SetGlobal(using_global);
             if (!using_global) {
-                setting.LoadString(std::to_string(combobox->currentIndex()));
+                int current = combobox->currentIndex();
+                setting.LoadString(std::to_string(enumeration->at(current).first));
             }
         };
     }
@@ -523,17 +535,13 @@ bool Widget::Valid() {
 Widget::~Widget() = default;
 
 Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translations_,
-               QWidget* parent_, std::forward_list<std::function<void(bool)>>& apply_funcs_)
-    : QWidget(parent_), parent{parent_}, translations{translations_}, setting{*setting_},
-      apply_funcs{apply_funcs_} {}
-
-Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translations_,
-               QWidget* parent_, bool runtime_lock_,
-               std::forward_list<std::function<void(bool)>>& apply_funcs_, RequestType request,
-               bool managed, float multiplier, Settings::BasicSetting* other_setting,
-               const QString& string)
-    : QWidget(parent_), parent{parent_}, translations{translations_}, setting{*setting_},
-      apply_funcs{apply_funcs_}, runtime_lock{runtime_lock_} {
+               const ComboboxTranslationMap& combobox_translations_, QWidget* parent_,
+               bool runtime_lock_, std::forward_list<std::function<void(bool)>>& apply_funcs_,
+               RequestType request, bool managed, float multiplier,
+               Settings::BasicSetting* other_setting, const QString& string)
+    : QWidget(parent_), parent{parent_}, translations{translations_},
+      combobox_enumerations{combobox_translations_}, setting{*setting_}, apply_funcs{apply_funcs_},
+      runtime_lock{runtime_lock_} {
     if (!Settings::IsConfiguringGlobal() && !setting.Switchable()) {
         LOG_DEBUG(Frontend, "\"{}\" is not switchable, skipping...", setting.GetLabel());
         return;
@@ -632,5 +640,4 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
 
     this->setToolTip(tooltip);
 }
-
 } // namespace ConfigurationShared

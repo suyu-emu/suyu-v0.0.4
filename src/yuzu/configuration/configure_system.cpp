@@ -44,9 +44,10 @@ static bool IsValidLocale(u32 region_index, u32 language_index) {
 
 ConfigureSystem::ConfigureSystem(
     Core::System& system_, std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-    ConfigurationShared::TranslationMap& translations_, QWidget* parent)
+    const ConfigurationShared::TranslationMap& translations_,
+    const ConfigurationShared::ComboboxTranslationMap& combobox_translations_, QWidget* parent)
     : Tab(group, parent), ui{std::make_unique<Ui::ConfigureSystem>()}, system{system_},
-      translations{translations_} {
+      translations{translations_}, combobox_translations{combobox_translations_} {
     ui->setupUi(this);
 
     Setup();
@@ -121,18 +122,17 @@ void ConfigureSystem::Setup() {
         ConfigurationShared::Widget* widget = [=]() {
             if (setting->Id() == Settings::values.custom_rtc.Id()) {
                 return new ConfigurationShared::Widget(
-                    setting, translations, this, runtime_lock, apply_funcs,
+                    setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::DateTimeEdit, true, 1.0f,
                     &Settings::values.custom_rtc_enabled);
             } else if (setting->Id() == Settings::values.rng_seed.Id()) {
                 return new ConfigurationShared::Widget(
-                    setting, translations, this, runtime_lock, apply_funcs,
+                    setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::HexEdit, true, 1.0f,
                     &Settings::values.rng_seed_enabled);
             } else {
-                return new ConfigurationShared::Widget(setting, translations, this, runtime_lock,
-
-                                                       apply_funcs);
+                return new ConfigurationShared::Widget(setting, translations, combobox_translations,
+                                                       this, runtime_lock, apply_funcs);
             }
         }();
 

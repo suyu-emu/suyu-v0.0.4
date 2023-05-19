@@ -13,9 +13,10 @@
 ConfigureGraphicsAdvanced::ConfigureGraphicsAdvanced(
     const Core::System& system_,
     std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-    const ConfigurationShared::TranslationMap& translations_, QWidget* parent)
+    const ConfigurationShared::TranslationMap& translations_,
+    const ConfigurationShared::ComboboxTranslationMap& combobox_translations_, QWidget* parent)
     : Tab(group, parent), ui{std::make_unique<Ui::ConfigureGraphicsAdvanced>()}, system{system_},
-      translations{translations_} {
+      translations{translations_}, combobox_translations{combobox_translations_} {
 
     ui->setupUi(this);
 
@@ -33,8 +34,8 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
 
     for (auto setting :
          Settings::values.linkage.by_category[Settings::Category::RendererAdvanced]) {
-        ConfigurationShared::Widget* widget =
-            new ConfigurationShared::Widget(setting, translations, this, runtime_lock, apply_funcs);
+        ConfigurationShared::Widget* widget = new ConfigurationShared::Widget(
+            setting, translations, combobox_translations, this, runtime_lock, apply_funcs);
 
         if (!widget->Valid()) {
             delete widget;

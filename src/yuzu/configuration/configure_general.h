@@ -22,10 +22,12 @@ class ConfigureGeneral;
 
 class ConfigureGeneral : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureGeneral(const Core::System& system_,
-                              std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-                              const ConfigurationShared::TranslationMap& translations_,
-                              QWidget* parent = nullptr);
+    explicit ConfigureGeneral(
+        const Core::System& system_,
+        std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+        const ConfigurationShared::TranslationMap& translations_,
+        const ConfigurationShared::ComboboxTranslationMap& combobox_translations_,
+        QWidget* parent = nullptr);
     ~ConfigureGeneral() override;
 
     void SetResetCallback(std::function<void()> callback);
@@ -45,4 +47,5 @@ private:
 
     const Core::System& system;
     const ConfigurationShared::TranslationMap& translations;
+    const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
 };

@@ -36,12 +36,13 @@ class ConfigureGraphics;
 
 class ConfigureGraphics : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureGraphics(const Core::System& system_,
-                               std::vector<VkDeviceInfo::Record>& records,
-                               const std::function<void()>& expose_compute_option_,
-                               std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-                               const ConfigurationShared::TranslationMap& translations_,
-                               QWidget* parent = nullptr);
+    explicit ConfigureGraphics(
+        const Core::System& system_, std::vector<VkDeviceInfo::Record>& records,
+        const std::function<void()>& expose_compute_option_,
+        std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+        const ConfigurationShared::TranslationMap& translations_,
+        const ConfigurationShared::ComboboxTranslationMap& combobox_translations_,
+        QWidget* parent = nullptr);
     ~ConfigureGraphics() override;
 
     void ApplyConfiguration() override;
@@ -68,6 +69,8 @@ private:
 
     Settings::RendererBackend GetCurrentGraphicsBackend() const;
 
+    int FindIndex(std::type_index enumeration, int value) const;
+
     std::unique_ptr<Ui::ConfigureGraphics> ui;
     QColor bg_color;
 
@@ -85,6 +88,8 @@ private:
 
     const Core::System& system;
     const ConfigurationShared::TranslationMap& translations;
+    const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
+    const std::vector<std::pair<u32, QString>>& shader_mapping;
 
     QPushButton* api_restore_global_button;
     QComboBox* vulkan_device_combobox;

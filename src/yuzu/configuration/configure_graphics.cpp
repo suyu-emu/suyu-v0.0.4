@@ -79,10 +79,12 @@ ConfigureGraphics::ConfigureGraphics(
     const Core::System& system_, std::vector<VkDeviceInfo::Record>& records_,
     const std::function<void()>& expose_compute_option_,
     std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-    const ConfigurationShared::TranslationMap& translations_, QWidget* parent)
+    const ConfigurationShared::TranslationMap& translations_,
+    const ConfigurationShared::ComboboxTranslationMap& combobox_translations_, QWidget* parent)
     : ConfigurationShared::Tab(group, parent), ui{std::make_unique<Ui::ConfigureGraphics>()},
       records{records_}, expose_compute_option{expose_compute_option_}, system{system_},
-      translations{translations_} {
+      translations{translations_}, combobox_translations{combobox_translations_},
+      shader_mapping{combobox_translations.at(typeid(Settings::ShaderBackend))} {
     vulkan_device = Settings::values.vulkan_device.GetValue();
     RetrieveVulkanDevices();
 
@@ -235,22 +237,22 @@ void ConfigureGraphics::Setup() {
                 setting->Id() == Settings::values.shader_backend.Id() ||
                 setting->Id() == Settings::values.vsync_mode.Id()) {
                 return new ConfigurationShared::Widget(
-                    setting, translations, this, runtime_lock, apply_funcs,
+                    setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::ComboBox, false);
             } else if (setting->Id() == Settings::values.fsr_sharpening_slider.Id()) {
                 return new ConfigurationShared::Widget(
-                    setting, translations, this, runtime_lock, apply_funcs,
+                    setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::ReverseSlider, true, 0.5f, nullptr,
                     tr("%1%", "FSR sharpening percentage (e.g. 50%)"));
             } else if (setting->Id() == Settings::values.speed_limit.Id()) {
                 return new ConfigurationShared::Widget(
-                    setting, translations, this, runtime_lock, apply_funcs,
+                    setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::SpinBox, true, 1.0f,
                     &Settings::values.use_speed_limit,
                     tr("%", "Limit speed percentage (e.g. 50%)"));
             } else {
-                return new ConfigurationShared::Widget(setting, translations, this, runtime_lock,
-                                                       apply_funcs);
+                return new ConfigurationShared::Widget(setting, translations, combobox_translations,
+                                                       this, runtime_lock, apply_funcs);
             }
         }();
 
@@ -360,6 +362,15 @@ const QString ConfigureGraphics::TranslateVSyncMode(VkPresentModeKHR mode,
     }
 }
 
+int ConfigureGraphics::FindIndex(std::type_index enumeration, int value) const {
+    for (u32 i = 0; i < combobox_translations.at(enumeration).size(); i++) {
+        if (combobox_translations.at(enumeration)[i].first == static_cast<u32>(value)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void ConfigureGraphics::ApplyConfiguration() {
     const bool powered_on = system.IsPoweredOn();
     for (const auto& func : apply_funcs) {
@@ -374,13 +385,17 @@ void ConfigureGraphics::ApplyConfiguration() {
 
     Settings::values.shader_backend.SetGlobal(true);
     Settings::values.vulkan_device.SetGlobal(true);
-    if (!Settings::IsConfiguringGlobal() && api_restore_global_button->isEnabled()) {
-        auto backend = static_cast<Settings::RendererBackend>(api_combobox->currentIndex());
+    if (Settings::IsConfiguringGlobal() ||
+        (!Settings::IsConfiguringGlobal() && api_restore_global_button->isEnabled())) {
+        auto backend = static_cast<Settings::RendererBackend>(
+            combobox_translations
+                .at(typeid(Settings::RendererBackend))[api_combobox->currentIndex()]
+                .first);
         switch (backend) {
         case Settings::RendererBackend::OpenGL:
             Settings::values.shader_backend.SetGlobal(false);
-            Settings::values.shader_backend.SetValue(
-                static_cast<Settings::ShaderBackend>(shader_backend_combobox->currentIndex()));
+            Settings::values.shader_backend.SetValue(static_cast<Settings::ShaderBackend>(
+                shader_mapping[shader_backend_combobox->currentIndex()].first));
             break;
         case Settings::RendererBackend::Vulkan:
             Settings::values.vulkan_device.SetGlobal(false);
@@ -430,7 +445,8 @@ void ConfigureGraphics::UpdateAPILayout() {
 
     switch (GetCurrentGraphicsBackend()) {
     case Settings::RendererBackend::OpenGL:
-        shader_backend_combobox->setCurrentIndex(static_cast<u32>(shader_backend));
+        shader_backend_combobox->setCurrentIndex(
+            FindIndex(typeid(Settings::ShaderBackend), static_cast<int>(shader_backend)));
         vulkan_device_widget->setVisible(false);
         shader_backend_widget->setVisible(true);
         break;
@@ -467,5 +483,8 @@ Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {
     if (!Settings::IsConfiguringGlobal() && !api_restore_global_button->isEnabled()) {
         return Settings::values.renderer_backend.GetValue(true);
     }
-    return static_cast<Settings::RendererBackend>(api_combobox->currentIndex());
+    return static_cast<Settings::RendererBackend>(
+        combobox_translations.at(typeid(Settings::RendererBackend))
+            .at(api_combobox->currentIndex())
+            .first);
 }

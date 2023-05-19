@@ -22,10 +22,11 @@ class ConfigureSystem;
 
 class ConfigureSystem : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureSystem(Core::System& system_,
-                             std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-                             ConfigurationShared::TranslationMap& translations,
-                             QWidget* parent = nullptr);
+    explicit ConfigureSystem(
+        Core::System& system_, std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+        const ConfigurationShared::TranslationMap& translations,
+        const ConfigurationShared::ComboboxTranslationMap& combobox_translations,
+        QWidget* parent = nullptr);
     ~ConfigureSystem() override;
 
     void ApplyConfiguration() override;
@@ -46,7 +47,8 @@ private:
     ConfigurationShared::CheckState use_unsafe_extended_memory_layout;
 
     Core::System& system;
-    ConfigurationShared::TranslationMap& translations;
+    const ConfigurationShared::TranslationMap& translations;
+    const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
 
     QCheckBox* rng_seed_checkbox;
     QLineEdit* rng_seed_edit;

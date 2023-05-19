@@ -152,134 +152,204 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     return translations;
 }
 
-std::forward_list<QString> ComboboxEnumeration(std::type_index type, QWidget* parent) {
+std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
+    std::unique_ptr<ComboboxTranslationMap> translations =
+        std::make_unique<ComboboxTranslationMap>();
     const auto& tr = [&](const char* text) { return parent->tr(text); };
 
     // Intentionally skipping VSyncMode to let the UI fill that one out
 
-    if (type == typeid(Settings::AstcDecodeMode)) {
-        return {
-            tr("CPU"),
-            tr("GPU"),
-            tr("CPU Asynchronous"),
-        };
-    } else if (type == typeid(Settings::RendererBackend)) {
-        return {
-            tr("OpenGL"),
-            tr("Vulkan"),
-            tr("Null"),
-        };
-    } else if (type == typeid(Settings::ShaderBackend)) {
-        return {
-            tr("GLSL"),
-            tr("GLASM (Assembly Shaders, NVIDIA Only)"),
-            tr("SPIR-V (Experimental, Mesa Only)"),
-        };
-    } else if (type == typeid(Settings::GPUAccuracy)) {
-        return {
-            tr("Normal"),
-            tr("High"),
-            tr("Extreme"),
-        };
-    } else if (type == typeid(Settings::CPUAccuracy)) {
-        return {
-            tr("Auto"),
-            tr("Accurate"),
-            tr("Unsafe"),
-            tr("Paranoid (disables most optimizations)"),
-        };
-    } else if (type == typeid(Settings::FullscreenMode)) {
-        return {
-            tr("Borderless Windowed"),
-            tr("Exclusive Fullscreen"),
-        };
-    } else if (type == typeid(Settings::NvdecEmulation)) {
-        return {
-            tr("No Video Output"),
-            tr("CPU Video Decoding"),
-            tr("GPU Video Decoding (Default)"),
-        };
-    } else if (type == typeid(Settings::ResolutionSetup)) {
-        return {
-            tr("0.5X (360p/540p) [EXPERIMENTAL]"),
-            tr("0.75X (540p/810p) [EXPERIMENTAL]"),
-            tr("1X (720p/1080p)"),
-            tr("1.5X (1080p/1620p) [EXPERIMENTAL]"),
-            tr("2X (1440p/2160p)"),
-            tr("3X (2160p/3240p)"),
-            tr("4X (2880p/4320p)"),
-            tr("5X (3600p/5400p)"),
-            tr("6X (4320p/6480p)"),
-            tr("7X (5040p/7560p)"),
-            tr("8X (5760p/8640p)"),
-        };
-    } else if (type == typeid(Settings::ScalingFilter)) {
-        return {
-            tr("Nearest Neighbor"), tr("Bilinear"),   tr("Bicubic"),
-            tr("Gaussian"),         tr("ScaleForce"), tr("AMD FidelityFX™️ Super Resolution"),
-        };
-    } else if (type == typeid(Settings::AntiAliasing)) {
-        return {
-            tr("None"),
-            tr("FXAA"),
-            tr("SMAA"),
-        };
-    } else if (type == typeid(Settings::AspectRatio)) {
-        return {
-            tr("Default (16:9)"), tr("Force 4:3"),         tr("Force 21:9"),
-            tr("Force 16:10"),    tr("Stretch to Window"),
-        };
-    } else if (type == typeid(Settings::AnisotropyMode)) {
-        return {
-            tr("Automatic"), tr("Default"), tr("2x"), tr("4x"), tr("8x"), tr("16x"),
-        };
-    } else if (type == typeid(Settings::Language)) {
-        return {
-            tr("Japanese (日本語)"),
-            tr("American English"),
-            tr("French (français)"),
-            tr("German (Deutsch)"),
-            tr("Italian (italiano)"),
-            tr("Spanish (español)"),
-            tr("Chinese"),
-            tr("Korean (한국어)"),
-            tr("Dutch (Nederlands)"),
-            tr("Portuguese (português)"),
-            tr("Russian (Русский)"),
-            tr("Taiwanese"),
-            tr("British English"),
-            tr("Canadian French"),
-            tr("Latin American Spanish"),
-            tr("Simplified Chinese"),
-            tr("Traditional Chinese (正體中文)"),
-            tr("Brazilian Portuguese (português do Brasil)"),
-        };
-    } else if (type == typeid(Settings::Region)) {
-        return {
-            tr("Japan"), tr("USA"),   tr("Europe"), tr("Australia"),
-            tr("China"), tr("Korea"), tr("Taiwan"),
-        };
-    } else if (type == typeid(Settings::TimeZone)) {
-        return {
-            tr("Auto"),    tr("Default"),   tr("CET"),       tr("CST6CDT"),   tr("Cuba"),
-            tr("EET"),     tr("Egypt"),     tr("Eire"),      tr("EST"),       tr("EST5EDT"),
-            tr("GB"),      tr("GB-Eire"),   tr("GMT"),       tr("GMT+0"),     tr("GMT-0"),
-            tr("GMT0"),    tr("Greenwich"), tr("Hongkong"),  tr("HST"),       tr("Iceland"),
-            tr("Iran"),    tr("Israel"),    tr("Jamaica"),   tr("Kwajalein"), tr("Libya"),
-            tr("MET"),     tr("MST"),       tr("MST7MDT"),   tr("Navajo"),    tr("NZ"),
-            tr("NZ-CHAT"), tr("Poland"),    tr("Portugal"),  tr("PRC"),       tr("PST8PDT"),
-            tr("ROC"),     tr("ROK"),       tr("Singapore"), tr("Turkey"),    tr("UCT"),
-            tr("W-SU"),    tr("WET"),       tr("Zulu"),
-        };
-    } else if (type == typeid(Settings::AudioMode)) {
-        return {
-            tr("Mono"),
-            tr("Stereo"),
-            tr("Surround"),
-        };
-    }
+    translations->insert(
+        {typeid(Settings::AstcDecodeMode),
+         {
+             {static_cast<u32>(Settings::AstcDecodeMode::CPU), tr("CPU")},
+             {static_cast<u32>(Settings::AstcDecodeMode::GPU), tr("GPU")},
+             {static_cast<u32>(Settings::AstcDecodeMode::CPUAsynchronous), tr("CPU Asynchronous")},
+         }});
+    translations->insert({typeid(Settings::RendererBackend),
+                          {
+#ifdef HAS_OPENGL
+                              {static_cast<u32>(Settings::RendererBackend::OpenGL), tr("OpenGL")},
+#endif
+                              {static_cast<u32>(Settings::RendererBackend::Vulkan), tr("Vulkan")},
+                              {static_cast<u32>(Settings::RendererBackend::Null), tr("Null")},
+                          }});
+    translations->insert({typeid(Settings::ShaderBackend),
+                          {
+                              {static_cast<u32>(Settings::ShaderBackend::GLSL), tr("GLSL")},
+                              {static_cast<u32>(Settings::ShaderBackend::GLASM),
+                               tr("GLASM (Assembly Shaders, NVIDIA Only)")},
+                              {static_cast<u32>(Settings::ShaderBackend::SPIRV),
+                               tr("SPIR-V (Experimental, Mesa Only)")},
+                          }});
+    translations->insert({typeid(Settings::GPUAccuracy),
+                          {
+                              {static_cast<u32>(Settings::GPUAccuracy::Normal), tr("Normal")},
+                              {static_cast<u32>(Settings::GPUAccuracy::High), tr("High")},
+                              {static_cast<u32>(Settings::GPUAccuracy::Extreme), tr("Extreme")},
+                          }});
+    translations->insert({typeid(Settings::CPUAccuracy),
+                          {
+                              {static_cast<u32>(Settings::CPUAccuracy::Auto), tr("Auto")},
+                              {static_cast<u32>(Settings::CPUAccuracy::Accurate), tr("Accurate")},
+                              {static_cast<u32>(Settings::CPUAccuracy::Unsafe), tr("Unsafe")},
+                              {static_cast<u32>(Settings::CPUAccuracy::Paranoid),
+                               tr("Paranoid (disables most optimizations)")},
+                          }});
+    translations->insert(
+        {typeid(Settings::FullscreenMode),
+         {
+             {static_cast<u32>(Settings::FullscreenMode::Borderless), tr("Borderless Windowed")},
+             {static_cast<u32>(Settings::FullscreenMode::Exclusive), tr("Exclusive Fullscreen")},
+         }});
+    translations->insert(
+        {typeid(Settings::NvdecEmulation),
+         {
+             {static_cast<u32>(Settings::NvdecEmulation::Off), tr("No Video Output")},
+             {static_cast<u32>(Settings::NvdecEmulation::CPU), tr("CPU Video Decoding")},
+             {static_cast<u32>(Settings::NvdecEmulation::GPU), tr("GPU Video Decoding (Default)")},
+         }});
+    translations->insert(
+        {typeid(Settings::ResolutionSetup),
+         {
+             {static_cast<u32>(Settings::ResolutionSetup::Res1_2X),
+              tr("0.5X (360p/540p) [EXPERIMENTAL]")},
+             {static_cast<u32>(Settings::ResolutionSetup::Res3_4X),
+              tr("0.75X (540p/810p) [EXPERIMENTAL]")},
+             {static_cast<u32>(Settings::ResolutionSetup::Res1X), tr("1X (720p/1080p)")},
+             {static_cast<u32>(Settings::ResolutionSetup::Res3_2X),
+              tr("1.5X (1080p/1620p) [EXPERIMENTAL]")},
+             {static_cast<u32>(Settings::ResolutionSetup::Res2X), tr("2X (1440p/2160p)")},
+             {static_cast<u32>(Settings::ResolutionSetup::Res3X), tr("3X (2160p/3240p)")},
+             {static_cast<u32>(Settings::ResolutionSetup::Res4X), tr("4X (2880p/4320p)")},
+             {static_cast<u32>(Settings::ResolutionSetup::Res5X), tr("5X (3600p/5400p)")},
+             {static_cast<u32>(Settings::ResolutionSetup::Res6X), tr("6X (4320p/6480p)")},
+             {static_cast<u32>(Settings::ResolutionSetup::Res7X), tr("7X (5040p/7560p)")},
+             {static_cast<u32>(Settings::ResolutionSetup::Res8X), tr("8X (5760p/8640p)")},
+         }});
+    translations->insert(
+        {typeid(Settings::ScalingFilter),
+         {
+             {static_cast<u32>(Settings::ScalingFilter::NearestNeighbor), tr("Nearest Neighbor")},
+             {static_cast<u32>(Settings::ScalingFilter::Bilinear), tr("Bilinear")},
+             {static_cast<u32>(Settings::ScalingFilter::Bicubic), tr("Bicubic")},
+             {static_cast<u32>(Settings::ScalingFilter::Gaussian), tr("Gaussian")},
+             {static_cast<u32>(Settings::ScalingFilter::ScaleForce), tr("ScaleForce")},
+             {static_cast<u32>(Settings::ScalingFilter::Fsr),
+              tr("AMD FidelityFX™️ Super Resolution")},
+         }});
+    translations->insert({typeid(Settings::AntiAliasing),
+                          {
+                              {static_cast<u32>(Settings::AntiAliasing::None), tr("None")},
+                              {static_cast<u32>(Settings::AntiAliasing::Fxaa), tr("FXAA")},
+                              {static_cast<u32>(Settings::AntiAliasing::Smaa), tr("SMAA")},
+                          }});
+    translations->insert(
+        {typeid(Settings::AspectRatio),
+         {
+             {static_cast<u32>(Settings::AspectRatio::R16_9), tr("Default (16:9)")},
+             {static_cast<u32>(Settings::AspectRatio::R4_3), tr("Force 4:3")},
+             {static_cast<u32>(Settings::AspectRatio::R21_9), tr("Force 21:9")},
+             {static_cast<u32>(Settings::AspectRatio::R16_10), tr("Force 16:10")},
+             {static_cast<u32>(Settings::AspectRatio::Stretch), tr("Stretch to Window")},
+         }});
+    translations->insert(
+        {typeid(Settings::AnisotropyMode),
+         {
+             {static_cast<u32>(Settings::AnisotropyMode::Automatic), tr("Automatic")},
+             {static_cast<u32>(Settings::AnisotropyMode::Default), tr("Default")},
+             {static_cast<u32>(Settings::AnisotropyMode::X2), tr("2x")},
+             {static_cast<u32>(Settings::AnisotropyMode::X4), tr("4x")},
+             {static_cast<u32>(Settings::AnisotropyMode::X8), tr("8x")},
+             {static_cast<u32>(Settings::AnisotropyMode::X16), tr("16x")},
+         }});
+    translations->insert(
+        {typeid(Settings::Language),
+         {
+             {static_cast<u32>(Settings::Language::Japanese), tr("Japanese (日本語)")},
+             {static_cast<u32>(Settings::Language::EnglishAmerican), tr("American English")},
+             {static_cast<u32>(Settings::Language::French), tr("French (français)")},
+             {static_cast<u32>(Settings::Language::German), tr("German (Deutsch)")},
+             {static_cast<u32>(Settings::Language::Italian), tr("Italian (italiano)")},
+             {static_cast<u32>(Settings::Language::Spanish), tr("Spanish (español)")},
+             {static_cast<u32>(Settings::Language::Chinese), tr("Chinese")},
+             {static_cast<u32>(Settings::Language::Korean), tr("Korean (한국어)")},
+             {static_cast<u32>(Settings::Language::Dutch), tr("Dutch (Nederlands)")},
+             {static_cast<u32>(Settings::Language::Portuguese), tr("Portuguese (português)")},
+             {static_cast<u32>(Settings::Language::Russian), tr("Russian (Русский)")},
+             {static_cast<u32>(Settings::Language::Taiwanese), tr("Taiwanese")},
+             {static_cast<u32>(Settings::Language::EnglishBritish), tr("British English")},
+             {static_cast<u32>(Settings::Language::FrenchCanadian), tr("Canadian French")},
+             {static_cast<u32>(Settings::Language::SpanishLatin), tr("Latin American Spanish")},
+             {static_cast<u32>(Settings::Language::ChineseSimplified), tr("Simplified Chinese")},
+             {static_cast<u32>(Settings::Language::ChineseTraditional),
+              tr("Traditional Chinese (正體中文)")},
+             {static_cast<u32>(Settings::Language::PortugueseBrazilian),
+              tr("Brazilian Portuguese (português do Brasil)")},
+         }});
+    translations->insert({typeid(Settings::Region),
+                          {
+                              {static_cast<u32>(Settings::Region::Japan), tr("Japan")},
+                              {static_cast<u32>(Settings::Region::USA), tr("USA")},
+                              {static_cast<u32>(Settings::Region::Europe), tr("Europe")},
+                              {static_cast<u32>(Settings::Region::Australia), tr("Australia")},
+                              {static_cast<u32>(Settings::Region::China), tr("China")},
+                              {static_cast<u32>(Settings::Region::Korea), tr("Korea")},
+                              {static_cast<u32>(Settings::Region::Taiwan), tr("Taiwan")},
+                          }});
+    translations->insert({typeid(Settings::TimeZone),
+                          {
+                              {static_cast<u32>(Settings::TimeZone::Auto), tr("Auto")},
+                              {static_cast<u32>(Settings::TimeZone::Default), tr("Default")},
+                              {static_cast<u32>(Settings::TimeZone::CET), tr("CET")},
+                              {static_cast<u32>(Settings::TimeZone::CST6CDT), tr("CST6CDT")},
+                              {static_cast<u32>(Settings::TimeZone::Cuba), tr("Cuba")},
+                              {static_cast<u32>(Settings::TimeZone::EET), tr("EET")},
+                              {static_cast<u32>(Settings::TimeZone::Egypt), tr("Egypt")},
+                              {static_cast<u32>(Settings::TimeZone::Eire), tr("Eire")},
+                              {static_cast<u32>(Settings::TimeZone::EST), tr("EST")},
+                              {static_cast<u32>(Settings::TimeZone::EST5EDT), tr("EST5EDT")},
+                              {static_cast<u32>(Settings::TimeZone::GB), tr("GB")},
+                              {static_cast<u32>(Settings::TimeZone::GBEire), tr("GB-Eire")},
+                              {static_cast<u32>(Settings::TimeZone::GMT), tr("GMT")},
+                              {static_cast<u32>(Settings::TimeZone::GMTPlusZero), tr("GMT+0")},
+                              {static_cast<u32>(Settings::TimeZone::GMTMinusZero), tr("GMT-0")},
+                              {static_cast<u32>(Settings::TimeZone::GMTZero), tr("GMT0")},
+                              {static_cast<u32>(Settings::TimeZone::Greenwich), tr("Greenwich")},
+                              {static_cast<u32>(Settings::TimeZone::Hongkong), tr("Hongkong")},
+                              {static_cast<u32>(Settings::TimeZone::HST), tr("HST")},
+                              {static_cast<u32>(Settings::TimeZone::Iceland), tr("Iceland")},
+                              {static_cast<u32>(Settings::TimeZone::Iran), tr("Iran")},
+                              {static_cast<u32>(Settings::TimeZone::Israel), tr("Israel")},
+                              {static_cast<u32>(Settings::TimeZone::Jamaica), tr("Jamaica")},
+                              {static_cast<u32>(Settings::TimeZone::Kwajalein), tr("Kwajalein")},
+                              {static_cast<u32>(Settings::TimeZone::Libya), tr("Libya")},
+                              {static_cast<u32>(Settings::TimeZone::MET), tr("MET")},
+                              {static_cast<u32>(Settings::TimeZone::MST), tr("MST")},
+                              {static_cast<u32>(Settings::TimeZone::MST7MDT), tr("MST7MDT")},
+                              {static_cast<u32>(Settings::TimeZone::Navajo), tr("Navajo")},
+                              {static_cast<u32>(Settings::TimeZone::NZ), tr("NZ")},
+                              {static_cast<u32>(Settings::TimeZone::NZCHAT), tr("NZ-CHAT")},
+                              {static_cast<u32>(Settings::TimeZone::Poland), tr("Poland")},
+                              {static_cast<u32>(Settings::TimeZone::Portugal), tr("Portugal")},
+                              {static_cast<u32>(Settings::TimeZone::PRC), tr("PRC")},
+                              {static_cast<u32>(Settings::TimeZone::PST8PDT), tr("PST8PDT")},
+                              {static_cast<u32>(Settings::TimeZone::ROC), tr("ROC")},
+                              {static_cast<u32>(Settings::TimeZone::ROK), tr("ROK")},
+                              {static_cast<u32>(Settings::TimeZone::Singapore), tr("Singapore")},
+                              {static_cast<u32>(Settings::TimeZone::Turkey), tr("Turkey")},
+                              {static_cast<u32>(Settings::TimeZone::UCT), tr("UCT")},
+                              {static_cast<u32>(Settings::TimeZone::W_SU), tr("W-SU")},
+                              {static_cast<u32>(Settings::TimeZone::WET), tr("WET")},
+                              {static_cast<u32>(Settings::TimeZone::Zulu), tr("Zulu")},
+                          }});
+    translations->insert({typeid(Settings::AudioMode),
+                          {
+                              {static_cast<u32>(Settings::AudioMode::Mono), tr("Mono")},
+                              {static_cast<u32>(Settings::AudioMode::Stereo), tr("Stereo")},
+                              {static_cast<u32>(Settings::AudioMode::Surround), tr("Surround")},
+                          }});
 
-    return {};
+    return translations;
 }
-
 } // namespace ConfigurationShared

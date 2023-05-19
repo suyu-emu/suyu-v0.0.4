@@ -35,13 +35,12 @@ class Widget : public QWidget {
     Q_OBJECT
 
 public:
-    Widget(Settings::BasicSetting* setting, const TranslationMap& translations, QWidget* parent,
-           bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs_,
+    Widget(Settings::BasicSetting* setting, const TranslationMap& translations,
+           const ComboboxTranslationMap& combobox_translations, QWidget* parent, bool runtime_lock,
+           std::forward_list<std::function<void(bool)>>& apply_funcs_,
            RequestType request = RequestType::Default, bool managed = true, float multiplier = 1.0f,
            Settings::BasicSetting* other_setting = nullptr,
            const QString& string = QStringLiteral(""));
-    Widget(Settings::BasicSetting* setting_, const TranslationMap& translations_, QWidget* parent_,
-           std::forward_list<std::function<void(bool)>>& apply_funcs_);
     virtual ~Widget();
 
     bool Valid();
@@ -77,6 +76,7 @@ private:
 
     QWidget* parent;
     const TranslationMap& translations;
+    const ComboboxTranslationMap& combobox_enumerations;
     Settings::BasicSetting& setting;
     std::forward_list<std::function<void(bool)>>& apply_funcs;
 
