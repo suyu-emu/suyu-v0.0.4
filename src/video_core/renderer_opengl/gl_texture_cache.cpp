@@ -233,6 +233,8 @@ void ApplySwizzle(GLuint handle, PixelFormat format, std::array<SwizzleSource, 4
                                     const VideoCommon::ImageInfo& info) {
     if (IsPixelFormatASTC(info.format) && info.size.depth == 1 && !runtime.HasNativeASTC()) {
         return Settings::values.accelerate_astc.GetValue() &&
+               Settings::values.astc_recompression.GetValue() ==
+                   Settings::AstcRecompression::Uncompressed &&
                !Settings::values.async_astc.GetValue();
     }
     // Disable other accelerated uploads for now as they don't implement swizzled uploads
@@ -435,6 +437,19 @@ OGLTexture MakeImage(const VideoCommon::ImageInfo& info, GLenum gl_internal_form
     }
     ASSERT_MSG(false, "Invalid image format={}", format);
     return GL_R32UI;
+}
+
+[[nodiscard]] GLenum SelectAstcFormat(PixelFormat format, bool is_srgb) {
+    switch (Settings::values.astc_recompression.GetValue()) {
+    case Settings::AstcRecompression::Bc1:
+        return is_srgb ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT : GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+        break;
+    case Settings::AstcRecompression::Bc3:
+        return is_srgb ? GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT : GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+        break;
+    default:
+        return is_srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+    }
 }
 
 } // Anonymous namespace
@@ -739,9 +754,16 @@ Image::Image(TextureCacheRuntime& runtime_, const VideoCommon::ImageInfo& info_,
     if (IsConverted(runtime->device, info.format, info.type)) {
         flags |= ImageFlagBits::Converted;
         flags |= ImageFlagBits::CostlyLoad;
-        gl_internal_format = IsPixelFormatSRGB(info.format) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+
+        const bool is_srgb = IsPixelFormatSRGB(info.format);
+        gl_internal_format = is_srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
         gl_format = GL_RGBA;
         gl_type = GL_UNSIGNED_INT_8_8_8_8_REV;
+
+        if (IsPixelFormatASTC(info.format)) {
+            gl_internal_format = SelectAstcFormat(info.format, is_srgb);
+            gl_format = GL_NONE;
+        }
     } else {
         const auto& tuple = MaxwellToGL::GetFormatTuple(info.format);
         gl_internal_format = tuple.internal_format;
@@ -1130,7 +1152,12 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
       views{runtime.null_image_views} {
     const Device& device = runtime.device;
     if (True(image.flags & ImageFlagBits::Converted)) {
-        internal_format = IsPixelFormatSRGB(info.format) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+        const bool is_srgb = IsPixelFormatSRGB(info.format);
+        internal_format = is_srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+
+        if (IsPixelFormatASTC(info.format)) {
+            internal_format = SelectAstcFormat(info.format, is_srgb);
+        }
     } else {
         internal_format = MaxwellToGL::GetFormatTuple(format).internal_format;
     }

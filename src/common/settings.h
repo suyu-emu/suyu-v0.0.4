@@ -90,6 +90,12 @@ enum class AntiAliasing : u32 {
     LastAA = Smaa,
 };
 
+enum class AstcRecompression : u32 {
+    Uncompressed = 0,
+    Bc1 = 1,
+    Bc3 = 2,
+};
+
 struct ResolutionScalingInfo {
     u32 up_scale{1};
     u32 down_shift{0};
@@ -473,6 +479,9 @@ struct Values {
     SwitchableSetting<bool> use_vulkan_driver_pipeline_cache{true,
                                                              "use_vulkan_driver_pipeline_cache"};
     SwitchableSetting<bool> enable_compute_pipelines{false, "enable_compute_pipelines"};
+    SwitchableSetting<AstcRecompression, true> astc_recompression{
+        AstcRecompression::Uncompressed, AstcRecompression::Uncompressed, AstcRecompression::Bc3,
+        "astc_recompression"};
 
     SwitchableSetting<u8> bg_red{0, "bg_red"};
     SwitchableSetting<u8> bg_green{0, "bg_green"};

@@ -1268,7 +1268,9 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
     if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported()) {
         if (Settings::values.async_astc.GetValue()) {
             flags |= VideoCommon::ImageFlagBits::AsynchronousDecode;
-        } else if (Settings::values.accelerate_astc.GetValue() && info.size.depth == 1) {
+        } else if (Settings::values.astc_recompression.GetValue() ==
+                       Settings::AstcRecompression::Uncompressed &&
+                   Settings::values.accelerate_astc.GetValue() && info.size.depth == 1) {
             flags |= VideoCommon::ImageFlagBits::AcceleratedUpload;
         }
         flags |= VideoCommon::ImageFlagBits::Converted;
@@ -1283,7 +1285,9 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
         .usage = VK_IMAGE_USAGE_STORAGE_BIT,
     };
     current_image = *original_image;
-    if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported()) {
+    if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported() &&
+        Settings::values.astc_recompression.GetValue() ==
+            Settings::AstcRecompression::Uncompressed) {
         const auto& device = runtime->device.GetLogical();
         storage_image_views.reserve(info.resources.levels);
         for (s32 level = 0; level < info.resources.levels; ++level) {

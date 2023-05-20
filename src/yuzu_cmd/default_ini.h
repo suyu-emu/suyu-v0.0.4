@@ -360,6 +360,10 @@ accelerate_astc =
 # 0 (default): Off, 1: On
 async_astc =
 
+# Recompress ASTC textures to a different format.
+# 0 (default): Uncompressed, 1: BC1 (Low quality), 2: BC3: (Medium quality)
+async_astc =
+
 # Turns on the speed limiter, which will limit the emulation speed to the desired speed limit value
 # 0: Off, 1: On (default)
 use_speed_limit =

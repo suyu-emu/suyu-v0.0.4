@@ -246,10 +246,14 @@ add_library(video_core STATIC
     texture_cache/util.h
     textures/astc.h
     textures/astc.cpp
+    textures/bcn.cpp
+    textures/bcn.h
     textures/decoders.cpp
     textures/decoders.h
     textures/texture.cpp
     textures/texture.h
+    textures/workers.cpp
+    textures/workers.h
     transform_feedback.cpp
     transform_feedback.h
     video_core.cpp
@@ -275,7 +279,7 @@ add_library(video_core STATIC
 create_target_directory_groups(video_core)
 
 target_link_libraries(video_core PUBLIC common core)
-target_link_libraries(video_core PUBLIC glad shader_recompiler)
+target_link_libraries(video_core PUBLIC glad shader_recompiler stb)
 
 if (YUZU_USE_BUNDLED_FFMPEG AND NOT WIN32)
     add_dependencies(video_core ffmpeg-build)
