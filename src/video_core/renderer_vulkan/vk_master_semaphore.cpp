@@ -10,11 +10,16 @@
 
 namespace Vulkan {
 
+constexpr u64 FENCE_RESERVE_SIZE = 8;
+
 MasterSemaphore::MasterSemaphore(const Device& device_) : device(device_) {
     if (!device.HasTimelineSemaphore()) {
         static constexpr VkFenceCreateInfo fence_ci{
             .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, .pNext = nullptr, .flags = 0};
-        fence = device.GetLogical().CreateFence(fence_ci);
+        free_queue.resize(FENCE_RESERVE_SIZE);
+        std::ranges::generate(free_queue,
+                              [&] { return device.GetLogical().CreateFence(fence_ci); });
+        wait_thread = std::jthread([this](std::stop_token token) { WaitThread(token); });
         return;
     }
 
@@ -167,16 +172,53 @@ VkResult MasterSemaphore::SubmitQueueFence(vk::CommandBuffer& cmdbuf, VkSemaphor
         .pSignalSemaphores = &signal_semaphore,
     };
 
+    auto fence = GetFreeFence();
     auto result = device.GetGraphicsQueue().Submit(submit_info, *fence);
 
     if (result == VK_SUCCESS) {
+        std::scoped_lock lock{wait_mutex};
+        wait_queue.emplace(host_tick, std::move(fence));
+        wait_cv.notify_one();
+    }
+
+    return result;
+}
+
+void MasterSemaphore::WaitThread(std::stop_token token) {
+    while (!token.stop_requested()) {
+        u64 host_tick;
+        vk::Fence fence;
+        {
+            std::unique_lock lock{wait_mutex};
+            Common::CondvarWait(wait_cv, lock, token, [this] { return !wait_queue.empty(); });
+            if (token.stop_requested()) {
+                return;
+            }
+            std::tie(host_tick, fence) = std::move(wait_queue.front());
+            wait_queue.pop();
+        }
+
         fence.Wait();
         fence.Reset();
         gpu_tick.store(host_tick);
         gpu_tick.notify_all();
+
+        std::scoped_lock lock{free_mutex};
+        free_queue.push_front(std::move(fence));
+    }
+}
+
+vk::Fence MasterSemaphore::GetFreeFence() {
+    std::scoped_lock lock{free_mutex};
+    if (free_queue.empty()) {
+        static constexpr VkFenceCreateInfo fence_ci{
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, .pNext = nullptr, .flags = 0};
+        return device.GetLogical().CreateFence(fence_ci);
     }
 
-    return result;
+    auto fence = std::move(free_queue.back());
+    free_queue.pop_back();
+    return fence;
 }
 
 } // namespace Vulkan
