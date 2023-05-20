@@ -380,13 +380,16 @@ void InputEngine::TriggerOnMotionChange(const PadIdentifier& identifier, int mot
     if (!configuring || !mapping_callback.on_data) {
         return;
     }
+    const auto old_value = GetMotion(identifier, motion);
     bool is_active = false;
-    if (std::abs(value.accel_x) > 1.5f || std::abs(value.accel_y) > 1.5f ||
-        std::abs(value.accel_z) > 1.5f) {
+    if (std::abs(value.accel_x - old_value.accel_x) > 1.5f ||
+        std::abs(value.accel_y - old_value.accel_y) > 1.5f ||
+        std::abs(value.accel_z - old_value.accel_z) > 1.5f) {
         is_active = true;
     }
-    if (std::abs(value.gyro_x) > 0.6f || std::abs(value.gyro_y) > 0.6f ||
-        std::abs(value.gyro_z) > 0.6f) {
+    if (std::abs(value.gyro_x - old_value.gyro_x) > 0.6f ||
+        std::abs(value.gyro_y - old_value.gyro_y) > 0.6f ||
+        std::abs(value.gyro_z - old_value.gyro_z) > 0.6f) {
         is_active = true;
     }
     if (!is_active) {
