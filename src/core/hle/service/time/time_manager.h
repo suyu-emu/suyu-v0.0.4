@@ -64,8 +64,6 @@ public:
                               std::size_t total_location_name_count, u128 time_zone_rule_version,
                               FileSys::VirtualFile& vfs_file);
 
-    static s64 GetExternalTimeZoneOffset();
-
 private:
     Core::System& system;
 

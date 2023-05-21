@@ -119,14 +119,6 @@ struct TimeManager::Impl final {
         time_zone_content_manager.GetTimeZoneManager().MarkAsInitialized();
     }
 
-    static s64 GetExternalTimeZoneOffset() {
-        // With "auto" timezone setting, we use the external system's timezone offset
-        if (Settings::GetTimeZoneString() == "auto") {
-            return Common::TimeZone::GetCurrentOffsetSeconds().count();
-        }
-        return 0;
-    }
-
     void SetupStandardSteadyClock(Core::System& system_, Common::UUID clock_source_id,
                                   Clock::TimeSpanType setup_value,
                                   Clock::TimeSpanType internal_offset, bool is_rtc_reset_detected) {
@@ -297,13 +289,4 @@ void TimeManager::SetupTimeZoneManager(std::string location_name,
     impl->SetupTimeZoneManager(location_name, time_zone_updated_time_point,
                                total_location_name_count, time_zone_rule_version, vfs_file);
 }
-
-/*static*/ s64 TimeManager::GetExternalTimeZoneOffset() {
-    // With "auto" timezone setting, we use the external system's timezone offset
-    if (Settings::GetTimeZoneString() == "auto") {
-        return Common::TimeZone::GetCurrentOffsetSeconds().count();
-    }
-    return 0;
-}
-
 } // namespace Service::Time

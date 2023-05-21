@@ -76,25 +76,14 @@ TimeZoneContentManager::TimeZoneContentManager(Core::System& system_)
     : system{system_}, location_name_cache{BuildLocationNameCache(system)} {}
 
 void TimeZoneContentManager::Initialize(TimeManager& time_manager) {
-    std::string location_name;
     const auto timezone_setting = Settings::GetTimeZoneString();
-    if (timezone_setting == "auto") {
-        const struct std::chrono::tzdb& time_zone_data = std::chrono::get_tzdb();
-        const std::chrono::time_zone* current_zone = time_zone_data.current_zone();
-        std::string_view current_zone_name = current_zone->name();
-        location_name = current_zone_name;
-    } else if (timezone_setting == "default") {
-        location_name = Common::TimeZone::GetDefaultTimeZone();
-    } else {
-        location_name = timezone_setting;
-    }
 
     if (FileSys::VirtualFile vfs_file;
-        GetTimeZoneInfoFile(location_name, vfs_file) == ResultSuccess) {
+        GetTimeZoneInfoFile(timezone_setting, vfs_file) == ResultSuccess) {
         const auto time_point{
             time_manager.GetStandardSteadyClockCore().GetCurrentTimePoint(system)};
-        time_manager.SetupTimeZoneManager(location_name, time_point, location_name_cache.size(), {},
-                                          vfs_file);
+        time_manager.SetupTimeZoneManager(timezone_setting, time_point, location_name_cache.size(),
+                                          {}, vfs_file);
     } else {
         time_zone_manager.MarkAsInitialized();
     }
