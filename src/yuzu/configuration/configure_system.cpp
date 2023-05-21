@@ -144,8 +144,7 @@ void ConfigureSystem::ApplyConfiguration() {
         if (ui->custom_rtc_checkbox->isChecked()) {
             Settings::values.custom_rtc = ui->custom_rtc_edit->dateTime().toSecsSinceEpoch();
             if (system.IsPoweredOn()) {
-                const s64 posix_time{*Settings::values.custom_rtc +
-                                     Service::Time::TimeManager::GetExternalTimeZoneOffset()};
+                const s64 posix_time{*Settings::values.custom_rtc};
                 system.GetTimeManager().UpdateLocalSystemClockTime(posix_time);
             }
         } else {
