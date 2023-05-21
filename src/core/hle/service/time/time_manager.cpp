@@ -22,10 +22,6 @@ s64 GetSecondsSinceEpoch() {
     return std::chrono::duration_cast<std::chrono::seconds>(time_since_epoch).count() +
            Settings::values.custom_rtc_differential;
 }
-
-s64 GetExternalRtcValue() {
-    return GetSecondsSinceEpoch() + TimeManager::GetExternalTimeZoneOffset();
-}
 } // Anonymous namespace
 
 struct TimeManager::Impl final {
@@ -43,7 +39,7 @@ struct TimeManager::Impl final {
               std::make_shared<Clock::EphemeralNetworkSystemClockContextWriter>()},
           time_zone_content_manager{system} {
 
-        const auto system_time{Clock::TimeSpanType::FromSeconds(GetExternalRtcValue())};
+        const auto system_time{Clock::TimeSpanType::FromSeconds(GetSecondsSinceEpoch())};
         SetupStandardSteadyClock(system, Common::UUID::MakeRandom(), system_time, {}, {});
         SetupStandardLocalSystemClock(system, {}, system_time.ToSeconds());
 
