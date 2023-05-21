@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <chrono>
 #include <sstream>
 
 #include "common/logging/log.h"
@@ -12,7 +13,11 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/system_archive/system_archive.h"
+#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs_types.h"
+#include "core/hle/result.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "core/hle/service/time/errors.h"
 #include "core/hle/service/time/time_manager.h"
 #include "core/hle/service/time/time_zone_content_manager.h"
 
@@ -73,7 +78,12 @@ TimeZoneContentManager::TimeZoneContentManager(Core::System& system_)
 void TimeZoneContentManager::Initialize(TimeManager& time_manager) {
     std::string location_name;
     const auto timezone_setting = Settings::GetTimeZoneString();
-    if (timezone_setting == "auto" || timezone_setting == "default") {
+    if (timezone_setting == "auto") {
+        const struct std::chrono::tzdb& time_zone_data = std::chrono::get_tzdb();
+        const std::chrono::time_zone* current_zone = time_zone_data.current_zone();
+        std::string_view current_zone_name = current_zone->name();
+        location_name = current_zone_name;
+    } else if (timezone_setting == "default") {
         location_name = Common::TimeZone::GetDefaultTimeZone();
     } else {
         location_name = timezone_setting;
