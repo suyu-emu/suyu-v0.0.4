@@ -177,6 +177,7 @@
     <string name="loader_error_video_core">An error occurred initializing the video core</string>
     <string name="loader_error_video_core_description">This is usually caused by an incompatible GPU driver. Installing a custom GPU driver may resolve this problem.</string>
     <string name="loader_error_invalid_format">Unable to load ROM</string>
+    <string name="loader_error_file_not_found">ROM file does not exist</string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">Exit Emulation</string>

@@ -3,15 +3,18 @@
 
 package org.yuzu.yuzu_emu.adapters
 
-import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.AsyncDifferConfig
@@ -27,6 +30,7 @@ import org.yuzu.yuzu_emu.databinding.CardGameBinding
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.adapters.GameAdapter.GameViewHolder
+import org.yuzu.yuzu_emu.model.GamesViewModel
 
 class GameAdapter(private val activity: AppCompatActivity) :
     ListAdapter<Game, GameViewHolder>(AsyncDifferConfig.Builder(DiffCallback()).build()),
@@ -53,6 +57,19 @@ class GameAdapter(private val activity: AppCompatActivity) :
      */
     override fun onClick(view: View) {
         val holder = view.tag as GameViewHolder
+
+        val gameExists = DocumentFile.fromSingleUri(YuzuApplication.appContext, Uri.parse(holder.game.path))?.exists() == true
+        if (!gameExists) {
+            Toast.makeText(
+                YuzuApplication.appContext,
+                R.string.loader_error_file_not_found,
+                Toast.LENGTH_LONG
+            ).show()
+
+            ViewModelProvider(activity)[GamesViewModel::class.java].reloadGames(true)
+            return
+        }
+
         val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
         preferences.edit()
             .putLong(
