@@ -2,16 +2,16 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="48dp">
+    android:layout_height="48dp"
+    android:paddingVertical="4dp"
+    android:paddingHorizontal="@dimen/spacing_large">
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
+        style="@style/TextAppearance.Material3.TitleSmall"
         android:id="@+id/text_header_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="start|center_vertical"
-        android:layout_marginHorizontal="@dimen/spacing_large"
-        android:layout_marginBottom="@dimen/spacing_small"
-        android:layout_marginTop="@dimen/spacing_small"
         android:textColor="?attr/colorPrimary"
         android:textAlignment="viewStart"
         android:textStyle="bold"

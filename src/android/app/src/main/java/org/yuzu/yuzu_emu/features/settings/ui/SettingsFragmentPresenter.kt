@@ -77,7 +77,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addConfigSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_settings))
+        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_advanced_settings))
         sl.apply {
             add(
                 SubmenuSetting(
