@@ -190,6 +190,10 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         finish()
     }
 
+    fun setToolbarTitle(title: String) {
+        binding.toolbarSettingsLayout.title = title
+    }
+
     private val settingsFragment: SettingsFragment?
         get() = supportFragmentManager.findFragmentByTag(FRAGMENT_TAG) as SettingsFragment?
 

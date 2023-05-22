@@ -54,7 +54,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
 
     fun loadSettingsList() {
         if (!TextUtils.isEmpty(gameId)) {
-            settingsActivity.title = "Game Settings: $gameId"
+            settingsActivity.setToolbarTitle("Game Settings: $gameId")
         }
         val sl = ArrayList<SettingsItem>()
         if (menuTag == null) {
@@ -77,7 +77,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addConfigSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setTitle(R.string.preferences_settings)
+        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_settings))
         sl.apply {
             add(
                 SubmenuSetting(
@@ -121,7 +121,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addGeneralSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setTitle(R.string.preferences_general)
+        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_general))
         sl.apply {
             add(
                 SwitchSetting(
@@ -159,7 +159,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addSystemSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setTitle(R.string.preferences_system)
+        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_system))
         sl.apply {
             add(
                 SwitchSetting(
@@ -214,7 +214,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setTitle(R.string.preferences_graphics)
+        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_graphics))
         sl.apply {
             add(
                 SingleChoiceSetting(
@@ -322,7 +322,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addAudioSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setTitle(R.string.preferences_audio)
+        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_audio))
         sl.add(
             SliderSetting(
                 IntSetting.AUDIO_VOLUME,
@@ -338,7 +338,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addThemeSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setTitle(R.string.preferences_theme)
+        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_theme))
         sl.apply {
             val theme: AbstractIntSetting = object : AbstractIntSetting {
                 override var int: Int
