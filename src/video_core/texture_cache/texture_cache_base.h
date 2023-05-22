@@ -148,6 +148,9 @@ public:
     /// Fill image_view_ids with the compute images in indices
     void FillComputeImageViews(std::span<ImageViewInOut> views);
 
+    /// Handle feedback loops during draws.
+    void CheckFeedbackLoop(std::span<const ImageViewInOut> views);
+
     /// Get the sampler from the graphics descriptor table in the specified index
     Sampler* GetGraphicsSampler(u32 index);
 

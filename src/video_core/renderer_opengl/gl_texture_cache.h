@@ -144,6 +144,10 @@ public:
         return state_tracker;
     }
 
+    void BarrierFeedbackLoop() const noexcept {
+        // OpenGL does not require a barrier for attachment feedback loops.
+    }
+
 private:
     struct StagingBuffers {
         explicit StagingBuffers(GLenum storage_flags_, GLenum map_flags_);
