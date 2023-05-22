@@ -185,6 +185,7 @@
     <string name="emulation_toggle_controls">Toggle Controls</string>
     <string name="emulation_rel_stick_center">Relative Stick Center</string>
     <string name="emulation_dpad_slide">DPad Slide</string>
+    <string name="emulation_haptics">Haptics</string>
     <string name="emulation_show_overlay">Show Overlay</string>
     <string name="emulation_toggle_all">Toggle All</string>
     <string name="emulation_control_scale">Adjust Scale</string>

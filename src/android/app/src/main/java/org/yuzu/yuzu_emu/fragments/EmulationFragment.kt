@@ -223,10 +223,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         popup.menuInflater.inflate(R.menu.menu_overlay_options, popup.menu)
 
-        popup.menu.findItem(R.id.menu_rel_stick_center).isChecked =
-            EmulationMenuSettings.joystickRelCenter
-        popup.menu.findItem(R.id.menu_dpad_slide).isChecked = EmulationMenuSettings.dpadSlide
-        popup.menu.findItem(R.id.menu_show_overlay).isChecked = EmulationMenuSettings.showOverlay
+        popup.menu.apply {
+            findItem(R.id.menu_rel_stick_center).isChecked = EmulationMenuSettings.joystickRelCenter
+            findItem(R.id.menu_dpad_slide).isChecked = EmulationMenuSettings.dpadSlide
+            findItem(R.id.menu_show_overlay).isChecked = EmulationMenuSettings.showOverlay
+            findItem(R.id.menu_haptics).isChecked = EmulationMenuSettings.hapticFeedback
+        }
 
         popup.setOnMenuItemClickListener {
             when (it.itemId) {
@@ -288,6 +290,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.id.menu_dpad_slide -> {
                     it.isChecked = !it.isChecked
                     EmulationMenuSettings.dpadSlide = it.isChecked
+                    true
+                }
+                R.id.menu_haptics -> {
+                    it.isChecked = !it.isChecked
+                    EmulationMenuSettings.hapticFeedback = it.isChecked
                     true
                 }
                 R.id.menu_reset_overlay -> {

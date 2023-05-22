@@ -33,6 +33,13 @@ object EmulationMenuSettings {
                 .putBoolean(Settings.PREF_MENU_SETTINGS_DPAD_SLIDE, value)
                 .apply()
         }
+    var hapticFeedback: Boolean
+        get() = preferences.getBoolean(Settings.PREF_MENU_SETTINGS_HAPTICS, false)
+        set(value) {
+            preferences.edit()
+                .putBoolean(Settings.PREF_MENU_SETTINGS_HAPTICS, value)
+                .apply()
+        }
 
     var landscapeScreenLayout: Int
         get() = preferences.getInt(

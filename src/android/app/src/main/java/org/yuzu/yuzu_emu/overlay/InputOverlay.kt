@@ -14,6 +14,7 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.VectorDrawable
 import android.os.Build
 import android.util.AttributeSet
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.SurfaceView
 import android.view.View
@@ -105,6 +106,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                 button.buttonId,
                 button.status
             )
+            playHaptics(event)
             shouldUpdateView = true
         }
 
@@ -132,6 +134,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                 dpad.rightId,
                 dpad.rightStatus
             )
+            playHaptics(event)
             shouldUpdateView = true
         }
 
@@ -151,6 +154,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                 joystick.buttonId,
                 joystick.buttonStatus
             )
+            playHaptics(event)
             shouldUpdateView = true
         }
 
@@ -191,6 +195,20 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         }
 
         return true
+    }
+
+    private fun playHaptics(event: MotionEvent) {
+        if (EmulationMenuSettings.hapticFeedback) {
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN,
+                MotionEvent.ACTION_POINTER_DOWN ->
+                    performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_POINTER_UP ->
+                    performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY_RELEASE)
+            }
+        }
     }
 
     private fun isTouchInputConsumed(track_id: Int): Boolean {
@@ -236,11 +254,13 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                         buttonBeingConfigured = button
                         buttonBeingConfigured!!.onConfigureTouch(event)
                     }
+
                 MotionEvent.ACTION_MOVE -> if (buttonBeingConfigured != null) {
                     buttonBeingConfigured!!.onConfigureTouch(event)
                     invalidate()
                     return true
                 }
+
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_POINTER_UP -> if (buttonBeingConfigured === button) {
                     // Persist button position by saving new place.
@@ -267,11 +287,13 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                         dpadBeingConfigured = dpad
                         dpadBeingConfigured!!.onConfigureTouch(event)
                     }
+
                 MotionEvent.ACTION_MOVE -> if (dpadBeingConfigured != null) {
                     dpadBeingConfigured!!.onConfigureTouch(event)
                     invalidate()
                     return true
                 }
+
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_POINTER_UP -> if (dpadBeingConfigured === dpad) {
                     // Persist button position by saving new place.
@@ -298,10 +320,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     joystickBeingConfigured = joystick
                     joystickBeingConfigured!!.onConfigureTouch(event)
                 }
+
                 MotionEvent.ACTION_MOVE -> if (joystickBeingConfigured != null) {
                     joystickBeingConfigured!!.onConfigureTouch(event)
                     invalidate()
                 }
+
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_POINTER_UP -> if (joystickBeingConfigured != null) {
                     saveControlPosition(
@@ -795,10 +819,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                 ButtonType.BUTTON_CAPTURE,
                 ButtonType.BUTTON_PLUS,
                 ButtonType.BUTTON_MINUS -> 0.07f
+
                 ButtonType.TRIGGER_L,
                 ButtonType.TRIGGER_R,
                 ButtonType.TRIGGER_ZL,
                 ButtonType.TRIGGER_ZR -> 0.26f
+
                 else -> 0.11f
             }
             scale *= (sPrefs.getInt(Settings.PREF_CONTROL_SCALE, 50) + 50).toFloat()

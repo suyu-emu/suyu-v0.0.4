@@ -130,6 +130,7 @@ class Settings {
 
         const val PREF_MENU_SETTINGS_JOYSTICK_REL_CENTER = "EmulationMenuSettings_JoystickRelCenter"
         const val PREF_MENU_SETTINGS_DPAD_SLIDE = "EmulationMenuSettings_DpadSlideEnable"
+        const val PREF_MENU_SETTINGS_HAPTICS = "EmulationMenuSettings_Haptics"
         const val PREF_MENU_SETTINGS_LANDSCAPE = "EmulationMenuSettings_LandscapeScreenLayout"
         const val PREF_MENU_SETTINGS_SHOW_FPS = "EmulationMenuSettings_ShowFps"
         const val PREF_MENU_SETTINGS_SHOW_OVERLAY = "EmulationMenuSettings_ShowOverlay"
