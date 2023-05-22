@@ -55,62 +55,65 @@ class GamesFragment : Fragment() {
             adapter = GameAdapter(requireActivity() as AppCompatActivity)
         }
 
-        // Add swipe down to refresh gesture
-        binding.swipeRefresh.setOnRefreshListener {
-            gamesViewModel.reloadGames(false)
-        }
+        binding.swipeRefresh.apply {
+            // Add swipe down to refresh gesture
+            setOnRefreshListener {
+                gamesViewModel.reloadGames(false)
+            }
 
-        // Set theme color to the refresh animation's background
-        binding.swipeRefresh.setProgressBackgroundColorSchemeColor(
-            MaterialColors.getColor(
-                binding.swipeRefresh,
-                com.google.android.material.R.attr.colorPrimary
+            // Set theme color to the refresh animation's background
+            setProgressBackgroundColorSchemeColor(
+                MaterialColors.getColor(
+                    binding.swipeRefresh,
+                    com.google.android.material.R.attr.colorPrimary
+                )
             )
-        )
-        binding.swipeRefresh.setColorSchemeColors(
-            MaterialColors.getColor(
-                binding.swipeRefresh,
-                com.google.android.material.R.attr.colorOnPrimary
+            setColorSchemeColors(
+                MaterialColors.getColor(
+                    binding.swipeRefresh,
+                    com.google.android.material.R.attr.colorOnPrimary
+                )
             )
-        )
 
-        // Watch for when we get updates to any of our games lists
-        gamesViewModel.isReloading.observe(viewLifecycleOwner) { isReloading ->
-            binding.swipeRefresh.isRefreshing = isReloading
-        }
-        gamesViewModel.games.observe(viewLifecycleOwner) {
-            (binding.gridGames.adapter as GameAdapter).submitList(it)
-            if (it.isEmpty()) {
-                binding.noticeText.visibility = View.VISIBLE
-            } else {
-                binding.noticeText.visibility = View.GONE
+            // Make sure the loading indicator appears even if the layout is told to refresh before being fully drawn
+            post {
+                if (_binding == null) {
+                    return@post
+                }
+                binding.swipeRefresh.isRefreshing = gamesViewModel.isReloading.value!!
             }
         }
 
-        gamesViewModel.shouldSwapData.observe(viewLifecycleOwner) { shouldSwapData ->
-            if (shouldSwapData) {
-                (binding.gridGames.adapter as GameAdapter).submitList(gamesViewModel.games.value!!)
-                gamesViewModel.setShouldSwapData(false)
+        gamesViewModel.apply {
+            // Watch for when we get updates to any of our games lists
+            isReloading.observe(viewLifecycleOwner) { isReloading ->
+                binding.swipeRefresh.isRefreshing = isReloading
             }
-        }
+            games.observe(viewLifecycleOwner) {
+                (binding.gridGames.adapter as GameAdapter).submitList(it)
+                if (it.isEmpty()) {
+                    binding.noticeText.visibility = View.VISIBLE
+                } else {
+                    binding.noticeText.visibility = View.GONE
+                }
+            }
+            shouldSwapData.observe(viewLifecycleOwner) { shouldSwapData ->
+                if (shouldSwapData) {
+                    (binding.gridGames.adapter as GameAdapter).submitList(gamesViewModel.games.value!!)
+                    gamesViewModel.setShouldSwapData(false)
+                }
+            }
 
-        // Check if the user reselected the games menu item and then scroll to top of the list
-        gamesViewModel.shouldScrollToTop.observe(viewLifecycleOwner) { shouldScroll ->
-            if (shouldScroll) {
-                scrollToTop()
-                gamesViewModel.setShouldScrollToTop(false)
+            // Check if the user reselected the games menu item and then scroll to top of the list
+            shouldScrollToTop.observe(viewLifecycleOwner) { shouldScroll ->
+                if (shouldScroll) {
+                    scrollToTop()
+                    gamesViewModel.setShouldScrollToTop(false)
+                }
             }
         }
 
         setInsets()
-
-        // Make sure the loading indicator appears even if the layout is told to refresh before being fully drawn
-        binding.swipeRefresh.post {
-            if (_binding == null) {
-                return@post
-            }
-            binding.swipeRefresh.isRefreshing = gamesViewModel.isReloading.value!!
-        }
     }
 
     override fun onDestroyView() {

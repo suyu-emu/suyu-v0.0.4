@@ -61,13 +61,6 @@ class SearchFragment : Fragment() {
             binding.searchText.setText(savedInstanceState.getString(SEARCH_TEXT))
         }
 
-        gamesViewModel.searchFocused.observe(viewLifecycleOwner) { searchFocused ->
-            if (searchFocused) {
-                focusSearch()
-                gamesViewModel.setSearchFocused(false)
-            }
-        }
-
         binding.gridGamesSearch.apply {
             layoutManager = AutofitGridLayoutManager(
                 requireContext(),
@@ -87,13 +80,22 @@ class SearchFragment : Fragment() {
             filterAndSearch()
         }
 
-        gamesViewModel.games.observe(viewLifecycleOwner) { filterAndSearch() }
-        gamesViewModel.searchedGames.observe(viewLifecycleOwner) {
-            (binding.gridGamesSearch.adapter as GameAdapter).submitList(it)
-            if (it.isEmpty()) {
-                binding.noResultsView.visibility = View.VISIBLE
-            } else {
-                binding.noResultsView.visibility = View.GONE
+        gamesViewModel.apply {
+            searchFocused.observe(viewLifecycleOwner) { searchFocused ->
+                if (searchFocused) {
+                    focusSearch()
+                    gamesViewModel.setSearchFocused(false)
+                }
+            }
+
+            games.observe(viewLifecycleOwner) { filterAndSearch() }
+            searchedGames.observe(viewLifecycleOwner) {
+                (binding.gridGamesSearch.adapter as GameAdapter).submitList(it)
+                if (it.isEmpty()) {
+                    binding.noResultsView.visibility = View.VISIBLE
+                } else {
+                    binding.noResultsView.visibility = View.GONE
+                }
             }
         }
 
