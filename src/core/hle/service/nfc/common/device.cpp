@@ -119,18 +119,31 @@ bool NfcDevice::LoadNfcTag(std::span<const u8> data) {
 
     memcpy(&tag_data, data.data(), sizeof(NFP::EncryptedNTAG215File));
     is_plain_amiibo = NFP::AmiiboCrypto::IsAmiiboValid(tag_data);
-
-    if (is_plain_amiibo) {
-        encrypted_tag_data = NFP::AmiiboCrypto::EncodedDataToNfcData(tag_data);
-        LOG_INFO(Service_NFP, "Using plain amiibo");
-    } else {
-        tag_data = {};
-        memcpy(&encrypted_tag_data, data.data(), sizeof(NFP::EncryptedNTAG215File));
-    }
+    is_write_protected = false;
 
     device_state = DeviceState::TagFound;
     deactivate_event->GetReadableEvent().Clear();
     activate_event->Signal();
+
+    // Fallback for plain amiibos
+    if (is_plain_amiibo) {
+        LOG_INFO(Service_NFP, "Using plain amiibo");
+        encrypted_tag_data = NFP::AmiiboCrypto::EncodedDataToNfcData(tag_data);
+        return true;
+    }
+
+    // Fallback for encrypted amiibos without keys
+    if (!NFP::AmiiboCrypto::IsKeyAvailable()) {
+        LOG_INFO(Service_NFC, "Loading amiibo without keys");
+        memcpy(&encrypted_tag_data, data.data(), sizeof(NFP::EncryptedNTAG215File));
+        BuildAmiiboWithoutKeys();
+        is_plain_amiibo = true;
+        is_write_protected = true;
+        return true;
+    }
+
+    tag_data = {};
+    memcpy(&encrypted_tag_data, data.data(), sizeof(NFP::EncryptedNTAG215File));
     return true;
 }
 
@@ -346,23 +359,15 @@ Result NfcDevice::Mount(NFP::ModelType model_type, NFP::MountTarget mount_target
         return ResultWrongDeviceState;
     }
 
-    // The loaded amiibo is not encrypted
-    if (is_plain_amiibo) {
-        device_state = DeviceState::TagMounted;
-        mount_target = mount_target_;
-        return ResultSuccess;
-    }
-
     if (!NFP::AmiiboCrypto::IsAmiiboValid(encrypted_tag_data)) {
         LOG_ERROR(Service_NFP, "Not an amiibo");
         return ResultNotAnAmiibo;
     }
 
-    // Mark amiibos as read only when keys are missing
-    if (!NFP::AmiiboCrypto::IsKeyAvailable()) {
-        LOG_ERROR(Service_NFP, "No keys detected");
+    // The loaded amiibo is not encrypted
+    if (is_plain_amiibo) {
         device_state = DeviceState::TagMounted;
-        mount_target = NFP::MountTarget::Rom;
+        mount_target = mount_target_;
         return ResultSuccess;
     }
 
@@ -455,6 +460,11 @@ Result NfcDevice::FlushWithBreak(NFP::BreakType break_type) {
     if (break_type != NFP::BreakType::Normal) {
         LOG_ERROR(Service_NFC, "Break type not implemented {}", break_type);
         return ResultWrongDeviceState;
+    }
+
+    if (is_write_protected) {
+        LOG_ERROR(Service_NFP, "No keys available skipping write request");
+        return ResultSuccess;
     }
 
     std::vector<u8> data(sizeof(NFP::EncryptedNTAG215File));
@@ -1033,7 +1043,6 @@ Result NfcDevice::GetAll(NFP::NfpData& data) const {
     }
 
     NFP::CommonInfo common_info{};
-    Service::Mii::MiiManager manager;
     const u64 application_id = tag_data.application_id;
 
     GetCommonInfo(common_info);
@@ -1247,6 +1256,28 @@ void NfcDevice::UpdateRegisterInfoCrc() {
     boost::crc_32_type crc;
     crc.process_bytes(&crc_data, sizeof(CrcData));
     tag_data.register_info_crc = crc.checksum();
+}
+
+void NfcDevice::BuildAmiiboWithoutKeys() {
+    Service::Mii::MiiManager manager;
+    auto& settings = tag_data.settings;
+
+    tag_data = NFP::AmiiboCrypto::NfcDataToEncodedData(encrypted_tag_data);
+
+    // Common info
+    tag_data.write_counter = 0;
+    tag_data.amiibo_version = 0;
+    settings.write_date = GetAmiiboDate(GetCurrentPosixTime());
+
+    // Register info
+    SetAmiiboName(settings, {'y', 'u', 'z', 'u', 'A', 'm', 'i', 'i', 'b', 'o'});
+    settings.settings.font_region.Assign(0);
+    settings.init_date = GetAmiiboDate(GetCurrentPosixTime());
+    tag_data.owner_mii = manager.BuildFromStoreData(manager.BuildDefault(0));
+
+    // Admin info
+    settings.settings.amiibo_initialized.Assign(1);
+    settings.settings.appdata_initialized.Assign(0);
 }
 
 u64 NfcDevice::GetHandle() const {

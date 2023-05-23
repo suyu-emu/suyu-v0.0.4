@@ -52,9 +52,6 @@ bool IsAmiiboValid(const EncryptedNTAG215File& ntag_file) {
     if (ntag_file.compability_container != 0xEEFF10F1U) {
         return false;
     }
-    if (amiibo_data.constant_value != 0xA5) {
-        return false;
-    }
     if (amiibo_data.model_info.tag_type != NFC::PackedTagType::Type2) {
         return false;
     }
