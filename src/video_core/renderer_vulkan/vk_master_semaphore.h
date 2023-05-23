@@ -5,8 +5,10 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <deque>
 #include <mutex>
 #include <thread>
+#include <queue>
 
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
@@ -17,6 +19,8 @@ namespace Vulkan {
 class Device;
 
 class MasterSemaphore {
+    using Waitable = std::pair<u64, vk::Fence>;
+
 public:
     explicit MasterSemaphore(const Device& device);
     ~MasterSemaphore();
@@ -57,13 +61,22 @@ private:
     VkResult SubmitQueueFence(vk::CommandBuffer& cmdbuf, VkSemaphore signal_semaphore,
                               VkSemaphore wait_semaphore, u64 host_tick);
 
+    void WaitThread(std::stop_token token);
+
+    vk::Fence GetFreeFence();
+
 private:
     const Device& device;             ///< Device.
-    vk::Fence fence;                  ///< Fence.
     vk::Semaphore semaphore;          ///< Timeline semaphore.
     std::atomic<u64> gpu_tick{0};     ///< Current known GPU tick.
     std::atomic<u64> current_tick{1}; ///< Current logical tick.
+    std::mutex wait_mutex;
+    std::mutex free_mutex;
+    std::condition_variable_any wait_cv;
+    std::queue<Waitable> wait_queue;  ///< Queue for the fences to be waited on by the wait thread.
+    std::deque<vk::Fence> free_queue; ///< Holds available fences for submission.
     std::jthread debug_thread;        ///< Debug thread to workaround validation layer bugs.
+    std::jthread wait_thread;         ///< Helper thread that waits for submitted fences.
 };
 
 } // namespace Vulkan
