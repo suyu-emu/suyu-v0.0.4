@@ -125,8 +125,15 @@ Result TimeZoneContentManager::GetTimeZoneInfoFile(const std::string& location_n
 
     vfs_file = zoneinfo_dir->GetFileRelative(location_name);
     if (!vfs_file) {
-        LOG_ERROR(Service_Time, "{:016X} has no file \"{}\"! Using default timezone.",
-                  time_zone_binary_titleid, location_name);
+        LOG_WARNING(Service_Time, "{:016X} has no file \"{}\"! Using system timezone.",
+                    time_zone_binary_titleid, location_name);
+        const std::string system_time_zone{Common::TimeZone::FindSystemTimeZone()};
+        vfs_file = zoneinfo_dir->GetFile(system_time_zone);
+    }
+
+    if (!vfs_file) {
+        LOG_WARNING(Service_Time, "{:016X} has no file \"{}\"! Using default timezone.",
+                    time_zone_binary_titleid, location_name);
         vfs_file = zoneinfo_dir->GetFile(Common::TimeZone::GetDefaultTimeZone());
     }
 
