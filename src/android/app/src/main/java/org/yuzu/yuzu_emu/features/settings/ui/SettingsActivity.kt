@@ -15,6 +15,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import android.view.ViewGroup.MarginLayoutParams
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.updatePadding
 import com.google.android.material.color.MaterialColors
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -70,12 +71,26 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
             )
         }
 
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() = navigateBack()
+            })
+
         setInsets()
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
+        navigateBack()
         return true
+    }
+
+    private fun navigateBack() {
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack()
+        } else {
+            finish()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
