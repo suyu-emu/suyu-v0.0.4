@@ -142,6 +142,6 @@ struct ImageAllocBase {
     std::vector<ImageId> images;
 };
 
-void AddImageAlias(ImageBase& lhs, ImageBase& rhs, ImageId lhs_id, ImageId rhs_id);
+bool AddImageAlias(ImageBase& lhs, ImageBase& rhs, ImageId lhs_id, ImageId rhs_id);
 
 } // namespace VideoCommon
