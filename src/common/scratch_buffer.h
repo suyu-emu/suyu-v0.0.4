@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <iterator>
+
+#include "common/concepts.h"
 #include "common/make_unique_for_overwrite.h"
 
 namespace Common {
@@ -16,6 +19,12 @@ namespace Common {
 template <typename T>
 class ScratchBuffer {
 public:
+    using iterator = T*;
+    using const_iterator = const T*;
+    using value_type = T;
+    using element_type = T;
+    using iterator_category = std::contiguous_iterator_tag;
+
     ScratchBuffer() = default;
 
     explicit ScratchBuffer(size_t initial_capacity)

@@ -5,6 +5,7 @@
 
 #include <optional>
 #include <span>
+#include <boost/container/small_vector.hpp>
 
 #include "common/common_types.h"
 #include "common/scratch_buffer.h"
@@ -40,9 +41,10 @@ struct OverlapResult {
 
 [[nodiscard]] LevelArray CalculateMipLevelSizes(const ImageInfo& info) noexcept;
 
-[[nodiscard]] std::vector<u32> CalculateSliceOffsets(const ImageInfo& info);
+[[nodiscard]] boost::container::small_vector<u32, 16> CalculateSliceOffsets(const ImageInfo& info);
 
-[[nodiscard]] std::vector<SubresourceBase> CalculateSliceSubresources(const ImageInfo& info);
+[[nodiscard]] boost::container::small_vector<SubresourceBase, 16> CalculateSliceSubresources(
+    const ImageInfo& info);
 
 [[nodiscard]] u32 CalculateLevelStrideAlignment(const ImageInfo& info, u32 level);
 
@@ -51,21 +53,18 @@ struct OverlapResult {
 
 [[nodiscard]] ImageViewType RenderTargetImageViewType(const ImageInfo& info) noexcept;
 
-[[nodiscard]] std::vector<ImageCopy> MakeShrinkImageCopies(const ImageInfo& dst,
-                                                           const ImageInfo& src,
-                                                           SubresourceBase base, u32 up_scale = 1,
-                                                           u32 down_shift = 0);
+[[nodiscard]] boost::container::small_vector<ImageCopy, 16> MakeShrinkImageCopies(
+    const ImageInfo& dst, const ImageInfo& src, SubresourceBase base, u32 up_scale = 1,
+    u32 down_shift = 0);
 
-[[nodiscard]] std::vector<ImageCopy> MakeReinterpretImageCopies(const ImageInfo& src,
-                                                                u32 up_scale = 1,
-                                                                u32 down_shift = 0);
+[[nodiscard]] boost::container::small_vector<ImageCopy, 16> MakeReinterpretImageCopies(
+    const ImageInfo& src, u32 up_scale = 1, u32 down_shift = 0);
 
 [[nodiscard]] bool IsValidEntry(const Tegra::MemoryManager& gpu_memory, const TICEntry& config);
 
-[[nodiscard]] std::vector<BufferImageCopy> UnswizzleImage(Tegra::MemoryManager& gpu_memory,
-                                                          GPUVAddr gpu_addr, const ImageInfo& info,
-                                                          std::span<const u8> input,
-                                                          std::span<u8> output);
+[[nodiscard]] boost::container::small_vector<BufferImageCopy, 16> UnswizzleImage(
+    Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr, const ImageInfo& info,
+    std::span<const u8> input, std::span<u8> output);
 
 [[nodiscard]] BufferCopy UploadBufferCopy(Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr,
                                           const ImageBase& image, std::span<u8> output);
@@ -73,13 +72,15 @@ struct OverlapResult {
 void ConvertImage(std::span<const u8> input, const ImageInfo& info, std::span<u8> output,
                   std::span<BufferImageCopy> copies);
 
-[[nodiscard]] std::vector<BufferImageCopy> FullDownloadCopies(const ImageInfo& info);
+[[nodiscard]] boost::container::small_vector<BufferImageCopy, 16> FullDownloadCopies(
+    const ImageInfo& info);
 
 [[nodiscard]] Extent3D MipSize(Extent3D size, u32 level);
 
 [[nodiscard]] Extent3D MipBlockSize(const ImageInfo& info, u32 level);
 
-[[nodiscard]] std::vector<SwizzleParameters> FullUploadSwizzles(const ImageInfo& info);
+[[nodiscard]] boost::container::small_vector<SwizzleParameters, 16> FullUploadSwizzles(
+    const ImageInfo& info);
 
 void SwizzleImage(Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr, const ImageInfo& info,
                   std::span<const BufferImageCopy> copies, std::span<const u8> memory,

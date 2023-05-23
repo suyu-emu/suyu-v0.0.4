@@ -16,6 +16,7 @@
 #include "common/polyfill_thread.h"
 #include "common/reader_writer_queue.h"
 #include "common/ring_buffer.h"
+#include "common/scratch_buffer.h"
 #include "common/thread.h"
 
 namespace Core {
@@ -170,7 +171,7 @@ public:
      * @param buffer  - Audio buffer information to be queued.
      * @param samples - The s16 samples to be queue for playback.
      */
-    virtual void AppendBuffer(SinkBuffer& buffer, std::vector<s16>& samples);
+    virtual void AppendBuffer(SinkBuffer& buffer, std::span<s16> samples);
 
     /**
      * Release a buffer. Audio In only, will fill a buffer with recorded samples.
@@ -255,6 +256,8 @@ private:
     /// Signalled when ring buffer entries are consumed
     std::condition_variable_any release_cv;
     std::mutex release_mutex;
+    /// Temporary buffer for appending samples when upmixing
+    Common::ScratchBuffer<s16> tmp_samples{};
 };
 
 using SinkStreamPtr = std::unique_ptr<SinkStream>;

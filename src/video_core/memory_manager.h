@@ -8,10 +8,12 @@
 #include <mutex>
 #include <optional>
 #include <vector>
+#include <boost/container/small_vector.hpp>
 
 #include "common/common_types.h"
 #include "common/multi_level_page_table.h"
 #include "common/range_map.h"
+#include "common/scratch_buffer.h"
 #include "common/virtual_buffer.h"
 #include "video_core/cache_types.h"
 #include "video_core/pte_kind.h"
@@ -107,8 +109,8 @@ public:
      * if the region is continuous, a single pair will be returned. If it's unmapped, an empty
      * vector will be returned;
      */
-    std::vector<std::pair<GPUVAddr, std::size_t>> GetSubmappedRange(GPUVAddr gpu_addr,
-                                                                    std::size_t size) const;
+    boost::container::small_vector<std::pair<GPUVAddr, std::size_t>, 32> GetSubmappedRange(
+        GPUVAddr gpu_addr, std::size_t size) const;
 
     GPUVAddr Map(GPUVAddr gpu_addr, VAddr cpu_addr, std::size_t size,
                  PTEKind kind = PTEKind::INVALID, bool is_big_pages = true);
@@ -165,7 +167,8 @@ private:
     template <bool is_gpu_address>
     void GetSubmappedRangeImpl(
         GPUVAddr gpu_addr, std::size_t size,
-        std::vector<std::pair<std::conditional_t<is_gpu_address, GPUVAddr, VAddr>, std::size_t>>&
+        boost::container::small_vector<
+            std::pair<std::conditional_t<is_gpu_address, GPUVAddr, VAddr>, std::size_t>, 32>&
             result) const;
 
     Core::System& system;
@@ -215,8 +218,8 @@ private:
     Common::VirtualBuffer<u32> big_page_table_cpu;
 
     std::vector<u64> big_page_continuous;
-    std::vector<std::pair<VAddr, std::size_t>> page_stash{};
-    std::vector<std::pair<VAddr, std::size_t>> page_stash2{};
+    boost::container::small_vector<std::pair<VAddr, std::size_t>, 32> page_stash{};
+    boost::container::small_vector<std::pair<VAddr, std::size_t>, 32> page_stash2{};
 
     mutable std::mutex guard;
 
@@ -226,6 +229,8 @@ private:
     std::unique_ptr<VideoCommon::InvalidationAccumulator> accumulator;
 
     static std::atomic<size_t> unique_identifier_generator;
+
+    Common::ScratchBuffer<u8> tmp_buffer;
 };
 
 } // namespace Tegra

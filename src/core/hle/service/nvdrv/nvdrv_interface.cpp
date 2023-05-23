@@ -63,12 +63,12 @@ void NVDRV::Ioctl1(HLERequestContext& ctx) {
     }
 
     // Check device
-    std::vector<u8> output_buffer(ctx.GetWriteBufferSize(0));
+    tmp_output.resize_destructive(ctx.GetWriteBufferSize(0));
     const auto input_buffer = ctx.ReadBuffer(0);
 
-    const auto nv_result = nvdrv->Ioctl1(fd, command, input_buffer, output_buffer);
+    const auto nv_result = nvdrv->Ioctl1(fd, command, input_buffer, tmp_output);
     if (command.is_out != 0) {
-        ctx.WriteBuffer(output_buffer);
+        ctx.WriteBuffer(tmp_output);
     }
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -90,12 +90,12 @@ void NVDRV::Ioctl2(HLERequestContext& ctx) {
 
     const auto input_buffer = ctx.ReadBuffer(0);
     const auto input_inlined_buffer = ctx.ReadBuffer(1);
-    std::vector<u8> output_buffer(ctx.GetWriteBufferSize(0));
+    tmp_output.resize_destructive(ctx.GetWriteBufferSize(0));
 
     const auto nv_result =
-        nvdrv->Ioctl2(fd, command, input_buffer, input_inlined_buffer, output_buffer);
+        nvdrv->Ioctl2(fd, command, input_buffer, input_inlined_buffer, tmp_output);
     if (command.is_out != 0) {
-        ctx.WriteBuffer(output_buffer);
+        ctx.WriteBuffer(tmp_output);
     }
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -116,14 +116,12 @@ void NVDRV::Ioctl3(HLERequestContext& ctx) {
     }
 
     const auto input_buffer = ctx.ReadBuffer(0);
-    std::vector<u8> output_buffer(ctx.GetWriteBufferSize(0));
-    std::vector<u8> output_buffer_inline(ctx.GetWriteBufferSize(1));
-
-    const auto nv_result =
-        nvdrv->Ioctl3(fd, command, input_buffer, output_buffer, output_buffer_inline);
+    tmp_output.resize_destructive(ctx.GetWriteBufferSize(0));
+    tmp_output_inline.resize_destructive(ctx.GetWriteBufferSize(1));
+    const auto nv_result = nvdrv->Ioctl3(fd, command, input_buffer, tmp_output, tmp_output_inline);
     if (command.is_out != 0) {
-        ctx.WriteBuffer(output_buffer, 0);
-        ctx.WriteBuffer(output_buffer_inline, 1);
+        ctx.WriteBuffer(tmp_output, 0);
+        ctx.WriteBuffer(tmp_output_inline, 1);
     }
 
     IPC::ResponseBuilder rb{ctx, 3};

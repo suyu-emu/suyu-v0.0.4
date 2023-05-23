@@ -444,6 +444,7 @@ Result System::Update(std::span<const u8> input, std::span<u8> performance, std:
     std::scoped_lock l{lock};
 
     const auto start_time{core.CoreTiming().GetClockTicks()};
+    std::memset(output.data(), 0, output.size());
 
     InfoUpdater info_updater(input, output, process_handle, behavior);
 

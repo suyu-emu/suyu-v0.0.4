@@ -125,10 +125,10 @@ bool MixContext::TSortInfo(const SplitterContext& splitter_context) {
         return false;
     }
 
-    std::vector<s32> sorted_results{node_states.GetSortedResuls()};
-    const auto result_size{std::min(count, static_cast<s32>(sorted_results.size()))};
+    auto sorted_results{node_states.GetSortedResuls()};
+    const auto result_size{std::min(count, static_cast<s32>(sorted_results.second))};
     for (s32 i = 0; i < result_size; i++) {
-        sorted_mix_infos[i] = &mix_infos[sorted_results[i]];
+        sorted_mix_infos[i] = &mix_infos[sorted_results.first[i]];
     }
 
     CalcMixBufferOffset();

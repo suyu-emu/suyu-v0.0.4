@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/scope_exit.h"
+#include "common/scratch_buffer.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_client_session.h"
 #include "core/hle/kernel/k_process.h"
@@ -45,11 +46,11 @@ Result ReplyAndReceive(Core::System& system, s32* out_index, uint64_t handles_ad
                  handles_addr, static_cast<u64>(sizeof(Handle) * num_handles)),
              ResultInvalidPointer);
 
-    std::vector<Handle> handles(num_handles);
+    std::array<Handle, Svc::ArgumentHandleCountMax> handles;
     GetCurrentMemory(kernel).ReadBlock(handles_addr, handles.data(), sizeof(Handle) * num_handles);
 
     // Convert handle list to object table.
-    std::vector<KSynchronizationObject*> objs(num_handles);
+    std::array<KSynchronizationObject*, Svc::ArgumentHandleCountMax> objs;
     R_UNLESS(handle_table.GetMultipleObjects<KSynchronizationObject>(objs.data(), handles.data(),
                                                                      num_handles),
              ResultInvalidHandle);
@@ -80,7 +81,7 @@ Result ReplyAndReceive(Core::System& system, s32* out_index, uint64_t handles_ad
         // Wait for an object.
         s32 index;
         Result result = KSynchronizationObject::Wait(kernel, std::addressof(index), objs.data(),
-                                                     static_cast<s32>(objs.size()), timeout_ns);
+                                                     num_handles, timeout_ns);
         if (result == ResultTimedOut) {
             R_RETURN(result);
         }

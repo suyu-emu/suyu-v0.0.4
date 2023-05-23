@@ -33,8 +33,7 @@ void DeviceSinkCommand::Process(const ADSP::CommandListProcessor& processor) {
         .consumed{false},
     };
 
-    std::vector<s16> samples(out_buffer.frames * input_count);
-
+    std::array<s16, TargetSampleCount * MaxChannels> samples{};
     for (u32 channel = 0; channel < input_count; channel++) {
         const auto offset{inputs[channel] * out_buffer.frames};
 
@@ -45,7 +44,7 @@ void DeviceSinkCommand::Process(const ADSP::CommandListProcessor& processor) {
     }
 
     out_buffer.tag = reinterpret_cast<u64>(samples.data());
-    stream->AppendBuffer(out_buffer, samples);
+    stream->AppendBuffer(out_buffer, {samples.data(), out_buffer.frames * input_count});
 
     if (stream->IsPaused()) {
         stream->Start();

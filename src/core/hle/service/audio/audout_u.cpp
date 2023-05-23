@@ -123,19 +123,13 @@ private:
 
     void GetReleasedAudioOutBuffers(HLERequestContext& ctx) {
         const auto write_buffer_size = ctx.GetWriteBufferNumElements<u64>();
-        std::vector<u64> released_buffers(write_buffer_size);
+        tmp_buffer.resize_destructive(write_buffer_size);
+        tmp_buffer[0] = 0;
 
-        const auto count = impl->GetReleasedBuffers(released_buffers);
+        const auto count = impl->GetReleasedBuffers(tmp_buffer);
 
-        [[maybe_unused]] std::string tags{};
-        for (u32 i = 0; i < count; i++) {
-            tags += fmt::format("{:08X}, ", released_buffers[i]);
-        }
-        [[maybe_unused]] const auto sessionid{impl->GetSystem().GetSessionId()};
-        LOG_TRACE(Service_Audio, "called. Session {} released {} buffers: {}", sessionid, count,
-                  tags);
+        ctx.WriteBuffer(tmp_buffer);
 
-        ctx.WriteBuffer(released_buffers);
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
         rb.Push(count);
@@ -211,6 +205,7 @@ private:
     KernelHelpers::ServiceContext service_context;
     Kernel::KEvent* event;
     std::shared_ptr<AudioCore::AudioOut::Out> impl;
+    Common::ScratchBuffer<u64> tmp_buffer;
 };
 
 AudOutU::AudOutU(Core::System& system_)

@@ -316,6 +316,7 @@ NvidiaArchitecture GetNvidiaArchitecture(vk::PhysicalDevice physical,
 std::vector<const char*> ExtensionListForVulkan(
     const std::set<std::string, std::less<>>& extensions) {
     std::vector<const char*> output;
+    output.reserve(extensions.size());
     for (const auto& extension : extensions) {
         output.push_back(extension.c_str());
     }

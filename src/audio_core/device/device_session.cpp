@@ -79,7 +79,7 @@ void DeviceSession::ClearBuffers() {
     }
 }
 
-void DeviceSession::AppendBuffers(std::span<const AudioBuffer> buffers) const {
+void DeviceSession::AppendBuffers(std::span<const AudioBuffer> buffers) {
     for (const auto& buffer : buffers) {
         Sink::SinkBuffer new_buffer{
             .frames = buffer.size / (channel_count * sizeof(s16)),
@@ -88,13 +88,13 @@ void DeviceSession::AppendBuffers(std::span<const AudioBuffer> buffers) const {
             .consumed = false,
         };
 
+        tmp_samples.resize_destructive(buffer.size / sizeof(s16));
         if (type == Sink::StreamType::In) {
-            std::vector<s16> samples{};
-            stream->AppendBuffer(new_buffer, samples);
+            stream->AppendBuffer(new_buffer, tmp_samples);
         } else {
-            std::vector<s16> samples(buffer.size / sizeof(s16));
-            system.ApplicationMemory().ReadBlockUnsafe(buffer.samples, samples.data(), buffer.size);
-            stream->AppendBuffer(new_buffer, samples);
+            system.ApplicationMemory().ReadBlockUnsafe(buffer.samples, tmp_samples.data(),
+                                                       buffer.size);
+            stream->AppendBuffer(new_buffer, tmp_samples);
         }
     }
 }

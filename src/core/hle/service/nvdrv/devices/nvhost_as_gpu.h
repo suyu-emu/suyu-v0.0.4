@@ -15,6 +15,7 @@
 #include "common/address_space.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
+#include "common/scratch_buffer.h"
 #include "common/swap.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
@@ -48,11 +49,11 @@ public:
     ~nvhost_as_gpu() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                    std::vector<u8>& output) override;
+                    std::span<u8> output) override;
     NvResult Ioctl2(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                    std::span<const u8> inline_input, std::vector<u8>& output) override;
-    NvResult Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input, std::vector<u8>& output,
-                    std::vector<u8>& inline_output) override;
+                    std::span<const u8> inline_input, std::span<u8> output) override;
+    NvResult Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input, std::span<u8> output,
+                    std::span<u8> inline_output) override;
 
     void OnOpen(DeviceFD fd) override;
     void OnClose(DeviceFD fd) override;
@@ -138,18 +139,18 @@ private:
     static_assert(sizeof(IoctlGetVaRegions) == 16 + sizeof(VaRegion) * 2,
                   "IoctlGetVaRegions is incorrect size");
 
-    NvResult AllocAsEx(std::span<const u8> input, std::vector<u8>& output);
-    NvResult AllocateSpace(std::span<const u8> input, std::vector<u8>& output);
-    NvResult Remap(std::span<const u8> input, std::vector<u8>& output);
-    NvResult MapBufferEx(std::span<const u8> input, std::vector<u8>& output);
-    NvResult UnmapBuffer(std::span<const u8> input, std::vector<u8>& output);
-    NvResult FreeSpace(std::span<const u8> input, std::vector<u8>& output);
-    NvResult BindChannel(std::span<const u8> input, std::vector<u8>& output);
+    NvResult AllocAsEx(std::span<const u8> input, std::span<u8> output);
+    NvResult AllocateSpace(std::span<const u8> input, std::span<u8> output);
+    NvResult Remap(std::span<const u8> input, std::span<u8> output);
+    NvResult MapBufferEx(std::span<const u8> input, std::span<u8> output);
+    NvResult UnmapBuffer(std::span<const u8> input, std::span<u8> output);
+    NvResult FreeSpace(std::span<const u8> input, std::span<u8> output);
+    NvResult BindChannel(std::span<const u8> input, std::span<u8> output);
 
     void GetVARegionsImpl(IoctlGetVaRegions& params);
-    NvResult GetVARegions(std::span<const u8> input, std::vector<u8>& output);
-    NvResult GetVARegions(std::span<const u8> input, std::vector<u8>& output,
-                          std::vector<u8>& inline_output);
+    NvResult GetVARegions(std::span<const u8> input, std::span<u8> output);
+    NvResult GetVARegions(std::span<const u8> input, std::span<u8> output,
+                          std::span<u8> inline_output);
 
     void FreeMappingLocked(u64 offset);
 
@@ -212,6 +213,7 @@ private:
         bool initialised{};
     } vm;
     std::shared_ptr<Tegra::MemoryManager> gmmu;
+    Common::ScratchBuffer<IoctlRemapEntry> entries;
 
     // s32 channel{};
     // u32 big_page_size{VM::DEFAULT_BIG_PAGE_SIZE};

@@ -160,7 +160,7 @@ void DefineGenericOutput(EmitContext& ctx, size_t index, std::optional<u32> invo
         const u32 remainder{4 - element};
         const TransformFeedbackVarying* xfb_varying{};
         const size_t xfb_varying_index{base_attr_index + element};
-        if (xfb_varying_index < ctx.runtime_info.xfb_varyings.size()) {
+        if (xfb_varying_index < ctx.runtime_info.xfb_count) {
             xfb_varying = &ctx.runtime_info.xfb_varyings[xfb_varying_index];
             xfb_varying = xfb_varying->components > 0 ? xfb_varying : nullptr;
         }

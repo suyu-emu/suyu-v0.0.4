@@ -24,7 +24,7 @@ void CircularBufferSinkCommand::Process(const ADSP::CommandListProcessor& proces
     constexpr s32 min{std::numeric_limits<s16>::min()};
     constexpr s32 max{std::numeric_limits<s16>::max()};
 
-    std::vector<s16> output(processor.sample_count);
+    std::array<s16, TargetSampleCount * MaxChannels> output{};
     for (u32 channel = 0; channel < input_count; channel++) {
         auto input{processor.mix_buffers.subspan(inputs[channel] * processor.sample_count,
                                                  processor.sample_count)};
@@ -33,7 +33,7 @@ void CircularBufferSinkCommand::Process(const ADSP::CommandListProcessor& proces
         }
 
         processor.memory->WriteBlockUnsafe(address + pos, output.data(),
-                                           output.size() * sizeof(s16));
+                                           processor.sample_count * sizeof(s16));
         pos += static_cast<u32>(processor.sample_count * sizeof(s16));
         if (pos >= size) {
             pos = 0;

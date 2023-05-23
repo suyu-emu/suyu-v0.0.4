@@ -108,12 +108,12 @@ protected:
 
     /// Ioctl command implementations
     NvResult SetNVMAPfd(std::span<const u8> input);
-    NvResult Submit(DeviceFD fd, std::span<const u8> input, std::vector<u8>& output);
-    NvResult GetSyncpoint(std::span<const u8> input, std::vector<u8>& output);
-    NvResult GetWaitbase(std::span<const u8> input, std::vector<u8>& output);
-    NvResult MapBuffer(std::span<const u8> input, std::vector<u8>& output);
-    NvResult UnmapBuffer(std::span<const u8> input, std::vector<u8>& output);
-    NvResult SetSubmitTimeout(std::span<const u8> input, std::vector<u8>& output);
+    NvResult Submit(DeviceFD fd, std::span<const u8> input, std::span<u8> output);
+    NvResult GetSyncpoint(std::span<const u8> input, std::span<u8> output);
+    NvResult GetWaitbase(std::span<const u8> input, std::span<u8> output);
+    NvResult MapBuffer(std::span<const u8> input, std::span<u8> output);
+    NvResult UnmapBuffer(std::span<const u8> input, std::span<u8> output);
+    NvResult SetSubmitTimeout(std::span<const u8> input, std::span<u8> output);
 
     Kernel::KEvent* QueryEvent(u32 event_id) override;
 

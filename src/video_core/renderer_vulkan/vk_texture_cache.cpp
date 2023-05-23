@@ -330,9 +330,9 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     };
 }
 
-[[maybe_unused]] [[nodiscard]] std::vector<VkBufferCopy> TransformBufferCopies(
-    std::span<const VideoCommon::BufferCopy> copies, size_t buffer_offset) {
-    std::vector<VkBufferCopy> result(copies.size());
+[[maybe_unused]] [[nodiscard]] boost::container::small_vector<VkBufferCopy, 16>
+TransformBufferCopies(std::span<const VideoCommon::BufferCopy> copies, size_t buffer_offset) {
+    boost::container::small_vector<VkBufferCopy, 16> result(copies.size());
     std::ranges::transform(
         copies, result.begin(), [buffer_offset](const VideoCommon::BufferCopy& copy) {
             return VkBufferCopy{
@@ -344,7 +344,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return result;
 }
 
-[[nodiscard]] std::vector<VkBufferImageCopy> TransformBufferImageCopies(
+[[nodiscard]] boost::container::small_vector<VkBufferImageCopy, 16> TransformBufferImageCopies(
     std::span<const BufferImageCopy> copies, size_t buffer_offset, VkImageAspectFlags aspect_mask) {
     struct Maker {
         VkBufferImageCopy operator()(const BufferImageCopy& copy) const {
@@ -377,14 +377,14 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         VkImageAspectFlags aspect_mask;
     };
     if (aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
-        std::vector<VkBufferImageCopy> result(copies.size() * 2);
+        boost::container::small_vector<VkBufferImageCopy, 16> result(copies.size() * 2);
         std::ranges::transform(copies, result.begin(),
                                Maker{buffer_offset, VK_IMAGE_ASPECT_DEPTH_BIT});
         std::ranges::transform(copies, result.begin() + copies.size(),
                                Maker{buffer_offset, VK_IMAGE_ASPECT_STENCIL_BIT});
         return result;
     } else {
-        std::vector<VkBufferImageCopy> result(copies.size());
+        boost::container::small_vector<VkBufferImageCopy, 16> result(copies.size());
         std::ranges::transform(copies, result.begin(), Maker{buffer_offset, aspect_mask});
         return result;
     }
@@ -867,8 +867,8 @@ void TextureCacheRuntime::BarrierFeedbackLoop() {
 
 void TextureCacheRuntime::ReinterpretImage(Image& dst, Image& src,
                                            std::span<const VideoCommon::ImageCopy> copies) {
-    std::vector<VkBufferImageCopy> vk_in_copies(copies.size());
-    std::vector<VkBufferImageCopy> vk_out_copies(copies.size());
+    boost::container::small_vector<VkBufferImageCopy, 16> vk_in_copies(copies.size());
+    boost::container::small_vector<VkBufferImageCopy, 16> vk_out_copies(copies.size());
     const VkImageAspectFlags src_aspect_mask = src.AspectMask();
     const VkImageAspectFlags dst_aspect_mask = dst.AspectMask();
 
@@ -1157,7 +1157,7 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
 
 void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
                                     std::span<const VideoCommon::ImageCopy> copies) {
-    std::vector<VkImageCopy> vk_copies(copies.size());
+    boost::container::small_vector<VkImageCopy, 16> vk_copies(copies.size());
     const VkImageAspectFlags aspect_mask = dst.AspectMask();
     ASSERT(aspect_mask == src.AspectMask());
 
@@ -1332,7 +1332,7 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
         ScaleDown(true);
     }
     scheduler->RequestOutsideRenderPassOperationContext();
-    std::vector vk_copies = TransformBufferImageCopies(copies, offset, aspect_mask);
+    auto vk_copies = TransformBufferImageCopies(copies, offset, aspect_mask);
     const VkBuffer src_buffer = buffer;
     const VkImage vk_image = *original_image;
     const VkImageAspectFlags vk_aspect_mask = aspect_mask;
@@ -1367,8 +1367,9 @@ void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<VkDeviceS
     if (is_rescaled) {
         ScaleDown();
     }
-    boost::container::small_vector<VkBuffer, 1> buffers_vector{};
-    boost::container::small_vector<std::vector<VkBufferImageCopy>, 1> vk_copies;
+    boost::container::small_vector<VkBuffer, 8> buffers_vector{};
+    boost::container::small_vector<boost::container::small_vector<VkBufferImageCopy, 16>, 8>
+        vk_copies;
     for (size_t index = 0; index < buffers_span.size(); index++) {
         buffers_vector.emplace_back(buffers_span[index]);
         vk_copies.emplace_back(
@@ -1858,7 +1859,7 @@ Framebuffer::~Framebuffer() = default;
 void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
                                     std::span<ImageView*, NUM_RT> color_buffers,
                                     ImageView* depth_buffer, bool is_rescaled) {
-    std::vector<VkImageView> attachments;
+    boost::container::small_vector<VkImageView, NUM_RT + 1> attachments;
     RenderPassKey renderpass_key{};
     s32 num_layers = 1;
 
