@@ -28,7 +28,8 @@
         android:banner="@drawable/ic_launcher"
         android:extractNativeLibs="true"
         android:fullBackupContent="@xml/data_extraction_rules"
-        android:dataExtractionRules="@xml/data_extraction_rules_api_31">
+        android:dataExtractionRules="@xml/data_extraction_rules_api_31"
+        android:enableOnBackInvokedCallback="true">
 
         <activity
             android:name="org.yuzu.yuzu_emu.ui.main.MainActivity"
