@@ -184,6 +184,42 @@ void TextureCache<P>::FillComputeImageViews(std::span<ImageViewInOut> views) {
 }
 
 template <class P>
+void TextureCache<P>::CheckFeedbackLoop(std::span<const ImageViewInOut> views) {
+    const bool requires_barrier = [&] {
+        for (const auto& view : views) {
+            if (!view.id) {
+                continue;
+            }
+            auto& image_view = slot_image_views[view.id];
+
+            // Check color targets
+            for (const auto& ct_view_id : render_targets.color_buffer_ids) {
+                if (ct_view_id) {
+                    auto& ct_view = slot_image_views[ct_view_id];
+                    if (image_view.image_id == ct_view.image_id) {
+                        return true;
+                    }
+                }
+            }
+
+            // Check zeta target
+            if (render_targets.depth_buffer_id) {
+                auto& zt_view = slot_image_views[render_targets.depth_buffer_id];
+                if (image_view.image_id == zt_view.image_id) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }();
+
+    if (requires_barrier) {
+        runtime.BarrierFeedbackLoop();
+    }
+}
+
+template <class P>
 typename P::Sampler* TextureCache<P>::GetGraphicsSampler(u32 index) {
     if (index > channel_state->graphics_sampler_table.Limit()) {
         LOG_DEBUG(HW_GPU, "Invalid sampler index={}", index);

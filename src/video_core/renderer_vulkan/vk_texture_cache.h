@@ -103,6 +103,8 @@ public:
 
     [[nodiscard]] VkBuffer GetTemporaryBuffer(size_t needed_size);
 
+    void BarrierFeedbackLoop();
+
     const Device& device;
     Scheduler& scheduler;
     MemoryAllocator& memory_allocator;
