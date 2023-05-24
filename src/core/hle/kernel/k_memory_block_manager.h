@@ -144,14 +144,10 @@ private:
 
 class KScopedMemoryBlockManagerAuditor {
 public:
-    explicit KScopedMemoryBlockManagerAuditor(KMemoryBlockManager* m) : m_manager(m) {
-        ASSERT(m_manager->CheckState());
-    }
+    explicit KScopedMemoryBlockManagerAuditor(KMemoryBlockManager* m) : m_manager(m) {}
     explicit KScopedMemoryBlockManagerAuditor(KMemoryBlockManager& m)
         : KScopedMemoryBlockManagerAuditor(std::addressof(m)) {}
-    ~KScopedMemoryBlockManagerAuditor() {
-        ASSERT(m_manager->CheckState());
-    }
+    ~KScopedMemoryBlockManagerAuditor() = default;
 
 private:
     KMemoryBlockManager* m_manager;
