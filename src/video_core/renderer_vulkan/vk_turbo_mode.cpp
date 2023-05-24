@@ -18,7 +18,7 @@ using namespace Common::Literals;
 
 TurboMode::TurboMode(const vk::Instance& instance, const vk::InstanceDispatch& dld)
 #ifndef ANDROID
-    : m_device{CreateDevice(instance, dld, VK_NULL_HANDLE)}, m_allocator{m_device, false}
+    : m_device{CreateDevice(instance, dld, VK_NULL_HANDLE)}, m_allocator{m_device}
 #endif
 {
     {

@@ -6,8 +6,6 @@
 #include <optional>
 #include <vector>
 
-#include <glad/glad.h>
-
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"
@@ -54,17 +52,6 @@ struct Range {
     return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 }
 
-constexpr VkExportMemoryAllocateInfo EXPORT_ALLOCATE_INFO{
-    .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
-    .pNext = nullptr,
-#ifdef _WIN32
-    .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
-#elif __unix__
-    .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
-#else
-    .handleTypes = 0,
-#endif
-};
 } // Anonymous namespace
 
 class MemoryAllocation {
@@ -73,14 +60,6 @@ public:
                               VkMemoryPropertyFlags properties, u64 allocation_size_, u32 type)
         : allocator{allocator_}, memory{std::move(memory_)}, allocation_size{allocation_size_},
           property_flags{properties}, shifted_memory_type{1U << type} {}
-
-#if defined(_WIN32) || defined(__unix__)
-    ~MemoryAllocation() {
-        if (owning_opengl_handle != 0) {
-            glDeleteMemoryObjectsEXT(1, &owning_opengl_handle);
-        }
-    }
-#endif
 
     MemoryAllocation& operator=(const MemoryAllocation&) = delete;
     MemoryAllocation(const MemoryAllocation&) = delete;
@@ -120,31 +99,6 @@ public:
         return memory_mapped_span;
     }
 
-#ifdef _WIN32
-    [[nodiscard]] u32 ExportOpenGLHandle() {
-        if (!owning_opengl_handle) {
-            glCreateMemoryObjectsEXT(1, &owning_opengl_handle);
-            glImportMemoryWin32HandleEXT(owning_opengl_handle, allocation_size,
-                                         GL_HANDLE_TYPE_OPAQUE_WIN32_EXT,
-                                         memory.GetMemoryWin32HandleKHR());
-        }
-        return owning_opengl_handle;
-    }
-#elif __unix__
-    [[nodiscard]] u32 ExportOpenGLHandle() {
-        if (!owning_opengl_handle) {
-            glCreateMemoryObjectsEXT(1, &owning_opengl_handle);
-            glImportMemoryFdEXT(owning_opengl_handle, allocation_size, GL_HANDLE_TYPE_OPAQUE_FD_EXT,
-                                memory.GetMemoryFdKHR());
-        }
-        return owning_opengl_handle;
-    }
-#else
-    [[nodiscard]] u32 ExportOpenGLHandle() {
-        return 0;
-    }
-#endif
-
     /// Returns whether this allocation is compatible with the arguments.
     [[nodiscard]] bool IsCompatible(VkMemoryPropertyFlags flags, u32 type_mask) const {
         return (flags & property_flags) == flags && (type_mask & shifted_memory_type) != 0;
@@ -182,9 +136,6 @@ private:
     const u32 shifted_memory_type;              ///< Shifted Vulkan memory type.
     std::vector<Range> commits;                 ///< All commit ranges done from this allocation.
     std::span<u8> memory_mapped_span; ///< Memory mapped span. Empty if not queried before.
-#if defined(_WIN32) || defined(__unix__)
-    u32 owning_opengl_handle{}; ///< Owning OpenGL memory object handle.
-#endif
 };
 
 MemoryCommit::MemoryCommit(MemoryAllocation* allocation_, VkDeviceMemory memory_, u64 begin_,
@@ -216,19 +167,14 @@ std::span<u8> MemoryCommit::Map() {
     return span;
 }
 
-u32 MemoryCommit::ExportOpenGLHandle() const {
-    return allocation->ExportOpenGLHandle();
-}
-
 void MemoryCommit::Release() {
     if (allocation) {
         allocation->Free(begin);
     }
 }
 
-MemoryAllocator::MemoryAllocator(const Device& device_, bool export_allocations_)
+MemoryAllocator::MemoryAllocator(const Device& device_)
     : device{device_}, properties{device_.GetPhysical().GetMemoryProperties().memoryProperties},
-      export_allocations{export_allocations_},
       buffer_image_granularity{
           device_.GetPhysical().GetProperties().limits.bufferImageGranularity} {}
 
@@ -271,7 +217,7 @@ bool MemoryAllocator::TryAllocMemory(VkMemoryPropertyFlags flags, u32 type_mask,
     const u32 type = FindType(flags, type_mask).value();
     vk::DeviceMemory memory = device.GetLogical().TryAllocateMemory({
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .pNext = export_allocations ? &EXPORT_ALLOCATE_INFO : nullptr,
+        .pNext = nullptr,
         .allocationSize = size,
         .memoryTypeIndex = type,
     });
