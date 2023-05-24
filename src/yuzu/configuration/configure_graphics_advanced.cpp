@@ -27,6 +27,7 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
     ui->async_present->setEnabled(runtime_lock);
     ui->renderer_force_max_clock->setEnabled(runtime_lock);
     ui->async_astc->setEnabled(runtime_lock);
+    ui->astc_recompression_combobox->setEnabled(runtime_lock);
     ui->use_asynchronous_shaders->setEnabled(runtime_lock);
     ui->anisotropic_filtering_combobox->setEnabled(runtime_lock);
     ui->enable_compute_pipelines_checkbox->setEnabled(runtime_lock);
@@ -47,14 +48,20 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
             static_cast<int>(Settings::values.gpu_accuracy.GetValue()));
         ui->anisotropic_filtering_combobox->setCurrentIndex(
             Settings::values.max_anisotropy.GetValue());
+        ui->astc_recompression_combobox->setCurrentIndex(
+            static_cast<int>(Settings::values.astc_recompression.GetValue()));
     } else {
         ConfigurationShared::SetPerGameSetting(ui->gpu_accuracy, &Settings::values.gpu_accuracy);
         ConfigurationShared::SetPerGameSetting(ui->anisotropic_filtering_combobox,
                                                &Settings::values.max_anisotropy);
+        ConfigurationShared::SetPerGameSetting(ui->astc_recompression_combobox,
+                                               &Settings::values.astc_recompression);
         ConfigurationShared::SetHighlight(ui->label_gpu_accuracy,
                                           !Settings::values.gpu_accuracy.UsingGlobal());
         ConfigurationShared::SetHighlight(ui->af_label,
                                           !Settings::values.max_anisotropy.UsingGlobal());
+        ConfigurationShared::SetHighlight(ui->label_astc_recompression,
+                                          !Settings::values.astc_recompression.UsingGlobal());
     }
 }
 
@@ -71,6 +78,8 @@ void ConfigureGraphicsAdvanced::ApplyConfiguration() {
                                              ui->use_reactive_flushing, use_reactive_flushing);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.async_astc, ui->async_astc,
                                              async_astc);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.astc_recompression,
+                                             ui->astc_recompression_combobox);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_asynchronous_shaders,
                                              ui->use_asynchronous_shaders,
                                              use_asynchronous_shaders);
@@ -105,6 +114,8 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
             Settings::values.renderer_force_max_clock.UsingGlobal());
         ui->use_reactive_flushing->setEnabled(Settings::values.use_reactive_flushing.UsingGlobal());
         ui->async_astc->setEnabled(Settings::values.async_astc.UsingGlobal());
+        ui->astc_recompression_combobox->setEnabled(
+            Settings::values.astc_recompression.UsingGlobal());
         ui->use_asynchronous_shaders->setEnabled(
             Settings::values.use_asynchronous_shaders.UsingGlobal());
         ui->use_fast_gpu_time->setEnabled(Settings::values.use_fast_gpu_time.UsingGlobal());
@@ -144,6 +155,9 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
     ConfigurationShared::SetColoredComboBox(
         ui->anisotropic_filtering_combobox, ui->af_label,
         static_cast<int>(Settings::values.max_anisotropy.GetValue(true)));
+    ConfigurationShared::SetColoredComboBox(
+        ui->astc_recompression_combobox, ui->label_astc_recompression,
+        static_cast<int>(Settings::values.astc_recompression.GetValue(true)));
 }
 
 void ConfigureGraphicsAdvanced::ExposeComputeOption() {

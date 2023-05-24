@@ -139,3 +139,7 @@ if (NOT TARGET LLVM::Demangle)
     target_sources(demangle PRIVATE demangle/ItaniumDemangle.cpp)
     add_library(LLVM::Demangle ALIAS demangle)
 endif()
+
+add_library(stb STATIC)
+target_include_directories(stb PUBLIC ./stb)
+target_sources(stb PRIVATE stb/stb_dxt.cpp)
