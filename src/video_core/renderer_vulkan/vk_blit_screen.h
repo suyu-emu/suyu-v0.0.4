@@ -148,7 +148,6 @@ private:
 
     std::vector<vk::Image> raw_images;
     std::vector<vk::ImageView> raw_image_views;
-    std::vector<MemoryCommit> raw_buffer_commits;
 
     vk::DescriptorPool aa_descriptor_pool;
     vk::DescriptorSetLayout aa_descriptor_set_layout;
@@ -159,7 +158,6 @@ private:
     vk::DescriptorSets aa_descriptor_sets;
     vk::Image aa_image;
     vk::ImageView aa_image_view;
-    MemoryCommit aa_commit;
 
     u32 raw_width = 0;
     u32 raw_height = 0;

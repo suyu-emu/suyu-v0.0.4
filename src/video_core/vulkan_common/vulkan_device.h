@@ -210,6 +210,11 @@ public:
         return dld;
     }
 
+    /// Returns the VMA allocator.
+    VmaAllocator GetAllocator() const {
+        return allocator;
+    }
+
     /// Returns the logical device.
     const vk::Device& GetLogical() const {
         return logical;

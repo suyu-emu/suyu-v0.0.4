@@ -173,7 +173,7 @@ void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& fr
         return;
     }
     const Layout::FramebufferLayout layout{renderer_settings.screenshot_framebuffer_layout};
-    vk::Image staging_image = device.GetLogical().CreateImage(VkImageCreateInfo{
+    vk::Image staging_image = memory_allocator.CreateImage(VkImageCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
         .flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT,
@@ -196,7 +196,6 @@ void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& fr
         .pQueueFamilyIndices = nullptr,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     });
-    const auto image_commit = memory_allocator.Commit(staging_image, MemoryUsage::DeviceLocal);
 
     const vk::ImageView dst_view = device.GetLogical().CreateImageView(VkImageViewCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,

@@ -181,7 +181,7 @@ void PresentManager::RecreateFrame(Frame* frame, u32 width, u32 height, bool is_
     frame->height = height;
     frame->is_srgb = is_srgb;
 
-    frame->image = dld.CreateImage({
+    frame->image = memory_allocator.CreateImage({
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
         .flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT,
@@ -203,8 +203,6 @@ void PresentManager::RecreateFrame(Frame* frame, u32 width, u32 height, bool is_
         .pQueueFamilyIndices = nullptr,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     });
-
-    frame->image_commit = memory_allocator.Commit(frame->image, MemoryUsage::DeviceLocal);
 
     frame->image_view = dld.CreateImageView({
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,

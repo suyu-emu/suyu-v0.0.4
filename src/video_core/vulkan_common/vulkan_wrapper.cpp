@@ -12,6 +12,10 @@
 
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
+#include <vk_mem_alloc.h>
+
 namespace Vulkan::vk {
 
 namespace {
@@ -547,6 +551,16 @@ DebugUtilsMessenger Instance::CreateDebugUtilsMessenger(
     return DebugUtilsMessenger(object, handle, *dld);
 }
 
+void Image::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_IMAGE, name);
+}
+
+void Image::Release() const noexcept {
+    if (handle) {
+        vmaDestroyImage(allocator, handle, allocation);
+    }
+}
+
 void Buffer::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {
     Check(dld->vkBindBufferMemory(owner, handle, memory, offset));
 }
@@ -557,14 +571,6 @@ void Buffer::SetObjectNameEXT(const char* name) const {
 
 void BufferView::SetObjectNameEXT(const char* name) const {
     SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_BUFFER_VIEW, name);
-}
-
-void Image::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {
-    Check(dld->vkBindImageMemory(owner, handle, memory, offset));
-}
-
-void Image::SetObjectNameEXT(const char* name) const {
-    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_IMAGE, name);
 }
 
 void ImageView::SetObjectNameEXT(const char* name) const {
@@ -711,12 +717,6 @@ BufferView Device::CreateBufferView(const VkBufferViewCreateInfo& ci) const {
     VkBufferView object;
     Check(dld->vkCreateBufferView(handle, &ci, nullptr, &object));
     return BufferView(object, handle, *dld);
-}
-
-Image Device::CreateImage(const VkImageCreateInfo& ci) const {
-    VkImage object;
-    Check(dld->vkCreateImage(handle, &ci, nullptr, &object));
-    return Image(object, handle, *dld);
 }
 
 ImageView Device::CreateImageView(const VkImageViewCreateInfo& ci) const {

@@ -25,9 +25,7 @@ namespace {
 
 #define ARRAY_TO_SPAN(a) std::span(a, (sizeof(a) / sizeof(a[0])))
 
-std::pair<vk::Image, MemoryCommit> CreateWrappedImage(const Device& device,
-                                                      MemoryAllocator& allocator,
-                                                      VkExtent2D dimensions, VkFormat format) {
+vk::Image CreateWrappedImage(MemoryAllocator& allocator, VkExtent2D dimensions, VkFormat format) {
     const VkImageCreateInfo image_ci{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
@@ -46,11 +44,7 @@ std::pair<vk::Image, MemoryCommit> CreateWrappedImage(const Device& device,
         .pQueueFamilyIndices = nullptr,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
-
-    auto image = device.GetLogical().CreateImage(image_ci);
-    auto commit = allocator.Commit(image, Vulkan::MemoryUsage::DeviceLocal);
-
-    return std::make_pair(std::move(image), std::move(commit));
+    return allocator.CreateImage(image_ci);
 }
 
 void TransitionImageLayout(vk::CommandBuffer& cmdbuf, VkImage image, VkImageLayout target_layout,
@@ -531,10 +525,8 @@ void SMAA::CreateImages() {
     static constexpr VkExtent2D area_extent{AREATEX_WIDTH, AREATEX_HEIGHT};
     static constexpr VkExtent2D search_extent{SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT};
 
-    std::tie(m_static_images[Area], m_static_buffer_commits[Area]) =
-        CreateWrappedImage(m_device, m_allocator, area_extent, VK_FORMAT_R8G8_UNORM);
-    std::tie(m_static_images[Search], m_static_buffer_commits[Search]) =
-        CreateWrappedImage(m_device, m_allocator, search_extent, VK_FORMAT_R8_UNORM);
+    m_static_images[Area] = CreateWrappedImage(m_allocator, area_extent, VK_FORMAT_R8G8_UNORM);
+    m_static_images[Search] = CreateWrappedImage(m_allocator, search_extent, VK_FORMAT_R8_UNORM);
 
     m_static_image_views[Area] =
         CreateWrappedImageView(m_device, m_static_images[Area], VK_FORMAT_R8G8_UNORM);
@@ -544,12 +536,11 @@ void SMAA::CreateImages() {
     for (u32 i = 0; i < m_image_count; i++) {
         Images& images = m_dynamic_images.emplace_back();
 
-        std::tie(images.images[Blend], images.buffer_commits[Blend]) =
-            CreateWrappedImage(m_device, m_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
-        std::tie(images.images[Edges], images.buffer_commits[Edges]) =
-            CreateWrappedImage(m_device, m_allocator, m_extent, VK_FORMAT_R16G16_SFLOAT);
-        std::tie(images.images[Output], images.buffer_commits[Output]) =
-            CreateWrappedImage(m_device, m_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
+        images.images[Blend] =
+            CreateWrappedImage(m_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
+        images.images[Edges] = CreateWrappedImage(m_allocator, m_extent, VK_FORMAT_R16G16_SFLOAT);
+        images.images[Output] =
+            CreateWrappedImage(m_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
 
         images.image_views[Blend] =
             CreateWrappedImageView(m_device, images.images[Blend], VK_FORMAT_R16G16B16A16_SFLOAT);

@@ -180,12 +180,10 @@ private:
     TextureCacheRuntime* runtime{};
 
     vk::Image original_image;
-    MemoryCommit commit;
     std::vector<vk::ImageView> storage_image_views;
     VkImageAspectFlags aspect_mask = 0;
     bool initialized = false;
     vk::Image scaled_image{};
-    MemoryCommit scaled_commit{};
     VkImage current_image{};
 
     std::unique_ptr<Framebuffer> scale_framebuffer;

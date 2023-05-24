@@ -15,6 +15,10 @@
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
+#include <vk_mem_alloc.h>
+
 namespace Vulkan {
 namespace {
 struct Range {
@@ -180,6 +184,24 @@ MemoryAllocator::MemoryAllocator(const Device& device_)
 
 MemoryAllocator::~MemoryAllocator() = default;
 
+vk::Image MemoryAllocator::CreateImage(const VkImageCreateInfo& ci) const {
+    const VmaAllocationCreateInfo alloc_info = {
+        .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT,
+        .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+        .requiredFlags = 0,
+        .preferredFlags = 0,
+        .pool = VK_NULL_HANDLE,
+        .pUserData = nullptr,
+    };
+
+    VkImage handle{};
+    VmaAllocation allocation{};
+    vk::Check(
+        vmaCreateImage(device.GetAllocator(), &ci, &alloc_info, &handle, &allocation, nullptr));
+    return vk::Image(handle, *device.GetLogical(), device.GetAllocator(), allocation,
+                     device.GetDispatchLoader());
+}
+
 MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, MemoryUsage usage) {
     // Find the fastest memory flags we can afford with the current requirements
     const u32 type_mask = requirements.memoryTypeBits;
@@ -202,14 +224,6 @@ MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, M
 MemoryCommit MemoryAllocator::Commit(const vk::Buffer& buffer, MemoryUsage usage) {
     auto commit = Commit(device.GetLogical().GetBufferMemoryRequirements(*buffer), usage);
     buffer.BindMemory(commit.Memory(), commit.Offset());
-    return commit;
-}
-
-MemoryCommit MemoryAllocator::Commit(const vk::Image& image, MemoryUsage usage) {
-    VkMemoryRequirements requirements = device.GetLogical().GetImageMemoryRequirements(*image);
-    requirements.size = Common::AlignUp(requirements.size, buffer_image_granularity);
-    auto commit = Commit(requirements, usage);
-    image.BindMemory(commit.Memory(), commit.Offset());
     return commit;
 }
 

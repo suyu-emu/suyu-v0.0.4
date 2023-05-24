@@ -80,6 +80,8 @@ public:
     MemoryAllocator& operator=(const MemoryAllocator&) = delete;
     MemoryAllocator(const MemoryAllocator&) = delete;
 
+    vk::Image CreateImage(const VkImageCreateInfo& ci) const;
+
     /**
      * Commits a memory with the specified requirements.
      *
@@ -92,9 +94,6 @@ public:
 
     /// Commits memory required by the buffer and binds it.
     MemoryCommit Commit(const vk::Buffer& buffer, MemoryUsage usage);
-
-    /// Commits memory required by the image and binds it.
-    MemoryCommit Commit(const vk::Image& image, MemoryUsage usage);
 
 private:
     /// Tries to allocate a chunk of memory.
