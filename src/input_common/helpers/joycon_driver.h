@@ -49,6 +49,7 @@ public:
     DriverResult SetIrMode();
     DriverResult SetNfcMode();
     DriverResult SetRingConMode();
+    DriverResult WriteNfcData(std::span<const u8> data);
 
     void SetCallbacks(const JoyconCallbacks& callbacks);
 

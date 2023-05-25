@@ -27,6 +27,8 @@ public:
 
     DriverResult ScanAmiibo(std::vector<u8>& data);
 
+    DriverResult WriteAmiibo(std::span<const u8> data);
+
     bool HasAmiibo();
 
     bool IsEnabled() const;
@@ -37,18 +39,20 @@ private:
 
     struct TagFoundData {
         u8 type;
-        std::vector<u8> uuid;
+        u8 uuid_size;
+        TagUUID uuid;
     };
 
-    DriverResult WaitUntilNfcIsReady();
-
-    DriverResult WaitUntilNfcIsPolling();
+    DriverResult WaitUntilNfcIs(NFCStatus status);
 
     DriverResult IsTagInRange(TagFoundData& data, std::size_t timeout_limit = 1);
 
     DriverResult GetAmiiboData(std::vector<u8>& data);
 
-    DriverResult SendStartPollingRequest(MCUCommandResponse& output);
+    DriverResult WriteAmiiboData(const TagUUID& tag_uuid, std::span<const u8> data);
+
+    DriverResult SendStartPollingRequest(MCUCommandResponse& output,
+                                         bool is_second_attempt = false);
 
     DriverResult SendStopPollingRequest(MCUCommandResponse& output);
 
@@ -56,7 +60,20 @@ private:
 
     DriverResult SendReadAmiiboRequest(MCUCommandResponse& output, NFCPages ntag_pages);
 
+    DriverResult SendWriteAmiiboRequest(MCUCommandResponse& output, const TagUUID& tag_uuid);
+
+    DriverResult SendWriteDataAmiiboRequest(MCUCommandResponse& output, u8 block_id,
+                                            bool is_last_packet, std::span<const u8> data);
+
+    std::vector<u8> SerializeWritePackage(const NFCWritePackage& package) const;
+
+    NFCWritePackage MakeAmiiboWritePackage(const TagUUID& tag_uuid, std::span<const u8> data) const;
+
+    NFCDataChunk MakeAmiiboChunk(u8 page, u8 size, std::span<const u8> data) const;
+
     NFCReadBlockCommand GetReadBlockCommand(NFCPages pages) const;
+
+    TagUUID GetTagUUID(std::span<const u8> data) const;
 
     bool is_enabled{};
     std::size_t update_counter{};

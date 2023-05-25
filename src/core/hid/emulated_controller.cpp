@@ -1283,9 +1283,14 @@ bool EmulatedController::HasNfc() const {
 }
 
 bool EmulatedController::WriteNfc(const std::vector<u8>& data) {
-    auto& nfc_output_device = output_devices[3];
+    auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
+    auto& nfc_virtual_output_device = output_devices[3];
 
-    return nfc_output_device->WriteNfcData(data) == Common::Input::NfcState::Success;
+    if (nfc_output_device->SupportsNfc() != Common::Input::NfcState::NotSupported) {
+        return nfc_output_device->WriteNfcData(data) == Common::Input::NfcState::Success;
+    }
+
+    return nfc_virtual_output_device->WriteNfcData(data) == Common::Input::NfcState::Success;
 }
 
 void EmulatedController::SetLedPattern() {

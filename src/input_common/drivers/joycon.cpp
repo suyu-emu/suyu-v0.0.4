@@ -291,9 +291,13 @@ Common::Input::NfcState Joycons::SupportsNfc(const PadIdentifier& identifier_) c
     return Common::Input::NfcState::Success;
 };
 
-Common::Input::NfcState Joycons::WriteNfcData(const PadIdentifier& identifier_,
+Common::Input::NfcState Joycons::WriteNfcData(const PadIdentifier& identifier,
                                               const std::vector<u8>& data) {
-    return Common::Input::NfcState::NotSupported;
+    auto handle = GetHandle(identifier);
+    if (handle->WriteNfcData(data) != Joycon::DriverResult::Success) {
+        return Common::Input::NfcState::WriteFailed;
+    }
+    return Common::Input::NfcState::Success;
 };
 
 Common::Input::DriverResult Joycons::SetPollingMode(const PadIdentifier& identifier,
