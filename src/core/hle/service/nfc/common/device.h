@@ -110,6 +110,8 @@ private:
     void UpdateSettingsCrc();
     void UpdateRegisterInfoCrc();
 
+    void BuildAmiiboWithoutKeys();
+
     bool is_controller_set{};
     int callback_key;
     const Core::HID::NpadIdType npad_id;
@@ -128,6 +130,7 @@ private:
     bool is_data_moddified{};
     bool is_app_area_open{};
     bool is_plain_amiibo{};
+    bool is_write_protected{};
     NFP::MountTarget mount_target{NFP::MountTarget::None};
 
     NFP::NTAG215File tag_data{};
