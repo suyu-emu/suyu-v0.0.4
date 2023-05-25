@@ -283,7 +283,7 @@ int main(int argc, char** argv) {
                 break;
             case 'u':
                 selected_user = atoi(optarg);
-                return 0;
+                break;
             case 'v':
                 PrintVersion();
                 return 0;
