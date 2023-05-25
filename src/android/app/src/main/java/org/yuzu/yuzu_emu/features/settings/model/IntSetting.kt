@@ -73,6 +73,11 @@ enum class IntSetting(
         Settings.SECTION_RENDERER,
         2
     ),
+    RENDERER_VSYNC(
+        "use_vsync",
+        Settings.SECTION_RENDERER,
+        0
+    ),
     RENDERER_SCALING_FILTER(
         "scaling_filter",
         Settings.SECTION_RENDERER,
@@ -115,7 +120,8 @@ enum class IntSetting(
             RENDERER_ASYNCHRONOUS_SHADERS,
             RENDERER_DEBUG,
             RENDERER_BACKEND,
-            RENDERER_RESOLUTION
+            RENDERER_RESOLUTION,
+            RENDERER_VSYNC
         )
 
         fun from(key: String): IntSetting? = IntSetting.values().firstOrNull { it.key == key }

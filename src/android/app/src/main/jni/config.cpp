@@ -210,26 +210,23 @@ void Config::ReadValues() {
     ReadSetting("Renderer", Settings::values.speed_limit);
     ReadSetting("Renderer", Settings::values.use_disk_shader_cache);
     ReadSetting("Renderer", Settings::values.use_asynchronous_gpu_emulation);
+    ReadSetting("Renderer", Settings::values.vsync_mode);
     ReadSetting("Renderer", Settings::values.shader_backend);
     ReadSetting("Renderer", Settings::values.use_asynchronous_shaders);
     ReadSetting("Renderer", Settings::values.nvdec_emulation);
     ReadSetting("Renderer", Settings::values.use_fast_gpu_time);
     ReadSetting("Renderer", Settings::values.use_vulkan_driver_pipeline_cache);
 
+    ReadSetting("Renderer", Settings::values.bg_red);
+    ReadSetting("Renderer", Settings::values.bg_green);
+    ReadSetting("Renderer", Settings::values.bg_blue);
+
     // Use GPU accuracy normal by default on Android
     Settings::values.gpu_accuracy = static_cast<Settings::GPUAccuracy>(config->GetInteger(
         "Renderer", "gpu_accuracy", static_cast<u32>(Settings::GPUAccuracy::Normal)));
 
-    // Use Mailbox VSync by default on Android
-    Settings::values.vsync_mode = static_cast<Settings::VSyncMode>(config->GetInteger(
-        "Renderer", "use_vsync", static_cast<u32>(Settings::VSyncMode::Mailbox)));
-
     // Use GPU default anisotropic filtering on Android
     Settings::values.max_anisotropy = config->GetInteger("Renderer", "max_anisotropy", 1);
-
-    ReadSetting("Renderer", Settings::values.bg_red);
-    ReadSetting("Renderer", Settings::values.bg_green);
-    ReadSetting("Renderer", Settings::values.bg_blue);
 
     // Disable ASTC compute by default on Android
     Settings::values.accelerate_astc = config->GetBoolean("Renderer", "accelerate_astc", false);

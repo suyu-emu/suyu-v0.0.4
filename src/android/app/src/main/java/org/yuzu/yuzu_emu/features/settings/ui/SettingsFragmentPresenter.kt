@@ -251,6 +251,17 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             )
             add(
                 SingleChoiceSetting(
+                    IntSetting.RENDERER_VSYNC,
+                    R.string.renderer_vsync,
+                    0,
+                    R.array.rendererVSyncNames,
+                    R.array.rendererVSyncValues,
+                    IntSetting.RENDERER_VSYNC.key,
+                    IntSetting.RENDERER_VSYNC.defaultValue
+                )
+            )
+            add(
+                SingleChoiceSetting(
                     IntSetting.RENDERER_SCALING_FILTER,
                     R.string.renderer_scaling_filter,
                     0,

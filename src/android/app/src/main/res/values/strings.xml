@@ -122,6 +122,7 @@
     <string name="renderer_api">API</string>
     <string name="renderer_accuracy">Accuracy level</string>
     <string name="renderer_resolution">Resolution</string>
+    <string name="renderer_vsync">VSync mode</string>
     <string name="renderer_aspect_ratio">Aspect Ratio</string>
     <string name="renderer_scaling_filter">Window Adapting Filter</string>
     <string name="renderer_anti_aliasing">Anti-Aliasing Method</string>
@@ -258,6 +259,12 @@
     <string name="resolution_two">2X (1440p/2160p) (Slow)</string>
     <string name="resolution_three">3X (2160p/3240p) (Slow)</string>
     <string name="resolution_four">4X (2880p/4320p) (Slow)</string>
+
+    <!-- Renderer VSync -->
+    <string name="renderer_vsync_immediate">Immediate (Off)</string>
+    <string name="renderer_vsync_mailbox">Mailbox</string>
+    <string name="renderer_vsync_fifo">FIFO (On)</string>
+    <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
 
     <!-- Scaling Filters -->
     <string name="scaling_filter_nearest_neighbor">Nearest Neighbor</string>
