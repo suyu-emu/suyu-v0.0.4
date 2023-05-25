@@ -1507,7 +1507,7 @@ std::optional<typename TextureCache<P>::BlitImages> TextureCache<P>::GetBlitImag
         if (!copy.must_accelerate) {
             do {
                 if (!src_id && !dst_id) {
-                    break;
+                    return std::nullopt;
                 }
                 if (src_id && True(slot_images[src_id].flags & ImageFlagBits::GpuModified)) {
                     break;
