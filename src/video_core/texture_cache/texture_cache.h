@@ -139,7 +139,6 @@ void TextureCache<P>::TickFrame() {
     TickAsyncDecode();
 
     runtime.TickFrame();
-    critical_gc = 0;
     ++frame_tick;
 
     if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
@@ -1885,10 +1884,6 @@ void TextureCache<P>::RegisterImage(ImageId image_id) {
         tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
     }
     total_used_memory += Common::AlignUp(tentative_size, 1024);
-    if (total_used_memory > critical_memory && critical_gc < GC_EMERGENCY_COUNTS) {
-        RunGarbageCollector();
-        critical_gc++;
-    }
     image.lru_index = lru_cache.Insert(image_id, frame_tick);
 
     ForEachGPUPage(image.gpu_addr, image.guest_size_bytes, [this, image_id](u64 page) {
