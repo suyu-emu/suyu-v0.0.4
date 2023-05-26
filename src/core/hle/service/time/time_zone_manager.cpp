@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <climits>
+#include <limits>
 
 #include "common/assert.h"
 #include "common/logging/log.h"
@@ -9,6 +10,7 @@
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/time/time_zone_manager.h"
+#include "core/hle/service/time/time_zone_types.h"
 
 namespace Service::Time::TimeZone {
 
@@ -629,11 +631,47 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
             UNIMPLEMENTED();
         }
     }
+
+    const auto typesequiv = [](TimeZoneRule& rule, int a, int b) -> bool {
+        if (a < 0 || a >= rule.type_count || b < 0 || b >= rule.type_count) {
+            return {};
+        }
+
+        const struct TimeTypeInfo* ap = &rule.ttis[a];
+        const struct TimeTypeInfo* bp = &rule.ttis[b];
+
+        return (ap->gmt_offset == bp->gmt_offset && ap->is_dst == bp->is_dst &&
+                (std::strcmp(&rule.chars[ap->abbreviation_list_index],
+                             &rule.chars[bp->abbreviation_list_index]) == 0));
+    };
+
     if (time_zone_rule.type_count == 0) {
         return {};
     }
     if (time_zone_rule.time_count > 1) {
-        UNIMPLEMENTED();
+        if (time_zone_rule.ats[0] <= std::numeric_limits<s64>::max() - seconds_per_repeat) {
+            s64 repeatat = time_zone_rule.ats[0] + seconds_per_repeat;
+            int repeatattype = time_zone_rule.types[0];
+            for (int i = 1; i < time_zone_rule.time_count; ++i) {
+                if (time_zone_rule.ats[i] == repeatat &&
+                    typesequiv(time_zone_rule, time_zone_rule.types[i], repeatattype)) {
+                    time_zone_rule.go_back = true;
+                    break;
+                }
+            }
+        }
+        if (std::numeric_limits<s64>::min() + seconds_per_repeat <=
+            time_zone_rule.ats[time_zone_rule.time_count - 1]) {
+            s64 repeatat = time_zone_rule.ats[time_zone_rule.time_count - 1] - seconds_per_repeat;
+            int repeatattype = time_zone_rule.types[time_zone_rule.time_count - 1];
+            for (int i = time_zone_rule.time_count; i >= 0; --i) {
+                if (time_zone_rule.ats[i] == repeatat &&
+                    typesequiv(time_zone_rule, time_zone_rule.types[i], repeatattype)) {
+                    time_zone_rule.go_ahead = true;
+                    break;
+                }
+            }
+        }
     }
 
     s32 default_type{};
