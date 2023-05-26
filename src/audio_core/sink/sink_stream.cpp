@@ -271,8 +271,8 @@ u64 SinkStream::GetExpectedPlayedSampleCount() {
 
 void SinkStream::WaitFreeSpace() {
     std::unique_lock lk{release_mutex};
-    release_cv.wait(
-        lk, [this]() { return queued_buffers < max_queue_size || system.IsShuttingDown(); });
+    release_cv.wait_for(lk, std::chrono::milliseconds(5),
+                        [this]() { return queued_buffers < max_queue_size; });
 }
 
 } // namespace AudioCore::Sink

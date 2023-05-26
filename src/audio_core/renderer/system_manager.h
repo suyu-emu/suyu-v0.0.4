@@ -66,13 +66,7 @@ private:
     /**
      * Main thread responsible for command generation.
      */
-    void ThreadFunc();
-
-    enum class StreamState {
-        Filling,
-        Steady,
-        Draining,
-    };
+    void ThreadFunc(std::stop_token stop_token);
 
     /// Core system
     Core::System& core;
@@ -90,8 +84,6 @@ private:
     ADSP::ADSP& adsp;
     /// AudioRenderer mailbox for communication
     ADSP::AudioRenderer_Mailbox* mailbox{};
-    /// Atomic for main thread to wait on
-    std::atomic<bool> update{};
 };
 
 } // namespace AudioCore::AudioRenderer

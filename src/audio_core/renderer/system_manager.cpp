@@ -27,7 +27,7 @@ bool SystemManager::InitializeUnsafe() {
     if (!active) {
         if (adsp.Start()) {
             active = true;
-            thread = std::jthread([this](std::stop_token stop_token) { ThreadFunc(); });
+            thread = std::jthread([this](std::stop_token stop_token) { ThreadFunc(stop_token); });
         }
     }
 
@@ -39,8 +39,7 @@ void SystemManager::Stop() {
         return;
     }
     active = false;
-    update.store(true);
-    update.notify_all();
+    thread.request_stop();
     thread.join();
     adsp.Stop();
 }
@@ -85,12 +84,12 @@ bool SystemManager::Remove(System& system_) {
     return true;
 }
 
-void SystemManager::ThreadFunc() {
+void SystemManager::ThreadFunc(std::stop_token stop_token) {
     static constexpr char name[]{"AudioRenderSystemManager"};
     MicroProfileOnThreadCreate(name);
     Common::SetCurrentThreadName(name);
     Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
-    while (active) {
+    while (active && !stop_token.stop_requested()) {
         {
             std::scoped_lock l{mutex1};
 
