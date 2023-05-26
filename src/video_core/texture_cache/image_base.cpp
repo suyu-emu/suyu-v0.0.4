@@ -155,7 +155,7 @@ void ImageBase::CheckAliasState() {
     flags &= ~ImageFlagBits::Alias;
 }
 
-void AddImageAlias(ImageBase& lhs, ImageBase& rhs, ImageId lhs_id, ImageId rhs_id) {
+bool AddImageAlias(ImageBase& lhs, ImageBase& rhs, ImageId lhs_id, ImageId rhs_id) {
     static constexpr auto OPTIONS = RelaxedOptions::Size | RelaxedOptions::Format;
     ASSERT(lhs.info.type == rhs.info.type);
     std::optional<SubresourceBase> base;
@@ -169,7 +169,7 @@ void AddImageAlias(ImageBase& lhs, ImageBase& rhs, ImageId lhs_id, ImageId rhs_i
     }
     if (!base) {
         LOG_ERROR(HW_GPU, "Image alias should have been flipped");
-        return;
+        return false;
     }
     const PixelFormat lhs_format = lhs.info.format;
     const PixelFormat rhs_format = rhs.info.format;
@@ -248,12 +248,13 @@ void AddImageAlias(ImageBase& lhs, ImageBase& rhs, ImageId lhs_id, ImageId rhs_i
     }
     ASSERT(lhs_alias.copies.empty() == rhs_alias.copies.empty());
     if (lhs_alias.copies.empty()) {
-        return;
+        return false;
     }
     lhs.aliased_images.push_back(std::move(lhs_alias));
     rhs.aliased_images.push_back(std::move(rhs_alias));
     lhs.flags &= ~ImageFlagBits::IsRescalable;
     rhs.flags &= ~ImageFlagBits::IsRescalable;
+    return true;
 }
 
 } // namespace VideoCommon

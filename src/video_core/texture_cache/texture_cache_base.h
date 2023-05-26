@@ -10,7 +10,9 @@
 #include <span>
 #include <type_traits>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
+#include <boost/container/small_vector.hpp>
 #include <queue>
 
 #include "common/common_types.h"
@@ -476,6 +478,20 @@ private:
 
     Common::ThreadWorker texture_decode_worker{1, "TextureDecoder"};
     std::vector<std::unique_ptr<AsyncDecodeContext>> async_decodes;
+
+    // Join caching
+    boost::container::small_vector<ImageId, 4> join_overlap_ids;
+    std::unordered_set<ImageId> join_overlaps_found;
+    boost::container::small_vector<ImageId, 4> join_left_aliased_ids;
+    boost::container::small_vector<ImageId, 4> join_right_aliased_ids;
+    std::unordered_set<ImageId> join_ignore_textures;
+    boost::container::small_vector<ImageId, 4> join_bad_overlap_ids;
+    struct JoinCopy {
+        bool is_alias;
+        ImageId id;
+    };
+    boost::container::small_vector<JoinCopy, 4> join_copies_to_do;
+    std::unordered_map<ImageId, size_t> join_alias_indices;
 };
 
 } // namespace VideoCommon

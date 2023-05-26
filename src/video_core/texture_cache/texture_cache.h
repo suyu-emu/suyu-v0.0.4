@@ -1311,17 +1311,18 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
     const size_t size_bytes = CalculateGuestSizeInBytes(new_info);
     const bool broken_views = runtime.HasBrokenTextureViewFormats();
     const bool native_bgr = runtime.HasNativeBgr();
-    boost::container::small_vector<ImageId, 4> overlap_ids;
-    std::unordered_set<ImageId> overlaps_found;
-    boost::container::small_vector<ImageId, 4> left_aliased_ids;
-    boost::container::small_vector<ImageId, 4> right_aliased_ids;
-    std::unordered_set<ImageId> ignore_textures;
-    boost::container::small_vector<ImageId, 4> bad_overlap_ids;
-    boost::container::small_vector<ImageId, 4> all_siblings;
+    join_overlap_ids.clear();
+    join_overlaps_found.clear();
+    join_left_aliased_ids.clear();
+    join_right_aliased_ids.clear();
+    join_ignore_textures.clear();
+    join_bad_overlap_ids.clear();
+    join_copies_to_do.clear();
+    join_alias_indices.clear();
     const bool this_is_linear = info.type == ImageType::Linear;
     const auto region_check = [&](ImageId overlap_id, ImageBase& overlap) {
         if (True(overlap.flags & ImageFlagBits::Remapped)) {
-            ignore_textures.insert(overlap_id);
+            join_ignore_textures.insert(overlap_id);
             return;
         }
         const bool overlap_is_linear = overlap.info.type == ImageType::Linear;
@@ -1331,11 +1332,11 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
         if (this_is_linear && overlap_is_linear) {
             if (info.pitch == overlap.info.pitch && gpu_addr == overlap.gpu_addr) {
                 // Alias linear images with the same pitch
-                left_aliased_ids.push_back(overlap_id);
+                join_left_aliased_ids.push_back(overlap_id);
             }
             return;
         }
-        overlaps_found.insert(overlap_id);
+        join_overlaps_found.insert(overlap_id);
         static constexpr bool strict_size = true;
         const std::optional<OverlapResult> solution = ResolveOverlap(
             new_info, gpu_addr, cpu_addr, overlap, strict_size, broken_views, native_bgr);
@@ -1343,33 +1344,33 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
             gpu_addr = solution->gpu_addr;
             cpu_addr = solution->cpu_addr;
             new_info.resources = solution->resources;
-            overlap_ids.push_back(overlap_id);
-            all_siblings.push_back(overlap_id);
+            join_overlap_ids.push_back(overlap_id);
+            join_copies_to_do.emplace_back(JoinCopy{false, overlap_id});
             return;
         }
         static constexpr auto options = RelaxedOptions::Size | RelaxedOptions::Format;
         const ImageBase new_image_base(new_info, gpu_addr, cpu_addr);
         if (IsSubresource(new_info, overlap, gpu_addr, options, broken_views, native_bgr)) {
-            left_aliased_ids.push_back(overlap_id);
+            join_left_aliased_ids.push_back(overlap_id);
             overlap.flags |= ImageFlagBits::Alias;
-            all_siblings.push_back(overlap_id);
+            join_copies_to_do.emplace_back(JoinCopy{true, overlap_id});
         } else if (IsSubresource(overlap.info, new_image_base, overlap.gpu_addr, options,
                                  broken_views, native_bgr)) {
-            right_aliased_ids.push_back(overlap_id);
+            join_right_aliased_ids.push_back(overlap_id);
             overlap.flags |= ImageFlagBits::Alias;
-            all_siblings.push_back(overlap_id);
+            join_copies_to_do.emplace_back(JoinCopy{true, overlap_id});
         } else {
-            bad_overlap_ids.push_back(overlap_id);
+            join_bad_overlap_ids.push_back(overlap_id);
         }
     };
     ForEachImageInRegion(cpu_addr, size_bytes, region_check);
     const auto region_check_gpu = [&](ImageId overlap_id, ImageBase& overlap) {
-        if (!overlaps_found.contains(overlap_id)) {
+        if (!join_overlaps_found.contains(overlap_id)) {
             if (True(overlap.flags & ImageFlagBits::Remapped)) {
-                ignore_textures.insert(overlap_id);
+                join_ignore_textures.insert(overlap_id);
             }
             if (overlap.gpu_addr == gpu_addr && overlap.guest_size_bytes == size_bytes) {
-                ignore_textures.insert(overlap_id);
+                join_ignore_textures.insert(overlap_id);
             }
         }
     };
@@ -1377,11 +1378,11 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
 
     bool can_rescale = info.rescaleable;
     bool any_rescaled = false;
-    for (const ImageId sibling_id : all_siblings) {
+    for (const auto& copy : join_copies_to_do) {
         if (!can_rescale) {
             break;
         }
-        Image& sibling = slot_images[sibling_id];
+        Image& sibling = slot_images[copy.id];
         can_rescale &= ImageCanRescale(sibling);
         any_rescaled |= True(sibling.flags & ImageFlagBits::Rescaled);
     }
@@ -1389,13 +1390,13 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
     can_rescale &= any_rescaled;
 
     if (can_rescale) {
-        for (const ImageId sibling_id : all_siblings) {
-            Image& sibling = slot_images[sibling_id];
+        for (const auto& copy : join_copies_to_do) {
+            Image& sibling = slot_images[copy.id];
             ScaleUp(sibling);
         }
     } else {
-        for (const ImageId sibling_id : all_siblings) {
-            Image& sibling = slot_images[sibling_id];
+        for (const auto& copy : join_copies_to_do) {
+            Image& sibling = slot_images[copy.id];
             ScaleDown(sibling);
         }
     }
@@ -1407,7 +1408,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
         new_image.flags |= ImageFlagBits::Sparse;
     }
 
-    for (const ImageId overlap_id : ignore_textures) {
+    for (const ImageId overlap_id : join_ignore_textures) {
         Image& overlap = slot_images[overlap_id];
         if (True(overlap.flags & ImageFlagBits::GpuModified)) {
             UNIMPLEMENTED();
@@ -1428,14 +1429,60 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
         ScaleDown(new_image);
     }
 
-    std::ranges::sort(overlap_ids, [this](const ImageId lhs, const ImageId rhs) {
-        const ImageBase& lhs_image = slot_images[lhs];
-        const ImageBase& rhs_image = slot_images[rhs];
+    std::ranges::sort(join_copies_to_do, [this](const JoinCopy& lhs, const JoinCopy& rhs) {
+        const ImageBase& lhs_image = slot_images[lhs.id];
+        const ImageBase& rhs_image = slot_images[rhs.id];
         return lhs_image.modification_tick < rhs_image.modification_tick;
     });
 
-    for (const ImageId overlap_id : overlap_ids) {
-        Image& overlap = slot_images[overlap_id];
+    ImageBase& new_image_base = new_image;
+    for (const ImageId aliased_id : join_right_aliased_ids) {
+        ImageBase& aliased = slot_images[aliased_id];
+        size_t alias_index = new_image_base.aliased_images.size();
+        if (!AddImageAlias(new_image_base, aliased, new_image_id, aliased_id)) {
+            continue;
+        }
+        join_alias_indices.emplace(aliased_id, alias_index);
+        new_image.flags |= ImageFlagBits::Alias;
+    }
+    for (const ImageId aliased_id : join_left_aliased_ids) {
+        ImageBase& aliased = slot_images[aliased_id];
+        size_t alias_index = new_image_base.aliased_images.size();
+        if (!AddImageAlias(aliased, new_image_base, aliased_id, new_image_id)) {
+            continue;
+        }
+        join_alias_indices.emplace(aliased_id, alias_index);
+        new_image.flags |= ImageFlagBits::Alias;
+    }
+    for (const ImageId aliased_id : join_bad_overlap_ids) {
+        ImageBase& aliased = slot_images[aliased_id];
+        aliased.overlapping_images.push_back(new_image_id);
+        new_image.overlapping_images.push_back(aliased_id);
+        if (aliased.info.resources.levels == 1 && aliased.info.block.depth == 0 &&
+            aliased.overlapping_images.size() > 1) {
+            aliased.flags |= ImageFlagBits::BadOverlap;
+        }
+        if (new_image.info.resources.levels == 1 && new_image.info.block.depth == 0 &&
+            new_image.overlapping_images.size() > 1) {
+            new_image.flags |= ImageFlagBits::BadOverlap;
+        }
+    }
+
+    for (const auto& copy_object : join_copies_to_do) {
+        Image& overlap = slot_images[copy_object.id];
+        if (copy_object.is_alias) {
+            if (!overlap.IsSafeDownload()) {
+                continue;
+            }
+            const auto alias_pointer = join_alias_indices.find(copy_object.id);
+            if (alias_pointer == join_alias_indices.end()) {
+                continue;
+            }
+            const AliasedImage& aliased = new_image.aliased_images[alias_pointer->second];
+            CopyImage(new_image_id, aliased.id, aliased.copies);
+            new_image.modification_tick = overlap.modification_tick;
+            continue;
+        }
         if (True(overlap.flags & ImageFlagBits::GpuModified)) {
             new_image.flags |= ImageFlagBits::GpuModified;
             const auto& resolution = Settings::values.resolution_info;
@@ -1448,35 +1495,15 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
             } else {
                 runtime.CopyImage(new_image, overlap, std::move(copies));
             }
+            new_image.modification_tick = overlap.modification_tick;
         }
         if (True(overlap.flags & ImageFlagBits::Tracked)) {
-            UntrackImage(overlap, overlap_id);
+            UntrackImage(overlap, copy_object.id);
         }
-        UnregisterImage(overlap_id);
-        DeleteImage(overlap_id);
+        UnregisterImage(copy_object.id);
+        DeleteImage(copy_object.id);
     }
-    ImageBase& new_image_base = new_image;
-    for (const ImageId aliased_id : right_aliased_ids) {
-        ImageBase& aliased = slot_images[aliased_id];
-        AddImageAlias(new_image_base, aliased, new_image_id, aliased_id);
-        new_image.flags |= ImageFlagBits::Alias;
-    }
-    for (const ImageId aliased_id : left_aliased_ids) {
-        ImageBase& aliased = slot_images[aliased_id];
-        AddImageAlias(aliased, new_image_base, aliased_id, new_image_id);
-        new_image.flags |= ImageFlagBits::Alias;
-    }
-    for (const ImageId aliased_id : bad_overlap_ids) {
-        ImageBase& aliased = slot_images[aliased_id];
-        aliased.overlapping_images.push_back(new_image_id);
-        new_image.overlapping_images.push_back(aliased_id);
-        if (aliased.info.resources.levels == 1 && aliased.overlapping_images.size() > 1) {
-            aliased.flags |= ImageFlagBits::BadOverlap;
-        }
-        if (new_image.info.resources.levels == 1 && new_image.overlapping_images.size() > 1) {
-            new_image.flags |= ImageFlagBits::BadOverlap;
-        }
-    }
+
     RegisterImage(new_image_id);
     return new_image_id;
 }
