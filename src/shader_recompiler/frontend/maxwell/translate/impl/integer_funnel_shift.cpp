@@ -30,7 +30,7 @@ void SHF(TranslatorVisitor& v, u64 insn, const IR::U32& shift, const IR::U32& hi
     union {
         u64 insn;
         BitField<0, 8, IR::Reg> dest_reg;
-        BitField<0, 8, IR::Reg> lo_bits_reg;
+        BitField<8, 8, IR::Reg> lo_bits_reg;
         BitField<37, 2, MaxShift> max_shift;
         BitField<47, 1, u64> cc;
         BitField<48, 2, u64> x_mode;
