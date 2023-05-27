@@ -45,6 +45,7 @@ enum class GameListRemoveTarget {
     VkShaderCache,
     AllShaderCache,
     CustomConfiguration,
+    CacheStorage,
 };
 
 enum class DumpRomFSTarget {

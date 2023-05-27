@@ -2323,6 +2323,8 @@ void GMainWindow::OnGameListRemoveFile(u64 program_id, GameListRemoveTarget targ
             return tr("Delete All Transferable Shader Caches?");
         case GameListRemoveTarget::CustomConfiguration:
             return tr("Remove Custom Game Configuration?");
+        case GameListRemoveTarget::CacheStorage:
+            return tr("Remove Cache Storage?");
         default:
             return QString{};
         }
@@ -2345,6 +2347,9 @@ void GMainWindow::OnGameListRemoveFile(u64 program_id, GameListRemoveTarget targ
         break;
     case GameListRemoveTarget::CustomConfiguration:
         RemoveCustomConfiguration(program_id, game_path);
+        break;
+    case GameListRemoveTarget::CacheStorage:
+        RemoveCacheStorage(program_id);
         break;
     }
 }
@@ -2433,6 +2438,21 @@ void GMainWindow::RemoveCustomConfiguration(u64 program_id, const std::string& g
         QMessageBox::warning(this, tr("Error Removing Custom Configuration"),
                              tr("Failed to remove the custom game configuration."));
     }
+}
+
+void GMainWindow::RemoveCacheStorage(u64 program_id) {
+    const auto nand_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir);
+    auto vfs_nand_dir =
+        vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::Mode::Read);
+
+    const auto cache_storage_path = FileSys::SaveDataFactory::GetFullPath(
+        *system, vfs_nand_dir, FileSys::SaveDataSpaceId::NandUser,
+        FileSys::SaveDataType::CacheStorage, 0 /* program_id */, {}, 0);
+
+    const auto path = Common::FS::ConcatPathSafe(nand_dir, cache_storage_path);
+
+    // Not an error if it wasn't cleared.
+    Common::FS::RemoveDirRecursively(path);
 }
 
 void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_path,
