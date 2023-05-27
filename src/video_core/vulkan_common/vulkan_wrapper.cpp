@@ -561,12 +561,26 @@ void Image::Release() const noexcept {
     }
 }
 
-void Buffer::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {
-    Check(dld->vkBindBufferMemory(owner, handle, memory, offset));
+void Buffer::Flush() const {
+    if (!is_coherent) {
+        vmaFlushAllocation(allocator, allocation, 0, VK_WHOLE_SIZE);
+    }
+}
+
+void Buffer::Invalidate() const {
+    if (!is_coherent) {
+        vmaInvalidateAllocation(allocator, allocation, 0, VK_WHOLE_SIZE);
+    }
 }
 
 void Buffer::SetObjectNameEXT(const char* name) const {
     SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_BUFFER, name);
+}
+
+void Buffer::Release() const noexcept {
+    if (handle) {
+        vmaDestroyBuffer(allocator, handle, allocation);
+    }
 }
 
 void BufferView::SetObjectNameEXT(const char* name) const {
@@ -705,12 +719,6 @@ Queue Device::GetQueue(u32 family_index) const noexcept {
     VkQueue queue;
     dld->vkGetDeviceQueue(handle, family_index, 0, &queue);
     return Queue(queue, *dld);
-}
-
-Buffer Device::CreateBuffer(const VkBufferCreateInfo& ci) const {
-    VkBuffer object;
-    Check(dld->vkCreateBuffer(handle, &ci, nullptr, &object));
-    return Buffer(object, handle, *dld);
 }
 
 BufferView Device::CreateBufferView(const VkBufferViewCreateInfo& ci) const {

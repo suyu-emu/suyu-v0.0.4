@@ -9,6 +9,8 @@
 #include "common/common_types.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
+VK_DEFINE_HANDLE(VmaAllocator)
+
 namespace Vulkan {
 
 class Device;
@@ -17,9 +19,11 @@ class MemoryAllocation;
 
 /// Hints and requirements for the backing memory type of a commit
 enum class MemoryUsage {
-    DeviceLocal, ///< Hints device local usages, fastest memory type to read and write from the GPU
+    DeviceLocal, ///< Requests device local host visible buffer, falling back to device local
+                 ///< memory.
     Upload,      ///< Requires a host visible memory type optimized for CPU to GPU uploads
     Download,    ///< Requires a host visible memory type optimized for GPU to CPU readbacks
+    Stream,      ///< Requests device local host visible buffer, falling back host memory.
 };
 
 /// Ownership handle of a memory commitment.
@@ -82,6 +86,8 @@ public:
 
     vk::Image CreateImage(const VkImageCreateInfo& ci) const;
 
+    vk::Buffer CreateBuffer(const VkBufferCreateInfo& ci, MemoryUsage usage) const;
+
     /**
      * Commits a memory with the specified requirements.
      *
@@ -113,13 +119,11 @@ private:
     std::optional<u32> FindType(VkMemoryPropertyFlags flags, u32 type_mask) const;
 
     const Device& device;                                       ///< Device handle.
+    VmaAllocator allocator;                                     ///< Vma allocator.
     const VkPhysicalDeviceMemoryProperties properties;          ///< Physical device properties.
     std::vector<std::unique_ptr<MemoryAllocation>> allocations; ///< Current allocations.
     VkDeviceSize buffer_image_granularity; // The granularity for adjacent offsets between buffers
                                            // and optimal images
 };
-
-/// Returns true when a memory usage is guaranteed to be host visible.
-bool IsHostVisible(MemoryUsage usage) noexcept;
 
 } // namespace Vulkan

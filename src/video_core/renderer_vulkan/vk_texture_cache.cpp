@@ -839,14 +839,14 @@ bool TextureCacheRuntime::ShouldReinterpret(Image& dst, Image& src) {
 
 VkBuffer TextureCacheRuntime::GetTemporaryBuffer(size_t needed_size) {
     const auto level = (8 * sizeof(size_t)) - std::countl_zero(needed_size - 1ULL);
-    if (buffer_commits[level]) {
+    if (buffers[level]) {
         return *buffers[level];
     }
     const auto new_size = Common::NextPow2(needed_size);
     static constexpr VkBufferUsageFlags flags =
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
         VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
-    buffers[level] = device.GetLogical().CreateBuffer({
+    const VkBufferCreateInfo temp_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -855,9 +855,8 @@ VkBuffer TextureCacheRuntime::GetTemporaryBuffer(size_t needed_size) {
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
-    });
-    buffer_commits[level] = std::make_unique<MemoryCommit>(
-        memory_allocator.Commit(buffers[level], MemoryUsage::DeviceLocal));
+    };
+    buffers[level] = memory_allocator.CreateBuffer(temp_ci, MemoryUsage::DeviceLocal);
     return *buffers[level];
 }
 

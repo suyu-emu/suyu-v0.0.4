@@ -116,7 +116,6 @@ public:
 
     static constexpr size_t indexing_slots = 8 * sizeof(size_t);
     std::array<vk::Buffer, indexing_slots> buffers{};
-    std::array<std::unique_ptr<MemoryCommit>, indexing_slots> buffer_commits{};
 };
 
 class Image : public VideoCommon::ImageBase {

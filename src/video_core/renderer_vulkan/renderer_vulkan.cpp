@@ -233,8 +233,8 @@ void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& fr
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
     };
-    const vk::Buffer dst_buffer = device.GetLogical().CreateBuffer(dst_buffer_info);
-    MemoryCommit dst_buffer_memory = memory_allocator.Commit(dst_buffer, MemoryUsage::Download);
+    const vk::Buffer dst_buffer =
+        memory_allocator.CreateBuffer(dst_buffer_info, MemoryUsage::Download);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([&](vk::CommandBuffer cmdbuf) {
@@ -308,8 +308,9 @@ void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& fr
     scheduler.Finish();
 
     // Copy backing image data to the QImage screenshot buffer
-    const auto dst_memory_map = dst_buffer_memory.Map();
-    std::memcpy(renderer_settings.screenshot_bits, dst_memory_map.data(), dst_memory_map.size());
+    dst_buffer.Invalidate();
+    std::memcpy(renderer_settings.screenshot_bits, dst_buffer.Mapped().data(),
+                dst_buffer.Mapped().size());
     renderer_settings.screenshot_complete_callback(false);
     renderer_settings.screenshot_requested = false;
 }

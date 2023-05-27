@@ -46,7 +46,6 @@ private:
 
     struct StagingBuffer {
         vk::Buffer buffer;
-        MemoryCommit commit;
         std::span<u8> mapped_span;
         MemoryUsage usage;
         u32 log2_level;
@@ -97,8 +96,7 @@ private:
     Scheduler& scheduler;
 
     vk::Buffer stream_buffer;
-    vk::DeviceMemory stream_memory;
-    u8* stream_pointer = nullptr;
+    std::span<u8> stream_pointer;
 
     size_t iterator = 0;
     size_t used_iterator = 0;

@@ -162,7 +162,7 @@ void BlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
     SetUniformData(data, layout);
     SetVertexData(data, framebuffer, layout);
 
-    const std::span<u8> mapped_span = buffer_commit.Map();
+    const std::span<u8> mapped_span = buffer.Mapped();
     std::memcpy(mapped_span.data(), &data, sizeof(data));
 
     if (!use_accelerated) {
@@ -1074,7 +1074,6 @@ void BlitScreen::ReleaseRawImages() {
     aa_image_view.reset();
     aa_image.reset();
     buffer.reset();
-    buffer_commit = MemoryCommit{};
 }
 
 void BlitScreen::CreateStagingBuffer(const Tegra::FramebufferConfig& framebuffer) {
@@ -1090,8 +1089,7 @@ void BlitScreen::CreateStagingBuffer(const Tegra::FramebufferConfig& framebuffer
         .pQueueFamilyIndices = nullptr,
     };
 
-    buffer = device.GetLogical().CreateBuffer(ci);
-    buffer_commit = memory_allocator.Commit(buffer, MemoryUsage::Upload);
+    buffer = memory_allocator.CreateBuffer(ci, MemoryUsage::Upload);
 }
 
 void BlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {

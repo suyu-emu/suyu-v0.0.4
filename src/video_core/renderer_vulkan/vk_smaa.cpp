@@ -76,7 +76,7 @@ void TransitionImageLayout(vk::CommandBuffer& cmdbuf, VkImage image, VkImageLayo
 void UploadImage(const Device& device, MemoryAllocator& allocator, Scheduler& scheduler,
                  vk::Image& image, VkExtent2D dimensions, VkFormat format,
                  std::span<const u8> initial_contents = {}) {
-    auto upload_buffer = device.GetLogical().CreateBuffer(VkBufferCreateInfo{
+    const VkBufferCreateInfo upload_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -85,9 +85,10 @@ void UploadImage(const Device& device, MemoryAllocator& allocator, Scheduler& sc
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
-    });
-    auto upload_commit = allocator.Commit(upload_buffer, MemoryUsage::Upload);
-    std::ranges::copy(initial_contents, upload_commit.Map().begin());
+    };
+    auto upload_buffer = allocator.CreateBuffer(upload_ci, MemoryUsage::Upload);
+    std::ranges::copy(initial_contents, upload_buffer.Mapped().begin());
+    upload_buffer.Flush();
 
     const std::array<VkBufferImageCopy, 1> regions{{{
         .bufferOffset = 0,
@@ -111,9 +112,6 @@ void UploadImage(const Device& device, MemoryAllocator& allocator, Scheduler& sc
                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     });
     scheduler.Finish();
-
-    // This should go out of scope before the commit
-    auto upload_buffer2 = std::move(upload_buffer);
 }
 
 vk::ImageView CreateWrappedImageView(const Device& device, vk::Image& image, VkFormat format) {

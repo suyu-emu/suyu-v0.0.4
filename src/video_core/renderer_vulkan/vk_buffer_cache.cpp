@@ -50,7 +50,7 @@ size_t BytesPerIndex(VkIndexType index_type) {
     }
 }
 
-vk::Buffer CreateBuffer(const Device& device, u64 size) {
+vk::Buffer CreateBuffer(const Device& device, const MemoryAllocator& memory_allocator, u64 size) {
     VkBufferUsageFlags flags =
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
         VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT |
@@ -60,7 +60,7 @@ vk::Buffer CreateBuffer(const Device& device, u64 size) {
     if (device.IsExtTransformFeedbackSupported()) {
         flags |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
     }
-    return device.GetLogical().CreateBuffer({
+    const VkBufferCreateInfo buffer_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -69,7 +69,8 @@ vk::Buffer CreateBuffer(const Device& device, u64 size) {
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
-    });
+    };
+    return memory_allocator.CreateBuffer(buffer_ci, MemoryUsage::DeviceLocal);
 }
 } // Anonymous namespace
 
@@ -79,8 +80,8 @@ Buffer::Buffer(BufferCacheRuntime&, VideoCommon::NullBufferParams null_params)
 Buffer::Buffer(BufferCacheRuntime& runtime, VideoCore::RasterizerInterface& rasterizer_,
                VAddr cpu_addr_, u64 size_bytes_)
     : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(rasterizer_, cpu_addr_, size_bytes_),
-      device{&runtime.device}, buffer{CreateBuffer(*device, SizeBytes())},
-      commit{runtime.memory_allocator.Commit(buffer, MemoryUsage::DeviceLocal)} {
+      device{&runtime.device}, buffer{
+                                   CreateBuffer(*device, runtime.memory_allocator, SizeBytes())} {
     if (runtime.device.HasDebuggingToolAttached()) {
         buffer.SetObjectNameEXT(fmt::format("Buffer 0x{:x}", CpuAddr()).c_str());
     }
@@ -138,7 +139,7 @@ public:
         const u32 num_first_offset_copies = 4;
         const size_t bytes_per_index = BytesPerIndex(index_type);
         const size_t size_bytes = num_triangle_indices * bytes_per_index * num_first_offset_copies;
-        buffer = device.GetLogical().CreateBuffer(VkBufferCreateInfo{
+        const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
@@ -147,14 +148,21 @@ public:
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
-        });
+        };
+        buffer = memory_allocator.CreateBuffer(buffer_ci, MemoryUsage::DeviceLocal);
         if (device.HasDebuggingToolAttached()) {
             buffer.SetObjectNameEXT("Quad LUT");
         }
-        memory_commit = memory_allocator.Commit(buffer, MemoryUsage::DeviceLocal);
 
-        const StagingBufferRef staging = staging_pool.Request(size_bytes, MemoryUsage::Upload);
-        u8* staging_data = staging.mapped_span.data();
+        const bool host_visible = buffer.IsHostVisible();
+        const StagingBufferRef staging = [&] {
+            if (host_visible) {
+                return StagingBufferRef{};
+            }
+            return staging_pool.Request(size_bytes, MemoryUsage::Upload);
+        }();
+
+        u8* staging_data = host_visible ? buffer.Mapped().data() : staging.mapped_span.data();
         const size_t quad_size = bytes_per_index * 6;
 
         for (u32 first = 0; first < num_first_offset_copies; ++first) {
@@ -164,29 +172,33 @@ public:
             }
         }
 
-        scheduler.RequestOutsideRenderPassOperationContext();
-        scheduler.Record([src_buffer = staging.buffer, src_offset = staging.offset,
-                          dst_buffer = *buffer, size_bytes](vk::CommandBuffer cmdbuf) {
-            const VkBufferCopy copy{
-                .srcOffset = src_offset,
-                .dstOffset = 0,
-                .size = size_bytes,
-            };
-            const VkBufferMemoryBarrier write_barrier{
-                .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
-                .pNext = nullptr,
-                .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-                .dstAccessMask = VK_ACCESS_INDEX_READ_BIT,
-                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .buffer = dst_buffer,
-                .offset = 0,
-                .size = size_bytes,
-            };
-            cmdbuf.CopyBuffer(src_buffer, dst_buffer, copy);
-            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                   VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, write_barrier);
-        });
+        if (!host_visible) {
+            scheduler.RequestOutsideRenderPassOperationContext();
+            scheduler.Record([src_buffer = staging.buffer, src_offset = staging.offset,
+                              dst_buffer = *buffer, size_bytes](vk::CommandBuffer cmdbuf) {
+                const VkBufferCopy copy{
+                    .srcOffset = src_offset,
+                    .dstOffset = 0,
+                    .size = size_bytes,
+                };
+                const VkBufferMemoryBarrier write_barrier{
+                    .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+                    .pNext = nullptr,
+                    .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+                    .dstAccessMask = VK_ACCESS_INDEX_READ_BIT,
+                    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                    .buffer = dst_buffer,
+                    .offset = 0,
+                    .size = size_bytes,
+                };
+                cmdbuf.CopyBuffer(src_buffer, dst_buffer, copy);
+                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                       VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, write_barrier);
+            });
+        } else {
+            buffer.Flush();
+        }
     }
 
     void BindBuffer(u32 first) {
@@ -587,11 +599,10 @@ void BufferCacheRuntime::ReserveNullBuffer() {
         create_info.usage |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
     }
     create_info.usage |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-    null_buffer = device.GetLogical().CreateBuffer(create_info);
+    null_buffer = memory_allocator.CreateBuffer(create_info, MemoryUsage::DeviceLocal);
     if (device.HasDebuggingToolAttached()) {
         null_buffer.SetObjectNameEXT("Null buffer");
     }
-    null_buffer_commit = memory_allocator.Commit(null_buffer, MemoryUsage::DeviceLocal);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([buffer = *null_buffer](vk::CommandBuffer cmdbuf) {

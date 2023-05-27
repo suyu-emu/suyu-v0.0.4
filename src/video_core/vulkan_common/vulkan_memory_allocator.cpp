@@ -51,9 +51,57 @@ struct Range {
     case MemoryUsage::Download:
         return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
                VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+    case MemoryUsage::Stream:
+        return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     }
     ASSERT_MSG(false, "Invalid memory usage={}", usage);
     return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+}
+
+[[nodiscard]] VkMemoryPropertyFlags MemoryUsageRequiredVmaFlags(MemoryUsage usage) {
+    switch (usage) {
+    case MemoryUsage::DeviceLocal:
+        return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    case MemoryUsage::Upload:
+    case MemoryUsage::Stream:
+        return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    case MemoryUsage::Download:
+        return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+    }
+    ASSERT_MSG(false, "Invalid memory usage={}", usage);
+    return {};
+}
+
+[[nodiscard]] VkMemoryPropertyFlags MemoryUsagePreferedVmaFlags(MemoryUsage usage) {
+    return usage != MemoryUsage::DeviceLocal ? VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+                                             : VkMemoryPropertyFlags{};
+}
+
+[[nodiscard]] VmaAllocationCreateFlags MemoryUsageVmaFlags(MemoryUsage usage) {
+    switch (usage) {
+    case MemoryUsage::Upload:
+    case MemoryUsage::Stream:
+        return VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+    case MemoryUsage::Download:
+        return VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+    case MemoryUsage::DeviceLocal:
+        return VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+               VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
+    }
+    return {};
+}
+
+[[nodiscard]] VmaMemoryUsage MemoryUsageVma(MemoryUsage usage) {
+    switch (usage) {
+    case MemoryUsage::DeviceLocal:
+    case MemoryUsage::Stream:
+        return VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+    case MemoryUsage::Upload:
+    case MemoryUsage::Download:
+        return VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+    }
+    return VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
 }
 
 } // Anonymous namespace
@@ -178,17 +226,18 @@ void MemoryCommit::Release() {
 }
 
 MemoryAllocator::MemoryAllocator(const Device& device_)
-    : device{device_}, properties{device_.GetPhysical().GetMemoryProperties().memoryProperties},
+    : device{device_}, allocator{device.GetAllocator()},
+      properties{device_.GetPhysical().GetMemoryProperties().memoryProperties},
       buffer_image_granularity{
           device_.GetPhysical().GetProperties().limits.bufferImageGranularity} {}
 
 MemoryAllocator::~MemoryAllocator() = default;
 
 vk::Image MemoryAllocator::CreateImage(const VkImageCreateInfo& ci) const {
-    const VmaAllocationCreateInfo alloc_info = {
+    const VmaAllocationCreateInfo alloc_ci = {
         .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT,
         .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-        .requiredFlags = 0,
+        .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         .preferredFlags = 0,
         .pool = VK_NULL_HANDLE,
         .pUserData = nullptr,
@@ -196,10 +245,38 @@ vk::Image MemoryAllocator::CreateImage(const VkImageCreateInfo& ci) const {
 
     VkImage handle{};
     VmaAllocation allocation{};
-    vk::Check(
-        vmaCreateImage(device.GetAllocator(), &ci, &alloc_info, &handle, &allocation, nullptr));
-    return vk::Image(handle, *device.GetLogical(), device.GetAllocator(), allocation,
+
+    vk::Check(vmaCreateImage(allocator, &ci, &alloc_ci, &handle, &allocation, nullptr));
+
+    return vk::Image(handle, *device.GetLogical(), allocator, allocation,
                      device.GetDispatchLoader());
+}
+
+vk::Buffer MemoryAllocator::CreateBuffer(const VkBufferCreateInfo& ci, MemoryUsage usage) const {
+    const VmaAllocationCreateInfo alloc_ci = {
+        .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT |
+                 MemoryUsageVmaFlags(usage),
+        .usage = MemoryUsageVma(usage),
+        .requiredFlags = MemoryUsageRequiredVmaFlags(usage),
+        .preferredFlags = MemoryUsagePreferedVmaFlags(usage),
+        .pool = VK_NULL_HANDLE,
+        .pUserData = nullptr,
+    };
+
+    VkBuffer handle{};
+    VmaAllocationInfo alloc_info{};
+    VmaAllocation allocation{};
+    VkMemoryPropertyFlags property_flags{};
+
+    vk::Check(vmaCreateBuffer(allocator, &ci, &alloc_ci, &handle, &allocation, &alloc_info));
+    vmaGetAllocationMemoryProperties(allocator, allocation, &property_flags);
+
+    u8* data = reinterpret_cast<u8*>(alloc_info.pMappedData);
+    const std::span<u8> mapped_data = data ? std::span<u8>{data, ci.size} : std::span<u8>{};
+    const bool is_coherent = property_flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+    return vk::Buffer(handle, *device.GetLogical(), allocator, allocation, mapped_data, is_coherent,
+                      device.GetDispatchLoader());
 }
 
 MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, MemoryUsage usage) {
@@ -219,12 +296,6 @@ MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, M
     // Commit again, this time it won't fail since there's a fresh allocation above.
     // If it does, there's a bug.
     return TryCommit(requirements, flags).value();
-}
-
-MemoryCommit MemoryAllocator::Commit(const vk::Buffer& buffer, MemoryUsage usage) {
-    auto commit = Commit(device.GetLogical().GetBufferMemoryRequirements(*buffer), usage);
-    buffer.BindMemory(commit.Memory(), commit.Offset());
-    return commit;
 }
 
 bool MemoryAllocator::TryAllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u64 size) {
@@ -300,18 +371,6 @@ std::optional<u32> MemoryAllocator::FindType(VkMemoryPropertyFlags flags, u32 ty
     }
     // Failed to find index
     return std::nullopt;
-}
-
-bool IsHostVisible(MemoryUsage usage) noexcept {
-    switch (usage) {
-    case MemoryUsage::DeviceLocal:
-        return false;
-    case MemoryUsage::Upload:
-    case MemoryUsage::Download:
-        return true;
-    }
-    ASSERT_MSG(false, "Invalid memory usage={}", usage);
-    return false;
 }
 
 } // namespace Vulkan

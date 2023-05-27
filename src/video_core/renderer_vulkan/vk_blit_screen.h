@@ -142,7 +142,6 @@ private:
     vk::Sampler sampler;
 
     vk::Buffer buffer;
-    MemoryCommit buffer_commit;
 
     std::vector<u64> resource_ticks;
 

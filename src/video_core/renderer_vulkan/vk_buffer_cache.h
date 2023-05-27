@@ -48,7 +48,6 @@ private:
 
     const Device* device{};
     vk::Buffer buffer;
-    MemoryCommit commit;
     std::vector<BufferView> views;
 };
 
@@ -142,7 +141,6 @@ private:
     std::shared_ptr<QuadStripIndexBuffer> quad_strip_index_buffer;
 
     vk::Buffer null_buffer;
-    MemoryCommit null_buffer_commit;
 
     std::unique_ptr<Uint8Pass> uint8_pass;
     QuadIndexedPass quad_index_pass;
