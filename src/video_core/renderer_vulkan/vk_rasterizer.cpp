@@ -757,7 +757,11 @@ void RasterizerVulkan::LoadDiskResources(u64 title_id, std::stop_token stop_load
 }
 
 void RasterizerVulkan::FlushWork() {
+#ifdef ANDROID
+    static constexpr u32 DRAWS_TO_DISPATCH = 1024;
+#else
     static constexpr u32 DRAWS_TO_DISPATCH = 4096;
+#endif // ANDROID
 
     // Only check multiples of 8 draws
     static_assert(DRAWS_TO_DISPATCH % 8 == 0);
