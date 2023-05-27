@@ -11,7 +11,6 @@ plugins {
  * next 680 years.
  */
 val autoVersion = (((System.currentTimeMillis() / 1000) - 1451606400) / 10).toInt()
-var buildType = ""
 
 @Suppress("UnstableApiUsage")
 android {
@@ -48,7 +47,7 @@ android {
         applicationId = "org.yuzu.yuzu_emu"
         minSdk = 30
         targetSdk = 33
-        versionName = getVersion()
+        versionName = getGitVersion()
 
         ndk {
             abiFilters += listOf("arm64-v8a", "x86_64")
@@ -56,20 +55,6 @@ android {
 
         buildConfigField("String", "GIT_HASH", "\"${getGitHash()}\"")
         buildConfigField("String", "BRANCH", "\"${getBranch()}\"")
-    }
-
-    signingConfigs {
-        //release {
-        //    storeFile file('')
-        //    storePassword System.getenv('ANDROID_KEYPASS')
-        //    keyAlias = 'key0'
-        //    keyPassword System.getenv('ANDROID_KEYPASS')
-        //}
-    }
-
-    applicationVariants.all { variant ->
-        buildType = variant.buildType.name // sets the current build type
-        true
     }
 
     // Define build types, which are orthogonal to product flavors.
@@ -84,7 +69,6 @@ android {
                 getDefaultProguardFile("proguard-android.txt"),
                 "proguard-rules.pro"
             )
-            defaultConfig.versionCode = 1
         }
 
         register("relWithVersionCode") {
@@ -95,7 +79,6 @@ android {
                 getDefaultProguardFile("proguard-android.txt"),
                 "proguard-rules.pro"
             )
-            defaultConfig.versionCode = autoVersion
         }
 
         // builds a release build that doesn't need signing
@@ -109,9 +92,7 @@ android {
                 "proguard-rules.pro"
             )
             versionNameSuffix = "-debug"
-            enableAndroidTestCoverage = false
             isJniDebuggable = true
-            defaultConfig.versionCode = 1
         }
 
         // Signed by debug key disallowing distribution on Play Store.
@@ -120,7 +101,6 @@ android {
             isDebuggable = true
             isJniDebuggable = true
             versionNameSuffix = "-debug"
-            defaultConfig.versionCode = 1
         }
     }
 
@@ -187,7 +167,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
 }
 
-fun getVersion(): String {
+fun getGitVersion(): String {
     var versionName = "0.0"
 
     try {
