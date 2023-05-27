@@ -86,8 +86,78 @@ enum class ObtainBufferOperation : u32 {
     MarkQuery = 3,
 };
 
-template <typename P>
-class BufferCache : public VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
+static constexpr BufferId NULL_BUFFER_ID{0};
+static constexpr u32 DEFAULT_SKIP_CACHE_SIZE = static_cast<u32>(4_KiB);
+
+struct Binding {
+    VAddr cpu_addr{};
+    u32 size{};
+    BufferId buffer_id;
+};
+
+struct TextureBufferBinding : Binding {
+    PixelFormat format;
+};
+
+static constexpr Binding NULL_BINDING{
+    .cpu_addr = 0,
+    .size = 0,
+    .buffer_id = NULL_BUFFER_ID,
+};
+
+class BufferCacheChannelInfo : public ChannelInfo {
+public:
+    BufferCacheChannelInfo() = delete;
+    BufferCacheChannelInfo(Tegra::Control::ChannelState& state) noexcept : ChannelInfo(state) {}
+    BufferCacheChannelInfo(const BufferCacheChannelInfo& state) = delete;
+    BufferCacheChannelInfo& operator=(const BufferCacheChannelInfo&) = delete;
+
+    Binding index_buffer;
+    std::array<Binding, NUM_VERTEX_BUFFERS> vertex_buffers;
+    std::array<std::array<Binding, NUM_GRAPHICS_UNIFORM_BUFFERS>, NUM_STAGES> uniform_buffers;
+    std::array<std::array<Binding, NUM_STORAGE_BUFFERS>, NUM_STAGES> storage_buffers;
+    std::array<std::array<TextureBufferBinding, NUM_TEXTURE_BUFFERS>, NUM_STAGES> texture_buffers;
+    std::array<Binding, NUM_TRANSFORM_FEEDBACK_BUFFERS> transform_feedback_buffers;
+    Binding count_buffer_binding;
+    Binding indirect_buffer_binding;
+
+    std::array<Binding, NUM_COMPUTE_UNIFORM_BUFFERS> compute_uniform_buffers;
+    std::array<Binding, NUM_STORAGE_BUFFERS> compute_storage_buffers;
+    std::array<TextureBufferBinding, NUM_TEXTURE_BUFFERS> compute_texture_buffers;
+
+    std::array<u32, NUM_STAGES> enabled_uniform_buffer_masks{};
+    u32 enabled_compute_uniform_buffer_mask = 0;
+
+    const UniformBufferSizes* uniform_buffer_sizes{};
+    const ComputeUniformBufferSizes* compute_uniform_buffer_sizes{};
+
+    std::array<u32, NUM_STAGES> enabled_storage_buffers{};
+    std::array<u32, NUM_STAGES> written_storage_buffers{};
+    u32 enabled_compute_storage_buffers = 0;
+    u32 written_compute_storage_buffers = 0;
+
+    std::array<u32, NUM_STAGES> enabled_texture_buffers{};
+    std::array<u32, NUM_STAGES> written_texture_buffers{};
+    std::array<u32, NUM_STAGES> image_texture_buffers{};
+    u32 enabled_compute_texture_buffers = 0;
+    u32 written_compute_texture_buffers = 0;
+    u32 image_compute_texture_buffers = 0;
+
+    std::array<u32, 16> uniform_cache_hits{};
+    std::array<u32, 16> uniform_cache_shots{};
+
+    u32 uniform_buffer_skip_cache_size = DEFAULT_SKIP_CACHE_SIZE;
+
+    bool has_deleted_buffers = false;
+
+    std::array<u32, NUM_STAGES> dirty_uniform_buffers{};
+    std::array<u32, NUM_STAGES> fast_bound_uniform_buffers{};
+    std::array<std::array<u32, NUM_GRAPHICS_UNIFORM_BUFFERS>, NUM_STAGES>
+        uniform_buffer_binding_sizes{};
+};
+
+template <class P>
+class BufferCache : public VideoCommon::ChannelSetupCaches<BufferCacheChannelInfo> {
     // Page size for caching purposes.
     // This is unrelated to the CPU page size and it can be changed as it seems optimal.
     static constexpr u32 CACHING_PAGEBITS = 16;
@@ -103,8 +173,6 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<VideoCommon::ChannelI
     static constexpr bool USE_MEMORY_MAPS = P::USE_MEMORY_MAPS;
     static constexpr bool SEPARATE_IMAGE_BUFFERS_BINDINGS = P::SEPARATE_IMAGE_BUFFER_BINDINGS;
     static constexpr bool IMPLEMENTS_ASYNC_DOWNLOADS = P::IMPLEMENTS_ASYNC_DOWNLOADS;
-
-    static constexpr BufferId NULL_BUFFER_ID{0};
 
     static constexpr s64 DEFAULT_EXPECTED_MEMORY = 512_MiB;
     static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB;
@@ -149,8 +217,6 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<VideoCommon::ChannelI
     using OverlapSection = boost::icl::inter_section<int>;
     using OverlapCounter = boost::icl::split_interval_map<VAddr, int>;
 
-    struct Empty {};
-
     struct OverlapResult {
         std::vector<BufferId> ids;
         VAddr begin;
@@ -158,25 +224,7 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<VideoCommon::ChannelI
         bool has_stream_leap = false;
     };
 
-    struct Binding {
-        VAddr cpu_addr{};
-        u32 size{};
-        BufferId buffer_id;
-    };
-
-    struct TextureBufferBinding : Binding {
-        PixelFormat format;
-    };
-
-    static constexpr Binding NULL_BINDING{
-        .cpu_addr = 0,
-        .size = 0,
-        .buffer_id = NULL_BUFFER_ID,
-    };
-
 public:
-    static constexpr u32 DEFAULT_SKIP_CACHE_SIZE = static_cast<u32>(4_KiB);
-
     explicit BufferCache(VideoCore::RasterizerInterface& rasterizer_,
                          Core::Memory::Memory& cpu_memory_, Runtime& runtime_);
 
@@ -495,51 +543,6 @@ private:
     const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect{};
 
     u32 last_index_count = 0;
-
-    Binding index_buffer;
-    std::array<Binding, NUM_VERTEX_BUFFERS> vertex_buffers;
-    std::array<std::array<Binding, NUM_GRAPHICS_UNIFORM_BUFFERS>, NUM_STAGES> uniform_buffers;
-    std::array<std::array<Binding, NUM_STORAGE_BUFFERS>, NUM_STAGES> storage_buffers;
-    std::array<std::array<TextureBufferBinding, NUM_TEXTURE_BUFFERS>, NUM_STAGES> texture_buffers;
-    std::array<Binding, NUM_TRANSFORM_FEEDBACK_BUFFERS> transform_feedback_buffers;
-    Binding count_buffer_binding;
-    Binding indirect_buffer_binding;
-
-    std::array<Binding, NUM_COMPUTE_UNIFORM_BUFFERS> compute_uniform_buffers;
-    std::array<Binding, NUM_STORAGE_BUFFERS> compute_storage_buffers;
-    std::array<TextureBufferBinding, NUM_TEXTURE_BUFFERS> compute_texture_buffers;
-
-    std::array<u32, NUM_STAGES> enabled_uniform_buffer_masks{};
-    u32 enabled_compute_uniform_buffer_mask = 0;
-
-    const UniformBufferSizes* uniform_buffer_sizes{};
-    const ComputeUniformBufferSizes* compute_uniform_buffer_sizes{};
-
-    std::array<u32, NUM_STAGES> enabled_storage_buffers{};
-    std::array<u32, NUM_STAGES> written_storage_buffers{};
-    u32 enabled_compute_storage_buffers = 0;
-    u32 written_compute_storage_buffers = 0;
-
-    std::array<u32, NUM_STAGES> enabled_texture_buffers{};
-    std::array<u32, NUM_STAGES> written_texture_buffers{};
-    std::array<u32, NUM_STAGES> image_texture_buffers{};
-    u32 enabled_compute_texture_buffers = 0;
-    u32 written_compute_texture_buffers = 0;
-    u32 image_compute_texture_buffers = 0;
-
-    std::array<u32, 16> uniform_cache_hits{};
-    std::array<u32, 16> uniform_cache_shots{};
-
-    u32 uniform_buffer_skip_cache_size = DEFAULT_SKIP_CACHE_SIZE;
-
-    bool has_deleted_buffers = false;
-
-    std::conditional_t<HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS, std::array<u32, NUM_STAGES>, Empty>
-        dirty_uniform_buffers{};
-    std::conditional_t<IS_OPENGL, std::array<u32, NUM_STAGES>, Empty> fast_bound_uniform_buffers{};
-    std::conditional_t<HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS,
-                       std::array<std::array<u32, NUM_GRAPHICS_UNIFORM_BUFFERS>, NUM_STAGES>, Empty>
-        uniform_buffer_binding_sizes{};
 
     MemoryTracker memory_tracker;
     IntervalSet uncommitted_ranges;

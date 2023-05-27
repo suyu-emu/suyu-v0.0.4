@@ -64,17 +64,22 @@ void BufferCache<P>::RunGarbageCollector() {
 template <class P>
 void BufferCache<P>::TickFrame() {
     // Calculate hits and shots and move hit bits to the right
-    const u32 hits = std::reduce(uniform_cache_hits.begin(), uniform_cache_hits.end());
-    const u32 shots = std::reduce(uniform_cache_shots.begin(), uniform_cache_shots.end());
-    std::copy_n(uniform_cache_hits.begin(), uniform_cache_hits.size() - 1,
-                uniform_cache_hits.begin() + 1);
-    std::copy_n(uniform_cache_shots.begin(), uniform_cache_shots.size() - 1,
-                uniform_cache_shots.begin() + 1);
-    uniform_cache_hits[0] = 0;
-    uniform_cache_shots[0] = 0;
+
+    const u32 hits = std::reduce(channel_state->uniform_cache_hits.begin(),
+                                 channel_state->uniform_cache_hits.end());
+    const u32 shots = std::reduce(channel_state->uniform_cache_shots.begin(),
+                                  channel_state->uniform_cache_shots.end());
+    std::copy_n(channel_state->uniform_cache_hits.begin(),
+                channel_state->uniform_cache_hits.size() - 1,
+                channel_state->uniform_cache_hits.begin() + 1);
+    std::copy_n(channel_state->uniform_cache_shots.begin(),
+                channel_state->uniform_cache_shots.size() - 1,
+                channel_state->uniform_cache_shots.begin() + 1);
+    channel_state->uniform_cache_hits[0] = 0;
+    channel_state->uniform_cache_shots[0] = 0;
 
     const bool skip_preferred = hits * 256 < shots * 251;
-    uniform_buffer_skip_cache_size = skip_preferred ? DEFAULT_SKIP_CACHE_SIZE : 0;
+    channel_state->uniform_buffer_skip_cache_size = skip_preferred ? DEFAULT_SKIP_CACHE_SIZE : 0;
 
     // If we can obtain the memory info, use it instead of the estimate.
     if (runtime.CanReportMemoryUsage()) {
@@ -164,10 +169,10 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     BufferId buffer_a;
     BufferId buffer_b;
     do {
-        has_deleted_buffers = false;
+        channel_state->has_deleted_buffers = false;
         buffer_a = FindBuffer(*cpu_src_address, static_cast<u32>(amount));
         buffer_b = FindBuffer(*cpu_dest_address, static_cast<u32>(amount));
-    } while (has_deleted_buffers);
+    } while (channel_state->has_deleted_buffers);
     auto& src_buffer = slot_buffers[buffer_a];
     auto& dest_buffer = slot_buffers[buffer_b];
     SynchronizeBuffer(src_buffer, *cpu_src_address, static_cast<u32>(amount));
@@ -272,30 +277,30 @@ void BufferCache<P>::BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr
         .size = size,
         .buffer_id = BufferId{},
     };
-    uniform_buffers[stage][index] = binding;
+    channel_state->uniform_buffers[stage][index] = binding;
 }
 
 template <class P>
 void BufferCache<P>::DisableGraphicsUniformBuffer(size_t stage, u32 index) {
-    uniform_buffers[stage][index] = NULL_BINDING;
+    channel_state->uniform_buffers[stage][index] = NULL_BINDING;
 }
 
 template <class P>
 void BufferCache<P>::UpdateGraphicsBuffers(bool is_indexed) {
     MICROPROFILE_SCOPE(GPU_PrepareBuffers);
     do {
-        has_deleted_buffers = false;
+        channel_state->has_deleted_buffers = false;
         DoUpdateGraphicsBuffers(is_indexed);
-    } while (has_deleted_buffers);
+    } while (channel_state->has_deleted_buffers);
 }
 
 template <class P>
 void BufferCache<P>::UpdateComputeBuffers() {
     MICROPROFILE_SCOPE(GPU_PrepareBuffers);
     do {
-        has_deleted_buffers = false;
+        channel_state->has_deleted_buffers = false;
         DoUpdateComputeBuffers();
-    } while (has_deleted_buffers);
+    } while (channel_state->has_deleted_buffers);
 }
 
 template <class P>
@@ -338,98 +343,102 @@ template <class P>
 void BufferCache<P>::SetUniformBuffersState(const std::array<u32, NUM_STAGES>& mask,
                                             const UniformBufferSizes* sizes) {
     if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {
-        if (enabled_uniform_buffer_masks != mask) {
+        if (channel_state->enabled_uniform_buffer_masks != mask) {
             if constexpr (IS_OPENGL) {
-                fast_bound_uniform_buffers.fill(0);
+                channel_state->fast_bound_uniform_buffers.fill(0);
             }
-            dirty_uniform_buffers.fill(~u32{0});
-            uniform_buffer_binding_sizes.fill({});
+            channel_state->dirty_uniform_buffers.fill(~u32{0});
+            channel_state->uniform_buffer_binding_sizes.fill({});
         }
     }
-    enabled_uniform_buffer_masks = mask;
-    uniform_buffer_sizes = sizes;
+    channel_state->enabled_uniform_buffer_masks = mask;
+    channel_state->uniform_buffer_sizes = sizes;
 }
 
 template <class P>
 void BufferCache<P>::SetComputeUniformBufferState(u32 mask,
                                                   const ComputeUniformBufferSizes* sizes) {
-    enabled_compute_uniform_buffer_mask = mask;
-    compute_uniform_buffer_sizes = sizes;
+    channel_state->enabled_compute_uniform_buffer_mask = mask;
+    channel_state->compute_uniform_buffer_sizes = sizes;
 }
 
 template <class P>
 void BufferCache<P>::UnbindGraphicsStorageBuffers(size_t stage) {
-    enabled_storage_buffers[stage] = 0;
-    written_storage_buffers[stage] = 0;
+    channel_state->enabled_storage_buffers[stage] = 0;
+    channel_state->written_storage_buffers[stage] = 0;
 }
 
 template <class P>
 void BufferCache<P>::BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, u32 cbuf_index,
                                                u32 cbuf_offset, bool is_written) {
-    enabled_storage_buffers[stage] |= 1U << ssbo_index;
-    written_storage_buffers[stage] |= (is_written ? 1U : 0U) << ssbo_index;
+    channel_state->enabled_storage_buffers[stage] |= 1U << ssbo_index;
+    channel_state->written_storage_buffers[stage] |= (is_written ? 1U : 0U) << ssbo_index;
 
     const auto& cbufs = maxwell3d->state.shader_stages[stage];
     const GPUVAddr ssbo_addr = cbufs.const_buffers[cbuf_index].address + cbuf_offset;
-    storage_buffers[stage][ssbo_index] = StorageBufferBinding(ssbo_addr, cbuf_index, is_written);
+    channel_state->storage_buffers[stage][ssbo_index] =
+        StorageBufferBinding(ssbo_addr, cbuf_index, is_written);
 }
 
 template <class P>
 void BufferCache<P>::UnbindGraphicsTextureBuffers(size_t stage) {
-    enabled_texture_buffers[stage] = 0;
-    written_texture_buffers[stage] = 0;
-    image_texture_buffers[stage] = 0;
+    channel_state->enabled_texture_buffers[stage] = 0;
+    channel_state->written_texture_buffers[stage] = 0;
+    channel_state->image_texture_buffers[stage] = 0;
 }
 
 template <class P>
 void BufferCache<P>::BindGraphicsTextureBuffer(size_t stage, size_t tbo_index, GPUVAddr gpu_addr,
                                                u32 size, PixelFormat format, bool is_written,
                                                bool is_image) {
-    enabled_texture_buffers[stage] |= 1U << tbo_index;
-    written_texture_buffers[stage] |= (is_written ? 1U : 0U) << tbo_index;
+    channel_state->enabled_texture_buffers[stage] |= 1U << tbo_index;
+    channel_state->written_texture_buffers[stage] |= (is_written ? 1U : 0U) << tbo_index;
     if constexpr (SEPARATE_IMAGE_BUFFERS_BINDINGS) {
-        image_texture_buffers[stage] |= (is_image ? 1U : 0U) << tbo_index;
+        channel_state->image_texture_buffers[stage] |= (is_image ? 1U : 0U) << tbo_index;
     }
-    texture_buffers[stage][tbo_index] = GetTextureBufferBinding(gpu_addr, size, format);
+    channel_state->texture_buffers[stage][tbo_index] =
+        GetTextureBufferBinding(gpu_addr, size, format);
 }
 
 template <class P>
 void BufferCache<P>::UnbindComputeStorageBuffers() {
-    enabled_compute_storage_buffers = 0;
-    written_compute_storage_buffers = 0;
-    image_compute_texture_buffers = 0;
+    channel_state->enabled_compute_storage_buffers = 0;
+    channel_state->written_compute_storage_buffers = 0;
+    channel_state->image_compute_texture_buffers = 0;
 }
 
 template <class P>
 void BufferCache<P>::BindComputeStorageBuffer(size_t ssbo_index, u32 cbuf_index, u32 cbuf_offset,
                                               bool is_written) {
-    enabled_compute_storage_buffers |= 1U << ssbo_index;
-    written_compute_storage_buffers |= (is_written ? 1U : 0U) << ssbo_index;
+    channel_state->enabled_compute_storage_buffers |= 1U << ssbo_index;
+    channel_state->written_compute_storage_buffers |= (is_written ? 1U : 0U) << ssbo_index;
 
     const auto& launch_desc = kepler_compute->launch_description;
     ASSERT(((launch_desc.const_buffer_enable_mask >> cbuf_index) & 1) != 0);
 
     const auto& cbufs = launch_desc.const_buffer_config;
     const GPUVAddr ssbo_addr = cbufs[cbuf_index].Address() + cbuf_offset;
-    compute_storage_buffers[ssbo_index] = StorageBufferBinding(ssbo_addr, cbuf_index, is_written);
+    channel_state->compute_storage_buffers[ssbo_index] =
+        StorageBufferBinding(ssbo_addr, cbuf_index, is_written);
 }
 
 template <class P>
 void BufferCache<P>::UnbindComputeTextureBuffers() {
-    enabled_compute_texture_buffers = 0;
-    written_compute_texture_buffers = 0;
-    image_compute_texture_buffers = 0;
+    channel_state->enabled_compute_texture_buffers = 0;
+    channel_state->written_compute_texture_buffers = 0;
+    channel_state->image_compute_texture_buffers = 0;
 }
 
 template <class P>
 void BufferCache<P>::BindComputeTextureBuffer(size_t tbo_index, GPUVAddr gpu_addr, u32 size,
                                               PixelFormat format, bool is_written, bool is_image) {
-    enabled_compute_texture_buffers |= 1U << tbo_index;
-    written_compute_texture_buffers |= (is_written ? 1U : 0U) << tbo_index;
+    channel_state->enabled_compute_texture_buffers |= 1U << tbo_index;
+    channel_state->written_compute_texture_buffers |= (is_written ? 1U : 0U) << tbo_index;
     if constexpr (SEPARATE_IMAGE_BUFFERS_BINDINGS) {
-        image_compute_texture_buffers |= (is_image ? 1U : 0U) << tbo_index;
+        channel_state->image_compute_texture_buffers |= (is_image ? 1U : 0U) << tbo_index;
     }
-    compute_texture_buffers[tbo_index] = GetTextureBufferBinding(gpu_addr, size, format);
+    channel_state->compute_texture_buffers[tbo_index] =
+        GetTextureBufferBinding(gpu_addr, size, format);
 }
 
 template <class P>
@@ -672,10 +681,10 @@ bool BufferCache<P>::IsRegionCpuModified(VAddr addr, size_t size) {
 
 template <class P>
 void BufferCache<P>::BindHostIndexBuffer() {
-    Buffer& buffer = slot_buffers[index_buffer.buffer_id];
-    TouchBuffer(buffer, index_buffer.buffer_id);
-    const u32 offset = buffer.Offset(index_buffer.cpu_addr);
-    const u32 size = index_buffer.size;
+    Buffer& buffer = slot_buffers[channel_state->index_buffer.buffer_id];
+    TouchBuffer(buffer, channel_state->index_buffer.buffer_id);
+    const u32 offset = buffer.Offset(channel_state->index_buffer.cpu_addr);
+    const u32 size = channel_state->index_buffer.size;
     const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
     if (!draw_state.inline_index_draw_indexes.empty()) [[unlikely]] {
         if constexpr (USE_MEMORY_MAPS) {
@@ -689,7 +698,7 @@ void BufferCache<P>::BindHostIndexBuffer() {
             buffer.ImmediateUpload(0, draw_state.inline_index_draw_indexes);
         }
     } else {
-        SynchronizeBuffer(buffer, index_buffer.cpu_addr, size);
+        SynchronizeBuffer(buffer, channel_state->index_buffer.cpu_addr, size);
     }
     if constexpr (HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT) {
         const u32 new_offset =
@@ -706,7 +715,7 @@ template <class P>
 void BufferCache<P>::BindHostVertexBuffers() {
     auto& flags = maxwell3d->dirty.flags;
     for (u32 index = 0; index < NUM_VERTEX_BUFFERS; ++index) {
-        const Binding& binding = vertex_buffers[index];
+        const Binding& binding = channel_state->vertex_buffers[index];
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
         SynchronizeBuffer(buffer, binding.cpu_addr, binding.size);
@@ -729,19 +738,19 @@ void BufferCache<P>::BindHostDrawIndirectBuffers() {
         SynchronizeBuffer(buffer, binding.cpu_addr, binding.size);
     };
     if (current_draw_indirect->include_count) {
-        bind_buffer(count_buffer_binding);
+        bind_buffer(channel_state->count_buffer_binding);
     }
-    bind_buffer(indirect_buffer_binding);
+    bind_buffer(channel_state->indirect_buffer_binding);
 }
 
 template <class P>
 void BufferCache<P>::BindHostGraphicsUniformBuffers(size_t stage) {
     u32 dirty = ~0U;
     if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {
-        dirty = std::exchange(dirty_uniform_buffers[stage], 0);
+        dirty = std::exchange(channel_state->dirty_uniform_buffers[stage], 0);
     }
     u32 binding_index = 0;
-    ForEachEnabledBit(enabled_uniform_buffer_masks[stage], [&](u32 index) {
+    ForEachEnabledBit(channel_state->enabled_uniform_buffer_masks[stage], [&](u32 index) {
         const bool needs_bind = ((dirty >> index) & 1) != 0;
         BindHostGraphicsUniformBuffer(stage, index, binding_index, needs_bind);
         if constexpr (NEEDS_BIND_UNIFORM_INDEX) {
@@ -753,13 +762,13 @@ void BufferCache<P>::BindHostGraphicsUniformBuffers(size_t stage) {
 template <class P>
 void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 binding_index,
                                                    bool needs_bind) {
-    const Binding& binding = uniform_buffers[stage][index];
+    const Binding& binding = channel_state->uniform_buffers[stage][index];
     const VAddr cpu_addr = binding.cpu_addr;
-    const u32 size = std::min(binding.size, (*uniform_buffer_sizes)[stage][index]);
+    const u32 size = std::min(binding.size, (*channel_state->uniform_buffer_sizes)[stage][index]);
     Buffer& buffer = slot_buffers[binding.buffer_id];
     TouchBuffer(buffer, binding.buffer_id);
     const bool use_fast_buffer = binding.buffer_id != NULL_BUFFER_ID &&
-                                 size <= uniform_buffer_skip_cache_size &&
+                                 size <= channel_state->uniform_buffer_skip_cache_size &&
                                  !memory_tracker.IsRegionGpuModified(cpu_addr, size);
     if (use_fast_buffer) {
         if constexpr (IS_OPENGL) {
@@ -767,11 +776,11 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
                 // Fast path for Nvidia
                 const bool should_fast_bind =
                     !HasFastUniformBufferBound(stage, binding_index) ||
-                    uniform_buffer_binding_sizes[stage][binding_index] != size;
+                    channel_state->uniform_buffer_binding_sizes[stage][binding_index] != size;
                 if (should_fast_bind) {
                     // We only have to bind when the currently bound buffer is not the fast version
-                    fast_bound_uniform_buffers[stage] |= 1U << binding_index;
-                    uniform_buffer_binding_sizes[stage][binding_index] = size;
+                    channel_state->fast_bound_uniform_buffers[stage] |= 1U << binding_index;
+                    channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
                     runtime.BindFastUniformBuffer(stage, binding_index, size);
                 }
                 const auto span = ImmediateBufferWithData(cpu_addr, size);
@@ -780,8 +789,8 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
             }
         }
         if constexpr (IS_OPENGL) {
-            fast_bound_uniform_buffers[stage] |= 1U << binding_index;
-            uniform_buffer_binding_sizes[stage][binding_index] = size;
+            channel_state->fast_bound_uniform_buffers[stage] |= 1U << binding_index;
+            channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
         }
         // Stream buffer path to avoid stalling on non-Nvidia drivers or Vulkan
         const std::span<u8> span = runtime.BindMappedUniformBuffer(stage, binding_index, size);
@@ -791,15 +800,15 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     // Classic cached path
     const bool sync_cached = SynchronizeBuffer(buffer, cpu_addr, size);
     if (sync_cached) {
-        ++uniform_cache_hits[0];
+        ++channel_state->uniform_cache_hits[0];
     }
-    ++uniform_cache_shots[0];
+    ++channel_state->uniform_cache_shots[0];
 
     // Skip binding if it's not needed and if the bound buffer is not the fast version
     // This exists to avoid instances where the fast buffer is bound and a GPU write happens
     needs_bind |= HasFastUniformBufferBound(stage, binding_index);
     if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {
-        needs_bind |= uniform_buffer_binding_sizes[stage][binding_index] != size;
+        needs_bind |= channel_state->uniform_buffer_binding_sizes[stage][binding_index] != size;
     }
     if (!needs_bind) {
         return;
@@ -807,14 +816,14 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     const u32 offset = buffer.Offset(cpu_addr);
     if constexpr (IS_OPENGL) {
         // Fast buffer will be unbound
-        fast_bound_uniform_buffers[stage] &= ~(1U << binding_index);
+        channel_state->fast_bound_uniform_buffers[stage] &= ~(1U << binding_index);
 
         // Mark the index as dirty if offset doesn't match
         const bool is_copy_bind = offset != 0 && !runtime.SupportsNonZeroUniformOffset();
-        dirty_uniform_buffers[stage] |= (is_copy_bind ? 1U : 0U) << index;
+        channel_state->dirty_uniform_buffers[stage] |= (is_copy_bind ? 1U : 0U) << index;
     }
     if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {
-        uniform_buffer_binding_sizes[stage][binding_index] = size;
+        channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
     }
     if constexpr (NEEDS_BIND_UNIFORM_INDEX) {
         runtime.BindUniformBuffer(stage, binding_index, buffer, offset, size);
@@ -826,15 +835,15 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
 template <class P>
 void BufferCache<P>::BindHostGraphicsStorageBuffers(size_t stage) {
     u32 binding_index = 0;
-    ForEachEnabledBit(enabled_storage_buffers[stage], [&](u32 index) {
-        const Binding& binding = storage_buffers[stage][index];
+    ForEachEnabledBit(channel_state->enabled_storage_buffers[stage], [&](u32 index) {
+        const Binding& binding = channel_state->storage_buffers[stage][index];
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
         const u32 size = binding.size;
         SynchronizeBuffer(buffer, binding.cpu_addr, size);
 
         const u32 offset = buffer.Offset(binding.cpu_addr);
-        const bool is_written = ((written_storage_buffers[stage] >> index) & 1) != 0;
+        const bool is_written = ((channel_state->written_storage_buffers[stage] >> index) & 1) != 0;
         if constexpr (NEEDS_BIND_STORAGE_INDEX) {
             runtime.BindStorageBuffer(stage, binding_index, buffer, offset, size, is_written);
             ++binding_index;
@@ -846,8 +855,8 @@ void BufferCache<P>::BindHostGraphicsStorageBuffers(size_t stage) {
 
 template <class P>
 void BufferCache<P>::BindHostGraphicsTextureBuffers(size_t stage) {
-    ForEachEnabledBit(enabled_texture_buffers[stage], [&](u32 index) {
-        const TextureBufferBinding& binding = texture_buffers[stage][index];
+    ForEachEnabledBit(channel_state->enabled_texture_buffers[stage], [&](u32 index) {
+        const TextureBufferBinding& binding = channel_state->texture_buffers[stage][index];
         Buffer& buffer = slot_buffers[binding.buffer_id];
         const u32 size = binding.size;
         SynchronizeBuffer(buffer, binding.cpu_addr, size);
@@ -855,7 +864,7 @@ void BufferCache<P>::BindHostGraphicsTextureBuffers(size_t stage) {
         const u32 offset = buffer.Offset(binding.cpu_addr);
         const PixelFormat format = binding.format;
         if constexpr (SEPARATE_IMAGE_BUFFERS_BINDINGS) {
-            if (((image_texture_buffers[stage] >> index) & 1) != 0) {
+            if (((channel_state->image_texture_buffers[stage] >> index) & 1) != 0) {
                 runtime.BindImageBuffer(buffer, offset, size, format);
             } else {
                 runtime.BindTextureBuffer(buffer, offset, size, format);
@@ -872,7 +881,7 @@ void BufferCache<P>::BindHostTransformFeedbackBuffers() {
         return;
     }
     for (u32 index = 0; index < NUM_TRANSFORM_FEEDBACK_BUFFERS; ++index) {
-        const Binding& binding = transform_feedback_buffers[index];
+        const Binding& binding = channel_state->transform_feedback_buffers[index];
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
         const u32 size = binding.size;
@@ -887,15 +896,16 @@ template <class P>
 void BufferCache<P>::BindHostComputeUniformBuffers() {
     if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {
         // Mark all uniform buffers as dirty
-        dirty_uniform_buffers.fill(~u32{0});
-        fast_bound_uniform_buffers.fill(0);
+        channel_state->dirty_uniform_buffers.fill(~u32{0});
+        channel_state->fast_bound_uniform_buffers.fill(0);
     }
     u32 binding_index = 0;
-    ForEachEnabledBit(enabled_compute_uniform_buffer_mask, [&](u32 index) {
-        const Binding& binding = compute_uniform_buffers[index];
+    ForEachEnabledBit(channel_state->enabled_compute_uniform_buffer_mask, [&](u32 index) {
+        const Binding& binding = channel_state->compute_uniform_buffers[index];
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
-        const u32 size = std::min(binding.size, (*compute_uniform_buffer_sizes)[index]);
+        const u32 size =
+            std::min(binding.size, (*channel_state->compute_uniform_buffer_sizes)[index]);
         SynchronizeBuffer(buffer, binding.cpu_addr, size);
 
         const u32 offset = buffer.Offset(binding.cpu_addr);
@@ -911,15 +921,16 @@ void BufferCache<P>::BindHostComputeUniformBuffers() {
 template <class P>
 void BufferCache<P>::BindHostComputeStorageBuffers() {
     u32 binding_index = 0;
-    ForEachEnabledBit(enabled_compute_storage_buffers, [&](u32 index) {
-        const Binding& binding = compute_storage_buffers[index];
+    ForEachEnabledBit(channel_state->enabled_compute_storage_buffers, [&](u32 index) {
+        const Binding& binding = channel_state->compute_storage_buffers[index];
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
         const u32 size = binding.size;
         SynchronizeBuffer(buffer, binding.cpu_addr, size);
 
         const u32 offset = buffer.Offset(binding.cpu_addr);
-        const bool is_written = ((written_compute_storage_buffers >> index) & 1) != 0;
+        const bool is_written =
+            ((channel_state->written_compute_storage_buffers >> index) & 1) != 0;
         if constexpr (NEEDS_BIND_STORAGE_INDEX) {
             runtime.BindComputeStorageBuffer(binding_index, buffer, offset, size, is_written);
             ++binding_index;
@@ -931,8 +942,8 @@ void BufferCache<P>::BindHostComputeStorageBuffers() {
 
 template <class P>
 void BufferCache<P>::BindHostComputeTextureBuffers() {
-    ForEachEnabledBit(enabled_compute_texture_buffers, [&](u32 index) {
-        const TextureBufferBinding& binding = compute_texture_buffers[index];
+    ForEachEnabledBit(channel_state->enabled_compute_texture_buffers, [&](u32 index) {
+        const TextureBufferBinding& binding = channel_state->compute_texture_buffers[index];
         Buffer& buffer = slot_buffers[binding.buffer_id];
         const u32 size = binding.size;
         SynchronizeBuffer(buffer, binding.cpu_addr, size);
@@ -940,7 +951,7 @@ void BufferCache<P>::BindHostComputeTextureBuffers() {
         const u32 offset = buffer.Offset(binding.cpu_addr);
         const PixelFormat format = binding.format;
         if constexpr (SEPARATE_IMAGE_BUFFERS_BINDINGS) {
-            if (((image_compute_texture_buffers >> index) & 1) != 0) {
+            if (((channel_state->image_compute_texture_buffers >> index) & 1) != 0) {
                 runtime.BindImageBuffer(buffer, offset, size, format);
             } else {
                 runtime.BindTextureBuffer(buffer, offset, size, format);
@@ -954,7 +965,7 @@ void BufferCache<P>::BindHostComputeTextureBuffers() {
 template <class P>
 void BufferCache<P>::DoUpdateGraphicsBuffers(bool is_indexed) {
     do {
-        has_deleted_buffers = false;
+        channel_state->has_deleted_buffers = false;
         if (is_indexed) {
             UpdateIndexBuffer();
         }
@@ -968,7 +979,7 @@ void BufferCache<P>::DoUpdateGraphicsBuffers(bool is_indexed) {
         if (current_draw_indirect) {
             UpdateDrawIndirect();
         }
-    } while (has_deleted_buffers);
+    } while (channel_state->has_deleted_buffers);
 }
 
 template <class P>
@@ -999,7 +1010,7 @@ void BufferCache<P>::UpdateIndexBuffer() {
             slot_buffers.erase(inline_buffer_id);
             inline_buffer_id = CreateBuffer(0, buffer_size);
         }
-        index_buffer = Binding{
+        channel_state->index_buffer = Binding{
             .cpu_addr = 0,
             .size = inline_index_size,
             .buffer_id = inline_buffer_id,
@@ -1015,10 +1026,10 @@ void BufferCache<P>::UpdateIndexBuffer() {
         (index_buffer_ref.count + index_buffer_ref.first) * index_buffer_ref.FormatSizeInBytes();
     const u32 size = std::min(address_size, draw_size);
     if (size == 0 || !cpu_addr) {
-        index_buffer = NULL_BINDING;
+        channel_state->index_buffer = NULL_BINDING;
         return;
     }
-    index_buffer = Binding{
+    channel_state->index_buffer = Binding{
         .cpu_addr = *cpu_addr,
         .size = size,
         .buffer_id = FindBuffer(*cpu_addr, size),
@@ -1051,13 +1062,13 @@ void BufferCache<P>::UpdateVertexBuffer(u32 index) {
     const u32 address_size = static_cast<u32>(gpu_addr_end - gpu_addr_begin);
     u32 size = address_size; // TODO: Analyze stride and number of vertices
     if (array.enable == 0 || size == 0 || !cpu_addr) {
-        vertex_buffers[index] = NULL_BINDING;
+        channel_state->vertex_buffers[index] = NULL_BINDING;
         return;
     }
     if (!gpu_memory->IsWithinGPUAddressRange(gpu_addr_end)) {
         size = static_cast<u32>(gpu_memory->MaxContinuousRange(gpu_addr_begin, size));
     }
-    vertex_buffers[index] = Binding{
+    channel_state->vertex_buffers[index] = Binding{
         .cpu_addr = *cpu_addr,
         .size = size,
         .buffer_id = FindBuffer(*cpu_addr, size),
@@ -1079,23 +1090,24 @@ void BufferCache<P>::UpdateDrawIndirect() {
         };
     };
     if (current_draw_indirect->include_count) {
-        update(current_draw_indirect->count_start_address, sizeof(u32), count_buffer_binding);
+        update(current_draw_indirect->count_start_address, sizeof(u32),
+               channel_state->count_buffer_binding);
     }
     update(current_draw_indirect->indirect_start_address, current_draw_indirect->buffer_size,
-           indirect_buffer_binding);
+           channel_state->indirect_buffer_binding);
 }
 
 template <class P>
 void BufferCache<P>::UpdateUniformBuffers(size_t stage) {
-    ForEachEnabledBit(enabled_uniform_buffer_masks[stage], [&](u32 index) {
-        Binding& binding = uniform_buffers[stage][index];
+    ForEachEnabledBit(channel_state->enabled_uniform_buffer_masks[stage], [&](u32 index) {
+        Binding& binding = channel_state->uniform_buffers[stage][index];
         if (binding.buffer_id) {
             // Already updated
             return;
         }
         // Mark as dirty
         if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {
-            dirty_uniform_buffers[stage] |= 1U << index;
+            channel_state->dirty_uniform_buffers[stage] |= 1U << index;
         }
         // Resolve buffer
         binding.buffer_id = FindBuffer(binding.cpu_addr, binding.size);
@@ -1104,10 +1116,10 @@ void BufferCache<P>::UpdateUniformBuffers(size_t stage) {
 
 template <class P>
 void BufferCache<P>::UpdateStorageBuffers(size_t stage) {
-    const u32 written_mask = written_storage_buffers[stage];
-    ForEachEnabledBit(enabled_storage_buffers[stage], [&](u32 index) {
+    const u32 written_mask = channel_state->written_storage_buffers[stage];
+    ForEachEnabledBit(channel_state->enabled_storage_buffers[stage], [&](u32 index) {
         // Resolve buffer
-        Binding& binding = storage_buffers[stage][index];
+        Binding& binding = channel_state->storage_buffers[stage][index];
         const BufferId buffer_id = FindBuffer(binding.cpu_addr, binding.size);
         binding.buffer_id = buffer_id;
         // Mark buffer as written if needed
@@ -1119,11 +1131,11 @@ void BufferCache<P>::UpdateStorageBuffers(size_t stage) {
 
 template <class P>
 void BufferCache<P>::UpdateTextureBuffers(size_t stage) {
-    ForEachEnabledBit(enabled_texture_buffers[stage], [&](u32 index) {
-        Binding& binding = texture_buffers[stage][index];
+    ForEachEnabledBit(channel_state->enabled_texture_buffers[stage], [&](u32 index) {
+        Binding& binding = channel_state->texture_buffers[stage][index];
         binding.buffer_id = FindBuffer(binding.cpu_addr, binding.size);
         // Mark buffer as written if needed
-        if (((written_texture_buffers[stage] >> index) & 1) != 0) {
+        if (((channel_state->written_texture_buffers[stage] >> index) & 1) != 0) {
             MarkWrittenBuffer(binding.buffer_id, binding.cpu_addr, binding.size);
         }
     });
@@ -1146,11 +1158,11 @@ void BufferCache<P>::UpdateTransformFeedbackBuffer(u32 index) {
     const u32 size = binding.size;
     const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
     if (binding.enable == 0 || size == 0 || !cpu_addr) {
-        transform_feedback_buffers[index] = NULL_BINDING;
+        channel_state->transform_feedback_buffers[index] = NULL_BINDING;
         return;
     }
     const BufferId buffer_id = FindBuffer(*cpu_addr, size);
-    transform_feedback_buffers[index] = Binding{
+    channel_state->transform_feedback_buffers[index] = Binding{
         .cpu_addr = *cpu_addr,
         .size = size,
         .buffer_id = buffer_id,
@@ -1160,8 +1172,8 @@ void BufferCache<P>::UpdateTransformFeedbackBuffer(u32 index) {
 
 template <class P>
 void BufferCache<P>::UpdateComputeUniformBuffers() {
-    ForEachEnabledBit(enabled_compute_uniform_buffer_mask, [&](u32 index) {
-        Binding& binding = compute_uniform_buffers[index];
+    ForEachEnabledBit(channel_state->enabled_compute_uniform_buffer_mask, [&](u32 index) {
+        Binding& binding = channel_state->compute_uniform_buffers[index];
         binding = NULL_BINDING;
         const auto& launch_desc = kepler_compute->launch_description;
         if (((launch_desc.const_buffer_enable_mask >> index) & 1) != 0) {
@@ -1178,12 +1190,12 @@ void BufferCache<P>::UpdateComputeUniformBuffers() {
 
 template <class P>
 void BufferCache<P>::UpdateComputeStorageBuffers() {
-    ForEachEnabledBit(enabled_compute_storage_buffers, [&](u32 index) {
+    ForEachEnabledBit(channel_state->enabled_compute_storage_buffers, [&](u32 index) {
         // Resolve buffer
-        Binding& binding = compute_storage_buffers[index];
+        Binding& binding = channel_state->compute_storage_buffers[index];
         binding.buffer_id = FindBuffer(binding.cpu_addr, binding.size);
         // Mark as written if needed
-        if (((written_compute_storage_buffers >> index) & 1) != 0) {
+        if (((channel_state->written_compute_storage_buffers >> index) & 1) != 0) {
             MarkWrittenBuffer(binding.buffer_id, binding.cpu_addr, binding.size);
         }
     });
@@ -1191,11 +1203,11 @@ void BufferCache<P>::UpdateComputeStorageBuffers() {
 
 template <class P>
 void BufferCache<P>::UpdateComputeTextureBuffers() {
-    ForEachEnabledBit(enabled_compute_texture_buffers, [&](u32 index) {
-        Binding& binding = compute_texture_buffers[index];
+    ForEachEnabledBit(channel_state->enabled_compute_texture_buffers, [&](u32 index) {
+        Binding& binding = channel_state->compute_texture_buffers[index];
         binding.buffer_id = FindBuffer(binding.cpu_addr, binding.size);
         // Mark as written if needed
-        if (((written_compute_texture_buffers >> index) & 1) != 0) {
+        if (((channel_state->written_compute_texture_buffers >> index) & 1) != 0) {
             MarkWrittenBuffer(binding.buffer_id, binding.cpu_addr, binding.size);
         }
     });
@@ -1610,13 +1622,13 @@ void BufferCache<P>::DeleteBuffer(BufferId buffer_id, bool do_not_mark) {
     const auto replace = [scalar_replace](std::span<Binding> bindings) {
         std::ranges::for_each(bindings, scalar_replace);
     };
-    scalar_replace(index_buffer);
-    replace(vertex_buffers);
-    std::ranges::for_each(uniform_buffers, replace);
-    std::ranges::for_each(storage_buffers, replace);
-    replace(transform_feedback_buffers);
-    replace(compute_uniform_buffers);
-    replace(compute_storage_buffers);
+    scalar_replace(channel_state->index_buffer);
+    replace(channel_state->vertex_buffers);
+    std::ranges::for_each(channel_state->uniform_buffers, replace);
+    std::ranges::for_each(channel_state->storage_buffers, replace);
+    replace(channel_state->transform_feedback_buffers);
+    replace(channel_state->compute_uniform_buffers);
+    replace(channel_state->compute_storage_buffers);
 
     // Mark the whole buffer as CPU written to stop tracking CPU writes
     if (!do_not_mark) {
@@ -1634,8 +1646,8 @@ void BufferCache<P>::DeleteBuffer(BufferId buffer_id, bool do_not_mark) {
 template <class P>
 void BufferCache<P>::NotifyBufferDeletion() {
     if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {
-        dirty_uniform_buffers.fill(~u32{0});
-        uniform_buffer_binding_sizes.fill({});
+        channel_state->dirty_uniform_buffers.fill(~u32{0});
+        channel_state->uniform_buffer_binding_sizes.fill({});
     }
     auto& flags = maxwell3d->dirty.flags;
     flags[Dirty::IndexBuffer] = true;
@@ -1643,13 +1655,12 @@ void BufferCache<P>::NotifyBufferDeletion() {
     for (u32 index = 0; index < NUM_VERTEX_BUFFERS; ++index) {
         flags[Dirty::VertexBuffer0 + index] = true;
     }
-    has_deleted_buffers = true;
+    channel_state->has_deleted_buffers = true;
 }
 
 template <class P>
-typename BufferCache<P>::Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr,
-                                                                      u32 cbuf_index,
-                                                                      bool is_written) const {
+Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
+                                             bool is_written) const {
     const GPUVAddr gpu_addr = gpu_memory->Read<u64>(ssbo_addr);
     const auto size = [&]() {
         const bool is_nvn_cbuf = cbuf_index == 0;
@@ -1681,8 +1692,8 @@ typename BufferCache<P>::Binding BufferCache<P>::StorageBufferBinding(GPUVAddr s
 }
 
 template <class P>
-typename BufferCache<P>::TextureBufferBinding BufferCache<P>::GetTextureBufferBinding(
-    GPUVAddr gpu_addr, u32 size, PixelFormat format) {
+TextureBufferBinding BufferCache<P>::GetTextureBufferBinding(GPUVAddr gpu_addr, u32 size,
+                                                             PixelFormat format) {
     const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
     TextureBufferBinding binding;
     if (!cpu_addr || size == 0) {
@@ -1721,7 +1732,7 @@ std::span<u8> BufferCache<P>::ImmediateBuffer(size_t wanted_capacity) {
 template <class P>
 bool BufferCache<P>::HasFastUniformBufferBound(size_t stage, u32 binding_index) const noexcept {
     if constexpr (IS_OPENGL) {
-        return ((fast_bound_uniform_buffers[stage] >> binding_index) & 1) != 0;
+        return ((channel_state->fast_bound_uniform_buffers[stage] >> binding_index) & 1) != 0;
     } else {
         // Only OpenGL has fast uniform buffers
         return false;
@@ -1730,14 +1741,14 @@ bool BufferCache<P>::HasFastUniformBufferBound(size_t stage, u32 binding_index) 
 
 template <class P>
 std::pair<typename BufferCache<P>::Buffer*, u32> BufferCache<P>::GetDrawIndirectCount() {
-    auto& buffer = slot_buffers[count_buffer_binding.buffer_id];
-    return std::make_pair(&buffer, buffer.Offset(count_buffer_binding.cpu_addr));
+    auto& buffer = slot_buffers[channel_state->count_buffer_binding.buffer_id];
+    return std::make_pair(&buffer, buffer.Offset(channel_state->count_buffer_binding.cpu_addr));
 }
 
 template <class P>
 std::pair<typename BufferCache<P>::Buffer*, u32> BufferCache<P>::GetDrawIndirectBuffer() {
-    auto& buffer = slot_buffers[indirect_buffer_binding.buffer_id];
-    return std::make_pair(&buffer, buffer.Offset(indirect_buffer_binding.cpu_addr));
+    auto& buffer = slot_buffers[channel_state->indirect_buffer_binding.buffer_id];
+    return std::make_pair(&buffer, buffer.Offset(channel_state->indirect_buffer_binding.cpu_addr));
 }
 
 } // namespace VideoCommon
