@@ -193,18 +193,13 @@ struct GPU::Impl {
     }
 
     [[nodiscard]] u64 GetTicks() const {
-        // This values were reversed engineered by fincs from NVN
-        // The GPU clock is 614.4 MHz
-        using NsToGPUTickRatio = std::ratio<614'400'000, std::nano::den>;
-        static_assert(NsToGPUTickRatio::num == 384 && NsToGPUTickRatio::den == 625);
-
-        u64 nanoseconds = system.CoreTiming().GetGlobalTimeNs().count();
+        u64 gpu_tick = system.CoreTiming().GetGPUTicks();
 
         if (Settings::values.use_fast_gpu_time.GetValue()) {
-            nanoseconds /= 256;
+            gpu_tick /= 256;
         }
 
-        return nanoseconds * NsToGPUTickRatio::num / NsToGPUTickRatio::den;
+        return gpu_tick;
     }
 
     [[nodiscard]] bool IsAsync() const {

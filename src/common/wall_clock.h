@@ -13,7 +13,8 @@ namespace Common {
 
 class WallClock {
 public:
-    static constexpr u64 CNTFRQ = 19'200'000; // CNTPCT_EL0 Frequency = 19.2 MHz
+    static constexpr u64 CNTFRQ = 19'200'000;       // CNTPCT_EL0 Frequency = 19.2 MHz
+    static constexpr u64 GPUTickFreq = 614'400'000; // GM20B GPU Tick Frequency = 614.4 MHz
 
     virtual ~WallClock() = default;
 
@@ -28,6 +29,9 @@ public:
 
     /// @returns The guest CNTPCT ticks since the construction of this clock.
     virtual u64 GetCNTPCT() const = 0;
+
+    /// @returns The guest GPU ticks since the construction of this clock.
+    virtual u64 GetGPUTick() const = 0;
 
     /// @returns The raw host timer ticks since an indeterminate epoch.
     virtual u64 GetHostTicksNow() const = 0;
@@ -46,12 +50,24 @@ public:
         return us * UsToCNTPCTRatio::num / UsToCNTPCTRatio::den;
     }
 
+    static inline u64 NSToGPUTick(u64 ns) {
+        return ns * NsToGPUTickRatio::num / NsToGPUTickRatio::den;
+    }
+
     static inline u64 CNTPCTToNS(u64 cntpct) {
         return cntpct * NsToCNTPCTRatio::den / NsToCNTPCTRatio::num;
     }
 
     static inline u64 CNTPCTToUS(u64 cntpct) {
         return cntpct * UsToCNTPCTRatio::den / UsToCNTPCTRatio::num;
+    }
+
+    static inline u64 GPUTickToNS(u64 gpu_tick) {
+        return gpu_tick * NsToGPUTickRatio::den / NsToGPUTickRatio::num;
+    }
+
+    static inline u64 CNTPCTToGPUTick(u64 cntpct) {
+        return cntpct * CNTPCTToGPUTickRatio::num / CNTPCTToGPUTickRatio::den;
     }
 
 protected:
@@ -63,6 +79,8 @@ protected:
     using NsToMsRatio = std::ratio_divide<std::nano, std::milli>;
     using NsToCNTPCTRatio = std::ratio<CNTFRQ, std::nano::den>;
     using UsToCNTPCTRatio = std::ratio<CNTFRQ, std::micro::den>;
+    using NsToGPUTickRatio = std::ratio<GPUTickFreq, std::nano::den>;
+    using CNTPCTToGPUTickRatio = std::ratio<GPUTickFreq, CNTFRQ>;
 };
 
 std::unique_ptr<WallClock> CreateOptimalClock();

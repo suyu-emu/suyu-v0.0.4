@@ -32,6 +32,10 @@ public:
         return GetHostTicksElapsed() * NsToCNTPCTRatio::num / NsToCNTPCTRatio::den;
     }
 
+    u64 GetGPUTick() const override {
+        return GetHostTicksElapsed() * NsToGPUTickRatio::num / NsToGPUTickRatio::den;
+    }
+
     u64 GetHostTicksNow() const override {
         return static_cast<u64>(SteadyClock::Now().time_since_epoch().count());
     }
@@ -52,12 +56,12 @@ std::unique_ptr<WallClock> CreateOptimalClock() {
 #ifdef ARCHITECTURE_x86_64
     const auto& caps = GetCPUCaps();
 
-    if (caps.invariant_tsc && caps.tsc_frequency >= WallClock::CNTFRQ) {
+    if (caps.invariant_tsc && caps.tsc_frequency >= WallClock::GPUTickFreq) {
         return std::make_unique<X64::NativeClock>(caps.tsc_frequency);
     } else {
         // Fallback to StandardWallClock if the hardware TSC
         // - Is not invariant
-        // - Is not more precise than CNTFRQ
+        // - Is not more precise than GPUTickFreq
         return std::make_unique<StandardWallClock>();
     }
 #else

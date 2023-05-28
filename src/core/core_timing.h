@@ -119,6 +119,9 @@ public:
     /// Returns the current CNTPCT tick value.
     u64 GetClockTicks() const;
 
+    /// Returns the current GPU tick value.
+    u64 GetGPUTicks() const;
+
     /// Returns current time in microseconds.
     std::chrono::microseconds GetGlobalTimeUs() const;
 

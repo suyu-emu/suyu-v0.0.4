@@ -19,6 +19,8 @@ public:
 
     u64 GetCNTPCT() const override;
 
+    u64 GetGPUTick() const override;
+
     u64 GetHostTicksNow() const override;
 
     u64 GetHostTicksElapsed() const override;
@@ -33,6 +35,7 @@ private:
     u64 us_rdtsc_factor;
     u64 ms_rdtsc_factor;
     u64 cntpct_rdtsc_factor;
+    u64 gputick_rdtsc_factor;
 };
 
 } // namespace Common::X64

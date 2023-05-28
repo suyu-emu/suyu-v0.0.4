@@ -197,6 +197,13 @@ u64 CoreTiming::GetClockTicks() const {
     return ticks;
 }
 
+u64 CoreTiming::GetGPUTicks() const {
+    if (is_multicore) [[likely]] {
+        return clock->GetGPUTick();
+    }
+    return Common::WallClock::CNTPCTToGPUTick(ticks);
+}
+
 std::optional<s64> CoreTiming::Advance() {
     std::scoped_lock lock{advance_lock, basic_lock};
     global_timer = GetGlobalTimeNs().count();
