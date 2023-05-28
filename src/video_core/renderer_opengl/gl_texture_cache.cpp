@@ -439,6 +439,11 @@ OGLTexture MakeImage(const VideoCommon::ImageInfo& info, GLenum gl_internal_form
     return GL_R32UI;
 }
 
+[[nodiscard]] bool IsAstcRecompressionEnabled() {
+    return Settings::values.astc_recompression.GetValue() !=
+           Settings::AstcRecompression::Uncompressed;
+}
+
 [[nodiscard]] GLenum SelectAstcFormat(PixelFormat format, bool is_srgb) {
     switch (Settings::values.astc_recompression.GetValue()) {
     case Settings::AstcRecompression::Bc1:
@@ -760,7 +765,7 @@ Image::Image(TextureCacheRuntime& runtime_, const VideoCommon::ImageInfo& info_,
         gl_format = GL_RGBA;
         gl_type = GL_UNSIGNED_INT_8_8_8_8_REV;
 
-        if (IsPixelFormatASTC(info.format)) {
+        if (IsPixelFormatASTC(info.format) && IsAstcRecompressionEnabled()) {
             gl_internal_format = SelectAstcFormat(info.format, is_srgb);
             gl_format = GL_NONE;
         }
@@ -1155,7 +1160,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
         const bool is_srgb = IsPixelFormatSRGB(info.format);
         internal_format = is_srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
 
-        if (IsPixelFormatASTC(info.format)) {
+        if (IsPixelFormatASTC(info.format) && IsAstcRecompressionEnabled()) {
             internal_format = SelectAstcFormat(info.format, is_srgb);
         }
     } else {
