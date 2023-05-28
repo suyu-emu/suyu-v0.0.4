@@ -12,6 +12,7 @@
 #include <qobjectdefs.h>
 #include <vulkan/vulkan_core.h>
 #include "common/common_types.h"
+#include "vk_device_info.h"
 
 class QEvent;
 class QObject;
@@ -39,6 +40,7 @@ class ConfigureGraphics : public QWidget {
 
 public:
     explicit ConfigureGraphics(const Core::System& system_,
+                               std::vector<VkDeviceInfo::Record>& records,
                                const std::function<void()>& expose_compute_option_,
                                QWidget* parent = nullptr);
     ~ConfigureGraphics() override;
@@ -77,6 +79,7 @@ private:
     ConfigurationShared::CheckState use_disk_shader_cache;
     ConfigurationShared::CheckState use_asynchronous_gpu_emulation;
 
+    std::vector<VkDeviceInfo::Record>& records;
     std::vector<QString> vulkan_devices;
     std::vector<std::vector<VkPresentModeKHR>> device_present_modes;
     std::vector<VkPresentModeKHR>

@@ -118,6 +118,10 @@ enum class ReinitializeKeyBehavior {
     Warning,
 };
 
+namespace VkDeviceInfo {
+class Record;
+}
+
 class GMainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -417,6 +421,8 @@ private:
     OverlayDialog* shutdown_dialog{};
 
     GameListPlaceholder* game_list_placeholder;
+
+    std::vector<VkDeviceInfo::Record> vk_device_records;
 
     // Status bar elements
     QLabel* message_label = nullptr;
