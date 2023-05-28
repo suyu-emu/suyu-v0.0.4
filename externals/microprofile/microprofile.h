@@ -1697,7 +1697,13 @@ void MicroProfileFlip()
                             {
                                 int nTimer = MicroProfileLogTimerIndex(LE);
                                 uint8_t nGroup = pTimerToGroup[nTimer];
-                                MP_ASSERT(nStackPos < MICROPROFILE_STACK_MAX);
+
+                                // To avoid crashing due to OOB memory accesses/asserts
+                                // simply skip this iteration
+                                // MP_ASSERT(nStackPos < MICROPROFILE_STACK_MAX);
+                                if (nStackPos >= MICROPROFILE_STACK_MAX) {
+                                    break;
+                                }
                                 MP_ASSERT(nGroup < MICROPROFILE_MAX_GROUPS);
                                 pGroupStackPos[nGroup]++;
                                 pStack[nStackPos++] = k;
