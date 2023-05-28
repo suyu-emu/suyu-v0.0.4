@@ -26,7 +26,11 @@ $env:BUILD_ZIP = $MSVC_BUILD_ZIP
 $env:BUILD_SYMBOLS = $MSVC_BUILD_PDB
 $env:BUILD_UPDATE = $MSVC_SEVENZIP
 
-$BUILD_DIR = ".\build\bin\Release"
+if (Test-Path -Path ".\build\bin\Release") {
+    $BUILD_DIR = ".\build\bin\Release"
+} else {
+    $BUILD_DIR = ".\build\bin\"
+}
 
 # Cleanup unneeded data in submodules
 git submodule foreach git clean -fxd

@@ -4,7 +4,7 @@
 function(copy_yuzu_Qt5_deps target_dir)
     include(WindowsCopyFiles)
     if (MSVC)
-        set(DLL_DEST "${CMAKE_BINARY_DIR}/bin/$<CONFIG>/")
+        set(DLL_DEST "$<TARGET_FILE_DIR:${target_dir}>/")
         set(Qt5_DLL_DIR "${Qt5_DIR}/../../../bin")
     else()
         set(DLL_DEST "${CMAKE_BINARY_DIR}/bin/")
