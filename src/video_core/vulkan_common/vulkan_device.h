@@ -77,6 +77,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION(KHR, SPIRV_1_4, spirv_1_4)                                                           \
     EXTENSION(KHR, SWAPCHAIN, swapchain)                                                           \
     EXTENSION(KHR, SWAPCHAIN_MUTABLE_FORMAT, swapchain_mutable_format)                             \
+    EXTENSION(KHR, IMAGE_FORMAT_LIST, image_format_list)                                           \
     EXTENSION(NV, DEVICE_DIAGNOSTICS_CONFIG, device_diagnostics_config)                            \
     EXTENSION(NV, GEOMETRY_SHADER_PASSTHROUGH, geometry_shader_passthrough)                        \
     EXTENSION(NV, VIEWPORT_ARRAY2, viewport_array2)                                                \
@@ -406,6 +407,11 @@ public:
     /// Returns true if the device supports VK_KHR_workgroup_memory_explicit_layout.
     bool IsKhrWorkgroupMemoryExplicitLayoutSupported() const {
         return extensions.workgroup_memory_explicit_layout;
+    }
+
+    /// Returns true if the device supports VK_KHR_image_format_list.
+    bool IsKhrImageFormatListSupported() const {
+        return extensions.image_format_list || instance_version >= VK_API_VERSION_1_2;
     }
 
     /// Returns true if the device supports VK_EXT_primitive_topology_list_restart.

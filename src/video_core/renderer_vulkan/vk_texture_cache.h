@@ -103,6 +103,10 @@ public:
 
     [[nodiscard]] VkBuffer GetTemporaryBuffer(size_t needed_size);
 
+    std::span<const VkFormat> ViewFormats(PixelFormat format) {
+        return view_formats[static_cast<std::size_t>(format)];
+    }
+
     void BarrierFeedbackLoop();
 
     const Device& device;
@@ -113,6 +117,7 @@ public:
     RenderPassCache& render_pass_cache;
     std::optional<ASTCDecoderPass> astc_decoder_pass;
     const Settings::ResolutionScalingInfo& resolution;
+    std::array<std::vector<VkFormat>, VideoCore::Surface::MaxPixelFormat> view_formats;
 
     static constexpr size_t indexing_slots = 8 * sizeof(size_t);
     std::array<vk::Buffer, indexing_slots> buffers{};
