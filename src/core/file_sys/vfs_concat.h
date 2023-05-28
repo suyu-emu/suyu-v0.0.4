@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <compare>
 #include <map>
 #include <memory>
 #include "core/file_sys/vfs.h"
@@ -12,19 +13,33 @@ namespace FileSys {
 // Class that wraps multiple vfs files and concatenates them, making reads seamless. Currently
 // read-only.
 class ConcatenatedVfsFile : public VfsFile {
-    explicit ConcatenatedVfsFile(std::vector<VirtualFile> files, std::string name_);
-    explicit ConcatenatedVfsFile(std::multimap<u64, VirtualFile> files, std::string name_);
+private:
+    struct ConcatenationEntry {
+        u64 offset;
+        VirtualFile file;
+
+        auto operator<=>(const ConcatenationEntry& other) const {
+            return this->offset <=> other.offset;
+        }
+    };
+    using ConcatenationMap = std::vector<ConcatenationEntry>;
+
+    explicit ConcatenatedVfsFile(std::vector<ConcatenationEntry>&& concatenation_map,
+                                 std::string&& name);
+    bool VerifyContinuity() const;
 
 public:
     ~ConcatenatedVfsFile() override;
 
     /// Wrapper function to allow for more efficient handling of files.size() == 0, 1 cases.
-    static VirtualFile MakeConcatenatedFile(std::vector<VirtualFile> files, std::string name);
+    static VirtualFile MakeConcatenatedFile(const std::vector<VirtualFile>& files,
+                                            std::string&& name);
 
     /// Convenience function that turns a map of offsets to files into a concatenated file, filling
     /// gaps with a given filler byte.
-    static VirtualFile MakeConcatenatedFile(u8 filler_byte, std::multimap<u64, VirtualFile> files,
-                                            std::string name);
+    static VirtualFile MakeConcatenatedFile(u8 filler_byte,
+                                            const std::multimap<u64, VirtualFile>& files,
+                                            std::string&& name);
 
     std::string GetName() const override;
     std::size_t GetSize() const override;
@@ -37,8 +52,7 @@ public:
     bool Rename(std::string_view new_name) override;
 
 private:
-    // Maps starting offset to file -- more efficient.
-    std::multimap<u64, VirtualFile> files;
+    ConcatenationMap concatenation_map;
     std::string name;
 };
 

@@ -117,8 +117,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
             return nullptr;
         }
 
-        return FileSys::ConcatenatedVfsFile::MakeConcatenatedFile(std::move(concat),
-                                                                  dir->GetName());
+        return FileSys::ConcatenatedVfsFile::MakeConcatenatedFile(concat, dir->GetName());
     }
 
     if (Common::FS::IsDir(path)) {
