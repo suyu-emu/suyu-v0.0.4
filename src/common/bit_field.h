@@ -188,3 +188,8 @@ private:
 
 template <std::size_t Position, std::size_t Bits, typename T>
 using BitFieldBE = BitField<Position, Bits, T, BETag>;
+
+template <std::size_t Position, std::size_t Bits, typename T, typename EndianTag = LETag>
+inline auto format_as(BitField<Position, Bits, T, EndianTag> bitfield) {
+    return bitfield.Value();
+}
