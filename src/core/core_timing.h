@@ -163,7 +163,7 @@ private:
     Common::Event pause_event{};
     std::mutex basic_lock;
     std::mutex advance_lock;
-    std::unique_ptr<std::thread> timer_thread;
+    std::unique_ptr<std::jthread> timer_thread;
     std::atomic<bool> paused{};
     std::atomic<bool> paused_set{};
     std::atomic<bool> wait_set{};

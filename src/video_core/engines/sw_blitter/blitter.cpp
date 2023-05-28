@@ -159,11 +159,11 @@ bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
     const auto src_bytes_per_pixel = BytesPerBlock(PixelFormatFromRenderTargetFormat(src.format));
     const auto dst_bytes_per_pixel = BytesPerBlock(PixelFormatFromRenderTargetFormat(dst.format));
     const size_t src_size = get_surface_size(src, src_bytes_per_pixel);
-    impl->tmp_buffer.resize_destructive(src_size);
-    memory_manager.ReadBlock(src.Address(), impl->tmp_buffer.data(), src_size);
+
+    Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead> tmp_buffer(
+        memory_manager, src.Address(), src_size, &impl->tmp_buffer);
 
     const size_t src_copy_size = src_extent_x * src_extent_y * src_bytes_per_pixel;
-
     const size_t dst_copy_size = dst_extent_x * dst_extent_y * dst_bytes_per_pixel;
 
     impl->src_buffer.resize_destructive(src_copy_size);
@@ -200,12 +200,11 @@ bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
 
     impl->dst_buffer.resize_destructive(dst_copy_size);
     if (src.linear == Fermi2D::MemoryLayout::BlockLinear) {
-        UnswizzleSubrect(impl->src_buffer, impl->tmp_buffer, src_bytes_per_pixel, src.width,
-                         src.height, src.depth, config.src_x0, config.src_y0, src_extent_x,
-                         src_extent_y, src.block_height, src.block_depth,
-                         src_extent_x * src_bytes_per_pixel);
+        UnswizzleSubrect(impl->src_buffer, tmp_buffer, src_bytes_per_pixel, src.width, src.height,
+                         src.depth, config.src_x0, config.src_y0, src_extent_x, src_extent_y,
+                         src.block_height, src.block_depth, src_extent_x * src_bytes_per_pixel);
     } else {
-        process_pitch_linear(false, impl->tmp_buffer, impl->src_buffer, src_extent_x, src_extent_y,
+        process_pitch_linear(false, tmp_buffer, impl->src_buffer, src_extent_x, src_extent_y,
                              src.pitch, config.src_x0, config.src_y0, src_bytes_per_pixel);
     }
 
@@ -221,20 +220,18 @@ bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
     }
 
     const size_t dst_size = get_surface_size(dst, dst_bytes_per_pixel);
-    impl->tmp_buffer.resize_destructive(dst_size);
-    memory_manager.ReadBlock(dst.Address(), impl->tmp_buffer.data(), dst_size);
+    Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeReadWrite>
+        tmp_buffer2(memory_manager, dst.Address(), dst_size, &impl->tmp_buffer);
 
     if (dst.linear == Fermi2D::MemoryLayout::BlockLinear) {
-        SwizzleSubrect(impl->tmp_buffer, impl->dst_buffer, dst_bytes_per_pixel, dst.width,
-                       dst.height, dst.depth, config.dst_x0, config.dst_y0, dst_extent_x,
-                       dst_extent_y, dst.block_height, dst.block_depth,
-                       dst_extent_x * dst_bytes_per_pixel);
+        SwizzleSubrect(tmp_buffer2, impl->dst_buffer, dst_bytes_per_pixel, dst.width, dst.height,
+                       dst.depth, config.dst_x0, config.dst_y0, dst_extent_x, dst_extent_y,
+                       dst.block_height, dst.block_depth, dst_extent_x * dst_bytes_per_pixel);
     } else {
-        process_pitch_linear(true, impl->dst_buffer, impl->tmp_buffer, dst_extent_x, dst_extent_y,
+        process_pitch_linear(true, impl->dst_buffer, tmp_buffer2, dst_extent_x, dst_extent_y,
                              dst.pitch, config.dst_x0, config.dst_y0,
                              static_cast<size_t>(dst_bytes_per_pixel));
     }
-    memory_manager.WriteBlock(dst.Address(), impl->tmp_buffer.data(), dst_size);
     return true;
 }
 

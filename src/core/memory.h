@@ -5,8 +5,12 @@
 
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <span>
 #include <string>
+#include <vector>
+
+#include "common/scratch_buffer.h"
 #include "common/typed_address.h"
 #include "core/hle/result.h"
 
@@ -23,6 +27,10 @@ namespace Kernel {
 class PhysicalMemory;
 class KProcess;
 } // namespace Kernel
+
+namespace Tegra {
+class MemoryManager;
+}
 
 namespace Core::Memory {
 
@@ -343,6 +351,9 @@ public:
      */
     void ReadBlockUnsafe(Common::ProcessAddress src_addr, void* dest_buffer, std::size_t size);
 
+    const u8* GetSpan(const VAddr src_addr, const std::size_t size) const;
+    u8* GetSpan(const VAddr src_addr, const std::size_t size);
+
     /**
      * Writes a range of bytes into the current process' address space at the specified
      * virtual address.
@@ -461,6 +472,8 @@ public:
     void MarkRegionDebug(Common::ProcessAddress vaddr, u64 size, bool debug);
 
     void SetGPUDirtyManagers(std::span<Core::GPUDirtyMemoryManager> managers);
+    void InvalidateRegion(Common::ProcessAddress dest_addr, size_t size);
+    void FlushRegion(Common::ProcessAddress dest_addr, size_t size);
 
 private:
     Core::System& system;
@@ -469,4 +482,203 @@ private:
     std::unique_ptr<Impl> impl;
 };
 
+enum GuestMemoryFlags : u32 {
+    Read = 1 << 0,
+    Write = 1 << 1,
+    Safe = 1 << 2,
+    Cached = 1 << 3,
+
+    SafeRead = Read | Safe,
+    SafeWrite = Write | Safe,
+    SafeReadWrite = SafeRead | SafeWrite,
+    SafeReadCachedWrite = SafeReadWrite | Cached,
+
+    UnsafeRead = Read,
+    UnsafeWrite = Write,
+    UnsafeReadWrite = UnsafeRead | UnsafeWrite,
+    UnsafeReadCachedWrite = UnsafeReadWrite | Cached,
+};
+
+namespace {
+template <typename M, typename T, GuestMemoryFlags FLAGS>
+class GuestMemory {
+    using iterator = T*;
+    using const_iterator = const T*;
+    using value_type = T;
+    using element_type = T;
+    using iterator_category = std::contiguous_iterator_tag;
+
+public:
+    GuestMemory() = delete;
+    explicit GuestMemory(M& memory_, u64 addr_, std::size_t size_,
+                         Common::ScratchBuffer<T>* backup = nullptr)
+        : memory{memory_}, addr{addr_}, size{size_} {
+        static_assert(FLAGS & GuestMemoryFlags::Read || FLAGS & GuestMemoryFlags::Write);
+        if constexpr (FLAGS & GuestMemoryFlags::Read) {
+            Read(addr, size, backup);
+        }
+    }
+
+    ~GuestMemory() = default;
+
+    T* data() noexcept {
+        return data_span.data();
+    }
+
+    const T* data() const noexcept {
+        return data_span.data();
+    }
+
+    [[nodiscard]] T* begin() noexcept {
+        return data();
+    }
+
+    [[nodiscard]] const T* begin() const noexcept {
+        return data();
+    }
+
+    [[nodiscard]] T* end() noexcept {
+        return data() + size;
+    }
+
+    [[nodiscard]] const T* end() const noexcept {
+        return data() + size;
+    }
+
+    T& operator[](size_t index) noexcept {
+        return data_span[index];
+    }
+
+    const T& operator[](size_t index) const noexcept {
+        return data_span[index];
+    }
+
+    void SetAddressAndSize(u64 addr_, std::size_t size_) noexcept {
+        addr = addr_;
+        size = size_;
+        addr_changed = true;
+    }
+
+    std::span<T> Read(u64 addr_, std::size_t size_,
+                      Common::ScratchBuffer<T>* backup = nullptr) noexcept {
+        addr = addr_;
+        size = size_;
+        if (size == 0) {
+            is_data_copy = true;
+            return {};
+        }
+
+        if (TrySetSpan()) {
+            if constexpr (FLAGS & GuestMemoryFlags::Safe) {
+                memory.FlushRegion(addr, size * sizeof(T));
+            }
+        } else {
+            if (backup) {
+                backup->resize_destructive(size);
+                data_span = *backup;
+            } else {
+                data_copy.resize(size);
+                data_span = std::span(data_copy);
+            }
+            is_data_copy = true;
+            span_valid = true;
+            if constexpr (FLAGS & GuestMemoryFlags::Safe) {
+                memory.ReadBlock(addr, data_span.data(), size * sizeof(T));
+            } else {
+                memory.ReadBlockUnsafe(addr, data_span.data(), size * sizeof(T));
+            }
+        }
+        return data_span;
+    }
+
+    void Write(std::span<T> write_data) noexcept {
+        if constexpr (FLAGS & GuestMemoryFlags::Cached) {
+            memory.WriteBlockCached(addr, write_data.data(), size * sizeof(T));
+        } else if constexpr (FLAGS & GuestMemoryFlags::Safe) {
+            memory.WriteBlock(addr, write_data.data(), size * sizeof(T));
+        } else {
+            memory.WriteBlockUnsafe(addr, write_data.data(), size * sizeof(T));
+        }
+    }
+
+    bool TrySetSpan() noexcept {
+        if (u8* ptr = memory.GetSpan(addr, size * sizeof(T)); ptr) {
+            data_span = {reinterpret_cast<T*>(ptr), size};
+            span_valid = true;
+            return true;
+        }
+        return false;
+    }
+
+protected:
+    bool IsDataCopy() const noexcept {
+        return is_data_copy;
+    }
+
+    bool AddressChanged() const noexcept {
+        return addr_changed;
+    }
+
+    M& memory;
+    u64 addr;
+    size_t size;
+    std::span<T> data_span{};
+    std::vector<T> data_copy;
+    bool span_valid{false};
+    bool is_data_copy{false};
+    bool addr_changed{false};
+};
+
+template <typename M, typename T, GuestMemoryFlags FLAGS>
+class GuestMemoryScoped : public GuestMemory<M, T, FLAGS> {
+public:
+    GuestMemoryScoped() = delete;
+    explicit GuestMemoryScoped(M& memory_, u64 addr_, std::size_t size_,
+                               Common::ScratchBuffer<T>* backup = nullptr)
+        : GuestMemory<M, T, FLAGS>(memory_, addr_, size_, backup) {
+        if constexpr (!(FLAGS & GuestMemoryFlags::Read)) {
+            if (!this->TrySetSpan()) {
+                if (backup) {
+                    this->data_span = *backup;
+                    this->span_valid = true;
+                    this->is_data_copy = true;
+                }
+            }
+        }
+    }
+
+    ~GuestMemoryScoped() {
+        if constexpr (FLAGS & GuestMemoryFlags::Write) {
+            if (this->size == 0) [[unlikely]] {
+                return;
+            }
+
+            if (this->AddressChanged() || this->IsDataCopy()) {
+                ASSERT(this->span_valid);
+                if constexpr (FLAGS & GuestMemoryFlags::Cached) {
+                    this->memory.WriteBlockCached(this->addr, this->data_span.data(),
+                                                  this->size * sizeof(T));
+                } else if constexpr (FLAGS & GuestMemoryFlags::Safe) {
+                    this->memory.WriteBlock(this->addr, this->data_span.data(),
+                                            this->size * sizeof(T));
+                } else {
+                    this->memory.WriteBlockUnsafe(this->addr, this->data_span.data(),
+                                                  this->size * sizeof(T));
+                }
+            } else if constexpr (FLAGS & GuestMemoryFlags::Safe) {
+                this->memory.InvalidateRegion(this->addr, this->size * sizeof(T));
+            }
+        }
+    }
+};
+} // namespace
+
+template <typename T, GuestMemoryFlags FLAGS>
+using CpuGuestMemory = GuestMemory<Memory, T, FLAGS>;
+template <typename T, GuestMemoryFlags FLAGS>
+using CpuGuestMemoryScoped = GuestMemoryScoped<Memory, T, FLAGS>;
+template <typename T, GuestMemoryFlags FLAGS>
+using GpuGuestMemory = GuestMemory<Tegra::MemoryManager, T, FLAGS>;
+template <typename T, GuestMemoryFlags FLAGS>
+using GpuGuestMemoryScoped = GuestMemoryScoped<Tegra::MemoryManager, T, FLAGS>;
 } // namespace Core::Memory

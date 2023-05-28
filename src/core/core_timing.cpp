@@ -70,7 +70,7 @@ void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
         -> std::optional<std::chrono::nanoseconds> { return std::nullopt; };
     ev_lost = CreateEvent("_lost_event", empty_timed_callback);
     if (is_multicore) {
-        timer_thread = std::make_unique<std::thread>(ThreadEntry, std::ref(*this));
+        timer_thread = std::make_unique<std::jthread>(ThreadEntry, std::ref(*this));
     }
 }
 
@@ -255,7 +255,6 @@ void CoreTiming::ThreadLoop() {
 #ifdef _WIN32
                     while (!paused && !event.IsSet() && wait_time > 0) {
                         wait_time = *next_time - GetGlobalTimeNs().count();
-
                         if (wait_time >= timer_resolution_ns) {
                             Common::Windows::SleepForOneTick();
                         } else {

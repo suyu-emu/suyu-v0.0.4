@@ -92,9 +92,9 @@ void DeviceSession::AppendBuffers(std::span<const AudioBuffer> buffers) {
         if (type == Sink::StreamType::In) {
             stream->AppendBuffer(new_buffer, tmp_samples);
         } else {
-            system.ApplicationMemory().ReadBlockUnsafe(buffer.samples, tmp_samples.data(),
-                                                       buffer.size);
-            stream->AppendBuffer(new_buffer, tmp_samples);
+            Core::Memory::CpuGuestMemory<s16, Core::Memory::GuestMemoryFlags::UnsafeRead> samples(
+                system.ApplicationMemory(), buffer.samples, buffer.size / sizeof(s16));
+            stream->AppendBuffer(new_buffer, samples);
         }
     }
 }

@@ -266,6 +266,22 @@ struct Memory::Impl {
         ReadBlockImpl<true>(*system.ApplicationProcess(), src_addr, dest_buffer, size);
     }
 
+    const u8* GetSpan(const VAddr src_addr, const std::size_t size) const {
+        if (current_page_table->blocks[src_addr >> YUZU_PAGEBITS] ==
+            current_page_table->blocks[(src_addr + size) >> YUZU_PAGEBITS]) {
+            return GetPointerSilent(src_addr);
+        }
+        return nullptr;
+    }
+
+    u8* GetSpan(const VAddr src_addr, const std::size_t size) {
+        if (current_page_table->blocks[src_addr >> YUZU_PAGEBITS] ==
+            current_page_table->blocks[(src_addr + size) >> YUZU_PAGEBITS]) {
+            return GetPointerSilent(src_addr);
+        }
+        return nullptr;
+    }
+
     template <bool UNSAFE>
     void WriteBlockImpl(const Kernel::KProcess& process, const Common::ProcessAddress dest_addr,
                         const void* src_buffer, const std::size_t size) {
@@ -559,7 +575,7 @@ struct Memory::Impl {
             }
         }
 
-        const Common::ProcessAddress end = base + size;
+        const auto end = base + size;
         ASSERT_MSG(end <= page_table.pointers.size(), "out of range mapping at {:016X}",
                    base + page_table.pointers.size());
 
@@ -570,14 +586,18 @@ struct Memory::Impl {
             while (base != end) {
                 page_table.pointers[base].Store(nullptr, type);
                 page_table.backing_addr[base] = 0;
-
+                page_table.blocks[base] = 0;
                 base += 1;
             }
         } else {
+            auto orig_base = base;
             while (base != end) {
-                page_table.pointers[base].Store(
-                    system.DeviceMemory().GetPointer<u8>(target) - (base << YUZU_PAGEBITS), type);
-                page_table.backing_addr[base] = GetInteger(target) - (base << YUZU_PAGEBITS);
+                auto host_ptr =
+                    system.DeviceMemory().GetPointer<u8>(target) - (base << YUZU_PAGEBITS);
+                auto backing = GetInteger(target) - (base << YUZU_PAGEBITS);
+                page_table.pointers[base].Store(host_ptr, type);
+                page_table.backing_addr[base] = backing;
+                page_table.blocks[base] = orig_base << YUZU_PAGEBITS;
 
                 ASSERT_MSG(page_table.pointers[base].Pointer(),
                            "memory mapping base yield a nullptr within the table");
@@ -747,6 +767,14 @@ struct Memory::Impl {
         VAddr last_address;
     };
 
+    void InvalidateRegion(Common::ProcessAddress dest_addr, size_t size) {
+        system.GPU().InvalidateRegion(GetInteger(dest_addr), size);
+    }
+
+    void FlushRegion(Common::ProcessAddress dest_addr, size_t size) {
+        system.GPU().FlushRegion(GetInteger(dest_addr), size);
+    }
+
     Core::System& system;
     Common::PageTable* current_page_table = nullptr;
     std::array<VideoCore::RasterizerDownloadArea, Core::Hardware::NUM_CPU_CORES>
@@ -881,6 +909,14 @@ void Memory::ReadBlockUnsafe(const Common::ProcessAddress src_addr, void* dest_b
     impl->ReadBlockUnsafe(src_addr, dest_buffer, size);
 }
 
+const u8* Memory::GetSpan(const VAddr src_addr, const std::size_t size) const {
+    return impl->GetSpan(src_addr, size);
+}
+
+u8* Memory::GetSpan(const VAddr src_addr, const std::size_t size) {
+    return impl->GetSpan(src_addr, size);
+}
+
 void Memory::WriteBlock(const Common::ProcessAddress dest_addr, const void* src_buffer,
                         const std::size_t size) {
     impl->WriteBlock(dest_addr, src_buffer, size);
@@ -922,6 +958,14 @@ void Memory::RasterizerMarkRegionCached(Common::ProcessAddress vaddr, u64 size, 
 
 void Memory::MarkRegionDebug(Common::ProcessAddress vaddr, u64 size, bool debug) {
     impl->MarkRegionDebug(GetInteger(vaddr), size, debug);
+}
+
+void Memory::InvalidateRegion(Common::ProcessAddress dest_addr, size_t size) {
+    impl->InvalidateRegion(dest_addr, size);
+}
+
+void Memory::FlushRegion(Common::ProcessAddress dest_addr, size_t size) {
+    impl->FlushRegion(dest_addr, size);
 }
 
 } // namespace Core::Memory

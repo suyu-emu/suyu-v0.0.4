@@ -5,6 +5,7 @@
 
 #include "common/algorithm.h"
 #include "common/assert.h"
+#include "core/memory.h"
 #include "video_core/engines/engine_upload.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
@@ -46,15 +47,11 @@ void State::ProcessData(const u32* data, size_t num_data) {
 void State::ProcessData(std::span<const u8> read_buffer) {
     const GPUVAddr address{regs.dest.Address()};
     if (is_linear) {
-        if (regs.line_count == 1) {
-            rasterizer->AccelerateInlineToMemory(address, copy_size, read_buffer);
-        } else {
-            for (size_t line = 0; line < regs.line_count; ++line) {
-                const GPUVAddr dest_line = address + line * regs.dest.pitch;
-                std::span<const u8> buffer(read_buffer.data() + line * regs.line_length_in,
-                                           regs.line_length_in);
-                rasterizer->AccelerateInlineToMemory(dest_line, regs.line_length_in, buffer);
-            }
+        for (size_t line = 0; line < regs.line_count; ++line) {
+            const GPUVAddr dest_line = address + line * regs.dest.pitch;
+            std::span<const u8> buffer(read_buffer.data() + line * regs.line_length_in,
+                                       regs.line_length_in);
+            rasterizer->AccelerateInlineToMemory(dest_line, regs.line_length_in, buffer);
         }
     } else {
         u32 width = regs.dest.width;
@@ -70,13 +67,14 @@ void State::ProcessData(std::span<const u8> read_buffer) {
         const std::size_t dst_size = Tegra::Texture::CalculateSize(
             true, bytes_per_pixel, width, regs.dest.height, regs.dest.depth,
             regs.dest.BlockHeight(), regs.dest.BlockDepth());
-        tmp_buffer.resize_destructive(dst_size);
-        memory_manager.ReadBlock(address, tmp_buffer.data(), dst_size);
-        Tegra::Texture::SwizzleSubrect(tmp_buffer, read_buffer, bytes_per_pixel, width,
-                                       regs.dest.height, regs.dest.depth, x_offset, regs.dest.y,
-                                       x_elements, regs.line_count, regs.dest.BlockHeight(),
+
+        Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+            tmp(memory_manager, address, dst_size, &tmp_buffer);
+
+        Tegra::Texture::SwizzleSubrect(tmp, read_buffer, bytes_per_pixel, width, regs.dest.height,
+                                       regs.dest.depth, x_offset, regs.dest.y, x_elements,
+                                       regs.line_count, regs.dest.BlockHeight(),
                                        regs.dest.BlockDepth(), regs.line_length_in);
-        memory_manager.WriteBlockCached(address, tmp_buffer.data(), dst_size);
     }
 }
 
