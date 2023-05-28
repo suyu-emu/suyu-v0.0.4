@@ -9,7 +9,11 @@
 
 #include "common/alignment.h"
 #include "common/assert.h"
+#include "common/bit_util.h"
+#include "common/microprofile.h"
 #include "video_core/renderer_opengl/gl_staging_buffer_pool.h"
+
+MICROPROFILE_DEFINE(OpenGL_BufferRequest, "OpenGL", "BufferRequest", MP_RGB(128, 128, 192));
 
 namespace OpenGL {
 
@@ -25,8 +29,11 @@ StagingBuffers::StagingBuffers(GLenum storage_flags_, GLenum map_flags_)
 StagingBuffers::~StagingBuffers() = default;
 
 StagingBufferMap StagingBuffers::RequestMap(size_t requested_size, bool insert_fence) {
+    MICROPROFILE_SCOPE(OpenGL_BufferRequest);
+
     const size_t index = RequestBuffer(requested_size);
     OGLSync* const sync = insert_fence ? &syncs[index] : nullptr;
+    sync_indices[index] = insert_fence ? ++current_sync_index : 0;
     return StagingBufferMap{
         .mapped_span = std::span(maps[index], requested_size),
         .sync = sync,
@@ -41,13 +48,14 @@ size_t StagingBuffers::RequestBuffer(size_t requested_size) {
 
     OGLBuffer& buffer = buffers.emplace_back();
     buffer.Create();
-    glNamedBufferStorage(buffer.handle, requested_size, nullptr,
+    const auto next_pow2_size = Common::NextPow2(requested_size);
+    glNamedBufferStorage(buffer.handle, next_pow2_size, nullptr,
                          storage_flags | GL_MAP_PERSISTENT_BIT);
-    maps.push_back(static_cast<u8*>(glMapNamedBufferRange(buffer.handle, 0, requested_size,
+    maps.push_back(static_cast<u8*>(glMapNamedBufferRange(buffer.handle, 0, next_pow2_size,
                                                           map_flags | GL_MAP_PERSISTENT_BIT)));
-
     syncs.emplace_back();
-    sizes.push_back(requested_size);
+    sync_indices.emplace_back();
+    sizes.push_back(next_pow2_size);
 
     ASSERT(syncs.size() == buffers.size() && buffers.size() == maps.size() &&
            maps.size() == sizes.size());
@@ -56,6 +64,7 @@ size_t StagingBuffers::RequestBuffer(size_t requested_size) {
 }
 
 std::optional<size_t> StagingBuffers::FindBuffer(size_t requested_size) {
+    size_t known_unsignaled_index = current_sync_index + 1;
     size_t smallest_buffer = std::numeric_limits<size_t>::max();
     std::optional<size_t> found;
     const size_t num_buffers = sizes.size();
@@ -65,7 +74,14 @@ std::optional<size_t> StagingBuffers::FindBuffer(size_t requested_size) {
             continue;
         }
         if (syncs[index].handle != 0) {
+            if (sync_indices[index] >= known_unsignaled_index) {
+                // This fence is later than a fence that is known to not be signaled
+                continue;
+            }
             if (!syncs[index].IsSignaled()) {
+                // Since this fence hasn't been signaled, it's safe to assume all later
+                // fences haven't been signaled either
+                known_unsignaled_index = std::min(known_unsignaled_index, sync_indices[index]);
                 continue;
             }
             syncs[index].Release();

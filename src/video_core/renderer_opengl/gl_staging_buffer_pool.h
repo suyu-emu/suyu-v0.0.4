@@ -42,8 +42,10 @@ struct StagingBuffers {
     std::vector<OGLBuffer> buffers;
     std::vector<u8*> maps;
     std::vector<size_t> sizes;
+    std::vector<size_t> sync_indices;
     GLenum storage_flags;
     GLenum map_flags;
+    size_t current_sync_index = 0;
 };
 
 class StreamBuffer {
