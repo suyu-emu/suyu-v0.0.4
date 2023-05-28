@@ -23,7 +23,7 @@ else()
     endif()
 endif()
 
-add_library(opus STATIC
+add_library(opus
     # CELT sources
     opus/celt/bands.c
     opus/celt/celt.c

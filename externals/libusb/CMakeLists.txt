@@ -122,7 +122,7 @@ else() # MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         add_compile_options(/utf-8)
     endif()
 
-    add_library(usb STATIC EXCLUDE_FROM_ALL
+    add_library(usb
         libusb/libusb/core.c
         libusb/libusb/core.c
         libusb/libusb/descriptor.c

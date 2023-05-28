@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2015 Yuri Kunde Schlesner <yuriks@yuriks.net>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-add_library(glad STATIC
+add_library(glad
     src/glad.c
     include/KHR/khrplatform.h
     include/glad/glad.h

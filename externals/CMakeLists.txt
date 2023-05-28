@@ -8,15 +8,21 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # Disable tests in all externals supporting the standard option name
 set(BUILD_TESTING OFF)
 
+# Build only static externals
+set(BUILD_SHARED_LIBS OFF)
+
+# Skip install rules for all externals
+set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL ON)
+
 # xbyak
 if ((ARCHITECTURE_x86 OR ARCHITECTURE_x86_64) AND NOT TARGET xbyak::xbyak)
-    add_subdirectory(xbyak EXCLUDE_FROM_ALL)
+    add_subdirectory(xbyak)
 endif()
 
 # Dynarmic
 if ((ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64) AND NOT TARGET dynarmic::dynarmic)
     set(DYNARMIC_IGNORE_ASSERTS ON)
-    add_subdirectory(dynarmic EXCLUDE_FROM_ALL)
+    add_subdirectory(dynarmic)
     add_library(dynarmic::dynarmic ALIAS dynarmic)
 endif()
 
@@ -34,7 +40,7 @@ if (NOT TARGET inih::INIReader)
 endif()
 
 # mbedtls
-add_subdirectory(mbedtls EXCLUDE_FROM_ALL)
+add_subdirectory(mbedtls)
 target_include_directories(mbedtls PUBLIC ./mbedtls/include)
 
 # MicroProfile
@@ -48,7 +54,7 @@ endif()
 
 # libusb
 if (ENABLE_LIBUSB AND NOT TARGET libusb::usb)
-    add_subdirectory(libusb EXCLUDE_FROM_ALL)
+    add_subdirectory(libusb)
 endif()
 
 # SDL2
@@ -67,18 +73,16 @@ if (YUZU_USE_EXTERNAL_SDL2)
 
         set(HIDAPI ON)
     endif()
-    set(SDL_STATIC ON)
-    set(SDL_SHARED OFF)
     if (APPLE)
         set(SDL_FILE ON)
     endif()
 
-    add_subdirectory(SDL EXCLUDE_FROM_ALL)
+    add_subdirectory(SDL)
 endif()
 
 # ENet
 if (NOT TARGET enet::enet)
-    add_subdirectory(enet EXCLUDE_FROM_ALL)
+    add_subdirectory(enet)
     target_include_directories(enet INTERFACE ./enet/include)
     add_library(enet::enet ALIAS enet)
 endif()
@@ -86,24 +90,26 @@ endif()
 # Cubeb
 if (ENABLE_CUBEB AND NOT TARGET cubeb::cubeb)
     set(BUILD_TESTS OFF)
-    add_subdirectory(cubeb EXCLUDE_FROM_ALL)
+    set(BUILD_TOOLS OFF)
+    add_subdirectory(cubeb)
     add_library(cubeb::cubeb ALIAS cubeb)
 endif()
 
 # DiscordRPC
 if (USE_DISCORD_PRESENCE AND NOT TARGET DiscordRPC::discord-rpc)
-    add_subdirectory(discord-rpc EXCLUDE_FROM_ALL)
+    set(BUILD_EXAMPLES OFF)
+    add_subdirectory(discord-rpc)
     target_include_directories(discord-rpc INTERFACE ./discord-rpc/include)
     add_library(DiscordRPC::discord-rpc ALIAS discord-rpc)
 endif()
 
 # Sirit
-add_subdirectory(sirit EXCLUDE_FROM_ALL)
+add_subdirectory(sirit)
 
 # httplib
 if (ENABLE_WEB_SERVICE AND NOT TARGET httplib::httplib)
     set(HTTPLIB_REQUIRE_OPENSSL ON)
-    add_subdirectory(cpp-httplib EXCLUDE_FROM_ALL)
+    add_subdirectory(cpp-httplib)
 endif()
 
 # cpp-jwt
@@ -111,12 +117,12 @@ if (ENABLE_WEB_SERVICE AND NOT TARGET cpp-jwt::cpp-jwt)
     set(CPP_JWT_BUILD_EXAMPLES OFF)
     set(CPP_JWT_BUILD_TESTS OFF)
     set(CPP_JWT_USE_VENDORED_NLOHMANN_JSON OFF)
-    add_subdirectory(cpp-jwt EXCLUDE_FROM_ALL)
+    add_subdirectory(cpp-jwt)
 endif()
 
 # Opus
 if (NOT TARGET Opus::opus)
-    add_subdirectory(opus EXCLUDE_FROM_ALL)
+    add_subdirectory(opus)
 endif()
 
 # FFMpeg
@@ -130,16 +136,14 @@ endif()
 
 # Vulkan-Headers
 if (YUZU_USE_EXTERNAL_VULKAN_HEADERS)
-    add_subdirectory(Vulkan-Headers EXCLUDE_FROM_ALL)
+    add_subdirectory(Vulkan-Headers)
 endif()
 
 if (NOT TARGET LLVM::Demangle)
-    add_library(demangle STATIC)
+    add_library(demangle demangle/ItaniumDemangle.cpp)
     target_include_directories(demangle PUBLIC ./demangle)
-    target_sources(demangle PRIVATE demangle/ItaniumDemangle.cpp)
     add_library(LLVM::Demangle ALIAS demangle)
 endif()
 
-add_library(stb STATIC)
+add_library(stb stb/stb_dxt.cpp)
 target_include_directories(stb PUBLIC ./stb)
-target_sources(stb PRIVATE stb/stb_dxt.cpp)
