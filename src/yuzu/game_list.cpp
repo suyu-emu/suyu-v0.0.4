@@ -544,6 +544,7 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     QAction* remove_update = remove_menu->addAction(tr("Remove Installed Update"));
     QAction* remove_dlc = remove_menu->addAction(tr("Remove All Installed DLC"));
     QAction* remove_custom_config = remove_menu->addAction(tr("Remove Custom Configuration"));
+    QAction* remove_cache_storage = remove_menu->addAction(tr("Remove Cache Storage"));
     QAction* remove_gl_shader_cache = remove_menu->addAction(tr("Remove OpenGL Pipeline Cache"));
     QAction* remove_vk_shader_cache = remove_menu->addAction(tr("Remove Vulkan Pipeline Cache"));
     remove_menu->addSeparator();
@@ -613,6 +614,9 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     });
     connect(remove_custom_config, &QAction::triggered, [this, program_id, path]() {
         emit RemoveFileRequested(program_id, GameListRemoveTarget::CustomConfiguration, path);
+    });
+    connect(remove_cache_storage, &QAction::triggered, [this, program_id, path] {
+        emit RemoveFileRequested(program_id, GameListRemoveTarget::CacheStorage, path);
     });
     connect(dump_romfs, &QAction::triggered, [this, program_id, path]() {
         emit DumpRomFSRequested(program_id, path, DumpRomFSTarget::Normal);
