@@ -4,8 +4,10 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include <span>
 #include <utility>
+#include <vector>
 
 #include <glad/glad.h>
 
@@ -16,6 +18,33 @@
 namespace OpenGL {
 
 using namespace Common::Literals;
+
+struct StagingBufferMap {
+    ~StagingBufferMap();
+
+    std::span<u8> mapped_span;
+    size_t offset = 0;
+    OGLSync* sync;
+    GLuint buffer;
+};
+
+struct StagingBuffers {
+    explicit StagingBuffers(GLenum storage_flags_, GLenum map_flags_);
+    ~StagingBuffers();
+
+    StagingBufferMap RequestMap(size_t requested_size, bool insert_fence);
+
+    size_t RequestBuffer(size_t requested_size);
+
+    std::optional<size_t> FindBuffer(size_t requested_size);
+
+    std::vector<OGLSync> syncs;
+    std::vector<OGLBuffer> buffers;
+    std::vector<u8*> maps;
+    std::vector<size_t> sizes;
+    GLenum storage_flags;
+    GLenum map_flags;
+};
 
 class StreamBuffer {
     static constexpr size_t STREAM_BUFFER_SIZE = 64_MiB;
@@ -46,6 +75,19 @@ private:
     u8* mapped_pointer = nullptr;
     OGLBuffer buffer;
     std::array<OGLSync, NUM_SYNCS> fences;
+};
+
+class StagingBufferPool {
+public:
+    StagingBufferPool() = default;
+    ~StagingBufferPool() = default;
+
+    StagingBufferMap RequestUploadBuffer(size_t size);
+    StagingBufferMap RequestDownloadBuffer(size_t size);
+
+private:
+    StagingBuffers upload_buffers{GL_MAP_WRITE_BIT, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT};
+    StagingBuffers download_buffers{GL_MAP_READ_BIT | GL_CLIENT_STORAGE_BIT, GL_MAP_READ_BIT};
 };
 
 } // namespace OpenGL

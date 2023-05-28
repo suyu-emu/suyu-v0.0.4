@@ -16,23 +16,23 @@ namespace OpenGL {
 class Image;
 class ProgramManager;
 
-struct ImageBufferMap;
+struct StagingBufferMap;
 
 class UtilShaders {
 public:
     explicit UtilShaders(ProgramManager& program_manager);
     ~UtilShaders();
 
-    void ASTCDecode(Image& image, const ImageBufferMap& map,
+    void ASTCDecode(Image& image, const StagingBufferMap& map,
                     std::span<const VideoCommon::SwizzleParameters> swizzles);
 
-    void BlockLinearUpload2D(Image& image, const ImageBufferMap& map,
+    void BlockLinearUpload2D(Image& image, const StagingBufferMap& map,
                              std::span<const VideoCommon::SwizzleParameters> swizzles);
 
-    void BlockLinearUpload3D(Image& image, const ImageBufferMap& map,
+    void BlockLinearUpload3D(Image& image, const StagingBufferMap& map,
                              std::span<const VideoCommon::SwizzleParameters> swizzles);
 
-    void PitchUpload(Image& image, const ImageBufferMap& map,
+    void PitchUpload(Image& image, const StagingBufferMap& map,
                      std::span<const VideoCommon::SwizzleParameters> swizzles);
 
     void CopyBC4(Image& dst_image, Image& src_image,

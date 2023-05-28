@@ -19,6 +19,7 @@
 #include "video_core/host_shaders/pitch_unswizzle_comp.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
+#include "video_core/renderer_opengl/gl_staging_buffer_pool.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/renderer_opengl/util_shaders.h"
 #include "video_core/texture_cache/accelerated_swizzle.h"
@@ -63,7 +64,7 @@ UtilShaders::UtilShaders(ProgramManager& program_manager_)
 
 UtilShaders::~UtilShaders() = default;
 
-void UtilShaders::ASTCDecode(Image& image, const ImageBufferMap& map,
+void UtilShaders::ASTCDecode(Image& image, const StagingBufferMap& map,
                              std::span<const VideoCommon::SwizzleParameters> swizzles) {
     static constexpr GLuint BINDING_INPUT_BUFFER = 0;
     static constexpr GLuint BINDING_OUTPUT_IMAGE = 0;
@@ -111,7 +112,7 @@ void UtilShaders::ASTCDecode(Image& image, const ImageBufferMap& map,
     program_manager.RestoreGuestCompute();
 }
 
-void UtilShaders::BlockLinearUpload2D(Image& image, const ImageBufferMap& map,
+void UtilShaders::BlockLinearUpload2D(Image& image, const StagingBufferMap& map,
                                       std::span<const SwizzleParameters> swizzles) {
     static constexpr Extent3D WORKGROUP_SIZE{32, 32, 1};
     static constexpr GLuint BINDING_SWIZZLE_BUFFER = 0;
@@ -148,7 +149,7 @@ void UtilShaders::BlockLinearUpload2D(Image& image, const ImageBufferMap& map,
     program_manager.RestoreGuestCompute();
 }
 
-void UtilShaders::BlockLinearUpload3D(Image& image, const ImageBufferMap& map,
+void UtilShaders::BlockLinearUpload3D(Image& image, const StagingBufferMap& map,
                                       std::span<const SwizzleParameters> swizzles) {
     static constexpr Extent3D WORKGROUP_SIZE{16, 8, 8};
 
@@ -189,7 +190,7 @@ void UtilShaders::BlockLinearUpload3D(Image& image, const ImageBufferMap& map,
     program_manager.RestoreGuestCompute();
 }
 
-void UtilShaders::PitchUpload(Image& image, const ImageBufferMap& map,
+void UtilShaders::PitchUpload(Image& image, const StagingBufferMap& map,
                               std::span<const SwizzleParameters> swizzles) {
     static constexpr Extent3D WORKGROUP_SIZE{32, 32, 1};
     static constexpr GLuint BINDING_INPUT_BUFFER = 0;

@@ -465,7 +465,6 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
 
     if (committed_ranges.empty()) {
         if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
-
             async_buffers.emplace_back(std::optional<Async_Buffer>{});
         }
         return;
@@ -526,7 +525,6 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
     committed_ranges.clear();
     if (downloads.empty()) {
         if constexpr (IMPLEMENTS_ASYNC_DOWNLOADS) {
-
             async_buffers.emplace_back(std::optional<Async_Buffer>{});
         }
         return;
@@ -678,7 +676,7 @@ void BufferCache<P>::BindHostIndexBuffer() {
     const u32 size = index_buffer.size;
     const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
     if (!draw_state.inline_index_draw_indexes.empty()) [[unlikely]] {
-        if constexpr (USE_MEMORY_MAPS) {
+        if constexpr (USE_MEMORY_MAPS_FOR_UPLOADS) {
             auto upload_staging = runtime.UploadStagingBuffer(size);
             std::array<BufferCopy, 1> copies{
                 {BufferCopy{.src_offset = upload_staging.offset, .dst_offset = 0, .size = size}}};
@@ -1446,7 +1444,7 @@ bool BufferCache<P>::SynchronizeBufferNoModified(Buffer& buffer, VAddr cpu_addr,
 template <class P>
 void BufferCache<P>::UploadMemory(Buffer& buffer, u64 total_size_bytes, u64 largest_copy,
                                   std::span<BufferCopy> copies) {
-    if constexpr (USE_MEMORY_MAPS) {
+    if constexpr (USE_MEMORY_MAPS_FOR_UPLOADS) {
         MappedUploadMemory(buffer, total_size_bytes, copies);
     } else {
         ImmediateUploadMemory(buffer, largest_copy, copies);
@@ -1457,7 +1455,7 @@ template <class P>
 void BufferCache<P>::ImmediateUploadMemory([[maybe_unused]] Buffer& buffer,
                                            [[maybe_unused]] u64 largest_copy,
                                            [[maybe_unused]] std::span<const BufferCopy> copies) {
-    if constexpr (!USE_MEMORY_MAPS) {
+    if constexpr (!USE_MEMORY_MAPS_FOR_UPLOADS) {
         std::span<u8> immediate_buffer;
         for (const BufferCopy& copy : copies) {
             std::span<const u8> upload_span;
@@ -1516,7 +1514,7 @@ bool BufferCache<P>::InlineMemory(VAddr dest_address, size_t copy_size,
     auto& buffer = slot_buffers[buffer_id];
     SynchronizeBuffer(buffer, dest_address, static_cast<u32>(copy_size));
 
-    if constexpr (USE_MEMORY_MAPS) {
+    if constexpr (USE_MEMORY_MAPS_FOR_UPLOADS) {
         auto upload_staging = runtime.UploadStagingBuffer(copy_size);
         std::array copies{BufferCopy{
             .src_offset = upload_staging.offset,

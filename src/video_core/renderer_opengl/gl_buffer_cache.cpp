@@ -106,8 +106,10 @@ GLuint Buffer::View(u32 offset, u32 size, PixelFormat format) {
     return views.back().texture.handle;
 }
 
-BufferCacheRuntime::BufferCacheRuntime(const Device& device_)
-    : device{device_}, has_fast_buffer_sub_data{device.HasFastBufferSubData()},
+BufferCacheRuntime::BufferCacheRuntime(const Device& device_,
+                                       StagingBufferPool& staging_buffer_pool_)
+    : device{device_}, staging_buffer_pool{staging_buffer_pool_},
+      has_fast_buffer_sub_data{device.HasFastBufferSubData()},
       use_assembly_shaders{device.UseAssemblyShaders()},
       has_unified_vertex_buffers{device.HasVertexBufferUnifiedMemory()},
       stream_buffer{has_fast_buffer_sub_data ? std::nullopt : std::make_optional<StreamBuffer>()} {
@@ -140,6 +142,14 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_)
     }();
 }
 
+StagingBufferMap BufferCacheRuntime::UploadStagingBuffer(size_t size) {
+    return staging_buffer_pool.RequestUploadBuffer(size);
+}
+
+StagingBufferMap BufferCacheRuntime::DownloadStagingBuffer(size_t size) {
+    return staging_buffer_pool.RequestDownloadBuffer(size);
+}
+
 u64 BufferCacheRuntime::GetDeviceMemoryUsage() const {
     if (device.CanReportMemoryUsage()) {
         return device_access_memory - device.GetCurrentDedicatedVideoMemory();
@@ -147,13 +157,47 @@ u64 BufferCacheRuntime::GetDeviceMemoryUsage() const {
     return 2_GiB;
 }
 
+void BufferCacheRuntime::CopyBuffer(GLuint dst_buffer, GLuint src_buffer,
+                                    std::span<const VideoCommon::BufferCopy> copies, bool barrier) {
+    if (barrier) {
+        PreCopyBarrier();
+    }
+    for (const VideoCommon::BufferCopy& copy : copies) {
+        glCopyNamedBufferSubData(src_buffer, dst_buffer, static_cast<GLintptr>(copy.src_offset),
+                                 static_cast<GLintptr>(copy.dst_offset),
+                                 static_cast<GLsizeiptr>(copy.size));
+    }
+    if (barrier) {
+        PostCopyBarrier();
+    }
+}
+
+void BufferCacheRuntime::CopyBuffer(GLuint dst_buffer, Buffer& src_buffer,
+                                    std::span<const VideoCommon::BufferCopy> copies, bool barrier) {
+    CopyBuffer(dst_buffer, src_buffer.Handle(), copies, barrier);
+}
+
+void BufferCacheRuntime::CopyBuffer(Buffer& dst_buffer, GLuint src_buffer,
+                                    std::span<const VideoCommon::BufferCopy> copies, bool barrier) {
+    CopyBuffer(dst_buffer.Handle(), src_buffer, copies, barrier);
+}
+
 void BufferCacheRuntime::CopyBuffer(Buffer& dst_buffer, Buffer& src_buffer,
                                     std::span<const VideoCommon::BufferCopy> copies) {
-    for (const VideoCommon::BufferCopy& copy : copies) {
-        glCopyNamedBufferSubData(
-            src_buffer.Handle(), dst_buffer.Handle(), static_cast<GLintptr>(copy.src_offset),
-            static_cast<GLintptr>(copy.dst_offset), static_cast<GLsizeiptr>(copy.size));
-    }
+    CopyBuffer(dst_buffer.Handle(), src_buffer.Handle(), copies);
+}
+
+void BufferCacheRuntime::PreCopyBarrier() {
+    // TODO: finer grained barrier?
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+}
+
+void BufferCacheRuntime::PostCopyBarrier() {
+    glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+}
+
+void BufferCacheRuntime::Finish() {
+    glFinish();
 }
 
 void BufferCacheRuntime::ClearBuffer(Buffer& dest_buffer, u32 offset, size_t size, u32 value) {

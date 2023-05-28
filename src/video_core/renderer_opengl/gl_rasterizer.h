@@ -230,6 +230,7 @@ private:
     ProgramManager& program_manager;
     StateTracker& state_tracker;
 
+    StagingBufferPool staging_buffer_pool;
     TextureCacheRuntime texture_cache_runtime;
     TextureCache texture_cache;
     BufferCacheRuntime buffer_cache_runtime;

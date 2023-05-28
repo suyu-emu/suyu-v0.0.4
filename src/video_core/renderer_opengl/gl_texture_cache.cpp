@@ -451,19 +451,14 @@ OGLTexture MakeImage(const VideoCommon::ImageInfo& info, GLenum gl_internal_form
         return is_srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
     }
 }
-
 } // Anonymous namespace
 
-ImageBufferMap::~ImageBufferMap() {
-    if (sync) {
-        sync->Create();
-    }
-}
-
 TextureCacheRuntime::TextureCacheRuntime(const Device& device_, ProgramManager& program_manager,
-                                         StateTracker& state_tracker_)
-    : device{device_}, state_tracker{state_tracker_}, util_shaders(program_manager),
-      format_conversion_pass{util_shaders}, resolution{Settings::values.resolution_info} {
+                                         StateTracker& state_tracker_,
+                                         StagingBufferPool& staging_buffer_pool_)
+    : device{device_}, state_tracker{state_tracker_}, staging_buffer_pool{staging_buffer_pool_},
+      util_shaders(program_manager), format_conversion_pass{util_shaders},
+      resolution{Settings::values.resolution_info} {
     static constexpr std::array TARGETS{GL_TEXTURE_1D_ARRAY, GL_TEXTURE_2D_ARRAY, GL_TEXTURE_3D};
     for (size_t i = 0; i < TARGETS.size(); ++i) {
         const GLenum target = TARGETS[i];
@@ -553,12 +548,12 @@ void TextureCacheRuntime::Finish() {
     glFinish();
 }
 
-ImageBufferMap TextureCacheRuntime::UploadStagingBuffer(size_t size) {
-    return upload_buffers.RequestMap(size, true);
+StagingBufferMap TextureCacheRuntime::UploadStagingBuffer(size_t size) {
+    return staging_buffer_pool.RequestUploadBuffer(size);
 }
 
-ImageBufferMap TextureCacheRuntime::DownloadStagingBuffer(size_t size) {
-    return download_buffers.RequestMap(size, false);
+StagingBufferMap TextureCacheRuntime::DownloadStagingBuffer(size_t size) {
+    return staging_buffer_pool.RequestDownloadBuffer(size);
 }
 
 u64 TextureCacheRuntime::GetDeviceMemoryUsage() const {
@@ -643,7 +638,7 @@ void TextureCacheRuntime::BlitFramebuffer(Framebuffer* dst, Framebuffer* src,
                            is_linear ? GL_LINEAR : GL_NEAREST);
 }
 
-void TextureCacheRuntime::AccelerateImageUpload(Image& image, const ImageBufferMap& map,
+void TextureCacheRuntime::AccelerateImageUpload(Image& image, const StagingBufferMap& map,
                                                 std::span<const SwizzleParameters> swizzles) {
     switch (image.info.type) {
     case ImageType::e2D:
@@ -683,64 +678,6 @@ FormatProperties TextureCacheRuntime::FormatInfo(ImageType type, GLenum internal
 
 bool TextureCacheRuntime::HasNativeASTC() const noexcept {
     return device.HasASTC();
-}
-
-TextureCacheRuntime::StagingBuffers::StagingBuffers(GLenum storage_flags_, GLenum map_flags_)
-    : storage_flags{storage_flags_}, map_flags{map_flags_} {}
-
-TextureCacheRuntime::StagingBuffers::~StagingBuffers() = default;
-
-ImageBufferMap TextureCacheRuntime::StagingBuffers::RequestMap(size_t requested_size,
-                                                               bool insert_fence) {
-    const size_t index = RequestBuffer(requested_size);
-    OGLSync* const sync = insert_fence ? &syncs[index] : nullptr;
-    return ImageBufferMap{
-        .mapped_span = std::span(maps[index], requested_size),
-        .sync = sync,
-        .buffer = buffers[index].handle,
-    };
-}
-
-size_t TextureCacheRuntime::StagingBuffers::RequestBuffer(size_t requested_size) {
-    if (const std::optional<size_t> index = FindBuffer(requested_size); index) {
-        return *index;
-    }
-
-    OGLBuffer& buffer = buffers.emplace_back();
-    buffer.Create();
-    glNamedBufferStorage(buffer.handle, requested_size, nullptr,
-                         storage_flags | GL_MAP_PERSISTENT_BIT);
-    maps.push_back(static_cast<u8*>(glMapNamedBufferRange(buffer.handle, 0, requested_size,
-                                                          map_flags | GL_MAP_PERSISTENT_BIT)));
-
-    syncs.emplace_back();
-    sizes.push_back(requested_size);
-
-    ASSERT(syncs.size() == buffers.size() && buffers.size() == maps.size() &&
-           maps.size() == sizes.size());
-
-    return buffers.size() - 1;
-}
-
-std::optional<size_t> TextureCacheRuntime::StagingBuffers::FindBuffer(size_t requested_size) {
-    size_t smallest_buffer = std::numeric_limits<size_t>::max();
-    std::optional<size_t> found;
-    const size_t num_buffers = sizes.size();
-    for (size_t index = 0; index < num_buffers; ++index) {
-        const size_t buffer_size = sizes[index];
-        if (buffer_size < requested_size || buffer_size >= smallest_buffer) {
-            continue;
-        }
-        if (syncs[index].handle != 0) {
-            if (!syncs[index].IsSignaled()) {
-                continue;
-            }
-            syncs[index].Release();
-        }
-        smallest_buffer = buffer_size;
-        found = index;
-    }
-    return found;
 }
 
 Image::Image(TextureCacheRuntime& runtime_, const VideoCommon::ImageInfo& info_, GPUVAddr gpu_addr_,
@@ -818,7 +755,7 @@ void Image::UploadMemory(GLuint buffer_handle, size_t buffer_offset,
     }
 }
 
-void Image::UploadMemory(const ImageBufferMap& map,
+void Image::UploadMemory(const StagingBufferMap& map,
                          std::span<const VideoCommon::BufferImageCopy> copies) {
     UploadMemory(map.buffer, map.offset, copies);
 }
@@ -865,7 +802,7 @@ void Image::DownloadMemory(std::span<GLuint> buffer_handles, std::span<size_t> b
     }
 }
 
-void Image::DownloadMemory(ImageBufferMap& map,
+void Image::DownloadMemory(StagingBufferMap& map,
                            std::span<const VideoCommon::BufferImageCopy> copies) {
     DownloadMemory(map.buffer, map.offset, copies);
 }

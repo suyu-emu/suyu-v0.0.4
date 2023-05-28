@@ -12,7 +12,7 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
-#include "video_core/renderer_opengl/gl_stream_buffer.h"
+#include "video_core/renderer_opengl/gl_staging_buffer_pool.h"
 
 namespace OpenGL {
 
@@ -60,10 +60,27 @@ class BufferCacheRuntime {
 public:
     static constexpr u8 INVALID_BINDING = std::numeric_limits<u8>::max();
 
-    explicit BufferCacheRuntime(const Device& device_);
+    explicit BufferCacheRuntime(const Device& device_, StagingBufferPool& staging_buffer_pool_);
+
+    [[nodiscard]] StagingBufferMap UploadStagingBuffer(size_t size);
+
+    [[nodiscard]] StagingBufferMap DownloadStagingBuffer(size_t size);
+
+    void CopyBuffer(GLuint dst_buffer, GLuint src_buffer,
+                    std::span<const VideoCommon::BufferCopy> copies, bool barrier = true);
+
+    void CopyBuffer(GLuint dst_buffer, Buffer& src_buffer,
+                    std::span<const VideoCommon::BufferCopy> copies, bool barrier = true);
+
+    void CopyBuffer(Buffer& dst_buffer, GLuint src_buffer,
+                    std::span<const VideoCommon::BufferCopy> copies, bool barrier = true);
 
     void CopyBuffer(Buffer& dst_buffer, Buffer& src_buffer,
                     std::span<const VideoCommon::BufferCopy> copies);
+
+    void PreCopyBarrier();
+    void PostCopyBarrier();
+    void Finish();
 
     void ClearBuffer(Buffer& dest_buffer, u32 offset, size_t size, u32 value);
 
@@ -169,6 +186,7 @@ private:
     };
 
     const Device& device;
+    StagingBufferPool& staging_buffer_pool;
 
     bool has_fast_buffer_sub_data = false;
     bool use_assembly_shaders = false;
@@ -201,7 +219,7 @@ private:
 struct BufferCacheParams {
     using Runtime = OpenGL::BufferCacheRuntime;
     using Buffer = OpenGL::Buffer;
-    using Async_Buffer = u32;
+    using Async_Buffer = OpenGL::StagingBufferMap;
     using MemoryTracker = VideoCommon::MemoryTrackerBase<VideoCore::RasterizerInterface>;
 
     static constexpr bool IS_OPENGL = true;
@@ -209,9 +227,12 @@ struct BufferCacheParams {
     static constexpr bool HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT = true;
     static constexpr bool NEEDS_BIND_UNIFORM_INDEX = true;
     static constexpr bool NEEDS_BIND_STORAGE_INDEX = true;
-    static constexpr bool USE_MEMORY_MAPS = false;
+    static constexpr bool USE_MEMORY_MAPS = true;
     static constexpr bool SEPARATE_IMAGE_BUFFER_BINDINGS = true;
     static constexpr bool IMPLEMENTS_ASYNC_DOWNLOADS = false;
+
+    // TODO: Investigate why OpenGL seems to perform worse with persistently mapped buffer uploads
+    static constexpr bool USE_MEMORY_MAPS_FOR_UPLOADS = false;
 };
 
 using BufferCache = VideoCommon::BufferCache<BufferCacheParams>;
