@@ -3,10 +3,16 @@
 
 #pragma once
 
+#include <algorithm>
+#include <iterator>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
+#include "common/common_types.h"
 #include "vulkan/vulkan_core.h"
+
+class QWindow;
 
 namespace Settings {
 enum class VSyncMode : u32;

@@ -1,16 +1,18 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "video_core/vulkan_common/vulkan_device.h"
-
+#include <utility>
 #include <vector>
 #include "common/dynamic_library.h"
+#include "common/logging/log.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 #include "yuzu/qt_common.h"
 #include "yuzu/vk_device_info.h"
+
+class QWindow;
 
 namespace VkDeviceInfo {
 Record::Record(std::string_view name_, const std::vector<VkPresentModeKHR>& vsync_modes_,
