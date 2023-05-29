@@ -98,6 +98,9 @@ add_executable(yuzu
     configuration/configure_input_profile_dialog.cpp
     configuration/configure_input_profile_dialog.h
     configuration/configure_input_profile_dialog.ui
+    configuration/configure_mouse_panning.cpp
+    configuration/configure_mouse_panning.h
+    configuration/configure_mouse_panning.ui
     configuration/configure_motion_touch.cpp
     configuration/configure_motion_touch.h
     configuration/configure_motion_touch.ui
