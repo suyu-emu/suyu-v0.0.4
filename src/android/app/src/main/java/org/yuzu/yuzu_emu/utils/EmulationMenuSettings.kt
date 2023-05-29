@@ -52,7 +52,7 @@ object EmulationMenuSettings {
                 .apply()
         }
     var showFps: Boolean
-        get() = preferences.getBoolean(Settings.PREF_MENU_SETTINGS_SHOW_FPS, true)
+        get() = preferences.getBoolean(Settings.PREF_MENU_SETTINGS_SHOW_FPS, false)
         set(value) {
             preferences.edit()
                 .putBoolean(Settings.PREF_MENU_SETTINGS_SHOW_FPS, value)
