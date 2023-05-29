@@ -40,6 +40,9 @@ class GamesViewModel : ViewModel() {
     val searchFocused: LiveData<Boolean> get() = _searchFocused
 
     init {
+        // Ensure keys are loaded so that ROM metadata can be decrypted.
+        NativeLibrary.reloadKeys()
+
         // Retrieve list of cached games
         val storedGames = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
             .getStringSet(GameHelper.KEY_GAMES, emptySet())
