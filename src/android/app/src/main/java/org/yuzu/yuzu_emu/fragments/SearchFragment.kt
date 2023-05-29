@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.preference.PreferenceManager
 import info.debatty.java.stringsimilarity.Jaccard
+import info.debatty.java.stringsimilarity.JaroWinkler
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter
@@ -150,7 +151,7 @@ class SearchFragment : Fragment() {
         }
 
         val searchTerm = binding.searchText.text.toString().lowercase(Locale.getDefault())
-        val searchAlgorithm = Jaccard(2)
+        val searchAlgorithm = if (searchTerm.length > 1) Jaccard(2) else JaroWinkler()
         val sortedList: List<Game> = filteredList.mapNotNull { game ->
             val title = game.title.lowercase(Locale.getDefault())
             val score = searchAlgorithm.similarity(searchTerm, title)
