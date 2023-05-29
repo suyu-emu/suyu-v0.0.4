@@ -50,7 +50,7 @@ android {
         versionName = getGitVersion()
 
         ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
+            abiFilters += listOf("arm64-v8a")
         }
 
         buildConfigField("String", "GIT_HASH", "\"${getGitHash()}\"")
