@@ -32,6 +32,11 @@ android {
         jvmTarget = "17"
     }
 
+    packagingOptions {
+        // This is necessary for libadrenotools custom driver loading
+        jniLibs.useLegacyPackaging = true
+    }
+
     lint {
         // This is important as it will run lint but not abort on error
         // Lint has some overly obnoxious "errors" that should really be warnings
