@@ -19,6 +19,7 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.fragments.ResetSettingsDialogFragment
 import org.yuzu.yuzu_emu.utils.ThemeHelper
 
 class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) {
@@ -115,7 +116,12 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 RunnableSetting(
                     R.string.reset_to_default,
                     0
-                ) { resetSettings() }
+                ) {
+                    ResetSettingsDialogFragment().show(
+                        settingsActivity.supportFragmentManager,
+                        ResetSettingsDialogFragment.TAG
+                    )
+                }
             )
         }
     }
@@ -443,16 +449,5 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 )
             )
         }
-    }
-
-    private fun resetSettings() {
-        MaterialAlertDialogBuilder(settingsActivity)
-            .setTitle(R.string.reset_all_settings)
-            .setMessage(R.string.reset_all_settings_description)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                settingsActivity.onSettingsReset()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
     }
 }
