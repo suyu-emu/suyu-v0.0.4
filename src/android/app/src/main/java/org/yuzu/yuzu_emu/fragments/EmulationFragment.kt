@@ -123,8 +123,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 }
 
                 R.id.menu_exit -> {
-                    requireActivity().finish()
                     emulationState.stop()
+                    requireActivity().finish()
                     true
                 }
 
@@ -364,7 +364,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
     }
 
-    private class EmulationState(private val mGamePath: String?) {
+    private class EmulationState(private val gamePath: String) {
         private var state: State
         private var surface: Surface? = null
         private var runWhenSurfaceIsValid = false
@@ -391,8 +391,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         fun stop() {
             if (state != State.STOPPED) {
                 Log.debug("[EmulationFragment] Stopping emulation.")
-                state = State.STOPPED
                 NativeLibrary.stopEmulation()
+                state = State.STOPPED
             } else {
                 Log.warning("[EmulationFragment] Stop called while already stopped.")
             }
@@ -402,12 +402,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         @Synchronized
         fun pause() {
             if (state != State.PAUSED) {
-                state = State.PAUSED
                 Log.debug("[EmulationFragment] Pausing emulation.")
 
                 // Release the surface before pausing, since emulation has to be running for that.
                 NativeLibrary.surfaceDestroyed()
                 NativeLibrary.pauseEmulation()
+
+                state = State.PAUSED
             } else {
                 Log.warning("[EmulationFragment] Pause called while already paused.")
             }
@@ -464,11 +465,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             when (state) {
                 State.STOPPED -> {
                     NativeLibrary.surfaceChanged(surface)
-                    val mEmulationThread = Thread({
+                    val emulationThread = Thread({
                         Log.debug("[EmulationFragment] Starting emulation thread.")
-                        NativeLibrary.run(mGamePath)
+                        NativeLibrary.run(gamePath)
                     }, "NativeEmulation")
-                    mEmulationThread.start()
+                    emulationThread.start()
                 }
 
                 State.PAUSED -> {

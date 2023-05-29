@@ -31,17 +31,15 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.EmulationFragment
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
+import org.yuzu.yuzu_emu.utils.ForegroundService
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NfcReader
 import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
 import org.yuzu.yuzu_emu.utils.ThemeHelper
 import kotlin.math.roundToInt
 
-open class EmulationActivity : AppCompatActivity(), SensorEventListener {
+class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private var controllerMappingHelper: ControllerMappingHelper? = null
-
-    // TODO(bunnei): Disable notifications until we support app suspension.
-    //private Intent foregroundService;
 
     var isActivityRecreated = false
     private var menuVisible = false
@@ -57,8 +55,7 @@ open class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var game: Game
 
     override fun onDestroy() {
-        // TODO(bunnei): Disable notifications until we support app suspension.
-        //stopService(foregroundService);
+        stopForegroundService(this)
         super.onDestroy()
     }
 
@@ -100,9 +97,8 @@ open class EmulationActivity : AppCompatActivity(), SensorEventListener {
         inputHandler.initialize()
 
         // Start a foreground service to prevent the app from getting killed in the background
-        // TODO(bunnei): Disable notifications until we support app suspension.
-        //foregroundService = new Intent(EmulationActivity.this, ForegroundService.class);
-        //startForegroundService(foregroundService);
+        val startIntent = Intent(this, ForegroundService::class.java)
+        startForegroundService(startIntent)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -324,7 +320,6 @@ open class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     companion object {
         const val EXTRA_SELECTED_GAME = "SelectedGame"
-        private const val EMULATION_RUNNING_NOTIFICATION = 0x1000
 
         fun launch(activity: AppCompatActivity, game: Game) {
             val launcher = Intent(activity, EmulationActivity::class.java)
@@ -332,9 +327,10 @@ open class EmulationActivity : AppCompatActivity(), SensorEventListener {
             activity.startActivity(launcher)
         }
 
-        fun tryDismissRunningNotification(activity: Activity?) {
-            // TODO(bunnei): Disable notifications until we support app suspension.
-            //NotificationManagerCompat.from(activity).cancel(EMULATION_RUNNING_NOTIFICATION);
+        fun stopForegroundService(activity: Activity) {
+            val startIntent = Intent(activity, ForegroundService::class.java)
+            startIntent.action = ForegroundService.ACTION_STOP
+            activity.startForegroundService(startIntent)
         }
 
         private fun areCoordinatesOutside(view: View?, x: Float, y: Float): Boolean {

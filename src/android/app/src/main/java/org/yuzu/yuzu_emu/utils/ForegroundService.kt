@@ -18,13 +18,16 @@ import org.yuzu.yuzu_emu.activities.EmulationActivity
  */
 class ForegroundService : Service() {
     companion object {
-        private const val EMULATION_RUNNING_NOTIFICATION = 0x1000
+        const val EMULATION_RUNNING_NOTIFICATION = 0x1000
+
+        const val ACTION_STOP = "stop"
     }
 
     private fun showRunningNotification() {
         // Intent is used to resume emulation if the notification is clicked
         val contentIntent = PendingIntent.getActivity(
-            this, 0,
+            this,
+            0,
             Intent(this, EmulationActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE
         )
@@ -50,6 +53,11 @@ class ForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        if (intent.action == ACTION_STOP) {
+            NotificationManagerCompat.from(this).cancel(EMULATION_RUNNING_NOTIFICATION)
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelfResult(startId)
+        }
         return START_STICKY
     }
 
