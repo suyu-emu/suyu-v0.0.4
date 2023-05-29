@@ -48,6 +48,13 @@
     <string name="install_prod_keys_warning">Skip adding keys?</string>
     <string name="install_prod_keys_warning_description">Valid keys are required to emulate retail games. Only homebrew apps will function if you continue.</string>
     <string name="install_prod_keys_warning_help">https://yuzu-emu.org/help/quickstart/#guide-introduction</string>
+    <string name="notifications">Notifications</string>
+    <string name="notifications_description">Grant the notification permission with the button below.</string>
+    <string name="give_permission">Grant permission</string>
+    <string name="notification_warning">Skip granting the notification permission?</string>
+    <string name="notification_warning_description">yuzu won\'t be able to notify you of important information.</string>
+    <string name="permission_denied">Permission denied</string>
+    <string name="permission_denied_description">You denied this permission too many times and now you have to manually grant it in system settings.</string>
     <string name="about">About</string>
     <string name="about_description">Build version, credits, and more</string>
     <string name="warning_help">Help</string>
