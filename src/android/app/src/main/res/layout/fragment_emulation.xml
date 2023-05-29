@@ -32,11 +32,8 @@
             android:id="@+id/show_fps_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="18dp"
-            android:layout_marginTop="2dp"
             android:clickable="false"
-            android:linksClickable="false"
-            android:longClickable="false"
+            android:focusable="false"
             android:shadowColor="@android:color/black"
             android:textColor="@android:color/white"
             android:textSize="12sp" />

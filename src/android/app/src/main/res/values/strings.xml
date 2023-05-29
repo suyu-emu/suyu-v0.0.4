@@ -183,6 +183,7 @@
     <!-- Emulation Menu -->
     <string name="emulation_exit">Exit Emulation</string>
     <string name="emulation_done">Done</string>
+    <string name="emulation_fps_counter">FPS Counter</string>
     <string name="emulation_toggle_controls">Toggle Controls</string>
     <string name="emulation_rel_stick_center">Relative Stick Center</string>
     <string name="emulation_dpad_slide">DPad Slide</string>

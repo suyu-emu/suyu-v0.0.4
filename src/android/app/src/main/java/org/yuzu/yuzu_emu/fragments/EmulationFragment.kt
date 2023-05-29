@@ -111,19 +111,23 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     }
                     true
                 }
+
                 R.id.menu_settings -> {
                     SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "")
                     true
                 }
+
                 R.id.menu_overlay_controls -> {
                     showOverlayOptions()
                     true
                 }
+
                 R.id.menu_exit -> {
                     requireActivity().finish()
                     emulationState.stop()
                     true
                 }
+
                 else -> true
             }
         }
@@ -224,6 +228,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         popup.menuInflater.inflate(R.menu.menu_overlay_options, popup.menu)
 
         popup.menu.apply {
+            findItem(R.id.menu_toggle_fps).isChecked = EmulationMenuSettings.showFps
             findItem(R.id.menu_rel_stick_center).isChecked = EmulationMenuSettings.joystickRelCenter
             findItem(R.id.menu_dpad_slide).isChecked = EmulationMenuSettings.dpadSlide
             findItem(R.id.menu_show_overlay).isChecked = EmulationMenuSettings.showOverlay
@@ -232,12 +237,20 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         popup.setOnMenuItemClickListener {
             when (it.itemId) {
+                R.id.menu_toggle_fps -> {
+                    it.isChecked = !it.isChecked
+                    EmulationMenuSettings.showFps = it.isChecked
+                    updateShowFpsOverlay()
+                    true
+                }
+
                 R.id.menu_edit_overlay -> {
                     binding.drawerLayout.close()
                     binding.surfaceInputOverlay.requestFocus()
                     startConfiguringControls()
                     true
                 }
+
                 R.id.menu_toggle_controls -> {
                     val preferences =
                         PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
@@ -276,32 +289,38 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         }
                     true
                 }
+
                 R.id.menu_show_overlay -> {
                     it.isChecked = !it.isChecked
                     EmulationMenuSettings.showOverlay = it.isChecked
                     refreshInputOverlay()
                     true
                 }
+
                 R.id.menu_rel_stick_center -> {
                     it.isChecked = !it.isChecked
                     EmulationMenuSettings.joystickRelCenter = it.isChecked
                     true
                 }
+
                 R.id.menu_dpad_slide -> {
                     it.isChecked = !it.isChecked
                     EmulationMenuSettings.dpadSlide = it.isChecked
                     true
                 }
+
                 R.id.menu_haptics -> {
                     it.isChecked = !it.isChecked
                     EmulationMenuSettings.hapticFeedback = it.isChecked
                     true
                 }
+
                 R.id.menu_reset_overlay -> {
                     binding.drawerLayout.close()
                     resetInputOverlay()
                     true
                 }
+
                 else -> true
             }
         }
@@ -333,12 +352,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 right = cutInsets.right
             }
 
-            // Don't use padding if the navigation bar isn't in the way
-            if (InsetsHelper.getBottomPaddingRequired(requireActivity()) > 0) {
-                v.setPadding(left, cutInsets.top, right, 0)
-            } else {
-                v.setPadding(left, cutInsets.top, right, 0)
-            }
+            v.setPadding(left, cutInsets.top, right, 0)
+
+            binding.showFpsText.setPadding(
+                cutInsets.left,
+                cutInsets.top,
+                cutInsets.right,
+                cutInsets.bottom
+            )
             windowInsets
         }
     }
@@ -431,6 +452,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         NativeLibrary.surfaceDestroyed()
                         state = State.PAUSED
                     }
+
                     State.PAUSED -> Log.warning("[EmulationFragment] Surface cleared while emulation paused.")
                     else -> Log.warning("[EmulationFragment] Surface cleared while emulation stopped.")
                 }
@@ -448,11 +470,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     }, "NativeEmulation")
                     mEmulationThread.start()
                 }
+
                 State.PAUSED -> {
                     Log.debug("[EmulationFragment] Resuming emulation.")
                     NativeLibrary.surfaceChanged(surface)
                     NativeLibrary.unPauseEmulation()
                 }
+
                 else -> Log.debug("[EmulationFragment] Bug, run called while already running.")
             }
             state = State.RUNNING
