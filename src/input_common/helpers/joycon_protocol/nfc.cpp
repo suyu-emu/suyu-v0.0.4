@@ -528,9 +528,9 @@ NFCWritePackage NfcProtocol::MakeAmiiboWritePackage(const TagUUID& tag_uuid,
 }
 
 NFCDataChunk NfcProtocol::MakeAmiiboChunk(u8 page, u8 size, std::span<const u8> data) const {
-    constexpr u8 PAGE_SIZE = 4;
+    constexpr u8 NFC_PAGE_SIZE = 4;
 
-    if (static_cast<std::size_t>(page * PAGE_SIZE) + size >= data.size()) {
+    if (static_cast<std::size_t>(page * NFC_PAGE_SIZE) + size >= data.size()) {
         return {};
     }
 
@@ -539,7 +539,7 @@ NFCDataChunk NfcProtocol::MakeAmiiboChunk(u8 page, u8 size, std::span<const u8> 
         .data_size = size,
         .data = {},
     };
-    std::memcpy(chunk.data.data(), data.data() + (page * PAGE_SIZE), size);
+    std::memcpy(chunk.data.data(), data.data() + (page * NFC_PAGE_SIZE), size);
     return chunk;
 }
 
