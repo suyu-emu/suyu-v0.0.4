@@ -63,8 +63,12 @@ void BufferCache<P>::RunGarbageCollector() {
 
 template <class P>
 void BufferCache<P>::TickFrame() {
-    // Calculate hits and shots and move hit bits to the right
+    // Homebrew console apps don't create or bind any channels, so this will be nullptr.
+    if (!channel_state) {
+        return;
+    }
 
+    // Calculate hits and shots and move hit bits to the right
     const u32 hits = std::reduce(channel_state->uniform_cache_hits.begin(),
                                  channel_state->uniform_cache_hits.end());
     const u32 shots = std::reduce(channel_state->uniform_cache_shots.begin(),
