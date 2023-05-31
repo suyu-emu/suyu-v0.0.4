@@ -32,11 +32,13 @@
             android:id="@+id/show_fps_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="left"
             android:clickable="false"
             android:focusable="false"
             android:shadowColor="@android:color/black"
             android:textColor="@android:color/white"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            tools:ignore="RtlHardcoded" />
 
         <Button
             style="@style/Widget.Material3.Button.ElevatedButton"

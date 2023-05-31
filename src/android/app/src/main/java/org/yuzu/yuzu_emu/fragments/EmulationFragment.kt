@@ -354,12 +354,23 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
             v.setPadding(left, cutInsets.top, right, 0)
 
-            binding.showFpsText.setPadding(
-                cutInsets.left,
-                cutInsets.top,
-                cutInsets.right,
-                cutInsets.bottom
-            )
+            // Ensure FPS text doesn't get cut off by rounded display corners
+            val sidePadding = resources.getDimensionPixelSize(R.dimen.spacing_xtralarge)
+            if (cutInsets.left == 0) {
+                binding.showFpsText.setPadding(
+                    sidePadding,
+                    cutInsets.top,
+                    cutInsets.right,
+                    cutInsets.bottom
+                )
+            } else {
+                binding.showFpsText.setPadding(
+                    cutInsets.left,
+                    cutInsets.top,
+                    cutInsets.right,
+                    cutInsets.bottom
+                )
+            }
             windowInsets
         }
     }
