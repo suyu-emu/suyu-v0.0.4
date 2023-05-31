@@ -6,6 +6,7 @@ package org.yuzu.yuzu_emu.features.settings.model.view
 class RunnableSetting(
     titleId: Int,
     descriptionId: Int,
+    val isRuntimeRunnable: Boolean,
     val runnable: () -> Unit
 ) : SettingsItem(null, titleId, descriptionId) {
     override val type = TYPE_RUNNABLE

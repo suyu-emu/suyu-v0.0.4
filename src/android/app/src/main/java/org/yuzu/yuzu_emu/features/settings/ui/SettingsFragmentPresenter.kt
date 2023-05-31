@@ -115,7 +115,8 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             add(
                 RunnableSetting(
                     R.string.reset_to_default,
-                    0
+                    0,
+                    false
                 ) {
                     ResetSettingsDialogFragment().show(
                         settingsActivity.supportFragmentManager,

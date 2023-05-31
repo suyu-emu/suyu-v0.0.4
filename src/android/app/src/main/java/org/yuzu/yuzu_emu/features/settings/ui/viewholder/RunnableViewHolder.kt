@@ -4,6 +4,7 @@
 package org.yuzu.yuzu_emu.features.settings.ui.viewholder
 
 import android.view.View
+import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.RunnableSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
@@ -25,7 +26,9 @@ class RunnableViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
     }
 
     override fun onClick(clicked: View) {
-        setting.runnable.invoke()
+        if (!setting.isRuntimeRunnable && !NativeLibrary.isRunning()) {
+            setting.runnable.invoke()
+        }
     }
 
     override fun onLongClick(clicked: View): Boolean {
