@@ -95,7 +95,7 @@ class ImportExportSavesFragment : DialogFragment() {
             tempFolder.mkdirs()
             val saveFolder = File(savesFolderRoot)
             val outputZipFile = File(
-                tempFolder, "Yuzu saves - ${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))}.zip"
+                tempFolder, "yuzu saves - ${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))}.zip"
             )
             outputZipFile.createNewFile()
             ZipOutputStream(BufferedOutputStream(FileOutputStream(outputZipFile))).use { zos ->
