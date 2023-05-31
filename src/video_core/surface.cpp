@@ -3,6 +3,7 @@
 
 #include "common/common_types.h"
 #include "common/math_util.h"
+#include "common/settings.h"
 #include "video_core/surface.h"
 
 namespace VideoCore::Surface {
@@ -400,11 +401,20 @@ std::pair<u32, u32> GetASTCBlockSize(PixelFormat format) {
     return {DefaultBlockWidth(format), DefaultBlockHeight(format)};
 }
 
-u64 EstimatedDecompressedSize(u64 base_size, PixelFormat format) {
+u64 TranscodedAstcSize(u64 base_size, PixelFormat format) {
     constexpr u64 RGBA8_PIXEL_SIZE = 4;
     const u64 base_block_size = static_cast<u64>(DefaultBlockWidth(format)) *
                                 static_cast<u64>(DefaultBlockHeight(format)) * RGBA8_PIXEL_SIZE;
-    return (base_size * base_block_size) / BytesPerBlock(format);
+    const u64 uncompressed_size = (base_size * base_block_size) / BytesPerBlock(format);
+
+    switch (Settings::values.astc_recompression.GetValue()) {
+    case Settings::AstcRecompression::Bc1:
+        return uncompressed_size / 8;
+    case Settings::AstcRecompression::Bc3:
+        return uncompressed_size / 4;
+    default:
+        return uncompressed_size;
+    }
 }
 
 } // namespace VideoCore::Surface

@@ -1972,7 +1972,7 @@ void TextureCache<P>::RegisterImage(ImageId image_id) {
     if ((IsPixelFormatASTC(image.info.format) &&
          True(image.flags & ImageFlagBits::AcceleratedUpload)) ||
         True(image.flags & ImageFlagBits::Converted)) {
-        tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
+        tentative_size = TranscodedAstcSize(tentative_size, image.info.format);
     }
     total_used_memory += Common::AlignUp(tentative_size, 1024);
     image.lru_index = lru_cache.Insert(image_id, frame_tick);
@@ -2142,7 +2142,7 @@ void TextureCache<P>::DeleteImage(ImageId image_id, bool immediate_delete) {
     if ((IsPixelFormatASTC(image.info.format) &&
          True(image.flags & ImageFlagBits::AcceleratedUpload)) ||
         True(image.flags & ImageFlagBits::Converted)) {
-        tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
+        tentative_size = TranscodedAstcSize(tentative_size, image.info.format);
     }
     total_used_memory -= Common::AlignUp(tentative_size, 1024);
     const GPUVAddr gpu_addr = image.gpu_addr;
