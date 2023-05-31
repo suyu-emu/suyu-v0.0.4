@@ -13,6 +13,7 @@ import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import android.provider.DocumentsProvider
 import android.webkit.MimeTypeMap
+import org.yuzu.yuzu_emu.BuildConfig
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.getPublicFilesDir
@@ -43,6 +44,7 @@ class DocumentProvider : DocumentsProvider() {
             DocumentsContract.Document.COLUMN_SIZE
         )
 
+        const val AUTHORITY : String = BuildConfig.APPLICATION_ID + ".user"
         const val ROOT_ID: String = "root"
     }
 

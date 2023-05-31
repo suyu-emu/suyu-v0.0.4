@@ -99,6 +99,11 @@ class HomeSettingsFragment : Fragment() {
                 R.drawable.ic_add
             ) { mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data) },
             HomeSetting(
+                R.string.import_export_saves,
+                R.string.import_export_saves_description,
+                R.drawable.ic_save
+            ) { ImportExportSavesFragment().show(parentFragmentManager, ImportExportSavesFragment.TAG) },
+            HomeSetting(
                 R.string.install_prod_keys,
                 R.string.install_prod_keys_description,
                 R.drawable.ic_unlock
