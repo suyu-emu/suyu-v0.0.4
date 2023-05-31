@@ -107,19 +107,19 @@ VirtualAmiibo::Info VirtualAmiibo::LoadAmiibo(std::span<u8> data) {
     }
 
     switch (data.size_bytes()) {
-        case AmiiboSize:
-        case AmiiboSizeWithoutPassword:
-            nfc_data.resize(AmiiboSize);
-            break;
-        case MifareSize:
-            nfc_data.resize(MifareSize);
-            break;
-        default:
-            return Info::NotAnAmiibo;
+    case AmiiboSize:
+    case AmiiboSizeWithoutPassword:
+        nfc_data.resize(AmiiboSize);
+        break;
+    case MifareSize:
+        nfc_data.resize(MifareSize);
+        break;
+    default:
+        return Info::NotAnAmiibo;
     }
 
     state = State::AmiiboIsOpen;
-    memcpy(nfc_data.data(),data.data(),data.size_bytes());
+    memcpy(nfc_data.data(), data.data(), data.size_bytes());
     SetNfc(identifier, {Common::Input::NfcState::NewAmiibo, nfc_data});
     return Info::Success;
 }

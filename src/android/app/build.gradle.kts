@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")

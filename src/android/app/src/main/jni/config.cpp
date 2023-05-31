@@ -232,7 +232,8 @@ void Config::ReadValues() {
     Settings::values.accelerate_astc = config->GetBoolean("Renderer", "accelerate_astc", false);
 
     // Enable asynchronous presentation by default on Android
-    Settings::values.async_presentation = config->GetBoolean("Renderer", "async_presentation", true);
+    Settings::values.async_presentation =
+        config->GetBoolean("Renderer", "async_presentation", true);
 
     // Enable force_max_clock by default on Android
     Settings::values.renderer_force_max_clock =

@@ -107,7 +107,7 @@ void JNI_OnUnload(JavaVM* vm, void* reserved) {
     env->DeleteGlobalRef(s_disk_cache_progress_class);
     env->DeleteGlobalRef(s_load_callback_stage_class);
 
-    // UnInitialze applets
+    // UnInitialize applets
     SoftwareKeyboard::CleanupJNI(env);
 }
 

@@ -866,9 +866,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
          * Initializes an [InputOverlayDrawableDpad]
          *
          * @param context                   The current [Context].
-         * @param defaultResId              The [Bitmap] resource ID of the default sate.
-         * @param pressedOneDirectionResId  The [Bitmap] resource ID of the pressed sate in one direction.
-         * @param pressedTwoDirectionsResId The [Bitmap] resource ID of the pressed sate in two directions.
+         * @param defaultResId              The [Bitmap] resource ID of the default state.
+         * @param pressedOneDirectionResId  The [Bitmap] resource ID of the pressed state in one direction.
+         * @param pressedTwoDirectionsResId The [Bitmap] resource ID of the pressed state in two directions.
          * @return the initialized [InputOverlayDrawableDpad]
          */
         private fun initializeOverlayDpad(

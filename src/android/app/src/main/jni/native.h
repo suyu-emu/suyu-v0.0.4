@@ -25,17 +25,19 @@ JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_ResetRomMetadata(JN
 JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_IsRunning(JNIEnv* env,
                                                                            jclass clazz);
 
-JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_isHandheldOnly(
-        JNIEnv* env, jclass clazz);
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_isHandheldOnly(JNIEnv* env,
+                                                                                jclass clazz);
 
-JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_setDeviceType(
-        JNIEnv* env, jclass clazz, jstring j_device, jstring j_type);
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_setDeviceType(JNIEnv* env,
+                                                                               jclass clazz,
+                                                                               jstring j_device,
+                                                                               jstring j_type);
 
 JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadConnectEvent(
-        JNIEnv* env, jclass clazz, jstring j_device);
+    JNIEnv* env, jclass clazz, jstring j_device);
 
 JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadDisconnectEvent(
-        JNIEnv* env, jclass clazz, jstring j_device);
+    JNIEnv* env, jclass clazz, jstring j_device);
 
 JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadEvent(
     JNIEnv* env, jclass clazz, jstring j_device, jint j_button, jint action);
@@ -44,13 +46,14 @@ JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMoveEv
     JNIEnv* env, jclass clazz, jstring j_device, jint axis, jfloat x, jfloat y);
 
 JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadAxisEvent(
-        JNIEnv* env, jclass clazz, jstring j_device, jint axis_id, jfloat axis_val);
+    JNIEnv* env, jclass clazz, jstring j_device, jint axis_id, jfloat axis_val);
 
-JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onReadNfcTag(
-        JNIEnv* env, jclass clazz, jbyteArray j_data);
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onReadNfcTag(JNIEnv* env,
+                                                                              jclass clazz,
+                                                                              jbyteArray j_data);
 
-JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onRemoveNfcTag(
-        JNIEnv* env, jclass clazz);
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onRemoveNfcTag(JNIEnv* env,
+                                                                                jclass clazz);
 
 JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchEvent(JNIEnv* env,
                                                                               jclass clazz,

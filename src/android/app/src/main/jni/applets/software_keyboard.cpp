@@ -263,9 +263,9 @@ void InitJNI(JNIEnv* env) {
         s_software_keyboard_class, "executeNormal",
         "(Lorg/yuzu/yuzu_emu/applets/keyboard/SoftwareKeyboard$KeyboardConfig;)Lorg/yuzu/yuzu_emu/"
         "applets/keyboard/SoftwareKeyboard$KeyboardData;");
-    s_swkbd_execute_inline =
-        env->GetStaticMethodID(s_software_keyboard_class, "executeInline",
-                               "(Lorg/yuzu/yuzu_emu/applets/keyboard/SoftwareKeyboard$KeyboardConfig;)V");
+    s_swkbd_execute_inline = env->GetStaticMethodID(
+        s_software_keyboard_class, "executeInline",
+        "(Lorg/yuzu/yuzu_emu/applets/keyboard/SoftwareKeyboard$KeyboardConfig;)V");
 }
 
 void CleanupJNI(JNIEnv* env) {

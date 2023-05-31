@@ -135,3 +135,15 @@ License: GPL-3.0-or-later
 Files: .github/ISSUE_TEMPLATE/*
 Copyright: 2022 yuzu Emulator Project
 License: GPL-2.0-or-later
+
+Files: src/android/app/src/ea/res/*
+Copyright: 2023 yuzu Emulator Project
+License: GPL-3.0-or-later
+
+Files: src/android/app/src/main/res/*
+Copyright: 2023 yuzu Emulator Project
+License: GPL-3.0-or-later
+
+Files: src/android/gradle/wrapper/*
+Copyright: 2023 yuzu Emulator Project
+License: GPL-3.0-or-later

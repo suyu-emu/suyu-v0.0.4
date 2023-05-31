@@ -37,8 +37,8 @@
 #include "core/frontend/applets/profile_select.h"
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/frontend/applets/web_browser.h"
-#include "core/hid/hid_core.h"
 #include "core/hid/emulated_controller.h"
+#include "core/hid/hid_core.h"
 #include "core/hid/hid_types.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_ae.h"
@@ -276,7 +276,7 @@ public:
         m_rom_metadata_cache.clear();
     }
 
-    bool IsHandheldOnly(){
+    bool IsHandheldOnly() {
         const auto npad_style_set = m_system.HIDCore().GetSupportedStyleTag();
 
         if (npad_style_set.fullkey == 1) {
@@ -290,42 +290,43 @@ public:
         return !Settings::values.use_docked_mode.GetValue();
     }
 
-    void SetDeviceType(int index, int type){
+    void SetDeviceType(int index, int type) {
         auto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
         controller->SetNpadStyleIndex(static_cast<Core::HID::NpadStyleIndex>(type));
     }
 
-    void OnGamepadConnectEvent(int index){
+    void OnGamepadConnectEvent(int index) {
         auto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
 
         // Ensure that player1 is configured correctly and handheld disconnected
-        if(controller->GetNpadIdType() == Core::HID::NpadIdType::Player1){
-           auto handheld = m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
+        if (controller->GetNpadIdType() == Core::HID::NpadIdType::Player1) {
+            auto handheld =
+                m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
 
-           if(controller->GetNpadStyleIndex() == Core::HID::NpadStyleIndex::Handheld) {
-               handheld->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
-               controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
-               handheld->Disconnect();
-           }
+            if (controller->GetNpadStyleIndex() == Core::HID::NpadStyleIndex::Handheld) {
+                handheld->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
+                controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
+                handheld->Disconnect();
+            }
         }
 
         // Ensure that handheld is configured correctly and player 1 disconnected
-        if(controller->GetNpadIdType() == Core::HID::NpadIdType::Handheld){
+        if (controller->GetNpadIdType() == Core::HID::NpadIdType::Handheld) {
             auto player1 = m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
 
-            if(controller->GetNpadStyleIndex() != Core::HID::NpadStyleIndex::Handheld) {
+            if (controller->GetNpadStyleIndex() != Core::HID::NpadStyleIndex::Handheld) {
                 player1->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Handheld);
                 controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Handheld);
                 player1->Disconnect();
             }
         }
 
-        if(!controller->IsConnected()){
+        if (!controller->IsConnected()) {
             controller->Connect();
         }
     }
 
-    void OnGamepadDisconnectEvent(int index){
+    void OnGamepadDisconnectEvent(int index) {
         auto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
         controller->Disconnect();
     }
@@ -497,14 +498,13 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isRunning([[maybe_unused]] JNIEnv
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isHandheldOnly([[maybe_unused]] JNIEnv* env,
-                                                             [[maybe_unused]] jclass clazz) {
+                                                              [[maybe_unused]] jclass clazz) {
     return EmulationSession::GetInstance().IsHandheldOnly();
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_setDeviceType([[maybe_unused]] JNIEnv* env,
                                                              [[maybe_unused]] jclass clazz,
-                                                             jint j_device,
-                                                             jint j_type) {
+                                                             jint j_device, jint j_type) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().SetDeviceType(j_device, j_type);
     }
@@ -512,17 +512,16 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_setDeviceType([[maybe_unused]] JN
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadConnectEvent([[maybe_unused]] JNIEnv* env,
-                                                                    [[maybe_unused]] jclass clazz,
-                                                                    jint j_device) {
+                                                                     [[maybe_unused]] jclass clazz,
+                                                                     jint j_device) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().OnGamepadConnectEvent(j_device);
     }
     return static_cast<jboolean>(true);
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadDisconnectEvent([[maybe_unused]] JNIEnv* env,
-                                                                    [[maybe_unused]] jclass clazz,
-                                                                    jint j_device) {
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadDisconnectEvent(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz, jint j_device) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().OnGamepadDisconnectEvent(j_device);
     }
@@ -562,10 +561,11 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMotionEvent(
     return static_cast<jboolean>(true);
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onReadNfcTag(
-        [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz, jbyteArray j_data) {
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onReadNfcTag([[maybe_unused]] JNIEnv* env,
+                                                            [[maybe_unused]] jclass clazz,
+                                                            jbyteArray j_data) {
     jboolean isCopy{false};
-    std::span<u8> data(reinterpret_cast<u8 *>(env->GetByteArrayElements(j_data, &isCopy)),
+    std::span<u8> data(reinterpret_cast<u8*>(env->GetByteArrayElements(j_data, &isCopy)),
                        static_cast<size_t>(env->GetArrayLength(j_data)));
 
     if (EmulationSession::GetInstance().IsRunning()) {
@@ -574,8 +574,8 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onReadNfcTag(
     return static_cast<jboolean>(true);
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onRemoveNfcTag(
-        [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz) {
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onRemoveNfcTag([[maybe_unused]] JNIEnv* env,
+                                                              [[maybe_unused]] jclass clazz) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().Window().OnRemoveNfcTag();
     }

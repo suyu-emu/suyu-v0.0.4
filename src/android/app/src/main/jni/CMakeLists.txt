@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 add_library(yuzu-android SHARED
     android_common/android_common.cpp
     android_common/android_common.h

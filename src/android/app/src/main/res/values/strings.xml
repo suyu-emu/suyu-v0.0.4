@@ -78,7 +78,7 @@
     <string name="open_user_folder_description">Manage yuzu\'s internal files</string>
     <string name="theme_and_color_description">Modify the look of the app</string>
     <string name="no_file_manager">No file manager found</string>
-    <string name="notification_no_directory_link">Couldn\'t open yuzu directory</string>
+    <string name="notification_no_directory_link">Could not open yuzu directory</string>
     <string name="notification_no_directory_link_description">Please locate the user folder with the file manager\'s side panel manually.</string>
 
     <!-- About screen strings -->
@@ -249,7 +249,7 @@
     <string name="language_latin_american_spanish">Latin American Spanish (Español latinoamericano)</string>
     <string name="language_simplified_chinese">Simplified Chinese (简体中文)</string>
     <string name="language_traditional_chinese">Traditional Chinese (正體中文)</string>
-    <string name="language_brazilian_portuguese">Brazilian Portuguese (Portugues do Brasil)</string>
+    <string name="language_brazilian_portuguese">Brazilian Portuguese (Português do Brasil)</string>
 
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
