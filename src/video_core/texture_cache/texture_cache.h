@@ -55,7 +55,7 @@ TextureCache<P>::TextureCache(Runtime& runtime_, Tegra::MaxwellDeviceMemoryManag
         const s64 min_spacing_critical = device_local_memory - 512_MiB;
         const s64 mem_threshold = std::min(device_local_memory, TARGET_THRESHOLD);
         const s64 min_vacancy_expected = (6 * mem_threshold) / 10;
-        const s64 min_vacancy_critical = (3 * mem_threshold) / 10;
+        const s64 min_vacancy_critical = (2 * mem_threshold) / 10;
         expected_memory = static_cast<u64>(
             std::max(std::min(device_local_memory - min_vacancy_expected, min_spacing_expected),
                      DEFAULT_EXPECTED_MEMORY));
@@ -81,7 +81,6 @@ void TextureCache<P>::RunGarbageCollector() {
         if (num_iterations == 0) {
             return true;
         }
-        --num_iterations;
         auto& image = slot_images[image_id];
         if (True(image.flags & ImageFlagBits::IsDecoding)) {
             // This image is still being decoded, deleting it will invalidate the slot
@@ -96,6 +95,7 @@ void TextureCache<P>::RunGarbageCollector() {
         if (!high_priority_mode && must_download) {
             return false;
         }
+        --num_iterations;
         if (must_download) {
             auto map = runtime.DownloadStagingBuffer(image.unswizzled_size_bytes);
             const auto copies = FullDownloadCopies(image.info);
