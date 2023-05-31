@@ -64,7 +64,7 @@ void SyncpointManager::FreeSyncpoint(u32 id) {
 }
 
 bool SyncpointManager::IsSyncpointAllocated(u32 id) const {
-    return (id <= SyncpointCount) && syncpoints[id].reserved;
+    return (id < SyncpointCount) && syncpoints[id].reserved;
 }
 
 bool SyncpointManager::HasSyncpointExpired(u32 id, u32 threshold) const {
