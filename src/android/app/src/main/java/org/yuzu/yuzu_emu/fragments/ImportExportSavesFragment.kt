@@ -66,15 +66,23 @@ class ImportExportSavesFragment : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Import/Export Saves")
-            .setPositiveButton("Export") { _, _ ->
-                exportSave()
-            }
-            .setNeutralButton("Import") { _, _ ->
-                documentPicker.launch(arrayOf("application/zip"))
-            }
-            .show()
+        return if (savesFolderRoot == "") {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.import_export_saves)
+                .setMessage("No profileID found. Launch a game first and then come back.")
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        } else {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Import/Export Saves")
+                .setPositiveButton("Export") { _, _ ->
+                    exportSave()
+                }
+                .setNeutralButton("Import") { _, _ ->
+                    documentPicker.launch(arrayOf("application/zip"))
+                }
+                .show()
+        }
     }
 
     /**
