@@ -162,7 +162,7 @@ class ImportExportSavesFragment : DialogFragment() {
                 val file = DocumentFile.fromSingleUri(
                     context, DocumentsContract.buildDocumentUri(
                         DocumentProvider.AUTHORITY,
-                        "${DocumentProvider.ROOT_ID}/temp/${lastZipCreated?.name}"
+                        "${DocumentProvider.ROOT_ID}/temp/${lastZipFile.name}"
                     )
                 )!!
                 val intent = Intent(Intent.ACTION_SEND)
