@@ -103,7 +103,11 @@ object GpuDriverHelper {
         )
 
         // Unzip the driver.
-        unzip(driverInstallationPath + DRIVER_INTERNAL_FILENAME, driverInstallationPath!!)
+        try {
+            unzip(driverInstallationPath + DRIVER_INTERNAL_FILENAME, driverInstallationPath!!)
+        } catch (e: SecurityException) {
+            return
+        }
 
         // Initialize the driver parameters.
         initializeDriverParameters(context)
