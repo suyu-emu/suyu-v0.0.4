@@ -69,16 +69,16 @@ class ImportExportSavesFragment : DialogFragment() {
         return if (savesFolderRoot == "") {
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.import_export_saves)
-                .setMessage("No profileID found. Launch a game first and then come back.")
+                .setMessage(R.string.import_export_saves_no_profile)
                 .setPositiveButton(android.R.string.ok, null)
                 .show()
         } else {
             MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Import/Export Saves")
-                .setPositiveButton("Export") { _, _ ->
+                .setTitle(R.string.import_export_saves)
+                .setPositiveButton(R.string.export_saves) { _, _ ->
                     exportSave()
                 }
-                .setNeutralButton("Import") { _, _ ->
+                .setNeutralButton(R.string.import_saves) { _, _ ->
                     documentPicker.launch(arrayOf("application/zip"))
                 }
                 .show()

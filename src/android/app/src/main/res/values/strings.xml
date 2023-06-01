@@ -80,10 +80,13 @@
     <string name="no_file_manager">No file manager found</string>
     <string name="notification_no_directory_link">Could not open yuzu directory</string>
     <string name="notification_no_directory_link_description">Please locate the user folder with the file manager\'s side panel manually.</string>
-    <string name="import_export_saves">Import/Export Saves</string>
+    <string name="import_export_saves">Import/export saves</string>
     <string name="import_export_saves_description">Import or export save files</string>
-    <string name="save_file_imported_success">The save files were imported successfully</string>
-    <string name="save_file_invalid_zip_structure">Invalid Zip directory structure: the first subfolder name must be the Title ID of the game.</string>
+    <string name="import_export_saves_no_profile">No user profile found. Please launch a game first and retry.</string>
+    <string name="save_file_imported_success">Save files were imported successfully</string>
+    <string name="save_file_invalid_zip_structure">Invalid save directory structure: The first subfolder name must be the title ID of the game.</string>
+    <string name="import_saves">Import</string>
+    <string name="export_saves">Export</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia isn\'t real</string>
