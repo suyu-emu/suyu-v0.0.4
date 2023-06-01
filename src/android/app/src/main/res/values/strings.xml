@@ -64,8 +64,15 @@
     <string name="install_amiibo_keys_description">Required to use Amiibo in game</string>
     <string name="invalid_keys_file">Invalid keys file selected</string>
     <string name="install_keys_success">Keys successfully installed</string>
-    <string name="install_keys_failure">Keys file (prod.keys) is invalid</string>
-    <string name="install_amiibo_keys_failure">Keys file (key_retail.bin) is invalid</string>
+    <string name="reading_keys_failure">Error reading encryption keys</string>
+    <string name="install_keys_failure_extension_description">
+        1. Verify your keys have the .keys extension.\n\n
+        2. Keys must not be stored in the Downloads folder.\n\n
+        Resolve the issue(s) and try again.
+    </string>
+    <string name="invalid_keys_error">Invalid encryption keys</string>
+    <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
+    <string name="install_keys_failure_description">The selected file is incorrect or corrupt. Please redump your keys.</string>
     <string name="install_gpu_driver">Install GPU driver</string>
     <string name="install_gpu_driver_description">Install alternative drivers for potentially better performance or accuracy</string>
     <string name="advanced_settings">Advanced settings</string>
@@ -164,6 +171,8 @@
     <string name="reset_all_settings">Reset all settings?</string>
     <string name="reset_all_settings_description">All Advanced Settings will be reset to their default configuration. This can not be undone.</string>
     <string name="settings_reset">Settings reset</string>
+    <string name="close">Close</string>
+    <string name="learn_more">Learn More</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>

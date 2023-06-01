@@ -37,6 +37,7 @@ import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.*
@@ -251,11 +252,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             if (result == null)
                 return@registerForActivityResult
 
-            val takeFlags =
-                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
             contentResolver.takePersistableUriPermission(
                 result,
-                takeFlags
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
             )
 
             // When a new directory is picked, we currently will reset the existing games
@@ -279,19 +278,16 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 return@registerForActivityResult
 
             if (!FileUtil.hasExtension(result.toString(), "keys")) {
-                Toast.makeText(
-                    applicationContext,
-                    R.string.invalid_keys_file,
-                    Toast.LENGTH_SHORT
-                ).show()
+                MessageDialogFragment.newInstance(
+                    R.string.reading_keys_failure,
+                    R.string.install_keys_failure_extension_description
+                ).show(supportFragmentManager, MessageDialogFragment.TAG)
                 return@registerForActivityResult
             }
 
-            val takeFlags =
-                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
             contentResolver.takePersistableUriPermission(
                 result,
-                takeFlags
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
             )
 
             val dstPath = DirectoryInitialization.userDirectory + "/keys/"
@@ -310,11 +306,11 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     ).show()
                     gamesViewModel.reloadGames(true)
                 } else {
-                    Toast.makeText(
-                        applicationContext,
-                        R.string.install_keys_failure,
-                        Toast.LENGTH_LONG
-                    ).show()
+                    MessageDialogFragment.newInstance(
+                        R.string.invalid_keys_error,
+                        R.string.install_keys_failure_description,
+                        R.string.dumping_keys_quickstart_link
+                    ).show(supportFragmentManager, MessageDialogFragment.TAG)
                 }
             }
         }
@@ -325,19 +321,16 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 return@registerForActivityResult
 
             if (!FileUtil.hasExtension(result.toString(), "bin")) {
-                Toast.makeText(
-                    applicationContext,
-                    R.string.invalid_keys_file,
-                    Toast.LENGTH_SHORT
-                ).show()
+                MessageDialogFragment.newInstance(
+                    R.string.reading_keys_failure,
+                    R.string.install_keys_failure_extension_description
+                ).show(supportFragmentManager, MessageDialogFragment.TAG)
                 return@registerForActivityResult
             }
 
-            val takeFlags =
-                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
             contentResolver.takePersistableUriPermission(
                 result,
-                takeFlags
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
             )
 
             val dstPath = DirectoryInitialization.userDirectory + "/keys/"
@@ -355,11 +348,11 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
-                    Toast.makeText(
-                        applicationContext,
-                        R.string.install_amiibo_keys_failure,
-                        Toast.LENGTH_LONG
-                    ).show()
+                    MessageDialogFragment.newInstance(
+                        R.string.invalid_keys_error,
+                        R.string.install_keys_failure_description,
+                        R.string.dumping_keys_quickstart_link
+                    ).show(supportFragmentManager, MessageDialogFragment.TAG)
                 }
             }
         }
