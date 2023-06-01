@@ -82,14 +82,14 @@ VirtualAmiibo::Info VirtualAmiibo::LoadAmiibo(const std::string& filename) {
     switch (nfc_file.GetSize()) {
     case AmiiboSize:
     case AmiiboSizeWithoutPassword:
-        nfc_data.resize(AmiiboSize);
-        if (nfc_file.Read(nfc_data) < AmiiboSizeWithoutPassword) {
+        data.resize(AmiiboSize);
+        if (nfc_file.Read(data) < AmiiboSizeWithoutPassword) {
             return Info::NotAnAmiibo;
         }
         break;
     case MifareSize:
-        nfc_data.resize(MifareSize);
-        if (nfc_file.Read(nfc_data) < MifareSize) {
+        data.resize(MifareSize);
+        if (nfc_file.Read(data) < MifareSize) {
             return Info::NotAnAmiibo;
         }
         break;
