@@ -273,9 +273,12 @@ void SinkStream::WaitFreeSpace() {
     std::unique_lock lk{release_mutex};
     release_cv.wait_for(lk, std::chrono::milliseconds(5),
                         [this]() { return queued_buffers < max_queue_size; });
+#ifndef ANDROID
+    // This wait can cause a problematic shutdown hang on Android.
     if (queued_buffers > max_queue_size + 3) {
         release_cv.wait(lk, [this]() { return queued_buffers < max_queue_size; });
     }
+#endif
 }
 
 } // namespace AudioCore::Sink
