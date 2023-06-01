@@ -1798,6 +1798,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
     }
 
     system->SetShuttingDown(false);
+    game_list->setDisabled(true);
 
     // Create and start the emulation thread
     emu_thread = std::make_unique<EmuThread>(*system);
@@ -1992,6 +1993,9 @@ void GMainWindow::OnEmulationStopped() {
 
     // When closing the game, destroy the GLWindow to clear the context after the game is closed
     render_window->ReleaseRenderTarget();
+
+    // Enable game list
+    game_list->setEnabled(true);
 
     Settings::RestoreGlobalState(system->IsPoweredOn());
     system->HIDCore().ReloadInputDevices();
