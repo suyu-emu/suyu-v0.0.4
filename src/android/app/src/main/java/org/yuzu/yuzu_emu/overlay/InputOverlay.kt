@@ -49,9 +49,6 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
     private var dpadBeingConfigured: InputOverlayDrawableDpad? = null
     private var joystickBeingConfigured: InputOverlayDrawableJoystick? = null
 
-    private val preferences: SharedPreferences =
-        PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-
     private lateinit var windowInsets: WindowInsets
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
@@ -709,6 +706,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
     }
 
     companion object {
+        private val preferences: SharedPreferences =
+            PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+
         /**
          * Resizes a [Bitmap] by a given scale factor
          *
@@ -899,6 +899,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                 drawableX - (width / 2),
                 drawableY - (height / 2)
             )
+            val savedOpacity = preferences.getInt(Settings.PREF_CONTROL_OPACITY, 100)
+            overlayDrawable.setOpacity(savedOpacity * 255 / 100)
             return overlayDrawable
         }
 
@@ -973,6 +975,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
             // Need to set the image's position
             overlayDrawable.setPosition(drawableX - (width / 2), drawableY - (height / 2))
+            val savedOpacity = preferences.getInt(Settings.PREF_CONTROL_OPACITY, 100)
+            overlayDrawable.setOpacity(savedOpacity * 255 / 100)
             return overlayDrawable
         }
 
@@ -1052,6 +1056,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
             // Need to set the image's position
             overlayDrawable.setPosition(drawableX, drawableY)
+            val savedOpacity = preferences.getInt(Settings.PREF_CONTROL_OPACITY, 100)
+            overlayDrawable.setOpacity(savedOpacity * 255 / 100)
             return overlayDrawable
         }
     }

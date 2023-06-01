@@ -3,8 +3,10 @@
 
 package org.yuzu.yuzu_emu.fragments
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
@@ -21,10 +23,12 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.slider.Slider
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.activities.EmulationActivity
+import org.yuzu.yuzu_emu.databinding.DialogOverlayAdjustBinding
 import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
@@ -168,14 +172,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         super.onDetach()
     }
 
-    fun refreshInputOverlay() {
+    private fun refreshInputOverlay() {
         binding.surfaceInputOverlay.refreshControls()
     }
 
-    fun resetInputOverlay() {
-        // Reset button scale
+    private fun resetInputOverlay() {
         preferences.edit()
-            .putInt(Settings.PREF_CONTROL_SCALE, 50)
+            .remove(Settings.PREF_CONTROL_SCALE)
+            .remove(Settings.PREF_CONTROL_OPACITY)
             .apply()
         binding.surfaceInputOverlay.post { binding.surfaceInputOverlay.resetButtonPlacement() }
     }
@@ -251,6 +255,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     true
                 }
 
+                R.id.menu_adjust_overlay -> {
+                    adjustOverlay()
+                    true
+                }
+
                 R.id.menu_toggle_controls -> {
                     val preferences =
                         PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
@@ -278,9 +287,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     // Override normal behaviour so the dialog doesn't close
                     dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
                         .setOnClickListener {
-                            val isChecked = !optionsArray[0];
+                            val isChecked = !optionsArray[0]
                             for (i in 0..14) {
-                                optionsArray[i] = isChecked;
+                                optionsArray[i] = isChecked
                                 dialog.listView.setItemChecked(i, isChecked)
                                 preferences.edit()
                                     .putBoolean("buttonToggle$i", isChecked)
@@ -328,18 +337,64 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         popup.show()
     }
 
-    fun startConfiguringControls() {
+    private fun startConfiguringControls() {
         binding.doneControlConfig.visibility = View.VISIBLE
         binding.surfaceInputOverlay.setIsInEditMode(true)
     }
 
-    fun stopConfiguringControls() {
+    private fun stopConfiguringControls() {
         binding.doneControlConfig.visibility = View.GONE
         binding.surfaceInputOverlay.setIsInEditMode(false)
     }
 
-    val isConfiguringControls: Boolean
-        get() = binding.surfaceInputOverlay.isInEditMode
+    @SuppressLint("SetTextI18n")
+    private fun adjustOverlay() {
+        val adjustBinding = DialogOverlayAdjustBinding.inflate(layoutInflater)
+        adjustBinding.apply {
+            inputScaleSlider.apply {
+                valueTo = 150F
+                value = preferences.getInt(Settings.PREF_CONTROL_SCALE, 50).toFloat()
+                addOnChangeListener(Slider.OnChangeListener { _, value, _ ->
+                    inputScaleValue.text = "${value.toInt()}%"
+                    setControlScale(value.toInt())
+                })
+            }
+            inputOpacitySlider.apply {
+                valueTo = 100F
+                value = preferences.getInt(Settings.PREF_CONTROL_OPACITY, 100).toFloat()
+                addOnChangeListener(Slider.OnChangeListener { _, value, _ ->
+                    inputOpacityValue.text = "${value.toInt()}%"
+                    setControlOpacity(value.toInt())
+                })
+            }
+            inputScaleValue.text = "${inputScaleSlider.value.toInt()}%"
+            inputOpacityValue.text = "${inputOpacitySlider.value.toInt()}%"
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.emulation_control_adjust)
+            .setView(adjustBinding.root)
+            .setPositiveButton(android.R.string.ok, null)
+            .setNeutralButton(R.string.slider_default) { _: DialogInterface?, _: Int ->
+                setControlScale(50)
+                setControlOpacity(100)
+            }
+            .show()
+    }
+
+    private fun setControlScale(scale: Int) {
+        preferences.edit()
+            .putInt(Settings.PREF_CONTROL_SCALE, scale)
+            .apply()
+        refreshInputOverlay()
+    }
+
+    private fun setControlOpacity(opacity: Int) {
+        preferences.edit()
+            .putInt(Settings.PREF_CONTROL_OPACITY, opacity)
+            .apply()
+        refreshInputOverlay()
+    }
 
     private fun setInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.inGameMenu) { v: View, windowInsets: WindowInsetsCompat ->

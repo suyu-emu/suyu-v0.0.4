@@ -11,6 +11,10 @@
         android:title="@string/emulation_touch_overlay_edit" />
 
     <item
+        android:id="@+id/menu_adjust_overlay"
+        android:title="@string/emulation_control_adjust" />
+
+    <item
         android:id="@+id/menu_toggle_controls"
         android:title="@string/emulation_toggle_controls" />
 

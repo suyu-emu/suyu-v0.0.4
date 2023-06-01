@@ -252,39 +252,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
                 View.SYSTEM_UI_FLAG_IMMERSIVE
     }
 
-    private fun editControlsPlacement() {
-        if (emulationFragment!!.isConfiguringControls) {
-            emulationFragment!!.stopConfiguringControls()
-        } else {
-            emulationFragment!!.startConfiguringControls()
-        }
-    }
-
-    private fun adjustScale() {
-        val sliderBinding = DialogSliderBinding.inflate(layoutInflater)
-        sliderBinding.slider.valueTo = 150F
-        sliderBinding.slider.value =
-            PreferenceManager.getDefaultSharedPreferences(applicationContext)
-                .getInt(Settings.PREF_CONTROL_SCALE, 50).toFloat()
-        sliderBinding.slider.addOnChangeListener(OnChangeListener { _, value, _ ->
-            sliderBinding.textValue.text = value.toString()
-            setControlScale(value.toInt())
-        })
-        sliderBinding.textValue.text = sliderBinding.slider.value.toString()
-        sliderBinding.textUnits.text = "%"
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.emulation_control_scale)
-            .setView(sliderBinding.root)
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int ->
-                setControlScale(sliderBinding.slider.value.toInt())
-            }
-            .setNeutralButton(R.string.slider_default) { _: DialogInterface?, _: Int ->
-                setControlScale(50)
-            }
-            .show()
-    }
-
     private fun startMotionSensorListener() {
         val sensorManager = this.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
@@ -300,22 +267,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
         sensorManager.unregisterListener(this, gyroSensor)
         sensorManager.unregisterListener(this, accelSensor)
-    }
-
-    private fun setControlScale(scale: Int) {
-        PreferenceManager.getDefaultSharedPreferences(applicationContext).edit()
-            .putInt(Settings.PREF_CONTROL_SCALE, scale)
-            .apply()
-        emulationFragment!!.refreshInputOverlay()
-    }
-
-    private fun resetOverlay() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.emulation_touch_overlay_reset))
-            .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int -> emulationFragment!!.resetInputOverlay() }
-            .setNegativeButton(android.R.string.cancel, null)
-            .create()
-            .show()
     }
 
     companion object {

@@ -114,6 +114,7 @@ class InputOverlayDrawableButton(
                 controlPositionX = fingerPositionX - (width / 2)
                 controlPositionY = fingerPositionY - (height / 2)
             }
+
             MotionEvent.ACTION_MOVE -> {
                 controlPositionX += fingerPositionX - previousTouchX
                 controlPositionY += fingerPositionY - previousTouchY
@@ -133,6 +134,11 @@ class InputOverlayDrawableButton(
     fun setBounds(left: Int, top: Int, right: Int, bottom: Int) {
         defaultStateBitmap.setBounds(left, top, right, bottom)
         pressedStateBitmap.setBounds(left, top, right, bottom)
+    }
+
+    fun setOpacity(value: Int) {
+        defaultStateBitmap.alpha = value
+        pressedStateBitmap.alpha = value
     }
 
     val status: Int

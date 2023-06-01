@@ -231,6 +231,7 @@ class InputOverlayDrawableDpad(
                 previousTouchX = fingerPositionX
                 previousTouchY = fingerPositionY
             }
+
             MotionEvent.ACTION_MOVE -> {
                 controlPositionX += fingerPositionX - previousTouchX
                 controlPositionY += fingerPositionY - previousTouchY
@@ -256,6 +257,12 @@ class InputOverlayDrawableDpad(
         defaultStateBitmap.setBounds(left, top, right, bottom)
         pressedOneDirectionStateBitmap.setBounds(left, top, right, bottom)
         pressedTwoDirectionsStateBitmap.setBounds(left, top, right, bottom)
+    }
+
+    fun setOpacity(value: Int) {
+        defaultStateBitmap.alpha = value
+        pressedOneDirectionStateBitmap.alpha = value
+        pressedTwoDirectionsStateBitmap.alpha = value
     }
 
     val bounds: Rect

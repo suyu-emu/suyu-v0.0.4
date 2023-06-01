@@ -204,7 +204,9 @@
     <string name="emulation_haptics">Haptics</string>
     <string name="emulation_show_overlay">Show Overlay</string>
     <string name="emulation_toggle_all">Toggle All</string>
-    <string name="emulation_control_scale">Adjust Scale</string>
+    <string name="emulation_control_adjust">Adjust Overlay</string>
+    <string name="emulation_control_scale">Scale</string>
+    <string name="emulation_control_opacity">Opacity</string>
     <string name="emulation_touch_overlay_reset">Reset Overlay</string>
     <string name="emulation_touch_overlay_edit">Edit Overlay</string>
     <string name="emulation_pause">Pause Emulation</string>

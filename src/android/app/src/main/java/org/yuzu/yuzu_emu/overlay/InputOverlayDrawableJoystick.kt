@@ -48,6 +48,8 @@ class InputOverlayDrawableJoystick(
     val width: Int
     val height: Int
 
+    private var opacity: Int = 0
+
     private var virtBounds: Rect
     private var origBounds: Rect
 
@@ -121,7 +123,7 @@ class InputOverlayDrawableJoystick(
             }
             pressedState = true
             outerBitmap.alpha = 0
-            boundsBoxBitmap.alpha = 255
+            boundsBoxBitmap.alpha = opacity
             if (EmulationMenuSettings.joystickRelCenter) {
                 virtBounds.offset(
                     xPosition - virtBounds.centerX(),
@@ -139,7 +141,7 @@ class InputOverlayDrawableJoystick(
             pressedState = false
             xAxis = 0.0f
             yAxis = 0.0f
-            outerBitmap.alpha = 255
+            outerBitmap.alpha = opacity
             boundsBoxBitmap.alpha = 0
             virtBounds = Rect(
                 origBounds.left,
@@ -203,6 +205,7 @@ class InputOverlayDrawableJoystick(
                 controlPositionX = fingerPositionX - (width / 2)
                 controlPositionY = fingerPositionY - (height / 2)
             }
+
             MotionEvent.ACTION_MOVE -> {
                 controlPositionX += fingerPositionX - previousTouchX
                 controlPositionY += fingerPositionY - previousTouchY
@@ -260,5 +263,20 @@ class InputOverlayDrawableJoystick(
     fun setPosition(x: Int, y: Int) {
         controlPositionX = x
         controlPositionY = y
+    }
+
+    fun setOpacity(value: Int) {
+        opacity = value
+
+        defaultStateInnerBitmap.alpha = value
+        pressedStateInnerBitmap.alpha = value
+
+        if (trackId == -1) {
+            outerBitmap.alpha = value
+            boundsBoxBitmap.alpha = 0
+        } else {
+            outerBitmap.alpha = 0
+            boundsBoxBitmap.alpha = value
+        }
     }
 }

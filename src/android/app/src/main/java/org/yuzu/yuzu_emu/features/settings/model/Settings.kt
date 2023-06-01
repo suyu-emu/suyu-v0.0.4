@@ -111,6 +111,7 @@ class Settings {
 
         const val PREF_OVERLAY_INIT = "OverlayInit"
         const val PREF_CONTROL_SCALE = "controlScale"
+        const val PREF_CONTROL_OPACITY = "controlOpacity"
         const val PREF_TOUCH_ENABLED = "isTouchEnabled"
         const val PREF_BUTTON_TOGGLE_0 = "buttonToggle0"
         const val PREF_BUTTON_TOGGLE_1 = "buttonToggle1"
