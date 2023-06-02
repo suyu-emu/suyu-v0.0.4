@@ -17,7 +17,10 @@ namespace Vulkan {
 using namespace Common::Literals;
 
 TurboMode::TurboMode(const vk::Instance& instance, const vk::InstanceDispatch& dld)
-    : m_device{CreateDevice(instance, dld, VK_NULL_HANDLE)}, m_allocator{m_device, false} {
+#ifndef ANDROID
+    : m_device{CreateDevice(instance, dld, VK_NULL_HANDLE)}, m_allocator{m_device, false}
+#endif
+{
     {
         std::scoped_lock lk{m_submission_lock};
         m_submission_time = std::chrono::steady_clock::now();
@@ -34,6 +37,7 @@ void TurboMode::QueueSubmitted() {
 }
 
 void TurboMode::Run(std::stop_token stop_token) {
+#ifndef ANDROID
     auto& dld = m_device.GetLogical();
 
     // Allocate buffer. 2MiB should be sufficient.
@@ -146,10 +150,13 @@ void TurboMode::Run(std::stop_token stop_token) {
     // Create a single command buffer.
     auto cmdbufs = command_pool.Allocate(1, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
     auto cmdbuf = vk::CommandBuffer{cmdbufs[0], m_device.GetDispatchLoader()};
+#endif
 
     while (!stop_token.stop_requested()) {
-#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
+#ifdef ANDROID
+#ifdef ARCHITECTURE_arm64
         adrenotools_set_turbo(true);
+#endif
 #else
         // Reset the fence.
         fence.Reset();
