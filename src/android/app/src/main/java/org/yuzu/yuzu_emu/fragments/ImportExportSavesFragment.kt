@@ -68,19 +68,21 @@ class ImportExportSavesFragment : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return if (savesFolderRoot == "") {
             MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.import_export_saves)
+                .setTitle(R.string.manage_save_data)
                 .setMessage(R.string.import_export_saves_no_profile)
                 .setPositiveButton(android.R.string.ok, null)
                 .show()
         } else {
             MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.import_export_saves)
-                .setPositiveButton(R.string.export_saves) { _, _ ->
+                .setTitle(R.string.manage_save_data)
+                .setMessage(R.string.manage_save_data_description)
+                .setNegativeButton(R.string.export_saves) { _, _ ->
                     exportSave()
                 }
-                .setNeutralButton(R.string.import_saves) { _, _ ->
+                .setPositiveButton(R.string.import_saves) { _, _ ->
                     documentPicker.launch(arrayOf("application/zip"))
                 }
+                .setNeutralButton(android.R.string.cancel, null)
                 .show()
         }
     }
@@ -95,7 +97,10 @@ class ImportExportSavesFragment : DialogFragment() {
             tempFolder.mkdirs()
             val saveFolder = File(savesFolderRoot)
             val outputZipFile = File(
-                tempFolder, "yuzu saves - ${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))}.zip"
+                tempFolder,
+                "yuzu saves - ${
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                }.zip"
             )
             outputZipFile.createNewFile()
             ZipOutputStream(BufferedOutputStream(FileOutputStream(outputZipFile))).use { zos ->
@@ -206,11 +211,10 @@ class ImportExportSavesFragment : DialogFragment() {
 
                 withContext(Dispatchers.Main) {
                     if (!validZip) {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.save_file_invalid_zip_structure),
-                            Toast.LENGTH_LONG
-                        ).show()
+                        MessageDialogFragment.newInstance(
+                            R.string.save_file_invalid_zip_structure,
+                            R.string.save_file_invalid_zip_structure_description
+                        ).show(childFragmentManager, MessageDialogFragment.TAG)
                         return@withContext
                     }
                     Toast.makeText(
