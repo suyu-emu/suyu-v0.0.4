@@ -470,8 +470,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             if (state != State.PAUSED) {
                 Log.debug("[EmulationFragment] Pausing emulation.")
 
-                // Release the surface before pausing, since emulation has to be running for that.
-                NativeLibrary.surfaceDestroyed()
                 NativeLibrary.pauseEmulation()
 
                 state = State.PAUSED
@@ -516,7 +514,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 Log.debug("[EmulationFragment] Surface destroyed.")
                 when (state) {
                     State.RUNNING -> {
-                        NativeLibrary.surfaceDestroyed()
                         state = State.PAUSED
                     }
 
