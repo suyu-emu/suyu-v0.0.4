@@ -306,6 +306,9 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
         image_count = swapchain.GetImageCount();
     };
 
+#ifdef ANDROID
+    std::unique_lock lock{recreate_surface_mutex};
+
     const auto needs_recreation = [&] {
         if (last_render_surface != render_window.GetWindowInfo().render_surface) {
             return true;
@@ -315,9 +318,6 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
         }
         return false;
     };
-
-#ifdef ANDROID
-    std::unique_lock lock{recreate_surface_mutex};
 
     recreate_surface_cv.wait_for(lock, std::chrono::milliseconds(400),
                                  [&]() { return !needs_recreation(); });
