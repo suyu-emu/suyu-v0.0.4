@@ -11,6 +11,7 @@ import android.provider.DocumentsContract
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -49,6 +50,7 @@ class ImportExportSavesFragment : DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val activity = requireActivity() as AppCompatActivity
 
         val activityResultRegistry = requireActivity().activityResultRegistry
         startForResultExportSave = activityResultRegistry.register(
@@ -61,7 +63,7 @@ class ImportExportSavesFragment : DialogFragment() {
             "documentPickerKey",
             ActivityResultContracts.OpenDocument()
         ) {
-            it?.let { uri -> importSave(uri) }
+            it?.let { uri -> importSave(uri, activity) }
         }
     }
 
@@ -183,7 +185,7 @@ class ImportExportSavesFragment : DialogFragment() {
      * Imports the save files contained in the zip file, and replaces any existing ones with the new save file.
      * @param zipUri The Uri of the zip file containing the save file(s) to import.
      */
-    private fun importSave(zipUri: Uri) {
+    private fun importSave(zipUri: Uri, activity: AppCompatActivity) {
         val inputZip = context.contentResolver.openInputStream(zipUri)
         // A zip needs to have at least one subfolder named after a TitleId in order to be considered valid.
         var validZip = false
@@ -214,7 +216,7 @@ class ImportExportSavesFragment : DialogFragment() {
                         MessageDialogFragment.newInstance(
                             R.string.save_file_invalid_zip_structure,
                             R.string.save_file_invalid_zip_structure_description
-                        ).show(childFragmentManager, MessageDialogFragment.TAG)
+                        ).show(activity.supportFragmentManager, MessageDialogFragment.TAG)
                         return@withContext
                     }
                     Toast.makeText(
