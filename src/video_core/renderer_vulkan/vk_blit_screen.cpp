@@ -37,6 +37,10 @@
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
+#ifdef ANDROID
+extern u32 GetAndroidScreenRotation();
+#endif
+
 namespace Vulkan {
 
 namespace {
@@ -74,22 +78,57 @@ struct ScreenRectVertex {
     }
 };
 
-constexpr std::array<f32, 4 * 4> MakeOrthographicMatrix(f32 width, f32 height) {
-    // clang-format off
 #ifdef ANDROID
-    // Android renders in portrait, so rotate the matrix.
-    return { 0.f,          2.f / width, 0.f, 0.f,
-            -2.f / height, 0.f,         0.f, 0.f,
-             0.f,          0.f,         1.f, 0.f,
-             1.f,         -1.f,         0.f, 1.f};
+
+std::array<f32, 4 * 4> MakeOrthographicMatrix(f32 width, f32 height) {
+    constexpr u32 ROTATION_0 = 0;
+    constexpr u32 ROTATION_90 = 1;
+    constexpr u32 ROTATION_180 = 2;
+    constexpr u32 ROTATION_270 = 3;
+
+    // clang-format off
+    switch (GetAndroidScreenRotation()) {
+        case ROTATION_0:
+            // Desktop
+            return { 2.f / width, 0.f,          0.f, 0.f,
+                     0.f,         2.f / height, 0.f, 0.f,
+                     0.f,         0.f,          1.f, 0.f,
+                    -1.f,        -1.f,          0.f, 1.f};
+        case ROTATION_180:
+            // Reverse desktop
+            return {-2.f / width, 0.f,          0.f, 0.f,
+                     0.f,        -2.f / height, 0.f, 0.f,
+                     0.f,         0.f,          1.f, 0.f,
+                     1.f,         1.f,          0.f, 1.f};
+        case ROTATION_270:
+            // Reverse landscape
+            return { 0.f,         -2.f / width, 0.f, 0.f,
+                     2.f / height, 0.f,         0.f, 0.f,
+                     0.f,          0.f,         1.f, 0.f,
+                    -1.f,          1.f,         0.f, 1.f};
+        case ROTATION_90:
+        default:
+            // Landscape
+            return { 0.f,          2.f / width, 0.f, 0.f,
+                    -2.f / height, 0.f,         0.f, 0.f,
+                     0.f,          0.f,         1.f, 0.f,
+                     1.f,         -1.f,         0.f, 1.f};
+    }
+    // clang-format on
+}
+
 #else
+
+std::array<f32, 4 * 4> MakeOrthographicMatrix(f32 width, f32 height) {
+    // clang-format off
     return { 2.f / width, 0.f,          0.f, 0.f,
              0.f,         2.f / height, 0.f, 0.f,
              0.f,         0.f,          1.f, 0.f,
             -1.f,        -1.f,          0.f, 1.f};
-#endif // ANDROID
     // clang-format on
 }
+
+#endif
 
 u32 GetBytesPerPixel(const Tegra::FramebufferConfig& framebuffer) {
     using namespace VideoCore::Surface;

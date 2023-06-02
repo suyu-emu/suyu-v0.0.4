@@ -118,12 +118,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     override fun onStop() {
         super.onStop()
         presenter.onStop(isFinishing)
-
-        // Update framebuffer layout when closing the settings
-        NativeLibrary.notifyOrientationChange(
-            EmulationMenuSettings.landscapeScreenLayout,
-            windowManager.defaultDisplay.rotation
-        )
     }
 
     override fun showSettingsFragment(menuTag: String, addToStack: Boolean, gameId: String) {

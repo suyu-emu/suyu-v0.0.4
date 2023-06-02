@@ -7,6 +7,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Rect
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -31,6 +32,7 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.EmulationFragment
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
+import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
 import org.yuzu.yuzu_emu.utils.ForegroundService
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NfcReader
@@ -128,6 +130,11 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         super.onResume()
         nfcReader.startScanning()
         startMotionSensorListener()
+
+        NativeLibrary.notifyOrientationChange(
+            EmulationMenuSettings.landscapeScreenLayout,
+            getAdjustedRotation()
+        )
     }
 
     override fun onPause() {
@@ -232,6 +239,23 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor, i: Int) {}
+
+    private fun getAdjustedRotation():Int {
+        val rotation = windowManager.defaultDisplay.rotation;
+        val config: Configuration = resources.configuration
+
+        if ((config.screenLayout and Configuration.SCREENLAYOUT_LONG_YES) != 0 ||
+            (config.screenLayout and Configuration.SCREENLAYOUT_LONG_NO) == 0) {
+            return rotation;
+        }
+        when (rotation) {
+            Surface.ROTATION_0 -> return Surface.ROTATION_90;
+            Surface.ROTATION_90 -> return Surface.ROTATION_0;
+            Surface.ROTATION_180 -> return Surface.ROTATION_270;
+            Surface.ROTATION_270 -> return Surface.ROTATION_180;
+        }
+        return rotation;
+    }
 
     private fun restoreState(savedInstanceState: Bundle) {
         game = savedInstanceState.parcelable(EXTRA_SELECTED_GAME)!!
