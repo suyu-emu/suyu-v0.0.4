@@ -148,6 +148,7 @@ public:
             return;
         }
         m_window->OnSurfaceChanged(m_native_window);
+        m_system.Renderer().NotifySurfaceChanged();
     }
 
     Core::SystemResultStatus InitializeEmulation(const std::string& filepath) {

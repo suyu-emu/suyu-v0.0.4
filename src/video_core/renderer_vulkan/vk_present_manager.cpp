@@ -291,6 +291,13 @@ void PresentManager::PresentThread(std::stop_token token) {
     }
 }
 
+void PresentManager::NotifySurfaceChanged() {
+#ifdef ANDROID
+    std::scoped_lock lock{recreate_surface_mutex};
+    recreate_surface_cv.notify_one();
+#endif
+}
+
 void PresentManager::CopyToSwapchain(Frame* frame) {
     MICROPROFILE_SCOPE(Vulkan_CopyToSwapchain);
 
@@ -299,7 +306,22 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
         image_count = swapchain.GetImageCount();
     };
 
+    const auto needs_recreation = [&] {
+        if (last_render_surface != render_window.GetWindowInfo().render_surface) {
+            return true;
+        }
+        if (swapchain.NeedsRecreation(frame->is_srgb)) {
+            return true;
+        }
+        return false;
+    };
+
 #ifdef ANDROID
+    std::unique_lock lock{recreate_surface_mutex};
+
+    recreate_surface_cv.wait_for(lock, std::chrono::milliseconds(400),
+                                 [&]() { return !needs_recreation(); });
+
     // If the frontend recreated the surface, recreate the renderer surface and swapchain.
     if (last_render_surface != render_window.GetWindowInfo().render_surface) {
         last_render_surface = render_window.GetWindowInfo().render_surface;
@@ -450,7 +472,7 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
 
     // Submit the image copy/blit to the swapchain
     {
-        std::scoped_lock lock{scheduler.submit_mutex};
+        std::scoped_lock submit_lock{scheduler.submit_mutex};
         switch (const VkResult result =
                     device.GetGraphicsQueue().Submit(submit_info, *frame->present_done)) {
         case VK_SUCCESS:
