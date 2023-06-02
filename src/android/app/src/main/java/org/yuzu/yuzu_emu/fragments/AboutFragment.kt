@@ -15,13 +15,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.findNavController
 import com.google.android.material.transition.MaterialSharedAxis
 import org.yuzu.yuzu_emu.BuildConfig
 import org.yuzu.yuzu_emu.R
@@ -38,6 +37,7 @@ class AboutFragment : Fragment() {
         super.onCreate(savedInstanceState)
         enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
         returnTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
+        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
     }
 
     override fun onCreateView(
@@ -54,7 +54,7 @@ class AboutFragment : Fragment() {
         homeViewModel.setStatusBarShadeVisibility(visible = false)
 
         binding.toolbarAbout.setNavigationOnClickListener {
-            parentFragmentManager.primaryNavigationFragment?.findNavController()?.popBackStack()
+            binding.root.findNavController().popBackStack()
         }
 
         binding.imageLogo.setOnLongClickListener {
@@ -67,6 +67,10 @@ class AboutFragment : Fragment() {
         }
 
         binding.buttonContributors.setOnClickListener { openLink(getString(R.string.contributors_link)) }
+        binding.buttonLicenses.setOnClickListener {
+            exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+            binding.root.findNavController().navigate(R.id.action_aboutFragment_to_licensesFragment)
+        }
 
         binding.textBuildHash.text = BuildConfig.GIT_HASH
         binding.buttonBuildHash.setOnClickListener {

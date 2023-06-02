@@ -40,11 +40,20 @@
     <fragment
         android:id="@+id/aboutFragment"
         android:name="org.yuzu.yuzu_emu.fragments.AboutFragment"
-        android:label="AboutFragment" />
+        android:label="AboutFragment" >
+        <action
+            android:id="@+id/action_aboutFragment_to_licensesFragment"
+            app:destination="@id/licensesFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/earlyAccessFragment"
         android:name="org.yuzu.yuzu_emu.fragments.EarlyAccessFragment"
         android:label="EarlyAccessFragment" />
+
+    <fragment
+        android:id="@+id/licensesFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.LicensesFragment"
+        android:label="LicensesFragment" />
 
 </navigation>
