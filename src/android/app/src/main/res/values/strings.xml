@@ -102,6 +102,9 @@
     <string name="firmware_installed_success">Firmware installed successfully</string>
     <string name="firmware_installed_failure">Firmware installation failed.</string>
     <string name="firmware_installed_failure_description">Check that the ZIP contains a firmware.</string>
+    <string name="share_log">Share log</string>
+    <string name="share_log_description">Share the log file</string>
+    <string name="share_log_missing">No log file found</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia isn\'t real</string>

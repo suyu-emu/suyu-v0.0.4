@@ -115,6 +115,11 @@ class HomeSettingsFragment : Fragment() {
                 R.drawable.ic_firmware
             ) { mainActivity.getFirmware.launch(arrayOf("application/zip")) },
             HomeSetting(
+                R.string.share_log,
+                R.string.share_log_description,
+                R.drawable.ic_log
+            ) { shareLog() },
+            HomeSetting(
                 R.string.about,
                 R.string.about_description,
                 R.drawable.ic_info_outline
@@ -266,6 +271,24 @@ class HomeSettingsFragment : Fragment() {
                 mainActivity.getDriver.launch(arrayOf("application/zip"))
             }
             .show()
+    }
+
+    private fun shareLog() {
+        val file = DocumentFile.fromSingleUri(
+            mainActivity, DocumentsContract.buildDocumentUri(
+                DocumentProvider.AUTHORITY,
+                "${DocumentProvider.ROOT_ID}/log/yuzu_log.txt"
+            )
+        )!!
+        if (file.exists()) {
+            val intent = Intent(Intent.ACTION_SEND)
+                .setDataAndType(file.uri, FileUtil.TEXT_PLAIN)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                .putExtra(Intent.EXTRA_STREAM, file.uri)
+            startActivity(Intent.createChooser(intent, "Share log"))
+        } else {
+            Toast.makeText(requireContext(), getText(R.string.share_log_missing), Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun setInsets() =
