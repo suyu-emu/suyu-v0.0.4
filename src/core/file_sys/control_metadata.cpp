@@ -23,8 +23,8 @@ const std::array<const char*, 16> LANGUAGE_NAMES{{
     "Portuguese",
     "Russian",
     "Korean",
-    "Taiwanese",
-    "Chinese",
+    "TraditionalChinese",
+    "SimplifiedChinese",
     "BrazilianPortuguese",
 }};
 
@@ -45,17 +45,17 @@ constexpr std::array<Language, 18> language_to_codes = {{
     Language::German,
     Language::Italian,
     Language::Spanish,
-    Language::Chinese,
+    Language::SimplifiedChinese,
     Language::Korean,
     Language::Dutch,
     Language::Portuguese,
     Language::Russian,
-    Language::Taiwanese,
+    Language::TraditionalChinese,
     Language::BritishEnglish,
     Language::CanadianFrench,
     Language::LatinAmericanSpanish,
-    Language::Chinese,
-    Language::Taiwanese,
+    Language::SimplifiedChinese,
+    Language::TraditionalChinese,
     Language::BrazilianPortuguese,
 }};
 

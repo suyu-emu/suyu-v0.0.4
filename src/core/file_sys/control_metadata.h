@@ -84,8 +84,8 @@ enum class Language : u8 {
     Portuguese = 10,
     Russian = 11,
     Korean = 12,
-    Taiwanese = 13,
-    Chinese = 14,
+    TraditionalChinese = 13,
+    SimplifiedChinese = 14,
     BrazilianPortuguese = 15,
 
     Default = 255,
