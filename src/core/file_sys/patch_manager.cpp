@@ -647,7 +647,7 @@ PatchManager::Metadata PatchManager::ParseControlNCA(const NCA& nca) const {
             if (language_index < FileSys::LANGUAGE_NAMES.size()) {
                 priority_language_names[i] = FileSys::LANGUAGE_NAMES[language_index];
             } else {
-                // Not a catastrophy, unlikely to happen
+                // Not a catastrophe, unlikely to happen
                 LOG_WARNING(Loader, "Invalid language index {}", language_index);
             }
         }
