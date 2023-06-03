@@ -968,16 +968,20 @@ void FSP_SRV::ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(HLERequ
 void FSP_SRV::OpenDataStorageByCurrentProcess(HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called");
 
-    auto current_romfs = fsc.OpenRomFSCurrentProcess();
-    if (current_romfs.Failed()) {
-        // TODO (bunnei): Find the right error code to use here
-        LOG_CRITICAL(Service_FS, "no file system interface available!");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultUnknown);
-        return;
+    if (!romfs) {
+        auto current_romfs = fsc.OpenRomFSCurrentProcess();
+        if (current_romfs.Failed()) {
+            // TODO (bunnei): Find the right error code to use here
+            LOG_CRITICAL(Service_FS, "no file system interface available!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ResultUnknown);
+            return;
+        }
+
+        romfs = current_romfs.Unwrap();
     }
 
-    auto storage = std::make_shared<IStorage>(system, std::move(current_romfs.Unwrap()));
+    auto storage = std::make_shared<IStorage>(system, romfs);
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
