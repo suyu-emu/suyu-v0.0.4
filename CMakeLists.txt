@@ -20,7 +20,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" ON
 # On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
 CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2;NOT MSVC" OFF)
 
-option(ENABLE_LIBUSB "Enable the use of LibUSB" "NOT ${ANDROID}")
+cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
 
 option(ENABLE_OPENGL "Enable OpenGL" ON)
 mark_as_advanced(FORCE ENABLE_OPENGL)
@@ -49,7 +49,7 @@ option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
 option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
 
-option(YUZU_ROOM "Compile LDN room server" "NOT ${ANDROID}")
+cmake_dependent_option(YUZU_ROOM "Compile LDN room server" ON "NOT ANDROID" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile Windows crash dump (Minidump) support" OFF "WIN32" OFF)
 
