@@ -9,10 +9,14 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
 import org.yuzu.yuzu_emu.model.MinimalDocumentFile
+import java.io.BufferedInputStream
+import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.URLDecoder
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 
 object FileUtil {
     const val PATH_TREE = "tree"
@@ -274,6 +278,34 @@ object FileUtil {
             }
         }
         return false
+    }
+
+    /**
+     * Extracts the given zip file into the given directory.
+     * @exception IOException if the file was being created outside of the target directory
+     */
+    @Throws(SecurityException::class)
+    fun unzip(zipStream: InputStream, destDir: File): Boolean {
+        ZipInputStream(BufferedInputStream(zipStream)).use { zis ->
+            var entry: ZipEntry? = zis.nextEntry
+            while (entry != null) {
+                val entryName = entry.name
+                val entryFile = File(destDir, entryName)
+                if (!entryFile.canonicalPath.startsWith(destDir.canonicalPath + File.separator)) {
+                    throw SecurityException("Entry is outside of the target dir: " + entryFile.name)
+                }
+                if (entry.isDirectory) {
+                    entryFile.mkdirs()
+                } else {
+                    entryFile.parentFile?.mkdirs()
+                    entryFile.createNewFile()
+                    entryFile.outputStream().use { fos -> zis.copyTo(fos) }
+                }
+                entry = zis.nextEntry
+            }
+        }
+
+        return true
     }
 
     fun isRootTreeUri(uri: Uri): Boolean {
