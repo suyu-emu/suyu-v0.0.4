@@ -13,7 +13,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 <h4 align="center"><b>yuzu</b> is the world's most popular, open-source, Nintendo Switch emulator — started by the creators of <a href="https://citra-emu.org" target="_blank">Citra</a>.
 <br>
-It is written in C++ with portability in mind, and we actively maintain builds for Windows and Linux.
+It is written in C++ with portability in mind, and we actively maintain builds for Windows, Linux and Android.
 </h4>
 
 <p align="center">
