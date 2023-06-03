@@ -259,7 +259,9 @@ bool Load(VkInstance instance, InstanceDispatch& dld) noexcept {
     // These functions may fail to load depending on the enabled extensions.
     // Don't return a failure on these.
     X(vkCreateDebugUtilsMessengerEXT);
+    X(vkCreateDebugReportCallbackEXT);
     X(vkDestroyDebugUtilsMessengerEXT);
+    X(vkDestroyDebugReportCallbackEXT);
     X(vkDestroySurfaceKHR);
     X(vkGetPhysicalDeviceFeatures2);
     X(vkGetPhysicalDeviceProperties2);
@@ -481,6 +483,11 @@ void Destroy(VkInstance instance, VkDebugUtilsMessengerEXT handle,
     dld.vkDestroyDebugUtilsMessengerEXT(instance, handle, nullptr);
 }
 
+void Destroy(VkInstance instance, VkDebugReportCallbackEXT handle,
+             const InstanceDispatch& dld) noexcept {
+    dld.vkDestroyDebugReportCallbackEXT(instance, handle, nullptr);
+}
+
 void Destroy(VkInstance instance, VkSurfaceKHR handle, const InstanceDispatch& dld) noexcept {
     dld.vkDestroySurfaceKHR(instance, handle, nullptr);
 }
@@ -547,6 +554,13 @@ DebugUtilsMessenger Instance::CreateDebugUtilsMessenger(
     VkDebugUtilsMessengerEXT object;
     Check(dld->vkCreateDebugUtilsMessengerEXT(handle, &create_info, nullptr, &object));
     return DebugUtilsMessenger(object, handle, *dld);
+}
+
+DebugReportCallback Instance::CreateDebugReportCallback(
+    const VkDebugReportCallbackCreateInfoEXT& create_info) const {
+    VkDebugReportCallbackEXT object;
+    Check(dld->vkCreateDebugReportCallbackEXT(handle, &create_info, nullptr, &object));
+    return DebugReportCallback(object, handle, *dld);
 }
 
 void Image::SetObjectNameEXT(const char* name) const {
