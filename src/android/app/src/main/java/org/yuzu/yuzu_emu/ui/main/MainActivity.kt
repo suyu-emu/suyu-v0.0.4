@@ -26,6 +26,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationBarView
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -37,10 +38,13 @@ import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.*
+import java.io.File
+import java.io.FilenameFilter
 import java.io.IOException
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
@@ -311,6 +315,67 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                         R.string.install_keys_failure_description,
                         R.string.dumping_keys_quickstart_link
                     ).show(supportFragmentManager, MessageDialogFragment.TAG)
+                }
+            }
+        }
+
+    val getFirmware =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result == null)
+                return@registerForActivityResult
+
+            val inputZip = contentResolver.openInputStream(result)
+            if (inputZip == null) {
+                Toast.makeText(
+                    applicationContext,
+                    getString(R.string.fatal_error),
+                    Toast.LENGTH_LONG
+                ).show()
+                return@registerForActivityResult
+            }
+
+            val filterNCA = FilenameFilter { _, dirName -> dirName.endsWith(".nca") }
+
+            val firmwarePath =
+                File(DirectoryInitialization.userDirectory + "/nand/system/Contents/registered/")
+            val cacheFirmwareDir = File("${cacheDir.path}/registered/")
+
+            val installingFirmwareDialog = IndeterminateProgressDialogFragment.newInstance(
+                R.string.firmware_installing
+            )
+            installingFirmwareDialog.isCancelable = false
+            installingFirmwareDialog.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
+
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    FileUtil.unzip(inputZip, cacheFirmwareDir)
+                    val unfilteredNumOfFiles = cacheFirmwareDir.list()?.size ?: -1
+                    val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
+                    if (unfilteredNumOfFiles != filteredNumOfFiles) {
+                        withContext(Dispatchers.Main) {
+                            installingFirmwareDialog.dismiss()
+                            MessageDialogFragment.newInstance(
+                                R.string.firmware_installed_failure,
+                                R.string.firmware_installed_failure_description
+                            ).show(supportFragmentManager, MessageDialogFragment.TAG)
+                        }
+                    } else {
+                        firmwarePath.deleteRecursively()
+                        cacheFirmwareDir.copyRecursively(firmwarePath, true)
+                        withContext(Dispatchers.Main) {
+                            installingFirmwareDialog.dismiss()
+                            Toast.makeText(
+                                applicationContext,
+                                getString(R.string.save_file_imported_success),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(applicationContext, getString(R.string.fatal_error), Toast.LENGTH_LONG)
+                        .show()
+                } finally {
+                    cacheFirmwareDir.deleteRecursively()
                 }
             }
         }
