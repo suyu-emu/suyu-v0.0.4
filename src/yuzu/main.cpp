@@ -3491,6 +3491,7 @@ void GMainWindow::ResetWindowSize1080() {
 void GMainWindow::OnConfigure() {
     const auto old_theme = UISettings::values.theme;
     const bool old_discord_presence = UISettings::values.enable_discord_presence.GetValue();
+    const auto old_language_index = Settings::values.language_index.GetValue();
 
     Settings::SetConfiguringGlobal(true);
     ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(), *system,
@@ -3559,7 +3560,7 @@ void GMainWindow::OnConfigure() {
     emit UpdateThemedIcons();
 
     const auto reload = UISettings::values.is_game_list_reload_pending.exchange(false);
-    if (reload) {
+    if (reload || Settings::values.language_index.GetValue() != old_language_index) {
         game_list->PopulateAsync(UISettings::values.game_dirs);
     }
 
