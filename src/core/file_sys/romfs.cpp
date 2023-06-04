@@ -9,6 +9,7 @@
 #include "core/file_sys/fsmitm_romfsbuild.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs_cached.h"
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_offset.h"
 #include "core/file_sys/vfs_vector.h"
@@ -132,7 +133,7 @@ VirtualDir ExtractRomFS(VirtualFile file, RomFSExtractionType type) {
         out = out->GetSubdirectories().front();
     }
 
-    return out;
+    return std::make_shared<CachedVfsDirectory>(out);
 }
 
 VirtualFile CreateRomFS(VirtualDir dir, VirtualDir ext) {

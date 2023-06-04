@@ -21,6 +21,7 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
+#include "core/file_sys/vfs_cached.h"
 #include "core/file_sys/vfs_layered.h"
 #include "core/file_sys/vfs_vector.h"
 #include "core/hle/service/filesystem/filesystem.h"
@@ -380,11 +381,11 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
 
         auto romfs_dir = FindSubdirectoryCaseless(subdir, "romfs");
         if (romfs_dir != nullptr)
-            layers.push_back(std::move(romfs_dir));
+            layers.push_back(std::make_shared<CachedVfsDirectory>(romfs_dir));
 
         auto ext_dir = FindSubdirectoryCaseless(subdir, "romfs_ext");
         if (ext_dir != nullptr)
-            layers_ext.push_back(std::move(ext_dir));
+            layers_ext.push_back(std::make_shared<CachedVfsDirectory>(ext_dir));
     }
 
     // When there are no layers to apply, return early as there is no need to rebuild the RomFS
