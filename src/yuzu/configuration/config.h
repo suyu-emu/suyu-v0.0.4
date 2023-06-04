@@ -54,6 +54,7 @@ public:
     static const std::map<bool, QString> use_docked_mode_texts_map;
     static const std::map<Settings::GPUAccuracy, QString> gpu_accuracy_texts_map;
     static const std::map<Settings::RendererBackend, QString> renderer_backend_texts_map;
+    static const std::map<Settings::ShaderBackend, QString> shader_backend_texts_map;
 
     static constexpr UISettings::Theme default_theme{
 #ifdef _WIN32
