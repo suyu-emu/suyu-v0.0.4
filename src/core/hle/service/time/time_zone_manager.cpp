@@ -524,6 +524,7 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
 
     constexpr s32 time_zone_max_leaps{50};
     constexpr s32 time_zone_max_chars{50};
+    constexpr s32 time_zone_max_times{1000};
     if (!(0 <= header.leap_count && header.leap_count < time_zone_max_leaps &&
           0 < header.type_count && header.type_count < s32(time_zone_rule.ttis.size()) &&
           0 <= header.time_count && header.time_count < s32(time_zone_rule.ats.size()) &&
@@ -634,9 +635,66 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
         std::array<char, time_zone_name_max> name{};
         std::memcpy(name.data(), temp_name.data() + 1, std::size_t(bytes_read - 1));
 
+        // Fill in computed transition times with temp rule
         TimeZoneRule temp_rule;
         if (ParsePosixName(name.data(), temp_rule)) {
-            UNIMPLEMENTED();
+            int have_abbreviation = 0;
+            int char_count = time_zone_rule.char_count;
+
+            for (int i = 0; i < temp_rule.type_count; i++) {
+                char* temp_abbreviation =
+                    temp_rule.chars.data() + temp_rule.ttis[i].abbreviation_list_index;
+                int j;
+                for (j = 0; j < char_count; j++) {
+                    if (std::strcmp(time_zone_rule.chars.data() + j, temp_abbreviation) == 0) {
+                        temp_rule.ttis[i].abbreviation_list_index = j;
+                        have_abbreviation++;
+                        break;
+                    }
+                }
+                if (j >= char_count) {
+                    int temp_abbreviation_length = static_cast<int>(std::strlen(temp_abbreviation));
+                    if (j + temp_abbreviation_length < time_zone_max_chars) {
+                        std::strcpy(time_zone_rule.chars.data() + j, temp_abbreviation);
+                        char_count = j + temp_abbreviation_length + 1;
+                        temp_rule.ttis[i].abbreviation_list_index = j;
+                        have_abbreviation++;
+                    }
+                }
+            }
+
+            if (have_abbreviation == temp_rule.type_count) {
+                time_zone_rule.char_count = char_count;
+
+                // Original comment:
+                /* Ignore any trailing, no-op transitions generated
+                   by zic as they don't help here and can run afoul
+                   of bugs in zic 2016j or earlier.  */
+                // This is possibly unnecessary for yuzu, since Nintendo doesn't run zic
+                while (1 < time_zone_rule.time_count &&
+                       (time_zone_rule.types[time_zone_rule.time_count - 1] ==
+                        time_zone_rule.types[time_zone_rule.time_count - 2])) {
+                    time_zone_rule.time_count--;
+                }
+
+                for (int i = 0;
+                     i < temp_rule.time_count && time_zone_rule.time_count < time_zone_max_times;
+                     i++) {
+                    const s64 transition_time = temp_rule.ats[i];
+                    if (0 < time_zone_rule.time_count &&
+                        transition_time <= time_zone_rule.ats[time_zone_rule.time_count - 1]) {
+                        continue;
+                    }
+
+                    time_zone_rule.ats[time_zone_rule.time_count] = transition_time;
+                    time_zone_rule.types[time_zone_rule.time_count] =
+                        static_cast<s8>(time_zone_rule.type_count + temp_rule.types[i]);
+                    time_zone_rule.time_count++;
+                }
+                for (int i = 0; i < temp_rule.type_count; i++) {
+                    time_zone_rule.ttis[time_zone_rule.type_count++] = temp_rule.ttis[i];
+                }
+            }
         }
     }
 
