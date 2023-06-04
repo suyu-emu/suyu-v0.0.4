@@ -10,6 +10,7 @@
 
 // Sub-directories contained within a yuzu data directory
 
+#define AMIIBO_DIR "amiibo"
 #define CACHE_DIR "cache"
 #define CONFIG_DIR "config"
 #define DUMP_DIR "dump"

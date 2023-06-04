@@ -302,7 +302,7 @@ Result NfcInterface::TranslateResultToServiceError(Result result) const {
         return TranslateResultToNfp(result);
     }
     default:
-        if (result != ResultUnknown216) {
+        if (result != ResultBackupPathAlreadyExist) {
             return result;
         }
         return ResultUnknown74;
@@ -343,6 +343,9 @@ Result NfcInterface::TranslateResultToNfp(Result result) const {
     if (result == ResultApplicationAreaIsNotInitialized) {
         return NFP::ResultApplicationAreaIsNotInitialized;
     }
+    if (result == ResultCorruptedDataWithBackup) {
+        return NFP::ResultCorruptedDataWithBackup;
+    }
     if (result == ResultCorruptedData) {
         return NFP::ResultCorruptedData;
     }
@@ -354,6 +357,9 @@ Result NfcInterface::TranslateResultToNfp(Result result) const {
     }
     if (result == ResultNotAnAmiibo) {
         return NFP::ResultNotAnAmiibo;
+    }
+    if (result == ResultUnableToAccessBackupFile) {
+        return NFP::ResultUnableToAccessBackupFile;
     }
     LOG_WARNING(Service_NFC, "Result conversion not handled");
     return result;
