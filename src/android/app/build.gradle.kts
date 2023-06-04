@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import android.annotation.SuppressLint
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -35,7 +37,7 @@ android {
         jvmTarget = "17"
     }
 
-    packagingOptions {
+    packaging {
         // This is necessary for libadrenotools custom driver loading
         jniLibs.useLegacyPackaging = true
     }
@@ -58,6 +60,7 @@ android {
         versionName = getGitVersion()
 
         ndk {
+            @SuppressLint("ChromeOsAbiSupport")
             abiFilters += listOf("arm64-v8a")
         }
 
