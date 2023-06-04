@@ -557,7 +557,7 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
     for (int index{}; index < time_zone_rule.time_count; ++index) {
         const u8 type{*vfs_file->ReadByte(read_offset)};
         read_offset += sizeof(u8);
-        if (time_zone_rule.time_count <= type) {
+        if (time_zone_rule.type_count <= type) {
             return {};
         }
         if (time_zone_rule.types[index] != 0) {
