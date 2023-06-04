@@ -14,6 +14,7 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
+#include <boost/icl/interval_set.hpp>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -415,6 +416,7 @@ public:
         madvise(virtual_base, virtual_size, MADV_HUGEPAGE);
 #endif
 
+        placeholders.add({0, virtual_size});
         good = true;
     }
 
@@ -423,6 +425,10 @@ public:
     }
 
     void Map(size_t virtual_offset, size_t host_offset, size_t length) {
+        {
+            std::scoped_lock lock{placeholder_mutex};
+            placeholders.subtract({virtual_offset, virtual_offset + length});
+        }
 
         void* ret = mmap(virtual_base + virtual_offset, length, PROT_READ | PROT_WRITE,
                          MAP_SHARED | MAP_FIXED, fd, host_offset);
@@ -432,6 +438,19 @@ public:
     void Unmap(size_t virtual_offset, size_t length) {
         // The method name is wrong. We're still talking about the virtual range.
         // We don't want to unmap, we want to reserve this memory.
+
+        {
+            std::scoped_lock lock{placeholder_mutex};
+            auto it = placeholders.find({virtual_offset - 1, virtual_offset + length + 1});
+
+            if (it != placeholders.end()) {
+                size_t prev_upper = virtual_offset + length;
+                virtual_offset = std::min(virtual_offset, it->lower());
+                length = std::max(it->upper(), prev_upper) - virtual_offset;
+            }
+
+            placeholders.add({virtual_offset, virtual_offset + length});
+        }
 
         void* ret = mmap(virtual_base + virtual_offset, length, PROT_NONE,
                          MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
@@ -476,6 +495,9 @@ private:
     }
 
     int fd{-1}; // memfd file descriptor, -1 is the error value of memfd_create
+
+    boost::icl::interval_set<size_t> placeholders; ///< Mapped placeholders
+    std::mutex placeholder_mutex;                  ///< Mutex for placeholders
 };
 
 #else // ^^^ Linux ^^^ vvv Generic vvv
