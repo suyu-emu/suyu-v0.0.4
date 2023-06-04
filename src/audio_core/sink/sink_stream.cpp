@@ -269,12 +269,13 @@ u64 SinkStream::GetExpectedPlayedSampleCount() {
     return std::min<u64>(exp_played_sample_count, max_played_sample_count) + TargetSampleCount * 3;
 }
 
-void SinkStream::WaitFreeSpace() {
+void SinkStream::WaitFreeSpace(std::stop_token stop_token) {
     std::unique_lock lk{release_mutex};
     release_cv.wait_for(lk, std::chrono::milliseconds(5),
                         [this]() { return queued_buffers < max_queue_size; });
     if (queued_buffers > max_queue_size + 3) {
-        release_cv.wait(lk, [this]() { return queued_buffers < max_queue_size; });
+        Common::CondvarWait(release_cv, lk, stop_token,
+                            [this] { return queued_buffers < max_queue_size; });
     }
 }
 

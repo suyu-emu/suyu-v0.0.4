@@ -177,7 +177,7 @@ private:
     /**
      * Main AudioRenderer thread, responsible for processing the command lists.
      */
-    void ThreadFunc();
+    void ThreadFunc(std::stop_token stop_token);
 
     /**
      * Creates the streams which will receive the processed samples.
@@ -187,7 +187,7 @@ private:
     /// Core system
     Core::System& system;
     /// Main thread
-    std::thread thread{};
+    std::jthread thread{};
     /// The current state
     std::atomic<bool> running{};
     /// The active mailbox
