@@ -314,6 +314,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         .setPositiveButton(android.R.string.ok) { _, _ ->
                             refreshInputOverlay()
                         }
+                        .setNegativeButton(android.R.string.cancel, null)
                         .setNeutralButton(R.string.emulation_toggle_all) { _, _ -> }
                         .show()
 
