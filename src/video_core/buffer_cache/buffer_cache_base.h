@@ -105,6 +105,15 @@ static constexpr Binding NULL_BINDING{
     .buffer_id = NULL_BUFFER_ID,
 };
 
+struct HostBindings {
+    boost::container::small_vector<void*, NUM_VERTEX_BUFFERS> buffers;
+    boost::container::small_vector<u64, NUM_VERTEX_BUFFERS> offsets;
+    boost::container::small_vector<u64, NUM_VERTEX_BUFFERS> sizes;
+    boost::container::small_vector<u64, NUM_VERTEX_BUFFERS> strides;
+    u32 min_index{NUM_VERTEX_BUFFERS};
+    u32 max_index{0};
+};
+
 class BufferCacheChannelInfo : public ChannelInfo {
 public:
     BufferCacheChannelInfo() = delete;
@@ -518,8 +527,6 @@ private:
     void DownloadBufferMemory(Buffer& buffer_id, VAddr cpu_addr, u64 size);
 
     void DeleteBuffer(BufferId buffer_id, bool do_not_mark = false);
-
-    void NotifyBufferDeletion();
 
     [[nodiscard]] Binding StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
                                                bool is_written) const;

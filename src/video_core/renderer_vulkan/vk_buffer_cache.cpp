@@ -7,7 +7,6 @@
 #include <span>
 #include <vector>
 
-#include "video_core/buffer_cache/buffer_cache.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
@@ -502,6 +501,40 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset
     }
 }
 
+void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings& bindings) {
+    boost::container::small_vector<VkBuffer, 32> buffer_handles;
+    for (u32 index = 0; index < bindings.buffers.size(); index++) {
+        auto& buffer = *reinterpret_cast<Buffer*>(bindings.buffers[index]);
+        auto handle = buffer.Handle();
+        if (handle == VK_NULL_HANDLE) {
+            bindings.offsets[index] = 0;
+            bindings.sizes[index] = VK_WHOLE_SIZE;
+            if (!device.HasNullDescriptor()) {
+                ReserveNullBuffer();
+                handle = *null_buffer;
+            }
+        }
+        buffer_handles.push_back(handle);
+    }
+    if (device.IsExtExtendedDynamicStateSupported()) {
+        scheduler.Record([bindings = bindings,
+                          buffer_handles = buffer_handles](vk::CommandBuffer cmdbuf) {
+            cmdbuf.BindVertexBuffers2EXT(
+                bindings.min_index, bindings.max_index - bindings.min_index, buffer_handles.data(),
+                reinterpret_cast<const VkDeviceSize*>(bindings.offsets.data()),
+                reinterpret_cast<const VkDeviceSize*>(bindings.sizes.data()),
+                reinterpret_cast<const VkDeviceSize*>(bindings.strides.data()));
+        });
+    } else {
+        scheduler.Record([bindings = bindings,
+                          buffer_handles = buffer_handles](vk::CommandBuffer cmdbuf) {
+            cmdbuf.BindVertexBuffers(
+                bindings.min_index, bindings.max_index - bindings.min_index, buffer_handles.data(),
+                reinterpret_cast<const VkDeviceSize*>(bindings.offsets.data()));
+        });
+    }
+}
+
 void BufferCacheRuntime::BindTransformFeedbackBuffer(u32 index, VkBuffer buffer, u32 offset,
                                                      u32 size) {
     if (!device.IsExtTransformFeedbackSupported()) {
@@ -521,6 +554,25 @@ void BufferCacheRuntime::BindTransformFeedbackBuffer(u32 index, VkBuffer buffer,
         const VkDeviceSize vk_size = size;
         cmdbuf.BindTransformFeedbackBuffersEXT(index, 1, &buffer, &vk_offset, &vk_size);
     });
+}
+
+void BufferCacheRuntime::BindTransformFeedbackBuffers(VideoCommon::HostBindings& bindings) {
+    if (!device.IsExtTransformFeedbackSupported()) {
+        // Already logged in the rasterizer
+        return;
+    }
+    boost::container::small_vector<VkBuffer, 4> buffer_handles;
+    for (u32 index = 0; index < bindings.buffers.size(); index++) {
+        auto& buffer = *reinterpret_cast<Buffer*>(bindings.buffers[index]);
+        buffer_handles.push_back(buffer.Handle());
+    }
+    scheduler.Record(
+        [bindings = bindings, buffer_handles = buffer_handles](vk::CommandBuffer cmdbuf) {
+            cmdbuf.BindTransformFeedbackBuffersEXT(
+                0, static_cast<u32>(buffer_handles.size()), buffer_handles.data(),
+                reinterpret_cast<const VkDeviceSize*>(bindings.offsets.data()),
+                reinterpret_cast<const VkDeviceSize*>(bindings.sizes.data()));
+        });
 }
 
 void BufferCacheRuntime::ReserveNullBuffer() {
