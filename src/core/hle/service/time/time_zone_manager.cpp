@@ -474,6 +474,13 @@ static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
                     their_std_offset = their_offset;
                 }
             }
+
+            if (rule.time_count > 0) {
+                UNIMPLEMENTED();
+                // TODO (lat9nq): Implement eggert/tz/localtime.c:tzparse:1329
+                // Seems to be unused in yuzu for now: I never hit the UNIMPLEMENTED in testing
+            }
+
             rule.ttis[0].gmt_offset = -std_offset;
             rule.ttis[0].is_dst = false;
             rule.ttis[0].abbreviation_list_index = 0;
