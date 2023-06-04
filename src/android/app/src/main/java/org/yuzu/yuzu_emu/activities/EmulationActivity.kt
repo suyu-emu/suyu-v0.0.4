@@ -26,6 +26,12 @@ import androidx.core.content.getSystemService
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.window.layout.WindowInfoTracker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.fragments.EmulationFragment
@@ -95,6 +101,14 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
         inputHandler = InputHandler()
         inputHandler.initialize()
+
+        lifecycleScope.launch(Dispatchers.Main) {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                WindowInfoTracker.getOrCreate(this@EmulationActivity)
+                    .windowLayoutInfo(this@EmulationActivity)
+                    .collect { emulationFragment?.updateCurrentLayout(this@EmulationActivity, it) }
+            }
+        }
 
         // Start a foreground service to prevent the app from getting killed in the background
         val startIntent = Intent(this, ForegroundService::class.java)
