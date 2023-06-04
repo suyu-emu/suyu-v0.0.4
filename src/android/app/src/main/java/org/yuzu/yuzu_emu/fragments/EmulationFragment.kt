@@ -8,10 +8,13 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.SharedPreferences
+import android.content.pm.ActivityInfo
+import android.content.res.Resources
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.TypedValue
 import android.view.*
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
@@ -20,8 +23,11 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowLayoutInfo
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -209,6 +215,33 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
             binding.showFpsText.visibility = View.GONE
         }
+    }
+
+    private val Number.toPx get() = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this.toFloat(), Resources.getSystem().displayMetrics).toInt()
+
+    fun updateCurrentLayout(emulationActivity: EmulationActivity, newLayoutInfo: WindowLayoutInfo) {
+        val isFolding = (newLayoutInfo.displayFeatures.find { it is FoldingFeature } as? FoldingFeature)?.let {
+            if (it.isSeparating) {
+                emulationActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                if (it.orientation == FoldingFeature.Orientation.HORIZONTAL) {
+                    binding.surfaceEmulation.layoutParams.height = it.bounds.top
+                    binding.inGameMenu.layoutParams.height = it.bounds.bottom
+                    binding.overlayContainer.layoutParams.height = it.bounds.bottom - 48.toPx
+                    binding.overlayContainer.updatePadding(0, 0, 0, 24.toPx)
+                }
+            }
+            it.isSeparating
+        } ?: false
+        if (!isFolding) {
+            binding.surfaceEmulation.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            binding.inGameMenu.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            binding.overlayContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            binding.overlayContainer.updatePadding(0, 0, 0, 0)
+            emulationActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        }
+        binding.surfaceInputOverlay.requestLayout()
+        binding.inGameMenu.requestLayout()
+        binding.overlayContainer.requestLayout()
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {

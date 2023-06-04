@@ -5,7 +5,6 @@ package org.yuzu.yuzu_emu.activities
 
 import android.app.Activity
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Rect
@@ -13,22 +12,28 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.hardware.display.DisplayManager
 import android.os.Bundle
+import android.view.Display
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.Surface
 import android.view.View
-import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.preference.PreferenceManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.slider.Slider.OnChangeListener
+import androidx.core.content.getSystemService
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.window.layout.WindowInfoTracker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.databinding.DialogSliderBinding
-import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.EmulationFragment
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
@@ -44,7 +49,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private var controllerMappingHelper: ControllerMappingHelper? = null
 
     var isActivityRecreated = false
-    private var menuVisible = false
     private var emulationFragment: EmulationFragment? = null
     private lateinit var nfcReader: NfcReader
     private lateinit var inputHandler: InputHandler
@@ -97,6 +101,14 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
         inputHandler = InputHandler()
         inputHandler.initialize()
+
+        lifecycleScope.launch(Dispatchers.Main) {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                WindowInfoTracker.getOrCreate(this@EmulationActivity)
+                    .windowLayoutInfo(this@EmulationActivity)
+                    .collect { emulationFragment?.updateCurrentLayout(this@EmulationActivity, it) }
+            }
+        }
 
         // Start a foreground service to prevent the app from getting killed in the background
         val startIntent = Intent(this, ForegroundService::class.java)
@@ -241,20 +253,20 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     override fun onAccuracyChanged(sensor: Sensor, i: Int) {}
 
     private fun getAdjustedRotation():Int {
-        val rotation = windowManager.defaultDisplay.rotation;
+        val rotation = getSystemService<DisplayManager>()!!.getDisplay(Display.DEFAULT_DISPLAY).rotation
         val config: Configuration = resources.configuration
 
         if ((config.screenLayout and Configuration.SCREENLAYOUT_LONG_YES) != 0 ||
             (config.screenLayout and Configuration.SCREENLAYOUT_LONG_NO) == 0) {
-            return rotation;
+            return rotation
         }
         when (rotation) {
-            Surface.ROTATION_0 -> return Surface.ROTATION_90;
-            Surface.ROTATION_90 -> return Surface.ROTATION_0;
-            Surface.ROTATION_180 -> return Surface.ROTATION_270;
-            Surface.ROTATION_270 -> return Surface.ROTATION_180;
+            Surface.ROTATION_0 -> return Surface.ROTATION_90
+            Surface.ROTATION_90 -> return Surface.ROTATION_0
+            Surface.ROTATION_180 -> return Surface.ROTATION_270
+            Surface.ROTATION_270 -> return Surface.ROTATION_180
         }
-        return rotation;
+        return rotation
     }
 
     private fun restoreState(savedInstanceState: Bundle) {
@@ -262,18 +274,13 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun enableFullscreenImmersive() {
-        window.attributes.layoutInDisplayCutoutMode =
-            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-
-        // It would be nice to use IMMERSIVE_STICKY, but that doesn't show the toolbar.
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                View.SYSTEM_UI_FLAG_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_IMMERSIVE
+        WindowInsetsControllerCompat(window, window.decorView).let { controller ->
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
     }
 
     private fun startMotionSensorListener() {

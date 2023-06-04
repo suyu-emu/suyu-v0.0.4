@@ -20,6 +20,12 @@
             android:focusable="false"
             android:focusableInTouchMode="false" />
 
+        <FrameLayout
+            android:id="@+id/overlay_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="bottom">
+
         <!-- This is the onscreen input overlay -->
         <org.yuzu.yuzu_emu.overlay.InputOverlay
             android:id="@+id/surface_input_overlay"
@@ -48,6 +54,7 @@
             android:layout_gravity="center"
             android:text="@string/emulation_done"
             android:visibility="gone" />
+        </FrameLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
@@ -55,7 +62,7 @@
         android:id="@+id/in_game_menu"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_gravity="start"
+        android:layout_gravity="start|bottom"
         app:headerLayout="@layout/header_in_game"
         app:menu="@menu/menu_in_game" />
 
