@@ -130,10 +130,10 @@ static constexpr int GetQZName(const char* name, int offset, char delimiter) {
 }
 
 static constexpr int GetTZName(const char* name, int offset) {
-    for (char value{name[offset]};
-         value != '\0' && !IsDigit(value) && value != ',' && value != '-' && value != '+';
-         offset++) {
-        value = name[offset];
+    char c;
+
+    while ((c = name[offset]) != '\0' && !IsDigit(c) && c != ',' && c != '-' && c != '+') {
+        ++offset;
     }
     return offset;
 }
