@@ -26,7 +26,6 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationBarView
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -340,44 +339,34 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 File(DirectoryInitialization.userDirectory + "/nand/system/Contents/registered/")
             val cacheFirmwareDir = File("${cacheDir.path}/registered/")
 
-            val installingFirmwareDialog = IndeterminateProgressDialogFragment.newInstance(
-                R.string.firmware_installing
-            )
-            installingFirmwareDialog.isCancelable = false
-            installingFirmwareDialog.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
-
-            lifecycleScope.launch(Dispatchers.IO) {
+            val task: () -> Any = {
+                var messageToShow: Any
                 try {
                     FileUtil.unzip(inputZip, cacheFirmwareDir)
                     val unfilteredNumOfFiles = cacheFirmwareDir.list()?.size ?: -1
                     val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
                     if (unfilteredNumOfFiles != filteredNumOfFiles) {
-                        withContext(Dispatchers.Main) {
-                            installingFirmwareDialog.dismiss()
-                            MessageDialogFragment.newInstance(
-                                R.string.firmware_installed_failure,
-                                R.string.firmware_installed_failure_description
-                            ).show(supportFragmentManager, MessageDialogFragment.TAG)
-                        }
+                        messageToShow = MessageDialogFragment.newInstance(
+                            R.string.firmware_installed_failure,
+                            R.string.firmware_installed_failure_description
+                        )
                     } else {
                         firmwarePath.deleteRecursively()
                         cacheFirmwareDir.copyRecursively(firmwarePath, true)
-                        withContext(Dispatchers.Main) {
-                            installingFirmwareDialog.dismiss()
-                            Toast.makeText(
-                                applicationContext,
-                                getString(R.string.save_file_imported_success),
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
+                        messageToShow = getString(R.string.save_file_imported_success)
                     }
                 } catch (e: Exception) {
-                    Toast.makeText(applicationContext, getString(R.string.fatal_error), Toast.LENGTH_LONG)
-                        .show()
+                    messageToShow = getString(R.string.fatal_error)
                 } finally {
                     cacheFirmwareDir.deleteRecursively()
                 }
+                messageToShow
             }
+
+            IndeterminateProgressDialogFragment.newInstance(
+                R.string.firmware_installing,
+                task
+            ).show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
         }
 
     val getAmiiboKey =

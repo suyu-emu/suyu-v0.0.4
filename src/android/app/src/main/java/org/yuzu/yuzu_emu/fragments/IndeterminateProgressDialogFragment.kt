@@ -2,33 +2,69 @@ package org.yuzu.yuzu_emu.fragments
 
 import android.app.Dialog
 import android.os.Bundle
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
+import org.yuzu.yuzu_emu.model.TaskViewModel
+import java.io.Serializable
+
 
 class IndeterminateProgressDialogFragment : DialogFragment() {
+    private lateinit var taskViewModel: TaskViewModel
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        taskViewModel = ViewModelProvider(requireActivity())[TaskViewModel::class.java]
+
         val titleId = requireArguments().getInt(TITLE)
 
         val progressBinding = DialogProgressBarBinding.inflate(layoutInflater)
         progressBinding.progressBar.isIndeterminate = true
-        return MaterialAlertDialogBuilder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(titleId)
             .setView(progressBinding.root)
-            .show()
+            .create()
+        dialog.setCanceledOnTouchOutside(false)
+
+        taskViewModel.isComplete.observe(this) { complete ->
+            if (complete) {
+                dialog.dismiss()
+                when (val result = taskViewModel.result.value) {
+                    is String -> Toast.makeText(requireContext(), result, Toast.LENGTH_LONG).show()
+                    is MessageDialogFragment -> result.show(
+                        parentFragmentManager,
+                        MessageDialogFragment.TAG
+                    )
+                }
+                taskViewModel.clear()
+            }
+        }
+
+        if (taskViewModel.isRunning.value == false) {
+            val task = requireArguments().getSerializable(TASK) as? () -> Any
+            if (task != null) {
+                taskViewModel.task = task
+                taskViewModel.runTask()
+            }
+        }
+        return dialog
     }
 
     companion object {
         const val TAG = "IndeterminateProgressDialogFragment"
 
         private const val TITLE = "Title"
+        private const val TASK = "Task"
 
         fun newInstance(
             titleId: Int,
+            task: () -> Any
         ): IndeterminateProgressDialogFragment {
             val dialog = IndeterminateProgressDialogFragment()
             val args = Bundle()
             args.putInt(TITLE, titleId)
+            args.putSerializable(TASK, task as Serializable)
             dialog.arguments = args
             return dialog
         }
