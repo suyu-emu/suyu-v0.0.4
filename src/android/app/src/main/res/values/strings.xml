@@ -196,6 +196,7 @@
     <string name="preferences_graphics">Graphics</string>
     <string name="preferences_audio">Audio</string>
     <string name="preferences_theme">Theme and color</string>
+    <string name="preferences_debug">Debug</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Your ROM is encrypted</string>

@@ -108,6 +108,7 @@ class Settings {
         const val SECTION_AUDIO = "Audio"
         const val SECTION_CPU = "Cpu"
         const val SECTION_THEME = "Theme"
+        const val SECTION_DEBUG = "Debug"
 
         const val PREF_OVERLAY_INIT = "OverlayInit"
         const val PREF_CONTROL_SCALE = "controlScale"
