@@ -518,7 +518,7 @@ public:
         if (extensions.spirv_1_4) {
             return 0x00010400U;
         }
-        return 0x00010000U;
+        return 0x00010300U;
     }
 
     /// Returns true when a known debugging tool is attached.
