@@ -80,6 +80,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, use_asynchronous_gpu_emulation, "Use asynchronous GPU emulation", "");
     INSERT(Settings, nvdec_emulation, "NVDEC emulation:", "");
     INSERT(Settings, accelerate_astc, "ASTC Decoding Method:", "");
+    INSERT(Settings, astc_recompression, "ASTC Recompression Method:", "");
     INSERT(Settings, vsync_mode, "VSync Mode:",
            "FIFO (VSync) does not drop frames or exhibit tearing but is limited by the screen "
            "refresh rate.\nFIFO Relaxed is similar to FIFO but allows tearing as it recovers from "
@@ -179,6 +180,14 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
              {static_cast<u32>(Settings::AstcDecodeMode::CPU), tr("CPU")},
              {static_cast<u32>(Settings::AstcDecodeMode::GPU), tr("GPU")},
              {static_cast<u32>(Settings::AstcDecodeMode::CPUAsynchronous), tr("CPU Asynchronous")},
+         }});
+    translations->insert(
+        {typeid(Settings::AstcRecompression),
+         {
+             {static_cast<u32>(Settings::AstcRecompression::Uncompressed),
+              tr("Uncompressed (Best quality)")},
+             {static_cast<u32>(Settings::AstcRecompression::Bc1), tr("BC1 (Low quality)")},
+             {static_cast<u32>(Settings::AstcRecompression::Bc3), tr("BC3 (Medium quality)")},
          }});
     translations->insert({typeid(Settings::RendererBackend),
                           {
