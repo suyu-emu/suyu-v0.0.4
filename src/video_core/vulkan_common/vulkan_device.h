@@ -323,6 +323,11 @@ public:
         return properties.subgroup_size_control.requiredSubgroupSizeStages & stage;
     }
 
+    /// Returns true if the device supports the provided subgroup feature.
+    bool IsSubgroupFeatureSupported(VkSubgroupFeatureFlagBits feature) const {
+        return properties.subgroup_properties.supportedOperations & feature;
+    }
+
     /// Returns the maximum number of push descriptors.
     u32 MaxPushDescriptors() const {
         return properties.push_descriptor.maxPushDescriptors;
@@ -386,6 +391,11 @@ public:
     /// Returns true if VK_KHR_swapchain_mutable_format is enabled.
     bool IsKhrSwapchainMutableFormatEnabled() const {
         return extensions.swapchain_mutable_format;
+    }
+
+    /// Returns true if VK_KHR_shader_float_controls is enabled.
+    bool IsKhrShaderFloatControlsSupported() const {
+        return extensions.shader_float_controls;
     }
 
     /// Returns true if the device supports VK_KHR_workgroup_memory_explicit_layout.
@@ -485,6 +495,11 @@ public:
     /// Returns true if the device supports VK_EXT_shader_stencil_export.
     bool IsExtShaderStencilExportSupported() const {
         return extensions.shader_stencil_export;
+    }
+
+    /// Returns true if the device supports VK_EXT_shader_demote_to_helper_invocation
+    bool IsExtShaderDemoteToHelperInvocationSupported() const {
+        return extensions.shader_demote_to_helper_invocation;
     }
 
     /// Returns true if the device supports VK_EXT_conservative_rasterization.
@@ -684,6 +699,7 @@ private:
 
     struct Properties {
         VkPhysicalDeviceDriverProperties driver{};
+        VkPhysicalDeviceSubgroupProperties subgroup_properties{};
         VkPhysicalDeviceFloatControlsProperties float_controls{};
         VkPhysicalDevicePushDescriptorPropertiesKHR push_descriptor{};
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};

@@ -905,6 +905,10 @@ bool Device::GetSuitability(bool requires_swapchain) {
     properties.driver.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
     SetNext(next, properties.driver);
 
+    // Retrieve subgroup properties.
+    properties.subgroup_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;
+    SetNext(next, properties.subgroup_properties);
+
     // Retrieve relevant extension properties.
     if (extensions.shader_float_controls) {
         properties.float_controls.sType =
