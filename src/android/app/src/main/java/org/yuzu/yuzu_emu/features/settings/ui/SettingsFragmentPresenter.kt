@@ -68,6 +68,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             Settings.SECTION_RENDERER -> addGraphicsSettings(sl)
             Settings.SECTION_AUDIO -> addAudioSettings(sl)
             Settings.SECTION_THEME -> addThemeSettings(sl)
+            Settings.SECTION_DEBUG -> addDebugSettings(sl)
             else -> {
                 fragmentView.showToastMessage("Unimplemented menu", false)
                 return
@@ -78,11 +79,10 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addConfigSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_advanced_settings))
+        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.advanced_settings))
         sl.apply {
             add(
                 SubmenuSetting(
-                    null,
                     R.string.preferences_general,
                     0,
                     Settings.SECTION_GENERAL
@@ -90,7 +90,6 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             )
             add(
                 SubmenuSetting(
-                    null,
                     R.string.preferences_system,
                     0,
                     Settings.SECTION_SYSTEM
@@ -98,7 +97,6 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             )
             add(
                 SubmenuSetting(
-                    null,
                     R.string.preferences_graphics,
                     0,
                     Settings.SECTION_RENDERER
@@ -106,10 +104,16 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             )
             add(
                 SubmenuSetting(
-                    null,
                     R.string.preferences_audio,
                     0,
                     Settings.SECTION_AUDIO
+                )
+            )
+            add(
+                SubmenuSetting(
+                    R.string.preferences_debug,
+                    0,
+                    Settings.SECTION_DEBUG
                 )
             )
             add(
@@ -223,17 +227,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
         settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_graphics))
         sl.apply {
-            add(
-                SingleChoiceSetting(
-                    IntSetting.RENDERER_BACKEND,
-                    R.string.renderer_api,
-                    0,
-                    R.array.rendererApiNames,
-                    R.array.rendererApiValues,
-                    IntSetting.RENDERER_BACKEND.key,
-                    IntSetting.RENDERER_BACKEND.defaultValue
-                )
-            )
+
             add(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_ACCURACY,
@@ -325,15 +319,6 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_asynchronous_shaders_description,
                     IntSetting.RENDERER_ASYNCHRONOUS_SHADERS.key,
                     IntSetting.RENDERER_ASYNCHRONOUS_SHADERS.defaultValue
-                )
-            )
-            add(
-                SwitchSetting(
-                    IntSetting.RENDERER_DEBUG,
-                    R.string.renderer_debug,
-                    R.string.renderer_debug_description,
-                    IntSetting.RENDERER_DEBUG.key,
-                    IntSetting.RENDERER_DEBUG.defaultValue
                 )
             )
         }
@@ -447,6 +432,32 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     blackBackgrounds,
                     R.string.use_black_backgrounds,
                     R.string.use_black_backgrounds_description
+                )
+            )
+        }
+    }
+
+    private fun addDebugSettings(sl: ArrayList<SettingsItem>) {
+        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_debug))
+        sl.apply {
+            add(
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_BACKEND,
+                    R.string.renderer_api,
+                    0,
+                    R.array.rendererApiNames,
+                    R.array.rendererApiValues,
+                    IntSetting.RENDERER_BACKEND.key,
+                    IntSetting.RENDERER_BACKEND.defaultValue
+                )
+            )
+            add(
+                SwitchSetting(
+                    IntSetting.RENDERER_DEBUG,
+                    R.string.renderer_debug,
+                    R.string.renderer_debug_description,
+                    IntSetting.RENDERER_DEBUG.key,
+                    IntSetting.RENDERER_DEBUG.defaultValue
                 )
             )
         }

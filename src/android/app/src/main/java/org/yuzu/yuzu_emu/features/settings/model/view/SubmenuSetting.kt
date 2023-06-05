@@ -6,10 +6,9 @@ package org.yuzu.yuzu_emu.features.settings.model.view
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 
 class SubmenuSetting(
-    setting: AbstractSetting?,
     titleId: Int,
     descriptionId: Int,
     val menuKey: String
-) : SettingsItem(setting, titleId, descriptionId) {
+) : SettingsItem(null, titleId, descriptionId) {
     override val type = TYPE_SUBMENU
 }
