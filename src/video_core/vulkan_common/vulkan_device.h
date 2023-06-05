@@ -523,7 +523,7 @@ public:
 
     /// Returns true when a known debugging tool is attached.
     bool HasDebuggingToolAttached() const {
-        return has_renderdoc || has_nsight_graphics || Settings::values.renderer_debug.GetValue();
+        return has_renderdoc || has_nsight_graphics;
     }
 
     /// @returns True if compute pipelines can cause crashing.
