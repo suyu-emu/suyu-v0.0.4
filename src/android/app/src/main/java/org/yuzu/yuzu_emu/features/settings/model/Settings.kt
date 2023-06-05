@@ -39,7 +39,7 @@ class Settings {
     val isEmpty: Boolean
         get() = sections.isEmpty()
 
-    fun loadSettings(view: SettingsActivityView) {
+    fun loadSettings(view: SettingsActivityView? = null) {
         sections = SettingsSectionMap()
         loadYuzuSettings(view)
         if (!TextUtils.isEmpty(gameId)) {
@@ -48,13 +48,13 @@ class Settings {
         isLoaded = true
     }
 
-    private fun loadYuzuSettings(view: SettingsActivityView) {
+    private fun loadYuzuSettings(view: SettingsActivityView?) {
         for ((fileName) in configFileSectionsMap) {
             sections.putAll(SettingsFile.readFile(fileName, view))
         }
     }
 
-    private fun loadCustomGameSettings(gameId: String, view: SettingsActivityView) {
+    private fun loadCustomGameSettings(gameId: String, view: SettingsActivityView?) {
         // Custom game settings
         mergeSections(SettingsFile.readCustomGameSettings(gameId, view))
     }

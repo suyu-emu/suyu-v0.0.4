@@ -37,7 +37,7 @@ object SettingsFile {
     private fun readFile(
         ini: File?,
         isCustomGame: Boolean,
-        view: SettingsActivityView?
+        view: SettingsActivityView? = null
     ): HashMap<String, SettingSection?> {
         val sections: HashMap<String, SettingSection?> = SettingsSectionMap()
         var reader: BufferedReader? = null
@@ -74,9 +74,12 @@ object SettingsFile {
         return sections
     }
 
-    fun readFile(fileName: String, view: SettingsActivityView): HashMap<String, SettingSection?> {
+    fun readFile(fileName: String, view: SettingsActivityView?): HashMap<String, SettingSection?> {
         return readFile(getSettingsFile(fileName), false, view)
     }
+
+    fun readFile(fileName: String): HashMap<String, SettingSection?> =
+        readFile(getSettingsFile(fileName), false)
 
     /**
      * Reads a given .ini file from disk and returns it as a HashMap of SettingSections, themselves
@@ -88,7 +91,7 @@ object SettingsFile {
      */
     fun readCustomGameSettings(
         gameId: String,
-        view: SettingsActivityView
+        view: SettingsActivityView?
     ): HashMap<String, SettingSection?> {
         return readFile(getCustomGameSettingsFile(gameId), true, view)
     }

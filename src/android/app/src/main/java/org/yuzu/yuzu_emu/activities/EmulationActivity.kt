@@ -21,6 +21,7 @@ import android.view.MotionEvent
 import android.view.Surface
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.getSystemService
 import androidx.core.view.WindowCompat
@@ -34,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.features.settings.model.SettingsViewModel
 import org.yuzu.yuzu_emu.fragments.EmulationFragment
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
@@ -60,6 +62,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     private lateinit var game: Game
 
+    private val settingsViewModel: SettingsViewModel by viewModels()
+
     override fun onDestroy() {
         stopForegroundService(this)
         super.onDestroy()
@@ -67,6 +71,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.setTheme(this)
+
+        settingsViewModel.settings.loadSettings()
 
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) {
