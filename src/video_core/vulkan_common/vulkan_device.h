@@ -588,6 +588,10 @@ public:
         return properties.properties.limits.maxVertexInputBindings;
     }
 
+    u32 GetMaxViewports() const {
+        return properties.properties.limits.maxViewports;
+    }
+
     bool SupportsConditionalBarriers() const {
         return supports_conditional_barriers;
     }

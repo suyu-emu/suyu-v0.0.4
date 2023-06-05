@@ -925,7 +925,7 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
     }
     const bool is_rescaling{texture_cache.IsRescaling()};
     const float scale = is_rescaling ? Settings::values.resolution_info.up_factor : 1.0f;
-    const std::array viewports{
+    const std::array viewport_list{
         GetViewportState(device, regs, 0, scale),  GetViewportState(device, regs, 1, scale),
         GetViewportState(device, regs, 2, scale),  GetViewportState(device, regs, 3, scale),
         GetViewportState(device, regs, 4, scale),  GetViewportState(device, regs, 5, scale),
@@ -935,7 +935,11 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
         GetViewportState(device, regs, 12, scale), GetViewportState(device, regs, 13, scale),
         GetViewportState(device, regs, 14, scale), GetViewportState(device, regs, 15, scale),
     };
-    scheduler.Record([viewports](vk::CommandBuffer cmdbuf) { cmdbuf.SetViewport(0, viewports); });
+    scheduler.Record([this, viewport_list](vk::CommandBuffer cmdbuf) {
+        const u32 num_viewports = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
+        const vk::Span<VkViewport> viewports(viewport_list.data(), num_viewports);
+        cmdbuf.SetViewport(0, viewports);
+    });
 }
 
 void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs) {
@@ -948,7 +952,7 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         up_scale = Settings::values.resolution_info.up_scale;
         down_shift = Settings::values.resolution_info.down_shift;
     }
-    const std::array scissors{
+    const std::array scissor_list{
         GetScissorState(regs, 0, up_scale, down_shift),
         GetScissorState(regs, 1, up_scale, down_shift),
         GetScissorState(regs, 2, up_scale, down_shift),
@@ -966,7 +970,11 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         GetScissorState(regs, 14, up_scale, down_shift),
         GetScissorState(regs, 15, up_scale, down_shift),
     };
-    scheduler.Record([scissors](vk::CommandBuffer cmdbuf) { cmdbuf.SetScissor(0, scissors); });
+    scheduler.Record([this, scissor_list](vk::CommandBuffer cmdbuf) {
+        const u32 num_scissors = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
+        const vk::Span<VkRect2D> scissors(scissor_list.data(), num_scissors);
+        cmdbuf.SetScissor(0, scissors);
+    });
 }
 
 void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
