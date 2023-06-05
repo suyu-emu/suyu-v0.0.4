@@ -68,7 +68,7 @@ ConfigureSystem::ConfigureSystem(
         }
     });
 
-    const auto locale_check = [this](int index) {
+    const auto locale_check = [this]() {
         const auto region_index = combo_region->currentIndex();
         const auto language_index = combo_language->currentIndex();
         const bool valid_locale = IsValidLocale(region_index, language_index);
@@ -83,6 +83,9 @@ ConfigureSystem::ConfigureSystem(
 
     connect(combo_language, qOverload<int>(&QComboBox::currentIndexChanged), this, locale_check);
     connect(combo_region, qOverload<int>(&QComboBox::currentIndexChanged), this, locale_check);
+
+    ui->label_warn_invalid_locale->setVisible(false);
+    locale_check();
 
     SetConfiguration();
 }
