@@ -1,22 +1,24 @@
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.yuzu.yuzu_emu.fragments
 
 import android.app.Dialog
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.model.TaskViewModel
-import java.io.Serializable
 
 
 class IndeterminateProgressDialogFragment : DialogFragment() {
-    private lateinit var taskViewModel: TaskViewModel
+    private val taskViewModel: TaskViewModel by activityViewModels()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        taskViewModel = ViewModelProvider(requireActivity())[TaskViewModel::class.java]
-
         val titleId = requireArguments().getInt(TITLE)
 
         val progressBinding = DialogProgressBarBinding.inflate(layoutInflater)
@@ -42,11 +44,7 @@ class IndeterminateProgressDialogFragment : DialogFragment() {
         }
 
         if (taskViewModel.isRunning.value == false) {
-            val task = requireArguments().getSerializable(TASK) as? () -> Any
-            if (task != null) {
-                taskViewModel.task = task
-                taskViewModel.runTask()
-            }
+            taskViewModel.runTask()
         }
         return dialog
     }
@@ -55,16 +53,16 @@ class IndeterminateProgressDialogFragment : DialogFragment() {
         const val TAG = "IndeterminateProgressDialogFragment"
 
         private const val TITLE = "Title"
-        private const val TASK = "Task"
 
         fun newInstance(
+            activity: AppCompatActivity,
             titleId: Int,
             task: () -> Any
         ): IndeterminateProgressDialogFragment {
             val dialog = IndeterminateProgressDialogFragment()
             val args = Bundle()
+            ViewModelProvider(activity)[TaskViewModel::class.java].task = task
             args.putInt(TITLE, titleId)
-            args.putSerializable(TASK, task as Serializable)
             dialog.arguments = args
             return dialog
         }

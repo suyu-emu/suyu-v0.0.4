@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.yuzu.yuzu_emu.model
 
 import androidx.lifecycle.LiveData
@@ -30,7 +33,9 @@ class TaskViewModel : ViewModel() {
     }
 
     fun runTask() {
-        if (_isRunning.value == true) return
+        if (_isRunning.value == true) {
+            return
+        }
         _isRunning.value = true
 
         viewModelScope.launch(Dispatchers.IO) {

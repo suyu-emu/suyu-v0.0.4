@@ -345,15 +345,15 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     FileUtil.unzip(inputZip, cacheFirmwareDir)
                     val unfilteredNumOfFiles = cacheFirmwareDir.list()?.size ?: -1
                     val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
-                    if (unfilteredNumOfFiles != filteredNumOfFiles) {
-                        messageToShow = MessageDialogFragment.newInstance(
+                    messageToShow = if (unfilteredNumOfFiles != filteredNumOfFiles) {
+                        MessageDialogFragment.newInstance(
                             R.string.firmware_installed_failure,
                             R.string.firmware_installed_failure_description
                         )
                     } else {
                         firmwarePath.deleteRecursively()
                         cacheFirmwareDir.copyRecursively(firmwarePath, true)
-                        messageToShow = getString(R.string.save_file_imported_success)
+                        getString(R.string.save_file_imported_success)
                     }
                 } catch (e: Exception) {
                     messageToShow = getString(R.string.fatal_error)
@@ -364,6 +364,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             }
 
             IndeterminateProgressDialogFragment.newInstance(
+                this,
                 R.string.firmware_installing,
                 task
             ).show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)

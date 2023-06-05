@@ -275,7 +275,8 @@ class HomeSettingsFragment : Fragment() {
 
     private fun shareLog() {
         val file = DocumentFile.fromSingleUri(
-            mainActivity, DocumentsContract.buildDocumentUri(
+            mainActivity,
+            DocumentsContract.buildDocumentUri(
                 DocumentProvider.AUTHORITY,
                 "${DocumentProvider.ROOT_ID}/log/yuzu_log.txt"
             )
@@ -287,7 +288,11 @@ class HomeSettingsFragment : Fragment() {
                 .putExtra(Intent.EXTRA_STREAM, file.uri)
             startActivity(Intent.createChooser(intent, "Share log"))
         } else {
-            Toast.makeText(requireContext(), getText(R.string.share_log_missing), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                getText(R.string.share_log_missing),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
