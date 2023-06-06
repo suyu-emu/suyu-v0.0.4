@@ -43,7 +43,7 @@ public:
            const QString& string = QStringLiteral(""));
     virtual ~Widget();
 
-    bool Valid();
+    bool Valid() const;
 
     [[nodiscard]] static QPushButton* CreateRestoreGlobalButton(bool using_global, QWidget* parent);
 
@@ -56,12 +56,16 @@ public:
     QDateTimeEdit* date_time_edit{};
 
 private:
+    void SetupComponent(const QString& label, std::function<void()>& load_func, bool managed,
+                        RequestType request, Settings::BasicSetting* other_setting);
+
     QLabel* CreateLabel(const QString& text);
     QHBoxLayout* CreateCheckBox(Settings::BasicSetting* bool_setting, const QString& label,
                                 std::function<void()>& load_func, bool managed);
 
-    void CreateCombobox(const QString& label, std::function<void()>& load_func, bool managed,
-                        Settings::BasicSetting* const other_setting = nullptr);
+    QWidget* CreateCombobox(std::function<std::string()>& serializer,
+                            std::function<void()>& restore_func,
+                            const std::function<void()>& touched);
     void CreateLineEdit(const QString& label, std::function<void()>& load_func, bool managed,
                         Settings::BasicSetting* const other_setting = nullptr);
     void CreateHexEdit(const QString& label, std::function<void()>& load_func, bool managed,

@@ -115,23 +115,18 @@ QHBoxLayout* Widget::CreateCheckBox(Settings::BasicSetting* bool_setting, const 
     return layout;
 }
 
-void Widget::CreateCombobox(const QString& label, std::function<void()>& load_func, bool managed,
-                            Settings::BasicSetting* const other_setting) {
-    created = true;
-
+QWidget* Widget::CreateCombobox(std::function<std::string()>& serializer,
+                                std::function<void()>& restore_func,
+                                const std::function<void()>& touched) {
     const auto type = setting.TypeId();
 
-    QLayout* layout = new QHBoxLayout(this);
-
-    QLabel* qt_label = CreateLabel(label);
     combobox = new QComboBox(this);
     combobox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
-    layout->addWidget(qt_label);
-    layout->addWidget(combobox);
-
-    layout->setSpacing(6);
-    layout->setContentsMargins(0, 0, 0, 0);
+    if (!Settings::IsConfiguringGlobal()) {
+        QObject::connect(combobox, QOverload<int>::of(&QComboBox::activated),
+                         [touched]() { touched(); });
+    }
 
     const ComboboxTranslations* enumeration{nullptr};
     if (combobox_enumerations.contains(type)) {
@@ -139,10 +134,8 @@ void Widget::CreateCombobox(const QString& label, std::function<void()>& load_fu
         for (const auto& [id, name] : *enumeration) {
             combobox->addItem(name);
         }
-    }
-
-    if (!managed || enumeration == nullptr) {
-        return;
+    } else {
+        return combobox;
     }
 
     const auto find_index = [=](u32 value) -> int {
@@ -157,37 +150,17 @@ void Widget::CreateCombobox(const QString& label, std::function<void()>& load_fu
     const u32 setting_value = std::stoi(setting.ToString());
     combobox->setCurrentIndex(find_index(setting_value));
 
-    if (Settings::IsConfiguringGlobal()) {
-        load_func = [=]() {
-            int current = combobox->currentIndex();
-            setting.LoadString(std::to_string(enumeration->at(current).first));
-        };
-    } else {
-        restore_button = CreateRestoreGlobalButton(setting.UsingGlobal(), this);
-        layout->addWidget(restore_button);
+    serializer = [this, enumeration]() {
+        int current = combobox->currentIndex();
+        return std::to_string(enumeration->at(current).first);
+    };
 
-        QObject::connect(restore_button, &QAbstractButton::clicked, [=](bool) {
-            restore_button->setEnabled(false);
-            restore_button->setVisible(false);
+    restore_func = [this, find_index]() {
+        const u32 global_value = std::stoi(setting.ToStringGlobal());
+        combobox->setCurrentIndex(find_index(global_value));
+    };
 
-            const u32 global_value = std::stoi(setting.ToStringGlobal());
-            combobox->setCurrentIndex(find_index(global_value));
-        });
-
-        QObject::connect(combobox, QOverload<int>::of(&QComboBox::activated), [=](int) {
-            restore_button->setEnabled(true);
-            restore_button->setVisible(true);
-        });
-
-        load_func = [=]() {
-            bool using_global = !restore_button->isEnabled();
-            setting.SetGlobal(using_global);
-            if (!using_global) {
-                int current = combobox->currentIndex();
-                setting.LoadString(std::to_string(enumeration->at(current).first));
-            }
-        };
-    }
+    return combobox;
 }
 
 void Widget::CreateLineEdit(const QString& label, std::function<void()>& load_func, bool managed,
@@ -542,7 +515,99 @@ void Widget::CreateDateTimeEdit(const QString& label, std::function<void()>& loa
     }
 }
 
-bool Widget::Valid() {
+void Widget::SetupComponent(const QString& label, std::function<void()>& load_func, bool managed,
+                            RequestType request, Settings::BasicSetting* other_setting) {
+    created = true;
+    const auto type = setting.TypeId();
+
+    QLayout* layout = new QHBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+
+    const bool require_checkbox =
+        other_setting != nullptr && other_setting->TypeId() == typeid(bool);
+
+    if (other_setting != nullptr && other_setting->TypeId() != typeid(bool)) {
+        LOG_WARNING(Frontend,
+                    "Extra setting specified but is not bool, refusing to create checkbox for it.");
+    }
+
+    if (require_checkbox) {
+    } else {
+        QLabel* qt_label = CreateLabel(label);
+        layout->addWidget(qt_label);
+    }
+
+    std::function<void()> touched = []() {};
+    std::function<std::string()> serializer = []() -> std::string { return {}; };
+    std::function<void()> restore_func = []() {};
+
+    QWidget* data_component{nullptr};
+
+    if (!Settings::IsConfiguringGlobal()) {
+        restore_button = CreateRestoreGlobalButton(setting.UsingGlobal(), this);
+
+        touched = [this]() {
+            restore_button->setEnabled(true);
+            restore_button->setVisible(true);
+        };
+    }
+
+    if (setting.IsEnum()) {
+        data_component = CreateCombobox(serializer, restore_func, touched);
+    } else if (type == typeid(u32) || type == typeid(int) || type == typeid(u16) ||
+               type == typeid(s64) || type == typeid(u8)) {
+        switch (request) {
+        case RequestType::ComboBox:
+            data_component = CreateCombobox(serializer, restore_func, touched);
+            break;
+        default:
+            UNIMPLEMENTED();
+        }
+    } else if (type == typeid(std::string)) {
+        switch (request) {
+        case RequestType::ComboBox:
+            data_component = CreateCombobox(serializer, restore_func, touched);
+            break;
+        default:
+            UNIMPLEMENTED();
+        }
+    }
+
+    if (data_component == nullptr) {
+        LOG_ERROR(Frontend, "Failed to create widget for {}", setting.GetLabel());
+        created = false;
+        return;
+    }
+
+    layout->addWidget(data_component);
+
+    if (!managed) {
+        return;
+    }
+
+    if (Settings::IsConfiguringGlobal()) {
+        load_func = [this, serializer]() { setting.LoadString(serializer()); };
+    } else {
+        layout->addWidget(restore_button);
+
+        QObject::connect(restore_button, &QAbstractButton::clicked, [this, restore_func](bool) {
+            restore_button->setEnabled(false);
+            restore_button->setVisible(false);
+
+            restore_func();
+        });
+
+        load_func = [this, serializer]() {
+            bool using_global = !restore_button->isEnabled();
+            setting.SetGlobal(using_global);
+            if (!using_global) {
+                setting.LoadString(serializer());
+            }
+        };
+    }
+}
+
+bool Widget::Valid() const {
     return created;
 }
 
@@ -584,7 +649,7 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
     if (type == typeid(bool)) {
         CreateCheckBox(&setting, label, load_func, managed);
     } else if (setting.IsEnum()) {
-        CreateCombobox(label, load_func, managed);
+        SetupComponent(label, load_func, managed, request, other_setting);
     } else if (type == typeid(u32) || type == typeid(int) || type == typeid(u16) ||
                type == typeid(s64) || type == typeid(u8)) {
         switch (request) {
@@ -598,7 +663,7 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
             CreateLineEdit(label, load_func, managed);
             break;
         case RequestType::ComboBox:
-            CreateCombobox(label, load_func, managed);
+            SetupComponent(label, load_func, managed, request, other_setting);
             break;
         case RequestType::DateTimeEdit:
             CreateDateTimeEdit(label, load_func, managed, true, other_setting);
@@ -620,7 +685,7 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
             CreateLineEdit(label, load_func, managed);
             break;
         case RequestType::ComboBox:
-            CreateCombobox(label, load_func, false);
+            SetupComponent(label, load_func, managed, request, other_setting);
             break;
         case RequestType::SpinBox:
         case RequestType::Slider:
