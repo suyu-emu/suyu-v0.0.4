@@ -14,6 +14,7 @@
 #include "common/common_types.h"
 #include "common/settings.h"
 
+using Settings::Category;
 using Settings::Setting;
 
 namespace UISettings {
@@ -58,6 +59,8 @@ struct GameDir {
 };
 
 struct Values {
+    Settings::Linkage linkage{};
+
     QByteArray geometry;
     QByteArray state;
 
@@ -66,33 +69,36 @@ struct Values {
     QByteArray gamelist_header_state;
 
     QByteArray microprofile_geometry;
-    Setting<bool> microprofile_visible{false, "microProfileDialogVisible"};
+    Setting<bool> microprofile_visible{linkage, false, "microProfileDialogVisible",
+                                       Category::UiLayout};
 
-    Setting<bool> single_window_mode{true, "singleWindowMode"};
-    Setting<bool> fullscreen{false, "fullscreen"};
-    Setting<bool> display_titlebar{true, "displayTitleBars"};
-    Setting<bool> show_filter_bar{true, "showFilterBar"};
-    Setting<bool> show_status_bar{true, "showStatusBar"};
+    Setting<bool> single_window_mode{linkage, true, "singleWindowMode", Category::Ui};
+    Setting<bool> fullscreen{linkage, false, "fullscreen", Category::Ui};
+    Setting<bool> display_titlebar{linkage, true, "displayTitleBars", Category::Ui};
+    Setting<bool> show_filter_bar{linkage, true, "showFilterBar", Category::Ui};
+    Setting<bool> show_status_bar{linkage, true, "showStatusBar", Category::Ui};
 
-    Setting<bool> confirm_before_closing{true, "confirmClose"};
-    Setting<bool> first_start{true, "firstStart"};
-    Setting<bool> pause_when_in_background{false, "pauseWhenInBackground"};
-    Setting<bool> mute_when_in_background{false, "muteWhenInBackground"};
-    Setting<bool> hide_mouse{true, "hideInactiveMouse"};
-    Setting<bool> controller_applet_disabled{false, "disableControllerApplet"};
+    Setting<bool> confirm_before_closing{linkage, true, "confirmClose", Category::Ui};
+    Setting<bool> first_start{linkage, true, "firstStart", Category::Ui};
+    Setting<bool> pause_when_in_background{linkage, false, "pauseWhenInBackground", Category::Ui};
+    Setting<bool> mute_when_in_background{linkage, false, "muteWhenInBackground", Category::Ui};
+    Setting<bool> hide_mouse{linkage, true, "hideInactiveMouse", Category::Ui};
+    Setting<bool> controller_applet_disabled{linkage, false, "disableControllerApplet",
+                                             Category::Ui};
     // Set when Vulkan is known to crash the application
     bool has_broken_vulkan = false;
 
-    Setting<bool> select_user_on_boot{false, "select_user_on_boot"};
-    Setting<bool> disable_web_applet{true, "disable_web_applet"};
+    Setting<bool> select_user_on_boot{linkage, false, "select_user_on_boot", Category::Ui};
+    Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Ui};
 
     // Discord RPC
-    Setting<bool> enable_discord_presence{true, "enable_discord_presence"};
+    Setting<bool> enable_discord_presence{linkage, true, "enable_discord_presence", Category::Ui};
 
     // logging
-    Setting<bool> show_console{false, "showConsole"};
+    Setting<bool> show_console{linkage, false, "showConsole", Category::Ui};
 
-    Setting<bool> enable_screenshot_save_as{true, "enable_screenshot_save_as"};
+    Setting<bool> enable_screenshot_save_as{linkage, true, "enable_screenshot_save_as",
+                                            Category::Screenshots};
 
     QString roms_path;
     QString symbols_path;
@@ -107,38 +113,42 @@ struct Values {
     // Shortcut name <Shortcut, context>
     std::vector<Shortcut> shortcuts;
 
-    Setting<u32> callout_flags{0, "calloutFlags"};
+    Setting<u32> callout_flags{linkage, 0, "calloutFlags", Category::Ui};
 
     // multiplayer settings
-    Setting<std::string> multiplayer_nickname{{}, "nickname"};
-    Setting<std::string> multiplayer_ip{{}, "ip"};
-    Setting<u16, true> multiplayer_port{24872, 0, UINT16_MAX, "port"};
-    Setting<std::string> multiplayer_room_nickname{{}, "room_nickname"};
-    Setting<std::string> multiplayer_room_name{{}, "room_name"};
-    Setting<u8, true> multiplayer_max_player{8, 0, 8, "max_player"};
-    Setting<u16, true> multiplayer_room_port{24872, 0, UINT16_MAX, "room_port"};
-    Setting<u8, true> multiplayer_host_type{0, 0, 1, "host_type"};
-    Setting<unsigned long long> multiplayer_game_id{{}, "game_id"};
-    Setting<std::string> multiplayer_room_description{{}, "room_description"};
+    Setting<std::string> multiplayer_nickname{linkage, {}, "nickname", Category::Multiplayer};
+    Setting<std::string> multiplayer_ip{linkage, {}, "ip", Category::Multiplayer};
+    Setting<u16, true> multiplayer_port{linkage,    24872,  0,
+                                        UINT16_MAX, "port", Category::Multiplayer};
+    Setting<std::string> multiplayer_room_nickname{
+        linkage, {}, "room_nickname", Category::Multiplayer};
+    Setting<std::string> multiplayer_room_name{linkage, {}, "room_name", Category::Multiplayer};
+    Setting<u8, true> multiplayer_max_player{linkage, 8, 0, 8, "max_player", Category::Multiplayer};
+    Setting<u16, true> multiplayer_room_port{linkage,    24872,       0,
+                                             UINT16_MAX, "room_port", Category::Multiplayer};
+    Setting<u8, true> multiplayer_host_type{linkage, 0, 0, 1, "host_type", Category::Multiplayer};
+    Setting<unsigned long long> multiplayer_game_id{linkage, {}, "game_id", Category::Multiplayer};
+    Setting<std::string> multiplayer_room_description{
+        linkage, {}, "room_description", Category::Multiplayer};
     std::pair<std::vector<std::string>, std::vector<std::string>> multiplayer_ban_list;
 
     // Game List
-    Setting<bool> show_add_ons{true, "show_add_ons"};
-    Setting<u32> game_icon_size{64, "game_icon_size"};
-    Setting<u32> folder_icon_size{48, "folder_icon_size"};
-    Setting<u8> row_1_text_id{3, "row_1_text_id"};
-    Setting<u8> row_2_text_id{2, "row_2_text_id"};
+    Setting<bool> show_add_ons{linkage, true, "show_add_ons", Category::UiGameList};
+    Setting<u32> game_icon_size{linkage, 64, "game_icon_size", Category::UiGameList};
+    Setting<u32> folder_icon_size{linkage, 48, "folder_icon_size", Category::UiGameList};
+    Setting<u8> row_1_text_id{linkage, 3, "row_1_text_id", Category::UiGameList};
+    Setting<u8> row_2_text_id{linkage, 2, "row_2_text_id", Category::UiGameList};
     std::atomic_bool is_game_list_reload_pending{false};
-    Setting<bool> cache_game_list{true, "cache_game_list"};
-    Setting<bool> favorites_expanded{true, "favorites_expanded"};
+    Setting<bool> cache_game_list{linkage, true, "cache_game_list", Category::UiGameList};
+    Setting<bool> favorites_expanded{linkage, true, "favorites_expanded", Category::UiGameList};
     QVector<u64> favorited_ids;
 
     // Compatibility List
-    Setting<bool> show_compat{false, "show_compat"};
+    Setting<bool> show_compat{linkage, false, "show_compat", Category::UiGameList};
 
     // Size & File Types Column
-    Setting<bool> show_size{true, "show_size"};
-    Setting<bool> show_types{true, "show_types"};
+    Setting<bool> show_size{linkage, true, "show_size", Category::UiGameList};
+    Setting<bool> show_types{linkage, true, "show_types", Category::UiGameList};
 
     bool configuration_applied;
     bool reset_to_defaults;

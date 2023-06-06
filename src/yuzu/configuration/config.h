@@ -74,7 +74,6 @@ private:
     void ReadKeyboardValues();
     void ReadMouseValues();
     void ReadTouchscreenValues();
-    void ReadMousePanningValues();
     void ReadMotionTouchValues();
     void ReadHidbusValues();
     void ReadIrCameraValues();
@@ -105,7 +104,6 @@ private:
     void SaveDebugValues();
     void SaveMouseValues();
     void SaveTouchscreenValues();
-    void SaveMousePanningValues();
     void SaveMotionTouchValues();
     void SaveHidbusValues();
     void SaveIrCameraValues();
@@ -201,10 +199,17 @@ private:
     template <typename Type, bool ranged>
     void WriteBasicSetting(const Settings::Setting<Type, ranged>& setting);
 
-    ConfigType type;
+    void ReadCategory(Settings::Category category);
+    void WriteCategory(Settings::Category category);
+    void ReadSettingGeneric(Settings::BasicSetting* const setting);
+    void WriteSettingGeneric(Settings::BasicSetting* const setting) const;
+
+    std::map<Settings::Category, std::forward_list<Settings::BasicSetting*>> settings_map;
+
+    const ConfigType type;
     std::unique_ptr<QSettings> qt_config;
     std::string qt_config_loc;
-    bool global;
+    const bool global;
 };
 
 // These metatype declarations cannot be in common/settings.h because core is devoid of QT

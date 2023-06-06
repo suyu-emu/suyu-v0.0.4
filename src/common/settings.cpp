@@ -144,6 +144,56 @@ float Volume() {
     return values.volume.GetValue() / static_cast<f32>(values.volume.GetDefault());
 }
 
+const char* TranslateCategory(Category category) {
+    switch (category) {
+    case Category::Audio:
+        return "Audio";
+    case Category::Core:
+        return "Core";
+    case Category::Cpu:
+        return "Cpu";
+    case Category::Renderer:
+        return "Renderer";
+    case Category::System:
+        return "System";
+    case Category::DataStorage:
+        return "Data Storage";
+    case Category::Debugging:
+        return "Debugging";
+    case Category::Miscellaneous:
+        return "Miscellaneous";
+    case Category::Network:
+        return "Network";
+    case Category::WebService:
+        return "WebService";
+    case Category::AddOns:
+        return "DisabledAddOns";
+    case Category::Controls:
+        return "Controls";
+    case Category::Ui:
+        return "UI";
+    case Category::UiLayout:
+        return "UiLayout";
+    case Category::UiGameList:
+        return "UiGameList";
+    case Category::Screenshots:
+        return "Screenshots";
+    case Category::Shortcuts:
+        return "Shortcuts";
+    case Category::Multiplayer:
+        return "Multiplayer";
+    case Category::Services:
+        return "Services";
+    case Category::Paths:
+        return "Paths";
+    case Category::MaxEnum:
+        break;
+    case Category::AdvancedGraphics:
+        return "Renderer";
+    }
+    return "Miscellaneous";
+}
+
 void UpdateRescalingInfo() {
     const auto setup = values.resolution_setup.GetValue();
     auto& info = values.resolution_info;
@@ -212,7 +262,7 @@ void RestoreGlobalState(bool is_powered_on) {
         return;
     }
 
-    for (const auto& reset : global_reset_registry) {
+    for (const auto& reset : values.linkage.restore_functions) {
         reset();
     }
 }

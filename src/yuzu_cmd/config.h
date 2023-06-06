@@ -34,4 +34,5 @@ private:
      */
     template <typename Type, bool ranged>
     void ReadSetting(const std::string& group, Settings::Setting<Type, ranged>& setting);
+    void ReadCategory(Settings::Category category);
 };
