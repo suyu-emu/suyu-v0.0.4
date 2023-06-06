@@ -85,7 +85,6 @@
 
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
-    EXTENSION_NAME(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME)                                             \
     EXTENSION_NAME(VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME)                                 \
     EXTENSION_NAME(VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME)                                        \
     EXTENSION_NAME(VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME)                             \
@@ -106,6 +105,7 @@
     EXTENSION_NAME(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME)                                 \
     EXTENSION_NAME(VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME)                                       \
     EXTENSION_NAME(VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME)                               \
+    EXTENSION_NAME(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME)                                             \
     EXTENSION_NAME(VK_NV_GEOMETRY_SHADER_PASSTHROUGH_EXTENSION_NAME)                               \
     EXTENSION_NAME(VK_NV_VIEWPORT_ARRAY2_EXTENSION_NAME)                                           \
     EXTENSION_NAME(VK_NV_VIEWPORT_SWIZZLE_EXTENSION_NAME)
@@ -141,9 +141,6 @@
     FEATURE_NAME(features, vertexPipelineStoresAndAtomics)                                         \
     FEATURE_NAME(features, wideLines)                                                              \
     FEATURE_NAME(host_query_reset, hostQueryReset)                                                 \
-    FEATURE_NAME(robustness2, nullDescriptor)                                                      \
-    FEATURE_NAME(robustness2, robustBufferAccess2)                                                 \
-    FEATURE_NAME(robustness2, robustImageAccess2)                                                  \
     FEATURE_NAME(shader_demote_to_helper_invocation, shaderDemoteToHelperInvocation)               \
     FEATURE_NAME(shader_draw_parameters, shaderDrawParameters)                                     \
     FEATURE_NAME(variable_pointer, variablePointers)                                               \
@@ -158,6 +155,9 @@
     FEATURE_NAME(provoking_vertex, provokingVertexLast)                                            \
     FEATURE_NAME(shader_float16_int8, shaderFloat16)                                               \
     FEATURE_NAME(shader_float16_int8, shaderInt8)                                                  \
+    FEATURE_NAME(robustness2, nullDescriptor)                                                      \
+    FEATURE_NAME(robustness2, robustBufferAccess2)                                                 \
+    FEATURE_NAME(robustness2, robustImageAccess2)                                                  \
     FEATURE_NAME(timeline_semaphore, timelineSemaphore)                                            \
     FEATURE_NAME(transform_feedback, transformFeedback)                                            \
     FEATURE_NAME(uniform_buffer_standard_layout, uniformBufferStandardLayout)                      \
