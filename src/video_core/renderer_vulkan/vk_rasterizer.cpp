@@ -188,7 +188,14 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     FlushWork();
     gpu_memory->FlushCaching();
 
+#if ANDROID
+    if (Settings::IsGPULevelHigh()) {
+        // This is problematic on Android, disable on GPU Normal.
+        query_cache.UpdateCounters();
+    }
+#else
     query_cache.UpdateCounters();
+#endif
 
     GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
     if (!pipeline) {
@@ -272,7 +279,14 @@ void RasterizerVulkan::DrawTexture() {
     SCOPE_EXIT({ gpu.TickWork(); });
     FlushWork();
 
+#if ANDROID
+    if (Settings::IsGPULevelHigh()) {
+        // This is problematic on Android, disable on GPU Normal.
+        query_cache.UpdateCounters();
+    }
+#else
     query_cache.UpdateCounters();
+#endif
 
     texture_cache.SynchronizeGraphicsDescriptors();
     texture_cache.UpdateRenderTargets(false);
@@ -743,7 +757,11 @@ void RasterizerVulkan::LoadDiskResources(u64 title_id, std::stop_token stop_load
 }
 
 void RasterizerVulkan::FlushWork() {
+#ifdef ANDROID
+    static constexpr u32 DRAWS_TO_DISPATCH = 1024;
+#else
     static constexpr u32 DRAWS_TO_DISPATCH = 4096;
+#endif // ANDROID
 
     // Only check multiples of 8 draws
     static_assert(DRAWS_TO_DISPATCH % 8 == 0);

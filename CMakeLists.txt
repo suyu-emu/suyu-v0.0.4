@@ -11,6 +11,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modul
 include(DownloadExternals)
 include(CMakeDependentOption)
 include(CTest)
+include(FetchContent)
 
 # Set bundled sdl2/qt as dependent options.
 # OFF by default, but if ENABLE_SDL2 and MSVC are true then ON
@@ -19,7 +20,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" ON
 # On Linux system SDL2 is likely to be lacking HIDAPI support which have drawbacks but is needed for SDL motion
 CMAKE_DEPENDENT_OPTION(YUZU_USE_EXTERNAL_SDL2 "Compile external SDL2" ON "ENABLE_SDL2;NOT MSVC" OFF)
 
-option(ENABLE_LIBUSB "Enable the use of LibUSB" ON)
+cmake_dependent_option(ENABLE_LIBUSB "Enable the use of LibUSB" ON "NOT ANDROID" OFF)
 
 option(ENABLE_OPENGL "Enable OpenGL" ON)
 mark_as_advanced(FORCE ENABLE_OPENGL)
@@ -48,7 +49,7 @@ option(YUZU_TESTS "Compile tests" "${BUILD_TESTING}")
 
 option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
 
-option(YUZU_ROOM "Compile LDN room server" ON)
+cmake_dependent_option(YUZU_ROOM "Compile LDN room server" ON "NOT ANDROID" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile Windows crash dump (Minidump) support" OFF "WIN32" OFF)
 
@@ -60,7 +61,67 @@ option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "NOT WIN32" OFF)
 
+# On Android, fetch and compile libcxx before doing anything else
+if (ANDROID)
+    set(CMAKE_SKIP_INSTALL_RULES ON)
+    set(LLVM_VERSION "15.0.6")
+
+    # Note: even though libcxx and libcxxabi have separate releases on the project page,
+    # the separated releases cannot be compiled. Only in-tree builds work. Therefore we
+    # must fetch the source release for the entire llvm tree.
+    FetchContent_Declare(llvm
+        URL "https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.src.tar.xz"
+        URL_HASH SHA256=9d53ad04dc60cb7b30e810faf64c5ab8157dadef46c8766f67f286238256ff92
+        TLS_VERIFY TRUE
+    )
+    FetchContent_MakeAvailable(llvm)
+
+    # libcxx has support for most of the range library, but it's gated behind a flag:
+    add_compile_definitions(_LIBCPP_ENABLE_EXPERIMENTAL)
+
+    # Disable standard header inclusion
+    set(ANDROID_STL "none")
+
+    # libcxxabi
+    set(LIBCXXABI_INCLUDE_TESTS OFF)
+    set(LIBCXXABI_ENABLE_SHARED FALSE)
+    set(LIBCXXABI_ENABLE_STATIC TRUE)
+    set(LIBCXXABI_LIBCXX_INCLUDES "${LIBCXX_TARGET_INCLUDE_DIRECTORY}" CACHE STRING "" FORCE)
+    add_subdirectory("${llvm_SOURCE_DIR}/libcxxabi" "${llvm_BINARY_DIR}/libcxxabi")
+    link_libraries(cxxabi_static)
+
+    # libcxx
+    set(LIBCXX_ABI_NAMESPACE "__ndk1" CACHE STRING "" FORCE)
+    set(LIBCXX_CXX_ABI "libcxxabi")
+    set(LIBCXX_INCLUDE_TESTS OFF)
+    set(LIBCXX_INCLUDE_BENCHMARKS OFF)
+    set(LIBCXX_INCLUDE_DOCS OFF)
+    set(LIBCXX_ENABLE_SHARED FALSE)
+    set(LIBCXX_ENABLE_STATIC TRUE)
+    set(LIBCXX_ENABLE_ASSERTIONS FALSE)
+    add_subdirectory("${llvm_SOURCE_DIR}/libcxx" "${llvm_BINARY_DIR}/libcxx")
+    set_target_properties(cxx-headers PROPERTIES INTERFACE_COMPILE_OPTIONS "-isystem${CMAKE_BINARY_DIR}/${LIBCXX_INSTALL_INCLUDE_DIR}")
+    link_libraries(cxx_static cxx-headers)
+endif()
+
 if (YUZU_USE_BUNDLED_VCPKG)
+    if (ANDROID)
+        set(ENV{ANDROID_NDK_HOME} "${ANDROID_NDK}")
+        list(APPEND VCPKG_MANIFEST_FEATURES "android")
+
+        if (CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
+            set(VCPKG_TARGET_TRIPLET "arm64-android")
+            # this is to avoid CMake using the host pkg-config to find the host
+            # libraries when building for Android targets
+            set(PKG_CONFIG_EXECUTABLE "aarch64-none-linux-android-pkg-config" CACHE FILEPATH "" FORCE)
+        elseif (CMAKE_ANDROID_ARCH_ABI STREQUAL "x86_64")
+            set(VCPKG_TARGET_TRIPLET "x64-android")
+            set(PKG_CONFIG_EXECUTABLE "x86_64-none-linux-android-pkg-config" CACHE FILEPATH "" FORCE)
+        else()
+            message(FATAL_ERROR "Unsupported Android architecture ${CMAKE_ANDROID_ARCH_ABI}")
+        endif()
+    endif()
+
     if (YUZU_TESTS)
         list(APPEND VCPKG_MANIFEST_FEATURES "yuzu-tests")
     endif()
@@ -457,7 +518,7 @@ set(FFmpeg_COMPONENTS
     avutil
     swscale)
 
-if (UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE AND NOT ANDROID)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(LIBVA libva)
 endif()

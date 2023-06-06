@@ -107,16 +107,17 @@ VkCompositeAlphaFlagBitsKHR ChooseAlphaFlags(const VkSurfaceCapabilitiesKHR& cap
 Swapchain::Swapchain(VkSurfaceKHR surface_, const Device& device_, Scheduler& scheduler_,
                      u32 width_, u32 height_, bool srgb)
     : surface{surface_}, device{device_}, scheduler{scheduler_} {
-    Create(width_, height_, srgb);
+    Create(surface_, width_, height_, srgb);
 }
 
 Swapchain::~Swapchain() = default;
 
-void Swapchain::Create(u32 width_, u32 height_, bool srgb) {
+void Swapchain::Create(VkSurfaceKHR surface_, u32 width_, u32 height_, bool srgb) {
     is_outdated = false;
     is_suboptimal = false;
     width = width_;
     height = height_;
+    surface = surface_;
 
     const auto physical_device = device.GetPhysical();
     const auto capabilities{physical_device.GetSurfaceCapabilitiesKHR(surface)};
@@ -266,7 +267,12 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, bo
 
     images = swapchain.GetImages();
     image_count = static_cast<u32>(images.size());
+#ifdef ANDROID
+    // Android is already ordered the same as Switch.
+    image_view_format = srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
+#else
     image_view_format = srgb ? VK_FORMAT_B8G8R8A8_SRGB : VK_FORMAT_B8G8R8A8_UNORM;
+#endif
 }
 
 void Swapchain::CreateSemaphores() {

@@ -515,8 +515,8 @@ void ConfigureGraphics::RetrieveVulkanDevices() try {
     auto wsi = QtCommon::GetWindowSystemInfo(window);
 
     vk::InstanceDispatch dld;
-    const Common::DynamicLibrary library = OpenLibrary();
-    const vk::Instance instance = CreateInstance(library, dld, VK_API_VERSION_1_1, wsi.type);
+    const auto library = OpenLibrary();
+    const vk::Instance instance = CreateInstance(*library, dld, VK_API_VERSION_1_1, wsi.type);
     const std::vector<VkPhysicalDevice> physical_devices = instance.EnumeratePhysicalDevices();
     vk::SurfaceKHR surface = CreateSurface(instance, wsi);
 

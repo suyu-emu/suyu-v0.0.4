@@ -193,6 +193,8 @@ void EmulatedController::LoadDevices() {
                            Common::Input::CreateInputDevice);
     std::ranges::transform(virtual_stick_params, virtual_stick_devices.begin(),
                            Common::Input::CreateInputDevice);
+    std::ranges::transform(virtual_motion_params, virtual_motion_devices.begin(),
+                           Common::Input::CreateInputDevice);
 }
 
 void EmulatedController::LoadTASParams() {
@@ -253,6 +255,12 @@ void EmulatedController::LoadVirtualGamepadParams() {
     for (auto& param : virtual_stick_params) {
         param = common_params;
     }
+    for (auto& param : virtual_stick_params) {
+        param = common_params;
+    }
+    for (auto& param : virtual_motion_params) {
+        param = common_params;
+    }
 
     // TODO(german77): Replace this with an input profile or something better
     virtual_button_params[Settings::NativeButton::A].Set("button", 0);
@@ -284,6 +292,9 @@ void EmulatedController::LoadVirtualGamepadParams() {
     virtual_stick_params[Settings::NativeAnalog::LStick].Set("range", 1.0f);
     virtual_stick_params[Settings::NativeAnalog::RStick].Set("deadzone", 0.0f);
     virtual_stick_params[Settings::NativeAnalog::RStick].Set("range", 1.0f);
+
+    virtual_motion_params[Settings::NativeMotion::MotionLeft].Set("motion", 0);
+    virtual_motion_params[Settings::NativeMotion::MotionRight].Set("motion", 0);
 }
 
 void EmulatedController::ReloadInput() {
@@ -463,6 +474,18 @@ void EmulatedController::ReloadInput() {
                 },
         });
     }
+
+    for (std::size_t index = 0; index < virtual_motion_devices.size(); ++index) {
+        if (!virtual_motion_devices[index]) {
+            continue;
+        }
+        virtual_motion_devices[index]->SetCallback({
+            .on_change =
+                [this, index](const Common::Input::CallbackStatus& callback) {
+                    SetMotion(callback, index);
+                },
+        });
+    }
     turbo_button_state = 0;
 }
 
@@ -499,6 +522,9 @@ void EmulatedController::UnloadInput() {
     }
     for (auto& stick : virtual_stick_devices) {
         stick.reset();
+    }
+    for (auto& motion : virtual_motion_devices) {
+        motion.reset();
     }
     for (auto& camera : camera_devices) {
         camera.reset();

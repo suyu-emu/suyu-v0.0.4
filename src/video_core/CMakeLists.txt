@@ -281,7 +281,7 @@ create_target_directory_groups(video_core)
 target_link_libraries(video_core PUBLIC common core)
 target_link_libraries(video_core PUBLIC glad shader_recompiler stb)
 
-if (YUZU_USE_BUNDLED_FFMPEG AND NOT WIN32)
+if (YUZU_USE_BUNDLED_FFMPEG AND NOT (WIN32 OR ANDROID))
     add_dependencies(video_core ffmpeg-build)
 endif()
 
@@ -344,4 +344,8 @@ endif()
 
 if (YUZU_ENABLE_LTO)
   set_property(TARGET video_core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
+if (ANDROID AND ARCHITECTURE_arm64)
+    target_link_libraries(video_core PRIVATE adrenotools)
 endif()

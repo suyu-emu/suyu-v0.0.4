@@ -6,8 +6,6 @@
 
 namespace Core::Frontend {
 
-GraphicsContext::~GraphicsContext() = default;
-
 EmuWindow::EmuWindow() {
     // TODO: Find a better place to set this.
     config.min_client_area_size =

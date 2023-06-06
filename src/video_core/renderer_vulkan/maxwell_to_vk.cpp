@@ -347,6 +347,14 @@ VkPrimitiveTopology PrimitiveTopology([[maybe_unused]] const Device& device,
 
 VkFormat VertexFormat(const Device& device, Maxwell::VertexAttribute::Type type,
                       Maxwell::VertexAttribute::Size size) {
+    if (device.MustEmulateScaledFormats()) {
+        if (type == Maxwell::VertexAttribute::Type::SScaled) {
+            type = Maxwell::VertexAttribute::Type::SInt;
+        } else if (type == Maxwell::VertexAttribute::Type::UScaled) {
+            type = Maxwell::VertexAttribute::Type::UInt;
+        }
+    }
+
     const VkFormat format{([&]() {
         switch (type) {
         case Maxwell::VertexAttribute::Type::UnusedEnumDoNotUseBecauseItWillGoAway:

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="game_title_lines">2</integer>
+
+    <!-- Default SWITCH landscape layout -->
+    <integer name="SWITCH_BUTTON_A_X">760</integer>
+    <integer name="SWITCH_BUTTON_A_Y">790</integer>
+    <integer name="SWITCH_BUTTON_B_X">710</integer>
+    <integer name="SWITCH_BUTTON_B_Y">900</integer>
+    <integer name="SWITCH_BUTTON_X_X">710</integer>
+    <integer name="SWITCH_BUTTON_X_Y">680</integer>
+    <integer name="SWITCH_BUTTON_Y_X">660</integer>
+    <integer name="SWITCH_BUTTON_Y_Y">790</integer>
+    <integer name="SWITCH_STICK_L_X">100</integer>
+    <integer name="SWITCH_STICK_L_Y">670</integer>
+    <integer name="SWITCH_STICK_R_X">900</integer>
+    <integer name="SWITCH_STICK_R_Y">670</integer>
+    <integer name="SWITCH_TRIGGER_L_X">70</integer>
+    <integer name="SWITCH_TRIGGER_L_Y">220</integer>
+    <integer name="SWITCH_TRIGGER_R_X">930</integer>
+    <integer name="SWITCH_TRIGGER_R_Y">220</integer>
+    <integer name="SWITCH_TRIGGER_ZL_X">70</integer>
+    <integer name="SWITCH_TRIGGER_ZL_Y">90</integer>
+    <integer name="SWITCH_TRIGGER_ZR_X">930</integer>
+    <integer name="SWITCH_TRIGGER_ZR_Y">90</integer>
+    <integer name="SWITCH_BUTTON_MINUS_X">460</integer>
+    <integer name="SWITCH_BUTTON_MINUS_Y">950</integer>
+    <integer name="SWITCH_BUTTON_PLUS_X">540</integer>
+    <integer name="SWITCH_BUTTON_PLUS_Y">950</integer>
+    <integer name="SWITCH_BUTTON_HOME_X">600</integer>
+    <integer name="SWITCH_BUTTON_HOME_Y">950</integer>
+    <integer name="SWITCH_BUTTON_CAPTURE_X">400</integer>
+    <integer name="SWITCH_BUTTON_CAPTURE_Y">950</integer>
+    <integer name="SWITCH_BUTTON_DPAD_X">260</integer>
+    <integer name="SWITCH_BUTTON_DPAD_Y">790</integer>
+
+</resources>

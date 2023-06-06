@@ -1,0 +1,866 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- General application strings -->
+    <string name="app_name" translatable="false">yuzu</string>
+    <string name="app_disclaimer">This software will run games for the Nintendo Switch game console. No game titles or keys are included.&lt;br /&gt;&lt;br /&gt;Before you begin, please locate your <![CDATA[<b> prod.keys </b>]]> file on your device storage.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href="https://yuzu-emu.org/help/quickstart">Learn more</a>]]></string>
+    <string name="emulation_notification_channel_name">Emulation is Active</string>
+    <string name="emulation_notification_channel_id" translatable="false">emulationIsActive</string>
+    <string name="emulation_notification_channel_description">Shows a persistent notification when emulation is running.</string>
+    <string name="emulation_notification_running">yuzu is running</string>
+    <string name="notice_notification_channel_name">Notices and errors</string>
+    <string name="notice_notification_channel_id" translatable="false">noticesAndErrors</string>
+    <string name="notice_notification_channel_description">Shows notifications when something goes wrong.</string>
+    <string name="notification_permission_not_granted">Notification permission not granted!</string>
+
+    <!-- Setup strings -->
+    <string name="welcome">Welcome!</string>
+    <string name="welcome_description">Learn how to setup &lt;b>yuzu&lt;/b> and jump into emulation.</string>
+    <string name="get_started">Get started</string>
+    <string name="keys">Keys</string>
+    <string name="keys_description">Select your &lt;b>prod.keys&lt;/b> file with the button below.</string>
+    <string name="select_keys">Select Keys</string>
+    <string name="games">Games</string>
+    <string name="games_description">Select your &lt;b>Games&lt;/b> folder with the button below.</string>
+    <string name="done">Done</string>
+    <string name="done_description">You\'re all set.\nEnjoy your games!</string>
+    <string name="text_continue">Continue</string>
+    <string name="next">Next</string>
+    <string name="back">Back</string>
+    <string name="add_games">Add Games</string>
+    <string name="add_games_description">Select your games folder</string>
+
+    <!-- Home strings -->
+    <string name="home_games">Games</string>
+    <string name="home_search">Search</string>
+    <string name="home_settings">Settings</string>
+    <string name="empty_gamelist">No files were found or no game directory has been selected yet.</string>
+    <string name="search_and_filter_games">Search and filter games</string>
+    <string name="select_games_folder">Select games folder</string>
+    <string name="select_games_folder_description">Allows yuzu to populate the games list</string>
+    <string name="add_games_warning">Skip selecting games folder?</string>
+    <string name="add_games_warning_description">Games won\'t be displayed in the Games list if a folder isn\'t selected.</string>
+    <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
+    <string name="home_search_games">Search games</string>
+    <string name="games_dir_selected">Games directory selected</string>
+    <string name="install_prod_keys">Install prod.keys</string>
+    <string name="install_prod_keys_description">Required to decrypt retail games</string>
+    <string name="install_prod_keys_warning">Skip adding keys?</string>
+    <string name="install_prod_keys_warning_description">Valid keys are required to emulate retail games. Only homebrew apps will function if you continue.</string>
+    <string name="install_prod_keys_warning_help">https://yuzu-emu.org/help/quickstart/#guide-introduction</string>
+    <string name="notifications">Notifications</string>
+    <string name="notifications_description">Grant the notification permission with the button below.</string>
+    <string name="give_permission">Grant permission</string>
+    <string name="notification_warning">Skip granting the notification permission?</string>
+    <string name="notification_warning_description">yuzu won\'t be able to notify you of important information.</string>
+    <string name="permission_denied">Permission denied</string>
+    <string name="permission_denied_description">You denied this permission too many times and now you have to manually grant it in system settings.</string>
+    <string name="about">About</string>
+    <string name="about_description">Build version, credits, and more</string>
+    <string name="warning_help">Help</string>
+    <string name="warning_skip">Skip</string>
+    <string name="warning_cancel">Cancel</string>
+    <string name="install_amiibo_keys">Install Amiibo keys</string>
+    <string name="install_amiibo_keys_description">Required to use Amiibo in game</string>
+    <string name="invalid_keys_file">Invalid keys file selected</string>
+    <string name="install_keys_success">Keys successfully installed</string>
+    <string name="reading_keys_failure">Error reading encryption keys</string>
+    <string name="install_keys_failure_extension_description">
+        1. Verify your keys have the .keys extension.\n\n
+        2. Keys must not be stored in the Downloads folder.\n\n
+        Resolve the issue(s) and try again.
+    </string>
+    <string name="invalid_keys_error">Invalid encryption keys</string>
+    <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
+    <string name="install_keys_failure_description">The selected file is incorrect or corrupt. Please redump your keys.</string>
+    <string name="install_gpu_driver">Install GPU driver</string>
+    <string name="install_gpu_driver_description">Install alternative drivers for potentially better performance or accuracy</string>
+    <string name="advanced_settings">Advanced settings</string>
+    <string name="settings_description">Configure emulator settings</string>
+    <string name="search_recently_played">Recently played</string>
+    <string name="search_recently_added">Recently added</string>
+    <string name="search_retail">Retail</string>
+    <string name="search_homebrew">Homebrew</string>
+    <string name="open_user_folder">Open yuzu folder</string>
+    <string name="open_user_folder_description">Manage yuzu\'s internal files</string>
+    <string name="theme_and_color_description">Modify the look of the app</string>
+    <string name="no_file_manager">No file manager found</string>
+    <string name="notification_no_directory_link">Could not open yuzu directory</string>
+    <string name="notification_no_directory_link_description">Please locate the user folder with the file manager\'s side panel manually.</string>
+    <string name="manage_save_data">Manage save data</string>
+    <string name="manage_save_data_description">Save data found. Please select an option below.</string>
+    <string name="import_export_saves_description">Import or export save files</string>
+    <string name="import_export_saves_no_profile">No save data found. Please launch a game and retry.</string>
+    <string name="save_file_imported_success">Imported successfully</string>
+    <string name="save_file_invalid_zip_structure">Invalid save directory structure</string>
+    <string name="save_file_invalid_zip_structure_description">The first subfolder name must be the title ID of the game.</string>
+    <string name="import_saves">Import</string>
+    <string name="export_saves">Export</string>
+    <string name="install_firmware">Install firmware</string>
+    <string name="install_firmware_description">Firmware must be in a ZIP archive and is needed to boot some games</string>
+    <string name="firmware_installing">Installing firmware</string>
+    <string name="firmware_installed_success">Firmware installed successfully</string>
+    <string name="firmware_installed_failure">Firmware installation failed</string>
+    <string name="firmware_installed_failure_description">Verify that the ZIP contains valid firmware and try again.</string>
+    <string name="share_log">Share debug logs</string>
+    <string name="share_log_description">Share yuzu\'s log file to debug issues</string>
+    <string name="share_log_missing">No log file found</string>
+
+    <!-- About screen strings -->
+    <string name="gaia_is_not_real">Gaia isn\'t real</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="about_app_description">An open-source Switch emulator</string>
+    <string name="contributors">Contributors</string>
+    <string name="contributors_description">Made with \u2764 from the yuzu team</string>
+    <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
+    <string name="licenses_description">Projects that make yuzu for Android possible</string>
+    <string name="build">Build</string>
+    <string name="support_link">https://discord.gg/u77vRWY</string>
+    <string name="website_link">https://yuzu-emu.org/</string>
+    <string name="github_link">https://github.com/yuzu-emu</string>
+
+    <!-- Early access upgrade strings -->
+    <string name="early_access">Early Access</string>
+    <string name="get_early_access">Get Early Access</string>
+    <string name="play_store_link">https://play.google.com/store/apps/details?id=org.yuzu.yuzu_emu.ea</string>
+    <string name="get_early_access_description">Cutting-edge features, early access to updates, and more</string>
+    <string name="early_access_benefits">Early Access Benefits</string>
+    <string name="cutting_edge_features">Cutting-edge features</string>
+    <string name="early_access_updates">Early access to updates</string>
+    <string name="no_manual_installation">No manual installation</string>
+    <string name="prioritized_support">Prioritized support</string>
+    <string name="helping_game_preservation">Helping game preservation</string>
+    <string name="our_eternal_gratitude">Our eternal gratitude</string>
+    <string name="are_you_interested">Are you interested?</string>
+
+    <!-- General settings strings -->
+    <string name="frame_limit_enable">Limit speed</string>
+    <string name="frame_limit_enable_description">Limits emulation speed to a specified percentage of normal speed.</string>
+    <string name="frame_limit_slider">Limit speed percent</string>
+    <string name="frame_limit_slider_description">Specifies the percentage to limit emulation speed. 100% is the normal speed. Values higher or lower will increase or decrease the speed limit.</string>
+    <string name="cpu_accuracy">CPU accuracy</string>
+
+    <!-- System settings strings -->
+    <string name="use_docked_mode">Docked Mode</string>
+    <string name="use_docked_mode_description">Increases resolution, decreasing performance. Handheld Mode is used when disabled, lowering resolution and increasing performance.</string>
+    <string name="emulated_region">Emulated region</string>
+    <string name="emulated_language">Emulated language</string>
+    <string name="select_rtc_date">Select RTC date</string>
+    <string name="select_rtc_time">Select RTC time</string>
+    <string name="use_custom_rtc">Custom RTC</string>
+    <string name="use_custom_rtc_description">Allows you to set a custom real-time clock separate from your current system time.</string>
+    <string name="set_custom_rtc">Set custom RTC</string>
+
+    <!-- Graphics settings strings -->
+    <string name="renderer_api">API</string>
+    <string name="renderer_accuracy">Accuracy level</string>
+    <string name="renderer_resolution">Resolution (Handheld/Docked)</string>
+    <string name="renderer_vsync">VSync mode</string>
+    <string name="renderer_aspect_ratio">Aspect ratio</string>
+    <string name="renderer_scaling_filter">Window adapting filter</string>
+    <string name="renderer_anti_aliasing">Anti-aliasing method</string>
+    <string name="renderer_force_max_clock">Force maximum clocks (Adreno only)</string>
+    <string name="renderer_force_max_clock_description">Forces the GPU to run at the maximum possible clocks (thermal constraints will still be applied).</string>
+    <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
+    <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously, reducing stutter but may introduce glitches.</string>
+    <string name="renderer_debug">Graphics debugging</string>
+    <string name="renderer_debug_description">Sets the graphics API to a slow debugging mode.</string>
+    <string name="use_disk_shader_cache">Disk shader cache</string>
+    <string name="use_disk_shader_cache_description">Reduces stuttering by locally storing and loading generated shaders.</string>
+
+    <!-- Audio settings strings -->
+    <string name="audio_volume">Volume</string>
+    <string name="audio_volume_description">Specifies the volume of audio output.</string>
+
+    <!-- Miscellaneous -->
+    <string name="slider_default">Default</string>
+    <string name="ini_saved">Saved settings</string>
+    <string name="gameid_saved">Saved settings for %1$s</string>
+    <string name="error_saving">Error saving %1$s.ini: %2$s</string>
+    <string name="loading">Loading…</string>
+    <string name="reset_setting_confirmation">Do you want to reset this setting back to its default value?</string>
+    <string name="reset_to_default">Reset to default</string>
+    <string name="reset_all_settings">Reset all settings?</string>
+    <string name="reset_all_settings_description">All advanced settings will be reset to their default configuration. This can not be undone.</string>
+    <string name="settings_reset">Settings reset</string>
+    <string name="close">Close</string>
+    <string name="learn_more">Learn more</string>
+    <string name="auto">Auto</string>
+    <string name="submit">Submit</string>
+
+    <!-- GPU driver installation -->
+    <string name="select_gpu_driver">Select GPU driver</string>
+    <string name="select_gpu_driver_title">Would you like to replace your current GPU driver?</string>
+    <string name="select_gpu_driver_install">Install</string>
+    <string name="select_gpu_driver_default">Default</string>
+    <string name="select_gpu_driver_install_success">Installed %s</string>
+    <string name="select_gpu_driver_use_default">Using default GPU driver</string>
+    <string name="select_gpu_driver_error">Invalid driver selected, using system default!</string>
+    <string name="system_gpu_driver">System GPU driver</string>
+    <string name="installing_driver">Installing driver…</string>
+
+    <!-- Preferences Screen -->
+    <string name="preferences_settings">Settings</string>
+    <string name="preferences_general">General</string>
+    <string name="preferences_system">System</string>
+    <string name="preferences_graphics">Graphics</string>
+    <string name="preferences_audio">Audio</string>
+    <string name="preferences_theme">Theme and color</string>
+    <string name="preferences_debug">Debug</string>
+
+    <!-- ROM loading errors -->
+    <string name="loader_error_encrypted">Your ROM is encrypted</string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Please follow the guides to redump your <a href="https://yuzu-emu.org/help/quickstart/#dumping-cartridge-games">game cartidges</a> or <a href="https://yuzu-emu.org/help/quickstart/#dumping-installed-titles-eshop">installed titles</a>.]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[Please ensure your <a href="https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> file is installed so that games can be decrypted.]]></string>
+    <string name="loader_error_video_core">An error occurred initializing the video core</string>
+    <string name="loader_error_video_core_description">This is usually caused by an incompatible GPU driver. Installing a custom GPU driver may resolve this problem.</string>
+    <string name="loader_error_invalid_format">Unable to load ROM</string>
+    <string name="loader_error_file_not_found">ROM file does not exist</string>
+
+    <!-- Emulation Menu -->
+    <string name="emulation_exit">Exit emulation</string>
+    <string name="emulation_done">Done</string>
+    <string name="emulation_fps_counter">FPS counter</string>
+    <string name="emulation_toggle_controls">Toggle controls</string>
+    <string name="emulation_rel_stick_center">Relative stick center</string>
+    <string name="emulation_dpad_slide">D-pad slide</string>
+    <string name="emulation_haptics">Touch haptics</string>
+    <string name="emulation_show_overlay">Show overlay</string>
+    <string name="emulation_toggle_all">Toggle all</string>
+    <string name="emulation_control_adjust">Adjust overlay</string>
+    <string name="emulation_control_scale">Scale</string>
+    <string name="emulation_control_opacity">Opacity</string>
+    <string name="emulation_touch_overlay_reset">Reset overlay</string>
+    <string name="emulation_touch_overlay_edit">Edit overlay</string>
+    <string name="emulation_pause">Pause emulation</string>
+    <string name="emulation_unpause">Unpause emulation</string>
+    <string name="emulation_input_overlay">Overlay options</string>
+    <string name="emulation_game_loading">Game loading…</string>
+
+    <string name="load_settings">Loading settings…</string>
+
+    <!-- Software keyboard -->
+    <string name="software_keyboard">Software keyboard</string>
+
+    <!-- Errors and warnings -->
+    <string name="abort_button">Abort</string>
+    <string name="continue_button">Continue</string>
+    <string name="system_archive_not_found">System Archive Not Found</string>
+    <string name="system_archive_not_found_message">%s is missing. Please dump your system archives.\nContinuing emulation may result in crashes and bugs.</string>
+    <string name="system_archive_general">A system archive</string>
+    <string name="save_load_error">Save/Load Error</string>
+    <string name="fatal_error">Fatal Error</string>
+    <string name="fatal_error_message">A fatal error occurred. Check the log for details.\nContinuing emulation may result in crashes and bugs.</string>
+    <string name="performance_warning">Turning off this setting will significantly reduce emulation performance! For the best experience, it is recommended that you leave this setting enabled.</string>
+
+    <!-- Region Names -->
+    <string name="region_japan">Japan</string>
+    <string name="region_usa">USA</string>
+    <string name="region_europe">Europe</string>
+    <string name="region_australia">Australia</string>
+    <string name="region_china">China</string>
+    <string name="region_korea">Korea</string>
+    <string name="region_taiwan">Taiwan</string>
+
+    <!-- Language Names -->
+    <string name="language_japanese">Japanese (日本語)</string>
+    <string name="language_english">English</string>
+    <string name="language_french">French (Français)</string>
+    <string name="langauge_german">German (Deutsch)</string>
+    <string name="language_italian">Italian (Italiano)</string>
+    <string name="language_spanish">Spanish (Español)</string>
+    <string name="language_chinese">Chinese (简体中文)</string>
+    <string name="language_korean">Korean (한국어)</string>
+    <string name="language_dutch">Dutch (Nederlands)</string>
+    <string name="language_portuguese">Portuguese (Português)</string>
+    <string name="language_russian">Russian (Русский)</string>
+    <string name="language_taiwanese">Taiwanese (台湾)</string>
+    <string name="language_british_english">British English</string>
+    <string name="language_canadian_french">Canadian French (Français canadien)</string>
+    <string name="language_latin_american_spanish">Latin American Spanish (Español latinoamericano)</string>
+    <string name="language_simplified_chinese">Simplified Chinese (简体中文)</string>
+    <string name="language_traditional_chinese">Traditional Chinese (正體中文)</string>
+    <string name="language_brazilian_portuguese">Brazilian Portuguese (Português do Brasil)</string>
+
+    <!-- Renderer APIs -->
+    <string name="renderer_vulkan">Vulkan</string>
+    <string name="renderer_none">None</string>
+
+    <!-- Renderer Accuracy -->
+    <string name="renderer_accuracy_normal">Normal</string>
+    <string name="renderer_accuracy_high">High</string>
+    <string name="renderer_accuracy_extreme">Extreme (Slow)</string>
+
+    <!-- Resolutions -->
+    <string name="resolution_half">0.5X (360p/540p)</string>
+    <string name="resolution_three_quarter">0.75X (540p/810p)</string>
+    <string name="resolution_one">1X (720p/1080p)</string>
+    <string name="resolution_two">2X (1440p/2160p) (Slow)</string>
+    <string name="resolution_three">3X (2160p/3240p) (Slow)</string>
+    <string name="resolution_four">4X (2880p/4320p) (Slow)</string>
+
+    <!-- Renderer VSync -->
+    <string name="renderer_vsync_immediate">Immediate (Off)</string>
+    <string name="renderer_vsync_mailbox">Mailbox</string>
+    <string name="renderer_vsync_fifo">FIFO (On)</string>
+    <string name="renderer_vsync_fifo_relaxed">FIFO Relaxed</string>
+
+    <!-- Scaling Filters -->
+    <string name="scaling_filter_nearest_neighbor">Nearest Neighbor</string>
+    <string name="scaling_filter_bilinear">Bilinear</string>
+    <string name="scaling_filter_bicubic">Bicubic</string>
+    <string name="scaling_filter_gaussian">Gaussian</string>
+    <string name="scaling_filter_scale_force">ScaleForce</string>
+    <string name="scaling_filter_fsr">AMD FidelityFX™ Super Resolution</string>
+
+    <!-- Anti-Aliasing -->
+    <string name="anti_aliasing_none">None</string>
+    <string name="anti_aliasing_fxaa">FXAA</string>
+    <string name="anti_aliasing_smaa">SMAA</string>
+
+    <!-- Aspect Ratios -->
+    <string name="ratio_default">Default (16:9)</string>
+    <string name="ratio_force_four_three">Force 4:3</string>
+    <string name="ratio_force_twenty_one_nine">Force 21:9</string>
+    <string name="ratio_force_sixteen_ten">Force 16:10</string>
+    <string name="ratio_stretch">Stretch to window</string>
+
+    <!-- CPU Accuracy -->
+    <string name="cpu_accuracy_accurate">Accurate</string>
+    <string name="cpu_accuracy_unsafe">Unsafe</string>
+    <string name="cpu_accuracy_paranoid">Paranoid (Slow)</string>
+
+    <!-- Gamepad Buttons -->
+    <string name="gamepad_d_pad">D-pad</string>
+    <string name="gamepad_left_stick">Left stick</string>
+    <string name="gamepad_right_stick">Right stick</string>
+    <string name="gamepad_home">Home</string>
+    <string name="gamepad_screenshot">Screenshot</string>
+
+    <!-- Disk shader cache -->
+    <string name="preparing_shaders">Preparing shaders</string>
+    <string name="building_shaders">Building shaders</string>
+
+    <!-- Theme options -->
+    <string name="change_app_theme">Change app theme</string>
+    <string name="theme_default">Default</string>
+    <string name="theme_material_you">Material You</string>
+
+    <!-- Theme Modes -->
+    <string name="change_theme_mode">Change theme mode</string>
+    <string name="theme_mode_follow_system">Follow System</string>
+    <string name="theme_mode_light">Light</string>
+    <string name="theme_mode_dark">Dark</string>
+
+    <!-- Black backgrounds theme -->
+    <string name="use_black_backgrounds">Black backgrounds</string>
+    <string name="use_black_backgrounds_description">When using the dark theme, apply black backgrounds.</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">Licenses</string>
+    <string name="license_fidelityfx_fsr" translatable="false">FidelityFX-FSR</string>
+    <string name="license_fidelityfx_fsr_description">High-quality upscaling from AMD</string>
+    <string name="license_fidelityfx_fsr_link" translatable="false">https://github.com/GPUOpen-Effects/FidelityFX-FSR</string>
+    <string name="license_fidelityfx_fsr_copyright" translatable="false">Copyright © 2021 Advanced Micro Devices, Inc.</string>
+    <string name="license_fidelityfx_fsr_text" translatable="false">
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the \"Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:\n\n
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.\n\n
+
+THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+    </string>
+    <string name="license_cubeb" translatable="false">cubeb</string>
+    <string name="license_cubeb_description" translatable="false">Cross platform audio library</string>
+    <string name="license_cubeb_link" translatable="false">https://github.com/mozilla/cubeb</string>
+    <string name="license_cubeb_copyright" translatable="false">Copyright © 2011 Mozilla Foundation</string>
+    <string name="license_cubeb_text" translatable="false">
+Permission to use, copy, modify, and distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.\n\n
+
+THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+    </string>
+    <string name="license_dynarmic" translatable="false">Dynarmic</string>
+    <string name="license_dynarmic_description" translatable="false">An ARM dynamic recompiler</string>
+    <string name="license_dynarmic_link" translatable="false">https://github.com/merryhime/dynarmic</string>
+    <string name="license_dynarmic_copyright" translatable="false">Copyright © 2017 merryhime</string>
+    <string name="license_dynarmic_text" translatable="false">
+Permission to use, copy, modify, and/or distribute this software for
+any purpose with or without fee is hereby granted.\n\n
+
+THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+    </string>
+    <string name="license_ffmpeg" translatable="false">FFmpeg</string>
+    <string name="license_ffmpeg_description" translatable="false">FFmpeg is a collection of libraries and tools to process multimedia content such as audio, video, subtitles and related metadata.</string>
+    <string name="license_ffmpeg_link" translatable="false">https://github.com/FFmpeg/FFmpeg</string>
+    <string name="license_ffmpeg_copyright" translatable="false">Copyright © 1991, 1999 Free Software Foundation, Inc.</string>
+    <string name="license_ffmpeg_text" translatable="false">
+GNU LESSER GENERAL PUBLIC LICENSE\n
+TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION\n\n
+
+  0. This License Agreement applies to any software library or other
+program which contains a notice placed by the copyright holder or
+other authorized party saying it may be distributed under the terms of
+this Lesser General Public License (also called \"this License\").
+Each licensee is addressed as \"you\".\n\n
+
+  A \"library\" means a collection of software functions and/or data
+prepared so as to be conveniently linked with application programs
+(which use some of those functions and data) to form executables.\n\n
+
+  The \"Library\", below, refers to any such software library or work
+which has been distributed under these terms.  A \"work based on the
+Library\" means either the Library or any derivative work under
+copyright law: that is to say, a work containing the Library or a
+portion of it, either verbatim or with modifications and/or translated
+straightforwardly into another language.  (Hereinafter, translation is
+included without limitation in the term \"modification\".)\n\n
+
+  \"Source code\" for a work means the preferred form of the work for
+making modifications to it.  For a library, complete source code means
+all the source code for all modules it contains, plus any associated
+interface definition files, plus the scripts used to control compilation
+and installation of the library.\n\n
+
+  Activities other than copying, distribution and modification are not
+covered by this License; they are outside its scope.  The act of
+running a program using the Library is not restricted, and output from
+such a program is covered only if its contents constitute a work based
+on the Library (independent of the use of the Library in a tool for
+writing it).  Whether that is true depends on what the Library does
+and what the program that uses the Library does.\n\n
+
+  1. You may copy and distribute verbatim copies of the Library\'s
+complete source code as you receive it, in any medium, provided that
+you conspicuously and appropriately publish on each copy an
+appropriate copyright notice and disclaimer of warranty; keep intact
+all the notices that refer to this License and to the absence of any
+warranty; and distribute a copy of this License along with the
+Library.\n\n
+
+  You may charge a fee for the physical act of transferring a copy,
+and you may at your option offer warranty protection in exchange for a
+fee.\n\n
+
+  2. You may modify your copy or copies of the Library or any portion
+of it, thus forming a work based on the Library, and copy and
+distribute such modifications or work under the terms of Section 1
+above, provided that you also meet all of these conditions:\n\n
+
+a) The modified work must itself be a software library.\n\n
+
+b) You must cause the files modified to carry prominent notices
+stating that you changed the files and the date of any change.\n\n
+
+c) You must cause the whole of the work to be licensed at no
+charge to all third parties under the terms of this License.\n\n
+
+d) If a facility in the modified Library refers to a function or a
+table of data to be supplied by an application program that uses
+the facility, other than as an argument passed when the facility
+is invoked, then you must make a good faith effort to ensure that,
+in the event an application does not supply such function or
+table, the facility still operates, and performs whatever part of
+its purpose remains meaningful.\n\n
+
+(For example, a function in a library to compute square roots has
+a purpose that is entirely well-defined independent of the
+application.  Therefore, Subsection 2d requires that any
+application-supplied function or table used by this function must
+be optional: if the application does not supply it, the square
+root function must still compute square roots.)\n\n
+
+These requirements apply to the modified work as a whole.  If
+identifiable sections of that work are not derived from the Library,
+and can be reasonably considered independent and separate works in
+themselves, then this License, and its terms, do not apply to those
+sections when you distribute them as separate works.  But when you
+distribute the same sections as part of a whole which is a work based
+on the Library, the distribution of the whole must be on the terms of
+this License, whose permissions for other licensees extend to the
+entire whole, and thus to each and every part regardless of who wrote
+it.\n\n
+
+Thus, it is not the intent of this section to claim rights or contest
+your rights to work written entirely by you; rather, the intent is to
+exercise the right to control the distribution of derivative or
+collective works based on the Library.\n\n
+
+In addition, mere aggregation of another work not based on the Library
+with the Library (or with a work based on the Library) on a volume of
+a storage or distribution medium does not bring the other work under
+the scope of this License.\n\n
+
+  3. You may opt to apply the terms of the ordinary GNU General Public
+License instead of this License to a given copy of the Library.  To do
+this, you must alter all the notices that refer to this License, so
+that they refer to the ordinary GNU General Public License, version 2,
+instead of to this License.  (If a newer version than version 2 of the
+ordinary GNU General Public License has appeared, then you can specify
+that version instead if you wish.)  Do not make any other change in
+these notices.\n\n
+
+  Once this change is made in a given copy, it is irreversible for
+that copy, so the ordinary GNU General Public License applies to all
+subsequent copies and derivative works made from that copy.\n\n
+
+  This option is useful when you wish to copy part of the code of
+the Library into a program that is not a library.\n\n
+
+  4. You may copy and distribute the Library (or a portion or
+derivative of it, under Section 2) in object code or executable form
+under the terms of Sections 1 and 2 above provided that you accompany
+it with the complete corresponding machine-readable source code, which
+must be distributed under the terms of Sections 1 and 2 above on a
+medium customarily used for software interchange.\n\n
+
+  If distribution of object code is made by offering access to copy
+from a designated place, then offering equivalent access to copy the
+source code from the same place satisfies the requirement to
+distribute the source code, even though third parties are not
+compelled to copy the source along with the object code.\n\n
+
+  5. A program that contains no derivative of any portion of the
+Library, but is designed to work with the Library by being compiled or
+linked with it, is called a \"work that uses the Library\".  Such a
+work, in isolation, is not a derivative work of the Library, and
+therefore falls outside the scope of this License.\n\n
+
+  However, linking a \"work that uses the Library\" with the Library
+creates an executable that is a derivative of the Library (because it
+contains portions of the Library), rather than a \"work that uses the
+library\".  The executable is therefore covered by this License.
+Section 6 states terms for distribution of such executables.\n\n
+
+  When a \"work that uses the Library\" uses material from a header file
+that is part of the Library, the object code for the work may be a
+derivative work of the Library even though the source code is not.
+Whether this is true is especially significant if the work can be
+linked without the Library, or if the work is itself a library.  The
+threshold for this to be true is not precisely defined by law.\n\n
+
+  If such an object file uses only numerical parameters, data
+structure layouts and accessors, and small macros and small inline
+functions (ten lines or less in length), then the use of the object
+file is unrestricted, regardless of whether it is legally a derivative
+work.  (Executables containing this object code plus portions of the
+Library will still fall under Section 6.)\n\n
+
+  Otherwise, if the work is a derivative of the Library, you may
+distribute the object code for the work under the terms of Section 6.
+Any executables containing that work also fall under Section 6,
+whether or not they are linked directly with the Library itself.\n\n
+
+  6. As an exception to the Sections above, you may also combine or
+link a \"work that uses the Library\" with the Library to produce a
+work containing portions of the Library, and distribute that work
+under terms of your choice, provided that the terms permit
+modification of the work for the customer\'s own use and reverse
+engineering for debugging such modifications.\n\n
+
+  You must give prominent notice with each copy of the work that the
+Library is used in it and that the Library and its use are covered by
+this License.  You must supply a copy of this License.  If the work
+during execution displays copyright notices, you must include the
+copyright notice for the Library among them, as well as a reference
+directing the user to the copy of this License.  Also, you must do one
+of these things:\n\n
+
+a) Accompany the work with the complete corresponding
+machine-readable source code for the Library including whatever
+changes were used in the work (which must be distributed under
+Sections 1 and 2 above); and, if the work is an executable linked
+with the Library, with the complete machine-readable \"work that
+uses the Library\", as object code and/or source code, so that the
+user can modify the Library and then relink to produce a modified
+executable containing the modified Library.  (It is understood
+that the user who changes the contents of definitions files in the
+Library will not necessarily be able to recompile the application
+to use the modified definitions.)\n\n
+
+b) Use a suitable shared library mechanism for linking with the
+Library.  A suitable mechanism is one that (1) uses at run time a
+copy of the library already present on the user\'s computer system,
+rather than copying library functions into the executable, and (2)
+will operate properly with a modified version of the library, if
+the user installs one, as long as the modified version is
+interface-compatible with the version that the work was made with.\n\n
+
+c) Accompany the work with a written offer, valid for at
+least three years, to give the same user the materials
+specified in Subsection 6a, above, for a charge no more
+than the cost of performing this distribution.\n\n
+
+d) If distribution of the work is made by offering access to copy
+from a designated place, offer equivalent access to copy the above
+specified materials from the same place.\n\n
+
+e) Verify that the user has already received a copy of these
+materials or that you have already sent this user a copy.\n\n
+
+  For an executable, the required form of the \"work that uses the
+Library\" must include any data and utility programs needed for
+reproducing the executable from it.  However, as a special exception,
+the materials to be distributed need not include anything that is
+normally distributed (in either source or binary form) with the major
+components (compiler, kernel, and so on) of the operating system on
+which the executable runs, unless that component itself accompanies
+the executable.\n\n
+
+  It may happen that this requirement contradicts the license
+restrictions of other proprietary libraries that do not normally
+accompany the operating system.  Such a contradiction means you cannot
+use both them and the Library together in an executable that you
+distribute.\n\n
+
+  7. You may place library facilities that are a work based on the
+Library side-by-side in a single library together with other library
+facilities not covered by this License, and distribute such a combined
+library, provided that the separate distribution of the work based on
+the Library and of the other library facilities is otherwise
+permitted, and provided that you do these two things:\n\n
+
+a) Accompany the combined library with a copy of the same work
+based on the Library, uncombined with any other library
+facilities.  This must be distributed under the terms of the
+Sections above.\n\n
+
+b) Give prominent notice with the combined library of the fact
+that part of it is a work based on the Library, and explaining
+where to find the accompanying uncombined form of the same work.\n\n
+
+  8. You may not copy, modify, sublicense, link with, or distribute
+the Library except as expressly provided under this License.  Any
+attempt otherwise to copy, modify, sublicense, link with, or
+distribute the Library is void, and will automatically terminate your
+rights under this License.  However, parties who have received copies,
+or rights, from you under this License will not have their licenses
+terminated so long as such parties remain in full compliance.\n\n
+
+  9. You are not required to accept this License, since you have not
+signed it.  However, nothing else grants you permission to modify or
+distribute the Library or its derivative works.  These actions are
+prohibited by law if you do not accept this License.  Therefore, by
+modifying or distributing the Library (or any work based on the
+Library), you indicate your acceptance of this License to do so, and
+all its terms and conditions for copying, distributing or modifying
+the Library or works based on it.\n\n
+
+  10. Each time you redistribute the Library (or any work based on the
+Library), the recipient automatically receives a license from the
+original licensor to copy, distribute, link with or modify the Library
+subject to these terms and conditions.  You may not impose any further
+restrictions on the recipients\' exercise of the rights granted herein.
+You are not responsible for enforcing compliance by third parties with
+this License.\n\n
+
+  11. If, as a consequence of a court judgment or allegation of patent
+infringement or for any other reason (not limited to patent issues),
+conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot
+distribute so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you
+may not distribute the Library at all.  For example, if a patent
+license would not permit royalty-free redistribution of the Library by
+all those who receive copies directly or indirectly through you, then
+the only way you could satisfy both it and this License would be to
+refrain entirely from distribution of the Library.\n\n
+
+If any portion of this section is held invalid or unenforceable under any
+particular circumstance, the balance of the section is intended to apply,
+and the section as a whole is intended to apply in other circumstances.\n\n
+
+It is not the purpose of this section to induce you to infringe any
+patents or other property right claims or to contest validity of any
+such claims; this section has the sole purpose of protecting the
+integrity of the free software distribution system which is
+implemented by public license practices.  Many people have made
+generous contributions to the wide range of software distributed
+through that system in reliance on consistent application of that
+system; it is up to the author/donor to decide if he or she is willing
+to distribute software through any other system and a licensee cannot
+impose that choice.\n\n
+
+This section is intended to make thoroughly clear what is believed to
+be a consequence of the rest of this License.\n\n
+
+  12. If the distribution and/or use of the Library is restricted in
+certain countries either by patents or by copyrighted interfaces, the
+original copyright holder who places the Library under this License may add
+an explicit geographical distribution limitation excluding those countries,
+so that distribution is permitted only in or among countries not thus
+excluded.  In such case, this License incorporates the limitation as if
+written in the body of this License.\n\n
+
+  13. The Free Software Foundation may publish revised and/or new
+versions of the Lesser General Public License from time to time.
+Such new versions will be similar in spirit to the present version,
+but may differ in detail to address new problems or concerns.\n\n
+
+Each version is given a distinguishing version number.  If the Library
+specifies a version number of this License which applies to it and
+"any later version\", you have the option of following the terms and
+conditions either of that version or of any later version published by
+the Free Software Foundation.  If the Library does not specify a
+license version number, you may choose any version ever published by
+the Free Software Foundation.\n\n
+
+  14. If you wish to incorporate parts of the Library into other free
+programs whose distribution conditions are incompatible with these,
+write to the author to ask for permission.  For software which is
+copyrighted by the Free Software Foundation, write to the Free
+Software Foundation; we sometimes make exceptions for this.  Our
+decision will be guided by the two goals of preserving the free status
+of all derivatives of our free software and of promoting the sharing
+and reuse of software generally.\n\n
+
+NO WARRANTY\n\n
+
+  15. BECAUSE THE LIBRARY IS LICENSED FREE OF CHARGE, THERE IS NO
+WARRANTY FOR THE LIBRARY, TO THE EXTENT PERMITTED BY APPLICABLE LAW.
+EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR
+OTHER PARTIES PROVIDE THE LIBRARY \"AS IS\" WITHOUT WARRANTY OF ANY
+KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE
+LIBRARY IS WITH YOU.  SHOULD THE LIBRARY PROVE DEFECTIVE, YOU ASSUME
+THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.\n\n
+
+  16. IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN
+WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY
+AND/OR REDISTRIBUTE THE LIBRARY AS PERMITTED ABOVE, BE LIABLE TO YOU
+FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR
+CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE
+LIBRARY (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING
+RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
+FAILURE OF THE LIBRARY TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF
+SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGES.
+    </string>
+    <string name="license_opus" translatable="false">Opus</string>
+    <string name="license_opus_description" translatable="false">Modern audio compression for the internet</string>
+    <string name="license_opus_link" translatable="false">https://github.com/xiph/opus</string>
+    <string name="license_opus_copyright" translatable="false">Copyright 2001–2011 Xiph.Org, Skype Limited, Octasic, Jean-Marc Valin, Timothy B. Terriberry, CSIRO, Gregory Maxwell, Mark Borgerding, Erik de Castro Lopo</string>
+    <string name="license_opus_text" translatable="false">
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:\n\n
+
+- Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.\n\n
+
+- Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.\n\n
+
+- Neither the name of Internet Society, IETF or IETF Trust, nor the
+names of specific contributors, may be used to endorse or promote
+products derived from this software without specific prior written
+permission.\n\n
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+``AS IS\'\' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n
+
+Opus is subject to the royalty-free patent licenses which are
+specified at:\n\n
+
+Xiph.Org Foundation:
+https://datatracker.ietf.org/ipr/1524/ \n\n
+
+Microsoft Corporation:
+https://datatracker.ietf.org/ipr/1914/ \n\n
+
+Broadcom Corporation:
+https://datatracker.ietf.org/ipr/1526/
+    </string>
+    <string name="license_sirit" translatable="false">Sirit</string>
+    <string name="license_sirit_description" translatable="false">A runtime SPIR-V assembler</string>
+    <string name="license_sirit_link" translatable="false">https://github.com/ReinUsesLisp/sirit</string>
+    <string name="license_sirit_copyright" translatable="false">Copyright © 2019, sirit All rights reserved.</string>
+    <string name="license_sirit_text" translatable="false">
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:\n
+* Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.\n
+* Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.\n
+* Neither the name of the organization nor the
+  names of its contributors may be used to endorse or promote products
+  derived from this software without specific prior written permission.\n\n
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    </string>
+    <string name="license_adreno_tools" translatable="false">Adreno Tools</string>
+    <string name="license_adreno_tools_description" translatable="false">A library for applying rootless Adreno GPU driver modifications/replacements</string>
+    <string name="license_adreno_tools_link" translatable="false">https://github.com/bylaws/libadrenotools</string>
+    <string name="license_adreno_tools_copyright" translatable="false">Copyright © 2021, Billy Laws</string>
+    <string name="license_adreno_tools_text" translatable="false">
+BSD 2-Clause License\n\n
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:\n\n
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.\n\n
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.\n\n
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    </string>
+
+</resources>

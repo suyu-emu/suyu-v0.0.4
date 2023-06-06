@@ -5,10 +5,13 @@
 
 #include <memory>
 #include <utility>
+
 #include "common/common_types.h"
 #include "core/frontend/framebuffer_layout.h"
 
 namespace Core::Frontend {
+
+class GraphicsContext;
 
 /// Information for the Graphics Backends signifying what type of screen pointer is in
 /// WindowInformation
@@ -19,51 +22,6 @@ enum class WindowSystemType {
     Wayland,
     Cocoa,
     Android,
-};
-
-/**
- * Represents a drawing context that supports graphics operations.
- */
-class GraphicsContext {
-public:
-    virtual ~GraphicsContext();
-
-    /// Inform the driver to swap the front/back buffers and present the current image
-    virtual void SwapBuffers() {}
-
-    /// Makes the graphics context current for the caller thread
-    virtual void MakeCurrent() {}
-
-    /// Releases (dunno if this is the "right" word) the context from the caller thread
-    virtual void DoneCurrent() {}
-
-    class Scoped {
-    public:
-        [[nodiscard]] explicit Scoped(GraphicsContext& context_) : context(context_) {
-            context.MakeCurrent();
-        }
-        ~Scoped() {
-            if (active) {
-                context.DoneCurrent();
-            }
-        }
-
-        /// In the event that context was destroyed before the Scoped is destroyed, this provides a
-        /// mechanism to prevent calling a destroyed object's method during the deconstructor
-        void Cancel() {
-            active = false;
-        }
-
-    private:
-        GraphicsContext& context;
-        bool active{true};
-    };
-
-    /// Calls MakeCurrent on the context and calls DoneCurrent when the scope for the returned value
-    /// ends
-    [[nodiscard]] Scoped Acquire() {
-        return Scoped{*this};
-    }
 };
 
 /**

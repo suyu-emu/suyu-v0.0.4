@@ -13,7 +13,7 @@ EmulatedConsole::~EmulatedConsole() = default;
 void EmulatedConsole::ReloadFromSettings() {
     // Using first motion device from player 1. No need to assign any unique config at the moment
     const auto& player = Settings::values.players.GetValue()[0];
-    motion_params = Common::ParamPackage(player.motions[0]);
+    motion_params[0] = Common::ParamPackage(player.motions[0]);
 
     ReloadInput();
 }
@@ -74,13 +74,29 @@ void EmulatedConsole::ReloadInput() {
     // If you load any device here add the equivalent to the UnloadInput() function
     SetTouchParams();
 
-    motion_devices = Common::Input::CreateInputDevice(motion_params);
-    if (motion_devices) {
-        motion_devices->SetCallback({
+    motion_params[1] = Common::ParamPackage{"engine:virtual_gamepad,port:8,motion:0"};
+
+    for (std::size_t index = 0; index < motion_devices.size(); ++index) {
+        motion_devices[index] = Common::Input::CreateInputDevice(motion_params[index]);
+        if (!motion_devices[index]) {
+            continue;
+        }
+        motion_devices[index]->SetCallback({
             .on_change =
                 [this](const Common::Input::CallbackStatus& callback) { SetMotion(callback); },
         });
     }
+
+    // Restore motion state
+    auto& emulated_motion = console.motion_values.emulated;
+    auto& motion = console.motion_state;
+    emulated_motion.ResetRotations();
+    emulated_motion.ResetQuaternion();
+    motion.accel = emulated_motion.GetAcceleration();
+    motion.gyro = emulated_motion.GetGyroscope();
+    motion.rotation = emulated_motion.GetRotations();
+    motion.orientation = emulated_motion.GetOrientation();
+    motion.is_at_rest = !emulated_motion.IsMoving(motion_sensitivity);
 
     // Unique index for identifying touch device source
     std::size_t index = 0;
@@ -100,7 +116,9 @@ void EmulatedConsole::ReloadInput() {
 }
 
 void EmulatedConsole::UnloadInput() {
-    motion_devices.reset();
+    for (auto& motion : motion_devices) {
+        motion.reset();
+    }
     for (auto& touch : touch_devices) {
         touch.reset();
     }
@@ -133,11 +151,11 @@ void EmulatedConsole::RestoreConfig() {
 }
 
 Common::ParamPackage EmulatedConsole::GetMotionParam() const {
-    return motion_params;
+    return motion_params[0];
 }
 
 void EmulatedConsole::SetMotionParam(Common::ParamPackage param) {
-    motion_params = std::move(param);
+    motion_params[0] = std::move(param);
     ReloadInput();
 }
 

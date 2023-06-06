@@ -46,6 +46,7 @@
 #include "core/core.h"
 #include "core/cpu_manager.h"
 #include "core/frontend/framebuffer_layout.h"
+#include "core/frontend/graphics_context.h"
 #include "input_common/drivers/camera.h"
 #include "input_common/drivers/keyboard.h"
 #include "input_common/drivers/mouse.h"

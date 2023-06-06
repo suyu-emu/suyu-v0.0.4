@@ -54,6 +54,10 @@ public:
         return device.GetDriverName();
     }
 
+    void NotifySurfaceChanged() override {
+        present_manager.NotifySurfaceChanged();
+    }
+
 private:
     void Report() const;
 
@@ -63,7 +67,7 @@ private:
     Core::Memory::Memory& cpu_memory;
     Tegra::GPU& gpu;
 
-    Common::DynamicLibrary library;
+    std::shared_ptr<Common::DynamicLibrary> library;
     vk::InstanceDispatch dld;
 
     vk::Instance instance;

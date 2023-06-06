@@ -10,29 +10,35 @@
 
 namespace Vulkan {
 
-Common::DynamicLibrary OpenLibrary() {
+std::shared_ptr<Common::DynamicLibrary> OpenLibrary(
+    [[maybe_unused]] Core::Frontend::GraphicsContext* context) {
     LOG_DEBUG(Render_Vulkan, "Looking for a Vulkan library");
-    Common::DynamicLibrary library;
+#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
+    // Android manages its Vulkan driver from the frontend.
+    return context->GetDriverLibrary();
+#else
+    auto library = std::make_shared<Common::DynamicLibrary>();
 #ifdef __APPLE__
     // Check if a path to a specific Vulkan library has been specified.
     char* const libvulkan_env = std::getenv("LIBVULKAN_PATH");
-    if (!libvulkan_env || !library.Open(libvulkan_env)) {
+    if (!libvulkan_env || !library->Open(libvulkan_env)) {
         // Use the libvulkan.dylib from the application bundle.
         const auto filename =
             Common::FS::GetBundleDirectory() / "Contents/Frameworks/libvulkan.dylib";
-        void(library.Open(Common::FS::PathToUTF8String(filename).c_str()));
+        void(library->Open(Common::FS::PathToUTF8String(filename).c_str()));
     }
 #else
     std::string filename = Common::DynamicLibrary::GetVersionedFilename("vulkan", 1);
     LOG_DEBUG(Render_Vulkan, "Trying Vulkan library: {}", filename);
-    if (!library.Open(filename.c_str())) {
+    if (!library->Open(filename.c_str())) {
         // Android devices may not have libvulkan.so.1, only libvulkan.so.
         filename = Common::DynamicLibrary::GetVersionedFilename("vulkan");
         LOG_DEBUG(Render_Vulkan, "Trying Vulkan library (second attempt): {}", filename);
-        void(library.Open(filename.c_str()));
+        void(library->Open(filename.c_str()));
     }
 #endif
     return library;
+#endif
 }
 
 } // namespace Vulkan

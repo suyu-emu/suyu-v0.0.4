@@ -16,7 +16,7 @@
 #include "common/settings.h"
 #include "common/telemetry.h"
 #include "core/core_timing.h"
-#include "core/frontend/emu_window.h"
+#include "core/frontend/graphics_context.h"
 #include "core/telemetry_session.h"
 #include "video_core/gpu.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
@@ -84,8 +84,8 @@ RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
                                Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu_,
                                std::unique_ptr<Core::Frontend::GraphicsContext> context_) try
     : RendererBase(emu_window, std::move(context_)), telemetry_session(telemetry_session_),
-      cpu_memory(cpu_memory_), gpu(gpu_), library(OpenLibrary()),
-      instance(CreateInstance(library, dld, VK_API_VERSION_1_1, render_window.GetWindowInfo().type,
+      cpu_memory(cpu_memory_), gpu(gpu_), library(OpenLibrary(context.get())),
+      instance(CreateInstance(*library, dld, VK_API_VERSION_1_1, render_window.GetWindowInfo().type,
                               Settings::values.renderer_debug.GetValue())),
       debug_callback(Settings::values.renderer_debug ? CreateDebugCallback(instance) : nullptr),
       surface(CreateSurface(instance, render_window.GetWindowInfo())),
@@ -93,7 +93,8 @@ RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
       state_tracker(), scheduler(device, state_tracker),
       swapchain(*surface, device, scheduler, render_window.GetFramebufferLayout().width,
                 render_window.GetFramebufferLayout().height, false),
-      present_manager(render_window, device, memory_allocator, scheduler, swapchain),
+      present_manager(instance, render_window, device, memory_allocator, scheduler, swapchain,
+                      surface),
       blit_screen(cpu_memory, render_window, device, memory_allocator, swapchain, present_manager,
                   scheduler, screen_info),
       rasterizer(render_window, gpu, cpu_memory, screen_info, device, memory_allocator,

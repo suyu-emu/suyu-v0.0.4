@@ -295,6 +295,11 @@ public:
         return features.features.textureCompressionASTC_LDR;
     }
 
+    /// Returns true if descriptor aliasing is natively supported.
+    bool IsDescriptorAliasingSupported() const {
+        return GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+    }
+
     /// Returns true if the device supports float16 natively.
     bool IsFloat16Supported() const {
         return features.shader_float16_int8.shaderFloat16;
@@ -495,6 +500,10 @@ public:
     }
 
     bool HasTimelineSemaphore() const {
+        if (GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
+            // Timeline semaphores do not work properly on all Qualcomm drivers.
+            return false;
+        }
         return features.timeline_semaphore.timelineSemaphore;
     }
 
@@ -549,6 +558,10 @@ public:
 
     bool CantBlitMSAA() const {
         return cant_blit_msaa;
+    }
+
+    bool MustEmulateScaledFormats() const {
+        return must_emulate_scaled_formats;
     }
 
     bool MustEmulateBGR565() const {
@@ -666,6 +679,7 @@ private:
     bool has_nsight_graphics{};             ///< Has Nsight Graphics attached
     bool supports_d24_depth{};              ///< Supports D24 depth buffers.
     bool cant_blit_msaa{};                  ///< Does not support MSAA<->MSAA blitting.
+    bool must_emulate_scaled_formats{};     ///< Requires scaled vertex format emulation
     bool must_emulate_bgr565{};             ///< Emulates BGR565 by swizzling RGB565 format.
     bool dynamic_state3_blending{};         ///< Has all blending features of dynamic_state3.
     bool dynamic_state3_enables{};          ///< Has all enables features of dynamic_state3.

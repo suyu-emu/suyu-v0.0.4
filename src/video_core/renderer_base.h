@@ -9,7 +9,7 @@
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "core/frontend/emu_window.h"
+#include "core/frontend/framebuffer_layout.h"
 #include "video_core/gpu.h"
 #include "video_core/rasterizer_interface.h"
 
@@ -88,6 +88,9 @@ public:
     /// Request a screenshot of the next frame
     void RequestScreenshot(void* data, std::function<void(bool)> callback,
                            const Layout::FramebufferLayout& layout);
+
+    /// This is called to notify the rendering backend of a surface change
+    virtual void NotifySurfaceChanged() {}
 
 protected:
     Core::Frontend::EmuWindow& render_window; ///< Reference to the render window handle.

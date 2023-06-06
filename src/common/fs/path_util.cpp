@@ -6,6 +6,9 @@
 #include <unordered_map>
 
 #include "common/fs/fs.h"
+#ifdef ANDROID
+#include "common/fs/fs_android.h"
+#endif
 #include "common/fs/fs_paths.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
@@ -80,9 +83,7 @@ public:
         yuzu_paths.insert_or_assign(yuzu_path, new_path);
     }
 
-private:
-    PathManagerImpl() {
-        fs::path yuzu_path;
+    void Reinitialize(fs::path yuzu_path = {}) {
         fs::path yuzu_path_cache;
         fs::path yuzu_path_config;
 
@@ -93,6 +94,10 @@ private:
             yuzu_path = GetAppDataRoamingDirectory() / YUZU_DIR;
         }
 
+        yuzu_path_cache = yuzu_path / CACHE_DIR;
+        yuzu_path_config = yuzu_path / CONFIG_DIR;
+#elif ANDROID
+        ASSERT(!yuzu_path.empty());
         yuzu_path_cache = yuzu_path / CACHE_DIR;
         yuzu_path_config = yuzu_path / CONFIG_DIR;
 #else
@@ -120,6 +125,11 @@ private:
         GenerateYuzuPath(YuzuPath::SDMCDir, yuzu_path / SDMC_DIR);
         GenerateYuzuPath(YuzuPath::ShaderDir, yuzu_path / SHADER_DIR);
         GenerateYuzuPath(YuzuPath::TASDir, yuzu_path / TAS_DIR);
+    }
+
+private:
+    PathManagerImpl() {
+        Reinitialize();
     }
 
     ~PathManagerImpl() = default;
@@ -208,6 +218,10 @@ fs::path RemoveTrailingSeparators(const fs::path& path) {
     }
 
     return fs::path{string_path};
+}
+
+void SetAppDirectory(const std::string& app_directory) {
+    PathManagerImpl::GetInstance().Reinitialize(app_directory);
 }
 
 const fs::path& GetYuzuPath(YuzuPath yuzu_path) {
@@ -350,6 +364,12 @@ std::vector<std::string> SplitPathComponents(std::string_view filename) {
 
 std::string SanitizePath(std::string_view path_, DirectorySeparator directory_separator) {
     std::string path(path_);
+#ifdef ANDROID
+    if (Android::IsContentUri(path)) {
+        return path;
+    }
+#endif // ANDROID
+
     char type1 = directory_separator == DirectorySeparator::BackwardSlash ? '/' : '\\';
     char type2 = directory_separator == DirectorySeparator::BackwardSlash ? '\\' : '/';
 

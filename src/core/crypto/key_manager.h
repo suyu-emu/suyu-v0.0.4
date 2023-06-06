@@ -267,6 +267,9 @@ public:
     bool AddTicketCommon(Ticket raw);
     bool AddTicketPersonalized(Ticket raw);
 
+    void ReloadKeys();
+    bool AreKeysLoaded() const;
+
 private:
     KeyManager();
 

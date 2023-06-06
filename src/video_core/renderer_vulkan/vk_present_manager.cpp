@@ -4,10 +4,12 @@
 #include "common/microprofile.h"
 #include "common/settings.h"
 #include "common/thread.h"
+#include "core/frontend/emu_window.h"
 #include "video_core/renderer_vulkan/vk_present_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 #include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_surface.h"
 
 namespace Vulkan {
 
@@ -92,14 +94,17 @@ bool CanBlitToSwapchain(const vk::PhysicalDevice& physical_device, VkFormat form
 
 } // Anonymous namespace
 
-PresentManager::PresentManager(Core::Frontend::EmuWindow& render_window_, const Device& device_,
+PresentManager::PresentManager(const vk::Instance& instance_,
+                               Core::Frontend::EmuWindow& render_window_, const Device& device_,
                                MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
-                               Swapchain& swapchain_)
-    : render_window{render_window_}, device{device_},
+                               Swapchain& swapchain_, vk::SurfaceKHR& surface_)
+    : instance{instance_}, render_window{render_window_}, device{device_},
       memory_allocator{memory_allocator_}, scheduler{scheduler_}, swapchain{swapchain_},
-      blit_supported{CanBlitToSwapchain(device.GetPhysical(), swapchain.GetImageViewFormat())},
+      surface{surface_}, blit_supported{CanBlitToSwapchain(device.GetPhysical(),
+                                                           swapchain.GetImageViewFormat())},
       use_present_thread{Settings::values.async_presentation.GetValue()},
-      image_count{swapchain.GetImageCount()} {
+      image_count{swapchain.GetImageCount()}, last_render_surface{
+                                                  render_window_.GetWindowInfo().render_surface} {
 
     auto& dld = device.GetLogical();
     cmdpool = dld.CreateCommandPool({
@@ -286,13 +291,44 @@ void PresentManager::PresentThread(std::stop_token token) {
     }
 }
 
+void PresentManager::NotifySurfaceChanged() {
+#ifdef ANDROID
+    std::scoped_lock lock{recreate_surface_mutex};
+    recreate_surface_cv.notify_one();
+#endif
+}
+
 void PresentManager::CopyToSwapchain(Frame* frame) {
     MICROPROFILE_SCOPE(Vulkan_CopyToSwapchain);
 
     const auto recreate_swapchain = [&] {
-        swapchain.Create(frame->width, frame->height, frame->is_srgb);
+        swapchain.Create(*surface, frame->width, frame->height, frame->is_srgb);
         image_count = swapchain.GetImageCount();
     };
+
+#ifdef ANDROID
+    std::unique_lock lock{recreate_surface_mutex};
+
+    const auto needs_recreation = [&] {
+        if (last_render_surface != render_window.GetWindowInfo().render_surface) {
+            return true;
+        }
+        if (swapchain.NeedsRecreation(frame->is_srgb)) {
+            return true;
+        }
+        return false;
+    };
+
+    recreate_surface_cv.wait_for(lock, std::chrono::milliseconds(400),
+                                 [&]() { return !needs_recreation(); });
+
+    // If the frontend recreated the surface, recreate the renderer surface and swapchain.
+    if (last_render_surface != render_window.GetWindowInfo().render_surface) {
+        last_render_surface = render_window.GetWindowInfo().render_surface;
+        surface = CreateSurface(instance, render_window.GetWindowInfo());
+        recreate_swapchain();
+    }
+#endif
 
     // If the size or colorspace of the incoming frames has changed, recreate the swapchain
     // to account for that.
@@ -436,7 +472,7 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
 
     // Submit the image copy/blit to the swapchain
     {
-        std::scoped_lock lock{scheduler.submit_mutex};
+        std::scoped_lock submit_lock{scheduler.submit_mutex};
         switch (const VkResult result =
                     device.GetGraphicsQueue().Submit(submit_info, *frame->present_done)) {
         case VK_SUCCESS:

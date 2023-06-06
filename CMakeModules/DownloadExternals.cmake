@@ -7,6 +7,7 @@
 #   prefix_var: name of a variable which will be set with the path to the extracted contents
 function(download_bundled_external remote_path lib_name prefix_var)
 
+set(package_base_url "https://github.com/yuzu-emu/")
 set(package_repo "no_platform")
 set(package_extension "no_platform")
 if (WIN32)
@@ -15,10 +16,13 @@ if (WIN32)
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(package_repo "ext-linux-bin/raw/main/")
     set(package_extension ".tar.xz")
+elseif (ANDROID)    
+    set(package_repo "ext-android-bin/raw/main/")
+    set(package_extension ".tar.xz")
 else()
     message(FATAL_ERROR "No package available for this platform")
 endif()
-set(package_url "https://github.com/yuzu-emu/${package_repo}")
+set(package_url "${package_base_url}${package_repo}")
 
 set(prefix "${CMAKE_BINARY_DIR}/externals/${lib_name}")
 if (NOT EXISTS "${prefix}")

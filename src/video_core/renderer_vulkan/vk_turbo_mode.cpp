@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
+#include <adrenotools/driver.h>
+#endif
+
 #include "common/literals.h"
 #include "video_core/host_shaders/vulkan_turbo_mode_comp_spv.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
@@ -13,7 +17,10 @@ namespace Vulkan {
 using namespace Common::Literals;
 
 TurboMode::TurboMode(const vk::Instance& instance, const vk::InstanceDispatch& dld)
-    : m_device{CreateDevice(instance, dld, VK_NULL_HANDLE)}, m_allocator{m_device, false} {
+#ifndef ANDROID
+    : m_device{CreateDevice(instance, dld, VK_NULL_HANDLE)}, m_allocator{m_device, false}
+#endif
+{
     {
         std::scoped_lock lk{m_submission_lock};
         m_submission_time = std::chrono::steady_clock::now();
@@ -30,6 +37,7 @@ void TurboMode::QueueSubmitted() {
 }
 
 void TurboMode::Run(std::stop_token stop_token) {
+#ifndef ANDROID
     auto& dld = m_device.GetLogical();
 
     // Allocate buffer. 2MiB should be sufficient.
@@ -142,8 +150,14 @@ void TurboMode::Run(std::stop_token stop_token) {
     // Create a single command buffer.
     auto cmdbufs = command_pool.Allocate(1, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
     auto cmdbuf = vk::CommandBuffer{cmdbufs[0], m_device.GetDispatchLoader()};
+#endif
 
     while (!stop_token.stop_requested()) {
+#ifdef ANDROID
+#ifdef ARCHITECTURE_arm64
+        adrenotools_set_turbo(true);
+#endif
+#else
         // Reset the fence.
         fence.Reset();
 
@@ -209,7 +223,7 @@ void TurboMode::Run(std::stop_token stop_token) {
 
         // Wait for completion.
         fence.Wait();
-
+#endif
         // Wait for the next graphics queue submission if necessary.
         std::unique_lock lk{m_submission_lock};
         Common::CondvarWait(m_submission_cv, lk, stop_token, [this] {
@@ -217,6 +231,9 @@ void TurboMode::Run(std::stop_token stop_token) {
                    std::chrono::milliseconds{100};
         });
     }
+#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
+    adrenotools_set_turbo(false);
+#endif
 }
 
 } // namespace Vulkan

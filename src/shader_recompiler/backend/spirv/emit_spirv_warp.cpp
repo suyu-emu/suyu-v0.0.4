@@ -17,7 +17,22 @@ Id GetThreadId(EmitContext& ctx) {
 Id WarpExtract(EmitContext& ctx, Id value) {
     const Id thread_id{GetThreadId(ctx)};
     const Id local_index{ctx.OpShiftRightArithmetic(ctx.U32[1], thread_id, ctx.Const(5U))};
-    return ctx.OpVectorExtractDynamic(ctx.U32[1], value, local_index);
+    if (ctx.profile.has_broken_spirv_subgroup_mask_vector_extract_dynamic) {
+        const Id c0_sel{ctx.OpSelect(ctx.U32[1], ctx.OpIEqual(ctx.U1, local_index, ctx.Const(0U)),
+                                     ctx.OpCompositeExtract(ctx.U32[1], value, 0U), ctx.Const(0U))};
+        const Id c1_sel{ctx.OpSelect(ctx.U32[1], ctx.OpIEqual(ctx.U1, local_index, ctx.Const(1U)),
+                                     ctx.OpCompositeExtract(ctx.U32[1], value, 1U), ctx.Const(0U))};
+        const Id c2_sel{ctx.OpSelect(ctx.U32[1], ctx.OpIEqual(ctx.U1, local_index, ctx.Const(2U)),
+                                     ctx.OpCompositeExtract(ctx.U32[1], value, 2U), ctx.Const(0U))};
+        const Id c3_sel{ctx.OpSelect(ctx.U32[1], ctx.OpIEqual(ctx.U1, local_index, ctx.Const(3U)),
+                                     ctx.OpCompositeExtract(ctx.U32[1], value, 3U), ctx.Const(0U))};
+        const Id c0_or_c1{ctx.OpBitwiseOr(ctx.U32[1], c0_sel, c1_sel)};
+        const Id c2_or_c3{ctx.OpBitwiseOr(ctx.U32[1], c2_sel, c3_sel)};
+        const Id c0_or_c1_or_c2_or_c3{ctx.OpBitwiseOr(ctx.U32[1], c0_or_c1, c2_or_c3)};
+        return c0_or_c1_or_c2_or_c3;
+    } else {
+        return ctx.OpVectorExtractDynamic(ctx.U32[1], value, local_index);
+    }
 }
 
 Id LoadMask(EmitContext& ctx, Id mask) {

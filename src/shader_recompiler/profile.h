@@ -43,6 +43,7 @@ struct Profile {
     bool support_gl_variable_aoffi{};
     bool support_gl_sparse_textures{};
     bool support_gl_derivative_control{};
+    bool support_scaled_attributes{};
 
     bool warp_size_potentially_larger_than_guest{};
 
@@ -77,6 +78,8 @@ struct Profile {
     bool has_gl_bool_ref_bug{};
     /// Ignores SPIR-V ordered vs unordered using GLSL semantics
     bool ignore_nan_fp_comparisons{};
+    /// Some drivers have broken support for OpVectorExtractDynamic on subgroup mask inputs
+    bool has_broken_spirv_subgroup_mask_vector_extract_dynamic{};
 
     u32 gl_max_compute_smem_size{};
 };

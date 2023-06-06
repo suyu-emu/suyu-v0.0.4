@@ -69,6 +69,11 @@ Id StorageAtomicU32(EmitContext& ctx, const IR::Value& binding, const IR::Value&
 Id StorageAtomicU64(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset, Id value,
                     Id (Sirit::Module::*atomic_func)(Id, Id, Id, Id, Id),
                     Id (Sirit::Module::*non_atomic_func)(Id, Id, Id)) {
+    if (!ctx.profile.support_descriptor_aliasing) {
+        LOG_WARNING(Shader_SPIRV, "Descriptor aliasing not supported, this cannot be atomic.");
+        return ctx.ConstantNull(ctx.U64);
+    }
+
     if (ctx.profile.support_int64_atomics) {
         const Id pointer{StoragePointer(ctx, ctx.storage_types.U64, &StorageDefinitions::U64,
                                         binding, offset, sizeof(u64))};
@@ -86,6 +91,11 @@ Id StorageAtomicU64(EmitContext& ctx, const IR::Value& binding, const IR::Value&
 
 Id StorageAtomicU32x2(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset, Id value,
                       Id (Sirit::Module::*non_atomic_func)(Id, Id, Id)) {
+    if (!ctx.profile.support_descriptor_aliasing) {
+        LOG_WARNING(Shader_SPIRV, "Descriptor aliasing not supported, this cannot be atomic.");
+        return ctx.ConstantNull(ctx.U32[2]);
+    }
+
     LOG_WARNING(Shader_SPIRV, "Int64 atomics not supported, fallback to non-atomic");
     const Id pointer{StoragePointer(ctx, ctx.storage_types.U32x2, &StorageDefinitions::U32x2,
                                     binding, offset, sizeof(u32[2]))};

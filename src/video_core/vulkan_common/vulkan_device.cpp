@@ -18,6 +18,10 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
+#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
+#include <adrenotools/bcenabler.h>
+#endif
+
 namespace Vulkan {
 using namespace Common::Literals;
 namespace {
@@ -262,6 +266,32 @@ std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(vk::Physica
     return format_properties;
 }
 
+#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
+void OverrideBcnFormats(std::unordered_map<VkFormat, VkFormatProperties>& format_properties) {
+    // These properties are extracted from Adreno driver 512.687.0
+    constexpr VkFormatFeatureFlags tiling_features{
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT |
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT | VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
+        VK_FORMAT_FEATURE_TRANSFER_DST_BIT};
+
+    constexpr VkFormatFeatureFlags buffer_features{VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT};
+
+    static constexpr std::array bcn_formats{
+        VK_FORMAT_BC1_RGBA_SRGB_BLOCK, VK_FORMAT_BC1_RGBA_UNORM_BLOCK, VK_FORMAT_BC2_SRGB_BLOCK,
+        VK_FORMAT_BC2_UNORM_BLOCK,     VK_FORMAT_BC3_SRGB_BLOCK,       VK_FORMAT_BC3_UNORM_BLOCK,
+        VK_FORMAT_BC4_SNORM_BLOCK,     VK_FORMAT_BC4_UNORM_BLOCK,      VK_FORMAT_BC5_SNORM_BLOCK,
+        VK_FORMAT_BC5_UNORM_BLOCK,     VK_FORMAT_BC6H_SFLOAT_BLOCK,    VK_FORMAT_BC6H_UFLOAT_BLOCK,
+        VK_FORMAT_BC7_SRGB_BLOCK,      VK_FORMAT_BC7_UNORM_BLOCK,
+    };
+
+    for (const auto format : bcn_formats) {
+        format_properties[format].linearTilingFeatures = tiling_features;
+        format_properties[format].optimalTilingFeatures = tiling_features;
+        format_properties[format].bufferFeatures = buffer_features;
+    }
+}
+#endif
+
 NvidiaArchitecture GetNvidiaArchitecture(vk::PhysicalDevice physical,
                                          const std::set<std::string, std::less<>>& exts) {
     if (exts.contains(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME)) {
@@ -302,6 +332,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_suitable = GetSuitability(surface != nullptr);
 
     const VkDriverId driver_id = properties.driver.driverID;
+    const auto device_id = properties.properties.deviceID;
     const bool is_radv = driver_id == VK_DRIVER_ID_MESA_RADV;
     const bool is_amd_driver =
         driver_id == VK_DRIVER_ID_AMD_PROPRIETARY || driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE;
@@ -310,9 +341,12 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_intel_anv = driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA;
     const bool is_nvidia = driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY;
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
+    const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+    const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
+    const bool is_s8gen2 = device_id == 0x43050a01;
 
-    if (is_mvk && !is_suitable) {
-        LOG_WARNING(Render_Vulkan, "Unsuitable driver is MoltenVK, continuing anyway");
+    if ((is_mvk || is_qualcomm || is_turnip) && !is_suitable) {
+        LOG_WARNING(Render_Vulkan, "Unsuitable driver, continuing anyway");
     } else if (!is_suitable) {
         throw vk::Exception(VK_ERROR_INCOMPATIBLE_DRIVER);
     }
@@ -355,6 +389,59 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectPhysicalMemoryInfo();
     CollectToolingInfo();
 
+#ifdef ANDROID
+    if (is_qualcomm || is_turnip) {
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm and Turnip drivers have broken VK_EXT_custom_border_color");
+        extensions.custom_border_color = false;
+        loaded_extensions.erase(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+    }
+
+    if (is_qualcomm) {
+        must_emulate_scaled_formats = true;
+
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken VK_EXT_extended_dynamic_state");
+        extensions.extended_dynamic_state = false;
+        loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm drivers have a slow VK_KHR_push_descriptor implementation");
+        extensions.push_descriptor = false;
+        loaded_extensions.erase(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+
+#ifdef ARCHITECTURE_arm64
+        // Patch the driver to enable BCn textures.
+        const auto major = (properties.properties.driverVersion >> 24) << 2;
+        const auto minor = (properties.properties.driverVersion >> 12) & 0xFFFU;
+        const auto vendor = properties.properties.vendorID;
+        const auto patch_status = adrenotools_get_bcn_type(major, minor, vendor);
+
+        if (patch_status == ADRENOTOOLS_BCN_PATCH) {
+            LOG_INFO(Render_Vulkan, "Patching Adreno driver to support BCn texture formats");
+            if (adrenotools_patch_bcn(
+                    reinterpret_cast<void*>(dld.vkGetPhysicalDeviceFormatProperties))) {
+                OverrideBcnFormats(format_properties);
+            } else {
+                LOG_ERROR(Render_Vulkan, "Patch failed! Driver code may now crash");
+            }
+        } else if (patch_status == ADRENOTOOLS_BCN_BLOB) {
+            LOG_INFO(Render_Vulkan, "Adreno driver supports BCn textures without patches");
+        } else {
+            LOG_WARNING(Render_Vulkan, "Adreno driver can't be patched to enable BCn textures");
+        }
+#endif // ARCHITECTURE_arm64
+    }
+
+    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
+    if (is_arm) {
+        must_emulate_scaled_formats = true;
+
+        LOG_WARNING(Render_Vulkan, "ARM drivers have broken VK_EXT_extended_dynamic_state");
+        extensions.extended_dynamic_state = false;
+        loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+    }
+#endif // ANDROID
+
     if (is_nvidia) {
         const u32 nv_major_version = (properties.properties.driverVersion >> 22) & 0x3ff;
         const auto arch = GetNvidiaArchitecture(physical, supported_extensions);
@@ -388,7 +475,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
-    if (extensions.extended_dynamic_state2 && is_radv) {
+    if (extensions.extended_dynamic_state2 && (is_radv || is_qualcomm)) {
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version < VK_MAKE_API_VERSION(0, 22, 3, 1)) {
             LOG_WARNING(
@@ -415,7 +502,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             dynamic_state3_enables = false;
         }
     }
-    if (extensions.vertex_input_dynamic_state && is_radv) {
+    if (extensions.vertex_input_dynamic_state && (is_radv || is_qualcomm)) {
+        // Qualcomm S8gen2 drivers do not properly support vertex_input_dynamic_state.
         // TODO(ameerj): Blacklist only offending driver versions
         // TODO(ameerj): Confirm if RDNA1 is affected
         const bool is_rdna2 =
@@ -467,8 +555,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan, "Intel proprietary drivers do not support MSAA image blits");
         cant_blit_msaa = true;
     }
-    if (is_intel_anv) {
-        LOG_WARNING(Render_Vulkan, "ANV driver does not support native BGR format");
+    if (is_intel_anv || (is_qualcomm && !is_s8gen2)) {
+        LOG_WARNING(Render_Vulkan, "Driver does not support native BGR format");
         must_emulate_bgr565 = true;
     }
     if (extensions.push_descriptor && is_intel_anv) {
@@ -633,7 +721,8 @@ bool Device::ShouldBoostClocks() const {
         driver_id == VK_DRIVER_ID_AMD_PROPRIETARY || driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE ||
         driver_id == VK_DRIVER_ID_MESA_RADV || driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY ||
         driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS ||
-        driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA;
+        driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA ||
+        driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP;
 
     const bool is_steam_deck = vendor_id == 0x1002 && device_id == 0x163F;
 

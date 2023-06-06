@@ -5,6 +5,7 @@
 
 #include "common/logging/log.h"
 #include "core/frontend/emu_window.h"
+#include "core/frontend/graphics_context.h"
 #include "video_core/renderer_base.h"
 
 namespace VideoCore {

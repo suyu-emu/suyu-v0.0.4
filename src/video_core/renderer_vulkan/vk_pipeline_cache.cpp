@@ -114,14 +114,16 @@ Shader::AttributeType CastAttributeType(const FixedPipelineState::VertexAttribut
         return Shader::AttributeType::Disabled;
     case Maxwell::VertexAttribute::Type::SNorm:
     case Maxwell::VertexAttribute::Type::UNorm:
-    case Maxwell::VertexAttribute::Type::UScaled:
-    case Maxwell::VertexAttribute::Type::SScaled:
     case Maxwell::VertexAttribute::Type::Float:
         return Shader::AttributeType::Float;
     case Maxwell::VertexAttribute::Type::SInt:
         return Shader::AttributeType::SignedInt;
     case Maxwell::VertexAttribute::Type::UInt:
         return Shader::AttributeType::UnsignedInt;
+    case Maxwell::VertexAttribute::Type::UScaled:
+        return Shader::AttributeType::UnsignedScaled;
+    case Maxwell::VertexAttribute::Type::SScaled:
+        return Shader::AttributeType::SignedScaled;
     }
     return Shader::AttributeType::Float;
 }
@@ -286,14 +288,17 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
       texture_cache{texture_cache_}, shader_notify{shader_notify_},
       use_asynchronous_shaders{Settings::values.use_asynchronous_shaders.GetValue()},
       use_vulkan_pipeline_cache{Settings::values.use_vulkan_driver_pipeline_cache.GetValue()},
-      workers(std::max(std::thread::hardware_concurrency(), 2U) - 1, "VkPipelineBuilder"),
+      workers(device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY
+                  ? 1
+                  : (std::max(std::thread::hardware_concurrency(), 2U) - 1),
+              "VkPipelineBuilder"),
       serialization_thread(1, "VkPipelineSerialization") {
     const auto& float_control{device.FloatControlProperties()};
     const VkDriverId driver_id{device.GetDriverID()};
     profile = Shader::Profile{
         .supported_spirv = device.SupportedSpirvVersion(),
         .unified_descriptor_binding = true,
-        .support_descriptor_aliasing = true,
+        .support_descriptor_aliasing = device.IsDescriptorAliasingSupported(),
         .support_int8 = device.IsInt8Supported(),
         .support_int16 = device.IsShaderInt16Supported(),
         .support_int64 = device.IsShaderInt64Supported(),
@@ -324,6 +329,7 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
         .support_derivative_control = true,
         .support_geometry_shader_passthrough = device.IsNvGeometryShaderPassthroughSupported(),
         .support_native_ndc = device.IsExtDepthClipControlSupported(),
+        .support_scaled_attributes = !device.MustEmulateScaledFormats(),
 
         .warp_size_potentially_larger_than_guest = device.IsWarpSizePotentiallyBiggerThanGuest(),
 
@@ -341,7 +347,8 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
         .has_broken_signed_operations = false,
         .has_broken_fp16_float_controls = driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY,
         .ignore_nan_fp_comparisons = false,
-    };
+        .has_broken_spirv_subgroup_mask_vector_extract_dynamic =
+            driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY};
     host_info = Shader::HostTranslateInfo{
         .support_float16 = device.IsFloat16Supported(),
         .support_int64 = device.IsShaderInt64Supported(),

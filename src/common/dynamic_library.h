@@ -20,6 +20,9 @@ public:
     /// Automatically loads the specified library. Call IsOpen() to check validity before use.
     explicit DynamicLibrary(const char* filename);
 
+    /// Initializes the dynamic library with an already opened handle.
+    explicit DynamicLibrary(void* handle_);
+
     /// Moves the library.
     DynamicLibrary(DynamicLibrary&&) noexcept;
     DynamicLibrary& operator=(DynamicLibrary&&) noexcept;

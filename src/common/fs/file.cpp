@@ -5,6 +5,9 @@
 
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
+#ifdef ANDROID
+#include "common/fs/fs_android.h"
+#endif
 #include "common/logging/log.h"
 
 #ifdef _WIN32
@@ -252,6 +255,23 @@ void IOFile::Open(const fs::path& path, FileAccessMode mode, FileType type, File
     } else {
         _wfopen_s(&file, path.c_str(), AccessModeToWStr(mode, type));
     }
+#elif ANDROID
+    if (Android::IsContentUri(path)) {
+        ASSERT_MSG(mode == FileAccessMode::Read, "Content URI file access is for read-only!");
+        const auto fd = Android::OpenContentUri(path, Android::OpenMode::Read);
+        if (fd != -1) {
+            file = fdopen(fd, "r");
+            const auto error_num = errno;
+            if (error_num != 0 && file == nullptr) {
+                LOG_ERROR(Common_Filesystem, "Error opening file: {}, error: {}", path.c_str(),
+                          strerror(error_num));
+            }
+        } else {
+            LOG_ERROR(Common_Filesystem, "Error opening file: {}", path.c_str());
+        }
+    } else {
+        file = std::fopen(path.c_str(), AccessModeToStr(mode, type));
+    }
 #else
     file = std::fopen(path.c_str(), AccessModeToStr(mode, type));
 #endif
@@ -372,6 +392,23 @@ u64 IOFile::GetSize() const {
     // Flush any unwritten buffered data into the file prior to retrieving the file size.
     std::fflush(file);
 
+#if ANDROID
+    u64 file_size = 0;
+    if (Android::IsContentUri(file_path)) {
+        file_size = Android::GetSize(file_path);
+    } else {
+        std::error_code ec;
+
+        file_size = fs::file_size(file_path, ec);
+
+        if (ec) {
+            LOG_ERROR(Common_Filesystem,
+                      "Failed to retrieve the file size of path={}, ec_message={}",
+                      PathToUTF8String(file_path), ec.message());
+            return 0;
+        }
+    }
+#else
     std::error_code ec;
 
     const auto file_size = fs::file_size(file_path, ec);
@@ -381,6 +418,7 @@ u64 IOFile::GetSize() const {
                   PathToUTF8String(file_path), ec.message());
         return 0;
     }
+#endif
 
     return file_size;
 }

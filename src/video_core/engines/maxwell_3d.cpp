@@ -593,6 +593,12 @@ void Maxwell3D::ProcessQueryCondition() {
 }
 
 void Maxwell3D::ProcessCounterReset() {
+#if ANDROID
+    if (!Settings::IsGPULevelHigh()) {
+        // This is problematic on Android, disable on GPU Normal.
+        return;
+    }
+#endif
     switch (regs.clear_report_value) {
     case Regs::ClearReport::ZPassPixelCount:
         rasterizer->ResetCounter(QueryType::SamplesPassed);
@@ -614,6 +620,12 @@ std::optional<u64> Maxwell3D::GetQueryResult() {
     case Regs::ReportSemaphore::Report::Payload:
         return regs.report_semaphore.payload;
     case Regs::ReportSemaphore::Report::ZPassPixelCount64:
+#if ANDROID
+        if (!Settings::IsGPULevelHigh()) {
+            // This is problematic on Android, disable on GPU Normal.
+            return 120;
+        }
+#endif
         // Deferred.
         rasterizer->Query(regs.report_semaphore.Address(), QueryType::SamplesPassed,
                           system.GPU().GetTicks());

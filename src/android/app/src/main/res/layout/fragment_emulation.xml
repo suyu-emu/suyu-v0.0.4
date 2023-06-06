@@ -1,0 +1,70 @@
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:keepScreenOn="true"
+    tools:context="org.yuzu.yuzu_emu.fragments.EmulationFragment"
+    tools:openDrawer="start">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- This is what everything is rendered to during emulation -->
+        <org.yuzu.yuzu_emu.views.FixedRatioSurfaceView
+            android:id="@+id/surface_emulation"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
+
+        <FrameLayout
+            android:id="@+id/overlay_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="bottom">
+
+        <!-- This is the onscreen input overlay -->
+        <org.yuzu.yuzu_emu.overlay.InputOverlay
+            android:id="@+id/surface_input_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
+
+        <TextView
+            android:id="@+id/show_fps_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:clickable="false"
+            android:focusable="false"
+            android:shadowColor="@android:color/black"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            tools:ignore="RtlHardcoded" />
+
+        <Button
+            style="@style/Widget.Material3.Button.ElevatedButton"
+            android:id="@+id/done_control_config"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/emulation_done"
+            android:visibility="gone" />
+        </FrameLayout>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/in_game_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start|bottom"
+        app:headerLayout="@layout/header_in_game"
+        app:menu="@menu/menu_in_game" />
+
+</androidx.drawerlayout.widget.DrawerLayout>

@@ -17,6 +17,8 @@ enum class AttributeType : u8 {
     Float,
     SignedInt,
     UnsignedInt,
+    SignedScaled,
+    UnsignedScaled,
     Disabled,
 };
 

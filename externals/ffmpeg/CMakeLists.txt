@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-if (NOT WIN32)
+if (NOT WIN32 AND NOT ANDROID)
     # Build FFmpeg from externals
     message(STATUS "Using FFmpeg from externals")
 
@@ -44,10 +44,12 @@ if (NOT WIN32)
     endforeach()
 
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(LIBVA libva)
-    pkg_check_modules(CUDA cuda)
-    pkg_check_modules(FFNVCODEC ffnvcodec)
-    pkg_check_modules(VDPAU vdpau)
+    if (NOT ANDROID)
+        pkg_check_modules(LIBVA libva)
+        pkg_check_modules(CUDA cuda)
+        pkg_check_modules(FFNVCODEC ffnvcodec)
+        pkg_check_modules(VDPAU vdpau)
+    endif()
 
     set(FFmpeg_HWACCEL_LIBRARIES)
     set(FFmpeg_HWACCEL_FLAGS)
@@ -121,6 +123,26 @@ if (NOT WIN32)
         list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vdpau)
     endif()
 
+    find_program(BASH_PROGRAM bash REQUIRED)
+
+    set(FFmpeg_CROSS_COMPILE_FLAGS "")
+    if (ANDROID)
+        string(TOLOWER "${CMAKE_HOST_SYSTEM_NAME}" FFmpeg_HOST_SYSTEM_NAME)
+        set(TOOLCHAIN "${ANDROID_NDK}/toolchains/llvm/prebuilt/${FFmpeg_HOST_SYSTEM_NAME}-${CMAKE_HOST_SYSTEM_PROCESSOR}")
+        set(SYSROOT "${TOOLCHAIN}/sysroot")
+        set(FFmpeg_CPU "armv8-a")
+        list(APPEND FFmpeg_CROSS_COMPILE_FLAGS
+            --arch=arm64
+            #--cpu=${FFmpeg_CPU}
+            --enable-cross-compile
+            --cross-prefix=${TOOLCHAIN}/bin/aarch64-linux-android-
+            --sysroot=${SYSROOT}
+            --target-os=android
+            --extra-ldflags="--ld-path=${TOOLCHAIN}/bin/ld.lld" 
+            --extra-ldflags="-nostdlib"
+        )
+    endif()
+
     # `configure` parameters builds only exactly what yuzu needs from FFmpeg
     # `--disable-vdpau` is needed to avoid linking issues
     set(FFmpeg_CC ${CMAKE_C_COMPILER_LAUNCHER}  ${CMAKE_C_COMPILER})
@@ -129,7 +151,7 @@ if (NOT WIN32)
         OUTPUT
             ${FFmpeg_MAKEFILE}
         COMMAND
-            /bin/bash ${FFmpeg_PREFIX}/configure
+            ${BASH_PROGRAM} ${FFmpeg_PREFIX}/configure
                 --disable-avdevice
                 --disable-avformat
                 --disable-doc
@@ -146,12 +168,14 @@ if (NOT WIN32)
                 --cc="${FFmpeg_CC}"
                 --cxx="${FFmpeg_CXX}"
                 ${FFmpeg_HWACCEL_FLAGS}
+                ${FFmpeg_CROSS_COMPILE_FLAGS}
         WORKING_DIRECTORY
             ${FFmpeg_BUILD_DIR}
     )
     unset(FFmpeg_CC)
     unset(FFmpeg_CXX)
     unset(FFmpeg_HWACCEL_FLAGS)
+    unset(FFmpeg_CROSS_COMPILE_FLAGS)
 
     # Workaround for Ubuntu 18.04's older version of make not being able to call make as a child
     # with context of the jobserver. Also helps ninja users.
@@ -197,7 +221,38 @@ if (NOT WIN32)
     else()
         message(FATAL_ERROR "FFmpeg not found")
     endif()
-else(WIN32)
+elseif(ANDROID)
+    # Use yuzu FFmpeg binaries
+    if (ARCHITECTURE_arm64)
+        set(FFmpeg_EXT_NAME "ffmpeg-android-v5.1.LTS-aarch64")
+    elseif (ARCHITECTURE_x86_64)
+        set(FFmpeg_EXT_NAME "ffmpeg-android-v5.1.LTS-x86_64")
+    else()
+        message(FATAL_ERROR "Unsupported architecture for Android FFmpeg")
+    endif()
+    set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}")
+    download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "")
+    set(FFmpeg_FOUND YES)
+    set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
+    set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/lib" CACHE PATH "Path to FFmpeg library directory" FORCE)
+    set(FFmpeg_LDFLAGS "" CACHE STRING "FFmpeg linker flags" FORCE)
+    set(FFmpeg_LIBRARIES
+        ${FFmpeg_LIBRARY_DIR}/libavcodec.so
+        ${FFmpeg_LIBRARY_DIR}/libavdevice.so
+        ${FFmpeg_LIBRARY_DIR}/libavfilter.so
+        ${FFmpeg_LIBRARY_DIR}/libavformat.so
+        ${FFmpeg_LIBRARY_DIR}/libavutil.so
+        ${FFmpeg_LIBRARY_DIR}/libswresample.so
+        ${FFmpeg_LIBRARY_DIR}/libswscale.so
+        ${FFmpeg_LIBRARY_DIR}/libvpx.a
+        ${FFmpeg_LIBRARY_DIR}/libx264.a
+        CACHE PATH "Paths to FFmpeg libraries" FORCE)
+    # exported variables
+    set(FFmpeg_PATH "${FFmpeg_PATH}" PARENT_SCOPE)
+    set(FFmpeg_LDFLAGS "${FFmpeg_LDFLAGS}" PARENT_SCOPE)
+    set(FFmpeg_LIBRARIES "${FFmpeg_LIBRARIES}" PARENT_SCOPE)
+    set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR}" PARENT_SCOPE)
+elseif(WIN32)
     # Use yuzu FFmpeg binaries
     set(FFmpeg_EXT_NAME "ffmpeg-5.1.3")
     set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}")
@@ -206,7 +261,6 @@ else(WIN32)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
     set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/bin" CACHE PATH "Path to FFmpeg library directory" FORCE)
     set(FFmpeg_LDFLAGS "" CACHE STRING "FFmpeg linker flags" FORCE)
-    set(FFmpeg_DLL_DIR "${FFmpeg_PATH}/bin" CACHE PATH "Path to FFmpeg dll's" FORCE)
     set(FFmpeg_LIBRARIES
     ${FFmpeg_LIBRARY_DIR}/swscale.lib
     ${FFmpeg_LIBRARY_DIR}/avcodec.lib

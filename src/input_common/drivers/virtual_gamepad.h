@@ -52,7 +52,7 @@ public:
     void SetButtonState(std::size_t player_index, VirtualButton button_id, bool value);
 
     /**
-     * Sets the status of all buttons bound with the key to released
+     * Sets the status of a stick to a specific player index
      * @param player_index the player number that will take this action
      * @param axis_id the id of the axis to move
      * @param x_value the position of the stick in the x axis
@@ -61,6 +61,16 @@ public:
     void SetStickPosition(std::size_t player_index, int axis_id, float x_value, float y_value);
     void SetStickPosition(std::size_t player_index, VirtualStick axis_id, float x_value,
                           float y_value);
+
+    /**
+     * Sets the status of the motion sensor to a specific player index
+     * @param player_index the player number that will take this action
+     * @param delta_timestamp time passed since last reading
+     * @param gyro_x,gyro_y,gyro_z the gyro sensor readings
+     * @param accel_x,accel_y,accel_z the acelerometer reading
+     */
+    void SetMotionState(std::size_t player_index, u64 delta_timestamp, float gyro_x, float gyro_y,
+                        float gyro_z, float accel_x, float accel_y, float accel_z);
 
     /// Restores all inputs into the neutral position
     void ResetControllers();
