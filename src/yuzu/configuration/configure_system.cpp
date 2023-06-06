@@ -95,19 +95,20 @@ void ConfigureSystem::RetranslateUI() {
 
 void ConfigureSystem::SetConfiguration() {
     enabled = !system.IsPoweredOn();
-    const auto rng_seed =
-        QStringLiteral("%1")
-            .arg(Settings::values.rng_seed.GetValue().value_or(0), 8, 16, QLatin1Char{'0'})
-            .toUpper();
-    const auto rtc_time = Settings::values.custom_rtc.value_or(QDateTime::currentSecsSinceEpoch());
+    const auto rng_seed = QStringLiteral("%1")
+                              .arg(Settings::values.rng_seed.GetValue(), 8, 16, QLatin1Char{'0'})
+                              .toUpper();
+    const auto rtc_time = Settings::values.custom_rtc_enabled
+                              ? Settings::values.custom_rtc.GetValue()
+                              : QDateTime::currentSecsSinceEpoch();
 
-    ui->rng_seed_checkbox->setChecked(Settings::values.rng_seed.GetValue().has_value());
-    ui->rng_seed_edit->setEnabled(Settings::values.rng_seed.GetValue().has_value() &&
+    ui->rng_seed_checkbox->setChecked(Settings::values.rng_seed_enabled.GetValue());
+    ui->rng_seed_edit->setEnabled(Settings::values.rng_seed_enabled.GetValue() &&
                                   Settings::values.rng_seed.UsingGlobal());
     ui->rng_seed_edit->setText(rng_seed);
 
-    ui->custom_rtc_checkbox->setChecked(Settings::values.custom_rtc.has_value());
-    ui->custom_rtc_edit->setEnabled(Settings::values.custom_rtc.has_value());
+    ui->custom_rtc_checkbox->setChecked(Settings::values.custom_rtc_enabled.GetValue());
+    ui->custom_rtc_edit->setEnabled(Settings::values.custom_rtc_enabled.GetValue());
     ui->custom_rtc_edit->setDateTime(QDateTime::fromSecsSinceEpoch(rtc_time));
     ui->device_name_edit->setText(
         QString::fromUtf8(Settings::values.device_name.GetValue().c_str()));
@@ -142,13 +143,15 @@ void ConfigureSystem::ApplyConfiguration() {
     // to allow in-game time to be fast forwarded
     if (Settings::IsConfiguringGlobal()) {
         if (ui->custom_rtc_checkbox->isChecked()) {
+            Settings::values.custom_rtc_enabled = true;
             Settings::values.custom_rtc = ui->custom_rtc_edit->dateTime().toSecsSinceEpoch();
             if (system.IsPoweredOn()) {
-                const s64 posix_time{*Settings::values.custom_rtc};
+                const s64 posix_time{Settings::values.custom_rtc.GetValue() +
+                                     Service::Time::TimeManager::GetExternalTimeZoneOffset()};
                 system.GetTimeManager().UpdateLocalSystemClockTime(posix_time);
             }
         } else {
-            Settings::values.custom_rtc = std::nullopt;
+            Settings::values.custom_rtc_enabled = false;
         }
     }
 
@@ -169,26 +172,23 @@ void ConfigureSystem::ApplyConfiguration() {
     if (Settings::IsConfiguringGlobal()) {
         // Guard if during game and set to game-specific value
         if (Settings::values.rng_seed.UsingGlobal()) {
+            Settings::values.rng_seed_enabled = ui->rng_seed_checkbox->isChecked();
             if (ui->rng_seed_checkbox->isChecked()) {
                 Settings::values.rng_seed.SetValue(ui->rng_seed_edit->text().toUInt(nullptr, 16));
-            } else {
-                Settings::values.rng_seed.SetValue(std::nullopt);
             }
         }
     } else {
         switch (use_rng_seed) {
         case ConfigurationShared::CheckState::On:
         case ConfigurationShared::CheckState::Off:
+            Settings::values.rng_seed_enabled.SetGlobal(false);
             Settings::values.rng_seed.SetGlobal(false);
             if (ui->rng_seed_checkbox->isChecked()) {
                 Settings::values.rng_seed.SetValue(ui->rng_seed_edit->text().toUInt(nullptr, 16));
-            } else {
-                Settings::values.rng_seed.SetValue(std::nullopt);
             }
             break;
         case ConfigurationShared::CheckState::Global:
-            Settings::values.rng_seed.SetGlobal(false);
-            Settings::values.rng_seed.SetValue(std::nullopt);
+            Settings::values.rng_seed_enabled.SetGlobal(true);
             Settings::values.rng_seed.SetGlobal(true);
             break;
         case ConfigurationShared::CheckState::Count:
@@ -217,8 +217,8 @@ void ConfigureSystem::SetupPerGameUI() {
 
     ConfigurationShared::SetColoredTristate(
         ui->rng_seed_checkbox, Settings::values.rng_seed.UsingGlobal(),
-        Settings::values.rng_seed.GetValue().has_value(),
-        Settings::values.rng_seed.GetValue(true).has_value(), use_rng_seed);
+        Settings::values.rng_seed_enabled.GetValue(),
+        Settings::values.rng_seed_enabled.GetValue(true), use_rng_seed);
 
     ConfigurationShared::SetColoredTristate(ui->use_unsafe_extended_memory_layout,
                                             Settings::values.use_unsafe_extended_memory_layout,

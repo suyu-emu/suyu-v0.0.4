@@ -81,7 +81,8 @@ Result KProcess::Initialize(KProcess* process, Core::System& system, std::string
     process->m_capabilities.InitializeForMetadatalessProcess();
     process->m_is_initialized = true;
 
-    std::mt19937 rng(Settings::values.rng_seed.GetValue().value_or(std::time(nullptr)));
+    std::mt19937 rng(Settings::values.rng_seed_enabled ? Settings::values.rng_seed.GetValue()
+                                                       : static_cast<u32>(std::time(nullptr)));
     std::uniform_int_distribution<u64> distribution;
     std::generate(process->m_random_entropy.begin(), process->m_random_entropy.end(),
                   [&] { return distribution(rng); });

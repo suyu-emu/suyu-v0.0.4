@@ -149,7 +149,9 @@ struct System::Impl {
         const auto current_time =
             std::chrono::duration_cast<std::chrono::seconds>(posix_time).count();
         Settings::values.custom_rtc_differential =
-            Settings::values.custom_rtc.value_or(current_time) - current_time;
+            (Settings::values.custom_rtc_enabled ? Settings::values.custom_rtc.GetValue()
+                                                 : current_time) -
+            current_time;
 
         // Create a default fs if one doesn't already exist.
         if (virtual_filesystem == nullptr) {

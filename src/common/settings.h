@@ -505,10 +505,12 @@ struct Values {
     SwitchableSetting<u8> bg_blue{0, "bg_blue"};
 
     // System
-    SwitchableSetting<std::optional<u32>> rng_seed{std::optional<u32>(), "rng_seed"};
+    SwitchableSetting<bool> rng_seed_enabled{false, "rng_seed_enabled"};
+    SwitchableSetting<u32> rng_seed{0, "rng_seed"};
     Setting<std::string> device_name{"Yuzu", "device_name"};
     // Measured in seconds since epoch
-    std::optional<s64> custom_rtc;
+    SwitchableSetting<bool> custom_rtc_enabled{false, "custom_rtc_enabled"};
+    SwitchableSetting<s64> custom_rtc{0, "custom_rtc"};
     // Set on game boot, reset on stop. Seconds difference between current time and `custom_rtc`
     s64 custom_rtc_differential;
 
