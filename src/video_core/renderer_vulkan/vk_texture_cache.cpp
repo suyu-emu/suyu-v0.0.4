@@ -1279,6 +1279,10 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
         flags |= VideoCommon::ImageFlagBits::Converted;
         flags |= VideoCommon::ImageFlagBits::CostlyLoad;
     }
+    if (IsPixelFormatBCn(info.format) && !runtime->device.IsOptimalBcnSupported()) {
+        flags |= VideoCommon::ImageFlagBits::Converted;
+        flags |= VideoCommon::ImageFlagBits::CostlyLoad;
+    }
     if (runtime->device.HasDebuggingToolAttached()) {
         original_image.SetObjectNameEXT(VideoCommon::Name(*this).c_str());
     }

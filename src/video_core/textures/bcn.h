@@ -4,14 +4,13 @@
 #pragma once
 
 #include <span>
-#include <stdint.h>
+
+#include "common/common_types.h"
 
 namespace Tegra::Texture::BCN {
 
-void CompressBC1(std::span<const uint8_t> data, uint32_t width, uint32_t height, uint32_t depth,
-                 std::span<uint8_t> output);
+void CompressBC1(std::span<const u8> data, u32 width, u32 height, u32 depth, std::span<u8> output);
 
-void CompressBC3(std::span<const uint8_t> data, uint32_t width, uint32_t height, uint32_t depth,
-                 std::span<uint8_t> output);
+void CompressBC3(std::span<const u8> data, u32 width, u32 height, u32 depth, std::span<u8> output);
 
 } // namespace Tegra::Texture::BCN

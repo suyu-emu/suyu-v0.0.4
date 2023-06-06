@@ -293,6 +293,11 @@ public:
         return features.features.textureCompressionASTC_LDR;
     }
 
+    /// Returns true if BCn is natively supported.
+    bool IsOptimalBcnSupported() const {
+        return features.features.textureCompressionBC;
+    }
+
     /// Returns true if descriptor aliasing is natively supported.
     bool IsDescriptorAliasingSupported() const {
         return GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
@@ -423,6 +428,11 @@ public:
         return extensions.sampler_filter_minmax;
     }
 
+    /// Returns true if the device supports VK_EXT_shader_stencil_export.
+    bool IsExtShaderStencilExportSupported() const {
+        return extensions.shader_stencil_export;
+    }
+
     /// Returns true if the device supports VK_EXT_depth_range_unrestricted.
     bool IsExtDepthRangeUnrestrictedSupported() const {
         return extensions.depth_range_unrestricted;
@@ -490,11 +500,6 @@ public:
     /// Returns true if the device supports VK_EXT_vertex_input_dynamic_state.
     bool IsExtVertexInputDynamicStateSupported() const {
         return extensions.vertex_input_dynamic_state;
-    }
-
-    /// Returns true if the device supports VK_EXT_shader_stencil_export.
-    bool IsExtShaderStencilExportSupported() const {
-        return extensions.shader_stencil_export;
     }
 
     /// Returns true if the device supports VK_EXT_shader_demote_to_helper_invocation

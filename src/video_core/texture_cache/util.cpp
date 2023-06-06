@@ -24,7 +24,7 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/memory_manager.h"
 #include "video_core/surface.h"
-#include "video_core/texture_cache/decode_bc4.h"
+#include "video_core/texture_cache/decode_bc.h"
 #include "video_core/texture_cache/format_lookup_table.h"
 #include "video_core/texture_cache/formatter.h"
 #include "video_core/texture_cache/samples_helper.h"
@@ -60,8 +60,6 @@ using VideoCore::Surface::IsViewCompatible;
 using VideoCore::Surface::PixelFormatFromDepthFormat;
 using VideoCore::Surface::PixelFormatFromRenderTargetFormat;
 using VideoCore::Surface::SurfaceType;
-
-constexpr u32 CONVERTED_BYTES_PER_BLOCK = BytesPerBlock(PixelFormat::A8B8G8R8_UNORM);
 
 struct LevelInfo {
     Extent3D size;
@@ -612,7 +610,8 @@ u32 CalculateConvertedSizeBytes(const ImageInfo& info) noexcept {
         }
         return output_size;
     }
-    return NumBlocksPerLayer(info, TILE_SIZE) * info.resources.layers * CONVERTED_BYTES_PER_BLOCK;
+    return NumBlocksPerLayer(info, TILE_SIZE) * info.resources.layers *
+           ConvertedBytesPerBlock(info.format);
 }
 
 u32 CalculateLayerStride(const ImageInfo& info) noexcept {
@@ -945,7 +944,8 @@ void ConvertImage(std::span<const u8> input, const ImageInfo& info, std::span<u8
                 tile_size.height, output.subspan(output_offset));
 
             output_offset += copy.image_extent.width * copy.image_extent.height *
-                             copy.image_subresource.num_layers * CONVERTED_BYTES_PER_BLOCK;
+                             copy.image_subresource.num_layers *
+                             BytesPerBlock(PixelFormat::A8B8G8R8_UNORM);
         } else if (astc) {
             // BC1 uses 0.5 bytes per texel
             // BC3 uses 1 byte per texel
@@ -956,7 +956,8 @@ void ConvertImage(std::span<const u8> input, const ImageInfo& info, std::span<u8
 
             const u32 plane_dim = copy.image_extent.width * copy.image_extent.height;
             const u32 level_size = plane_dim * copy.image_extent.depth *
-                                   copy.image_subresource.num_layers * CONVERTED_BYTES_PER_BLOCK;
+                                   copy.image_subresource.num_layers *
+                                   BytesPerBlock(PixelFormat::A8B8G8R8_UNORM);
             decode_scratch.resize_destructive(level_size);
 
             Tegra::Texture::ASTC::Decompress(
@@ -976,10 +977,15 @@ void ConvertImage(std::span<const u8> input, const ImageInfo& info, std::span<u8
                 bpp_div;
             output_offset += static_cast<u32>(copy.buffer_size);
         } else {
-            DecompressBC4(input_offset, copy.image_extent, output.subspan(output_offset));
-
+            const Extent3D image_extent{
+                .width = copy.image_extent.width,
+                .height = copy.image_extent.height * copy.image_subresource.num_layers,
+                .depth = copy.image_extent.depth,
+            };
+            DecompressBCn(input_offset, output.subspan(output_offset), image_extent, info.format);
             output_offset += copy.image_extent.width * copy.image_extent.height *
-                             copy.image_subresource.num_layers * CONVERTED_BYTES_PER_BLOCK;
+                             copy.image_subresource.num_layers *
+                             ConvertedBytesPerBlock(info.format);
         }
     }
 }

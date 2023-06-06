@@ -259,6 +259,26 @@ FormatInfo SurfaceFormat(const Device& device, FormatType format_type, bool with
             break;
         }
     }
+    // Transcode on hardware that doesn't support BCn natively
+    if (!device.IsOptimalBcnSupported() && VideoCore::Surface::IsPixelFormatBCn(pixel_format)) {
+        const bool is_srgb = with_srgb && VideoCore::Surface::IsPixelFormatSRGB(pixel_format);
+        if (pixel_format == PixelFormat::BC4_SNORM) {
+            tuple.format = VK_FORMAT_R8_SNORM;
+        } else if (pixel_format == PixelFormat::BC4_UNORM) {
+            tuple.format = VK_FORMAT_R8_UNORM;
+        } else if (pixel_format == PixelFormat::BC5_SNORM) {
+            tuple.format = VK_FORMAT_R8G8_SNORM;
+        } else if (pixel_format == PixelFormat::BC5_UNORM) {
+            tuple.format = VK_FORMAT_R8G8_UNORM;
+        } else if (pixel_format == PixelFormat::BC6H_SFLOAT ||
+                   pixel_format == PixelFormat::BC6H_UFLOAT) {
+            tuple.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+        } else if (is_srgb) {
+            tuple.format = VK_FORMAT_A8B8G8R8_SRGB_PACK32;
+        } else {
+            tuple.format = VK_FORMAT_A8B8G8R8_UNORM_PACK32;
+        }
+    }
     const bool attachable = (tuple.usage & Attachable) != 0;
     const bool storage = (tuple.usage & Storage) != 0;
 

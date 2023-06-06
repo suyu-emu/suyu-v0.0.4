@@ -315,7 +315,14 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     FlushWork();
     gpu_memory->FlushCaching();
 
+#if ANDROID
+    if (Settings::IsGPULevelHigh()) {
+        // This is problematic on Android, disable on GPU Normal.
+        query_cache.UpdateCounters();
+    }
+#else
     query_cache.UpdateCounters();
+#endif
 
     auto& regs = maxwell3d->regs;
     const bool use_color = regs.clear_surface.R || regs.clear_surface.G || regs.clear_surface.B ||
