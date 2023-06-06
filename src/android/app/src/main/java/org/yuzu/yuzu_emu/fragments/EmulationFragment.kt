@@ -14,6 +14,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Rational
 import android.util.TypedValue
 import android.view.*
 import android.widget.TextView
@@ -36,6 +37,7 @@ import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.DialogOverlayAdjustBinding
 import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
+import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
@@ -158,6 +160,18 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         if (!DirectoryInitialization.areDirectoriesReady) {
             DirectoryInitialization.start(requireContext())
         }
+
+        binding.surfaceEmulation.setAspectRatio(
+            when (IntSetting.RENDERER_ASPECT_RATIO.int) {
+                0 -> Rational(16, 9)
+                1 -> Rational(4, 3)
+                2 -> Rational(21, 9)
+                3 -> Rational(16, 10)
+                4 -> null // Stretch
+                else -> Rational(16, 9)
+            }
+        )
+
         emulationState.run(emulationActivity!!.isActivityRecreated)
     }
 
