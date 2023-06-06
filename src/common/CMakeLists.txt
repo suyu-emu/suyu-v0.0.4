@@ -110,6 +110,7 @@ add_library(common STATIC
     scratch_buffer.h
     settings.cpp
     settings.h
+    settings_enums.h
     settings_input.cpp
     settings_input.h
     socket_types.h
