@@ -58,6 +58,7 @@ android {
         minSdk = 30
         targetSdk = 33
         versionName = getGitVersion()
+        versionCode = 1
 
         ndk {
             @SuppressLint("ChromeOsAbiSupport")
