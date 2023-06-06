@@ -23,17 +23,14 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.features.DocumentProvider
 import org.yuzu.yuzu_emu.getPublicFilesDir
-import java.io.BufferedInputStream
+import org.yuzu.yuzu_emu.utils.FileUtil
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.FilenameFilter
-import java.io.IOException
-import java.io.InputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 class ImportExportSavesFragment : DialogFragment() {
@@ -125,33 +122,6 @@ class ImportExportSavesFragment : DialogFragment() {
     }
 
     /**
-     * Extracts the save files located in the given zip file and copies them to the saves folder.
-     * @exception IOException if the file was being created outside of the target directory
-     */
-    private fun unzip(zipStream: InputStream, destDir: File): Boolean {
-        val zis = ZipInputStream(BufferedInputStream(zipStream))
-        var entry: ZipEntry? = zis.nextEntry
-        while (entry != null) {
-            val entryName = entry.name
-            val entryFile = File(destDir, entryName)
-            if (!entryFile.canonicalPath.startsWith(destDir.canonicalPath + File.separator)) {
-                zis.close()
-                throw IOException("Entry is outside of the target dir: " + entryFile.name)
-            }
-            if (entry.isDirectory) {
-                entryFile.mkdirs()
-            } else {
-                entryFile.parentFile?.mkdirs()
-                entryFile.createNewFile()
-                entryFile.outputStream().use { fos -> zis.copyTo(fos) }
-            }
-            entry = zis.nextEntry
-        }
-        zis.close()
-        return true
-    }
-
-    /**
      * Exports the save file located in the given folder path by creating a zip file and sharing it via intent.
      */
     private fun exportSave() {
@@ -204,7 +174,7 @@ class ImportExportSavesFragment : DialogFragment() {
 
         try {
             CoroutineScope(Dispatchers.IO).launch {
-                unzip(inputZip, cacheSaveDir)
+                FileUtil.unzip(inputZip, cacheSaveDir)
                 cacheSaveDir.list(filterTitleId)?.forEach { savePath ->
                     File(savesFolder, savePath).deleteRecursively()
                     File(cacheSaveDir, savePath).copyRecursively(File(savesFolder, savePath), true)

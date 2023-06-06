@@ -96,6 +96,15 @@
     <string name="save_file_invalid_zip_structure_description">The first subfolder name must be the title ID of the game.</string>
     <string name="import_saves">Import</string>
     <string name="export_saves">Export</string>
+    <string name="install_firmware">Install firmware</string>
+    <string name="install_firmware_description">Firmware must be in a ZIP archive and is needed to boot some games</string>
+    <string name="firmware_installing">Installing firmware</string>
+    <string name="firmware_installed_success">Firmware installed successfully</string>
+    <string name="firmware_installed_failure">Firmware installation failed</string>
+    <string name="firmware_installed_failure_description">Verify that the ZIP contains valid firmware and try again.</string>
+    <string name="share_log">Share debug logs</string>
+    <string name="share_log_description">Share yuzu\'s log file to debug issues</string>
+    <string name="share_log_missing">No log file found</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia isn\'t real</string>

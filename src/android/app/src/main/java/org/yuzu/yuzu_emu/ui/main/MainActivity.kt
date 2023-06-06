@@ -38,10 +38,13 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.SettingsViewModel
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.*
+import java.io.File
+import java.io.FilenameFilter
 import java.io.IOException
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
@@ -317,6 +320,58 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     ).show(supportFragmentManager, MessageDialogFragment.TAG)
                 }
             }
+        }
+
+    val getFirmware =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result == null)
+                return@registerForActivityResult
+
+            val inputZip = contentResolver.openInputStream(result)
+            if (inputZip == null) {
+                Toast.makeText(
+                    applicationContext,
+                    getString(R.string.fatal_error),
+                    Toast.LENGTH_LONG
+                ).show()
+                return@registerForActivityResult
+            }
+
+            val filterNCA = FilenameFilter { _, dirName -> dirName.endsWith(".nca") }
+
+            val firmwarePath =
+                File(DirectoryInitialization.userDirectory + "/nand/system/Contents/registered/")
+            val cacheFirmwareDir = File("${cacheDir.path}/registered/")
+
+            val task: () -> Any = {
+                var messageToShow: Any
+                try {
+                    FileUtil.unzip(inputZip, cacheFirmwareDir)
+                    val unfilteredNumOfFiles = cacheFirmwareDir.list()?.size ?: -1
+                    val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
+                    messageToShow = if (unfilteredNumOfFiles != filteredNumOfFiles) {
+                        MessageDialogFragment.newInstance(
+                            R.string.firmware_installed_failure,
+                            R.string.firmware_installed_failure_description
+                        )
+                    } else {
+                        firmwarePath.deleteRecursively()
+                        cacheFirmwareDir.copyRecursively(firmwarePath, true)
+                        getString(R.string.save_file_imported_success)
+                    }
+                } catch (e: Exception) {
+                    messageToShow = getString(R.string.fatal_error)
+                } finally {
+                    cacheFirmwareDir.deleteRecursively()
+                }
+                messageToShow
+            }
+
+            IndeterminateProgressDialogFragment.newInstance(
+                this,
+                R.string.firmware_installing,
+                task
+            ).show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
         }
 
     val getAmiiboKey =

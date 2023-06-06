@@ -19,10 +19,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -40,6 +40,7 @@ import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.HomeSetting
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
+import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
 
 class HomeSettingsFragment : Fragment() {
@@ -108,6 +109,16 @@ class HomeSettingsFragment : Fragment() {
                 R.string.install_prod_keys_description,
                 R.drawable.ic_unlock
             ) { mainActivity.getProdKey.launch(arrayOf("*/*")) },
+            HomeSetting(
+                R.string.install_firmware,
+                R.string.install_firmware_description,
+                R.drawable.ic_firmware
+            ) { mainActivity.getFirmware.launch(arrayOf("application/zip")) },
+            HomeSetting(
+                R.string.share_log,
+                R.string.share_log_description,
+                R.drawable.ic_log
+            ) { shareLog() },
             HomeSetting(
                 R.string.about,
                 R.string.about_description,
@@ -260,6 +271,29 @@ class HomeSettingsFragment : Fragment() {
                 mainActivity.getDriver.launch(arrayOf("application/zip"))
             }
             .show()
+    }
+
+    private fun shareLog() {
+        val file = DocumentFile.fromSingleUri(
+            mainActivity,
+            DocumentsContract.buildDocumentUri(
+                DocumentProvider.AUTHORITY,
+                "${DocumentProvider.ROOT_ID}/log/yuzu_log.txt"
+            )
+        )!!
+        if (file.exists()) {
+            val intent = Intent(Intent.ACTION_SEND)
+                .setDataAndType(file.uri, FileUtil.TEXT_PLAIN)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                .putExtra(Intent.EXTRA_STREAM, file.uri)
+            startActivity(Intent.createChooser(intent, getText(R.string.share_log)))
+        } else {
+            Toast.makeText(
+                requireContext(),
+                getText(R.string.share_log_missing),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     private fun setInsets() =
