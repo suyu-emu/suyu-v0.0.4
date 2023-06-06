@@ -104,8 +104,8 @@
     EXTENSION_NAME(VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME)                                 \
     EXTENSION_NAME(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME)                                 \
     EXTENSION_NAME(VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME)                                       \
-    EXTENSION_NAME(VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME)                               \
     EXTENSION_NAME(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME)                                             \
+    EXTENSION_NAME(VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME)                               \
     EXTENSION_NAME(VK_NV_GEOMETRY_SHADER_PASSTHROUGH_EXTENSION_NAME)                               \
     EXTENSION_NAME(VK_NV_VIEWPORT_ARRAY2_EXTENSION_NAME)                                           \
     EXTENSION_NAME(VK_NV_VIEWPORT_SWIZZLE_EXTENSION_NAME)
@@ -153,11 +153,11 @@
     FEATURE_NAME(index_type_uint8, indexTypeUint8)                                                 \
     FEATURE_NAME(primitive_topology_list_restart, primitiveTopologyListRestart)                    \
     FEATURE_NAME(provoking_vertex, provokingVertexLast)                                            \
-    FEATURE_NAME(shader_float16_int8, shaderFloat16)                                               \
-    FEATURE_NAME(shader_float16_int8, shaderInt8)                                                  \
     FEATURE_NAME(robustness2, nullDescriptor)                                                      \
     FEATURE_NAME(robustness2, robustBufferAccess2)                                                 \
     FEATURE_NAME(robustness2, robustImageAccess2)                                                  \
+    FEATURE_NAME(shader_float16_int8, shaderFloat16)                                               \
+    FEATURE_NAME(shader_float16_int8, shaderInt8)                                                  \
     FEATURE_NAME(timeline_semaphore, timelineSemaphore)                                            \
     FEATURE_NAME(transform_feedback, transformFeedback)                                            \
     FEATURE_NAME(uniform_buffer_standard_layout, uniformBufferStandardLayout)                      \
