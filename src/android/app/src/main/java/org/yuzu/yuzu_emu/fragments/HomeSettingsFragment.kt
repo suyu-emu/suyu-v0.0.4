@@ -286,7 +286,7 @@ class HomeSettingsFragment : Fragment() {
                 .setDataAndType(file.uri, FileUtil.TEXT_PLAIN)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 .putExtra(Intent.EXTRA_STREAM, file.uri)
-            startActivity(Intent.createChooser(intent, "Share log"))
+            startActivity(Intent.createChooser(intent, getText(R.string.share_log)))
         } else {
             Toast.makeText(
                 requireContext(),
