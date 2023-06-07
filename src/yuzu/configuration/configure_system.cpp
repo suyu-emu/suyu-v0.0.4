@@ -109,8 +109,8 @@ void ConfigureSystem::Setup() {
     auto& core_layout = *ui->core_widget->layout();
     auto& system_layout = *ui->system_widget->layout();
 
-    std::map<std::string, QWidget*> core_hold{};
-    std::map<bool, std::map<std::string, QWidget*>> system_hold{};
+    std::map<u32, QWidget*> core_hold{};
+    std::map<u32, QWidget*> system_hold{};
 
     std::forward_list<Settings::BasicSetting*> settings;
     auto push = [&settings](std::forward_list<Settings::BasicSetting*>& list) {
@@ -165,10 +165,10 @@ void ConfigureSystem::Setup() {
 
         switch (setting->Category()) {
         case Settings::Category::Core:
-            core_hold[setting->GetLabel()] = widget;
+            core_hold.emplace(setting->Id(), widget);
             break;
         case Settings::Category::System:
-            system_hold[setting->IsEnum()].insert(std::pair{setting->GetLabel(), widget});
+            system_hold.emplace(setting->Id(), widget);
             break;
         default:
             delete widget;
@@ -177,10 +177,7 @@ void ConfigureSystem::Setup() {
     for (const auto& [label, widget] : core_hold) {
         core_layout.addWidget(widget);
     }
-    for (const auto& [label, widget] : system_hold[true]) {
-        system_layout.addWidget(widget);
-    }
-    for (const auto& [label, widget] : system_hold[false]) {
+    for (const auto& [id, widget] : system_hold) {
         system_layout.addWidget(widget);
     }
 }

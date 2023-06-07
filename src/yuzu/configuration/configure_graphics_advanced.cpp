@@ -31,7 +31,7 @@ ConfigureGraphicsAdvanced::~ConfigureGraphicsAdvanced() = default;
 void ConfigureGraphicsAdvanced::SetConfiguration() {
     const bool runtime_lock = !system.IsPoweredOn();
     auto& layout = *ui->populate_target->layout();
-    std::map<std::string, QWidget*> hold{}; // A map will sort the data for us
+    std::map<u32, QWidget*> hold{}; // A map will sort the data for us
 
     for (auto setting :
          Settings::values.linkage.by_category[Settings::Category::RendererAdvanced]) {
@@ -43,17 +43,13 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
             continue;
         }
 
-        if (!setting->IsEnum()) {
-            hold.emplace(setting->GetLabel(), widget);
-        } else {
-            layout.addWidget(widget);
-        }
+        hold.emplace(setting->Id(), widget);
 
         if (setting->Id() == Settings::values.enable_compute_pipelines.Id()) {
             checkbox_enable_compute_pipelines = widget;
         }
     }
-    for (const auto& [label, widget] : hold) {
+    for (const auto& [id, widget] : hold) {
         layout.addWidget(widget);
     }
 }

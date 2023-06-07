@@ -226,12 +226,10 @@ void ConfigureGraphics::Setup() {
 
     QLayout& graphics_layout = *ui->graphics_widget->layout();
 
-    std::map<bool, std::map<std::string, QWidget*>> hold_graphics;
+    std::map<u32, QWidget*> hold_graphics;
     std::forward_list<QWidget*> hold_api;
 
     for (const auto setting : Settings::values.linkage.by_category[Settings::Category::Renderer]) {
-        const auto& setting_label = setting->GetLabel();
-
         ConfigurationShared::Widget* widget = [&]() {
             if (setting->Id() == Settings::values.vulkan_device.Id() ||
                 setting->Id() == Settings::values.shader_backend.Id() ||
@@ -284,16 +282,14 @@ void ConfigureGraphics::Setup() {
             shader_backend_widget = widget;
         } else if (setting->Id() == Settings::values.vsync_mode.Id()) {
             vsync_mode_combobox = widget->combobox;
-            hold_graphics[setting->IsEnum()][setting_label] = widget;
+            hold_graphics.emplace(setting->Id(), widget);
         } else {
-            hold_graphics[setting->IsEnum()][setting_label] = widget;
+            hold_graphics.emplace(setting->Id(), widget);
         }
     }
 
-    for (const auto& [_, settings] : hold_graphics) {
-        for (const auto& [label, widget] : settings) {
-            graphics_layout.addWidget(widget);
-        }
+    for (const auto& [id, widget] : hold_graphics) {
+        graphics_layout.addWidget(widget);
     }
 
     for (auto widget : hold_api) {
