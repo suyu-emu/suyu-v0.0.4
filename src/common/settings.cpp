@@ -61,56 +61,30 @@ void LogSettings() {
     };
 
     LOG_INFO(Config, "yuzu Configuration:");
-    log_setting("Controls_UseDockedMode", values.use_docked_mode.GetValue());
-    log_setting("System_RngSeedEnabled", values.rng_seed_enabled.GetValue());
-    log_setting("System_RngSeed", values.rng_seed.GetValue());
-    log_setting("System_DeviceName", values.device_name.GetValue());
-    log_setting("System_CurrentUser", values.current_user.GetValue());
-    log_setting("System_LanguageIndex", values.language_index.GetValue());
-    log_setting("System_RegionIndex", values.region_index.GetValue());
-    log_setting("System_TimeZoneIndex", values.time_zone_index.GetValue());
-    log_setting("System_UnsafeMemoryLayout", values.use_unsafe_extended_memory_layout.GetValue());
-    log_setting("Core_UseMultiCore", values.use_multi_core.GetValue());
-    log_setting("CPU_Accuracy", values.cpu_accuracy.GetValue());
-    log_setting("Renderer_UseResolutionScaling", values.resolution_setup.GetValue());
-    log_setting("Renderer_ScalingFilter", values.scaling_filter.GetValue());
-    log_setting("Renderer_FSRSlider", values.fsr_sharpening_slider.GetValue());
-    log_setting("Renderer_AntiAliasing", values.anti_aliasing.GetValue());
-    log_setting("Renderer_UseSpeedLimit", values.use_speed_limit.GetValue());
-    log_setting("Renderer_SpeedLimit", values.speed_limit.GetValue());
-    log_setting("Renderer_UseDiskShaderCache", values.use_disk_shader_cache.GetValue());
-    log_setting("Renderer_GPUAccuracyLevel", values.gpu_accuracy.GetValue());
-    log_setting("Renderer_UseAsynchronousGpuEmulation",
-                values.use_asynchronous_gpu_emulation.GetValue());
-    log_setting("Renderer_NvdecEmulation", values.nvdec_emulation.GetValue());
-    log_setting("Renderer_AccelerateASTC", values.accelerate_astc.GetValue());
-    log_setting("Renderer_AstcRecompression", values.astc_recompression.GetValue());
-    log_setting("Renderer_UseVsync", values.vsync_mode.GetValue());
-    log_setting("Renderer_UseReactiveFlushing", values.use_reactive_flushing.GetValue());
-    log_setting("Renderer_ShaderBackend", values.shader_backend.GetValue());
-    log_setting("Renderer_UseAsynchronousShaders", values.use_asynchronous_shaders.GetValue());
-    log_setting("Renderer_AnisotropicFilteringLevel", values.max_anisotropy.GetValue());
-    log_setting("Audio_OutputEngine", Settings::TranslateEnum(values.sink_id.GetValue()));
-    log_setting("Audio_OutputDevice", values.audio_output_device_id.GetValue());
-    log_setting("Audio_InputDevice", values.audio_input_device_id.GetValue());
-    log_setting("DataStorage_UseVirtualSd", values.use_virtual_sd.GetValue());
+    for (auto& [category, settings] : values.linkage.by_category) {
+        settings.sort([](const BasicSetting* a, const BasicSetting* b) {
+            return a->GetLabel() < b->GetLabel();
+        });
+
+        for (const auto& setting : settings) {
+            if (setting->Id() == values.yuzu_token.Id()) {
+                // Hide the token secret, which could be used to share patreon builds
+                continue;
+            }
+
+            std::string name = fmt::format(
+                "{:c}{:c} {}.{}", setting->ToString() == setting->DefaultToString() ? '-' : 'M',
+                setting->UsingGlobal() ? '-' : 'C', TranslateCategory(category),
+                setting->GetLabel());
+
+            log_setting(name, setting->Canonicalize());
+        }
+    }
     log_path("DataStorage_CacheDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir));
     log_path("DataStorage_ConfigDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir));
     log_path("DataStorage_LoadDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::LoadDir));
     log_path("DataStorage_NANDDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir));
     log_path("DataStorage_SDMCDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::SDMCDir));
-    log_setting("Debugging_ProgramArgs", values.program_args.GetValue());
-    log_setting("Debugging_GDBStub", values.use_gdbstub.GetValue());
-    log_setting("Input_EnableMotion", values.motion_enabled.GetValue());
-    log_setting("Input_EnableVibration", values.vibration_enabled.GetValue());
-    log_setting("Input_EnableTouch", values.touchscreen.enabled);
-    log_setting("Input_EnableMouse", values.mouse_enabled.GetValue());
-    log_setting("Input_EnableKeyboard", values.keyboard_enabled.GetValue());
-    log_setting("Input_EnableRingController", values.enable_ring_controller.GetValue());
-    log_setting("Input_EnableIrSensor", values.enable_ir_sensor.GetValue());
-    log_setting("Input_EnableCustomJoycon", values.enable_joycon_driver.GetValue());
-    log_setting("Input_EnableCustomProController", values.enable_procon_driver.GetValue());
-    log_setting("Input_EnableRawInput", values.enable_raw_input.GetValue());
 }
 
 bool IsConfiguringGlobal() {
