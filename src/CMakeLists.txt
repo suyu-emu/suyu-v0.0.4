@@ -43,7 +43,7 @@ if (MSVC)
         /Zo
         /permissive-
         /EHsc
-        /std:c++latest
+        /std:c++20
         /utf-8
         /volatile:iso
         /Zc:externConstexpr
@@ -51,8 +51,10 @@ if (MSVC)
         /Zc:throwingNew
         /GT
 
+        # Modules
+        /experimental:module- # Disable module support explicitly due to conflicts with precompiled headers
+
         # External headers diagnostics
-        /experimental:external  # Enables the external headers options. This option isn't required in Visual Studio 2019 version 16.10 and later
         /external:anglebrackets # Treats all headers included by #include <header>, where the header file is enclosed in angle brackets (< >), as external headers
         /external:W0            # Sets the default warning level to 0 for external headers, effectively turning off warnings for external headers
 
