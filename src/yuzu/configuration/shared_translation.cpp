@@ -177,9 +177,9 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
     translations->insert(
         {typeid(Settings::AstcDecodeMode),
          {
-             {static_cast<u32>(Settings::AstcDecodeMode::CPU), tr("CPU")},
-             {static_cast<u32>(Settings::AstcDecodeMode::GPU), tr("GPU")},
-             {static_cast<u32>(Settings::AstcDecodeMode::CPUAsynchronous), tr("CPU Asynchronous")},
+             {static_cast<u32>(Settings::AstcDecodeMode::Cpu), tr("CPU")},
+             {static_cast<u32>(Settings::AstcDecodeMode::Gpu), tr("GPU")},
+             {static_cast<u32>(Settings::AstcDecodeMode::CpuAsynchronous), tr("CPU Asynchronous")},
          }});
     translations->insert(
         {typeid(Settings::AstcRecompression),
@@ -199,24 +199,24 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                           }});
     translations->insert({typeid(Settings::ShaderBackend),
                           {
-                              {static_cast<u32>(Settings::ShaderBackend::GLSL), tr("GLSL")},
-                              {static_cast<u32>(Settings::ShaderBackend::GLASM),
+                              {static_cast<u32>(Settings::ShaderBackend::Glsl), tr("GLSL")},
+                              {static_cast<u32>(Settings::ShaderBackend::Glasm),
                                tr("GLASM (Assembly Shaders, NVIDIA Only)")},
-                              {static_cast<u32>(Settings::ShaderBackend::SPIRV),
+                              {static_cast<u32>(Settings::ShaderBackend::SpirV),
                                tr("SPIR-V (Experimental, Mesa Only)")},
                           }});
-    translations->insert({typeid(Settings::GPUAccuracy),
+    translations->insert({typeid(Settings::GpuAccuracy),
                           {
-                              {static_cast<u32>(Settings::GPUAccuracy::Normal), tr("Normal")},
-                              {static_cast<u32>(Settings::GPUAccuracy::High), tr("High")},
-                              {static_cast<u32>(Settings::GPUAccuracy::Extreme), tr("Extreme")},
+                              {static_cast<u32>(Settings::GpuAccuracy::Normal), tr("Normal")},
+                              {static_cast<u32>(Settings::GpuAccuracy::High), tr("High")},
+                              {static_cast<u32>(Settings::GpuAccuracy::Extreme), tr("Extreme")},
                           }});
-    translations->insert({typeid(Settings::CPUAccuracy),
+    translations->insert({typeid(Settings::CpuAccuracy),
                           {
-                              {static_cast<u32>(Settings::CPUAccuracy::Auto), tr("Auto")},
-                              {static_cast<u32>(Settings::CPUAccuracy::Accurate), tr("Accurate")},
-                              {static_cast<u32>(Settings::CPUAccuracy::Unsafe), tr("Unsafe")},
-                              {static_cast<u32>(Settings::CPUAccuracy::Paranoid),
+                              {static_cast<u32>(Settings::CpuAccuracy::Auto), tr("Auto")},
+                              {static_cast<u32>(Settings::CpuAccuracy::Accurate), tr("Accurate")},
+                              {static_cast<u32>(Settings::CpuAccuracy::Unsafe), tr("Unsafe")},
+                              {static_cast<u32>(Settings::CpuAccuracy::Paranoid),
                                tr("Paranoid (disables most optimizations)")},
                           }});
     translations->insert(
@@ -229,8 +229,8 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
         {typeid(Settings::NvdecEmulation),
          {
              {static_cast<u32>(Settings::NvdecEmulation::Off), tr("No Video Output")},
-             {static_cast<u32>(Settings::NvdecEmulation::CPU), tr("CPU Video Decoding")},
-             {static_cast<u32>(Settings::NvdecEmulation::GPU), tr("GPU Video Decoding (Default)")},
+             {static_cast<u32>(Settings::NvdecEmulation::Cpu), tr("CPU Video Decoding")},
+             {static_cast<u32>(Settings::NvdecEmulation::Gpu), tr("GPU Video Decoding (Default)")},
          }});
     translations->insert(
         {typeid(Settings::ResolutionSetup),
@@ -313,7 +313,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
     translations->insert({typeid(Settings::Region),
                           {
                               {static_cast<u32>(Settings::Region::Japan), tr("Japan")},
-                              {static_cast<u32>(Settings::Region::USA), tr("USA")},
+                              {static_cast<u32>(Settings::Region::Usa), tr("USA")},
                               {static_cast<u32>(Settings::Region::Europe), tr("Europe")},
                               {static_cast<u32>(Settings::Region::Australia), tr("Australia")},
                               {static_cast<u32>(Settings::Region::China), tr("China")},

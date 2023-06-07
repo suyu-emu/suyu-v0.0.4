@@ -122,12 +122,12 @@ void SetConfiguringGlobal(bool is_global) {
 }
 
 bool IsGPULevelExtreme() {
-    return values.gpu_accuracy.GetValue() == GPUAccuracy::Extreme;
+    return values.gpu_accuracy.GetValue() == GpuAccuracy::Extreme;
 }
 
 bool IsGPULevelHigh() {
-    return values.gpu_accuracy.GetValue() == GPUAccuracy::Extreme ||
-           values.gpu_accuracy.GetValue() == GPUAccuracy::High;
+    return values.gpu_accuracy.GetValue() == GpuAccuracy::Extreme ||
+           values.gpu_accuracy.GetValue() == GpuAccuracy::High;
 }
 
 bool IsFastmemEnabled() {

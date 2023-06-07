@@ -522,14 +522,14 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
         const auto runtime_info{
             MakeRuntimeInfo(key, program, previous_program, glasm_use_storage_buffers, use_glasm)};
         switch (device.GetShaderBackend()) {
-        case Settings::ShaderBackend::GLSL:
+        case Settings::ShaderBackend::Glsl:
             ConvertLegacyToGeneric(program, runtime_info);
             sources[stage_index] = EmitGLSL(profile, runtime_info, program, binding);
             break;
-        case Settings::ShaderBackend::GLASM:
+        case Settings::ShaderBackend::Glasm:
             sources[stage_index] = EmitGLASM(profile, runtime_info, program, binding);
             break;
-        case Settings::ShaderBackend::SPIRV:
+        case Settings::ShaderBackend::SpirV:
             ConvertLegacyToGeneric(program, runtime_info);
             sources_spirv[stage_index] = EmitSPIRV(profile, runtime_info, program, binding);
             break;
@@ -582,13 +582,13 @@ std::unique_ptr<ComputePipeline> ShaderCache::CreateComputePipeline(
     std::string code{};
     std::vector<u32> code_spirv;
     switch (device.GetShaderBackend()) {
-    case Settings::ShaderBackend::GLSL:
+    case Settings::ShaderBackend::Glsl:
         code = EmitGLSL(profile, program);
         break;
-    case Settings::ShaderBackend::GLASM:
+    case Settings::ShaderBackend::Glasm:
         code = EmitGLASM(profile, info, program);
         break;
-    case Settings::ShaderBackend::SPIRV:
+    case Settings::ShaderBackend::SpirV:
         code_spirv = EmitSPIRV(profile, program);
         break;
     }

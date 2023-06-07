@@ -52,7 +52,7 @@ public:
     static const std::map<Settings::AntiAliasing, QString> anti_aliasing_texts_map;
     static const std::map<Settings::ScalingFilter, QString> scaling_filter_texts_map;
     static const std::map<bool, QString> use_docked_mode_texts_map;
-    static const std::map<Settings::GPUAccuracy, QString> gpu_accuracy_texts_map;
+    static const std::map<Settings::GpuAccuracy, QString> gpu_accuracy_texts_map;
     static const std::map<Settings::RendererBackend, QString> renderer_backend_texts_map;
     static const std::map<Settings::ShaderBackend, QString> shader_backend_texts_map;
 
@@ -211,8 +211,8 @@ private:
 };
 
 // These metatype declarations cannot be in common/settings.h because core is devoid of QT
-Q_DECLARE_METATYPE(Settings::CPUAccuracy);
-Q_DECLARE_METATYPE(Settings::GPUAccuracy);
+Q_DECLARE_METATYPE(Settings::CpuAccuracy);
+Q_DECLARE_METATYPE(Settings::GpuAccuracy);
 Q_DECLARE_METATYPE(Settings::FullscreenMode);
 Q_DECLARE_METATYPE(Settings::NvdecEmulation);
 Q_DECLARE_METATYPE(Settings::ResolutionSetup);

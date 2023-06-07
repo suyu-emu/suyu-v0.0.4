@@ -73,9 +73,9 @@ void ConfigureCpu::Setup() {
 }
 
 void ConfigureCpu::UpdateGroup(int index) {
-    const auto accuracy = static_cast<Settings::CPUAccuracy>(
-        combobox_translations.at(typeid(Settings::CPUAccuracy))[index].first);
-    ui->unsafe_group->setVisible(accuracy == Settings::CPUAccuracy::Unsafe);
+    const auto accuracy = static_cast<Settings::CpuAccuracy>(
+        combobox_translations.at(typeid(Settings::CpuAccuracy))[index].first);
+    ui->unsafe_group->setVisible(accuracy == Settings::CpuAccuracy::Unsafe);
 }
 
 void ConfigureCpu::ApplyConfiguration() {

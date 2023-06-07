@@ -89,10 +89,10 @@ const std::map<bool, QString> Config::use_docked_mode_texts_map = {
     {false, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Handheld"))},
 };
 
-const std::map<Settings::GPUAccuracy, QString> Config::gpu_accuracy_texts_map = {
-    {Settings::GPUAccuracy::Normal, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Normal"))},
-    {Settings::GPUAccuracy::High, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "High"))},
-    {Settings::GPUAccuracy::Extreme, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Extreme"))},
+const std::map<Settings::GpuAccuracy, QString> Config::gpu_accuracy_texts_map = {
+    {Settings::GpuAccuracy::Normal, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Normal"))},
+    {Settings::GpuAccuracy::High, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "High"))},
+    {Settings::GpuAccuracy::Extreme, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Extreme"))},
 };
 
 const std::map<Settings::RendererBackend, QString> Config::renderer_backend_texts_map = {

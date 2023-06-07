@@ -188,7 +188,7 @@ void ConfigureAudio::InitializeAudioSinkComboBox() {
     sink_combo_box->addItem(QString::fromUtf8(AudioCore::Sink::auto_device_name));
 
     for (const auto& id : AudioCore::Sink::GetSinkIDs()) {
-        sink_combo_box->addItem(QString::fromStdString(Settings::TranslateEnum(id)));
+        sink_combo_box->addItem(QString::fromStdString(Settings::CanonicalizeEnum(id)));
     }
 }
 

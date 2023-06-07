@@ -61,16 +61,14 @@ static const char* TranslateRenderer(Settings::RendererBackend backend) {
     return "Unknown";
 }
 
-static const char* TranslateGPUAccuracyLevel(Settings::GPUAccuracy backend) {
+static const char* TranslateGPUAccuracyLevel(Settings::GpuAccuracy backend) {
     switch (backend) {
-    case Settings::GPUAccuracy::Normal:
+    case Settings::GpuAccuracy::Normal:
         return "Normal";
-    case Settings::GPUAccuracy::High:
+    case Settings::GpuAccuracy::High:
         return "High";
-    case Settings::GPUAccuracy::Extreme:
+    case Settings::GpuAccuracy::Extreme:
         return "Extreme";
-    case Settings::GPUAccuracy::MaxEnum:
-        break;
     }
     return "Unknown";
 }
@@ -79,9 +77,9 @@ static const char* TranslateNvdecEmulation(Settings::NvdecEmulation backend) {
     switch (backend) {
     case Settings::NvdecEmulation::Off:
         return "Off";
-    case Settings::NvdecEmulation::CPU:
+    case Settings::NvdecEmulation::Cpu:
         return "CPU";
-    case Settings::NvdecEmulation::GPU:
+    case Settings::NvdecEmulation::Gpu:
         return "GPU";
     }
     return "Unknown";
@@ -93,9 +91,9 @@ static constexpr const char* TranslateVSyncMode(Settings::VSyncMode mode) {
         return "Immediate";
     case Settings::VSyncMode::Mailbox:
         return "Mailbox";
-    case Settings::VSyncMode::FIFO:
+    case Settings::VSyncMode::Fifo:
         return "FIFO";
-    case Settings::VSyncMode::FIFORelaxed:
+    case Settings::VSyncMode::FifoRelaxed:
         return "FIFO Relaxed";
     }
     return "Unknown";
@@ -103,11 +101,11 @@ static constexpr const char* TranslateVSyncMode(Settings::VSyncMode mode) {
 
 static constexpr const char* TranslateASTCDecodeMode(Settings::AstcDecodeMode mode) {
     switch (mode) {
-    case Settings::AstcDecodeMode::CPU:
+    case Settings::AstcDecodeMode::Cpu:
         return "CPU";
-    case Settings::AstcDecodeMode::GPU:
+    case Settings::AstcDecodeMode::Gpu:
         return "GPU";
-    case Settings::AstcDecodeMode::CPUAsynchronous:
+    case Settings::AstcDecodeMode::CpuAsynchronous:
         return "CPU Asynchronous";
     }
     return "Unknown";
@@ -255,7 +253,7 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader,
     // Log user configuration information
     constexpr auto field_type = Telemetry::FieldType::UserConfig;
     AddField(field_type, "Audio_SinkId",
-             Settings::TranslateEnum(Settings::values.sink_id.GetValue()));
+             Settings::CanonicalizeEnum(Settings::values.sink_id.GetValue()));
     AddField(field_type, "Core_UseMultiCore", Settings::values.use_multi_core.GetValue());
     AddField(field_type, "Renderer_Backend",
              TranslateRenderer(Settings::values.renderer_backend.GetValue()));

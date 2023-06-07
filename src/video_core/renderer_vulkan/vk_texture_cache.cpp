@@ -817,7 +817,7 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
     : device{device_}, scheduler{scheduler_}, memory_allocator{memory_allocator_},
       staging_buffer_pool{staging_buffer_pool_}, blit_image_helper{blit_image_helper_},
       render_pass_cache{render_pass_cache_}, resolution{Settings::values.resolution_info} {
-    if (Settings::values.accelerate_astc.GetValue() == Settings::AstcDecodeMode::GPU) {
+    if (Settings::values.accelerate_astc.GetValue() == Settings::AstcDecodeMode::Gpu) {
         astc_decoder_pass.emplace(device, scheduler, descriptor_pool, staging_buffer_pool,
                                   compute_pass_descriptor_queue, memory_allocator);
     }
@@ -1302,14 +1302,14 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
       aspect_mask(ImageAspectMask(info.format)) {
     if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported()) {
         switch (Settings::values.accelerate_astc.GetValue()) {
-        case Settings::AstcDecodeMode::GPU:
+        case Settings::AstcDecodeMode::Gpu:
             if (Settings::values.astc_recompression.GetValue() ==
                     Settings::AstcRecompression::Uncompressed &&
                 info.size.depth == 1) {
                 flags |= VideoCommon::ImageFlagBits::AcceleratedUpload;
             }
             break;
-        case Settings::AstcDecodeMode::CPUAsynchronous:
+        case Settings::AstcDecodeMode::CpuAsynchronous:
             flags |= VideoCommon::ImageFlagBits::AsynchronousDecode;
             break;
         default:

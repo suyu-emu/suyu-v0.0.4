@@ -51,9 +51,9 @@ static constexpr VkPresentModeKHR VSyncSettingToMode(Settings::VSyncMode mode) {
         return VK_PRESENT_MODE_IMMEDIATE_KHR;
     case Settings::VSyncMode::Mailbox:
         return VK_PRESENT_MODE_MAILBOX_KHR;
-    case Settings::VSyncMode::FIFO:
+    case Settings::VSyncMode::Fifo:
         return VK_PRESENT_MODE_FIFO_KHR;
-    case Settings::VSyncMode::FIFORelaxed:
+    case Settings::VSyncMode::FifoRelaxed:
         return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
     default:
         return VK_PRESENT_MODE_FIFO_KHR;
@@ -67,11 +67,11 @@ static constexpr Settings::VSyncMode PresentModeToSetting(VkPresentModeKHR mode)
     case VK_PRESENT_MODE_MAILBOX_KHR:
         return Settings::VSyncMode::Mailbox;
     case VK_PRESENT_MODE_FIFO_KHR:
-        return Settings::VSyncMode::FIFO;
+        return Settings::VSyncMode::Fifo;
     case VK_PRESENT_MODE_FIFO_RELAXED_KHR:
-        return Settings::VSyncMode::FIFORelaxed;
+        return Settings::VSyncMode::FifoRelaxed;
     default:
-        return Settings::VSyncMode::FIFO;
+        return Settings::VSyncMode::Fifo;
     }
 }
 

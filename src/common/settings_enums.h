@@ -47,7 +47,7 @@ enum class Language : u32 {
 
 enum class Region : u32 {
     Japan,
-    USA,
+    Usa,
     Europe,
     Australia,
     China,
@@ -114,9 +114,9 @@ enum class AnisotropyMode : u32 {
 };
 
 enum class AstcDecodeMode : u32 {
-    CPU = 0,
-    GPU = 1,
-    CPUAsynchronous = 2,
+    Cpu = 0,
+    Gpu = 1,
+    CpuAsynchronous = 2,
 };
 
 enum class AstcRecompression : u32 {
@@ -128,8 +128,8 @@ enum class AstcRecompression : u32 {
 enum class VSyncMode : u32 {
     Immediate = 0,
     Mailbox = 1,
-    FIFO = 2,
-    FIFORelaxed = 3,
+    Fifo = 2,
+    FifoRelaxed = 3,
 };
 
 enum class RendererBackend : u32 {
@@ -139,19 +139,18 @@ enum class RendererBackend : u32 {
 };
 
 enum class ShaderBackend : u32 {
-    GLSL = 0,
-    GLASM = 1,
-    SPIRV = 2,
+    Glsl = 0,
+    Glasm = 1,
+    SpirV = 2,
 };
 
-enum class GPUAccuracy : u32 {
+enum class GpuAccuracy : u32 {
     Normal = 0,
     High = 1,
     Extreme = 2,
-    MaxEnum = 3,
 };
 
-enum class CPUAccuracy : u32 {
+enum class CpuAccuracy : u32 {
     Auto = 0,
     Accurate = 1,
     Unsafe = 2,
@@ -165,8 +164,8 @@ enum class FullscreenMode : u32 {
 
 enum class NvdecEmulation : u32 {
     Off = 0,
-    CPU = 1,
-    GPU = 2,
+    Cpu = 1,
+    Gpu = 2,
 };
 
 enum class ResolutionSetup : u32 {
@@ -220,18 +219,18 @@ static std::map<std::type_index, std::map<std::string, u32>> translations = {
 static std::string empty_string{};
 
 template <typename Type>
-const std::string& TranslateEnum(Type id) {
-    auto& group = translations.at(typeid(Type));
+const std::string& CanonicalizeEnum(Type id) {
+    auto& group = canonicalizations.at(typeid(Type));
     for (auto& [name, value] : group) {
         if (static_cast<Type>(value) == id) {
             return name;
         }
     }
-    return empty_string;
+    return invalid_string;
 }
 
 template <typename Type>
-static Type ToEnum(const std::string& text) {
-    return static_cast<Type>(translations.at(typeid(Type)).at(text));
+static Type ToEnum(const std::string& canonicalization) {
+    return static_cast<Type>(canonicalizations.at(typeid(Type)).at(canonicalization));
 }
 } // namespace Settings

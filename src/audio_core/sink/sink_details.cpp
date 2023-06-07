@@ -82,11 +82,12 @@ const SinkDetails& GetOutputSinkDetails(Settings::AudioEngine sink_id) {
 #else
         iter = std::begin(sink_details);
 #endif
-        LOG_INFO(Service_Audio, "Auto-selecting the {} backend", Settings::TranslateEnum(iter->id));
+        LOG_INFO(Service_Audio, "Auto-selecting the {} backend",
+                 Settings::CanonicalizeEnum(iter->id));
     }
 
     if (iter == std::end(sink_details)) {
-        LOG_ERROR(Audio, "Invalid sink_id {}", Settings::TranslateEnum(sink_id));
+        LOG_ERROR(Audio, "Invalid sink_id {}", Settings::CanonicalizeEnum(sink_id));
         iter = find_backend(Settings::AudioEngine::Null);
     }
 

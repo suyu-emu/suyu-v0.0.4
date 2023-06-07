@@ -91,6 +91,7 @@ public:
         return {};
     }
     virtual void LoadString(const std::string& load) = 0;
+    virtual std::string Canonicalize() const = 0;
     virtual const std::string& GetLabel() const = 0;
     virtual std::string DefaultToString() const = 0;
     virtual bool Save() const = 0;
@@ -102,7 +103,7 @@ public:
     virtual std::string MinVal() const = 0;
     virtual std::string MaxVal() const = 0;
     virtual bool UsingGlobal() const {
-        return false;
+        return true;
     }
 };
 
@@ -245,7 +246,7 @@ protected:
         } else if constexpr (std::is_same<Type, bool>()) {
             return value_ ? "true" : "false";
         } else if (std::is_same<Type, AudioEngine>()) {
-            return TranslateEnum(value_);
+            return CanonicalizeEnum(value_);
         } else {
             return std::to_string(static_cast<u64>(value_));
         }
@@ -319,6 +320,13 @@ public:
         } catch (std::invalid_argument) {
             this->SetValue(this->GetDefault());
         }
+    }
+
+    [[nodiscard]] std::string constexpr Canonicalize() const override {
+        if constexpr (std::is_enum<Type>::value) {
+            return CanonicalizeEnum(this->GetValue());
+        }
+        return ToString(this->GetValue());
     }
 
     /**
@@ -560,8 +568,8 @@ struct Values {
         linkage, false, "use_unsafe_extended_memory_layout", Category::Core};
 
     // Cpu
-    SwitchableSetting<CPUAccuracy, true> cpu_accuracy{linkage,           CPUAccuracy::Auto,
-                                                      CPUAccuracy::Auto, CPUAccuracy::Paranoid,
+    SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage,           CpuAccuracy::Auto,
+                                                      CpuAccuracy::Auto, CpuAccuracy::Paranoid,
                                                       "cpu_accuracy",    Category::Cpu};
     // TODO: remove cpu_accuracy_first_time, migration setting added 8 July 2021
     Setting<bool> cpu_accuracy_first_time{linkage, true, "cpu_accuracy_first_time", Category::Cpu};
@@ -657,28 +665,28 @@ struct Values {
         linkage, 100, 0, 9999, "speed_limit", Category::Renderer, true, true};
     SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
                                                   Category::Renderer};
-    SwitchableSetting<GPUAccuracy, true> gpu_accuracy{linkage,
-                                                      GPUAccuracy::High,
-                                                      GPUAccuracy::Normal,
-                                                      GPUAccuracy::Extreme,
+    SwitchableSetting<GpuAccuracy, true> gpu_accuracy{linkage,
+                                                      GpuAccuracy::High,
+                                                      GpuAccuracy::Normal,
+                                                      GpuAccuracy::Extreme,
                                                       "gpu_accuracy",
                                                       Category::RendererAdvanced,
                                                       true,
                                                       true};
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{
         linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
-    SwitchableSetting<NvdecEmulation> nvdec_emulation{linkage, NvdecEmulation::GPU,
+    SwitchableSetting<NvdecEmulation> nvdec_emulation{linkage, NvdecEmulation::Gpu,
                                                       "nvdec_emulation", Category::Renderer};
     SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
-                                                            AstcDecodeMode::CPU,
-                                                            AstcDecodeMode::CPU,
-                                                            AstcDecodeMode::CPUAsynchronous,
+                                                            AstcDecodeMode::Cpu,
+                                                            AstcDecodeMode::Cpu,
+                                                            AstcDecodeMode::CpuAsynchronous,
                                                             "accelerate_astc",
                                                             Category::Renderer};
     Setting<VSyncMode, true> vsync_mode{linkage,
-                                        VSyncMode::FIFO,
+                                        VSyncMode::Fifo,
                                         VSyncMode::Immediate,
-                                        VSyncMode::FIFORelaxed,
+                                        VSyncMode::FifoRelaxed,
                                         "use_vsync",
                                         Category::Renderer,
                                         true,
@@ -686,7 +694,7 @@ struct Values {
     SwitchableSetting<bool> use_reactive_flushing{linkage, true, "use_reactive_flushing",
                                                   Category::RendererAdvanced};
     SwitchableSetting<ShaderBackend, true> shader_backend{
-        linkage,          ShaderBackend::GLSL, ShaderBackend::GLSL, ShaderBackend::SPIRV,
+        linkage,          ShaderBackend::Glsl, ShaderBackend::Glsl, ShaderBackend::SpirV,
         "shader_backend", Category::Renderer};
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererAdvanced};
@@ -730,7 +738,7 @@ struct Values {
                                                      Language::PortugueseBrazilian,
                                                      "language_index",
                                                      Category::System};
-    SwitchableSetting<Region, true> region_index{linkage,        Region::USA,    Region::Japan,
+    SwitchableSetting<Region, true> region_index{linkage,        Region::Usa,    Region::Japan,
                                                  Region::Taiwan, "region_index", Category::System};
     SwitchableSetting<TimeZone, true> time_zone_index{linkage,           TimeZone::Auto,
                                                       TimeZone::Auto,    TimeZone::Zulu,
