@@ -207,16 +207,177 @@ enum class AspectRatio : u32 {
     Stretch,
 };
 
-static std::map<std::type_index, std::map<std::string, u32>> translations = {
+#define X(ENUM, NAME)                                                                              \
+    { (#NAME), static_cast<u32>(ENUM::NAME) }
+
+static std::map<std::type_index, std::map<std::string, u32>> canonicalizations = {
     {typeid(AudioEngine),
      {
          {"auto", static_cast<u32>(AudioEngine::Auto)},
          {"cubeb", static_cast<u32>(AudioEngine::Cubeb)},
          {"sdl2", static_cast<u32>(AudioEngine::Sdl2)},
          {"null", static_cast<u32>(AudioEngine::Null)},
+     }},
+    {typeid(AudioMode),
+     {
+         X(AudioMode, Mono),
+         X(AudioMode, Stereo),
+         X(AudioMode, Surround),
+     }},
+    {typeid(Language),
+     {
+         X(Language, Japanese),
+         X(Language, EnglishAmerican),
+         X(Language, French),
+         X(Language, German),
+         X(Language, Italian),
+         X(Language, Spanish),
+         X(Language, Chinese),
+         X(Language, Korean),
+         X(Language, Dutch),
+         X(Language, Portuguese),
+         X(Language, Russian),
+         X(Language, Taiwanese),
+         X(Language, EnglishBritish),
+         X(Language, FrenchCanadian),
+         X(Language, SpanishLatin),
+         X(Language, ChineseSimplified),
+         X(Language, ChineseTraditional),
+         X(Language, PortugueseBrazilian),
+     }},
+    {typeid(Region),
+     {
+         X(Region, Japan),
+         X(Region, Usa),
+         X(Region, Europe),
+         X(Region, Australia),
+         X(Region, China),
+         X(Region, Korea),
+         X(Region, Taiwan),
+     }},
+    {typeid(TimeZone),
+     {
+         X(TimeZone, Auto),        X(TimeZone, Default),      X(TimeZone, CET),
+         X(TimeZone, CST6CDT),     X(TimeZone, Cuba),         X(TimeZone, EET),
+         X(TimeZone, Egypt),       X(TimeZone, Eire),         X(TimeZone, EST5EDT),
+         X(TimeZone, GB),          X(TimeZone, GBEire),       X(TimeZone, GMT),
+         X(TimeZone, GMTPlusZero), X(TimeZone, GMTMinusZero), X(TimeZone, GMTZero),
+         X(TimeZone, Greenwich),   X(TimeZone, Hongkong),     X(TimeZone, HST),
+         X(TimeZone, Iceland),     X(TimeZone, Iran),         X(TimeZone, Israel),
+         X(TimeZone, Jamaica),     X(TimeZone, Japan),        X(TimeZone, Kwajalein),
+         X(TimeZone, Libya),       X(TimeZone, MET),          X(TimeZone, MST),
+         X(TimeZone, MST7MDT),     X(TimeZone, Navajo),       X(TimeZone, NZ),
+         X(TimeZone, NZCHAT),      X(TimeZone, Poland),       X(TimeZone, Portugal),
+         X(TimeZone, PRC),         X(TimeZone, ROC),          X(TimeZone, ROK),
+         X(TimeZone, Singapore),   X(TimeZone, Turkey),       X(TimeZone, UCT),
+         X(TimeZone, Universal),   X(TimeZone, UTC),          X(TimeZone, W_SU),
+         X(TimeZone, WET),         X(TimeZone, Zulu),
+     }},
+    {typeid(AnisotropyMode),
+     {
+         X(AnisotropyMode, Automatic),
+         X(AnisotropyMode, Default),
+         X(AnisotropyMode, X2),
+         X(AnisotropyMode, X4),
+         X(AnisotropyMode, X8),
+         X(AnisotropyMode, X16),
+     }},
+    {typeid(AstcDecodeMode),
+     {
+         X(AstcDecodeMode, Cpu),
+         X(AstcDecodeMode, Gpu),
+         X(AstcDecodeMode, CpuAsynchronous),
+     }},
+    {typeid(AstcRecompression),
+     {
+         X(AstcRecompression, Uncompressed),
+         X(AstcRecompression, Bc1),
+         X(AstcRecompression, Bc3),
+     }},
+    {typeid(VSyncMode),
+     {
+         X(VSyncMode, Immediate),
+         X(VSyncMode, Mailbox),
+         X(VSyncMode, Fifo),
+         X(VSyncMode, FifoRelaxed),
+     }},
+    {typeid(RendererBackend),
+     {
+         X(RendererBackend, OpenGL),
+         X(RendererBackend, Vulkan),
+         X(RendererBackend, Null),
+     }},
+    {typeid(ShaderBackend),
+     {
+         X(ShaderBackend, Glsl),
+         X(ShaderBackend, Glasm),
+         X(ShaderBackend, SpirV),
+     }},
+    {typeid(GpuAccuracy),
+     {
+         X(GpuAccuracy, Normal),
+         X(GpuAccuracy, High),
+         X(GpuAccuracy, Extreme),
+     }},
+    {typeid(CpuAccuracy),
+     {
+         X(CpuAccuracy, Auto),
+         X(CpuAccuracy, Accurate),
+         X(CpuAccuracy, Unsafe),
+         X(CpuAccuracy, Paranoid),
+     }},
+    {typeid(FullscreenMode),
+     {
+         X(FullscreenMode, Borderless),
+         X(FullscreenMode, Exclusive),
+     }},
+    {typeid(NvdecEmulation),
+     {
+         X(NvdecEmulation, Off),
+         X(NvdecEmulation, Cpu),
+         X(NvdecEmulation, Gpu),
+     }},
+    {typeid(ResolutionSetup),
+     {
+         X(ResolutionSetup, Res1_2X),
+         X(ResolutionSetup, Res3_4X),
+         X(ResolutionSetup, Res1X),
+         X(ResolutionSetup, Res3_2X),
+         X(ResolutionSetup, Res2X),
+         X(ResolutionSetup, Res3X),
+         X(ResolutionSetup, Res4X),
+         X(ResolutionSetup, Res5X),
+         X(ResolutionSetup, Res6X),
+         X(ResolutionSetup, Res7X),
+         X(ResolutionSetup, Res8X),
+     }},
+    {typeid(ScalingFilter),
+     {
+         X(ScalingFilter, NearestNeighbor),
+         X(ScalingFilter, Bilinear),
+         X(ScalingFilter, Bicubic),
+         X(ScalingFilter, Gaussian),
+         X(ScalingFilter, ScaleForce),
+         X(ScalingFilter, Fsr),
+     }},
+    {typeid(AntiAliasing),
+     {
+         X(AntiAliasing, None),
+         X(AntiAliasing, Fxaa),
+         X(AntiAliasing, Smaa),
+     }},
+    {typeid(AspectRatio),
+     {
+         X(AspectRatio, R16_9),
+         X(AspectRatio, R4_3),
+         X(AspectRatio, R21_9),
+         X(AspectRatio, R16_10),
+         X(AspectRatio, Stretch),
      }}};
 
-static std::string empty_string{};
+#undef X
+
+static std::string invalid_string{"(invalid setting)"};
 
 template <typename Type>
 const std::string& CanonicalizeEnum(Type id) {
