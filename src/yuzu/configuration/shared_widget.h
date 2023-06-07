@@ -57,26 +57,32 @@ public:
 
 private:
     void SetupComponent(const QString& label, std::function<void()>& load_func, bool managed,
-                        RequestType request, Settings::BasicSetting* other_setting);
+                        RequestType request, float multiplier,
+                        Settings::BasicSetting* other_setting, const QString& string);
 
     QLabel* CreateLabel(const QString& text);
-    QHBoxLayout* CreateCheckBox(Settings::BasicSetting* bool_setting, const QString& label,
-                                std::function<void()>& load_func, bool managed);
+    QWidget* CreateCheckBox(Settings::BasicSetting* bool_setting, const QString& label,
+                            std::function<std::string()>& serializer,
+                            std::function<void()>& restore_func,
+                            const std::function<void()>& touch);
 
     QWidget* CreateCombobox(std::function<std::string()>& serializer,
                             std::function<void()>& restore_func,
-                            const std::function<void()>& touched);
-    void CreateLineEdit(const QString& label, std::function<void()>& load_func, bool managed,
-                        Settings::BasicSetting* const other_setting = nullptr);
-    void CreateHexEdit(const QString& label, std::function<void()>& load_func, bool managed,
-                       Settings::BasicSetting* const other_setting = nullptr);
-    void CreateSlider(const QString& label, bool reversed, float multiplier,
-                      std::function<void()>& load_func, bool managed, const QString& format,
-                      Settings::BasicSetting* const other_setting = nullptr);
-    void CreateDateTimeEdit(const QString& label, std::function<void()>& load_func, bool managed,
-                            bool restrict, Settings::BasicSetting* const other_setting = nullptr);
-    void CreateSpinBox(const QString& label, std::function<void()>& load_func, bool managed,
-                       const QString& suffix, Settings::BasicSetting* other_setting = nullptr);
+                            const std::function<void()>& touch);
+    QWidget* CreateLineEdit(std::function<std::string()>& serializer,
+                            std::function<void()>& restore_func, const std::function<void()>& touch,
+                            bool managed = true);
+    QWidget* CreateHexEdit(std::function<std::string()>& serializer,
+                           std::function<void()>& restore_func, const std::function<void()>& touch);
+    QWidget* CreateSlider(bool reversed, float multiplier, const QString& format,
+                          std::function<std::string()>& serializer,
+                          std::function<void()>& restore_func, const std::function<void()>& touch);
+    QWidget* CreateDateTimeEdit(bool disabled, bool restrict,
+                                std::function<std::string()>& serializer,
+                                std::function<void()>& restore_func,
+                                const std::function<void()>& touch);
+    QWidget* CreateSpinBox(const QString& suffix, std::function<std::string()>& serializer,
+                           std::function<void()>& restore_func, const std::function<void()>& touch);
 
     QWidget* parent;
     const TranslationMap& translations;
