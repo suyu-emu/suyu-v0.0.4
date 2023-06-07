@@ -1,5 +1,8 @@
 #include <functional>
 #include <limits>
+#include <QAbstractButton>
+#include <QAbstractSpinBox>
+#include <QBoxLayout>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDateTimeEdit>
@@ -12,14 +15,8 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QStyle>
+#include <QValidator>
 #include <QWidget>
-#include <qabstractbutton.h>
-#include <qabstractspinbox.h>
-#include <qboxlayout.h>
-#include <qnamespace.h>
-#include <qpushbutton.h>
-#include <qsizepolicy.h>
-#include <qvalidator.h>
 #include "common/common_types.h"
 #include "common/settings.h"
 #include "yuzu/configuration/configuration_shared.h"
