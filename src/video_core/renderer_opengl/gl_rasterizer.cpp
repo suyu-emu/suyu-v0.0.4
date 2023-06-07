@@ -24,6 +24,7 @@
 #include "video_core/renderer_opengl/gl_query_cache.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
+#include "video_core/renderer_opengl/gl_staging_buffer_pool.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/renderer_opengl/maxwell_to_gl.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
@@ -58,8 +59,9 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra
                                    StateTracker& state_tracker_)
     : RasterizerAccelerated(cpu_memory_), gpu(gpu_), device(device_), screen_info(screen_info_),
       program_manager(program_manager_), state_tracker(state_tracker_),
-      texture_cache_runtime(device, program_manager, state_tracker),
-      texture_cache(texture_cache_runtime, *this), buffer_cache_runtime(device),
+      texture_cache_runtime(device, program_manager, state_tracker, staging_buffer_pool),
+      texture_cache(texture_cache_runtime, *this),
+      buffer_cache_runtime(device, staging_buffer_pool),
       buffer_cache(*this, cpu_memory_, buffer_cache_runtime),
       shader_cache(*this, emu_window_, device, texture_cache, buffer_cache, program_manager,
                    state_tracker, gpu.ShaderNotify()),

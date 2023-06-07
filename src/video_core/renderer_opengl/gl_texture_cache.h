@@ -11,6 +11,7 @@
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
+#include "video_core/renderer_opengl/gl_staging_buffer_pool.h"
 #include "video_core/renderer_opengl/util_shaders.h"
 #include "video_core/texture_cache/image_view_base.h"
 #include "video_core/texture_cache/texture_cache_base.h"
@@ -36,15 +37,6 @@ using VideoCommon::NUM_RT;
 using VideoCommon::Region2D;
 using VideoCommon::RenderTargets;
 using VideoCommon::SlotVector;
-
-struct ImageBufferMap {
-    ~ImageBufferMap();
-
-    std::span<u8> mapped_span;
-    size_t offset = 0;
-    OGLSync* sync;
-    GLuint buffer;
-};
 
 struct FormatProperties {
     GLenum compatibility_class;
@@ -74,14 +66,15 @@ class TextureCacheRuntime {
 
 public:
     explicit TextureCacheRuntime(const Device& device, ProgramManager& program_manager,
-                                 StateTracker& state_tracker);
+                                 StateTracker& state_tracker,
+                                 StagingBufferPool& staging_buffer_pool);
     ~TextureCacheRuntime();
 
     void Finish();
 
-    ImageBufferMap UploadStagingBuffer(size_t size);
+    StagingBufferMap UploadStagingBuffer(size_t size);
 
-    ImageBufferMap DownloadStagingBuffer(size_t size);
+    StagingBufferMap DownloadStagingBuffer(size_t size);
 
     u64 GetDeviceLocalMemory() const {
         return device_access_memory;
@@ -120,7 +113,7 @@ public:
                          const Region2D& src_region, Tegra::Engines::Fermi2D::Filter filter,
                          Tegra::Engines::Fermi2D::Operation operation);
 
-    void AccelerateImageUpload(Image& image, const ImageBufferMap& map,
+    void AccelerateImageUpload(Image& image, const StagingBufferMap& map,
                                std::span<const VideoCommon::SwizzleParameters> swizzles);
 
     void InsertUploadMemoryBarrier();
@@ -149,34 +142,15 @@ public:
     }
 
 private:
-    struct StagingBuffers {
-        explicit StagingBuffers(GLenum storage_flags_, GLenum map_flags_);
-        ~StagingBuffers();
-
-        ImageBufferMap RequestMap(size_t requested_size, bool insert_fence);
-
-        size_t RequestBuffer(size_t requested_size);
-
-        std::optional<size_t> FindBuffer(size_t requested_size);
-
-        std::vector<OGLSync> syncs;
-        std::vector<OGLBuffer> buffers;
-        std::vector<u8*> maps;
-        std::vector<size_t> sizes;
-        GLenum storage_flags;
-        GLenum map_flags;
-    };
-
     const Device& device;
     StateTracker& state_tracker;
+    StagingBufferPool& staging_buffer_pool;
+
     UtilShaders util_shaders;
     FormatConversionPass format_conversion_pass;
 
     std::array<std::unordered_map<GLenum, FormatProperties>, 3> format_properties;
     bool has_broken_texture_view_formats = false;
-
-    StagingBuffers upload_buffers{GL_MAP_WRITE_BIT, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT};
-    StagingBuffers download_buffers{GL_MAP_READ_BIT | GL_CLIENT_STORAGE_BIT, GL_MAP_READ_BIT};
 
     OGLTexture null_image_1d_array;
     OGLTexture null_image_cube_array;
@@ -213,7 +187,7 @@ public:
     void UploadMemory(GLuint buffer_handle, size_t buffer_offset,
                       std::span<const VideoCommon::BufferImageCopy> copies);
 
-    void UploadMemory(const ImageBufferMap& map,
+    void UploadMemory(const StagingBufferMap& map,
                       std::span<const VideoCommon::BufferImageCopy> copies);
 
     void DownloadMemory(GLuint buffer_handle, size_t buffer_offset,
@@ -222,7 +196,8 @@ public:
     void DownloadMemory(std::span<GLuint> buffer_handle, std::span<size_t> buffer_offset,
                         std::span<const VideoCommon::BufferImageCopy> copies);
 
-    void DownloadMemory(ImageBufferMap& map, std::span<const VideoCommon::BufferImageCopy> copies);
+    void DownloadMemory(StagingBufferMap& map,
+                        std::span<const VideoCommon::BufferImageCopy> copies);
 
     GLuint StorageHandle() noexcept;
 
