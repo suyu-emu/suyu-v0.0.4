@@ -6,17 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-feature
-        android:name="android.hardware.touchscreen"
-        android:required="false"/>
-    <uses-feature
-        android:name="android.hardware.gamepad"
-        android:required="false"/>
-
-    <uses-feature
-        android:name="android.hardware.vulkan.version"
-        android:version="0x401000"
-        android:required="true" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.hardware.gamepad" android:required="false" />
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.vulkan.version" android:version="0x401000" android:required="true" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -31,7 +24,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
         android:hasFragileUserData="true"
         android:supportsRtl="true"
         android:isGame="true"
-        android:banner="@drawable/ic_launcher"
+        android:banner="@drawable/tv_banner"
         android:extractNativeLibs="true"
         android:fullBackupContent="@xml/data_extraction_rules"
         android:dataExtractionRules="@xml/data_extraction_rules_api_31"
@@ -44,9 +37,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
 
