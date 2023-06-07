@@ -72,7 +72,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, shader_backend, "Shader Backend:", "");
     INSERT(Settings, resolution_setup, "Resolution:", "");
     INSERT(Settings, scaling_filter, "Window Adapting Filter:", "");
-    INSERT(Settings, fsr_sharpening_slider, "AMD FidelityFX™ Super Resolution Sharpness:", "");
+    INSERT(Settings, fsr_sharpening_slider, "FSR Sharpness:", "");
     INSERT(Settings, anti_aliasing, "Anti-Aliasing Method:", "");
     INSERT(Settings, fullscreen_mode, "Fullscreen Mode:", "");
     INSERT(Settings, aspect_ratio, "Aspect Ratio:", "");
