@@ -25,6 +25,8 @@
 #include "core/file_sys/vfs_layered.h"
 #include "core/file_sys/vfs_vector.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "core/hle/service/ns/language.h"
+#include "core/hle/service/set/set.h"
 #include "core/loader/loader.h"
 #include "core/loader/nso.h"
 #include "core/memory/cheat_engine.h"
@@ -624,8 +626,37 @@ PatchManager::Metadata PatchManager::ParseControlNCA(const NCA& nca) const {
 
     auto nacp = nacp_file == nullptr ? nullptr : std::make_unique<NACP>(nacp_file);
 
+    // Get language code from settings
+    const auto language_code =
+        Service::Set::GetLanguageCodeFromIndex(Settings::values.language_index.GetValue());
+
+    // Convert to application language and get priority list
+    const auto application_language =
+        Service::NS::ConvertToApplicationLanguage(language_code)
+            .value_or(Service::NS::ApplicationLanguage::AmericanEnglish);
+    const auto language_priority_list =
+        Service::NS::GetApplicationLanguagePriorityList(application_language);
+
+    // Convert to language names
+    auto priority_language_names = FileSys::LANGUAGE_NAMES; // Copy
+    if (language_priority_list) {
+        for (size_t i = 0; i < priority_language_names.size(); ++i) {
+            // Relies on FileSys::LANGUAGE_NAMES being in the same order as
+            // Service::NS::ApplicationLanguage
+            const auto language_index = static_cast<u8>(language_priority_list->at(i));
+
+            if (language_index < FileSys::LANGUAGE_NAMES.size()) {
+                priority_language_names[i] = FileSys::LANGUAGE_NAMES[language_index];
+            } else {
+                // Not a catastrophe, unlikely to happen
+                LOG_WARNING(Loader, "Invalid language index {}", language_index);
+            }
+        }
+    }
+
+    // Get first matching icon
     VirtualFile icon_file;
-    for (const auto& language : FileSys::LANGUAGE_NAMES) {
+    for (const auto& language : priority_language_names) {
         icon_file = extracted->GetFile(std::string("icon_").append(language).append(".dat"));
         if (icon_file != nullptr) {
             break;
