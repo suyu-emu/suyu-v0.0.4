@@ -28,7 +28,10 @@
 #include "core/core.h"
 #include "core/cpu_manager.h"
 #include "core/crypto/key_manager.h"
+#include "core/file_sys/card_image.h"
 #include "core/file_sys/registered_cache.h"
+#include "core/file_sys/submission_package.h"
+#include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/frontend/applets/cabinet.h"
 #include "core/frontend/applets/controller.h"
@@ -94,6 +97,74 @@ public:
         m_native_window = native_window;
     }
 
+    int InstallFileToNand(std::string filename) {
+        const auto copy_func = [](const FileSys::VirtualFile& src, const FileSys::VirtualFile& dest,
+                                  std::size_t block_size) {
+            if (src == nullptr || dest == nullptr) {
+                return false;
+            }
+            if (!dest->Resize(src->GetSize())) {
+                return false;
+            }
+
+            using namespace Common::Literals;
+            std::vector<u8> buffer(1_MiB);
+
+            for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
+                const auto read = src->Read(buffer.data(), buffer.size(), i);
+                dest->Write(buffer.data(), read, i);
+            }
+            return true;
+        };
+
+        enum InstallResult {
+            Success = 0,
+            SuccessFileOverwritten = 1,
+            InstallError = 2,
+            ErrorBaseGame = 3,
+            ErrorFilenameExtension = 4,
+        };
+
+        m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
+        m_system.GetFileSystemController().CreateFactories(*m_vfs);
+
+        std::shared_ptr<FileSys::NSP> nsp;
+        if (filename.ends_with("nsp")) {
+            nsp = std::make_shared<FileSys::NSP>(m_vfs->OpenFile(filename, FileSys::Mode::Read));
+            if (nsp->IsExtractedType()) {
+                return InstallError;
+            }
+        } else if (filename.ends_with("xci")) {
+            const auto xci =
+                std::make_shared<FileSys::XCI>(m_vfs->OpenFile(filename, FileSys::Mode::Read));
+            nsp = xci->GetSecurePartitionNSP();
+        } else {
+            return ErrorFilenameExtension;
+        }
+
+        if (!nsp) {
+            return InstallError;
+        }
+
+        if (nsp->GetStatus() != Loader::ResultStatus::Success) {
+            return InstallError;
+        }
+
+        const auto res = m_system.GetFileSystemController().GetUserNANDContents()->InstallEntry(
+            *nsp, true, copy_func);
+
+        switch (res) {
+        case FileSys::InstallResult::Success:
+            return Success;
+        case FileSys::InstallResult::OverwriteExisting:
+            return SuccessFileOverwritten;
+        case FileSys::InstallResult::ErrorBaseInstall:
+            return ErrorBaseGame;
+        default:
+            return InstallError;
+        }
+    }
+
     void InitializeGpuDriver(const std::string& hook_lib_dir, const std::string& custom_driver_dir,
                              const std::string& custom_driver_name,
                              const std::string& file_redirect_dir) {
@@ -154,14 +225,14 @@ public:
         m_window = std::make_unique<EmuWindow_Android>(&m_input_subsystem, m_native_window,
                                                        m_vulkan_library);
 
+        m_system.SetFilesystem(m_vfs);
+
         // Initialize system.
         auto android_keyboard = std::make_unique<SoftwareKeyboard::AndroidKeyboard>();
         m_software_keyboard = android_keyboard.get();
         m_system.SetShuttingDown(false);
         m_system.ApplySettings();
         m_system.HIDCore().ReloadInputDevices();
-        m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
-        m_system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
         m_system.SetAppletFrontendSet({
             nullptr,                     // Amiibo Settings
             nullptr,                     // Controller Selector
@@ -173,7 +244,8 @@ public:
             std::move(android_keyboard), // Software Keyboard
             nullptr,                     // Web Browser
         });
-        m_system.GetFileSystemController().CreateFactories(*m_system.GetFilesystem());
+        m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
+        m_system.GetFileSystemController().CreateFactories(*m_vfs);
 
         // Initialize account manager
         m_profile_manager = std::make_unique<Service::Account::ProfileManager>();
@@ -398,7 +470,7 @@ private:
     InputCommon::InputSubsystem m_input_subsystem;
     Common::DetachedTasks m_detached_tasks;
     Core::PerfStatsResults m_perf_stats{};
-    std::shared_ptr<FileSys::RealVfsFilesystem> m_vfs;
+    std::shared_ptr<FileSys::VfsFilesystem> m_vfs;
     Core::SystemResultStatus m_load_result{Core::SystemResultStatus::ErrorNotInitialized};
     bool m_is_running{};
     SoftwareKeyboard::AndroidKeyboard* m_software_keyboard{};
@@ -464,6 +536,12 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_setAppDirectory(JNIEnv* env,
                                                            [[maybe_unused]] jclass clazz,
                                                            jstring j_directory) {
     Common::FS::SetAppDirectory(GetJString(env, j_directory));
+}
+
+int Java_org_yuzu_yuzu_1emu_NativeLibrary_installFileToNand(JNIEnv* env,
+                                                            [[maybe_unused]] jclass clazz,
+                                                            jstring j_file) {
+    return EmulationSession::GetInstance().InstallFileToNand(GetJString(env, j_file));
 }
 
 void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeGpuDriver(

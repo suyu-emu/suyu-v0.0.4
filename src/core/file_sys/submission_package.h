@@ -8,6 +8,7 @@
 #include <set>
 #include <vector>
 #include "common/common_types.h"
+#include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/vfs.h"
 
 namespace Core::Crypto {

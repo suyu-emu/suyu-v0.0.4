@@ -95,6 +95,11 @@ class HomeSettingsFragment : Fragment() {
                 R.drawable.ic_nfc
             ) { mainActivity.getAmiiboKey.launch(arrayOf("*/*")) },
             HomeSetting(
+                R.string.install_game_content,
+                R.string.install_game_content_description,
+                R.drawable.ic_system_update_alt
+            ) { mainActivity.installGameUpdate.launch(arrayOf("*/*")) },
+            HomeSetting(
                 R.string.select_games_folder,
                 R.string.select_games_folder_description,
                 R.drawable.ic_add
@@ -103,7 +108,12 @@ class HomeSettingsFragment : Fragment() {
                 R.string.manage_save_data,
                 R.string.import_export_saves_description,
                 R.drawable.ic_save
-            ) { ImportExportSavesFragment().show(parentFragmentManager, ImportExportSavesFragment.TAG) },
+            ) {
+                ImportExportSavesFragment().show(
+                    parentFragmentManager,
+                    ImportExportSavesFragment.TAG
+                )
+            },
             HomeSetting(
                 R.string.install_prod_keys,
                 R.string.install_prod_keys_description,
