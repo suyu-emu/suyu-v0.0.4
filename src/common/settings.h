@@ -482,6 +482,7 @@ struct Values {
     SwitchableSetting<AstcRecompression, true> astc_recompression{
         AstcRecompression::Uncompressed, AstcRecompression::Uncompressed, AstcRecompression::Bc3,
         "astc_recompression"};
+    SwitchableSetting<bool> use_video_framerate{false, "use_video_framerate"};
 
     SwitchableSetting<u8> bg_red{0, "bg_red"};
     SwitchableSetting<u8> bg_green{0, "bg_green"};

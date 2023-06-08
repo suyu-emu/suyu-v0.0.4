@@ -189,6 +189,9 @@ public:
     std::unique_lock<std::mutex> StallApplication();
     void UnstallApplication();
 
+    void SetNVDECActive(bool is_nvdec_active);
+    [[nodiscard]] bool GetNVDECActive();
+
     /**
      * Initialize the debugger.
      */
