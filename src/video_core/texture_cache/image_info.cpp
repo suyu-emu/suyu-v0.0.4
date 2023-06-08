@@ -22,6 +22,9 @@ using Tegra::Texture::TICEntry;
 using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::SurfaceType;
 
+constexpr u32 RescaleHeightThreshold = 288;
+constexpr u32 DownscaleHeightThreshold = 512;
+
 ImageInfo::ImageInfo(const TICEntry& config) noexcept {
     forced_flushed = config.IsPitchLinear() && !Settings::values.use_reactive_flushing.GetValue();
     dma_downloaded = forced_flushed;
@@ -113,8 +116,9 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         layer_stride = CalculateLayerStride(*this);
         maybe_unaligned_layer_stride = CalculateLayerSize(*this);
         rescaleable &= (block.depth == 0) && resources.levels == 1;
-        rescaleable &= size.height > 256 || GetFormatType(format) != SurfaceType::ColorTexture;
-        downscaleable = size.height > 512;
+        rescaleable &= size.height > RescaleHeightThreshold ||
+                       GetFormatType(format) != SurfaceType::ColorTexture;
+        downscaleable = size.height > DownscaleHeightThreshold;
     }
 }
 
@@ -152,8 +156,8 @@ ImageInfo::ImageInfo(const Maxwell3D::Regs::RenderTargetConfig& ct,
         size.depth = ct.depth;
     } else {
         rescaleable = block.depth == 0;
-        rescaleable &= size.height > 256;
-        downscaleable = size.height > 512;
+        rescaleable &= size.height > RescaleHeightThreshold;
+        downscaleable = size.height > DownscaleHeightThreshold;
         type = ImageType::e2D;
         resources.layers = ct.depth;
     }
@@ -232,8 +236,8 @@ ImageInfo::ImageInfo(const Fermi2D::Surface& config) noexcept {
             .height = config.height,
             .depth = 1,
         };
-        rescaleable = block.depth == 0 && size.height > 256;
-        downscaleable = size.height > 512;
+        rescaleable = block.depth == 0 && size.height > RescaleHeightThreshold;
+        downscaleable = size.height > DownscaleHeightThreshold;
     }
 }
 
@@ -275,8 +279,8 @@ ImageInfo::ImageInfo(const Tegra::DMA::ImageOperand& config) noexcept {
     resources.layers = 1;
     layer_stride = CalculateLayerStride(*this);
     maybe_unaligned_layer_stride = CalculateLayerSize(*this);
-    rescaleable = block.depth == 0 && size.height > 256;
-    downscaleable = size.height > 512;
+    rescaleable = block.depth == 0 && size.height > RescaleHeightThreshold;
+    downscaleable = size.height > DownscaleHeightThreshold;
 }
 
 } // namespace VideoCommon
