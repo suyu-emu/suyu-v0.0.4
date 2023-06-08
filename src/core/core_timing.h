@@ -167,7 +167,7 @@ private:
     s64 pause_end_time{};
 
     /// Cycle timing
-    u64 ticks{};
+    u64 cpu_ticks{};
     s64 downcount{};
 };
 
