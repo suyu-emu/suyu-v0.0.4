@@ -59,7 +59,7 @@ struct GameDir {
 };
 
 struct Values {
-    Settings::Linkage linkage{};
+    Settings::Linkage linkage{1000};
 
     QByteArray geometry;
     QByteArray state;

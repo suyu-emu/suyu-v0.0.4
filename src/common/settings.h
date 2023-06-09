@@ -291,7 +291,7 @@ public:
 
 class Linkage {
 public:
-    explicit Linkage();
+    explicit Linkage(u32 initial_count = 0);
     ~Linkage();
     std::map<Category, std::forward_list<BasicSetting*>> by_category{};
     std::vector<std::function<void()>> restore_functions{};
