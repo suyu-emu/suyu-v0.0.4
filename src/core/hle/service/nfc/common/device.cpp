@@ -12,6 +12,11 @@
 #pragma warning(pop)
 #endif
 
+#include <fmt/format.h>
+
+#include "common/fs/file.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "common/input.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
@@ -136,7 +141,7 @@ bool NfcDevice::LoadNfcTag(std::span<const u8> data) {
     if (!NFP::AmiiboCrypto::IsKeyAvailable()) {
         LOG_INFO(Service_NFC, "Loading amiibo without keys");
         memcpy(&encrypted_tag_data, data.data(), sizeof(NFP::EncryptedNTAG215File));
-        BuildAmiiboWithoutKeys();
+        BuildAmiiboWithoutKeys(tag_data, encrypted_tag_data);
         is_plain_amiibo = true;
         is_write_protected = true;
         return true;
@@ -366,15 +371,24 @@ Result NfcDevice::Mount(NFP::ModelType model_type, NFP::MountTarget mount_target
 
     // The loaded amiibo is not encrypted
     if (is_plain_amiibo) {
+        std::vector<u8> data(sizeof(NFP::NTAG215File));
+        memcpy(data.data(), &tag_data, sizeof(tag_data));
+        WriteBackupData(tag_data.uid, data);
+
         device_state = DeviceState::TagMounted;
         mount_target = mount_target_;
         return ResultSuccess;
     }
 
     if (!NFP::AmiiboCrypto::DecodeAmiibo(encrypted_tag_data, tag_data)) {
-        LOG_ERROR(Service_NFP, "Can't decode amiibo {}", device_state);
-        return ResultCorruptedData;
+        bool has_backup = HasBackup(encrypted_tag_data.uuid.uid).IsSuccess();
+        LOG_ERROR(Service_NFP, "Can't decode amiibo, has_backup= {}", has_backup);
+        return has_backup ? ResultCorruptedDataWithBackup : ResultCorruptedData;
     }
+
+    std::vector<u8> data(sizeof(NFP::EncryptedNTAG215File));
+    memcpy(data.data(), &encrypted_tag_data, sizeof(encrypted_tag_data));
+    WriteBackupData(encrypted_tag_data.uuid.uid, data);
 
     device_state = DeviceState::TagMounted;
     mount_target = mount_target_;
@@ -470,6 +484,7 @@ Result NfcDevice::FlushWithBreak(NFP::BreakType break_type) {
     std::vector<u8> data(sizeof(NFP::EncryptedNTAG215File));
     if (is_plain_amiibo) {
         memcpy(data.data(), &tag_data, sizeof(tag_data));
+        WriteBackupData(tag_data.uid, data);
     } else {
         if (!NFP::AmiiboCrypto::EncodeAmiibo(tag_data, encrypted_tag_data)) {
             LOG_ERROR(Service_NFP, "Failed to encode data");
@@ -477,6 +492,7 @@ Result NfcDevice::FlushWithBreak(NFP::BreakType break_type) {
         }
 
         memcpy(data.data(), &encrypted_tag_data, sizeof(encrypted_tag_data));
+        WriteBackupData(encrypted_tag_data.uuid.uid, data);
     }
 
     if (!npad_device->WriteNfc(data)) {
@@ -488,7 +504,7 @@ Result NfcDevice::FlushWithBreak(NFP::BreakType break_type) {
 }
 
 Result NfcDevice::Restore() {
-    if (device_state != DeviceState::TagMounted) {
+    if (device_state != DeviceState::TagFound) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
             return ResultTagRemoved;
@@ -496,13 +512,59 @@ Result NfcDevice::Restore() {
         return ResultWrongDeviceState;
     }
 
-    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
-        LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
-        return ResultWrongDeviceState;
+    NFC::TagInfo tag_info{};
+    std::array<u8, sizeof(NFP::EncryptedNTAG215File)> data{};
+    Result result = GetTagInfo(tag_info, false);
+
+    if (result.IsError()) {
+        return result;
     }
 
-    // TODO: Load amiibo from backup on system
-    LOG_ERROR(Service_NFP, "Not Implemented");
+    result = ReadBackupData(tag_info.uuid, data);
+
+    if (result.IsError()) {
+        return result;
+    }
+
+    NFP::NTAG215File temporary_tag_data{};
+    NFP::EncryptedNTAG215File temporary_encrypted_tag_data{};
+
+    // Fallback for encrypted amiibos without keys
+    if (is_write_protected) {
+        return ResultWriteAmiiboFailed;
+    }
+
+    // Fallback for plain amiibos
+    if (is_plain_amiibo) {
+        LOG_INFO(Service_NFP, "Restoring backup of plain amiibo");
+        memcpy(&temporary_tag_data, data.data(), sizeof(NFP::EncryptedNTAG215File));
+        temporary_encrypted_tag_data = NFP::AmiiboCrypto::EncodedDataToNfcData(temporary_tag_data);
+    }
+
+    if (!is_plain_amiibo) {
+        LOG_INFO(Service_NFP, "Restoring backup of encrypted amiibo");
+        temporary_tag_data = {};
+        memcpy(&temporary_encrypted_tag_data, data.data(), sizeof(NFP::EncryptedNTAG215File));
+    }
+
+    if (!NFP::AmiiboCrypto::IsAmiiboValid(temporary_encrypted_tag_data)) {
+        return ResultNotAnAmiibo;
+    }
+
+    if (!is_plain_amiibo) {
+        if (!NFP::AmiiboCrypto::DecodeAmiibo(temporary_encrypted_tag_data, temporary_tag_data)) {
+            LOG_ERROR(Service_NFP, "Can't decode amiibo");
+            return ResultCorruptedData;
+        }
+    }
+
+    // Overwrite tag contents with backup and mount the tag
+    tag_data = temporary_tag_data;
+    encrypted_tag_data = temporary_encrypted_tag_data;
+    device_state = DeviceState::TagMounted;
+    mount_target = NFP::MountTarget::All;
+    is_data_moddified = true;
+
     return ResultSuccess;
 }
 
@@ -1132,13 +1194,69 @@ Result NfcDevice::BreakTag(NFP::BreakType break_type) {
     return FlushWithBreak(break_type);
 }
 
-Result NfcDevice::ReadBackupData(std::span<u8> data) const {
-    // Not implemented
+Result NfcDevice::HasBackup(const NFC::UniqueSerialNumber& uid) const {
+    constexpr auto backup_dir = "backup";
+    const auto yuzu_amiibo_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::AmiiboDir);
+    const auto file_name = fmt::format("{0:02x}.bin", fmt::join(uid, ""));
+
+    if (!Common::FS::Exists(yuzu_amiibo_dir / backup_dir / file_name)) {
+        return ResultUnableToAccessBackupFile;
+    }
+
     return ResultSuccess;
 }
 
-Result NfcDevice::WriteBackupData(std::span<const u8> data) {
-    // Not implemented
+Result NfcDevice::ReadBackupData(const NFC::UniqueSerialNumber& uid, std::span<u8> data) const {
+    constexpr auto backup_dir = "backup";
+    const auto yuzu_amiibo_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::AmiiboDir);
+    const auto file_name = fmt::format("{0:02x}.bin", fmt::join(uid, ""));
+
+    const Common::FS::IOFile keys_file{yuzu_amiibo_dir / backup_dir / file_name,
+                                       Common::FS::FileAccessMode::Read,
+                                       Common::FS::FileType::BinaryFile};
+
+    if (!keys_file.IsOpen()) {
+        LOG_ERROR(Service_NFP, "Failed to open amiibo backup");
+        return ResultUnableToAccessBackupFile;
+    }
+
+    if (keys_file.Read(data) != data.size()) {
+        LOG_ERROR(Service_NFP, "Failed to read amiibo backup");
+        return ResultUnableToAccessBackupFile;
+    }
+
+    return ResultSuccess;
+}
+
+Result NfcDevice::WriteBackupData(const NFC::UniqueSerialNumber& uid, std::span<const u8> data) {
+    constexpr auto backup_dir = "backup";
+    const auto yuzu_amiibo_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::AmiiboDir);
+    const auto file_name = fmt::format("{0:02x}.bin", fmt::join(uid, ""));
+
+    if (HasBackup(uid).IsError()) {
+        if (!Common::FS::CreateDir(yuzu_amiibo_dir / backup_dir)) {
+            return ResultBackupPathAlreadyExist;
+        }
+
+        if (!Common::FS::NewFile(yuzu_amiibo_dir / backup_dir / file_name)) {
+            return ResultBackupPathAlreadyExist;
+        }
+    }
+
+    const Common::FS::IOFile keys_file{yuzu_amiibo_dir / backup_dir / file_name,
+                                       Common::FS::FileAccessMode::ReadWrite,
+                                       Common::FS::FileType::BinaryFile};
+
+    if (!keys_file.IsOpen()) {
+        LOG_ERROR(Service_NFP, "Failed to open amiibo backup");
+        return ResultUnableToAccessBackupFile;
+    }
+
+    if (keys_file.Write(data) != data.size()) {
+        LOG_ERROR(Service_NFP, "Failed to write amiibo backup");
+        return ResultUnableToAccessBackupFile;
+    }
+
     return ResultSuccess;
 }
 
@@ -1177,7 +1295,8 @@ NFP::AmiiboName NfcDevice::GetAmiiboName(const NFP::AmiiboSettings& settings) co
     return amiibo_name;
 }
 
-void NfcDevice::SetAmiiboName(NFP::AmiiboSettings& settings, const NFP::AmiiboName& amiibo_name) {
+void NfcDevice::SetAmiiboName(NFP::AmiiboSettings& settings,
+                              const NFP::AmiiboName& amiibo_name) const {
     std::array<char16_t, NFP::amiibo_name_length> settings_amiibo_name{};
 
     // Convert from utf8 to utf16
@@ -1258,22 +1377,23 @@ void NfcDevice::UpdateRegisterInfoCrc() {
     tag_data.register_info_crc = crc.checksum();
 }
 
-void NfcDevice::BuildAmiiboWithoutKeys() {
+void NfcDevice::BuildAmiiboWithoutKeys(NFP::NTAG215File& stubbed_tag_data,
+                                       const NFP::EncryptedNTAG215File& encrypted_file) const {
     Service::Mii::MiiManager manager;
-    auto& settings = tag_data.settings;
+    auto& settings = stubbed_tag_data.settings;
 
-    tag_data = NFP::AmiiboCrypto::NfcDataToEncodedData(encrypted_tag_data);
+    stubbed_tag_data = NFP::AmiiboCrypto::NfcDataToEncodedData(encrypted_file);
 
     // Common info
-    tag_data.write_counter = 0;
-    tag_data.amiibo_version = 0;
+    stubbed_tag_data.write_counter = 0;
+    stubbed_tag_data.amiibo_version = 0;
     settings.write_date = GetAmiiboDate(GetCurrentPosixTime());
 
     // Register info
     SetAmiiboName(settings, {'y', 'u', 'z', 'u', 'A', 'm', 'i', 'i', 'b', 'o'});
     settings.settings.font_region.Assign(0);
     settings.init_date = GetAmiiboDate(GetCurrentPosixTime());
-    tag_data.owner_mii = manager.BuildFromStoreData(manager.BuildDefault(0));
+    stubbed_tag_data.owner_mii = manager.BuildFromStoreData(manager.BuildDefault(0));
 
     // Admin info
     settings.settings.amiibo_initialized.Assign(1);

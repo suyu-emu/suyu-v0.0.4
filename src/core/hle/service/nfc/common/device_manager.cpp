@@ -543,9 +543,14 @@ Result DeviceManager::ReadBackupData(u64 device_handle, std::span<u8> data) cons
 
     std::shared_ptr<NfcDevice> device = nullptr;
     auto result = GetDeviceHandle(device_handle, device);
+    NFC::TagInfo tag_info{};
 
     if (result.IsSuccess()) {
-        result = device->ReadBackupData(data);
+        result = device->GetTagInfo(tag_info, false);
+    }
+
+    if (result.IsSuccess()) {
+        result = device->ReadBackupData(tag_info.uuid, data);
         result = VerifyDeviceResult(device, result);
     }
 
@@ -557,9 +562,14 @@ Result DeviceManager::WriteBackupData(u64 device_handle, std::span<const u8> dat
 
     std::shared_ptr<NfcDevice> device = nullptr;
     auto result = GetDeviceHandle(device_handle, device);
+    NFC::TagInfo tag_info{};
 
     if (result.IsSuccess()) {
-        result = device->WriteBackupData(data);
+        result = device->GetTagInfo(tag_info, false);
+    }
+
+    if (result.IsSuccess()) {
+        result = device->WriteBackupData(tag_info.uuid, data);
         result = VerifyDeviceResult(device, result);
     }
 

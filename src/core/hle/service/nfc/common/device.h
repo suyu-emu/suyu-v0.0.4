@@ -86,8 +86,9 @@ public:
     Result GetAll(NFP::NfpData& data) const;
     Result SetAll(const NFP::NfpData& data);
     Result BreakTag(NFP::BreakType break_type);
-    Result ReadBackupData(std::span<u8> data) const;
-    Result WriteBackupData(std::span<const u8> data);
+    Result HasBackup(const NFC::UniqueSerialNumber& uid) const;
+    Result ReadBackupData(const NFC::UniqueSerialNumber& uid, std::span<u8> data) const;
+    Result WriteBackupData(const NFC::UniqueSerialNumber& uid, std::span<const u8> data);
     Result WriteNtf(std::span<const u8> data);
 
     u64 GetHandle() const;
@@ -103,14 +104,15 @@ private:
     void CloseNfcTag();
 
     NFP::AmiiboName GetAmiiboName(const NFP::AmiiboSettings& settings) const;
-    void SetAmiiboName(NFP::AmiiboSettings& settings, const NFP::AmiiboName& amiibo_name);
+    void SetAmiiboName(NFP::AmiiboSettings& settings, const NFP::AmiiboName& amiibo_name) const;
     NFP::AmiiboDate GetAmiiboDate(s64 posix_time) const;
     u64 GetCurrentPosixTime() const;
     u64 RemoveVersionByte(u64 application_id) const;
     void UpdateSettingsCrc();
     void UpdateRegisterInfoCrc();
 
-    void BuildAmiiboWithoutKeys();
+    void BuildAmiiboWithoutKeys(NFP::NTAG215File& stubbed_tag_data,
+                                const NFP::EncryptedNTAG215File& encrypted_file) const;
 
     bool is_controller_set{};
     int callback_key;

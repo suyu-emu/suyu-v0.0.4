@@ -17,9 +17,11 @@ constexpr Result ResultWriteAmiiboFailed(ErrorModule::NFP, 88);
 constexpr Result ResultTagRemoved(ErrorModule::NFP, 97);
 constexpr Result ResultRegistrationIsNotInitialized(ErrorModule::NFP, 120);
 constexpr Result ResultApplicationAreaIsNotInitialized(ErrorModule::NFP, 128);
+constexpr Result ResultCorruptedDataWithBackup(ErrorModule::NFP, 136);
 constexpr Result ResultCorruptedData(ErrorModule::NFP, 144);
 constexpr Result ResultWrongApplicationAreaId(ErrorModule::NFP, 152);
 constexpr Result ResultApplicationAreaExist(ErrorModule::NFP, 168);
 constexpr Result ResultNotAnAmiibo(ErrorModule::NFP, 178);
+constexpr Result ResultUnableToAccessBackupFile(ErrorModule::NFP, 200);
 
 } // namespace Service::NFP

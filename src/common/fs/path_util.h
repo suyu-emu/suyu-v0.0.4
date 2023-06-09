@@ -12,6 +12,7 @@ namespace Common::FS {
 
 enum class YuzuPath {
     YuzuDir,        // Where yuzu stores its data.
+    AmiiboDir,      // Where Amiibo backups are stored.
     CacheDir,       // Where cached filesystem data is stored.
     ConfigDir,      // Where config files are stored.
     DumpDir,        // Where dumped data is stored.

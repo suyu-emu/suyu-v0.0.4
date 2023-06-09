@@ -126,7 +126,7 @@ void Interface::Flush(HLERequestContext& ctx) {
 void Interface::Restore(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
-    LOG_WARNING(Service_NFP, "(STUBBED) called, device_handle={}", device_handle);
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
 
     auto result = GetManager()->Restore(device_handle);
     result = TranslateResultToServiceError(result);
@@ -394,7 +394,7 @@ void Interface::BreakTag(HLERequestContext& ctx) {
 void Interface::ReadBackupData(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
-    LOG_WARNING(Service_NFP, "(STUBBED) called, device_handle={}", device_handle);
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
 
     std::vector<u8> backup_data{};
     auto result = GetManager()->ReadBackupData(device_handle, backup_data);
@@ -412,7 +412,7 @@ void Interface::WriteBackupData(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
     const auto backup_data_buffer{ctx.ReadBuffer()};
-    LOG_WARNING(Service_NFP, "(STUBBED) called, device_handle={}", device_handle);
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
 
     auto result = GetManager()->WriteBackupData(device_handle, backup_data_buffer);
     result = TranslateResultToServiceError(result);
