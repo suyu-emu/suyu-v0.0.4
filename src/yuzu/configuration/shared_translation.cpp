@@ -175,206 +175,196 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
         std::make_unique<ComboboxTranslationMap>();
     const auto& tr = [&](const char* text) { return parent->tr(text); };
 
+#define PAIR(ENUM, VALUE, TRANSLATION)                                                             \
+    { static_cast<u32>(Settings::ENUM::VALUE), tr(TRANSLATION) }
+#define CTX_PAIR(ENUM, VALUE, TRANSLATION, CONTEXT)                                                \
+    { static_cast<u32>(Settings::ENUM::VALUE), tr(TRANSLATION, CONTEXT) }
+
     // Intentionally skipping VSyncMode to let the UI fill that one out
 
-    translations->insert(
-        {typeid(Settings::AstcDecodeMode),
-         {
-             {static_cast<u32>(Settings::AstcDecodeMode::Cpu), tr("CPU")},
-             {static_cast<u32>(Settings::AstcDecodeMode::Gpu), tr("GPU")},
-             {static_cast<u32>(Settings::AstcDecodeMode::CpuAsynchronous), tr("CPU Asynchronous")},
-         }});
-    translations->insert(
-        {typeid(Settings::AstcRecompression),
-         {
-             {static_cast<u32>(Settings::AstcRecompression::Uncompressed),
-              tr("Uncompressed (Best quality)")},
-             {static_cast<u32>(Settings::AstcRecompression::Bc1), tr("BC1 (Low quality)")},
-             {static_cast<u32>(Settings::AstcRecompression::Bc3), tr("BC3 (Medium quality)")},
-         }});
+    translations->insert({typeid(Settings::AstcDecodeMode),
+                          {
+                              PAIR(AstcDecodeMode, Cpu, "CPU"),
+                              PAIR(AstcDecodeMode, Gpu, "GPU"),
+                              PAIR(AstcDecodeMode, CpuAsynchronous, "CPU Asynchronous"),
+                          }});
+    translations->insert({typeid(Settings::AstcRecompression),
+                          {
+                              PAIR(AstcRecompression, Uncompressed, "Uncompressed (Best quality)"),
+                              PAIR(AstcRecompression, Bc1, "BC1 (Low quality)"),
+                              PAIR(AstcRecompression, Bc3, "BC3 (Medium quality)"),
+                          }});
     translations->insert({typeid(Settings::RendererBackend),
                           {
 #ifdef HAS_OPENGL
-                              {static_cast<u32>(Settings::RendererBackend::OpenGL), tr("OpenGL")},
+                              PAIR(RendererBackend, OpenGL, "OpenGL"),
 #endif
-                              {static_cast<u32>(Settings::RendererBackend::Vulkan), tr("Vulkan")},
-                              {static_cast<u32>(Settings::RendererBackend::Null), tr("Null")},
+                              PAIR(RendererBackend, Vulkan, "Vulkan"),
+                              PAIR(RendererBackend, Null, "Null"),
                           }});
     translations->insert({typeid(Settings::ShaderBackend),
                           {
-                              {static_cast<u32>(Settings::ShaderBackend::Glsl), tr("GLSL")},
-                              {static_cast<u32>(Settings::ShaderBackend::Glasm),
-                               tr("GLASM (Assembly Shaders, NVIDIA Only)")},
-                              {static_cast<u32>(Settings::ShaderBackend::SpirV),
-                               tr("SPIR-V (Experimental, Mesa Only)")},
+                              PAIR(ShaderBackend, Glsl, "GLSL"),
+                              PAIR(ShaderBackend, Glasm, "GLASM (Assembly Shaders, NVIDIA Only)"),
+                              PAIR(ShaderBackend, SpirV, "SPIR-V (Experimental, Mesa Only)"),
                           }});
     translations->insert({typeid(Settings::GpuAccuracy),
                           {
-                              {static_cast<u32>(Settings::GpuAccuracy::Normal), tr("Normal")},
-                              {static_cast<u32>(Settings::GpuAccuracy::High), tr("High")},
-                              {static_cast<u32>(Settings::GpuAccuracy::Extreme), tr("Extreme")},
+                              PAIR(GpuAccuracy, Normal, "Normal"),
+                              PAIR(GpuAccuracy, High, "High"),
+                              PAIR(GpuAccuracy, Extreme, "Extreme"),
                           }});
     translations->insert({typeid(Settings::CpuAccuracy),
                           {
-                              {static_cast<u32>(Settings::CpuAccuracy::Auto), tr("Auto")},
-                              {static_cast<u32>(Settings::CpuAccuracy::Accurate), tr("Accurate")},
-                              {static_cast<u32>(Settings::CpuAccuracy::Unsafe), tr("Unsafe")},
-                              {static_cast<u32>(Settings::CpuAccuracy::Paranoid),
-                               tr("Paranoid (disables most optimizations)")},
+                              PAIR(CpuAccuracy, Auto, "Auto"),
+                              PAIR(CpuAccuracy, Accurate, "Accurate"),
+                              PAIR(CpuAccuracy, Unsafe, "Unsafe"),
+                              PAIR(CpuAccuracy, Paranoid, "Paranoid (disables most optimizations)"),
                           }});
-    translations->insert(
-        {typeid(Settings::FullscreenMode),
-         {
-             {static_cast<u32>(Settings::FullscreenMode::Borderless), tr("Borderless Windowed")},
-             {static_cast<u32>(Settings::FullscreenMode::Exclusive), tr("Exclusive Fullscreen")},
-         }});
-    translations->insert(
-        {typeid(Settings::NvdecEmulation),
-         {
-             {static_cast<u32>(Settings::NvdecEmulation::Off), tr("No Video Output")},
-             {static_cast<u32>(Settings::NvdecEmulation::Cpu), tr("CPU Video Decoding")},
-             {static_cast<u32>(Settings::NvdecEmulation::Gpu), tr("GPU Video Decoding (Default)")},
-         }});
-    translations->insert(
-        {typeid(Settings::ResolutionSetup),
-         {
-             {static_cast<u32>(Settings::ResolutionSetup::Res1_2X),
-              tr("0.5X (360p/540p) [EXPERIMENTAL]")},
-             {static_cast<u32>(Settings::ResolutionSetup::Res3_4X),
-              tr("0.75X (540p/810p) [EXPERIMENTAL]")},
-             {static_cast<u32>(Settings::ResolutionSetup::Res1X), tr("1X (720p/1080p)")},
-             {static_cast<u32>(Settings::ResolutionSetup::Res3_2X),
-              tr("1.5X (1080p/1620p) [EXPERIMENTAL]")},
-             {static_cast<u32>(Settings::ResolutionSetup::Res2X), tr("2X (1440p/2160p)")},
-             {static_cast<u32>(Settings::ResolutionSetup::Res3X), tr("3X (2160p/3240p)")},
-             {static_cast<u32>(Settings::ResolutionSetup::Res4X), tr("4X (2880p/4320p)")},
-             {static_cast<u32>(Settings::ResolutionSetup::Res5X), tr("5X (3600p/5400p)")},
-             {static_cast<u32>(Settings::ResolutionSetup::Res6X), tr("6X (4320p/6480p)")},
-             {static_cast<u32>(Settings::ResolutionSetup::Res7X), tr("7X (5040p/7560p)")},
-             {static_cast<u32>(Settings::ResolutionSetup::Res8X), tr("8X (5760p/8640p)")},
-         }});
-    translations->insert(
-        {typeid(Settings::ScalingFilter),
-         {
-             {static_cast<u32>(Settings::ScalingFilter::NearestNeighbor), tr("Nearest Neighbor")},
-             {static_cast<u32>(Settings::ScalingFilter::Bilinear), tr("Bilinear")},
-             {static_cast<u32>(Settings::ScalingFilter::Bicubic), tr("Bicubic")},
-             {static_cast<u32>(Settings::ScalingFilter::Gaussian), tr("Gaussian")},
-             {static_cast<u32>(Settings::ScalingFilter::ScaleForce), tr("ScaleForce")},
-             {static_cast<u32>(Settings::ScalingFilter::Fsr),
-              tr("AMD FidelityFX™️ Super Resolution")},
-         }});
+    translations->insert({typeid(Settings::FullscreenMode),
+                          {
+                              PAIR(FullscreenMode, Borderless, "Borderless Windowed"),
+                              PAIR(FullscreenMode, Exclusive, "Exclusive Fullscreen"),
+                          }});
+    translations->insert({typeid(Settings::NvdecEmulation),
+                          {
+                              PAIR(NvdecEmulation, Off, "No Video Output"),
+                              PAIR(NvdecEmulation, Cpu, "CPU Video Decoding"),
+                              PAIR(NvdecEmulation, Gpu, "GPU Video Decoding (Default)"),
+                          }});
+    translations->insert({typeid(Settings::ResolutionSetup),
+                          {
+                              PAIR(ResolutionSetup, Res1_2X, "0.5X (360p/540p) [EXPERIMENTAL]"),
+                              PAIR(ResolutionSetup, Res3_4X, "0.75X (540p/810p) [EXPERIMENTAL]"),
+                              PAIR(ResolutionSetup, Res1X, "1X (720p/1080p)"),
+                              PAIR(ResolutionSetup, Res3_2X, "1.5X (1080p/1620p) [EXPERIMENTAL]"),
+                              PAIR(ResolutionSetup, Res2X, "2X (1440p/2160p)"),
+                              PAIR(ResolutionSetup, Res3X, "3X (2160p/3240p)"),
+                              PAIR(ResolutionSetup, Res4X, "4X (2880p/4320p)"),
+                              PAIR(ResolutionSetup, Res5X, "5X (3600p/5400p)"),
+                              PAIR(ResolutionSetup, Res6X, "6X (4320p/6480p)"),
+                              PAIR(ResolutionSetup, Res7X, "7X (5040p/7560p)"),
+                              PAIR(ResolutionSetup, Res8X, "8X (5760p/8640p)"),
+                          }});
+    translations->insert({typeid(Settings::ScalingFilter),
+                          {
+                              PAIR(ScalingFilter, NearestNeighbor, "Nearest Neighbor"),
+                              PAIR(ScalingFilter, Bilinear, "Bilinear"),
+                              PAIR(ScalingFilter, Bicubic, "Bicubic"),
+                              PAIR(ScalingFilter, Gaussian, "Gaussian"),
+                              PAIR(ScalingFilter, ScaleForce, "ScaleForce"),
+                              PAIR(ScalingFilter, Fsr, "AMD FidelityFX™️ Super Resolution"),
+                          }});
     translations->insert({typeid(Settings::AntiAliasing),
                           {
-                              {static_cast<u32>(Settings::AntiAliasing::None), tr("None")},
-                              {static_cast<u32>(Settings::AntiAliasing::Fxaa), tr("FXAA")},
-                              {static_cast<u32>(Settings::AntiAliasing::Smaa), tr("SMAA")},
+                              PAIR(AntiAliasing, None, "None"),
+                              PAIR(AntiAliasing, Fxaa, "FXAA"),
+                              PAIR(AntiAliasing, Smaa, "SMAA"),
                           }});
-    translations->insert(
-        {typeid(Settings::AspectRatio),
-         {
-             {static_cast<u32>(Settings::AspectRatio::R16_9), tr("Default (16:9)")},
-             {static_cast<u32>(Settings::AspectRatio::R4_3), tr("Force 4:3")},
-             {static_cast<u32>(Settings::AspectRatio::R21_9), tr("Force 21:9")},
-             {static_cast<u32>(Settings::AspectRatio::R16_10), tr("Force 16:10")},
-             {static_cast<u32>(Settings::AspectRatio::Stretch), tr("Stretch to Window")},
-         }});
-    translations->insert(
-        {typeid(Settings::AnisotropyMode),
-         {
-             {static_cast<u32>(Settings::AnisotropyMode::Automatic), tr("Automatic")},
-             {static_cast<u32>(Settings::AnisotropyMode::Default), tr("Default")},
-             {static_cast<u32>(Settings::AnisotropyMode::X2), tr("2x")},
-             {static_cast<u32>(Settings::AnisotropyMode::X4), tr("4x")},
-             {static_cast<u32>(Settings::AnisotropyMode::X8), tr("8x")},
-             {static_cast<u32>(Settings::AnisotropyMode::X16), tr("16x")},
-         }});
+    translations->insert({typeid(Settings::AspectRatio),
+                          {
+                              PAIR(AspectRatio, R16_9, "Default (16:9)"),
+                              PAIR(AspectRatio, R4_3, "Force 4:3"),
+                              PAIR(AspectRatio, R21_9, "Force 21:9"),
+                              PAIR(AspectRatio, R16_10, "Force 16:10"),
+                              PAIR(AspectRatio, Stretch, "Stretch to Window"),
+                          }});
+    translations->insert({typeid(Settings::AnisotropyMode),
+                          {
+                              PAIR(AnisotropyMode, Automatic, "Automatic"),
+                              PAIR(AnisotropyMode, Default, "Default"),
+                              PAIR(AnisotropyMode, X2, "2x"),
+                              PAIR(AnisotropyMode, X4, "4x"),
+                              PAIR(AnisotropyMode, X8, "8x"),
+                              PAIR(AnisotropyMode, X16, "16x"),
+                          }});
     translations->insert(
         {typeid(Settings::Language),
          {
-             {static_cast<u32>(Settings::Language::Japanese), tr("Japanese (日本語)")},
-             {static_cast<u32>(Settings::Language::EnglishAmerican), tr("American English")},
-             {static_cast<u32>(Settings::Language::French), tr("French (français)")},
-             {static_cast<u32>(Settings::Language::German), tr("German (Deutsch)")},
-             {static_cast<u32>(Settings::Language::Italian), tr("Italian (italiano)")},
-             {static_cast<u32>(Settings::Language::Spanish), tr("Spanish (español)")},
-             {static_cast<u32>(Settings::Language::Chinese), tr("Chinese")},
-             {static_cast<u32>(Settings::Language::Korean), tr("Korean (한국어)")},
-             {static_cast<u32>(Settings::Language::Dutch), tr("Dutch (Nederlands)")},
-             {static_cast<u32>(Settings::Language::Portuguese), tr("Portuguese (português)")},
-             {static_cast<u32>(Settings::Language::Russian), tr("Russian (Русский)")},
-             {static_cast<u32>(Settings::Language::Taiwanese), tr("Taiwanese")},
-             {static_cast<u32>(Settings::Language::EnglishBritish), tr("British English")},
-             {static_cast<u32>(Settings::Language::FrenchCanadian), tr("Canadian French")},
-             {static_cast<u32>(Settings::Language::SpanishLatin), tr("Latin American Spanish")},
-             {static_cast<u32>(Settings::Language::ChineseSimplified), tr("Simplified Chinese")},
-             {static_cast<u32>(Settings::Language::ChineseTraditional),
-              tr("Traditional Chinese (正體中文)")},
-             {static_cast<u32>(Settings::Language::PortugueseBrazilian),
-              tr("Brazilian Portuguese (português do Brasil)")},
+             PAIR(Language, Japanese, "Japanese (日本語)"),
+             PAIR(Language, EnglishAmerican, "American English"),
+             PAIR(Language, French, "French (français)"),
+             PAIR(Language, German, "German (Deutsch)"),
+             PAIR(Language, Italian, "Italian (italiano)"),
+             PAIR(Language, Spanish, "Spanish (español)"),
+             PAIR(Language, Chinese, "Chinese"),
+             PAIR(Language, Korean, "Korean (한국어)"),
+             PAIR(Language, Dutch, "Dutch (Nederlands)"),
+             PAIR(Language, Portuguese, "Portuguese (português)"),
+             PAIR(Language, Russian, "Russian (Русский)"),
+             PAIR(Language, Taiwanese, "Taiwanese"),
+             PAIR(Language, EnglishBritish, "British English"),
+             PAIR(Language, FrenchCanadian, "Canadian French"),
+             PAIR(Language, SpanishLatin, "Latin American Spanish"),
+             PAIR(Language, ChineseSimplified, "Simplified Chinese"),
+             PAIR(Language, ChineseTraditional, "Traditional Chinese (正體中文)"),
+             PAIR(Language, PortugueseBrazilian, "Brazilian Portuguese (português do Brasil)"),
          }});
     translations->insert({typeid(Settings::Region),
                           {
-                              {static_cast<u32>(Settings::Region::Japan), tr("Japan")},
-                              {static_cast<u32>(Settings::Region::Usa), tr("USA")},
-                              {static_cast<u32>(Settings::Region::Europe), tr("Europe")},
-                              {static_cast<u32>(Settings::Region::Australia), tr("Australia")},
-                              {static_cast<u32>(Settings::Region::China), tr("China")},
-                              {static_cast<u32>(Settings::Region::Korea), tr("Korea")},
-                              {static_cast<u32>(Settings::Region::Taiwan), tr("Taiwan")},
+                              PAIR(Region, Japan, "Japan"),
+                              PAIR(Region, Usa, "USA"),
+                              PAIR(Region, Europe, "Europe"),
+                              PAIR(Region, Australia, "Australia"),
+                              PAIR(Region, China, "China"),
+                              PAIR(Region, Korea, "Korea"),
+                              PAIR(Region, Taiwan, "Taiwan"),
                           }});
     translations->insert({typeid(Settings::TimeZone),
                           {
-                              {static_cast<u32>(Settings::TimeZone::Auto), tr("Auto")},
-                              {static_cast<u32>(Settings::TimeZone::Default), tr("Default")},
-                              {static_cast<u32>(Settings::TimeZone::CET), tr("CET")},
-                              {static_cast<u32>(Settings::TimeZone::CST6CDT), tr("CST6CDT")},
-                              {static_cast<u32>(Settings::TimeZone::Cuba), tr("Cuba")},
-                              {static_cast<u32>(Settings::TimeZone::EET), tr("EET")},
-                              {static_cast<u32>(Settings::TimeZone::Egypt), tr("Egypt")},
-                              {static_cast<u32>(Settings::TimeZone::Eire), tr("Eire")},
-                              {static_cast<u32>(Settings::TimeZone::EST), tr("EST")},
-                              {static_cast<u32>(Settings::TimeZone::EST5EDT), tr("EST5EDT")},
-                              {static_cast<u32>(Settings::TimeZone::GB), tr("GB")},
-                              {static_cast<u32>(Settings::TimeZone::GBEire), tr("GB-Eire")},
-                              {static_cast<u32>(Settings::TimeZone::GMT), tr("GMT")},
-                              {static_cast<u32>(Settings::TimeZone::GMTPlusZero), tr("GMT+0")},
-                              {static_cast<u32>(Settings::TimeZone::GMTMinusZero), tr("GMT-0")},
-                              {static_cast<u32>(Settings::TimeZone::GMTZero), tr("GMT0")},
-                              {static_cast<u32>(Settings::TimeZone::Greenwich), tr("Greenwich")},
-                              {static_cast<u32>(Settings::TimeZone::Hongkong), tr("Hongkong")},
-                              {static_cast<u32>(Settings::TimeZone::HST), tr("HST")},
-                              {static_cast<u32>(Settings::TimeZone::Iceland), tr("Iceland")},
-                              {static_cast<u32>(Settings::TimeZone::Iran), tr("Iran")},
-                              {static_cast<u32>(Settings::TimeZone::Israel), tr("Israel")},
-                              {static_cast<u32>(Settings::TimeZone::Jamaica), tr("Jamaica")},
-                              {static_cast<u32>(Settings::TimeZone::Kwajalein), tr("Kwajalein")},
-                              {static_cast<u32>(Settings::TimeZone::Libya), tr("Libya")},
-                              {static_cast<u32>(Settings::TimeZone::MET), tr("MET")},
-                              {static_cast<u32>(Settings::TimeZone::MST), tr("MST")},
-                              {static_cast<u32>(Settings::TimeZone::MST7MDT), tr("MST7MDT")},
-                              {static_cast<u32>(Settings::TimeZone::Navajo), tr("Navajo")},
-                              {static_cast<u32>(Settings::TimeZone::NZ), tr("NZ")},
-                              {static_cast<u32>(Settings::TimeZone::NZCHAT), tr("NZ-CHAT")},
-                              {static_cast<u32>(Settings::TimeZone::Poland), tr("Poland")},
-                              {static_cast<u32>(Settings::TimeZone::Portugal), tr("Portugal")},
-                              {static_cast<u32>(Settings::TimeZone::PRC), tr("PRC")},
-                              {static_cast<u32>(Settings::TimeZone::PST8PDT), tr("PST8PDT")},
-                              {static_cast<u32>(Settings::TimeZone::ROC), tr("ROC")},
-                              {static_cast<u32>(Settings::TimeZone::ROK), tr("ROK")},
-                              {static_cast<u32>(Settings::TimeZone::Singapore), tr("Singapore")},
-                              {static_cast<u32>(Settings::TimeZone::Turkey), tr("Turkey")},
-                              {static_cast<u32>(Settings::TimeZone::UCT), tr("UCT")},
-                              {static_cast<u32>(Settings::TimeZone::W_SU), tr("W-SU")},
-                              {static_cast<u32>(Settings::TimeZone::WET), tr("WET")},
-                              {static_cast<u32>(Settings::TimeZone::Zulu), tr("Zulu")},
+                              PAIR(TimeZone, Auto, "Auto"),
+                              PAIR(TimeZone, Default, "Default"),
+                              PAIR(TimeZone, CET, "CET"),
+                              PAIR(TimeZone, CST6CDT, "CST6CDT"),
+                              PAIR(TimeZone, Cuba, "Cuba"),
+                              PAIR(TimeZone, EET, "EET"),
+                              PAIR(TimeZone, Egypt, "Egypt"),
+                              PAIR(TimeZone, Eire, "Eire"),
+                              PAIR(TimeZone, EST, "EST"),
+                              PAIR(TimeZone, EST5EDT, "EST5EDT"),
+                              PAIR(TimeZone, GB, "GB"),
+                              PAIR(TimeZone, GBEire, "GB-Eire"),
+                              PAIR(TimeZone, GMT, "GMT"),
+                              PAIR(TimeZone, GMTPlusZero, "GMT+0"),
+                              PAIR(TimeZone, GMTMinusZero, "GMT-0"),
+                              PAIR(TimeZone, GMTZero, "GMT0"),
+                              PAIR(TimeZone, Greenwich, "Greenwich"),
+                              PAIR(TimeZone, Hongkong, "Hongkong"),
+                              PAIR(TimeZone, HST, "HST"),
+                              PAIR(TimeZone, Iceland, "Iceland"),
+                              PAIR(TimeZone, Iran, "Iran"),
+                              PAIR(TimeZone, Israel, "Israel"),
+                              PAIR(TimeZone, Jamaica, "Jamaica"),
+                              PAIR(TimeZone, Kwajalein, "Kwajalein"),
+                              PAIR(TimeZone, Libya, "Libya"),
+                              PAIR(TimeZone, MET, "MET"),
+                              PAIR(TimeZone, MST, "MST"),
+                              PAIR(TimeZone, MST7MDT, "MST7MDT"),
+                              PAIR(TimeZone, Navajo, "Navajo"),
+                              PAIR(TimeZone, NZ, "NZ"),
+                              PAIR(TimeZone, NZCHAT, "NZ-CHAT"),
+                              PAIR(TimeZone, Poland, "Poland"),
+                              PAIR(TimeZone, Portugal, "Portugal"),
+                              PAIR(TimeZone, PRC, "PRC"),
+                              PAIR(TimeZone, PST8PDT, "PST8PDT"),
+                              PAIR(TimeZone, ROC, "ROC"),
+                              PAIR(TimeZone, ROK, "ROK"),
+                              PAIR(TimeZone, Singapore, "Singapore"),
+                              PAIR(TimeZone, Turkey, "Turkey"),
+                              PAIR(TimeZone, UCT, "UCT"),
+                              PAIR(TimeZone, W_SU, "W-SU"),
+                              PAIR(TimeZone, WET, "WET"),
+                              PAIR(TimeZone, Zulu, "Zulu"),
                           }});
     translations->insert({typeid(Settings::AudioMode),
                           {
-                              {static_cast<u32>(Settings::AudioMode::Mono), tr("Mono")},
-                              {static_cast<u32>(Settings::AudioMode::Stereo), tr("Stereo")},
-                              {static_cast<u32>(Settings::AudioMode::Surround), tr("Surround")},
+                              PAIR(AudioMode, Mono, "Mono"),
+                              PAIR(AudioMode, Stereo, "Stereo"),
+                              PAIR(AudioMode, Surround, "Surround"),
                           }});
+
+#undef PAIR
+#undef CTX_PAIR
 
     return translations;
 }
