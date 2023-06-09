@@ -115,6 +115,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, use_reactive_flushing, "Enable Reactive Flushing",
            "Uses reactive flushing instead of predictive flushing, allowing more accurate memory "
            "syncing.");
+    INSERT(Settings, use_video_framerate, "Sync to framerate of video playback",
+           "Run the game at normal speed during video playback, even when the framerate is "
+           "unlocked.");
 
     // Renderer (Debug)
 
