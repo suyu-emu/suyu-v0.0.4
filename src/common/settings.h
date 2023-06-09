@@ -557,8 +557,11 @@ struct Values {
     Setting<AudioEngine> sink_id{linkage, AudioEngine::Auto, "output_engine", Category::Audio};
     Setting<std::string> audio_output_device_id{linkage, "auto", "output_device", Category::Audio};
     Setting<std::string> audio_input_device_id{linkage, "auto", "input_device", Category::Audio};
-    Setting<bool, false> audio_muted{linkage, false, "audio_muted", Category::Audio, false};
+    SwitchableSetting<AudioMode, true> sound_index{linkage,         AudioMode::Stereo,
+                                                   AudioMode::Mono, AudioMode::Surround,
+                                                   "sound_index",   Category::SystemAudio};
     SwitchableSetting<u8, true> volume{linkage, 100, 0, 200, "volume", Category::Audio, true, true};
+    Setting<bool, false> audio_muted{linkage, false, "audio_muted", Category::Audio, false};
     Setting<bool, false> dump_audio_commands{linkage, false, "dump_audio_commands", Category::Audio,
                                              false};
 
@@ -612,28 +615,35 @@ struct Values {
     SwitchableSetting<RendererBackend, true> renderer_backend{
         linkage,   RendererBackend::Vulkan, RendererBackend::OpenGL, RendererBackend::Null,
         "backend", Category::Renderer};
-    SwitchableSetting<bool> async_presentation{linkage, false, "async_presentation",
-                                               Category::RendererAdvanced};
-    SwitchableSetting<bool> renderer_force_max_clock{linkage, false, "force_max_clock",
-                                                     Category::RendererAdvanced};
-    Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
-    Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",
-                                           Category::RendererDebug};
-    Setting<bool> enable_nsight_aftermath{linkage, false, "nsight_aftermath",
-                                          Category::RendererDebug};
-    Setting<bool> disable_shader_loop_safety_checks{
-        linkage, false, "disable_shader_loop_safety_checks", Category::RendererDebug};
+    SwitchableSetting<ShaderBackend, true> shader_backend{
+        linkage,          ShaderBackend::Glsl, ShaderBackend::Glsl, ShaderBackend::SpirV,
+        "shader_backend", Category::Renderer};
     SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer};
 
-    ResolutionScalingInfo resolution_info{};
-    SwitchableSetting<ResolutionSetup> resolution_setup{linkage, ResolutionSetup::Res1X,
-                                                        "resolution_setup", Category::Renderer};
-    SwitchableSetting<ScalingFilter, false> scaling_filter{
-        linkage, ScalingFilter::Bilinear, "scaling_filter", Category::Renderer, true, true};
-    SwitchableSetting<int, true> fsr_sharpening_slider{
-        linkage, 25, 0, 200, "fsr_sharpening_slider", Category::Renderer, true, true};
-    SwitchableSetting<AntiAliasing, false> anti_aliasing{
-        linkage, AntiAliasing::None, "anti_aliasing", Category::Renderer, true, true};
+    SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
+                                                  Category::Renderer};
+    SwitchableSetting<bool> use_asynchronous_gpu_emulation{
+        linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
+    SwitchableSetting<bool, false> use_speed_limit{
+        linkage, true, "use_speed_limit", Category::Renderer, false, true};
+    SwitchableSetting<u16, true> speed_limit{
+        linkage, 100, 0, 9999, "speed_limit", Category::Renderer, true, true};
+    SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
+                                                            AstcDecodeMode::Cpu,
+                                                            AstcDecodeMode::Cpu,
+                                                            AstcDecodeMode::CpuAsynchronous,
+                                                            "accelerate_astc",
+                                                            Category::Renderer};
+    Setting<VSyncMode, true> vsync_mode{linkage,
+                                        VSyncMode::Fifo,
+                                        VSyncMode::Immediate,
+                                        VSyncMode::FifoRelaxed,
+                                        "use_vsync",
+                                        Category::Renderer,
+                                        true,
+                                        true};
+    SwitchableSetting<NvdecEmulation> nvdec_emulation{linkage, NvdecEmulation::Gpu,
+                                                      "nvdec_emulation", Category::Renderer};
     // *nix platforms may have issues with the borderless windowed fullscreen mode.
     // Default to exclusive fullscreen on these platforms for now.
     SwitchableSetting<FullscreenMode, true> fullscreen_mode{linkage,
@@ -656,15 +666,21 @@ struct Values {
                                                       Category::Renderer,
                                                       true,
                                                       true};
-    SwitchableSetting<AnisotropyMode, true> max_anisotropy{
-        linkage,          AnisotropyMode::Automatic, AnisotropyMode::Automatic, AnisotropyMode::X16,
-        "max_anisotropy", Category::RendererAdvanced};
-    SwitchableSetting<bool, false> use_speed_limit{
-        linkage, true, "use_speed_limit", Category::Renderer, false, true};
-    SwitchableSetting<u16, true> speed_limit{
-        linkage, 100, 0, 9999, "speed_limit", Category::Renderer, true, true};
-    SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
-                                                  Category::Renderer};
+
+    ResolutionScalingInfo resolution_info{};
+    SwitchableSetting<ResolutionSetup> resolution_setup{linkage, ResolutionSetup::Res1X,
+                                                        "resolution_setup", Category::Renderer};
+    SwitchableSetting<ScalingFilter, false> scaling_filter{
+        linkage, ScalingFilter::Bilinear, "scaling_filter", Category::Renderer, true, true};
+    SwitchableSetting<AntiAliasing, false> anti_aliasing{
+        linkage, AntiAliasing::None, "anti_aliasing", Category::Renderer, true, true};
+    SwitchableSetting<int, true> fsr_sharpening_slider{
+        linkage, 25, 0, 200, "fsr_sharpening_slider", Category::Renderer, true, true};
+
+    SwitchableSetting<u8, false> bg_red{linkage, 0, "bg_red", Category::Renderer, true, true};
+    SwitchableSetting<u8, false> bg_green{linkage, 0, "bg_green", Category::Renderer, true, true};
+    SwitchableSetting<u8, false> bg_blue{linkage, 0, "bg_blue", Category::Renderer, true, true};
+
     SwitchableSetting<GpuAccuracy, true> gpu_accuracy{linkage,
                                                       GpuAccuracy::High,
                                                       GpuAccuracy::Normal,
@@ -673,29 +689,21 @@ struct Values {
                                                       Category::RendererAdvanced,
                                                       true,
                                                       true};
-    SwitchableSetting<bool> use_asynchronous_gpu_emulation{
-        linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
-    SwitchableSetting<NvdecEmulation> nvdec_emulation{linkage, NvdecEmulation::Gpu,
-                                                      "nvdec_emulation", Category::Renderer};
-    SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
-                                                            AstcDecodeMode::Cpu,
-                                                            AstcDecodeMode::Cpu,
-                                                            AstcDecodeMode::CpuAsynchronous,
-                                                            "accelerate_astc",
-                                                            Category::Renderer};
-    Setting<VSyncMode, true> vsync_mode{linkage,
-                                        VSyncMode::Fifo,
-                                        VSyncMode::Immediate,
-                                        VSyncMode::FifoRelaxed,
-                                        "use_vsync",
-                                        Category::Renderer,
-                                        true,
-                                        true};
+    SwitchableSetting<AnisotropyMode, true> max_anisotropy{
+        linkage,          AnisotropyMode::Automatic, AnisotropyMode::Automatic, AnisotropyMode::X16,
+        "max_anisotropy", Category::RendererAdvanced};
+    SwitchableSetting<AstcRecompression, true> astc_recompression{linkage,
+                                                                  AstcRecompression::Uncompressed,
+                                                                  AstcRecompression::Uncompressed,
+                                                                  AstcRecompression::Bc3,
+                                                                  "astc_recompression",
+                                                                  Category::RendererAdvanced};
+    SwitchableSetting<bool> async_presentation{linkage, false, "async_presentation",
+                                               Category::RendererAdvanced};
+    SwitchableSetting<bool> renderer_force_max_clock{linkage, false, "force_max_clock",
+                                                     Category::RendererAdvanced};
     SwitchableSetting<bool> use_reactive_flushing{linkage, true, "use_reactive_flushing",
                                                   Category::RendererAdvanced};
-    SwitchableSetting<ShaderBackend, true> shader_backend{
-        linkage,          ShaderBackend::Glsl, ShaderBackend::Glsl, ShaderBackend::SpirV,
-        "shader_backend", Category::Renderer};
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererAdvanced};
     SwitchableSetting<bool, false> use_fast_gpu_time{
@@ -704,34 +712,20 @@ struct Values {
         linkage, true, "use_vulkan_driver_pipeline_cache", Category::RendererAdvanced, true, true};
     SwitchableSetting<bool> enable_compute_pipelines{linkage, false, "enable_compute_pipelines",
                                                      Category::RendererAdvanced};
-    SwitchableSetting<AstcRecompression, true> astc_recompression{linkage,
-                                                                  AstcRecompression::Uncompressed,
-                                                                  AstcRecompression::Uncompressed,
-                                                                  AstcRecompression::Bc3,
-                                                                  "astc_recompression",
-                                                                  Category::RendererAdvanced};
     SwitchableSetting<bool> use_video_framerate{linkage, false, "use_video_framerate",
                                                 Category::RendererAdvanced};
     SwitchableSetting<bool> barrier_feedback_loops{linkage, true, "barrier_feedback_loops",
                                                    Category::RendererAdvanced};
 
-    SwitchableSetting<u8, false> bg_red{linkage, 0, "bg_red", Category::Renderer, true, true};
-    SwitchableSetting<u8, false> bg_green{linkage, 0, "bg_green", Category::Renderer, true, true};
-    SwitchableSetting<u8, false> bg_blue{linkage, 0, "bg_blue", Category::Renderer, true, true};
+    Setting<bool> renderer_debug{linkage, false, "debug", Category::RendererDebug};
+    Setting<bool> renderer_shader_feedback{linkage, false, "shader_feedback",
+                                           Category::RendererDebug};
+    Setting<bool> enable_nsight_aftermath{linkage, false, "nsight_aftermath",
+                                          Category::RendererDebug};
+    Setting<bool> disable_shader_loop_safety_checks{
+        linkage, false, "disable_shader_loop_safety_checks", Category::RendererDebug};
 
     // System
-    SwitchableSetting<bool> rng_seed_enabled{linkage,          false, "rng_seed_enabled",
-                                             Category::System, true,  true};
-    SwitchableSetting<u32> rng_seed{linkage, 0, "rng_seed", Category::System, true, true};
-    Setting<std::string> device_name{linkage, "Yuzu", "device_name", Category::System, true, true};
-    // Measured in seconds since epoch
-    SwitchableSetting<bool> custom_rtc_enabled{linkage,          false, "custom_rtc_enabled",
-                                               Category::System, true,  true};
-    SwitchableSetting<s64> custom_rtc{linkage, 0, "custom_rtc", Category::System, true, true};
-    // Set on game boot, reset on stop. Seconds difference between current time and `custom_rtc`
-    s64 custom_rtc_differential;
-
-    Setting<s32> current_user{linkage, 0, "current_user", Category::System};
     SwitchableSetting<Language, true> language_index{linkage,
                                                      Language::EnglishAmerican,
                                                      Language::Japanese,
@@ -743,9 +737,18 @@ struct Values {
     SwitchableSetting<TimeZone, true> time_zone_index{linkage,           TimeZone::Auto,
                                                       TimeZone::Auto,    TimeZone::Zulu,
                                                       "time_zone_index", Category::System};
-    SwitchableSetting<AudioMode, true> sound_index{linkage,         AudioMode::Stereo,
-                                                   AudioMode::Mono, AudioMode::Surround,
-                                                   "sound_index",   Category::SystemAudio};
+    // Measured in seconds since epoch
+    SwitchableSetting<bool> custom_rtc_enabled{linkage,          false, "custom_rtc_enabled",
+                                               Category::System, true,  true};
+    SwitchableSetting<s64> custom_rtc{linkage, 0, "custom_rtc", Category::System, true, true};
+    // Set on game boot, reset on stop. Seconds difference between current time and `custom_rtc`
+    s64 custom_rtc_differential;
+    SwitchableSetting<bool> rng_seed_enabled{linkage,          false, "rng_seed_enabled",
+                                             Category::System, true,  true};
+    SwitchableSetting<u32> rng_seed{linkage, 0, "rng_seed", Category::System, true, true};
+    Setting<std::string> device_name{linkage, "Yuzu", "device_name", Category::System, true, true};
+
+    Setting<s32> current_user{linkage, 0, "current_user", Category::System};
 
     SwitchableSetting<bool> use_docked_mode{linkage, true, "use_docked_mode", Category::System};
 
