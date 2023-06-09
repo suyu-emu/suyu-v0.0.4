@@ -746,7 +746,7 @@ struct Values {
     SwitchableSetting<bool> rng_seed_enabled{linkage,          false, "rng_seed_enabled",
                                              Category::System, true,  true};
     SwitchableSetting<u32> rng_seed{linkage, 0, "rng_seed", Category::System, true, true};
-    Setting<std::string> device_name{linkage, "Yuzu", "device_name", Category::System, true, true};
+    Setting<std::string> device_name{linkage, "yuzu", "device_name", Category::System, true, true};
 
     Setting<s32> current_user{linkage, 0, "current_user", Category::System};
 
