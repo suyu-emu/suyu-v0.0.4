@@ -33,7 +33,8 @@ static_assert(sizeof(NroSegmentHeader) == 0x8, "NroSegmentHeader has incorrect s
 struct NroHeader {
     INSERT_PADDING_BYTES(0x4);
     u32_le module_header_offset;
-    INSERT_PADDING_BYTES(0x8);
+    u32 magic_ext1;
+    u32 magic_ext2;
     u32_le magic;
     INSERT_PADDING_BYTES(0x4);
     u32_le file_size;
@@ -122,6 +123,16 @@ FileType AppLoader_NRO::IdentifyType(const FileSys::VirtualFile& nro_file) {
         return FileType::NRO;
     }
     return FileType::Error;
+}
+
+bool AppLoader_NRO::IsHomebrew() {
+    // Read NSO header
+    NroHeader nro_header{};
+    if (sizeof(NroHeader) != file->ReadObject(&nro_header)) {
+        return false;
+    }
+    return nro_header.magic_ext1 == Common::MakeMagic('H', 'O', 'M', 'E') &&
+           nro_header.magic_ext2 == Common::MakeMagic('B', 'R', 'E', 'W');
 }
 
 static constexpr u32 PageAlignSize(u32 size) {

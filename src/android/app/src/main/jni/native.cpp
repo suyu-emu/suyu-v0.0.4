@@ -13,6 +13,7 @@
 
 #include <android/api-level.h>
 #include <android/native_window_jni.h>
+#include <core/loader/nro.h>
 
 #include "common/detached_tasks.h"
 #include "common/dynamic_library.h"
@@ -281,6 +282,10 @@ public:
         return GetRomMetadata(path).icon;
     }
 
+    bool GetIsHomebrew(const std::string& path) {
+        return GetRomMetadata(path).isHomebrew;
+    }
+
     void ResetRomMetadata() {
         m_rom_metadata_cache.clear();
     }
@@ -348,6 +353,7 @@ private:
     struct RomMetadata {
         std::string title;
         std::vector<u8> icon;
+        bool isHomebrew;
     };
 
     RomMetadata GetRomMetadata(const std::string& path) {
@@ -360,11 +366,17 @@ private:
 
     RomMetadata CacheRomMetadata(const std::string& path) {
         const auto file = Core::GetGameFileFromPath(m_vfs, path);
-        const auto loader = Loader::GetLoader(EmulationSession::GetInstance().System(), file, 0, 0);
+        auto loader = Loader::GetLoader(EmulationSession::GetInstance().System(), file, 0, 0);
 
         RomMetadata entry;
         loader->ReadTitle(entry.title);
         loader->ReadIcon(entry.icon);
+        if (loader->GetFileType() == Loader::FileType::NRO) {
+            auto loader_nro = dynamic_cast<Loader::AppLoader_NRO*>(loader.get());
+            entry.isHomebrew = loader_nro->IsHomebrew();
+        } else {
+            entry.isHomebrew = false;
+        }
 
         m_rom_metadata_cache[path] = entry;
 
@@ -660,6 +672,12 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCompany([[maybe_unused]] JNIEnv
                                                          [[maybe_unused]] jclass clazz,
                                                          [[maybe_unused]] jstring j_filename) {
     return env->NewStringUTF("");
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isHomebrew([[maybe_unused]] JNIEnv* env,
+                                                          [[maybe_unused]] jclass clazz,
+                                                          [[maybe_unused]] jstring j_filename) {
+    return EmulationSession::GetInstance().GetIsHomebrew(GetJString(env, j_filename));
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmulation
