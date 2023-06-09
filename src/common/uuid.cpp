@@ -48,7 +48,7 @@ std::array<u8, 0x10> ConstructFromRawString(std::string_view raw_string) {
 }
 
 std::array<u8, 0x10> ConstructFromFormattedString(std::string_view formatted_string) {
-    std::array<u8, 0x10> uuid;
+    std::array<u8, 0x10> uuid{};
 
     size_t i = 0;
 
