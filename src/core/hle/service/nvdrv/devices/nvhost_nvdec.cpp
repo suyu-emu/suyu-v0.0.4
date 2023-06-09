@@ -69,7 +69,7 @@ NvResult nvhost_nvdec::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> in
 
 void nvhost_nvdec::OnOpen(DeviceFD fd) {
     LOG_INFO(Service_NVDRV, "NVDEC video stream started");
-    system.AudioCore().SetNVDECActive(true);
+    system.SetNVDECActive(true);
 }
 
 void nvhost_nvdec::OnClose(DeviceFD fd) {
@@ -79,7 +79,7 @@ void nvhost_nvdec::OnClose(DeviceFD fd) {
     if (iter != host1x_file.fd_to_id.end()) {
         system.GPU().ClearCdmaInstance(iter->second);
     }
-    system.AudioCore().SetNVDECActive(false);
+    system.SetNVDECActive(false);
 }
 
 } // namespace Service::Nvidia::Devices

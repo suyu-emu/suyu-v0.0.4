@@ -192,6 +192,16 @@ Compute pipelines are always enabled on all other drivers.</string>
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="use_video_framerate_checkbox">
+          <property name="toolTip">
+           <string>Run the game at normal speed during video playback, even when the framerate is unlocked.</string>
+          </property>
+          <property name="text">
+           <string>Sync to framerate of video playback</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QWidget" name="af_layout" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout_1">
            <property name="leftMargin">

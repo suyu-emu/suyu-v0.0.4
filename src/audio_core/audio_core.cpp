@@ -47,12 +47,4 @@ AudioRenderer::ADSP::ADSP& AudioCore::GetADSP() {
     return *adsp;
 }
 
-void AudioCore::SetNVDECActive(bool active) {
-    nvdec_active = active;
-}
-
-bool AudioCore::IsNVDECActive() const {
-    return nvdec_active;
-}
-
 } // namespace AudioCore

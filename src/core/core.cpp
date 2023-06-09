@@ -216,6 +216,14 @@ struct System::Impl {
         }
     }
 
+    void SetNVDECActive(bool is_nvdec_active) {
+        nvdec_active = is_nvdec_active;
+    }
+
+    bool GetNVDECActive() {
+        return nvdec_active;
+    }
+
     void InitializeDebugger(System& system, u16 port) {
         debugger = std::make_unique<Debugger>(system, port);
     }
@@ -485,6 +493,8 @@ struct System::Impl {
     std::atomic_bool is_powered_on{};
     bool exit_lock = false;
 
+    bool nvdec_active{};
+
     Reporter reporter;
     std::unique_ptr<Memory::CheatEngine> cheat_engine;
     std::unique_ptr<Tools::Freezer> memory_freezer;
@@ -592,6 +602,14 @@ std::unique_lock<std::mutex> System::StallApplication() {
 
 void System::UnstallApplication() {
     impl->UnstallApplication();
+}
+
+void System::SetNVDECActive(bool is_nvdec_active) {
+    impl->SetNVDECActive(is_nvdec_active);
+}
+
+bool System::GetNVDECActive() {
+    return impl->GetNVDECActive();
 }
 
 void System::InitializeDebugger() {

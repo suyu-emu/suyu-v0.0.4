@@ -42,6 +42,7 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
         Settings::values.use_vulkan_driver_pipeline_cache.GetValue());
     ui->enable_compute_pipelines_checkbox->setChecked(
         Settings::values.enable_compute_pipelines.GetValue());
+    ui->use_video_framerate_checkbox->setChecked(Settings::values.use_video_framerate.GetValue());
 
     if (Settings::IsConfiguringGlobal()) {
         ui->gpu_accuracy->setCurrentIndex(
@@ -91,6 +92,8 @@ void ConfigureGraphicsAdvanced::ApplyConfiguration() {
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.enable_compute_pipelines,
                                              ui->enable_compute_pipelines_checkbox,
                                              enable_compute_pipelines);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_video_framerate,
+                                             ui->use_video_framerate_checkbox, use_video_framerate);
 }
 
 void ConfigureGraphicsAdvanced::changeEvent(QEvent* event) {
@@ -125,6 +128,8 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
             Settings::values.max_anisotropy.UsingGlobal());
         ui->enable_compute_pipelines_checkbox->setEnabled(
             Settings::values.enable_compute_pipelines.UsingGlobal());
+        ui->use_video_framerate_checkbox->setEnabled(
+            Settings::values.use_video_framerate.UsingGlobal());
 
         return;
     }
@@ -149,6 +154,9 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
     ConfigurationShared::SetColoredTristate(ui->enable_compute_pipelines_checkbox,
                                             Settings::values.enable_compute_pipelines,
                                             enable_compute_pipelines);
+    ConfigurationShared::SetColoredTristate(ui->use_video_framerate_checkbox,
+                                            Settings::values.use_video_framerate,
+                                            use_video_framerate);
     ConfigurationShared::SetColoredComboBox(
         ui->gpu_accuracy, ui->label_gpu_accuracy,
         static_cast<int>(Settings::values.gpu_accuracy.GetValue(true)));

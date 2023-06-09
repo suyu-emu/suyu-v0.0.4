@@ -47,6 +47,7 @@ private:
     ConfigurationShared::CheckState use_fast_gpu_time;
     ConfigurationShared::CheckState use_vulkan_driver_pipeline_cache;
     ConfigurationShared::CheckState enable_compute_pipelines;
+    ConfigurationShared::CheckState use_video_framerate;
 
     const Core::System& system;
 };

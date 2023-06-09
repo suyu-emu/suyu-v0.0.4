@@ -324,6 +324,10 @@ s64 Nvnflinger::GetNextTicks() const {
             speed_scale = 0.01f;
         }
     }
+    if (system.GetNVDECActive() && settings.use_video_framerate.GetValue()) {
+        // Run at intended presentation rate during video playback.
+        speed_scale = 1.f;
+    }
 
     // As an extension, treat nonpositive swap interval as framerate multiplier.
     const f32 effective_fps = swap_interval <= 0 ? 120.f * static_cast<f32>(1 - swap_interval)
