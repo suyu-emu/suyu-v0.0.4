@@ -49,6 +49,7 @@ void ConfigureAudio::Setup() {
     for (auto* setting : settings) {
         auto* widget = [&]() {
             if (setting->Id() == Settings::values.volume.Id()) {
+                // volume needs to be a slider (default is line edit)
                 return new ConfigurationShared::Widget(
                     setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::Slider, true, 1.0f, nullptr,
@@ -56,6 +57,7 @@ void ConfigureAudio::Setup() {
             } else if (setting->Id() == Settings::values.audio_output_device_id.Id() ||
                        setting->Id() == Settings::values.audio_input_device_id.Id() ||
                        setting->Id() == Settings::values.sink_id.Id()) {
+                // These need to be unmanaged comboboxes, so we can populate them ourselves
                 return new ConfigurationShared::Widget(
                     setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::ComboBox, false);
@@ -79,6 +81,8 @@ void ConfigureAudio::Setup() {
             connect(sink_combo_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
                     &ConfigureAudio::UpdateAudioDevices);
         } else if (setting->Id() == Settings::values.audio_output_device_id.Id()) {
+            // Keep track of output (and input) device comboboxes to populate them with system
+            // devices, which are determined at run time
             output_device_combo_box = widget->combobox;
         } else if (setting->Id() == Settings::values.audio_input_device_id.Id()) {
             input_device_combo_box = widget->combobox;

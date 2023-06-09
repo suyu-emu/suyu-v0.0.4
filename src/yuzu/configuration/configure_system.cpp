@@ -126,11 +126,15 @@ void ConfigureSystem::Setup() {
         [[maybe_unused]] std::string label = setting->GetLabel();
         ConfigurationShared::Widget* widget = [=]() {
             if (setting->Id() == Settings::values.custom_rtc.Id()) {
+                // custom_rtc needs a DateTimeEdit (default is LineEdit), and a checkbox to manage
+                // it and custom_rtc_enabled
                 return new ConfigurationShared::Widget(
                     setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::DateTimeEdit, true, 1.0f,
                     &Settings::values.custom_rtc_enabled);
             } else if (setting->Id() == Settings::values.rng_seed.Id()) {
+                // rng_seed needs a HexEdit (default is LineEdit), and a checkbox to manage
+                // it and rng_seed_enabled
                 return new ConfigurationShared::Widget(
                     setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::HexEdit, true, 1.0f,
@@ -147,17 +151,20 @@ void ConfigureSystem::Setup() {
         }
 
         if (setting->Id() == Settings::values.rng_seed.Id()) {
+            // Keep track of rng_seed's widgets to reset it with the checkbox state
             rng_seed_checkbox = widget->checkbox;
             rng_seed_edit = widget->line_edit;
 
             rng_seed_edit->setEnabled(Settings::values.rng_seed_enabled.GetValue());
         } else if (setting->Id() == Settings::values.custom_rtc.Id()) {
+            // Keep track of custom_rtc's widgets to reset it with the checkbox state
             custom_rtc_checkbox = widget->checkbox;
             custom_rtc_edit = widget->date_time_edit;
 
             custom_rtc_edit->setEnabled(Settings::values.custom_rtc_enabled.GetValue());
         } else if (setting->Id() == Settings::values.region_index.Id()) {
-
+            // Keep track of the region_index (and langauge_index) combobox to validate the selected
+            // settings
             combo_region = widget->combobox;
         } else if (setting->Id() == Settings::values.language_index.Id()) {
             combo_language = widget->combobox;

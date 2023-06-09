@@ -231,6 +231,7 @@ void ConfigureGraphics::Setup() {
 
     for (const auto setting : Settings::values.linkage.by_category[Settings::Category::Renderer]) {
         ConfigurationShared::Widget* widget = [&]() {
+            // Set managed to false on these and set up the comboboxes ourselves
             if (setting->Id() == Settings::values.vulkan_device.Id() ||
                 setting->Id() == Settings::values.shader_backend.Id() ||
                 setting->Id() == Settings::values.vsync_mode.Id()) {
@@ -238,11 +239,13 @@ void ConfigureGraphics::Setup() {
                     setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::ComboBox, false);
             } else if (setting->Id() == Settings::values.fsr_sharpening_slider.Id()) {
+                // FSR needs a reversed slider
                 return new ConfigurationShared::Widget(
                     setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::ReverseSlider, true, 0.5f, nullptr,
                     tr("%1%", "FSR sharpening percentage (e.g. 50%)"));
             } else if (setting->Id() == Settings::values.speed_limit.Id()) {
+                // speed_limit needs a checkbox to set use_speed_limit, as well as a spinbox
                 return new ConfigurationShared::Widget(
                     setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::SpinBox, true, 1.0f,
@@ -269,18 +272,23 @@ void ConfigureGraphics::Setup() {
                                  [=](bool) { UpdateAPILayout(); });
 
                 // Detach API's restore button and place it where we want
+                // Lets us put it on the side, and it will automatically scale if there's a second
+                // combobox (shader_backend, vulkan_device)
                 widget->layout()->removeWidget(api_restore_global_button);
                 api_layout->addWidget(api_restore_global_button);
             }
         } else if (setting->Id() == Settings::values.vulkan_device.Id()) {
+            // Keep track of vulkan_device's combobox so we can populate it
             hold_api.push_front(widget);
             vulkan_device_combobox = widget->combobox;
             vulkan_device_widget = widget;
         } else if (setting->Id() == Settings::values.shader_backend.Id()) {
+            // Keep track of shader_backend's combobox so we can populate it
             hold_api.push_front(widget);
             shader_backend_combobox = widget->combobox;
             shader_backend_widget = widget;
         } else if (setting->Id() == Settings::values.vsync_mode.Id()) {
+            // Keep track of vsync_mode's combobox so we can populate it
             vsync_mode_combobox = widget->combobox;
             hold_graphics.emplace(setting->Id(), widget);
         } else {
@@ -296,6 +304,8 @@ void ConfigureGraphics::Setup() {
         api_grid_layout->addWidget(widget);
     }
 
+    // Background color is too specific to build into the new system, so we manage it here
+    // (3 settings, all collected into a single widget with a QColor to manage on top)
     if (Settings::IsConfiguringGlobal()) {
         apply_funcs.push_front([this](bool powered_on) {
             Settings::values.bg_red.SetValue(static_cast<u8>(bg_color.red()));

@@ -58,9 +58,11 @@ void ConfigureCpu::Setup() {
         }
 
         if (setting->Id() == Settings::values.cpu_accuracy.Id()) {
+            // Keep track of cpu_accuracy combobox to display/hide the unsafe settings
             accuracy_layout->addWidget(widget);
             accuracy_combobox = widget->combobox;
         } else {
+            // Presently, all other settings here are unsafe checkboxes
             unsafe_hold.insert({setting->GetLabel(), widget});
         }
     }

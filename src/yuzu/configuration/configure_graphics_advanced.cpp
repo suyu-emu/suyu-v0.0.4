@@ -45,6 +45,7 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
 
         hold.emplace(setting->Id(), widget);
 
+        // Keep track of enable_compute_pipelines so we can display it when needed
         if (setting->Id() == Settings::values.enable_compute_pipelines.Id()) {
             checkbox_enable_compute_pipelines = widget;
         }
