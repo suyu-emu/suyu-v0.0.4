@@ -4116,7 +4116,13 @@ void GMainWindow::UpdateDockedButton() {
 void GMainWindow::UpdateAPIText() {
     const auto api = Settings::values.renderer_backend.GetValue();
     const auto renderer_status_text = Config::renderer_backend_texts_map.find(api)->second;
-    renderer_status_button->setText(renderer_status_text.toUpper());
+    renderer_status_button->setText(
+        api == Settings::RendererBackend::OpenGL
+            ? tr("%1 %2").arg(
+                  renderer_status_text.toUpper(),
+                  Config::shader_backend_texts_map.find(Settings::values.shader_backend.GetValue())
+                      ->second)
+            : renderer_status_text.toUpper());
 }
 
 void GMainWindow::UpdateFilterText() {
