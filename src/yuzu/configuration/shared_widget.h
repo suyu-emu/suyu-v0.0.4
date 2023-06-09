@@ -9,6 +9,8 @@ class QComboBox;
 class QLineEdit;
 class QSlider;
 class QCheckBox;
+class QLabel;
+class QHBoxLayout;
 class QDateTimeEdit;
 
 namespace Settings {
@@ -34,9 +36,11 @@ class Widget : public QWidget {
 
 public:
     Widget(Settings::BasicSetting* setting, const TranslationMap& translations, QWidget* parent,
-           bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs,
+           bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs_,
            RequestType request = RequestType::Default, bool managed = true, float multiplier = 1.0f,
            Settings::BasicSetting* other_setting = nullptr, const std::string& format = "");
+    Widget(Settings::BasicSetting* setting_, const TranslationMap& translations_, QWidget* parent_,
+           std::forward_list<std::function<void(bool)>>& apply_funcs_);
     virtual ~Widget();
 
     bool Valid();
@@ -53,23 +57,28 @@ public:
     QDateTimeEdit* date_time_edit{};
 
 private:
-    void CreateCheckBox(const QString& label, std::function<void()>& load_func);
-    void CreateCheckBoxWithLineEdit(const QString& label, Settings::BasicSetting* other_setting,
-                                    std::function<void()>& load_func);
-    void CreateCheckBoxWithHexEdit(const QString& label, Settings::BasicSetting* other_setting,
-                                   std::function<void()>& load_func);
-    void CreateCheckBoxWithSpinBox(const QString& label, Settings::BasicSetting* other_setting,
-                                   std::function<void()>& load_func, const std::string& suffix);
-    void CreateCheckBoxWithDateTimeEdit(const QString& label, Settings::BasicSetting* other_setting,
-                                        std::function<void()>& load_func);
-    void CreateCombobox(const QString& label, bool managed, std::function<void()>& load_func);
-    void CreateLineEdit(const QString& label, bool managed, std::function<void()>& load_func);
+    QLabel* CreateLabel(const QString& text);
+    QHBoxLayout* CreateCheckBox(Settings::BasicSetting* bool_setting, const QString& label,
+                                std::function<void()>& load_func, bool managed);
+
+    void CreateCombobox(const QString& label, std::function<void()>& load_func, bool managed,
+                        Settings::BasicSetting* const other_setting = nullptr);
+    void CreateLineEdit(const QString& label, std::function<void()>& load_func, bool managed,
+                        Settings::BasicSetting* const other_setting = nullptr);
+    void CreateHexEdit(const QString& label, std::function<void()>& load_func, bool managed,
+                       Settings::BasicSetting* const other_setting = nullptr);
     void CreateSlider(const QString& label, bool reversed, float multiplier,
-                      std::function<void()>& load_func);
+                      std::function<void()>& load_func, bool managed,
+                      Settings::BasicSetting* const other_setting = nullptr);
+    void CreateDateTimeEdit(const QString& label, std::function<void()>& load_func, bool managed,
+                            bool restrict, Settings::BasicSetting* const other_setting = nullptr);
+    void CreateSpinBox(const QString& label, std::function<void()>& load_func, bool managed,
+                       const std::string& suffix, Settings::BasicSetting* other_setting = nullptr);
 
     QWidget* parent;
     const TranslationMap& translations;
     Settings::BasicSetting& setting;
+    std::forward_list<std::function<void(bool)>>& apply_funcs;
 
     bool created{false};
 };

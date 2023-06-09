@@ -117,17 +117,18 @@ void ConfigureSystem::Setup() {
     push(Settings::values.linkage.by_category[Settings::Category::System]);
 
     for (auto setting : settings) {
+        [[maybe_unused]] std::string label = setting->GetLabel();
         ConfigurationShared::Widget* widget = [=]() {
-            if (setting->Id() == Settings::values.custom_rtc_enabled.Id()) {
+            if (setting->Id() == Settings::values.custom_rtc.Id()) {
                 return new ConfigurationShared::Widget(
                     setting, translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::DateTimeEdit, true, 1.0f,
-                    &Settings::values.custom_rtc);
-            } else if (setting->Id() == Settings::values.rng_seed_enabled.Id()) {
-                return new ConfigurationShared::Widget(setting, translations, this, runtime_lock,
-                                                       apply_funcs,
-                                                       ConfigurationShared::RequestType::HexEdit,
-                                                       true, 1.0f, &Settings::values.rng_seed);
+                    &Settings::values.custom_rtc_enabled);
+            } else if (setting->Id() == Settings::values.rng_seed.Id()) {
+                return new ConfigurationShared::Widget(
+                    setting, translations, this, runtime_lock, apply_funcs,
+                    ConfigurationShared::RequestType::HexEdit, true, 1.0f,
+                    &Settings::values.rng_seed_enabled);
             } else {
                 return new ConfigurationShared::Widget(setting, translations, this, runtime_lock,
 
@@ -140,14 +141,12 @@ void ConfigureSystem::Setup() {
             continue;
         }
 
-        if (setting->Id() == Settings::values.rng_seed_enabled.Id()) {
+        if (setting->Id() == Settings::values.rng_seed.Id()) {
             rng_seed_checkbox = widget->checkbox;
             rng_seed_edit = widget->line_edit;
 
-            if (!Settings::values.rng_seed_enabled.GetValue()) {
-                rng_seed_edit->setEnabled(false);
-            }
-        } else if (setting->Id() == Settings::values.custom_rtc_enabled.Id()) {
+            rng_seed_edit->setEnabled(Settings::values.rng_seed_enabled.GetValue());
+        } else if (setting->Id() == Settings::values.custom_rtc.Id()) {
             custom_rtc_checkbox = widget->checkbox;
             custom_rtc_edit = widget->date_time_edit;
 

@@ -108,11 +108,11 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, speed_limit, "Limit Speed Percent", "");
 
     // System
-    INSERT(Settings, rng_seed_enabled, "RNG Seed", "");
-    INSERT(Settings, rng_seed, "", "");
+    INSERT(Settings, rng_seed, "RNG Seed", "");
+    INSERT(Settings, rng_seed_enabled, "", "");
     INSERT(Settings, device_name, "Device Name", "");
-    INSERT(Settings, custom_rtc_enabled, "Custom RTC", "");
-    INSERT(Settings, custom_rtc, "", "");
+    INSERT(Settings, custom_rtc, "Custom RTC", "");
+    INSERT(Settings, custom_rtc_enabled, "", "");
     INSERT(Settings, language_index, "Language:", "");
     INSERT(Settings, region_index, "Region:", "");
     INSERT(Settings, time_zone_index, "Time Zone:", "");

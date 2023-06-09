@@ -77,8 +77,8 @@ private:
     std::vector<QString> vulkan_devices;
     std::vector<std::vector<VkPresentModeKHR>> device_present_modes;
     std::vector<VkPresentModeKHR>
-        vsync_mode_combobox_enum_map; //< Keeps track of which present mode corresponds to which
-                                      // selection in the combobox
+        vsync_mode_combobox_enum_map{}; //< Keeps track of which present mode corresponds to which
+                                        // selection in the combobox
     u32 vulkan_device{};
     Settings::ShaderBackend shader_backend{};
     const std::function<void()>& expose_compute_option;
