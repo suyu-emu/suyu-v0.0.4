@@ -263,7 +263,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         val config: Configuration = resources.configuration
 
         if ((config.screenLayout and Configuration.SCREENLAYOUT_LONG_YES) != 0 ||
-            (config.screenLayout and Configuration.SCREENLAYOUT_LONG_NO) == 0) {
+            (config.screenLayout and Configuration.SCREENLAYOUT_LONG_NO) == 0 ||
+            (config.screenLayout and Configuration.SCREENLAYOUT_SIZE_SMALL) != 0) {
             return rotation
         }
         when (rotation) {
