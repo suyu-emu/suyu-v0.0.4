@@ -765,18 +765,20 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
             // If we have API access, calculate the safe area to draw the overlay
             var cutoutLeft = 0
             var cutoutBottom = 0
-            val insets = context.windowManager.currentWindowMetrics.windowInsets.displayCutout
-            if (insets != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                if (insets.boundingRectTop.bottom != 0 && insets.boundingRectTop.bottom > maxY / 2)
-                    insets.boundingRectTop.bottom.toFloat() else maxY
-                if (insets.boundingRectRight.left != 0 && insets.boundingRectRight.left > maxX / 2)
-                    insets.boundingRectRight.left.toFloat() else maxX
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val insets = context.windowManager.currentWindowMetrics.windowInsets.displayCutout
+                if (insets != null) {
+                    if (insets.boundingRectTop.bottom != 0 && insets.boundingRectTop.bottom > maxY / 2)
+                        insets.boundingRectTop.bottom.toFloat() else maxY
+                    if (insets.boundingRectRight.left != 0 && insets.boundingRectRight.left > maxX / 2)
+                        insets.boundingRectRight.left.toFloat() else maxX
 
-                minX = insets.boundingRectLeft.right - insets.boundingRectLeft.left
-                minY = insets.boundingRectBottom.top - insets.boundingRectBottom.bottom
+                    minX = insets.boundingRectLeft.right - insets.boundingRectLeft.left
+                    minY = insets.boundingRectBottom.top - insets.boundingRectBottom.bottom
 
-                cutoutLeft = insets.boundingRectRight.right - insets.boundingRectRight.left
-                cutoutBottom = insets.boundingRectTop.top - insets.boundingRectTop.bottom
+                    cutoutLeft = insets.boundingRectRight.right - insets.boundingRectRight.left
+                    cutoutBottom = insets.boundingRectTop.top - insets.boundingRectTop.bottom
+                }
             }
 
             // This makes sure that if we have an inset on one side of the screen, we mirror it on
