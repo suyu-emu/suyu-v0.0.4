@@ -94,14 +94,6 @@ public:
         m_native_window = native_window;
     }
 
-    u32 ScreenRotation() const {
-        return m_screen_rotation;
-    }
-
-    void SetScreenRotation(u32 screen_rotation) {
-        m_screen_rotation = screen_rotation;
-    }
-
     void InitializeGpuDriver(const std::string& hook_lib_dir, const std::string& custom_driver_dir,
                              const std::string& custom_driver_name,
                              const std::string& file_redirect_dir) {
@@ -400,7 +392,6 @@ private:
     // Window management
     std::unique_ptr<EmuWindow_Android> m_window;
     ANativeWindow* m_native_window{};
-    u32 m_screen_rotation{};
 
     // Core emulation
     Core::System m_system;
@@ -425,10 +416,6 @@ private:
 /*static*/ EmulationSession EmulationSession::s_instance;
 
 } // Anonymous namespace
-
-u32 GetAndroidScreenRotation() {
-    return EmulationSession::GetInstance().ScreenRotation();
-}
 
 static Core::SystemResultStatus RunEmulation(const std::string& filepath) {
     Common::Log::Initialize();
@@ -471,13 +458,6 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_surfaceDestroyed(JNIEnv* env,
     ANativeWindow_release(EmulationSession::GetInstance().NativeWindow());
     EmulationSession::GetInstance().SetNativeWindow(nullptr);
     EmulationSession::GetInstance().SurfaceChanged();
-}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_notifyOrientationChange(JNIEnv* env,
-                                                                   [[maybe_unused]] jclass clazz,
-                                                                   jint layout_option,
-                                                                   jint rotation) {
-    return EmulationSession::GetInstance().SetScreenRotation(static_cast<u32>(rotation));
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_setAppDirectory(JNIEnv* env,
