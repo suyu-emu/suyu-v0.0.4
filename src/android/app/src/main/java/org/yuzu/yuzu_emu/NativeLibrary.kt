@@ -223,6 +223,8 @@ object NativeLibrary {
 
     external fun getCompany(filename: String): String
 
+    external fun isHomebrew(filename: String): Boolean
+
     external fun setAppDirectory(directory: String)
 
     external fun initializeGpuDriver(

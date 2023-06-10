@@ -127,13 +127,7 @@ class SearchFragment : Fragment() {
                 }
             }
 
-            R.id.chip_homebrew -> {
-                baseList.filter {
-                    Log.error("Guh - ${it.path}")
-                    FileUtil.hasExtension(it.path, "nro")
-                            || FileUtil.hasExtension(it.path, "nso")
-                }
-            }
+            R.id.chip_homebrew -> baseList.filter { it.isHomebrew }
 
             R.id.chip_retail -> baseList.filter {
                 FileUtil.hasExtension(it.path, "xci")

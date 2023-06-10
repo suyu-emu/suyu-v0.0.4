@@ -13,6 +13,8 @@ import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -20,6 +22,7 @@ import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.utils.GameHelper
 import java.util.Locale
 
+@OptIn(ExperimentalSerializationApi::class)
 class GamesViewModel : ViewModel() {
     private val _games = MutableLiveData<List<Game>>(emptyList())
     val games: LiveData<List<Game>> get() = _games
@@ -49,7 +52,13 @@ class GamesViewModel : ViewModel() {
         if (storedGames!!.isNotEmpty()) {
             val deserializedGames = mutableSetOf<Game>()
             storedGames.forEach {
-                val game: Game = Json.decodeFromString(it)
+                val game: Game
+                try {
+                    game = Json.decodeFromString(it)
+                } catch (e: MissingFieldException) {
+                    return@forEach
+                }
+
                 val gameExists =
                     DocumentFile.fromSingleUri(YuzuApplication.appContext, Uri.parse(game.path))
                         ?.exists()

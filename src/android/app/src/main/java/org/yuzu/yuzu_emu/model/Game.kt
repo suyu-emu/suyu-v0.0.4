@@ -16,7 +16,8 @@ class Game(
     val regions: String,
     val path: String,
     val gameId: String,
-    val company: String
+    val company: String,
+    val isHomebrew: Boolean
 ) : Parcelable {
     val keyAddedToLibraryTime get() = "${gameId}_AddedToLibraryTime"
     val keyLastPlayedTime get() = "${gameId}_LastPlayed"
@@ -31,6 +32,7 @@ class Game(
                 && path == other.path
                 && gameId == other.gameId
                 && company == other.company
+                && isHomebrew == other.isHomebrew
     }
 
     companion object {

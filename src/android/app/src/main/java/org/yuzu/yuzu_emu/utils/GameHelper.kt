@@ -6,7 +6,6 @@ package org.yuzu.yuzu_emu.utils
 import android.content.SharedPreferences
 import android.net.Uri
 import androidx.preference.PreferenceManager
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -83,7 +82,8 @@ object GameHelper {
             NativeLibrary.getRegions(filePath),
             filePath,
             gameId,
-            NativeLibrary.getCompany(filePath)
+            NativeLibrary.getCompany(filePath),
+            NativeLibrary.isHomebrew(filePath)
         )
 
         val addedTime = preferences.getLong(newGame.keyAddedToLibraryTime, 0L)

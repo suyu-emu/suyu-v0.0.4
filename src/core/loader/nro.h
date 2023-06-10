@@ -38,6 +38,8 @@ public:
      */
     static FileType IdentifyType(const FileSys::VirtualFile& nro_file);
 
+    bool IsHomebrew();
+
     FileType GetFileType() const override {
         return IdentifyType(file);
     }
