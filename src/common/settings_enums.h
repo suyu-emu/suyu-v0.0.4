@@ -210,7 +210,7 @@ enum class AspectRatio : u32 {
 #define X(ENUM, NAME)                                                                              \
     { (#NAME), static_cast<u32>(ENUM::NAME) }
 
-static std::map<std::type_index, std::map<std::string, u32>> canonicalizations = {
+static const std::map<std::type_index, std::map<std::string, u32>> canonicalizations = {
     {typeid(AudioEngine),
      {
          {"auto", static_cast<u32>(AudioEngine::Auto)},
@@ -377,7 +377,7 @@ static std::map<std::type_index, std::map<std::string, u32>> canonicalizations =
 
 #undef X
 
-static std::string invalid_string{"(invalid setting)"};
+static const std::string invalid_string{"(invalid setting)"};
 
 template <typename Type>
 const std::string& CanonicalizeEnum(Type id) {
