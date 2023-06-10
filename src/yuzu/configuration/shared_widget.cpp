@@ -500,8 +500,6 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
     }
     this->setEnabled(enable);
 
-    this->setVisible(Settings::IsConfiguringGlobal() || setting.Switchable());
-
     this->setToolTip(tooltip);
 }
 } // namespace ConfigurationShared
