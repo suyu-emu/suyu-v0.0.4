@@ -300,6 +300,11 @@ public:
         return GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     }
 
+    /// Returns true if the device suppors float64 natively.
+    bool IsFloat64Supported() const {
+        return features.features.shaderFloat64;
+    }
+
     /// Returns true if the device supports float16 natively.
     bool IsFloat16Supported() const {
         return features.shader_float16_int8.shaderFloat16;

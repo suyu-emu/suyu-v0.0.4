@@ -350,6 +350,7 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
         .has_broken_spirv_subgroup_mask_vector_extract_dynamic =
             driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY};
     host_info = Shader::HostTranslateInfo{
+        .support_float64 = device.IsFloat64Supported(),
         .support_float16 = device.IsFloat16Supported(),
         .support_int64 = device.IsShaderInt64Supported(),
         .needs_demote_reorder =
