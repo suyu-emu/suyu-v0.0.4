@@ -35,6 +35,10 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
 
     for (auto setting :
          Settings::values.linkage.by_category[Settings::Category::RendererAdvanced]) {
+        if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
+            continue;
+        }
+
         ConfigurationShared::Widget* widget = new ConfigurationShared::Widget(
             setting, translations, combobox_translations, this, runtime_lock, apply_funcs);
 

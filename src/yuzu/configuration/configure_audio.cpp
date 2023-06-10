@@ -47,6 +47,10 @@ void ConfigureAudio::Setup() {
     push(Settings::Category::SystemAudio);
 
     for (auto* setting : settings) {
+        if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
+            continue;
+        }
+
         auto* widget = [&]() {
             if (setting->Id() == Settings::values.volume.Id()) {
                 // volume needs to be a slider (default is line edit)

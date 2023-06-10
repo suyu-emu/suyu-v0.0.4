@@ -123,6 +123,10 @@ void ConfigureSystem::Setup() {
     push(Settings::values.linkage.by_category[Settings::Category::System]);
 
     for (auto setting : settings) {
+        if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
+            continue;
+        }
+
         [[maybe_unused]] std::string label = setting->GetLabel();
         ConfigurationShared::Widget* widget = [=]() {
             if (setting->Id() == Settings::values.custom_rtc.Id()) {

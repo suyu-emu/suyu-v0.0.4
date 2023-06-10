@@ -231,6 +231,10 @@ void ConfigureGraphics::Setup() {
     std::forward_list<QWidget*> hold_api;
 
     for (const auto setting : Settings::values.linkage.by_category[Settings::Category::Renderer]) {
+        if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
+            continue;
+        }
+
         ConfigurationShared::Widget* widget = [&]() {
             // Set managed to false on these and set up the comboboxes ourselves
             if (setting->Id() == Settings::values.vulkan_device.Id() ||
@@ -273,8 +277,8 @@ void ConfigureGraphics::Setup() {
                                  [=](bool) { UpdateAPILayout(); });
 
                 // Detach API's restore button and place it where we want
-                // Lets us put it on the side, and it will automatically scale if there's a second
-                // combobox (shader_backend, vulkan_device)
+                // Lets us put it on the side, and it will automatically scale if there's a
+                // second combobox (shader_backend, vulkan_device)
                 widget->layout()->removeWidget(api_restore_global_button);
                 api_layout->addWidget(api_restore_global_button);
             }

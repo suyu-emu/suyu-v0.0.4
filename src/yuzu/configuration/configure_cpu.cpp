@@ -50,6 +50,10 @@ void ConfigureCpu::Setup() {
     push(Settings::Category::CpuUnsafe);
 
     for (const auto setting : settings) {
+        if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
+            continue;
+        }
+
         auto* widget = new ConfigurationShared::Widget(setting, translations, combobox_translations,
                                                        this, runtime_lock, apply_funcs);
 
