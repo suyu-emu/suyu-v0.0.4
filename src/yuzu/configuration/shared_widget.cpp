@@ -194,7 +194,7 @@ QWidget* Widget::CreateSlider(bool reversed, float multiplier, const QString& fo
     if (!Settings::IsConfiguringGlobal()) {
         restore_func = [this]() { slider->setValue(std::stoi(setting.ToStringGlobal())); };
 
-        QObject::connect(slider, &QAbstractSlider::sliderReleased, [touch]() { touch(); });
+        QObject::connect(slider, &QAbstractSlider::actionTriggered, [touch]() { touch(); });
     }
 
     return container;
