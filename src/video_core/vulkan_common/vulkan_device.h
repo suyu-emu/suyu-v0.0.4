@@ -580,6 +580,10 @@ public:
         return properties.properties.limits.maxVertexInputBindings;
     }
 
+    bool SupportsConditionalBarriers() const {
+        return supports_conditional_barriers;
+    }
+
 private:
     /// Checks if the physical device is suitable and configures the object state
     /// with all necessary info about its properties.
@@ -683,6 +687,7 @@ private:
     bool must_emulate_bgr565{};             ///< Emulates BGR565 by swizzling RGB565 format.
     bool dynamic_state3_blending{};         ///< Has all blending features of dynamic_state3.
     bool dynamic_state3_enables{};          ///< Has all enables features of dynamic_state3.
+    bool supports_conditional_barriers{};   ///< Allows barriers in conditional control flow.
     u64 device_access_memory{};             ///< Total size of device local memory in bytes.
     u32 sets_per_pool{};                    ///< Sets per Description Pool
 

@@ -286,6 +286,9 @@ IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Blo
     if (!host_info.support_int64) {
         Optimization::LowerInt64ToInt32(program);
     }
+    if (!host_info.support_conditional_barrier) {
+        Optimization::ConditionalBarrierPass(program);
+    }
     Optimization::SsaRewritePass(program);
 
     Optimization::ConstantPropagationPass(env, program);
