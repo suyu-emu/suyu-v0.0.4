@@ -231,7 +231,12 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, bo
         .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
+#ifdef ANDROID
+        // On Android, do not allow surface rotation to deviate from the frontend.
+        .preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
+#else
         .preTransform = capabilities.currentTransform,
+#endif
         .compositeAlpha = alpha_flags,
         .presentMode = present_mode,
         .clipped = VK_FALSE,
