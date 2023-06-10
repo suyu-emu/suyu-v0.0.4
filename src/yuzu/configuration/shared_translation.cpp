@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <typeindex>
+#include <typeinfo>
 #include <utility>
 #include <QString>
 #include <QWidget>

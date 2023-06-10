@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <string>
 #include <typeindex>
+#include <typeinfo>
 #include <utility>
 #include <vector>
 

@@ -7,6 +7,7 @@
 #include <string>
 #include <type_traits>
 #include <typeindex>
+#include <typeinfo>
 #include "common/common_types.h"
 
 namespace Settings {

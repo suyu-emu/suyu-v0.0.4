@@ -7,6 +7,7 @@
 #include <iterator>
 #include <string>
 #include <tuple>
+#include <typeinfo>
 #include <utility>
 #include <vector>
 #include <QBoxLayout>

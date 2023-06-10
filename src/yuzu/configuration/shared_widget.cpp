@@ -1,5 +1,6 @@
 #include <functional>
 #include <limits>
+#include <typeinfo>
 #include <QAbstractButton>
 #include <QAbstractSpinBox>
 #include <QBoxLayout>
