@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.AsyncDifferConfig
 import androidx.recyclerview.widget.DiffUtil
@@ -23,6 +24,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import kotlinx.coroutines.launch
+import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
@@ -78,7 +80,8 @@ class GameAdapter(private val activity: AppCompatActivity) :
             )
             .apply()
 
-        EmulationActivity.launch(activity, holder.game)
+        val action = HomeNavigationDirections.actionGlobalEmulationActivity(holder.game)
+        view.findNavController().navigate(action)
     }
 
     inner class GameViewHolder(val binding: CardGameBinding) :

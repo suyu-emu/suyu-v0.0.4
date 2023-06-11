@@ -26,11 +26,18 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.navArgs
 import androidx.preference.PreferenceManager
 import androidx.window.layout.FoldingFeature
+import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
@@ -41,9 +48,7 @@ import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
-import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.*
-import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private lateinit var preferences: SharedPreferences
@@ -54,7 +59,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private var _binding: FragmentEmulationBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var game: Game
+    val args by navArgs<EmulationFragmentArgs>()
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -75,8 +80,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         // So this fragment doesn't restart on configuration changes; i.e. rotation.
         retainInstance = true
         preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-        game = requireArguments().parcelable(EmulationActivity.EXTRA_SELECTED_GAME)!!
-        emulationState = EmulationState(game.path)
+        emulationState = EmulationState(args.game.path)
     }
 
     /**
@@ -100,7 +104,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         updateShowFpsOverlay()
 
         binding.inGameMenu.getHeaderView(0).findViewById<TextView>(R.id.text_game_title).text =
-            game.title
+            args.game.title
         binding.inGameMenu.setNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.menu_pause_emulation -> {
@@ -153,6 +157,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     if (binding.drawerLayout.isOpen) binding.drawerLayout.close() else binding.drawerLayout.open()
                 }
             })
+
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                WindowInfoTracker.getOrCreate(requireContext())
+                    .windowLayoutInfo(requireActivity())
+                    .collect { updateCurrentLayout(requireActivity() as EmulationActivity, it) }
+            }
+        }
     }
 
     override fun onResume() {
@@ -601,13 +613,5 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     companion object {
         private val perfStatsUpdateHandler = Handler(Looper.myLooper()!!)
-
-        fun newInstance(game: Game): EmulationFragment {
-            val args = Bundle()
-            args.putParcelable(EmulationActivity.EXTRA_SELECTED_GAME, game)
-            val fragment = EmulationFragment()
-            fragment.arguments = args
-            return fragment
-        }
     }
 }
