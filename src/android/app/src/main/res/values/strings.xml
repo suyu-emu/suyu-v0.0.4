@@ -162,6 +162,7 @@
     <string name="renderer_accuracy">Accuracy level</string>
     <string name="renderer_resolution">Resolution (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync mode</string>
+    <string name="renderer_screen_layout">Orientation</string>
     <string name="renderer_aspect_ratio">Aspect ratio</string>
     <string name="renderer_scaling_filter">Window adapting filter</string>
     <string name="renderer_anti_aliasing">Anti-aliasing method</string>
@@ -326,6 +327,11 @@
     <string name="anti_aliasing_fxaa">FXAA</string>
     <string name="anti_aliasing_smaa">SMAA</string>
 
+    <!-- Screen Layouts -->
+    <string name="screen_layout_landscape">Landscape</string>
+    <string name="screen_layout_portrait">Portrait</string>
+    <string name="screen_layout_auto">Auto</string>
+
     <!-- Aspect Ratios -->
     <string name="ratio_default">Default (16:9)</string>
     <string name="ratio_force_four_three">Force 4:3</string>
@@ -363,6 +369,12 @@
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Black backgrounds</string>
     <string name="use_black_backgrounds_description">When using the dark theme, apply black backgrounds.</string>
+
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">Picture in Picture</string>
+    <string name="picture_in_picture_description">Minimize window when placed in the background</string>
+    <string name="pause">Pause</string>
+    <string name="play">Play</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licenses</string>

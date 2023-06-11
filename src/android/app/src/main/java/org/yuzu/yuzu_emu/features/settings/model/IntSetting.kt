@@ -93,6 +93,11 @@ enum class IntSetting(
         Settings.SECTION_RENDERER,
         0
     ),
+    RENDERER_SCREEN_LAYOUT(
+        "screen_layout",
+        Settings.SECTION_RENDERER,
+        Settings.LayoutOption_MobileLandscape
+    ),
     RENDERER_ASPECT_RATIO(
         "aspect_ratio",
         Settings.SECTION_RENDERER,

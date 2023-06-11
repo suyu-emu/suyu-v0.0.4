@@ -166,6 +166,15 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     IntSetting.CPU_ACCURACY.defaultValue
                 )
             )
+            add(
+                SwitchSetting(
+                    BooleanSetting.PICTURE_IN_PICTURE,
+                    R.string.picture_in_picture,
+                    R.string.picture_in_picture_description,
+                    BooleanSetting.PICTURE_IN_PICTURE.key,
+                    BooleanSetting.PICTURE_IN_PICTURE.defaultValue
+                )
+            )
         }
     }
 
@@ -281,6 +290,17 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.array.rendererAntiAliasingValues,
                     IntSetting.RENDERER_ANTI_ALIASING.key,
                     IntSetting.RENDERER_ANTI_ALIASING.defaultValue
+                )
+            )
+            add(
+                SingleChoiceSetting(
+                    IntSetting.RENDERER_SCREEN_LAYOUT,
+                    R.string.renderer_screen_layout,
+                    0,
+                    R.array.rendererScreenLayoutNames,
+                    R.array.rendererScreenLayoutValues,
+                    IntSetting.RENDERER_SCREEN_LAYOUT.key,
+                    IntSetting.RENDERER_SCREEN_LAYOUT.defaultValue
                 )
             )
             add(

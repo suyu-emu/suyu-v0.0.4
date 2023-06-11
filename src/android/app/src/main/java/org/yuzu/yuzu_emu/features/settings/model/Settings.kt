@@ -133,7 +133,6 @@ class Settings {
         const val PREF_MENU_SETTINGS_JOYSTICK_REL_CENTER = "EmulationMenuSettings_JoystickRelCenter"
         const val PREF_MENU_SETTINGS_DPAD_SLIDE = "EmulationMenuSettings_DpadSlideEnable"
         const val PREF_MENU_SETTINGS_HAPTICS = "EmulationMenuSettings_Haptics"
-        const val PREF_MENU_SETTINGS_LANDSCAPE = "EmulationMenuSettings_LandscapeScreenLayout"
         const val PREF_MENU_SETTINGS_SHOW_FPS = "EmulationMenuSettings_ShowFps"
         const val PREF_MENU_SETTINGS_SHOW_OVERLAY = "EmulationMenuSettings_ShowOverlay"
 
@@ -143,6 +142,14 @@ class Settings {
         const val PREF_BLACK_BACKGROUNDS = "BlackBackgrounds"
 
         private val configFileSectionsMap: MutableMap<String, List<String>> = HashMap()
+
+        // These must match what is defined in src/core/settings.h
+        const val LayoutOption_Default = 0
+        const val LayoutOption_SingleScreen = 1
+        const val LayoutOption_LargeScreen = 2
+        const val LayoutOption_SideScreen = 3
+        const val LayoutOption_MobilePortrait = 4
+        const val LayoutOption_MobileLandscape = 5
 
         init {
             configFileSectionsMap[SettingsFile.FILE_NAME_CONFIG] =

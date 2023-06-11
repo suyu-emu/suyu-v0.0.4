@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.overlay
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
@@ -15,12 +16,14 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.VectorDrawable
 import android.os.Build
 import android.util.AttributeSet
+import android.util.Rational
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.SurfaceView
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.WindowInsets
+import android.view.WindowManager
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import androidx.window.layout.WindowMetricsCalculator
@@ -33,6 +36,7 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * Draws the interactive input overlay on top of the
@@ -71,6 +75,25 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
         // Request focus for the overlay so it has priority on presses.
         requestFocus()
+    }
+
+    @SuppressLint("DrawAllocation")
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val height = MeasureSpec.getSize(heightMeasureSpec)
+        if (height > width) {
+            val aspectRatio = with (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager) {
+                val metrics = maximumWindowMetrics.bounds
+                Rational(metrics.height(), metrics.width()).toFloat()
+            }
+            val newWidth: Int = width
+            val newHeight: Int = (width / aspectRatio).roundToInt()
+            setMeasuredDimension(newWidth, newHeight)
+            invalidate()
+        } else {
+            setMeasuredDimension(width, height)
+        }
     }
 
     override fun draw(canvas: Canvas) {
@@ -754,9 +777,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
          */
         private fun getSafeScreenSize(context: Context): Pair<Point, Point> {
             // Get screen size
-            val windowMetrics =
-                WindowMetricsCalculator.getOrCreate()
-                    .computeCurrentWindowMetrics(context as Activity)
+            val windowMetrics = WindowMetricsCalculator.getOrCreate()
+                .computeCurrentWindowMetrics(context as Activity)
             var maxY = windowMetrics.bounds.height().toFloat()
             var maxX = windowMetrics.bounds.width().toFloat()
             var minY = 0
