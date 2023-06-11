@@ -74,6 +74,7 @@ android {
 
         // Signed by release key, allowing for upload to Play Store.
         release {
+            resValue("string", "app_name_suffixed", "yuzu")
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isDebuggable = false
@@ -86,6 +87,7 @@ android {
         // builds a release build that doesn't need signing
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         register("relWithDebInfo") {
+            resValue("string", "app_name_suffixed", "yuzu Debug Release")
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isDebuggable = true
@@ -93,16 +95,19 @@ android {
                 getDefaultProguardFile("proguard-android.txt"),
                 "proguard-rules.pro"
             )
-            versionNameSuffix = "-debug"
+            versionNameSuffix = "-relWithDebInfo"
+            applicationIdSuffix = ".relWithDebInfo"
             isJniDebuggable = true
         }
 
         // Signed by debug key disallowing distribution on Play Store.
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {
+            resValue("string", "app_name_suffixed", "yuzu Debug")
             isDebuggable = true
             isJniDebuggable = true
             versionNameSuffix = "-debug"
+            applicationIdSuffix = ".debug"
         }
     }
 
