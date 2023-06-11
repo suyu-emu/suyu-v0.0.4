@@ -7,7 +7,9 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
+import android.provider.OpenableColumns
 import androidx.documentfile.provider.DocumentFile
+import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.MinimalDocumentFile
 import java.io.BufferedInputStream
 import java.io.File
@@ -324,7 +326,25 @@ object FileUtil {
         }
     }
 
-    fun hasExtension(path: String, extension: String): Boolean {
-        return path.substring(path.lastIndexOf(".") + 1).contains(extension)
+    fun hasExtension(path: String, extension: String): Boolean =
+        path.substring(path.lastIndexOf(".") + 1).contains(extension)
+
+    fun hasExtension(uri: Uri, extension: String): Boolean {
+        val fileName: String?
+        val cursor = YuzuApplication.appContext.contentResolver.query(uri, null, null, null, null)
+        val nameIndex = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        cursor?.moveToFirst()
+
+        if (nameIndex == null) {
+            return false
+        }
+
+        fileName = cursor.getString(nameIndex)
+        cursor.close()
+
+        if (fileName == null) {
+            return false
+        }
+        return fileName.substring(fileName.lastIndexOf(".") + 1).contains(extension)
     }
 }
