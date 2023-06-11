@@ -74,16 +74,7 @@ android {
 
         // Signed by release key, allowing for upload to Play Store.
         release {
-            signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = true
-            isDebuggable = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android.txt"),
-                "proguard-rules.pro"
-            )
-        }
-
-        register("relWithVersionCode") {
+            resValue("string", "app_name_suffixed", "yuzu")
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isDebuggable = false
@@ -96,6 +87,7 @@ android {
         // builds a release build that doesn't need signing
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         register("relWithDebInfo") {
+            resValue("string", "app_name_suffixed", "yuzu Debug Release")
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isDebuggable = true
@@ -103,16 +95,19 @@ android {
                 getDefaultProguardFile("proguard-android.txt"),
                 "proguard-rules.pro"
             )
-            versionNameSuffix = "-debug"
+            versionNameSuffix = "-relWithDebInfo"
+            applicationIdSuffix = ".relWithDebInfo"
             isJniDebuggable = true
         }
 
         // Signed by debug key disallowing distribution on Play Store.
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {
+            resValue("string", "app_name_suffixed", "yuzu Debug")
             isDebuggable = true
             isJniDebuggable = true
             versionNameSuffix = "-debug"
+            applicationIdSuffix = ".debug"
         }
     }
 
@@ -162,19 +157,19 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.recyclerview:recyclerview:1.3.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.fragment:fragment-ktx:1.5.7")
+    implementation("androidx.fragment:fragment-ktx:1.6.0")
     implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.preference:preference:1.2.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     implementation("io.coil-kt:coil:2.2.2")
     implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("androidx.window:window:1.0.0")
+    implementation("androidx.window:window:1.1.0")
     implementation("org.ini4j:ini4j:0.5.4")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-    implementation("androidx.navigation:navigation-fragment-ktx:2.5.3")
-    implementation("androidx.navigation:navigation-ui-ktx:2.5.3")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.6.0")
+    implementation("androidx.navigation:navigation-ui-ktx:2.6.0")
     implementation("info.debatty:java-string-similarity:2.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
 }

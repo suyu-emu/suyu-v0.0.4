@@ -18,7 +18,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     <application
         android:name="org.yuzu.yuzu_emu.YuzuApplication"
-        android:label="@string/app_name"
+        android:label="@string/app_name_suffixed"
         android:icon="@drawable/ic_launcher"
         android:allowBackup="true"
         android:hasFragileUserData="true"
