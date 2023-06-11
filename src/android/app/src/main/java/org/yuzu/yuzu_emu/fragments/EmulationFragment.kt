@@ -10,6 +10,7 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Color
 import android.os.Bundle
@@ -190,6 +191,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     .collect { updateFoldableLayout(requireActivity() as EmulationActivity, it) }
             }
         }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (!binding.surfaceInputOverlay.isInEditMode()) refreshInputOverlay()
     }
 
     override fun onResume() {
