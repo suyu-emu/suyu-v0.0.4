@@ -7,7 +7,7 @@
 #include <span>
 
 #include "common/common_types.h"
-#include "video_core/buffer_cache/buffer_cache.h"
+#include "video_core/buffer_cache/buffer_cache_base.h"
 #include "video_core/buffer_cache/memory_tracker_base.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_device.h"
@@ -87,6 +87,7 @@ public:
     void BindIndexBuffer(Buffer& buffer, u32 offset, u32 size);
 
     void BindVertexBuffer(u32 index, Buffer& buffer, u32 offset, u32 size, u32 stride);
+    void BindVertexBuffers(VideoCommon::HostBindings& bindings);
 
     void BindUniformBuffer(size_t stage, u32 binding_index, Buffer& buffer, u32 offset, u32 size);
 
@@ -99,6 +100,7 @@ public:
                                   bool is_written);
 
     void BindTransformFeedbackBuffer(u32 index, Buffer& buffer, u32 offset, u32 size);
+    void BindTransformFeedbackBuffers(VideoCommon::HostBindings& bindings);
 
     void BindTextureBuffer(Buffer& buffer, u32 offset, u32 size,
                            VideoCore::Surface::PixelFormat format);

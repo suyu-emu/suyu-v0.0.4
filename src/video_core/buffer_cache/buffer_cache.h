@@ -715,20 +715,38 @@ void BufferCache<P>::BindHostIndexBuffer() {
 
 template <class P>
 void BufferCache<P>::BindHostVertexBuffers() {
+    HostBindings host_bindings;
+    bool any_valid{false};
     auto& flags = maxwell3d->dirty.flags;
     for (u32 index = 0; index < NUM_VERTEX_BUFFERS; ++index) {
-        const Binding& binding = channel_state->vertex_buffers[index];
-        Buffer& buffer = slot_buffers[binding.buffer_id];
-        TouchBuffer(buffer, binding.buffer_id);
-        SynchronizeBuffer(buffer, binding.cpu_addr, binding.size);
         if (!flags[Dirty::VertexBuffer0 + index]) {
             continue;
         }
-        flags[Dirty::VertexBuffer0 + index] = false;
+        host_bindings.min_index = std::min(host_bindings.min_index, index);
+        host_bindings.max_index = std::max(host_bindings.max_index, index);
+        any_valid = true;
+    }
 
-        const u32 stride = maxwell3d->regs.vertex_streams[index].stride;
-        const u32 offset = buffer.Offset(binding.cpu_addr);
-        runtime.BindVertexBuffer(index, buffer, offset, binding.size, stride);
+    if (any_valid) {
+        host_bindings.max_index++;
+        for (u32 index = host_bindings.min_index; index < host_bindings.max_index; index++) {
+            flags[Dirty::VertexBuffer0 + index] = false;
+
+            const Binding& binding = channel_state->vertex_buffers[index];
+            Buffer& buffer = slot_buffers[binding.buffer_id];
+
+            TouchBuffer(buffer, binding.buffer_id);
+            SynchronizeBuffer(buffer, binding.cpu_addr, binding.size);
+
+            const u32 stride = maxwell3d->regs.vertex_streams[index].stride;
+            const u32 offset = buffer.Offset(binding.cpu_addr);
+
+            host_bindings.buffers.push_back(reinterpret_cast<void*>(&buffer));
+            host_bindings.offsets.push_back(offset);
+            host_bindings.sizes.push_back(binding.size);
+            host_bindings.strides.push_back(stride);
+        }
+        runtime.BindVertexBuffers(host_bindings);
     }
 }
 
@@ -882,15 +900,25 @@ void BufferCache<P>::BindHostTransformFeedbackBuffers() {
     if (maxwell3d->regs.transform_feedback_enabled == 0) {
         return;
     }
+    HostBindings host_bindings;
     for (u32 index = 0; index < NUM_TRANSFORM_FEEDBACK_BUFFERS; ++index) {
         const Binding& binding = channel_state->transform_feedback_buffers[index];
+        if (maxwell3d->regs.transform_feedback.controls[index].varying_count == 0 &&
+            maxwell3d->regs.transform_feedback.controls[index].stride == 0) {
+            break;
+        }
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
         const u32 size = binding.size;
         SynchronizeBuffer(buffer, binding.cpu_addr, size);
 
         const u32 offset = buffer.Offset(binding.cpu_addr);
-        runtime.BindTransformFeedbackBuffer(index, buffer, offset, size);
+        host_bindings.buffers.push_back(reinterpret_cast<void*>(&buffer));
+        host_bindings.offsets.push_back(offset);
+        host_bindings.sizes.push_back(binding.size);
+    }
+    if (host_bindings.buffers.size() > 0) {
+        runtime.BindTransformFeedbackBuffers(host_bindings);
     }
 }
 
@@ -1616,6 +1644,8 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, VAddr cpu_addr, u64 si
 
 template <class P>
 void BufferCache<P>::DeleteBuffer(BufferId buffer_id, bool do_not_mark) {
+    bool dirty_index{false};
+    boost::container::small_vector<u64, NUM_VERTEX_BUFFERS> dirty_vertex_buffers;
     const auto scalar_replace = [buffer_id](Binding& binding) {
         if (binding.buffer_id == buffer_id) {
             binding.buffer_id = BufferId{};
@@ -1624,8 +1654,19 @@ void BufferCache<P>::DeleteBuffer(BufferId buffer_id, bool do_not_mark) {
     const auto replace = [scalar_replace](std::span<Binding> bindings) {
         std::ranges::for_each(bindings, scalar_replace);
     };
-    scalar_replace(channel_state->index_buffer);
-    replace(channel_state->vertex_buffers);
+
+    if (channel_state->index_buffer.buffer_id == buffer_id) {
+        channel_state->index_buffer.buffer_id = BufferId{};
+        dirty_index = true;
+    }
+
+    for (u32 index = 0; index < channel_state->vertex_buffers.size(); index++) {
+        auto& binding = channel_state->vertex_buffers[index];
+        if (binding.buffer_id == buffer_id) {
+            binding.buffer_id = BufferId{};
+            dirty_vertex_buffers.push_back(index);
+        }
+    }
     std::ranges::for_each(channel_state->uniform_buffers, replace);
     std::ranges::for_each(channel_state->storage_buffers, replace);
     replace(channel_state->transform_feedback_buffers);
@@ -1642,20 +1683,21 @@ void BufferCache<P>::DeleteBuffer(BufferId buffer_id, bool do_not_mark) {
     delayed_destruction_ring.Push(std::move(slot_buffers[buffer_id]));
     slot_buffers.erase(buffer_id);
 
-    NotifyBufferDeletion();
-}
-
-template <class P>
-void BufferCache<P>::NotifyBufferDeletion() {
     if constexpr (HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS) {
         channel_state->dirty_uniform_buffers.fill(~u32{0});
         channel_state->uniform_buffer_binding_sizes.fill({});
     }
+
     auto& flags = maxwell3d->dirty.flags;
-    flags[Dirty::IndexBuffer] = true;
-    flags[Dirty::VertexBuffers] = true;
-    for (u32 index = 0; index < NUM_VERTEX_BUFFERS; ++index) {
-        flags[Dirty::VertexBuffer0 + index] = true;
+    if (dirty_index) {
+        flags[Dirty::IndexBuffer] = true;
+    }
+
+    if (dirty_vertex_buffers.size() > 0) {
+        flags[Dirty::VertexBuffers] = true;
+        for (auto index : dirty_vertex_buffers) {
+            flags[Dirty::VertexBuffer0 + index] = true;
+        }
     }
     channel_state->has_deleted_buffers = true;
 }
