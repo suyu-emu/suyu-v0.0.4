@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import android.annotation.SuppressLint
+import org.jetbrains.kotlin.konan.properties.Properties
 
 plugins {
     id("com.android.application")
@@ -57,8 +58,21 @@ android {
         applicationId = "org.yuzu.yuzu_emu"
         minSdk = 30
         targetSdk = 33
-        versionCode = 1
         versionName = getGitVersion()
+
+        // If you want to use autoVersion for the versionCode, create a property in local.properties
+        // named "autoVersioned" and set it to "true"
+        val properties = Properties()
+        val versionProperty = try {
+            properties.load(project.rootProject.file("local.properties").inputStream())
+            properties.getProperty("autoVersioned") ?: ""
+        } catch (e: Exception) { "" }
+
+        versionCode = if (versionProperty == "true") {
+            autoVersion
+        } else {
+            1
+        }
 
         ndk {
             @SuppressLint("ChromeOsAbiSupport")
