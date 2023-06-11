@@ -284,10 +284,10 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             if (result == null)
                 return@registerForActivityResult
 
-            if (!FileUtil.hasExtension(result.toString(), "keys")) {
+            if (!FileUtil.hasExtension(result, "keys")) {
                 MessageDialogFragment.newInstance(
                     R.string.reading_keys_failure,
-                    R.string.install_keys_failure_extension_description
+                    R.string.install_prod_keys_failure_extension_description
                 ).show(supportFragmentManager, MessageDialogFragment.TAG)
                 return@registerForActivityResult
             }
@@ -379,10 +379,10 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             if (result == null)
                 return@registerForActivityResult
 
-            if (!FileUtil.hasExtension(result.toString(), "bin")) {
+            if (!FileUtil.hasExtension(result, "bin")) {
                 MessageDialogFragment.newInstance(
                     R.string.reading_keys_failure,
-                    R.string.install_keys_failure_extension_description
+                    R.string.install_amiibo_keys_failure_extension_description
                 ).show(supportFragmentManager, MessageDialogFragment.TAG)
                 return@registerForActivityResult
             }
