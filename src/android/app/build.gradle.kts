@@ -83,16 +83,6 @@ android {
             )
         }
 
-        register("relWithVersionCode") {
-            signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = true
-            isDebuggable = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android.txt"),
-                "proguard-rules.pro"
-            )
-        }
-
         // builds a release build that doesn't need signing
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         register("relWithDebInfo") {
