@@ -142,7 +142,7 @@ protected:
             return value_.has_value() ? std::to_string(*value_) : "none";
         } else if constexpr (std::is_same<Type, bool>()) {
             return value_ ? "true" : "false";
-        } else if (std::is_same<Type, AudioEngine>()) {
+        } else if constexpr (std::is_same<Type, AudioEngine>()) {
             return CanonicalizeEnum(value_);
         } else {
             return std::to_string(static_cast<u64>(value_));
@@ -222,8 +222,9 @@ public:
     [[nodiscard]] std::string constexpr Canonicalize() const override {
         if constexpr (std::is_enum<Type>::value) {
             return CanonicalizeEnum(this->GetValue());
+        } else {
+            return ToString(this->GetValue());
         }
-        return ToString(this->GetValue());
     }
 
     /**
