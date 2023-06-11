@@ -3067,7 +3067,7 @@ InstallResult GMainWindow::InstallNSPXCI(const QString& filename) {
             return false;
         }
 
-        std::array<u8, 0x1000> buffer{};
+        std::vector<u8> buffer(1_MiB);
 
         for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
             if (install_progress->wasCanceled()) {
