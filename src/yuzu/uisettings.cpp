@@ -3,6 +3,16 @@
 
 #include "yuzu/uisettings.h"
 
+namespace Settings {
+template class Setting<bool>;
+template class Setting<std::string>;
+template class Setting<u16, true>;
+template class Setting<u32>;
+template class Setting<u8, true>;
+template class Setting<u8>;
+template class Setting<unsigned long long>;
+} // namespace Settings
+
 namespace UISettings {
 
 const Themes themes{{

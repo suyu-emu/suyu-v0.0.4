@@ -7,16 +7,60 @@
 #include <exception>
 #include <stdexcept>
 #endif
+#include <compare>
+#include <cstddef>
+#include <filesystem>
+#include <forward_list>
 #include <functional>
 #include <string_view>
+#include <type_traits>
+#include <fmt/core.h>
 
 #include "common/assert.h"
+#include "common/fs/fs_util.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/time_zone.h"
 
 namespace Settings {
+
+#define SETTING(TYPE, RANGED) template class Setting<TYPE, RANGED>
+#define SWITCHABLE(TYPE, RANGED) template class SwitchableSetting<TYPE, RANGED>
+
+SETTING(AudioEngine, false);
+SETTING(bool, false);
+SETTING(int, false);
+SETTING(std::string, false);
+SETTING(u16, false);
+SWITCHABLE(AnisotropyMode, true);
+SWITCHABLE(AntiAliasing, false);
+SWITCHABLE(AspectRatio, true);
+SWITCHABLE(AstcDecodeMode, true);
+SWITCHABLE(AstcRecompression, true);
+SWITCHABLE(AudioMode, true);
+SWITCHABLE(CpuAccuracy, true);
+SWITCHABLE(FullscreenMode, true);
+SWITCHABLE(GpuAccuracy, true);
+SWITCHABLE(Language, true);
+SWITCHABLE(NvdecEmulation, false);
+SWITCHABLE(Region, true);
+SWITCHABLE(RendererBackend, true);
+SWITCHABLE(ScalingFilter, false);
+SWITCHABLE(ShaderBackend, true);
+SWITCHABLE(TimeZone, true);
+SETTING(VSyncMode, true);
+SWITCHABLE(bool, false);
+SWITCHABLE(int, false);
+SWITCHABLE(int, true);
+SWITCHABLE(s64, false);
+SWITCHABLE(u16, true);
+SWITCHABLE(u32, false);
+SWITCHABLE(u8, false);
+SWITCHABLE(u8, true);
+
+#undef SETTING
+#undef SWITCHABLE
 
 Values values;
 static bool configuring_global = true;
@@ -236,6 +280,14 @@ void UpdateRescalingInfo() {
     info.up_factor = static_cast<f32>(info.up_scale) / (1U << info.down_shift);
     info.down_factor = static_cast<f32>(1U << info.down_shift) / info.up_scale;
     info.active = info.up_scale != 1 || info.down_shift != 0;
+}
+
+std::string BasicSetting::ToStringGlobal() const {
+    return {};
+}
+
+bool BasicSetting::UsingGlobal() const {
+    return true;
 }
 
 void RestoreGlobalState(bool is_powered_on) {

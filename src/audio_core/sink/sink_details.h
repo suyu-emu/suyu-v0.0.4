@@ -3,13 +3,12 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
+#include "common/settings_enums.h"
 
-namespace Settings {
-enum class AudioEngine : u32;
-}
 namespace AudioCore {
 class AudioManager;
 

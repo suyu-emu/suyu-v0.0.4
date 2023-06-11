@@ -21,7 +21,10 @@
 #include <QStyle>
 #include <QValidator>
 #include <QWidget>
+#include <fmt/core.h>
+#include "common/assert.h"
 #include "common/common_types.h"
+#include "common/logging/log.h"
 #include "common/settings.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/shared_translation.h"

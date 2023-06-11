@@ -17,6 +17,16 @@
 using Settings::Category;
 using Settings::Setting;
 
+namespace Settings {
+extern template class Setting<bool>;
+extern template class Setting<std::string>;
+extern template class Setting<u16, true>;
+extern template class Setting<u32>;
+extern template class Setting<u8, true>;
+extern template class Setting<u8>;
+extern template class Setting<unsigned long long>;
+} // namespace Settings
+
 namespace UISettings {
 
 bool IsDarkTheme();

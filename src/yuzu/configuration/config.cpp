@@ -102,9 +102,9 @@ const std::map<Settings::RendererBackend, QString> Config::renderer_backend_text
 };
 
 const std::map<Settings::ShaderBackend, QString> Config::shader_backend_texts_map = {
-    {Settings::ShaderBackend::GLSL, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "GLSL"))},
-    {Settings::ShaderBackend::GLASM, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "GLASM"))},
-    {Settings::ShaderBackend::SPIRV, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "SPIRV"))},
+    {Settings::ShaderBackend::Glsl, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "GLSL"))},
+    {Settings::ShaderBackend::Glasm, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "GLASM"))},
+    {Settings::ShaderBackend::SpirV, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "SPIRV"))},
 };
 
 // This shouldn't have anything except static initializers (no functions). So
