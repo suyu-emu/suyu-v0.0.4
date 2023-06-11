@@ -625,8 +625,8 @@ struct Values {
                                                   Category::Renderer};
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{
         linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
-    SwitchableSetting<bool, false> use_speed_limit{
-        linkage, true, "use_speed_limit", Category::Renderer, false, true};
+    SwitchableSetting<bool> use_speed_limit{linkage, true, "use_speed_limit", Category::Renderer,
+                                            false,   true};
     SwitchableSetting<u16, true> speed_limit{
         linkage, 100, 0, 9999, "speed_limit", Category::Renderer, true, true};
     SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
@@ -671,9 +671,9 @@ struct Values {
     ResolutionScalingInfo resolution_info{};
     SwitchableSetting<ResolutionSetup> resolution_setup{linkage, ResolutionSetup::Res1X,
                                                         "resolution_setup", Category::Renderer};
-    SwitchableSetting<ScalingFilter, false> scaling_filter{
+    SwitchableSetting<ScalingFilter> scaling_filter{
         linkage, ScalingFilter::Bilinear, "scaling_filter", Category::Renderer, true, true};
-    SwitchableSetting<AntiAliasing, false> anti_aliasing{
+    SwitchableSetting<AntiAliasing> anti_aliasing{
         linkage, AntiAliasing::None, "anti_aliasing", Category::Renderer, true, true};
     SwitchableSetting<int, true> fsr_sharpening_slider{
         linkage, 25, 0, 200, "fsr_sharpening_slider", Category::Renderer, true, true};
@@ -707,9 +707,9 @@ struct Values {
                                                   Category::RendererAdvanced};
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererAdvanced};
-    SwitchableSetting<bool, false> use_fast_gpu_time{
+    SwitchableSetting<bool> use_fast_gpu_time{
         linkage, true, "use_fast_gpu_time", Category::RendererAdvanced, true, true};
-    SwitchableSetting<bool, false> use_vulkan_driver_pipeline_cache{
+    SwitchableSetting<bool> use_vulkan_driver_pipeline_cache{
         linkage, true, "use_vulkan_driver_pipeline_cache", Category::RendererAdvanced, true, true};
     SwitchableSetting<bool> enable_compute_pipelines{linkage, false, "enable_compute_pipelines",
                                                      Category::RendererAdvanced};
@@ -756,12 +756,12 @@ struct Values {
     // Controls
     InputSetting<std::array<PlayerInput, 10>> players;
 
-    Setting<bool, false> enable_raw_input{linkage, false, "enable_raw_input", Category::Controls,
+    Setting<bool> enable_raw_input{linkage, false, "enable_raw_input", Category::Controls,
 // Only read/write enable_raw_input on Windows platforms
 #ifdef _WIN32
-                                          true
+                                   true
 #else
-                                          false
+                                   false
 #endif
     };
     Setting<bool> controller_navigation{linkage, true, "controller_navigation", Category::Controls};
@@ -783,7 +783,7 @@ struct Values {
     Setting<bool> tas_enable{linkage, false, "tas_enable", Category::Controls};
     Setting<bool> tas_loop{linkage, false, "tas_loop", Category::Controls};
 
-    Setting<bool, false> mouse_panning{linkage, false, "mouse_panning", Category::Controls, false};
+    Setting<bool> mouse_panning{linkage, false, "mouse_panning", Category::Controls, false};
     Setting<u8, true> mouse_panning_sensitivity{
         linkage, 50, 1, 100, "mouse_panning_sensitivity", Category::Controls};
     Setting<bool> mouse_enabled{linkage, false, "mouse_enabled", Category::Controls};
@@ -839,22 +839,19 @@ struct Values {
     Setting<std::string> program_args{linkage, std::string(), "program_args", Category::Debugging};
     Setting<bool> dump_exefs{linkage, false, "dump_exefs", Category::Debugging};
     Setting<bool> dump_nso{linkage, false, "dump_nso", Category::Debugging};
-    Setting<bool, false> dump_shaders{linkage, false, "dump_shaders", Category::DebuggingGraphics,
-                                      false};
-    Setting<bool, false> dump_macros{linkage, false, "dump_macros", Category::DebuggingGraphics,
-                                     false};
+    Setting<bool> dump_shaders{linkage, false, "dump_shaders", Category::DebuggingGraphics, false};
+    Setting<bool> dump_macros{linkage, false, "dump_macros", Category::DebuggingGraphics, false};
     Setting<bool> enable_fs_access_log{linkage, false, "enable_fs_access_log", Category::Debugging};
-    Setting<bool, false> reporting_services{linkage, false, "reporting_services",
-                                            Category::Debugging, false};
+    Setting<bool> reporting_services{linkage, false, "reporting_services", Category::Debugging,
+                                     false};
     Setting<bool> quest_flag{linkage, false, "quest_flag", Category::Debugging};
     Setting<bool> disable_macro_jit{linkage, false, "disable_macro_jit",
                                     Category::DebuggingGraphics};
     Setting<bool> disable_macro_hle{linkage, false, "disable_macro_hle",
                                     Category::DebuggingGraphics};
-    Setting<bool, false> extended_logging{linkage, false, "extended_logging", Category::Debugging,
-                                          false};
+    Setting<bool> extended_logging{linkage, false, "extended_logging", Category::Debugging, false};
     Setting<bool> use_debug_asserts{linkage, false, "use_debug_asserts", Category::Debugging};
-    Setting<bool, false> use_auto_stub{linkage, false, "use_auto_stub", Category::Debugging, false};
+    Setting<bool> use_auto_stub{linkage, false, "use_auto_stub", Category::Debugging, false};
     Setting<bool> enable_all_controllers{linkage, false, "enable_all_controllers",
                                          Category::Debugging};
     Setting<bool> create_crash_dumps{linkage, false, "create_crash_dumps", Category::Debugging};
