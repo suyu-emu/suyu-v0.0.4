@@ -1,17 +1,16 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <forward_list>
+#include "yuzu/configuration/shared_translation.h"
+
 #include <map>
 #include <memory>
-#include <string>
-#include <typeindex>
-#include <typeinfo>
+#include <tuple>
 #include <utility>
-#include <QString>
 #include <QWidget>
 #include "common/settings.h"
-#include "yuzu/configuration/shared_translation.h"
+#include "common/settings_enums.h"
+#include "common/settings_setting.h"
 #include "yuzu/uisettings.h"
 
 namespace ConfigurationShared {

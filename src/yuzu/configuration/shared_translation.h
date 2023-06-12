@@ -5,11 +5,11 @@
 
 #include <map>
 #include <memory>
-#include <string>
 #include <typeindex>
 #include <utility>
 #include <vector>
 #include <QString>
+#include "common/common_types.h"
 
 class QWidget;
 

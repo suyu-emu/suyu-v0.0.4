@@ -3,22 +3,28 @@
 
 #pragma once
 
-#include "yuzu/configuration/configuration_shared.h"
+#include <forward_list>
+#include <functional>
+#include <string>
+#include <QString>
+#include <QStringLiteral>
+#include <QWidget>
+#include <qobjectdefs.h>
 #include "yuzu/configuration/shared_translation.h"
 
-class QPushButton;
-class QSpinBox;
-class QComboBox;
-class QLineEdit;
-class QSlider;
 class QCheckBox;
-class QLabel;
-class QHBoxLayout;
+class QComboBox;
 class QDateTimeEdit;
+class QLabel;
+class QLineEdit;
+class QObject;
+class QPushButton;
+class QSlider;
+class QSpinBox;
 
 namespace Settings {
 class BasicSetting;
-}
+} // namespace Settings
 
 namespace ConfigurationShared {
 

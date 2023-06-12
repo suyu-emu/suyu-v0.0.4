@@ -1,34 +1,44 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "yuzu/configuration/shared_widget.h"
+
 #include <functional>
-#include <limits>
+#include <typeindex>
 #include <typeinfo>
+#include <utility>
+#include <vector>
 #include <QAbstractButton>
-#include <QAbstractSpinBox>
+#include <QAbstractSlider>
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDateTime>
 #include <QDateTimeEdit>
-#include <QHBoxLayout>
 #include <QIcon>
 #include <QLabel>
+#include <QLayout>
 #include <QLineEdit>
+#include <QObject>
 #include <QPushButton>
+#include <QRegExp>
 #include <QSizePolicy>
 #include <QSlider>
 #include <QSpinBox>
 #include <QStyle>
 #include <QValidator>
-#include <QWidget>
+#include <QVariant>
+#include <QtCore/qglobal.h>
+#include <QtCore/qobjectdefs.h>
 #include <fmt/core.h>
+#include <qglobal.h>
+#include <qnamespace.h>
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
-#include "yuzu/configuration/configuration_shared.h"
+#include "common/settings_common.h"
 #include "yuzu/configuration/shared_translation.h"
-#include "yuzu/configuration/shared_widget.h"
 
 namespace ConfigurationShared {
 
