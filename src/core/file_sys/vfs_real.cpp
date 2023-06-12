@@ -75,16 +75,9 @@ VfsEntryType RealVfsFilesystem::GetEntryType(std::string_view path_) const {
 VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
 
-    this->EvictSingleReference();
-
-    auto backing = FS::FileOpen(path, ModeFlagsToFileAccessMode(perms), FS::FileType::BinaryFile);
-    if (!backing) {
-        return nullptr;
-    }
-
-    num_open_files++;
-    auto reference = std::make_unique<FileReference>(std::move(backing));
+    auto reference = std::make_unique<FileReference>();
     this->InsertReferenceIntoList(*reference);
+
     return std::shared_ptr<RealVfsFile>(new RealVfsFile(*this, std::move(reference), path, perms));
 }
 

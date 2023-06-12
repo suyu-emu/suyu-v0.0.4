@@ -15,8 +15,7 @@ class IOFile;
 namespace FileSys {
 
 struct FileReference : public Common::IntrusiveListBaseNode<FileReference> {
-    FileReference(std::shared_ptr<Common::FS::IOFile>&& f) : file(f) {}
-    std::shared_ptr<Common::FS::IOFile> file;
+    std::shared_ptr<Common::FS::IOFile> file{};
 };
 
 class RealVfsFile;
