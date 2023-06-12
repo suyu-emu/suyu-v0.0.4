@@ -53,6 +53,7 @@ import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.overlay.InputOverlay
 import org.yuzu.yuzu_emu.utils.*
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback {
@@ -65,6 +66,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private val binding get() = _binding!!
 
     val args by navArgs<EmulationFragmentArgs>()
+
+    private var isInFoldableLayout = false
 
     private lateinit var onReturnFromSettings: ActivityResultLauncher<Intent>
 
@@ -195,6 +198,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        if (!isInFoldableLayout) {
+            if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                binding.surfaceInputOverlay.setOrientation(InputOverlay.PORTRAIT)
+            } else {
+                binding.surfaceInputOverlay.setOrientation(InputOverlay.LANDSCAPE)
+            }
+        }
         if (!binding.surfaceInputOverlay.isInEditMode) refreshInputOverlay()
     }
 
@@ -214,6 +224,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 else -> Rational(16, 9)
             }
         )
+
+        updateScreenLayout()
 
         emulationState.run(emulationActivity!!.isActivityRecreated)
     }
@@ -321,6 +333,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 else -> { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE }
             }
         }
+        onConfigurationChanged(resources.configuration)
     }
 
     private val Number.toPx get() = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this.toFloat(), Resources.getSystem().displayMetrics).toInt()
@@ -332,10 +345,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 if (it.orientation == FoldingFeature.Orientation.HORIZONTAL) {
                     binding.emulationContainer.layoutParams.height = it.bounds.top
                     // Prevent touch regions from being displayed in the hinge
-                    binding.surfaceInputOverlay.isInFoldableLayout = true
                     binding.overlayContainer.layoutParams.height = it.bounds.bottom - 48.toPx
                     binding.overlayContainer.updatePadding(0, 0, 0, 24.toPx)
                     binding.inGameMenu.layoutParams.height = it.bounds.bottom
+                    isInFoldableLayout = true
+                    binding.surfaceInputOverlay.setOrientation(InputOverlay.FOLDABLE)
                     refreshInputOverlay()
                 }
             }
@@ -345,8 +359,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             binding.emulationContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.overlayContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.overlayContainer.updatePadding(0, 0, 0, 0)
-            binding.surfaceInputOverlay.isInFoldableLayout = false
             binding.inGameMenu.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            isInFoldableLayout = false
             updateScreenLayout()
         }
         binding.emulationContainer.requestLayout()

@@ -668,8 +668,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
     private fun getResourceValue(descriptor: String, position: Int) : Float {
         return when (descriptor) {
-            portrait -> resources.getInteger(portraitResources[position]).toFloat() / 1000
-            foldable -> resources.getInteger(foldableResources[position]).toFloat() / 1000
+            PORTRAIT -> resources.getInteger(portraitResources[position]).toFloat() / 1000
+            FOLDABLE -> resources.getInteger(foldableResources[position]).toFloat() / 1000
             else -> resources.getInteger(landscapeResources[position]).toFloat() / 1000
         }
     }
@@ -804,32 +804,18 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         return inEditMode
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration?) {
-        super.onConfigurationChanged(newConfig)
-        if (!isInFoldableLayout) {
-            orientation = if (newConfig?.orientation == Configuration.ORIENTATION_PORTRAIT)
-                portrait
-            else
-                ""
-        }
+    fun setOrientation(descriptor: String) {
+        orientation = descriptor
     }
-
-    var isInFoldableLayout : Boolean = false
-        set(value) {
-            if (value)
-                orientation = foldable
-            else
-                onConfigurationChanged(resources.configuration)
-            field = value
-        }
 
     companion object {
         private val preferences: SharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
-        private const val portrait = "-Portrait"
-        private const val foldable = "-Foldable"
-        private var orientation = ""
+        const val LANDSCAPE = ""
+        const val PORTRAIT = "-Portrait"
+        const val FOLDABLE = "-Foldable"
+        private var orientation = LANDSCAPE
 
         /**
          * Resizes a [Bitmap] by a given scale factor
