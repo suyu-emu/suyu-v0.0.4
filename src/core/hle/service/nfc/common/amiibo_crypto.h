@@ -24,10 +24,8 @@ using DrgbOutput = std::array<u8, 0x20>;
 struct HashSeed {
     u16_be magic;
     std::array<u8, 0xE> padding;
-    NFC::UniqueSerialNumber uid_1;
-    u8 nintendo_id_1;
-    NFC::UniqueSerialNumber uid_2;
-    u8 nintendo_id_2;
+    TagUuid uid_1;
+    TagUuid uid_2;
     std::array<u8, 0x20> keygen_salt;
 };
 static_assert(sizeof(HashSeed) == 0x40, "HashSeed is an invalid size");
@@ -68,9 +66,6 @@ NTAG215File NfcDataToEncodedData(const EncryptedNTAG215File& nfc_data);
 
 /// Converts from encoded file format to encrypted file format
 EncryptedNTAG215File EncodedDataToNfcData(const NTAG215File& encoded_data);
-
-/// Returns password needed to allow write access to protected memory
-u32 GetTagPassword(const TagUuid& uuid);
 
 // Generates Seed needed for key derivation
 HashSeed GetSeed(const NTAG215File& data);

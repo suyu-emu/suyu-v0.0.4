@@ -35,21 +35,27 @@ enum class State : u32 {
 
 // This is nn::nfc::TagType
 enum class TagType : u32 {
-    None,
-    Type1, // ISO14443A RW 96-2k bytes 106kbit/s
-    Type2, // ISO14443A RW/RO 540 bytes 106kbit/s
-    Type3, // Sony FeliCa RW/RO 2k bytes 212kbit/s
-    Type4, // ISO14443A RW/RO 4k-32k bytes 424kbit/s
-    Type5, // ISO15693 RW/RO 540 bytes 106kbit/s
+    None = 0,
+    Type1 = 1U << 0,  // ISO14443A RW. Topaz
+    Type2 = 1U << 1,  // ISO14443A RW. Ultralight, NTAGX, ST25TN
+    Type3 = 1U << 2,  // ISO14443A RW/RO. Sony FeliCa
+    Type4A = 1U << 3, // ISO14443A RW/RO. DESFire
+    Type4B = 1U << 4, // ISO14443B RW/RO. DESFire
+    Type5 = 1U << 5,  // ISO15693 RW/RO. SLI, SLIX, ST25TV
+    Mifare = 1U << 6, // Mifare classic. Skylanders
+    All = 0xFFFFFFFF,
 };
 
 enum class PackedTagType : u8 {
-    None,
-    Type1, // ISO14443A RW 96-2k bytes 106kbit/s
-    Type2, // ISO14443A RW/RO 540 bytes 106kbit/s
-    Type3, // Sony FeliCa RW/RO 2k bytes 212kbit/s
-    Type4, // ISO14443A RW/RO 4k-32k bytes 424kbit/s
-    Type5, // ISO15693 RW/RO 540 bytes 106kbit/s
+    None = 0,
+    Type1 = 1U << 0,  // ISO14443A RW. Topaz
+    Type2 = 1U << 1,  // ISO14443A RW. Ultralight, NTAGX, ST25TN
+    Type3 = 1U << 2,  // ISO14443A RW/RO. Sony FeliCa
+    Type4A = 1U << 3, // ISO14443A RW/RO. DESFire
+    Type4B = 1U << 4, // ISO14443B RW/RO. DESFire
+    Type5 = 1U << 5,  // ISO15693 RW/RO. SLI, SLIX, ST25TV
+    Mifare = 1U << 6, // Mifare classic. Skylanders
+    All = 0xFF,
 };
 
 // This is nn::nfc::NfcProtocol
@@ -69,8 +75,7 @@ enum class TestWaveType : u32 {
     Unknown,
 };
 
-using UniqueSerialNumber = std::array<u8, 7>;
-using UniqueSerialNumberExtension = std::array<u8, 3>;
+using UniqueSerialNumber = std::array<u8, 10>;
 
 // This is nn::nfc::DeviceHandle
 using DeviceHandle = u64;
@@ -78,7 +83,6 @@ using DeviceHandle = u64;
 // This is nn::nfc::TagInfo
 struct TagInfo {
     UniqueSerialNumber uuid;
-    UniqueSerialNumberExtension uuid_extension;
     u8 uuid_length;
     INSERT_PADDING_BYTES(0x15);
     NfcProtocol protocol;

@@ -86,9 +86,14 @@ public:
     Result GetAll(NFP::NfpData& data) const;
     Result SetAll(const NFP::NfpData& data);
     Result BreakTag(NFP::BreakType break_type);
-    Result HasBackup(const NFC::UniqueSerialNumber& uid) const;
-    Result ReadBackupData(const NFC::UniqueSerialNumber& uid, std::span<u8> data) const;
-    Result WriteBackupData(const NFC::UniqueSerialNumber& uid, std::span<const u8> data);
+    Result HasBackup(const UniqueSerialNumber& uid, std::size_t uuid_size) const;
+    Result HasBackup(const NFP::TagUuid& tag_uid) const;
+    Result ReadBackupData(const UniqueSerialNumber& uid, std::size_t uuid_size,
+                          std::span<u8> data) const;
+    Result ReadBackupData(const NFP::TagUuid& tag_uid, std::span<u8> data) const;
+    Result WriteBackupData(const UniqueSerialNumber& uid, std::size_t uuid_size,
+                           std::span<const u8> data);
+    Result WriteBackupData(const NFP::TagUuid& tag_uid, std::span<const u8> data);
     Result WriteNtf(std::span<const u8> data);
 
     u64 GetHandle() const;

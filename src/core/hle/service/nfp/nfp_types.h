@@ -85,7 +85,7 @@ enum class CabinetMode : u8 {
     StartFormatter,
 };
 
-using LockBytes = std::array<u8, 2>;
+using UuidPart = std::array<u8, 3>;
 using HashData = std::array<u8, 0x20>;
 using ApplicationArea = std::array<u8, 0xD8>;
 using AmiiboName = std::array<char, (amiibo_name_length * 4) + 1>;
@@ -93,12 +93,20 @@ using AmiiboName = std::array<char, (amiibo_name_length * 4) + 1>;
 // This is nn::nfp::TagInfo
 using TagInfo = NFC::TagInfo;
 
-struct TagUuid {
-    NFC::UniqueSerialNumber uid;
+struct NtagTagUuid {
+    UuidPart part1;
+    UuidPart part2;
     u8 nintendo_id;
-    LockBytes lock_bytes;
 };
-static_assert(sizeof(TagUuid) == 10, "TagUuid is an invalid size");
+static_assert(sizeof(NtagTagUuid) == 7, "NtagTagUuid is an invalid size");
+
+struct TagUuid {
+    UuidPart part1;
+    u8 crc_check1;
+    UuidPart part2;
+    u8 nintendo_id;
+};
+static_assert(sizeof(TagUuid) == 8, "TagUuid is an invalid size");
 
 struct WriteDate {
     u16 year;
@@ -231,7 +239,8 @@ struct EncryptedAmiiboFile {
 static_assert(sizeof(EncryptedAmiiboFile) == 0x1F8, "AmiiboFile is an invalid size");
 
 struct NTAG215File {
-    LockBytes lock_bytes;      // Tag UUID
+    u8 uid_crc_check2;
+    u8 internal_number;
     u16 static_lock;           // Set defined pages as read only
     u32 compability_container; // Defines available memory
     HashData hmac_data;        // Hash
@@ -250,8 +259,7 @@ struct NTAG215File {
     u32_be register_info_crc;
     ApplicationArea application_area; // Encrypted Game data
     HashData hmac_tag;                // Hash
-    NFC::UniqueSerialNumber uid;      // Unique serial number
-    u8 nintendo_id;                   // Tag UUID
+    TagUuid uid;
     AmiiboModelInfo model_info;
     HashData keygen_salt;     // Salt
     u32 dynamic_lock;         // Dynamic lock
@@ -264,7 +272,9 @@ static_assert(std::is_trivially_copyable_v<NTAG215File>, "NTAG215File must be tr
 #pragma pack()
 
 struct EncryptedNTAG215File {
-    TagUuid uuid;                    // Unique serial number
+    TagUuid uuid;
+    u8 uuid_crc_check2;
+    u8 internal_number;
     u16 static_lock;                 // Set defined pages as read only
     u32 compability_container;       // Defines available memory
     EncryptedAmiiboFile user_memory; // Writable data

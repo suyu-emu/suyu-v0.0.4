@@ -355,7 +355,7 @@ Result NfcInterface::TranslateResultToNfp(Result result) const {
     if (result == ResultApplicationAreaExist) {
         return NFP::ResultApplicationAreaExist;
     }
-    if (result == ResultNotAnAmiibo) {
+    if (result == ResultInvalidTagType) {
         return NFP::ResultNotAnAmiibo;
     }
     if (result == ResultUnableToAccessBackupFile) {
@@ -380,6 +380,9 @@ Result NfcInterface::TranslateResultToMifare(Result result) const {
     }
     if (result == ResultTagRemoved) {
         return Mifare::ResultTagRemoved;
+    }
+    if (result == ResultInvalidTagType) {
+        return Mifare::ResultNotAMifare;
     }
     LOG_WARNING(Service_NFC, "Result conversion not handled");
     return result;
