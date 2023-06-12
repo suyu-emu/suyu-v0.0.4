@@ -7,6 +7,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Point
@@ -236,6 +237,11 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         val fingerPositionX = event.getX(pointerIndex).toInt()
         val fingerPositionY = event.getY(pointerIndex).toInt()
 
+        val orientation = if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
+            "-Portrait"
+        else
+            ""
+
         for (button in overlayButtons) {
             // Determine the button state to apply based on the MotionEvent action flag.
             when (event.action and MotionEvent.ACTION_MASK) {
@@ -264,7 +270,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     saveControlPosition(
                         buttonBeingConfigured!!.buttonId,
                         buttonBeingConfigured!!.bounds.centerX(),
-                        buttonBeingConfigured!!.bounds.centerY()
+                        buttonBeingConfigured!!.bounds.centerY(),
+                        orientation
                     )
                     buttonBeingConfigured = null
                 }
@@ -296,7 +303,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     saveControlPosition(
                         dpadBeingConfigured!!.upId,
                         dpadBeingConfigured!!.bounds.centerX(),
-                        dpadBeingConfigured!!.bounds.centerY()
+                        dpadBeingConfigured!!.bounds.centerY(),
+                        orientation
                     )
                     dpadBeingConfigured = null
                 }
@@ -326,7 +334,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     saveControlPosition(
                         joystickBeingConfigured!!.buttonId,
                         joystickBeingConfigured!!.bounds.centerX(),
-                        joystickBeingConfigured!!.bounds.centerY()
+                        joystickBeingConfigured!!.bounds.centerY(),
+                        orientation
                     )
                     joystickBeingConfigured = null
                 }
@@ -336,7 +345,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         return true
     }
 
-    private fun addOverlayControls() {
+    private fun addOverlayControls(orientation: String) {
         val windowSize = getSafeScreenSize(context)
         if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_0, true)) {
             overlayButtons.add(
@@ -345,7 +354,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     windowSize,
                     R.drawable.facebutton_a,
                     R.drawable.facebutton_a_depressed,
-                    ButtonType.BUTTON_A
+                    ButtonType.BUTTON_A,
+                    orientation
                 )
             )
         }
@@ -356,7 +366,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     windowSize,
                     R.drawable.facebutton_b,
                     R.drawable.facebutton_b_depressed,
-                    ButtonType.BUTTON_B
+                    ButtonType.BUTTON_B,
+                    orientation
                 )
             )
         }
@@ -367,7 +378,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     windowSize,
                     R.drawable.facebutton_x,
                     R.drawable.facebutton_x_depressed,
-                    ButtonType.BUTTON_X
+                    ButtonType.BUTTON_X,
+                    orientation
                 )
             )
         }
@@ -378,7 +390,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     windowSize,
                     R.drawable.facebutton_y,
                     R.drawable.facebutton_y_depressed,
-                    ButtonType.BUTTON_Y
+                    ButtonType.BUTTON_Y,
+                    orientation
                 )
             )
         }
@@ -389,7 +402,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     windowSize,
                     R.drawable.l_shoulder,
                     R.drawable.l_shoulder_depressed,
-                    ButtonType.TRIGGER_L
+                    ButtonType.TRIGGER_L,
+                    orientation
                 )
             )
         }
@@ -400,7 +414,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     windowSize,
                     R.drawable.r_shoulder,
                     R.drawable.r_shoulder_depressed,
-                    ButtonType.TRIGGER_R
+                    ButtonType.TRIGGER_R,
+                    orientation
                 )
             )
         }
@@ -411,7 +426,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     windowSize,
                     R.drawable.zl_trigger,
                     R.drawable.zl_trigger_depressed,
-                    ButtonType.TRIGGER_ZL
+                    ButtonType.TRIGGER_ZL,
+                    orientation
                 )
             )
         }
@@ -422,7 +438,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     windowSize,
                     R.drawable.zr_trigger,
                     R.drawable.zr_trigger_depressed,
-                    ButtonType.TRIGGER_ZR
+                    ButtonType.TRIGGER_ZR,
+                    orientation
                 )
             )
         }
@@ -433,7 +450,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     windowSize,
                     R.drawable.facebutton_plus,
                     R.drawable.facebutton_plus_depressed,
-                    ButtonType.BUTTON_PLUS
+                    ButtonType.BUTTON_PLUS,
+                    orientation
                 )
             )
         }
@@ -444,7 +462,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     windowSize,
                     R.drawable.facebutton_minus,
                     R.drawable.facebutton_minus_depressed,
-                    ButtonType.BUTTON_MINUS
+                    ButtonType.BUTTON_MINUS,
+                    orientation
                 )
             )
         }
@@ -455,7 +474,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     windowSize,
                     R.drawable.dpad_standard,
                     R.drawable.dpad_standard_cardinal_depressed,
-                    R.drawable.dpad_standard_diagonal_depressed
+                    R.drawable.dpad_standard_diagonal_depressed,
+                    orientation
                 )
             )
         }
@@ -468,7 +488,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     R.drawable.joystick,
                     R.drawable.joystick_depressed,
                     StickType.STICK_L,
-                    ButtonType.STICK_L
+                    ButtonType.STICK_L,
+                    orientation
                 )
             )
         }
@@ -481,7 +502,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     R.drawable.joystick,
                     R.drawable.joystick_depressed,
                     StickType.STICK_R,
-                    ButtonType.STICK_R
+                    ButtonType.STICK_R,
+                    orientation
                 )
             )
         }
@@ -492,7 +514,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     windowSize,
                     R.drawable.facebutton_home,
                     R.drawable.facebutton_home_depressed,
-                    ButtonType.BUTTON_HOME
+                    ButtonType.BUTTON_HOME,
+                    orientation
                 )
             )
         }
@@ -503,7 +526,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     windowSize,
                     R.drawable.facebutton_screenshot,
                     R.drawable.facebutton_screenshot_depressed,
-                    ButtonType.BUTTON_CAPTURE
+                    ButtonType.BUTTON_CAPTURE,
+                    orientation
                 )
             )
         }
@@ -514,21 +538,25 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         overlayButtons.clear()
         overlayDpads.clear()
         overlayJoysticks.clear()
+        val orientation = if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
+            "-Portrait"
+        else
+            ""
 
         // Add all the enabled overlay items back to the HashSet.
         if (EmulationMenuSettings.showOverlay) {
-            addOverlayControls()
+            addOverlayControls(orientation)
         }
         invalidate()
     }
 
-    private fun saveControlPosition(sharedPrefsId: Int, x: Int, y: Int) {
+    private fun saveControlPosition(sharedPrefsId: Int, x: Int, y: Int, orientation: String) {
         val windowSize = getSafeScreenSize(context)
         val min = windowSize.first
         val max = windowSize.second
         PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext).edit()
-            .putFloat("$sharedPrefsId-X", (x - min.x).toFloat() / max.x)
-            .putFloat("$sharedPrefsId-Y", (y - min.y).toFloat() / max.y)
+            .putFloat("$sharedPrefsId$orientation-X", (x - min.x).toFloat() / max.x)
+            .putFloat("$sharedPrefsId$orientation-Y", (y - min.y).toFloat() / max.y)
             .apply()
     }
 
@@ -818,7 +846,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
             windowSize: Pair<Point, Point>,
             defaultResId: Int,
             pressedResId: Int,
-            buttonId: Int
+            buttonId: Int,
+            orientation: String
         ): InputOverlayDrawableButton {
             // Resources handle for fetching the initial Drawable resource.
             val res = context.resources
@@ -855,8 +884,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
             // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val xKey = "$buttonId-X"
-            val yKey = "$buttonId-Y"
+            val xKey = "$buttonId$orientation-X"
+            val yKey = "$buttonId$orientation-Y"
             val drawableXPercent = sPrefs.getFloat(xKey, 0f)
             val drawableYPercent = sPrefs.getFloat(yKey, 0f)
             val drawableX = (drawableXPercent * max.x + min.x).toInt()
@@ -898,7 +927,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
             windowSize: Pair<Point, Point>,
             defaultResId: Int,
             pressedOneDirectionResId: Int,
-            pressedTwoDirectionsResId: Int
+            pressedTwoDirectionsResId: Int,
+            orientation: String
         ): InputOverlayDrawableDpad {
             // Resources handle for fetching the initial Drawable resource.
             val res = context.resources
@@ -935,8 +965,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
             // The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val drawableXPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}-X", 0f)
-            val drawableYPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}-Y", 0f)
+            val drawableXPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}$orientation-X", 0f)
+            val drawableYPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}$orientation-Y", 0f)
             val drawableX = (drawableXPercent * max.x + min.x).toInt()
             val drawableY = (drawableYPercent * max.y + min.y).toInt()
             val width = overlayDrawable.width
@@ -977,7 +1007,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
             defaultResInner: Int,
             pressedResInner: Int,
             joystick: Int,
-            button: Int
+            button: Int,
+            orientation: String
         ): InputOverlayDrawableJoystick {
             // Resources handle for fetching the initial Drawable resource.
             val res = context.resources
@@ -1001,8 +1032,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
             // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val drawableXPercent = sPrefs.getFloat("$button-X", 0f)
-            val drawableYPercent = sPrefs.getFloat("$button-Y", 0f)
+            val drawableXPercent = sPrefs.getFloat("$button$orientation-X", 0f)
+            val drawableYPercent = sPrefs.getFloat("$button$orientation-Y", 0f)
             val drawableX = (drawableXPercent * max.x + min.x).toInt()
             val drawableY = (drawableYPercent * max.y + min.y).toInt()
             val outerScale = 1.66f

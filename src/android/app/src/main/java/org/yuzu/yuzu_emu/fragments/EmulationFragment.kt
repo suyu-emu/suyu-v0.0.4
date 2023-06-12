@@ -195,7 +195,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        if (!binding.surfaceInputOverlay.isInEditMode()) refreshInputOverlay()
+        if (!binding.surfaceInputOverlay.isInEditMode) refreshInputOverlay()
     }
 
     override fun onResume() {
@@ -475,7 +475,19 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         popup.show()
     }
 
+    @SuppressLint("SourceLockedOrientationActivity")
     private fun startConfiguringControls() {
+        // Lock the current orientation to prevent editing inconsistencies
+        if (IntSetting.RENDERER_SCREEN_LAYOUT.int == Settings.LayoutOption_Default) {
+            emulationActivity?.let {
+                it.requestedOrientation =
+                    if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
+                    } else {
+                        ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+                    }
+            }
+        }
         binding.doneControlConfig.visibility = View.VISIBLE
         binding.surfaceInputOverlay.setIsInEditMode(true)
     }
@@ -483,6 +495,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private fun stopConfiguringControls() {
         binding.doneControlConfig.visibility = View.GONE
         binding.surfaceInputOverlay.setIsInEditMode(false)
+        // Unlock the orientation if it was locked for editing
+        if (IntSetting.RENDERER_SCREEN_LAYOUT.int == Settings.LayoutOption_Default) {
+            emulationActivity?.let {
+                it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            }
+        }
     }
 
     @SuppressLint("SetTextI18n")
