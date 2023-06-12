@@ -26,13 +26,18 @@ class Game(
         if (other !is Game)
             return false
 
-        return title == other.title
-                && description == other.description
-                && regions == other.regions
-                && path == other.path
-                && gameId == other.gameId
-                && company == other.company
-                && isHomebrew == other.isHomebrew
+        return hashCode() == other.hashCode()
+    }
+
+    override fun hashCode(): Int {
+        var result = title.hashCode()
+        result = 31 * result + description.hashCode()
+        result = 31 * result + regions.hashCode()
+        result = 31 * result + path.hashCode()
+        result = 31 * result + gameId.hashCode()
+        result = 31 * result + company.hashCode()
+        result = 31 * result + isHomebrew.hashCode()
+        return result
     }
 
     companion object {
