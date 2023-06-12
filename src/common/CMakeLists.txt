@@ -110,6 +110,7 @@ add_library(common STATIC
     scratch_buffer.h
     settings.cpp
     settings.h
+    settings_common.cpp
     settings_common.h
     settings_enums.h
     settings_input.cpp
@@ -199,6 +200,7 @@ if (MSVC)
 else()
   target_compile_options(common PRIVATE
     $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
+    $<$<CXX_COMPILER_ID:Clang>:-Werror=unreachable-code-aggressive>
   )
 endif()
 

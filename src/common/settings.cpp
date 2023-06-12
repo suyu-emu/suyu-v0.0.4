@@ -282,14 +282,6 @@ void UpdateRescalingInfo() {
     info.active = info.up_scale != 1 || info.down_shift != 0;
 }
 
-std::string BasicSetting::ToStringGlobal() const {
-    return {};
-}
-
-bool BasicSetting::UsingGlobal() const {
-    return true;
-}
-
 void RestoreGlobalState(bool is_powered_on) {
     // If a game is running, DO NOT restore the global settings state
     if (is_powered_on) {

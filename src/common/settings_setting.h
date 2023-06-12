@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #pragma once
 
 #include <map>
@@ -21,16 +24,6 @@ class Setting : public BasicSetting {
 protected:
     Setting() = default;
 
-    /**
-     * Only sets the setting to the given initializer, leaving the other members to their default
-     * initializers.
-     *
-     * @param global_val Initial value of the setting
-     */
-    explicit Setting(const Type& val)
-        : value{val},
-          default_value{}, maximum{}, minimum{}, label{}, category{Category::Miscellaneous}, id{} {}
-
 public:
     /**
      * Sets a default value, label, and setting value.
@@ -43,11 +36,8 @@ public:
     explicit Setting(Linkage& linkage, const Type& default_val, const std::string& name,
                      enum Category category_, bool save_ = true, bool runtime_modifiable_ = false)
         requires(!ranged)
-        : value{default_val}, default_value{default_val}, label{name}, category{category_},
-          id{linkage.count}, save{save_}, runtime_modifiable{runtime_modifiable_} {
-        linkage.by_category[category].push_front(this);
-        linkage.count++;
-    }
+        : BasicSetting(linkage, name, category_, save_, runtime_modifiable_), value{default_val},
+          default_value{default_val} {}
     virtual ~Setting() = default;
 
     /**
@@ -64,12 +54,8 @@ public:
                      const Type& max_val, const std::string& name, enum Category category_,
                      bool save_ = true, bool runtime_modifiable_ = false)
         requires(ranged)
-        : value{default_val}, default_value{default_val}, maximum{max_val}, minimum{min_val},
-          label{name}, category{category_}, id{linkage.count}, save{save_},
-          runtime_modifiable{runtime_modifiable_} {
-        linkage.by_category[category].push_front(this);
-        linkage.count++;
-    }
+        : BasicSetting(linkage, name, category_, save_, runtime_modifiable_), value{default_val},
+          default_value{default_val}, maximum{max_val}, minimum{min_val} {}
 
     /**
      *  Returns a reference to the setting's value.
@@ -99,39 +85,8 @@ public:
         return default_value;
     }
 
-    /**
-     * Returns the label this setting was created with.
-     *
-     * @returns A reference to the label
-     */
-    [[nodiscard]] const std::string& GetLabel() const override {
-        return label;
-    }
-
-    /**
-     * Returns the setting's category AKA INI group.
-     *
-     * @returns The setting's category
-     */
-    [[nodiscard]] enum Category Category() const override {
-        return category;
-    }
-
-    [[nodiscard]] bool RuntimeModfiable() const override {
-        return runtime_modifiable;
-    }
-
     [[nodiscard]] constexpr bool IsEnum() const override {
         return std::is_enum<Type>::value;
-    }
-
-    /**
-     * Returns whether the current setting is Switchable.
-     *
-     * @returns If the setting is a SwitchableSetting
-     */
-    [[nodiscard]] virtual constexpr bool Switchable() const override {
-        return false;
     }
 
 protected:
@@ -228,26 +183,12 @@ public:
     }
 
     /**
-     * Returns the save preference of the setting i.e. when saving or reading the setting from a
-     * frontend, whether this setting should be skipped.
-     *
-     * @returns The save preference
-     */
-    virtual bool Save() const override {
-        return save;
-    }
-
-    /**
      * Gives us another way to identify the setting without having to go through a string.
      *
      * @returns the type_index of the setting's type
      */
     virtual std::type_index TypeId() const override {
         return std::type_index(typeid(Type));
-    }
-
-    virtual constexpr u32 Id() const override {
-        return id;
     }
 
     virtual std::string MinVal() const override {
@@ -258,15 +199,10 @@ public:
     }
 
 protected:
-    Type value{};                 ///< The setting
-    const Type default_value{};   ///< The default value
-    const Type maximum{};         ///< Maximum allowed value of the setting
-    const Type minimum{};         ///< Minimum allowed value of the setting
-    const std::string label{};    ///< The setting's label
-    const enum Category category; ///< The setting's category AKA INI group
-    const u32 id;
-    bool save;
-    bool runtime_modifiable;
+    Type value{};               ///< The setting
+    const Type default_value{}; ///< The default value
+    const Type maximum{};       ///< Maximum allowed value of the setting
+    const Type minimum{};       ///< Minimum allowed value of the setting
 };
 
 /**
