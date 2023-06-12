@@ -332,6 +332,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 if (it.orientation == FoldingFeature.Orientation.HORIZONTAL) {
                     binding.emulationContainer.layoutParams.height = it.bounds.top
                     // Prevent touch regions from being displayed in the hinge
+                    binding.surfaceInputOverlay.isInFoldableLayout = true
                     binding.overlayContainer.layoutParams.height = it.bounds.bottom - 48.toPx
                     binding.overlayContainer.updatePadding(0, 0, 0, 24.toPx)
                     binding.inGameMenu.layoutParams.height = it.bounds.bottom
@@ -344,6 +345,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             binding.emulationContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.overlayContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.overlayContainer.updatePadding(0, 0, 0, 0)
+            binding.surfaceInputOverlay.isInFoldableLayout = false
             binding.inGameMenu.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             updateScreenLayout()
         }

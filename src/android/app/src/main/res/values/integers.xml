@@ -3,15 +3,15 @@
     <integer name="game_title_lines">2</integer>
 
     <!-- Default SWITCH portrait layout -->
-    <integer name="SWITCH_BUTTON_A_PORTRAIT_X">830</integer>
+    <integer name="SWITCH_BUTTON_A_PORTRAIT_X">840</integer>
     <integer name="SWITCH_BUTTON_A_PORTRAIT_Y">820</integer>
-    <integer name="SWITCH_BUTTON_B_PORTRAIT_X">730</integer>
-    <integer name="SWITCH_BUTTON_B_PORTRAIT_Y">870</integer>
-    <integer name="SWITCH_BUTTON_X_PORTRAIT_X">730</integer>
-    <integer name="SWITCH_BUTTON_X_PORTRAIT_Y">770</integer>
-    <integer name="SWITCH_BUTTON_Y_PORTRAIT_X">630</integer>
+    <integer name="SWITCH_BUTTON_B_PORTRAIT_X">740</integer>
+    <integer name="SWITCH_BUTTON_B_PORTRAIT_Y">860</integer>
+    <integer name="SWITCH_BUTTON_X_PORTRAIT_X">740</integer>
+    <integer name="SWITCH_BUTTON_X_PORTRAIT_Y">780</integer>
+    <integer name="SWITCH_BUTTON_Y_PORTRAIT_X">640</integer>
     <integer name="SWITCH_BUTTON_Y_PORTRAIT_Y">820</integer>
-    <integer name="SWITCH_STICK_L_PORTRAIT_X">170</integer>
+    <integer name="SWITCH_STICK_L_PORTRAIT_X">180</integer>
     <integer name="SWITCH_STICK_L_PORTRAIT_Y">640</integer>
     <integer name="SWITCH_STICK_R_PORTRAIT_X">820</integer>
     <integer name="SWITCH_STICK_R_PORTRAIT_Y">640</integer>
@@ -65,5 +65,37 @@
     <integer name="SWITCH_BUTTON_CAPTURE_Y">950</integer>
     <integer name="SWITCH_BUTTON_DPAD_X">260</integer>
     <integer name="SWITCH_BUTTON_DPAD_Y">790</integer>
+
+    <!-- Default SWITCH foldable layout -->
+    <integer name="SWITCH_BUTTON_A_FOLDABLE_X">830</integer>
+    <integer name="SWITCH_BUTTON_A_FOLDABLE_Y">420</integer>
+    <integer name="SWITCH_BUTTON_B_FOLDABLE_X">730</integer>
+    <integer name="SWITCH_BUTTON_B_FOLDABLE_Y">470</integer>
+    <integer name="SWITCH_BUTTON_X_FOLDABLE_X">730</integer>
+    <integer name="SWITCH_BUTTON_X_FOLDABLE_Y">370</integer>
+    <integer name="SWITCH_BUTTON_Y_FOLDABLE_X">630</integer>
+    <integer name="SWITCH_BUTTON_Y_FOLDABLE_Y">420</integer>
+    <integer name="SWITCH_STICK_L_FOLDABLE_X">170</integer>
+    <integer name="SWITCH_STICK_L_FOLDABLE_Y">240</integer>
+    <integer name="SWITCH_STICK_R_FOLDABLE_X">820</integer>
+    <integer name="SWITCH_STICK_R_FOLDABLE_Y">240</integer>
+    <integer name="SWITCH_TRIGGER_L_FOLDABLE_X">140</integer>
+    <integer name="SWITCH_TRIGGER_L_FOLDABLE_Y">100</integer>
+    <integer name="SWITCH_TRIGGER_R_FOLDABLE_X">860</integer>
+    <integer name="SWITCH_TRIGGER_R_FOLDABLE_Y">100</integer>
+    <integer name="SWITCH_TRIGGER_ZL_FOLDABLE_X">140</integer>
+    <integer name="SWITCH_TRIGGER_ZL_FOLDABLE_Y">40</integer>
+    <integer name="SWITCH_TRIGGER_ZR_FOLDABLE_X">860</integer>
+    <integer name="SWITCH_TRIGGER_ZR_FOLDABLE_Y">40</integer>
+    <integer name="SWITCH_BUTTON_MINUS_FOLDABLE_X">440</integer>
+    <integer name="SWITCH_BUTTON_MINUS_FOLDABLE_Y">550</integer>
+    <integer name="SWITCH_BUTTON_PLUS_FOLDABLE_X">560</integer>
+    <integer name="SWITCH_BUTTON_PLUS_FOLDABLE_Y">550</integer>
+    <integer name="SWITCH_BUTTON_HOME_FOLDABLE_X">600</integer>
+    <integer name="SWITCH_BUTTON_HOME_FOLDABLE_Y">550</integer>
+    <integer name="SWITCH_BUTTON_CAPTURE_FOLDABLE_X">400</integer>
+    <integer name="SWITCH_BUTTON_CAPTURE_FOLDABLE_Y">550</integer>
+    <integer name="SWITCH_BUTTON_DPAD_FOLDABLE_X">240</integer>
+    <integer name="SWITCH_BUTTON_DPAD_FOLDABLE_Y">420</integer>
 
 </resources>

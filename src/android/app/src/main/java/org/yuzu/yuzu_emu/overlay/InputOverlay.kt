@@ -553,10 +553,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
     private fun defaultOverlay() {
         if (!preferences.getBoolean(Settings.PREF_OVERLAY_INIT, false)) {
-            if (orientation == portrait)
-                defaultOverlayPortrait()
-            else
-                defaultOverlayLandscape()
+            defaultOverlayByLayout(orientation)
         }
 
         resetButtonPlacement()
@@ -566,265 +563,239 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
     }
 
     fun resetButtonPlacement() {
-        if (orientation == portrait)
-            defaultOverlayPortrait()
-        else
-            defaultOverlayLandscape()
+        defaultOverlayByLayout(orientation)
         refreshControls()
     }
 
-    private fun defaultOverlayPortrait() {
-        // Each value represents the position of the button in relation to the screen size without insets.
-        preferences.edit()
-            .putFloat(
-                ButtonType.BUTTON_A.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_A_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_A.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_A_PORTRAIT_Y).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_B.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_B_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_B.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_B_PORTRAIT_Y).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_X.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_X_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_X.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_X_PORTRAIT_Y).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_Y.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_Y_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_Y.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_Y_PORTRAIT_Y).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.TRIGGER_ZL.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_ZL_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.TRIGGER_ZL.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_ZL_PORTRAIT_Y).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.TRIGGER_ZR.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_ZR_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.TRIGGER_ZR.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_ZR_PORTRAIT_Y).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.DPAD_UP.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_DPAD_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.DPAD_UP.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_DPAD_PORTRAIT_Y).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.TRIGGER_L.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_L_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.TRIGGER_L.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_L_PORTRAIT_Y).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.TRIGGER_R.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_R_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.TRIGGER_R.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_R_PORTRAIT_Y).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_PLUS.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_PLUS_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_PLUS.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_PLUS_PORTRAIT_Y).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_MINUS.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_MINUS_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_MINUS.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_MINUS_PORTRAIT_Y).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_HOME.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_HOME_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_HOME.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_HOME_PORTRAIT_Y).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_CAPTURE.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_CAPTURE_PORTRAIT_X)
-                    .toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.BUTTON_CAPTURE.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_CAPTURE_PORTRAIT_Y)
-                    .toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.STICK_R.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_STICK_R_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.STICK_R.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_STICK_R_PORTRAIT_Y).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.STICK_L.toString() + "$portrait-X",
-                resources.getInteger(R.integer.SWITCH_STICK_L_PORTRAIT_X).toFloat() / 1000
-            )
-            .putFloat(
-                ButtonType.STICK_L.toString() + "$portrait-Y",
-                resources.getInteger(R.integer.SWITCH_STICK_L_PORTRAIT_Y).toFloat() / 1000
-            )
-            .apply()
+    private val landscapeResources = arrayOf(
+        R.integer.SWITCH_BUTTON_A_X,
+        R.integer.SWITCH_BUTTON_A_Y,
+        R.integer.SWITCH_BUTTON_B_X,
+        R.integer.SWITCH_BUTTON_B_Y,
+        R.integer.SWITCH_BUTTON_X_X,
+        R.integer.SWITCH_BUTTON_X_Y,
+        R.integer.SWITCH_BUTTON_Y_X,
+        R.integer.SWITCH_BUTTON_Y_Y,
+        R.integer.SWITCH_TRIGGER_ZL_X,
+        R.integer.SWITCH_TRIGGER_ZL_Y,
+        R.integer.SWITCH_TRIGGER_ZR_X,
+        R.integer.SWITCH_TRIGGER_ZR_Y,
+        R.integer.SWITCH_BUTTON_DPAD_X,
+        R.integer.SWITCH_BUTTON_DPAD_Y,
+        R.integer.SWITCH_TRIGGER_L_X,
+        R.integer.SWITCH_TRIGGER_L_Y,
+        R.integer.SWITCH_TRIGGER_R_X,
+        R.integer.SWITCH_TRIGGER_R_Y,
+        R.integer.SWITCH_BUTTON_PLUS_X,
+        R.integer.SWITCH_BUTTON_PLUS_Y,
+        R.integer.SWITCH_BUTTON_MINUS_X,
+        R.integer.SWITCH_BUTTON_MINUS_Y,
+        R.integer.SWITCH_BUTTON_HOME_X,
+        R.integer.SWITCH_BUTTON_HOME_Y,
+        R.integer.SWITCH_BUTTON_CAPTURE_X,
+        R.integer.SWITCH_BUTTON_CAPTURE_Y,
+        R.integer.SWITCH_STICK_R_X,
+        R.integer.SWITCH_STICK_R_Y,
+        R.integer.SWITCH_STICK_L_X,
+        R.integer.SWITCH_STICK_L_Y
+    )
+
+    private val portraitResources = arrayOf(
+        R.integer.SWITCH_BUTTON_A_PORTRAIT_X,
+        R.integer.SWITCH_BUTTON_A_PORTRAIT_Y,
+        R.integer.SWITCH_BUTTON_B_PORTRAIT_X,
+        R.integer.SWITCH_BUTTON_B_PORTRAIT_Y,
+        R.integer.SWITCH_BUTTON_X_PORTRAIT_X,
+        R.integer.SWITCH_BUTTON_X_PORTRAIT_Y,
+        R.integer.SWITCH_BUTTON_Y_PORTRAIT_X,
+        R.integer.SWITCH_BUTTON_Y_PORTRAIT_Y,
+        R.integer.SWITCH_TRIGGER_ZL_PORTRAIT_X,
+        R.integer.SWITCH_TRIGGER_ZL_PORTRAIT_Y,
+        R.integer.SWITCH_TRIGGER_ZR_PORTRAIT_X,
+        R.integer.SWITCH_TRIGGER_ZR_PORTRAIT_Y,
+        R.integer.SWITCH_BUTTON_DPAD_PORTRAIT_X,
+        R.integer.SWITCH_BUTTON_DPAD_PORTRAIT_Y,
+        R.integer.SWITCH_TRIGGER_L_PORTRAIT_X,
+        R.integer.SWITCH_TRIGGER_L_PORTRAIT_Y,
+        R.integer.SWITCH_TRIGGER_R_PORTRAIT_X,
+        R.integer.SWITCH_TRIGGER_R_PORTRAIT_Y,
+        R.integer.SWITCH_BUTTON_PLUS_PORTRAIT_X,
+        R.integer.SWITCH_BUTTON_PLUS_PORTRAIT_Y,
+        R.integer.SWITCH_BUTTON_MINUS_PORTRAIT_X,
+        R.integer.SWITCH_BUTTON_MINUS_PORTRAIT_Y,
+        R.integer.SWITCH_BUTTON_HOME_PORTRAIT_X,
+        R.integer.SWITCH_BUTTON_HOME_PORTRAIT_Y,
+        R.integer.SWITCH_BUTTON_CAPTURE_PORTRAIT_X,
+        R.integer.SWITCH_BUTTON_CAPTURE_PORTRAIT_Y,
+        R.integer.SWITCH_STICK_R_PORTRAIT_X,
+        R.integer.SWITCH_STICK_R_PORTRAIT_Y,
+        R.integer.SWITCH_STICK_L_PORTRAIT_X,
+        R.integer.SWITCH_STICK_L_PORTRAIT_Y
+    )
+
+    private val foldableResources = arrayOf(
+        R.integer.SWITCH_BUTTON_A_FOLDABLE_X,
+        R.integer.SWITCH_BUTTON_A_FOLDABLE_Y,
+        R.integer.SWITCH_BUTTON_B_FOLDABLE_X,
+        R.integer.SWITCH_BUTTON_B_FOLDABLE_Y,
+        R.integer.SWITCH_BUTTON_X_FOLDABLE_X,
+        R.integer.SWITCH_BUTTON_X_FOLDABLE_Y,
+        R.integer.SWITCH_BUTTON_Y_FOLDABLE_X,
+        R.integer.SWITCH_BUTTON_Y_FOLDABLE_Y,
+        R.integer.SWITCH_TRIGGER_ZL_FOLDABLE_X,
+        R.integer.SWITCH_TRIGGER_ZL_FOLDABLE_Y,
+        R.integer.SWITCH_TRIGGER_ZR_FOLDABLE_X,
+        R.integer.SWITCH_TRIGGER_ZR_FOLDABLE_Y,
+        R.integer.SWITCH_BUTTON_DPAD_FOLDABLE_X,
+        R.integer.SWITCH_BUTTON_DPAD_FOLDABLE_Y,
+        R.integer.SWITCH_TRIGGER_L_FOLDABLE_X,
+        R.integer.SWITCH_TRIGGER_L_FOLDABLE_Y,
+        R.integer.SWITCH_TRIGGER_R_FOLDABLE_X,
+        R.integer.SWITCH_TRIGGER_R_FOLDABLE_Y,
+        R.integer.SWITCH_BUTTON_PLUS_FOLDABLE_X,
+        R.integer.SWITCH_BUTTON_PLUS_FOLDABLE_Y,
+        R.integer.SWITCH_BUTTON_MINUS_FOLDABLE_X,
+        R.integer.SWITCH_BUTTON_MINUS_FOLDABLE_Y,
+        R.integer.SWITCH_BUTTON_HOME_FOLDABLE_X,
+        R.integer.SWITCH_BUTTON_HOME_FOLDABLE_Y,
+        R.integer.SWITCH_BUTTON_CAPTURE_FOLDABLE_X,
+        R.integer.SWITCH_BUTTON_CAPTURE_FOLDABLE_Y,
+        R.integer.SWITCH_STICK_R_FOLDABLE_X,
+        R.integer.SWITCH_STICK_R_FOLDABLE_Y,
+        R.integer.SWITCH_STICK_L_FOLDABLE_X,
+        R.integer.SWITCH_STICK_L_FOLDABLE_Y
+    )
+
+    private fun getResourceValue(descriptor: String, position: Int) : Float {
+        return when (descriptor) {
+            portrait -> resources.getInteger(portraitResources[position]).toFloat() / 1000
+            foldable -> resources.getInteger(foldableResources[position]).toFloat() / 1000
+            else -> resources.getInteger(landscapeResources[position]).toFloat() / 1000
+        }
     }
 
-    private fun defaultOverlayLandscape() {
+    private fun defaultOverlayByLayout(descriptor: String) {
         // Each value represents the position of the button in relation to the screen size without insets.
         preferences.edit()
             .putFloat(
-                ButtonType.BUTTON_A.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_A_X).toFloat() / 1000
+                ButtonType.BUTTON_A.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 0)
             )
             .putFloat(
-                ButtonType.BUTTON_A.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_A_Y).toFloat() / 1000
+                ButtonType.BUTTON_A.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 1)
             )
             .putFloat(
-                ButtonType.BUTTON_B.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_B_X).toFloat() / 1000
+                ButtonType.BUTTON_B.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 2)
             )
             .putFloat(
-                ButtonType.BUTTON_B.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_B_Y).toFloat() / 1000
+                ButtonType.BUTTON_B.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 3)
             )
             .putFloat(
-                ButtonType.BUTTON_X.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_X_X).toFloat() / 1000
+                ButtonType.BUTTON_X.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 4)
             )
             .putFloat(
-                ButtonType.BUTTON_X.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_X_Y).toFloat() / 1000
+                ButtonType.BUTTON_X.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 5)
             )
             .putFloat(
-                ButtonType.BUTTON_Y.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_Y_X).toFloat() / 1000
+                ButtonType.BUTTON_Y.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 6)
             )
             .putFloat(
-                ButtonType.BUTTON_Y.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_Y_Y).toFloat() / 1000
+                ButtonType.BUTTON_Y.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 7)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZL.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_ZL_X).toFloat() / 1000
+                ButtonType.TRIGGER_ZL.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 8)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZL.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_ZL_Y).toFloat() / 1000
+                ButtonType.TRIGGER_ZL.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 9)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZR.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_ZR_X).toFloat() / 1000
+                ButtonType.TRIGGER_ZR.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 10)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZR.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_ZR_Y).toFloat() / 1000
+                ButtonType.TRIGGER_ZR.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 11)
             )
             .putFloat(
-                ButtonType.DPAD_UP.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_DPAD_X).toFloat() / 1000
+                ButtonType.DPAD_UP.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 12)
             )
             .putFloat(
-                ButtonType.DPAD_UP.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_DPAD_Y).toFloat() / 1000
+                ButtonType.DPAD_UP.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 13)
             )
             .putFloat(
-                ButtonType.TRIGGER_L.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_L_X).toFloat() / 1000
+                ButtonType.TRIGGER_L.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 14)
             )
             .putFloat(
-                ButtonType.TRIGGER_L.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_L_Y).toFloat() / 1000
+                ButtonType.TRIGGER_L.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 15)
             )
             .putFloat(
-                ButtonType.TRIGGER_R.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_R_X).toFloat() / 1000
+                ButtonType.TRIGGER_R.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 16)
             )
             .putFloat(
-                ButtonType.TRIGGER_R.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_R_Y).toFloat() / 1000
+                ButtonType.TRIGGER_R.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 17)
             )
             .putFloat(
-                ButtonType.BUTTON_PLUS.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_PLUS_X).toFloat() / 1000
+                ButtonType.BUTTON_PLUS.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 18)
             )
             .putFloat(
-                ButtonType.BUTTON_PLUS.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_PLUS_Y).toFloat() / 1000
+                ButtonType.BUTTON_PLUS.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 19)
             )
             .putFloat(
-                ButtonType.BUTTON_MINUS.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_MINUS_X).toFloat() / 1000
+                ButtonType.BUTTON_MINUS.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 20)
             )
             .putFloat(
-                ButtonType.BUTTON_MINUS.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_MINUS_Y).toFloat() / 1000
+                ButtonType.BUTTON_MINUS.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 21)
             )
             .putFloat(
-                ButtonType.BUTTON_HOME.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_HOME_X).toFloat() / 1000
+                ButtonType.BUTTON_HOME.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 22)
             )
             .putFloat(
-                ButtonType.BUTTON_HOME.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_HOME_Y).toFloat() / 1000
+                ButtonType.BUTTON_HOME.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 23)
             )
             .putFloat(
-                ButtonType.BUTTON_CAPTURE.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_CAPTURE_X)
-                    .toFloat() / 1000
+                ButtonType.BUTTON_CAPTURE.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 24)
             )
             .putFloat(
-                ButtonType.BUTTON_CAPTURE.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_CAPTURE_Y)
-                    .toFloat() / 1000
+                ButtonType.BUTTON_CAPTURE.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 25)
             )
             .putFloat(
-                ButtonType.STICK_R.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_STICK_R_X).toFloat() / 1000
+                ButtonType.STICK_R.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 26)
             )
             .putFloat(
-                ButtonType.STICK_R.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_STICK_R_Y).toFloat() / 1000
+                ButtonType.STICK_R.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 27)
             )
             .putFloat(
-                ButtonType.STICK_L.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_STICK_L_X).toFloat() / 1000
+                ButtonType.STICK_L.toString() + "$descriptor-X",
+                getResourceValue(descriptor, 28)
             )
             .putFloat(
-                ButtonType.STICK_L.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_STICK_L_Y).toFloat() / 1000
+                ButtonType.STICK_L.toString() + "$descriptor-Y",
+                getResourceValue(descriptor, 29)
             )
             .apply()
     }
@@ -835,18 +806,29 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
-        orientation =
-            if (newConfig?.orientation == Configuration.ORIENTATION_PORTRAIT)
+        if (!isInFoldableLayout) {
+            orientation = if (newConfig?.orientation == Configuration.ORIENTATION_PORTRAIT)
                 portrait
             else
                 ""
+        }
     }
+
+    var isInFoldableLayout : Boolean = false
+        set(value) {
+            if (value)
+                orientation = foldable
+            else
+                onConfigurationChanged(resources.configuration)
+            field = value
+        }
 
     companion object {
         private val preferences: SharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
         private const val portrait = "-Portrait"
+        private const val foldable = "-Foldable"
         private var orientation = ""
 
         /**
