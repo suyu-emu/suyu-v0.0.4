@@ -223,6 +223,7 @@ add_library(shader_recompiler STATIC
     ir_opt/identity_removal_pass.cpp
     ir_opt/layer_pass.cpp
     ir_opt/lower_fp16_to_fp32.cpp
+    ir_opt/lower_fp64_to_fp32.cpp
     ir_opt/lower_int64_to_int32.cpp
     ir_opt/passes.h
     ir_opt/position_pass.cpp

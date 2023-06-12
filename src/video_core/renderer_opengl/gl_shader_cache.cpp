@@ -232,6 +232,7 @@ ShaderCache::ShaderCache(RasterizerOpenGL& rasterizer_, Core::Frontend::EmuWindo
           .gl_max_compute_smem_size = device.GetMaxComputeSharedMemorySize(),
       },
       host_info{
+          .support_float64 = true,
           .support_float16 = false,
           .support_int64 = device.HasShaderInt64(),
           .needs_demote_reorder = device.IsAmd(),

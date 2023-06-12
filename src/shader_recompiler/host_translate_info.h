@@ -10,6 +10,7 @@ namespace Shader {
 
 /// Misc information about the host
 struct HostTranslateInfo {
+    bool support_float64{};      ///< True when the device supports 64-bit floats
     bool support_float16{};      ///< True when the device supports 16-bit floats
     bool support_int64{};        ///< True when the device supports 64-bit integers
     bool needs_demote_reorder{}; ///< True when the device needs DemoteToHelperInvocation reordered
