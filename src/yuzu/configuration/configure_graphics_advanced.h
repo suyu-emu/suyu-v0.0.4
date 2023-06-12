@@ -48,6 +48,7 @@ private:
     ConfigurationShared::CheckState use_vulkan_driver_pipeline_cache;
     ConfigurationShared::CheckState enable_compute_pipelines;
     ConfigurationShared::CheckState use_video_framerate;
+    ConfigurationShared::CheckState use_aggressive_anisotropic_filtering;
 
     const Core::System& system;
 };

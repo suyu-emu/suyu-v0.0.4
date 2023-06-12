@@ -260,6 +260,19 @@ Compute pipelines are always enabled on all other drivers.</string>
           </layout>
          </widget>
         </item>
+        <item>
+         <widget class="QCheckBox" name="use_aggressive_anisotropic_filtering">
+          <property name="toolTip">
+           <string>Enable this option for a more aggressive approach to applying Anisotropic Filtering to textures.
+By toggling this, Anisotropic Filtering is added to textures with both nearest and linear mipmapping modes.
+This may result in improved visual quality for a wider range of textures, but can also introduce artifacts in
+some titles.</string>
+          </property>
+          <property name="text">
+           <string>Apply Anisotropic Filtering for all mipmap modes</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
