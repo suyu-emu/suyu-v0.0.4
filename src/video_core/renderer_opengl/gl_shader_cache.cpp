@@ -239,6 +239,7 @@ ShaderCache::ShaderCache(RasterizerOpenGL& rasterizer_, Core::Frontend::EmuWindo
           .support_snorm_render_buffer = false,
           .support_viewport_index_layer = device.HasVertexViewportLayer(),
           .support_geometry_shader_passthrough = device.HasGeometryShaderPassthrough(),
+          .support_conditional_barrier = device.SupportsConditionalBarriers(),
       } {
     if (use_asynchronous_shaders) {
         workers = CreateWorkers();

@@ -18,6 +18,8 @@ struct HostTranslateInfo {
     bool support_viewport_index_layer{}; ///< True when the device supports gl_Layer in VS
     bool support_geometry_shader_passthrough{}; ///< True when the device supports geometry
                                                 ///< passthrough shaders
+    bool support_conditional_barrier{}; ///< True when the device supports barriers in conditional
+                                        ///< control flow
 };
 
 } // namespace Shader

@@ -188,6 +188,10 @@ public:
         return strict_context_required;
     }
 
+    bool SupportsConditionalBarriers() const {
+        return supports_conditional_barriers;
+    }
+
 private:
     static bool TestVariableAoffi();
     static bool TestPreciseBug();
@@ -233,6 +237,7 @@ private:
     bool has_bool_ref_bug{};
     bool can_report_memory{};
     bool strict_context_required{};
+    bool supports_conditional_barriers{};
 
     std::string vendor_name;
 };

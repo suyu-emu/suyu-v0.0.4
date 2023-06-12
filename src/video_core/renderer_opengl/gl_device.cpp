@@ -201,6 +201,7 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
     use_asynchronous_shaders = Settings::values.use_asynchronous_shaders.GetValue() &&
                                !(is_amd || (is_intel && !is_linux)) && !strict_context_required;
     use_driver_cache = is_nvidia;
+    supports_conditional_barriers = !is_intel;
 
     LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
     LOG_INFO(Render_OpenGL, "Renderer_ComponentIndexingBug: {}", has_component_indexing_bug);
