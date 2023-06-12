@@ -394,8 +394,6 @@ void ConfigureGraphics::ApplyConfiguration() {
         Settings::values.vsync_mode.SetValue(vsync_mode);
     }
 
-    Settings::values.shader_backend.SetGlobal(true);
-    Settings::values.vulkan_device.SetGlobal(true);
     if (Settings::IsConfiguringGlobal() ||
         (!Settings::IsConfiguringGlobal() && api_restore_global_button->isEnabled())) {
         auto backend = static_cast<Settings::RendererBackend>(
@@ -404,12 +402,12 @@ void ConfigureGraphics::ApplyConfiguration() {
                 .first);
         switch (backend) {
         case Settings::RendererBackend::OpenGL:
-            Settings::values.shader_backend.SetGlobal(false);
+            Settings::values.shader_backend.SetGlobal(Settings::IsConfiguringGlobal());
             Settings::values.shader_backend.SetValue(static_cast<Settings::ShaderBackend>(
                 shader_mapping[shader_backend_combobox->currentIndex()].first));
             break;
         case Settings::RendererBackend::Vulkan:
-            Settings::values.vulkan_device.SetGlobal(false);
+            Settings::values.vulkan_device.SetGlobal(Settings::IsConfiguringGlobal());
             Settings::values.vulkan_device.SetValue(vulkan_device_combobox->currentIndex());
             break;
         case Settings::RendererBackend::Null:
