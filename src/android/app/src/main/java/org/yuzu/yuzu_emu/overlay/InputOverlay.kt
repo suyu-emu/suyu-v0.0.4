@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.overlay
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
@@ -16,14 +15,12 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.VectorDrawable
 import android.os.Build
 import android.util.AttributeSet
-import android.util.Rational
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.SurfaceView
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.WindowInsets
-import android.view.WindowManager
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import androidx.window.layout.WindowMetricsCalculator
@@ -36,7 +33,6 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 /**
  * Draws the interactive input overlay on top of the
@@ -236,11 +232,6 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         val pointerIndex = event.actionIndex
         val fingerPositionX = event.getX(pointerIndex).toInt()
         val fingerPositionY = event.getY(pointerIndex).toInt()
-
-        val orientation = if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
-            "-Portrait"
-        else
-            ""
 
         for (button in overlayButtons) {
             // Determine the button state to apply based on the MotionEvent action flag.
@@ -538,10 +529,6 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         overlayButtons.clear()
         overlayDpads.clear()
         overlayJoysticks.clear()
-        val orientation = if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
-            "-Portrait"
-        else
-            ""
 
         // Add all the enabled overlay items back to the HashSet.
         if (EmulationMenuSettings.showOverlay) {
@@ -566,7 +553,10 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
     private fun defaultOverlay() {
         if (!preferences.getBoolean(Settings.PREF_OVERLAY_INIT, false)) {
-            defaultOverlayLandscape()
+            if (orientation == portrait)
+                defaultOverlayPortrait()
+            else
+                defaultOverlayLandscape()
         }
 
         resetButtonPlacement()
@@ -576,8 +566,139 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
     }
 
     fun resetButtonPlacement() {
-        defaultOverlayLandscape()
+        if (orientation == portrait)
+            defaultOverlayPortrait()
+        else
+            defaultOverlayLandscape()
         refreshControls()
+    }
+
+    private fun defaultOverlayPortrait() {
+        // Each value represents the position of the button in relation to the screen size without insets.
+        preferences.edit()
+            .putFloat(
+                ButtonType.BUTTON_A.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_BUTTON_A_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_A.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_BUTTON_A_PORTRAIT_Y).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_B.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_BUTTON_B_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_B.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_BUTTON_B_PORTRAIT_Y).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_X.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_BUTTON_X_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_X.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_BUTTON_X_PORTRAIT_Y).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_Y.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_BUTTON_Y_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_Y.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_BUTTON_Y_PORTRAIT_Y).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.TRIGGER_ZL.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_TRIGGER_ZL_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.TRIGGER_ZL.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_TRIGGER_ZL_PORTRAIT_Y).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.TRIGGER_ZR.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_TRIGGER_ZR_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.TRIGGER_ZR.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_TRIGGER_ZR_PORTRAIT_Y).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.DPAD_UP.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_BUTTON_DPAD_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.DPAD_UP.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_BUTTON_DPAD_PORTRAIT_Y).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.TRIGGER_L.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_TRIGGER_L_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.TRIGGER_L.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_TRIGGER_L_PORTRAIT_Y).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.TRIGGER_R.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_TRIGGER_R_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.TRIGGER_R.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_TRIGGER_R_PORTRAIT_Y).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_PLUS.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_BUTTON_PLUS_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_PLUS.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_BUTTON_PLUS_PORTRAIT_Y).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_MINUS.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_BUTTON_MINUS_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_MINUS.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_BUTTON_MINUS_PORTRAIT_Y).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_HOME.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_BUTTON_HOME_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_HOME.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_BUTTON_HOME_PORTRAIT_Y).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_CAPTURE.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_BUTTON_CAPTURE_PORTRAIT_X)
+                    .toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.BUTTON_CAPTURE.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_BUTTON_CAPTURE_PORTRAIT_Y)
+                    .toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.STICK_R.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_STICK_R_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.STICK_R.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_STICK_R_PORTRAIT_Y).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.STICK_L.toString() + "$portrait-X",
+                resources.getInteger(R.integer.SWITCH_STICK_L_PORTRAIT_X).toFloat() / 1000
+            )
+            .putFloat(
+                ButtonType.STICK_L.toString() + "$portrait-Y",
+                resources.getInteger(R.integer.SWITCH_STICK_L_PORTRAIT_Y).toFloat() / 1000
+            )
+            .apply()
     }
 
     private fun defaultOverlayLandscape() {
@@ -712,9 +833,21 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         return inEditMode
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        orientation =
+            if (newConfig?.orientation == Configuration.ORIENTATION_PORTRAIT)
+                portrait
+            else
+                ""
+    }
+
     companion object {
         private val preferences: SharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+
+        private const val portrait = "-Portrait"
+        private var orientation = ""
 
         /**
          * Resizes a [Bitmap] by a given scale factor

@@ -39,7 +39,7 @@
                 android:id="@+id/surface_input_overlay"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_gravity="bottom"
+                android:layout_gravity="center"
                 android:focusable="true"
                 android:focusableInTouchMode="true" />
 
@@ -72,7 +72,7 @@
         android:id="@+id/in_game_menu"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_gravity="start"
+        android:layout_gravity="start|bottom"
         app:headerLayout="@layout/header_in_game"
         app:menu="@menu/menu_in_game" />
 

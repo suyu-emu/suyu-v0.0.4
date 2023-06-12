@@ -334,6 +334,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     // Prevent touch regions from being displayed in the hinge
                     binding.overlayContainer.layoutParams.height = it.bounds.bottom - 48.toPx
                     binding.overlayContainer.updatePadding(0, 0, 0, 24.toPx)
+                    binding.inGameMenu.layoutParams.height = it.bounds.bottom
+                    refreshInputOverlay()
                 }
             }
             it.isSeparating
@@ -342,10 +344,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             binding.emulationContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.overlayContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.overlayContainer.updatePadding(0, 0, 0, 0)
+            binding.inGameMenu.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             updateScreenLayout()
         }
         binding.emulationContainer.requestLayout()
         binding.overlayContainer.requestLayout()
+        binding.inGameMenu.requestLayout()
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
