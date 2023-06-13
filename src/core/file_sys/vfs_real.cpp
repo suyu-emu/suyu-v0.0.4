@@ -81,6 +81,10 @@ VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
         }
     }
 
+    if (!FS::Exists(path) || !FS::IsFile(path)) {
+        return nullptr;
+    }
+
     auto reference = std::make_unique<FileReference>();
     this->InsertReferenceIntoList(*reference);
 
