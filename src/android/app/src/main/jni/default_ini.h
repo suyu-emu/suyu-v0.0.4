@@ -251,7 +251,7 @@ backend =
 # 0: Off, 1 (default): On
 async_presentation =
 
-# Enable graphics API debugging mode.
+# Forces the GPU to run at the maximum possible clocks (thermal constraints will still be applied).
 # 0 (default): Disabled, 1: Enabled
 force_max_clock =
 

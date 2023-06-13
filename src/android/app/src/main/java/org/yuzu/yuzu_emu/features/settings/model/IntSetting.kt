@@ -26,7 +26,7 @@ enum class IntSetting(
     RENDERER_FORCE_MAX_CLOCK(
         "force_max_clock",
         Settings.SECTION_RENDERER,
-        1
+        0
     ),
     RENDERER_ASYNCHRONOUS_SHADERS(
         "use_asynchronous_shaders",
