@@ -327,8 +327,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         onConfigurationChanged(resources.configuration)
     }
 
-    private val Number.toPx get() = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this.toFloat(), Resources.getSystem().displayMetrics).toInt()
-
     private fun updateFoldableLayout(emulationActivity: EmulationActivity, newLayoutInfo: WindowLayoutInfo) {
         val isFolding = (newLayoutInfo.displayFeatures.find { it is FoldingFeature } as? FoldingFeature)?.let {
             if (it.isSeparating) {
@@ -336,8 +334,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 if (it.orientation == FoldingFeature.Orientation.HORIZONTAL) {
                     binding.emulationContainer.layoutParams.height = it.bounds.top
                     // Prevent touch regions from being displayed in the hinge
-                    binding.overlayContainer.layoutParams.height = it.bounds.bottom - 48.toPx
-                    binding.overlayContainer.updatePadding(0, 0, 0, 24.toPx)
+                    binding.overlayContainer.layoutParams.height = it.bounds.bottom
                     binding.inGameMenu.layoutParams.height = it.bounds.bottom
                     isInFoldableLayout = true
                     binding.surfaceInputOverlay.setOrientation(InputOverlay.FOLDABLE)
@@ -349,7 +346,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         if (!isFolding) {
             binding.emulationContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.overlayContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-            binding.overlayContainer.updatePadding(0, 0, 0, 0)
             binding.inGameMenu.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             isInFoldableLayout = false
             updateScreenLayout()
