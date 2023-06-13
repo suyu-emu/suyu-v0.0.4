@@ -61,11 +61,6 @@
     <string name="invalid_keys_file">Ugyldig nøkkelfil valgt</string>
     <string name="install_keys_success">Nøkler vellykket installert</string>
     <string name="reading_keys_failure">Feil ved lesing av krypteringsnøkler</string>
-    <string name="install_keys_failure_extension_description">
-        1. Kontroller at nøklene har filtypen .keys.\n\n
-        2. Nøkler må ikke lagres i nedlastingsmappen.\n\n
-        Løs problemet/problemene og prøv igjen.
-    </string>
     <string name="invalid_keys_error">Ugyldige krypteringsnøkler</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">Den valgte filen er feil eller ødelagt. Vennligst dump nøklene på nytt.</string>
@@ -184,7 +179,6 @@
     <string name="installing_driver">Installerer driver...</string>
 
     <!-- Preferences Screen -->
-    <string name="preferences_advanced_settings">Avanserte innstillinger</string>
     <string name="preferences_settings">Innstillinger</string>
     <string name="preferences_general">Generelt</string>
     <string name="preferences_system">System</string>
@@ -238,7 +232,6 @@
     <string name="performance_warning">Hvis du slår av denne innstillingen, reduseres emuleringsytelsen betydelig! Vi anbefaler at du lar denne innstillingen være aktivert for å få den beste opplevelsen.</string>
 
     <!-- Region Names -->
-    <string name="region_auto">Automatisk valg</string>
     <string name="region_japan">Japan</string>
     <string name="region_usa">USA</string>
     <string name="region_europe">Europa</string>
@@ -311,7 +304,6 @@
     <string name="ratio_stretch">Strekk til Vindu</string>
 
     <!-- CPU Accuracy -->
-    <string name="cpu_accuracy_auto">Auto</string>
     <string name="cpu_accuracy_accurate">Nøyaktig</string>
     <string name="cpu_accuracy_unsafe">Utrygt</string>
     <string name="cpu_accuracy_paranoid">Paranoid (Langsom)</string>

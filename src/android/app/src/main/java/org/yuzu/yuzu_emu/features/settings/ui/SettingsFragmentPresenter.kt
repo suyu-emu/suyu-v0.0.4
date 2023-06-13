@@ -321,6 +321,15 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     IntSetting.RENDERER_ASYNCHRONOUS_SHADERS.defaultValue
                 )
             )
+            add(
+                SwitchSetting(
+                    IntSetting.RENDERER_REACTIVE_FLUSHING,
+                    R.string.renderer_reactive_flushing,
+                    R.string.renderer_reactive_flushing_description,
+                    IntSetting.RENDERER_REACTIVE_FLUSHING.key,
+                    IntSetting.RENDERER_REACTIVE_FLUSHING.defaultValue
+                )
+            )
         }
     }
 

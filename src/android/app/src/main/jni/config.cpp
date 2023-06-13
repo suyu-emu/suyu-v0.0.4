@@ -235,9 +235,13 @@ void Config::ReadValues() {
     Settings::values.async_presentation =
         config->GetBoolean("Renderer", "async_presentation", true);
 
-    // Enable force_max_clock by default on Android
+    // Disable force_max_clock by default on Android
     Settings::values.renderer_force_max_clock =
-        config->GetBoolean("Renderer", "force_max_clock", true);
+        config->GetBoolean("Renderer", "force_max_clock", false);
+
+    // Disable use_reactive_flushing by default on Android
+    Settings::values.use_reactive_flushing =
+        config->GetBoolean("Renderer", "use_reactive_flushing", false);
 
     // Audio
     ReadSetting("Audio", Settings::values.sink_id);

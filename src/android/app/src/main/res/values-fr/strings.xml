@@ -61,11 +61,6 @@
     <string name="invalid_keys_file">Fichier de clés sélectionné invalide</string>
     <string name="install_keys_success">Clés installées avec succès</string>
     <string name="reading_keys_failure">Erreur lors de la lecture des clés de chiffrement</string>
-    <string name="install_keys_failure_extension_description">
-        1. Vérifiez que vos clés ont l\'extension .keys.\n\n
-        2. Les clés ne doivent pas être stockées dans le      dossier Téléchargements.\n\n
-        Résolvez le(s) problème(s) et réessayez.
-    </string>
     <string name="invalid_keys_error">Clés de chiffrement invalides</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">Le fichier sélectionné est incorrect ou corrompu. Veuillez dumper à nouveau vos clés.</string>
@@ -184,7 +179,6 @@
     <string name="installing_driver">Installation du pilote...</string>
 
     <!-- Preferences Screen -->
-    <string name="preferences_advanced_settings">Paramètres avancés</string>
     <string name="preferences_settings">Paramètres</string>
     <string name="preferences_general">Général</string>
     <string name="preferences_system">Système</string>
@@ -238,7 +232,6 @@
     <string name="performance_warning">La désactivation de ce paramètre réduira considérablement les performances d\'émulation ! Pour une expérience optimale, il est recommandé de laisser ce paramètre activé.</string>
 
     <!-- Region Names -->
-    <string name="region_auto">Sélection automatique</string>
     <string name="region_japan">Japon</string>
     <string name="region_usa">É.-U.A.</string>
     <string name="region_europe">Europe</string>
@@ -311,7 +304,6 @@
     <string name="ratio_stretch">Étirer à la fenêtre</string>
 
     <!-- CPU Accuracy -->
-    <string name="cpu_accuracy_auto">Auto</string>
     <string name="cpu_accuracy_accurate">Précis</string>
     <string name="cpu_accuracy_unsafe">Risqué</string>
     <string name="cpu_accuracy_paranoid">Paranoïaque (Lent)</string>

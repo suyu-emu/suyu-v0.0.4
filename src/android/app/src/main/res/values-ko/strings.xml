@@ -61,11 +61,6 @@
     <string name="invalid_keys_file">잘못된 keys 파일 선택</string>
     <string name="install_keys_success">keys가 성공적으로 설치됨</string>
     <string name="reading_keys_failure">암호화 keys 읽기 오류</string>
-    <string name="install_keys_failure_extension_description">
-1. keys의 확장자가 .keys인지 확인하세요.\n\n
-2. keys는 다운로드 폴더에 저장하면 안 됩니다.\n\n
-문제를 해결하고 다시 시도하세요.
-</string>
     <string name="invalid_keys_error">잘못된 암호화 keys</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">선택한 파일이 잘못되었거나 손상되었습니다. keys를 다시 덤프하세요.</string>
@@ -184,7 +179,6 @@
     <string name="installing_driver">드라이버 설치 중...</string>
 
     <!-- Preferences Screen -->
-    <string name="preferences_advanced_settings">고급 설정</string>
     <string name="preferences_settings">설정</string>
     <string name="preferences_general">일반</string>
     <string name="preferences_system">시스템</string>
@@ -238,7 +232,6 @@
     <string name="performance_warning">이 설정을 끄면 에뮬레이션 성능이 크게 저하됩니다! 최상의 환경을 위해 이 설정을 활성화된 상태로 두는 것이 좋습니다.</string>
 
     <!-- Region Names -->
-    <string name="region_auto">자동 선택</string>
     <string name="region_japan">일본</string>
     <string name="region_usa">미국</string>
     <string name="region_europe">유럽</string>
@@ -311,7 +304,6 @@
     <string name="ratio_stretch">창에 맞게 늘림</string>
 
     <!-- CPU Accuracy -->
-    <string name="cpu_accuracy_auto">자동</string>
     <string name="cpu_accuracy_accurate">정확함</string>
     <string name="cpu_accuracy_unsafe">안전하지 않음</string>
     <string name="cpu_accuracy_paranoid">편집증 (느림)</string>

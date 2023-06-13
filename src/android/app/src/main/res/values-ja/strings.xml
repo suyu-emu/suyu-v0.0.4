@@ -60,11 +60,6 @@
     <string name="invalid_keys_file">無効なキーファイルが選択されました</string>
     <string name="install_keys_success">正常にインストールされました</string>
     <string name="reading_keys_failure">暗号化キーの読み取りエラー</string>
-    <string name="install_keys_failure_extension_description">
-        1. キーの拡張子が .keys であることを確認します。\n\n
-        2. キーはダウンロードフォルダに保存しないでください。\n\n
-        問題を解決して、再度お試しください。
-    </string>
     <string name="invalid_keys_error">暗号化キーが無効です</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">選択されたファイルが不正または破損しています。キーを再ダンプしてください。</string>
@@ -183,7 +178,6 @@
     <string name="installing_driver">インストール中…</string>
 
     <!-- Preferences Screen -->
-    <string name="preferences_advanced_settings">詳細設定</string>
     <string name="preferences_settings">設定</string>
     <string name="preferences_general">全般</string>
     <string name="preferences_system">システム</string>
@@ -236,7 +230,6 @@
     <string name="performance_warning">この設定をオフにすると、エミュレーションのパフォーマンスが著しく低下します！最高の体験を得るためには、この設定を有効にしておくことをお勧めします。</string>
 
     <!-- Region Names -->
-    <string name="region_auto">自動選択</string>
     <string name="region_japan">日本</string>
     <string name="region_usa">アメリカ</string>
     <string name="region_europe">ヨーロッパ</string>
@@ -309,7 +302,6 @@
     <string name="ratio_stretch">ウィンドウに合わせる</string>
 
     <!-- CPU Accuracy -->
-    <string name="cpu_accuracy_auto">自動</string>
     <string name="cpu_accuracy_accurate">正確</string>
     <string name="cpu_accuracy_unsafe">不安定</string>
     <string name="cpu_accuracy_paranoid">パラノイド (低速)</string>

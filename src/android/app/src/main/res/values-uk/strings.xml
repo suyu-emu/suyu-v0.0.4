@@ -61,11 +61,6 @@
     <string name="invalid_keys_file">Вибрано неправильний файл ключів</string>
     <string name="install_keys_success">Ключі успішно встановлено</string>
     <string name="reading_keys_failure">Помилка під час зчитування ключів шифрування</string>
-    <string name="install_keys_failure_extension_description">
-        1. Переконайтеся, що ваші ключі мають розширення .keys\n\n
-        2. Ключі не повинні знаходитися в папці Downloads.\n\n
-        Виправте проблему(-и) та спробуйте ще раз.
-    </string>
     <string name="invalid_keys_error">Невірні ключі шифрування</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">Обраний файл невірний або пошкоджений. Будь ласка, пере-дампіть ваші ключі.</string>
@@ -184,7 +179,6 @@
     <string name="installing_driver">Встановлення драйвера...</string>
 
     <!-- Preferences Screen -->
-    <string name="preferences_advanced_settings">Розширені налаштування</string>
     <string name="preferences_settings">Налаштування</string>
     <string name="preferences_general">Загальні</string>
     <string name="preferences_system">Система</string>
@@ -238,7 +232,6 @@
     <string name="performance_warning">Вимкнення цього налаштування значно знизить продуктивність емуляції! Для досягнення найкращих результатів рекомендується залишити це налаштування увімкненим.</string>
 
     <!-- Region Names -->
-    <string name="region_auto">Авто-вибір</string>
     <string name="region_japan">Японія</string>
     <string name="region_usa">США</string>
     <string name="region_europe">Європа</string>
@@ -311,7 +304,6 @@
     <string name="ratio_stretch">Розтягнути до вікна</string>
 
     <!-- CPU Accuracy -->
-    <string name="cpu_accuracy_auto">Авто</string>
     <string name="cpu_accuracy_accurate">Точно</string>
     <string name="cpu_accuracy_unsafe">Небезпечно</string>
     <string name="cpu_accuracy_paranoid">Параноїк (повільно)</string>

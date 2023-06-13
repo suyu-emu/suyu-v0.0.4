@@ -26,10 +26,15 @@ enum class IntSetting(
     RENDERER_FORCE_MAX_CLOCK(
         "force_max_clock",
         Settings.SECTION_RENDERER,
-        1
+        0
     ),
     RENDERER_ASYNCHRONOUS_SHADERS(
         "use_asynchronous_shaders",
+        Settings.SECTION_RENDERER,
+        0
+    ),
+    RENDERER_REACTIVE_FLUSHING(
+        "use_reactive_flushing",
         Settings.SECTION_RENDERER,
         0
     ),

@@ -251,7 +251,7 @@ backend =
 # 0: Off, 1 (default): On
 async_presentation =
 
-# Enable graphics API debugging mode.
+# Forces the GPU to run at the maximum possible clocks (thermal constraints will still be applied).
 # 0 (default): Disabled, 1: Enabled
 force_max_clock =
 
@@ -327,6 +327,10 @@ shader_backend =
 # Whether to allow asynchronous shader building.
 # 0 (default): Off, 1: On
 use_asynchronous_shaders =
+
+# Uses reactive flushing instead of predictive flushing. Allowing a more accurate syncing of memory.
+# 0 (default): Off, 1: On
+use_reactive_flushing =
 
 # NVDEC emulation.
 # 0: Disabled, 1: CPU Decoding, 2 (default): GPU Decoding
