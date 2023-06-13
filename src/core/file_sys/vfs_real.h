@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <map>
 #include <string_view>
 #include "common/intrusive_list.h"
 #include "core/file_sys/mode.h"
@@ -41,6 +42,7 @@ public:
 
 private:
     using ReferenceListType = Common::IntrusiveListBaseTraits<FileReference>::ListType;
+    std::map<std::string, std::weak_ptr<VfsFile>, std::less<>> cache;
     ReferenceListType open_references;
     ReferenceListType closed_references;
     size_t num_open_files{};

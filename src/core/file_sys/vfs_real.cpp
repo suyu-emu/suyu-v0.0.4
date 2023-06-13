@@ -75,14 +75,26 @@ VfsEntryType RealVfsFilesystem::GetEntryType(std::string_view path_) const {
 VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
 
+    if (auto it = cache.find(path); it != cache.end()) {
+        if (auto file = it->second.lock(); file) {
+            return file;
+        }
+    }
+
     auto reference = std::make_unique<FileReference>();
     this->InsertReferenceIntoList(*reference);
 
-    return std::shared_ptr<RealVfsFile>(new RealVfsFile(*this, std::move(reference), path, perms));
+    auto file =
+        std::shared_ptr<RealVfsFile>(new RealVfsFile(*this, std::move(reference), path, perms));
+    cache[path] = file;
+
+    return file;
 }
 
 VirtualFile RealVfsFilesystem::CreateFile(std::string_view path_, Mode perms) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
+    cache.erase(path);
+
     // Current usages of CreateFile expect to delete the contents of an existing file.
     if (FS::IsFile(path)) {
         FS::IOFile temp{path, FS::FileAccessMode::Write, FS::FileType::BinaryFile};
@@ -111,6 +123,8 @@ VirtualFile RealVfsFilesystem::CopyFile(std::string_view old_path_, std::string_
 VirtualFile RealVfsFilesystem::MoveFile(std::string_view old_path_, std::string_view new_path_) {
     const auto old_path = FS::SanitizePath(old_path_, FS::DirectorySeparator::PlatformDefault);
     const auto new_path = FS::SanitizePath(new_path_, FS::DirectorySeparator::PlatformDefault);
+    cache.erase(old_path);
+    cache.erase(new_path);
     if (!FS::RenameFile(old_path, new_path)) {
         return nullptr;
     }
@@ -119,6 +133,7 @@ VirtualFile RealVfsFilesystem::MoveFile(std::string_view old_path_, std::string_
 
 bool RealVfsFilesystem::DeleteFile(std::string_view path_) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
+    cache.erase(path);
     return FS::RemoveFile(path);
 }
 
