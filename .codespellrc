@@ -2,5 +2,5 @@
 ; SPDX-License-Identifier: GPL-2.0-or-later
 
 [codespell]
-skip = ./.git,./build,./dist,./Doxyfile,./externals,./LICENSES
+skip = ./.git,./build,./dist,./Doxyfile,./externals,./LICENSES,./src/android/app/src/main/res
 ignore-words-list = aci,allright,ba,deques,froms,hda,inout,lod,masia,nam,nax,nd,optin,pullrequests,pullrequest,te,transfered,unstall,uscaled,zink
