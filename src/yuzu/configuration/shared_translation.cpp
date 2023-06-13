@@ -39,7 +39,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
 
     // Cpu
     INSERT(Settings, cpu_accuracy, "Accuracy:", "");
-    INSERT(Settings, cpu_accuracy_first_time, "", "");
 
     // Cpu Debug
 

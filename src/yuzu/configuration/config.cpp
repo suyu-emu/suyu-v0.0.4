@@ -635,11 +635,6 @@ void Config::ReadCpuValues() {
     ReadCategory(Settings::Category::CpuDebug);
     ReadCategory(Settings::Category::CpuUnsafe);
 
-    if (Settings::values.cpu_accuracy_first_time) {
-        Settings::values.cpu_accuracy.SetValue(Settings::values.cpu_accuracy.GetDefault());
-        Settings::values.cpu_accuracy_first_time.SetValue(false);
-    }
-
     qt_config->endGroup();
 }
 

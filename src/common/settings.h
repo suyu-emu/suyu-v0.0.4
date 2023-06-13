@@ -146,8 +146,6 @@ struct Values {
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage,           CpuAccuracy::Auto,
                                                       CpuAccuracy::Auto, CpuAccuracy::Paranoid,
                                                       "cpu_accuracy",    Category::Cpu};
-    // TODO: remove cpu_accuracy_first_time, migration setting added 8 July 2021
-    Setting<bool> cpu_accuracy_first_time{linkage, true, "cpu_accuracy_first_time", Category::Cpu};
     Setting<bool> cpu_debug_mode{linkage, false, "cpu_debug_mode", Category::CpuDebug};
 
     Setting<bool> cpuopt_page_tables{linkage, true, "cpuopt_page_tables", Category::CpuDebug};
