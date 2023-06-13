@@ -176,7 +176,6 @@
     <string name="installing_driver">Treiber wird installiert...</string>
 
     <!-- Preferences Screen -->
-    <string name="preferences_advanced_settings">Erweiterte Einstellungen</string>
     <string name="preferences_settings">Einstellungen</string>
     <string name="preferences_general">Allgemein</string>
     <string name="preferences_system">System</string>
@@ -228,7 +227,6 @@
     <string name="performance_warning">Das Deaktivieren dieser Einstellung führt zu erheblichen Leistungsverlusten! Für ein optimales Erlebnis wird empfohlen, sie aktiviert zu lassen.</string>
 
     <!-- Region Names -->
-    <string name="region_auto">Automatisch auswählen</string>
     <string name="region_japan">Japan</string>
     <string name="region_usa">USA</string>
     <string name="region_europe">Europa</string>
@@ -301,7 +299,6 @@
     <string name="ratio_stretch">Auf Fenster anpassen</string>
 
     <!-- CPU Accuracy -->
-    <string name="cpu_accuracy_auto">Auto</string>
     <string name="cpu_accuracy_accurate">Akkurat</string>
     <string name="cpu_accuracy_unsafe">Unsicher</string>
     <string name="cpu_accuracy_paranoid">Paranoid (Langsam)</string>

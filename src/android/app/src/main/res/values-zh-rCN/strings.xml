@@ -61,11 +61,6 @@
     <string name="invalid_keys_file">选择的密钥文件无效</string>
     <string name="install_keys_success">密钥文件已成功安装</string>
     <string name="reading_keys_failure">读取加密密钥时出错</string>
-    <string name="install_keys_failure_extension_description">
-        1. 验证您的密钥文件是否具有 .keys 扩展名。\n\n
-        2. 密钥文件不能放置于 Downloads 文件夹。\n\n
-        解决问题并再试一次。
-    </string>
     <string name="invalid_keys_error">无效的加密密钥</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">选择的密钥文件不正确或已损坏。请重新转储密钥文件。</string>
@@ -184,7 +179,6 @@
     <string name="installing_driver">正在安装驱动程序…</string>
 
     <!-- Preferences Screen -->
-    <string name="preferences_advanced_settings">高级选项</string>
     <string name="preferences_settings">设置</string>
     <string name="preferences_general">通用</string>
     <string name="preferences_system">系统</string>
@@ -238,7 +232,6 @@
     <string name="performance_warning">关闭此项会显著降低模拟性能！建议您将此项保持为启用状态。</string>
 
     <!-- Region Names -->
-    <string name="region_auto">自动选择</string>
     <string name="region_japan">日本</string>
     <string name="region_usa">美国</string>
     <string name="region_europe">欧洲</string>
@@ -311,7 +304,6 @@
     <string name="ratio_stretch">拉伸窗口</string>
 
     <!-- CPU Accuracy -->
-    <string name="cpu_accuracy_auto">自动</string>
     <string name="cpu_accuracy_accurate">高精度</string>
     <string name="cpu_accuracy_unsafe">低精度</string>
     <string name="cpu_accuracy_paranoid">偏执模式 (慢速)</string>

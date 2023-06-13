@@ -61,11 +61,6 @@
     <string name="invalid_keys_file">Ficheiro de chaves inválido</string>
     <string name="install_keys_success">Chaves instaladas com sucesso</string>
     <string name="reading_keys_failure">Erro ao ler chaves de encriptação</string>
-    <string name="install_keys_failure_extension_description">
-        1. Verifica se as tuas chaves têm a extensão .keys.\n\n
-        2. As Chaves não podem estar gravadas na pasta Transferências.\n\n
-        Resolve esta(s) questões e tenta novamente.
-    </string>
     <string name="invalid_keys_error">Chaves de encriptação inválidas</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">O ficheiro selecionado está corrompido. Por favor recarrega as tuas chaves.</string>
@@ -184,7 +179,6 @@
     <string name="installing_driver">A instalar o Driver...</string>
 
     <!-- Preferences Screen -->
-    <string name="preferences_advanced_settings">Configurações avançadas</string>
     <string name="preferences_settings">Configurações</string>
     <string name="preferences_general">Geral</string>
     <string name="preferences_system">Sistema</string>
@@ -238,7 +232,6 @@
     <string name="performance_warning">Desligar esta configuração irá reduzir a performance da emulação significantemente! Para a melhor experiência é recomendado que deixes esta configuração ativada.</string>
 
     <!-- Region Names -->
-    <string name="region_auto">Autosseleção</string>
     <string name="region_japan">Japão</string>
     <string name="region_usa">EUA</string>
     <string name="region_europe">Europa</string>
@@ -311,7 +304,6 @@
     <string name="ratio_stretch">Esticar à Janela</string>
 
     <!-- CPU Accuracy -->
-    <string name="cpu_accuracy_auto">Automático</string>
     <string name="cpu_accuracy_accurate">Preciso</string>
     <string name="cpu_accuracy_unsafe">Inseguro</string>
     <string name="cpu_accuracy_paranoid">Paranoid (Lento)</string>
