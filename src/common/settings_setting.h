@@ -198,6 +198,10 @@ public:
         return this->ToString(maximum);
     }
 
+    constexpr bool Ranged() const override {
+        return ranged;
+    }
+
 protected:
     Type value{};               ///< The setting
     const Type default_value{}; ///< The default value
