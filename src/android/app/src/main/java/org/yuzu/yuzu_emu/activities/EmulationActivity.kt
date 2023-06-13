@@ -271,8 +271,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         val pictureInPictureActions : MutableList<RemoteAction> = mutableListOf()
         val pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
-        val isEmulationPaused = emulationFragment?.isEmulationStatePaused() ?: false
-        if (isEmulationPaused) {
+        if (NativeLibrary.isPaused()) {
             val playIcon = Icon.createWithResource(this@EmulationActivity, R.drawable.ic_pip_play)
             val playPendingIntent = PendingIntent.getBroadcast(
                 this@EmulationActivity, R.drawable.ic_pip_play, Intent(actionPlay), pendingFlags
@@ -303,9 +302,9 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private var pictureInPictureReceiver = object : BroadcastReceiver() {
         override fun onReceive(context : Context?, intent : Intent) {
             if (intent.action == actionPlay) {
-                emulationFragment?.onPictureInPicturePlay()
+                if (NativeLibrary.isPaused()) NativeLibrary.unPauseEmulation()
             } else if (intent.action == actionPause) {
-                emulationFragment?.onPictureInPicturePause()
+                if (!NativeLibrary.isPaused()) NativeLibrary.pauseEmulation()
             }
             buildPictureInPictureParams()
         }
@@ -320,12 +319,10 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             }.also {
                 registerReceiver(pictureInPictureReceiver, it)
             }
-            emulationFragment?.onPictureInPictureEnter()
         } else {
             try {
                 unregisterReceiver(pictureInPictureReceiver)
             } catch (ignored : Exception) { }
-            emulationFragment?.onPictureInPictureLeave()
         }
     }
 

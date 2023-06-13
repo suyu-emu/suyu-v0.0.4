@@ -77,6 +77,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             emulationActivity = context
             NativeLibrary.setEmulationActivity(context)
 
+            lifecycleScope.launch(Dispatchers.Main) {
+                lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    WindowInfoTracker.getOrCreate(context)
+                        .windowLayoutInfo(context)
+                        .collect { updateFoldableLayout(context, it) }
+                }
+            }
+
             onReturnFromSettings = context.activityResultRegistry.register(
                 "SettingsResult", ActivityResultContracts.StartActivityForResult()
             ) {
@@ -198,14 +206,28 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        if (!isInFoldableLayout) {
-            if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                binding.surfaceInputOverlay.setOrientation(InputOverlay.PORTRAIT)
-            } else {
-                binding.surfaceInputOverlay.setOrientation(InputOverlay.LANDSCAPE)
+        if (emulationActivity?.isInPictureInPictureMode == true) {
+            if (binding.drawerLayout.isOpen) {
+                binding.drawerLayout.close()
+            }
+            if (EmulationMenuSettings.showOverlay) {
+                binding.surfaceInputOverlay.post { binding.surfaceInputOverlay.isVisible = false }
+            }
+        } else {
+            if (EmulationMenuSettings.showOverlay) {
+                binding.surfaceInputOverlay.post { binding.surfaceInputOverlay.isVisible = true }
+            }
+            if (!isInFoldableLayout) {
+                if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    binding.surfaceInputOverlay.setOrientation(InputOverlay.PORTRAIT)
+                } else {
+                    binding.surfaceInputOverlay.setOrientation(InputOverlay.LANDSCAPE)
+                }
+            }
+            if (!binding.surfaceInputOverlay.isInEditMode) {
+                refreshInputOverlay()
             }
         }
-        if (!binding.surfaceInputOverlay.isInEditMode) refreshInputOverlay()
     }
 
     override fun onResume() {
@@ -245,37 +267,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     override fun onDetach() {
         NativeLibrary.clearEmulationActivity()
         super.onDetach()
-    }
-
-    fun isEmulationStatePaused() : Boolean {
-        return this::emulationState.isInitialized && emulationState.isPaused
-    }
-
-    fun onPictureInPictureEnter() {
-        if (binding.drawerLayout.isOpen) {
-            binding.drawerLayout.close()
-        }
-        if (EmulationMenuSettings.showOverlay) {
-            binding.surfaceInputOverlay.post { binding.surfaceInputOverlay.isVisible = false }
-        }
-    }
-
-    fun onPictureInPicturePause() {
-        if (!emulationState.isPaused) {
-            emulationState.pause()
-        }
-    }
-
-    fun onPictureInPicturePlay() {
-        if (emulationState.isPaused) {
-            emulationState.run(false)
-        }
-    }
-
-    fun onPictureInPictureLeave() {
-        if (EmulationMenuSettings.showOverlay) {
-            binding.surfaceInputOverlay.post { binding.surfaceInputOverlay.isVisible = true }
-        }
     }
 
     private fun refreshInputOverlay() {
@@ -338,7 +329,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     private val Number.toPx get() = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this.toFloat(), Resources.getSystem().displayMetrics).toInt()
 
-    fun updateFoldableLayout(emulationActivity: EmulationActivity, newLayoutInfo: WindowLayoutInfo) {
+    private fun updateFoldableLayout(emulationActivity: EmulationActivity, newLayoutInfo: WindowLayoutInfo) {
         val isFolding = (newLayoutInfo.displayFeatures.find { it is FoldingFeature } as? FoldingFeature)?.let {
             if (it.isSeparating) {
                 emulationActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED

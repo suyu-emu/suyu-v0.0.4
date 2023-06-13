@@ -202,6 +202,11 @@ public:
         return m_is_running;
     }
 
+    bool IsPaused() const {
+        std::scoped_lock lock(m_mutex);
+        return m_is_running && m_is_paused;
+    }
+
     const Core::PerfStatsResults& PerfStats() const {
         std::scoped_lock m_perf_stats_lock(m_perf_stats_mutex);
         return m_perf_stats;
@@ -287,11 +292,13 @@ public:
     void PauseEmulation() {
         std::scoped_lock lock(m_mutex);
         m_system.Pause();
+        m_is_paused = true;
     }
 
     void UnPauseEmulation() {
         std::scoped_lock lock(m_mutex);
         m_system.Run();
+        m_is_paused = false;
     }
 
     void HaltEmulation() {
@@ -473,6 +480,7 @@ private:
     std::shared_ptr<FileSys::VfsFilesystem> m_vfs;
     Core::SystemResultStatus m_load_result{Core::SystemResultStatus::ErrorNotInitialized};
     bool m_is_running{};
+    bool m_is_paused{};
     SoftwareKeyboard::AndroidKeyboard* m_software_keyboard{};
     std::unique_ptr<Service::Account::ProfileManager> m_profile_manager;
 
@@ -581,6 +589,11 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_resetRomMetadata([[maybe_unused]] JNI
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isRunning([[maybe_unused]] JNIEnv* env,
                                                          [[maybe_unused]] jclass clazz) {
     return static_cast<jboolean>(EmulationSession::GetInstance().IsRunning());
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isPaused([[maybe_unused]] JNIEnv* env,
+                                                        [[maybe_unused]] jclass clazz) {
+    return static_cast<jboolean>(EmulationSession::GetInstance().IsPaused());
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isHandheldOnly([[maybe_unused]] JNIEnv* env,

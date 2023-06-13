@@ -283,6 +283,11 @@ object NativeLibrary {
     external fun isRunning(): Boolean
 
     /**
+     * Returns true if emulation is paused.
+     */
+    external fun isPaused(): Boolean
+
+    /**
      * Returns the performance stats for the current game
      */
     external fun getPerfStats(): DoubleArray
