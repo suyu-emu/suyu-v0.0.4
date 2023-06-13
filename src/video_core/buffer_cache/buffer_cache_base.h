@@ -105,8 +105,9 @@ static constexpr Binding NULL_BINDING{
     .buffer_id = NULL_BUFFER_ID,
 };
 
+template <typename Buffer>
 struct HostBindings {
-    boost::container::small_vector<void*, NUM_VERTEX_BUFFERS> buffers;
+    boost::container::small_vector<Buffer*, NUM_VERTEX_BUFFERS> buffers;
     boost::container::small_vector<u64, NUM_VERTEX_BUFFERS> offsets;
     boost::container::small_vector<u64, NUM_VERTEX_BUFFERS> sizes;
     boost::container::small_vector<u64, NUM_VERTEX_BUFFERS> strides;

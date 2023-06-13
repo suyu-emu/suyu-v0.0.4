@@ -232,12 +232,12 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, Buffer& buffer, u32 offset,
     }
 }
 
-void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings& bindings) {
-    for (u32 index = 0; index < bindings.buffers.size(); index++) {
-        BindVertexBuffer(
-            bindings.min_index + index, *reinterpret_cast<Buffer*>(bindings.buffers[index]),
-            static_cast<u32>(bindings.offsets[index]), static_cast<u32>(bindings.sizes[index]),
-            static_cast<u32>(bindings.strides[index]));
+void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings) {
+    for (u32 index = 0; index < bindings.buffers.size(); ++index) {
+        BindVertexBuffer(bindings.min_index + index, *bindings.buffers[index],
+                         static_cast<u32>(bindings.offsets[index]),
+                         static_cast<u32>(bindings.sizes[index]),
+                         static_cast<u32>(bindings.strides[index]));
     }
 }
 
@@ -329,10 +329,9 @@ void BufferCacheRuntime::BindTransformFeedbackBuffer(u32 index, Buffer& buffer, 
                       static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size));
 }
 
-void BufferCacheRuntime::BindTransformFeedbackBuffers(VideoCommon::HostBindings& bindings) {
-    for (u32 index = 0; index < bindings.buffers.size(); index++) {
-        glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index,
-                          reinterpret_cast<Buffer*>(bindings.buffers[index])->Handle(),
+void BufferCacheRuntime::BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings) {
+    for (u32 index = 0; index < bindings.buffers.size(); ++index) {
+        glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index, bindings.buffers[index]->Handle(),
                           static_cast<GLintptr>(bindings.offsets[index]),
                           static_cast<GLsizeiptr>(bindings.sizes[index]));
     }
