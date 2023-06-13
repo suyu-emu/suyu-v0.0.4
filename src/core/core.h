@@ -412,11 +412,11 @@ public:
     /// Register a host thread as an auxiliary thread.
     void RegisterHostThread();
 
-    /// Enter Dynarmic Microprofile
-    void EnterDynarmicProfile();
+    /// Enter CPU Microprofile
+    void EnterCPUProfile();
 
-    /// Exit Dynarmic Microprofile
-    void ExitDynarmicProfile();
+    /// Exit CPU Microprofile
+    void ExitCPUProfile();
 
     /// Tells if system is running on multicore.
     [[nodiscard]] bool IsMulticore() const;

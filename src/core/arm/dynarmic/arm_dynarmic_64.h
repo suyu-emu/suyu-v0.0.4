@@ -43,8 +43,11 @@ public:
     void SetTPIDR_EL0(u64 value) override;
     u64 GetTPIDR_EL0() const override;
 
-    void SaveContext(ThreadContext32& ctx) override {}
-    void SaveContext(ThreadContext64& ctx) override;
+    Architecture GetArchitecture() const override {
+        return Architecture::Aarch64;
+    }
+    void SaveContext(ThreadContext32& ctx) const override {}
+    void SaveContext(ThreadContext64& ctx) const override;
     void LoadContext(const ThreadContext32& ctx) override {}
     void LoadContext(const ThreadContext64& ctx) override;
 
@@ -57,14 +60,9 @@ public:
     void PageTableChanged(Common::PageTable& new_page_table,
                           std::size_t new_address_space_size_in_bits) override;
 
-    static std::vector<BacktraceEntry> GetBacktraceFromContext(System& system,
-                                                               const ThreadContext64& ctx);
-
-    std::vector<BacktraceEntry> GetBacktrace() const override;
-
 protected:
-    Dynarmic::HaltReason RunJit() override;
-    Dynarmic::HaltReason StepJit() override;
+    HaltReason RunJit() override;
+    HaltReason StepJit() override;
     u32 GetSvcNumber() const override;
     const Kernel::DebugWatchpoint* HaltedWatchpoint() const override;
     void RewindBreakpointInstruction() override;
@@ -72,8 +70,6 @@ protected:
 private:
     std::shared_ptr<Dynarmic::A64::Jit> MakeJit(Common::PageTable* page_table,
                                                 std::size_t address_space_bits) const;
-
-    static std::vector<BacktraceEntry> GetBacktrace(Core::System& system, u64 fp, u64 lr, u64 pc);
 
     using JitCacheKey = std::pair<Common::PageTable*, std::size_t>;
     using JitCacheType =

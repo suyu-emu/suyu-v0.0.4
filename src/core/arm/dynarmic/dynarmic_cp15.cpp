@@ -4,7 +4,7 @@
 #include <fmt/format.h>
 #include "common/logging/log.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
-#include "core/arm/dynarmic/arm_dynarmic_cp15.h"
+#include "core/arm/dynarmic/dynarmic_cp15.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 
