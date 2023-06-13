@@ -63,7 +63,6 @@ SWITCHABLE(u8, true);
 #undef SWITCHABLE
 
 Values values;
-static bool configuring_global = true;
 
 std::string GetTimeZoneString() {
     const auto time_zone_index = static_cast<std::size_t>(values.time_zone_index.GetValue());
@@ -129,14 +128,6 @@ void LogSettings() {
     log_path("DataStorage_LoadDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::LoadDir));
     log_path("DataStorage_NANDDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir));
     log_path("DataStorage_SDMCDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::SDMCDir));
-}
-
-bool IsConfiguringGlobal() {
-    return configuring_global;
-}
-
-void SetConfiguringGlobal(bool is_global) {
-    configuring_global = is_global;
 }
 
 bool IsGPULevelExtreme() {

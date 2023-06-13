@@ -450,9 +450,6 @@ struct Values {
 
 extern Values values;
 
-bool IsConfiguringGlobal();
-void SetConfiguringGlobal(bool is_global);
-
 bool IsGPULevelExtreme();
 bool IsGPULevelHigh();
 

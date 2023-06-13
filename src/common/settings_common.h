@@ -43,6 +43,9 @@ enum class Category : u32 {
     MaxEnum,
 };
 
+bool IsConfiguringGlobal();
+void SetConfiguringGlobal(bool is_global);
+
 class BasicSetting;
 
 class Linkage {
