@@ -61,10 +61,8 @@ public:
 
     void SetupTimeZoneManager(std::string location_name,
                               Clock::SteadyClockTimePoint time_zone_updated_time_point,
-                              std::size_t total_location_name_count, u128 time_zone_rule_version,
+                              std::vector<std::string> location_names, u128 time_zone_rule_version,
                               FileSys::VirtualFile& vfs_file);
-
-    static s64 GetExternalTimeZoneOffset();
 
 private:
     Core::System& system;

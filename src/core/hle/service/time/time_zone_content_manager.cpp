@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <chrono>
 #include <sstream>
 
 #include "common/logging/log.h"
@@ -12,7 +13,11 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/system_archive/system_archive.h"
+#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs_types.h"
+#include "core/hle/result.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "core/hle/service/time/errors.h"
 #include "core/hle/service/time/time_manager.h"
 #include "core/hle/service/time/time_zone_content_manager.h"
 
@@ -71,19 +76,13 @@ TimeZoneContentManager::TimeZoneContentManager(Core::System& system_)
     : system{system_}, location_name_cache{BuildLocationNameCache(system)} {}
 
 void TimeZoneContentManager::Initialize(TimeManager& time_manager) {
-    std::string location_name;
     const auto timezone_setting = Settings::GetTimeZoneString();
-    if (timezone_setting == "auto" || timezone_setting == "default") {
-        location_name = Common::TimeZone::GetDefaultTimeZone();
-    } else {
-        location_name = timezone_setting;
-    }
 
     if (FileSys::VirtualFile vfs_file;
-        GetTimeZoneInfoFile(location_name, vfs_file) == ResultSuccess) {
+        GetTimeZoneInfoFile(timezone_setting, vfs_file) == ResultSuccess) {
         const auto time_point{
             time_manager.GetStandardSteadyClockCore().GetCurrentTimePoint(system)};
-        time_manager.SetupTimeZoneManager(location_name, time_point, location_name_cache.size(), {},
+        time_manager.SetupTimeZoneManager(timezone_setting, time_point, location_name_cache, {},
                                           vfs_file);
     } else {
         time_zone_manager.MarkAsInitialized();
@@ -126,8 +125,15 @@ Result TimeZoneContentManager::GetTimeZoneInfoFile(const std::string& location_n
 
     vfs_file = zoneinfo_dir->GetFileRelative(location_name);
     if (!vfs_file) {
-        LOG_ERROR(Service_Time, "{:016X} has no file \"{}\"! Using default timezone.",
-                  time_zone_binary_titleid, location_name);
+        LOG_WARNING(Service_Time, "{:016X} has no file \"{}\"! Using system timezone.",
+                    time_zone_binary_titleid, location_name);
+        const std::string system_time_zone{Common::TimeZone::FindSystemTimeZone()};
+        vfs_file = zoneinfo_dir->GetFile(system_time_zone);
+    }
+
+    if (!vfs_file) {
+        LOG_WARNING(Service_Time, "{:016X} has no file \"{}\"! Using default timezone.",
+                    time_zone_binary_titleid, location_name);
         vfs_file = zoneinfo_dir->GetFile(Common::TimeZone::GetDefaultTimeZone());
     }
 

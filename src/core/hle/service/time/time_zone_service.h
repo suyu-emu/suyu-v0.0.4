@@ -22,6 +22,9 @@ public:
 
 private:
     void GetDeviceLocationName(HLERequestContext& ctx);
+    void GetTotalLocationNameCount(HLERequestContext& ctx);
+    void LoadLocationNameList(HLERequestContext& ctx);
+    void GetTimeZoneRuleVersion(HLERequestContext& ctx);
     void LoadTimeZoneRule(HLERequestContext& ctx);
     void ToCalendarTime(HLERequestContext& ctx);
     void ToCalendarTimeWithMyRule(HLERequestContext& ctx);

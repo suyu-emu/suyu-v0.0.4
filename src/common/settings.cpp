@@ -1,12 +1,16 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#if __cpp_lib_chrono >= 201907L
+#include <chrono>
+#endif
 #include <string_view>
 
 #include "common/assert.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
+#include "common/time_zone.h"
 
 namespace Settings {
 
@@ -14,18 +18,23 @@ Values values;
 static bool configuring_global = true;
 
 std::string GetTimeZoneString() {
-    static constexpr std::array timezones{
-        "auto",      "default",   "CET", "CST6CDT", "Cuba",    "EET",    "Egypt",     "Eire",
-        "EST",       "EST5EDT",   "GB",  "GB-Eire", "GMT",     "GMT+0",  "GMT-0",     "GMT0",
-        "Greenwich", "Hongkong",  "HST", "Iceland", "Iran",    "Israel", "Jamaica",   "Japan",
-        "Kwajalein", "Libya",     "MET", "MST",     "MST7MDT", "Navajo", "NZ",        "NZ-CHAT",
-        "Poland",    "Portugal",  "PRC", "PST8PDT", "ROC",     "ROK",    "Singapore", "Turkey",
-        "UCT",       "Universal", "UTC", "W-SU",    "WET",     "Zulu",
-    };
-
     const auto time_zone_index = static_cast<std::size_t>(values.time_zone_index.GetValue());
-    ASSERT(time_zone_index < timezones.size());
-    return timezones[time_zone_index];
+    ASSERT(time_zone_index < Common::TimeZone::GetTimeZoneStrings().size());
+
+    std::string location_name;
+    if (time_zone_index == 0) { // Auto
+#if __cpp_lib_chrono >= 201907L
+        const struct std::chrono::tzdb& time_zone_data = std::chrono::get_tzdb();
+        const std::chrono::time_zone* current_zone = time_zone_data.current_zone();
+        std::string_view current_zone_name = current_zone->name();
+        location_name = current_zone_name;
+#else
+        location_name = Common::TimeZone::FindSystemTimeZone();
+#endif
+    } else {
+        location_name = Common::TimeZone::GetTimeZoneStrings()[time_zone_index];
+    }
+    return location_name;
 }
 
 void LogSettings() {

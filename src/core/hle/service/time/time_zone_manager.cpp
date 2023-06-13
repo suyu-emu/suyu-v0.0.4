@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <climits>
+#include <limits>
 
 #include "common/assert.h"
 #include "common/logging/log.h"
@@ -9,6 +10,7 @@
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/time/time_zone_manager.h"
+#include "core/hle/service/time/time_zone_types.h"
 
 namespace Service::Time::TimeZone {
 
@@ -128,10 +130,10 @@ static constexpr int GetQZName(const char* name, int offset, char delimiter) {
 }
 
 static constexpr int GetTZName(const char* name, int offset) {
-    for (char value{name[offset]};
-         value != '\0' && !IsDigit(value) && value != ',' && value != '-' && value != '+';
-         offset++) {
-        value = name[offset];
+    char c;
+
+    while ((c = name[offset]) != '\0' && !IsDigit(c) && c != ',' && c != '-' && c != '+') {
+        ++offset;
     }
     return offset;
 }
@@ -147,6 +149,7 @@ static constexpr bool GetInteger(const char* name, int& offset, int& value, int 
         if (value > max) {
             return {};
         }
+        offset++;
         temp = name[offset];
     } while (IsDigit(temp));
 
@@ -471,6 +474,13 @@ static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
                     their_std_offset = their_offset;
                 }
             }
+
+            if (rule.time_count > 0) {
+                UNIMPLEMENTED();
+                // TODO (lat9nq): Implement eggert/tz/localtime.c:tzparse:1329
+                // Seems to be unused in yuzu for now: I never hit the UNIMPLEMENTED in testing
+            }
+
             rule.ttis[0].gmt_offset = -std_offset;
             rule.ttis[0].is_dst = false;
             rule.ttis[0].abbreviation_list_index = 0;
@@ -514,6 +524,7 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
 
     constexpr s32 time_zone_max_leaps{50};
     constexpr s32 time_zone_max_chars{50};
+    constexpr s32 time_zone_max_times{1000};
     if (!(0 <= header.leap_count && header.leap_count < time_zone_max_leaps &&
           0 < header.type_count && header.type_count < s32(time_zone_rule.ttis.size()) &&
           0 <= header.time_count && header.time_count < s32(time_zone_rule.ats.size()) &&
@@ -546,7 +557,7 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
     for (int index{}; index < time_zone_rule.time_count; ++index) {
         const u8 type{*vfs_file->ReadByte(read_offset)};
         read_offset += sizeof(u8);
-        if (time_zone_rule.time_count <= type) {
+        if (time_zone_rule.type_count <= type) {
             return {};
         }
         if (time_zone_rule.types[index] != 0) {
@@ -624,16 +635,109 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
         std::array<char, time_zone_name_max> name{};
         std::memcpy(name.data(), temp_name.data() + 1, std::size_t(bytes_read - 1));
 
+        // Fill in computed transition times with temp rule
         TimeZoneRule temp_rule;
         if (ParsePosixName(name.data(), temp_rule)) {
-            UNIMPLEMENTED();
+            int have_abbreviation = 0;
+            int char_count = time_zone_rule.char_count;
+
+            for (int i = 0; i < temp_rule.type_count; i++) {
+                char* temp_abbreviation =
+                    temp_rule.chars.data() + temp_rule.ttis[i].abbreviation_list_index;
+                int j;
+                for (j = 0; j < char_count; j++) {
+                    if (std::strcmp(time_zone_rule.chars.data() + j, temp_abbreviation) == 0) {
+                        temp_rule.ttis[i].abbreviation_list_index = j;
+                        have_abbreviation++;
+                        break;
+                    }
+                }
+                if (j >= char_count) {
+                    int temp_abbreviation_length = static_cast<int>(std::strlen(temp_abbreviation));
+                    if (j + temp_abbreviation_length < time_zone_max_chars) {
+                        std::strcpy(time_zone_rule.chars.data() + j, temp_abbreviation);
+                        char_count = j + temp_abbreviation_length + 1;
+                        temp_rule.ttis[i].abbreviation_list_index = j;
+                        have_abbreviation++;
+                    }
+                }
+            }
+
+            if (have_abbreviation == temp_rule.type_count) {
+                time_zone_rule.char_count = char_count;
+
+                // Original comment:
+                /* Ignore any trailing, no-op transitions generated
+                   by zic as they don't help here and can run afoul
+                   of bugs in zic 2016j or earlier.  */
+                // This is possibly unnecessary for yuzu, since Nintendo doesn't run zic
+                while (1 < time_zone_rule.time_count &&
+                       (time_zone_rule.types[time_zone_rule.time_count - 1] ==
+                        time_zone_rule.types[time_zone_rule.time_count - 2])) {
+                    time_zone_rule.time_count--;
+                }
+
+                for (int i = 0;
+                     i < temp_rule.time_count && time_zone_rule.time_count < time_zone_max_times;
+                     i++) {
+                    const s64 transition_time = temp_rule.ats[i];
+                    if (0 < time_zone_rule.time_count &&
+                        transition_time <= time_zone_rule.ats[time_zone_rule.time_count - 1]) {
+                        continue;
+                    }
+
+                    time_zone_rule.ats[time_zone_rule.time_count] = transition_time;
+                    time_zone_rule.types[time_zone_rule.time_count] =
+                        static_cast<s8>(time_zone_rule.type_count + temp_rule.types[i]);
+                    time_zone_rule.time_count++;
+                }
+                for (int i = 0; i < temp_rule.type_count; i++) {
+                    time_zone_rule.ttis[time_zone_rule.type_count++] = temp_rule.ttis[i];
+                }
+            }
         }
     }
+
+    const auto typesequiv = [](TimeZoneRule& rule, int a, int b) -> bool {
+        if (a < 0 || a >= rule.type_count || b < 0 || b >= rule.type_count) {
+            return {};
+        }
+
+        const struct TimeTypeInfo* ap = &rule.ttis[a];
+        const struct TimeTypeInfo* bp = &rule.ttis[b];
+
+        return (ap->gmt_offset == bp->gmt_offset && ap->is_dst == bp->is_dst &&
+                (std::strcmp(&rule.chars[ap->abbreviation_list_index],
+                             &rule.chars[bp->abbreviation_list_index]) == 0));
+    };
+
     if (time_zone_rule.type_count == 0) {
         return {};
     }
     if (time_zone_rule.time_count > 1) {
-        UNIMPLEMENTED();
+        if (time_zone_rule.ats[0] <= std::numeric_limits<s64>::max() - seconds_per_repeat) {
+            s64 repeatat = time_zone_rule.ats[0] + seconds_per_repeat;
+            int repeatattype = time_zone_rule.types[0];
+            for (int i = 1; i < time_zone_rule.time_count; ++i) {
+                if (time_zone_rule.ats[i] == repeatat &&
+                    typesequiv(time_zone_rule, time_zone_rule.types[i], repeatattype)) {
+                    time_zone_rule.go_back = true;
+                    break;
+                }
+            }
+        }
+        if (std::numeric_limits<s64>::min() + seconds_per_repeat <=
+            time_zone_rule.ats[time_zone_rule.time_count - 1]) {
+            s64 repeatat = time_zone_rule.ats[time_zone_rule.time_count - 1] - seconds_per_repeat;
+            int repeatattype = time_zone_rule.types[time_zone_rule.time_count - 1];
+            for (int i = time_zone_rule.time_count; i >= 0; --i) {
+                if (time_zone_rule.ats[i] == repeatat &&
+                    typesequiv(time_zone_rule, time_zone_rule.types[i], repeatattype)) {
+                    time_zone_rule.go_ahead = true;
+                    break;
+                }
+            }
+        }
     }
 
     s32 default_type{};
@@ -1035,6 +1139,38 @@ Result TimeZoneManager::GetDeviceLocationName(LocationName& value) const {
         return ERROR_UNINITIALIZED_CLOCK;
     }
     std::memcpy(value.data(), device_location_name.c_str(), device_location_name.size());
+    return ResultSuccess;
+}
+
+Result TimeZoneManager::GetTotalLocationNameCount(s32& count) const {
+    if (!is_initialized) {
+        return ERROR_UNINITIALIZED_CLOCK;
+    }
+    count = static_cast<u32>(total_location_name_count);
+
+    return ResultSuccess;
+}
+
+Result TimeZoneManager::GetTimeZoneRuleVersion(u128& version) const {
+    if (!is_initialized) {
+        return ERROR_UNINITIALIZED_CLOCK;
+    }
+    version = time_zone_rule_version;
+
+    return ResultSuccess;
+}
+
+Result TimeZoneManager::LoadLocationNameList(std::vector<LocationName>& values) const {
+    if (!is_initialized) {
+        return ERROR_UNINITIALIZED_CLOCK;
+    }
+
+    for (const auto& name : total_location_names) {
+        LocationName entry{};
+        std::memcpy(entry.data(), name.c_str(), name.size());
+        values.push_back(entry);
+    }
+
     return ResultSuccess;
 }
 
