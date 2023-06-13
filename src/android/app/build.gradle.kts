@@ -44,16 +44,6 @@ android {
         jniLibs.useLegacyPackaging = true
     }
 
-    lint {
-        // This is important as it will run lint but not abort on error
-        // Lint has some overly obnoxious "errors" that should really be warnings
-        abortOnError = false
-
-        //Uncomment disable lines for test builds...
-        //disable 'MissingTranslation'bin
-        //disable 'ExtraTranslation'
-    }
-
     defaultConfig {
         // TODO If this is ever modified, change application_id in strings.xml
         applicationId = "org.yuzu.yuzu_emu"
