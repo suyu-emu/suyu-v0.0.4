@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import android.annotation.SuppressLint
+import kotlin.collections.setOf
 import org.jetbrains.kotlin.konan.properties.Properties
+import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 plugins {
     id("com.android.application")
@@ -10,6 +12,7 @@ plugins {
     id("kotlin-parcelize")
     kotlin("plugin.serialization") version "1.8.21"
     id("androidx.navigation.safeargs.kotlin")
+    id("org.jlleitschuh.gradle.ktlint") version "11.4.0"
 }
 
 /**
@@ -154,6 +157,23 @@ android {
                 abiFilters("arm64-v8a", "x86_64")
             }
         }
+    }
+}
+
+tasks.getByPath("preBuild").dependsOn("ktlintCheck")
+
+ktlint {
+    version.set("0.47.0")
+    android.set(true)
+    ignoreFailures.set(false)
+    disabledRules.set(
+        setOf(
+            "no-wildcard-imports",
+            "package-name"
+        )
+    )
+    reporters {
+        reporter(ReporterType.CHECKSTYLE)
     }
 }
 
