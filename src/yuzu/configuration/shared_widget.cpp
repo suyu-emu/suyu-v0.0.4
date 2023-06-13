@@ -4,10 +4,12 @@
 #include "yuzu/configuration/shared_widget.h"
 
 #include <functional>
+#include <limits>
 #include <typeindex>
 #include <typeinfo>
 #include <utility>
 #include <vector>
+
 #include <QAbstractButton>
 #include <QAbstractSlider>
 #include <QBoxLayout>
@@ -33,10 +35,10 @@
 #include <fmt/core.h>
 #include <qglobal.h>
 #include <qnamespace.h>
+
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "common/settings.h"
 #include "common/settings_common.h"
 #include "yuzu/configuration/shared_translation.h"
 
@@ -178,6 +180,12 @@ QWidget* Widget::CreateSlider(bool reversed, float multiplier, const QString& fo
                               std::function<std::string()>& serializer,
                               std::function<void()>& restore_func,
                               const std::function<void()>& touch) {
+    if (!setting.Ranged()) {
+        LOG_ERROR(Frontend, "\"{}\" is not a ranged setting, but a slider was requested.",
+                  setting.GetLabel());
+        return nullptr;
+    }
+
     QWidget* container = new QWidget(this);
     QHBoxLayout* layout = new QHBoxLayout(container);
 
@@ -220,8 +228,10 @@ QWidget* Widget::CreateSlider(bool reversed, float multiplier, const QString& fo
 QWidget* Widget::CreateSpinBox(const QString& suffix, std::function<std::string()>& serializer,
                                std::function<void()>& restore_func,
                                const std::function<void()>& touch) {
-    const int min_val = std::stoi(setting.MinVal());
-    const int max_val = std::stoi(setting.MaxVal());
+    const int min_val =
+        setting.Ranged() ? std::stoi(setting.MinVal()) : std::numeric_limits<int>::min();
+    const int max_val =
+        setting.Ranged() ? std::stoi(setting.MaxVal()) : std::numeric_limits<int>::max();
     const int default_val = std::stoi(setting.ToString());
 
     spinbox = new QSpinBox(this);
@@ -331,8 +341,10 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
         other_setting != nullptr && other_setting->TypeId() == typeid(bool);
 
     if (other_setting != nullptr && other_setting->TypeId() != typeid(bool)) {
-        LOG_WARNING(Frontend,
-                    "Extra setting specified but is not bool, refusing to create checkbox for it.");
+        LOG_WARNING(
+            Frontend,
+            "Extra setting \"{}\" specified but is not bool, refusing to create checkbox for it.",
+            other_setting->GetLabel());
     }
 
     std::function<std::string()> checkbox_serializer = []() -> std::string { return {}; };
@@ -348,7 +360,7 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
         restore_button = CreateRestoreGlobalButton(setting.UsingGlobal(), this);
 
         touch = [this]() {
-            LOG_DEBUG(Frontend, "Setting custom setting for {}", setting.GetLabel());
+            LOG_DEBUG(Frontend, "Enabling custom setting for \"{}\"", setting.GetLabel());
             restore_button->setEnabled(true);
             restore_button->setVisible(true);
         };
@@ -410,7 +422,7 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
     }
 
     if (data_component == nullptr) {
-        LOG_ERROR(Frontend, "Failed to create widget for {}", setting.GetLabel());
+        LOG_ERROR(Frontend, "Failed to create widget for \"{}\"", setting.GetLabel());
         created = false;
         return;
     }
