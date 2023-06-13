@@ -13,12 +13,10 @@
 #include "core/core.h"
 #include "core/debugger/debugger.h"
 #include "core/hle/kernel/k_process.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/svc.h"
 #include "core/loader/loader.h"
 #include "core/memory.h"
-
-#include "core/arm/dynarmic/arm_dynarmic_32.h"
-#include "core/arm/dynarmic/arm_dynarmic_64.h"
 
 namespace Core {
 
@@ -26,12 +24,57 @@ constexpr u64 SEGMENT_BASE = 0x7100000000ull;
 
 std::vector<ARM_Interface::BacktraceEntry> ARM_Interface::GetBacktraceFromContext(
     Core::System& system, const ARM_Interface::ThreadContext32& ctx) {
-    return ARM_Dynarmic_32::GetBacktraceFromContext(system, ctx);
+    std::vector<BacktraceEntry> out;
+    auto& memory = system.ApplicationMemory();
+
+    const auto& reg = ctx.cpu_registers;
+    u32 pc = reg[15], lr = reg[14], fp = reg[11];
+    out.push_back({"", 0, pc, 0, ""});
+
+    // fp (= r11) points to the last frame record.
+    // Frame records are two words long:
+    // fp+0 : pointer to previous frame record
+    // fp+4 : value of lr for frame
+    for (size_t i = 0; i < 256; i++) {
+        out.push_back({"", 0, lr, 0, ""});
+        if (!fp || (fp % 4 != 0) || !memory.IsValidVirtualAddressRange(fp, 8)) {
+            break;
+        }
+        lr = memory.Read32(fp + 4);
+        fp = memory.Read32(fp);
+    }
+
+    SymbolicateBacktrace(system, out);
+
+    return out;
 }
 
 std::vector<ARM_Interface::BacktraceEntry> ARM_Interface::GetBacktraceFromContext(
     Core::System& system, const ARM_Interface::ThreadContext64& ctx) {
-    return ARM_Dynarmic_64::GetBacktraceFromContext(system, ctx);
+    std::vector<BacktraceEntry> out;
+    auto& memory = system.ApplicationMemory();
+
+    const auto& reg = ctx.cpu_registers;
+    u64 pc = ctx.pc, lr = reg[30], fp = reg[29];
+
+    out.push_back({"", 0, pc, 0, ""});
+
+    // fp (= x29) points to the previous frame record.
+    // Frame records are two words long:
+    // fp+0 : pointer to previous frame record
+    // fp+8 : value of lr for frame
+    for (size_t i = 0; i < 256; i++) {
+        out.push_back({"", 0, lr, 0, ""});
+        if (!fp || (fp % 4 != 0) || !memory.IsValidVirtualAddressRange(fp, 16)) {
+            break;
+        }
+        lr = memory.Read64(fp + 8);
+        fp = memory.Read64(fp);
+    }
+
+    SymbolicateBacktrace(system, out);
+
+    return out;
 }
 
 void ARM_Interface::SymbolicateBacktrace(Core::System& system, std::vector<BacktraceEntry>& out) {
@@ -76,6 +119,18 @@ void ARM_Interface::SymbolicateBacktrace(Core::System& system, std::vector<Backt
     }
 }
 
+std::vector<ARM_Interface::BacktraceEntry> ARM_Interface::GetBacktrace() const {
+    if (GetArchitecture() == Architecture::Aarch64) {
+        ThreadContext64 ctx;
+        SaveContext(ctx);
+        return GetBacktraceFromContext(system, ctx);
+    } else {
+        ThreadContext32 ctx;
+        SaveContext(ctx);
+        return GetBacktraceFromContext(system, ctx);
+    }
+}
+
 void ARM_Interface::LogBacktrace() const {
     const VAddr sp = GetSP();
     const VAddr pc = GetPC();
@@ -83,7 +138,6 @@ void ARM_Interface::LogBacktrace() const {
     LOG_ERROR(Core_ARM, "{:20}{:20}{:20}{:20}{}", "Module Name", "Address", "Original Address",
               "Offset", "Symbol");
     LOG_ERROR(Core_ARM, "");
-
     const auto backtrace = GetBacktrace();
     for (const auto& entry : backtrace) {
         LOG_ERROR(Core_ARM, "{:20}{:016X}    {:016X}    {:016X}    {}", entry.module, entry.address,
@@ -97,7 +151,7 @@ void ARM_Interface::Run() {
 
     while (true) {
         Kernel::KThread* current_thread{Kernel::GetCurrentThreadPointer(system.Kernel())};
-        Dynarmic::HaltReason hr{};
+        HaltReason hr{};
 
         // Notify the debugger and go to sleep if a step was performed
         // and this thread has been scheduled again.
@@ -108,17 +162,17 @@ void ARM_Interface::Run() {
         }
 
         // Otherwise, run the thread.
-        system.EnterDynarmicProfile();
+        system.EnterCPUProfile();
         if (current_thread->GetStepState() == StepState::StepPending) {
             hr = StepJit();
 
-            if (Has(hr, step_thread)) {
+            if (True(hr & HaltReason::StepThread)) {
                 current_thread->SetStepState(StepState::StepPerformed);
             }
         } else {
             hr = RunJit();
         }
-        system.ExitDynarmicProfile();
+        system.ExitCPUProfile();
 
         // If the thread is scheduled for termination, exit the thread.
         if (current_thread->HasDpc()) {
@@ -130,8 +184,8 @@ void ARM_Interface::Run() {
 
         // Notify the debugger and go to sleep if a breakpoint was hit,
         // or if the thread is unable to continue for any reason.
-        if (Has(hr, breakpoint) || Has(hr, no_execute)) {
-            if (!Has(hr, no_execute)) {
+        if (True(hr & HaltReason::InstructionBreakpoint) || True(hr & HaltReason::PrefetchAbort)) {
+            if (!True(hr & HaltReason::InstructionBreakpoint)) {
                 RewindBreakpointInstruction();
             }
             if (system.DebuggerEnabled()) {
@@ -144,7 +198,7 @@ void ARM_Interface::Run() {
         }
 
         // Notify the debugger and go to sleep if a watchpoint was hit.
-        if (Has(hr, watchpoint)) {
+        if (True(hr & HaltReason::DataAbort)) {
             if (system.DebuggerEnabled()) {
                 system.GetDebugger().NotifyThreadWatchpoint(current_thread, *HaltedWatchpoint());
             }
@@ -153,11 +207,11 @@ void ARM_Interface::Run() {
         }
 
         // Handle syscalls and scheduling (this may change the current thread/core)
-        if (Has(hr, svc_call)) {
+        if (True(hr & HaltReason::SupervisorCall)) {
             Kernel::Svc::Call(system, GetSvcNumber());
             break;
         }
-        if (Has(hr, break_loop) || !uses_wall_clock) {
+        if (True(hr & HaltReason::BreakLoop) || !uses_wall_clock) {
             break;
         }
     }

@@ -10,9 +10,10 @@
 #include "common/logging/log.h"
 #include "common/page_table.h"
 #include "common/settings.h"
+#include "core/arm/dynarmic/arm_dynarmic.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
-#include "core/arm/dynarmic/arm_dynarmic_cp15.h"
-#include "core/arm/dynarmic/arm_exclusive_monitor.h"
+#include "core/arm/dynarmic/dynarmic_cp15.h"
+#include "core/arm/dynarmic/dynarmic_exclusive_monitor.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/debugger/debugger.h"
@@ -104,11 +105,11 @@ public:
         switch (exception) {
         case Dynarmic::A32::Exception::NoExecuteFault:
             LOG_CRITICAL(Core_ARM, "Cannot execute instruction at unmapped address {:#08x}", pc);
-            ReturnException(pc, ARM_Interface::no_execute);
+            ReturnException(pc, PrefetchAbort);
             return;
         default:
             if (debugger_enabled) {
-                ReturnException(pc, ARM_Interface::breakpoint);
+                ReturnException(pc, InstructionBreakpoint);
                 return;
             }
 
@@ -121,7 +122,7 @@ public:
 
     void CallSVC(u32 swi) override {
         parent.svc_swi = swi;
-        parent.jit.load()->HaltExecution(ARM_Interface::svc_call);
+        parent.jit.load()->HaltExecution(SupervisorCall);
     }
 
     void AddTicks(u64 ticks) override {
@@ -162,7 +163,7 @@ public:
         if (!memory.IsValidVirtualAddressRange(addr, size)) {
             LOG_CRITICAL(Core_ARM, "Stopping execution due to unmapped memory access at {:#x}",
                          addr);
-            parent.jit.load()->HaltExecution(ARM_Interface::no_execute);
+            parent.jit.load()->HaltExecution(PrefetchAbort);
             return false;
         }
 
@@ -173,7 +174,7 @@ public:
         const auto match{parent.MatchingWatchpoint(addr, size, type)};
         if (match) {
             parent.halted_watchpoint = match;
-            parent.jit.load()->HaltExecution(ARM_Interface::watchpoint);
+            parent.jit.load()->HaltExecution(DataAbort);
             return false;
         }
 
@@ -329,12 +330,12 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable* 
     return std::make_unique<Dynarmic::A32::Jit>(config);
 }
 
-Dynarmic::HaltReason ARM_Dynarmic_32::RunJit() {
-    return jit.load()->Run();
+HaltReason ARM_Dynarmic_32::RunJit() {
+    return TranslateHaltReason(jit.load()->Run());
 }
 
-Dynarmic::HaltReason ARM_Dynarmic_32::StepJit() {
-    return jit.load()->Step();
+HaltReason ARM_Dynarmic_32::StepJit() {
+    return TranslateHaltReason(jit.load()->Step());
 }
 
 u32 ARM_Dynarmic_32::GetSvcNumber() const {
@@ -408,7 +409,7 @@ void ARM_Dynarmic_32::SetTPIDR_EL0(u64 value) {
     cp15->uprw = static_cast<u32>(value);
 }
 
-void ARM_Dynarmic_32::SaveContext(ThreadContext32& ctx) {
+void ARM_Dynarmic_32::SaveContext(ThreadContext32& ctx) const {
     Dynarmic::A32::Jit* j = jit.load();
     ctx.cpu_registers = j->Regs();
     ctx.extension_registers = j->ExtRegs();
@@ -425,11 +426,11 @@ void ARM_Dynarmic_32::LoadContext(const ThreadContext32& ctx) {
 }
 
 void ARM_Dynarmic_32::SignalInterrupt() {
-    jit.load()->HaltExecution(break_loop);
+    jit.load()->HaltExecution(BreakLoop);
 }
 
 void ARM_Dynarmic_32::ClearInterrupt() {
-    jit.load()->ClearHalt(break_loop);
+    jit.load()->ClearHalt(BreakLoop);
 }
 
 void ARM_Dynarmic_32::ClearInstructionCache() {
@@ -460,41 +461,6 @@ void ARM_Dynarmic_32::PageTableChanged(Common::PageTable& page_table,
     jit.store(new_jit.get());
     LoadContext(ctx);
     jit_cache.emplace(key, std::move(new_jit));
-}
-
-std::vector<ARM_Interface::BacktraceEntry> ARM_Dynarmic_32::GetBacktrace(Core::System& system,
-                                                                         u64 fp, u64 lr, u64 pc) {
-    std::vector<BacktraceEntry> out;
-    auto& memory = system.ApplicationMemory();
-
-    out.push_back({"", 0, pc, 0, ""});
-
-    // fp (= r11) points to the last frame record.
-    // Frame records are two words long:
-    // fp+0 : pointer to previous frame record
-    // fp+4 : value of lr for frame
-    for (size_t i = 0; i < 256; i++) {
-        out.push_back({"", 0, lr, 0, ""});
-        if (!fp || (fp % 4 != 0) || !memory.IsValidVirtualAddressRange(fp, 8)) {
-            break;
-        }
-        lr = memory.Read32(fp + 4);
-        fp = memory.Read32(fp);
-    }
-
-    SymbolicateBacktrace(system, out);
-
-    return out;
-}
-
-std::vector<ARM_Interface::BacktraceEntry> ARM_Dynarmic_32::GetBacktraceFromContext(
-    System& system, const ThreadContext32& ctx) {
-    const auto& reg = ctx.cpu_registers;
-    return GetBacktrace(system, reg[11], reg[14], reg[15]);
-}
-
-std::vector<ARM_Interface::BacktraceEntry> ARM_Dynarmic_32::GetBacktrace() const {
-    return GetBacktrace(system, GetReg(11), GetReg(14), GetReg(15));
 }
 
 } // namespace Core

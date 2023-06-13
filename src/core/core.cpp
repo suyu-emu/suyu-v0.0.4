@@ -54,10 +54,10 @@
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
-MICROPROFILE_DEFINE(ARM_Jit_Dynarmic_CPU0, "ARM JIT", "Dynarmic CPU 0", MP_RGB(255, 64, 64));
-MICROPROFILE_DEFINE(ARM_Jit_Dynarmic_CPU1, "ARM JIT", "Dynarmic CPU 1", MP_RGB(255, 64, 64));
-MICROPROFILE_DEFINE(ARM_Jit_Dynarmic_CPU2, "ARM JIT", "Dynarmic CPU 2", MP_RGB(255, 64, 64));
-MICROPROFILE_DEFINE(ARM_Jit_Dynarmic_CPU3, "ARM JIT", "Dynarmic CPU 3", MP_RGB(255, 64, 64));
+MICROPROFILE_DEFINE(ARM_CPU0, "ARM", "CPU 0", MP_RGB(255, 64, 64));
+MICROPROFILE_DEFINE(ARM_CPU1, "ARM", "CPU 1", MP_RGB(255, 64, 64));
+MICROPROFILE_DEFINE(ARM_CPU2, "ARM", "CPU 2", MP_RGB(255, 64, 64));
+MICROPROFILE_DEFINE(ARM_CPU3, "ARM", "CPU 3", MP_RGB(255, 64, 64));
 
 namespace Core {
 
@@ -259,10 +259,10 @@ struct System::Impl {
         is_powered_on = true;
         exit_lock = false;
 
-        microprofile_dynarmic[0] = MICROPROFILE_TOKEN(ARM_Jit_Dynarmic_CPU0);
-        microprofile_dynarmic[1] = MICROPROFILE_TOKEN(ARM_Jit_Dynarmic_CPU1);
-        microprofile_dynarmic[2] = MICROPROFILE_TOKEN(ARM_Jit_Dynarmic_CPU2);
-        microprofile_dynarmic[3] = MICROPROFILE_TOKEN(ARM_Jit_Dynarmic_CPU3);
+        microprofile_cpu[0] = MICROPROFILE_TOKEN(ARM_CPU0);
+        microprofile_cpu[1] = MICROPROFILE_TOKEN(ARM_CPU1);
+        microprofile_cpu[2] = MICROPROFILE_TOKEN(ARM_CPU2);
+        microprofile_cpu[3] = MICROPROFILE_TOKEN(ARM_CPU3);
 
         LOG_DEBUG(Core, "Initialized OK");
 
@@ -539,7 +539,7 @@ struct System::Impl {
     ExitCallback exit_callback;
 
     std::array<u64, Core::Hardware::NUM_CPU_CORES> dynarmic_ticks{};
-    std::array<MicroProfileToken, Core::Hardware::NUM_CPU_CORES> microprofile_dynarmic{};
+    std::array<MicroProfileToken, Core::Hardware::NUM_CPU_CORES> microprofile_cpu{};
 };
 
 System::System() : impl{std::make_unique<Impl>(*this)} {}
@@ -927,14 +927,14 @@ void System::RegisterHostThread() {
     impl->kernel.RegisterHostThread();
 }
 
-void System::EnterDynarmicProfile() {
+void System::EnterCPUProfile() {
     std::size_t core = impl->kernel.GetCurrentHostThreadID();
-    impl->dynarmic_ticks[core] = MicroProfileEnter(impl->microprofile_dynarmic[core]);
+    impl->dynarmic_ticks[core] = MicroProfileEnter(impl->microprofile_cpu[core]);
 }
 
-void System::ExitDynarmicProfile() {
+void System::ExitCPUProfile() {
     std::size_t core = impl->kernel.GetCurrentHostThreadID();
-    MicroProfileLeave(impl->microprofile_dynarmic[core], impl->dynarmic_ticks[core]);
+    MicroProfileLeave(impl->microprofile_cpu[core], impl->dynarmic_ticks[core]);
 }
 
 bool System::IsMulticore() const {

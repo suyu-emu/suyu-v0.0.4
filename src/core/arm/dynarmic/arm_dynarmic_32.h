@@ -50,8 +50,11 @@ public:
         return (GetPSTATE() & 0x20) != 0;
     }
 
-    void SaveContext(ThreadContext32& ctx) override;
-    void SaveContext(ThreadContext64& ctx) override {}
+    Architecture GetArchitecture() const override {
+        return Architecture::Aarch32;
+    }
+    void SaveContext(ThreadContext32& ctx) const override;
+    void SaveContext(ThreadContext64& ctx) const override {}
     void LoadContext(const ThreadContext32& ctx) override;
     void LoadContext(const ThreadContext64& ctx) override {}
 
@@ -64,14 +67,9 @@ public:
     void PageTableChanged(Common::PageTable& new_page_table,
                           std::size_t new_address_space_size_in_bits) override;
 
-    static std::vector<BacktraceEntry> GetBacktraceFromContext(System& system,
-                                                               const ThreadContext32& ctx);
-
-    std::vector<BacktraceEntry> GetBacktrace() const override;
-
 protected:
-    Dynarmic::HaltReason RunJit() override;
-    Dynarmic::HaltReason StepJit() override;
+    HaltReason RunJit() override;
+    HaltReason StepJit() override;
     u32 GetSvcNumber() const override;
     const Kernel::DebugWatchpoint* HaltedWatchpoint() const override;
     void RewindBreakpointInstruction() override;

@@ -8,8 +8,6 @@
 #include <string>
 #include <vector>
 
-#include <dynarmic/interface/halt_reason.h>
-
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "core/hardware_properties.h"
@@ -29,6 +27,22 @@ class System;
 class CPUInterruptHandler;
 
 using WatchpointArray = std::array<Kernel::DebugWatchpoint, Core::Hardware::NUM_WATCHPOINTS>;
+
+// NOTE: these values match the HaltReason enum in Dynarmic
+enum class HaltReason : u64 {
+    StepThread = 0x00000001,
+    DataAbort = 0x00000004,
+    BreakLoop = 0x02000000,
+    SupervisorCall = 0x04000000,
+    InstructionBreakpoint = 0x08000000,
+    PrefetchAbort = 0x20000000,
+};
+DECLARE_ENUM_FLAG_OPERATORS(HaltReason);
+
+enum class Architecture {
+    Aarch32,
+    Aarch64,
+};
 
 /// Generic ARMv8 CPU interface
 class ARM_Interface {
@@ -167,8 +181,9 @@ public:
      */
     virtual void SetTPIDR_EL0(u64 value) = 0;
 
-    virtual void SaveContext(ThreadContext32& ctx) = 0;
-    virtual void SaveContext(ThreadContext64& ctx) = 0;
+    virtual Architecture GetArchitecture() const = 0;
+    virtual void SaveContext(ThreadContext32& ctx) const = 0;
+    virtual void SaveContext(ThreadContext64& ctx) const = 0;
     virtual void LoadContext(const ThreadContext32& ctx) = 0;
     virtual void LoadContext(const ThreadContext64& ctx) = 0;
     void LoadWatchpointArray(const WatchpointArray& wp);
@@ -195,16 +210,8 @@ public:
     static std::vector<BacktraceEntry> GetBacktraceFromContext(System& system,
                                                                const ThreadContext64& ctx);
 
-    virtual std::vector<BacktraceEntry> GetBacktrace() const = 0;
-
+    std::vector<BacktraceEntry> GetBacktrace() const;
     void LogBacktrace() const;
-
-    static constexpr Dynarmic::HaltReason step_thread = Dynarmic::HaltReason::Step;
-    static constexpr Dynarmic::HaltReason break_loop = Dynarmic::HaltReason::UserDefined2;
-    static constexpr Dynarmic::HaltReason svc_call = Dynarmic::HaltReason::UserDefined3;
-    static constexpr Dynarmic::HaltReason breakpoint = Dynarmic::HaltReason::UserDefined4;
-    static constexpr Dynarmic::HaltReason watchpoint = Dynarmic::HaltReason::MemoryAbort;
-    static constexpr Dynarmic::HaltReason no_execute = Dynarmic::HaltReason::UserDefined6;
 
 protected:
     /// System context that this ARM interface is running under.
@@ -216,8 +223,8 @@ protected:
     const Kernel::DebugWatchpoint* MatchingWatchpoint(
         u64 addr, u64 size, Kernel::DebugWatchpointType access_type) const;
 
-    virtual Dynarmic::HaltReason RunJit() = 0;
-    virtual Dynarmic::HaltReason StepJit() = 0;
+    virtual HaltReason RunJit() = 0;
+    virtual HaltReason StepJit() = 0;
     virtual u32 GetSvcNumber() const = 0;
     virtual const Kernel::DebugWatchpoint* HaltedWatchpoint() const = 0;
     virtual void RewindBreakpointInstruction() = 0;

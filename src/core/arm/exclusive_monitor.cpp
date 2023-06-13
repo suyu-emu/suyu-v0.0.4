@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #if defined(ARCHITECTURE_x86_64) || defined(ARCHITECTURE_arm64)
-#include "core/arm/dynarmic/arm_exclusive_monitor.h"
+#include "core/arm/dynarmic/dynarmic_exclusive_monitor.h"
 #endif
 #include "core/arm/exclusive_monitor.h"
 #include "core/memory.h"
