@@ -328,6 +328,10 @@ shader_backend =
 # 0 (default): Off, 1: On
 use_asynchronous_shaders =
 
+# Uses reactive flushing instead of predictive flushing. Allowing a more accurate syncing of memory.
+# 0 (default): Off, 1: On
+use_reactive_flushing =
+
 # NVDEC emulation.
 # 0: Disabled, 1: CPU Decoding, 2 (default): GPU Decoding
 nvdec_emulation =

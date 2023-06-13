@@ -33,6 +33,11 @@ enum class IntSetting(
         Settings.SECTION_RENDERER,
         0
     ),
+    RENDERER_REACTIVE_FLUSHING(
+        "use_reactive_flushing",
+        Settings.SECTION_RENDERER,
+        0
+    ),
     RENDERER_DEBUG(
         "debug",
         Settings.SECTION_RENDERER,

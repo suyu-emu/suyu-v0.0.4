@@ -239,6 +239,10 @@ void Config::ReadValues() {
     Settings::values.renderer_force_max_clock =
         config->GetBoolean("Renderer", "force_max_clock", true);
 
+    // Disable use_reactive_flushing by default on Android
+    Settings::values.use_reactive_flushing =
+            config->GetBoolean("Renderer", "use_reactive_flushing", false);
+
     // Audio
     ReadSetting("Audio", Settings::values.sink_id);
     ReadSetting("Audio", Settings::values.audio_output_device_id);
