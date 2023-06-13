@@ -227,6 +227,8 @@ object NativeLibrary {
 
     external fun setAppDirectory(directory: String)
 
+    external fun installFileToNand(filename: String): Int
+
     external fun initializeGpuDriver(
         hookLibDir: String?,
         customDriverDir: String?,
@@ -506,5 +508,16 @@ object NativeLibrary {
     object ButtonState {
         const val RELEASED = 0
         const val PRESSED = 1
+    }
+
+    /**
+     * Result from installFileToNand
+     */
+    object InstallFileToNandResult {
+        const val Success = 0
+        const val SuccessFileOverwritten = 1
+        const val Error = 2
+        const val ErrorBaseGame = 3
+        const val ErrorFilenameExtension = 4
     }
 }

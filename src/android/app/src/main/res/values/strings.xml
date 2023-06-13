@@ -102,6 +102,15 @@
     <string name="share_log">Share debug logs</string>
     <string name="share_log_description">Share yuzu\'s log file to debug issues</string>
     <string name="share_log_missing">No log file found</string>
+    <string name="install_game_content">Install game content</string>
+    <string name="install_game_content_description">Install game updates or DLC</string>
+    <string name="install_game_content_failure">Error installing file to NAND</string>
+    <string name="install_game_content_failure_description">Game content installation failed. Please ensure content is valid and that the prod.keys file is installed.</string>
+    <string name="install_game_content_failure_base">Installation of base games isn\'t permitted in order to avoid possible conflicts. Please select an update or DLC instead.</string>
+    <string name="install_game_content_failure_file_extension">The selected file type is not supported. Only NSP and XCI content is supported for this action. Please verify the game content is valid.</string>
+    <string name="install_game_content_success">Game content installed successfully</string>
+    <string name="install_game_content_success_overwrite">Game content was overwritten successfully</string>
+    <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia isn\'t real</string>

@@ -467,4 +467,62 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 }
             }
         }
+
+    val installGameUpdate =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) {
+            if (it == null)
+                return@registerForActivityResult
+
+            IndeterminateProgressDialogFragment.newInstance(
+                this@MainActivity,
+                R.string.install_game_content
+            ) {
+                val result = NativeLibrary.installFileToNand(it.toString())
+                lifecycleScope.launch {
+                    withContext(Dispatchers.Main) {
+                        when (result) {
+                            NativeLibrary.InstallFileToNandResult.Success -> {
+                                Toast.makeText(
+                                    applicationContext,
+                                    R.string.install_game_content_success,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
+                            NativeLibrary.InstallFileToNandResult.SuccessFileOverwritten -> {
+                                Toast.makeText(
+                                    applicationContext,
+                                    R.string.install_game_content_success_overwrite,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
+                            NativeLibrary.InstallFileToNandResult.ErrorBaseGame -> {
+                                MessageDialogFragment.newInstance(
+                                    R.string.install_game_content_failure,
+                                    R.string.install_game_content_failure_base
+                                ).show(supportFragmentManager, MessageDialogFragment.TAG)
+                            }
+
+                            NativeLibrary.InstallFileToNandResult.ErrorFilenameExtension -> {
+                                MessageDialogFragment.newInstance(
+                                    R.string.install_game_content_failure,
+                                    R.string.install_game_content_failure_file_extension,
+                                    R.string.install_game_content_help_link
+                                ).show(supportFragmentManager, MessageDialogFragment.TAG)
+                            }
+
+                            else -> {
+                                MessageDialogFragment.newInstance(
+                                    R.string.install_game_content_failure,
+                                    R.string.install_game_content_failure_description,
+                                    R.string.install_game_content_help_link
+                                ).show(supportFragmentManager, MessageDialogFragment.TAG)
+                            }
+                        }
+                    }
+                }
+                return@newInstance result
+            }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
+        }
 }
