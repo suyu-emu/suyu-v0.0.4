@@ -24,6 +24,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
         android:hasFragileUserData="true"
         android:supportsRtl="true"
         android:isGame="true"
+        android:localeConfig="@xml/locales_config"
         android:banner="@drawable/tv_banner"
         android:extractNativeLibs="true"
         android:fullBackupContent="@xml/data_extraction_rules"
