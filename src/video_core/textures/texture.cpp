@@ -62,8 +62,9 @@ std::array<float, 4> TSCEntry::BorderColor() const noexcept {
 }
 
 float TSCEntry::MaxAnisotropy() const noexcept {
-    if (max_anisotropy == 0 && (mipmap_filter != TextureMipmapFilter::Linear &&
-                                !Settings::values.use_aggressive_anisotropic_filtering)) {
+    if (max_anisotropy == 0 && (depth_compare_enabled.Value() ||
+                                (mipmap_filter != TextureMipmapFilter::Linear &&
+                                 !Settings::values.use_aggressive_anisotropic_filtering))) {
         return 1.0f;
     }
     const auto anisotropic_settings = Settings::values.max_anisotropy.GetValue();
