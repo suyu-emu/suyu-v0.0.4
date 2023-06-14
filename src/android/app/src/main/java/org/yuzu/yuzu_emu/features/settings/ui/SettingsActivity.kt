@@ -241,7 +241,12 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
             context.startActivity(settings)
         }
 
-        fun launch(context: Context, launcher: ActivityResultLauncher<Intent>, menuTag: String?, gameId: String?) {
+        fun launch(
+            context: Context,
+            launcher: ActivityResultLauncher<Intent>,
+            menuTag: String?,
+            gameId: String?
+        ) {
             val settings = Intent(context, SettingsActivity::class.java)
             settings.putExtra(ARG_MENU_TAG, menuTag)
             settings.putExtra(ARG_GAME_ID, gameId)

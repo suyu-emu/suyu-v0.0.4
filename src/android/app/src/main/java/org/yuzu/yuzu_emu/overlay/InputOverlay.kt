@@ -51,12 +51,14 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
     private lateinit var windowInsets: WindowInsets
 
+    var orientation = LANDSCAPE
+
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
 
         windowInsets = rootWindowInsets
 
-        if (!preferences.getBoolean(Settings.PREF_OVERLAY_INIT, false)) {
+        if (!preferences.getBoolean("${Settings.PREF_OVERLAY_INIT}$orientation", false)) {
             defaultOverlay()
         }
 
@@ -542,8 +544,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         val min = windowSize.first
         val max = windowSize.second
         PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext).edit()
-            .putFloat("$sharedPrefsId$orientation-X", (x - min.x).toFloat() / max.x)
-            .putFloat("$sharedPrefsId$orientation-Y", (y - min.y).toFloat() / max.y)
+            .putFloat("$sharedPrefsId-X$orientation", (x - min.x).toFloat() / max.x)
+            .putFloat("$sharedPrefsId-Y$orientation", (y - min.y).toFloat() / max.y)
             .apply()
     }
 
@@ -552,13 +554,13 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
     }
 
     private fun defaultOverlay() {
-        if (!preferences.getBoolean(Settings.PREF_OVERLAY_INIT, false)) {
+        if (!preferences.getBoolean("${Settings.PREF_OVERLAY_INIT}$orientation", false)) {
             defaultOverlayByLayout(orientation)
         }
 
         resetButtonPlacement()
         preferences.edit()
-            .putBoolean(Settings.PREF_OVERLAY_INIT, true)
+            .putBoolean("${Settings.PREF_OVERLAY_INIT}$orientation", true)
             .apply()
     }
 
@@ -601,69 +603,69 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
     )
 
     private val portraitResources = arrayOf(
-        R.integer.SWITCH_BUTTON_A_PORTRAIT_X,
-        R.integer.SWITCH_BUTTON_A_PORTRAIT_Y,
-        R.integer.SWITCH_BUTTON_B_PORTRAIT_X,
-        R.integer.SWITCH_BUTTON_B_PORTRAIT_Y,
-        R.integer.SWITCH_BUTTON_X_PORTRAIT_X,
-        R.integer.SWITCH_BUTTON_X_PORTRAIT_Y,
-        R.integer.SWITCH_BUTTON_Y_PORTRAIT_X,
-        R.integer.SWITCH_BUTTON_Y_PORTRAIT_Y,
-        R.integer.SWITCH_TRIGGER_ZL_PORTRAIT_X,
-        R.integer.SWITCH_TRIGGER_ZL_PORTRAIT_Y,
-        R.integer.SWITCH_TRIGGER_ZR_PORTRAIT_X,
-        R.integer.SWITCH_TRIGGER_ZR_PORTRAIT_Y,
-        R.integer.SWITCH_BUTTON_DPAD_PORTRAIT_X,
-        R.integer.SWITCH_BUTTON_DPAD_PORTRAIT_Y,
-        R.integer.SWITCH_TRIGGER_L_PORTRAIT_X,
-        R.integer.SWITCH_TRIGGER_L_PORTRAIT_Y,
-        R.integer.SWITCH_TRIGGER_R_PORTRAIT_X,
-        R.integer.SWITCH_TRIGGER_R_PORTRAIT_Y,
-        R.integer.SWITCH_BUTTON_PLUS_PORTRAIT_X,
-        R.integer.SWITCH_BUTTON_PLUS_PORTRAIT_Y,
-        R.integer.SWITCH_BUTTON_MINUS_PORTRAIT_X,
-        R.integer.SWITCH_BUTTON_MINUS_PORTRAIT_Y,
-        R.integer.SWITCH_BUTTON_HOME_PORTRAIT_X,
-        R.integer.SWITCH_BUTTON_HOME_PORTRAIT_Y,
-        R.integer.SWITCH_BUTTON_CAPTURE_PORTRAIT_X,
-        R.integer.SWITCH_BUTTON_CAPTURE_PORTRAIT_Y,
-        R.integer.SWITCH_STICK_R_PORTRAIT_X,
-        R.integer.SWITCH_STICK_R_PORTRAIT_Y,
-        R.integer.SWITCH_STICK_L_PORTRAIT_X,
-        R.integer.SWITCH_STICK_L_PORTRAIT_Y
+        R.integer.SWITCH_BUTTON_A_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_A_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_B_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_B_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_X_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_X_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_Y_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_Y_Y_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_ZL_X_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_ZL_Y_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_ZR_X_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_ZR_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_DPAD_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_DPAD_Y_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_L_X_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_L_Y_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_R_X_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_R_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_PLUS_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_PLUS_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_MINUS_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_MINUS_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_HOME_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_HOME_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_CAPTURE_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_CAPTURE_Y_PORTRAIT,
+        R.integer.SWITCH_STICK_R_X_PORTRAIT,
+        R.integer.SWITCH_STICK_R_Y_PORTRAIT,
+        R.integer.SWITCH_STICK_L_X_PORTRAIT,
+        R.integer.SWITCH_STICK_L_Y_PORTRAIT
     )
 
     private val foldableResources = arrayOf(
-        R.integer.SWITCH_BUTTON_A_FOLDABLE_X,
-        R.integer.SWITCH_BUTTON_A_FOLDABLE_Y,
-        R.integer.SWITCH_BUTTON_B_FOLDABLE_X,
-        R.integer.SWITCH_BUTTON_B_FOLDABLE_Y,
-        R.integer.SWITCH_BUTTON_X_FOLDABLE_X,
-        R.integer.SWITCH_BUTTON_X_FOLDABLE_Y,
-        R.integer.SWITCH_BUTTON_Y_FOLDABLE_X,
-        R.integer.SWITCH_BUTTON_Y_FOLDABLE_Y,
-        R.integer.SWITCH_TRIGGER_ZL_FOLDABLE_X,
-        R.integer.SWITCH_TRIGGER_ZL_FOLDABLE_Y,
-        R.integer.SWITCH_TRIGGER_ZR_FOLDABLE_X,
-        R.integer.SWITCH_TRIGGER_ZR_FOLDABLE_Y,
-        R.integer.SWITCH_BUTTON_DPAD_FOLDABLE_X,
-        R.integer.SWITCH_BUTTON_DPAD_FOLDABLE_Y,
-        R.integer.SWITCH_TRIGGER_L_FOLDABLE_X,
-        R.integer.SWITCH_TRIGGER_L_FOLDABLE_Y,
-        R.integer.SWITCH_TRIGGER_R_FOLDABLE_X,
-        R.integer.SWITCH_TRIGGER_R_FOLDABLE_Y,
-        R.integer.SWITCH_BUTTON_PLUS_FOLDABLE_X,
-        R.integer.SWITCH_BUTTON_PLUS_FOLDABLE_Y,
-        R.integer.SWITCH_BUTTON_MINUS_FOLDABLE_X,
-        R.integer.SWITCH_BUTTON_MINUS_FOLDABLE_Y,
-        R.integer.SWITCH_BUTTON_HOME_FOLDABLE_X,
-        R.integer.SWITCH_BUTTON_HOME_FOLDABLE_Y,
-        R.integer.SWITCH_BUTTON_CAPTURE_FOLDABLE_X,
-        R.integer.SWITCH_BUTTON_CAPTURE_FOLDABLE_Y,
-        R.integer.SWITCH_STICK_R_FOLDABLE_X,
-        R.integer.SWITCH_STICK_R_FOLDABLE_Y,
-        R.integer.SWITCH_STICK_L_FOLDABLE_X,
-        R.integer.SWITCH_STICK_L_FOLDABLE_Y
+        R.integer.SWITCH_BUTTON_A_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_A_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_B_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_B_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_X_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_X_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_Y_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_Y_Y_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_ZL_X_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_ZL_Y_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_ZR_X_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_ZR_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_DPAD_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_DPAD_Y_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_L_X_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_L_Y_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_R_X_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_R_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_PLUS_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_PLUS_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_MINUS_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_MINUS_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_HOME_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_HOME_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_CAPTURE_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_CAPTURE_Y_FOLDABLE,
+        R.integer.SWITCH_STICK_R_X_FOLDABLE,
+        R.integer.SWITCH_STICK_R_Y_FOLDABLE,
+        R.integer.SWITCH_STICK_L_X_FOLDABLE,
+        R.integer.SWITCH_STICK_L_Y_FOLDABLE
     )
 
     private fun getResourceValue(descriptor: String, position: Int) : Float {
@@ -804,18 +806,13 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         return inEditMode
     }
 
-    fun setOrientation(descriptor: String) {
-        orientation = descriptor
-    }
-
     companion object {
         private val preferences: SharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
         const val LANDSCAPE = ""
-        const val PORTRAIT = "-Portrait"
-        const val FOLDABLE = "-Foldable"
-        private var orientation = LANDSCAPE
+        const val PORTRAIT = "_Portrait"
+        const val FOLDABLE = "_Foldable"
 
         /**
          * Resizes a [Bitmap] by a given scale factor
@@ -985,8 +982,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
             // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val xKey = "$buttonId$orientation-X"
-            val yKey = "$buttonId$orientation-Y"
+            val xKey = "$buttonId-X$orientation"
+            val yKey = "$buttonId-Y$orientation"
             val drawableXPercent = sPrefs.getFloat(xKey, 0f)
             val drawableYPercent = sPrefs.getFloat(yKey, 0f)
             val drawableX = (drawableXPercent * max.x + min.x).toInt()
@@ -1066,8 +1063,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
             // The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val drawableXPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}$orientation-X", 0f)
-            val drawableYPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}$orientation-Y", 0f)
+            val drawableXPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}-X$orientation", 0f)
+            val drawableYPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}-Y$orientation", 0f)
             val drawableX = (drawableXPercent * max.x + min.x).toInt()
             val drawableY = (drawableYPercent * max.y + min.y).toInt()
             val width = overlayDrawable.width
@@ -1133,8 +1130,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
             // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val drawableXPercent = sPrefs.getFloat("$button$orientation-X", 0f)
-            val drawableYPercent = sPrefs.getFloat("$button$orientation-Y", 0f)
+            val drawableXPercent = sPrefs.getFloat("$button-X$orientation", 0f)
+            val drawableYPercent = sPrefs.getFloat("$button-Y$orientation", 0f)
             val drawableX = (drawableXPercent * max.x + min.x).toInt()
             val drawableY = (drawableYPercent * max.y + min.y).toInt()
             val outerScale = 1.66f

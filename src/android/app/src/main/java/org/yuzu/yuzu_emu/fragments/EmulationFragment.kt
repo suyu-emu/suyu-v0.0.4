@@ -34,7 +34,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.navArgs
 import androidx.preference.PreferenceManager
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
@@ -165,7 +164,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                 R.id.menu_settings -> {
                     SettingsActivity.launch(
-                        requireContext(), onReturnFromSettings, SettingsFile.FILE_NAME_CONFIG, ""
+                        requireContext(),
+                        onReturnFromSettings,
+                        SettingsFile.FILE_NAME_CONFIG,
+                        ""
                     )
                     true
                 }
@@ -219,9 +221,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
             if (!isInFoldableLayout) {
                 if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                    binding.surfaceInputOverlay.setOrientation(InputOverlay.PORTRAIT)
+                    binding.surfaceInputOverlay.orientation = InputOverlay.PORTRAIT
                 } else {
-                    binding.surfaceInputOverlay.setOrientation(InputOverlay.LANDSCAPE)
+                    binding.surfaceInputOverlay.orientation = InputOverlay.LANDSCAPE
                 }
             }
             if (!binding.surfaceInputOverlay.isInEditMode) {
@@ -311,17 +313,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     @SuppressLint("SourceLockedOrientationActivity")
     private fun updateScreenLayout() {
         emulationActivity?.let {
-            when (IntSetting.RENDERER_SCREEN_LAYOUT.int) {
-                Settings.LayoutOption_MobileLandscape -> {
-                    it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
-                }
-                Settings.LayoutOption_MobilePortrait -> {
-                    it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
-                }
-                Settings.LayoutOption_Default -> {
-                    it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                }
-                else -> { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE }
+            it.requestedOrientation = when (IntSetting.RENDERER_SCREEN_LAYOUT.int) {
+                Settings.LayoutOption_MobileLandscape -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+                Settings.LayoutOption_MobilePortrait -> ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
+                Settings.LayoutOption_Unspecified -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                else -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
             }
         }
         onConfigurationChanged(resources.configuration)
@@ -337,7 +333,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     binding.overlayContainer.layoutParams.height = it.bounds.bottom
                     binding.inGameMenu.layoutParams.height = it.bounds.bottom
                     isInFoldableLayout = true
-                    binding.surfaceInputOverlay.setOrientation(InputOverlay.FOLDABLE)
+                    binding.surfaceInputOverlay.orientation = InputOverlay.FOLDABLE
                     refreshInputOverlay()
                 }
             }
@@ -485,7 +481,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     @SuppressLint("SourceLockedOrientationActivity")
     private fun startConfiguringControls() {
         // Lock the current orientation to prevent editing inconsistencies
-        if (IntSetting.RENDERER_SCREEN_LAYOUT.int == Settings.LayoutOption_Default) {
+        if (IntSetting.RENDERER_SCREEN_LAYOUT.int == Settings.LayoutOption_Unspecified) {
             emulationActivity?.let {
                 it.requestedOrientation =
                     if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -503,7 +499,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         binding.doneControlConfig.visibility = View.GONE
         binding.surfaceInputOverlay.setIsInEditMode(false)
         // Unlock the orientation if it was locked for editing
-        if (IntSetting.RENDERER_SCREEN_LAYOUT.int == Settings.LayoutOption_Default) {
+        if (IntSetting.RENDERER_SCREEN_LAYOUT.int == Settings.LayoutOption_Unspecified) {
             emulationActivity?.let {
                 it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }

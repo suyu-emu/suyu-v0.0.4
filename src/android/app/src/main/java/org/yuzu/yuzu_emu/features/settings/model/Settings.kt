@@ -143,11 +143,7 @@ class Settings {
 
         private val configFileSectionsMap: MutableMap<String, List<String>> = HashMap()
 
-        // These must match what is defined in src/core/settings.h
-        const val LayoutOption_Default = 0
-        const val LayoutOption_SingleScreen = 1
-        const val LayoutOption_LargeScreen = 2
-        const val LayoutOption_SideScreen = 3
+        const val LayoutOption_Unspecified = 0
         const val LayoutOption_MobilePortrait = 4
         const val LayoutOption_MobileLandscape = 5
 
