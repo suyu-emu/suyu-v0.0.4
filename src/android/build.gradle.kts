@@ -11,3 +11,12 @@ plugins {
 tasks.register("clean").configure {
     delete(rootProject.buildDir)
 }
+
+buildscript {
+    repositories {
+        google()
+    }
+    dependencies {
+        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.6.0")
+    }
+}

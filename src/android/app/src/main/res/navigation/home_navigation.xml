@@ -56,4 +56,18 @@
         android:name="org.yuzu.yuzu_emu.fragments.LicensesFragment"
         android:label="LicensesFragment" />
 
+    <activity
+        android:id="@+id/emulationActivity"
+        android:name="org.yuzu.yuzu_emu.activities.EmulationActivity"
+        android:label="EmulationActivity">
+        <argument
+            android:name="game"
+            app:argType="org.yuzu.yuzu_emu.model.Game" />
+    </activity>
+
+    <action
+        android:id="@+id/action_global_emulationActivity"
+        app:destination="@id/emulationActivity"
+        app:launchSingleTop="true" />
+
 </navigation>

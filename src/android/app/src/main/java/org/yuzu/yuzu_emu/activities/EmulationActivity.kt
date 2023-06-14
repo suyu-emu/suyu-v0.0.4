@@ -23,30 +23,25 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.window.layout.WindowInfoTracker
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import androidx.navigation.fragment.NavHostFragment
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.databinding.ActivityEmulationBinding
 import org.yuzu.yuzu_emu.features.settings.model.SettingsViewModel
-import org.yuzu.yuzu_emu.fragments.EmulationFragment
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
 import org.yuzu.yuzu_emu.utils.ForegroundService
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NfcReader
-import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
 import org.yuzu.yuzu_emu.utils.ThemeHelper
 import kotlin.math.roundToInt
 
 class EmulationActivity : AppCompatActivity(), SensorEventListener {
+    private lateinit var binding: ActivityEmulationBinding
+
     private var controllerMappingHelper: ControllerMappingHelper? = null
 
     var isActivityRecreated = false
-    private var emulationFragment: EmulationFragment? = null
     private lateinit var nfcReader: NfcReader
     private lateinit var inputHandler: InputHandler
 
@@ -54,8 +49,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private val accel = FloatArray(3)
     private var motionTimestamp: Long = 0
     private var flipMotionOrientation: Boolean = false
-
-    private lateinit var game: Game
 
     private val settingsViewModel: SettingsViewModel by viewModels()
 
@@ -70,46 +63,30 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         settingsViewModel.settings.loadSettings()
 
         super.onCreate(savedInstanceState)
-        if (savedInstanceState == null) {
-            // Get params we were passed
-            game = intent.parcelable(EXTRA_SELECTED_GAME)!!
-            isActivityRecreated = false
-        } else {
-            isActivityRecreated = true
-            restoreState(savedInstanceState)
-        }
+
+        binding = ActivityEmulationBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
+        val navController = navHostFragment.navController
+        navController
+            .setGraph(R.navigation.emulation_navigation, intent.extras)
+
+        isActivityRecreated = savedInstanceState != null
+
         controllerMappingHelper = ControllerMappingHelper()
 
         // Set these options now so that the SurfaceView the game renders into is the right size.
         enableFullscreenImmersive()
 
-        setContentView(R.layout.activity_emulation)
         window.decorView.setBackgroundColor(getColor(android.R.color.black))
-
-        // Find or create the EmulationFragment
-        emulationFragment =
-            supportFragmentManager.findFragmentById(R.id.frame_emulation_fragment) as EmulationFragment?
-        if (emulationFragment == null) {
-            emulationFragment = EmulationFragment.newInstance(game)
-            supportFragmentManager.beginTransaction()
-                .add(R.id.frame_emulation_fragment, emulationFragment!!)
-                .commit()
-        }
-        title = game.title
 
         nfcReader = NfcReader(this)
         nfcReader.initialize()
 
         inputHandler = InputHandler()
         inputHandler.initialize()
-
-        lifecycleScope.launch(Dispatchers.Main) {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                WindowInfoTracker.getOrCreate(this@EmulationActivity)
-                    .windowLayoutInfo(this@EmulationActivity)
-                    .collect { emulationFragment?.updateCurrentLayout(this@EmulationActivity, it) }
-            }
-        }
 
         // Start a foreground service to prevent the app from getting killed in the background
         val startIntent = Intent(this, ForegroundService::class.java)
@@ -155,11 +132,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         super.onNewIntent(intent)
         setIntent(intent)
         nfcReader.onNewIntent(intent)
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putParcelable(EXTRA_SELECTED_GAME, game)
-        super.onSaveInstanceState(outState)
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -247,10 +219,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor, i: Int) {}
-
-    private fun restoreState(savedInstanceState: Bundle) {
-        game = savedInstanceState.parcelable(EXTRA_SELECTED_GAME)!!
-    }
 
     private fun enableFullscreenImmersive() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
