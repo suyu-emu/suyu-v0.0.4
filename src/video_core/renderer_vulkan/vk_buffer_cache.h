@@ -97,10 +97,12 @@ public:
     void BindQuadIndexBuffer(PrimitiveTopology topology, u32 first, u32 count);
 
     void BindVertexBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size, u32 stride);
-    void BindVertexBuffers(VideoCommon::HostBindings& bindings);
+
+    void BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings);
 
     void BindTransformFeedbackBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size);
-    void BindTransformFeedbackBuffers(VideoCommon::HostBindings& bindings);
+
+    void BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings);
 
     std::span<u8> BindMappedUniformBuffer([[maybe_unused]] size_t stage,
                                           [[maybe_unused]] u32 binding_index, u32 size) {

@@ -715,7 +715,7 @@ void BufferCache<P>::BindHostIndexBuffer() {
 
 template <class P>
 void BufferCache<P>::BindHostVertexBuffers() {
-    HostBindings host_bindings;
+    HostBindings<typename P::Buffer> host_bindings;
     bool any_valid{false};
     auto& flags = maxwell3d->dirty.flags;
     for (u32 index = 0; index < NUM_VERTEX_BUFFERS; ++index) {
@@ -741,7 +741,7 @@ void BufferCache<P>::BindHostVertexBuffers() {
             const u32 stride = maxwell3d->regs.vertex_streams[index].stride;
             const u32 offset = buffer.Offset(binding.cpu_addr);
 
-            host_bindings.buffers.push_back(reinterpret_cast<void*>(&buffer));
+            host_bindings.buffers.push_back(&buffer);
             host_bindings.offsets.push_back(offset);
             host_bindings.sizes.push_back(binding.size);
             host_bindings.strides.push_back(stride);
@@ -900,7 +900,7 @@ void BufferCache<P>::BindHostTransformFeedbackBuffers() {
     if (maxwell3d->regs.transform_feedback_enabled == 0) {
         return;
     }
-    HostBindings host_bindings;
+    HostBindings<typename P::Buffer> host_bindings;
     for (u32 index = 0; index < NUM_TRANSFORM_FEEDBACK_BUFFERS; ++index) {
         const Binding& binding = channel_state->transform_feedback_buffers[index];
         if (maxwell3d->regs.transform_feedback.controls[index].varying_count == 0 &&
@@ -913,7 +913,7 @@ void BufferCache<P>::BindHostTransformFeedbackBuffers() {
         SynchronizeBuffer(buffer, binding.cpu_addr, size);
 
         const u32 offset = buffer.Offset(binding.cpu_addr);
-        host_bindings.buffers.push_back(reinterpret_cast<void*>(&buffer));
+        host_bindings.buffers.push_back(&buffer);
         host_bindings.offsets.push_back(offset);
         host_bindings.sizes.push_back(binding.size);
     }
