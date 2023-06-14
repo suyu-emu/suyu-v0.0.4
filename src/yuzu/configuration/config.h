@@ -139,18 +139,6 @@ private:
     QVariant ReadSetting(const QString& name, const QVariant& default_value) const;
 
     /**
-     * Only reads a setting from the qt_config if the current config is a global config, or if the
-     * current config is a custom config and the setting is overriding the global setting. Otherwise
-     * it does nothing.
-     *
-     * @param setting The variable to be modified
-     * @param name The setting's identifier
-     * @param default_value The value to use when the setting is not already present in the config
-     */
-    template <typename Type>
-    void ReadSettingGlobal(Type& setting, const QString& name, const QVariant& default_value) const;
-
-    /**
      * Writes a setting to the qt_config.
      *
      * @param name The setting's idetentifier
@@ -163,41 +151,6 @@ private:
     void WriteSetting(const QString& name, const QVariant& value, const QVariant& default_value);
     void WriteSetting(const QString& name, const QVariant& value, const QVariant& default_value,
                       bool use_global);
-
-    /**
-     * Reads a value from the qt_config and applies it to the setting, using its label and default
-     * value. If the config is a custom config, this will also read the global state of the setting
-     * and apply that information to it.
-     *
-     * @param The setting
-     */
-    template <typename Type, bool ranged>
-    void ReadGlobalSetting(Settings::SwitchableSetting<Type, ranged>& setting);
-
-    /**
-     * Sets a value to the qt_config using the setting's label and default value. If the config is a
-     * custom config, it will apply the global state, and the custom value if needed.
-     *
-     * @param The setting
-     */
-    template <typename Type, bool ranged>
-    void WriteGlobalSetting(const Settings::SwitchableSetting<Type, ranged>& setting);
-
-    /**
-     * Reads a value from the qt_config using the setting's label and default value and applies the
-     * value to the setting.
-     *
-     * @param The setting
-     */
-    template <typename Type, bool ranged>
-    void ReadBasicSetting(Settings::Setting<Type, ranged>& setting);
-
-    /** Sets a value from the setting in the qt_config using the setting's label and default value.
-     *
-     * @param The setting
-     */
-    template <typename Type, bool ranged>
-    void WriteBasicSetting(const Settings::Setting<Type, ranged>& setting);
 
     void ReadCategory(Settings::Category category);
     void WriteCategory(Settings::Category category);

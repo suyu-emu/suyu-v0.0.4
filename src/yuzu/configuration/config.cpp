@@ -171,66 +171,6 @@ bool Config::IsCustomConfig() {
     return type == ConfigType::PerGameConfig;
 }
 
-/* {Read,Write}BasicSetting and WriteGlobalSetting templates must be defined here before their
- * usages later in this file. This allows explicit definition of some types that don't work
- * nicely with the general version.
- */
-
-// Explicit std::string definition: Qt can't implicitly convert a std::string to a QVariant, nor
-// can it implicitly convert a QVariant back to a {std::,Q}string
-template <>
-void Config::ReadBasicSetting(Settings::Setting<std::string>& setting) {
-    const QString name = QString::fromStdString(setting.GetLabel());
-    const auto default_value = QString::fromStdString(setting.GetDefault());
-    if (qt_config->value(name + QStringLiteral("/default"), false).toBool()) {
-        setting.SetValue(default_value.toStdString());
-    } else {
-        setting.SetValue(qt_config->value(name, default_value).toString().toStdString());
-    }
-}
-
-template <typename Type, bool ranged>
-void Config::ReadBasicSetting(Settings::Setting<Type, ranged>& setting) {
-    const QString name = QString::fromStdString(setting.GetLabel());
-    const Type default_value = setting.GetDefault();
-    if (qt_config->value(name + QStringLiteral("/default"), false).toBool()) {
-        setting.SetValue(default_value);
-    } else {
-        setting.SetValue(
-            static_cast<QVariant>(qt_config->value(name, default_value)).value<Type>());
-    }
-}
-
-// Explicit std::string definition: Qt can't implicitly convert a std::string to a QVariant
-template <>
-void Config::WriteBasicSetting(const Settings::Setting<std::string>& setting) {
-    const QString name = QString::fromStdString(setting.GetLabel());
-    const std::string& value = setting.GetValue();
-    qt_config->setValue(name + QStringLiteral("/default"), value == setting.GetDefault());
-    qt_config->setValue(name, QString::fromStdString(value));
-}
-
-template <typename Type, bool ranged>
-void Config::WriteBasicSetting(const Settings::Setting<Type, ranged>& setting) {
-    const QString name = QString::fromStdString(setting.GetLabel());
-    const Type value = setting.GetValue();
-    qt_config->setValue(name + QStringLiteral("/default"), value == setting.GetDefault());
-    qt_config->setValue(name, value);
-}
-
-template <typename Type, bool ranged>
-void Config::WriteGlobalSetting(const Settings::SwitchableSetting<Type, ranged>& setting) {
-    const QString name = QString::fromStdString(setting.GetLabel());
-    const Type& value = setting.GetValue(global);
-    if (!global) {
-        qt_config->setValue(name + QStringLiteral("/use_global"), setting.UsingGlobal());
-    }
-    if (global || !setting.UsingGlobal()) {
-        qt_config->setValue(name + QStringLiteral("/default"), value == setting.GetDefault());
-        qt_config->setValue(name, value);
-    }
-}
-
 void Config::ReadPlayerValue(std::size_t player_index) {
     const QString player_prefix = [this, player_index] {
         if (type == ConfigType::InputProfile) {
@@ -1228,27 +1168,6 @@ QVariant Config::ReadSetting(const QString& name, const QVariant& default_value)
         result = qt_config->value(name, default_value);
     }
     return result;
-}
-
-template <typename Type, bool ranged>
-void Config::ReadGlobalSetting(Settings::SwitchableSetting<Type, ranged>& setting) {
-    QString name = QString::fromStdString(setting.GetLabel());
-    const bool use_global = qt_config->value(name + QStringLiteral("/use_global"), true).toBool();
-    setting.SetGlobal(use_global);
-    if (global || !use_global) {
-        setting.SetValue(static_cast<QVariant>(
-                             ReadSetting(name, QVariant::fromValue<Type>(setting.GetDefault())))
-                             .value<Type>());
-    }
-}
-
-template <typename Type>
-void Config::ReadSettingGlobal(Type& setting, const QString& name,
-                               const QVariant& default_value) const {
-    const bool use_global = qt_config->value(name + QStringLiteral("/use_global"), true).toBool();
-    if (global || !use_global) {
-        setting = ReadSetting(name, default_value).value<Type>();
-    }
 }
 
 void Config::WriteSetting(const QString& name, const QVariant& value) {
