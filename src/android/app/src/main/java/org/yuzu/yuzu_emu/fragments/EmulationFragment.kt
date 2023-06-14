@@ -11,13 +11,11 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import android.content.res.Resources
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Rational
-import android.util.TypedValue
 import android.view.*
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
@@ -29,11 +27,11 @@ import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.navArgs
 import androidx.preference.PreferenceManager
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
@@ -328,10 +326,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             if (it.isSeparating) {
                 emulationActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                 if (it.orientation == FoldingFeature.Orientation.HORIZONTAL) {
+                    // Restrict emulation and overlays to the top of the screen
                     binding.emulationContainer.layoutParams.height = it.bounds.top
-                    // Prevent touch regions from being displayed in the hinge
-                    binding.overlayContainer.layoutParams.height = it.bounds.bottom
+                    binding.overlayContainer.layoutParams.height = it.bounds.top
+                    // Restrict input and menu drawer to the bottom of the screen
+                    binding.inputContainer.layoutParams.height = it.bounds.bottom
                     binding.inGameMenu.layoutParams.height = it.bounds.bottom
+
                     isInFoldableLayout = true
                     binding.surfaceInputOverlay.orientation = InputOverlay.FOLDABLE
                     refreshInputOverlay()
@@ -341,12 +342,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         } ?: false
         if (!isFolding) {
             binding.emulationContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            binding.inputContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.overlayContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.inGameMenu.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             isInFoldableLayout = false
             updateScreenLayout()
         }
         binding.emulationContainer.requestLayout()
+        binding.inputContainer.requestLayout()
         binding.overlayContainer.requestLayout()
         binding.inGameMenu.requestLayout()
     }

@@ -26,22 +26,10 @@
                 android:focusable="false"
                 android:focusableInTouchMode="false" />
 
-            <TextView
-                android:id="@+id/show_fps_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left"
-                android:clickable="false"
-                android:focusable="false"
-                android:shadowColor="@android:color/black"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                tools:ignore="RtlHardcoded" />
-
         </FrameLayout>
 
         <FrameLayout
-            android:id="@+id/overlay_container"
+            android:id="@+id/input_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="bottom">
@@ -63,6 +51,25 @@
                 android:layout_gravity="center"
                 android:text="@string/emulation_done"
                 android:visibility="gone" />
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/overlay_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/show_fps_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:clickable="false"
+                android:focusable="false"
+                android:shadowColor="@android:color/black"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                tools:ignore="RtlHardcoded" />
 
         </FrameLayout>
 

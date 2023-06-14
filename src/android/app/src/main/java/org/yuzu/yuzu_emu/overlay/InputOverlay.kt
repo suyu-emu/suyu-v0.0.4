@@ -668,136 +668,136 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         R.integer.SWITCH_STICK_L_Y_FOLDABLE
     )
 
-    private fun getResourceValue(descriptor: String, position: Int) : Float {
-        return when (descriptor) {
+    private fun getResourceValue(orientation: String, position: Int) : Float {
+        return when (orientation) {
             PORTRAIT -> resources.getInteger(portraitResources[position]).toFloat() / 1000
             FOLDABLE -> resources.getInteger(foldableResources[position]).toFloat() / 1000
             else -> resources.getInteger(landscapeResources[position]).toFloat() / 1000
         }
     }
 
-    private fun defaultOverlayByLayout(descriptor: String) {
+    private fun defaultOverlayByLayout(orientation: String) {
         // Each value represents the position of the button in relation to the screen size without insets.
         preferences.edit()
             .putFloat(
-                ButtonType.BUTTON_A.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 0)
+                ButtonType.BUTTON_A.toString() + "-X$orientation",
+                getResourceValue(orientation, 0)
             )
             .putFloat(
-                ButtonType.BUTTON_A.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 1)
+                ButtonType.BUTTON_A.toString() + "-Y$orientation",
+                getResourceValue(orientation, 1)
             )
             .putFloat(
-                ButtonType.BUTTON_B.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 2)
+                ButtonType.BUTTON_B.toString() + "-X$orientation",
+                getResourceValue(orientation, 2)
             )
             .putFloat(
-                ButtonType.BUTTON_B.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 3)
+                ButtonType.BUTTON_B.toString() + "-Y$orientation",
+                getResourceValue(orientation, 3)
             )
             .putFloat(
-                ButtonType.BUTTON_X.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 4)
+                ButtonType.BUTTON_X.toString() + "-X$orientation",
+                getResourceValue(orientation, 4)
             )
             .putFloat(
-                ButtonType.BUTTON_X.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 5)
+                ButtonType.BUTTON_X.toString() + "-Y$orientation",
+                getResourceValue(orientation, 5)
             )
             .putFloat(
-                ButtonType.BUTTON_Y.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 6)
+                ButtonType.BUTTON_Y.toString() + "-X$orientation",
+                getResourceValue(orientation, 6)
             )
             .putFloat(
-                ButtonType.BUTTON_Y.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 7)
+                ButtonType.BUTTON_Y.toString() + "-Y$orientation",
+                getResourceValue(orientation, 7)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZL.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 8)
+                ButtonType.TRIGGER_ZL.toString() + "-X$orientation",
+                getResourceValue(orientation, 8)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZL.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 9)
+                ButtonType.TRIGGER_ZL.toString() + "-Y$orientation",
+                getResourceValue(orientation, 9)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZR.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 10)
+                ButtonType.TRIGGER_ZR.toString() + "-X$orientation",
+                getResourceValue(orientation, 10)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZR.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 11)
+                ButtonType.TRIGGER_ZR.toString() + "-Y$orientation",
+                getResourceValue(orientation, 11)
             )
             .putFloat(
-                ButtonType.DPAD_UP.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 12)
+                ButtonType.DPAD_UP.toString() + "-X$orientation",
+                getResourceValue(orientation, 12)
             )
             .putFloat(
-                ButtonType.DPAD_UP.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 13)
+                ButtonType.DPAD_UP.toString() + "-Y$orientation",
+                getResourceValue(orientation, 13)
             )
             .putFloat(
-                ButtonType.TRIGGER_L.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 14)
+                ButtonType.TRIGGER_L.toString() + "-X$orientation",
+                getResourceValue(orientation, 14)
             )
             .putFloat(
-                ButtonType.TRIGGER_L.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 15)
+                ButtonType.TRIGGER_L.toString() + "-Y$orientation",
+                getResourceValue(orientation, 15)
             )
             .putFloat(
-                ButtonType.TRIGGER_R.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 16)
+                ButtonType.TRIGGER_R.toString() + "-X$orientation",
+                getResourceValue(orientation, 16)
             )
             .putFloat(
-                ButtonType.TRIGGER_R.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 17)
+                ButtonType.TRIGGER_R.toString() + "-Y$orientation",
+                getResourceValue(orientation, 17)
             )
             .putFloat(
-                ButtonType.BUTTON_PLUS.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 18)
+                ButtonType.BUTTON_PLUS.toString() + "-X$orientation",
+                getResourceValue(orientation, 18)
             )
             .putFloat(
-                ButtonType.BUTTON_PLUS.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 19)
+                ButtonType.BUTTON_PLUS.toString() + "-Y$orientation",
+                getResourceValue(orientation, 19)
             )
             .putFloat(
-                ButtonType.BUTTON_MINUS.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 20)
+                ButtonType.BUTTON_MINUS.toString() + "-X$orientation",
+                getResourceValue(orientation, 20)
             )
             .putFloat(
-                ButtonType.BUTTON_MINUS.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 21)
+                ButtonType.BUTTON_MINUS.toString() + "-Y$orientation",
+                getResourceValue(orientation, 21)
             )
             .putFloat(
-                ButtonType.BUTTON_HOME.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 22)
+                ButtonType.BUTTON_HOME.toString() + "-X$orientation",
+                getResourceValue(orientation, 22)
             )
             .putFloat(
-                ButtonType.BUTTON_HOME.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 23)
+                ButtonType.BUTTON_HOME.toString() + "-Y$orientation",
+                getResourceValue(orientation, 23)
             )
             .putFloat(
-                ButtonType.BUTTON_CAPTURE.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 24)
+                ButtonType.BUTTON_CAPTURE.toString() + "-X$orientation",
+                getResourceValue(orientation, 24)
             )
             .putFloat(
-                ButtonType.BUTTON_CAPTURE.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 25)
+                ButtonType.BUTTON_CAPTURE.toString() + "-Y$orientation",
+                getResourceValue(orientation, 25)
             )
             .putFloat(
-                ButtonType.STICK_R.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 26)
+                ButtonType.STICK_R.toString() + "-X$orientation",
+                getResourceValue(orientation, 26)
             )
             .putFloat(
-                ButtonType.STICK_R.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 27)
+                ButtonType.STICK_R.toString() + "-Y$orientation",
+                getResourceValue(orientation, 27)
             )
             .putFloat(
-                ButtonType.STICK_L.toString() + "$descriptor-X",
-                getResourceValue(descriptor, 28)
+                ButtonType.STICK_L.toString() + "-X$orientation",
+                getResourceValue(orientation, 28)
             )
             .putFloat(
-                ButtonType.STICK_L.toString() + "$descriptor-Y",
-                getResourceValue(descriptor, 29)
+                ButtonType.STICK_L.toString() + "-Y$orientation",
+                getResourceValue(orientation, 29)
             )
             .apply()
     }
