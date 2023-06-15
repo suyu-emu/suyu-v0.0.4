@@ -1270,10 +1270,10 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const TSCEntry& config) {
 
     const f32 max_anisotropy = std::clamp(config.MaxAnisotropy(), 1.0f, 16.0f);
 
-    const auto create_sampler = [&](const f32 max_anisotropy) {
-        OGLSampler sampler;
-        sampler.Create();
-        const GLuint handle = sampler.handle;
+    const auto create_sampler = [&](const f32 anisotropy) {
+        OGLSampler new_sampler;
+        new_sampler.Create();
+        const GLuint handle = new_sampler.handle;
         glSamplerParameteri(handle, GL_TEXTURE_WRAP_S, MaxwellToGL::WrapMode(config.wrap_u));
         glSamplerParameteri(handle, GL_TEXTURE_WRAP_T, MaxwellToGL::WrapMode(config.wrap_v));
         glSamplerParameteri(handle, GL_TEXTURE_WRAP_R, MaxwellToGL::WrapMode(config.wrap_p));
@@ -1287,7 +1287,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const TSCEntry& config) {
         glSamplerParameterfv(handle, GL_TEXTURE_BORDER_COLOR, config.BorderColor().data());
 
         if (GLAD_GL_ARB_texture_filter_anisotropic || GLAD_GL_EXT_texture_filter_anisotropic) {
-            glSamplerParameterf(handle, GL_TEXTURE_MAX_ANISOTROPY, max_anisotropy);
+            glSamplerParameterf(handle, GL_TEXTURE_MAX_ANISOTROPY, anisotropy);
         } else {
             LOG_WARNING(Render_OpenGL, "GL_ARB_texture_filter_anisotropic is required");
         }
@@ -1302,7 +1302,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const TSCEntry& config) {
             // We default to false because it's more common
             LOG_WARNING(Render_OpenGL, "GL_ARB_seamless_cubemap_per_texture is required");
         }
-        return sampler;
+        return new_sampler;
     };
 
     sampler = create_sampler(max_anisotropy);
