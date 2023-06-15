@@ -309,12 +309,21 @@ class Sampler {
 public:
     explicit Sampler(TextureCacheRuntime&, const Tegra::Texture::TSCEntry&);
 
-    GLuint Handle() const noexcept {
+    [[nodiscard]] GLuint Handle() const noexcept {
         return sampler.handle;
+    }
+
+    [[nodiscard]] GLuint HandleWithoutAnisotropy() const noexcept {
+        return sampler_without_anisotropy.handle;
+    }
+
+    [[nodiscard]] bool HasAddedAnisotropy() const noexcept {
+        return static_cast<bool>(sampler_without_anisotropy.handle);
     }
 
 private:
     OGLSampler sampler;
+    OGLSampler sampler_without_anisotropy;
 };
 
 class Framebuffer {

@@ -279,8 +279,17 @@ public:
         return *sampler;
     }
 
+    [[nodiscard]] VkSampler HandleWithoutAnisotropy() const noexcept {
+        return *sampler_without_anisotropy;
+    }
+
+    [[nodiscard]] bool HasAddedAnisotropy() const noexcept {
+        return static_cast<bool>(sampler_without_anisotropy);
+    }
+
 private:
     vk::Sampler sampler;
+    vk::Sampler sampler_without_anisotropy;
 };
 
 class Framebuffer {

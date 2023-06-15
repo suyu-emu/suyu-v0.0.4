@@ -298,7 +298,7 @@ void GraphicsPipeline::AddTransition(GraphicsPipeline* transition) {
 template <typename Spec>
 void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     std::array<VideoCommon::ImageViewInOut, MAX_IMAGE_ELEMENTS> views;
-    std::array<VkSampler, MAX_IMAGE_ELEMENTS> samplers;
+    std::array<const Sampler*, MAX_IMAGE_ELEMENTS> samplers;
     size_t sampler_index{};
     size_t view_index{};
 
@@ -368,7 +368,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 views[view_index++] = {handle.first};
 
                 Sampler* const sampler{texture_cache.GetGraphicsSampler(handle.second)};
-                samplers[sampler_index++] = sampler->Handle();
+                samplers[sampler_index++] = sampler;
             }
         }
         if constexpr (Spec::has_images) {
@@ -453,7 +453,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
 
     RescalingPushConstant rescaling;
     RenderAreaPushConstant render_area;
-    const VkSampler* samplers_it{samplers.data()};
+    const Sampler** samplers_it{samplers.data()};
     const VideoCommon::ImageViewInOut* views_it{views.data()};
     const auto prepare_stage{[&](size_t stage) LAMBDA_FORCEINLINE {
         buffer_cache.BindHostStageBuffers(stage);

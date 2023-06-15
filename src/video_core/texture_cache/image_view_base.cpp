@@ -45,4 +45,43 @@ ImageViewBase::ImageViewBase(const ImageInfo& info, const ImageViewInfo& view_in
 
 ImageViewBase::ImageViewBase(const NullImageViewParams&) : image_id{NULL_IMAGE_ID} {}
 
+bool ImageViewBase::SupportsAnisotropy() const noexcept {
+    using namespace VideoCommon;
+    switch (format) {
+    case PixelFormat::R8_UNORM:
+    case PixelFormat::R8_SNORM:
+    case PixelFormat::R8_SINT:
+    case PixelFormat::R8_UINT:
+    case PixelFormat::BC4_UNORM:
+    case PixelFormat::BC4_SNORM:
+    case PixelFormat::BC5_UNORM:
+    case PixelFormat::BC5_SNORM:
+    case PixelFormat::R32G32_FLOAT:
+    case PixelFormat::R32G32_SINT:
+    case PixelFormat::R32_FLOAT:
+    case PixelFormat::R16_FLOAT:
+    case PixelFormat::R16_UNORM:
+    case PixelFormat::R16_SNORM:
+    case PixelFormat::R16_UINT:
+    case PixelFormat::R16_SINT:
+    case PixelFormat::R16G16_UNORM:
+    case PixelFormat::R16G16_FLOAT:
+    case PixelFormat::R16G16_UINT:
+    case PixelFormat::R16G16_SINT:
+    case PixelFormat::R16G16_SNORM:
+    case PixelFormat::R8G8_UNORM:
+    case PixelFormat::R8G8_SNORM:
+    case PixelFormat::R8G8_SINT:
+    case PixelFormat::R8G8_UINT:
+    case PixelFormat::R32G32_UINT:
+    case PixelFormat::R32_UINT:
+    case PixelFormat::R32_SINT:
+    case PixelFormat::G4R4_UNORM:
+        return false;
+    default:
+        break;
+    }
+    return range.extent.levels > 1;
+}
+
 } // namespace VideoCommon

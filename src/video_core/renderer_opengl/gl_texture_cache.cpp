@@ -1268,36 +1268,46 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const TSCEntry& config) {
 
     UNIMPLEMENTED_IF(config.cubemap_anisotropy != 1);
 
-    sampler.Create();
-    const GLuint handle = sampler.handle;
-    glSamplerParameteri(handle, GL_TEXTURE_WRAP_S, MaxwellToGL::WrapMode(config.wrap_u));
-    glSamplerParameteri(handle, GL_TEXTURE_WRAP_T, MaxwellToGL::WrapMode(config.wrap_v));
-    glSamplerParameteri(handle, GL_TEXTURE_WRAP_R, MaxwellToGL::WrapMode(config.wrap_p));
-    glSamplerParameteri(handle, GL_TEXTURE_COMPARE_MODE, compare_mode);
-    glSamplerParameteri(handle, GL_TEXTURE_COMPARE_FUNC, compare_func);
-    glSamplerParameteri(handle, GL_TEXTURE_MAG_FILTER, mag);
-    glSamplerParameteri(handle, GL_TEXTURE_MIN_FILTER, min);
-    glSamplerParameterf(handle, GL_TEXTURE_LOD_BIAS, config.LodBias());
-    glSamplerParameterf(handle, GL_TEXTURE_MIN_LOD, config.MinLod());
-    glSamplerParameterf(handle, GL_TEXTURE_MAX_LOD, config.MaxLod());
-    glSamplerParameterfv(handle, GL_TEXTURE_BORDER_COLOR, config.BorderColor().data());
+    const f32 max_anisotropy = std::clamp(config.MaxAnisotropy(), 1.0f, 16.0f);
 
-    if (GLAD_GL_ARB_texture_filter_anisotropic || GLAD_GL_EXT_texture_filter_anisotropic) {
-        const f32 max_anisotropy = std::clamp(config.MaxAnisotropy(), 1.0f, 16.0f);
-        glSamplerParameterf(handle, GL_TEXTURE_MAX_ANISOTROPY, max_anisotropy);
-    } else {
-        LOG_WARNING(Render_OpenGL, "GL_ARB_texture_filter_anisotropic is required");
-    }
-    if (GLAD_GL_ARB_texture_filter_minmax || GLAD_GL_EXT_texture_filter_minmax) {
-        glSamplerParameteri(handle, GL_TEXTURE_REDUCTION_MODE_ARB, reduction_filter);
-    } else if (reduction_filter != GL_WEIGHTED_AVERAGE_ARB) {
-        LOG_WARNING(Render_OpenGL, "GL_ARB_texture_filter_minmax is required");
-    }
-    if (GLAD_GL_ARB_seamless_cubemap_per_texture || GLAD_GL_AMD_seamless_cubemap_per_texture) {
-        glSamplerParameteri(handle, GL_TEXTURE_CUBE_MAP_SEAMLESS, seamless);
-    } else if (seamless == GL_FALSE) {
-        // We default to false because it's more common
-        LOG_WARNING(Render_OpenGL, "GL_ARB_seamless_cubemap_per_texture is required");
+    const auto create_sampler = [&](const f32 max_anisotropy) {
+        OGLSampler sampler;
+        sampler.Create();
+        const GLuint handle = sampler.handle;
+        glSamplerParameteri(handle, GL_TEXTURE_WRAP_S, MaxwellToGL::WrapMode(config.wrap_u));
+        glSamplerParameteri(handle, GL_TEXTURE_WRAP_T, MaxwellToGL::WrapMode(config.wrap_v));
+        glSamplerParameteri(handle, GL_TEXTURE_WRAP_R, MaxwellToGL::WrapMode(config.wrap_p));
+        glSamplerParameteri(handle, GL_TEXTURE_COMPARE_MODE, compare_mode);
+        glSamplerParameteri(handle, GL_TEXTURE_COMPARE_FUNC, compare_func);
+        glSamplerParameteri(handle, GL_TEXTURE_MAG_FILTER, mag);
+        glSamplerParameteri(handle, GL_TEXTURE_MIN_FILTER, min);
+        glSamplerParameterf(handle, GL_TEXTURE_LOD_BIAS, config.LodBias());
+        glSamplerParameterf(handle, GL_TEXTURE_MIN_LOD, config.MinLod());
+        glSamplerParameterf(handle, GL_TEXTURE_MAX_LOD, config.MaxLod());
+        glSamplerParameterfv(handle, GL_TEXTURE_BORDER_COLOR, config.BorderColor().data());
+
+        if (GLAD_GL_ARB_texture_filter_anisotropic || GLAD_GL_EXT_texture_filter_anisotropic) {
+            glSamplerParameterf(handle, GL_TEXTURE_MAX_ANISOTROPY, max_anisotropy);
+        } else {
+            LOG_WARNING(Render_OpenGL, "GL_ARB_texture_filter_anisotropic is required");
+        }
+        if (GLAD_GL_ARB_texture_filter_minmax || GLAD_GL_EXT_texture_filter_minmax) {
+            glSamplerParameteri(handle, GL_TEXTURE_REDUCTION_MODE_ARB, reduction_filter);
+        } else if (reduction_filter != GL_WEIGHTED_AVERAGE_ARB) {
+            LOG_WARNING(Render_OpenGL, "GL_ARB_texture_filter_minmax is required");
+        }
+        if (GLAD_GL_ARB_seamless_cubemap_per_texture || GLAD_GL_AMD_seamless_cubemap_per_texture) {
+            glSamplerParameteri(handle, GL_TEXTURE_CUBE_MAP_SEAMLESS, seamless);
+        } else if (seamless == GL_FALSE) {
+            // We default to false because it's more common
+            LOG_WARNING(Render_OpenGL, "GL_ARB_seamless_cubemap_per_texture is required");
+        }
+        return sampler;
+    };
+
+    sampler = create_sampler(max_anisotropy);
+    if (Settings::values.max_anisotropy.GetValue() > 0 && max_anisotropy > 1.0f) {
+        sampler_without_anisotropy = create_sampler(1.0f);
     }
 }
 
