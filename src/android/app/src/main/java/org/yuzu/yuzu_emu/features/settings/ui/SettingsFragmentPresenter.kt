@@ -487,6 +487,28 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     IntSetting.RENDERER_DEBUG.defaultValue
                 )
             )
+
+            val fastmem = object : AbstractBooleanSetting {
+                override var boolean: Boolean
+                    get() =
+                        BooleanSetting.FASTMEM.boolean && BooleanSetting.FASTMEM_EXCLUSIVES.boolean
+                    set(value) {
+                        BooleanSetting.FASTMEM.boolean = value
+                        BooleanSetting.FASTMEM_EXCLUSIVES.boolean = value
+                    }
+                override val key: String? = null
+                override val section: String = Settings.SECTION_CPU
+                override val isRuntimeEditable: Boolean = false
+                override val valueAsString: String = ""
+                override val defaultValue: Any = true
+            }
+            add(
+                SwitchSetting(
+                    fastmem,
+                    R.string.fastmem,
+                    0
+                )
+            )
         }
     }
 }

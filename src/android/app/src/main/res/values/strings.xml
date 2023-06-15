@@ -158,7 +158,6 @@
     <string name="set_custom_rtc">Set custom RTC</string>
 
     <!-- Graphics settings strings -->
-    <string name="renderer_api">API</string>
     <string name="renderer_accuracy">Accuracy level</string>
     <string name="renderer_resolution">Resolution (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync mode</string>
@@ -172,10 +171,14 @@
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously, reducing stutter but may introduce glitches.</string>
     <string name="renderer_reactive_flushing">Use reactive flushing</string>
     <string name="renderer_reactive_flushing_description">Improves rendering accuracy in some games at the cost of performance.</string>
-    <string name="renderer_debug">Graphics debugging</string>
-    <string name="renderer_debug_description">Sets the graphics API to a slow debugging mode.</string>
     <string name="use_disk_shader_cache">Disk shader cache</string>
     <string name="use_disk_shader_cache_description">Reduces stuttering by locally storing and loading generated shaders.</string>
+
+    <!-- Debug settings strings -->
+    <string name="renderer_api">API</string>
+    <string name="renderer_debug">Graphics debugging</string>
+    <string name="renderer_debug_description">Sets the graphics API to a slow debugging mode.</string>
+    <string name="fastmem">Fastmem</string>
 
     <!-- Audio settings strings -->
     <string name="audio_volume">Volume</string>
