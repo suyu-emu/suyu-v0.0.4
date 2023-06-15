@@ -313,17 +313,17 @@ public:
         return sampler.handle;
     }
 
-    [[nodiscard]] GLuint HandleWithoutAnisotropy() const noexcept {
-        return sampler_without_anisotropy.handle;
+    [[nodiscard]] GLuint HandleWithDefaultAnisotropy() const noexcept {
+        return sampler_default_anisotropy.handle;
     }
 
     [[nodiscard]] bool HasAddedAnisotropy() const noexcept {
-        return static_cast<bool>(sampler_without_anisotropy.handle);
+        return static_cast<bool>(sampler_default_anisotropy.handle);
     }
 
 private:
     OGLSampler sampler;
-    OGLSampler sampler_without_anisotropy;
+    OGLSampler sampler_default_anisotropy;
 };
 
 class Framebuffer {

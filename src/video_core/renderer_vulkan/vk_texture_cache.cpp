@@ -1827,8 +1827,10 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     };
 
     sampler = create_sampler(max_anisotropy);
-    if (Settings::values.max_anisotropy.GetValue() > 0 && max_anisotropy > 1.0f) {
-        sampler_without_anisotropy = create_sampler(1.0f);
+
+    const f32 max_anisotropy_default = static_cast<f32>(1U << tsc.max_anisotropy);
+    if (max_anisotropy > max_anisotropy_default) {
+        sampler_default_anisotropy = create_sampler(max_anisotropy_default);
     }
 }
 

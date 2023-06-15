@@ -488,7 +488,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 const bool use_fallback_sampler{sampler.HasAddedAnisotropy() &&
                                                 !image_view.SupportsAnisotropy()};
                 gl_samplers[sampler_binding++] =
-                    use_fallback_sampler ? sampler.HandleWithoutAnisotropy() : sampler.Handle();
+                    use_fallback_sampler ? sampler.HandleWithDefaultAnisotropy() : sampler.Handle();
             }
         }
         for (const auto& desc : info.image_descriptors) {
