@@ -54,14 +54,15 @@ void ConfigureAudio::Setup() {
         auto* widget = [&]() {
             if (setting->Id() == Settings::values.volume.Id()) {
                 // volume needs to be a slider (default is line edit)
-                return new ConfigurationShared::Widget(
-                    setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
-                    ConfigurationShared::RequestType::Slider, true, 1.0f, nullptr,
-                    tr("%1%", "Volume percentage (e.g. 50%)"));
+                return new ConfigurationShared::Widget(setting, translations, combobox_translations,
+                                                       this, runtime_lock, apply_funcs, nullptr,
+                                                       ConfigurationShared::RequestType::Slider,
+                                                       tr("%1%", "Volume percentage (e.g. 50%)"));
             } else if (setting->Id() == Settings::values.audio_output_device_id.Id() ||
                        setting->Id() == Settings::values.audio_input_device_id.Id() ||
                        setting->Id() == Settings::values.sink_id.Id()) {
                 // These need to be unmanaged comboboxes, so we can populate them ourselves
+                // TODO (lat9nq): Let it manage sink_id
                 return new ConfigurationShared::Widget(
                     setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     ConfigurationShared::RequestType::ComboBox, false);

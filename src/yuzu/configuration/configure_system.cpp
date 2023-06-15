@@ -134,15 +134,14 @@ void ConfigureSystem::Setup() {
                 // it and custom_rtc_enabled
                 return new ConfigurationShared::Widget(
                     setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
-                    ConfigurationShared::RequestType::DateTimeEdit, true, 1.0f,
-                    &Settings::values.custom_rtc_enabled);
+                    &Settings::values.custom_rtc_enabled,
+                    ConfigurationShared::RequestType::DateTimeEdit);
             } else if (setting->Id() == Settings::values.rng_seed.Id()) {
                 // rng_seed needs a HexEdit (default is LineEdit), and a checkbox to manage
                 // it and rng_seed_enabled
                 return new ConfigurationShared::Widget(
                     setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
-                    ConfigurationShared::RequestType::HexEdit, true, 1.0f,
-                    &Settings::values.rng_seed_enabled);
+                    &Settings::values.rng_seed_enabled, ConfigurationShared::RequestType::HexEdit);
             } else {
                 return new ConfigurationShared::Widget(setting, translations, combobox_translations,
                                                        this, runtime_lock, apply_funcs);

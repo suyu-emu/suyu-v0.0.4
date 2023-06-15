@@ -253,8 +253,7 @@ void ConfigureGraphics::Setup() {
                 // speed_limit needs a checkbox to set use_speed_limit, as well as a spinbox
                 return new ConfigurationShared::Widget(
                     setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
-                    ConfigurationShared::RequestType::SpinBox, true, 1.0f,
-                    &Settings::values.use_speed_limit,
+                    &Settings::values.use_speed_limit, ConfigurationShared::RequestType::SpinBox,
                     tr("%", "Limit speed percentage (e.g. 50%)"));
             } else {
                 return new ConfigurationShared::Widget(setting, translations, combobox_translations,
