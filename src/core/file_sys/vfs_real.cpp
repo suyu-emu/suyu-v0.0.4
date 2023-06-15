@@ -25,6 +25,8 @@ namespace FS = Common::FS;
 
 namespace {
 
+constexpr size_t MaxOpenFiles = 512;
+
 constexpr FS::FileAccessMode ModeFlagsToFileAccessMode(Mode mode) {
     switch (mode) {
     case Mode::Read:
@@ -73,28 +75,30 @@ VfsEntryType RealVfsFilesystem::GetEntryType(std::string_view path_) const {
 VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
 
-    if (const auto weak_iter = cache.find(path); weak_iter != cache.cend()) {
-        const auto& weak = weak_iter->second;
-
-        if (!weak.expired()) {
-            return std::shared_ptr<RealVfsFile>(new RealVfsFile(*this, weak.lock(), path, perms));
+    if (auto it = cache.find(path); it != cache.end()) {
+        if (auto file = it->second.lock(); file) {
+            return file;
         }
     }
 
-    auto backing = FS::FileOpen(path, ModeFlagsToFileAccessMode(perms), FS::FileType::BinaryFile);
-
-    if (!backing) {
+    if (!FS::Exists(path) || !FS::IsFile(path)) {
         return nullptr;
     }
 
-    cache.insert_or_assign(path, std::move(backing));
+    auto reference = std::make_unique<FileReference>();
+    this->InsertReferenceIntoList(*reference);
 
-    // Cannot use make_shared as RealVfsFile constructor is private
-    return std::shared_ptr<RealVfsFile>(new RealVfsFile(*this, backing, path, perms));
+    auto file =
+        std::shared_ptr<RealVfsFile>(new RealVfsFile(*this, std::move(reference), path, perms));
+    cache[path] = file;
+
+    return file;
 }
 
 VirtualFile RealVfsFilesystem::CreateFile(std::string_view path_, Mode perms) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
+    cache.erase(path);
+
     // Current usages of CreateFile expect to delete the contents of an existing file.
     if (FS::IsFile(path)) {
         FS::IOFile temp{path, FS::FileAccessMode::Write, FS::FileType::BinaryFile};
@@ -123,51 +127,22 @@ VirtualFile RealVfsFilesystem::CopyFile(std::string_view old_path_, std::string_
 VirtualFile RealVfsFilesystem::MoveFile(std::string_view old_path_, std::string_view new_path_) {
     const auto old_path = FS::SanitizePath(old_path_, FS::DirectorySeparator::PlatformDefault);
     const auto new_path = FS::SanitizePath(new_path_, FS::DirectorySeparator::PlatformDefault);
-    const auto cached_file_iter = cache.find(old_path);
-
-    if (cached_file_iter != cache.cend()) {
-        auto file = cached_file_iter->second.lock();
-
-        if (!cached_file_iter->second.expired()) {
-            file->Close();
-        }
-
-        if (!FS::RenameFile(old_path, new_path)) {
-            return nullptr;
-        }
-
-        cache.erase(old_path);
-        file->Open(new_path, FS::FileAccessMode::Read, FS::FileType::BinaryFile);
-        if (file->IsOpen()) {
-            cache.insert_or_assign(new_path, std::move(file));
-        } else {
-            LOG_ERROR(Service_FS, "Failed to open path {} in order to re-cache it", new_path);
-        }
-    } else {
-        ASSERT(false);
+    cache.erase(old_path);
+    cache.erase(new_path);
+    if (!FS::RenameFile(old_path, new_path)) {
         return nullptr;
     }
-
     return OpenFile(new_path, Mode::ReadWrite);
 }
 
 bool RealVfsFilesystem::DeleteFile(std::string_view path_) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
-    const auto cached_iter = cache.find(path);
-
-    if (cached_iter != cache.cend()) {
-        if (!cached_iter->second.expired()) {
-            cached_iter->second.lock()->Close();
-        }
-        cache.erase(path);
-    }
-
+    cache.erase(path);
     return FS::RemoveFile(path);
 }
 
 VirtualDir RealVfsFilesystem::OpenDirectory(std::string_view path_, Mode perms) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
-    // Cannot use make_shared as RealVfsDirectory constructor is private
     return std::shared_ptr<RealVfsDirectory>(new RealVfsDirectory(*this, path, perms));
 }
 
@@ -176,7 +151,6 @@ VirtualDir RealVfsFilesystem::CreateDirectory(std::string_view path_, Mode perms
     if (!FS::CreateDirs(path)) {
         return nullptr;
     }
-    // Cannot use make_shared as RealVfsDirectory constructor is private
     return std::shared_ptr<RealVfsDirectory>(new RealVfsDirectory(*this, path, perms));
 }
 
@@ -194,73 +168,102 @@ VirtualDir RealVfsFilesystem::MoveDirectory(std::string_view old_path_,
     if (!FS::RenameDir(old_path, new_path)) {
         return nullptr;
     }
-
-    for (auto& kv : cache) {
-        // If the path in the cache doesn't start with old_path, then bail on this file.
-        if (kv.first.rfind(old_path, 0) != 0) {
-            continue;
-        }
-
-        const auto file_old_path =
-            FS::SanitizePath(kv.first, FS::DirectorySeparator::PlatformDefault);
-        auto file_new_path = FS::SanitizePath(new_path + '/' + kv.first.substr(old_path.size()),
-                                              FS::DirectorySeparator::PlatformDefault);
-        const auto& cached = cache[file_old_path];
-
-        if (cached.expired()) {
-            continue;
-        }
-
-        auto file = cached.lock();
-        cache.erase(file_old_path);
-        file->Open(file_new_path, FS::FileAccessMode::Read, FS::FileType::BinaryFile);
-        if (file->IsOpen()) {
-            cache.insert_or_assign(std::move(file_new_path), std::move(file));
-        } else {
-            LOG_ERROR(Service_FS, "Failed to open path {} in order to re-cache it", file_new_path);
-        }
-    }
-
     return OpenDirectory(new_path, Mode::ReadWrite);
 }
 
 bool RealVfsFilesystem::DeleteDirectory(std::string_view path_) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
-
-    for (auto& kv : cache) {
-        // If the path in the cache doesn't start with path, then bail on this file.
-        if (kv.first.rfind(path, 0) != 0) {
-            continue;
-        }
-
-        const auto& entry = cache[kv.first];
-        if (!entry.expired()) {
-            entry.lock()->Close();
-        }
-
-        cache.erase(kv.first);
-    }
-
     return FS::RemoveDirRecursively(path);
 }
 
-RealVfsFile::RealVfsFile(RealVfsFilesystem& base_, std::shared_ptr<FS::IOFile> backing_,
-                         const std::string& path_, Mode perms_)
-    : base(base_), backing(std::move(backing_)), path(path_), parent_path(FS::GetParentPath(path_)),
-      path_components(FS::SplitPathComponents(path_)), perms(perms_) {}
+void RealVfsFilesystem::RefreshReference(const std::string& path, Mode perms,
+                                         FileReference& reference) {
+    // Temporarily remove from list.
+    this->RemoveReferenceFromList(reference);
 
-RealVfsFile::~RealVfsFile() = default;
+    // Restore file if needed.
+    if (!reference.file) {
+        this->EvictSingleReference();
+
+        reference.file =
+            FS::FileOpen(path, ModeFlagsToFileAccessMode(perms), FS::FileType::BinaryFile);
+        if (reference.file) {
+            num_open_files++;
+        }
+    }
+
+    // Reinsert into list.
+    this->InsertReferenceIntoList(reference);
+}
+
+void RealVfsFilesystem::DropReference(std::unique_ptr<FileReference>&& reference) {
+    // Remove from list.
+    this->RemoveReferenceFromList(*reference);
+
+    // Close the file.
+    if (reference->file) {
+        reference->file.reset();
+        num_open_files--;
+    }
+}
+
+void RealVfsFilesystem::EvictSingleReference() {
+    if (num_open_files < MaxOpenFiles || open_references.empty()) {
+        return;
+    }
+
+    // Get and remove from list.
+    auto& reference = open_references.back();
+    this->RemoveReferenceFromList(reference);
+
+    // Close the file.
+    if (reference.file) {
+        reference.file.reset();
+        num_open_files--;
+    }
+
+    // Reinsert into closed list.
+    this->InsertReferenceIntoList(reference);
+}
+
+void RealVfsFilesystem::InsertReferenceIntoList(FileReference& reference) {
+    if (reference.file) {
+        open_references.push_front(reference);
+    } else {
+        closed_references.push_front(reference);
+    }
+}
+
+void RealVfsFilesystem::RemoveReferenceFromList(FileReference& reference) {
+    if (reference.file) {
+        open_references.erase(open_references.iterator_to(reference));
+    } else {
+        closed_references.erase(closed_references.iterator_to(reference));
+    }
+}
+
+RealVfsFile::RealVfsFile(RealVfsFilesystem& base_, std::unique_ptr<FileReference> reference_,
+                         const std::string& path_, Mode perms_)
+    : base(base_), reference(std::move(reference_)), path(path_),
+      parent_path(FS::GetParentPath(path_)), path_components(FS::SplitPathComponents(path_)),
+      perms(perms_) {}
+
+RealVfsFile::~RealVfsFile() {
+    base.DropReference(std::move(reference));
+}
 
 std::string RealVfsFile::GetName() const {
     return path_components.back();
 }
 
 std::size_t RealVfsFile::GetSize() const {
-    return backing->GetSize();
+    base.RefreshReference(path, perms, *reference);
+    return reference->file ? reference->file->GetSize() : 0;
 }
 
 bool RealVfsFile::Resize(std::size_t new_size) {
-    return backing->SetSize(new_size);
+    base.RefreshReference(path, perms, *reference);
+    return reference->file ? reference->file->SetSize(new_size) : false;
 }
 
 VirtualDir RealVfsFile::GetContainingDirectory() const {
@@ -276,25 +279,23 @@ bool RealVfsFile::IsReadable() const {
 }
 
 std::size_t RealVfsFile::Read(u8* data, std::size_t length, std::size_t offset) const {
-    if (!backing->Seek(static_cast<s64>(offset))) {
+    base.RefreshReference(path, perms, *reference);
+    if (!reference->file || !reference->file->Seek(static_cast<s64>(offset))) {
         return 0;
     }
-    return backing->ReadSpan(std::span{data, length});
+    return reference->file->ReadSpan(std::span{data, length});
 }
 
 std::size_t RealVfsFile::Write(const u8* data, std::size_t length, std::size_t offset) {
-    if (!backing->Seek(static_cast<s64>(offset))) {
+    base.RefreshReference(path, perms, *reference);
+    if (!reference->file || !reference->file->Seek(static_cast<s64>(offset))) {
         return 0;
     }
-    return backing->WriteSpan(std::span{data, length});
+    return reference->file->WriteSpan(std::span{data, length});
 }
 
 bool RealVfsFile::Rename(std::string_view name) {
     return base.MoveFile(path, parent_path + '/' + std::string(name)) != nullptr;
-}
-
-void RealVfsFile::Close() {
-    backing->Close();
 }
 
 // TODO(DarkLordZach): MSVC would not let me combine the following two functions using 'if

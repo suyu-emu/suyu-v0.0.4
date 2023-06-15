@@ -3,8 +3,9 @@
 
 #pragma once
 
+#include <map>
 #include <string_view>
-#include <boost/container/flat_map.hpp>
+#include "common/intrusive_list.h"
 #include "core/file_sys/mode.h"
 #include "core/file_sys/vfs.h"
 
@@ -14,6 +15,11 @@ class IOFile;
 
 namespace FileSys {
 
+struct FileReference : public Common::IntrusiveListBaseNode<FileReference> {
+    std::shared_ptr<Common::FS::IOFile> file{};
+};
+
+class RealVfsFile;
 class RealVfsFilesystem : public VfsFilesystem {
 public:
     RealVfsFilesystem();
@@ -35,7 +41,21 @@ public:
     bool DeleteDirectory(std::string_view path) override;
 
 private:
-    boost::container::flat_map<std::string, std::weak_ptr<Common::FS::IOFile>> cache;
+    using ReferenceListType = Common::IntrusiveListBaseTraits<FileReference>::ListType;
+    std::map<std::string, std::weak_ptr<VfsFile>, std::less<>> cache;
+    ReferenceListType open_references;
+    ReferenceListType closed_references;
+    size_t num_open_files{};
+
+private:
+    friend class RealVfsFile;
+    void RefreshReference(const std::string& path, Mode perms, FileReference& reference);
+    void DropReference(std::unique_ptr<FileReference>&& reference);
+    void EvictSingleReference();
+
+private:
+    void InsertReferenceIntoList(FileReference& reference);
+    void RemoveReferenceFromList(FileReference& reference);
 };
 
 // An implementation of VfsFile that represents a file on the user's computer.
@@ -57,13 +77,11 @@ public:
     bool Rename(std::string_view name) override;
 
 private:
-    RealVfsFile(RealVfsFilesystem& base, std::shared_ptr<Common::FS::IOFile> backing,
+    RealVfsFile(RealVfsFilesystem& base, std::unique_ptr<FileReference> reference,
                 const std::string& path, Mode perms = Mode::Read);
 
-    void Close();
-
     RealVfsFilesystem& base;
-    std::shared_ptr<Common::FS::IOFile> backing;
+    std::unique_ptr<FileReference> reference;
     std::string path;
     std::string parent_path;
     std::vector<std::string> path_components;
