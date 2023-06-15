@@ -467,6 +467,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     private fun addDebugSettings(sl: ArrayList<SettingsItem>) {
         settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_debug))
         sl.apply {
+            add(HeaderSetting(R.string.gpu))
             add(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_BACKEND,
@@ -485,6 +486,17 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_debug_description,
                     IntSetting.RENDERER_DEBUG.key,
                     IntSetting.RENDERER_DEBUG.defaultValue
+                )
+            )
+
+            add(HeaderSetting(R.string.cpu))
+            add(
+                SwitchSetting(
+                    BooleanSetting.CPU_DEBUG_MODE,
+                    R.string.cpu_debug_mode,
+                    R.string.cpu_debug_mode_description,
+                    BooleanSetting.CPU_DEBUG_MODE.key,
+                    BooleanSetting.CPU_DEBUG_MODE.defaultValue
                 )
             )
 

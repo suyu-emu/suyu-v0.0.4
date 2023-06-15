@@ -175,6 +175,10 @@
     <string name="use_disk_shader_cache_description">Reduces stuttering by locally storing and loading generated shaders.</string>
 
     <!-- Debug settings strings -->
+    <string name="cpu">CPU</string>
+    <string name="cpu_debug_mode">CPU Debugging</string>
+    <string name="cpu_debug_mode_description">Puts the CPU in a slow debugging mode.</string>
+    <string name="gpu">GPU</string>
     <string name="renderer_api">API</string>
     <string name="renderer_debug">Graphics debugging</string>
     <string name="renderer_debug_description">Sets the graphics API to a slow debugging mode.</string>

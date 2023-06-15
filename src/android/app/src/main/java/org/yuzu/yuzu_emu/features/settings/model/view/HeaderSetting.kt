@@ -3,12 +3,8 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
-import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
-
 class HeaderSetting(
-    setting: AbstractSetting?,
-    titleId: Int,
-    descriptionId: Int
-) : SettingsItem(setting, titleId, descriptionId) {
+    titleId: Int
+) : SettingsItem(null, titleId, 0) {
     override val type = TYPE_HEADER
 }
