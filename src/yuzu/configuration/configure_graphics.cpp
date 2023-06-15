@@ -267,6 +267,7 @@ void ConfigureGraphics::Setup() {
         }
 
         if (setting->Id() == Settings::values.renderer_backend.Id()) {
+            // Add the renderer combobox now so it's at the top
             api_grid_layout->addWidget(widget);
             api_combobox = widget->combobox;
             api_restore_global_button = widget->restore_button;
@@ -393,6 +394,8 @@ void ConfigureGraphics::ApplyConfiguration() {
         Settings::values.vsync_mode.SetValue(vsync_mode);
     }
 
+    Settings::values.vulkan_device.SetGlobal(true);
+    Settings::values.shader_backend.SetGlobal(true);
     if (Settings::IsConfiguringGlobal() ||
         (!Settings::IsConfiguringGlobal() && api_restore_global_button->isEnabled())) {
         auto backend = static_cast<Settings::RendererBackend>(
