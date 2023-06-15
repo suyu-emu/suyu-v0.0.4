@@ -59,14 +59,11 @@ enum class PackedTagType : u8 {
 };
 
 // This is nn::nfc::NfcProtocol
-// Verify this enum. It might be completely wrong default protocol is 0x48
 enum class NfcProtocol : u32 {
     None,
     TypeA = 1U << 0, // ISO14443A
     TypeB = 1U << 1, // ISO14443B
     TypeF = 1U << 2, // Sony FeliCa
-    Unknown1 = 1U << 3,
-    Unknown2 = 1U << 5,
     All = 0xFFFFFFFFU,
 };
 
