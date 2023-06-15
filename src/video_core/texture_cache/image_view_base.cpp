@@ -77,6 +77,15 @@ bool ImageViewBase::SupportsAnisotropy() const noexcept {
     case PixelFormat::R32_UINT:
     case PixelFormat::R32_SINT:
     case PixelFormat::G4R4_UNORM:
+    // Depth formats
+    case PixelFormat::D32_FLOAT:
+    case PixelFormat::D16_UNORM:
+    // Stencil formats
+    case PixelFormat::S8_UINT:
+    // DepthStencil formats
+    case PixelFormat::D24_UNORM_S8_UINT:
+    case PixelFormat::S8_UINT_D24_UNORM:
+    case PixelFormat::D32_FLOAT_S8_UINT:
         return false;
     default:
         break;
