@@ -495,6 +495,9 @@ void BlitImageHelper::BlitDepthStencil(const Framebuffer* dst_framebuffer,
                                        const Region2D& dst_region, const Region2D& src_region,
                                        Tegra::Engines::Fermi2D::Filter filter,
                                        Tegra::Engines::Fermi2D::Operation operation) {
+    if (!device.IsExtShaderStencilExportSupported()) {
+        return;
+    }
     ASSERT(filter == Tegra::Engines::Fermi2D::Filter::Point);
     ASSERT(operation == Tegra::Engines::Fermi2D::Operation::SrcCopy);
     const BlitImagePipelineKey key{
