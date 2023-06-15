@@ -33,6 +33,7 @@
 #include "common/dynamic_library.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "core/core.h"
 #include "ui_configure_graphics.h"
 #include "yuzu/configuration/configuration_shared.h"
@@ -442,36 +443,24 @@ void ConfigureGraphics::UpdateBackgroundColorButton(QColor color) {
 
 void ConfigureGraphics::UpdateAPILayout() {
     bool runtime_lock = !system.IsPoweredOn();
-    if (!Settings::IsConfiguringGlobal() && !api_restore_global_button->isEnabled()) {
-        vulkan_device = Settings::values.vulkan_device.GetValue(true);
-        shader_backend = Settings::values.shader_backend.GetValue(true);
-        vulkan_device_widget->setEnabled(false);
-        shader_backend_widget->setEnabled(false);
-    } else {
-        vulkan_device = Settings::values.vulkan_device.GetValue();
-        shader_backend = Settings::values.shader_backend.GetValue();
-        vulkan_device_widget->setEnabled(runtime_lock);
-        shader_backend_widget->setEnabled(runtime_lock);
-    }
+    bool need_global = !(Settings::IsConfiguringGlobal() || api_restore_global_button->isEnabled());
+    vulkan_device = Settings::values.vulkan_device.GetValue(need_global);
+    shader_backend = Settings::values.shader_backend.GetValue(need_global);
+    vulkan_device_widget->setEnabled(!need_global && runtime_lock);
+    shader_backend_widget->setEnabled(!need_global && runtime_lock);
 
-    switch (GetCurrentGraphicsBackend()) {
-    case Settings::RendererBackend::OpenGL:
+    const auto current_backend = GetCurrentGraphicsBackend();
+    const bool is_opengl = current_backend == Settings::RendererBackend::OpenGL;
+    const bool is_vulkan = current_backend == Settings::RendererBackend::Vulkan;
+
+    vulkan_device_widget->setVisible(is_vulkan);
+    shader_backend_widget->setVisible(is_opengl);
+
+    if (is_opengl) {
         shader_backend_combobox->setCurrentIndex(
             FindIndex(typeid(Settings::ShaderBackend), static_cast<int>(shader_backend)));
-        vulkan_device_widget->setVisible(false);
-        shader_backend_widget->setVisible(true);
-        break;
-    case Settings::RendererBackend::Vulkan:
-        if (static_cast<int>(vulkan_device) < vulkan_device_combobox->count()) {
-            vulkan_device_combobox->setCurrentIndex(vulkan_device);
-        }
-        vulkan_device_widget->setVisible(true);
-        shader_backend_widget->setVisible(false);
-        break;
-    case Settings::RendererBackend::Null:
-        vulkan_device_widget->setVisible(false);
-        shader_backend_widget->setVisible(false);
-        break;
+    } else if (is_vulkan && static_cast<int>(vulkan_device) < vulkan_device_combobox->count()) {
+        vulkan_device_combobox->setCurrentIndex(vulkan_device);
     }
 }
 
