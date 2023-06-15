@@ -44,20 +44,69 @@ class Widget : public QWidget {
     Q_OBJECT
 
 public:
-    Widget(Settings::BasicSetting* setting, const TranslationMap& translations,
-           const ComboboxTranslationMap& combobox_translations, QWidget* parent, bool runtime_lock,
-           std::forward_list<std::function<void(bool)>>& apply_funcs_,
-           RequestType request = RequestType::Default, bool managed = true, float multiplier = 1.0f,
-           Settings::BasicSetting* other_setting = nullptr,
-           const QString& string = QStringLiteral(""));
+    /**
+     * Shorter-hand version of the constructor
+     *
+     * @param setting The primary Setting to create the Widget for
+     * @param translations Map of translations to display on the left side label/checkbox
+     * @param combobox_translations Map of translations for enumerating combo boxes
+     * @param parent Qt parent
+     * @param runtime_lock Emulated guest powered on state, for use on settings that should be
+     * configured during guest execution
+     * @param apply_funcs_ List to append, functions to run to apply the widget state to the setting
+     * @param other_setting Second setting to modify, to replace the label with a checkbox
+     * @param request What type of data representation component to create -- not always respected
+     * for the Setting data type
+     * @param string Set to specify formats for Slider feedback labels or SpinBox
+     */
+    explicit Widget(Settings::BasicSetting* setting, const TranslationMap& translations,
+                    const ComboboxTranslationMap& combobox_translations, QWidget* parent,
+                    bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs_,
+                    Settings::BasicSetting* other_setting,
+                    RequestType request = RequestType::Default,
+                    const QString& string = QStringLiteral(""));
+
+    /**
+     * @param setting The primary Setting to create the Widget for
+     * @param translations Map of translations to display on the left side label/checkbox
+     * @param combobox_translations Map of translations for enumerating combo boxes
+     * @param parent Qt parent
+     * @param runtime_lock Emulated guest powered on state, for use on settings that should be
+     * configured during guest execution
+     * @param apply_funcs_ List to append, functions to run to apply the widget state to the setting
+     * @param request What type of data representation component to create -- not always respected
+     * for the Setting data type
+     * @param managed Set true if the caller will set up component data and handling
+     * @param multiplier Value to multiply the slider feedback label
+     * @param other_setting Second setting to modify, to replace the label with a checkbox
+     * @param string Set to specify formats for Slider feedback labels or SpinBox
+     */
+    explicit Widget(Settings::BasicSetting* setting, const TranslationMap& translations,
+                    const ComboboxTranslationMap& combobox_translations, QWidget* parent,
+                    bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs_,
+                    RequestType request = RequestType::Default, bool managed = true,
+                    float multiplier = 1.0f, Settings::BasicSetting* other_setting = nullptr,
+                    const QString& string = QStringLiteral(""));
     virtual ~Widget();
 
+    /**
+     * @returns True if the Widget successfully created the components for the setting
+     */
     bool Valid() const;
 
+    /**
+     * Creates a button to appear when a setting has been modified. This exists for custom
+     * configurations and wasn't designed to work for the global configuration. It has public access
+     * for settings that need to be unmanaged but can be custom.
+     *
+     * @param using_global The global state of the setting this button is for
+     * @param parent QWidget parent
+     */
     [[nodiscard]] static QPushButton* CreateRestoreGlobalButton(bool using_global, QWidget* parent);
 
-    QPushButton* restore_button{};
-    QLineEdit* line_edit{};
+    // Direct handles to sub components created
+    QPushButton* restore_button{}; ///< Restore button for custom configurations
+    QLineEdit* line_edit{};        ///< QLineEdit, used for LineEdit and HexEdit
     QSpinBox* spinbox{};
     QCheckBox* checkbox{};
     QSlider* slider{};

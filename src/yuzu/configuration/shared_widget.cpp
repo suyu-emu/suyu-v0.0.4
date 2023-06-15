@@ -527,4 +527,12 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
 
     this->setToolTip(tooltip);
 }
+
+Widget::Widget(Settings::BasicSetting* setting, const TranslationMap& translations,
+               const ComboboxTranslationMap& combobox_translations, QWidget* parent,
+               bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs_,
+               Settings::BasicSetting* other_setting, RequestType request, const QString& string)
+    : Widget(setting, translations, combobox_translations, parent, runtime_lock, apply_funcs_,
+             request, true, 1.0f, other_setting, string) {}
+
 } // namespace ConfigurationShared
