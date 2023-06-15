@@ -508,7 +508,7 @@ void ConfigureGraphics::RetrieveVulkanDevices() {
         vulkan_devices.push_back(QString::fromStdString(record.name));
         device_present_modes.push_back(record.vsync_support);
 
-        if (record.is_intel_proprietary) {
+        if (record.has_broken_compute) {
             expose_compute_option();
         }
     }
