@@ -16,9 +16,9 @@ struct ShaderPools {
         inst.ReleaseContents();
     }
 
-    Shader::ObjectPool<Shader::IR::Inst> inst;
-    Shader::ObjectPool<Shader::IR::Block> block;
-    Shader::ObjectPool<Shader::Maxwell::Flow::Block> flow_block;
+    Shader::ObjectPool<Shader::IR::Inst> inst{8192};
+    Shader::ObjectPool<Shader::IR::Block> block{32};
+    Shader::ObjectPool<Shader::Maxwell::Flow::Block> flow_block{32};
 };
 
 struct Context {
