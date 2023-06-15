@@ -119,6 +119,18 @@
         <item>3</item>
     </integer-array>
 
+    <string-array name="rendererScreenLayoutNames">
+        <item>@string/screen_layout_landscape</item>
+        <item>@string/screen_layout_portrait</item>
+        <item>@string/screen_layout_auto</item>
+    </string-array>
+
+    <integer-array name="rendererScreenLayoutValues">
+        <item>5</item>
+        <item>4</item>
+        <item>0</item>
+    </integer-array>
+
     <string-array name="rendererAspectRatioNames">
         <item>@string/ratio_default</item>
         <item>@string/ratio_force_four_three</item>

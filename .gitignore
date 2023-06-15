@@ -26,6 +26,8 @@ CMakeSettings.json
 # OSX global filetypes
 # Created by Finder or Spotlight in directories for various OS functionality (indexing, etc)
 .DS_Store
+.DS_Store?
+._*
 .AppleDouble
 .LSOverride
 .Spotlight-V100

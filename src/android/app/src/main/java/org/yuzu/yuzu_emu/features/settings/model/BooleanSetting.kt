@@ -8,6 +8,7 @@ enum class BooleanSetting(
     override val section: String,
     override val defaultValue: Boolean
 ) : AbstractBooleanSetting {
+    PICTURE_IN_PICTURE("picture_in_picture", Settings.SECTION_GENERAL, true),
     USE_CUSTOM_RTC("custom_rtc_enabled", Settings.SECTION_SYSTEM, false);
 
     override var boolean: Boolean = defaultValue
@@ -27,6 +28,7 @@ enum class BooleanSetting(
 
     companion object {
         private val NOT_RUNTIME_EDITABLE = listOf(
+            PICTURE_IN_PICTURE,
             USE_CUSTOM_RTC
         )
 

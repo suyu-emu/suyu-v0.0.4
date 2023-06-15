@@ -51,12 +51,14 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
     private lateinit var windowInsets: WindowInsets
 
+    var orientation = LANDSCAPE
+
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
 
         windowInsets = rootWindowInsets
 
-        if (!preferences.getBoolean(Settings.PREF_OVERLAY_INIT, false)) {
+        if (!preferences.getBoolean("${Settings.PREF_OVERLAY_INIT}$orientation", false)) {
             defaultOverlay()
         }
 
@@ -233,10 +235,6 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         val fingerPositionX = event.getX(pointerIndex).toInt()
         val fingerPositionY = event.getY(pointerIndex).toInt()
 
-        // TODO: Provide support for portrait layout
-        //val orientation =
-        //    if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) "-Portrait" else ""
-
         for (button in overlayButtons) {
             // Determine the button state to apply based on the MotionEvent action flag.
             when (event.action and MotionEvent.ACTION_MASK) {
@@ -266,7 +264,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                         buttonBeingConfigured!!.buttonId,
                         buttonBeingConfigured!!.bounds.centerX(),
                         buttonBeingConfigured!!.bounds.centerY(),
-                        ""
+                        orientation
                     )
                     buttonBeingConfigured = null
                 }
@@ -299,7 +297,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                         dpadBeingConfigured!!.upId,
                         dpadBeingConfigured!!.bounds.centerX(),
                         dpadBeingConfigured!!.bounds.centerY(),
-                        ""
+                        orientation
                     )
                     dpadBeingConfigured = null
                 }
@@ -330,7 +328,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                         joystickBeingConfigured!!.buttonId,
                         joystickBeingConfigured!!.bounds.centerX(),
                         joystickBeingConfigured!!.bounds.centerY(),
-                        ""
+                        orientation
                     )
                     joystickBeingConfigured = null
                 }
@@ -533,8 +531,6 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         overlayButtons.clear()
         overlayDpads.clear()
         overlayJoysticks.clear()
-        val orientation =
-            if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) "-Portrait" else ""
 
         // Add all the enabled overlay items back to the HashSet.
         if (EmulationMenuSettings.showOverlay) {
@@ -548,8 +544,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         val min = windowSize.first
         val max = windowSize.second
         PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext).edit()
-            .putFloat("$sharedPrefsId$orientation-X", (x - min.x).toFloat() / max.x)
-            .putFloat("$sharedPrefsId$orientation-Y", (y - min.y).toFloat() / max.y)
+            .putFloat("$sharedPrefsId-X$orientation", (x - min.x).toFloat() / max.x)
+            .putFloat("$sharedPrefsId-Y$orientation", (y - min.y).toFloat() / max.y)
             .apply()
     }
 
@@ -558,145 +554,250 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
     }
 
     private fun defaultOverlay() {
-        if (!preferences.getBoolean(Settings.PREF_OVERLAY_INIT, false)) {
-            defaultOverlayLandscape()
+        if (!preferences.getBoolean("${Settings.PREF_OVERLAY_INIT}$orientation", false)) {
+            defaultOverlayByLayout(orientation)
         }
 
         resetButtonPlacement()
         preferences.edit()
-            .putBoolean(Settings.PREF_OVERLAY_INIT, true)
+            .putBoolean("${Settings.PREF_OVERLAY_INIT}$orientation", true)
             .apply()
     }
 
     fun resetButtonPlacement() {
-        defaultOverlayLandscape()
+        defaultOverlayByLayout(orientation)
         refreshControls()
     }
 
-    private fun defaultOverlayLandscape() {
+    private val landscapeResources = arrayOf(
+        R.integer.SWITCH_BUTTON_A_X,
+        R.integer.SWITCH_BUTTON_A_Y,
+        R.integer.SWITCH_BUTTON_B_X,
+        R.integer.SWITCH_BUTTON_B_Y,
+        R.integer.SWITCH_BUTTON_X_X,
+        R.integer.SWITCH_BUTTON_X_Y,
+        R.integer.SWITCH_BUTTON_Y_X,
+        R.integer.SWITCH_BUTTON_Y_Y,
+        R.integer.SWITCH_TRIGGER_ZL_X,
+        R.integer.SWITCH_TRIGGER_ZL_Y,
+        R.integer.SWITCH_TRIGGER_ZR_X,
+        R.integer.SWITCH_TRIGGER_ZR_Y,
+        R.integer.SWITCH_BUTTON_DPAD_X,
+        R.integer.SWITCH_BUTTON_DPAD_Y,
+        R.integer.SWITCH_TRIGGER_L_X,
+        R.integer.SWITCH_TRIGGER_L_Y,
+        R.integer.SWITCH_TRIGGER_R_X,
+        R.integer.SWITCH_TRIGGER_R_Y,
+        R.integer.SWITCH_BUTTON_PLUS_X,
+        R.integer.SWITCH_BUTTON_PLUS_Y,
+        R.integer.SWITCH_BUTTON_MINUS_X,
+        R.integer.SWITCH_BUTTON_MINUS_Y,
+        R.integer.SWITCH_BUTTON_HOME_X,
+        R.integer.SWITCH_BUTTON_HOME_Y,
+        R.integer.SWITCH_BUTTON_CAPTURE_X,
+        R.integer.SWITCH_BUTTON_CAPTURE_Y,
+        R.integer.SWITCH_STICK_R_X,
+        R.integer.SWITCH_STICK_R_Y,
+        R.integer.SWITCH_STICK_L_X,
+        R.integer.SWITCH_STICK_L_Y
+    )
+
+    private val portraitResources = arrayOf(
+        R.integer.SWITCH_BUTTON_A_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_A_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_B_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_B_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_X_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_X_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_Y_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_Y_Y_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_ZL_X_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_ZL_Y_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_ZR_X_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_ZR_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_DPAD_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_DPAD_Y_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_L_X_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_L_Y_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_R_X_PORTRAIT,
+        R.integer.SWITCH_TRIGGER_R_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_PLUS_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_PLUS_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_MINUS_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_MINUS_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_HOME_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_HOME_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_CAPTURE_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_CAPTURE_Y_PORTRAIT,
+        R.integer.SWITCH_STICK_R_X_PORTRAIT,
+        R.integer.SWITCH_STICK_R_Y_PORTRAIT,
+        R.integer.SWITCH_STICK_L_X_PORTRAIT,
+        R.integer.SWITCH_STICK_L_Y_PORTRAIT
+    )
+
+    private val foldableResources = arrayOf(
+        R.integer.SWITCH_BUTTON_A_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_A_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_B_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_B_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_X_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_X_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_Y_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_Y_Y_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_ZL_X_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_ZL_Y_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_ZR_X_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_ZR_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_DPAD_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_DPAD_Y_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_L_X_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_L_Y_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_R_X_FOLDABLE,
+        R.integer.SWITCH_TRIGGER_R_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_PLUS_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_PLUS_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_MINUS_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_MINUS_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_HOME_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_HOME_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_CAPTURE_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_CAPTURE_Y_FOLDABLE,
+        R.integer.SWITCH_STICK_R_X_FOLDABLE,
+        R.integer.SWITCH_STICK_R_Y_FOLDABLE,
+        R.integer.SWITCH_STICK_L_X_FOLDABLE,
+        R.integer.SWITCH_STICK_L_Y_FOLDABLE
+    )
+
+    private fun getResourceValue(orientation: String, position: Int) : Float {
+        return when (orientation) {
+            PORTRAIT -> resources.getInteger(portraitResources[position]).toFloat() / 1000
+            FOLDABLE -> resources.getInteger(foldableResources[position]).toFloat() / 1000
+            else -> resources.getInteger(landscapeResources[position]).toFloat() / 1000
+        }
+    }
+
+    private fun defaultOverlayByLayout(orientation: String) {
         // Each value represents the position of the button in relation to the screen size without insets.
         preferences.edit()
             .putFloat(
-                ButtonType.BUTTON_A.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_A_X).toFloat() / 1000
+                ButtonType.BUTTON_A.toString() + "-X$orientation",
+                getResourceValue(orientation, 0)
             )
             .putFloat(
-                ButtonType.BUTTON_A.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_A_Y).toFloat() / 1000
+                ButtonType.BUTTON_A.toString() + "-Y$orientation",
+                getResourceValue(orientation, 1)
             )
             .putFloat(
-                ButtonType.BUTTON_B.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_B_X).toFloat() / 1000
+                ButtonType.BUTTON_B.toString() + "-X$orientation",
+                getResourceValue(orientation, 2)
             )
             .putFloat(
-                ButtonType.BUTTON_B.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_B_Y).toFloat() / 1000
+                ButtonType.BUTTON_B.toString() + "-Y$orientation",
+                getResourceValue(orientation, 3)
             )
             .putFloat(
-                ButtonType.BUTTON_X.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_X_X).toFloat() / 1000
+                ButtonType.BUTTON_X.toString() + "-X$orientation",
+                getResourceValue(orientation, 4)
             )
             .putFloat(
-                ButtonType.BUTTON_X.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_X_Y).toFloat() / 1000
+                ButtonType.BUTTON_X.toString() + "-Y$orientation",
+                getResourceValue(orientation, 5)
             )
             .putFloat(
-                ButtonType.BUTTON_Y.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_Y_X).toFloat() / 1000
+                ButtonType.BUTTON_Y.toString() + "-X$orientation",
+                getResourceValue(orientation, 6)
             )
             .putFloat(
-                ButtonType.BUTTON_Y.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_Y_Y).toFloat() / 1000
+                ButtonType.BUTTON_Y.toString() + "-Y$orientation",
+                getResourceValue(orientation, 7)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZL.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_ZL_X).toFloat() / 1000
+                ButtonType.TRIGGER_ZL.toString() + "-X$orientation",
+                getResourceValue(orientation, 8)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZL.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_ZL_Y).toFloat() / 1000
+                ButtonType.TRIGGER_ZL.toString() + "-Y$orientation",
+                getResourceValue(orientation, 9)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZR.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_ZR_X).toFloat() / 1000
+                ButtonType.TRIGGER_ZR.toString() + "-X$orientation",
+                getResourceValue(orientation, 10)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZR.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_ZR_Y).toFloat() / 1000
+                ButtonType.TRIGGER_ZR.toString() + "-Y$orientation",
+                getResourceValue(orientation, 11)
             )
             .putFloat(
-                ButtonType.DPAD_UP.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_DPAD_X).toFloat() / 1000
+                ButtonType.DPAD_UP.toString() + "-X$orientation",
+                getResourceValue(orientation, 12)
             )
             .putFloat(
-                ButtonType.DPAD_UP.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_DPAD_Y).toFloat() / 1000
+                ButtonType.DPAD_UP.toString() + "-Y$orientation",
+                getResourceValue(orientation, 13)
             )
             .putFloat(
-                ButtonType.TRIGGER_L.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_L_X).toFloat() / 1000
+                ButtonType.TRIGGER_L.toString() + "-X$orientation",
+                getResourceValue(orientation, 14)
             )
             .putFloat(
-                ButtonType.TRIGGER_L.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_L_Y).toFloat() / 1000
+                ButtonType.TRIGGER_L.toString() + "-Y$orientation",
+                getResourceValue(orientation, 15)
             )
             .putFloat(
-                ButtonType.TRIGGER_R.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_R_X).toFloat() / 1000
+                ButtonType.TRIGGER_R.toString() + "-X$orientation",
+                getResourceValue(orientation, 16)
             )
             .putFloat(
-                ButtonType.TRIGGER_R.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_TRIGGER_R_Y).toFloat() / 1000
+                ButtonType.TRIGGER_R.toString() + "-Y$orientation",
+                getResourceValue(orientation, 17)
             )
             .putFloat(
-                ButtonType.BUTTON_PLUS.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_PLUS_X).toFloat() / 1000
+                ButtonType.BUTTON_PLUS.toString() + "-X$orientation",
+                getResourceValue(orientation, 18)
             )
             .putFloat(
-                ButtonType.BUTTON_PLUS.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_PLUS_Y).toFloat() / 1000
+                ButtonType.BUTTON_PLUS.toString() + "-Y$orientation",
+                getResourceValue(orientation, 19)
             )
             .putFloat(
-                ButtonType.BUTTON_MINUS.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_MINUS_X).toFloat() / 1000
+                ButtonType.BUTTON_MINUS.toString() + "-X$orientation",
+                getResourceValue(orientation, 20)
             )
             .putFloat(
-                ButtonType.BUTTON_MINUS.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_MINUS_Y).toFloat() / 1000
+                ButtonType.BUTTON_MINUS.toString() + "-Y$orientation",
+                getResourceValue(orientation, 21)
             )
             .putFloat(
-                ButtonType.BUTTON_HOME.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_HOME_X).toFloat() / 1000
+                ButtonType.BUTTON_HOME.toString() + "-X$orientation",
+                getResourceValue(orientation, 22)
             )
             .putFloat(
-                ButtonType.BUTTON_HOME.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_HOME_Y).toFloat() / 1000
+                ButtonType.BUTTON_HOME.toString() + "-Y$orientation",
+                getResourceValue(orientation, 23)
             )
             .putFloat(
-                ButtonType.BUTTON_CAPTURE.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_BUTTON_CAPTURE_X)
-                    .toFloat() / 1000
+                ButtonType.BUTTON_CAPTURE.toString() + "-X$orientation",
+                getResourceValue(orientation, 24)
             )
             .putFloat(
-                ButtonType.BUTTON_CAPTURE.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_BUTTON_CAPTURE_Y)
-                    .toFloat() / 1000
+                ButtonType.BUTTON_CAPTURE.toString() + "-Y$orientation",
+                getResourceValue(orientation, 25)
             )
             .putFloat(
-                ButtonType.STICK_R.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_STICK_R_X).toFloat() / 1000
+                ButtonType.STICK_R.toString() + "-X$orientation",
+                getResourceValue(orientation, 26)
             )
             .putFloat(
-                ButtonType.STICK_R.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_STICK_R_Y).toFloat() / 1000
+                ButtonType.STICK_R.toString() + "-Y$orientation",
+                getResourceValue(orientation, 27)
             )
             .putFloat(
-                ButtonType.STICK_L.toString() + "-X",
-                resources.getInteger(R.integer.SWITCH_STICK_L_X).toFloat() / 1000
+                ButtonType.STICK_L.toString() + "-X$orientation",
+                getResourceValue(orientation, 28)
             )
             .putFloat(
-                ButtonType.STICK_L.toString() + "-Y",
-                resources.getInteger(R.integer.SWITCH_STICK_L_Y).toFloat() / 1000
+                ButtonType.STICK_L.toString() + "-Y$orientation",
+                getResourceValue(orientation, 29)
             )
             .apply()
     }
@@ -708,6 +809,10 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
     companion object {
         private val preferences: SharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+
+        const val LANDSCAPE = ""
+        const val PORTRAIT = "_Portrait"
+        const val FOLDABLE = "_Foldable"
 
         /**
          * Resizes a [Bitmap] by a given scale factor
@@ -754,9 +859,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
          */
         private fun getSafeScreenSize(context: Context): Pair<Point, Point> {
             // Get screen size
-            val windowMetrics =
-                WindowMetricsCalculator.getOrCreate()
-                    .computeCurrentWindowMetrics(context as Activity)
+            val windowMetrics = WindowMetricsCalculator.getOrCreate()
+                .computeCurrentWindowMetrics(context as Activity)
             var maxY = windowMetrics.bounds.height().toFloat()
             var maxX = windowMetrics.bounds.width().toFloat()
             var minY = 0
@@ -769,9 +873,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                 val insets = context.windowManager.currentWindowMetrics.windowInsets.displayCutout
                 if (insets != null) {
                     if (insets.boundingRectTop.bottom != 0 && insets.boundingRectTop.bottom > maxY / 2)
-                        insets.boundingRectTop.bottom.toFloat() else maxY
+                        maxY = insets.boundingRectTop.bottom.toFloat()
                     if (insets.boundingRectRight.left != 0 && insets.boundingRectRight.left > maxX / 2)
-                        insets.boundingRectRight.left.toFloat() else maxX
+                        maxX = insets.boundingRectRight.left.toFloat()
 
                     minX = insets.boundingRectLeft.right - insets.boundingRectLeft.left
                     minY = insets.boundingRectBottom.top - insets.boundingRectBottom.bottom
@@ -878,8 +982,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
             // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val xKey = "$buttonId$orientation-X"
-            val yKey = "$buttonId$orientation-Y"
+            val xKey = "$buttonId-X$orientation"
+            val yKey = "$buttonId-Y$orientation"
             val drawableXPercent = sPrefs.getFloat(xKey, 0f)
             val drawableYPercent = sPrefs.getFloat(yKey, 0f)
             val drawableX = (drawableXPercent * max.x + min.x).toInt()
@@ -959,8 +1063,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
             // The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val drawableXPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}$orientation-X", 0f)
-            val drawableYPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}$orientation-Y", 0f)
+            val drawableXPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}-X$orientation", 0f)
+            val drawableYPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}-Y$orientation", 0f)
             val drawableX = (drawableXPercent * max.x + min.x).toInt()
             val drawableY = (drawableYPercent * max.y + min.y).toInt()
             val width = overlayDrawable.width
@@ -1026,8 +1130,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
             // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val drawableXPercent = sPrefs.getFloat("$button$orientation-X", 0f)
-            val drawableYPercent = sPrefs.getFloat("$button$orientation-Y", 0f)
+            val drawableXPercent = sPrefs.getFloat("$button-X$orientation", 0f)
+            val drawableYPercent = sPrefs.getFloat("$button-Y$orientation", 0f)
             val drawableX = (drawableXPercent * max.x + min.x).toInt()
             val drawableY = (drawableYPercent * max.y + min.y).toInt()
             val outerScale = 1.66f

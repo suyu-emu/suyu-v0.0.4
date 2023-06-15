@@ -12,49 +12,65 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- This is what everything is rendered to during emulation -->
-        <org.yuzu.yuzu_emu.views.FixedRatioSurfaceView
-            android:id="@+id/surface_emulation"
+        <FrameLayout
+            android:id="@+id/emulation_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:focusable="false"
-            android:focusableInTouchMode="false" />
+            android:layout_height="match_parent">
+
+            <!-- This is what everything is rendered to during emulation -->
+            <org.yuzu.yuzu_emu.views.FixedRatioSurfaceView
+                android:id="@+id/surface_emulation"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:focusable="false"
+                android:focusableInTouchMode="false" />
+
+        </FrameLayout>
 
         <FrameLayout
-            android:id="@+id/overlay_container"
+            android:id="@+id/input_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="bottom">
 
-        <!-- This is the onscreen input overlay -->
-        <org.yuzu.yuzu_emu.overlay.InputOverlay
-            android:id="@+id/surface_input_overlay"
+            <!-- This is the onscreen input overlay -->
+            <org.yuzu.yuzu_emu.overlay.InputOverlay
+                android:id="@+id/surface_input_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+
+            <Button
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:id="@+id/done_control_config"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/emulation_done"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/overlay_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:focusable="true"
-            android:focusableInTouchMode="true" />
+            android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/show_fps_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="left"
-            android:clickable="false"
-            android:focusable="false"
-            android:shadowColor="@android:color/black"
-            android:textColor="@android:color/white"
-            android:textSize="12sp"
-            tools:ignore="RtlHardcoded" />
+            <TextView
+                android:id="@+id/show_fps_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:clickable="false"
+                android:focusable="false"
+                android:shadowColor="@android:color/black"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                tools:ignore="RtlHardcoded" />
 
-        <Button
-            style="@style/Widget.Material3.Button.ElevatedButton"
-            android:id="@+id/done_control_config"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/emulation_done"
-            android:visibility="gone" />
         </FrameLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

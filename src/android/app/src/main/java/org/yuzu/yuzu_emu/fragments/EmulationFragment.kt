@@ -7,24 +7,26 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
-import android.content.res.Resources
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Rational
-import android.util.TypedValue
 import android.view.*
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -48,6 +50,7 @@ import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.overlay.InputOverlay
 import org.yuzu.yuzu_emu.utils.*
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback {
@@ -61,11 +64,40 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     val args by navArgs<EmulationFragmentArgs>()
 
+    private var isInFoldableLayout = false
+
+    private lateinit var onReturnFromSettings: ActivityResultLauncher<Intent>
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (context is EmulationActivity) {
             emulationActivity = context
             NativeLibrary.setEmulationActivity(context)
+
+            lifecycleScope.launch(Dispatchers.Main) {
+                lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    WindowInfoTracker.getOrCreate(context)
+                        .windowLayoutInfo(context)
+                        .collect { updateFoldableLayout(context, it) }
+                }
+            }
+
+            onReturnFromSettings = context.activityResultRegistry.register(
+                "SettingsResult", ActivityResultContracts.StartActivityForResult()
+            ) {
+                binding.surfaceEmulation.setAspectRatio(
+                    when (IntSetting.RENDERER_ASPECT_RATIO.int) {
+                        0 -> Rational(16, 9)
+                        1 -> Rational(4, 3)
+                        2 -> Rational(21, 9)
+                        3 -> Rational(16, 10)
+                        4 -> null // Stretch
+                        else -> Rational(16, 9)
+                    }
+                )
+                emulationActivity?.buildPictureInPictureParams()
+                updateScreenLayout()
+            }
         } else {
             throw IllegalStateException("EmulationFragment must have EmulationActivity parent")
         }
@@ -129,7 +161,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 }
 
                 R.id.menu_settings -> {
-                    SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "")
+                    SettingsActivity.launch(
+                        requireContext(),
+                        onReturnFromSettings,
+                        SettingsFile.FILE_NAME_CONFIG,
+                        ""
+                    )
                     true
                 }
 
@@ -162,7 +199,33 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 WindowInfoTracker.getOrCreate(requireContext())
                     .windowLayoutInfo(requireActivity())
-                    .collect { updateCurrentLayout(requireActivity() as EmulationActivity, it) }
+                    .collect { updateFoldableLayout(requireActivity() as EmulationActivity, it) }
+            }
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (emulationActivity?.isInPictureInPictureMode == true) {
+            if (binding.drawerLayout.isOpen) {
+                binding.drawerLayout.close()
+            }
+            if (EmulationMenuSettings.showOverlay) {
+                binding.surfaceInputOverlay.post { binding.surfaceInputOverlay.isVisible = false }
+            }
+        } else {
+            if (EmulationMenuSettings.showOverlay) {
+                binding.surfaceInputOverlay.post { binding.surfaceInputOverlay.isVisible = true }
+            }
+            if (!isInFoldableLayout) {
+                if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    binding.surfaceInputOverlay.orientation = InputOverlay.PORTRAIT
+                } else {
+                    binding.surfaceInputOverlay.orientation = InputOverlay.LANDSCAPE
+                }
+            }
+            if (!binding.surfaceInputOverlay.isInEditMode) {
+                refreshInputOverlay()
             }
         }
     }
@@ -183,6 +246,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 else -> Rational(16, 9)
             }
         )
+
+        updateScreenLayout()
 
         emulationState.run(emulationActivity!!.isActivityRecreated)
     }
@@ -243,31 +308,50 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
     }
 
-    private val Number.toPx get() = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this.toFloat(), Resources.getSystem().displayMetrics).toInt()
+    @SuppressLint("SourceLockedOrientationActivity")
+    private fun updateScreenLayout() {
+        emulationActivity?.let {
+            it.requestedOrientation = when (IntSetting.RENDERER_SCREEN_LAYOUT.int) {
+                Settings.LayoutOption_MobileLandscape -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+                Settings.LayoutOption_MobilePortrait -> ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
+                Settings.LayoutOption_Unspecified -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                else -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+            }
+        }
+        onConfigurationChanged(resources.configuration)
+    }
 
-    fun updateCurrentLayout(emulationActivity: EmulationActivity, newLayoutInfo: WindowLayoutInfo) {
+    private fun updateFoldableLayout(emulationActivity: EmulationActivity, newLayoutInfo: WindowLayoutInfo) {
         val isFolding = (newLayoutInfo.displayFeatures.find { it is FoldingFeature } as? FoldingFeature)?.let {
             if (it.isSeparating) {
                 emulationActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                 if (it.orientation == FoldingFeature.Orientation.HORIZONTAL) {
-                    binding.surfaceEmulation.layoutParams.height = it.bounds.top
+                    // Restrict emulation and overlays to the top of the screen
+                    binding.emulationContainer.layoutParams.height = it.bounds.top
+                    binding.overlayContainer.layoutParams.height = it.bounds.top
+                    // Restrict input and menu drawer to the bottom of the screen
+                    binding.inputContainer.layoutParams.height = it.bounds.bottom
                     binding.inGameMenu.layoutParams.height = it.bounds.bottom
-                    binding.overlayContainer.layoutParams.height = it.bounds.bottom - 48.toPx
-                    binding.overlayContainer.updatePadding(0, 0, 0, 24.toPx)
+
+                    isInFoldableLayout = true
+                    binding.surfaceInputOverlay.orientation = InputOverlay.FOLDABLE
+                    refreshInputOverlay()
                 }
             }
             it.isSeparating
         } ?: false
         if (!isFolding) {
-            binding.surfaceEmulation.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-            binding.inGameMenu.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            binding.emulationContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            binding.inputContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.overlayContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-            binding.overlayContainer.updatePadding(0, 0, 0, 0)
-            emulationActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            binding.inGameMenu.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            isInFoldableLayout = false
+            updateScreenLayout()
         }
-        binding.surfaceInputOverlay.requestLayout()
-        binding.inGameMenu.requestLayout()
+        binding.emulationContainer.requestLayout()
+        binding.inputContainer.requestLayout()
         binding.overlayContainer.requestLayout()
+        binding.inGameMenu.requestLayout()
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
@@ -397,7 +481,19 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         popup.show()
     }
 
+    @SuppressLint("SourceLockedOrientationActivity")
     private fun startConfiguringControls() {
+        // Lock the current orientation to prevent editing inconsistencies
+        if (IntSetting.RENDERER_SCREEN_LAYOUT.int == Settings.LayoutOption_Unspecified) {
+            emulationActivity?.let {
+                it.requestedOrientation =
+                    if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
+                    } else {
+                        ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+                    }
+            }
+        }
         binding.doneControlConfig.visibility = View.VISIBLE
         binding.surfaceInputOverlay.setIsInEditMode(true)
     }
@@ -405,6 +501,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private fun stopConfiguringControls() {
         binding.doneControlConfig.visibility = View.GONE
         binding.surfaceInputOverlay.setIsInEditMode(false)
+        // Unlock the orientation if it was locked for editing
+        if (IntSetting.RENDERER_SCREEN_LAYOUT.int == Settings.LayoutOption_Unspecified) {
+            emulationActivity?.let {
+                it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            }
+        }
     }
 
     @SuppressLint("SetTextI18n")

@@ -16,6 +16,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.updatePadding
 import com.google.android.material.color.MaterialColors
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -238,6 +239,18 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
             settings.putExtra(ARG_MENU_TAG, menuTag)
             settings.putExtra(ARG_GAME_ID, gameId)
             context.startActivity(settings)
+        }
+
+        fun launch(
+            context: Context,
+            launcher: ActivityResultLauncher<Intent>,
+            menuTag: String?,
+            gameId: String?
+        ) {
+            val settings = Intent(context, SettingsActivity::class.java)
+            settings.putExtra(ARG_MENU_TAG, menuTag)
+            settings.putExtra(ARG_GAME_ID, gameId)
+            launcher.launch(settings)
         }
     }
 }
