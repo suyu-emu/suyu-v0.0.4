@@ -6,12 +6,12 @@ package org.yuzu.yuzu_emu.features.settings.ui
 import android.content.Context
 import android.os.Bundle
 import android.text.TextUtils
+import java.io.File
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.Log
-import java.io.File
 
 class SettingsActivityPresenter(private val activityView: SettingsActivityView) {
     val settings: Settings get() = activityView.settings
@@ -46,9 +46,15 @@ class SettingsActivityPresenter(private val activityView: SettingsActivityView) 
 
     private fun prepareDirectoriesIfNeeded() {
         val configFile =
-            File(DirectoryInitialization.userDirectory + "/config/" + SettingsFile.FILE_NAME_CONFIG + ".ini")
+            File(
+                "${DirectoryInitialization.userDirectory}/config/" +
+                    "${SettingsFile.FILE_NAME_CONFIG}.ini"
+            )
         if (!configFile.exists()) {
-            Log.error(DirectoryInitialization.userDirectory + "/config/" + SettingsFile.FILE_NAME_CONFIG + ".ini")
+            Log.error(
+                "${DirectoryInitialization.userDirectory}/config/" +
+                    "${SettingsFile.FILE_NAME_CONFIG}.ini"
+            )
             Log.error("yuzu config file could not be found!")
         }
 

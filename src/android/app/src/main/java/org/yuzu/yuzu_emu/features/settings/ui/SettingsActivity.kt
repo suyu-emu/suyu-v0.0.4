@@ -8,18 +8,18 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.View
+import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import android.view.ViewGroup.MarginLayoutParams
-import androidx.activity.OnBackPressedCallback
-import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.updatePadding
 import com.google.android.material.color.MaterialColors
-import org.yuzu.yuzu_emu.NativeLibrary
+import java.io.IOException
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
@@ -30,7 +30,6 @@ import org.yuzu.yuzu_emu.features.settings.model.SettingsViewModel
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.utils.*
-import java.io.IOException
 
 class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     private val presenter = SettingsActivityPresenter(this)
@@ -60,7 +59,9 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         setSupportActionBar(binding.toolbarSettings)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-        if (InsetsHelper.getSystemGestureType(applicationContext) != InsetsHelper.GESTURE_NAVIGATION) {
+        if (InsetsHelper.getSystemGestureType(applicationContext) !=
+            InsetsHelper.GESTURE_NAVIGATION
+        ) {
             binding.navigationBarShade.setBackgroundColor(
                 ThemeHelper.getColorWithOpacity(
                     MaterialColors.getColor(
@@ -76,7 +77,8 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() = navigateBack()
-            })
+            }
+        )
 
         setInsets()
     }
@@ -149,11 +151,13 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     private fun areSystemAnimationsEnabled(): Boolean {
         val duration = android.provider.Settings.Global.getFloat(
             contentResolver,
-            android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f
+            android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f
         )
         val transition = android.provider.Settings.Global.getFloat(
             contentResolver,
-            android.provider.Settings.Global.TRANSITION_ANIMATION_SCALE, 1f
+            android.provider.Settings.Global.TRANSITION_ANIMATION_SCALE,
+            1f
         )
         return duration != 0f && transition != 0f
     }
@@ -208,7 +212,9 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         get() = supportFragmentManager.findFragmentByTag(FRAGMENT_TAG) as SettingsFragment?
 
     private fun setInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.frameContent) { view: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.frameContent
+        ) { view: View, windowInsets: WindowInsetsCompat ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
             view.updatePadding(

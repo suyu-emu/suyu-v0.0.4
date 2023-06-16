@@ -6,7 +6,6 @@ package org.yuzu.yuzu_emu.overlay
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Point
@@ -24,6 +23,8 @@ import android.view.WindowInsets
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import androidx.window.layout.WindowMetricsCalculator
+import kotlin.math.max
+import kotlin.math.min
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.NativeLibrary.ButtonType
 import org.yuzu.yuzu_emu.NativeLibrary.StickType
@@ -31,14 +32,13 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Draws the interactive input overlay on top of the
  * [SurfaceView] that is rendering emulation.
  */
-class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs),
+class InputOverlay(context: Context, attrs: AttributeSet?) :
+    SurfaceView(context, attrs),
     OnTouchListener {
     private val overlayButtons: MutableSet<InputOverlayDrawableButton> = HashSet()
     private val overlayDpads: MutableSet<InputOverlayDrawableDpad> = HashSet()
@@ -95,7 +95,11 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
         var shouldUpdateView = false
         val playerIndex =
-            if (NativeLibrary.isHandheldOnly()) NativeLibrary.ConsoleDevice else NativeLibrary.Player1Device
+            if (NativeLibrary.isHandheldOnly()) {
+                NativeLibrary.ConsoleDevice
+            } else {
+                NativeLibrary.Player1Device
+            }
 
         for (button in overlayButtons) {
             if (!button.updateStatus(event)) {
@@ -158,8 +162,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
             shouldUpdateView = true
         }
 
-        if (shouldUpdateView)
+        if (shouldUpdateView) {
             invalidate()
+        }
 
         if (!preferences.getBoolean(Settings.PREF_TOUCH_ENABLED, true)) {
             return true
@@ -243,9 +248,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                     // If no button is being moved now, remember the currently touched button to move.
                     if (buttonBeingConfigured == null &&
                         button.bounds.contains(
-                            fingerPositionX,
-                            fingerPositionY
-                        )
+                                fingerPositionX,
+                                fingerPositionY
+                            )
                     ) {
                         buttonBeingConfigured = button
                         buttonBeingConfigured!!.onConfigureTouch(event)
@@ -309,9 +314,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                 MotionEvent.ACTION_DOWN,
                 MotionEvent.ACTION_POINTER_DOWN -> if (joystickBeingConfigured == null &&
                     joystick.bounds.contains(
-                        fingerPositionX,
-                        fingerPositionY
-                    )
+                            fingerPositionX,
+                            fingerPositionY
+                        )
                 ) {
                     joystickBeingConfigured = joystick
                     joystickBeingConfigured!!.onConfigureTouch(event)
@@ -668,7 +673,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         R.integer.SWITCH_STICK_L_Y_FOLDABLE
     )
 
-    private fun getResourceValue(orientation: String, position: Int) : Float {
+    private fun getResourceValue(orientation: String, position: Int): Float {
         return when (orientation) {
             PORTRAIT -> resources.getInteger(portraitResources[position]).toFloat() / 1000
             FOLDABLE -> resources.getInteger(foldableResources[position]).toFloat() / 1000
@@ -820,7 +825,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
          * @param context       Context for getting the vector drawable
          * @param drawableId    The ID of the drawable to scale.
          * @param scale         The scale factor for the bitmap.
-         * @return              The scaled [Bitmap]
+         * @return The scaled [Bitmap]
          */
         private fun getBitmap(context: Context, drawableId: Int, scale: Float): Bitmap {
             val vectorDrawable = ContextCompat.getDrawable(context, drawableId) as VectorDrawable
@@ -854,7 +859,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
          * Gets the safe screen size for drawing the overlay
          *
          * @param context   Context for getting the window metrics
-         * @return          A pair of points, the first being the top left corner of the safe area,
+         * @return A pair of points, the first being the top left corner of the safe area,
          *                  the second being the bottom right corner of the safe area
          */
         private fun getSafeScreenSize(context: Context): Pair<Point, Point> {
@@ -872,10 +877,16 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 val insets = context.windowManager.currentWindowMetrics.windowInsets.displayCutout
                 if (insets != null) {
-                    if (insets.boundingRectTop.bottom != 0 && insets.boundingRectTop.bottom > maxY / 2)
+                    if (insets.boundingRectTop.bottom != 0 &&
+                        insets.boundingRectTop.bottom > maxY / 2
+                    ) {
                         maxY = insets.boundingRectTop.bottom.toFloat()
-                    if (insets.boundingRectRight.left != 0 && insets.boundingRectRight.left > maxX / 2)
+                    }
+                    if (insets.boundingRectRight.left != 0 &&
+                        insets.boundingRectRight.left > maxX / 2
+                    ) {
                         maxX = insets.boundingRectRight.left.toFloat()
+                    }
 
                     minX = insets.boundingRectLeft.right - insets.boundingRectLeft.left
                     minY = insets.boundingRectBottom.top - insets.boundingRectBottom.bottom

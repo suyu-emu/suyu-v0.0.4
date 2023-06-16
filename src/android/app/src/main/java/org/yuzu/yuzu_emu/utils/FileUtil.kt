@@ -9,8 +9,6 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import androidx.documentfile.provider.DocumentFile
-import org.yuzu.yuzu_emu.YuzuApplication
-import org.yuzu.yuzu_emu.model.MinimalDocumentFile
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -19,6 +17,8 @@ import java.io.InputStream
 import java.net.URLDecoder
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
+import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.model.MinimalDocumentFile
 
 object FileUtil {
     const val PATH_TREE = "tree"

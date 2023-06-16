@@ -38,8 +38,8 @@ class FixedRatioSurfaceView @JvmOverloads constructor(
                 newWidth = width
                 newHeight = (width / aspectRatio).roundToInt()
             }
-            val left = (width - newWidth) / 2;
-            val top = (height - newHeight) / 2;
+            val left = (width - newWidth) / 2
+            val top = (height - newHeight) / 2
             setLeftTopRightBottom(left, top, left + newWidth, top + newHeight)
         } else {
             setLeftTopRightBottom(0, 0, width, height)

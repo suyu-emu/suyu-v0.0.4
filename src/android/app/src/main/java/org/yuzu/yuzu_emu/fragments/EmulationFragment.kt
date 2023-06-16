@@ -83,7 +83,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
 
             onReturnFromSettings = context.activityResultRegistry.register(
-                "SettingsResult", ActivityResultContracts.StartActivityForResult()
+                "SettingsResult",
+                ActivityResultContracts.StartActivityForResult()
             ) {
                 binding.surfaceEmulation.setAspectRatio(
                     when (IntSetting.RENDERER_ASPECT_RATIO.int) {
@@ -191,9 +192,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             requireActivity(),
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    if (binding.drawerLayout.isOpen) binding.drawerLayout.close() else binding.drawerLayout.open()
+                    if (binding.drawerLayout.isOpen) {
+                        binding.drawerLayout.close()
+                    } else {
+                        binding.drawerLayout.open()
+                    }
                 }
-            })
+            }
+        )
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -312,8 +318,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private fun updateScreenLayout() {
         emulationActivity?.let {
             it.requestedOrientation = when (IntSetting.RENDERER_SCREEN_LAYOUT.int) {
-                Settings.LayoutOption_MobileLandscape -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
-                Settings.LayoutOption_MobilePortrait -> ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
+                Settings.LayoutOption_MobileLandscape ->
+                    ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+                Settings.LayoutOption_MobilePortrait ->
+                    ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
                 Settings.LayoutOption_Unspecified -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                 else -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
             }
@@ -321,25 +329,30 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         onConfigurationChanged(resources.configuration)
     }
 
-    private fun updateFoldableLayout(emulationActivity: EmulationActivity, newLayoutInfo: WindowLayoutInfo) {
-        val isFolding = (newLayoutInfo.displayFeatures.find { it is FoldingFeature } as? FoldingFeature)?.let {
-            if (it.isSeparating) {
-                emulationActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                if (it.orientation == FoldingFeature.Orientation.HORIZONTAL) {
-                    // Restrict emulation and overlays to the top of the screen
-                    binding.emulationContainer.layoutParams.height = it.bounds.top
-                    binding.overlayContainer.layoutParams.height = it.bounds.top
-                    // Restrict input and menu drawer to the bottom of the screen
-                    binding.inputContainer.layoutParams.height = it.bounds.bottom
-                    binding.inGameMenu.layoutParams.height = it.bounds.bottom
+    private fun updateFoldableLayout(
+        emulationActivity: EmulationActivity,
+        newLayoutInfo: WindowLayoutInfo
+    ) {
+        val isFolding =
+            (newLayoutInfo.displayFeatures.find { it is FoldingFeature } as? FoldingFeature)?.let {
+                if (it.isSeparating) {
+                    emulationActivity.requestedOrientation =
+                        ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                    if (it.orientation == FoldingFeature.Orientation.HORIZONTAL) {
+                        // Restrict emulation and overlays to the top of the screen
+                        binding.emulationContainer.layoutParams.height = it.bounds.top
+                        binding.overlayContainer.layoutParams.height = it.bounds.top
+                        // Restrict input and menu drawer to the bottom of the screen
+                        binding.inputContainer.layoutParams.height = it.bounds.bottom
+                        binding.inGameMenu.layoutParams.height = it.bounds.bottom
 
-                    isInFoldableLayout = true
-                    binding.surfaceInputOverlay.orientation = InputOverlay.FOLDABLE
-                    refreshInputOverlay()
+                        isInFoldableLayout = true
+                        binding.surfaceInputOverlay.orientation = InputOverlay.FOLDABLE
+                        refreshInputOverlay()
+                    }
                 }
-            }
-            it.isSeparating
-        } ?: false
+                it.isSeparating
+            } ?: false
         if (!isFolding) {
             binding.emulationContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.inputContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
@@ -516,18 +529,22 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             inputScaleSlider.apply {
                 valueTo = 150F
                 value = preferences.getInt(Settings.PREF_CONTROL_SCALE, 50).toFloat()
-                addOnChangeListener(Slider.OnChangeListener { _, value, _ ->
-                    inputScaleValue.text = "${value.toInt()}%"
-                    setControlScale(value.toInt())
-                })
+                addOnChangeListener(
+                    Slider.OnChangeListener { _, value, _ ->
+                        inputScaleValue.text = "${value.toInt()}%"
+                        setControlScale(value.toInt())
+                    }
+                )
             }
             inputOpacitySlider.apply {
                 valueTo = 100F
                 value = preferences.getInt(Settings.PREF_CONTROL_OPACITY, 100).toFloat()
-                addOnChangeListener(Slider.OnChangeListener { _, value, _ ->
-                    inputOpacityValue.text = "${value.toInt()}%"
-                    setControlOpacity(value.toInt())
-                })
+                addOnChangeListener(
+                    Slider.OnChangeListener { _, value, _ ->
+                        inputOpacityValue.text = "${value.toInt()}%"
+                        setControlOpacity(value.toInt())
+                    }
+                )
             }
             inputScaleValue.text = "${inputScaleSlider.value.toInt()}%"
             inputOpacityValue.text = "${inputOpacitySlider.value.toInt()}%"
@@ -559,7 +576,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     private fun setInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.inGameMenu) { v: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.inGameMenu
+        ) { v: View, windowInsets: WindowInsetsCompat ->
             val cutInsets: Insets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
             var left = 0
             var right = 0
@@ -679,8 +698,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         state = State.PAUSED
                     }
 
-                    State.PAUSED -> Log.warning("[EmulationFragment] Surface cleared while emulation paused.")
-                    else -> Log.warning("[EmulationFragment] Surface cleared while emulation stopped.")
+                    State.PAUSED -> Log.warning(
+                        "[EmulationFragment] Surface cleared while emulation paused."
+                    )
+                    else -> Log.warning(
+                        "[EmulationFragment] Surface cleared while emulation stopped."
+                    )
                 }
             }
         }

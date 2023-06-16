@@ -4,7 +4,6 @@
 package org.yuzu.yuzu_emu.features.settings.model.view
 
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
-import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 
 class SingleChoiceSetting(
     setting: AbstractIntSetting?,

@@ -13,11 +13,11 @@ import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import android.provider.DocumentsProvider
 import android.webkit.MimeTypeMap
+import java.io.*
 import org.yuzu.yuzu_emu.BuildConfig
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.getPublicFilesDir
-import java.io.*
 
 class DocumentProvider : DocumentsProvider() {
     private val baseDirectory: File
@@ -44,7 +44,7 @@ class DocumentProvider : DocumentsProvider() {
             DocumentsContract.Document.COLUMN_SIZE
         )
 
-        const val AUTHORITY : String = BuildConfig.APPLICATION_ID + ".user"
+        const val AUTHORITY: String = BuildConfig.APPLICATION_ID + ".user"
         const val ROOT_ID: String = "root"
     }
 
@@ -58,7 +58,11 @@ class DocumentProvider : DocumentsProvider() {
     private fun getFile(documentId: String): File {
         if (documentId.startsWith(ROOT_ID)) {
             val file = baseDirectory.resolve(documentId.drop(ROOT_ID.length + 1))
-            if (!file.exists()) throw FileNotFoundException("${file.absolutePath} ($documentId) not found")
+            if (!file.exists()) {
+                throw FileNotFoundException(
+                    "${file.absolutePath} ($documentId) not found"
+                )
+            }
             return file
         } else {
             throw FileNotFoundException("'$documentId' is not in any known root")
@@ -80,7 +84,8 @@ class DocumentProvider : DocumentsProvider() {
             add(DocumentsContract.Root.COLUMN_SUMMARY, null)
             add(
                 DocumentsContract.Root.COLUMN_FLAGS,
-                DocumentsContract.Root.FLAG_SUPPORTS_CREATE or DocumentsContract.Root.FLAG_SUPPORTS_IS_CHILD
+                DocumentsContract.Root.FLAG_SUPPORTS_CREATE or
+                    DocumentsContract.Root.FLAG_SUPPORTS_IS_CHILD
             )
             add(DocumentsContract.Root.COLUMN_TITLE, context!!.getString(R.string.app_name))
             add(DocumentsContract.Root.COLUMN_DOCUMENT_ID, getDocumentId(baseDirectory))
@@ -127,11 +132,13 @@ class DocumentProvider : DocumentsProvider() {
 
         try {
             if (DocumentsContract.Document.MIME_TYPE_DIR == mimeType) {
-                if (!newFile.mkdir())
+                if (!newFile.mkdir()) {
                     throw IOException("Failed to create directory")
+                }
             } else {
-                if (!newFile.createNewFile())
+                if (!newFile.createNewFile()) {
                     throw IOException("Failed to create file")
+                }
             }
         } catch (e: IOException) {
             throw FileNotFoundException("Couldn't create document '${newFile.path}': ${e.message}")
@@ -142,8 +149,9 @@ class DocumentProvider : DocumentsProvider() {
 
     override fun deleteDocument(documentId: String?) {
         val file = getFile(documentId!!)
-        if (!file.delete())
+        if (!file.delete()) {
             throw FileNotFoundException("Couldn't delete document with ID '$documentId'")
+        }
     }
 
     override fun removeDocument(documentId: String, parentDocumentId: String?) {
@@ -151,38 +159,55 @@ class DocumentProvider : DocumentsProvider() {
         val file = getFile(documentId)
 
         if (parent == file || file.parentFile == null || file.parentFile!! == parent) {
-            if (!file.delete())
+            if (!file.delete()) {
                 throw FileNotFoundException("Couldn't delete document with ID '$documentId'")
+            }
         } else {
             throw FileNotFoundException("Couldn't delete document with ID '$documentId'")
         }
     }
 
     override fun renameDocument(documentId: String?, displayName: String?): String {
-        if (displayName == null)
-            throw FileNotFoundException("Couldn't rename document '$documentId' as the new name is null")
+        if (displayName == null) {
+            throw FileNotFoundException(
+                "Couldn't rename document '$documentId' as the new name is null"
+            )
+        }
 
         val sourceFile = getFile(documentId!!)
         val sourceParentFile = sourceFile.parentFile
-            ?: throw FileNotFoundException("Couldn't rename document '$documentId' as it has no parent")
+            ?: throw FileNotFoundException(
+                "Couldn't rename document '$documentId' as it has no parent"
+            )
         val destFile = sourceParentFile.resolve(displayName)
 
         try {
-            if (!sourceFile.renameTo(destFile))
-                throw FileNotFoundException("Couldn't rename document from '${sourceFile.name}' to '${destFile.name}'")
+            if (!sourceFile.renameTo(destFile)) {
+                throw FileNotFoundException(
+                    "Couldn't rename document from '${sourceFile.name}' to '${destFile.name}'"
+                )
+            }
         } catch (e: Exception) {
-            throw FileNotFoundException("Couldn't rename document from '${sourceFile.name}' to '${destFile.name}': ${e.message}")
+            throw FileNotFoundException(
+                "Couldn't rename document from '${sourceFile.name}' to '${destFile.name}': " +
+                    "${e.message}"
+            )
         }
 
         return getDocumentId(destFile)
     }
 
     private fun copyDocument(
-        sourceDocumentId: String, sourceParentDocumentId: String,
+        sourceDocumentId: String,
+        sourceParentDocumentId: String,
         targetParentDocumentId: String?
     ): String {
-        if (!isChildDocument(sourceParentDocumentId, sourceDocumentId))
-            throw FileNotFoundException("Couldn't copy document '$sourceDocumentId' as its parent is not '$sourceParentDocumentId'")
+        if (!isChildDocument(sourceParentDocumentId, sourceDocumentId)) {
+            throw FileNotFoundException(
+                "Couldn't copy document '$sourceDocumentId' as its parent is not " +
+                    "'$sourceParentDocumentId'"
+            )
+        }
 
         return copyDocument(sourceDocumentId, targetParentDocumentId)
     }
@@ -193,8 +218,13 @@ class DocumentProvider : DocumentsProvider() {
         val newFile = parent.resolveWithoutConflict(oldFile.name)
 
         try {
-            if (!(newFile.createNewFile() && newFile.setWritable(true) && newFile.setReadable(true)))
+            if (!(
+                newFile.createNewFile() && newFile.setWritable(true) &&
+                    newFile.setReadable(true)
+                )
+            ) {
                 throw IOException("Couldn't create new file")
+            }
 
             FileInputStream(oldFile).use { inStream ->
                 FileOutputStream(newFile).use { outStream ->
@@ -209,12 +239,14 @@ class DocumentProvider : DocumentsProvider() {
     }
 
     override fun moveDocument(
-        sourceDocumentId: String, sourceParentDocumentId: String?,
+        sourceDocumentId: String,
+        sourceParentDocumentId: String?,
         targetParentDocumentId: String?
     ): String {
         try {
             val newDocumentId = copyDocument(
-                sourceDocumentId, sourceParentDocumentId!!,
+                sourceDocumentId,
+                sourceParentDocumentId!!,
                 targetParentDocumentId
             )
             removeDocument(sourceDocumentId, sourceParentDocumentId)
@@ -245,24 +277,30 @@ class DocumentProvider : DocumentsProvider() {
             add(DocumentsContract.Document.COLUMN_DOCUMENT_ID, localDocumentId)
             add(
                 DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-                if (localFile == baseDirectory) context!!.getString(R.string.app_name) else localFile.name
+                if (localFile == baseDirectory) {
+                    context!!.getString(R.string.app_name)
+                } else {
+                    localFile.name
+                }
             )
             add(DocumentsContract.Document.COLUMN_SIZE, localFile.length())
             add(DocumentsContract.Document.COLUMN_MIME_TYPE, getTypeForFile(localFile))
             add(DocumentsContract.Document.COLUMN_LAST_MODIFIED, localFile.lastModified())
             add(DocumentsContract.Document.COLUMN_FLAGS, flags)
-            if (localFile == baseDirectory)
+            if (localFile == baseDirectory) {
                 add(DocumentsContract.Root.COLUMN_ICON, R.drawable.ic_yuzu)
+            }
         }
 
         return cursor
     }
 
     private fun getTypeForFile(file: File): Any {
-        return if (file.isDirectory)
+        return if (file.isDirectory) {
             DocumentsContract.Document.MIME_TYPE_DIR
-        else
+        } else {
             getTypeForName(file.name)
+        }
     }
 
     private fun getTypeForName(name: String): Any {
@@ -270,8 +308,9 @@ class DocumentProvider : DocumentsProvider() {
         if (lastDot >= 0) {
             val extension = name.substring(lastDot + 1)
             val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
-            if (mime != null)
+            if (mime != null) {
                 return mime
+            }
         }
         return "application/octect-stream"
     }

@@ -54,7 +54,7 @@ class ForegroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent == null) {
-            return START_NOT_STICKY;
+            return START_NOT_STICKY
         }
         if (intent.action == ACTION_STOP) {
             NotificationManagerCompat.from(this).cancel(EMULATION_RUNNING_NOTIFICATION)

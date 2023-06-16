@@ -9,12 +9,12 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.view.MotionEvent
-import org.yuzu.yuzu_emu.NativeLibrary
-import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
+import org.yuzu.yuzu_emu.NativeLibrary
+import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
 
 /**
  * Custom [BitmapDrawable] that is capable
@@ -241,14 +241,22 @@ class InputOverlayDrawableJoystick(
     private fun setInnerBounds() {
         var x = virtBounds.centerX() + (xAxis * (virtBounds.width() / 2)).toInt()
         var y = virtBounds.centerY() + (yAxis * (virtBounds.height() / 2)).toInt()
-        if (x > virtBounds.centerX() + virtBounds.width() / 2) x =
-            virtBounds.centerX() + virtBounds.width() / 2
-        if (x < virtBounds.centerX() - virtBounds.width() / 2) x =
-            virtBounds.centerX() - virtBounds.width() / 2
-        if (y > virtBounds.centerY() + virtBounds.height() / 2) y =
-            virtBounds.centerY() + virtBounds.height() / 2
-        if (y < virtBounds.centerY() - virtBounds.height() / 2) y =
-            virtBounds.centerY() - virtBounds.height() / 2
+        if (x > virtBounds.centerX() + virtBounds.width() / 2) {
+            x =
+                virtBounds.centerX() + virtBounds.width() / 2
+        }
+        if (x < virtBounds.centerX() - virtBounds.width() / 2) {
+            x =
+                virtBounds.centerX() - virtBounds.width() / 2
+        }
+        if (y > virtBounds.centerY() + virtBounds.height() / 2) {
+            y =
+                virtBounds.centerY() + virtBounds.height() / 2
+        }
+        if (y < virtBounds.centerY() - virtBounds.height() / 2) {
+            y =
+                virtBounds.centerY() - virtBounds.height() / 2
+        }
         val width = pressedStateInnerBitmap.bounds.width() / 2
         val height = pressedStateInnerBitmap.bounds.height() / 2
         defaultStateInnerBitmap.setBounds(

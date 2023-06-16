@@ -50,7 +50,10 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         settingsAdapter = SettingsAdapter(this, requireActivity())
-        val dividerDecoration = MaterialDividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL)
+        val dividerDecoration = MaterialDividerItemDecoration(
+            requireContext(),
+            LinearLayoutManager.VERTICAL
+        )
         dividerDecoration.isLastItemDecorated = false
         binding.listSettings.apply {
             adapter = settingsAdapter
@@ -99,7 +102,9 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
     }
 
     private fun setInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.listSettings) { view: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.listSettings
+        ) { view: View, windowInsets: WindowInsetsCompat ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.updatePadding(bottom = insets.bottom)
             windowInsets

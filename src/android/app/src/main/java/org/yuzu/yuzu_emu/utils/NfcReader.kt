@@ -13,8 +13,8 @@ import android.nfc.tech.NfcA
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import org.yuzu.yuzu_emu.NativeLibrary
 import java.io.IOException
+import org.yuzu.yuzu_emu.NativeLibrary
 
 class NfcReader(private val activity: Activity) {
     private var nfcAdapter: NfcAdapter? = null
@@ -25,10 +25,13 @@ class NfcReader(private val activity: Activity) {
 
         pendingIntent = PendingIntent.getActivity(
             activity,
-            0, Intent(activity, activity.javaClass),
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+            0,
+            Intent(activity, activity.javaClass),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-            else PendingIntent.FLAG_UPDATE_CURRENT
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
         )
 
         val tagDetected = IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED)
@@ -45,9 +48,9 @@ class NfcReader(private val activity: Activity) {
 
     fun onNewIntent(intent: Intent) {
         val action = intent.action
-        if (NfcAdapter.ACTION_TAG_DISCOVERED != action
-            && NfcAdapter.ACTION_TECH_DISCOVERED != action
-            && NfcAdapter.ACTION_NDEF_DISCOVERED != action
+        if (NfcAdapter.ACTION_TAG_DISCOVERED != action &&
+            NfcAdapter.ACTION_TECH_DISCOVERED != action &&
+            NfcAdapter.ACTION_NDEF_DISCOVERED != action
         ) {
             return
         }
@@ -84,7 +87,7 @@ class NfcReader(private val activity: Activity) {
     }
 
     private fun ntag215ReadAll(amiibo: NfcA): ByteArray? {
-        val bufferSize = amiibo.maxTransceiveLength;
+        val bufferSize = amiibo.maxTransceiveLength
         val tagSize = 0x21C
         val pageSize = 4
         val lastPage = tagSize / pageSize - 1
@@ -103,7 +106,7 @@ class NfcReader(private val activity: Activity) {
                 val data = ntag215FastRead(amiibo, dataStart, dataEnd - 1)
                 System.arraycopy(data, 0, tagData, i, (dataEnd - dataStart) * pageSize)
             } catch (e: IOException) {
-                return null;
+                return null
             }
         }
         return tagData

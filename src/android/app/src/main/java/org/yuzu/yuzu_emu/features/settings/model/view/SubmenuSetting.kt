@@ -3,8 +3,6 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
-import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
-
 class SubmenuSetting(
     titleId: Int,
     descriptionId: Int,

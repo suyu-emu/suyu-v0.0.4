@@ -7,12 +7,12 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import java.io.File
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.DocumentsTree
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
-import java.io.File
 
-fun Context.getPublicFilesDir() : File = getExternalFilesDir(null) ?: filesDir
+fun Context.getPublicFilesDir(): File = getExternalFilesDir(null) ?: filesDir
 
 class YuzuApplication : Application() {
     private fun createNotificationChannels() {
@@ -21,7 +21,9 @@ class YuzuApplication : Application() {
             getString(R.string.emulation_notification_channel_name),
             NotificationManager.IMPORTANCE_LOW
         )
-        emulationChannel.description = getString(R.string.emulation_notification_channel_description)
+        emulationChannel.description = getString(
+            R.string.emulation_notification_channel_description
+        )
         emulationChannel.setSound(null, null)
         emulationChannel.vibrationPattern = null
 
@@ -48,7 +50,7 @@ class YuzuApplication : Application() {
         GpuDriverHelper.initializeDriverParameters(applicationContext)
         NativeLibrary.logDeviceInfo()
 
-        createNotificationChannels();
+        createNotificationChannels()
     }
 
     companion object {

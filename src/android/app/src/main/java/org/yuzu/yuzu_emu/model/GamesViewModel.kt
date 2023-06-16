@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -20,7 +21,6 @@ import kotlinx.serialization.json.Json
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.utils.GameHelper
-import java.util.Locale
 
 @OptIn(ExperimentalSerializationApi::class)
 class GamesViewModel : ViewModel() {
@@ -99,8 +99,9 @@ class GamesViewModel : ViewModel() {
     }
 
     fun reloadGames(directoryChanged: Boolean) {
-        if (isReloading.value == true)
+        if (isReloading.value == true) {
             return
+        }
         _isReloading.postValue(true)
 
         viewModelScope.launch {

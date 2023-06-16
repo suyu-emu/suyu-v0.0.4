@@ -133,7 +133,10 @@ class InputOverlayDrawableDpad(
             downButtonState = axisY > VIRT_AXIS_DEADZONE
             leftButtonState = axisX < -VIRT_AXIS_DEADZONE
             rightButtonState = axisX > VIRT_AXIS_DEADZONE
-            return oldUpState != upButtonState || oldDownState != downButtonState || oldLeftState != leftButtonState || oldRightState != rightButtonState
+            return oldUpState != upButtonState ||
+                oldDownState != downButtonState ||
+                oldLeftState != leftButtonState ||
+                oldRightState != rightButtonState
         }
         return false
     }

@@ -99,7 +99,9 @@ class GamesFragment : Fragment() {
             }
             shouldSwapData.observe(viewLifecycleOwner) { shouldSwapData ->
                 if (shouldSwapData) {
-                    (binding.gridGames.adapter as GameAdapter).submitList(gamesViewModel.games.value!!)
+                    (binding.gridGames.adapter as GameAdapter).submitList(
+                        gamesViewModel.games.value!!
+                    )
                     gamesViewModel.setShouldSwapData(false)
                 }
             }
@@ -128,7 +130,9 @@ class GamesFragment : Fragment() {
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.root
+        ) { view: View, windowInsets: WindowInsetsCompat ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
             val extraListSpacing = resources.getDimensionPixelSize(R.dimen.spacing_large)

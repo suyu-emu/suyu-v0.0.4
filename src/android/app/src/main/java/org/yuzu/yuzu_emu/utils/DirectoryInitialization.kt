@@ -4,8 +4,8 @@
 package org.yuzu.yuzu_emu.utils
 
 import android.content.Context
-import org.yuzu.yuzu_emu.NativeLibrary
 import java.io.IOException
+import org.yuzu.yuzu_emu.NativeLibrary
 
 object DirectoryInitialization {
     private var userPath: String? = null

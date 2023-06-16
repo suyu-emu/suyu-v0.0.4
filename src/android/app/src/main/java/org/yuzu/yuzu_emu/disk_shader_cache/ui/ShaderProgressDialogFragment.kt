@@ -62,7 +62,9 @@ class ShaderProgressDialogFragment : DialogFragment() {
         shaderProgressViewModel.message.observe(viewLifecycleOwner) { msg ->
             alertDialog.setMessage(msg)
         }
-        synchronized(DiskShaderCacheProgress.finishLock) { DiskShaderCacheProgress.finishLock.notifyAll() }
+        synchronized(DiskShaderCacheProgress.finishLock) {
+            DiskShaderCacheProgress.finishLock.notifyAll()
+        }
     }
 
     override fun onDestroyView() {

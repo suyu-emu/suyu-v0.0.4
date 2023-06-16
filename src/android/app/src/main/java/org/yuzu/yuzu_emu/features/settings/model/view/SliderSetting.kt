@@ -3,13 +3,11 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
+import kotlin.math.roundToInt
 import org.yuzu.yuzu_emu.features.settings.model.AbstractFloatSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
-import org.yuzu.yuzu_emu.features.settings.model.FloatSetting
-import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.utils.Log
-import kotlin.math.roundToInt
 
 class SliderSetting(
     setting: AbstractSetting?,
@@ -19,7 +17,7 @@ class SliderSetting(
     val max: Int,
     val units: String,
     val key: String? = null,
-    val defaultValue: Int? = null,
+    val defaultValue: Int? = null
 ) : SettingsItem(setting, titleId, descriptionId) {
     override val type = TYPE_SLIDER
 

@@ -103,7 +103,9 @@ class HomeSettingsFragment : Fragment() {
                 R.string.select_games_folder,
                 R.string.select_games_folder_description,
                 R.drawable.ic_add
-            ) { mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data) },
+            ) {
+                mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
+            },
             HomeSetting(
                 R.string.manage_save_data,
                 R.string.import_export_saves_description,
@@ -225,7 +227,11 @@ class HomeSettingsFragment : Fragment() {
         val intent = Intent(action)
         intent.addCategory(Intent.CATEGORY_DEFAULT)
         intent.data = DocumentsContract.buildRootUri(authority, DocumentProvider.ROOT_ID)
-        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or Intent.FLAG_GRANT_PREFIX_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        intent.addFlags(
+            Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
+                Intent.FLAG_GRANT_PREFIX_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        )
         return intent
     }
 
@@ -307,7 +313,9 @@ class HomeSettingsFragment : Fragment() {
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.root
+        ) { view: View, windowInsets: WindowInsetsCompat ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
             val spacingNavigation = resources.getDimensionPixelSize(R.dimen.spacing_navigation)

@@ -4,9 +4,9 @@
 package org.yuzu.yuzu_emu.model
 
 import android.os.Parcelable
+import java.util.HashSet
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
-import java.util.HashSet
 
 @Parcelize
 @Serializable
@@ -23,8 +23,9 @@ class Game(
     val keyLastPlayedTime get() = "${gameId}_LastPlayed"
 
     override fun equals(other: Any?): Boolean {
-        if (other !is Game)
+        if (other !is Game) {
             return false
+        }
 
         return hashCode() == other.hashCode()
     }
