@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/settings.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/draw_manager.h"
 #include "video_core/rasterizer_interface.h"
@@ -195,8 +196,12 @@ void DrawManager::DrawTexture() {
     if (lower_left) {
         draw_texture_state.dst_y0 -= dst_height;
     }
-    draw_texture_state.dst_x1 = draw_texture_state.dst_x0 + dst_width;
-    draw_texture_state.dst_y1 = draw_texture_state.dst_y0 + dst_height;
+    draw_texture_state.dst_x1 =
+        draw_texture_state.dst_x0 +
+        static_cast<f32>(Settings::values.resolution_info.ScaleUp(static_cast<u32>(dst_width)));
+    draw_texture_state.dst_y1 =
+        draw_texture_state.dst_y0 +
+        static_cast<f32>(Settings::values.resolution_info.ScaleUp(static_cast<u32>(dst_height)));
     draw_texture_state.src_x0 = static_cast<float>(regs.draw_texture.src_x0) / 4096.f;
     draw_texture_state.src_y0 = static_cast<float>(regs.draw_texture.src_y0) / 4096.f;
     draw_texture_state.src_x1 =
@@ -207,7 +212,6 @@ void DrawManager::DrawTexture() {
         draw_texture_state.src_y0;
     draw_texture_state.src_sampler = regs.draw_texture.src_sampler;
     draw_texture_state.src_texture = regs.draw_texture.src_texture;
-
     maxwell3d->rasterizer->DrawTexture();
 }
 
