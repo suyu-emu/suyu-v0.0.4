@@ -36,6 +36,11 @@ class DocumentsTree {
         return resolvePath(filepath) != null
     }
 
+    fun isDirectory(filepath: String): Boolean {
+        val node = resolvePath(filepath)
+        return node != null && node.isDirectory
+    }
+
     private fun resolvePath(filepath: String): DocumentsNode? {
         val tokens = StringTokenizer(filepath, File.separator, false)
         var iterator = root
