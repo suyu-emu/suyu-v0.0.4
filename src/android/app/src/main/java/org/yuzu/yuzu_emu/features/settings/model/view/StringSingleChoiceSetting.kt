@@ -7,20 +7,20 @@ import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractStringSetting
 
 class StringSingleChoiceSetting(
-    val key: String? = null,
     setting: AbstractSetting?,
     titleId: Int,
     descriptionId: Int,
-    val choicesId: Array<String>,
-    private val valuesId: Array<String>?,
+    val choices: Array<String>,
+    val values: Array<String>?,
+    val key: String? = null,
     private val defaultValue: String? = null
 ) : SettingsItem(setting, titleId, descriptionId) {
     override val type = TYPE_STRING_SINGLE_CHOICE
 
     fun getValueAt(index: Int): String? {
-        if (valuesId == null) return null
-        return if (index >= 0 && index < valuesId.size) {
-            valuesId[index]
+        if (values == null) return null
+        return if (index >= 0 && index < values.size) {
+            values[index]
         } else {
             ""
         }
@@ -36,8 +36,8 @@ class StringSingleChoiceSetting(
     val selectValueIndex: Int
         get() {
             val selectedValue = selectedValue
-            for (i in valuesId!!.indices) {
-                if (valuesId[i] == selectedValue) {
+            for (i in values!!.indices) {
+                if (values[i] == selectedValue) {
                     return i
                 }
             }

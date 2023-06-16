@@ -185,6 +185,7 @@
     <string name="fastmem">Fastmem</string>
 
     <!-- Audio settings strings -->
+    <string name="audio_output_engine">Output engine</string>
     <string name="audio_volume">Volume</string>
     <string name="audio_volume_description">Specifies the volume of audio output.</string>
 
@@ -203,6 +204,7 @@
     <string name="learn_more">Learn more</string>
     <string name="auto">Auto</string>
     <string name="submit">Submit</string>
+    <string name="string_null">Null</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>
@@ -372,6 +374,9 @@
     <string name="theme_mode_follow_system">Follow System</string>
     <string name="theme_mode_light">Light</string>
     <string name="theme_mode_dark">Dark</string>
+
+    <!-- Audio output engines -->
+    <string name="cubeb">cubeb</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Black backgrounds</string>

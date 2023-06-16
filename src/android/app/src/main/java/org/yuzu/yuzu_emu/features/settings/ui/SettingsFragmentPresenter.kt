@@ -353,18 +353,31 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
 
     private fun addAudioSettings(sl: ArrayList<SettingsItem>) {
         settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_audio))
-        sl.add(
-            SliderSetting(
-                IntSetting.AUDIO_VOLUME,
-                R.string.audio_volume,
-                R.string.audio_volume_description,
-                0,
-                100,
-                "%",
-                IntSetting.AUDIO_VOLUME.key,
-                IntSetting.AUDIO_VOLUME.defaultValue
+        sl.apply {
+            add(
+                StringSingleChoiceSetting(
+                    StringSetting.AUDIO_OUTPUT_ENGINE,
+                    R.string.audio_output_engine,
+                    0,
+                    settingsActivity.resources.getStringArray(R.array.outputEngineEntries),
+                    settingsActivity.resources.getStringArray(R.array.outputEngineValues),
+                    StringSetting.AUDIO_OUTPUT_ENGINE.key,
+                    StringSetting.AUDIO_OUTPUT_ENGINE.defaultValue
+                )
             )
-        )
+            add(
+                SliderSetting(
+                    IntSetting.AUDIO_VOLUME,
+                    R.string.audio_volume,
+                    R.string.audio_volume_description,
+                    0,
+                    100,
+                    "%",
+                    IntSetting.AUDIO_VOLUME.key,
+                    IntSetting.AUDIO_VOLUME.defaultValue
+                )
+            )
+        }
     }
 
     private fun addThemeSettings(sl: ArrayList<SettingsItem>) {

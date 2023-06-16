@@ -8,6 +8,7 @@ enum class StringSetting(
     override val section: String,
     override val defaultValue: String
 ) : AbstractStringSetting {
+    AUDIO_OUTPUT_ENGINE("output_engine", Settings.SECTION_AUDIO, "auto"),
     CUSTOM_RTC("custom_rtc", Settings.SECTION_SYSTEM, "0");
 
     override var string: String = defaultValue

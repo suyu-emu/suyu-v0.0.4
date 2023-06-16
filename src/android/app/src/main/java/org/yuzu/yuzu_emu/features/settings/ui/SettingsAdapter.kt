@@ -138,7 +138,7 @@ class SettingsAdapter(
         clickedItem = item
         dialog = MaterialAlertDialogBuilder(context)
             .setTitle(item.nameId)
-            .setSingleChoiceItems(item.choicesId, item.selectValueIndex, this)
+            .setSingleChoiceItems(item.choices, item.selectValueIndex, this)
             .show()
     }
 
