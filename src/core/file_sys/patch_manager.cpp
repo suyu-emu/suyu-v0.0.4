@@ -153,7 +153,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     const auto sdmc_load_dir = fs_controller.GetSDMCModificationLoadRoot(title_id);
 
     std::vector<VirtualDir> patch_dirs = {sdmc_load_dir};
-    if (load_dir != nullptr && load_dir->GetSize() > 0) {
+    if (load_dir != nullptr) {
         const auto load_patch_dirs = load_dir->GetSubdirectories();
         patch_dirs.insert(patch_dirs.end(), load_patch_dirs.begin(), load_patch_dirs.end());
     }
@@ -354,8 +354,7 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
     const auto load_dir = fs_controller.GetModificationLoadRoot(title_id);
     const auto sdmc_load_dir = fs_controller.GetSDMCModificationLoadRoot(title_id);
     if ((type != ContentRecordType::Program && type != ContentRecordType::Data) ||
-        ((load_dir == nullptr || load_dir->GetSize() <= 0) &&
-         (sdmc_load_dir == nullptr || sdmc_load_dir->GetSize() <= 0))) {
+        (load_dir == nullptr && sdmc_load_dir == nullptr)) {
         return;
     }
 
@@ -496,7 +495,7 @@ PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile u
 
     // General Mods (LayeredFS and IPS)
     const auto mod_dir = fs_controller.GetModificationLoadRoot(title_id);
-    if (mod_dir != nullptr && mod_dir->GetSize() > 0) {
+    if (mod_dir != nullptr) {
         for (const auto& mod : mod_dir->GetSubdirectories()) {
             std::string types;
 
@@ -540,7 +539,7 @@ PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile u
 
     // SDMC mod directory (RomFS LayeredFS)
     const auto sdmc_mod_dir = fs_controller.GetSDMCModificationLoadRoot(title_id);
-    if (sdmc_mod_dir != nullptr && sdmc_mod_dir->GetSize() > 0) {
+    if (sdmc_mod_dir != nullptr) {
         std::string types;
         if (IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "exefs"))) {
             AppendCommaIfNotEmpty(types, "LayeredExeFS");
