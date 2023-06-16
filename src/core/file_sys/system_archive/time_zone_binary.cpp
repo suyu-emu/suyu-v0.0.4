@@ -15,7 +15,7 @@ namespace FileSys::SystemArchive {
 const static std::map<std::string, const std::map<const char*, const std::vector<u8>>&>
     tzdb_zoneinfo_dirs = {{"Africa", NxTzdb::africa},
                           {"America", NxTzdb::america},
-                          {"Antartica", NxTzdb::antartica},
+                          {"Antarctica", NxTzdb::antarctica},
                           {"Arctic", NxTzdb::arctic},
                           {"Asia", NxTzdb::asia},
                           {"Atlantic", NxTzdb::atlantic},

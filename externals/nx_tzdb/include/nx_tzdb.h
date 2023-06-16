@@ -9,7 +9,7 @@
 #include "nx_tzdb/america_indiana.h"
 #include "nx_tzdb/america_kentucky.h"
 #include "nx_tzdb/america_north_dakota.h"
-#include "nx_tzdb/antartica.h"
+#include "nx_tzdb/antarctica.h"
 #include "nx_tzdb/arctic.h"
 #include "nx_tzdb/asia.h"
 #include "nx_tzdb/atlantic.h"
