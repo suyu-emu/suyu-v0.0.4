@@ -142,9 +142,13 @@ void NfcInterface::AttachAvailabilityChangeEvent(HLERequestContext& ctx) {
 void NfcInterface::StartDetection(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
-    const auto tag_protocol{rp.PopEnum<NfcProtocol>()};
-    LOG_INFO(Service_NFC, "called, device_handle={}, nfp_protocol={}", device_handle, tag_protocol);
+    auto tag_protocol{NfcProtocol::All};
 
+    if (backend_type == BackendType::Nfc) {
+        tag_protocol = rp.PopEnum<NfcProtocol>();
+    }
+
+    LOG_INFO(Service_NFC, "called, device_handle={}, nfp_protocol={}", device_handle, tag_protocol);
     auto result = GetManager()->StartDetection(device_handle, tag_protocol);
     result = TranslateResultToServiceError(result);
 
@@ -355,7 +359,7 @@ Result NfcInterface::TranslateResultToNfp(Result result) const {
     if (result == ResultApplicationAreaExist) {
         return NFP::ResultApplicationAreaExist;
     }
-    if (result == ResultNotAnAmiibo) {
+    if (result == ResultInvalidTagType) {
         return NFP::ResultNotAnAmiibo;
     }
     if (result == ResultUnableToAccessBackupFile) {
@@ -380,6 +384,9 @@ Result NfcInterface::TranslateResultToMifare(Result result) const {
     }
     if (result == ResultTagRemoved) {
         return Mifare::ResultTagRemoved;
+    }
+    if (result == ResultInvalidTagType) {
+        return Mifare::ResultNotAMifare;
     }
     LOG_WARNING(Service_NFC, "Result conversion not handled");
     return result;

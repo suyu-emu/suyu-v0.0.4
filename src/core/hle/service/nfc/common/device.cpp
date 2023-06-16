@@ -242,34 +242,39 @@ Result NfcDevice::GetTagInfo(NFP::TagInfo& tag_info, bool is_mifare) const {
         return ResultWrongDeviceState;
     }
 
-    UniqueSerialNumber uuid = encrypted_tag_data.uuid.uid;
-
-    // Generate random UUID to bypass amiibo load limits
-    if (Settings::values.random_amiibo_id) {
-        Common::TinyMT rng{};
-        rng.Initialize(static_cast<u32>(GetCurrentPosixTime()));
-        rng.GenerateRandomBytes(uuid.data(), sizeof(UniqueSerialNumber));
-        uuid[3] = 0x88 ^ uuid[0] ^ uuid[1] ^ uuid[2];
-    }
+    UniqueSerialNumber uuid{};
+    u8 uuid_length{};
+    NfcProtocol protocol{NfcProtocol::TypeA};
+    TagType tag_type{TagType::Type2};
 
     if (is_mifare) {
-        tag_info = {
-            .uuid = uuid,
-            .uuid_extension = {},
-            .uuid_length = static_cast<u8>(uuid.size()),
-            .protocol = NfcProtocol::TypeA,
-            .tag_type = TagType::Type4,
+        tag_type = TagType::Mifare;
+        uuid_length = sizeof(NFP::NtagTagUuid);
+        memcpy(uuid.data(), mifare_data.data(), uuid_length);
+    } else {
+        tag_type = TagType::Type2;
+        uuid_length = sizeof(NFP::NtagTagUuid);
+        NFP::NtagTagUuid nUuid{
+            .part1 = encrypted_tag_data.uuid.part1,
+            .part2 = encrypted_tag_data.uuid.part2,
+            .nintendo_id = encrypted_tag_data.uuid.nintendo_id,
         };
-        return ResultSuccess;
+        memcpy(uuid.data(), &nUuid, uuid_length);
+
+        // Generate random UUID to bypass amiibo load limits
+        if (Settings::values.random_amiibo_id) {
+            Common::TinyMT rng{};
+            rng.Initialize(static_cast<u32>(GetCurrentPosixTime()));
+            rng.GenerateRandomBytes(uuid.data(), uuid_length);
+        }
     }
 
     // Protocol and tag type may change here
     tag_info = {
         .uuid = uuid,
-        .uuid_extension = {},
-        .uuid_length = static_cast<u8>(uuid.size()),
-        .protocol = NfcProtocol::TypeA,
-        .tag_type = TagType::Type2,
+        .uuid_length = uuid_length,
+        .protocol = protocol,
+        .tag_type = tag_type,
     };
 
     return ResultSuccess;
@@ -277,7 +282,37 @@ Result NfcDevice::GetTagInfo(NFP::TagInfo& tag_info, bool is_mifare) const {
 
 Result NfcDevice::ReadMifare(std::span<const MifareReadBlockParameter> parameters,
                              std::span<MifareReadBlockData> read_block_data) const {
+    if (device_state != DeviceState::TagFound && device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return ResultTagRemoved;
+        }
+        return ResultWrongDeviceState;
+    }
+
     Result result = ResultSuccess;
+
+    TagInfo tag_info{};
+    result = GetTagInfo(tag_info, true);
+
+    if (result.IsError()) {
+        return result;
+    }
+
+    if (tag_info.protocol != NfcProtocol::TypeA || tag_info.tag_type != TagType::Mifare) {
+        return ResultInvalidTagType;
+    }
+
+    if (parameters.size() == 0) {
+        return ResultInvalidArgument;
+    }
+
+    const auto unknown = parameters[0].sector_key.unknown;
+    for (std::size_t i = 0; i < parameters.size(); i++) {
+        if (unknown != parameters[i].sector_key.unknown) {
+            return ResultInvalidArgument;
+        }
+    }
 
     for (std::size_t i = 0; i < parameters.size(); i++) {
         result = ReadMifare(parameters[i], read_block_data[i]);
@@ -293,17 +328,8 @@ Result NfcDevice::ReadMifare(const MifareReadBlockParameter& parameter,
                              MifareReadBlockData& read_block_data) const {
     const std::size_t sector_index = parameter.sector_number * sizeof(DataBlock);
     read_block_data.sector_number = parameter.sector_number;
-
-    if (device_state != DeviceState::TagFound && device_state != DeviceState::TagMounted) {
-        LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
-        if (device_state == DeviceState::TagRemoved) {
-            return ResultTagRemoved;
-        }
-        return ResultWrongDeviceState;
-    }
-
     if (mifare_data.size() < sector_index + sizeof(DataBlock)) {
-        return Mifare::ResultReadError;
+        return ResultMifareError288;
     }
 
     // TODO: Use parameter.sector_key to read encrypted data
@@ -315,6 +341,28 @@ Result NfcDevice::ReadMifare(const MifareReadBlockParameter& parameter,
 Result NfcDevice::WriteMifare(std::span<const MifareWriteBlockParameter> parameters) {
     Result result = ResultSuccess;
 
+    TagInfo tag_info{};
+    result = GetTagInfo(tag_info, true);
+
+    if (result.IsError()) {
+        return result;
+    }
+
+    if (tag_info.protocol != NfcProtocol::TypeA || tag_info.tag_type != TagType::Mifare) {
+        return ResultInvalidTagType;
+    }
+
+    if (parameters.size() == 0) {
+        return ResultInvalidArgument;
+    }
+
+    const auto unknown = parameters[0].sector_key.unknown;
+    for (std::size_t i = 0; i < parameters.size(); i++) {
+        if (unknown != parameters[i].sector_key.unknown) {
+            return ResultInvalidArgument;
+        }
+    }
+
     for (std::size_t i = 0; i < parameters.size(); i++) {
         result = WriteMifare(parameters[i]);
         if (result.IsError()) {
@@ -324,7 +372,7 @@ Result NfcDevice::WriteMifare(std::span<const MifareWriteBlockParameter> paramet
 
     if (!npad_device->WriteNfc(mifare_data)) {
         LOG_ERROR(Service_NFP, "Error writing to file");
-        return Mifare::ResultReadError;
+        return ResultMifareError288;
     }
 
     return result;
@@ -342,7 +390,7 @@ Result NfcDevice::WriteMifare(const MifareWriteBlockParameter& parameter) {
     }
 
     if (mifare_data.size() < sector_index + sizeof(DataBlock)) {
-        return Mifare::ResultReadError;
+        return ResultMifareError288;
     }
 
     // TODO: Use parameter.sector_key to encrypt the data
@@ -366,7 +414,7 @@ Result NfcDevice::Mount(NFP::ModelType model_type, NFP::MountTarget mount_target
 
     if (!NFP::AmiiboCrypto::IsAmiiboValid(encrypted_tag_data)) {
         LOG_ERROR(Service_NFP, "Not an amiibo");
-        return ResultNotAnAmiibo;
+        return ResultInvalidTagType;
     }
 
     // The loaded amiibo is not encrypted
@@ -381,14 +429,14 @@ Result NfcDevice::Mount(NFP::ModelType model_type, NFP::MountTarget mount_target
     }
 
     if (!NFP::AmiiboCrypto::DecodeAmiibo(encrypted_tag_data, tag_data)) {
-        bool has_backup = HasBackup(encrypted_tag_data.uuid.uid).IsSuccess();
+        bool has_backup = HasBackup(encrypted_tag_data.uuid).IsSuccess();
         LOG_ERROR(Service_NFP, "Can't decode amiibo, has_backup= {}", has_backup);
         return has_backup ? ResultCorruptedDataWithBackup : ResultCorruptedData;
     }
 
     std::vector<u8> data(sizeof(NFP::EncryptedNTAG215File));
     memcpy(data.data(), &encrypted_tag_data, sizeof(encrypted_tag_data));
-    WriteBackupData(encrypted_tag_data.uuid.uid, data);
+    WriteBackupData(encrypted_tag_data.uuid, data);
 
     device_state = DeviceState::TagMounted;
     mount_target = mount_target_;
@@ -492,7 +540,7 @@ Result NfcDevice::FlushWithBreak(NFP::BreakType break_type) {
         }
 
         memcpy(data.data(), &encrypted_tag_data, sizeof(encrypted_tag_data));
-        WriteBackupData(encrypted_tag_data.uuid.uid, data);
+        WriteBackupData(encrypted_tag_data.uuid, data);
     }
 
     if (!npad_device->WriteNfc(data)) {
@@ -520,7 +568,7 @@ Result NfcDevice::Restore() {
         return result;
     }
 
-    result = ReadBackupData(tag_info.uuid, data);
+    result = ReadBackupData(tag_info.uuid, tag_info.uuid_length, data);
 
     if (result.IsError()) {
         return result;
@@ -548,7 +596,7 @@ Result NfcDevice::Restore() {
     }
 
     if (!NFP::AmiiboCrypto::IsAmiiboValid(temporary_encrypted_tag_data)) {
-        return ResultNotAnAmiibo;
+        return ResultInvalidTagType;
     }
 
     if (!is_plain_amiibo) {
@@ -1194,10 +1242,12 @@ Result NfcDevice::BreakTag(NFP::BreakType break_type) {
     return FlushWithBreak(break_type);
 }
 
-Result NfcDevice::HasBackup(const NFC::UniqueSerialNumber& uid) const {
+Result NfcDevice::HasBackup(const UniqueSerialNumber& uid, std::size_t uuid_size) const {
+    ASSERT_MSG(uuid_size < sizeof(UniqueSerialNumber), "Invalid UUID size");
     constexpr auto backup_dir = "backup";
     const auto yuzu_amiibo_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::AmiiboDir);
-    const auto file_name = fmt::format("{0:02x}.bin", fmt::join(uid, ""));
+    const auto file_name =
+        fmt::format("{0:02x}.bin", fmt::join(uid.begin(), uid.begin() + uuid_size, ""));
 
     if (!Common::FS::Exists(yuzu_amiibo_dir / backup_dir / file_name)) {
         return ResultUnableToAccessBackupFile;
@@ -1206,10 +1256,19 @@ Result NfcDevice::HasBackup(const NFC::UniqueSerialNumber& uid) const {
     return ResultSuccess;
 }
 
-Result NfcDevice::ReadBackupData(const NFC::UniqueSerialNumber& uid, std::span<u8> data) const {
+Result NfcDevice::HasBackup(const NFP::TagUuid& tag_uid) const {
+    UniqueSerialNumber uuid{};
+    memcpy(uuid.data(), &tag_uid, sizeof(NFP::TagUuid));
+    return HasBackup(uuid, sizeof(NFP::TagUuid));
+}
+
+Result NfcDevice::ReadBackupData(const UniqueSerialNumber& uid, std::size_t uuid_size,
+                                 std::span<u8> data) const {
+    ASSERT_MSG(uuid_size < sizeof(UniqueSerialNumber), "Invalid UUID size");
     constexpr auto backup_dir = "backup";
     const auto yuzu_amiibo_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::AmiiboDir);
-    const auto file_name = fmt::format("{0:02x}.bin", fmt::join(uid, ""));
+    const auto file_name =
+        fmt::format("{0:02x}.bin", fmt::join(uid.begin(), uid.begin() + uuid_size, ""));
 
     const Common::FS::IOFile keys_file{yuzu_amiibo_dir / backup_dir / file_name,
                                        Common::FS::FileAccessMode::Read,
@@ -1228,12 +1287,21 @@ Result NfcDevice::ReadBackupData(const NFC::UniqueSerialNumber& uid, std::span<u
     return ResultSuccess;
 }
 
-Result NfcDevice::WriteBackupData(const NFC::UniqueSerialNumber& uid, std::span<const u8> data) {
+Result NfcDevice::ReadBackupData(const NFP::TagUuid& tag_uid, std::span<u8> data) const {
+    UniqueSerialNumber uuid{};
+    memcpy(uuid.data(), &tag_uid, sizeof(NFP::TagUuid));
+    return ReadBackupData(uuid, sizeof(NFP::TagUuid), data);
+}
+
+Result NfcDevice::WriteBackupData(const UniqueSerialNumber& uid, std::size_t uuid_size,
+                                  std::span<const u8> data) {
+    ASSERT_MSG(uuid_size < sizeof(UniqueSerialNumber), "Invalid UUID size");
     constexpr auto backup_dir = "backup";
     const auto yuzu_amiibo_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::AmiiboDir);
-    const auto file_name = fmt::format("{0:02x}.bin", fmt::join(uid, ""));
+    const auto file_name =
+        fmt::format("{0:02x}.bin", fmt::join(uid.begin(), uid.begin() + uuid_size, ""));
 
-    if (HasBackup(uid).IsError()) {
+    if (HasBackup(uid, uuid_size).IsError()) {
         if (!Common::FS::CreateDir(yuzu_amiibo_dir / backup_dir)) {
             return ResultBackupPathAlreadyExist;
         }
@@ -1258,6 +1326,12 @@ Result NfcDevice::WriteBackupData(const NFC::UniqueSerialNumber& uid, std::span<
     }
 
     return ResultSuccess;
+}
+
+Result NfcDevice::WriteBackupData(const NFP::TagUuid& tag_uid, std::span<const u8> data) {
+    UniqueSerialNumber uuid{};
+    memcpy(uuid.data(), &tag_uid, sizeof(NFP::TagUuid));
+    return WriteBackupData(uuid, sizeof(NFP::TagUuid), data);
 }
 
 Result NfcDevice::WriteNtf(std::span<const u8> data) {

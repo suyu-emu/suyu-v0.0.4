@@ -550,7 +550,7 @@ Result DeviceManager::ReadBackupData(u64 device_handle, std::span<u8> data) cons
     }
 
     if (result.IsSuccess()) {
-        result = device->ReadBackupData(tag_info.uuid, data);
+        result = device->ReadBackupData(tag_info.uuid, tag_info.uuid_length, data);
         result = VerifyDeviceResult(device, result);
     }
 
@@ -569,7 +569,7 @@ Result DeviceManager::WriteBackupData(u64 device_handle, std::span<const u8> dat
     }
 
     if (result.IsSuccess()) {
-        result = device->WriteBackupData(tag_info.uuid, data);
+        result = device->WriteBackupData(tag_info.uuid, tag_info.uuid_length, data);
         result = VerifyDeviceResult(device, result);
     }
 
