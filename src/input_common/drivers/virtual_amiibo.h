@@ -57,6 +57,7 @@ public:
 private:
     static constexpr std::size_t AmiiboSize = 0x21C;
     static constexpr std::size_t AmiiboSizeWithoutPassword = AmiiboSize - 0x8;
+    static constexpr std::size_t AmiiboSizeWithSignature = AmiiboSize + 0x20;
     static constexpr std::size_t MifareSize = 0x400;
 
     std::string file_path{};
