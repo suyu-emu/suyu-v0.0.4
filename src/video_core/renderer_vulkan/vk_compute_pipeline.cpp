@@ -115,7 +115,7 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
 
     static constexpr size_t max_elements = 64;
     boost::container::static_vector<VideoCommon::ImageViewInOut, max_elements> views;
-    boost::container::static_vector<const Sampler*, max_elements> samplers;
+    boost::container::static_vector<VideoCommon::SamplerId, max_elements> samplers;
 
     const auto& qmd{kepler_compute.launch_description};
     const auto& cbufs{qmd.const_buffer_config};
@@ -160,7 +160,7 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
             const auto handle{read_handle(desc, index)};
             views.push_back({handle.first});
 
-            Sampler* const sampler = texture_cache.GetComputeSampler(handle.second);
+            VideoCommon::SamplerId sampler = texture_cache.GetComputeSamplerId(handle.second);
             samplers.push_back(sampler);
         }
     }
@@ -192,7 +192,7 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
     buffer_cache.BindHostComputeBuffers();
 
     RescalingPushConstant rescaling;
-    const Sampler** samplers_it{samplers.data()};
+    const VideoCommon::SamplerId* samplers_it{samplers.data()};
     const VideoCommon::ImageViewInOut* views_it{views.data()};
     PushImageDescriptors(texture_cache, guest_descriptor_queue, info, rescaling, samplers_it,
                          views_it);

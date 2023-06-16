@@ -46,7 +46,6 @@ ImageViewBase::ImageViewBase(const ImageInfo& info, const ImageViewInfo& view_in
 ImageViewBase::ImageViewBase(const NullImageViewParams&) : image_id{NULL_IMAGE_ID} {}
 
 bool ImageViewBase::SupportsAnisotropy() const noexcept {
-    using namespace VideoCommon;
     switch (format) {
     case PixelFormat::R8_UNORM:
     case PixelFormat::R8_SNORM:

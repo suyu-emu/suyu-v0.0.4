@@ -87,7 +87,8 @@ void ComputePipeline::Configure() {
     texture_cache.SynchronizeComputeDescriptors();
 
     boost::container::static_vector<VideoCommon::ImageViewInOut, MAX_TEXTURES + MAX_IMAGES> views;
-    std::array<GLuint, MAX_TEXTURES> samplers;
+    boost::container::static_vector<VideoCommon::SamplerId, MAX_TEXTURES> samplers;
+    std::array<GLuint, MAX_TEXTURES> gl_samplers;
     std::array<GLuint, MAX_TEXTURES> textures;
     std::array<GLuint, MAX_IMAGES> images;
     GLsizei sampler_binding{};
@@ -131,7 +132,6 @@ void ComputePipeline::Configure() {
         for (u32 index = 0; index < desc.count; ++index) {
             const auto handle{read_handle(desc, index)};
             views.push_back({handle.first});
-            samplers[sampler_binding++] = 0;
         }
     }
     for (const auto& desc : info.image_buffer_descriptors) {
@@ -142,8 +142,8 @@ void ComputePipeline::Configure() {
             const auto handle{read_handle(desc, index)};
             views.push_back({handle.first});
 
-            Sampler* const sampler = texture_cache.GetComputeSampler(handle.second);
-            samplers[sampler_binding++] = sampler->Handle();
+            VideoCommon::SamplerId sampler = texture_cache.GetComputeSamplerId(handle.second);
+            samplers.push_back(sampler);
         }
     }
     for (const auto& desc : info.image_descriptors) {
@@ -186,10 +186,17 @@ void ComputePipeline::Configure() {
 
     const VideoCommon::ImageViewInOut* views_it{views.data() + num_texture_buffers +
                                                 num_image_buffers};
+    const VideoCommon::SamplerId* samplers_it{samplers.data()};
     texture_binding += num_texture_buffers;
     image_binding += num_image_buffers;
 
     u32 texture_scaling_mask{};
+
+    for (const auto& desc : info.texture_buffer_descriptors) {
+        for (u32 index = 0; index < desc.count; ++index) {
+            gl_samplers[sampler_binding++] = 0;
+        }
+    }
     for (const auto& desc : info.texture_descriptors) {
         for (u32 index = 0; index < desc.count; ++index) {
             ImageView& image_view{texture_cache.GetImageView((views_it++)->id)};
@@ -198,6 +205,12 @@ void ComputePipeline::Configure() {
                 texture_scaling_mask |= 1u << texture_binding;
             }
             ++texture_binding;
+
+            const Sampler& sampler{texture_cache.GetSampler(*(samplers_it++))};
+            const bool use_fallback_sampler{sampler.HasAddedAnisotropy() &&
+                                            !image_view.SupportsAnisotropy()};
+            gl_samplers[sampler_binding++] =
+                use_fallback_sampler ? sampler.HandleWithDefaultAnisotropy() : sampler.Handle();
         }
     }
     u32 image_scaling_mask{};
@@ -228,7 +241,7 @@ void ComputePipeline::Configure() {
     if (texture_binding != 0) {
         ASSERT(texture_binding == sampler_binding);
         glBindTextures(0, texture_binding, textures.data());
-        glBindSamplers(0, sampler_binding, samplers.data());
+        glBindSamplers(0, sampler_binding, gl_samplers.data());
     }
     if (image_binding != 0) {
         glBindImageTextures(0, image_binding, images.data());

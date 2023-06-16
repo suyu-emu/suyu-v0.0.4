@@ -275,7 +275,7 @@ GraphicsPipeline::GraphicsPipeline(const Device& device, TextureCache& texture_c
 template <typename Spec>
 void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     std::array<VideoCommon::ImageViewInOut, MAX_TEXTURES + MAX_IMAGES> views;
-    std::array<const Sampler*, MAX_TEXTURES> samplers;
+    std::array<VideoCommon::SamplerId, MAX_TEXTURES> samplers;
     size_t views_index{};
     size_t samplers_index{};
 
@@ -350,7 +350,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 const auto handle{read_handle(desc, index)};
                 views[views_index++] = {handle.first};
 
-                Sampler* const sampler{texture_cache.GetGraphicsSampler(handle.second)};
+                VideoCommon::SamplerId sampler{texture_cache.GetGraphicsSamplerId(handle.second)};
                 samplers[samplers_index++] = sampler;
             }
         }
@@ -444,7 +444,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         program_manager.BindSourcePrograms(source_programs);
     }
     const VideoCommon::ImageViewInOut* views_it{views.data()};
-    const Sampler** samplers_it{samplers.data()};
+    const VideoCommon::SamplerId* samplers_it{samplers.data()};
     GLsizei texture_binding = 0;
     GLsizei image_binding = 0;
     GLsizei sampler_binding{};
@@ -484,7 +484,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 ++texture_binding;
                 ++stage_texture_binding;
 
-                const Sampler& sampler{**(samplers_it++)};
+                const Sampler& sampler{texture_cache.GetSampler(*(samplers_it++))};
                 const bool use_fallback_sampler{sampler.HasAddedAnisotropy() &&
                                                 !image_view.SupportsAnisotropy()};
                 gl_samplers[sampler_binding++] =

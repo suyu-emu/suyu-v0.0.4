@@ -222,30 +222,50 @@ void TextureCache<P>::CheckFeedbackLoop(std::span<const ImageViewInOut> views) {
 
 template <class P>
 typename P::Sampler* TextureCache<P>::GetGraphicsSampler(u32 index) {
+    return &slot_samplers[GetGraphicsSamplerId(index)];
+}
+
+template <class P>
+typename P::Sampler* TextureCache<P>::GetComputeSampler(u32 index) {
+    return &slot_samplers[GetComputeSamplerId(index)];
+}
+
+template <class P>
+SamplerId TextureCache<P>::GetGraphicsSamplerId(u32 index) {
     if (index > channel_state->graphics_sampler_table.Limit()) {
         LOG_DEBUG(HW_GPU, "Invalid sampler index={}", index);
-        return &slot_samplers[NULL_SAMPLER_ID];
+        return NULL_SAMPLER_ID;
     }
     const auto [descriptor, is_new] = channel_state->graphics_sampler_table.Read(index);
     SamplerId& id = channel_state->graphics_sampler_ids[index];
     if (is_new) {
         id = FindSampler(descriptor);
     }
-    return &slot_samplers[id];
+    return id;
 }
 
 template <class P>
-typename P::Sampler* TextureCache<P>::GetComputeSampler(u32 index) {
+SamplerId TextureCache<P>::GetComputeSamplerId(u32 index) {
     if (index > channel_state->compute_sampler_table.Limit()) {
         LOG_DEBUG(HW_GPU, "Invalid sampler index={}", index);
-        return &slot_samplers[NULL_SAMPLER_ID];
+        return NULL_SAMPLER_ID;
     }
     const auto [descriptor, is_new] = channel_state->compute_sampler_table.Read(index);
     SamplerId& id = channel_state->compute_sampler_ids[index];
     if (is_new) {
         id = FindSampler(descriptor);
     }
-    return &slot_samplers[id];
+    return id;
+}
+
+template <class P>
+const typename P::Sampler& TextureCache<P>::GetSampler(SamplerId id) const noexcept {
+    return slot_samplers[id];
+}
+
+template <class P>
+typename P::Sampler& TextureCache<P>::GetSampler(SamplerId id) noexcept {
+    return slot_samplers[id];
 }
 
 template <class P>

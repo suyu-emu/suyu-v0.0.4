@@ -159,6 +159,18 @@ public:
     /// Get the sampler from the compute descriptor table in the specified index
     Sampler* GetComputeSampler(u32 index);
 
+    /// Get the sampler id from the graphics descriptor table in the specified index
+    SamplerId GetGraphicsSamplerId(u32 index);
+
+    /// Get the sampler id from the compute descriptor table in the specified index
+    SamplerId GetComputeSamplerId(u32 index);
+
+    /// Return a constant reference to the given sampler id
+    [[nodiscard]] const Sampler& GetSampler(SamplerId id) const noexcept;
+
+    /// Return a reference to the given sampler id
+    [[nodiscard]] Sampler& GetSampler(SamplerId id) noexcept;
+
     /// Refresh the state for graphics image view and sampler descriptors
     void SynchronizeGraphicsDescriptors();
 
