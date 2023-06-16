@@ -63,8 +63,9 @@ if (YUZU_USE_EXTERNAL_SDL2)
         # Yuzu itself needs: Atomic Audio Events Joystick Haptic Sensor Threads Timers
         # Since 2.0.18 Atomic+Threads required for HIDAPI/libusb (see https://github.com/libsdl-org/SDL/issues/5095)
         # Yuzu-cmd also needs: Video (depends on Loadso/Dlopen)
+        # CPUinfo also required for SDL Audio, at least until 2.28.0 (see https://github.com/libsdl-org/SDL/issues/7809)
         set(SDL_UNUSED_SUBSYSTEMS
-            CPUinfo File Filesystem
+            File Filesystem
             Locale Power Render)
         foreach(_SUB ${SDL_UNUSED_SUBSYSTEMS})
           string(TOUPPER ${_SUB} _OPT)
