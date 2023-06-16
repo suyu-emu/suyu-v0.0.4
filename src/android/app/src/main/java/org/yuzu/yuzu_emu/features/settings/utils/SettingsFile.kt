@@ -244,5 +244,21 @@ object SettingsFile {
             val setting = settings[key]
             parser.put(header, setting!!.key, setting.valueAsString)
         }
+
+        BooleanSetting.values().forEach {
+            if (!keySet.contains(it.key)) {
+                parser.put(header, it.key, it.valueAsString)
+            }
+        }
+        IntSetting.values().forEach {
+            if (!keySet.contains(it.key)) {
+                parser.put(header, it.key, it.valueAsString)
+            }
+        }
+        StringSetting.values().forEach {
+            if (!keySet.contains(it.key)) {
+                parser.put(header, it.key, it.valueAsString)
+            }
+        }
     }
 }

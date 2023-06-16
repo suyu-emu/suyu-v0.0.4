@@ -8,6 +8,9 @@ enum class BooleanSetting(
     override val section: String,
     override val defaultValue: Boolean
 ) : AbstractBooleanSetting {
+    CPU_DEBUG_MODE("cpu_debug_mode", Settings.SECTION_CPU, false),
+    FASTMEM("cpuopt_fastmem", Settings.SECTION_CPU, true),
+    FASTMEM_EXCLUSIVES("cpuopt_fastmem_exclusives", Settings.SECTION_CPU, true),
     PICTURE_IN_PICTURE("picture_in_picture", Settings.SECTION_GENERAL, true),
     USE_CUSTOM_RTC("custom_rtc_enabled", Settings.SECTION_SYSTEM, false);
 

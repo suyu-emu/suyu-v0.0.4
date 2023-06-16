@@ -26,6 +26,14 @@ class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: Setti
             for (i in values.indices) {
                 if (values[i] == item.selectedValue) {
                     binding.textSettingDescription.text = resMgr.getStringArray(item.choicesId)[i]
+                    return
+                }
+            }
+        } else if (item is StringSingleChoiceSetting) {
+            for (i in item.values!!.indices) {
+                if (item.values[i] == item.selectedValue) {
+                    binding.textSettingDescription.text = item.choices[i]
+                    return
                 }
             }
         } else {

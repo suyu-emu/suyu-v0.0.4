@@ -42,7 +42,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     fun putSetting(setting: AbstractSetting) {
-        if (setting.section == null) {
+        if (setting.section == null || setting.key == null) {
             return
         }
 
@@ -353,18 +353,31 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
 
     private fun addAudioSettings(sl: ArrayList<SettingsItem>) {
         settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_audio))
-        sl.add(
-            SliderSetting(
-                IntSetting.AUDIO_VOLUME,
-                R.string.audio_volume,
-                R.string.audio_volume_description,
-                0,
-                100,
-                "%",
-                IntSetting.AUDIO_VOLUME.key,
-                IntSetting.AUDIO_VOLUME.defaultValue
+        sl.apply {
+            add(
+                StringSingleChoiceSetting(
+                    StringSetting.AUDIO_OUTPUT_ENGINE,
+                    R.string.audio_output_engine,
+                    0,
+                    settingsActivity.resources.getStringArray(R.array.outputEngineEntries),
+                    settingsActivity.resources.getStringArray(R.array.outputEngineValues),
+                    StringSetting.AUDIO_OUTPUT_ENGINE.key,
+                    StringSetting.AUDIO_OUTPUT_ENGINE.defaultValue
+                )
             )
-        )
+            add(
+                SliderSetting(
+                    IntSetting.AUDIO_VOLUME,
+                    R.string.audio_volume,
+                    R.string.audio_volume_description,
+                    0,
+                    100,
+                    "%",
+                    IntSetting.AUDIO_VOLUME.key,
+                    IntSetting.AUDIO_VOLUME.defaultValue
+                )
+            )
+        }
     }
 
     private fun addThemeSettings(sl: ArrayList<SettingsItem>) {
@@ -467,6 +480,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     private fun addDebugSettings(sl: ArrayList<SettingsItem>) {
         settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_debug))
         sl.apply {
+            add(HeaderSetting(R.string.gpu))
             add(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_BACKEND,
@@ -485,6 +499,39 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_debug_description,
                     IntSetting.RENDERER_DEBUG.key,
                     IntSetting.RENDERER_DEBUG.defaultValue
+                )
+            )
+
+            add(HeaderSetting(R.string.cpu))
+            add(
+                SwitchSetting(
+                    BooleanSetting.CPU_DEBUG_MODE,
+                    R.string.cpu_debug_mode,
+                    R.string.cpu_debug_mode_description,
+                    BooleanSetting.CPU_DEBUG_MODE.key,
+                    BooleanSetting.CPU_DEBUG_MODE.defaultValue
+                )
+            )
+
+            val fastmem = object : AbstractBooleanSetting {
+                override var boolean: Boolean
+                    get() =
+                        BooleanSetting.FASTMEM.boolean && BooleanSetting.FASTMEM_EXCLUSIVES.boolean
+                    set(value) {
+                        BooleanSetting.FASTMEM.boolean = value
+                        BooleanSetting.FASTMEM_EXCLUSIVES.boolean = value
+                    }
+                override val key: String? = null
+                override val section: String = Settings.SECTION_CPU
+                override val isRuntimeEditable: Boolean = false
+                override val valueAsString: String = ""
+                override val defaultValue: Any = true
+            }
+            add(
+                SwitchSetting(
+                    fastmem,
+                    R.string.fastmem,
+                    0
                 )
             )
         }

@@ -158,7 +158,6 @@
     <string name="set_custom_rtc">Set custom RTC</string>
 
     <!-- Graphics settings strings -->
-    <string name="renderer_api">API</string>
     <string name="renderer_accuracy">Accuracy level</string>
     <string name="renderer_resolution">Resolution (Handheld/Docked)</string>
     <string name="renderer_vsync">VSync mode</string>
@@ -172,12 +171,21 @@
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously, reducing stutter but may introduce glitches.</string>
     <string name="renderer_reactive_flushing">Use reactive flushing</string>
     <string name="renderer_reactive_flushing_description">Improves rendering accuracy in some games at the cost of performance.</string>
-    <string name="renderer_debug">Graphics debugging</string>
-    <string name="renderer_debug_description">Sets the graphics API to a slow debugging mode.</string>
     <string name="use_disk_shader_cache">Disk shader cache</string>
     <string name="use_disk_shader_cache_description">Reduces stuttering by locally storing and loading generated shaders.</string>
 
+    <!-- Debug settings strings -->
+    <string name="cpu">CPU</string>
+    <string name="cpu_debug_mode">CPU Debugging</string>
+    <string name="cpu_debug_mode_description">Puts the CPU in a slow debugging mode.</string>
+    <string name="gpu">GPU</string>
+    <string name="renderer_api">API</string>
+    <string name="renderer_debug">Graphics debugging</string>
+    <string name="renderer_debug_description">Sets the graphics API to a slow debugging mode.</string>
+    <string name="fastmem">Fastmem</string>
+
     <!-- Audio settings strings -->
+    <string name="audio_output_engine">Output engine</string>
     <string name="audio_volume">Volume</string>
     <string name="audio_volume_description">Specifies the volume of audio output.</string>
 
@@ -196,6 +204,7 @@
     <string name="learn_more">Learn more</string>
     <string name="auto">Auto</string>
     <string name="submit">Submit</string>
+    <string name="string_null">Null</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>
@@ -365,6 +374,9 @@
     <string name="theme_mode_follow_system">Follow System</string>
     <string name="theme_mode_light">Light</string>
     <string name="theme_mode_dark">Dark</string>
+
+    <!-- Audio output engines -->
+    <string name="cubeb">cubeb</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Black backgrounds</string>
