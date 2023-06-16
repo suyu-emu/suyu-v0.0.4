@@ -11,7 +11,7 @@ import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.R
 
-class InstallDialogFragment : DialogFragment() {
+class LongMessageDialogFragment : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val titleId = requireArguments().getInt(TITLE)
         val description = requireArguments().getString(DESCRIPTION)
@@ -37,7 +37,7 @@ class InstallDialogFragment : DialogFragment() {
     }
 
     companion object {
-        const val TAG = "MessageDialogFragment"
+        const val TAG = "LongMessageDialogFragment"
 
         private const val TITLE = "Title"
         private const val DESCRIPTION = "Description"
@@ -47,8 +47,8 @@ class InstallDialogFragment : DialogFragment() {
             titleId: Int,
             description: String,
             helpLinkId: Int = 0
-        ): InstallDialogFragment {
-            val dialog = InstallDialogFragment()
+        ): LongMessageDialogFragment {
+            val dialog = LongMessageDialogFragment()
             val bundle = Bundle()
             bundle.apply {
                 putInt(TITLE, titleId)

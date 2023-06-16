@@ -43,7 +43,7 @@ import org.yuzu.yuzu_emu.features.settings.model.SettingsViewModel
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
-import org.yuzu.yuzu_emu.fragments.InstallDialogFragment
+import org.yuzu.yuzu_emu.fragments.LongMessageDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
@@ -548,7 +548,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                             installResult.append(
                                 getString(
                                     R.string.install_game_content_failed_count,
-
+                                    errorTotal
                                 )
                             )
                             installResult.append(separator)
@@ -572,16 +572,16 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                                 )
                                 installResult.append(separator)
                             }
-                            InstallDialogFragment.newInstance(
+                            LongMessageDialogFragment.newInstance(
                                 R.string.install_game_content_failure,
                                 installResult.toString().trim(),
                                 R.string.install_game_content_help_link
-                            ).show(supportFragmentManager, MessageDialogFragment.TAG)
+                            ).show(supportFragmentManager, LongMessageDialogFragment.TAG)
                         } else {
-                            InstallDialogFragment.newInstance(
+                            LongMessageDialogFragment.newInstance(
                                 R.string.install_game_content_success,
-                                installResult.toString().trim(),
-                            ).show(supportFragmentManager, MessageDialogFragment.TAG)
+                                installResult.toString().trim()
+                            ).show(supportFragmentManager, LongMessageDialogFragment.TAG)
                         }
                     }
                 }
