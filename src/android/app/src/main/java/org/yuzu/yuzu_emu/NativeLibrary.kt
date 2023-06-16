@@ -14,18 +14,18 @@ import android.widget.TextView
 import androidx.annotation.Keep
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import java.lang.ref.WeakReference
 import org.yuzu.yuzu_emu.YuzuApplication.Companion.appContext
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.utils.DocumentsTree.Companion.isNativePath
-import org.yuzu.yuzu_emu.utils.FileUtil.getFileSize
-import org.yuzu.yuzu_emu.utils.FileUtil.openContentUri
 import org.yuzu.yuzu_emu.utils.FileUtil.exists
+import org.yuzu.yuzu_emu.utils.FileUtil.getFileSize
 import org.yuzu.yuzu_emu.utils.FileUtil.isDirectory
+import org.yuzu.yuzu_emu.utils.FileUtil.openContentUri
 import org.yuzu.yuzu_emu.utils.Log.error
 import org.yuzu.yuzu_emu.utils.Log.verbose
 import org.yuzu.yuzu_emu.utils.Log.warning
 import org.yuzu.yuzu_emu.utils.SerializableHelper.serializable
-import java.lang.ref.WeakReference
 
 /**
  * Class which contains methods that interact
@@ -76,7 +76,9 @@ object NativeLibrary {
     fun openContentUri(path: String?, openmode: String?): Int {
         return if (isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.openContentUri(path, openmode)
-        } else openContentUri(appContext, path, openmode)
+        } else {
+            openContentUri(appContext, path, openmode)
+        }
     }
 
     @Keep
@@ -84,7 +86,9 @@ object NativeLibrary {
     fun getSize(path: String?): Long {
         return if (isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.getFileSize(path)
-        } else getFileSize(appContext, path)
+        } else {
+            getFileSize(appContext, path)
+        }
     }
 
     @Keep
@@ -92,7 +96,9 @@ object NativeLibrary {
     fun exists(path: String?): Boolean {
         return if (isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.exists(path)
-        } else exists(appContext, path)
+        } else {
+            exists(appContext, path)
+        }
     }
 
     @Keep
@@ -100,7 +106,9 @@ object NativeLibrary {
     fun isDirectory(path: String?): Boolean {
         return if (isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.isDirectory(path)
-        } else isDirectory(appContext, path)
+        } else {
+            isDirectory(appContext, path)
+        }
     }
 
     /**
@@ -454,7 +462,9 @@ object NativeLibrary {
                     Html.FROM_HTML_MODE_LEGACY
                 )
             )
-            .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int -> emulationActivity.finish() }
+            .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int ->
+                emulationActivity.finish()
+            }
             .setOnDismissListener { emulationActivity.finish() }
         emulationActivity.runOnUiThread {
             val alert = builder.create()

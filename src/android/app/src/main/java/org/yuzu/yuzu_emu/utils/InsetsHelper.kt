@@ -4,9 +4,7 @@
 package org.yuzu.yuzu_emu.utils
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
-import android.graphics.Rect
 
 object InsetsHelper {
     const val THREE_BUTTON_NAVIGATION = 0
@@ -20,12 +18,8 @@ object InsetsHelper {
             resources.getIdentifier("config_navBarInteractionMode", "integer", "android")
         return if (resourceId != 0) {
             resources.getInteger(resourceId)
-        } else 0
-    }
-
-    fun getBottomPaddingRequired(activity: Activity): Int {
-        val visibleFrame = Rect()
-        activity.window.decorView.getWindowVisibleDisplayFrame(visibleFrame)
-        return visibleFrame.bottom - visibleFrame.top - activity.resources.displayMetrics.heightPixels
+        } else {
+            0
+        }
     }
 }

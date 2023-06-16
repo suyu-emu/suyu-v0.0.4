@@ -49,7 +49,11 @@ class EarlyAccessFragment : Fragment() {
             parentFragmentManager.primaryNavigationFragment?.findNavController()?.popBackStack()
         }
 
-        binding.getEarlyAccessButton.setOnClickListener { openLink(getString(R.string.play_store_link)) }
+        binding.getEarlyAccessButton.setOnClickListener {
+            openLink(
+                getString(R.string.play_store_link)
+            )
+        }
 
         setInsets()
     }
@@ -60,7 +64,9 @@ class EarlyAccessFragment : Fragment() {
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.root
+        ) { _: View, windowInsets: WindowInsetsCompat ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
 

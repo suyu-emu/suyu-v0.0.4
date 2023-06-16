@@ -58,11 +58,12 @@ class HomeSettingAdapter(private val activity: AppCompatActivity, var options: L
             )
 
             when (option.titleId) {
-                R.string.get_early_access -> binding.optionLayout.background =
-                    ContextCompat.getDrawable(
-                        binding.optionCard.context,
-                        R.drawable.premium_background
-                    )
+                R.string.get_early_access ->
+                    binding.optionLayout.background =
+                        ContextCompat.getDrawable(
+                            binding.optionCard.context,
+                            R.drawable.premium_background
+                        )
             }
         }
     }

@@ -20,6 +20,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.preference.PreferenceManager
 import info.debatty.java.stringsimilarity.Jaccard
 import info.debatty.java.stringsimilarity.JaroWinkler
+import java.util.Locale
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter
@@ -29,8 +30,6 @@ import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.FileUtil
-import org.yuzu.yuzu_emu.utils.Log
-import java.util.Locale
 
 class SearchFragment : Fragment() {
     private var _binding: FragmentSearchBinding? = null
@@ -130,15 +129,15 @@ class SearchFragment : Fragment() {
             R.id.chip_homebrew -> baseList.filter { it.isHomebrew }
 
             R.id.chip_retail -> baseList.filter {
-                FileUtil.hasExtension(it.path, "xci")
-                        || FileUtil.hasExtension(it.path, "nsp")
+                FileUtil.hasExtension(it.path, "xci") ||
+                    FileUtil.hasExtension(it.path, "nsp")
             }
 
             else -> baseList
         }
 
-        if (binding.searchText.text.toString().isEmpty()
-            && binding.chipGroup.checkedChipId != View.NO_ID
+        if (binding.searchText.text.toString().isEmpty() &&
+            binding.chipGroup.checkedChipId != View.NO_ID
         ) {
             gamesViewModel.setSearchedGames(filteredList)
             return
@@ -173,14 +172,16 @@ class SearchFragment : Fragment() {
     private fun focusSearch() {
         if (_binding != null) {
             binding.searchText.requestFocus()
-            val imm =
-                requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+            val imm = requireActivity()
+                .getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
             imm?.showSoftInput(binding.searchText, InputMethodManager.SHOW_IMPLICIT)
         }
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.root
+        ) { view: View, windowInsets: WindowInsetsCompat ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
             val extraListSpacing = resources.getDimensionPixelSize(R.dimen.spacing_med)

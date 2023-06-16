@@ -5,14 +5,14 @@ package org.yuzu.yuzu_emu.utils
 
 import android.content.Context
 import android.net.Uri
-import org.yuzu.yuzu_emu.NativeLibrary
-import org.yuzu.yuzu_emu.utils.FileUtil.copyUriToInternalStorage
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.zip.ZipInputStream
+import org.yuzu.yuzu_emu.NativeLibrary
+import org.yuzu.yuzu_emu.utils.FileUtil.copyUriToInternalStorage
 
 object GpuDriverHelper {
     private const val META_JSON_FILENAME = "meta.json"

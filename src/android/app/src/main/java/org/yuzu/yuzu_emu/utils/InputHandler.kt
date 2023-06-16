@@ -5,8 +5,8 @@ package org.yuzu.yuzu_emu.utils
 
 import android.view.KeyEvent
 import android.view.MotionEvent
-import org.yuzu.yuzu_emu.NativeLibrary
 import kotlin.math.sqrt
+import org.yuzu.yuzu_emu.NativeLibrary
 
 class InputHandler {
     fun initialize() {
@@ -68,7 +68,11 @@ class InputHandler {
             6 -> NativeLibrary.Player6Device
             7 -> NativeLibrary.Player7Device
             8 -> NativeLibrary.Player8Device
-            else -> if (NativeLibrary.isHandheldOnly()) NativeLibrary.ConsoleDevice else NativeLibrary.Player1Device
+            else -> if (NativeLibrary.isHandheldOnly()) {
+                NativeLibrary.ConsoleDevice
+            } else {
+                NativeLibrary.Player1Device
+            }
         }
     }
 
@@ -107,7 +111,11 @@ class InputHandler {
     }
 
     private fun getAxisToButton(axis: Float): Int {
-        return if (axis > 0.5f) NativeLibrary.ButtonState.PRESSED else NativeLibrary.ButtonState.RELEASED
+        return if (axis > 0.5f) {
+            NativeLibrary.ButtonState.PRESSED
+        } else {
+            NativeLibrary.ButtonState.RELEASED
+        }
     }
 
     private fun setAxisDpadState(playerNumber: Int, xAxis: Float, yAxis: Float) {
@@ -287,7 +295,6 @@ class InputHandler {
         }
     }
 
-
     private fun setJoyconAxisInput(event: MotionEvent, axis: Int) {
         // Joycon support is half dead. Right joystick doesn't work
         val playerNumber = getPlayerNumber(event.device.controllerNumber)
@@ -355,6 +362,4 @@ class InputHandler {
                 )
         }
     }
-
-
 }

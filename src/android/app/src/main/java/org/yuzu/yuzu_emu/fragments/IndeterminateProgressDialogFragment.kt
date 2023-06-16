@@ -14,7 +14,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.model.TaskViewModel
 
-
 class IndeterminateProgressDialogFragment : DialogFragment() {
     private val taskViewModel: TaskViewModel by activityViewModels()
 

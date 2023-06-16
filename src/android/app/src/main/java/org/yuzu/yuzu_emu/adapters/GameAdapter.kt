@@ -28,10 +28,9 @@ import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
-import org.yuzu.yuzu_emu.databinding.CardGameBinding
-import org.yuzu.yuzu_emu.activities.EmulationActivity
-import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.adapters.GameAdapter.GameViewHolder
+import org.yuzu.yuzu_emu.databinding.CardGameBinding
+import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 
 class GameAdapter(private val activity: AppCompatActivity) :
@@ -60,7 +59,10 @@ class GameAdapter(private val activity: AppCompatActivity) :
     override fun onClick(view: View) {
         val holder = view.tag as GameViewHolder
 
-        val gameExists = DocumentFile.fromSingleUri(YuzuApplication.appContext, Uri.parse(holder.game.path))?.exists() == true
+        val gameExists = DocumentFile.fromSingleUri(
+            YuzuApplication.appContext,
+            Uri.parse(holder.game.path)
+        )?.exists() == true
         if (!gameExists) {
             Toast.makeText(
                 YuzuApplication.appContext,

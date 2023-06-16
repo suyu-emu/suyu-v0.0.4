@@ -6,8 +6,8 @@ package org.yuzu.yuzu_emu.features.settings.ui.viewholder
 import android.view.View
 import android.widget.CompoundButton
 import org.yuzu.yuzu_emu.databinding.ListItemSettingSwitchBinding
-import org.yuzu.yuzu_emu.features.settings.model.view.SwitchSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
+import org.yuzu.yuzu_emu.features.settings.model.view.SwitchSetting
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 
 class SwitchSettingViewHolder(val binding: ListItemSettingSwitchBinding, adapter: SettingsAdapter) :

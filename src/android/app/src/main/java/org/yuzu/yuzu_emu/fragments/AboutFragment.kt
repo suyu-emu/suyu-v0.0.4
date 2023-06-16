@@ -66,7 +66,11 @@ class AboutFragment : Fragment() {
             true
         }
 
-        binding.buttonContributors.setOnClickListener { openLink(getString(R.string.contributors_link)) }
+        binding.buttonContributors.setOnClickListener {
+            openLink(
+                getString(R.string.contributors_link)
+            )
+        }
         binding.buttonLicenses.setOnClickListener {
             exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
             binding.root.findNavController().navigate(R.id.action_aboutFragment_to_licensesFragment)
@@ -101,7 +105,9 @@ class AboutFragment : Fragment() {
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.root
+        ) { _: View, windowInsets: WindowInsetsCompat ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
 

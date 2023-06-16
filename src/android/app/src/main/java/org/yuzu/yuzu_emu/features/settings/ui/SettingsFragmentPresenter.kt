@@ -7,7 +7,6 @@ import android.content.SharedPreferences
 import android.os.Build
 import android.text.TextUtils
 import androidx.preference.PreferenceManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.features.settings.model.AbstractBooleanSetting
@@ -236,7 +235,6 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
         settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_graphics))
         sl.apply {
-
             add(
                 SingleChoiceSetting(
                     IntSetting.RENDERER_ACCURACY,

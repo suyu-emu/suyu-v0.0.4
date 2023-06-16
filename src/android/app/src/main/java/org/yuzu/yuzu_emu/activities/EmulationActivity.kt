@@ -33,6 +33,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.fragment.NavHostFragment
+import kotlin.math.roundToInt
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivityEmulationBinding
@@ -45,7 +46,6 @@ import org.yuzu.yuzu_emu.utils.ForegroundService
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NfcReader
 import org.yuzu.yuzu_emu.utils.ThemeHelper
-import kotlin.math.roundToInt
 
 class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var binding: ActivityEmulationBinding
@@ -256,7 +256,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private fun PictureInPictureParams.Builder.getPictureInPictureAspectBuilder(): PictureInPictureParams.Builder {
+    private fun PictureInPictureParams.Builder.getPictureInPictureAspectBuilder():
+        PictureInPictureParams.Builder {
         val aspectRatio = when (IntSetting.RENDERER_ASPECT_RATIO.int) {
             0 -> Rational(16, 9)
             1 -> Rational(4, 3)
@@ -267,7 +268,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         return this.apply { aspectRatio?.let { setAspectRatio(it) } }
     }
 
-    private fun PictureInPictureParams.Builder.getPictureInPictureActionsBuilder(): PictureInPictureParams.Builder {
+    private fun PictureInPictureParams.Builder.getPictureInPictureActionsBuilder():
+        PictureInPictureParams.Builder {
         val pictureInPictureActions: MutableList<RemoteAction> = mutableListOf()
         val pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
@@ -310,7 +312,9 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         val pictureInPictureParamsBuilder = PictureInPictureParams.Builder()
             .getPictureInPictureActionsBuilder().getPictureInPictureAspectBuilder()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            pictureInPictureParamsBuilder.setAutoEnterEnabled(BooleanSetting.PICTURE_IN_PICTURE.boolean)
+            pictureInPictureParamsBuilder.setAutoEnterEnabled(
+                BooleanSetting.PICTURE_IN_PICTURE.boolean
+            )
         }
         setPictureInPictureParams(pictureInPictureParamsBuilder.build())
     }
@@ -341,7 +345,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         } else {
             try {
                 unregisterReceiver(pictureInPictureReceiver)
-            } catch (ignored : Exception) {
+            } catch (ignored: Exception) {
             }
         }
     }

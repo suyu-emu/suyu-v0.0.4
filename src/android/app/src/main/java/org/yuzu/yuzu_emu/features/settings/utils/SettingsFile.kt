@@ -3,6 +3,8 @@
 
 package org.yuzu.yuzu_emu.features.settings.utils
 
+import java.io.*
+import java.util.*
 import org.ini4j.Wini
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
@@ -13,8 +15,6 @@ import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivityView
 import org.yuzu.yuzu_emu.utils.BiMap
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.Log
-import java.io.*
-import java.util.*
 
 /**
  * Contains static methods for interacting with .ini files in which settings are stored.
@@ -137,9 +137,12 @@ object SettingsFile {
             for (settingKey in sortedKeySet) {
                 val setting = settings[settingKey]
                 NativeLibrary.setUserSetting(
-                    gameId, mapSectionNameFromIni(
+                    gameId,
+                    mapSectionNameFromIni(
                         section.name
-                    ), setting!!.key, setting.valueAsString
+                    ),
+                    setting!!.key,
+                    setting.valueAsString
                 )
             }
         }
@@ -148,13 +151,17 @@ object SettingsFile {
     private fun mapSectionNameFromIni(generalSectionName: String): String? {
         return if (sectionsMap.getForward(generalSectionName) != null) {
             sectionsMap.getForward(generalSectionName)
-        } else generalSectionName
+        } else {
+            generalSectionName
+        }
     }
 
     private fun mapSectionNameToIni(generalSectionName: String): String {
         return if (sectionsMap.getBackward(generalSectionName) != null) {
             sectionsMap.getBackward(generalSectionName).toString()
-        } else generalSectionName
+        } else {
+            generalSectionName
+        }
     }
 
     fun getSettingsFile(fileName: String): File {

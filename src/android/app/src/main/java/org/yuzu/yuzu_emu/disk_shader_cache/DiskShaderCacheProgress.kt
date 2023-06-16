@@ -20,7 +20,10 @@ object DiskShaderCacheProgress {
                 emulationActivity.getString(R.string.loading),
                 emulationActivity.getString(R.string.preparing_shaders)
             )
-            fragment.show(emulationActivity.supportFragmentManager, ShaderProgressDialogFragment.TAG)
+            fragment.show(
+                emulationActivity.supportFragmentManager,
+                ShaderProgressDialogFragment.TAG
+            )
         }
         synchronized(finishLock) { finishLock.wait() }
     }

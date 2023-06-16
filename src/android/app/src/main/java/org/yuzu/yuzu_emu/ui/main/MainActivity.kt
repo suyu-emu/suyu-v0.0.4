@@ -26,6 +26,9 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationBarView
+import java.io.File
+import java.io.FilenameFilter
+import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -43,9 +46,6 @@ import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.*
-import java.io.File
-import java.io.FilenameFilter
-import java.io.IOException
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var binding: ActivityMainBinding
@@ -86,7 +86,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 ThemeHelper.SYSTEM_BAR_ALPHA
             )
         )
-        if (InsetsHelper.getSystemGestureType(applicationContext) != InsetsHelper.GESTURE_NAVIGATION) {
+        if (InsetsHelper.getSystemGestureType(applicationContext) !=
+            InsetsHelper.GESTURE_NAVIGATION
+        ) {
             binding.navigationBarShade.setBackgroundColor(
                 ThemeHelper.getColorWithOpacity(
                     MaterialColors.getColor(
@@ -172,7 +174,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                         binding.navigationView.height.toFloat() * 2
                     translationY(0f)
                 } else {
-                    if (ViewCompat.getLayoutDirection(binding.navigationView) == ViewCompat.LAYOUT_DIRECTION_LTR) {
+                    if (ViewCompat.getLayoutDirection(binding.navigationView) ==
+                        ViewCompat.LAYOUT_DIRECTION_LTR
+                    ) {
                         binding.navigationView.translationX =
                             binding.navigationView.width.toFloat() * -2
                         translationX(0f)
@@ -189,7 +193,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 if (smallLayout) {
                     translationY(binding.navigationView.height.toFloat() * 2)
                 } else {
-                    if (ViewCompat.getLayoutDirection(binding.navigationView) == ViewCompat.LAYOUT_DIRECTION_LTR) {
+                    if (ViewCompat.getLayoutDirection(binding.navigationView) ==
+                        ViewCompat.LAYOUT_DIRECTION_LTR
+                    ) {
                         translationX(binding.navigationView.width.toFloat() * -2)
                     } else {
                         translationX(binding.navigationView.width.toFloat() * 2)
@@ -234,7 +240,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.root
+        ) { _: View, windowInsets: WindowInsetsCompat ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val mlpStatusShade = binding.statusBarShade.layoutParams as MarginLayoutParams
             mlpStatusShade.height = insets.top
@@ -256,8 +264,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     val getGamesDirectory =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
-            if (result == null)
+            if (result == null) {
                 return@registerForActivityResult
+            }
 
             contentResolver.takePersistableUriPermission(
                 result,
@@ -281,8 +290,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     val getProdKey =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
-            if (result == null)
+            if (result == null) {
                 return@registerForActivityResult
+            }
 
             if (!FileUtil.hasExtension(result, "keys")) {
                 MessageDialogFragment.newInstance(
@@ -324,8 +334,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     val getFirmware =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
-            if (result == null)
+            if (result == null) {
                 return@registerForActivityResult
+            }
 
             val inputZip = contentResolver.openInputStream(result)
             if (inputZip == null) {
@@ -376,8 +387,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     val getAmiiboKey =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
-            if (result == null)
+            if (result == null) {
                 return@registerForActivityResult
+            }
 
             if (!FileUtil.hasExtension(result, "bin")) {
                 MessageDialogFragment.newInstance(
@@ -418,8 +430,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     val getDriver =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
-            if (result == null)
+            if (result == null) {
                 return@registerForActivityResult
+            }
 
             val takeFlags =
                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -470,8 +483,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     val installGameUpdate =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) {
-            if (it == null)
+            if (it == null) {
                 return@registerForActivityResult
+            }
 
             IndeterminateProgressDialogFragment.newInstance(
                 this@MainActivity,

@@ -15,6 +15,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.FilenameFilter
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,14 +32,6 @@ import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.features.DocumentProvider
 import org.yuzu.yuzu_emu.getPublicFilesDir
 import org.yuzu.yuzu_emu.utils.FileUtil
-import java.io.BufferedOutputStream
-import java.io.File
-import java.io.FileOutputStream
-import java.io.FilenameFilter
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 
 class ImportExportSavesFragment : DialogFragment() {
     private val context = YuzuApplication.appContext
@@ -98,7 +98,7 @@ class ImportExportSavesFragment : DialogFragment() {
             val outputZipFile = File(
                 tempFolder,
                 "yuzu saves - ${
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
                 }.zip"
             )
             outputZipFile.createNewFile()
@@ -106,12 +106,14 @@ class ImportExportSavesFragment : DialogFragment() {
                 saveFolder.walkTopDown().forEach { file ->
                     val zipFileName =
                         file.absolutePath.removePrefix(savesFolderRoot).removePrefix("/")
-                    if (zipFileName == "")
+                    if (zipFileName == "") {
                         return@forEach
+                    }
                     val entry = ZipEntry("$zipFileName${(if (file.isDirectory) "/" else "")}")
                     zos.putNextEntry(entry)
-                    if (file.isFile)
+                    if (file.isFile) {
                         file.inputStream().use { fis -> fis.copyTo(zos) }
+                    }
                 }
             }
             lastZipCreated = outputZipFile
@@ -137,7 +139,8 @@ class ImportExportSavesFragment : DialogFragment() {
 
             withContext(Dispatchers.Main) {
                 val file = DocumentFile.fromSingleUri(
-                    context, DocumentsContract.buildDocumentUri(
+                    context,
+                    DocumentsContract.buildDocumentUri(
                         DocumentProvider.AUTHORITY,
                         "${DocumentProvider.ROOT_ID}/temp/${lastZipFile.name}"
                     )

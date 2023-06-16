@@ -44,7 +44,9 @@ class AutofitGridLayoutManager(
     override fun onLayoutChildren(recycler: Recycler, state: RecyclerView.State) {
         val width = width
         val height = height
-        if (columnWidth > 0 && width > 0 && height > 0 && (isColumnWidthChanged || lastWidth != width || lastHeight != height)) {
+        if (columnWidth > 0 && width > 0 && height > 0 &&
+            (isColumnWidthChanged || lastWidth != width || lastHeight != height)
+        ) {
             val totalSpace: Int = if (orientation == VERTICAL) {
                 width - paddingRight - paddingLeft
             } else {

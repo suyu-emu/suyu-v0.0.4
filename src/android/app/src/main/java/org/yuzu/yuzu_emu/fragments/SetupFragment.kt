@@ -25,6 +25,7 @@ import androidx.navigation.findNavController
 import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.google.android.material.transition.MaterialFadeThrough
+import java.io.File
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.SetupAdapter
@@ -35,7 +36,6 @@ import org.yuzu.yuzu_emu.model.SetupPage
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.GameHelper
-import java.io.File
 
 class SetupFragment : Fragment() {
     private var _binding: FragmentSetupBinding? = null
@@ -82,7 +82,8 @@ class SetupFragment : Fragment() {
                         requireActivity().finish()
                     }
                 }
-            })
+            }
+        )
 
         requireActivity().window.navigationBarColor =
             ContextCompat.getColor(requireContext(), android.R.color.transparent)
@@ -148,14 +149,20 @@ class SetupFragment : Fragment() {
                     R.drawable.ic_add,
                     true,
                     R.string.add_games,
-                    { mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data) },
+                    {
+                        mainActivity.getGamesDirectory.launch(
+                            Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data
+                        )
+                    },
                     true,
                     R.string.add_games_warning,
                     R.string.add_games_warning_description,
                     R.string.add_games_warning_help,
                     {
                         val preferences =
-                            PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+                            PreferenceManager.getDefaultSharedPreferences(
+                                YuzuApplication.appContext
+                            )
                         preferences.getString(GameHelper.KEY_GAME_PATH, "")!!.isNotEmpty()
                     }
                 )
@@ -260,7 +267,9 @@ class SetupFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            if (!it && !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+            if (!it &&
+                !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
+            ) {
                 PermissionDeniedDialogFragment().show(
                     childFragmentManager,
                     PermissionDeniedDialogFragment.TAG
@@ -315,7 +324,9 @@ class SetupFragment : Fragment() {
     }
 
     private fun setInsets() =
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(
+            binding.root
+        ) { view: View, windowInsets: WindowInsetsCompat ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
             view.setPadding(

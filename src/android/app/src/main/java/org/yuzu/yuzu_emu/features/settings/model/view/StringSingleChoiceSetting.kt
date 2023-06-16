@@ -5,7 +5,6 @@ package org.yuzu.yuzu_emu.features.settings.model.view
 
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractStringSetting
-import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 
 class StringSingleChoiceSetting(
     val key: String? = null,
@@ -22,7 +21,9 @@ class StringSingleChoiceSetting(
         if (valuesId == null) return null
         return if (index >= 0 && index < valuesId.size) {
             valuesId[index]
-        } else ""
+        } else {
+            ""
+        }
     }
 
     val selectedValue: String

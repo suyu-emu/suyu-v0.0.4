@@ -12,10 +12,10 @@ import android.view.WindowInsets
 import android.view.inputmethod.InputMethodManager
 import androidx.annotation.Keep
 import androidx.core.view.ViewCompat
+import java.io.Serializable
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.applets.keyboard.ui.KeyboardDialogFragment
-import java.io.Serializable
 
 @Keep
 object SoftwareKeyboard {
@@ -40,19 +40,22 @@ object SoftwareKeyboard {
         // There isn't a good way to know that the IMM is dismissed, so poll every 500ms to submit inline keyboard result.
         val handler = Handler(Looper.myLooper()!!)
         val delayMs = 500
-        handler.postDelayed(object : Runnable {
-            override fun run() {
-                val insets = ViewCompat.getRootWindowInsets(overlayView)
-                val isKeyboardVisible = insets!!.isVisible(WindowInsets.Type.ime())
-                if (isKeyboardVisible) {
-                    handler.postDelayed(this, delayMs.toLong())
-                    return
-                }
+        handler.postDelayed(
+            object : Runnable {
+                override fun run() {
+                    val insets = ViewCompat.getRootWindowInsets(overlayView)
+                    val isKeyboardVisible = insets!!.isVisible(WindowInsets.Type.ime())
+                    if (isKeyboardVisible) {
+                        handler.postDelayed(this, delayMs.toLong())
+                        return
+                    }
 
-                // No longer visible, submit the result.
-                NativeLibrary.submitInlineKeyboardInput(KeyEvent.KEYCODE_ENTER)
-            }
-        }, delayMs.toLong())
+                    // No longer visible, submit the result.
+                    NativeLibrary.submitInlineKeyboardInput(KeyEvent.KEYCODE_ENTER)
+                }
+            },
+            delayMs.toLong()
+        )
     }
 
     @JvmStatic
