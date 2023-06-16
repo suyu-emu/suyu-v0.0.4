@@ -1,24 +1,47 @@
 # SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(NX_TZDB_VERSION "220816")
-set(NX_TZDB_DOWNLOAD_URL "https://github.com/lat9nq/tzdb_to_nx/releases/download/${NX_TZDB_VERSION}/${NX_TZDB_VERSION}.zip")
-
-set(NX_TZDB_ARCHIVE "${CMAKE_CURRENT_BINARY_DIR}/${NX_TZDB_VERSION}.zip")
-set(NX_TZDB_DIR "${CMAKE_CURRENT_BINARY_DIR}/nx_tzdb")
-
 set(NX_TZDB_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include")
 
-if (NOT EXISTS ${NX_TZDB_ARCHIVE})
+add_library(nx_tzdb INTERFACE)
+
+find_program(GIT git)
+find_program(GNU_MAKE make)
+find_program(GNU_DATE date)
+
+set(CAN_BUILD_NX_TZDB true)
+
+if ("${GIT}" STREQUAL "GIT-NOTFOUND")
+    message("git program not found")
+    set(CAN_BUILD_NX_TZDB false)
+endif()
+if ("${GNU_MAKE}" STREQUAL "GNU_MAKE-NOTFOUND")
+    message("GNU make program not found")
+    set(CAN_BUILD_NX_TZDB false)
+endif()
+if ("${GNU_DATE}" STREQUAL "GNU_DATE-NOTFOUND")
+    message("GNU date program not found")
+    set(CAN_BUILD_NX_TZDB false)
+endif()
+
+if (NOT ${CAN_BUILD_NX_TZDB} AND NOT EXISTS ${NX_TZDB_ARCHIVE})
+    set(NX_TZDB_VERSION "220816")
+    set(NX_TZDB_DOWNLOAD_URL "https://github.com/lat9nq/tzdb_to_nx/releases/download/${NX_TZDB_VERSION}/${NX_TZDB_VERSION}.zip")
+
+    set(NX_TZDB_ARCHIVE "${CMAKE_CURRENT_BINARY_DIR}/${NX_TZDB_VERSION}.zip")
+    set(NX_TZDB_DIR "${CMAKE_CURRENT_BINARY_DIR}/nx_tzdb" CACHE PATH "Path to Switch-style time zone data")
+
     file(DOWNLOAD ${NX_TZDB_DOWNLOAD_URL} ${NX_TZDB_ARCHIVE})
     file(ARCHIVE_EXTRACT
         INPUT
             ${NX_TZDB_ARCHIVE}
         DESTINATION
             ${NX_TZDB_DIR})
+elseif (${CAN_BUILD_NX_TZDB})
+    add_subdirectory(tzdb_to_nx)
+    add_dependencies(nx_tzdb x80e)
 endif()
 
-add_library(nx_tzdb INTERFACE)
 target_include_directories(nx_tzdb
     INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include
     INTERFACE ${NX_TZDB_INCLUDE_DIR})
