@@ -270,6 +270,7 @@ std::size_t RealVfsFile::GetSize() const {
 }
 
 bool RealVfsFile::Resize(std::size_t new_size) {
+    size.reset();
     base.RefreshReference(path, perms, *reference);
     return reference->file ? reference->file->SetSize(new_size) : false;
 }
@@ -295,6 +296,7 @@ std::size_t RealVfsFile::Read(u8* data, std::size_t length, std::size_t offset) 
 }
 
 std::size_t RealVfsFile::Write(const u8* data, std::size_t length, std::size_t offset) {
+    size.reset();
     base.RefreshReference(path, perms, *reference);
     if (!reference->file || !reference->file->Seek(static_cast<s64>(offset))) {
         return 0;
