@@ -85,20 +85,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             onReturnFromSettings = context.activityResultRegistry.register(
                 "SettingsResult",
                 ActivityResultContracts.StartActivityForResult()
-            ) {
-                binding.surfaceEmulation.setAspectRatio(
-                    when (IntSetting.RENDERER_ASPECT_RATIO.int) {
-                        0 -> Rational(16, 9)
-                        1 -> Rational(4, 3)
-                        2 -> Rational(21, 9)
-                        3 -> Rational(16, 10)
-                        4 -> null // Stretch
-                        else -> Rational(16, 9)
-                    }
-                )
-                emulationActivity?.buildPictureInPictureParams()
-                updateScreenLayout()
-            }
+            ) { updateScreenLayout() }
         } else {
             throw IllegalStateException("EmulationFragment must have EmulationActivity parent")
         }
@@ -242,17 +229,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             DirectoryInitialization.start(requireContext())
         }
 
-        binding.surfaceEmulation.setAspectRatio(
-            when (IntSetting.RENDERER_ASPECT_RATIO.int) {
-                0 -> Rational(16, 9)
-                1 -> Rational(4, 3)
-                2 -> Rational(21, 9)
-                3 -> Rational(16, 10)
-                4 -> null // Stretch
-                else -> Rational(16, 9)
-            }
-        )
-
         updateScreenLayout()
 
         emulationState.run(emulationActivity!!.isActivityRecreated)
@@ -315,7 +291,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     @SuppressLint("SourceLockedOrientationActivity")
-    private fun updateScreenLayout() {
+    private fun updateOrientation() {
         emulationActivity?.let {
             it.requestedOrientation = when (IntSetting.RENDERER_SCREEN_LAYOUT.int) {
                 Settings.LayoutOption_MobileLandscape ->
@@ -326,7 +302,21 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 else -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
             }
         }
-        onConfigurationChanged(resources.configuration)
+    }
+
+    private fun updateScreenLayout() {
+        binding.surfaceEmulation.setAspectRatio(
+            when (IntSetting.RENDERER_ASPECT_RATIO.int) {
+                0 -> Rational(16, 9)
+                1 -> Rational(4, 3)
+                2 -> Rational(21, 9)
+                3 -> Rational(16, 10)
+                4 -> null // Stretch
+                else -> Rational(16, 9)
+            }
+        )
+        emulationActivity?.buildPictureInPictureParams()
+        updateOrientation()
     }
 
     private fun updateFoldableLayout(
@@ -359,7 +349,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             binding.overlayContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.inGameMenu.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             isInFoldableLayout = false
-            updateScreenLayout()
+            updateOrientation()
+            onConfigurationChanged(resources.configuration)
         }
         binding.emulationContainer.requestLayout()
         binding.inputContainer.requestLayout()
