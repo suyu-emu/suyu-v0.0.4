@@ -20,7 +20,7 @@ endif()
 if ("${GNU_DATE}" STREQUAL "GNU_DATE-NOTFOUND")
     set(CAN_BUILD_NX_TZDB false)
 endif()
-if ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Windows")
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
     # tzdb_to_nx currently requires a posix-compliant host
     set(CAN_BUILD_NX_TZDB false)
 endif()
