@@ -344,6 +344,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
     const bool is_s8gen2 = device_id == 0x43050a01;
+    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
     if ((is_mvk || is_qualcomm || is_turnip) && !is_suitable) {
         LOG_WARNING(Render_Vulkan, "Unsuitable driver, continuing anyway");
@@ -391,7 +392,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectPhysicalMemoryInfo();
     CollectToolingInfo();
 
-#ifdef ANDROID
     if (is_qualcomm || is_turnip) {
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm and Turnip drivers have broken VK_EXT_custom_border_color");
@@ -411,7 +411,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         extensions.push_descriptor = false;
         loaded_extensions.erase(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 
-#ifdef ARCHITECTURE_arm64
+#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
         // Patch the driver to enable BCn textures.
         const auto major = (properties.properties.driverVersion >> 24) << 2;
         const auto minor = (properties.properties.driverVersion >> 12) & 0xFFFU;
@@ -431,18 +431,23 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         } else {
             LOG_WARNING(Render_Vulkan, "Adreno driver can't be patched to enable BCn textures");
         }
-#endif // ARCHITECTURE_arm64
+#endif
     }
 
-    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
     if (is_arm) {
         must_emulate_scaled_formats = true;
 
         LOG_WARNING(Render_Vulkan, "ARM drivers have broken VK_EXT_extended_dynamic_state");
         extensions.extended_dynamic_state = false;
         loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+
+        LOG_WARNING(Render_Vulkan, "ARM drivers have broken VK_EXT_extended_dynamic_state2");
+        features.extended_dynamic_state2.extendedDynamicState2 = false;
+        features.extended_dynamic_state2.extendedDynamicState2LogicOp = false;
+        features.extended_dynamic_state2.extendedDynamicState2PatchControlPoints = false;
+        extensions.extended_dynamic_state2 = false;
+        loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
     }
-#endif // ANDROID
 
     if (is_nvidia) {
         const u32 nv_major_version = (properties.properties.driverVersion >> 22) & 0x3ff;
