@@ -63,6 +63,10 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     private val actionPause = "ACTION_EMULATOR_PAUSE"
     private val actionPlay = "ACTION_EMULATOR_PLAY"
+    private val actionMute = "ACTION_EMULATOR_MUTE"
+    private val actionAudio = "ACTION_EMULATOR_AUDIO"
+    private var isAudioMuted = false
+    private var userAudio = IntSetting.AUDIO_VOLUME.int
 
     private val settingsViewModel: SettingsViewModel by viewModels()
 
@@ -305,6 +309,38 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             pictureInPictureActions.add(pauseRemoteAction)
         }
 
+        if (isAudioMuted) {
+            val audioIcon = Icon.createWithResource(this@EmulationActivity, R.drawable.ic_pip_audio)
+            val audioPendingIntent = PendingIntent.getBroadcast(
+                this@EmulationActivity,
+                R.drawable.ic_pip_audio,
+                Intent(actionAudio),
+                pendingFlags
+            )
+            val audioRemoteAction = RemoteAction(
+                audioIcon,
+                getString(R.string.audio),
+                getString(R.string.audio),
+                audioPendingIntent
+            )
+            pictureInPictureActions.add(audioRemoteAction)
+        } else {
+            val muteIcon = Icon.createWithResource(this@EmulationActivity, R.drawable.ic_pip_mute)
+            val mutePendingIntent = PendingIntent.getBroadcast(
+                this@EmulationActivity,
+                R.drawable.ic_pip_mute,
+                Intent(actionMute),
+                pendingFlags
+            )
+            val muteRemoteAction = RemoteAction(
+                muteIcon,
+                getString(R.string.mute),
+                getString(R.string.mute),
+                mutePendingIntent
+            )
+            pictureInPictureActions.add(muteRemoteAction)
+        }
+
         return this.apply { setActions(pictureInPictureActions) }
     }
 
@@ -325,6 +361,18 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
                 if (NativeLibrary.isPaused()) NativeLibrary.unPauseEmulation()
             } else if (intent.action == actionPause) {
                 if (!NativeLibrary.isPaused()) NativeLibrary.pauseEmulation()
+            }
+            if (intent.action == actionAudio) {
+                if (isAudioMuted) {
+                    IntSetting.AUDIO_VOLUME.int = userAudio
+                    isAudioMuted = false
+                }
+            } else if (intent.action == actionMute) {
+                if (!isAudioMuted) {
+                    isAudioMuted = true
+                    userAudio = IntSetting.AUDIO_VOLUME.int
+                    IntSetting.AUDIO_VOLUME.int = 0
+                }
             }
             buildPictureInPictureParams()
         }
