@@ -12,27 +12,35 @@ find_program(GNU_DATE date)
 set(CAN_BUILD_NX_TZDB true)
 
 if ("${GIT}" STREQUAL "GIT-NOTFOUND")
-    message("git program not found")
     set(CAN_BUILD_NX_TZDB false)
 endif()
 if ("${GNU_MAKE}" STREQUAL "GNU_MAKE-NOTFOUND")
-    message("GNU make program not found")
     set(CAN_BUILD_NX_TZDB false)
 endif()
 if ("${GNU_DATE}" STREQUAL "GNU_DATE-NOTFOUND")
-    message("GNU date program not found")
+    set(CAN_BUILD_NX_TZDB false)
+endif()
+if ("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Windows")
+    # tzdb_to_nx currently requires a posix-compliant host
     set(CAN_BUILD_NX_TZDB false)
 endif()
 
 set(NX_TZDB_VERSION "220816")
 set(NX_TZDB_ARCHIVE "${CMAKE_CURRENT_BINARY_DIR}/${NX_TZDB_VERSION}.zip")
 
+set(NX_TZDB_DIR "${CMAKE_CURRENT_BINARY_DIR}/nx_tzdb")
+
 if ((NOT ${CAN_BUILD_NX_TZDB} OR ${YUZU_DOWNLOAD_TIME_ZONE_DATA}) AND NOT EXISTS ${NX_TZDB_ARCHIVE})
     set(NX_TZDB_DOWNLOAD_URL "https://github.com/lat9nq/tzdb_to_nx/releases/download/${NX_TZDB_VERSION}/${NX_TZDB_VERSION}.zip")
 
-    set(NX_TZDB_DIR "${CMAKE_CURRENT_BINARY_DIR}/nx_tzdb" CACHE PATH "Path to Switch-style time zone data")
+    message(STATUS "Downloading time zone data from ${NX_TZDB_DOWNLOAD_URL}...")
+    file(DOWNLOAD ${NX_TZDB_DOWNLOAD_URL} ${NX_TZDB_ARCHIVE}
+        STATUS NX_TZDB_DOWNLOAD_STATUS)
+    list(GET NX_TZDB_DOWNLOAD_STATUS 0 NX_TZDB_DOWNLOAD_STATUS_CODE)
+    if (NOT "${NX_TZDB_DOWNLOAD_STATUS_CODE}" STREQUAL "0")
+        message(FATAL_ERROR "Time zone data download failed (status code ${NX_TZDB_DOWNLOAD_STATUS_CODE})")
+    endif()
 
-    file(DOWNLOAD ${NX_TZDB_DOWNLOAD_URL} ${NX_TZDB_ARCHIVE})
     file(ARCHIVE_EXTRACT
         INPUT
             ${NX_TZDB_ARCHIVE}
