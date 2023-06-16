@@ -53,6 +53,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
         <activity
             android:name="org.yuzu.yuzu_emu.activities.EmulationActivity"
             android:theme="@style/Theme.Yuzu.Main"
+            android:screenOrientation="userLandscape"
             android:supportsPictureInPicture="true"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|uiMode"
             android:exported="true">
