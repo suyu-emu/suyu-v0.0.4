@@ -19,6 +19,8 @@ import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.utils.DocumentsTree.Companion.isNativePath
 import org.yuzu.yuzu_emu.utils.FileUtil.getFileSize
 import org.yuzu.yuzu_emu.utils.FileUtil.openContentUri
+import org.yuzu.yuzu_emu.utils.FileUtil.exists
+import org.yuzu.yuzu_emu.utils.FileUtil.isDirectory
 import org.yuzu.yuzu_emu.utils.Log.error
 import org.yuzu.yuzu_emu.utils.Log.verbose
 import org.yuzu.yuzu_emu.utils.Log.warning
@@ -83,6 +85,22 @@ object NativeLibrary {
         return if (isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.getFileSize(path)
         } else getFileSize(appContext, path)
+    }
+
+    @Keep
+    @JvmStatic
+    fun exists(path: String?): Boolean {
+        return if (isNativePath(path!!)) {
+            YuzuApplication.documentsTree!!.exists(path)
+        } else exists(appContext, path)
+    }
+
+    @Keep
+    @JvmStatic
+    fun isDirectory(path: String?): Boolean {
+        return if (isNativePath(path!!)) {
+            YuzuApplication.documentsTree!!.isDirectory(path)
+        } else isDirectory(appContext, path)
     }
 
     /**

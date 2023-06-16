@@ -12,7 +12,10 @@
       "openContentUri", "(Ljava/lang/String;Ljava/lang/String;)I")
 
 #define ANDROID_SINGLE_PATH_DETERMINE_FUNCTIONS(V)                                                 \
-    V(GetSize, std::uint64_t, get_size, CallStaticLongMethod, "getSize", "(Ljava/lang/String;)J")
+    V(GetSize, std::uint64_t, get_size, CallStaticLongMethod, "getSize", "(Ljava/lang/String;)J")  \
+    V(IsDirectory, bool, is_directory, CallStaticBooleanMethod, "isDirectory",                     \
+      "(Ljava/lang/String;)Z")                                                                     \
+    V(Exists, bool, file_exists, CallStaticBooleanMethod, "exists", "(Ljava/lang/String;)Z")
 
 namespace Common::FS::Android {
 

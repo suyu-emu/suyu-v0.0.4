@@ -3,6 +3,9 @@
 
 #include "common/fs/file.h"
 #include "common/fs/fs.h"
+#ifdef ANDROID
+#include "common/fs/fs_android.h"
+#endif
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 
@@ -525,15 +528,39 @@ void IterateDirEntriesRecursively(const std::filesystem::path& path,
 // Generic Filesystem Operations
 
 bool Exists(const fs::path& path) {
+#ifdef ANDROID
+    if (Android::IsContentUri(path)) {
+        return Android::Exists(path);
+    } else {
+        return fs::exists(path);
+    }
+#else
     return fs::exists(path);
+#endif
 }
 
 bool IsFile(const fs::path& path) {
+#ifdef ANDROID
+    if (Android::IsContentUri(path)) {
+        return !Android::IsDirectory(path);
+    } else {
+        return fs::is_regular_file(path);
+    }
+#else
     return fs::is_regular_file(path);
+#endif
 }
 
 bool IsDir(const fs::path& path) {
+#ifdef ANDROID
+    if (Android::IsContentUri(path)) {
+        return Android::IsDirectory(path);
+    } else {
+        return fs::is_directory(path);
+    }
+#else
     return fs::is_directory(path);
+#endif
 }
 
 fs::path GetCurrentDir() {
