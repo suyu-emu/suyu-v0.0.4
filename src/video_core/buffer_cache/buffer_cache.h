@@ -719,9 +719,15 @@ void BufferCache<P>::BindHostVertexBuffers() {
     bool any_valid{false};
     auto& flags = maxwell3d->dirty.flags;
     for (u32 index = 0; index < NUM_VERTEX_BUFFERS; ++index) {
+        const Binding& binding = channel_state->vertex_buffers[index];
+        Buffer& buffer = slot_buffers[binding.buffer_id];
+        TouchBuffer(buffer, binding.buffer_id);
+        SynchronizeBuffer(buffer, binding.cpu_addr, binding.size);
         if (!flags[Dirty::VertexBuffer0 + index]) {
             continue;
         }
+        flags[Dirty::VertexBuffer0 + index] = false;
+
         host_bindings.min_index = std::min(host_bindings.min_index, index);
         host_bindings.max_index = std::max(host_bindings.max_index, index);
         any_valid = true;
@@ -734,9 +740,6 @@ void BufferCache<P>::BindHostVertexBuffers() {
 
             const Binding& binding = channel_state->vertex_buffers[index];
             Buffer& buffer = slot_buffers[binding.buffer_id];
-
-            TouchBuffer(buffer, binding.buffer_id);
-            SynchronizeBuffer(buffer, binding.cpu_addr, binding.size);
 
             const u32 stride = maxwell3d->regs.vertex_streams[index].stride;
             const u32 offset = buffer.Offset(binding.cpu_addr);
