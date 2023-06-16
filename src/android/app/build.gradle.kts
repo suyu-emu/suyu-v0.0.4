@@ -163,7 +163,7 @@ android {
 tasks.getByPath("preBuild").dependsOn("ktlintCheck")
 
 ktlint {
-    version.set("0.47.0")
+    version.set("0.47.1")
     android.set(true)
     ignoreFailures.set(false)
     disabledRules.set(
