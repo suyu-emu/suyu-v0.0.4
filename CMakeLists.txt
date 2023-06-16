@@ -59,6 +59,8 @@ option(YUZU_CHECK_SUBMODULES "Check if submodules are present" ON)
 
 option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
 
+option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" OFF)
+
 CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "NOT WIN32" OFF)
 
 # On Android, fetch and compile libcxx before doing anything else
