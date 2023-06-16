@@ -849,8 +849,9 @@ static Result CreateCalendarTime(s64 time, int gmt_offset, CalendarTimeInternal&
 static Result ToCalendarTimeInternal(const TimeZoneRule& rules, s64 time,
                                      CalendarTimeInternal& calendar_time,
                                      CalendarAdditionalInfo& calendar_additional_info) {
-    if ((rules.go_ahead && time < rules.ats[0]) ||
-        (rules.go_back && time > rules.ats[rules.time_count - 1])) {
+    ASSERT(rules.go_ahead ? rules.time_count > 0 : true);
+    if ((rules.go_back && time < rules.ats[0]) ||
+        (rules.go_ahead && time > rules.ats[rules.time_count - 1])) {
         s64 seconds{};
         if (time < rules.ats[0]) {
             seconds = rules.ats[0] - time;
