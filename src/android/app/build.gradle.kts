@@ -169,7 +169,8 @@ ktlint {
     disabledRules.set(
         setOf(
             "no-wildcard-imports",
-            "package-name"
+            "package-name",
+            "import-ordering"
         )
     )
     reporters {
