@@ -33,6 +33,8 @@ struct ImageViewBase {
         return type == ImageViewType::Buffer;
     }
 
+    [[nodiscard]] bool SupportsAnisotropy() const noexcept;
+
     ImageId image_id{};
     GPUVAddr gpu_addr = 0;
     PixelFormat format{};

@@ -1802,27 +1802,36 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     // Some games have samplers with garbage. Sanitize them here.
     const f32 max_anisotropy = std::clamp(tsc.MaxAnisotropy(), 1.0f, 16.0f);
 
-    sampler = device.GetLogical().CreateSampler(VkSamplerCreateInfo{
-        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-        .pNext = pnext,
-        .flags = 0,
-        .magFilter = MaxwellToVK::Sampler::Filter(tsc.mag_filter),
-        .minFilter = MaxwellToVK::Sampler::Filter(tsc.min_filter),
-        .mipmapMode = MaxwellToVK::Sampler::MipmapMode(tsc.mipmap_filter),
-        .addressModeU = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_u, tsc.mag_filter),
-        .addressModeV = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_v, tsc.mag_filter),
-        .addressModeW = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_p, tsc.mag_filter),
-        .mipLodBias = tsc.LodBias(),
-        .anisotropyEnable = static_cast<VkBool32>(max_anisotropy > 1.0f ? VK_TRUE : VK_FALSE),
-        .maxAnisotropy = max_anisotropy,
-        .compareEnable = tsc.depth_compare_enabled,
-        .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
-        .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.MinLod(),
-        .maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.MaxLod(),
-        .borderColor =
-            arbitrary_borders ? VK_BORDER_COLOR_FLOAT_CUSTOM_EXT : ConvertBorderColor(color),
-        .unnormalizedCoordinates = VK_FALSE,
-    });
+    const auto create_sampler = [&](const f32 anisotropy) {
+        return device.GetLogical().CreateSampler(VkSamplerCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .pNext = pnext,
+            .flags = 0,
+            .magFilter = MaxwellToVK::Sampler::Filter(tsc.mag_filter),
+            .minFilter = MaxwellToVK::Sampler::Filter(tsc.min_filter),
+            .mipmapMode = MaxwellToVK::Sampler::MipmapMode(tsc.mipmap_filter),
+            .addressModeU = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_u, tsc.mag_filter),
+            .addressModeV = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_v, tsc.mag_filter),
+            .addressModeW = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_p, tsc.mag_filter),
+            .mipLodBias = tsc.LodBias(),
+            .anisotropyEnable = static_cast<VkBool32>(anisotropy > 1.0f ? VK_TRUE : VK_FALSE),
+            .maxAnisotropy = anisotropy,
+            .compareEnable = tsc.depth_compare_enabled,
+            .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
+            .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.MinLod(),
+            .maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.MaxLod(),
+            .borderColor =
+                arbitrary_borders ? VK_BORDER_COLOR_FLOAT_CUSTOM_EXT : ConvertBorderColor(color),
+            .unnormalizedCoordinates = VK_FALSE,
+        });
+    };
+
+    sampler = create_sampler(max_anisotropy);
+
+    const f32 max_anisotropy_default = static_cast<f32>(1U << tsc.max_anisotropy);
+    if (max_anisotropy > max_anisotropy_default) {
+        sampler_default_anisotropy = create_sampler(max_anisotropy_default);
+    }
 }
 
 Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM_RT> color_buffers,
