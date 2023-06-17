@@ -31,7 +31,6 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
     ui->use_asynchronous_shaders->setEnabled(runtime_lock);
     ui->anisotropic_filtering_combobox->setEnabled(runtime_lock);
     ui->enable_compute_pipelines_checkbox->setEnabled(runtime_lock);
-    ui->use_aggressive_anisotropic_filtering->setEnabled(runtime_lock);
 
     ui->async_present->setChecked(Settings::values.async_presentation.GetValue());
     ui->renderer_force_max_clock->setChecked(Settings::values.renderer_force_max_clock.GetValue());
@@ -44,8 +43,6 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
     ui->enable_compute_pipelines_checkbox->setChecked(
         Settings::values.enable_compute_pipelines.GetValue());
     ui->use_video_framerate_checkbox->setChecked(Settings::values.use_video_framerate.GetValue());
-    ui->use_aggressive_anisotropic_filtering->setChecked(
-        Settings::values.use_aggressive_anisotropic_filtering.GetValue());
 
     if (Settings::IsConfiguringGlobal()) {
         ui->gpu_accuracy->setCurrentIndex(
@@ -97,9 +94,6 @@ void ConfigureGraphicsAdvanced::ApplyConfiguration() {
                                              enable_compute_pipelines);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_video_framerate,
                                              ui->use_video_framerate_checkbox, use_video_framerate);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_aggressive_anisotropic_filtering,
-                                             ui->use_aggressive_anisotropic_filtering,
-                                             use_aggressive_anisotropic_filtering);
 }
 
 void ConfigureGraphicsAdvanced::changeEvent(QEvent* event) {
@@ -136,8 +130,6 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
             Settings::values.enable_compute_pipelines.UsingGlobal());
         ui->use_video_framerate_checkbox->setEnabled(
             Settings::values.use_video_framerate.UsingGlobal());
-        ui->use_aggressive_anisotropic_filtering->setEnabled(
-            Settings::values.use_aggressive_anisotropic_filtering.UsingGlobal());
 
         return;
     }
@@ -165,9 +157,6 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
     ConfigurationShared::SetColoredTristate(ui->use_video_framerate_checkbox,
                                             Settings::values.use_video_framerate,
                                             use_video_framerate);
-    ConfigurationShared::SetColoredTristate(ui->use_aggressive_anisotropic_filtering,
-                                            Settings::values.use_aggressive_anisotropic_filtering,
-                                            use_aggressive_anisotropic_filtering);
     ConfigurationShared::SetColoredComboBox(
         ui->gpu_accuracy, ui->label_gpu_accuracy,
         static_cast<int>(Settings::values.gpu_accuracy.GetValue(true)));

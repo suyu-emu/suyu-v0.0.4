@@ -321,7 +321,6 @@ void Config::ReadValues() {
     ReadSetting("Renderer", Settings::values.astc_recompression);
     ReadSetting("Renderer", Settings::values.use_fast_gpu_time);
     ReadSetting("Renderer", Settings::values.use_vulkan_driver_pipeline_cache);
-    ReadSetting("Renderer", Settings::values.use_aggressive_anisotropic_filtering);
 
     ReadSetting("Renderer", Settings::values.bg_red);
     ReadSetting("Renderer", Settings::values.bg_green);

@@ -62,14 +62,12 @@ std::array<float, 4> TSCEntry::BorderColor() const noexcept {
 }
 
 float TSCEntry::MaxAnisotropy() const noexcept {
-    const bool is_suitable_mipmap_filter = Settings::values.use_aggressive_anisotropic_filtering
-                                               ? mipmap_filter != TextureMipmapFilter::None
-                                               : mipmap_filter == TextureMipmapFilter::Linear;
+    const bool is_suitable_mipmap_filter = mipmap_filter != TextureMipmapFilter::None;
     const bool has_regular_lods = min_lod_clamp == 0 && max_lod_clamp >= 256;
     const bool is_bilinear_filter = min_filter == TextureFilter::Linear &&
                                     reduction_filter == SamplerReduction::WeightedAverage;
-    if (max_anisotropy == 0 && (depth_compare_enabled || !has_regular_lods || !is_bilinear_filter ||
-                                !is_suitable_mipmap_filter)) {
+    if (max_anisotropy == 0 && (!is_suitable_mipmap_filter || !has_regular_lods ||
+                                !is_bilinear_filter || depth_compare_enabled)) {
         return 1.0f;
     }
     const auto anisotropic_settings = Settings::values.max_anisotropy.GetValue();

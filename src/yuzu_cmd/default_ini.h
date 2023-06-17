@@ -325,10 +325,6 @@ aspect_ratio =
 # 0: Default, 1: 2x, 2: 4x, 3: 8x, 4: 16x
 max_anisotropy =
 
-# Apply Anisotropic Filtering to all mipmap modes.
-# 0 (default): Off, 1: On
-use_aggressive_anisotropic_filtering =
-
 # Whether to enable VSync or not.
 # OpenGL: Values other than 0 enable VSync
 # Vulkan: FIFO is selected if the requested mode is not supported by the driver.

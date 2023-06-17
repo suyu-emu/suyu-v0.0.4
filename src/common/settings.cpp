@@ -236,7 +236,6 @@ void RestoreGlobalState(bool is_powered_on) {
     values.bg_blue.SetGlobal(true);
     values.enable_compute_pipelines.SetGlobal(true);
     values.use_video_framerate.SetGlobal(true);
-    values.use_aggressive_anisotropic_filtering.SetGlobal(true);
 
     // System
     values.language_index.SetGlobal(true);
