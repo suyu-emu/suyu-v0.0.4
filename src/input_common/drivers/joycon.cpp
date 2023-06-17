@@ -195,8 +195,8 @@ void Joycons::RegisterNewDevice(SDL_hid_device_info* device_info) {
                 OnMotionUpdate(port, type, id, value);
             }},
             .on_ring_data = {[this](f32 ring_data) { OnRingConUpdate(ring_data); }},
-            .on_amiibo_data = {[this, port, type](const std::vector<u8>& amiibo_data) {
-                OnAmiiboUpdate(port, type, amiibo_data);
+            .on_amiibo_data = {[this, port, type](const Joycon::TagInfo& tag_info) {
+                OnAmiiboUpdate(port, type, tag_info);
             }},
             .on_camera_data = {[this, port](const std::vector<u8>& camera_data,
                                             Joycon::IrsResolution format) {
@@ -291,13 +291,105 @@ Common::Input::NfcState Joycons::SupportsNfc(const PadIdentifier& identifier_) c
     return Common::Input::NfcState::Success;
 };
 
+Common::Input::NfcState Joycons::StartNfcPolling(const PadIdentifier& identifier) {
+    auto handle = GetHandle(identifier);
+    if (handle == nullptr) {
+        return Common::Input::NfcState::Unknown;
+    }
+    return TranslateDriverResult(handle->StartNfcPolling());
+};
+
+Common::Input::NfcState Joycons::StopNfcPolling(const PadIdentifier& identifier) {
+    auto handle = GetHandle(identifier);
+    if (handle == nullptr) {
+        return Common::Input::NfcState::Unknown;
+    }
+    return TranslateDriverResult(handle->StopNfcPolling());
+};
+
+Common::Input::NfcState Joycons::ReadAmiiboData(const PadIdentifier& identifier,
+                                                std::vector<u8>& out_data) {
+    auto handle = GetHandle(identifier);
+    if (handle == nullptr) {
+        return Common::Input::NfcState::Unknown;
+    }
+    return TranslateDriverResult(handle->ReadAmiiboData(out_data));
+}
+
 Common::Input::NfcState Joycons::WriteNfcData(const PadIdentifier& identifier,
                                               const std::vector<u8>& data) {
     auto handle = GetHandle(identifier);
-    if (handle->WriteNfcData(data) != Joycon::DriverResult::Success) {
-        return Common::Input::NfcState::WriteFailed;
+    if (handle == nullptr) {
+        return Common::Input::NfcState::Unknown;
     }
-    return Common::Input::NfcState::Success;
+    return TranslateDriverResult(handle->WriteNfcData(data));
+};
+
+Common::Input::NfcState Joycons::ReadMifareData(const PadIdentifier& identifier,
+                                                const Common::Input::MifareRequest& request,
+                                                Common::Input::MifareRequest& data) {
+    auto handle = GetHandle(identifier);
+    if (handle == nullptr) {
+        return Common::Input::NfcState::Unknown;
+    }
+
+    const auto command = static_cast<Joycon::MifareCmd>(request.data[0].command);
+    std::vector<Joycon::MifareReadChunk> read_request{};
+    for (const auto& request_data : request.data) {
+        if (request_data.command == 0) {
+            continue;
+        }
+        Joycon::MifareReadChunk chunk = {
+            .command = command,
+            .sector_key = {},
+            .sector = request_data.sector,
+        };
+        memcpy(chunk.sector_key.data(), request_data.key.data(),
+               sizeof(Joycon::MifareReadChunk::sector_key));
+        read_request.emplace_back(chunk);
+    }
+
+    std::vector<Joycon::MifareReadData> read_data(read_request.size());
+    const auto result = handle->ReadMifareData(read_request, read_data);
+    if (result == Joycon::DriverResult::Success) {
+        for (std::size_t i = 0; i < read_request.size(); i++) {
+            data.data[i] = {
+                .command = static_cast<u8>(command),
+                .sector = read_data[i].sector,
+                .key = {},
+                .data = read_data[i].data,
+            };
+        }
+    }
+    return TranslateDriverResult(result);
+};
+
+Common::Input::NfcState Joycons::WriteMifareData(const PadIdentifier& identifier,
+                                                 const Common::Input::MifareRequest& request) {
+    auto handle = GetHandle(identifier);
+    if (handle == nullptr) {
+        return Common::Input::NfcState::Unknown;
+    }
+
+    const auto command = static_cast<Joycon::MifareCmd>(request.data[0].command);
+    std::vector<Joycon::MifareWriteChunk> write_request{};
+    for (const auto& request_data : request.data) {
+        if (request_data.command == 0) {
+            continue;
+        }
+        Joycon::MifareWriteChunk chunk = {
+            .command = command,
+            .sector_key = {},
+            .sector = request_data.sector,
+            .data = {},
+        };
+        memcpy(chunk.sector_key.data(), request_data.key.data(),
+               sizeof(Joycon::MifareReadChunk::sector_key));
+        memcpy(chunk.data.data(), request_data.data.data(), sizeof(Joycon::MifareWriteChunk::data));
+        write_request.emplace_back(chunk);
+    }
+
+    return TranslateDriverResult(handle->WriteMifareData(write_request));
 };
 
 Common::Input::DriverResult Joycons::SetPollingMode(const PadIdentifier& identifier,
@@ -403,11 +495,20 @@ void Joycons::OnRingConUpdate(f32 ring_data) {
 }
 
 void Joycons::OnAmiiboUpdate(std::size_t port, Joycon::ControllerType type,
-                             const std::vector<u8>& amiibo_data) {
+                             const Joycon::TagInfo& tag_info) {
     const auto identifier = GetIdentifier(port, type);
-    const auto nfc_state = amiibo_data.empty() ? Common::Input::NfcState::AmiiboRemoved
-                                               : Common::Input::NfcState::NewAmiibo;
-    SetNfc(identifier, {nfc_state, amiibo_data});
+    const auto nfc_state = tag_info.uuid_length == 0 ? Common::Input::NfcState::AmiiboRemoved
+                                                     : Common::Input::NfcState::NewAmiibo;
+
+    const Common::Input::NfcStatus nfc_status{
+        .state = nfc_state,
+        .uuid_length = tag_info.uuid_length,
+        .protocol = tag_info.protocol,
+        .tag_type = tag_info.tag_type,
+        .uuid = tag_info.uuid,
+    };
+
+    SetNfc(identifier, nfc_status);
 }
 
 void Joycons::OnCameraUpdate(std::size_t port, const std::vector<u8>& camera_data,
@@ -726,4 +827,18 @@ std::string Joycons::JoyconName(Joycon::ControllerType type) const {
         return "Unknown Switch Controller";
     }
 }
+
+Common::Input::NfcState Joycons::TranslateDriverResult(Joycon::DriverResult result) const {
+    switch (result) {
+    case Joycon::DriverResult::Success:
+        return Common::Input::NfcState::Success;
+    case Joycon::DriverResult::Disabled:
+        return Common::Input::NfcState::WrongDeviceState;
+    case Joycon::DriverResult::NotSupported:
+        return Common::Input::NfcState::NotSupported;
+    default:
+        return Common::Input::NfcState::Unknown;
+    }
+}
+
 } // namespace InputCommon

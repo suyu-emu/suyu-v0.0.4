@@ -149,11 +149,15 @@ void EmulatedController::LoadDevices() {
 
     camera_params[0] = right_joycon;
     camera_params[0].Set("camera", true);
-    camera_params[1] = Common::ParamPackage{"engine:camera,camera:1"};
-    ring_params[1] = Common::ParamPackage{"engine:joycon,axis_x:100,axis_y:101"};
-    nfc_params[0] = Common::ParamPackage{"engine:virtual_amiibo,nfc:1"};
     nfc_params[1] = right_joycon;
     nfc_params[1].Set("nfc", true);
+
+    // Only map virtual devices to the first controller
+    if (npad_id_type == NpadIdType::Player1 || npad_id_type == NpadIdType::Handheld) {
+        camera_params[1] = Common::ParamPackage{"engine:camera,camera:1"};
+        ring_params[1] = Common::ParamPackage{"engine:joycon,axis_x:100,axis_y:101"};
+        nfc_params[0] = Common::ParamPackage{"engine:virtual_amiibo,nfc:1"};
+    }
 
     output_params[LeftIndex] = left_joycon;
     output_params[RightIndex] = right_joycon;
@@ -1176,10 +1180,7 @@ void EmulatedController::SetNfc(const Common::Input::CallbackStatus& callback) {
         return;
     }
 
-    controller.nfc_state = {
-        controller.nfc_values.state,
-        controller.nfc_values.data,
-    };
+    controller.nfc_state = controller.nfc_values;
 }
 
 bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue vibration) {
@@ -1306,6 +1307,73 @@ bool EmulatedController::HasNfc() const {
         nfc_output_device->SupportsNfc() != Common::Input::NfcState::NotSupported;
 
     return is_connected && (has_virtual_nfc && is_virtual_nfc_supported);
+}
+
+bool EmulatedController::AddNfcHandle() {
+    nfc_handles++;
+    return SetPollingMode(EmulatedDeviceIndex::RightIndex, Common::Input::PollingMode::NFC) ==
+           Common::Input::DriverResult::Success;
+}
+
+bool EmulatedController::RemoveNfcHandle() {
+    nfc_handles--;
+    if (nfc_handles <= 0) {
+        return SetPollingMode(EmulatedDeviceIndex::RightIndex,
+                              Common::Input::PollingMode::Active) ==
+               Common::Input::DriverResult::Success;
+    }
+    return true;
+}
+
+bool EmulatedController::StartNfcPolling() {
+    auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
+    auto& nfc_virtual_output_device = output_devices[3];
+
+    return nfc_output_device->StartNfcPolling() == Common::Input::NfcState::Success ||
+           nfc_virtual_output_device->StartNfcPolling() == Common::Input::NfcState::Success;
+}
+
+bool EmulatedController::StopNfcPolling() {
+    auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
+    auto& nfc_virtual_output_device = output_devices[3];
+
+    return nfc_output_device->StopNfcPolling() == Common::Input::NfcState::Success ||
+           nfc_virtual_output_device->StopNfcPolling() == Common::Input::NfcState::Success;
+}
+
+bool EmulatedController::ReadAmiiboData(std::vector<u8>& data) {
+    auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
+    auto& nfc_virtual_output_device = output_devices[3];
+
+    if (nfc_output_device->ReadAmiiboData(data) == Common::Input::NfcState::Success) {
+        return true;
+    }
+
+    return nfc_virtual_output_device->ReadAmiiboData(data) == Common::Input::NfcState::Success;
+}
+
+bool EmulatedController::ReadMifareData(const Common::Input::MifareRequest& request,
+                                        Common::Input::MifareRequest& out_data) {
+    auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
+    auto& nfc_virtual_output_device = output_devices[3];
+
+    if (nfc_output_device->ReadMifareData(request, out_data) == Common::Input::NfcState::Success) {
+        return true;
+    }
+
+    return nfc_virtual_output_device->ReadMifareData(request, out_data) ==
+           Common::Input::NfcState::Success;
+}
+
+bool EmulatedController::WriteMifareData(const Common::Input::MifareRequest& request) {
+    auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
+    auto& nfc_virtual_output_device = output_devices[3];
+
+    if (nfc_output_device->WriteMifareData(request) == Common::Input::NfcState::Success) {
+        return true;
+    }
+
+    return nfc_virtual_output_device->WriteMifareData(request) == Common::Input::NfcState::Success;
 }
 
 bool EmulatedController::WriteNfc(const std::vector<u8>& data) {

@@ -86,7 +86,7 @@ enum class NfcState {
     NewAmiibo,
     WaitingForAmiibo,
     AmiiboRemoved,
-    NotAnAmiibo,
+    InvalidTagType,
     NotSupported,
     WrongDeviceState,
     WriteFailed,
@@ -218,8 +218,22 @@ struct CameraStatus {
 };
 
 struct NfcStatus {
-    NfcState state{};
-    std::vector<u8> data{};
+    NfcState state{NfcState::Unknown};
+    u8 uuid_length;
+    u8 protocol;
+    u8 tag_type;
+    std::array<u8, 10> uuid;
+};
+
+struct MifareData {
+    u8 command;
+    u8 sector;
+    std::array<u8, 0x6> key;
+    std::array<u8, 0x10> data;
+};
+
+struct MifareRequest {
+    std::array<MifareData, 0x10> data;
 };
 
 // List of buttons to be passed to Qt that can be translated
@@ -294,7 +308,7 @@ struct CallbackStatus {
     BatteryStatus battery_status{};
     VibrationStatus vibration_status{};
     CameraFormat camera_status{CameraFormat::None};
-    NfcState nfc_status{NfcState::Unknown};
+    NfcStatus nfc_status{};
     std::vector<u8> raw_data{};
 };
 
@@ -356,7 +370,28 @@ public:
         return NfcState::NotSupported;
     }
 
+    virtual NfcState StartNfcPolling() {
+        return NfcState::NotSupported;
+    }
+
+    virtual NfcState StopNfcPolling() {
+        return NfcState::NotSupported;
+    }
+
+    virtual NfcState ReadAmiiboData([[maybe_unused]] std::vector<u8>& out_data) {
+        return NfcState::NotSupported;
+    }
+
     virtual NfcState WriteNfcData([[maybe_unused]] const std::vector<u8>& data) {
+        return NfcState::NotSupported;
+    }
+
+    virtual NfcState ReadMifareData([[maybe_unused]] const MifareRequest& request,
+                                    [[maybe_unused]] MifareRequest& out_data) {
+        return NfcState::NotSupported;
+    }
+
+    virtual NfcState WriteMifareData([[maybe_unused]] const MifareRequest& request) {
         return NfcState::NotSupported;
     }
 };

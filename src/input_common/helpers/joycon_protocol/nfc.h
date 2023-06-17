@@ -25,13 +25,24 @@ public:
 
     DriverResult StartNFCPollingMode();
 
-    DriverResult ScanAmiibo(std::vector<u8>& data);
+    DriverResult StopNFCPollingMode();
+
+    DriverResult GetTagInfo(Joycon::TagInfo& tag_info);
+
+    DriverResult ReadAmiibo(std::vector<u8>& data);
 
     DriverResult WriteAmiibo(std::span<const u8> data);
+
+    DriverResult ReadMifare(std::span<const MifareReadChunk> read_request,
+                            std::span<MifareReadData> out_data);
+
+    DriverResult WriteMifare(std::span<const MifareWriteChunk> write_request);
 
     bool HasAmiibo();
 
     bool IsEnabled() const;
+
+    bool IsPolling() const;
 
 private:
     // Number of times the function will be delayed until it outputs valid data
@@ -51,6 +62,13 @@ private:
 
     DriverResult WriteAmiiboData(const TagUUID& tag_uuid, std::span<const u8> data);
 
+    DriverResult GetMifareData(const MifareUUID& tag_uuid,
+                               std::span<const MifareReadChunk> read_request,
+                               std::span<MifareReadData> out_data);
+
+    DriverResult WriteMifareData(const MifareUUID& tag_uuid,
+                                 std::span<const MifareWriteChunk> write_request);
+
     DriverResult SendStartPollingRequest(MCUCommandResponse& output,
                                          bool is_second_attempt = false);
 
@@ -65,17 +83,31 @@ private:
     DriverResult SendWriteDataAmiiboRequest(MCUCommandResponse& output, u8 block_id,
                                             bool is_last_packet, std::span<const u8> data);
 
+    DriverResult SendReadDataMifareRequest(MCUCommandResponse& output, u8 block_id,
+                                           bool is_last_packet, std::span<const u8> data);
+
     std::vector<u8> SerializeWritePackage(const NFCWritePackage& package) const;
+
+    std::vector<u8> SerializeMifareReadPackage(const MifareReadPackage& package) const;
+
+    std::vector<u8> SerializeMifareWritePackage(const MifareWritePackage& package) const;
 
     NFCWritePackage MakeAmiiboWritePackage(const TagUUID& tag_uuid, std::span<const u8> data) const;
 
     NFCDataChunk MakeAmiiboChunk(u8 page, u8 size, std::span<const u8> data) const;
+
+    MifareReadPackage MakeMifareReadPackage(const MifareUUID& tag_uuid,
+                                            std::span<const MifareReadChunk> read_request) const;
+
+    MifareWritePackage MakeMifareWritePackage(const MifareUUID& tag_uuid,
+                                              std::span<const MifareWriteChunk> read_request) const;
 
     NFCReadBlockCommand GetReadBlockCommand(NFCPages pages) const;
 
     TagUUID GetTagUUID(std::span<const u8> data) const;
 
     bool is_enabled{};
+    bool is_polling{};
     std::size_t update_counter{};
 };
 

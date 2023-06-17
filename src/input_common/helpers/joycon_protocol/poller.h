@@ -36,8 +36,8 @@ public:
 
     void UpdateColor(const Color& color);
     void UpdateRing(s16 value, const RingStatus& ring_status);
-    void UpdateAmiibo(const std::vector<u8>& amiibo_data);
-    void UpdateCamera(const std::vector<u8>& amiibo_data, IrsResolution format);
+    void UpdateAmiibo(const Joycon::TagInfo& tag_info);
+    void UpdateCamera(const std::vector<u8>& camera_data, IrsResolution format);
 
 private:
     void UpdateActiveLeftPadInput(const InputReportActive& input,

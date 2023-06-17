@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/logging/log.h"
+#include "common/scope_exit.h"
 #include "common/swap.h"
 #include "common/thread.h"
 #include "input_common/helpers/joycon_driver.h"
@@ -112,7 +113,7 @@ DriverResult JoyconDriver::InitializeDevice() {
     joycon_poller = std::make_unique<JoyconPoller>(device_type, left_stick_calibration,
                                                    right_stick_calibration, motion_calibration);
 
-    // Start pooling for data
+    // Start polling for data
     is_connected = true;
     if (!input_thread_running) {
         input_thread =
@@ -208,7 +209,7 @@ void JoyconDriver::OnNewData(std::span<u8> buffer) {
         joycon_poller->UpdateCamera(irs_protocol->GetImage(), irs_protocol->GetIrsFormat());
     }
 
-    if (nfc_protocol->IsEnabled()) {
+    if (nfc_protocol->IsPolling()) {
         if (amiibo_detected) {
             if (!nfc_protocol->HasAmiibo()) {
                 joycon_poller->UpdateAmiibo({});
@@ -218,10 +219,10 @@ void JoyconDriver::OnNewData(std::span<u8> buffer) {
         }
 
         if (!amiibo_detected) {
-            std::vector<u8> data(0x21C);
-            const auto result = nfc_protocol->ScanAmiibo(data);
+            Joycon::TagInfo tag_info;
+            const auto result = nfc_protocol->GetTagInfo(tag_info);
             if (result == DriverResult::Success) {
-                joycon_poller->UpdateAmiibo(data);
+                joycon_poller->UpdateAmiibo(tag_info);
                 amiibo_detected = true;
             }
         }
@@ -247,6 +248,7 @@ void JoyconDriver::OnNewData(std::span<u8> buffer) {
 }
 
 DriverResult JoyconDriver::SetPollingMode() {
+    SCOPE_EXIT({ disable_input_thread = false; });
     disable_input_thread = true;
 
     rumble_protocol->EnableRumble(vibration_enabled && supported_features.vibration);
@@ -276,7 +278,6 @@ DriverResult JoyconDriver::SetPollingMode() {
     if (irs_enabled && supported_features.irs) {
         auto result = irs_protocol->EnableIrs();
         if (result == DriverResult::Success) {
-            disable_input_thread = false;
             return result;
         }
         irs_protocol->DisableIrs();
@@ -286,10 +287,6 @@ DriverResult JoyconDriver::SetPollingMode() {
     if (nfc_enabled && supported_features.nfc) {
         auto result = nfc_protocol->EnableNfc();
         if (result == DriverResult::Success) {
-            result = nfc_protocol->StartNFCPollingMode();
-        }
-        if (result == DriverResult::Success) {
-            disable_input_thread = false;
             return result;
         }
         nfc_protocol->DisableNfc();
@@ -303,7 +300,6 @@ DriverResult JoyconDriver::SetPollingMode() {
         }
         if (result == DriverResult::Success) {
             ring_connected = true;
-            disable_input_thread = false;
             return result;
         }
         ring_connected = false;
@@ -314,7 +310,6 @@ DriverResult JoyconDriver::SetPollingMode() {
     if (passive_enabled && supported_features.passive) {
         const auto result = generic_protocol->EnablePassiveMode();
         if (result == DriverResult::Success) {
-            disable_input_thread = false;
             return result;
         }
         LOG_ERROR(Input, "Error enabling passive mode");
@@ -328,7 +323,6 @@ DriverResult JoyconDriver::SetPollingMode() {
     // Switch calls this function after enabling active mode
     generic_protocol->TriggersElapsed();
 
-    disable_input_thread = false;
     return result;
 }
 
@@ -492,9 +486,42 @@ DriverResult JoyconDriver::SetRingConMode() {
     return result;
 }
 
-DriverResult JoyconDriver::WriteNfcData(std::span<const u8> data) {
+DriverResult JoyconDriver::StartNfcPolling() {
     std::scoped_lock lock{mutex};
+
+    if (!supported_features.nfc) {
+        return DriverResult::NotSupported;
+    }
+    if (!nfc_protocol->IsEnabled()) {
+        return DriverResult::Disabled;
+    }
+
     disable_input_thread = true;
+    const auto result = nfc_protocol->StartNFCPollingMode();
+    disable_input_thread = false;
+
+    return result;
+}
+
+DriverResult JoyconDriver::StopNfcPolling() {
+    std::scoped_lock lock{mutex};
+
+    if (!supported_features.nfc) {
+        return DriverResult::NotSupported;
+    }
+    if (!nfc_protocol->IsEnabled()) {
+        return DriverResult::Disabled;
+    }
+
+    disable_input_thread = true;
+    const auto result = nfc_protocol->StopNFCPollingMode();
+    disable_input_thread = false;
+
+    return result;
+}
+
+DriverResult JoyconDriver::ReadAmiiboData(std::vector<u8>& out_data) {
+    std::scoped_lock lock{mutex};
 
     if (!supported_features.nfc) {
         return DriverResult::NotSupported;
@@ -506,9 +533,72 @@ DriverResult JoyconDriver::WriteNfcData(std::span<const u8> data) {
         return DriverResult::ErrorWritingData;
     }
 
-    const auto result = nfc_protocol->WriteAmiibo(data);
-
+    out_data.resize(0x21C);
+    disable_input_thread = true;
+    const auto result = nfc_protocol->ReadAmiibo(out_data);
     disable_input_thread = false;
+
+    return result;
+}
+
+DriverResult JoyconDriver::WriteNfcData(std::span<const u8> data) {
+    std::scoped_lock lock{mutex};
+
+    if (!supported_features.nfc) {
+        return DriverResult::NotSupported;
+    }
+    if (!nfc_protocol->IsEnabled()) {
+        return DriverResult::Disabled;
+    }
+    if (!amiibo_detected) {
+        return DriverResult::ErrorWritingData;
+    }
+
+    disable_input_thread = true;
+    const auto result = nfc_protocol->WriteAmiibo(data);
+    disable_input_thread = false;
+
+    return result;
+}
+
+DriverResult JoyconDriver::ReadMifareData(std::span<const MifareReadChunk> data,
+                                          std::span<MifareReadData> out_data) {
+    std::scoped_lock lock{mutex};
+
+    if (!supported_features.nfc) {
+        return DriverResult::NotSupported;
+    }
+    if (!nfc_protocol->IsEnabled()) {
+        return DriverResult::Disabled;
+    }
+    if (!amiibo_detected) {
+        return DriverResult::ErrorWritingData;
+    }
+
+    disable_input_thread = true;
+    const auto result = nfc_protocol->ReadMifare(data, out_data);
+    disable_input_thread = false;
+
+    return result;
+}
+
+DriverResult JoyconDriver::WriteMifareData(std::span<const MifareWriteChunk> data) {
+    std::scoped_lock lock{mutex};
+
+    if (!supported_features.nfc) {
+        return DriverResult::NotSupported;
+    }
+    if (!nfc_protocol->IsEnabled()) {
+        return DriverResult::Disabled;
+    }
+    if (!amiibo_detected) {
+        return DriverResult::ErrorWritingData;
+    }
+
+    disable_input_thread = true;
+    const auto result = nfc_protocol->WriteMifare(data);
+    disable_input_thread = false;
+
     return result;
 }
 

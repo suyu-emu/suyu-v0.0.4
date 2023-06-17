@@ -40,6 +40,16 @@ DriverResult NfcProtocol::EnableNfc() {
     if (result == DriverResult::Success) {
         result = WaitUntilNfcIs(NFCStatus::Ready);
     }
+    if (result == DriverResult::Success) {
+        MCUCommandResponse output{};
+        result = SendStopPollingRequest(output);
+    }
+    if (result == DriverResult::Success) {
+        result = WaitUntilNfcIs(NFCStatus::Ready);
+    }
+    if (result == DriverResult::Success) {
+        is_enabled = true;
+    }
 
     return result;
 }
@@ -54,22 +64,16 @@ DriverResult NfcProtocol::DisableNfc() {
     }
 
     is_enabled = false;
+    is_polling = false;
 
     return result;
 }
 
 DriverResult NfcProtocol::StartNFCPollingMode() {
-    LOG_DEBUG(Input, "Start NFC pooling Mode");
+    LOG_DEBUG(Input, "Start NFC polling Mode");
     ScopedSetBlocking sb(this);
     DriverResult result{DriverResult::Success};
 
-    if (result == DriverResult::Success) {
-        MCUCommandResponse output{};
-        result = SendStopPollingRequest(output);
-    }
-    if (result == DriverResult::Success) {
-        result = WaitUntilNfcIs(NFCStatus::Ready);
-    }
     if (result == DriverResult::Success) {
         MCUCommandResponse output{};
         result = SendStartPollingRequest(output);
@@ -78,13 +82,32 @@ DriverResult NfcProtocol::StartNFCPollingMode() {
         result = WaitUntilNfcIs(NFCStatus::Polling);
     }
     if (result == DriverResult::Success) {
-        is_enabled = true;
+        is_polling = true;
     }
 
     return result;
 }
 
-DriverResult NfcProtocol::ScanAmiibo(std::vector<u8>& data) {
+DriverResult NfcProtocol::StopNFCPollingMode() {
+    LOG_DEBUG(Input, "Stop NFC polling Mode");
+    ScopedSetBlocking sb(this);
+    DriverResult result{DriverResult::Success};
+
+    if (result == DriverResult::Success) {
+        MCUCommandResponse output{};
+        result = SendStopPollingRequest(output);
+    }
+    if (result == DriverResult::Success) {
+        result = WaitUntilNfcIs(NFCStatus::WriteReady);
+    }
+    if (result == DriverResult::Success) {
+        is_polling = false;
+    }
+
+    return result;
+}
+
+DriverResult NfcProtocol::GetTagInfo(Joycon::TagInfo& tag_info) {
     if (update_counter++ < AMIIBO_UPDATE_DELAY) {
         return DriverResult::Delayed;
     }
@@ -100,11 +123,41 @@ DriverResult NfcProtocol::ScanAmiibo(std::vector<u8>& data) {
     }
 
     if (result == DriverResult::Success) {
+        tag_info = {
+            .uuid_length = tag_data.uuid_size,
+            .protocol = 1,
+            .tag_type = tag_data.type,
+            .uuid = {},
+        };
+
+        memcpy(tag_info.uuid.data(), tag_data.uuid.data(), tag_data.uuid_size);
+
+        // Investigate why mifare type is not correct
+        if (tag_info.tag_type == 144) {
+            tag_info.tag_type = 1U << 6;
+        }
+
         std::string uuid_string;
         for (auto& content : tag_data.uuid) {
             uuid_string += fmt::format(" {:02x}", content);
         }
         LOG_INFO(Input, "Tag detected, type={}, uuid={}", tag_data.type, uuid_string);
+    }
+
+    return result;
+}
+
+DriverResult NfcProtocol::ReadAmiibo(std::vector<u8>& data) {
+    LOG_DEBUG(Input, "Scan for amiibos");
+    ScopedSetBlocking sb(this);
+    DriverResult result{DriverResult::Success};
+    TagFoundData tag_data{};
+
+    if (result == DriverResult::Success) {
+        result = IsTagInRange(tag_data, 7);
+    }
+
+    if (result == DriverResult::Success) {
         result = GetAmiiboData(data);
     }
 
@@ -151,6 +204,69 @@ DriverResult NfcProtocol::WriteAmiibo(std::span<const u8> data) {
         result = SendStopPollingRequest(output);
     }
 
+    return result;
+}
+
+DriverResult NfcProtocol::ReadMifare(std::span<const MifareReadChunk> read_request,
+                                     std::span<MifareReadData> out_data) {
+    LOG_DEBUG(Input, "Read mifare");
+    ScopedSetBlocking sb(this);
+    DriverResult result{DriverResult::Success};
+    TagFoundData tag_data{};
+    MifareUUID tag_uuid{};
+
+    if (result == DriverResult::Success) {
+        result = IsTagInRange(tag_data, 7);
+    }
+    if (result == DriverResult::Success) {
+        memcpy(tag_uuid.data(), tag_data.uuid.data(), sizeof(MifareUUID));
+        result = GetMifareData(tag_uuid, read_request, out_data);
+    }
+    if (result == DriverResult::Success) {
+        MCUCommandResponse output{};
+        result = SendStopPollingRequest(output);
+    }
+    if (result == DriverResult::Success) {
+        result = WaitUntilNfcIs(NFCStatus::Ready);
+    }
+    if (result == DriverResult::Success) {
+        MCUCommandResponse output{};
+        result = SendStartPollingRequest(output, true);
+    }
+    if (result == DriverResult::Success) {
+        result = WaitUntilNfcIs(NFCStatus::WriteReady);
+    }
+    return result;
+}
+
+DriverResult NfcProtocol::WriteMifare(std::span<const MifareWriteChunk> write_request) {
+    LOG_DEBUG(Input, "Write mifare");
+    ScopedSetBlocking sb(this);
+    DriverResult result{DriverResult::Success};
+    TagFoundData tag_data{};
+    MifareUUID tag_uuid{};
+
+    if (result == DriverResult::Success) {
+        result = IsTagInRange(tag_data, 7);
+    }
+    if (result == DriverResult::Success) {
+        memcpy(tag_uuid.data(), tag_data.uuid.data(), sizeof(MifareUUID));
+        result = WriteMifareData(tag_uuid, write_request);
+    }
+    if (result == DriverResult::Success) {
+        MCUCommandResponse output{};
+        result = SendStopPollingRequest(output);
+    }
+    if (result == DriverResult::Success) {
+        result = WaitUntilNfcIs(NFCStatus::Ready);
+    }
+    if (result == DriverResult::Success) {
+        MCUCommandResponse output{};
+        result = SendStartPollingRequest(output, true);
+    }
+    if (result == DriverResult::Success) {
+        result = WaitUntilNfcIs(NFCStatus::WriteReady);
+    }
     return result;
 }
 
@@ -341,6 +457,158 @@ DriverResult NfcProtocol::WriteAmiiboData(const TagUUID& tag_uuid, std::span<con
     return result;
 }
 
+DriverResult NfcProtocol::GetMifareData(const MifareUUID& tag_uuid,
+                                        std::span<const MifareReadChunk> read_request,
+                                        std::span<MifareReadData> out_data) {
+    constexpr std::size_t timeout_limit = 60;
+    const auto nfc_data = MakeMifareReadPackage(tag_uuid, read_request);
+    const std::vector<u8> nfc_buffer_data = SerializeMifareReadPackage(nfc_data);
+    std::span<const u8> buffer(nfc_buffer_data);
+    DriverResult result = DriverResult::Success;
+    MCUCommandResponse output{};
+    u8 block_id = 1;
+    u8 package_index = 0;
+    std::size_t tries = 0;
+    std::size_t current_position = 0;
+
+    LOG_INFO(Input, "Reading Mifare data");
+
+    // Send data request. Nfc buffer size is 31, Send the data in smaller packages
+    while (current_position < buffer.size() && tries++ < timeout_limit) {
+        const std::size_t next_position =
+            std::min(current_position + sizeof(NFCRequestState::raw_data), buffer.size());
+        const std::size_t block_size = next_position - current_position;
+        const bool is_last_packet = block_size < sizeof(NFCRequestState::raw_data);
+
+        SendReadDataMifareRequest(output, block_id, is_last_packet,
+                                  buffer.subspan(current_position, block_size));
+
+        const auto nfc_status = static_cast<NFCStatus>(output.mcu_data[6]);
+
+        if (output.mcu_report == MCUReport::NFCState && nfc_status == NFCStatus::TagLost) {
+            return DriverResult::ErrorReadingData;
+        }
+
+        // Increase position when data is confirmed by the joycon
+        if (output.mcu_report == MCUReport::NFCState &&
+            (output.mcu_data[1] << 8) + output.mcu_data[0] == 0x0500 &&
+            output.mcu_data[3] == block_id) {
+            block_id++;
+            current_position = next_position;
+        }
+    }
+
+    if (result != DriverResult::Success) {
+        return result;
+    }
+
+    // Wait for reply and save the output data
+    while (tries++ < timeout_limit) {
+        result = SendNextPackageRequest(output, package_index);
+        const auto nfc_status = static_cast<NFCStatus>(output.mcu_data[6]);
+
+        if (result != DriverResult::Success) {
+            return result;
+        }
+
+        if (output.mcu_report == MCUReport::NFCState && nfc_status == NFCStatus::TagLost) {
+            return DriverResult::ErrorReadingData;
+        }
+
+        if (output.mcu_report == MCUReport::NFCState && output.mcu_data[1] == 0x10) {
+            constexpr std::size_t DATA_LENGHT = 0x10 + 1;
+            constexpr std::size_t DATA_START = 11;
+            const u8 number_of_elements = output.mcu_data[10];
+            for (std::size_t i = 0; i < number_of_elements; i++) {
+                out_data[i].sector = output.mcu_data[DATA_START + (i * DATA_LENGHT)];
+                memcpy(out_data[i].data.data(),
+                       output.mcu_data.data() + DATA_START + 1 + (i * DATA_LENGHT),
+                       sizeof(MifareReadData::data));
+            }
+            package_index++;
+            continue;
+        }
+
+        if (output.mcu_report == MCUReport::NFCState && nfc_status == NFCStatus::MifareDone) {
+            LOG_INFO(Input, "Finished reading mifare");
+            break;
+        }
+    }
+
+    return result;
+}
+
+DriverResult NfcProtocol::WriteMifareData(const MifareUUID& tag_uuid,
+                                          std::span<const MifareWriteChunk> write_request) {
+    constexpr std::size_t timeout_limit = 60;
+    const auto nfc_data = MakeMifareWritePackage(tag_uuid, write_request);
+    const std::vector<u8> nfc_buffer_data = SerializeMifareWritePackage(nfc_data);
+    std::span<const u8> buffer(nfc_buffer_data);
+    DriverResult result = DriverResult::Success;
+    MCUCommandResponse output{};
+    u8 block_id = 1;
+    u8 package_index = 0;
+    std::size_t tries = 0;
+    std::size_t current_position = 0;
+
+    LOG_INFO(Input, "Writing Mifare data");
+
+    // Send data request. Nfc buffer size is 31, Send the data in smaller packages
+    while (current_position < buffer.size() && tries++ < timeout_limit) {
+        const std::size_t next_position =
+            std::min(current_position + sizeof(NFCRequestState::raw_data), buffer.size());
+        const std::size_t block_size = next_position - current_position;
+        const bool is_last_packet = block_size < sizeof(NFCRequestState::raw_data);
+
+        SendReadDataMifareRequest(output, block_id, is_last_packet,
+                                  buffer.subspan(current_position, block_size));
+
+        const auto nfc_status = static_cast<NFCStatus>(output.mcu_data[6]);
+
+        if (output.mcu_report == MCUReport::NFCState && nfc_status == NFCStatus::TagLost) {
+            return DriverResult::ErrorReadingData;
+        }
+
+        // Increase position when data is confirmed by the joycon
+        if (output.mcu_report == MCUReport::NFCState &&
+            (output.mcu_data[1] << 8) + output.mcu_data[0] == 0x0500 &&
+            output.mcu_data[3] == block_id) {
+            block_id++;
+            current_position = next_position;
+        }
+    }
+
+    if (result != DriverResult::Success) {
+        return result;
+    }
+
+    // Wait for reply and ignore the output data
+    while (tries++ < timeout_limit) {
+        result = SendNextPackageRequest(output, package_index);
+        const auto nfc_status = static_cast<NFCStatus>(output.mcu_data[6]);
+
+        if (result != DriverResult::Success) {
+            return result;
+        }
+
+        if (output.mcu_report == MCUReport::NFCState && nfc_status == NFCStatus::TagLost) {
+            return DriverResult::ErrorReadingData;
+        }
+
+        if (output.mcu_report == MCUReport::NFCState && output.mcu_data[1] == 0x10) {
+            package_index++;
+            continue;
+        }
+
+        if (output.mcu_report == MCUReport::NFCState && nfc_status == NFCStatus::MifareDone) {
+            LOG_INFO(Input, "Finished writing mifare");
+            break;
+        }
+    }
+
+    return result;
+}
+
 DriverResult NfcProtocol::SendStartPollingRequest(MCUCommandResponse& output,
                                                   bool is_second_attempt) {
     NFCRequestState request{
@@ -477,6 +745,28 @@ DriverResult NfcProtocol::SendWriteDataAmiiboRequest(MCUCommandResponse& output,
                        output);
 }
 
+DriverResult NfcProtocol::SendReadDataMifareRequest(MCUCommandResponse& output, u8 block_id,
+                                                    bool is_last_packet, std::span<const u8> data) {
+    const auto data_size = std::min(data.size(), sizeof(NFCRequestState::raw_data));
+    NFCRequestState request{
+        .command_argument = NFCCommand::Mifare,
+        .block_id = block_id,
+        .packet_id = {},
+        .packet_flag =
+            is_last_packet ? MCUPacketFlag::LastCommandPacket : MCUPacketFlag::MorePacketsRemaining,
+        .data_length = static_cast<u8>(data_size),
+        .raw_data = {},
+        .crc = {},
+    };
+    memcpy(request.raw_data.data(), data.data(), data_size);
+
+    std::array<u8, sizeof(NFCRequestState)> request_data{};
+    memcpy(request_data.data(), &request, sizeof(NFCRequestState));
+    request_data[36] = CalculateMCU_CRC8(request_data.data(), 36);
+    return SendMCUData(ReportMode::NFC_IR_MODE_60HZ, MCUSubCommand::ReadDeviceMode, request_data,
+                       output);
+}
+
 std::vector<u8> NfcProtocol::SerializeWritePackage(const NFCWritePackage& package) const {
     const std::size_t header_size =
         sizeof(NFCWriteCommandData) + sizeof(NFCWritePackage::number_of_chunks);
@@ -490,6 +780,48 @@ std::vector<u8> NfcProtocol::SerializeWritePackage(const NFCWritePackage& packag
         const std::size_t chunk_size =
             sizeof(NFCDataChunk::nfc_page) + sizeof(NFCDataChunk::data_size) + data_chunk.data_size;
 
+        serialized_data.resize(start_index + chunk_size);
+        memcpy(serialized_data.data() + start_index, &data_chunk, chunk_size);
+        start_index += chunk_size;
+    }
+
+    return serialized_data;
+}
+
+std::vector<u8> NfcProtocol::SerializeMifareReadPackage(const MifareReadPackage& package) const {
+    const std::size_t header_size = sizeof(MifareCommandData);
+    std::vector<u8> serialized_data(header_size);
+    std::size_t start_index = 0;
+
+    memcpy(serialized_data.data(), &package, header_size);
+    start_index += header_size;
+
+    for (const auto& data_chunk : package.data_chunks) {
+        const std::size_t chunk_size = sizeof(MifareReadChunk);
+        if (data_chunk.command == MifareCmd::None) {
+            continue;
+        }
+        serialized_data.resize(start_index + chunk_size);
+        memcpy(serialized_data.data() + start_index, &data_chunk, chunk_size);
+        start_index += chunk_size;
+    }
+
+    return serialized_data;
+}
+
+std::vector<u8> NfcProtocol::SerializeMifareWritePackage(const MifareWritePackage& package) const {
+    const std::size_t header_size = sizeof(MifareCommandData);
+    std::vector<u8> serialized_data(header_size);
+    std::size_t start_index = 0;
+
+    memcpy(serialized_data.data(), &package, header_size);
+    start_index += header_size;
+
+    for (const auto& data_chunk : package.data_chunks) {
+        const std::size_t chunk_size = sizeof(MifareWriteChunk);
+        if (data_chunk.command == MifareCmd::None) {
+            continue;
+        }
         serialized_data.resize(start_index + chunk_size);
         memcpy(serialized_data.data() + start_index, &data_chunk, chunk_size);
         start_index += chunk_size;
@@ -525,6 +857,46 @@ NFCWritePackage NfcProtocol::MakeAmiiboWritePackage(const TagUUID& tag_uuid,
                 MakeAmiiboChunk(0x5c, 0x98, data),
             },
     };
+}
+
+MifareReadPackage NfcProtocol::MakeMifareReadPackage(
+    const MifareUUID& tag_uuid, std::span<const MifareReadChunk> read_request) const {
+    MifareReadPackage package{
+        .command_data{
+            .unknown1 = 0xd0,
+            .unknown2 = 0x07,
+            .number_of_short_bytes = static_cast<u8>(
+                ((read_request.size() * sizeof(MifareReadChunk)) + sizeof(MifareUUID)) / 2),
+            .uid = tag_uuid,
+        },
+        .data_chunks = {},
+    };
+
+    for (std::size_t i = 0; i < read_request.size() && i < package.data_chunks.size(); ++i) {
+        package.data_chunks[i] = read_request[i];
+    }
+
+    return package;
+}
+
+MifareWritePackage NfcProtocol::MakeMifareWritePackage(
+    const MifareUUID& tag_uuid, std::span<const MifareWriteChunk> read_request) const {
+    MifareWritePackage package{
+        .command_data{
+            .unknown1 = 0xd0,
+            .unknown2 = 0x07,
+            .number_of_short_bytes = static_cast<u8>(
+                ((read_request.size() * sizeof(MifareReadChunk)) + sizeof(MifareUUID) + 2) / 2),
+            .uid = tag_uuid,
+        },
+        .data_chunks = {},
+    };
+
+    for (std::size_t i = 0; i < read_request.size() && i < package.data_chunks.size(); ++i) {
+        package.data_chunks[i] = read_request[i];
+    }
+
+    return package;
 }
 
 NFCDataChunk NfcProtocol::MakeAmiiboChunk(u8 page, u8 size, std::span<const u8> data) const {
@@ -604,6 +976,10 @@ TagUUID NfcProtocol::GetTagUUID(std::span<const u8> data) const {
 
 bool NfcProtocol::IsEnabled() const {
     return is_enabled;
+}
+
+bool NfcProtocol::IsPolling() const {
+    return is_polling;
 }
 
 } // namespace InputCommon::Joycon

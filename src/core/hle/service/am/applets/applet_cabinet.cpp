@@ -141,7 +141,7 @@ void Cabinet::DisplayCompleted(bool apply_changes, std::string_view amiibo_name)
     applet_output.device_handle = applet_input_common.device_handle;
     applet_output.result = CabinetResult::Cancel;
     const auto reg_result = nfp_device->GetRegisterInfo(applet_output.register_info);
-    const auto tag_result = nfp_device->GetTagInfo(applet_output.tag_info, false);
+    const auto tag_result = nfp_device->GetTagInfo(applet_output.tag_info);
     nfp_device->Finalize();
 
     if (reg_result.IsSuccess()) {

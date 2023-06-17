@@ -15,6 +15,7 @@ using SerialNumber = std::array<u8, 15>;
 struct Battery;
 struct Color;
 struct MotionData;
+struct TagInfo;
 enum class ControllerType : u8;
 enum class DriverResult;
 enum class IrsResolution;
@@ -39,9 +40,18 @@ public:
     Common::Input::DriverResult SetCameraFormat(const PadIdentifier& identifier,
                                                 Common::Input::CameraFormat camera_format) override;
 
-    Common::Input::NfcState SupportsNfc(const PadIdentifier& identifier_) const override;
-    Common::Input::NfcState WriteNfcData(const PadIdentifier& identifier_,
+    Common::Input::NfcState SupportsNfc(const PadIdentifier& identifier) const override;
+    Common::Input::NfcState StartNfcPolling(const PadIdentifier& identifier) override;
+    Common::Input::NfcState StopNfcPolling(const PadIdentifier& identifier) override;
+    Common::Input::NfcState ReadAmiiboData(const PadIdentifier& identifier,
+                                           std::vector<u8>& out_data) override;
+    Common::Input::NfcState WriteNfcData(const PadIdentifier& identifier,
                                          const std::vector<u8>& data) override;
+    Common::Input::NfcState ReadMifareData(const PadIdentifier& identifier,
+                                           const Common::Input::MifareRequest& request,
+                                           Common::Input::MifareRequest& out_data) override;
+    Common::Input::NfcState WriteMifareData(const PadIdentifier& identifier,
+                                            const Common::Input::MifareRequest& request) override;
 
     Common::Input::DriverResult SetPollingMode(
         const PadIdentifier& identifier, const Common::Input::PollingMode polling_mode) override;
@@ -82,7 +92,7 @@ private:
                         const Joycon::MotionData& value);
     void OnRingConUpdate(f32 ring_data);
     void OnAmiiboUpdate(std::size_t port, Joycon::ControllerType type,
-                        const std::vector<u8>& amiibo_data);
+                        const Joycon::TagInfo& amiibo_data);
     void OnCameraUpdate(std::size_t port, const std::vector<u8>& camera_data,
                         Joycon::IrsResolution format);
 
@@ -101,6 +111,8 @@ private:
 
     /// Returns the name of the device in text format
     std::string JoyconName(Joycon::ControllerType type) const;
+
+    Common::Input::NfcState TranslateDriverResult(Joycon::DriverResult result) const;
 
     std::jthread scan_thread;
 
