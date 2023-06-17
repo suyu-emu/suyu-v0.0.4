@@ -892,7 +892,9 @@ private:
     std::shared_ptr<Common::Fiber> m_host_context{};
     ThreadType m_thread_type{};
     StepState m_step_state{};
-    std::atomic<bool> m_dummy_thread_runnable{true};
+    bool m_dummy_thread_runnable{true};
+    std::mutex m_dummy_thread_mutex{};
+    std::condition_variable m_dummy_thread_cv{};
 
     // For debugging
     std::vector<KSynchronizationObject*> m_wait_objects_for_debugging{};
