@@ -11,16 +11,16 @@ find_program(GNU_DATE date)
 
 set(CAN_BUILD_NX_TZDB true)
 
-if ("${GIT}" STREQUAL "GIT-NOTFOUND")
+if (NOT GIT)
     set(CAN_BUILD_NX_TZDB false)
 endif()
-if ("${GNU_MAKE}" STREQUAL "GNU_MAKE-NOTFOUND")
+if (NOT GNU_MAKE)
     set(CAN_BUILD_NX_TZDB false)
 endif()
-if ("${GNU_DATE}" STREQUAL "GNU_DATE-NOTFOUND")
+if (NOT GNU_DATE)
     set(CAN_BUILD_NX_TZDB false)
 endif()
-if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows" OR ANDROID)
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows" OR ANDROID)
     # tzdb_to_nx currently requires a posix-compliant host
     # MinGW and Android are handled here due to the executable format being different from the host system
     # TODO (lat9nq): cross-compiling support
@@ -32,14 +32,14 @@ set(NX_TZDB_ARCHIVE "${CMAKE_CURRENT_BINARY_DIR}/${NX_TZDB_VERSION}.zip")
 
 set(NX_TZDB_ROMFS_DIR "${CMAKE_CURRENT_BINARY_DIR}/nx_tzdb")
 
-if ((NOT ${CAN_BUILD_NX_TZDB} OR ${YUZU_DOWNLOAD_TIME_ZONE_DATA}) AND NOT EXISTS ${NX_TZDB_ARCHIVE})
+if ((NOT CAN_BUILD_NX_TZDB OR YUZU_DOWNLOAD_TIME_ZONE_DATA) AND NOT EXISTS ${NX_TZDB_ARCHIVE})
     set(NX_TZDB_DOWNLOAD_URL "https://github.com/lat9nq/tzdb_to_nx/releases/download/${NX_TZDB_VERSION}/${NX_TZDB_VERSION}.zip")
 
     message(STATUS "Downloading time zone data from ${NX_TZDB_DOWNLOAD_URL}...")
     file(DOWNLOAD ${NX_TZDB_DOWNLOAD_URL} ${NX_TZDB_ARCHIVE}
         STATUS NX_TZDB_DOWNLOAD_STATUS)
     list(GET NX_TZDB_DOWNLOAD_STATUS 0 NX_TZDB_DOWNLOAD_STATUS_CODE)
-    if (NOT "${NX_TZDB_DOWNLOAD_STATUS_CODE}" STREQUAL "0")
+    if (NOT NX_TZDB_DOWNLOAD_STATUS_CODE EQUAL 0)
         message(FATAL_ERROR "Time zone data download failed (status code ${NX_TZDB_DOWNLOAD_STATUS_CODE})")
     endif()
 
@@ -48,7 +48,7 @@ if ((NOT ${CAN_BUILD_NX_TZDB} OR ${YUZU_DOWNLOAD_TIME_ZONE_DATA}) AND NOT EXISTS
             ${NX_TZDB_ARCHIVE}
         DESTINATION
             ${NX_TZDB_ROMFS_DIR})
-elseif (${CAN_BUILD_NX_TZDB} AND NOT ${YUZU_DOWNLOAD_TIME_ZONE_DATA})
+elseif (CAN_BUILD_NX_TZDB AND NOT YUZU_DOWNLOAD_TIME_ZONE_DATA)
     add_subdirectory(tzdb_to_nx)
     add_dependencies(nx_tzdb x80e)
 
