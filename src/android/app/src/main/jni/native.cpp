@@ -583,7 +583,7 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_reloadKeys(JNIEnv* env, jclass cl
     return static_cast<jboolean>(Core::Crypto::KeyManager::Instance().AreKeysLoaded());
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_unPauseEmulation(JNIEnv* env, jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_unpauseEmulation(JNIEnv* env, jclass clazz) {
     EmulationSession::GetInstance().UnPauseEmulation();
 }
 
@@ -611,7 +611,7 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_muteAduio(JNIEnv* env, jclass clazz) 
     Settings::values.audio_muted = true;
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_unMuteAudio(JNIEnv* env, jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_unmuteAudio(JNIEnv* env, jclass clazz) {
     Settings::values.audio_muted = false;
 }
 

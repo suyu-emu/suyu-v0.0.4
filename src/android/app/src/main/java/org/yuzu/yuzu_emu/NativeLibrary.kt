@@ -286,7 +286,7 @@ object NativeLibrary {
     /**
      * Unpauses emulation from a paused state.
      */
-    external fun unPauseEmulation()
+    external fun unpauseEmulation()
 
     /**
      * Pauses emulation.
@@ -321,7 +321,7 @@ object NativeLibrary {
     /**
      * Unmutes emulation sound
      */
-    external fun unMuteAudio(): Boolean
+    external fun unmuteAudio(): Boolean
 
     /**
      * Returns true if emulation audio is muted.
