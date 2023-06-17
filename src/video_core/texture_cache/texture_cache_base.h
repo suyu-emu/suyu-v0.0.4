@@ -166,9 +166,8 @@ public:
     void SynchronizeComputeDescriptors();
 
     /// Updates the Render Targets if they can be rescaled
-    /// @param is_clear True when the render targets are being used for clears
     /// @retval True if the Render Targets have been rescaled.
-    bool RescaleRenderTargets(bool is_clear);
+    bool RescaleRenderTargets();
 
     /// Update bound render targets and upload memory if necessary
     /// @param is_clear True when the render targets are being used for clears
@@ -324,14 +323,13 @@ private:
     [[nodiscard]] SamplerId FindSampler(const TSCEntry& config);
 
     /// Find or create an image view for the given color buffer index
-    [[nodiscard]] ImageViewId FindColorBuffer(size_t index, bool is_clear);
+    [[nodiscard]] ImageViewId FindColorBuffer(size_t index);
 
     /// Find or create an image view for the depth buffer
-    [[nodiscard]] ImageViewId FindDepthBuffer(bool is_clear);
+    [[nodiscard]] ImageViewId FindDepthBuffer();
 
     /// Find or create a view for a render target with the given image parameters
-    [[nodiscard]] ImageViewId FindRenderTargetView(const ImageInfo& info, GPUVAddr gpu_addr,
-                                                   bool is_clear);
+    [[nodiscard]] ImageViewId FindRenderTargetView(const ImageInfo& info, GPUVAddr gpu_addr);
 
     /// Iterates over all the images in a region calling func
     template <typename Func>
