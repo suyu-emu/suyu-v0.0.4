@@ -314,6 +314,21 @@ object NativeLibrary {
     external fun isPaused(): Boolean
 
     /**
+     * Mutes emulation sound
+     */
+    external fun muteAudio(): Boolean
+
+    /**
+     * Unmutes emulation sound
+     */
+    external fun unMuteAudio(): Boolean
+
+    /**
+     * Returns true if emulation audio is muted.
+     */
+    external fun isMuted(): Boolean
+
+    /**
      * Returns the performance stats for the current game
      */
     external fun getPerfStats(): DoubleArray
