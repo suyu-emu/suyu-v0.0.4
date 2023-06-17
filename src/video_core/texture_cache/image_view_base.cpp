@@ -46,6 +46,12 @@ ImageViewBase::ImageViewBase(const ImageInfo& info, const ImageViewInfo& view_in
 ImageViewBase::ImageViewBase(const NullImageViewParams&) : image_id{NULL_IMAGE_ID} {}
 
 bool ImageViewBase::SupportsAnisotropy() const noexcept {
+    const bool has_mips = range.extent.levels > 1;
+    const bool is_2d = type == ImageViewType::e2D || type == ImageViewType::e2DArray;
+    if (!has_mips || !is_2d) {
+        return false;
+    }
+
     switch (format) {
     case PixelFormat::R8_UNORM:
     case PixelFormat::R8_SNORM:
@@ -87,9 +93,8 @@ bool ImageViewBase::SupportsAnisotropy() const noexcept {
     case PixelFormat::D32_FLOAT_S8_UINT:
         return false;
     default:
-        break;
+        return true;
     }
-    return range.extent.levels > 1;
 }
 
 } // namespace VideoCommon
