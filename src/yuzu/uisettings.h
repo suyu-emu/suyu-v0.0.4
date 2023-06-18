@@ -17,6 +17,7 @@
 using Settings::Category;
 using Settings::Setting;
 
+#ifndef _CANNOT_EXPLICITLY_INSTANTIATE
 namespace Settings {
 extern template class Setting<bool>;
 extern template class Setting<std::string>;
@@ -26,6 +27,7 @@ extern template class Setting<u8, true>;
 extern template class Setting<u8>;
 extern template class Setting<unsigned long long>;
 } // namespace Settings
+#endif
 
 namespace UISettings {
 

@@ -45,6 +45,7 @@ struct ResolutionScalingInfo {
     }
 };
 
+#ifndef _CANNOT_EXPLICITLY_INSTANTIATE
 // Instantiate the classes elsewhere (settings.cpp) to reduce compiler/linker work
 #define SETTING(TYPE, RANGED) extern template class Setting<TYPE, RANGED>
 #define SWITCHABLE(TYPE, RANGED) extern template class SwitchableSetting<TYPE, RANGED>
@@ -84,6 +85,7 @@ SWITCHABLE(u8, true);
 
 #undef SETTING
 #undef SWITCHABLE
+#endif
 
 /**
  * The InputSetting class allows for getting a reference to either the global or custom members.

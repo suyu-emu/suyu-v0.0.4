@@ -25,6 +25,7 @@
 
 namespace Settings {
 
+#ifndef _CANNOT_EXPLICITLY_INSTANTIATE
 #define SETTING(TYPE, RANGED) template class Setting<TYPE, RANGED>
 #define SWITCHABLE(TYPE, RANGED) template class SwitchableSetting<TYPE, RANGED>
 
@@ -61,6 +62,7 @@ SWITCHABLE(u8, true);
 
 #undef SETTING
 #undef SWITCHABLE
+#endif
 
 Values values;
 

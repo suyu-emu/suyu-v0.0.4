@@ -197,10 +197,15 @@ if (MSVC)
     /we4254 # 'operator': conversion from 'type1:field_bits' to 'type2:field_bits', possible loss of data
     /we4800 # Implicit conversion from 'type' to bool. Possible information loss
   )
-else()
+endif()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   target_compile_options(common PRIVATE
-    $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
-    $<$<CXX_COMPILER_ID:Clang>:-Werror=unreachable-code-aggressive>
+    -fsized-deallocation
+    -Werror=unreachable-code-aggressive
+  )
+  target_compile_definitions(common PRIVATE
+    $<$<VERSION_LESS:$<CXX_COMPILER_VERSION>,15>:_CANNOT_EXPLICITLY_INSTANTIATE>
   )
 endif()
 

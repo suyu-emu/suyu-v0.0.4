@@ -235,6 +235,12 @@ if (WIN32 AND YUZU_CRASH_DUMPS)
     target_compile_definitions(yuzu PRIVATE -DYUZU_DBGHELP)
 endif()
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_definitions(yuzu PRIVATE
+        $<$<VERSION_LESS:$<CXX_COMPILER_VERSION>,15>:_CANNOT_EXPLICITLY_INSTANTIATE>
+    )
+endif()
+
 file(GLOB COMPAT_LIST
      ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
      ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.json)

@@ -3,6 +3,7 @@
 
 #include "yuzu/uisettings.h"
 
+#ifndef _CANNOT_EXPLICITLY_INSTANTIATE
 namespace Settings {
 template class Setting<bool>;
 template class Setting<std::string>;
@@ -12,6 +13,7 @@ template class Setting<u8, true>;
 template class Setting<u8>;
 template class Setting<unsigned long long>;
 } // namespace Settings
+#endif
 
 namespace UISettings {
 
