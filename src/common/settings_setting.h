@@ -170,7 +170,7 @@ public:
             } else {
                 this->SetValue(static_cast<Type>(std::stoll(input)));
             }
-        } catch (std::invalid_argument& e) {
+        } catch (std::invalid_argument&) {
             this->SetValue(this->GetDefault());
         }
     }
