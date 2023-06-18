@@ -143,6 +143,11 @@ endif()
 # TZDB (Time Zone Database)
 add_subdirectory(nx_tzdb)
 
+# VMA
+add_library(vma vma/vma.cpp)
+target_include_directories(vma PUBLIC ./vma/vma/include)
+target_link_libraries(vma PRIVATE Vulkan::Headers)
+
 if (NOT TARGET LLVM::Demangle)
     add_library(demangle demangle/ItaniumDemangle.cpp)
     target_include_directories(demangle PUBLIC ./demangle)

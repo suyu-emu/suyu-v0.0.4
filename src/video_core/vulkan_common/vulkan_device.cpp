@@ -22,6 +22,10 @@
 #include <adrenotools/bcenabler.h>
 #endif
 
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
+#include <vk_mem_alloc.h>
+
 namespace Vulkan {
 using namespace Common::Literals;
 namespace {
@@ -592,9 +596,26 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     graphics_queue = logical.GetQueue(graphics_family);
     present_queue = logical.GetQueue(present_family);
+
+    const VmaVulkanFunctions functions = {
+        .vkGetInstanceProcAddr = dld.vkGetInstanceProcAddr,
+        .vkGetDeviceProcAddr = dld.vkGetDeviceProcAddr,
+    };
+
+    const VmaAllocatorCreateInfo allocator_info = {
+        .physicalDevice = physical,
+        .device = *logical,
+        .pVulkanFunctions = &functions,
+        .instance = instance,
+        .vulkanApiVersion = VK_API_VERSION_1_1,
+    };
+
+    vk::Check(vmaCreateAllocator(&allocator_info, &allocator));
 }
 
-Device::~Device() = default;
+Device::~Device() {
+    vmaDestroyAllocator(allocator);
+}
 
 VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
                                     FormatType format_type) const {
