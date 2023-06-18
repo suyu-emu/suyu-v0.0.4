@@ -68,7 +68,6 @@
     EXTENSION(EXT, VERTEX_ATTRIBUTE_DIVISOR, vertex_attribute_divisor)                             \
     EXTENSION(KHR, DRAW_INDIRECT_COUNT, draw_indirect_count)                                       \
     EXTENSION(KHR, DRIVER_PROPERTIES, driver_properties)                                           \
-    EXTENSION(KHR, EXTERNAL_MEMORY_FD, external_memory_fd)                                         \
     EXTENSION(KHR, PUSH_DESCRIPTOR, push_descriptor)                                               \
     EXTENSION(KHR, SAMPLER_MIRROR_CLAMP_TO_EDGE, sampler_mirror_clamp_to_edge)                     \
     EXTENSION(KHR, SHADER_FLOAT_CONTROLS, shader_float_controls)                                   \
@@ -80,21 +79,12 @@
     EXTENSION(NV, VIEWPORT_ARRAY2, viewport_array2)                                                \
     EXTENSION(NV, VIEWPORT_SWIZZLE, viewport_swizzle)
 
-#define FOR_EACH_VK_EXTENSION_WIN32(EXTENSION)                                                     \
-    EXTENSION(KHR, EXTERNAL_MEMORY_WIN32, external_memory_win32)
-
 // Define extensions which must be supported.
 #define FOR_EACH_VK_MANDATORY_EXTENSION(EXTENSION_NAME)                                            \
     EXTENSION_NAME(VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME)                                 \
     EXTENSION_NAME(VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME)                                        \
     EXTENSION_NAME(VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME)                             \
     EXTENSION_NAME(VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME)
-
-#define FOR_EACH_VK_MANDATORY_EXTENSION_GENERIC(EXTENSION_NAME)                                    \
-    EXTENSION_NAME(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME)
-
-#define FOR_EACH_VK_MANDATORY_EXTENSION_WIN32(EXTENSION_NAME)                                      \
-    EXTENSION_NAME(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME)
 
 // Define extensions where the absence of the extension may result in a degraded experience.
 #define FOR_EACH_VK_RECOMMENDED_EXTENSION(EXTENSION_NAME)                                          \
@@ -636,7 +626,6 @@ private:
         FOR_EACH_VK_FEATURE_1_3(FEATURE);
         FOR_EACH_VK_FEATURE_EXT(FEATURE);
         FOR_EACH_VK_EXTENSION(EXTENSION);
-        FOR_EACH_VK_EXTENSION_WIN32(EXTENSION);
 
 #undef EXTENSION
 #undef FEATURE
