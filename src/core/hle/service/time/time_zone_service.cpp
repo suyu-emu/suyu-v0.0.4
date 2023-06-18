@@ -112,20 +112,14 @@ void ITimeZoneService::LoadTimeZoneRule(HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called, location_name={}", location_name);
 
     TimeZone::TimeZoneRule time_zone_rule{};
-    if (const Result result{
-            time_zone_content_manager.LoadTimeZoneRule(time_zone_rule, location_name)};
-        result != ResultSuccess) {
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(result);
-        return;
-    }
+    const Result result{time_zone_content_manager.LoadTimeZoneRule(time_zone_rule, location_name)};
 
     std::vector<u8> time_zone_rule_outbuffer(sizeof(TimeZone::TimeZoneRule));
     std::memcpy(time_zone_rule_outbuffer.data(), &time_zone_rule, sizeof(TimeZone::TimeZoneRule));
     ctx.WriteBuffer(time_zone_rule_outbuffer);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void ITimeZoneService::ToCalendarTime(HLERequestContext& ctx) {
