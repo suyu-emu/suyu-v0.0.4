@@ -516,15 +516,15 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
         buffer_handles.push_back(handle);
     }
     if (device.IsExtExtendedDynamicStateSupported()) {
-        scheduler.Record([bindings = bindings,
-                          buffer_handles = buffer_handles](vk::CommandBuffer cmdbuf) {
+        scheduler.Record([bindings = std::move(bindings),
+                          buffer_handles = std::move(buffer_handles)](vk::CommandBuffer cmdbuf) {
             cmdbuf.BindVertexBuffers2EXT(
                 bindings.min_index, bindings.max_index - bindings.min_index, buffer_handles.data(),
                 bindings.offsets.data(), bindings.sizes.data(), bindings.strides.data());
         });
     } else {
-        scheduler.Record([bindings = bindings,
-                          buffer_handles = buffer_handles](vk::CommandBuffer cmdbuf) {
+        scheduler.Record([bindings = std::move(bindings),
+                          buffer_handles = std::move(buffer_handles)](vk::CommandBuffer cmdbuf) {
             cmdbuf.BindVertexBuffers(bindings.min_index, bindings.max_index - bindings.min_index,
                                      buffer_handles.data(), bindings.offsets.data());
         });
@@ -561,12 +561,12 @@ void BufferCacheRuntime::BindTransformFeedbackBuffers(VideoCommon::HostBindings<
     for (u32 index = 0; index < bindings.buffers.size(); ++index) {
         buffer_handles.push_back(bindings.buffers[index]->Handle());
     }
-    scheduler.Record(
-        [bindings = bindings, buffer_handles = buffer_handles](vk::CommandBuffer cmdbuf) {
-            cmdbuf.BindTransformFeedbackBuffersEXT(0, static_cast<u32>(buffer_handles.size()),
-                                                   buffer_handles.data(), bindings.offsets.data(),
-                                                   bindings.sizes.data());
-        });
+    scheduler.Record([bindings = std::move(bindings),
+                      buffer_handles = std::move(buffer_handles)](vk::CommandBuffer cmdbuf) {
+        cmdbuf.BindTransformFeedbackBuffersEXT(0, static_cast<u32>(buffer_handles.size()),
+                                               buffer_handles.data(), bindings.offsets.data(),
+                                               bindings.sizes.data());
+    });
 }
 
 void BufferCacheRuntime::ReserveNullBuffer() {
