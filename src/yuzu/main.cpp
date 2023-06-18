@@ -147,6 +147,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/startup_checks.h"
 #include "yuzu/uisettings.h"
 #include "yuzu/util/clickable_label.h"
+#include "yuzu/vk_device_info.h"
 
 #ifdef YUZU_DBGHELP
 #include "yuzu/mini_dump.h"
@@ -440,6 +441,8 @@ GMainWindow::GMainWindow(std::unique_ptr<Config> config_, bool has_broken_vulkan
 
         renderer_status_button->setDisabled(true);
         renderer_status_button->setChecked(false);
+    } else {
+        VkDeviceInfo::PopulateRecords(vk_device_records, this->window()->windowHandle());
     }
 
 #if defined(HAVE_SDL2) && !defined(_WIN32)
@@ -3494,7 +3497,8 @@ void GMainWindow::OnConfigure() {
     const auto old_language_index = Settings::values.language_index.GetValue();
 
     Settings::SetConfiguringGlobal(true);
-    ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(), *system,
+    ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(),
+                                     vk_device_records, *system,
                                      !multiplayer_state->IsHostingPublicRoom());
     connect(&configure_dialog, &ConfigureDialog::LanguageChanged, this,
             &GMainWindow::OnLanguageChanged);
@@ -3765,7 +3769,7 @@ void GMainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file
     const auto v_file = Core::GetGameFileFromPath(vfs, file_name);
 
     Settings::SetConfiguringGlobal(false);
-    ConfigurePerGame dialog(this, title_id, file_name, *system);
+    ConfigurePerGame dialog(this, title_id, file_name, vk_device_records, *system);
     dialog.LoadFromFile(v_file);
     const auto result = dialog.exec();
 

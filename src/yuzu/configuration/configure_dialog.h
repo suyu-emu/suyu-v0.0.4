@@ -4,7 +4,9 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 #include <QDialog>
+#include "yuzu/vk_device_info.h"
 
 namespace Core {
 class System;
@@ -40,8 +42,9 @@ class ConfigureDialog : public QDialog {
 
 public:
     explicit ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
-                             InputCommon::InputSubsystem* input_subsystem, Core::System& system_,
-                             bool enable_web_config = true);
+                             InputCommon::InputSubsystem* input_subsystem,
+                             std::vector<VkDeviceInfo::Record>& vk_device_records,
+                             Core::System& system_, bool enable_web_config = true);
     ~ConfigureDialog() override;
 
     void ApplyConfiguration();

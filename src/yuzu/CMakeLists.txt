@@ -210,6 +210,8 @@ add_executable(yuzu
     util/url_request_interceptor.h
     util/util.cpp
     util/util.h
+    vk_device_info.cpp
+    vk_device_info.h
     compatdb.cpp
     compatdb.h
     yuzu.qrc

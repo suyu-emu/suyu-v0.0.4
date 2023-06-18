@@ -5,11 +5,13 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <QDialog>
 #include <QList>
 
 #include "core/file_sys/vfs_types.h"
+#include "vk_device_info.h"
 #include "yuzu/configuration/config.h"
 
 namespace Core {
@@ -45,6 +47,7 @@ class ConfigurePerGame : public QDialog {
 public:
     // Cannot use std::filesystem::path due to https://bugreports.qt.io/browse/QTBUG-73263
     explicit ConfigurePerGame(QWidget* parent, u64 title_id_, const std::string& file_name,
+                              std::vector<VkDeviceInfo::Record>& vk_device_records,
                               Core::System& system_);
     ~ConfigurePerGame() override;
 

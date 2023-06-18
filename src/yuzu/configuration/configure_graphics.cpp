@@ -1,10 +1,6 @@
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// Include this early to include Vulkan headers how we want to
-#include "video_core/vulkan_common/vulkan_device.h"
-#include "video_core/vulkan_common/vulkan_wrapper.h"
-
 #include <algorithm>
 #include <functional>
 #include <iosfwd>
@@ -34,13 +30,11 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "ui_configure_graphics.h"
-#include "video_core/vulkan_common/vulkan_instance.h"
-#include "video_core/vulkan_common/vulkan_library.h"
-#include "video_core/vulkan_common/vulkan_surface.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics.h"
 #include "yuzu/qt_common.h"
 #include "yuzu/uisettings.h"
+#include "yuzu/vk_device_info.h"
 
 static const std::vector<VkPresentModeKHR> default_present_modes{VK_PRESENT_MODE_IMMEDIATE_KHR,
                                                                  VK_PRESENT_MODE_FIFO_KHR};
@@ -77,9 +71,10 @@ static constexpr Settings::VSyncMode PresentModeToSetting(VkPresentModeKHR mode)
 }
 
 ConfigureGraphics::ConfigureGraphics(const Core::System& system_,
+                                     std::vector<VkDeviceInfo::Record>& records_,
                                      const std::function<void()>& expose_compute_option_,
                                      QWidget* parent)
-    : QWidget(parent), ui{std::make_unique<Ui::ConfigureGraphics>()},
+    : QWidget(parent), ui{std::make_unique<Ui::ConfigureGraphics>()}, records{records_},
       expose_compute_option{expose_compute_option_}, system{system_} {
     vulkan_device = Settings::values.vulkan_device.GetValue();
     RetrieveVulkanDevices();
@@ -504,47 +499,19 @@ void ConfigureGraphics::UpdateAPILayout() {
     }
 }
 
-void ConfigureGraphics::RetrieveVulkanDevices() try {
-    if (UISettings::values.has_broken_vulkan) {
-        return;
-    }
-
-    using namespace Vulkan;
-
-    auto* window = this->window()->windowHandle();
-    auto wsi = QtCommon::GetWindowSystemInfo(window);
-
-    vk::InstanceDispatch dld;
-    const auto library = OpenLibrary();
-    const vk::Instance instance = CreateInstance(*library, dld, VK_API_VERSION_1_1, wsi.type);
-    const std::vector<VkPhysicalDevice> physical_devices = instance.EnumeratePhysicalDevices();
-    vk::SurfaceKHR surface = CreateSurface(instance, wsi);
-
+void ConfigureGraphics::RetrieveVulkanDevices() {
     vulkan_devices.clear();
-    vulkan_devices.reserve(physical_devices.size());
+    vulkan_devices.reserve(records.size());
     device_present_modes.clear();
-    device_present_modes.reserve(physical_devices.size());
-    for (const VkPhysicalDevice device : physical_devices) {
-        const auto physical_device = vk::PhysicalDevice(device, dld);
-        const std::string name = physical_device.GetProperties().deviceName;
-        const std::vector<VkPresentModeKHR> present_modes =
-            physical_device.GetSurfacePresentModesKHR(*surface);
-        vulkan_devices.push_back(QString::fromStdString(name));
-        device_present_modes.push_back(present_modes);
+    device_present_modes.reserve(records.size());
+    for (const auto& record : records) {
+        vulkan_devices.push_back(QString::fromStdString(record.name));
+        device_present_modes.push_back(record.vsync_support);
 
-        VkPhysicalDeviceDriverProperties driver_properties{};
-        driver_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
-        driver_properties.pNext = nullptr;
-        VkPhysicalDeviceProperties2 properties{};
-        properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
-        properties.pNext = &driver_properties;
-        dld.vkGetPhysicalDeviceProperties2(physical_device, &properties);
-        if (driver_properties.driverID == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
+        if (record.is_intel_proprietary) {
             expose_compute_option();
         }
     }
-} catch (const Vulkan::vk::Exception& exception) {
-    LOG_ERROR(Frontend, "Failed to enumerate devices with error: {}", exception.what());
 }
 
 Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {

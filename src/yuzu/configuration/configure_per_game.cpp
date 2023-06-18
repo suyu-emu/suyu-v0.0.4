@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <fmt/format.h>
 
@@ -34,8 +35,10 @@
 #include "yuzu/configuration/configure_system.h"
 #include "yuzu/uisettings.h"
 #include "yuzu/util/util.h"
+#include "yuzu/vk_device_info.h"
 
 ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::string& file_name,
+                                   std::vector<VkDeviceInfo::Record>& vk_device_records,
                                    Core::System& system_)
     : QDialog(parent),
       ui(std::make_unique<Ui::ConfigurePerGame>()), title_id{title_id_}, system{system_} {
@@ -50,7 +53,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
     general_tab = std::make_unique<ConfigureGeneral>(system_, this);
     graphics_advanced_tab = std::make_unique<ConfigureGraphicsAdvanced>(system_, this);
     graphics_tab = std::make_unique<ConfigureGraphics>(
-        system_, [&]() { graphics_advanced_tab->ExposeComputeOption(); }, this);
+        system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); }, this);
     input_tab = std::make_unique<ConfigureInputPerGame>(system_, game_config.get(), this);
     system_tab = std::make_unique<ConfigureSystem>(system_, this);
 

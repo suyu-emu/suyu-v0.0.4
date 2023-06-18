@@ -6,6 +6,7 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "ui_configure.h"
+#include "vk_device_info.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_audio.h"
 #include "yuzu/configuration/configure_cpu.h"
@@ -28,6 +29,7 @@
 
 ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
                                  InputCommon::InputSubsystem* input_subsystem,
+                                 std::vector<VkDeviceInfo::Record>& vk_device_records,
                                  Core::System& system_, bool enable_web_config)
     : QDialog(parent), ui{std::make_unique<Ui::ConfigureDialog>()},
       registry(registry_), system{system_}, audio_tab{std::make_unique<ConfigureAudio>(system_,
@@ -38,7 +40,8 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
       general_tab{std::make_unique<ConfigureGeneral>(system_, this)},
       graphics_advanced_tab{std::make_unique<ConfigureGraphicsAdvanced>(system_, this)},
       graphics_tab{std::make_unique<ConfigureGraphics>(
-          system_, [&]() { graphics_advanced_tab->ExposeComputeOption(); }, this)},
+          system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
+          this)},
       hotkeys_tab{std::make_unique<ConfigureHotkeys>(system_.HIDCore(), this)},
       input_tab{std::make_unique<ConfigureInput>(system_, this)},
       network_tab{std::make_unique<ConfigureNetwork>(system_, this)},
