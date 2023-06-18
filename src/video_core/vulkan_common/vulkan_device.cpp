@@ -597,18 +597,22 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     graphics_queue = logical.GetQueue(graphics_family);
     present_queue = logical.GetQueue(present_family);
 
-    const VmaVulkanFunctions functions = {
-        .vkGetInstanceProcAddr = dld.vkGetInstanceProcAddr,
-        .vkGetDeviceProcAddr = dld.vkGetDeviceProcAddr,
-    };
+    VmaVulkanFunctions functions{};
+    functions.vkGetInstanceProcAddr = dld.vkGetInstanceProcAddr;
+    functions.vkGetDeviceProcAddr = dld.vkGetDeviceProcAddr;
 
     const VmaAllocatorCreateInfo allocator_info = {
         .flags = VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT,
         .physicalDevice = physical,
         .device = *logical,
+        .preferredLargeHeapBlockSize = 0,
+        .pAllocationCallbacks = nullptr,
+        .pDeviceMemoryCallbacks = nullptr,
+        .pHeapSizeLimit = nullptr,
         .pVulkanFunctions = &functions,
         .instance = instance,
         .vulkanApiVersion = VK_API_VERSION_1_1,
+        .pTypeExternalMemoryHandleTypes = nullptr,
     };
 
     vk::Check(vmaCreateAllocator(&allocator_info, &allocator));

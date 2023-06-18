@@ -75,7 +75,7 @@ struct Range {
 
 [[nodiscard]] VkMemoryPropertyFlags MemoryUsagePreferedVmaFlags(MemoryUsage usage) {
     return usage != MemoryUsage::DeviceLocal ? VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-                                             : VkMemoryPropertyFlags{};
+                                             : VkMemoryPropertyFlagBits{};
 }
 
 [[nodiscard]] VmaAllocationCreateFlags MemoryUsageVmaFlags(MemoryUsage usage) {
@@ -239,8 +239,10 @@ vk::Image MemoryAllocator::CreateImage(const VkImageCreateInfo& ci) const {
         .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
         .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         .preferredFlags = 0,
+        .memoryTypeBits = 0,
         .pool = VK_NULL_HANDLE,
         .pUserData = nullptr,
+        .priority = 0.f,
     };
 
     VkImage handle{};
@@ -259,8 +261,10 @@ vk::Buffer MemoryAllocator::CreateBuffer(const VkBufferCreateInfo& ci, MemoryUsa
         .usage = MemoryUsageVma(usage),
         .requiredFlags = MemoryUsageRequiredVmaFlags(usage),
         .preferredFlags = MemoryUsagePreferedVmaFlags(usage),
+        .memoryTypeBits = 0,
         .pool = VK_NULL_HANDLE,
         .pUserData = nullptr,
+        .priority = 0.f,
     };
 
     VkBuffer handle{};
