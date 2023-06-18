@@ -500,7 +500,7 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
     }();
 
     if (label == QStringLiteral("")) {
-        LOG_DEBUG(Frontend, "Translation table has emtpy entry for \"{}\", skipping...",
+        LOG_DEBUG(Frontend, "Translation table has empty entry for \"{}\", skipping...",
                   setting.GetLabel());
         return;
     }
