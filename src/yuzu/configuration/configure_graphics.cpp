@@ -80,10 +80,10 @@ static constexpr Settings::VSyncMode PresentModeToSetting(VkPresentModeKHR mode)
 ConfigureGraphics::ConfigureGraphics(
     const Core::System& system_, std::vector<VkDeviceInfo::Record>& records_,
     const std::function<void()>& expose_compute_option_,
-    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
     const ConfigurationShared::TranslationMap& translations_,
     const ConfigurationShared::ComboboxTranslationMap& combobox_translations_, QWidget* parent)
-    : ConfigurationShared::Tab(group, parent), ui{std::make_unique<Ui::ConfigureGraphics>()},
+    : ConfigurationShared::Tab(group_, parent), ui{std::make_unique<Ui::ConfigureGraphics>()},
       records{records_}, expose_compute_option{expose_compute_option_}, system{system_},
       translations{translations_}, combobox_translations{combobox_translations_},
       shader_mapping{combobox_translations.at(typeid(Settings::ShaderBackend))} {
@@ -275,7 +275,7 @@ void ConfigureGraphics::Setup() {
 
             if (!Settings::IsConfiguringGlobal()) {
                 QObject::connect(api_restore_global_button, &QAbstractButton::clicked,
-                                 [=](bool) { UpdateAPILayout(); });
+                                 [this](bool) { UpdateAPILayout(); });
 
                 // Detach API's restore button and place it where we want
                 // Lets us put it on the side, and it will automatically scale if there's a

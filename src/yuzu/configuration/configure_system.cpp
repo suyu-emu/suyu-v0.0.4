@@ -45,10 +45,10 @@ static bool IsValidLocale(u32 region_index, u32 language_index) {
 }
 
 ConfigureSystem::ConfigureSystem(
-    Core::System& system_, std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+    Core::System& system_, std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
     const ConfigurationShared::TranslationMap& translations_,
     const ConfigurationShared::ComboboxTranslationMap& combobox_translations_, QWidget* parent)
-    : Tab(group, parent), ui{std::make_unique<Ui::ConfigureSystem>()}, system{system_},
+    : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureSystem>()}, system{system_},
       translations{translations_}, combobox_translations{combobox_translations_} {
     ui->setupUi(this);
 
@@ -128,7 +128,7 @@ void ConfigureSystem::Setup() {
         }
 
         [[maybe_unused]] std::string label = setting->GetLabel();
-        ConfigurationShared::Widget* widget = [=]() {
+        ConfigurationShared::Widget* widget = [this, setting, runtime_lock]() {
             if (setting->Id() == Settings::values.custom_rtc.Id()) {
                 // custom_rtc needs a DateTimeEdit (default is LineEdit), and a checkbox to manage
                 // it and custom_rtc_enabled

@@ -5,6 +5,7 @@
 
 #include <map>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <typeindex>
 #include <typeinfo>
@@ -169,7 +170,7 @@ public:
             } else {
                 this->SetValue(static_cast<Type>(std::stoll(input)));
             }
-        } catch (std::invalid_argument) {
+        } catch (std::invalid_argument& e) {
             this->SetValue(this->GetDefault());
         }
     }
@@ -229,9 +230,10 @@ public:
      * @param category_ Category of the setting AKA INI group
      */
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const std::string& name,
-                               Category category, bool save = true, bool runtime_modifiable = false)
+                               Category category_, bool save_ = true,
+                               bool runtime_modifiable_ = false)
         requires(!ranged)
-        : Setting<Type, false>{linkage, default_val, name, category, save, runtime_modifiable} {
+        : Setting<Type, false>{linkage, default_val, name, category_, save_, runtime_modifiable_} {
         linkage.restore_functions.emplace_back([this]() { this->SetGlobal(true); });
     }
     virtual ~SwitchableSetting() = default;
@@ -247,11 +249,11 @@ public:
      * @param category_ Category of the setting AKA INI group
      */
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const Type& min_val,
-                               const Type& max_val, const std::string& name, Category category,
-                               bool save = true, bool runtime_modifiable = false)
+                               const Type& max_val, const std::string& name, Category category_,
+                               bool save_ = true, bool runtime_modifiable_ = false)
         requires(ranged)
         : Setting<Type, true>{linkage, default_val, min_val, max_val,
-                              name,    category,    save,    runtime_modifiable} {
+                              name,    category_,   save_,   runtime_modifiable_} {
         linkage.restore_functions.emplace_back([this]() { this->SetGlobal(true); });
     }
 

@@ -178,7 +178,7 @@ public:
      *
      * @returns The setting's category
      */
-    [[nodiscard]] Category Category() const;
+    [[nodiscard]] enum Category Category() const;
 
     /**
      * Returns the label this setting was created with.

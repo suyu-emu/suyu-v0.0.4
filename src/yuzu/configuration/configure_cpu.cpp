@@ -15,10 +15,10 @@
 
 ConfigureCpu::ConfigureCpu(
     const Core::System& system_,
-    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
     const ConfigurationShared::TranslationMap& translations_,
     const ConfigurationShared::ComboboxTranslationMap& combobox_translations_, QWidget* parent)
-    : Tab(group, parent), ui{std::make_unique<Ui::ConfigureCpu>()}, system{system_},
+    : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureCpu>()}, system{system_},
       translations{translations_}, combobox_translations{combobox_translations_} {
     ui->setupUi(this);
 

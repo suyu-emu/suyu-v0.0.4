@@ -276,7 +276,7 @@ QWidget* Widget::CreateHexEdit(std::function<std::string()>& serializer,
     line_edit->setMaxLength(8);
     line_edit->setValidator(regex);
 
-    auto hex_to_dec = [=]() -> std::string {
+    auto hex_to_dec = [this]() -> std::string {
         return std::to_string(std::stoul(line_edit->text().toStdString(), nullptr, 16));
     };
 
@@ -307,8 +307,8 @@ QWidget* Widget::CreateDateTimeEdit(bool disabled, bool restrict,
     serializer = [this]() { return std::to_string(date_time_edit->dateTime().toSecsSinceEpoch()); };
 
     if (!Settings::IsConfiguringGlobal()) {
-        auto get_clear_val = [=]() {
-            return QDateTime::fromSecsSinceEpoch([=]() {
+        auto get_clear_val = [this, restrict, current_time]() {
+            return QDateTime::fromSecsSinceEpoch([this, restrict, current_time]() {
                 if (restrict && checkbox->checkState() == Qt::Checked) {
                     return std::stoll(setting.ToStringGlobal());
                 }
@@ -316,13 +316,14 @@ QWidget* Widget::CreateDateTimeEdit(bool disabled, bool restrict,
             }());
         };
 
-        restore_func = [=]() { date_time_edit->setDateTime(get_clear_val()); };
+        restore_func = [this, get_clear_val]() { date_time_edit->setDateTime(get_clear_val()); };
 
-        QObject::connect(date_time_edit, &QDateTimeEdit::editingFinished, [=]() {
-            if (date_time_edit->dateTime() != get_clear_val()) {
-                touch();
-            }
-        });
+        QObject::connect(date_time_edit, &QDateTimeEdit::editingFinished,
+                         [this, get_clear_val, touch]() {
+                             if (date_time_edit->dateTime() != get_clear_val()) {
+                                 touch();
+                             }
+                         });
     }
 
     return date_time_edit;
@@ -528,11 +529,11 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
     this->setToolTip(tooltip);
 }
 
-Widget::Widget(Settings::BasicSetting* setting, const TranslationMap& translations,
-               const ComboboxTranslationMap& combobox_translations, QWidget* parent,
-               bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs_,
+Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translations_,
+               const ComboboxTranslationMap& combobox_translations, QWidget* parent_,
+               bool runtime_lock_, std::forward_list<std::function<void(bool)>>& apply_funcs_,
                Settings::BasicSetting* other_setting, RequestType request, const QString& string)
-    : Widget(setting, translations, combobox_translations, parent, runtime_lock, apply_funcs_,
+    : Widget(setting_, translations_, combobox_translations, parent_, runtime_lock_, apply_funcs_,
              request, true, 1.0f, other_setting, string) {}
 
 } // namespace ConfigurationShared
