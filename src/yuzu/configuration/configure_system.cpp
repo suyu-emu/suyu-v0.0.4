@@ -142,6 +142,12 @@ void ConfigureSystem::Setup() {
                 return new ConfigurationShared::Widget(
                     setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
                     &Settings::values.rng_seed_enabled, ConfigurationShared::RequestType::HexEdit);
+            } else if (setting->Id() == Settings::values.speed_limit.Id()) {
+                // speed_limit needs a checkbox to set use_speed_limit, as well as a spinbox
+                return new ConfigurationShared::Widget(
+                    setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
+                    &Settings::values.use_speed_limit, ConfigurationShared::RequestType::SpinBox,
+                    tr("%", "Limit speed percentage (e.g. 50%)"));
             } else {
                 return new ConfigurationShared::Widget(setting, translations, combobox_translations,
                                                        this, runtime_lock, apply_funcs);

@@ -36,6 +36,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, use_multi_core, "Multicore CPU Emulation", "");
     INSERT(Settings, use_unsafe_extended_memory_layout, "Unsafe extended memory layout (8GB DRAM)",
            "");
+    INSERT(Settings, use_speed_limit, "", "");
+    INSERT(Settings, speed_limit, "Limit Speed Percent", "");
 
     // Cpu
     INSERT(Settings, cpu_accuracy, "Accuracy:", "");
@@ -119,10 +121,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
            "unlocked.");
 
     // Renderer (Debug)
-
-    // Renderer (General)
-    INSERT(Settings, use_speed_limit, "", "");
-    INSERT(Settings, speed_limit, "Limit Speed Percent", "");
 
     // System
     INSERT(Settings, rng_seed, "RNG Seed", "");
