@@ -563,7 +563,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         cant_blit_msaa = true;
     }
     has_broken_compute =
-        CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion);
+        CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) &&
+        !Settings::values.enable_compute_pipelines.GetValue();
     if (is_intel_anv || (is_qualcomm && !is_s8gen2)) {
         LOG_WARNING(Render_Vulkan, "Driver does not support native BGR format");
         must_emulate_bgr565 = true;
