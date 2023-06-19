@@ -224,8 +224,8 @@ void Config::ReadValues() {
     ReadSetting("Renderer", Settings::values.bg_blue);
 
     // Use GPU accuracy normal by default on Android
-    Settings::values.gpu_accuracy = static_cast<Settings::GPUAccuracy>(config->GetInteger(
-        "Renderer", "gpu_accuracy", static_cast<u32>(Settings::GPUAccuracy::Normal)));
+    Settings::values.gpu_accuracy = static_cast<Settings::GpuAccuracy>(config->GetInteger(
+        "Renderer", "gpu_accuracy", static_cast<u32>(Settings::GpuAccuracy::Normal)));
 
     // Use GPU default anisotropic filtering on Android
     Settings::values.max_anisotropy =
@@ -233,8 +233,8 @@ void Config::ReadValues() {
 
     // Disable ASTC compute by default on Android
     Settings::values.accelerate_astc.SetValue(
-        config->GetBoolean("Renderer", "accelerate_astc", false) ? Settings::AstcDecodeMode::GPU
-                                                                 : Settings::AstcDecodeMode::CPU);
+        config->GetBoolean("Renderer", "accelerate_astc", false) ? Settings::AstcDecodeMode::Gpu
+                                                                 : Settings::AstcDecodeMode::Cpu);
 
     // Enable asynchronous presentation by default on Android
     Settings::values.async_presentation =
