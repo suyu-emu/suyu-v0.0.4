@@ -143,6 +143,10 @@ struct Values {
     SwitchableSetting<bool> use_multi_core{linkage, true, "use_multi_core", Category::Core};
     SwitchableSetting<bool> use_unsafe_extended_memory_layout{
         linkage, false, "use_unsafe_extended_memory_layout", Category::Core};
+    SwitchableSetting<bool> use_speed_limit{linkage,        true,  "use_speed_limit",
+                                            Category::Core, false, true};
+    SwitchableSetting<u16, true> speed_limit{linkage,        100,  0,   9999, "speed_limit",
+                                             Category::Core, true, true};
 
     // Cpu
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage,           CpuAccuracy::Auto,
@@ -196,10 +200,6 @@ struct Values {
                                                   Category::Renderer};
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{
         linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
-    SwitchableSetting<bool> use_speed_limit{linkage, true, "use_speed_limit", Category::Renderer,
-                                            false,   true};
-    SwitchableSetting<u16, true> speed_limit{
-        linkage, 100, 0, 9999, "speed_limit", Category::Renderer, true, true};
     SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
                                                             AstcDecodeMode::Cpu,
                                                             AstcDecodeMode::Cpu,
