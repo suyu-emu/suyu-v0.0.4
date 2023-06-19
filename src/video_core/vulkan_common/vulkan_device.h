@@ -598,7 +598,7 @@ public:
                 return true;
             }
         }
-        return {};
+        return false;
     }
 
 private:
