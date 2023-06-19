@@ -168,6 +168,11 @@ std::size_t ConcatenatedVfsFile::Read(u8* data, std::size_t length, std::size_t 
         cur_offset += actual_read_size;
         cur_length -= actual_read_size;
         it++;
+
+        // If we encountered a short read, we're done.
+        if (actual_read_size < intended_read_size) {
+            break;
+        }
     }
 
     return cur_offset - offset;
