@@ -5,10 +5,12 @@
 #include <vector>
 #include "common/dynamic_library.h"
 #include "common/logging/log.h"
+#include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "vulkan/vulkan_core.h"
 #include "yuzu/qt_common.h"
 #include "yuzu/vk_device_info.h"
 
@@ -16,8 +18,8 @@ class QWindow;
 
 namespace VkDeviceInfo {
 Record::Record(std::string_view name_, const std::vector<VkPresentModeKHR>& vsync_modes_,
-               bool is_intel_proprietary_)
-    : name{name_}, vsync_support{vsync_modes_}, is_intel_proprietary{is_intel_proprietary_} {}
+               bool has_broken_compute_)
+    : name{name_}, vsync_support{vsync_modes_}, has_broken_compute{has_broken_compute_} {}
 
 Record::~Record() = default;
 
@@ -48,9 +50,10 @@ void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
         properties.pNext = &driver_properties;
         dld.vkGetPhysicalDeviceProperties2(physical_device, &properties);
 
-        records.push_back(VkDeviceInfo::Record(name, present_modes,
-                                               driver_properties.driverID ==
-                                                   VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS));
+        bool has_broken_compute{Vulkan::Device::CheckBrokenCompute(
+            driver_properties.driverID, properties.properties.driverVersion)};
+
+        records.push_back(VkDeviceInfo::Record(name, present_modes, has_broken_compute));
     }
 } catch (const Vulkan::vk::Exception& exception) {
     LOG_ERROR(Frontend, "Failed to enumerate devices with error: {}", exception.what());

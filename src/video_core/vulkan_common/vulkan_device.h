@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "common/logging/log.h"
 #include "common/settings.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
@@ -518,6 +519,11 @@ public:
         return has_renderdoc || has_nsight_graphics || Settings::values.renderer_debug.GetValue();
     }
 
+    /// @returns True if compute pipelines can cause crashing.
+    bool HasBrokenCompute() const {
+        return has_broken_compute;
+    }
+
     /// Returns true when the device does not properly support cube compatibility.
     bool HasBrokenCubeImageCompability() const {
         return has_broken_cube_compatibility;
@@ -577,6 +583,22 @@ public:
 
     bool SupportsConditionalBarriers() const {
         return supports_conditional_barriers;
+    }
+
+    [[nodiscard]] static constexpr bool CheckBrokenCompute(VkDriverId driver_id,
+                                                           u32 driver_version) {
+        if (driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
+            const u32 major = VK_API_VERSION_MAJOR(driver_version);
+            const u32 minor = VK_API_VERSION_MINOR(driver_version);
+            const u32 patch = VK_API_VERSION_PATCH(driver_version);
+            if (major == 0 && minor == 405 && patch < 286) {
+                LOG_WARNING(
+                    Render_Vulkan,
+                    "Intel proprietary drivers 0.405.0 until 0.405.286 have broken compute");
+                return true;
+            }
+        }
+        return false;
     }
 
 private:
@@ -672,6 +694,7 @@ private:
     bool is_integrated{};                   ///< Is GPU an iGPU.
     bool is_virtual{};                      ///< Is GPU a virtual GPU.
     bool is_non_gpu{};                      ///< Is SoftwareRasterizer, FPGA, non-GPU device.
+    bool has_broken_compute{};              ///< Compute shaders can cause crashes
     bool has_broken_cube_compatibility{};   ///< Has broken cube compatibility bit
     bool has_renderdoc{};                   ///< Has RenderDoc attached
     bool has_nsight_graphics{};             ///< Has Nsight Graphics attached
