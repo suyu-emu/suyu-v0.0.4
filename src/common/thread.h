@@ -55,7 +55,7 @@ public:
         is_set = false;
     }
 
-    [[nodiscard]] bool IsSet() {
+    [[nodiscard]] bool IsSet() const {
         return is_set;
     }
 

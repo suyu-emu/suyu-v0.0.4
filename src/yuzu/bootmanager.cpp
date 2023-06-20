@@ -105,14 +105,12 @@ void EmuThread::run() {
         std::unique_lock lk{m_should_run_mutex};
         if (m_should_run) {
             m_system.Run();
-            m_is_running.store(true);
-            m_is_running.notify_all();
+            m_stopped.Reset();
 
             Common::CondvarWait(m_should_run_cv, lk, stop_token, [&] { return !m_should_run; });
         } else {
             m_system.Pause();
-            m_is_running.store(false);
-            m_is_running.notify_all();
+            m_stopped.Set();
 
             EmulationPaused(lk);
             Common::CondvarWait(m_should_run_cv, lk, stop_token, [&] { return m_should_run; });

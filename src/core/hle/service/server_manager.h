@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <atomic>
 #include <functional>
 #include <list>
 #include <map>
@@ -12,6 +11,7 @@
 #include <vector>
 
 #include "common/polyfill_thread.h"
+#include "common/thread.h"
 #include "core/hle/result.h"
 #include "core/hle/service/mutex.h"
 
@@ -82,7 +82,7 @@ private:
     std::list<RequestState> m_deferrals{};
 
     // Host state tracking
-    std::atomic<bool> m_stopped{};
+    Common::Event m_stopped{};
     std::vector<std::jthread> m_threads{};
     std::stop_source m_stop_source{};
 };
