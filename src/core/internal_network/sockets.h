@@ -59,10 +59,9 @@ public:
 
     virtual Errno Shutdown(ShutdownHow how) = 0;
 
-    virtual std::pair<s32, Errno> Recv(int flags, std::vector<u8>& message) = 0;
+    virtual std::pair<s32, Errno> Recv(int flags, std::span<u8> message) = 0;
 
-    virtual std::pair<s32, Errno> RecvFrom(int flags, std::vector<u8>& message,
-                                           SockAddrIn* addr) = 0;
+    virtual std::pair<s32, Errno> RecvFrom(int flags, std::span<u8> message, SockAddrIn* addr) = 0;
 
     virtual std::pair<s32, Errno> Send(std::span<const u8> message, int flags) = 0;
 
@@ -86,6 +85,8 @@ public:
     virtual Errno SetRcvTimeo(u32 value) = 0;
 
     virtual Errno SetNonBlock(bool enable) = 0;
+
+    virtual std::pair<Errno, Errno> GetPendingError() = 0;
 
     virtual bool IsOpened() const = 0;
 
@@ -126,9 +127,9 @@ public:
 
     Errno Shutdown(ShutdownHow how) override;
 
-    std::pair<s32, Errno> Recv(int flags, std::vector<u8>& message) override;
+    std::pair<s32, Errno> Recv(int flags, std::span<u8> message) override;
 
-    std::pair<s32, Errno> RecvFrom(int flags, std::vector<u8>& message, SockAddrIn* addr) override;
+    std::pair<s32, Errno> RecvFrom(int flags, std::span<u8> message, SockAddrIn* addr) override;
 
     std::pair<s32, Errno> Send(std::span<const u8> message, int flags) override;
 
@@ -155,6 +156,11 @@ public:
 
     template <typename T>
     Errno SetSockOpt(SOCKET fd, int option, T value);
+
+    std::pair<Errno, Errno> GetPendingError() override;
+
+    template <typename T>
+    std::pair<T, Errno> GetSockOpt(SOCKET fd, int option);
 
     bool IsOpened() const override;
 

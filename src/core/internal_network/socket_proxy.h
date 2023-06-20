@@ -39,11 +39,11 @@ public:
 
     Errno Shutdown(ShutdownHow how) override;
 
-    std::pair<s32, Errno> Recv(int flags, std::vector<u8>& message) override;
+    std::pair<s32, Errno> Recv(int flags, std::span<u8> message) override;
 
-    std::pair<s32, Errno> RecvFrom(int flags, std::vector<u8>& message, SockAddrIn* addr) override;
+    std::pair<s32, Errno> RecvFrom(int flags, std::span<u8> message, SockAddrIn* addr) override;
 
-    std::pair<s32, Errno> ReceivePacket(int flags, std::vector<u8>& message, SockAddrIn* addr,
+    std::pair<s32, Errno> ReceivePacket(int flags, std::span<u8> message, SockAddrIn* addr,
                                         std::size_t max_length);
 
     std::pair<s32, Errno> Send(std::span<const u8> message, int flags) override;
@@ -73,6 +73,8 @@ public:
 
     template <typename T>
     Errno SetSockOpt(SOCKET fd, int option, T value);
+
+    std::pair<Errno, Errno> GetPendingError() override;
 
     bool IsOpened() const override;
 

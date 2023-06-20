@@ -16,6 +16,11 @@
 #include <netinet/in.h>
 #endif
 
+namespace Common {
+template <typename T, typename E>
+class Expected;
+}
+
 namespace Network {
 
 class SocketBase;
@@ -36,6 +41,26 @@ enum class Errno {
     NETUNREACH,
     TIMEDOUT,
     MSGSIZE,
+    INPROGRESS,
+    OTHER,
+};
+
+enum class GetAddrInfoError {
+    SUCCESS,
+    ADDRFAMILY,
+    AGAIN,
+    BADFLAGS,
+    FAIL,
+    FAMILY,
+    MEMORY,
+    NODATA,
+    NONAME,
+    SERVICE,
+    SOCKTYPE,
+    SYSTEM,
+    BADHINTS,
+    PROTOCOL,
+    OVERFLOW_,
     OTHER,
 };
 
@@ -49,6 +74,9 @@ enum class PollEvents : u16 {
     Err = 1 << 3,
     Hup = 1 << 4,
     Nval = 1 << 5,
+    RdNorm = 1 << 6,
+    RdBand = 1 << 7,
+    WrBand = 1 << 8,
 };
 
 DECLARE_ENUM_FLAG_OPERATORS(PollEvents);
@@ -81,5 +109,11 @@ constexpr IPv4Address TranslateIPv4(in_addr addr) {
 /// @brief Returns host's IPv4 address
 /// @return human ordered IPv4 address (e.g. 192.168.0.1) as an array
 std::optional<IPv4Address> GetHostIPv4Address();
+
+std::string IPv4AddressToString(IPv4Address ip_addr);
+u32 IPv4AddressToInteger(IPv4Address ip_addr);
+
+Common::Expected<std::vector<AddrInfo>, GetAddrInfoError> GetAddrInfo(
+    const std::string& host, const std::optional<std::string>& service);
 
 } // namespace Network

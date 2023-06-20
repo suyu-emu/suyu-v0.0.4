@@ -98,7 +98,7 @@ Errno ProxySocket::Shutdown(ShutdownHow how) {
     return Errno::SUCCESS;
 }
 
-std::pair<s32, Errno> ProxySocket::Recv(int flags, std::vector<u8>& message) {
+std::pair<s32, Errno> ProxySocket::Recv(int flags, std::span<u8> message) {
     LOG_WARNING(Network, "(STUBBED) called");
     ASSERT(flags == 0);
     ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
@@ -106,7 +106,7 @@ std::pair<s32, Errno> ProxySocket::Recv(int flags, std::vector<u8>& message) {
     return {static_cast<s32>(0), Errno::SUCCESS};
 }
 
-std::pair<s32, Errno> ProxySocket::RecvFrom(int flags, std::vector<u8>& message, SockAddrIn* addr) {
+std::pair<s32, Errno> ProxySocket::RecvFrom(int flags, std::span<u8> message, SockAddrIn* addr) {
     ASSERT(flags == 0);
     ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
 
@@ -140,8 +140,8 @@ std::pair<s32, Errno> ProxySocket::RecvFrom(int flags, std::vector<u8>& message,
     }
 }
 
-std::pair<s32, Errno> ProxySocket::ReceivePacket(int flags, std::vector<u8>& message,
-                                                 SockAddrIn* addr, std::size_t max_length) {
+std::pair<s32, Errno> ProxySocket::ReceivePacket(int flags, std::span<u8> message, SockAddrIn* addr,
+                                                 std::size_t max_length) {
     ProxyPacket& packet = received_packets.front();
     if (addr) {
         addr->family = Domain::INET;
@@ -153,10 +153,7 @@ std::pair<s32, Errno> ProxySocket::ReceivePacket(int flags, std::vector<u8>& mes
     std::size_t read_bytes;
     if (packet.data.size() > max_length) {
         read_bytes = max_length;
-        message.clear();
-        std::copy(packet.data.begin(), packet.data.begin() + read_bytes,
-                  std::back_inserter(message));
-        message.resize(max_length);
+        memcpy(message.data(), packet.data.data(), max_length);
 
         if (protocol == Protocol::UDP) {
             if (!peek) {
@@ -171,9 +168,7 @@ std::pair<s32, Errno> ProxySocket::ReceivePacket(int flags, std::vector<u8>& mes
         }
     } else {
         read_bytes = packet.data.size();
-        message.clear();
-        std::copy(packet.data.begin(), packet.data.end(), std::back_inserter(message));
-        message.resize(max_length);
+        memcpy(message.data(), packet.data.data(), read_bytes);
         if (!peek) {
             received_packets.pop();
         }
@@ -291,6 +286,11 @@ Errno ProxySocket::SetRcvTimeo(u32 value) {
 Errno ProxySocket::SetNonBlock(bool enable) {
     blocking = !enable;
     return Errno::SUCCESS;
+}
+
+std::pair<Errno, Errno> ProxySocket::GetPendingError() {
+    LOG_DEBUG(Network, "(STUBBED) called");
+    return {Errno::SUCCESS, Errno::SUCCESS};
 }
 
 bool ProxySocket::IsOpened() const {

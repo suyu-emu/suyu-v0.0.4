@@ -63,6 +63,8 @@ option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "NOT WIN32" OFF)
 
+CMAKE_DEPENDENT_OPTION(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ON "NOT WIN32" OFF)
+
 # On Android, fetch and compile libcxx before doing anything else
 if (ANDROID)
     set(CMAKE_SKIP_INSTALL_RULES ON)
@@ -320,6 +322,10 @@ endif()
 # boost:asio has functions that require AcceptEx et al
 if (MINGW)
     find_library(MSWSOCK_LIBRARY mswsock REQUIRED)
+endif()
+
+if(ENABLE_OPENSSL)
+    find_package(OpenSSL 3.0.0 REQUIRED)
 endif()
 
 # Please consider this as a stub

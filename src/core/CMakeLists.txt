@@ -723,6 +723,7 @@ add_library(core STATIC
     hle/service/spl/spl_types.h
     hle/service/ssl/ssl.cpp
     hle/service/ssl/ssl.h
+    hle/service/ssl/ssl_backend.h
     hle/service/time/clock_types.h
     hle/service/time/ephemeral_network_system_clock_context_writer.h
     hle/service/time/ephemeral_network_system_clock_core.h
@@ -862,6 +863,19 @@ if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
         hle/service/jit/jit.h
     )
     target_link_libraries(core PRIVATE dynarmic::dynarmic)
+endif()
+
+if(ENABLE_OPENSSL)
+    target_sources(core PRIVATE
+        hle/service/ssl/ssl_backend_openssl.cpp)
+    target_link_libraries(core PRIVATE OpenSSL::SSL)
+elseif (WIN32)
+    target_sources(core PRIVATE
+        hle/service/ssl/ssl_backend_schannel.cpp)
+    target_link_libraries(core PRIVATE Secur32)
+else()
+    target_sources(core PRIVATE
+        hle/service/ssl/ssl_backend_none.cpp)
 endif()
 
 if (YUZU_USE_PRECOMPILED_HEADERS)

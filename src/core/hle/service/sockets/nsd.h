@@ -15,6 +15,10 @@ class NSD final : public ServiceFramework<NSD> {
 public:
     explicit NSD(Core::System& system_, const char* name);
     ~NSD() override;
+
+private:
+    void Resolve(HLERequestContext& ctx);
+    void ResolveEx(HLERequestContext& ctx);
 };
 
 } // namespace Service::Sockets

@@ -17,8 +17,11 @@ public:
     ~SFDNSRES() override;
 
 private:
+    void GetHostByNameRequest(HLERequestContext& ctx);
+    void GetHostByNameRequestWithOptions(HLERequestContext& ctx);
     void GetAddrInfoRequest(HLERequestContext& ctx);
     void GetAddrInfoRequestWithOptions(HLERequestContext& ctx);
+    void ResolverSetOptionRequest(HLERequestContext& ctx);
 };
 
 } // namespace Service::Sockets
