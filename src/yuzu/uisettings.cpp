@@ -3,7 +3,7 @@
 
 #include "yuzu/uisettings.h"
 
-#ifndef _CANNOT_EXPLICITLY_INSTANTIATE
+#ifndef CANNOT_EXPLICITLY_INSTANTIATE
 namespace Settings {
 template class Setting<bool>;
 template class Setting<std::string>;

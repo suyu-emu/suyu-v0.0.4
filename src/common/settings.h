@@ -45,7 +45,7 @@ struct ResolutionScalingInfo {
     }
 };
 
-#ifndef _CANNOT_EXPLICITLY_INSTANTIATE
+#ifndef CANNOT_EXPLICITLY_INSTANTIATE
 // Instantiate the classes elsewhere (settings.cpp) to reduce compiler/linker work
 #define SETTING(TYPE, RANGED) extern template class Setting<TYPE, RANGED>
 #define SWITCHABLE(TYPE, RANGED) extern template class SwitchableSetting<TYPE, RANGED>

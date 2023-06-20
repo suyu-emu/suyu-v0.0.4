@@ -17,7 +17,7 @@
 using Settings::Category;
 using Settings::Setting;
 
-#ifndef _CANNOT_EXPLICITLY_INSTANTIATE
+#ifndef CANNOT_EXPLICITLY_INSTANTIATE
 namespace Settings {
 extern template class Setting<bool>;
 extern template class Setting<std::string>;
