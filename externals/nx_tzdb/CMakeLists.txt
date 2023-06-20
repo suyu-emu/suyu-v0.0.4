@@ -7,7 +7,7 @@ add_library(nx_tzdb INTERFACE)
 
 find_program(GIT git)
 find_program(GNU_MAKE make)
-find_program(GNU_DATE date)
+find_program(DATE_PROG date)
 
 set(CAN_BUILD_NX_TZDB true)
 
@@ -17,7 +17,7 @@ endif()
 if (NOT GNU_MAKE)
     set(CAN_BUILD_NX_TZDB false)
 endif()
-if (NOT GNU_DATE)
+if (NOT DATE_PROG)
     set(CAN_BUILD_NX_TZDB false)
 endif()
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows" OR ANDROID)
