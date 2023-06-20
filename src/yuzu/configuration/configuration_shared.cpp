@@ -7,8 +7,7 @@
 
 namespace ConfigurationShared {
 
-Tab::Tab(std::shared_ptr<std::forward_list<Tab*>> group_, QWidget* parent)
-    : QWidget(parent), group{group_} {
+Tab::Tab(std::shared_ptr<std::forward_list<Tab*>> group, QWidget* parent) : QWidget(parent) {
     if (group != nullptr) {
         group->push_front(this);
     }
