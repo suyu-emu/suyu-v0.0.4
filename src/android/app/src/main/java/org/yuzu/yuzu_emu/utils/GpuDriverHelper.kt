@@ -113,6 +113,8 @@ object GpuDriverHelper {
         initializeDriverParameters(context)
     }
 
+    external fun supportsCustomDriverLoading(): Boolean
+
     // Parse the custom driver metadata to retrieve the name.
     val customDriverName: String?
         get() {

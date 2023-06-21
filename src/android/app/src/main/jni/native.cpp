@@ -560,6 +560,26 @@ void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeGpuDriver(
         GetJString(env, custom_driver_name), GetJString(env, file_redirect_dir));
 }
 
+[[maybe_unused]] static bool CheckKgslPresent() {
+    constexpr auto KgslPath{"/dev/kgsl-3d0"};
+
+    return access(KgslPath, F_OK) == 0;
+}
+
+[[maybe_unused]] bool SupportsCustomDriver() {
+    return android_get_device_api_level() >= 28 && CheckKgslPresent();
+}
+
+jboolean JNICALL Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_supportsCustomDriverLoading(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject instance) {
+#ifdef ARCHITECTURE_arm64
+    // If the KGSL device exists custom drivers can be loaded using adrenotools
+    return SupportsCustomDriver();
+#else
+    return false;
+#endif
+}
+
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_reloadKeys(JNIEnv* env,
                                                           [[maybe_unused]] jclass clazz) {
     Core::Crypto::KeyManager::Instance().ReloadKeys();
