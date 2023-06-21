@@ -12,60 +12,60 @@ namespace Settings {
 
 template <typename T>
 struct Canonicalization {
-    static constexpr std::vector<std::pair<std::string, u32>> Get();
+    static constexpr std::vector<std::pair<std::string, T>> Get();
 };
 
-#define PAIR_45(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_46(N, __VA_ARGS__))
-#define PAIR_44(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_45(N, __VA_ARGS__))
-#define PAIR_43(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_44(N, __VA_ARGS__))
-#define PAIR_42(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_43(N, __VA_ARGS__))
-#define PAIR_41(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_42(N, __VA_ARGS__))
-#define PAIR_40(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_41(N, __VA_ARGS__))
-#define PAIR_39(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_40(N, __VA_ARGS__))
-#define PAIR_38(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_39(N, __VA_ARGS__))
-#define PAIR_37(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_38(N, __VA_ARGS__))
-#define PAIR_36(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_37(N, __VA_ARGS__))
-#define PAIR_35(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_36(N, __VA_ARGS__))
-#define PAIR_34(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_35(N, __VA_ARGS__))
-#define PAIR_33(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_34(N, __VA_ARGS__))
-#define PAIR_32(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_33(N, __VA_ARGS__))
-#define PAIR_31(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_32(N, __VA_ARGS__))
-#define PAIR_30(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_31(N, __VA_ARGS__))
-#define PAIR_29(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_30(N, __VA_ARGS__))
-#define PAIR_28(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_29(N, __VA_ARGS__))
-#define PAIR_27(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_28(N, __VA_ARGS__))
-#define PAIR_26(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_27(N, __VA_ARGS__))
-#define PAIR_25(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_26(N, __VA_ARGS__))
-#define PAIR_24(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_25(N, __VA_ARGS__))
-#define PAIR_23(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_24(N, __VA_ARGS__))
-#define PAIR_22(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_23(N, __VA_ARGS__))
-#define PAIR_21(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_22(N, __VA_ARGS__))
-#define PAIR_20(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_21(N, __VA_ARGS__))
-#define PAIR_19(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_20(N, __VA_ARGS__))
-#define PAIR_18(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_19(N, __VA_ARGS__))
-#define PAIR_17(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_18(N, __VA_ARGS__))
-#define PAIR_16(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_17(N, __VA_ARGS__))
-#define PAIR_15(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_16(N, __VA_ARGS__))
-#define PAIR_14(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_15(N, __VA_ARGS__))
-#define PAIR_13(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_14(N, __VA_ARGS__))
-#define PAIR_12(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_13(N, __VA_ARGS__))
-#define PAIR_11(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_12(N, __VA_ARGS__))
-#define PAIR_10(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_11(N, __VA_ARGS__))
-#define PAIR_9(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_10(N, __VA_ARGS__))
-#define PAIR_8(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_9(N, __VA_ARGS__))
-#define PAIR_7(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_8(N, __VA_ARGS__))
-#define PAIR_6(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_7(N, __VA_ARGS__))
-#define PAIR_5(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_6(N, __VA_ARGS__))
-#define PAIR_4(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_5(N, __VA_ARGS__))
-#define PAIR_3(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_4(N, __VA_ARGS__))
-#define PAIR_2(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_3(N, __VA_ARGS__))
-#define PAIR_1(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_2(N, __VA_ARGS__))
-#define PAIR(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_1(N, __VA_ARGS__))
+#define PAIR_45(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_46(N, __VA_ARGS__))
+#define PAIR_44(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_45(N, __VA_ARGS__))
+#define PAIR_43(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_44(N, __VA_ARGS__))
+#define PAIR_42(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_43(N, __VA_ARGS__))
+#define PAIR_41(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_42(N, __VA_ARGS__))
+#define PAIR_40(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_41(N, __VA_ARGS__))
+#define PAIR_39(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_40(N, __VA_ARGS__))
+#define PAIR_38(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_39(N, __VA_ARGS__))
+#define PAIR_37(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_38(N, __VA_ARGS__))
+#define PAIR_36(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_37(N, __VA_ARGS__))
+#define PAIR_35(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_36(N, __VA_ARGS__))
+#define PAIR_34(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_35(N, __VA_ARGS__))
+#define PAIR_33(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_34(N, __VA_ARGS__))
+#define PAIR_32(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_33(N, __VA_ARGS__))
+#define PAIR_31(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_32(N, __VA_ARGS__))
+#define PAIR_30(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_31(N, __VA_ARGS__))
+#define PAIR_29(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_30(N, __VA_ARGS__))
+#define PAIR_28(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_29(N, __VA_ARGS__))
+#define PAIR_27(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_28(N, __VA_ARGS__))
+#define PAIR_26(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_27(N, __VA_ARGS__))
+#define PAIR_25(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_26(N, __VA_ARGS__))
+#define PAIR_24(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_25(N, __VA_ARGS__))
+#define PAIR_23(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_24(N, __VA_ARGS__))
+#define PAIR_22(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_23(N, __VA_ARGS__))
+#define PAIR_21(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_22(N, __VA_ARGS__))
+#define PAIR_20(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_21(N, __VA_ARGS__))
+#define PAIR_19(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_20(N, __VA_ARGS__))
+#define PAIR_18(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_19(N, __VA_ARGS__))
+#define PAIR_17(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_18(N, __VA_ARGS__))
+#define PAIR_16(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_17(N, __VA_ARGS__))
+#define PAIR_15(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_16(N, __VA_ARGS__))
+#define PAIR_14(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_15(N, __VA_ARGS__))
+#define PAIR_13(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_14(N, __VA_ARGS__))
+#define PAIR_12(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_13(N, __VA_ARGS__))
+#define PAIR_11(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_12(N, __VA_ARGS__))
+#define PAIR_10(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_11(N, __VA_ARGS__))
+#define PAIR_9(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_10(N, __VA_ARGS__))
+#define PAIR_8(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_9(N, __VA_ARGS__))
+#define PAIR_7(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_8(N, __VA_ARGS__))
+#define PAIR_6(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_7(N, __VA_ARGS__))
+#define PAIR_5(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_6(N, __VA_ARGS__))
+#define PAIR_4(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_5(N, __VA_ARGS__))
+#define PAIR_3(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_4(N, __VA_ARGS__))
+#define PAIR_2(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_3(N, __VA_ARGS__))
+#define PAIR_1(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_2(N, __VA_ARGS__))
+#define PAIR(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_1(N, __VA_ARGS__))
 
 #define ENUM(NAME, ...)                                                                            \
     enum class NAME : u32 { __VA_ARGS__ };                                                         \
     template <>                                                                                    \
-    constexpr std::vector<std::pair<std::string, u32>> Canonicalization<NAME>::Get() {             \
+    constexpr std::vector<std::pair<std::string, NAME>> Canonicalization<NAME>::Get() {            \
         return {PAIR(NAME, __VA_ARGS__)};                                                          \
     }
 
@@ -77,12 +77,12 @@ enum class AudioEngine : u32 {
 };
 
 template <>
-constexpr std::vector<std::pair<std::string, u32>> Canonicalization<AudioEngine>::Get() {
+constexpr std::vector<std::pair<std::string, AudioEngine>> Canonicalization<AudioEngine>::Get() {
     return {
-        {"auto", static_cast<u32>(AudioEngine::Auto)},
-        {"cubeb", static_cast<u32>(AudioEngine::Cubeb)},
-        {"sdl2", static_cast<u32>(AudioEngine::Sdl2)},
-        {"null", static_cast<u32>(AudioEngine::Null)},
+        {"auto", AudioEngine::Auto},
+        {"cubeb", AudioEngine::Cubeb},
+        {"sdl2", AudioEngine::Sdl2},
+        {"null", AudioEngine::Null},
     };
 }
 
@@ -132,7 +132,7 @@ template <typename Type>
 constexpr std::string CanonicalizeEnum(Type id) {
     const auto group = Canonicalization<Type>::Get();
     for (auto& [name, value] : group) {
-        if (static_cast<Type>(value) == id) {
+        if (value == id) {
             return name;
         }
     }
@@ -144,7 +144,7 @@ constexpr Type ToEnum(const std::string& canonicalization) {
     const auto group = Canonicalization<Type>::Get();
     for (auto& [name, value] : group) {
         if (name == canonicalization) {
-            return static_cast<Type>(value);
+            return value;
         }
     }
     return {};
