@@ -48,6 +48,7 @@ if (MSVC)
         /volatile:iso
         /Zc:externConstexpr
         /Zc:inline
+        /Zc:preprocessor # Use standards-conforming preprocessor
         /Zc:throwingNew
         /GT
 
