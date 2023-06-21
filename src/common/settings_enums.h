@@ -94,10 +94,10 @@ ENUM(Language, Japanese, EnglishAmerican, French, German, Italian, Spanish, Chin
 
 ENUM(Region, Japan, Usa, Europe, Australia, China, Korea, Taiwan);
 
-ENUM(TimeZone, Auto, Default, CET, CST6CDT, Cuba, EET, Egypt, Eire, EST, EST5EDT, GB, GBEire, GMT,
-     GMTPlusZero, GMTMinusZero, GMTZero, Greenwich, Hongkong, HST, Iceland, Iran, Israel, Jamaica,
-     Japan, Kwajalein, Libya, MET, MST, MST7MDT, Navajo, NZ, NZCHAT, Poland, Portugal, PRC, PST8PDT,
-     ROC, ROK, Singapore, Turkey, UCT, Universal, UTC, W_SU, WET, Zulu);
+ENUM(TimeZone, Auto, Default, Cet, Cst6Cdt, Cuba, Eet, Egypt, Eire, Est, Est5Edt, Gb, GbEire, Gmt,
+     GmtPlusZero, GmtMinusZero, GmtZero, Greenwich, Hongkong, Hst, Iceland, Iran, Israel, Jamaica,
+     Japan, Kwajalein, Libya, Met, Mst, Mst7Mdt, Navajo, Nz, NzChat, Poland, Portugal, Prc, Pst8Pdt,
+     Roc, Rok, Singapore, Turkey, Uct, Universal, Utc, WSu, Wet, Zulu);
 
 ENUM(AnisotropyMode, Automatic, Default, X2, X4, X8, X16);
 
