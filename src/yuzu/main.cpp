@@ -24,6 +24,7 @@
 #include "applets/qt_software_keyboard.h"
 #include "applets/qt_web_browser.h"
 #include "common/nvidia_flags.h"
+#include "common/settings_enums.h"
 #include "configuration/configure_input.h"
 #include "configuration/configure_per_game.h"
 #include "configuration/configure_tas.h"
@@ -1095,10 +1096,9 @@ void GMainWindow::InitializeWidgets() {
     aa_status_button->setFocusPolicy(Qt::NoFocus);
     connect(aa_status_button, &QPushButton::clicked, [&] {
         auto aa_mode = Settings::values.anti_aliasing.GetValue();
-        if (aa_mode == Settings::AntiAliasing::LastAA) {
+        aa_mode = static_cast<Settings::AntiAliasing>(static_cast<u32>(aa_mode) + 1);
+        if (aa_mode == Settings::AntiAliasing::MaxEnum) {
             aa_mode = Settings::AntiAliasing::None;
-        } else {
-            aa_mode = static_cast<Settings::AntiAliasing>(static_cast<u32>(aa_mode) + 1);
         }
         Settings::values.anti_aliasing.SetValue(aa_mode);
         aa_status_button->setChecked(true);
@@ -3702,10 +3702,9 @@ void GMainWindow::OnIncreaseVolume() {
 
 void GMainWindow::OnToggleAdaptingFilter() {
     auto filter = Settings::values.scaling_filter.GetValue();
-    if (filter == Settings::ScalingFilter::LastFilter) {
+    filter = static_cast<Settings::ScalingFilter>(static_cast<u32>(filter) + 1);
+    if (filter == Settings::ScalingFilter::MaxEnum) {
         filter = Settings::ScalingFilter::NearestNeighbor;
-    } else {
-        filter = static_cast<Settings::ScalingFilter>(static_cast<u32>(filter) + 1);
     }
     Settings::values.scaling_filter.SetValue(filter);
     filter_status_button->setChecked(true);

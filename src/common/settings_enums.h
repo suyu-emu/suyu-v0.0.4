@@ -122,9 +122,9 @@ ENUM(NvdecEmulation, Off, Cpu, Gpu);
 ENUM(ResolutionSetup, Res1_2X, Res3_4X, Res1X, Res3_2X, Res2X, Res3X, Res4X, Res5X, Res6X, Res7X,
      Res8X);
 
-ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, ScaleForce, Fsr, LastFilter);
+ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, ScaleForce, Fsr, MaxEnum);
 
-ENUM(AntiAliasing, None, Fxaa, Smaa, LastAA);
+ENUM(AntiAliasing, None, Fxaa, Smaa, MaxEnum);
 
 ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, Stretch);
 
