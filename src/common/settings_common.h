@@ -43,6 +43,17 @@ enum class Category : u32 {
     MaxEnum,
 };
 
+enum class Specialization : u32 {
+    Default,
+    Time,
+    Hex,
+    List,
+    RuntimeList,
+    Scalar,
+    Countable,
+    Paired,
+};
+
 bool IsConfiguringGlobal();
 void SetConfiguringGlobal(bool is_global);
 
@@ -64,7 +75,7 @@ public:
 class BasicSetting {
 protected:
     explicit BasicSetting(Linkage& linkage, const std::string& name, enum Category category_,
-                          bool save_, bool runtime_modifiable_);
+                          bool save_, bool runtime_modifiable_, Specialization spec);
 
 public:
     virtual ~BasicSetting();
@@ -181,6 +192,11 @@ public:
     [[nodiscard]] enum Category Category() const;
 
     /**
+     * @returns Extra metadata for data representation in frontend implementations.
+     */
+    [[nodiscard]] enum Specialization Specialization() const;
+
+    /**
      * Returns the label this setting was created with.
      *
      * @returns A reference to the label
@@ -219,6 +235,8 @@ private:
     const bool save; ///< Suggests if the setting should be saved and read to a frontend config
     const bool
         runtime_modifiable; ///< Suggests if the setting can be modified while a guest is running
+    const enum Specialization
+        specialization; ///< Extra data to identify representation of a setting
 };
 
 } // namespace Settings

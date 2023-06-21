@@ -7,9 +7,10 @@
 namespace Settings {
 
 BasicSetting::BasicSetting(Linkage& linkage, const std::string& name, enum Category category_,
-                           bool save_, bool runtime_modifiable_)
-    : label{name}, category{category_}, id{linkage.count}, save{save_}, runtime_modifiable{
-                                                                            runtime_modifiable_} {
+                           bool save_, bool runtime_modifiable_,
+                           enum Specialization specialization_)
+    : label{name}, category{category_}, id{linkage.count}, save{save_},
+      runtime_modifiable{runtime_modifiable_}, specialization{specialization_} {
     linkage.by_category[category].push_front(this);
     linkage.count++;
 }
@@ -36,6 +37,10 @@ bool BasicSetting::RuntimeModfiable() const {
 
 Category BasicSetting::Category() const {
     return category;
+}
+
+Specialization BasicSetting::Specialization() const {
+    return specialization;
 }
 
 const std::string& BasicSetting::GetLabel() const {

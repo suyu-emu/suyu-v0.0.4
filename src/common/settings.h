@@ -128,25 +128,31 @@ struct Values {
     Linkage linkage{};
 
     // Audio
-    Setting<AudioEngine> sink_id{linkage, AudioEngine::Auto, "output_engine", Category::Audio};
-    Setting<std::string> audio_output_device_id{linkage, "auto", "output_device", Category::Audio};
-    Setting<std::string> audio_input_device_id{linkage, "auto", "input_device", Category::Audio};
+    Setting<AudioEngine> sink_id{linkage, AudioEngine::Auto, "output_engine", Category::Audio,
+                                 Specialization::RuntimeList};
+    Setting<std::string> audio_output_device_id{linkage, "auto", "output_device", Category::Audio,
+                                                Specialization::RuntimeList};
+    Setting<std::string> audio_input_device_id{linkage, "auto", "input_device", Category::Audio,
+                                               Specialization::RuntimeList};
     SwitchableSetting<AudioMode, true> sound_index{linkage,         AudioMode::Stereo,
                                                    AudioMode::Mono, AudioMode::Surround,
                                                    "sound_index",   Category::SystemAudio};
-    SwitchableSetting<u8, true> volume{linkage, 100, 0, 200, "volume", Category::Audio, true, true};
-    Setting<bool, false> audio_muted{linkage, false, "audio_muted", Category::Audio, false};
-    Setting<bool, false> dump_audio_commands{linkage, false, "dump_audio_commands", Category::Audio,
-                                             false};
+    SwitchableSetting<u8, true> volume{
+        linkage, 100, 0, 200, "volume", Category::Audio, Specialization::Scalar, true, true};
+    Setting<bool, false> audio_muted{
+        linkage, false, "audio_muted", Category::Audio, Specialization::Default, false};
+    Setting<bool, false> dump_audio_commands{
+        linkage, false, "dump_audio_commands", Category::Audio, Specialization::Default, false};
 
     // Core
     SwitchableSetting<bool> use_multi_core{linkage, true, "use_multi_core", Category::Core};
     SwitchableSetting<bool> use_unsafe_extended_memory_layout{
         linkage, false, "use_unsafe_extended_memory_layout", Category::Core};
-    SwitchableSetting<bool> use_speed_limit{linkage,        true,  "use_speed_limit",
-                                            Category::Core, false, true};
-    SwitchableSetting<u16, true> speed_limit{linkage,        100,  0,   9999, "speed_limit",
-                                             Category::Core, true, true};
+    SwitchableSetting<bool> use_speed_limit{
+        linkage, true, "use_speed_limit", Category::Core, Specialization::Paired, false, true};
+    SwitchableSetting<u16, true> speed_limit{
+        linkage, 100, 0, 9999, "speed_limit", Category::Core, Specialization::Countable,
+        true,    true};
 
     // Cpu
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage,           CpuAccuracy::Auto,
@@ -192,9 +198,10 @@ struct Values {
         linkage,   RendererBackend::Vulkan, RendererBackend::OpenGL, RendererBackend::Null,
         "backend", Category::Renderer};
     SwitchableSetting<ShaderBackend, true> shader_backend{
-        linkage,          ShaderBackend::Glsl, ShaderBackend::Glsl, ShaderBackend::SpirV,
-        "shader_backend", Category::Renderer};
-    SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer};
+        linkage,          ShaderBackend::Glsl, ShaderBackend::Glsl,        ShaderBackend::SpirV,
+        "shader_backend", Category::Renderer,  Specialization::RuntimeList};
+    SwitchableSetting<int> vulkan_device{linkage, 0, "vulkan_device", Category::Renderer,
+                                         Specialization::RuntimeList};
 
     SwitchableSetting<bool> use_disk_shader_cache{linkage, true, "use_disk_shader_cache",
                                                   Category::Renderer};
@@ -206,14 +213,10 @@ struct Values {
                                                             AstcDecodeMode::CpuAsynchronous,
                                                             "accelerate_astc",
                                                             Category::Renderer};
-    Setting<VSyncMode, true> vsync_mode{linkage,
-                                        VSyncMode::Fifo,
-                                        VSyncMode::Immediate,
-                                        VSyncMode::FifoRelaxed,
-                                        "use_vsync",
-                                        Category::Renderer,
-                                        true,
-                                        true};
+    Setting<VSyncMode, true> vsync_mode{
+        linkage,     VSyncMode::Fifo,    VSyncMode::Immediate,        VSyncMode::FifoRelaxed,
+        "use_vsync", Category::Renderer, Specialization::RuntimeList, true,
+        true};
     SwitchableSetting<NvdecEmulation> nvdec_emulation{linkage, NvdecEmulation::Gpu,
                                                       "nvdec_emulation", Category::Renderer};
     // *nix platforms may have issues with the borderless windowed fullscreen mode.
@@ -228,6 +231,7 @@ struct Values {
                                                             FullscreenMode::Exclusive,
                                                             "fullscreen_mode",
                                                             Category::Renderer,
+                                                            Specialization::Default,
                                                             true,
                                                             true};
     SwitchableSetting<AspectRatio, true> aspect_ratio{linkage,
@@ -236,22 +240,37 @@ struct Values {
                                                       AspectRatio::Stretch,
                                                       "aspect_ratio",
                                                       Category::Renderer,
+                                                      Specialization::Default,
                                                       true,
                                                       true};
 
     ResolutionScalingInfo resolution_info{};
     SwitchableSetting<ResolutionSetup> resolution_setup{linkage, ResolutionSetup::Res1X,
                                                         "resolution_setup", Category::Renderer};
-    SwitchableSetting<ScalingFilter> scaling_filter{
-        linkage, ScalingFilter::Bilinear, "scaling_filter", Category::Renderer, true, true};
-    SwitchableSetting<AntiAliasing> anti_aliasing{
-        linkage, AntiAliasing::None, "anti_aliasing", Category::Renderer, true, true};
+    SwitchableSetting<ScalingFilter> scaling_filter{linkage,
+                                                    ScalingFilter::Bilinear,
+                                                    "scaling_filter",
+                                                    Category::Renderer,
+                                                    Specialization::Default,
+                                                    true,
+                                                    true};
+    SwitchableSetting<AntiAliasing> anti_aliasing{linkage,
+                                                  AntiAliasing::None,
+                                                  "anti_aliasing",
+                                                  Category::Renderer,
+                                                  Specialization::Default,
+                                                  true,
+                                                  true};
     SwitchableSetting<int, true> fsr_sharpening_slider{
-        linkage, 25, 0, 200, "fsr_sharpening_slider", Category::Renderer, true, true};
+        linkage, 25,  0, 200, "fsr_sharpening_slider", Category::Renderer, Specialization::Scalar,
+        true,    true};
 
-    SwitchableSetting<u8, false> bg_red{linkage, 0, "bg_red", Category::Renderer, true, true};
-    SwitchableSetting<u8, false> bg_green{linkage, 0, "bg_green", Category::Renderer, true, true};
-    SwitchableSetting<u8, false> bg_blue{linkage, 0, "bg_blue", Category::Renderer, true, true};
+    SwitchableSetting<u8, false> bg_red{
+        linkage, 0, "bg_red", Category::Renderer, Specialization::Default, true, true};
+    SwitchableSetting<u8, false> bg_green{
+        linkage, 0, "bg_green", Category::Renderer, Specialization::Default, true, true};
+    SwitchableSetting<u8, false> bg_blue{
+        linkage, 0, "bg_blue", Category::Renderer, Specialization::Default, true, true};
 
     SwitchableSetting<GpuAccuracy, true> gpu_accuracy{linkage,
                                                       GpuAccuracy::High,
@@ -259,6 +278,7 @@ struct Values {
                                                       GpuAccuracy::Extreme,
                                                       "gpu_accuracy",
                                                       Category::RendererAdvanced,
+                                                      Specialization::Default,
                                                       true,
                                                       true};
     SwitchableSetting<AnisotropyMode, true> max_anisotropy{
@@ -279,9 +299,15 @@ struct Values {
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererAdvanced};
     SwitchableSetting<bool> use_fast_gpu_time{
-        linkage, true, "use_fast_gpu_time", Category::RendererAdvanced, true, true};
-    SwitchableSetting<bool> use_vulkan_driver_pipeline_cache{
-        linkage, true, "use_vulkan_driver_pipeline_cache", Category::RendererAdvanced, true, true};
+        linkage, true, "use_fast_gpu_time", Category::RendererAdvanced, Specialization::Default,
+        true,    true};
+    SwitchableSetting<bool> use_vulkan_driver_pipeline_cache{linkage,
+                                                             true,
+                                                             "use_vulkan_driver_pipeline_cache",
+                                                             Category::RendererAdvanced,
+                                                             Specialization::Default,
+                                                             true,
+                                                             true};
     SwitchableSetting<bool> enable_compute_pipelines{linkage, false, "enable_compute_pipelines",
                                                      Category::RendererAdvanced};
     SwitchableSetting<bool> use_video_framerate{linkage, false, "use_video_framerate",
@@ -310,15 +336,18 @@ struct Values {
                                                       TimeZone::Auto,    TimeZone::Zulu,
                                                       "time_zone_index", Category::System};
     // Measured in seconds since epoch
-    SwitchableSetting<bool> custom_rtc_enabled{linkage,          false, "custom_rtc_enabled",
-                                               Category::System, true,  true};
-    SwitchableSetting<s64> custom_rtc{linkage, 0, "custom_rtc", Category::System, true, true};
+    SwitchableSetting<bool> custom_rtc_enabled{
+        linkage, false, "custom_rtc_enabled", Category::System, Specialization::Paired, true, true};
+    SwitchableSetting<s64> custom_rtc{
+        linkage, 0, "custom_rtc", Category::System, Specialization::Time, true, true};
     // Set on game boot, reset on stop. Seconds difference between current time and `custom_rtc`
     s64 custom_rtc_differential;
-    SwitchableSetting<bool> rng_seed_enabled{linkage,          false, "rng_seed_enabled",
-                                             Category::System, true,  true};
-    SwitchableSetting<u32> rng_seed{linkage, 0, "rng_seed", Category::System, true, true};
-    Setting<std::string> device_name{linkage, "yuzu", "device_name", Category::System, true, true};
+    SwitchableSetting<bool> rng_seed_enabled{
+        linkage, false, "rng_seed_enabled", Category::System, Specialization::Paired, true, true};
+    SwitchableSetting<u32> rng_seed{linkage, 0,   "rng_seed", Category::System, Specialization::Hex,
+                                    true,    true};
+    Setting<std::string> device_name{
+        linkage, "yuzu", "device_name", Category::System, Specialization::Default, true, true};
 
     Setting<s32> current_user{linkage, 0, "current_user", Category::System};
 
@@ -327,12 +356,13 @@ struct Values {
     // Controls
     InputSetting<std::array<PlayerInput, 10>> players;
 
-    Setting<bool> enable_raw_input{linkage, false, "enable_raw_input", Category::Controls,
+    Setting<bool> enable_raw_input{
+        linkage, false, "enable_raw_input", Category::Controls, Specialization::Default,
 // Only read/write enable_raw_input on Windows platforms
 #ifdef _WIN32
-                                   true
+        true
 #else
-                                   false
+        false
 #endif
     };
     Setting<bool> controller_navigation{linkage, true, "controller_navigation", Category::Controls};
@@ -354,7 +384,8 @@ struct Values {
     Setting<bool> tas_enable{linkage, false, "tas_enable", Category::Controls};
     Setting<bool> tas_loop{linkage, false, "tas_loop", Category::Controls};
 
-    Setting<bool> mouse_panning{linkage, false, "mouse_panning", Category::Controls, false};
+    Setting<bool> mouse_panning{
+        linkage, false, "mouse_panning", Category::Controls, Specialization::Default, false};
     Setting<u8, true> mouse_panning_sensitivity{
         linkage, 50, 1, 100, "mouse_panning_sensitivity", Category::Controls};
     Setting<bool> mouse_enabled{linkage, false, "mouse_enabled", Category::Controls};
@@ -410,19 +441,24 @@ struct Values {
     Setting<std::string> program_args{linkage, std::string(), "program_args", Category::Debugging};
     Setting<bool> dump_exefs{linkage, false, "dump_exefs", Category::Debugging};
     Setting<bool> dump_nso{linkage, false, "dump_nso", Category::Debugging};
-    Setting<bool> dump_shaders{linkage, false, "dump_shaders", Category::DebuggingGraphics, false};
-    Setting<bool> dump_macros{linkage, false, "dump_macros", Category::DebuggingGraphics, false};
+    Setting<bool> dump_shaders{
+        linkage, false, "dump_shaders", Category::DebuggingGraphics, Specialization::Default,
+        false};
+    Setting<bool> dump_macros{
+        linkage, false, "dump_macros", Category::DebuggingGraphics, Specialization::Default, false};
     Setting<bool> enable_fs_access_log{linkage, false, "enable_fs_access_log", Category::Debugging};
-    Setting<bool> reporting_services{linkage, false, "reporting_services", Category::Debugging,
-                                     false};
+    Setting<bool> reporting_services{
+        linkage, false, "reporting_services", Category::Debugging, Specialization::Default, false};
     Setting<bool> quest_flag{linkage, false, "quest_flag", Category::Debugging};
     Setting<bool> disable_macro_jit{linkage, false, "disable_macro_jit",
                                     Category::DebuggingGraphics};
     Setting<bool> disable_macro_hle{linkage, false, "disable_macro_hle",
                                     Category::DebuggingGraphics};
-    Setting<bool> extended_logging{linkage, false, "extended_logging", Category::Debugging, false};
+    Setting<bool> extended_logging{
+        linkage, false, "extended_logging", Category::Debugging, Specialization::Default, false};
     Setting<bool> use_debug_asserts{linkage, false, "use_debug_asserts", Category::Debugging};
-    Setting<bool> use_auto_stub{linkage, false, "use_auto_stub", Category::Debugging, false};
+    Setting<bool> use_auto_stub{
+        linkage, false, "use_auto_stub", Category::Debugging, Specialization::Default, false};
     Setting<bool> enable_all_controllers{linkage, false, "enable_all_controllers",
                                          Category::Debugging};
     Setting<bool> create_crash_dumps{linkage, false, "create_crash_dumps", Category::Debugging};
