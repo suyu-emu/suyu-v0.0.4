@@ -35,12 +35,12 @@ public:
      * @param category_ Category of the setting AKA INI group
      */
     explicit Setting(Linkage& linkage, const Type& default_val, const std::string& name,
-                     enum Category category_, u32 specialization = Specialization::Default,
+                     enum Category category_, u32 specialization_ = Specialization::Default,
                      bool save_ = true, bool runtime_modifiable_ = false,
-                     BasicSetting* other_setting = nullptr)
+                     BasicSetting* other_setting_ = nullptr)
         requires(!ranged)
-        : BasicSetting(linkage, name, category_, save_, runtime_modifiable_, specialization,
-                       other_setting),
+        : BasicSetting(linkage, name, category_, save_, runtime_modifiable_, specialization_,
+                       other_setting_),
           value{default_val}, default_value{default_val} {}
     virtual ~Setting() = default;
 
@@ -56,11 +56,11 @@ public:
      */
     explicit Setting(Linkage& linkage, const Type& default_val, const Type& min_val,
                      const Type& max_val, const std::string& name, enum Category category_,
-                     u32 specialization = Specialization::Default, bool save_ = true,
-                     bool runtime_modifiable_ = false, BasicSetting* other_setting = nullptr)
+                     u32 specialization_ = Specialization::Default, bool save_ = true,
+                     bool runtime_modifiable_ = false, BasicSetting* other_setting_ = nullptr)
         requires(ranged)
-        : BasicSetting(linkage, name, category_, save_, runtime_modifiable_, specialization,
-                       other_setting),
+        : BasicSetting(linkage, name, category_, save_, runtime_modifiable_, specialization_,
+                       other_setting_),
           value{default_val}, default_value{default_val}, maximum{max_val}, minimum{min_val} {}
 
     /**
@@ -235,13 +235,13 @@ public:
      * @param category_ Category of the setting AKA INI group
      */
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const std::string& name,
-                               Category category_, u32 specialization = Specialization::Default,
+                               Category category_, u32 specialization_ = Specialization::Default,
                                bool save_ = true, bool runtime_modifiable_ = false,
-                               BasicSetting* other_setting = nullptr)
+                               BasicSetting* other_setting_ = nullptr)
         requires(!ranged)
         : Setting<Type, false>{
-              linkage, default_val,         name,         category_, specialization,
-              save_,   runtime_modifiable_, other_setting} {
+              linkage, default_val,         name,          category_, specialization_,
+              save_,   runtime_modifiable_, other_setting_} {
         linkage.restore_functions.emplace_back([this]() { this->SetGlobal(true); });
     }
     virtual ~SwitchableSetting() = default;
@@ -258,13 +258,14 @@ public:
      */
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const Type& min_val,
                                const Type& max_val, const std::string& name, Category category_,
-                               u32 specialization = Specialization::Default, bool save_ = true,
+                               u32 specialization_ = Specialization::Default, bool save_ = true,
                                bool runtime_modifiable_ = false,
-                               BasicSetting* other_setting = nullptr)
+                               BasicSetting* other_setting_ = nullptr)
         requires(ranged)
-        : Setting<Type, true>{
-              linkage, default_val,         min_val,      max_val, name, category_, specialization,
-              save_,   runtime_modifiable_, other_setting} {
+        : Setting<Type, true>{linkage,         default_val, min_val,
+                              max_val,         name,        category_,
+                              specialization_, save_,       runtime_modifiable_,
+                              other_setting_} {
         linkage.restore_functions.emplace_back([this]() { this->SetGlobal(true); });
     }
 
