@@ -125,13 +125,12 @@ void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
                 // custom_rtc needs a DateTimeEdit (default is LineEdit), and a checkbox to manage
                 // it and custom_rtc_enabled
                 return builder.BuildWidget(setting, apply_funcs,
-                                           &Settings::values.custom_rtc_enabled,
-                                           ConfigurationShared::RequestType::DateTimeEdit);
+                                           &Settings::values.custom_rtc_enabled);
             } else if (setting->Id() == Settings::values.rng_seed.Id()) {
                 // rng_seed needs a HexEdit (default is LineEdit), and a checkbox to manage
                 // it and rng_seed_enabled
-                return builder.BuildWidget(setting, apply_funcs, &Settings::values.rng_seed_enabled,
-                                           ConfigurationShared::RequestType::HexEdit);
+                return builder.BuildWidget(setting, apply_funcs,
+                                           &Settings::values.rng_seed_enabled);
             } else if (setting->Id() == Settings::values.speed_limit.Id()) {
                 // speed_limit needs a checkbox to set use_speed_limit, as well as a spinbox
                 return builder.BuildWidget(setting, apply_funcs, &Settings::values.use_speed_limit,

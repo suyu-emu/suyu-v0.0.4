@@ -376,6 +376,32 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
         layout->addWidget(qt_label);
     }
 
+    request = [&]() {
+        if (request != RequestType::Default) {
+            return request;
+        }
+        switch (setting.Specialization()) {
+        case Settings::Specialization::Default:
+            return RequestType::Default;
+        case Settings::Specialization::Time:
+            return RequestType::DateTimeEdit;
+        case Settings::Specialization::Hex:
+            return RequestType::HexEdit;
+        case Settings::Specialization::RuntimeList:
+            managed = false;
+            [[fallthrough]];
+        case Settings::Specialization::List:
+            return RequestType::ComboBox;
+        case Settings::Specialization::Scalar:
+            return RequestType::Slider;
+        case Settings::Specialization::Countable:
+            return RequestType::SpinBox;
+        default:
+            break;
+        }
+        return request;
+    }();
+
     if (setting.TypeId() == typeid(bool)) {
         data_component = CreateCheckBox(&setting, label, serializer, restore_func, touch);
     } else if (setting.IsEnum()) {
@@ -541,6 +567,11 @@ Widget* Builder::BuildWidget(Settings::BasicSetting* setting,
                              RequestType request, bool managed, float multiplier,
                              Settings::BasicSetting* other_setting, const QString& string) const {
     if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
+        return nullptr;
+    }
+
+    if (setting->Specialization() == Settings::Specialization::Paired) {
+        LOG_DEBUG(Frontend, "\"{}\" has specialization Paired: ignoring", setting->GetLabel());
         return nullptr;
     }
 

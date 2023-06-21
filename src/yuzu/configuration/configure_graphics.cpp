@@ -231,13 +231,7 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
 
     for (const auto setting : Settings::values.linkage.by_category[Settings::Category::Renderer]) {
         ConfigurationShared::Widget* widget = [&]() {
-            // Set managed to false on these and set up the comboboxes ourselves
-            if (setting->Id() == Settings::values.vulkan_device.Id() ||
-                setting->Id() == Settings::values.shader_backend.Id() ||
-                setting->Id() == Settings::values.vsync_mode.Id()) {
-                return builder.BuildWidget(setting, apply_funcs,
-                                           ConfigurationShared::RequestType::ComboBox, false);
-            } else if (setting->Id() == Settings::values.fsr_sharpening_slider.Id()) {
+            if (setting->Id() == Settings::values.fsr_sharpening_slider.Id()) {
                 // FSR needs a reversed slider
                 return builder.BuildWidget(
                     setting, apply_funcs, ConfigurationShared::RequestType::ReverseSlider, true,
