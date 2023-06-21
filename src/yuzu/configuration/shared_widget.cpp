@@ -345,6 +345,10 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
     QLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
 
+    if (other_setting == nullptr) {
+        other_setting = setting.PairedSetting();
+    }
+
     const bool require_checkbox =
         other_setting != nullptr && other_setting->TypeId() == typeid(bool);
 
