@@ -150,9 +150,16 @@ struct Values {
         linkage, false, "use_unsafe_extended_memory_layout", Category::Core};
     SwitchableSetting<bool> use_speed_limit{
         linkage, true, "use_speed_limit", Category::Core, Specialization::Paired, false, true};
-    SwitchableSetting<u16, true> speed_limit{
-        linkage, 100, 0, 9999, "speed_limit", Category::Core, Specialization::Countable,
-        true,    true};
+    SwitchableSetting<u16, true> speed_limit{linkage,
+                                             100,
+                                             0,
+                                             9999,
+                                             "speed_limit",
+                                             Category::Core,
+                                             Specialization::Countable,
+                                             true,
+                                             true,
+                                             &use_speed_limit};
 
     // Cpu
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage,           CpuAccuracy::Auto,
@@ -339,13 +346,15 @@ struct Values {
     SwitchableSetting<bool> custom_rtc_enabled{
         linkage, false, "custom_rtc_enabled", Category::System, Specialization::Paired, true, true};
     SwitchableSetting<s64> custom_rtc{
-        linkage, 0, "custom_rtc", Category::System, Specialization::Time, true, true};
+        linkage, 0,    "custom_rtc",       Category::System, Specialization::Time,
+        true,    true, &custom_rtc_enabled};
     // Set on game boot, reset on stop. Seconds difference between current time and `custom_rtc`
     s64 custom_rtc_differential;
     SwitchableSetting<bool> rng_seed_enabled{
         linkage, false, "rng_seed_enabled", Category::System, Specialization::Paired, true, true};
-    SwitchableSetting<u32> rng_seed{linkage, 0,   "rng_seed", Category::System, Specialization::Hex,
-                                    true,    true};
+    SwitchableSetting<u32> rng_seed{
+        linkage, 0,    "rng_seed",       Category::System, Specialization::Hex,
+        true,    true, &rng_seed_enabled};
     Setting<std::string> device_name{
         linkage, "yuzu", "device_name", Category::System, Specialization::Default, true, true};
 

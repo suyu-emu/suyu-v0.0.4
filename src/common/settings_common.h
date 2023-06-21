@@ -75,7 +75,8 @@ public:
 class BasicSetting {
 protected:
     explicit BasicSetting(Linkage& linkage, const std::string& name, enum Category category_,
-                          bool save_, bool runtime_modifiable_, Specialization spec);
+                          bool save_, bool runtime_modifiable_, Specialization spec,
+                          BasicSetting* other_setting);
 
 public:
     virtual ~BasicSetting();
@@ -197,6 +198,11 @@ public:
     [[nodiscard]] enum Specialization Specialization() const;
 
     /**
+     * @returns Another BasicSetting if one is paired, or nullptr otherwise.
+     */
+    [[nodiscard]] BasicSetting* PairedSetting() const;
+
+    /**
      * Returns the label this setting was created with.
      *
      * @returns A reference to the label
@@ -236,7 +242,8 @@ private:
     const bool
         runtime_modifiable; ///< Suggests if the setting can be modified while a guest is running
     const enum Specialization
-        specialization; ///< Extra data to identify representation of a setting
+        specialization;                ///< Extra data to identify representation of a setting
+    BasicSetting* const other_setting; ///< A paired setting
 };
 
 } // namespace Settings

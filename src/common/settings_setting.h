@@ -37,9 +37,11 @@ public:
     explicit Setting(Linkage& linkage, const Type& default_val, const std::string& name,
                      enum Category category_,
                      enum Specialization specialization = Specialization::Default,
-                     bool save_ = true, bool runtime_modifiable_ = false)
+                     bool save_ = true, bool runtime_modifiable_ = false,
+                     BasicSetting* other_setting = nullptr)
         requires(!ranged)
-        : BasicSetting(linkage, name, category_, save_, runtime_modifiable_, specialization),
+        : BasicSetting(linkage, name, category_, save_, runtime_modifiable_, specialization,
+                       other_setting),
           value{default_val}, default_value{default_val} {}
     virtual ~Setting() = default;
 
@@ -56,9 +58,11 @@ public:
     explicit Setting(Linkage& linkage, const Type& default_val, const Type& min_val,
                      const Type& max_val, const std::string& name, enum Category category_,
                      enum Specialization specialization = Specialization::Default,
-                     bool save_ = true, bool runtime_modifiable_ = false)
+                     bool save_ = true, bool runtime_modifiable_ = false,
+                     BasicSetting* other_setting = nullptr)
         requires(ranged)
-        : BasicSetting(linkage, name, category_, save_, runtime_modifiable_, specialization),
+        : BasicSetting(linkage, name, category_, save_, runtime_modifiable_, specialization,
+                       other_setting),
           value{default_val}, default_value{default_val}, maximum{max_val}, minimum{min_val} {}
 
     /**
@@ -235,10 +239,12 @@ public:
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const std::string& name,
                                Category category_,
                                enum Specialization specialization = Specialization::Default,
-                               bool save_ = true, bool runtime_modifiable_ = false)
+                               bool save_ = true, bool runtime_modifiable_ = false,
+                               BasicSetting* other_setting = nullptr)
         requires(!ranged)
-        : Setting<Type, false>{linkage, default_val,        name, category_, specialization,
-                               save_,   runtime_modifiable_} {
+        : Setting<Type, false>{
+              linkage, default_val,         name,         category_, specialization,
+              save_,   runtime_modifiable_, other_setting} {
         linkage.restore_functions.emplace_back([this]() { this->SetGlobal(true); });
     }
     virtual ~SwitchableSetting() = default;
@@ -256,11 +262,12 @@ public:
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const Type& min_val,
                                const Type& max_val, const std::string& name, Category category_,
                                enum Specialization specialization = Specialization::Default,
-                               bool save_ = true, bool runtime_modifiable_ = false)
+                               bool save_ = true, bool runtime_modifiable_ = false,
+                               BasicSetting* other_setting = nullptr)
         requires(ranged)
-        : Setting<Type, true>{linkage,        default_val, min_val,
-                              max_val,        name,        category_,
-                              specialization, save_,       runtime_modifiable_} {
+        : Setting<Type, true>{
+              linkage, default_val,         min_val,      max_val, name, category_, specialization,
+              save_,   runtime_modifiable_, other_setting} {
         linkage.restore_functions.emplace_back([this]() { this->SetGlobal(true); });
     }
 
