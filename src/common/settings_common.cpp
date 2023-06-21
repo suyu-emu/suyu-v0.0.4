@@ -7,8 +7,8 @@
 namespace Settings {
 
 BasicSetting::BasicSetting(Linkage& linkage, const std::string& name, enum Category category_,
-                           bool save_, bool runtime_modifiable_,
-                           enum Specialization specialization_, BasicSetting* other_setting_)
+                           bool save_, bool runtime_modifiable_, u32 specialization_,
+                           BasicSetting* other_setting_)
     : label{name}, category{category_}, id{linkage.count}, save{save_},
       runtime_modifiable{runtime_modifiable_}, specialization{specialization_},
       other_setting{other_setting_} {
@@ -40,7 +40,7 @@ Category BasicSetting::Category() const {
     return category;
 }
 
-Specialization BasicSetting::Specialization() const {
+u32 BasicSetting::Specialization() const {
     return specialization;
 }
 

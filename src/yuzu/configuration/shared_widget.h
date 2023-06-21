@@ -58,14 +58,14 @@ public:
      * @param managed Set true if the caller will set up component data and handling
      * @param multiplier Value to multiply the slider feedback label
      * @param other_setting Second setting to modify, to replace the label with a checkbox
-     * @param string Set to specify formats for Slider feedback labels or SpinBox
+     * @param suffix Set to specify formats for Slider feedback labels or SpinBox
      */
     explicit Widget(Settings::BasicSetting* setting, const TranslationMap& translations,
                     const ComboboxTranslationMap& combobox_translations, QWidget* parent,
                     bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs_,
                     RequestType request = RequestType::Default, bool managed = true,
                     float multiplier = 1.0f, Settings::BasicSetting* other_setting = nullptr,
-                    const QString& string = QStringLiteral(""));
+                    const QString& suffix = QStringLiteral(""));
     virtual ~Widget();
 
     /**
@@ -95,7 +95,7 @@ public:
 private:
     void SetupComponent(const QString& label, std::function<void()>& load_func, bool managed,
                         RequestType request, float multiplier,
-                        Settings::BasicSetting* other_setting, const QString& string);
+                        Settings::BasicSetting* other_setting, const QString& suffix);
 
     QLabel* CreateLabel(const QString& text);
     QWidget* CreateCheckBox(Settings::BasicSetting* bool_setting, const QString& label,
@@ -111,7 +111,7 @@ private:
                             bool managed = true);
     QWidget* CreateHexEdit(std::function<std::string()>& serializer,
                            std::function<void()>& restore_func, const std::function<void()>& touch);
-    QWidget* CreateSlider(bool reversed, float multiplier, const QString& format,
+    QWidget* CreateSlider(bool reversed, float multiplier, const QString& suffix,
                           std::function<std::string()>& serializer,
                           std::function<void()>& restore_func, const std::function<void()>& touch);
     QWidget* CreateDateTimeEdit(bool disabled, bool restrict,
@@ -140,13 +140,13 @@ public:
                         std::forward_list<std::function<void(bool)>>& apply_funcs,
                         RequestType request = RequestType::Default, bool managed = true,
                         float multiplier = 1.0f, Settings::BasicSetting* other_setting = nullptr,
-                        const QString& string = QStringLiteral("")) const;
+                        const QString& suffix = QStringLiteral("")) const;
 
     Widget* BuildWidget(Settings::BasicSetting* setting,
                         std::forward_list<std::function<void(bool)>>& apply_funcs,
                         Settings::BasicSetting* other_setting,
                         RequestType request = RequestType::Default,
-                        const QString& string = QStringLiteral("")) const;
+                        const QString& suffix = QStringLiteral("")) const;
 
     const ComboboxTranslationMap& ComboboxTranslations() const;
 

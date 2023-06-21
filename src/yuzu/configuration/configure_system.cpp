@@ -106,16 +106,7 @@ void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
     push(Settings::values.linkage.by_category[Settings::Category::System]);
 
     for (auto setting : settings) {
-        ConfigurationShared::Widget* widget = [this, setting, &builder]() {
-            if (setting->Id() == Settings::values.speed_limit.Id()) {
-                // speed_limit must be specified to translate the percentage
-                return builder.BuildWidget(setting, apply_funcs, &Settings::values.use_speed_limit,
-                                           ConfigurationShared::RequestType::SpinBox,
-                                           tr("%", "Limit speed percentage (e.g. 50%)"));
-            } else {
-                return builder.BuildWidget(setting, apply_funcs);
-            }
-        }();
+        ConfigurationShared::Widget* widget = builder.BuildWidget(setting, apply_funcs);
 
         if (widget == nullptr) {
             continue;

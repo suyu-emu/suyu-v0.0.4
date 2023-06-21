@@ -43,15 +43,21 @@ enum class Category : u32 {
     MaxEnum,
 };
 
-enum class Specialization : u32 {
-    Default,
-    Time,
-    Hex,
-    List,
-    RuntimeList,
-    Scalar,
-    Countable,
-    Paired,
+constexpr u8 SpecializationTypeMask = 0xf;
+constexpr u8 SpecializationAttributeMask = 0xf0;
+constexpr u8 SpecializationAttributeOffset = 4;
+
+enum Specialization : u8 {
+    Default = 0,
+    Time = 1,
+    Hex = 2,
+    List = 3,
+    RuntimeList = 4,
+    Scalar = 5,
+    Countable = 6,
+    Paired = 7,
+
+    Percentage = (1 << SpecializationAttributeOffset),
 };
 
 bool IsConfiguringGlobal();
@@ -75,7 +81,7 @@ public:
 class BasicSetting {
 protected:
     explicit BasicSetting(Linkage& linkage, const std::string& name, enum Category category_,
-                          bool save_, bool runtime_modifiable_, Specialization spec,
+                          bool save_, bool runtime_modifiable_, u32 specialization,
                           BasicSetting* other_setting);
 
 public:
@@ -195,7 +201,7 @@ public:
     /**
      * @returns Extra metadata for data representation in frontend implementations.
      */
-    [[nodiscard]] enum Specialization Specialization() const;
+    [[nodiscard]] u32 Specialization() const;
 
     /**
      * @returns Another BasicSetting if one is paired, or nullptr otherwise.
@@ -240,9 +246,8 @@ private:
     const u32 id;                 ///< Unique integer for the setting
     const bool save; ///< Suggests if the setting should be saved and read to a frontend config
     const bool
-        runtime_modifiable; ///< Suggests if the setting can be modified while a guest is running
-    const enum Specialization
-        specialization;                ///< Extra data to identify representation of a setting
+        runtime_modifiable;   ///< Suggests if the setting can be modified while a guest is running
+    const u32 specialization; ///< Extra data to identify representation of a setting
     BasicSetting* const other_setting; ///< A paired setting
 };
 

@@ -35,8 +35,7 @@ public:
      * @param category_ Category of the setting AKA INI group
      */
     explicit Setting(Linkage& linkage, const Type& default_val, const std::string& name,
-                     enum Category category_,
-                     enum Specialization specialization = Specialization::Default,
+                     enum Category category_, u32 specialization = Specialization::Default,
                      bool save_ = true, bool runtime_modifiable_ = false,
                      BasicSetting* other_setting = nullptr)
         requires(!ranged)
@@ -57,9 +56,8 @@ public:
      */
     explicit Setting(Linkage& linkage, const Type& default_val, const Type& min_val,
                      const Type& max_val, const std::string& name, enum Category category_,
-                     enum Specialization specialization = Specialization::Default,
-                     bool save_ = true, bool runtime_modifiable_ = false,
-                     BasicSetting* other_setting = nullptr)
+                     u32 specialization = Specialization::Default, bool save_ = true,
+                     bool runtime_modifiable_ = false, BasicSetting* other_setting = nullptr)
         requires(ranged)
         : BasicSetting(linkage, name, category_, save_, runtime_modifiable_, specialization,
                        other_setting),
@@ -237,8 +235,7 @@ public:
      * @param category_ Category of the setting AKA INI group
      */
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const std::string& name,
-                               Category category_,
-                               enum Specialization specialization = Specialization::Default,
+                               Category category_, u32 specialization = Specialization::Default,
                                bool save_ = true, bool runtime_modifiable_ = false,
                                BasicSetting* other_setting = nullptr)
         requires(!ranged)
@@ -261,8 +258,8 @@ public:
      */
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const Type& min_val,
                                const Type& max_val, const std::string& name, Category category_,
-                               enum Specialization specialization = Specialization::Default,
-                               bool save_ = true, bool runtime_modifiable_ = false,
+                               u32 specialization = Specialization::Default, bool save_ = true,
+                               bool runtime_modifiable_ = false,
                                BasicSetting* other_setting = nullptr)
         requires(ranged)
         : Setting<Type, true>{

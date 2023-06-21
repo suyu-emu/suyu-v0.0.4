@@ -50,6 +50,20 @@ static std::string RelevantDefault(const Settings::BasicSetting& setting) {
     return Settings::IsConfiguringGlobal() ? setting.DefaultToString() : setting.ToStringGlobal();
 }
 
+static QString DefaultSuffix(QWidget* parent, Settings::BasicSetting& setting) {
+    const auto tr = [parent](const char* text, const char* context) {
+        return parent->tr(text, context);
+    };
+
+    if ((setting.Specialization() & Settings::SpecializationAttributeMask) ==
+        Settings::Specialization::Percentage) {
+        std::string context{fmt::format("{} percentage (e.g. 50%)", setting.GetLabel())};
+        return tr("%", context.c_str());
+    }
+
+    return QStringLiteral("");
+}
+
 QPushButton* Widget::CreateRestoreGlobalButton(bool using_global, QWidget* parent) {
     restore_button_count++;
 
@@ -180,7 +194,7 @@ QWidget* Widget::CreateLineEdit(std::function<std::string()>& serializer,
     return line_edit;
 }
 
-QWidget* Widget::CreateSlider(bool reversed, float multiplier, const QString& format,
+QWidget* Widget::CreateSlider(bool reversed, float multiplier, const QString& given_suffix,
                               std::function<std::string()>& serializer,
                               std::function<void()>& restore_func,
                               const std::function<void()>& touch) {
@@ -205,7 +219,10 @@ QWidget* Widget::CreateSlider(bool reversed, float multiplier, const QString& fo
 
     int max_val = std::stoi(setting.MaxVal());
 
-    const QString use_format = format == QStringLiteral("") ? QStringLiteral("%1") : format;
+    QString suffix =
+        given_suffix == QStringLiteral("") ? DefaultSuffix(this, setting) : given_suffix;
+
+    const QString use_format = QStringLiteral("%1").append(suffix);
 
     QObject::connect(slider, &QAbstractSlider::valueChanged, [=](int value) {
         int present = (reversed ? max_val - value : value) * multiplier + 0.5f;
@@ -228,7 +245,8 @@ QWidget* Widget::CreateSlider(bool reversed, float multiplier, const QString& fo
     return container;
 }
 
-QWidget* Widget::CreateSpinBox(const QString& suffix, std::function<std::string()>& serializer,
+QWidget* Widget::CreateSpinBox(const QString& given_suffix,
+                               std::function<std::string()>& serializer,
                                std::function<void()>& restore_func,
                                const std::function<void()>& touch) {
     const int min_val =
@@ -236,6 +254,9 @@ QWidget* Widget::CreateSpinBox(const QString& suffix, std::function<std::string(
     const int max_val =
         setting.Ranged() ? std::stoi(setting.MaxVal()) : std::numeric_limits<int>::max();
     const int default_val = std::stoi(setting.ToString());
+
+    QString suffix =
+        given_suffix == QStringLiteral("") ? DefaultSuffix(this, setting) : given_suffix;
 
     spinbox = new QSpinBox(this);
     spinbox->setRange(min_val, max_val);
@@ -338,7 +359,7 @@ QWidget* Widget::CreateDateTimeEdit(bool disabled, bool restrict,
 
 void Widget::SetupComponent(const QString& label, std::function<void()>& load_func, bool managed,
                             RequestType request, float multiplier,
-                            Settings::BasicSetting* other_setting, const QString& string) {
+                            Settings::BasicSetting* other_setting, const QString& suffix) {
     created = true;
     const auto type = setting.TypeId();
 
@@ -391,7 +412,7 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
         if (request != RequestType::Default) {
             return request;
         }
-        switch (setting.Specialization()) {
+        switch (setting.Specialization() & Settings::SpecializationTypeMask) {
         case Settings::Specialization::Default:
             return RequestType::Default;
         case Settings::Specialization::Time:
@@ -422,7 +443,7 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
         switch (request) {
         case RequestType::Slider:
         case RequestType::ReverseSlider:
-            data_component = CreateSlider(request == RequestType::ReverseSlider, multiplier, string,
+            data_component = CreateSlider(request == RequestType::ReverseSlider, multiplier, suffix,
                                           serializer, restore_func, touch);
             break;
         case RequestType::Default:
@@ -434,7 +455,7 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
                                                 serializer, restore_func, touch);
             break;
         case RequestType::SpinBox:
-            data_component = CreateSpinBox(string, serializer, restore_func, touch);
+            data_component = CreateSpinBox(suffix, serializer, restore_func, touch);
             break;
         case RequestType::HexEdit:
             data_component = CreateHexEdit(serializer, restore_func, touch);
@@ -527,7 +548,7 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
                const ComboboxTranslationMap& combobox_translations_, QWidget* parent_,
                bool runtime_lock_, std::forward_list<std::function<void(bool)>>& apply_funcs_,
                RequestType request, bool managed, float multiplier,
-               Settings::BasicSetting* other_setting, const QString& string)
+               Settings::BasicSetting* other_setting, const QString& suffix)
     : QWidget(parent_), parent{parent_}, translations{translations_},
       combobox_enumerations{combobox_translations_}, setting{*setting_}, apply_funcs{apply_funcs_},
       runtime_lock{runtime_lock_} {
@@ -555,7 +576,7 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
 
     std::function<void()> load_func = []() {};
 
-    SetupComponent(label, load_func, managed, request, multiplier, other_setting, string);
+    SetupComponent(label, load_func, managed, request, multiplier, other_setting, suffix);
 
     if (!created) {
         LOG_WARNING(Frontend, "No widget was created for \"{}\"", setting.GetLabel());
@@ -587,7 +608,7 @@ Builder::~Builder() = default;
 Widget* Builder::BuildWidget(Settings::BasicSetting* setting,
                              std::forward_list<std::function<void(bool)>>& apply_funcs,
                              RequestType request, bool managed, float multiplier,
-                             Settings::BasicSetting* other_setting, const QString& string) const {
+                             Settings::BasicSetting* other_setting, const QString& suffix) const {
     if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
         return nullptr;
     }
@@ -598,14 +619,14 @@ Widget* Builder::BuildWidget(Settings::BasicSetting* setting,
     }
 
     return new Widget(setting, *translations, *combobox_translations, parent, runtime_lock,
-                      apply_funcs, request, managed, multiplier, other_setting, string);
+                      apply_funcs, request, managed, multiplier, other_setting, suffix);
 }
 
 Widget* Builder::BuildWidget(Settings::BasicSetting* setting,
                              std::forward_list<std::function<void(bool)>>& apply_funcs,
                              Settings::BasicSetting* other_setting, RequestType request,
-                             const QString& string) const {
-    return BuildWidget(setting, apply_funcs, request, true, 1.0f, other_setting, string);
+                             const QString& suffix) const {
+    return BuildWidget(setting, apply_funcs, request, true, 1.0f, other_setting, suffix);
 }
 
 const ComboboxTranslationMap& Builder::ComboboxTranslations() const {

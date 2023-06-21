@@ -137,8 +137,15 @@ struct Values {
     SwitchableSetting<AudioMode, true> sound_index{linkage,         AudioMode::Stereo,
                                                    AudioMode::Mono, AudioMode::Surround,
                                                    "sound_index",   Category::SystemAudio};
-    SwitchableSetting<u8, true> volume{
-        linkage, 100, 0, 200, "volume", Category::Audio, Specialization::Scalar, true, true};
+    SwitchableSetting<u8, true> volume{linkage,
+                                       100,
+                                       0,
+                                       200,
+                                       "volume",
+                                       Category::Audio,
+                                       Specialization::Scalar | Specialization::Percentage,
+                                       true,
+                                       true};
     Setting<bool, false> audio_muted{
         linkage, false, "audio_muted", Category::Audio, Specialization::Default, false};
     Setting<bool, false> dump_audio_commands{
@@ -156,7 +163,7 @@ struct Values {
                                              9999,
                                              "speed_limit",
                                              Category::Core,
-                                             Specialization::Countable,
+                                             Specialization::Countable | Specialization::Percentage,
                                              true,
                                              true,
                                              &use_speed_limit};
@@ -268,9 +275,16 @@ struct Values {
                                                   Specialization::Default,
                                                   true,
                                                   true};
-    SwitchableSetting<int, true> fsr_sharpening_slider{
-        linkage, 25,  0, 200, "fsr_sharpening_slider", Category::Renderer, Specialization::Scalar,
-        true,    true};
+    SwitchableSetting<int, true> fsr_sharpening_slider{linkage,
+                                                       25,
+                                                       0,
+                                                       200,
+                                                       "fsr_sharpening_slider",
+                                                       Category::Renderer,
+                                                       Specialization::Scalar |
+                                                           Specialization::Percentage,
+                                                       true,
+                                                       true};
 
     SwitchableSetting<u8, false> bg_red{
         linkage, 0, "bg_red", Category::Renderer, Specialization::Default, true, true};

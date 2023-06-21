@@ -43,17 +43,7 @@ void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
     push(Settings::Category::SystemAudio);
 
     for (auto* setting : settings) {
-        auto* widget = [&]() {
-            // TODO (lat9nq): Let the system manage sink_id
-            if (setting->Id() == Settings::values.volume.Id()) {
-                // volume needs to be a slider (default is line edit)
-                return builder.BuildWidget(setting, apply_funcs, nullptr,
-                                           ConfigurationShared::RequestType::Slider,
-                                           tr("%1%", "Volume percentage (e.g. 50%)"));
-            } else {
-                return builder.BuildWidget(setting, apply_funcs);
-            }
-        }();
+        auto* widget = builder.BuildWidget(setting, apply_funcs);
 
         if (widget == nullptr) {
             continue;
@@ -66,6 +56,7 @@ void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
         layout.addWidget(widget);
 
         if (setting->Id() == Settings::values.sink_id.Id()) {
+            // TODO (lat9nq): Let the system manage sink_id
             sink_combo_box = widget->combobox;
             InitializeAudioSinkComboBox();
 

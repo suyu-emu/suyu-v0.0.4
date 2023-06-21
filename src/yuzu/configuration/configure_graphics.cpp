@@ -232,10 +232,10 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
     for (const auto setting : Settings::values.linkage.by_category[Settings::Category::Renderer]) {
         ConfigurationShared::Widget* widget = [&]() {
             if (setting->Id() == Settings::values.fsr_sharpening_slider.Id()) {
-                // FSR needs a reversed slider
+                // FSR needs a reversed slider and a 0.5 multiplier
                 return builder.BuildWidget(
                     setting, apply_funcs, ConfigurationShared::RequestType::ReverseSlider, true,
-                    0.5f, nullptr, tr("%1%", "FSR sharpening percentage (e.g. 50%)"));
+                    0.5f, nullptr, tr("%", "FSR sharpening percentage (e.g. 50%)"));
             } else {
                 return builder.BuildWidget(setting, apply_funcs);
             }
