@@ -3,14 +3,71 @@
 
 #pragma once
 
-#include <map>
 #include <string>
-#include <type_traits>
-#include <typeindex>
-#include <typeinfo>
+#include <utility>
+#include <vector>
 #include "common/common_types.h"
 
 namespace Settings {
+
+template <typename T>
+struct Canonicalization {
+    static constexpr std::vector<std::pair<std::string, u32>> Get();
+};
+
+#define PAIR_45(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_46(N, __VA_ARGS__))
+#define PAIR_44(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_45(N, __VA_ARGS__))
+#define PAIR_43(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_44(N, __VA_ARGS__))
+#define PAIR_42(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_43(N, __VA_ARGS__))
+#define PAIR_41(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_42(N, __VA_ARGS__))
+#define PAIR_40(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_41(N, __VA_ARGS__))
+#define PAIR_39(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_40(N, __VA_ARGS__))
+#define PAIR_38(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_39(N, __VA_ARGS__))
+#define PAIR_37(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_38(N, __VA_ARGS__))
+#define PAIR_36(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_37(N, __VA_ARGS__))
+#define PAIR_35(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_36(N, __VA_ARGS__))
+#define PAIR_34(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_35(N, __VA_ARGS__))
+#define PAIR_33(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_34(N, __VA_ARGS__))
+#define PAIR_32(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_33(N, __VA_ARGS__))
+#define PAIR_31(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_32(N, __VA_ARGS__))
+#define PAIR_30(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_31(N, __VA_ARGS__))
+#define PAIR_29(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_30(N, __VA_ARGS__))
+#define PAIR_28(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_29(N, __VA_ARGS__))
+#define PAIR_27(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_28(N, __VA_ARGS__))
+#define PAIR_26(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_27(N, __VA_ARGS__))
+#define PAIR_25(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_26(N, __VA_ARGS__))
+#define PAIR_24(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_25(N, __VA_ARGS__))
+#define PAIR_23(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_24(N, __VA_ARGS__))
+#define PAIR_22(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_23(N, __VA_ARGS__))
+#define PAIR_21(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_22(N, __VA_ARGS__))
+#define PAIR_20(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_21(N, __VA_ARGS__))
+#define PAIR_19(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_20(N, __VA_ARGS__))
+#define PAIR_18(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_19(N, __VA_ARGS__))
+#define PAIR_17(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_18(N, __VA_ARGS__))
+#define PAIR_16(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_17(N, __VA_ARGS__))
+#define PAIR_15(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_16(N, __VA_ARGS__))
+#define PAIR_14(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_15(N, __VA_ARGS__))
+#define PAIR_13(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_14(N, __VA_ARGS__))
+#define PAIR_12(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_13(N, __VA_ARGS__))
+#define PAIR_11(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_12(N, __VA_ARGS__))
+#define PAIR_10(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_11(N, __VA_ARGS__))
+#define PAIR_9(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_10(N, __VA_ARGS__))
+#define PAIR_8(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_9(N, __VA_ARGS__))
+#define PAIR_7(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_8(N, __VA_ARGS__))
+#define PAIR_6(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_7(N, __VA_ARGS__))
+#define PAIR_5(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_6(N, __VA_ARGS__))
+#define PAIR_4(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_5(N, __VA_ARGS__))
+#define PAIR_3(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_4(N, __VA_ARGS__))
+#define PAIR_2(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_3(N, __VA_ARGS__))
+#define PAIR_1(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_2(N, __VA_ARGS__))
+#define PAIR(N, X, ...) {#X, static_cast<u32>(N::X)} __VA_OPT__(, PAIR_1(N, __VA_ARGS__))
+
+#define ENUM(NAME, ...)                                                                            \
+    enum class NAME : u32 { __VA_ARGS__ };                                                         \
+    template <>                                                                                    \
+    constexpr std::vector<std::pair<std::string, u32>> Canonicalization<NAME>::Get() {             \
+        return {PAIR(NAME, __VA_ARGS__)};                                                          \
+    }
 
 enum class AudioEngine : u32 {
     Auto,
@@ -19,380 +76,121 @@ enum class AudioEngine : u32 {
     Null,
 };
 
-enum class AudioMode : u32 {
-    Mono,
-    Stereo,
-    Surround,
-};
+template <>
+constexpr std::vector<std::pair<std::string, u32>> Canonicalization<AudioEngine>::Get() {
+    return {
+        {"auto", static_cast<u32>(AudioEngine::Auto)},
+        {"cubeb", static_cast<u32>(AudioEngine::Cubeb)},
+        {"sdl2", static_cast<u32>(AudioEngine::Sdl2)},
+        {"null", static_cast<u32>(AudioEngine::Null)},
+    };
+}
 
-enum class Language : u32 {
-    Japanese,
-    EnglishAmerican,
-    French,
-    German,
-    Italian,
-    Spanish,
-    Chinese,
-    Korean,
-    Dutch,
-    Portuguese,
-    Russian,
-    Taiwanese,
-    EnglishBritish,
-    FrenchCanadian,
-    SpanishLatin,
-    ChineseSimplified,
-    ChineseTraditional,
-    PortugueseBrazilian,
-};
+ENUM(AudioMode, Mono, Stereo, Surround);
 
-enum class Region : u32 {
-    Japan,
-    Usa,
-    Europe,
-    Australia,
-    China,
-    Korea,
-    Taiwan,
-};
+ENUM(Language, Japanese, EnglishAmerican, French, German, Italian, Spanish, Chinese, Korean, Dutch,
+     Portuguese, Russian, Taiwanese, EnglishBritish, FrenchCanadian, SpanishLatin,
+     ChineseSimplified, ChineseTraditional, PortugueseBrazilian);
 
-enum class TimeZone : u32 {
-    Auto,
-    Default,
-    CET,
-    CST6CDT,
-    Cuba,
-    EET,
-    Egypt,
-    Eire,
-    EST,
-    EST5EDT,
-    GB,
-    GBEire,
-    GMT,
-    GMTPlusZero,
-    GMTMinusZero,
-    GMTZero,
-    Greenwich,
-    Hongkong,
-    HST,
-    Iceland,
-    Iran,
-    Israel,
-    Jamaica,
-    Japan,
-    Kwajalein,
-    Libya,
-    MET,
-    MST,
-    MST7MDT,
-    Navajo,
-    NZ,
-    NZCHAT,
-    Poland,
-    Portugal,
-    PRC,
-    PST8PDT,
-    ROC,
-    ROK,
-    Singapore,
-    Turkey,
-    UCT,
-    Universal,
-    UTC,
-    W_SU,
-    WET,
-    Zulu,
-};
+ENUM(Region, Japan, Usa, Europe, Australia, China, Korea, Taiwan);
 
-enum class AnisotropyMode : u32 {
-    Automatic = 0,
-    Default = 1,
-    X2 = 2,
-    X4 = 3,
-    X8 = 4,
-    X16 = 5,
-};
+ENUM(TimeZone, Auto, Default, CET, CST6CDT, Cuba, EET, Egypt, Eire, EST, EST5EDT, GB, GBEire, GMT,
+     GMTPlusZero, GMTMinusZero, GMTZero, Greenwich, Hongkong, HST, Iceland, Iran, Israel, Jamaica,
+     Japan, Kwajalein, Libya, MET, MST, MST7MDT, Navajo, NZ, NZCHAT, Poland, Portugal, PRC, PST8PDT,
+     ROC, ROK, Singapore, Turkey, UCT, Universal, UTC, W_SU, WET, Zulu);
 
-enum class AstcDecodeMode : u32 {
-    Cpu = 0,
-    Gpu = 1,
-    CpuAsynchronous = 2,
-};
+ENUM(AnisotropyMode, Automatic, Default, X2, X4, X8, X16);
 
-enum class AstcRecompression : u32 {
-    Uncompressed = 0,
-    Bc1 = 1,
-    Bc3 = 2,
-};
+ENUM(AstcDecodeMode, Cpu, Gpu, CpuAsynchronous);
 
-enum class VSyncMode : u32 {
-    Immediate = 0,
-    Mailbox = 1,
-    Fifo = 2,
-    FifoRelaxed = 3,
-};
+ENUM(AstcRecompression, Uncompressed, Bc1, Bc3);
 
-enum class RendererBackend : u32 {
-    OpenGL = 0,
-    Vulkan = 1,
-    Null = 2,
-};
+ENUM(VSyncMode, Immediate, Mailbox, Fifo, FifoRelaxed);
 
-enum class ShaderBackend : u32 {
-    Glsl = 0,
-    Glasm = 1,
-    SpirV = 2,
-};
+ENUM(RendererBackend, OpenGL, Vulkan, Null);
 
-enum class GpuAccuracy : u32 {
-    Normal = 0,
-    High = 1,
-    Extreme = 2,
-};
+ENUM(ShaderBackend, Glsl, Glasm, SpirV);
 
-enum class CpuAccuracy : u32 {
-    Auto = 0,
-    Accurate = 1,
-    Unsafe = 2,
-    Paranoid = 3,
-};
+ENUM(GpuAccuracy, Normal, High, Extreme);
 
-enum class FullscreenMode : u32 {
-    Borderless = 0,
-    Exclusive = 1,
-};
+ENUM(CpuAccuracy, Auto, Accurate, Unsafe, Paranoid);
 
-enum class NvdecEmulation : u32 {
-    Off = 0,
-    Cpu = 1,
-    Gpu = 2,
-};
+ENUM(FullscreenMode, Borderless, Exclusive);
 
-enum class ResolutionSetup : u32 {
-    Res1_2X = 0,
-    Res3_4X = 1,
-    Res1X = 2,
-    Res3_2X = 3,
-    Res2X = 4,
-    Res3X = 5,
-    Res4X = 6,
-    Res5X = 7,
-    Res6X = 8,
-    Res7X = 9,
-    Res8X = 10,
-};
+ENUM(NvdecEmulation, Off, Cpu, Gpu);
 
-enum class ScalingFilter : u32 {
-    NearestNeighbor = 0,
-    Bilinear = 1,
-    Bicubic = 2,
-    Gaussian = 3,
-    ScaleForce = 4,
-    Fsr = 5,
-    LastFilter = Fsr,
-};
+ENUM(ResolutionSetup, Res1_2X, Res3_4X, Res1X, Res3_2X, Res2X, Res3X, Res4X, Res5X, Res6X, Res7X,
+     Res8X);
 
-enum class AntiAliasing : u32 {
-    None = 0,
-    Fxaa = 1,
-    Smaa = 2,
-    LastAA = Smaa,
-};
+ENUM(ScalingFilter, NearestNeighbor, Bilinear, Bicubic, Gaussian, ScaleForce, Fsr, LastFilter);
 
-enum class AspectRatio : u32 {
-    R16_9,
-    R4_3,
-    R21_9,
-    R16_10,
-    Stretch,
-};
+ENUM(AntiAliasing, None, Fxaa, Smaa, LastAA);
 
-#define X(ENUM, NAME)                                                                              \
-    { (#NAME), static_cast<u32>(ENUM::NAME) }
-
-static const std::map<std::type_index, std::map<std::string, u32>> canonicalizations = {
-    {typeid(AudioEngine),
-     {
-         {"auto", static_cast<u32>(AudioEngine::Auto)},
-         {"cubeb", static_cast<u32>(AudioEngine::Cubeb)},
-         {"sdl2", static_cast<u32>(AudioEngine::Sdl2)},
-         {"null", static_cast<u32>(AudioEngine::Null)},
-     }},
-    {typeid(AudioMode),
-     {
-         X(AudioMode, Mono),
-         X(AudioMode, Stereo),
-         X(AudioMode, Surround),
-     }},
-    {typeid(Language),
-     {
-         X(Language, Japanese),
-         X(Language, EnglishAmerican),
-         X(Language, French),
-         X(Language, German),
-         X(Language, Italian),
-         X(Language, Spanish),
-         X(Language, Chinese),
-         X(Language, Korean),
-         X(Language, Dutch),
-         X(Language, Portuguese),
-         X(Language, Russian),
-         X(Language, Taiwanese),
-         X(Language, EnglishBritish),
-         X(Language, FrenchCanadian),
-         X(Language, SpanishLatin),
-         X(Language, ChineseSimplified),
-         X(Language, ChineseTraditional),
-         X(Language, PortugueseBrazilian),
-     }},
-    {typeid(Region),
-     {
-         X(Region, Japan),
-         X(Region, Usa),
-         X(Region, Europe),
-         X(Region, Australia),
-         X(Region, China),
-         X(Region, Korea),
-         X(Region, Taiwan),
-     }},
-    {typeid(TimeZone),
-     {
-         X(TimeZone, Auto),        X(TimeZone, Default),      X(TimeZone, CET),
-         X(TimeZone, CST6CDT),     X(TimeZone, Cuba),         X(TimeZone, EET),
-         X(TimeZone, Egypt),       X(TimeZone, Eire),         X(TimeZone, EST5EDT),
-         X(TimeZone, GB),          X(TimeZone, GBEire),       X(TimeZone, GMT),
-         X(TimeZone, GMTPlusZero), X(TimeZone, GMTMinusZero), X(TimeZone, GMTZero),
-         X(TimeZone, Greenwich),   X(TimeZone, Hongkong),     X(TimeZone, HST),
-         X(TimeZone, Iceland),     X(TimeZone, Iran),         X(TimeZone, Israel),
-         X(TimeZone, Jamaica),     X(TimeZone, Japan),        X(TimeZone, Kwajalein),
-         X(TimeZone, Libya),       X(TimeZone, MET),          X(TimeZone, MST),
-         X(TimeZone, MST7MDT),     X(TimeZone, Navajo),       X(TimeZone, NZ),
-         X(TimeZone, NZCHAT),      X(TimeZone, Poland),       X(TimeZone, Portugal),
-         X(TimeZone, PRC),         X(TimeZone, ROC),          X(TimeZone, ROK),
-         X(TimeZone, Singapore),   X(TimeZone, Turkey),       X(TimeZone, UCT),
-         X(TimeZone, Universal),   X(TimeZone, UTC),          X(TimeZone, W_SU),
-         X(TimeZone, WET),         X(TimeZone, Zulu),
-     }},
-    {typeid(AnisotropyMode),
-     {
-         X(AnisotropyMode, Automatic),
-         X(AnisotropyMode, Default),
-         X(AnisotropyMode, X2),
-         X(AnisotropyMode, X4),
-         X(AnisotropyMode, X8),
-         X(AnisotropyMode, X16),
-     }},
-    {typeid(AstcDecodeMode),
-     {
-         X(AstcDecodeMode, Cpu),
-         X(AstcDecodeMode, Gpu),
-         X(AstcDecodeMode, CpuAsynchronous),
-     }},
-    {typeid(AstcRecompression),
-     {
-         X(AstcRecompression, Uncompressed),
-         X(AstcRecompression, Bc1),
-         X(AstcRecompression, Bc3),
-     }},
-    {typeid(VSyncMode),
-     {
-         X(VSyncMode, Immediate),
-         X(VSyncMode, Mailbox),
-         X(VSyncMode, Fifo),
-         X(VSyncMode, FifoRelaxed),
-     }},
-    {typeid(RendererBackend),
-     {
-         X(RendererBackend, OpenGL),
-         X(RendererBackend, Vulkan),
-         X(RendererBackend, Null),
-     }},
-    {typeid(ShaderBackend),
-     {
-         X(ShaderBackend, Glsl),
-         X(ShaderBackend, Glasm),
-         X(ShaderBackend, SpirV),
-     }},
-    {typeid(GpuAccuracy),
-     {
-         X(GpuAccuracy, Normal),
-         X(GpuAccuracy, High),
-         X(GpuAccuracy, Extreme),
-     }},
-    {typeid(CpuAccuracy),
-     {
-         X(CpuAccuracy, Auto),
-         X(CpuAccuracy, Accurate),
-         X(CpuAccuracy, Unsafe),
-         X(CpuAccuracy, Paranoid),
-     }},
-    {typeid(FullscreenMode),
-     {
-         X(FullscreenMode, Borderless),
-         X(FullscreenMode, Exclusive),
-     }},
-    {typeid(NvdecEmulation),
-     {
-         X(NvdecEmulation, Off),
-         X(NvdecEmulation, Cpu),
-         X(NvdecEmulation, Gpu),
-     }},
-    {typeid(ResolutionSetup),
-     {
-         X(ResolutionSetup, Res1_2X),
-         X(ResolutionSetup, Res3_4X),
-         X(ResolutionSetup, Res1X),
-         X(ResolutionSetup, Res3_2X),
-         X(ResolutionSetup, Res2X),
-         X(ResolutionSetup, Res3X),
-         X(ResolutionSetup, Res4X),
-         X(ResolutionSetup, Res5X),
-         X(ResolutionSetup, Res6X),
-         X(ResolutionSetup, Res7X),
-         X(ResolutionSetup, Res8X),
-     }},
-    {typeid(ScalingFilter),
-     {
-         X(ScalingFilter, NearestNeighbor),
-         X(ScalingFilter, Bilinear),
-         X(ScalingFilter, Bicubic),
-         X(ScalingFilter, Gaussian),
-         X(ScalingFilter, ScaleForce),
-         X(ScalingFilter, Fsr),
-     }},
-    {typeid(AntiAliasing),
-     {
-         X(AntiAliasing, None),
-         X(AntiAliasing, Fxaa),
-         X(AntiAliasing, Smaa),
-     }},
-    {typeid(AspectRatio),
-     {
-         X(AspectRatio, R16_9),
-         X(AspectRatio, R4_3),
-         X(AspectRatio, R21_9),
-         X(AspectRatio, R16_10),
-         X(AspectRatio, Stretch),
-     }}};
-
-#undef X
-
-static const std::string invalid_string{"(invalid setting)"};
+ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, Stretch);
 
 template <typename Type>
-const std::string& CanonicalizeEnum(Type id) {
-    auto& group = canonicalizations.at(typeid(Type));
+constexpr std::string CanonicalizeEnum(Type id) {
+    const auto group = Canonicalization<Type>::Get();
     for (auto& [name, value] : group) {
         if (static_cast<Type>(value) == id) {
             return name;
         }
     }
-    return invalid_string;
+    return "unknown";
 }
 
 template <typename Type>
-static Type ToEnum(const std::string& canonicalization) {
-    return static_cast<Type>(canonicalizations.at(typeid(Type)).at(canonicalization));
+constexpr Type ToEnum(const std::string& canonicalization) {
+    const auto group = Canonicalization<Type>::Get();
+    for (auto& [name, value] : group) {
+        if (name == canonicalization) {
+            return static_cast<Type>(value);
+        }
+    }
+    return {};
 }
 } // namespace Settings
+
+#undef ENUM
+#undef PAIR
+#undef PAIR_1
+#undef PAIR_2
+#undef PAIR_3
+#undef PAIR_4
+#undef PAIR_5
+#undef PAIR_6
+#undef PAIR_7
+#undef PAIR_8
+#undef PAIR_9
+#undef PAIR_10
+#undef PAIR_12
+#undef PAIR_13
+#undef PAIR_14
+#undef PAIR_15
+#undef PAIR_16
+#undef PAIR_17
+#undef PAIR_18
+#undef PAIR_19
+#undef PAIR_20
+#undef PAIR_22
+#undef PAIR_23
+#undef PAIR_24
+#undef PAIR_25
+#undef PAIR_26
+#undef PAIR_27
+#undef PAIR_28
+#undef PAIR_29
+#undef PAIR_30
+#undef PAIR_32
+#undef PAIR_33
+#undef PAIR_34
+#undef PAIR_35
+#undef PAIR_36
+#undef PAIR_37
+#undef PAIR_38
+#undef PAIR_39
+#undef PAIR_40
+#undef PAIR_42
+#undef PAIR_43
+#undef PAIR_44
+#undef PAIR_45
