@@ -5,22 +5,23 @@ package org.yuzu.yuzu_emu.utils
 
 import android.app.ActivityManager
 import android.content.Context
+import org.yuzu.yuzu_emu.R
 import java.util.Locale
 
-class MemoryUtil(context: Context) {
+class MemoryUtil(val context: Context) {
 
     private val Long.floatForm: String
         get() = String.format(Locale.ROOT, "%.2f", this.toDouble())
 
     private fun bytesToSizeUnit(size: Long): String {
         return when {
-            size < Kb -> size.floatForm + " byte"
-            size < Mb -> (size / Kb).floatForm + " KB"
-            size < Gb -> (size / Mb).floatForm + " MB"
-            size < Tb -> (size / Gb).floatForm + " GB"
-            size < Pb -> (size / Tb).floatForm + " TB"
-            size < Eb -> (size / Pb).floatForm + " Pb"
-            else -> (size / Eb).floatForm + " Eb"
+            size < Kb -> "${size.floatForm} ${context.getString(R.string.memory_byte)}"
+            size < Mb -> "${(size / Kb).floatForm} ${context.getString(R.string.memory_kilobyte)}"
+            size < Gb -> "${(size / Mb).floatForm} ${context.getString(R.string.memory_megabyte)}"
+            size < Tb -> "${(size / Gb).floatForm} ${context.getString(R.string.memory_gigabyte)}"
+            size < Pb -> "${(size / Tb).floatForm} ${context.getString(R.string.memory_terabyte)}"
+            size < Eb -> "${(size / Pb).floatForm} ${context.getString(R.string.memory_petabyte)}"
+            else -> "${(size / Eb).floatForm} ${context.getString(R.string.memory_exabyte)}"
         }
     }
 

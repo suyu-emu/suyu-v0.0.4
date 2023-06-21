@@ -109,9 +109,9 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             Toast.makeText(
                 this,
                 getString(
-                    R.string.device_memory_inadequate_description,
+                    R.string.device_memory_inadequate,
                     memoryUtil.getDeviceRAM(),
-                    "8 GB"
+                    "8 ${getString(R.string.memory_gigabyte)}"
                 ),
                 Toast.LENGTH_LONG
             ).show()
