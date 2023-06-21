@@ -80,8 +80,8 @@ public:
  */
 class BasicSetting {
 protected:
-    explicit BasicSetting(Linkage& linkage, const std::string& name, enum Category category_,
-                          bool save_, bool runtime_modifiable_, u32 specialization,
+    explicit BasicSetting(Linkage& linkage, const std::string& name, Category category_, bool save_,
+                          bool runtime_modifiable_, u32 specialization,
                           BasicSetting* other_setting);
 
 public:
