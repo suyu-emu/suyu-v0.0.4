@@ -170,7 +170,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
 std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
     std::unique_ptr<ComboboxTranslationMap> translations =
         std::make_unique<ComboboxTranslationMap>();
-    const auto& tr = [&](const char* text) { return parent->tr(text); };
+    const auto& tr = [&](const char* text, const char* context = "") {
+        return parent->tr(text, context);
+    };
 
 #define PAIR(ENUM, VALUE, TRANSLATION)                                                             \
     { static_cast<u32>(Settings::ENUM::VALUE), tr(TRANSLATION) }
