@@ -52,20 +52,6 @@ ConfigureSystem::ConfigureSystem(
 
     Setup(builder);
 
-    connect(rng_seed_checkbox, &QCheckBox::stateChanged, this, [this](int state) {
-        rng_seed_edit->setEnabled(state == Qt::Checked);
-        if (state != Qt::Checked) {
-            rng_seed_edit->setText(QStringLiteral("00000000"));
-        }
-    });
-
-    connect(custom_rtc_checkbox, &QCheckBox::stateChanged, this, [this](int state) {
-        custom_rtc_edit->setEnabled(state == Qt::Checked);
-        if (state != Qt::Checked) {
-            custom_rtc_edit->setDateTime(QDateTime::currentDateTime());
-        }
-    });
-
     const auto locale_check = [this]() {
         const auto region_index = combo_region->currentIndex();
         const auto language_index = combo_language->currentIndex();
@@ -149,19 +135,7 @@ void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
             continue;
         }
 
-        if (setting->Id() == Settings::values.rng_seed.Id()) {
-            // Keep track of rng_seed's widgets to reset it with the checkbox state
-            rng_seed_checkbox = widget->checkbox;
-            rng_seed_edit = widget->line_edit;
-
-            rng_seed_edit->setEnabled(Settings::values.rng_seed_enabled.GetValue());
-        } else if (setting->Id() == Settings::values.custom_rtc.Id()) {
-            // Keep track of custom_rtc's widgets to reset it with the checkbox state
-            custom_rtc_checkbox = widget->checkbox;
-            custom_rtc_edit = widget->date_time_edit;
-
-            custom_rtc_edit->setEnabled(Settings::values.custom_rtc_enabled.GetValue());
-        } else if (setting->Id() == Settings::values.region_index.Id()) {
+        if (setting->Id() == Settings::values.region_index.Id()) {
             // Keep track of the region_index (and langauge_index) combobox to validate the selected
             // settings
             combo_region = widget->combobox;

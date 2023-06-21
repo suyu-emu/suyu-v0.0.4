@@ -50,10 +50,6 @@ private:
 
     Core::System& system;
 
-    QCheckBox* rng_seed_checkbox;
-    QLineEdit* rng_seed_edit;
-    QCheckBox* custom_rtc_checkbox;
-    QDateTimeEdit* custom_rtc_edit;
     QComboBox* combo_region;
     QComboBox* combo_language;
 };

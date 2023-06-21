@@ -46,6 +46,10 @@ namespace ConfigurationShared {
 
 static int restore_button_count = 0;
 
+static std::string RelevantDefault(const Settings::BasicSetting& setting) {
+    return Settings::IsConfiguringGlobal() ? setting.DefaultToString() : setting.ToStringGlobal();
+}
+
 QPushButton* Widget::CreateRestoreGlobalButton(bool using_global, QWidget* parent) {
     restore_button_count++;
 
@@ -92,12 +96,12 @@ QWidget* Widget::CreateCheckBox(Settings::BasicSetting* bool_setting, const QStr
         return checkbox->checkState() == Qt::CheckState::Checked ? "true" : "false";
     };
 
-    if (!Settings::IsConfiguringGlobal()) {
-        restore_func = [this, bool_setting]() {
-            checkbox->setCheckState(bool_setting->ToStringGlobal() == "true" ? Qt::Checked
-                                                                             : Qt::Unchecked);
-        };
+    restore_func = [this, bool_setting]() {
+        checkbox->setCheckState(RelevantDefault(*bool_setting) == "true" ? Qt::Checked
+                                                                         : Qt::Unchecked);
+    };
 
+    if (!Settings::IsConfiguringGlobal()) {
         QObject::connect(checkbox, &QCheckBox::clicked, [touch]() { touch(); });
     }
 
@@ -139,12 +143,12 @@ QWidget* Widget::CreateCombobox(std::function<std::string()>& serializer,
         return std::to_string(enumeration->at(current).first);
     };
 
-    if (!Settings::IsConfiguringGlobal()) {
-        restore_func = [this, find_index]() {
-            const u32 global_value = std::stoi(setting.ToStringGlobal());
-            combobox->setCurrentIndex(find_index(global_value));
-        };
+    restore_func = [this, find_index]() {
+        const u32 global_value = std::stoi(RelevantDefault(setting));
+        combobox->setCurrentIndex(find_index(global_value));
+    };
 
+    if (!Settings::IsConfiguringGlobal()) {
         QObject::connect(combobox, QOverload<int>::of(&QComboBox::activated),
                          [touch]() { touch(); });
     }
@@ -165,11 +169,11 @@ QWidget* Widget::CreateLineEdit(std::function<std::string()>& serializer,
         return line_edit;
     }
 
-    if (!Settings::IsConfiguringGlobal()) {
-        restore_func = [this]() {
-            line_edit->setText(QString::fromStdString(setting.ToStringGlobal()));
-        };
+    restore_func = [this]() {
+        line_edit->setText(QString::fromStdString(RelevantDefault(setting)));
+    };
 
+    if (!Settings::IsConfiguringGlobal()) {
         QObject::connect(line_edit, &QLineEdit::textChanged, [touch]() { touch(); });
     }
 
@@ -215,10 +219,9 @@ QWidget* Widget::CreateSlider(bool reversed, float multiplier, const QString& fo
     slider->setInvertedAppearance(reversed);
 
     serializer = [this]() { return std::to_string(slider->value()); };
+    restore_func = [this]() { slider->setValue(std::stoi(RelevantDefault(setting))); };
 
     if (!Settings::IsConfiguringGlobal()) {
-        restore_func = [this]() { slider->setValue(std::stoi(setting.ToStringGlobal())); };
-
         QObject::connect(slider, &QAbstractSlider::actionTriggered, [touch]() { touch(); });
     }
 
@@ -242,9 +245,12 @@ QWidget* Widget::CreateSpinBox(const QString& suffix, std::function<std::string(
 
     serializer = [this]() { return std::to_string(spinbox->value()); };
 
-    if (!Settings::IsConfiguringGlobal()) {
-        restore_func = [this]() { spinbox->setValue(std::stoi(setting.ToStringGlobal())); };
+    restore_func = [this]() {
+        auto value{std::stol(RelevantDefault(setting))};
+        spinbox->setValue(value);
+    };
 
+    if (!Settings::IsConfiguringGlobal()) {
         QObject::connect(spinbox, QOverload<int>::of(&QSpinBox::valueChanged), [this, touch]() {
             if (spinbox->value() != std::stoi(setting.ToStringGlobal())) {
                 touch();
@@ -264,7 +270,7 @@ QWidget* Widget::CreateHexEdit(std::function<std::string()>& serializer,
     }
 
     auto to_hex = [=](const std::string& input) {
-        return QString::fromStdString(fmt::format("{:08x}", std::stoi(input)));
+        return QString::fromStdString(fmt::format("{:08x}", std::stoul(input)));
     };
 
     QRegExpValidator* regex =
@@ -282,8 +288,9 @@ QWidget* Widget::CreateHexEdit(std::function<std::string()>& serializer,
 
     serializer = [hex_to_dec]() { return hex_to_dec(); };
 
+    restore_func = [this, to_hex]() { line_edit->setText(to_hex(RelevantDefault(setting))); };
+
     if (!Settings::IsConfiguringGlobal()) {
-        restore_func = [this, to_hex]() { line_edit->setText(to_hex(setting.ToStringGlobal())); };
 
         QObject::connect(line_edit, &QLineEdit::textChanged, [touch]() { touch(); });
     }
@@ -306,18 +313,18 @@ QWidget* Widget::CreateDateTimeEdit(bool disabled, bool restrict,
 
     serializer = [this]() { return std::to_string(date_time_edit->dateTime().toSecsSinceEpoch()); };
 
+    auto get_clear_val = [this, restrict, current_time]() {
+        return QDateTime::fromSecsSinceEpoch([this, restrict, current_time]() {
+            if (restrict && checkbox->checkState() == Qt::Checked) {
+                return std::stoll(RelevantDefault(setting));
+            }
+            return current_time;
+        }());
+    };
+
+    restore_func = [this, get_clear_val]() { date_time_edit->setDateTime(get_clear_val()); };
+
     if (!Settings::IsConfiguringGlobal()) {
-        auto get_clear_val = [this, restrict, current_time]() {
-            return QDateTime::fromSecsSinceEpoch([this, restrict, current_time]() {
-                if (restrict && checkbox->checkState() == Qt::Checked) {
-                    return std::stoll(setting.ToStringGlobal());
-                }
-                return current_time;
-            }());
-        };
-
-        restore_func = [this, get_clear_val]() { date_time_edit->setDateTime(get_clear_val()); };
-
         QObject::connect(date_time_edit, &QDateTimeEdit::editingFinished,
                          [this, get_clear_val, touch]() {
                              if (date_time_edit->dateTime() != get_clear_val()) {
@@ -492,6 +499,17 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
                 }
             }
         };
+    }
+
+    if (other_setting != nullptr) {
+        const auto reset = [restore_func, data_component](int state) {
+            data_component->setEnabled(state == Qt::Checked);
+            if (state != Qt::Checked) {
+                restore_func();
+            }
+        };
+        connect(checkbox, &QCheckBox::stateChanged, reset);
+        reset(checkbox->checkState());
     }
 }
 
