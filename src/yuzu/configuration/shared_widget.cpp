@@ -529,11 +529,34 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
     this->setToolTip(tooltip);
 }
 
-Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translations_,
-               const ComboboxTranslationMap& combobox_translations, QWidget* parent_,
-               bool runtime_lock_, std::forward_list<std::function<void(bool)>>& apply_funcs_,
-               Settings::BasicSetting* other_setting, RequestType request, const QString& string)
-    : Widget(setting_, translations_, combobox_translations, parent_, runtime_lock_, apply_funcs_,
-             request, true, 1.0f, other_setting, string) {}
+Builder::Builder(QWidget* parent_, bool runtime_lock_)
+    : translations{InitializeTranslations(parent_)},
+      combobox_translations{ComboboxEnumeration(parent_)}, parent{parent_}, runtime_lock{
+                                                                                runtime_lock_} {}
+
+Builder::~Builder() = default;
+
+Widget* Builder::BuildWidget(Settings::BasicSetting* setting,
+                             std::forward_list<std::function<void(bool)>>& apply_funcs,
+                             RequestType request, bool managed, float multiplier,
+                             Settings::BasicSetting* other_setting, const QString& string) const {
+    if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
+        return nullptr;
+    }
+
+    return new Widget(setting, *translations, *combobox_translations, parent, runtime_lock,
+                      apply_funcs, request, managed, multiplier, other_setting, string);
+}
+
+Widget* Builder::BuildWidget(Settings::BasicSetting* setting,
+                             std::forward_list<std::function<void(bool)>>& apply_funcs,
+                             Settings::BasicSetting* other_setting, RequestType request,
+                             const QString& string) const {
+    return BuildWidget(setting, apply_funcs, request, true, 1.0f, other_setting, string);
+}
+
+const ComboboxTranslationMap& Builder::ComboboxTranslations() const {
+    return *combobox_translations;
+}
 
 } // namespace ConfigurationShared

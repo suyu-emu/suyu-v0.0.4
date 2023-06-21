@@ -32,28 +32,23 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
                                  std::vector<VkDeviceInfo::Record>& vk_device_records,
                                  Core::System& system_, bool enable_web_config)
     : QDialog(parent), ui{std::make_unique<Ui::ConfigureDialog>()},
-      registry(registry_), system{system_},
-      translations{ConfigurationShared::InitializeTranslations(this)},
-      combobox_translations{ConfigurationShared::ComboboxEnumeration(this)},
-      audio_tab{std::make_unique<ConfigureAudio>(system_, nullptr, *translations,
-                                                 *combobox_translations, this)},
-      cpu_tab{std::make_unique<ConfigureCpu>(system_, nullptr, *translations,
-                                             *combobox_translations, this)},
+      registry(registry_), system{system_}, builder{std::make_unique<ConfigurationShared::Builder>(
+                                                this, !system_.IsPoweredOn())},
+      audio_tab{std::make_unique<ConfigureAudio>(system_, nullptr, *builder, this)},
+      cpu_tab{std::make_unique<ConfigureCpu>(system_, nullptr, *builder, this)},
       debug_tab_tab{std::make_unique<ConfigureDebugTab>(system_, this)},
       filesystem_tab{std::make_unique<ConfigureFilesystem>(this)},
-      general_tab{std::make_unique<ConfigureGeneral>(system_, nullptr, *translations,
-                                                     *combobox_translations, this)},
-      graphics_advanced_tab{std::make_unique<ConfigureGraphicsAdvanced>(
-          system_, nullptr, *translations, *combobox_translations, this)},
+      general_tab{std::make_unique<ConfigureGeneral>(system_, nullptr, *builder, this)},
+      graphics_advanced_tab{
+          std::make_unique<ConfigureGraphicsAdvanced>(system_, nullptr, *builder, this)},
       graphics_tab{std::make_unique<ConfigureGraphics>(
           system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
-          nullptr, *translations, *combobox_translations, this)},
+          nullptr, *builder, this)},
       hotkeys_tab{std::make_unique<ConfigureHotkeys>(system_.HIDCore(), this)},
       input_tab{std::make_unique<ConfigureInput>(system_, this)},
       network_tab{std::make_unique<ConfigureNetwork>(system_, this)},
       profile_tab{std::make_unique<ConfigureProfileManager>(system_, this)},
-      system_tab{std::make_unique<ConfigureSystem>(system_, nullptr, *translations,
-                                                   *combobox_translations, this)},
+      system_tab{std::make_unique<ConfigureSystem>(system_, nullptr, *builder, this)},
       ui_tab{std::make_unique<ConfigureUi>(system_, this)}, web_tab{std::make_unique<ConfigureWeb>(
                                                                 this)} {
     Settings::SetConfiguringGlobal(true);

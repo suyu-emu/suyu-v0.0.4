@@ -8,7 +8,6 @@
 #include <memory>
 #include <QWidget>
 #include "yuzu/configuration/configuration_shared.h"
-#include "yuzu/configuration/shared_translation.h"
 
 class QComboBox;
 
@@ -20,14 +19,15 @@ namespace Ui {
 class ConfigureAudio;
 }
 
+namespace ConfigurationShared {
+class Builder;
+}
+
 class ConfigureAudio : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureAudio(
-        const Core::System& system_,
-        std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-        const ConfigurationShared::TranslationMap& translations_,
-        const ConfigurationShared::ComboboxTranslationMap& combobox_translations_,
-        QWidget* parent = nullptr);
+    explicit ConfigureAudio(const Core::System& system_,
+                            std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                            const ConfigurationShared::Builder& builder, QWidget* parent = nullptr);
     ~ConfigureAudio() override;
 
     void ApplyConfiguration() override;
@@ -45,13 +45,11 @@ private:
     void SetOutputSinkFromSinkID();
     void SetAudioDevicesFromDeviceID();
 
-    void Setup();
+    void Setup(const ConfigurationShared::Builder& builder);
 
     std::unique_ptr<Ui::ConfigureAudio> ui;
 
     const Core::System& system;
-    const ConfigurationShared::TranslationMap& translations;
-    const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
 
     std::forward_list<std::function<void(bool)>> apply_funcs{};
 

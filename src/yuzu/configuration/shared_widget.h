@@ -5,6 +5,7 @@
 
 #include <forward_list>
 #include <functional>
+#include <memory>
 #include <string>
 #include <QString>
 #include <QStringLiteral>
@@ -44,28 +45,6 @@ class Widget : public QWidget {
     Q_OBJECT
 
 public:
-    /**
-     * Shorter-hand version of the constructor
-     *
-     * @param setting The primary Setting to create the Widget for
-     * @param translations Map of translations to display on the left side label/checkbox
-     * @param combobox_translations Map of translations for enumerating combo boxes
-     * @param parent Qt parent
-     * @param runtime_lock Emulated guest powered on state, for use on settings that should be
-     * configured during guest execution
-     * @param apply_funcs_ List to append, functions to run to apply the widget state to the setting
-     * @param other_setting Second setting to modify, to replace the label with a checkbox
-     * @param request What type of data representation component to create -- not always respected
-     * for the Setting data type
-     * @param string Set to specify formats for Slider feedback labels or SpinBox
-     */
-    explicit Widget(Settings::BasicSetting* setting, const TranslationMap& translations,
-                    const ComboboxTranslationMap& combobox_translations, QWidget* parent,
-                    bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs_,
-                    Settings::BasicSetting* other_setting,
-                    RequestType request = RequestType::Default,
-                    const QString& string = QStringLiteral(""));
-
     /**
      * @param setting The primary Setting to create the Widget for
      * @param translations Map of translations to display on the left side label/checkbox
@@ -150,6 +129,33 @@ private:
 
     bool created{false};
     bool runtime_lock{false};
+};
+
+class Builder {
+public:
+    explicit Builder(QWidget* parent, bool runtime_lock);
+    ~Builder();
+
+    Widget* BuildWidget(Settings::BasicSetting* setting,
+                        std::forward_list<std::function<void(bool)>>& apply_funcs,
+                        RequestType request = RequestType::Default, bool managed = true,
+                        float multiplier = 1.0f, Settings::BasicSetting* other_setting = nullptr,
+                        const QString& string = QStringLiteral("")) const;
+
+    Widget* BuildWidget(Settings::BasicSetting* setting,
+                        std::forward_list<std::function<void(bool)>>& apply_funcs,
+                        Settings::BasicSetting* other_setting,
+                        RequestType request = RequestType::Default,
+                        const QString& string = QStringLiteral("")) const;
+
+    const ComboboxTranslationMap& ComboboxTranslations() const;
+
+private:
+    std::unique_ptr<TranslationMap> translations;
+    std::unique_ptr<ComboboxTranslationMap> combobox_translations;
+
+    QWidget* parent;
+    const bool runtime_lock;
 };
 
 } // namespace ConfigurationShared

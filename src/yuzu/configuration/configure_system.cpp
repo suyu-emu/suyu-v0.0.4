@@ -46,13 +46,11 @@ static bool IsValidLocale(u32 region_index, u32 language_index) {
 
 ConfigureSystem::ConfigureSystem(
     Core::System& system_, std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
-    const ConfigurationShared::TranslationMap& translations_,
-    const ConfigurationShared::ComboboxTranslationMap& combobox_translations_, QWidget* parent)
-    : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureSystem>()}, system{system_},
-      translations{translations_}, combobox_translations{combobox_translations_} {
+    const ConfigurationShared::Builder& builder, QWidget* parent)
+    : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureSystem>()}, system{system_} {
     ui->setupUi(this);
 
-    Setup();
+    Setup(builder);
 
     connect(rng_seed_checkbox, &QCheckBox::stateChanged, this, [this](int state) {
         rng_seed_edit->setEnabled(state == Qt::Checked);
@@ -104,8 +102,7 @@ void ConfigureSystem::RetranslateUI() {
     ui->retranslateUi(this);
 }
 
-void ConfigureSystem::Setup() {
-    const bool runtime_lock = !system.IsPoweredOn();
+void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
     auto& core_layout = *ui->core_widget->layout();
     auto& system_layout = *ui->system_widget->layout();
 
@@ -123,37 +120,31 @@ void ConfigureSystem::Setup() {
     push(Settings::values.linkage.by_category[Settings::Category::System]);
 
     for (auto setting : settings) {
-        if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
-            continue;
-        }
-
-        [[maybe_unused]] std::string label = setting->GetLabel();
-        ConfigurationShared::Widget* widget = [this, setting, runtime_lock]() {
+        ConfigurationShared::Widget* widget = [this, setting, &builder]() {
             if (setting->Id() == Settings::values.custom_rtc.Id()) {
                 // custom_rtc needs a DateTimeEdit (default is LineEdit), and a checkbox to manage
                 // it and custom_rtc_enabled
-                return new ConfigurationShared::Widget(
-                    setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
-                    &Settings::values.custom_rtc_enabled,
-                    ConfigurationShared::RequestType::DateTimeEdit);
+                return builder.BuildWidget(setting, apply_funcs,
+                                           &Settings::values.custom_rtc_enabled,
+                                           ConfigurationShared::RequestType::DateTimeEdit);
             } else if (setting->Id() == Settings::values.rng_seed.Id()) {
                 // rng_seed needs a HexEdit (default is LineEdit), and a checkbox to manage
                 // it and rng_seed_enabled
-                return new ConfigurationShared::Widget(
-                    setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
-                    &Settings::values.rng_seed_enabled, ConfigurationShared::RequestType::HexEdit);
+                return builder.BuildWidget(setting, apply_funcs, &Settings::values.rng_seed_enabled,
+                                           ConfigurationShared::RequestType::HexEdit);
             } else if (setting->Id() == Settings::values.speed_limit.Id()) {
                 // speed_limit needs a checkbox to set use_speed_limit, as well as a spinbox
-                return new ConfigurationShared::Widget(
-                    setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
-                    &Settings::values.use_speed_limit, ConfigurationShared::RequestType::SpinBox,
-                    tr("%", "Limit speed percentage (e.g. 50%)"));
+                return builder.BuildWidget(setting, apply_funcs, &Settings::values.use_speed_limit,
+                                           ConfigurationShared::RequestType::SpinBox,
+                                           tr("%", "Limit speed percentage (e.g. 50%)"));
             } else {
-                return new ConfigurationShared::Widget(setting, translations, combobox_translations,
-                                                       this, runtime_lock, apply_funcs);
+                return builder.BuildWidget(setting, apply_funcs);
             }
         }();
 
+        if (widget == nullptr) {
+            continue;
+        }
         if (!widget->Valid()) {
             delete widget;
             continue;

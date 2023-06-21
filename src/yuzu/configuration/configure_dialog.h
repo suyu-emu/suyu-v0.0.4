@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include <QDialog>
+#include "configuration/shared_widget.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/shared_translation.h"
 #include "yuzu/vk_device_info.h"
@@ -72,8 +73,7 @@ private:
     HotkeyRegistry& registry;
 
     Core::System& system;
-    std::unique_ptr<ConfigurationShared::TranslationMap> translations;
-    std::unique_ptr<ConfigurationShared::ComboboxTranslationMap> combobox_translations;
+    std::unique_ptr<ConfigurationShared::Builder> builder;
     std::forward_list<ConfigurationShared::Tab*> tab_group;
 
     std::unique_ptr<ConfigureAudio> audio_tab;

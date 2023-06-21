@@ -7,7 +7,6 @@
 #include <memory>
 #include <QWidget>
 #include "yuzu/configuration/configuration_shared.h"
-#include "yuzu/configuration/shared_widget.h"
 
 namespace Core {
 class System;
@@ -20,14 +19,16 @@ namespace Ui {
 class ConfigureGeneral;
 }
 
+namespace ConfigurationShared {
+class Builder;
+}
+
 class ConfigureGeneral : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureGeneral(
-        const Core::System& system_,
-        std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-        const ConfigurationShared::TranslationMap& translations_,
-        const ConfigurationShared::ComboboxTranslationMap& combobox_translations_,
-        QWidget* parent = nullptr);
+    explicit ConfigureGeneral(const Core::System& system_,
+                              std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                              const ConfigurationShared::Builder& builder,
+                              QWidget* parent = nullptr);
     ~ConfigureGeneral() override;
 
     void SetResetCallback(std::function<void()> callback);
@@ -36,6 +37,8 @@ public:
     void SetConfiguration() override;
 
 private:
+    void Setup(const ConfigurationShared::Builder& builder);
+
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
@@ -46,6 +49,4 @@ private:
     std::forward_list<std::function<void(bool)>> apply_funcs{};
 
     const Core::System& system;
-    const ConfigurationShared::TranslationMap& translations;
-    const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
 };

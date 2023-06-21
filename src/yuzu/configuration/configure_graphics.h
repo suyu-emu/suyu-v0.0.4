@@ -6,6 +6,7 @@
 #include <functional>
 #include <memory>
 #include <type_traits>
+#include <typeindex>
 #include <vector>
 #include <QColor>
 #include <QString>
@@ -13,9 +14,9 @@
 #include <qobjectdefs.h>
 #include <vulkan/vulkan_core.h>
 #include "common/common_types.h"
+#include "configuration/shared_translation.h"
 #include "vk_device_info.h"
 #include "yuzu/configuration/configuration_shared.h"
-#include "yuzu/configuration/shared_translation.h"
 
 class QPushButton;
 class QEvent;
@@ -36,15 +37,18 @@ namespace Ui {
 class ConfigureGraphics;
 }
 
+namespace ConfigurationShared {
+class Builder;
+}
+
 class ConfigureGraphics : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureGraphics(
-        const Core::System& system_, std::vector<VkDeviceInfo::Record>& records,
-        const std::function<void()>& expose_compute_option_,
-        std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-        const ConfigurationShared::TranslationMap& translations_,
-        const ConfigurationShared::ComboboxTranslationMap& combobox_translations_,
-        QWidget* parent = nullptr);
+    explicit ConfigureGraphics(const Core::System& system_,
+                               std::vector<VkDeviceInfo::Record>& records,
+                               const std::function<void()>& expose_compute_option_,
+                               std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                               const ConfigurationShared::Builder& builder,
+                               QWidget* parent = nullptr);
     ~ConfigureGraphics() override;
 
     void ApplyConfiguration() override;
@@ -54,7 +58,7 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
-    void Setup();
+    void Setup(const ConfigurationShared::Builder& builder);
 
     void PopulateVSyncModeSelection();
     void UpdateBackgroundColorButton(QColor color);
@@ -89,7 +93,6 @@ private:
     const std::function<void()>& expose_compute_option;
 
     const Core::System& system;
-    const ConfigurationShared::TranslationMap& translations;
     const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
     const std::vector<std::pair<u32, QString>>& shader_mapping;
 

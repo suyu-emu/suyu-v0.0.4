@@ -9,13 +9,11 @@
 
 #include <QWidget>
 #include "yuzu/configuration/configuration_shared.h"
-#include "yuzu/configuration/shared_translation.h"
 
 class QCheckBox;
 class QLineEdit;
 class QComboBox;
 class QDateTimeEdit;
-
 namespace Core {
 class System;
 }
@@ -24,13 +22,16 @@ namespace Ui {
 class ConfigureSystem;
 }
 
+namespace ConfigurationShared {
+class Builder;
+}
+
 class ConfigureSystem : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureSystem(
-        Core::System& system_, std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-        const ConfigurationShared::TranslationMap& translations,
-        const ConfigurationShared::ComboboxTranslationMap& combobox_translations,
-        QWidget* parent = nullptr);
+    explicit ConfigureSystem(Core::System& system_,
+                             std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                             const ConfigurationShared::Builder& builder,
+                             QWidget* parent = nullptr);
     ~ConfigureSystem() override;
 
     void ApplyConfiguration() override;
@@ -40,7 +41,7 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
-    void Setup();
+    void Setup(const ConfigurationShared::Builder& builder);
 
     std::forward_list<std::function<void(bool)>> apply_funcs{};
 
@@ -48,8 +49,6 @@ private:
     bool enabled = false;
 
     Core::System& system;
-    const ConfigurationShared::TranslationMap& translations;
-    const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
 
     QCheckBox* rng_seed_checkbox;
     QLineEdit* rng_seed_edit;

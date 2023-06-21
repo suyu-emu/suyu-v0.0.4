@@ -11,6 +11,7 @@
 #include <QDialog>
 #include <QList>
 
+#include "configuration/shared_widget.h"
 #include "core/file_sys/vfs_types.h"
 #include "vk_device_info.h"
 #include "yuzu/configuration/config.h"
@@ -75,8 +76,7 @@ private:
     std::unique_ptr<Config> game_config;
 
     Core::System& system;
-    std::unique_ptr<ConfigurationShared::TranslationMap> translations;
-    std::unique_ptr<ConfigurationShared::ComboboxTranslationMap> combobox_translations;
+    std::unique_ptr<ConfigurationShared::Builder> builder;
     std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> tab_group;
 
     std::unique_ptr<ConfigurePerGameAddons> addons_tab;

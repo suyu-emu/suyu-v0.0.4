@@ -18,13 +18,15 @@ namespace Ui {
 class ConfigureCpu;
 }
 
+namespace ConfigurationShared {
+class Builder;
+}
+
 class ConfigureCpu : public ConfigurationShared::Tab {
 public:
     explicit ConfigureCpu(const Core::System& system_,
                           std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-                          const ConfigurationShared::TranslationMap& translations,
-                          const ConfigurationShared::ComboboxTranslationMap& combobox_translations,
-                          QWidget* parent = nullptr);
+                          const ConfigurationShared::Builder& builder, QWidget* parent = nullptr);
     ~ConfigureCpu() override;
 
     void ApplyConfiguration() override;
@@ -36,15 +38,13 @@ private:
 
     void UpdateGroup(int index);
 
-    void Setup();
+    void Setup(const ConfigurationShared::Builder& builder);
 
     std::unique_ptr<Ui::ConfigureCpu> ui;
 
     const Core::System& system;
 
-    const ConfigurationShared::TranslationMap& translations;
     const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
-
     std::forward_list<std::function<void(bool)>> apply_funcs{};
 
     QComboBox* accuracy_combobox;

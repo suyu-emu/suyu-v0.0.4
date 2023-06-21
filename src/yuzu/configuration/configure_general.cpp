@@ -15,11 +15,11 @@
 ConfigureGeneral::ConfigureGeneral(
     const Core::System& system_,
     std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
-    const ConfigurationShared::TranslationMap& translations_,
-    const ConfigurationShared::ComboboxTranslationMap& combobox_translations_, QWidget* parent)
-    : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureGeneral>()}, system{system_},
-      translations{translations_}, combobox_translations{combobox_translations_} {
+    const ConfigurationShared::Builder& builder, QWidget* parent)
+    : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureGeneral>()}, system{system_} {
     ui->setupUi(this);
+
+    Setup(builder);
 
     SetConfiguration();
 
@@ -33,17 +33,20 @@ ConfigureGeneral::ConfigureGeneral(
 
 ConfigureGeneral::~ConfigureGeneral() = default;
 
-void ConfigureGeneral::SetConfiguration() {
-    const bool runtime_lock = !system.IsPoweredOn();
+void ConfigureGeneral::SetConfiguration() {}
+
+void ConfigureGeneral::Setup(const ConfigurationShared::Builder& builder) {
     QLayout& layout = *ui->general_widget->layout();
 
     std::map<u32, QWidget*> hold{};
 
     for (const auto setting :
          UISettings::values.linkage.by_category[Settings::Category::UiGeneral]) {
-        auto* widget = new ConfigurationShared::Widget(setting, translations, combobox_translations,
-                                                       this, runtime_lock, apply_funcs);
+        auto* widget = builder.BuildWidget(setting, apply_funcs);
 
+        if (widget == nullptr) {
+            continue;
+        }
         if (!widget->Valid()) {
             delete widget;
             continue;

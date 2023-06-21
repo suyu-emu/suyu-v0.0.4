@@ -16,23 +16,19 @@
 #include "yuzu/configuration/shared_widget.h"
 #include "yuzu/uisettings.h"
 
-ConfigureAudio::ConfigureAudio(
-    const Core::System& system_,
-    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
-    const ConfigurationShared::TranslationMap& translations_,
-    const ConfigurationShared::ComboboxTranslationMap& combobox_translations_, QWidget* parent)
-    : Tab(group_, parent), ui(std::make_unique<Ui::ConfigureAudio>()), system{system_},
-      translations{translations_}, combobox_translations{combobox_translations_} {
+ConfigureAudio::ConfigureAudio(const Core::System& system_,
+                               std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
+                               const ConfigurationShared::Builder& builder, QWidget* parent)
+    : Tab(group_, parent), ui(std::make_unique<Ui::ConfigureAudio>()), system{system_} {
     ui->setupUi(this);
-    Setup();
+    Setup(builder);
 
     SetConfiguration();
 }
 
 ConfigureAudio::~ConfigureAudio() = default;
 
-void ConfigureAudio::Setup() {
-    const bool runtime_lock = !system.IsPoweredOn();
+void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
     auto& layout = *ui->audio_widget->layout();
 
     std::forward_list<Settings::BasicSetting*> settings;
@@ -47,31 +43,27 @@ void ConfigureAudio::Setup() {
     push(Settings::Category::SystemAudio);
 
     for (auto* setting : settings) {
-        if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
-            continue;
-        }
-
         auto* widget = [&]() {
             if (setting->Id() == Settings::values.volume.Id()) {
                 // volume needs to be a slider (default is line edit)
-                return new ConfigurationShared::Widget(setting, translations, combobox_translations,
-                                                       this, runtime_lock, apply_funcs, nullptr,
-                                                       ConfigurationShared::RequestType::Slider,
-                                                       tr("%1%", "Volume percentage (e.g. 50%)"));
+                return builder.BuildWidget(setting, apply_funcs, nullptr,
+                                           ConfigurationShared::RequestType::Slider,
+                                           tr("%1%", "Volume percentage (e.g. 50%)"));
             } else if (setting->Id() == Settings::values.audio_output_device_id.Id() ||
                        setting->Id() == Settings::values.audio_input_device_id.Id() ||
                        setting->Id() == Settings::values.sink_id.Id()) {
                 // These need to be unmanaged comboboxes, so we can populate them ourselves
                 // TODO (lat9nq): Let it manage sink_id
-                return new ConfigurationShared::Widget(
-                    setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
-                    ConfigurationShared::RequestType::ComboBox, false);
+                return builder.BuildWidget(setting, apply_funcs,
+                                           ConfigurationShared::RequestType::ComboBox, false);
             } else {
-                return new ConfigurationShared::Widget(setting, translations, combobox_translations,
-                                                       this, runtime_lock, apply_funcs);
+                return builder.BuildWidget(setting, apply_funcs);
             }
         }();
 
+        if (widget == nullptr) {
+            continue;
+        }
         if (!widget->Valid()) {
             delete widget;
             continue;

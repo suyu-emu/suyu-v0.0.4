@@ -6,7 +6,6 @@
 #include <memory>
 #include <QWidget>
 #include "yuzu/configuration/configuration_shared.h"
-#include "yuzu/configuration/shared_translation.h"
 
 namespace Core {
 class System;
@@ -16,14 +15,16 @@ namespace Ui {
 class ConfigureGraphicsAdvanced;
 }
 
+namespace ConfigurationShared {
+class Builder;
+}
+
 class ConfigureGraphicsAdvanced : public ConfigurationShared::Tab {
 public:
     explicit ConfigureGraphicsAdvanced(
         const Core::System& system_,
         std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
-        const ConfigurationShared::TranslationMap& translations_,
-        const ConfigurationShared::ComboboxTranslationMap& combobox_translations_,
-        QWidget* parent = nullptr);
+        const ConfigurationShared::Builder& builder, QWidget* parent = nullptr);
     ~ConfigureGraphicsAdvanced() override;
 
     void ApplyConfiguration() override;
@@ -32,14 +33,14 @@ public:
     void ExposeComputeOption();
 
 private:
+    void Setup(const ConfigurationShared::Builder& builder);
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
     std::unique_ptr<Ui::ConfigureGraphicsAdvanced> ui;
 
     const Core::System& system;
-    const ConfigurationShared::TranslationMap& translations;
-    const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
+
     std::forward_list<std::function<void(bool)>> apply_funcs;
 
     QWidget* checkbox_enable_compute_pipelines{};

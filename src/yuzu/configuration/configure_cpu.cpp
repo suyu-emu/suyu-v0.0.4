@@ -13,16 +13,14 @@
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_cpu.h"
 
-ConfigureCpu::ConfigureCpu(
-    const Core::System& system_,
-    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
-    const ConfigurationShared::TranslationMap& translations_,
-    const ConfigurationShared::ComboboxTranslationMap& combobox_translations_, QWidget* parent)
+ConfigureCpu::ConfigureCpu(const Core::System& system_,
+                           std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
+                           const ConfigurationShared::Builder& builder, QWidget* parent)
     : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureCpu>()}, system{system_},
-      translations{translations_}, combobox_translations{combobox_translations_} {
+      combobox_translations(builder.ComboboxTranslations()) {
     ui->setupUi(this);
 
-    Setup();
+    Setup(builder);
 
     SetConfiguration();
 
@@ -33,8 +31,7 @@ ConfigureCpu::ConfigureCpu(
 ConfigureCpu::~ConfigureCpu() = default;
 
 void ConfigureCpu::SetConfiguration() {}
-void ConfigureCpu::Setup() {
-    const bool runtime_lock = !system.IsPoweredOn();
+void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
     auto* accuracy_layout = ui->widget_accuracy->layout();
     auto* unsafe_layout = ui->unsafe_widget->layout();
     std::map<std::string, QWidget*> unsafe_hold{};
@@ -50,13 +47,11 @@ void ConfigureCpu::Setup() {
     push(Settings::Category::CpuUnsafe);
 
     for (const auto setting : settings) {
-        if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
+        auto* widget = builder.BuildWidget(setting, apply_funcs);
+
+        if (widget == nullptr) {
             continue;
         }
-
-        auto* widget = new ConfigurationShared::Widget(setting, translations, combobox_translations,
-                                                       this, runtime_lock, apply_funcs);
-
         if (!widget->Valid()) {
             delete widget;
             continue;

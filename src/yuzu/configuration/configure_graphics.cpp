@@ -81,18 +81,17 @@ ConfigureGraphics::ConfigureGraphics(
     const Core::System& system_, std::vector<VkDeviceInfo::Record>& records_,
     const std::function<void()>& expose_compute_option_,
     std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
-    const ConfigurationShared::TranslationMap& translations_,
-    const ConfigurationShared::ComboboxTranslationMap& combobox_translations_, QWidget* parent)
+    const ConfigurationShared::Builder& builder, QWidget* parent)
     : ConfigurationShared::Tab(group_, parent), ui{std::make_unique<Ui::ConfigureGraphics>()},
       records{records_}, expose_compute_option{expose_compute_option_}, system{system_},
-      translations{translations_}, combobox_translations{combobox_translations_},
+      combobox_translations{builder.ComboboxTranslations()},
       shader_mapping{combobox_translations.at(typeid(Settings::ShaderBackend))} {
     vulkan_device = Settings::values.vulkan_device.GetValue();
     RetrieveVulkanDevices();
 
     ui->setupUi(this);
 
-    Setup();
+    Setup(builder);
 
     for (const auto& device : vulkan_devices) {
         vulkan_device_combobox->addItem(device);
@@ -218,8 +217,7 @@ ConfigureGraphics::~ConfigureGraphics() = default;
 
 void ConfigureGraphics::SetConfiguration() {}
 
-void ConfigureGraphics::Setup() {
-    const bool runtime_lock = !system.IsPoweredOn();
+void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
     QLayout* api_layout = ui->api_widget->layout();
     QWidget* api_grid_widget = new QWidget(this);
     QVBoxLayout* api_grid_layout = new QVBoxLayout(api_grid_widget);
@@ -232,30 +230,26 @@ void ConfigureGraphics::Setup() {
     std::forward_list<QWidget*> hold_api;
 
     for (const auto setting : Settings::values.linkage.by_category[Settings::Category::Renderer]) {
-        if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
-            continue;
-        }
-
         ConfigurationShared::Widget* widget = [&]() {
             // Set managed to false on these and set up the comboboxes ourselves
             if (setting->Id() == Settings::values.vulkan_device.Id() ||
                 setting->Id() == Settings::values.shader_backend.Id() ||
                 setting->Id() == Settings::values.vsync_mode.Id()) {
-                return new ConfigurationShared::Widget(
-                    setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
-                    ConfigurationShared::RequestType::ComboBox, false);
+                return builder.BuildWidget(setting, apply_funcs,
+                                           ConfigurationShared::RequestType::ComboBox, false);
             } else if (setting->Id() == Settings::values.fsr_sharpening_slider.Id()) {
                 // FSR needs a reversed slider
-                return new ConfigurationShared::Widget(
-                    setting, translations, combobox_translations, this, runtime_lock, apply_funcs,
-                    ConfigurationShared::RequestType::ReverseSlider, true, 0.5f, nullptr,
-                    tr("%1%", "FSR sharpening percentage (e.g. 50%)"));
+                return builder.BuildWidget(
+                    setting, apply_funcs, ConfigurationShared::RequestType::ReverseSlider, true,
+                    0.5f, nullptr, tr("%1%", "FSR sharpening percentage (e.g. 50%)"));
             } else {
-                return new ConfigurationShared::Widget(setting, translations, combobox_translations,
-                                                       this, runtime_lock, apply_funcs);
+                return builder.BuildWidget(setting, apply_funcs);
             }
         }();
 
+        if (widget == nullptr) {
+            continue;
+        }
         if (!widget->Valid()) {
             delete widget;
             continue;
