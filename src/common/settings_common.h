@@ -220,6 +220,11 @@ public:
      */
     [[nodiscard]] virtual constexpr bool Ranged() const = 0;
 
+    /**
+     * @returns The index of the enum if the underlying setting type is an enum, else max of u32.
+     */
+    [[nodiscard]] virtual constexpr u32 EnumIndex() const = 0;
+
     /*
      * Switchable settings
      */

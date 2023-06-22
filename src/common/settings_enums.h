@@ -11,8 +11,9 @@
 namespace Settings {
 
 template <typename T>
-struct Canonicalization {
-    static constexpr std::vector<std::pair<std::string, T>> Get();
+struct EnumMetadata {
+    static constexpr std::vector<std::pair<std::string, T>> Canonicalizations();
+    static constexpr u32 Index();
 };
 
 #define PAIR_45(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_46(N, __VA_ARGS__))
@@ -65,10 +66,17 @@ struct Canonicalization {
 #define ENUM(NAME, ...)                                                                            \
     enum class NAME : u32 { __VA_ARGS__ };                                                         \
     template <>                                                                                    \
-    constexpr std::vector<std::pair<std::string, NAME>> Canonicalization<NAME>::Get() {            \
+    constexpr std::vector<std::pair<std::string, NAME>> EnumMetadata<NAME>::Canonicalizations() {  \
         return {PAIR(NAME, __VA_ARGS__)};                                                          \
+    }                                                                                              \
+    template <>                                                                                    \
+    constexpr u32 EnumMetadata<NAME>::Index() {                                                    \
+        return __COUNTER__;                                                                        \
     }
 
+// AudioEngine must be specified discretely due to having existing but slightly different
+// canonicalizations
+// TODO (lat9nq): Remove explicit definition of AudioEngine/sink_id
 enum class AudioEngine : u32 {
     Auto,
     Cubeb,
@@ -77,13 +85,21 @@ enum class AudioEngine : u32 {
 };
 
 template <>
-constexpr std::vector<std::pair<std::string, AudioEngine>> Canonicalization<AudioEngine>::Get() {
+constexpr std::vector<std::pair<std::string, AudioEngine>>
+EnumMetadata<AudioEngine>::Canonicalizations() {
     return {
         {"auto", AudioEngine::Auto},
         {"cubeb", AudioEngine::Cubeb},
         {"sdl2", AudioEngine::Sdl2},
         {"null", AudioEngine::Null},
     };
+}
+
+template <>
+constexpr u32 EnumMetadata<AudioEngine>::Index() {
+    // This is just a sufficiently large number that is more than the number of other enums declared
+    // here
+    return 100;
 }
 
 ENUM(AudioMode, Mono, Stereo, Surround);
@@ -130,7 +146,7 @@ ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, Stretch);
 
 template <typename Type>
 constexpr std::string CanonicalizeEnum(Type id) {
-    const auto group = Canonicalization<Type>::Get();
+    const auto group = EnumMetadata<Type>::Canonicalizations();
     for (auto& [name, value] : group) {
         if (value == id) {
             return name;
@@ -141,7 +157,7 @@ constexpr std::string CanonicalizeEnum(Type id) {
 
 template <typename Type>
 constexpr Type ToEnum(const std::string& canonicalization) {
-    const auto group = Canonicalization<Type>::Get();
+    const auto group = EnumMetadata<Type>::Canonicalizations();
     for (auto& [name, value] : group) {
         if (name == canonicalization) {
             return value;

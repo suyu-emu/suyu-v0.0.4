@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <limits>
 #include <map>
 #include <optional>
 #include <stdexcept>
@@ -195,6 +196,14 @@ public:
      */
     virtual std::type_index TypeId() const override {
         return std::type_index(typeid(Type));
+    }
+
+    constexpr u32 EnumIndex() const override {
+        if constexpr (std::is_enum<Type>()) {
+            return EnumMetadata<Type>::Index();
+        } else {
+            return std::numeric_limits<u32>::max();
+        }
     }
 
     virtual std::string MinVal() const override {
