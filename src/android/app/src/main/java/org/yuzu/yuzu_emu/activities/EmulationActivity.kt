@@ -27,13 +27,13 @@ import android.view.MotionEvent
 import android.view.Surface
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.fragment.NavHostFragment
-import kotlin.math.roundToInt
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivityEmulationBinding
@@ -44,8 +44,10 @@ import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
 import org.yuzu.yuzu_emu.utils.ForegroundService
 import org.yuzu.yuzu_emu.utils.InputHandler
+import org.yuzu.yuzu_emu.utils.MemoryUtil
 import org.yuzu.yuzu_emu.utils.NfcReader
 import org.yuzu.yuzu_emu.utils.ThemeHelper
+import kotlin.math.roundToInt
 
 class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var binding: ActivityEmulationBinding
@@ -101,6 +103,19 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
         inputHandler = InputHandler()
         inputHandler.initialize()
+
+        val memoryUtil = MemoryUtil(this)
+        if (memoryUtil.isLessThan(8, MemoryUtil.Gb)) {
+            Toast.makeText(
+                this,
+                getString(
+                    R.string.device_memory_inadequate,
+                    memoryUtil.getDeviceRAM(),
+                    "8 ${getString(R.string.memory_gigabyte)}"
+                ),
+                Toast.LENGTH_LONG
+            ).show()
+        }
 
         // Start a foreground service to prevent the app from getting killed in the background
         val startIntent = Intent(this, ForegroundService::class.java)

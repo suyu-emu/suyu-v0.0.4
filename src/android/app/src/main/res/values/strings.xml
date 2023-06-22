@@ -270,6 +270,7 @@
     <string name="fatal_error">Fatal Error</string>
     <string name="fatal_error_message">A fatal error occurred. Check the log for details.\nContinuing emulation may result in crashes and bugs.</string>
     <string name="performance_warning">Turning off this setting will significantly reduce emulation performance! For the best experience, it is recommended that you leave this setting enabled.</string>
+    <string name="device_memory_inadequate">Device RAM: %1$s\nRecommended: %2$s</string>
 
     <!-- Region Names -->
     <string name="region_japan">Japan</string>
@@ -299,6 +300,15 @@
     <string name="language_simplified_chinese">Simplified Chinese (简体中文)</string>
     <string name="language_traditional_chinese">Traditional Chinese (正體中文)</string>
     <string name="language_brazilian_portuguese">Brazilian Portuguese (Português do Brasil)</string>
+
+    <!-- Memory Sizes -->
+    <string name="memory_byte">Byte</string>
+    <string name="memory_kilobyte">KB</string>
+    <string name="memory_megabyte">MB</string>
+    <string name="memory_gigabyte">GB</string>
+    <string name="memory_terabyte">TB</string>
+    <string name="memory_petabyte">PB</string>
+    <string name="memory_exabyte">EB</string>
 
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
