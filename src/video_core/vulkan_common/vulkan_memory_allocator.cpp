@@ -59,20 +59,6 @@ struct Range {
     return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 }
 
-[[nodiscard]] VkMemoryPropertyFlags MemoryUsageRequiredVmaFlags(MemoryUsage usage) {
-    switch (usage) {
-    case MemoryUsage::DeviceLocal:
-        return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    case MemoryUsage::Upload:
-    case MemoryUsage::Stream:
-        return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-    case MemoryUsage::Download:
-        return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-    }
-    ASSERT_MSG(false, "Invalid memory usage={}", usage);
-    return {};
-}
-
 [[nodiscard]] VkMemoryPropertyFlags MemoryUsagePreferedVmaFlags(MemoryUsage usage) {
     return usage != MemoryUsage::DeviceLocal ? VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
                                              : VkMemoryPropertyFlagBits{};
@@ -259,7 +245,7 @@ vk::Buffer MemoryAllocator::CreateBuffer(const VkBufferCreateInfo& ci, MemoryUsa
         .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT |
                  MemoryUsageVmaFlags(usage),
         .usage = MemoryUsageVma(usage),
-        .requiredFlags = MemoryUsageRequiredVmaFlags(usage),
+        .requiredFlags = 0,
         .preferredFlags = MemoryUsagePreferedVmaFlags(usage),
         .memoryTypeBits = 0,
         .pool = VK_NULL_HANDLE,
