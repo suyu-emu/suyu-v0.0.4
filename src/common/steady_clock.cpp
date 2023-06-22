@@ -28,13 +28,12 @@ static s64 GetSystemTimeNS() {
     // GetSystemTimePreciseAsFileTime returns the file time in 100ns units.
     static constexpr s64 Multiplier = 100;
     // Convert Windows epoch to Unix epoch.
-    static constexpr s64 WindowsEpochToUnixEpochNS = 0x19DB1DED53E8000LL;
+    static constexpr s64 WindowsEpochToUnixEpoch = 0x19DB1DED53E8000LL;
 
     FILETIME filetime;
     GetSystemTimePreciseAsFileTime(&filetime);
     return Multiplier * ((static_cast<s64>(filetime.dwHighDateTime) << 32) +
-                         static_cast<s64>(filetime.dwLowDateTime)) -
-           WindowsEpochToUnixEpochNS;
+                         static_cast<s64>(filetime.dwLowDateTime) - WindowsEpochToUnixEpoch);
 }
 #endif
 

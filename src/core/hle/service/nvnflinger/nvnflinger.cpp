@@ -70,7 +70,8 @@ Nvnflinger::Nvnflinger(Core::System& system_, HosBinderDriverServer& hos_binder_
         [this](std::uintptr_t, s64 time,
                std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
             vsync_signal.store(true);
-            vsync_signal.notify_all();
+            { const auto lock_guard = Lock(); }
+            vsync_signal.notify_one();
             return std::chrono::nanoseconds(GetNextTicks());
         });
 

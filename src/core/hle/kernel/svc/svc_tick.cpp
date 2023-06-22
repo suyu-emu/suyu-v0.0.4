@@ -12,16 +12,8 @@ namespace Kernel::Svc {
 int64_t GetSystemTick(Core::System& system) {
     LOG_TRACE(Kernel_SVC, "called");
 
-    auto& core_timing = system.CoreTiming();
-
     // Returns the value of cntpct_el0 (https://switchbrew.org/wiki/SVC#svcGetSystemTick)
-    const u64 result{core_timing.GetClockTicks()};
-
-    if (!system.Kernel().IsMulticore()) {
-        core_timing.AddTicks(400U);
-    }
-
-    return static_cast<int64_t>(result);
+    return static_cast<int64_t>(system.CoreTiming().GetClockTicks());
 }
 
 int64_t GetSystemTick64(Core::System& system) {

@@ -116,14 +116,11 @@ public:
         return downcount;
     }
 
-    /// Returns current time in emulated CPU cycles
-    u64 GetCPUTicks() const;
-
-    /// Returns current time in emulated in Clock cycles
+    /// Returns the current CNTPCT tick value.
     u64 GetClockTicks() const;
 
-    /// Returns current time in nanoseconds.
-    std::chrono::nanoseconds GetCPUTimeNs() const;
+    /// Returns the current GPU tick value.
+    u64 GetGPUTicks() const;
 
     /// Returns current time in microseconds.
     std::chrono::microseconds GetGlobalTimeUs() const;
@@ -142,8 +139,7 @@ private:
 
     void Reset();
 
-    std::unique_ptr<Common::WallClock> cpu_clock;
-    std::unique_ptr<Common::WallClock> event_clock;
+    std::unique_ptr<Common::WallClock> clock;
 
     s64 global_timer = 0;
 
@@ -171,7 +167,7 @@ private:
     s64 pause_end_time{};
 
     /// Cycle timing
-    u64 ticks{};
+    u64 cpu_ticks{};
     s64 downcount{};
 };
 
