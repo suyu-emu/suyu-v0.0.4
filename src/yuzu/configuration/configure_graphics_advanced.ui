@@ -202,6 +202,16 @@ Compute pipelines are always enabled on all other drivers.</string>
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="barrier_feedback_loops_checkbox">
+          <property name="toolTip">
+           <string>Improves rendering of transparency effects in specific games.</string>
+          </property>
+          <property name="text">
+           <string>Barrier feedback loops</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QWidget" name="af_layout" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout_1">
            <property name="leftMargin">
