@@ -911,9 +911,13 @@ static Result ToCalendarTimeInternal(const TimeZoneRule& rules, s64 time,
 
     calendar_additional_info.is_dst = rules.ttis[tti_index].is_dst;
     const char* time_zone{&rules.chars[rules.ttis[tti_index].abbreviation_list_index]};
-    for (int index{}; time_zone[index] != '\0'; ++index) {
+    u32 index;
+    for (index = 0; time_zone[index] != '\0' && time_zone[index] != ',' &&
+                    index < calendar_additional_info.timezone_name.size() - 1;
+         ++index) {
         calendar_additional_info.timezone_name[index] = time_zone[index];
     }
+    calendar_additional_info.timezone_name[index] = '\0';
     return ResultSuccess;
 }
 
