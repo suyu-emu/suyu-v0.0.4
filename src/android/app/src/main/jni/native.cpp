@@ -237,6 +237,7 @@ public:
         m_software_keyboard = android_keyboard.get();
         m_system.SetShuttingDown(false);
         m_system.ApplySettings();
+        Settings::LogSettings();
         m_system.HIDCore().ReloadInputDevices();
         m_system.SetAppletFrontendSet({
             nullptr,                     // Amiibo Settings
