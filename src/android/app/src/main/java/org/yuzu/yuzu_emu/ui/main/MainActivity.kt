@@ -4,6 +4,7 @@
 package org.yuzu.yuzu_emu.ui.main
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
@@ -42,6 +43,7 @@ import org.yuzu.yuzu_emu.features.settings.model.SettingsViewModel
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
+import org.yuzu.yuzu_emu.fragments.LongMessageDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
@@ -481,62 +483,110 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             }
         }
 
-    val installGameUpdate =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) {
-            if (it == null) {
-                return@registerForActivityResult
-            }
-
+    val installGameUpdate = registerForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments()
+    ) { documents: List<Uri> ->
+        if (documents.isNotEmpty()) {
             IndeterminateProgressDialogFragment.newInstance(
                 this@MainActivity,
                 R.string.install_game_content
             ) {
-                val result = NativeLibrary.installFileToNand(it.toString())
+                var installSuccess = 0
+                var installOverwrite = 0
+                var errorBaseGame = 0
+                var errorExtension = 0
+                var errorOther = 0
+                var errorTotal = 0
                 lifecycleScope.launch {
-                    withContext(Dispatchers.Main) {
-                        when (result) {
+                    documents.forEach {
+                        when (NativeLibrary.installFileToNand(it.toString())) {
                             NativeLibrary.InstallFileToNandResult.Success -> {
-                                Toast.makeText(
-                                    applicationContext,
-                                    R.string.install_game_content_success,
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                installSuccess += 1
                             }
 
                             NativeLibrary.InstallFileToNandResult.SuccessFileOverwritten -> {
-                                Toast.makeText(
-                                    applicationContext,
-                                    R.string.install_game_content_success_overwrite,
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                installOverwrite += 1
                             }
 
                             NativeLibrary.InstallFileToNandResult.ErrorBaseGame -> {
-                                MessageDialogFragment.newInstance(
-                                    R.string.install_game_content_failure,
-                                    R.string.install_game_content_failure_base
-                                ).show(supportFragmentManager, MessageDialogFragment.TAG)
+                                errorBaseGame += 1
                             }
 
                             NativeLibrary.InstallFileToNandResult.ErrorFilenameExtension -> {
-                                MessageDialogFragment.newInstance(
-                                    R.string.install_game_content_failure,
-                                    R.string.install_game_content_failure_file_extension,
-                                    R.string.install_game_content_help_link
-                                ).show(supportFragmentManager, MessageDialogFragment.TAG)
+                                errorExtension += 1
                             }
 
                             else -> {
-                                MessageDialogFragment.newInstance(
-                                    R.string.install_game_content_failure,
-                                    R.string.install_game_content_failure_description,
-                                    R.string.install_game_content_help_link
-                                ).show(supportFragmentManager, MessageDialogFragment.TAG)
+                                errorOther += 1
                             }
                         }
                     }
+                    withContext(Dispatchers.Main) {
+                        val separator = System.getProperty("line.separator") ?: "\n"
+                        val installResult = StringBuilder()
+                        if (installSuccess > 0) {
+                            installResult.append(
+                                getString(
+                                    R.string.install_game_content_success_install,
+                                    installSuccess
+                                )
+                            )
+                            installResult.append(separator)
+                        }
+                        if (installOverwrite > 0) {
+                            installResult.append(
+                                getString(
+                                    R.string.install_game_content_success_overwrite,
+                                    installOverwrite
+                                )
+                            )
+                            installResult.append(separator)
+                        }
+                        errorTotal = errorBaseGame + errorExtension + errorOther
+                        if (errorTotal > 0) {
+                            installResult.append(separator)
+                            installResult.append(
+                                getString(
+                                    R.string.install_game_content_failed_count,
+                                    errorTotal
+                                )
+                            )
+                            installResult.append(separator)
+                            if (errorBaseGame > 0) {
+                                installResult.append(separator)
+                                installResult.append(
+                                    getString(R.string.install_game_content_failure_base)
+                                )
+                                installResult.append(separator)
+                            }
+                            if (errorExtension > 0) {
+                                installResult.append(separator)
+                                installResult.append(
+                                    getString(R.string.install_game_content_failure_file_extension)
+                                )
+                                installResult.append(separator)
+                            }
+                            if (errorOther > 0) {
+                                installResult.append(
+                                    getString(R.string.install_game_content_failure_description)
+                                )
+                                installResult.append(separator)
+                            }
+                            LongMessageDialogFragment.newInstance(
+                                R.string.install_game_content_failure,
+                                installResult.toString().trim(),
+                                R.string.install_game_content_help_link
+                            ).show(supportFragmentManager, LongMessageDialogFragment.TAG)
+                        } else {
+                            LongMessageDialogFragment.newInstance(
+                                R.string.install_game_content_success,
+                                installResult.toString().trim()
+                            ).show(supportFragmentManager, LongMessageDialogFragment.TAG)
+                        }
+                    }
                 }
-                return@newInstance result
+                return@newInstance installSuccess + installOverwrite + errorTotal
             }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
         }
+    }
 }

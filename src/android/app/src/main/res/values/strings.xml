@@ -104,12 +104,14 @@
     <string name="share_log_missing">No log file found</string>
     <string name="install_game_content">Install game content</string>
     <string name="install_game_content_description">Install game updates or DLC</string>
-    <string name="install_game_content_failure">Error installing file to NAND</string>
-    <string name="install_game_content_failure_description">Game content installation failed. Please ensure content is valid and that the prod.keys file is installed.</string>
-    <string name="install_game_content_failure_base">Installation of base games isn\'t permitted in order to avoid possible conflicts. Please select an update or DLC instead.</string>
-    <string name="install_game_content_failure_file_extension">The selected file type is not supported. Only NSP and XCI content is supported for this action. Please verify the game content is valid.</string>
-    <string name="install_game_content_success">Game content installed successfully</string>
-    <string name="install_game_content_success_overwrite">Game content was overwritten successfully</string>
+    <string name="install_game_content_failure">Error installing file(s) to NAND</string>
+    <string name="install_game_content_failure_description">Please ensure content(s) are valid and that the prod.keys file is installed.</string>
+    <string name="install_game_content_failure_base">Installation of base games isn\'t permitted in order to avoid possible conflicts.</string>
+    <string name="install_game_content_failure_file_extension">Only NSP and XCI content is supported. Please verify the game content(s) are valid.</string>
+    <string name="install_game_content_failed_count">%1$d installation error(s)</string>
+    <string name="install_game_content_success">Game content(s) installed successfully</string>
+    <string name="install_game_content_success_install">%1$d installed successfully</string>
+    <string name="install_game_content_success_overwrite">%1$d overwritten successfully</string>
     <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
 
     <!-- About screen strings -->
