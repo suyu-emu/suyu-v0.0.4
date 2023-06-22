@@ -125,7 +125,7 @@ QWidget* Widget::CreateCheckBox(Settings::BasicSetting* bool_setting, const QStr
 QWidget* Widget::CreateCombobox(std::function<std::string()>& serializer,
                                 std::function<void()>& restore_func,
                                 const std::function<void()>& touch) {
-    const auto type = setting.TypeId();
+    const auto type = setting.EnumIndex();
 
     combobox = new QComboBox(this);
     combobox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);

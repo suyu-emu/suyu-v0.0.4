@@ -16,7 +16,7 @@ class QWidget;
 namespace ConfigurationShared {
 using TranslationMap = std::map<u32, std::pair<QString, QString>>;
 using ComboboxTranslations = std::vector<std::pair<u32, QString>>;
-using ComboboxTranslationMap = std::map<std::type_index, ComboboxTranslations>;
+using ComboboxTranslationMap = std::map<u32, ComboboxTranslations>;
 
 std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent);
 

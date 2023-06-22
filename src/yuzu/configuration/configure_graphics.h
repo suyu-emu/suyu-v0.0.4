@@ -75,7 +75,7 @@ private:
 
     Settings::RendererBackend GetCurrentGraphicsBackend() const;
 
-    int FindIndex(std::type_index enumeration, int value) const;
+    int FindIndex(u32 enumeration, int value) const;
 
     std::unique_ptr<Ui::ConfigureGraphics> ui;
     QColor bg_color;

@@ -85,7 +85,8 @@ ConfigureGraphics::ConfigureGraphics(
     : ConfigurationShared::Tab(group_, parent), ui{std::make_unique<Ui::ConfigureGraphics>()},
       records{records_}, expose_compute_option{expose_compute_option_}, system{system_},
       combobox_translations{builder.ComboboxTranslations()},
-      shader_mapping{combobox_translations.at(typeid(Settings::ShaderBackend))} {
+      shader_mapping{
+          combobox_translations.at(Settings::EnumMetadata<Settings::ShaderBackend>::Index())} {
     vulkan_device = Settings::values.vulkan_device.GetValue();
     RetrieveVulkanDevices();
 
@@ -356,7 +357,7 @@ const QString ConfigureGraphics::TranslateVSyncMode(VkPresentModeKHR mode,
     }
 }
 
-int ConfigureGraphics::FindIndex(std::type_index enumeration, int value) const {
+int ConfigureGraphics::FindIndex(u32 enumeration, int value) const {
     for (u32 i = 0; i < combobox_translations.at(enumeration).size(); i++) {
         if (combobox_translations.at(enumeration)[i].first == static_cast<u32>(value)) {
             return i;
@@ -383,7 +384,8 @@ void ConfigureGraphics::ApplyConfiguration() {
         (!Settings::IsConfiguringGlobal() && api_restore_global_button->isEnabled())) {
         auto backend = static_cast<Settings::RendererBackend>(
             combobox_translations
-                .at(typeid(Settings::RendererBackend))[api_combobox->currentIndex()]
+                .at(Settings::EnumMetadata<
+                    Settings::RendererBackend>::Index())[api_combobox->currentIndex()]
                 .first);
         switch (backend) {
         case Settings::RendererBackend::OpenGL:
@@ -440,7 +442,8 @@ void ConfigureGraphics::UpdateAPILayout() {
 
     if (is_opengl) {
         shader_backend_combobox->setCurrentIndex(
-            FindIndex(typeid(Settings::ShaderBackend), static_cast<int>(shader_backend)));
+            FindIndex(Settings::EnumMetadata<Settings::ShaderBackend>::Index(),
+                      static_cast<int>(shader_backend)));
     } else if (is_vulkan && static_cast<int>(vulkan_device) < vulkan_device_combobox->count()) {
         vulkan_device_combobox->setCurrentIndex(vulkan_device);
     }
@@ -466,7 +469,7 @@ Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {
         return Settings::values.renderer_backend.GetValue(true);
     }
     return static_cast<Settings::RendererBackend>(
-        combobox_translations.at(typeid(Settings::RendererBackend))
+        combobox_translations.at(Settings::EnumMetadata<Settings::RendererBackend>::Index())
             .at(api_combobox->currentIndex())
             .first);
 }

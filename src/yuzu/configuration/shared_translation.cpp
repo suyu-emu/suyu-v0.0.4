@@ -182,19 +182,19 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
 
     // Intentionally skipping VSyncMode to let the UI fill that one out
 
-    translations->insert({typeid(Settings::AstcDecodeMode),
+    translations->insert({Settings::EnumMetadata<Settings::AstcDecodeMode>::Index(),
                           {
                               PAIR(AstcDecodeMode, Cpu, "CPU"),
                               PAIR(AstcDecodeMode, Gpu, "GPU"),
                               PAIR(AstcDecodeMode, CpuAsynchronous, "CPU Asynchronous"),
                           }});
-    translations->insert({typeid(Settings::AstcRecompression),
+    translations->insert({Settings::EnumMetadata<Settings::AstcRecompression>::Index(),
                           {
                               PAIR(AstcRecompression, Uncompressed, "Uncompressed (Best quality)"),
                               PAIR(AstcRecompression, Bc1, "BC1 (Low quality)"),
                               PAIR(AstcRecompression, Bc3, "BC3 (Medium quality)"),
                           }});
-    translations->insert({typeid(Settings::RendererBackend),
+    translations->insert({Settings::EnumMetadata<Settings::RendererBackend>::Index(),
                           {
 #ifdef HAS_OPENGL
                               PAIR(RendererBackend, OpenGL, "OpenGL"),
@@ -202,37 +202,37 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(RendererBackend, Vulkan, "Vulkan"),
                               PAIR(RendererBackend, Null, "Null"),
                           }});
-    translations->insert({typeid(Settings::ShaderBackend),
+    translations->insert({Settings::EnumMetadata<Settings::ShaderBackend>::Index(),
                           {
                               PAIR(ShaderBackend, Glsl, "GLSL"),
                               PAIR(ShaderBackend, Glasm, "GLASM (Assembly Shaders, NVIDIA Only)"),
                               PAIR(ShaderBackend, SpirV, "SPIR-V (Experimental, Mesa Only)"),
                           }});
-    translations->insert({typeid(Settings::GpuAccuracy),
+    translations->insert({Settings::EnumMetadata<Settings::GpuAccuracy>::Index(),
                           {
                               PAIR(GpuAccuracy, Normal, "Normal"),
                               PAIR(GpuAccuracy, High, "High"),
                               PAIR(GpuAccuracy, Extreme, "Extreme"),
                           }});
-    translations->insert({typeid(Settings::CpuAccuracy),
+    translations->insert({Settings::EnumMetadata<Settings::CpuAccuracy>::Index(),
                           {
                               PAIR(CpuAccuracy, Auto, "Auto"),
                               PAIR(CpuAccuracy, Accurate, "Accurate"),
                               PAIR(CpuAccuracy, Unsafe, "Unsafe"),
                               PAIR(CpuAccuracy, Paranoid, "Paranoid (disables most optimizations)"),
                           }});
-    translations->insert({typeid(Settings::FullscreenMode),
+    translations->insert({Settings::EnumMetadata<Settings::FullscreenMode>::Index(),
                           {
                               PAIR(FullscreenMode, Borderless, "Borderless Windowed"),
                               PAIR(FullscreenMode, Exclusive, "Exclusive Fullscreen"),
                           }});
-    translations->insert({typeid(Settings::NvdecEmulation),
+    translations->insert({Settings::EnumMetadata<Settings::NvdecEmulation>::Index(),
                           {
                               PAIR(NvdecEmulation, Off, "No Video Output"),
                               PAIR(NvdecEmulation, Cpu, "CPU Video Decoding"),
                               PAIR(NvdecEmulation, Gpu, "GPU Video Decoding (Default)"),
                           }});
-    translations->insert({typeid(Settings::ResolutionSetup),
+    translations->insert({Settings::EnumMetadata<Settings::ResolutionSetup>::Index(),
                           {
                               PAIR(ResolutionSetup, Res1_2X, "0.5X (360p/540p) [EXPERIMENTAL]"),
                               PAIR(ResolutionSetup, Res3_4X, "0.75X (540p/810p) [EXPERIMENTAL]"),
@@ -246,7 +246,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(ResolutionSetup, Res7X, "7X (5040p/7560p)"),
                               PAIR(ResolutionSetup, Res8X, "8X (5760p/8640p)"),
                           }});
-    translations->insert({typeid(Settings::ScalingFilter),
+    translations->insert({Settings::EnumMetadata<Settings::ScalingFilter>::Index(),
                           {
                               PAIR(ScalingFilter, NearestNeighbor, "Nearest Neighbor"),
                               PAIR(ScalingFilter, Bilinear, "Bilinear"),
@@ -255,13 +255,13 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(ScalingFilter, ScaleForce, "ScaleForce"),
                               PAIR(ScalingFilter, Fsr, "AMD FidelityFX™️ Super Resolution"),
                           }});
-    translations->insert({typeid(Settings::AntiAliasing),
+    translations->insert({Settings::EnumMetadata<Settings::AntiAliasing>::Index(),
                           {
                               PAIR(AntiAliasing, None, "None"),
                               PAIR(AntiAliasing, Fxaa, "FXAA"),
                               PAIR(AntiAliasing, Smaa, "SMAA"),
                           }});
-    translations->insert({typeid(Settings::AspectRatio),
+    translations->insert({Settings::EnumMetadata<Settings::AspectRatio>::Index(),
                           {
                               PAIR(AspectRatio, R16_9, "Default (16:9)"),
                               PAIR(AspectRatio, R4_3, "Force 4:3"),
@@ -269,7 +269,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(AspectRatio, R16_10, "Force 16:10"),
                               PAIR(AspectRatio, Stretch, "Stretch to Window"),
                           }});
-    translations->insert({typeid(Settings::AnisotropyMode),
+    translations->insert({Settings::EnumMetadata<Settings::AnisotropyMode>::Index(),
                           {
                               PAIR(AnisotropyMode, Automatic, "Automatic"),
                               PAIR(AnisotropyMode, Default, "Default"),
@@ -279,7 +279,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(AnisotropyMode, X16, "16x"),
                           }});
     translations->insert(
-        {typeid(Settings::Language),
+        {Settings::EnumMetadata<Settings::Language>::Index(),
          {
              PAIR(Language, Japanese, "Japanese (日本語)"),
              PAIR(Language, EnglishAmerican, "American English"),
@@ -300,7 +300,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
              PAIR(Language, ChineseTraditional, "Traditional Chinese (正體中文)"),
              PAIR(Language, PortugueseBrazilian, "Brazilian Portuguese (português do Brasil)"),
          }});
-    translations->insert({typeid(Settings::Region),
+    translations->insert({Settings::EnumMetadata<Settings::Region>::Index(),
                           {
                               PAIR(Region, Japan, "Japan"),
                               PAIR(Region, Usa, "USA"),
@@ -311,7 +311,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(Region, Taiwan, "Taiwan"),
                           }});
     translations->insert(
-        {typeid(Settings::TimeZone),
+        {Settings::EnumMetadata<Settings::TimeZone>::Index(),
          {
              {static_cast<u32>(Settings::TimeZone::Auto),
               tr("Auto (%1)", "Auto select time zone")
@@ -361,7 +361,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
              PAIR(TimeZone, Wet, "WET"),
              PAIR(TimeZone, Zulu, "Zulu"),
          }});
-    translations->insert({typeid(Settings::AudioMode),
+    translations->insert({Settings::EnumMetadata<Settings::AudioMode>::Index(),
                           {
                               PAIR(AudioMode, Mono, "Mono"),
                               PAIR(AudioMode, Stereo, "Stereo"),

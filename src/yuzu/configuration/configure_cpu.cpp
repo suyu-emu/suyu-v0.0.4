@@ -7,6 +7,7 @@
 #include <QComboBox>
 #include "common/common_types.h"
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "configuration/shared_widget.h"
 #include "core/core.h"
 #include "ui_configure_cpu.h"
@@ -76,7 +77,8 @@ void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
 
 void ConfigureCpu::UpdateGroup(int index) {
     const auto accuracy = static_cast<Settings::CpuAccuracy>(
-        combobox_translations.at(typeid(Settings::CpuAccuracy))[index].first);
+        combobox_translations.at(Settings::EnumMetadata<Settings::CpuAccuracy>::Index())[index]
+            .first);
     ui->unsafe_group->setVisible(accuracy == Settings::CpuAccuracy::Unsafe);
 }
 
