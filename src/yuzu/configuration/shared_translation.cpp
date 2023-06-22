@@ -120,6 +120,8 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, use_video_framerate, "Sync to framerate of video playback",
            "Run the game at normal speed during video playback, even when the framerate is "
            "unlocked.");
+    INSERT(Settings, barrier_feedback_loops, "Barrier feedback loops",
+           "Improves rendering of transparency effects in specific games.");
 
     // Renderer (Debug)
 
