@@ -4,6 +4,7 @@
 #pragma once
 
 #include <map>
+#include <mutex>
 #include <optional>
 #include <string_view>
 #include "common/intrusive_list.h"
@@ -48,22 +49,24 @@ private:
     std::map<std::string, std::weak_ptr<VfsFile>, std::less<>> cache;
     ReferenceListType open_references;
     ReferenceListType closed_references;
+    std::mutex list_lock;
     size_t num_open_files{};
 
 private:
     friend class RealVfsFile;
-    void RefreshReference(const std::string& path, Mode perms, FileReference& reference);
+    std::unique_lock<std::mutex> RefreshReference(const std::string& path, Mode perms,
+                                                  FileReference& reference);
     void DropReference(std::unique_ptr<FileReference>&& reference);
-    void EvictSingleReference();
-
-private:
-    void InsertReferenceIntoList(FileReference& reference);
-    void RemoveReferenceFromList(FileReference& reference);
 
 private:
     friend class RealVfsDirectory;
     VirtualFile OpenFileFromEntry(std::string_view path, std::optional<u64> size,
                                   Mode perms = Mode::Read);
+
+private:
+    void EvictSingleReferenceLocked();
+    void InsertReferenceIntoListLocked(FileReference& reference);
+    void RemoveReferenceFromListLocked(FileReference& reference);
 };
 
 // An implementation of VfsFile that represents a file on the user's computer.

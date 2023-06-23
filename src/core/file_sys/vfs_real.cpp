@@ -76,6 +76,7 @@ VfsEntryType RealVfsFilesystem::GetEntryType(std::string_view path_) const {
 VirtualFile RealVfsFilesystem::OpenFileFromEntry(std::string_view path_, std::optional<u64> size,
                                                  Mode perms) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
+    std::scoped_lock lk{list_lock};
 
     if (auto it = cache.find(path); it != cache.end()) {
         if (auto file = it->second.lock(); file) {
@@ -88,7 +89,7 @@ VirtualFile RealVfsFilesystem::OpenFileFromEntry(std::string_view path_, std::op
     }
 
     auto reference = std::make_unique<FileReference>();
-    this->InsertReferenceIntoList(*reference);
+    this->InsertReferenceIntoListLocked(*reference);
 
     auto file = std::shared_ptr<RealVfsFile>(
         new RealVfsFile(*this, std::move(reference), path, perms, size));
@@ -103,7 +104,10 @@ VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
 
 VirtualFile RealVfsFilesystem::CreateFile(std::string_view path_, Mode perms) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
-    cache.erase(path);
+    {
+        std::scoped_lock lk{list_lock};
+        cache.erase(path);
+    }
 
     // Current usages of CreateFile expect to delete the contents of an existing file.
     if (FS::IsFile(path)) {
@@ -133,8 +137,11 @@ VirtualFile RealVfsFilesystem::CopyFile(std::string_view old_path_, std::string_
 VirtualFile RealVfsFilesystem::MoveFile(std::string_view old_path_, std::string_view new_path_) {
     const auto old_path = FS::SanitizePath(old_path_, FS::DirectorySeparator::PlatformDefault);
     const auto new_path = FS::SanitizePath(new_path_, FS::DirectorySeparator::PlatformDefault);
-    cache.erase(old_path);
-    cache.erase(new_path);
+    {
+        std::scoped_lock lk{list_lock};
+        cache.erase(old_path);
+        cache.erase(new_path);
+    }
     if (!FS::RenameFile(old_path, new_path)) {
         return nullptr;
     }
@@ -143,7 +150,10 @@ VirtualFile RealVfsFilesystem::MoveFile(std::string_view old_path_, std::string_
 
 bool RealVfsFilesystem::DeleteFile(std::string_view path_) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
-    cache.erase(path);
+    {
+        std::scoped_lock lk{list_lock};
+        cache.erase(path);
+    }
     return FS::RemoveFile(path);
 }
 
@@ -182,14 +192,17 @@ bool RealVfsFilesystem::DeleteDirectory(std::string_view path_) {
     return FS::RemoveDirRecursively(path);
 }
 
-void RealVfsFilesystem::RefreshReference(const std::string& path, Mode perms,
-                                         FileReference& reference) {
+std::unique_lock<std::mutex> RealVfsFilesystem::RefreshReference(const std::string& path,
+                                                                 Mode perms,
+                                                                 FileReference& reference) {
+    std::unique_lock lk{list_lock};
+
     // Temporarily remove from list.
-    this->RemoveReferenceFromList(reference);
+    this->RemoveReferenceFromListLocked(reference);
 
     // Restore file if needed.
     if (!reference.file) {
-        this->EvictSingleReference();
+        this->EvictSingleReferenceLocked();
 
         reference.file =
             FS::FileOpen(path, ModeFlagsToFileAccessMode(perms), FS::FileType::BinaryFile);
@@ -199,12 +212,16 @@ void RealVfsFilesystem::RefreshReference(const std::string& path, Mode perms,
     }
 
     // Reinsert into list.
-    this->InsertReferenceIntoList(reference);
+    this->InsertReferenceIntoListLocked(reference);
+
+    return lk;
 }
 
 void RealVfsFilesystem::DropReference(std::unique_ptr<FileReference>&& reference) {
+    std::scoped_lock lk{list_lock};
+
     // Remove from list.
-    this->RemoveReferenceFromList(*reference);
+    this->RemoveReferenceFromListLocked(*reference);
 
     // Close the file.
     if (reference->file) {
@@ -213,14 +230,14 @@ void RealVfsFilesystem::DropReference(std::unique_ptr<FileReference>&& reference
     }
 }
 
-void RealVfsFilesystem::EvictSingleReference() {
+void RealVfsFilesystem::EvictSingleReferenceLocked() {
     if (num_open_files < MaxOpenFiles || open_references.empty()) {
         return;
     }
 
     // Get and remove from list.
     auto& reference = open_references.back();
-    this->RemoveReferenceFromList(reference);
+    this->RemoveReferenceFromListLocked(reference);
 
     // Close the file.
     if (reference.file) {
@@ -229,10 +246,10 @@ void RealVfsFilesystem::EvictSingleReference() {
     }
 
     // Reinsert into closed list.
-    this->InsertReferenceIntoList(reference);
+    this->InsertReferenceIntoListLocked(reference);
 }
 
-void RealVfsFilesystem::InsertReferenceIntoList(FileReference& reference) {
+void RealVfsFilesystem::InsertReferenceIntoListLocked(FileReference& reference) {
     if (reference.file) {
         open_references.push_front(reference);
     } else {
@@ -240,7 +257,7 @@ void RealVfsFilesystem::InsertReferenceIntoList(FileReference& reference) {
     }
 }
 
-void RealVfsFilesystem::RemoveReferenceFromList(FileReference& reference) {
+void RealVfsFilesystem::RemoveReferenceFromListLocked(FileReference& reference) {
     if (reference.file) {
         open_references.erase(open_references.iterator_to(reference));
     } else {
@@ -271,7 +288,7 @@ std::size_t RealVfsFile::GetSize() const {
 
 bool RealVfsFile::Resize(std::size_t new_size) {
     size.reset();
-    base.RefreshReference(path, perms, *reference);
+    auto lk = base.RefreshReference(path, perms, *reference);
     return reference->file ? reference->file->SetSize(new_size) : false;
 }
 
@@ -288,7 +305,7 @@ bool RealVfsFile::IsReadable() const {
 }
 
 std::size_t RealVfsFile::Read(u8* data, std::size_t length, std::size_t offset) const {
-    base.RefreshReference(path, perms, *reference);
+    auto lk = base.RefreshReference(path, perms, *reference);
     if (!reference->file || !reference->file->Seek(static_cast<s64>(offset))) {
         return 0;
     }
@@ -297,7 +314,7 @@ std::size_t RealVfsFile::Read(u8* data, std::size_t length, std::size_t offset) 
 
 std::size_t RealVfsFile::Write(const u8* data, std::size_t length, std::size_t offset) {
     size.reset();
-    base.RefreshReference(path, perms, *reference);
+    auto lk = base.RefreshReference(path, perms, *reference);
     if (!reference->file || !reference->file->Seek(static_cast<s64>(offset))) {
         return 0;
     }
