@@ -97,10 +97,7 @@ struct RingSensorForce {
     f32 force;
 };
 
-struct NfcState {
-    Common::Input::NfcState state{};
-    std::vector<u8> data{};
-};
+using NfcState = Common::Input::NfcStatus;
 
 struct ControllerMotion {
     Common::Vec3f accel{};
@@ -393,8 +390,30 @@ public:
     /// Returns true if the device has nfc support
     bool HasNfc() const;
 
+    /// Sets the joycon in nfc mode and increments the handle count
+    bool AddNfcHandle();
+
+    /// Decrements the handle count if zero sets the joycon in active mode
+    bool RemoveNfcHandle();
+
+    /// Start searching for nfc tags
+    bool StartNfcPolling();
+
+    /// Stop searching for nfc tags
+    bool StopNfcPolling();
+
+    /// Returns true if the nfc tag was readable
+    bool ReadAmiiboData(std::vector<u8>& data);
+
     /// Returns true if the nfc tag was written
     bool WriteNfc(const std::vector<u8>& data);
+
+    /// Returns true if the nfc tag was readable
+    bool ReadMifareData(const Common::Input::MifareRequest& request,
+                        Common::Input::MifareRequest& out_data);
+
+    /// Returns true if the nfc tag was written
+    bool WriteMifareData(const Common::Input::MifareRequest& request);
 
     /// Returns the led pattern corresponding to this emulated controller
     LedPattern GetLedPattern() const;
@@ -532,6 +551,7 @@ private:
     bool system_buttons_enabled{true};
     f32 motion_sensitivity{Core::HID::MotionInput::IsAtRestStandard};
     u32 turbo_button_state{0};
+    std::size_t nfc_handles{0};
 
     // Temporary values to avoid doing changes while the controller is in configuring mode
     NpadStyleIndex tmp_npad_type{NpadStyleIndex::None};

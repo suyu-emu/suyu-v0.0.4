@@ -20,9 +20,10 @@ namespace InputCommon {
 class VirtualAmiibo final : public InputEngine {
 public:
     enum class State {
+        Disabled,
         Initialized,
         WaitingForAmiibo,
-        AmiiboIsOpen,
+        TagNearby,
     };
 
     enum class Info {
@@ -41,9 +42,17 @@ public:
         const PadIdentifier& identifier_, const Common::Input::PollingMode polling_mode_) override;
 
     Common::Input::NfcState SupportsNfc(const PadIdentifier& identifier_) const override;
-
+    Common::Input::NfcState StartNfcPolling(const PadIdentifier& identifier_) override;
+    Common::Input::NfcState StopNfcPolling(const PadIdentifier& identifier_) override;
+    Common::Input::NfcState ReadAmiiboData(const PadIdentifier& identifier_,
+                                           std::vector<u8>& out_data) override;
     Common::Input::NfcState WriteNfcData(const PadIdentifier& identifier_,
                                          const std::vector<u8>& data) override;
+    Common::Input::NfcState ReadMifareData(const PadIdentifier& identifier_,
+                                           const Common::Input::MifareRequest& data,
+                                           Common::Input::MifareRequest& out_data) override;
+    Common::Input::NfcState WriteMifareData(const PadIdentifier& identifier_,
+                                            const Common::Input::MifareRequest& data) override;
 
     State GetCurrentState() const;
 
@@ -61,8 +70,9 @@ private:
     static constexpr std::size_t MifareSize = 0x400;
 
     std::string file_path{};
-    State state{State::Initialized};
+    State state{State::Disabled};
     std::vector<u8> nfc_data;
+    Common::Input::NfcStatus status;
     Common::Input::PollingMode polling_mode{Common::Input::PollingMode::Passive};
 };
 } // namespace InputCommon

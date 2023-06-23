@@ -49,7 +49,13 @@ public:
     DriverResult SetIrMode();
     DriverResult SetNfcMode();
     DriverResult SetRingConMode();
+    DriverResult StartNfcPolling();
+    DriverResult StopNfcPolling();
+    DriverResult ReadAmiiboData(std::vector<u8>& out_data);
     DriverResult WriteNfcData(std::span<const u8> data);
+    DriverResult ReadMifareData(std::span<const MifareReadChunk> request,
+                                std::span<MifareReadData> out_data);
+    DriverResult WriteMifareData(std::span<const MifareWriteChunk> request);
 
     void SetCallbacks(const JoyconCallbacks& callbacks);
 

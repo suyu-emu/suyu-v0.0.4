@@ -3840,7 +3840,7 @@ void GMainWindow::OnLoadAmiibo() {
     auto* virtual_amiibo = input_subsystem->GetVirtualAmiibo();
 
     // Remove amiibo if one is connected
-    if (virtual_amiibo->GetCurrentState() == InputCommon::VirtualAmiibo::State::AmiiboIsOpen) {
+    if (virtual_amiibo->GetCurrentState() == InputCommon::VirtualAmiibo::State::TagNearby) {
         virtual_amiibo->CloseAmiibo();
         QMessageBox::warning(this, tr("Amiibo"), tr("The current amiibo has been removed"));
         return;
@@ -3868,7 +3868,7 @@ void GMainWindow::LoadAmiibo(const QString& filename) {
     auto* virtual_amiibo = input_subsystem->GetVirtualAmiibo();
     const QString title = tr("Error loading Amiibo data");
     // Remove amiibo if one is connected
-    if (virtual_amiibo->GetCurrentState() == InputCommon::VirtualAmiibo::State::AmiiboIsOpen) {
+    if (virtual_amiibo->GetCurrentState() == InputCommon::VirtualAmiibo::State::TagNearby) {
         virtual_amiibo->CloseAmiibo();
         QMessageBox::warning(this, tr("Amiibo"), tr("The current amiibo has been removed"));
         return;

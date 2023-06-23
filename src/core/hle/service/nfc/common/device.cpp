@@ -93,7 +93,8 @@ void NfcDevice::NpadUpdate(Core::HID::ControllerTriggerType type) {
     const auto nfc_status = npad_device->GetNfc();
     switch (nfc_status.state) {
     case Common::Input::NfcState::NewAmiibo:
-        LoadNfcTag(nfc_status.data);
+        LoadNfcTag(nfc_status.protocol, nfc_status.tag_type, nfc_status.uuid_length,
+                   nfc_status.uuid);
         break;
     case Common::Input::NfcState::AmiiboRemoved:
         if (device_state == DeviceState::Initialized || device_state == DeviceState::TagRemoved) {
@@ -108,9 +109,34 @@ void NfcDevice::NpadUpdate(Core::HID::ControllerTriggerType type) {
     }
 }
 
-bool NfcDevice::LoadNfcTag(std::span<const u8> data) {
+bool NfcDevice::LoadNfcTag(u8 protocol, u8 tag_type, u8 uuid_length, UniqueSerialNumber uuid) {
     if (device_state != DeviceState::SearchingForTag) {
         LOG_ERROR(Service_NFC, "Game is not looking for nfc tag, current state {}", device_state);
+        return false;
+    }
+
+    if ((protocol & static_cast<u8>(allowed_protocols)) == 0) {
+        LOG_ERROR(Service_NFC, "Protocol not supported {}", protocol);
+        return false;
+    }
+
+    real_tag_info = {
+        .uuid = uuid,
+        .uuid_length = uuid_length,
+        .protocol = static_cast<NfcProtocol>(protocol),
+        .tag_type = static_cast<TagType>(tag_type),
+    };
+
+    device_state = DeviceState::TagFound;
+    deactivate_event->GetReadableEvent().Clear();
+    activate_event->Signal();
+    return true;
+}
+
+bool NfcDevice::LoadAmiiboData() {
+    std::vector<u8> data{};
+
+    if (!npad_device->ReadAmiiboData(data)) {
         return false;
     }
 
@@ -119,16 +145,9 @@ bool NfcDevice::LoadNfcTag(std::span<const u8> data) {
         return false;
     }
 
-    mifare_data.resize(data.size());
-    memcpy(mifare_data.data(), data.data(), data.size());
-
     memcpy(&tag_data, data.data(), sizeof(NFP::EncryptedNTAG215File));
     is_plain_amiibo = NFP::AmiiboCrypto::IsAmiiboValid(tag_data);
     is_write_protected = false;
-
-    device_state = DeviceState::TagFound;
-    deactivate_event->GetReadableEvent().Clear();
-    activate_event->Signal();
 
     // Fallback for plain amiibos
     if (is_plain_amiibo) {
@@ -147,6 +166,7 @@ bool NfcDevice::LoadNfcTag(std::span<const u8> data) {
         return true;
     }
 
+    LOG_INFO(Service_NFP, "Using encrypted amiibo");
     tag_data = {};
     memcpy(&encrypted_tag_data, data.data(), sizeof(NFP::EncryptedNTAG215File));
     return true;
@@ -162,7 +182,6 @@ void NfcDevice::CloseNfcTag() {
     device_state = DeviceState::TagRemoved;
     encrypted_tag_data = {};
     tag_data = {};
-    mifare_data = {};
     activate_event->GetReadableEvent().Clear();
     deactivate_event->Signal();
 }
@@ -179,8 +198,12 @@ void NfcDevice::Initialize() {
     device_state = npad_device->HasNfc() ? DeviceState::Initialized : DeviceState::Unavailable;
     encrypted_tag_data = {};
     tag_data = {};
-    mifare_data = {};
-    is_initalized = true;
+
+    if (device_state != DeviceState::Initialized) {
+        return;
+    }
+
+    is_initalized = npad_device->AddNfcHandle();
 }
 
 void NfcDevice::Finalize() {
@@ -190,6 +213,11 @@ void NfcDevice::Finalize() {
     if (device_state == DeviceState::SearchingForTag || device_state == DeviceState::TagRemoved) {
         StopDetection();
     }
+
+    if (device_state != DeviceState::Unavailable) {
+        npad_device->RemoveNfcHandle();
+    }
+
     device_state = DeviceState::Unavailable;
     is_initalized = false;
 }
@@ -200,10 +228,8 @@ Result NfcDevice::StartDetection(NfcProtocol allowed_protocol) {
         return ResultWrongDeviceState;
     }
 
-    if (npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
-                                    Common::Input::PollingMode::NFC) !=
-        Common::Input::DriverResult::Success) {
-        LOG_ERROR(Service_NFC, "Nfc not supported");
+    if (!npad_device->StartNfcPolling()) {
+        LOG_ERROR(Service_NFC, "Nfc polling not supported");
         return ResultNfcDisabled;
     }
 
@@ -213,9 +239,6 @@ Result NfcDevice::StartDetection(NfcProtocol allowed_protocol) {
 }
 
 Result NfcDevice::StopDetection() {
-    npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
-                                Common::Input::PollingMode::Active);
-
     if (device_state == DeviceState::Initialized) {
         return ResultSuccess;
     }
@@ -225,6 +248,7 @@ Result NfcDevice::StopDetection() {
     }
 
     if (device_state == DeviceState::SearchingForTag || device_state == DeviceState::TagRemoved) {
+        npad_device->StopNfcPolling();
         device_state = DeviceState::Initialized;
         return ResultSuccess;
     }
@@ -233,7 +257,7 @@ Result NfcDevice::StopDetection() {
     return ResultWrongDeviceState;
 }
 
-Result NfcDevice::GetTagInfo(NFP::TagInfo& tag_info, bool is_mifare) const {
+Result NfcDevice::GetTagInfo(NFP::TagInfo& tag_info) const {
     if (device_state != DeviceState::TagFound && device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
@@ -242,40 +266,14 @@ Result NfcDevice::GetTagInfo(NFP::TagInfo& tag_info, bool is_mifare) const {
         return ResultWrongDeviceState;
     }
 
-    UniqueSerialNumber uuid{};
-    u8 uuid_length{};
-    NfcProtocol protocol{NfcProtocol::TypeA};
-    TagType tag_type{TagType::Type2};
+    tag_info = real_tag_info;
 
-    if (is_mifare) {
-        tag_type = TagType::Mifare;
-        uuid_length = sizeof(NFP::NtagTagUuid);
-        memcpy(uuid.data(), mifare_data.data(), uuid_length);
-    } else {
-        tag_type = TagType::Type2;
-        uuid_length = sizeof(NFP::NtagTagUuid);
-        NFP::NtagTagUuid nUuid{
-            .part1 = encrypted_tag_data.uuid.part1,
-            .part2 = encrypted_tag_data.uuid.part2,
-            .nintendo_id = encrypted_tag_data.uuid.nintendo_id,
-        };
-        memcpy(uuid.data(), &nUuid, uuid_length);
-
-        // Generate random UUID to bypass amiibo load limits
-        if (Settings::values.random_amiibo_id) {
-            Common::TinyMT rng{};
-            rng.Initialize(static_cast<u32>(GetCurrentPosixTime()));
-            rng.GenerateRandomBytes(uuid.data(), uuid_length);
-        }
+    // Generate random UUID to bypass amiibo load limits
+    if (real_tag_info.tag_type == TagType::Type2 && Settings::values.random_amiibo_id) {
+        Common::TinyMT rng{};
+        rng.Initialize(static_cast<u32>(GetCurrentPosixTime()));
+        rng.GenerateRandomBytes(tag_info.uuid.data(), tag_info.uuid_length);
     }
-
-    // Protocol and tag type may change here
-    tag_info = {
-        .uuid = uuid,
-        .uuid_length = uuid_length,
-        .protocol = protocol,
-        .tag_type = tag_type,
-    };
 
     return ResultSuccess;
 }
@@ -293,7 +291,7 @@ Result NfcDevice::ReadMifare(std::span<const MifareReadBlockParameter> parameter
     Result result = ResultSuccess;
 
     TagInfo tag_info{};
-    result = GetTagInfo(tag_info, true);
+    result = GetTagInfo(tag_info);
 
     if (result.IsError()) {
         return result;
@@ -307,6 +305,8 @@ Result NfcDevice::ReadMifare(std::span<const MifareReadBlockParameter> parameter
         return ResultInvalidArgument;
     }
 
+    Common::Input::MifareRequest request{};
+    Common::Input::MifareRequest out_data{};
     const auto unknown = parameters[0].sector_key.unknown;
     for (std::size_t i = 0; i < parameters.size(); i++) {
         if (unknown != parameters[i].sector_key.unknown) {
@@ -315,25 +315,29 @@ Result NfcDevice::ReadMifare(std::span<const MifareReadBlockParameter> parameter
     }
 
     for (std::size_t i = 0; i < parameters.size(); i++) {
-        result = ReadMifare(parameters[i], read_block_data[i]);
-        if (result.IsError()) {
-            break;
+        if (parameters[i].sector_key.command == MifareCmd::None) {
+            continue;
         }
+        request.data[i].command = static_cast<u8>(parameters[i].sector_key.command);
+        request.data[i].sector = parameters[i].sector_number;
+        memcpy(request.data[i].key.data(), parameters[i].sector_key.sector_key.data(),
+               sizeof(KeyData));
     }
 
-    return result;
-}
-
-Result NfcDevice::ReadMifare(const MifareReadBlockParameter& parameter,
-                             MifareReadBlockData& read_block_data) const {
-    const std::size_t sector_index = parameter.sector_number * sizeof(DataBlock);
-    read_block_data.sector_number = parameter.sector_number;
-    if (mifare_data.size() < sector_index + sizeof(DataBlock)) {
+    if (!npad_device->ReadMifareData(request, out_data)) {
         return ResultMifareError288;
     }
 
-    // TODO: Use parameter.sector_key to read encrypted data
-    memcpy(read_block_data.data.data(), mifare_data.data() + sector_index, sizeof(DataBlock));
+    for (std::size_t i = 0; i < read_block_data.size(); i++) {
+        if (static_cast<MifareCmd>(out_data.data[i].command) == MifareCmd::None) {
+            continue;
+        }
+
+        read_block_data[i] = {
+            .data = out_data.data[i].data,
+            .sector_number = out_data.data[i].sector,
+        };
+    }
 
     return ResultSuccess;
 }
@@ -342,7 +346,7 @@ Result NfcDevice::WriteMifare(std::span<const MifareWriteBlockParameter> paramet
     Result result = ResultSuccess;
 
     TagInfo tag_info{};
-    result = GetTagInfo(tag_info, true);
+    result = GetTagInfo(tag_info);
 
     if (result.IsError()) {
         return result;
@@ -363,40 +367,23 @@ Result NfcDevice::WriteMifare(std::span<const MifareWriteBlockParameter> paramet
         }
     }
 
+    Common::Input::MifareRequest request{};
     for (std::size_t i = 0; i < parameters.size(); i++) {
-        result = WriteMifare(parameters[i]);
-        if (result.IsError()) {
-            break;
+        if (parameters[i].sector_key.command == MifareCmd::None) {
+            continue;
         }
+        request.data[i].command = static_cast<u8>(parameters[i].sector_key.command);
+        request.data[i].sector = parameters[i].sector_number;
+        memcpy(request.data[i].key.data(), parameters[i].sector_key.sector_key.data(),
+               sizeof(KeyData));
+        memcpy(request.data[i].data.data(), parameters[i].data.data(), sizeof(KeyData));
     }
 
-    if (!npad_device->WriteNfc(mifare_data)) {
-        LOG_ERROR(Service_NFP, "Error writing to file");
+    if (!npad_device->WriteMifareData(request)) {
         return ResultMifareError288;
     }
 
     return result;
-}
-
-Result NfcDevice::WriteMifare(const MifareWriteBlockParameter& parameter) {
-    const std::size_t sector_index = parameter.sector_number * sizeof(DataBlock);
-
-    if (device_state != DeviceState::TagFound && device_state != DeviceState::TagMounted) {
-        LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
-        if (device_state == DeviceState::TagRemoved) {
-            return ResultTagRemoved;
-        }
-        return ResultWrongDeviceState;
-    }
-
-    if (mifare_data.size() < sector_index + sizeof(DataBlock)) {
-        return ResultMifareError288;
-    }
-
-    // TODO: Use parameter.sector_key to encrypt the data
-    memcpy(mifare_data.data() + sector_index, parameter.data.data(), sizeof(DataBlock));
-
-    return ResultSuccess;
 }
 
 Result NfcDevice::SendCommandByPassThrough(const Time::Clock::TimeSpanType& timeout,
@@ -410,6 +397,11 @@ Result NfcDevice::Mount(NFP::ModelType model_type, NFP::MountTarget mount_target
     if (device_state != DeviceState::TagFound) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         return ResultWrongDeviceState;
+    }
+
+    if (!LoadAmiiboData()) {
+        LOG_ERROR(Service_NFP, "Not an amiibo");
+        return ResultInvalidTagType;
     }
 
     if (!NFP::AmiiboCrypto::IsAmiiboValid(encrypted_tag_data)) {
@@ -562,7 +554,7 @@ Result NfcDevice::Restore() {
 
     NFC::TagInfo tag_info{};
     std::array<u8, sizeof(NFP::EncryptedNTAG215File)> data{};
-    Result result = GetTagInfo(tag_info, false);
+    Result result = GetTagInfo(tag_info);
 
     if (result.IsError()) {
         return result;
@@ -635,7 +627,7 @@ Result NfcDevice::GetCommonInfo(NFP::CommonInfo& common_info) const {
     // TODO: Validate this data
     common_info = {
         .last_write_date = settings.write_date.GetWriteDate(),
-        .write_counter = tag_data.write_counter,
+        .write_counter = tag_data.application_write_counter,
         .version = tag_data.amiibo_version,
         .application_area_size = sizeof(NFP::ApplicationArea),
     };

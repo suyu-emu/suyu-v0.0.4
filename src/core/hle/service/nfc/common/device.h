@@ -42,15 +42,12 @@ public:
     Result StartDetection(NfcProtocol allowed_protocol);
     Result StopDetection();
 
-    Result GetTagInfo(TagInfo& tag_info, bool is_mifare) const;
+    Result GetTagInfo(TagInfo& tag_info) const;
 
     Result ReadMifare(std::span<const MifareReadBlockParameter> parameters,
                       std::span<MifareReadBlockData> read_block_data) const;
-    Result ReadMifare(const MifareReadBlockParameter& parameter,
-                      MifareReadBlockData& read_block_data) const;
 
     Result WriteMifare(std::span<const MifareWriteBlockParameter> parameters);
-    Result WriteMifare(const MifareWriteBlockParameter& parameter);
 
     Result SendCommandByPassThrough(const Time::Clock::TimeSpanType& timeout,
                                     std::span<const u8> command_data, std::span<u8> out_data);
@@ -105,7 +102,8 @@ public:
 
 private:
     void NpadUpdate(Core::HID::ControllerTriggerType type);
-    bool LoadNfcTag(std::span<const u8> data);
+    bool LoadNfcTag(u8 protocol, u8 tag_type, u8 uuid_length, UniqueSerialNumber uuid);
+    bool LoadAmiiboData();
     void CloseNfcTag();
 
     NFP::AmiiboName GetAmiiboName(const NFP::AmiiboSettings& settings) const;
@@ -140,8 +138,8 @@ private:
     bool is_write_protected{};
     NFP::MountTarget mount_target{NFP::MountTarget::None};
 
+    TagInfo real_tag_info{};
     NFP::NTAG215File tag_data{};
-    std::vector<u8> mifare_data{};
     NFP::EncryptedNTAG215File encrypted_tag_data{};
 };
 

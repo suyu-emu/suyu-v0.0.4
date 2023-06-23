@@ -24,6 +24,7 @@ constexpr std::array<u8, 8> DefaultVibrationBuffer{0x0, 0x1, 0x40, 0x40, 0x0, 0x
 using MacAddress = std::array<u8, 6>;
 using SerialNumber = std::array<u8, 15>;
 using TagUUID = std::array<u8, 7>;
+using MifareUUID = std::array<u8, 4>;
 
 enum class ControllerType : u8 {
     None = 0x00,
@@ -307,6 +308,19 @@ enum class NFCStatus : u8 {
     WriteDone = 0x05,
     TagLost = 0x07,
     WriteReady = 0x09,
+    MifareDone = 0x10,
+};
+
+enum class MifareCmd : u8 {
+    None = 0x00,
+    Read = 0x30,
+    AuthA = 0x60,
+    AuthB = 0x61,
+    Write = 0xA0,
+    Transfer = 0xB0,
+    Decrement = 0xC0,
+    Increment = 0xC1,
+    Store = 0xC2
 };
 
 enum class IrsMode : u8 {
@@ -592,6 +606,14 @@ struct NFCWriteCommandData {
 static_assert(sizeof(NFCWriteCommandData) == 0x15, "NFCWriteCommandData is an invalid size");
 #pragma pack(pop)
 
+struct MifareCommandData {
+    u8 unknown1;
+    u8 unknown2;
+    u8 number_of_short_bytes;
+    MifareUUID uid;
+};
+static_assert(sizeof(MifareCommandData) == 0x7, "MifareCommandData is an invalid size");
+
 struct NFCPollingCommandData {
     u8 enable_mifare;
     u8 unknown_1;
@@ -627,6 +649,41 @@ struct NFCWritePackage {
     NFCWriteCommandData command_data;
     u8 number_of_chunks;
     std::array<NFCDataChunk, 4> data_chunks;
+};
+
+struct MifareReadChunk {
+    MifareCmd command;
+    std::array<u8, 0x6> sector_key;
+    u8 sector;
+};
+
+struct MifareWriteChunk {
+    MifareCmd command;
+    std::array<u8, 0x6> sector_key;
+    u8 sector;
+    std::array<u8, 0x10> data;
+};
+
+struct MifareReadData {
+    u8 sector;
+    std::array<u8, 0x10> data;
+};
+
+struct MifareReadPackage {
+    MifareCommandData command_data;
+    std::array<MifareReadChunk, 0x10> data_chunks;
+};
+
+struct MifareWritePackage {
+    MifareCommandData command_data;
+    std::array<MifareWriteChunk, 0x10> data_chunks;
+};
+
+struct TagInfo {
+    u8 uuid_length;
+    u8 protocol;
+    u8 tag_type;
+    std::array<u8, 10> uuid;
 };
 
 struct IrsConfigure {
@@ -744,7 +801,7 @@ struct JoyconCallbacks {
     std::function<void(int, f32)> on_stick_data;
     std::function<void(int, const MotionData&)> on_motion_data;
     std::function<void(f32)> on_ring_data;
-    std::function<void(const std::vector<u8>&)> on_amiibo_data;
+    std::function<void(const Joycon::TagInfo&)> on_amiibo_data;
     std::function<void(const std::vector<u8>&, IrsResolution)> on_camera_data;
 };
 
