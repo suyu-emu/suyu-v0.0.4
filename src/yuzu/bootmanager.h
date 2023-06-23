@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <atomic>
 #include <condition_variable>
 #include <cstddef>
 #include <memory>
@@ -88,7 +87,7 @@ public:
 
         // Wait until paused, if pausing.
         if (!should_run) {
-            m_is_running.wait(true);
+            m_stopped.Wait();
         }
     }
 
@@ -97,7 +96,7 @@ public:
      * @return True if the emulation thread is running, otherwise false
      */
     bool IsRunning() const {
-        return m_is_running.load() || m_should_run;
+        return m_should_run;
     }
 
     /**
@@ -118,7 +117,7 @@ private:
     std::stop_source m_stop_source;
     std::mutex m_should_run_mutex;
     std::condition_variable_any m_should_run_cv;
-    std::atomic<bool> m_is_running{false};
+    Common::Event m_stopped;
     bool m_should_run{true};
 
 signals:

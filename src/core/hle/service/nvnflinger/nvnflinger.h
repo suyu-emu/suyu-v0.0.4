@@ -12,6 +12,7 @@
 
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
+#include "common/thread.h"
 #include "core/hle/result.h"
 #include "core/hle/service/kernel_helpers.h"
 
@@ -143,7 +144,7 @@ private:
 
     Core::System& system;
 
-    std::atomic<bool> vsync_signal;
+    Common::Event vsync_signal;
 
     std::jthread vsync_thread;
 

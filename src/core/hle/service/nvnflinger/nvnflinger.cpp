@@ -43,14 +43,10 @@ void Nvnflinger::SplitVSync(std::stop_token stop_token) {
     Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
 
     while (!stop_token.stop_requested()) {
-        vsync_signal.wait(false);
-        vsync_signal.store(false);
+        vsync_signal.Wait();
 
-        guard->lock();
-
+        const auto lock_guard = Lock();
         Compose();
-
-        guard->unlock();
     }
 }
 
@@ -69,9 +65,8 @@ Nvnflinger::Nvnflinger(Core::System& system_, HosBinderDriverServer& hos_binder_
         "ScreenComposition",
         [this](std::uintptr_t, s64 time,
                std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
-            vsync_signal.store(true);
             { const auto lock_guard = Lock(); }
-            vsync_signal.notify_one();
+            vsync_signal.Set();
             return std::chrono::nanoseconds(GetNextTicks());
         });
 
@@ -97,8 +92,7 @@ Nvnflinger::~Nvnflinger() {
     if (system.IsMulticore()) {
         system.CoreTiming().UnscheduleEvent(multi_composition_event, {});
         vsync_thread.request_stop();
-        vsync_signal.store(true);
-        vsync_signal.notify_all();
+        vsync_signal.Set();
     } else {
         system.CoreTiming().UnscheduleEvent(single_composition_event, {});
     }
