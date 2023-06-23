@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstring>
 #include <new>
+#include <span>
 #include <type_traits>
 #include <vector>
 
@@ -53,7 +54,7 @@ public:
         return push_count;
     }
 
-    std::size_t Push(const std::vector<T>& input) {
+    std::size_t Push(const std::span<T> input) {
         return Push(input.data(), input.size());
     }
 

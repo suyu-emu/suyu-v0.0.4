@@ -18,7 +18,7 @@
 
 namespace AudioCore::Sink {
 
-void SinkStream::AppendBuffer(SinkBuffer& buffer, std::vector<s16>& samples) {
+void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
     if (type == StreamType::In) {
         queue.enqueue(buffer);
         queued_buffers++;
@@ -66,15 +66,16 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::vector<s16>& samples) {
                 static_cast<s16>(std::clamp(right_sample, min, max));
         }
 
-        samples.resize(samples.size() / system_channels * device_channels);
+        samples = samples.subspan(0, samples.size() / system_channels * device_channels);
 
     } else if (system_channels == 2 && device_channels == 6) {
         // We need moar samples! Not all games will provide 6 channel audio.
         // TODO: Implement some upmixing here. Currently just passthrough, with other
         // channels left as silence.
-        std::vector<s16> new_samples(samples.size() / system_channels * device_channels, 0);
+        auto new_size = samples.size() / system_channels * device_channels;
+        tmp_samples.resize_destructive(new_size);
 
-        for (u32 read_index = 0, write_index = 0; read_index < samples.size();
+        for (u32 read_index = 0, write_index = 0; read_index < new_size;
              read_index += system_channels, write_index += device_channels) {
             const auto left_sample{static_cast<s16>(std::clamp(
                 static_cast<s32>(
@@ -82,7 +83,7 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::vector<s16>& samples) {
                     volume),
                 min, max))};
 
-            new_samples[write_index + static_cast<u32>(Channels::FrontLeft)] = left_sample;
+            tmp_samples[write_index + static_cast<u32>(Channels::FrontLeft)] = left_sample;
 
             const auto right_sample{static_cast<s16>(std::clamp(
                 static_cast<s32>(
@@ -90,9 +91,9 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::vector<s16>& samples) {
                     volume),
                 min, max))};
 
-            new_samples[write_index + static_cast<u32>(Channels::FrontRight)] = right_sample;
+            tmp_samples[write_index + static_cast<u32>(Channels::FrontRight)] = right_sample;
         }
-        samples = std::move(new_samples);
+        samples = std::span<s16>(tmp_samples);
 
     } else if (volume != 1.0f) {
         for (u32 i = 0; i < samples.size(); i++) {

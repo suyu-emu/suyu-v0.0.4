@@ -587,7 +587,7 @@ void MemoryManager::InvalidateRegion(GPUVAddr gpu_addr, size_t size,
 
 void MemoryManager::CopyBlock(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr, std::size_t size,
                               VideoCommon::CacheType which) {
-    std::vector<u8> tmp_buffer(size);
+    tmp_buffer.resize_destructive(size);
     ReadBlock(gpu_src_addr, tmp_buffer.data(), size, which);
 
     // The output block must be flushed in case it has data modified from the GPU.
@@ -670,9 +670,9 @@ bool MemoryManager::IsFullyMappedRange(GPUVAddr gpu_addr, std::size_t size) cons
     return result;
 }
 
-std::vector<std::pair<GPUVAddr, std::size_t>> MemoryManager::GetSubmappedRange(
-    GPUVAddr gpu_addr, std::size_t size) const {
-    std::vector<std::pair<GPUVAddr, std::size_t>> result{};
+boost::container::small_vector<std::pair<GPUVAddr, std::size_t>, 32>
+MemoryManager::GetSubmappedRange(GPUVAddr gpu_addr, std::size_t size) const {
+    boost::container::small_vector<std::pair<GPUVAddr, std::size_t>, 32> result{};
     GetSubmappedRangeImpl<true>(gpu_addr, size, result);
     return result;
 }
@@ -680,8 +680,9 @@ std::vector<std::pair<GPUVAddr, std::size_t>> MemoryManager::GetSubmappedRange(
 template <bool is_gpu_address>
 void MemoryManager::GetSubmappedRangeImpl(
     GPUVAddr gpu_addr, std::size_t size,
-    std::vector<std::pair<std::conditional_t<is_gpu_address, GPUVAddr, VAddr>, std::size_t>>&
-        result) const {
+    boost::container::small_vector<
+        std::pair<std::conditional_t<is_gpu_address, GPUVAddr, VAddr>, std::size_t>, 32>& result)
+    const {
     std::optional<std::pair<std::conditional_t<is_gpu_address, GPUVAddr, VAddr>, std::size_t>>
         last_segment{};
     std::optional<VAddr> old_page_addr{};

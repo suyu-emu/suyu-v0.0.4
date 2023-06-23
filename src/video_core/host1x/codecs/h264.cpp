@@ -4,6 +4,7 @@
 #include <array>
 #include <bit>
 
+#include "common/scratch_buffer.h"
 #include "common/settings.h"
 #include "video_core/host1x/codecs/h264.h"
 #include "video_core/host1x/host1x.h"
@@ -188,7 +189,8 @@ void H264BitWriter::WriteBit(bool state) {
 }
 
 void H264BitWriter::WriteScalingList(std::span<const u8> list, s32 start, s32 count) {
-    std::vector<u8> scan(count);
+    static Common::ScratchBuffer<u8> scan{};
+    scan.resize_destructive(count);
     if (count == 16) {
         std::memcpy(scan.data(), zig_zag_scan.data(), scan.size());
     } else {

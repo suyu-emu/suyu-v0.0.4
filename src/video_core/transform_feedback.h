@@ -24,7 +24,7 @@ struct TransformFeedbackState {
         varyings;
 };
 
-std::vector<Shader::TransformFeedbackVarying> MakeTransformFeedbackVaryings(
+std::pair<std::array<Shader::TransformFeedbackVarying, 256>, u32> MakeTransformFeedbackVaryings(
     const TransformFeedbackState& state);
 
 } // namespace VideoCommon

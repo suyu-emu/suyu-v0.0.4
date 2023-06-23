@@ -28,7 +28,7 @@ nvhost_as_gpu::nvhost_as_gpu(Core::System& system_, Module& module_, NvCore::Con
 nvhost_as_gpu::~nvhost_as_gpu() = default;
 
 NvResult nvhost_as_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                               std::vector<u8>& output) {
+                               std::span<u8> output) {
     switch (command.group) {
     case 'A':
         switch (command.cmd) {
@@ -61,13 +61,13 @@ NvResult nvhost_as_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> i
 }
 
 NvResult nvhost_as_gpu::Ioctl2(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                               std::span<const u8> inline_input, std::vector<u8>& output) {
+                               std::span<const u8> inline_input, std::span<u8> output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
 
 NvResult nvhost_as_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                               std::vector<u8>& output, std::vector<u8>& inline_output) {
+                               std::span<u8> output, std::span<u8> inline_output) {
     switch (command.group) {
     case 'A':
         switch (command.cmd) {
@@ -87,7 +87,7 @@ NvResult nvhost_as_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> i
 void nvhost_as_gpu::OnOpen(DeviceFD fd) {}
 void nvhost_as_gpu::OnClose(DeviceFD fd) {}
 
-NvResult nvhost_as_gpu::AllocAsEx(std::span<const u8> input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::AllocAsEx(std::span<const u8> input, std::span<u8> output) {
     IoctlAllocAsEx params{};
     std::memcpy(&params, input.data(), input.size());
 
@@ -141,7 +141,7 @@ NvResult nvhost_as_gpu::AllocAsEx(std::span<const u8> input, std::vector<u8>& ou
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::AllocateSpace(std::span<const u8> input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::AllocateSpace(std::span<const u8> input, std::span<u8> output) {
     IoctlAllocSpace params{};
     std::memcpy(&params, input.data(), input.size());
 
@@ -220,7 +220,7 @@ void nvhost_as_gpu::FreeMappingLocked(u64 offset) {
     mapping_map.erase(offset);
 }
 
-NvResult nvhost_as_gpu::FreeSpace(std::span<const u8> input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::FreeSpace(std::span<const u8> input, std::span<u8> output) {
     IoctlFreeSpace params{};
     std::memcpy(&params, input.data(), input.size());
 
@@ -266,15 +266,14 @@ NvResult nvhost_as_gpu::FreeSpace(std::span<const u8> input, std::vector<u8>& ou
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::Remap(std::span<const u8> input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::Remap(std::span<const u8> input, std::span<u8> output) {
     const auto num_entries = input.size() / sizeof(IoctlRemapEntry);
 
     LOG_DEBUG(Service_NVDRV, "called, num_entries=0x{:X}", num_entries);
 
-    std::vector<IoctlRemapEntry> entries(num_entries);
-    std::memcpy(entries.data(), input.data(), input.size());
-
     std::scoped_lock lock(mutex);
+    entries.resize_destructive(num_entries);
+    std::memcpy(entries.data(), input.data(), input.size());
 
     if (!vm.initialised) {
         return NvResult::BadValue;
@@ -320,7 +319,7 @@ NvResult nvhost_as_gpu::Remap(std::span<const u8> input, std::vector<u8>& output
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::MapBufferEx(std::span<const u8> input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::MapBufferEx(std::span<const u8> input, std::span<u8> output) {
     IoctlMapBufferEx params{};
     std::memcpy(&params, input.data(), input.size());
 
@@ -424,7 +423,7 @@ NvResult nvhost_as_gpu::MapBufferEx(std::span<const u8> input, std::vector<u8>& 
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::UnmapBuffer(std::span<const u8> input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::UnmapBuffer(std::span<const u8> input, std::span<u8> output) {
     IoctlUnmapBuffer params{};
     std::memcpy(&params, input.data(), input.size());
 
@@ -463,7 +462,7 @@ NvResult nvhost_as_gpu::UnmapBuffer(std::span<const u8> input, std::vector<u8>& 
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::BindChannel(std::span<const u8> input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::BindChannel(std::span<const u8> input, std::span<u8> output) {
     IoctlBindChannel params{};
     std::memcpy(&params, input.data(), input.size());
     LOG_DEBUG(Service_NVDRV, "called, fd={:X}", params.fd);
@@ -492,7 +491,7 @@ void nvhost_as_gpu::GetVARegionsImpl(IoctlGetVaRegions& params) {
     };
 }
 
-NvResult nvhost_as_gpu::GetVARegions(std::span<const u8> input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::GetVARegions(std::span<const u8> input, std::span<u8> output) {
     IoctlGetVaRegions params{};
     std::memcpy(&params, input.data(), input.size());
 
@@ -511,8 +510,8 @@ NvResult nvhost_as_gpu::GetVARegions(std::span<const u8> input, std::vector<u8>&
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::GetVARegions(std::span<const u8> input, std::vector<u8>& output,
-                                     std::vector<u8>& inline_output) {
+NvResult nvhost_as_gpu::GetVARegions(std::span<const u8> input, std::span<u8> output,
+                                     std::span<u8> inline_output) {
     IoctlGetVaRegions params{};
     std::memcpy(&params, input.data(), input.size());
 

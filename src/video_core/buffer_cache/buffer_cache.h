@@ -207,7 +207,7 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     if (has_new_downloads) {
         memory_tracker.MarkRegionAsGpuModified(*cpu_dest_address, amount);
     }
-    tmp_buffer.resize(amount);
+    tmp_buffer.resize_destructive(amount);
     cpu_memory.ReadBlockUnsafe(*cpu_src_address, tmp_buffer.data(), amount);
     cpu_memory.WriteBlockUnsafe(*cpu_dest_address, tmp_buffer.data(), amount);
     return true;
@@ -1279,7 +1279,7 @@ template <class P>
 typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(VAddr cpu_addr,
                                                                        u32 wanted_size) {
     static constexpr int STREAM_LEAP_THRESHOLD = 16;
-    std::vector<BufferId> overlap_ids;
+    boost::container::small_vector<BufferId, 16> overlap_ids;
     VAddr begin = cpu_addr;
     VAddr end = cpu_addr + wanted_size;
     int stream_score = 0;

@@ -68,13 +68,13 @@ private:
                                  ExtraBehavior extra_behavior) {
         u32 consumed = 0;
         u32 sample_count = 0;
-        std::vector<opus_int16> samples(ctx.GetWriteBufferNumElements<opus_int16>());
+        tmp_samples.resize_destructive(ctx.GetWriteBufferNumElements<opus_int16>());
 
         if (extra_behavior == ExtraBehavior::ResetContext) {
             ResetDecoderContext();
         }
 
-        if (!DecodeOpusData(consumed, sample_count, ctx.ReadBuffer(), samples, performance)) {
+        if (!DecodeOpusData(consumed, sample_count, ctx.ReadBuffer(), tmp_samples, performance)) {
             LOG_ERROR(Audio, "Failed to decode opus data");
             IPC::ResponseBuilder rb{ctx, 2};
             // TODO(ogniK): Use correct error code
@@ -90,11 +90,11 @@ private:
         if (performance) {
             rb.Push<u64>(*performance);
         }
-        ctx.WriteBuffer(samples);
+        ctx.WriteBuffer(tmp_samples);
     }
 
     bool DecodeOpusData(u32& consumed, u32& sample_count, std::span<const u8> input,
-                        std::vector<opus_int16>& output, u64* out_performance_time) const {
+                        std::span<opus_int16> output, u64* out_performance_time) const {
         const auto start_time = std::chrono::steady_clock::now();
         const std::size_t raw_output_sz = output.size() * sizeof(opus_int16);
         if (sizeof(OpusPacketHeader) > input.size()) {
@@ -154,6 +154,7 @@ private:
     OpusDecoderPtr decoder;
     u32 sample_rate;
     u32 channel_count;
+    Common::ScratchBuffer<opus_int16> tmp_samples;
 };
 
 class IHardwareOpusDecoderManager final : public ServiceFramework<IHardwareOpusDecoderManager> {

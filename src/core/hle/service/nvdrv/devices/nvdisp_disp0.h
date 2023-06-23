@@ -26,11 +26,11 @@ public:
     ~nvdisp_disp0() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                    std::vector<u8>& output) override;
+                    std::span<u8> output) override;
     NvResult Ioctl2(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                    std::span<const u8> inline_input, std::vector<u8>& output) override;
-    NvResult Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input, std::vector<u8>& output,
-                    std::vector<u8>& inline_output) override;
+                    std::span<const u8> inline_input, std::span<u8> output) override;
+    NvResult Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input, std::span<u8> output,
+                    std::span<u8> inline_output) override;
 
     void OnOpen(DeviceFD fd) override;
     void OnClose(DeviceFD fd) override;

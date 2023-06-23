@@ -7,6 +7,7 @@
 #include <mutex>
 #include <span>
 #include <vector>
+#include <boost/container/static_vector.hpp>
 
 #include "audio_buffer.h"
 #include "audio_core/device/device_session.h"
@@ -48,7 +49,7 @@ public:
      *
      * @param out_buffers - The buffers which were registered.
      */
-    void RegisterBuffers(std::vector<AudioBuffer>& out_buffers) {
+    void RegisterBuffers(boost::container::static_vector<AudioBuffer, N>& out_buffers) {
         std::scoped_lock l{lock};
         const s32 to_register{std::min(std::min(appended_count, BufferAppendLimit),
                                        BufferAppendLimit - registered_count)};
@@ -162,7 +163,8 @@ public:
      * @param max_buffers     - Maximum number of buffers to released.
      * @return The number of buffers released.
      */
-    u32 GetRegisteredAppendedBuffers(std::vector<AudioBuffer>& buffers_flushed, u32 max_buffers) {
+    u32 GetRegisteredAppendedBuffers(
+        boost::container::static_vector<AudioBuffer, N>& buffers_flushed, u32 max_buffers) {
         std::scoped_lock l{lock};
         if (registered_count + appended_count == 0) {
             return 0;
@@ -270,7 +272,7 @@ public:
      */
     bool FlushBuffers(u32& buffers_released) {
         std::scoped_lock l{lock};
-        std::vector<AudioBuffer> buffers_flushed{};
+        boost::container::static_vector<AudioBuffer, N> buffers_flushed{};
 
         buffers_released = GetRegisteredAppendedBuffers(buffers_flushed, append_limit);
 

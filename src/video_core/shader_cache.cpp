@@ -151,11 +151,9 @@ void ShaderCache::RemovePendingShaders() {
     marked_for_removal.erase(std::unique(marked_for_removal.begin(), marked_for_removal.end()),
                              marked_for_removal.end());
 
-    std::vector<ShaderInfo*> removed_shaders;
-    removed_shaders.reserve(marked_for_removal.size());
+    boost::container::small_vector<ShaderInfo*, 16> removed_shaders;
 
     std::scoped_lock lock{lookup_mutex};
-
     for (Entry* const entry : marked_for_removal) {
         removed_shaders.push_back(entry->data);
 

@@ -134,8 +134,8 @@ u32 NodeStates::GetNodeCount() const {
     return node_count;
 }
 
-std::vector<s32> NodeStates::GetSortedResuls() const {
-    return {results.rbegin(), results.rbegin() + result_pos};
+std::pair<std::span<u32>::reverse_iterator, size_t> NodeStates::GetSortedResuls() const {
+    return {results.rbegin(), result_pos};
 }
 
 } // namespace AudioCore::AudioRenderer

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/scope_exit.h"
+#include "common/scratch_buffer.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_readable_event.h"
@@ -54,7 +55,7 @@ static Result WaitSynchronization(Core::System& system, int32_t* out_index, cons
     // Get the synchronization context.
     auto& kernel = system.Kernel();
     auto& handle_table = GetCurrentProcess(kernel).GetHandleTable();
-    std::vector<KSynchronizationObject*> objs(num_handles);
+    std::array<KSynchronizationObject*, Svc::ArgumentHandleCountMax> objs;
 
     // Copy user handles.
     if (num_handles > 0) {
@@ -72,8 +73,8 @@ static Result WaitSynchronization(Core::System& system, int32_t* out_index, cons
     });
 
     // Wait on the objects.
-    Result res = KSynchronizationObject::Wait(kernel, out_index, objs.data(),
-                                              static_cast<s32>(objs.size()), timeout_ns);
+    Result res =
+        KSynchronizationObject::Wait(kernel, out_index, objs.data(), num_handles, timeout_ns);
 
     R_SUCCEED_IF(res == ResultSessionClosed);
     R_RETURN(res);
@@ -87,8 +88,7 @@ Result WaitSynchronization(Core::System& system, int32_t* out_index, u64 user_ha
 
     // Ensure number of handles is valid.
     R_UNLESS(0 <= num_handles && num_handles <= Svc::ArgumentHandleCountMax, ResultOutOfRange);
-
-    std::vector<Handle> handles(num_handles);
+    std::array<Handle, Svc::ArgumentHandleCountMax> handles;
     if (num_handles > 0) {
         GetCurrentMemory(system.Kernel())
             .ReadBlock(user_handles, handles.data(), num_handles * sizeof(Handle));

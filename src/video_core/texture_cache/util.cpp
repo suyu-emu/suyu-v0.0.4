@@ -329,13 +329,13 @@ template <u32 GOB_EXTENT>
 
 [[nodiscard]] std::optional<SubresourceExtent> ResolveOverlapRightAddress3D(
     const ImageInfo& new_info, GPUVAddr gpu_addr, const ImageBase& overlap, bool strict_size) {
-    const std::vector<u32> slice_offsets = CalculateSliceOffsets(new_info);
+    const auto slice_offsets = CalculateSliceOffsets(new_info);
     const u32 diff = static_cast<u32>(overlap.gpu_addr - gpu_addr);
     const auto it = std::ranges::find(slice_offsets, diff);
     if (it == slice_offsets.end()) {
         return std::nullopt;
     }
-    const std::vector subresources = CalculateSliceSubresources(new_info);
+    const auto subresources = CalculateSliceSubresources(new_info);
     const SubresourceBase base = subresources[std::distance(slice_offsets.begin(), it)];
     const ImageInfo& info = overlap.info;
     if (!IsBlockLinearSizeCompatible(new_info, info, base.level, 0, strict_size)) {
@@ -655,9 +655,9 @@ LevelArray CalculateMipLevelSizes(const ImageInfo& info) noexcept {
     return sizes;
 }
 
-std::vector<u32> CalculateSliceOffsets(const ImageInfo& info) {
+boost::container::small_vector<u32, 16> CalculateSliceOffsets(const ImageInfo& info) {
     ASSERT(info.type == ImageType::e3D);
-    std::vector<u32> offsets;
+    boost::container::small_vector<u32, 16> offsets;
     offsets.reserve(NumSlices(info));
 
     const LevelInfo level_info = MakeLevelInfo(info);
@@ -679,9 +679,10 @@ std::vector<u32> CalculateSliceOffsets(const ImageInfo& info) {
     return offsets;
 }
 
-std::vector<SubresourceBase> CalculateSliceSubresources(const ImageInfo& info) {
+boost::container::small_vector<SubresourceBase, 16> CalculateSliceSubresources(
+    const ImageInfo& info) {
     ASSERT(info.type == ImageType::e3D);
-    std::vector<SubresourceBase> subresources;
+    boost::container::small_vector<SubresourceBase, 16> subresources;
     subresources.reserve(NumSlices(info));
     for (s32 level = 0; level < info.resources.levels; ++level) {
         const s32 depth = AdjustMipSize(info.size.depth, level);
@@ -723,8 +724,10 @@ ImageViewType RenderTargetImageViewType(const ImageInfo& info) noexcept {
     }
 }
 
-std::vector<ImageCopy> MakeShrinkImageCopies(const ImageInfo& dst, const ImageInfo& src,
-                                             SubresourceBase base, u32 up_scale, u32 down_shift) {
+boost::container::small_vector<ImageCopy, 16> MakeShrinkImageCopies(const ImageInfo& dst,
+                                                                    const ImageInfo& src,
+                                                                    SubresourceBase base,
+                                                                    u32 up_scale, u32 down_shift) {
     ASSERT(dst.resources.levels >= src.resources.levels);
 
     const bool is_dst_3d = dst.type == ImageType::e3D;
@@ -733,7 +736,7 @@ std::vector<ImageCopy> MakeShrinkImageCopies(const ImageInfo& dst, const ImageIn
         ASSERT(src.resources.levels == 1);
     }
     const bool both_2d{src.type == ImageType::e2D && dst.type == ImageType::e2D};
-    std::vector<ImageCopy> copies;
+    boost::container::small_vector<ImageCopy, 16> copies;
     copies.reserve(src.resources.levels);
     for (s32 level = 0; level < src.resources.levels; ++level) {
         ImageCopy& copy = copies.emplace_back();
@@ -770,9 +773,10 @@ std::vector<ImageCopy> MakeShrinkImageCopies(const ImageInfo& dst, const ImageIn
     return copies;
 }
 
-std::vector<ImageCopy> MakeReinterpretImageCopies(const ImageInfo& src, u32 up_scale,
-                                                  u32 down_shift) {
-    std::vector<ImageCopy> copies;
+boost::container::small_vector<ImageCopy, 16> MakeReinterpretImageCopies(const ImageInfo& src,
+                                                                         u32 up_scale,
+                                                                         u32 down_shift) {
+    boost::container::small_vector<ImageCopy, 16> copies;
     copies.reserve(src.resources.levels);
     const bool is_3d = src.type == ImageType::e3D;
     for (s32 level = 0; level < src.resources.levels; ++level) {
@@ -824,9 +828,11 @@ bool IsValidEntry(const Tegra::MemoryManager& gpu_memory, const TICEntry& config
     return gpu_memory.GpuToCpuAddress(address, guest_size_bytes).has_value();
 }
 
-std::vector<BufferImageCopy> UnswizzleImage(Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr,
-                                            const ImageInfo& info, std::span<const u8> input,
-                                            std::span<u8> output) {
+boost::container::small_vector<BufferImageCopy, 16> UnswizzleImage(Tegra::MemoryManager& gpu_memory,
+                                                                   GPUVAddr gpu_addr,
+                                                                   const ImageInfo& info,
+                                                                   std::span<const u8> input,
+                                                                   std::span<u8> output) {
     const size_t guest_size_bytes = input.size_bytes();
     const u32 bpp_log2 = BytesPerBlockLog2(info.format);
     const Extent3D size = info.size;
@@ -861,7 +867,7 @@ std::vector<BufferImageCopy> UnswizzleImage(Tegra::MemoryManager& gpu_memory, GP
                                             info.tile_width_spacing);
     size_t guest_offset = 0;
     u32 host_offset = 0;
-    std::vector<BufferImageCopy> copies(num_levels);
+    boost::container::small_vector<BufferImageCopy, 16> copies(num_levels);
 
     for (s32 level = 0; level < num_levels; ++level) {
         const Extent3D level_size = AdjustMipSize(size, level);
@@ -978,7 +984,7 @@ void ConvertImage(std::span<const u8> input, const ImageInfo& info, std::span<u8
     }
 }
 
-std::vector<BufferImageCopy> FullDownloadCopies(const ImageInfo& info) {
+boost::container::small_vector<BufferImageCopy, 16> FullDownloadCopies(const ImageInfo& info) {
     const Extent3D size = info.size;
     const u32 bytes_per_block = BytesPerBlock(info.format);
     if (info.type == ImageType::Linear) {
@@ -1006,7 +1012,7 @@ std::vector<BufferImageCopy> FullDownloadCopies(const ImageInfo& info) {
 
     u32 host_offset = 0;
 
-    std::vector<BufferImageCopy> copies(num_levels);
+    boost::container::small_vector<BufferImageCopy, 16> copies(num_levels);
     for (s32 level = 0; level < num_levels; ++level) {
         const Extent3D level_size = AdjustMipSize(size, level);
         const u32 num_blocks_per_layer = NumBlocks(level_size, tile_size);
@@ -1042,10 +1048,10 @@ Extent3D MipBlockSize(const ImageInfo& info, u32 level) {
     return AdjustMipBlockSize(num_tiles, level_info.block, level);
 }
 
-std::vector<SwizzleParameters> FullUploadSwizzles(const ImageInfo& info) {
+boost::container::small_vector<SwizzleParameters, 16> FullUploadSwizzles(const ImageInfo& info) {
     const Extent2D tile_size = DefaultBlockSize(info.format);
     if (info.type == ImageType::Linear) {
-        return std::vector{SwizzleParameters{
+        return {SwizzleParameters{
             .num_tiles = AdjustTileSize(info.size, tile_size),
             .block = {},
             .buffer_offset = 0,
@@ -1057,7 +1063,7 @@ std::vector<SwizzleParameters> FullUploadSwizzles(const ImageInfo& info) {
     const s32 num_levels = info.resources.levels;
 
     u32 guest_offset = 0;
-    std::vector<SwizzleParameters> params(num_levels);
+    boost::container::small_vector<SwizzleParameters, 16> params(num_levels);
     for (s32 level = 0; level < num_levels; ++level) {
         const Extent3D level_size = AdjustMipSize(size, level);
         const Extent3D num_tiles = AdjustTileSize(level_size, tile_size);

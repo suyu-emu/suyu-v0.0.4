@@ -174,7 +174,7 @@ Result GetThreadContext3(Core::System& system, u64 out_context, Handle thread_ha
         }
 
         // Get the thread context.
-        std::vector<u8> context;
+        static thread_local Common::ScratchBuffer<u8> context;
         R_TRY(thread->GetThreadContext3(context));
 
         // Copy the thread context to user space.

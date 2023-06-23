@@ -229,7 +229,7 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<BufferCacheChannelInf
     using OverlapCounter = boost::icl::split_interval_map<VAddr, int>;
 
     struct OverlapResult {
-        std::vector<BufferId> ids;
+        boost::container::small_vector<BufferId, 16> ids;
         VAddr begin;
         VAddr end;
         bool has_stream_leap = false;
@@ -582,7 +582,7 @@ private:
     BufferId inline_buffer_id;
 
     std::array<BufferId, ((1ULL << 39) >> CACHING_PAGEBITS)> page_table;
-    std::vector<u8> tmp_buffer;
+    Common::ScratchBuffer<u8> tmp_buffer;
 };
 
 } // namespace VideoCommon

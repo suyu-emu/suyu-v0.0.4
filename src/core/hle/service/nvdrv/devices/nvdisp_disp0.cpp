@@ -18,19 +18,19 @@ nvdisp_disp0::nvdisp_disp0(Core::System& system_, NvCore::Container& core)
 nvdisp_disp0::~nvdisp_disp0() = default;
 
 NvResult nvdisp_disp0::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                              std::vector<u8>& output) {
+                              std::span<u8> output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
 
 NvResult nvdisp_disp0::Ioctl2(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                              std::span<const u8> inline_input, std::vector<u8>& output) {
+                              std::span<const u8> inline_input, std::span<u8> output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
 
 NvResult nvdisp_disp0::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                              std::vector<u8>& output, std::vector<u8>& inline_output) {
+                              std::span<u8> output, std::span<u8> inline_output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }

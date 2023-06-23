@@ -108,9 +108,11 @@ void MaxwellDMA::Launch() {
         if (regs.launch_dma.remap_enable != 0 && is_const_a_dst) {
             ASSERT(regs.remap_const.component_size_minus_one == 3);
             accelerate.BufferClear(regs.offset_out, regs.line_length_in, regs.remap_consta_value);
-            std::vector<u32> tmp_buffer(regs.line_length_in, regs.remap_consta_value);
+            read_buffer.resize_destructive(regs.line_length_in * sizeof(u32));
+            std::span<u32> span(reinterpret_cast<u32*>(read_buffer.data()), regs.line_length_in);
+            std::ranges::fill(span, regs.remap_consta_value);
             memory_manager.WriteBlockUnsafe(regs.offset_out,
-                                            reinterpret_cast<u8*>(tmp_buffer.data()),
+                                            reinterpret_cast<u8*>(read_buffer.data()),
                                             regs.line_length_in * sizeof(u32));
         } else {
             memory_manager.FlushCaching();
@@ -126,32 +128,32 @@ void MaxwellDMA::Launch() {
                 UNIMPLEMENTED_IF(regs.line_length_in % 16 != 0);
                 UNIMPLEMENTED_IF(regs.offset_in % 16 != 0);
                 UNIMPLEMENTED_IF(regs.offset_out % 16 != 0);
-                std::vector<u8> tmp_buffer(16);
+                read_buffer.resize_destructive(16);
                 for (u32 offset = 0; offset < regs.line_length_in; offset += 16) {
                     memory_manager.ReadBlockUnsafe(
                         convert_linear_2_blocklinear_addr(regs.offset_in + offset),
-                        tmp_buffer.data(), tmp_buffer.size());
-                    memory_manager.WriteBlockCached(regs.offset_out + offset, tmp_buffer.data(),
-                                                    tmp_buffer.size());
+                        read_buffer.data(), read_buffer.size());
+                    memory_manager.WriteBlockCached(regs.offset_out + offset, read_buffer.data(),
+                                                    read_buffer.size());
                 }
             } else if (is_src_pitch && !is_dst_pitch) {
                 UNIMPLEMENTED_IF(regs.line_length_in % 16 != 0);
                 UNIMPLEMENTED_IF(regs.offset_in % 16 != 0);
                 UNIMPLEMENTED_IF(regs.offset_out % 16 != 0);
-                std::vector<u8> tmp_buffer(16);
+                read_buffer.resize_destructive(16);
                 for (u32 offset = 0; offset < regs.line_length_in; offset += 16) {
-                    memory_manager.ReadBlockUnsafe(regs.offset_in + offset, tmp_buffer.data(),
-                                                   tmp_buffer.size());
+                    memory_manager.ReadBlockUnsafe(regs.offset_in + offset, read_buffer.data(),
+                                                   read_buffer.size());
                     memory_manager.WriteBlockCached(
                         convert_linear_2_blocklinear_addr(regs.offset_out + offset),
-                        tmp_buffer.data(), tmp_buffer.size());
+                        read_buffer.data(), read_buffer.size());
                 }
             } else {
                 if (!accelerate.BufferCopy(regs.offset_in, regs.offset_out, regs.line_length_in)) {
-                    std::vector<u8> tmp_buffer(regs.line_length_in);
-                    memory_manager.ReadBlockUnsafe(regs.offset_in, tmp_buffer.data(),
+                    read_buffer.resize_destructive(regs.line_length_in);
+                    memory_manager.ReadBlockUnsafe(regs.offset_in, read_buffer.data(),
                                                    regs.line_length_in);
-                    memory_manager.WriteBlockCached(regs.offset_out, tmp_buffer.data(),
+                    memory_manager.WriteBlockCached(regs.offset_out, read_buffer.data(),
                                                     regs.line_length_in);
                 }
             }
@@ -171,7 +173,8 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
     src_operand.address = regs.offset_in;
 
     DMA::BufferOperand dst_operand;
-    dst_operand.pitch = regs.pitch_out;
+    u32 abs_pitch_out = std::abs(static_cast<s32>(regs.pitch_out));
+    dst_operand.pitch = abs_pitch_out;
     dst_operand.width = regs.line_length_in;
     dst_operand.height = regs.line_count;
     dst_operand.address = regs.offset_out;
@@ -218,7 +221,7 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
     const size_t src_size =
         CalculateSize(true, bytes_per_pixel, width, height, depth, block_height, block_depth);
 
-    const size_t dst_size = static_cast<size_t>(regs.pitch_out) * regs.line_count;
+    const size_t dst_size = static_cast<size_t>(abs_pitch_out) * regs.line_count;
     read_buffer.resize_destructive(src_size);
     write_buffer.resize_destructive(dst_size);
 
@@ -227,7 +230,7 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
 
     UnswizzleSubrect(write_buffer, read_buffer, bytes_per_pixel, width, height, depth, x_offset,
                      src_params.origin.y, x_elements, regs.line_count, block_height, block_depth,
-                     regs.pitch_out);
+                     abs_pitch_out);
 
     memory_manager.WriteBlockCached(regs.offset_out, write_buffer.data(), dst_size);
 }

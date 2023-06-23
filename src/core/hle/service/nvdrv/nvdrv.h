@@ -80,13 +80,13 @@ public:
     DeviceFD Open(const std::string& device_name);
 
     /// Sends an ioctl command to the specified file descriptor.
-    NvResult Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> input, std::vector<u8>& output);
+    NvResult Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> input, std::span<u8> output);
 
     NvResult Ioctl2(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                    std::span<const u8> inline_input, std::vector<u8>& output);
+                    std::span<const u8> inline_input, std::span<u8> output);
 
-    NvResult Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input, std::vector<u8>& output,
-                    std::vector<u8>& inline_output);
+    NvResult Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input, std::span<u8> output,
+                    std::span<u8> inline_output);
 
     /// Closes a device file descriptor and returns operation success.
     NvResult Close(DeviceFD fd);

@@ -116,28 +116,26 @@ private:
         // These buffers are written manually to avoid an issue with WriteBuffer throwing errors for
         // checking size 0. Performance size is 0 for most games.
 
-        std::vector<u8> output{};
-        std::vector<u8> performance{};
         auto is_buffer_b{ctx.BufferDescriptorB()[0].Size() != 0};
         if (is_buffer_b) {
             const auto buffersB{ctx.BufferDescriptorB()};
-            output.resize(buffersB[0].Size(), 0);
-            performance.resize(buffersB[1].Size(), 0);
+            tmp_output.resize_destructive(buffersB[0].Size());
+            tmp_performance.resize_destructive(buffersB[1].Size());
         } else {
             const auto buffersC{ctx.BufferDescriptorC()};
-            output.resize(buffersC[0].Size(), 0);
-            performance.resize(buffersC[1].Size(), 0);
+            tmp_output.resize_destructive(buffersC[0].Size());
+            tmp_performance.resize_destructive(buffersC[1].Size());
         }
 
-        auto result = impl->RequestUpdate(input, performance, output);
+        auto result = impl->RequestUpdate(input, tmp_performance, tmp_output);
 
         if (result.IsSuccess()) {
             if (is_buffer_b) {
-                ctx.WriteBufferB(output.data(), output.size(), 0);
-                ctx.WriteBufferB(performance.data(), performance.size(), 1);
+                ctx.WriteBufferB(tmp_output.data(), tmp_output.size(), 0);
+                ctx.WriteBufferB(tmp_performance.data(), tmp_performance.size(), 1);
             } else {
-                ctx.WriteBufferC(output.data(), output.size(), 0);
-                ctx.WriteBufferC(performance.data(), performance.size(), 1);
+                ctx.WriteBufferC(tmp_output.data(), tmp_output.size(), 0);
+                ctx.WriteBufferC(tmp_performance.data(), tmp_performance.size(), 1);
             }
         } else {
             LOG_ERROR(Service_Audio, "RequestUpdate failed error 0x{:02X}!", result.description);
@@ -235,6 +233,8 @@ private:
     Kernel::KEvent* rendered_event;
     Manager& manager;
     std::unique_ptr<Renderer> impl;
+    Common::ScratchBuffer<u8> tmp_output;
+    Common::ScratchBuffer<u8> tmp_performance;
 };
 
 class IAudioDevice final : public ServiceFramework<IAudioDevice> {

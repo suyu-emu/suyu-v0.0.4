@@ -167,7 +167,10 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
                 info.fixed_state_point_size = point_size;
             }
             if (key.state.xfb_enabled) {
-                info.xfb_varyings = VideoCommon::MakeTransformFeedbackVaryings(key.state.xfb_state);
+                auto [varyings, count] =
+                    VideoCommon::MakeTransformFeedbackVaryings(key.state.xfb_state);
+                info.xfb_varyings = varyings;
+                info.xfb_count = count;
             }
             info.convert_depth_mode = gl_ndc;
         }
@@ -214,7 +217,10 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
             info.fixed_state_point_size = point_size;
         }
         if (key.state.xfb_enabled != 0) {
-            info.xfb_varyings = VideoCommon::MakeTransformFeedbackVaryings(key.state.xfb_state);
+            auto [varyings, count] =
+                VideoCommon::MakeTransformFeedbackVaryings(key.state.xfb_state);
+            info.xfb_varyings = varyings;
+            info.xfb_count = count;
         }
         info.convert_depth_mode = gl_ndc;
         break;

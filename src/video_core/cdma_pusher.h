@@ -63,7 +63,6 @@ struct ChCommand {
 };
 
 using ChCommandHeaderList = std::vector<ChCommandHeader>;
-using ChCommandList = std::vector<ChCommand>;
 
 struct ThiRegisters {
     u32_le increment_syncpt{};

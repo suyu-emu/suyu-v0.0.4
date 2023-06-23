@@ -56,7 +56,7 @@ struct ImageViewInOut {
 struct AsyncDecodeContext {
     ImageId image_id;
     Common::ScratchBuffer<u8> decoded_data;
-    std::vector<BufferImageCopy> copies;
+    boost::container::small_vector<BufferImageCopy, 16> copies;
     std::mutex mutex;
     std::atomic_bool complete;
 };
@@ -429,7 +429,7 @@ private:
 
     std::unordered_map<u64, std::vector<ImageMapId>, Common::IdentityHash<u64>> page_table;
     std::unordered_map<u64, std::vector<ImageId>, Common::IdentityHash<u64>> sparse_page_table;
-    std::unordered_map<ImageId, std::vector<ImageViewId>> sparse_views;
+    std::unordered_map<ImageId, boost::container::small_vector<ImageViewId, 16>> sparse_views;
 
     VAddr virtual_invalid_space{};
 
