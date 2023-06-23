@@ -4,6 +4,7 @@
 #pragma once
 
 #include <map>
+#include <optional>
 #include <string_view>
 #include "common/intrusive_list.h"
 #include "core/file_sys/mode.h"
@@ -20,6 +21,8 @@ struct FileReference : public Common::IntrusiveListBaseNode<FileReference> {
 };
 
 class RealVfsFile;
+class RealVfsDirectory;
+
 class RealVfsFilesystem : public VfsFilesystem {
 public:
     RealVfsFilesystem();
@@ -56,6 +59,11 @@ private:
 private:
     void InsertReferenceIntoList(FileReference& reference);
     void RemoveReferenceFromList(FileReference& reference);
+
+private:
+    friend class RealVfsDirectory;
+    VirtualFile OpenFileFromEntry(std::string_view path, std::optional<u64> size,
+                                  Mode perms = Mode::Read);
 };
 
 // An implementation of VfsFile that represents a file on the user's computer.
@@ -78,13 +86,14 @@ public:
 
 private:
     RealVfsFile(RealVfsFilesystem& base, std::unique_ptr<FileReference> reference,
-                const std::string& path, Mode perms = Mode::Read);
+                const std::string& path, Mode perms = Mode::Read, std::optional<u64> size = {});
 
     RealVfsFilesystem& base;
     std::unique_ptr<FileReference> reference;
     std::string path;
     std::string parent_path;
     std::vector<std::string> path_components;
+    std::optional<u64> size;
     Mode perms;
 };
 

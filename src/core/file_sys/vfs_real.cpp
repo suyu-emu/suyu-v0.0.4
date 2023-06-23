@@ -10,6 +10,7 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
+#include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_real.h"
 
 // For FileTimeStampRaw
@@ -72,7 +73,8 @@ VfsEntryType RealVfsFilesystem::GetEntryType(std::string_view path_) const {
     return VfsEntryType::File;
 }
 
-VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
+VirtualFile RealVfsFilesystem::OpenFileFromEntry(std::string_view path_, std::optional<u64> size,
+                                                 Mode perms) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
 
     if (auto it = cache.find(path); it != cache.end()) {
@@ -81,18 +83,22 @@ VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
         }
     }
 
-    if (!FS::Exists(path) || !FS::IsFile(path)) {
+    if (!size && !FS::IsFile(path)) {
         return nullptr;
     }
 
     auto reference = std::make_unique<FileReference>();
     this->InsertReferenceIntoList(*reference);
 
-    auto file =
-        std::shared_ptr<RealVfsFile>(new RealVfsFile(*this, std::move(reference), path, perms));
+    auto file = std::shared_ptr<RealVfsFile>(
+        new RealVfsFile(*this, std::move(reference), path, perms, size));
     cache[path] = file;
 
     return file;
+}
+
+VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
+    return OpenFileFromEntry(path_, {}, perms);
 }
 
 VirtualFile RealVfsFilesystem::CreateFile(std::string_view path_, Mode perms) {
@@ -243,10 +249,10 @@ void RealVfsFilesystem::RemoveReferenceFromList(FileReference& reference) {
 }
 
 RealVfsFile::RealVfsFile(RealVfsFilesystem& base_, std::unique_ptr<FileReference> reference_,
-                         const std::string& path_, Mode perms_)
+                         const std::string& path_, Mode perms_, std::optional<u64> size_)
     : base(base_), reference(std::move(reference_)), path(path_),
       parent_path(FS::GetParentPath(path_)), path_components(FS::SplitPathComponents(path_)),
-      perms(perms_) {}
+      size(size_), perms(perms_) {}
 
 RealVfsFile::~RealVfsFile() {
     base.DropReference(std::move(reference));
@@ -257,11 +263,14 @@ std::string RealVfsFile::GetName() const {
 }
 
 std::size_t RealVfsFile::GetSize() const {
-    base.RefreshReference(path, perms, *reference);
-    return reference->file ? reference->file->GetSize() : 0;
+    if (size) {
+        return *size;
+    }
+    return FS::GetSize(path);
 }
 
 bool RealVfsFile::Resize(std::size_t new_size) {
+    size.reset();
     base.RefreshReference(path, perms, *reference);
     return reference->file ? reference->file->SetSize(new_size) : false;
 }
@@ -287,6 +296,7 @@ std::size_t RealVfsFile::Read(u8* data, std::size_t length, std::size_t offset) 
 }
 
 std::size_t RealVfsFile::Write(const u8* data, std::size_t length, std::size_t offset) {
+    size.reset();
     base.RefreshReference(path, perms, *reference);
     if (!reference->file || !reference->file->Seek(static_cast<s64>(offset))) {
         return 0;
@@ -309,10 +319,11 @@ std::vector<VirtualFile> RealVfsDirectory::IterateEntries<RealVfsFile, VfsFile>(
 
     std::vector<VirtualFile> out;
 
-    const FS::DirEntryCallable callback = [this, &out](const std::filesystem::path& full_path) {
-        const auto full_path_string = FS::PathToUTF8String(full_path);
+    const FS::DirEntryCallable callback = [this,
+                                           &out](const std::filesystem::directory_entry& entry) {
+        const auto full_path_string = FS::PathToUTF8String(entry.path());
 
-        out.emplace_back(base.OpenFile(full_path_string, perms));
+        out.emplace_back(base.OpenFileFromEntry(full_path_string, entry.file_size(), perms));
 
         return true;
     };
@@ -330,8 +341,9 @@ std::vector<VirtualDir> RealVfsDirectory::IterateEntries<RealVfsDirectory, VfsDi
 
     std::vector<VirtualDir> out;
 
-    const FS::DirEntryCallable callback = [this, &out](const std::filesystem::path& full_path) {
-        const auto full_path_string = FS::PathToUTF8String(full_path);
+    const FS::DirEntryCallable callback = [this,
+                                           &out](const std::filesystem::directory_entry& entry) {
+        const auto full_path_string = FS::PathToUTF8String(entry.path());
 
         out.emplace_back(base.OpenDirectory(full_path_string, perms));
 
@@ -483,12 +495,10 @@ std::map<std::string, VfsEntryType, std::less<>> RealVfsDirectory::GetEntries() 
 
     std::map<std::string, VfsEntryType, std::less<>> out;
 
-    const FS::DirEntryCallable callback = [&out](const std::filesystem::path& full_path) {
-        const auto filename = FS::PathToUTF8String(full_path.filename());
-
+    const FS::DirEntryCallable callback = [&out](const std::filesystem::directory_entry& entry) {
+        const auto filename = FS::PathToUTF8String(entry.path().filename());
         out.insert_or_assign(filename,
-                             FS::IsDir(full_path) ? VfsEntryType::Directory : VfsEntryType::File);
-
+                             entry.is_directory() ? VfsEntryType::Directory : VfsEntryType::File);
         return true;
     };
 

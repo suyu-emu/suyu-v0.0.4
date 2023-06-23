@@ -66,6 +66,6 @@ DECLARE_ENUM_FLAG_OPERATORS(DirEntryFilter);
  * @returns A boolean value.
  *          Return true to indicate whether the callback is successful, false otherwise.
  */
-using DirEntryCallable = std::function<bool(const std::filesystem::path& path)>;
+using DirEntryCallable = std::function<bool(const std::filesystem::directory_entry& entry)>;
 
 } // namespace Common::FS
