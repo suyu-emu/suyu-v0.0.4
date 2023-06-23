@@ -399,6 +399,8 @@
     <string name="picture_in_picture_description">Minimize window when placed in the background</string>
     <string name="pause">Pause</string>
     <string name="play">Play</string>
+    <string name="mute">Mute</string>
+    <string name="unmute">Unmute</string>
 
     <!-- Licenses screen strings -->
     <string name="licenses">Licenses</string>

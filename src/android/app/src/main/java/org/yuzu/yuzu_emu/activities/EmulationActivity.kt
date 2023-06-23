@@ -65,6 +65,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     private val actionPause = "ACTION_EMULATOR_PAUSE"
     private val actionPlay = "ACTION_EMULATOR_PLAY"
+    private val actionMute = "ACTION_EMULATOR_MUTE"
+    private val actionUnmute = "ACTION_EMULATOR_UNMUTE"
 
     private val settingsViewModel: SettingsViewModel by viewModels()
 
@@ -320,6 +322,41 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             pictureInPictureActions.add(pauseRemoteAction)
         }
 
+        if (NativeLibrary.isMuted()) {
+            val unmuteIcon = Icon.createWithResource(
+                this@EmulationActivity,
+                R.drawable.ic_pip_unmute
+            )
+            val unmutePendingIntent = PendingIntent.getBroadcast(
+                this@EmulationActivity,
+                R.drawable.ic_pip_unmute,
+                Intent(actionUnmute),
+                pendingFlags
+            )
+            val unmuteRemoteAction = RemoteAction(
+                unmuteIcon,
+                getString(R.string.unmute),
+                getString(R.string.unmute),
+                unmutePendingIntent
+            )
+            pictureInPictureActions.add(unmuteRemoteAction)
+        } else {
+            val muteIcon = Icon.createWithResource(this@EmulationActivity, R.drawable.ic_pip_mute)
+            val mutePendingIntent = PendingIntent.getBroadcast(
+                this@EmulationActivity,
+                R.drawable.ic_pip_mute,
+                Intent(actionMute),
+                pendingFlags
+            )
+            val muteRemoteAction = RemoteAction(
+                muteIcon,
+                getString(R.string.mute),
+                getString(R.string.mute),
+                mutePendingIntent
+            )
+            pictureInPictureActions.add(muteRemoteAction)
+        }
+
         return this.apply { setActions(pictureInPictureActions) }
     }
 
@@ -337,9 +374,14 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private var pictureInPictureReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
             if (intent.action == actionPlay) {
-                if (NativeLibrary.isPaused()) NativeLibrary.unPauseEmulation()
+                if (NativeLibrary.isPaused()) NativeLibrary.unpauseEmulation()
             } else if (intent.action == actionPause) {
                 if (!NativeLibrary.isPaused()) NativeLibrary.pauseEmulation()
+            }
+            if (intent.action == actionUnmute) {
+                if (NativeLibrary.isMuted()) NativeLibrary.unmuteAudio()
+            } else if (intent.action == actionMute) {
+                if (!NativeLibrary.isMuted()) NativeLibrary.muteAudio()
             }
             buildPictureInPictureParams()
         }
@@ -354,6 +396,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             IntentFilter().apply {
                 addAction(actionPause)
                 addAction(actionPlay)
+                addAction(actionMute)
+                addAction(actionUnmute)
             }.also {
                 registerReceiver(pictureInPictureReceiver, it)
             }
@@ -362,6 +406,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
                 unregisterReceiver(pictureInPictureReceiver)
             } catch (ignored: Exception) {
             }
+            // Always resume audio, since there is no UI button
+            if (NativeLibrary.isMuted()) NativeLibrary.unmuteAudio()
         }
     }
 
