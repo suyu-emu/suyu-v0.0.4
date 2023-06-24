@@ -150,6 +150,8 @@ public:
         if (sdl_controller) {
             const auto type = SDL_GameControllerGetType(sdl_controller.get());
             return (type == SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO) ||
+                   (type == SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_LEFT) ||
+                   (type == SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT) ||
                    (type == SDL_CONTROLLER_TYPE_PS5);
         }
         return false;
@@ -228,9 +230,8 @@ public:
         return false;
     }
 
-    Common::Input::BatteryLevel GetBatteryLevel() {
-        const auto level = SDL_JoystickCurrentPowerLevel(sdl_joystick.get());
-        switch (level) {
+    Common::Input::BatteryLevel GetBatteryLevel(SDL_JoystickPowerLevel battery_level) {
+        switch (battery_level) {
         case SDL_JOYSTICK_POWER_EMPTY:
             return Common::Input::BatteryLevel::Empty;
         case SDL_JOYSTICK_POWER_LOW:
@@ -378,7 +379,6 @@ void SDLDriver::InitJoystick(int joystick_index) {
     if (joystick_map.find(guid) == joystick_map.end()) {
         auto joystick = std::make_shared<SDLJoystick>(guid, 0, sdl_joystick, sdl_gamecontroller);
         PreSetController(joystick->GetPadIdentifier());
-        SetBattery(joystick->GetPadIdentifier(), joystick->GetBatteryLevel());
         joystick->EnableMotion();
         joystick_map[guid].emplace_back(std::move(joystick));
         return;
@@ -398,7 +398,6 @@ void SDLDriver::InitJoystick(int joystick_index) {
     const int port = static_cast<int>(joystick_guid_list.size());
     auto joystick = std::make_shared<SDLJoystick>(guid, port, sdl_joystick, sdl_gamecontroller);
     PreSetController(joystick->GetPadIdentifier());
-    SetBattery(joystick->GetPadIdentifier(), joystick->GetBatteryLevel());
     joystick->EnableMotion();
     joystick_guid_list.emplace_back(std::move(joystick));
 }
@@ -438,8 +437,6 @@ void SDLDriver::HandleGameControllerEvent(const SDL_Event& event) {
         if (const auto joystick = GetSDLJoystickBySDLID(event.jbutton.which)) {
             const PadIdentifier identifier = joystick->GetPadIdentifier();
             SetButton(identifier, event.jbutton.button, true);
-            // Battery doesn't trigger an event so just update every button press
-            SetBattery(identifier, joystick->GetBatteryLevel());
         }
         break;
     }
@@ -463,6 +460,13 @@ void SDLDriver::HandleGameControllerEvent(const SDL_Event& event) {
                 const PadIdentifier identifier = joystick->GetPadIdentifier();
                 SetMotion(identifier, 0, joystick->GetMotion());
             }
+        }
+        break;
+    }
+    case SDL_JOYBATTERYUPDATED: {
+        if (auto joystick = GetSDLJoystickBySDLID(event.jbattery.which)) {
+            const PadIdentifier identifier = joystick->GetPadIdentifier();
+            SetBattery(identifier, joystick->GetBatteryLevel(event.jbattery.level));
         }
         break;
     }
@@ -501,6 +505,9 @@ SDLDriver::SDLDriver(std::string input_engine_) : InputEngine(std::move(input_en
         SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS, "0");
     } else {
         SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS, "1");
+        SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOYCON_HOME_LED, "0");
+        SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS, "0");
+        SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS, "1");
     }
 
     // Disable hidapi drivers for pro controllers when the custom joycon driver is enabled
@@ -508,7 +515,10 @@ SDLDriver::SDLDriver(std::string input_engine_) : InputEngine(std::move(input_en
         SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_SWITCH, "0");
     } else {
         SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_SWITCH, "1");
+        SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_SWITCH_HOME_LED, "0");
     }
+
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_SWITCH_PLAYER_LED, "1");
 
     // Disable hidapi driver for xbox. Already default on Windows, this causes conflict with native
     // driver on Linux.
@@ -789,7 +799,9 @@ ButtonMapping SDLDriver::GetButtonMappingForDevice(const Common::ParamPackage& p
     // This list also excludes Screenshot since there's not really a mapping for that
     ButtonBindings switch_to_sdl_button;
 
-    if (SDL_GameControllerGetType(controller) == SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO) {
+    if (SDL_GameControllerGetType(controller) == SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO ||
+        SDL_GameControllerGetType(controller) == SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_LEFT ||
+        SDL_GameControllerGetType(controller) == SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT) {
         switch_to_sdl_button = GetNintendoButtonBinding(joystick);
     } else {
         switch_to_sdl_button = GetDefaultButtonBinding();
