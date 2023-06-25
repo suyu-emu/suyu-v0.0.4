@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+
 #include "common/scratch_buffer.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/service.h"
@@ -34,8 +35,8 @@ private:
 
     u64 pid{};
     bool is_initialized{};
-    Common::ScratchBuffer<u8> tmp_output;
-    Common::ScratchBuffer<u8> tmp_output_inline;
+    Common::ScratchBuffer<u8> output_buffer;
+    Common::ScratchBuffer<u8> inline_output_buffer;
 };
 
 } // namespace Service::Nvidia

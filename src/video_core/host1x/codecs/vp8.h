@@ -4,10 +4,11 @@
 #pragma once
 
 #include <array>
-#include <vector>
+#include <span>
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
+#include "common/scratch_buffer.h"
 #include "video_core/host1x/nvdec_common.h"
 
 namespace Tegra {
@@ -24,11 +25,11 @@ public:
     ~VP8();
 
     /// Compose the VP8 frame for FFmpeg decoding
-    [[nodiscard]] const std::vector<u8>& ComposeFrame(
+    [[nodiscard]] std::span<const u8> ComposeFrame(
         const Host1x::NvdecCommon::NvdecRegisters& state);
 
 private:
-    std::vector<u8> frame;
+    Common::ScratchBuffer<u8> frame;
     Host1x::Host1x& host1x;
 
     struct VP8PictureInfo {

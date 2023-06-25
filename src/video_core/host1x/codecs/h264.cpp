@@ -29,15 +29,15 @@ H264::H264(Host1x::Host1x& host1x_) : host1x{host1x_} {}
 
 H264::~H264() = default;
 
-const std::vector<u8>& H264::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state,
-                                          bool is_first_frame) {
+std::span<const u8> H264::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state,
+                                       bool is_first_frame) {
     H264DecoderContext context;
     host1x.MemoryManager().ReadBlock(state.picture_info_offset, &context,
                                      sizeof(H264DecoderContext));
 
     const s64 frame_number = context.h264_parameter_set.frame_number.Value();
     if (!is_first_frame && frame_number != 0) {
-        frame.resize(context.stream_len);
+        frame.resize_destructive(context.stream_len);
         host1x.MemoryManager().ReadBlock(state.frame_bitstream_offset, frame.data(), frame.size());
         return frame;
     }
@@ -135,14 +135,14 @@ const std::vector<u8>& H264::ComposeFrame(const Host1x::NvdecCommon::NvdecRegist
     for (s32 index = 0; index < 6; index++) {
         writer.WriteBit(true);
         std::span<const u8> matrix{context.weight_scale};
-        writer.WriteScalingList(matrix, index * 16, 16);
+        writer.WriteScalingList(scan, matrix, index * 16, 16);
     }
 
     if (context.h264_parameter_set.transform_8x8_mode_flag) {
         for (s32 index = 0; index < 2; index++) {
             writer.WriteBit(true);
             std::span<const u8> matrix{context.weight_scale_8x8};
-            writer.WriteScalingList(matrix, index * 64, 64);
+            writer.WriteScalingList(scan, matrix, index * 64, 64);
         }
     }
 
@@ -188,8 +188,8 @@ void H264BitWriter::WriteBit(bool state) {
     WriteBits(state ? 1 : 0, 1);
 }
 
-void H264BitWriter::WriteScalingList(std::span<const u8> list, s32 start, s32 count) {
-    static Common::ScratchBuffer<u8> scan{};
+void H264BitWriter::WriteScalingList(Common::ScratchBuffer<u8>& scan, std::span<const u8> list,
+                                     s32 start, s32 count) {
     scan.resize_destructive(count);
     if (count == 16) {
         std::memcpy(scan.data(), zig_zag_scan.data(), scan.size());

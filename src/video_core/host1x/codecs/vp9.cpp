@@ -3,6 +3,7 @@
 
 #include <algorithm> // for std::copy
 #include <numeric>
+
 #include "common/assert.h"
 #include "video_core/host1x/codecs/vp9.h"
 #include "video_core/host1x/host1x.h"

@@ -15,6 +15,7 @@
 #include "common/common_funcs.h"
 #include "common/logging/log.h"
 #include "common/polyfill_ranges.h"
+#include "common/scratch_buffer.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
@@ -119,23 +120,23 @@ private:
         auto is_buffer_b{ctx.BufferDescriptorB()[0].Size() != 0};
         if (is_buffer_b) {
             const auto buffersB{ctx.BufferDescriptorB()};
-            tmp_output.resize_destructive(buffersB[0].Size());
-            tmp_performance.resize_destructive(buffersB[1].Size());
+            output_buffer.resize_destructive(buffersB[0].Size());
+            performance_buffer.resize_destructive(buffersB[1].Size());
         } else {
             const auto buffersC{ctx.BufferDescriptorC()};
-            tmp_output.resize_destructive(buffersC[0].Size());
-            tmp_performance.resize_destructive(buffersC[1].Size());
+            output_buffer.resize_destructive(buffersC[0].Size());
+            performance_buffer.resize_destructive(buffersC[1].Size());
         }
 
-        auto result = impl->RequestUpdate(input, tmp_performance, tmp_output);
+        auto result = impl->RequestUpdate(input, performance_buffer, output_buffer);
 
         if (result.IsSuccess()) {
             if (is_buffer_b) {
-                ctx.WriteBufferB(tmp_output.data(), tmp_output.size(), 0);
-                ctx.WriteBufferB(tmp_performance.data(), tmp_performance.size(), 1);
+                ctx.WriteBufferB(output_buffer.data(), output_buffer.size(), 0);
+                ctx.WriteBufferB(performance_buffer.data(), performance_buffer.size(), 1);
             } else {
-                ctx.WriteBufferC(tmp_output.data(), tmp_output.size(), 0);
-                ctx.WriteBufferC(tmp_performance.data(), tmp_performance.size(), 1);
+                ctx.WriteBufferC(output_buffer.data(), output_buffer.size(), 0);
+                ctx.WriteBufferC(performance_buffer.data(), performance_buffer.size(), 1);
             }
         } else {
             LOG_ERROR(Service_Audio, "RequestUpdate failed error 0x{:02X}!", result.description);
@@ -233,8 +234,8 @@ private:
     Kernel::KEvent* rendered_event;
     Manager& manager;
     std::unique_ptr<Renderer> impl;
-    Common::ScratchBuffer<u8> tmp_output;
-    Common::ScratchBuffer<u8> tmp_performance;
+    Common::ScratchBuffer<u8> output_buffer;
+    Common::ScratchBuffer<u8> performance_buffer;
 };
 
 class IAudioDevice final : public ServiceFramework<IAudioDevice> {

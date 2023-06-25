@@ -5,9 +5,11 @@
 
 #include <span>
 #include <vector>
+
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
+#include "common/scratch_buffer.h"
 #include "video_core/host1x/nvdec_common.h"
 
 namespace Tegra {
@@ -37,7 +39,8 @@ public:
 
     /// Based on section 7.3.2.1.1.1 and Table 7-4 in the H.264 specification
     /// Writes the scaling matrices of the sream
-    void WriteScalingList(std::span<const u8> list, s32 start, s32 count);
+    void WriteScalingList(Common::ScratchBuffer<u8>& scan, std::span<const u8> list, s32 start,
+                          s32 count);
 
     /// Return the bitstream as a vector.
     [[nodiscard]] std::vector<u8>& GetByteArray();
@@ -63,11 +66,12 @@ public:
     ~H264();
 
     /// Compose the H264 frame for FFmpeg decoding
-    [[nodiscard]] const std::vector<u8>& ComposeFrame(
-        const Host1x::NvdecCommon::NvdecRegisters& state, bool is_first_frame = false);
+    [[nodiscard]] std::span<const u8> ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state,
+                                                   bool is_first_frame = false);
 
 private:
-    std::vector<u8> frame;
+    Common::ScratchBuffer<u8> frame;
+    Common::ScratchBuffer<u8> scan;
     Host1x::Host1x& host1x;
 
     struct H264ParameterSet {
