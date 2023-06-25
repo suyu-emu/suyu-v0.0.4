@@ -233,8 +233,10 @@ public:
             return 1;
         case BIO_CTRL_PUSH:
         case BIO_CTRL_POP:
+#ifdef BIO_CTRL_GET_KTLS_SEND
         case BIO_CTRL_GET_KTLS_SEND:
         case BIO_CTRL_GET_KTLS_RECV:
+#endif
             // We don't support these operations, but don't bother logging them
             // as they're nothing unusual.
             return 0;
@@ -269,7 +271,14 @@ Result CheckOpenSSLErrors() {
     const char* func;
     const char* data;
     int flags;
-    while ((rc = ERR_get_error_all(&file, &line, &func, &data, &flags))) {
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+    while ((rc = ERR_get_error_all(&file, &line, &func, &data, &flags)))
+#else
+    // Can't get function names from OpenSSL on this version, so use mine:
+    func = __func__;
+    while ((rc = ERR_get_error_line_data(&file, &line, &data, &flags)))
+#endif
+    {
         std::string msg;
         msg.resize(1024, '\0');
         ERR_error_string_n(rc, msg.data(), msg.size());
