@@ -1334,16 +1334,22 @@ bool EmulatedController::StartNfcPolling() {
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
-    return nfc_output_device->StartNfcPolling() == Common::Input::NfcState::Success ||
-           nfc_virtual_output_device->StartNfcPolling() == Common::Input::NfcState::Success;
+    const auto device_result = nfc_output_device->StartNfcPolling();
+    const auto virtual_device_result = nfc_virtual_output_device->StartNfcPolling();
+
+    return device_result == Common::Input::NfcState::Success ||
+           virtual_device_result == Common::Input::NfcState::Success;
 }
 
 bool EmulatedController::StopNfcPolling() {
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
-    return nfc_output_device->StopNfcPolling() == Common::Input::NfcState::Success ||
-           nfc_virtual_output_device->StopNfcPolling() == Common::Input::NfcState::Success;
+    const auto device_result = nfc_output_device->StopNfcPolling();
+    const auto virtual_device_result = nfc_virtual_output_device->StopNfcPolling();
+
+    return device_result == Common::Input::NfcState::Success ||
+           virtual_device_result == Common::Input::NfcState::Success;
 }
 
 bool EmulatedController::ReadAmiiboData(std::vector<u8>& data) {
