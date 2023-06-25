@@ -192,6 +192,10 @@ public:
         return supports_conditional_barriers;
     }
 
+    bool HasLmemPerfBug() const {
+        return has_lmem_perf_bug;
+    }
+
 private:
     static bool TestVariableAoffi();
     static bool TestPreciseBug();
@@ -238,6 +242,7 @@ private:
     bool can_report_memory{};
     bool strict_context_required{};
     bool supports_conditional_barriers{};
+    bool has_lmem_perf_bug{};
 
     std::string vendor_name;
 };

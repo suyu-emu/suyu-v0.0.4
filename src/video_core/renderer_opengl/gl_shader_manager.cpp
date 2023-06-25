@@ -14,11 +14,14 @@ static constexpr std::array ASSEMBLY_PROGRAM_ENUMS{
     GL_GEOMETRY_PROGRAM_NV, GL_FRAGMENT_PROGRAM_NV,
 };
 
-ProgramManager::ProgramManager(const Device& device)
-    : lmem_warmup_program(CreateProgram(HostShaders::OPENGL_LMEM_WARMUP_COMP, GL_COMPUTE_SHADER)) {
+ProgramManager::ProgramManager(const Device& device) {
     glCreateProgramPipelines(1, &pipeline.handle);
     if (device.UseAssemblyShaders()) {
         glEnable(GL_COMPUTE_PROGRAM_NV);
+    }
+    if (device.HasLmemPerfBug()) {
+        lmem_warmup_program =
+            CreateProgram(HostShaders::OPENGL_LMEM_WARMUP_COMP, GL_COMPUTE_SHADER);
     }
 }
 
@@ -102,8 +105,10 @@ void ProgramManager::BindAssemblyPrograms(std::span<const OGLAssemblyProgram, NU
 void ProgramManager::RestoreGuestCompute() {}
 
 void ProgramManager::LocalMemoryWarmup() {
-    BindComputeProgram(lmem_warmup_program.handle);
-    glDispatchCompute(1, 1, 1);
+    if (lmem_warmup_program.handle != 0) {
+        BindComputeProgram(lmem_warmup_program.handle);
+        glDispatchCompute(1, 1, 1);
+    }
 }
 
 void ProgramManager::BindPipeline() {
