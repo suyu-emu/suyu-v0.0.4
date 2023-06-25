@@ -31,6 +31,7 @@ constexpr Result ResultWouldBlock{ErrorModule::SSLSrv, 204};
 
 class SSLConnectionBackend {
 public:
+    virtual ~SSLConnectionBackend() {}
     virtual void SetSocket(std::shared_ptr<Network::SocketBase> socket) = 0;
     virtual Result SetHostName(const std::string& hostname) = 0;
     virtual Result DoHandshake() = 0;

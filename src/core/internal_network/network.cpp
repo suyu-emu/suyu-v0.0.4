@@ -97,6 +97,8 @@ bool EnableNonBlock(SOCKET fd, bool enable) {
 
 Errno TranslateNativeError(int e) {
     switch (e) {
+    case 0:
+        return Errno::SUCCESS;
     case WSAEBADF:
         return Errno::BADF;
     case WSAEINVAL:
@@ -421,9 +423,14 @@ short TranslatePollEvents(PollEvents events) {
     translate(PollEvents::WrBand, POLLWRBAND);
 
 #ifdef _WIN32
-    if (True(events & PollEvents::Pri)) {
-        LOG_WARNING(Service, "Winsock doesn't support POLLPRI");
+    short allowed_events = POLLRDBAND | POLLRDNORM | POLLWRNORM;
+    // Unlike poll on other OSes, WSAPoll will complain if any other flags are set on input.
+    if (result & ~allowed_events) {
+        LOG_DEBUG(Network,
+                  "Removing WSAPoll input events 0x{:x} because Windows doesn't support them",
+                  result & ~allowed_events);
     }
+    result &= allowed_events;
 #endif
 
     UNIMPLEMENTED_IF_MSG((u16)events != 0, "Unhandled guest events=0x{:x}", (u16)events);

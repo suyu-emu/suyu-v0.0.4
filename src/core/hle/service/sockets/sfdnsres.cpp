@@ -96,7 +96,7 @@ static void Append(std::vector<u8>& vec, T t) {
 static void AppendNulTerminated(std::vector<u8>& vec, std::string_view str) {
     size_t off = vec.size();
     vec.resize(off + str.size() + 1);
-    std::memcpy(vec.data() + off, str.data(), str.size());
+    std::memmove(vec.data() + off, str.data(), str.size());
 }
 
 // We implement gethostbyname using the host's getaddrinfo rather than the

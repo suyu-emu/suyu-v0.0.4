@@ -325,7 +325,7 @@ if (MINGW)
 endif()
 
 if(ENABLE_OPENSSL)
-    find_package(OpenSSL 3.0.0 REQUIRED)
+    find_package(OpenSSL 1.1.1 REQUIRED)
 endif()
 
 # Please consider this as a stub
