@@ -1250,6 +1250,11 @@ Common::Input::DriverResult EmulatedController::SetPollingMode(
         const auto virtual_nfc_result = nfc_output_device->SetPollingMode(polling_mode);
         const auto mapped_nfc_result = right_output_device->SetPollingMode(polling_mode);
 
+        // Restore previous state
+        if (mapped_nfc_result != Common::Input::DriverResult::Success) {
+            right_output_device->SetPollingMode(Common::Input::PollingMode::Active);
+        }
+
         if (virtual_nfc_result == Common::Input::DriverResult::Success) {
             return virtual_nfc_result;
         }

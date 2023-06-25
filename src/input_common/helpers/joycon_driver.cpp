@@ -72,6 +72,7 @@ DriverResult JoyconDriver::InitializeDevice() {
     nfc_enabled = false;
     passive_enabled = false;
     irs_enabled = false;
+    input_only_device = false;
     gyro_sensitivity = Joycon::GyroSensitivity::DPS2000;
     gyro_performance = Joycon::GyroPerformance::HZ833;
     accelerometer_sensitivity = Joycon::AccelerometerSensitivity::G8;
@@ -86,16 +87,23 @@ DriverResult JoyconDriver::InitializeDevice() {
     rumble_protocol = std::make_unique<RumbleProtocol>(hidapi_handle);
 
     // Get fixed joycon info
-    generic_protocol->GetVersionNumber(version);
-    generic_protocol->SetLowPowerMode(false);
-    generic_protocol->GetColor(color);
-    if (handle_device_type == ControllerType::Pro) {
-        // Some 3rd party controllers aren't pro controllers
-        generic_protocol->GetControllerType(device_type);
-    } else {
-        device_type = handle_device_type;
+    if (generic_protocol->GetVersionNumber(version) != DriverResult::Success) {
+        // If this command fails the device doesn't accept configuration commands
+        input_only_device = true;
     }
-    generic_protocol->GetSerialNumber(serial_number);
+
+    if (!input_only_device) {
+        generic_protocol->SetLowPowerMode(false);
+        generic_protocol->GetColor(color);
+        if (handle_device_type == ControllerType::Pro) {
+            // Some 3rd party controllers aren't pro controllers
+            generic_protocol->GetControllerType(device_type);
+        } else {
+            device_type = handle_device_type;
+        }
+        generic_protocol->GetSerialNumber(serial_number);
+    }
+
     supported_features = GetSupportedFeatures();
 
     // Get Calibration data
@@ -261,6 +269,10 @@ DriverResult JoyconDriver::SetPollingMode() {
         generic_protocol->EnableImu(false);
     }
 
+    if (input_only_device) {
+        return DriverResult::NotSupported;
+    }
+
     if (irs_protocol->IsEnabled()) {
         irs_protocol->DisableIrs();
     }
@@ -282,6 +294,7 @@ DriverResult JoyconDriver::SetPollingMode() {
         }
         irs_protocol->DisableIrs();
         LOG_ERROR(Input, "Error enabling IRS");
+        return result;
     }
 
     if (nfc_enabled && supported_features.nfc) {
@@ -291,6 +304,7 @@ DriverResult JoyconDriver::SetPollingMode() {
         }
         nfc_protocol->DisableNfc();
         LOG_ERROR(Input, "Error enabling NFC");
+        return result;
     }
 
     if (hidbus_enabled && supported_features.hidbus) {
@@ -305,6 +319,7 @@ DriverResult JoyconDriver::SetPollingMode() {
         ring_connected = false;
         ring_protocol->DisableRingCon();
         LOG_ERROR(Input, "Error enabling Ringcon");
+        return result;
     }
 
     if (passive_enabled && supported_features.passive) {
@@ -332,6 +347,10 @@ JoyconDriver::SupportedFeatures JoyconDriver::GetSupportedFeatures() {
         .motion = true,
         .vibration = true,
     };
+
+    if (input_only_device) {
+        return features;
+    }
 
     if (device_type == ControllerType::Right) {
         features.nfc = true;
@@ -516,6 +535,11 @@ DriverResult JoyconDriver::StopNfcPolling() {
     disable_input_thread = true;
     const auto result = nfc_protocol->StopNFCPollingMode();
     disable_input_thread = false;
+
+    if (amiibo_detected) {
+        amiibo_detected = false;
+        joycon_poller->UpdateAmiibo({});
+    }
 
     return result;
 }
