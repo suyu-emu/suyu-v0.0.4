@@ -11,13 +11,13 @@ namespace Network {
 
 /// Address families
 enum class Domain : u8 {
-    Unspecified, ///< Can be 0 in getaddrinfo hints
+    Unspecified, ///< Represents 0, used in getaddrinfo hints
     INET,        ///< Address family for IPv4
 };
 
 /// Socket types
 enum class Type {
-    Unspecified, ///< Can be 0 in getaddrinfo hints
+    Unspecified, ///< Represents 0, used in getaddrinfo hints
     STREAM,
     DGRAM,
     RAW,
@@ -26,7 +26,7 @@ enum class Type {
 
 /// Protocol values for sockets
 enum class Protocol : u8 {
-    Unspecified,
+    Unspecified, ///< Represents 0, usable in various places
     ICMP,
     TCP,
     UDP,
