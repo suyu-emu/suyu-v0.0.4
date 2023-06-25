@@ -33,6 +33,7 @@ set(SHADER_FILES
     opengl_fidelityfx_fsr.frag
     opengl_fidelityfx_fsr_easu.frag
     opengl_fidelityfx_fsr_rcas.frag
+    opengl_lmem_warmup.comp
     opengl_present.frag
     opengl_present.vert
     opengl_present_scaleforce.frag

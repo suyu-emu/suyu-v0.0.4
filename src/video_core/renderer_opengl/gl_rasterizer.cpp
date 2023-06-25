@@ -222,6 +222,7 @@ void RasterizerOpenGL::PrepareDraw(bool is_indexed, Func&& draw_func) {
     gpu.TickWork();
 
     std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
+    program_manager.LocalMemoryWarmup();
     pipeline->SetEngine(maxwell3d, gpu_memory);
     pipeline->Configure(is_indexed);
 
@@ -371,6 +372,7 @@ void RasterizerOpenGL::DispatchCompute() {
     if (!pipeline) {
         return;
     }
+    program_manager.LocalMemoryWarmup();
     pipeline->SetEngine(kepler_compute, gpu_memory);
     pipeline->Configure();
     const auto& qmd{kepler_compute->launch_description};

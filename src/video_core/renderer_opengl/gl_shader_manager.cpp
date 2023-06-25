@@ -3,7 +3,9 @@
 
 #include <glad/glad.h>
 
+#include "video_core/host_shaders/opengl_lmem_warmup_comp.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
+#include "video_core/renderer_opengl/gl_shader_util.h"
 
 namespace OpenGL {
 
@@ -12,7 +14,8 @@ static constexpr std::array ASSEMBLY_PROGRAM_ENUMS{
     GL_GEOMETRY_PROGRAM_NV, GL_FRAGMENT_PROGRAM_NV,
 };
 
-ProgramManager::ProgramManager(const Device& device) {
+ProgramManager::ProgramManager(const Device& device)
+    : lmem_warmup_program(CreateProgram(HostShaders::OPENGL_LMEM_WARMUP_COMP, GL_COMPUTE_SHADER)) {
     glCreateProgramPipelines(1, &pipeline.handle);
     if (device.UseAssemblyShaders()) {
         glEnable(GL_COMPUTE_PROGRAM_NV);
@@ -97,6 +100,11 @@ void ProgramManager::BindAssemblyPrograms(std::span<const OGLAssemblyProgram, NU
 }
 
 void ProgramManager::RestoreGuestCompute() {}
+
+void ProgramManager::LocalMemoryWarmup() {
+    BindComputeProgram(lmem_warmup_program.handle);
+    glDispatchCompute(1, 1, 1);
+}
 
 void ProgramManager::BindPipeline() {
     if (!is_pipeline_bound) {

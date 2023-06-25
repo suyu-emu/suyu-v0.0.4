@@ -30,6 +30,8 @@ public:
 
     void RestoreGuestCompute();
 
+    void LocalMemoryWarmup();
+
 private:
     void BindPipeline();
 
@@ -44,6 +46,7 @@ private:
     u32 current_stage_mask = 0;
     std::array<GLuint, NUM_STAGES> current_programs{};
     GLuint current_assembly_compute_program = 0;
+    OGLProgram lmem_warmup_program;
 };
 
 } // namespace OpenGL
