@@ -226,7 +226,7 @@ public:
         }
     }
 
-    static long CtrlCallback(BIO* bio, int cmd, long larg, void* parg) {
+    static long CtrlCallback(BIO* bio, int cmd, long l_arg, void* p_arg) {
         switch (cmd) {
         case BIO_CTRL_FLUSH:
             // Nothing to flush.
@@ -239,7 +239,7 @@ public:
             // as they're nothing unusual.
             return 0;
         default:
-            LOG_DEBUG(Service_SSL, "OpenSSL BIO got ctrl({}, {}, {})", cmd, larg, parg);
+            LOG_DEBUG(Service_SSL, "OpenSSL BIO got ctrl({}, {}, {})", cmd, l_arg, p_arg);
             return 0;
         }
     }
