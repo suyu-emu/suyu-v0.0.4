@@ -338,6 +338,15 @@ public:
         return m_parent != nullptr;
     }
 
+    std::span<KSynchronizationObject*> GetSynchronizationObjectBuffer() {
+        return m_sync_object_buffer.sync_objects;
+    }
+
+    std::span<Handle> GetHandleBuffer() {
+        return {m_sync_object_buffer.handles.data() + Svc::ArgumentHandleCountMax,
+                Svc::ArgumentHandleCountMax};
+    }
+
     u16 GetUserDisableCount() const;
     void SetInterruptFlag();
     void ClearInterruptFlag();
@@ -855,6 +864,7 @@ private:
     u32* m_light_ipc_data{};
     KProcessAddress m_tls_address{};
     KLightLock m_activity_pause_lock;
+    SyncObjectBuffer m_sync_object_buffer{};
     s64 m_schedule_count{};
     s64 m_last_scheduled_tick{};
     std::array<QueueEntry, Core::Hardware::NUM_CPU_CORES> m_per_core_priority_queue_entry{};
