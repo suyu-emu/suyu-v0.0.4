@@ -145,7 +145,7 @@ add_subdirectory(nx_tzdb)
 
 # VMA
 add_library(vma vma/vma.cpp)
-target_include_directories(vma PUBLIC ./vma/vma/include)
+target_include_directories(vma PUBLIC ./vma/VulkanMemoryAllocator/include)
 target_link_libraries(vma PRIVATE Vulkan::Headers)
 
 if (NOT TARGET LLVM::Demangle)
