@@ -18,8 +18,8 @@ namespace {
 // the headers define an enum containing Network and Service as enumerators
 // (which clash with the correspondingly named namespaces).
 #define SECURITY_WIN32
-#include <security.h>
 #include <schnlsp.h>
+#include <security.h>
 
 std::once_flag one_time_init_flag;
 bool one_time_init_success = false;
@@ -29,9 +29,10 @@ CredHandle cred_handle;
 
 static void OneTimeInit() {
     schannel_cred.dwVersion = SCHANNEL_CRED_VERSION;
-    schannel_cred.dwFlags = SCH_USE_STRONG_CRYPTO |         // don't allow insecure protocols
-                            SCH_CRED_AUTO_CRED_VALIDATION | // validate certs
-                            SCH_CRED_NO_DEFAULT_CREDS;      // don't automatically present a client certificate
+    schannel_cred.dwFlags =
+        SCH_USE_STRONG_CRYPTO |         // don't allow insecure protocols
+        SCH_CRED_AUTO_CRED_VALIDATION | // validate certs
+        SCH_CRED_NO_DEFAULT_CREDS;      // don't automatically present a client certificate
     // ^ I'm assuming that nobody would want to connect Yuzu to a
     // service that requires some OS-provided corporate client
     // certificate, and presenting one to some arbitrary server
