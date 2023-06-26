@@ -6,7 +6,6 @@ package org.yuzu.yuzu_emu.utils
 import android.content.SharedPreferences
 import android.net.Uri
 import androidx.preference.PreferenceManager
-import java.util.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -33,15 +32,9 @@ object GameHelper {
         val children = FileUtil.listFiles(context, gamesUri)
         for (file in children) {
             if (!file.isDirectory) {
-                val filename = file.uri.toString()
-                val extensionStart = filename.lastIndexOf('.')
-                if (extensionStart > 0) {
-                    val fileExtension = filename.substring(extensionStart)
-
-                    // Check that the file has an extension we care about before trying to read out of it.
-                    if (Game.extensions.contains(fileExtension.lowercase(Locale.getDefault()))) {
-                        games.add(getGame(filename))
-                    }
+                // Check that the file has an extension we care about before trying to read out of it.
+                if (Game.extensions.contains(FileUtil.getExtension(file.uri))) {
+                    games.add(getGame(file.uri))
                 }
             }
         }
@@ -59,21 +52,19 @@ object GameHelper {
         return games.toList()
     }
 
-    private fun getGame(filePath: String): Game {
+    private fun getGame(uri: Uri): Game {
+        val filePath = uri.toString()
         var name = NativeLibrary.getTitle(filePath)
 
         // If the game's title field is empty, use the filename.
         if (name.isEmpty()) {
-            name = filePath.substring(filePath.lastIndexOf("/") + 1)
+            name = FileUtil.getFilename(uri)
         }
         var gameId = NativeLibrary.getGameId(filePath)
 
         // If the game's ID field is empty, use the filename without extension.
         if (gameId.isEmpty()) {
-            gameId = filePath.substring(
-                filePath.lastIndexOf("/") + 1,
-                filePath.lastIndexOf(".")
-            )
+            gameId = name.substring(0, name.lastIndexOf("."))
         }
 
         val newGame = Game(

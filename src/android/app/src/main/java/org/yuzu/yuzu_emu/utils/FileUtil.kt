@@ -7,7 +7,6 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
-import android.provider.OpenableColumns
 import androidx.documentfile.provider.DocumentFile
 import java.io.BufferedInputStream
 import java.io.File
@@ -185,19 +184,18 @@ object FileUtil {
 
     /**
      * Get file display name from given path
-     * @param path content uri path
+     * @param uri content uri
      * @return String display name
      */
-    fun getFilename(context: Context, path: String): String {
-        val resolver = context.contentResolver
+    fun getFilename(uri: Uri): String {
+        val resolver = YuzuApplication.appContext.contentResolver
         val columns = arrayOf(
             DocumentsContract.Document.COLUMN_DISPLAY_NAME
         )
         var filename = ""
         var c: Cursor? = null
         try {
-            val mUri = Uri.parse(path)
-            c = resolver.query(mUri, columns, null, null, null)
+            c = resolver.query(uri, columns, null, null, null)
             c!!.moveToNext()
             filename = c.getString(0)
         } catch (e: Exception) {
@@ -326,25 +324,9 @@ object FileUtil {
         }
     }
 
-    fun hasExtension(path: String, extension: String): Boolean =
-        path.substring(path.lastIndexOf(".") + 1).contains(extension)
-
-    fun hasExtension(uri: Uri, extension: String): Boolean {
-        val fileName: String?
-        val cursor = YuzuApplication.appContext.contentResolver.query(uri, null, null, null, null)
-        val nameIndex = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-        cursor?.moveToFirst()
-
-        if (nameIndex == null) {
-            return false
-        }
-
-        fileName = cursor.getString(nameIndex)
-        cursor.close()
-
-        if (fileName == null) {
-            return false
-        }
-        return fileName.substring(fileName.lastIndexOf(".") + 1).contains(extension)
+    fun getExtension(uri: Uri): String {
+        val fileName = getFilename(uri)
+        return fileName.substring(fileName.lastIndexOf(".") + 1)
+            .lowercase()
     }
 }

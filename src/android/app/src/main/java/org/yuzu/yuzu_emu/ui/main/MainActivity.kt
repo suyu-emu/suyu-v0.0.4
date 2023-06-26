@@ -296,7 +296,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 return@registerForActivityResult
             }
 
-            if (!FileUtil.hasExtension(result, "keys")) {
+            if (FileUtil.getExtension(result) != "keys") {
                 MessageDialogFragment.newInstance(
                     R.string.reading_keys_failure,
                     R.string.install_prod_keys_failure_extension_description
@@ -393,7 +393,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 return@registerForActivityResult
             }
 
-            if (!FileUtil.hasExtension(result, "bin")) {
+            if (FileUtil.getExtension(result) != "bin") {
                 MessageDialogFragment.newInstance(
                     R.string.reading_keys_failure,
                     R.string.install_amiibo_keys_failure_extension_description
