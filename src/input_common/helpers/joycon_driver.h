@@ -120,6 +120,7 @@ private:
     // Hardware configuration
     u8 leds{};
     ReportMode mode{};
+    bool input_only_device{};
     bool passive_enabled{};   // Low power mode, Ideal for multiple controllers at the same time
     bool hidbus_enabled{};    // External device support
     bool irs_enabled{};       // Infrared camera input

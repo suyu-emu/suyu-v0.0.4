@@ -73,7 +73,7 @@ DriverResult JoyconCommonProtocol::SendRawData(std::span<const u8> buffer) {
 DriverResult JoyconCommonProtocol::GetSubCommandResponse(SubCommand sc,
                                                          SubCommandResponse& output) {
     constexpr int timeout_mili = 66;
-    constexpr int MaxTries = 15;
+    constexpr int MaxTries = 3;
     int tries = 0;
 
     do {
@@ -113,9 +113,7 @@ DriverResult JoyconCommonProtocol::SendSubCommand(SubCommand sc, std::span<const
         return result;
     }
 
-    result = GetSubCommandResponse(sc, output);
-
-    return DriverResult::Success;
+    return GetSubCommandResponse(sc, output);
 }
 
 DriverResult JoyconCommonProtocol::SendSubCommand(SubCommand sc, std::span<const u8> buffer) {
@@ -158,7 +156,7 @@ DriverResult JoyconCommonProtocol::SendVibrationReport(std::span<const u8> buffe
 
 DriverResult JoyconCommonProtocol::ReadRawSPI(SpiAddress addr, std::span<u8> output) {
     constexpr std::size_t HeaderSize = 5;
-    constexpr std::size_t MaxTries = 10;
+    constexpr std::size_t MaxTries = 5;
     std::size_t tries = 0;
     SubCommandResponse response{};
     std::array<u8, sizeof(ReadSpiPacket)> buffer{};
