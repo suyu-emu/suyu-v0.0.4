@@ -149,7 +149,7 @@ static std::pair<u32, GetAddrInfoError> GetHostByNameRequestImpl(HLERequestConte
     const std::string host = Common::StringFromBuffer(host_buffer);
     // For now, ignore options, which are in input buffer 1 for GetHostByNameRequestWithOptions.
 
-    auto res = Network::GetAddrInfo(host, /*service*/ std::nullopt);
+    auto res = Network::GetAddressInfo(host, /*service*/ std::nullopt);
     if (!res.has_value()) {
         return {0, Translate(res.error())};
     }
@@ -249,7 +249,7 @@ static std::pair<u32, GetAddrInfoError> GetAddrInfoRequestImpl(HLERequestContext
 
     // Serialized hints are also passed in a buffer, but are ignored for now.
 
-    auto res = Network::GetAddrInfo(host, service);
+    auto res = Network::GetAddressInfo(host, service);
     if (!res.has_value()) {
         return {0, Translate(res.error())};
     }

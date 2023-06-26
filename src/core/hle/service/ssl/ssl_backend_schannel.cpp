@@ -12,29 +12,31 @@
 
 #include <mutex>
 
-#define SECURITY_WIN32
-#include <Security.h>
-#include <schnlsp.h>
-
 namespace {
+
+// These includes are inside the namespace to avoid a conflict on MinGW where
+// the headers define an enum containing Network and Service as enumerators
+// (which clash with the correspondingly named namespaces).
+#define SECURITY_WIN32
+#include <security.h>
+#include <schnlsp.h>
 
 std::once_flag one_time_init_flag;
 bool one_time_init_success = false;
 
-SCHANNEL_CRED schannel_cred{
-    .dwVersion = SCHANNEL_CRED_VERSION,
-    .dwFlags = SCH_USE_STRONG_CRYPTO |         // don't allow insecure protocols
-               SCH_CRED_AUTO_CRED_VALIDATION | // validate certs
-               SCH_CRED_NO_DEFAULT_CREDS,      // don't automatically present a client certificate
+SCHANNEL_CRED schannel_cred{};
+CredHandle cred_handle;
+
+static void OneTimeInit() {
+    schannel_cred.dwVersion = SCHANNEL_CRED_VERSION;
+    schannel_cred.dwFlags = SCH_USE_STRONG_CRYPTO |         // don't allow insecure protocols
+                            SCH_CRED_AUTO_CRED_VALIDATION | // validate certs
+                            SCH_CRED_NO_DEFAULT_CREDS;      // don't automatically present a client certificate
     // ^ I'm assuming that nobody would want to connect Yuzu to a
     // service that requires some OS-provided corporate client
     // certificate, and presenting one to some arbitrary server
     // might be a privacy concern?  Who knows, though.
-};
 
-CredHandle cred_handle;
-
-static void OneTimeInit() {
     SECURITY_STATUS ret =
         AcquireCredentialsHandle(nullptr, const_cast<LPTSTR>(UNISP_NAME), SECPKG_CRED_OUTBOUND,
                                  nullptr, &schannel_cred, nullptr, nullptr, &cred_handle, nullptr);
@@ -179,15 +181,21 @@ public:
                 // [1] (will be replaced by SECBUFFER_MISSING when SEC_E_INCOMPLETE_MESSAGE is
                 //     returned, or SECBUFFER_EXTRA when SEC_E_CONTINUE_NEEDED is returned if the
                 //     whole buffer wasn't used)
+                .cbBuffer = 0,
                 .BufferType = SECBUFFER_EMPTY,
+                .pvBuffer = nullptr,
             },
         }};
         std::array<SecBuffer, 2> output_buffers{{
             {
+                .cbBuffer = 0,
                 .BufferType = SECBUFFER_TOKEN,
+                .pvBuffer = nullptr,
             }, // [0]
             {
+                .cbBuffer = 0,
                 .BufferType = SECBUFFER_ALERT,
+                .pvBuffer = nullptr,
             }, // [1]
         }};
         SecBufferDesc input_desc{
@@ -299,21 +307,20 @@ public:
                 return read_size;
             }
             if (!ciphertext_read_buf_.empty()) {
+                SecBuffer empty{
+                    .cbBuffer = 0,
+                    .BufferType = SECBUFFER_EMPTY,
+                    .pvBuffer = nullptr,
+                };
                 std::array<SecBuffer, 5> buffers{{
                     {
                         .cbBuffer = static_cast<unsigned long>(ciphertext_read_buf_.size()),
                         .BufferType = SECBUFFER_DATA,
                         .pvBuffer = ciphertext_read_buf_.data(),
                     },
-                    {
-                        .BufferType = SECBUFFER_EMPTY,
-                    },
-                    {
-                        .BufferType = SECBUFFER_EMPTY,
-                    },
-                    {
-                        .BufferType = SECBUFFER_EMPTY,
-                    },
+                    empty,
+                    empty,
+                    empty,
                 }};
                 ASSERT_OR_EXECUTE_MSG(
                     buffers[0].cbBuffer == ciphertext_read_buf_.size(),

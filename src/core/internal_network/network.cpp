@@ -493,9 +493,7 @@ u32 IPv4AddressToInteger(IPv4Address ip_addr) {
            static_cast<u32>(ip_addr[2]) << 8 | static_cast<u32>(ip_addr[3]);
 }
 
-#undef GetAddrInfo // Windows defines it as a macro
-
-Common::Expected<std::vector<AddrInfo>, GetAddrInfoError> GetAddrInfo(
+Common::Expected<std::vector<AddrInfo>, GetAddrInfoError> GetAddressInfo(
     const std::string& host, const std::optional<std::string>& service) {
     addrinfo hints{};
     hints.ai_family = AF_INET; // Switch only supports IPv4.

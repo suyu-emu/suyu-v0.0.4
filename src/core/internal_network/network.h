@@ -5,6 +5,7 @@
 
 #include <array>
 #include <optional>
+#include <vector>
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
@@ -113,7 +114,8 @@ std::optional<IPv4Address> GetHostIPv4Address();
 std::string IPv4AddressToString(IPv4Address ip_addr);
 u32 IPv4AddressToInteger(IPv4Address ip_addr);
 
-Common::Expected<std::vector<AddrInfo>, GetAddrInfoError> GetAddrInfo(
+// named to avoid name collision with Windows macro
+Common::Expected<std::vector<AddrInfo>, GetAddrInfoError> GetAddressInfo(
     const std::string& host, const std::optional<std::string>& service);
 
 } // namespace Network
