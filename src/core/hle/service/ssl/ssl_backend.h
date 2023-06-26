@@ -23,11 +23,11 @@ constexpr Result ResultInvalidSocket{ErrorModule::SSLSrv, 106};
 constexpr Result ResultTimeout{ErrorModule::SSLSrv, 205};
 constexpr Result ResultInternalError{ErrorModule::SSLSrv, 999}; // made up
 
-constexpr Result ResultWouldBlock{ErrorModule::SSLSrv, 204};
-// ^ ResultWouldBlock is returned from Read and Write, and oddly, DoHandshake,
+// ResultWouldBlock is returned from Read and Write, and oddly, DoHandshake,
 // with no way in the latter case to distinguish whether the client should poll
 // for read or write.  The one official client I've seen handles this by always
 // polling for read (with a timeout).
+constexpr Result ResultWouldBlock{ErrorModule::SSLSrv, 204};
 
 class SSLConnectionBackend {
 public:

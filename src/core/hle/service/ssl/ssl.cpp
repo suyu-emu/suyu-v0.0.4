@@ -114,7 +114,7 @@ public:
     ~ISslConnection() {
         shared_data_->connection_count--;
         if (fd_to_close_.has_value()) {
-            s32 fd = *fd_to_close_;
+            const s32 fd = *fd_to_close_;
             if (!do_not_close_socket_) {
                 LOG_ERROR(Service_SSL,
                           "do_not_close_socket was changed after setting socket; is this right?");
@@ -123,7 +123,7 @@ public:
                 if (bsd) {
                     auto err = bsd->CloseImpl(fd);
                     if (err != Service::Sockets::Errno::SUCCESS) {
-                        LOG_ERROR(Service_SSL, "failed to close duplicated socket: {}", err);
+                        LOG_ERROR(Service_SSL, "Failed to close duplicated socket: {}", err);
                     }
                 }
             }
@@ -151,7 +151,7 @@ private:
         if (do_not_close_socket_) {
             auto res = bsd->DuplicateSocketImpl(fd);
             if (!res.has_value()) {
-                LOG_ERROR(Service_SSL, "failed to duplicate socket");
+                LOG_ERROR(Service_SSL, "Failed to duplicate socket with fd {}", fd);
                 return ResultInvalidSocket;
             }
             fd = *res;
@@ -171,7 +171,7 @@ private:
     }
 
     Result SetHostNameImpl(const std::string& hostname) {
-        LOG_DEBUG(Service_SSL, "SetHostNameImpl({})", hostname);
+        LOG_DEBUG(Service_SSL, "called. hostname={}", hostname);
         ASSERT(!did_handshake_);
         Result res = backend_->SetHostName(hostname);
         if (res == ResultSuccess) {
@@ -191,9 +191,9 @@ private:
         ASSERT(mode == IoMode::Blocking || mode == IoMode::NonBlocking);
         ASSERT_OR_EXECUTE(socket_, { return ResultNoSocket; });
 
-        bool non_block = mode == IoMode::NonBlocking;
-        Network::Errno e = socket_->SetNonBlock(non_block);
-        if (e != Network::Errno::SUCCESS) {
+        const bool non_block = mode == IoMode::NonBlocking;
+        const Network::Errno error = socket_->SetNonBlock(non_block);
+        if (error != Network::Errno::SUCCESS) {
             LOG_ERROR(Service_SSL, "Failed to set native socket non-block flag to {}", non_block);
         }
         return ResultSuccess;
@@ -307,13 +307,13 @@ private:
     }
 
     void DoHandshakeGetServerCert(HLERequestContext& ctx) {
-        Result res = DoHandshakeImpl();
+        const Result res = DoHandshakeImpl();
         u32 certs_count = 0;
         u32 certs_size = 0;
         if (res == ResultSuccess) {
             auto certs = backend_->GetServerCerts();
             if (certs.Succeeded()) {
-                std::vector<u8> certs_buf = SerializeServerCerts(*certs);
+                const std::vector<u8> certs_buf = SerializeServerCerts(*certs);
                 ctx.WriteBuffer(certs_buf);
                 certs_count = static_cast<u32>(certs->size());
                 certs_size = static_cast<u32>(certs_buf.size());
@@ -377,7 +377,7 @@ private:
             get_server_cert_chain_ = static_cast<bool>(parameters.value);
             break;
         default:
-            LOG_WARNING(Service_SSL, "unrecognized option={}, value={}", parameters.option,
+            LOG_WARNING(Service_SSL, "Unknown option={}, value={}", parameters.option,
                         parameters.value);
         }
 

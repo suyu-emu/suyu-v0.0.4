@@ -88,15 +88,15 @@ static Errno GetAddrInfoErrorToErrno(GetAddrInfoError result) {
 
 template <typename T>
 static void Append(std::vector<u8>& vec, T t) {
-    size_t off = vec.size();
-    vec.resize(off + sizeof(T));
-    std::memcpy(vec.data() + off, &t, sizeof(T));
+    const size_t offset = vec.size();
+    vec.resize(offset + sizeof(T));
+    std::memcpy(vec.data() + offset, &t, sizeof(T));
 }
 
 static void AppendNulTerminated(std::vector<u8>& vec, std::string_view str) {
-    size_t off = vec.size();
-    vec.resize(off + str.size() + 1);
-    std::memmove(vec.data() + off, str.data(), str.size());
+    const size_t offset = vec.size();
+    vec.resize(offset + str.size() + 1);
+    std::memmove(vec.data() + offset, str.data(), str.size());
 }
 
 // We implement gethostbyname using the host's getaddrinfo rather than the
@@ -154,8 +154,8 @@ static std::pair<u32, GetAddrInfoError> GetHostByNameRequestImpl(HLERequestConte
         return {0, Translate(res.error())};
     }
 
-    std::vector<u8> data = SerializeAddrInfoAsHostEnt(res.value(), host);
-    u32 data_size = static_cast<u32>(data.size());
+    const std::vector<u8> data = SerializeAddrInfoAsHostEnt(res.value(), host);
+    const u32 data_size = static_cast<u32>(data.size());
     ctx.WriteBuffer(data, 0);
 
     return {data_size, GetAddrInfoError::SUCCESS};
@@ -243,7 +243,7 @@ static std::pair<u32, GetAddrInfoError> GetAddrInfoRequestImpl(HLERequestContext
 
     std::optional<std::string> service = std::nullopt;
     if (ctx.CanReadBuffer(1)) {
-        std::span<const u8> service_buffer = ctx.ReadBuffer(1);
+        const std::span<const u8> service_buffer = ctx.ReadBuffer(1);
         service = Common::StringFromBuffer(service_buffer);
     }
 
@@ -254,8 +254,8 @@ static std::pair<u32, GetAddrInfoError> GetAddrInfoRequestImpl(HLERequestContext
         return {0, Translate(res.error())};
     }
 
-    std::vector<u8> data = SerializeAddrInfo(res.value(), host);
-    u32 data_size = static_cast<u32>(data.size());
+    const std::vector<u8> data = SerializeAddrInfo(res.value(), host);
+    const u32 data_size = static_cast<u32>(data.size());
     ctx.WriteBuffer(data, 0);
 
     return {data_size, GetAddrInfoError::SUCCESS};

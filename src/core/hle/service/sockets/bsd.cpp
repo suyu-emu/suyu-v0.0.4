@@ -270,10 +270,10 @@ void BSD::GetSockOpt(HLERequestContext& ctx) {
 
     std::vector<u8> optval(ctx.GetWriteBufferSize());
 
-    LOG_WARNING(Service, "called. fd={} level={} optname=0x{:x} len=0x{:x}", fd, level, optname,
-                optval.size());
+    LOG_DEBUG(Service, "called. fd={} level={} optname=0x{:x} len=0x{:x}", fd, level, optname,
+              optval.size());
 
-    Errno err = GetSockOptImpl(fd, level, optname, optval);
+    const Errno err = GetSockOptImpl(fd, level, optname, optval);
 
     ctx.WriteBuffer(optval);
 
@@ -447,7 +447,7 @@ void BSD::DuplicateSocket(HLERequestContext& ctx) {
     const s32 fd = rp.Pop<s32>();
     [[maybe_unused]] const u64 unused = rp.Pop<u64>();
 
-    Common::Expected<s32, Errno> res = DuplicateSocketImpl(fd);
+    Expected<s32, Errno> res = DuplicateSocketImpl(fd);
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
     rb.Push(res.value_or(0));                         // ret

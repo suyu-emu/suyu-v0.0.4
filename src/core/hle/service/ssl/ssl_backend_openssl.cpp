@@ -90,15 +90,15 @@ public:
 
     Result DoHandshake() override {
         SSL_set_verify_result(ssl_, X509_V_OK);
-        int ret = SSL_do_handshake(ssl_);
-        long verify_result = SSL_get_verify_result(ssl_);
+        const int ret = SSL_do_handshake(ssl_);
+        const long verify_result = SSL_get_verify_result(ssl_);
         if (verify_result != X509_V_OK) {
             LOG_ERROR(Service_SSL, "SSL cert verification failed because: {}",
                       X509_verify_cert_error_string(verify_result));
             return CheckOpenSSLErrors();
         }
         if (ret <= 0) {
-            int ssl_err = SSL_get_error(ssl_, ret);
+            const int ssl_err = SSL_get_error(ssl_, ret);
             if (ssl_err == SSL_ERROR_ZERO_RETURN ||
                 (ssl_err == SSL_ERROR_SYSCALL && got_read_eof_)) {
                 LOG_ERROR(Service_SSL, "SSL handshake failed because server hung up");
@@ -110,18 +110,18 @@ public:
 
     ResultVal<size_t> Read(std::span<u8> data) override {
         size_t actual;
-        int ret = SSL_read_ex(ssl_, data.data(), data.size(), &actual);
+        const int ret = SSL_read_ex(ssl_, data.data(), data.size(), &actual);
         return HandleReturn("SSL_read_ex", actual, ret);
     }
 
     ResultVal<size_t> Write(std::span<const u8> data) override {
         size_t actual;
-        int ret = SSL_write_ex(ssl_, data.data(), data.size(), &actual);
+        const int ret = SSL_write_ex(ssl_, data.data(), data.size(), &actual);
         return HandleReturn("SSL_write_ex", actual, ret);
     }
 
     ResultVal<size_t> HandleReturn(const char* what, size_t actual, int ret) {
-        int ssl_err = SSL_get_error(ssl_, ret);
+        const int ssl_err = SSL_get_error(ssl_, ret);
         CheckOpenSSLErrors();
         switch (ssl_err) {
         case SSL_ERROR_NONE:
@@ -255,7 +255,7 @@ public:
 
 ResultVal<std::unique_ptr<SSLConnectionBackend>> CreateSSLConnectionBackend() {
     auto conn = std::make_unique<SSLConnectionBackendOpenSSL>();
-    Result res = conn->Init();
+    const Result res = conn->Init();
     if (res.IsFailure()) {
         return res;
     }

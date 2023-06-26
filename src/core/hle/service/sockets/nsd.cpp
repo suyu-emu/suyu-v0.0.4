@@ -49,7 +49,7 @@ static ResultVal<std::string> ResolveImpl(const std::string& fqdn_in) {
     // The real implementation makes various substitutions.
     // For now we just return the string as-is, which is good enough when not
     // connecting to real Nintendo servers.
-    LOG_WARNING(Service, "(STUBBED) called({})", fqdn_in);
+    LOG_WARNING(Service, "(STUBBED) called, fqdn_in={}", fqdn_in);
     return fqdn_in;
 }
 
@@ -69,7 +69,7 @@ void NSD::Resolve(HLERequestContext& ctx) {
     const std::string fqdn_in = Common::StringFromBuffer(ctx.ReadBuffer(0));
 
     std::array<char, 0x100> fqdn_out{};
-    Result res = ResolveCommon(fqdn_in, fqdn_out);
+    const Result res = ResolveCommon(fqdn_in, fqdn_out);
 
     ctx.WriteBuffer(fqdn_out);
     IPC::ResponseBuilder rb{ctx, 2};
@@ -80,7 +80,7 @@ void NSD::ResolveEx(HLERequestContext& ctx) {
     const std::string fqdn_in = Common::StringFromBuffer(ctx.ReadBuffer(0));
 
     std::array<char, 0x100> fqdn_out;
-    Result res = ResolveCommon(fqdn_in, fqdn_out);
+    const Result res = ResolveCommon(fqdn_in, fqdn_out);
 
     if (res.IsError()) {
         IPC::ResponseBuilder rb{ctx, 2};
