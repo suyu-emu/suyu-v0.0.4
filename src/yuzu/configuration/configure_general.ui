@@ -89,6 +89,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="toggle_controller_applet_disabled">
+            <property name="text">
+             <string>Disable controller applet</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>

@@ -1708,6 +1708,7 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
 
     system->SetAppletFrontendSet({
         std::make_unique<QtAmiiboSettings>(*this),     // Amiibo Settings
+        (UISettings::values.controller_applet_disabled.GetValue() == true) ? nullptr :
         std::make_unique<QtControllerSelector>(*this), // Controller Selector
         std::make_unique<QtErrorDisplay>(*this),       // Error Display
         nullptr,                                       // Mii Editor

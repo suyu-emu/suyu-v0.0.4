@@ -904,6 +904,7 @@ void Config::ReadUIValues() {
     ReadBasicSetting(UISettings::values.pause_when_in_background);
     ReadBasicSetting(UISettings::values.mute_when_in_background);
     ReadBasicSetting(UISettings::values.hide_mouse);
+    ReadBasicSetting(UISettings::values.controller_applet_disabled);
     ReadBasicSetting(UISettings::values.disable_web_applet);
 
     qt_config->endGroup();
@@ -1551,6 +1552,7 @@ void Config::SaveUIValues() {
     WriteBasicSetting(UISettings::values.pause_when_in_background);
     WriteBasicSetting(UISettings::values.mute_when_in_background);
     WriteBasicSetting(UISettings::values.hide_mouse);
+    WriteBasicSetting(UISettings::values.controller_applet_disabled);
     WriteBasicSetting(UISettings::values.disable_web_applet);
 
     qt_config->endGroup();
