@@ -194,6 +194,7 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
             has_bool_ref_bug = true;
         }
     }
+    has_lmem_perf_bug = is_nvidia;
 
     strict_context_required = emu_window.StrictContextRequired();
     // Blocks AMD and Intel OpenGL drivers on Windows from using asynchronous shader compilation.

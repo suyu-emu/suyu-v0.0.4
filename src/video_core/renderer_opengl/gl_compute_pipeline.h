@@ -59,6 +59,10 @@ public:
         return writes_global_memory;
     }
 
+    [[nodiscard]] bool UsesLocalMemory() const noexcept {
+        return uses_local_memory;
+    }
+
     void SetEngine(Tegra::Engines::KeplerCompute* kepler_compute_,
                    Tegra::MemoryManager* gpu_memory_) {
         kepler_compute = kepler_compute_;
@@ -84,6 +88,7 @@ private:
 
     bool use_storage_buffers{};
     bool writes_global_memory{};
+    bool uses_local_memory{};
 
     std::mutex built_mutex;
     std::condition_variable built_condvar;

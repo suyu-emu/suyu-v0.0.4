@@ -63,6 +63,7 @@ ComputePipeline::ComputePipeline(const Device& device, TextureCache& texture_cac
     writes_global_memory = !use_storage_buffers &&
                            std::ranges::any_of(info.storage_buffers_descriptors,
                                                [](const auto& desc) { return desc.is_written; });
+    uses_local_memory = info.uses_local_memory;
     if (force_context_flush) {
         std::scoped_lock lock{built_mutex};
         built_fence.Create();

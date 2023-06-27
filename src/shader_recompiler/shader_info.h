@@ -172,6 +172,7 @@ struct Info {
     bool stores_indexed_attributes{};
 
     bool stores_global_memory{};
+    bool uses_local_memory{};
 
     bool uses_fp16{};
     bool uses_fp64{};
