@@ -1707,16 +1707,17 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
     system->SetFilesystem(vfs);
 
     system->SetAppletFrontendSet({
-        std::make_unique<QtAmiiboSettings>(*this),     // Amiibo Settings
-        (UISettings::values.controller_applet_disabled.GetValue() == true) ? nullptr :
-        std::make_unique<QtControllerSelector>(*this), // Controller Selector
-        std::make_unique<QtErrorDisplay>(*this),       // Error Display
-        nullptr,                                       // Mii Editor
-        nullptr,                                       // Parental Controls
-        nullptr,                                       // Photo Viewer
-        std::make_unique<QtProfileSelector>(*this),    // Profile Selector
-        std::make_unique<QtSoftwareKeyboard>(*this),   // Software Keyboard
-        std::make_unique<QtWebBrowser>(*this),         // Web Browser
+        std::make_unique<QtAmiiboSettings>(*this), // Amiibo Settings
+        (UISettings::values.controller_applet_disabled.GetValue() == true)
+            ? nullptr
+            : std::make_unique<QtControllerSelector>(*this), // Controller Selector
+        std::make_unique<QtErrorDisplay>(*this),             // Error Display
+        nullptr,                                             // Mii Editor
+        nullptr,                                             // Parental Controls
+        nullptr,                                             // Photo Viewer
+        std::make_unique<QtProfileSelector>(*this),          // Profile Selector
+        std::make_unique<QtSoftwareKeyboard>(*this),         // Software Keyboard
+        std::make_unique<QtWebBrowser>(*this),               // Web Browser
     });
 
     const Core::SystemResultStatus result{
