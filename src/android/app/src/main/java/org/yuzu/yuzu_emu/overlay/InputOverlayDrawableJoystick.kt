@@ -37,7 +37,8 @@ class InputOverlayDrawableJoystick(
     rectOuter: Rect,
     rectInner: Rect,
     val joystickId: Int,
-    val buttonId: Int
+    val buttonId: Int,
+    val prefId: String
 ) {
     // The ID value what motion event is tracking
     var trackId = -1
