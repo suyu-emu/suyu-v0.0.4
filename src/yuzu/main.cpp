@@ -447,6 +447,14 @@ GMainWindow::GMainWindow(std::unique_ptr<Config> config_, bool has_broken_vulkan
 
 #if defined(HAVE_SDL2) && !defined(_WIN32)
     SDL_InitSubSystem(SDL_INIT_VIDEO);
+
+    // Set a screensaver inhibition reason string. Currently passed to DBus by SDL and visible to
+    // the user through their desktop environment.
+    //: TRANSLATORS: This string is shown to the user to explain why yuzu needs to prevent the
+    //: computer from sleeping
+    QByteArray wakelock_reason = tr("Running a game").toLatin1();
+    SDL_SetHint(SDL_HINT_SCREENSAVER_INHIBIT_ACTIVITY_NAME, wakelock_reason.data());
+
     // SDL disables the screen saver by default, and setting the hint
     // SDL_HINT_VIDEO_ALLOW_SCREENSAVER doesn't seem to work, so we just enable the screen saver
     // for now.
@@ -1623,45 +1631,6 @@ void GMainWindow::OnPrepareForSleep(bool prepare_sleep) {
 }
 
 #ifdef __unix__
-static std::optional<QDBusObjectPath> HoldWakeLockLinux(u32 window_id = 0) {
-    if (!QDBusConnection::sessionBus().isConnected()) {
-        return {};
-    }
-    // reference: https://flatpak.github.io/xdg-desktop-portal/#gdbus-org.freedesktop.portal.Inhibit
-    QDBusInterface xdp(QString::fromLatin1("org.freedesktop.portal.Desktop"),
-                       QString::fromLatin1("/org/freedesktop/portal/desktop"),
-                       QString::fromLatin1("org.freedesktop.portal.Inhibit"));
-    if (!xdp.isValid()) {
-        LOG_WARNING(Frontend, "Couldn't connect to XDP D-Bus endpoint");
-        return {};
-    }
-    QVariantMap options = {};
-    //: TRANSLATORS: This string is shown to the user to explain why yuzu needs to prevent the
-    //: computer from sleeping
-    options.insert(QString::fromLatin1("reason"),
-                   QCoreApplication::translate("GMainWindow", "yuzu is running a game"));
-    // 0x4: Suspend lock; 0x8: Idle lock
-    QDBusReply<QDBusObjectPath> reply =
-        xdp.call(QString::fromLatin1("Inhibit"),
-                 QString::fromLatin1("x11:") + QString::number(window_id, 16), 12U, options);
-
-    if (reply.isValid()) {
-        return reply.value();
-    }
-    LOG_WARNING(Frontend, "Couldn't read Inhibit reply from XDP: {}",
-                reply.error().message().toStdString());
-    return {};
-}
-
-static void ReleaseWakeLockLinux(QDBusObjectPath lock) {
-    if (!QDBusConnection::sessionBus().isConnected()) {
-        return;
-    }
-    QDBusInterface unlocker(QString::fromLatin1("org.freedesktop.portal.Desktop"), lock.path(),
-                            QString::fromLatin1("org.freedesktop.portal.Request"));
-    unlocker.call(QString::fromLatin1("Close"));
-}
-
 std::array<int, 3> GMainWindow::sig_interrupt_fds{0, 0, 0};
 
 void GMainWindow::SetupSigInterrupts() {
@@ -1714,12 +1683,6 @@ void GMainWindow::PreventOSSleep() {
     SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
 #elif defined(HAVE_SDL2)
     SDL_DisableScreenSaver();
-#ifdef __unix__
-    auto reply = HoldWakeLockLinux(winId());
-    if (reply) {
-        wake_lock = std::move(reply.value());
-    }
-#endif
 #endif
 }
 
@@ -1728,11 +1691,6 @@ void GMainWindow::AllowOSSleep() {
     SetThreadExecutionState(ES_CONTINUOUS);
 #elif defined(HAVE_SDL2)
     SDL_EnableScreenSaver();
-#ifdef __unix__
-    if (!wake_lock.path().isEmpty()) {
-        ReleaseWakeLockLinux(wake_lock);
-    }
-#endif
 #endif
 }
 
