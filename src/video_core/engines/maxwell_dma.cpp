@@ -130,7 +130,7 @@ void MaxwellDMA::Launch() {
                 UNIMPLEMENTED_IF(regs.offset_out % 16 != 0);
                 read_buffer.resize_destructive(16);
                 for (u32 offset = 0; offset < regs.line_length_in; offset += 16) {
-                    memory_manager.ReadBlockUnsafe(
+                    memory_manager.ReadBlock(
                         convert_linear_2_blocklinear_addr(regs.offset_in + offset),
                         read_buffer.data(), read_buffer.size());
                     memory_manager.WriteBlockCached(regs.offset_out + offset, read_buffer.data(),
@@ -142,8 +142,8 @@ void MaxwellDMA::Launch() {
                 UNIMPLEMENTED_IF(regs.offset_out % 16 != 0);
                 read_buffer.resize_destructive(16);
                 for (u32 offset = 0; offset < regs.line_length_in; offset += 16) {
-                    memory_manager.ReadBlockUnsafe(regs.offset_in + offset, read_buffer.data(),
-                                                   read_buffer.size());
+                    memory_manager.ReadBlock(regs.offset_in + offset, read_buffer.data(),
+                                             read_buffer.size());
                     memory_manager.WriteBlockCached(
                         convert_linear_2_blocklinear_addr(regs.offset_out + offset),
                         read_buffer.data(), read_buffer.size());
@@ -151,8 +151,9 @@ void MaxwellDMA::Launch() {
             } else {
                 if (!accelerate.BufferCopy(regs.offset_in, regs.offset_out, regs.line_length_in)) {
                     read_buffer.resize_destructive(regs.line_length_in);
-                    memory_manager.ReadBlockUnsafe(regs.offset_in, read_buffer.data(),
-                                                   regs.line_length_in);
+                    memory_manager.ReadBlock(regs.offset_in, read_buffer.data(),
+                                             regs.line_length_in,
+                                             VideoCommon::CacheType::NoBufferCache);
                     memory_manager.WriteBlockCached(regs.offset_out, read_buffer.data(),
                                                     regs.line_length_in);
                 }
