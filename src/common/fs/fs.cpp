@@ -605,6 +605,12 @@ fs::file_type GetEntryType(const fs::path& path) {
 }
 
 u64 GetSize(const fs::path& path) {
+#ifdef ANDROID
+    if (Android::IsContentUri(path)) {
+        return Android::GetSize(path);
+    }
+#endif
+
     std::error_code ec;
 
     const auto file_size = fs::file_size(path, ec);
