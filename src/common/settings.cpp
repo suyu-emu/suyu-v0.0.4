@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <exception>
-#include <stdexcept>
+#include <version>
 #if __cpp_lib_chrono >= 201907L
 #include <chrono>
+#include <exception>
+#include <stdexcept>
 #endif
 #include <string_view>
 
