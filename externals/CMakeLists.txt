@@ -144,9 +144,9 @@ endif()
 add_subdirectory(nx_tzdb)
 
 # VMA
-add_library(vma vma/vma.cpp)
-target_include_directories(vma PUBLIC ./vma/VulkanMemoryAllocator/include)
-target_link_libraries(vma PRIVATE Vulkan::Headers)
+if (NOT TARGET GPUOpen::VulkanMemoryAllocator)
+    add_subdirectory(VulkanMemoryAllocator)
+endif()
 
 if (NOT TARGET LLVM::Demangle)
     add_library(demangle demangle/ItaniumDemangle.cpp)

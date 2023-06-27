@@ -56,5 +56,5 @@
 	path = externals/nx_tzdb/tzdb_to_nx
 	url = https://github.com/lat9nq/tzdb_to_nx.git
 [submodule "VulkanMemoryAllocator"]
-	path = externals/vma/VulkanMemoryAllocator
+	path = externals/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
