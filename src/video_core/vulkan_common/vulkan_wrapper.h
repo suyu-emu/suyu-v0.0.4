@@ -32,6 +32,9 @@
 #pragma warning(disable : 26812) // Disable prefer enum class over enum
 #endif
 
+VK_DEFINE_HANDLE(VmaAllocator)
+VK_DEFINE_HANDLE(VmaAllocation)
+
 namespace Vulkan::vk {
 
 /**
@@ -616,6 +619,138 @@ public:
     }
 };
 
+class Image {
+public:
+    explicit Image(VkImage handle_, VkDevice owner_, VmaAllocator allocator_,
+                   VmaAllocation allocation_, const DeviceDispatch& dld_) noexcept
+        : handle{handle_}, owner{owner_}, allocator{allocator_},
+          allocation{allocation_}, dld{&dld_} {}
+    Image() = default;
+
+    Image(const Image&) = delete;
+    Image& operator=(const Image&) = delete;
+
+    Image(Image&& rhs) noexcept
+        : handle{std::exchange(rhs.handle, nullptr)}, owner{rhs.owner}, allocator{rhs.allocator},
+          allocation{rhs.allocation}, dld{rhs.dld} {}
+
+    Image& operator=(Image&& rhs) noexcept {
+        Release();
+        handle = std::exchange(rhs.handle, nullptr);
+        owner = rhs.owner;
+        allocator = rhs.allocator;
+        allocation = rhs.allocation;
+        dld = rhs.dld;
+        return *this;
+    }
+
+    ~Image() noexcept {
+        Release();
+    }
+
+    VkImage operator*() const noexcept {
+        return handle;
+    }
+
+    void reset() noexcept {
+        Release();
+        handle = nullptr;
+    }
+
+    explicit operator bool() const noexcept {
+        return handle != nullptr;
+    }
+
+    void SetObjectNameEXT(const char* name) const;
+
+private:
+    void Release() const noexcept;
+
+    VkImage handle = nullptr;
+    VkDevice owner = nullptr;
+    VmaAllocator allocator = nullptr;
+    VmaAllocation allocation = nullptr;
+    const DeviceDispatch* dld = nullptr;
+};
+
+class Buffer {
+public:
+    explicit Buffer(VkBuffer handle_, VkDevice owner_, VmaAllocator allocator_,
+                    VmaAllocation allocation_, std::span<u8> mapped_, bool is_coherent_,
+                    const DeviceDispatch& dld_) noexcept
+        : handle{handle_}, owner{owner_}, allocator{allocator_},
+          allocation{allocation_}, mapped{mapped_}, is_coherent{is_coherent_}, dld{&dld_} {}
+    Buffer() = default;
+
+    Buffer(const Buffer&) = delete;
+    Buffer& operator=(const Buffer&) = delete;
+
+    Buffer(Buffer&& rhs) noexcept
+        : handle{std::exchange(rhs.handle, nullptr)}, owner{rhs.owner}, allocator{rhs.allocator},
+          allocation{rhs.allocation}, mapped{rhs.mapped},
+          is_coherent{rhs.is_coherent}, dld{rhs.dld} {}
+
+    Buffer& operator=(Buffer&& rhs) noexcept {
+        Release();
+        handle = std::exchange(rhs.handle, nullptr);
+        owner = rhs.owner;
+        allocator = rhs.allocator;
+        allocation = rhs.allocation;
+        mapped = rhs.mapped;
+        is_coherent = rhs.is_coherent;
+        dld = rhs.dld;
+        return *this;
+    }
+
+    ~Buffer() noexcept {
+        Release();
+    }
+
+    VkBuffer operator*() const noexcept {
+        return handle;
+    }
+
+    void reset() noexcept {
+        Release();
+        handle = nullptr;
+    }
+
+    explicit operator bool() const noexcept {
+        return handle != nullptr;
+    }
+
+    /// Returns the host mapped memory, an empty span otherwise.
+    std::span<u8> Mapped() noexcept {
+        return mapped;
+    }
+
+    std::span<const u8> Mapped() const noexcept {
+        return mapped;
+    }
+
+    /// Returns true if the buffer is mapped to the host.
+    bool IsHostVisible() const noexcept {
+        return !mapped.empty();
+    }
+
+    void Flush() const;
+
+    void Invalidate() const;
+
+    void SetObjectNameEXT(const char* name) const;
+
+private:
+    void Release() const noexcept;
+
+    VkBuffer handle = nullptr;
+    VkDevice owner = nullptr;
+    VmaAllocator allocator = nullptr;
+    VmaAllocation allocation = nullptr;
+    std::span<u8> mapped = {};
+    bool is_coherent = false;
+    const DeviceDispatch* dld = nullptr;
+};
+
 class Queue {
 public:
     /// Construct an empty queue handle.
@@ -639,32 +774,10 @@ private:
     const DeviceDispatch* dld = nullptr;
 };
 
-class Buffer : public Handle<VkBuffer, VkDevice, DeviceDispatch> {
-    using Handle<VkBuffer, VkDevice, DeviceDispatch>::Handle;
-
-public:
-    /// Attaches a memory allocation.
-    void BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const;
-
-    /// Set object name.
-    void SetObjectNameEXT(const char* name) const;
-};
-
 class BufferView : public Handle<VkBufferView, VkDevice, DeviceDispatch> {
     using Handle<VkBufferView, VkDevice, DeviceDispatch>::Handle;
 
 public:
-    /// Set object name.
-    void SetObjectNameEXT(const char* name) const;
-};
-
-class Image : public Handle<VkImage, VkDevice, DeviceDispatch> {
-    using Handle<VkImage, VkDevice, DeviceDispatch>::Handle;
-
-public:
-    /// Attaches a memory allocation.
-    void BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const;
-
     /// Set object name.
     void SetObjectNameEXT(const char* name) const;
 };
@@ -840,11 +953,7 @@ public:
 
     Queue GetQueue(u32 family_index) const noexcept;
 
-    Buffer CreateBuffer(const VkBufferCreateInfo& ci) const;
-
     BufferView CreateBufferView(const VkBufferViewCreateInfo& ci) const;
-
-    Image CreateImage(const VkImageCreateInfo& ci) const;
 
     ImageView CreateImageView(const VkImageViewCreateInfo& ci) const;
 

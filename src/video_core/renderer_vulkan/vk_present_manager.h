@@ -29,7 +29,6 @@ struct Frame {
     vk::Image image;
     vk::ImageView image_view;
     vk::Framebuffer framebuffer;
-    MemoryCommit image_commit;
     vk::CommandBuffer cmdbuf;
     vk::Semaphore render_ready;
     vk::Fence present_done;

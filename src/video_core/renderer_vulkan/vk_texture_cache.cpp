@@ -15,7 +15,6 @@
 #include "video_core/renderer_vulkan/blit_image.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
-#include "video_core/renderer_vulkan/vk_rasterizer.h"
 #include "video_core/renderer_vulkan/vk_render_pass_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
@@ -163,11 +162,12 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     };
 }
 
-[[nodiscard]] vk::Image MakeImage(const Device& device, const ImageInfo& info) {
+[[nodiscard]] vk::Image MakeImage(const Device& device, const MemoryAllocator& allocator,
+                                  const ImageInfo& info) {
     if (info.type == ImageType::Buffer) {
         return vk::Image{};
     }
-    return device.GetLogical().CreateImage(MakeImageCreateInfo(device, info));
+    return allocator.CreateImage(MakeImageCreateInfo(device, info));
 }
 
 [[nodiscard]] VkImageAspectFlags ImageAspectMask(PixelFormat format) {
@@ -839,14 +839,14 @@ bool TextureCacheRuntime::ShouldReinterpret(Image& dst, Image& src) {
 
 VkBuffer TextureCacheRuntime::GetTemporaryBuffer(size_t needed_size) {
     const auto level = (8 * sizeof(size_t)) - std::countl_zero(needed_size - 1ULL);
-    if (buffer_commits[level]) {
+    if (buffers[level]) {
         return *buffers[level];
     }
     const auto new_size = Common::NextPow2(needed_size);
     static constexpr VkBufferUsageFlags flags =
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
         VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
-    buffers[level] = device.GetLogical().CreateBuffer({
+    const VkBufferCreateInfo temp_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -855,9 +855,8 @@ VkBuffer TextureCacheRuntime::GetTemporaryBuffer(size_t needed_size) {
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
-    });
-    buffer_commits[level] = std::make_unique<MemoryCommit>(
-        memory_allocator.Commit(buffers[level], MemoryUsage::DeviceLocal));
+    };
+    buffers[level] = memory_allocator.CreateBuffer(temp_ci, MemoryUsage::DeviceLocal);
     return *buffers[level];
 }
 
@@ -1266,8 +1265,8 @@ void TextureCacheRuntime::TickFrame() {}
 Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu_addr_,
              VAddr cpu_addr_)
     : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), scheduler{&runtime_.scheduler},
-      runtime{&runtime_}, original_image(MakeImage(runtime_.device, info)),
-      commit(runtime_.memory_allocator.Commit(original_image, MemoryUsage::DeviceLocal)),
+      runtime{&runtime_},
+      original_image(MakeImage(runtime_.device, runtime_.memory_allocator, info)),
       aspect_mask(ImageAspectMask(info.format)) {
     if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported()) {
         if (Settings::values.async_astc.GetValue()) {
@@ -1468,9 +1467,7 @@ bool Image::ScaleUp(bool ignore) {
         auto scaled_info = info;
         scaled_info.size.width = scaled_width;
         scaled_info.size.height = scaled_height;
-        scaled_image = MakeImage(runtime->device, scaled_info);
-        auto& allocator = runtime->memory_allocator;
-        scaled_commit = MemoryCommit(allocator.Commit(scaled_image, MemoryUsage::DeviceLocal));
+        scaled_image = MakeImage(runtime->device, runtime->memory_allocator, scaled_info);
         ignore = false;
     }
     current_image = *scaled_image;

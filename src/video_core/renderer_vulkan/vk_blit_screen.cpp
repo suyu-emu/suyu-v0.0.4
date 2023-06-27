@@ -162,7 +162,7 @@ void BlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
     SetUniformData(data, layout);
     SetVertexData(data, framebuffer, layout);
 
-    const std::span<u8> mapped_span = buffer_commit.Map();
+    const std::span<u8> mapped_span = buffer.Mapped();
     std::memcpy(mapped_span.data(), &data, sizeof(data));
 
     if (!use_accelerated) {
@@ -1071,14 +1071,9 @@ void BlitScreen::ReleaseRawImages() {
         scheduler.Wait(tick);
     }
     raw_images.clear();
-    raw_buffer_commits.clear();
-
     aa_image_view.reset();
     aa_image.reset();
-    aa_commit = MemoryCommit{};
-
     buffer.reset();
-    buffer_commit = MemoryCommit{};
 }
 
 void BlitScreen::CreateStagingBuffer(const Tegra::FramebufferConfig& framebuffer) {
@@ -1094,20 +1089,18 @@ void BlitScreen::CreateStagingBuffer(const Tegra::FramebufferConfig& framebuffer
         .pQueueFamilyIndices = nullptr,
     };
 
-    buffer = device.GetLogical().CreateBuffer(ci);
-    buffer_commit = memory_allocator.Commit(buffer, MemoryUsage::Upload);
+    buffer = memory_allocator.CreateBuffer(ci, MemoryUsage::Upload);
 }
 
 void BlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
     raw_images.resize(image_count);
     raw_image_views.resize(image_count);
-    raw_buffer_commits.resize(image_count);
 
     const auto create_image = [&](bool used_on_framebuffer = false, u32 up_scale = 1,
                                   u32 down_shift = 0) {
         u32 extra_usages = used_on_framebuffer ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
                                                : VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-        return device.GetLogical().CreateImage(VkImageCreateInfo{
+        return memory_allocator.CreateImage(VkImageCreateInfo{
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
@@ -1129,9 +1122,6 @@ void BlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
             .pQueueFamilyIndices = nullptr,
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         });
-    };
-    const auto create_commit = [&](vk::Image& image) {
-        return memory_allocator.Commit(image, MemoryUsage::DeviceLocal);
     };
     const auto create_image_view = [&](vk::Image& image, bool used_on_framebuffer = false) {
         return device.GetLogical().CreateImageView(VkImageViewCreateInfo{
@@ -1161,7 +1151,6 @@ void BlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
 
     for (size_t i = 0; i < image_count; ++i) {
         raw_images[i] = create_image();
-        raw_buffer_commits[i] = create_commit(raw_images[i]);
         raw_image_views[i] = create_image_view(raw_images[i]);
     }
 
@@ -1169,7 +1158,6 @@ void BlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
     const u32 up_scale = Settings::values.resolution_info.up_scale;
     const u32 down_shift = Settings::values.resolution_info.down_shift;
     aa_image = create_image(true, up_scale, down_shift);
-    aa_commit = create_commit(aa_image);
     aa_image_view = create_image_view(aa_image, true);
     VkExtent2D size{
         .width = (up_scale * framebuffer.width) >> down_shift,

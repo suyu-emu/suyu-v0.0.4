@@ -47,7 +47,6 @@ private:
     vk::Sampler sampler;
     std::vector<vk::Image> images;
     std::vector<vk::ImageView> image_views;
-    std::vector<MemoryCommit> buffer_commits;
 };
 
 } // namespace Vulkan

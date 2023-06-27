@@ -30,55 +30,6 @@ constexpr VkDeviceSize MAX_STREAM_BUFFER_REQUEST_SIZE = 8_MiB;
 constexpr VkDeviceSize STREAM_BUFFER_SIZE = 128_MiB;
 constexpr VkDeviceSize REGION_SIZE = STREAM_BUFFER_SIZE / StagingBufferPool::NUM_SYNCS;
 
-constexpr VkMemoryPropertyFlags HOST_FLAGS =
-    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-constexpr VkMemoryPropertyFlags STREAM_FLAGS = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | HOST_FLAGS;
-
-bool IsStreamHeap(VkMemoryHeap heap) noexcept {
-    return STREAM_BUFFER_SIZE < (heap.size * 2) / 3;
-}
-
-std::optional<u32> FindMemoryTypeIndex(const VkPhysicalDeviceMemoryProperties& props, u32 type_mask,
-                                       VkMemoryPropertyFlags flags) noexcept {
-    for (u32 type_index = 0; type_index < props.memoryTypeCount; ++type_index) {
-        if (((type_mask >> type_index) & 1) == 0) {
-            // Memory type is incompatible
-            continue;
-        }
-        const VkMemoryType& memory_type = props.memoryTypes[type_index];
-        if ((memory_type.propertyFlags & flags) != flags) {
-            // Memory type doesn't have the flags we want
-            continue;
-        }
-        if (!IsStreamHeap(props.memoryHeaps[memory_type.heapIndex])) {
-            // Memory heap is not suitable for streaming
-            continue;
-        }
-        // Success!
-        return type_index;
-    }
-    return std::nullopt;
-}
-
-u32 FindMemoryTypeIndex(const VkPhysicalDeviceMemoryProperties& props, u32 type_mask,
-                        bool try_device_local) {
-    std::optional<u32> type;
-    if (try_device_local) {
-        // Try to find a DEVICE_LOCAL_BIT type, Nvidia and AMD have a dedicated heap for this
-        type = FindMemoryTypeIndex(props, type_mask, STREAM_FLAGS);
-        if (type) {
-            return *type;
-        }
-    }
-    // Otherwise try without the DEVICE_LOCAL_BIT
-    type = FindMemoryTypeIndex(props, type_mask, HOST_FLAGS);
-    if (type) {
-        return *type;
-    }
-    // This should never happen, and in case it does, signal it as an out of memory situation
-    throw vk::Exception(VK_ERROR_OUT_OF_DEVICE_MEMORY);
-}
-
 size_t Region(size_t iterator) noexcept {
     return iterator / REGION_SIZE;
 }
@@ -87,8 +38,7 @@ size_t Region(size_t iterator) noexcept {
 StagingBufferPool::StagingBufferPool(const Device& device_, MemoryAllocator& memory_allocator_,
                                      Scheduler& scheduler_)
     : device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_} {
-    const vk::Device& dev = device.GetLogical();
-    stream_buffer = dev.CreateBuffer(VkBufferCreateInfo{
+    const VkBufferCreateInfo stream_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -99,46 +49,13 @@ StagingBufferPool::StagingBufferPool(const Device& device_, MemoryAllocator& mem
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
-    });
+    };
+    stream_buffer = memory_allocator.CreateBuffer(stream_ci, MemoryUsage::Stream);
     if (device.HasDebuggingToolAttached()) {
         stream_buffer.SetObjectNameEXT("Stream Buffer");
     }
-    VkMemoryDedicatedRequirements dedicated_reqs{
-        .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS,
-        .pNext = nullptr,
-        .prefersDedicatedAllocation = VK_FALSE,
-        .requiresDedicatedAllocation = VK_FALSE,
-    };
-    const auto requirements = dev.GetBufferMemoryRequirements(*stream_buffer, &dedicated_reqs);
-    const bool make_dedicated = dedicated_reqs.prefersDedicatedAllocation == VK_TRUE ||
-                                dedicated_reqs.requiresDedicatedAllocation == VK_TRUE;
-    const VkMemoryDedicatedAllocateInfo dedicated_info{
-        .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .image = nullptr,
-        .buffer = *stream_buffer,
-    };
-    const auto memory_properties = device.GetPhysical().GetMemoryProperties().memoryProperties;
-    VkMemoryAllocateInfo stream_memory_info{
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .pNext = make_dedicated ? &dedicated_info : nullptr,
-        .allocationSize = requirements.size,
-        .memoryTypeIndex =
-            FindMemoryTypeIndex(memory_properties, requirements.memoryTypeBits, true),
-    };
-    stream_memory = dev.TryAllocateMemory(stream_memory_info);
-    if (!stream_memory) {
-        LOG_INFO(Render_Vulkan, "Dynamic memory allocation failed, trying with system memory");
-        stream_memory_info.memoryTypeIndex =
-            FindMemoryTypeIndex(memory_properties, requirements.memoryTypeBits, false);
-        stream_memory = dev.AllocateMemory(stream_memory_info);
-    }
-
-    if (device.HasDebuggingToolAttached()) {
-        stream_memory.SetObjectNameEXT("Stream Buffer Memory");
-    }
-    stream_buffer.BindMemory(*stream_memory, 0);
-    stream_pointer = stream_memory.Map(0, STREAM_BUFFER_SIZE);
+    stream_pointer = stream_buffer.Mapped();
+    ASSERT_MSG(!stream_pointer.empty(), "Stream buffer must be host visible!");
 }
 
 StagingBufferPool::~StagingBufferPool() = default;
@@ -199,7 +116,7 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
     return StagingBufferRef{
         .buffer = *stream_buffer,
         .offset = static_cast<VkDeviceSize>(offset),
-        .mapped_span = std::span<u8>(stream_pointer + offset, size),
+        .mapped_span = stream_pointer.subspan(offset, size),
         .usage{},
         .log2_level{},
         .index{},
@@ -247,7 +164,7 @@ std::optional<StagingBufferRef> StagingBufferPool::TryGetReservedBuffer(size_t s
 StagingBufferRef StagingBufferPool::CreateStagingBuffer(size_t size, MemoryUsage usage,
                                                         bool deferred) {
     const u32 log2 = Common::Log2Ceil64(size);
-    vk::Buffer buffer = device.GetLogical().CreateBuffer({
+    const VkBufferCreateInfo buffer_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -259,17 +176,15 @@ StagingBufferRef StagingBufferPool::CreateStagingBuffer(size_t size, MemoryUsage
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
-    });
+    };
+    vk::Buffer buffer = memory_allocator.CreateBuffer(buffer_ci, usage);
     if (device.HasDebuggingToolAttached()) {
         ++buffer_index;
         buffer.SetObjectNameEXT(fmt::format("Staging Buffer {}", buffer_index).c_str());
     }
-    MemoryCommit commit = memory_allocator.Commit(buffer, usage);
-    const std::span<u8> mapped_span = IsHostVisible(usage) ? commit.Map() : std::span<u8>{};
-
+    const std::span<u8> mapped_span = buffer.Mapped();
     StagingBuffer& entry = GetCache(usage)[log2].entries.emplace_back(StagingBuffer{
         .buffer = std::move(buffer),
-        .commit = std::move(commit),
         .mapped_span = mapped_span,
         .usage = usage,
         .log2_level = log2,

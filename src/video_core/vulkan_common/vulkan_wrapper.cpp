@@ -12,6 +12,8 @@
 
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
+#include <vk_mem_alloc.h>
+
 namespace Vulkan::vk {
 
 namespace {
@@ -547,24 +549,40 @@ DebugUtilsMessenger Instance::CreateDebugUtilsMessenger(
     return DebugUtilsMessenger(object, handle, *dld);
 }
 
-void Buffer::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {
-    Check(dld->vkBindBufferMemory(owner, handle, memory, offset));
+void Image::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_IMAGE, name);
+}
+
+void Image::Release() const noexcept {
+    if (handle) {
+        vmaDestroyImage(allocator, handle, allocation);
+    }
+}
+
+void Buffer::Flush() const {
+    if (!is_coherent) {
+        vmaFlushAllocation(allocator, allocation, 0, VK_WHOLE_SIZE);
+    }
+}
+
+void Buffer::Invalidate() const {
+    if (!is_coherent) {
+        vmaInvalidateAllocation(allocator, allocation, 0, VK_WHOLE_SIZE);
+    }
 }
 
 void Buffer::SetObjectNameEXT(const char* name) const {
     SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_BUFFER, name);
 }
 
+void Buffer::Release() const noexcept {
+    if (handle) {
+        vmaDestroyBuffer(allocator, handle, allocation);
+    }
+}
+
 void BufferView::SetObjectNameEXT(const char* name) const {
     SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_BUFFER_VIEW, name);
-}
-
-void Image::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {
-    Check(dld->vkBindImageMemory(owner, handle, memory, offset));
-}
-
-void Image::SetObjectNameEXT(const char* name) const {
-    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_IMAGE, name);
 }
 
 void ImageView::SetObjectNameEXT(const char* name) const {
@@ -701,22 +719,10 @@ Queue Device::GetQueue(u32 family_index) const noexcept {
     return Queue(queue, *dld);
 }
 
-Buffer Device::CreateBuffer(const VkBufferCreateInfo& ci) const {
-    VkBuffer object;
-    Check(dld->vkCreateBuffer(handle, &ci, nullptr, &object));
-    return Buffer(object, handle, *dld);
-}
-
 BufferView Device::CreateBufferView(const VkBufferViewCreateInfo& ci) const {
     VkBufferView object;
     Check(dld->vkCreateBufferView(handle, &ci, nullptr, &object));
     return BufferView(object, handle, *dld);
-}
-
-Image Device::CreateImage(const VkImageCreateInfo& ci) const {
-    VkImage object;
-    Check(dld->vkCreateImage(handle, &ci, nullptr, &object));
-    return Image(object, handle, *dld);
 }
 
 ImageView Device::CreateImageView(const VkImageViewCreateInfo& ci) const {

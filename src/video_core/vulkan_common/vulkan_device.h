@@ -14,6 +14,8 @@
 #include "common/settings.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
+VK_DEFINE_HANDLE(VmaAllocator)
+
 // Define all features which may be used by the implementation here.
 // Vulkan version in the macro describes the minimum version required for feature availability.
 // If the Vulkan version is lower than the required version, the named extension is required.
@@ -197,6 +199,11 @@ public:
     /// Returns the dispatch loader with direct function pointers of the device.
     const vk::DeviceDispatch& GetDispatchLoader() const {
         return dld;
+    }
+
+    /// Returns the VMA allocator.
+    VmaAllocator GetAllocator() const {
+        return allocator;
     }
 
     /// Returns the logical device.
@@ -630,6 +637,7 @@ private:
 
 private:
     VkInstance instance;         ///< Vulkan instance.
+    VmaAllocator allocator;      ///< VMA allocator.
     vk::DeviceDispatch dld;      ///< Device function pointers.
     vk::PhysicalDevice physical; ///< Physical device.
     vk::Device logical;          ///< Logical device.
