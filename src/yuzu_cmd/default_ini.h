@@ -140,9 +140,29 @@ udp_input_servers =
 # 0 (default): Off, 1: On
 mouse_panning =
 
-# Set mouse sensitivity.
-# Default: 1.0
-mouse_panning_sensitivity =
+# Set mouse panning horizontal sensitivity.
+# Default: 50.0
+mouse_panning_x_sensitivity =
+
+# Set mouse panning vertical sensitivity.
+# Default: 50.0
+mouse_panning_y_sensitivity =
+
+# Set mouse panning deadzone horizontal counterweight.
+# Default: 0.0
+mouse_panning_deadzone_x_counterweight =
+
+# Set mouse panning deadzone vertical counterweight.
+# Default: 0.0
+mouse_panning_deadzone_y_counterweight =
+
+# Set mouse panning stick decay strength.
+# Default: 22.0
+mouse_panning_decay_strength =
+
+# Set mouse panning stick minimum decay.
+# Default: 5.0
+mouse_panning_minimum_decay =
 
 # Emulate an analog control stick from keyboard inputs.
 # 0 (default): Disabled, 1: Enabled

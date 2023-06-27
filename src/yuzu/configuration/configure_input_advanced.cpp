@@ -129,9 +129,6 @@ void ConfigureInputAdvanced::ApplyConfiguration() {
     Settings::values.mouse_enabled = ui->mouse_enabled->isChecked();
     Settings::values.keyboard_enabled = ui->keyboard_enabled->isChecked();
     Settings::values.emulate_analog_keyboard = ui->emulate_analog_keyboard->isChecked();
-    Settings::values.mouse_panning = ui->mouse_panning->isChecked();
-    Settings::values.mouse_panning_sensitivity =
-        static_cast<float>(ui->mouse_panning_sensitivity->value());
     Settings::values.touchscreen.enabled = ui->touchscreen_enabled->isChecked();
     Settings::values.enable_raw_input = ui->enable_raw_input->isChecked();
     Settings::values.enable_udp_controller = ui->enable_udp_controller->isChecked();
@@ -167,8 +164,6 @@ void ConfigureInputAdvanced::LoadConfiguration() {
     ui->mouse_enabled->setChecked(Settings::values.mouse_enabled.GetValue());
     ui->keyboard_enabled->setChecked(Settings::values.keyboard_enabled.GetValue());
     ui->emulate_analog_keyboard->setChecked(Settings::values.emulate_analog_keyboard.GetValue());
-    ui->mouse_panning->setChecked(Settings::values.mouse_panning.GetValue());
-    ui->mouse_panning_sensitivity->setValue(Settings::values.mouse_panning_sensitivity.GetValue());
     ui->touchscreen_enabled->setChecked(Settings::values.touchscreen.enabled);
     ui->enable_raw_input->setChecked(Settings::values.enable_raw_input.GetValue());
     ui->enable_udp_controller->setChecked(Settings::values.enable_udp_controller.GetValue());
@@ -197,8 +192,6 @@ void ConfigureInputAdvanced::RetranslateUI() {
 void ConfigureInputAdvanced::UpdateUIEnabled() {
     ui->debug_configure->setEnabled(ui->debug_enabled->isChecked());
     ui->touchscreen_advanced->setEnabled(ui->touchscreen_enabled->isChecked());
-    ui->mouse_panning->setEnabled(!ui->mouse_enabled->isChecked());
-    ui->mouse_panning_sensitivity->setEnabled(!ui->mouse_enabled->isChecked());
     ui->ring_controller_configure->setEnabled(ui->enable_ring_controller->isChecked());
 #if QT_VERSION > QT_VERSION_CHECK(6, 0, 0) || !defined(YUZU_USE_QT_MULTIMEDIA)
     ui->enable_ir_sensor->setEnabled(false);

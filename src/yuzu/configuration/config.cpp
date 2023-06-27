@@ -351,6 +351,10 @@ void Config::ReadPlayerValue(std::size_t player_index) {
             player_motions = default_param;
         }
     }
+
+    if (player_index == 0) {
+        ReadMousePanningValues();
+    }
 }
 
 void Config::ReadDebugValues() {
@@ -471,6 +475,7 @@ void Config::ReadControlValues() {
     ReadKeyboardValues();
     ReadMouseValues();
     ReadTouchscreenValues();
+    ReadMousePanningValues();
     ReadMotionTouchValues();
     ReadHidbusValues();
     ReadIrCameraValues();
@@ -481,8 +486,6 @@ void Config::ReadControlValues() {
     Settings::values.enable_raw_input = false;
 #endif
     ReadBasicSetting(Settings::values.emulate_analog_keyboard);
-    Settings::values.mouse_panning = false;
-    ReadBasicSetting(Settings::values.mouse_panning_sensitivity);
     ReadBasicSetting(Settings::values.enable_joycon_driver);
     ReadBasicSetting(Settings::values.enable_procon_driver);
     ReadBasicSetting(Settings::values.random_amiibo_id);
@@ -494,6 +497,16 @@ void Config::ReadControlValues() {
     ReadBasicSetting(Settings::values.controller_navigation);
 
     qt_config->endGroup();
+}
+
+void Config::ReadMousePanningValues() {
+    ReadBasicSetting(Settings::values.mouse_panning);
+    ReadBasicSetting(Settings::values.mouse_panning_x_sensitivity);
+    ReadBasicSetting(Settings::values.mouse_panning_y_sensitivity);
+    ReadBasicSetting(Settings::values.mouse_panning_deadzone_x_counterweight);
+    ReadBasicSetting(Settings::values.mouse_panning_deadzone_y_counterweight);
+    ReadBasicSetting(Settings::values.mouse_panning_decay_strength);
+    ReadBasicSetting(Settings::values.mouse_panning_min_decay);
 }
 
 void Config::ReadMotionTouchValues() {
@@ -1064,6 +1077,10 @@ void Config::SavePlayerValue(std::size_t player_index) {
                      QString::fromStdString(player.motions[i]),
                      QString::fromStdString(default_param));
     }
+
+    if (player_index == 0) {
+        SaveMousePanningValues();
+    }
 }
 
 void Config::SaveDebugValues() {
@@ -1098,6 +1115,16 @@ void Config::SaveTouchscreenValues() {
     WriteSetting(QStringLiteral("touchscreen_angle"), touchscreen.rotation_angle, 0);
     WriteSetting(QStringLiteral("touchscreen_diameter_x"), touchscreen.diameter_x, 15);
     WriteSetting(QStringLiteral("touchscreen_diameter_y"), touchscreen.diameter_y, 15);
+}
+
+void Config::SaveMousePanningValues() {
+    // Don't overwrite values.mouse_panning
+    WriteBasicSetting(Settings::values.mouse_panning_x_sensitivity);
+    WriteBasicSetting(Settings::values.mouse_panning_y_sensitivity);
+    WriteBasicSetting(Settings::values.mouse_panning_deadzone_x_counterweight);
+    WriteBasicSetting(Settings::values.mouse_panning_deadzone_y_counterweight);
+    WriteBasicSetting(Settings::values.mouse_panning_decay_strength);
+    WriteBasicSetting(Settings::values.mouse_panning_min_decay);
 }
 
 void Config::SaveMotionTouchValues() {
@@ -1186,6 +1213,7 @@ void Config::SaveControlValues() {
     SaveDebugValues();
     SaveMouseValues();
     SaveTouchscreenValues();
+    SaveMousePanningValues();
     SaveMotionTouchValues();
     SaveHidbusValues();
     SaveIrCameraValues();
@@ -1200,7 +1228,6 @@ void Config::SaveControlValues() {
     WriteBasicSetting(Settings::values.random_amiibo_id);
     WriteBasicSetting(Settings::values.keyboard_enabled);
     WriteBasicSetting(Settings::values.emulate_analog_keyboard);
-    WriteBasicSetting(Settings::values.mouse_panning_sensitivity);
     WriteBasicSetting(Settings::values.controller_navigation);
 
     WriteBasicSetting(Settings::values.tas_enable);
