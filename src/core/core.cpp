@@ -55,7 +55,6 @@
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
-
 MICROPROFILE_DEFINE(ARM_CPU0, "ARM", "CPU 0", MP_RGB(255, 64, 64));
 MICROPROFILE_DEFINE(ARM_CPU1, "ARM", "CPU 1", MP_RGB(255, 64, 64));
 MICROPROFILE_DEFINE(ARM_CPU2, "ARM", "CPU 2", MP_RGB(255, 64, 64));
@@ -132,7 +131,10 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 struct System::Impl {
     explicit Impl(System& system)
         : kernel{system}, fs_controller{system}, memory{system}, hid_core{}, room_network{},
-          cpu_manager{system}, reporter{system}, applet_manager{system}, time_manager{system} {}
+          cpu_manager{system}, reporter{system}, applet_manager{system}, time_manager{system},
+          gpu_dirty_memory_write_manager{} {
+        memory.SetGPUDirtyManagers(gpu_dirty_memory_write_manager);
+    }
 
     void Initialize(System& system) {
         device_memory = std::make_unique<Core::DeviceMemory>();
@@ -235,6 +237,8 @@ struct System::Impl {
 
         // Setting changes may require a full system reinitialization (e.g., disabling multicore).
         ReinitializeIfNecessary(system);
+
+        memory.SetGPUDirtyManagers(gpu_dirty_memory_write_manager);
 
         kernel.Initialize();
         cpu_manager.Initialize();

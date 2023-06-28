@@ -62,7 +62,7 @@ public:
     /// @brief Unmarks a memory region as cached and marks it for removal
     /// @param addr Start address of the CPU write operation
     /// @param size Number of bytes of the CPU write operation
-    void OnCPUWrite(VAddr addr, size_t size);
+    void OnCacheInvalidation(VAddr addr, size_t size);
 
     /// @brief Flushes delayed removal operations
     void SyncGuestHost();

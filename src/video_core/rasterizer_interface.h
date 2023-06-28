@@ -109,7 +109,9 @@ public:
     }
 
     /// Notify rasterizer that any caches of the specified region are desync with guest
-    virtual void OnCPUWrite(VAddr addr, u64 size) = 0;
+    virtual void OnCacheInvalidation(VAddr addr, u64 size) = 0;
+
+    virtual bool OnCPUWrite(VAddr addr, u64 size) = 0;
 
     /// Sync memory between guest and host.
     virtual void InvalidateGPUCache() = 0;

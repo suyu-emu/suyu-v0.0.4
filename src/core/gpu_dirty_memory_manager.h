@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include <atomic>
@@ -59,8 +62,7 @@ public:
                 mask = mask >> empty_bits;
 
                 const size_t continuous_bits = std::countr_one(mask);
-                callback((transform.address << Memory::YUZU_PAGEBITS) + offset,
-                         continuous_bits << align_bits);
+                callback((transform.address << page_bits) + offset, continuous_bits << align_bits);
                 mask = continuous_bits < align_size ? (mask >> continuous_bits) : 0;
                 offset += continuous_bits << align_bits;
             }
@@ -73,6 +75,10 @@ private:
         VAddr address;
         u64 mask;
     };
+
+    constexpr static size_t page_bits = Memory::YUZU_PAGEBITS;
+    constexpr static size_t page_size = 1ULL << page_bits;
+    constexpr static size_t page_mask = page_size - 1;
 
     constexpr static size_t align_bits = 6U;
     constexpr static size_t align_size = 1U << align_bits;
@@ -94,11 +100,11 @@ private:
     }
 
     TransformAddress BuildTransform(VAddr address, size_t size) {
-        const size_t minor_address = address & Memory::YUZU_PAGEMASK;
+        const size_t minor_address = address & page_mask;
         const size_t minor_bit = minor_address >> align_bits;
         const size_t top_bit = (minor_address + size + align_mask) >> align_bits;
         TransformAddress result{};
-        result.address = address >> Memory::YUZU_PAGEBITS;
+        result.address = address >> page_bits;
         result.mask = CreateMask<u64>(top_bit, minor_bit);
         return result;
     }

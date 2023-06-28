@@ -133,6 +133,19 @@ void BufferCache<P>::CachedWriteMemory(VAddr cpu_addr, u64 size) {
 }
 
 template <class P>
+bool BufferCache<P>::OnCPUWrite(VAddr cpu_addr, u64 size) {
+    const bool is_dirty = IsRegionRegistered(cpu_addr, size);
+    if (!is_dirty) {
+        return false;
+    }
+    if (memory_tracker.IsRegionGpuModified(cpu_addr, size)) {
+        return true;
+    }
+    WriteMemory(cpu_addr, size);
+    return false;
+}
+
+template <class P>
 std::optional<VideoCore::RasterizerDownloadArea> BufferCache<P>::GetFlushArea(VAddr cpu_addr,
                                                                               u64 size) {
     std::optional<VideoCore::RasterizerDownloadArea> area{};
@@ -1574,7 +1587,7 @@ bool BufferCache<P>::InlineMemory(VAddr dest_address, size_t copy_size,
 
 template <class P>
 void BufferCache<P>::InlineMemoryImplementation(VAddr dest_address, size_t copy_size,
-                                  std::span<const u8> inlined_buffer) {
+                                                std::span<const u8> inlined_buffer) {
     const IntervalType subtract_interval{dest_address, dest_address + copy_size};
     ClearDownload(subtract_interval);
     common_ranges.subtract(subtract_interval);
