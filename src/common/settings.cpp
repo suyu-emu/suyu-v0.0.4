@@ -1,8 +1,11 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <version>
 #if __cpp_lib_chrono >= 201907L
 #include <chrono>
+#include <exception>
+#include <stdexcept>
 #endif
 #include <string_view>
 
@@ -25,9 +28,19 @@ std::string GetTimeZoneString() {
     if (time_zone_index == 0) { // Auto
 #if __cpp_lib_chrono >= 201907L
         const struct std::chrono::tzdb& time_zone_data = std::chrono::get_tzdb();
-        const std::chrono::time_zone* current_zone = time_zone_data.current_zone();
-        std::string_view current_zone_name = current_zone->name();
-        location_name = current_zone_name;
+        try {
+            const std::chrono::time_zone* current_zone = time_zone_data.current_zone();
+            std::string_view current_zone_name = current_zone->name();
+            location_name = current_zone_name;
+        } catch (std::runtime_error& runtime_error) {
+            // VCRUNTIME will throw a runtime_error if the operating system's selected time zone
+            // cannot be found
+            location_name = Common::TimeZone::FindSystemTimeZone();
+            LOG_WARNING(Common,
+                        "Error occurred when trying to determine system time zone:\n{}\nFalling "
+                        "back to hour offset \"{}\"",
+                        runtime_error.what(), location_name);
+        }
 #else
         location_name = Common::TimeZone::FindSystemTimeZone();
 #endif
