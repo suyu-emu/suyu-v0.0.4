@@ -6,12 +6,21 @@ package org.yuzu.yuzu_emu.utils
 import android.app.ActivityManager
 import android.content.Context
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.YuzuApplication
 import java.util.Locale
 
-class MemoryUtil(val context: Context) {
+object MemoryUtil {
+    private val context get() = YuzuApplication.appContext
 
     private val Long.floatForm: String
         get() = String.format(Locale.ROOT, "%.2f", this.toDouble())
+
+    const val Kb: Long = 1024
+    const val Mb = Kb * 1024
+    const val Gb = Mb * 1024
+    const val Tb = Gb * 1024
+    const val Pb = Tb * 1024
+    const val Eb = Pb * 1024
 
     private fun bytesToSizeUnit(size: Long): String {
         return when {
@@ -46,14 +55,5 @@ class MemoryUtil(val context: Context) {
 
     fun getDeviceRAM(): String {
         return bytesToSizeUnit(totalMemory)
-    }
-
-    companion object {
-        const val Kb: Long = 1024
-        const val Mb = Kb * 1024
-        const val Gb = Mb * 1024
-        const val Tb = Gb * 1024
-        const val Pb = Tb * 1024
-        const val Eb = Pb * 1024
     }
 }

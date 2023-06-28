@@ -106,13 +106,12 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         inputHandler = InputHandler()
         inputHandler.initialize()
 
-        val memoryUtil = MemoryUtil(this)
-        if (memoryUtil.isLessThan(8, MemoryUtil.Gb)) {
+        if (MemoryUtil.isLessThan(8, MemoryUtil.Gb)) {
             Toast.makeText(
                 this,
                 getString(
                     R.string.device_memory_inadequate,
-                    memoryUtil.getDeviceRAM(),
+                    MemoryUtil.getDeviceRAM(),
                     "8 ${getString(R.string.memory_gigabyte)}"
                 ),
                 Toast.LENGTH_LONG
