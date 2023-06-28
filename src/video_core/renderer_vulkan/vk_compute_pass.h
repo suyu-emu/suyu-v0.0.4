@@ -95,6 +95,8 @@ public:
                   std::span<const VideoCommon::SwizzleParameters> swizzles);
 
 private:
+    std::array<vk::Pipeline, 14> astc_pipelines;
+
     Scheduler& scheduler;
     StagingBufferPool& staging_buffer_pool;
     ComputePassDescriptorQueue& compute_pass_descriptor_queue;

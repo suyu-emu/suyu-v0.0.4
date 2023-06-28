@@ -13,6 +13,11 @@ set(GLSL_INCLUDES
     ${FIDELITYFX_FILES}
 )
 
+set(ASTC_INCLUDES
+    # astc_decoder_glsl_includes.h
+    astc_decoder_spv_includes.h
+)
+
 set(SHADER_FILES
     astc_decoder.comp
     blit_color_float.frag
@@ -95,9 +100,60 @@ if (NOT GLSLANG_ERROR STREQUAL "")
     set(QUIET_FLAG "")
 endif()
 
+macro(ASTC_GEN)
+    # paired list of valid astc block dimensions
+    set(ASTC_WIDTHS  4 5 5 6 6 6 8 8 8 10 10 10 10 12 12)
+    set(ASTC_HEIGHTS 4 4 5 4 5 6 5 6 8  5  6  8 10 10 12)
+    list(LENGTH ASTC_WIDTHS NUM_ASTC_FORMATS)
+    math(EXPR NUM_ASTC_FORMATS "${NUM_ASTC_FORMATS}-1")
+    foreach(i RANGE ${NUM_ASTC_FORMATS})
+        list(GET ASTC_WIDTHS ${i} ASTC_WIDTH)
+        list(GET ASTC_HEIGHTS ${i} ASTC_HEIGHT)
+
+        # Vulkan SPIR-V Specialization
+
+        string(TOUPPER ${SHADER_NAME}_${ASTC_WIDTH}x${ASTC_HEIGHT}_SPV SPIRV_VARIABLE_NAME)
+        set(SPIRV_HEADER_FILE ${SHADER_DIR}/${SHADER_NAME}_${ASTC_WIDTH}x${ASTC_HEIGHT}_spv.h)
+        add_custom_command(
+            OUTPUT
+                ${SPIRV_HEADER_FILE}
+            COMMAND
+                ${GLSLANGVALIDATOR} -V -DBLOCK_WIDTH=${ASTC_WIDTH} -DBLOCK_HEIGHT=${ASTC_HEIGHT} ${QUIET_FLAG} ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE}
+            MAIN_DEPENDENCY
+                ${SOURCE_FILE}
+        )
+        set(SHADER_HEADERS ${SHADER_HEADERS} ${SPIRV_HEADER_FILE})
+
+        # GLSL Specialization
+        # Disabled as there was no noticeable performance uplift specializing the shaders for OGL
+
+        # set(SOURCE_HEADER_FILE ${SHADER_DIR}/${SHADER_NAME}_${ASTC_WIDTH}x${ASTC_HEIGHT}.h)
+        # set(SHADER_DEFINES "#define BLOCK_WIDTH ${ASTC_WIDTH}" "#define BLOCK_HEIGHT ${ASTC_HEIGHT}")
+        # set(DEFINES_LINE_NUMBER 14)
+        # string(TOUPPER ${SHADER_NAME}_${ASTC_WIDTH}x${ASTC_HEIGHT} GLSL_VARIABLE_NAME)
+        # add_custom_command(
+        #     OUTPUT
+        #         ${SOURCE_HEADER_FILE}
+        #     COMMAND
+        #         ${CMAKE_COMMAND} -P ${HEADER_GENERATOR} ${SOURCE_FILE} ${SOURCE_HEADER_FILE} ${INPUT_FILE} "${SHADER_DEFINES}" ${DEFINES_LINE_NUMBER} ${GLSL_VARIABLE_NAME}
+        #     MAIN_DEPENDENCY
+        #         ${SOURCE_FILE}
+        #     DEPENDS
+        #         ${INPUT_FILE}
+        #         ${SOURCE_FILE}
+        # )
+        # set(SHADER_HEADERS ${SHADER_HEADERS} ${SOURCE_HEADER_FILE})
+    endforeach()
+endmacro()
+
 foreach(FILENAME IN ITEMS ${SHADER_FILES})
     string(REPLACE "." "_" SHADER_NAME ${FILENAME})
     set(SOURCE_FILE ${CMAKE_CURRENT_SOURCE_DIR}/${FILENAME})
+
+    if (${FILENAME} MATCHES "astc_decoder.comp")
+        ASTC_GEN()
+    endif()
+
     # Skip generating source headers on Vulkan exclusive files
     if (NOT ${FILENAME} MATCHES "vulkan.*")
         set(SOURCE_HEADER_FILE ${SHADER_DIR}/${SHADER_NAME}.h)
@@ -151,6 +207,7 @@ endforeach()
 
 set(SHADER_SOURCES ${SHADER_FILES})
 list(APPEND SHADER_SOURCES ${GLSL_INCLUDES})
+list(APPEND SHADER_SOURCES ${ASTC_INCLUDES})
 
 add_custom_target(host_shaders
     DEPENDS
