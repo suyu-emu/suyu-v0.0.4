@@ -47,6 +47,7 @@ import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.MemoryUtil
 import org.yuzu.yuzu_emu.utils.NfcReader
 import org.yuzu.yuzu_emu.utils.ThemeHelper
+import java.text.NumberFormat
 import kotlin.math.roundToInt
 
 class EmulationActivity : AppCompatActivity(), SensorEventListener {
@@ -106,13 +107,17 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         inputHandler = InputHandler()
         inputHandler.initialize()
 
-        if (MemoryUtil.isLessThan(8, MemoryUtil.Gb)) {
+        if (MemoryUtil.isLessThan(MemoryUtil.REQUIRED_MEMORY, MemoryUtil.Gb)) {
             Toast.makeText(
                 this,
                 getString(
                     R.string.device_memory_inadequate,
                     MemoryUtil.getDeviceRAM(),
-                    "8 ${getString(R.string.memory_gigabyte)}"
+                    getString(
+                        R.string.memory_formatted,
+                        NumberFormat.getInstance().format(MemoryUtil.REQUIRED_MEMORY),
+                        getString(R.string.memory_gigabyte)
+                    )
                 ),
                 Toast.LENGTH_LONG
             ).show()

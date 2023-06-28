@@ -273,6 +273,7 @@
     <string name="fatal_error_message">A fatal error occurred. Check the log for details.\nContinuing emulation may result in crashes and bugs.</string>
     <string name="performance_warning">Turning off this setting will significantly reduce emulation performance! For the best experience, it is recommended that you leave this setting enabled.</string>
     <string name="device_memory_inadequate">Device RAM: %1$s\nRecommended: %2$s</string>
+    <string name="memory_formatted">%1$s %2$s</string>
 
     <!-- Region Names -->
     <string name="region_japan">Japan</string>
