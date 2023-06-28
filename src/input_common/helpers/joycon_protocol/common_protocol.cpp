@@ -75,7 +75,7 @@ Common::Input::DriverResult JoyconCommonProtocol::SendRawData(std::span<const u8
 Common::Input::DriverResult JoyconCommonProtocol::GetSubCommandResponse(
     SubCommand sc, SubCommandResponse& output) {
     constexpr int timeout_mili = 66;
-    constexpr int MaxTries = 3;
+    constexpr int MaxTries = 10;
     int tries = 0;
 
     do {

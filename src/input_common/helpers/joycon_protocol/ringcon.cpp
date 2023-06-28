@@ -70,7 +70,7 @@ Common::Input::DriverResult RingConProtocol::StartRingconPolling() {
 
 Common::Input::DriverResult RingConProtocol::IsRingConnected(bool& is_connected) {
     LOG_DEBUG(Input, "IsRingConnected");
-    constexpr std::size_t max_tries = 28;
+    constexpr std::size_t max_tries = 42;
     SubCommandResponse output{};
     std::size_t tries = 0;
     is_connected = false;
@@ -78,7 +78,8 @@ Common::Input::DriverResult RingConProtocol::IsRingConnected(bool& is_connected)
     do {
         const auto result = SendSubCommand(SubCommand::GET_EXTERNAL_DEVICE_INFO, {}, output);
 
-        if (result != Common::Input::DriverResult::Success) {
+        if (result != Common::Input::DriverResult::Success &&
+            result != Common::Input::DriverResult::Timeout) {
             return result;
         }
 
