@@ -570,7 +570,7 @@ void RasterizerVulkan::OnCPUWrite(VAddr addr, u64 size) {
     if (addr == 0 || size == 0) {
         return;
     }
-    pipeline_cache.OnCPUWrite(addr, size);
+
     {
         std::scoped_lock lock{texture_cache.mutex};
         texture_cache.WriteMemory(addr, size);
@@ -579,14 +579,11 @@ void RasterizerVulkan::OnCPUWrite(VAddr addr, u64 size) {
         std::scoped_lock lock{buffer_cache.mutex};
         buffer_cache.CachedWriteMemory(addr, size);
     }
+    pipeline_cache.InvalidateRegion(addr, size);
 }
 
 void RasterizerVulkan::InvalidateGPUCache() {
-    pipeline_cache.SyncGuestHost();
-    {
-        std::scoped_lock lock{buffer_cache.mutex};
-        buffer_cache.FlushCachedWrites();
-    }
+    gpu.InvalidateGPUCache();
 }
 
 void RasterizerVulkan::UnmapMemory(VAddr addr, u64 size) {

@@ -13,6 +13,7 @@
 #include "common/swap.h"
 #include "core/core.h"
 #include "core/device_memory.h"
+#include "core/gpu_dirty_memory_manager.h"
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_process.h"
@@ -678,7 +679,7 @@ struct Memory::Impl {
                 LOG_ERROR(HW_Memory, "Unmapped Write{} @ 0x{:016X} = 0x{:016X}", sizeof(T) * 8,
                           GetInteger(vaddr), static_cast<u64>(data));
             },
-            [&]() { system.GPU().InvalidateRegion(GetInteger(vaddr), sizeof(T)); });
+            [&]() { system.CurrentGPUDirtyMemoryManager().Collect(GetInteger(vaddr), sizeof(T)); });
         if (ptr) {
             std::memcpy(ptr, &data, sizeof(T));
         }
@@ -692,7 +693,7 @@ struct Memory::Impl {
                 LOG_ERROR(HW_Memory, "Unmapped WriteExclusive{} @ 0x{:016X} = 0x{:016X}",
                           sizeof(T) * 8, GetInteger(vaddr), static_cast<u64>(data));
             },
-            [&]() { system.GPU().InvalidateRegion(GetInteger(vaddr), sizeof(T)); });
+            [&]() { system.CurrentGPUDirtyMemoryManager().Collect(GetInteger(vaddr), sizeof(T)); });
         if (ptr) {
             const auto volatile_pointer = reinterpret_cast<volatile T*>(ptr);
             return Common::AtomicCompareAndSwap(volatile_pointer, data, expected);
@@ -707,7 +708,7 @@ struct Memory::Impl {
                 LOG_ERROR(HW_Memory, "Unmapped WriteExclusive128 @ 0x{:016X} = 0x{:016X}{:016X}",
                           GetInteger(vaddr), static_cast<u64>(data[1]), static_cast<u64>(data[0]));
             },
-            [&]() { system.GPU().InvalidateRegion(GetInteger(vaddr), sizeof(u128)); });
+            [&]() { system.CurrentGPUDirtyMemoryManager().Collect(GetInteger(vaddr), sizeof(u128)); });
         if (ptr) {
             const auto volatile_pointer = reinterpret_cast<volatile u64*>(ptr);
             return Common::AtomicCompareAndSwap(volatile_pointer, data, expected);

@@ -543,6 +543,8 @@ private:
 
     void ClearDownload(IntervalType subtract_interval);
 
+    void InlineMemoryImplementation(VAddr dest_address, size_t copy_size, std::span<const u8> inlined_buffer);
+
     VideoCore::RasterizerInterface& rasterizer;
     Core::Memory::Memory& cpu_memory;
 
