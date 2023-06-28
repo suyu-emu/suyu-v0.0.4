@@ -26,7 +26,7 @@ val autoVersion = (((System.currentTimeMillis() / 1000) - 1451606400) / 10).toIn
 android {
     namespace = "org.yuzu.yuzu_emu"
 
-    compileSdkVersion = "android-33"
+    compileSdkVersion = "android-34"
     ndkVersion = "25.2.9519653"
 
     buildFeatures {
@@ -51,7 +51,7 @@ android {
         // TODO If this is ever modified, change application_id in strings.xml
         applicationId = "org.yuzu.yuzu_emu"
         minSdk = 30
-        targetSdk = 33
+        targetSdk = 34
         versionName = getGitVersion()
 
         // If you want to use autoVersion for the versionCode, create a property in local.properties
