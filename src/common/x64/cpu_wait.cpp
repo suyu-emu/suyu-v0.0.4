@@ -26,21 +26,26 @@ constexpr auto PauseCycles = 100'000U;
 
 #ifdef _MSC_VER
 __forceinline static void TPAUSE() {
-    _tpause(0, FencedRDTSC() + PauseCycles);
+    static constexpr auto RequestC02State = 0U;
+    _tpause(RequestC02State, FencedRDTSC() + PauseCycles);
 }
 
 __forceinline static void MWAITX() {
+    static constexpr auto EnableWaitTimeFlag = 1U << 1;
+    static constexpr auto RequestC1State = 0U;
+
     // monitor_var should be aligned to a cache line.
     alignas(64) u64 monitor_var{};
     _mm_monitorx(&monitor_var, 0, 0);
-    _mm_mwaitx(/* extensions*/ 2, /* hints */ 0, /* cycles */ PauseCycles);
+    _mm_mwaitx(EnableWaitTimeFlag, RequestC1State, PauseCycles);
 }
 #else
 static void TPAUSE() {
+    static constexpr auto RequestC02State = 0U;
     const auto tsc = FencedRDTSC() + PauseCycles;
     const auto eax = static_cast<u32>(tsc & 0xFFFFFFFF);
     const auto edx = static_cast<u32>(tsc >> 32);
-    asm volatile("tpause %0" : : "r"(0), "d"(edx), "a"(eax));
+    asm volatile("tpause %0" : : "r"(RequestC02State), "d"(edx), "a"(eax));
 }
 #endif
 
