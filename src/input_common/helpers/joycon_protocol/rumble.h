@@ -13,15 +13,19 @@
 #include "input_common/helpers/joycon_protocol/common_protocol.h"
 #include "input_common/helpers/joycon_protocol/joycon_types.h"
 
+namespace Common::Input {
+enum class DriverResult;
+}
+
 namespace InputCommon::Joycon {
 
 class RumbleProtocol final : private JoyconCommonProtocol {
 public:
     explicit RumbleProtocol(std::shared_ptr<JoyconHandle> handle);
 
-    DriverResult EnableRumble(bool is_enabled);
+    Common::Input::DriverResult EnableRumble(bool is_enabled);
 
-    DriverResult SendVibration(const VibrationValue& vibration);
+    Common::Input::DriverResult SendVibration(const VibrationValue& vibration);
 
 private:
     u16 EncodeHighFrequency(f32 frequency) const;

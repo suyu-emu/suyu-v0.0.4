@@ -75,8 +75,10 @@ enum class DriverResult {
     ErrorWritingData,
     NoDeviceDetected,
     InvalidHandle,
+    InvalidParameters,
     NotSupported,
     Disabled,
+    Delayed,
     Unknown,
 };
 

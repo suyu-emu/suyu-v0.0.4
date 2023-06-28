@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <thread>
+#include "common/input.h"
 #include "common/logging/log.h"
 #include "input_common/helpers/joycon_protocol/irs.h"
 
@@ -10,21 +10,21 @@ namespace InputCommon::Joycon {
 IrsProtocol::IrsProtocol(std::shared_ptr<JoyconHandle> handle)
     : JoyconCommonProtocol(std::move(handle)) {}
 
-DriverResult IrsProtocol::EnableIrs() {
+Common::Input::DriverResult IrsProtocol::EnableIrs() {
     LOG_INFO(Input, "Enable IRS");
     ScopedSetBlocking sb(this);
-    DriverResult result{DriverResult::Success};
+    Common::Input::DriverResult result{Common::Input::DriverResult::Success};
 
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         result = SetReportMode(ReportMode::NFC_IR_MODE_60HZ);
     }
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         result = EnableMCU(true);
     }
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         result = WaitSetMCUMode(ReportMode::NFC_IR_MODE_60HZ, MCUMode::Standby);
     }
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         const MCUConfig config{
             .command = MCUCommand::ConfigureMCU,
             .sub_command = MCUSubCommand::SetMCUMode,
@@ -34,16 +34,16 @@ DriverResult IrsProtocol::EnableIrs() {
 
         result = ConfigureMCU(config);
     }
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         result = WaitSetMCUMode(ReportMode::NFC_IR_MODE_60HZ, MCUMode::IR);
     }
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         result = ConfigureIrs();
     }
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         result = WriteRegistersStep1();
     }
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         result = WriteRegistersStep2();
     }
 
@@ -52,12 +52,12 @@ DriverResult IrsProtocol::EnableIrs() {
     return result;
 }
 
-DriverResult IrsProtocol::DisableIrs() {
+Common::Input::DriverResult IrsProtocol::DisableIrs() {
     LOG_DEBUG(Input, "Disable IRS");
     ScopedSetBlocking sb(this);
-    DriverResult result{DriverResult::Success};
+    Common::Input::DriverResult result{Common::Input::DriverResult::Success};
 
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         result = EnableMCU(false);
     }
 
@@ -66,7 +66,7 @@ DriverResult IrsProtocol::DisableIrs() {
     return result;
 }
 
-DriverResult IrsProtocol::SetIrsConfig(IrsMode mode, IrsResolution format) {
+Common::Input::DriverResult IrsProtocol::SetIrsConfig(IrsMode mode, IrsResolution format) {
     irs_mode = mode;
     switch (format) {
     case IrsResolution::Size320x240:
@@ -103,10 +103,10 @@ DriverResult IrsProtocol::SetIrsConfig(IrsMode mode, IrsResolution format) {
         return EnableIrs();
     }
 
-    return DriverResult::Success;
+    return Common::Input::DriverResult::Success;
 }
 
-DriverResult IrsProtocol::RequestImage(std::span<u8> buffer) {
+Common::Input::DriverResult IrsProtocol::RequestImage(std::span<u8> buffer) {
     const u8 next_packet_fragment =
         static_cast<u8>((packet_fragment + 1) % (static_cast<u8>(fragments) + 1));
 
@@ -129,7 +129,7 @@ DriverResult IrsProtocol::RequestImage(std::span<u8> buffer) {
     return RequestFrame(packet_fragment);
 }
 
-DriverResult IrsProtocol::ConfigureIrs() {
+Common::Input::DriverResult IrsProtocol::ConfigureIrs() {
     LOG_DEBUG(Input, "Configure IRS");
     constexpr std::size_t max_tries = 28;
     SubCommandResponse output{};
@@ -152,20 +152,20 @@ DriverResult IrsProtocol::ConfigureIrs() {
     do {
         const auto result = SendSubCommand(SubCommand::SET_MCU_CONFIG, request_data, output);
 
-        if (result != DriverResult::Success) {
+        if (result != Common::Input::DriverResult::Success) {
             return result;
         }
         if (tries++ >= max_tries) {
-            return DriverResult::WrongReply;
+            return Common::Input::DriverResult::WrongReply;
         }
     } while (output.command_data[0] != 0x0b);
 
-    return DriverResult::Success;
+    return Common::Input::DriverResult::Success;
 }
 
-DriverResult IrsProtocol::WriteRegistersStep1() {
+Common::Input::DriverResult IrsProtocol::WriteRegistersStep1() {
     LOG_DEBUG(Input, "WriteRegistersStep1");
-    DriverResult result{DriverResult::Success};
+    Common::Input::DriverResult result{Common::Input::DriverResult::Success};
     constexpr std::size_t max_tries = 28;
     SubCommandResponse output{};
     std::size_t tries = 0;
@@ -197,7 +197,7 @@ DriverResult IrsProtocol::WriteRegistersStep1() {
     mcu_request[36] = CalculateMCU_CRC8(mcu_request.data(), 36);
     mcu_request[37] = 0xFF;
 
-    if (result != DriverResult::Success) {
+    if (result != Common::Input::DriverResult::Success) {
         return result;
     }
 
@@ -205,26 +205,26 @@ DriverResult IrsProtocol::WriteRegistersStep1() {
         result = SendSubCommand(SubCommand::SET_MCU_CONFIG, request_data, output);
 
         // First time we need to set the report mode
-        if (result == DriverResult::Success && tries == 0) {
+        if (result == Common::Input::DriverResult::Success && tries == 0) {
             result = SendMCUCommand(SubCommand::SET_REPORT_MODE, mcu_request);
         }
-        if (result == DriverResult::Success && tries == 0) {
+        if (result == Common::Input::DriverResult::Success && tries == 0) {
             GetSubCommandResponse(SubCommand::SET_MCU_CONFIG, output);
         }
 
-        if (result != DriverResult::Success) {
+        if (result != Common::Input::DriverResult::Success) {
             return result;
         }
         if (tries++ >= max_tries) {
-            return DriverResult::WrongReply;
+            return Common::Input::DriverResult::WrongReply;
         }
     } while (!(output.command_data[0] == 0x13 && output.command_data[2] == 0x07) &&
              output.command_data[0] != 0x23);
 
-    return DriverResult::Success;
+    return Common::Input::DriverResult::Success;
 }
 
-DriverResult IrsProtocol::WriteRegistersStep2() {
+Common::Input::DriverResult IrsProtocol::WriteRegistersStep2() {
     LOG_DEBUG(Input, "WriteRegistersStep2");
     constexpr std::size_t max_tries = 28;
     SubCommandResponse output{};
@@ -255,18 +255,18 @@ DriverResult IrsProtocol::WriteRegistersStep2() {
     do {
         const auto result = SendSubCommand(SubCommand::SET_MCU_CONFIG, request_data, output);
 
-        if (result != DriverResult::Success) {
+        if (result != Common::Input::DriverResult::Success) {
             return result;
         }
         if (tries++ >= max_tries) {
-            return DriverResult::WrongReply;
+            return Common::Input::DriverResult::WrongReply;
         }
     } while (output.command_data[0] != 0x13 && output.command_data[0] != 0x23);
 
-    return DriverResult::Success;
+    return Common::Input::DriverResult::Success;
 }
 
-DriverResult IrsProtocol::RequestFrame(u8 frame) {
+Common::Input::DriverResult IrsProtocol::RequestFrame(u8 frame) {
     std::array<u8, 38> mcu_request{};
     mcu_request[3] = frame;
     mcu_request[36] = CalculateMCU_CRC8(mcu_request.data(), 36);
@@ -274,7 +274,7 @@ DriverResult IrsProtocol::RequestFrame(u8 frame) {
     return SendMCUCommand(SubCommand::SET_REPORT_MODE, mcu_request);
 }
 
-DriverResult IrsProtocol::ResendFrame(u8 frame) {
+Common::Input::DriverResult IrsProtocol::ResendFrame(u8 frame) {
     std::array<u8, 38> mcu_request{};
     mcu_request[1] = 0x1;
     mcu_request[2] = frame;
