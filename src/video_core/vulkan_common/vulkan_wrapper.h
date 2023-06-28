@@ -164,8 +164,10 @@ struct InstanceDispatch {
     PFN_vkEnumerateInstanceLayerProperties vkEnumerateInstanceLayerProperties{};
 
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT{};
+    PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT{};
     PFN_vkCreateDevice vkCreateDevice{};
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT{};
+    PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT{};
     PFN_vkDestroyDevice vkDestroyDevice{};
     PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR{};
     PFN_vkEnumerateDeviceExtensionProperties vkEnumerateDeviceExtensionProperties{};
@@ -366,6 +368,7 @@ void Destroy(VkDevice, VkSwapchainKHR, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkSemaphore, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkShaderModule, const DeviceDispatch&) noexcept;
 void Destroy(VkInstance, VkDebugUtilsMessengerEXT, const InstanceDispatch&) noexcept;
+void Destroy(VkInstance, VkDebugReportCallbackEXT, const InstanceDispatch&) noexcept;
 void Destroy(VkInstance, VkSurfaceKHR, const InstanceDispatch&) noexcept;
 
 VkResult Free(VkDevice, VkDescriptorPool, Span<VkDescriptorSet>, const DeviceDispatch&) noexcept;
@@ -581,6 +584,7 @@ private:
 };
 
 using DebugUtilsMessenger = Handle<VkDebugUtilsMessengerEXT, VkInstance, InstanceDispatch>;
+using DebugReportCallback = Handle<VkDebugReportCallbackEXT, VkInstance, InstanceDispatch>;
 using DescriptorSetLayout = Handle<VkDescriptorSetLayout, VkDevice, DeviceDispatch>;
 using DescriptorUpdateTemplate = Handle<VkDescriptorUpdateTemplate, VkDevice, DeviceDispatch>;
 using Pipeline = Handle<VkPipeline, VkDevice, DeviceDispatch>;
@@ -612,6 +616,11 @@ public:
     /// @throw Exception on creation failure.
     DebugUtilsMessenger CreateDebugUtilsMessenger(
         const VkDebugUtilsMessengerCreateInfoEXT& create_info) const;
+
+    /// Creates a debug report callback.
+    /// @throw Exception on creation failure.
+    DebugReportCallback CreateDebugReportCallback(
+        const VkDebugReportCallbackCreateInfoEXT& create_info) const;
 
     /// Returns dispatch table.
     const InstanceDispatch& Dispatch() const noexcept {

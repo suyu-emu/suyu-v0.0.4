@@ -3,7 +3,6 @@
 
 #include <stb_dxt.h>
 #include <string.h>
-
 #include "common/alignment.h"
 #include "video_core/textures/bcn.h"
 #include "video_core/textures/workers.h"

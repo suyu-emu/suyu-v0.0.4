@@ -349,7 +349,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_s8gen2 = device_id == 0x43050a01;
     const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
-    if ((is_mvk || is_qualcomm || is_turnip) && !is_suitable) {
+    if ((is_mvk || is_qualcomm || is_turnip || is_arm) && !is_suitable) {
         LOG_WARNING(Render_Vulkan, "Unsuitable driver, continuing anyway");
     } else if (!is_suitable) {
         throw vk::Exception(VK_ERROR_INCOMPATIBLE_DRIVER);
@@ -904,6 +904,10 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Get driver info.
     properties.driver.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
     SetNext(next, properties.driver);
+
+    // Retrieve subgroup properties.
+    properties.subgroup_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;
+    SetNext(next, properties.subgroup_properties);
 
     // Retrieve relevant extension properties.
     if (extensions.shader_float_controls) {

@@ -293,6 +293,11 @@ public:
         return features.features.textureCompressionASTC_LDR;
     }
 
+    /// Returns true if BCn is natively supported.
+    bool IsOptimalBcnSupported() const {
+        return features.features.textureCompressionBC;
+    }
+
     /// Returns true if descriptor aliasing is natively supported.
     bool IsDescriptorAliasingSupported() const {
         return GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
@@ -321,6 +326,11 @@ public:
     /// Returns true if the device can be forced to use the guest warp size.
     bool IsGuestWarpSizeSupported(VkShaderStageFlagBits stage) const {
         return properties.subgroup_size_control.requiredSubgroupSizeStages & stage;
+    }
+
+    /// Returns true if the device supports the provided subgroup feature.
+    bool IsSubgroupFeatureSupported(VkSubgroupFeatureFlagBits feature) const {
+        return properties.subgroup_properties.supportedOperations & feature;
     }
 
     /// Returns the maximum number of push descriptors.
@@ -388,6 +398,11 @@ public:
         return extensions.swapchain_mutable_format;
     }
 
+    /// Returns true if VK_KHR_shader_float_controls is enabled.
+    bool IsKhrShaderFloatControlsSupported() const {
+        return extensions.shader_float_controls;
+    }
+
     /// Returns true if the device supports VK_KHR_workgroup_memory_explicit_layout.
     bool IsKhrWorkgroupMemoryExplicitLayoutSupported() const {
         return extensions.workgroup_memory_explicit_layout;
@@ -411,6 +426,11 @@ public:
     /// Returns true if the device supports VK_EXT_sampler_filter_minmax.
     bool IsExtSamplerFilterMinmaxSupported() const {
         return extensions.sampler_filter_minmax;
+    }
+
+    /// Returns true if the device supports VK_EXT_shader_stencil_export.
+    bool IsExtShaderStencilExportSupported() const {
+        return extensions.shader_stencil_export;
     }
 
     /// Returns true if the device supports VK_EXT_depth_range_unrestricted.
@@ -482,9 +502,9 @@ public:
         return extensions.vertex_input_dynamic_state;
     }
 
-    /// Returns true if the device supports VK_EXT_shader_stencil_export.
-    bool IsExtShaderStencilExportSupported() const {
-        return extensions.shader_stencil_export;
+    /// Returns true if the device supports VK_EXT_shader_demote_to_helper_invocation
+    bool IsExtShaderDemoteToHelperInvocationSupported() const {
+        return extensions.shader_demote_to_helper_invocation;
     }
 
     /// Returns true if the device supports VK_EXT_conservative_rasterization.
@@ -518,12 +538,12 @@ public:
         if (extensions.spirv_1_4) {
             return 0x00010400U;
         }
-        return 0x00010000U;
+        return 0x00010300U;
     }
 
     /// Returns true when a known debugging tool is attached.
     bool HasDebuggingToolAttached() const {
-        return has_renderdoc || has_nsight_graphics || Settings::values.renderer_debug.GetValue();
+        return has_renderdoc || has_nsight_graphics;
     }
 
     /// @returns True if compute pipelines can cause crashing.
@@ -586,6 +606,10 @@ public:
 
     u32 GetMaxVertexInputBindings() const {
         return properties.properties.limits.maxVertexInputBindings;
+    }
+
+    u32 GetMaxViewports() const {
+        return properties.properties.limits.maxViewports;
     }
 
     bool SupportsConditionalBarriers() const {
@@ -680,6 +704,7 @@ private:
 
     struct Properties {
         VkPhysicalDeviceDriverProperties driver{};
+        VkPhysicalDeviceSubgroupProperties subgroup_properties{};
         VkPhysicalDeviceFloatControlsProperties float_controls{};
         VkPhysicalDevicePushDescriptorPropertiesKHR push_descriptor{};
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};

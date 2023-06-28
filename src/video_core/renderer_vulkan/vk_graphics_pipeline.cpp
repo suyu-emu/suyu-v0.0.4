@@ -652,13 +652,14 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pNext = nullptr,
         .negativeOneToOne = key.state.ndc_minus_one_to_one.Value() != 0 ? VK_TRUE : VK_FALSE,
     };
+    const u32 num_viewports = std::min<u32>(device.GetMaxViewports(), Maxwell::NumViewports);
     VkPipelineViewportStateCreateInfo viewport_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .viewportCount = Maxwell::NumViewports,
+        .viewportCount = num_viewports,
         .pViewports = nullptr,
-        .scissorCount = Maxwell::NumViewports,
+        .scissorCount = num_viewports,
         .pScissors = nullptr,
     };
     if (device.IsNvViewportSwizzleSupported()) {
