@@ -93,6 +93,7 @@ void AppendCPUInfo(FieldCollection& fc) {
     add_field("CPU_Extension_x64_GFNI", caps.gfni);
     add_field("CPU_Extension_x64_INVARIANT_TSC", caps.invariant_tsc);
     add_field("CPU_Extension_x64_LZCNT", caps.lzcnt);
+    add_field("CPU_Extension_x64_MONITORX", caps.monitorx);
     add_field("CPU_Extension_x64_MOVBE", caps.movbe);
     add_field("CPU_Extension_x64_PCLMULQDQ", caps.pclmulqdq);
     add_field("CPU_Extension_x64_POPCNT", caps.popcnt);
