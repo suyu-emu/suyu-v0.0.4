@@ -89,40 +89,14 @@
        </property>
        <layout class="QGridLayout">
         <item row="0" column="0">
-         <widget class="QLabel" name="deadzone_x_counterweight_label">
+         <widget class="QLabel" name="deadzone_counterweight_label">
           <property name="text">
-           <string>Horizontal</string>
+           <string>Deadzone</string>
           </property>
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QSpinBox" name="deadzone_x_counterweight">
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-          <property name="suffix">
-           <string>%</string>
-          </property>
-          <property name="minimum">
-           <number>0</number>
-          </property>
-          <property name="maximum">
-           <number>100</number>
-          </property>
-          <property name="value">
-           <number>0</number>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="deadzone_y_counterweight_label">
-          <property name="text">
-           <string>Vertical</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QSpinBox" name="deadzone_y_counterweight">
+         <widget class="QSpinBox" name="deadzone_counterweight">
           <property name="alignment">
            <set>Qt::AlignCenter</set>
           </property>

@@ -27,10 +27,8 @@ void ConfigureMousePanning::SetConfiguration(float right_stick_deadzone, float r
     ui->enable->setChecked(Settings::values.mouse_panning.GetValue());
     ui->x_sensitivity->setValue(Settings::values.mouse_panning_x_sensitivity.GetValue());
     ui->y_sensitivity->setValue(Settings::values.mouse_panning_y_sensitivity.GetValue());
-    ui->deadzone_x_counterweight->setValue(
-        Settings::values.mouse_panning_deadzone_x_counterweight.GetValue());
-    ui->deadzone_y_counterweight->setValue(
-        Settings::values.mouse_panning_deadzone_y_counterweight.GetValue());
+    ui->deadzone_counterweight->setValue(
+        Settings::values.mouse_panning_deadzone_counterweight.GetValue());
     ui->decay_strength->setValue(Settings::values.mouse_panning_decay_strength.GetValue());
     ui->min_decay->setValue(Settings::values.mouse_panning_min_decay.GetValue());
 
@@ -48,10 +46,8 @@ void ConfigureMousePanning::SetConfiguration(float right_stick_deadzone, float r
 void ConfigureMousePanning::SetDefaultConfiguration() {
     ui->x_sensitivity->setValue(Settings::values.mouse_panning_x_sensitivity.GetDefault());
     ui->y_sensitivity->setValue(Settings::values.mouse_panning_y_sensitivity.GetDefault());
-    ui->deadzone_x_counterweight->setValue(
-        Settings::values.mouse_panning_deadzone_x_counterweight.GetDefault());
-    ui->deadzone_y_counterweight->setValue(
-        Settings::values.mouse_panning_deadzone_y_counterweight.GetDefault());
+    ui->deadzone_counterweight->setValue(
+        Settings::values.mouse_panning_deadzone_counterweight.GetDefault());
     ui->decay_strength->setValue(Settings::values.mouse_panning_decay_strength.GetDefault());
     ui->min_decay->setValue(Settings::values.mouse_panning_min_decay.GetDefault());
 }
@@ -68,10 +64,8 @@ void ConfigureMousePanning::ApplyConfiguration() {
     Settings::values.mouse_panning = ui->enable->isChecked();
     Settings::values.mouse_panning_x_sensitivity = static_cast<float>(ui->x_sensitivity->value());
     Settings::values.mouse_panning_y_sensitivity = static_cast<float>(ui->y_sensitivity->value());
-    Settings::values.mouse_panning_deadzone_x_counterweight =
-        static_cast<float>(ui->deadzone_x_counterweight->value());
-    Settings::values.mouse_panning_deadzone_y_counterweight =
-        static_cast<float>(ui->deadzone_y_counterweight->value());
+    Settings::values.mouse_panning_deadzone_counterweight =
+        static_cast<float>(ui->deadzone_counterweight->value());
     Settings::values.mouse_panning_decay_strength = static_cast<float>(ui->decay_strength->value());
     Settings::values.mouse_panning_min_decay = static_cast<float>(ui->min_decay->value());
 

@@ -503,8 +503,7 @@ void Config::ReadMousePanningValues() {
     ReadBasicSetting(Settings::values.mouse_panning);
     ReadBasicSetting(Settings::values.mouse_panning_x_sensitivity);
     ReadBasicSetting(Settings::values.mouse_panning_y_sensitivity);
-    ReadBasicSetting(Settings::values.mouse_panning_deadzone_x_counterweight);
-    ReadBasicSetting(Settings::values.mouse_panning_deadzone_y_counterweight);
+    ReadBasicSetting(Settings::values.mouse_panning_deadzone_counterweight);
     ReadBasicSetting(Settings::values.mouse_panning_decay_strength);
     ReadBasicSetting(Settings::values.mouse_panning_min_decay);
 }
@@ -1122,8 +1121,7 @@ void Config::SaveMousePanningValues() {
     // Don't overwrite values.mouse_panning
     WriteBasicSetting(Settings::values.mouse_panning_x_sensitivity);
     WriteBasicSetting(Settings::values.mouse_panning_y_sensitivity);
-    WriteBasicSetting(Settings::values.mouse_panning_deadzone_x_counterweight);
-    WriteBasicSetting(Settings::values.mouse_panning_deadzone_y_counterweight);
+    WriteBasicSetting(Settings::values.mouse_panning_deadzone_counterweight);
     WriteBasicSetting(Settings::values.mouse_panning_decay_strength);
     WriteBasicSetting(Settings::values.mouse_panning_min_decay);
 }

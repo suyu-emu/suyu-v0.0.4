@@ -12,9 +12,13 @@
 
 namespace InputCommon {
 constexpr int update_time = 10;
-constexpr float default_stick_sensitivity = 0.0044f;
-constexpr float default_motion_sensitivity = 0.0003f;
+constexpr float default_panning_sensitivity = 0.0010f;
+constexpr float default_stick_sensitivity = 0.0006f;
+constexpr float default_deadzone_counterweight = 0.01f;
+constexpr float default_motion_panning_sensitivity = 2.5f;
+constexpr float default_motion_sensitivity = 0.416f;
 constexpr float maximum_rotation_speed = 2.0f;
+constexpr float maximum_stick_range = 1.5f;
 constexpr int mouse_axis_x = 0;
 constexpr int mouse_axis_y = 1;
 constexpr int wheel_axis_x = 2;
@@ -89,26 +93,13 @@ void Mouse::UpdateStickInput() {
 
     // Prevent input from exceeding the max range (1.0f) too much,
     // but allow some room to make it easier to sustain
-    if (length > 1.2f) {
+    if (length > maximum_stick_range) {
         last_mouse_change /= length;
-        last_mouse_change *= 1.2f;
+        last_mouse_change *= maximum_stick_range;
     }
 
-    auto mouse_change = last_mouse_change;
-
-    // Bind the mouse change to [0 <= deadzone_counterweight <= 1,1]
-    if (length < 1.0f) {
-        const float deadzone_h_counterweight =
-            Settings::values.mouse_panning_deadzone_x_counterweight.GetValue();
-        const float deadzone_v_counterweight =
-            Settings::values.mouse_panning_deadzone_y_counterweight.GetValue();
-        mouse_change /= length;
-        mouse_change.x *= length + (1 - length) * deadzone_h_counterweight * 0.01f;
-        mouse_change.y *= length + (1 - length) * deadzone_v_counterweight * 0.01f;
-    }
-
-    SetAxis(identifier, mouse_axis_x, mouse_change.x);
-    SetAxis(identifier, mouse_axis_y, -mouse_change.y);
+    SetAxis(identifier, mouse_axis_x, last_mouse_change.x);
+    SetAxis(identifier, mouse_axis_y, -last_mouse_change.y);
 
     // Decay input over time
     const float clamped_length = std::min(1.0f, length);
@@ -120,14 +111,13 @@ void Mouse::UpdateStickInput() {
 }
 
 void Mouse::UpdateMotionInput() {
-    // This may need its own sensitivity instead of using the average
-    const float sensitivity = (Settings::values.mouse_panning_x_sensitivity.GetValue() +
-                               Settings::values.mouse_panning_y_sensitivity.GetValue()) /
-                              2.0f * default_motion_sensitivity;
+    const float sensitivity = Settings::values.mouse_panning ? default_motion_panning_sensitivity
+                                                             : default_motion_sensitivity;
 
     const float rotation_velocity = std::sqrt(last_motion_change.x * last_motion_change.x +
                                               last_motion_change.y * last_motion_change.y);
 
+    // Clamp rotation speed
     if (rotation_velocity > maximum_rotation_speed / sensitivity) {
         const float multiplier = maximum_rotation_speed / rotation_velocity / sensitivity;
         last_motion_change.x = last_motion_change.x * multiplier;
@@ -158,29 +148,38 @@ void Mouse::Move(int x, int y, int center_x, int center_y) {
         const auto mouse_change =
             (Common::MakeVec(x, y) - Common::MakeVec(center_x, center_y)).Cast<float>();
         const float x_sensitivity =
-            Settings::values.mouse_panning_x_sensitivity.GetValue() * default_stick_sensitivity;
+            Settings::values.mouse_panning_x_sensitivity.GetValue() * default_panning_sensitivity;
         const float y_sensitivity =
-            Settings::values.mouse_panning_y_sensitivity.GetValue() * default_stick_sensitivity;
+            Settings::values.mouse_panning_y_sensitivity.GetValue() * default_panning_sensitivity;
+        const float deadzone_counterweight =
+            Settings::values.mouse_panning_deadzone_counterweight.GetValue() *
+            default_deadzone_counterweight;
 
-        last_motion_change += {-mouse_change.y, -mouse_change.x, 0};
-        last_mouse_change.x += mouse_change.x * x_sensitivity * 0.09f;
-        last_mouse_change.y += mouse_change.y * y_sensitivity * 0.09f;
+        last_motion_change += {-mouse_change.y * x_sensitivity, -mouse_change.x * y_sensitivity, 0};
+        last_mouse_change.x += mouse_change.x * x_sensitivity;
+        last_mouse_change.y += mouse_change.y * y_sensitivity;
+
+        // Bind the mouse change to [0 <= deadzone_counterweight <= 1.0]
+        if (last_mouse_change.Length() < deadzone_counterweight) {
+            last_mouse_change /= last_mouse_change.Length();
+            last_mouse_change *= deadzone_counterweight;
+        }
 
         return;
     }
 
     if (button_pressed) {
         const auto mouse_move = Common::MakeVec<int>(x, y) - mouse_origin;
-        const float x_sensitivity = Settings::values.mouse_panning_x_sensitivity.GetValue();
-        const float y_sensitivity = Settings::values.mouse_panning_y_sensitivity.GetValue();
-        SetAxis(identifier, mouse_axis_x,
-                static_cast<float>(mouse_move.x) * x_sensitivity * 0.0012f);
-        SetAxis(identifier, mouse_axis_y,
-                static_cast<float>(-mouse_move.y) * y_sensitivity * 0.0012f);
+        const float x_sensitivity =
+            Settings::values.mouse_panning_x_sensitivity.GetValue() * default_stick_sensitivity;
+        const float y_sensitivity =
+            Settings::values.mouse_panning_y_sensitivity.GetValue() * default_stick_sensitivity;
+        SetAxis(identifier, mouse_axis_x, static_cast<float>(mouse_move.x) * x_sensitivity);
+        SetAxis(identifier, mouse_axis_y, static_cast<float>(-mouse_move.y) * y_sensitivity);
 
         last_motion_change = {
-            static_cast<float>(-mouse_move.y) / 50.0f,
-            static_cast<float>(-mouse_move.x) / 50.0f,
+            static_cast<float>(-mouse_move.y) * x_sensitivity,
+            static_cast<float>(-mouse_move.x) * y_sensitivity,
             last_motion_change.z,
         };
     }
@@ -234,7 +233,7 @@ void Mouse::ReleaseButton(MouseButton button) {
 void Mouse::MouseWheelChange(int x, int y) {
     wheel_position.x += x;
     wheel_position.y += y;
-    last_motion_change.z += static_cast<f32>(y) / 100.0f;
+    last_motion_change.z += static_cast<f32>(y);
     SetAxis(identifier, wheel_axis_x, static_cast<f32>(wheel_position.x));
     SetAxis(identifier, wheel_axis_y, static_cast<f32>(wheel_position.y));
 }

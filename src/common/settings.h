@@ -527,12 +527,10 @@ struct Values {
     Setting<bool> mouse_panning{false, "mouse_panning"};
     Setting<u8, true> mouse_panning_x_sensitivity{50, 1, 100, "mouse_panning_x_sensitivity"};
     Setting<u8, true> mouse_panning_y_sensitivity{50, 1, 100, "mouse_panning_y_sensitivity"};
-    Setting<u8, true> mouse_panning_deadzone_x_counterweight{
-        0, 0, 100, "mouse_panning_deadzone_x_counterweight"};
-    Setting<u8, true> mouse_panning_deadzone_y_counterweight{
-        0, 0, 100, "mouse_panning_deadzone_y_counterweight"};
-    Setting<u8, true> mouse_panning_decay_strength{22, 0, 100, "mouse_panning_decay_strength"};
-    Setting<u8, true> mouse_panning_min_decay{5, 0, 100, "mouse_panning_min_decay"};
+    Setting<u8, true> mouse_panning_deadzone_counterweight{20, 0, 100,
+                                                           "mouse_panning_deadzone_counterweight"};
+    Setting<u8, true> mouse_panning_decay_strength{18, 0, 100, "mouse_panning_decay_strength"};
+    Setting<u8, true> mouse_panning_min_decay{6, 0, 100, "mouse_panning_min_decay"};
 
     Setting<bool> mouse_enabled{false, "mouse_enabled"};
     Setting<bool> emulate_analog_keyboard{false, "emulate_analog_keyboard"};
