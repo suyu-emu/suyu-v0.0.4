@@ -63,6 +63,7 @@ struct CPUCaps {
     bool gfni : 1;
     bool invariant_tsc : 1;
     bool lzcnt : 1;
+    bool monitorx : 1;
     bool movbe : 1;
     bool pclmulqdq : 1;
     bool popcnt : 1;
