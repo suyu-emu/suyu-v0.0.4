@@ -16,7 +16,10 @@ namespace Core {
 
 class GPUDirtyMemoryManager {
 public:
-    GPUDirtyMemoryManager() : current{default_transform} {}
+    GPUDirtyMemoryManager() : current{default_transform} {
+        back_buffer.reserve(256);
+        front_buffer.reserve(256);
+    }
 
     ~GPUDirtyMemoryManager() = default;
 
@@ -62,7 +65,8 @@ public:
                 mask = mask >> empty_bits;
 
                 const size_t continuous_bits = std::countr_one(mask);
-                callback((transform.address << page_bits) + offset, continuous_bits << align_bits);
+                callback((static_cast<VAddr>(transform.address) << page_bits) + offset,
+                         continuous_bits << align_bits);
                 mask = continuous_bits < align_size ? (mask >> continuous_bits) : 0;
                 offset += continuous_bits << align_bits;
             }
@@ -71,19 +75,19 @@ public:
     }
 
 private:
-    struct alignas(16) TransformAddress {
-        VAddr address;
-        u64 mask;
+    struct alignas(8) TransformAddress {
+        u32 address;
+        u32 mask;
     };
 
-    constexpr static size_t page_bits = Memory::YUZU_PAGEBITS;
+    constexpr static size_t page_bits = Memory::YUZU_PAGEBITS - 1;
     constexpr static size_t page_size = 1ULL << page_bits;
     constexpr static size_t page_mask = page_size - 1;
 
     constexpr static size_t align_bits = 6U;
     constexpr static size_t align_size = 1U << align_bits;
     constexpr static size_t align_mask = align_size - 1;
-    constexpr static TransformAddress default_transform = {.address = ~0ULL, .mask = 0ULL};
+    constexpr static TransformAddress default_transform = {.address = ~0U, .mask = 0U};
 
     bool IsValid(VAddr address) {
         return address < (1ULL << 39);
@@ -104,8 +108,8 @@ private:
         const size_t minor_bit = minor_address >> align_bits;
         const size_t top_bit = (minor_address + size + align_mask) >> align_bits;
         TransformAddress result{};
-        result.address = address >> page_bits;
-        result.mask = CreateMask<u64>(top_bit, minor_bit);
+        result.address = static_cast<u32>(address >> page_bits);
+        result.mask = CreateMask<u32>(top_bit, minor_bit);
         return result;
     }
 
