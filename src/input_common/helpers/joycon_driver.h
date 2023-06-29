@@ -11,6 +11,10 @@
 
 #include "input_common/helpers/joycon_protocol/joycon_types.h"
 
+namespace Common::Input {
+enum class DriverResult;
+}
+
 namespace InputCommon::Joycon {
 class CalibrationProtocol;
 class GenericProtocol;
@@ -26,8 +30,8 @@ public:
 
     ~JoyconDriver();
 
-    DriverResult RequestDeviceAccess(SDL_hid_device_info* device_info);
-    DriverResult InitializeDevice();
+    Common::Input::DriverResult RequestDeviceAccess(SDL_hid_device_info* device_info);
+    Common::Input::DriverResult InitializeDevice();
     void Stop();
 
     bool IsConnected() const;
@@ -41,31 +45,31 @@ public:
     SerialNumber GetSerialNumber() const;
     SerialNumber GetHandleSerialNumber() const;
 
-    DriverResult SetVibration(const VibrationValue& vibration);
-    DriverResult SetLedConfig(u8 led_pattern);
-    DriverResult SetIrsConfig(IrsMode mode_, IrsResolution format_);
-    DriverResult SetPassiveMode();
-    DriverResult SetActiveMode();
-    DriverResult SetIrMode();
-    DriverResult SetNfcMode();
-    DriverResult SetRingConMode();
-    DriverResult StartNfcPolling();
-    DriverResult StopNfcPolling();
-    DriverResult ReadAmiiboData(std::vector<u8>& out_data);
-    DriverResult WriteNfcData(std::span<const u8> data);
-    DriverResult ReadMifareData(std::span<const MifareReadChunk> request,
-                                std::span<MifareReadData> out_data);
-    DriverResult WriteMifareData(std::span<const MifareWriteChunk> request);
+    Common::Input::DriverResult SetVibration(const VibrationValue& vibration);
+    Common::Input::DriverResult SetLedConfig(u8 led_pattern);
+    Common::Input::DriverResult SetIrsConfig(IrsMode mode_, IrsResolution format_);
+    Common::Input::DriverResult SetPassiveMode();
+    Common::Input::DriverResult SetActiveMode();
+    Common::Input::DriverResult SetIrMode();
+    Common::Input::DriverResult SetNfcMode();
+    Common::Input::DriverResult SetRingConMode();
+    Common::Input::DriverResult StartNfcPolling();
+    Common::Input::DriverResult StopNfcPolling();
+    Common::Input::DriverResult ReadAmiiboData(std::vector<u8>& out_data);
+    Common::Input::DriverResult WriteNfcData(std::span<const u8> data);
+    Common::Input::DriverResult ReadMifareData(std::span<const MifareReadChunk> request,
+                                               std::span<MifareReadData> out_data);
+    Common::Input::DriverResult WriteMifareData(std::span<const MifareWriteChunk> request);
 
     void SetCallbacks(const JoyconCallbacks& callbacks);
 
     // Returns device type from hidapi handle
-    static DriverResult GetDeviceType(SDL_hid_device_info* device_info,
-                                      ControllerType& controller_type);
+    static Common::Input::DriverResult GetDeviceType(SDL_hid_device_info* device_info,
+                                                     ControllerType& controller_type);
 
     // Returns serial number from hidapi handle
-    static DriverResult GetSerialNumber(SDL_hid_device_info* device_info,
-                                        SerialNumber& serial_number);
+    static Common::Input::DriverResult GetSerialNumber(SDL_hid_device_info* device_info,
+                                                       SerialNumber& serial_number);
 
 private:
     struct SupportedFeatures {
@@ -84,7 +88,7 @@ private:
     void OnNewData(std::span<u8> buffer);
 
     /// Updates device configuration to enable or disable features
-    DriverResult SetPollingMode();
+    Common::Input::DriverResult SetPollingMode();
 
     /// Returns true if input thread is valid and doesn't need to be stopped
     bool IsInputThreadValid() const;

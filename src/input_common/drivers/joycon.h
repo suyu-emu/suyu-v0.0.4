@@ -17,7 +17,6 @@ struct Color;
 struct MotionData;
 struct TagInfo;
 enum class ControllerType : u8;
-enum class DriverResult;
 enum class IrsResolution;
 class JoyconDriver;
 } // namespace InputCommon::Joycon
@@ -112,7 +111,7 @@ private:
     /// Returns the name of the device in text format
     std::string JoyconName(Joycon::ControllerType type) const;
 
-    Common::Input::NfcState TranslateDriverResult(Joycon::DriverResult result) const;
+    Common::Input::NfcState TranslateDriverResult(Common::Input::DriverResult result) const;
 
     std::jthread scan_thread;
 

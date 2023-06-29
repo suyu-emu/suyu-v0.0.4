@@ -102,12 +102,12 @@ bool Joycons::IsDeviceNew(SDL_hid_device_info* device_info) const {
     Joycon::SerialNumber serial_number{};
 
     const auto result = Joycon::JoyconDriver::GetDeviceType(device_info, type);
-    if (result != Joycon::DriverResult::Success) {
+    if (result != Common::Input::DriverResult::Success) {
         return false;
     }
 
     const auto result2 = Joycon::JoyconDriver::GetSerialNumber(device_info, serial_number);
-    if (result2 != Joycon::DriverResult::Success) {
+    if (result2 != Common::Input::DriverResult::Success) {
         return false;
     }
 
@@ -171,10 +171,10 @@ void Joycons::RegisterNewDevice(SDL_hid_device_info* device_info) {
         LOG_WARNING(Input, "No free handles available");
         return;
     }
-    if (result == Joycon::DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         result = handle->RequestDeviceAccess(device_info);
     }
-    if (result == Joycon::DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         LOG_WARNING(Input, "Initialize device");
 
         const std::size_t port = handle->GetDevicePort();
@@ -273,8 +273,7 @@ Common::Input::DriverResult Joycons::SetLeds(const PadIdentifier& identifier,
     led_config += led_status.led_3 ? 4 : 0;
     led_config += led_status.led_4 ? 8 : 0;
 
-    return static_cast<Common::Input::DriverResult>(
-        handle->SetLedConfig(static_cast<u8>(led_config)));
+    return handle->SetLedConfig(static_cast<u8>(led_config));
 }
 
 Common::Input::DriverResult Joycons::SetCameraFormat(const PadIdentifier& identifier,
@@ -283,8 +282,8 @@ Common::Input::DriverResult Joycons::SetCameraFormat(const PadIdentifier& identi
     if (handle == nullptr) {
         return Common::Input::DriverResult::InvalidHandle;
     }
-    return static_cast<Common::Input::DriverResult>(handle->SetIrsConfig(
-        Joycon::IrsMode::ImageTransfer, static_cast<Joycon::IrsResolution>(camera_format)));
+    return handle->SetIrsConfig(Joycon::IrsMode::ImageTransfer,
+                                static_cast<Joycon::IrsResolution>(camera_format));
 };
 
 Common::Input::NfcState Joycons::SupportsNfc(const PadIdentifier& identifier_) const {
@@ -351,7 +350,7 @@ Common::Input::NfcState Joycons::ReadMifareData(const PadIdentifier& identifier,
 
     std::vector<Joycon::MifareReadData> read_data(read_request.size());
     const auto result = handle->ReadMifareData(read_request, read_data);
-    if (result == Joycon::DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         for (std::size_t i = 0; i < read_request.size(); i++) {
             data.data[i] = {
                 .command = static_cast<u8>(command),
@@ -402,15 +401,15 @@ Common::Input::DriverResult Joycons::SetPollingMode(const PadIdentifier& identif
 
     switch (polling_mode) {
     case Common::Input::PollingMode::Active:
-        return static_cast<Common::Input::DriverResult>(handle->SetActiveMode());
+        return handle->SetActiveMode();
     case Common::Input::PollingMode::Passive:
-        return static_cast<Common::Input::DriverResult>(handle->SetPassiveMode());
+        return handle->SetPassiveMode();
     case Common::Input::PollingMode::IR:
-        return static_cast<Common::Input::DriverResult>(handle->SetIrMode());
+        return handle->SetIrMode();
     case Common::Input::PollingMode::NFC:
-        return static_cast<Common::Input::DriverResult>(handle->SetNfcMode());
+        return handle->SetNfcMode();
     case Common::Input::PollingMode::Ring:
-        return static_cast<Common::Input::DriverResult>(handle->SetRingConMode());
+        return handle->SetRingConMode();
     default:
         return Common::Input::DriverResult::NotSupported;
     }
@@ -828,13 +827,13 @@ std::string Joycons::JoyconName(Joycon::ControllerType type) const {
     }
 }
 
-Common::Input::NfcState Joycons::TranslateDriverResult(Joycon::DriverResult result) const {
+Common::Input::NfcState Joycons::TranslateDriverResult(Common::Input::DriverResult result) const {
     switch (result) {
-    case Joycon::DriverResult::Success:
+    case Common::Input::DriverResult::Success:
         return Common::Input::NfcState::Success;
-    case Joycon::DriverResult::Disabled:
+    case Common::Input::DriverResult::Disabled:
         return Common::Input::NfcState::WrongDeviceState;
-    case Joycon::DriverResult::NotSupported:
+    case Common::Input::DriverResult::NotSupported:
         return Common::Input::NfcState::NotSupported;
     default:
         return Common::Input::NfcState::Unknown;

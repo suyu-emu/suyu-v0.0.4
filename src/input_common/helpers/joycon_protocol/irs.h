@@ -13,19 +13,23 @@
 #include "input_common/helpers/joycon_protocol/common_protocol.h"
 #include "input_common/helpers/joycon_protocol/joycon_types.h"
 
+namespace Common::Input {
+enum class DriverResult;
+}
+
 namespace InputCommon::Joycon {
 
 class IrsProtocol final : private JoyconCommonProtocol {
 public:
     explicit IrsProtocol(std::shared_ptr<JoyconHandle> handle);
 
-    DriverResult EnableIrs();
+    Common::Input::DriverResult EnableIrs();
 
-    DriverResult DisableIrs();
+    Common::Input::DriverResult DisableIrs();
 
-    DriverResult SetIrsConfig(IrsMode mode, IrsResolution format);
+    Common::Input::DriverResult SetIrsConfig(IrsMode mode, IrsResolution format);
 
-    DriverResult RequestImage(std::span<u8> buffer);
+    Common::Input::DriverResult RequestImage(std::span<u8> buffer);
 
     std::vector<u8> GetImage() const;
 
@@ -34,13 +38,13 @@ public:
     bool IsEnabled() const;
 
 private:
-    DriverResult ConfigureIrs();
+    Common::Input::DriverResult ConfigureIrs();
 
-    DriverResult WriteRegistersStep1();
-    DriverResult WriteRegistersStep2();
+    Common::Input::DriverResult WriteRegistersStep1();
+    Common::Input::DriverResult WriteRegistersStep2();
 
-    DriverResult RequestFrame(u8 frame);
-    DriverResult ResendFrame(u8 frame);
+    Common::Input::DriverResult RequestFrame(u8 frame);
+    Common::Input::DriverResult ResendFrame(u8 frame);
 
     IrsMode irs_mode{IrsMode::ImageTransfer};
     IrsResolution resolution{IrsResolution::Size40x30};

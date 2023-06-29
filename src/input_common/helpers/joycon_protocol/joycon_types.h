@@ -402,23 +402,6 @@ enum class ExternalDeviceId : u16 {
     Starlink = 0x2800,
 };
 
-enum class DriverResult {
-    Success,
-    WrongReply,
-    Timeout,
-    InvalidParameters,
-    UnsupportedControllerType,
-    HandleInUse,
-    ErrorReadingData,
-    ErrorWritingData,
-    NoDeviceDetected,
-    InvalidHandle,
-    NotSupported,
-    Disabled,
-    Delayed,
-    Unknown,
-};
-
 struct MotionSensorCalibration {
     s16 offset;
     s16 scale;

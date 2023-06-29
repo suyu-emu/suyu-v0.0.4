@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "common/input.h"
 #include "common/logging/log.h"
 #include "input_common/helpers/joycon_protocol/rumble.h"
 
@@ -12,14 +13,14 @@ namespace InputCommon::Joycon {
 RumbleProtocol::RumbleProtocol(std::shared_ptr<JoyconHandle> handle)
     : JoyconCommonProtocol(std::move(handle)) {}
 
-DriverResult RumbleProtocol::EnableRumble(bool is_enabled) {
+Common::Input::DriverResult RumbleProtocol::EnableRumble(bool is_enabled) {
     LOG_DEBUG(Input, "Enable Rumble");
     ScopedSetBlocking sb(this);
     const std::array<u8, 1> buffer{static_cast<u8>(is_enabled ? 1 : 0)};
     return SendSubCommand(SubCommand::ENABLE_VIBRATION, buffer);
 }
 
-DriverResult RumbleProtocol::SendVibration(const VibrationValue& vibration) {
+Common::Input::DriverResult RumbleProtocol::SendVibration(const VibrationValue& vibration) {
     std::array<u8, sizeof(DefaultVibrationBuffer)> buffer{};
 
     if (vibration.high_amplitude <= 0.0f && vibration.low_amplitude <= 0.0f) {

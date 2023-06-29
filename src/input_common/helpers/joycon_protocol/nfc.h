@@ -13,30 +13,34 @@
 #include "input_common/helpers/joycon_protocol/common_protocol.h"
 #include "input_common/helpers/joycon_protocol/joycon_types.h"
 
+namespace Common::Input {
+enum class DriverResult;
+}
+
 namespace InputCommon::Joycon {
 
 class NfcProtocol final : private JoyconCommonProtocol {
 public:
     explicit NfcProtocol(std::shared_ptr<JoyconHandle> handle);
 
-    DriverResult EnableNfc();
+    Common::Input::DriverResult EnableNfc();
 
-    DriverResult DisableNfc();
+    Common::Input::DriverResult DisableNfc();
 
-    DriverResult StartNFCPollingMode();
+    Common::Input::DriverResult StartNFCPollingMode();
 
-    DriverResult StopNFCPollingMode();
+    Common::Input::DriverResult StopNFCPollingMode();
 
-    DriverResult GetTagInfo(Joycon::TagInfo& tag_info);
+    Common::Input::DriverResult GetTagInfo(Joycon::TagInfo& tag_info);
 
-    DriverResult ReadAmiibo(std::vector<u8>& data);
+    Common::Input::DriverResult ReadAmiibo(std::vector<u8>& data);
 
-    DriverResult WriteAmiibo(std::span<const u8> data);
+    Common::Input::DriverResult WriteAmiibo(std::span<const u8> data);
 
-    DriverResult ReadMifare(std::span<const MifareReadChunk> read_request,
-                            std::span<MifareReadData> out_data);
+    Common::Input::DriverResult ReadMifare(std::span<const MifareReadChunk> read_request,
+                                           std::span<MifareReadData> out_data);
 
-    DriverResult WriteMifare(std::span<const MifareWriteChunk> write_request);
+    Common::Input::DriverResult WriteMifare(std::span<const MifareWriteChunk> write_request);
 
     bool HasAmiibo();
 
@@ -54,37 +58,41 @@ private:
         TagUUID uuid;
     };
 
-    DriverResult WaitUntilNfcIs(NFCStatus status);
+    Common::Input::DriverResult WaitUntilNfcIs(NFCStatus status);
 
-    DriverResult IsTagInRange(TagFoundData& data, std::size_t timeout_limit = 1);
+    Common::Input::DriverResult IsTagInRange(TagFoundData& data, std::size_t timeout_limit = 1);
 
-    DriverResult GetAmiiboData(std::vector<u8>& data);
+    Common::Input::DriverResult GetAmiiboData(std::vector<u8>& data);
 
-    DriverResult WriteAmiiboData(const TagUUID& tag_uuid, std::span<const u8> data);
+    Common::Input::DriverResult WriteAmiiboData(const TagUUID& tag_uuid, std::span<const u8> data);
 
-    DriverResult GetMifareData(const MifareUUID& tag_uuid,
-                               std::span<const MifareReadChunk> read_request,
-                               std::span<MifareReadData> out_data);
+    Common::Input::DriverResult GetMifareData(const MifareUUID& tag_uuid,
+                                              std::span<const MifareReadChunk> read_request,
+                                              std::span<MifareReadData> out_data);
 
-    DriverResult WriteMifareData(const MifareUUID& tag_uuid,
-                                 std::span<const MifareWriteChunk> write_request);
+    Common::Input::DriverResult WriteMifareData(const MifareUUID& tag_uuid,
+                                                std::span<const MifareWriteChunk> write_request);
 
-    DriverResult SendStartPollingRequest(MCUCommandResponse& output,
-                                         bool is_second_attempt = false);
+    Common::Input::DriverResult SendStartPollingRequest(MCUCommandResponse& output,
+                                                        bool is_second_attempt = false);
 
-    DriverResult SendStopPollingRequest(MCUCommandResponse& output);
+    Common::Input::DriverResult SendStopPollingRequest(MCUCommandResponse& output);
 
-    DriverResult SendNextPackageRequest(MCUCommandResponse& output, u8 packet_id);
+    Common::Input::DriverResult SendNextPackageRequest(MCUCommandResponse& output, u8 packet_id);
 
-    DriverResult SendReadAmiiboRequest(MCUCommandResponse& output, NFCPages ntag_pages);
+    Common::Input::DriverResult SendReadAmiiboRequest(MCUCommandResponse& output,
+                                                      NFCPages ntag_pages);
 
-    DriverResult SendWriteAmiiboRequest(MCUCommandResponse& output, const TagUUID& tag_uuid);
+    Common::Input::DriverResult SendWriteAmiiboRequest(MCUCommandResponse& output,
+                                                       const TagUUID& tag_uuid);
 
-    DriverResult SendWriteDataAmiiboRequest(MCUCommandResponse& output, u8 block_id,
-                                            bool is_last_packet, std::span<const u8> data);
+    Common::Input::DriverResult SendWriteDataAmiiboRequest(MCUCommandResponse& output, u8 block_id,
+                                                           bool is_last_packet,
+                                                           std::span<const u8> data);
 
-    DriverResult SendReadDataMifareRequest(MCUCommandResponse& output, u8 block_id,
-                                           bool is_last_packet, std::span<const u8> data);
+    Common::Input::DriverResult SendReadDataMifareRequest(MCUCommandResponse& output, u8 block_id,
+                                                          bool is_last_packet,
+                                                          std::span<const u8> data);
 
     std::vector<u8> SerializeWritePackage(const NFCWritePackage& package) const;
 

@@ -305,6 +305,9 @@ void ConfigureRingController::EnableRingController() {
         QMessageBox::warning(this, dialog_title,
                              tr("The current mapped device doesn't have a ring attached"));
         break;
+    case Common::Input::DriverResult::InvalidHandle:
+        QMessageBox::warning(this, dialog_title, tr("The current mapped device is not connected"));
+        break;
     default:
         QMessageBox::warning(this, dialog_title,
                              tr("Unexpected driver result %1").arg(static_cast<int>(result)));

@@ -3,6 +3,7 @@
 
 #include <cstring>
 
+#include "common/input.h"
 #include "input_common/helpers/joycon_protocol/calibration.h"
 #include "input_common/helpers/joycon_protocol/joycon_types.h"
 
@@ -11,28 +12,29 @@ namespace InputCommon::Joycon {
 CalibrationProtocol::CalibrationProtocol(std::shared_ptr<JoyconHandle> handle)
     : JoyconCommonProtocol(std::move(handle)) {}
 
-DriverResult CalibrationProtocol::GetLeftJoyStickCalibration(JoyStickCalibration& calibration) {
+Common::Input::DriverResult CalibrationProtocol::GetLeftJoyStickCalibration(
+    JoyStickCalibration& calibration) {
     ScopedSetBlocking sb(this);
-    DriverResult result{DriverResult::Success};
+    Common::Input::DriverResult result{Common::Input::DriverResult::Success};
     JoystickLeftSpiCalibration spi_calibration{};
     bool has_user_calibration = false;
     calibration = {};
 
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         result = HasUserCalibration(SpiAddress::USER_LEFT_MAGIC, has_user_calibration);
     }
 
     // Read User defined calibration
-    if (result == DriverResult::Success && has_user_calibration) {
+    if (result == Common::Input::DriverResult::Success && has_user_calibration) {
         result = ReadSPI(SpiAddress::USER_LEFT_DATA, spi_calibration);
     }
 
     // Read Factory calibration
-    if (result == DriverResult::Success && !has_user_calibration) {
+    if (result == Common::Input::DriverResult::Success && !has_user_calibration) {
         result = ReadSPI(SpiAddress::FACT_LEFT_DATA, spi_calibration);
     }
 
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         calibration.x.center = GetXAxisCalibrationValue(spi_calibration.center);
         calibration.y.center = GetYAxisCalibrationValue(spi_calibration.center);
         calibration.x.min = GetXAxisCalibrationValue(spi_calibration.min);
@@ -47,28 +49,29 @@ DriverResult CalibrationProtocol::GetLeftJoyStickCalibration(JoyStickCalibration
     return result;
 }
 
-DriverResult CalibrationProtocol::GetRightJoyStickCalibration(JoyStickCalibration& calibration) {
+Common::Input::DriverResult CalibrationProtocol::GetRightJoyStickCalibration(
+    JoyStickCalibration& calibration) {
     ScopedSetBlocking sb(this);
-    DriverResult result{DriverResult::Success};
+    Common::Input::DriverResult result{Common::Input::DriverResult::Success};
     JoystickRightSpiCalibration spi_calibration{};
     bool has_user_calibration = false;
     calibration = {};
 
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         result = HasUserCalibration(SpiAddress::USER_RIGHT_MAGIC, has_user_calibration);
     }
 
     // Read User defined calibration
-    if (result == DriverResult::Success && has_user_calibration) {
+    if (result == Common::Input::DriverResult::Success && has_user_calibration) {
         result = ReadSPI(SpiAddress::USER_RIGHT_DATA, spi_calibration);
     }
 
     // Read Factory calibration
-    if (result == DriverResult::Success && !has_user_calibration) {
+    if (result == Common::Input::DriverResult::Success && !has_user_calibration) {
         result = ReadSPI(SpiAddress::FACT_RIGHT_DATA, spi_calibration);
     }
 
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         calibration.x.center = GetXAxisCalibrationValue(spi_calibration.center);
         calibration.y.center = GetYAxisCalibrationValue(spi_calibration.center);
         calibration.x.min = GetXAxisCalibrationValue(spi_calibration.min);
@@ -83,28 +86,28 @@ DriverResult CalibrationProtocol::GetRightJoyStickCalibration(JoyStickCalibratio
     return result;
 }
 
-DriverResult CalibrationProtocol::GetImuCalibration(MotionCalibration& calibration) {
+Common::Input::DriverResult CalibrationProtocol::GetImuCalibration(MotionCalibration& calibration) {
     ScopedSetBlocking sb(this);
-    DriverResult result{DriverResult::Success};
+    Common::Input::DriverResult result{Common::Input::DriverResult::Success};
     ImuSpiCalibration spi_calibration{};
     bool has_user_calibration = false;
     calibration = {};
 
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         result = HasUserCalibration(SpiAddress::USER_IMU_MAGIC, has_user_calibration);
     }
 
     // Read User defined calibration
-    if (result == DriverResult::Success && has_user_calibration) {
+    if (result == Common::Input::DriverResult::Success && has_user_calibration) {
         result = ReadSPI(SpiAddress::USER_IMU_DATA, spi_calibration);
     }
 
     // Read Factory calibration
-    if (result == DriverResult::Success && !has_user_calibration) {
+    if (result == Common::Input::DriverResult::Success && !has_user_calibration) {
         result = ReadSPI(SpiAddress::FACT_IMU_DATA, spi_calibration);
     }
 
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         calibration.accelerometer[0].offset = spi_calibration.accelerometer_offset[0];
         calibration.accelerometer[1].offset = spi_calibration.accelerometer_offset[1];
         calibration.accelerometer[2].offset = spi_calibration.accelerometer_offset[2];
@@ -127,8 +130,8 @@ DriverResult CalibrationProtocol::GetImuCalibration(MotionCalibration& calibrati
     return result;
 }
 
-DriverResult CalibrationProtocol::GetRingCalibration(RingCalibration& calibration,
-                                                     s16 current_value) {
+Common::Input::DriverResult CalibrationProtocol::GetRingCalibration(RingCalibration& calibration,
+                                                                    s16 current_value) {
     constexpr s16 DefaultRingRange{800};
 
     // TODO: Get default calibration form ring itself
@@ -144,15 +147,15 @@ DriverResult CalibrationProtocol::GetRingCalibration(RingCalibration& calibratio
         .max_value = ring_data_max,
         .min_value = ring_data_min,
     };
-    return DriverResult::Success;
+    return Common::Input::DriverResult::Success;
 }
 
-DriverResult CalibrationProtocol::HasUserCalibration(SpiAddress address,
-                                                     bool& has_user_calibration) {
+Common::Input::DriverResult CalibrationProtocol::HasUserCalibration(SpiAddress address,
+                                                                    bool& has_user_calibration) {
     MagicSpiCalibration spi_magic{};
-    const DriverResult result{ReadSPI(address, spi_magic)};
+    const Common::Input::DriverResult result{ReadSPI(address, spi_magic)};
     has_user_calibration = false;
-    if (result == DriverResult::Success) {
+    if (result == Common::Input::DriverResult::Success) {
         has_user_calibration = spi_magic.first == CalibrationMagic::USR_MAGIC_0 &&
                                spi_magic.second == CalibrationMagic::USR_MAGIC_1;
     }

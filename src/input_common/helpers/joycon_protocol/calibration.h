@@ -12,8 +12,11 @@
 
 #include "input_common/helpers/joycon_protocol/common_protocol.h"
 
-namespace InputCommon::Joycon {
+namespace Common::Input {
 enum class DriverResult;
+}
+
+namespace InputCommon::Joycon {
 struct JoyStickCalibration;
 struct IMUCalibration;
 struct JoyconHandle;
@@ -31,30 +34,30 @@ public:
      * @param is_factory_calibration if true factory values will be returned
      * @returns JoyStickCalibration of the left joystick
      */
-    DriverResult GetLeftJoyStickCalibration(JoyStickCalibration& calibration);
+    Common::Input::DriverResult GetLeftJoyStickCalibration(JoyStickCalibration& calibration);
 
     /**
      * Sends a request to obtain the right stick calibration from memory
      * @param is_factory_calibration if true factory values will be returned
      * @returns JoyStickCalibration of the right joystick
      */
-    DriverResult GetRightJoyStickCalibration(JoyStickCalibration& calibration);
+    Common::Input::DriverResult GetRightJoyStickCalibration(JoyStickCalibration& calibration);
 
     /**
      * Sends a request to obtain the motion calibration from memory
      * @returns ImuCalibration of the motion sensor
      */
-    DriverResult GetImuCalibration(MotionCalibration& calibration);
+    Common::Input::DriverResult GetImuCalibration(MotionCalibration& calibration);
 
     /**
      * Calculates on run time the proper calibration of the ring controller
      * @returns RingCalibration of the ring sensor
      */
-    DriverResult GetRingCalibration(RingCalibration& calibration, s16 current_value);
+    Common::Input::DriverResult GetRingCalibration(RingCalibration& calibration, s16 current_value);
 
 private:
     /// Returns true if the specified address corresponds to the magic value of user calibration
-    DriverResult HasUserCalibration(SpiAddress address, bool& has_user_calibration);
+    Common::Input::DriverResult HasUserCalibration(SpiAddress address, bool& has_user_calibration);
 
     /// Converts a raw calibration block to an u16 value containing the x axis value
     u16 GetXAxisCalibrationValue(std::span<u8> block) const;
