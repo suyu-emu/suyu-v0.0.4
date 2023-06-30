@@ -110,6 +110,8 @@ class Settings {
         const val SECTION_THEME = "Theme"
         const val SECTION_DEBUG = "Debug"
 
+        const val PREF_MEMORY_WARNING_SHOWN = "MemoryWarningShown"
+
         const val PREF_OVERLAY_INIT = "OverlayInit"
         const val PREF_CONTROL_SCALE = "controlScale"
         const val PREF_CONTROL_OPACITY = "controlOpacity"
