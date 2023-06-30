@@ -485,7 +485,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
-    if (extensions.extended_dynamic_state2 && (is_radv || is_qualcomm)) {
+    if (extensions.extended_dynamic_state2 && is_radv) {
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version < VK_MAKE_API_VERSION(0, 22, 3, 1)) {
             LOG_WARNING(
@@ -497,6 +497,15 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             extensions.extended_dynamic_state2 = false;
             loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         }
+    }
+    if (extensions.extended_dynamic_state2 && is_s8gen2) {
+        // Qualcomm S8gen2 drivers do not properly support extended_dynamic_state2.
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken VK_EXT_extended_dynamic_state2");
+        features.extended_dynamic_state2.extendedDynamicState2 = false;
+        features.extended_dynamic_state2.extendedDynamicState2LogicOp = false;
+        features.extended_dynamic_state2.extendedDynamicState2PatchControlPoints = false;
+        extensions.extended_dynamic_state2 = false;
+        loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
     }
     if (extensions.extended_dynamic_state3 && is_radv) {
         LOG_WARNING(Render_Vulkan, "RADV has broken extendedDynamicState3ColorBlendEquation");
@@ -512,8 +521,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             dynamic_state3_enables = false;
         }
     }
-    if (extensions.vertex_input_dynamic_state && (is_radv || is_qualcomm)) {
-        // Qualcomm S8gen2 drivers do not properly support vertex_input_dynamic_state.
+    if (extensions.vertex_input_dynamic_state && is_radv) {
         // TODO(ameerj): Blacklist only offending driver versions
         // TODO(ameerj): Confirm if RDNA1 is affected
         const bool is_rdna2 =
@@ -525,6 +533,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             extensions.vertex_input_dynamic_state = false;
             loaded_extensions.erase(VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
         }
+    }
+    if (extensions.vertex_input_dynamic_state && is_s8gen2) {
+        // Qualcomm S8gen2 drivers do not properly support vertex_input_dynamic_state.
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm drivers have broken VK_EXT_vertex_input_dynamic_state");
+        features.vertex_input_dynamic_state.vertexInputDynamicState = false;
+        extensions.vertex_input_dynamic_state = false;
+        loaded_extensions.erase(VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
     sets_per_pool = 64;
