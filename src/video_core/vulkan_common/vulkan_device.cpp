@@ -498,7 +498,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         }
     }
-    if (extensions.extended_dynamic_state2 && is_s8gen2) {
+    if (extensions.extended_dynamic_state2 && is_qualcomm && is_s8gen2) {
         // Qualcomm S8gen2 drivers do not properly support extended_dynamic_state2.
         LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken VK_EXT_extended_dynamic_state2");
         features.extended_dynamic_state2.extendedDynamicState2 = false;
@@ -534,7 +534,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             loaded_extensions.erase(VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
-    if (extensions.vertex_input_dynamic_state && is_s8gen2) {
+    if (extensions.vertex_input_dynamic_state && is_qualcomm && is_s8gen2) {
         // Qualcomm S8gen2 drivers do not properly support vertex_input_dynamic_state.
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers have broken VK_EXT_vertex_input_dynamic_state");
