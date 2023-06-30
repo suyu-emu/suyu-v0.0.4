@@ -879,6 +879,10 @@ ImageId TextureCache<P>::DmaImageId(const Tegra::DMA::ImageOperand& operand, boo
         return NULL_IMAGE_ID;
     }
     auto& image = slot_images[image_id];
+    if (image.info.type == ImageType::e3D) {
+        // Don't accelerate 3D images.
+        return NULL_IMAGE_ID;
+    }
     if (!is_upload && !image.info.dma_downloaded) {
         // Force a full sync.
         image.info.dma_downloaded = true;
