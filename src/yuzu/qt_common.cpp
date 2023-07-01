@@ -10,6 +10,8 @@
 
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <qpa/qplatformnativeinterface.h>
+#elif defined(__APPLE__)
+#include <objc/message.h>
 #endif
 
 namespace QtCommon {
@@ -37,9 +39,12 @@ Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window)
     Core::Frontend::EmuWindow::WindowSystemInfo wsi;
     wsi.type = GetWindowSystemType();
 
+#if defined(WIN32)
     // Our Win32 Qt external doesn't have the private API.
-#if defined(WIN32) || defined(__APPLE__)
-    wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
+    wsi.render_surface = reinterpret_cast<void*>(window->winId());
+#elif defined(__APPLE__)
+    wsi.render_surface = reinterpret_cast<void* (*)(id, SEL)>(objc_msgSend)(
+        reinterpret_cast<id>(window->winId()), sel_registerName("layer"));
 #else
     QPlatformNativeInterface* pni = QGuiApplication::platformNativeInterface();
     wsi.display_connection = pni->nativeResourceForWindow("display", window);

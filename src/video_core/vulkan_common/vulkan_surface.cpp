@@ -11,11 +11,9 @@
 #include <windows.h>
 // ensure include order
 #include <vulkan/vulkan_win32.h>
-#elif defined(__APPLE__)
-#include <vulkan/vulkan_macos.h>
 #elif defined(__ANDROID__)
 #include <vulkan/vulkan_android.h>
-#else
+#elif !defined(__APPLE__)
 #include <X11/Xlib.h>
 #include <vulkan/vulkan_wayland.h>
 #include <vulkan/vulkan_xlib.h>
@@ -44,12 +42,13 @@ vk::SurfaceKHR CreateSurface(
     }
 #elif defined(__APPLE__)
     if (window_info.type == Core::Frontend::WindowSystemType::Cocoa) {
-        const VkMacOSSurfaceCreateInfoMVK mvk_ci{VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK,
-                                                 nullptr, 0, window_info.render_surface};
-        const auto vkCreateMacOSSurfaceMVK = reinterpret_cast<PFN_vkCreateMacOSSurfaceMVK>(
-            dld.vkGetInstanceProcAddr(*instance, "vkCreateMacOSSurfaceMVK"));
-        if (!vkCreateMacOSSurfaceMVK ||
-            vkCreateMacOSSurfaceMVK(*instance, &mvk_ci, nullptr, &unsafe_surface) != VK_SUCCESS) {
+        const VkMetalSurfaceCreateInfoEXT macos_ci = {
+            .pLayer = static_cast<const CAMetalLayer*>(window_info.render_surface),
+        };
+        const auto vkCreateMetalSurfaceEXT = reinterpret_cast<PFN_vkCreateMetalSurfaceEXT>(
+            dld.vkGetInstanceProcAddr(*instance, "vkCreateMetalSurfaceEXT"));
+        if (!vkCreateMetalSurfaceEXT ||
+            vkCreateMetalSurfaceEXT(*instance, &macos_ci, nullptr, &unsafe_surface) != VK_SUCCESS) {
             LOG_ERROR(Render_Vulkan, "Failed to initialize Metal surface");
             throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
         }
