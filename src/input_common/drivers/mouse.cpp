@@ -85,7 +85,7 @@ void Mouse::UpdateThread(std::stop_token stop_token) {
 }
 
 void Mouse::UpdateStickInput() {
-    if (!Settings::values.mouse_panning) {
+    if (!IsMousePanningEnabled()) {
         return;
     }
 
@@ -111,8 +111,8 @@ void Mouse::UpdateStickInput() {
 }
 
 void Mouse::UpdateMotionInput() {
-    const float sensitivity = Settings::values.mouse_panning ? default_motion_panning_sensitivity
-                                                             : default_motion_sensitivity;
+    const float sensitivity =
+        IsMousePanningEnabled() ? default_motion_panning_sensitivity : default_motion_sensitivity;
 
     const float rotation_velocity = std::sqrt(last_motion_change.x * last_motion_change.x +
                                               last_motion_change.y * last_motion_change.y);
@@ -134,7 +134,7 @@ void Mouse::UpdateMotionInput() {
         .delta_timestamp = update_time * 1000,
     };
 
-    if (Settings::values.mouse_panning) {
+    if (IsMousePanningEnabled()) {
         last_motion_change.x = 0;
         last_motion_change.y = 0;
     }
@@ -144,7 +144,7 @@ void Mouse::UpdateMotionInput() {
 }
 
 void Mouse::Move(int x, int y, int center_x, int center_y) {
-    if (Settings::values.mouse_panning) {
+    if (IsMousePanningEnabled()) {
         const auto mouse_change =
             (Common::MakeVec(x, y) - Common::MakeVec(center_x, center_y)).Cast<float>();
         const float x_sensitivity =
@@ -219,7 +219,7 @@ void Mouse::ReleaseButton(MouseButton button) {
     SetButton(real_mouse_identifier, static_cast<int>(button), false);
     SetButton(touch_identifier, static_cast<int>(button), false);
 
-    if (!Settings::values.mouse_panning) {
+    if (!IsMousePanningEnabled()) {
         SetAxis(identifier, mouse_axis_x, 0);
         SetAxis(identifier, mouse_axis_y, 0);
     }
@@ -241,6 +241,11 @@ void Mouse::MouseWheelChange(int x, int y) {
 void Mouse::ReleaseAllButtons() {
     ResetButtonState();
     button_pressed = false;
+}
+
+bool Mouse::IsMousePanningEnabled() {
+    // Disable mouse panning when a real mouse is connected
+    return Settings::values.mouse_panning && !Settings::values.mouse_enabled;
 }
 
 std::vector<Common::ParamPackage> Mouse::GetInputDevices() const {

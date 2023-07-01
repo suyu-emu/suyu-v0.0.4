@@ -9,10 +9,10 @@
    <item>
     <widget class="QCheckBox" name="enable">
      <property name="text">
-      <string>Enable</string>
+      <string>Enable mouse panning</string>
      </property>
      <property name="toolTip">
-      <string>Can be toggled via a hotkey</string>
+      <string>Can be toggled via a hotkey. Default hotkey is Ctrl + F9</string>
      </property>
     </widget>
    </item>
