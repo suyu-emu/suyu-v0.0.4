@@ -826,9 +826,8 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
     }
     for (size_t index_a = 0; index_a < VideoCore::Surface::MaxPixelFormat; index_a++) {
         const auto image_format = static_cast<PixelFormat>(index_a);
-        const auto type_a = VideoCore::Surface::GetFormatType(image_format);
-        if (type_a != SurfaceType::ColorTexture) {
-            continue;
+        if (IsPixelFormatASTC(image_format) && !device.IsOptimalAstcSupported()) {
+            view_formats[index_a].push_back(VK_FORMAT_A8B8G8R8_UNORM_PACK32);
         }
         for (size_t index_b = 0; index_b < VideoCore::Surface::MaxPixelFormat; index_b++) {
             const auto view_format = static_cast<PixelFormat>(index_b);
