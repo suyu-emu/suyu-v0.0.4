@@ -29,6 +29,9 @@ DeviceManager::DeviceManager(Core::System& system_, KernelHelpers::ServiceContex
 }
 
 DeviceManager ::~DeviceManager() {
+    if (is_initialized) {
+        Finalize();
+    }
     service_context.CloseEvent(availability_change_event);
 }
 
@@ -125,14 +128,14 @@ Result DeviceManager::StopDetection(u64 device_handle) {
     return result;
 }
 
-Result DeviceManager::GetTagInfo(u64 device_handle, TagInfo& tag_info, bool is_mifare) const {
+Result DeviceManager::GetTagInfo(u64 device_handle, TagInfo& tag_info) const {
     std::scoped_lock lock{mutex};
 
     std::shared_ptr<NfcDevice> device = nullptr;
     auto result = GetDeviceHandle(device_handle, device);
 
     if (result.IsSuccess()) {
-        result = device->GetTagInfo(tag_info, is_mifare);
+        result = device->GetTagInfo(tag_info);
         result = VerifyDeviceResult(device, result);
     }
 
@@ -546,7 +549,7 @@ Result DeviceManager::ReadBackupData(u64 device_handle, std::span<u8> data) cons
     NFC::TagInfo tag_info{};
 
     if (result.IsSuccess()) {
-        result = device->GetTagInfo(tag_info, false);
+        result = device->GetTagInfo(tag_info);
     }
 
     if (result.IsSuccess()) {
@@ -565,7 +568,7 @@ Result DeviceManager::WriteBackupData(u64 device_handle, std::span<const u8> dat
     NFC::TagInfo tag_info{};
 
     if (result.IsSuccess()) {
-        result = device->GetTagInfo(tag_info, false);
+        result = device->GetTagInfo(tag_info);
     }
 
     if (result.IsSuccess()) {

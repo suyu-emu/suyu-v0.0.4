@@ -35,7 +35,7 @@ nvhost_ctrl::~nvhost_ctrl() {
 }
 
 NvResult nvhost_ctrl::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                             std::vector<u8>& output) {
+                             std::span<u8> output) {
     switch (command.group) {
     case 0x0:
         switch (command.cmd) {
@@ -64,13 +64,13 @@ NvResult nvhost_ctrl::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inp
 }
 
 NvResult nvhost_ctrl::Ioctl2(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                             std::span<const u8> inline_input, std::vector<u8>& output) {
+                             std::span<const u8> inline_input, std::span<u8> output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
 
 NvResult nvhost_ctrl::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                             std::vector<u8>& output, std::vector<u8>& inline_outpu) {
+                             std::span<u8> output, std::span<u8> inline_outpu) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
@@ -79,7 +79,7 @@ void nvhost_ctrl::OnOpen(DeviceFD fd) {}
 
 void nvhost_ctrl::OnClose(DeviceFD fd) {}
 
-NvResult nvhost_ctrl::NvOsGetConfigU32(std::span<const u8> input, std::vector<u8>& output) {
+NvResult nvhost_ctrl::NvOsGetConfigU32(std::span<const u8> input, std::span<u8> output) {
     IocGetConfigParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
     LOG_TRACE(Service_NVDRV, "called, setting={}!{}", params.domain_str.data(),
@@ -87,7 +87,7 @@ NvResult nvhost_ctrl::NvOsGetConfigU32(std::span<const u8> input, std::vector<u8
     return NvResult::ConfigVarNotFound; // Returns error on production mode
 }
 
-NvResult nvhost_ctrl::IocCtrlEventWait(std::span<const u8> input, std::vector<u8>& output,
+NvResult nvhost_ctrl::IocCtrlEventWait(std::span<const u8> input, std::span<u8> output,
                                        bool is_allocation) {
     IocCtrlEventWaitParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
@@ -231,7 +231,7 @@ NvResult nvhost_ctrl::FreeEvent(u32 slot) {
     return NvResult::Success;
 }
 
-NvResult nvhost_ctrl::IocCtrlEventRegister(std::span<const u8> input, std::vector<u8>& output) {
+NvResult nvhost_ctrl::IocCtrlEventRegister(std::span<const u8> input, std::span<u8> output) {
     IocCtrlEventRegisterParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
     const u32 event_id = params.user_event_id;
@@ -252,7 +252,7 @@ NvResult nvhost_ctrl::IocCtrlEventRegister(std::span<const u8> input, std::vecto
     return NvResult::Success;
 }
 
-NvResult nvhost_ctrl::IocCtrlEventUnregister(std::span<const u8> input, std::vector<u8>& output) {
+NvResult nvhost_ctrl::IocCtrlEventUnregister(std::span<const u8> input, std::span<u8> output) {
     IocCtrlEventUnregisterParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
     const u32 event_id = params.user_event_id & 0x00FF;
@@ -262,8 +262,7 @@ NvResult nvhost_ctrl::IocCtrlEventUnregister(std::span<const u8> input, std::vec
     return FreeEvent(event_id);
 }
 
-NvResult nvhost_ctrl::IocCtrlEventUnregisterBatch(std::span<const u8> input,
-                                                  std::vector<u8>& output) {
+NvResult nvhost_ctrl::IocCtrlEventUnregisterBatch(std::span<const u8> input, std::span<u8> output) {
     IocCtrlEventUnregisterBatchParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
     u64 event_mask = params.user_events;
@@ -281,7 +280,7 @@ NvResult nvhost_ctrl::IocCtrlEventUnregisterBatch(std::span<const u8> input,
     return NvResult::Success;
 }
 
-NvResult nvhost_ctrl::IocCtrlClearEventWait(std::span<const u8> input, std::vector<u8>& output) {
+NvResult nvhost_ctrl::IocCtrlClearEventWait(std::span<const u8> input, std::span<u8> output) {
     IocCtrlEventClearParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
 

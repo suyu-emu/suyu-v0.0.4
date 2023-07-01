@@ -76,9 +76,6 @@ void Mouse::UpdateThread(std::stop_token stop_token) {
         UpdateStickInput();
         UpdateMotionInput();
 
-        if (mouse_panning_timeout++ > 20) {
-            StopPanning();
-        }
         std::this_thread::sleep_for(std::chrono::milliseconds(update_time));
     }
 }
@@ -88,18 +85,45 @@ void Mouse::UpdateStickInput() {
         return;
     }
 
-    const float sensitivity =
-        Settings::values.mouse_panning_sensitivity.GetValue() * default_stick_sensitivity;
+    const float length = last_mouse_change.Length();
 
-    // Slow movement by 4%
-    last_mouse_change *= 0.96f;
-    SetAxis(identifier, mouse_axis_x, last_mouse_change.x * sensitivity);
-    SetAxis(identifier, mouse_axis_y, -last_mouse_change.y * sensitivity);
+    // Prevent input from exceeding the max range (1.0f) too much,
+    // but allow some room to make it easier to sustain
+    if (length > 1.2f) {
+        last_mouse_change /= length;
+        last_mouse_change *= 1.2f;
+    }
+
+    auto mouse_change = last_mouse_change;
+
+    // Bind the mouse change to [0 <= deadzone_counterweight <= 1,1]
+    if (length < 1.0f) {
+        const float deadzone_h_counterweight =
+            Settings::values.mouse_panning_deadzone_x_counterweight.GetValue();
+        const float deadzone_v_counterweight =
+            Settings::values.mouse_panning_deadzone_y_counterweight.GetValue();
+        mouse_change /= length;
+        mouse_change.x *= length + (1 - length) * deadzone_h_counterweight * 0.01f;
+        mouse_change.y *= length + (1 - length) * deadzone_v_counterweight * 0.01f;
+    }
+
+    SetAxis(identifier, mouse_axis_x, mouse_change.x);
+    SetAxis(identifier, mouse_axis_y, -mouse_change.y);
+
+    // Decay input over time
+    const float clamped_length = std::min(1.0f, length);
+    const float decay_strength = Settings::values.mouse_panning_decay_strength.GetValue();
+    const float decay = 1 - clamped_length * clamped_length * decay_strength * 0.01f;
+    const float min_decay = Settings::values.mouse_panning_min_decay.GetValue();
+    const float clamped_decay = std::min(1 - min_decay / 100.0f, decay);
+    last_mouse_change *= clamped_decay;
 }
 
 void Mouse::UpdateMotionInput() {
-    const float sensitivity =
-        Settings::values.mouse_panning_sensitivity.GetValue() * default_motion_sensitivity;
+    // This may need its own sensitivity instead of using the average
+    const float sensitivity = (Settings::values.mouse_panning_x_sensitivity.GetValue() +
+                               Settings::values.mouse_panning_y_sensitivity.GetValue()) /
+                              2.0f * default_motion_sensitivity;
 
     const float rotation_velocity = std::sqrt(last_motion_change.x * last_motion_change.x +
                                               last_motion_change.y * last_motion_change.y);
@@ -131,49 +155,28 @@ void Mouse::UpdateMotionInput() {
 
 void Mouse::Move(int x, int y, int center_x, int center_y) {
     if (Settings::values.mouse_panning) {
-        mouse_panning_timeout = 0;
-
-        auto mouse_change =
+        const auto mouse_change =
             (Common::MakeVec(x, y) - Common::MakeVec(center_x, center_y)).Cast<float>();
+        const float x_sensitivity =
+            Settings::values.mouse_panning_x_sensitivity.GetValue() * default_stick_sensitivity;
+        const float y_sensitivity =
+            Settings::values.mouse_panning_y_sensitivity.GetValue() * default_stick_sensitivity;
+
         last_motion_change += {-mouse_change.y, -mouse_change.x, 0};
-
-        const auto move_distance = mouse_change.Length();
-        if (move_distance == 0) {
-            return;
-        }
-
-        // Make slow movements at least 3 units on length
-        if (move_distance < 3.0f) {
-            // Normalize value
-            mouse_change /= move_distance;
-            mouse_change *= 3.0f;
-        }
-
-        // Average mouse movements
-        last_mouse_change = (last_mouse_change * 0.91f) + (mouse_change * 0.09f);
-
-        const auto last_move_distance = last_mouse_change.Length();
-
-        // Make fast movements clamp to 8 units on length
-        if (last_move_distance > 8.0f) {
-            // Normalize value
-            last_mouse_change /= last_move_distance;
-            last_mouse_change *= 8.0f;
-        }
-
-        // Ignore average if it's less than 1 unit and use current movement value
-        if (last_move_distance < 1.0f) {
-            last_mouse_change = mouse_change / mouse_change.Length();
-        }
+        last_mouse_change.x += mouse_change.x * x_sensitivity * 0.09f;
+        last_mouse_change.y += mouse_change.y * y_sensitivity * 0.09f;
 
         return;
     }
 
     if (button_pressed) {
         const auto mouse_move = Common::MakeVec<int>(x, y) - mouse_origin;
-        const float sensitivity = Settings::values.mouse_panning_sensitivity.GetValue() * 0.0012f;
-        SetAxis(identifier, mouse_axis_x, static_cast<float>(mouse_move.x) * sensitivity);
-        SetAxis(identifier, mouse_axis_y, static_cast<float>(-mouse_move.y) * sensitivity);
+        const float x_sensitivity = Settings::values.mouse_panning_x_sensitivity.GetValue();
+        const float y_sensitivity = Settings::values.mouse_panning_y_sensitivity.GetValue();
+        SetAxis(identifier, mouse_axis_x,
+                static_cast<float>(mouse_move.x) * x_sensitivity * 0.0012f);
+        SetAxis(identifier, mouse_axis_y,
+                static_cast<float>(-mouse_move.y) * y_sensitivity * 0.0012f);
 
         last_motion_change = {
             static_cast<float>(-mouse_move.y) / 50.0f,
@@ -239,10 +242,6 @@ void Mouse::MouseWheelChange(int x, int y) {
 void Mouse::ReleaseAllButtons() {
     ResetButtonState();
     button_pressed = false;
-}
-
-void Mouse::StopPanning() {
-    last_mouse_change = {};
 }
 
 std::vector<Common::ParamPackage> Mouse::GetInputDevices() const {

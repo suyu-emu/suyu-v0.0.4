@@ -175,7 +175,7 @@ public:
      *
      * @return Vector of nodes in reverse order.
      */
-    std::vector<s32> GetSortedResuls() const;
+    std::pair<std::span<u32>::reverse_iterator, size_t> GetSortedResuls() const;
 
 private:
     /// Number of nodes in the graph

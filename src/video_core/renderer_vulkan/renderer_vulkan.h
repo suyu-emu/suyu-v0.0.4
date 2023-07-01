@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <string>
+#include <variant>
 
 #include "common/dynamic_library.h"
 #include "video_core/renderer_base.h"
@@ -32,6 +33,8 @@ class GPU;
 }
 
 namespace Vulkan {
+
+using DebugCallback = std::variant<vk::DebugUtilsMessenger, vk::DebugReportCallback>;
 
 Device CreateDevice(const vk::Instance& instance, const vk::InstanceDispatch& dld,
                     VkSurfaceKHR surface);
@@ -71,7 +74,7 @@ private:
     vk::InstanceDispatch dld;
 
     vk::Instance instance;
-    vk::DebugUtilsMessenger debug_callback;
+    DebugCallback debug_callback;
     vk::SurfaceKHR surface;
 
     ScreenInfo screen_info;

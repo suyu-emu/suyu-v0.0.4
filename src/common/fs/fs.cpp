@@ -436,7 +436,7 @@ void IterateDirEntries(const std::filesystem::path& path, const DirEntryCallable
 
         if (True(filter & DirEntryFilter::File) &&
             entry.status().type() == fs::file_type::regular) {
-            if (!callback(entry.path())) {
+            if (!callback(entry)) {
                 callback_error = true;
                 break;
             }
@@ -444,7 +444,7 @@ void IterateDirEntries(const std::filesystem::path& path, const DirEntryCallable
 
         if (True(filter & DirEntryFilter::Directory) &&
             entry.status().type() == fs::file_type::directory) {
-            if (!callback(entry.path())) {
+            if (!callback(entry)) {
                 callback_error = true;
                 break;
             }
@@ -493,7 +493,7 @@ void IterateDirEntriesRecursively(const std::filesystem::path& path,
 
         if (True(filter & DirEntryFilter::File) &&
             entry.status().type() == fs::file_type::regular) {
-            if (!callback(entry.path())) {
+            if (!callback(entry)) {
                 callback_error = true;
                 break;
             }
@@ -501,7 +501,7 @@ void IterateDirEntriesRecursively(const std::filesystem::path& path,
 
         if (True(filter & DirEntryFilter::Directory) &&
             entry.status().type() == fs::file_type::directory) {
-            if (!callback(entry.path())) {
+            if (!callback(entry)) {
                 callback_error = true;
                 break;
             }
@@ -605,6 +605,12 @@ fs::file_type GetEntryType(const fs::path& path) {
 }
 
 u64 GetSize(const fs::path& path) {
+#ifdef ANDROID
+    if (Android::IsContentUri(path)) {
+        return Android::GetSize(path);
+    }
+#endif
+
     std::error_code ec;
 
     const auto file_size = fs::file_size(path, ec);

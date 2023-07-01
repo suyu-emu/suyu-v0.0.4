@@ -15,7 +15,6 @@
 #include "video_core/renderer_vulkan/blit_image.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
-#include "video_core/renderer_vulkan/vk_rasterizer.h"
 #include "video_core/renderer_vulkan/vk_render_pass_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
@@ -163,11 +162,12 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     };
 }
 
-[[nodiscard]] vk::Image MakeImage(const Device& device, const ImageInfo& info) {
+[[nodiscard]] vk::Image MakeImage(const Device& device, const MemoryAllocator& allocator,
+                                  const ImageInfo& info) {
     if (info.type == ImageType::Buffer) {
         return vk::Image{};
     }
-    return device.GetLogical().CreateImage(MakeImageCreateInfo(device, info));
+    return allocator.CreateImage(MakeImageCreateInfo(device, info));
 }
 
 [[nodiscard]] VkImageAspectFlags ImageAspectMask(PixelFormat format) {
@@ -330,9 +330,9 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     };
 }
 
-[[maybe_unused]] [[nodiscard]] std::vector<VkBufferCopy> TransformBufferCopies(
-    std::span<const VideoCommon::BufferCopy> copies, size_t buffer_offset) {
-    std::vector<VkBufferCopy> result(copies.size());
+[[maybe_unused]] [[nodiscard]] boost::container::small_vector<VkBufferCopy, 16>
+TransformBufferCopies(std::span<const VideoCommon::BufferCopy> copies, size_t buffer_offset) {
+    boost::container::small_vector<VkBufferCopy, 16> result(copies.size());
     std::ranges::transform(
         copies, result.begin(), [buffer_offset](const VideoCommon::BufferCopy& copy) {
             return VkBufferCopy{
@@ -344,7 +344,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return result;
 }
 
-[[nodiscard]] std::vector<VkBufferImageCopy> TransformBufferImageCopies(
+[[nodiscard]] boost::container::small_vector<VkBufferImageCopy, 16> TransformBufferImageCopies(
     std::span<const BufferImageCopy> copies, size_t buffer_offset, VkImageAspectFlags aspect_mask) {
     struct Maker {
         VkBufferImageCopy operator()(const BufferImageCopy& copy) const {
@@ -377,14 +377,14 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         VkImageAspectFlags aspect_mask;
     };
     if (aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
-        std::vector<VkBufferImageCopy> result(copies.size() * 2);
+        boost::container::small_vector<VkBufferImageCopy, 16> result(copies.size() * 2);
         std::ranges::transform(copies, result.begin(),
                                Maker{buffer_offset, VK_IMAGE_ASPECT_DEPTH_BIT});
         std::ranges::transform(copies, result.begin() + copies.size(),
                                Maker{buffer_offset, VK_IMAGE_ASPECT_STENCIL_BIT});
         return result;
     } else {
-        std::vector<VkBufferImageCopy> result(copies.size());
+        boost::container::small_vector<VkBufferImageCopy, 16> result(copies.size());
         std::ranges::transform(copies, result.begin(), Maker{buffer_offset, aspect_mask});
         return result;
     }
@@ -839,14 +839,14 @@ bool TextureCacheRuntime::ShouldReinterpret(Image& dst, Image& src) {
 
 VkBuffer TextureCacheRuntime::GetTemporaryBuffer(size_t needed_size) {
     const auto level = (8 * sizeof(size_t)) - std::countl_zero(needed_size - 1ULL);
-    if (buffer_commits[level]) {
+    if (buffers[level]) {
         return *buffers[level];
     }
     const auto new_size = Common::NextPow2(needed_size);
     static constexpr VkBufferUsageFlags flags =
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
         VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
-    buffers[level] = device.GetLogical().CreateBuffer({
+    const VkBufferCreateInfo temp_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -855,9 +855,8 @@ VkBuffer TextureCacheRuntime::GetTemporaryBuffer(size_t needed_size) {
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
-    });
-    buffer_commits[level] = std::make_unique<MemoryCommit>(
-        memory_allocator.Commit(buffers[level], MemoryUsage::DeviceLocal));
+    };
+    buffers[level] = memory_allocator.CreateBuffer(temp_ci, MemoryUsage::DeviceLocal);
     return *buffers[level];
 }
 
@@ -867,8 +866,8 @@ void TextureCacheRuntime::BarrierFeedbackLoop() {
 
 void TextureCacheRuntime::ReinterpretImage(Image& dst, Image& src,
                                            std::span<const VideoCommon::ImageCopy> copies) {
-    std::vector<VkBufferImageCopy> vk_in_copies(copies.size());
-    std::vector<VkBufferImageCopy> vk_out_copies(copies.size());
+    boost::container::small_vector<VkBufferImageCopy, 16> vk_in_copies(copies.size());
+    boost::container::small_vector<VkBufferImageCopy, 16> vk_out_copies(copies.size());
     const VkImageAspectFlags src_aspect_mask = src.AspectMask();
     const VkImageAspectFlags dst_aspect_mask = dst.AspectMask();
 
@@ -1157,7 +1156,7 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
 
 void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
                                     std::span<const VideoCommon::ImageCopy> copies) {
-    std::vector<VkImageCopy> vk_copies(copies.size());
+    boost::container::small_vector<VkImageCopy, 16> vk_copies(copies.size());
     const VkImageAspectFlags aspect_mask = dst.AspectMask();
     ASSERT(aspect_mask == src.AspectMask());
 
@@ -1266,8 +1265,8 @@ void TextureCacheRuntime::TickFrame() {}
 Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu_addr_,
              VAddr cpu_addr_)
     : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), scheduler{&runtime_.scheduler},
-      runtime{&runtime_}, original_image(MakeImage(runtime_.device, info)),
-      commit(runtime_.memory_allocator.Commit(original_image, MemoryUsage::DeviceLocal)),
+      runtime{&runtime_},
+      original_image(MakeImage(runtime_.device, runtime_.memory_allocator, info)),
       aspect_mask(ImageAspectMask(info.format)) {
     if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported()) {
         if (Settings::values.async_astc.GetValue()) {
@@ -1277,6 +1276,10 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
                    Settings::values.accelerate_astc.GetValue() && info.size.depth == 1) {
             flags |= VideoCommon::ImageFlagBits::AcceleratedUpload;
         }
+        flags |= VideoCommon::ImageFlagBits::Converted;
+        flags |= VideoCommon::ImageFlagBits::CostlyLoad;
+    }
+    if (IsPixelFormatBCn(info.format) && !runtime->device.IsOptimalBcnSupported()) {
         flags |= VideoCommon::ImageFlagBits::Converted;
         flags |= VideoCommon::ImageFlagBits::CostlyLoad;
     }
@@ -1332,7 +1335,7 @@ void Image::UploadMemory(VkBuffer buffer, VkDeviceSize offset,
         ScaleDown(true);
     }
     scheduler->RequestOutsideRenderPassOperationContext();
-    std::vector vk_copies = TransformBufferImageCopies(copies, offset, aspect_mask);
+    auto vk_copies = TransformBufferImageCopies(copies, offset, aspect_mask);
     const VkBuffer src_buffer = buffer;
     const VkImage vk_image = *original_image;
     const VkImageAspectFlags vk_aspect_mask = aspect_mask;
@@ -1367,8 +1370,9 @@ void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<VkDeviceS
     if (is_rescaled) {
         ScaleDown();
     }
-    boost::container::small_vector<VkBuffer, 1> buffers_vector{};
-    boost::container::small_vector<std::vector<VkBufferImageCopy>, 1> vk_copies;
+    boost::container::small_vector<VkBuffer, 8> buffers_vector{};
+    boost::container::small_vector<boost::container::small_vector<VkBufferImageCopy, 16>, 8>
+        vk_copies;
     for (size_t index = 0; index < buffers_span.size(); index++) {
         buffers_vector.emplace_back(buffers_span[index]);
         vk_copies.emplace_back(
@@ -1467,9 +1471,7 @@ bool Image::ScaleUp(bool ignore) {
         auto scaled_info = info;
         scaled_info.size.width = scaled_width;
         scaled_info.size.height = scaled_height;
-        scaled_image = MakeImage(runtime->device, scaled_info);
-        auto& allocator = runtime->memory_allocator;
-        scaled_commit = MemoryCommit(allocator.Commit(scaled_image, MemoryUsage::DeviceLocal));
+        scaled_image = MakeImage(runtime->device, runtime->memory_allocator, scaled_info);
         ignore = false;
     }
     current_image = *scaled_image;
@@ -1858,7 +1860,7 @@ Framebuffer::~Framebuffer() = default;
 void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
                                     std::span<ImageView*, NUM_RT> color_buffers,
                                     ImageView* depth_buffer, bool is_rescaled) {
-    std::vector<VkImageView> attachments;
+    boost::container::small_vector<VkImageView, NUM_RT + 1> attachments;
     RenderPassKey renderpass_key{};
     s32 num_layers = 1;
 

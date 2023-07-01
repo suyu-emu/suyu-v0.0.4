@@ -193,18 +193,13 @@ struct GPU::Impl {
     }
 
     [[nodiscard]] u64 GetTicks() const {
-        // This values were reversed engineered by fincs from NVN
-        // The gpu clock is reported in units of 385/625 nanoseconds
-        constexpr u64 gpu_ticks_num = 384;
-        constexpr u64 gpu_ticks_den = 625;
+        u64 gpu_tick = system.CoreTiming().GetGPUTicks();
 
-        u64 nanoseconds = system.CoreTiming().GetCPUTimeNs().count();
         if (Settings::values.use_fast_gpu_time.GetValue()) {
-            nanoseconds /= 256;
+            gpu_tick /= 256;
         }
-        const u64 nanoseconds_num = nanoseconds / gpu_ticks_den;
-        const u64 nanoseconds_rem = nanoseconds % gpu_ticks_den;
-        return nanoseconds_num * gpu_ticks_num + (nanoseconds_rem * gpu_ticks_num) / gpu_ticks_den;
+
+        return gpu_tick;
     }
 
     [[nodiscard]] bool IsAsync() const {

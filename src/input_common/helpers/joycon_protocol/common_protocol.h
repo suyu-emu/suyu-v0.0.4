@@ -38,30 +38,30 @@ public:
      * Sends a request to obtain the joycon type from device
      * @returns controller type of the joycon
      */
-    DriverResult GetDeviceType(ControllerType& controller_type);
+    Common::Input::DriverResult GetDeviceType(ControllerType& controller_type);
 
     /**
      * Verifies and sets the joycon_handle if device is valid
      * @param device info from the driver
      * @returns success if the device is valid
      */
-    DriverResult CheckDeviceAccess(SDL_hid_device_info* device);
+    Common::Input::DriverResult CheckDeviceAccess(SDL_hid_device_info* device);
 
     /**
      * Sends a request to set the polling mode of the joycon
      * @param report_mode polling mode to be set
      */
-    DriverResult SetReportMode(Joycon::ReportMode report_mode);
+    Common::Input::DriverResult SetReportMode(Joycon::ReportMode report_mode);
 
     /**
      * Sends data to the joycon device
      * @param buffer data to be send
      */
-    DriverResult SendRawData(std::span<const u8> buffer);
+    Common::Input::DriverResult SendRawData(std::span<const u8> buffer);
 
     template <typename Output>
         requires std::is_trivially_copyable_v<Output>
-    DriverResult SendData(const Output& output) {
+    Common::Input::DriverResult SendData(const Output& output) {
         std::array<u8, sizeof(Output)> buffer;
         std::memcpy(buffer.data(), &output, sizeof(Output));
         return SendRawData(buffer);
@@ -72,7 +72,8 @@ public:
      * @param sub_command type of data to be returned
      * @returns a buffer containing the response
      */
-    DriverResult GetSubCommandResponse(SubCommand sub_command, SubCommandResponse& output);
+    Common::Input::DriverResult GetSubCommandResponse(SubCommand sub_command,
+                                                      SubCommandResponse& output);
 
     /**
      * Sends a sub command to the device and waits for it's reply
@@ -80,35 +81,35 @@ public:
      * @param buffer data to be send
      * @returns output buffer containing the response
      */
-    DriverResult SendSubCommand(SubCommand sc, std::span<const u8> buffer,
-                                SubCommandResponse& output);
+    Common::Input::DriverResult SendSubCommand(SubCommand sc, std::span<const u8> buffer,
+                                               SubCommandResponse& output);
 
     /**
      * Sends a sub command to the device and waits for it's reply and ignores the output
      * @param sc sub command to be send
      * @param buffer data to be send
      */
-    DriverResult SendSubCommand(SubCommand sc, std::span<const u8> buffer);
+    Common::Input::DriverResult SendSubCommand(SubCommand sc, std::span<const u8> buffer);
 
     /**
      * Sends a mcu command to the device
      * @param sc sub command to be send
      * @param buffer data to be send
      */
-    DriverResult SendMCUCommand(SubCommand sc, std::span<const u8> buffer);
+    Common::Input::DriverResult SendMCUCommand(SubCommand sc, std::span<const u8> buffer);
 
     /**
      * Sends vibration data to the joycon
      * @param buffer data to be send
      */
-    DriverResult SendVibrationReport(std::span<const u8> buffer);
+    Common::Input::DriverResult SendVibrationReport(std::span<const u8> buffer);
 
     /**
      * Reads the SPI memory stored on the joycon
      * @param Initial address location
      * @returns output buffer containing the response
      */
-    DriverResult ReadRawSPI(SpiAddress addr, std::span<u8> output);
+    Common::Input::DriverResult ReadRawSPI(SpiAddress addr, std::span<u8> output);
 
     /**
      * Reads the SPI memory stored on the joycon
@@ -117,37 +118,38 @@ public:
      */
     template <typename Output>
         requires std::is_trivially_copyable_v<Output>
-    DriverResult ReadSPI(SpiAddress addr, Output& output) {
+    Common::Input::DriverResult ReadSPI(SpiAddress addr, Output& output) {
         std::array<u8, sizeof(Output)> buffer;
         output = {};
 
         const auto result = ReadRawSPI(addr, buffer);
-        if (result != DriverResult::Success) {
+        if (result != Common::Input::DriverResult::Success) {
             return result;
         }
 
         std::memcpy(&output, buffer.data(), sizeof(Output));
-        return DriverResult::Success;
+        return Common::Input::DriverResult::Success;
     }
 
     /**
      * Enables MCU chip on the joycon
      * @param enable if true the chip will be enabled
      */
-    DriverResult EnableMCU(bool enable);
+    Common::Input::DriverResult EnableMCU(bool enable);
 
     /**
      * Configures the MCU to the corresponding mode
      * @param MCUConfig configuration
      */
-    DriverResult ConfigureMCU(const MCUConfig& config);
+    Common::Input::DriverResult ConfigureMCU(const MCUConfig& config);
 
     /**
      * Waits until there's MCU data available. On timeout returns error
      * @param report mode of the expected reply
      * @returns a buffer containing the response
      */
-    DriverResult GetMCUDataResponse(ReportMode report_mode_, MCUCommandResponse& output);
+    Common::Input::DriverResult GetMCUDataResponse(ReportMode report_mode_,
+                                                   MCUCommandResponse& output);
 
     /**
      * Sends data to the MCU chip and waits for it's reply
@@ -156,15 +158,15 @@ public:
      * @param buffer data to be send
      * @returns output buffer containing the response
      */
-    DriverResult SendMCUData(ReportMode report_mode, MCUSubCommand sc, std::span<const u8> buffer,
-                             MCUCommandResponse& output);
+    Common::Input::DriverResult SendMCUData(ReportMode report_mode, MCUSubCommand sc,
+                                            std::span<const u8> buffer, MCUCommandResponse& output);
 
     /**
      * Wait's until the MCU chip is on the specified mode
      * @param report mode of the expected reply
      * @param MCUMode configuration
      */
-    DriverResult WaitSetMCUMode(ReportMode report_mode, MCUMode mode);
+    Common::Input::DriverResult WaitSetMCUMode(ReportMode report_mode, MCUMode mode);
 
     /**
      * Calculates the checksum from the MCU data

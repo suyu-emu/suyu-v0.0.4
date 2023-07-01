@@ -6,6 +6,7 @@
 #include <array>
 #include <optional>
 #include <vector>
+#include <boost/container/small_vector.hpp>
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
@@ -108,8 +109,8 @@ struct ImageBase {
     std::vector<ImageViewInfo> image_view_infos;
     std::vector<ImageViewId> image_view_ids;
 
-    std::vector<u32> slice_offsets;
-    std::vector<SubresourceBase> slice_subresources;
+    boost::container::small_vector<u32, 16> slice_offsets;
+    boost::container::small_vector<SubresourceBase, 16> slice_subresources;
 
     std::vector<AliasedImage> aliased_images;
     std::vector<ImageId> overlapping_images;

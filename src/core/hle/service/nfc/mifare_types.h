@@ -11,9 +11,10 @@
 namespace Service::NFC {
 
 enum class MifareCmd : u8 {
+    None = 0x00,
+    Read = 0x30,
     AuthA = 0x60,
     AuthB = 0x61,
-    Read = 0x30,
     Write = 0xA0,
     Transfer = 0xB0,
     Decrement = 0xC0,
@@ -35,17 +36,17 @@ static_assert(sizeof(SectorKey) == 0x10, "SectorKey is an invalid size");
 
 // This is nn::nfc::MifareReadBlockParameter
 struct MifareReadBlockParameter {
-    u8 sector_number;
+    u8 sector_number{};
     INSERT_PADDING_BYTES(0x7);
-    SectorKey sector_key;
+    SectorKey sector_key{};
 };
 static_assert(sizeof(MifareReadBlockParameter) == 0x18,
               "MifareReadBlockParameter is an invalid size");
 
 // This is nn::nfc::MifareReadBlockData
 struct MifareReadBlockData {
-    DataBlock data;
-    u8 sector_number;
+    DataBlock data{};
+    u8 sector_number{};
     INSERT_PADDING_BYTES(0x7);
 };
 static_assert(sizeof(MifareReadBlockData) == 0x18, "MifareReadBlockData is an invalid size");

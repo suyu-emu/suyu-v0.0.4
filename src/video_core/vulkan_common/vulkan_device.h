@@ -10,8 +10,11 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "common/logging/log.h"
 #include "common/settings.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+
+VK_DEFINE_HANDLE(VmaAllocator)
 
 // Define all features which may be used by the implementation here.
 // Vulkan version in the macro describes the minimum version required for feature availability.
@@ -198,6 +201,11 @@ public:
         return dld;
     }
 
+    /// Returns the VMA allocator.
+    VmaAllocator GetAllocator() const {
+        return allocator;
+    }
+
     /// Returns the logical device.
     const vk::Device& GetLogical() const {
         return logical;
@@ -285,6 +293,11 @@ public:
         return features.features.textureCompressionASTC_LDR;
     }
 
+    /// Returns true if BCn is natively supported.
+    bool IsOptimalBcnSupported() const {
+        return features.features.textureCompressionBC;
+    }
+
     /// Returns true if descriptor aliasing is natively supported.
     bool IsDescriptorAliasingSupported() const {
         return GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
@@ -313,6 +326,11 @@ public:
     /// Returns true if the device can be forced to use the guest warp size.
     bool IsGuestWarpSizeSupported(VkShaderStageFlagBits stage) const {
         return properties.subgroup_size_control.requiredSubgroupSizeStages & stage;
+    }
+
+    /// Returns true if the device supports the provided subgroup feature.
+    bool IsSubgroupFeatureSupported(VkSubgroupFeatureFlagBits feature) const {
+        return properties.subgroup_properties.supportedOperations & feature;
     }
 
     /// Returns the maximum number of push descriptors.
@@ -380,6 +398,11 @@ public:
         return extensions.swapchain_mutable_format;
     }
 
+    /// Returns true if VK_KHR_shader_float_controls is enabled.
+    bool IsKhrShaderFloatControlsSupported() const {
+        return extensions.shader_float_controls;
+    }
+
     /// Returns true if the device supports VK_KHR_workgroup_memory_explicit_layout.
     bool IsKhrWorkgroupMemoryExplicitLayoutSupported() const {
         return extensions.workgroup_memory_explicit_layout;
@@ -403,6 +426,11 @@ public:
     /// Returns true if the device supports VK_EXT_sampler_filter_minmax.
     bool IsExtSamplerFilterMinmaxSupported() const {
         return extensions.sampler_filter_minmax;
+    }
+
+    /// Returns true if the device supports VK_EXT_shader_stencil_export.
+    bool IsExtShaderStencilExportSupported() const {
+        return extensions.shader_stencil_export;
     }
 
     /// Returns true if the device supports VK_EXT_depth_range_unrestricted.
@@ -474,9 +502,9 @@ public:
         return extensions.vertex_input_dynamic_state;
     }
 
-    /// Returns true if the device supports VK_EXT_shader_stencil_export.
-    bool IsExtShaderStencilExportSupported() const {
-        return extensions.shader_stencil_export;
+    /// Returns true if the device supports VK_EXT_shader_demote_to_helper_invocation
+    bool IsExtShaderDemoteToHelperInvocationSupported() const {
+        return extensions.shader_demote_to_helper_invocation;
     }
 
     /// Returns true if the device supports VK_EXT_conservative_rasterization.
@@ -510,12 +538,17 @@ public:
         if (extensions.spirv_1_4) {
             return 0x00010400U;
         }
-        return 0x00010000U;
+        return 0x00010300U;
     }
 
     /// Returns true when a known debugging tool is attached.
     bool HasDebuggingToolAttached() const {
-        return has_renderdoc || has_nsight_graphics || Settings::values.renderer_debug.GetValue();
+        return has_renderdoc || has_nsight_graphics;
+    }
+
+    /// @returns True if compute pipelines can cause crashing.
+    bool HasBrokenCompute() const {
+        return has_broken_compute;
     }
 
     /// Returns true when the device does not properly support cube compatibility.
@@ -575,8 +608,28 @@ public:
         return properties.properties.limits.maxVertexInputBindings;
     }
 
+    u32 GetMaxViewports() const {
+        return properties.properties.limits.maxViewports;
+    }
+
     bool SupportsConditionalBarriers() const {
         return supports_conditional_barriers;
+    }
+
+    [[nodiscard]] static constexpr bool CheckBrokenCompute(VkDriverId driver_id,
+                                                           u32 driver_version) {
+        if (driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
+            const u32 major = VK_API_VERSION_MAJOR(driver_version);
+            const u32 minor = VK_API_VERSION_MINOR(driver_version);
+            const u32 patch = VK_API_VERSION_PATCH(driver_version);
+            if (major == 0 && minor == 405 && patch < 286) {
+                LOG_WARNING(
+                    Render_Vulkan,
+                    "Intel proprietary drivers 0.405.0 until 0.405.286 have broken compute");
+                return true;
+            }
+        }
+        return false;
     }
 
 private:
@@ -608,6 +661,7 @@ private:
 
 private:
     VkInstance instance;         ///< Vulkan instance.
+    VmaAllocator allocator;      ///< VMA allocator.
     vk::DeviceDispatch dld;      ///< Device function pointers.
     vk::PhysicalDevice physical; ///< Physical device.
     vk::Device logical;          ///< Logical device.
@@ -650,6 +704,7 @@ private:
 
     struct Properties {
         VkPhysicalDeviceDriverProperties driver{};
+        VkPhysicalDeviceSubgroupProperties subgroup_properties{};
         VkPhysicalDeviceFloatControlsProperties float_controls{};
         VkPhysicalDevicePushDescriptorPropertiesKHR push_descriptor{};
         VkPhysicalDeviceSubgroupSizeControlProperties subgroup_size_control{};
@@ -672,6 +727,7 @@ private:
     bool is_integrated{};                   ///< Is GPU an iGPU.
     bool is_virtual{};                      ///< Is GPU a virtual GPU.
     bool is_non_gpu{};                      ///< Is SoftwareRasterizer, FPGA, non-GPU device.
+    bool has_broken_compute{};              ///< Compute shaders can cause crashes
     bool has_broken_cube_compatibility{};   ///< Has broken cube compatibility bit
     bool has_renderdoc{};                   ///< Has RenderDoc attached
     bool has_nsight_graphics{};             ///< Has Nsight Graphics attached

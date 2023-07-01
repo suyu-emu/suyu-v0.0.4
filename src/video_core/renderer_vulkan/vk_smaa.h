@@ -66,13 +66,11 @@ private:
     std::array<vk::Pipeline, MaxSMAAStage> m_pipelines{};
     std::array<vk::RenderPass, MaxSMAAStage> m_renderpasses{};
 
-    std::array<MemoryCommit, MaxStaticImage> m_static_buffer_commits;
     std::array<vk::Image, MaxStaticImage> m_static_images{};
     std::array<vk::ImageView, MaxStaticImage> m_static_image_views{};
 
     struct Images {
         vk::DescriptorSets descriptor_sets{};
-        std::array<MemoryCommit, MaxDynamicImage> buffer_commits;
         std::array<vk::Image, MaxDynamicImage> images{};
         std::array<vk::ImageView, MaxDynamicImage> image_views{};
         std::array<vk::Framebuffer, MaxSMAAStage> framebuffers{};

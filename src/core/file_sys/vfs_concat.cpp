@@ -150,23 +150,29 @@ std::size_t ConcatenatedVfsFile::Read(u8* data, std::size_t length, std::size_t 
     while (cur_length > 0 && it != concatenation_map.end()) {
         // Check if we can read the file at this position.
         const auto& file = it->file;
-        const u64 file_offset = it->offset;
+        const u64 map_offset = it->offset;
         const u64 file_size = file->GetSize();
 
-        if (cur_offset >= file_offset + file_size) {
+        if (cur_offset > map_offset + file_size) {
             // Entirely out of bounds read.
             break;
         }
 
         // Read the file at this position.
-        const u64 intended_read_size = std::min<u64>(cur_length, file_size);
+        const u64 file_seek = cur_offset - map_offset;
+        const u64 intended_read_size = std::min<u64>(cur_length, file_size - file_seek);
         const u64 actual_read_size =
-            file->Read(data + (cur_offset - offset), intended_read_size, cur_offset - file_offset);
+            file->Read(data + (cur_offset - offset), intended_read_size, file_seek);
 
         // Update tracking.
         cur_offset += actual_read_size;
         cur_length -= actual_read_size;
         it++;
+
+        // If we encountered a short read, we're done.
+        if (actual_read_size < intended_read_size) {
+            break;
+        }
     }
 
     return cur_offset - offset;

@@ -143,9 +143,43 @@ public:
         return Common::Input::NfcState::NotSupported;
     }
 
+    // Start scanning for nfc tags
+    virtual Common::Input::NfcState StartNfcPolling(
+        [[maybe_unused]] const PadIdentifier& identifier_) {
+        return Common::Input::NfcState::NotSupported;
+    }
+
+    // Start scanning for nfc tags
+    virtual Common::Input::NfcState StopNfcPolling(
+        [[maybe_unused]] const PadIdentifier& identifier_) {
+        return Common::Input::NfcState::NotSupported;
+    }
+
+    // Reads data from amiibo tag
+    virtual Common::Input::NfcState ReadAmiiboData(
+        [[maybe_unused]] const PadIdentifier& identifier_,
+        [[maybe_unused]] std::vector<u8>& out_data) {
+        return Common::Input::NfcState::NotSupported;
+    }
+
     // Writes data to an nfc tag
     virtual Common::Input::NfcState WriteNfcData([[maybe_unused]] const PadIdentifier& identifier,
                                                  [[maybe_unused]] const std::vector<u8>& data) {
+        return Common::Input::NfcState::NotSupported;
+    }
+
+    // Reads data from mifare tag
+    virtual Common::Input::NfcState ReadMifareData(
+        [[maybe_unused]] const PadIdentifier& identifier_,
+        [[maybe_unused]] const Common::Input::MifareRequest& request,
+        [[maybe_unused]] Common::Input::MifareRequest& out_data) {
+        return Common::Input::NfcState::NotSupported;
+    }
+
+    // Write data to mifare tag
+    virtual Common::Input::NfcState WriteMifareData(
+        [[maybe_unused]] const PadIdentifier& identifier_,
+        [[maybe_unused]] const Common::Input::MifareRequest& request) {
         return Common::Input::NfcState::NotSupported;
     }
 

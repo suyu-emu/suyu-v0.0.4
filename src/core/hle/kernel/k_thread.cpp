@@ -909,7 +909,7 @@ Result KThread::SetActivity(Svc::ThreadActivity activity) {
     R_SUCCEED();
 }
 
-Result KThread::GetThreadContext3(std::vector<u8>& out) {
+Result KThread::GetThreadContext3(Common::ScratchBuffer<u8>& out) {
     // Lock ourselves.
     KScopedLightLock lk{m_activity_pause_lock};
 
@@ -927,15 +927,13 @@ Result KThread::GetThreadContext3(std::vector<u8>& out) {
                 // Mask away mode bits, interrupt bits, IL bit, and other reserved bits.
                 auto context = GetContext64();
                 context.pstate &= 0xFF0FFE20;
-
-                out.resize(sizeof(context));
+                out.resize_destructive(sizeof(context));
                 std::memcpy(out.data(), std::addressof(context), sizeof(context));
             } else {
                 // Mask away mode bits, interrupt bits, IL bit, and other reserved bits.
                 auto context = GetContext32();
                 context.cpsr &= 0xFF0FFE20;
-
-                out.resize(sizeof(context));
+                out.resize_destructive(sizeof(context));
                 std::memcpy(out.data(), std::addressof(context), sizeof(context));
             }
         }

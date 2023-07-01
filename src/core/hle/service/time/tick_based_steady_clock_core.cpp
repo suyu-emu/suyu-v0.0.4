@@ -10,7 +10,7 @@ namespace Service::Time::Clock {
 
 SteadyClockTimePoint TickBasedSteadyClockCore::GetTimePoint(Core::System& system) {
     const TimeSpanType ticks_time_span{
-        TimeSpanType::FromTicks(system.CoreTiming().GetClockTicks(), Core::Hardware::CNTFREQ)};
+        TimeSpanType::FromTicks<Core::Hardware::CNTFREQ>(system.CoreTiming().GetClockTicks())};
 
     return {ticks_time_span.ToSeconds(), GetClockSourceId()};
 }

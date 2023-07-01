@@ -20,7 +20,7 @@ public:
     explicit NullSinkStreamImpl(Core::System& system_, StreamType type_)
         : SinkStream{system_, type_} {}
     ~NullSinkStreamImpl() override {}
-    void AppendBuffer(SinkBuffer&, std::vector<s16>&) override {}
+    void AppendBuffer(SinkBuffer&, std::span<s16>) override {}
     std::vector<s16> ReleaseBuffer(u64) override {
         return {};
     }

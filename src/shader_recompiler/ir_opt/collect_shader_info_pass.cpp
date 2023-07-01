@@ -424,6 +424,10 @@ void VisitUsages(Info& info, IR::Inst& inst) {
         info.used_constant_buffer_types |= IR::Type::U32 | IR::Type::U32x2;
         info.used_storage_buffer_types |= IR::Type::U32 | IR::Type::U32x2 | IR::Type::U32x4;
         break;
+    case IR::Opcode::LoadLocal:
+    case IR::Opcode::WriteLocal:
+        info.uses_local_memory = true;
+        break;
     default:
         break;
     }

@@ -5,7 +5,6 @@
 #include "audio_core/renderer/command/performance/performance.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "core/core_timing_util.h"
 
 namespace AudioCore::AudioRenderer {
 
@@ -18,20 +17,18 @@ void PerformanceCommand::Process(const ADSP::CommandListProcessor& processor) {
     auto base{entry_address.translated_address};
     if (state == PerformanceState::Start) {
         auto start_time_ptr{reinterpret_cast<u32*>(base + entry_address.entry_start_time_offset)};
-        *start_time_ptr = static_cast<u32>(
-            Core::Timing::CyclesToUs(processor.system->CoreTiming().GetClockTicks() -
-                                     processor.start_time - processor.current_processing_time)
-                .count());
+        *start_time_ptr =
+            static_cast<u32>(processor.system->CoreTiming().GetClockTicks() - processor.start_time -
+                             processor.current_processing_time);
     } else if (state == PerformanceState::Stop) {
         auto processed_time_ptr{
             reinterpret_cast<u32*>(base + entry_address.entry_processed_time_offset)};
         auto entry_count_ptr{
             reinterpret_cast<u32*>(base + entry_address.header_entry_count_offset)};
 
-        *processed_time_ptr = static_cast<u32>(
-            Core::Timing::CyclesToUs(processor.system->CoreTiming().GetClockTicks() -
-                                     processor.start_time - processor.current_processing_time)
-                .count());
+        *processed_time_ptr =
+            static_cast<u32>(processor.system->CoreTiming().GetClockTicks() - processor.start_time -
+                             processor.current_processing_time);
         (*entry_count_ptr)++;
     }
 }

@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <ratio>
+
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/uuid.h"
@@ -74,18 +76,19 @@ static_assert(std::is_trivially_copyable_v<ContinuousAdjustmentTimePoint>,
 /// https://switchbrew.org/wiki/Glue_services#TimeSpanType
 struct TimeSpanType {
     s64 nanoseconds{};
-    static constexpr s64 ns_per_second{1000000000ULL};
 
     s64 ToSeconds() const {
-        return nanoseconds / ns_per_second;
+        return nanoseconds / std::nano::den;
     }
 
     static TimeSpanType FromSeconds(s64 seconds) {
-        return {seconds * ns_per_second};
+        return {seconds * std::nano::den};
     }
 
-    static TimeSpanType FromTicks(u64 ticks, u64 frequency) {
-        return FromSeconds(static_cast<s64>(ticks) / static_cast<s64>(frequency));
+    template <u64 Frequency>
+    static TimeSpanType FromTicks(u64 ticks) {
+        using TicksToNSRatio = std::ratio<std::nano::den, Frequency>;
+        return {static_cast<s64>(ticks * TicksToNSRatio::num / TicksToNSRatio::den)};
     }
 };
 static_assert(sizeof(TimeSpanType) == 8, "TimeSpanType is incorrect size");

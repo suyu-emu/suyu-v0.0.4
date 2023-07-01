@@ -6,8 +6,6 @@
 #include <optional>
 #include <vector>
 
-#include <glad/glad.h>
-
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"
@@ -16,6 +14,8 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+
+#include <vk_mem_alloc.h>
 
 namespace Vulkan {
 namespace {
@@ -49,22 +49,45 @@ struct Range {
     case MemoryUsage::Download:
         return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
                VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+    case MemoryUsage::Stream:
+        return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     }
     ASSERT_MSG(false, "Invalid memory usage={}", usage);
     return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 }
 
-constexpr VkExportMemoryAllocateInfo EXPORT_ALLOCATE_INFO{
-    .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
-    .pNext = nullptr,
-#ifdef _WIN32
-    .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
-#elif __unix__
-    .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
-#else
-    .handleTypes = 0,
-#endif
-};
+[[nodiscard]] VkMemoryPropertyFlags MemoryUsagePreferedVmaFlags(MemoryUsage usage) {
+    return usage != MemoryUsage::DeviceLocal ? VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+                                             : VkMemoryPropertyFlagBits{};
+}
+
+[[nodiscard]] VmaAllocationCreateFlags MemoryUsageVmaFlags(MemoryUsage usage) {
+    switch (usage) {
+    case MemoryUsage::Upload:
+    case MemoryUsage::Stream:
+        return VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+    case MemoryUsage::Download:
+        return VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+    case MemoryUsage::DeviceLocal:
+        return VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+               VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
+    }
+    return {};
+}
+
+[[nodiscard]] VmaMemoryUsage MemoryUsageVma(MemoryUsage usage) {
+    switch (usage) {
+    case MemoryUsage::DeviceLocal:
+    case MemoryUsage::Stream:
+        return VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+    case MemoryUsage::Upload:
+    case MemoryUsage::Download:
+        return VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+    }
+    return VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+}
+
 } // Anonymous namespace
 
 class MemoryAllocation {
@@ -73,14 +96,6 @@ public:
                               VkMemoryPropertyFlags properties, u64 allocation_size_, u32 type)
         : allocator{allocator_}, memory{std::move(memory_)}, allocation_size{allocation_size_},
           property_flags{properties}, shifted_memory_type{1U << type} {}
-
-#if defined(_WIN32) || defined(__unix__)
-    ~MemoryAllocation() {
-        if (owning_opengl_handle != 0) {
-            glDeleteMemoryObjectsEXT(1, &owning_opengl_handle);
-        }
-    }
-#endif
 
     MemoryAllocation& operator=(const MemoryAllocation&) = delete;
     MemoryAllocation(const MemoryAllocation&) = delete;
@@ -120,31 +135,6 @@ public:
         return memory_mapped_span;
     }
 
-#ifdef _WIN32
-    [[nodiscard]] u32 ExportOpenGLHandle() {
-        if (!owning_opengl_handle) {
-            glCreateMemoryObjectsEXT(1, &owning_opengl_handle);
-            glImportMemoryWin32HandleEXT(owning_opengl_handle, allocation_size,
-                                         GL_HANDLE_TYPE_OPAQUE_WIN32_EXT,
-                                         memory.GetMemoryWin32HandleKHR());
-        }
-        return owning_opengl_handle;
-    }
-#elif __unix__
-    [[nodiscard]] u32 ExportOpenGLHandle() {
-        if (!owning_opengl_handle) {
-            glCreateMemoryObjectsEXT(1, &owning_opengl_handle);
-            glImportMemoryFdEXT(owning_opengl_handle, allocation_size, GL_HANDLE_TYPE_OPAQUE_FD_EXT,
-                                memory.GetMemoryFdKHR());
-        }
-        return owning_opengl_handle;
-    }
-#else
-    [[nodiscard]] u32 ExportOpenGLHandle() {
-        return 0;
-    }
-#endif
-
     /// Returns whether this allocation is compatible with the arguments.
     [[nodiscard]] bool IsCompatible(VkMemoryPropertyFlags flags, u32 type_mask) const {
         return (flags & property_flags) == flags && (type_mask & shifted_memory_type) != 0;
@@ -182,9 +172,6 @@ private:
     const u32 shifted_memory_type;              ///< Shifted Vulkan memory type.
     std::vector<Range> commits;                 ///< All commit ranges done from this allocation.
     std::span<u8> memory_mapped_span; ///< Memory mapped span. Empty if not queried before.
-#if defined(_WIN32) || defined(__unix__)
-    u32 owning_opengl_handle{}; ///< Owning OpenGL memory object handle.
-#endif
 };
 
 MemoryCommit::MemoryCommit(MemoryAllocation* allocation_, VkDeviceMemory memory_, u64 begin_,
@@ -216,23 +203,69 @@ std::span<u8> MemoryCommit::Map() {
     return span;
 }
 
-u32 MemoryCommit::ExportOpenGLHandle() const {
-    return allocation->ExportOpenGLHandle();
-}
-
 void MemoryCommit::Release() {
     if (allocation) {
         allocation->Free(begin);
     }
 }
 
-MemoryAllocator::MemoryAllocator(const Device& device_, bool export_allocations_)
-    : device{device_}, properties{device_.GetPhysical().GetMemoryProperties().memoryProperties},
-      export_allocations{export_allocations_},
+MemoryAllocator::MemoryAllocator(const Device& device_)
+    : device{device_}, allocator{device.GetAllocator()},
+      properties{device_.GetPhysical().GetMemoryProperties().memoryProperties},
       buffer_image_granularity{
           device_.GetPhysical().GetProperties().limits.bufferImageGranularity} {}
 
 MemoryAllocator::~MemoryAllocator() = default;
+
+vk::Image MemoryAllocator::CreateImage(const VkImageCreateInfo& ci) const {
+    const VmaAllocationCreateInfo alloc_ci = {
+        .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT,
+        .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+        .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        .preferredFlags = 0,
+        .memoryTypeBits = 0,
+        .pool = VK_NULL_HANDLE,
+        .pUserData = nullptr,
+        .priority = 0.f,
+    };
+
+    VkImage handle{};
+    VmaAllocation allocation{};
+
+    vk::Check(vmaCreateImage(allocator, &ci, &alloc_ci, &handle, &allocation, nullptr));
+
+    return vk::Image(handle, *device.GetLogical(), allocator, allocation,
+                     device.GetDispatchLoader());
+}
+
+vk::Buffer MemoryAllocator::CreateBuffer(const VkBufferCreateInfo& ci, MemoryUsage usage) const {
+    const VmaAllocationCreateInfo alloc_ci = {
+        .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT |
+                 MemoryUsageVmaFlags(usage),
+        .usage = MemoryUsageVma(usage),
+        .requiredFlags = 0,
+        .preferredFlags = MemoryUsagePreferedVmaFlags(usage),
+        .memoryTypeBits = 0,
+        .pool = VK_NULL_HANDLE,
+        .pUserData = nullptr,
+        .priority = 0.f,
+    };
+
+    VkBuffer handle{};
+    VmaAllocationInfo alloc_info{};
+    VmaAllocation allocation{};
+    VkMemoryPropertyFlags property_flags{};
+
+    vk::Check(vmaCreateBuffer(allocator, &ci, &alloc_ci, &handle, &allocation, &alloc_info));
+    vmaGetAllocationMemoryProperties(allocator, allocation, &property_flags);
+
+    u8* data = reinterpret_cast<u8*>(alloc_info.pMappedData);
+    const std::span<u8> mapped_data = data ? std::span<u8>{data, ci.size} : std::span<u8>{};
+    const bool is_coherent = property_flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+    return vk::Buffer(handle, *device.GetLogical(), allocator, allocation, mapped_data, is_coherent,
+                      device.GetDispatchLoader());
+}
 
 MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, MemoryUsage usage) {
     // Find the fastest memory flags we can afford with the current requirements
@@ -253,25 +286,11 @@ MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, M
     return TryCommit(requirements, flags).value();
 }
 
-MemoryCommit MemoryAllocator::Commit(const vk::Buffer& buffer, MemoryUsage usage) {
-    auto commit = Commit(device.GetLogical().GetBufferMemoryRequirements(*buffer), usage);
-    buffer.BindMemory(commit.Memory(), commit.Offset());
-    return commit;
-}
-
-MemoryCommit MemoryAllocator::Commit(const vk::Image& image, MemoryUsage usage) {
-    VkMemoryRequirements requirements = device.GetLogical().GetImageMemoryRequirements(*image);
-    requirements.size = Common::AlignUp(requirements.size, buffer_image_granularity);
-    auto commit = Commit(requirements, usage);
-    image.BindMemory(commit.Memory(), commit.Offset());
-    return commit;
-}
-
 bool MemoryAllocator::TryAllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u64 size) {
     const u32 type = FindType(flags, type_mask).value();
     vk::DeviceMemory memory = device.GetLogical().TryAllocateMemory({
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .pNext = export_allocations ? &EXPORT_ALLOCATE_INFO : nullptr,
+        .pNext = nullptr,
         .allocationSize = size,
         .memoryTypeIndex = type,
     });
@@ -340,18 +359,6 @@ std::optional<u32> MemoryAllocator::FindType(VkMemoryPropertyFlags flags, u32 ty
     }
     // Failed to find index
     return std::nullopt;
-}
-
-bool IsHostVisible(MemoryUsage usage) noexcept {
-    switch (usage) {
-    case MemoryUsage::DeviceLocal:
-        return false;
-    case MemoryUsage::Upload:
-    case MemoryUsage::Download:
-        return true;
-    }
-    ASSERT_MSG(false, "Invalid memory usage={}", usage);
-    return false;
 }
 
 } // namespace Vulkan

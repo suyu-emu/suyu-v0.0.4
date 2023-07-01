@@ -16,12 +16,11 @@
 
 #include "common/microprofile.h"
 #include "core/core_timing.h"
-#include "core/core_timing_util.h"
 #include "core/hardware_properties.h"
 
 namespace Core::Timing {
 
-constexpr s64 MAX_SLICE_LENGTH = 4000;
+constexpr s64 MAX_SLICE_LENGTH = 10000;
 
 std::shared_ptr<EventType> CreateEvent(std::string name, TimedCallback&& callback) {
     return std::make_shared<EventType>(std::move(callback), std::move(name));
@@ -45,9 +44,7 @@ struct CoreTiming::Event {
     }
 };
 
-CoreTiming::CoreTiming()
-    : cpu_clock{Common::CreateBestMatchingClock(Hardware::BASE_CLOCK_RATE, Hardware::CNTFREQ)},
-      event_clock{Common::CreateStandardWallClock(Hardware::BASE_CLOCK_RATE, Hardware::CNTFREQ)} {}
+CoreTiming::CoreTiming() : clock{Common::CreateOptimalClock()} {}
 
 CoreTiming::~CoreTiming() {
     Reset();
@@ -68,7 +65,7 @@ void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
     on_thread_init = std::move(on_thread_init_);
     event_fifo_id = 0;
     shutting_down = false;
-    ticks = 0;
+    cpu_ticks = 0;
     const auto empty_timed_callback = [](std::uintptr_t, u64, std::chrono::nanoseconds)
         -> std::optional<std::chrono::nanoseconds> { return std::nullopt; };
     ev_lost = CreateEvent("_lost_event", empty_timed_callback);
@@ -173,38 +170,30 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
 }
 
 void CoreTiming::AddTicks(u64 ticks_to_add) {
-    ticks += ticks_to_add;
-    downcount -= static_cast<s64>(ticks);
+    cpu_ticks += ticks_to_add;
+    downcount -= static_cast<s64>(cpu_ticks);
 }
 
 void CoreTiming::Idle() {
-    if (!event_queue.empty()) {
-        const u64 next_event_time = event_queue.front().time;
-        const u64 next_ticks = nsToCycles(std::chrono::nanoseconds(next_event_time)) + 10U;
-        if (next_ticks > ticks) {
-            ticks = next_ticks;
-        }
-        return;
-    }
-    ticks += 1000U;
+    cpu_ticks += 1000U;
 }
 
 void CoreTiming::ResetTicks() {
     downcount = MAX_SLICE_LENGTH;
 }
 
-u64 CoreTiming::GetCPUTicks() const {
-    if (is_multicore) [[likely]] {
-        return cpu_clock->GetCPUCycles();
-    }
-    return ticks;
-}
-
 u64 CoreTiming::GetClockTicks() const {
     if (is_multicore) [[likely]] {
-        return cpu_clock->GetClockCycles();
+        return clock->GetCNTPCT();
     }
-    return CpuCyclesToClockCycles(ticks);
+    return Common::WallClock::CPUTickToCNTPCT(cpu_ticks);
+}
+
+u64 CoreTiming::GetGPUTicks() const {
+    if (is_multicore) [[likely]] {
+        return clock->GetGPUTick();
+    }
+    return Common::WallClock::CPUTickToGPUTick(cpu_ticks);
 }
 
 std::optional<s64> CoreTiming::Advance() {
@@ -297,9 +286,7 @@ void CoreTiming::ThreadLoop() {
         }
 
         paused_set = true;
-        event_clock->Pause(true);
         pause_event.Wait();
-        event_clock->Pause(false);
     }
 }
 
@@ -315,25 +302,18 @@ void CoreTiming::Reset() {
     has_started = false;
 }
 
-std::chrono::nanoseconds CoreTiming::GetCPUTimeNs() const {
-    if (is_multicore) [[likely]] {
-        return cpu_clock->GetTimeNS();
-    }
-    return CyclesToNs(ticks);
-}
-
 std::chrono::nanoseconds CoreTiming::GetGlobalTimeNs() const {
     if (is_multicore) [[likely]] {
-        return event_clock->GetTimeNS();
+        return clock->GetTimeNS();
     }
-    return CyclesToNs(ticks);
+    return std::chrono::nanoseconds{Common::WallClock::CPUTickToNS(cpu_ticks)};
 }
 
 std::chrono::microseconds CoreTiming::GetGlobalTimeUs() const {
     if (is_multicore) [[likely]] {
-        return event_clock->GetTimeUS();
+        return clock->GetTimeUS();
     }
-    return CyclesToUs(ticks);
+    return std::chrono::microseconds{Common::WallClock::CPUTickToUS(cpu_ticks)};
 }
 
 } // namespace Core::Timing

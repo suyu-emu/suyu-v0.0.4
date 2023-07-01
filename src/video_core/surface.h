@@ -501,6 +501,8 @@ SurfaceType GetFormatType(PixelFormat pixel_format);
 
 bool IsPixelFormatASTC(PixelFormat format);
 
+bool IsPixelFormatBCn(PixelFormat format);
+
 bool IsPixelFormatSRGB(PixelFormat format);
 
 bool IsPixelFormatInteger(PixelFormat format);

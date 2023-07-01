@@ -68,79 +68,109 @@ class HomeSettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainActivity = requireActivity() as MainActivity
 
-        val optionsList: MutableList<HomeSetting> = mutableListOf(
-            HomeSetting(
-                R.string.advanced_settings,
-                R.string.settings_description,
-                R.drawable.ic_settings
-            ) { SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "") },
-            HomeSetting(
-                R.string.open_user_folder,
-                R.string.open_user_folder_description,
-                R.drawable.ic_folder_open
-            ) { openFileManager() },
-            HomeSetting(
-                R.string.preferences_theme,
-                R.string.theme_and_color_description,
-                R.drawable.ic_palette
-            ) { SettingsActivity.launch(requireContext(), Settings.SECTION_THEME, "") },
-            HomeSetting(
-                R.string.install_gpu_driver,
-                R.string.install_gpu_driver_description,
-                R.drawable.ic_exit
-            ) { driverInstaller() },
-            HomeSetting(
-                R.string.install_amiibo_keys,
-                R.string.install_amiibo_keys_description,
-                R.drawable.ic_nfc
-            ) { mainActivity.getAmiiboKey.launch(arrayOf("*/*")) },
-            HomeSetting(
-                R.string.install_game_content,
-                R.string.install_game_content_description,
-                R.drawable.ic_system_update_alt
-            ) { mainActivity.installGameUpdate.launch(arrayOf("*/*")) },
-            HomeSetting(
-                R.string.select_games_folder,
-                R.string.select_games_folder_description,
-                R.drawable.ic_add
-            ) {
-                mainActivity.getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
-            },
-            HomeSetting(
-                R.string.manage_save_data,
-                R.string.import_export_saves_description,
-                R.drawable.ic_save
-            ) {
-                ImportExportSavesFragment().show(
-                    parentFragmentManager,
-                    ImportExportSavesFragment.TAG
+        val optionsList: MutableList<HomeSetting> = mutableListOf<HomeSetting>().apply {
+            add(
+                HomeSetting(
+                    R.string.advanced_settings,
+                    R.string.settings_description,
+                    R.drawable.ic_settings
+                ) { SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "") }
+            )
+            add(
+                HomeSetting(
+                    R.string.open_user_folder,
+                    R.string.open_user_folder_description,
+                    R.drawable.ic_folder_open
+                ) { openFileManager() }
+            )
+            add(
+                HomeSetting(
+                    R.string.preferences_theme,
+                    R.string.theme_and_color_description,
+                    R.drawable.ic_palette
+                ) { SettingsActivity.launch(requireContext(), Settings.SECTION_THEME, "") }
+            )
+
+            if (GpuDriverHelper.supportsCustomDriverLoading()) {
+                add(
+                    HomeSetting(
+                        R.string.install_gpu_driver,
+                        R.string.install_gpu_driver_description,
+                        R.drawable.ic_exit
+                    ) { driverInstaller() }
                 )
-            },
-            HomeSetting(
-                R.string.install_prod_keys,
-                R.string.install_prod_keys_description,
-                R.drawable.ic_unlock
-            ) { mainActivity.getProdKey.launch(arrayOf("*/*")) },
-            HomeSetting(
-                R.string.install_firmware,
-                R.string.install_firmware_description,
-                R.drawable.ic_firmware
-            ) { mainActivity.getFirmware.launch(arrayOf("application/zip")) },
-            HomeSetting(
-                R.string.share_log,
-                R.string.share_log_description,
-                R.drawable.ic_log
-            ) { shareLog() },
-            HomeSetting(
-                R.string.about,
-                R.string.about_description,
-                R.drawable.ic_info_outline
-            ) {
-                exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
-                parentFragmentManager.primaryNavigationFragment?.findNavController()
-                    ?.navigate(R.id.action_homeSettingsFragment_to_aboutFragment)
             }
-        )
+
+            add(
+                HomeSetting(
+                    R.string.install_amiibo_keys,
+                    R.string.install_amiibo_keys_description,
+                    R.drawable.ic_nfc
+                ) { mainActivity.getAmiiboKey.launch(arrayOf("*/*")) }
+            )
+            add(
+                HomeSetting(
+                    R.string.install_game_content,
+                    R.string.install_game_content_description,
+                    R.drawable.ic_system_update_alt
+                ) { mainActivity.installGameUpdate.launch(arrayOf("*/*")) }
+            )
+            add(
+                HomeSetting(
+                    R.string.select_games_folder,
+                    R.string.select_games_folder_description,
+                    R.drawable.ic_add
+                ) {
+                    mainActivity.getGamesDirectory.launch(
+                        Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data
+                    )
+                }
+            )
+            add(
+                HomeSetting(
+                    R.string.manage_save_data,
+                    R.string.import_export_saves_description,
+                    R.drawable.ic_save
+                ) {
+                    ImportExportSavesFragment().show(
+                        parentFragmentManager,
+                        ImportExportSavesFragment.TAG
+                    )
+                }
+            )
+            add(
+                HomeSetting(
+                    R.string.install_prod_keys,
+                    R.string.install_prod_keys_description,
+                    R.drawable.ic_unlock
+                ) { mainActivity.getProdKey.launch(arrayOf("*/*")) }
+            )
+            add(
+                HomeSetting(
+                    R.string.install_firmware,
+                    R.string.install_firmware_description,
+                    R.drawable.ic_firmware
+                ) { mainActivity.getFirmware.launch(arrayOf("application/zip")) }
+            )
+            add(
+                HomeSetting(
+                    R.string.share_log,
+                    R.string.share_log_description,
+                    R.drawable.ic_log
+                ) { shareLog() }
+            )
+            add(
+                HomeSetting(
+                    R.string.about,
+                    R.string.about_description,
+                    R.drawable.ic_info_outline
+                ) {
+                    exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+                    parentFragmentManager.primaryNavigationFragment?.findNavController()
+                        ?.navigate(R.id.action_homeSettingsFragment_to_aboutFragment)
+                }
+            )
+        }
 
         if (!BuildConfig.PREMIUM) {
             optionsList.add(

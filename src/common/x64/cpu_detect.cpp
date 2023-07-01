@@ -14,6 +14,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/x64/cpu_detect.h"
+#include "common/x64/rdtsc.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -167,6 +168,7 @@ static CPUCaps Detect() {
         __cpuid(cpu_id, 0x80000001);
         caps.lzcnt = Common::Bit<5>(cpu_id[2]);
         caps.fma4 = Common::Bit<16>(cpu_id[2]);
+        caps.monitorx = Common::Bit<29>(cpu_id[2]);
     }
 
     if (max_ex_fn >= 0x80000007) {
@@ -187,6 +189,8 @@ static CPUCaps Detect() {
             caps.tsc_frequency = static_cast<u64>(caps.crystal_frequency) *
                                  caps.tsc_crystal_ratio_numerator /
                                  caps.tsc_crystal_ratio_denominator;
+        } else {
+            caps.tsc_frequency = X64::EstimateRDTSCFrequency();
         }
     }
 

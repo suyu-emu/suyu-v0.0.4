@@ -75,15 +75,9 @@ void MasterSemaphore::Refresh() {
 
 void MasterSemaphore::Wait(u64 tick) {
     if (!semaphore) {
-        // If we don't support timeline semaphores, use an atomic wait
-        while (true) {
-            u64 current_value = gpu_tick.load(std::memory_order_relaxed);
-            if (current_value >= tick) {
-                return;
-            }
-            gpu_tick.wait(current_value);
-        }
-
+        // If we don't support timeline semaphores, wait for the value normally
+        std::unique_lock lk{free_mutex};
+        free_cv.wait(lk, [&] { return gpu_tick.load(std::memory_order_relaxed) >= tick; });
         return;
     }
 
@@ -198,11 +192,13 @@ void MasterSemaphore::WaitThread(std::stop_token token) {
 
         fence.Wait();
         fence.Reset();
-        gpu_tick.store(host_tick);
-        gpu_tick.notify_all();
 
-        std::scoped_lock lock{free_mutex};
-        free_queue.push_front(std::move(fence));
+        {
+            std::scoped_lock lock{free_mutex};
+            free_queue.push_front(std::move(fence));
+            gpu_tick.store(host_tick);
+        }
+        free_cv.notify_one();
     }
 }
 

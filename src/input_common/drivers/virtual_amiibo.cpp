@@ -29,20 +29,52 @@ Common::Input::DriverResult VirtualAmiibo::SetPollingMode(
 
     switch (polling_mode) {
     case Common::Input::PollingMode::NFC:
-        if (state == State::Initialized) {
-            state = State::WaitingForAmiibo;
-        }
+        state = State::Initialized;
         return Common::Input::DriverResult::Success;
     default:
-        if (state == State::AmiiboIsOpen) {
+        if (state == State::TagNearby) {
             CloseAmiibo();
         }
+        state = State::Disabled;
         return Common::Input::DriverResult::NotSupported;
     }
 }
 
 Common::Input::NfcState VirtualAmiibo::SupportsNfc(
     [[maybe_unused]] const PadIdentifier& identifier_) const {
+    return Common::Input::NfcState::Success;
+}
+Common::Input::NfcState VirtualAmiibo::StartNfcPolling(const PadIdentifier& identifier_) {
+    if (state != State::Initialized) {
+        return Common::Input::NfcState::WrongDeviceState;
+    }
+    state = State::WaitingForAmiibo;
+    return Common::Input::NfcState::Success;
+}
+
+Common::Input::NfcState VirtualAmiibo::StopNfcPolling(const PadIdentifier& identifier_) {
+    if (state == State::Disabled) {
+        return Common::Input::NfcState::WrongDeviceState;
+    }
+    if (state == State::TagNearby) {
+        CloseAmiibo();
+    }
+    state = State::Initialized;
+    return Common::Input::NfcState::Success;
+}
+
+Common::Input::NfcState VirtualAmiibo::ReadAmiiboData(const PadIdentifier& identifier_,
+                                                      std::vector<u8>& out_data) {
+    if (state != State::TagNearby) {
+        return Common::Input::NfcState::WrongDeviceState;
+    }
+
+    if (status.tag_type != 1U << 1) {
+        return Common::Input::NfcState::InvalidTagType;
+    }
+
+    out_data.resize(nfc_data.size());
+    memcpy(out_data.data(), nfc_data.data(), nfc_data.size());
     return Common::Input::NfcState::Success;
 }
 
@@ -62,6 +94,69 @@ Common::Input::NfcState VirtualAmiibo::WriteNfcData(
     }
 
     nfc_data = data;
+
+    return Common::Input::NfcState::Success;
+}
+
+Common::Input::NfcState VirtualAmiibo::ReadMifareData(const PadIdentifier& identifier_,
+                                                      const Common::Input::MifareRequest& request,
+                                                      Common::Input::MifareRequest& out_data) {
+    if (state != State::TagNearby) {
+        return Common::Input::NfcState::WrongDeviceState;
+    }
+
+    if (status.tag_type != 1U << 6) {
+        return Common::Input::NfcState::InvalidTagType;
+    }
+
+    for (std::size_t i = 0; i < request.data.size(); i++) {
+        if (request.data[i].command == 0) {
+            continue;
+        }
+        out_data.data[i].command = request.data[i].command;
+        out_data.data[i].sector = request.data[i].sector;
+
+        const std::size_t sector_index =
+            request.data[i].sector * sizeof(Common::Input::MifareData::data);
+
+        if (nfc_data.size() < sector_index + sizeof(Common::Input::MifareData::data)) {
+            return Common::Input::NfcState::WriteFailed;
+        }
+
+        // Ignore the sector key as we don't support it
+        memcpy(out_data.data[i].data.data(), nfc_data.data() + sector_index,
+               sizeof(Common::Input::MifareData::data));
+    }
+
+    return Common::Input::NfcState::Success;
+}
+
+Common::Input::NfcState VirtualAmiibo::WriteMifareData(
+    const PadIdentifier& identifier_, const Common::Input::MifareRequest& request) {
+    if (state != State::TagNearby) {
+        return Common::Input::NfcState::WrongDeviceState;
+    }
+
+    if (status.tag_type != 1U << 6) {
+        return Common::Input::NfcState::InvalidTagType;
+    }
+
+    for (std::size_t i = 0; i < request.data.size(); i++) {
+        if (request.data[i].command == 0) {
+            continue;
+        }
+
+        const std::size_t sector_index =
+            request.data[i].sector * sizeof(Common::Input::MifareData::data);
+
+        if (nfc_data.size() < sector_index + sizeof(Common::Input::MifareData::data)) {
+            return Common::Input::NfcState::WriteFailed;
+        }
+
+        // Ignore the sector key as we don't support it
+        memcpy(nfc_data.data() + sector_index, request.data[i].data.data(),
+               sizeof(Common::Input::MifareData::data));
+    }
 
     return Common::Input::NfcState::Success;
 }
@@ -112,23 +207,31 @@ VirtualAmiibo::Info VirtualAmiibo::LoadAmiibo(std::span<u8> data) {
     case AmiiboSizeWithoutPassword:
     case AmiiboSizeWithSignature:
         nfc_data.resize(AmiiboSize);
+        status.tag_type = 1U << 1;
+        status.uuid_length = 7;
         break;
     case MifareSize:
         nfc_data.resize(MifareSize);
+        status.tag_type = 1U << 6;
+        status.uuid_length = 4;
         break;
     default:
         return Info::NotAnAmiibo;
     }
 
-    state = State::AmiiboIsOpen;
+    status.uuid = {};
+    status.protocol = 1;
+    state = State::TagNearby;
+    status.state = Common::Input::NfcState::NewAmiibo,
     memcpy(nfc_data.data(), data.data(), data.size_bytes());
-    SetNfc(identifier, {Common::Input::NfcState::NewAmiibo, nfc_data});
+    memcpy(status.uuid.data(), nfc_data.data(), status.uuid_length);
+    SetNfc(identifier, status);
     return Info::Success;
 }
 
 VirtualAmiibo::Info VirtualAmiibo::ReloadAmiibo() {
-    if (state == State::AmiiboIsOpen) {
-        SetNfc(identifier, {Common::Input::NfcState::NewAmiibo, nfc_data});
+    if (state == State::TagNearby) {
+        SetNfc(identifier, status);
         return Info::Success;
     }
 
@@ -136,9 +239,14 @@ VirtualAmiibo::Info VirtualAmiibo::ReloadAmiibo() {
 }
 
 VirtualAmiibo::Info VirtualAmiibo::CloseAmiibo() {
-    state = polling_mode == Common::Input::PollingMode::NFC ? State::WaitingForAmiibo
-                                                            : State::Initialized;
-    SetNfc(identifier, {Common::Input::NfcState::AmiiboRemoved, {}});
+    if (state != State::TagNearby) {
+        return Info::Success;
+    }
+
+    state = State::WaitingForAmiibo;
+    status.state = Common::Input::NfcState::AmiiboRemoved;
+    SetNfc(identifier, status);
+    status.tag_type = 0;
     return Info::Success;
 }
 

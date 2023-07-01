@@ -14,6 +14,7 @@
 #include <android/api-level.h>
 #include <android/native_window_jni.h>
 #include <core/loader/nro.h>
+#include <jni.h>
 
 #include "common/detached_tasks.h"
 #include "common/dynamic_library.h"
@@ -59,6 +60,9 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
 
+#define jconst [[maybe_unused]] const auto
+#define jauto [[maybe_unused]] auto
+
 namespace {
 
 class EmulationSession final {
@@ -98,8 +102,8 @@ public:
     }
 
     int InstallFileToNand(std::string filename) {
-        const auto copy_func = [](const FileSys::VirtualFile& src, const FileSys::VirtualFile& dest,
-                                  std::size_t block_size) {
+        jconst copy_func = [](const FileSys::VirtualFile& src, const FileSys::VirtualFile& dest,
+                              std::size_t block_size) {
             if (src == nullptr || dest == nullptr) {
                 return false;
             }
@@ -108,10 +112,10 @@ public:
             }
 
             using namespace Common::Literals;
-            std::vector<u8> buffer(1_MiB);
+            [[maybe_unused]] std::vector<u8> buffer(1_MiB);
 
             for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
-                const auto read = src->Read(buffer.data(), buffer.size(), i);
+                jconst read = src->Read(buffer.data(), buffer.size(), i);
                 dest->Write(buffer.data(), read, i);
             }
             return true;
@@ -128,14 +132,14 @@ public:
         m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
         m_system.GetFileSystemController().CreateFactories(*m_vfs);
 
-        std::shared_ptr<FileSys::NSP> nsp;
+        [[maybe_unused]] std::shared_ptr<FileSys::NSP> nsp;
         if (filename.ends_with("nsp")) {
             nsp = std::make_shared<FileSys::NSP>(m_vfs->OpenFile(filename, FileSys::Mode::Read));
             if (nsp->IsExtractedType()) {
                 return InstallError;
             }
         } else if (filename.ends_with("xci")) {
-            const auto xci =
+            jconst xci =
                 std::make_shared<FileSys::XCI>(m_vfs->OpenFile(filename, FileSys::Mode::Read));
             nsp = xci->GetSecurePartitionNSP();
         } else {
@@ -150,7 +154,7 @@ public:
             return InstallError;
         }
 
-        const auto res = m_system.GetFileSystemController().GetUserNANDContents()->InstallEntry(
+        jconst res = m_system.GetFileSystemController().GetUserNANDContents()->InstallEntry(
             *nsp, true, copy_func);
 
         switch (res) {
@@ -233,10 +237,11 @@ public:
         m_system.SetFilesystem(m_vfs);
 
         // Initialize system.
-        auto android_keyboard = std::make_unique<SoftwareKeyboard::AndroidKeyboard>();
+        jauto android_keyboard = std::make_unique<SoftwareKeyboard::AndroidKeyboard>();
         m_software_keyboard = android_keyboard.get();
         m_system.SetShuttingDown(false);
         m_system.ApplySettings();
+        Settings::LogSettings();
         m_system.HIDCore().ReloadInputDevices();
         m_system.SetAppletFrontendSet({
             nullptr,                     // Amiibo Settings
@@ -330,7 +335,7 @@ public:
 
         while (true) {
             {
-                std::unique_lock lock(m_mutex);
+                [[maybe_unused]] std::unique_lock lock(m_mutex);
                 if (m_cv.wait_for(lock, std::chrono::milliseconds(800),
                                   [&]() { return !m_is_running; })) {
                     // Emulation halted.
@@ -362,7 +367,7 @@ public:
     }
 
     bool IsHandheldOnly() {
-        const auto npad_style_set = m_system.HIDCore().GetSupportedStyleTag();
+        jconst npad_style_set = m_system.HIDCore().GetSupportedStyleTag();
 
         if (npad_style_set.fullkey == 1) {
             return false;
@@ -375,17 +380,17 @@ public:
         return !Settings::values.use_docked_mode.GetValue();
     }
 
-    void SetDeviceType(int index, int type) {
-        auto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
+    void SetDeviceType([[maybe_unused]] int index, int type) {
+        jauto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
         controller->SetNpadStyleIndex(static_cast<Core::HID::NpadStyleIndex>(type));
     }
 
-    void OnGamepadConnectEvent(int index) {
-        auto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
+    void OnGamepadConnectEvent([[maybe_unused]] int index) {
+        jauto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
 
         // Ensure that player1 is configured correctly and handheld disconnected
         if (controller->GetNpadIdType() == Core::HID::NpadIdType::Player1) {
-            auto handheld =
+            jauto handheld =
                 m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
 
             if (controller->GetNpadStyleIndex() == Core::HID::NpadStyleIndex::Handheld) {
@@ -397,7 +402,8 @@ public:
 
         // Ensure that handheld is configured correctly and player 1 disconnected
         if (controller->GetNpadIdType() == Core::HID::NpadIdType::Handheld) {
-            auto player1 = m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+            jauto player1 =
+                m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
 
             if (controller->GetNpadStyleIndex() != Core::HID::NpadStyleIndex::Handheld) {
                 player1->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Handheld);
@@ -411,8 +417,8 @@ public:
         }
     }
 
-    void OnGamepadDisconnectEvent(int index) {
-        auto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
+    void OnGamepadDisconnectEvent([[maybe_unused]] int index) {
+        jauto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
         controller->Disconnect();
     }
 
@@ -428,7 +434,7 @@ private:
     };
 
     RomMetadata GetRomMetadata(const std::string& path) {
-        if (auto search = m_rom_metadata_cache.find(path); search != m_rom_metadata_cache.end()) {
+        if (jauto search = m_rom_metadata_cache.find(path); search != m_rom_metadata_cache.end()) {
             return search->second;
         }
 
@@ -436,14 +442,14 @@ private:
     }
 
     RomMetadata CacheRomMetadata(const std::string& path) {
-        const auto file = Core::GetGameFileFromPath(m_vfs, path);
-        auto loader = Loader::GetLoader(EmulationSession::GetInstance().System(), file, 0, 0);
+        jconst file = Core::GetGameFileFromPath(m_vfs, path);
+        jauto loader = Loader::GetLoader(EmulationSession::GetInstance().System(), file, 0, 0);
 
         RomMetadata entry;
         loader->ReadTitle(entry.title);
         loader->ReadIcon(entry.icon);
         if (loader->GetFileType() == Loader::FileType::NRO) {
-            auto loader_nro = dynamic_cast<Loader::AppLoader_NRO*>(loader.get());
+            jauto loader_nro = dynamic_cast<Loader::AppLoader_NRO*>(loader.get());
             entry.isHomebrew = loader_nro->IsHomebrew();
         } else {
             entry.isHomebrew = false;
@@ -514,7 +520,7 @@ static Core::SystemResultStatus RunEmulation(const std::string& filepath) {
 
     SCOPE_EXIT({ EmulationSession::GetInstance().ShutdownEmulation(); });
 
-    const auto result = EmulationSession::GetInstance().InitializeEmulation(filepath);
+    jconst result = EmulationSession::GetInstance().InitializeEmulation(filepath);
     if (result != Core::SystemResultStatus::Success) {
         return result;
     }
@@ -526,83 +532,104 @@ static Core::SystemResultStatus RunEmulation(const std::string& filepath) {
 
 extern "C" {
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_surfaceChanged(JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz,
-                                                          jobject surf) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_surfaceChanged(JNIEnv* env, jobject instance,
+                                                          [[maybe_unused]] jobject surf) {
     EmulationSession::GetInstance().SetNativeWindow(ANativeWindow_fromSurface(env, surf));
     EmulationSession::GetInstance().SurfaceChanged();
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_surfaceDestroyed(JNIEnv* env,
-                                                            [[maybe_unused]] jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_surfaceDestroyed(JNIEnv* env, jobject instance) {
     ANativeWindow_release(EmulationSession::GetInstance().NativeWindow());
     EmulationSession::GetInstance().SetNativeWindow(nullptr);
     EmulationSession::GetInstance().SurfaceChanged();
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_setAppDirectory(JNIEnv* env,
-                                                           [[maybe_unused]] jclass clazz,
-                                                           jstring j_directory) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_setAppDirectory(JNIEnv* env, jobject instance,
+                                                           [[maybe_unused]] jstring j_directory) {
     Common::FS::SetAppDirectory(GetJString(env, j_directory));
 }
 
-int Java_org_yuzu_yuzu_1emu_NativeLibrary_installFileToNand(JNIEnv* env,
-                                                            [[maybe_unused]] jclass clazz,
-                                                            jstring j_file) {
+int Java_org_yuzu_yuzu_1emu_NativeLibrary_installFileToNand(JNIEnv* env, jobject instance,
+                                                            [[maybe_unused]] jstring j_file) {
     return EmulationSession::GetInstance().InstallFileToNand(GetJString(env, j_file));
 }
 
-void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeGpuDriver(
-    JNIEnv* env, [[maybe_unused]] jclass clazz, jstring hook_lib_dir, jstring custom_driver_dir,
-    jstring custom_driver_name, jstring file_redirect_dir) {
+void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeGpuDriver(JNIEnv* env, jclass clazz,
+                                                                       jstring hook_lib_dir,
+                                                                       jstring custom_driver_dir,
+                                                                       jstring custom_driver_name,
+                                                                       jstring file_redirect_dir) {
     EmulationSession::GetInstance().InitializeGpuDriver(
         GetJString(env, hook_lib_dir), GetJString(env, custom_driver_dir),
         GetJString(env, custom_driver_name), GetJString(env, file_redirect_dir));
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_reloadKeys(JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz) {
+[[maybe_unused]] static bool CheckKgslPresent() {
+    constexpr auto KgslPath{"/dev/kgsl-3d0"};
+
+    return access(KgslPath, F_OK) == 0;
+}
+
+[[maybe_unused]] bool SupportsCustomDriver() {
+    return android_get_device_api_level() >= 28 && CheckKgslPresent();
+}
+
+jboolean JNICALL Java_org_yuzu_yuzu_1emu_utils_GpuDriverHelper_supportsCustomDriverLoading(
+    JNIEnv* env, jobject instance) {
+#ifdef ARCHITECTURE_arm64
+    // If the KGSL device exists custom drivers can be loaded using adrenotools
+    return SupportsCustomDriver();
+#else
+    return false;
+#endif
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_reloadKeys(JNIEnv* env, jclass clazz) {
     Core::Crypto::KeyManager::Instance().ReloadKeys();
     return static_cast<jboolean>(Core::Crypto::KeyManager::Instance().AreKeysLoaded());
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_unPauseEmulation([[maybe_unused]] JNIEnv* env,
-                                                            [[maybe_unused]] jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_unpauseEmulation(JNIEnv* env, jclass clazz) {
     EmulationSession::GetInstance().UnPauseEmulation();
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_pauseEmulation([[maybe_unused]] JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_pauseEmulation(JNIEnv* env, jclass clazz) {
     EmulationSession::GetInstance().PauseEmulation();
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_stopEmulation([[maybe_unused]] JNIEnv* env,
-                                                         [[maybe_unused]] jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_stopEmulation(JNIEnv* env, jclass clazz) {
     EmulationSession::GetInstance().HaltEmulation();
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_resetRomMetadata([[maybe_unused]] JNIEnv* env,
-                                                            [[maybe_unused]] jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_resetRomMetadata(JNIEnv* env, jclass clazz) {
     EmulationSession::GetInstance().ResetRomMetadata();
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isRunning([[maybe_unused]] JNIEnv* env,
-                                                         [[maybe_unused]] jclass clazz) {
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isRunning(JNIEnv* env, jclass clazz) {
     return static_cast<jboolean>(EmulationSession::GetInstance().IsRunning());
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isPaused([[maybe_unused]] JNIEnv* env,
-                                                        [[maybe_unused]] jclass clazz) {
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isPaused(JNIEnv* env, jclass clazz) {
     return static_cast<jboolean>(EmulationSession::GetInstance().IsPaused());
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isHandheldOnly([[maybe_unused]] JNIEnv* env,
-                                                              [[maybe_unused]] jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_muteAduio(JNIEnv* env, jclass clazz) {
+    Settings::values.audio_muted = true;
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_unmuteAudio(JNIEnv* env, jclass clazz) {
+    Settings::values.audio_muted = false;
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isMuted(JNIEnv* env, jclass clazz) {
+    return static_cast<jboolean>(Settings::values.audio_muted.GetValue());
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isHandheldOnly(JNIEnv* env, jclass clazz) {
     return EmulationSession::GetInstance().IsHandheldOnly();
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_setDeviceType([[maybe_unused]] JNIEnv* env,
-                                                             [[maybe_unused]] jclass clazz,
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_setDeviceType(JNIEnv* env, jclass clazz,
                                                              jint j_device, jint j_type) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().SetDeviceType(j_device, j_type);
@@ -610,8 +637,7 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_setDeviceType([[maybe_unused]] JN
     return static_cast<jboolean>(true);
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadConnectEvent([[maybe_unused]] JNIEnv* env,
-                                                                     [[maybe_unused]] jclass clazz,
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadConnectEvent(JNIEnv* env, jclass clazz,
                                                                      jint j_device) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().OnGamepadConnectEvent(j_device);
@@ -619,17 +645,16 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadConnectEvent([[maybe_unu
     return static_cast<jboolean>(true);
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadDisconnectEvent(
-    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz, jint j_device) {
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadDisconnectEvent(JNIEnv* env, jclass clazz,
+                                                                        jint j_device) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().OnGamepadDisconnectEvent(j_device);
     }
     return static_cast<jboolean>(true);
 }
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadButtonEvent([[maybe_unused]] JNIEnv* env,
-                                                                    [[maybe_unused]] jclass clazz,
-                                                                    [[maybe_unused]] jint j_device,
-                                                                    jint j_button, jint action) {
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadButtonEvent(JNIEnv* env, jclass clazz,
+                                                                    jint j_device, jint j_button,
+                                                                    jint action) {
     if (EmulationSession::GetInstance().IsRunning()) {
         // Ensure gamepad is connected
         EmulationSession::GetInstance().OnGamepadConnectEvent(j_device);
@@ -639,8 +664,7 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadButtonEvent([[maybe_unus
     return static_cast<jboolean>(true);
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadJoystickEvent([[maybe_unused]] JNIEnv* env,
-                                                                      [[maybe_unused]] jclass clazz,
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadJoystickEvent(JNIEnv* env, jclass clazz,
                                                                       jint j_device, jint stick_id,
                                                                       jfloat x, jfloat y) {
     if (EmulationSession::GetInstance().IsRunning()) {
@@ -650,9 +674,8 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadJoystickEvent([[maybe_un
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMotionEvent(
-    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz, jint j_device,
-    jlong delta_timestamp, jfloat gyro_x, jfloat gyro_y, jfloat gyro_z, jfloat accel_x,
-    jfloat accel_y, jfloat accel_z) {
+    JNIEnv* env, jclass clazz, jint j_device, jlong delta_timestamp, jfloat gyro_x, jfloat gyro_y,
+    jfloat gyro_z, jfloat accel_x, jfloat accel_y, jfloat accel_z) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().Window().OnGamepadMotionEvent(
             j_device, delta_timestamp, gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z);
@@ -660,8 +683,7 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMotionEvent(
     return static_cast<jboolean>(true);
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onReadNfcTag([[maybe_unused]] JNIEnv* env,
-                                                            [[maybe_unused]] jclass clazz,
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onReadNfcTag(JNIEnv* env, jclass clazz,
                                                             jbyteArray j_data) {
     jboolean isCopy{false};
     std::span<u8> data(reinterpret_cast<u8*>(env->GetByteArrayElements(j_data, &isCopy)),
@@ -673,108 +695,92 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onReadNfcTag([[maybe_unused]] JNI
     return static_cast<jboolean>(true);
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onRemoveNfcTag([[maybe_unused]] JNIEnv* env,
-                                                              [[maybe_unused]] jclass clazz) {
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onRemoveNfcTag(JNIEnv* env, jclass clazz) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().Window().OnRemoveNfcTag();
     }
     return static_cast<jboolean>(true);
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchPressed([[maybe_unused]] JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz, jint id,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchPressed(JNIEnv* env, jclass clazz, jint id,
                                                           jfloat x, jfloat y) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().Window().OnTouchPressed(id, x, y);
     }
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchMoved([[maybe_unused]] JNIEnv* env,
-                                                        [[maybe_unused]] jclass clazz, jint id,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchMoved(JNIEnv* env, jclass clazz, jint id,
                                                         jfloat x, jfloat y) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().Window().OnTouchMoved(id, x, y);
     }
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchReleased([[maybe_unused]] JNIEnv* env,
-                                                           [[maybe_unused]] jclass clazz, jint id) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchReleased(JNIEnv* env, jclass clazz, jint id) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().Window().OnTouchReleased(id);
     }
 }
 
-jbyteArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getIcon([[maybe_unused]] JNIEnv* env,
-                                                         [[maybe_unused]] jclass clazz,
-                                                         [[maybe_unused]] jstring j_filename) {
-    auto icon_data = EmulationSession::GetInstance().GetRomIcon(GetJString(env, j_filename));
+jbyteArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getIcon(JNIEnv* env, jclass clazz,
+                                                         jstring j_filename) {
+    jauto icon_data = EmulationSession::GetInstance().GetRomIcon(GetJString(env, j_filename));
     jbyteArray icon = env->NewByteArray(static_cast<jsize>(icon_data.size()));
     env->SetByteArrayRegion(icon, 0, env->GetArrayLength(icon),
                             reinterpret_cast<jbyte*>(icon_data.data()));
     return icon;
 }
 
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getTitle([[maybe_unused]] JNIEnv* env,
-                                                       [[maybe_unused]] jclass clazz,
-                                                       [[maybe_unused]] jstring j_filename) {
-    auto title = EmulationSession::GetInstance().GetRomTitle(GetJString(env, j_filename));
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getTitle(JNIEnv* env, jclass clazz,
+                                                       jstring j_filename) {
+    jauto title = EmulationSession::GetInstance().GetRomTitle(GetJString(env, j_filename));
     return env->NewStringUTF(title.c_str());
 }
 
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getDescription([[maybe_unused]] JNIEnv* env,
-                                                             [[maybe_unused]] jclass clazz,
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getDescription(JNIEnv* env, jclass clazz,
                                                              jstring j_filename) {
     return j_filename;
 }
 
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getGameId([[maybe_unused]] JNIEnv* env,
-                                                        [[maybe_unused]] jclass clazz,
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getGameId(JNIEnv* env, jclass clazz,
                                                         jstring j_filename) {
     return j_filename;
 }
 
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getRegions([[maybe_unused]] JNIEnv* env,
-                                                         [[maybe_unused]] jclass clazz,
-                                                         [[maybe_unused]] jstring j_filename) {
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getRegions(JNIEnv* env, jclass clazz,
+                                                         jstring j_filename) {
     return env->NewStringUTF("");
 }
 
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCompany([[maybe_unused]] JNIEnv* env,
-                                                         [[maybe_unused]] jclass clazz,
-                                                         [[maybe_unused]] jstring j_filename) {
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCompany(JNIEnv* env, jclass clazz,
+                                                         jstring j_filename) {
     return env->NewStringUTF("");
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isHomebrew([[maybe_unused]] JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz,
-                                                          [[maybe_unused]] jstring j_filename) {
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isHomebrew(JNIEnv* env, jclass clazz,
+                                                          jstring j_filename) {
     return EmulationSession::GetInstance().GetIsHomebrew(GetJString(env, j_filename));
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmulation
-    [[maybe_unused]] (JNIEnv* env, [[maybe_unused]] jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmulation(JNIEnv* env, jclass clazz) {
     // Create the default config.ini.
     Config{};
     // Initialize the emulated system.
     EmulationSession::GetInstance().System().Initialize();
 }
 
-jint Java_org_yuzu_yuzu_1emu_NativeLibrary_defaultCPUCore([[maybe_unused]] JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz) {
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_defaultCPUCore(JNIEnv* env, jclass clazz) {
     return {};
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_run__Ljava_lang_String_2Ljava_lang_String_2Z(
-    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz, [[maybe_unused]] jstring j_file,
-    [[maybe_unused]] jstring j_savestate, [[maybe_unused]] jboolean j_delete_savestate) {}
+    JNIEnv* env, jclass clazz, jstring j_file, jstring j_savestate, jboolean j_delete_savestate) {}
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_reloadSettings([[maybe_unused]] JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_reloadSettings(JNIEnv* env, jclass clazz) {
     Config{};
 }
 
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getUserSetting([[maybe_unused]] JNIEnv* env,
-                                                             [[maybe_unused]] jclass clazz,
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getUserSetting(JNIEnv* env, jclass clazz,
                                                              jstring j_game_id, jstring j_section,
                                                              jstring j_key) {
     std::string_view game_id = env->GetStringUTFChars(j_game_id, 0);
@@ -788,8 +794,7 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getUserSetting([[maybe_unused]] JN
     return env->NewStringUTF("");
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_setUserSetting([[maybe_unused]] JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_setUserSetting(JNIEnv* env, jclass clazz,
                                                           jstring j_game_id, jstring j_section,
                                                           jstring j_key, jstring j_value) {
     std::string_view game_id = env->GetStringUTFChars(j_game_id, 0);
@@ -803,20 +808,18 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_setUserSetting([[maybe_unused]] JNIEn
     env->ReleaseStringUTFChars(j_value, value.data());
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_initGameIni([[maybe_unused]] JNIEnv* env,
-                                                       [[maybe_unused]] jclass clazz,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_initGameIni(JNIEnv* env, jclass clazz,
                                                        jstring j_game_id) {
     std::string_view game_id = env->GetStringUTFChars(j_game_id, 0);
 
     env->ReleaseStringUTFChars(j_game_id, game_id.data());
 }
 
-jdoubleArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPerfStats([[maybe_unused]] JNIEnv* env,
-                                                                [[maybe_unused]] jclass clazz) {
+jdoubleArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPerfStats(JNIEnv* env, jclass clazz) {
     jdoubleArray j_stats = env->NewDoubleArray(4);
 
     if (EmulationSession::GetInstance().IsRunning()) {
-        const auto results = EmulationSession::GetInstance().PerfStats();
+        jconst results = EmulationSession::GetInstance().PerfStats();
 
         // Converting the structure into an array makes it easier to pass it to the frontend
         double stats[4] = {results.system_fps, results.average_game_fps, results.frametime,
@@ -828,11 +831,11 @@ jdoubleArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPerfStats([[maybe_unused]]
     return j_stats;
 }
 
-void Java_org_yuzu_yuzu_1emu_utils_DirectoryInitialization_setSysDirectory(
-    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz, jstring j_path) {}
+void Java_org_yuzu_yuzu_1emu_utils_DirectoryInitialization_setSysDirectory(JNIEnv* env,
+                                                                           jclass clazz,
+                                                                           jstring j_path) {}
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_run__Ljava_lang_String_2([[maybe_unused]] JNIEnv* env,
-                                                                    [[maybe_unused]] jclass clazz,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_run__Ljava_lang_String_2(JNIEnv* env, jclass clazz,
                                                                     jstring j_path) {
     const std::string path = GetJString(env, j_path);
 
@@ -843,8 +846,7 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_run__Ljava_lang_String_2([[maybe_unus
     }
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_logDeviceInfo([[maybe_unused]] JNIEnv* env,
-                                                         [[maybe_unused]] jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_logDeviceInfo(JNIEnv* env, jclass clazz) {
     LOG_INFO(Frontend, "yuzu Version: {}-{}", Common::g_scm_branch, Common::g_scm_desc);
     LOG_INFO(Frontend, "Host OS: Android API level {}", android_get_device_api_level());
 }

@@ -22,6 +22,8 @@
 #include <adrenotools/bcenabler.h>
 #endif
 
+#include <vk_mem_alloc.h>
+
 namespace Vulkan {
 using namespace Common::Literals;
 namespace {
@@ -316,6 +318,7 @@ NvidiaArchitecture GetNvidiaArchitecture(vk::PhysicalDevice physical,
 std::vector<const char*> ExtensionListForVulkan(
     const std::set<std::string, std::less<>>& extensions) {
     std::vector<const char*> output;
+    output.reserve(extensions.size());
     for (const auto& extension : extensions) {
         output.push_back(extension.c_str());
     }
@@ -346,7 +349,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_s8gen2 = device_id == 0x43050a01;
     const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
-    if ((is_mvk || is_qualcomm || is_turnip) && !is_suitable) {
+    if ((is_mvk || is_qualcomm || is_turnip || is_arm) && !is_suitable) {
         LOG_WARNING(Render_Vulkan, "Unsuitable driver, continuing anyway");
     } else if (!is_suitable) {
         throw vk::Exception(VK_ERROR_INCOMPATIBLE_DRIVER);
@@ -525,6 +528,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     sets_per_pool = 64;
+    if (extensions.extended_dynamic_state3 && is_amd_driver &&
+        properties.properties.driverVersion >= VK_MAKE_API_VERSION(0, 2, 0, 270)) {
+        LOG_WARNING(Render_Vulkan,
+                    "AMD drivers after 23.5.2 have broken extendedDynamicState3ColorBlendEquation");
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+        dynamic_state3_blending = false;
+    }
     if (is_amd_driver) {
         // AMD drivers need a higher amount of Sets per Pool in certain circumstances like in XC2.
         sets_per_pool = 96;
@@ -562,6 +573,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan, "Intel proprietary drivers do not support MSAA image blits");
         cant_blit_msaa = true;
     }
+    has_broken_compute =
+        CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) &&
+        !Settings::values.enable_compute_pipelines.GetValue();
     if (is_intel_anv || (is_qualcomm && !is_s8gen2)) {
         LOG_WARNING(Render_Vulkan, "Driver does not support native BGR format");
         must_emulate_bgr565 = true;
@@ -592,9 +606,31 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     graphics_queue = logical.GetQueue(graphics_family);
     present_queue = logical.GetQueue(present_family);
+
+    VmaVulkanFunctions functions{};
+    functions.vkGetInstanceProcAddr = dld.vkGetInstanceProcAddr;
+    functions.vkGetDeviceProcAddr = dld.vkGetDeviceProcAddr;
+
+    const VmaAllocatorCreateInfo allocator_info = {
+        .flags = VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT,
+        .physicalDevice = physical,
+        .device = *logical,
+        .preferredLargeHeapBlockSize = 0,
+        .pAllocationCallbacks = nullptr,
+        .pDeviceMemoryCallbacks = nullptr,
+        .pHeapSizeLimit = nullptr,
+        .pVulkanFunctions = &functions,
+        .instance = instance,
+        .vulkanApiVersion = VK_API_VERSION_1_1,
+        .pTypeExternalMemoryHandleTypes = nullptr,
+    };
+
+    vk::Check(vmaCreateAllocator(&allocator_info, &allocator));
 }
 
-Device::~Device() = default;
+Device::~Device() {
+    vmaDestroyAllocator(allocator);
+}
 
 VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
                                     FormatType format_type) const {
@@ -876,6 +912,10 @@ bool Device::GetSuitability(bool requires_swapchain) {
     // Get driver info.
     properties.driver.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
     SetNext(next, properties.driver);
+
+    // Retrieve subgroup properties.
+    properties.subgroup_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;
+    SetNext(next, properties.subgroup_properties);
 
     // Retrieve relevant extension properties.
     if (extensions.shader_float_controls) {

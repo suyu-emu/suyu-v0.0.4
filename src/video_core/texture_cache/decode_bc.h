@@ -6,10 +6,14 @@
 #include <span>
 
 #include "common/common_types.h"
+#include "video_core/surface.h"
 #include "video_core/texture_cache/types.h"
 
 namespace VideoCommon {
 
-void DecompressBC4(std::span<const u8> data, Extent3D extent, std::span<u8> output);
+[[nodiscard]] u32 ConvertedBytesPerBlock(VideoCore::Surface::PixelFormat pixel_format);
+
+void DecompressBCn(std::span<const u8> input, std::span<u8> output, Extent3D extent,
+                   VideoCore::Surface::PixelFormat pixel_format);
 
 } // namespace VideoCommon

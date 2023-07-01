@@ -12,6 +12,7 @@
 #include <fmt/format.h>
 
 #include "common/logging/log.h"
+#include "common/polyfill_ranges.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "common/telemetry.h"
@@ -65,6 +66,21 @@ std::string BuildCommaSeparatedExtensions(
     return fmt::format("{}", fmt::join(available_extensions, ","));
 }
 
+DebugCallback MakeDebugCallback(const vk::Instance& instance, const vk::InstanceDispatch& dld) {
+    if (!Settings::values.renderer_debug) {
+        return DebugCallback{};
+    }
+    const std::optional properties = vk::EnumerateInstanceExtensionProperties(dld);
+    const auto it = std::ranges::find_if(*properties, [](const auto& prop) {
+        return std::strcmp(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, prop.extensionName) == 0;
+    });
+    if (it != properties->end()) {
+        return CreateDebugUtilsCallback(instance);
+    } else {
+        return CreateDebugReportCallback(instance);
+    }
+}
+
 } // Anonymous namespace
 
 Device CreateDevice(const vk::Instance& instance, const vk::InstanceDispatch& dld,
@@ -87,10 +103,10 @@ RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
       cpu_memory(cpu_memory_), gpu(gpu_), library(OpenLibrary(context.get())),
       instance(CreateInstance(*library, dld, VK_API_VERSION_1_1, render_window.GetWindowInfo().type,
                               Settings::values.renderer_debug.GetValue())),
-      debug_callback(Settings::values.renderer_debug ? CreateDebugCallback(instance) : nullptr),
+      debug_callback(MakeDebugCallback(instance, dld)),
       surface(CreateSurface(instance, render_window.GetWindowInfo())),
-      device(CreateDevice(instance, dld, *surface)), memory_allocator(device, false),
-      state_tracker(), scheduler(device, state_tracker),
+      device(CreateDevice(instance, dld, *surface)), memory_allocator(device), state_tracker(),
+      scheduler(device, state_tracker),
       swapchain(*surface, device, scheduler, render_window.GetFramebufferLayout().width,
                 render_window.GetFramebufferLayout().height, false),
       present_manager(instance, render_window, device, memory_allocator, scheduler, swapchain,
@@ -173,7 +189,7 @@ void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& fr
         return;
     }
     const Layout::FramebufferLayout layout{renderer_settings.screenshot_framebuffer_layout};
-    vk::Image staging_image = device.GetLogical().CreateImage(VkImageCreateInfo{
+    vk::Image staging_image = memory_allocator.CreateImage(VkImageCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
         .flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT,
@@ -196,7 +212,6 @@ void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& fr
         .pQueueFamilyIndices = nullptr,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     });
-    const auto image_commit = memory_allocator.Commit(staging_image, MemoryUsage::DeviceLocal);
 
     const vk::ImageView dst_view = device.GetLogical().CreateImageView(VkImageViewCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -234,8 +249,8 @@ void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& fr
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
     };
-    const vk::Buffer dst_buffer = device.GetLogical().CreateBuffer(dst_buffer_info);
-    MemoryCommit dst_buffer_memory = memory_allocator.Commit(dst_buffer, MemoryUsage::Download);
+    const vk::Buffer dst_buffer =
+        memory_allocator.CreateBuffer(dst_buffer_info, MemoryUsage::Download);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([&](vk::CommandBuffer cmdbuf) {
@@ -309,8 +324,9 @@ void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& fr
     scheduler.Finish();
 
     // Copy backing image data to the QImage screenshot buffer
-    const auto dst_memory_map = dst_buffer_memory.Map();
-    std::memcpy(renderer_settings.screenshot_bits, dst_memory_map.data(), dst_memory_map.size());
+    dst_buffer.Invalidate();
+    std::memcpy(renderer_settings.screenshot_bits, dst_buffer.Mapped().data(),
+                dst_buffer.Mapped().size());
     renderer_settings.screenshot_complete_callback(false);
     renderer_settings.screenshot_requested = false;
 }

@@ -29,7 +29,6 @@ import org.yuzu.yuzu_emu.layout.AutofitGridLayoutManager
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
-import org.yuzu.yuzu_emu.utils.FileUtil
 
 class SearchFragment : Fragment() {
     private var _binding: FragmentSearchBinding? = null
@@ -128,10 +127,7 @@ class SearchFragment : Fragment() {
 
             R.id.chip_homebrew -> baseList.filter { it.isHomebrew }
 
-            R.id.chip_retail -> baseList.filter {
-                FileUtil.hasExtension(it.path, "xci") ||
-                    FileUtil.hasExtension(it.path, "nsp")
-            }
+            R.id.chip_retail -> baseList.filter { !it.isHomebrew }
 
             else -> baseList
         }

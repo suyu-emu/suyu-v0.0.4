@@ -56,7 +56,7 @@ struct ImageViewInOut {
 struct AsyncDecodeContext {
     ImageId image_id;
     Common::ScratchBuffer<u8> decoded_data;
-    std::vector<BufferImageCopy> copies;
+    boost::container::small_vector<BufferImageCopy, 16> copies;
     std::mutex mutex;
     std::atomic_bool complete;
 };
@@ -178,9 +178,8 @@ public:
     void SynchronizeComputeDescriptors();
 
     /// Updates the Render Targets if they can be rescaled
-    /// @param is_clear True when the render targets are being used for clears
     /// @retval True if the Render Targets have been rescaled.
-    bool RescaleRenderTargets(bool is_clear);
+    bool RescaleRenderTargets();
 
     /// Update bound render targets and upload memory if necessary
     /// @param is_clear True when the render targets are being used for clears
@@ -336,14 +335,13 @@ private:
     [[nodiscard]] SamplerId FindSampler(const TSCEntry& config);
 
     /// Find or create an image view for the given color buffer index
-    [[nodiscard]] ImageViewId FindColorBuffer(size_t index, bool is_clear);
+    [[nodiscard]] ImageViewId FindColorBuffer(size_t index);
 
     /// Find or create an image view for the depth buffer
-    [[nodiscard]] ImageViewId FindDepthBuffer(bool is_clear);
+    [[nodiscard]] ImageViewId FindDepthBuffer();
 
     /// Find or create a view for a render target with the given image parameters
-    [[nodiscard]] ImageViewId FindRenderTargetView(const ImageInfo& info, GPUVAddr gpu_addr,
-                                                   bool is_clear);
+    [[nodiscard]] ImageViewId FindRenderTargetView(const ImageInfo& info, GPUVAddr gpu_addr);
 
     /// Iterates over all the images in a region calling func
     template <typename Func>
@@ -431,7 +429,7 @@ private:
 
     std::unordered_map<u64, std::vector<ImageMapId>, Common::IdentityHash<u64>> page_table;
     std::unordered_map<u64, std::vector<ImageId>, Common::IdentityHash<u64>> sparse_page_table;
-    std::unordered_map<ImageId, std::vector<ImageViewId>> sparse_views;
+    std::unordered_map<ImageId, boost::container::small_vector<ImageViewId, 16>> sparse_views;
 
     VAddr virtual_invalid_space{};
 

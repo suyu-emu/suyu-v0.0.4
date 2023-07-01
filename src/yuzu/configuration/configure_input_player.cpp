@@ -23,6 +23,7 @@
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_input_player.h"
 #include "yuzu/configuration/configure_input_player_widget.h"
+#include "yuzu/configuration/configure_mouse_panning.h"
 #include "yuzu/configuration/input_profiles.h"
 #include "yuzu/util/limitable_input_dialog.h"
 
@@ -709,6 +710,21 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
             param.Set("modifier_scale", slider_value / 100.0f);
             emulated_controller->SetStickParam(analog_id, param);
         });
+    }
+
+    if (player_index_ == 0) {
+        connect(ui->mousePanningButton, &QPushButton::clicked, [this, input_subsystem_] {
+            const auto right_stick_param =
+                emulated_controller->GetStickParam(Settings::NativeAnalog::RStick);
+            ConfigureMousePanning dialog(this, input_subsystem_,
+                                         right_stick_param.Get("deadzone", 0.0f),
+                                         right_stick_param.Get("range", 1.0f));
+            if (dialog.exec() == QDialog::Accepted) {
+                dialog.ApplyConfiguration();
+            }
+        });
+    } else {
+        ui->mousePanningWidget->hide();
     }
 
     // Player Connected checkbox

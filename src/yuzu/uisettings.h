@@ -77,6 +77,8 @@ struct Values {
     Settings::Setting<bool> pause_when_in_background{false, "pauseWhenInBackground"};
     Settings::Setting<bool> mute_when_in_background{false, "muteWhenInBackground"};
     Settings::Setting<bool> hide_mouse{true, "hideInactiveMouse"};
+    Settings::Setting<bool> controller_applet_disabled{false, "disableControllerApplet"};
+
     // Set when Vulkan is known to crash the application
     bool has_broken_vulkan = false;
 

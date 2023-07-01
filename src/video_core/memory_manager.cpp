@@ -111,7 +111,7 @@ GPUVAddr MemoryManager::PageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr cp
         [[maybe_unused]] const auto current_entry_type = GetEntry<false>(current_gpu_addr);
         SetEntry<false>(current_gpu_addr, entry_type);
         if (current_entry_type != entry_type) {
-            rasterizer->ModifyGPUMemory(unique_identifier, gpu_addr, page_size);
+            rasterizer->ModifyGPUMemory(unique_identifier, current_gpu_addr, page_size);
         }
         if constexpr (entry_type == EntryType::Mapped) {
             const VAddr current_cpu_addr = cpu_addr + offset;
@@ -134,7 +134,7 @@ GPUVAddr MemoryManager::BigPageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr
         [[maybe_unused]] const auto current_entry_type = GetEntry<true>(current_gpu_addr);
         SetEntry<true>(current_gpu_addr, entry_type);
         if (current_entry_type != entry_type) {
-            rasterizer->ModifyGPUMemory(unique_identifier, gpu_addr, big_page_size);
+            rasterizer->ModifyGPUMemory(unique_identifier, current_gpu_addr, big_page_size);
         }
         if constexpr (entry_type == EntryType::Mapped) {
             const VAddr current_cpu_addr = cpu_addr + offset;
@@ -587,7 +587,7 @@ void MemoryManager::InvalidateRegion(GPUVAddr gpu_addr, size_t size,
 
 void MemoryManager::CopyBlock(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr, std::size_t size,
                               VideoCommon::CacheType which) {
-    std::vector<u8> tmp_buffer(size);
+    tmp_buffer.resize_destructive(size);
     ReadBlock(gpu_src_addr, tmp_buffer.data(), size, which);
 
     // The output block must be flushed in case it has data modified from the GPU.
@@ -670,9 +670,9 @@ bool MemoryManager::IsFullyMappedRange(GPUVAddr gpu_addr, std::size_t size) cons
     return result;
 }
 
-std::vector<std::pair<GPUVAddr, std::size_t>> MemoryManager::GetSubmappedRange(
-    GPUVAddr gpu_addr, std::size_t size) const {
-    std::vector<std::pair<GPUVAddr, std::size_t>> result{};
+boost::container::small_vector<std::pair<GPUVAddr, std::size_t>, 32>
+MemoryManager::GetSubmappedRange(GPUVAddr gpu_addr, std::size_t size) const {
+    boost::container::small_vector<std::pair<GPUVAddr, std::size_t>, 32> result{};
     GetSubmappedRangeImpl<true>(gpu_addr, size, result);
     return result;
 }
@@ -680,8 +680,9 @@ std::vector<std::pair<GPUVAddr, std::size_t>> MemoryManager::GetSubmappedRange(
 template <bool is_gpu_address>
 void MemoryManager::GetSubmappedRangeImpl(
     GPUVAddr gpu_addr, std::size_t size,
-    std::vector<std::pair<std::conditional_t<is_gpu_address, GPUVAddr, VAddr>, std::size_t>>&
-        result) const {
+    boost::container::small_vector<
+        std::pair<std::conditional_t<is_gpu_address, GPUVAddr, VAddr>, std::size_t>, 32>& result)
+    const {
     std::optional<std::pair<std::conditional_t<is_gpu_address, GPUVAddr, VAddr>, std::size_t>>
         last_segment{};
     std::optional<VAddr> old_page_addr{};

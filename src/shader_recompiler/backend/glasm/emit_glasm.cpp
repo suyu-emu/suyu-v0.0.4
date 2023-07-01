@@ -461,7 +461,7 @@ std::string EmitGLASM(const Profile& profile, const RuntimeInfo& runtime_info, I
         header += fmt::format("R{},", index);
     }
     if (program.local_memory_size > 0) {
-        header += fmt::format("lmem[{}],", program.local_memory_size);
+        header += fmt::format("lmem[{}],", Common::DivCeil(program.local_memory_size, 4U));
     }
     if (program.info.uses_fswzadd) {
         header += "FSWZA[4],FSWZB[4],";

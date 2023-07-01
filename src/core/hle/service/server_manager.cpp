@@ -44,7 +44,7 @@ ServerManager::~ServerManager() {
     m_event->Signal();
 
     // Wait for processing to stop.
-    m_stopped.wait(false);
+    m_stopped.Wait();
     m_threads.clear();
 
     // Clean up ports.
@@ -182,10 +182,7 @@ void ServerManager::StartAdditionalHostThreads(const char* name, size_t num_thre
 }
 
 Result ServerManager::LoopProcess() {
-    SCOPE_EXIT({
-        m_stopped.store(true);
-        m_stopped.notify_all();
-    });
+    SCOPE_EXIT({ m_stopped.Set(); });
 
     R_RETURN(this->LoopProcessImpl());
 }

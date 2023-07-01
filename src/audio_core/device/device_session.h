@@ -10,6 +10,7 @@
 
 #include "audio_core/common/common.h"
 #include "audio_core/sink/sink.h"
+#include "common/scratch_buffer.h"
 #include "core/hle/service/audio/errors.h"
 
 namespace Core {
@@ -62,7 +63,7 @@ public:
      *
      * @param buffers - The buffers to play.
      */
-    void AppendBuffers(std::span<const AudioBuffer> buffers) const;
+    void AppendBuffers(std::span<const AudioBuffer> buffers);
 
     /**
      * (Audio In only) Pop samples from the backend, and write them back to this buffer's address.
@@ -146,8 +147,8 @@ private:
     std::shared_ptr<Core::Timing::EventType> thread_event;
     /// Is this session initialised?
     bool initialized{};
-    /// Buffer queue
-    std::vector<AudioBuffer> buffer_queue{};
+    /// Temporary sample buffer
+    Common::ScratchBuffer<s16> tmp_samples{};
 };
 
 } // namespace AudioCore

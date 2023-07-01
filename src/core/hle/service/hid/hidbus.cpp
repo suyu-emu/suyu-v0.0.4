@@ -5,7 +5,6 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "core/core_timing_util.h"
 #include "core/hid/hid_types.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"

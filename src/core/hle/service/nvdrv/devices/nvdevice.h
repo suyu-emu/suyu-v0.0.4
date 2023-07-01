@@ -34,7 +34,7 @@ public:
      * @returns The result code of the ioctl.
      */
     virtual NvResult Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                            std::vector<u8>& output) = 0;
+                            std::span<u8> output) = 0;
 
     /**
      * Handles an ioctl2 request.
@@ -45,7 +45,7 @@ public:
      * @returns The result code of the ioctl.
      */
     virtual NvResult Ioctl2(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                            std::span<const u8> inline_input, std::vector<u8>& output) = 0;
+                            std::span<const u8> inline_input, std::span<u8> output) = 0;
 
     /**
      * Handles an ioctl3 request.
@@ -56,7 +56,7 @@ public:
      * @returns The result code of the ioctl.
      */
     virtual NvResult Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input,
-                            std::vector<u8>& output, std::vector<u8>& inline_output) = 0;
+                            std::span<u8> output, std::span<u8> inline_output) = 0;
 
     /**
      * Called once a device is opened

@@ -89,7 +89,7 @@ Result System::Start() {
     session->Start();
     state = State::Started;
 
-    std::vector<AudioBuffer> buffers_to_flush{};
+    boost::container::static_vector<AudioBuffer, BufferCount> buffers_to_flush{};
     buffers.RegisterBuffers(buffers_to_flush);
     session->AppendBuffers(buffers_to_flush);
     session->SetRingSize(static_cast<u32>(buffers_to_flush.size()));
@@ -134,7 +134,7 @@ bool System::AppendBuffer(const AudioOutBuffer& buffer, u64 tag) {
 
 void System::RegisterBuffers() {
     if (state == State::Started) {
-        std::vector<AudioBuffer> registered_buffers{};
+        boost::container::static_vector<AudioBuffer, BufferCount> registered_buffers{};
         buffers.RegisterBuffers(registered_buffers);
         session->AppendBuffers(registered_buffers);
     }

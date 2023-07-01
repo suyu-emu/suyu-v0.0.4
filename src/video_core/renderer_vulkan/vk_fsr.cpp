@@ -205,10 +205,9 @@ void FSR::CreateDescriptorSets() {
 void FSR::CreateImages() {
     images.resize(image_count * 2);
     image_views.resize(image_count * 2);
-    buffer_commits.resize(image_count * 2);
 
     for (size_t i = 0; i < image_count * 2; ++i) {
-        images[i] = device.GetLogical().CreateImage(VkImageCreateInfo{
+        images[i] = memory_allocator.CreateImage(VkImageCreateInfo{
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
@@ -231,7 +230,6 @@ void FSR::CreateImages() {
             .pQueueFamilyIndices = nullptr,
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         });
-        buffer_commits[i] = memory_allocator.Commit(images[i], MemoryUsage::DeviceLocal);
         image_views[i] = device.GetLogical().CreateImageView(VkImageViewCreateInfo{
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .pNext = nullptr,

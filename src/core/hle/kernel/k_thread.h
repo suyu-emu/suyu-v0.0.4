@@ -15,6 +15,7 @@
 #include "common/intrusive_list.h"
 
 #include "common/intrusive_red_black_tree.h"
+#include "common/scratch_buffer.h"
 #include "common/spin_lock.h"
 #include "core/arm/arm_interface.h"
 #include "core/hle/kernel/k_affinity_mask.h"
@@ -567,7 +568,7 @@ public:
 
     void RemoveWaiter(KThread* thread);
 
-    Result GetThreadContext3(std::vector<u8>& out);
+    Result GetThreadContext3(Common::ScratchBuffer<u8>& out);
 
     KThread* RemoveUserWaiterByKey(bool* out_has_waiters, KProcessAddress key) {
         return this->RemoveWaiterByKey(out_has_waiters, key, false);

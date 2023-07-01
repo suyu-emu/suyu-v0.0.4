@@ -3,6 +3,7 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "common/scratch_buffer.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_synchronization_object.h"
@@ -75,7 +76,7 @@ Result KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
                                     KSynchronizationObject** objects, const s32 num_objects,
                                     s64 timeout) {
     // Allocate space on stack for thread nodes.
-    std::vector<ThreadListNode> thread_nodes(num_objects);
+    std::array<ThreadListNode, Svc::ArgumentHandleCountMax> thread_nodes;
 
     // Prepare for wait.
     KThread* thread = GetCurrentThreadPointer(kernel);

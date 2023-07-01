@@ -18,7 +18,7 @@ using namespace Common::Literals;
 
 TurboMode::TurboMode(const vk::Instance& instance, const vk::InstanceDispatch& dld)
 #ifndef ANDROID
-    : m_device{CreateDevice(instance, dld, VK_NULL_HANDLE)}, m_allocator{m_device, false}
+    : m_device{CreateDevice(instance, dld, VK_NULL_HANDLE)}, m_allocator{m_device}
 #endif
 {
     {
@@ -41,7 +41,7 @@ void TurboMode::Run(std::stop_token stop_token) {
     auto& dld = m_device.GetLogical();
 
     // Allocate buffer. 2MiB should be sufficient.
-    auto buffer = dld.CreateBuffer(VkBufferCreateInfo{
+    const VkBufferCreateInfo buffer_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -50,10 +50,8 @@ void TurboMode::Run(std::stop_token stop_token) {
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
-    });
-
-    // Commit some device local memory for the buffer.
-    auto commit = m_allocator.Commit(buffer, MemoryUsage::DeviceLocal);
+    };
+    vk::Buffer buffer = m_allocator.CreateBuffer(buffer_ci, MemoryUsage::DeviceLocal);
 
     // Create the descriptor pool to contain our descriptor.
     static constexpr VkDescriptorPoolSize pool_size{

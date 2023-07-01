@@ -98,6 +98,10 @@ public:
         return writes_global_memory;
     }
 
+    [[nodiscard]] bool UsesLocalMemory() const noexcept {
+        return uses_local_memory;
+    }
+
     [[nodiscard]] bool IsBuilt() noexcept;
 
     template <typename Spec>
@@ -146,6 +150,7 @@ private:
 
     bool use_storage_buffers{};
     bool writes_global_memory{};
+    bool uses_local_memory{};
 
     static constexpr std::size_t XFB_ENTRY_STRIDE = 3;
     GLsizei num_xfb_attribs{};

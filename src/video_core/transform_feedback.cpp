@@ -13,7 +13,7 @@
 
 namespace VideoCommon {
 
-std::vector<Shader::TransformFeedbackVarying> MakeTransformFeedbackVaryings(
+std::pair<std::array<Shader::TransformFeedbackVarying, 256>, u32> MakeTransformFeedbackVaryings(
     const TransformFeedbackState& state) {
     static constexpr std::array VECTORS{
         28U,  // gl_Position
@@ -62,7 +62,8 @@ std::vector<Shader::TransformFeedbackVarying> MakeTransformFeedbackVaryings(
         216U, // gl_TexCoord[6]
         220U, // gl_TexCoord[7]
     };
-    std::vector<Shader::TransformFeedbackVarying> xfb(256);
+    std::array<Shader::TransformFeedbackVarying, 256> xfb{};
+    u32 count{0};
     for (size_t buffer = 0; buffer < state.layouts.size(); ++buffer) {
         const auto& locations = state.varyings[buffer];
         const auto& layout = state.layouts[buffer];
@@ -103,11 +104,12 @@ std::vector<Shader::TransformFeedbackVarying> MakeTransformFeedbackVaryings(
                 }
             }
             xfb[attribute] = varying;
+            count = std::max(count, attribute);
             highest = std::max(highest, (base_offset + varying.components) * 4);
         }
         UNIMPLEMENTED_IF(highest != layout.stride);
     }
-    return xfb;
+    return {xfb, count + 1};
 }
 
 } // namespace VideoCommon

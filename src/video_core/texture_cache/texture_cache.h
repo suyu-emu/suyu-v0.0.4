@@ -186,6 +186,10 @@ void TextureCache<P>::FillComputeImageViews(std::span<ImageViewInOut> views) {
 
 template <class P>
 void TextureCache<P>::CheckFeedbackLoop(std::span<const ImageViewInOut> views) {
+    if (!Settings::values.barrier_feedback_loops.GetValue()) {
+        return;
+    }
+
     const bool requires_barrier = [&] {
         for (const auto& view : views) {
             if (!view.id) {
@@ -300,7 +304,7 @@ void TextureCache<P>::SynchronizeComputeDescriptors() {
 }
 
 template <class P>
-bool TextureCache<P>::RescaleRenderTargets(bool is_clear) {
+bool TextureCache<P>::RescaleRenderTargets() {
     auto& flags = maxwell3d->dirty.flags;
     u32 scale_rating = 0;
     bool rescaled = false;
@@ -338,13 +342,13 @@ bool TextureCache<P>::RescaleRenderTargets(bool is_clear) {
             ImageViewId& color_buffer_id = render_targets.color_buffer_ids[index];
             if (flags[Dirty::ColorBuffer0 + index] || force) {
                 flags[Dirty::ColorBuffer0 + index] = false;
-                BindRenderTarget(&color_buffer_id, FindColorBuffer(index, is_clear));
+                BindRenderTarget(&color_buffer_id, FindColorBuffer(index));
             }
             check_rescale(color_buffer_id, tmp_color_images[index]);
         }
         if (flags[Dirty::ZetaBuffer] || force) {
             flags[Dirty::ZetaBuffer] = false;
-            BindRenderTarget(&render_targets.depth_buffer_id, FindDepthBuffer(is_clear));
+            BindRenderTarget(&render_targets.depth_buffer_id, FindDepthBuffer());
         }
         check_rescale(render_targets.depth_buffer_id, tmp_depth_image);
 
@@ -409,7 +413,7 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         return;
     }
 
-    const bool rescaled = RescaleRenderTargets(is_clear);
+    const bool rescaled = RescaleRenderTargets();
     if (is_rescaling != rescaled) {
         flags[Dirty::RescaleViewports] = true;
         flags[Dirty::RescaleScissors] = true;
@@ -522,7 +526,7 @@ void TextureCache<P>::WriteMemory(VAddr cpu_addr, size_t size) {
 
 template <class P>
 void TextureCache<P>::DownloadMemory(VAddr cpu_addr, size_t size) {
-    std::vector<ImageId> images;
+    boost::container::small_vector<ImageId, 16> images;
     ForEachImageInRegion(cpu_addr, size, [&images](ImageId image_id, ImageBase& image) {
         if (!image.IsSafeDownload()) {
             return;
@@ -575,7 +579,7 @@ std::optional<VideoCore::RasterizerDownloadArea> TextureCache<P>::GetFlushArea(V
 
 template <class P>
 void TextureCache<P>::UnmapMemory(VAddr cpu_addr, size_t size) {
-    std::vector<ImageId> deleted_images;
+    boost::container::small_vector<ImageId, 16> deleted_images;
     ForEachImageInRegion(cpu_addr, size, [&](ImageId id, Image&) { deleted_images.push_back(id); });
     for (const ImageId id : deleted_images) {
         Image& image = slot_images[id];
@@ -589,19 +593,11 @@ void TextureCache<P>::UnmapMemory(VAddr cpu_addr, size_t size) {
 
 template <class P>
 void TextureCache<P>::UnmapGPUMemory(size_t as_id, GPUVAddr gpu_addr, size_t size) {
-    std::vector<ImageId> deleted_images;
+    boost::container::small_vector<ImageId, 16> deleted_images;
     ForEachImageInRegionGPU(as_id, gpu_addr, size,
                             [&](ImageId id, Image&) { deleted_images.push_back(id); });
     for (const ImageId id : deleted_images) {
         Image& image = slot_images[id];
-        if (True(image.flags & ImageFlagBits::CpuModified)) {
-            return;
-        }
-        image.flags |= ImageFlagBits::CpuModified;
-        if (True(image.flags & ImageFlagBits::Tracked)) {
-            UntrackImage(image, id);
-        }
-        /*
         if (True(image.flags & ImageFlagBits::Remapped)) {
             continue;
         }
@@ -609,7 +605,6 @@ void TextureCache<P>::UnmapGPUMemory(size_t as_id, GPUVAddr gpu_addr, size_t siz
         if (True(image.flags & ImageFlagBits::Tracked)) {
             UntrackImage(image, id);
         }
-        */
     }
 }
 
@@ -875,6 +870,10 @@ ImageId TextureCache<P>::DmaImageId(const Tegra::DMA::ImageOperand& operand, boo
         return NULL_IMAGE_ID;
     }
     auto& image = slot_images[image_id];
+    if (image.info.type == ImageType::e3D) {
+        // Don't accelerate 3D images.
+        return NULL_IMAGE_ID;
+    }
     if (!is_upload && !image.info.dma_downloaded) {
         // Force a full sync.
         image.info.dma_downloaded = true;
@@ -1097,7 +1096,7 @@ ImageId TextureCache<P>::FindImage(const ImageInfo& info, GPUVAddr gpu_addr,
     const bool native_bgr = runtime.HasNativeBgr();
     const bool flexible_formats = True(options & RelaxedOptions::Format);
     ImageId image_id{};
-    boost::container::small_vector<ImageId, 1> image_ids;
+    boost::container::small_vector<ImageId, 8> image_ids;
     const auto lambda = [&](ImageId existing_image_id, ImageBase& existing_image) {
         if (True(existing_image.flags & ImageFlagBits::Remapped)) {
             return false;
@@ -1618,7 +1617,7 @@ ImageId TextureCache<P>::FindDMAImage(const ImageInfo& info, GPUVAddr gpu_addr) 
         }
     }
     ImageId image_id{};
-    boost::container::small_vector<ImageId, 1> image_ids;
+    boost::container::small_vector<ImageId, 8> image_ids;
     const auto lambda = [&](ImageId existing_image_id, ImageBase& existing_image) {
         if (True(existing_image.flags & ImageFlagBits::Remapped)) {
             return false;
@@ -1678,7 +1677,7 @@ SamplerId TextureCache<P>::FindSampler(const TSCEntry& config) {
 }
 
 template <class P>
-ImageViewId TextureCache<P>::FindColorBuffer(size_t index, bool is_clear) {
+ImageViewId TextureCache<P>::FindColorBuffer(size_t index) {
     const auto& regs = maxwell3d->regs;
     if (index >= regs.rt_control.count) {
         return ImageViewId{};
@@ -1692,11 +1691,11 @@ ImageViewId TextureCache<P>::FindColorBuffer(size_t index, bool is_clear) {
         return ImageViewId{};
     }
     const ImageInfo info(regs.rt[index], regs.anti_alias_samples_mode);
-    return FindRenderTargetView(info, gpu_addr, is_clear);
+    return FindRenderTargetView(info, gpu_addr);
 }
 
 template <class P>
-ImageViewId TextureCache<P>::FindDepthBuffer(bool is_clear) {
+ImageViewId TextureCache<P>::FindDepthBuffer() {
     const auto& regs = maxwell3d->regs;
     if (!regs.zeta_enable) {
         return ImageViewId{};
@@ -1706,18 +1705,16 @@ ImageViewId TextureCache<P>::FindDepthBuffer(bool is_clear) {
         return ImageViewId{};
     }
     const ImageInfo info(regs.zeta, regs.zeta_size, regs.anti_alias_samples_mode);
-    return FindRenderTargetView(info, gpu_addr, is_clear);
+    return FindRenderTargetView(info, gpu_addr);
 }
 
 template <class P>
-ImageViewId TextureCache<P>::FindRenderTargetView(const ImageInfo& info, GPUVAddr gpu_addr,
-                                                  bool is_clear) {
-    const auto options = is_clear ? RelaxedOptions::Samples : RelaxedOptions{};
+ImageViewId TextureCache<P>::FindRenderTargetView(const ImageInfo& info, GPUVAddr gpu_addr) {
     ImageId image_id{};
     bool delete_state = has_deleted_images;
     do {
         has_deleted_images = false;
-        image_id = FindOrInsertImage(info, gpu_addr, options);
+        image_id = FindOrInsertImage(info, gpu_addr);
         delete_state |= has_deleted_images;
     } while (has_deleted_images);
     has_deleted_images = delete_state;
@@ -1940,7 +1937,7 @@ void TextureCache<P>::RegisterImage(ImageId image_id) {
         image.map_view_id = map_id;
         return;
     }
-    std::vector<ImageViewId> sparse_maps{};
+    boost::container::small_vector<ImageViewId, 16> sparse_maps;
     ForEachSparseSegment(
         image, [this, image_id, &sparse_maps](GPUVAddr gpu_addr, VAddr cpu_addr, size_t size) {
             auto map_id = slot_map_views.insert(gpu_addr, cpu_addr, size, image_id);
@@ -2215,7 +2212,7 @@ void TextureCache<P>::MarkModification(ImageBase& image) noexcept {
 
 template <class P>
 void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
-    boost::container::small_vector<const AliasedImage*, 1> aliased_images;
+    boost::container::small_vector<const AliasedImage*, 8> aliased_images;
     Image& image = slot_images[image_id];
     bool any_rescaled = True(image.flags & ImageFlagBits::Rescaled);
     bool any_modified = True(image.flags & ImageFlagBits::GpuModified);

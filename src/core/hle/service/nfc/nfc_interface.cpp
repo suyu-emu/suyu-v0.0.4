@@ -174,8 +174,7 @@ void NfcInterface::GetTagInfo(HLERequestContext& ctx) {
     LOG_INFO(Service_NFC, "called, device_handle={}", device_handle);
 
     TagInfo tag_info{};
-    auto result =
-        GetManager()->GetTagInfo(device_handle, tag_info, backend_type == BackendType::Mifare);
+    auto result = GetManager()->GetTagInfo(device_handle, tag_info);
     result = TranslateResultToServiceError(result);
 
     if (result.IsSuccess()) {
@@ -216,8 +215,8 @@ void NfcInterface::ReadMifare(HLERequestContext& ctx) {
     memcpy(read_commands.data(), buffer.data(),
            number_of_commands * sizeof(MifareReadBlockParameter));
 
-    LOG_INFO(Service_NFC, "(STUBBED) called, device_handle={}, read_commands_size={}",
-             device_handle, number_of_commands);
+    LOG_INFO(Service_NFC, "called, device_handle={}, read_commands_size={}", device_handle,
+             number_of_commands);
 
     std::vector<MifareReadBlockData> out_data(number_of_commands);
     auto result = GetManager()->ReadMifare(device_handle, read_commands, out_data);

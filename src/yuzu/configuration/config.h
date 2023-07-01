@@ -74,6 +74,7 @@ private:
     void ReadKeyboardValues();
     void ReadMouseValues();
     void ReadTouchscreenValues();
+    void ReadMousePanningValues();
     void ReadMotionTouchValues();
     void ReadHidbusValues();
     void ReadIrCameraValues();
@@ -104,6 +105,7 @@ private:
     void SaveDebugValues();
     void SaveMouseValues();
     void SaveTouchscreenValues();
+    void SaveMousePanningValues();
     void SaveMotionTouchValues();
     void SaveHidbusValues();
     void SaveIrCameraValues();

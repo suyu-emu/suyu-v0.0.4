@@ -13,24 +13,28 @@
 #include "input_common/helpers/joycon_protocol/common_protocol.h"
 #include "input_common/helpers/joycon_protocol/joycon_types.h"
 
+namespace Common::Input {
+enum class DriverResult;
+}
+
 namespace InputCommon::Joycon {
 
 class RingConProtocol final : private JoyconCommonProtocol {
 public:
     explicit RingConProtocol(std::shared_ptr<JoyconHandle> handle);
 
-    DriverResult EnableRingCon();
+    Common::Input::DriverResult EnableRingCon();
 
-    DriverResult DisableRingCon();
+    Common::Input::DriverResult DisableRingCon();
 
-    DriverResult StartRingconPolling();
+    Common::Input::DriverResult StartRingconPolling();
 
     bool IsEnabled() const;
 
 private:
-    DriverResult IsRingConnected(bool& is_connected);
+    Common::Input::DriverResult IsRingConnected(bool& is_connected);
 
-    DriverResult ConfigureRing();
+    Common::Input::DriverResult ConfigureRing();
 
     bool is_enabled{};
 };

@@ -24,12 +24,12 @@ namespace VkDeviceInfo {
 class Record {
 public:
     explicit Record(std::string_view name, const std::vector<VkPresentModeKHR>& vsync_modes,
-                    bool is_intel_proprietary);
+                    bool has_broken_compute);
     ~Record();
 
     const std::string name;
     const std::vector<VkPresentModeKHR> vsync_support;
-    const bool is_intel_proprietary;
+    const bool has_broken_compute;
 };
 
 void PopulateRecords(std::vector<Record>& records, QWindow* window);

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "audio_core/audio_render_manager.h"
+#include "common/scratch_buffer.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/service.h"
 

@@ -4,6 +4,8 @@
 #pragma once
 
 #include <map>
+#include <mutex>
+#include <optional>
 #include <string_view>
 #include "common/intrusive_list.h"
 #include "core/file_sys/mode.h"
@@ -20,6 +22,8 @@ struct FileReference : public Common::IntrusiveListBaseNode<FileReference> {
 };
 
 class RealVfsFile;
+class RealVfsDirectory;
+
 class RealVfsFilesystem : public VfsFilesystem {
 public:
     RealVfsFilesystem();
@@ -45,17 +49,24 @@ private:
     std::map<std::string, std::weak_ptr<VfsFile>, std::less<>> cache;
     ReferenceListType open_references;
     ReferenceListType closed_references;
+    std::mutex list_lock;
     size_t num_open_files{};
 
 private:
     friend class RealVfsFile;
-    void RefreshReference(const std::string& path, Mode perms, FileReference& reference);
+    std::unique_lock<std::mutex> RefreshReference(const std::string& path, Mode perms,
+                                                  FileReference& reference);
     void DropReference(std::unique_ptr<FileReference>&& reference);
-    void EvictSingleReference();
 
 private:
-    void InsertReferenceIntoList(FileReference& reference);
-    void RemoveReferenceFromList(FileReference& reference);
+    friend class RealVfsDirectory;
+    VirtualFile OpenFileFromEntry(std::string_view path, std::optional<u64> size,
+                                  Mode perms = Mode::Read);
+
+private:
+    void EvictSingleReferenceLocked();
+    void InsertReferenceIntoListLocked(FileReference& reference);
+    void RemoveReferenceFromListLocked(FileReference& reference);
 };
 
 // An implementation of VfsFile that represents a file on the user's computer.
@@ -78,13 +89,14 @@ public:
 
 private:
     RealVfsFile(RealVfsFilesystem& base, std::unique_ptr<FileReference> reference,
-                const std::string& path, Mode perms = Mode::Read);
+                const std::string& path, Mode perms = Mode::Read, std::optional<u64> size = {});
 
     RealVfsFilesystem& base;
     std::unique_ptr<FileReference> reference;
     std::string path;
     std::string parent_path;
     std::vector<std::string> path_components;
+    std::optional<u64> size;
     Mode perms;
 };
 

@@ -408,8 +408,8 @@ void I3dl2ReverbCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor&
 }
 
 void I3dl2ReverbCommand::Process(const ADSP::CommandListProcessor& processor) {
-    std::vector<std::span<const s32>> input_buffers(parameter.channel_count);
-    std::vector<std::span<s32>> output_buffers(parameter.channel_count);
+    std::array<std::span<const s32>, MaxChannels> input_buffers{};
+    std::array<std::span<s32>, MaxChannels> output_buffers{};
 
     for (u32 i = 0; i < parameter.channel_count; i++) {
         input_buffers[i] = processor.mix_buffers.subspan(inputs[i] * processor.sample_count,

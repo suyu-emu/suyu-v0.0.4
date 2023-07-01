@@ -8,6 +8,7 @@
 #include "audio_core/renderer/command/resample/resample.h"
 #include "common/fixed_point.h"
 #include "common/logging/log.h"
+#include "common/scratch_buffer.h"
 #include "core/memory.h"
 
 namespace AudioCore::AudioRenderer {
@@ -27,6 +28,7 @@ constexpr std::array<u8, 3> PitchBySrcQuality = {4, 8, 4};
 template <typename T>
 static u32 DecodePcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
                      const DecodeArg& req) {
+    std::array<T, TempBufferSize> tmp_samples{};
     constexpr s32 min{std::numeric_limits<s16>::min()};
     constexpr s32 max{std::numeric_limits<s16>::max()};
 
@@ -49,18 +51,17 @@ static u32 DecodePcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
         const u64 size{channel_count * samples_to_decode};
         const u64 size_bytes{size * sizeof(T)};
 
-        std::vector<T> samples(size);
-        memory.ReadBlockUnsafe(source, samples.data(), size_bytes);
+        memory.ReadBlockUnsafe(source, tmp_samples.data(), size_bytes);
 
         if constexpr (std::is_floating_point_v<T>) {
             for (u32 i = 0; i < samples_to_decode; i++) {
-                auto sample{static_cast<s32>(samples[i * channel_count + req.target_channel] *
+                auto sample{static_cast<s32>(tmp_samples[i * channel_count + req.target_channel] *
                                              std::numeric_limits<s16>::max())};
                 out_buffer[i] = static_cast<s16>(std::clamp(sample, min, max));
             }
         } else {
             for (u32 i = 0; i < samples_to_decode; i++) {
-                out_buffer[i] = samples[i * channel_count + req.target_channel];
+                out_buffer[i] = tmp_samples[i * channel_count + req.target_channel];
             }
         }
     } break;
@@ -73,17 +74,16 @@ static u32 DecodePcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
         }
 
         const VAddr source{req.buffer + ((req.start_offset + req.offset) * sizeof(T))};
-        std::vector<T> samples(samples_to_decode);
-        memory.ReadBlockUnsafe(source, samples.data(), samples_to_decode * sizeof(T));
+        memory.ReadBlockUnsafe(source, tmp_samples.data(), samples_to_decode * sizeof(T));
 
         if constexpr (std::is_floating_point_v<T>) {
             for (u32 i = 0; i < samples_to_decode; i++) {
-                auto sample{static_cast<s32>(samples[i * channel_count + req.target_channel] *
+                auto sample{static_cast<s32>(tmp_samples[i * channel_count + req.target_channel] *
                                              std::numeric_limits<s16>::max())};
                 out_buffer[i] = static_cast<s16>(std::clamp(sample, min, max));
             }
         } else {
-            std::memcpy(out_buffer.data(), samples.data(), samples_to_decode * sizeof(s16));
+            std::memcpy(out_buffer.data(), tmp_samples.data(), samples_to_decode * sizeof(s16));
         }
         break;
     }
@@ -101,6 +101,7 @@ static u32 DecodePcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
  */
 static u32 DecodeAdpcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
                        const DecodeArg& req) {
+    std::array<u8, TempBufferSize> wavebuffer{};
     constexpr u32 SamplesPerFrame{14};
     constexpr u32 NibblesPerFrame{16};
 
@@ -138,9 +139,7 @@ static u32 DecodeAdpcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
     }
 
     const auto size{std::max((samples_to_process / 8U) * SamplesPerFrame, 8U)};
-    std::vector<u8> wavebuffer(size);
-    memory.ReadBlockUnsafe(req.buffer + position_in_frame / 2, wavebuffer.data(),
-                           wavebuffer.size());
+    memory.ReadBlockUnsafe(req.buffer + position_in_frame / 2, wavebuffer.data(), size);
 
     auto context{req.adpcm_context};
     auto header{context->header};
@@ -258,7 +257,7 @@ void DecodeFromWaveBuffers(Core::Memory::Memory& memory, const DecodeFromWaveBuf
     u32 offset{voice_state.offset};
 
     auto output_buffer{args.output};
-    std::vector<s16> temp_buffer(TempBufferSize, 0);
+    std::array<s16, TempBufferSize> temp_buffer{};
 
     while (remaining_sample_count > 0) {
         const auto samples_to_write{std::min(remaining_sample_count, max_remaining_sample_count)};

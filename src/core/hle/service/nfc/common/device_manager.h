@@ -33,7 +33,7 @@ public:
     Kernel::KReadableEvent& AttachAvailabilityChangeEvent() const;
     Result StartDetection(u64 device_handle, NfcProtocol tag_protocol);
     Result StopDetection(u64 device_handle);
-    Result GetTagInfo(u64 device_handle, NFP::TagInfo& tag_info, bool is_mifare) const;
+    Result GetTagInfo(u64 device_handle, NFP::TagInfo& tag_info) const;
     Kernel::KReadableEvent& AttachActivateEvent(u64 device_handle) const;
     Kernel::KReadableEvent& AttachDeactivateEvent(u64 device_handle) const;
     Result ReadMifare(u64 device_handle,

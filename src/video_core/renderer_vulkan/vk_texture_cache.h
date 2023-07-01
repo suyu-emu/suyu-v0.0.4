@@ -116,7 +116,6 @@ public:
 
     static constexpr size_t indexing_slots = 8 * sizeof(size_t);
     std::array<vk::Buffer, indexing_slots> buffers{};
-    std::array<std::unique_ptr<MemoryCommit>, indexing_slots> buffer_commits{};
 };
 
 class Image : public VideoCommon::ImageBase {
@@ -180,12 +179,10 @@ private:
     TextureCacheRuntime* runtime{};
 
     vk::Image original_image;
-    MemoryCommit commit;
     std::vector<vk::ImageView> storage_image_views;
     VkImageAspectFlags aspect_mask = 0;
     bool initialized = false;
     vk::Image scaled_image{};
-    MemoryCommit scaled_commit{};
     VkImage current_image{};
 
     std::unique_ptr<Framebuffer> scale_framebuffer;
