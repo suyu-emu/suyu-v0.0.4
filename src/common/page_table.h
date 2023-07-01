@@ -51,7 +51,7 @@ struct PageTable {
     class PageInfo {
     public:
         /// Returns the page pointer
-        [[nodiscard]] u8* Pointer() const noexcept {
+        [[nodiscard]] uintptr_t Pointer() const noexcept {
             return ExtractPointer(raw.load(std::memory_order_relaxed));
         }
 
@@ -61,7 +61,7 @@ struct PageTable {
         }
 
         /// Returns the page pointer and attribute pair, extracted from the same atomic read
-        [[nodiscard]] std::pair<u8*, PageType> PointerType() const noexcept {
+        [[nodiscard]] std::pair<uintptr_t, PageType> PointerType() const noexcept {
             const uintptr_t non_atomic_raw = raw.load(std::memory_order_relaxed);
             return {ExtractPointer(non_atomic_raw), ExtractType(non_atomic_raw)};
         }
@@ -73,13 +73,13 @@ struct PageTable {
         }
 
         /// Write a page pointer and type pair atomically
-        void Store(u8* pointer, PageType type) noexcept {
-            raw.store(reinterpret_cast<uintptr_t>(pointer) | static_cast<uintptr_t>(type));
+        void Store(uintptr_t pointer, PageType type) noexcept {
+            raw.store(pointer | static_cast<uintptr_t>(type));
         }
 
         /// Unpack a pointer from a page info raw representation
-        [[nodiscard]] static u8* ExtractPointer(uintptr_t raw) noexcept {
-            return reinterpret_cast<u8*>(raw & (~uintptr_t{0} << ATTRIBUTE_BITS));
+        [[nodiscard]] static uintptr_t ExtractPointer(uintptr_t raw) noexcept {
+            return raw & (~uintptr_t{0} << ATTRIBUTE_BITS);
         }
 
         /// Unpack a page type from a page info raw representation

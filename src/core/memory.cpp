@@ -73,7 +73,7 @@ struct Memory::Impl {
             return {};
         }
 
-        return system.DeviceMemory().GetPointer<u8>(paddr) + vaddr;
+        return system.DeviceMemory().GetPointer<u8>(paddr + vaddr);
     }
 
     [[nodiscard]] u8* GetPointerFromDebugMemory(u64 vaddr) const {
@@ -84,7 +84,7 @@ struct Memory::Impl {
             return {};
         }
 
-        return system.DeviceMemory().GetPointer<u8>(paddr) + vaddr;
+        return system.DeviceMemory().GetPointer<u8>(paddr + vaddr);
     }
 
     u8 Read8(const Common::ProcessAddress addr) {
@@ -204,7 +204,8 @@ struct Memory::Impl {
                 break;
             }
             case Common::PageType::Memory: {
-                u8* mem_ptr = pointer + page_offset + (page_index << YUZU_PAGEBITS);
+                u8* mem_ptr =
+                    reinterpret_cast<u8*>(pointer + page_offset + (page_index << YUZU_PAGEBITS));
                 on_memory(copy_amount, mem_ptr);
                 break;
             }
@@ -448,7 +449,7 @@ struct Memory::Impl {
                     break;
                 case Common::PageType::Memory:
                     current_page_table->pointers[vaddr >> YUZU_PAGEBITS].Store(
-                        nullptr, Common::PageType::DebugMemory);
+                        0, Common::PageType::DebugMemory);
                     break;
                 default:
                     UNREACHABLE();
@@ -466,7 +467,8 @@ struct Memory::Impl {
                 case Common::PageType::DebugMemory: {
                     u8* const pointer{GetPointerFromDebugMemory(vaddr & ~YUZU_PAGEMASK)};
                     current_page_table->pointers[vaddr >> YUZU_PAGEBITS].Store(
-                        pointer - (vaddr & ~YUZU_PAGEMASK), Common::PageType::Memory);
+                        reinterpret_cast<uintptr_t>(pointer) - (vaddr & ~YUZU_PAGEMASK),
+                        Common::PageType::Memory);
                     break;
                 }
                 default:
@@ -506,7 +508,7 @@ struct Memory::Impl {
                 case Common::PageType::DebugMemory:
                 case Common::PageType::Memory:
                     current_page_table->pointers[vaddr >> YUZU_PAGEBITS].Store(
-                        nullptr, Common::PageType::RasterizerCachedMemory);
+                        0, Common::PageType::RasterizerCachedMemory);
                     break;
                 case Common::PageType::RasterizerCachedMemory:
                     // There can be more than one GPU region mapped per CPU region, so it's common
@@ -534,10 +536,11 @@ struct Memory::Impl {
                         // pagetable after unmapping a VMA. In that case the underlying VMA will no
                         // longer exist, and we should just leave the pagetable entry blank.
                         current_page_table->pointers[vaddr >> YUZU_PAGEBITS].Store(
-                            nullptr, Common::PageType::Unmapped);
+                            0, Common::PageType::Unmapped);
                     } else {
                         current_page_table->pointers[vaddr >> YUZU_PAGEBITS].Store(
-                            pointer - (vaddr & ~YUZU_PAGEMASK), Common::PageType::Memory);
+                            reinterpret_cast<uintptr_t>(pointer) - (vaddr & ~YUZU_PAGEMASK),
+                            Common::PageType::Memory);
                     }
                     break;
                 }
@@ -584,7 +587,7 @@ struct Memory::Impl {
                        "Mapping memory page without a pointer @ {:016x}", base * YUZU_PAGESIZE);
 
             while (base != end) {
-                page_table.pointers[base].Store(nullptr, type);
+                page_table.pointers[base].Store(0, type);
                 page_table.backing_addr[base] = 0;
                 page_table.blocks[base] = 0;
                 base += 1;
@@ -593,7 +596,8 @@ struct Memory::Impl {
             auto orig_base = base;
             while (base != end) {
                 auto host_ptr =
-                    system.DeviceMemory().GetPointer<u8>(target) - (base << YUZU_PAGEBITS);
+                    reinterpret_cast<uintptr_t>(system.DeviceMemory().GetPointer<u8>(target)) -
+                    (base << YUZU_PAGEBITS);
                 auto backing = GetInteger(target) - (base << YUZU_PAGEBITS);
                 page_table.pointers[base].Store(host_ptr, type);
                 page_table.backing_addr[base] = backing;
@@ -619,8 +623,8 @@ struct Memory::Impl {
 
         // Avoid adding any extra logic to this fast-path block
         const uintptr_t raw_pointer = current_page_table->pointers[vaddr >> YUZU_PAGEBITS].Raw();
-        if (u8* const pointer = Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) {
-            return &pointer[vaddr];
+        if (const uintptr_t pointer = Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) {
+            return reinterpret_cast<u8*>(pointer + vaddr);
         }
         switch (Common::PageTable::PageInfo::ExtractType(raw_pointer)) {
         case Common::PageType::Unmapped:
@@ -814,7 +818,7 @@ bool Memory::IsValidVirtualAddress(const Common::ProcessAddress vaddr) const {
         return false;
     }
     const auto [pointer, type] = page_table.pointers[page].PointerType();
-    return pointer != nullptr || type == Common::PageType::RasterizerCachedMemory ||
+    return pointer != 0 || type == Common::PageType::RasterizerCachedMemory ||
            type == Common::PageType::DebugMemory;
 }
 

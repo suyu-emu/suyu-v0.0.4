@@ -103,7 +103,9 @@ public:
     explicit QueryCacheBase(VideoCore::RasterizerInterface& rasterizer_,
                             Core::Memory::Memory& cpu_memory_)
         : rasterizer{rasterizer_},
-          cpu_memory{cpu_memory_}, streams{{CounterStream{static_cast<QueryCache&>(*this),
+          // Use reinterpret_cast instead of static_cast as workaround for
+          // UBSan bug (https://github.com/llvm/llvm-project/issues/59060)
+          cpu_memory{cpu_memory_}, streams{{CounterStream{reinterpret_cast<QueryCache&>(*this),
                                                           VideoCore::QueryType::SamplesPassed}}} {
         (void)slot_async_jobs.insert(); // Null value
     }
