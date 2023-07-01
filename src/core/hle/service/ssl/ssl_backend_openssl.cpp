@@ -51,37 +51,37 @@ public:
             return ResultInternalError;
         }
 
-        ssl_ = SSL_new(ssl_ctx);
-        if (!ssl_) {
+        ssl = SSL_new(ssl_ctx);
+        if (!ssl) {
             LOG_ERROR(Service_SSL, "SSL_new failed");
             return CheckOpenSSLErrors();
         }
 
-        SSL_set_connect_state(ssl_);
+        SSL_set_connect_state(ssl);
 
-        bio_ = BIO_new(bio_meth);
-        if (!bio_) {
+        bio = BIO_new(bio_meth);
+        if (!bio) {
             LOG_ERROR(Service_SSL, "BIO_new failed");
             return CheckOpenSSLErrors();
         }
 
-        BIO_set_data(bio_, this);
-        BIO_set_init(bio_, 1);
-        SSL_set_bio(ssl_, bio_, bio_);
+        BIO_set_data(bio, this);
+        BIO_set_init(bio, 1);
+        SSL_set_bio(ssl, bio, bio);
 
         return ResultSuccess;
     }
 
-    void SetSocket(std::shared_ptr<Network::SocketBase> socket) override {
-        socket_ = socket;
+    void SetSocket(std::shared_ptr<Network::SocketBase> socket_in) override {
+        socket = std::move(socket_in);
     }
 
     Result SetHostName(const std::string& hostname) override {
-        if (!SSL_set1_host(ssl_, hostname.c_str())) { // hostname for verification
+        if (!SSL_set1_host(ssl, hostname.c_str())) { // hostname for verification
             LOG_ERROR(Service_SSL, "SSL_set1_host({}) failed", hostname);
             return CheckOpenSSLErrors();
         }
-        if (!SSL_set_tlsext_host_name(ssl_, hostname.c_str())) { // hostname for SNI
+        if (!SSL_set_tlsext_host_name(ssl, hostname.c_str())) { // hostname for SNI
             LOG_ERROR(Service_SSL, "SSL_set_tlsext_host_name({}) failed", hostname);
             return CheckOpenSSLErrors();
         }
@@ -89,18 +89,18 @@ public:
     }
 
     Result DoHandshake() override {
-        SSL_set_verify_result(ssl_, X509_V_OK);
-        const int ret = SSL_do_handshake(ssl_);
-        const long verify_result = SSL_get_verify_result(ssl_);
+        SSL_set_verify_result(ssl, X509_V_OK);
+        const int ret = SSL_do_handshake(ssl);
+        const long verify_result = SSL_get_verify_result(ssl);
         if (verify_result != X509_V_OK) {
             LOG_ERROR(Service_SSL, "SSL cert verification failed because: {}",
                       X509_verify_cert_error_string(verify_result));
             return CheckOpenSSLErrors();
         }
         if (ret <= 0) {
-            const int ssl_err = SSL_get_error(ssl_, ret);
+            const int ssl_err = SSL_get_error(ssl, ret);
             if (ssl_err == SSL_ERROR_ZERO_RETURN ||
-                (ssl_err == SSL_ERROR_SYSCALL && got_read_eof_)) {
+                (ssl_err == SSL_ERROR_SYSCALL && got_read_eof)) {
                 LOG_ERROR(Service_SSL, "SSL handshake failed because server hung up");
                 return ResultInternalError;
             }
@@ -110,18 +110,18 @@ public:
 
     ResultVal<size_t> Read(std::span<u8> data) override {
         size_t actual;
-        const int ret = SSL_read_ex(ssl_, data.data(), data.size(), &actual);
+        const int ret = SSL_read_ex(ssl, data.data(), data.size(), &actual);
         return HandleReturn("SSL_read_ex", actual, ret);
     }
 
     ResultVal<size_t> Write(std::span<const u8> data) override {
         size_t actual;
-        const int ret = SSL_write_ex(ssl_, data.data(), data.size(), &actual);
+        const int ret = SSL_write_ex(ssl, data.data(), data.size(), &actual);
         return HandleReturn("SSL_write_ex", actual, ret);
     }
 
     ResultVal<size_t> HandleReturn(const char* what, size_t actual, int ret) {
-        const int ssl_err = SSL_get_error(ssl_, ret);
+        const int ssl_err = SSL_get_error(ssl, ret);
         CheckOpenSSLErrors();
         switch (ssl_err) {
         case SSL_ERROR_NONE:
@@ -137,7 +137,7 @@ public:
             LOG_DEBUG(Service_SSL, "{} => SSL_ERROR_WANT_WRITE", what);
             return ResultWouldBlock;
         default:
-            if (ssl_err == SSL_ERROR_SYSCALL && got_read_eof_) {
+            if (ssl_err == SSL_ERROR_SYSCALL && got_read_eof) {
                 LOG_DEBUG(Service_SSL, "{} => SSL_ERROR_SYSCALL because server hung up", what);
                 return size_t(0);
             }
@@ -147,7 +147,7 @@ public:
     }
 
     ResultVal<std::vector<std::vector<u8>>> GetServerCerts() override {
-        STACK_OF(X509)* chain = SSL_get_peer_cert_chain(ssl_);
+        STACK_OF(X509)* chain = SSL_get_peer_cert_chain(ssl);
         if (!chain) {
             LOG_ERROR(Service_SSL, "SSL_get_peer_cert_chain returned nullptr");
             return ResultInternalError;
@@ -169,8 +169,8 @@ public:
 
     ~SSLConnectionBackendOpenSSL() {
         // these are null-tolerant:
-        SSL_free(ssl_);
-        BIO_free(bio_);
+        SSL_free(ssl);
+        BIO_free(bio);
     }
 
     static void KeyLogCallback(const SSL* ssl, const char* line) {
@@ -188,9 +188,9 @@ public:
     static int WriteCallback(BIO* bio, const char* buf, size_t len, size_t* actual_p) {
         auto self = static_cast<SSLConnectionBackendOpenSSL*>(BIO_get_data(bio));
         ASSERT_OR_EXECUTE_MSG(
-            self->socket_, { return 0; }, "OpenSSL asked to send but we have no socket");
+            self->socket, { return 0; }, "OpenSSL asked to send but we have no socket");
         BIO_clear_retry_flags(bio);
-        auto [actual, err] = self->socket_->Send({reinterpret_cast<const u8*>(buf), len}, 0);
+        auto [actual, err] = self->socket->Send({reinterpret_cast<const u8*>(buf), len}, 0);
         switch (err) {
         case Network::Errno::SUCCESS:
             *actual_p = actual;
@@ -207,14 +207,14 @@ public:
     static int ReadCallback(BIO* bio, char* buf, size_t len, size_t* actual_p) {
         auto self = static_cast<SSLConnectionBackendOpenSSL*>(BIO_get_data(bio));
         ASSERT_OR_EXECUTE_MSG(
-            self->socket_, { return 0; }, "OpenSSL asked to recv but we have no socket");
+            self->socket, { return 0; }, "OpenSSL asked to recv but we have no socket");
         BIO_clear_retry_flags(bio);
-        auto [actual, err] = self->socket_->Recv(0, {reinterpret_cast<u8*>(buf), len});
+        auto [actual, err] = self->socket->Recv(0, {reinterpret_cast<u8*>(buf), len});
         switch (err) {
         case Network::Errno::SUCCESS:
             *actual_p = actual;
             if (actual == 0) {
-                self->got_read_eof_ = true;
+                self->got_read_eof = true;
             }
             return actual ? 1 : 0;
         case Network::Errno::AGAIN:
@@ -246,11 +246,11 @@ public:
         }
     }
 
-    SSL* ssl_ = nullptr;
-    BIO* bio_ = nullptr;
-    bool got_read_eof_ = false;
+    SSL* ssl = nullptr;
+    BIO* bio = nullptr;
+    bool got_read_eof = false;
 
-    std::shared_ptr<Network::SocketBase> socket_;
+    std::shared_ptr<Network::SocketBase> socket;
 };
 
 ResultVal<std::unique_ptr<SSLConnectionBackend>> CreateSSLConnectionBackend() {

@@ -443,15 +443,28 @@ void BSD::Close(HLERequestContext& ctx) {
 }
 
 void BSD::DuplicateSocket(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const s32 fd = rp.Pop<s32>();
-    [[maybe_unused]] const u64 unused = rp.Pop<u64>();
+    struct InputParameters {
+        s32 fd;
+        u64 reserved;
+    };
+    static_assert(sizeof(InputParameters) == 0x10);
 
-    Expected<s32, Errno> res = DuplicateSocketImpl(fd);
+    struct OutputParameters {
+        s32 ret;
+        Errno bsd_errno;
+    };
+    static_assert(sizeof(OutputParameters) == 0x8);
+
+    IPC::RequestParser rp{ctx};
+    auto input = rp.PopRaw<InputParameters>();
+
+    Expected<s32, Errno> res = DuplicateSocketImpl(input.fd);
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
-    rb.Push(res.value_or(0));                         // ret
-    rb.Push(res ? 0 : static_cast<s32>(res.error())); // bsd errno
+    rb.PushRaw(OutputParameters{
+        .ret = res.value_or(0),
+        .bsd_errno = res ? Errno::SUCCESS : res.error(),
+    });
 }
 
 void BSD::EventFd(HLERequestContext& ctx) {

@@ -570,10 +570,10 @@ Socket::Socket(Socket&& rhs) noexcept {
 }
 
 template <typename T>
-std::pair<T, Errno> Socket::GetSockOpt(SOCKET fd_, int option) {
+std::pair<T, Errno> Socket::GetSockOpt(SOCKET fd_so, int option) {
     T value{};
     socklen_t len = sizeof(value);
-    const int result = getsockopt(fd_, SOL_SOCKET, option, reinterpret_cast<char*>(&value), &len);
+    const int result = getsockopt(fd_so, SOL_SOCKET, option, reinterpret_cast<char*>(&value), &len);
     if (result != SOCKET_ERROR) {
         ASSERT(len == sizeof(value));
         return {value, Errno::SUCCESS};
@@ -582,9 +582,9 @@ std::pair<T, Errno> Socket::GetSockOpt(SOCKET fd_, int option) {
 }
 
 template <typename T>
-Errno Socket::SetSockOpt(SOCKET fd_, int option, T value) {
+Errno Socket::SetSockOpt(SOCKET fd_so, int option, T value) {
     const int result =
-        setsockopt(fd_, SOL_SOCKET, option, reinterpret_cast<const char*>(&value), sizeof(value));
+        setsockopt(fd_so, SOL_SOCKET, option, reinterpret_cast<const char*>(&value), sizeof(value));
     if (result != SOCKET_ERROR) {
         return Errno::SUCCESS;
     }

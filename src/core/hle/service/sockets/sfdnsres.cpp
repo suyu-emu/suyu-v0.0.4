@@ -131,14 +131,15 @@ static std::vector<u8> SerializeAddrInfoAsHostEnt(const std::vector<Network::Add
 }
 
 static std::pair<u32, GetAddrInfoError> GetHostByNameRequestImpl(HLERequestContext& ctx) {
-    struct Parameters {
+    struct InputParameters {
         u8 use_nsd_resolve;
         u32 cancel_handle;
         u64 process_id;
     };
+    static_assert(sizeof(InputParameters) == 0x10);
 
     IPC::RequestParser rp{ctx};
-    const auto parameters = rp.PopRaw<Parameters>();
+    const auto parameters = rp.PopRaw<InputParameters>();
 
     LOG_WARNING(
         Service,
@@ -164,21 +165,39 @@ static std::pair<u32, GetAddrInfoError> GetHostByNameRequestImpl(HLERequestConte
 void SFDNSRES::GetHostByNameRequest(HLERequestContext& ctx) {
     auto [data_size, emu_gai_err] = GetHostByNameRequestImpl(ctx);
 
+    struct OutputParameters {
+        NetDbError netdb_error;
+        Errno bsd_errno;
+        u32 data_size;
+    };
+    static_assert(sizeof(OutputParameters) == 0xc);
+
     IPC::ResponseBuilder rb{ctx, 5};
     rb.Push(ResultSuccess);
-    rb.Push(static_cast<s32>(GetAddrInfoErrorToNetDbError(emu_gai_err))); // netdb error code
-    rb.Push(static_cast<s32>(GetAddrInfoErrorToErrno(emu_gai_err)));      // errno
-    rb.Push(data_size);                                                   // serialized size
+    rb.PushRaw(OutputParameters{
+        .netdb_error = GetAddrInfoErrorToNetDbError(emu_gai_err),
+        .bsd_errno = GetAddrInfoErrorToErrno(emu_gai_err),
+        .data_size = data_size,
+    });
 }
 
 void SFDNSRES::GetHostByNameRequestWithOptions(HLERequestContext& ctx) {
     auto [data_size, emu_gai_err] = GetHostByNameRequestImpl(ctx);
 
+    struct OutputParameters {
+        u32 data_size;
+        NetDbError netdb_error;
+        Errno bsd_errno;
+    };
+    static_assert(sizeof(OutputParameters) == 0xc);
+
     IPC::ResponseBuilder rb{ctx, 5};
     rb.Push(ResultSuccess);
-    rb.Push(data_size);                                                   // serialized size
-    rb.Push(static_cast<s32>(GetAddrInfoErrorToNetDbError(emu_gai_err))); // netdb error code
-    rb.Push(static_cast<s32>(GetAddrInfoErrorToErrno(emu_gai_err)));      // errno
+    rb.PushRaw(OutputParameters{
+        .data_size = data_size,
+        .netdb_error = GetAddrInfoErrorToNetDbError(emu_gai_err),
+        .bsd_errno = GetAddrInfoErrorToErrno(emu_gai_err),
+    });
 }
 
 static std::vector<u8> SerializeAddrInfo(const std::vector<Network::AddrInfo>& vec,
@@ -221,14 +240,15 @@ static std::vector<u8> SerializeAddrInfo(const std::vector<Network::AddrInfo>& v
 }
 
 static std::pair<u32, GetAddrInfoError> GetAddrInfoRequestImpl(HLERequestContext& ctx) {
-    struct Parameters {
+    struct InputParameters {
         u8 use_nsd_resolve;
         u32 cancel_handle;
         u64 process_id;
     };
+    static_assert(sizeof(InputParameters) == 0x10);
 
     IPC::RequestParser rp{ctx};
-    const auto parameters = rp.PopRaw<Parameters>();
+    const auto parameters = rp.PopRaw<InputParameters>();
 
     LOG_WARNING(
         Service,
@@ -264,23 +284,42 @@ static std::pair<u32, GetAddrInfoError> GetAddrInfoRequestImpl(HLERequestContext
 void SFDNSRES::GetAddrInfoRequest(HLERequestContext& ctx) {
     auto [data_size, emu_gai_err] = GetAddrInfoRequestImpl(ctx);
 
+    struct OutputParameters {
+        Errno bsd_errno;
+        GetAddrInfoError gai_error;
+        u32 data_size;
+    };
+    static_assert(sizeof(OutputParameters) == 0xc);
+
     IPC::ResponseBuilder rb{ctx, 5};
     rb.Push(ResultSuccess);
-    rb.Push(static_cast<s32>(GetAddrInfoErrorToErrno(emu_gai_err))); // errno
-    rb.Push(static_cast<s32>(emu_gai_err));                          // getaddrinfo error code
-    rb.Push(data_size);                                              // serialized size
+    rb.PushRaw(OutputParameters{
+        .bsd_errno = GetAddrInfoErrorToErrno(emu_gai_err),
+        .gai_error = emu_gai_err,
+        .data_size = data_size,
+    });
 }
 
 void SFDNSRES::GetAddrInfoRequestWithOptions(HLERequestContext& ctx) {
     // Additional options are ignored
     auto [data_size, emu_gai_err] = GetAddrInfoRequestImpl(ctx);
 
+    struct OutputParameters {
+        u32 data_size;
+        GetAddrInfoError gai_error;
+        NetDbError netdb_error;
+        Errno bsd_errno;
+    };
+    static_assert(sizeof(OutputParameters) == 0x10);
+
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
-    rb.Push(data_size);                                                   // serialized size
-    rb.Push(static_cast<s32>(emu_gai_err));                               // getaddrinfo error code
-    rb.Push(static_cast<s32>(GetAddrInfoErrorToNetDbError(emu_gai_err))); // netdb error code
-    rb.Push(static_cast<s32>(GetAddrInfoErrorToErrno(emu_gai_err)));      // errno
+    rb.PushRaw(OutputParameters{
+        .data_size = data_size,
+        .gai_error = emu_gai_err,
+        .netdb_error = GetAddrInfoErrorToNetDbError(emu_gai_err),
+        .bsd_errno = GetAddrInfoErrorToErrno(emu_gai_err),
+    });
 }
 
 void SFDNSRES::ResolverSetOptionRequest(HLERequestContext& ctx) {

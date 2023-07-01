@@ -48,6 +48,12 @@ static void OneTimeInit() {
         return;
     }
 
+    if (getenv("SSLKEYLOGFILE")) {
+        LOG_CRITICAL(Service_SSL, "SSLKEYLOGFILE was set but Schannel does not support exporting "
+                                  "keys; not logging keys!");
+        // Not fatal.
+    }
+
     one_time_init_success = true;
 }
 
@@ -70,25 +76,25 @@ public:
         return ResultSuccess;
     }
 
-    void SetSocket(std::shared_ptr<Network::SocketBase> socket) override {
-        socket_ = socket;
+    void SetSocket(std::shared_ptr<Network::SocketBase> socket_in) override {
+        socket = std::move(socket_in);
     }
 
-    Result SetHostName(const std::string& hostname) override {
-        hostname_ = hostname;
+    Result SetHostName(const std::string& hostname_in) override {
+        hostname = hostname_in;
         return ResultSuccess;
     }
 
     Result DoHandshake() override {
         while (1) {
             Result r;
-            switch (handshake_state_) {
+            switch (handshake_state) {
             case HandshakeState::Initial:
                 if ((r = FlushCiphertextWriteBuf()) != ResultSuccess ||
                     (r = CallInitializeSecurityContext()) != ResultSuccess) {
                     return r;
                 }
-                // CallInitializeSecurityContext updated `handshake_state_`.
+                // CallInitializeSecurityContext updated `handshake_state`.
                 continue;
             case HandshakeState::ContinueNeeded:
             case HandshakeState::IncompleteMessage:
@@ -96,20 +102,20 @@ public:
                     (r = FillCiphertextReadBuf()) != ResultSuccess) {
                     return r;
                 }
-                if (ciphertext_read_buf_.empty()) {
+                if (ciphertext_read_buf.empty()) {
                     LOG_ERROR(Service_SSL, "SSL handshake failed because server hung up");
                     return ResultInternalError;
                 }
                 if ((r = CallInitializeSecurityContext()) != ResultSuccess) {
                     return r;
                 }
-                // CallInitializeSecurityContext updated `handshake_state_`.
+                // CallInitializeSecurityContext updated `handshake_state`.
                 continue;
             case HandshakeState::DoneAfterFlush:
                 if ((r = FlushCiphertextWriteBuf()) != ResultSuccess) {
                     return r;
                 }
-                handshake_state_ = HandshakeState::Connected;
+                handshake_state = HandshakeState::Connected;
                 return ResultSuccess;
             case HandshakeState::Connected:
                 LOG_ERROR(Service_SSL, "Called DoHandshake but we already handshook");
@@ -121,24 +127,24 @@ public:
     }
 
     Result FillCiphertextReadBuf() {
-        const size_t fill_size = read_buf_fill_size_ ? read_buf_fill_size_ : 4096;
-        read_buf_fill_size_ = 0;
+        const size_t fill_size = read_buf_fill_size ? read_buf_fill_size : 4096;
+        read_buf_fill_size = 0;
         // This unnecessarily zeroes the buffer; oh well.
-        const size_t offset = ciphertext_read_buf_.size();
+        const size_t offset = ciphertext_read_buf.size();
         ASSERT_OR_EXECUTE(offset + fill_size >= offset, { return ResultInternalError; });
-        ciphertext_read_buf_.resize(offset + fill_size, 0);
-        const auto read_span = std::span(ciphertext_read_buf_).subspan(offset, fill_size);
-        const auto [actual, err] = socket_->Recv(0, read_span);
+        ciphertext_read_buf.resize(offset + fill_size, 0);
+        const auto read_span = std::span(ciphertext_read_buf).subspan(offset, fill_size);
+        const auto [actual, err] = socket->Recv(0, read_span);
         switch (err) {
         case Network::Errno::SUCCESS:
             ASSERT(static_cast<size_t>(actual) <= fill_size);
-            ciphertext_read_buf_.resize(offset + actual);
+            ciphertext_read_buf.resize(offset + actual);
             return ResultSuccess;
         case Network::Errno::AGAIN:
-            ciphertext_read_buf_.resize(offset);
+            ciphertext_read_buf.resize(offset);
             return ResultWouldBlock;
         default:
-            ciphertext_read_buf_.resize(offset);
+            ciphertext_read_buf.resize(offset);
             LOG_ERROR(Service_SSL, "Socket recv returned Network::Errno {}", err);
             return ResultInternalError;
         }
@@ -146,13 +152,13 @@ public:
 
     // Returns success if the write buffer has been completely emptied.
     Result FlushCiphertextWriteBuf() {
-        while (!ciphertext_write_buf_.empty()) {
-            const auto [actual, err] = socket_->Send(ciphertext_write_buf_, 0);
+        while (!ciphertext_write_buf.empty()) {
+            const auto [actual, err] = socket->Send(ciphertext_write_buf, 0);
             switch (err) {
             case Network::Errno::SUCCESS:
-                ASSERT(static_cast<size_t>(actual) <= ciphertext_write_buf_.size());
-                ciphertext_write_buf_.erase(ciphertext_write_buf_.begin(),
-                                            ciphertext_write_buf_.begin() + actual);
+                ASSERT(static_cast<size_t>(actual) <= ciphertext_write_buf.size());
+                ciphertext_write_buf.erase(ciphertext_write_buf.begin(),
+                                           ciphertext_write_buf.begin() + actual);
                 break;
             case Network::Errno::AGAIN:
                 return ResultWouldBlock;
@@ -175,9 +181,9 @@ public:
             // only used if `initial_call_done`
             {
                 // [0]
-                .cbBuffer = static_cast<unsigned long>(ciphertext_read_buf_.size()),
+                .cbBuffer = static_cast<unsigned long>(ciphertext_read_buf.size()),
                 .BufferType = SECBUFFER_TOKEN,
-                .pvBuffer = ciphertext_read_buf_.data(),
+                .pvBuffer = ciphertext_read_buf.data(),
             },
             {
                 // [1] (will be replaced by SECBUFFER_MISSING when SEC_E_INCOMPLETE_MESSAGE is
@@ -211,30 +217,30 @@ public:
             .pBuffers = output_buffers.data(),
         };
         ASSERT_OR_EXECUTE_MSG(
-            input_buffers[0].cbBuffer == ciphertext_read_buf_.size(),
+            input_buffers[0].cbBuffer == ciphertext_read_buf.size(),
             { return ResultInternalError; }, "read buffer too large");
 
-        bool initial_call_done = handshake_state_ != HandshakeState::Initial;
+        bool initial_call_done = handshake_state != HandshakeState::Initial;
         if (initial_call_done) {
             LOG_DEBUG(Service_SSL, "Passing {} bytes into InitializeSecurityContext",
-                      ciphertext_read_buf_.size());
+                      ciphertext_read_buf.size());
         }
 
         const SECURITY_STATUS ret =
-            InitializeSecurityContextA(&cred_handle, initial_call_done ? &ctxt_ : nullptr,
+            InitializeSecurityContextA(&cred_handle, initial_call_done ? &ctxt : nullptr,
                                        // Caller ensured we have set a hostname:
-                                       const_cast<char*>(hostname_.value().c_str()), req,
+                                       const_cast<char*>(hostname.value().c_str()), req,
                                        0, // Reserved1
                                        0, // TargetDataRep not used with Schannel
                                        initial_call_done ? &input_desc : nullptr,
                                        0, // Reserved2
-                                       initial_call_done ? nullptr : &ctxt_, &output_desc, &attr,
+                                       initial_call_done ? nullptr : &ctxt, &output_desc, &attr,
                                        nullptr); // ptsExpiry
 
         if (output_buffers[0].pvBuffer) {
             const std::span span(static_cast<u8*>(output_buffers[0].pvBuffer),
                                  output_buffers[0].cbBuffer);
-            ciphertext_write_buf_.insert(ciphertext_write_buf_.end(), span.begin(), span.end());
+            ciphertext_write_buf.insert(ciphertext_write_buf.end(), span.begin(), span.end());
             FreeContextBuffer(output_buffers[0].pvBuffer);
         }
 
@@ -251,64 +257,64 @@ public:
             LOG_DEBUG(Service_SSL, "InitializeSecurityContext => SEC_I_CONTINUE_NEEDED");
             if (input_buffers[1].BufferType == SECBUFFER_EXTRA) {
                 LOG_DEBUG(Service_SSL, "EXTRA of size {}", input_buffers[1].cbBuffer);
-                ASSERT(input_buffers[1].cbBuffer <= ciphertext_read_buf_.size());
-                ciphertext_read_buf_.erase(ciphertext_read_buf_.begin(),
-                                           ciphertext_read_buf_.end() - input_buffers[1].cbBuffer);
+                ASSERT(input_buffers[1].cbBuffer <= ciphertext_read_buf.size());
+                ciphertext_read_buf.erase(ciphertext_read_buf.begin(),
+                                          ciphertext_read_buf.end() - input_buffers[1].cbBuffer);
             } else {
                 ASSERT(input_buffers[1].BufferType == SECBUFFER_EMPTY);
-                ciphertext_read_buf_.clear();
+                ciphertext_read_buf.clear();
             }
-            handshake_state_ = HandshakeState::ContinueNeeded;
+            handshake_state = HandshakeState::ContinueNeeded;
             return ResultSuccess;
         case SEC_E_INCOMPLETE_MESSAGE:
             LOG_DEBUG(Service_SSL, "InitializeSecurityContext => SEC_E_INCOMPLETE_MESSAGE");
             ASSERT(input_buffers[1].BufferType == SECBUFFER_MISSING);
-            read_buf_fill_size_ = input_buffers[1].cbBuffer;
-            handshake_state_ = HandshakeState::IncompleteMessage;
+            read_buf_fill_size = input_buffers[1].cbBuffer;
+            handshake_state = HandshakeState::IncompleteMessage;
             return ResultSuccess;
         case SEC_E_OK:
             LOG_DEBUG(Service_SSL, "InitializeSecurityContext => SEC_E_OK");
-            ciphertext_read_buf_.clear();
-            handshake_state_ = HandshakeState::DoneAfterFlush;
+            ciphertext_read_buf.clear();
+            handshake_state = HandshakeState::DoneAfterFlush;
             return GrabStreamSizes();
         default:
             LOG_ERROR(Service_SSL,
                       "InitializeSecurityContext failed (probably certificate/protocol issue): {}",
                       Common::NativeErrorToString(ret));
-            handshake_state_ = HandshakeState::Error;
+            handshake_state = HandshakeState::Error;
             return ResultInternalError;
         }
     }
 
     Result GrabStreamSizes() {
         const SECURITY_STATUS ret =
-            QueryContextAttributes(&ctxt_, SECPKG_ATTR_STREAM_SIZES, &stream_sizes_);
+            QueryContextAttributes(&ctxt, SECPKG_ATTR_STREAM_SIZES, &stream_sizes);
         if (ret != SEC_E_OK) {
             LOG_ERROR(Service_SSL, "QueryContextAttributes(SECPKG_ATTR_STREAM_SIZES) failed: {}",
                       Common::NativeErrorToString(ret));
-            handshake_state_ = HandshakeState::Error;
+            handshake_state = HandshakeState::Error;
             return ResultInternalError;
         }
         return ResultSuccess;
     }
 
     ResultVal<size_t> Read(std::span<u8> data) override {
-        if (handshake_state_ != HandshakeState::Connected) {
+        if (handshake_state != HandshakeState::Connected) {
             LOG_ERROR(Service_SSL, "Called Read but we did not successfully handshake");
             return ResultInternalError;
         }
-        if (data.size() == 0 || got_read_eof_) {
+        if (data.size() == 0 || got_read_eof) {
             return size_t(0);
         }
         while (1) {
-            if (!cleartext_read_buf_.empty()) {
-                const size_t read_size = std::min(cleartext_read_buf_.size(), data.size());
-                std::memcpy(data.data(), cleartext_read_buf_.data(), read_size);
-                cleartext_read_buf_.erase(cleartext_read_buf_.begin(),
-                                          cleartext_read_buf_.begin() + read_size);
+            if (!cleartext_read_buf.empty()) {
+                const size_t read_size = std::min(cleartext_read_buf.size(), data.size());
+                std::memcpy(data.data(), cleartext_read_buf.data(), read_size);
+                cleartext_read_buf.erase(cleartext_read_buf.begin(),
+                                         cleartext_read_buf.begin() + read_size);
                 return read_size;
             }
-            if (!ciphertext_read_buf_.empty()) {
+            if (!ciphertext_read_buf.empty()) {
                 SecBuffer empty{
                     .cbBuffer = 0,
                     .BufferType = SECBUFFER_EMPTY,
@@ -316,16 +322,16 @@ public:
                 };
                 std::array<SecBuffer, 5> buffers{{
                     {
-                        .cbBuffer = static_cast<unsigned long>(ciphertext_read_buf_.size()),
+                        .cbBuffer = static_cast<unsigned long>(ciphertext_read_buf.size()),
                         .BufferType = SECBUFFER_DATA,
-                        .pvBuffer = ciphertext_read_buf_.data(),
+                        .pvBuffer = ciphertext_read_buf.data(),
                     },
                     empty,
                     empty,
                     empty,
                 }};
                 ASSERT_OR_EXECUTE_MSG(
-                    buffers[0].cbBuffer == ciphertext_read_buf_.size(),
+                    buffers[0].cbBuffer == ciphertext_read_buf.size(),
                     { return ResultInternalError; }, "read buffer too large");
                 SecBufferDesc desc{
                     .ulVersion = SECBUFFER_VERSION,
@@ -333,7 +339,7 @@ public:
                     .pBuffers = buffers.data(),
                 };
                 SECURITY_STATUS ret =
-                    DecryptMessage(&ctxt_, &desc, /*MessageSeqNo*/ 0, /*pfQOP*/ nullptr);
+                    DecryptMessage(&ctxt, &desc, /*MessageSeqNo*/ 0, /*pfQOP*/ nullptr);
                 switch (ret) {
                 case SEC_E_OK:
                     ASSERT_OR_EXECUTE(buffers[0].BufferType == SECBUFFER_STREAM_HEADER,
@@ -342,24 +348,23 @@ public:
                                       { return ResultInternalError; });
                     ASSERT_OR_EXECUTE(buffers[2].BufferType == SECBUFFER_STREAM_TRAILER,
                                       { return ResultInternalError; });
-                    cleartext_read_buf_.assign(static_cast<u8*>(buffers[1].pvBuffer),
-                                               static_cast<u8*>(buffers[1].pvBuffer) +
-                                                   buffers[1].cbBuffer);
+                    cleartext_read_buf.assign(static_cast<u8*>(buffers[1].pvBuffer),
+                                              static_cast<u8*>(buffers[1].pvBuffer) +
+                                                  buffers[1].cbBuffer);
                     if (buffers[3].BufferType == SECBUFFER_EXTRA) {
-                        ASSERT(buffers[3].cbBuffer <= ciphertext_read_buf_.size());
-                        ciphertext_read_buf_.erase(ciphertext_read_buf_.begin(),
-                                                   ciphertext_read_buf_.end() -
-                                                       buffers[3].cbBuffer);
+                        ASSERT(buffers[3].cbBuffer <= ciphertext_read_buf.size());
+                        ciphertext_read_buf.erase(ciphertext_read_buf.begin(),
+                                                  ciphertext_read_buf.end() - buffers[3].cbBuffer);
                     } else {
                         ASSERT(buffers[3].BufferType == SECBUFFER_EMPTY);
-                        ciphertext_read_buf_.clear();
+                        ciphertext_read_buf.clear();
                     }
                     continue;
                 case SEC_E_INCOMPLETE_MESSAGE:
                     break;
                 case SEC_I_CONTEXT_EXPIRED:
                     // Server hung up by sending close_notify.
-                    got_read_eof_ = true;
+                    got_read_eof = true;
                     return size_t(0);
                 default:
                     LOG_ERROR(Service_SSL, "DecryptMessage failed: {}",
@@ -371,43 +376,43 @@ public:
             if (r != ResultSuccess) {
                 return r;
             }
-            if (ciphertext_read_buf_.empty()) {
-                got_read_eof_ = true;
+            if (ciphertext_read_buf.empty()) {
+                got_read_eof = true;
                 return size_t(0);
             }
         }
     }
 
     ResultVal<size_t> Write(std::span<const u8> data) override {
-        if (handshake_state_ != HandshakeState::Connected) {
+        if (handshake_state != HandshakeState::Connected) {
             LOG_ERROR(Service_SSL, "Called Write but we did not successfully handshake");
             return ResultInternalError;
         }
         if (data.size() == 0) {
             return size_t(0);
         }
-        data = data.subspan(0, std::min<size_t>(data.size(), stream_sizes_.cbMaximumMessage));
-        if (!cleartext_write_buf_.empty()) {
+        data = data.subspan(0, std::min<size_t>(data.size(), stream_sizes.cbMaximumMessage));
+        if (!cleartext_write_buf.empty()) {
             // Already in the middle of a write.  It wouldn't make sense to not
             // finish sending the entire buffer since TLS has
             // header/MAC/padding/etc.
-            if (data.size() != cleartext_write_buf_.size() ||
-                std::memcmp(data.data(), cleartext_write_buf_.data(), data.size())) {
+            if (data.size() != cleartext_write_buf.size() ||
+                std::memcmp(data.data(), cleartext_write_buf.data(), data.size())) {
                 LOG_ERROR(Service_SSL, "Called Write but buffer does not match previous buffer");
                 return ResultInternalError;
             }
             return WriteAlreadyEncryptedData();
         } else {
-            cleartext_write_buf_.assign(data.begin(), data.end());
+            cleartext_write_buf.assign(data.begin(), data.end());
         }
 
-        std::vector<u8> header_buf(stream_sizes_.cbHeader, 0);
-        std::vector<u8> tmp_data_buf = cleartext_write_buf_;
-        std::vector<u8> trailer_buf(stream_sizes_.cbTrailer, 0);
+        std::vector<u8> header_buf(stream_sizes.cbHeader, 0);
+        std::vector<u8> tmp_data_buf = cleartext_write_buf;
+        std::vector<u8> trailer_buf(stream_sizes.cbTrailer, 0);
 
         std::array<SecBuffer, 3> buffers{{
             {
-                .cbBuffer = stream_sizes_.cbHeader,
+                .cbBuffer = stream_sizes.cbHeader,
                 .BufferType = SECBUFFER_STREAM_HEADER,
                 .pvBuffer = header_buf.data(),
             },
@@ -417,7 +422,7 @@ public:
                 .pvBuffer = tmp_data_buf.data(),
             },
             {
-                .cbBuffer = stream_sizes_.cbTrailer,
+                .cbBuffer = stream_sizes.cbTrailer,
                 .BufferType = SECBUFFER_STREAM_TRAILER,
                 .pvBuffer = trailer_buf.data(),
             },
@@ -431,17 +436,17 @@ public:
             .pBuffers = buffers.data(),
         };
 
-        const SECURITY_STATUS ret = EncryptMessage(&ctxt_, /*fQOP*/ 0, &desc, /*MessageSeqNo*/ 0);
+        const SECURITY_STATUS ret = EncryptMessage(&ctxt, /*fQOP*/ 0, &desc, /*MessageSeqNo*/ 0);
         if (ret != SEC_E_OK) {
             LOG_ERROR(Service_SSL, "EncryptMessage failed: {}", Common::NativeErrorToString(ret));
             return ResultInternalError;
         }
-        ciphertext_write_buf_.insert(ciphertext_write_buf_.end(), header_buf.begin(),
-                                     header_buf.end());
-        ciphertext_write_buf_.insert(ciphertext_write_buf_.end(), tmp_data_buf.begin(),
-                                     tmp_data_buf.end());
-        ciphertext_write_buf_.insert(ciphertext_write_buf_.end(), trailer_buf.begin(),
-                                     trailer_buf.end());
+        ciphertext_write_buf.insert(ciphertext_write_buf.end(), header_buf.begin(),
+                                    header_buf.end());
+        ciphertext_write_buf.insert(ciphertext_write_buf.end(), tmp_data_buf.begin(),
+                                    tmp_data_buf.end());
+        ciphertext_write_buf.insert(ciphertext_write_buf.end(), trailer_buf.begin(),
+                                    trailer_buf.end());
         return WriteAlreadyEncryptedData();
     }
 
@@ -451,15 +456,15 @@ public:
             return r;
         }
         // write buf is empty
-        const size_t cleartext_bytes_written = cleartext_write_buf_.size();
-        cleartext_write_buf_.clear();
+        const size_t cleartext_bytes_written = cleartext_write_buf.size();
+        cleartext_write_buf.clear();
         return cleartext_bytes_written;
     }
 
     ResultVal<std::vector<std::vector<u8>>> GetServerCerts() override {
         PCCERT_CONTEXT returned_cert = nullptr;
         const SECURITY_STATUS ret =
-            QueryContextAttributes(&ctxt_, SECPKG_ATTR_REMOTE_CERT_CONTEXT, &returned_cert);
+            QueryContextAttributes(&ctxt, SECPKG_ATTR_REMOTE_CERT_CONTEXT, &returned_cert);
         if (ret != SEC_E_OK) {
             LOG_ERROR(Service_SSL,
                       "QueryContextAttributes(SECPKG_ATTR_REMOTE_CERT_CONTEXT) failed: {}",
@@ -480,8 +485,8 @@ public:
     }
 
     ~SSLConnectionBackendSchannel() {
-        if (handshake_state_ != HandshakeState::Initial) {
-            DeleteSecurityContext(&ctxt_);
+        if (handshake_state != HandshakeState::Initial) {
+            DeleteSecurityContext(&ctxt);
         }
     }
 
@@ -509,21 +514,21 @@ public:
         // Another error was returned and we shouldn't allow initialization
         // to continue.
         Error,
-    } handshake_state_ = HandshakeState::Initial;
+    } handshake_state = HandshakeState::Initial;
 
-    CtxtHandle ctxt_;
-    SecPkgContext_StreamSizes stream_sizes_;
+    CtxtHandle ctxt;
+    SecPkgContext_StreamSizes stream_sizes;
 
-    std::shared_ptr<Network::SocketBase> socket_;
-    std::optional<std::string> hostname_;
+    std::shared_ptr<Network::SocketBase> socket;
+    std::optional<std::string> hostname;
 
-    std::vector<u8> ciphertext_read_buf_;
-    std::vector<u8> ciphertext_write_buf_;
-    std::vector<u8> cleartext_read_buf_;
-    std::vector<u8> cleartext_write_buf_;
+    std::vector<u8> ciphertext_read_buf;
+    std::vector<u8> ciphertext_write_buf;
+    std::vector<u8> cleartext_read_buf;
+    std::vector<u8> cleartext_write_buf;
 
-    bool got_read_eof_ = false;
-    size_t read_buf_fill_size_ = 0;
+    bool got_read_eof = false;
+    size_t read_buf_fill_size = 0;
 };
 
 ResultVal<std::unique_ptr<SSLConnectionBackend>> CreateSSLConnectionBackend() {
