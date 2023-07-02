@@ -11,6 +11,7 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/scratch_buffer.h"
 #include "core/hle/service/audio/hwopus.h"
 #include "core/hle/service/ipc_helpers.h"
 
@@ -68,13 +69,13 @@ private:
                                  ExtraBehavior extra_behavior) {
         u32 consumed = 0;
         u32 sample_count = 0;
-        tmp_samples.resize_destructive(ctx.GetWriteBufferNumElements<opus_int16>());
+        samples.resize_destructive(ctx.GetWriteBufferNumElements<opus_int16>());
 
         if (extra_behavior == ExtraBehavior::ResetContext) {
             ResetDecoderContext();
         }
 
-        if (!DecodeOpusData(consumed, sample_count, ctx.ReadBuffer(), tmp_samples, performance)) {
+        if (!DecodeOpusData(consumed, sample_count, ctx.ReadBuffer(), samples, performance)) {
             LOG_ERROR(Audio, "Failed to decode opus data");
             IPC::ResponseBuilder rb{ctx, 2};
             // TODO(ogniK): Use correct error code
@@ -90,7 +91,7 @@ private:
         if (performance) {
             rb.Push<u64>(*performance);
         }
-        ctx.WriteBuffer(tmp_samples);
+        ctx.WriteBuffer(samples);
     }
 
     bool DecodeOpusData(u32& consumed, u32& sample_count, std::span<const u8> input,
@@ -154,7 +155,7 @@ private:
     OpusDecoderPtr decoder;
     u32 sample_rate;
     u32 channel_count;
-    Common::ScratchBuffer<opus_int16> tmp_samples;
+    Common::ScratchBuffer<opus_int16> samples;
 };
 
 class IHardwareOpusDecoderManager final : public ServiceFramework<IHardwareOpusDecoderManager> {

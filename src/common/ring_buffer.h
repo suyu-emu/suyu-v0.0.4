@@ -54,7 +54,7 @@ public:
         return push_count;
     }
 
-    std::size_t Push(const std::span<T> input) {
+    std::size_t Push(std::span<const T> input) {
         return Push(input.data(), input.size());
     }
 

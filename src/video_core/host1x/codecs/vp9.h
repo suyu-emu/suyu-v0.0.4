@@ -4,9 +4,11 @@
 #pragma once
 
 #include <array>
+#include <span>
 #include <vector>
 
 #include "common/common_types.h"
+#include "common/scratch_buffer.h"
 #include "common/stream.h"
 #include "video_core/host1x/codecs/vp9_types.h"
 #include "video_core/host1x/nvdec_common.h"
@@ -128,8 +130,8 @@ public:
         return !current_frame_info.show_frame;
     }
 
-    /// Returns a const reference to the composed frame data.
-    [[nodiscard]] const std::vector<u8>& GetFrameBytes() const {
+    /// Returns a const span to the composed frame data.
+    [[nodiscard]] std::span<const u8> GetFrameBytes() const {
         return frame;
     }
 
@@ -181,7 +183,7 @@ private:
     [[nodiscard]] VpxBitStreamWriter ComposeUncompressedHeader();
 
     Host1x::Host1x& host1x;
-    std::vector<u8> frame;
+    Common::ScratchBuffer<u8> frame;
 
     std::array<s8, 4> loop_filter_ref_deltas{};
     std::array<s8, 2> loop_filter_mode_deltas{};

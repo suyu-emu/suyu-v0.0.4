@@ -290,7 +290,7 @@ void Codec::Decode() {
             return vp9_decoder->GetFrameBytes();
         default:
             ASSERT(false);
-            return std::vector<u8>{};
+            return std::span<const u8>{};
         }
     }();
     AVPacketPtr packet{av_packet_alloc(), AVPacketDeleter};

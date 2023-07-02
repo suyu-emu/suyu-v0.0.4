@@ -174,8 +174,7 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
     src_operand.address = regs.offset_in;
 
     DMA::BufferOperand dst_operand;
-    u32 abs_pitch_out = std::abs(static_cast<s32>(regs.pitch_out));
-    dst_operand.pitch = abs_pitch_out;
+    dst_operand.pitch = static_cast<u32>(std::abs(regs.pitch_out));
     dst_operand.width = regs.line_length_in;
     dst_operand.height = regs.line_count;
     dst_operand.address = regs.offset_out;
@@ -222,7 +221,7 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
     const size_t src_size =
         CalculateSize(true, bytes_per_pixel, width, height, depth, block_height, block_depth);
 
-    const size_t dst_size = static_cast<size_t>(abs_pitch_out) * regs.line_count;
+    const size_t dst_size = dst_operand.pitch * regs.line_count;
     read_buffer.resize_destructive(src_size);
     write_buffer.resize_destructive(dst_size);
 
@@ -231,7 +230,7 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
 
     UnswizzleSubrect(write_buffer, read_buffer, bytes_per_pixel, width, height, depth, x_offset,
                      src_params.origin.y, x_elements, regs.line_count, block_height, block_depth,
-                     abs_pitch_out);
+                     dst_operand.pitch);
 
     memory_manager.WriteBlockCached(regs.offset_out, write_buffer.data(), dst_size);
 }

@@ -9,6 +9,7 @@
 #include "audio_core/renderer/audio_device.h"
 #include "common/common_funcs.h"
 #include "common/logging/log.h"
+#include "common/scratch_buffer.h"
 #include "common/string_util.h"
 #include "common/swap.h"
 #include "core/core.h"
@@ -102,8 +103,8 @@ private:
         AudioOutBuffer buffer{};
         std::memcpy(&buffer, in_buffer.data(), sizeof(AudioOutBuffer));
 
-        [[maybe_unused]] auto sessionid{impl->GetSystem().GetSessionId()};
-        LOG_TRACE(Service_Audio, "called. Session {} Appending buffer {:08X}", sessionid, tag);
+        LOG_TRACE(Service_Audio, "called. Session {} Appending buffer {:08X}",
+                  impl->GetSystem().GetSessionId(), tag);
 
         auto result = impl->AppendBuffer(buffer, tag);
 
@@ -123,12 +124,15 @@ private:
 
     void GetReleasedAudioOutBuffers(HLERequestContext& ctx) {
         const auto write_buffer_size = ctx.GetWriteBufferNumElements<u64>();
-        tmp_buffer.resize_destructive(write_buffer_size);
-        tmp_buffer[0] = 0;
+        released_buffer.resize_destructive(write_buffer_size);
+        released_buffer[0] = 0;
 
-        const auto count = impl->GetReleasedBuffers(tmp_buffer);
+        const auto count = impl->GetReleasedBuffers(released_buffer);
 
-        ctx.WriteBuffer(tmp_buffer);
+        ctx.WriteBuffer(released_buffer);
+
+        LOG_TRACE(Service_Audio, "called. Session {} released {} buffers",
+                  impl->GetSystem().GetSessionId(), count);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
@@ -154,7 +158,6 @@ private:
         LOG_DEBUG(Service_Audio, "called. Buffer count={}", buffer_count);
 
         IPC::ResponseBuilder rb{ctx, 3};
-
         rb.Push(ResultSuccess);
         rb.Push(buffer_count);
     }
@@ -165,7 +168,6 @@ private:
         LOG_DEBUG(Service_Audio, "called. Played samples={}", samples_played);
 
         IPC::ResponseBuilder rb{ctx, 4};
-
         rb.Push(ResultSuccess);
         rb.Push(samples_played);
     }
@@ -205,7 +207,7 @@ private:
     KernelHelpers::ServiceContext service_context;
     Kernel::KEvent* event;
     std::shared_ptr<AudioCore::AudioOut::Out> impl;
-    Common::ScratchBuffer<u64> tmp_buffer;
+    Common::ScratchBuffer<u64> released_buffer;
 };
 
 AudOutU::AudOutU(Core::System& system_)

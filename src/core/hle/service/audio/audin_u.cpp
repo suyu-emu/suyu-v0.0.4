@@ -5,7 +5,7 @@
 #include "audio_core/renderer/audio_device.h"
 #include "common/common_funcs.h"
 #include "common/logging/log.h"
-#include "common/settings.h"
+#include "common/scratch_buffer.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
@@ -124,12 +124,15 @@ private:
 
     void GetReleasedAudioInBuffer(HLERequestContext& ctx) {
         const auto write_buffer_size = ctx.GetWriteBufferNumElements<u64>();
-        tmp_buffer.resize_destructive(write_buffer_size);
-        tmp_buffer[0] = 0;
+        released_buffer.resize_destructive(write_buffer_size);
+        released_buffer[0] = 0;
 
-        const auto count = impl->GetReleasedBuffers(tmp_buffer);
+        const auto count = impl->GetReleasedBuffers(released_buffer);
 
-        ctx.WriteBuffer(tmp_buffer);
+        LOG_TRACE(Service_Audio, "called. Session {} released {} buffers",
+                  impl->GetSystem().GetSessionId(), count);
+
+        ctx.WriteBuffer(released_buffer);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
@@ -155,7 +158,6 @@ private:
         LOG_DEBUG(Service_Audio, "called. Buffer count={}", buffer_count);
 
         IPC::ResponseBuilder rb{ctx, 3};
-
         rb.Push(ResultSuccess);
         rb.Push(buffer_count);
     }
@@ -195,7 +197,7 @@ private:
     KernelHelpers::ServiceContext service_context;
     Kernel::KEvent* event;
     std::shared_ptr<AudioCore::AudioIn::In> impl;
-    Common::ScratchBuffer<u64> tmp_buffer;
+    Common::ScratchBuffer<u64> released_buffer;
 };
 
 AudInU::AudInU(Core::System& system_)

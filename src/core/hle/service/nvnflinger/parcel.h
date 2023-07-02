@@ -6,6 +6,7 @@
 #include <memory>
 #include <span>
 #include <vector>
+
 #include <boost/container/small_vector.hpp>
 
 #include "common/alignment.h"
@@ -148,9 +149,9 @@ public:
         this->WriteImpl(0U, m_object_buffer);
     }
 
-    std::vector<u8> Serialize() const {
-        std::vector<u8> output_buffer(sizeof(ParcelHeader) + m_data_buffer.size() +
-                                      m_object_buffer.size());
+    std::span<u8> Serialize() {
+        m_output_buffer.resize(sizeof(ParcelHeader) + m_data_buffer.size() +
+                               m_object_buffer.size());
 
         ParcelHeader header{};
         header.data_size = static_cast<u32>(m_data_buffer.size());
@@ -158,17 +159,17 @@ public:
         header.objects_size = static_cast<u32>(m_object_buffer.size());
         header.objects_offset = header.data_offset + header.data_size;
 
-        std::memcpy(output_buffer.data(), &header, sizeof(header));
-        std::ranges::copy(m_data_buffer, output_buffer.data() + header.data_offset);
-        std::ranges::copy(m_object_buffer, output_buffer.data() + header.objects_offset);
+        std::memcpy(m_output_buffer.data(), &header, sizeof(ParcelHeader));
+        std::ranges::copy(m_data_buffer, m_output_buffer.data() + header.data_offset);
+        std::ranges::copy(m_object_buffer, m_output_buffer.data() + header.objects_offset);
 
-        return output_buffer;
+        return m_output_buffer;
     }
 
 private:
-    template <typename T>
+    template <typename T, size_t BufferSize>
         requires(std::is_trivially_copyable_v<T>)
-    void WriteImpl(const T& val, boost::container::small_vector<u8, 0x200>& buffer) {
+    void WriteImpl(const T& val, boost::container::small_vector<u8, BufferSize>& buffer) {
         const size_t aligned_size = Common::AlignUp(sizeof(T), 4);
         const size_t old_size = buffer.size();
         buffer.resize(old_size + aligned_size);
@@ -177,8 +178,9 @@ private:
     }
 
 private:
-    boost::container::small_vector<u8, 0x200> m_data_buffer;
-    boost::container::small_vector<u8, 0x200> m_object_buffer;
+    boost::container::small_vector<u8, 0x1B0> m_data_buffer;
+    boost::container::small_vector<u8, 0x40> m_object_buffer;
+    boost::container::small_vector<u8, 0x200> m_output_buffer;
 };
 
 } // namespace Service::android

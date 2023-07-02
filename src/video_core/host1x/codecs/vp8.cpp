@@ -12,7 +12,7 @@ VP8::VP8(Host1x::Host1x& host1x_) : host1x{host1x_} {}
 
 VP8::~VP8() = default;
 
-const std::vector<u8>& VP8::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state) {
+std::span<const u8> VP8::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state) {
     VP8PictureInfo info;
     host1x.MemoryManager().ReadBlock(state.picture_info_offset, &info, sizeof(VP8PictureInfo));
 
