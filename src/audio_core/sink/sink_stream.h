@@ -16,7 +16,6 @@
 #include "common/polyfill_thread.h"
 #include "common/reader_writer_queue.h"
 #include "common/ring_buffer.h"
-#include "common/scratch_buffer.h"
 #include "common/thread.h"
 
 namespace Core {
@@ -256,8 +255,6 @@ private:
     /// Signalled when ring buffer entries are consumed
     std::condition_variable_any release_cv;
     std::mutex release_mutex;
-    /// Temporary buffer for appending samples when upmixing
-    Common::ScratchBuffer<s16> tmp_samples{};
 };
 
 using SinkStreamPtr = std::unique_ptr<SinkStream>;

@@ -12,6 +12,7 @@
 #include "audio_core/sink/sink_stream.h"
 #include "common/common_types.h"
 #include "common/fixed_point.h"
+#include "common/scope_exit.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
@@ -19,9 +20,12 @@
 namespace AudioCore::Sink {
 
 void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
-    if (type == StreamType::In) {
+    SCOPE_EXIT({
         queue.enqueue(buffer);
-        queued_buffers++;
+        ++queued_buffers;
+    });
+
+    if (type == StreamType::In) {
         return;
     }
 
@@ -66,16 +70,17 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
                 static_cast<s16>(std::clamp(right_sample, min, max));
         }
 
-        samples = samples.subspan(0, samples.size() / system_channels * device_channels);
+        samples_buffer.Push(samples.subspan(0, samples.size() / system_channels * device_channels));
+        return;
+    }
 
-    } else if (system_channels == 2 && device_channels == 6) {
+    if (system_channels == 2 && device_channels == 6) {
         // We need moar samples! Not all games will provide 6 channel audio.
         // TODO: Implement some upmixing here. Currently just passthrough, with other
         // channels left as silence.
-        auto new_size = samples.size() / system_channels * device_channels;
-        tmp_samples.resize_destructive(new_size);
+        std::vector<s16> new_samples(samples.size() / system_channels * device_channels);
 
-        for (u32 read_index = 0, write_index = 0; read_index < new_size;
+        for (u32 read_index = 0, write_index = 0; read_index < samples.size();
              read_index += system_channels, write_index += device_channels) {
             const auto left_sample{static_cast<s16>(std::clamp(
                 static_cast<s32>(
@@ -83,7 +88,7 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
                     volume),
                 min, max))};
 
-            tmp_samples[write_index + static_cast<u32>(Channels::FrontLeft)] = left_sample;
+            new_samples[write_index + static_cast<u32>(Channels::FrontLeft)] = left_sample;
 
             const auto right_sample{static_cast<s16>(std::clamp(
                 static_cast<s32>(
@@ -91,20 +96,21 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
                     volume),
                 min, max))};
 
-            tmp_samples[write_index + static_cast<u32>(Channels::FrontRight)] = right_sample;
+            new_samples[write_index + static_cast<u32>(Channels::FrontRight)] = right_sample;
         }
-        samples = std::span<s16>(tmp_samples);
 
-    } else if (volume != 1.0f) {
-        for (u32 i = 0; i < samples.size(); i++) {
+        samples_buffer.Push(new_samples);
+        return;
+    }
+
+    if (volume != 1.0f) {
+        for (u32 i = 0; i < samples.size(); ++i) {
             samples[i] = static_cast<s16>(
                 std::clamp(static_cast<s32>(static_cast<f32>(samples[i]) * volume), min, max));
         }
     }
 
     samples_buffer.Push(samples);
-    queue.enqueue(buffer);
-    queued_buffers++;
 }
 
 std::vector<s16> SinkStream::ReleaseBuffer(u64 num_samples) {
