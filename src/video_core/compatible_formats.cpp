@@ -272,6 +272,9 @@ constexpr Table MakeNonNativeBgrCopyTable() {
 
 bool IsViewCompatible(PixelFormat format_a, PixelFormat format_b, bool broken_views,
                       bool native_bgr) {
+    if (format_a == format_b) {
+        return true;
+    }
     if (broken_views) {
         // If format views are broken, only accept formats that are identical.
         return format_a == format_b;
@@ -282,6 +285,9 @@ bool IsViewCompatible(PixelFormat format_a, PixelFormat format_b, bool broken_vi
 }
 
 bool IsCopyCompatible(PixelFormat format_a, PixelFormat format_b, bool native_bgr) {
+    if (format_a == format_b) {
+        return true;
+    }
     static constexpr Table BGR_TABLE = MakeNativeBgrCopyTable();
     static constexpr Table NO_BGR_TABLE = MakeNonNativeBgrCopyTable();
     return IsSupported(native_bgr ? BGR_TABLE : NO_BGR_TABLE, format_a, format_b);

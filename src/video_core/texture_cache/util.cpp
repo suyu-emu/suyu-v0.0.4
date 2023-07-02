@@ -1201,8 +1201,7 @@ std::optional<SubresourceBase> FindSubresource(const ImageInfo& candidate, const
         // Format checking is relaxed, but we still have to check for matching bytes per block.
         // This avoids creating a view for blits on UE4 titles where formats with different bytes
         // per block are aliased.
-        if (BytesPerBlock(existing.format) != BytesPerBlock(candidate.format) &&
-            False(options & RelaxedOptions::FormatBpp)) {
+        if (BytesPerBlock(existing.format) != BytesPerBlock(candidate.format)) {
             return std::nullopt;
         }
     } else {
@@ -1233,11 +1232,7 @@ std::optional<SubresourceBase> FindSubresource(const ImageInfo& candidate, const
     }
     const bool strict_size = False(options & RelaxedOptions::Size);
     if (!IsBlockLinearSizeCompatible(existing, candidate, base->level, 0, strict_size)) {
-        if (False(options & RelaxedOptions::FormatBpp)) {
-            return std::nullopt;
-        } else if (!IsBlockLinearSizeCompatibleBPPRelaxed(existing, candidate, base->level, 0)) {
-            return std::nullopt;
-        }
+        return std::nullopt;
     }
     // TODO: compare block sizes
     return base;
