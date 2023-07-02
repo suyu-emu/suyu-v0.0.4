@@ -105,19 +105,11 @@ static u64 romfs_get_hash_table_count(u64 num_entries) {
     return count;
 }
 
-void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs, VirtualDir ext_dir,
+void RomFSBuildContext::VisitDirectory(VirtualDir romfs_dir, VirtualDir ext_dir,
                                        std::shared_ptr<RomFSBuildDirectoryContext> parent) {
     std::vector<std::shared_ptr<RomFSBuildDirectoryContext>> child_dirs;
 
-    VirtualDir dir;
-
-    if (parent->path_len == 0) {
-        dir = root_romfs;
-    } else {
-        dir = root_romfs->GetDirectoryRelative(parent->path);
-    }
-
-    const auto entries = dir->GetEntries();
+    const auto entries = romfs_dir->GetEntries();
 
     for (const auto& kv : entries) {
         if (kv.second == VfsEntryType::Directory) {
@@ -127,7 +119,7 @@ void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs, VirtualDir ext_dir
             child->path_len = child->cur_path_ofs + static_cast<u32>(kv.first.size());
             child->path = parent->path + "/" + kv.first;
 
-            if (ext_dir != nullptr && ext_dir->GetFileRelative(child->path + ".stub") != nullptr) {
+            if (ext_dir != nullptr && ext_dir->GetFile(kv.first + ".stub") != nullptr) {
                 continue;
             }
 
@@ -144,17 +136,17 @@ void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs, VirtualDir ext_dir
             child->path_len = child->cur_path_ofs + static_cast<u32>(kv.first.size());
             child->path = parent->path + "/" + kv.first;
 
-            if (ext_dir != nullptr && ext_dir->GetFileRelative(child->path + ".stub") != nullptr) {
+            if (ext_dir != nullptr && ext_dir->GetFile(kv.first + ".stub") != nullptr) {
                 continue;
             }
 
             // Sanity check on path_len
             ASSERT(child->path_len < FS_MAX_PATH);
 
-            child->source = root_romfs->GetFileRelative(child->path);
+            child->source = romfs_dir->GetFile(kv.first);
 
             if (ext_dir != nullptr) {
-                if (const auto ips = ext_dir->GetFileRelative(child->path + ".ips")) {
+                if (const auto ips = ext_dir->GetFile(kv.first + ".ips")) {
                     if (auto patched = PatchIPS(child->source, ips)) {
                         child->source = std::move(patched);
                     }
@@ -168,23 +160,27 @@ void RomFSBuildContext::VisitDirectory(VirtualDir root_romfs, VirtualDir ext_dir
     }
 
     for (auto& child : child_dirs) {
-        this->VisitDirectory(root_romfs, ext_dir, child);
+        auto subdir_name = std::string_view(child->path).substr(child->cur_path_ofs);
+        auto child_romfs_dir = romfs_dir->GetSubdirectory(subdir_name);
+        auto child_ext_dir = ext_dir != nullptr ? ext_dir->GetSubdirectory(subdir_name) : nullptr;
+        this->VisitDirectory(child_romfs_dir, child_ext_dir, child);
     }
 }
 
 bool RomFSBuildContext::AddDirectory(std::shared_ptr<RomFSBuildDirectoryContext> parent_dir_ctx,
                                      std::shared_ptr<RomFSBuildDirectoryContext> dir_ctx) {
     // Check whether it's already in the known directories.
-    const auto existing = directories.find(dir_ctx->path);
-    if (existing != directories.end())
+    const auto [it, is_new] = directories.emplace(dir_ctx->path, nullptr);
+    if (!is_new) {
         return false;
+    }
 
     // Add a new directory.
     num_dirs++;
     dir_table_size +=
         sizeof(RomFSDirectoryEntry) + Common::AlignUp(dir_ctx->path_len - dir_ctx->cur_path_ofs, 4);
     dir_ctx->parent = parent_dir_ctx;
-    directories.emplace(dir_ctx->path, dir_ctx);
+    it->second = dir_ctx;
 
     return true;
 }
@@ -192,8 +188,8 @@ bool RomFSBuildContext::AddDirectory(std::shared_ptr<RomFSBuildDirectoryContext>
 bool RomFSBuildContext::AddFile(std::shared_ptr<RomFSBuildDirectoryContext> parent_dir_ctx,
                                 std::shared_ptr<RomFSBuildFileContext> file_ctx) {
     // Check whether it's already in the known files.
-    const auto existing = files.find(file_ctx->path);
-    if (existing != files.end()) {
+    const auto [it, is_new] = files.emplace(file_ctx->path, nullptr);
+    if (!is_new) {
         return false;
     }
 
@@ -202,7 +198,7 @@ bool RomFSBuildContext::AddFile(std::shared_ptr<RomFSBuildDirectoryContext> pare
     file_table_size +=
         sizeof(RomFSFileEntry) + Common::AlignUp(file_ctx->path_len - file_ctx->cur_path_ofs, 4);
     file_ctx->parent = parent_dir_ctx;
-    files.emplace(file_ctx->path, file_ctx);
+    it->second = file_ctx;
 
     return true;
 }
