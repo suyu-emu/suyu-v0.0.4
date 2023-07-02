@@ -38,22 +38,31 @@ Result SendAsyncRequestWithUserBuffer(Core::System& system, Handle* out_event_ha
 
 Result ReplyAndReceive(Core::System& system, s32* out_index, uint64_t handles_addr, s32 num_handles,
                        Handle reply_target, s64 timeout_ns) {
+    // Ensure number of handles is valid.
+    R_UNLESS(0 <= num_handles && num_handles <= ArgumentHandleCountMax, ResultOutOfRange);
+
+    // Get the synchronization context.
     auto& kernel = system.Kernel();
     auto& handle_table = GetCurrentProcess(kernel).GetHandleTable();
+    auto objs = GetCurrentThread(kernel).GetSynchronizationObjectBuffer();
+    auto handles = GetCurrentThread(kernel).GetHandleBuffer();
 
-    R_UNLESS(0 <= num_handles && num_handles <= ArgumentHandleCountMax, ResultOutOfRange);
-    R_UNLESS(GetCurrentMemory(kernel).IsValidVirtualAddressRange(
-                 handles_addr, static_cast<u64>(sizeof(Handle) * num_handles)),
-             ResultInvalidPointer);
+    // Copy user handles.
+    if (num_handles > 0) {
+        // Ensure we can try to get the handles.
+        R_UNLESS(GetCurrentMemory(kernel).IsValidVirtualAddressRange(
+                     handles_addr, static_cast<u64>(sizeof(Handle) * num_handles)),
+                 ResultInvalidPointer);
 
-    std::array<Handle, Svc::ArgumentHandleCountMax> handles;
-    GetCurrentMemory(kernel).ReadBlock(handles_addr, handles.data(), sizeof(Handle) * num_handles);
+        // Get the handles.
+        GetCurrentMemory(kernel).ReadBlock(handles_addr, handles.data(),
+                                           sizeof(Handle) * num_handles);
 
-    // Convert handle list to object table.
-    std::array<KSynchronizationObject*, Svc::ArgumentHandleCountMax> objs;
-    R_UNLESS(handle_table.GetMultipleObjects<KSynchronizationObject>(objs.data(), handles.data(),
-                                                                     num_handles),
-             ResultInvalidHandle);
+        // Convert the handles to objects.
+        R_UNLESS(handle_table.GetMultipleObjects<KSynchronizationObject>(
+                     objs.data(), handles.data(), num_handles),
+                 ResultInvalidHandle);
+    }
 
     // Ensure handles are closed when we're done.
     SCOPE_EXIT({
