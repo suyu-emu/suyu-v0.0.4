@@ -19,11 +19,9 @@
 #include <windows.h>
 // ensure include order
 #include <vulkan/vulkan_win32.h>
-#elif defined(__APPLE__)
-#include <vulkan/vulkan_macos.h>
 #elif defined(__ANDROID__)
 #include <vulkan/vulkan_android.h>
-#else
+#elif !defined(__APPLE__)
 #include <X11/Xlib.h>
 #include <vulkan/vulkan_wayland.h>
 #include <vulkan/vulkan_xlib.h>
@@ -68,7 +66,7 @@ namespace {
         break;
 #elif defined(__APPLE__)
     case Core::Frontend::WindowSystemType::Cocoa:
-        extensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
+        extensions.push_back(VK_EXT_METAL_SURFACE_EXTENSION_NAME);
         break;
 #elif defined(__ANDROID__)
     case Core::Frontend::WindowSystemType::Android:

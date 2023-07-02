@@ -26,7 +26,10 @@ Record::~Record() = default;
 void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
     using namespace Vulkan;
 
-    auto wsi = QtCommon::GetWindowSystemInfo(window);
+    // Create a test window with a Vulkan surface type for checking present modes.
+    QWindow test_window(window);
+    test_window.setSurfaceType(QWindow::VulkanSurface);
+    auto wsi = QtCommon::GetWindowSystemInfo(&test_window);
 
     vk::InstanceDispatch dld;
     const auto library = OpenLibrary();
