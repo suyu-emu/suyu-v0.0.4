@@ -60,11 +60,11 @@ struct SslContextSharedData {
 
 class ISslConnection final : public ServiceFramework<ISslConnection> {
 public:
-    explicit ISslConnection(Core::System& system_, SslVersion version,
-                            std::shared_ptr<SslContextSharedData>& shared_data,
-                            std::unique_ptr<SSLConnectionBackend>&& backend)
-        : ServiceFramework{system_, "ISslConnection"}, ssl_version{version},
-          shared_data{shared_data}, backend{std::move(backend)} {
+    explicit ISslConnection(Core::System& system_in, SslVersion ssl_version_in,
+                            std::shared_ptr<SslContextSharedData>& shared_data_in,
+                            std::unique_ptr<SSLConnectionBackend>&& backend_in)
+        : ServiceFramework{system_in, "ISslConnection"}, ssl_version{ssl_version_in},
+          shared_data{shared_data_in}, backend{std::move(backend_in)} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ISslConnection::SetSocketDescriptor, "SetSocketDescriptor"},
