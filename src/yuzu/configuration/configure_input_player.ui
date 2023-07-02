@@ -3105,21 +3105,6 @@
                     </property>
                     <item>
                      <widget class="QPushButton" name="mousePanningButton">
-                      <property name="minimumSize">
-                       <size>
-                        <width>68</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>68</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">min-width: 68px;</string>
-                      </property>
                       <property name="text">
                        <string>Configure</string>
                       </property>

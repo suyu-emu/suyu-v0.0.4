@@ -99,6 +99,8 @@ private:
     void UpdateStickInput();
     void UpdateMotionInput();
 
+    bool IsMousePanningEnabled();
+
     Common::Input::ButtonNames GetUIButtonName(const Common::ParamPackage& params) const;
 
     Common::Vec2<int> mouse_origin;
