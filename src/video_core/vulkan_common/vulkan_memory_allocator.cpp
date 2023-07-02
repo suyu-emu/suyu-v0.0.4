@@ -221,8 +221,8 @@ vk::Image MemoryAllocator::CreateImage(const VkImageCreateInfo& ci) const {
     const VmaAllocationCreateInfo alloc_ci = {
         .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT,
         .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-        .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        .preferredFlags = 0,
+        .requiredFlags = 0,
+        .preferredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         .memoryTypeBits = 0,
         .pool = VK_NULL_HANDLE,
         .pUserData = nullptr,
