@@ -2929,10 +2929,10 @@ void GMainWindow::OnMenuInstallToNAND() {
 
     int remaining = filenames.size();
 
-    // This would only overflow above 2^43 bytes (8.796 TB)
+    // This would only overflow above 2^51 bytes (2.252 PB)
     int total_size = 0;
     for (const QString& file : files) {
-        total_size += static_cast<int>(QFile(file).size() / 0x1000);
+        total_size += static_cast<int>(QFile(file).size() / 1_MiB);
     }
     if (total_size < 0) {
         LOG_CRITICAL(Frontend, "Attempting to install too many files, aborting.");
@@ -3088,7 +3088,7 @@ InstallResult GMainWindow::InstallNCA(const QString& filename) {
             return false;
         }
 
-        std::array<u8, 0x1000> buffer{};
+        std::vector<u8> buffer(1_MiB);
 
         for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
             if (install_progress->wasCanceled()) {
