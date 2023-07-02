@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <span>
 #include <string>
 #include "common/typed_address.h"
 #include "core/hle/result.h"
@@ -15,7 +16,8 @@ struct PageTable;
 
 namespace Core {
 class System;
-}
+class GPUDirtyMemoryManager;
+} // namespace Core
 
 namespace Kernel {
 class PhysicalMemory;
@@ -457,6 +459,8 @@ public:
      *              marked as debug or non-debug.
      */
     void MarkRegionDebug(Common::ProcessAddress vaddr, u64 size, bool debug);
+
+    void SetGPUDirtyManagers(std::span<Core::GPUDirtyMemoryManager> managers);
 
 private:
     Core::System& system;

@@ -53,7 +53,8 @@ public:
                          VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
     void InvalidateRegion(VAddr addr, u64 size,
                           VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
-    void OnCPUWrite(VAddr addr, u64 size) override;
+    void OnCacheInvalidation(VAddr addr, u64 size) override;
+    bool OnCPUWrite(VAddr addr, u64 size) override;
     VideoCore::RasterizerDownloadArea GetFlushArea(VAddr addr, u64 size) override;
     void InvalidateGPUCache() override;
     void UnmapMemory(VAddr addr, u64 size) override;

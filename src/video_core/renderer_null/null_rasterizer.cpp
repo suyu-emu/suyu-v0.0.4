@@ -47,7 +47,10 @@ bool RasterizerNull::MustFlushRegion(VAddr addr, u64 size, VideoCommon::CacheTyp
     return false;
 }
 void RasterizerNull::InvalidateRegion(VAddr addr, u64 size, VideoCommon::CacheType) {}
-void RasterizerNull::OnCPUWrite(VAddr addr, u64 size) {}
+bool RasterizerNull::OnCPUWrite(VAddr addr, u64 size) {
+    return false;
+}
+void RasterizerNull::OnCacheInvalidation(VAddr addr, u64 size) {}
 VideoCore::RasterizerDownloadArea RasterizerNull::GetFlushArea(VAddr addr, u64 size) {
     VideoCore::RasterizerDownloadArea new_area{
         .start_address = Common::AlignDown(addr, Core::Memory::YUZU_PAGESIZE),

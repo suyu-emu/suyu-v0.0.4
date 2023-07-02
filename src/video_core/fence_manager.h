@@ -69,7 +69,6 @@ public:
     }
 
     void SignalFence(std::function<void()>&& func) {
-        rasterizer.InvalidateGPUCache();
         bool delay_fence = Settings::IsGPULevelHigh();
         if constexpr (!can_async_check) {
             TryReleasePendingFences<false>();
@@ -96,6 +95,7 @@ public:
             guard.unlock();
             cv.notify_all();
         }
+        rasterizer.InvalidateGPUCache();
     }
 
     void SignalSyncPoint(u32 value) {

@@ -27,6 +27,7 @@
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_real.h"
+#include "core/gpu_dirty_memory_manager.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/kernel/k_process.h"
@@ -130,7 +131,10 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 struct System::Impl {
     explicit Impl(System& system)
         : kernel{system}, fs_controller{system}, memory{system}, hid_core{}, room_network{},
-          cpu_manager{system}, reporter{system}, applet_manager{system}, time_manager{system} {}
+          cpu_manager{system}, reporter{system}, applet_manager{system}, time_manager{system},
+          gpu_dirty_memory_write_manager{} {
+        memory.SetGPUDirtyManagers(gpu_dirty_memory_write_manager);
+    }
 
     void Initialize(System& system) {
         device_memory = std::make_unique<Core::DeviceMemory>();
@@ -233,6 +237,8 @@ struct System::Impl {
 
         // Setting changes may require a full system reinitialization (e.g., disabling multicore).
         ReinitializeIfNecessary(system);
+
+        memory.SetGPUDirtyManagers(gpu_dirty_memory_write_manager);
 
         kernel.Initialize();
         cpu_manager.Initialize();
@@ -540,6 +546,9 @@ struct System::Impl {
 
     std::array<u64, Core::Hardware::NUM_CPU_CORES> dynarmic_ticks{};
     std::array<MicroProfileToken, Core::Hardware::NUM_CPU_CORES> microprofile_cpu{};
+
+    std::array<Core::GPUDirtyMemoryManager, Core::Hardware::NUM_CPU_CORES>
+        gpu_dirty_memory_write_manager{};
 };
 
 System::System() : impl{std::make_unique<Impl>(*this)} {}
@@ -629,8 +638,29 @@ void System::PrepareReschedule(const u32 core_index) {
     impl->kernel.PrepareReschedule(core_index);
 }
 
+Core::GPUDirtyMemoryManager& System::CurrentGPUDirtyMemoryManager() {
+    const std::size_t core = impl->kernel.GetCurrentHostThreadID();
+    return impl->gpu_dirty_memory_write_manager[core < Core::Hardware::NUM_CPU_CORES
+                                                    ? core
+                                                    : Core::Hardware::NUM_CPU_CORES - 1];
+}
+
+/// Provides a constant reference to the current gou dirty memory manager.
+const Core::GPUDirtyMemoryManager& System::CurrentGPUDirtyMemoryManager() const {
+    const std::size_t core = impl->kernel.GetCurrentHostThreadID();
+    return impl->gpu_dirty_memory_write_manager[core < Core::Hardware::NUM_CPU_CORES
+                                                    ? core
+                                                    : Core::Hardware::NUM_CPU_CORES - 1];
+}
+
 size_t System::GetCurrentHostThreadID() const {
     return impl->kernel.GetCurrentHostThreadID();
+}
+
+void System::GatherGPUDirtyMemory(std::function<void(VAddr, size_t)>& callback) {
+    for (auto& manager : impl->gpu_dirty_memory_write_manager) {
+        manager.Gather(callback);
+    }
 }
 
 PerfStatsResults System::GetAndResetPerfStats() {

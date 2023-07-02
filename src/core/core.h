@@ -108,9 +108,10 @@ class CpuManager;
 class Debugger;
 class DeviceMemory;
 class ExclusiveMonitor;
-class SpeedLimiter;
+class GPUDirtyMemoryManager;
 class PerfStats;
 class Reporter;
+class SpeedLimiter;
 class TelemetrySession;
 
 struct PerfStatsResults;
@@ -224,6 +225,14 @@ public:
 
     /// Prepare the core emulation for a reschedule
     void PrepareReschedule(u32 core_index);
+
+    /// Provides a reference to the gou dirty memory manager.
+    [[nodiscard]] Core::GPUDirtyMemoryManager& CurrentGPUDirtyMemoryManager();
+
+    /// Provides a constant reference to the current gou dirty memory manager.
+    [[nodiscard]] const Core::GPUDirtyMemoryManager& CurrentGPUDirtyMemoryManager() const;
+
+    void GatherGPUDirtyMemory(std::function<void(VAddr, size_t)>& callback);
 
     [[nodiscard]] size_t GetCurrentHostThreadID() const;
 

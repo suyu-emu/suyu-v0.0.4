@@ -250,6 +250,10 @@ public:
     /// Notify rasterizer that any caches of the specified region should be invalidated
     void InvalidateRegion(VAddr addr, u64 size);
 
+    /// Notify rasterizer that CPU is trying to write this area. It returns true if the area is
+    /// sensible, false otherwise
+    bool OnCPUWrite(VAddr addr, u64 size);
+
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
     void FlushAndInvalidateRegion(VAddr addr, u64 size);
 

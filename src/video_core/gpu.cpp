@@ -95,7 +95,9 @@ struct GPU::Impl {
 
     /// Synchronizes CPU writes with Host GPU memory.
     void InvalidateGPUCache() {
-        rasterizer->InvalidateGPUCache();
+        std::function<void(VAddr, size_t)> callback_writes(
+            [this](VAddr address, size_t size) { rasterizer->OnCacheInvalidation(address, size); });
+        system.GatherGPUDirtyMemory(callback_writes);
     }
 
     /// Signal the ending of command list.
@@ -297,6 +299,10 @@ struct GPU::Impl {
     /// Notify rasterizer that any caches of the specified region should be invalidated
     void InvalidateRegion(VAddr addr, u64 size) {
         gpu_thread.InvalidateRegion(addr, size);
+    }
+
+    bool OnCPUWrite(VAddr addr, u64 size) {
+        return rasterizer->OnCPUWrite(addr, size);
     }
 
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
@@ -559,6 +565,10 @@ void GPU::FlushRegion(VAddr addr, u64 size) {
 
 void GPU::InvalidateRegion(VAddr addr, u64 size) {
     impl->InvalidateRegion(addr, size);
+}
+
+bool GPU::OnCPUWrite(VAddr addr, u64 size) {
+    return impl->OnCPUWrite(addr, size);
 }
 
 void GPU::FlushAndInvalidateRegion(VAddr addr, u64 size) {

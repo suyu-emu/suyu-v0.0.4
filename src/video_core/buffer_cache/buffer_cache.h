@@ -115,7 +115,34 @@ void BufferCache<P>::WriteMemory(VAddr cpu_addr, u64 size) {
 
 template <class P>
 void BufferCache<P>::CachedWriteMemory(VAddr cpu_addr, u64 size) {
-    memory_tracker.CachedCpuWrite(cpu_addr, size);
+    const bool is_dirty = IsRegionRegistered(cpu_addr, size);
+    if (!is_dirty) {
+        return;
+    }
+    VAddr aligned_start = Common::AlignDown(cpu_addr, YUZU_PAGESIZE);
+    VAddr aligned_end = Common::AlignUp(cpu_addr + size, YUZU_PAGESIZE);
+    if (!IsRegionGpuModified(aligned_start, aligned_end - aligned_start)) {
+        WriteMemory(cpu_addr, size);
+        return;
+    }
+
+    tmp_buffer.resize_destructive(size);
+    cpu_memory.ReadBlockUnsafe(cpu_addr, tmp_buffer.data(), size);
+
+    InlineMemoryImplementation(cpu_addr, size, tmp_buffer);
+}
+
+template <class P>
+bool BufferCache<P>::OnCPUWrite(VAddr cpu_addr, u64 size) {
+    const bool is_dirty = IsRegionRegistered(cpu_addr, size);
+    if (!is_dirty) {
+        return false;
+    }
+    if (memory_tracker.IsRegionGpuModified(cpu_addr, size)) {
+        return true;
+    }
+    WriteMemory(cpu_addr, size);
+    return false;
 }
 
 template <class P>
@@ -1553,6 +1580,14 @@ bool BufferCache<P>::InlineMemory(VAddr dest_address, size_t copy_size,
         return false;
     }
 
+    InlineMemoryImplementation(dest_address, copy_size, inlined_buffer);
+
+    return true;
+}
+
+template <class P>
+void BufferCache<P>::InlineMemoryImplementation(VAddr dest_address, size_t copy_size,
+                                                std::span<const u8> inlined_buffer) {
     const IntervalType subtract_interval{dest_address, dest_address + copy_size};
     ClearDownload(subtract_interval);
     common_ranges.subtract(subtract_interval);
@@ -1574,8 +1609,6 @@ bool BufferCache<P>::InlineMemory(VAddr dest_address, size_t copy_size,
     } else {
         buffer.ImmediateUpload(buffer.Offset(dest_address), inlined_buffer.first(copy_size));
     }
-
-    return true;
 }
 
 template <class P>

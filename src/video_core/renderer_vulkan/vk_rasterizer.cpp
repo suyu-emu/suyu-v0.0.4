@@ -566,11 +566,32 @@ void RasterizerVulkan::InnerInvalidation(std::span<const std::pair<VAddr, std::s
     }
 }
 
-void RasterizerVulkan::OnCPUWrite(VAddr addr, u64 size) {
+bool RasterizerVulkan::OnCPUWrite(VAddr addr, u64 size) {
+    if (addr == 0 || size == 0) {
+        return false;
+    }
+
+    {
+        std::scoped_lock lock{buffer_cache.mutex};
+        if (buffer_cache.OnCPUWrite(addr, size)) {
+            return true;
+        }
+    }
+
+    {
+        std::scoped_lock lock{texture_cache.mutex};
+        texture_cache.WriteMemory(addr, size);
+    }
+
+    pipeline_cache.InvalidateRegion(addr, size);
+    return false;
+}
+
+void RasterizerVulkan::OnCacheInvalidation(VAddr addr, u64 size) {
     if (addr == 0 || size == 0) {
         return;
     }
-    pipeline_cache.OnCPUWrite(addr, size);
+
     {
         std::scoped_lock lock{texture_cache.mutex};
         texture_cache.WriteMemory(addr, size);
@@ -579,14 +600,11 @@ void RasterizerVulkan::OnCPUWrite(VAddr addr, u64 size) {
         std::scoped_lock lock{buffer_cache.mutex};
         buffer_cache.CachedWriteMemory(addr, size);
     }
+    pipeline_cache.InvalidateRegion(addr, size);
 }
 
 void RasterizerVulkan::InvalidateGPUCache() {
-    pipeline_cache.SyncGuestHost();
-    {
-        std::scoped_lock lock{buffer_cache.mutex};
-        buffer_cache.FlushCachedWrites();
-    }
+    gpu.InvalidateGPUCache();
 }
 
 void RasterizerVulkan::UnmapMemory(VAddr addr, u64 size) {
@@ -598,7 +616,7 @@ void RasterizerVulkan::UnmapMemory(VAddr addr, u64 size) {
         std::scoped_lock lock{buffer_cache.mutex};
         buffer_cache.WriteMemory(addr, size);
     }
-    pipeline_cache.OnCPUWrite(addr, size);
+    pipeline_cache.OnCacheInvalidation(addr, size);
 }
 
 void RasterizerVulkan::ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) {

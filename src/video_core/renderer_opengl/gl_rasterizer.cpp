@@ -485,12 +485,33 @@ void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size, VideoCommon::Cache
     }
 }
 
-void RasterizerOpenGL::OnCPUWrite(VAddr addr, u64 size) {
+bool RasterizerOpenGL::OnCPUWrite(VAddr addr, u64 size) {
+    MICROPROFILE_SCOPE(OpenGL_CacheManagement);
+    if (addr == 0 || size == 0) {
+        return false;
+    }
+
+    {
+        std::scoped_lock lock{buffer_cache.mutex};
+        if (buffer_cache.OnCPUWrite(addr, size)) {
+            return true;
+        }
+    }
+
+    {
+        std::scoped_lock lock{texture_cache.mutex};
+        texture_cache.WriteMemory(addr, size);
+    }
+
+    shader_cache.InvalidateRegion(addr, size);
+    return false;
+}
+
+void RasterizerOpenGL::OnCacheInvalidation(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     if (addr == 0 || size == 0) {
         return;
     }
-    shader_cache.OnCPUWrite(addr, size);
     {
         std::scoped_lock lock{texture_cache.mutex};
         texture_cache.WriteMemory(addr, size);
@@ -499,15 +520,11 @@ void RasterizerOpenGL::OnCPUWrite(VAddr addr, u64 size) {
         std::scoped_lock lock{buffer_cache.mutex};
         buffer_cache.CachedWriteMemory(addr, size);
     }
+    shader_cache.InvalidateRegion(addr, size);
 }
 
 void RasterizerOpenGL::InvalidateGPUCache() {
-    MICROPROFILE_SCOPE(OpenGL_CacheManagement);
-    shader_cache.SyncGuestHost();
-    {
-        std::scoped_lock lock{buffer_cache.mutex};
-        buffer_cache.FlushCachedWrites();
-    }
+    gpu.InvalidateGPUCache();
 }
 
 void RasterizerOpenGL::UnmapMemory(VAddr addr, u64 size) {
@@ -519,7 +536,7 @@ void RasterizerOpenGL::UnmapMemory(VAddr addr, u64 size) {
         std::scoped_lock lock{buffer_cache.mutex};
         buffer_cache.WriteMemory(addr, size);
     }
-    shader_cache.OnCPUWrite(addr, size);
+    shader_cache.OnCacheInvalidation(addr, size);
 }
 
 void RasterizerOpenGL::ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) {
