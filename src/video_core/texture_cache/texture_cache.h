@@ -865,11 +865,15 @@ void TextureCache<P>::PopAsyncFlushes() {
 template <class P>
 ImageId TextureCache<P>::DmaImageId(const Tegra::DMA::ImageOperand& operand, bool is_upload) {
     const ImageInfo dst_info(operand);
-    const ImageId image_id = FindDMAImage(dst_info, operand.address);
-    if (!image_id) {
+    const ImageId dst_id = FindDMAImage(dst_info, operand.address);
+    if (!dst_id) {
         return NULL_IMAGE_ID;
     }
-    auto& image = slot_images[image_id];
+    auto& image = slot_images[dst_id];
+    if (False(image.flags & ImageFlagBits::GpuModified)) {
+        // No need to waste time on an image that's synced with guest
+        return NULL_IMAGE_ID;
+    }
     if (image.info.type == ImageType::e3D) {
         // Don't accelerate 3D images.
         return NULL_IMAGE_ID;
@@ -883,7 +887,7 @@ ImageId TextureCache<P>::DmaImageId(const Tegra::DMA::ImageOperand& operand, boo
     if (!base) {
         return NULL_IMAGE_ID;
     }
-    return image_id;
+    return dst_id;
 }
 
 template <class P>
