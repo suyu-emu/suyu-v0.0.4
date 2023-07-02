@@ -34,11 +34,14 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.fragment.NavHostFragment
+import androidx.preference.PreferenceManager
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.databinding.ActivityEmulationBinding
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
+import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.SettingsViewModel
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
@@ -47,6 +50,7 @@ import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.MemoryUtil
 import org.yuzu.yuzu_emu.utils.NfcReader
 import org.yuzu.yuzu_emu.utils.ThemeHelper
+import java.text.NumberFormat
 import kotlin.math.roundToInt
 
 class EmulationActivity : AppCompatActivity(), SensorEventListener {
@@ -106,17 +110,26 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         inputHandler = InputHandler()
         inputHandler.initialize()
 
-        val memoryUtil = MemoryUtil(this)
-        if (memoryUtil.isLessThan(8, MemoryUtil.Gb)) {
-            Toast.makeText(
-                this,
-                getString(
-                    R.string.device_memory_inadequate,
-                    memoryUtil.getDeviceRAM(),
-                    "8 ${getString(R.string.memory_gigabyte)}"
-                ),
-                Toast.LENGTH_LONG
-            ).show()
+        val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+        if (!preferences.getBoolean(Settings.PREF_MEMORY_WARNING_SHOWN, false)) {
+            if (MemoryUtil.isLessThan(MemoryUtil.REQUIRED_MEMORY, MemoryUtil.Gb)) {
+                Toast.makeText(
+                    this,
+                    getString(
+                        R.string.device_memory_inadequate,
+                        MemoryUtil.getDeviceRAM(),
+                        getString(
+                            R.string.memory_formatted,
+                            NumberFormat.getInstance().format(MemoryUtil.REQUIRED_MEMORY),
+                            getString(R.string.memory_gigabyte)
+                        )
+                    ),
+                    Toast.LENGTH_LONG
+                ).show()
+                preferences.edit()
+                    .putBoolean(Settings.PREF_MEMORY_WARNING_SHOWN, true)
+                    .apply()
+            }
         }
 
         // Start a foreground service to prevent the app from getting killed in the background
