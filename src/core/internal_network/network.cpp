@@ -39,6 +39,11 @@ namespace Network {
 
 namespace {
 
+enum class CallType {
+    Send,
+    Other,
+};
+
 #ifdef _WIN32
 
 using socklen_t = int;
@@ -96,7 +101,7 @@ bool EnableNonBlock(SOCKET fd, bool enable) {
     return ioctlsocket(fd, FIONBIO, &value) != SOCKET_ERROR;
 }
 
-Errno TranslateNativeError(int e) {
+Errno TranslateNativeError(int e, CallType call_type = CallType::Other) {
     switch (e) {
     case 0:
         return Errno::SUCCESS;
@@ -112,6 +117,14 @@ Errno TranslateNativeError(int e) {
         return Errno::AGAIN;
     case WSAECONNREFUSED:
         return Errno::CONNREFUSED;
+    case WSAECONNABORTED:
+        if (call_type == CallType::Send) {
+            // Winsock yields WSAECONNABORTED from `send` in situations where Unix
+            // systems, and actual Switches, yield EPIPE.
+            return Errno::PIPE;
+        } else {
+            return Errno::CONNABORTED;
+        }
     case WSAECONNRESET:
         return Errno::CONNRESET;
     case WSAEHOSTUNREACH:
@@ -198,7 +211,7 @@ bool EnableNonBlock(int fd, bool enable) {
     return fcntl(fd, F_SETFL, flags) == 0;
 }
 
-Errno TranslateNativeError(int e) {
+Errno TranslateNativeError(int e, CallType call_type = CallType::Other) {
     switch (e) {
     case 0:
         return Errno::SUCCESS;
@@ -208,6 +221,10 @@ Errno TranslateNativeError(int e) {
         return Errno::INVAL;
     case EMFILE:
         return Errno::MFILE;
+    case EPIPE:
+        return Errno::PIPE;
+    case ECONNABORTED:
+        return Errno::CONNABORTED;
     case ENOTCONN:
         return Errno::NOTCONN;
     case EAGAIN:
@@ -236,13 +253,13 @@ Errno TranslateNativeError(int e) {
 
 #endif
 
-Errno GetAndLogLastError() {
+Errno GetAndLogLastError(CallType call_type = CallType::Other) {
 #ifdef _WIN32
     int e = WSAGetLastError();
 #else
     int e = errno;
 #endif
-    const Errno err = TranslateNativeError(e);
+    const Errno err = TranslateNativeError(e, call_type);
     if (err == Errno::AGAIN || err == Errno::TIMEDOUT || err == Errno::INPROGRESS) {
         // These happen during normal operation, so only log them at debug level.
         LOG_DEBUG(Network, "Socket operation error: {}", Common::NativeErrorToString(e));
@@ -731,13 +748,17 @@ std::pair<s32, Errno> Socket::Send(std::span<const u8> message, int flags) {
     ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
     ASSERT(flags == 0);
 
+    int native_flags = 0;
+#if YUZU_UNIX
+    native_flags |= MSG_NOSIGNAL; // do not send us SIGPIPE
+#endif
     const auto result = send(fd, reinterpret_cast<const char*>(message.data()),
-                             static_cast<int>(message.size()), 0);
+                             static_cast<int>(message.size()), native_flags);
     if (result != SOCKET_ERROR) {
         return {static_cast<s32>(result), Errno::SUCCESS};
     }
 
-    return {-1, GetAndLogLastError()};
+    return {-1, GetAndLogLastError(CallType::Send)};
 }
 
 std::pair<s32, Errno> Socket::SendTo(u32 flags, std::span<const u8> message,
@@ -759,7 +780,7 @@ std::pair<s32, Errno> Socket::SendTo(u32 flags, std::span<const u8> message,
         return {static_cast<s32>(result), Errno::SUCCESS};
     }
 
-    return {-1, GetAndLogLastError()};
+    return {-1, GetAndLogLastError(CallType::Send)};
 }
 
 Errno Socket::Close() {
