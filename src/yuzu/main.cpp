@@ -101,6 +101,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/settings.h"
 #include "common/telemetry.h"
 #include "core/core.h"
+#include "core/core_timing.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/common_funcs.h"
@@ -389,6 +390,7 @@ GMainWindow::GMainWindow(std::unique_ptr<Config> config_, bool has_broken_vulkan
              std::chrono::duration_cast<std::chrono::duration<f64, std::milli>>(
                  Common::Windows::SetCurrentTimerResolutionToMaximum())
                  .count());
+    system->CoreTiming().SetTimerResolutionNs(Common::Windows::GetCurrentTimerResolution());
 #endif
     UpdateWindowTitle();
 

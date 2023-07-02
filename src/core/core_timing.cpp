@@ -253,9 +253,6 @@ void CoreTiming::ThreadLoop() {
                 auto wait_time = *next_time - GetGlobalTimeNs().count();
                 if (wait_time > 0) {
 #ifdef _WIN32
-                    const auto timer_resolution_ns =
-                        Common::Windows::GetCurrentTimerResolution().count();
-
                     while (!paused && !event.IsSet() && wait_time > 0) {
                         wait_time = *next_time - GetGlobalTimeNs().count();
 
@@ -315,5 +312,11 @@ std::chrono::microseconds CoreTiming::GetGlobalTimeUs() const {
     }
     return std::chrono::microseconds{Common::WallClock::CPUTickToUS(cpu_ticks)};
 }
+
+#ifdef _WIN32
+void CoreTiming::SetTimerResolutionNs(std::chrono::nanoseconds ns) {
+    timer_resolution_ns = ns.count();
+}
+#endif
 
 } // namespace Core::Timing

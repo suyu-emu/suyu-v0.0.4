@@ -21,6 +21,7 @@
 #include "common/string_util.h"
 #include "common/telemetry.h"
 #include "core/core.h"
+#include "core/core_timing.h"
 #include "core/cpu_manager.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/registered_cache.h"
@@ -316,8 +317,6 @@ int main(int argc, char** argv) {
 
 #ifdef _WIN32
     LocalFree(argv_w);
-
-    Common::Windows::SetCurrentTimerResolutionToMaximum();
 #endif
 
     MicroProfileOnThreadCreate("EmuThread");
@@ -350,6 +349,11 @@ int main(int argc, char** argv) {
         emu_window = std::make_unique<EmuWindow_SDL2_Null>(&input_subsystem, system, fullscreen);
         break;
     }
+
+#ifdef _WIN32
+    Common::Windows::SetCurrentTimerResolutionToMaximum();
+    system.CoreTiming().SetTimerResolutionNs(Common::Windows::GetCurrentTimerResolution());
+#endif
 
     system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());

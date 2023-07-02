@@ -131,6 +131,10 @@ public:
     /// Checks for events manually and returns time in nanoseconds for next event, threadsafe.
     std::optional<s64> Advance();
 
+#ifdef _WIN32
+    void SetTimerResolutionNs(std::chrono::nanoseconds ns);
+#endif
+
 private:
     struct Event;
 
@@ -142,6 +146,10 @@ private:
     std::unique_ptr<Common::WallClock> clock;
 
     s64 global_timer = 0;
+
+#ifdef _WIN32
+    s64 timer_resolution_ns;
+#endif
 
     // The queue is a min-heap using std::make_heap/push_heap/pop_heap.
     // We don't use std::priority_queue because we need to be able to serialize, unserialize and
