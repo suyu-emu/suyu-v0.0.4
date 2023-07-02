@@ -591,7 +591,7 @@ void BufferCacheRuntime::ReserveNullBuffer() {
         .flags = 0,
         .size = 4,
         .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
-                 VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                 VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
@@ -599,7 +599,6 @@ void BufferCacheRuntime::ReserveNullBuffer() {
     if (device.IsExtTransformFeedbackSupported()) {
         create_info.usage |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
     }
-    create_info.usage |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
     null_buffer = memory_allocator.CreateBuffer(create_info, MemoryUsage::DeviceLocal);
     if (device.HasDebuggingToolAttached()) {
         null_buffer.SetObjectNameEXT("Null buffer");
