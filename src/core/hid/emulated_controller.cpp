@@ -1243,10 +1243,12 @@ Common::Input::DriverResult EmulatedController::SetPollingMode(
     auto& nfc_output_device = output_devices[3];
 
     if (device_index == EmulatedDeviceIndex::LeftIndex) {
+        controller.left_polling_mode = polling_mode;
         return left_output_device->SetPollingMode(polling_mode);
     }
 
     if (device_index == EmulatedDeviceIndex::RightIndex) {
+        controller.right_polling_mode = polling_mode;
         const auto virtual_nfc_result = nfc_output_device->SetPollingMode(polling_mode);
         const auto mapped_nfc_result = right_output_device->SetPollingMode(polling_mode);
 
@@ -1261,10 +1263,20 @@ Common::Input::DriverResult EmulatedController::SetPollingMode(
         return mapped_nfc_result;
     }
 
+    controller.left_polling_mode = polling_mode;
+    controller.right_polling_mode = polling_mode;
     left_output_device->SetPollingMode(polling_mode);
     right_output_device->SetPollingMode(polling_mode);
     nfc_output_device->SetPollingMode(polling_mode);
     return Common::Input::DriverResult::Success;
+}
+
+Common::Input::PollingMode EmulatedController::GetPollingMode(
+    EmulatedDeviceIndex device_index) const {
+    if (device_index == EmulatedDeviceIndex::LeftIndex) {
+        return controller.left_polling_mode;
+    }
+    return controller.right_polling_mode;
 }
 
 bool EmulatedController::SetCameraFormat(

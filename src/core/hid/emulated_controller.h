@@ -143,6 +143,8 @@ struct ControllerStatus {
     CameraState camera_state{};
     RingSensorForce ring_analog_state{};
     NfcState nfc_state{};
+    Common::Input::PollingMode left_polling_mode{};
+    Common::Input::PollingMode right_polling_mode{};
 };
 
 enum class ControllerTriggerType {
@@ -370,6 +372,12 @@ public:
      */
     Common::Input::DriverResult SetPollingMode(EmulatedDeviceIndex device_index,
                                                Common::Input::PollingMode polling_mode);
+    /**
+     * Get the current polling mode from a controller
+     * @param device_index index of the controller to set the polling mode
+     * @return current polling mode
+     */
+    Common::Input::PollingMode GetPollingMode(EmulatedDeviceIndex device_index) const;
 
     /**
      * Sets the desired camera format to be polled from a controller
