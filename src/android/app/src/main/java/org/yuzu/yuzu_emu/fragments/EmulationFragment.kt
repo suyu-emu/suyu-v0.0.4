@@ -212,9 +212,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
             if (!isInFoldableLayout) {
                 if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                    binding.surfaceInputOverlay.orientation = InputOverlay.PORTRAIT
+                    binding.surfaceInputOverlay.layout = InputOverlay.PORTRAIT
                 } else {
-                    binding.surfaceInputOverlay.orientation = InputOverlay.LANDSCAPE
+                    binding.surfaceInputOverlay.layout = InputOverlay.LANDSCAPE
                 }
             }
             if (!binding.surfaceInputOverlay.isInEditMode) {
@@ -260,7 +260,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             .remove(Settings.PREF_CONTROL_SCALE)
             .remove(Settings.PREF_CONTROL_OPACITY)
             .apply()
-        binding.surfaceInputOverlay.post { binding.surfaceInputOverlay.resetButtonPlacement() }
+        binding.surfaceInputOverlay.post {
+            binding.surfaceInputOverlay.resetLayoutVisibilityAndPlacement()
+        }
     }
 
     private fun updateShowFpsOverlay() {
@@ -337,7 +339,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         binding.inGameMenu.layoutParams.height = it.bounds.bottom
 
                         isInFoldableLayout = true
-                        binding.surfaceInputOverlay.orientation = InputOverlay.FOLDABLE
+                        binding.surfaceInputOverlay.layout = InputOverlay.FOLDABLE
                         refreshInputOverlay()
                     }
                 }
@@ -410,9 +412,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.id.menu_toggle_controls -> {
                     val preferences =
                         PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-                    val optionsArray = BooleanArray(15)
-                    for (i in 0..14) {
-                        optionsArray[i] = preferences.getBoolean("buttonToggle$i", i < 13)
+                    val optionsArray = BooleanArray(Settings.overlayPreferences.size)
+                    Settings.overlayPreferences.forEachIndexed { i, _ ->
+                        optionsArray[i] = preferences.getBoolean("buttonToggle$i", i < 15)
                     }
 
                     val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -436,7 +438,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
                         .setOnClickListener {
                             val isChecked = !optionsArray[0]
-                            for (i in 0..14) {
+                            Settings.overlayPreferences.forEachIndexed { i, _ ->
                                 optionsArray[i] = isChecked
                                 dialog.listView.setItemChecked(i, isChecked)
                                 preferences.edit()

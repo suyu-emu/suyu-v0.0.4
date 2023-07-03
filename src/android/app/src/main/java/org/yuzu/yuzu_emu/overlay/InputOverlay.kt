@@ -51,15 +51,23 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
     private lateinit var windowInsets: WindowInsets
 
-    var orientation = LANDSCAPE
+    var layout = LANDSCAPE
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
 
         windowInsets = rootWindowInsets
 
-        if (!preferences.getBoolean("${Settings.PREF_OVERLAY_INIT}$orientation", false)) {
-            defaultOverlay()
+        val overlayVersion = preferences.getInt(Settings.PREF_OVERLAY_VERSION, 0)
+        if (overlayVersion != OVERLAY_VERSION) {
+            resetAllLayouts()
+        } else {
+            val layoutIndex = overlayLayouts.indexOf(layout)
+            val currentLayoutVersion =
+                preferences.getInt(Settings.overlayLayoutPrefs[layoutIndex], 0)
+            if (currentLayoutVersion != overlayLayoutVersions[layoutIndex]) {
+                resetCurrentLayout()
+            }
         }
 
         // Load the controls.
@@ -266,10 +274,10 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 MotionEvent.ACTION_POINTER_UP -> if (buttonBeingConfigured === button) {
                     // Persist button position by saving new place.
                     saveControlPosition(
-                        buttonBeingConfigured!!.buttonId,
+                        buttonBeingConfigured!!.prefId,
                         buttonBeingConfigured!!.bounds.centerX(),
                         buttonBeingConfigured!!.bounds.centerY(),
-                        orientation
+                        layout
                     )
                     buttonBeingConfigured = null
                 }
@@ -299,10 +307,10 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 MotionEvent.ACTION_POINTER_UP -> if (dpadBeingConfigured === dpad) {
                     // Persist button position by saving new place.
                     saveControlPosition(
-                        dpadBeingConfigured!!.upId,
+                        Settings.PREF_BUTTON_DPAD,
                         dpadBeingConfigured!!.bounds.centerX(),
                         dpadBeingConfigured!!.bounds.centerY(),
-                        orientation
+                        layout
                     )
                     dpadBeingConfigured = null
                 }
@@ -330,10 +338,10 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_POINTER_UP -> if (joystickBeingConfigured != null) {
                     saveControlPosition(
-                        joystickBeingConfigured!!.buttonId,
+                        joystickBeingConfigured!!.prefId,
                         joystickBeingConfigured!!.bounds.centerX(),
                         joystickBeingConfigured!!.bounds.centerY(),
-                        orientation
+                        layout
                     )
                     joystickBeingConfigured = null
                 }
@@ -343,9 +351,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         return true
     }
 
-    private fun addOverlayControls(orientation: String) {
+    private fun addOverlayControls(layout: String) {
         val windowSize = getSafeScreenSize(context)
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_0, true)) {
+        if (preferences.getBoolean(Settings.PREF_BUTTON_A, true)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -353,11 +361,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.facebutton_a,
                     R.drawable.facebutton_a_depressed,
                     ButtonType.BUTTON_A,
-                    orientation
+                    Settings.PREF_BUTTON_A,
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_1, true)) {
+        if (preferences.getBoolean(Settings.PREF_BUTTON_B, true)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -365,11 +374,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.facebutton_b,
                     R.drawable.facebutton_b_depressed,
                     ButtonType.BUTTON_B,
-                    orientation
+                    Settings.PREF_BUTTON_B,
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_2, true)) {
+        if (preferences.getBoolean(Settings.PREF_BUTTON_X, true)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -377,11 +387,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.facebutton_x,
                     R.drawable.facebutton_x_depressed,
                     ButtonType.BUTTON_X,
-                    orientation
+                    Settings.PREF_BUTTON_X,
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_3, true)) {
+        if (preferences.getBoolean(Settings.PREF_BUTTON_Y, true)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -389,11 +400,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.facebutton_y,
                     R.drawable.facebutton_y_depressed,
                     ButtonType.BUTTON_Y,
-                    orientation
+                    Settings.PREF_BUTTON_Y,
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_4, true)) {
+        if (preferences.getBoolean(Settings.PREF_BUTTON_L, true)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -401,11 +413,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.l_shoulder,
                     R.drawable.l_shoulder_depressed,
                     ButtonType.TRIGGER_L,
-                    orientation
+                    Settings.PREF_BUTTON_L,
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_5, true)) {
+        if (preferences.getBoolean(Settings.PREF_BUTTON_R, true)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -413,11 +426,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.r_shoulder,
                     R.drawable.r_shoulder_depressed,
                     ButtonType.TRIGGER_R,
-                    orientation
+                    Settings.PREF_BUTTON_R,
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_6, true)) {
+        if (preferences.getBoolean(Settings.PREF_BUTTON_ZL, true)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -425,11 +439,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.zl_trigger,
                     R.drawable.zl_trigger_depressed,
                     ButtonType.TRIGGER_ZL,
-                    orientation
+                    Settings.PREF_BUTTON_ZL,
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_7, true)) {
+        if (preferences.getBoolean(Settings.PREF_BUTTON_ZR, true)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -437,11 +452,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.zr_trigger,
                     R.drawable.zr_trigger_depressed,
                     ButtonType.TRIGGER_ZR,
-                    orientation
+                    Settings.PREF_BUTTON_ZR,
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_8, true)) {
+        if (preferences.getBoolean(Settings.PREF_BUTTON_PLUS, true)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -449,11 +465,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.facebutton_plus,
                     R.drawable.facebutton_plus_depressed,
                     ButtonType.BUTTON_PLUS,
-                    orientation
+                    Settings.PREF_BUTTON_PLUS,
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_9, true)) {
+        if (preferences.getBoolean(Settings.PREF_BUTTON_MINUS, true)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -461,11 +478,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.facebutton_minus,
                     R.drawable.facebutton_minus_depressed,
                     ButtonType.BUTTON_MINUS,
-                    orientation
+                    Settings.PREF_BUTTON_MINUS,
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_10, true)) {
+        if (preferences.getBoolean(Settings.PREF_BUTTON_DPAD, true)) {
             overlayDpads.add(
                 initializeOverlayDpad(
                     context,
@@ -473,11 +491,11 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.dpad_standard,
                     R.drawable.dpad_standard_cardinal_depressed,
                     R.drawable.dpad_standard_diagonal_depressed,
-                    orientation
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_11, true)) {
+        if (preferences.getBoolean(Settings.PREF_STICK_L, true)) {
             overlayJoysticks.add(
                 initializeOverlayJoystick(
                     context,
@@ -487,11 +505,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.joystick_depressed,
                     StickType.STICK_L,
                     ButtonType.STICK_L,
-                    orientation
+                    Settings.PREF_STICK_L,
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_12, true)) {
+        if (preferences.getBoolean(Settings.PREF_STICK_R, true)) {
             overlayJoysticks.add(
                 initializeOverlayJoystick(
                     context,
@@ -501,11 +520,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.joystick_depressed,
                     StickType.STICK_R,
                     ButtonType.STICK_R,
-                    orientation
+                    Settings.PREF_STICK_R,
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_13, false)) {
+        if (preferences.getBoolean(Settings.PREF_BUTTON_HOME, false)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -513,11 +533,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.facebutton_home,
                     R.drawable.facebutton_home_depressed,
                     ButtonType.BUTTON_HOME,
-                    orientation
+                    Settings.PREF_BUTTON_HOME,
+                    layout
                 )
             )
         }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_14, false)) {
+        if (preferences.getBoolean(Settings.PREF_BUTTON_SCREENSHOT, false)) {
             overlayButtons.add(
                 initializeOverlayButton(
                     context,
@@ -525,7 +546,34 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                     R.drawable.facebutton_screenshot,
                     R.drawable.facebutton_screenshot_depressed,
                     ButtonType.BUTTON_CAPTURE,
-                    orientation
+                    Settings.PREF_BUTTON_SCREENSHOT,
+                    layout
+                )
+            )
+        }
+        if (preferences.getBoolean(Settings.PREF_BUTTON_STICK_L, true)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    windowSize,
+                    R.drawable.button_l3,
+                    R.drawable.button_l3_depressed,
+                    ButtonType.STICK_L,
+                    Settings.PREF_BUTTON_STICK_L,
+                    layout
+                )
+            )
+        }
+        if (preferences.getBoolean(Settings.PREF_BUTTON_STICK_R, true)) {
+            overlayButtons.add(
+                initializeOverlayButton(
+                    context,
+                    windowSize,
+                    R.drawable.button_r3,
+                    R.drawable.button_r3_depressed,
+                    ButtonType.STICK_R,
+                    Settings.PREF_BUTTON_STICK_R,
+                    layout
                 )
             )
         }
@@ -539,18 +587,18 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
         // Add all the enabled overlay items back to the HashSet.
         if (EmulationMenuSettings.showOverlay) {
-            addOverlayControls(orientation)
+            addOverlayControls(layout)
         }
         invalidate()
     }
 
-    private fun saveControlPosition(sharedPrefsId: Int, x: Int, y: Int, orientation: String) {
+    private fun saveControlPosition(prefId: String, x: Int, y: Int, layout: String) {
         val windowSize = getSafeScreenSize(context)
         val min = windowSize.first
         val max = windowSize.second
         PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext).edit()
-            .putFloat("$sharedPrefsId-X$orientation", (x - min.x).toFloat() / max.x)
-            .putFloat("$sharedPrefsId-Y$orientation", (y - min.y).toFloat() / max.y)
+            .putFloat("$prefId-X$layout", (x - min.x).toFloat() / max.x)
+            .putFloat("$prefId-Y$layout", (y - min.y).toFloat() / max.y)
             .apply()
     }
 
@@ -558,19 +606,31 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         inEditMode = editMode
     }
 
-    private fun defaultOverlay() {
-        if (!preferences.getBoolean("${Settings.PREF_OVERLAY_INIT}$orientation", false)) {
-            defaultOverlayByLayout(orientation)
-        }
-
-        resetButtonPlacement()
+    private fun resetCurrentLayout() {
+        defaultOverlayByLayout(layout)
+        val layoutIndex = overlayLayouts.indexOf(layout)
         preferences.edit()
-            .putBoolean("${Settings.PREF_OVERLAY_INIT}$orientation", true)
+            .putInt(Settings.overlayLayoutPrefs[layoutIndex], overlayLayoutVersions[layoutIndex])
             .apply()
     }
 
-    fun resetButtonPlacement() {
-        defaultOverlayByLayout(orientation)
+    private fun resetAllLayouts() {
+        val editor = preferences.edit()
+        overlayLayouts.forEachIndexed { i, layout ->
+            defaultOverlayByLayout(layout)
+            editor.putInt(Settings.overlayLayoutPrefs[i], overlayLayoutVersions[i])
+        }
+        editor.putInt(Settings.PREF_OVERLAY_VERSION, OVERLAY_VERSION)
+        editor.apply()
+    }
+
+    fun resetLayoutVisibilityAndPlacement() {
+        defaultOverlayByLayout(layout)
+        val editor = preferences.edit()
+        Settings.overlayPreferences.forEachIndexed { _, pref ->
+            editor.remove(pref)
+        }
+        editor.apply()
         refreshControls()
     }
 
@@ -604,7 +664,11 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         R.integer.SWITCH_STICK_R_X,
         R.integer.SWITCH_STICK_R_Y,
         R.integer.SWITCH_STICK_L_X,
-        R.integer.SWITCH_STICK_L_Y
+        R.integer.SWITCH_STICK_L_Y,
+        R.integer.SWITCH_BUTTON_STICK_L_X,
+        R.integer.SWITCH_BUTTON_STICK_L_Y,
+        R.integer.SWITCH_BUTTON_STICK_R_X,
+        R.integer.SWITCH_BUTTON_STICK_R_Y
     )
 
     private val portraitResources = arrayOf(
@@ -637,7 +701,11 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         R.integer.SWITCH_STICK_R_X_PORTRAIT,
         R.integer.SWITCH_STICK_R_Y_PORTRAIT,
         R.integer.SWITCH_STICK_L_X_PORTRAIT,
-        R.integer.SWITCH_STICK_L_Y_PORTRAIT
+        R.integer.SWITCH_STICK_L_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_STICK_L_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_STICK_L_Y_PORTRAIT,
+        R.integer.SWITCH_BUTTON_STICK_R_X_PORTRAIT,
+        R.integer.SWITCH_BUTTON_STICK_R_Y_PORTRAIT
     )
 
     private val foldableResources = arrayOf(
@@ -670,139 +738,159 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         R.integer.SWITCH_STICK_R_X_FOLDABLE,
         R.integer.SWITCH_STICK_R_Y_FOLDABLE,
         R.integer.SWITCH_STICK_L_X_FOLDABLE,
-        R.integer.SWITCH_STICK_L_Y_FOLDABLE
+        R.integer.SWITCH_STICK_L_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_STICK_L_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_STICK_L_Y_FOLDABLE,
+        R.integer.SWITCH_BUTTON_STICK_R_X_FOLDABLE,
+        R.integer.SWITCH_BUTTON_STICK_R_Y_FOLDABLE
     )
 
-    private fun getResourceValue(orientation: String, position: Int): Float {
-        return when (orientation) {
+    private fun getResourceValue(layout: String, position: Int): Float {
+        return when (layout) {
             PORTRAIT -> resources.getInteger(portraitResources[position]).toFloat() / 1000
             FOLDABLE -> resources.getInteger(foldableResources[position]).toFloat() / 1000
             else -> resources.getInteger(landscapeResources[position]).toFloat() / 1000
         }
     }
 
-    private fun defaultOverlayByLayout(orientation: String) {
+    private fun defaultOverlayByLayout(layout: String) {
         // Each value represents the position of the button in relation to the screen size without insets.
         preferences.edit()
             .putFloat(
-                ButtonType.BUTTON_A.toString() + "-X$orientation",
-                getResourceValue(orientation, 0)
+                "${Settings.PREF_BUTTON_A}-X$layout",
+                getResourceValue(layout, 0)
             )
             .putFloat(
-                ButtonType.BUTTON_A.toString() + "-Y$orientation",
-                getResourceValue(orientation, 1)
+                "${Settings.PREF_BUTTON_A}-Y$layout",
+                getResourceValue(layout, 1)
             )
             .putFloat(
-                ButtonType.BUTTON_B.toString() + "-X$orientation",
-                getResourceValue(orientation, 2)
+                "${Settings.PREF_BUTTON_B}-X$layout",
+                getResourceValue(layout, 2)
             )
             .putFloat(
-                ButtonType.BUTTON_B.toString() + "-Y$orientation",
-                getResourceValue(orientation, 3)
+                "${Settings.PREF_BUTTON_B}-Y$layout",
+                getResourceValue(layout, 3)
             )
             .putFloat(
-                ButtonType.BUTTON_X.toString() + "-X$orientation",
-                getResourceValue(orientation, 4)
+                "${Settings.PREF_BUTTON_X}-X$layout",
+                getResourceValue(layout, 4)
             )
             .putFloat(
-                ButtonType.BUTTON_X.toString() + "-Y$orientation",
-                getResourceValue(orientation, 5)
+                "${Settings.PREF_BUTTON_X}-Y$layout",
+                getResourceValue(layout, 5)
             )
             .putFloat(
-                ButtonType.BUTTON_Y.toString() + "-X$orientation",
-                getResourceValue(orientation, 6)
+                "${Settings.PREF_BUTTON_Y}-X$layout",
+                getResourceValue(layout, 6)
             )
             .putFloat(
-                ButtonType.BUTTON_Y.toString() + "-Y$orientation",
-                getResourceValue(orientation, 7)
+                "${Settings.PREF_BUTTON_Y}-Y$layout",
+                getResourceValue(layout, 7)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZL.toString() + "-X$orientation",
-                getResourceValue(orientation, 8)
+                "${Settings.PREF_BUTTON_ZL}-X$layout",
+                getResourceValue(layout, 8)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZL.toString() + "-Y$orientation",
-                getResourceValue(orientation, 9)
+                "${Settings.PREF_BUTTON_ZL}-Y$layout",
+                getResourceValue(layout, 9)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZR.toString() + "-X$orientation",
-                getResourceValue(orientation, 10)
+                "${Settings.PREF_BUTTON_ZR}-X$layout",
+                getResourceValue(layout, 10)
             )
             .putFloat(
-                ButtonType.TRIGGER_ZR.toString() + "-Y$orientation",
-                getResourceValue(orientation, 11)
+                "${Settings.PREF_BUTTON_ZR}-Y$layout",
+                getResourceValue(layout, 11)
             )
             .putFloat(
-                ButtonType.DPAD_UP.toString() + "-X$orientation",
-                getResourceValue(orientation, 12)
+                "${Settings.PREF_BUTTON_DPAD}-X$layout",
+                getResourceValue(layout, 12)
             )
             .putFloat(
-                ButtonType.DPAD_UP.toString() + "-Y$orientation",
-                getResourceValue(orientation, 13)
+                "${Settings.PREF_BUTTON_DPAD}-Y$layout",
+                getResourceValue(layout, 13)
             )
             .putFloat(
-                ButtonType.TRIGGER_L.toString() + "-X$orientation",
-                getResourceValue(orientation, 14)
+                "${Settings.PREF_BUTTON_L}-X$layout",
+                getResourceValue(layout, 14)
             )
             .putFloat(
-                ButtonType.TRIGGER_L.toString() + "-Y$orientation",
-                getResourceValue(orientation, 15)
+                "${Settings.PREF_BUTTON_L}-Y$layout",
+                getResourceValue(layout, 15)
             )
             .putFloat(
-                ButtonType.TRIGGER_R.toString() + "-X$orientation",
-                getResourceValue(orientation, 16)
+                "${Settings.PREF_BUTTON_R}-X$layout",
+                getResourceValue(layout, 16)
             )
             .putFloat(
-                ButtonType.TRIGGER_R.toString() + "-Y$orientation",
-                getResourceValue(orientation, 17)
+                "${Settings.PREF_BUTTON_R}-Y$layout",
+                getResourceValue(layout, 17)
             )
             .putFloat(
-                ButtonType.BUTTON_PLUS.toString() + "-X$orientation",
-                getResourceValue(orientation, 18)
+                "${Settings.PREF_BUTTON_PLUS}-X$layout",
+                getResourceValue(layout, 18)
             )
             .putFloat(
-                ButtonType.BUTTON_PLUS.toString() + "-Y$orientation",
-                getResourceValue(orientation, 19)
+                "${Settings.PREF_BUTTON_PLUS}-Y$layout",
+                getResourceValue(layout, 19)
             )
             .putFloat(
-                ButtonType.BUTTON_MINUS.toString() + "-X$orientation",
-                getResourceValue(orientation, 20)
+                "${Settings.PREF_BUTTON_MINUS}-X$layout",
+                getResourceValue(layout, 20)
             )
             .putFloat(
-                ButtonType.BUTTON_MINUS.toString() + "-Y$orientation",
-                getResourceValue(orientation, 21)
+                "${Settings.PREF_BUTTON_MINUS}-Y$layout",
+                getResourceValue(layout, 21)
             )
             .putFloat(
-                ButtonType.BUTTON_HOME.toString() + "-X$orientation",
-                getResourceValue(orientation, 22)
+                "${Settings.PREF_BUTTON_HOME}-X$layout",
+                getResourceValue(layout, 22)
             )
             .putFloat(
-                ButtonType.BUTTON_HOME.toString() + "-Y$orientation",
-                getResourceValue(orientation, 23)
+                "${Settings.PREF_BUTTON_HOME}-Y$layout",
+                getResourceValue(layout, 23)
             )
             .putFloat(
-                ButtonType.BUTTON_CAPTURE.toString() + "-X$orientation",
-                getResourceValue(orientation, 24)
+                "${Settings.PREF_BUTTON_SCREENSHOT}-X$layout",
+                getResourceValue(layout, 24)
             )
             .putFloat(
-                ButtonType.BUTTON_CAPTURE.toString() + "-Y$orientation",
-                getResourceValue(orientation, 25)
+                "${Settings.PREF_BUTTON_SCREENSHOT}-Y$layout",
+                getResourceValue(layout, 25)
             )
             .putFloat(
-                ButtonType.STICK_R.toString() + "-X$orientation",
-                getResourceValue(orientation, 26)
+                "${Settings.PREF_STICK_R}-X$layout",
+                getResourceValue(layout, 26)
             )
             .putFloat(
-                ButtonType.STICK_R.toString() + "-Y$orientation",
-                getResourceValue(orientation, 27)
+                "${Settings.PREF_STICK_R}-Y$layout",
+                getResourceValue(layout, 27)
             )
             .putFloat(
-                ButtonType.STICK_L.toString() + "-X$orientation",
-                getResourceValue(orientation, 28)
+                "${Settings.PREF_STICK_L}-X$layout",
+                getResourceValue(layout, 28)
             )
             .putFloat(
-                ButtonType.STICK_L.toString() + "-Y$orientation",
-                getResourceValue(orientation, 29)
+                "${Settings.PREF_STICK_L}-Y$layout",
+                getResourceValue(layout, 29)
+            )
+            .putFloat(
+                "${Settings.PREF_BUTTON_STICK_L}-X$layout",
+                getResourceValue(layout, 30)
+            )
+            .putFloat(
+                "${Settings.PREF_BUTTON_STICK_L}-Y$layout",
+                getResourceValue(layout, 31)
+            )
+            .putFloat(
+                "${Settings.PREF_BUTTON_STICK_R}-X$layout",
+                getResourceValue(layout, 32)
+            )
+            .putFloat(
+                "${Settings.PREF_BUTTON_STICK_R}-Y$layout",
+                getResourceValue(layout, 33)
             )
             .apply()
     }
@@ -812,12 +900,30 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
     }
 
     companion object {
+        // Increase this number every time there is a breaking change to every overlay layout
+        const val OVERLAY_VERSION = 1
+
+        // Increase the corresponding layout version number whenever that layout has a breaking change
+        private const val LANDSCAPE_OVERLAY_VERSION = 1
+        private const val PORTRAIT_OVERLAY_VERSION = 1
+        private const val FOLDABLE_OVERLAY_VERSION = 1
+        val overlayLayoutVersions = listOf(
+            LANDSCAPE_OVERLAY_VERSION,
+            PORTRAIT_OVERLAY_VERSION,
+            FOLDABLE_OVERLAY_VERSION
+        )
+
         private val preferences: SharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
-        const val LANDSCAPE = ""
+        const val LANDSCAPE = "_Landscape"
         const val PORTRAIT = "_Portrait"
         const val FOLDABLE = "_Foldable"
+        val overlayLayouts = listOf(
+            LANDSCAPE,
+            PORTRAIT,
+            FOLDABLE
+        )
 
         /**
          * Resizes a [Bitmap] by a given scale factor
@@ -948,6 +1054,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
          * @param defaultResId The resource ID of the [Drawable] to get the [Bitmap] of (Default State).
          * @param pressedResId The resource ID of the [Drawable] to get the [Bitmap] of (Pressed State).
          * @param buttonId     Identifier for determining what type of button the initialized InputOverlayDrawableButton represents.
+         * @param prefId       Identifier for determining where a button appears on screen.
+         * @param layout       The current screen layout as determined by [LANDSCAPE], [PORTRAIT], or [FOLDABLE].
          * @return An [InputOverlayDrawableButton] with the correct drawing bounds set.
          */
         private fun initializeOverlayButton(
@@ -956,7 +1064,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             defaultResId: Int,
             pressedResId: Int,
             buttonId: Int,
-            orientation: String
+            prefId: String,
+            layout: String
         ): InputOverlayDrawableButton {
             // Resources handle for fetching the initial Drawable resource.
             val res = context.resources
@@ -964,17 +1073,20 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             // SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableButton.
             val sPrefs = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
-            // Decide scale based on button ID and user preference
-            var scale: Float = when (buttonId) {
-                ButtonType.BUTTON_HOME,
-                ButtonType.BUTTON_CAPTURE,
-                ButtonType.BUTTON_PLUS,
-                ButtonType.BUTTON_MINUS -> 0.07f
+            // Decide scale based on button preference ID and user preference
+            var scale: Float = when (prefId) {
+                Settings.PREF_BUTTON_HOME,
+                Settings.PREF_BUTTON_SCREENSHOT,
+                Settings.PREF_BUTTON_PLUS,
+                Settings.PREF_BUTTON_MINUS -> 0.07f
 
-                ButtonType.TRIGGER_L,
-                ButtonType.TRIGGER_R,
-                ButtonType.TRIGGER_ZL,
-                ButtonType.TRIGGER_ZR -> 0.26f
+                Settings.PREF_BUTTON_L,
+                Settings.PREF_BUTTON_R,
+                Settings.PREF_BUTTON_ZL,
+                Settings.PREF_BUTTON_ZR -> 0.26f
+
+                Settings.PREF_BUTTON_STICK_L,
+                Settings.PREF_BUTTON_STICK_R -> 0.155f
 
                 else -> 0.11f
             }
@@ -984,8 +1096,13 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             // Initialize the InputOverlayDrawableButton.
             val defaultStateBitmap = getBitmap(context, defaultResId, scale)
             val pressedStateBitmap = getBitmap(context, pressedResId, scale)
-            val overlayDrawable =
-                InputOverlayDrawableButton(res, defaultStateBitmap, pressedStateBitmap, buttonId)
+            val overlayDrawable = InputOverlayDrawableButton(
+                res,
+                defaultStateBitmap,
+                pressedStateBitmap,
+                buttonId,
+                prefId
+            )
 
             // Get the minimum and maximum coordinates of the screen where the button can be placed.
             val min = windowSize.first
@@ -993,8 +1110,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
             // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val xKey = "$buttonId-X$orientation"
-            val yKey = "$buttonId-Y$orientation"
+            val xKey = "$prefId-X$layout"
+            val yKey = "$prefId-Y$layout"
             val drawableXPercent = sPrefs.getFloat(xKey, 0f)
             val drawableYPercent = sPrefs.getFloat(yKey, 0f)
             val drawableX = (drawableXPercent * max.x + min.x).toInt()
@@ -1029,7 +1146,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
          * @param defaultResId              The [Bitmap] resource ID of the default state.
          * @param pressedOneDirectionResId  The [Bitmap] resource ID of the pressed state in one direction.
          * @param pressedTwoDirectionsResId The [Bitmap] resource ID of the pressed state in two directions.
-         * @return the initialized [InputOverlayDrawableDpad]
+         * @param layout                    The current screen layout as determined by [LANDSCAPE], [PORTRAIT], or [FOLDABLE].
+         * @return The initialized [InputOverlayDrawableDpad]
          */
         private fun initializeOverlayDpad(
             context: Context,
@@ -1037,7 +1155,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             defaultResId: Int,
             pressedOneDirectionResId: Int,
             pressedTwoDirectionsResId: Int,
-            orientation: String
+            layout: String
         ): InputOverlayDrawableDpad {
             // Resources handle for fetching the initial Drawable resource.
             val res = context.resources
@@ -1074,8 +1192,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
             // The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val drawableXPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}-X$orientation", 0f)
-            val drawableYPercent = sPrefs.getFloat("${ButtonType.DPAD_UP}-Y$orientation", 0f)
+            val drawableXPercent = sPrefs.getFloat("${Settings.PREF_BUTTON_DPAD}-X$layout", 0f)
+            val drawableYPercent = sPrefs.getFloat("${Settings.PREF_BUTTON_DPAD}-Y$layout", 0f)
             val drawableX = (drawableXPercent * max.x + min.x).toInt()
             val drawableY = (drawableYPercent * max.y + min.y).toInt()
             val width = overlayDrawable.width
@@ -1107,7 +1225,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
          * @param pressedResInner Resource ID for the pressed inner image of the joystick.
          * @param joystick        Identifier for which joystick this is.
          * @param button          Identifier for which joystick button this is.
-         * @return the initialized [InputOverlayDrawableJoystick].
+         * @param prefId          Identifier for determining where a button appears on screen.
+         * @param layout          The current screen layout as determined by [LANDSCAPE], [PORTRAIT], or [FOLDABLE].
+         * @return The initialized [InputOverlayDrawableJoystick].
          */
         private fun initializeOverlayJoystick(
             context: Context,
@@ -1117,7 +1237,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             pressedResInner: Int,
             joystick: Int,
             button: Int,
-            orientation: String
+            prefId: String,
+            layout: String
         ): InputOverlayDrawableJoystick {
             // Resources handle for fetching the initial Drawable resource.
             val res = context.resources
@@ -1141,8 +1262,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
             // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val drawableXPercent = sPrefs.getFloat("$button-X$orientation", 0f)
-            val drawableYPercent = sPrefs.getFloat("$button-Y$orientation", 0f)
+            val drawableXPercent = sPrefs.getFloat("$prefId-X$layout", 0f)
+            val drawableYPercent = sPrefs.getFloat("$prefId-Y$layout", 0f)
             val drawableX = (drawableXPercent * max.x + min.x).toInt()
             val drawableY = (drawableYPercent * max.y + min.y).toInt()
             val outerScale = 1.66f
@@ -1168,7 +1289,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 outerRect,
                 innerRect,
                 joystick,
-                button
+                button,
+                prefId
             )
 
             // Need to set the image's position

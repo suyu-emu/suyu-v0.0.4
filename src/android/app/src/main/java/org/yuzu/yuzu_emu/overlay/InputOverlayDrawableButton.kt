@@ -24,7 +24,8 @@ class InputOverlayDrawableButton(
     res: Resources,
     defaultStateBitmap: Bitmap,
     pressedStateBitmap: Bitmap,
-    val buttonId: Int
+    val buttonId: Int,
+    val prefId: String
 ) {
     // The ID value what motion event is tracking
     var trackId: Int

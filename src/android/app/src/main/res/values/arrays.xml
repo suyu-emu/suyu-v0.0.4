@@ -205,6 +205,8 @@
         <item>@string/gamepad_d_pad</item>
         <item>@string/gamepad_left_stick</item>
         <item>@string/gamepad_right_stick</item>
+        <item>L3</item>
+        <item>R3</item>
         <item>@string/gamepad_home</item>
         <item>@string/gamepad_screenshot</item>
     </string-array>

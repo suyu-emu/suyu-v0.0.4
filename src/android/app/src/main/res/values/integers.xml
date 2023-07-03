@@ -33,6 +33,10 @@
     <integer name="SWITCH_BUTTON_CAPTURE_Y">950</integer>
     <integer name="SWITCH_BUTTON_DPAD_X">260</integer>
     <integer name="SWITCH_BUTTON_DPAD_Y">790</integer>
+    <integer name="SWITCH_BUTTON_STICK_L_X">870</integer>
+    <integer name="SWITCH_BUTTON_STICK_L_Y">400</integer>
+    <integer name="SWITCH_BUTTON_STICK_R_X">960</integer>
+    <integer name="SWITCH_BUTTON_STICK_R_Y">430</integer>
 
     <!-- Default SWITCH portrait layout -->
     <integer name="SWITCH_BUTTON_A_X_PORTRAIT">840</integer>
@@ -65,6 +69,10 @@
     <integer name="SWITCH_BUTTON_CAPTURE_Y_PORTRAIT">950</integer>
     <integer name="SWITCH_BUTTON_DPAD_X_PORTRAIT">240</integer>
     <integer name="SWITCH_BUTTON_DPAD_Y_PORTRAIT">840</integer>
+    <integer name="SWITCH_BUTTON_STICK_L_X_PORTRAIT">730</integer>
+    <integer name="SWITCH_BUTTON_STICK_L_Y_PORTRAIT">510</integer>
+    <integer name="SWITCH_BUTTON_STICK_R_X_PORTRAIT">900</integer>
+    <integer name="SWITCH_BUTTON_STICK_R_Y_PORTRAIT">540</integer>
 
     <!-- Default SWITCH foldable layout -->
     <integer name="SWITCH_BUTTON_A_X_FOLDABLE">840</integer>
@@ -97,5 +105,9 @@
     <integer name="SWITCH_BUTTON_CAPTURE_Y_FOLDABLE">470</integer>
     <integer name="SWITCH_BUTTON_DPAD_X_FOLDABLE">240</integer>
     <integer name="SWITCH_BUTTON_DPAD_Y_FOLDABLE">390</integer>
+    <integer name="SWITCH_BUTTON_STICK_L_X_FOLDABLE">550</integer>
+    <integer name="SWITCH_BUTTON_STICK_L_Y_FOLDABLE">210</integer>
+    <integer name="SWITCH_BUTTON_STICK_R_X_FOLDABLE">550</integer>
+    <integer name="SWITCH_BUTTON_STICK_R_Y_FOLDABLE">280</integer>
 
 </resources>
