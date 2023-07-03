@@ -454,7 +454,7 @@ GMainWindow::GMainWindow(std::unique_ptr<Config> config_, bool has_broken_vulkan
     // the user through their desktop environment.
     //: TRANSLATORS: This string is shown to the user to explain why yuzu needs to prevent the
     //: computer from sleeping
-    QByteArray wakelock_reason = tr("Running a game").toLatin1();
+    QByteArray wakelock_reason = tr("Running a game").toUtf8();
     SDL_SetHint(SDL_HINT_SCREENSAVER_INHIBIT_ACTIVITY_NAME, wakelock_reason.data());
 
     // SDL disables the screen saver by default, and setting the hint
