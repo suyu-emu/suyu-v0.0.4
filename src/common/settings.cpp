@@ -66,8 +66,8 @@ SWITCHABLE(u8, true);
 
 Values values;
 
-std::string GetTimeZoneString() {
-    const auto time_zone_index = static_cast<std::size_t>(values.time_zone_index.GetValue());
+std::string GetTimeZoneString(TimeZone time_zone) {
+    const auto time_zone_index = static_cast<std::size_t>(time_zone);
     ASSERT(time_zone_index < Common::TimeZone::GetTimeZoneStrings().size());
 
     std::string location_name;

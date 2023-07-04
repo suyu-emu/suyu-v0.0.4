@@ -318,7 +318,8 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
          {
              {static_cast<u32>(Settings::TimeZone::Auto),
               tr("Auto (%1)", "Auto select time zone")
-                  .arg(QString::fromStdString(Settings::GetTimeZoneString()))},
+                  .arg(QString::fromStdString(
+                      Settings::GetTimeZoneString(Settings::TimeZone::Auto)))},
              {static_cast<u32>(Settings::TimeZone::Default),
               tr("Default (%1)", "Default time zone")
                   .arg(QString::fromStdString(Common::TimeZone::GetDefaultTimeZone()))},

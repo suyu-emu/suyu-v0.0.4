@@ -516,7 +516,7 @@ bool IsFastmemEnabled();
 
 float Volume();
 
-std::string GetTimeZoneString();
+std::string GetTimeZoneString(TimeZone time_zone);
 
 void LogSettings();
 
