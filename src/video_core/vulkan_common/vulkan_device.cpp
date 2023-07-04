@@ -500,7 +500,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
     if (extensions.extended_dynamic_state2 && is_qualcomm) {
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version >= VK_MAKE_API_VERSION(0, 0, 676, 0)) {
+        if (version >= VK_MAKE_API_VERSION(0, 0, 676, 0) &&
+            version < VK_MAKE_API_VERSION(0, 0, 680, 0)) {
             // Qualcomm Adreno 7xx drivers do not properly support extended_dynamic_state2.
             LOG_WARNING(Render_Vulkan,
                         "Qualcomm Adreno 7xx drivers have broken VK_EXT_extended_dynamic_state2");
@@ -540,7 +541,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
     if (extensions.vertex_input_dynamic_state && is_qualcomm) {
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version >= VK_MAKE_API_VERSION(0, 0, 676, 0)) {
+        if (version >= VK_MAKE_API_VERSION(0, 0, 676, 0) &&
+            version < VK_MAKE_API_VERSION(0, 0, 680, 0)) {
             // Qualcomm Adreno 7xx drivers do not properly support vertex_input_dynamic_state.
             LOG_WARNING(
                 Render_Vulkan,
@@ -796,6 +798,17 @@ bool Device::ShouldBoostClocks() const {
     const bool is_debugging = this->HasDebuggingToolAttached();
 
     return validated_driver && !is_steam_deck && !is_debugging;
+}
+
+bool Device::HasTimelineSemaphore() const {
+    if (GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+        GetDriverID() == VK_DRIVER_ID_MESA_TURNIP) {
+        // Timeline semaphores do not work properly on all Qualcomm drivers.
+        // They generally work properly with Turnip drivers, but are problematic on some devices
+        // (e.g. ZTE handsets with Snapdragon 870).
+        return false;
+    }
+    return features.timeline_semaphore.timelineSemaphore;
 }
 
 bool Device::GetSuitability(bool requires_swapchain) {
