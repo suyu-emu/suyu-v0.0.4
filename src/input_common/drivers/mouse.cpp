@@ -160,8 +160,9 @@ void Mouse::Move(int x, int y, int center_x, int center_y) {
         last_mouse_change.y += mouse_change.y * y_sensitivity;
 
         // Bind the mouse change to [0 <= deadzone_counterweight <= 1.0]
-        if (last_mouse_change.Length() < deadzone_counterweight) {
-            last_mouse_change /= last_mouse_change.Length();
+        const float length = last_mouse_change.Length();
+        if (length < deadzone_counterweight && length != 0.0f) {
+            last_mouse_change /= length;
             last_mouse_change *= deadzone_counterweight;
         }
 
