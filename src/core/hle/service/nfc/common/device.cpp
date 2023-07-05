@@ -66,10 +66,6 @@ NfcDevice::~NfcDevice() {
 };
 
 void NfcDevice::NpadUpdate(Core::HID::ControllerTriggerType type) {
-    if (!is_initalized) {
-        return;
-    }
-
     if (type == Core::HID::ControllerTriggerType::Connected) {
         Initialize();
         availability_change_event->Signal();
@@ -77,16 +73,27 @@ void NfcDevice::NpadUpdate(Core::HID::ControllerTriggerType type) {
     }
 
     if (type == Core::HID::ControllerTriggerType::Disconnected) {
-        device_state = DeviceState::Unavailable;
+        Finalize();
         availability_change_event->Signal();
         return;
     }
 
-    if (type != Core::HID::ControllerTriggerType::Nfc) {
+    if (!is_initalized) {
         return;
     }
 
     if (!npad_device->IsConnected()) {
+        return;
+    }
+
+    // Ensure nfc mode is always active
+    if (npad_device->GetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex) ==
+        Common::Input::PollingMode::Active) {
+        npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
+                                    Common::Input::PollingMode::NFC);
+    }
+
+    if (type != Core::HID::ControllerTriggerType::Nfc) {
         return;
     }
 
@@ -207,11 +214,14 @@ void NfcDevice::Initialize() {
 }
 
 void NfcDevice::Finalize() {
-    if (device_state == DeviceState::TagMounted) {
-        Unmount();
-    }
-    if (device_state == DeviceState::SearchingForTag || device_state == DeviceState::TagRemoved) {
-        StopDetection();
+    if (npad_device->IsConnected()) {
+        if (device_state == DeviceState::TagMounted) {
+            Unmount();
+        }
+        if (device_state == DeviceState::SearchingForTag ||
+            device_state == DeviceState::TagRemoved) {
+            StopDetection();
+        }
     }
 
     if (device_state != DeviceState::Unavailable) {
