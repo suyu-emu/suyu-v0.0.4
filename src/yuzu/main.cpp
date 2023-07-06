@@ -178,6 +178,8 @@ constexpr int default_mouse_hide_timeout = 2500;
 constexpr int default_mouse_center_timeout = 10;
 constexpr int default_input_update_timeout = 1;
 
+constexpr size_t CopyBufferSize = 1_MiB;
+
 /**
  * "Callouts" are one-time instructional messages shown to the user. In the config settings, there
  * is a bitfield "callout_flags" options, used to track if a message has already been shown to the
@@ -2932,7 +2934,7 @@ void GMainWindow::OnMenuInstallToNAND() {
     // This would only overflow above 2^51 bytes (2.252 PB)
     int total_size = 0;
     for (const QString& file : files) {
-        total_size += static_cast<int>(QFile(file).size() / 1_MiB);
+        total_size += static_cast<int>(QFile(file).size() / CopyBufferSize);
     }
     if (total_size < 0) {
         LOG_CRITICAL(Frontend, "Attempting to install too many files, aborting.");
@@ -3032,7 +3034,7 @@ InstallResult GMainWindow::InstallNSPXCI(const QString& filename) {
             return false;
         }
 
-        std::vector<u8> buffer(1_MiB);
+        std::vector<u8> buffer(CopyBufferSize);
 
         for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
             if (install_progress->wasCanceled()) {
@@ -3088,7 +3090,7 @@ InstallResult GMainWindow::InstallNCA(const QString& filename) {
             return false;
         }
 
-        std::vector<u8> buffer(1_MiB);
+        std::vector<u8> buffer(CopyBufferSize);
 
         for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
             if (install_progress->wasCanceled()) {
