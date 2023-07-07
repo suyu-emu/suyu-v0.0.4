@@ -100,11 +100,8 @@ private:
                                                     int axis_y, float offset_x,
                                                     float offset_y) const;
 
-    /// Returns the default button bindings list for generic controllers
-    ButtonBindings GetDefaultButtonBinding() const;
-
-    /// Returns the default button bindings list for nintendo controllers
-    ButtonBindings GetNintendoButtonBinding(const std::shared_ptr<SDLJoystick>& joystick) const;
+    /// Returns the default button bindings list
+    ButtonBindings GetDefaultButtonBinding(const std::shared_ptr<SDLJoystick>& joystick) const;
 
     /// Returns the button mappings from a single controller
     ButtonMapping GetSingleControllerMapping(const std::shared_ptr<SDLJoystick>& joystick,
