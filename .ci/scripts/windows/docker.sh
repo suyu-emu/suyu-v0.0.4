@@ -56,7 +56,6 @@ for i in package/*.exe; do
   x86_64-w64-mingw32-strip "${i}"
 done
 
-pip3 install pefile
 python3 .ci/scripts/windows/scan_dll.py package/*.exe package/imageformats/*.dll "package/"
 
 # copy FFmpeg libraries
