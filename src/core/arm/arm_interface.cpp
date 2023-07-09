@@ -185,7 +185,7 @@ void ARM_Interface::Run() {
         // Notify the debugger and go to sleep if a breakpoint was hit,
         // or if the thread is unable to continue for any reason.
         if (True(hr & HaltReason::InstructionBreakpoint) || True(hr & HaltReason::PrefetchAbort)) {
-            if (!True(hr & HaltReason::InstructionBreakpoint)) {
+            if (!True(hr & HaltReason::PrefetchAbort)) {
                 RewindBreakpointInstruction();
             }
             if (system.DebuggerEnabled()) {
