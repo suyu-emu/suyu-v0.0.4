@@ -26,10 +26,9 @@ std::string GetTimeZoneString() {
 
     std::string location_name;
     if (time_zone_index == 0) { // Auto
-#if __cpp_lib_chrono >= 201907L && !defined(_MSC_VER)
-        // TODO: Remove `!defined(_MSC_VER)` when we no longer support Windows 10 1809 LTSC
-        const struct std::chrono::tzdb& time_zone_data = std::chrono::get_tzdb();
+#if __cpp_lib_chrono >= 201907L
         try {
+            const struct std::chrono::tzdb& time_zone_data = std::chrono::get_tzdb();
             const std::chrono::time_zone* current_zone = time_zone_data.current_zone();
             std::string_view current_zone_name = current_zone->name();
             location_name = current_zone_name;
