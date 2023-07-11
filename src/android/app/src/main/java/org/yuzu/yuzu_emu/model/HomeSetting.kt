@@ -7,5 +7,8 @@ data class HomeSetting(
     val titleId: Int,
     val descriptionId: Int,
     val iconId: Int,
-    val onClick: () -> Unit
+    val onClick: () -> Unit,
+    val isEnabled: () -> Boolean = { true },
+    val disabledTitleId: Int = 0,
+    val disabledMessageId: Int = 0
 )
