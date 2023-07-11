@@ -10,13 +10,13 @@
 #include "core/device_memory.h"
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_process.h"
-#include "core/memory.h"
 #include "video_core/invalidation_accumulator.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
 
 namespace Tegra {
+using Core::Memory::GuestMemoryFlags;
 
 std::atomic<size_t> MemoryManager::unique_identifier_generator{};
 
@@ -587,13 +587,10 @@ void MemoryManager::InvalidateRegion(GPUVAddr gpu_addr, size_t size,
 
 void MemoryManager::CopyBlock(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr, std::size_t size,
                               VideoCommon::CacheType which) {
-    tmp_buffer.resize_destructive(size);
-    ReadBlock(gpu_src_addr, tmp_buffer.data(), size, which);
-
-    // The output block must be flushed in case it has data modified from the GPU.
-    // Fixes NPC geometry in Zombie Panic in Wonderland DX
+    Core::Memory::GpuGuestMemoryScoped<u8, GuestMemoryFlags::SafeReadWrite> data(
+        *this, gpu_src_addr, size);
+    data.SetAddressAndSize(gpu_dest_addr, size);
     FlushRegion(gpu_dest_addr, size, which);
-    WriteBlock(gpu_dest_addr, tmp_buffer.data(), size, which);
 }
 
 bool MemoryManager::IsGranularRange(GPUVAddr gpu_addr, std::size_t size) const {
@@ -756,6 +753,25 @@ void MemoryManager::FlushCaching() {
     rasterizer->InnerInvalidation(page_stash2);
     page_stash2.clear();
     accumulator->Clear();
+}
+
+const u8* MemoryManager::GetSpan(const GPUVAddr src_addr, const std::size_t size) const {
+    auto cpu_addr = GpuToCpuAddress(src_addr);
+    if (cpu_addr) {
+        return memory.GetSpan(*cpu_addr, size);
+    }
+    return nullptr;
+}
+
+u8* MemoryManager::GetSpan(const GPUVAddr src_addr, const std::size_t size) {
+    if (!IsContinuousRange(src_addr, size)) {
+        return nullptr;
+    }
+    auto cpu_addr = GpuToCpuAddress(src_addr);
+    if (cpu_addr) {
+        return memory.GetSpan(*cpu_addr, size);
+    }
+    return nullptr;
 }
 
 } // namespace Tegra

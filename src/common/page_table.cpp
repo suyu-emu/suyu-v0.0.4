@@ -66,6 +66,7 @@ void PageTable::Resize(std::size_t address_space_width_in_bits, std::size_t page
                                              << (address_space_width_in_bits - page_size_in_bits)};
     pointers.resize(num_page_table_entries);
     backing_addr.resize(num_page_table_entries);
+    blocks.resize(num_page_table_entries);
     current_address_space_width_in_bits = address_space_width_in_bits;
     page_size = 1ULL << page_size_in_bits;
 }

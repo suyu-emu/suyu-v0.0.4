@@ -40,8 +40,21 @@ public:
     ~ScratchBuffer() = default;
     ScratchBuffer(const ScratchBuffer&) = delete;
     ScratchBuffer& operator=(const ScratchBuffer&) = delete;
-    ScratchBuffer(ScratchBuffer&&) = default;
-    ScratchBuffer& operator=(ScratchBuffer&&) = default;
+
+    ScratchBuffer(ScratchBuffer&& other) noexcept {
+        swap(other);
+        other.last_requested_size = 0;
+        other.buffer_capacity = 0;
+        other.buffer.reset();
+    }
+
+    ScratchBuffer& operator=(ScratchBuffer&& other) noexcept {
+        swap(other);
+        other.last_requested_size = 0;
+        other.buffer_capacity = 0;
+        other.buffer.reset();
+        return *this;
+    }
 
     /// This will only grow the buffer's capacity if size is greater than the current capacity.
     /// The previously held data will remain intact.

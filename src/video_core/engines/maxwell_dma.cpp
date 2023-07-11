@@ -7,6 +7,7 @@
 #include "common/microprofile.h"
 #include "common/settings.h"
 #include "core/core.h"
+#include "core/memory.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/maxwell_dma.h"
 #include "video_core/memory_manager.h"
@@ -130,11 +131,12 @@ void MaxwellDMA::Launch() {
                 UNIMPLEMENTED_IF(regs.offset_out % 16 != 0);
                 read_buffer.resize_destructive(16);
                 for (u32 offset = 0; offset < regs.line_length_in; offset += 16) {
-                    memory_manager.ReadBlock(
-                        convert_linear_2_blocklinear_addr(regs.offset_in + offset),
-                        read_buffer.data(), read_buffer.size());
-                    memory_manager.WriteBlockCached(regs.offset_out + offset, read_buffer.data(),
-                                                    read_buffer.size());
+                    Core::Memory::GpuGuestMemoryScoped<
+                        u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+                        tmp_write_buffer(memory_manager,
+                                         convert_linear_2_blocklinear_addr(regs.offset_in + offset),
+                                         16, &read_buffer);
+                    tmp_write_buffer.SetAddressAndSize(regs.offset_out + offset, 16);
                 }
             } else if (is_src_pitch && !is_dst_pitch) {
                 UNIMPLEMENTED_IF(regs.line_length_in % 16 != 0);
@@ -142,20 +144,19 @@ void MaxwellDMA::Launch() {
                 UNIMPLEMENTED_IF(regs.offset_out % 16 != 0);
                 read_buffer.resize_destructive(16);
                 for (u32 offset = 0; offset < regs.line_length_in; offset += 16) {
-                    memory_manager.ReadBlock(regs.offset_in + offset, read_buffer.data(),
-                                             read_buffer.size());
-                    memory_manager.WriteBlockCached(
-                        convert_linear_2_blocklinear_addr(regs.offset_out + offset),
-                        read_buffer.data(), read_buffer.size());
+                    Core::Memory::GpuGuestMemoryScoped<
+                        u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+                        tmp_write_buffer(memory_manager, regs.offset_in + offset, 16, &read_buffer);
+                    tmp_write_buffer.SetAddressAndSize(
+                        convert_linear_2_blocklinear_addr(regs.offset_out + offset), 16);
                 }
             } else {
                 if (!accelerate.BufferCopy(regs.offset_in, regs.offset_out, regs.line_length_in)) {
-                    read_buffer.resize_destructive(regs.line_length_in);
-                    memory_manager.ReadBlock(regs.offset_in, read_buffer.data(),
-                                             regs.line_length_in,
-                                             VideoCommon::CacheType::NoBufferCache);
-                    memory_manager.WriteBlockCached(regs.offset_out, read_buffer.data(),
-                                                    regs.line_length_in);
+                    Core::Memory::GpuGuestMemoryScoped<
+                        u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+                        tmp_write_buffer(memory_manager, regs.offset_in, regs.line_length_in,
+                                         &read_buffer);
+                    tmp_write_buffer.SetAddressAndSize(regs.offset_out, regs.line_length_in);
                 }
             }
         }
@@ -222,17 +223,15 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
         CalculateSize(true, bytes_per_pixel, width, height, depth, block_height, block_depth);
 
     const size_t dst_size = dst_operand.pitch * regs.line_count;
-    read_buffer.resize_destructive(src_size);
-    write_buffer.resize_destructive(dst_size);
 
-    memory_manager.ReadBlock(src_operand.address, read_buffer.data(), src_size);
-    memory_manager.ReadBlock(dst_operand.address, write_buffer.data(), dst_size);
+    Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead> tmp_read_buffer(
+        memory_manager, src_operand.address, src_size, &read_buffer);
+    Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+        tmp_write_buffer(memory_manager, dst_operand.address, dst_size, &write_buffer);
 
-    UnswizzleSubrect(write_buffer, read_buffer, bytes_per_pixel, width, height, depth, x_offset,
-                     src_params.origin.y, x_elements, regs.line_count, block_height, block_depth,
-                     dst_operand.pitch);
-
-    memory_manager.WriteBlockCached(regs.offset_out, write_buffer.data(), dst_size);
+    UnswizzleSubrect(tmp_write_buffer, tmp_read_buffer, bytes_per_pixel, width, height, depth,
+                     x_offset, src_params.origin.y, x_elements, regs.line_count, block_height,
+                     block_depth, dst_operand.pitch);
 }
 
 void MaxwellDMA::CopyPitchToBlockLinear() {
@@ -287,18 +286,17 @@ void MaxwellDMA::CopyPitchToBlockLinear() {
         CalculateSize(true, bytes_per_pixel, width, height, depth, block_height, block_depth);
     const size_t src_size = static_cast<size_t>(regs.pitch_in) * regs.line_count;
 
-    read_buffer.resize_destructive(src_size);
-    write_buffer.resize_destructive(dst_size);
+    GPUVAddr src_addr = regs.offset_in;
+    GPUVAddr dst_addr = regs.offset_out;
+    Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead> tmp_read_buffer(
+        memory_manager, src_addr, src_size, &read_buffer);
+    Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+        tmp_write_buffer(memory_manager, dst_addr, dst_size, &write_buffer);
 
-    memory_manager.ReadBlock(regs.offset_in, read_buffer.data(), src_size);
-    memory_manager.ReadBlockUnsafe(regs.offset_out, write_buffer.data(), dst_size);
-
-    // If the input is linear and the output is tiled, swizzle the input and copy it over.
-    SwizzleSubrect(write_buffer, read_buffer, bytes_per_pixel, width, height, depth, x_offset,
-                   dst_params.origin.y, x_elements, regs.line_count, block_height, block_depth,
-                   regs.pitch_in);
-
-    memory_manager.WriteBlockCached(regs.offset_out, write_buffer.data(), dst_size);
+    //  If the input is linear and the output is tiled, swizzle the input and copy it over.
+    SwizzleSubrect(tmp_write_buffer, tmp_read_buffer, bytes_per_pixel, width, height, depth,
+                   x_offset, dst_params.origin.y, x_elements, regs.line_count, block_height,
+                   block_depth, regs.pitch_in);
 }
 
 void MaxwellDMA::CopyBlockLinearToBlockLinear() {
@@ -342,23 +340,20 @@ void MaxwellDMA::CopyBlockLinearToBlockLinear() {
     const u32 pitch = x_elements * bytes_per_pixel;
     const size_t mid_buffer_size = pitch * regs.line_count;
 
-    read_buffer.resize_destructive(src_size);
-    write_buffer.resize_destructive(dst_size);
-
     intermediate_buffer.resize_destructive(mid_buffer_size);
 
-    memory_manager.ReadBlock(regs.offset_in, read_buffer.data(), src_size);
-    memory_manager.ReadBlock(regs.offset_out, write_buffer.data(), dst_size);
+    Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead> tmp_read_buffer(
+        memory_manager, regs.offset_in, src_size, &read_buffer);
+    Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+        tmp_write_buffer(memory_manager, regs.offset_out, dst_size, &write_buffer);
 
-    UnswizzleSubrect(intermediate_buffer, read_buffer, bytes_per_pixel, src_width, src.height,
+    UnswizzleSubrect(intermediate_buffer, tmp_read_buffer, bytes_per_pixel, src_width, src.height,
                      src.depth, src_x_offset, src.origin.y, x_elements, regs.line_count,
                      src.block_size.height, src.block_size.depth, pitch);
 
-    SwizzleSubrect(write_buffer, intermediate_buffer, bytes_per_pixel, dst_width, dst.height,
+    SwizzleSubrect(tmp_write_buffer, intermediate_buffer, bytes_per_pixel, dst_width, dst.height,
                    dst.depth, dst_x_offset, dst.origin.y, x_elements, regs.line_count,
                    dst.block_size.height, dst.block_size.depth, pitch);
-
-    memory_manager.WriteBlockCached(regs.offset_out, write_buffer.data(), dst_size);
 }
 
 void MaxwellDMA::ReleaseSemaphore() {

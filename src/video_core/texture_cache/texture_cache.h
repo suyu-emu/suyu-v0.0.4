@@ -8,6 +8,7 @@
 
 #include "common/alignment.h"
 #include "common/settings.h"
+#include "core/memory.h"
 #include "video_core/control/channel_state.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/kepler_compute.h"
@@ -1026,19 +1027,19 @@ void TextureCache<P>::UploadImageContents(Image& image, StagingBuffer& staging) 
         runtime.AccelerateImageUpload(image, staging, uploads);
         return;
     }
-    const size_t guest_size_bytes = image.guest_size_bytes;
-    swizzle_data_buffer.resize_destructive(guest_size_bytes);
-    gpu_memory->ReadBlockUnsafe(gpu_addr, swizzle_data_buffer.data(), guest_size_bytes);
+
+    Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::UnsafeRead> swizzle_data(
+        *gpu_memory, gpu_addr, image.guest_size_bytes, &swizzle_data_buffer);
 
     if (True(image.flags & ImageFlagBits::Converted)) {
         unswizzle_data_buffer.resize_destructive(image.unswizzled_size_bytes);
-        auto copies = UnswizzleImage(*gpu_memory, gpu_addr, image.info, swizzle_data_buffer,
-                                     unswizzle_data_buffer);
+        auto copies =
+            UnswizzleImage(*gpu_memory, gpu_addr, image.info, swizzle_data, unswizzle_data_buffer);
         ConvertImage(unswizzle_data_buffer, image.info, mapped_span, copies);
         image.UploadMemory(staging, copies);
     } else {
         const auto copies =
-            UnswizzleImage(*gpu_memory, gpu_addr, image.info, swizzle_data_buffer, mapped_span);
+            UnswizzleImage(*gpu_memory, gpu_addr, image.info, swizzle_data, mapped_span);
         image.UploadMemory(staging, copies);
     }
 }
@@ -1231,11 +1232,12 @@ void TextureCache<P>::QueueAsyncDecode(Image& image, ImageId image_id) {
     decode->image_id = image_id;
     async_decodes.push_back(std::move(decode));
 
-    Common::ScratchBuffer<u8> local_unswizzle_data_buffer(image.unswizzled_size_bytes);
-    const size_t guest_size_bytes = image.guest_size_bytes;
-    swizzle_data_buffer.resize_destructive(guest_size_bytes);
-    gpu_memory->ReadBlockUnsafe(image.gpu_addr, swizzle_data_buffer.data(), guest_size_bytes);
-    auto copies = UnswizzleImage(*gpu_memory, image.gpu_addr, image.info, swizzle_data_buffer,
+    static Common::ScratchBuffer<u8> local_unswizzle_data_buffer;
+    local_unswizzle_data_buffer.resize_destructive(image.unswizzled_size_bytes);
+    Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::UnsafeRead> swizzle_data(
+        *gpu_memory, image.gpu_addr, image.guest_size_bytes, &swizzle_data_buffer);
+
+    auto copies = UnswizzleImage(*gpu_memory, image.gpu_addr, image.info, swizzle_data,
                                  local_unswizzle_data_buffer);
     const size_t out_size = MapSizeBytes(image);
 

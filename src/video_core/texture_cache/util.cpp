@@ -20,6 +20,7 @@
 #include "common/div_ceil.h"
 #include "common/scratch_buffer.h"
 #include "common/settings.h"
+#include "core/memory.h"
 #include "video_core/compatible_formats.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/memory_manager.h"
@@ -544,17 +545,15 @@ void SwizzleBlockLinearImage(Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr
                        tile_size.height, info.tile_width_spacing);
     const size_t subresource_size = sizes[level];
 
-    tmp_buffer.resize_destructive(subresource_size);
-    const std::span<u8> dst(tmp_buffer);
-
     for (s32 layer = 0; layer < info.resources.layers; ++layer) {
         const std::span<const u8> src = input.subspan(host_offset);
-        gpu_memory.ReadBlockUnsafe(gpu_addr + guest_offset, dst.data(), dst.size_bytes());
+        {
+            Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::UnsafeReadWrite>
+                dst(gpu_memory, gpu_addr + guest_offset, subresource_size, &tmp_buffer);
 
-        SwizzleTexture(dst, src, bytes_per_block, num_tiles.width, num_tiles.height,
-                       num_tiles.depth, block.height, block.depth);
-
-        gpu_memory.WriteBlockUnsafe(gpu_addr + guest_offset, dst.data(), dst.size_bytes());
+            SwizzleTexture(dst, src, bytes_per_block, num_tiles.width, num_tiles.height,
+                           num_tiles.depth, block.height, block.depth);
+        }
 
         host_offset += host_bytes_per_layer;
         guest_offset += layer_stride;
@@ -837,6 +836,7 @@ boost::container::small_vector<BufferImageCopy, 16> UnswizzleImage(Tegra::Memory
     const Extent3D size = info.size;
 
     if (info.type == ImageType::Linear) {
+        ASSERT(output.size_bytes() >= guest_size_bytes);
         gpu_memory.ReadBlockUnsafe(gpu_addr, output.data(), guest_size_bytes);
 
         ASSERT((info.pitch >> bpp_log2) << bpp_log2 == info.pitch);
@@ -902,16 +902,6 @@ boost::container::small_vector<BufferImageCopy, 16> UnswizzleImage(Tegra::Memory
         guest_offset += level_sizes[level];
     }
     return copies;
-}
-
-BufferCopy UploadBufferCopy(Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr,
-                            const ImageBase& image, std::span<u8> output) {
-    gpu_memory.ReadBlockUnsafe(gpu_addr, output.data(), image.guest_size_bytes);
-    return BufferCopy{
-        .src_offset = 0,
-        .dst_offset = 0,
-        .size = image.guest_size_bytes,
-    };
 }
 
 void ConvertImage(std::span<const u8> input, const ImageInfo& info, std::span<u8> output,

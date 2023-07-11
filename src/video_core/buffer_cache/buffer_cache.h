@@ -234,9 +234,10 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     if (has_new_downloads) {
         memory_tracker.MarkRegionAsGpuModified(*cpu_dest_address, amount);
     }
-    tmp_buffer.resize_destructive(amount);
-    cpu_memory.ReadBlockUnsafe(*cpu_src_address, tmp_buffer.data(), amount);
-    cpu_memory.WriteBlockUnsafe(*cpu_dest_address, tmp_buffer.data(), amount);
+
+    Core::Memory::CpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::UnsafeReadWrite> tmp(
+        cpu_memory, *cpu_src_address, amount, &tmp_buffer);
+    tmp.SetAddressAndSize(*cpu_dest_address, amount);
     return true;
 }
 

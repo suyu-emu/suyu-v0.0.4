@@ -15,6 +15,7 @@
 #include "common/range_map.h"
 #include "common/scratch_buffer.h"
 #include "common/virtual_buffer.h"
+#include "core/memory.h"
 #include "video_core/cache_types.h"
 #include "video_core/pte_kind.h"
 
@@ -61,6 +62,20 @@ public:
 
     [[nodiscard]] u8* GetPointer(GPUVAddr addr);
     [[nodiscard]] const u8* GetPointer(GPUVAddr addr) const;
+
+    template <typename T>
+    [[nodiscard]] T* GetPointer(GPUVAddr addr) {
+        const auto address{GpuToCpuAddress(addr)};
+        if (!address) {
+            return {};
+        }
+        return memory.GetPointer(*address);
+    }
+
+    template <typename T>
+    [[nodiscard]] const T* GetPointer(GPUVAddr addr) const {
+        return GetPointer<T*>(addr);
+    }
 
     /**
      * ReadBlock and WriteBlock are full read and write operations over virtual
@@ -138,6 +153,9 @@ public:
                                size_t max_size = std::numeric_limits<size_t>::max()) const;
 
     void FlushCaching();
+
+    const u8* GetSpan(const GPUVAddr src_addr, const std::size_t size) const;
+    u8* GetSpan(const GPUVAddr src_addr, const std::size_t size);
 
 private:
     template <bool is_big_pages, typename FuncMapped, typename FuncReserved, typename FuncUnmapped>

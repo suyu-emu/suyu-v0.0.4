@@ -9,6 +9,7 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/memory.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/draw_manager.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -679,17 +680,14 @@ void Maxwell3D::ProcessCBData(u32 value) {
 Texture::TICEntry Maxwell3D::GetTICEntry(u32 tic_index) const {
     const GPUVAddr tic_address_gpu{regs.tex_header.Address() +
                                    tic_index * sizeof(Texture::TICEntry)};
-
     Texture::TICEntry tic_entry;
     memory_manager.ReadBlockUnsafe(tic_address_gpu, &tic_entry, sizeof(Texture::TICEntry));
-
     return tic_entry;
 }
 
 Texture::TSCEntry Maxwell3D::GetTSCEntry(u32 tsc_index) const {
     const GPUVAddr tsc_address_gpu{regs.tex_sampler.Address() +
                                    tsc_index * sizeof(Texture::TSCEntry)};
-
     Texture::TSCEntry tsc_entry;
     memory_manager.ReadBlockUnsafe(tsc_address_gpu, &tsc_entry, sizeof(Texture::TSCEntry));
     return tsc_entry;
