@@ -73,102 +73,113 @@ class HomeSettingsFragment : Fragment() {
                 HomeSetting(
                     R.string.advanced_settings,
                     R.string.settings_description,
-                    R.drawable.ic_settings
-                ) { SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "") }
+                    R.drawable.ic_settings,
+                    { SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "") }
+                )
             )
             add(
                 HomeSetting(
                     R.string.open_user_folder,
                     R.string.open_user_folder_description,
-                    R.drawable.ic_folder_open
-                ) { openFileManager() }
+                    R.drawable.ic_folder_open,
+                    { openFileManager() }
+                )
             )
             add(
                 HomeSetting(
                     R.string.preferences_theme,
                     R.string.theme_and_color_description,
-                    R.drawable.ic_palette
-                ) { SettingsActivity.launch(requireContext(), Settings.SECTION_THEME, "") }
-            )
-
-            if (GpuDriverHelper.supportsCustomDriverLoading()) {
-                add(
-                    HomeSetting(
-                        R.string.install_gpu_driver,
-                        R.string.install_gpu_driver_description,
-                        R.drawable.ic_exit
-                    ) { driverInstaller() }
+                    R.drawable.ic_palette,
+                    { SettingsActivity.launch(requireContext(), Settings.SECTION_THEME, "") }
                 )
-            }
-
+            )
+            add(
+                HomeSetting(
+                    R.string.install_gpu_driver,
+                    R.string.install_gpu_driver_description,
+                    R.drawable.ic_exit,
+                    { driverInstaller() },
+                    { GpuDriverHelper.supportsCustomDriverLoading() },
+                    R.string.custom_driver_not_supported,
+                    R.string.custom_driver_not_supported_description
+                )
+            )
             add(
                 HomeSetting(
                     R.string.install_amiibo_keys,
                     R.string.install_amiibo_keys_description,
-                    R.drawable.ic_nfc
-                ) { mainActivity.getAmiiboKey.launch(arrayOf("*/*")) }
+                    R.drawable.ic_nfc,
+                    { mainActivity.getAmiiboKey.launch(arrayOf("*/*")) }
+                )
             )
             add(
                 HomeSetting(
                     R.string.install_game_content,
                     R.string.install_game_content_description,
-                    R.drawable.ic_system_update_alt
-                ) { mainActivity.installGameUpdate.launch(arrayOf("*/*")) }
+                    R.drawable.ic_system_update_alt,
+                    { mainActivity.installGameUpdate.launch(arrayOf("*/*")) }
+                )
             )
             add(
                 HomeSetting(
                     R.string.select_games_folder,
                     R.string.select_games_folder_description,
-                    R.drawable.ic_add
-                ) {
-                    mainActivity.getGamesDirectory.launch(
-                        Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data
-                    )
-                }
+                    R.drawable.ic_add,
+                    {
+                        mainActivity.getGamesDirectory.launch(
+                            Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data
+                        )
+                    }
+                )
             )
             add(
                 HomeSetting(
                     R.string.manage_save_data,
                     R.string.import_export_saves_description,
-                    R.drawable.ic_save
-                ) {
-                    ImportExportSavesFragment().show(
-                        parentFragmentManager,
-                        ImportExportSavesFragment.TAG
-                    )
-                }
+                    R.drawable.ic_save,
+                    {
+                        ImportExportSavesFragment().show(
+                            parentFragmentManager,
+                            ImportExportSavesFragment.TAG
+                        )
+                    }
+                )
             )
             add(
                 HomeSetting(
                     R.string.install_prod_keys,
                     R.string.install_prod_keys_description,
-                    R.drawable.ic_unlock
-                ) { mainActivity.getProdKey.launch(arrayOf("*/*")) }
+                    R.drawable.ic_unlock,
+                    { mainActivity.getProdKey.launch(arrayOf("*/*")) }
+                )
             )
             add(
                 HomeSetting(
                     R.string.install_firmware,
                     R.string.install_firmware_description,
-                    R.drawable.ic_firmware
-                ) { mainActivity.getFirmware.launch(arrayOf("application/zip")) }
+                    R.drawable.ic_firmware,
+                    { mainActivity.getFirmware.launch(arrayOf("application/zip")) }
+                )
             )
             add(
                 HomeSetting(
                     R.string.share_log,
                     R.string.share_log_description,
-                    R.drawable.ic_log
-                ) { shareLog() }
+                    R.drawable.ic_log,
+                    { shareLog() }
+                )
             )
             add(
                 HomeSetting(
                     R.string.about,
                     R.string.about_description,
-                    R.drawable.ic_info_outline
-                ) {
-                    exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
-                    parentFragmentManager.primaryNavigationFragment?.findNavController()
-                        ?.navigate(R.id.action_homeSettingsFragment_to_aboutFragment)
-                }
+                    R.drawable.ic_info_outline,
+                    {
+                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+                        parentFragmentManager.primaryNavigationFragment?.findNavController()
+                            ?.navigate(R.id.action_homeSettingsFragment_to_aboutFragment)
+                    }
+                )
             )
         }
 
@@ -178,12 +189,13 @@ class HomeSettingsFragment : Fragment() {
                 HomeSetting(
                     R.string.get_early_access,
                     R.string.get_early_access_description,
-                    R.drawable.ic_diamond
-                ) {
-                    exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
-                    parentFragmentManager.primaryNavigationFragment?.findNavController()
-                        ?.navigate(R.id.action_homeSettingsFragment_to_earlyAccessFragment)
-                }
+                    R.drawable.ic_diamond,
+                    {
+                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+                        parentFragmentManager.primaryNavigationFragment?.findNavController()
+                            ?.navigate(R.id.action_homeSettingsFragment_to_earlyAccessFragment)
+                    }
+                )
             )
         }
 

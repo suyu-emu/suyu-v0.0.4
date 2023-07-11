@@ -12,6 +12,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.CardHomeOptionBinding
+import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.HomeSetting
 
 class HomeSettingAdapter(private val activity: AppCompatActivity, var options: List<HomeSetting>) :
@@ -34,7 +35,14 @@ class HomeSettingAdapter(private val activity: AppCompatActivity, var options: L
 
     override fun onClick(view: View) {
         val holder = view.tag as HomeOptionViewHolder
-        holder.option.onClick.invoke()
+        if (holder.option.isEnabled.invoke()) {
+            holder.option.onClick.invoke()
+        } else {
+            MessageDialogFragment.newInstance(
+                holder.option.disabledTitleId,
+                holder.option.disabledMessageId
+            ).show(activity.supportFragmentManager, MessageDialogFragment.TAG)
+        }
     }
 
     inner class HomeOptionViewHolder(val binding: CardHomeOptionBinding) :
@@ -64,6 +72,12 @@ class HomeSettingAdapter(private val activity: AppCompatActivity, var options: L
                             binding.optionCard.context,
                             R.drawable.premium_background
                         )
+            }
+
+            if (!option.isEnabled.invoke()) {
+                binding.optionTitle.alpha = 0.5f
+                binding.optionDescription.alpha = 0.5f
+                binding.optionIcon.alpha = 0.5f
             }
         }
     }
