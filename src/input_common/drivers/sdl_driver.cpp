@@ -523,6 +523,8 @@ SDLDriver::SDLDriver(std::string input_engine_) : InputEngine(std::move(input_en
     }
 
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_SWITCH_PLAYER_LED, "1");
+    // Share the same button mapping with non-Nintendo controllers
+    SDL_SetHint(SDL_HINT_GAMECONTROLLER_USE_BUTTON_LABELS, "0");
 
     // Disable hidapi driver for xbox. Already default on Windows, this causes conflict with native
     // driver on Linux.
@@ -800,16 +802,9 @@ ButtonMapping SDLDriver::GetButtonMappingForDevice(const Common::ParamPackage& p
 
     // This list is missing ZL/ZR since those are not considered buttons in SDL GameController.
     // We will add those afterwards
-    // This list also excludes Screenshot since there's not really a mapping for that
     ButtonBindings switch_to_sdl_button;
 
-    if (SDL_GameControllerGetType(controller) == SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO ||
-        SDL_GameControllerGetType(controller) == SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_LEFT ||
-        SDL_GameControllerGetType(controller) == SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT) {
-        switch_to_sdl_button = GetNintendoButtonBinding(joystick);
-    } else {
-        switch_to_sdl_button = GetDefaultButtonBinding();
-    }
+    switch_to_sdl_button = GetDefaultButtonBinding(joystick);
 
     // Add the missing bindings for ZL/ZR
     static constexpr ZButtonBindings switch_to_sdl_axis{{
@@ -830,32 +825,9 @@ ButtonMapping SDLDriver::GetButtonMappingForDevice(const Common::ParamPackage& p
     return GetSingleControllerMapping(joystick, switch_to_sdl_button, switch_to_sdl_axis);
 }
 
-ButtonBindings SDLDriver::GetDefaultButtonBinding() const {
-    return {
-        std::pair{Settings::NativeButton::A, SDL_CONTROLLER_BUTTON_B},
-        {Settings::NativeButton::B, SDL_CONTROLLER_BUTTON_A},
-        {Settings::NativeButton::X, SDL_CONTROLLER_BUTTON_Y},
-        {Settings::NativeButton::Y, SDL_CONTROLLER_BUTTON_X},
-        {Settings::NativeButton::LStick, SDL_CONTROLLER_BUTTON_LEFTSTICK},
-        {Settings::NativeButton::RStick, SDL_CONTROLLER_BUTTON_RIGHTSTICK},
-        {Settings::NativeButton::L, SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
-        {Settings::NativeButton::R, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER},
-        {Settings::NativeButton::Plus, SDL_CONTROLLER_BUTTON_START},
-        {Settings::NativeButton::Minus, SDL_CONTROLLER_BUTTON_BACK},
-        {Settings::NativeButton::DLeft, SDL_CONTROLLER_BUTTON_DPAD_LEFT},
-        {Settings::NativeButton::DUp, SDL_CONTROLLER_BUTTON_DPAD_UP},
-        {Settings::NativeButton::DRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT},
-        {Settings::NativeButton::DDown, SDL_CONTROLLER_BUTTON_DPAD_DOWN},
-        {Settings::NativeButton::SL, SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
-        {Settings::NativeButton::SR, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER},
-        {Settings::NativeButton::Home, SDL_CONTROLLER_BUTTON_GUIDE},
-        {Settings::NativeButton::Screenshot, SDL_CONTROLLER_BUTTON_MISC1},
-    };
-}
-
-ButtonBindings SDLDriver::GetNintendoButtonBinding(
+ButtonBindings SDLDriver::GetDefaultButtonBinding(
     const std::shared_ptr<SDLJoystick>& joystick) const {
-    // Default SL/SR mapping for pro controllers
+    // Default SL/SR mapping for other controllers
     auto sl_button = SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
     auto sr_button = SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
 
@@ -869,10 +841,10 @@ ButtonBindings SDLDriver::GetNintendoButtonBinding(
     }
 
     return {
-        std::pair{Settings::NativeButton::A, SDL_CONTROLLER_BUTTON_A},
-        {Settings::NativeButton::B, SDL_CONTROLLER_BUTTON_B},
-        {Settings::NativeButton::X, SDL_CONTROLLER_BUTTON_X},
-        {Settings::NativeButton::Y, SDL_CONTROLLER_BUTTON_Y},
+        std::pair{Settings::NativeButton::A, SDL_CONTROLLER_BUTTON_B},
+        {Settings::NativeButton::B, SDL_CONTROLLER_BUTTON_A},
+        {Settings::NativeButton::X, SDL_CONTROLLER_BUTTON_Y},
+        {Settings::NativeButton::Y, SDL_CONTROLLER_BUTTON_X},
         {Settings::NativeButton::LStick, SDL_CONTROLLER_BUTTON_LEFTSTICK},
         {Settings::NativeButton::RStick, SDL_CONTROLLER_BUTTON_RIGHTSTICK},
         {Settings::NativeButton::L, SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
