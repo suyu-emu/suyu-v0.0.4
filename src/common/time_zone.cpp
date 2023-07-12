@@ -53,7 +53,7 @@ std::chrono::seconds GetCurrentOffsetSeconds() {
     // gmt_seconds is a different offset than time(nullptr)
     const auto gmt_seconds = TmSpecToSeconds(gmt);
     const auto local_seconds = TmSpecToSeconds(local);
-    const auto seconds_offset = gmt_seconds - local_seconds;
+    const auto seconds_offset = local_seconds - gmt_seconds;
 
     return std::chrono::seconds{seconds_offset};
 }
