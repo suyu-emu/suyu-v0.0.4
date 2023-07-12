@@ -79,6 +79,8 @@ enum class ResultStatus : u16 {
     ErrorBadPFSHeader,
     ErrorIncorrectPFSFileSize,
     ErrorBadNCAHeader,
+    ErrorCompressedNCA,
+    ErrorSparseNCA,
     ErrorMissingProductionKeyFile,
     ErrorMissingHeaderKey,
     ErrorIncorrectHeaderKey,
