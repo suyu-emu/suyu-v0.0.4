@@ -35,11 +35,13 @@ std::string GetDefaultTimeZone() {
 
 // Results are not comparable to seconds since Epoch
 static std::time_t TmSpecToSeconds(const struct std::tm& spec) {
+    const int year = spec.tm_year - 1; // Years up to now
+    const int leap_years = year / 4 - year / 100;
     std::time_t cumulative = spec.tm_year;
-    cumulative = cumulative * 365 + spec.tm_yday; // Years to days
-    cumulative = cumulative * 24 + spec.tm_hour;  // Days to hours
-    cumulative = cumulative * 60 + spec.tm_min;   // Hours to minutes
-    cumulative = cumulative * 60 + spec.tm_sec;   // Minutes to seconds
+    cumulative = cumulative * 365 + leap_years + spec.tm_yday; // Years to days
+    cumulative = cumulative * 24 + spec.tm_hour;               // Days to hours
+    cumulative = cumulative * 60 + spec.tm_min;                // Hours to minutes
+    cumulative = cumulative * 60 + spec.tm_sec;                // Minutes to seconds
     return cumulative;
 }
 
