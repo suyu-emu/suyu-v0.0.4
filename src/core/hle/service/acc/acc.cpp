@@ -765,15 +765,16 @@ Result Module::Interface::InitializeApplicationInfoBase() {
     // TODO(ogniK): This should be changed to reflect the target process for when we have multiple
     // processes emulated. As we don't actually have pid support we should assume we're just using
     // our own process
-    const auto launch_property =
-        system.GetARPManager().GetLaunchProperty(system.GetApplicationProcessProgramID());
+    Glue::ApplicationLaunchProperty launch_property{};
+    const auto result = system.GetARPManager().GetLaunchProperty(
+        &launch_property, system.GetApplicationProcessProgramID());
 
-    if (launch_property.Failed()) {
+    if (result != ResultSuccess) {
         LOG_ERROR(Service_ACC, "Failed to get launch property");
         return Account::ResultInvalidApplication;
     }
 
-    switch (launch_property->base_game_storage_id) {
+    switch (launch_property.base_game_storage_id) {
     case FileSys::StorageId::GameCard:
         application_info.application_type = ApplicationType::GameCard;
         break;
@@ -785,7 +786,7 @@ Result Module::Interface::InitializeApplicationInfoBase() {
         break;
     default:
         LOG_ERROR(Service_ACC, "Invalid game storage ID! storage_id={}",
-                  launch_property->base_game_storage_id);
+                  launch_property.base_game_storage_id);
         return Account::ResultInvalidApplication;
     }
 

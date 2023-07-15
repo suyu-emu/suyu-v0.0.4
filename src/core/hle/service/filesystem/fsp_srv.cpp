@@ -419,14 +419,15 @@ public:
 
         LOG_DEBUG(Service_FS, "called. file={}, mode={}", name, mode);
 
-        auto result = backend.OpenFile(name, mode);
-        if (result.Failed()) {
+        FileSys::VirtualFile vfs_file{};
+        auto result = backend.OpenFile(&vfs_file, name, mode);
+        if (result != ResultSuccess) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(result.Code());
+            rb.Push(result);
             return;
         }
 
-        auto file = std::make_shared<IFile>(system, result.Unwrap());
+        auto file = std::make_shared<IFile>(system, vfs_file);
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
@@ -444,14 +445,15 @@ public:
 
         LOG_DEBUG(Service_FS, "called. directory={}, filter={}", name, filter_flags);
 
-        auto result = backend.OpenDirectory(name);
-        if (result.Failed()) {
+        FileSys::VirtualDir vfs_dir{};
+        auto result = backend.OpenDirectory(&vfs_dir, name);
+        if (result != ResultSuccess) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(result.Code());
+            rb.Push(result);
             return;
         }
 
-        auto directory = std::make_shared<IDirectory>(system, result.Unwrap());
+        auto directory = std::make_shared<IDirectory>(system, vfs_dir);
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
@@ -464,16 +466,17 @@ public:
 
         LOG_DEBUG(Service_FS, "called. file={}", name);
 
-        auto result = backend.GetEntryType(name);
-        if (result.Failed()) {
+        FileSys::EntryType vfs_entry_type{};
+        auto result = backend.GetEntryType(&vfs_entry_type, name);
+        if (result != ResultSuccess) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(result.Code());
+            rb.Push(result);
             return;
         }
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.Push<u32>(static_cast<u32>(*result));
+        rb.Push<u32>(static_cast<u32>(vfs_entry_type));
     }
 
     void Commit(HLERequestContext& ctx) {
@@ -505,16 +508,17 @@ public:
 
         LOG_WARNING(Service_FS, "(Partial Implementation) called. file={}", name);
 
-        auto result = backend.GetFileTimeStampRaw(name);
-        if (result.Failed()) {
+        FileSys::FileTimeStampRaw vfs_timestamp{};
+        auto result = backend.GetFileTimeStampRaw(&vfs_timestamp, name);
+        if (result != ResultSuccess) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(result.Code());
+            rb.Push(result);
             return;
         }
 
         IPC::ResponseBuilder rb{ctx, 10};
         rb.Push(ResultSuccess);
-        rb.PushRaw(*result);
+        rb.PushRaw(vfs_timestamp);
     }
 
 private:
@@ -572,14 +576,15 @@ private:
     }
 
     void FindAllSaves(FileSys::SaveDataSpaceId space) {
-        const auto save_root = fsc.OpenSaveDataSpace(space);
+        FileSys::VirtualDir save_root{};
+        const auto result = fsc.OpenSaveDataSpace(&save_root, space);
 
-        if (save_root.Failed() || *save_root == nullptr) {
+        if (result != ResultSuccess || save_root == nullptr) {
             LOG_ERROR(Service_FS, "The save root for the space_id={:02X} was invalid!", space);
             return;
         }
 
-        for (const auto& type : (*save_root)->GetSubdirectories()) {
+        for (const auto& type : save_root->GetSubdirectories()) {
             if (type->GetName() == "save") {
                 for (const auto& save_id : type->GetSubdirectories()) {
                     for (const auto& user_id : save_id->GetSubdirectories()) {
@@ -837,9 +842,11 @@ void FSP_SRV::OpenFileSystemWithPatch(HLERequestContext& ctx) {
 void FSP_SRV::OpenSdCardFileSystem(HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called");
 
-    auto filesystem =
-        std::make_shared<IFileSystem>(system, fsc.OpenSDMC().Unwrap(),
-                                      SizeGetter::FromStorageId(fsc, FileSys::StorageId::SdCard));
+    FileSys::VirtualDir sdmc_dir{};
+    fsc.OpenSDMC(&sdmc_dir);
+
+    auto filesystem = std::make_shared<IFileSystem>(
+        system, sdmc_dir, SizeGetter::FromStorageId(fsc, FileSys::StorageId::SdCard));
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
@@ -856,7 +863,8 @@ void FSP_SRV::CreateSaveDataFileSystem(HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called save_struct = {}, uid = {:016X}{:016X}", save_struct.DebugInfo(),
               uid[1], uid[0]);
 
-    fsc.CreateSaveData(FileSys::SaveDataSpaceId::NandUser, save_struct);
+    FileSys::VirtualDir save_data_dir{};
+    fsc.CreateSaveData(&save_data_dir, FileSys::SaveDataSpaceId::NandUser, save_struct);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -874,8 +882,9 @@ void FSP_SRV::OpenSaveDataFileSystem(HLERequestContext& ctx) {
 
     LOG_INFO(Service_FS, "called.");
 
-    auto dir = fsc.OpenSaveData(parameters.space_id, parameters.attribute);
-    if (dir.Failed()) {
+    FileSys::VirtualDir dir{};
+    auto result = fsc.OpenSaveData(&dir, parameters.space_id, parameters.attribute);
+    if (result != ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 0};
         rb.Push(FileSys::ERROR_ENTITY_NOT_FOUND);
         return;
@@ -899,8 +908,8 @@ void FSP_SRV::OpenSaveDataFileSystem(HLERequestContext& ctx) {
         ASSERT(false);
     }
 
-    auto filesystem = std::make_shared<IFileSystem>(system, std::move(dir.Unwrap()),
-                                                    SizeGetter::FromStorageId(fsc, id));
+    auto filesystem =
+        std::make_shared<IFileSystem>(system, std::move(dir), SizeGetter::FromStorageId(fsc, id));
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
@@ -970,7 +979,7 @@ void FSP_SRV::OpenDataStorageByCurrentProcess(HLERequestContext& ctx) {
 
     if (!romfs) {
         auto current_romfs = fsc.OpenRomFSCurrentProcess();
-        if (current_romfs.Failed()) {
+        if (!current_romfs) {
             // TODO (bunnei): Find the right error code to use here
             LOG_CRITICAL(Service_FS, "no file system interface available!");
             IPC::ResponseBuilder rb{ctx, 2};
@@ -978,7 +987,7 @@ void FSP_SRV::OpenDataStorageByCurrentProcess(HLERequestContext& ctx) {
             return;
         }
 
-        romfs = current_romfs.Unwrap();
+        romfs = current_romfs;
     }
 
     auto storage = std::make_shared<IStorage>(system, romfs);
@@ -999,7 +1008,7 @@ void FSP_SRV::OpenDataStorageByDataId(HLERequestContext& ctx) {
 
     auto data = fsc.OpenRomFS(title_id, storage_id, FileSys::ContentRecordType::Data);
 
-    if (data.Failed()) {
+    if (!data) {
         const auto archive = FileSys::SystemArchive::SynthesizeSystemArchive(title_id);
 
         if (archive != nullptr) {
@@ -1021,7 +1030,7 @@ void FSP_SRV::OpenDataStorageByDataId(HLERequestContext& ctx) {
     const FileSys::PatchManager pm{title_id, fsc, content_provider};
 
     auto storage = std::make_shared<IStorage>(
-        system, pm.PatchRomFS(std::move(data.Unwrap()), 0, FileSys::ContentRecordType::Data));
+        system, pm.PatchRomFS(std::move(data), 0, FileSys::ContentRecordType::Data));
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
@@ -1051,7 +1060,7 @@ void FSP_SRV::OpenDataStorageWithProgramIndex(HLERequestContext& ctx) {
         fsc.OpenPatchedRomFSWithProgramIndex(system.GetApplicationProcessProgramID(), program_index,
                                              FileSys::ContentRecordType::Program);
 
-    if (patched_romfs.Failed()) {
+    if (!patched_romfs) {
         // TODO: Find the right error code to use here
         LOG_ERROR(Service_FS, "could not open storage with program_index={}", program_index);
 
@@ -1060,7 +1069,7 @@ void FSP_SRV::OpenDataStorageWithProgramIndex(HLERequestContext& ctx) {
         return;
     }
 
-    auto storage = std::make_shared<IStorage>(system, std::move(patched_romfs.Unwrap()));
+    auto storage = std::make_shared<IStorage>(system, std::move(patched_romfs));
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);

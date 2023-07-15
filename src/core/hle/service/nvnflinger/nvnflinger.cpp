@@ -183,7 +183,7 @@ std::optional<u32> Nvnflinger::FindBufferQueueId(u64 display_id, u64 layer_id) {
     return layer->GetBinderId();
 }
 
-ResultVal<Kernel::KReadableEvent*> Nvnflinger::FindVsyncEvent(u64 display_id) {
+Result Nvnflinger::FindVsyncEvent(Kernel::KReadableEvent** out_vsync_event, u64 display_id) {
     const auto lock_guard = Lock();
     auto* const display = FindDisplay(display_id);
 
@@ -191,7 +191,7 @@ ResultVal<Kernel::KReadableEvent*> Nvnflinger::FindVsyncEvent(u64 display_id) {
         return VI::ResultNotFound;
     }
 
-    return display->GetVSyncEvent();
+    return display->GetVSyncEvent(out_vsync_event);
 }
 
 VI::Display* Nvnflinger::FindDisplay(u64 display_id) {

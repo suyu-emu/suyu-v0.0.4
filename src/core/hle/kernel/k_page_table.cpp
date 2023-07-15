@@ -768,7 +768,7 @@ Result KPageTable::UnmapProcessMemory(KProcessAddress dst_addr, size_t size,
                                                  m_memory_block_slab_manager, num_allocator_blocks);
     R_TRY(allocator_result);
 
-    CASCADE_CODE(Operate(dst_addr, num_pages, KMemoryPermission::None, OperationType::Unmap));
+    R_TRY(Operate(dst_addr, num_pages, KMemoryPermission::None, OperationType::Unmap));
 
     // Apply the memory block update.
     m_memory_block_manager.Update(std::addressof(allocator), dst_addr, num_pages,

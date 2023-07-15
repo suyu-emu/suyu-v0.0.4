@@ -58,14 +58,15 @@ const Layer& Display::GetLayer(std::size_t index) const {
     return *layers.at(index);
 }
 
-ResultVal<Kernel::KReadableEvent*> Display::GetVSyncEvent() {
+Result Display::GetVSyncEvent(Kernel::KReadableEvent** out_vsync_event) {
     if (got_vsync_event) {
         return ResultPermissionDenied;
     }
 
     got_vsync_event = true;
 
-    return GetVSyncEventUnchecked();
+    *out_vsync_event = GetVSyncEventUnchecked();
+    return ResultSuccess;
 }
 
 Kernel::KReadableEvent* Display::GetVSyncEventUnchecked() {

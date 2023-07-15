@@ -82,7 +82,7 @@ public:
     ///
     /// If an invalid display ID is provided, then VI::ResultNotFound is returned.
     /// If the vsync event has already been retrieved, then VI::ResultPermissionDenied is returned.
-    [[nodiscard]] ResultVal<Kernel::KReadableEvent*> FindVsyncEvent(u64 display_id);
+    [[nodiscard]] Result FindVsyncEvent(Kernel::KReadableEvent** out_vsync_event, u64 display_id);
 
     /// Performs a composition request to the emulated nvidia GPU and triggers the vsync events when
     /// finished.

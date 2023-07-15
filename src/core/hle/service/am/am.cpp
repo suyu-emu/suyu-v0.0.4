@@ -1578,11 +1578,13 @@ void IApplicationFunctions::EnsureSaveData(HLERequestContext& ctx) {
     attribute.title_id = system.GetApplicationProcessProgramID();
     attribute.user_id = user_id;
     attribute.type = FileSys::SaveDataType::SaveData;
+
+    FileSys::VirtualDir save_data{};
     const auto res = system.GetFileSystemController().CreateSaveData(
-        FileSys::SaveDataSpaceId::NandUser, attribute);
+        &save_data, FileSys::SaveDataSpaceId::NandUser, attribute);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(res.Code());
+    rb.Push(res);
     rb.Push<u64>(0);
 }
 
@@ -1667,26 +1669,30 @@ void IApplicationFunctions::GetDesiredLanguage(HLERequestContext& ctx) {
     auto app_man = ns_am2->GetApplicationManagerInterface();
 
     // Get desired application language
-    const auto res_lang = app_man->GetApplicationDesiredLanguage(supported_languages);
-    if (res_lang.Failed()) {
+    u8 desired_language{};
+    const auto res_lang =
+        app_man->GetApplicationDesiredLanguage(&desired_language, supported_languages);
+    if (res_lang != ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(res_lang.Code());
+        rb.Push(res_lang);
         return;
     }
 
     // Convert to settings language code.
-    const auto res_code = app_man->ConvertApplicationLanguageToLanguageCode(*res_lang);
-    if (res_code.Failed()) {
+    u64 language_code{};
+    const auto res_code =
+        app_man->ConvertApplicationLanguageToLanguageCode(&language_code, desired_language);
+    if (res_code != ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(res_code.Code());
+        rb.Push(res_code);
         return;
     }
 
-    LOG_DEBUG(Service_AM, "got desired_language={:016X}", *res_code);
+    LOG_DEBUG(Service_AM, "got desired_language={:016X}", language_code);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
-    rb.Push(*res_code);
+    rb.Push(language_code);
 }
 
 void IApplicationFunctions::IsGamePlayRecordingSupported(HLERequestContext& ctx) {
