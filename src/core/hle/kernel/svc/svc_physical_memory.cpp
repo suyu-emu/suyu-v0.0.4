@@ -51,14 +51,14 @@ Result MapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
         R_THROW(ResultInvalidState);
     }
 
-    if (!page_table.IsInsideAddressSpace(addr, size)) {
+    if (!page_table.Contains(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
         R_THROW(ResultInvalidMemoryRegion);
     }
 
-    if (page_table.IsOutsideAliasRegion(addr, size)) {
+    if (!page_table.IsInAliasRegion(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the alias region, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
@@ -100,14 +100,14 @@ Result UnmapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
         R_THROW(ResultInvalidState);
     }
 
-    if (!page_table.IsInsideAddressSpace(addr, size)) {
+    if (!page_table.Contains(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
         R_THROW(ResultInvalidMemoryRegion);
     }
 
-    if (page_table.IsOutsideAliasRegion(addr, size)) {
+    if (!page_table.IsInAliasRegion(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the alias region, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);

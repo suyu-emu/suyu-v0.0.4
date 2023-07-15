@@ -63,34 +63,11 @@ Result MapUnmapMemorySanityChecks(const KPageTable& manager, u64 dst_addr, u64 s
         R_THROW(ResultInvalidCurrentMemory);
     }
 
-    if (!manager.IsInsideAddressSpace(src_addr, size)) {
+    if (!manager.Contains(src_addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Source is not within the address space, addr=0x{:016X}, size=0x{:016X}",
                   src_addr, size);
         R_THROW(ResultInvalidCurrentMemory);
-    }
-
-    if (manager.IsOutsideStackRegion(dst_addr, size)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Destination is not within the stack region, addr=0x{:016X}, size=0x{:016X}",
-                  dst_addr, size);
-        R_THROW(ResultInvalidMemoryRegion);
-    }
-
-    if (manager.IsInsideHeapRegion(dst_addr, size)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Destination does not fit within the heap region, addr=0x{:016X}, "
-                  "size=0x{:016X}",
-                  dst_addr, size);
-        R_THROW(ResultInvalidMemoryRegion);
-    }
-
-    if (manager.IsInsideAliasRegion(dst_addr, size)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Destination does not fit within the map region, addr=0x{:016X}, "
-                  "size=0x{:016X}",
-                  dst_addr, size);
-        R_THROW(ResultInvalidMemoryRegion);
     }
 
     R_SUCCEED();

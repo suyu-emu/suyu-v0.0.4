@@ -318,15 +318,15 @@ public:
                     return false;
                 }
 
-                if (!page_table.IsInsideAddressSpace(out_addr, size)) {
+                if (!page_table.Contains(out_addr, size)) {
                     return false;
                 }
 
-                if (page_table.IsInsideHeapRegion(out_addr, size)) {
+                if (page_table.IsInHeapRegion(out_addr, size)) {
                     return false;
                 }
 
-                if (page_table.IsInsideAliasRegion(out_addr, size)) {
+                if (page_table.IsInAliasRegion(out_addr, size)) {
                     return false;
                 }
 

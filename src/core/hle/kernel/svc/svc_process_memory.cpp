@@ -179,20 +179,12 @@ Result MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst
     }
 
     auto& page_table = process->GetPageTable();
-    if (!page_table.IsInsideAddressSpace(src_address, size)) {
+    if (!page_table.Contains(src_address, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Source address range is not within the address space (src_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   src_address, size);
         R_THROW(ResultInvalidCurrentMemory);
-    }
-
-    if (!page_table.IsInsideASLRRegion(dst_address, size)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Destination address range is not within the ASLR region (dst_address=0x{:016X}, "
-                  "size=0x{:016X}).",
-                  dst_address, size);
-        R_THROW(ResultInvalidMemoryRegion);
     }
 
     R_RETURN(page_table.MapCodeMemory(dst_address, src_address, size));
@@ -247,20 +239,12 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
     }
 
     auto& page_table = process->GetPageTable();
-    if (!page_table.IsInsideAddressSpace(src_address, size)) {
+    if (!page_table.Contains(src_address, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Source address range is not within the address space (src_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   src_address, size);
         R_THROW(ResultInvalidCurrentMemory);
-    }
-
-    if (!page_table.IsInsideASLRRegion(dst_address, size)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Destination address range is not within the ASLR region (dst_address=0x{:016X}, "
-                  "size=0x{:016X}).",
-                  dst_address, size);
-        R_THROW(ResultInvalidMemoryRegion);
     }
 
     R_RETURN(page_table.UnmapCodeMemory(dst_address, src_address, size,
