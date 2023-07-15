@@ -7,6 +7,7 @@
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/svc.h"
+#include "core/hle/kernel/svc_results.h"
 
 namespace Kernel::Svc {
 
@@ -64,14 +65,10 @@ Result WaitSynchronization(Core::System& system, int32_t* out_index, u64 user_ha
 
     // Copy user handles.
     if (num_handles > 0) {
-        // Ensure we can try to get the handles.
-        R_UNLESS(GetCurrentMemory(kernel).IsValidVirtualAddressRange(
-                     user_handles, static_cast<u64>(sizeof(Handle) * num_handles)),
-                 ResultInvalidPointer);
-
         // Get the handles.
-        GetCurrentMemory(kernel).ReadBlock(user_handles, handles.data(),
-                                           sizeof(Handle) * num_handles);
+        R_UNLESS(GetCurrentMemory(kernel).ReadBlock(user_handles, handles.data(),
+                                                    sizeof(Handle) * num_handles),
+                 ResultInvalidPointer);
 
         // Convert the handles to objects.
         R_UNLESS(handle_table.GetMultipleObjects<KSynchronizationObject>(

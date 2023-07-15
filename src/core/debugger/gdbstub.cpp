@@ -261,10 +261,8 @@ void GDBStub::ExecuteCommand(std::string_view packet, std::vector<DebuggerAction
         const size_t addr{static_cast<size_t>(strtoll(command.data(), nullptr, 16))};
         const size_t size{static_cast<size_t>(strtoll(command.data() + sep, nullptr, 16))};
 
-        if (system.ApplicationMemory().IsValidVirtualAddressRange(addr, size)) {
-            std::vector<u8> mem(size);
-            system.ApplicationMemory().ReadBlock(addr, mem.data(), size);
-
+        std::vector<u8> mem(size);
+        if (system.ApplicationMemory().ReadBlock(addr, mem.data(), size)) {
             SendReply(Common::HexToString(mem));
         } else {
             SendReply(GDB_STUB_REPLY_ERR);
@@ -281,8 +279,7 @@ void GDBStub::ExecuteCommand(std::string_view packet, std::vector<DebuggerAction
         const auto mem_substr{std::string_view(command).substr(mem_sep)};
         const auto mem{Common::HexStringToVector(mem_substr, false)};
 
-        if (system.ApplicationMemory().IsValidVirtualAddressRange(addr, size)) {
-            system.ApplicationMemory().WriteBlock(addr, mem.data(), size);
+        if (system.ApplicationMemory().WriteBlock(addr, mem.data(), size)) {
             system.InvalidateCpuInstructionCacheRange(addr, size);
             SendReply(GDB_STUB_REPLY_OK);
         } else {
