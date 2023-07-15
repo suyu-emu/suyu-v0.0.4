@@ -79,7 +79,7 @@ void NfcInterface::ListDevices(HLERequestContext& ctx) {
     const std::size_t max_allowed_devices = ctx.GetWriteBufferNumElements<u64>();
     LOG_DEBUG(Service_NFC, "called");
 
-    auto result = GetManager()->ListDevices(nfp_devices, max_allowed_devices);
+    auto result = GetManager()->ListDevices(nfp_devices, max_allowed_devices, true);
     result = TranslateResultToServiceError(result);
 
     if (result.IsError()) {
@@ -190,9 +190,13 @@ void NfcInterface::AttachActivateEvent(HLERequestContext& ctx) {
     const auto device_handle{rp.Pop<u64>()};
     LOG_DEBUG(Service_NFC, "called, device_handle={}", device_handle);
 
+    Kernel::KReadableEvent* out_event = nullptr;
+    auto result = GetManager()->AttachActivateEvent(&out_event, device_handle);
+    result = TranslateResultToServiceError(result);
+
     IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(GetManager()->AttachActivateEvent(device_handle));
+    rb.Push(result);
+    rb.PushCopyObjects(out_event);
 }
 
 void NfcInterface::AttachDeactivateEvent(HLERequestContext& ctx) {
@@ -200,9 +204,13 @@ void NfcInterface::AttachDeactivateEvent(HLERequestContext& ctx) {
     const auto device_handle{rp.Pop<u64>()};
     LOG_DEBUG(Service_NFC, "called, device_handle={}", device_handle);
 
+    Kernel::KReadableEvent* out_event = nullptr;
+    auto result = GetManager()->AttachDeactivateEvent(&out_event, device_handle);
+    result = TranslateResultToServiceError(result);
+
     IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(GetManager()->AttachDeactivateEvent(device_handle));
+    rb.Push(result);
+    rb.PushCopyObjects(out_event);
 }
 
 void NfcInterface::ReadMifare(HLERequestContext& ctx) {

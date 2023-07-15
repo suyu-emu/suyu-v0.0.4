@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <algorithm>
+
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hid/hid_types.h"
@@ -10,6 +12,7 @@
 #include "core/hle/service/nfc/common/device_manager.h"
 #include "core/hle/service/nfc/nfc_result.h"
 #include "core/hle/service/time/clock_types.h"
+#include "core/hle/service/time/time_manager.h"
 
 namespace Service::NFC {
 
@@ -51,22 +54,53 @@ Result DeviceManager::Finalize() {
     return ResultSuccess;
 }
 
-Result DeviceManager::ListDevices(std::vector<u64>& nfp_devices,
-                                  std::size_t max_allowed_devices) const {
+Result DeviceManager::ListDevices(std::vector<u64>& nfp_devices, std::size_t max_allowed_devices,
+                                  bool skip_fatal_errors) const {
+    std::scoped_lock lock{mutex};
+    if (max_allowed_devices < 1) {
+        return ResultInvalidArgument;
+    }
+
+    Result result = IsNfcParameterSet();
+    if (result.IsError()) {
+        return result;
+    }
+
+    result = IsNfcEnabled();
+    if (result.IsError()) {
+        return result;
+    }
+
+    result = IsNfcInitialized();
+    if (result.IsError()) {
+        return result;
+    }
+
     for (auto& device : devices) {
         if (nfp_devices.size() >= max_allowed_devices) {
             continue;
         }
-        if (device->GetCurrentState() != DeviceState::Unavailable) {
-            nfp_devices.push_back(device->GetHandle());
+        if (skip_fatal_errors) {
+            constexpr u64 MinimumRecoveryTime = 60;
+            auto& standard_steady_clock{system.GetTimeManager().GetStandardSteadyClockCore()};
+            const u64 elapsed_time = standard_steady_clock.GetCurrentTimePoint(system).time_point -
+                                     time_since_last_error;
+
+            if (time_since_last_error != 0 && elapsed_time < MinimumRecoveryTime) {
+                continue;
+            }
         }
+        if (device->GetCurrentState() == DeviceState::Unavailable) {
+            continue;
+        }
+        nfp_devices.push_back(device->GetHandle());
     }
 
     if (nfp_devices.empty()) {
         return ResultDeviceNotFound;
     }
 
-    return ResultSuccess;
+    return result;
 }
 
 DeviceState DeviceManager::GetDeviceState(u64 device_handle) const {
@@ -79,10 +113,10 @@ DeviceState DeviceManager::GetDeviceState(u64 device_handle) const {
         return device->GetCurrentState();
     }
 
-    return DeviceState::Unavailable;
+    return DeviceState::Finalized;
 }
 
-Result DeviceManager::GetNpadId(u64 device_handle, Core::HID::NpadIdType& npad_id) const {
+Result DeviceManager::GetNpadId(u64 device_handle, Core::HID::NpadIdType& npad_id) {
     std::scoped_lock lock{mutex};
 
     std::shared_ptr<NfcDevice> device = nullptr;
@@ -128,7 +162,7 @@ Result DeviceManager::StopDetection(u64 device_handle) {
     return result;
 }
 
-Result DeviceManager::GetTagInfo(u64 device_handle, TagInfo& tag_info) const {
+Result DeviceManager::GetTagInfo(u64 device_handle, TagInfo& tag_info) {
     std::scoped_lock lock{mutex};
 
     std::shared_ptr<NfcDevice> device = nullptr;
@@ -142,24 +176,46 @@ Result DeviceManager::GetTagInfo(u64 device_handle, TagInfo& tag_info) const {
     return result;
 }
 
-Kernel::KReadableEvent& DeviceManager::AttachActivateEvent(u64 device_handle) const {
-    std::scoped_lock lock{mutex};
-
+Result DeviceManager::AttachActivateEvent(Kernel::KReadableEvent** out_event,
+                                          u64 device_handle) const {
+    std::vector<u64> nfp_devices;
     std::shared_ptr<NfcDevice> device = nullptr;
-    GetDeviceFromHandle(device_handle, device, false);
+    Result result = ListDevices(nfp_devices, 9, false);
 
-    // TODO: Return proper error code on failure
-    return device->GetActivateEvent();
+    if (result.IsSuccess()) {
+        result = CheckHandleOnList(device_handle, nfp_devices);
+    }
+
+    if (result.IsSuccess()) {
+        result = GetDeviceFromHandle(device_handle, device, false);
+    }
+
+    if (result.IsSuccess()) {
+        *out_event = &device->GetActivateEvent();
+    }
+
+    return result;
 }
 
-Kernel::KReadableEvent& DeviceManager::AttachDeactivateEvent(u64 device_handle) const {
-    std::scoped_lock lock{mutex};
-
+Result DeviceManager::AttachDeactivateEvent(Kernel::KReadableEvent** out_event,
+                                            u64 device_handle) const {
+    std::vector<u64> nfp_devices;
     std::shared_ptr<NfcDevice> device = nullptr;
-    GetDeviceFromHandle(device_handle, device, false);
+    Result result = ListDevices(nfp_devices, 9, false);
 
-    // TODO: Return proper error code on failure
-    return device->GetDeactivateEvent();
+    if (result.IsSuccess()) {
+        result = CheckHandleOnList(device_handle, nfp_devices);
+    }
+
+    if (result.IsSuccess()) {
+        result = GetDeviceFromHandle(device_handle, device, false);
+    }
+
+    if (result.IsSuccess()) {
+        *out_event = &device->GetDeactivateEvent();
+    }
+
+    return result;
 }
 
 Result DeviceManager::ReadMifare(u64 device_handle,
@@ -253,7 +309,7 @@ Result DeviceManager::OpenApplicationArea(u64 device_handle, u32 access_id) {
     return result;
 }
 
-Result DeviceManager::GetApplicationArea(u64 device_handle, std::span<u8> data) const {
+Result DeviceManager::GetApplicationArea(u64 device_handle, std::span<u8> data) {
     std::scoped_lock lock{mutex};
 
     std::shared_ptr<NfcDevice> device = nullptr;
@@ -324,7 +380,7 @@ Result DeviceManager::CreateApplicationArea(u64 device_handle, u32 access_id,
     return result;
 }
 
-Result DeviceManager::GetRegisterInfo(u64 device_handle, NFP::RegisterInfo& register_info) const {
+Result DeviceManager::GetRegisterInfo(u64 device_handle, NFP::RegisterInfo& register_info) {
     std::scoped_lock lock{mutex};
 
     std::shared_ptr<NfcDevice> device = nullptr;
@@ -338,7 +394,7 @@ Result DeviceManager::GetRegisterInfo(u64 device_handle, NFP::RegisterInfo& regi
     return result;
 }
 
-Result DeviceManager::GetCommonInfo(u64 device_handle, NFP::CommonInfo& common_info) const {
+Result DeviceManager::GetCommonInfo(u64 device_handle, NFP::CommonInfo& common_info) {
     std::scoped_lock lock{mutex};
 
     std::shared_ptr<NfcDevice> device = nullptr;
@@ -352,7 +408,7 @@ Result DeviceManager::GetCommonInfo(u64 device_handle, NFP::CommonInfo& common_i
     return result;
 }
 
-Result DeviceManager::GetModelInfo(u64 device_handle, NFP::ModelInfo& model_info) const {
+Result DeviceManager::GetModelInfo(u64 device_handle, NFP::ModelInfo& model_info) {
     std::scoped_lock lock{mutex};
 
     std::shared_ptr<NfcDevice> device = nullptr;
@@ -399,7 +455,7 @@ Result DeviceManager::Format(u64 device_handle) {
     return result;
 }
 
-Result DeviceManager::GetAdminInfo(u64 device_handle, NFP::AdminInfo& admin_info) const {
+Result DeviceManager::GetAdminInfo(u64 device_handle, NFP::AdminInfo& admin_info) {
     std::scoped_lock lock{mutex};
 
     std::shared_ptr<NfcDevice> device = nullptr;
@@ -414,7 +470,7 @@ Result DeviceManager::GetAdminInfo(u64 device_handle, NFP::AdminInfo& admin_info
 }
 
 Result DeviceManager::GetRegisterInfoPrivate(u64 device_handle,
-                                             NFP::RegisterInfoPrivate& register_info) const {
+                                             NFP::RegisterInfoPrivate& register_info) {
     std::scoped_lock lock{mutex};
 
     std::shared_ptr<NfcDevice> device = nullptr;
@@ -471,7 +527,7 @@ Result DeviceManager::DeleteApplicationArea(u64 device_handle) {
     return result;
 }
 
-Result DeviceManager::ExistsApplicationArea(u64 device_handle, bool& has_application_area) const {
+Result DeviceManager::ExistsApplicationArea(u64 device_handle, bool& has_application_area) {
     std::scoped_lock lock{mutex};
 
     std::shared_ptr<NfcDevice> device = nullptr;
@@ -485,7 +541,7 @@ Result DeviceManager::ExistsApplicationArea(u64 device_handle, bool& has_applica
     return result;
 }
 
-Result DeviceManager::GetAll(u64 device_handle, NFP::NfpData& nfp_data) const {
+Result DeviceManager::GetAll(u64 device_handle, NFP::NfpData& nfp_data) {
     std::scoped_lock lock{mutex};
 
     std::shared_ptr<NfcDevice> device = nullptr;
@@ -541,7 +597,7 @@ Result DeviceManager::BreakTag(u64 device_handle, NFP::BreakType break_type) {
     return result;
 }
 
-Result DeviceManager::ReadBackupData(u64 device_handle, std::span<u8> data) const {
+Result DeviceManager::ReadBackupData(u64 device_handle, std::span<u8> data) {
     std::scoped_lock lock{mutex};
 
     std::shared_ptr<NfcDevice> device = nullptr;
@@ -591,6 +647,19 @@ Result DeviceManager::WriteNtf(u64 device_handle, NFP::WriteType, std::span<cons
     }
 
     return result;
+}
+
+Result DeviceManager::CheckHandleOnList(u64 device_handle,
+                                        const std::span<const u64> device_list) const {
+    if (device_list.size() < 1) {
+        return ResultDeviceNotFound;
+    }
+
+    if (std::find(device_list.begin(), device_list.end(), device_handle) != device_list.end()) {
+        return ResultSuccess;
+    }
+
+    return ResultDeviceNotFound;
 }
 
 Result DeviceManager::GetDeviceFromHandle(u64 handle, std::shared_ptr<NfcDevice>& nfc_device,
@@ -647,7 +716,7 @@ Result DeviceManager::GetDeviceHandle(u64 handle, std::shared_ptr<NfcDevice>& de
 }
 
 Result DeviceManager::VerifyDeviceResult(std::shared_ptr<NfcDevice> device,
-                                         Result operation_result) const {
+                                         Result operation_result) {
     if (operation_result.IsSuccess()) {
         return operation_result;
     }
@@ -667,6 +736,12 @@ Result DeviceManager::VerifyDeviceResult(std::shared_ptr<NfcDevice> device,
     const Result device_state = CheckDeviceState(device);
     if (device_state.IsError()) {
         return device_state;
+    }
+
+    if (operation_result == ResultUnknown112 || operation_result == ResultUnknown114 ||
+        operation_result == ResultUnknown115) {
+        auto& standard_steady_clock{system.GetTimeManager().GetStandardSteadyClockCore()};
+        time_since_last_error = standard_steady_clock.GetCurrentTimePoint(system).time_point;
     }
 
     return operation_result;

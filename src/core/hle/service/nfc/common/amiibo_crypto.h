@@ -75,7 +75,7 @@ std::vector<u8> GenerateInternalKey(const InternalKey& key, const HashSeed& seed
 
 // Initializes mbedtls context
 void CryptoInit(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, const HmacKey& hmac_key,
-                const std::vector<u8>& seed);
+                std::span<const u8> seed);
 
 // Feeds data to mbedtls context to generate the derived key
 void CryptoStep(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, DrgbOutput& output);
