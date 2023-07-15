@@ -42,7 +42,7 @@ Result FlushProcessDataCache(Core::System& system, Handle process_handle, u64 ad
     R_UNLESS(process.IsNotNull(), ResultInvalidHandle);
 
     // Verify the region is within range.
-    auto& page_table = process->PageTable();
+    auto& page_table = process->GetPageTable();
     R_UNLESS(page_table.Contains(address, size), ResultInvalidCurrentMemory);
 
     // Perform the operation.

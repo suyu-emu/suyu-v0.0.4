@@ -112,7 +112,7 @@ Result SetMemoryPermission(Core::System& system, u64 address, u64 size, MemoryPe
     R_UNLESS(IsValidSetMemoryPermission(perm), ResultInvalidNewMemoryPermission);
 
     // Validate that the region is in range for the current process.
-    auto& page_table = GetCurrentProcess(system.Kernel()).PageTable();
+    auto& page_table = GetCurrentProcess(system.Kernel()).GetPageTable();
     R_UNLESS(page_table.Contains(address, size), ResultInvalidCurrentMemory);
 
     // Set the memory attribute.
@@ -136,7 +136,7 @@ Result SetMemoryAttribute(Core::System& system, u64 address, u64 size, u32 mask,
     R_UNLESS((mask | attr | SupportedMask) == SupportedMask, ResultInvalidCombination);
 
     // Validate that the region is in range for the current process.
-    auto& page_table{GetCurrentProcess(system.Kernel()).PageTable()};
+    auto& page_table{GetCurrentProcess(system.Kernel()).GetPageTable()};
     R_UNLESS(page_table.Contains(address, size), ResultInvalidCurrentMemory);
 
     // Set the memory attribute.
@@ -148,7 +148,7 @@ Result MapMemory(Core::System& system, u64 dst_addr, u64 src_addr, u64 size) {
     LOG_TRACE(Kernel_SVC, "called, dst_addr=0x{:X}, src_addr=0x{:X}, size=0x{:X}", dst_addr,
               src_addr, size);
 
-    auto& page_table{GetCurrentProcess(system.Kernel()).PageTable()};
+    auto& page_table{GetCurrentProcess(system.Kernel()).GetPageTable()};
 
     if (const Result result{MapUnmapMemorySanityChecks(page_table, dst_addr, src_addr, size)};
         result.IsError()) {
@@ -163,7 +163,7 @@ Result UnmapMemory(Core::System& system, u64 dst_addr, u64 src_addr, u64 size) {
     LOG_TRACE(Kernel_SVC, "called, dst_addr=0x{:X}, src_addr=0x{:X}, size=0x{:X}", dst_addr,
               src_addr, size);
 
-    auto& page_table{GetCurrentProcess(system.Kernel()).PageTable()};
+    auto& page_table{GetCurrentProcess(system.Kernel()).GetPageTable()};
 
     if (const Result result{MapUnmapMemorySanityChecks(page_table, dst_addr, src_addr, size)};
         result.IsError()) {
