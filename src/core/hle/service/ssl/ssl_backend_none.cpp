@@ -7,7 +7,7 @@
 
 namespace Service::SSL {
 
-ResultVal<std::unique_ptr<SSLConnectionBackend>> CreateSSLConnectionBackend() {
+Result CreateSSLConnectionBackend(std::unique_ptr<SSLConnectionBackend>* out_backend) {
     LOG_ERROR(Service_SSL,
               "Can't create SSL connection because no SSL backend is available on this platform");
     return ResultInternalError;

@@ -105,31 +105,30 @@ public:
                 return ResultInternalError;
             }
         }
-        return HandleReturn("SSL_do_handshake", 0, ret).Code();
+        return HandleReturn("SSL_do_handshake", 0, ret);
     }
 
-    ResultVal<size_t> Read(std::span<u8> data) override {
-        size_t actual;
-        const int ret = SSL_read_ex(ssl, data.data(), data.size(), &actual);
-        return HandleReturn("SSL_read_ex", actual, ret);
+    Result Read(size_t* out_size, std::span<u8> data) override {
+        const int ret = SSL_read_ex(ssl, data.data(), data.size(), out_size);
+        return HandleReturn("SSL_read_ex", out_size, ret);
     }
 
-    ResultVal<size_t> Write(std::span<const u8> data) override {
-        size_t actual;
-        const int ret = SSL_write_ex(ssl, data.data(), data.size(), &actual);
-        return HandleReturn("SSL_write_ex", actual, ret);
+    Result Write(size_t* out_size, std::span<const u8> data) override {
+        const int ret = SSL_write_ex(ssl, data.data(), data.size(), out_size);
+        return HandleReturn("SSL_write_ex", out_size, ret);
     }
 
-    ResultVal<size_t> HandleReturn(const char* what, size_t actual, int ret) {
+    Result HandleReturn(const char* what, size_t* actual, int ret) {
         const int ssl_err = SSL_get_error(ssl, ret);
         CheckOpenSSLErrors();
         switch (ssl_err) {
         case SSL_ERROR_NONE:
-            return actual;
+            return ResultSuccess;
         case SSL_ERROR_ZERO_RETURN:
             LOG_DEBUG(Service_SSL, "{} => SSL_ERROR_ZERO_RETURN", what);
             // DoHandshake special-cases this, but for Read and Write:
-            return size_t(0);
+            *actual = 0;
+            return ResultSuccess;
         case SSL_ERROR_WANT_READ:
             LOG_DEBUG(Service_SSL, "{} => SSL_ERROR_WANT_READ", what);
             return ResultWouldBlock;
@@ -139,20 +138,20 @@ public:
         default:
             if (ssl_err == SSL_ERROR_SYSCALL && got_read_eof) {
                 LOG_DEBUG(Service_SSL, "{} => SSL_ERROR_SYSCALL because server hung up", what);
-                return size_t(0);
+                *actual = 0;
+                return ResultSuccess;
             }
             LOG_ERROR(Service_SSL, "{} => other SSL_get_error return value {}", what, ssl_err);
             return ResultInternalError;
         }
     }
 
-    ResultVal<std::vector<std::vector<u8>>> GetServerCerts() override {
+    Result GetServerCerts(std::vector<std::vector<u8>>* out_certs) override {
         STACK_OF(X509)* chain = SSL_get_peer_cert_chain(ssl);
         if (!chain) {
             LOG_ERROR(Service_SSL, "SSL_get_peer_cert_chain returned nullptr");
             return ResultInternalError;
         }
-        std::vector<std::vector<u8>> ret;
         int count = sk_X509_num(chain);
         ASSERT(count >= 0);
         for (int i = 0; i < count; i++) {
@@ -161,10 +160,10 @@ public:
             unsigned char* buf = nullptr;
             int len = i2d_X509(x509, &buf);
             ASSERT_OR_EXECUTE(len >= 0 && buf, { continue; });
-            ret.emplace_back(buf, buf + len);
+            out_certs->emplace_back(buf, buf + len);
             OPENSSL_free(buf);
         }
-        return ret;
+        return ResultSuccess;
     }
 
     ~SSLConnectionBackendOpenSSL() {
@@ -253,13 +252,13 @@ public:
     std::shared_ptr<Network::SocketBase> socket;
 };
 
-ResultVal<std::unique_ptr<SSLConnectionBackend>> CreateSSLConnectionBackend() {
+Result CreateSSLConnectionBackend(std::unique_ptr<SSLConnectionBackend>* out_backend) {
     auto conn = std::make_unique<SSLConnectionBackendOpenSSL>();
-    const Result res = conn->Init();
-    if (res.IsFailure()) {
-        return res;
-    }
-    return conn;
+
+    R_TRY(conn->Init());
+
+    *out_backend = std::move(conn);
+    return ResultSuccess;
 }
 
 namespace {

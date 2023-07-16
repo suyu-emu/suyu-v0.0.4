@@ -4,6 +4,7 @@
 #include "common/string_util.h"
 
 #include "core/core.h"
+#include "core/hle/result.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/service.h"
@@ -141,12 +142,12 @@ private:
     bool did_set_host_name = false;
     bool did_handshake = false;
 
-    ResultVal<s32> SetSocketDescriptorImpl(s32 fd) {
+    Result SetSocketDescriptorImpl(s32* out_fd, s32 fd) {
         LOG_DEBUG(Service_SSL, "called, fd={}", fd);
         ASSERT(!did_handshake);
         auto bsd = system.ServiceManager().GetService<Service::Sockets::BSD>("bsd:u");
         ASSERT_OR_EXECUTE(bsd, { return ResultInternalError; });
-        s32 ret_fd;
+
         // Based on https://switchbrew.org/wiki/SSL_services#SetSocketDescriptor
         if (do_not_close_socket) {
             auto res = bsd->DuplicateSocketImpl(fd);
@@ -156,9 +157,9 @@ private:
             }
             fd = *res;
             fd_to_close = fd;
-            ret_fd = fd;
+            *out_fd = fd;
         } else {
-            ret_fd = -1;
+            *out_fd = -1;
         }
         std::optional<std::shared_ptr<Network::SocketBase>> sock = bsd->GetSocket(fd);
         if (!sock.has_value()) {
@@ -167,7 +168,7 @@ private:
         }
         socket = std::move(*sock);
         backend->SetSocket(socket);
-        return ret_fd;
+        return ResultSuccess;
     }
 
     Result SetHostNameImpl(const std::string& hostname) {
@@ -247,34 +248,36 @@ private:
         return ret;
     }
 
-    ResultVal<std::vector<u8>> ReadImpl(size_t size) {
+    Result ReadImpl(std::vector<u8>* out_data, size_t size) {
         ASSERT_OR_EXECUTE(did_handshake, { return ResultInternalError; });
-        std::vector<u8> res(size);
-        ResultVal<size_t> actual = backend->Read(res);
-        if (actual.Failed()) {
-            return actual.Code();
+        size_t actual_size{};
+        Result res = backend->Read(&actual_size, *out_data);
+        if (res != ResultSuccess) {
+            return res;
         }
-        res.resize(*actual);
+        out_data->resize(actual_size);
         return res;
     }
 
-    ResultVal<size_t> WriteImpl(std::span<const u8> data) {
+    Result WriteImpl(size_t* out_size, std::span<const u8> data) {
         ASSERT_OR_EXECUTE(did_handshake, { return ResultInternalError; });
-        return backend->Write(data);
+        return backend->Write(out_size, data);
     }
 
-    ResultVal<s32> PendingImpl() {
+    Result PendingImpl(s32* out_pending) {
         LOG_WARNING(Service_SSL, "(STUBBED) called.");
-        return 0;
+        *out_pending = 0;
+        return ResultSuccess;
     }
 
     void SetSocketDescriptor(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        const s32 fd = rp.Pop<s32>();
-        const ResultVal<s32> res = SetSocketDescriptorImpl(fd);
+        const s32 in_fd = rp.Pop<s32>();
+        s32 out_fd{-1};
+        const Result res = SetSocketDescriptorImpl(&out_fd, in_fd);
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(res.Code());
-        rb.Push<s32>(res.ValueOr(-1));
+        rb.Push(res);
+        rb.Push<s32>(out_fd);
     }
 
     void SetHostName(HLERequestContext& ctx) {
@@ -313,14 +316,15 @@ private:
         };
         static_assert(sizeof(OutputParameters) == 0x8);
 
-        const Result res = DoHandshakeImpl();
+        Result res = DoHandshakeImpl();
         OutputParameters out{};
         if (res == ResultSuccess) {
-            auto certs = backend->GetServerCerts();
-            if (certs.Succeeded()) {
-                const std::vector<u8> certs_buf = SerializeServerCerts(*certs);
+            std::vector<std::vector<u8>> certs;
+            res = backend->GetServerCerts(&certs);
+            if (res == ResultSuccess) {
+                const std::vector<u8> certs_buf = SerializeServerCerts(certs);
                 ctx.WriteBuffer(certs_buf);
-                out.certs_count = static_cast<u32>(certs->size());
+                out.certs_count = static_cast<u32>(certs.size());
                 out.certs_size = static_cast<u32>(certs_buf.size());
             }
         }
@@ -330,29 +334,32 @@ private:
     }
 
     void Read(HLERequestContext& ctx) {
-        const ResultVal<std::vector<u8>> res = ReadImpl(ctx.GetWriteBufferSize());
+        std::vector<u8> output_bytes;
+        const Result res = ReadImpl(&output_bytes, ctx.GetWriteBufferSize());
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(res.Code());
-        if (res.Succeeded()) {
-            rb.Push(static_cast<u32>(res->size()));
-            ctx.WriteBuffer(*res);
+        rb.Push(res);
+        if (res == ResultSuccess) {
+            rb.Push(static_cast<u32>(output_bytes.size()));
+            ctx.WriteBuffer(output_bytes);
         } else {
             rb.Push(static_cast<u32>(0));
         }
     }
 
     void Write(HLERequestContext& ctx) {
-        const ResultVal<size_t> res = WriteImpl(ctx.ReadBuffer());
+        size_t write_size{0};
+        const Result res = WriteImpl(&write_size, ctx.ReadBuffer());
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(res.Code());
-        rb.Push(static_cast<u32>(res.ValueOr(0)));
+        rb.Push(res);
+        rb.Push(static_cast<u32>(write_size));
     }
 
     void Pending(HLERequestContext& ctx) {
-        const ResultVal<s32> res = PendingImpl();
+        s32 pending_size{0};
+        const Result res = PendingImpl(&pending_size);
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(res.Code());
-        rb.Push<s32>(res.ValueOr(0));
+        rb.Push(res);
+        rb.Push<s32>(pending_size);
     }
 
     void SetSessionCacheMode(HLERequestContext& ctx) {
@@ -438,13 +445,14 @@ private:
     void CreateConnection(HLERequestContext& ctx) {
         LOG_WARNING(Service_SSL, "called");
 
-        auto backend_res = CreateSSLConnectionBackend();
+        std::unique_ptr<SSLConnectionBackend> backend;
+        const Result res = CreateSSLConnectionBackend(&backend);
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(backend_res.Code());
-        if (backend_res.Succeeded()) {
+        rb.Push(res);
+        if (res == ResultSuccess) {
             rb.PushIpcInterface<ISslConnection>(system, ssl_version, shared_data,
-                                                std::move(*backend_res));
+                                                std::move(backend));
         }
     }
 
