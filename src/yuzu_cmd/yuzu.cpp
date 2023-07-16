@@ -63,6 +63,10 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 #endif
 
+#ifdef __linux__
+#include <gamemode_client.h>
+#endif
+
 static void PrintHelp(const char* argv0) {
     std::cout << "Usage: " << argv0
               << " [options] <filename>\n"
@@ -425,6 +429,16 @@ int main(int argc, char** argv) {
         exit(0);
     });
 
+#ifdef __linux__
+    if (Settings::values.disable_gamemode) {
+        if (gamemode_request_start() < 0) {
+            LOG_WARNING(Frontend, "Failed to start gamemode: {}", gamemode_error_string());
+        } else {
+            LOG_INFO(Frontend, "Started gamemode");
+        }
+    }
+#endif
+
     void(system.Run());
     if (system.DebuggerEnabled()) {
         system.InitializeDebugger();
@@ -435,6 +449,16 @@ int main(int argc, char** argv) {
     system.DetachDebugger();
     void(system.Pause());
     system.ShutdownMainProcess();
+
+#ifdef __linux__
+    if (Settings::values.disable_gamemode) {
+        if (gamemode_request_end() < 0) {
+            LOG_WARNING(Frontend, "Failed to stop gamemode: {}", gamemode_error_string());
+        } else {
+            LOG_INFO(Frontend, "Stopped gamemode");
+        }
+    }
+#endif
 
     detached_tasks.WaitForAllTasks();
     return 0;
