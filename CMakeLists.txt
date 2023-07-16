@@ -63,6 +63,18 @@ option(YUZU_DOWNLOAD_TIME_ZONE_DATA "Always download time zone binaries" OFF)
 
 CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "NOT WIN32" OFF)
 
+set(DEFAULT_ENABLE_OPENSSL ON)
+if (ANDROID OR WIN32 OR APPLE)
+    # - Windows defaults to the Schannel backend.
+    # - macOS defaults to the SecureTransport backend.
+    # - Android currently has no SSL backend as the NDK doesn't include any SSL
+    #   library; a proper 'native' backend would have to go through Java.
+    # But you can force builds for those platforms to use OpenSSL if you have
+    # your own copy of it.
+    set(DEFAULT_ENABLE_OPENSSL OFF)
+endif()
+option(ENABLE_OPENSSL "Enable OpenSSL backend for ISslConnection" ${DEFAULT_ENABLE_OPENSSL})
+
 # On Android, fetch and compile libcxx before doing anything else
 if (ANDROID)
     set(CMAKE_SKIP_INSTALL_RULES ON)
@@ -320,6 +332,10 @@ endif()
 # boost:asio has functions that require AcceptEx et al
 if (MINGW)
     find_library(MSWSOCK_LIBRARY mswsock REQUIRED)
+endif()
+
+if(ENABLE_OPENSSL)
+    find_package(OpenSSL 1.1.1 REQUIRED)
 endif()
 
 # Please consider this as a stub

@@ -22,13 +22,35 @@ enum class Errno : u32 {
     CONNRESET = 104,
     NOTCONN = 107,
     TIMEDOUT = 110,
+    INPROGRESS = 115,
+};
+
+enum class GetAddrInfoError : s32 {
+    SUCCESS = 0,
+    ADDRFAMILY = 1,
+    AGAIN = 2,
+    BADFLAGS = 3,
+    FAIL = 4,
+    FAMILY = 5,
+    MEMORY = 6,
+    NODATA = 7,
+    NONAME = 8,
+    SERVICE = 9,
+    SOCKTYPE = 10,
+    SYSTEM = 11,
+    BADHINTS = 12,
+    PROTOCOL = 13,
+    OVERFLOW_ = 14, // avoid name collision with Windows macro
+    OTHER = 15,
 };
 
 enum class Domain : u32 {
+    Unspecified = 0,
     INET = 2,
 };
 
 enum class Type : u32 {
+    Unspecified = 0,
     STREAM = 1,
     DGRAM = 2,
     RAW = 3,
@@ -36,10 +58,14 @@ enum class Type : u32 {
 };
 
 enum class Protocol : u32 {
-    UNSPECIFIED = 0,
+    Unspecified = 0,
     ICMP = 1,
     TCP = 6,
     UDP = 17,
+};
+
+enum class SocketLevel : u32 {
+    SOCKET = 0xffff, // i.e. SOL_SOCKET
 };
 
 enum class OptName : u32 {
@@ -51,6 +77,8 @@ enum class OptName : u32 {
     RCVBUF = 0x1002,
     SNDTIMEO = 0x1005,
     RCVTIMEO = 0x1006,
+    ERROR_ = 0x1007,   // avoid name collision with Windows macro
+    NOSIGPIPE = 0x800, // at least according to libnx
 };
 
 enum class ShutdownHow : s32 {
@@ -80,6 +108,9 @@ enum class PollEvents : u16 {
     Err = 1 << 3,
     Hup = 1 << 4,
     Nval = 1 << 5,
+    RdNorm = 1 << 6,
+    RdBand = 1 << 7,
+    WrBand = 1 << 8,
 };
 
 DECLARE_ENUM_FLAG_OPERATORS(PollEvents);

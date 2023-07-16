@@ -29,6 +29,8 @@ Errno Translate(Network::Errno value) {
         return Errno::TIMEDOUT;
     case Network::Errno::CONNRESET:
         return Errno::CONNRESET;
+    case Network::Errno::INPROGRESS:
+        return Errno::INPROGRESS;
     default:
         UNIMPLEMENTED_MSG("Unimplemented errno={}", value);
         return Errno::SUCCESS;
@@ -39,8 +41,50 @@ std::pair<s32, Errno> Translate(std::pair<s32, Network::Errno> value) {
     return {value.first, Translate(value.second)};
 }
 
+GetAddrInfoError Translate(Network::GetAddrInfoError error) {
+    switch (error) {
+    case Network::GetAddrInfoError::SUCCESS:
+        return GetAddrInfoError::SUCCESS;
+    case Network::GetAddrInfoError::ADDRFAMILY:
+        return GetAddrInfoError::ADDRFAMILY;
+    case Network::GetAddrInfoError::AGAIN:
+        return GetAddrInfoError::AGAIN;
+    case Network::GetAddrInfoError::BADFLAGS:
+        return GetAddrInfoError::BADFLAGS;
+    case Network::GetAddrInfoError::FAIL:
+        return GetAddrInfoError::FAIL;
+    case Network::GetAddrInfoError::FAMILY:
+        return GetAddrInfoError::FAMILY;
+    case Network::GetAddrInfoError::MEMORY:
+        return GetAddrInfoError::MEMORY;
+    case Network::GetAddrInfoError::NODATA:
+        return GetAddrInfoError::NODATA;
+    case Network::GetAddrInfoError::NONAME:
+        return GetAddrInfoError::NONAME;
+    case Network::GetAddrInfoError::SERVICE:
+        return GetAddrInfoError::SERVICE;
+    case Network::GetAddrInfoError::SOCKTYPE:
+        return GetAddrInfoError::SOCKTYPE;
+    case Network::GetAddrInfoError::SYSTEM:
+        return GetAddrInfoError::SYSTEM;
+    case Network::GetAddrInfoError::BADHINTS:
+        return GetAddrInfoError::BADHINTS;
+    case Network::GetAddrInfoError::PROTOCOL:
+        return GetAddrInfoError::PROTOCOL;
+    case Network::GetAddrInfoError::OVERFLOW_:
+        return GetAddrInfoError::OVERFLOW_;
+    case Network::GetAddrInfoError::OTHER:
+        return GetAddrInfoError::OTHER;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented GetAddrInfoError={}", error);
+        return GetAddrInfoError::OTHER;
+    }
+}
+
 Network::Domain Translate(Domain domain) {
     switch (domain) {
+    case Domain::Unspecified:
+        return Network::Domain::Unspecified;
     case Domain::INET:
         return Network::Domain::INET;
     default:
@@ -51,6 +95,8 @@ Network::Domain Translate(Domain domain) {
 
 Domain Translate(Network::Domain domain) {
     switch (domain) {
+    case Network::Domain::Unspecified:
+        return Domain::Unspecified;
     case Network::Domain::INET:
         return Domain::INET;
     default:
@@ -61,39 +107,69 @@ Domain Translate(Network::Domain domain) {
 
 Network::Type Translate(Type type) {
     switch (type) {
+    case Type::Unspecified:
+        return Network::Type::Unspecified;
     case Type::STREAM:
         return Network::Type::STREAM;
     case Type::DGRAM:
         return Network::Type::DGRAM;
+    case Type::RAW:
+        return Network::Type::RAW;
+    case Type::SEQPACKET:
+        return Network::Type::SEQPACKET;
     default:
         UNIMPLEMENTED_MSG("Unimplemented type={}", type);
         return Network::Type{};
     }
 }
 
-Network::Protocol Translate(Type type, Protocol protocol) {
+Type Translate(Network::Type type) {
+    switch (type) {
+    case Network::Type::Unspecified:
+        return Type::Unspecified;
+    case Network::Type::STREAM:
+        return Type::STREAM;
+    case Network::Type::DGRAM:
+        return Type::DGRAM;
+    case Network::Type::RAW:
+        return Type::RAW;
+    case Network::Type::SEQPACKET:
+        return Type::SEQPACKET;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented type={}", type);
+        return Type{};
+    }
+}
+
+Network::Protocol Translate(Protocol protocol) {
     switch (protocol) {
-    case Protocol::UNSPECIFIED:
-        LOG_WARNING(Service, "Unspecified protocol, assuming protocol from type");
-        switch (type) {
-        case Type::DGRAM:
-            return Network::Protocol::UDP;
-        case Type::STREAM:
-            return Network::Protocol::TCP;
-        default:
-            return Network::Protocol::TCP;
-        }
+    case Protocol::Unspecified:
+        return Network::Protocol::Unspecified;
     case Protocol::TCP:
         return Network::Protocol::TCP;
     case Protocol::UDP:
         return Network::Protocol::UDP;
     default:
         UNIMPLEMENTED_MSG("Unimplemented protocol={}", protocol);
-        return Network::Protocol::TCP;
+        return Network::Protocol::Unspecified;
     }
 }
 
-Network::PollEvents TranslatePollEventsToHost(PollEvents flags) {
+Protocol Translate(Network::Protocol protocol) {
+    switch (protocol) {
+    case Network::Protocol::Unspecified:
+        return Protocol::Unspecified;
+    case Network::Protocol::TCP:
+        return Protocol::TCP;
+    case Network::Protocol::UDP:
+        return Protocol::UDP;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented protocol={}", protocol);
+        return Protocol::Unspecified;
+    }
+}
+
+Network::PollEvents Translate(PollEvents flags) {
     Network::PollEvents result{};
     const auto translate = [&result, &flags](PollEvents from, Network::PollEvents to) {
         if (True(flags & from)) {
@@ -107,12 +183,15 @@ Network::PollEvents TranslatePollEventsToHost(PollEvents flags) {
     translate(PollEvents::Err, Network::PollEvents::Err);
     translate(PollEvents::Hup, Network::PollEvents::Hup);
     translate(PollEvents::Nval, Network::PollEvents::Nval);
+    translate(PollEvents::RdNorm, Network::PollEvents::RdNorm);
+    translate(PollEvents::RdBand, Network::PollEvents::RdBand);
+    translate(PollEvents::WrBand, Network::PollEvents::WrBand);
 
     UNIMPLEMENTED_IF_MSG((u16)flags != 0, "Unimplemented flags={}", (u16)flags);
     return result;
 }
 
-PollEvents TranslatePollEventsToGuest(Network::PollEvents flags) {
+PollEvents Translate(Network::PollEvents flags) {
     PollEvents result{};
     const auto translate = [&result, &flags](Network::PollEvents from, PollEvents to) {
         if (True(flags & from)) {
@@ -127,13 +206,18 @@ PollEvents TranslatePollEventsToGuest(Network::PollEvents flags) {
     translate(Network::PollEvents::Err, PollEvents::Err);
     translate(Network::PollEvents::Hup, PollEvents::Hup);
     translate(Network::PollEvents::Nval, PollEvents::Nval);
+    translate(Network::PollEvents::RdNorm, PollEvents::RdNorm);
+    translate(Network::PollEvents::RdBand, PollEvents::RdBand);
+    translate(Network::PollEvents::WrBand, PollEvents::WrBand);
 
     UNIMPLEMENTED_IF_MSG((u16)flags != 0, "Unimplemented flags={}", (u16)flags);
     return result;
 }
 
 Network::SockAddrIn Translate(SockAddrIn value) {
-    ASSERT(value.len == 0 || value.len == sizeof(value));
+    // Note: 6 is incorrect, but can be passed by homebrew (because libnx sets
+    // sin_len to 6 when deserializing getaddrinfo results).
+    ASSERT(value.len == 0 || value.len == sizeof(value) || value.len == 6);
 
     return {
         .family = Translate(static_cast<Domain>(value.family)),

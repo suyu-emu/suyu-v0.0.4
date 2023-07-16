@@ -5,15 +5,19 @@
 
 #include "common/common_types.h"
 
+#include <optional>
+
 namespace Network {
 
 /// Address families
 enum class Domain : u8 {
-    INET, ///< Address family for IPv4
+    Unspecified, ///< Represents 0, used in getaddrinfo hints
+    INET,        ///< Address family for IPv4
 };
 
 /// Socket types
 enum class Type {
+    Unspecified, ///< Represents 0, used in getaddrinfo hints
     STREAM,
     DGRAM,
     RAW,
@@ -22,6 +26,7 @@ enum class Type {
 
 /// Protocol values for sockets
 enum class Protocol : u8 {
+    Unspecified, ///< Represents 0, usable in various places
     ICMP,
     TCP,
     UDP,
@@ -47,5 +52,14 @@ struct SockAddrIn {
 constexpr u32 FLAG_MSG_PEEK = 0x2;
 constexpr u32 FLAG_MSG_DONTWAIT = 0x80;
 constexpr u32 FLAG_O_NONBLOCK = 0x800;
+
+/// Cross-platform addrinfo structure
+struct AddrInfo {
+    Domain family;
+    Type socket_type;
+    Protocol protocol;
+    SockAddrIn addr;
+    std::optional<std::string> canon_name;
+};
 
 } // namespace Network

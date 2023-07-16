@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "common/expected.h"
 #include "common/socket_types.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sockets/sockets.h"
@@ -29,12 +30,19 @@ public:
     explicit BSD(Core::System& system_, const char* name);
     ~BSD() override;
 
+    // These methods are called from SSL; the first two are also called from
+    // this class for the corresponding IPC methods.
+    // On the real device, the SSL service makes IPC calls to this service.
+    Common::Expected<s32, Errno> DuplicateSocketImpl(s32 fd);
+    Errno CloseImpl(s32 fd);
+    std::optional<std::shared_ptr<Network::SocketBase>> GetSocket(s32 fd);
+
 private:
     /// Maximum number of file descriptors
     static constexpr size_t MAX_FD = 128;
 
     struct FileDescriptor {
-        std::unique_ptr<Network::SocketBase> socket;
+        std::shared_ptr<Network::SocketBase> socket;
         s32 flags = 0;
         bool is_connection_based = false;
     };
@@ -138,6 +146,7 @@ private:
     void Write(HLERequestContext& ctx);
     void Read(HLERequestContext& ctx);
     void Close(HLERequestContext& ctx);
+    void DuplicateSocket(HLERequestContext& ctx);
     void EventFd(HLERequestContext& ctx);
 
     template <typename Work>
@@ -153,6 +162,7 @@ private:
     Errno GetSockNameImpl(s32 fd, std::vector<u8>& write_buffer);
     Errno ListenImpl(s32 fd, s32 backlog);
     std::pair<s32, Errno> FcntlImpl(s32 fd, FcntlCmd cmd, s32 arg);
+    Errno GetSockOptImpl(s32 fd, u32 level, OptName optname, std::vector<u8>& optval);
     Errno SetSockOptImpl(s32 fd, u32 level, OptName optname, size_t optlen, const void* optval);
     Errno ShutdownImpl(s32 fd, s32 how);
     std::pair<s32, Errno> RecvImpl(s32 fd, u32 flags, std::vector<u8>& message);
@@ -161,7 +171,6 @@ private:
     std::pair<s32, Errno> SendImpl(s32 fd, u32 flags, std::span<const u8> message);
     std::pair<s32, Errno> SendToImpl(s32 fd, u32 flags, std::span<const u8> message,
                                      std::span<const u8> addr);
-    Errno CloseImpl(s32 fd);
 
     s32 FindFreeFileDescriptorHandle() noexcept;
     bool IsFileDescriptorValid(s32 fd) const noexcept;

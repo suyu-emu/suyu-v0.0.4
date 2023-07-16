@@ -17,6 +17,9 @@ Errno Translate(Network::Errno value);
 /// Translate abstract return value errno pair to guest return value errno pair
 std::pair<s32, Errno> Translate(std::pair<s32, Network::Errno> value);
 
+/// Translate abstract getaddrinfo error to guest getaddrinfo error
+GetAddrInfoError Translate(Network::GetAddrInfoError value);
+
 /// Translate guest domain to abstract domain
 Network::Domain Translate(Domain domain);
 
@@ -26,14 +29,20 @@ Domain Translate(Network::Domain domain);
 /// Translate guest type to abstract type
 Network::Type Translate(Type type);
 
-/// Translate guest protocol to abstract protocol
-Network::Protocol Translate(Type type, Protocol protocol);
+/// Translate abstract type to guest type
+Type Translate(Network::Type type);
 
-/// Translate abstract poll event flags to guest poll event flags
-Network::PollEvents TranslatePollEventsToHost(PollEvents flags);
+/// Translate guest protocol to abstract protocol
+Network::Protocol Translate(Protocol protocol);
+
+/// Translate abstract protocol to guest protocol
+Protocol Translate(Network::Protocol protocol);
 
 /// Translate guest poll event flags to abstract poll event flags
-PollEvents TranslatePollEventsToGuest(Network::PollEvents flags);
+Network::PollEvents Translate(PollEvents flags);
+
+/// Translate abstract poll event flags to guest poll event flags
+PollEvents Translate(Network::PollEvents flags);
 
 /// Translate guest socket address structure to abstract socket address structure
 Network::SockAddrIn Translate(SockAddrIn value);

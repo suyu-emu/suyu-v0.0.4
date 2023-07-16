@@ -1,9 +1,14 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/sockets/nsd.h"
 
+#include "common/string_util.h"
+
 namespace Service::Sockets {
+
+constexpr Result ResultOverflow{ErrorModule::NSD, 6};
 
 NSD::NSD(Core::System& system_, const char* name) : ServiceFramework{system_, name} {
     // clang-format off
@@ -15,8 +20,8 @@ NSD::NSD(Core::System& system_, const char* name) : ServiceFramework{system_, na
         {13, nullptr, "DeleteSettings"},
         {14, nullptr, "ImportSettings"},
         {15, nullptr, "SetChangeEnvironmentIdentifierDisabled"},
-        {20, nullptr, "Resolve"},
-        {21, nullptr, "ResolveEx"},
+        {20, &NSD::Resolve, "Resolve"},
+        {21, &NSD::ResolveEx, "ResolveEx"},
         {30, nullptr, "GetNasServiceSetting"},
         {31, nullptr, "GetNasServiceSettingEx"},
         {40, nullptr, "GetNasRequestFqdn"},
@@ -38,6 +43,55 @@ NSD::NSD(Core::System& system_, const char* name) : ServiceFramework{system_, na
     // clang-format on
 
     RegisterHandlers(functions);
+}
+
+static ResultVal<std::string> ResolveImpl(const std::string& fqdn_in) {
+    // The real implementation makes various substitutions.
+    // For now we just return the string as-is, which is good enough when not
+    // connecting to real Nintendo servers.
+    LOG_WARNING(Service, "(STUBBED) called, fqdn_in={}", fqdn_in);
+    return fqdn_in;
+}
+
+static Result ResolveCommon(const std::string& fqdn_in, std::array<char, 0x100>& fqdn_out) {
+    const auto res = ResolveImpl(fqdn_in);
+    if (res.Failed()) {
+        return res.Code();
+    }
+    if (res->size() >= fqdn_out.size()) {
+        return ResultOverflow;
+    }
+    std::memcpy(fqdn_out.data(), res->c_str(), res->size() + 1);
+    return ResultSuccess;
+}
+
+void NSD::Resolve(HLERequestContext& ctx) {
+    const std::string fqdn_in = Common::StringFromBuffer(ctx.ReadBuffer(0));
+
+    std::array<char, 0x100> fqdn_out{};
+    const Result res = ResolveCommon(fqdn_in, fqdn_out);
+
+    ctx.WriteBuffer(fqdn_out);
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(res);
+}
+
+void NSD::ResolveEx(HLERequestContext& ctx) {
+    const std::string fqdn_in = Common::StringFromBuffer(ctx.ReadBuffer(0));
+
+    std::array<char, 0x100> fqdn_out;
+    const Result res = ResolveCommon(fqdn_in, fqdn_out);
+
+    if (res.IsError()) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(res);
+        return;
+    }
+
+    ctx.WriteBuffer(fqdn_out);
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push(ResultSuccess);
 }
 
 NSD::~NSD() = default;
