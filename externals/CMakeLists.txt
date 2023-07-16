@@ -189,6 +189,12 @@ if (ANDROID)
    endif()
 endif()
 
+# Gamemode
+if ("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+    add_subdirectory(gamemode)
+    target_include_directories(gamemode PUBLIC gamemode/include)
+endif()
+
 # Breakpad
 # https://github.com/microsoft/vcpkg/blob/master/ports/breakpad/CMakeLists.txt
 if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)

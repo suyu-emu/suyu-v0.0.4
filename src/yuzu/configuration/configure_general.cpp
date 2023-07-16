@@ -29,6 +29,9 @@ ConfigureGeneral::ConfigureGeneral(const Core::System& system_,
     if (!Settings::IsConfiguringGlobal()) {
         ui->button_reset_defaults->setVisible(false);
     }
+#ifndef __linux__
+    ui->enable_gamemode->setVisible(false);
+#endif
 }
 
 ConfigureGeneral::~ConfigureGeneral() = default;

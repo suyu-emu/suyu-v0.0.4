@@ -185,6 +185,10 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 #endif
 
+#ifdef __linux__
+#include <gamemode_client.h>
+#endif
+
 constexpr int default_mouse_hide_timeout = 2500;
 constexpr int default_mouse_center_timeout = 10;
 constexpr int default_input_update_timeout = 1;
@@ -2126,6 +2130,16 @@ void GMainWindow::OnEmulationStopped() {
 
     discord_rpc->Update();
 
+#ifdef __linux__
+    if (UISettings::values.enable_gamemode) {
+        if (gamemode_request_end() < 0) {
+            LOG_WARNING(Frontend, "Failed to stop gamemode: {}", gamemode_error_string());
+        } else {
+            LOG_INFO(Frontend, "Stopped gamemode");
+        }
+    }
+#endif
+
     // The emulation is stopped, so closing the window or not does not matter anymore
     disconnect(render_window, &GRenderWindow::Closed, this, &GMainWindow::OnStopGame);
 
@@ -3504,6 +3518,16 @@ void GMainWindow::OnStartGame() {
     play_time_manager->Start();
 
     discord_rpc->Update();
+
+#ifdef __linux__
+    if (UISettings::values.enable_gamemode) {
+        if (gamemode_request_start() < 0) {
+            LOG_WARNING(Frontend, "Failed to start gamemode: {}", gamemode_error_string());
+        } else {
+            LOG_INFO(Frontend, "Started gamemode");
+        }
+    }
+#endif
 }
 
 void GMainWindow::OnRestartGame() {
@@ -3524,6 +3548,16 @@ void GMainWindow::OnPauseGame() {
     play_time_manager->Stop();
     UpdateMenuState();
     AllowOSSleep();
+
+#ifdef __linux__
+    if (UISettings::values.enable_gamemode) {
+        if (gamemode_request_end() < 0) {
+            LOG_WARNING(Frontend, "Failed to stop gamemode: {}", gamemode_error_string());
+        } else {
+            LOG_INFO(Frontend, "Stopped gamemode");
+        }
+    }
+#endif
 }
 
 void GMainWindow::OnPauseContinueGame() {
@@ -5179,6 +5213,26 @@ void GMainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
     discord_rpc = std::make_unique<DiscordRPC::NullImpl>();
 #endif
     discord_rpc->Update();
+}
+
+void GMainWindow::SetGamemodeDisabled([[maybe_unused]] bool state) {
+#ifdef __linux__
+    if (emulation_running) {
+        if (state) {
+            if (gamemode_request_end() < 0) {
+                LOG_WARNING(Frontend, "Failed to stop gamemode: {}", gamemode_error_string());
+            } else {
+                LOG_INFO(Frontend, "Stopped gamemode");
+            }
+        } else {
+            if (gamemode_request_start() < 0) {
+                LOG_WARNING(Frontend, "Failed to start gamemode: {}", gamemode_error_string());
+            } else {
+                LOG_INFO(Frontend, "Started gamemode");
+            }
+        }
+    }
+#endif
 }
 
 void GMainWindow::changeEvent(QEvent* event) {

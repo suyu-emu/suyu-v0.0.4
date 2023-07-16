@@ -140,6 +140,9 @@ struct Values {
                                       Settings::Specialization::Default,
                                       true,
                                       true};
+    // Gamemode
+    Setting<bool> enable_gamemode{linkage, false, "enable_gamemode", Category::UiGeneral};
+
     Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Ui};
 
     // Discord RPC

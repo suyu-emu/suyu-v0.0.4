@@ -178,6 +178,8 @@ struct Values {
                                              true,
                                              &use_speed_limit};
 
+    Setting<bool> enable_gamemode{linkage, false, "enable_gamemode", Category::Core};
+
     // Cpu
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage,           CpuAccuracy::Auto,
                                                       CpuAccuracy::Auto, CpuAccuracy::Paranoid,
