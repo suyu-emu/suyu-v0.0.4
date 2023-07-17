@@ -35,8 +35,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
 
     // Core
     INSERT(Settings, use_multi_core, "Multicore CPU Emulation", "");
-    INSERT(Settings, use_unsafe_extended_memory_layout, "Unsafe extended memory layout (8GB DRAM)",
-           "");
+    INSERT(Settings, memory_layout_mode, "Memory Layout", "");
     INSERT(Settings, use_speed_limit, "", "");
     INSERT(Settings, speed_limit, "Limit Speed Percent", "");
 
@@ -373,6 +372,12 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(AudioMode, Mono, "Mono"),
                               PAIR(AudioMode, Stereo, "Stereo"),
                               PAIR(AudioMode, Surround, "Surround"),
+                          }});
+    translations->insert({Settings::EnumMetadata<Settings::MemoryLayout>::Index(),
+                          {
+                              PAIR(MemoryLayout, Memory_4Gb, "4GB DRAM (Default)"),
+                              PAIR(MemoryLayout, Memory_6Gb, "6GB DRAM (Unsafe)"),
+                              PAIR(MemoryLayout, Memory_8Gb, "8GB DRAM (Unsafe)"),
                           }});
 
 #undef PAIR
