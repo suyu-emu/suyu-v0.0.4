@@ -1,20 +1,20 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/ssl/ssl_backend.h"
-#include "core/internal_network/network.h"
-#include "core/internal_network/sockets.h"
-
-#include "common/fs/file.h"
-#include "common/hex_util.h"
-#include "common/string_util.h"
-
 #include <mutex>
 
 #include <openssl/bio.h>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
+
+#include "common/fs/file.h"
+#include "common/hex_util.h"
+#include "common/string_util.h"
+
+#include "core/hle/service/ssl/ssl_backend.h"
+#include "core/internal_network/network.h"
+#include "core/internal_network/sockets.h"
 
 using namespace Common::FS;
 

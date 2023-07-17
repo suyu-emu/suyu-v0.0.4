@@ -1,18 +1,21 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/ssl/ssl_backend.h"
-#include "core/internal_network/network.h"
-#include "core/internal_network/sockets.h"
-
 #include <mutex>
-
-#include <Security/SecureTransport.h>
 
 // SecureTransport has been deprecated in its entirety in favor of
 // Network.framework, but that does not allow layering TLS on top of an
 // arbitrary socket.
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#include <Security/SecureTransport.h>
+#pragma GCC diagnostic pop
+#endif
+
+#include "core/hle/service/ssl/ssl_backend.h"
+#include "core/internal_network/network.h"
+#include "core/internal_network/sockets.h"
 
 namespace {
 
