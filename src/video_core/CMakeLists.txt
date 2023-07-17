@@ -274,6 +274,7 @@ add_library(video_core STATIC
     vulkan_common/vulkan_wrapper.h
     vulkan_common/nsight_aftermath_tracker.cpp
     vulkan_common/nsight_aftermath_tracker.h
+    vulkan_common/vma.cpp
 )
 
 create_target_directory_groups(video_core)
@@ -291,7 +292,7 @@ target_link_options(video_core PRIVATE ${FFmpeg_LDFLAGS})
 
 add_dependencies(video_core host_shaders)
 target_include_directories(video_core PRIVATE ${HOST_SHADERS_INCLUDE})
-target_link_libraries(video_core PRIVATE sirit Vulkan::Headers vma)
+target_link_libraries(video_core PRIVATE sirit Vulkan::Headers GPUOpen::VulkanMemoryAllocator)
 
 if (ENABLE_NSIGHT_AFTERMATH)
     if (NOT DEFINED ENV{NSIGHT_AFTERMATH_SDK})
@@ -324,6 +325,9 @@ else()
 
     # xbyak
     set_source_files_properties(macro/macro_jit_x64.cpp PROPERTIES COMPILE_OPTIONS "-Wno-conversion;-Wno-shadow")
+
+    # VMA
+    set_source_files_properties(vulkan_common/vma.cpp PROPERTIES COMPILE_OPTIONS "-Wno-conversion;-Wno-unused-variable;-Wno-unused-parameter;-Wno-missing-field-initializers")
 endif()
 
 if (ARCHITECTURE_x86_64)
