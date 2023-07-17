@@ -164,7 +164,7 @@ if (NOT WIN32 AND NOT ANDROID)
                 --enable-decoder=h264
                 --enable-decoder=vp8
                 --enable-decoder=vp9
-                --enable-filter=yadif
+                --enable-filter=yadif,scale
                 --cc="${FFmpeg_CC}"
                 --cxx="${FFmpeg_CXX}"
                 ${FFmpeg_HWACCEL_FLAGS}
@@ -254,7 +254,7 @@ elseif(ANDROID)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR}" PARENT_SCOPE)
 elseif(WIN32)
     # Use yuzu FFmpeg binaries
-    set(FFmpeg_EXT_NAME "ffmpeg-5.1.3")
+    set(FFmpeg_EXT_NAME "ffmpeg-6.0")
     set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}")
     download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "")
     set(FFmpeg_FOUND YES)

@@ -319,6 +319,7 @@ void Codec::Decode() {
         LOG_WARNING(Service_NVDRV, "Zero width or height in frame");
         return;
     }
+    bool is_interlaced = initial_frame->interlaced_frame != 0;
     if (av_codec_ctx->hw_device_ctx) {
         final_frame = AVFramePtr{av_frame_alloc(), AVFrameDeleter};
         ASSERT_MSG(final_frame, "av_frame_alloc final_frame failed");
@@ -334,7 +335,7 @@ void Codec::Decode() {
         UNIMPLEMENTED_MSG("Unexpected video format: {}", final_frame->format);
         return;
     }
-    if (!final_frame->interlaced_frame) {
+    if (!is_interlaced) {
         av_frames.push(std::move(final_frame));
     } else {
         if (!filters_initialized) {
