@@ -131,6 +131,8 @@ ENUM(GpuAccuracy, Normal, High, Extreme);
 
 ENUM(CpuAccuracy, Auto, Accurate, Unsafe, Paranoid);
 
+ENUM(MemoryLayout, Memory_4Gb, Memory_6Gb, Memory_8Gb);
+
 ENUM(FullscreenMode, Borderless, Exclusive);
 
 ENUM(NvdecEmulation, Off, Cpu, Gpu);

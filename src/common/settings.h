@@ -153,8 +153,12 @@ struct Values {
 
     // Core
     SwitchableSetting<bool> use_multi_core{linkage, true, "use_multi_core", Category::Core};
-    SwitchableSetting<bool> use_unsafe_extended_memory_layout{
-        linkage, false, "use_unsafe_extended_memory_layout", Category::Core};
+    SwitchableSetting<MemoryLayout, true> memory_layout_mode{linkage,
+                                                             MemoryLayout::Memory_4Gb,
+                                                             MemoryLayout::Memory_4Gb,
+                                                             MemoryLayout::Memory_8Gb,
+                                                             "memory_layout_mode",
+                                                             Category::Core};
     SwitchableSetting<bool> use_speed_limit{
         linkage, true, "use_speed_limit", Category::Core, Specialization::Paired, false, true};
     SwitchableSetting<u16, true> speed_limit{linkage,
