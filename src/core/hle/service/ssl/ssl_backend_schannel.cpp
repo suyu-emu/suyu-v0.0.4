@@ -20,6 +20,7 @@ namespace {
 #define SECURITY_WIN32
 #include <schnlsp.h>
 #include <security.h>
+#include <wincrypt.h>
 
 std::once_flag one_time_init_flag;
 bool one_time_init_success = false;
