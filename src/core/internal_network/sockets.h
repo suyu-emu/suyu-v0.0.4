@@ -15,11 +15,12 @@
 
 #include "common/common_types.h"
 #include "core/internal_network/network.h"
-#include "network/network.h"
 
 // TODO: C++20 Replace std::vector usages with std::span
 
 namespace Network {
+
+struct ProxyPacket;
 
 class SocketBase {
 public:

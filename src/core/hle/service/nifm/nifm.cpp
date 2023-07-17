@@ -7,6 +7,7 @@
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/nifm/nifm.h"
 #include "core/hle/service/server_manager.h"
+#include "network/network.h"
 
 namespace {
 

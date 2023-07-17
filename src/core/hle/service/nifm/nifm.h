@@ -4,12 +4,13 @@
 #pragma once
 
 #include "core/hle/service/service.h"
-#include "network/network.h"
-#include "network/room.h"
-#include "network/room_member.h"
 
 namespace Core {
 class System;
+}
+
+namespace Network {
+class RoomNetwork;
 }
 
 namespace Service::NIFM {
