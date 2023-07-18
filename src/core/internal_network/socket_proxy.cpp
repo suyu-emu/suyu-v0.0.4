@@ -10,6 +10,7 @@
 #include "core/internal_network/network.h"
 #include "core/internal_network/network_interface.h"
 #include "core/internal_network/socket_proxy.h"
+#include "network/network.h"
 
 #if YUZU_UNIX
 #include <sys/socket.h>

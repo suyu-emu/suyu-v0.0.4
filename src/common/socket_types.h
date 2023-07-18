@@ -3,9 +3,10 @@
 
 #pragma once
 
-#include "common/common_types.h"
-
 #include <optional>
+#include <string>
+
+#include "common/common_types.h"
 
 namespace Network {
 

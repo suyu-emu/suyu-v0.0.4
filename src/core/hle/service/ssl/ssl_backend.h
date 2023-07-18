@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include "core/hle/result.h"
-
-#include "common/common_types.h"
-
 #include <memory>
 #include <span>
 #include <string>
 #include <vector>
+
+#include "common/common_types.h"
+
+#include "core/hle/result.h"
 
 namespace Network {
 class SocketBase;

@@ -10,9 +10,11 @@
 
 #include "common/common_funcs.h"
 #include "core/internal_network/sockets.h"
-#include "network/network.h"
+#include "network/room_member.h"
 
 namespace Network {
+
+class RoomNetwork;
 
 class ProxySocket : public SocketBase {
 public:

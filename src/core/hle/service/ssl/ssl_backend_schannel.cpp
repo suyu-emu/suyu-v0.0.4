@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/ssl/ssl_backend.h"
-#include "core/internal_network/network.h"
-#include "core/internal_network/sockets.h"
+#include <mutex>
 
 #include "common/error.h"
 #include "common/fs/file.h"
 #include "common/hex_util.h"
 #include "common/string_util.h"
 
-#include <mutex>
+#include "core/hle/service/ssl/ssl_backend.h"
+#include "core/internal_network/network.h"
+#include "core/internal_network/sockets.h"
 
 namespace {
 
@@ -20,6 +20,7 @@ namespace {
 #define SECURITY_WIN32
 #include <schnlsp.h>
 #include <security.h>
+#include <wincrypt.h>
 
 std::once_flag one_time_init_flag;
 bool one_time_init_success = false;

@@ -876,7 +876,7 @@ elseif (APPLE)
 elseif (WIN32)
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_schannel.cpp)
-    target_link_libraries(core PRIVATE secur32)
+    target_link_libraries(core PRIVATE crypt32 secur32)
 else()
     target_sources(core PRIVATE
         hle/service/ssl/ssl_backend_none.cpp)
