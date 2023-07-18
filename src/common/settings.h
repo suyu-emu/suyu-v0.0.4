@@ -529,4 +529,7 @@ void UpdateRescalingInfo();
 // Restore the global state of all applicable settings in the Values struct
 void RestoreGlobalState(bool is_powered_on);
 
+bool IsConfiguringGlobal();
+void SetConfiguringGlobal(bool is_global);
+
 } // namespace Settings

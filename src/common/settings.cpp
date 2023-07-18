@@ -287,4 +287,14 @@ void RestoreGlobalState(bool is_powered_on) {
     }
 }
 
+static bool configuring_global = true;
+
+bool IsConfiguringGlobal() {
+    return configuring_global;
+}
+
+void SetConfiguringGlobal(bool is_global) {
+    configuring_global = is_global;
+}
+
 } // namespace Settings

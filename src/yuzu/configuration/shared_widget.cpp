@@ -39,6 +39,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "common/settings_common.h"
 #include "yuzu/configuration/shared_translation.h"
 

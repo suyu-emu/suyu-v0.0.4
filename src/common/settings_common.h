@@ -60,9 +60,6 @@ enum Specialization : u8 {
     Percentage = (1 << SpecializationAttributeOffset),
 };
 
-bool IsConfiguringGlobal();
-void SetConfiguringGlobal(bool is_global);
-
 class BasicSetting;
 
 class Linkage {
