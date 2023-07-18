@@ -34,6 +34,10 @@ public:
      * @param default_val Initial value of the setting, and default value of the setting
      * @param name Label for the setting
      * @param category_ Category of the setting AKA INI group
+     * @param specialization_ Suggestion for how frontend implemetations represent this in a config
+     * @param save_ Suggests that this should or should not be saved to a frontend config file
+     * @param runtime_modifiable_ Suggests whether this is modifiable while a guest is loaded
+     * @param other_setting_ A second Setting to associate to this one in metadata
      */
     explicit Setting(Linkage& linkage, const Type& default_val, const std::string& name,
                      enum Category category_, u32 specialization_ = Specialization::Default,
@@ -54,6 +58,10 @@ public:
      * @param max_val Sets the maximum allowed value of the setting
      * @param name Label for the setting
      * @param category_ Category of the setting AKA INI group
+     * @param specialization_ Suggestion for how frontend implemetations represent this in a config
+     * @param save_ Suggests that this should or should not be saved to a frontend config file
+     * @param runtime_modifiable_ Suggests whether this is modifiable while a guest is loaded
+     * @param other_setting_ A second Setting to associate to this one in metadata
      */
     explicit Setting(Linkage& linkage, const Type& default_val, const Type& min_val,
                      const Type& max_val, const std::string& name, enum Category category_,
@@ -93,18 +101,19 @@ public:
     }
 
     [[nodiscard]] constexpr bool IsEnum() const override {
-        return std::is_enum<Type>::value;
+        return std::is_enum_v<Type>;
     }
 
 protected:
-    std::string ToString(const Type& value_) const {
-        if constexpr (std::is_same<Type, std::string>()) {
+    [[nodiscard]] std::string ToString(const Type& value_) const {
+        if constexpr (std::is_same_v<Type, std::string>) {
             return value_;
-        } else if constexpr (std::is_same<Type, std::optional<u32>>()) {
+        } else if constexpr (std::is_same_v<Type, std::optional<u32>>) {
             return value_.has_value() ? std::to_string(*value_) : "none";
-        } else if constexpr (std::is_same<Type, bool>()) {
+        } else if constexpr (std::is_same_v<Type, bool>) {
             return value_ ? "true" : "false";
-        } else if constexpr (std::is_same<Type, AudioEngine>()) {
+        } else if constexpr (std::is_same_v<Type, AudioEngine>) {
+            // Compatibility with old AudioEngine setting being a string
             return CanonicalizeEnum(value_);
         } else {
             return std::to_string(static_cast<u64>(value_));
@@ -118,7 +127,7 @@ public:
      *
      * @returns The current setting as a std::string
      */
-    std::string ToString() const override {
+    [[nodiscard]] std::string ToString() const override {
         return ToString(this->GetValue());
     }
 
@@ -127,7 +136,7 @@ public:
      *
      * @returns The default value as a string.
      */
-    std::string DefaultToString() const override {
+    [[nodiscard]] std::string DefaultToString() const override {
         return ToString(default_value);
     }
 
@@ -159,19 +168,19 @@ public:
      *
      * @param input The desired value
      */
-    void LoadString(const std::string& input) override {
+    void LoadString(const std::string& input) override final {
         if (input.empty()) {
             this->SetValue(this->GetDefault());
             return;
         }
         try {
-            if constexpr (std::is_same<Type, std::string>()) {
+            if constexpr (std::is_same_v<Type, std::string>) {
                 this->SetValue(input);
-            } else if constexpr (std::is_same<Type, std::optional<u32>>()) {
+            } else if constexpr (std::is_same_v<Type, std::optional<u32>>) {
                 this->SetValue(static_cast<u32>(std::stoul(input)));
-            } else if constexpr (std::is_same<Type, bool>()) {
+            } else if constexpr (std::is_same_v<Type, bool>) {
                 this->SetValue(input == "true");
-            } else if constexpr (std::is_same<Type, AudioEngine>()) {
+            } else if constexpr (std::is_same_v<Type, AudioEngine>) {
                 this->SetValue(ToEnum<Type>(input));
             } else {
                 this->SetValue(static_cast<Type>(std::stoll(input)));
@@ -181,8 +190,8 @@ public:
         }
     }
 
-    [[nodiscard]] std::string constexpr Canonicalize() const override {
-        if constexpr (std::is_enum<Type>::value) {
+    [[nodiscard]] std::string constexpr Canonicalize() const override final {
+        if constexpr (std::is_enum_v<Type>) {
             return CanonicalizeEnum(this->GetValue());
         } else {
             return ToString(this->GetValue());
@@ -194,26 +203,26 @@ public:
      *
      * @returns the type_index of the setting's type
      */
-    virtual std::type_index TypeId() const override {
+    [[nodiscard]] std::type_index TypeId() const override final {
         return std::type_index(typeid(Type));
     }
 
-    constexpr u32 EnumIndex() const override {
-        if constexpr (std::is_enum<Type>()) {
+    [[nodiscard]] constexpr u32 EnumIndex() const override final {
+        if constexpr (std::is_enum_v<Type>) {
             return EnumMetadata<Type>::Index();
         } else {
             return std::numeric_limits<u32>::max();
         }
     }
 
-    virtual std::string MinVal() const override {
+    [[nodiscard]] std::string MinVal() const override final {
         return this->ToString(minimum);
     }
-    virtual std::string MaxVal() const override {
+    [[nodiscard]] std::string MaxVal() const override final {
         return this->ToString(maximum);
     }
 
-    constexpr bool Ranged() const override {
+    [[nodiscard]] constexpr bool Ranged() const override {
         return ranged;
     }
 
@@ -242,6 +251,10 @@ public:
      * @param default_val Initial value of the setting, and default value of the setting
      * @param name Label for the setting
      * @param category_ Category of the setting AKA INI group
+     * @param specialization_ Suggestion for how frontend implemetations represent this in a config
+     * @param save_ Suggests that this should or should not be saved to a frontend config file
+     * @param runtime_modifiable_ Suggests whether this is modifiable while a guest is loaded
+     * @param other_setting_ A second Setting to associate to this one in metadata
      */
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const std::string& name,
                                Category category_, u32 specialization_ = Specialization::Default,
@@ -264,6 +277,10 @@ public:
      * @param max_val Sets the maximum allowed value of the setting
      * @param name Label for the setting
      * @param category_ Category of the setting AKA INI group
+     * @param specialization_ Suggestion for how frontend implemetations represent this in a config
+     * @param save_ Suggests that this should or should not be saved to a frontend config file
+     * @param runtime_modifiable_ Suggests whether this is modifiable while a guest is loaded
+     * @param other_setting_ A second Setting to associate to this one in metadata
      */
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const Type& min_val,
                                const Type& max_val, const std::string& name, Category category_,
@@ -284,7 +301,7 @@ public:
      *
      * @param to_global Whether to use the global or custom setting.
      */
-    void SetGlobal(bool to_global) override {
+    void SetGlobal(bool to_global) override final {
         use_global = to_global;
     }
 
@@ -293,7 +310,7 @@ public:
      *
      * @returns The global state
      */
-    [[nodiscard]] bool UsingGlobal() const override {
+    [[nodiscard]] bool UsingGlobal() const override final {
         return use_global;
     }
 
@@ -305,13 +322,13 @@ public:
      *
      * @returns The required value of the setting
      */
-    [[nodiscard]] virtual const Type& GetValue() const override {
+    [[nodiscard]] const Type& GetValue() const override final {
         if (use_global) {
             return this->value;
         }
         return custom;
     }
-    [[nodiscard]] virtual const Type& GetValue(bool need_global) const {
+    [[nodiscard]] const Type& GetValue(bool need_global) const {
         if (use_global || need_global) {
             return this->value;
         }
@@ -323,7 +340,7 @@ public:
      *
      * @param val The new value
      */
-    void SetValue(const Type& val) override {
+    void SetValue(const Type& val) override final {
         Type temp{ranged ? std::clamp(val, this->minimum, this->maximum) : val};
         if (use_global) {
             std::swap(this->value, temp);
@@ -332,11 +349,11 @@ public:
         }
     }
 
-    [[nodiscard]] virtual constexpr bool Switchable() const override {
+    [[nodiscard]] constexpr bool Switchable() const override final {
         return true;
     }
 
-    [[nodiscard]] virtual std::string ToStringGlobal() const override {
+    [[nodiscard]] std::string ToStringGlobal() const override final {
         return this->ToString(this->value);
     }
 
@@ -347,7 +364,7 @@ public:
      *
      * @returns A reference to the current setting value
      */
-    const Type& operator=(const Type& val) override {
+    const Type& operator=(const Type& val) override final {
         Type temp{ranged ? std::clamp(val, this->minimum, this->maximum) : val};
         if (use_global) {
             std::swap(this->value, temp);
@@ -362,7 +379,7 @@ public:
      *
      * @returns A reference to the current setting value
      */
-    virtual explicit operator const Type&() const override {
+    explicit operator const Type&() const override final {
         if (use_global) {
             return this->value;
         }

@@ -25,6 +25,7 @@
 
 namespace Settings {
 
+// Clang 14 and earlier have errors when explicitly instantiating these classes
 #ifndef CANNOT_EXPLICITLY_INSTANTIATE
 #define SETTING(TYPE, RANGED) template class Setting<TYPE, RANGED>
 #define SWITCHABLE(TYPE, RANGED) template class SwitchableSetting<TYPE, RANGED>
@@ -113,11 +114,11 @@ void LogSettings() {
 
         for (const auto& setting : settings) {
             if (setting->Id() == values.yuzu_token.Id()) {
-                // Hide the token secret, which could be used to share patreon builds
+                // Hide the token secret, for security reasons.
                 continue;
             }
 
-            std::string name = fmt::format(
+            const auto name = fmt::format(
                 "{:c}{:c} {}.{}", setting->ToString() == setting->DefaultToString() ? '-' : 'M',
                 setting->UsingGlobal() ? '-' : 'C', TranslateCategory(category),
                 setting->GetLabel());
