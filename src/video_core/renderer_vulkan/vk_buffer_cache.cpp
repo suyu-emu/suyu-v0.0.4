@@ -80,8 +80,8 @@ Buffer::Buffer(BufferCacheRuntime&, VideoCommon::NullBufferParams null_params)
 Buffer::Buffer(BufferCacheRuntime& runtime, VideoCore::RasterizerInterface& rasterizer_,
                VAddr cpu_addr_, u64 size_bytes_)
     : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(rasterizer_, cpu_addr_, size_bytes_),
-      device{&runtime.device},
-      buffer{CreateBuffer(*device, runtime.memory_allocator, SizeBytes())} {
+      device{&runtime.device}, buffer{
+                                   CreateBuffer(*device, runtime.memory_allocator, SizeBytes())} {
     if (runtime.device.HasDebuggingToolAttached()) {
         buffer.SetObjectNameEXT(fmt::format("Buffer 0x{:x}", CpuAddr()).c_str());
     }
