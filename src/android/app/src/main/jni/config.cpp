@@ -169,7 +169,7 @@ void Config::ReadValues() {
 
     // Core
     ReadSetting("Core", Settings::values.use_multi_core);
-    ReadSetting("Core", Settings::values.use_unsafe_extended_memory_layout);
+    ReadSetting("Core", Settings::values.memory_layout_mode);
 
     // Cpu
     ReadSetting("Cpu", Settings::values.cpu_accuracy);
