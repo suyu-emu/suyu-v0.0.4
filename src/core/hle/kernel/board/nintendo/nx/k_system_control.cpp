@@ -43,6 +43,7 @@ u32 GetMemorySizeForInit() {
     case Settings::MemoryLayout::Memory_8Gb:
         return Smc::MemorySize_8GB;
     }
+    return Smc::MemorySize_4GB;
 }
 
 Smc::MemoryArrangement GetMemoryArrangeForInit() {
@@ -54,6 +55,7 @@ Smc::MemoryArrangement GetMemoryArrangeForInit() {
     case Settings::MemoryLayout::Memory_8Gb:
         return Smc::MemoryArrangement_8GB;
     }
+    return Smc::MemoryArrangement_4GB;
 }
 } // namespace
 
