@@ -40,7 +40,7 @@ public:
      * @param other_setting_ A second Setting to associate to this one in metadata
      */
     explicit Setting(Linkage& linkage, const Type& default_val, const std::string& name,
-                     enum Category category_, u32 specialization_ = Specialization::Default,
+                     Category category_, u32 specialization_ = Specialization::Default,
                      bool save_ = true, bool runtime_modifiable_ = false,
                      BasicSetting* other_setting_ = nullptr)
         requires(!ranged)
@@ -64,7 +64,7 @@ public:
      * @param other_setting_ A second Setting to associate to this one in metadata
      */
     explicit Setting(Linkage& linkage, const Type& default_val, const Type& min_val,
-                     const Type& max_val, const std::string& name, enum Category category_,
+                     const Type& max_val, const std::string& name, Category category_,
                      u32 specialization_ = Specialization::Default, bool save_ = true,
                      bool runtime_modifiable_ = false, BasicSetting* other_setting_ = nullptr)
         requires(ranged)

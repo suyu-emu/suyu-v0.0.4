@@ -36,7 +36,7 @@ bool BasicSetting::RuntimeModfiable() const {
     return runtime_modifiable;
 }
 
-Category BasicSetting::Category() const {
+Category BasicSetting::GetCategory() const {
     return category;
 }
 

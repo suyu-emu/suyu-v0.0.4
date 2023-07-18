@@ -196,7 +196,7 @@ public:
      *
      * @returns The setting's category
      */
-    [[nodiscard]] enum Category Category() const;
+    [[nodiscard]] Category GetCategory() const;
 
     /**
      * @returns Extra metadata for data representation in frontend implementations.
@@ -246,9 +246,9 @@ public:
     [[nodiscard]] virtual bool UsingGlobal() const;
 
 private:
-    const std::string label;      ///< The setting's label
-    const enum Category category; ///< The setting's category AKA INI group
-    const u32 id;                 ///< Unique integer for the setting
+    const std::string label; ///< The setting's label
+    const Category category; ///< The setting's category AKA INI group
+    const u32 id;            ///< Unique integer for the setting
     const bool save; ///< Suggests if the setting should be saved and read to a frontend config
     const bool
         runtime_modifiable;   ///< Suggests if the setting can be modified while a guest is running

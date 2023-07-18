@@ -124,7 +124,7 @@ void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
             combo_language = widget->combobox;
         }
 
-        switch (setting->Category()) {
+        switch (setting->GetCategory()) {
         case Settings::Category::Core:
             core_hold.emplace(setting->Id(), widget);
             break;
