@@ -469,9 +469,9 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
         ComputePipelineCacheKey key;
         file.read(reinterpret_cast<char*>(&key), sizeof(key));
 
-        workers.QueueWork([this, key, env = std::move(env), &state, &callback]() mutable {
+        workers.QueueWork([this, key, env_ = std::move(env), &state, &callback]() mutable {
             ShaderPools pools;
-            auto pipeline{CreateComputePipeline(pools, key, env, state.statistics.get(), false)};
+            auto pipeline{CreateComputePipeline(pools, key, env_, state.statistics.get(), false)};
             std::scoped_lock lock{state.mutex};
             if (pipeline) {
                 compute_cache.emplace(key, std::move(pipeline));
@@ -500,10 +500,10 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
             (key.state.dynamic_vertex_input != 0) != dynamic_features.has_dynamic_vertex_input) {
             return;
         }
-        workers.QueueWork([this, key, envs = std::move(envs), &state, &callback]() mutable {
+        workers.QueueWork([this, key, envs_ = std::move(envs), &state, &callback]() mutable {
             ShaderPools pools;
             boost::container::static_vector<Shader::Environment*, 5> env_ptrs;
-            for (auto& env : envs) {
+            for (auto& env : envs_) {
                 env_ptrs.push_back(&env);
             }
             auto pipeline{CreateGraphicsPipeline(pools, key, MakeSpan(env_ptrs),
@@ -702,8 +702,8 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     if (!pipeline || pipeline_cache_filename.empty()) {
         return pipeline;
     }
-    serialization_thread.QueueWork([this, key, env = std::move(env)] {
-        SerializePipeline(key, std::array<const GenericEnvironment*, 1>{&env},
+    serialization_thread.QueueWork([this, key, env_ = std::move(env)] {
+        SerializePipeline(key, std::array<const GenericEnvironment*, 1>{&env_},
                           pipeline_cache_filename, CACHE_VERSION);
     });
     return pipeline;

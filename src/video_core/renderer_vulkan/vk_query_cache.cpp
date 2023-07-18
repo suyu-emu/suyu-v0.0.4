@@ -98,10 +98,10 @@ HostCounter::HostCounter(QueryCache& cache_, std::shared_ptr<HostCounter> depend
     : HostCounterBase{std::move(dependency_)}, cache{cache_}, type{type_},
       query{cache_.AllocateQuery(type_)}, tick{cache_.GetScheduler().CurrentTick()} {
     const vk::Device* logical = &cache.GetDevice().GetLogical();
-    cache.GetScheduler().Record([logical, query = query](vk::CommandBuffer cmdbuf) {
+    cache.GetScheduler().Record([logical, query_ = query](vk::CommandBuffer cmdbuf) {
         const bool use_precise = Settings::IsGPULevelHigh();
-        logical->ResetQueryPool(query.first, query.second, 1);
-        cmdbuf.BeginQuery(query.first, query.second,
+        logical->ResetQueryPool(query_.first, query_.second, 1);
+        cmdbuf.BeginQuery(query_.first, query_.second,
                           use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
     });
 }
@@ -111,8 +111,9 @@ HostCounter::~HostCounter() {
 }
 
 void HostCounter::EndQuery() {
-    cache.GetScheduler().Record(
-        [query = query](vk::CommandBuffer cmdbuf) { cmdbuf.EndQuery(query.first, query.second); });
+    cache.GetScheduler().Record([query_ = query](vk::CommandBuffer cmdbuf) {
+        cmdbuf.EndQuery(query_.first, query_.second);
+    });
 }
 
 u64 HostCounter::BlockingQuery(bool async) const {

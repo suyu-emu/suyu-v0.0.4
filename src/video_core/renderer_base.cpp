@@ -38,8 +38,8 @@ void RendererBase::RequestScreenshot(void* data, std::function<void(bool)> callb
         LOG_ERROR(Render, "A screenshot is already requested or in progress, ignoring the request");
         return;
     }
-    auto async_callback{[callback = std::move(callback)](bool invert_y) {
-        std::thread t{callback, invert_y};
+    auto async_callback{[callback_ = std::move(callback)](bool invert_y) {
+        std::thread t{callback_, invert_y};
         t.detach();
     }};
     renderer_settings.screenshot_bits = data;
