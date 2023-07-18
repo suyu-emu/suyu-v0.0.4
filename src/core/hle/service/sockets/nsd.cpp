@@ -10,6 +10,15 @@ namespace Service::Sockets {
 
 constexpr Result ResultOverflow{ErrorModule::NSD, 6};
 
+// This is nn::oe::ServerEnvironmentType
+enum class ServerEnvironmentType : u8 {
+    Dd,
+    Lp,
+    Sd,
+    Sp,
+    Dp,
+};
+
 NSD::NSD(Core::System& system_, const char* name) : ServiceFramework{system_, name} {
     // clang-format off
     static const FunctionInfo functions[] = {
@@ -36,7 +45,7 @@ NSD::NSD(Core::System& system_, const char* name) : ServiceFramework{system_, na
         {62, nullptr, "DeleteSaveDataOfFsForTest"},
         {63, nullptr, "IsChangeEnvironmentIdentifierDisabled"},
         {64, nullptr, "SetWithoutDomainExchangeFqdns"},
-        {100, nullptr, "GetApplicationServerEnvironmentType"},
+        {100, &NSD::GetApplicationServerEnvironmentType, "GetApplicationServerEnvironmentType"},
         {101, nullptr, "SetApplicationServerEnvironmentType"},
         {102, nullptr, "DeleteApplicationServerEnvironmentType"},
     };
@@ -92,6 +101,12 @@ void NSD::ResolveEx(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
     rb.Push(ResultSuccess);
+}
+
+void NSD::GetApplicationServerEnvironmentType(HLERequestContext& ctx) {
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(static_cast<u32>(ServerEnvironmentType::Lp));
 }
 
 NSD::~NSD() = default;

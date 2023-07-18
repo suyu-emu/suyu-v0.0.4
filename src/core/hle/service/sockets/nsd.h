@@ -19,6 +19,7 @@ public:
 private:
     void Resolve(HLERequestContext& ctx);
     void ResolveEx(HLERequestContext& ctx);
+    void GetApplicationServerEnvironmentType(HLERequestContext& ctx);
 };
 
 } // namespace Service::Sockets
