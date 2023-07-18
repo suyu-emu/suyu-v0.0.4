@@ -34,7 +34,7 @@ public:
      * @param default_val Initial value of the setting, and default value of the setting
      * @param name Label for the setting
      * @param category_ Category of the setting AKA INI group
-     * @param specialization_ Suggestion for how frontend implemetations represent this in a config
+     * @param specialization_ Suggestion for how frontend implementations represent this in a config
      * @param save_ Suggests that this should or should not be saved to a frontend config file
      * @param runtime_modifiable_ Suggests whether this is modifiable while a guest is loaded
      * @param other_setting_ A second Setting to associate to this one in metadata
@@ -58,7 +58,7 @@ public:
      * @param max_val Sets the maximum allowed value of the setting
      * @param name Label for the setting
      * @param category_ Category of the setting AKA INI group
-     * @param specialization_ Suggestion for how frontend implemetations represent this in a config
+     * @param specialization_ Suggestion for how frontend implementations represent this in a config
      * @param save_ Suggests that this should or should not be saved to a frontend config file
      * @param runtime_modifiable_ Suggests whether this is modifiable while a guest is loaded
      * @param other_setting_ A second Setting to associate to this one in metadata
@@ -251,7 +251,7 @@ public:
      * @param default_val Initial value of the setting, and default value of the setting
      * @param name Label for the setting
      * @param category_ Category of the setting AKA INI group
-     * @param specialization_ Suggestion for how frontend implemetations represent this in a config
+     * @param specialization_ Suggestion for how frontend implementations represent this in a config
      * @param save_ Suggests that this should or should not be saved to a frontend config file
      * @param runtime_modifiable_ Suggests whether this is modifiable while a guest is loaded
      * @param other_setting_ A second Setting to associate to this one in metadata
@@ -277,7 +277,7 @@ public:
      * @param max_val Sets the maximum allowed value of the setting
      * @param name Label for the setting
      * @param category_ Category of the setting AKA INI group
-     * @param specialization_ Suggestion for how frontend implemetations represent this in a config
+     * @param specialization_ Suggestion for how frontend implementations represent this in a config
      * @param save_ Suggests that this should or should not be saved to a frontend config file
      * @param runtime_modifiable_ Suggests whether this is modifiable while a guest is loaded
      * @param other_setting_ A second Setting to associate to this one in metadata
