@@ -506,8 +506,8 @@ void ISelfController::SetHandlesRequestToDisplay(HLERequestContext& ctx) {
 void ISelfController::SetIdleTimeDetectionExtension(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     idle_time_detection_extension = rp.Pop<u32>();
-    LOG_WARNING(Service_AM, "(STUBBED) called idle_time_detection_extension={}",
-                idle_time_detection_extension);
+    LOG_DEBUG(Service_AM, "(STUBBED) called idle_time_detection_extension={}",
+              idle_time_detection_extension);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
