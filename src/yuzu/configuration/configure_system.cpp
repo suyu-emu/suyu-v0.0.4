@@ -96,7 +96,7 @@ void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
     std::map<u32, QWidget*> system_hold{};
 
     std::forward_list<Settings::BasicSetting*> settings;
-    auto push = [&settings](std::forward_list<Settings::BasicSetting*>& list) {
+    auto push = [&settings](auto& list) {
         for (auto setting : list) {
             settings.push_front(setting);
         }
