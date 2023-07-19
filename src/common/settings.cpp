@@ -108,10 +108,6 @@ void LogSettings() {
 
     LOG_INFO(Config, "yuzu Configuration:");
     for (auto& [category, settings] : values.linkage.by_category) {
-        settings.sort([](const BasicSetting* a, const BasicSetting* b) {
-            return a->GetLabel() < b->GetLabel();
-        });
-
         for (const auto& setting : settings) {
             if (setting->Id() == values.yuzu_token.Id()) {
                 // Hide the token secret, for security reasons.
