@@ -30,8 +30,8 @@ DetachedTasks::~DetachedTasks() {
 void DetachedTasks::AddTask(std::function<void()> task) {
     std::unique_lock lock{instance->mutex};
     ++instance->count;
-    std::thread([task{std::move(task)}]() {
-        task();
+    std::thread([task_{std::move(task)}]() {
+        task_();
         std::unique_lock thread_lock{instance->mutex};
         --instance->count;
         std::notify_all_at_thread_exit(instance->cv, std::move(thread_lock));

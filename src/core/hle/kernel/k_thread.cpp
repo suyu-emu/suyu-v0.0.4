@@ -302,12 +302,12 @@ Result KThread::InitializeServiceThread(Core::System& system, KThread* thread,
                                         std::function<void()>&& func, s32 prio, s32 virt_core,
                                         KProcess* owner) {
     system.Kernel().GlobalSchedulerContext().AddThread(thread);
-    std::function<void()> func2{[&system, func{std::move(func)}] {
+    std::function<void()> func2{[&system, func_{std::move(func)}] {
         // Similar to UserModeThreadStarter.
         system.Kernel().CurrentScheduler()->OnThreadStart();
 
         // Run the guest function.
-        func();
+        func_();
 
         // Exit.
         Svc::ExitThread(system);

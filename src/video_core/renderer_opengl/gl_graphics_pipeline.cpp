@@ -231,24 +231,25 @@ GraphicsPipeline::GraphicsPipeline(const Device& device, TextureCache& texture_c
     }
     const bool in_parallel = thread_worker != nullptr;
     const auto backend = device.GetShaderBackend();
-    auto func{[this, sources = std::move(sources), sources_spirv = std::move(sources_spirv),
+    auto func{[this, sources_ = std::move(sources), sources_spirv_ = std::move(sources_spirv),
                shader_notify, backend, in_parallel,
                force_context_flush](ShaderContext::Context*) mutable {
         for (size_t stage = 0; stage < 5; ++stage) {
             switch (backend) {
             case Settings::ShaderBackend::GLSL:
-                if (!sources[stage].empty()) {
-                    source_programs[stage] = CreateProgram(sources[stage], Stage(stage));
+                if (!sources_[stage].empty()) {
+                    source_programs[stage] = CreateProgram(sources_[stage], Stage(stage));
                 }
                 break;
             case Settings::ShaderBackend::GLASM:
-                if (!sources[stage].empty()) {
-                    assembly_programs[stage] = CompileProgram(sources[stage], AssemblyStage(stage));
+                if (!sources_[stage].empty()) {
+                    assembly_programs[stage] =
+                        CompileProgram(sources_[stage], AssemblyStage(stage));
                 }
                 break;
             case Settings::ShaderBackend::SPIRV:
-                if (!sources_spirv[stage].empty()) {
-                    source_programs[stage] = CreateProgram(sources_spirv[stage], Stage(stage));
+                if (!sources_spirv_[stage].empty()) {
+                    source_programs[stage] = CreateProgram(sources_spirv_[stage], Stage(stage));
                 }
                 break;
             }

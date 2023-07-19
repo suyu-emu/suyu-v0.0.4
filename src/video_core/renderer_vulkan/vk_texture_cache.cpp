@@ -1412,7 +1412,7 @@ void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<VkDeviceS
     }
     scheduler->RequestOutsideRenderPassOperationContext();
     scheduler->Record([buffers = std::move(buffers_vector), image = *original_image,
-                       aspect_mask = aspect_mask, vk_copies](vk::CommandBuffer cmdbuf) {
+                       aspect_mask_ = aspect_mask, vk_copies](vk::CommandBuffer cmdbuf) {
         const VkImageMemoryBarrier read_barrier{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -1424,7 +1424,7 @@ void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<VkDeviceS
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = image,
             .subresourceRange{
-                .aspectMask = aspect_mask,
+                .aspectMask = aspect_mask_,
                 .baseMipLevel = 0,
                 .levelCount = VK_REMAINING_MIP_LEVELS,
                 .baseArrayLayer = 0,
@@ -1456,7 +1456,7 @@ void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<VkDeviceS
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = image,
             .subresourceRange{
-                .aspectMask = aspect_mask,
+                .aspectMask = aspect_mask_,
                 .baseMipLevel = 0,
                 .levelCount = VK_REMAINING_MIP_LEVELS,
                 .baseArrayLayer = 0,

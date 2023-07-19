@@ -23,7 +23,7 @@ std::string DemangleSymbol(const std::string& mangled) {
     SCOPE_EXIT({ std::free(demangled); });
 
     if (is_itanium(mangled)) {
-        demangled = llvm::itaniumDemangle(mangled.c_str(), nullptr, nullptr, nullptr);
+        demangled = llvm::itaniumDemangle(mangled.c_str());
     }
 
     if (!demangled) {

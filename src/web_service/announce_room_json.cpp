@@ -135,11 +135,11 @@ void RoomJson::Delete() {
         LOG_ERROR(WebService, "Room must be registered to be deleted");
         return;
     }
-    Common::DetachedTasks::AddTask(
-        [host{this->host}, username{this->username}, token{this->token}, room_id{this->room_id}]() {
-            // create a new client here because the this->client might be destroyed.
-            Client{host, username, token}.DeleteJson(fmt::format("/lobby/{}", room_id), "", false);
-        });
+    Common::DetachedTasks::AddTask([host_{this->host}, username_{this->username},
+                                    token_{this->token}, room_id_{this->room_id}]() {
+        // create a new client here because the this->client might be destroyed.
+        Client{host_, username_, token_}.DeleteJson(fmt::format("/lobby/{}", room_id_), "", false);
+    });
 }
 
 } // namespace WebService

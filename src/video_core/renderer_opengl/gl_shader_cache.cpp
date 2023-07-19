@@ -288,9 +288,9 @@ void ShaderCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
     const auto load_compute{[&](std::ifstream& file, FileEnvironment env) {
         ComputePipelineKey key;
         file.read(reinterpret_cast<char*>(&key), sizeof(key));
-        queue_work([this, key, env = std::move(env), &state, &callback](Context* ctx) mutable {
+        queue_work([this, key, env_ = std::move(env), &state, &callback](Context* ctx) mutable {
             ctx->pools.ReleaseContents();
-            auto pipeline{CreateComputePipeline(ctx->pools, key, env, true)};
+            auto pipeline{CreateComputePipeline(ctx->pools, key, env_, true)};
             std::scoped_lock lock{state.mutex};
             if (pipeline) {
                 compute_cache.emplace(key, std::move(pipeline));
@@ -305,9 +305,9 @@ void ShaderCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
     const auto load_graphics{[&](std::ifstream& file, std::vector<FileEnvironment> envs) {
         GraphicsPipelineKey key;
         file.read(reinterpret_cast<char*>(&key), sizeof(key));
-        queue_work([this, key, envs = std::move(envs), &state, &callback](Context* ctx) mutable {
+        queue_work([this, key, envs_ = std::move(envs), &state, &callback](Context* ctx) mutable {
             boost::container::static_vector<Shader::Environment*, 5> env_ptrs;
-            for (auto& env : envs) {
+            for (auto& env : envs_) {
                 env_ptrs.push_back(&env);
             }
             ctx->pools.ReleaseContents();
