@@ -34,8 +34,6 @@
 #include "core/hle/service/nfc/mifare_result.h"
 #include "core/hle/service/nfc/nfc_result.h"
 #include "core/hle/service/time/time_manager.h"
-#include "core/hle/service/time/time_zone_content_manager.h"
-#include "core/hle/service/time/time_zone_types.h"
 
 namespace Service::NFC {
 NfcDevice::NfcDevice(Core::HID::NpadIdType npad_id_, Core::System& system_,
@@ -1486,6 +1484,7 @@ DeviceState NfcDevice::GetCurrentState() const {
 }
 
 Result NfcDevice::GetNpadId(Core::HID::NpadIdType& out_npad_id) const {
+    // TODO: This should get the npad id from nn::hid::system::GetXcdHandleForNpadWithNfc
     out_npad_id = npad_id;
     return ResultSuccess;
 }

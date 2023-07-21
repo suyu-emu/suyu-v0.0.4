@@ -180,7 +180,7 @@ std::vector<u8> GenerateInternalKey(const InternalKey& key, const HashSeed& seed
 }
 
 void CryptoInit(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, const HmacKey& hmac_key,
-                const std::vector<u8>& seed) {
+                std::span<const u8> seed) {
     // Initialize context
     ctx.used = false;
     ctx.counter = 0;
