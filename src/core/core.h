@@ -381,6 +381,9 @@ public:
     [[nodiscard]] FileSys::ContentProvider& GetContentProvider();
     [[nodiscard]] const FileSys::ContentProvider& GetContentProvider() const;
 
+    [[nodiscard]] FileSys::ContentProviderUnion& GetContentProviderUnion();
+    [[nodiscard]] const FileSys::ContentProviderUnion& GetContentProviderUnion() const;
+
     [[nodiscard]] Service::FileSystem::FileSystemController& GetFileSystemController();
     [[nodiscard]] const Service::FileSystem::FileSystemController& GetFileSystemController() const;
 

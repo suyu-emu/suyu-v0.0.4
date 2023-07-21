@@ -235,7 +235,7 @@ GameListWorker::~GameListWorker() = default;
 void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
     using namespace FileSys;
 
-    const auto& cache = dynamic_cast<ContentProviderUnion&>(system.GetContentProvider());
+    const auto& cache = system.GetContentProviderUnion();
 
     auto installed_games = cache.ListEntriesFilterOrigin(std::nullopt, TitleType::Application,
                                                          ContentRecordType::Program);

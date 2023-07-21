@@ -449,7 +449,7 @@ private:
         loader->ReadTitle(entry.title);
         loader->ReadIcon(entry.icon);
         if (loader->GetFileType() == Loader::FileType::NRO) {
-            jauto loader_nro = dynamic_cast<Loader::AppLoader_NRO*>(loader.get());
+            jauto loader_nro = reinterpret_cast<Loader::AppLoader_NRO*>(loader.get());
             entry.isHomebrew = loader_nro->IsHomebrew();
         } else {
             entry.isHomebrew = false;
