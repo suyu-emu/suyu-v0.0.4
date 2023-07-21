@@ -346,11 +346,11 @@ void ARM_Dynarmic_32::RewindBreakpointInstruction() {
 }
 
 ARM_Dynarmic_32::ARM_Dynarmic_32(System& system_, bool uses_wall_clock_,
-                                 ExclusiveMonitor& exclusive_monitor_, std::size_t core_index_)
+                                 DynarmicExclusiveMonitor& exclusive_monitor_,
+                                 std::size_t core_index_)
     : ARM_Interface{system_, uses_wall_clock_}, cb(std::make_unique<DynarmicCallbacks32>(*this)),
       cp15(std::make_shared<DynarmicCP15>(*this)), core_index{core_index_},
-      exclusive_monitor{dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor_)},
-      null_jit{MakeJit(nullptr)}, jit{null_jit.get()} {}
+      exclusive_monitor{exclusive_monitor_}, null_jit{MakeJit(nullptr)}, jit{null_jit.get()} {}
 
 ARM_Dynarmic_32::~ARM_Dynarmic_32() = default;
 
