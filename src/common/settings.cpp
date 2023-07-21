@@ -26,7 +26,8 @@ std::string GetTimeZoneString() {
 
     std::string location_name;
     if (time_zone_index == 0) { // Auto
-#if __cpp_lib_chrono >= 201907L
+#if __cpp_lib_chrono >= 201907L && !defined(MINGW)
+        // Disabled for MinGW -- tzdb always returns Etc/UTC
         try {
             const struct std::chrono::tzdb& time_zone_data = std::chrono::get_tzdb();
             const std::chrono::time_zone* current_zone = time_zone_data.current_zone();

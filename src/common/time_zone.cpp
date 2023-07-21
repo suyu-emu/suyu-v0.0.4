@@ -4,13 +4,13 @@
 #include <chrono>
 #include <exception>
 #include <iomanip>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 #include <fmt/chrono.h>
 #include <fmt/core.h>
 
 #include "common/logging/log.h"
-#include "common/settings.h"
 #include "common/time_zone.h"
 
 namespace Common::TimeZone {
@@ -33,32 +33,29 @@ std::string GetDefaultTimeZone() {
     return "GMT";
 }
 
-static std::string GetOsTimeZoneOffset() {
-    const std::time_t t{std::time(nullptr)};
-    const std::tm tm{*std::localtime(&t)};
-
-    return fmt::format("{:%z}", tm);
-}
-
-static int ConvertOsTimeZoneOffsetToInt(const std::string& timezone) {
-    try {
-        return std::stoi(timezone);
-    } catch (const std::invalid_argument&) {
-        LOG_CRITICAL(Common, "invalid_argument with {}!", timezone);
-        return 0;
-    } catch (const std::out_of_range&) {
-        LOG_CRITICAL(Common, "out_of_range with {}!", timezone);
-        return 0;
-    }
+// Results are not comparable to seconds since Epoch
+static std::time_t TmSpecToSeconds(const struct std::tm& spec) {
+    const int year = spec.tm_year - 1; // Years up to now
+    const int leap_years = year / 4 - year / 100;
+    std::time_t cumulative = spec.tm_year;
+    cumulative = cumulative * 365 + leap_years + spec.tm_yday; // Years to days
+    cumulative = cumulative * 24 + spec.tm_hour;               // Days to hours
+    cumulative = cumulative * 60 + spec.tm_min;                // Hours to minutes
+    cumulative = cumulative * 60 + spec.tm_sec;                // Minutes to seconds
+    return cumulative;
 }
 
 std::chrono::seconds GetCurrentOffsetSeconds() {
-    const int offset{ConvertOsTimeZoneOffsetToInt(GetOsTimeZoneOffset())};
+    const std::time_t t{std::time(nullptr)};
+    const std::tm local{*std::localtime(&t)};
+    const std::tm gmt{*std::gmtime(&t)};
 
-    int seconds{(offset / 100) * 60 * 60}; // Convert hour component to seconds
-    seconds += (offset % 100) * 60;        // Convert minute component to seconds
+    // gmt_seconds is a different offset than time(nullptr)
+    const auto gmt_seconds = TmSpecToSeconds(gmt);
+    const auto local_seconds = TmSpecToSeconds(local);
+    const auto seconds_offset = local_seconds - gmt_seconds;
 
-    return std::chrono::seconds{seconds};
+    return std::chrono::seconds{seconds_offset};
 }
 
 // Key is [Hours * 100 + Minutes], multiplied by 100 if DST
@@ -71,11 +68,6 @@ const static std::map<s64, const char*> off_timezones = {
 };
 
 std::string FindSystemTimeZone() {
-#if defined(MINGW)
-    // MinGW has broken strftime -- https://sourceforge.net/p/mingw-w64/bugs/793/
-    // e.g. fmt::format("{:%z}") -- returns "Eastern Daylight Time" when it should be "-0400"
-    return timezones[0];
-#else
     const s64 seconds = static_cast<s64>(GetCurrentOffsetSeconds().count());
 
     const s64 minutes = seconds / 60;
@@ -97,7 +89,6 @@ std::string FindSystemTimeZone() {
         }
     }
     return fmt::format("Etc/GMT{:s}{:d}", hours > 0 ? "-" : "+", std::abs(hours));
-#endif
 }
 
 } // namespace Common::TimeZone
