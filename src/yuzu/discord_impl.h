@@ -19,6 +19,13 @@ public:
     void Pause() override;
     void Update() override;
 
+private:
+    std::string GetGameString(const std::string& title);
+    void UpdateGameStatus(bool use_default);
+
+    std::string game_url{};
+    std::string game_title{};
+
     Core::System& system;
 };
 

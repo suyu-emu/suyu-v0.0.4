@@ -3,9 +3,12 @@
 
 #include <chrono>
 #include <string>
+
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <discord_rpc.h>
 #include <fmt/format.h>
-#include <httplib.h>
+
 #include "common/common_types.h"
 #include "common/string_util.h"
 #include "core/core.h"
@@ -31,7 +34,7 @@ void DiscordImpl::Pause() {
     Discord_ClearPresence();
 }
 
-static std::string GetGameString(const std::string& title) {
+std::string DiscordImpl::GetGameString(const std::string& title) {
     // Convert to lowercase
     std::string icon_name = Common::ToLower(title);
 
@@ -56,51 +59,60 @@ static std::string GetGameString(const std::string& title) {
     return icon_name;
 }
 
-void DiscordImpl::Update() {
+void DiscordImpl::UpdateGameStatus(bool use_default) {
+    const std::string default_text = "yuzu is an emulator for the Nintendo Switch";
+    const std::string default_image = "yuzu_logo";
+    const std::string url = use_default ? default_image : game_url;
     s64 start_time = std::chrono::duration_cast<std::chrono::seconds>(
                          std::chrono::system_clock::now().time_since_epoch())
                          .count();
-    const std::string default_text = "yuzu is an emulator for the Nintendo Switch";
-    const std::string default_image = "yuzu_logo";
-    std::string game_cover_url = "https://yuzu-emu.org";
-    std::string title;
-
     DiscordRichPresence presence{};
 
+    presence.largeImageKey = url.c_str();
+    presence.largeImageText = game_title.c_str();
+    presence.smallImageKey = default_image.c_str();
+    presence.smallImageText = default_text.c_str();
+    presence.state = game_title.c_str();
+    presence.details = "Currently in game";
+    presence.startTimestamp = start_time;
+    Discord_UpdatePresence(&presence);
+}
+
+void DiscordImpl::Update() {
+    const std::string default_text = "yuzu is an emulator for the Nintendo Switch";
+    const std::string default_image = "yuzu_logo";
+
     if (system.IsPoweredOn()) {
-        system.GetAppLoader().ReadTitle(title);
+        system.GetAppLoader().ReadTitle(game_title);
 
         // Used to format Icon URL for yuzu website game compatibility page
-        std::string icon_name = GetGameString(title);
+        std::string icon_name = GetGameString(game_title);
+        game_url = fmt::format("https://yuzu-emu.org/images/game/boxart/{}.png", icon_name);
 
-        // New Check for game cover
-        httplib::Client cli(game_cover_url);
-        cli.set_connection_timeout(std::chrono::seconds(3));
-        cli.set_read_timeout(std::chrono::seconds(3));
+        QNetworkAccessManager* manager = new QNetworkAccessManager();
 
-        if (auto res = cli.Head(fmt::format("/images/game/boxart/{}.png", icon_name))) {
-            if (res->status == 200) {
-                game_cover_url += fmt::format("/images/game/boxart/{}.png", icon_name);
-            } else {
-                game_cover_url = "yuzu_logo";
-            }
-        } else {
-            game_cover_url = "yuzu_logo";
-        }
+        QNetworkRequest request;
+        request.setUrl(QUrl(QString::fromStdString(game_url)));
+        request.setTransferTimeout(3000);
+        QNetworkReply* rep = manager->get(request);
 
-        presence.largeImageKey = game_cover_url.c_str();
-        presence.largeImageText = title.c_str();
-
-        presence.smallImageKey = default_image.c_str();
-        presence.smallImageText = default_text.c_str();
-        presence.state = title.c_str();
-        presence.details = "Currently in game";
-    } else {
-        presence.largeImageKey = default_image.c_str();
-        presence.largeImageText = default_text.c_str();
-        presence.details = "Currently not in game";
+        QObject::connect(manager, &QNetworkAccessManager::finished,
+                         [this](QNetworkReply* reply) { UpdateGameStatus(reply->error()); });
+        QObject::connect(manager, &QNetworkAccessManager::finished, manager,
+                         &QNetworkAccessManager::deleteLater);
+        QObject::connect(manager, &QNetworkAccessManager::finished, rep,
+                         &QNetworkReply::deleteLater);
+        return;
     }
 
+    s64 start_time = std::chrono::duration_cast<std::chrono::seconds>(
+                         std::chrono::system_clock::now().time_since_epoch())
+                         .count();
+
+    DiscordRichPresence presence{};
+    presence.largeImageKey = default_image.c_str();
+    presence.largeImageText = default_text.c_str();
+    presence.details = "Currently not in game";
     presence.startTimestamp = start_time;
     Discord_UpdatePresence(&presence);
 }
