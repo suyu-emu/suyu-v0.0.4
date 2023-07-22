@@ -6,8 +6,6 @@
 #include <dynarmic/interface/exclusive_monitor.h>
 
 #include "common/common_types.h"
-#include "core/arm/dynarmic/arm_dynarmic_32.h"
-#include "core/arm/dynarmic/arm_dynarmic_64.h"
 #include "core/arm/exclusive_monitor.h"
 
 namespace Core::Memory {
@@ -15,6 +13,9 @@ class Memory;
 }
 
 namespace Core {
+
+class ARM_Dynarmic_32;
+class ARM_Dynarmic_64;
 
 class DynarmicExclusiveMonitor final : public ExclusiveMonitor {
 public:

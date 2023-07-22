@@ -880,6 +880,14 @@ const FileSys::ContentProvider& System::GetContentProvider() const {
     return *impl->content_provider;
 }
 
+FileSys::ContentProviderUnion& System::GetContentProviderUnion() {
+    return *impl->content_provider;
+}
+
+const FileSys::ContentProviderUnion& System::GetContentProviderUnion() const {
+    return *impl->content_provider;
+}
+
 Service::FileSystem::FileSystemController& System::GetFileSystemController() {
     return impl->fs_controller;
 }

@@ -12,7 +12,7 @@
 #include "common/common_types.h"
 #include "common/hash.h"
 #include "core/arm/arm_interface.h"
-#include "core/arm/exclusive_monitor.h"
+#include "core/arm/dynarmic/dynarmic_exclusive_monitor.h"
 
 namespace Core::Memory {
 class Memory;
@@ -28,8 +28,8 @@ class System;
 
 class ARM_Dynarmic_32 final : public ARM_Interface {
 public:
-    ARM_Dynarmic_32(System& system_, bool uses_wall_clock_, ExclusiveMonitor& exclusive_monitor_,
-                    std::size_t core_index_);
+    ARM_Dynarmic_32(System& system_, bool uses_wall_clock_,
+                    DynarmicExclusiveMonitor& exclusive_monitor_, std::size_t core_index_);
     ~ARM_Dynarmic_32() override;
 
     void SetPC(u64 pc) override;
