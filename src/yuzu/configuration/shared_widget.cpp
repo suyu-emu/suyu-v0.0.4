@@ -23,7 +23,7 @@
 #include <QLineEdit>
 #include <QObject>
 #include <QPushButton>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QSizePolicy>
 #include <QSlider>
 #include <QSpinBox>
@@ -295,8 +295,8 @@ QWidget* Widget::CreateHexEdit(std::function<std::string()>& serializer,
         return QString::fromStdString(fmt::format("{:08x}", std::stoul(input)));
     };
 
-    QRegExpValidator* regex =
-        new QRegExpValidator{QRegExp{QStringLiteral("^[0-9a-fA-F]{0,8}$")}, line_edit};
+    QRegularExpressionValidator* regex = new QRegularExpressionValidator(
+        QRegularExpression{QStringLiteral("^[0-9a-fA-F]{0,8}$")}, line_edit);
 
     const QString default_val = to_hex(setting.ToString());
 
