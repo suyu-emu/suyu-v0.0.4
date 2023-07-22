@@ -442,6 +442,11 @@ void BufferCache<P>::UnbindComputeStorageBuffers() {
 template <class P>
 void BufferCache<P>::BindComputeStorageBuffer(size_t ssbo_index, u32 cbuf_index, u32 cbuf_offset,
                                               bool is_written) {
+    if (ssbo_index >= channel_state->compute_storage_buffers.size()) [[unlikely]] {
+        LOG_ERROR(HW_GPU, "Storage buffer index {} exceeds maximum storage buffer count",
+                  ssbo_index);
+        return;
+    }
     channel_state->enabled_compute_storage_buffers |= 1U << ssbo_index;
     channel_state->written_compute_storage_buffers |= (is_written ? 1U : 0U) << ssbo_index;
 
@@ -464,6 +469,11 @@ void BufferCache<P>::UnbindComputeTextureBuffers() {
 template <class P>
 void BufferCache<P>::BindComputeTextureBuffer(size_t tbo_index, GPUVAddr gpu_addr, u32 size,
                                               PixelFormat format, bool is_written, bool is_image) {
+    if (tbo_index >= channel_state->compute_texture_buffers.size()) [[unlikely]] {
+        LOG_ERROR(HW_GPU, "Texture buffer index {} exceeds maximum texture buffer count",
+                  tbo_index);
+        return;
+    }
     channel_state->enabled_compute_texture_buffers |= 1U << tbo_index;
     channel_state->written_compute_texture_buffers |= (is_written ? 1U : 0U) << tbo_index;
     if constexpr (SEPARATE_IMAGE_BUFFERS_BINDINGS) {
