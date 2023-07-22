@@ -42,7 +42,7 @@ void ConfigureGraphicsAdvanced::Setup(const ConfigurationShared::Builder& builde
             continue;
         }
         if (!widget->Valid()) {
-            delete widget;
+            widget->deleteLater();
             continue;
         }
 

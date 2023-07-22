@@ -49,7 +49,7 @@ void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
             continue;
         }
         if (!widget->Valid()) {
-            delete widget;
+            widget->deleteLater();
             continue;
         }
 

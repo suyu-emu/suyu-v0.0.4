@@ -112,7 +112,7 @@ void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
             continue;
         }
         if (!widget->Valid()) {
-            delete widget;
+            widget->deleteLater();
             continue;
         }
 
@@ -132,7 +132,7 @@ void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
             system_hold.emplace(setting->Id(), widget);
             break;
         default:
-            delete widget;
+            widget->deleteLater();
         }
     }
     for (const auto& [label, widget] : core_hold) {
