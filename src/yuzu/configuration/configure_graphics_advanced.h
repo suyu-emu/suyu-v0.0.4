@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 #include <QWidget>
 #include "yuzu/configuration/configuration_shared.h"
 
@@ -22,8 +23,7 @@ class Builder;
 class ConfigureGraphicsAdvanced : public ConfigurationShared::Tab {
 public:
     explicit ConfigureGraphicsAdvanced(
-        const Core::System& system_,
-        std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+        const Core::System& system_, std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
         const ConfigurationShared::Builder& builder, QWidget* parent = nullptr);
     ~ConfigureGraphicsAdvanced() override;
 
@@ -41,7 +41,7 @@ private:
 
     const Core::System& system;
 
-    std::forward_list<std::function<void(bool)>> apply_funcs;
+    std::vector<std::function<void(bool)>> apply_funcs;
 
     QWidget* checkbox_enable_compute_pipelines{};
 };

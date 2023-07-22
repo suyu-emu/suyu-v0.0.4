@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 #include <QWidget>
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/shared_translation.h"
@@ -25,7 +26,7 @@ class Builder;
 class ConfigureCpu : public ConfigurationShared::Tab {
 public:
     explicit ConfigureCpu(const Core::System& system_,
-                          std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                          std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
                           const ConfigurationShared::Builder& builder, QWidget* parent = nullptr);
     ~ConfigureCpu() override;
 
@@ -45,7 +46,7 @@ private:
     const Core::System& system;
 
     const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
-    std::forward_list<std::function<void(bool)>> apply_funcs{};
+    std::vector<std::function<void(bool)>> apply_funcs{};
 
     QComboBox* accuracy_combobox;
 };

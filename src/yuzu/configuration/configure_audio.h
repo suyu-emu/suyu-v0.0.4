@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <forward_list>
 #include <functional>
 #include <memory>
+#include <vector>
 #include <QWidget>
 #include "yuzu/configuration/configuration_shared.h"
 
@@ -26,7 +26,7 @@ class Builder;
 class ConfigureAudio : public ConfigurationShared::Tab {
 public:
     explicit ConfigureAudio(const Core::System& system_,
-                            std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                            std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
                             const ConfigurationShared::Builder& builder, QWidget* parent = nullptr);
     ~ConfigureAudio() override;
 
@@ -51,7 +51,7 @@ private:
 
     const Core::System& system;
 
-    std::forward_list<std::function<void(bool)>> apply_funcs{};
+    std::vector<std::function<void(bool)>> apply_funcs{};
 
     QComboBox* sink_combo_box;
     QComboBox* output_device_combo_box;

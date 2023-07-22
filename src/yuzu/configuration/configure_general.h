@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <memory>
+#include <vector>
 #include <QWidget>
 #include "yuzu/configuration/configuration_shared.h"
 
@@ -26,7 +27,7 @@ class Builder;
 class ConfigureGeneral : public ConfigurationShared::Tab {
 public:
     explicit ConfigureGeneral(const Core::System& system_,
-                              std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                              std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
                               const ConfigurationShared::Builder& builder,
                               QWidget* parent = nullptr);
     ~ConfigureGeneral() override;
@@ -46,7 +47,7 @@ private:
 
     std::unique_ptr<Ui::ConfigureGeneral> ui;
 
-    std::forward_list<std::function<void(bool)>> apply_funcs{};
+    std::vector<std::function<void(bool)>> apply_funcs{};
 
     const Core::System& system;
 };

@@ -547,7 +547,7 @@ Widget::~Widget() = default;
 
 Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translations_,
                const ComboboxTranslationMap& combobox_translations_, QWidget* parent_,
-               bool runtime_lock_, std::forward_list<std::function<void(bool)>>& apply_funcs_,
+               bool runtime_lock_, std::vector<std::function<void(bool)>>& apply_funcs_,
                RequestType request, bool managed, float multiplier,
                Settings::BasicSetting* other_setting, const QString& suffix)
     : QWidget(parent_), parent{parent_}, translations{translations_},
@@ -584,7 +584,7 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
         return;
     }
 
-    apply_funcs.push_front([load_func, setting_](bool powered_on) {
+    apply_funcs.push_back([load_func, setting_](bool powered_on) {
         if (setting_->RuntimeModfiable() || !powered_on) {
             load_func();
         }
@@ -607,7 +607,7 @@ Builder::Builder(QWidget* parent_, bool runtime_lock_)
 Builder::~Builder() = default;
 
 Widget* Builder::BuildWidget(Settings::BasicSetting* setting,
-                             std::forward_list<std::function<void(bool)>>& apply_funcs,
+                             std::vector<std::function<void(bool)>>& apply_funcs,
                              RequestType request, bool managed, float multiplier,
                              Settings::BasicSetting* other_setting, const QString& suffix) const {
     if (!Settings::IsConfiguringGlobal() && !setting->Switchable()) {
@@ -624,7 +624,7 @@ Widget* Builder::BuildWidget(Settings::BasicSetting* setting,
 }
 
 Widget* Builder::BuildWidget(Settings::BasicSetting* setting,
-                             std::forward_list<std::function<void(bool)>>& apply_funcs,
+                             std::vector<std::function<void(bool)>>& apply_funcs,
                              Settings::BasicSetting* other_setting, RequestType request,
                              const QString& suffix) const {
     return BuildWidget(setting, apply_funcs, request, true, 1.0f, other_setting, suffix);

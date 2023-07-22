@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <forward_list>
 #include <functional>
 #include <memory>
+#include <vector>
 
 #include <QWidget>
 #include "yuzu/configuration/configuration_shared.h"
@@ -29,7 +29,7 @@ class Builder;
 class ConfigureSystem : public ConfigurationShared::Tab {
 public:
     explicit ConfigureSystem(Core::System& system_,
-                             std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                             std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
                              const ConfigurationShared::Builder& builder,
                              QWidget* parent = nullptr);
     ~ConfigureSystem() override;
@@ -43,7 +43,7 @@ private:
 
     void Setup(const ConfigurationShared::Builder& builder);
 
-    std::forward_list<std::function<void(bool)>> apply_funcs{};
+    std::vector<std::function<void(bool)>> apply_funcs{};
 
     std::unique_ptr<Ui::ConfigureSystem> ui;
     bool enabled = false;

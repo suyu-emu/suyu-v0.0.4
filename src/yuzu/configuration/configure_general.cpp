@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <utility>
+#include <vector>
 #include <QMessageBox>
 #include "common/settings.h"
 #include "core/core.h"
@@ -12,10 +13,9 @@
 #include "yuzu/configuration/shared_widget.h"
 #include "yuzu/uisettings.h"
 
-ConfigureGeneral::ConfigureGeneral(
-    const Core::System& system_,
-    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
-    const ConfigurationShared::Builder& builder, QWidget* parent)
+ConfigureGeneral::ConfigureGeneral(const Core::System& system_,
+                                   std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,
+                                   const ConfigurationShared::Builder& builder, QWidget* parent)
     : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureGeneral>()}, system{system_} {
     ui->setupUi(this);
 

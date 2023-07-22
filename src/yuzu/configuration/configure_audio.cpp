@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <forward_list>
 #include <memory>
+#include <vector>
 #include <QComboBox>
 
 #include "audio_core/sink/sink.h"
@@ -17,7 +17,7 @@
 #include "yuzu/uisettings.h"
 
 ConfigureAudio::ConfigureAudio(const Core::System& system_,
-                               std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
+                               std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,
                                const ConfigurationShared::Builder& builder, QWidget* parent)
     : Tab(group_, parent), ui(std::make_unique<Ui::ConfigureAudio>()), system{system_} {
     ui->setupUi(this);
@@ -31,11 +31,11 @@ ConfigureAudio::~ConfigureAudio() = default;
 void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
     auto& layout = *ui->audio_widget->layout();
 
-    std::forward_list<Settings::BasicSetting*> settings;
+    std::vector<Settings::BasicSetting*> settings;
 
     auto push = [&](Settings::Category category) {
         for (auto* setting : Settings::values.linkage.by_category[category]) {
-            settings.push_front(setting);
+            settings.push_back(setting);
         }
     };
 

@@ -77,11 +77,11 @@ static constexpr Settings::VSyncMode PresentModeToSetting(VkPresentModeKHR mode)
     }
 }
 
-ConfigureGraphics::ConfigureGraphics(
-    const Core::System& system_, std::vector<VkDeviceInfo::Record>& records_,
-    const std::function<void()>& expose_compute_option_,
-    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
-    const ConfigurationShared::Builder& builder, QWidget* parent)
+ConfigureGraphics::ConfigureGraphics(const Core::System& system_,
+                                     std::vector<VkDeviceInfo::Record>& records_,
+                                     const std::function<void()>& expose_compute_option_,
+                                     std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,
+                                     const ConfigurationShared::Builder& builder, QWidget* parent)
     : ConfigurationShared::Tab(group_, parent), ui{std::make_unique<Ui::ConfigureGraphics>()},
       records{records_}, expose_compute_option{expose_compute_option_}, system{system_},
       combobox_translations{builder.ComboboxTranslations()},
@@ -228,7 +228,7 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
     QLayout& graphics_layout = *ui->graphics_widget->layout();
 
     std::map<u32, QWidget*> hold_graphics;
-    std::forward_list<QWidget*> hold_api;
+    std::vector<QWidget*> hold_api;
 
     for (const auto setting : Settings::values.linkage.by_category[Settings::Category::Renderer]) {
         ConfigurationShared::Widget* widget = [&]() {
@@ -268,12 +268,12 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
             }
         } else if (setting->Id() == Settings::values.vulkan_device.Id()) {
             // Keep track of vulkan_device's combobox so we can populate it
-            hold_api.push_front(widget);
+            hold_api.push_back(widget);
             vulkan_device_combobox = widget->combobox;
             vulkan_device_widget = widget;
         } else if (setting->Id() == Settings::values.shader_backend.Id()) {
             // Keep track of shader_backend's combobox so we can populate it
-            hold_api.push_front(widget);
+            hold_api.push_back(widget);
             shader_backend_combobox = widget->combobox;
             shader_backend_widget = widget;
         } else if (setting->Id() == Settings::values.vsync_mode.Id()) {
@@ -296,7 +296,7 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
     // Background color is too specific to build into the new system, so we manage it here
     // (3 settings, all collected into a single widget with a QColor to manage on top)
     if (Settings::IsConfiguringGlobal()) {
-        apply_funcs.push_front([this](bool powered_on) {
+        apply_funcs.push_back([this](bool powered_on) {
             Settings::values.bg_red.SetValue(static_cast<u8>(bg_color.red()));
             Settings::values.bg_green.SetValue(static_cast<u8>(bg_color.green()));
             Settings::values.bg_blue.SetValue(static_cast<u8>(bg_color.blue()));
@@ -322,7 +322,7 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
             bg_restore_button->setEnabled(true);
         });
 
-        apply_funcs.push_front([bg_restore_button, this](bool powered_on) {
+        apply_funcs.push_back([bg_restore_button, this](bool powered_on) {
             const bool using_global = !bg_restore_button->isEnabled();
             Settings::values.bg_red.SetGlobal(using_global);
             Settings::values.bg_green.SetGlobal(using_global);

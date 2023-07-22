@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <vector>
 #include <QLabel>
 #include <qnamespace.h>
 #include "common/settings.h"
@@ -12,8 +13,7 @@
 #include "yuzu/configuration/shared_widget.h"
 
 ConfigureGraphicsAdvanced::ConfigureGraphicsAdvanced(
-    const Core::System& system_,
-    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
+    const Core::System& system_, std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,
     const ConfigurationShared::Builder& builder, QWidget* parent)
     : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureGraphicsAdvanced>()}, system{system_} {
 

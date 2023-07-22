@@ -10,7 +10,6 @@
 #include <compare>
 #include <cstddef>
 #include <filesystem>
-#include <forward_list>
 #include <functional>
 #include <string_view>
 #include <type_traits>

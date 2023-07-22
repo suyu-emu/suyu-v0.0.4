@@ -3,13 +3,14 @@
 
 #include <memory>
 #include <type_traits>
+#include <vector>
 #include "yuzu/configuration/configuration_shared.h"
 
 namespace ConfigurationShared {
 
-Tab::Tab(std::shared_ptr<std::forward_list<Tab*>> group, QWidget* parent) : QWidget(parent) {
+Tab::Tab(std::shared_ptr<std::vector<Tab*>> group, QWidget* parent) : QWidget(parent) {
     if (group != nullptr) {
-        group->push_front(this);
+        group->push_back(this);
     }
 }
 

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <chrono>
-#include <forward_list>
 #include <optional>
+#include <vector>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -44,9 +44,9 @@ static bool IsValidLocale(u32 region_index, u32 language_index) {
     return ((LOCALE_BLOCKLIST.at(region_index) >> language_index) & 1) == 0;
 }
 
-ConfigureSystem::ConfigureSystem(
-    Core::System& system_, std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
-    const ConfigurationShared::Builder& builder, QWidget* parent)
+ConfigureSystem::ConfigureSystem(Core::System& system_,
+                                 std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,
+                                 const ConfigurationShared::Builder& builder, QWidget* parent)
     : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureSystem>()}, system{system_} {
     ui->setupUi(this);
 
@@ -95,10 +95,10 @@ void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
     std::map<u32, QWidget*> core_hold{};
     std::map<u32, QWidget*> system_hold{};
 
-    std::forward_list<Settings::BasicSetting*> settings;
+    std::vector<Settings::BasicSetting*> settings;
     auto push = [&settings](auto& list) {
         for (auto setting : list) {
-            settings.push_front(setting);
+            settings.push_back(setting);
         }
     };
 

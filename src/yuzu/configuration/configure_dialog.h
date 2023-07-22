@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <forward_list>
 #include <memory>
 #include <vector>
 #include <QDialog>
@@ -74,7 +73,7 @@ private:
 
     Core::System& system;
     std::unique_ptr<ConfigurationShared::Builder> builder;
-    std::forward_list<ConfigurationShared::Tab*> tab_group;
+    std::vector<ConfigurationShared::Tab*> tab_group;
 
     std::unique_ptr<ConfigureAudio> audio_tab;
     std::unique_ptr<ConfigureCpu> cpu_tab;

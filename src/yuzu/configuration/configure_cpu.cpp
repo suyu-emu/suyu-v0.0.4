@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <forward_list>
 #include <memory>
 #include <typeinfo>
+#include <vector>
 #include <QComboBox>
 #include "common/common_types.h"
 #include "common/settings.h"
@@ -15,7 +15,7 @@
 #include "yuzu/configuration/configure_cpu.h"
 
 ConfigureCpu::ConfigureCpu(const Core::System& system_,
-                           std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group_,
+                           std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,
                            const ConfigurationShared::Builder& builder, QWidget* parent)
     : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureCpu>()}, system{system_},
       combobox_translations(builder.ComboboxTranslations()) {
@@ -37,10 +37,10 @@ void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
     auto* unsafe_layout = ui->unsafe_widget->layout();
     std::map<std::string, QWidget*> unsafe_hold{};
 
-    std::forward_list<Settings::BasicSetting*> settings;
+    std::vector<Settings::BasicSetting*> settings;
     const auto push = [&](Settings::Category category) {
         for (const auto setting : Settings::values.linkage.by_category[category]) {
-            settings.push_front(setting);
+            settings.push_back(setting);
         }
     };
 

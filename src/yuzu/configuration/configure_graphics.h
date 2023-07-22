@@ -46,7 +46,7 @@ public:
     explicit ConfigureGraphics(const Core::System& system_,
                                std::vector<VkDeviceInfo::Record>& records,
                                const std::function<void()>& expose_compute_option_,
-                               std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> group,
+                               std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
                                const ConfigurationShared::Builder& builder,
                                QWidget* parent = nullptr);
     ~ConfigureGraphics() override;
@@ -80,7 +80,7 @@ private:
     std::unique_ptr<Ui::ConfigureGraphics> ui;
     QColor bg_color;
 
-    std::forward_list<std::function<void(bool)>> apply_funcs{};
+    std::vector<std::function<void(bool)>> apply_funcs{};
 
     std::vector<VkDeviceInfo::Record>& records;
     std::vector<QString> vulkan_devices;

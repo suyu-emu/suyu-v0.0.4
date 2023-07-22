@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <forward_list>
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 #include <QString>
 #include <QStringLiteral>
 #include <QWidget>
@@ -62,7 +62,7 @@ public:
      */
     explicit Widget(Settings::BasicSetting* setting, const TranslationMap& translations,
                     const ComboboxTranslationMap& combobox_translations, QWidget* parent,
-                    bool runtime_lock, std::forward_list<std::function<void(bool)>>& apply_funcs_,
+                    bool runtime_lock, std::vector<std::function<void(bool)>>& apply_funcs_,
                     RequestType request = RequestType::Default, bool managed = true,
                     float multiplier = 1.0f, Settings::BasicSetting* other_setting = nullptr,
                     const QString& suffix = QStringLiteral(""));
@@ -125,7 +125,7 @@ private:
     const TranslationMap& translations;
     const ComboboxTranslationMap& combobox_enumerations;
     Settings::BasicSetting& setting;
-    std::forward_list<std::function<void(bool)>>& apply_funcs;
+    std::vector<std::function<void(bool)>>& apply_funcs;
 
     bool created{false};
     bool runtime_lock{false};
@@ -137,13 +137,13 @@ public:
     ~Builder();
 
     Widget* BuildWidget(Settings::BasicSetting* setting,
-                        std::forward_list<std::function<void(bool)>>& apply_funcs,
+                        std::vector<std::function<void(bool)>>& apply_funcs,
                         RequestType request = RequestType::Default, bool managed = true,
                         float multiplier = 1.0f, Settings::BasicSetting* other_setting = nullptr,
                         const QString& suffix = QStringLiteral("")) const;
 
     Widget* BuildWidget(Settings::BasicSetting* setting,
-                        std::forward_list<std::function<void(bool)>>& apply_funcs,
+                        std::vector<std::function<void(bool)>>& apply_funcs,
                         Settings::BasicSetting* other_setting,
                         RequestType request = RequestType::Default,
                         const QString& suffix = QStringLiteral("")) const;

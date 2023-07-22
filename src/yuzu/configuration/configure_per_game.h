@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <forward_list>
 #include <memory>
 #include <string>
 #include <vector>
@@ -77,7 +76,7 @@ private:
 
     Core::System& system;
     std::unique_ptr<ConfigurationShared::Builder> builder;
-    std::shared_ptr<std::forward_list<ConfigurationShared::Tab*>> tab_group;
+    std::shared_ptr<std::vector<ConfigurationShared::Tab*>> tab_group;
 
     std::unique_ptr<ConfigurePerGameAddons> addons_tab;
     std::unique_ptr<ConfigureAudio> audio_tab;

@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <forward_list>
 #include <memory>
+#include <vector>
 #include <QString>
 #include <QWidget>
 #include <qobjectdefs.h>
@@ -17,7 +17,7 @@ class Tab : public QWidget {
     Q_OBJECT
 
 public:
-    explicit Tab(std::shared_ptr<std::forward_list<Tab*>> group, QWidget* parent = nullptr);
+    explicit Tab(std::shared_ptr<std::vector<Tab*>> group, QWidget* parent = nullptr);
     ~Tab();
 
     virtual void ApplyConfiguration() = 0;
