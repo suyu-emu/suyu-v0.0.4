@@ -98,6 +98,7 @@ private:
     void ReadUILayoutValues();
     void ReadWebServiceValues();
     void ReadMultiplayerValues();
+    void ReadNetworkValues();
 
     void SaveValues();
     void SavePlayerValue(std::size_t player_index);

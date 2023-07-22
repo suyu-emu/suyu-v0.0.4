@@ -8,6 +8,7 @@
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/settings.h"
+#include "common/settings_common.h"
 #include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/hid/controllers/npad.h"
@@ -725,11 +726,21 @@ void Config::ReadMultiplayerValues() {
     qt_config->endGroup();
 }
 
+void Config::ReadNetworkValues() {
+    qt_config->beginGroup(
+        QString::fromUtf8(Settings::TranslateCategory(Settings::Category::Network)));
+
+    ReadCategory(Settings::Category::Network);
+
+    qt_config->endGroup();
+}
+
 void Config::ReadValues() {
     if (global) {
         ReadDataStorageValues();
         ReadDebuggingValues();
         ReadDisabledAddOnValues();
+        ReadNetworkValues();
         ReadServiceValues();
         ReadUIValues();
         ReadWebServiceValues();
