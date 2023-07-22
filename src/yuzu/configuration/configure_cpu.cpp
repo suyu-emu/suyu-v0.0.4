@@ -35,7 +35,7 @@ void ConfigureCpu::SetConfiguration() {}
 void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
     auto* accuracy_layout = ui->widget_accuracy->layout();
     auto* unsafe_layout = ui->unsafe_widget->layout();
-    std::map<std::string, QWidget*> unsafe_hold{};
+    std::map<u32, QWidget*> unsafe_hold{};
 
     std::vector<Settings::BasicSetting*> settings;
     const auto push = [&](Settings::Category category) {
@@ -64,7 +64,7 @@ void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
             accuracy_combobox = widget->combobox;
         } else {
             // Presently, all other settings here are unsafe checkboxes
-            unsafe_hold.insert({setting->GetLabel(), widget});
+            unsafe_hold.insert({setting->Id(), widget});
         }
     }
 

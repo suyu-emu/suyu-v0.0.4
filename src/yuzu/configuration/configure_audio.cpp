@@ -1,13 +1,16 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <map>
 #include <memory>
 #include <vector>
 #include <QComboBox>
 
 #include "audio_core/sink/sink.h"
 #include "audio_core/sink/sink_details.h"
+#include "common/common_types.h"
 #include "common/settings.h"
+#include "common/settings_common.h"
 #include "core/core.h"
 #include "ui_configure_audio.h"
 #include "yuzu/configuration/configuration_shared.h"
@@ -33,6 +36,8 @@ void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
 
     std::vector<Settings::BasicSetting*> settings;
 
+    std::map<u32, QWidget*> hold;
+
     auto push = [&](Settings::Category category) {
         for (auto* setting : Settings::values.linkage.by_category[category]) {
             settings.push_back(setting);
@@ -53,7 +58,7 @@ void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
             continue;
         }
 
-        layout.addWidget(widget);
+        hold.emplace(std::pair{setting->Id(), widget});
 
         if (setting->Id() == Settings::values.sink_id.Id()) {
             // TODO (lat9nq): Let the system manage sink_id
@@ -69,6 +74,10 @@ void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
         } else if (setting->Id() == Settings::values.audio_input_device_id.Id()) {
             input_device_combo_box = widget->combobox;
         }
+    }
+
+    for (const auto& [id, widget] : hold) {
+        layout.addWidget(widget);
     }
 }
 
