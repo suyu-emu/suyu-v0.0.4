@@ -55,7 +55,7 @@ Result CreateTransferMemory(Core::System& system, Handle* out, u64 address, u64 
     SCOPE_EXIT({ trmem->Close(); });
 
     // Ensure that the region is in range.
-    R_UNLESS(process.PageTable().Contains(address, size), ResultInvalidCurrentMemory);
+    R_UNLESS(process.GetPageTable().Contains(address, size), ResultInvalidCurrentMemory);
 
     // Initialize the transfer memory.
     R_TRY(trmem->Initialize(address, size, map_perm));

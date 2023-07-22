@@ -236,7 +236,7 @@ Result GetThreadList(Core::System& system, s32* out_num_threads, u64 out_thread_
     const auto total_copy_size = out_thread_ids_size * sizeof(u64);
 
     if (out_thread_ids_size > 0 &&
-        !current_process->PageTable().IsInsideAddressSpace(out_thread_ids, total_copy_size)) {
+        !current_process->GetPageTable().Contains(out_thread_ids, total_copy_size)) {
         LOG_ERROR(Kernel_SVC, "Address range outside address space. begin=0x{:016X}, end=0x{:016X}",
                   out_thread_ids, out_thread_ids + total_copy_size);
         R_THROW(ResultInvalidCurrentMemory);

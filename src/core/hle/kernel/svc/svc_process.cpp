@@ -66,8 +66,8 @@ Result GetProcessList(Core::System& system, s32* out_num_processes, u64 out_proc
     auto& kernel = system.Kernel();
     const auto total_copy_size = out_process_ids_size * sizeof(u64);
 
-    if (out_process_ids_size > 0 && !GetCurrentProcess(kernel).PageTable().IsInsideAddressSpace(
-                                        out_process_ids, total_copy_size)) {
+    if (out_process_ids_size > 0 &&
+        !GetCurrentProcess(kernel).GetPageTable().Contains(out_process_ids, total_copy_size)) {
         LOG_ERROR(Kernel_SVC, "Address range outside address space. begin=0x{:016X}, end=0x{:016X}",
                   out_process_ids, out_process_ids + total_copy_size);
         R_THROW(ResultInvalidCurrentMemory);

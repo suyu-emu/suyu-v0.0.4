@@ -117,8 +117,8 @@ json GetProcessorStateDataAuto(Core::System& system) {
     arm.SaveContext(context);
 
     return GetProcessorStateData(process->Is64BitProcess() ? "AArch64" : "AArch32",
-                                 GetInteger(process->PageTable().GetCodeRegionStart()), context.sp,
-                                 context.pc, context.pstate, context.cpu_registers);
+                                 GetInteger(process->GetPageTable().GetCodeRegionStart()),
+                                 context.sp, context.pc, context.pstate, context.cpu_registers);
 }
 
 json GetBacktraceData(Core::System& system) {

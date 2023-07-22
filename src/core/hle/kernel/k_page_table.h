@@ -388,39 +388,6 @@ public:
     constexpr size_t GetHeapSize() const {
         return m_current_heap_end - m_heap_region_start;
     }
-    constexpr bool IsInsideAddressSpace(KProcessAddress address, size_t size) const {
-        return m_address_space_start <= address && address + size - 1 <= m_address_space_end - 1;
-    }
-    constexpr bool IsOutsideAliasRegion(KProcessAddress address, size_t size) const {
-        return m_alias_region_start > address || address + size - 1 > m_alias_region_end - 1;
-    }
-    constexpr bool IsOutsideStackRegion(KProcessAddress address, size_t size) const {
-        return m_stack_region_start > address || address + size - 1 > m_stack_region_end - 1;
-    }
-    constexpr bool IsInvalidRegion(KProcessAddress address, size_t size) const {
-        return address + size - 1 > GetAliasCodeRegionStart() + GetAliasCodeRegionSize() - 1;
-    }
-    constexpr bool IsInsideHeapRegion(KProcessAddress address, size_t size) const {
-        return address + size > m_heap_region_start && m_heap_region_end > address;
-    }
-    constexpr bool IsInsideAliasRegion(KProcessAddress address, size_t size) const {
-        return address + size > m_alias_region_start && m_alias_region_end > address;
-    }
-    constexpr bool IsOutsideASLRRegion(KProcessAddress address, size_t size) const {
-        if (IsInvalidRegion(address, size)) {
-            return true;
-        }
-        if (IsInsideHeapRegion(address, size)) {
-            return true;
-        }
-        if (IsInsideAliasRegion(address, size)) {
-            return true;
-        }
-        return {};
-    }
-    constexpr bool IsInsideASLRRegion(KProcessAddress address, size_t size) const {
-        return !IsOutsideASLRRegion(address, size);
-    }
     constexpr size_t GetNumGuardPages() const {
         return IsKernel() ? 1 : 4;
     }
@@ -435,6 +402,14 @@ public:
     constexpr bool Contains(KProcessAddress addr, size_t size) const {
         return m_address_space_start <= addr && addr < addr + size &&
                addr + size - 1 <= m_address_space_end - 1;
+    }
+    constexpr bool IsInAliasRegion(KProcessAddress addr, size_t size) const {
+        return this->Contains(addr, size) && m_alias_region_start <= addr &&
+               addr + size - 1 <= m_alias_region_end - 1;
+    }
+    constexpr bool IsInHeapRegion(KProcessAddress addr, size_t size) const {
+        return this->Contains(addr, size) && m_heap_region_start <= addr &&
+               addr + size - 1 <= m_heap_region_end - 1;
     }
 
 public:

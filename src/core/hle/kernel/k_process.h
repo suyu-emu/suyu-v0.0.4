@@ -110,16 +110,6 @@ public:
                              ProcessType type, KResourceLimit* res_limit);
 
     /// Gets a reference to the process' page table.
-    KPageTable& PageTable() {
-        return m_page_table;
-    }
-
-    /// Gets const a reference to the process' page table.
-    const KPageTable& PageTable() const {
-        return m_page_table;
-    }
-
-    /// Gets a reference to the process' page table.
     KPageTable& GetPageTable() {
         return m_page_table;
     }

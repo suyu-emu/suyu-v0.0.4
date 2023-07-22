@@ -38,7 +38,7 @@ namespace {
  */
 void SetupMainThread(Core::System& system, KProcess& owner_process, u32 priority,
                      KProcessAddress stack_top) {
-    const KProcessAddress entry_point = owner_process.PageTable().GetCodeRegionStart();
+    const KProcessAddress entry_point = owner_process.GetPageTable().GetCodeRegionStart();
     ASSERT(owner_process.GetResourceLimit()->Reserve(LimitableResource::ThreadCountMax, 1));
 
     KThread* thread = KThread::Create(system.Kernel());

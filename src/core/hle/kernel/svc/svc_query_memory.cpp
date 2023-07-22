@@ -31,7 +31,7 @@ Result QueryProcessMemory(Core::System& system, uint64_t out_memory_info, PageIn
     }
 
     auto& current_memory{GetCurrentMemory(system.Kernel())};
-    const auto memory_info{process->PageTable().QueryInfo(address).GetSvcMemoryInfo()};
+    const auto memory_info{process->GetPageTable().QueryInfo(address).GetSvcMemoryInfo()};
 
     current_memory.WriteBlock(out_memory_info, std::addressof(memory_info), sizeof(memory_info));
 
