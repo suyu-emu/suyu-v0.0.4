@@ -48,7 +48,7 @@ Result CreateCodeMemory(Core::System& system, Handle* out, u64 address, uint64_t
     SCOPE_EXIT({ code_mem->Close(); });
 
     // Verify that the region is in range.
-    R_UNLESS(GetCurrentProcess(system.Kernel()).PageTable().Contains(address, size),
+    R_UNLESS(GetCurrentProcess(system.Kernel()).GetPageTable().Contains(address, size),
              ResultInvalidCurrentMemory);
 
     // Initialize the code memory.
@@ -92,7 +92,7 @@ Result ControlCodeMemory(Core::System& system, Handle code_memory_handle,
     case CodeMemoryOperation::Map: {
         // Check that the region is in range.
         R_UNLESS(GetCurrentProcess(system.Kernel())
-                     .PageTable()
+                     .GetPageTable()
                      .CanContain(address, size, KMemoryState::CodeOut),
                  ResultInvalidMemoryRegion);
 
@@ -105,7 +105,7 @@ Result ControlCodeMemory(Core::System& system, Handle code_memory_handle,
     case CodeMemoryOperation::Unmap: {
         // Check that the region is in range.
         R_UNLESS(GetCurrentProcess(system.Kernel())
-                     .PageTable()
+                     .GetPageTable()
                      .CanContain(address, size, KMemoryState::CodeOut),
                  ResultInvalidMemoryRegion);
 
@@ -117,8 +117,8 @@ Result ControlCodeMemory(Core::System& system, Handle code_memory_handle,
     } break;
     case CodeMemoryOperation::MapToOwner: {
         // Check that the region is in range.
-        R_UNLESS(code_mem->GetOwner()->PageTable().CanContain(address, size,
-                                                              KMemoryState::GeneratedCode),
+        R_UNLESS(code_mem->GetOwner()->GetPageTable().CanContain(address, size,
+                                                                 KMemoryState::GeneratedCode),
                  ResultInvalidMemoryRegion);
 
         // Check the memory permission.
@@ -129,8 +129,8 @@ Result ControlCodeMemory(Core::System& system, Handle code_memory_handle,
     } break;
     case CodeMemoryOperation::UnmapFromOwner: {
         // Check that the region is in range.
-        R_UNLESS(code_mem->GetOwner()->PageTable().CanContain(address, size,
-                                                              KMemoryState::GeneratedCode),
+        R_UNLESS(code_mem->GetOwner()->GetPageTable().CanContain(address, size,
+                                                                 KMemoryState::GeneratedCode),
                  ResultInvalidMemoryRegion);
 
         // Check the memory permission.

@@ -128,7 +128,7 @@ NvResult nvmap::IocAlloc(std::span<const u8> input, std::span<u8> output) {
     }
     bool is_out_io{};
     ASSERT(system.ApplicationProcess()
-               ->PageTable()
+               ->GetPageTable()
                .LockForMapDeviceAddressSpace(&is_out_io, handle_description->address,
                                              handle_description->size,
                                              Kernel::KMemoryPermission::None, true, false)
@@ -255,7 +255,7 @@ NvResult nvmap::IocFree(std::span<const u8> input, std::span<u8> output) {
     if (auto freeInfo{file.FreeHandle(params.handle, false)}) {
         if (freeInfo->can_unlock) {
             ASSERT(system.ApplicationProcess()
-                       ->PageTable()
+                       ->GetPageTable()
                        .UnlockForDeviceAddressSpace(freeInfo->address, freeInfo->size)
                        .IsSuccess());
         }

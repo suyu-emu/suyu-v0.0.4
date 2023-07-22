@@ -556,7 +556,7 @@ void GDBStub::HandleQuery(std::string_view command) {
         } else {
             SendReply(fmt::format(
                 "TextSeg={:x}",
-                GetInteger(system.ApplicationProcess()->PageTable().GetCodeRegionStart())));
+                GetInteger(system.ApplicationProcess()->GetPageTable().GetCodeRegionStart())));
         }
     } else if (command.starts_with("Xfer:libraries:read::")) {
         Loader::AppLoader::Modules modules;
@@ -731,7 +731,7 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
     std::string reply;
 
     auto* process = system.ApplicationProcess();
-    auto& page_table = process->PageTable();
+    auto& page_table = process->GetPageTable();
 
     const char* commands = "Commands:\n"
                            "  get fastmem\n"

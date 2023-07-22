@@ -318,15 +318,15 @@ public:
                     return false;
                 }
 
-                if (!page_table.IsInsideAddressSpace(out_addr, size)) {
+                if (!page_table.Contains(out_addr, size)) {
                     return false;
                 }
 
-                if (page_table.IsInsideHeapRegion(out_addr, size)) {
+                if (page_table.IsInHeapRegion(out_addr, size)) {
                     return false;
                 }
 
-                if (page_table.IsInsideAliasRegion(out_addr, size)) {
+                if (page_table.IsInAliasRegion(out_addr, size)) {
                     return false;
                 }
 
@@ -358,7 +358,7 @@ public:
     }
 
     ResultVal<VAddr> MapProcessCodeMemory(Kernel::KProcess* process, VAddr base_addr, u64 size) {
-        auto& page_table{process->PageTable()};
+        auto& page_table{process->GetPageTable()};
         VAddr addr{};
 
         for (std::size_t retry = 0; retry < MAXIMUM_MAP_RETRIES; retry++) {
@@ -382,7 +382,7 @@ public:
     ResultVal<VAddr> MapNro(Kernel::KProcess* process, VAddr nro_addr, std::size_t nro_size,
                             VAddr bss_addr, std::size_t bss_size, std::size_t size) {
         for (std::size_t retry = 0; retry < MAXIMUM_MAP_RETRIES; retry++) {
-            auto& page_table{process->PageTable()};
+            auto& page_table{process->GetPageTable()};
             VAddr addr{};
 
             CASCADE_RESULT(addr, MapProcessCodeMemory(process, nro_addr, nro_size));
@@ -437,12 +437,12 @@ public:
         CopyCode(nro_addr + nro_header.segment_headers[DATA_INDEX].memory_offset, data_start,
                  nro_header.segment_headers[DATA_INDEX].memory_size);
 
-        CASCADE_CODE(process->PageTable().SetProcessMemoryPermission(
+        CASCADE_CODE(process->GetPageTable().SetProcessMemoryPermission(
             text_start, ro_start - text_start, Kernel::Svc::MemoryPermission::ReadExecute));
-        CASCADE_CODE(process->PageTable().SetProcessMemoryPermission(
+        CASCADE_CODE(process->GetPageTable().SetProcessMemoryPermission(
             ro_start, data_start - ro_start, Kernel::Svc::MemoryPermission::Read));
 
-        return process->PageTable().SetProcessMemoryPermission(
+        return process->GetPageTable().SetProcessMemoryPermission(
             data_start, bss_end_addr - data_start, Kernel::Svc::MemoryPermission::ReadWrite);
     }
 
@@ -571,7 +571,7 @@ public:
 
     Result UnmapNro(const NROInfo& info) {
         // Each region must be unmapped separately to validate memory state
-        auto& page_table{system.ApplicationProcess()->PageTable()};
+        auto& page_table{system.ApplicationProcess()->GetPageTable()};
 
         if (info.bss_size != 0) {
             CASCADE_CODE(page_table.UnmapCodeMemory(
@@ -643,7 +643,7 @@ public:
 
         initialized = true;
         current_map_addr =
-            GetInteger(system.ApplicationProcess()->PageTable().GetAliasCodeRegionStart());
+            GetInteger(system.ApplicationProcess()->GetPageTable().GetAliasCodeRegionStart());
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);

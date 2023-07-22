@@ -43,7 +43,7 @@ Result MapSharedMemory(Core::System& system, Handle shmem_handle, u64 address, u
 
     // Get the current process.
     auto& process = GetCurrentProcess(system.Kernel());
-    auto& page_table = process.PageTable();
+    auto& page_table = process.GetPageTable();
 
     // Get the shared memory.
     KScopedAutoObject shmem = process.GetHandleTable().GetObject<KSharedMemory>(shmem_handle);
@@ -73,7 +73,7 @@ Result UnmapSharedMemory(Core::System& system, Handle shmem_handle, u64 address,
 
     // Get the current process.
     auto& process = GetCurrentProcess(system.Kernel());
-    auto& page_table = process.PageTable();
+    auto& page_table = process.GetPageTable();
 
     // Get the shared memory.
     KScopedAutoObject shmem = process.GetHandleTable().GetObject<KSharedMemory>(shmem_handle);

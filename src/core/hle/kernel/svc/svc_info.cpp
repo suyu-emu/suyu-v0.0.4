@@ -54,35 +54,35 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             R_SUCCEED();
 
         case InfoType::AliasRegionAddress:
-            *result = GetInteger(process->PageTable().GetAliasRegionStart());
+            *result = GetInteger(process->GetPageTable().GetAliasRegionStart());
             R_SUCCEED();
 
         case InfoType::AliasRegionSize:
-            *result = process->PageTable().GetAliasRegionSize();
+            *result = process->GetPageTable().GetAliasRegionSize();
             R_SUCCEED();
 
         case InfoType::HeapRegionAddress:
-            *result = GetInteger(process->PageTable().GetHeapRegionStart());
+            *result = GetInteger(process->GetPageTable().GetHeapRegionStart());
             R_SUCCEED();
 
         case InfoType::HeapRegionSize:
-            *result = process->PageTable().GetHeapRegionSize();
+            *result = process->GetPageTable().GetHeapRegionSize();
             R_SUCCEED();
 
         case InfoType::AslrRegionAddress:
-            *result = GetInteger(process->PageTable().GetAliasCodeRegionStart());
+            *result = GetInteger(process->GetPageTable().GetAliasCodeRegionStart());
             R_SUCCEED();
 
         case InfoType::AslrRegionSize:
-            *result = process->PageTable().GetAliasCodeRegionSize();
+            *result = process->GetPageTable().GetAliasCodeRegionSize();
             R_SUCCEED();
 
         case InfoType::StackRegionAddress:
-            *result = GetInteger(process->PageTable().GetStackRegionStart());
+            *result = GetInteger(process->GetPageTable().GetStackRegionStart());
             R_SUCCEED();
 
         case InfoType::StackRegionSize:
-            *result = process->PageTable().GetStackRegionSize();
+            *result = process->GetPageTable().GetStackRegionSize();
             R_SUCCEED();
 
         case InfoType::TotalMemorySize:

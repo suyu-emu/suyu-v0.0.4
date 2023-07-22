@@ -16,7 +16,7 @@ Result SetHeapSize(Core::System& system, u64* out_address, u64 size) {
     R_UNLESS(size < MainMemorySizeMax, ResultInvalidSize);
 
     // Set the heap size.
-    R_RETURN(GetCurrentProcess(system.Kernel()).PageTable().SetHeapSize(out_address, size));
+    R_RETURN(GetCurrentProcess(system.Kernel()).GetPageTable().SetHeapSize(out_address, size));
 }
 
 /// Maps memory at a desired address
@@ -44,21 +44,21 @@ Result MapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
     }
 
     KProcess* const current_process{GetCurrentProcessPointer(system.Kernel())};
-    auto& page_table{current_process->PageTable()};
+    auto& page_table{current_process->GetPageTable()};
 
     if (current_process->GetSystemResourceSize() == 0) {
         LOG_ERROR(Kernel_SVC, "System Resource Size is zero");
         R_THROW(ResultInvalidState);
     }
 
-    if (!page_table.IsInsideAddressSpace(addr, size)) {
+    if (!page_table.Contains(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
         R_THROW(ResultInvalidMemoryRegion);
     }
 
-    if (page_table.IsOutsideAliasRegion(addr, size)) {
+    if (!page_table.IsInAliasRegion(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the alias region, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
@@ -93,21 +93,21 @@ Result UnmapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
     }
 
     KProcess* const current_process{GetCurrentProcessPointer(system.Kernel())};
-    auto& page_table{current_process->PageTable()};
+    auto& page_table{current_process->GetPageTable()};
 
     if (current_process->GetSystemResourceSize() == 0) {
         LOG_ERROR(Kernel_SVC, "System Resource Size is zero");
         R_THROW(ResultInvalidState);
     }
 
-    if (!page_table.IsInsideAddressSpace(addr, size)) {
+    if (!page_table.Contains(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
         R_THROW(ResultInvalidMemoryRegion);
     }
 
-    if (page_table.IsOutsideAliasRegion(addr, size)) {
+    if (!page_table.IsInAliasRegion(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the alias region, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
