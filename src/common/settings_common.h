@@ -46,17 +46,18 @@ constexpr u8 SpecializationTypeMask = 0xf;
 constexpr u8 SpecializationAttributeMask = 0xf0;
 constexpr u8 SpecializationAttributeOffset = 4;
 
+// Scalar and countable could have better names
 enum Specialization : u8 {
     Default = 0,
-    Time = 1,
-    Hex = 2,
-    List = 3,
-    RuntimeList = 4,
-    Scalar = 5,
-    Countable = 6,
-    Paired = 7,
+    Time = 1,        // Duration or specific moment in time
+    Hex = 2,         // Hexadecimal number
+    List = 3,        // Setting has specific members
+    RuntimeList = 4, // Members of the list are determined during runtime
+    Scalar = 5,      // Values are continuous
+    Countable = 6,   // Can be stepped through
+    Paired = 7,      // Another setting is associated with this setting
 
-    Percentage = (1 << SpecializationAttributeOffset),
+    Percentage = (1 << SpecializationAttributeOffset), // Should be represented as a percentage
 };
 
 class BasicSetting;
