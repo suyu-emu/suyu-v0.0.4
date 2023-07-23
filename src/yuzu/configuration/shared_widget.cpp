@@ -390,25 +390,6 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
 
     QWidget* data_component{nullptr};
 
-    if (!Settings::IsConfiguringGlobal() && managed) {
-        restore_button = CreateRestoreGlobalButton(setting.UsingGlobal(), this);
-
-        touch = [this]() {
-            LOG_DEBUG(Frontend, "Enabling custom setting for \"{}\"", setting.GetLabel());
-            restore_button->setEnabled(true);
-            restore_button->setVisible(true);
-        };
-    }
-
-    if (require_checkbox) {
-        QWidget* lhs =
-            CreateCheckBox(other_setting, label, checkbox_serializer, checkbox_restore_func, touch);
-        layout->addWidget(lhs);
-    } else if (setting.TypeId() != typeid(bool)) {
-        QLabel* qt_label = CreateLabel(label);
-        layout->addWidget(qt_label);
-    }
-
     request = [&]() {
         if (request != RequestType::Default) {
             return request;
@@ -434,6 +415,25 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
         }
         return request;
     }();
+
+    if (!Settings::IsConfiguringGlobal() && managed) {
+        restore_button = CreateRestoreGlobalButton(setting.UsingGlobal(), this);
+
+        touch = [this]() {
+            LOG_DEBUG(Frontend, "Enabling custom setting for \"{}\"", setting.GetLabel());
+            restore_button->setEnabled(true);
+            restore_button->setVisible(true);
+        };
+    }
+
+    if (require_checkbox) {
+        QWidget* lhs =
+            CreateCheckBox(other_setting, label, checkbox_serializer, checkbox_restore_func, touch);
+        layout->addWidget(lhs);
+    } else if (setting.TypeId() != typeid(bool)) {
+        QLabel* qt_label = CreateLabel(label);
+        layout->addWidget(qt_label);
+    }
 
     if (setting.TypeId() == typeid(bool)) {
         data_component = CreateCheckBox(&setting, label, serializer, restore_func, touch);
@@ -505,6 +505,9 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
 
         QObject::connect(restore_button, &QAbstractButton::clicked,
                          [this, restore_func, checkbox_restore_func](bool) {
+                             LOG_DEBUG(Frontend, "Restore global state for \"{}\"",
+                                       setting.GetLabel());
+
                              restore_button->setEnabled(false);
                              restore_button->setVisible(false);
 
