@@ -15,6 +15,9 @@ class ECTX_AW final : public ServiceFramework<ECTX_AW> {
 public:
     explicit ECTX_AW(Core::System& system_);
     ~ECTX_AW() override;
+
+private:
+    void CreateContextRegistrar(HLERequestContext& ctx);
 };
 
 } // namespace Service::Glue

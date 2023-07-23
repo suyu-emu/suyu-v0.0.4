@@ -18,6 +18,7 @@ public:
 
 private:
     void GetHostByNameRequest(HLERequestContext& ctx);
+    void GetGaiStringErrorRequest(HLERequestContext& ctx);
     void GetHostByNameRequestWithOptions(HLERequestContext& ctx);
     void GetAddrInfoRequest(HLERequestContext& ctx);
     void GetAddrInfoRequestWithOptions(HLERequestContext& ctx);

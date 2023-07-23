@@ -20,6 +20,9 @@ std::pair<s32, Errno> Translate(std::pair<s32, Network::Errno> value);
 /// Translate abstract getaddrinfo error to guest getaddrinfo error
 GetAddrInfoError Translate(Network::GetAddrInfoError value);
 
+/// Translate guest error to string
+const char* Translate(GetAddrInfoError value);
+
 /// Translate guest domain to abstract domain
 Network::Domain Translate(Domain domain);
 
