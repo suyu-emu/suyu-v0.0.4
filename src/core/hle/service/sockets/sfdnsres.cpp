@@ -24,7 +24,7 @@ SFDNSRES::SFDNSRES(Core::System& system_) : ServiceFramework{system_, "sfdnsres"
         {2, &SFDNSRES::GetHostByNameRequest, "GetHostByNameRequest"},
         {3, nullptr, "GetHostByAddrRequest"},
         {4, nullptr, "GetHostStringErrorRequest"},
-        {5, nullptr, "GetGaiStringErrorRequest"},
+        {5, &SFDNSRES::GetGaiStringErrorRequest, "GetGaiStringErrorRequest"},
         {6, &SFDNSRES::GetAddrInfoRequest, "GetAddrInfoRequest"},
         {7, nullptr, "GetNameInfoRequest"},
         {8, nullptr, "RequestCancelHandleRequest"},
@@ -298,6 +298,20 @@ void SFDNSRES::GetAddrInfoRequest(HLERequestContext& ctx) {
         .gai_error = emu_gai_err,
         .data_size = data_size,
     });
+}
+
+void SFDNSRES::GetGaiStringErrorRequest(HLERequestContext& ctx) {
+    struct InputParameters {
+        GetAddrInfoError gai_errno;
+    };
+    IPC::RequestParser rp{ctx};
+    auto input = rp.PopRaw<InputParameters>();
+
+    const std::string result = Translate(input.gai_errno);
+    ctx.WriteBuffer(result);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 void SFDNSRES::GetAddrInfoRequestWithOptions(HLERequestContext& ctx) {
