@@ -81,6 +81,44 @@ GetAddrInfoError Translate(Network::GetAddrInfoError error) {
     }
 }
 
+const char* Translate(GetAddrInfoError error) {
+    // https://android.googlesource.com/platform/bionic/+/085543106/libc/dns/net/getaddrinfo.c#254
+    switch (error) {
+    case GetAddrInfoError::SUCCESS:
+        return "Success";
+    case GetAddrInfoError::ADDRFAMILY:
+        return "Address family for hostname not supported";
+    case GetAddrInfoError::AGAIN:
+        return "Temporary failure in name resolution";
+    case GetAddrInfoError::BADFLAGS:
+        return "Invalid value for ai_flags";
+    case GetAddrInfoError::FAIL:
+        return "Non-recoverable failure in name resolution";
+    case GetAddrInfoError::FAMILY:
+        return "ai_family not supported";
+    case GetAddrInfoError::MEMORY:
+        return "Memory allocation failure";
+    case GetAddrInfoError::NODATA:
+        return "No address associated with hostname";
+    case GetAddrInfoError::NONAME:
+        return "hostname nor servname provided, or not known";
+    case GetAddrInfoError::SERVICE:
+        return "servname not supported for ai_socktype";
+    case GetAddrInfoError::SOCKTYPE:
+        return "ai_socktype not supported";
+    case GetAddrInfoError::SYSTEM:
+        return "System error returned in errno";
+    case GetAddrInfoError::BADHINTS:
+        return "Invalid value for hints";
+    case GetAddrInfoError::PROTOCOL:
+        return "Resolved protocol is unknown";
+    case GetAddrInfoError::OVERFLOW_:
+        return "Argument buffer overflow";
+    default:
+        return "Unknown error";
+    }
+}
+
 Network::Domain Translate(Domain domain) {
     switch (domain) {
     case Domain::Unspecified:

@@ -19,6 +19,7 @@ public:
 private:
     void Resolve(HLERequestContext& ctx);
     void ResolveEx(HLERequestContext& ctx);
+    void GetEnvironmentIdentifier(HLERequestContext& ctx);
     void GetApplicationServerEnvironmentType(HLERequestContext& ctx);
 };
 

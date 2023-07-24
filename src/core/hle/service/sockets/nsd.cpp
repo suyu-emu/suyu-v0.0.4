@@ -24,7 +24,7 @@ NSD::NSD(Core::System& system_, const char* name) : ServiceFramework{system_, na
     static const FunctionInfo functions[] = {
         {5, nullptr, "GetSettingUrl"},
         {10, nullptr, "GetSettingName"},
-        {11, nullptr, "GetEnvironmentIdentifier"},
+        {11, &NSD::GetEnvironmentIdentifier, "GetEnvironmentIdentifier"},
         {12, nullptr, "GetDeviceId"},
         {13, nullptr, "DeleteSettings"},
         {14, nullptr, "ImportSettings"},
@@ -100,6 +100,14 @@ void NSD::ResolveEx(HLERequestContext& ctx) {
     ctx.WriteBuffer(fqdn_out);
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
+    rb.Push(ResultSuccess);
+}
+
+void NSD::GetEnvironmentIdentifier(HLERequestContext& ctx) {
+    const std::string environment_identifier = "lp1";
+    ctx.WriteBuffer(environment_identifier);
+
+    IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
