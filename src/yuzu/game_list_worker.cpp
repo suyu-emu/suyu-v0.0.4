@@ -265,7 +265,11 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
         std::vector<u8> icon;
         std::string name;
         u64 program_id = 0;
-        loader->ReadProgramId(program_id);
+        const auto result = loader->ReadProgramId(program_id);
+
+        if (result != Loader::ResultStatus::Success) {
+            continue;
+        }
 
         const PatchManager patch{program_id, system.GetFileSystemController(),
                                  system.GetContentProvider()};
