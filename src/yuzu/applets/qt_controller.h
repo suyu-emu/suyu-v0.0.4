@@ -34,6 +34,8 @@ class HIDCore;
 enum class NpadStyleIndex : u8;
 } // namespace Core::HID
 
+class ControllerNavigation;
+
 class QtControllerSelectorDialog final : public QDialog {
     Q_OBJECT
 
@@ -45,6 +47,8 @@ public:
     ~QtControllerSelectorDialog() override;
 
     int exec() override;
+
+    void keyPressEvent(QKeyEvent* evt) override;
 
 private:
     // Applies the current configuration.
@@ -109,6 +113,8 @@ private:
     std::unique_ptr<InputProfiles> input_profiles;
 
     Core::System& system;
+
+    ControllerNavigation* controller_navigation = nullptr;
 
     // This is true if and only if all parameters are met. Otherwise, this is false.
     // This determines whether the "OK" button can be clicked to exit the applet.
