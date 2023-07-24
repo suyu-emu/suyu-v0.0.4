@@ -183,13 +183,13 @@ struct Memory::Impl {
         return string;
     }
 
-    void WalkBlock(const Kernel::KProcess& process, const Common::ProcessAddress addr,
-                   const std::size_t size, auto on_unmapped, auto on_memory, auto on_rasterizer,
-                   auto increment) {
-        const auto& page_table = process.GetPageTable().PageTableImpl();
+    bool WalkBlock(const Common::ProcessAddress addr, const std::size_t size, auto on_unmapped,
+                   auto on_memory, auto on_rasterizer, auto increment) {
+        const auto& page_table = system.ApplicationProcess()->GetPageTable().PageTableImpl();
         std::size_t remaining_size = size;
         std::size_t page_index = addr >> YUZU_PAGEBITS;
         std::size_t page_offset = addr & YUZU_PAGEMASK;
+        bool user_accessible = true;
 
         while (remaining_size) {
             const std::size_t copy_amount =
@@ -200,6 +200,7 @@ struct Memory::Impl {
             const auto [pointer, type] = page_table.pointers[page_index].PointerType();
             switch (type) {
             case Common::PageType::Unmapped: {
+                user_accessible = false;
                 on_unmapped(copy_amount, current_vaddr);
                 break;
             }
@@ -227,13 +228,15 @@ struct Memory::Impl {
             increment(copy_amount);
             remaining_size -= copy_amount;
         }
+
+        return user_accessible;
     }
 
     template <bool UNSAFE>
-    void ReadBlockImpl(const Kernel::KProcess& process, const Common::ProcessAddress src_addr,
-                       void* dest_buffer, const std::size_t size) {
-        WalkBlock(
-            process, src_addr, size,
+    bool ReadBlockImpl(const Common::ProcessAddress src_addr, void* dest_buffer,
+                       const std::size_t size) {
+        return WalkBlock(
+            src_addr, size,
             [src_addr, size, &dest_buffer](const std::size_t copy_amount,
                                            const Common::ProcessAddress current_vaddr) {
                 LOG_ERROR(HW_Memory,
@@ -256,14 +259,14 @@ struct Memory::Impl {
             });
     }
 
-    void ReadBlock(const Common::ProcessAddress src_addr, void* dest_buffer,
+    bool ReadBlock(const Common::ProcessAddress src_addr, void* dest_buffer,
                    const std::size_t size) {
-        ReadBlockImpl<false>(*system.ApplicationProcess(), src_addr, dest_buffer, size);
+        return ReadBlockImpl<false>(src_addr, dest_buffer, size);
     }
 
-    void ReadBlockUnsafe(const Common::ProcessAddress src_addr, void* dest_buffer,
+    bool ReadBlockUnsafe(const Common::ProcessAddress src_addr, void* dest_buffer,
                          const std::size_t size) {
-        ReadBlockImpl<true>(*system.ApplicationProcess(), src_addr, dest_buffer, size);
+        return ReadBlockImpl<true>(src_addr, dest_buffer, size);
     }
 
     const u8* GetSpan(const VAddr src_addr, const std::size_t size) const {
@@ -283,10 +286,10 @@ struct Memory::Impl {
     }
 
     template <bool UNSAFE>
-    void WriteBlockImpl(const Kernel::KProcess& process, const Common::ProcessAddress dest_addr,
-                        const void* src_buffer, const std::size_t size) {
-        WalkBlock(
-            process, dest_addr, size,
+    bool WriteBlockImpl(const Common::ProcessAddress dest_addr, const void* src_buffer,
+                        const std::size_t size) {
+        return WalkBlock(
+            dest_addr, size,
             [dest_addr, size](const std::size_t copy_amount,
                               const Common::ProcessAddress current_vaddr) {
                 LOG_ERROR(HW_Memory,
@@ -308,20 +311,19 @@ struct Memory::Impl {
             });
     }
 
-    void WriteBlock(const Common::ProcessAddress dest_addr, const void* src_buffer,
+    bool WriteBlock(const Common::ProcessAddress dest_addr, const void* src_buffer,
                     const std::size_t size) {
-        WriteBlockImpl<false>(*system.ApplicationProcess(), dest_addr, src_buffer, size);
+        return WriteBlockImpl<false>(dest_addr, src_buffer, size);
     }
 
-    void WriteBlockUnsafe(const Common::ProcessAddress dest_addr, const void* src_buffer,
+    bool WriteBlockUnsafe(const Common::ProcessAddress dest_addr, const void* src_buffer,
                           const std::size_t size) {
-        WriteBlockImpl<true>(*system.ApplicationProcess(), dest_addr, src_buffer, size);
+        return WriteBlockImpl<true>(dest_addr, src_buffer, size);
     }
 
-    void ZeroBlock(const Kernel::KProcess& process, const Common::ProcessAddress dest_addr,
-                   const std::size_t size) {
-        WalkBlock(
-            process, dest_addr, size,
+    bool ZeroBlock(const Common::ProcessAddress dest_addr, const std::size_t size) {
+        return WalkBlock(
+            dest_addr, size,
             [dest_addr, size](const std::size_t copy_amount,
                               const Common::ProcessAddress current_vaddr) {
                 LOG_ERROR(HW_Memory,
@@ -339,23 +341,23 @@ struct Memory::Impl {
             [](const std::size_t copy_amount) {});
     }
 
-    void CopyBlock(const Kernel::KProcess& process, Common::ProcessAddress dest_addr,
-                   Common::ProcessAddress src_addr, const std::size_t size) {
-        WalkBlock(
-            process, dest_addr, size,
+    bool CopyBlock(Common::ProcessAddress dest_addr, Common::ProcessAddress src_addr,
+                   const std::size_t size) {
+        return WalkBlock(
+            dest_addr, size,
             [&](const std::size_t copy_amount, const Common::ProcessAddress current_vaddr) {
                 LOG_ERROR(HW_Memory,
                           "Unmapped CopyBlock @ 0x{:016X} (start address = 0x{:016X}, size = {})",
                           GetInteger(current_vaddr), GetInteger(src_addr), size);
-                ZeroBlock(process, dest_addr, copy_amount);
+                ZeroBlock(dest_addr, copy_amount);
             },
             [&](const std::size_t copy_amount, const u8* const src_ptr) {
-                WriteBlockImpl<false>(process, dest_addr, src_ptr, copy_amount);
+                WriteBlockImpl<false>(dest_addr, src_ptr, copy_amount);
             },
             [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
                 u8* const host_ptr) {
                 HandleRasterizerDownload(GetInteger(current_vaddr), copy_amount);
-                WriteBlockImpl<false>(process, dest_addr, host_ptr, copy_amount);
+                WriteBlockImpl<false>(dest_addr, host_ptr, copy_amount);
             },
             [&](const std::size_t copy_amount) {
                 dest_addr += copy_amount;
@@ -364,13 +366,13 @@ struct Memory::Impl {
     }
 
     template <typename Callback>
-    Result PerformCacheOperation(const Kernel::KProcess& process, Common::ProcessAddress dest_addr,
-                                 std::size_t size, Callback&& cb) {
+    Result PerformCacheOperation(Common::ProcessAddress dest_addr, std::size_t size,
+                                 Callback&& cb) {
         class InvalidMemoryException : public std::exception {};
 
         try {
             WalkBlock(
-                process, dest_addr, size,
+                dest_addr, size,
                 [&](const std::size_t block_size, const Common::ProcessAddress current_vaddr) {
                     LOG_ERROR(HW_Memory, "Unmapped cache maintenance @ {:#018X}",
                               GetInteger(current_vaddr));
@@ -387,37 +389,34 @@ struct Memory::Impl {
         return ResultSuccess;
     }
 
-    Result InvalidateDataCache(const Kernel::KProcess& process, Common::ProcessAddress dest_addr,
-                               std::size_t size) {
+    Result InvalidateDataCache(Common::ProcessAddress dest_addr, std::size_t size) {
         auto on_rasterizer = [&](const Common::ProcessAddress current_vaddr,
                                  const std::size_t block_size) {
             // dc ivac: Invalidate to point of coherency
             // GPU flush -> CPU invalidate
             HandleRasterizerDownload(GetInteger(current_vaddr), block_size);
         };
-        return PerformCacheOperation(process, dest_addr, size, on_rasterizer);
+        return PerformCacheOperation(dest_addr, size, on_rasterizer);
     }
 
-    Result StoreDataCache(const Kernel::KProcess& process, Common::ProcessAddress dest_addr,
-                          std::size_t size) {
+    Result StoreDataCache(Common::ProcessAddress dest_addr, std::size_t size) {
         auto on_rasterizer = [&](const Common::ProcessAddress current_vaddr,
                                  const std::size_t block_size) {
             // dc cvac: Store to point of coherency
             // CPU flush -> GPU invalidate
             system.GPU().InvalidateRegion(GetInteger(current_vaddr), block_size);
         };
-        return PerformCacheOperation(process, dest_addr, size, on_rasterizer);
+        return PerformCacheOperation(dest_addr, size, on_rasterizer);
     }
 
-    Result FlushDataCache(const Kernel::KProcess& process, Common::ProcessAddress dest_addr,
-                          std::size_t size) {
+    Result FlushDataCache(Common::ProcessAddress dest_addr, std::size_t size) {
         auto on_rasterizer = [&](const Common::ProcessAddress current_vaddr,
                                  const std::size_t block_size) {
             // dc civac: Store to point of coherency, and invalidate from cache
             // CPU flush -> GPU invalidate
             system.GPU().InvalidateRegion(GetInteger(current_vaddr), block_size);
         };
-        return PerformCacheOperation(process, dest_addr, size, on_rasterizer);
+        return PerformCacheOperation(dest_addr, size, on_rasterizer);
     }
 
     void MarkRegionDebug(u64 vaddr, u64 size, bool debug) {
@@ -899,14 +898,14 @@ std::string Memory::ReadCString(Common::ProcessAddress vaddr, std::size_t max_le
     return impl->ReadCString(vaddr, max_length);
 }
 
-void Memory::ReadBlock(const Common::ProcessAddress src_addr, void* dest_buffer,
+bool Memory::ReadBlock(const Common::ProcessAddress src_addr, void* dest_buffer,
                        const std::size_t size) {
-    impl->ReadBlock(src_addr, dest_buffer, size);
+    return impl->ReadBlock(src_addr, dest_buffer, size);
 }
 
-void Memory::ReadBlockUnsafe(const Common::ProcessAddress src_addr, void* dest_buffer,
+bool Memory::ReadBlockUnsafe(const Common::ProcessAddress src_addr, void* dest_buffer,
                              const std::size_t size) {
-    impl->ReadBlockUnsafe(src_addr, dest_buffer, size);
+    return impl->ReadBlockUnsafe(src_addr, dest_buffer, size);
 }
 
 const u8* Memory::GetSpan(const VAddr src_addr, const std::size_t size) const {
@@ -917,23 +916,23 @@ u8* Memory::GetSpan(const VAddr src_addr, const std::size_t size) {
     return impl->GetSpan(src_addr, size);
 }
 
-void Memory::WriteBlock(const Common::ProcessAddress dest_addr, const void* src_buffer,
+bool Memory::WriteBlock(const Common::ProcessAddress dest_addr, const void* src_buffer,
                         const std::size_t size) {
-    impl->WriteBlock(dest_addr, src_buffer, size);
+    return impl->WriteBlock(dest_addr, src_buffer, size);
 }
 
-void Memory::WriteBlockUnsafe(const Common::ProcessAddress dest_addr, const void* src_buffer,
+bool Memory::WriteBlockUnsafe(const Common::ProcessAddress dest_addr, const void* src_buffer,
                               const std::size_t size) {
-    impl->WriteBlockUnsafe(dest_addr, src_buffer, size);
+    return impl->WriteBlockUnsafe(dest_addr, src_buffer, size);
 }
 
-void Memory::CopyBlock(Common::ProcessAddress dest_addr, Common::ProcessAddress src_addr,
+bool Memory::CopyBlock(Common::ProcessAddress dest_addr, Common::ProcessAddress src_addr,
                        const std::size_t size) {
-    impl->CopyBlock(*system.ApplicationProcess(), dest_addr, src_addr, size);
+    return impl->CopyBlock(dest_addr, src_addr, size);
 }
 
-void Memory::ZeroBlock(Common::ProcessAddress dest_addr, const std::size_t size) {
-    impl->ZeroBlock(*system.ApplicationProcess(), dest_addr, size);
+bool Memory::ZeroBlock(Common::ProcessAddress dest_addr, const std::size_t size) {
+    return impl->ZeroBlock(dest_addr, size);
 }
 
 void Memory::SetGPUDirtyManagers(std::span<Core::GPUDirtyMemoryManager> managers) {
@@ -941,15 +940,15 @@ void Memory::SetGPUDirtyManagers(std::span<Core::GPUDirtyMemoryManager> managers
 }
 
 Result Memory::InvalidateDataCache(Common::ProcessAddress dest_addr, const std::size_t size) {
-    return impl->InvalidateDataCache(*system.ApplicationProcess(), dest_addr, size);
+    return impl->InvalidateDataCache(dest_addr, size);
 }
 
 Result Memory::StoreDataCache(Common::ProcessAddress dest_addr, const std::size_t size) {
-    return impl->StoreDataCache(*system.ApplicationProcess(), dest_addr, size);
+    return impl->StoreDataCache(dest_addr, size);
 }
 
 Result Memory::FlushDataCache(Common::ProcessAddress dest_addr, const std::size_t size) {
-    return impl->FlushDataCache(*system.ApplicationProcess(), dest_addr, size);
+    return impl->FlushDataCache(dest_addr, size);
 }
 
 void Memory::RasterizerMarkRegionCached(Common::ProcessAddress vaddr, u64 size, bool cached) {

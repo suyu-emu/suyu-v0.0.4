@@ -8,6 +8,7 @@
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/svc.h"
+#include "core/hle/kernel/svc_results.h"
 
 namespace Kernel::Svc {
 
@@ -49,14 +50,10 @@ Result ReplyAndReceive(Core::System& system, s32* out_index, uint64_t handles_ad
 
     // Copy user handles.
     if (num_handles > 0) {
-        // Ensure we can try to get the handles.
-        R_UNLESS(GetCurrentMemory(kernel).IsValidVirtualAddressRange(
-                     handles_addr, static_cast<u64>(sizeof(Handle) * num_handles)),
-                 ResultInvalidPointer);
-
         // Get the handles.
-        GetCurrentMemory(kernel).ReadBlock(handles_addr, handles.data(),
-                                           sizeof(Handle) * num_handles);
+        R_UNLESS(GetCurrentMemory(kernel).ReadBlock(handles_addr, handles.data(),
+                                                    sizeof(Handle) * num_handles),
+                 ResultInvalidPointer);
 
         // Convert the handles to objects.
         R_UNLESS(handle_table.GetMultipleObjects<KSynchronizationObject>(

@@ -24,7 +24,6 @@ class GPUDirtyMemoryManager;
 } // namespace Core
 
 namespace Kernel {
-class PhysicalMemory;
 class KProcess;
 } // namespace Kernel
 
@@ -330,7 +329,7 @@ public:
      * @post The range [dest_buffer, size) contains the read bytes from the
      *       current process' address space.
      */
-    void ReadBlock(Common::ProcessAddress src_addr, void* dest_buffer, std::size_t size);
+    bool ReadBlock(Common::ProcessAddress src_addr, void* dest_buffer, std::size_t size);
 
     /**
      * Reads a contiguous block of bytes from the current process' address space.
@@ -349,7 +348,7 @@ public:
      * @post The range [dest_buffer, size) contains the read bytes from the
      *       current process' address space.
      */
-    void ReadBlockUnsafe(Common::ProcessAddress src_addr, void* dest_buffer, std::size_t size);
+    bool ReadBlockUnsafe(Common::ProcessAddress src_addr, void* dest_buffer, std::size_t size);
 
     const u8* GetSpan(const VAddr src_addr, const std::size_t size) const;
     u8* GetSpan(const VAddr src_addr, const std::size_t size);
@@ -373,7 +372,7 @@ public:
      *       and will mark that region as invalidated to caches that the active
      *       graphics backend may be maintaining over the course of execution.
      */
-    void WriteBlock(Common::ProcessAddress dest_addr, const void* src_buffer, std::size_t size);
+    bool WriteBlock(Common::ProcessAddress dest_addr, const void* src_buffer, std::size_t size);
 
     /**
      * Writes a range of bytes into the current process' address space at the specified
@@ -391,7 +390,7 @@ public:
      *       will be ignored and an error will be logged.
      *
      */
-    void WriteBlockUnsafe(Common::ProcessAddress dest_addr, const void* src_buffer,
+    bool WriteBlockUnsafe(Common::ProcessAddress dest_addr, const void* src_buffer,
                           std::size_t size);
 
     /**
@@ -405,7 +404,7 @@ public:
      * @post The range [dest_addr, size) within the process' address space contains the
      *       same data within the range [src_addr, size).
      */
-    void CopyBlock(Common::ProcessAddress dest_addr, Common::ProcessAddress src_addr,
+    bool CopyBlock(Common::ProcessAddress dest_addr, Common::ProcessAddress src_addr,
                    std::size_t size);
 
     /**
@@ -418,7 +417,7 @@ public:
      * @post The range [dest_addr, size) within the process' address space contains the
      *       value 0.
      */
-    void ZeroBlock(Common::ProcessAddress dest_addr, std::size_t size);
+    bool ZeroBlock(Common::ProcessAddress dest_addr, std::size_t size);
 
     /**
      * Invalidates a range of bytes within the current process' address space at the specified
