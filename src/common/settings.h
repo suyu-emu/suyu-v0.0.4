@@ -226,7 +226,7 @@ struct Values {
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{
         linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
     SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
-                                                            AstcDecodeMode::Cpu,
+                                                            AstcDecodeMode::Gpu,
                                                             AstcDecodeMode::Cpu,
                                                             AstcDecodeMode::CpuAsynchronous,
                                                             "accelerate_astc",
