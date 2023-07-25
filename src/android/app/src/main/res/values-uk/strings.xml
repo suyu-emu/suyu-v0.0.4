@@ -241,24 +241,6 @@
     <string name="region_taiwan">Тайвань</string>
 
     <!-- Language Names -->
-    <string name="language_japanese">Японська (日本語)</string>
-    <string name="language_english">Англійська (English)</string>
-    <string name="language_french">Французька (Français)</string>
-    <string name="langauge_german">Німецька (Deutsch)</string>
-    <string name="language_italian">Італійська (Italiano)</string>
-    <string name="language_spanish">Іспанська (Español)</string>
-    <string name="language_chinese">Китайскька (简体中文)</string>
-    <string name="language_korean">Корейська (한국어)</string>
-    <string name="language_dutch">Голландська (Nederlands)</string>
-    <string name="language_portuguese">Португальська (Português)</string>
-    <string name="language_russian">Російська (Русский)</string>
-    <string name="language_taiwanese">Тайванська (台湾)</string>
-    <string name="language_british_english">Британська англійська</string>
-    <string name="language_canadian_french">Канадська французька (Français canadien)</string>
-    <string name="language_latin_american_spanish">Латиноамериканська іспанська (Español latinoamericano)</string>
-    <string name="language_simplified_chinese">Спрощена китайська (简体中文)</string>
-    <string name="language_traditional_chinese">Традиційна китайська (正體中文)</string>
-    <string name="language_brazilian_portuguese">Бразильська португальська (Português do Brasil)</string>
 
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
