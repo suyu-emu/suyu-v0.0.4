@@ -151,9 +151,6 @@ float Volume() {
     return values.volume.GetValue() / static_cast<f32>(values.volume.GetDefault());
 }
 
-Linkage::Linkage(u32 initial_count) : count{initial_count} {}
-Linkage::~Linkage() = default;
-
 const char* TranslateCategory(Category category) {
     switch (category) {
     case Category::Audio:

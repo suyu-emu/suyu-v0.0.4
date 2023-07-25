@@ -52,4 +52,7 @@ const std::string& BasicSetting::GetLabel() const {
     return label;
 }
 
+Linkage::Linkage(u32 initial_count) : count{initial_count} {}
+Linkage::~Linkage() = default;
+
 } // namespace Settings
