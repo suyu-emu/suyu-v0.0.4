@@ -7,6 +7,7 @@
 #include <optional>
 
 #include <QMainWindow>
+#include <QMessageBox>
 #include <QTimer>
 #include <QTranslator>
 
@@ -15,6 +16,7 @@
 #include "input_common/drivers/tas_input.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
+#include "yuzu/util/controller_navigation.h"
 
 #ifdef __unix__
 #include <QVariant>
@@ -430,6 +432,17 @@ private:
                         const std::string& comment, const std::string& icon_path,
                         const std::string& command, const std::string& arguments,
                         const std::string& categories, const std::string& keywords);
+
+    /**
+     * Mimic the behavior of QMessageBox::question but link controller navigation to the dialog
+     * The only difference is that it returns a boolean.
+     *
+     * @returns true if buttons contains QMessageBox::Yes and the user clicks on the "Yes" button.
+     */
+    bool question(QWidget* parent, const QString& title, const QString& text,
+                  QMessageBox::StandardButtons buttons =
+                      QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No),
+                  QMessageBox::StandardButton defaultButton = QMessageBox::NoButton);
 
     std::unique_ptr<Ui::MainWindow> ui;
 
