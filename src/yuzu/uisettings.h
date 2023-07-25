@@ -56,6 +56,8 @@ enum class Theme {
     MidnightBlueColorful,
 };
 
+enum AskStopIndex : int { Always, Game, Never };
+
 using Themes = std::array<std::pair<const char*, const char*>, 6>;
 extern const Themes themes;
 
@@ -93,6 +95,9 @@ struct Values {
 
     Setting<bool> confirm_before_closing{
         linkage, true, "confirmClose", Category::UiGeneral, Settings::Specialization::Default,
+        true,    true};
+    Setting<bool> confirm_before_stopping{
+        linkage, true, "confirmStop", Category::UiGeneral, Settings::Specialization::Default,
         true,    true};
     Setting<bool> first_start{linkage, true, "firstStart", Category::Ui};
     Setting<bool> pause_when_in_background{linkage,

@@ -209,7 +209,7 @@ void GMainWindow::ShowTelemetryCallout() {
         tr("<a href='https://yuzu-emu.org/help/feature/telemetry/'>Anonymous "
            "data is collected</a> to help improve yuzu. "
            "<br/><br/>Would you like to share your usage data with us?");
-    if (QMessageBox::question(this, tr("Telemetry"), telemetry_message) != QMessageBox::Yes) {
+    if (!question(this, tr("Telemetry"), telemetry_message)) {
         Settings::values.enable_telemetry = false;
         system->ApplySettings();
     }
@@ -2418,9 +2418,8 @@ void GMainWindow::OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryT
         }
     }();
 
-    if (QMessageBox::question(this, tr("Remove Entry"), entry_question,
-                              QMessageBox::Yes | QMessageBox::No,
-                              QMessageBox::No) != QMessageBox::Yes) {
+    if (!question(this, tr("Remove Entry"), entry_question, QMessageBox::Yes | QMessageBox::No,
+                  QMessageBox::No)) {
         return;
     }
 
@@ -2519,8 +2518,8 @@ void GMainWindow::OnGameListRemoveFile(u64 program_id, GameListRemoveTarget targ
         }
     }();
 
-    if (QMessageBox::question(this, tr("Remove File"), question, QMessageBox::Yes | QMessageBox::No,
-                              QMessageBox::No) != QMessageBox::Yes) {
+    if (!GMainWindow::question(this, tr("Remove File"), question,
+                               QMessageBox::Yes | QMessageBox::No, QMessageBox::No)) {
         return;
     }
 
@@ -3426,8 +3425,25 @@ void GMainWindow::OnPauseContinueGame() {
 }
 
 void GMainWindow::OnStopGame() {
-    if (system->GetExitLocked() && !ConfirmForceLockedExit()) {
-        return;
+    // Open (or not) the right confirm dialog based on current setting and game exit lock
+    if (UISettings::values.confirm_before_stopping.GetValue() == UISettings::AskStopIndex::Always) {
+        if (system->GetExitLocked()) {
+            if (!ConfirmForceLockedExit()) {
+                return;
+            }
+        } else {
+            if (!ConfirmChangeGame()) {
+                return;
+            }
+        }
+    } else {
+        if (UISettings::values.confirm_before_stopping.GetValue() ==
+                UISettings::AskStopIndex::Game &&
+            system->GetExitLocked()) {
+            if (!ConfirmForceLockedExit()) {
+                return;
+            }
+        }
     }
 
     play_time_manager->Stop();
@@ -3817,22 +3833,11 @@ void GMainWindow::OnTasRecord() {
     const bool is_recording = input_subsystem->GetTas()->Record();
     if (!is_recording) {
         is_tas_recording_dialog_active = true;
-        ControllerNavigation* controller_navigation =
-            new ControllerNavigation(system->HIDCore(), this);
-        // Use QMessageBox instead of question so we can link controller navigation
-        QMessageBox* box_dialog = new QMessageBox();
-        box_dialog->setWindowTitle(tr("TAS Recording"));
-        box_dialog->setText(tr("Overwrite file of player 1?"));
-        box_dialog->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-        box_dialog->setDefaultButton(QMessageBox::Yes);
-        connect(controller_navigation, &ControllerNavigation::TriggerKeyboardEvent,
-                [box_dialog](Qt::Key key) {
-                    QKeyEvent* event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
-                    QCoreApplication::postEvent(box_dialog, event);
-                });
-        int res = box_dialog->exec();
-        controller_navigation->UnloadController();
-        input_subsystem->GetTas()->SaveRecording(res == QMessageBox::Yes);
+
+        bool answer = question(this, tr("TAS Recording"), tr("Overwrite file of player 1?"),
+                               QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+        input_subsystem->GetTas()->SaveRecording(answer);
         is_tas_recording_dialog_active = false;
     }
     OnTasStateChanged();
@@ -4071,6 +4076,27 @@ void GMainWindow::OnLoadAmiibo() {
     }
 
     LoadAmiibo(filename);
+}
+
+bool GMainWindow::question(QWidget* parent, const QString& title, const QString& text,
+                           QMessageBox::StandardButtons buttons,
+                           QMessageBox::StandardButton defaultButton) {
+    ControllerNavigation* controller_navigation = new ControllerNavigation(system->HIDCore(), this);
+
+    QMessageBox* box_dialog = new QMessageBox(parent);
+    box_dialog->setWindowTitle(title);
+    box_dialog->setText(text);
+    box_dialog->setStandardButtons(buttons);
+    box_dialog->setDefaultButton(defaultButton);
+    connect(controller_navigation, &ControllerNavigation::TriggerKeyboardEvent,
+            [box_dialog](Qt::Key key) {
+                QKeyEvent* event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
+                QCoreApplication::postEvent(box_dialog, event);
+            });
+    int res = box_dialog->exec();
+
+    controller_navigation->UnloadController();
+    return res == QMessageBox::Yes;
 }
 
 void GMainWindow::LoadAmiibo(const QString& filename) {
@@ -4806,8 +4832,7 @@ bool GMainWindow::ConfirmClose() {
         return true;
     }
     const auto text = tr("Are you sure you want to close yuzu?");
-    const auto answer = QMessageBox::question(this, tr("yuzu"), text);
-    return answer != QMessageBox::No;
+    return question(this, tr("yuzu"), text);
 }
 
 void GMainWindow::closeEvent(QCloseEvent* event) {
@@ -4900,11 +4925,11 @@ bool GMainWindow::ConfirmChangeGame() {
     if (emu_thread == nullptr)
         return true;
 
-    const auto answer = QMessageBox::question(
+    // Use custom question to link controller navigation
+    return question(
         this, tr("yuzu"),
         tr("Are you sure you want to stop the emulation? Any unsaved progress will be lost."),
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-    return answer != QMessageBox::No;
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 }
 
 bool GMainWindow::ConfirmForceLockedExit() {
@@ -4914,8 +4939,7 @@ bool GMainWindow::ConfirmForceLockedExit() {
     const auto text = tr("The currently running application has requested yuzu to not exit.\n\n"
                          "Would you like to bypass this and exit anyway?");
 
-    const auto answer = QMessageBox::question(this, tr("yuzu"), text);
-    return answer != QMessageBox::No;
+    return question(this, tr("yuzu"), text);
 }
 
 void GMainWindow::RequestGameExit() {
