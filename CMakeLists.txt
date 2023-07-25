@@ -136,6 +136,22 @@ if (YUZU_USE_BUNDLED_VCPKG)
         endif()
     endif()
 
+    if (MSVC)
+        set(VCPKG_DOWNLOADS_PATH ${PROJECT_SOURCE_DIR}/externals/vcpkg/downloads)
+        set(NASM_VERSION "2.16.01")
+        set(NASM_DESTINATION_PATH ${VCPKG_DOWNLOADS_PATH}/nasm-${NASM_VERSION}-win64.zip)
+        set(NASM_DOWNLOAD_URL "https://github.com/yuzu-emu/ext-windows-bin/raw/master/nasm/nasm-${NASM_VERSION}-win64.zip")
+
+        if (NOT EXISTS ${NASM_DESTINATION_PATH})
+            file(DOWNLOAD ${NASM_DOWNLOAD_URL} ${NASM_DESTINATION_PATH} SHOW_PROGRESS STATUS NASM_STATUS)
+
+            if (NOT NASM_STATUS EQUAL 0)
+                # Warn and not fail since vcpkg is supposed to download this package for us in the first place
+                message(WARNING "External nasm vcpkg package download from ${NASM_DOWNLOAD_URL} failed with status ${NASM_STATUS}")
+            endif()
+        endif()
+    endif()
+
     if (YUZU_TESTS)
         list(APPEND VCPKG_MANIFEST_FEATURES "yuzu-tests")
     endif()
