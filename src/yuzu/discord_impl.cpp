@@ -4,8 +4,10 @@
 #include <chrono>
 #include <string>
 
+#include <QEventLoop>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+
 #include <discord_rpc.h>
 #include <fmt/format.h>
 
@@ -89,19 +91,15 @@ void DiscordImpl::Update() {
         std::string icon_name = GetGameString(game_title);
         game_url = fmt::format("https://yuzu-emu.org/images/game/boxart/{}.png", icon_name);
 
-        QNetworkAccessManager* manager = new QNetworkAccessManager();
-
+        QNetworkAccessManager manager;
         QNetworkRequest request;
         request.setUrl(QUrl(QString::fromStdString(game_url)));
         request.setTransferTimeout(3000);
-        QNetworkReply* rep = manager->get(request);
-
-        QObject::connect(manager, &QNetworkAccessManager::finished,
-                         [this](QNetworkReply* reply) { UpdateGameStatus(reply->error()); });
-        QObject::connect(manager, &QNetworkAccessManager::finished, manager,
-                         &QNetworkAccessManager::deleteLater);
-        QObject::connect(manager, &QNetworkAccessManager::finished, rep,
-                         &QNetworkReply::deleteLater);
+        QNetworkReply* reply = manager.head(request);
+        QEventLoop request_event_loop;
+        QObject::connect(reply, &QNetworkReply::finished, &request_event_loop, &QEventLoop::quit);
+        request_event_loop.exec();
+        UpdateGameStatus(reply->error());
         return;
     }
 
