@@ -186,7 +186,7 @@ public:
     virtual void SaveContext(ThreadContext64& ctx) const = 0;
     virtual void LoadContext(const ThreadContext32& ctx) = 0;
     virtual void LoadContext(const ThreadContext64& ctx) = 0;
-    void LoadWatchpointArray(const WatchpointArray& wp);
+    void LoadWatchpointArray(const WatchpointArray* wp);
 
     /// Clears the exclusive monitor's state.
     virtual void ClearExclusiveState() = 0;

@@ -129,7 +129,7 @@ Result KThread::Initialize(KThreadFunction func, uintptr_t arg, KProcessAddress 
     case ThreadType::User:
         ASSERT(((owner == nullptr) ||
                 (owner->GetCoreMask() | (1ULL << virt_core)) == owner->GetCoreMask()));
-        ASSERT(((owner == nullptr) ||
+        ASSERT(((owner == nullptr) || (prio > Svc::LowestThreadPriority) ||
                 (owner->GetPriorityMask() | (1ULL << prio)) == owner->GetPriorityMask()));
         break;
     case ThreadType::Kernel:

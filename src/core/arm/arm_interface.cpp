@@ -217,8 +217,8 @@ void ARM_Interface::Run() {
     }
 }
 
-void ARM_Interface::LoadWatchpointArray(const WatchpointArray& wp) {
-    watchpoints = &wp;
+void ARM_Interface::LoadWatchpointArray(const WatchpointArray* wp) {
+    watchpoints = wp;
 }
 
 const Kernel::DebugWatchpoint* ARM_Interface::MatchingWatchpoint(

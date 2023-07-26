@@ -15,8 +15,8 @@ void KAutoObject::RegisterWithKernel() {
     m_kernel.RegisterKernelObject(this);
 }
 
-void KAutoObject::UnregisterWithKernel() {
-    m_kernel.UnregisterKernelObject(this);
+void KAutoObject::UnregisterWithKernel(KernelCore& kernel, KAutoObject* self) {
+    kernel.UnregisterKernelObject(self);
 }
 
 } // namespace Kernel

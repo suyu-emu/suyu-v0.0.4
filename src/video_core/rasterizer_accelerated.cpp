@@ -13,7 +13,8 @@ namespace VideoCore {
 
 using namespace Core::Memory;
 
-RasterizerAccelerated::RasterizerAccelerated(Memory& cpu_memory_) : cpu_memory{cpu_memory_} {}
+RasterizerAccelerated::RasterizerAccelerated(Memory& cpu_memory_)
+    : cached_pages(std::make_unique<CachedPages>()), cpu_memory{cpu_memory_} {}
 
 RasterizerAccelerated::~RasterizerAccelerated() = default;
 
@@ -26,7 +27,7 @@ void RasterizerAccelerated::UpdatePagesCachedCount(VAddr addr, u64 size, int del
     std::atomic_thread_fence(std::memory_order_acquire);
     const u64 page_end = Common::DivCeil(addr + size, YUZU_PAGESIZE);
     for (u64 page = addr >> YUZU_PAGEBITS; page != page_end; ++page) {
-        std::atomic_uint16_t& count = cached_pages.at(page >> 2).Count(page);
+        std::atomic_uint16_t& count = cached_pages->at(page >> 2).Count(page);
 
         if (delta > 0) {
             ASSERT_MSG(count.load(std::memory_order::relaxed) < UINT16_MAX, "Count may overflow!");

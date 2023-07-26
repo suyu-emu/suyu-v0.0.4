@@ -159,14 +159,15 @@ public:
 
         // If ref count hits zero, destroy the object.
         if (cur_ref_count - 1 == 0) {
+            KernelCore& kernel = m_kernel;
             this->Destroy();
-            this->UnregisterWithKernel();
+            KAutoObject::UnregisterWithKernel(kernel, this);
         }
     }
 
 private:
     void RegisterWithKernel();
-    void UnregisterWithKernel();
+    static void UnregisterWithKernel(KernelCore& kernel, KAutoObject* self);
 
 protected:
     KernelCore& m_kernel;
