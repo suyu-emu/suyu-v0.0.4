@@ -745,7 +745,7 @@ bool Device::TestDepthStencilBlits() const {
     const auto test_features = [](VkFormatProperties props) {
         return (props.optimalTilingFeatures & required_features) == required_features;
     };
-    return test_features(format_properties.at(VK_FORMAT_D32_SFLOAT_S8_UINT)) &&
+    return test_features(format_properties.at(VK_FORMAT_D32_SFLOAT_S8_UINT)) ||
            test_features(format_properties.at(VK_FORMAT_D24_UNORM_S8_UINT));
 }
 
