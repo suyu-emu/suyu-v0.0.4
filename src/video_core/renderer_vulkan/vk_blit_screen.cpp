@@ -566,7 +566,7 @@ void BlitScreen::CreateDescriptorPool() {
     const VkDescriptorPoolCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .pNext = nullptr,
-        .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+        .flags = 0,
         .maxSets = static_cast<u32>(image_count),
         .poolSizeCount = static_cast<u32>(pool_sizes.size()),
         .pPoolSizes = pool_sizes.data(),
@@ -576,7 +576,7 @@ void BlitScreen::CreateDescriptorPool() {
     const VkDescriptorPoolCreateInfo ci_aa{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .pNext = nullptr,
-        .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+        .flags = 0,
         .maxSets = static_cast<u32>(image_count),
         .poolSizeCount = static_cast<u32>(pool_sizes_aa.size()),
         .pPoolSizes = pool_sizes_aa.data(),
