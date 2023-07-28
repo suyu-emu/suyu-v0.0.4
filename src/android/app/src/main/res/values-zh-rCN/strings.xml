@@ -241,24 +241,6 @@
     <string name="region_taiwan">中国台湾</string>
 
     <!-- Language Names -->
-    <string name="language_japanese">日语 (日本語)</string>
-    <string name="language_english">英语 (English)</string>
-    <string name="language_french">法语 (Français)</string>
-    <string name="langauge_german">德语 (Deutsch)</string>
-    <string name="language_italian">意大利语 (Italiano)</string>
-    <string name="language_spanish">西班牙语 (Español)</string>
-    <string name="language_chinese">中文 (简体中文)</string>
-    <string name="language_korean">韩语 (한국어)</string>
-    <string name="language_dutch">荷兰语 (Nederlands)</string>
-    <string name="language_portuguese">葡萄牙语 (Português)</string>
-    <string name="language_russian">俄语 (Русский)</string>
-    <string name="language_taiwanese">台湾中文 (台灣)</string>
-    <string name="language_british_english">英式英语</string>
-    <string name="language_canadian_french">加拿大法语 (Français canadien)</string>
-    <string name="language_latin_american_spanish">拉丁美洲西班牙语 (Español latinoamericano)</string>
-    <string name="language_simplified_chinese">简体中文 (简体中文)</string>
-    <string name="language_traditional_chinese">繁体中文 (正體中文)</string>
-    <string name="language_brazilian_portuguese">巴西葡萄牙语 (Português do Brasil)</string>
 
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>

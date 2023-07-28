@@ -287,24 +287,24 @@
     <string name="region_taiwan">Taiwan</string>
 
     <!-- Language Names -->
-    <string name="language_japanese">Japanese (日本語)</string>
-    <string name="language_english">English</string>
-    <string name="language_french">French (Français)</string>
-    <string name="langauge_german">German (Deutsch)</string>
-    <string name="language_italian">Italian (Italiano)</string>
-    <string name="language_spanish">Spanish (Español)</string>
-    <string name="language_chinese">Chinese (简体中文)</string>
-    <string name="language_korean">Korean (한국어)</string>
-    <string name="language_dutch">Dutch (Nederlands)</string>
-    <string name="language_portuguese">Portuguese (Português)</string>
-    <string name="language_russian">Russian (Русский)</string>
-    <string name="language_taiwanese">Taiwanese (台湾)</string>
-    <string name="language_british_english">British English</string>
-    <string name="language_canadian_french">Canadian French (Français canadien)</string>
-    <string name="language_latin_american_spanish">Latin American Spanish (Español latinoamericano)</string>
-    <string name="language_simplified_chinese">Simplified Chinese (简体中文)</string>
-    <string name="language_traditional_chinese">Traditional Chinese (正體中文)</string>
-    <string name="language_brazilian_portuguese">Brazilian Portuguese (Português do Brasil)</string>
+    <string name="language_japanese" translatable="false">日本語</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_french" translatable="false">Français</string>
+    <string name="langauge_german" translatable="false">Deutsch</string>
+    <string name="language_italian" translatable="false">Italiano</string>
+    <string name="language_spanish" translatable="false">Español</string>
+    <string name="language_chinese" translatable="false">简体中文</string>
+    <string name="language_korean" translatable="false">한국어</string>
+    <string name="language_dutch" translatable="false">Nederlands</string>
+    <string name="language_portuguese" translatable="false">Português</string>
+    <string name="language_russian" translatable="false">Русский</string>
+    <string name="language_taiwanese" translatable="false">台湾</string>
+    <string name="language_british_english" translatable="false">British English</string>
+    <string name="language_canadian_french" translatable="false">Français canadien</string>
+    <string name="language_latin_american_spanish" translatable="false">Español latinoamericano</string>
+    <string name="language_simplified_chinese" translatable="false">简体中文</string>
+    <string name="language_traditional_chinese" translatable="false">正體中文</string>
+    <string name="language_brazilian_portuguese" translatable="false">Português do Brasil</string>
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
