@@ -554,14 +554,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     sets_per_pool = 64;
-    if (extensions.extended_dynamic_state3 && is_amd_driver &&
-        properties.properties.driverVersion >= VK_MAKE_API_VERSION(0, 2, 0, 270)) {
-        LOG_WARNING(Render_Vulkan,
-                    "AMD drivers after 23.5.2 have broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        dynamic_state3_blending = false;
-    }
     if (is_amd_driver) {
         // AMD drivers need a higher amount of Sets per Pool in certain circumstances like in XC2.
         sets_per_pool = 96;
