@@ -24,6 +24,16 @@
 
 namespace Core::Memory {
 
+namespace {
+
+bool AddressSpaceContains(const Common::PageTable& table, const Common::ProcessAddress addr,
+                          const std::size_t size) {
+    const Common::ProcessAddress max_addr = 1ULL << table.GetAddressSpaceBits();
+    return addr + size >= addr && addr + size <= max_addr;
+}
+
+} // namespace
+
 // Implementation class used to keep the specifics of the memory subsystem hidden
 // from outside classes. This also allows modification to the internals of the memory
 // subsystem without needing to rebuild all files that make use of the memory interface.
@@ -190,6 +200,11 @@ struct Memory::Impl {
         std::size_t page_index = addr >> YUZU_PAGEBITS;
         std::size_t page_offset = addr & YUZU_PAGEMASK;
         bool user_accessible = true;
+
+        if (!AddressSpaceContains(page_table, addr, size)) [[unlikely]] {
+            on_unmapped(size, addr);
+            return false;
+        }
 
         while (remaining_size) {
             const std::size_t copy_amount =
@@ -421,7 +436,7 @@ struct Memory::Impl {
     }
 
     void MarkRegionDebug(u64 vaddr, u64 size, bool debug) {
-        if (vaddr == 0) {
+        if (vaddr == 0 || !AddressSpaceContains(*current_page_table, vaddr, size)) {
             return;
         }
 
@@ -478,7 +493,7 @@ struct Memory::Impl {
     }
 
     void RasterizerMarkRegionCached(u64 vaddr, u64 size, bool cached) {
-        if (vaddr == 0) {
+        if (vaddr == 0 || !AddressSpaceContains(*current_page_table, vaddr, size)) {
             return;
         }
 
@@ -615,7 +630,7 @@ struct Memory::Impl {
         // AARCH64 masks the upper 16 bit of all memory accesses
         vaddr = vaddr & 0xffffffffffffULL;
 
-        if (vaddr >= 1uLL << current_page_table->GetAddressSpaceBits()) {
+        if (!AddressSpaceContains(*current_page_table, vaddr, 1)) [[unlikely]] {
             on_unmapped();
             return nullptr;
         }
