@@ -90,18 +90,35 @@ struct Values {
     Setting<bool> show_filter_bar{linkage, true, "showFilterBar", Category::Ui};
     Setting<bool> show_status_bar{linkage, true, "showStatusBar", Category::Ui};
 
-    Setting<bool> confirm_before_closing{linkage, true, "confirmClose", Category::UiGeneral};
+    Setting<bool> confirm_before_closing{
+        linkage, true, "confirmClose", Category::UiGeneral, Settings::Specialization::Default,
+        true,    true};
     Setting<bool> first_start{linkage, true, "firstStart", Category::Ui};
-    Setting<bool> pause_when_in_background{linkage, false, "pauseWhenInBackground",
-                                           Category::UiGeneral};
-    Setting<bool> mute_when_in_background{linkage, false, "muteWhenInBackground", Category::Ui};
-    Setting<bool> hide_mouse{linkage, true, "hideInactiveMouse", Category::UiGeneral};
+    Setting<bool> pause_when_in_background{linkage,
+                                           false,
+                                           "pauseWhenInBackground",
+                                           Category::UiGeneral,
+                                           Settings::Specialization::Default,
+                                           true,
+                                           true};
+    Setting<bool> mute_when_in_background{
+        linkage, false, "muteWhenInBackground", Category::Ui, Settings::Specialization::Default,
+        true,    true};
+    Setting<bool> hide_mouse{
+        linkage, true, "hideInactiveMouse", Category::UiGeneral, Settings::Specialization::Default,
+        true,    true};
     Setting<bool> controller_applet_disabled{linkage, false, "disableControllerApplet",
                                              Category::UiGeneral};
     // Set when Vulkan is known to crash the application
     bool has_broken_vulkan = false;
 
-    Setting<bool> select_user_on_boot{linkage, false, "select_user_on_boot", Category::UiGeneral};
+    Setting<bool> select_user_on_boot{linkage,
+                                      false,
+                                      "select_user_on_boot",
+                                      Category::UiGeneral,
+                                      Settings::Specialization::Default,
+                                      true,
+                                      true};
     Setting<bool> disable_web_applet{linkage, true, "disable_web_applet", Category::Ui};
 
     // Discord RPC

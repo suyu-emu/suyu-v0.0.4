@@ -134,9 +134,10 @@ struct Values {
                                                 Specialization::RuntimeList};
     Setting<std::string> audio_input_device_id{linkage, "auto", "input_device", Category::Audio,
                                                Specialization::RuntimeList};
-    SwitchableSetting<AudioMode, true> sound_index{linkage,         AudioMode::Stereo,
-                                                   AudioMode::Mono, AudioMode::Surround,
-                                                   "sound_index",   Category::SystemAudio};
+    SwitchableSetting<AudioMode, true> sound_index{
+        linkage,       AudioMode::Stereo,     AudioMode::Mono,         AudioMode::Surround,
+        "sound_index", Category::SystemAudio, Specialization::Default, true,
+        true};
     SwitchableSetting<u8, true> volume{linkage,
                                        100,
                                        0,
@@ -147,7 +148,7 @@ struct Values {
                                        true,
                                        true};
     Setting<bool, false> audio_muted{
-        linkage, false, "audio_muted", Category::Audio, Specialization::Default, false};
+        linkage, false, "audio_muted", Category::Audio, Specialization::Default, false, true};
     Setting<bool, false> dump_audio_commands{
         linkage, false, "dump_audio_commands", Category::Audio, Specialization::Default, false};
 
