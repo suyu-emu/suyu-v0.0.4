@@ -1256,23 +1256,27 @@ void Config::WriteCategory(Settings::Category category) {
 }
 
 void Config::ReadSettingGeneric(Settings::BasicSetting* const setting) {
-    if (!setting->Save()) {
+    if (!setting->Save() || (!setting->Switchable() && !global)) {
         return;
     }
     const QString name = QString::fromStdString(setting->GetLabel());
     const auto default_value =
         QVariant::fromValue<QString>(QString::fromStdString(setting->DefaultToString()));
 
-    if (setting->Switchable()) {
-        const bool use_global =
-            qt_config->value(name + QStringLiteral("/use_global"), true).value<bool>();
+    bool use_global = true;
+    if (setting->Switchable() && !global) {
+        use_global = qt_config->value(name + QStringLiteral("/use_global"), true).value<bool>();
         setting->SetGlobal(use_global);
+    }
 
-        if (global || !use_global) {
+    if (global || !use_global) {
+        const bool is_default = ReadSetting(name + QStringLiteral("/default"), true).value<bool>();
+        if (!is_default) {
             setting->LoadString(ReadSetting(name, default_value).value<QString>().toStdString());
+        } else {
+            // Empty string resets the Setting to default
+            setting->LoadString("");
         }
-    } else if (global) {
-        setting->LoadString(ReadSetting(name, default_value).value<QString>().toStdString());
     }
 }
 
