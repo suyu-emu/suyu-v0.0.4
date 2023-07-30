@@ -48,11 +48,11 @@ struct TexelWeightParams {
     bool void_extent_hdr;
 };
 
-layout(binding = BINDING_INPUT_BUFFER, std430) readonly buffer InputBufferU32 {
+layout(binding = BINDING_INPUT_BUFFER, std430) readonly restrict buffer InputBufferU32 {
     uvec4 astc_data[];
 };
 
-layout(binding = BINDING_OUTPUT_IMAGE, rgba8) uniform writeonly image2DArray dest_image;
+layout(binding = BINDING_OUTPUT_IMAGE, rgba8) uniform writeonly restrict image2DArray dest_image;
 
 const uint GOB_SIZE_X_SHIFT = 6;
 const uint GOB_SIZE_Y_SHIFT = 3;
