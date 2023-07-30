@@ -104,12 +104,12 @@ public:
     }
 
     Result Read(size_t* out_size, std::span<u8> data) override {
-        OSStatus status = SSLRead(context, data.data(), data.size(), &out_size);
+        OSStatus status = SSLRead(context, data.data(), data.size(), out_size);
         return HandleReturn("SSLRead", out_size, status);
     }
 
     Result Write(size_t* out_size, std::span<const u8> data) override {
-        OSStatus status = SSLWrite(context, data.data(), data.size(), &out_size);
+        OSStatus status = SSLWrite(context, data.data(), data.size(), out_size);
         return HandleReturn("SSLWrite", out_size, status);
     }
 

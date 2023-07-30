@@ -697,7 +697,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(ResultSuccess);
-        rb.PushCopyObjects(*vsync_event);
+        rb.PushCopyObjects(vsync_event);
     }
 
     void ConvertScalingMode(HLERequestContext& ctx) {

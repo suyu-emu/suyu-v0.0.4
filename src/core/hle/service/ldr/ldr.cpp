@@ -545,7 +545,7 @@ public:
         }
 
         // Map memory for the NRO
-        VAddr map_location;
+        VAddr map_location{};
         const auto map_result{MapNro(&map_location, system.ApplicationProcess(), nro_address,
                                      nro_size, bss_address, bss_size, nro_size + bss_size)};
         if (map_result != ResultSuccess) {
