@@ -32,16 +32,16 @@ struct AudioRendererParameterInternal {
     /* 0x14 */ u32 sinks;
     /* 0x18 */ u32 effects;
     /* 0x1C */ u32 perf_frames;
-    /* 0x20 */ u16 voice_drop_enabled;
+    /* 0x20 */ u8 voice_drop_enabled;
+    /* 0x21 */ u8 unk_21;
     /* 0x22 */ u8 rendering_device;
     /* 0x23 */ ExecutionMode execution_mode;
     /* 0x24 */ u32 splitter_infos;
     /* 0x28 */ s32 splitter_destinations;
     /* 0x2C */ u32 external_context_size;
     /* 0x30 */ u32 revision;
-    /* 0x34 */ char unk34[0x4];
 };
-static_assert(sizeof(AudioRendererParameterInternal) == 0x38,
+static_assert(sizeof(AudioRendererParameterInternal) == 0x34,
               "AudioRendererParameterInternal has the wrong size!");
 
 /**
