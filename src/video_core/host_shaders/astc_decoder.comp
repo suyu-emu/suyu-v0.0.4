@@ -154,18 +154,9 @@ int color_bitsread = 0;
 uint color_values[32];
 int colvals_index = 0;
 
-// Weight data globals
-uvec4 texel_weight_data;
-int texel_bitsread = 0;
-
-bool texel_flag = false;
-
 // Global "vectors" to be pushed into when decoding
 EncodingData result_vector[144];
 int result_index = 0;
-
-EncodingData texel_vector[144];
-int texel_vector_index = 0;
 
 // Replicates low num_bits such that [(to_bit - 1):(to_bit - 1 - from_bit)]
 // is the same as [(num_bits - 1):0] and repeats all the way down.
@@ -382,26 +373,15 @@ void SkipBits(uint num_bits) {
 }
 
 uint StreamColorBits(uint num_bits) {
-    uint ret = 0;
-    int int_bits = int(num_bits);
-    if (texel_flag) {
-        ret = ExtractBits(texel_weight_data, texel_bitsread, int_bits);
-        texel_bitsread += int_bits;
-    } else {
-        ret = ExtractBits(color_endpoint_data, color_bitsread, int_bits);
-        color_bitsread += int_bits;
-    }
+    const int int_bits = int(num_bits);
+    const uint ret = ExtractBits(color_endpoint_data, color_bitsread, int_bits);
+    color_bitsread += int_bits;
     return ret;
 }
 
 void ResultEmplaceBack(EncodingData val) {
-    if (texel_flag) {
-        texel_vector[texel_vector_index] = val;
-        ++texel_vector_index;
-    } else {
-        result_vector[result_index] = val;
-        ++result_index;
-    }
+    result_vector[result_index] = val;
+    ++result_index;
 }
 
 // Returns the number of bits required to encode n_vals values.
@@ -910,7 +890,7 @@ void UnquantizeTexelWeights(bool is_dual_plane, uvec2 size, out uint unquantized
     const uint loop_count = min(result_index, area * num_planes);
     uint unquantized[2 * 144];
     for (uint itr = 0; itr < loop_count; ++itr) {
-        unquantized[itr] = UnquantizeTexelWeight(texel_vector[itr]);
+        unquantized[itr] = UnquantizeTexelWeight(result_vector[itr]);
     }
     for (uint plane = 0; plane < num_planes; ++plane) {
         for (uint t = 0; t < block_dims.y; t++) {
@@ -1215,22 +1195,26 @@ void DecompressBlock(ivec3 coord) {
         ComputeEndpoints(endpoints[i][0], endpoints[i][1], color_endpoint_mode[i]);
     }
 
-    texel_weight_data = local_buff;
-    texel_weight_data = bitfieldReverse(texel_weight_data).wzyx;
+    color_endpoint_data = local_buff;
+    color_endpoint_data = bitfieldReverse(color_endpoint_data).wzyx;
     uint clear_byte_start =
         (GetPackedBitSize(params.size, params.dual_plane, params.max_weight) >> 3) + 1;
 
-    uint byte_insert = ExtractBits(texel_weight_data, int(clear_byte_start - 1) * 8, 8) &
+    uint byte_insert = ExtractBits(color_endpoint_data, int(clear_byte_start - 1) * 8, 8) &
         uint(
             ((1 << (GetPackedBitSize(params.size, params.dual_plane, params.max_weight) % 8)) - 1));
     uint vec_index = (clear_byte_start - 1) >> 2;
-    texel_weight_data[vec_index] =
-        bitfieldInsert(texel_weight_data[vec_index], byte_insert, int((clear_byte_start - 1) % 4) * 8, 8);
+    color_endpoint_data[vec_index] =
+        bitfieldInsert(color_endpoint_data[vec_index], byte_insert, int((clear_byte_start - 1) % 4) * 8, 8);
     for (uint i = clear_byte_start; i < 16; ++i) {
         uint idx = i >> 2;
-        texel_weight_data[idx] = bitfieldInsert(texel_weight_data[idx], 0, int(i % 4) * 8, 8);
+        color_endpoint_data[idx] = bitfieldInsert(color_endpoint_data[idx], 0, int(i % 4) * 8, 8);
     }
-    texel_flag = true; // use texel "vector" and bit stream in integer decoding
+
+    // Re-init vector variables for next decode phase
+    result_index = 0;
+    color_bitsread = 0;
+
     DecodeIntegerSequence(params.max_weight, GetNumWeightValues(params.size, params.dual_plane));
 
     uint unquantized_texel_weights[2 * 144];
