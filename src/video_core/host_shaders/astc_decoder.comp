@@ -418,14 +418,6 @@ uint BitsBracket(uint bits, uint pos) {
 }
 
 uint BitsOp(uint bits, uint start, uint end) {
-    if (start == end) {
-        return BitsBracket(bits, start);
-    } else if (start > end) {
-        uint t = start;
-        start = end;
-        end = t;
-    }
-
     uint mask = (1 << (end - start + 1)) - 1;
     return ((bits >> start) & mask);
 }
@@ -665,10 +657,8 @@ ivec2 BitTransferSigned(int a, int b) {
 }
 
 uvec4 ClampByte(ivec4 color) {
-    for (uint i = 0; i < 4; ++i) {
-        color[i] = (color[i] < 0) ? 0 : ((color[i] > 255) ? 255 : color[i]);
-    }
-    return uvec4(color);
+    const uvec4 clamped = uvec4(clamp(color, 0, 255));
+    return clamped;
 }
 
 ivec4 BlueContract(int a, int r, int g, int b) {
