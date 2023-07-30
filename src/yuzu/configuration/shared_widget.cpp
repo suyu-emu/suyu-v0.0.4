@@ -495,10 +495,12 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
 
     if (Settings::IsConfiguringGlobal()) {
         load_func = [this, serializer, checkbox_serializer, require_checkbox, other_setting]() {
-            if (require_checkbox) {
+            if (require_checkbox && other_setting->UsingGlobal()) {
                 other_setting->LoadString(checkbox_serializer());
             }
-            setting.LoadString(serializer());
+            if (setting.UsingGlobal()) {
+                setting.LoadString(serializer());
+            }
         };
     } else {
         layout->addWidget(restore_button);
