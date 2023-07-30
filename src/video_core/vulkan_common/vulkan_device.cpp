@@ -15,14 +15,13 @@
 #include "common/polyfill_ranges.h"
 #include "common/settings.h"
 #include "video_core/vulkan_common/nsight_aftermath_tracker.h"
+#include "video_core/vulkan_common/vma.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 #if defined(ANDROID) && defined(ARCHITECTURE_arm64)
 #include <adrenotools/bcenabler.h>
 #endif
-
-#include <vk_mem_alloc.h>
 
 namespace Vulkan {
 using namespace Common::Literals;

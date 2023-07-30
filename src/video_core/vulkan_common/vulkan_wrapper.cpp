@@ -9,10 +9,8 @@
 
 #include "common/common_types.h"
 #include "common/logging/log.h"
-
+#include "video_core/vulkan_common/vma.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
-
-#include <vk_mem_alloc.h>
 
 namespace Vulkan::vk {
 
