@@ -1058,12 +1058,9 @@ TexelWeightParams DecodeBlockInfo() {
     }
     weight_index -= 2;
     if ((mode_layout != 9) && ((mode & 0x200) != 0)) {
-        const int max_weights[6] = int[6](7, 8, 9, 10, 11, 12);
-        params.max_weight = max_weights[weight_index];
-    } else {
-        const int max_weights[6] = int[6](1, 2, 3, 4, 5, 6);
-        params.max_weight = max_weights[weight_index];
+        weight_index += 6;
     }
+    params.max_weight = weight_index + 1;
     return params;
 }
 
