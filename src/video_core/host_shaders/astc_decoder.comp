@@ -349,14 +349,17 @@ uint ExtractBits(uvec4 payload, int offset, int bits) {
     if (bits <= 0) {
         return 0;
     }
-    int last_offset = offset + bits - 1;
-    int shifted_offset = offset >> 5;
+    if (bits > 32) {
+        return 0;
+    }
+    const int last_offset = offset + bits - 1;
+    const int shifted_offset = offset >> 5;
     if ((last_offset >> 5) == shifted_offset) {
         return bitfieldExtract(payload[shifted_offset], offset & 31, bits);
     }
-    int first_bits = 32 - (offset & 31);
-    int result_first = int(bitfieldExtract(payload[shifted_offset], offset & 31, first_bits));
-    int result_second = int(bitfieldExtract(payload[shifted_offset + 1], 0, bits - first_bits));
+    const int first_bits = 32 - (offset & 31);
+    const int result_first = int(bitfieldExtract(payload[shifted_offset], offset & 31, first_bits));
+    const int result_second = int(bitfieldExtract(payload[shifted_offset + 1], 0, bits - first_bits));
     return result_first | (result_second << first_bits);
 }
 
