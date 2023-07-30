@@ -360,6 +360,11 @@ uint StreamBits(uint num_bits) {
     return ret;
 }
 
+void SkipBits(uint num_bits) {
+    const int int_bits = int(num_bits);
+    total_bitsread += int_bits;
+}
+
 uint StreamColorBits(uint num_bits) {
     uint ret = 0;
     int int_bits = int(num_bits);
@@ -1071,15 +1076,15 @@ void FillError(ivec3 coord) {
 }
 
 void FillVoidExtentLDR(ivec3 coord) {
-    StreamBits(52);
-    uint r_u = StreamBits(16);
-    uint g_u = StreamBits(16);
-    uint b_u = StreamBits(16);
-    uint a_u = StreamBits(16);
-    float a = float(a_u) / 65535.0f;
-    float r = float(r_u) / 65535.0f;
-    float g = float(g_u) / 65535.0f;
-    float b = float(b_u) / 65535.0f;
+    SkipBits(52);
+    const uint r_u = StreamBits(16);
+    const uint g_u = StreamBits(16);
+    const uint b_u = StreamBits(16);
+    const uint a_u = StreamBits(16);
+    const float a = float(a_u) / 65535.0f;
+    const float r = float(r_u) / 65535.0f;
+    const float g = float(g_u) / 65535.0f;
+    const float b = float(b_u) / 65535.0f;
     for (uint j = 0; j < block_dims.y; j++) {
         for (uint i = 0; i < block_dims.x; i++) {
             imageStore(dest_image, coord + ivec3(i, j, 0), vec4(r, g, b, a));
