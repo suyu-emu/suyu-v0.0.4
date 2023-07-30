@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <sstream>
+#include <utility>
 
 #include "common/logging/log.h"
 #include "common/settings.h"
@@ -46,14 +47,14 @@ static FileSys::VirtualDir GetTimeZoneBinary(Core::System& system) {
     return FileSys::ExtractRomFS(romfs);
 }
 
-static std::vector<std::string> BuildLocationNameCache(Core::System& system) {
-    const FileSys::VirtualDir extracted_romfs{GetTimeZoneBinary(system)};
-    if (!extracted_romfs) {
+static std::vector<std::string> BuildLocationNameCache(
+    const FileSys::VirtualDir& time_zone_binary) {
+    if (!time_zone_binary) {
         LOG_ERROR(Service_Time, "Failed to extract RomFS for {:016X}!", time_zone_binary_titleid);
         return {};
     }
 
-    const FileSys::VirtualFile binary_list{extracted_romfs->GetFile("binaryList.txt")};
+    const FileSys::VirtualFile binary_list{time_zone_binary->GetFile("binaryList.txt")};
     if (!binary_list) {
         LOG_ERROR(Service_Time, "{:016X} has no file binaryList.txt!", time_zone_binary_titleid);
         return {};
@@ -73,7 +74,8 @@ static std::vector<std::string> BuildLocationNameCache(Core::System& system) {
 }
 
 TimeZoneContentManager::TimeZoneContentManager(Core::System& system_)
-    : system{system_}, location_name_cache{BuildLocationNameCache(system)} {}
+    : system{system_}, time_zone_binary{GetTimeZoneBinary(system)},
+      location_name_cache{BuildLocationNameCache(time_zone_binary)} {}
 
 void TimeZoneContentManager::Initialize(TimeManager& time_manager) {
     const auto timezone_setting = Settings::GetTimeZoneString();
@@ -111,13 +113,12 @@ Result TimeZoneContentManager::GetTimeZoneInfoFile(const std::string& location_n
         return ERROR_TIME_NOT_FOUND;
     }
 
-    const FileSys::VirtualDir extracted_romfs{GetTimeZoneBinary(system)};
-    if (!extracted_romfs) {
+    if (!time_zone_binary) {
         LOG_ERROR(Service_Time, "Failed to extract RomFS for {:016X}!", time_zone_binary_titleid);
         return ERROR_TIME_NOT_FOUND;
     }
 
-    const FileSys::VirtualDir zoneinfo_dir{extracted_romfs->GetSubdirectory("zoneinfo")};
+    const FileSys::VirtualDir zoneinfo_dir{time_zone_binary->GetSubdirectory("zoneinfo")};
     if (!zoneinfo_dir) {
         LOG_ERROR(Service_Time, "{:016X} has no directory zoneinfo!", time_zone_binary_titleid);
         return ERROR_TIME_NOT_FOUND;
