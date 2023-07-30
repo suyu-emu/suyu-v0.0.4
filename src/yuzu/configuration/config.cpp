@@ -1090,6 +1090,7 @@ void Config::SaveUIValues() {
     qt_config->beginGroup(QStringLiteral("UI"));
 
     WriteCategory(Settings::Category::Ui);
+    WriteCategory(Settings::Category::UiGeneral);
 
     WriteSetting(QStringLiteral("theme"), UISettings::values.theme,
                  QString::fromUtf8(UISettings::themes[static_cast<size_t>(default_theme)].second));
