@@ -57,7 +57,7 @@ Result VfsDirectoryServiceWrapper::CreateFile(const std::string& path_, u64 size
         return FileSys::ERROR_PATH_NOT_FOUND;
     }
 
-    FileSys::EntryType entry_type;
+    FileSys::EntryType entry_type{};
     if (GetEntryType(&entry_type, path) == ResultSuccess) {
         return FileSys::ERROR_PATH_ALREADY_EXISTS;
     }
