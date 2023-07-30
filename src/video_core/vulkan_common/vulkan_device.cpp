@@ -554,7 +554,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     sets_per_pool = 64;
-    if (extensions.extended_dynamic_state3 && is_amd_driver && !features.shader_float16_int8.shaderFloat16 &&
+    if (extensions.extended_dynamic_state3 && is_amd_driver &&
+        !features.shader_float16_int8.shaderFloat16 &&
         properties.properties.driverVersion >= VK_MAKE_API_VERSION(0, 2, 0, 258)) {
         LOG_WARNING(Render_Vulkan,
                     "AMD's GCN4 architecture has broken extendedDynamicState3ColorBlendEquation");
