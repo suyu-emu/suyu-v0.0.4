@@ -275,6 +275,8 @@ add_library(video_core STATIC
     vulkan_common/nsight_aftermath_tracker.cpp
     vulkan_common/nsight_aftermath_tracker.h
     vulkan_common/vma.cpp
+    vulkan_common/vma.h
+    vulkan_common/vulkan.h
 )
 
 create_target_directory_groups(video_core)
