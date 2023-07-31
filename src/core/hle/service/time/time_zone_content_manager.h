@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "core/file_sys/vfs_types.h"
 #include "core/hle/service/time/time_zone_manager.h"
 
 namespace Core {
@@ -41,6 +42,7 @@ private:
 
     Core::System& system;
     TimeZoneManager time_zone_manager;
+    const FileSys::VirtualDir time_zone_binary;
     const std::vector<std::string> location_name_cache;
 };
 
