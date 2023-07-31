@@ -62,7 +62,7 @@ void TurboMode::Run(std::stop_token stop_token) {
     auto descriptor_pool = dld.CreateDescriptorPool(VkDescriptorPoolCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .pNext = nullptr,
-        .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+        .flags = 0,
         .maxSets = 1,
         .poolSizeCount = 1,
         .pPoolSizes = &pool_size,
