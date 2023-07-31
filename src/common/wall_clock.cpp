@@ -56,12 +56,12 @@ std::unique_ptr<WallClock> CreateOptimalClock() {
 #ifdef ARCHITECTURE_x86_64
     const auto& caps = GetCPUCaps();
 
-    if (caps.invariant_tsc && caps.tsc_frequency >= WallClock::GPUTickFreq) {
+    if (caps.invariant_tsc && caps.tsc_frequency >= std::nano::den) {
         return std::make_unique<X64::NativeClock>(caps.tsc_frequency);
     } else {
         // Fallback to StandardWallClock if the hardware TSC
         // - Is not invariant
-        // - Is not more precise than GPUTickFreq
+        // - Is not more precise than 1 GHz (1ns resolution)
         return std::make_unique<StandardWallClock>();
     }
 #else
