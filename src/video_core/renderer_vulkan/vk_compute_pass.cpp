@@ -6,6 +6,8 @@
 #include <optional>
 #include <utility>
 
+#include "video_core/renderer_vulkan/vk_texture_cache.h"
+
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/div_ceil.h"
@@ -16,7 +18,6 @@
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
-#include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/texture_cache/accelerated_swizzle.h"
 #include "video_core/texture_cache/types.h"

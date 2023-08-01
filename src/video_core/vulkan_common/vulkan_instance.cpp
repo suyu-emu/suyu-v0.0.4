@@ -14,19 +14,6 @@
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
-// Include these late to avoid polluting previous headers
-#if defined(_WIN32)
-#include <windows.h>
-// ensure include order
-#include <vulkan/vulkan_win32.h>
-#elif defined(__ANDROID__)
-#include <vulkan/vulkan_android.h>
-#elif !defined(__APPLE__)
-#include <X11/Xlib.h>
-#include <vulkan/vulkan_wayland.h>
-#include <vulkan/vulkan_xlib.h>
-#endif
-
 namespace Vulkan {
 namespace {
 

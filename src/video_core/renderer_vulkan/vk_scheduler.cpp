@@ -6,11 +6,12 @@
 #include <thread>
 #include <utility>
 
+#include "video_core/renderer_vulkan/vk_query_cache.h"
+
 #include "common/microprofile.h"
 #include "common/thread.h"
 #include "video_core/renderer_vulkan/vk_command_pool.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
-#include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
