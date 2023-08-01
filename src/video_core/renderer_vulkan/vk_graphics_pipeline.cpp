@@ -7,9 +7,10 @@
 #include <boost/container/small_vector.hpp>
 #include <boost/container/static_vector.hpp>
 
+#include "video_core/renderer_vulkan/pipeline_helper.h"
+
 #include "common/bit_field.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
-#include "video_core/renderer_vulkan/pipeline_helper.h"
 #include "video_core/renderer_vulkan/pipeline_statistics.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_graphics_pipeline.h"

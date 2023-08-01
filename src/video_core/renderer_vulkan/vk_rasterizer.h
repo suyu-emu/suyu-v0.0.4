@@ -7,13 +7,14 @@
 
 #include <boost/container/static_vector.hpp>
 
+#include "video_core/renderer_vulkan/vk_buffer_cache.h"
+
 #include "common/common_types.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/maxwell_dma.h"
 #include "video_core/rasterizer_accelerated.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_vulkan/blit_image.h"
-#include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_fence_manager.h"
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
