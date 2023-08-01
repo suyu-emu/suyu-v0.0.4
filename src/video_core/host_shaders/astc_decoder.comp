@@ -57,20 +57,40 @@ const uint GOB_SIZE_SHIFT = GOB_SIZE_X_SHIFT + GOB_SIZE_Y_SHIFT;
 
 const uint BYTES_PER_BLOCK_LOG2 = 4;
 
-const int JUST_BITS = 0;
-const int QUINT = 1;
-const int TRIT = 2;
+const uint JUST_BITS = 0u;
+const uint QUINT = 1u;
+const uint TRIT = 2u;
 
 // ASTC Encodings data, sorted in ascending order based on their BitLength value
 // (see GetBitLength() function)
-const EncodingData encoding_values[22] = EncodingData[](
-    EncodingData(JUST_BITS),              EncodingData(JUST_BITS | (1u << 8u)), EncodingData(TRIT),                   EncodingData(JUST_BITS | (2u << 8u)),
-    EncodingData(QUINT),                  EncodingData(TRIT | (1u << 8u)),      EncodingData(JUST_BITS | (3u << 8u)), EncodingData(QUINT | (1u << 8u)),
-    EncodingData(TRIT | (2u << 8u)),      EncodingData(JUST_BITS | (4u << 8u)), EncodingData(QUINT | (2u << 8u)),     EncodingData(TRIT | (3u << 8u)),
-    EncodingData(JUST_BITS | (5u << 8u)), EncodingData(QUINT | (3u << 8u)),     EncodingData(TRIT | (4u << 8u)),      EncodingData(JUST_BITS | (6u << 8u)),
-    EncodingData(QUINT | (4u << 8u)),     EncodingData(TRIT | (5u << 8u)),      EncodingData(JUST_BITS | (7u << 8u)), EncodingData(QUINT | (5u << 8u)),
-    EncodingData(TRIT | (6u << 8u)),      EncodingData(JUST_BITS | (8u << 8u))
-);
+const uvec4 encoding_values[6] = uvec4[](
+    uvec4((JUST_BITS), (JUST_BITS | (1u << 8u)), (TRIT), (JUST_BITS | (2u << 8u))),
+    uvec4((QUINT), (TRIT | (1u << 8u)), (JUST_BITS | (3u << 8u)), (QUINT | (1u << 8u))),
+    uvec4((TRIT | (2u << 8u)), (JUST_BITS | (4u << 8u)), (QUINT | (2u << 8u)), (TRIT | (3u << 8u))),
+    uvec4((JUST_BITS | (5u << 8u)), (QUINT | (3u << 8u)), (TRIT | (4u << 8u)), (JUST_BITS | (6u << 8u))),
+    uvec4((QUINT | (4u << 8u)), (TRIT | (5u << 8u)), (JUST_BITS | (7u << 8u)), (QUINT | (5u << 8u))),
+    uvec4((TRIT | (6u << 8u)), (JUST_BITS | (8u << 8u)), 0u, 0u));
+
+// Input ASTC texture globals
+int total_bitsread = 0;
+uvec4 local_buff;
+
+// Color data globals
+uvec4 color_endpoint_data;
+int color_bitsread = 0;
+
+// Global "vector" to be pushed into when decoding
+// At most will require BLOCK_WIDTH x BLOCK_HEIGHT in single plane mode
+// At most will require BLOCK_WIDTH x BLOCK_HEIGHT x 2 in dual plane mode
+// So the maximum would be 144 (12 x 12) elements, x 2 for two planes
+#define DIVCEIL(number, divisor) (number + divisor - 1) / divisor
+#define ARRAY_NUM_ELEMENTS 144
+#define VECTOR_ARRAY_SIZE DIVCEIL(ARRAY_NUM_ELEMENTS * 2, 4)
+uvec4 result_vector[VECTOR_ARRAY_SIZE];
+
+int result_index = 0;
+uint result_vector_max_index;
+bool result_limit_reached = false;
 
 // EncodingData helpers
 uint Encoding(EncodingData val) {
@@ -104,78 +124,17 @@ EncodingData CreateEncodingData(uint encoding, uint num_bits, uint bit_val, uint
                         ((bit_val) << 16u) | ((quint_trit_val) << 24u));
 }
 
-// The following constants are expanded variants of the Replicate()
-// function calls corresponding to the following arguments:
-// value: index into the generated table
-// num_bits: the after "REPLICATE" in the table name. i.e. 4 is num_bits in REPLICATE_4.
-// to_bit: the integer after "TO_"
-const uint REPLICATE_BIT_TO_7_TABLE[2] = uint[](0, 127);
-const uint REPLICATE_1_BIT_TO_9_TABLE[2] = uint[](0, 511);
 
-const uint REPLICATE_1_BIT_TO_8_TABLE[2] = uint[](0, 255);
-const uint REPLICATE_2_BIT_TO_8_TABLE[4] = uint[](0, 85, 170, 255);
-const uint REPLICATE_3_BIT_TO_8_TABLE[8] = uint[](0, 36, 73, 109, 146, 182, 219, 255);
-const uint REPLICATE_4_BIT_TO_8_TABLE[16] =
-    uint[](0, 17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255);
-const uint REPLICATE_5_BIT_TO_8_TABLE[32] =
-    uint[](0, 8, 16, 24, 33, 41, 49, 57, 66, 74, 82, 90, 99, 107, 115, 123, 132, 140, 148, 156, 165,
-           173, 181, 189, 198, 206, 214, 222, 231, 239, 247, 255);
-const uint REPLICATE_1_BIT_TO_6_TABLE[2] = uint[](0, 63);
-const uint REPLICATE_2_BIT_TO_6_TABLE[4] = uint[](0, 21, 42, 63);
-const uint REPLICATE_3_BIT_TO_6_TABLE[8] = uint[](0, 9, 18, 27, 36, 45, 54, 63);
-const uint REPLICATE_4_BIT_TO_6_TABLE[16] =
-    uint[](0, 4, 8, 12, 17, 21, 25, 29, 34, 38, 42, 46, 51, 55, 59, 63);
-const uint REPLICATE_5_BIT_TO_6_TABLE[32] =
-    uint[](0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 33, 35, 37, 39, 41, 43, 45,
-           47, 49, 51, 53, 55, 57, 59, 61, 63);
-const uint REPLICATE_6_BIT_TO_8_TABLE[64] =
-    uint[](0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 65, 69, 73, 77, 81, 85, 89,
-           93, 97, 101, 105, 109, 113, 117, 121, 125, 130, 134, 138, 142, 146, 150, 154, 158, 162,
-           166, 170, 174, 178, 182, 186, 190, 195, 199, 203, 207, 211, 215, 219, 223, 227, 231, 235,
-           239, 243, 247, 251, 255);
-const uint REPLICATE_7_BIT_TO_8_TABLE[128] =
-    uint[](0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44,
-           46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 84, 86, 88,
-           90, 92, 94, 96, 98, 100, 102, 104, 106, 108, 110, 112, 114, 116, 118, 120, 122, 124, 126,
-           129, 131, 133, 135, 137, 139, 141, 143, 145, 147, 149, 151, 153, 155, 157, 159, 161, 163,
-           165, 167, 169, 171, 173, 175, 177, 179, 181, 183, 185, 187, 189, 191, 193, 195, 197, 199,
-           201, 203, 205, 207, 209, 211, 213, 215, 217, 219, 221, 223, 225, 227, 229, 231, 233, 235,
-           237, 239, 241, 243, 245, 247, 249, 251, 253, 255);
-
-// Input ASTC texture globals
-int total_bitsread = 0;
-uvec4 local_buff;
-
-// Color data globals
-uvec4 color_endpoint_data;
-int color_bitsread = 0;
-
-// Four values, two endpoints, four maximum partitions
-uint color_values[32];
-int colvals_index = 0;
-
-// Global "vectors" to be pushed into when decoding
-EncodingData result_vector[144];
-int result_index = 0;
-
-// Replicates low num_bits such that [(to_bit - 1):(to_bit - 1 - from_bit)]
-// is the same as [(num_bits - 1):0] and repeats all the way down.
-uint Replicate(uint val, uint num_bits, uint to_bit) {
-    const uint v = val & uint((1 << num_bits) - 1);
-    uint res = v;
-    uint reslen = num_bits;
-    while (reslen < to_bit) {
-        uint comp = 0;
-        if (num_bits > to_bit - reslen) {
-            uint newshift = to_bit - reslen;
-            comp = num_bits - newshift;
-            num_bits = newshift;
-        }
-        res = uint(res << num_bits);
-        res = uint(res | (v >> comp));
-        reslen += num_bits;
+void ResultEmplaceBack(EncodingData val) {
+    if (result_index >= result_vector_max_index) {
+        // Alert callers to avoid decoding more than needed by this phase
+        result_limit_reached = true;
+        return;
     }
-    return res;
+    const uint array_index = result_index / 4;
+    const uint vector_index = result_index % 4;
+    result_vector[array_index][vector_index] = val.data;
+    ++result_index;
 }
 
 uvec4 ReplicateByteTo16(uvec4 value) {
@@ -183,64 +142,105 @@ uvec4 ReplicateByteTo16(uvec4 value) {
 }
 
 uint ReplicateBitTo7(uint value) {
-    return REPLICATE_BIT_TO_7_TABLE[value];
+    return value * 127;
 }
 
 uint ReplicateBitTo9(uint value) {
-    return REPLICATE_1_BIT_TO_9_TABLE[value];
-}
-
-uint FastReplicate(uint value, uint num_bits, uint to_bit) {
-    if (num_bits == 0) {
-        return 0;
-    }
-    if (num_bits == to_bit) {
-        return value;
-    }
-    if (to_bit == 6) {
-        switch (num_bits) {
-        case 1:
-            return REPLICATE_1_BIT_TO_6_TABLE[value];
-        case 2:
-            return REPLICATE_2_BIT_TO_6_TABLE[value];
-        case 3:
-            return REPLICATE_3_BIT_TO_6_TABLE[value];
-        case 4:
-            return REPLICATE_4_BIT_TO_6_TABLE[value];
-        case 5:
-            return REPLICATE_5_BIT_TO_6_TABLE[value];
-        default:
-            break;
-        }
-    } else { /* if (to_bit == 8) */
-        switch (num_bits) {
-        case 1:
-            return REPLICATE_1_BIT_TO_8_TABLE[value];
-        case 2:
-            return REPLICATE_2_BIT_TO_8_TABLE[value];
-        case 3:
-            return REPLICATE_3_BIT_TO_8_TABLE[value];
-        case 4:
-            return REPLICATE_4_BIT_TO_8_TABLE[value];
-        case 5:
-            return REPLICATE_5_BIT_TO_8_TABLE[value];
-        case 6:
-            return REPLICATE_6_BIT_TO_8_TABLE[value];
-        case 7:
-            return REPLICATE_7_BIT_TO_8_TABLE[value];
-        default:
-            break;
-        }
-    }
-    return Replicate(value, num_bits, to_bit);
+    return value * 511;
 }
 
 uint FastReplicateTo8(uint value, uint num_bits) {
-    return FastReplicate(value, num_bits, 8);
+    if (value == 0) {
+        return 0;
+    }
+    const uint array_index = value / 4;
+    const uint vector_index = value % 4;
+    switch (num_bits) {
+    case 1:
+        return 255;
+    case 2: {
+        const uvec4 REPLICATE_2_BIT_TO_8_TABLE = (uvec4(0, 85, 170, 255));
+        return REPLICATE_2_BIT_TO_8_TABLE[vector_index];
+    }
+    case 3: {
+        const uvec4 REPLICATE_3_BIT_TO_8_TABLE[2] =
+            uvec4[](uvec4(0, 36, 73, 109), uvec4(146, 182, 219, 255));
+        return REPLICATE_3_BIT_TO_8_TABLE[array_index][vector_index];
+    }
+    case 4: {
+        const uvec4 REPLICATE_4_BIT_TO_8_TABLE[4] =
+            uvec4[](uvec4(0, 17, 34, 51), uvec4(68, 85, 102, 119), uvec4(136, 153, 170, 187),
+                    uvec4(204, 221, 238, 255));
+        return REPLICATE_4_BIT_TO_8_TABLE[array_index][vector_index];
+    }
+    case 5: {
+        const uvec4 REPLICATE_5_BIT_TO_8_TABLE[8] =
+            uvec4[](uvec4(0, 8, 16, 24), uvec4(33, 41, 49, 57), uvec4(66, 74, 82, 90),
+                    uvec4(99, 107, 115, 123), uvec4(132, 140, 148, 156), uvec4(165, 173, 181, 189),
+                    uvec4(198, 206, 214, 222), uvec4(231, 239, 247, 255));
+        return REPLICATE_5_BIT_TO_8_TABLE[array_index][vector_index];
+    }
+    case 6: {
+        const uvec4 REPLICATE_6_BIT_TO_8_TABLE[16] = uvec4[](
+            uvec4(0, 4, 8, 12), uvec4(16, 20, 24, 28), uvec4(32, 36, 40, 44), uvec4(48, 52, 56, 60),
+            uvec4(65, 69, 73, 77), uvec4(81, 85, 89, 93), uvec4(97, 101, 105, 109),
+            uvec4(113, 117, 121, 125), uvec4(130, 134, 138, 142), uvec4(146, 150, 154, 158),
+            uvec4(162, 166, 170, 174), uvec4(178, 182, 186, 190), uvec4(195, 199, 203, 207),
+            uvec4(211, 215, 219, 223), uvec4(227, 231, 235, 239), uvec4(243, 247, 251, 255));
+        return REPLICATE_6_BIT_TO_8_TABLE[array_index][vector_index];
+    }
+    case 7: {
+        const uvec4 REPLICATE_7_BIT_TO_8_TABLE[32] =
+            uvec4[](uvec4(0, 2, 4, 6), uvec4(8, 10, 12, 14), uvec4(16, 18, 20, 22),
+                    uvec4(24, 26, 28, 30), uvec4(32, 34, 36, 38), uvec4(40, 42, 44, 46),
+                    uvec4(48, 50, 52, 54), uvec4(56, 58, 60, 62), uvec4(64, 66, 68, 70),
+                    uvec4(72, 74, 76, 78), uvec4(80, 82, 84, 86), uvec4(88, 90, 92, 94),
+                    uvec4(96, 98, 100, 102), uvec4(104, 106, 108, 110), uvec4(112, 114, 116, 118),
+                    uvec4(120, 122, 124, 126), uvec4(129, 131, 133, 135), uvec4(137, 139, 141, 143),
+                    uvec4(145, 147, 149, 151), uvec4(153, 155, 157, 159), uvec4(161, 163, 165, 167),
+                    uvec4(169, 171, 173, 175), uvec4(177, 179, 181, 183), uvec4(185, 187, 189, 191),
+                    uvec4(193, 195, 197, 199), uvec4(201, 203, 205, 207), uvec4(209, 211, 213, 215),
+                    uvec4(217, 219, 221, 223), uvec4(225, 227, 229, 231), uvec4(233, 235, 237, 239),
+                    uvec4(241, 243, 245, 247), uvec4(249, 251, 253, 255));
+        return REPLICATE_7_BIT_TO_8_TABLE[array_index][vector_index];
+    }
+    }
+    return value;
 }
 
 uint FastReplicateTo6(uint value, uint num_bits) {
-    return FastReplicate(value, num_bits, 6);
+    if (value == 0) {
+        return 0;
+    }
+    const uint array_index = value / 4;
+    const uint vector_index = value % 4;
+    switch (num_bits) {
+    case 1:
+        return 63;
+    case 2: {
+        const uvec4 REPLICATE_2_BIT_TO_6_TABLE = uvec4(0, 21, 42, 63);
+        return REPLICATE_2_BIT_TO_6_TABLE[vector_index];
+    }
+    case 3: {
+        const uvec4 REPLICATE_3_BIT_TO_6_TABLE[2] =
+            uvec4[](uvec4(0, 9, 18, 27), uvec4(36, 45, 54, 63));
+        return REPLICATE_3_BIT_TO_6_TABLE[array_index][vector_index];
+    }
+    case 4: {
+        const uvec4 REPLICATE_4_BIT_TO_6_TABLE[4] =
+            uvec4[](uvec4(0, 4, 8, 12), uvec4(17, 21, 25, 29), uvec4(34, 38, 42, 46),
+                    uvec4(51, 55, 59, 63));
+        return REPLICATE_4_BIT_TO_6_TABLE[array_index][vector_index];
+    }
+    case 5: {
+        const uvec4 REPLICATE_5_BIT_TO_6_TABLE[8] =
+            uvec4[](uvec4(0, 2, 4, 6), uvec4(8, 10, 12, 14), uvec4(16, 18, 20, 22),
+                    uvec4(24, 26, 28, 30), uvec4(33, 35, 37, 39), uvec4(41, 43, 45, 47),
+                    uvec4(49, 51, 53, 55), uvec4(57, 59, 61, 63));
+        return REPLICATE_5_BIT_TO_6_TABLE[array_index][vector_index];
+    }
+    }
+    return value;
 }
 
 uint Div3Floor(uint v) {
@@ -281,7 +281,7 @@ uint Select2DPartition(uint seed, uint x, uint y, uint partition_count, bool sma
 
     seed += (partition_count - 1) * 1024;
 
-    uint rnum = Hash52(uint(seed));
+    const uint rnum = Hash52(uint(seed));
     uint seed1 = uint(rnum & 0xF);
     uint seed2 = uint((rnum >> 4) & 0xF);
     uint seed3 = uint((rnum >> 8) & 0xF);
@@ -364,8 +364,8 @@ uint ExtractBits(uvec4 payload, int offset, int bits) {
 }
 
 uint StreamBits(uint num_bits) {
-    int int_bits = int(num_bits);
-    uint ret = ExtractBits(local_buff, total_bitsread, int_bits);
+    const int int_bits = int(num_bits);
+    const uint ret = ExtractBits(local_buff, total_bitsread, int_bits);
     total_bitsread += int_bits;
     return ret;
 }
@@ -382,14 +382,18 @@ uint StreamColorBits(uint num_bits) {
     return ret;
 }
 
-void ResultEmplaceBack(EncodingData val) {
-    result_vector[result_index] = val;
-    ++result_index;
+EncodingData GetEncodingFromVector(uint index) {
+    const uint array_index = index / 4;
+    const uint vector_index = index % 4;
+
+    const uint data = result_vector[array_index][vector_index];
+    return EncodingData(data);
 }
 
 // Returns the number of bits required to encode n_vals values.
 uint GetBitLength(uint n_vals, uint encoding_index) {
-    const EncodingData encoding_value = encoding_values[encoding_index];
+    const EncodingData encoding_value =
+        EncodingData(encoding_values[encoding_index / 4][encoding_index % 4]);
     const uint encoding = Encoding(encoding_value);
     uint total_bits = NumBits(encoding_value) * n_vals;
     if (encoding == TRIT) {
@@ -409,7 +413,7 @@ uint GetNumWeightValues(uvec2 size, bool dual_plane) {
 }
 
 uint GetPackedBitSize(uvec2 size, bool dual_plane, uint max_weight) {
-    uint n_vals = GetNumWeightValues(size, dual_plane);
+    const uint n_vals = GetNumWeightValues(size, dual_plane);
     return GetBitLength(n_vals, max_weight);
 }
 
@@ -418,13 +422,13 @@ uint BitsBracket(uint bits, uint pos) {
 }
 
 uint BitsOp(uint bits, uint start, uint end) {
-    uint mask = (1 << (end - start + 1)) - 1;
+    const uint mask = (1 << (end - start + 1)) - 1;
     return ((bits >> start) & mask);
 }
 
 void DecodeQuintBlock(uint num_bits) {
-    uint m[3];
-    uint q[3];
+    uvec3 m;
+    uvec3 q;
     uint Q;
     m[0] = StreamColorBits(num_bits);
     Q = StreamColorBits(3);
@@ -433,25 +437,25 @@ void DecodeQuintBlock(uint num_bits) {
     m[2] = StreamColorBits(num_bits);
     Q |= StreamColorBits(2) << 5;
     if (BitsOp(Q, 1, 2) == 3 && BitsOp(Q, 5, 6) == 0) {
-        q[0] = 4;
-        q[1] = 4;
-        q[2] = (BitsBracket(Q, 0) << 2) | ((BitsBracket(Q, 4) & ~BitsBracket(Q, 0)) << 1) |
-               (BitsBracket(Q, 3) & ~BitsBracket(Q, 0));
+        q.x = 4;
+        q.y = 4;
+        q.z = (BitsBracket(Q, 0) << 2) | ((BitsBracket(Q, 4) & ~BitsBracket(Q, 0)) << 1) |
+              (BitsBracket(Q, 3) & ~BitsBracket(Q, 0));
     } else {
         uint C = 0;
         if (BitsOp(Q, 1, 2) == 3) {
-            q[2] = 4;
+            q.z = 4;
             C = (BitsOp(Q, 3, 4) << 3) | ((~BitsOp(Q, 5, 6) & 3) << 1) | BitsBracket(Q, 0);
         } else {
-            q[2] = BitsOp(Q, 5, 6);
+            q.z = BitsOp(Q, 5, 6);
             C = BitsOp(Q, 0, 4);
         }
         if (BitsOp(C, 0, 2) == 5) {
-            q[1] = 4;
-            q[0] = BitsOp(C, 3, 4);
+            q.y = 4;
+            q.x = BitsOp(C, 3, 4);
         } else {
-            q[1] = BitsOp(C, 3, 4);
-            q[0] = BitsOp(C, 0, 2);
+            q.y = BitsOp(C, 3, 4);
+            q.x = BitsOp(C, 0, 2);
         }
     }
     for (uint i = 0; i < 3; i++) {
@@ -509,11 +513,11 @@ void DecodeTritBlock(uint num_bits) {
 }
 
 void DecodeIntegerSequence(uint max_range, uint num_values) {
-    EncodingData val = encoding_values[max_range];
+    EncodingData val = EncodingData(encoding_values[max_range / 4][max_range % 4]);
     const uint encoding = Encoding(val);
     const uint num_bits = NumBits(val);
     uint vals_decoded = 0;
-    while (vals_decoded < num_values) {
+    while (vals_decoded < num_values && !result_limit_reached) {
         switch (encoding) {
         case QUINT:
             DecodeQuintBlock(num_bits);
@@ -532,7 +536,8 @@ void DecodeIntegerSequence(uint max_range, uint num_values) {
     }
 }
 
-void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
+void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits,
+                       out uvec4 color_values[8]) {
     uint num_values = 0;
     for (uint i = 0; i < num_partitions; i++) {
         num_values += ((modes[i] >> 2) + 1) << 1;
@@ -540,8 +545,8 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
     // Find the largest encoding that's within color_data_bits
     // TODO(ameerj): profile with binary search
     int range = 0;
-    while (++range < encoding_values.length()) {
-        uint bit_length = GetBitLength(num_values, range);
+    while (++range < ((encoding_values.length() * 4) - 2)) {
+        const uint bit_length = GetBitLength(num_values, range);
         if (bit_length > color_data_bits) {
             break;
         }
@@ -552,7 +557,7 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
         if (out_index >= num_values) {
             break;
         }
-        const EncodingData val = result_vector[itr];
+        const EncodingData val = GetEncodingFromVector(itr);
         const uint encoding = Encoding(val);
         const uint bitlen = NumBits(val);
         const uint bitval = BitValue(val);
@@ -560,7 +565,8 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
         A = ReplicateBitTo9((bitval & 1));
         switch (encoding) {
         case JUST_BITS:
-            color_values[out_index++] = FastReplicateTo8(bitval, bitlen);
+            color_values[out_index / 4][out_index % 4] = FastReplicateTo8(bitval, bitlen);
+            ++out_index;
             break;
         case TRIT: {
             D = QuintTritValue(val);
@@ -570,31 +576,31 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
                 break;
             case 2: {
                 C = 93;
-                uint b = (bitval >> 1) & 1;
+                const uint b = (bitval >> 1) & 1;
                 B = (b << 8) | (b << 4) | (b << 2) | (b << 1);
                 break;
             }
             case 3: {
                 C = 44;
-                uint cb = (bitval >> 1) & 3;
+                const uint cb = (bitval >> 1) & 3;
                 B = (cb << 7) | (cb << 2) | cb;
                 break;
             }
             case 4: {
                 C = 22;
-                uint dcb = (bitval >> 1) & 7;
+                const uint dcb = (bitval >> 1) & 7;
                 B = (dcb << 6) | dcb;
                 break;
             }
             case 5: {
                 C = 11;
-                uint edcb = (bitval >> 1) & 0xF;
+                const uint edcb = (bitval >> 1) & 0xF;
                 B = (edcb << 5) | (edcb >> 2);
                 break;
             }
             case 6: {
                 C = 5;
-                uint fedcb = (bitval >> 1) & 0x1F;
+                const uint fedcb = (bitval >> 1) & 0x1F;
                 B = (fedcb << 4) | (fedcb >> 4);
                 break;
             }
@@ -609,25 +615,25 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
                 break;
             case 2: {
                 C = 54;
-                uint b = (bitval >> 1) & 1;
+                const uint b = (bitval >> 1) & 1;
                 B = (b << 8) | (b << 3) | (b << 2);
                 break;
             }
             case 3: {
                 C = 26;
-                uint cb = (bitval >> 1) & 3;
+                const uint cb = (bitval >> 1) & 3;
                 B = (cb << 7) | (cb << 1) | (cb >> 1);
                 break;
             }
             case 4: {
                 C = 13;
-                uint dcb = (bitval >> 1) & 7;
+                const uint dcb = (bitval >> 1) & 7;
                 B = (dcb << 6) | (dcb >> 1);
                 break;
             }
             case 5: {
                 C = 6;
-                uint edcb = (bitval >> 1) & 0xF;
+                const uint edcb = (bitval >> 1) & 0xF;
                 B = (edcb << 5) | (edcb >> 3);
                 break;
             }
@@ -639,7 +645,8 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
             uint T = (D * C) + B;
             T ^= A;
             T = (A & 0x80) | (T >> 2);
-            color_values[out_index++] = T;
+            color_values[out_index / 4][out_index % 4] = T;
+            ++out_index;
         }
     }
 }
@@ -657,25 +664,30 @@ ivec2 BitTransferSigned(int a, int b) {
 }
 
 uvec4 ClampByte(ivec4 color) {
-    const uvec4 clamped = uvec4(clamp(color, 0, 255));
-    return clamped;
+    for (uint i = 0; i < 4; ++i) {
+        color[i] = clamp(color[i], 0, 255);
+    }
+    return uvec4(color);
 }
 
 ivec4 BlueContract(int a, int r, int g, int b) {
     return ivec4(a, (r + b) >> 1, (g + b) >> 1, b);
 }
 
-void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode) {
+void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode,
+                      in uvec4 color_values[8], inout uint colvals_index) {
 #define READ_UINT_VALUES(N)                                                                        \
     uint v[N];                                                                                     \
     for (uint i = 0; i < N; i++) {                                                                 \
-        v[i] = color_values[colvals_index++];                                                      \
+        v[i] = color_values[colvals_index / 4][colvals_index % 4];                                 \
+        ++colvals_index;                                                                           \
     }
 
 #define READ_INT_VALUES(N)                                                                         \
     int v[N];                                                                                      \
     for (uint i = 0; i < N; i++) {                                                                 \
-        v[i] = int(color_values[colvals_index++]);                                                 \
+        v[i] = int(color_values[colvals_index / 4][colvals_index % 4]);                            \
+        ++colvals_index;                                                                           \
     }
 
     switch (color_endpoint_mode) {
@@ -687,8 +699,8 @@ void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode) {
     }
     case 1: {
         READ_UINT_VALUES(2)
-        uint L0 = (v[0] >> 2) | (v[1] & 0xC0);
-        uint L1 = min(L0 + (v[1] & 0x3F), 0xFFU);
+        const uint L0 = (v[0] >> 2) | (v[1] & 0xC0);
+        const uint L1 = min(L0 + (v[1] & 0x3F), 0xFFU);
         ep1 = uvec4(0xFF, L0, L0, L0);
         ep2 = uvec4(0xFF, L1, L1, L1);
         break;
@@ -817,7 +829,7 @@ uint UnquantizeTexelWeight(EncodingData val) {
         D = QuintTritValue(val);
         switch (bitlen) {
         case 0: {
-            uint results[3] = {0, 32, 63};
+            const uint results[3] = {0, 32, 63};
             result = results[D];
             break;
         }
@@ -827,13 +839,13 @@ uint UnquantizeTexelWeight(EncodingData val) {
         }
         case 2: {
             C = 23;
-            uint b = (bitval >> 1) & 1;
+            const uint b = (bitval >> 1) & 1;
             B = (b << 6) | (b << 2) | b;
             break;
         }
         case 3: {
             C = 11;
-            uint cb = (bitval >> 1) & 3;
+            const uint cb = (bitval >> 1) & 3;
             B = (cb << 5) | cb;
             break;
         }
@@ -846,7 +858,7 @@ uint UnquantizeTexelWeight(EncodingData val) {
         D = QuintTritValue(val);
         switch (bitlen) {
         case 0: {
-            uint results[5] = {0, 16, 32, 47, 63};
+            const uint results[5] = {0, 16, 32, 47, 63};
             result = results[D];
             break;
         }
@@ -856,7 +868,7 @@ uint UnquantizeTexelWeight(EncodingData val) {
         }
         case 2: {
             C = 13;
-            uint b = (bitval >> 1) & 1;
+            const uint b = (bitval >> 1) & 1;
             B = (b << 6) | (b << 1);
             break;
         }
@@ -875,15 +887,18 @@ uint UnquantizeTexelWeight(EncodingData val) {
     return result;
 }
 
-void UnquantizeTexelWeights(bool is_dual_plane, uvec2 size, out uint unquantized_texel_weights[2 * 144]) {
+void UnquantizeTexelWeights(uvec2 size, bool is_dual_plane,
+                            out uvec4 unquantized_texel_weights[VECTOR_ARRAY_SIZE]) {
     const uint Ds = uint((block_dims.x * 0.5f + 1024) / (block_dims.x - 1));
     const uint Dt = uint((block_dims.y * 0.5f + 1024) / (block_dims.y - 1));
     const uint num_planes = is_dual_plane ? 2 : 1;
     const uint area = size.x * size.y;
     const uint loop_count = min(result_index, area * num_planes);
-    uint unquantized[2 * 144];
     for (uint itr = 0; itr < loop_count; ++itr) {
-        unquantized[itr] = UnquantizeTexelWeight(result_vector[itr]);
+        const uint array_index = itr / 4;
+        const uint vector_index = itr % 4;
+        result_vector[array_index][vector_index] =
+            UnquantizeTexelWeight(GetEncodingFromVector(itr));
     }
     for (uint plane = 0; plane < num_planes; ++plane) {
         for (uint t = 0; t < block_dims.y; t++) {
@@ -907,28 +922,33 @@ void UnquantizeTexelWeights(bool is_dual_plane, uvec2 size, out uint unquantized
 
 #define VectorIndicesFromBase(offset_base)                                                         \
     const uint offset = is_dual_plane ? 2 * offset_base + plane : offset_base;                     \
+    const uint array_index = offset / 4;                                                           \
+    const uint vector_index = offset % 4;
 
                 if (v0 < area) {
                     const uint offset_base = v0;
                     VectorIndicesFromBase(offset_base);
-                    p.x = unquantized[offset];
+                    p.x = result_vector[array_index][vector_index];
                 }
                 if ((v0 + 1) < (area)) {
                     const uint offset_base = v0 + 1;
                     VectorIndicesFromBase(offset_base);
-                    p.y = unquantized[offset];
+                    p.y = result_vector[array_index][vector_index];
                 }
                 if ((v0 + size.x) < (area)) {
                     const uint offset_base = v0 + size.x;
                     VectorIndicesFromBase(offset_base);
-                    p.z = unquantized[offset];
+                    p.z = result_vector[array_index][vector_index];
                 }
                 if ((v0 + size.x + 1) < (area)) {
                     const uint offset_base = v0 + size.x + 1;
                     VectorIndicesFromBase(offset_base);
-                    p.w = unquantized[offset];
+                    p.w = result_vector[array_index][vector_index];
                 }
-                unquantized_texel_weights[plane * 144 + t * block_dims.x + s] = (uint(dot(p, w)) + 8) >> 4;
+                const uint offset = (t * block_dims.x + s) + ARRAY_NUM_ELEMENTS * plane;
+                const uint array_index = offset / 4;
+                const uint vector_index = offset % 4;
+                unquantized_texel_weights[array_index][vector_index] = (uint(dot(p, w)) + 8) >> 4;
             }
         }
     }
@@ -1050,6 +1070,7 @@ TexelWeightParams DecodeBlockInfo() {
         weight_index += 6;
     }
     params.max_weight = weight_index + 1;
+
     return params;
 }
 
@@ -1079,7 +1100,7 @@ void FillVoidExtentLDR(ivec3 coord) {
 }
 
 void DecompressBlock(ivec3 coord) {
-    TexelWeightParams params = DecodeBlockInfo();
+    const TexelWeightParams params = DecodeBlockInfo();
     if (params.error_state) {
         FillError(coord);
         return;
@@ -1096,12 +1117,11 @@ void DecompressBlock(ivec3 coord) {
         FillError(coord);
         return;
     }
-    uint num_partitions = StreamBits(2) + 1;
+    const uint num_partitions = StreamBits(2) + 1;
     if (num_partitions > 4 || (num_partitions == 4 && params.dual_plane)) {
         FillError(coord);
         return;
     }
-    int plane_index = -1;
     uint partition_index = 1;
     uvec4 color_endpoint_mode = uvec4(0);
     uint ced_pointer = 0;
@@ -1113,8 +1133,8 @@ void DecompressBlock(ivec3 coord) {
         partition_index = StreamBits(10);
         base_cem = StreamBits(6);
     }
-    uint base_mode = base_cem & 3;
-    uint weight_bits = GetPackedBitSize(params.size, params.dual_plane, params.max_weight);
+    const uint base_mode = base_cem & 3;
+    const uint weight_bits = GetPackedBitSize(params.size, params.dual_plane, params.max_weight);
     uint remaining_bits = 128 - weight_bits - total_bitsread;
     uint extra_cem_bits = 0;
     if (base_mode > 0) {
@@ -1133,10 +1153,7 @@ void DecompressBlock(ivec3 coord) {
         }
     }
     remaining_bits -= extra_cem_bits;
-    uint plane_selector_bits = 0;
-    if (params.dual_plane) {
-        plane_selector_bits = 2;
-    }
+    const uint plane_selector_bits = params.dual_plane ? 2 : 0;
     remaining_bits -= plane_selector_bits;
     if (remaining_bits > 128) {
         // Bad data, more remaining bits than 4 bytes
@@ -1144,17 +1161,17 @@ void DecompressBlock(ivec3 coord) {
         return;
     }
     // Read color data...
-    uint color_data_bits = remaining_bits;
+    const uint color_data_bits = remaining_bits;
     while (remaining_bits > 0) {
-        int nb = int(min(remaining_bits, 32U));
-        uint b = StreamBits(nb);
+        const int nb = int(min(remaining_bits, 32U));
+        const uint b = StreamBits(nb);
         color_endpoint_data[ced_pointer] = uint(bitfieldExtract(b, 0, nb));
         ++ced_pointer;
         remaining_bits -= nb;
     }
-    plane_index = int(StreamBits(plane_selector_bits));
+    const uint plane_index = uint(StreamBits(plane_selector_bits));
     if (base_mode > 0) {
-        uint extra_cem = StreamBits(extra_cem_bits);
+        const uint extra_cem = StreamBits(extra_cem_bits);
         uint cem = (extra_cem << 6) | base_cem;
         cem >>= 2;
         uvec4 C = uvec4(0);
@@ -1176,43 +1193,54 @@ void DecompressBlock(ivec3 coord) {
             color_endpoint_mode[i] |= M[i];
         }
     } else if (num_partitions > 1) {
-        uint cem = base_cem >> 2;
+        const uint cem = base_cem >> 2;
         for (uint i = 0; i < num_partitions; i++) {
             color_endpoint_mode[i] = cem;
         }
     }
-    DecodeColorValues(color_endpoint_mode, num_partitions, color_data_bits);
 
-    uvec4 endpoints[4][2];
-    for (uint i = 0; i < num_partitions; i++) {
-        ComputeEndpoints(endpoints[i][0], endpoints[i][1], color_endpoint_mode[i]);
+    uvec4 endpoints0[4];
+    uvec4 endpoints1[4];
+    {
+        // This decode phase should at most push 32 elements into the vector
+        result_vector_max_index = 32;
+
+        uvec4 color_values[8];
+        uint colvals_index = 0;
+        DecodeColorValues(color_endpoint_mode, num_partitions, color_data_bits, color_values);
+        for (uint i = 0; i < num_partitions; i++) {
+            ComputeEndpoints(endpoints0[i], endpoints1[i], color_endpoint_mode[i], color_values,
+                             colvals_index);
+        }
     }
-
     color_endpoint_data = local_buff;
     color_endpoint_data = bitfieldReverse(color_endpoint_data).wzyx;
-    uint clear_byte_start =
-        (GetPackedBitSize(params.size, params.dual_plane, params.max_weight) >> 3) + 1;
+    const uint clear_byte_start = (weight_bits >> 3) + 1;
 
-    uint byte_insert = ExtractBits(color_endpoint_data, int(clear_byte_start - 1) * 8, 8) &
-        uint(
-            ((1 << (GetPackedBitSize(params.size, params.dual_plane, params.max_weight) % 8)) - 1));
-    uint vec_index = (clear_byte_start - 1) >> 2;
-    color_endpoint_data[vec_index] =
-        bitfieldInsert(color_endpoint_data[vec_index], byte_insert, int((clear_byte_start - 1) % 4) * 8, 8);
+    const uint byte_insert = ExtractBits(color_endpoint_data, int(clear_byte_start - 1) * 8, 8) &
+                             uint(((1 << (weight_bits % 8)) - 1));
+    const uint vec_index = (clear_byte_start - 1) >> 2;
+    color_endpoint_data[vec_index] = bitfieldInsert(color_endpoint_data[vec_index], byte_insert,
+                                                    int((clear_byte_start - 1) % 4) * 8, 8);
     for (uint i = clear_byte_start; i < 16; ++i) {
-        uint idx = i >> 2;
+        const uint idx = i >> 2;
         color_endpoint_data[idx] = bitfieldInsert(color_endpoint_data[idx], 0, int(i % 4) * 8, 8);
     }
 
     // Re-init vector variables for next decode phase
     result_index = 0;
     color_bitsread = 0;
+    result_limit_reached = false;
 
+    // The limit for the Unquantize phase, avoids decoding more data than needed.
+    result_vector_max_index = params.size.x * params.size.y;
+    if (params.dual_plane) {
+        result_vector_max_index *= 2;
+    }
     DecodeIntegerSequence(params.max_weight, GetNumWeightValues(params.size, params.dual_plane));
 
-    uint unquantized_texel_weights[2 * 144];
-    UnquantizeTexelWeights(params.dual_plane, params.size, unquantized_texel_weights);
-
+    uvec4 unquantized_texel_weights[VECTOR_ARRAY_SIZE];
+    UnquantizeTexelWeights(params.size, params.dual_plane, unquantized_texel_weights);
     for (uint j = 0; j < block_dims.y; j++) {
         for (uint i = 0; i < block_dims.x; i++) {
             uint local_partition = 0;
@@ -1220,13 +1248,19 @@ void DecompressBlock(ivec3 coord) {
                 local_partition = Select2DPartition(partition_index, i, j, num_partitions,
                                                     (block_dims.y * block_dims.x) < 32);
             }
-            const uvec4 C0 = ReplicateByteTo16(endpoints[local_partition][0]);
-            const uvec4 C1 = ReplicateByteTo16(endpoints[local_partition][1]);
+            const uvec4 C0 = ReplicateByteTo16(endpoints0[local_partition]);
+            const uvec4 C1 = ReplicateByteTo16(endpoints1[local_partition]);
             const uint weight_offset = (j * block_dims.x + i);
-            const uint primary_weight = unquantized_texel_weights[weight_offset];
+            const uint array_index = weight_offset / 4;
+            const uint vector_index = weight_offset % 4;
+            const uint primary_weight = unquantized_texel_weights[array_index][vector_index];
             uvec4 weight_vec = uvec4(primary_weight);
             if (params.dual_plane) {
-                const uint secondary_weight = unquantized_texel_weights[weight_offset + 144];
+                const uint secondary_weight_offset = (j * block_dims.x + i) + ARRAY_NUM_ELEMENTS;
+                const uint secondary_array_index = secondary_weight_offset / 4;
+                const uint secondary_vector_index = secondary_weight_offset % 4;
+                const uint secondary_weight =
+                    unquantized_texel_weights[secondary_array_index][secondary_vector_index];
                 for (uint c = 0; c < 4; c++) {
                     const bool is_secondary = ((plane_index + 1u) & 3u) == c;
                     weight_vec[c] = is_secondary ? secondary_weight : primary_weight;
@@ -1240,12 +1274,11 @@ void DecompressBlock(ivec3 coord) {
     }
 }
 
-
 uint SwizzleOffset(uvec2 pos) {
-    uint x = pos.x;
-    uint y = pos.y;
-    return ((x % 64) / 32) * 256 + ((y % 8) / 2) * 64 + ((x % 32) / 16) * 32 +
-                          (y % 2) * 16 + (x % 16);
+    const uint x = pos.x;
+    const uint y = pos.y;
+    return ((x % 64) / 32) * 256 + ((y % 8) / 2) * 64 +
+            ((x % 32) / 16) * 32 + (y % 2) * 16 + (x % 16);
 }
 
 void main() {
