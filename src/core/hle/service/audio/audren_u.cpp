@@ -441,10 +441,11 @@ void AudRenU::OpenAudioRenderer(HLERequestContext& ctx) {
 
     AudioCore::AudioRendererParameterInternal params;
     rp.PopRaw<AudioCore::AudioRendererParameterInternal>(params);
-    auto transfer_memory_handle = ctx.GetCopyHandle(0);
-    auto process_handle = ctx.GetCopyHandle(1);
+    rp.Skip(1, false);
     auto transfer_memory_size = rp.Pop<u64>();
     auto applet_resource_user_id = rp.Pop<u64>();
+    auto transfer_memory_handle = ctx.GetCopyHandle(0);
+    auto process_handle = ctx.GetCopyHandle(1);
 
     if (impl->GetSessionCount() + 1 > AudioCore::MaxRendererSessions) {
         LOG_ERROR(Service_Audio, "Too many AudioRenderer sessions open!");
