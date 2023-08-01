@@ -154,7 +154,7 @@ uint FastReplicateTo8(uint value, uint num_bits) {
         return 0;
     }
     const uint array_index = value / 4;
-    const uint vector_index = value % 4;
+    const uint vector_index = bitfieldExtract(value, 0, 2);
     switch (num_bits) {
     case 1:
         return 255;
@@ -213,7 +213,7 @@ uint FastReplicateTo6(uint value, uint num_bits) {
         return 0;
     }
     const uint array_index = value / 4;
-    const uint vector_index = value % 4;
+    const uint vector_index = bitfieldExtract(value, 0, 2);
     switch (num_bits) {
     case 1:
         return 63;
@@ -536,8 +536,8 @@ void DecodeIntegerSequence(uint max_range, uint num_values) {
     }
 }
 
-void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits,
-                       out uvec4 color_values[8]) {
+uvec4 color_values[8];
+void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
     uint num_values = 0;
     for (uint i = 0; i < num_partitions; i++) {
         num_values += ((modes[i] >> 2) + 1) << 1;
@@ -664,10 +664,7 @@ ivec2 BitTransferSigned(int a, int b) {
 }
 
 uvec4 ClampByte(ivec4 color) {
-    for (uint i = 0; i < 4; ++i) {
-        color[i] = clamp(color[i], 0, 255);
-    }
-    return uvec4(color);
+    return uvec4(clamp(color, 0, 255));
 }
 
 ivec4 BlueContract(int a, int r, int g, int b) {
@@ -675,7 +672,7 @@ ivec4 BlueContract(int a, int r, int g, int b) {
 }
 
 void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode,
-                      in uvec4 color_values[8], inout uint colvals_index) {
+                      inout uint colvals_index) {
 #define READ_UINT_VALUES(N)                                                                        \
     uint v[N];                                                                                     \
     for (uint i = 0; i < N; i++) {                                                                 \
@@ -887,8 +884,9 @@ uint UnquantizeTexelWeight(EncodingData val) {
     return result;
 }
 
-void UnquantizeTexelWeights(uvec2 size, bool is_dual_plane,
-                            out uvec4 unquantized_texel_weights[VECTOR_ARRAY_SIZE]) {
+uvec4 unquantized_texel_weights[VECTOR_ARRAY_SIZE];
+
+void UnquantizeTexelWeights(uvec2 size, bool is_dual_plane) {
     const uint Ds = uint((block_dims.x * 0.5f + 1024) / (block_dims.x - 1));
     const uint Dt = uint((block_dims.y * 0.5f + 1024) / (block_dims.y - 1));
     const uint num_planes = is_dual_plane ? 2 : 1;
@@ -1205,11 +1203,11 @@ void DecompressBlock(ivec3 coord) {
         // This decode phase should at most push 32 elements into the vector
         result_vector_max_index = 32;
 
-        uvec4 color_values[8];
+        // uvec4 color_values[8];
         uint colvals_index = 0;
-        DecodeColorValues(color_endpoint_mode, num_partitions, color_data_bits, color_values);
+        DecodeColorValues(color_endpoint_mode, num_partitions, color_data_bits);
         for (uint i = 0; i < num_partitions; i++) {
-            ComputeEndpoints(endpoints0[i], endpoints1[i], color_endpoint_mode[i], color_values,
+            ComputeEndpoints(endpoints0[i], endpoints1[i], color_endpoint_mode[i],
                              colvals_index);
         }
     }
@@ -1239,8 +1237,7 @@ void DecompressBlock(ivec3 coord) {
     }
     DecodeIntegerSequence(params.max_weight, GetNumWeightValues(params.size, params.dual_plane));
 
-    uvec4 unquantized_texel_weights[VECTOR_ARRAY_SIZE];
-    UnquantizeTexelWeights(params.size, params.dual_plane, unquantized_texel_weights);
+    UnquantizeTexelWeights(params.size, params.dual_plane);
     for (uint j = 0; j < block_dims.y; j++) {
         for (uint i = 0; i < block_dims.x; i++) {
             uint local_partition = 0;
