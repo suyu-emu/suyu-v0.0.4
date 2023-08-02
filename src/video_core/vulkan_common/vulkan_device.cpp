@@ -525,6 +525,13 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             dynamic_state3_enables = false;
         }
     }
+    if (extensions.extended_dynamic_state3 && is_amd_driver) {
+        LOG_WARNING(Render_Vulkan,
+                    "AMD drivers have broken extendedDynamicState3ColorBlendEquation");
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
+        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
+        dynamic_state3_blending = false;
+    }
     if (extensions.vertex_input_dynamic_state && is_radv) {
         // TODO(ameerj): Blacklist only offending driver versions
         // TODO(ameerj): Confirm if RDNA1 is affected
@@ -553,14 +560,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     sets_per_pool = 64;
-    if (extensions.extended_dynamic_state3 && is_amd_driver &&
-        !features.shader_float16_int8.shaderFloat16 &&
-        properties.properties.driverVersion >= VK_MAKE_API_VERSION(0, 2, 0, 258)) {
-        LOG_WARNING(Render_Vulkan, "AMD GCN4 has broken extendedDynamicState3ColorBlendEquation");
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEnable = false;
-        features.extended_dynamic_state3.extendedDynamicState3ColorBlendEquation = false;
-        dynamic_state3_blending = false;
-    }
     if (is_amd_driver) {
         // AMD drivers need a higher amount of Sets per Pool in certain circumstances like in XC2.
         sets_per_pool = 96;
