@@ -88,7 +88,7 @@ int color_bitsread = 0;
 #define VECTOR_ARRAY_SIZE DIVCEIL(ARRAY_NUM_ELEMENTS * 2, 4)
 uvec4 result_vector[VECTOR_ARRAY_SIZE];
 
-int result_index = 0;
+uint result_index = 0;
 uint result_vector_max_index;
 bool result_limit_reached = false;
 
