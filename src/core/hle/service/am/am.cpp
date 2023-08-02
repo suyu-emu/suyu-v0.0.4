@@ -1317,6 +1317,50 @@ void ILibraryAppletCreator::CreateHandleStorage(HLERequestContext& ctx) {
     rb.PushIpcInterface<IStorage>(system, std::move(memory));
 }
 
+ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
+    : ServiceFramework{system_, "ILibraryAppletSelfAccessor"} {
+    static const FunctionInfo functions[] = {
+        {0, nullptr, "PopInData"},
+        {1, nullptr, "PushOutData"},
+        {2, nullptr, "PopInteractiveInData"},
+        {3, nullptr, "PushInteractiveOutData"},
+        {5, nullptr, "GetPopInDataEvent"},
+        {6, nullptr, "GetPopInteractiveInDataEvent"},
+        {10, nullptr, "ExitProcessAndReturn"},
+        {11, nullptr, "GetLibraryAppletInfo"},
+        {12, nullptr, "GetMainAppletIdentityInfo"},
+        {13, nullptr, "CanUseApplicationCore"},
+        {14, nullptr, "GetCallerAppletIdentityInfo"},
+        {15, nullptr, "GetMainAppletApplicationControlProperty"},
+        {16, nullptr, "GetMainAppletStorageId"},
+        {17, nullptr, "GetCallerAppletIdentityInfoStack"},
+        {18, nullptr, "GetNextReturnDestinationAppletIdentityInfo"},
+        {19, nullptr, "GetDesirableKeyboardLayout"},
+        {20, nullptr, "PopExtraStorage"},
+        {25, nullptr, "GetPopExtraStorageEvent"},
+        {30, nullptr, "UnpopInData"},
+        {31, nullptr, "UnpopExtraStorage"},
+        {40, nullptr, "GetIndirectLayerProducerHandle"},
+        {50, nullptr, "ReportVisibleError"},
+        {51, nullptr, "ReportVisibleErrorWithErrorContext"},
+        {60, nullptr, "GetMainAppletApplicationDesiredLanguage"},
+        {70, nullptr, "GetCurrentApplicationId"},
+        {80, nullptr, "RequestExitToSelf"},
+        {90, nullptr, "CreateApplicationAndPushAndRequestToLaunch"},
+        {100, nullptr, "CreateGameMovieTrimmer"},
+        {101, nullptr, "ReserveResourceForMovieOperation"},
+        {102, nullptr, "UnreserveResourceForMovieOperation"},
+        {110, nullptr, "GetMainAppletAvailableUsers"},
+        {120, nullptr, "GetLaunchStorageInfoForDebug"},
+        {130, nullptr, "GetGpuErrorDetectedSystemEvent"},
+        {140, nullptr, "SetApplicationMemoryReservation"},
+        {150, nullptr, "ShouldSetGpuTimeSliceManually"},
+    };
+    RegisterHandlers(functions);
+}
+
+ILibraryAppletSelfAccessor::~ILibraryAppletSelfAccessor() = default;
+
 IApplicationFunctions::IApplicationFunctions(Core::System& system_)
     : ServiceFramework{system_, "IApplicationFunctions"}, service_context{system,
                                                                           "IApplicationFunctions"} {
