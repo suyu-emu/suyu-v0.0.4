@@ -3,6 +3,8 @@
 
 #include <algorithm>
 
+#include "video_core/renderer_vulkan/vk_texture_cache.h"
+
 #include "common/settings.h"
 #include "video_core/host_shaders/blit_color_float_frag_spv.h"
 #include "video_core/host_shaders/convert_abgr8_to_d24s8_frag_spv.h"
@@ -19,7 +21,6 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_shader_util.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
-#include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/surface.h"
 #include "video_core/vulkan_common/vulkan_device.h"
