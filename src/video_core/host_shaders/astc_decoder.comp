@@ -40,9 +40,6 @@ struct TexelWeightParams {
     uvec2 size;
     uint max_weight;
     bool dual_plane;
-    bool error_state;
-    bool void_extent_ldr;
-    bool void_extent_hdr;
 };
 
 layout(binding = BINDING_INPUT_BUFFER, std430) readonly restrict buffer InputBufferU32 {
@@ -983,28 +980,54 @@ int FindLayout(uint mode) {
     return 5;
 }
 
-TexelWeightParams DecodeBlockInfo() {
-    TexelWeightParams params = TexelWeightParams(uvec2(0), 0, false, false, false, false);
-    uint mode = StreamBits(11);
+
+void FillError(ivec3 coord) {
+    for (uint j = 0; j < block_dims.y; j++) {
+        for (uint i = 0; i < block_dims.x; i++) {
+            imageStore(dest_image, coord + ivec3(i, j, 0), vec4(0.0, 0.0, 0.0, 0.0));
+        }
+    }
+}
+
+void FillVoidExtentLDR(ivec3 coord) {
+    SkipBits(52);
+    const uint r_u = StreamBits(16);
+    const uint g_u = StreamBits(16);
+    const uint b_u = StreamBits(16);
+    const uint a_u = StreamBits(16);
+    const float a = float(a_u) / 65535.0f;
+    const float r = float(r_u) / 65535.0f;
+    const float g = float(g_u) / 65535.0f;
+    const float b = float(b_u) / 65535.0f;
+    for (uint j = 0; j < block_dims.y; j++) {
+        for (uint i = 0; i < block_dims.x; i++) {
+            imageStore(dest_image, coord + ivec3(i, j, 0), vec4(r, g, b, a));
+        }
+    }
+}
+
+bool IsError(uint mode) {
     if ((mode & 0x1ff) == 0x1fc) {
         if ((mode & 0x200) != 0) {
-            params.void_extent_hdr = true;
-        } else {
-            params.void_extent_ldr = true;
+            // params.void_extent_hdr = true;
+            return true;
         }
         if ((mode & 0x400) == 0 || StreamBits(1) == 0) {
-            params.error_state = true;
+            return true;
         }
-        return params;
+        return false;
     }
     if ((mode & 0xf) == 0) {
-        params.error_state = true;
-        return params;
+        return true;
     }
     if ((mode & 3) == 0 && (mode & 0x1c0) == 0x1c0) {
-        params.error_state = true;
-        return params;
+        return true;
     }
+    return false;
+}
+
+TexelWeightParams DecodeBlockInfo(uint mode) {
+    TexelWeightParams params = TexelWeightParams(uvec2(0), 0, false);
     uint A, B;
     uint mode_layout = FindLayout(mode);
     switch (mode_layout) {
@@ -1053,7 +1076,6 @@ TexelWeightParams DecodeBlockInfo() {
         params.size = uvec2(A + 6, B + 6);
         break;
     default:
-        params.error_state = true;
         break;
     }
     params.dual_plane = (mode_layout != 9) && ((mode & 0x400) != 0);
@@ -1072,42 +1094,15 @@ TexelWeightParams DecodeBlockInfo() {
     return params;
 }
 
-void FillError(ivec3 coord) {
-    for (uint j = 0; j < block_dims.y; j++) {
-        for (uint i = 0; i < block_dims.x; i++) {
-            imageStore(dest_image, coord + ivec3(i, j, 0), vec4(0.0, 0.0, 0.0, 0.0));
-        }
-    }
-}
-
-void FillVoidExtentLDR(ivec3 coord) {
-    SkipBits(52);
-    const uint r_u = StreamBits(16);
-    const uint g_u = StreamBits(16);
-    const uint b_u = StreamBits(16);
-    const uint a_u = StreamBits(16);
-    const float a = float(a_u) / 65535.0f;
-    const float r = float(r_u) / 65535.0f;
-    const float g = float(g_u) / 65535.0f;
-    const float b = float(b_u) / 65535.0f;
-    for (uint j = 0; j < block_dims.y; j++) {
-        for (uint i = 0; i < block_dims.x; i++) {
-            imageStore(dest_image, coord + ivec3(i, j, 0), vec4(r, g, b, a));
-        }
-    }
-}
-
 void DecompressBlock(ivec3 coord) {
-    const TexelWeightParams params = DecodeBlockInfo();
-    if (params.error_state) {
+    uint mode = StreamBits(11);
+    const TexelWeightParams params = DecodeBlockInfo(mode);
+    if (IsError(mode)) {
         FillError(coord);
         return;
     }
-    if (params.void_extent_hdr) {
-        FillError(coord);
-        return;
-    }
-    if (params.void_extent_ldr) {
+    if ((mode & 0x1ff) == 0x1fc) {
+        // params.void_extent_ldr = true;
         FillVoidExtentLDR(coord);
         return;
     }
