@@ -264,8 +264,8 @@ uint Hash52(uint p) {
     return p;
 }
 
-uint Select2DPartition(uint seed, uint x, uint y, uint partition_count, bool small_block) {
-    if (small_block) {
+uint Select2DPartition(uint seed, uint x, uint y, uint partition_count) {
+    if ((block_dims.y * block_dims.x) < 32) {
         x <<= 1;
         y <<= 1;
     }
@@ -1222,8 +1222,7 @@ void DecompressBlock(ivec3 coord) {
         for (uint i = 0; i < block_dims.x; i++) {
             uint local_partition = 0;
             if (num_partitions > 1) {
-                local_partition = Select2DPartition(partition_index, i, j, num_partitions,
-                                                    (block_dims.y * block_dims.x) < 32);
+                local_partition = Select2DPartition(partition_index, i, j, num_partitions);
             }
             const uvec4 C0 = ReplicateByteTo16(endpoints0[local_partition]);
             const uvec4 C1 = ReplicateByteTo16(endpoints1[local_partition]);
