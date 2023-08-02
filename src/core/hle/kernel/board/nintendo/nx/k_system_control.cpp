@@ -35,13 +35,27 @@ namespace {
 using namespace Common::Literals;
 
 u32 GetMemorySizeForInit() {
-    return Settings::values.use_unsafe_extended_memory_layout ? Smc::MemorySize_8GB
-                                                              : Smc::MemorySize_4GB;
+    switch (Settings::values.memory_layout_mode.GetValue()) {
+    case Settings::MemoryLayout::Memory_4Gb:
+        return Smc::MemorySize_4GB;
+    case Settings::MemoryLayout::Memory_6Gb:
+        return Smc::MemorySize_6GB;
+    case Settings::MemoryLayout::Memory_8Gb:
+        return Smc::MemorySize_8GB;
+    }
+    return Smc::MemorySize_4GB;
 }
 
 Smc::MemoryArrangement GetMemoryArrangeForInit() {
-    return Settings::values.use_unsafe_extended_memory_layout ? Smc::MemoryArrangement_8GB
-                                                              : Smc::MemoryArrangement_4GB;
+    switch (Settings::values.memory_layout_mode.GetValue()) {
+    case Settings::MemoryLayout::Memory_4Gb:
+        return Smc::MemoryArrangement_4GB;
+    case Settings::MemoryLayout::Memory_6Gb:
+        return Smc::MemoryArrangement_6GB;
+    case Settings::MemoryLayout::Memory_8Gb:
+        return Smc::MemoryArrangement_8GB;
+    }
+    return Smc::MemoryArrangement_4GB;
 }
 } // namespace
 

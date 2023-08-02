@@ -45,8 +45,8 @@ static VkPresentModeKHR ChooseSwapPresentMode(bool has_imm, bool has_mailbox,
             return mode;
         }
         switch (mode) {
-        case Settings::VSyncMode::FIFO:
-        case Settings::VSyncMode::FIFORelaxed:
+        case Settings::VSyncMode::Fifo:
+        case Settings::VSyncMode::FifoRelaxed:
             if (has_mailbox) {
                 return Settings::VSyncMode::Mailbox;
             } else if (has_imm) {
@@ -59,8 +59,8 @@ static VkPresentModeKHR ChooseSwapPresentMode(bool has_imm, bool has_mailbox,
     }();
     if ((setting == Settings::VSyncMode::Mailbox && !has_mailbox) ||
         (setting == Settings::VSyncMode::Immediate && !has_imm) ||
-        (setting == Settings::VSyncMode::FIFORelaxed && !has_fifo_relaxed)) {
-        setting = Settings::VSyncMode::FIFO;
+        (setting == Settings::VSyncMode::FifoRelaxed && !has_fifo_relaxed)) {
+        setting = Settings::VSyncMode::Fifo;
     }
 
     switch (setting) {
@@ -68,9 +68,9 @@ static VkPresentModeKHR ChooseSwapPresentMode(bool has_imm, bool has_mailbox,
         return VK_PRESENT_MODE_IMMEDIATE_KHR;
     case Settings::VSyncMode::Mailbox:
         return VK_PRESENT_MODE_MAILBOX_KHR;
-    case Settings::VSyncMode::FIFO:
+    case Settings::VSyncMode::Fifo:
         return VK_PRESENT_MODE_FIFO_KHR;
-    case Settings::VSyncMode::FIFORelaxed:
+    case Settings::VSyncMode::FifoRelaxed:
         return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
     default:
         return VK_PRESENT_MODE_FIFO_KHR;

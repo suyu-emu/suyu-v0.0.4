@@ -3,57 +3,60 @@
 
 #include <functional>
 #include <utility>
+#include <vector>
 #include <QMessageBox>
 #include "common/settings.h"
 #include "core/core.h"
 #include "ui_configure_general.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_general.h"
+#include "yuzu/configuration/shared_widget.h"
 #include "yuzu/uisettings.h"
 
-ConfigureGeneral::ConfigureGeneral(const Core::System& system_, QWidget* parent)
-    : QWidget(parent), ui{std::make_unique<Ui::ConfigureGeneral>()}, system{system_} {
+ConfigureGeneral::ConfigureGeneral(const Core::System& system_,
+                                   std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,
+                                   const ConfigurationShared::Builder& builder, QWidget* parent)
+    : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureGeneral>()}, system{system_} {
     ui->setupUi(this);
 
-    SetupPerGameUI();
+    Setup(builder);
 
     SetConfiguration();
 
-    if (Settings::IsConfiguringGlobal()) {
-        connect(ui->toggle_speed_limit, &QCheckBox::clicked, ui->speed_limit,
-                [this]() { ui->speed_limit->setEnabled(ui->toggle_speed_limit->isChecked()); });
-    }
-
     connect(ui->button_reset_defaults, &QPushButton::clicked, this,
             &ConfigureGeneral::ResetDefaults);
+
+    if (!Settings::IsConfiguringGlobal()) {
+        ui->button_reset_defaults->setVisible(false);
+    }
 }
 
 ConfigureGeneral::~ConfigureGeneral() = default;
 
-void ConfigureGeneral::SetConfiguration() {
-    const bool runtime_lock = !system.IsPoweredOn();
+void ConfigureGeneral::SetConfiguration() {}
 
-    ui->use_multi_core->setEnabled(runtime_lock);
-    ui->use_multi_core->setChecked(Settings::values.use_multi_core.GetValue());
+void ConfigureGeneral::Setup(const ConfigurationShared::Builder& builder) {
+    QLayout& layout = *ui->general_widget->layout();
 
-    ui->toggle_check_exit->setChecked(UISettings::values.confirm_before_closing.GetValue());
-    ui->toggle_user_on_boot->setChecked(UISettings::values.select_user_on_boot.GetValue());
-    ui->toggle_background_pause->setChecked(UISettings::values.pause_when_in_background.GetValue());
-    ui->toggle_hide_mouse->setChecked(UISettings::values.hide_mouse.GetValue());
-    ui->toggle_controller_applet_disabled->setEnabled(runtime_lock);
-    ui->toggle_controller_applet_disabled->setChecked(
-        UISettings::values.controller_applet_disabled.GetValue());
+    std::map<u32, QWidget*> hold{};
 
-    ui->toggle_speed_limit->setChecked(Settings::values.use_speed_limit.GetValue());
-    ui->speed_limit->setValue(Settings::values.speed_limit.GetValue());
+    for (const auto setting :
+         UISettings::values.linkage.by_category[Settings::Category::UiGeneral]) {
+        auto* widget = builder.BuildWidget(setting, apply_funcs);
 
-    ui->button_reset_defaults->setEnabled(runtime_lock);
+        if (widget == nullptr) {
+            continue;
+        }
+        if (!widget->Valid()) {
+            widget->deleteLater();
+            continue;
+        }
 
-    if (Settings::IsConfiguringGlobal()) {
-        ui->speed_limit->setEnabled(Settings::values.use_speed_limit.GetValue());
-    } else {
-        ui->speed_limit->setEnabled(Settings::values.use_speed_limit.GetValue() &&
-                                    use_speed_limit != ConfigurationShared::CheckState::Global);
+        hold.emplace(setting->Id(), widget);
+    }
+
+    for (const auto& [id, widget] : hold) {
+        layout.addWidget(widget);
     }
 }
 
@@ -77,32 +80,9 @@ void ConfigureGeneral::ResetDefaults() {
 }
 
 void ConfigureGeneral::ApplyConfiguration() {
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_multi_core, ui->use_multi_core,
-                                             use_multi_core);
-
-    if (Settings::IsConfiguringGlobal()) {
-        UISettings::values.confirm_before_closing = ui->toggle_check_exit->isChecked();
-        UISettings::values.select_user_on_boot = ui->toggle_user_on_boot->isChecked();
-        UISettings::values.pause_when_in_background = ui->toggle_background_pause->isChecked();
-        UISettings::values.hide_mouse = ui->toggle_hide_mouse->isChecked();
-        UISettings::values.controller_applet_disabled =
-            ui->toggle_controller_applet_disabled->isChecked();
-
-        // Guard if during game and set to game-specific value
-        if (Settings::values.use_speed_limit.UsingGlobal()) {
-            Settings::values.use_speed_limit.SetValue(ui->toggle_speed_limit->checkState() ==
-                                                      Qt::Checked);
-            Settings::values.speed_limit.SetValue(ui->speed_limit->value());
-        }
-    } else {
-        bool global_speed_limit = use_speed_limit == ConfigurationShared::CheckState::Global;
-        Settings::values.use_speed_limit.SetGlobal(global_speed_limit);
-        Settings::values.speed_limit.SetGlobal(global_speed_limit);
-        if (!global_speed_limit) {
-            Settings::values.use_speed_limit.SetValue(ui->toggle_speed_limit->checkState() ==
-                                                      Qt::Checked);
-            Settings::values.speed_limit.SetValue(ui->speed_limit->value());
-        }
+    bool powered_on = system.IsPoweredOn();
+    for (const auto& func : apply_funcs) {
+        func(powered_on);
     }
 }
 
@@ -116,34 +96,4 @@ void ConfigureGeneral::changeEvent(QEvent* event) {
 
 void ConfigureGeneral::RetranslateUI() {
     ui->retranslateUi(this);
-}
-
-void ConfigureGeneral::SetupPerGameUI() {
-    if (Settings::IsConfiguringGlobal()) {
-        // Disables each setting if:
-        //  - A game is running (thus settings in use), and
-        //  - A non-global setting is applied.
-        ui->toggle_speed_limit->setEnabled(Settings::values.use_speed_limit.UsingGlobal());
-        ui->speed_limit->setEnabled(Settings::values.speed_limit.UsingGlobal());
-
-        return;
-    }
-
-    ui->toggle_check_exit->setVisible(false);
-    ui->toggle_user_on_boot->setVisible(false);
-    ui->toggle_background_pause->setVisible(false);
-    ui->toggle_hide_mouse->setVisible(false);
-    ui->toggle_controller_applet_disabled->setVisible(false);
-
-    ui->button_reset_defaults->setVisible(false);
-
-    ConfigurationShared::SetColoredTristate(ui->toggle_speed_limit,
-                                            Settings::values.use_speed_limit, use_speed_limit);
-    ConfigurationShared::SetColoredTristate(ui->use_multi_core, Settings::values.use_multi_core,
-                                            use_multi_core);
-
-    connect(ui->toggle_speed_limit, &QCheckBox::clicked, ui->speed_limit, [this]() {
-        ui->speed_limit->setEnabled(ui->toggle_speed_limit->isChecked() &&
-                                    (use_speed_limit != ConfigurationShared::CheckState::Global));
-    });
 }

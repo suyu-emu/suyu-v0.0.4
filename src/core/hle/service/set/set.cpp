@@ -93,7 +93,8 @@ void GetAvailableLanguageCodesImpl(HLERequestContext& ctx, std::size_t max_entri
 }
 
 void GetKeyCodeMapImpl(HLERequestContext& ctx) {
-    const auto language_code = available_language_codes[Settings::values.language_index.GetValue()];
+    const auto language_code =
+        available_language_codes[static_cast<s32>(Settings::values.language_index.GetValue())];
     const auto key_code =
         std::find_if(language_to_layout.cbegin(), language_to_layout.cend(),
                      [=](const auto& element) { return element.first == language_code; });
@@ -162,7 +163,7 @@ void SET::GetQuestFlag(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(static_cast<u32>(Settings::values.quest_flag.GetValue()));
+    rb.Push(static_cast<s32>(Settings::values.quest_flag.GetValue()));
 }
 
 void SET::GetLanguageCode(HLERequestContext& ctx) {
@@ -170,7 +171,8 @@ void SET::GetLanguageCode(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
-    rb.PushEnum(available_language_codes[Settings::values.language_index.GetValue()]);
+    rb.PushEnum(
+        available_language_codes[static_cast<s32>(Settings::values.language_index.GetValue())]);
 }
 
 void SET::GetRegionCode(HLERequestContext& ctx) {
@@ -178,7 +180,7 @@ void SET::GetRegionCode(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(Settings::values.region_index.GetValue());
+    rb.Push(static_cast<u32>(Settings::values.region_index.GetValue()));
 }
 
 void SET::GetKeyCodeMap(HLERequestContext& ctx) {

@@ -34,13 +34,14 @@ DirectConnectWindow::DirectConnectWindow(Core::System& system_, QWidget* parent)
     connect(watcher, &QFutureWatcher<void>::finished, this, &DirectConnectWindow::OnConnection);
 
     ui->nickname->setValidator(validation.GetNickname());
-    ui->nickname->setText(UISettings::values.multiplayer_nickname.GetValue());
+    ui->nickname->setText(
+        QString::fromStdString(UISettings::values.multiplayer_nickname.GetValue()));
     if (ui->nickname->text().isEmpty() && !Settings::values.yuzu_username.GetValue().empty()) {
         // Use yuzu Web Service user name as nickname by default
         ui->nickname->setText(QString::fromStdString(Settings::values.yuzu_username.GetValue()));
     }
     ui->ip->setValidator(validation.GetIP());
-    ui->ip->setText(UISettings::values.multiplayer_ip.GetValue());
+    ui->ip->setText(QString::fromStdString(UISettings::values.multiplayer_ip.GetValue()));
     ui->port->setValidator(validation.GetPort());
     ui->port->setText(QString::number(UISettings::values.multiplayer_port.GetValue()));
 
@@ -91,8 +92,8 @@ void DirectConnectWindow::Connect() {
     }
 
     // Store settings
-    UISettings::values.multiplayer_nickname = ui->nickname->text();
-    UISettings::values.multiplayer_ip = ui->ip->text();
+    UISettings::values.multiplayer_nickname = ui->nickname->text().toStdString();
+    UISettings::values.multiplayer_ip = ui->ip->text().toStdString();
     if (ui->port->isModified() && !ui->port->text().isEmpty()) {
         UISettings::values.multiplayer_port = ui->port->text().toInt();
     } else {

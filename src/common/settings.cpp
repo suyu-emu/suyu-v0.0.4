@@ -7,9 +7,16 @@
 #include <exception>
 #include <stdexcept>
 #endif
+#include <compare>
+#include <cstddef>
+#include <filesystem>
+#include <functional>
 #include <string_view>
+#include <type_traits>
+#include <fmt/core.h>
 
 #include "common/assert.h"
+#include "common/fs/fs_util.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
@@ -17,11 +24,50 @@
 
 namespace Settings {
 
-Values values;
-static bool configuring_global = true;
+// Clang 14 and earlier have errors when explicitly instantiating these classes
+#ifndef CANNOT_EXPLICITLY_INSTANTIATE
+#define SETTING(TYPE, RANGED) template class Setting<TYPE, RANGED>
+#define SWITCHABLE(TYPE, RANGED) template class SwitchableSetting<TYPE, RANGED>
 
-std::string GetTimeZoneString() {
-    const auto time_zone_index = static_cast<std::size_t>(values.time_zone_index.GetValue());
+SETTING(AudioEngine, false);
+SETTING(bool, false);
+SETTING(int, false);
+SETTING(std::string, false);
+SETTING(u16, false);
+SWITCHABLE(AnisotropyMode, true);
+SWITCHABLE(AntiAliasing, false);
+SWITCHABLE(AspectRatio, true);
+SWITCHABLE(AstcDecodeMode, true);
+SWITCHABLE(AstcRecompression, true);
+SWITCHABLE(AudioMode, true);
+SWITCHABLE(CpuAccuracy, true);
+SWITCHABLE(FullscreenMode, true);
+SWITCHABLE(GpuAccuracy, true);
+SWITCHABLE(Language, true);
+SWITCHABLE(NvdecEmulation, false);
+SWITCHABLE(Region, true);
+SWITCHABLE(RendererBackend, true);
+SWITCHABLE(ScalingFilter, false);
+SWITCHABLE(ShaderBackend, true);
+SWITCHABLE(TimeZone, true);
+SETTING(VSyncMode, true);
+SWITCHABLE(bool, false);
+SWITCHABLE(int, false);
+SWITCHABLE(int, true);
+SWITCHABLE(s64, false);
+SWITCHABLE(u16, true);
+SWITCHABLE(u32, false);
+SWITCHABLE(u8, false);
+SWITCHABLE(u8, true);
+
+#undef SETTING
+#undef SWITCHABLE
+#endif
+
+Values values;
+
+std::string GetTimeZoneString(TimeZone time_zone) {
+    const auto time_zone_index = static_cast<std::size_t>(time_zone);
     ASSERT(time_zone_index < Common::TimeZone::GetTimeZoneStrings().size());
 
     std::string location_name;
@@ -61,73 +107,35 @@ void LogSettings() {
     };
 
     LOG_INFO(Config, "yuzu Configuration:");
-    log_setting("Controls_UseDockedMode", values.use_docked_mode.GetValue());
-    log_setting("System_RngSeed", values.rng_seed.GetValue().value_or(0));
-    log_setting("System_DeviceName", values.device_name.GetValue());
-    log_setting("System_CurrentUser", values.current_user.GetValue());
-    log_setting("System_LanguageIndex", values.language_index.GetValue());
-    log_setting("System_RegionIndex", values.region_index.GetValue());
-    log_setting("System_TimeZoneIndex", values.time_zone_index.GetValue());
-    log_setting("System_UnsafeMemoryLayout", values.use_unsafe_extended_memory_layout.GetValue());
-    log_setting("Core_UseMultiCore", values.use_multi_core.GetValue());
-    log_setting("CPU_Accuracy", values.cpu_accuracy.GetValue());
-    log_setting("Renderer_UseResolutionScaling", values.resolution_setup.GetValue());
-    log_setting("Renderer_ScalingFilter", values.scaling_filter.GetValue());
-    log_setting("Renderer_FSRSlider", values.fsr_sharpening_slider.GetValue());
-    log_setting("Renderer_AntiAliasing", values.anti_aliasing.GetValue());
-    log_setting("Renderer_UseSpeedLimit", values.use_speed_limit.GetValue());
-    log_setting("Renderer_SpeedLimit", values.speed_limit.GetValue());
-    log_setting("Renderer_UseDiskShaderCache", values.use_disk_shader_cache.GetValue());
-    log_setting("Renderer_GPUAccuracyLevel", values.gpu_accuracy.GetValue());
-    log_setting("Renderer_UseAsynchronousGpuEmulation",
-                values.use_asynchronous_gpu_emulation.GetValue());
-    log_setting("Renderer_NvdecEmulation", values.nvdec_emulation.GetValue());
-    log_setting("Renderer_AccelerateASTC", values.accelerate_astc.GetValue());
-    log_setting("Renderer_AsyncASTC", values.async_astc.GetValue());
-    log_setting("Renderer_AstcRecompression", values.astc_recompression.GetValue());
-    log_setting("Renderer_UseVsync", values.vsync_mode.GetValue());
-    log_setting("Renderer_UseReactiveFlushing", values.use_reactive_flushing.GetValue());
-    log_setting("Renderer_ShaderBackend", values.shader_backend.GetValue());
-    log_setting("Renderer_UseAsynchronousShaders", values.use_asynchronous_shaders.GetValue());
-    log_setting("Renderer_AnisotropicFilteringLevel", values.max_anisotropy.GetValue());
-    log_setting("Audio_OutputEngine", values.sink_id.GetValue());
-    log_setting("Audio_OutputDevice", values.audio_output_device_id.GetValue());
-    log_setting("Audio_InputDevice", values.audio_input_device_id.GetValue());
-    log_setting("DataStorage_UseVirtualSd", values.use_virtual_sd.GetValue());
+    for (auto& [category, settings] : values.linkage.by_category) {
+        for (const auto& setting : settings) {
+            if (setting->Id() == values.yuzu_token.Id()) {
+                // Hide the token secret, for security reasons.
+                continue;
+            }
+
+            const auto name = fmt::format(
+                "{:c}{:c} {}.{}", setting->ToString() == setting->DefaultToString() ? '-' : 'M',
+                setting->UsingGlobal() ? '-' : 'C', TranslateCategory(category),
+                setting->GetLabel());
+
+            log_setting(name, setting->Canonicalize());
+        }
+    }
     log_path("DataStorage_CacheDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir));
     log_path("DataStorage_ConfigDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir));
     log_path("DataStorage_LoadDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::LoadDir));
     log_path("DataStorage_NANDDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir));
     log_path("DataStorage_SDMCDir", Common::FS::GetYuzuPath(Common::FS::YuzuPath::SDMCDir));
-    log_setting("Debugging_ProgramArgs", values.program_args.GetValue());
-    log_setting("Debugging_GDBStub", values.use_gdbstub.GetValue());
-    log_setting("Input_EnableMotion", values.motion_enabled.GetValue());
-    log_setting("Input_EnableVibration", values.vibration_enabled.GetValue());
-    log_setting("Input_EnableTouch", values.touchscreen.enabled);
-    log_setting("Input_EnableMouse", values.mouse_enabled.GetValue());
-    log_setting("Input_EnableKeyboard", values.keyboard_enabled.GetValue());
-    log_setting("Input_EnableRingController", values.enable_ring_controller.GetValue());
-    log_setting("Input_EnableIrSensor", values.enable_ir_sensor.GetValue());
-    log_setting("Input_EnableCustomJoycon", values.enable_joycon_driver.GetValue());
-    log_setting("Input_EnableCustomProController", values.enable_procon_driver.GetValue());
-    log_setting("Input_EnableRawInput", values.enable_raw_input.GetValue());
-}
-
-bool IsConfiguringGlobal() {
-    return configuring_global;
-}
-
-void SetConfiguringGlobal(bool is_global) {
-    configuring_global = is_global;
 }
 
 bool IsGPULevelExtreme() {
-    return values.gpu_accuracy.GetValue() == GPUAccuracy::Extreme;
+    return values.gpu_accuracy.GetValue() == GpuAccuracy::Extreme;
 }
 
 bool IsGPULevelHigh() {
-    return values.gpu_accuracy.GetValue() == GPUAccuracy::Extreme ||
-           values.gpu_accuracy.GetValue() == GPUAccuracy::High;
+    return values.gpu_accuracy.GetValue() == GpuAccuracy::Extreme ||
+           values.gpu_accuracy.GetValue() == GpuAccuracy::High;
 }
 
 bool IsFastmemEnabled() {
@@ -142,6 +150,61 @@ float Volume() {
         return 0.0f;
     }
     return values.volume.GetValue() / static_cast<f32>(values.volume.GetDefault());
+}
+
+const char* TranslateCategory(Category category) {
+    switch (category) {
+    case Category::Audio:
+        return "Audio";
+    case Category::Core:
+        return "Core";
+    case Category::Cpu:
+    case Category::CpuDebug:
+    case Category::CpuUnsafe:
+        return "Cpu";
+    case Category::Renderer:
+    case Category::RendererAdvanced:
+    case Category::RendererDebug:
+        return "Renderer";
+    case Category::System:
+    case Category::SystemAudio:
+        return "System";
+    case Category::DataStorage:
+        return "Data Storage";
+    case Category::Debugging:
+    case Category::DebuggingGraphics:
+        return "Debugging";
+    case Category::Miscellaneous:
+        return "Miscellaneous";
+    case Category::Network:
+        return "Network";
+    case Category::WebService:
+        return "WebService";
+    case Category::AddOns:
+        return "DisabledAddOns";
+    case Category::Controls:
+        return "Controls";
+    case Category::Ui:
+    case Category::UiGeneral:
+        return "UI";
+    case Category::UiLayout:
+        return "UiLayout";
+    case Category::UiGameList:
+        return "UiGameList";
+    case Category::Screenshots:
+        return "Screenshots";
+    case Category::Shortcuts:
+        return "Shortcuts";
+    case Category::Multiplayer:
+        return "Multiplayer";
+    case Category::Services:
+        return "Services";
+    case Category::Paths:
+        return "Paths";
+    case Category::MaxEnum:
+        break;
+    }
+    return "Miscellaneous";
 }
 
 void UpdateRescalingInfo() {
@@ -212,66 +275,19 @@ void RestoreGlobalState(bool is_powered_on) {
         return;
     }
 
-    // Audio
-    values.volume.SetGlobal(true);
+    for (const auto& reset : values.linkage.restore_functions) {
+        reset();
+    }
+}
 
-    // Core
-    values.use_multi_core.SetGlobal(true);
-    values.use_unsafe_extended_memory_layout.SetGlobal(true);
+static bool configuring_global = true;
 
-    // CPU
-    values.cpu_accuracy.SetGlobal(true);
-    values.cpuopt_unsafe_unfuse_fma.SetGlobal(true);
-    values.cpuopt_unsafe_reduce_fp_error.SetGlobal(true);
-    values.cpuopt_unsafe_ignore_standard_fpcr.SetGlobal(true);
-    values.cpuopt_unsafe_inaccurate_nan.SetGlobal(true);
-    values.cpuopt_unsafe_fastmem_check.SetGlobal(true);
-    values.cpuopt_unsafe_ignore_global_monitor.SetGlobal(true);
+bool IsConfiguringGlobal() {
+    return configuring_global;
+}
 
-    // Renderer
-    values.fsr_sharpening_slider.SetGlobal(true);
-    values.renderer_backend.SetGlobal(true);
-    values.async_presentation.SetGlobal(true);
-    values.renderer_force_max_clock.SetGlobal(true);
-    values.vulkan_device.SetGlobal(true);
-    values.fullscreen_mode.SetGlobal(true);
-    values.aspect_ratio.SetGlobal(true);
-    values.resolution_setup.SetGlobal(true);
-    values.scaling_filter.SetGlobal(true);
-    values.anti_aliasing.SetGlobal(true);
-    values.max_anisotropy.SetGlobal(true);
-    values.use_speed_limit.SetGlobal(true);
-    values.speed_limit.SetGlobal(true);
-    values.use_disk_shader_cache.SetGlobal(true);
-    values.gpu_accuracy.SetGlobal(true);
-    values.use_asynchronous_gpu_emulation.SetGlobal(true);
-    values.nvdec_emulation.SetGlobal(true);
-    values.accelerate_astc.SetGlobal(true);
-    values.async_astc.SetGlobal(true);
-    values.astc_recompression.SetGlobal(true);
-    values.use_reactive_flushing.SetGlobal(true);
-    values.shader_backend.SetGlobal(true);
-    values.use_asynchronous_shaders.SetGlobal(true);
-    values.use_fast_gpu_time.SetGlobal(true);
-    values.use_vulkan_driver_pipeline_cache.SetGlobal(true);
-    values.bg_red.SetGlobal(true);
-    values.bg_green.SetGlobal(true);
-    values.bg_blue.SetGlobal(true);
-    values.enable_compute_pipelines.SetGlobal(true);
-    values.use_video_framerate.SetGlobal(true);
-
-    // System
-    values.language_index.SetGlobal(true);
-    values.region_index.SetGlobal(true);
-    values.time_zone_index.SetGlobal(true);
-    values.rng_seed.SetGlobal(true);
-    values.sound_index.SetGlobal(true);
-
-    // Controls
-    values.players.SetGlobal(true);
-    values.use_docked_mode.SetGlobal(true);
-    values.vibration_enabled.SetGlobal(true);
-    values.motion_enabled.SetGlobal(true);
+void SetConfiguringGlobal(bool is_global) {
+    configuring_global = is_global;
 }
 
 } // namespace Settings

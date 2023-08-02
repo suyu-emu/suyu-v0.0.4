@@ -17,6 +17,7 @@
 #include <QTimer>
 
 #include "common/fs/fs_util.h"
+#include "configuration/shared_widget.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
@@ -24,9 +25,9 @@
 #include "core/loader/loader.h"
 #include "ui_configure_per_game.h"
 #include "yuzu/configuration/config.h"
+#include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_audio.h"
 #include "yuzu/configuration/configure_cpu.h"
-#include "yuzu/configuration/configure_general.h"
 #include "yuzu/configuration/configure_graphics.h"
 #include "yuzu/configuration/configure_graphics_advanced.h"
 #include "yuzu/configuration/configure_input_per_game.h"
@@ -41,26 +42,28 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
                                    std::vector<VkDeviceInfo::Record>& vk_device_records,
                                    Core::System& system_)
     : QDialog(parent),
-      ui(std::make_unique<Ui::ConfigurePerGame>()), title_id{title_id_}, system{system_} {
+      ui(std::make_unique<Ui::ConfigurePerGame>()), title_id{title_id_}, system{system_},
+      builder{std::make_unique<ConfigurationShared::Builder>(this, !system_.IsPoweredOn())},
+      tab_group{std::make_shared<std::vector<ConfigurationShared::Tab*>>()} {
     const auto file_path = std::filesystem::path(Common::FS::ToU8String(file_name));
     const auto config_file_name = title_id == 0 ? Common::FS::PathToUTF8String(file_path.filename())
                                                 : fmt::format("{:016X}", title_id);
     game_config = std::make_unique<Config>(config_file_name, Config::ConfigType::PerGameConfig);
 
     addons_tab = std::make_unique<ConfigurePerGameAddons>(system_, this);
-    audio_tab = std::make_unique<ConfigureAudio>(system_, this);
-    cpu_tab = std::make_unique<ConfigureCpu>(system_, this);
-    general_tab = std::make_unique<ConfigureGeneral>(system_, this);
-    graphics_advanced_tab = std::make_unique<ConfigureGraphicsAdvanced>(system_, this);
+    audio_tab = std::make_unique<ConfigureAudio>(system_, tab_group, *builder, this);
+    cpu_tab = std::make_unique<ConfigureCpu>(system_, tab_group, *builder, this);
+    graphics_advanced_tab =
+        std::make_unique<ConfigureGraphicsAdvanced>(system_, tab_group, *builder, this);
     graphics_tab = std::make_unique<ConfigureGraphics>(
-        system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); }, this);
+        system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
+        tab_group, *builder, this);
     input_tab = std::make_unique<ConfigureInputPerGame>(system_, game_config.get(), this);
-    system_tab = std::make_unique<ConfigureSystem>(system_, this);
+    system_tab = std::make_unique<ConfigureSystem>(system_, tab_group, *builder, this);
 
     ui->setupUi(this);
 
     ui->tabWidget->addTab(addons_tab.get(), tr("Add-Ons"));
-    ui->tabWidget->addTab(general_tab.get(), tr("General"));
     ui->tabWidget->addTab(system_tab.get(), tr("System"));
     ui->tabWidget->addTab(cpu_tab.get(), tr("CPU"));
     ui->tabWidget->addTab(graphics_tab.get(), tr("Graphics"));
@@ -88,13 +91,10 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
 ConfigurePerGame::~ConfigurePerGame() = default;
 
 void ConfigurePerGame::ApplyConfiguration() {
+    for (const auto tab : *tab_group) {
+        tab->ApplyConfiguration();
+    }
     addons_tab->ApplyConfiguration();
-    general_tab->ApplyConfiguration();
-    cpu_tab->ApplyConfiguration();
-    system_tab->ApplyConfiguration();
-    graphics_tab->ApplyConfiguration();
-    graphics_advanced_tab->ApplyConfiguration();
-    audio_tab->ApplyConfiguration();
     input_tab->ApplyConfiguration();
 
     system.ApplySettings();

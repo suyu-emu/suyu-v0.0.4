@@ -626,8 +626,8 @@ PatchManager::Metadata PatchManager::ParseControlNCA(const NCA& nca) const {
     auto nacp = nacp_file == nullptr ? nullptr : std::make_unique<NACP>(nacp_file);
 
     // Get language code from settings
-    const auto language_code =
-        Service::Set::GetLanguageCodeFromIndex(Settings::values.language_index.GetValue());
+    const auto language_code = Service::Set::GetLanguageCodeFromIndex(
+        static_cast<u32>(Settings::values.language_index.GetValue()));
 
     // Convert to application language and get priority list
     const auto application_language =

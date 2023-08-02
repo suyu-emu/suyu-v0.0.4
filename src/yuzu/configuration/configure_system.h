@@ -3,45 +3,53 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
+#include <vector>
 
 #include <QWidget>
+#include "yuzu/configuration/configuration_shared.h"
 
+class QCheckBox;
+class QLineEdit;
+class QComboBox;
+class QDateTimeEdit;
 namespace Core {
 class System;
-}
-
-namespace ConfigurationShared {
-enum class CheckState;
 }
 
 namespace Ui {
 class ConfigureSystem;
 }
 
-class ConfigureSystem : public QWidget {
-    Q_OBJECT
+namespace ConfigurationShared {
+class Builder;
+}
 
+class ConfigureSystem : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureSystem(Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureSystem(Core::System& system_,
+                             std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
+                             const ConfigurationShared::Builder& builder,
+                             QWidget* parent = nullptr);
     ~ConfigureSystem() override;
 
-    void ApplyConfiguration();
-    void SetConfiguration();
+    void ApplyConfiguration() override;
+    void SetConfiguration() override;
 
 private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
-    void ReadSystemSettings();
+    void Setup(const ConfigurationShared::Builder& builder);
 
-    void SetupPerGameUI();
+    std::vector<std::function<void(bool)>> apply_funcs{};
 
     std::unique_ptr<Ui::ConfigureSystem> ui;
     bool enabled = false;
 
-    ConfigurationShared::CheckState use_rng_seed;
-    ConfigurationShared::CheckState use_unsafe_extended_memory_layout;
-
     Core::System& system;
+
+    QComboBox* combo_region;
+    QComboBox* combo_language;
 };

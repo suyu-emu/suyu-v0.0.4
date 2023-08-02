@@ -143,6 +143,10 @@ add_executable(yuzu
     configuration/configure_web.ui
     configuration/input_profiles.cpp
     configuration/input_profiles.h
+    configuration/shared_translation.cpp
+    configuration/shared_translation.h
+    configuration/shared_widget.cpp
+    configuration/shared_widget.h
     debugger/console.cpp
     debugger/console.h
     debugger/controller.cpp
@@ -229,6 +233,12 @@ if (WIN32 AND YUZU_CRASH_DUMPS)
 
     target_link_libraries(yuzu PRIVATE ${DBGHELP_LIBRARY})
     target_compile_definitions(yuzu PRIVATE -DYUZU_DBGHELP)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_definitions(yuzu PRIVATE
+        $<$<VERSION_LESS:$<CXX_COMPILER_VERSION>,15>:CANNOT_EXPLICITLY_INSTANTIATE>
+    )
 endif()
 
 file(GLOB COMPAT_LIST

@@ -150,15 +150,17 @@ void Config::ReadValues() {
     if (rng_seed_enabled) {
         Settings::values.rng_seed.SetValue(config->GetInteger("System", "rng_seed", 0));
     } else {
-        Settings::values.rng_seed.SetValue(std::nullopt);
+        Settings::values.rng_seed.SetValue(0);
     }
+    Settings::values.rng_seed_enabled.SetValue(rng_seed_enabled);
 
     const auto custom_rtc_enabled = config->GetBoolean("System", "custom_rtc_enabled", false);
     if (custom_rtc_enabled) {
         Settings::values.custom_rtc = config->GetInteger("System", "custom_rtc", 0);
     } else {
-        Settings::values.custom_rtc = std::nullopt;
+        Settings::values.custom_rtc = 0;
     }
+    Settings::values.custom_rtc_enabled = custom_rtc_enabled;
 
     ReadSetting("System", Settings::values.language_index);
     ReadSetting("System", Settings::values.region_index);
@@ -167,7 +169,7 @@ void Config::ReadValues() {
 
     // Core
     ReadSetting("Core", Settings::values.use_multi_core);
-    ReadSetting("Core", Settings::values.use_unsafe_extended_memory_layout);
+    ReadSetting("Core", Settings::values.memory_layout_mode);
 
     // Cpu
     ReadSetting("Cpu", Settings::values.cpu_accuracy);
@@ -222,14 +224,17 @@ void Config::ReadValues() {
     ReadSetting("Renderer", Settings::values.bg_blue);
 
     // Use GPU accuracy normal by default on Android
-    Settings::values.gpu_accuracy = static_cast<Settings::GPUAccuracy>(config->GetInteger(
-        "Renderer", "gpu_accuracy", static_cast<u32>(Settings::GPUAccuracy::Normal)));
+    Settings::values.gpu_accuracy = static_cast<Settings::GpuAccuracy>(config->GetInteger(
+        "Renderer", "gpu_accuracy", static_cast<u32>(Settings::GpuAccuracy::Normal)));
 
     // Use GPU default anisotropic filtering on Android
-    Settings::values.max_anisotropy = config->GetInteger("Renderer", "max_anisotropy", 1);
+    Settings::values.max_anisotropy =
+        static_cast<Settings::AnisotropyMode>(config->GetInteger("Renderer", "max_anisotropy", 1));
 
     // Disable ASTC compute by default on Android
-    Settings::values.accelerate_astc = config->GetBoolean("Renderer", "accelerate_astc", false);
+    Settings::values.accelerate_astc.SetValue(
+        config->GetBoolean("Renderer", "accelerate_astc", false) ? Settings::AstcDecodeMode::Gpu
+                                                                 : Settings::AstcDecodeMode::Cpu);
 
     // Enable asynchronous presentation by default on Android
     Settings::values.async_presentation =

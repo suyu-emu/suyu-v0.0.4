@@ -24,6 +24,7 @@
 #include "applets/qt_software_keyboard.h"
 #include "applets/qt_web_browser.h"
 #include "common/nvidia_flags.h"
+#include "common/settings_enums.h"
 #include "configuration/configure_input.h"
 #include "configuration/configure_per_game.h"
 #include "configuration/configure_tas.h"
@@ -1095,10 +1096,9 @@ void GMainWindow::InitializeWidgets() {
     aa_status_button->setFocusPolicy(Qt::NoFocus);
     connect(aa_status_button, &QPushButton::clicked, [&] {
         auto aa_mode = Settings::values.anti_aliasing.GetValue();
-        if (aa_mode == Settings::AntiAliasing::LastAA) {
+        aa_mode = static_cast<Settings::AntiAliasing>(static_cast<u32>(aa_mode) + 1);
+        if (aa_mode == Settings::AntiAliasing::MaxEnum) {
             aa_mode = Settings::AntiAliasing::None;
-        } else {
-            aa_mode = static_cast<Settings::AntiAliasing>(static_cast<u32>(aa_mode) + 1);
         }
         Settings::values.anti_aliasing.SetValue(aa_mode);
         aa_status_button->setChecked(true);
@@ -1183,7 +1183,7 @@ void GMainWindow::InitializeWidgets() {
                 QMenu context_menu;
 
                 for (auto const& gpu_accuracy_pair : Config::gpu_accuracy_texts_map) {
-                    if (gpu_accuracy_pair.first == Settings::GPUAccuracy::Extreme) {
+                    if (gpu_accuracy_pair.first == Settings::GpuAccuracy::Extreme) {
                         continue;
                     }
                     context_menu.addAction(gpu_accuracy_pair.second, [this, gpu_accuracy_pair] {
@@ -3651,14 +3651,14 @@ void GMainWindow::OnToggleDockedMode() {
 
 void GMainWindow::OnToggleGpuAccuracy() {
     switch (Settings::values.gpu_accuracy.GetValue()) {
-    case Settings::GPUAccuracy::High: {
-        Settings::values.gpu_accuracy.SetValue(Settings::GPUAccuracy::Normal);
+    case Settings::GpuAccuracy::High: {
+        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::Normal);
         break;
     }
-    case Settings::GPUAccuracy::Normal:
-    case Settings::GPUAccuracy::Extreme:
+    case Settings::GpuAccuracy::Normal:
+    case Settings::GpuAccuracy::Extreme:
     default: {
-        Settings::values.gpu_accuracy.SetValue(Settings::GPUAccuracy::High);
+        Settings::values.gpu_accuracy.SetValue(Settings::GpuAccuracy::High);
         break;
     }
     }
@@ -3702,10 +3702,9 @@ void GMainWindow::OnIncreaseVolume() {
 
 void GMainWindow::OnToggleAdaptingFilter() {
     auto filter = Settings::values.scaling_filter.GetValue();
-    if (filter == Settings::ScalingFilter::LastFilter) {
+    filter = static_cast<Settings::ScalingFilter>(static_cast<u32>(filter) + 1);
+    if (filter == Settings::ScalingFilter::MaxEnum) {
         filter = Settings::ScalingFilter::NearestNeighbor;
-    } else {
-        filter = static_cast<Settings::ScalingFilter>(static_cast<u32>(filter) + 1);
     }
     Settings::values.scaling_filter.SetValue(filter);
     filter_status_button->setChecked(true);
@@ -4071,7 +4070,7 @@ void GMainWindow::UpdateGPUAccuracyButton() {
     const auto gpu_accuracy = Settings::values.gpu_accuracy.GetValue();
     const auto gpu_accuracy_text = Config::gpu_accuracy_texts_map.find(gpu_accuracy)->second;
     gpu_accuracy_button->setText(gpu_accuracy_text.toUpper());
-    gpu_accuracy_button->setChecked(gpu_accuracy != Settings::GPUAccuracy::Normal);
+    gpu_accuracy_button->setChecked(gpu_accuracy != Settings::GpuAccuracy::Normal);
 }
 
 void GMainWindow::UpdateDockedButton() {

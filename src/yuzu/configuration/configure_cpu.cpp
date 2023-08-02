@@ -1,88 +1,92 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <memory>
+#include <typeinfo>
+#include <vector>
+#include <QComboBox>
 #include "common/common_types.h"
 #include "common/settings.h"
+#include "common/settings_enums.h"
+#include "configuration/shared_widget.h"
 #include "core/core.h"
 #include "ui_configure_cpu.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_cpu.h"
 
-ConfigureCpu::ConfigureCpu(const Core::System& system_, QWidget* parent)
-    : QWidget(parent), ui{std::make_unique<Ui::ConfigureCpu>()}, system{system_} {
+ConfigureCpu::ConfigureCpu(const Core::System& system_,
+                           std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,
+                           const ConfigurationShared::Builder& builder, QWidget* parent)
+    : Tab(group_, parent), ui{std::make_unique<Ui::ConfigureCpu>()}, system{system_},
+      combobox_translations(builder.ComboboxTranslations()) {
     ui->setupUi(this);
 
-    SetupPerGameUI();
+    Setup(builder);
 
     SetConfiguration();
 
-    connect(ui->accuracy, qOverload<int>(&QComboBox::currentIndexChanged), this,
+    connect(accuracy_combobox, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ConfigureCpu::UpdateGroup);
 }
 
 ConfigureCpu::~ConfigureCpu() = default;
 
-void ConfigureCpu::SetConfiguration() {
-    const bool runtime_lock = !system.IsPoweredOn();
+void ConfigureCpu::SetConfiguration() {}
+void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
+    auto* accuracy_layout = ui->widget_accuracy->layout();
+    auto* unsafe_layout = ui->unsafe_widget->layout();
+    std::map<u32, QWidget*> unsafe_hold{};
 
-    ui->accuracy->setEnabled(runtime_lock);
-    ui->cpuopt_unsafe_unfuse_fma->setEnabled(runtime_lock);
-    ui->cpuopt_unsafe_reduce_fp_error->setEnabled(runtime_lock);
-    ui->cpuopt_unsafe_ignore_standard_fpcr->setEnabled(runtime_lock);
-    ui->cpuopt_unsafe_inaccurate_nan->setEnabled(runtime_lock);
-    ui->cpuopt_unsafe_fastmem_check->setEnabled(runtime_lock);
-    ui->cpuopt_unsafe_ignore_global_monitor->setEnabled(runtime_lock);
+    std::vector<Settings::BasicSetting*> settings;
+    const auto push = [&](Settings::Category category) {
+        for (const auto setting : Settings::values.linkage.by_category[category]) {
+            settings.push_back(setting);
+        }
+    };
 
-    ui->cpuopt_unsafe_unfuse_fma->setChecked(Settings::values.cpuopt_unsafe_unfuse_fma.GetValue());
-    ui->cpuopt_unsafe_reduce_fp_error->setChecked(
-        Settings::values.cpuopt_unsafe_reduce_fp_error.GetValue());
-    ui->cpuopt_unsafe_ignore_standard_fpcr->setChecked(
-        Settings::values.cpuopt_unsafe_ignore_standard_fpcr.GetValue());
-    ui->cpuopt_unsafe_inaccurate_nan->setChecked(
-        Settings::values.cpuopt_unsafe_inaccurate_nan.GetValue());
-    ui->cpuopt_unsafe_fastmem_check->setChecked(
-        Settings::values.cpuopt_unsafe_fastmem_check.GetValue());
-    ui->cpuopt_unsafe_ignore_global_monitor->setChecked(
-        Settings::values.cpuopt_unsafe_ignore_global_monitor.GetValue());
+    push(Settings::Category::Cpu);
+    push(Settings::Category::CpuUnsafe);
 
-    if (Settings::IsConfiguringGlobal()) {
-        ui->accuracy->setCurrentIndex(static_cast<int>(Settings::values.cpu_accuracy.GetValue()));
-    } else {
-        ConfigurationShared::SetPerGameSetting(ui->accuracy, &Settings::values.cpu_accuracy);
-        ConfigurationShared::SetHighlight(ui->widget_accuracy,
-                                          !Settings::values.cpu_accuracy.UsingGlobal());
+    for (const auto setting : settings) {
+        auto* widget = builder.BuildWidget(setting, apply_funcs);
+
+        if (widget == nullptr) {
+            continue;
+        }
+        if (!widget->Valid()) {
+            widget->deleteLater();
+            continue;
+        }
+
+        if (setting->Id() == Settings::values.cpu_accuracy.Id()) {
+            // Keep track of cpu_accuracy combobox to display/hide the unsafe settings
+            accuracy_layout->addWidget(widget);
+            accuracy_combobox = widget->combobox;
+        } else {
+            // Presently, all other settings here are unsafe checkboxes
+            unsafe_hold.insert({setting->Id(), widget});
+        }
     }
-    UpdateGroup(ui->accuracy->currentIndex());
+
+    for (const auto& [label, widget] : unsafe_hold) {
+        unsafe_layout->addWidget(widget);
+    }
+
+    UpdateGroup(accuracy_combobox->currentIndex());
 }
 
 void ConfigureCpu::UpdateGroup(int index) {
-    if (!Settings::IsConfiguringGlobal()) {
-        index -= ConfigurationShared::USE_GLOBAL_OFFSET;
-    }
-    const auto accuracy = static_cast<Settings::CPUAccuracy>(index);
-    ui->unsafe_group->setVisible(accuracy == Settings::CPUAccuracy::Unsafe);
+    const auto accuracy = static_cast<Settings::CpuAccuracy>(
+        combobox_translations.at(Settings::EnumMetadata<Settings::CpuAccuracy>::Index())[index]
+            .first);
+    ui->unsafe_group->setVisible(accuracy == Settings::CpuAccuracy::Unsafe);
 }
 
 void ConfigureCpu::ApplyConfiguration() {
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.cpu_accuracy, ui->accuracy);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.cpuopt_unsafe_unfuse_fma,
-                                             ui->cpuopt_unsafe_unfuse_fma,
-                                             cpuopt_unsafe_unfuse_fma);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.cpuopt_unsafe_reduce_fp_error,
-                                             ui->cpuopt_unsafe_reduce_fp_error,
-                                             cpuopt_unsafe_reduce_fp_error);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.cpuopt_unsafe_ignore_standard_fpcr,
-                                             ui->cpuopt_unsafe_ignore_standard_fpcr,
-                                             cpuopt_unsafe_ignore_standard_fpcr);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.cpuopt_unsafe_inaccurate_nan,
-                                             ui->cpuopt_unsafe_inaccurate_nan,
-                                             cpuopt_unsafe_inaccurate_nan);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.cpuopt_unsafe_fastmem_check,
-                                             ui->cpuopt_unsafe_fastmem_check,
-                                             cpuopt_unsafe_fastmem_check);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.cpuopt_unsafe_ignore_global_monitor,
-                                             ui->cpuopt_unsafe_ignore_global_monitor,
-                                             cpuopt_unsafe_ignore_global_monitor);
+    const bool is_powered_on = system.IsPoweredOn();
+    for (const auto& apply_func : apply_funcs) {
+        apply_func(is_powered_on);
+    }
 }
 
 void ConfigureCpu::changeEvent(QEvent* event) {
@@ -95,33 +99,4 @@ void ConfigureCpu::changeEvent(QEvent* event) {
 
 void ConfigureCpu::RetranslateUI() {
     ui->retranslateUi(this);
-}
-
-void ConfigureCpu::SetupPerGameUI() {
-    if (Settings::IsConfiguringGlobal()) {
-        return;
-    }
-
-    ConfigurationShared::SetColoredComboBox(
-        ui->accuracy, ui->widget_accuracy,
-        static_cast<u32>(Settings::values.cpu_accuracy.GetValue(true)));
-
-    ConfigurationShared::SetColoredTristate(ui->cpuopt_unsafe_unfuse_fma,
-                                            Settings::values.cpuopt_unsafe_unfuse_fma,
-                                            cpuopt_unsafe_unfuse_fma);
-    ConfigurationShared::SetColoredTristate(ui->cpuopt_unsafe_reduce_fp_error,
-                                            Settings::values.cpuopt_unsafe_reduce_fp_error,
-                                            cpuopt_unsafe_reduce_fp_error);
-    ConfigurationShared::SetColoredTristate(ui->cpuopt_unsafe_ignore_standard_fpcr,
-                                            Settings::values.cpuopt_unsafe_ignore_standard_fpcr,
-                                            cpuopt_unsafe_ignore_standard_fpcr);
-    ConfigurationShared::SetColoredTristate(ui->cpuopt_unsafe_inaccurate_nan,
-                                            Settings::values.cpuopt_unsafe_inaccurate_nan,
-                                            cpuopt_unsafe_inaccurate_nan);
-    ConfigurationShared::SetColoredTristate(ui->cpuopt_unsafe_fastmem_check,
-                                            Settings::values.cpuopt_unsafe_fastmem_check,
-                                            cpuopt_unsafe_fastmem_check);
-    ConfigurationShared::SetColoredTristate(ui->cpuopt_unsafe_ignore_global_monitor,
-                                            Settings::values.cpuopt_unsafe_ignore_global_monitor,
-                                            cpuopt_unsafe_ignore_global_monitor);
 }

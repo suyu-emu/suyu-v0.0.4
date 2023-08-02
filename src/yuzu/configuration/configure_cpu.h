@@ -4,29 +4,34 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 #include <QWidget>
+#include "yuzu/configuration/configuration_shared.h"
+#include "yuzu/configuration/shared_translation.h"
+
+class QComboBox;
 
 namespace Core {
 class System;
-}
-
-namespace ConfigurationShared {
-enum class CheckState;
 }
 
 namespace Ui {
 class ConfigureCpu;
 }
 
-class ConfigureCpu : public QWidget {
-    Q_OBJECT
+namespace ConfigurationShared {
+class Builder;
+}
 
+class ConfigureCpu : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureCpu(const Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureCpu(const Core::System& system_,
+                          std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
+                          const ConfigurationShared::Builder& builder, QWidget* parent = nullptr);
     ~ConfigureCpu() override;
 
-    void ApplyConfiguration();
-    void SetConfiguration();
+    void ApplyConfiguration() override;
+    void SetConfiguration() override;
 
 private:
     void changeEvent(QEvent* event) override;
@@ -34,16 +39,14 @@ private:
 
     void UpdateGroup(int index);
 
-    void SetupPerGameUI();
+    void Setup(const ConfigurationShared::Builder& builder);
 
     std::unique_ptr<Ui::ConfigureCpu> ui;
 
-    ConfigurationShared::CheckState cpuopt_unsafe_unfuse_fma;
-    ConfigurationShared::CheckState cpuopt_unsafe_reduce_fp_error;
-    ConfigurationShared::CheckState cpuopt_unsafe_ignore_standard_fpcr;
-    ConfigurationShared::CheckState cpuopt_unsafe_inaccurate_nan;
-    ConfigurationShared::CheckState cpuopt_unsafe_fastmem_check;
-    ConfigurationShared::CheckState cpuopt_unsafe_ignore_global_monitor;
-
     const Core::System& system;
+
+    const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
+    std::vector<std::function<void(bool)>> apply_funcs{};
+
+    QComboBox* accuracy_combobox;
 };

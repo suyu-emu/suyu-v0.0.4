@@ -236,18 +236,18 @@ GraphicsPipeline::GraphicsPipeline(const Device& device, TextureCache& texture_c
                force_context_flush](ShaderContext::Context*) mutable {
         for (size_t stage = 0; stage < 5; ++stage) {
             switch (backend) {
-            case Settings::ShaderBackend::GLSL:
+            case Settings::ShaderBackend::Glsl:
                 if (!sources_[stage].empty()) {
                     source_programs[stage] = CreateProgram(sources_[stage], Stage(stage));
                 }
                 break;
-            case Settings::ShaderBackend::GLASM:
+            case Settings::ShaderBackend::Glasm:
                 if (!sources_[stage].empty()) {
                     assembly_programs[stage] =
                         CompileProgram(sources_[stage], AssemblyStage(stage));
                 }
                 break;
-            case Settings::ShaderBackend::SPIRV:
+            case Settings::ShaderBackend::SpirV:
                 if (!sources_spirv_[stage].empty()) {
                     source_programs[stage] = CreateProgram(sources_spirv_[stage], Stage(stage));
                 }

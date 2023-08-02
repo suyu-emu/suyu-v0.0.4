@@ -35,6 +35,7 @@ if (MSVC)
     # /volatile:iso       - Use strict standards-compliant volatile semantics.
     # /Zc:externConstexpr - Allow extern constexpr variables to have external linkage, like the standard mandates
     # /Zc:inline          - Let codegen omit inline functions in object files
+    # /Zc:preprocessor    - Enable standards-conforming preprocessor
     # /Zc:throwingNew     - Let codegen assume `operator new` (without std::nothrow) will never return null
     # /GT                 - Supports fiber safety for data allocated using static thread-local storage
     add_compile_options(
@@ -48,6 +49,7 @@ if (MSVC)
         /volatile:iso
         /Zc:externConstexpr
         /Zc:inline
+        /Zc:preprocessor
         /Zc:throwingNew
         /GT
 

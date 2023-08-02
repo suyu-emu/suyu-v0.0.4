@@ -473,7 +473,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glBindTextureUnit(0, screen_info.display_texture);
 
     auto anti_aliasing = Settings::values.anti_aliasing.GetValue();
-    if (anti_aliasing > Settings::AntiAliasing::LastAA) {
+    if (anti_aliasing >= Settings::AntiAliasing::MaxEnum) {
         LOG_ERROR(Render_OpenGL, "Invalid antialiasing option selected {}", anti_aliasing);
         anti_aliasing = Settings::AntiAliasing::None;
         Settings::values.anti_aliasing.SetValue(anti_aliasing);

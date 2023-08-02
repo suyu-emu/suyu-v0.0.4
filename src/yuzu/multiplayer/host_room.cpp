@@ -55,12 +55,14 @@ HostRoomWindow::HostRoomWindow(QWidget* parent, QStandardItemModel* list,
     connect(ui->host, &QPushButton::clicked, this, &HostRoomWindow::Host);
 
     // Restore the settings:
-    ui->username->setText(UISettings::values.multiplayer_room_nickname.GetValue());
+    ui->username->setText(
+        QString::fromStdString(UISettings::values.multiplayer_room_nickname.GetValue()));
     if (ui->username->text().isEmpty() && !Settings::values.yuzu_username.GetValue().empty()) {
         // Use yuzu Web Service user name as nickname by default
         ui->username->setText(QString::fromStdString(Settings::values.yuzu_username.GetValue()));
     }
-    ui->room_name->setText(UISettings::values.multiplayer_room_name.GetValue());
+    ui->room_name->setText(
+        QString::fromStdString(UISettings::values.multiplayer_room_name.GetValue()));
     ui->port->setText(QString::number(UISettings::values.multiplayer_room_port.GetValue()));
     ui->max_player->setValue(UISettings::values.multiplayer_max_player.GetValue());
     int index = UISettings::values.multiplayer_host_type.GetValue();
@@ -72,7 +74,8 @@ HostRoomWindow::HostRoomWindow(QWidget* parent, QStandardItemModel* list,
     if (index != -1) {
         ui->game_list->setCurrentIndex(index);
     }
-    ui->room_description->setText(UISettings::values.multiplayer_room_description.GetValue());
+    ui->room_description->setText(
+        QString::fromStdString(UISettings::values.multiplayer_room_description.GetValue()));
 }
 
 HostRoomWindow::~HostRoomWindow() = default;
@@ -218,8 +221,8 @@ void HostRoomWindow::Host() {
                      Network::NoPreferredIP, password, token);
 
         // Store settings
-        UISettings::values.multiplayer_room_nickname = ui->username->text();
-        UISettings::values.multiplayer_room_name = ui->room_name->text();
+        UISettings::values.multiplayer_room_nickname = ui->username->text().toStdString();
+        UISettings::values.multiplayer_room_name = ui->room_name->text().toStdString();
         UISettings::values.multiplayer_game_id =
             ui->game_list->currentData(GameListItemPath::ProgramIdRole).toLongLong();
         UISettings::values.multiplayer_max_player = ui->max_player->value();
@@ -230,7 +233,8 @@ void HostRoomWindow::Host() {
         } else {
             UISettings::values.multiplayer_room_port = Network::DefaultRoomPort;
         }
-        UISettings::values.multiplayer_room_description = ui->room_description->toPlainText();
+        UISettings::values.multiplayer_room_description =
+            ui->room_description->toPlainText().toStdString();
         ui->host->setEnabled(true);
         emit SaveConfig();
         close();

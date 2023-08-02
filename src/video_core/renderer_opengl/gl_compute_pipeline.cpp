@@ -34,13 +34,13 @@ ComputePipeline::ComputePipeline(const Device& device, TextureCache& texture_cac
     : texture_cache{texture_cache_}, buffer_cache{buffer_cache_},
       program_manager{program_manager_}, info{info_} {
     switch (device.GetShaderBackend()) {
-    case Settings::ShaderBackend::GLSL:
+    case Settings::ShaderBackend::Glsl:
         source_program = CreateProgram(code, GL_COMPUTE_SHADER);
         break;
-    case Settings::ShaderBackend::GLASM:
+    case Settings::ShaderBackend::Glasm:
         assembly_program = CompileProgram(code, GL_COMPUTE_PROGRAM_NV);
         break;
-    case Settings::ShaderBackend::SPIRV:
+    case Settings::ShaderBackend::SpirV:
         source_program = CreateProgram(code_v, GL_COMPUTE_SHADER);
         break;
     }

@@ -108,7 +108,7 @@ public:
 
         using namespace Common::Literals;
         // Prevent logs from exceeding a set maximum size in the event that log entries are spammed.
-        const auto write_limit = Settings::values.extended_logging ? 1_GiB : 100_MiB;
+        const auto write_limit = Settings::values.extended_logging.GetValue() ? 1_GiB : 100_MiB;
         const bool write_limit_exceeded = bytes_written > write_limit;
         if (entry.log_level >= Level::Error || write_limit_exceeded) {
             if (write_limit_exceeded) {

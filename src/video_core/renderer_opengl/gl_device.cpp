@@ -177,15 +177,15 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
     has_fast_buffer_sub_data = is_nvidia && !disable_fast_buffer_sub_data;
 
     shader_backend = Settings::values.shader_backend.GetValue();
-    use_assembly_shaders = shader_backend == Settings::ShaderBackend::GLASM &&
+    use_assembly_shaders = shader_backend == Settings::ShaderBackend::Glasm &&
                            GLAD_GL_NV_gpu_program5 && GLAD_GL_NV_compute_program5 &&
                            GLAD_GL_NV_transform_feedback && GLAD_GL_NV_transform_feedback2;
-    if (shader_backend == Settings::ShaderBackend::GLASM && !use_assembly_shaders) {
+    if (shader_backend == Settings::ShaderBackend::Glasm && !use_assembly_shaders) {
         LOG_ERROR(Render_OpenGL, "Assembly shaders enabled but not supported");
-        shader_backend = Settings::ShaderBackend::GLSL;
+        shader_backend = Settings::ShaderBackend::Glsl;
     }
 
-    if (shader_backend == Settings::ShaderBackend::GLSL && is_nvidia) {
+    if (shader_backend == Settings::ShaderBackend::Glsl && is_nvidia) {
         const std::string_view driver_version = version.substr(13);
         const int version_major =
             std::atoi(driver_version.substr(0, driver_version.find(".")).data());

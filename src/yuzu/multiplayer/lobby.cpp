@@ -60,7 +60,8 @@ Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
     ui->room_list->setContextMenuPolicy(Qt::CustomContextMenu);
 
     ui->nickname->setValidator(validation.GetNickname());
-    ui->nickname->setText(UISettings::values.multiplayer_nickname.GetValue());
+    ui->nickname->setText(
+        QString::fromStdString(UISettings::values.multiplayer_nickname.GetValue()));
 
     // Try find the best nickname by default
     if (ui->nickname->text().isEmpty() || ui->nickname->text() == QStringLiteral("yuzu")) {
@@ -202,9 +203,9 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
     // TODO(jroweboy): disable widgets and display a connecting while we wait
 
     // Save settings
-    UISettings::values.multiplayer_nickname = ui->nickname->text();
+    UISettings::values.multiplayer_nickname = ui->nickname->text().toStdString();
     UISettings::values.multiplayer_ip =
-        proxy->data(connection_index, LobbyItemHost::HostIPRole).toString();
+        proxy->data(connection_index, LobbyItemHost::HostIPRole).value<QString>().toStdString();
     UISettings::values.multiplayer_port =
         proxy->data(connection_index, LobbyItemHost::HostPortRole).toInt();
     emit SaveConfig();
