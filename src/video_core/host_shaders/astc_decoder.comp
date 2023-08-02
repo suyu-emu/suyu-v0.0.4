@@ -21,8 +21,6 @@
 
 #endif
 
-#define bfe bitfieldExtract
-
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
 BEGIN_PUSH_CONSTANTS
@@ -134,7 +132,7 @@ void ResultEmplaceBack(EncodingData val) {
         return;
     }
     const uint array_index = result_index / 4;
-    const uint vector_index = bfe(result_index, 0, 2);
+    const uint vector_index = result_index % 4;
     result_vector[array_index][vector_index] = val.data;
     ++result_index;
 }
@@ -386,7 +384,7 @@ uint StreamColorBits(uint num_bits) {
 
 EncodingData GetEncodingFromVector(uint index) {
     const uint array_index = index / 4;
-    const uint vector_index = bfe(index, 0, 2);
+    const uint vector_index = index % 4;
 
     const uint data = result_vector[array_index][vector_index];
     return EncodingData(data);
@@ -395,7 +393,7 @@ EncodingData GetEncodingFromVector(uint index) {
 // Returns the number of bits required to encode n_vals values.
 uint GetBitLength(uint n_vals, uint encoding_index) {
     const EncodingData encoding_value =
-        EncodingData(encoding_values[encoding_index / 4][bfe(encoding_index, 0, 2)]);
+        EncodingData(encoding_values[encoding_index / 4][encoding_index % 4]);
     const uint encoding = Encoding(encoding_value);
     uint total_bits = NumBits(encoding_value) * n_vals;
     if (encoding == TRIT) {
@@ -515,7 +513,7 @@ void DecodeTritBlock(uint num_bits) {
 }
 
 void DecodeIntegerSequence(uint max_range, uint num_values) {
-    EncodingData val = EncodingData(encoding_values[max_range / 4][bfe(max_range, 0, 2)]);
+    EncodingData val = EncodingData(encoding_values[max_range / 4][max_range % 4]);
     const uint encoding = Encoding(val);
     const uint num_bits = NumBits(val);
     uint vals_decoded = 0;
@@ -567,7 +565,7 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
         A = ReplicateBitTo9((bitval & 1));
         switch (encoding) {
         case JUST_BITS:
-            color_values[out_index / 4][bfe(out_index, 0, 2)] = FastReplicateTo8(bitval, bitlen);
+            color_values[out_index / 4][out_index % 4] = FastReplicateTo8(bitval, bitlen);
             ++out_index;
             break;
         case TRIT: {
@@ -647,7 +645,7 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
             uint T = (D * C) + B;
             T ^= A;
             T = (A & 0x80) | (T >> 2);
-            color_values[out_index / 4][bfe(out_index, 0, 2)] = T;
+            color_values[out_index / 4][out_index % 4] = T;
             ++out_index;
         }
     }
@@ -678,14 +676,14 @@ void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode,
 #define READ_UINT_VALUES(N)                                                                        \
     uint v[N];                                                                                     \
     for (uint i = 0; i < N; i++) {                                                                 \
-        v[i] = color_values[colvals_index / 4][bfe(colvals_index, 0, 2)];                                 \
+        v[i] = color_values[colvals_index / 4][colvals_index % 4];                                 \
         ++colvals_index;                                                                           \
     }
 
 #define READ_INT_VALUES(N)                                                                         \
     int v[N];                                                                                      \
     for (uint i = 0; i < N; i++) {                                                                 \
-        v[i] = int(color_values[colvals_index / 4][bfe(colvals_index, 0, 2)]);                            \
+        v[i] = int(color_values[colvals_index / 4][colvals_index % 4]);                            \
         ++colvals_index;                                                                           \
     }
 
@@ -896,7 +894,7 @@ void UnquantizeTexelWeights(uvec2 size, bool is_dual_plane) {
     const uint loop_count = min(result_index, area * num_planes);
     for (uint itr = 0; itr < loop_count; ++itr) {
         const uint array_index = itr / 4;
-        const uint vector_index = bfe(itr, 0, 2);
+        const uint vector_index = itr % 4;
         result_vector[array_index][vector_index] =
             UnquantizeTexelWeight(GetEncodingFromVector(itr));
     }
@@ -923,7 +921,7 @@ void UnquantizeTexelWeights(uvec2 size, bool is_dual_plane) {
 #define VectorIndicesFromBase(offset_base)                                                         \
     const uint offset = is_dual_plane ? 2 * offset_base + plane : offset_base;                     \
     const uint array_index = offset / 4;                                                           \
-    const uint vector_index = bfe(offset, 0, 2);
+    const uint vector_index = offset % 4;
 
                 if (v0 < area) {
                     const uint offset_base = v0;
@@ -947,7 +945,7 @@ void UnquantizeTexelWeights(uvec2 size, bool is_dual_plane) {
                 }
                 const uint offset = (t * block_dims.x + s) + ARRAY_NUM_ELEMENTS * plane;
                 const uint array_index = offset / 4;
-                const uint vector_index = bfe(offset, 0, 2);
+                const uint vector_index = offset % 4;
                 unquantized_texel_weights[array_index][vector_index] = (uint(dot(p, w)) + 8) >> 4;
             }
         }
@@ -1251,13 +1249,13 @@ void DecompressBlock(ivec3 coord) {
             const uvec4 C1 = ReplicateByteTo16(endpoints1[local_partition]);
             const uint weight_offset = (j * block_dims.x + i);
             const uint array_index = weight_offset / 4;
-            const uint vector_index = bfe(weight_offset, 0, 2);
+            const uint vector_index = weight_offset % 4;
             const uint primary_weight = unquantized_texel_weights[array_index][vector_index];
             uvec4 weight_vec = uvec4(primary_weight);
             if (params.dual_plane) {
                 const uint secondary_weight_offset = (j * block_dims.x + i) + ARRAY_NUM_ELEMENTS;
                 const uint secondary_array_index = secondary_weight_offset / 4;
-                const uint secondary_vector_index = bfe(secondary_weight_offset, 0, 2);
+                const uint secondary_vector_index = secondary_weight_offset % 4;
                 const uint secondary_weight =
                     unquantized_texel_weights[secondary_array_index][secondary_vector_index];
                 for (uint c = 0; c < 4; c++) {
