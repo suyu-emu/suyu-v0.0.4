@@ -15,14 +15,6 @@
 #include "common/common_types.h"
 #include "video_core/vulkan_common/vulkan.h"
 
-// Sanitize macros
-#ifdef CreateEvent
-#undef CreateEvent
-#endif
-#ifdef CreateSemaphore
-#undef CreateSemaphore
-#endif
-
 #ifdef _MSC_VER
 #pragma warning(disable : 26812) // Disable prefer enum class over enum
 #endif
