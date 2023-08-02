@@ -88,7 +88,7 @@ int color_bitsread = 0;
 #define VECTOR_ARRAY_SIZE DIVCEIL(ARRAY_NUM_ELEMENTS * 2, 4)
 uvec4 result_vector[VECTOR_ARRAY_SIZE];
 
-int result_index = 0;
+uint result_index = 0;
 uint result_vector_max_index;
 bool result_limit_reached = false;
 
@@ -131,8 +131,8 @@ void ResultEmplaceBack(EncodingData val) {
         result_limit_reached = true;
         return;
     }
-    const uint array_index = result_index / 4;
-    const uint vector_index = result_index % 4;
+    const uint array_index = result_index / 4u;
+    const uint vector_index = result_index % 4u;
     result_vector[array_index][vector_index] = val.data;
     ++result_index;
 }
@@ -428,69 +428,68 @@ uint BitsOp(uint bits, uint start, uint end) {
 
 void DecodeQuintBlock(uint num_bits) {
     uvec3 m;
-    uvec3 q;
-    uint Q;
+    uvec4 qQ;
     m[0] = StreamColorBits(num_bits);
-    Q = StreamColorBits(3);
+    qQ.w = StreamColorBits(3);
     m[1] = StreamColorBits(num_bits);
-    Q |= StreamColorBits(2) << 3;
+    qQ.w |= StreamColorBits(2) << 3;
     m[2] = StreamColorBits(num_bits);
-    Q |= StreamColorBits(2) << 5;
-    if (BitsOp(Q, 1, 2) == 3 && BitsOp(Q, 5, 6) == 0) {
-        q.x = 4;
-        q.y = 4;
-        q.z = (BitsBracket(Q, 0) << 2) | ((BitsBracket(Q, 4) & ~BitsBracket(Q, 0)) << 1) |
-              (BitsBracket(Q, 3) & ~BitsBracket(Q, 0));
+    qQ.w |= StreamColorBits(2) << 5;
+    if (BitsOp(qQ.w, 1, 2) == 3 && BitsOp(qQ.w, 5, 6) == 0) {
+        qQ.x = 4;
+        qQ.y = 4;
+        qQ.z = (BitsBracket(qQ.w, 0) << 2) | ((BitsBracket(qQ.w, 4) & ~BitsBracket(qQ.w, 0)) << 1) |
+              (BitsBracket(qQ.w, 3) & ~BitsBracket(qQ.w, 0));
     } else {
         uint C = 0;
-        if (BitsOp(Q, 1, 2) == 3) {
-            q.z = 4;
-            C = (BitsOp(Q, 3, 4) << 3) | ((~BitsOp(Q, 5, 6) & 3) << 1) | BitsBracket(Q, 0);
+        if (BitsOp(qQ.w, 1, 2) == 3) {
+            qQ.z = 4;
+            C = (BitsOp(qQ.w, 3, 4) << 3) | ((~BitsOp(qQ.w, 5, 6) & 3) << 1) | BitsBracket(qQ.w, 0);
         } else {
-            q.z = BitsOp(Q, 5, 6);
-            C = BitsOp(Q, 0, 4);
+            qQ.z = BitsOp(qQ.w, 5, 6);
+            C = BitsOp(qQ.w, 0, 4);
         }
         if (BitsOp(C, 0, 2) == 5) {
-            q.y = 4;
-            q.x = BitsOp(C, 3, 4);
+            qQ.y = 4;
+            qQ.x = BitsOp(C, 3, 4);
         } else {
-            q.y = BitsOp(C, 3, 4);
-            q.x = BitsOp(C, 0, 2);
+            qQ.y = BitsOp(C, 3, 4);
+            qQ.x = BitsOp(C, 0, 2);
         }
     }
     for (uint i = 0; i < 3; i++) {
-        const EncodingData val = CreateEncodingData(QUINT, num_bits, m[i], q[i]);
+        const EncodingData val = CreateEncodingData(QUINT, num_bits, m[i], qQ[i]);
         ResultEmplaceBack(val);
     }
 }
 
 void DecodeTritBlock(uint num_bits) {
-    uint m[5];
-    uint t[5];
-    uint T;
+    uvec4 m;
+    uvec4 t;
+    uvec3 Tm5t5;
     m[0] = StreamColorBits(num_bits);
-    T = StreamColorBits(2);
+    Tm5t5.x = StreamColorBits(2);
     m[1] = StreamColorBits(num_bits);
-    T |= StreamColorBits(2) << 2;
+    Tm5t5.x |= StreamColorBits(2) << 2;
     m[2] = StreamColorBits(num_bits);
-    T |= StreamColorBits(1) << 4;
+    Tm5t5.x |= StreamColorBits(1) << 4;
     m[3] = StreamColorBits(num_bits);
-    T |= StreamColorBits(2) << 5;
-    m[4] = StreamColorBits(num_bits);
-    T |= StreamColorBits(1) << 7;
+    Tm5t5.x |= StreamColorBits(2) << 5;
+    Tm5t5.y = StreamColorBits(num_bits);
+    Tm5t5.x |= StreamColorBits(1) << 7;
     uint C = 0;
-    if (BitsOp(T, 2, 4) == 7) {
-        C = (BitsOp(T, 5, 7) << 2) | BitsOp(T, 0, 1);
-        t[4] = 2;
+    if (BitsOp(Tm5t5.x, 2, 4) == 7) {
+        C = (BitsOp(Tm5t5.x, 5, 7) << 2) | BitsOp(Tm5t5.x, 0, 1);
+        Tm5t5.z = 2;
         t[3] = 2;
     } else {
-        C = BitsOp(T, 0, 4);
-        if (BitsOp(T, 5, 6) == 3) {
-            t[4] = 2;
-            t[3] = BitsBracket(T, 7);
+        C = BitsOp(Tm5t5.x, 0, 4);
+        if (BitsOp(Tm5t5.x, 5, 6) == 3) {
+            Tm5t5.z = 2;
+            t[3] = BitsBracket(Tm5t5.x, 7);
         } else {
-            t[4] = BitsBracket(T, 7);
-            t[3] = BitsOp(T, 5, 6);
+            Tm5t5.z = BitsBracket(Tm5t5.x, 7);
+            t[3] = BitsOp(Tm5t5.x, 5, 6);
         }
     }
     if (BitsOp(C, 0, 1) == 3) {
@@ -506,10 +505,12 @@ void DecodeTritBlock(uint num_bits) {
         t[1] = BitsOp(C, 2, 3);
         t[0] = (BitsBracket(C, 1) << 1) | (BitsBracket(C, 0) & ~BitsBracket(C, 1));
     }
-    for (uint i = 0; i < 5; i++) {
+    for (uint i = 0; i < 4; i++) {
         const EncodingData val = CreateEncodingData(TRIT, num_bits, m[i], t[i]);
         ResultEmplaceBack(val);
     }
+    const EncodingData val = CreateEncodingData(TRIT, num_bits, Tm5t5.y, Tm5t5.z);
+    ResultEmplaceBack(val);
 }
 
 void DecodeIntegerSequence(uint max_range, uint num_values) {
@@ -674,129 +675,128 @@ ivec4 BlueContract(int a, int r, int g, int b) {
 void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode,
                       inout uint colvals_index) {
 #define READ_UINT_VALUES(N)                                                                        \
-    uint v[N];                                                                                     \
+    uvec4 V[2];                                                                                    \
     for (uint i = 0; i < N; i++) {                                                                 \
-        v[i] = color_values[colvals_index / 4][colvals_index % 4];                                 \
+        V[i / 4][i % 4] = color_values[colvals_index / 4][colvals_index % 4];                      \
         ++colvals_index;                                                                           \
     }
-
 #define READ_INT_VALUES(N)                                                                         \
-    int v[N];                                                                                      \
+    ivec4 V[2];                                                                                    \
     for (uint i = 0; i < N; i++) {                                                                 \
-        v[i] = int(color_values[colvals_index / 4][colvals_index % 4]);                            \
+        V[i / 4][i % 4] = int(color_values[colvals_index / 4][colvals_index % 4]);                 \
         ++colvals_index;                                                                           \
     }
 
     switch (color_endpoint_mode) {
     case 0: {
         READ_UINT_VALUES(2)
-        ep1 = uvec4(0xFF, v[0], v[0], v[0]);
-        ep2 = uvec4(0xFF, v[1], v[1], v[1]);
+        ep1 = uvec4(0xFF, V[0].x, V[0].x, V[0].x);
+        ep2 = uvec4(0xFF, V[0].y, V[0].y, V[0].y);
         break;
     }
     case 1: {
         READ_UINT_VALUES(2)
-        const uint L0 = (v[0] >> 2) | (v[1] & 0xC0);
-        const uint L1 = min(L0 + (v[1] & 0x3F), 0xFFU);
+        const uint L0 = (V[0].x >> 2) | (V[0].y & 0xC0);
+        const uint L1 = min(L0 + (V[0].y & 0x3F), 0xFFU);
         ep1 = uvec4(0xFF, L0, L0, L0);
         ep2 = uvec4(0xFF, L1, L1, L1);
         break;
     }
     case 4: {
         READ_UINT_VALUES(4)
-        ep1 = uvec4(v[2], v[0], v[0], v[0]);
-        ep2 = uvec4(v[3], v[1], v[1], v[1]);
+        ep1 = uvec4(V[0].z, V[0].x, V[0].x, V[0].x);
+        ep2 = uvec4(V[0].w, V[0].y, V[0].y, V[0].y);
         break;
     }
     case 5: {
         READ_INT_VALUES(4)
-        ivec2 transferred = BitTransferSigned(v[1], v[0]);
-        v[1] = transferred.x;
-        v[0] = transferred.y;
-        transferred = BitTransferSigned(v[3], v[2]);
-        v[3] = transferred.x;
-        v[2] = transferred.y;
-        ep1 = ClampByte(ivec4(v[2], v[0], v[0], v[0]));
-        ep2 = ClampByte(ivec4(v[2] + v[3], v[0] + v[1], v[0] + v[1], v[0] + v[1]));
+        ivec2 transferred = BitTransferSigned(V[0].y, V[0].x);
+        V[0].y = transferred.x;
+        V[0].x = transferred.y;
+        transferred = BitTransferSigned(V[0].w, V[0].z);
+        V[0].w = transferred.x;
+        V[0].z = transferred.y;
+        ep1 = ClampByte(ivec4(V[0].z, V[0].x, V[0].x, V[0].x));
+        ep2 = ClampByte(ivec4(V[0].z + V[0].w, V[0].x + V[0].y, V[0].x + V[0].y, V[0].x + V[0].y));
         break;
     }
     case 6: {
         READ_UINT_VALUES(4)
-        ep1 = uvec4(0xFF, (v[0] * v[3]) >> 8, (v[1] * v[3]) >> 8, (v[2] * v[3]) >> 8);
-        ep2 = uvec4(0xFF, v[0], v[1], v[2]);
+        ep1 = uvec4(0xFF, (V[0].x * V[0].w) >> 8, (V[0].y * V[0].w) >> 8, (V[0].z * V[0].w) >> 8);
+        ep2 = uvec4(0xFF, V[0].x, V[0].y, V[0].z);
         break;
     }
     case 8: {
         READ_UINT_VALUES(6)
-        if ((v[1] + v[3] + v[5]) >= (v[0] + v[2] + v[4])) {
-            ep1 = uvec4(0xFF, v[0], v[2], v[4]);
-            ep2 = uvec4(0xFF, v[1], v[3], v[5]);
+        if ((V[0].y + V[0].w + V[1].y) >= (V[0].x + V[0].z + V[1].x)) {
+            ep1 = uvec4(0xFF, V[0].x, V[0].z, V[1].x);
+            ep2 = uvec4(0xFF, V[0].y, V[0].w, V[1].y);
         } else {
-            ep1 = uvec4(BlueContract(0xFF, int(v[1]), int(v[3]), int(v[5])));
-            ep2 = uvec4(BlueContract(0xFF, int(v[0]), int(v[2]), int(v[4])));
+            ep1 = uvec4(BlueContract(0xFF, int(V[0].y), int(V[0].w), int(V[1].y)));
+            ep2 = uvec4(BlueContract(0xFF, int(V[0].x), int(V[0].z), int(V[1].x)));
         }
         break;
     }
     case 9: {
         READ_INT_VALUES(6)
-        ivec2 transferred = BitTransferSigned(v[1], v[0]);
-        v[1] = transferred.x;
-        v[0] = transferred.y;
-        transferred = BitTransferSigned(v[3], v[2]);
-        v[3] = transferred.x;
-        v[2] = transferred.y;
-        transferred = BitTransferSigned(v[5], v[4]);
-        v[5] = transferred.x;
-        v[4] = transferred.y;
-        if ((v[1] + v[3] + v[5]) >= 0) {
-            ep1 = ClampByte(ivec4(0xFF, v[0], v[2], v[4]));
-            ep2 = ClampByte(ivec4(0xFF, v[0] + v[1], v[2] + v[3], v[4] + v[5]));
+        ivec2 transferred = BitTransferSigned(V[0].y, V[0].x);
+        V[0].y = transferred.x;
+        V[0].x = transferred.y;
+        transferred = BitTransferSigned(V[0].w, V[0].z);
+        V[0].w = transferred.x;
+        V[0].z = transferred.y;
+        transferred = BitTransferSigned(V[1].y, V[1].x);
+        V[1].y = transferred.x;
+        V[1].x = transferred.y;
+        if ((V[0].y + V[0].w + V[1].y) >= 0) {
+            ep1 = ClampByte(ivec4(0xFF, V[0].x, V[0].z, V[1].x));
+            ep2 = ClampByte(ivec4(0xFF, V[0].x + V[0].y, V[0].z + V[0].w, V[1].x + V[1].y));
         } else {
-            ep1 = ClampByte(BlueContract(0xFF, v[0] + v[1], v[2] + v[3], v[4] + v[5]));
-            ep2 = ClampByte(BlueContract(0xFF, v[0], v[2], v[4]));
+            ep1 = ClampByte(BlueContract(0xFF, V[0].x + V[0].y, V[0].z + V[0].w, V[1].x + V[1].y));
+            ep2 = ClampByte(BlueContract(0xFF, V[0].x, V[0].z, V[1].x));
         }
         break;
     }
     case 10: {
         READ_UINT_VALUES(6)
-        ep1 = uvec4(v[4], (v[0] * v[3]) >> 8, (v[1] * v[3]) >> 8, (v[2] * v[3]) >> 8);
-        ep2 = uvec4(v[5], v[0], v[1], v[2]);
+        ep1 = uvec4(V[1].x, (V[0].x * V[0].w) >> 8, (V[0].y * V[0].w) >> 8, (V[0].z * V[0].w) >> 8);
+        ep2 = uvec4(V[1].y, V[0].x, V[0].y, V[0].z);
         break;
     }
     case 12: {
         READ_UINT_VALUES(8)
-        if ((v[1] + v[3] + v[5]) >= (v[0] + v[2] + v[4])) {
-            ep1 = uvec4(v[6], v[0], v[2], v[4]);
-            ep2 = uvec4(v[7], v[1], v[3], v[5]);
+        if ((V[0].y + V[0].w + V[1].y) >= (V[0].x + V[0].z + V[1].x)) {
+            ep1 = uvec4(V[1].z, V[0].x, V[0].z, V[1].x);
+            ep2 = uvec4(V[1].w, V[0].y, V[0].w, V[1].y);
         } else {
-            ep1 = uvec4(BlueContract(int(v[7]), int(v[1]), int(v[3]), int(v[5])));
-            ep2 = uvec4(BlueContract(int(v[6]), int(v[0]), int(v[2]), int(v[4])));
+            ep1 = uvec4(BlueContract(int(V[1].w), int(V[0].y), int(V[0].w), int(V[1].y)));
+            ep2 = uvec4(BlueContract(int(V[1].z), int(V[0].x), int(V[0].z), int(V[1].x)));
         }
         break;
     }
     case 13: {
         READ_INT_VALUES(8)
-        ivec2 transferred = BitTransferSigned(v[1], v[0]);
-        v[1] = transferred.x;
-        v[0] = transferred.y;
-        transferred = BitTransferSigned(v[3], v[2]);
-        v[3] = transferred.x;
-        v[2] = transferred.y;
+        ivec2 transferred = BitTransferSigned(V[0].y, V[0].x);
+        V[0].y = transferred.x;
+        V[0].x = transferred.y;
+        transferred = BitTransferSigned(V[0].w, V[0].z);
+        V[0].w = transferred.x;
+        V[0].z = transferred.y;
 
-        transferred = BitTransferSigned(v[5], v[4]);
-        v[5] = transferred.x;
-        v[4] = transferred.y;
+        transferred = BitTransferSigned(V[1].y, V[1].x);
+        V[1].y = transferred.x;
+        V[1].x = transferred.y;
 
-        transferred = BitTransferSigned(v[7], v[6]);
-        v[7] = transferred.x;
-        v[6] = transferred.y;
+        transferred = BitTransferSigned(V[1].w, V[1].z);
+        V[1].w = transferred.x;
+        V[1].z = transferred.y;
 
-        if ((v[1] + v[3] + v[5]) >= 0) {
-            ep1 = ClampByte(ivec4(v[6], v[0], v[2], v[4]));
-            ep2 = ClampByte(ivec4(v[7] + v[6], v[0] + v[1], v[2] + v[3], v[4] + v[5]));
+        if ((V[0].y + V[0].w + V[1].y) >= 0) {
+            ep1 = ClampByte(ivec4(V[1].z, V[0].x, V[0].z, V[1].x));
+            ep2 = ClampByte(ivec4(V[1].w + V[1].z, V[0].x + V[0].y, V[0].z + V[0].w, V[1].x + V[1].y));
         } else {
-            ep1 = ClampByte(BlueContract(v[6] + v[7], v[0] + v[1], v[2] + v[3], v[4] + v[5]));
-            ep2 = ClampByte(BlueContract(v[6], v[0], v[2], v[4]));
+            ep1 = ClampByte(BlueContract(V[1].z + V[1].w, V[0].x + V[0].y, V[0].z + V[0].w, V[1].x + V[1].y));
+            ep2 = ClampByte(BlueContract(V[1].z, V[0].x, V[0].z, V[1].x));
         }
         break;
     }
