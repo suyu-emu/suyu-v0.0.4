@@ -24,9 +24,7 @@
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
 BEGIN_PUSH_CONSTANTS
-#ifndef BLOCK_WIDTH
 UNIFORM(1) uvec2 block_dims;
-#endif
 UNIFORM(2) uint layer_stride;
 UNIFORM(3) uint block_size;
 UNIFORM(4) uint x_shift;
@@ -77,15 +75,7 @@ int color_bitsread = 0;
 // At most will require BLOCK_WIDTH x BLOCK_HEIGHT x 2 in dual plane mode
 // So the maximum would be 144 (12 x 12) elements, x 2 for two planes
 #define DIVCEIL(number, divisor) (number + divisor - 1) / divisor
-
-#ifndef BLOCK_WIDTH
-#define BLOCK_WIDTH block_dims.x
-#define BLOCK_HEIGHT block_dims.y
 #define ARRAY_NUM_ELEMENTS 144
-#else
-#define ARRAY_NUM_ELEMENTS BLOCK_WIDTH * BLOCK_HEIGHT
-#endif
-
 #define VECTOR_ARRAY_SIZE DIVCEIL(ARRAY_NUM_ELEMENTS * 2, 4)
 uvec4 result_vector[VECTOR_ARRAY_SIZE];
 
@@ -275,7 +265,7 @@ uint Hash52(uint p) {
 }
 
 uint Select2DPartition(uint seed, uint x, uint y, uint partition_count) {
-    if ((BLOCK_WIDTH * BLOCK_HEIGHT) < 32) {
+    if ((block_dims.y * block_dims.x) < 32) {
         x <<= 1;
         y <<= 1;
     }
@@ -888,8 +878,8 @@ uint UnquantizeTexelWeight(EncodingData val) {
 uvec4 unquantized_texel_weights[VECTOR_ARRAY_SIZE];
 
 void UnquantizeTexelWeights(uvec2 size, bool is_dual_plane) {
-    const uint Ds = uint((BLOCK_WIDTH * 0.5f + 1024) / (BLOCK_WIDTH - 1));
-    const uint Dt = uint((BLOCK_HEIGHT * 0.5f + 1024) / (BLOCK_HEIGHT - 1));
+    const uint Ds = uint((block_dims.x * 0.5f + 1024) / (block_dims.x - 1));
+    const uint Dt = uint((block_dims.y * 0.5f + 1024) / (block_dims.y - 1));
     const uint num_planes = is_dual_plane ? 2 : 1;
     const uint area = size.x * size.y;
     const uint loop_count = min(result_index, area * num_planes);
@@ -900,8 +890,8 @@ void UnquantizeTexelWeights(uvec2 size, bool is_dual_plane) {
             UnquantizeTexelWeight(GetEncodingFromVector(itr));
     }
     for (uint plane = 0; plane < num_planes; ++plane) {
-        for (uint t = 0; t < BLOCK_HEIGHT; t++) {
-            for (uint s = 0; s < BLOCK_WIDTH; s++) {
+        for (uint t = 0; t < block_dims.y; t++) {
+            for (uint s = 0; s < block_dims.x; s++) {
                 const uint cs = Ds * s;
                 const uint ct = Dt * t;
                 const uint gs = (cs * (size.x - 1) + 32) >> 6;
@@ -944,7 +934,7 @@ void UnquantizeTexelWeights(uvec2 size, bool is_dual_plane) {
                     VectorIndicesFromBase(offset_base);
                     p.w = result_vector[array_index][vector_index];
                 }
-                const uint offset = (t * BLOCK_WIDTH + s) + ARRAY_NUM_ELEMENTS * plane;
+                const uint offset = (t * block_dims.x + s) + ARRAY_NUM_ELEMENTS * plane;
                 const uint array_index = offset / 4;
                 const uint vector_index = offset % 4;
                 unquantized_texel_weights[array_index][vector_index] = (uint(dot(p, w)) + 8) >> 4;
@@ -986,8 +976,8 @@ int FindLayout(uint mode) {
 
 
 void FillError(ivec3 coord) {
-    for (uint j = 0; j < BLOCK_HEIGHT; j++) {
-        for (uint i = 0; i < BLOCK_WIDTH; i++) {
+    for (uint j = 0; j < block_dims.y; j++) {
+        for (uint i = 0; i < block_dims.x; i++) {
             imageStore(dest_image, coord + ivec3(i, j, 0), vec4(0.0, 0.0, 0.0, 0.0));
         }
     }
@@ -1003,8 +993,8 @@ void FillVoidExtentLDR(ivec3 coord) {
     const float r = float(r_u) / 65535.0f;
     const float g = float(g_u) / 65535.0f;
     const float b = float(b_u) / 65535.0f;
-    for (uint j = 0; j < BLOCK_HEIGHT; j++) {
-        for (uint i = 0; i < BLOCK_WIDTH; i++) {
+    for (uint j = 0; j < block_dims.y; j++) {
+        for (uint i = 0; i < block_dims.x; i++) {
             imageStore(dest_image, coord + ivec3(i, j, 0), vec4(r, g, b, a));
         }
     }
@@ -1099,7 +1089,7 @@ void DecompressBlock(ivec3 coord) {
         return;
     }
     const uvec2 size_params = DecodeBlockSize(mode);
-    if ((size_params.x > BLOCK_WIDTH) || (size_params.y > BLOCK_HEIGHT)) {
+    if ((size_params.x > block_dims.x) || (size_params.y > block_dims.y)) {
         FillError(coord);
         return;
     }
@@ -1228,21 +1218,21 @@ void DecompressBlock(ivec3 coord) {
     DecodeIntegerSequence(max_weight, GetNumWeightValues(size_params, dual_plane));
 
     UnquantizeTexelWeights(size_params, dual_plane);
-    for (uint j = 0; j < BLOCK_HEIGHT; j++) {
-        for (uint i = 0; i < BLOCK_WIDTH; i++) {
+    for (uint j = 0; j < block_dims.y; j++) {
+        for (uint i = 0; i < block_dims.x; i++) {
             uint local_partition = 0;
             if (num_partitions > 1) {
                 local_partition = Select2DPartition(partition_index, i, j, num_partitions);
             }
             const uvec4 C0 = ReplicateByteTo16(endpoints0[local_partition]);
             const uvec4 C1 = ReplicateByteTo16(endpoints1[local_partition]);
-            const uint weight_offset = (j * BLOCK_WIDTH + i);
+            const uint weight_offset = (j * block_dims.x + i);
             const uint array_index = weight_offset / 4;
             const uint vector_index = weight_offset % 4;
             const uint primary_weight = unquantized_texel_weights[array_index][vector_index];
             uvec4 weight_vec = uvec4(primary_weight);
             if (dual_plane) {
-                const uint secondary_weight_offset = (j * BLOCK_WIDTH + i) + ARRAY_NUM_ELEMENTS;
+                const uint secondary_weight_offset = (j * block_dims.x + i) + ARRAY_NUM_ELEMENTS;
                 const uint secondary_array_index = secondary_weight_offset / 4;
                 const uint secondary_vector_index = secondary_weight_offset % 4;
                 const uint secondary_weight =
@@ -1280,7 +1270,7 @@ void main() {
     offset += (pos.x >> GOB_SIZE_X_SHIFT) << x_shift;
     offset += swizzle;
 
-    const ivec3 coord = ivec3(gl_GlobalInvocationID * uvec3(BLOCK_WIDTH, BLOCK_HEIGHT, 1));
+    const ivec3 coord = ivec3(gl_GlobalInvocationID * uvec3(block_dims, 1));
     if (any(greaterThanEqual(coord, imageSize(dest_image)))) {
         return;
     }

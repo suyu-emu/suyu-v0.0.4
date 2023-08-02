@@ -11,7 +11,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/div_ceil.h"
-#include "video_core/host_shaders/astc_decoder_spv_includes.h"
+#include "video_core/host_shaders/astc_decoder_comp_spv.h"
 #include "video_core/host_shaders/vulkan_quad_indexed_comp_spv.h"
 #include "video_core/host_shaders/vulkan_uint8_comp_spv.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
@@ -124,62 +124,13 @@ constexpr std::array<VkDescriptorUpdateTemplateEntry, ASTC_NUM_BINDINGS>
     }};
 
 struct AstcPushConstants {
+    std::array<u32, 2> blocks_dims;
     u32 layer_stride;
     u32 block_size;
     u32 x_shift;
     u32 block_height;
     u32 block_height_mask;
 };
-
-size_t AstcFormatIndex(VideoCore::Surface::PixelFormat format) {
-    switch (format) {
-    case VideoCore::Surface::PixelFormat::ASTC_2D_4X4_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_4X4_UNORM:
-        return 0;
-    case VideoCore::Surface::PixelFormat::ASTC_2D_5X4_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_5X4_UNORM:
-        return 1;
-    case VideoCore::Surface::PixelFormat::ASTC_2D_5X5_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_5X5_UNORM:
-        return 2;
-    case VideoCore::Surface::PixelFormat::ASTC_2D_6X5_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_6X5_UNORM:
-        return 3;
-    case VideoCore::Surface::PixelFormat::ASTC_2D_6X6_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_6X6_UNORM:
-        return 4;
-    case VideoCore::Surface::PixelFormat::ASTC_2D_8X5_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_8X5_UNORM:
-        return 5;
-    case VideoCore::Surface::PixelFormat::ASTC_2D_8X6_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_8X6_UNORM:
-        return 6;
-    case VideoCore::Surface::PixelFormat::ASTC_2D_8X8_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_8X8_UNORM:
-        return 7;
-    case VideoCore::Surface::PixelFormat::ASTC_2D_10X5_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_10X5_UNORM:
-        return 8;
-    case VideoCore::Surface::PixelFormat::ASTC_2D_10X6_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_10X6_UNORM:
-        return 9;
-    case VideoCore::Surface::PixelFormat::ASTC_2D_10X8_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_10X8_UNORM:
-        return 10;
-    case VideoCore::Surface::PixelFormat::ASTC_2D_10X10_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_10X10_UNORM:
-        return 11;
-    case VideoCore::Surface::PixelFormat::ASTC_2D_12X10_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_12X10_UNORM:
-        return 12;
-    case VideoCore::Surface::PixelFormat::ASTC_2D_12X12_SRGB:
-    case VideoCore::Surface::PixelFormat::ASTC_2D_12X12_UNORM:
-        return 13;
-    default:
-        UNREACHABLE();
-        return 0;
-    }
-}
 } // Anonymous namespace
 
 ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
@@ -361,53 +312,19 @@ ASTCDecoderPass::ASTCDecoderPass(const Device& device_, Scheduler& scheduler_,
                   COMPUTE_PUSH_CONSTANT_RANGE<sizeof(AstcPushConstants)>, ASTC_DECODER_COMP_SPV),
       scheduler{scheduler_}, staging_buffer_pool{staging_buffer_pool_},
       compute_pass_descriptor_queue{compute_pass_descriptor_queue_}, memory_allocator{
-                                                                         memory_allocator_} {
-    // These must match the order found in AstcFormatIndex
-    static constexpr std::array<std::span<const u32>, 14> ASTC_SHADERS{
-        ASTC_DECODER_COMP_4X4_SPV,   ASTC_DECODER_COMP_5X4_SPV,   ASTC_DECODER_COMP_5X5_SPV,
-        ASTC_DECODER_COMP_6X5_SPV,   ASTC_DECODER_COMP_6X6_SPV,   ASTC_DECODER_COMP_8X5_SPV,
-        ASTC_DECODER_COMP_8X6_SPV,   ASTC_DECODER_COMP_8X8_SPV,   ASTC_DECODER_COMP_10X5_SPV,
-        ASTC_DECODER_COMP_10X6_SPV,  ASTC_DECODER_COMP_10X8_SPV,  ASTC_DECODER_COMP_10X10_SPV,
-        ASTC_DECODER_COMP_12X10_SPV, ASTC_DECODER_COMP_12X12_SPV,
-    };
-    for (size_t index = 0; index < ASTC_SHADERS.size(); ++index) {
-        const auto& code = ASTC_SHADERS[index];
-        const auto module_ = device.GetLogical().CreateShaderModule({
-            .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .codeSize = static_cast<u32>(code.size_bytes()),
-            .pCode = code.data(),
-        });
-        device.SaveShader(code);
-        astc_pipelines[index] = device.GetLogical().CreateComputePipeline({
-            .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .stage{
-                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                .pNext = nullptr,
-                .flags = 0,
-                .stage = VK_SHADER_STAGE_COMPUTE_BIT,
-                .module = *module_,
-                .pName = "main",
-                .pSpecializationInfo = nullptr,
-            },
-            .layout = *layout,
-            .basePipelineHandle = nullptr,
-            .basePipelineIndex = 0,
-        });
-    }
-}
+                                                                         memory_allocator_} {}
 
 ASTCDecoderPass::~ASTCDecoderPass() = default;
 
 void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
                                std::span<const VideoCommon::SwizzleParameters> swizzles) {
     using namespace VideoCommon::Accelerated;
-
+    const std::array<u32, 2> block_dims{
+        VideoCore::Surface::DefaultBlockWidth(image.info.format),
+        VideoCore::Surface::DefaultBlockHeight(image.info.format),
+    };
     scheduler.RequestOutsideRenderPassOperationContext();
-    const VkPipeline vk_pipeline = *astc_pipelines[AstcFormatIndex(image.info.format)];
+    const VkPipeline vk_pipeline = *pipeline;
     const VkImageAspectFlags aspect_mask = image.AspectMask();
     const VkImage vk_image = image.Handle();
     const bool is_initialized = image.ExchangeInitialization();
@@ -454,9 +371,10 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
         ASSERT(params.origin == (std::array<u32, 3>{0, 0, 0}));
         ASSERT(params.destination == (std::array<s32, 3>{0, 0, 0}));
         ASSERT(params.bytes_per_block_log2 == 4);
-        scheduler.Record([this, num_dispatches_x, num_dispatches_y, num_dispatches_z, params,
-                          descriptor_data](vk::CommandBuffer cmdbuf) {
+        scheduler.Record([this, num_dispatches_x, num_dispatches_y, num_dispatches_z, block_dims,
+                          params, descriptor_data](vk::CommandBuffer cmdbuf) {
             const AstcPushConstants uniforms{
+                .blocks_dims = block_dims,
                 .layer_stride = params.layer_stride,
                 .block_size = params.block_size,
                 .x_shift = params.x_shift,
