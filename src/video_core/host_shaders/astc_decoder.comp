@@ -36,12 +36,6 @@ struct EncodingData {
     uint data;
 };
 
-struct TexelWeightParams {
-    uvec2 size;
-    uint max_weight;
-    bool dual_plane;
-};
-
 layout(binding = BINDING_INPUT_BUFFER, std430) readonly restrict buffer InputBufferU32 {
     uvec4 astc_data[];
 };
@@ -1026,59 +1020,50 @@ bool IsError(uint mode) {
     return false;
 }
 
-TexelWeightParams DecodeBlockInfo(uint mode) {
-    TexelWeightParams params = TexelWeightParams(uvec2(0), 0, false);
+uvec2 DecodeBlockSize(uint mode) {
     uint A, B;
-    uint mode_layout = FindLayout(mode);
-    switch (mode_layout) {
+    switch (FindLayout(mode)) {
     case 0:
         A = (mode >> 5) & 0x3;
         B = (mode >> 7) & 0x3;
-        params.size = uvec2(B + 4, A + 2);
-        break;
+        return uvec2(B + 4, A + 2);
     case 1:
         A = (mode >> 5) & 0x3;
         B = (mode >> 7) & 0x3;
-        params.size = uvec2(B + 8, A + 2);
-        break;
+        return uvec2(B + 8, A + 2);
     case 2:
         A = (mode >> 5) & 0x3;
         B = (mode >> 7) & 0x3;
-        params.size = uvec2(A + 2, B + 8);
-        break;
+        return uvec2(A + 2, B + 8);
     case 3:
         A = (mode >> 5) & 0x3;
         B = (mode >> 7) & 0x1;
-        params.size = uvec2(A + 2, B + 6);
-        break;
+        return uvec2(A + 2, B + 6);
     case 4:
         A = (mode >> 5) & 0x3;
         B = (mode >> 7) & 0x1;
-        params.size = uvec2(B + 2, A + 2);
-        break;
+        return uvec2(B + 2, A + 2);
     case 5:
         A = (mode >> 5) & 0x3;
-        params.size = uvec2(12, A + 2);
-        break;
+        return uvec2(12, A + 2);
     case 6:
         A = (mode >> 5) & 0x3;
-        params.size = uvec2(A + 2, 12);
-        break;
+        return uvec2(A + 2, 12);
     case 7:
-        params.size = uvec2(6, 10);
-        break;
+        return uvec2(6, 10);
     case 8:
-        params.size = uvec2(10, 6);
-        break;
+        return uvec2(10, 6);
     case 9:
         A = (mode >> 5) & 0x3;
         B = (mode >> 9) & 0x3;
-        params.size = uvec2(A + 6, B + 6);
-        break;
+        return uvec2(A + 6, B + 6);
     default:
-        break;
+        return uvec2(0);
     }
-    params.dual_plane = (mode_layout != 9) && ((mode & 0x400) != 0);
+}
+
+uint DecodeMaxWeight(uint mode) {
+    const uint mode_layout = FindLayout(mode);
     uint weight_index = (mode & 0x10) != 0 ? 1 : 0;
     if (mode_layout < 5) {
         weight_index |= (mode & 0x3) << 1;
@@ -1089,14 +1074,11 @@ TexelWeightParams DecodeBlockInfo(uint mode) {
     if ((mode_layout != 9) && ((mode & 0x200) != 0)) {
         weight_index += 6;
     }
-    params.max_weight = weight_index + 1;
-
-    return params;
+    return weight_index + 1;
 }
 
 void DecompressBlock(ivec3 coord) {
     uint mode = StreamBits(11);
-    const TexelWeightParams params = DecodeBlockInfo(mode);
     if (IsError(mode)) {
         FillError(coord);
         return;
@@ -1106,12 +1088,15 @@ void DecompressBlock(ivec3 coord) {
         FillVoidExtentLDR(coord);
         return;
     }
-    if ((params.size.x > block_dims.x) || (params.size.y > block_dims.y)) {
+    const uvec2 size_params = DecodeBlockSize(mode);
+    if ((size_params.x > block_dims.x) || (size_params.y > block_dims.y)) {
         FillError(coord);
         return;
     }
     const uint num_partitions = StreamBits(2) + 1;
-    if (num_partitions > 4 || (num_partitions == 4 && params.dual_plane)) {
+    const uint mode_layout = FindLayout(mode);
+    const bool dual_plane = (mode_layout != 9) && ((mode & 0x400) != 0);
+    if (num_partitions > 4 || (num_partitions == 4 && dual_plane)) {
         FillError(coord);
         return;
     }
@@ -1127,7 +1112,8 @@ void DecompressBlock(ivec3 coord) {
         base_cem = StreamBits(6);
     }
     const uint base_mode = base_cem & 3;
-    const uint weight_bits = GetPackedBitSize(params.size, params.dual_plane, params.max_weight);
+    const uint max_weight = DecodeMaxWeight(mode);
+    const uint weight_bits = GetPackedBitSize(size_params, dual_plane, max_weight);
     uint remaining_bits = 128 - weight_bits - total_bitsread;
     uint extra_cem_bits = 0;
     if (base_mode > 0) {
@@ -1146,7 +1132,7 @@ void DecompressBlock(ivec3 coord) {
         }
     }
     remaining_bits -= extra_cem_bits;
-    const uint plane_selector_bits = params.dual_plane ? 2 : 0;
+    const uint plane_selector_bits = dual_plane ? 2 : 0;
     remaining_bits -= plane_selector_bits;
     if (remaining_bits > 128) {
         // Bad data, more remaining bits than 4 bytes
@@ -1198,7 +1184,6 @@ void DecompressBlock(ivec3 coord) {
         // This decode phase should at most push 32 elements into the vector
         result_vector_max_index = 32;
 
-        // uvec4 color_values[8];
         uint colvals_index = 0;
         DecodeColorValues(color_endpoint_mode, num_partitions, color_data_bits);
         for (uint i = 0; i < num_partitions; i++) {
@@ -1226,13 +1211,13 @@ void DecompressBlock(ivec3 coord) {
     result_limit_reached = false;
 
     // The limit for the Unquantize phase, avoids decoding more data than needed.
-    result_vector_max_index = params.size.x * params.size.y;
-    if (params.dual_plane) {
+    result_vector_max_index = size_params.x * size_params.y;
+    if (dual_plane) {
         result_vector_max_index *= 2;
     }
-    DecodeIntegerSequence(params.max_weight, GetNumWeightValues(params.size, params.dual_plane));
+    DecodeIntegerSequence(max_weight, GetNumWeightValues(size_params, dual_plane));
 
-    UnquantizeTexelWeights(params.size, params.dual_plane);
+    UnquantizeTexelWeights(size_params, dual_plane);
     for (uint j = 0; j < block_dims.y; j++) {
         for (uint i = 0; i < block_dims.x; i++) {
             uint local_partition = 0;
@@ -1247,7 +1232,7 @@ void DecompressBlock(ivec3 coord) {
             const uint vector_index = weight_offset % 4;
             const uint primary_weight = unquantized_texel_weights[array_index][vector_index];
             uvec4 weight_vec = uvec4(primary_weight);
-            if (params.dual_plane) {
+            if (dual_plane) {
                 const uint secondary_weight_offset = (j * block_dims.x + i) + ARRAY_NUM_ELEMENTS;
                 const uint secondary_array_index = secondary_weight_offset / 4;
                 const uint secondary_vector_index = secondary_weight_offset % 4;
