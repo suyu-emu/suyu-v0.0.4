@@ -6,6 +6,9 @@
 #include <memory>
 #include <vector>
 #include <QDialog>
+#include "configuration/shared_widget.h"
+#include "yuzu/configuration/configuration_shared.h"
+#include "yuzu/configuration/shared_translation.h"
 #include "yuzu/vk_device_info.h"
 
 namespace Core {
@@ -69,6 +72,8 @@ private:
     HotkeyRegistry& registry;
 
     Core::System& system;
+    std::unique_ptr<ConfigurationShared::Builder> builder;
+    std::vector<ConfigurationShared::Tab*> tab_group;
 
     std::unique_ptr<ConfigureAudio> audio_tab;
     std::unique_ptr<ConfigureCpu> cpu_tab;

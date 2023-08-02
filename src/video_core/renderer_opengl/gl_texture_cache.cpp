@@ -232,10 +232,9 @@ void ApplySwizzle(GLuint handle, PixelFormat format, std::array<SwizzleSource, 4
 [[nodiscard]] bool CanBeAccelerated(const TextureCacheRuntime& runtime,
                                     const VideoCommon::ImageInfo& info) {
     if (IsPixelFormatASTC(info.format) && info.size.depth == 1 && !runtime.HasNativeASTC()) {
-        return Settings::values.accelerate_astc.GetValue() &&
+        return Settings::values.accelerate_astc.GetValue() == Settings::AstcDecodeMode::Gpu &&
                Settings::values.astc_recompression.GetValue() ==
-                   Settings::AstcRecompression::Uncompressed &&
-               !Settings::values.async_astc.GetValue();
+                   Settings::AstcRecompression::Uncompressed;
     }
     // Disable other accelerated uploads for now as they don't implement swizzled uploads
     return false;
@@ -267,7 +266,8 @@ void ApplySwizzle(GLuint handle, PixelFormat format, std::array<SwizzleSource, 4
 [[nodiscard]] bool CanBeDecodedAsync(const TextureCacheRuntime& runtime,
                                      const VideoCommon::ImageInfo& info) {
     if (IsPixelFormatASTC(info.format) && !runtime.HasNativeASTC()) {
-        return Settings::values.async_astc.GetValue();
+        return Settings::values.accelerate_astc.GetValue() ==
+               Settings::AstcDecodeMode::CpuAsynchronous;
     }
     return false;
 }

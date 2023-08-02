@@ -5,48 +5,49 @@
 
 #include <functional>
 #include <memory>
+#include <vector>
 #include <QWidget>
+#include "yuzu/configuration/configuration_shared.h"
 
 namespace Core {
 class System;
 }
 
 class ConfigureDialog;
-
-namespace ConfigurationShared {
-enum class CheckState;
-}
-
 class HotkeyRegistry;
 
 namespace Ui {
 class ConfigureGeneral;
 }
 
-class ConfigureGeneral : public QWidget {
-    Q_OBJECT
+namespace ConfigurationShared {
+class Builder;
+}
 
+class ConfigureGeneral : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureGeneral(const Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureGeneral(const Core::System& system_,
+                              std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
+                              const ConfigurationShared::Builder& builder,
+                              QWidget* parent = nullptr);
     ~ConfigureGeneral() override;
 
     void SetResetCallback(std::function<void()> callback);
     void ResetDefaults();
-    void ApplyConfiguration();
-    void SetConfiguration();
+    void ApplyConfiguration() override;
+    void SetConfiguration() override;
 
 private:
+    void Setup(const ConfigurationShared::Builder& builder);
+
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
-
-    void SetupPerGameUI();
 
     std::function<void()> reset_callback;
 
     std::unique_ptr<Ui::ConfigureGeneral> ui;
 
-    ConfigurationShared::CheckState use_speed_limit;
-    ConfigurationShared::CheckState use_multi_core;
+    std::vector<std::function<void(bool)>> apply_funcs{};
 
     const Core::System& system;
 };

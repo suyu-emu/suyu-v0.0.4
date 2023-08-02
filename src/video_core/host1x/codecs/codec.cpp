@@ -247,7 +247,7 @@ void Codec::Initialize() {
     av_codec = avcodec_find_decoder(codec);
 
     InitializeAvCodecContext();
-    if (Settings::values.nvdec_emulation.GetValue() == Settings::NvdecEmulation::GPU) {
+    if (Settings::values.nvdec_emulation.GetValue() == Settings::NvdecEmulation::Gpu) {
         InitializeGpuDecoder();
     }
     if (const int res = avcodec_open2(av_codec_ctx, av_codec, nullptr); res < 0) {

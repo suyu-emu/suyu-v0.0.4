@@ -84,7 +84,7 @@ std::span<const u8> H264::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters
 
     // TODO (ameerj): Where do we get this number, it seems to be particular for each stream
     const auto nvdec_decoding = Settings::values.nvdec_emulation.GetValue();
-    const bool uses_gpu_decoding = nvdec_decoding == Settings::NvdecEmulation::GPU;
+    const bool uses_gpu_decoding = nvdec_decoding == Settings::NvdecEmulation::Gpu;
     const u32 max_num_ref_frames = uses_gpu_decoding ? 6u : 16u;
     writer.WriteUe(max_num_ref_frames);
     writer.WriteBit(false);

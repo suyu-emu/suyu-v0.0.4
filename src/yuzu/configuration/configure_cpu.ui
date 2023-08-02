@@ -16,9 +16,12 @@
   <property name="accessibleName">
    <string>CPU</string>
   </property>
-  <layout class="QVBoxLayout">
+  <layout class="QVBoxLayout" name="vboxlayout_2" stretch="0">
    <item>
-    <layout class="QVBoxLayout">
+    <layout class="QVBoxLayout" name="vboxlayout">
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
      <item>
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
@@ -27,38 +30,19 @@
        <layout class="QVBoxLayout">
         <item>
          <widget class="QWidget" name="widget_accuracy" native="true">
-          <layout class="QHBoxLayout" name="layout_accuracy">
-           <item>
-            <widget class="QLabel" name="label_accuracy">
-             <property name="text">
-              <string>Accuracy:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="accuracy">
-             <item>
-              <property name="text">
-               <string>Auto</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Accurate</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Unsafe</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Paranoid (disables most optimizations)</string>
-              </property>
-             </item>
-            </widget>
-           </item>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
           </layout>
          </widget>
         </item>
@@ -75,10 +59,6 @@
        </layout>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QVBoxLayout">
      <item>
       <widget class="QGroupBox" name="unsafe_group">
        <property name="title">
@@ -96,104 +76,43 @@
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="cpuopt_unsafe_unfuse_fma">
-          <property name="toolTip">
-           <string>
-            &lt;div&gt;This option improves speed by reducing accuracy of fused-multiply-add instructions on CPUs without native FMA support.&lt;/div&gt;
-           </string>
-          </property>
-          <property name="text">
-           <string>Unfuse FMA (improve performance on CPUs without FMA)</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="cpuopt_unsafe_reduce_fp_error">
-          <property name="toolTip">
-           <string>
-            &lt;div&gt;This option improves the speed of some approximate floating-point functions by using less accurate native approximations.&lt;/div&gt;
-           </string>
-          </property>
-          <property name="text">
-           <string>Faster FRSQRTE and FRECPE</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="cpuopt_unsafe_ignore_standard_fpcr">
-          <property name="toolTip">
-           <string>
-            &lt;div&gt;This option improves the speed of 32 bits ASIMD floating-point functions by running with incorrect rounding modes.&lt;/div&gt;
-           </string>
-          </property>
-          <property name="text">
-           <string>Faster ASIMD instructions (32 bits only)</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="cpuopt_unsafe_inaccurate_nan">
-          <property name="toolTip">
-           <string>
-            &lt;div&gt;This option improves speed by removing NaN checking. Please note this also reduces accuracy of certain floating-point instructions.&lt;/div&gt;
-           </string>
-          </property>
-          <property name="text">
-           <string>Inaccurate NaN handling</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="cpuopt_unsafe_fastmem_check">
-          <property name="toolTip">
-           <string>
-            &lt;div&gt;This option improves speed by eliminating a safety check before every memory read/write in guest. Disabling it may allow a game to read/write the emulator's memory.&lt;/div&gt;
-           </string>
-          </property>
-          <property name="text">
-           <string>Disable address space checks</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="cpuopt_unsafe_ignore_global_monitor">
-          <property name="toolTip">
-           <string>
-            &lt;div&gt;This option improves speed by relying only on the semantics of cmpxchg to ensure safety of exclusive access instructions. Please note this may result in deadlocks and other race conditions.&lt;/div&gt;
-           </string>
-          </property>
-          <property name="text">
-           <string>Ignore global monitor</string>
-          </property>
+         <widget class="QWidget" name="unsafe_widget" native="true">
+          <layout class="QVBoxLayout" name="unsafe_layout">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+          </layout>
          </widget>
         </item>
        </layout>
       </widget>
      </item>
+     <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Expanding</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
     </layout>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_disable_info">
-     <property name="text">
-      <string>CPU settings are available only when game is not running.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
    </item>
   </layout>
  </widget>

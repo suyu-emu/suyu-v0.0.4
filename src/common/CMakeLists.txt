@@ -110,8 +110,12 @@ add_library(common STATIC
     scratch_buffer.h
     settings.cpp
     settings.h
+    settings_common.cpp
+    settings_common.h
+    settings_enums.h
     settings_input.cpp
     settings_input.h
+    settings_setting.h
     socket_types.h
     spin_lock.cpp
     spin_lock.h
@@ -193,9 +197,16 @@ if (MSVC)
     /we4254 # 'operator': conversion from 'type1:field_bits' to 'type2:field_bits', possible loss of data
     /we4800 # Implicit conversion from 'type' to bool. Possible information loss
   )
-else()
+endif()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   target_compile_options(common PRIVATE
-    $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
+    -fsized-deallocation
+    -Werror=unreachable-code-aggressive
+  )
+  target_compile_definitions(common PRIVATE
+    # Clang 14 and earlier have errors when explicitly instantiating Settings::Setting
+    $<$<VERSION_LESS:$<CXX_COMPILER_VERSION>,15>:CANNOT_EXPLICITLY_INSTANTIATE>
   )
 endif()
 

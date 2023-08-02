@@ -32,21 +32,23 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
                                  std::vector<VkDeviceInfo::Record>& vk_device_records,
                                  Core::System& system_, bool enable_web_config)
     : QDialog(parent), ui{std::make_unique<Ui::ConfigureDialog>()},
-      registry(registry_), system{system_}, audio_tab{std::make_unique<ConfigureAudio>(system_,
-                                                                                       this)},
-      cpu_tab{std::make_unique<ConfigureCpu>(system_, this)},
+      registry(registry_), system{system_}, builder{std::make_unique<ConfigurationShared::Builder>(
+                                                this, !system_.IsPoweredOn())},
+      audio_tab{std::make_unique<ConfigureAudio>(system_, nullptr, *builder, this)},
+      cpu_tab{std::make_unique<ConfigureCpu>(system_, nullptr, *builder, this)},
       debug_tab_tab{std::make_unique<ConfigureDebugTab>(system_, this)},
       filesystem_tab{std::make_unique<ConfigureFilesystem>(this)},
-      general_tab{std::make_unique<ConfigureGeneral>(system_, this)},
-      graphics_advanced_tab{std::make_unique<ConfigureGraphicsAdvanced>(system_, this)},
+      general_tab{std::make_unique<ConfigureGeneral>(system_, nullptr, *builder, this)},
+      graphics_advanced_tab{
+          std::make_unique<ConfigureGraphicsAdvanced>(system_, nullptr, *builder, this)},
       graphics_tab{std::make_unique<ConfigureGraphics>(
           system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
-          this)},
+          nullptr, *builder, this)},
       hotkeys_tab{std::make_unique<ConfigureHotkeys>(system_.HIDCore(), this)},
       input_tab{std::make_unique<ConfigureInput>(system_, this)},
       network_tab{std::make_unique<ConfigureNetwork>(system_, this)},
       profile_tab{std::make_unique<ConfigureProfileManager>(system_, this)},
-      system_tab{std::make_unique<ConfigureSystem>(system_, this)},
+      system_tab{std::make_unique<ConfigureSystem>(system_, nullptr, *builder, this)},
       ui_tab{std::make_unique<ConfigureUi>(system_, this)}, web_tab{std::make_unique<ConfigureWeb>(
                                                                 this)} {
     Settings::SetConfiguringGlobal(true);
@@ -95,6 +97,9 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
 
     adjustSize();
     ui->selectorList->setCurrentRow(0);
+
+    // Selects the leftmost button on the bottom bar (Cancel as of writing)
+    ui->buttonBox->setFocus();
 }
 
 ConfigureDialog::~ConfigureDialog() = default;

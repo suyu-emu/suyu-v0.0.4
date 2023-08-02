@@ -347,7 +347,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
         }
     } else {
         // Unsafe optimizations
-        if (Settings::values.cpu_accuracy.GetValue() == Settings::CPUAccuracy::Unsafe) {
+        if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Unsafe) {
             config.unsafe_optimizations = true;
             if (Settings::values.cpuopt_unsafe_unfuse_fma) {
                 config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
@@ -367,7 +367,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
         }
 
         // Curated optimizations
-        if (Settings::values.cpu_accuracy.GetValue() == Settings::CPUAccuracy::Auto) {
+        if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Auto) {
             config.unsafe_optimizations = true;
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
             config.fastmem_address_space_bits = 64;
@@ -375,7 +375,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
         }
 
         // Paranoia mode for debugging optimizations
-        if (Settings::values.cpu_accuracy.GetValue() == Settings::CPUAccuracy::Paranoid) {
+        if (Settings::values.cpu_accuracy.GetValue() == Settings::CpuAccuracy::Paranoid) {
             config.unsafe_optimizations = false;
             config.optimizations = Dynarmic::no_optimizations;
         }

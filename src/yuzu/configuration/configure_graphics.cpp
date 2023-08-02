@@ -7,6 +7,7 @@
 #include <iterator>
 #include <string>
 #include <tuple>
+#include <typeinfo>
 #include <utility>
 #include <vector>
 #include <QBoxLayout>
@@ -15,23 +16,29 @@
 #include <QComboBox>
 #include <QIcon>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPixmap>
 #include <QPushButton>
 #include <QSlider>
 #include <QStringLiteral>
 #include <QtCore/qobjectdefs.h>
+#include <qabstractbutton.h>
+#include <qboxlayout.h>
 #include <qcoreevent.h>
 #include <qglobal.h>
+#include <qgridlayout.h>
 #include <vulkan/vulkan_core.h>
 
 #include "common/common_types.h"
 #include "common/dynamic_library.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "core/core.h"
 #include "ui_configure_graphics.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics.h"
+#include "yuzu/configuration/shared_widget.h"
 #include "yuzu/qt_common.h"
 #include "yuzu/uisettings.h"
 #include "yuzu/vk_device_info.h"
@@ -46,9 +53,9 @@ static constexpr VkPresentModeKHR VSyncSettingToMode(Settings::VSyncMode mode) {
         return VK_PRESENT_MODE_IMMEDIATE_KHR;
     case Settings::VSyncMode::Mailbox:
         return VK_PRESENT_MODE_MAILBOX_KHR;
-    case Settings::VSyncMode::FIFO:
+    case Settings::VSyncMode::Fifo:
         return VK_PRESENT_MODE_FIFO_KHR;
-    case Settings::VSyncMode::FIFORelaxed:
+    case Settings::VSyncMode::FifoRelaxed:
         return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
     default:
         return VK_PRESENT_MODE_FIFO_KHR;
@@ -62,50 +69,67 @@ static constexpr Settings::VSyncMode PresentModeToSetting(VkPresentModeKHR mode)
     case VK_PRESENT_MODE_MAILBOX_KHR:
         return Settings::VSyncMode::Mailbox;
     case VK_PRESENT_MODE_FIFO_KHR:
-        return Settings::VSyncMode::FIFO;
+        return Settings::VSyncMode::Fifo;
     case VK_PRESENT_MODE_FIFO_RELAXED_KHR:
-        return Settings::VSyncMode::FIFORelaxed;
+        return Settings::VSyncMode::FifoRelaxed;
     default:
-        return Settings::VSyncMode::FIFO;
+        return Settings::VSyncMode::Fifo;
     }
 }
 
 ConfigureGraphics::ConfigureGraphics(const Core::System& system_,
                                      std::vector<VkDeviceInfo::Record>& records_,
                                      const std::function<void()>& expose_compute_option_,
-                                     QWidget* parent)
-    : QWidget(parent), ui{std::make_unique<Ui::ConfigureGraphics>()}, records{records_},
-      expose_compute_option{expose_compute_option_}, system{system_} {
+                                     std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,
+                                     const ConfigurationShared::Builder& builder, QWidget* parent)
+    : ConfigurationShared::Tab(group_, parent), ui{std::make_unique<Ui::ConfigureGraphics>()},
+      records{records_}, expose_compute_option{expose_compute_option_}, system{system_},
+      combobox_translations{builder.ComboboxTranslations()},
+      shader_mapping{
+          combobox_translations.at(Settings::EnumMetadata<Settings::ShaderBackend>::Index())} {
     vulkan_device = Settings::values.vulkan_device.GetValue();
     RetrieveVulkanDevices();
 
     ui->setupUi(this);
 
+    Setup(builder);
+
     for (const auto& device : vulkan_devices) {
-        ui->device->addItem(device);
+        vulkan_device_combobox->addItem(device);
     }
 
-    ui->backend->addItem(QStringLiteral("GLSL"));
-    ui->backend->addItem(tr("GLASM (Assembly Shaders, NVIDIA Only)"));
-    ui->backend->addItem(tr("SPIR-V (Experimental, Mesa Only)"));
+    UpdateBackgroundColorButton(QColor::fromRgb(Settings::values.bg_red.GetValue(),
+                                                Settings::values.bg_green.GetValue(),
+                                                Settings::values.bg_blue.GetValue()));
+    UpdateAPILayout();
+    PopulateVSyncModeSelection(); //< must happen after UpdateAPILayout
 
-    SetupPerGameUI();
+    // VSync setting needs to be determined after populating the VSync combobox
+    if (Settings::IsConfiguringGlobal()) {
+        const auto vsync_mode_setting = Settings::values.vsync_mode.GetValue();
+        const auto vsync_mode = VSyncSettingToMode(vsync_mode_setting);
+        int index{};
+        for (const auto mode : vsync_mode_combobox_enum_map) {
+            if (mode == vsync_mode) {
+                break;
+            }
+            index++;
+        }
+        if (static_cast<unsigned long>(index) < vsync_mode_combobox_enum_map.size()) {
+            vsync_mode_combobox->setCurrentIndex(index);
+        }
+    }
 
-    SetConfiguration();
-
-    connect(ui->api, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
+    connect(api_combobox, qOverload<int>(&QComboBox::activated), this, [this] {
         UpdateAPILayout();
         PopulateVSyncModeSelection();
-        if (!Settings::IsConfiguringGlobal()) {
-            ConfigurationShared::SetHighlight(
-                ui->api_widget, ui->api->currentIndex() != ConfigurationShared::USE_GLOBAL_INDEX);
-        }
     });
-    connect(ui->device, qOverload<int>(&QComboBox::activated), this, [this](int device) {
-        UpdateDeviceSelection(device);
-        PopulateVSyncModeSelection();
-    });
-    connect(ui->backend, qOverload<int>(&QComboBox::activated), this,
+    connect(vulkan_device_combobox, qOverload<int>(&QComboBox::activated), this,
+            [this](int device) {
+                UpdateDeviceSelection(device);
+                PopulateVSyncModeSelection();
+            });
+    connect(shader_backend_combobox, qOverload<int>(&QComboBox::activated), this,
             [this](int backend) { UpdateShaderBackendSelection(backend); });
 
     connect(ui->bg_button, &QPushButton::clicked, this, [this] {
@@ -116,39 +140,45 @@ ConfigureGraphics::ConfigureGraphics(const Core::System& system_,
         UpdateBackgroundColorButton(new_bg_color);
     });
 
-    ui->api->setEnabled(!UISettings::values.has_broken_vulkan && ui->api->isEnabled());
+    api_combobox->setEnabled(!UISettings::values.has_broken_vulkan && api_combobox->isEnabled());
     ui->api_widget->setEnabled(
         (!UISettings::values.has_broken_vulkan || Settings::IsConfiguringGlobal()) &&
         ui->api_widget->isEnabled());
-    ui->bg_label->setVisible(Settings::IsConfiguringGlobal());
-    ui->bg_combobox->setVisible(!Settings::IsConfiguringGlobal());
 
-    connect(ui->fsr_sharpening_slider, &QSlider::valueChanged, this,
-            &ConfigureGraphics::SetFSRIndicatorText);
-    ui->fsr_sharpening_combobox->setVisible(!Settings::IsConfiguringGlobal());
-    ui->fsr_sharpening_label->setVisible(Settings::IsConfiguringGlobal());
+    if (Settings::IsConfiguringGlobal()) {
+        ui->bg_widget->setEnabled(Settings::values.bg_red.UsingGlobal());
+    }
 }
 
 void ConfigureGraphics::PopulateVSyncModeSelection() {
-    const Settings::RendererBackend backend{GetCurrentGraphicsBackend()};
-    if (backend == Settings::RendererBackend::Null) {
-        ui->vsync_mode_combobox->setEnabled(false);
+    if (!Settings::IsConfiguringGlobal()) {
         return;
     }
-    ui->vsync_mode_combobox->setEnabled(true);
+
+    const Settings::RendererBackend backend{GetCurrentGraphicsBackend()};
+    if (backend == Settings::RendererBackend::Null) {
+        vsync_mode_combobox->setEnabled(false);
+        return;
+    }
+    vsync_mode_combobox->setEnabled(true);
 
     const int current_index = //< current selected vsync mode from combobox
-        ui->vsync_mode_combobox->currentIndex();
+        vsync_mode_combobox->currentIndex();
     const auto current_mode = //< current selected vsync mode as a VkPresentModeKHR
         current_index == -1 ? VSyncSettingToMode(Settings::values.vsync_mode.GetValue())
                             : vsync_mode_combobox_enum_map[current_index];
     int index{};
-    const int device{ui->device->currentIndex()}; //< current selected Vulkan device
+    const int device{vulkan_device_combobox->currentIndex()}; //< current selected Vulkan device
+    if (device == -1) {
+        // Invalid device
+        return;
+    }
+
     const auto& present_modes = //< relevant vector of present modes for the selected device or API
         backend == Settings::RendererBackend::Vulkan ? device_present_modes[device]
                                                      : default_present_modes;
 
-    ui->vsync_mode_combobox->clear();
+    vsync_mode_combobox->clear();
     vsync_mode_combobox_enum_map.clear();
     vsync_mode_combobox_enum_map.reserve(present_modes.size());
     for (const auto present_mode : present_modes) {
@@ -157,10 +187,10 @@ void ConfigureGraphics::PopulateVSyncModeSelection() {
             continue;
         }
 
-        ui->vsync_mode_combobox->insertItem(index, mode_name);
+        vsync_mode_combobox->insertItem(index, mode_name);
         vsync_mode_combobox_enum_map.push_back(present_mode);
         if (present_mode == current_mode) {
-            ui->vsync_mode_combobox->setCurrentIndex(index);
+            vsync_mode_combobox->setCurrentIndex(index);
         }
         index++;
     }
@@ -186,112 +216,124 @@ void ConfigureGraphics::UpdateShaderBackendSelection(int backend) {
 
 ConfigureGraphics::~ConfigureGraphics() = default;
 
-void ConfigureGraphics::SetConfiguration() {
-    const bool runtime_lock = !system.IsPoweredOn();
+void ConfigureGraphics::SetConfiguration() {}
 
-    ui->api_widget->setEnabled(runtime_lock);
-    ui->use_asynchronous_gpu_emulation->setEnabled(runtime_lock);
-    ui->use_disk_shader_cache->setEnabled(runtime_lock);
-    ui->nvdec_emulation_widget->setEnabled(runtime_lock);
-    ui->resolution_combobox->setEnabled(runtime_lock);
-    ui->accelerate_astc->setEnabled(runtime_lock);
-    ui->vsync_mode_layout->setEnabled(runtime_lock ||
-                                      Settings::values.renderer_backend.GetValue() ==
-                                          Settings::RendererBackend::Vulkan);
-    ui->use_disk_shader_cache->setChecked(Settings::values.use_disk_shader_cache.GetValue());
-    ui->use_asynchronous_gpu_emulation->setChecked(
-        Settings::values.use_asynchronous_gpu_emulation.GetValue());
-    ui->accelerate_astc->setChecked(Settings::values.accelerate_astc.GetValue());
+void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
+    QLayout* api_layout = ui->api_widget->layout();
+    QWidget* api_grid_widget = new QWidget(this);
+    QVBoxLayout* api_grid_layout = new QVBoxLayout(api_grid_widget);
+    api_grid_layout->setContentsMargins(0, 0, 0, 0);
+    api_layout->addWidget(api_grid_widget);
 
-    if (Settings::IsConfiguringGlobal()) {
-        ui->api->setCurrentIndex(static_cast<int>(Settings::values.renderer_backend.GetValue()));
-        ui->fullscreen_mode_combobox->setCurrentIndex(
-            static_cast<int>(Settings::values.fullscreen_mode.GetValue()));
-        ui->nvdec_emulation->setCurrentIndex(
-            static_cast<int>(Settings::values.nvdec_emulation.GetValue()));
-        ui->aspect_ratio_combobox->setCurrentIndex(Settings::values.aspect_ratio.GetValue());
-        ui->resolution_combobox->setCurrentIndex(
-            static_cast<int>(Settings::values.resolution_setup.GetValue()));
-        ui->scaling_filter_combobox->setCurrentIndex(
-            static_cast<int>(Settings::values.scaling_filter.GetValue()));
-        ui->fsr_sharpening_slider->setValue(Settings::values.fsr_sharpening_slider.GetValue());
-        ui->anti_aliasing_combobox->setCurrentIndex(
-            static_cast<int>(Settings::values.anti_aliasing.GetValue()));
-    } else {
-        ConfigurationShared::SetPerGameSetting(ui->api, &Settings::values.renderer_backend);
-        ConfigurationShared::SetHighlight(ui->api_widget,
-                                          !Settings::values.renderer_backend.UsingGlobal());
+    QLayout& graphics_layout = *ui->graphics_widget->layout();
 
-        ConfigurationShared::SetPerGameSetting(ui->nvdec_emulation,
-                                               &Settings::values.nvdec_emulation);
-        ConfigurationShared::SetHighlight(ui->nvdec_emulation_widget,
-                                          !Settings::values.nvdec_emulation.UsingGlobal());
+    std::map<u32, QWidget*> hold_graphics;
+    std::vector<QWidget*> hold_api;
 
-        ConfigurationShared::SetPerGameSetting(ui->fullscreen_mode_combobox,
-                                               &Settings::values.fullscreen_mode);
-        ConfigurationShared::SetHighlight(ui->fullscreen_mode_label,
-                                          !Settings::values.fullscreen_mode.UsingGlobal());
-
-        ConfigurationShared::SetPerGameSetting(ui->aspect_ratio_combobox,
-                                               &Settings::values.aspect_ratio);
-        ConfigurationShared::SetHighlight(ui->ar_label,
-                                          !Settings::values.aspect_ratio.UsingGlobal());
-
-        ConfigurationShared::SetPerGameSetting(ui->resolution_combobox,
-                                               &Settings::values.resolution_setup);
-        ConfigurationShared::SetHighlight(ui->resolution_label,
-                                          !Settings::values.resolution_setup.UsingGlobal());
-
-        ConfigurationShared::SetPerGameSetting(ui->scaling_filter_combobox,
-                                               &Settings::values.scaling_filter);
-        ConfigurationShared::SetHighlight(ui->scaling_filter_label,
-                                          !Settings::values.scaling_filter.UsingGlobal());
-
-        ConfigurationShared::SetPerGameSetting(ui->anti_aliasing_combobox,
-                                               &Settings::values.anti_aliasing);
-        ConfigurationShared::SetHighlight(ui->anti_aliasing_label,
-                                          !Settings::values.anti_aliasing.UsingGlobal());
-
-        ui->fsr_sharpening_combobox->setCurrentIndex(
-            Settings::values.fsr_sharpening_slider.UsingGlobal() ? 0 : 1);
-        ui->fsr_sharpening_slider->setEnabled(
-            !Settings::values.fsr_sharpening_slider.UsingGlobal());
-        ui->fsr_sharpening_value->setEnabled(!Settings::values.fsr_sharpening_slider.UsingGlobal());
-        ConfigurationShared::SetHighlight(ui->fsr_sharpening_layout,
-                                          !Settings::values.fsr_sharpening_slider.UsingGlobal());
-        ui->fsr_sharpening_slider->setValue(Settings::values.fsr_sharpening_slider.GetValue());
-
-        ui->bg_combobox->setCurrentIndex(Settings::values.bg_red.UsingGlobal() ? 0 : 1);
-        ui->bg_button->setEnabled(!Settings::values.bg_red.UsingGlobal());
-        ConfigurationShared::SetHighlight(ui->bg_layout, !Settings::values.bg_red.UsingGlobal());
-    }
-    UpdateBackgroundColorButton(QColor::fromRgb(Settings::values.bg_red.GetValue(),
-                                                Settings::values.bg_green.GetValue(),
-                                                Settings::values.bg_blue.GetValue()));
-    UpdateAPILayout();
-    PopulateVSyncModeSelection(); //< must happen after UpdateAPILayout
-    SetFSRIndicatorText(ui->fsr_sharpening_slider->sliderPosition());
-
-    // VSync setting needs to be determined after populating the VSync combobox
-    if (Settings::IsConfiguringGlobal()) {
-        const auto vsync_mode_setting = Settings::values.vsync_mode.GetValue();
-        const auto vsync_mode = VSyncSettingToMode(vsync_mode_setting);
-        int index{};
-        for (const auto mode : vsync_mode_combobox_enum_map) {
-            if (mode == vsync_mode) {
-                break;
+    for (const auto setting : Settings::values.linkage.by_category[Settings::Category::Renderer]) {
+        ConfigurationShared::Widget* widget = [&]() {
+            if (setting->Id() == Settings::values.fsr_sharpening_slider.Id()) {
+                // FSR needs a reversed slider and a 0.5 multiplier
+                return builder.BuildWidget(
+                    setting, apply_funcs, ConfigurationShared::RequestType::ReverseSlider, true,
+                    0.5f, nullptr, tr("%", "FSR sharpening percentage (e.g. 50%)"));
+            } else {
+                return builder.BuildWidget(setting, apply_funcs);
             }
-            index++;
+        }();
+
+        if (widget == nullptr) {
+            continue;
         }
-        if (static_cast<unsigned long>(index) < vsync_mode_combobox_enum_map.size()) {
-            ui->vsync_mode_combobox->setCurrentIndex(index);
+        if (!widget->Valid()) {
+            widget->deleteLater();
+            continue;
+        }
+
+        if (setting->Id() == Settings::values.renderer_backend.Id()) {
+            // Add the renderer combobox now so it's at the top
+            api_grid_layout->addWidget(widget);
+            api_combobox = widget->combobox;
+            api_restore_global_button = widget->restore_button;
+
+            if (!Settings::IsConfiguringGlobal()) {
+                QObject::connect(api_restore_global_button, &QAbstractButton::clicked,
+                                 [this](bool) { UpdateAPILayout(); });
+
+                // Detach API's restore button and place it where we want
+                // Lets us put it on the side, and it will automatically scale if there's a
+                // second combobox (shader_backend, vulkan_device)
+                widget->layout()->removeWidget(api_restore_global_button);
+                api_layout->addWidget(api_restore_global_button);
+            }
+        } else if (setting->Id() == Settings::values.vulkan_device.Id()) {
+            // Keep track of vulkan_device's combobox so we can populate it
+            hold_api.push_back(widget);
+            vulkan_device_combobox = widget->combobox;
+            vulkan_device_widget = widget;
+        } else if (setting->Id() == Settings::values.shader_backend.Id()) {
+            // Keep track of shader_backend's combobox so we can populate it
+            hold_api.push_back(widget);
+            shader_backend_combobox = widget->combobox;
+            shader_backend_widget = widget;
+        } else if (setting->Id() == Settings::values.vsync_mode.Id()) {
+            // Keep track of vsync_mode's combobox so we can populate it
+            vsync_mode_combobox = widget->combobox;
+            hold_graphics.emplace(setting->Id(), widget);
+        } else {
+            hold_graphics.emplace(setting->Id(), widget);
         }
     }
-}
 
-void ConfigureGraphics::SetFSRIndicatorText(int percentage) {
-    ui->fsr_sharpening_value->setText(
-        tr("%1%", "FSR sharpening percentage (e.g. 50%)").arg(100 - (percentage / 2)));
+    for (const auto& [id, widget] : hold_graphics) {
+        graphics_layout.addWidget(widget);
+    }
+
+    for (auto widget : hold_api) {
+        api_grid_layout->addWidget(widget);
+    }
+
+    // Background color is too specific to build into the new system, so we manage it here
+    // (3 settings, all collected into a single widget with a QColor to manage on top)
+    if (Settings::IsConfiguringGlobal()) {
+        apply_funcs.push_back([this](bool powered_on) {
+            Settings::values.bg_red.SetValue(static_cast<u8>(bg_color.red()));
+            Settings::values.bg_green.SetValue(static_cast<u8>(bg_color.green()));
+            Settings::values.bg_blue.SetValue(static_cast<u8>(bg_color.blue()));
+        });
+    } else {
+        QPushButton* bg_restore_button = ConfigurationShared::Widget::CreateRestoreGlobalButton(
+            Settings::values.bg_red.UsingGlobal(), ui->bg_widget);
+        ui->bg_widget->layout()->addWidget(bg_restore_button);
+
+        QObject::connect(bg_restore_button, &QAbstractButton::clicked,
+                         [bg_restore_button, this](bool) {
+                             const int r = Settings::values.bg_red.GetValue(true);
+                             const int g = Settings::values.bg_green.GetValue(true);
+                             const int b = Settings::values.bg_blue.GetValue(true);
+                             UpdateBackgroundColorButton(QColor::fromRgb(r, g, b));
+
+                             bg_restore_button->setVisible(false);
+                             bg_restore_button->setEnabled(false);
+                         });
+
+        QObject::connect(ui->bg_button, &QAbstractButton::clicked, [bg_restore_button](bool) {
+            bg_restore_button->setVisible(true);
+            bg_restore_button->setEnabled(true);
+        });
+
+        apply_funcs.push_back([bg_restore_button, this](bool powered_on) {
+            const bool using_global = !bg_restore_button->isEnabled();
+            Settings::values.bg_red.SetGlobal(using_global);
+            Settings::values.bg_green.SetGlobal(using_global);
+            Settings::values.bg_blue.SetGlobal(using_global);
+            if (!using_global) {
+                Settings::values.bg_red.SetValue(static_cast<u8>(bg_color.red()));
+                Settings::values.bg_green.SetValue(static_cast<u8>(bg_color.green()));
+                Settings::values.bg_blue.SetValue(static_cast<u8>(bg_color.blue()));
+            }
+        });
+    }
 }
 
 const QString ConfigureGraphics::TranslateVSyncMode(VkPresentModeKHR mode,
@@ -315,130 +357,48 @@ const QString ConfigureGraphics::TranslateVSyncMode(VkPresentModeKHR mode,
     }
 }
 
+int ConfigureGraphics::FindIndex(u32 enumeration, int value) const {
+    for (u32 i = 0; i < combobox_translations.at(enumeration).size(); i++) {
+        if (combobox_translations.at(enumeration)[i].first == static_cast<u32>(value)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void ConfigureGraphics::ApplyConfiguration() {
-    const auto resolution_setup = static_cast<Settings::ResolutionSetup>(
-        ui->resolution_combobox->currentIndex() -
-        ((Settings::IsConfiguringGlobal()) ? 0 : ConfigurationShared::USE_GLOBAL_OFFSET));
-
-    const auto scaling_filter = static_cast<Settings::ScalingFilter>(
-        ui->scaling_filter_combobox->currentIndex() -
-        ((Settings::IsConfiguringGlobal()) ? 0 : ConfigurationShared::USE_GLOBAL_OFFSET));
-
-    const auto anti_aliasing = static_cast<Settings::AntiAliasing>(
-        ui->anti_aliasing_combobox->currentIndex() -
-        ((Settings::IsConfiguringGlobal()) ? 0 : ConfigurationShared::USE_GLOBAL_OFFSET));
-
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.fullscreen_mode,
-                                             ui->fullscreen_mode_combobox);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.aspect_ratio,
-                                             ui->aspect_ratio_combobox);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_disk_shader_cache,
-                                             ui->use_disk_shader_cache, use_disk_shader_cache);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_asynchronous_gpu_emulation,
-                                             ui->use_asynchronous_gpu_emulation,
-                                             use_asynchronous_gpu_emulation);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.accelerate_astc, ui->accelerate_astc,
-                                             accelerate_astc);
+    const bool powered_on = system.IsPoweredOn();
+    for (const auto& func : apply_funcs) {
+        func(powered_on);
+    }
 
     if (Settings::IsConfiguringGlobal()) {
-        // Guard if during game and set to game-specific value
-        if (Settings::values.renderer_backend.UsingGlobal()) {
-            Settings::values.renderer_backend.SetValue(GetCurrentGraphicsBackend());
-        }
-        if (Settings::values.nvdec_emulation.UsingGlobal()) {
-            Settings::values.nvdec_emulation.SetValue(GetCurrentNvdecEmulation());
-        }
-        if (Settings::values.shader_backend.UsingGlobal()) {
-            Settings::values.shader_backend.SetValue(shader_backend);
-        }
-        if (Settings::values.vulkan_device.UsingGlobal()) {
-            Settings::values.vulkan_device.SetValue(vulkan_device);
-        }
-        if (Settings::values.bg_red.UsingGlobal()) {
-            Settings::values.bg_red.SetValue(static_cast<u8>(bg_color.red()));
-            Settings::values.bg_green.SetValue(static_cast<u8>(bg_color.green()));
-            Settings::values.bg_blue.SetValue(static_cast<u8>(bg_color.blue()));
-        }
-        if (Settings::values.resolution_setup.UsingGlobal()) {
-            Settings::values.resolution_setup.SetValue(resolution_setup);
-        }
-        if (Settings::values.scaling_filter.UsingGlobal()) {
-            Settings::values.scaling_filter.SetValue(scaling_filter);
-        }
-        if (Settings::values.anti_aliasing.UsingGlobal()) {
-            Settings::values.anti_aliasing.SetValue(anti_aliasing);
-        }
-        Settings::values.fsr_sharpening_slider.SetValue(ui->fsr_sharpening_slider->value());
-
-        const auto mode = vsync_mode_combobox_enum_map[ui->vsync_mode_combobox->currentIndex()];
+        const auto mode = vsync_mode_combobox_enum_map[vsync_mode_combobox->currentIndex()];
         const auto vsync_mode = PresentModeToSetting(mode);
         Settings::values.vsync_mode.SetValue(vsync_mode);
-    } else {
-        if (ui->resolution_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-            Settings::values.resolution_setup.SetGlobal(true);
-        } else {
-            Settings::values.resolution_setup.SetGlobal(false);
-            Settings::values.resolution_setup.SetValue(resolution_setup);
-        }
-        if (ui->scaling_filter_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-            Settings::values.scaling_filter.SetGlobal(true);
-        } else {
-            Settings::values.scaling_filter.SetGlobal(false);
-            Settings::values.scaling_filter.SetValue(scaling_filter);
-        }
-        if (ui->anti_aliasing_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-            Settings::values.anti_aliasing.SetGlobal(true);
-        } else {
-            Settings::values.anti_aliasing.SetGlobal(false);
-            Settings::values.anti_aliasing.SetValue(anti_aliasing);
-        }
-        if (ui->api->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-            Settings::values.renderer_backend.SetGlobal(true);
-            Settings::values.shader_backend.SetGlobal(true);
-            Settings::values.vulkan_device.SetGlobal(true);
-        } else {
-            Settings::values.renderer_backend.SetGlobal(false);
-            Settings::values.renderer_backend.SetValue(GetCurrentGraphicsBackend());
-            switch (GetCurrentGraphicsBackend()) {
-            case Settings::RendererBackend::OpenGL:
-            case Settings::RendererBackend::Null:
-                Settings::values.shader_backend.SetGlobal(false);
-                Settings::values.vulkan_device.SetGlobal(true);
-                Settings::values.shader_backend.SetValue(shader_backend);
-                break;
-            case Settings::RendererBackend::Vulkan:
-                Settings::values.shader_backend.SetGlobal(true);
-                Settings::values.vulkan_device.SetGlobal(false);
-                Settings::values.vulkan_device.SetValue(vulkan_device);
-                break;
-            }
-        }
+    }
 
-        if (ui->nvdec_emulation->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-            Settings::values.nvdec_emulation.SetGlobal(true);
-        } else {
-            Settings::values.nvdec_emulation.SetGlobal(false);
-            Settings::values.nvdec_emulation.SetValue(GetCurrentNvdecEmulation());
-        }
-
-        if (ui->bg_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-            Settings::values.bg_red.SetGlobal(true);
-            Settings::values.bg_green.SetGlobal(true);
-            Settings::values.bg_blue.SetGlobal(true);
-        } else {
-            Settings::values.bg_red.SetGlobal(false);
-            Settings::values.bg_green.SetGlobal(false);
-            Settings::values.bg_blue.SetGlobal(false);
-            Settings::values.bg_red.SetValue(static_cast<u8>(bg_color.red()));
-            Settings::values.bg_green.SetValue(static_cast<u8>(bg_color.green()));
-            Settings::values.bg_blue.SetValue(static_cast<u8>(bg_color.blue()));
-        }
-
-        if (ui->fsr_sharpening_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-            Settings::values.fsr_sharpening_slider.SetGlobal(true);
-        } else {
-            Settings::values.fsr_sharpening_slider.SetGlobal(false);
-            Settings::values.fsr_sharpening_slider.SetValue(ui->fsr_sharpening_slider->value());
+    Settings::values.vulkan_device.SetGlobal(true);
+    Settings::values.shader_backend.SetGlobal(true);
+    if (Settings::IsConfiguringGlobal() ||
+        (!Settings::IsConfiguringGlobal() && api_restore_global_button->isEnabled())) {
+        auto backend = static_cast<Settings::RendererBackend>(
+            combobox_translations
+                .at(Settings::EnumMetadata<
+                    Settings::RendererBackend>::Index())[api_combobox->currentIndex()]
+                .first);
+        switch (backend) {
+        case Settings::RendererBackend::OpenGL:
+            Settings::values.shader_backend.SetGlobal(Settings::IsConfiguringGlobal());
+            Settings::values.shader_backend.SetValue(static_cast<Settings::ShaderBackend>(
+                shader_mapping[shader_backend_combobox->currentIndex()].first));
+            break;
+        case Settings::RendererBackend::Vulkan:
+            Settings::values.vulkan_device.SetGlobal(Settings::IsConfiguringGlobal());
+            Settings::values.vulkan_device.SetValue(vulkan_device_combobox->currentIndex());
+            break;
+        case Settings::RendererBackend::Null:
+            break;
         }
     }
 }
@@ -466,36 +426,26 @@ void ConfigureGraphics::UpdateBackgroundColorButton(QColor color) {
 }
 
 void ConfigureGraphics::UpdateAPILayout() {
-    if (!Settings::IsConfiguringGlobal() &&
-        ui->api->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-        vulkan_device = Settings::values.vulkan_device.GetValue(true);
-        shader_backend = Settings::values.shader_backend.GetValue(true);
-        ui->device_widget->setEnabled(false);
-        ui->backend_widget->setEnabled(false);
-    } else {
-        vulkan_device = Settings::values.vulkan_device.GetValue();
-        shader_backend = Settings::values.shader_backend.GetValue();
-        ui->device_widget->setEnabled(true);
-        ui->backend_widget->setEnabled(true);
-    }
+    bool runtime_lock = !system.IsPoweredOn();
+    bool need_global = !(Settings::IsConfiguringGlobal() || api_restore_global_button->isEnabled());
+    vulkan_device = Settings::values.vulkan_device.GetValue(need_global);
+    shader_backend = Settings::values.shader_backend.GetValue(need_global);
+    vulkan_device_widget->setEnabled(!need_global && runtime_lock);
+    shader_backend_widget->setEnabled(!need_global && runtime_lock);
 
-    switch (GetCurrentGraphicsBackend()) {
-    case Settings::RendererBackend::OpenGL:
-        ui->backend->setCurrentIndex(static_cast<u32>(shader_backend));
-        ui->device_widget->setVisible(false);
-        ui->backend_widget->setVisible(true);
-        break;
-    case Settings::RendererBackend::Vulkan:
-        if (static_cast<int>(vulkan_device) < ui->device->count()) {
-            ui->device->setCurrentIndex(vulkan_device);
-        }
-        ui->device_widget->setVisible(true);
-        ui->backend_widget->setVisible(false);
-        break;
-    case Settings::RendererBackend::Null:
-        ui->device_widget->setVisible(false);
-        ui->backend_widget->setVisible(false);
-        break;
+    const auto current_backend = GetCurrentGraphicsBackend();
+    const bool is_opengl = current_backend == Settings::RendererBackend::OpenGL;
+    const bool is_vulkan = current_backend == Settings::RendererBackend::Vulkan;
+
+    vulkan_device_widget->setVisible(is_vulkan);
+    shader_backend_widget->setVisible(is_opengl);
+
+    if (is_opengl) {
+        shader_backend_combobox->setCurrentIndex(
+            FindIndex(Settings::EnumMetadata<Settings::ShaderBackend>::Index(),
+                      static_cast<int>(shader_backend)));
+    } else if (is_vulkan && static_cast<int>(vulkan_device) < vulkan_device_combobox->count()) {
+        vulkan_device_combobox->setCurrentIndex(vulkan_device);
     }
 }
 
@@ -515,92 +465,11 @@ void ConfigureGraphics::RetrieveVulkanDevices() {
 }
 
 Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {
-    if (Settings::IsConfiguringGlobal()) {
-        return static_cast<Settings::RendererBackend>(ui->api->currentIndex());
+    if (!Settings::IsConfiguringGlobal() && !api_restore_global_button->isEnabled()) {
+        return Settings::values.renderer_backend.GetValue(true);
     }
-
-    if (ui->api->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-        Settings::values.renderer_backend.SetGlobal(true);
-        return Settings::values.renderer_backend.GetValue();
-    }
-    Settings::values.renderer_backend.SetGlobal(false);
-    return static_cast<Settings::RendererBackend>(ui->api->currentIndex() -
-                                                  ConfigurationShared::USE_GLOBAL_OFFSET);
-}
-
-Settings::NvdecEmulation ConfigureGraphics::GetCurrentNvdecEmulation() const {
-    if (Settings::IsConfiguringGlobal()) {
-        return static_cast<Settings::NvdecEmulation>(ui->nvdec_emulation->currentIndex());
-    }
-
-    if (ui->nvdec_emulation->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-        Settings::values.nvdec_emulation.SetGlobal(true);
-        return Settings::values.nvdec_emulation.GetValue();
-    }
-    Settings::values.nvdec_emulation.SetGlobal(false);
-    return static_cast<Settings::NvdecEmulation>(ui->nvdec_emulation->currentIndex() -
-                                                 ConfigurationShared::USE_GLOBAL_OFFSET);
-}
-
-void ConfigureGraphics::SetupPerGameUI() {
-    if (Settings::IsConfiguringGlobal()) {
-        ui->api->setEnabled(Settings::values.renderer_backend.UsingGlobal());
-        ui->device->setEnabled(Settings::values.renderer_backend.UsingGlobal());
-        ui->fullscreen_mode_combobox->setEnabled(Settings::values.fullscreen_mode.UsingGlobal());
-        ui->aspect_ratio_combobox->setEnabled(Settings::values.aspect_ratio.UsingGlobal());
-        ui->resolution_combobox->setEnabled(Settings::values.resolution_setup.UsingGlobal());
-        ui->scaling_filter_combobox->setEnabled(Settings::values.scaling_filter.UsingGlobal());
-        ui->fsr_sharpening_slider->setEnabled(Settings::values.fsr_sharpening_slider.UsingGlobal());
-        ui->anti_aliasing_combobox->setEnabled(Settings::values.anti_aliasing.UsingGlobal());
-        ui->use_asynchronous_gpu_emulation->setEnabled(
-            Settings::values.use_asynchronous_gpu_emulation.UsingGlobal());
-        ui->nvdec_emulation->setEnabled(Settings::values.nvdec_emulation.UsingGlobal());
-        ui->accelerate_astc->setEnabled(Settings::values.accelerate_astc.UsingGlobal());
-        ui->use_disk_shader_cache->setEnabled(Settings::values.use_disk_shader_cache.UsingGlobal());
-        ui->bg_button->setEnabled(Settings::values.bg_red.UsingGlobal());
-        ui->fsr_slider_layout->setEnabled(Settings::values.fsr_sharpening_slider.UsingGlobal());
-
-        return;
-    }
-
-    connect(ui->bg_combobox, qOverload<int>(&QComboBox::activated), this, [this](int index) {
-        ui->bg_button->setEnabled(index == 1);
-        ConfigurationShared::SetHighlight(ui->bg_layout, index == 1);
-    });
-
-    connect(ui->fsr_sharpening_combobox, qOverload<int>(&QComboBox::activated), this,
-            [this](int index) {
-                ui->fsr_sharpening_slider->setEnabled(index == 1);
-                ui->fsr_sharpening_value->setEnabled(index == 1);
-                ConfigurationShared::SetHighlight(ui->fsr_sharpening_layout, index == 1);
-            });
-
-    ConfigurationShared::SetColoredTristate(
-        ui->use_disk_shader_cache, Settings::values.use_disk_shader_cache, use_disk_shader_cache);
-    ConfigurationShared::SetColoredTristate(ui->accelerate_astc, Settings::values.accelerate_astc,
-                                            accelerate_astc);
-    ConfigurationShared::SetColoredTristate(ui->use_asynchronous_gpu_emulation,
-                                            Settings::values.use_asynchronous_gpu_emulation,
-                                            use_asynchronous_gpu_emulation);
-
-    ConfigurationShared::SetColoredComboBox(ui->aspect_ratio_combobox, ui->ar_label,
-                                            Settings::values.aspect_ratio.GetValue(true));
-    ConfigurationShared::SetColoredComboBox(
-        ui->fullscreen_mode_combobox, ui->fullscreen_mode_label,
-        static_cast<int>(Settings::values.fullscreen_mode.GetValue(true)));
-    ConfigurationShared::SetColoredComboBox(
-        ui->resolution_combobox, ui->resolution_label,
-        static_cast<int>(Settings::values.resolution_setup.GetValue(true)));
-    ConfigurationShared::SetColoredComboBox(
-        ui->scaling_filter_combobox, ui->scaling_filter_label,
-        static_cast<int>(Settings::values.scaling_filter.GetValue(true)));
-    ConfigurationShared::SetColoredComboBox(
-        ui->anti_aliasing_combobox, ui->anti_aliasing_label,
-        static_cast<int>(Settings::values.anti_aliasing.GetValue(true)));
-    ConfigurationShared::InsertGlobalItem(
-        ui->api, static_cast<int>(Settings::values.renderer_backend.GetValue(true)));
-    ConfigurationShared::InsertGlobalItem(
-        ui->nvdec_emulation, static_cast<int>(Settings::values.nvdec_emulation.GetValue(true)));
-
-    ui->vsync_mode_layout->setVisible(false);
+    return static_cast<Settings::RendererBackend>(
+        combobox_translations.at(Settings::EnumMetadata<Settings::RendererBackend>::Index())
+            .at(api_combobox->currentIndex())
+            .first);
 }

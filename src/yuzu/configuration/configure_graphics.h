@@ -5,6 +5,8 @@
 
 #include <functional>
 #include <memory>
+#include <type_traits>
+#include <typeindex>
 #include <vector>
 #include <QColor>
 #include <QString>
@@ -12,10 +14,14 @@
 #include <qobjectdefs.h>
 #include <vulkan/vulkan_core.h>
 #include "common/common_types.h"
+#include "configuration/shared_translation.h"
 #include "vk_device_info.h"
+#include "yuzu/configuration/configuration_shared.h"
 
+class QPushButton;
 class QEvent;
 class QObject;
+class QComboBox;
 
 namespace Settings {
 enum class NvdecEmulation : u32;
@@ -27,30 +33,32 @@ namespace Core {
 class System;
 }
 
-namespace ConfigurationShared {
-enum class CheckState;
-}
-
 namespace Ui {
 class ConfigureGraphics;
 }
 
-class ConfigureGraphics : public QWidget {
-    Q_OBJECT
+namespace ConfigurationShared {
+class Builder;
+}
 
+class ConfigureGraphics : public ConfigurationShared::Tab {
 public:
     explicit ConfigureGraphics(const Core::System& system_,
                                std::vector<VkDeviceInfo::Record>& records,
                                const std::function<void()>& expose_compute_option_,
+                               std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
+                               const ConfigurationShared::Builder& builder,
                                QWidget* parent = nullptr);
     ~ConfigureGraphics() override;
 
-    void ApplyConfiguration();
-    void SetConfiguration();
+    void ApplyConfiguration() override;
+    void SetConfiguration() override;
 
 private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
+
+    void Setup(const ConfigurationShared::Builder& builder);
 
     void PopulateVSyncModeSelection();
     void UpdateBackgroundColorButton(QColor color);
@@ -60,34 +68,40 @@ private:
 
     void RetrieveVulkanDevices();
 
-    void SetFSRIndicatorText(int percentage);
     /* Turns a Vulkan present mode into a textual string for a UI
      * (and eventually for a human to read) */
     const QString TranslateVSyncMode(VkPresentModeKHR mode,
                                      Settings::RendererBackend backend) const;
 
-    void SetupPerGameUI();
-
     Settings::RendererBackend GetCurrentGraphicsBackend() const;
-    Settings::NvdecEmulation GetCurrentNvdecEmulation() const;
+
+    int FindIndex(u32 enumeration, int value) const;
 
     std::unique_ptr<Ui::ConfigureGraphics> ui;
     QColor bg_color;
 
-    ConfigurationShared::CheckState use_nvdec_emulation;
-    ConfigurationShared::CheckState accelerate_astc;
-    ConfigurationShared::CheckState use_disk_shader_cache;
-    ConfigurationShared::CheckState use_asynchronous_gpu_emulation;
+    std::vector<std::function<void(bool)>> apply_funcs{};
 
     std::vector<VkDeviceInfo::Record>& records;
     std::vector<QString> vulkan_devices;
     std::vector<std::vector<VkPresentModeKHR>> device_present_modes;
     std::vector<VkPresentModeKHR>
-        vsync_mode_combobox_enum_map; //< Keeps track of which present mode corresponds to which
-                                      // selection in the combobox
+        vsync_mode_combobox_enum_map{}; //< Keeps track of which present mode corresponds to which
+                                        // selection in the combobox
     u32 vulkan_device{};
     Settings::ShaderBackend shader_backend{};
     const std::function<void()>& expose_compute_option;
 
     const Core::System& system;
+    const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
+    const std::vector<std::pair<u32, QString>>& shader_mapping;
+
+    QPushButton* api_restore_global_button;
+    QComboBox* vulkan_device_combobox;
+    QComboBox* api_combobox;
+    QComboBox* shader_backend_combobox;
+    QComboBox* vsync_mode_combobox;
+    QWidget* vulkan_device_widget;
+    QWidget* api_widget;
+    QWidget* shader_backend_widget;
 };

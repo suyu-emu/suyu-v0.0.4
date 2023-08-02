@@ -78,7 +78,8 @@ TimeZoneContentManager::TimeZoneContentManager(Core::System& system_)
       location_name_cache{BuildLocationNameCache(time_zone_binary)} {}
 
 void TimeZoneContentManager::Initialize(TimeManager& time_manager) {
-    const auto timezone_setting = Settings::GetTimeZoneString();
+    const auto timezone_setting =
+        Settings::GetTimeZoneString(Settings::values.time_zone_index.GetValue());
 
     if (FileSys::VirtualFile vfs_file;
         GetTimeZoneInfoFile(timezone_setting, vfs_file) == ResultSuccess) {

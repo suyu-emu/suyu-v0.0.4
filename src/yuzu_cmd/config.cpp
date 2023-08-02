@@ -98,8 +98,26 @@ void Config::ReadSetting(const std::string& group, Settings::Setting<Type, range
                                                         static_cast<long>(setting.GetDefault())));
 }
 
+void Config::ReadCategory(Settings::Category category) {
+    for (const auto setting : Settings::values.linkage.by_category[category]) {
+        const char* category_name = [&]() {
+            if (category == Settings::Category::Controls) {
+                // For compatibility with older configs
+                return "ControlsGeneral";
+            } else {
+                return Settings::TranslateCategory(category);
+            }
+        }();
+        std::string setting_value =
+            sdl2_config->Get(category_name, setting->GetLabel(), setting->DefaultToString());
+        setting->LoadString(setting_value);
+    }
+}
+
 void Config::ReadValues() {
     // Controls
+    ReadCategory(Settings::Category::Controls);
+
     for (std::size_t p = 0; p < Settings::values.players.GetValue().size(); ++p) {
         auto& player = Settings::values.players.GetValue()[p];
 
@@ -139,13 +157,6 @@ void Config::ReadValues() {
         player.connected = sdl2_config->GetBoolean(group, "connected", false);
     }
 
-    ReadSetting("ControlsGeneral", Settings::values.mouse_enabled);
-
-    ReadSetting("ControlsGeneral", Settings::values.touch_device);
-
-    ReadSetting("ControlsGeneral", Settings::values.keyboard_enabled);
-
-    ReadSetting("ControlsGeneral", Settings::values.debug_pad_enabled);
     for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
         std::string default_param = InputCommon::GenerateKeyboardParam(default_buttons[i]);
         Settings::values.debug_pad_buttons[i] = sdl2_config->Get(
@@ -166,14 +177,6 @@ void Config::ReadValues() {
             Settings::values.debug_pad_analogs[i] = default_param;
     }
 
-    ReadSetting("ControlsGeneral", Settings::values.enable_raw_input);
-    ReadSetting("ControlsGeneral", Settings::values.enable_joycon_driver);
-    ReadSetting("ControlsGeneral", Settings::values.enable_procon_driver);
-    ReadSetting("ControlsGeneral", Settings::values.random_amiibo_id);
-    ReadSetting("ControlsGeneral", Settings::values.emulate_analog_keyboard);
-    ReadSetting("ControlsGeneral", Settings::values.vibration_enabled);
-    ReadSetting("ControlsGeneral", Settings::values.enable_accurate_vibrations);
-    ReadSetting("ControlsGeneral", Settings::values.motion_enabled);
     Settings::values.touchscreen.enabled =
         sdl2_config->GetBoolean("ControlsGeneral", "touch_enabled", true);
     Settings::values.touchscreen.rotation_angle =
@@ -217,10 +220,24 @@ void Config::ReadValues() {
     Settings::values.touch_from_button_map_index = std::clamp(
         Settings::values.touch_from_button_map_index.GetValue(), 0, num_touch_from_button_maps - 1);
 
-    ReadSetting("ControlsGeneral", Settings::values.udp_input_servers);
+    ReadCategory(Settings::Category::Audio);
+    ReadCategory(Settings::Category::Core);
+    ReadCategory(Settings::Category::Cpu);
+    ReadCategory(Settings::Category::CpuDebug);
+    ReadCategory(Settings::Category::CpuUnsafe);
+    ReadCategory(Settings::Category::Renderer);
+    ReadCategory(Settings::Category::RendererAdvanced);
+    ReadCategory(Settings::Category::RendererDebug);
+    ReadCategory(Settings::Category::System);
+    ReadCategory(Settings::Category::SystemAudio);
+    ReadCategory(Settings::Category::DataStorage);
+    ReadCategory(Settings::Category::Debugging);
+    ReadCategory(Settings::Category::DebuggingGraphics);
+    ReadCategory(Settings::Category::Miscellaneous);
+    ReadCategory(Settings::Category::Network);
+    ReadCategory(Settings::Category::WebService);
 
     // Data Storage
-    ReadSetting("Data Storage", Settings::values.use_virtual_sd);
     FS::SetYuzuPath(FS::YuzuPath::NANDDir,
                     sdl2_config->Get("Data Storage", "nand_directory",
                                      FS::GetYuzuPathString(FS::YuzuPath::NANDDir)));
@@ -233,124 +250,10 @@ void Config::ReadValues() {
     FS::SetYuzuPath(FS::YuzuPath::DumpDir,
                     sdl2_config->Get("Data Storage", "dump_directory",
                                      FS::GetYuzuPathString(FS::YuzuPath::DumpDir)));
-    ReadSetting("Data Storage", Settings::values.gamecard_inserted);
-    ReadSetting("Data Storage", Settings::values.gamecard_current_game);
-    ReadSetting("Data Storage", Settings::values.gamecard_path);
-
-    // System
-    ReadSetting("System", Settings::values.use_docked_mode);
-
-    ReadSetting("System", Settings::values.current_user);
-    Settings::values.current_user = std::clamp<int>(Settings::values.current_user.GetValue(), 0,
-                                                    Service::Account::MAX_USERS - 1);
-
-    const auto rng_seed_enabled = sdl2_config->GetBoolean("System", "rng_seed_enabled", false);
-    if (rng_seed_enabled) {
-        Settings::values.rng_seed.SetValue(sdl2_config->GetInteger("System", "rng_seed", 0));
-    } else {
-        Settings::values.rng_seed.SetValue(std::nullopt);
-    }
-
-    const auto custom_rtc_enabled = sdl2_config->GetBoolean("System", "custom_rtc_enabled", false);
-    if (custom_rtc_enabled) {
-        Settings::values.custom_rtc = sdl2_config->GetInteger("System", "custom_rtc", 0);
-    } else {
-        Settings::values.custom_rtc = std::nullopt;
-    }
-
-    ReadSetting("System", Settings::values.language_index);
-    ReadSetting("System", Settings::values.region_index);
-    ReadSetting("System", Settings::values.time_zone_index);
-    ReadSetting("System", Settings::values.sound_index);
-
-    // Core
-    ReadSetting("Core", Settings::values.use_multi_core);
-    ReadSetting("Core", Settings::values.use_unsafe_extended_memory_layout);
-
-    // Cpu
-    ReadSetting("Cpu", Settings::values.cpu_accuracy);
-    ReadSetting("Cpu", Settings::values.cpu_debug_mode);
-    ReadSetting("Cpu", Settings::values.cpuopt_page_tables);
-    ReadSetting("Cpu", Settings::values.cpuopt_block_linking);
-    ReadSetting("Cpu", Settings::values.cpuopt_return_stack_buffer);
-    ReadSetting("Cpu", Settings::values.cpuopt_fast_dispatcher);
-    ReadSetting("Cpu", Settings::values.cpuopt_context_elimination);
-    ReadSetting("Cpu", Settings::values.cpuopt_const_prop);
-    ReadSetting("Cpu", Settings::values.cpuopt_misc_ir);
-    ReadSetting("Cpu", Settings::values.cpuopt_reduce_misalign_checks);
-    ReadSetting("Cpu", Settings::values.cpuopt_fastmem);
-    ReadSetting("Cpu", Settings::values.cpuopt_fastmem_exclusives);
-    ReadSetting("Cpu", Settings::values.cpuopt_recompile_exclusives);
-    ReadSetting("Cpu", Settings::values.cpuopt_ignore_memory_aborts);
-    ReadSetting("Cpu", Settings::values.cpuopt_unsafe_unfuse_fma);
-    ReadSetting("Cpu", Settings::values.cpuopt_unsafe_reduce_fp_error);
-    ReadSetting("Cpu", Settings::values.cpuopt_unsafe_ignore_standard_fpcr);
-    ReadSetting("Cpu", Settings::values.cpuopt_unsafe_inaccurate_nan);
-    ReadSetting("Cpu", Settings::values.cpuopt_unsafe_fastmem_check);
-    ReadSetting("Cpu", Settings::values.cpuopt_unsafe_ignore_global_monitor);
-
-    // Renderer
-    ReadSetting("Renderer", Settings::values.renderer_backend);
-    ReadSetting("Renderer", Settings::values.async_presentation);
-    ReadSetting("Renderer", Settings::values.renderer_force_max_clock);
-    ReadSetting("Renderer", Settings::values.renderer_debug);
-    ReadSetting("Renderer", Settings::values.renderer_shader_feedback);
-    ReadSetting("Renderer", Settings::values.enable_nsight_aftermath);
-    ReadSetting("Renderer", Settings::values.disable_shader_loop_safety_checks);
-    ReadSetting("Renderer", Settings::values.vulkan_device);
-
-    ReadSetting("Renderer", Settings::values.resolution_setup);
-    ReadSetting("Renderer", Settings::values.scaling_filter);
-    ReadSetting("Renderer", Settings::values.fsr_sharpening_slider);
-    ReadSetting("Renderer", Settings::values.anti_aliasing);
-    ReadSetting("Renderer", Settings::values.fullscreen_mode);
-    ReadSetting("Renderer", Settings::values.aspect_ratio);
-    ReadSetting("Renderer", Settings::values.max_anisotropy);
-    ReadSetting("Renderer", Settings::values.use_speed_limit);
-    ReadSetting("Renderer", Settings::values.speed_limit);
-    ReadSetting("Renderer", Settings::values.use_disk_shader_cache);
-    ReadSetting("Renderer", Settings::values.gpu_accuracy);
-    ReadSetting("Renderer", Settings::values.use_asynchronous_gpu_emulation);
-    ReadSetting("Renderer", Settings::values.vsync_mode);
-    ReadSetting("Renderer", Settings::values.shader_backend);
-    ReadSetting("Renderer", Settings::values.use_reactive_flushing);
-    ReadSetting("Renderer", Settings::values.use_asynchronous_shaders);
-    ReadSetting("Renderer", Settings::values.nvdec_emulation);
-    ReadSetting("Renderer", Settings::values.accelerate_astc);
-    ReadSetting("Renderer", Settings::values.async_astc);
-    ReadSetting("Renderer", Settings::values.astc_recompression);
-    ReadSetting("Renderer", Settings::values.use_fast_gpu_time);
-    ReadSetting("Renderer", Settings::values.use_vulkan_driver_pipeline_cache);
-
-    ReadSetting("Renderer", Settings::values.bg_red);
-    ReadSetting("Renderer", Settings::values.bg_green);
-    ReadSetting("Renderer", Settings::values.bg_blue);
-
-    // Audio
-    ReadSetting("Audio", Settings::values.sink_id);
-    ReadSetting("Audio", Settings::values.audio_output_device_id);
-    ReadSetting("Audio", Settings::values.volume);
-
-    // Miscellaneous
-    // log_filter has a different default here than from common
-    Settings::values.log_filter =
-        sdl2_config->Get("Miscellaneous", Settings::values.log_filter.GetLabel(), "*:Trace");
-    ReadSetting("Miscellaneous", Settings::values.use_dev_keys);
 
     // Debugging
     Settings::values.record_frame_times =
         sdl2_config->GetBoolean("Debugging", "record_frame_times", false);
-    ReadSetting("Debugging", Settings::values.dump_exefs);
-    ReadSetting("Debugging", Settings::values.dump_nso);
-    ReadSetting("Debugging", Settings::values.enable_fs_access_log);
-    ReadSetting("Debugging", Settings::values.reporting_services);
-    ReadSetting("Debugging", Settings::values.quest_flag);
-    ReadSetting("Debugging", Settings::values.use_debug_asserts);
-    ReadSetting("Debugging", Settings::values.use_auto_stub);
-    ReadSetting("Debugging", Settings::values.disable_macro_jit);
-    ReadSetting("Debugging", Settings::values.disable_macro_hle);
-    ReadSetting("Debugging", Settings::values.use_gdbstub);
-    ReadSetting("Debugging", Settings::values.gdbstub_port);
 
     const auto title_list = sdl2_config->Get("AddOns", "title_ids", "");
     std::stringstream ss(title_list);
@@ -368,15 +271,6 @@ void Config::ReadValues() {
 
         Settings::values.disabled_addons.insert_or_assign(title_id, out);
     }
-
-    // Web Service
-    ReadSetting("WebService", Settings::values.enable_telemetry);
-    ReadSetting("WebService", Settings::values.web_api_url);
-    ReadSetting("WebService", Settings::values.yuzu_username);
-    ReadSetting("WebService", Settings::values.yuzu_token);
-
-    // Network
-    ReadSetting("Network", Settings::values.network_interface);
 }
 
 void Config::Reload() {
