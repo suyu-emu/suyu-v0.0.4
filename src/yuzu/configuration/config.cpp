@@ -727,8 +727,7 @@ void Config::ReadMultiplayerValues() {
 }
 
 void Config::ReadNetworkValues() {
-    qt_config->beginGroup(
-        QString::fromUtf8(Settings::TranslateCategory(Settings::Category::Network)));
+    qt_config->beginGroup(QString::fromStdString("Services"));
 
     ReadCategory(Settings::Category::Network);
 
