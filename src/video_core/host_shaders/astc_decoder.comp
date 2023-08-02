@@ -94,8 +94,6 @@ uint result_index = 0;
 uint result_vector_max_index;
 bool result_limit_reached = false;
 
-uvec4 endpoints[2][4];
-
 // EncodingData helpers
 uint Encoding(EncodingData val) {
     return bitfieldExtract(val.data, 0, 8);
@@ -675,7 +673,7 @@ ivec4 BlueContract(int a, int r, int g, int b) {
     return ivec4(a, (r + b) >> 1, (g + b) >> 1, b);
 }
 
-void ComputeEndpoints(uint ep_index, uint color_endpoint_mode,
+void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode,
                       inout uint colvals_index) {
 #define READ_UINT_VALUES(N)                                                                        \
     uint v[N];                                                                                     \
@@ -694,22 +692,22 @@ void ComputeEndpoints(uint ep_index, uint color_endpoint_mode,
     switch (color_endpoint_mode) {
     case 0: {
         READ_UINT_VALUES(2)
-        endpoints[0][ep_index] = uvec4(0xFF, v[0], v[0], v[0]);
-        endpoints[1][ep_index] = uvec4(0xFF, v[1], v[1], v[1]);
+        ep1 = uvec4(0xFF, v[0], v[0], v[0]);
+        ep2 = uvec4(0xFF, v[1], v[1], v[1]);
         break;
     }
     case 1: {
         READ_UINT_VALUES(2)
         const uint L0 = (v[0] >> 2) | (v[1] & 0xC0);
         const uint L1 = min(L0 + (v[1] & 0x3F), 0xFFU);
-        endpoints[0][ep_index] = uvec4(0xFF, L0, L0, L0);
-        endpoints[1][ep_index] = uvec4(0xFF, L1, L1, L1);
+        ep1 = uvec4(0xFF, L0, L0, L0);
+        ep2 = uvec4(0xFF, L1, L1, L1);
         break;
     }
     case 4: {
         READ_UINT_VALUES(4)
-        endpoints[0][ep_index] = uvec4(v[2], v[0], v[0], v[0]);
-        endpoints[1][ep_index] = uvec4(v[3], v[1], v[1], v[1]);
+        ep1 = uvec4(v[2], v[0], v[0], v[0]);
+        ep2 = uvec4(v[3], v[1], v[1], v[1]);
         break;
     }
     case 5: {
@@ -720,24 +718,24 @@ void ComputeEndpoints(uint ep_index, uint color_endpoint_mode,
         transferred = BitTransferSigned(v[3], v[2]);
         v[3] = transferred.x;
         v[2] = transferred.y;
-        endpoints[0][ep_index] = ClampByte(ivec4(v[2], v[0], v[0], v[0]));
-        endpoints[1][ep_index] = ClampByte(ivec4(v[2] + v[3], v[0] + v[1], v[0] + v[1], v[0] + v[1]));
+        ep1 = ClampByte(ivec4(v[2], v[0], v[0], v[0]));
+        ep2 = ClampByte(ivec4(v[2] + v[3], v[0] + v[1], v[0] + v[1], v[0] + v[1]));
         break;
     }
     case 6: {
         READ_UINT_VALUES(4)
-        endpoints[0][ep_index] = uvec4(0xFF, (v[0] * v[3]) >> 8, (v[1] * v[3]) >> 8, (v[2] * v[3]) >> 8);
-        endpoints[1][ep_index] = uvec4(0xFF, v[0], v[1], v[2]);
+        ep1 = uvec4(0xFF, (v[0] * v[3]) >> 8, (v[1] * v[3]) >> 8, (v[2] * v[3]) >> 8);
+        ep2 = uvec4(0xFF, v[0], v[1], v[2]);
         break;
     }
     case 8: {
         READ_UINT_VALUES(6)
         if ((v[1] + v[3] + v[5]) >= (v[0] + v[2] + v[4])) {
-            endpoints[0][ep_index] = uvec4(0xFF, v[0], v[2], v[4]);
-            endpoints[1][ep_index] = uvec4(0xFF, v[1], v[3], v[5]);
+            ep1 = uvec4(0xFF, v[0], v[2], v[4]);
+            ep2 = uvec4(0xFF, v[1], v[3], v[5]);
         } else {
-            endpoints[0][ep_index] = uvec4(BlueContract(0xFF, int(v[1]), int(v[3]), int(v[5])));
-            endpoints[1][ep_index] = uvec4(BlueContract(0xFF, int(v[0]), int(v[2]), int(v[4])));
+            ep1 = uvec4(BlueContract(0xFF, int(v[1]), int(v[3]), int(v[5])));
+            ep2 = uvec4(BlueContract(0xFF, int(v[0]), int(v[2]), int(v[4])));
         }
         break;
     }
@@ -753,28 +751,28 @@ void ComputeEndpoints(uint ep_index, uint color_endpoint_mode,
         v[5] = transferred.x;
         v[4] = transferred.y;
         if ((v[1] + v[3] + v[5]) >= 0) {
-            endpoints[0][ep_index] = ClampByte(ivec4(0xFF, v[0], v[2], v[4]));
-            endpoints[1][ep_index] = ClampByte(ivec4(0xFF, v[0] + v[1], v[2] + v[3], v[4] + v[5]));
+            ep1 = ClampByte(ivec4(0xFF, v[0], v[2], v[4]));
+            ep2 = ClampByte(ivec4(0xFF, v[0] + v[1], v[2] + v[3], v[4] + v[5]));
         } else {
-            endpoints[0][ep_index] = ClampByte(BlueContract(0xFF, v[0] + v[1], v[2] + v[3], v[4] + v[5]));
-            endpoints[1][ep_index] = ClampByte(BlueContract(0xFF, v[0], v[2], v[4]));
+            ep1 = ClampByte(BlueContract(0xFF, v[0] + v[1], v[2] + v[3], v[4] + v[5]));
+            ep2 = ClampByte(BlueContract(0xFF, v[0], v[2], v[4]));
         }
         break;
     }
     case 10: {
         READ_UINT_VALUES(6)
-        endpoints[0][ep_index] = uvec4(v[4], (v[0] * v[3]) >> 8, (v[1] * v[3]) >> 8, (v[2] * v[3]) >> 8);
-        endpoints[1][ep_index] = uvec4(v[5], v[0], v[1], v[2]);
+        ep1 = uvec4(v[4], (v[0] * v[3]) >> 8, (v[1] * v[3]) >> 8, (v[2] * v[3]) >> 8);
+        ep2 = uvec4(v[5], v[0], v[1], v[2]);
         break;
     }
     case 12: {
         READ_UINT_VALUES(8)
         if ((v[1] + v[3] + v[5]) >= (v[0] + v[2] + v[4])) {
-            endpoints[0][ep_index] = uvec4(v[6], v[0], v[2], v[4]);
-            endpoints[1][ep_index] = uvec4(v[7], v[1], v[3], v[5]);
+            ep1 = uvec4(v[6], v[0], v[2], v[4]);
+            ep2 = uvec4(v[7], v[1], v[3], v[5]);
         } else {
-            endpoints[0][ep_index] = uvec4(BlueContract(int(v[7]), int(v[1]), int(v[3]), int(v[5])));
-            endpoints[1][ep_index] = uvec4(BlueContract(int(v[6]), int(v[0]), int(v[2]), int(v[4])));
+            ep1 = uvec4(BlueContract(int(v[7]), int(v[1]), int(v[3]), int(v[5])));
+            ep2 = uvec4(BlueContract(int(v[6]), int(v[0]), int(v[2]), int(v[4])));
         }
         break;
     }
@@ -796,18 +794,18 @@ void ComputeEndpoints(uint ep_index, uint color_endpoint_mode,
         v[6] = transferred.y;
 
         if ((v[1] + v[3] + v[5]) >= 0) {
-            endpoints[0][ep_index] = ClampByte(ivec4(v[6], v[0], v[2], v[4]));
-            endpoints[1][ep_index] = ClampByte(ivec4(v[7] + v[6], v[0] + v[1], v[2] + v[3], v[4] + v[5]));
+            ep1 = ClampByte(ivec4(v[6], v[0], v[2], v[4]));
+            ep2 = ClampByte(ivec4(v[7] + v[6], v[0] + v[1], v[2] + v[3], v[4] + v[5]));
         } else {
-            endpoints[0][ep_index] = ClampByte(BlueContract(v[6] + v[7], v[0] + v[1], v[2] + v[3], v[4] + v[5]));
-            endpoints[1][ep_index] = ClampByte(BlueContract(v[6], v[0], v[2], v[4]));
+            ep1 = ClampByte(BlueContract(v[6] + v[7], v[0] + v[1], v[2] + v[3], v[4] + v[5]));
+            ep2 = ClampByte(BlueContract(v[6], v[0], v[2], v[4]));
         }
         break;
     }
     default: {
         // HDR mode, or more likely a bug computing the color_endpoint_mode
-        endpoints[0][ep_index] = uvec4(0xFF, 0xFF, 0, 0);
-        endpoints[1][ep_index] = uvec4(0xFF, 0xFF, 0, 0);
+        ep1 = uvec4(0xFF, 0xFF, 0, 0);
+        ep2 = uvec4(0xFF, 0xFF, 0, 0);
         break;
     }
     }
@@ -1200,6 +1198,10 @@ void DecompressBlock(ivec3 coord) {
             color_endpoint_mode[i] = cem;
         }
     }
+
+    uvec4 endpoints0[4];
+    uvec4 endpoints1[4];
+    {
         // This decode phase should at most push 32 elements into the vector
         result_vector_max_index = 32;
 
@@ -1207,8 +1209,10 @@ void DecompressBlock(ivec3 coord) {
         uint colvals_index = 0;
         DecodeColorValues(color_endpoint_mode, num_partitions, color_data_bits);
         for (uint i = 0; i < num_partitions; i++) {
-            ComputeEndpoints(i, color_endpoint_mode[i], colvals_index);
+            ComputeEndpoints(endpoints0[i], endpoints1[i], color_endpoint_mode[i],
+                             colvals_index);
         }
+    }
     color_endpoint_data = local_buff;
     color_endpoint_data = bitfieldReverse(color_endpoint_data).wzyx;
     const uint clear_byte_start = (weight_bits >> 3) + 1;
@@ -1243,8 +1247,8 @@ void DecompressBlock(ivec3 coord) {
                 local_partition = Select2DPartition(partition_index, i, j, num_partitions,
                                                     (block_dims.y * block_dims.x) < 32);
             }
-            const uvec4 C0 = ReplicateByteTo16(endpoints[0][local_partition]);
-            const uvec4 C1 = ReplicateByteTo16(endpoints[1][local_partition]);
+            const uvec4 C0 = ReplicateByteTo16(endpoints0[local_partition]);
+            const uvec4 C1 = ReplicateByteTo16(endpoints1[local_partition]);
             const uint weight_offset = (j * block_dims.x + i);
             const uint array_index = weight_offset / 4;
             const uint vector_index = bfe(weight_offset, 0, 2);
