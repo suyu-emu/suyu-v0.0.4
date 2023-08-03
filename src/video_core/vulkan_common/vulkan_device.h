@@ -20,7 +20,6 @@ VK_DEFINE_HANDLE(VmaAllocator)
 // Vulkan version in the macro describes the minimum version required for feature availability.
 // If the Vulkan version is lower than the required version, the named extension is required.
 #define FOR_EACH_VK_FEATURE_1_1(FEATURE)                                                           \
-    FEATURE(EXT, SubgroupSizeControl, SUBGROUP_SIZE_CONTROL, subgroup_size_control)                \
     FEATURE(KHR, 16BitStorage, 16BIT_STORAGE, bit16_storage)                                       \
     FEATURE(KHR, ShaderAtomicInt64, SHADER_ATOMIC_INT64, shader_atomic_int64)                      \
     FEATURE(KHR, ShaderDrawParameters, SHADER_DRAW_PARAMETERS, shader_draw_parameters)             \
@@ -36,7 +35,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 #define FOR_EACH_VK_FEATURE_1_3(FEATURE)                                                           \
     FEATURE(EXT, ShaderDemoteToHelperInvocation, SHADER_DEMOTE_TO_HELPER_INVOCATION,               \
-            shader_demote_to_helper_invocation)
+            shader_demote_to_helper_invocation)                                                    \
+    FEATURE(EXT, SubgroupSizeControl, SUBGROUP_SIZE_CONTROL, subgroup_size_control)
 
 // Define all features which may be used by the implementation and require an extension here.
 #define FOR_EACH_VK_FEATURE_EXT(FEATURE)                                                           \
