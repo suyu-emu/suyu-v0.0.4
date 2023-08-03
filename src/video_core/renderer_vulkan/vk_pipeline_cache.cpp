@@ -584,7 +584,8 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
     ShaderPools& pools, const GraphicsPipelineCacheKey& key,
     std::span<Shader::Environment* const> envs, PipelineStatistics* statistics,
     bool build_in_parallel) try {
-    LOG_INFO(Render_Vulkan, "0x{:016x}", key.Hash());
+    auto hash = key.Hash();
+    LOG_INFO(Render_Vulkan, "0x{:016x}", hash);
     size_t env_index{0};
     std::array<Shader::IR::Program, Maxwell::MaxShaderProgram> programs;
     const bool uses_vertex_a{key.unique_hashes[0] != 0};
@@ -611,7 +612,7 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         const u32 cfg_offset{static_cast<u32>(env.StartAddress() + sizeof(Shader::ProgramHeader))};
         Shader::Maxwell::Flow::CFG cfg(env, pools.flow_block, cfg_offset, index == 0);
         if (Settings::values.dump_shaders) {
-            env.Dump(key.unique_hashes[index]);
+            env.Dump(hash, key.unique_hashes[index]);
         }
         if (!uses_vertex_a || index != 1) {
             // Normal path
@@ -712,18 +713,19 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
 std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     ShaderPools& pools, const ComputePipelineCacheKey& key, Shader::Environment& env,
     PipelineStatistics* statistics, bool build_in_parallel) try {
+    auto hash = key.Hash();
     if (device.HasBrokenCompute()) {
-        LOG_ERROR(Render_Vulkan, "Skipping 0x{:016x}", key.Hash());
+        LOG_ERROR(Render_Vulkan, "Skipping 0x{:016x}", hash);
         return nullptr;
     }
 
-    LOG_INFO(Render_Vulkan, "0x{:016x}", key.Hash());
+    LOG_INFO(Render_Vulkan, "0x{:016x}", hash);
 
     Shader::Maxwell::Flow::CFG cfg{env, pools.flow_block, env.StartAddress()};
 
     // Dump it before error.
     if (Settings::values.dump_shaders) {
-        env.Dump(key.Hash());
+        env.Dump(hash, key.unique_hash);
     }
 
     auto program{TranslateProgram(pools.inst, pools.block, env, cfg, host_info)};

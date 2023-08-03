@@ -445,7 +445,8 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
     ShaderContext::ShaderPools& pools, const GraphicsPipelineKey& key,
     std::span<Shader::Environment* const> envs, bool use_shader_workers,
     bool force_context_flush) try {
-    LOG_INFO(Render_OpenGL, "0x{:016x}", key.Hash());
+    auto hash = key.Hash();
+    LOG_INFO(Render_OpenGL, "0x{:016x}", hash);
     size_t env_index{};
     u32 total_storage_buffers{};
     std::array<Shader::IR::Program, Maxwell::MaxShaderProgram> programs;
@@ -474,7 +475,7 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
         Shader::Maxwell::Flow::CFG cfg(env, pools.flow_block, cfg_offset, index == 0);
 
         if (Settings::values.dump_shaders) {
-            env.Dump(key.unique_hashes[index]);
+            env.Dump(hash, key.unique_hashes[index]);
         }
 
         if (!uses_vertex_a || index != 1) {
@@ -566,12 +567,13 @@ std::unique_ptr<ComputePipeline> ShaderCache::CreateComputePipeline(
 std::unique_ptr<ComputePipeline> ShaderCache::CreateComputePipeline(
     ShaderContext::ShaderPools& pools, const ComputePipelineKey& key, Shader::Environment& env,
     bool force_context_flush) try {
-    LOG_INFO(Render_OpenGL, "0x{:016x}", key.Hash());
+    auto hash = key.Hash();
+    LOG_INFO(Render_OpenGL, "0x{:016x}", hash);
 
     Shader::Maxwell::Flow::CFG cfg{env, pools.flow_block, env.StartAddress()};
 
     if (Settings::values.dump_shaders) {
-        env.Dump(key.Hash());
+        env.Dump(hash, key.unique_hash);
     }
 
     auto program{TranslateProgram(pools.inst, pools.block, env, cfg, host_info)};

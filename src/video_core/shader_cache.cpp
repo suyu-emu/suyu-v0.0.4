@@ -51,6 +51,11 @@ bool ShaderCache::RefreshStages(std::array<u64, 6>& unique_hashes) {
         }
         const auto& shader_config{maxwell3d->regs.pipelines[index]};
         const auto program{static_cast<Tegra::Engines::Maxwell3D::Regs::ShaderType>(index)};
+        if (program == Tegra::Engines::Maxwell3D::Regs::ShaderType::Pixel &&
+            !maxwell3d->regs.rasterize_enable) {
+            unique_hashes[index] = 0;
+            continue;
+        }
         const GPUVAddr shader_addr{base_addr + shader_config.offset};
         const std::optional<VAddr> cpu_shader_addr{gpu_memory->GpuToCpuAddress(shader_addr)};
         if (!cpu_shader_addr) {

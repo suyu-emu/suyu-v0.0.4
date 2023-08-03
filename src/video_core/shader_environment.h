@@ -58,7 +58,7 @@ public:
 
     [[nodiscard]] u64 CalculateHash() const;
 
-    void Dump(u64 hash) override;
+    void Dump(u64 pipeline_hash, u64 shader_hash) override;
 
     void Serialize(std::ofstream& file) const;
 
@@ -188,10 +188,10 @@ public:
         return cbuf_replacements.size() != 0;
     }
 
-    void Dump(u64 hash) override;
+    void Dump(u64 pipeline_hash, u64 shader_hash) override;
 
 private:
-    std::unique_ptr<u64[]> code;
+    std::vector<u64> code;
     std::unordered_map<u32, Shader::TextureType> texture_types;
     std::unordered_map<u32, Shader::TexturePixelFormat> texture_pixel_formats;
     std::unordered_map<u64, u32> cbuf_values;
