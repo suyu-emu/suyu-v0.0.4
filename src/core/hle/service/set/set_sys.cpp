@@ -4,10 +4,12 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
+#include "common/string_util.h"
 #include "core/file_sys/errors.h"
 #include "core/file_sys/system_archive/system_version.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/set/set.h"
 #include "core/hle/service/set/set_sys.h"
 
 namespace Service::Set {
@@ -83,20 +85,85 @@ void SET_SYS::GetFirmwareVersion2(HLERequestContext& ctx) {
     GetFirmwareVersionImpl(ctx, GetFirmwareVersionType::Version2);
 }
 
+void SET_SYS::GetAccountSettings(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(account_settings);
+}
+
+void SET_SYS::SetAccountSettings(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    account_settings = rp.PopRaw<AccountSettings>();
+
+    LOG_INFO(Service_SET, "called, account_settings_flags={}", account_settings.flags);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void SET_SYS::GetColorSetId(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     IPC::ResponseBuilder rb{ctx, 3};
-
     rb.Push(ResultSuccess);
     rb.PushEnum(color_set);
 }
 
 void SET_SYS::SetColorSetId(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_SET, "called");
-
     IPC::RequestParser rp{ctx};
     color_set = rp.PopEnum<ColorSet>();
+
+    LOG_DEBUG(Service_SET, "called, color_set={}", color_set);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void SET_SYS::GetNotificationSettings(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    IPC::ResponseBuilder rb{ctx, 8};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(notification_settings);
+}
+
+void SET_SYS::SetNotificationSettings(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    notification_settings = rp.PopRaw<NotificationSettings>();
+
+    LOG_INFO(Service_SET, "called, flags={}, volume={}, head_time={}:{}, tailt_time={}:{}",
+             notification_settings.flags.raw, notification_settings.volume,
+             notification_settings.start_time.hour, notification_settings.start_time.minute,
+             notification_settings.stop_time.hour, notification_settings.stop_time.minute);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void SET_SYS::GetAccountNotificationSettings(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    ctx.WriteBuffer(account_notifications);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(account_notifications.size());
+}
+
+void SET_SYS::SetAccountNotificationSettings(HLERequestContext& ctx) {
+    const auto elements = ctx.GetReadBufferNumElements<AccountNotificationSettings>();
+    const auto buffer_data = ctx.ReadBuffer();
+
+    LOG_INFO(Service_SET, "called, elements={}", elements);
+
+    account_notifications.resize(elements);
+    for (std::size_t index = 0; index < elements; index++) {
+        const std::size_t start_index = index * sizeof(AccountNotificationSettings);
+        memcpy(account_notifications.data() + start_index, buffer_data.data() + start_index,
+               sizeof(AccountNotificationSettings));
+    }
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -177,11 +244,194 @@ void SET_SYS::GetSettingsItemValue(HLERequestContext& ctx) {
     rb.Push(response);
 }
 
-void SET_SYS::GetDeviceNickName(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_SET, "called");
+void SET_SYS::GetTvSettings(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    IPC::ResponseBuilder rb{ctx, 10};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(tv_settings);
+}
+
+void SET_SYS::SetTvSettings(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    tv_settings = rp.PopRaw<TvSettings>();
+
+    LOG_INFO(Service_SET,
+             "called, flags={}, cmu_mode={}, constrast_ratio={}, hdmi_content_type={}, "
+             "rgb_range={}, tv_gama={}, tv_resolution={}, tv_underscan={}",
+             tv_settings.flags.raw, tv_settings.cmu_mode, tv_settings.constrast_ratio,
+             tv_settings.hdmi_content_type, tv_settings.rgb_range, tv_settings.tv_gama,
+             tv_settings.tv_resolution, tv_settings.tv_underscan);
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
+}
+
+void SET_SYS::GetQuestFlag(HLERequestContext& ctx) {
+    LOG_WARNING(Service_SET, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(QuestFlag::Retail);
+}
+
+void SET_SYS::GetPrimaryAlbumStorage(HLERequestContext& ctx) {
+    LOG_WARNING(Service_SET, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(PrimaryAlbumStorage::SdCard);
+}
+
+void SET_SYS::GetSleepSettings(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    IPC::ResponseBuilder rb{ctx, 7};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(sleep_settings);
+}
+
+void SET_SYS::SetSleepSettings(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    sleep_settings = rp.PopRaw<SleepSettings>();
+
+    LOG_INFO(Service_SET, "called, flags={}, handheld_sleep_plan={}, console_sleep_plan={}",
+             sleep_settings.flags.raw, sleep_settings.handheld_sleep_plan,
+             sleep_settings.console_sleep_plan);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void SET_SYS::GetInitialLaunchSettings(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+    IPC::ResponseBuilder rb{ctx, 10};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(launch_settings);
+}
+
+void SET_SYS::SetInitialLaunchSettings(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    launch_settings = rp.PopRaw<InitialLaunchSettings>();
+
+    LOG_INFO(Service_SET, "called, flags={}, timestamp={}", launch_settings.flags.raw,
+             launch_settings.timestamp.time_point);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void SET_SYS::GetDeviceNickName(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_SET, "called");
+
     ctx.WriteBuffer(::Settings::values.device_name.GetValue());
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void SET_SYS::SetDeviceNickName(HLERequestContext& ctx) {
+    const std::string device_name = Common::StringFromBuffer(ctx.ReadBuffer());
+
+    LOG_INFO(Service_SET, "called, device_name={}", device_name);
+
+    ::Settings::values.device_name = device_name;
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void SET_SYS::GetProductModel(HLERequestContext& ctx) {
+    const u32 product_model = 1;
+
+    LOG_WARNING(Service_SET, "(STUBBED) called, product_model={}", product_model);
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(product_model);
+}
+
+void SET_SYS::GetMiiAuthorId(HLERequestContext& ctx) {
+    const auto author_id = Common::UUID::MakeDefault();
+
+    LOG_WARNING(Service_SET, "(STUBBED) called, author_id={}", author_id.FormattedString());
+
+    IPC::ResponseBuilder rb{ctx, 6};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(author_id);
+}
+
+void SET_SYS::GetAutoUpdateEnableFlag(HLERequestContext& ctx) {
+    u8 auto_update_flag{};
+
+    LOG_WARNING(Service_SET, "(STUBBED) called, auto_update_flag={}", auto_update_flag);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(auto_update_flag);
+}
+
+void SET_SYS::GetBatteryPercentageFlag(HLERequestContext& ctx) {
+    u8 battery_percentage_flag{1};
+
+    LOG_WARNING(Service_SET, "(STUBBED) called, battery_percentage_flag={}",
+                battery_percentage_flag);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(battery_percentage_flag);
+}
+
+void SET_SYS::GetErrorReportSharePermission(HLERequestContext& ctx) {
+    LOG_WARNING(Service_SET, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(ErrorReportSharePermission::Denied);
+}
+
+void SET_SYS::GetAppletLaunchFlags(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called, applet_launch_flag={}", applet_launch_flag);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(applet_launch_flag);
+}
+
+void SET_SYS::SetAppletLaunchFlags(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    applet_launch_flag = rp.Pop<u32>();
+
+    LOG_INFO(Service_SET, "called, applet_launch_flag={}", applet_launch_flag);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void SET_SYS::GetKeyboardLayout(HLERequestContext& ctx) {
+    const auto language_code =
+        available_language_codes[static_cast<s32>(::Settings::values.language_index.GetValue())];
+    const auto key_code =
+        std::find_if(language_to_layout.cbegin(), language_to_layout.cend(),
+                     [=](const auto& element) { return element.first == language_code; });
+
+    KeyboardLayout selected_keyboard_layout = KeyboardLayout::EnglishUs;
+    if (key_code != language_to_layout.end()) {
+        selected_keyboard_layout = key_code->second;
+    }
+
+    LOG_INFO(Service_SET, "called, selected_keyboard_layout={}", selected_keyboard_layout);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(static_cast<u32>(selected_keyboard_layout));
+}
+
+void SET_SYS::GetChineseTraditionalInputMethod(HLERequestContext& ctx) {
+    LOG_WARNING(Service_SET, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(ChineseTraditionalInputMethod::Unknown0);
 }
 
 SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
@@ -203,8 +453,8 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {14, nullptr, "SetExternalSteadyClockSourceId"},
         {15, nullptr, "GetUserSystemClockContext"},
         {16, nullptr, "SetUserSystemClockContext"},
-        {17, nullptr, "GetAccountSettings"},
-        {18, nullptr, "SetAccountSettings"},
+        {17, &SET_SYS::GetAccountSettings, "GetAccountSettings"},
+        {18, &SET_SYS::SetAccountSettings, "SetAccountSettings"},
         {19, nullptr, "GetAudioVolume"},
         {20, nullptr, "SetAudioVolume"},
         {21, nullptr, "GetEulaVersions"},
@@ -215,23 +465,23 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {26, nullptr, "SetConsoleInformationUploadFlag"},
         {27, nullptr, "GetAutomaticApplicationDownloadFlag"},
         {28, nullptr, "SetAutomaticApplicationDownloadFlag"},
-        {29, nullptr, "GetNotificationSettings"},
-        {30, nullptr, "SetNotificationSettings"},
-        {31, nullptr, "GetAccountNotificationSettings"},
-        {32, nullptr, "SetAccountNotificationSettings"},
+        {29, &SET_SYS::GetNotificationSettings, "GetNotificationSettings"},
+        {30, &SET_SYS::SetNotificationSettings, "SetNotificationSettings"},
+        {31, &SET_SYS::GetAccountNotificationSettings, "GetAccountNotificationSettings"},
+        {32, &SET_SYS::SetAccountNotificationSettings, "SetAccountNotificationSettings"},
         {35, nullptr, "GetVibrationMasterVolume"},
         {36, nullptr, "SetVibrationMasterVolume"},
         {37, &SET_SYS::GetSettingsItemValueSize, "GetSettingsItemValueSize"},
         {38, &SET_SYS::GetSettingsItemValue, "GetSettingsItemValue"},
-        {39, nullptr, "GetTvSettings"},
-        {40, nullptr, "SetTvSettings"},
+        {39, &SET_SYS::GetTvSettings, "GetTvSettings"},
+        {40, &SET_SYS::SetTvSettings, "SetTvSettings"},
         {41, nullptr, "GetEdid"},
         {42, nullptr, "SetEdid"},
         {43, nullptr, "GetAudioOutputMode"},
         {44, nullptr, "SetAudioOutputMode"},
         {45, nullptr, "IsForceMuteOnHeadphoneRemoved"},
         {46, nullptr, "SetForceMuteOnHeadphoneRemoved"},
-        {47, nullptr, "GetQuestFlag"},
+        {47, &SET_SYS::GetQuestFlag, "GetQuestFlag"},
         {48, nullptr, "SetQuestFlag"},
         {49, nullptr, "GetDataDeletionSettings"},
         {50, nullptr, "SetDataDeletionSettings"},
@@ -247,7 +497,7 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {60, nullptr, "IsUserSystemClockAutomaticCorrectionEnabled"},
         {61, nullptr, "SetUserSystemClockAutomaticCorrectionEnabled"},
         {62, nullptr, "GetDebugModeFlag"},
-        {63, nullptr, "GetPrimaryAlbumStorage"},
+        {63, &SET_SYS::GetPrimaryAlbumStorage, "GetPrimaryAlbumStorage"},
         {64, nullptr, "SetPrimaryAlbumStorage"},
         {65, nullptr, "GetUsb30EnableFlag"},
         {66, nullptr, "SetUsb30EnableFlag"},
@@ -255,15 +505,15 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {68, nullptr, "GetSerialNumber"},
         {69, nullptr, "GetNfcEnableFlag"},
         {70, nullptr, "SetNfcEnableFlag"},
-        {71, nullptr, "GetSleepSettings"},
-        {72, nullptr, "SetSleepSettings"},
+        {71, &SET_SYS::GetSleepSettings, "GetSleepSettings"},
+        {72, &SET_SYS::SetSleepSettings, "SetSleepSettings"},
         {73, nullptr, "GetWirelessLanEnableFlag"},
         {74, nullptr, "SetWirelessLanEnableFlag"},
-        {75, nullptr, "GetInitialLaunchSettings"},
-        {76, nullptr, "SetInitialLaunchSettings"},
+        {75, &SET_SYS::GetInitialLaunchSettings, "GetInitialLaunchSettings"},
+        {76, &SET_SYS::SetInitialLaunchSettings, "SetInitialLaunchSettings"},
         {77, &SET_SYS::GetDeviceNickName, "GetDeviceNickName"},
-        {78, nullptr, "SetDeviceNickName"},
-        {79, nullptr, "GetProductModel"},
+        {78, &SET_SYS::SetDeviceNickName, "SetDeviceNickName"},
+        {79, &SET_SYS::GetProductModel, "GetProductModel"},
         {80, nullptr, "GetLdnChannel"},
         {81, nullptr, "SetLdnChannel"},
         {82, nullptr, "AcquireTelemetryDirtyFlagEventHandle"},
@@ -274,16 +524,16 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {87, nullptr, "SetPtmFuelGaugeParameter"},
         {88, nullptr, "GetBluetoothEnableFlag"},
         {89, nullptr, "SetBluetoothEnableFlag"},
-        {90, nullptr, "GetMiiAuthorId"},
+        {90, &SET_SYS::GetMiiAuthorId, "GetMiiAuthorId"},
         {91, nullptr, "SetShutdownRtcValue"},
         {92, nullptr, "GetShutdownRtcValue"},
         {93, nullptr, "AcquireFatalDirtyFlagEventHandle"},
         {94, nullptr, "GetFatalDirtyFlags"},
-        {95, nullptr, "GetAutoUpdateEnableFlag"},
+        {95, &SET_SYS::GetAutoUpdateEnableFlag, "GetAutoUpdateEnableFlag"},
         {96, nullptr, "SetAutoUpdateEnableFlag"},
         {97, nullptr, "GetNxControllerSettings"},
         {98, nullptr, "SetNxControllerSettings"},
-        {99, nullptr, "GetBatteryPercentageFlag"},
+        {99, &SET_SYS::GetBatteryPercentageFlag, "GetBatteryPercentageFlag"},
         {100, nullptr, "SetBatteryPercentageFlag"},
         {101, nullptr, "GetExternalRtcResetFlag"},
         {102, nullptr, "SetExternalRtcResetFlag"},
@@ -308,10 +558,10 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {121, nullptr, "SetPushNotificationActivityModeOnSleep"},
         {122, nullptr, "GetServiceDiscoveryControlSettings"},
         {123, nullptr, "SetServiceDiscoveryControlSettings"},
-        {124, nullptr, "GetErrorReportSharePermission"},
+        {124, &SET_SYS::GetErrorReportSharePermission, "GetErrorReportSharePermission"},
         {125, nullptr, "SetErrorReportSharePermission"},
-        {126, nullptr, "GetAppletLaunchFlags"},
-        {127, nullptr, "SetAppletLaunchFlags"},
+        {126, &SET_SYS::GetAppletLaunchFlags, "GetAppletLaunchFlags"},
+        {127, &SET_SYS::SetAppletLaunchFlags, "SetAppletLaunchFlags"},
         {128, nullptr, "GetConsoleSixAxisSensorAccelerationBias"},
         {129, nullptr, "SetConsoleSixAxisSensorAccelerationBias"},
         {130, nullptr, "GetConsoleSixAxisSensorAngularVelocityBias"},
@@ -320,7 +570,7 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {133, nullptr, "SetConsoleSixAxisSensorAccelerationGain"},
         {134, nullptr, "GetConsoleSixAxisSensorAngularVelocityGain"},
         {135, nullptr, "SetConsoleSixAxisSensorAngularVelocityGain"},
-        {136, nullptr, "GetKeyboardLayout"},
+        {136, &SET_SYS::GetKeyboardLayout, "GetKeyboardLayout"},
         {137, nullptr, "SetKeyboardLayout"},
         {138, nullptr, "GetWebInspectorFlag"},
         {139, nullptr, "GetAllowedSslHosts"},
@@ -354,7 +604,7 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {167, nullptr, "SetUsb30DeviceEnableFlag"},
         {168, nullptr, "GetThemeId"},
         {169, nullptr, "SetThemeId"},
-        {170, nullptr, "GetChineseTraditionalInputMethod"},
+        {170, &SET_SYS::GetChineseTraditionalInputMethod, "GetChineseTraditionalInputMethod"},
         {171, nullptr, "SetChineseTraditionalInputMethod"},
         {172, nullptr, "GetPtmCycleCountReliability"},
         {173, nullptr, "SetPtmCycleCountReliability"},
@@ -391,6 +641,10 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {204, nullptr, "SetPanelCrcMode"},
         {205, nullptr, "GetNxControllerSettingsEx"},
         {206, nullptr, "SetNxControllerSettingsEx"},
+        {207, nullptr, "GetHearingProtectionSafeguardFlag"},
+        {208, nullptr, "SetHearingProtectionSafeguardFlag"},
+        {209, nullptr, "GetHearingProtectionSafeguardRemainingTime"},
+        {210, nullptr, "SetHearingProtectionSafeguardRemainingTime"},
     };
     // clang-format on
 
