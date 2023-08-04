@@ -489,8 +489,22 @@ void QueryCacheBase<Traits>::PopAsyncFlushes() {
     if (mask == 0) {
         return;
     }
-    impl->ForEachStreamerIn(mask,
-                            [](StreamerInterface* streamer) { streamer->PopUnsyncedQueries(); });
+    u64 ran_mask = 0;
+    u64 next_phase = 0;
+    while (mask) {
+        impl->ForEachStreamerIn(mask, [&mask, &ran_mask, &next_phase](StreamerInterface* streamer) {
+            u64 dep_mask = streamer->GetDependenceMask();
+            if ((dep_mask & ~ran_mask) != 0) {
+                next_phase |= dep_mask;
+                return;
+            }
+            u64 index = streamer->GetId();
+            ran_mask |= (1ULL << index);
+            mask &= ~(1ULL << index);
+            streamer->PopUnsyncedQueries();
+        });
+        ran_mask |= next_phase;
+    }
 }
 
 // Invalidation

@@ -526,6 +526,9 @@ private:
 };
 
 template <typename Traits>
+class PrimitivesSucceededStreamer;
+
+template <typename Traits>
 class TFBCounterStreamer : public BaseStreamer {
 public:
     TFBCounterStreamer(size_t id, QueryCacheRuntime& runtime_, const Device& device_,
@@ -537,6 +540,7 @@ public:
         current_bank = nullptr;
         counter_buffers.fill(VK_NULL_HANDLE);
         offsets.fill(0);
+        last_queries.fill(0);
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
@@ -630,7 +634,7 @@ public:
             return index;
         }
         const size_t subreport = static_cast<size_t>(*subreport_);
-        UpdateBuffers();
+        last_queries[subreport] = address;
         if ((streams_mask & (1ULL << subreport)) == 0) {
             new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
             return index;
@@ -646,6 +650,13 @@ public:
         return index;
     }
 
+    std::optional<VAddr> GetLastQueryStream(size_t stream) {
+        if (last_queries[stream] != 0) {
+            return {last_queries[stream]};
+        }
+        return std::nullopt;
+    }
+
     bool HasUnsyncedQueries() override {
         return !pending_flush_queries.empty();
     }
@@ -657,6 +668,7 @@ public:
         size_t offset_base = staging_ref.offset;
         for (auto q : pending_flush_queries) {
             auto* query = GetQuery(q);
+            query->flags |= VideoCommon::QueryFlagBits::IsQueuedForAsyncFlush;
             auto& bank = bank_pool.GetBank(query->start_bank_id);
             bank.Sync(staging_ref, offset_base, query->start_slot, 1);
             offset_base += TFBQueryBank::QUERY_SIZE;
@@ -741,13 +753,15 @@ private:
                 cmdbuf.EndTransformFeedbackEXT(0, 0, nullptr, nullptr);
             });
         } else {
-            scheduler.Record([this, total = static_cast<u32>(buffers_count)](vk::CommandBuffer cmdbuf) {
+            scheduler.Record([this,
+                              total = static_cast<u32>(buffers_count)](vk::CommandBuffer cmdbuf) {
                 cmdbuf.EndTransformFeedbackEXT(0, total, counter_buffers.data(), offsets.data());
             });
         }
     }
 
     void UpdateBuffers() {
+        last_queries.fill(0);
         runtime.View3DRegs([this](Tegra::Engines::Maxwell3D::Regs& regs) {
             buffers_count = 0;
             for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumTransformFeedbackBuffers;
@@ -804,6 +818,9 @@ private:
         return {current_bank_id, slot};
     }
 
+    template <typename Traits>
+    friend class PrimitivesSucceededStreamer;
+
     static constexpr size_t NUM_STREAMS = 4;
     static constexpr size_t STREAMS_MASK = (1ULL << NUM_STREAMS) - 1ULL;
 
@@ -833,7 +850,141 @@ private:
     size_t buffers_count{};
     std::array<VkBuffer, NUM_STREAMS> counter_buffers{};
     std::array<VkDeviceSize, NUM_STREAMS> offsets{};
+    std::array<VAddr, NUM_STREAMS> last_queries;
     u64 streams_mask;
+};
+
+class PrimitivesQueryBase : public VideoCommon::QueryBase {
+public:
+    // Default constructor
+    PrimitivesQueryBase()
+        : VideoCommon::QueryBase(0, VideoCommon::QueryFlagBits::IsHostManaged, 0), stride{},
+          dependant_index{}, dependant_manage{} {}
+
+    // Parameterized constructor
+    PrimitivesQueryBase(bool is_long, VAddr address)
+        : VideoCommon::QueryBase(address, VideoCommon::QueryFlagBits::IsHostManaged, 0), stride{},
+          dependant_index{}, dependant_manage{} {
+        if (is_long) {
+            flags |= VideoCommon::QueryFlagBits::HasTimestamp;
+        }
+    }
+
+    u64 stride;
+    VAddr dependant_address;
+    size_t dependant_index;
+    bool dependant_manage;
+};
+
+template <typename Traits>
+class PrimitivesSucceededStreamer : public VideoCommon::SimpleStreamer<PrimitivesQueryBase> {
+public:
+    PrimitivesSucceededStreamer(size_t id, QueryCacheRuntime& runtime_,
+                                TFBCounterStreamer<QueryCacheParams>& tfb_streamer_, Core::Memory::Memory& cpu_memory_)
+        : VideoCommon::SimpleStreamer<PrimitivesQueryBase>(
+              id, 1ULL << static_cast<u64>(VideoCommon::QueryType::StreamingByteCount)),
+          runtime{runtime_}, tfb_streamer{tfb_streamer_}, cpu_memory{cpu_memory_} {}
+
+    size_t WriteCounter(VAddr address, bool has_timestamp, u32 value,
+                        std::optional<u32> subreport_) override {
+        auto index = BuildQuery();
+        auto* new_query = GetQuery(index);
+        new_query->guest_address = address;
+        new_query->value = 0;
+        if (has_timestamp) {
+            new_query->flags |= VideoCommon::QueryFlagBits::HasTimestamp;
+        }
+        if (!subreport_) {
+            new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
+            return index;
+        }
+        const size_t subreport = static_cast<size_t>(*subreport_);
+        auto dependant_address_opt = tfb_streamer.GetLastQueryStream(subreport);
+        bool must_manage_dependance = false;
+        if (dependant_address_opt) {
+            new_query->dependant_address = *dependant_address_opt;
+        } else {
+            new_query->dependant_index =
+                tfb_streamer.WriteCounter(address, has_timestamp, value, subreport_);
+            auto* dependant_query = tfb_streamer.GetQuery(new_query->dependant_index);
+            dependant_query->flags |= VideoCommon::QueryFlagBits::IsInvalidated;
+            must_manage_dependance = true;
+            if (True(dependant_query->flags & VideoCommon::QueryFlagBits::IsFinalValueSynced)) {
+                new_query->value = 0;
+                new_query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
+                if (must_manage_dependance) {
+                    tfb_streamer.Free(new_query->dependant_index);
+                }
+                return index;
+            }
+        }
+
+        new_query->dependant_manage = must_manage_dependance;
+        runtime.View3DRegs([new_query, subreport](Tegra::Engines::Maxwell3D::Regs& regs) {
+            for (size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumTransformFeedbackBuffers;
+                 i++) {
+                const auto& tf = regs.transform_feedback;
+                if (tf.controls[i].stream != subreport) {
+                    continue;
+                }
+                new_query->stride = tf.controls[i].stride;
+                break;
+            }
+        });
+        pending_flush_queries.push_back(index);
+        return index;
+    }
+
+    bool HasUnsyncedQueries() override {
+        return !pending_flush_queries.empty();
+    }
+
+    void PushUnsyncedQueries() override {
+        std::scoped_lock lk(flush_guard);
+        pending_flush_sets.emplace_back(std::move(pending_flush_queries));
+        pending_flush_queries.clear();
+    }
+
+    void PopUnsyncedQueries() override {
+        std::vector<size_t> flushed_queries;
+        {
+            std::scoped_lock lk(flush_guard);
+            flushed_queries = std::move(pending_flush_sets.front());
+            pending_flush_sets.pop_front();
+        }
+
+        for (auto q : flushed_queries) {
+            auto* query = GetQuery(q);
+            if (True(query->flags & VideoCommon::QueryFlagBits::IsFinalValueSynced)) {
+                continue;
+            }
+
+            query->flags |= VideoCommon::QueryFlagBits::IsFinalValueSynced;
+            if (query->dependant_manage) {
+                auto* dependant_query = tfb_streamer.GetQuery(query->dependant_index);
+                query->value = dependant_query->value / query->stride;
+                tfb_streamer.Free(query->dependant_index);
+            } else {
+                u8* pointer = cpu_memory.GetPointer(query->dependant_address);
+                u32 result;
+                std::memcpy(&result, pointer, sizeof(u32));
+                query->value = static_cast<u64>(result) / query->stride;
+            }
+        }
+    }
+
+private:
+    QueryCacheRuntime& runtime;
+    TFBCounterStreamer<QueryCacheParams>& tfb_streamer;
+    Core::Memory::Memory& cpu_memory;
+
+    // syncing queue
+    std::vector<size_t> pending_sync;
+
+    // flush levels
+    std::vector<size_t> pending_flush_queries;
+    std::deque<std::vector<size_t>> pending_flush_sets;
+    std::mutex flush_guard;
 };
 
 } // namespace
@@ -853,6 +1004,8 @@ struct QueryCacheRuntimeImpl {
                           scheduler, memory_allocator),
           tfb_streamer(static_cast<size_t>(QueryType::StreamingByteCount), runtime, device,
                        scheduler, memory_allocator, staging_pool),
+          primitives_succeeded_streamer(
+              static_cast<size_t>(QueryType::StreamingPrimitivesSucceeded), runtime, tfb_streamer, cpu_memory_),
           hcr_setup{}, hcr_is_set{}, is_hcr_running{} {
 
         hcr_setup.sType = VK_STRUCTURE_TYPE_CONDITIONAL_RENDERING_BEGIN_INFO_EXT;
@@ -889,6 +1042,7 @@ struct QueryCacheRuntimeImpl {
     VideoCommon::GuestStreamer<QueryCacheParams> guest_streamer;
     SamplesStreamer<QueryCacheParams> sample_streamer;
     TFBCounterStreamer<QueryCacheParams> tfb_streamer;
+    PrimitivesSucceededStreamer<QueryCacheParams> primitives_succeeded_streamer;
 
     std::vector<std::pair<VAddr, VAddr>> little_cache;
     std::vector<std::pair<VkBuffer, VkDeviceSize>> buffers_to_upload_to;
@@ -1086,6 +1240,8 @@ VideoCommon::StreamerInterface* QueryCacheRuntime::GetStreamerInterface(QueryTyp
         return &impl->sample_streamer;
     case QueryType::StreamingByteCount:
         return &impl->tfb_streamer;
+    case QueryType::StreamingPrimitivesSucceeded:
+        return &impl->primitives_succeeded_streamer;
     default:
         return nullptr;
     }

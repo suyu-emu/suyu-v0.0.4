@@ -70,6 +70,10 @@ public:
         return id;
     }
 
+    u64 GetDependenceMask() const {
+        return dependance_mask;
+    }
+
 protected:
     const size_t id;
     const u64 dependance_mask;
@@ -78,7 +82,7 @@ protected:
 template <typename QueryType>
 class SimpleStreamer : public StreamerInterface {
 public:
-    SimpleStreamer(size_t id_) : StreamerInterface{id_} {}
+    SimpleStreamer(size_t id_, u64 dependance_mask_ = 0) : StreamerInterface{id_, dependance_mask_} {}
     virtual ~SimpleStreamer() = default;
 
 protected:
