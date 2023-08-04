@@ -272,13 +272,20 @@ std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainBuffer(GPUVAddr gpu_ad
     if (!cpu_addr) {
         return {&slot_buffers[NULL_BUFFER_ID], 0};
     }
-    const BufferId buffer_id = FindBuffer(*cpu_addr, size);
+    return ObtainCPUBuffer(*cpu_addr, size, sync_info, post_op);
+}
+
+template <class P>
+std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainCPUBuffer(VAddr cpu_addr, u32 size,
+                                                                 ObtainBufferSynchronize sync_info,
+                                                                 ObtainBufferOperation post_op) {
+    const BufferId buffer_id = FindBuffer(cpu_addr, size);
     Buffer& buffer = slot_buffers[buffer_id];
 
     // synchronize op
     switch (sync_info) {
     case ObtainBufferSynchronize::FullSynchronize:
-        SynchronizeBuffer(buffer, *cpu_addr, size);
+        SynchronizeBuffer(buffer, cpu_addr, size);
         break;
     default:
         break;
@@ -286,11 +293,11 @@ std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainBuffer(GPUVAddr gpu_ad
 
     switch (post_op) {
     case ObtainBufferOperation::MarkAsWritten:
-        MarkWrittenBuffer(buffer_id, *cpu_addr, size);
+        MarkWrittenBuffer(buffer_id, cpu_addr, size);
         break;
     case ObtainBufferOperation::DiscardWrite: {
-        VAddr cpu_addr_start = Common::AlignDown(*cpu_addr, 64);
-        VAddr cpu_addr_end = Common::AlignUp(*cpu_addr + size, 64);
+        VAddr cpu_addr_start = Common::AlignDown(cpu_addr, 64);
+        VAddr cpu_addr_end = Common::AlignUp(cpu_addr + size, 64);
         IntervalType interval{cpu_addr_start, cpu_addr_end};
         ClearDownload(interval);
         common_ranges.subtract(interval);
@@ -300,7 +307,7 @@ std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainBuffer(GPUVAddr gpu_ad
         break;
     }
 
-    return {&buffer, buffer.Offset(*cpu_addr)};
+    return {&buffer, buffer.Offset(cpu_addr)};
 }
 
 template <class P>

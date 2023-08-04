@@ -243,10 +243,10 @@ void Scheduler::AllocateNewContext() {
 #if ANDROID
         if (Settings::IsGPULevelHigh()) {
             // This is problematic on Android, disable on GPU Normal.
-            query_cache->UpdateCounters();
+            query_cache->NotifySegment(true);
         }
 #else
-        query_cache->UpdateCounters();
+        query_cache->NotifySegment(true);
 #endif
     }
 }
@@ -261,11 +261,12 @@ void Scheduler::EndPendingOperations() {
 #if ANDROID
     if (Settings::IsGPULevelHigh()) {
         // This is problematic on Android, disable on GPU Normal.
-        query_cache->DisableStreams();
+        // query_cache->DisableStreams();
     }
 #else
-    query_cache->DisableStreams();
+    // query_cache->DisableStreams();
 #endif
+    query_cache->NotifySegment(false);
     EndRenderPass();
 }
 

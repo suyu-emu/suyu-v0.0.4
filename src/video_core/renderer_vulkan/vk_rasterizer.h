@@ -84,8 +84,8 @@ public:
     void DrawTexture() override;
     void Clear(u32 layer_count) override;
     void DispatchCompute() override;
-    void ResetCounter(VideoCore::QueryType type) override;
-    void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp) override;
+    void ResetCounter(VideoCommon::QueryType type) override;
+    void Query(GPUVAddr gpu_addr, VideoCommon::QueryType type, VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport) override;
     void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr, u32 size) override;
     void DisableGraphicsUniformBuffer(size_t stage, u32 index) override;
     void FlushAll() override;
@@ -106,7 +106,7 @@ public:
     void SyncOperation(std::function<void()>&& func) override;
     void SignalSyncPoint(u32 value) override;
     void SignalReference() override;
-    void ReleaseFences() override;
+    void ReleaseFences(bool force = true) override;
     void FlushAndInvalidateRegion(
         VAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
     void WaitForIdle() override;
@@ -146,9 +146,7 @@ private:
 
     void UpdateDynamicStates();
 
-    void BeginTransformFeedback();
-
-    void EndTransformFeedback();
+    void HandleTransformFeedback();
 
     void UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs);
@@ -195,8 +193,9 @@ private:
     TextureCache texture_cache;
     BufferCacheRuntime buffer_cache_runtime;
     BufferCache buffer_cache;
-    PipelineCache pipeline_cache;
+    QueryCacheRuntime query_cache_runtime;
     QueryCache query_cache;
+    PipelineCache pipeline_cache;
     AccelerateDMA accelerate_dma;
     FenceManager fence_manager;
 

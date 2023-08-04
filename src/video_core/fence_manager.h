@@ -104,9 +104,28 @@ public:
         SignalFence(std::move(func));
     }
 
-    void WaitPendingFences() {
+    void WaitPendingFences(bool force) {
         if constexpr (!can_async_check) {
-            TryReleasePendingFences<true>();
+            if (force) {
+                TryReleasePendingFences<true>();
+            } else {
+                TryReleasePendingFences<false>();
+            }
+        } else {
+            if (!force) {
+                return;
+            }
+            std::mutex wait_mutex;
+            std::condition_variable wait_cv;
+            std::atomic<bool> wait_finished{};
+            std::function<void()> func([&] {
+                std::scoped_lock lk(wait_mutex);
+                wait_finished.store(true, std::memory_order_relaxed);
+                wait_cv.notify_all();
+            });
+            SignalFence(std::move(func));
+            std::unique_lock lk(wait_mutex);
+            wait_cv.wait(lk, [&wait_finished] { return wait_finished.load(std::memory_order_relaxed); });
         }
     }
 

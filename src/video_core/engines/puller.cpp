@@ -82,10 +82,7 @@ void Puller::ProcessSemaphoreTriggerMethod() {
     if (op == GpuSemaphoreOperation::WriteLong) {
         const GPUVAddr sequence_address{regs.semaphore_address.SemaphoreAddress()};
         const u32 payload = regs.semaphore_sequence;
-        [this, sequence_address, payload] {
-            memory_manager.Write<u64>(sequence_address + sizeof(u64), gpu.GetTicks());
-            memory_manager.Write<u64>(sequence_address, payload);
-        }();
+        rasterizer->Query(sequence_address, VideoCommon::QueryType::Payload, VideoCommon::QueryPropertiesFlags::HasTimeout, payload, 0);
     } else {
         do {
             const u32 word{memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress())};
@@ -120,10 +117,7 @@ void Puller::ProcessSemaphoreTriggerMethod() {
 void Puller::ProcessSemaphoreRelease() {
     const GPUVAddr sequence_address{regs.semaphore_address.SemaphoreAddress()};
     const u32 payload = regs.semaphore_release;
-    std::function<void()> operation([this, sequence_address, payload] {
-        memory_manager.Write<u32>(sequence_address, payload);
-    });
-    rasterizer->SignalFence(std::move(operation));
+    rasterizer->Query(sequence_address, VideoCommon::QueryType::Payload, VideoCommon::QueryPropertiesFlags::IsAFence, payload, 0);
 }
 
 void Puller::ProcessSemaphoreAcquire() {
@@ -132,7 +126,6 @@ void Puller::ProcessSemaphoreAcquire() {
     while (word != value) {
         regs.acquire_active = true;
         regs.acquire_value = value;
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
         rasterizer->ReleaseFences();
         word = memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress());
         // TODO(kemathe73) figure out how to do the acquire_timeout

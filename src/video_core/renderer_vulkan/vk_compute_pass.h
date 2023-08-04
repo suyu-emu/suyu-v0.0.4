@@ -82,6 +82,19 @@ private:
     ComputePassDescriptorQueue& compute_pass_descriptor_queue;
 };
 
+class ConditionalRenderingResolvePass final : public ComputePass {
+public:
+    explicit ConditionalRenderingResolvePass(
+        const Device& device_, Scheduler& scheduler_, DescriptorPool& descriptor_pool_,
+        ComputePassDescriptorQueue& compute_pass_descriptor_queue_);
+
+    void Resolve(VkBuffer dst_buffer, VkBuffer src_buffer, u32 src_offset, bool compare_to_zero);
+
+private:
+    Scheduler& scheduler;
+    ComputePassDescriptorQueue& compute_pass_descriptor_queue;
+};
+
 class ASTCDecoderPass final : public ComputePass {
 public:
     explicit ASTCDecoderPass(const Device& device_, Scheduler& scheduler_,

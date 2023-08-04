@@ -20,8 +20,6 @@
 
 namespace Tegra::Engines {
 
-using VideoCore::QueryType;
-
 /// First register id that is actually a Macro call.
 constexpr u32 MacroRegistersStart = 0xE00;
 
@@ -500,27 +498,21 @@ void Maxwell3D::StampQueryResult(u64 payload, bool long_query) {
 }
 
 void Maxwell3D::ProcessQueryGet() {
+    VideoCommon::QueryPropertiesFlags flags{};
+    if (regs.report_semaphore.query.short_query == 0) {
+        flags |= VideoCommon::QueryPropertiesFlags::HasTimeout;
+    }
+    const GPUVAddr sequence_address{regs.report_semaphore.Address()};
+    const VideoCommon::QueryType query_type =
+        static_cast<VideoCommon::QueryType>(regs.report_semaphore.query.report.Value());
+    const u32 payload = regs.report_semaphore.payload;
+    const u32 subreport = regs.report_semaphore.query.sub_report;
     switch (regs.report_semaphore.query.operation) {
     case Regs::ReportSemaphore::Operation::Release:
         if (regs.report_semaphore.query.short_query != 0) {
-            const GPUVAddr sequence_address{regs.report_semaphore.Address()};
-            const u32 payload = regs.report_semaphore.payload;
-            std::function<void()> operation([this, sequence_address, payload] {
-                memory_manager.Write<u32>(sequence_address, payload);
-            });
-            rasterizer->SignalFence(std::move(operation));
-        } else {
-            struct LongQueryResult {
-                u64_le value;
-                u64_le timestamp;
-            };
-            const GPUVAddr sequence_address{regs.report_semaphore.Address()};
-            const u32 payload = regs.report_semaphore.payload;
-            [this, sequence_address, payload] {
-                memory_manager.Write<u64>(sequence_address + sizeof(u64), system.GPU().GetTicks());
-                memory_manager.Write<u64>(sequence_address, payload);
-            }();
+            flags |= VideoCommon::QueryPropertiesFlags::IsAFence;
         }
+        rasterizer->Query(sequence_address, query_type, flags, payload, subreport);
         break;
     case Regs::ReportSemaphore::Operation::Acquire:
         // TODO(Blinkhawk): Under this operation, the GPU waits for the CPU to write a value that
@@ -528,11 +520,7 @@ void Maxwell3D::ProcessQueryGet() {
         UNIMPLEMENTED_MSG("Unimplemented query operation ACQUIRE");
         break;
     case Regs::ReportSemaphore::Operation::ReportOnly:
-        if (const std::optional<u64> result = GetQueryResult()) {
-            // If the query returns an empty optional it means it's cached and deferred.
-            // In this case we have a non-empty result, so we stamp it immediately.
-            StampQueryResult(*result, regs.report_semaphore.query.short_query == 0);
-        }
+        rasterizer->Query(sequence_address, query_type, flags, payload, subreport);
         break;
     case Regs::ReportSemaphore::Operation::Trap:
         UNIMPLEMENTED_MSG("Unimplemented query operation TRAP");
@@ -544,6 +532,10 @@ void Maxwell3D::ProcessQueryGet() {
 }
 
 void Maxwell3D::ProcessQueryCondition() {
+    if (rasterizer->AccelerateConditionalRendering()) {
+        execute_on = true;
+        return;
+    }
     const GPUVAddr condition_address{regs.render_enable.Address()};
     switch (regs.render_enable_override) {
     case Regs::RenderEnable::Override::AlwaysRender:
@@ -553,10 +545,6 @@ void Maxwell3D::ProcessQueryCondition() {
         execute_on = false;
         break;
     case Regs::RenderEnable::Override::UseRenderEnable: {
-        if (rasterizer->AccelerateConditionalRendering()) {
-            execute_on = true;
-            return;
-        }
         switch (regs.render_enable.mode) {
         case Regs::RenderEnable::Mode::True: {
             execute_on = true;
@@ -606,7 +594,13 @@ void Maxwell3D::ProcessCounterReset() {
 #endif
     switch (regs.clear_report_value) {
     case Regs::ClearReport::ZPassPixelCount:
-        rasterizer->ResetCounter(QueryType::SamplesPassed);
+        rasterizer->ResetCounter(VideoCommon::QueryType::ZPassPixelCount64);
+        break;
+    case Regs::ClearReport::PrimitivesGenerated:
+        rasterizer->ResetCounter(VideoCommon::QueryType::StreamingByteCount);
+        break;
+    case Regs::ClearReport::VtgPrimitivesOut:
+        rasterizer->ResetCounter(VideoCommon::QueryType::StreamingByteCount);
         break;
     default:
         LOG_DEBUG(Render_OpenGL, "Unimplemented counter reset={}", regs.clear_report_value);
@@ -618,28 +612,6 @@ void Maxwell3D::ProcessSyncPoint() {
     const u32 sync_point = regs.sync_info.sync_point.Value();
     [[maybe_unused]] const u32 cache_flush = regs.sync_info.clean_l2.Value();
     rasterizer->SignalSyncPoint(sync_point);
-}
-
-std::optional<u64> Maxwell3D::GetQueryResult() {
-    switch (regs.report_semaphore.query.report) {
-    case Regs::ReportSemaphore::Report::Payload:
-        return regs.report_semaphore.payload;
-    case Regs::ReportSemaphore::Report::ZPassPixelCount64:
-#if ANDROID
-        if (!Settings::IsGPULevelHigh()) {
-            // This is problematic on Android, disable on GPU Normal.
-            return 120;
-        }
-#endif
-        // Deferred.
-        rasterizer->Query(regs.report_semaphore.Address(), QueryType::SamplesPassed,
-                          system.GPU().GetTicks());
-        return std::nullopt;
-    default:
-        LOG_DEBUG(HW_GPU, "Unimplemented query report type {}",
-                  regs.report_semaphore.query.report.Value());
-        return 1;
-    }
 }
 
 void Maxwell3D::ProcessCBBind(size_t stage_index) {

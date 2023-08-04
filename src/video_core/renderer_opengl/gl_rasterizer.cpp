@@ -396,13 +396,31 @@ void RasterizerOpenGL::DispatchCompute() {
     has_written_global_memory |= pipeline->WritesGlobalMemory();
 }
 
-void RasterizerOpenGL::ResetCounter(VideoCore::QueryType type) {
-    query_cache.ResetCounter(type);
+void RasterizerOpenGL::ResetCounter(VideoCommon::QueryType type) {
+    if (type == VideoCommon::QueryType::ZPassPixelCount64) {
+        query_cache.ResetCounter(VideoCore::QueryType::SamplesPassed);
+    }
 }
 
-void RasterizerOpenGL::Query(GPUVAddr gpu_addr, VideoCore::QueryType type,
-                             std::optional<u64> timestamp) {
-    query_cache.Query(gpu_addr, type, timestamp);
+void RasterizerOpenGL::Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
+                             VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport) {
+    if (type == VideoCommon::QueryType::ZPassPixelCount64) {
+        std::optional<u64> timestamp{True(flags & VideoCommon::QueryPropertiesFlags::HasTimeout)
+                                     ? std::make_optional<u64>(gpu.GetTicks()) : std:: nullopt };
+        if (True(flags & VideoCommon::QueryPropertiesFlags::HasTimeout)) {
+            query_cache.Query(gpu_addr, VideoCore::QueryType::SamplesPassed, {gpu.GetTicks()});
+        } else {
+            query_cache.Query(gpu_addr, VideoCore::QueryType::SamplesPassed, std::nullopt);
+        }
+        return;
+    }
+    if (True(flags & VideoCommon::QueryPropertiesFlags::HasTimeout)) {
+        u64 ticks = gpu.GetTicks();
+        gpu_memory->Write<u64>(gpu_addr + 8, ticks);
+        gpu_memory->Write<u64>(gpu_addr, static_cast<u64>(payload));
+    } else {
+        gpu_memory->Write<u32>(gpu_addr, payload);
+    }
 }
 
 void RasterizerOpenGL::BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr,
@@ -573,8 +591,8 @@ void RasterizerOpenGL::SignalReference() {
     fence_manager.SignalOrdering();
 }
 
-void RasterizerOpenGL::ReleaseFences() {
-    fence_manager.WaitPendingFences();
+void RasterizerOpenGL::ReleaseFences(bool force) {
+    fence_manager.WaitPendingFences(force);
 }
 
 void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size,

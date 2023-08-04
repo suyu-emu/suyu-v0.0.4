@@ -102,7 +102,8 @@ struct GPU::Impl {
 
     /// Signal the ending of command list.
     void OnCommandListEnd() {
-        rasterizer->ReleaseFences();
+        rasterizer->ReleaseFences(false);
+        Settings::UpdateGPUAccuracy();
     }
 
     /// Request a host GPU memory flush from the CPU.
@@ -220,6 +221,7 @@ struct GPU::Impl {
     /// This can be used to launch any necessary threads and register any necessary
     /// core timing events.
     void Start() {
+        Settings::UpdateGPUAccuracy();
         gpu_thread.StartThread(*renderer, renderer->Context(), *scheduler);
     }
 

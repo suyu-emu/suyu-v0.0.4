@@ -42,8 +42,8 @@ public:
     void DrawTexture() override;
     void Clear(u32 layer_count) override;
     void DispatchCompute() override;
-    void ResetCounter(VideoCore::QueryType type) override;
-    void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp) override;
+    void ResetCounter(VideoCommon::QueryType type) override;
+    void Query(GPUVAddr gpu_addr, VideoCommon::QueryType type, VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport) override;
     void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr, u32 size) override;
     void DisableGraphicsUniformBuffer(size_t stage, u32 index) override;
     void FlushAll() override;
@@ -63,7 +63,7 @@ public:
     void SyncOperation(std::function<void()>&& func) override;
     void SignalSyncPoint(u32 value) override;
     void SignalReference() override;
-    void ReleaseFences() override;
+    void ReleaseFences(bool force) override;
     void FlushAndInvalidateRegion(
         VAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
     void WaitForIdle() override;

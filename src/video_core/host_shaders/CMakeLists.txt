@@ -41,6 +41,7 @@ set(SHADER_FILES
     pitch_unswizzle.comp
     present_bicubic.frag
     present_gaussian.frag
+    resolve_conditional_render.comp
     smaa_edge_detection.vert
     smaa_edge_detection.frag
     smaa_blending_weight_calculation.vert

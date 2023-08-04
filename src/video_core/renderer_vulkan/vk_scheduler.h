@@ -15,6 +15,7 @@
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
+#include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
@@ -24,7 +25,6 @@ class Device;
 class Framebuffer;
 class GraphicsPipeline;
 class StateTracker;
-class QueryCache;
 
 /// The scheduler abstracts command buffer and fence management with an interface that's able to do
 /// OpenGL-like operations on Vulkan command buffers.

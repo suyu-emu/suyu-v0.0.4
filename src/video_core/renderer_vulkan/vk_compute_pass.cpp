@@ -12,6 +12,7 @@
 #include "common/common_types.h"
 #include "common/div_ceil.h"
 #include "video_core/host_shaders/astc_decoder_comp_spv.h"
+#include "video_core/host_shaders/resolve_conditional_render_comp_spv.h"
 #include "video_core/host_shaders/vulkan_quad_indexed_comp_spv.h"
 #include "video_core/host_shaders/vulkan_uint8_comp_spv.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
@@ -300,6 +301,52 @@ std::pair<VkBuffer, VkDeviceSize> QuadIndexedPass::Assemble(
                                VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, WRITE_BARRIER);
     });
     return {staging.buffer, staging.offset};
+}
+
+ConditionalRenderingResolvePass::ConditionalRenderingResolvePass(const Device& device_,
+                                                                 Scheduler& scheduler_,
+                                                                 DescriptorPool& descriptor_pool_, ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
+    : ComputePass(device_, descriptor_pool_, INPUT_OUTPUT_DESCRIPTOR_SET_BINDINGS,
+                  INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLATE, INPUT_OUTPUT_BANK_INFO, nullptr,
+                  RESOLVE_CONDITIONAL_RENDER_COMP_SPV),
+      scheduler{scheduler_}, compute_pass_descriptor_queue{compute_pass_descriptor_queue_} {}
+
+void ConditionalRenderingResolvePass::Resolve(VkBuffer dst_buffer, VkBuffer src_buffer,
+                                              u32 src_offset, bool compare_to_zero) {
+    scheduler.RequestOutsideRenderPassOperationContext();
+
+    const size_t compare_size = compare_to_zero ? 8 : 24;
+
+    compute_pass_descriptor_queue.Acquire();
+    compute_pass_descriptor_queue.AddBuffer(src_buffer, src_offset, compare_size);
+    compute_pass_descriptor_queue.AddBuffer(dst_buffer, 0, sizeof(u32));
+    const void* const descriptor_data{compute_pass_descriptor_queue.UpdateData()};
+
+    scheduler.RequestOutsideRenderPassOperationContext();
+    scheduler.Record([this, descriptor_data](vk::CommandBuffer cmdbuf) {
+        static constexpr VkMemoryBarrier read_barrier{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+        };
+        static constexpr VkMemoryBarrier write_barrier{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT,
+        };
+        const VkDescriptorSet set = descriptor_allocator.Commit();
+        device.GetLogical().UpdateDescriptorSet(set, *descriptor_template, descriptor_data);
+
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                               VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, read_barrier);
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline);
+        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *layout, 0, set, {});
+        cmdbuf.Dispatch(1, 1, 1);
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                               VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT, 0, write_barrier);
+    });
 }
 
 ASTCDecoderPass::ASTCDecoderPass(const Device& device_, Scheduler& scheduler_,

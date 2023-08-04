@@ -185,6 +185,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkBeginCommandBuffer vkBeginCommandBuffer{};
     PFN_vkBindBufferMemory vkBindBufferMemory{};
     PFN_vkBindImageMemory vkBindImageMemory{};
+    PFN_vkCmdBeginConditionalRenderingEXT vkCmdBeginConditionalRenderingEXT{};
     PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT{};
     PFN_vkCmdBeginQuery vkCmdBeginQuery{};
     PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass{};
@@ -202,6 +203,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdCopyBufferToImage vkCmdCopyBufferToImage{};
     PFN_vkCmdCopyImage vkCmdCopyImage{};
     PFN_vkCmdCopyImageToBuffer vkCmdCopyImageToBuffer{};
+    PFN_vkCmdCopyQueryPoolResults vkCmdCopyQueryPoolResults{};
     PFN_vkCmdDispatch vkCmdDispatch{};
     PFN_vkCmdDispatchIndirect vkCmdDispatchIndirect{};
     PFN_vkCmdDraw vkCmdDraw{};
@@ -210,6 +212,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect{};
     PFN_vkCmdDrawIndirectCount vkCmdDrawIndirectCount{};
     PFN_vkCmdDrawIndexedIndirectCount vkCmdDrawIndexedIndirectCount{};
+    PFN_vkCmdEndConditionalRenderingEXT vkCmdEndConditionalRenderingEXT{};
     PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT{};
     PFN_vkCmdEndQuery vkCmdEndQuery{};
     PFN_vkCmdEndRenderPass vkCmdEndRenderPass{};
@@ -1270,6 +1273,13 @@ public:
                                     regions.data());
     }
 
+    void CopyQueryPoolResults(VkQueryPool query_pool, u32 first_query, u32 query_count,
+                              VkBuffer dst_buffer, VkDeviceSize dst_offset, VkDeviceSize stride,
+                              VkQueryResultFlags flags) const noexcept {
+        dld->vkCmdCopyQueryPoolResults(handle, query_pool, first_query, query_count, dst_buffer,
+                                       dst_offset, stride, flags);
+    }
+
     void FillBuffer(VkBuffer dst_buffer, VkDeviceSize dst_offset, VkDeviceSize size,
                     u32 data) const noexcept {
         dld->vkCmdFillBuffer(handle, dst_buffer, dst_offset, size, data);
@@ -1446,6 +1456,15 @@ public:
                                  const VkDeviceSize* counter_buffer_offsets) const noexcept {
         dld->vkCmdEndTransformFeedbackEXT(handle, first_counter_buffer, counter_buffers_count,
                                           counter_buffers, counter_buffer_offsets);
+    }
+
+    void BeginConditionalRenderingEXT(
+        const VkConditionalRenderingBeginInfoEXT& info) const noexcept {
+        dld->vkCmdBeginConditionalRenderingEXT(handle, &info);
+    }
+
+    void EndConditionalRenderingEXT() const noexcept {
+        dld->vkCmdEndConditionalRenderingEXT(handle);
     }
 
     void BeginDebugUtilsLabelEXT(const char* label, std::span<float, 4> color) const noexcept {
