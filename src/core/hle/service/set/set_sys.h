@@ -118,6 +118,22 @@ private:
         Never,
     };
 
+    /// This is nn::settings::system::RegionCode
+    enum class RegionCode : u32 {
+        Japan,
+        Usa,
+        Europe,
+        Australia,
+        HongKongTaiwanKorea,
+        China,
+    };
+
+    /// This is nn::settings::system::EulaVersionClockType
+    enum class EulaVersionClockType : u32 {
+        NetworkSystemClock,
+        SteadyClock,
+    };
+
     /// This is nn::settings::system::SleepFlag
     struct SleepFlag {
         union {
@@ -242,10 +258,24 @@ private:
     };
     static_assert(sizeof(InitialLaunchSettings) == 0x20, "InitialLaunchSettings is incorrect size");
 
+    /// This is nn::settings::system::InitialLaunchSettings
+    struct EulaVersion {
+        u32 version;
+        RegionCode region_code;
+        EulaVersionClockType clock_type;
+        INSERT_PADDING_BYTES(0x4);
+        s64 posix_time;
+        Time::Clock::SteadyClockTimePoint timestamp;
+    };
+    static_assert(sizeof(EulaVersion) == 0x30, "EulaVersion is incorrect size");
+
+    void SetLanguageCode(HLERequestContext& ctx);
     void GetFirmwareVersion(HLERequestContext& ctx);
     void GetFirmwareVersion2(HLERequestContext& ctx);
     void GetAccountSettings(HLERequestContext& ctx);
     void SetAccountSettings(HLERequestContext& ctx);
+    void GetEulaVersions(HLERequestContext& ctx);
+    void SetEulaVersions(HLERequestContext& ctx);
     void GetColorSetId(HLERequestContext& ctx);
     void SetColorSetId(HLERequestContext& ctx);
     void GetNotificationSettings(HLERequestContext& ctx);
@@ -257,6 +287,7 @@ private:
     void GetTvSettings(HLERequestContext& ctx);
     void SetTvSettings(HLERequestContext& ctx);
     void GetQuestFlag(HLERequestContext& ctx);
+    void SetRegionCode(HLERequestContext& ctx);
     void GetPrimaryAlbumStorage(HLERequestContext& ctx);
     void GetSleepSettings(HLERequestContext& ctx);
     void SetSleepSettings(HLERequestContext& ctx);
@@ -273,6 +304,7 @@ private:
     void SetAppletLaunchFlags(HLERequestContext& ctx);
     void GetKeyboardLayout(HLERequestContext& ctx);
     void GetChineseTraditionalInputMethod(HLERequestContext& ctx);
+    void GetFieldTestingFlag(HLERequestContext& ctx);
 
     AccountSettings account_settings{
         .flags = {},
@@ -312,6 +344,12 @@ private:
     };
 
     u32 applet_launch_flag{};
+
+    std::vector<EulaVersion> eula_versions{};
+
+    RegionCode region_code;
+
+    LanguageCode language_code_setting;
 };
 
 } // namespace Service::Set

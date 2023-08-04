@@ -75,6 +75,16 @@ void GetFirmwareVersionImpl(HLERequestContext& ctx, GetFirmwareVersionType type)
 }
 } // Anonymous namespace
 
+void SET_SYS::SetLanguageCode(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    language_code_setting = rp.PopEnum<LanguageCode>();
+
+    LOG_INFO(Service_SET, "called, language_code={}", language_code_setting);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void SET_SYS::GetFirmwareVersion(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
     GetFirmwareVersionImpl(ctx, GetFirmwareVersionType::Version1);
@@ -98,6 +108,33 @@ void SET_SYS::SetAccountSettings(HLERequestContext& ctx) {
     account_settings = rp.PopRaw<AccountSettings>();
 
     LOG_INFO(Service_SET, "called, account_settings_flags={}", account_settings.flags);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void SET_SYS::GetEulaVersions(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    ctx.WriteBuffer(eula_versions);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(static_cast<u32>(eula_versions.size()));
+}
+
+void SET_SYS::SetEulaVersions(HLERequestContext& ctx) {
+    const auto elements = ctx.GetReadBufferNumElements<EulaVersion>();
+    const auto buffer_data = ctx.ReadBuffer();
+
+    LOG_INFO(Service_SET, "called, elements={}", elements);
+
+    eula_versions.resize(elements);
+    for (std::size_t index = 0; index < elements; index++) {
+        const std::size_t start_index = index * sizeof(EulaVersion);
+        memcpy(eula_versions.data() + start_index, buffer_data.data() + start_index,
+               sizeof(EulaVersion));
+    }
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -149,7 +186,7 @@ void SET_SYS::GetAccountNotificationSettings(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(account_notifications.size());
+    rb.Push(static_cast<u32>(account_notifications.size()));
 }
 
 void SET_SYS::SetAccountNotificationSettings(HLERequestContext& ctx) {
@@ -275,6 +312,16 @@ void SET_SYS::GetQuestFlag(HLERequestContext& ctx) {
     rb.PushEnum(QuestFlag::Retail);
 }
 
+void SET_SYS::SetRegionCode(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    region_code = rp.PopEnum<RegionCode>();
+
+    LOG_INFO(Service_SET, "called, region_code={}", region_code);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void SET_SYS::GetPrimaryAlbumStorage(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
@@ -286,7 +333,7 @@ void SET_SYS::GetPrimaryAlbumStorage(HLERequestContext& ctx) {
 void SET_SYS::GetSleepSettings(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
-    IPC::ResponseBuilder rb{ctx, 7};
+    IPC::ResponseBuilder rb{ctx, 5};
     rb.Push(ResultSuccess);
     rb.PushRaw(sleep_settings);
 }
@@ -434,10 +481,18 @@ void SET_SYS::GetChineseTraditionalInputMethod(HLERequestContext& ctx) {
     rb.PushEnum(ChineseTraditionalInputMethod::Unknown0);
 }
 
+void SET_SYS::GetFieldTestingFlag(HLERequestContext& ctx) {
+    LOG_WARNING(Service_SET, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u8>(false);
+}
+
 SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, nullptr, "SetLanguageCode"},
+        {0, &SET_SYS::SetLanguageCode, "SetLanguageCode"},
         {1, nullptr, "SetNetworkSettings"},
         {2, nullptr, "GetNetworkSettings"},
         {3, &SET_SYS::GetFirmwareVersion, "GetFirmwareVersion"},
@@ -457,8 +512,8 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {18, &SET_SYS::SetAccountSettings, "SetAccountSettings"},
         {19, nullptr, "GetAudioVolume"},
         {20, nullptr, "SetAudioVolume"},
-        {21, nullptr, "GetEulaVersions"},
-        {22, nullptr, "SetEulaVersions"},
+        {21, &SET_SYS::GetEulaVersions, "GetEulaVersions"},
+        {22, &SET_SYS::SetEulaVersions, "SetEulaVersions"},
         {23, &SET_SYS::GetColorSetId, "GetColorSetId"},
         {24, &SET_SYS::SetColorSetId, "SetColorSetId"},
         {25, nullptr, "GetConsoleInformationUploadFlag"},
@@ -491,7 +546,7 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {54, nullptr, "SetDeviceTimeZoneLocationName"},
         {55, nullptr, "GetWirelessCertificationFileSize"},
         {56, nullptr, "GetWirelessCertificationFile"},
-        {57, nullptr, "SetRegionCode"},
+        {57, &SET_SYS::SetRegionCode, "SetRegionCode"},
         {58, nullptr, "GetNetworkSystemClockContext"},
         {59, nullptr, "SetNetworkSystemClockContext"},
         {60, nullptr, "IsUserSystemClockAutomaticCorrectionEnabled"},
@@ -635,7 +690,7 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {198, nullptr, "SetButtonConfigRegisteredSettingsEmbedded"},
         {199, nullptr, "GetButtonConfigRegisteredSettings"},
         {200, nullptr, "SetButtonConfigRegisteredSettings"},
-        {201, nullptr, "GetFieldTestingFlag"},
+        {201, &SET_SYS::GetFieldTestingFlag, "GetFieldTestingFlag"},
         {202, nullptr, "SetFieldTestingFlag"},
         {203, nullptr, "GetPanelCrcMode"},
         {204, nullptr, "SetPanelCrcMode"},
