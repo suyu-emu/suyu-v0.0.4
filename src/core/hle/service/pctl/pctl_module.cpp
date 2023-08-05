@@ -6,6 +6,7 @@
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/pctl/pctl.h"
 #include "core/hle/service/pctl/pctl_module.h"
 #include "core/hle/service/server_manager.h"
@@ -24,7 +25,8 @@ constexpr Result ResultNoRestrictionEnabled{ErrorModule::PCTL, 181};
 class IParentalControlService final : public ServiceFramework<IParentalControlService> {
 public:
     explicit IParentalControlService(Core::System& system_, Capability capability_)
-        : ServiceFramework{system_, "IParentalControlService"}, capability{capability_} {
+        : ServiceFramework{system_, "IParentalControlService"}, capability{capability_},
+          service_context{system_, "IParentalControlService"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, &IParentalControlService::Initialize, "Initialize"},
@@ -33,7 +35,7 @@ public:
             {1003, nullptr, "ConfirmResumeApplicationPermission"},
             {1004, nullptr, "ConfirmSnsPostPermission"},
             {1005, nullptr, "ConfirmSystemSettingsPermission"},
-            {1006, nullptr, "IsRestrictionTemporaryUnlocked"},
+            {1006, &IParentalControlService::IsRestrictionTemporaryUnlocked, "IsRestrictionTemporaryUnlocked"},
             {1007, nullptr, "RevertRestrictionTemporaryUnlocked"},
             {1008, nullptr, "EnterRestrictedSystemSettings"},
             {1009, nullptr, "LeaveRestrictedSystemSettings"},
@@ -47,14 +49,14 @@ public:
             {1017, &IParentalControlService::EndFreeCommunication, "EndFreeCommunication"},
             {1018, &IParentalControlService::IsFreeCommunicationAvailable, "IsFreeCommunicationAvailable"},
             {1031, &IParentalControlService::IsRestrictionEnabled, "IsRestrictionEnabled"},
-            {1032, nullptr, "GetSafetyLevel"},
+            {1032, &IParentalControlService::GetSafetyLevel, "GetSafetyLevel"},
             {1033, nullptr, "SetSafetyLevel"},
             {1034, nullptr, "GetSafetyLevelSettings"},
-            {1035, nullptr, "GetCurrentSettings"},
+            {1035, &IParentalControlService::GetCurrentSettings, "GetCurrentSettings"},
             {1036, nullptr, "SetCustomSafetyLevelSettings"},
             {1037, nullptr, "GetDefaultRatingOrganization"},
             {1038, nullptr, "SetDefaultRatingOrganization"},
-            {1039, nullptr, "GetFreeCommunicationApplicationListCount"},
+            {1039, &IParentalControlService::GetFreeCommunicationApplicationListCount, "GetFreeCommunicationApplicationListCount"},
             {1042, nullptr, "AddToFreeCommunicationApplicationList"},
             {1043, nullptr, "DeleteSettings"},
             {1044, nullptr, "GetFreeCommunicationApplicationList"},
@@ -76,7 +78,7 @@ public:
             {1206, nullptr, "GetPinCodeLength"},
             {1207, nullptr, "GetPinCodeChangedEvent"},
             {1208, nullptr, "GetPinCode"},
-            {1403, nullptr, "IsPairingActive"},
+            {1403, &IParentalControlService::IsPairingActive, "IsPairingActive"},
             {1406, nullptr, "GetSettingsLastUpdated"},
             {1411, nullptr, "GetPairingAccountInfo"},
             {1421, nullptr, "GetAccountNickname"},
@@ -84,18 +86,18 @@ public:
             {1425, nullptr, "RequestPostEvents"},
             {1426, nullptr, "GetPostEventInterval"},
             {1427, nullptr, "SetPostEventInterval"},
-            {1432, nullptr, "GetSynchronizationEvent"},
+            {1432, &IParentalControlService::GetSynchronizationEvent, "GetSynchronizationEvent"},
             {1451, nullptr, "StartPlayTimer"},
             {1452, nullptr, "StopPlayTimer"},
             {1453, nullptr, "IsPlayTimerEnabled"},
             {1454, nullptr, "GetPlayTimerRemainingTime"},
             {1455, nullptr, "IsRestrictedByPlayTimer"},
-            {1456, nullptr, "GetPlayTimerSettings"},
-            {1457, nullptr, "GetPlayTimerEventToRequestSuspension"},
-            {1458, nullptr, "IsPlayTimerAlarmDisabled"},
+            {1456, &IParentalControlService::GetPlayTimerSettings, "GetPlayTimerSettings"},
+            {1457, &IParentalControlService::GetPlayTimerEventToRequestSuspension, "GetPlayTimerEventToRequestSuspension"},
+            {1458, &IParentalControlService::IsPlayTimerAlarmDisabled, "IsPlayTimerAlarmDisabled"},
             {1471, nullptr, "NotifyWrongPinCodeInputManyTimes"},
             {1472, nullptr, "CancelNetworkRequest"},
-            {1473, nullptr, "GetUnlinkedEvent"},
+            {1473, &IParentalControlService::GetUnlinkedEvent, "GetUnlinkedEvent"},
             {1474, nullptr, "ClearUnlinkedEvent"},
             {1601, nullptr, "DisableAllFeatures"},
             {1602, nullptr, "PostEnableAllFeatures"},
@@ -131,6 +133,12 @@ public:
         };
         // clang-format on
         RegisterHandlers(functions);
+
+        synchronization_event =
+            service_context.CreateEvent("IParentalControlService::SynchronizationEvent");
+        unlinked_event = service_context.CreateEvent("IParentalControlService::UnlinkedEvent");
+        request_suspension_event =
+            service_context.CreateEvent("IParentalControlService::RequestSuspensionEvent");
     }
 
 private:
@@ -144,7 +152,7 @@ private:
         if (pin_code[0] == '\0') {
             return true;
         }
-        if (!settings.is_free_communication_default_on) {
+        if (!restriction_settings.is_free_communication_default_on) {
             return true;
         }
         // TODO(ogniK): Check for blacklisted/exempted applications. Return false can happen here
@@ -160,21 +168,21 @@ private:
         if (pin_code[0] == '\0') {
             return true;
         }
-        if (!settings.is_stero_vision_restricted) {
+        if (!restriction_settings.is_stero_vision_restricted) {
             return false;
         }
         return true;
     }
 
     void SetStereoVisionRestrictionImpl(bool is_restricted) {
-        if (settings.disabled) {
+        if (restriction_settings.disabled) {
             return;
         }
 
         if (pin_code[0] == '\0') {
             return;
         }
-        settings.is_stero_vision_restricted = is_restricted;
+        restriction_settings.is_stero_vision_restricted = is_restricted;
     }
 
     void Initialize(HLERequestContext& ctx) {
@@ -228,6 +236,17 @@ private:
         states.free_communication = true;
     }
 
+    void IsRestrictionTemporaryUnlocked(HLERequestContext& ctx) {
+        const bool is_temporary_unlocked = false;
+
+        LOG_WARNING(Service_PCTL, "(STUBBED) called, is_temporary_unlocked={}",
+                    is_temporary_unlocked);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u8>(is_temporary_unlocked);
+    }
+
     void ConfirmStereoVisionPermission(HLERequestContext& ctx) {
         LOG_DEBUG(Service_PCTL, "called");
         states.stereo_vision = true;
@@ -268,6 +287,34 @@ private:
         rb.Push(pin_code[0] != '\0');
     }
 
+    void GetSafetyLevel(HLERequestContext& ctx) {
+        const u32 safety_level = 0;
+
+        LOG_WARNING(Service_PCTL, "(STUBBED) called, safety_level={}", safety_level);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(safety_level);
+    }
+
+    void GetCurrentSettings(HLERequestContext& ctx) {
+        LOG_INFO(Service_PCTL, "called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.PushRaw(restriction_settings);
+    }
+
+    void GetFreeCommunicationApplicationListCount(HLERequestContext& ctx) {
+        const u32 count = 4;
+
+        LOG_WARNING(Service_PCTL, "(STUBBED) called, count={}", count);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(count);
+    }
+
     void ConfirmStereoVisionRestrictionConfigurable(HLERequestContext& ctx) {
         LOG_DEBUG(Service_PCTL, "called");
 
@@ -300,6 +347,61 @@ private:
         }
     }
 
+    void IsPairingActive(HLERequestContext& ctx) {
+        const bool is_pairing_active = false;
+
+        LOG_WARNING(Service_PCTL, "(STUBBED) called, is_pairing_active={}", is_pairing_active);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u8>(is_pairing_active);
+    }
+
+    void GetSynchronizationEvent(HLERequestContext& ctx) {
+        LOG_INFO(Service_PCTL, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(ResultSuccess);
+        rb.PushCopyObjects(synchronization_event->GetReadableEvent());
+    }
+
+    void GetPlayTimerSettings(HLERequestContext& ctx) {
+        LOG_WARNING(Service_PCTL, "(STUBBED) called");
+
+        const PlayTimerSettings timer_settings{};
+
+        IPC::ResponseBuilder rb{ctx, 15};
+        rb.Push(ResultSuccess);
+        rb.PushRaw(timer_settings);
+    }
+
+    void GetPlayTimerEventToRequestSuspension(HLERequestContext& ctx) {
+        LOG_INFO(Service_PCTL, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(ResultSuccess);
+        rb.PushCopyObjects(request_suspension_event->GetReadableEvent());
+    }
+
+    void IsPlayTimerAlarmDisabled(HLERequestContext& ctx) {
+        const bool is_play_timer_alarm_disabled = false;
+
+        LOG_INFO(Service_PCTL, "called, is_play_timer_alarm_disabled={}",
+                 is_play_timer_alarm_disabled);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u8>(is_play_timer_alarm_disabled);
+    }
+
+    void GetUnlinkedEvent(HLERequestContext& ctx) {
+        LOG_INFO(Service_PCTL, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(ResultSuccess);
+        rb.PushCopyObjects(unlinked_event->GetReadableEvent());
+    }
+
     void SetStereoVisionRestriction(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto can_use = rp.Pop<bool>();
@@ -328,7 +430,7 @@ private:
         }
 
         rb.Push(ResultSuccess);
-        rb.Push(settings.is_stero_vision_restricted);
+        rb.Push(restriction_settings.is_stero_vision_restricted);
     }
 
     void ResetConfirmedStereoVisionPermission(HLERequestContext& ctx) {
@@ -358,16 +460,30 @@ private:
         bool stereo_vision{};
     };
 
-    struct ParentalControlSettings {
+    // This is nn::pctl::RestrictionSettings
+    struct RestrictionSettings {
         bool is_stero_vision_restricted{};
         bool is_free_communication_default_on{};
         bool disabled{};
     };
+    static_assert(sizeof(RestrictionSettings) == 0x3, "RestrictionSettings has incorrect size.");
+
+    // This is nn::pctl::PlayTimerSettings
+    struct PlayTimerSettings {
+        // TODO: RE the actual contents of this struct
+        std::array<u8, 0x34> settings;
+    };
+    static_assert(sizeof(PlayTimerSettings) == 0x34, "PlayTimerSettings has incorrect size.");
 
     States states{};
-    ParentalControlSettings settings{};
+    RestrictionSettings restriction_settings{};
     std::array<char, 8> pin_code{};
     Capability capability{};
+
+    Kernel::KEvent* synchronization_event;
+    Kernel::KEvent* unlinked_event;
+    Kernel::KEvent* request_suspension_event;
+    KernelHelpers::ServiceContext service_context;
 };
 
 void Module::Interface::CreateService(HLERequestContext& ctx) {
