@@ -314,6 +314,12 @@ private:
     void CreateHandleStorage(HLERequestContext& ctx);
 };
 
+class ILibraryAppletSelfAccessor final : public ServiceFramework<ILibraryAppletSelfAccessor> {
+public:
+    explicit ILibraryAppletSelfAccessor(Core::System& system_);
+    ~ILibraryAppletSelfAccessor() override;
+};
+
 class IApplicationFunctions final : public ServiceFramework<IApplicationFunctions> {
 public:
     explicit IApplicationFunctions(Core::System& system_);
