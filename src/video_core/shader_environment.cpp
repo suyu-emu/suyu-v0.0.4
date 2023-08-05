@@ -102,7 +102,8 @@ static std::string_view StageToPrefix(Shader::Stage stage) {
     }
 }
 
-static void DumpImpl(u64 hash, const u64* code, u32 read_highest, u32 read_lowest,
+static void DumpImpl(u64 pipeline_hash, u64 shader_hash, std::span<const u64> code,
+                     [[maybe_unused]] u32 read_highest, [[maybe_unused]] u32 read_lowest,
                      u32 initial_offset, Shader::Stage stage) {
     const auto shader_dir{Common::FS::GetYuzuPath(Common::FS::YuzuPath::DumpDir)};
     const auto base_dir{shader_dir / "shaders"};
@@ -111,13 +112,18 @@ static void DumpImpl(u64 hash, const u64* code, u32 read_highest, u32 read_lowes
         return;
     }
     const auto prefix = StageToPrefix(stage);
-    const auto name{base_dir / fmt::format("{}{:016x}.ash", prefix, hash)};
-    const size_t real_size = read_highest - read_lowest + initial_offset;
-    const size_t padding_needed = ((32 - (real_size % 32)) % 32);
+    const auto name{base_dir /
+                    fmt::format("{:016x}_{}_{:016x}.ash", pipeline_hash, prefix, shader_hash)};
     std::fstream shader_file(name, std::ios::out | std::ios::binary);
+    ASSERT(initial_offset % sizeof(u64) == 0);
     const size_t jump_index = initial_offset / sizeof(u64);
-    shader_file.write(reinterpret_cast<const char*>(code + jump_index), real_size);
-    for (size_t i = 0; i < padding_needed; i++) {
+    const size_t code_size = code.size_bytes() - initial_offset;
+    shader_file.write(reinterpret_cast<const char*>(&code[jump_index]), code_size);
+
+    // + 1 instruction, due to the fact that we skip the final self branch instruction in the code,
+    // but we need to consider it for padding, otherwise nvdisasm rages.
+    const size_t padding_needed = (32 - ((code_size + INST_SIZE) % 32)) % 32;
+    for (size_t i = 0; i < INST_SIZE + padding_needed; i++) {
         shader_file.put(0);
     }
 }
@@ -197,8 +203,8 @@ u64 GenericEnvironment::CalculateHash() const {
     return Common::CityHash64(data.get(), size);
 }
 
-void GenericEnvironment::Dump(u64 hash) {
-    DumpImpl(hash, code.data(), read_highest, read_lowest, initial_offset, stage);
+void GenericEnvironment::Dump(u64 pipeline_hash, u64 shader_hash) {
+    DumpImpl(pipeline_hash, shader_hash, code, read_highest, read_lowest, initial_offset, stage);
 }
 
 void GenericEnvironment::Serialize(std::ofstream& file) const {
@@ -282,6 +288,7 @@ std::optional<u64> GenericEnvironment::TryFindSize() {
 Tegra::Texture::TICEntry GenericEnvironment::ReadTextureInfo(GPUVAddr tic_addr, u32 tic_limit,
                                                              bool via_header_index, u32 raw) {
     const auto handle{Tegra::Texture::TexturePair(raw, via_header_index)};
+    ASSERT(handle.first <= tic_limit);
     const GPUVAddr descriptor_addr{tic_addr + handle.first * sizeof(Tegra::Texture::TICEntry)};
     Tegra::Texture::TICEntry entry;
     gpu_memory->ReadBlock(descriptor_addr, &entry, sizeof(entry));
@@ -465,8 +472,8 @@ void FileEnvironment::Deserialize(std::ifstream& file) {
         .read(reinterpret_cast<char*>(&read_highest), sizeof(read_highest))
         .read(reinterpret_cast<char*>(&viewport_transform_state), sizeof(viewport_transform_state))
         .read(reinterpret_cast<char*>(&stage), sizeof(stage));
-    code = std::make_unique<u64[]>(Common::DivCeil(code_size, sizeof(u64)));
-    file.read(reinterpret_cast<char*>(code.get()), code_size);
+    code.resize(Common::DivCeil(code_size, sizeof(u64)));
+    file.read(reinterpret_cast<char*>(code.data()), code_size);
     for (size_t i = 0; i < num_texture_types; ++i) {
         u32 key;
         Shader::TextureType type;
@@ -509,8 +516,8 @@ void FileEnvironment::Deserialize(std::ifstream& file) {
     is_propietary_driver = texture_bound == 2;
 }
 
-void FileEnvironment::Dump(u64 hash) {
-    DumpImpl(hash, code.get(), read_highest, read_lowest, initial_offset, stage);
+void FileEnvironment::Dump(u64 pipeline_hash, u64 shader_hash) {
+    DumpImpl(pipeline_hash, shader_hash, code, read_highest, read_lowest, initial_offset, stage);
 }
 
 u64 FileEnvironment::ReadInstruction(u32 address) {
