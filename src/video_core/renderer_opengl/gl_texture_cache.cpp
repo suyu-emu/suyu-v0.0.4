@@ -554,7 +554,14 @@ void TextureCacheRuntime::Finish() {
 }
 
 StagingBufferMap TextureCacheRuntime::UploadStagingBuffer(size_t size) {
-    return staging_buffer_pool.RequestUploadBuffer(size);
+    static StagingBufferMap result;
+    static size_t last_size = 0;
+    if (size == last_size) {
+        return result;
+    }
+    last_size = size;
+    result = staging_buffer_pool.RequestUploadBuffer(size);
+    return result;
 }
 
 StagingBufferMap TextureCacheRuntime::DownloadStagingBuffer(size_t size) {

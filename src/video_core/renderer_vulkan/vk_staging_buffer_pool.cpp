@@ -214,6 +214,7 @@ StagingBufferPool::StagingBuffersCache& StagingBufferPool::GetCache(MemoryUsage 
 }
 
 void StagingBufferPool::ReleaseCache(MemoryUsage usage) {
+    return;
     ReleaseLevel(GetCache(usage), current_delete_level);
 }
 
