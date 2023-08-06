@@ -140,98 +140,33 @@ uint ReplicateBitTo9(uint value) {
     return value * 511;
 }
 
-uint FastReplicateTo8(uint value, uint num_bits) {
-    if (value == 0) {
+uint ReplicateBits(uint value, uint num_bits, uint to_bit) {
+    if (value == 0 || num_bits == 0) {
         return 0;
     }
-    const uint array_index = value / 4;
-    const uint vector_index = bitfieldExtract(value, 0, 2);
-    switch (num_bits) {
-    case 1:
-        return 255;
-    case 2: {
-        const uvec4 REPLICATE_2_BIT_TO_8_TABLE = (uvec4(0, 85, 170, 255));
-        return REPLICATE_2_BIT_TO_8_TABLE[vector_index];
+    if (num_bits >= to_bit) {
+        return value;
     }
-    case 3: {
-        const uvec4 REPLICATE_3_BIT_TO_8_TABLE[2] =
-            uvec4[](uvec4(0, 36, 73, 109), uvec4(146, 182, 219, 255));
-        return REPLICATE_3_BIT_TO_8_TABLE[array_index][vector_index];
+    const uint v = value & uint((1 << num_bits) - 1);
+    uint res = v;
+    uint reslen = num_bits;
+    while (reslen < to_bit) {
+        const uint num_dst_bits_to_shift_up = min(num_bits, to_bit - reslen);
+        const uint num_src_bits_to_shift_down = num_bits - num_dst_bits_to_shift_up;
+
+        res <<= num_dst_bits_to_shift_up;
+        res |= (v >> num_src_bits_to_shift_down);
+        reslen += num_bits;
     }
-    case 4: {
-        const uvec4 REPLICATE_4_BIT_TO_8_TABLE[4] =
-            uvec4[](uvec4(0, 17, 34, 51), uvec4(68, 85, 102, 119), uvec4(136, 153, 170, 187),
-                    uvec4(204, 221, 238, 255));
-        return REPLICATE_4_BIT_TO_8_TABLE[array_index][vector_index];
-    }
-    case 5: {
-        const uvec4 REPLICATE_5_BIT_TO_8_TABLE[8] =
-            uvec4[](uvec4(0, 8, 16, 24), uvec4(33, 41, 49, 57), uvec4(66, 74, 82, 90),
-                    uvec4(99, 107, 115, 123), uvec4(132, 140, 148, 156), uvec4(165, 173, 181, 189),
-                    uvec4(198, 206, 214, 222), uvec4(231, 239, 247, 255));
-        return REPLICATE_5_BIT_TO_8_TABLE[array_index][vector_index];
-    }
-    case 6: {
-        const uvec4 REPLICATE_6_BIT_TO_8_TABLE[16] = uvec4[](
-            uvec4(0, 4, 8, 12), uvec4(16, 20, 24, 28), uvec4(32, 36, 40, 44), uvec4(48, 52, 56, 60),
-            uvec4(65, 69, 73, 77), uvec4(81, 85, 89, 93), uvec4(97, 101, 105, 109),
-            uvec4(113, 117, 121, 125), uvec4(130, 134, 138, 142), uvec4(146, 150, 154, 158),
-            uvec4(162, 166, 170, 174), uvec4(178, 182, 186, 190), uvec4(195, 199, 203, 207),
-            uvec4(211, 215, 219, 223), uvec4(227, 231, 235, 239), uvec4(243, 247, 251, 255));
-        return REPLICATE_6_BIT_TO_8_TABLE[array_index][vector_index];
-    }
-    case 7: {
-        const uvec4 REPLICATE_7_BIT_TO_8_TABLE[32] =
-            uvec4[](uvec4(0, 2, 4, 6), uvec4(8, 10, 12, 14), uvec4(16, 18, 20, 22),
-                    uvec4(24, 26, 28, 30), uvec4(32, 34, 36, 38), uvec4(40, 42, 44, 46),
-                    uvec4(48, 50, 52, 54), uvec4(56, 58, 60, 62), uvec4(64, 66, 68, 70),
-                    uvec4(72, 74, 76, 78), uvec4(80, 82, 84, 86), uvec4(88, 90, 92, 94),
-                    uvec4(96, 98, 100, 102), uvec4(104, 106, 108, 110), uvec4(112, 114, 116, 118),
-                    uvec4(120, 122, 124, 126), uvec4(129, 131, 133, 135), uvec4(137, 139, 141, 143),
-                    uvec4(145, 147, 149, 151), uvec4(153, 155, 157, 159), uvec4(161, 163, 165, 167),
-                    uvec4(169, 171, 173, 175), uvec4(177, 179, 181, 183), uvec4(185, 187, 189, 191),
-                    uvec4(193, 195, 197, 199), uvec4(201, 203, 205, 207), uvec4(209, 211, 213, 215),
-                    uvec4(217, 219, 221, 223), uvec4(225, 227, 229, 231), uvec4(233, 235, 237, 239),
-                    uvec4(241, 243, 245, 247), uvec4(249, 251, 253, 255));
-        return REPLICATE_7_BIT_TO_8_TABLE[array_index][vector_index];
-    }
-    }
-    return value;
+    return res;
+}
+
+uint FastReplicateTo8(uint value, uint num_bits) {
+    return ReplicateBits(value, num_bits, 8);
 }
 
 uint FastReplicateTo6(uint value, uint num_bits) {
-    if (value == 0) {
-        return 0;
-    }
-    const uint array_index = value / 4;
-    const uint vector_index = bitfieldExtract(value, 0, 2);
-    switch (num_bits) {
-    case 1:
-        return 63;
-    case 2: {
-        const uvec4 REPLICATE_2_BIT_TO_6_TABLE = uvec4(0, 21, 42, 63);
-        return REPLICATE_2_BIT_TO_6_TABLE[vector_index];
-    }
-    case 3: {
-        const uvec4 REPLICATE_3_BIT_TO_6_TABLE[2] =
-            uvec4[](uvec4(0, 9, 18, 27), uvec4(36, 45, 54, 63));
-        return REPLICATE_3_BIT_TO_6_TABLE[array_index][vector_index];
-    }
-    case 4: {
-        const uvec4 REPLICATE_4_BIT_TO_6_TABLE[4] =
-            uvec4[](uvec4(0, 4, 8, 12), uvec4(17, 21, 25, 29), uvec4(34, 38, 42, 46),
-                    uvec4(51, 55, 59, 63));
-        return REPLICATE_4_BIT_TO_6_TABLE[array_index][vector_index];
-    }
-    case 5: {
-        const uvec4 REPLICATE_5_BIT_TO_6_TABLE[8] =
-            uvec4[](uvec4(0, 2, 4, 6), uvec4(8, 10, 12, 14), uvec4(16, 18, 20, 22),
-                    uvec4(24, 26, 28, 30), uvec4(33, 35, 37, 39), uvec4(41, 43, 45, 47),
-                    uvec4(49, 51, 53, 55), uvec4(57, 59, 61, 63));
-        return REPLICATE_5_BIT_TO_6_TABLE[array_index][vector_index];
-    }
-    }
-    return value;
+    return ReplicateBits(value, num_bits, 6);
 }
 
 uint Div3Floor(uint v) {
