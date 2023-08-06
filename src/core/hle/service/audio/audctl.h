@@ -17,8 +17,30 @@ public:
     ~AudCtl() override;
 
 private:
+    enum class AudioOutputMode {
+        Invalid,
+        Pcm1ch,
+        Pcm2ch,
+        Pcm6ch,
+        PcmAuto,
+    };
+
+    enum class ForceMutePolicy {
+        Disable,
+        SpeakerMuteOnHeadphoneUnplugged,
+    };
+
+    enum class HeadphoneOutputLevelMode {
+        Normal,
+        HighPower,
+    };
+
     void GetTargetVolumeMin(HLERequestContext& ctx);
     void GetTargetVolumeMax(HLERequestContext& ctx);
+    void GetForceMutePolicy(HLERequestContext& ctx);
+    void GetOutputModeSetting(HLERequestContext& ctx);
+    void GetHeadphoneOutputLevelMode(HLERequestContext& ctx);
+    void IsSpeakerAutoMuteEnabled(HLERequestContext& ctx);
 };
 
 } // namespace Service::Audio
