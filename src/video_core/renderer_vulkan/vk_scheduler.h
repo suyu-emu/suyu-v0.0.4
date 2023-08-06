@@ -15,8 +15,12 @@
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
-#include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+
+namespace VideoCommon {
+template <typename Trait>
+class QueryCacheBase;
+}
 
 namespace Vulkan {
 
@@ -25,6 +29,8 @@ class Device;
 class Framebuffer;
 class GraphicsPipeline;
 class StateTracker;
+
+struct QueryCacheParams;
 
 /// The scheduler abstracts command buffer and fence management with an interface that's able to do
 /// OpenGL-like operations on Vulkan command buffers.
@@ -63,7 +69,7 @@ public:
     void InvalidateState();
 
     /// Assigns the query cache.
-    void SetQueryCache(QueryCache& query_cache_) {
+    void SetQueryCache(VideoCommon::QueryCacheBase<QueryCacheParams>& query_cache_) {
         query_cache = &query_cache_;
     }
 
@@ -219,7 +225,7 @@ private:
     std::unique_ptr<MasterSemaphore> master_semaphore;
     std::unique_ptr<CommandPool> command_pool;
 
-    QueryCache* query_cache = nullptr;
+    VideoCommon::QueryCacheBase<QueryCacheParams>* query_cache = nullptr;
 
     vk::CommandBuffer current_cmdbuf;
 

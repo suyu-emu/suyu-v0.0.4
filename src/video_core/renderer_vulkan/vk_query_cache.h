@@ -49,7 +49,8 @@ public:
     bool HostConditionalRenderingCompareValue(VideoCommon::LookupData object_1, bool qc_dirty);
 
     bool HostConditionalRenderingCompareValues(VideoCommon::LookupData object_1,
-                                               VideoCommon::LookupData object_2, bool qc_dirty, bool equal_check);
+                                               VideoCommon::LookupData object_2, bool qc_dirty,
+                                               bool equal_check);
 
     VideoCommon::StreamerInterface* GetStreamerInterface(VideoCommon::QueryType query_type);
 
@@ -66,7 +67,7 @@ private:
 };
 
 struct QueryCacheParams {
-    using RuntimeType = Vulkan::QueryCacheRuntime;
+    using RuntimeType = typename Vulkan::QueryCacheRuntime;
 };
 
 using QueryCache = VideoCommon::QueryCacheBase<QueryCacheParams>;

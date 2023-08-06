@@ -303,9 +303,9 @@ std::pair<VkBuffer, VkDeviceSize> QuadIndexedPass::Assemble(
     return {staging.buffer, staging.offset};
 }
 
-ConditionalRenderingResolvePass::ConditionalRenderingResolvePass(const Device& device_,
-                                                                 Scheduler& scheduler_,
-                                                                 DescriptorPool& descriptor_pool_, ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
+ConditionalRenderingResolvePass::ConditionalRenderingResolvePass(
+    const Device& device_, Scheduler& scheduler_, DescriptorPool& descriptor_pool_,
+    ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
     : ComputePass(device_, descriptor_pool_, INPUT_OUTPUT_DESCRIPTOR_SET_BINDINGS,
                   INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLATE, INPUT_OUTPUT_BANK_INFO, nullptr,
                   RESOLVE_CONDITIONAL_RENDER_COMP_SPV),

@@ -47,7 +47,7 @@ public:
         BitField<0, 27, u32> query_id;
         u32 raw;
 
-        std::pair<size_t, size_t> unpack() {
+        std::pair<size_t, size_t> unpack() const {
             return {static_cast<size_t>(stream_id.Value()), static_cast<size_t>(query_id.Value())};
         }
     };
@@ -73,7 +73,7 @@ public:
         }
     }
 
-    static u64 BuildMask(std::span<QueryType> types) {
+    static u64 BuildMask(std::span<const QueryType> types) {
         u64 mask = 0;
         for (auto query_type : types) {
             mask |= 1ULL << (static_cast<u64>(query_type));
@@ -160,7 +160,7 @@ protected:
         }
     }
 
-    using ContentCache = typename std::unordered_map<u64, std::unordered_map<u32, QueryLocation>>;
+    using ContentCache = std::unordered_map<u64, std::unordered_map<u32, QueryLocation>>;
 
     void InvalidateQuery(QueryLocation location);
     bool IsQueryDirty(QueryLocation location);
@@ -175,7 +175,7 @@ protected:
     friend struct QueryCacheBaseImpl;
     friend RuntimeType;
 
-    std::unique_ptr<struct QueryCacheBaseImpl> impl;
+    std::unique_ptr<QueryCacheBaseImpl> impl;
 };
 
 } // namespace VideoCommon

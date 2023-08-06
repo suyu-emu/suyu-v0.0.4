@@ -7,21 +7,19 @@
 #include <deque>
 #include <utility>
 
-
 #include "common/common_types.h"
 
 namespace VideoCommon {
 
 class BankBase {
 protected:
-    const size_t base_bank_size;
-    size_t bank_size;
-    std::atomic<size_t> references;
-    size_t current_slot;
+    const size_t base_bank_size{};
+    size_t bank_size{};
+    std::atomic<size_t> references{};
+    size_t current_slot{};
 
 public:
-    BankBase(size_t bank_size_)
-        : base_bank_size{bank_size_}, bank_size(bank_size_), references(0), current_slot(0) {}
+    explicit BankBase(size_t bank_size_) : base_bank_size{bank_size_}, bank_size(bank_size_) {}
 
     virtual ~BankBase() = default;
 
@@ -58,11 +56,11 @@ public:
         bank_size = current_slot;
     }
 
-    constexpr bool IsClosed() {
+    bool IsClosed() const {
         return current_slot >= bank_size;
     }
 
-    bool IsDead() {
+    bool IsDead() const {
         return IsClosed() && references == 0;
     }
 };

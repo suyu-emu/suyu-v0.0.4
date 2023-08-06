@@ -596,12 +596,6 @@ void Maxwell3D::ProcessCounterReset() {
     case Regs::ClearReport::ZPassPixelCount:
         rasterizer->ResetCounter(VideoCommon::QueryType::ZPassPixelCount64);
         break;
-    case Regs::ClearReport::PrimitivesGenerated:
-        rasterizer->ResetCounter(VideoCommon::QueryType::StreamingByteCount);
-        break;
-    case Regs::ClearReport::VtgPrimitivesOut:
-        rasterizer->ResetCounter(VideoCommon::QueryType::StreamingByteCount);
-        break;
     default:
         LOG_DEBUG(Render_OpenGL, "Unimplemented counter reset={}", regs.clear_report_value);
         break;

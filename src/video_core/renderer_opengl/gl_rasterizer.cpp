@@ -405,8 +405,6 @@ void RasterizerOpenGL::ResetCounter(VideoCommon::QueryType type) {
 void RasterizerOpenGL::Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
                              VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport) {
     if (type == VideoCommon::QueryType::ZPassPixelCount64) {
-        std::optional<u64> timestamp{True(flags & VideoCommon::QueryPropertiesFlags::HasTimeout)
-                                     ? std::make_optional<u64>(gpu.GetTicks()) : std:: nullopt };
         if (True(flags & VideoCommon::QueryPropertiesFlags::HasTimeout)) {
             query_cache.Query(gpu_addr, VideoCore::QueryType::SamplesPassed, {gpu.GetTicks()});
         } else {
@@ -414,13 +412,23 @@ void RasterizerOpenGL::Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
         }
         return;
     }
-    if (True(flags & VideoCommon::QueryPropertiesFlags::HasTimeout)) {
-        u64 ticks = gpu.GetTicks();
-        gpu_memory->Write<u64>(gpu_addr + 8, ticks);
-        gpu_memory->Write<u64>(gpu_addr, static_cast<u64>(payload));
-    } else {
-        gpu_memory->Write<u32>(gpu_addr, payload);
+    if (type != VideoCommon::QueryType::Payload) {
+        payload = 1u;
     }
+    std::function<void()> func([this, gpu_addr, flags, memory_manager = gpu_memory, payload]() {
+        if (True(flags & VideoCommon::QueryPropertiesFlags::HasTimeout)) {
+            u64 ticks = gpu.GetTicks();
+            memory_manager->Write<u64>(gpu_addr + 8, ticks);
+            memory_manager->Write<u64>(gpu_addr, static_cast<u64>(payload));
+        } else {
+            memory_manager->Write<u32>(gpu_addr, payload);
+        }
+    });
+    if (True(flags & VideoCommon::QueryPropertiesFlags::IsAFence)) {
+        SignalFence(std::move(func));
+        return;
+    }
+    func();
 }
 
 void RasterizerOpenGL::BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr,

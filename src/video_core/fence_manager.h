@@ -55,6 +55,9 @@ public:
 
     // Unlike other fences, this one doesn't
     void SignalOrdering() {
+        if constexpr (!can_async_check) {
+            TryReleasePendingFences<false>();
+        }
         std::scoped_lock lock{buffer_cache.mutex};
         buffer_cache.AccumulateFlushes();
     }
@@ -104,13 +107,9 @@ public:
         SignalFence(std::move(func));
     }
 
-    void WaitPendingFences(bool force) {
+    void WaitPendingFences([[maybe_unused]] bool force) {
         if constexpr (!can_async_check) {
-            if (force) {
-                TryReleasePendingFences<true>();
-            } else {
-                TryReleasePendingFences<false>();
-            }
+            TryReleasePendingFences<true>();
         } else {
             if (!force) {
                 return;
@@ -125,7 +124,8 @@ public:
             });
             SignalFence(std::move(func));
             std::unique_lock lk(wait_mutex);
-            wait_cv.wait(lk, [&wait_finished] { return wait_finished.load(std::memory_order_relaxed); });
+            wait_cv.wait(
+                lk, [&wait_finished] { return wait_finished.load(std::memory_order_relaxed); });
         }
     }
 

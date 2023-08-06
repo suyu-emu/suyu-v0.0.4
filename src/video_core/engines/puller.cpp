@@ -82,7 +82,8 @@ void Puller::ProcessSemaphoreTriggerMethod() {
     if (op == GpuSemaphoreOperation::WriteLong) {
         const GPUVAddr sequence_address{regs.semaphore_address.SemaphoreAddress()};
         const u32 payload = regs.semaphore_sequence;
-        rasterizer->Query(sequence_address, VideoCommon::QueryType::Payload, VideoCommon::QueryPropertiesFlags::HasTimeout, payload, 0);
+        rasterizer->Query(sequence_address, VideoCommon::QueryType::Payload,
+                          VideoCommon::QueryPropertiesFlags::HasTimeout, payload, 0);
     } else {
         do {
             const u32 word{memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress())};
@@ -117,7 +118,8 @@ void Puller::ProcessSemaphoreTriggerMethod() {
 void Puller::ProcessSemaphoreRelease() {
     const GPUVAddr sequence_address{regs.semaphore_address.SemaphoreAddress()};
     const u32 payload = regs.semaphore_release;
-    rasterizer->Query(sequence_address, VideoCommon::QueryType::Payload, VideoCommon::QueryPropertiesFlags::IsAFence, payload, 0);
+    rasterizer->Query(sequence_address, VideoCommon::QueryType::Payload,
+                      VideoCommon::QueryPropertiesFlags::IsAFence, payload, 0);
 }
 
 void Puller::ProcessSemaphoreAcquire() {

@@ -43,7 +43,8 @@ public:
     void Clear(u32 layer_count) override;
     void DispatchCompute() override;
     void ResetCounter(VideoCommon::QueryType type) override;
-    void Query(GPUVAddr gpu_addr, VideoCommon::QueryType type, VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport) override;
+    void Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
+               VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport) override;
     void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr, u32 size) override;
     void DisableGraphicsUniformBuffer(size_t stage, u32 index) override;
     void FlushAll() override;

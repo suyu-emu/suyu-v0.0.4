@@ -276,9 +276,8 @@ std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainBuffer(GPUVAddr gpu_ad
 }
 
 template <class P>
-std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainCPUBuffer(VAddr cpu_addr, u32 size,
-                                                                 ObtainBufferSynchronize sync_info,
-                                                                 ObtainBufferOperation post_op) {
+std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainCPUBuffer(
+    VAddr cpu_addr, u32 size, ObtainBufferSynchronize sync_info, ObtainBufferOperation post_op) {
     const BufferId buffer_id = FindBuffer(cpu_addr, size);
     Buffer& buffer = slot_buffers[buffer_id];
 

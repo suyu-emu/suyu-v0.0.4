@@ -54,7 +54,7 @@ public:
         return new_id;
     }
 
-    bool HasPendingSync() override {
+    bool HasPendingSync() const override {
         return !pending_sync.empty();
     }
 
@@ -71,8 +71,10 @@ public:
                 continue;
             }
             query.flags |= QueryFlagBits::IsHostSynced;
-            sync_values.emplace_back(query.guest_address, query.value,
-                                     True(query.flags & QueryFlagBits::HasTimestamp) ? 8 : 4);
+            sync_values.emplace_back(SyncValuesStruct{
+                .address = query.guest_address,
+                .value = query.value,
+                .size = static_cast<u64>(True(query.flags & QueryFlagBits::HasTimestamp) ? 8 : 4)});
         }
         pending_sync.clear();
         if (sync_values.size() > 0) {
@@ -90,15 +92,20 @@ class StubStreamer : public GuestStreamer<Traits> {
 public:
     using RuntimeType = typename Traits::RuntimeType;
 
-    StubStreamer(size_t id_, RuntimeType& runtime_) : GuestStreamer<Traits>(id_, runtime_) {}
+    StubStreamer(size_t id_, RuntimeType& runtime_, u32 stub_value_)
+        : GuestStreamer<Traits>(id_, runtime_), stub_value{stub_value_} {}
 
     ~StubStreamer() override = default;
 
     size_t WriteCounter(VAddr address, bool has_timestamp, [[maybe_unused]] u32 value,
                         std::optional<u32> subreport = std::nullopt) override {
-        size_t new_id = GuestStreamer<Traits>::WriteCounter(address, has_timestamp, 1U, subreport);
+        size_t new_id =
+            GuestStreamer<Traits>::WriteCounter(address, has_timestamp, stub_value, subreport);
         return new_id;
     }
+
+private:
+    u32 stub_value;
 };
 
 template <typename Traits>
@@ -113,7 +120,7 @@ struct QueryCacheBase<Traits>::QueryCacheBaseImpl {
         for (size_t i = 0; i < static_cast<size_t>(QueryType::MaxQueryTypes); i++) {
             streamers[i] = runtime.GetStreamerInterface(static_cast<QueryType>(i));
             if (streamers[i]) {
-                streamer_mask |= 1ULL << i;
+                streamer_mask |= 1ULL << streamers[i]->GetId();
             }
         }
     }
@@ -152,7 +159,7 @@ struct QueryCacheBase<Traits>::QueryCacheBaseImpl {
     QueryCacheBase<Traits>* owner;
     VideoCore::RasterizerInterface& rasterizer;
     Core::Memory::Memory& cpu_memory;
-    Traits::RuntimeType& runtime;
+    RuntimeType& runtime;
     Tegra::GPU& gpu;
     std::array<StreamerInterface*, static_cast<size_t>(QueryType::MaxQueryTypes)> streamers;
     u64 streamer_mask;
@@ -223,15 +230,11 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
     const bool is_fence = True(flags & QueryPropertiesFlags::IsAFence);
     size_t streamer_id = static_cast<size_t>(counter_type);
     auto* streamer = impl->streamers[streamer_id];
-    if (!streamer) [[unlikely]] {
-        if (has_timestamp) {
-            u64 timestamp = impl->gpu.GetTicks();
-            gpu_memory->Write<u64>(addr + 8, timestamp);
-            gpu_memory->Write<u64>(addr, 1ULL);
-        } else {
-            gpu_memory->Write<u32>(addr, 1U);
-        }
-        return;
+    if (streamer == nullptr) [[unlikely]] {
+        counter_type = QueryType::Payload;
+        payload = 1U;
+        streamer_id = static_cast<size_t>(counter_type);
+        streamer = impl->streamers[streamer_id];
     }
     auto cpu_addr_opt = gpu_memory->GpuToCpuAddress(addr);
     if (!cpu_addr_opt) [[unlikely]] {
@@ -403,12 +406,6 @@ bool QueryCacheBase<Traits>::AccelerateHostConditionalRendering() {
         impl->runtime.EndHostConditionalRendering();
         return false;
     }
-    /*if (!Settings::IsGPULevelHigh()) {
-        impl->runtime.EndHostConditionalRendering();
-        return gpu_memory->IsMemoryDirty(regs.render_enable.Address(), 24,
-                                         VideoCommon::CacheType::BufferCache |
-                                             VideoCommon::CacheType::QueryCache);
-    }*/
     const ComparisonMode mode = static_cast<ComparisonMode>(regs.render_enable.mode);
     const GPUVAddr address = regs.render_enable.Address();
     switch (mode) {
@@ -442,6 +439,9 @@ bool QueryCacheBase<Traits>::AccelerateHostConditionalRendering() {
 // Async downloads
 template <typename Traits>
 void QueryCacheBase<Traits>::CommitAsyncFlushes() {
+    // Make sure to have the results synced in Host.
+    NotifyWFI();
+
     u64 mask{};
     {
         std::scoped_lock lk(impl->flush_guard);
@@ -458,8 +458,19 @@ void QueryCacheBase<Traits>::CommitAsyncFlushes() {
     if (mask == 0) {
         return;
     }
-    impl->ForEachStreamerIn(mask,
-                            [](StreamerInterface* streamer) { streamer->PushUnsyncedQueries(); });
+    u64 ran_mask = ~mask;
+    while (mask) {
+        impl->ForEachStreamerIn(mask, [&mask, &ran_mask](StreamerInterface* streamer) {
+            u64 dep_mask = streamer->GetDependentMask();
+            if ((dep_mask & ~ran_mask) != 0) {
+                return;
+            }
+            u64 index = streamer->GetId();
+            ran_mask |= (1ULL << index);
+            mask &= ~(1ULL << index);
+            streamer->PushUnsyncedQueries();
+        });
+    }
 }
 
 template <typename Traits>
@@ -489,13 +500,11 @@ void QueryCacheBase<Traits>::PopAsyncFlushes() {
     if (mask == 0) {
         return;
     }
-    u64 ran_mask = 0;
-    u64 next_phase = 0;
+    u64 ran_mask = ~mask;
     while (mask) {
-        impl->ForEachStreamerIn(mask, [&mask, &ran_mask, &next_phase](StreamerInterface* streamer) {
+        impl->ForEachStreamerIn(mask, [&mask, &ran_mask](StreamerInterface* streamer) {
             u64 dep_mask = streamer->GetDependenceMask();
             if ((dep_mask & ~ran_mask) != 0) {
-                next_phase |= dep_mask;
                 return;
             }
             u64 index = streamer->GetId();
@@ -503,7 +512,6 @@ void QueryCacheBase<Traits>::PopAsyncFlushes() {
             mask &= ~(1ULL << index);
             streamer->PopUnsyncedQueries();
         });
-        ran_mask |= next_phase;
     }
 }
 

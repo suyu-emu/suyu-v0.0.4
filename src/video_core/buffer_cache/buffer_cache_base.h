@@ -297,8 +297,8 @@ public:
                                                        ObtainBufferOperation post_op);
 
     [[nodiscard]] std::pair<Buffer*, u32> ObtainCPUBuffer(VAddr gpu_addr, u32 size,
-                                                       ObtainBufferSynchronize sync_info,
-                                                       ObtainBufferOperation post_op);
+                                                          ObtainBufferSynchronize sync_info,
+                                                          ObtainBufferOperation post_op);
     void FlushCachedWrites();
 
     /// Return true when there are uncommitted buffers to be downloaded

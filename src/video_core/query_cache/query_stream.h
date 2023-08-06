@@ -16,7 +16,7 @@ namespace VideoCommon {
 
 class StreamerInterface {
 public:
-    StreamerInterface(size_t id_, u64 dependance_mask_ = 0) : id{id_}, dependance_mask{dependance_mask_} {}
+    explicit StreamerInterface(size_t id_) : id{id_}, dependence_mask{}, dependent_mask{} {}
     virtual ~StreamerInterface() = default;
 
     virtual QueryBase* GetQuery(size_t id) = 0;
@@ -37,7 +37,7 @@ public:
         /* Do Nothing */
     }
 
-    virtual bool HasPendingSync() {
+    virtual bool HasPendingSync() const {
         return false;
     }
 
@@ -52,7 +52,7 @@ public:
     virtual size_t WriteCounter(VAddr address, bool has_timestamp, u32 value,
                                 std::optional<u32> subreport = std::nullopt) = 0;
 
-    virtual bool HasUnsyncedQueries() {
+    virtual bool HasUnsyncedQueries() const {
         return false;
     }
 
@@ -71,18 +71,28 @@ public:
     }
 
     u64 GetDependenceMask() const {
-        return dependance_mask;
+        return dependence_mask;
+    }
+
+    u64 GetDependentMask() const {
+        return dependence_mask;
     }
 
 protected:
+    void MakeDependent(StreamerInterface* depend_on) {
+        dependence_mask |= 1ULL << depend_on->id;
+        depend_on->dependent_mask |= 1ULL << id;
+    }
+
     const size_t id;
-    const u64 dependance_mask;
+    u64 dependence_mask;
+    u64 dependent_mask;
 };
 
 template <typename QueryType>
 class SimpleStreamer : public StreamerInterface {
 public:
-    SimpleStreamer(size_t id_, u64 dependance_mask_ = 0) : StreamerInterface{id_, dependance_mask_} {}
+    explicit SimpleStreamer(size_t id_) : StreamerInterface{id_} {}
     virtual ~SimpleStreamer() = default;
 
 protected:

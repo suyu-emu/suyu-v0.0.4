@@ -194,15 +194,6 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
 
     query_cache.NotifySegment(true);
 
-#if ANDROID
-    if (Settings::IsGPULevelHigh()) {
-        // This is problematic on Android, disable on GPU Normal.
-        // query_cache.UpdateCounters();
-    }
-#else
-    // query_cache.UpdateCounters();
-#endif
-
     GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
     if (!pipeline) {
         return;
@@ -294,15 +285,6 @@ void RasterizerVulkan::DrawTexture() {
 
     query_cache.NotifySegment(true);
 
-#if ANDROID
-    if (Settings::IsGPULevelHigh()) {
-        // This is problematic on Android, disable on GPU Normal.
-        // query_cache.UpdateCounters();
-    }
-#else
-    // query_cache.UpdateCounters();
-#endif
-
     texture_cache.SynchronizeGraphicsDescriptors();
     texture_cache.UpdateRenderTargets(false);
 
@@ -331,15 +313,6 @@ void RasterizerVulkan::Clear(u32 layer_count) {
 
     FlushWork();
     gpu_memory->FlushCaching();
-
-#if ANDROID
-    if (Settings::IsGPULevelHigh()) {
-        // This is problematic on Android, disable on GPU Normal.
-        // query_cache.UpdateCounters();
-    }
-#else
-    // query_cache.UpdateCounters();
-#endif
 
     query_cache.NotifySegment(true);
     query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
