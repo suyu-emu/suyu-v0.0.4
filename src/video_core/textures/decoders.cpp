@@ -88,7 +88,6 @@ void SwizzleImpl(std::span<u8> output, std::span<const u8> input, u32 width, u32
     }
 }
 
-
 template <bool TO_LINEAR, u32 BYTES_PER_PIXEL>
 void SwizzleSubrectImpl(std::span<u8> output, std::span<const u8> input, u32 width, u32 height,
                         u32 depth, u32 origin_x, u32 origin_y, u32 extent_x, u32 num_lines,
@@ -96,14 +95,6 @@ void SwizzleSubrectImpl(std::span<u8> output, std::span<const u8> input, u32 wid
     // The origin of the transformation can be configured here, leave it as zero as the current API
     // doesn't expose it.
     static constexpr u32 origin_z = 0;
-    static u32 last_width = 0;
-    static u32 last_height = 0;
-    if (last_width == width && last_height == height) {
-        return;
-    }
-    LOG_ERROR(Debug, "Called");
-    last_width = width;
-    last_height = height;
 
     // We can configure here a custom pitch
     // As it's not exposed 'width * BYTES_PER_PIXEL' will be the expected pitch.

@@ -846,15 +846,7 @@ void TextureCacheRuntime::Finish() {
 }
 
 StagingBufferRef TextureCacheRuntime::UploadStagingBuffer(size_t size) {
-    static StagingBufferRef result;
-    static size_t last_size = 0;
-    if (size == last_size) {
-        return result;
-    }
-    LOG_ERROR(Debug, "Called");
-    last_size = size;
-    result = staging_buffer_pool.Request(size, MemoryUsage::Upload);
-    return result;
+    return staging_buffer_pool.Request(size, MemoryUsage::Upload);
 }
 
 StagingBufferRef TextureCacheRuntime::DownloadStagingBuffer(size_t size, bool deferred) {

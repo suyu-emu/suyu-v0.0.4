@@ -1021,18 +1021,8 @@ void TextureCache<P>::UploadImageContents(Image& image, StagingBuffer& staging) 
     const GPUVAddr gpu_addr = image.gpu_addr;
 
     if (True(image.flags & ImageFlagBits::AcceleratedUpload)) {
-        static u64 last_size = 0;
-        bool has_run = false;
-        if (last_size == image.unswizzled_size_bytes) {
-            has_run = true;
-        }
-        last_size = image.unswizzled_size_bytes;
-
-        if (!has_run) {
-            LOG_ERROR(Debug, "Called");
-            gpu_memory->ReadBlock(gpu_addr, mapped_span.data(), mapped_span.size_bytes(),
-                                  VideoCommon::CacheType::NoTextureCache);
-        }
+        gpu_memory->ReadBlock(gpu_addr, mapped_span.data(), mapped_span.size_bytes(),
+                              VideoCommon::CacheType::NoTextureCache);
         const auto uploads = FullUploadSwizzles(image.info);
         runtime.AccelerateImageUpload(image, staging, uploads);
         return;
