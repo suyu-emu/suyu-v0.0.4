@@ -809,18 +809,15 @@ uint UnquantizeTexelWeight(EncodingData val) {
     const uint A = ReplicateBitTo7((bitval & 1));
     uint B = 0, C = 0, D = 0;
     uint result = 0;
+    const uint bitlen_0_results[5] = {0, 16, 32, 48, 64};
     switch (encoding) {
     case JUST_BITS:
-        result = FastReplicateTo6(bitval, bitlen);
-        break;
+        return FastReplicateTo6(bitval, bitlen);
     case TRIT: {
         D = QuintTritValue(val);
         switch (bitlen) {
-        case 0: {
-            const uint results[3] = {0, 32, 63};
-            result = results[D];
-            break;
-        }
+        case 0:
+            return bitlen_0_results[D * 2];
         case 1: {
             C = 50;
             break;
@@ -845,11 +842,8 @@ uint UnquantizeTexelWeight(EncodingData val) {
     case QUINT: {
         D = QuintTritValue(val);
         switch (bitlen) {
-        case 0: {
-            const uint results[5] = {0, 16, 32, 47, 63};
-            result = results[D];
-            break;
-        }
+        case 0:
+            return bitlen_0_results[D];
         case 1: {
             C = 28;
             break;
