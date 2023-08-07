@@ -106,6 +106,43 @@ bool IsASTCSupported() {
     return true;
 }
 
+static bool HasSlowSoftwareAstc(std::string_view vendor_name, std::string_view renderer) {
+// ifdef for Unix reduces string comparisons for non-Windows drivers, and Intel
+#ifdef YUZU_UNIX
+    // Sorted vaguely by how likely a vendor is to appear
+    if (vendor_name == "AMD") {
+        // RadeonSI
+        return true;
+    }
+    if (vendor_name == "Intel") {
+        // Must be inside YUZU_UNIX ifdef as the Windows driver uses the same vendor string
+        // iris, crocus
+        const bool is_intel_dg = (renderer.find("DG") != std::string_view::npos);
+        return is_intel_dg;
+    }
+    if (vendor_name == "nouveau") {
+        return true;
+    }
+    if (vendor_name == "X.Org") {
+        // R600
+        return true;
+    }
+#endif
+    if (vendor_name == "Collabora Ltd") {
+        // Zink
+        return true;
+    }
+    if (vendor_name == "Microsoft Corporation") {
+        // d3d12
+        return true;
+    }
+    if (vendor_name == "Mesa/X.org") {
+        // llvmpipe, softpipe, virgl
+        return true;
+    }
+    return false;
+}
+
 [[nodiscard]] bool IsDebugToolAttached(std::span<const std::string_view> extensions) {
     const bool nsight = std::getenv("NVTX_INJECTION64_PATH") || std::getenv("NSIGHT_LAUNCHED");
     return nsight || HasExtension(extensions, "GL_EXT_debug_tool") ||
@@ -120,11 +157,15 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
     }
     vendor_name = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
     const std::string_view version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    const std::string_view renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     const std::vector extensions = GetExtensions();
 
     const bool is_nvidia = vendor_name == "NVIDIA Corporation";
     const bool is_amd = vendor_name == "ATI Technologies Inc.";
     const bool is_intel = vendor_name == "Intel";
+
+    const bool has_slow_software_astc =
+        !is_nvidia && !is_amd && HasSlowSoftwareAstc(vendor_name, renderer);
 
 #ifdef __unix__
     constexpr bool is_linux = true;
@@ -152,7 +193,7 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
     has_vertex_viewport_layer = GLAD_GL_ARB_shader_viewport_layer_array;
     has_image_load_formatted = HasExtension(extensions, "GL_EXT_shader_image_load_formatted");
     has_texture_shadow_lod = HasExtension(extensions, "GL_EXT_texture_shadow_lod");
-    has_astc = IsASTCSupported();
+    has_astc = !has_slow_software_astc && IsASTCSupported();
     has_variable_aoffi = TestVariableAoffi();
     has_component_indexing_bug = is_amd;
     has_precise_bug = TestPreciseBug();
