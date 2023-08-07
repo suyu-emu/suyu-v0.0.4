@@ -22,13 +22,13 @@ AudCtl::AudCtl(Core::System& system_) : ServiceFramework{system_, "audctl"} {
         {9, nullptr, "GetAudioOutputMode"},
         {10, nullptr, "SetAudioOutputMode"},
         {11, nullptr, "SetForceMutePolicy"},
-        {12, nullptr, "GetForceMutePolicy"},
-        {13, nullptr, "GetOutputModeSetting"},
+        {12, &AudCtl::GetForceMutePolicy, "GetForceMutePolicy"},
+        {13, &AudCtl::GetOutputModeSetting, "GetOutputModeSetting"},
         {14, nullptr, "SetOutputModeSetting"},
         {15, nullptr, "SetOutputTarget"},
         {16, nullptr, "SetInputTargetForceEnabled"},
         {17, nullptr, "SetHeadphoneOutputLevelMode"},
-        {18, nullptr, "GetHeadphoneOutputLevelMode"},
+        {18, &AudCtl::GetHeadphoneOutputLevelMode, "GetHeadphoneOutputLevelMode"},
         {19, nullptr, "AcquireAudioVolumeUpdateEventForPlayReport"},
         {20, nullptr, "AcquireAudioOutputDeviceUpdateEventForPlayReport"},
         {21, nullptr, "GetAudioOutputTargetForPlayReport"},
@@ -41,7 +41,7 @@ AudCtl::AudCtl(Core::System& system_) : ServiceFramework{system_, "audctl"} {
         {28, nullptr, "GetAudioOutputChannelCountForPlayReport"},
         {29, nullptr, "BindAudioOutputChannelCountUpdateEventForPlayReport"},
         {30, nullptr, "SetSpeakerAutoMuteEnabled"},
-        {31, nullptr, "IsSpeakerAutoMuteEnabled"},
+        {31, &AudCtl::IsSpeakerAutoMuteEnabled, "IsSpeakerAutoMuteEnabled"},
         {32, nullptr, "GetActiveOutputTarget"},
         {33, nullptr, "GetTargetDeviceInfo"},
         {34, nullptr, "AcquireTargetNotification"},
@@ -94,6 +94,44 @@ void AudCtl::GetTargetVolumeMax(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.Push(target_max_volume);
+}
+
+void AudCtl::GetForceMutePolicy(HLERequestContext& ctx) {
+    LOG_WARNING(Audio, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(ForceMutePolicy::Disable);
+}
+
+void AudCtl::GetOutputModeSetting(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto value = rp.Pop<u32>();
+
+    LOG_WARNING(Audio, "(STUBBED) called, value={}", value);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(AudioOutputMode::PcmAuto);
+}
+
+void AudCtl::GetHeadphoneOutputLevelMode(HLERequestContext& ctx) {
+    LOG_WARNING(Audio, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(HeadphoneOutputLevelMode::Normal);
+}
+
+void AudCtl::IsSpeakerAutoMuteEnabled(HLERequestContext& ctx) {
+    const bool is_speaker_auto_mute_enabled = false;
+
+    LOG_WARNING(Audio, "(STUBBED) called, is_speaker_auto_mute_enabled={}",
+                is_speaker_auto_mute_enabled);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u8>(is_speaker_auto_mute_enabled);
 }
 
 } // namespace Service::Audio
