@@ -383,7 +383,12 @@ Result FileSystemController::CreateSaveData(FileSys::VirtualDir* out_save_data,
         return FileSys::ERROR_ENTITY_NOT_FOUND;
     }
 
-    *out_save_data = save_data_factory->Create(space, save_struct);
+    auto save_data = save_data_factory->Create(space, save_struct);
+    if (save_data == nullptr) {
+        return FileSys::ERROR_ENTITY_NOT_FOUND;
+    }
+
+    *out_save_data = save_data;
     return ResultSuccess;
 }
 
@@ -397,7 +402,12 @@ Result FileSystemController::OpenSaveData(FileSys::VirtualDir* out_save_data,
         return FileSys::ERROR_ENTITY_NOT_FOUND;
     }
 
-    *out_save_data = save_data_factory->Open(space, attribute);
+    auto save_data = save_data_factory->Open(space, attribute);
+    if (save_data == nullptr) {
+        return FileSys::ERROR_ENTITY_NOT_FOUND;
+    }
+
+    *out_save_data = save_data;
     return ResultSuccess;
 }
 
@@ -409,7 +419,12 @@ Result FileSystemController::OpenSaveDataSpace(FileSys::VirtualDir* out_save_dat
         return FileSys::ERROR_ENTITY_NOT_FOUND;
     }
 
-    *out_save_data_space = save_data_factory->GetSaveDataSpaceDirectory(space);
+    auto save_data_space = save_data_factory->GetSaveDataSpaceDirectory(space);
+    if (save_data_space == nullptr) {
+        return FileSys::ERROR_ENTITY_NOT_FOUND;
+    }
+
+    *out_save_data_space = save_data_space;
     return ResultSuccess;
 }
 
@@ -420,7 +435,12 @@ Result FileSystemController::OpenSDMC(FileSys::VirtualDir* out_sdmc) const {
         return FileSys::ERROR_SD_CARD_NOT_FOUND;
     }
 
-    *out_sdmc = sdmc_factory->Open();
+    auto sdmc = sdmc_factory->Open();
+    if (sdmc == nullptr) {
+        return FileSys::ERROR_SD_CARD_NOT_FOUND;
+    }
+
+    *out_sdmc = sdmc;
     return ResultSuccess;
 }
 
