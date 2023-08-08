@@ -152,7 +152,7 @@ private:
         if (pin_code[0] == '\0') {
             return true;
         }
-        if (!restriction_settings.is_free_communication_default_on) {
+        if (!settings.is_free_communication_default_on) {
             return true;
         }
         // TODO(ogniK): Check for blacklisted/exempted applications. Return false can happen here
@@ -168,21 +168,21 @@ private:
         if (pin_code[0] == '\0') {
             return true;
         }
-        if (!restriction_settings.is_stero_vision_restricted) {
+        if (!settings.is_stero_vision_restricted) {
             return false;
         }
         return true;
     }
 
     void SetStereoVisionRestrictionImpl(bool is_restricted) {
-        if (restriction_settings.disabled) {
+        if (settings.disabled) {
             return;
         }
 
         if (pin_code[0] == '\0') {
             return;
         }
-        restriction_settings.is_stero_vision_restricted = is_restricted;
+        settings.is_stero_vision_restricted = is_restricted;
     }
 
     void Initialize(HLERequestContext& ctx) {
@@ -430,7 +430,7 @@ private:
         }
 
         rb.Push(ResultSuccess);
-        rb.Push(restriction_settings.is_stero_vision_restricted);
+        rb.Push(settings.is_stero_vision_restricted);
     }
 
     void ResetConfirmedStereoVisionPermission(HLERequestContext& ctx) {
@@ -460,22 +460,28 @@ private:
         bool stereo_vision{};
     };
 
-    // This is nn::pctl::RestrictionSettings
-    struct RestrictionSettings {
+    struct ParentalControlSettings {
         bool is_stero_vision_restricted{};
         bool is_free_communication_default_on{};
         bool disabled{};
+    };
+
+    // This is nn::pctl::RestrictionSettings
+    struct RestrictionSettings {
+        u8 rating_age;
+        bool sns_post_restriction;
+        bool free_communication_restriction;
     };
     static_assert(sizeof(RestrictionSettings) == 0x3, "RestrictionSettings has incorrect size.");
 
     // This is nn::pctl::PlayTimerSettings
     struct PlayTimerSettings {
-        // TODO: RE the actual contents of this struct
-        std::array<u8, 0x34> settings;
+        std::array<u32, 13> settings;
     };
     static_assert(sizeof(PlayTimerSettings) == 0x34, "PlayTimerSettings has incorrect size.");
 
     States states{};
+    ParentalControlSettings settings{};
     RestrictionSettings restriction_settings{};
     std::array<char, 8> pin_code{};
     Capability capability{};
