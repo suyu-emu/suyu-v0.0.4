@@ -54,13 +54,13 @@ const uint TRIT = 2u;
 
 // ASTC Encodings data, sorted in ascending order based on their BitLength value
 // (see GetBitLength() function)
-const uvec4 encoding_values[6] = uvec4[](
-    uvec4((JUST_BITS), (JUST_BITS | (1u << 8u)), (TRIT), (JUST_BITS | (2u << 8u))),
-    uvec4((QUINT), (TRIT | (1u << 8u)), (JUST_BITS | (3u << 8u)), (QUINT | (1u << 8u))),
-    uvec4((TRIT | (2u << 8u)), (JUST_BITS | (4u << 8u)), (QUINT | (2u << 8u)), (TRIT | (3u << 8u))),
-    uvec4((JUST_BITS | (5u << 8u)), (QUINT | (3u << 8u)), (TRIT | (4u << 8u)), (JUST_BITS | (6u << 8u))),
-    uvec4((QUINT | (4u << 8u)), (TRIT | (5u << 8u)), (JUST_BITS | (7u << 8u)), (QUINT | (5u << 8u))),
-    uvec4((TRIT | (6u << 8u)), (JUST_BITS | (8u << 8u)), 0u, 0u));
+const uint encoding_values[22] = uint[](
+    (JUST_BITS), (JUST_BITS | (1u << 8u)), (TRIT), (JUST_BITS | (2u << 8u)),
+    (QUINT), (TRIT | (1u << 8u)), (JUST_BITS | (3u << 8u)), (QUINT | (1u << 8u)),
+    (TRIT | (2u << 8u)), (JUST_BITS | (4u << 8u)), (QUINT | (2u << 8u)), (TRIT | (3u << 8u)),
+    (JUST_BITS | (5u << 8u)), (QUINT | (3u << 8u)), (TRIT | (4u << 8u)), (JUST_BITS | (6u << 8u)),
+    (QUINT | (4u << 8u)), (TRIT | (5u << 8u)), (JUST_BITS | (7u << 8u)), (QUINT | (5u << 8u)),
+    (TRIT | (6u << 8u)), (JUST_BITS | (8u << 8u)));
 
 // Input ASTC texture globals
 int total_bitsread = 0;
@@ -313,8 +313,7 @@ EncodingData GetEncodingFromVector(uint index) {
 
 // Returns the number of bits required to encode n_vals values.
 uint GetBitLength(uint n_vals, uint encoding_index) {
-    const EncodingData encoding_value =
-        EncodingData(encoding_values[encoding_index / 4][encoding_index % 4]);
+    const EncodingData encoding_value = EncodingData(encoding_values[encoding_index]);
     const uint encoding = Encoding(encoding_value);
     uint total_bits = NumBits(encoding_value) * n_vals;
     if (encoding == TRIT) {
@@ -435,7 +434,7 @@ void DecodeTritBlock(uint num_bits) {
 }
 
 void DecodeIntegerSequence(uint max_range, uint num_values) {
-    EncodingData val = EncodingData(encoding_values[max_range / 4][max_range % 4]);
+    EncodingData val = EncodingData(encoding_values[max_range]);
     const uint encoding = Encoding(val);
     const uint num_bits = NumBits(val);
     uint vals_decoded = 0;
@@ -467,7 +466,7 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
     // Find the largest encoding that's within color_data_bits
     // TODO(ameerj): profile with binary search
     int range = 0;
-    while (++range < ((encoding_values.length() * 4) - 2)) {
+    while (++range < encoding_values.length()) {
         const uint bit_length = GetBitLength(num_values, range);
         if (bit_length > color_data_bits) {
             break;
