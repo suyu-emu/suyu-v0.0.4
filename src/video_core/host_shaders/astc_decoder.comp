@@ -77,7 +77,7 @@ int color_bitsread = 0;
 #define DIVCEIL(number, divisor) (number + divisor - 1) / divisor
 #define ARRAY_NUM_ELEMENTS 144
 #define VECTOR_ARRAY_SIZE DIVCEIL(ARRAY_NUM_ELEMENTS * 2, 4)
-uvec4 result_vector[VECTOR_ARRAY_SIZE];
+uint result_vector[ARRAY_NUM_ELEMENTS * 2];
 
 int result_index = 0;
 uint result_vector_max_index;
@@ -122,9 +122,7 @@ void ResultEmplaceBack(EncodingData val) {
         result_limit_reached = true;
         return;
     }
-    const uint array_index = result_index / 4;
-    const uint vector_index = result_index % 4;
-    result_vector[array_index][vector_index] = val.data;
+    result_vector[result_index] = val.data;
     ++result_index;
 }
 
@@ -309,10 +307,7 @@ uint StreamColorBits(uint num_bits) {
 }
 
 EncodingData GetEncodingFromVector(uint index) {
-    const uint array_index = index / 4;
-    const uint vector_index = index % 4;
-
-    const uint data = result_vector[array_index][vector_index];
+    const uint data = result_vector[index];
     return EncodingData(data);
 }
 
@@ -809,18 +804,14 @@ void UnquantizeTexelWeights(uvec2 size, bool is_dual_plane) {
     const uint area = size.x * size.y;
     const uint loop_count = min(result_index, area * num_planes);
     for (uint itr = 0; itr < loop_count; ++itr) {
-        const uint array_index = itr / 4;
-        const uint vector_index = itr % 4;
-        result_vector[array_index][vector_index] =
+        result_vector[itr] =
             UnquantizeTexelWeight(GetEncodingFromVector(itr));
     }
 }
 
 uint GetUnquantizedTexelWieght(uint offset_base, uint plane, bool is_dual_plane) {
     const uint offset = is_dual_plane ? 2 * offset_base + plane : offset_base;
-    const uint array_index = offset / 4;
-    const uint vector_index = offset % 4;
-    return result_vector[array_index][vector_index];
+    return result_vector[offset];
 }
 
 uvec4 GetUnquantizedWeightVector(uint t, uint s, uvec2 size, uint plane_index, bool is_dual_plane) {
