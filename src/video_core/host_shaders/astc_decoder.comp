@@ -457,8 +457,7 @@ void DecodeIntegerSequence(uint max_range, uint num_values) {
     }
 }
 
-uvec4 color_values[8];
-void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
+void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits, out uint color_values[32]) {
     uint num_values = 0;
     for (uint i = 0; i < num_partitions; i++) {
         num_values += ((modes[i] >> 2) + 1) << 1;
@@ -486,8 +485,7 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
         A = ReplicateBitTo9((bitval & 1));
         switch (encoding) {
         case JUST_BITS:
-            color_values[out_index / 4][out_index % 4] = FastReplicateTo8(bitval, bitlen);
-            ++out_index;
+            color_values[++out_index] = FastReplicateTo8(bitval, bitlen);
             break;
         case TRIT: {
             D = QuintTritValue(val);
@@ -566,8 +564,7 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
             uint T = (D * C) + B;
             T ^= A;
             T = (A & 0x80) | (T >> 2);
-            color_values[out_index / 4][out_index % 4] = T;
-            ++out_index;
+            color_values[++out_index] = T;
         }
     }
 }
@@ -592,19 +589,17 @@ ivec4 BlueContract(int a, int r, int g, int b) {
     return ivec4(a, (r + b) >> 1, (g + b) >> 1, b);
 }
 
-void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode,
+void ComputeEndpoints(out uvec4 ep1, out uvec4 ep2, uint color_endpoint_mode, uint color_values[32],
                       inout uint colvals_index) {
 #define READ_UINT_VALUES(N)                                                                        \
     uvec4 V[2];                                                                                    \
     for (uint i = 0; i < N; i++) {                                                                 \
-        V[i / 4][i % 4] = color_values[colvals_index / 4][colvals_index % 4];                      \
-        ++colvals_index;                                                                           \
+        V[i / 4][i % 4] = color_values[++colvals_index];                      \
     }
 #define READ_INT_VALUES(N)                                                                         \
     ivec4 V[2];                                                                                    \
     for (uint i = 0; i < N; i++) {                                                                 \
-        V[i / 4][i % 4] = int(color_values[colvals_index / 4][colvals_index % 4]);                 \
-        ++colvals_index;                                                                           \
+        V[i / 4][i % 4] = int(color_values[++colvals_index]);                      \
     }
 
     switch (color_endpoint_mode) {
@@ -1111,11 +1106,11 @@ void DecompressBlock(ivec3 coord) {
     {
         // This decode phase should at most push 32 elements into the vector
         result_vector_max_index = 32;
-
+        uint color_values[32];
         uint colvals_index = 0;
-        DecodeColorValues(color_endpoint_mode, num_partitions, color_data_bits);
+        DecodeColorValues(color_endpoint_mode, num_partitions, color_data_bits, color_values);
         for (uint i = 0; i < num_partitions; i++) {
-            ComputeEndpoints(endpoints0[i], endpoints1[i], color_endpoint_mode[i],
+            ComputeEndpoints(endpoints0[i], endpoints1[i], color_endpoint_mode[i], color_values,
                              colvals_index);
         }
     }
