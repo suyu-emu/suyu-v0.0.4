@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <functional>
 #include <string>
+#include <vector>
 #include "common/settings_common.h"
 
 namespace Settings {

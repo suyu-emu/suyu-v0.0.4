@@ -190,7 +190,7 @@ public:
         }
     }
 
-    [[nodiscard]] std::string constexpr Canonicalize() const override final {
+    [[nodiscard]] std::string Canonicalize() const override final {
         if constexpr (std::is_enum_v<Type>) {
             return CanonicalizeEnum(this->GetValue());
         } else {
@@ -256,11 +256,11 @@ public:
      * @param runtime_modifiable_ Suggests whether this is modifiable while a guest is loaded
      * @param other_setting_ A second Setting to associate to this one in metadata
      */
+    template <typename T = BasicSetting>
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const std::string& name,
                                Category category_, u32 specialization_ = Specialization::Default,
                                bool save_ = true, bool runtime_modifiable_ = false,
-                               BasicSetting* other_setting_ = nullptr)
-        requires(!ranged)
+                               typename std::enable_if<!ranged, T*>::type other_setting_ = nullptr)
         : Setting<Type, false>{
               linkage, default_val,         name,          category_, specialization_,
               save_,   runtime_modifiable_, other_setting_} {
@@ -282,12 +282,12 @@ public:
      * @param runtime_modifiable_ Suggests whether this is modifiable while a guest is loaded
      * @param other_setting_ A second Setting to associate to this one in metadata
      */
+    template <typename T = BasicSetting>
     explicit SwitchableSetting(Linkage& linkage, const Type& default_val, const Type& min_val,
                                const Type& max_val, const std::string& name, Category category_,
                                u32 specialization_ = Specialization::Default, bool save_ = true,
                                bool runtime_modifiable_ = false,
-                               BasicSetting* other_setting_ = nullptr)
-        requires(ranged)
+                               typename std::enable_if<ranged, T*>::type other_setting_ = nullptr)
         : Setting<Type, true>{linkage,         default_val, min_val,
                               max_val,         name,        category_,
                               specialization_, save_,       runtime_modifiable_,

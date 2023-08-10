@@ -509,9 +509,9 @@ class GuestMemory {
 
 public:
     GuestMemory() = delete;
-    explicit GuestMemory(M& memory_, u64 addr_, std::size_t size_,
+    explicit GuestMemory(M& memory, u64 addr, std::size_t size,
                          Common::ScratchBuffer<T>* backup = nullptr)
-        : memory{memory_}, addr{addr_}, size{size_} {
+        : m_memory{memory}, m_addr{addr}, m_size{size} {
         static_assert(FLAGS & GuestMemoryFlags::Read || FLAGS & GuestMemoryFlags::Write);
         if constexpr (FLAGS & GuestMemoryFlags::Read) {
             Read(addr, size, backup);
@@ -521,89 +521,97 @@ public:
     ~GuestMemory() = default;
 
     T* data() noexcept {
-        return data_span.data();
+        return m_data_span.data();
     }
 
     const T* data() const noexcept {
-        return data_span.data();
+        return m_data_span.data();
+    }
+
+    size_t size() const noexcept {
+        return m_size;
+    }
+
+    size_t size_bytes() const noexcept {
+        return this->size() * sizeof(T);
     }
 
     [[nodiscard]] T* begin() noexcept {
-        return data();
+        return this->data();
     }
 
     [[nodiscard]] const T* begin() const noexcept {
-        return data();
+        return this->data();
     }
 
     [[nodiscard]] T* end() noexcept {
-        return data() + size;
+        return this->data() + this->size();
     }
 
     [[nodiscard]] const T* end() const noexcept {
-        return data() + size;
+        return this->data() + this->size();
     }
 
     T& operator[](size_t index) noexcept {
-        return data_span[index];
+        return m_data_span[index];
     }
 
     const T& operator[](size_t index) const noexcept {
-        return data_span[index];
+        return m_data_span[index];
     }
 
-    void SetAddressAndSize(u64 addr_, std::size_t size_) noexcept {
-        addr = addr_;
-        size = size_;
-        addr_changed = true;
+    void SetAddressAndSize(u64 addr, std::size_t size) noexcept {
+        m_addr = addr;
+        m_size = size;
+        m_addr_changed = true;
     }
 
-    std::span<T> Read(u64 addr_, std::size_t size_,
+    std::span<T> Read(u64 addr, std::size_t size,
                       Common::ScratchBuffer<T>* backup = nullptr) noexcept {
-        addr = addr_;
-        size = size_;
-        if (size == 0) {
-            is_data_copy = true;
+        m_addr = addr;
+        m_size = size;
+        if (m_size == 0) {
+            m_is_data_copy = true;
             return {};
         }
 
-        if (TrySetSpan()) {
+        if (this->TrySetSpan()) {
             if constexpr (FLAGS & GuestMemoryFlags::Safe) {
-                memory.FlushRegion(addr, size * sizeof(T));
+                m_memory.FlushRegion(m_addr, this->size_bytes());
             }
         } else {
             if (backup) {
-                backup->resize_destructive(size);
-                data_span = *backup;
+                backup->resize_destructive(this->size());
+                m_data_span = *backup;
             } else {
-                data_copy.resize(size);
-                data_span = std::span(data_copy);
+                m_data_copy.resize(this->size());
+                m_data_span = std::span(m_data_copy);
             }
-            is_data_copy = true;
-            span_valid = true;
+            m_is_data_copy = true;
+            m_span_valid = true;
             if constexpr (FLAGS & GuestMemoryFlags::Safe) {
-                memory.ReadBlock(addr, data_span.data(), size * sizeof(T));
+                m_memory.ReadBlock(m_addr, this->data(), this->size_bytes());
             } else {
-                memory.ReadBlockUnsafe(addr, data_span.data(), size * sizeof(T));
+                m_memory.ReadBlockUnsafe(m_addr, this->data(), this->size_bytes());
             }
         }
-        return data_span;
+        return m_data_span;
     }
 
     void Write(std::span<T> write_data) noexcept {
         if constexpr (FLAGS & GuestMemoryFlags::Cached) {
-            memory.WriteBlockCached(addr, write_data.data(), size * sizeof(T));
+            m_memory.WriteBlockCached(m_addr, write_data.data(), this->size_bytes());
         } else if constexpr (FLAGS & GuestMemoryFlags::Safe) {
-            memory.WriteBlock(addr, write_data.data(), size * sizeof(T));
+            m_memory.WriteBlock(m_addr, write_data.data(), this->size_bytes());
         } else {
-            memory.WriteBlockUnsafe(addr, write_data.data(), size * sizeof(T));
+            m_memory.WriteBlockUnsafe(m_addr, write_data.data(), this->size_bytes());
         }
     }
 
     bool TrySetSpan() noexcept {
-        if (u8* ptr = memory.GetSpan(addr, size * sizeof(T)); ptr) {
-            data_span = {reinterpret_cast<T*>(ptr), size};
-            span_valid = true;
+        if (u8* ptr = m_memory.GetSpan(m_addr, this->size_bytes()); ptr) {
+            m_data_span = {reinterpret_cast<T*>(ptr), this->size()};
+            m_span_valid = true;
             return true;
         }
         return false;
@@ -611,36 +619,36 @@ public:
 
 protected:
     bool IsDataCopy() const noexcept {
-        return is_data_copy;
+        return m_is_data_copy;
     }
 
     bool AddressChanged() const noexcept {
-        return addr_changed;
+        return m_addr_changed;
     }
 
-    M& memory;
-    u64 addr;
-    size_t size;
-    std::span<T> data_span{};
-    std::vector<T> data_copy;
-    bool span_valid{false};
-    bool is_data_copy{false};
-    bool addr_changed{false};
+    M& m_memory;
+    u64 m_addr{};
+    size_t m_size{};
+    std::span<T> m_data_span{};
+    std::vector<T> m_data_copy{};
+    bool m_span_valid{false};
+    bool m_is_data_copy{false};
+    bool m_addr_changed{false};
 };
 
 template <typename M, typename T, GuestMemoryFlags FLAGS>
 class GuestMemoryScoped : public GuestMemory<M, T, FLAGS> {
 public:
     GuestMemoryScoped() = delete;
-    explicit GuestMemoryScoped(M& memory_, u64 addr_, std::size_t size_,
+    explicit GuestMemoryScoped(M& memory, u64 addr, std::size_t size,
                                Common::ScratchBuffer<T>* backup = nullptr)
-        : GuestMemory<M, T, FLAGS>(memory_, addr_, size_, backup) {
+        : GuestMemory<M, T, FLAGS>(memory, addr, size, backup) {
         if constexpr (!(FLAGS & GuestMemoryFlags::Read)) {
             if (!this->TrySetSpan()) {
                 if (backup) {
-                    this->data_span = *backup;
-                    this->span_valid = true;
-                    this->is_data_copy = true;
+                    this->m_data_span = *backup;
+                    this->m_span_valid = true;
+                    this->m_is_data_copy = true;
                 }
             }
         }
@@ -648,24 +656,21 @@ public:
 
     ~GuestMemoryScoped() {
         if constexpr (FLAGS & GuestMemoryFlags::Write) {
-            if (this->size == 0) [[unlikely]] {
+            if (this->size() == 0) [[unlikely]] {
                 return;
             }
 
             if (this->AddressChanged() || this->IsDataCopy()) {
-                ASSERT(this->span_valid);
+                ASSERT(this->m_span_valid);
                 if constexpr (FLAGS & GuestMemoryFlags::Cached) {
-                    this->memory.WriteBlockCached(this->addr, this->data_span.data(),
-                                                  this->size * sizeof(T));
+                    this->m_memory.WriteBlockCached(this->m_addr, this->data(), this->size_bytes());
                 } else if constexpr (FLAGS & GuestMemoryFlags::Safe) {
-                    this->memory.WriteBlock(this->addr, this->data_span.data(),
-                                            this->size * sizeof(T));
+                    this->m_memory.WriteBlock(this->m_addr, this->data(), this->size_bytes());
                 } else {
-                    this->memory.WriteBlockUnsafe(this->addr, this->data_span.data(),
-                                                  this->size * sizeof(T));
+                    this->m_memory.WriteBlockUnsafe(this->m_addr, this->data(), this->size_bytes());
                 }
             } else if constexpr (FLAGS & GuestMemoryFlags::Safe) {
-                this->memory.InvalidateRegion(this->addr, this->size * sizeof(T));
+                this->m_memory.InvalidateRegion(this->m_addr, this->size_bytes());
             }
         }
     }

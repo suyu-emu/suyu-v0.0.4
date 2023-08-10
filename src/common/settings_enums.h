@@ -12,8 +12,8 @@ namespace Settings {
 
 template <typename T>
 struct EnumMetadata {
-    static constexpr std::vector<std::pair<std::string, T>> Canonicalizations();
-    static constexpr u32 Index();
+    static std::vector<std::pair<std::string, T>> Canonicalizations();
+    static u32 Index();
 };
 
 #define PAIR_45(N, X, ...) {#X, N::X} __VA_OPT__(, PAIR_46(N, __VA_ARGS__))
@@ -66,11 +66,11 @@ struct EnumMetadata {
 #define ENUM(NAME, ...)                                                                            \
     enum class NAME : u32 { __VA_ARGS__ };                                                         \
     template <>                                                                                    \
-    constexpr std::vector<std::pair<std::string, NAME>> EnumMetadata<NAME>::Canonicalizations() {  \
+    inline std::vector<std::pair<std::string, NAME>> EnumMetadata<NAME>::Canonicalizations() {     \
         return {PAIR(NAME, __VA_ARGS__)};                                                          \
     }                                                                                              \
     template <>                                                                                    \
-    constexpr u32 EnumMetadata<NAME>::Index() {                                                    \
+    inline u32 EnumMetadata<NAME>::Index() {                                                       \
         return __COUNTER__;                                                                        \
     }
 
@@ -85,7 +85,7 @@ enum class AudioEngine : u32 {
 };
 
 template <>
-constexpr std::vector<std::pair<std::string, AudioEngine>>
+inline std::vector<std::pair<std::string, AudioEngine>>
 EnumMetadata<AudioEngine>::Canonicalizations() {
     return {
         {"auto", AudioEngine::Auto},
@@ -96,7 +96,7 @@ EnumMetadata<AudioEngine>::Canonicalizations() {
 }
 
 template <>
-constexpr u32 EnumMetadata<AudioEngine>::Index() {
+inline u32 EnumMetadata<AudioEngine>::Index() {
     // This is just a sufficiently large number that is more than the number of other enums declared
     // here
     return 100;
@@ -147,7 +147,7 @@ ENUM(AntiAliasing, None, Fxaa, Smaa, MaxEnum);
 ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, Stretch);
 
 template <typename Type>
-constexpr std::string CanonicalizeEnum(Type id) {
+inline std::string CanonicalizeEnum(Type id) {
     const auto group = EnumMetadata<Type>::Canonicalizations();
     for (auto& [name, value] : group) {
         if (value == id) {
@@ -158,7 +158,7 @@ constexpr std::string CanonicalizeEnum(Type id) {
 }
 
 template <typename Type>
-constexpr Type ToEnum(const std::string& canonicalization) {
+inline Type ToEnum(const std::string& canonicalization) {
     const auto group = EnumMetadata<Type>::Canonicalizations();
     for (auto& [name, value] : group) {
         if (name == canonicalization) {
