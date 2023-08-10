@@ -476,7 +476,13 @@ NetworkInstance::~NetworkInstance() {
 std::optional<IPv4Address> GetHostIPv4Address() {
     const auto network_interface = Network::GetSelectedNetworkInterface();
     if (!network_interface.has_value()) {
-        LOG_DEBUG(Network, "GetSelectedNetworkInterface returned no interface");
+        // Only print the error once to avoid log spam
+        static bool print_error = true;
+        if (print_error) {
+            LOG_ERROR(Network, "GetSelectedNetworkInterface returned no interface");
+            print_error = false;
+        }
+
         return {};
     }
 
