@@ -30,10 +30,10 @@ void Module::Interface::GetConfig(HLERequestContext& ctx) {
 
     // This should call svcCallSecureMonitor with the appropriate args.
     // Since we do not have it implemented yet, we will use this for now.
-    const auto smc_result = GetConfigImpl(config_item);
-    const auto result_code = smc_result.Code();
+    u64 smc_result{};
+    const auto result_code = GetConfigImpl(&smc_result, config_item);
 
-    if (smc_result.Failed()) {
+    if (result_code != ResultSuccess) {
         LOG_ERROR(Service_SPL, "called, config_item={}, result_code={}", config_item,
                   result_code.raw);
 
@@ -42,11 +42,11 @@ void Module::Interface::GetConfig(HLERequestContext& ctx) {
     }
 
     LOG_DEBUG(Service_SPL, "called, config_item={}, result_code={}, smc_result={}", config_item,
-              result_code.raw, *smc_result);
+              result_code.raw, smc_result);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(result_code);
-    rb.Push(*smc_result);
+    rb.Push(smc_result);
 }
 
 void Module::Interface::ModularExponentiate(HLERequestContext& ctx) {
@@ -99,7 +99,7 @@ void Module::Interface::GetBootReason(HLERequestContext& ctx) {
     rb.Push(ResultSecureMonitorNotImplemented);
 }
 
-ResultVal<u64> Module::Interface::GetConfigImpl(ConfigItem config_item) const {
+Result Module::Interface::GetConfigImpl(u64* out_config, ConfigItem config_item) const {
     switch (config_item) {
     case ConfigItem::DisableProgramVerification:
     case ConfigItem::DramId:
@@ -121,40 +121,50 @@ ResultVal<u64> Module::Interface::GetConfigImpl(ConfigItem config_item) const {
         return ResultSecureMonitorNotImplemented;
     case ConfigItem::ExosphereApiVersion:
         // Get information about the current exosphere version.
-        return (u64{HLE::ApiVersion::ATMOSPHERE_RELEASE_VERSION_MAJOR} << 56) |
-               (u64{HLE::ApiVersion::ATMOSPHERE_RELEASE_VERSION_MINOR} << 48) |
-               (u64{HLE::ApiVersion::ATMOSPHERE_RELEASE_VERSION_MICRO} << 40) |
-               (static_cast<u64>(HLE::ApiVersion::GetTargetFirmware()));
+        *out_config = (u64{HLE::ApiVersion::ATMOSPHERE_RELEASE_VERSION_MAJOR} << 56) |
+                      (u64{HLE::ApiVersion::ATMOSPHERE_RELEASE_VERSION_MINOR} << 48) |
+                      (u64{HLE::ApiVersion::ATMOSPHERE_RELEASE_VERSION_MICRO} << 40) |
+                      (static_cast<u64>(HLE::ApiVersion::GetTargetFirmware()));
+        return ResultSuccess;
     case ConfigItem::ExosphereNeedsReboot:
         // We are executing, so we aren't in the process of rebooting.
-        return u64{0};
+        *out_config = u64{0};
+        return ResultSuccess;
     case ConfigItem::ExosphereNeedsShutdown:
         // We are executing, so we aren't in the process of shutting down.
-        return u64{0};
+        *out_config = u64{0};
+        return ResultSuccess;
     case ConfigItem::ExosphereGitCommitHash:
         // Get information about the current exosphere git commit hash.
-        return u64{0};
+        *out_config = u64{0};
+        return ResultSuccess;
     case ConfigItem::ExosphereHasRcmBugPatch:
         // Get information about whether this unit has the RCM bug patched.
-        return u64{0};
+        *out_config = u64{0};
+        return ResultSuccess;
     case ConfigItem::ExosphereBlankProdInfo:
         // Get whether this unit should simulate a "blanked" PRODINFO.
-        return u64{0};
+        *out_config = u64{0};
+        return ResultSuccess;
     case ConfigItem::ExosphereAllowCalWrites:
         // Get whether this unit should allow writing to the calibration partition.
-        return u64{0};
+        *out_config = u64{0};
+        return ResultSuccess;
     case ConfigItem::ExosphereEmummcType:
         // Get what kind of emummc this unit has active.
-        return u64{0};
+        *out_config = u64{0};
+        return ResultSuccess;
     case ConfigItem::ExospherePayloadAddress:
         // Gets the physical address of the reboot payload buffer, if one exists.
         return ResultSecureMonitorNotInitialized;
     case ConfigItem::ExosphereLogConfiguration:
         // Get the log configuration.
-        return u64{0};
+        *out_config = u64{0};
+        return ResultSuccess;
     case ConfigItem::ExosphereForceEnableUsb30:
         // Get whether usb 3.0 should be force-enabled.
-        return u64{0};
+        *out_config = u64{0};
+        return ResultSuccess;
     default:
         return ResultSecureMonitorInvalidArgument;
     }

@@ -35,11 +35,11 @@ public:
     virtual void SetSocket(std::shared_ptr<Network::SocketBase> socket) = 0;
     virtual Result SetHostName(const std::string& hostname) = 0;
     virtual Result DoHandshake() = 0;
-    virtual ResultVal<size_t> Read(std::span<u8> data) = 0;
-    virtual ResultVal<size_t> Write(std::span<const u8> data) = 0;
-    virtual ResultVal<std::vector<std::vector<u8>>> GetServerCerts() = 0;
+    virtual Result Read(size_t* out_size, std::span<u8> data) = 0;
+    virtual Result Write(size_t* out_size, std::span<const u8> data) = 0;
+    virtual Result GetServerCerts(std::vector<std::vector<u8>>* out_certs) = 0;
 };
 
-ResultVal<std::unique_ptr<SSLConnectionBackend>> CreateSSLConnectionBackend();
+Result CreateSSLConnectionBackend(std::unique_ptr<SSLConnectionBackend>* out_backend);
 
 } // namespace Service::SSL

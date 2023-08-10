@@ -28,8 +28,9 @@ public:
     explicit IApplicationManagerInterface(Core::System& system_);
     ~IApplicationManagerInterface() override;
 
-    ResultVal<u8> GetApplicationDesiredLanguage(u32 supported_languages);
-    ResultVal<u64> ConvertApplicationLanguageToLanguageCode(u8 application_language);
+    Result GetApplicationDesiredLanguage(u8* out_desired_language, u32 supported_languages);
+    Result ConvertApplicationLanguageToLanguageCode(u64* out_language_code,
+                                                    u8 application_language);
 
 private:
     void GetApplicationControlData(HLERequestContext& ctx);

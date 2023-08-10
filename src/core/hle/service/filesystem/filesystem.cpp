@@ -57,8 +57,8 @@ Result VfsDirectoryServiceWrapper::CreateFile(const std::string& path_, u64 size
         return FileSys::ERROR_PATH_NOT_FOUND;
     }
 
-    const auto entry_type = GetEntryType(path);
-    if (entry_type.Code() == ResultSuccess) {
+    FileSys::EntryType entry_type{};
+    if (GetEntryType(&entry_type, path) == ResultSuccess) {
         return FileSys::ERROR_PATH_ALREADY_EXISTS;
     }
 
@@ -210,8 +210,8 @@ Result VfsDirectoryServiceWrapper::RenameDirectory(const std::string& src_path_,
     return ResultUnknown;
 }
 
-ResultVal<FileSys::VirtualFile> VfsDirectoryServiceWrapper::OpenFile(const std::string& path_,
-                                                                     FileSys::Mode mode) const {
+Result VfsDirectoryServiceWrapper::OpenFile(FileSys::VirtualFile* out_file,
+                                            const std::string& path_, FileSys::Mode mode) const {
     const std::string path(Common::FS::SanitizePath(path_));
     std::string_view npath = path;
     while (!npath.empty() && (npath[0] == '/' || npath[0] == '\\')) {
@@ -224,50 +224,68 @@ ResultVal<FileSys::VirtualFile> VfsDirectoryServiceWrapper::OpenFile(const std::
     }
 
     if (mode == FileSys::Mode::Append) {
-        return std::make_shared<FileSys::OffsetVfsFile>(file, 0, file->GetSize());
+        *out_file = std::make_shared<FileSys::OffsetVfsFile>(file, 0, file->GetSize());
+    } else {
+        *out_file = file;
     }
 
-    return file;
+    return ResultSuccess;
 }
 
-ResultVal<FileSys::VirtualDir> VfsDirectoryServiceWrapper::OpenDirectory(const std::string& path_) {
+Result VfsDirectoryServiceWrapper::OpenDirectory(FileSys::VirtualDir* out_directory,
+                                                 const std::string& path_) {
     std::string path(Common::FS::SanitizePath(path_));
     auto dir = GetDirectoryRelativeWrapped(backing, path);
     if (dir == nullptr) {
         // TODO(DarkLordZach): Find a better error code for this
         return FileSys::ERROR_PATH_NOT_FOUND;
     }
-    return dir;
+    *out_directory = dir;
+    return ResultSuccess;
 }
 
-ResultVal<FileSys::EntryType> VfsDirectoryServiceWrapper::GetEntryType(
-    const std::string& path_) const {
+Result VfsDirectoryServiceWrapper::GetEntryType(FileSys::EntryType* out_entry_type,
+                                                const std::string& path_) const {
     std::string path(Common::FS::SanitizePath(path_));
-    auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
-    if (dir == nullptr)
-        return FileSys::ERROR_PATH_NOT_FOUND;
-    auto filename = Common::FS::GetFilename(path);
-    // TODO(Subv): Some games use the '/' path, find out what this means.
-    if (filename.empty())
-        return FileSys::EntryType::Directory;
-
-    if (dir->GetFile(filename) != nullptr)
-        return FileSys::EntryType::File;
-    if (dir->GetSubdirectory(filename) != nullptr)
-        return FileSys::EntryType::Directory;
-    return FileSys::ERROR_PATH_NOT_FOUND;
-}
-
-ResultVal<FileSys::FileTimeStampRaw> VfsDirectoryServiceWrapper::GetFileTimeStampRaw(
-    const std::string& path) const {
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
     if (dir == nullptr) {
         return FileSys::ERROR_PATH_NOT_FOUND;
     }
-    if (GetEntryType(path).Failed()) {
+
+    auto filename = Common::FS::GetFilename(path);
+    // TODO(Subv): Some games use the '/' path, find out what this means.
+    if (filename.empty()) {
+        *out_entry_type = FileSys::EntryType::Directory;
+        return ResultSuccess;
+    }
+
+    if (dir->GetFile(filename) != nullptr) {
+        *out_entry_type = FileSys::EntryType::File;
+        return ResultSuccess;
+    }
+
+    if (dir->GetSubdirectory(filename) != nullptr) {
+        *out_entry_type = FileSys::EntryType::Directory;
+        return ResultSuccess;
+    }
+
+    return FileSys::ERROR_PATH_NOT_FOUND;
+}
+
+Result VfsDirectoryServiceWrapper::GetFileTimeStampRaw(
+    FileSys::FileTimeStampRaw* out_file_time_stamp_raw, const std::string& path) const {
+    auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
+    if (dir == nullptr) {
         return FileSys::ERROR_PATH_NOT_FOUND;
     }
-    return dir->GetFileTimeStamp(Common::FS::GetFilename(path));
+
+    FileSys::EntryType entry_type;
+    if (GetEntryType(&entry_type, path) != ResultSuccess) {
+        return FileSys::ERROR_PATH_NOT_FOUND;
+    }
+
+    *out_file_time_stamp_raw = dir->GetFileTimeStamp(Common::FS::GetFilename(path));
+    return ResultSuccess;
 }
 
 FileSystemController::FileSystemController(Core::System& system_) : system{system_} {}
@@ -310,57 +328,54 @@ void FileSystemController::SetPackedUpdate(FileSys::VirtualFile update_raw) {
     romfs_factory->SetPackedUpdate(std::move(update_raw));
 }
 
-ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFSCurrentProcess() const {
+FileSys::VirtualFile FileSystemController::OpenRomFSCurrentProcess() const {
     LOG_TRACE(Service_FS, "Opening RomFS for current process");
 
     if (romfs_factory == nullptr) {
-        // TODO(bunnei): Find a better error code for this
-        return ResultUnknown;
+        return nullptr;
     }
 
     return romfs_factory->OpenCurrentProcess(system.GetApplicationProcessProgramID());
 }
 
-ResultVal<FileSys::VirtualFile> FileSystemController::OpenPatchedRomFS(
-    u64 title_id, FileSys::ContentRecordType type) const {
+FileSys::VirtualFile FileSystemController::OpenPatchedRomFS(u64 title_id,
+                                                            FileSys::ContentRecordType type) const {
     LOG_TRACE(Service_FS, "Opening patched RomFS for title_id={:016X}", title_id);
 
     if (romfs_factory == nullptr) {
-        // TODO: Find a better error code for this
-        return ResultUnknown;
+        return nullptr;
     }
 
     return romfs_factory->OpenPatchedRomFS(title_id, type);
 }
 
-ResultVal<FileSys::VirtualFile> FileSystemController::OpenPatchedRomFSWithProgramIndex(
+FileSys::VirtualFile FileSystemController::OpenPatchedRomFSWithProgramIndex(
     u64 title_id, u8 program_index, FileSys::ContentRecordType type) const {
     LOG_TRACE(Service_FS, "Opening patched RomFS for title_id={:016X}, program_index={}", title_id,
               program_index);
 
     if (romfs_factory == nullptr) {
-        // TODO: Find a better error code for this
-        return ResultUnknown;
+        return nullptr;
     }
 
     return romfs_factory->OpenPatchedRomFSWithProgramIndex(title_id, program_index, type);
 }
 
-ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFS(
-    u64 title_id, FileSys::StorageId storage_id, FileSys::ContentRecordType type) const {
+FileSys::VirtualFile FileSystemController::OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
+                                                     FileSys::ContentRecordType type) const {
     LOG_TRACE(Service_FS, "Opening RomFS for title_id={:016X}, storage_id={:02X}, type={:02X}",
               title_id, storage_id, type);
 
     if (romfs_factory == nullptr) {
-        // TODO(bunnei): Find a better error code for this
-        return ResultUnknown;
+        return nullptr;
     }
 
     return romfs_factory->Open(title_id, storage_id, type);
 }
 
-ResultVal<FileSys::VirtualDir> FileSystemController::CreateSaveData(
-    FileSys::SaveDataSpaceId space, const FileSys::SaveDataAttribute& save_struct) const {
+Result FileSystemController::CreateSaveData(FileSys::VirtualDir* out_save_data,
+                                            FileSys::SaveDataSpaceId space,
+                                            const FileSys::SaveDataAttribute& save_struct) const {
     LOG_TRACE(Service_FS, "Creating Save Data for space_id={:01X}, save_struct={}", space,
               save_struct.DebugInfo());
 
@@ -368,11 +383,18 @@ ResultVal<FileSys::VirtualDir> FileSystemController::CreateSaveData(
         return FileSys::ERROR_ENTITY_NOT_FOUND;
     }
 
-    return save_data_factory->Create(space, save_struct);
+    auto save_data = save_data_factory->Create(space, save_struct);
+    if (save_data == nullptr) {
+        return FileSys::ERROR_ENTITY_NOT_FOUND;
+    }
+
+    *out_save_data = save_data;
+    return ResultSuccess;
 }
 
-ResultVal<FileSys::VirtualDir> FileSystemController::OpenSaveData(
-    FileSys::SaveDataSpaceId space, const FileSys::SaveDataAttribute& attribute) const {
+Result FileSystemController::OpenSaveData(FileSys::VirtualDir* out_save_data,
+                                          FileSys::SaveDataSpaceId space,
+                                          const FileSys::SaveDataAttribute& attribute) const {
     LOG_TRACE(Service_FS, "Opening Save Data for space_id={:01X}, save_struct={}", space,
               attribute.DebugInfo());
 
@@ -380,32 +402,50 @@ ResultVal<FileSys::VirtualDir> FileSystemController::OpenSaveData(
         return FileSys::ERROR_ENTITY_NOT_FOUND;
     }
 
-    return save_data_factory->Open(space, attribute);
+    auto save_data = save_data_factory->Open(space, attribute);
+    if (save_data == nullptr) {
+        return FileSys::ERROR_ENTITY_NOT_FOUND;
+    }
+
+    *out_save_data = save_data;
+    return ResultSuccess;
 }
 
-ResultVal<FileSys::VirtualDir> FileSystemController::OpenSaveDataSpace(
-    FileSys::SaveDataSpaceId space) const {
+Result FileSystemController::OpenSaveDataSpace(FileSys::VirtualDir* out_save_data_space,
+                                               FileSys::SaveDataSpaceId space) const {
     LOG_TRACE(Service_FS, "Opening Save Data Space for space_id={:01X}", space);
 
     if (save_data_factory == nullptr) {
         return FileSys::ERROR_ENTITY_NOT_FOUND;
     }
 
-    return save_data_factory->GetSaveDataSpaceDirectory(space);
+    auto save_data_space = save_data_factory->GetSaveDataSpaceDirectory(space);
+    if (save_data_space == nullptr) {
+        return FileSys::ERROR_ENTITY_NOT_FOUND;
+    }
+
+    *out_save_data_space = save_data_space;
+    return ResultSuccess;
 }
 
-ResultVal<FileSys::VirtualDir> FileSystemController::OpenSDMC() const {
+Result FileSystemController::OpenSDMC(FileSys::VirtualDir* out_sdmc) const {
     LOG_TRACE(Service_FS, "Opening SDMC");
 
     if (sdmc_factory == nullptr) {
         return FileSys::ERROR_SD_CARD_NOT_FOUND;
     }
 
-    return sdmc_factory->Open();
+    auto sdmc = sdmc_factory->Open();
+    if (sdmc == nullptr) {
+        return FileSys::ERROR_SD_CARD_NOT_FOUND;
+    }
+
+    *out_sdmc = sdmc;
+    return ResultSuccess;
 }
 
-ResultVal<FileSys::VirtualDir> FileSystemController::OpenBISPartition(
-    FileSys::BisPartitionId id) const {
+Result FileSystemController::OpenBISPartition(FileSys::VirtualDir* out_bis_partition,
+                                              FileSys::BisPartitionId id) const {
     LOG_TRACE(Service_FS, "Opening BIS Partition with id={:08X}", id);
 
     if (bis_factory == nullptr) {
@@ -417,11 +457,12 @@ ResultVal<FileSys::VirtualDir> FileSystemController::OpenBISPartition(
         return FileSys::ERROR_INVALID_ARGUMENT;
     }
 
-    return part;
+    *out_bis_partition = part;
+    return ResultSuccess;
 }
 
-ResultVal<FileSys::VirtualFile> FileSystemController::OpenBISPartitionStorage(
-    FileSys::BisPartitionId id) const {
+Result FileSystemController::OpenBISPartitionStorage(
+    FileSys::VirtualFile* out_bis_partition_storage, FileSys::BisPartitionId id) const {
     LOG_TRACE(Service_FS, "Opening BIS Partition Storage with id={:08X}", id);
 
     if (bis_factory == nullptr) {
@@ -433,7 +474,8 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenBISPartitionStorage(
         return FileSys::ERROR_INVALID_ARGUMENT;
     }
 
-    return part;
+    *out_bis_partition_storage = part;
+    return ResultSuccess;
 }
 
 u64 FileSystemController::GetFreeSpaceSize(FileSys::StorageId id) const {

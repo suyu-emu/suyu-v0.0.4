@@ -52,8 +52,7 @@ static Result ValidateServiceName(const std::string& name) {
 
 Result ServiceManager::RegisterService(std::string name, u32 max_sessions,
                                        SessionRequestHandlerPtr handler) {
-
-    CASCADE_CODE(ValidateServiceName(name));
+    R_TRY(ValidateServiceName(name));
 
     std::scoped_lock lk{lock};
     if (registered_services.find(name) != registered_services.end()) {
@@ -77,7 +76,7 @@ Result ServiceManager::RegisterService(std::string name, u32 max_sessions,
 }
 
 Result ServiceManager::UnregisterService(const std::string& name) {
-    CASCADE_CODE(ValidateServiceName(name));
+    R_TRY(ValidateServiceName(name));
 
     std::scoped_lock lk{lock};
     const auto iter = registered_services.find(name);
@@ -92,8 +91,8 @@ Result ServiceManager::UnregisterService(const std::string& name) {
     return ResultSuccess;
 }
 
-ResultVal<Kernel::KPort*> ServiceManager::GetServicePort(const std::string& name) {
-    CASCADE_CODE(ValidateServiceName(name));
+Result ServiceManager::GetServicePort(Kernel::KPort** out_port, const std::string& name) {
+    R_TRY(ValidateServiceName(name));
 
     std::scoped_lock lk{lock};
     auto it = service_ports.find(name);
@@ -102,7 +101,8 @@ ResultVal<Kernel::KPort*> ServiceManager::GetServicePort(const std::string& name
         return Service::SM::ResultNotRegistered;
     }
 
-    return it->second;
+    *out_port = it->second;
+    return ResultSuccess;
 }
 
 /**
@@ -122,32 +122,34 @@ void SM::Initialize(HLERequestContext& ctx) {
 }
 
 void SM::GetService(HLERequestContext& ctx) {
-    auto result = GetServiceImpl(ctx);
+    Kernel::KClientSession* client_session{};
+    auto result = GetServiceImpl(&client_session, ctx);
     if (ctx.GetIsDeferred()) {
         // Don't overwrite the command buffer.
         return;
     }
 
-    if (result.Succeeded()) {
+    if (result == ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
-        rb.Push(result.Code());
-        rb.PushMoveObjects(result.Unwrap());
+        rb.Push(result);
+        rb.PushMoveObjects(client_session);
     } else {
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(result.Code());
+        rb.Push(result);
     }
 }
 
 void SM::GetServiceTipc(HLERequestContext& ctx) {
-    auto result = GetServiceImpl(ctx);
+    Kernel::KClientSession* client_session{};
+    auto result = GetServiceImpl(&client_session, ctx);
     if (ctx.GetIsDeferred()) {
         // Don't overwrite the command buffer.
         return;
     }
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
-    rb.Push(result.Code());
-    rb.PushMoveObjects(result.Succeeded() ? result.Unwrap() : nullptr);
+    rb.Push(result);
+    rb.PushMoveObjects(result == ResultSuccess ? client_session : nullptr);
 }
 
 static std::string PopServiceName(IPC::RequestParser& rp) {
@@ -161,7 +163,7 @@ static std::string PopServiceName(IPC::RequestParser& rp) {
     return result;
 }
 
-ResultVal<Kernel::KClientSession*> SM::GetServiceImpl(HLERequestContext& ctx) {
+Result SM::GetServiceImpl(Kernel::KClientSession** out_client_session, HLERequestContext& ctx) {
     if (!ctx.GetManager()->GetIsInitializedForSm()) {
         return Service::SM::ResultInvalidClient;
     }
@@ -170,18 +172,18 @@ ResultVal<Kernel::KClientSession*> SM::GetServiceImpl(HLERequestContext& ctx) {
     std::string name(PopServiceName(rp));
 
     // Find the named port.
-    auto port_result = service_manager.GetServicePort(name);
-    if (port_result.Code() == Service::SM::ResultInvalidServiceName) {
+    Kernel::KPort* port{};
+    auto port_result = service_manager.GetServicePort(&port, name);
+    if (port_result == Service::SM::ResultInvalidServiceName) {
         LOG_ERROR(Service_SM, "Invalid service name '{}'", name);
         return Service::SM::ResultInvalidServiceName;
     }
 
-    if (port_result.Failed()) {
+    if (port_result != ResultSuccess) {
         LOG_INFO(Service_SM, "Waiting for service {} to become available", name);
         ctx.SetIsDeferred();
         return Service::SM::ResultNotRegistered;
     }
-    auto& port = port_result.Unwrap();
 
     // Create a new session.
     Kernel::KClientSession* session{};
@@ -192,7 +194,8 @@ ResultVal<Kernel::KClientSession*> SM::GetServiceImpl(HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_SM, "called service={} -> session={}", name, session->GetId());
 
-    return session;
+    *out_client_session = session;
+    return ResultSuccess;
 }
 
 void SM::RegisterService(HLERequestContext& ctx) {

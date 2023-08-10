@@ -101,20 +101,14 @@ private:
 
         LOG_DEBUG(Service_Mii, "called with source_flag={}", source_flag);
 
-        const auto result{manager.GetDefault(source_flag)};
-        if (result.Failed()) {
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(result.Code());
-            return;
-        }
-
-        if (result->size() > 0) {
-            ctx.WriteBuffer(SerializeArray(*result));
+        const auto default_miis{manager.GetDefault(source_flag)};
+        if (default_miis.size() > 0) {
+            ctx.WriteBuffer(SerializeArray(default_miis));
         }
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.Push<u32>(static_cast<u32>(result->size()));
+        rb.Push<u32>(static_cast<u32>(default_miis.size()));
     }
 
     void Get1(HLERequestContext& ctx) {
@@ -123,15 +117,10 @@ private:
 
         LOG_DEBUG(Service_Mii, "called with source_flag={}", source_flag);
 
-        const auto result{manager.GetDefault(source_flag)};
-        if (result.Failed()) {
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(result.Code());
-            return;
-        }
+        const auto default_miis{manager.GetDefault(source_flag)};
 
         std::vector<CharInfo> values;
-        for (const auto& element : *result) {
+        for (const auto& element : default_miis) {
             values.emplace_back(element.info);
         }
 
@@ -139,7 +128,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.Push<u32>(static_cast<u32>(result->size()));
+        rb.Push<u32>(static_cast<u32>(default_miis.size()));
     }
 
     void UpdateLatest(HLERequestContext& ctx) {
@@ -149,16 +138,17 @@ private:
 
         LOG_DEBUG(Service_Mii, "called with source_flag={}", source_flag);
 
-        const auto result{manager.UpdateLatest(info, source_flag)};
-        if (result.Failed()) {
+        CharInfo new_char_info{};
+        const auto result{manager.UpdateLatest(&new_char_info, info, source_flag)};
+        if (result != ResultSuccess) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(result.Code());
+            rb.Push(result);
             return;
         }
 
         IPC::ResponseBuilder rb{ctx, 2 + sizeof(CharInfo) / sizeof(u32)};
         rb.Push(ResultSuccess);
-        rb.PushRaw<CharInfo>(*result);
+        rb.PushRaw<CharInfo>(new_char_info);
     }
 
     void BuildRandom(HLERequestContext& ctx) {

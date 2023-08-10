@@ -65,18 +65,19 @@ void ARP_R::GetApplicationLaunchProperty(HLERequestContext& ctx) {
         return;
     }
 
-    const auto res = manager.GetLaunchProperty(*title_id);
+    ApplicationLaunchProperty launch_property{};
+    const auto res = manager.GetLaunchProperty(&launch_property, *title_id);
 
-    if (res.Failed()) {
+    if (res != ResultSuccess) {
         LOG_ERROR(Service_ARP, "Failed to get launch property!");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(res.Code());
+        rb.Push(res);
         return;
     }
 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
-    rb.PushRaw(*res);
+    rb.PushRaw(launch_property);
 }
 
 void ARP_R::GetApplicationLaunchPropertyWithApplicationId(HLERequestContext& ctx) {
@@ -85,18 +86,19 @@ void ARP_R::GetApplicationLaunchPropertyWithApplicationId(HLERequestContext& ctx
 
     LOG_DEBUG(Service_ARP, "called, title_id={:016X}", title_id);
 
-    const auto res = manager.GetLaunchProperty(title_id);
+    ApplicationLaunchProperty launch_property{};
+    const auto res = manager.GetLaunchProperty(&launch_property, title_id);
 
-    if (res.Failed()) {
+    if (res != ResultSuccess) {
         LOG_ERROR(Service_ARP, "Failed to get launch property!");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(res.Code());
+        rb.Push(res);
         return;
     }
 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
-    rb.PushRaw(*res);
+    rb.PushRaw(launch_property);
 }
 
 void ARP_R::GetApplicationControlProperty(HLERequestContext& ctx) {
@@ -113,16 +115,17 @@ void ARP_R::GetApplicationControlProperty(HLERequestContext& ctx) {
         return;
     }
 
-    const auto res = manager.GetControlProperty(*title_id);
+    std::vector<u8> nacp_data;
+    const auto res = manager.GetControlProperty(&nacp_data, *title_id);
 
-    if (res.Failed()) {
+    if (res != ResultSuccess) {
         LOG_ERROR(Service_ARP, "Failed to get control property!");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(res.Code());
+        rb.Push(res);
         return;
     }
 
-    ctx.WriteBuffer(*res);
+    ctx.WriteBuffer(nacp_data);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -134,16 +137,17 @@ void ARP_R::GetApplicationControlPropertyWithApplicationId(HLERequestContext& ct
 
     LOG_DEBUG(Service_ARP, "called, title_id={:016X}", title_id);
 
-    const auto res = manager.GetControlProperty(title_id);
+    std::vector<u8> nacp_data;
+    const auto res = manager.GetControlProperty(&nacp_data, title_id);
 
-    if (res.Failed()) {
+    if (res != ResultSuccess) {
         LOG_ERROR(Service_ARP, "Failed to get control property!");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(res.Code());
+        rb.Push(res);
         return;
     }
 
-    ctx.WriteBuffer(*res);
+    ctx.WriteBuffer(nacp_data);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

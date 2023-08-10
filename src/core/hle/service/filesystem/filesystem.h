@@ -64,21 +64,24 @@ public:
     Result RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory);
 
     void SetPackedUpdate(FileSys::VirtualFile update_raw);
-    ResultVal<FileSys::VirtualFile> OpenRomFSCurrentProcess() const;
-    ResultVal<FileSys::VirtualFile> OpenPatchedRomFS(u64 title_id,
-                                                     FileSys::ContentRecordType type) const;
-    ResultVal<FileSys::VirtualFile> OpenPatchedRomFSWithProgramIndex(
-        u64 title_id, u8 program_index, FileSys::ContentRecordType type) const;
-    ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
-                                              FileSys::ContentRecordType type) const;
-    ResultVal<FileSys::VirtualDir> CreateSaveData(
-        FileSys::SaveDataSpaceId space, const FileSys::SaveDataAttribute& save_struct) const;
-    ResultVal<FileSys::VirtualDir> OpenSaveData(
-        FileSys::SaveDataSpaceId space, const FileSys::SaveDataAttribute& save_struct) const;
-    ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space) const;
-    ResultVal<FileSys::VirtualDir> OpenSDMC() const;
-    ResultVal<FileSys::VirtualDir> OpenBISPartition(FileSys::BisPartitionId id) const;
-    ResultVal<FileSys::VirtualFile> OpenBISPartitionStorage(FileSys::BisPartitionId id) const;
+    FileSys::VirtualFile OpenRomFSCurrentProcess() const;
+    FileSys::VirtualFile OpenPatchedRomFS(u64 title_id, FileSys::ContentRecordType type) const;
+    FileSys::VirtualFile OpenPatchedRomFSWithProgramIndex(u64 title_id, u8 program_index,
+                                                          FileSys::ContentRecordType type) const;
+    FileSys::VirtualFile OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
+                                   FileSys::ContentRecordType type) const;
+
+    Result CreateSaveData(FileSys::VirtualDir* out_save_data, FileSys::SaveDataSpaceId space,
+                          const FileSys::SaveDataAttribute& save_struct) const;
+    Result OpenSaveData(FileSys::VirtualDir* out_save_data, FileSys::SaveDataSpaceId space,
+                        const FileSys::SaveDataAttribute& save_struct) const;
+    Result OpenSaveDataSpace(FileSys::VirtualDir* out_save_data_space,
+                             FileSys::SaveDataSpaceId space) const;
+    Result OpenSDMC(FileSys::VirtualDir* out_sdmc) const;
+    Result OpenBISPartition(FileSys::VirtualDir* out_bis_partition,
+                            FileSys::BisPartitionId id) const;
+    Result OpenBISPartitionStorage(FileSys::VirtualFile* out_bis_partition_storage,
+                                   FileSys::BisPartitionId id) const;
 
     u64 GetFreeSpaceSize(FileSys::StorageId id) const;
     u64 GetTotalSpaceSize(FileSys::StorageId id) const;
@@ -224,26 +227,28 @@ public:
      * @param mode Mode to open the file with
      * @return Opened file, or error code
      */
-    ResultVal<FileSys::VirtualFile> OpenFile(const std::string& path, FileSys::Mode mode) const;
+    Result OpenFile(FileSys::VirtualFile* out_file, const std::string& path,
+                    FileSys::Mode mode) const;
 
     /**
      * Open a directory specified by its path
      * @param path Path relative to the archive
      * @return Opened directory, or error code
      */
-    ResultVal<FileSys::VirtualDir> OpenDirectory(const std::string& path);
+    Result OpenDirectory(FileSys::VirtualDir* out_directory, const std::string& path);
 
     /**
      * Get the type of the specified path
      * @return The type of the specified path or error code
      */
-    ResultVal<FileSys::EntryType> GetEntryType(const std::string& path) const;
+    Result GetEntryType(FileSys::EntryType* out_entry_type, const std::string& path) const;
 
     /**
      * Get the timestamp of the specified path
      * @return The timestamp of the specified path or error code
      */
-    ResultVal<FileSys::FileTimeStampRaw> GetFileTimeStampRaw(const std::string& path) const;
+    Result GetFileTimeStampRaw(FileSys::FileTimeStampRaw* out_time_stamp_raw,
+                               const std::string& path) const;
 
 private:
     FileSys::VirtualDir backing;

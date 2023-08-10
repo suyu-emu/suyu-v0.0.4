@@ -85,7 +85,7 @@ public:
      * @returns The internal Vsync event if it has not yet been retrieved,
      *          VI::ResultPermissionDenied otherwise.
      */
-    [[nodiscard]] ResultVal<Kernel::KReadableEvent*> GetVSyncEvent();
+    [[nodiscard]] Result GetVSyncEvent(Kernel::KReadableEvent** out_vsync_event);
 
     /// Gets the internal vsync event.
     Kernel::KReadableEvent* GetVSyncEventUnchecked();

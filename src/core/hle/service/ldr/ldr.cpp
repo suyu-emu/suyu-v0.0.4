@@ -357,7 +357,8 @@ public:
         return ResultSuccess;
     }
 
-    ResultVal<VAddr> MapProcessCodeMemory(Kernel::KProcess* process, VAddr base_addr, u64 size) {
+    Result MapProcessCodeMemory(VAddr* out_map_location, Kernel::KProcess* process, VAddr base_addr,
+                                u64 size) {
         auto& page_table{process->GetPageTable()};
         VAddr addr{};
 
@@ -372,20 +373,21 @@ public:
             R_TRY(result);
 
             if (ValidateRegionForMap(page_table, addr, size)) {
-                return addr;
+                *out_map_location = addr;
+                return ResultSuccess;
             }
         }
 
         return ERROR_INSUFFICIENT_ADDRESS_SPACE;
     }
 
-    ResultVal<VAddr> MapNro(Kernel::KProcess* process, VAddr nro_addr, std::size_t nro_size,
-                            VAddr bss_addr, std::size_t bss_size, std::size_t size) {
+    Result MapNro(VAddr* out_map_location, Kernel::KProcess* process, VAddr nro_addr,
+                  std::size_t nro_size, VAddr bss_addr, std::size_t bss_size, std::size_t size) {
         for (std::size_t retry = 0; retry < MAXIMUM_MAP_RETRIES; retry++) {
             auto& page_table{process->GetPageTable()};
             VAddr addr{};
 
-            CASCADE_RESULT(addr, MapProcessCodeMemory(process, nro_addr, nro_size));
+            R_TRY(MapProcessCodeMemory(&addr, process, nro_addr, nro_size));
 
             if (bss_size) {
                 auto block_guard = detail::ScopeExit([&] {
@@ -411,7 +413,8 @@ public:
             }
 
             if (ValidateRegionForMap(page_table, addr, size)) {
-                return addr;
+                *out_map_location = addr;
+                return ResultSuccess;
             }
         }
 
@@ -437,9 +440,9 @@ public:
         CopyCode(nro_addr + nro_header.segment_headers[DATA_INDEX].memory_offset, data_start,
                  nro_header.segment_headers[DATA_INDEX].memory_size);
 
-        CASCADE_CODE(process->GetPageTable().SetProcessMemoryPermission(
+        R_TRY(process->GetPageTable().SetProcessMemoryPermission(
             text_start, ro_start - text_start, Kernel::Svc::MemoryPermission::ReadExecute));
-        CASCADE_CODE(process->GetPageTable().SetProcessMemoryPermission(
+        R_TRY(process->GetPageTable().SetProcessMemoryPermission(
             ro_start, data_start - ro_start, Kernel::Svc::MemoryPermission::Read));
 
         return process->GetPageTable().SetProcessMemoryPermission(
@@ -542,31 +545,32 @@ public:
         }
 
         // Map memory for the NRO
-        const auto map_result{MapNro(system.ApplicationProcess(), nro_address, nro_size,
-                                     bss_address, bss_size, nro_size + bss_size)};
-        if (map_result.Failed()) {
+        VAddr map_location{};
+        const auto map_result{MapNro(&map_location, system.ApplicationProcess(), nro_address,
+                                     nro_size, bss_address, bss_size, nro_size + bss_size)};
+        if (map_result != ResultSuccess) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(map_result.Code());
+            rb.Push(map_result);
         }
 
         // Load the NRO into the mapped memory
         if (const auto result{
-                LoadNro(system.ApplicationProcess(), header, nro_address, *map_result)};
+                LoadNro(system.ApplicationProcess(), header, nro_address, map_location)};
             result.IsError()) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(map_result.Code());
+            rb.Push(result);
         }
 
         // Track the loaded NRO
-        nro.insert_or_assign(*map_result,
-                             NROInfo{hash, *map_result, nro_size, bss_address, bss_size,
+        nro.insert_or_assign(map_location,
+                             NROInfo{hash, map_location, nro_size, bss_address, bss_size,
                                      header.segment_headers[TEXT_INDEX].memory_size,
                                      header.segment_headers[RO_INDEX].memory_size,
                                      header.segment_headers[DATA_INDEX].memory_size, nro_address});
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(ResultSuccess);
-        rb.Push(*map_result);
+        rb.Push(map_location);
     }
 
     Result UnmapNro(const NROInfo& info) {
@@ -574,19 +578,19 @@ public:
         auto& page_table{system.ApplicationProcess()->GetPageTable()};
 
         if (info.bss_size != 0) {
-            CASCADE_CODE(page_table.UnmapCodeMemory(
+            R_TRY(page_table.UnmapCodeMemory(
                 info.nro_address + info.text_size + info.ro_size + info.data_size, info.bss_address,
                 info.bss_size, Kernel::KPageTable::ICacheInvalidationStrategy::InvalidateRange));
         }
 
-        CASCADE_CODE(page_table.UnmapCodeMemory(
+        R_TRY(page_table.UnmapCodeMemory(
             info.nro_address + info.text_size + info.ro_size,
             info.src_addr + info.text_size + info.ro_size, info.data_size,
             Kernel::KPageTable::ICacheInvalidationStrategy::InvalidateRange));
-        CASCADE_CODE(page_table.UnmapCodeMemory(
+        R_TRY(page_table.UnmapCodeMemory(
             info.nro_address + info.text_size, info.src_addr + info.text_size, info.ro_size,
             Kernel::KPageTable::ICacheInvalidationStrategy::InvalidateRange));
-        CASCADE_CODE(page_table.UnmapCodeMemory(
+        R_TRY(page_table.UnmapCodeMemory(
             info.nro_address, info.src_addr, info.text_size,
             Kernel::KPageTable::ICacheInvalidationStrategy::InvalidateRange));
         return ResultSuccess;

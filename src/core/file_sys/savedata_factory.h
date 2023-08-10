@@ -89,8 +89,8 @@ public:
     explicit SaveDataFactory(Core::System& system_, VirtualDir save_directory_);
     ~SaveDataFactory();
 
-    ResultVal<VirtualDir> Create(SaveDataSpaceId space, const SaveDataAttribute& meta) const;
-    ResultVal<VirtualDir> Open(SaveDataSpaceId space, const SaveDataAttribute& meta) const;
+    VirtualDir Create(SaveDataSpaceId space, const SaveDataAttribute& meta) const;
+    VirtualDir Open(SaveDataSpaceId space, const SaveDataAttribute& meta) const;
 
     VirtualDir GetSaveDataSpaceDirectory(SaveDataSpaceId space) const;
 

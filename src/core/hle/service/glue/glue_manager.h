@@ -32,12 +32,12 @@ public:
     // Returns the ApplicationLaunchProperty corresponding to the provided title ID if it was
     // previously registered, otherwise ResultProcessIdNotRegistered if it was never registered or
     // ResultInvalidProcessId if the title ID is 0.
-    ResultVal<ApplicationLaunchProperty> GetLaunchProperty(u64 title_id) const;
+    Result GetLaunchProperty(ApplicationLaunchProperty* out_launch_property, u64 title_id) const;
 
     // Returns a vector of the raw bytes of NACP data (necessarily 0x4000 in size) corresponding to
     // the provided title ID if it was previously registered, otherwise ResultProcessIdNotRegistered
     // if it was never registered or ResultInvalidProcessId if the title ID is 0.
-    ResultVal<std::vector<u8>> GetControlProperty(u64 title_id) const;
+    Result GetControlProperty(std::vector<u8>* out_control_property, u64 title_id) const;
 
     // Adds a new entry to the internal database with the provided parameters, returning
     // ResultProcessIdNotRegistered if attempting to re-register a title ID without an intermediate

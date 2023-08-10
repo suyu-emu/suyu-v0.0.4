@@ -409,8 +409,7 @@ u32 MiiManager::GetCount(SourceFlag source_flag) const {
     return static_cast<u32>(count);
 }
 
-ResultVal<CharInfo> MiiManager::UpdateLatest([[maybe_unused]] const CharInfo& info,
-                                             SourceFlag source_flag) {
+Result MiiManager::UpdateLatest(CharInfo* out_info, const CharInfo& info, SourceFlag source_flag) {
     if ((source_flag & SourceFlag::Database) == SourceFlag::None) {
         return ERROR_CANNOT_FIND_ENTRY;
     }
@@ -672,7 +671,7 @@ bool MiiManager::ValidateV3Info(const Ver3StoreData& mii_v3) const {
     return is_valid;
 }
 
-ResultVal<std::vector<MiiInfoElement>> MiiManager::GetDefault(SourceFlag source_flag) {
+std::vector<MiiInfoElement> MiiManager::GetDefault(SourceFlag source_flag) {
     std::vector<MiiInfoElement> result;
 
     if ((source_flag & SourceFlag::Default) == SourceFlag::None) {

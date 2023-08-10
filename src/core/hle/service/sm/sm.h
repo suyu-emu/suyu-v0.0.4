@@ -42,7 +42,7 @@ private:
     void RegisterService(HLERequestContext& ctx);
     void UnregisterService(HLERequestContext& ctx);
 
-    ResultVal<Kernel::KClientSession*> GetServiceImpl(HLERequestContext& ctx);
+    Result GetServiceImpl(Kernel::KClientSession** out_client_session, HLERequestContext& ctx);
 
     ServiceManager& service_manager;
     Kernel::KernelCore& kernel;
@@ -55,7 +55,7 @@ public:
 
     Result RegisterService(std::string name, u32 max_sessions, SessionRequestHandlerPtr handler);
     Result UnregisterService(const std::string& name);
-    ResultVal<Kernel::KPort*> GetServicePort(const std::string& name);
+    Result GetServicePort(Kernel::KPort** out_port, const std::string& name);
 
     template <Common::DerivedFrom<SessionRequestHandler> T>
     std::shared_ptr<T> GetService(const std::string& service_name) const {
