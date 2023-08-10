@@ -108,26 +108,16 @@ SaveDataFactory::SaveDataFactory(Core::System& system_, VirtualDir save_director
 
 SaveDataFactory::~SaveDataFactory() = default;
 
-ResultVal<VirtualDir> SaveDataFactory::Create(SaveDataSpaceId space,
-                                              const SaveDataAttribute& meta) const {
+VirtualDir SaveDataFactory::Create(SaveDataSpaceId space, const SaveDataAttribute& meta) const {
     PrintSaveDataAttributeWarnings(meta);
 
     const auto save_directory =
         GetFullPath(system, dir, space, meta.type, meta.title_id, meta.user_id, meta.save_id);
 
-    auto out = dir->CreateDirectoryRelative(save_directory);
-
-    // Return an error if the save data doesn't actually exist.
-    if (out == nullptr) {
-        // TODO(DarkLordZach): Find out correct error code.
-        return ResultUnknown;
-    }
-
-    return out;
+    return dir->CreateDirectoryRelative(save_directory);
 }
 
-ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space,
-                                            const SaveDataAttribute& meta) const {
+VirtualDir SaveDataFactory::Open(SaveDataSpaceId space, const SaveDataAttribute& meta) const {
 
     const auto save_directory =
         GetFullPath(system, dir, space, meta.type, meta.title_id, meta.user_id, meta.save_id);
@@ -136,12 +126,6 @@ ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space,
 
     if (out == nullptr && (ShouldSaveDataBeAutomaticallyCreated(space, meta) && auto_create)) {
         return Create(space, meta);
-    }
-
-    // Return an error if the save data doesn't actually exist.
-    if (out == nullptr) {
-        // TODO(Subv): Find out correct error code.
-        return ResultUnknown;
     }
 
     return out;

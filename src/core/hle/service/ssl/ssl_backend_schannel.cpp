@@ -299,21 +299,22 @@ public:
         return ResultSuccess;
     }
 
-    ResultVal<size_t> Read(std::span<u8> data) override {
+    Result Read(size_t* out_size, std::span<u8> data) override {
+        *out_size = 0;
         if (handshake_state != HandshakeState::Connected) {
             LOG_ERROR(Service_SSL, "Called Read but we did not successfully handshake");
             return ResultInternalError;
         }
         if (data.size() == 0 || got_read_eof) {
-            return size_t(0);
+            return ResultSuccess;
         }
         while (1) {
             if (!cleartext_read_buf.empty()) {
-                const size_t read_size = std::min(cleartext_read_buf.size(), data.size());
-                std::memcpy(data.data(), cleartext_read_buf.data(), read_size);
+                *out_size = std::min(cleartext_read_buf.size(), data.size());
+                std::memcpy(data.data(), cleartext_read_buf.data(), *out_size);
                 cleartext_read_buf.erase(cleartext_read_buf.begin(),
-                                         cleartext_read_buf.begin() + read_size);
-                return read_size;
+                                         cleartext_read_buf.begin() + *out_size);
+                return ResultSuccess;
             }
             if (!ciphertext_read_buf.empty()) {
                 SecBuffer empty{
@@ -366,7 +367,8 @@ public:
                 case SEC_I_CONTEXT_EXPIRED:
                     // Server hung up by sending close_notify.
                     got_read_eof = true;
-                    return size_t(0);
+                    *out_size = 0;
+                    return ResultSuccess;
                 default:
                     LOG_ERROR(Service_SSL, "DecryptMessage failed: {}",
                               Common::NativeErrorToString(ret));
@@ -379,18 +381,21 @@ public:
             }
             if (ciphertext_read_buf.empty()) {
                 got_read_eof = true;
-                return size_t(0);
+                *out_size = 0;
+                return ResultSuccess;
             }
         }
     }
 
-    ResultVal<size_t> Write(std::span<const u8> data) override {
+    Result Write(size_t* out_size, std::span<const u8> data) override {
+        *out_size = 0;
+
         if (handshake_state != HandshakeState::Connected) {
             LOG_ERROR(Service_SSL, "Called Write but we did not successfully handshake");
             return ResultInternalError;
         }
         if (data.size() == 0) {
-            return size_t(0);
+            return ResultSuccess;
         }
         data = data.subspan(0, std::min<size_t>(data.size(), stream_sizes.cbMaximumMessage));
         if (!cleartext_write_buf.empty()) {
@@ -402,7 +407,7 @@ public:
                 LOG_ERROR(Service_SSL, "Called Write but buffer does not match previous buffer");
                 return ResultInternalError;
             }
-            return WriteAlreadyEncryptedData();
+            return WriteAlreadyEncryptedData(out_size);
         } else {
             cleartext_write_buf.assign(data.begin(), data.end());
         }
@@ -448,21 +453,21 @@ public:
                                     tmp_data_buf.end());
         ciphertext_write_buf.insert(ciphertext_write_buf.end(), trailer_buf.begin(),
                                     trailer_buf.end());
-        return WriteAlreadyEncryptedData();
+        return WriteAlreadyEncryptedData(out_size);
     }
 
-    ResultVal<size_t> WriteAlreadyEncryptedData() {
+    Result WriteAlreadyEncryptedData(size_t* out_size) {
         const Result r = FlushCiphertextWriteBuf();
         if (r != ResultSuccess) {
             return r;
         }
         // write buf is empty
-        const size_t cleartext_bytes_written = cleartext_write_buf.size();
+        *out_size = cleartext_write_buf.size();
         cleartext_write_buf.clear();
-        return cleartext_bytes_written;
+        return ResultSuccess;
     }
 
-    ResultVal<std::vector<std::vector<u8>>> GetServerCerts() override {
+    Result GetServerCerts(std::vector<std::vector<u8>>* out_certs) override {
         PCCERT_CONTEXT returned_cert = nullptr;
         const SECURITY_STATUS ret =
             QueryContextAttributes(&ctxt, SECPKG_ATTR_REMOTE_CERT_CONTEXT, &returned_cert);
@@ -473,16 +478,15 @@ public:
             return ResultInternalError;
         }
         PCCERT_CONTEXT some_cert = nullptr;
-        std::vector<std::vector<u8>> certs;
         while ((some_cert = CertEnumCertificatesInStore(returned_cert->hCertStore, some_cert))) {
-            certs.emplace_back(static_cast<u8*>(some_cert->pbCertEncoded),
-                               static_cast<u8*>(some_cert->pbCertEncoded) +
-                                   some_cert->cbCertEncoded);
+            out_certs->emplace_back(static_cast<u8*>(some_cert->pbCertEncoded),
+                                    static_cast<u8*>(some_cert->pbCertEncoded) +
+                                        some_cert->cbCertEncoded);
         }
-        std::reverse(certs.begin(),
-                     certs.end()); // Windows returns certs in reverse order from what we want
+        std::reverse(out_certs->begin(),
+                     out_certs->end()); // Windows returns certs in reverse order from what we want
         CertFreeCertificateContext(returned_cert);
-        return certs;
+        return ResultSuccess;
     }
 
     ~SSLConnectionBackendSchannel() {
@@ -532,13 +536,13 @@ public:
     size_t read_buf_fill_size = 0;
 };
 
-ResultVal<std::unique_ptr<SSLConnectionBackend>> CreateSSLConnectionBackend() {
+Result CreateSSLConnectionBackend(std::unique_ptr<SSLConnectionBackend>* out_backend) {
     auto conn = std::make_unique<SSLConnectionBackendSchannel>();
-    const Result res = conn->Init();
-    if (res.IsFailure()) {
-        return res;
-    }
-    return conn;
+
+    R_TRY(conn->Init());
+
+    *out_backend = std::move(conn);
+    return ResultSuccess;
 }
 
 } // namespace Service::SSL

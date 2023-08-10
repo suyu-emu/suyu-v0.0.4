@@ -103,24 +103,20 @@ public:
         return HandleReturn("SSLHandshake", 0, status).Code();
     }
 
-    ResultVal<size_t> Read(std::span<u8> data) override {
-        size_t actual;
-        OSStatus status = SSLRead(context, data.data(), data.size(), &actual);
-        ;
-        return HandleReturn("SSLRead", actual, status);
+    Result Read(size_t* out_size, std::span<u8> data) override {
+        OSStatus status = SSLRead(context, data.data(), data.size(), out_size);
+        return HandleReturn("SSLRead", out_size, status);
     }
 
-    ResultVal<size_t> Write(std::span<const u8> data) override {
-        size_t actual;
-        OSStatus status = SSLWrite(context, data.data(), data.size(), &actual);
-        ;
-        return HandleReturn("SSLWrite", actual, status);
+    Result Write(size_t* out_size, std::span<const u8> data) override {
+        OSStatus status = SSLWrite(context, data.data(), data.size(), out_size);
+        return HandleReturn("SSLWrite", out_size, status);
     }
 
-    ResultVal<size_t> HandleReturn(const char* what, size_t actual, OSStatus status) {
+    Result HandleReturn(const char* what, size_t* actual, OSStatus status) {
         switch (status) {
         case 0:
-            return actual;
+            return ResultSuccess;
         case errSSLWouldBlock:
             return ResultWouldBlock;
         default: {
@@ -136,22 +132,21 @@ public:
         }
     }
 
-    ResultVal<std::vector<std::vector<u8>>> GetServerCerts() override {
+    Result GetServerCerts(std::vector<std::vector<u8>>* out_certs) override {
         CFReleaser<SecTrustRef> trust;
         OSStatus status = SSLCopyPeerTrust(context, &trust.ptr);
         if (status) {
             LOG_ERROR(Service_SSL, "SSLCopyPeerTrust failed: {}", OSStatusToString(status));
             return ResultInternalError;
         }
-        std::vector<std::vector<u8>> ret;
         for (CFIndex i = 0, count = SecTrustGetCertificateCount(trust); i < count; i++) {
             SecCertificateRef cert = SecTrustGetCertificateAtIndex(trust, i);
             CFReleaser<CFDataRef> data(SecCertificateCopyData(cert));
             ASSERT_OR_EXECUTE(data, { return ResultInternalError; });
             const u8* ptr = CFDataGetBytePtr(data);
-            ret.emplace_back(ptr, ptr + CFDataGetLength(data));
+            out_certs->emplace_back(ptr, ptr + CFDataGetLength(data));
         }
-        return ret;
+        return ResultSuccess;
     }
 
     static OSStatus ReadCallback(SSLConnectionRef connection, void* data, size_t* dataLength) {
@@ -210,13 +205,13 @@ private:
     std::shared_ptr<Network::SocketBase> socket;
 };
 
-ResultVal<std::unique_ptr<SSLConnectionBackend>> CreateSSLConnectionBackend() {
+Result CreateSSLConnectionBackend(std::unique_ptr<SSLConnectionBackend>* out_backend) {
     auto conn = std::make_unique<SSLConnectionBackendSecureTransport>();
-    const Result res = conn->Init();
-    if (res.IsFailure()) {
-        return res;
-    }
-    return conn;
+
+    R_TRY(conn->Init());
+
+    *out_backend = std::move(conn);
+    return ResultSuccess;
 }
 
 } // namespace Service::SSL

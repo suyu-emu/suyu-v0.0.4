@@ -102,16 +102,17 @@ Result ServerManager::RegisterNamedService(const std::string& service_name,
         m_system.ServiceManager().RegisterService(service_name, max_sessions, handler)));
 
     // Get the registered port.
-    auto port = m_system.ServiceManager().GetServicePort(service_name);
-    ASSERT(port.Succeeded());
+    Kernel::KPort* port{};
+    ASSERT(
+        R_SUCCEEDED(m_system.ServiceManager().GetServicePort(std::addressof(port), service_name)));
 
     // Open a new reference to the server port.
-    (*port)->GetServerPort().Open();
+    port->GetServerPort().Open();
 
     // Begin tracking the server port.
     {
         std::scoped_lock ll{m_list_mutex};
-        m_ports.emplace(std::addressof((*port)->GetServerPort()), std::move(handler));
+        m_ports.emplace(std::addressof(port->GetServerPort()), std::move(handler));
     }
 
     // Signal the wakeup event.

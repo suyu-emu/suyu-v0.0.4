@@ -23,7 +23,7 @@ SDMCFactory::SDMCFactory(VirtualDir sd_dir_, VirtualDir sd_mod_dir_)
 
 SDMCFactory::~SDMCFactory() = default;
 
-ResultVal<VirtualDir> SDMCFactory::Open() const {
+VirtualDir SDMCFactory::Open() const {
     return sd_dir;
 }
 

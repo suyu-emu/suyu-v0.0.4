@@ -18,7 +18,7 @@ public:
     explicit SDMCFactory(VirtualDir sd_dir_, VirtualDir sd_mod_dir_);
     ~SDMCFactory();
 
-    ResultVal<VirtualDir> Open() const;
+    VirtualDir Open() const;
 
     VirtualDir GetSDMCModificationLoadRoot(u64 title_id) const;
     VirtualDir GetSDMCContentDirectory() const;

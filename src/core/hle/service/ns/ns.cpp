@@ -392,19 +392,20 @@ void IApplicationManagerInterface::GetApplicationDesiredLanguage(HLERequestConte
     IPC::RequestParser rp{ctx};
     const auto supported_languages = rp.Pop<u32>();
 
-    const auto res = GetApplicationDesiredLanguage(supported_languages);
-    if (res.Succeeded()) {
+    u8 desired_language{};
+    const auto res = GetApplicationDesiredLanguage(&desired_language, supported_languages);
+    if (res == ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.Push<u32>(*res);
+        rb.Push<u32>(desired_language);
     } else {
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(res.Code());
+        rb.Push(res);
     }
 }
 
-ResultVal<u8> IApplicationManagerInterface::GetApplicationDesiredLanguage(
-    const u32 supported_languages) {
+Result IApplicationManagerInterface::GetApplicationDesiredLanguage(u8* out_desired_language,
+                                                                   const u32 supported_languages) {
     LOG_DEBUG(Service_NS, "called with supported_languages={:08X}", supported_languages);
 
     // Get language code from settings
@@ -430,7 +431,8 @@ ResultVal<u8> IApplicationManagerInterface::GetApplicationDesiredLanguage(
     for (const auto lang : *priority_list) {
         const auto supported_flag = GetSupportedLanguageFlag(lang);
         if (supported_languages == 0 || (supported_languages & supported_flag) == supported_flag) {
-            return static_cast<u8>(lang);
+            *out_desired_language = static_cast<u8>(lang);
+            return ResultSuccess;
         }
     }
 
@@ -444,19 +446,20 @@ void IApplicationManagerInterface::ConvertApplicationLanguageToLanguageCode(
     IPC::RequestParser rp{ctx};
     const auto application_language = rp.Pop<u8>();
 
-    const auto res = ConvertApplicationLanguageToLanguageCode(application_language);
-    if (res.Succeeded()) {
+    u64 language_code{};
+    const auto res = ConvertApplicationLanguageToLanguageCode(&language_code, application_language);
+    if (res == ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(ResultSuccess);
-        rb.Push(*res);
+        rb.Push(language_code);
     } else {
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(res.Code());
+        rb.Push(res);
     }
 }
 
-ResultVal<u64> IApplicationManagerInterface::ConvertApplicationLanguageToLanguageCode(
-    u8 application_language) {
+Result IApplicationManagerInterface::ConvertApplicationLanguageToLanguageCode(
+    u64* out_language_code, u8 application_language) {
     const auto language_code =
         ConvertToLanguageCode(static_cast<ApplicationLanguage>(application_language));
     if (language_code == std::nullopt) {
@@ -464,7 +467,8 @@ ResultVal<u64> IApplicationManagerInterface::ConvertApplicationLanguageToLanguag
         return Service::NS::ResultApplicationLanguageNotFound;
     }
 
-    return static_cast<u64>(*language_code);
+    *out_language_code = static_cast<u64>(*language_code);
+    return ResultSuccess;
 }
 
 IApplicationVersionInterface::IApplicationVersionInterface(Core::System& system_)
@@ -618,12 +622,13 @@ void IReadOnlyApplicationControlDataInterface::GetApplicationControlData(HLERequ
     static_assert(sizeof(RequestParameters) == 0x10, "RequestParameters has incorrect size.");
 
     IPC::RequestParser rp{ctx};
+    std::vector<u8> nacp_data{};
     const auto parameters{rp.PopRaw<RequestParameters>()};
-    const auto nacp_data{system.GetARPManager().GetControlProperty(parameters.application_id)};
-    const auto result = nacp_data ? ResultSuccess : ResultUnknown;
+    const auto result =
+        system.GetARPManager().GetControlProperty(&nacp_data, parameters.application_id);
 
-    if (nacp_data) {
-        ctx.WriteBuffer(nacp_data->data(), nacp_data->size());
+    if (result == ResultSuccess) {
+        ctx.WriteBuffer(nacp_data.data(), nacp_data.size());
     }
 
     IPC::ResponseBuilder rb{ctx, 2};

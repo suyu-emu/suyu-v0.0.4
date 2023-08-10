@@ -41,13 +41,11 @@ public:
     ~RomFSFactory();
 
     void SetPackedUpdate(VirtualFile update_raw_file);
-    [[nodiscard]] ResultVal<VirtualFile> OpenCurrentProcess(u64 current_process_title_id) const;
-    [[nodiscard]] ResultVal<VirtualFile> OpenPatchedRomFS(u64 title_id,
-                                                          ContentRecordType type) const;
-    [[nodiscard]] ResultVal<VirtualFile> OpenPatchedRomFSWithProgramIndex(
-        u64 title_id, u8 program_index, ContentRecordType type) const;
-    [[nodiscard]] ResultVal<VirtualFile> Open(u64 title_id, StorageId storage,
-                                              ContentRecordType type) const;
+    [[nodiscard]] VirtualFile OpenCurrentProcess(u64 current_process_title_id) const;
+    [[nodiscard]] VirtualFile OpenPatchedRomFS(u64 title_id, ContentRecordType type) const;
+    [[nodiscard]] VirtualFile OpenPatchedRomFSWithProgramIndex(u64 title_id, u8 program_index,
+                                                               ContentRecordType type) const;
+    [[nodiscard]] VirtualFile Open(u64 title_id, StorageId storage, ContentRecordType type) const;
 
 private:
     [[nodiscard]] std::shared_ptr<NCA> GetEntry(u64 title_id, StorageId storage,

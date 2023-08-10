@@ -683,9 +683,9 @@ private:
 
         LOG_DEBUG(Service_VI, "called. display_id={}", display_id);
 
-        const auto vsync_event = nv_flinger.FindVsyncEvent(display_id);
-        if (vsync_event.Failed()) {
-            const auto result = vsync_event.Code();
+        Kernel::KReadableEvent* vsync_event{};
+        const auto result = nv_flinger.FindVsyncEvent(&vsync_event, display_id);
+        if (result != ResultSuccess) {
             if (result == ResultNotFound) {
                 LOG_ERROR(Service_VI, "Vsync event was not found for display_id={}", display_id);
             }
@@ -697,7 +697,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(ResultSuccess);
-        rb.PushCopyObjects(*vsync_event);
+        rb.PushCopyObjects(vsync_event);
     }
 
     void ConvertScalingMode(HLERequestContext& ctx) {
@@ -705,15 +705,16 @@ private:
         const auto mode = rp.PopEnum<NintendoScaleMode>();
         LOG_DEBUG(Service_VI, "called mode={}", mode);
 
-        const auto converted_mode = ConvertScalingModeImpl(mode);
+        ConvertedScaleMode converted_mode{};
+        const auto result = ConvertScalingModeImpl(&converted_mode, mode);
 
-        if (converted_mode.Succeeded()) {
+        if (result == ResultSuccess) {
             IPC::ResponseBuilder rb{ctx, 4};
             rb.Push(ResultSuccess);
-            rb.PushEnum(*converted_mode);
+            rb.PushEnum(converted_mode);
         } else {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(converted_mode.Code());
+            rb.Push(result);
         }
     }
 
@@ -760,18 +761,24 @@ private:
         rb.Push(alignment);
     }
 
-    static ResultVal<ConvertedScaleMode> ConvertScalingModeImpl(NintendoScaleMode mode) {
+    static Result ConvertScalingModeImpl(ConvertedScaleMode* out_scaling_mode,
+                                         NintendoScaleMode mode) {
         switch (mode) {
         case NintendoScaleMode::None:
-            return ConvertedScaleMode::None;
+            *out_scaling_mode = ConvertedScaleMode::None;
+            return ResultSuccess;
         case NintendoScaleMode::Freeze:
-            return ConvertedScaleMode::Freeze;
+            *out_scaling_mode = ConvertedScaleMode::Freeze;
+            return ResultSuccess;
         case NintendoScaleMode::ScaleToWindow:
-            return ConvertedScaleMode::ScaleToWindow;
+            *out_scaling_mode = ConvertedScaleMode::ScaleToWindow;
+            return ResultSuccess;
         case NintendoScaleMode::ScaleAndCrop:
-            return ConvertedScaleMode::ScaleAndCrop;
+            *out_scaling_mode = ConvertedScaleMode::ScaleAndCrop;
+            return ResultSuccess;
         case NintendoScaleMode::PreserveAspectRatio:
-            return ConvertedScaleMode::PreserveAspectRatio;
+            *out_scaling_mode = ConvertedScaleMode::PreserveAspectRatio;
+            return ResultSuccess;
         default:
             LOG_ERROR(Service_VI, "Invalid scaling mode specified, mode={}", mode);
             return ResultOperationFailed;

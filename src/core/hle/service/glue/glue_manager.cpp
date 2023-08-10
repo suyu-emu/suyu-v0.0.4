@@ -15,7 +15,8 @@ ARPManager::ARPManager() = default;
 
 ARPManager::~ARPManager() = default;
 
-ResultVal<ApplicationLaunchProperty> ARPManager::GetLaunchProperty(u64 title_id) const {
+Result ARPManager::GetLaunchProperty(ApplicationLaunchProperty* out_launch_property,
+                                     u64 title_id) const {
     if (title_id == 0) {
         return Glue::ResultInvalidProcessId;
     }
@@ -25,10 +26,11 @@ ResultVal<ApplicationLaunchProperty> ARPManager::GetLaunchProperty(u64 title_id)
         return Glue::ResultProcessIdNotRegistered;
     }
 
-    return iter->second.launch;
+    *out_launch_property = iter->second.launch;
+    return ResultSuccess;
 }
 
-ResultVal<std::vector<u8>> ARPManager::GetControlProperty(u64 title_id) const {
+Result ARPManager::GetControlProperty(std::vector<u8>* out_control_property, u64 title_id) const {
     if (title_id == 0) {
         return Glue::ResultInvalidProcessId;
     }
@@ -38,7 +40,8 @@ ResultVal<std::vector<u8>> ARPManager::GetControlProperty(u64 title_id) const {
         return Glue::ResultProcessIdNotRegistered;
     }
 
-    return iter->second.control;
+    *out_control_property = iter->second.control;
+    return ResultSuccess;
 }
 
 Result ARPManager::Register(u64 title_id, ApplicationLaunchProperty launch,

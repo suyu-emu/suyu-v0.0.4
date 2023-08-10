@@ -35,7 +35,7 @@ public:
         std::shared_ptr<Module> module;
 
     private:
-        ResultVal<u64> GetConfigImpl(ConfigItem config_item) const;
+        Result GetConfigImpl(u64* out_config, ConfigItem config_item) const;
 
         std::mt19937 rng;
     };

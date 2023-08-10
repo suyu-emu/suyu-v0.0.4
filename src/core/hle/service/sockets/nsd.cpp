@@ -54,7 +54,7 @@ NSD::NSD(Core::System& system_, const char* name) : ServiceFramework{system_, na
     RegisterHandlers(functions);
 }
 
-static ResultVal<std::string> ResolveImpl(const std::string& fqdn_in) {
+static std::string ResolveImpl(const std::string& fqdn_in) {
     // The real implementation makes various substitutions.
     // For now we just return the string as-is, which is good enough when not
     // connecting to real Nintendo servers.
@@ -64,13 +64,10 @@ static ResultVal<std::string> ResolveImpl(const std::string& fqdn_in) {
 
 static Result ResolveCommon(const std::string& fqdn_in, std::array<char, 0x100>& fqdn_out) {
     const auto res = ResolveImpl(fqdn_in);
-    if (res.Failed()) {
-        return res.Code();
-    }
-    if (res->size() >= fqdn_out.size()) {
+    if (res.size() >= fqdn_out.size()) {
         return ResultOverflow;
     }
-    std::memcpy(fqdn_out.data(), res->c_str(), res->size() + 1);
+    std::memcpy(fqdn_out.data(), res.c_str(), res.size() + 1);
     return ResultSuccess;
 }
 
