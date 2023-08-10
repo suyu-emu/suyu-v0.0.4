@@ -214,13 +214,17 @@ void GameList::OnTextChanged(const QString& new_text) {
             const int children_count = folder->rowCount();
             for (int j = 0; j < children_count; ++j) {
                 ++children_total;
+
                 const QStandardItem* child = folder->child(j, 0);
+
+                const auto program_id = child->data(GameListItemPath::ProgramIdRole).toULongLong();
+
                 const QString file_path =
                     child->data(GameListItemPath::FullPathRole).toString().toLower();
                 const QString file_title =
                     child->data(GameListItemPath::TitleRole).toString().toLower();
                 const QString file_program_id =
-                    child->data(GameListItemPath::ProgramIdRole).toString().toLower();
+                    QStringLiteral("%1").arg(program_id, 16, 16, QLatin1Char{'0'});
 
                 // Only items which filename in combination with its title contains all words
                 // that are in the searchfield will be visible in the gamelist
@@ -231,7 +235,7 @@ void GameList::OnTextChanged(const QString& new_text) {
                     file_path.mid(file_path.lastIndexOf(QLatin1Char{'/'}) + 1) + QLatin1Char{' '} +
                     file_title;
                 if (ContainsAllWords(file_name, edit_filter_text) ||
-                    (file_program_id.count() == 16 && edit_filter_text.contains(file_program_id))) {
+                    (file_program_id.count() == 16 && file_program_id.contains(edit_filter_text))) {
                     tree_view->setRowHidden(j, folder_index, false);
                     ++result_count;
                 } else {
