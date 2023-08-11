@@ -17,8 +17,6 @@ Result HierarchicalIntegrityVerificationStorage::Initialize(
     const HierarchicalIntegrityVerificationInformation& info,
     HierarchicalStorageInformation storage, int max_data_cache_entries, int max_hash_cache_entries,
     s8 buffer_level) {
-    using AlignedStorage = AlignmentMatchingStoragePooledBuffer<1>;
-
     // Validate preconditions.
     ASSERT(IntegrityMinLayerCount <= info.max_layers && info.max_layers <= IntegrityMaxLayerCount);
 
@@ -38,8 +36,7 @@ Result HierarchicalIntegrityVerificationStorage::Initialize(
     };
 
     // Initialize the top level buffer storage.
-    m_buffer_storages[0] = std::make_shared<AlignedStorage>(
-        m_verify_storages[0], static_cast<s64>(1) << info.info[0].block_order);
+    m_buffer_storages[0] = m_verify_storages[0];
     R_UNLESS(m_buffer_storages[0] != nullptr, ResultAllocationMemoryFailedAllocateShared);
 
     // Prepare to initialize the level storages.
@@ -65,8 +62,7 @@ Result HierarchicalIntegrityVerificationStorage::Initialize(
             static_cast<s64>(1) << info.info[level].block_order, false);
 
         // Initialize the buffer storage.
-        m_buffer_storages[level + 1] = std::make_shared<AlignedStorage>(
-            m_verify_storages[level + 1], static_cast<s64>(1) << info.info[level + 1].block_order);
+        m_buffer_storages[level + 1] = m_verify_storages[level + 1];
         R_UNLESS(m_buffer_storages[level + 1] != nullptr,
                  ResultAllocationMemoryFailedAllocateShared);
     }
@@ -82,8 +78,7 @@ Result HierarchicalIntegrityVerificationStorage::Initialize(
             static_cast<s64>(1) << info.info[level].block_order, true);
 
         // Initialize the buffer storage.
-        m_buffer_storages[level + 1] = std::make_shared<AlignedStorage>(
-            m_verify_storages[level + 1], static_cast<s64>(1) << info.info[level + 1].block_order);
+        m_buffer_storages[level + 1] = m_verify_storages[level + 1];
         R_UNLESS(m_buffer_storages[level + 1] != nullptr,
                  ResultAllocationMemoryFailedAllocateShared);
     }

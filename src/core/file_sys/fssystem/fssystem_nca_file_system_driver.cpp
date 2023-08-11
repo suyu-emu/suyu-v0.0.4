@@ -508,12 +508,15 @@ Result NcaFileSystemDriver::CreateSparseStorageMetaStorage(VirtualFile* out,
                                     offset + meta_offset, sparse_info.MakeAesCtrUpperIv(upper_iv),
                                     AlignmentStorageRequirement::None));
 
-    // Create meta storage.
-    auto meta_storage = std::make_shared<OffsetVfsFile>(decrypted_storage, meta_size, 0);
-    R_UNLESS(meta_storage != nullptr, ResultAllocationMemoryFailedAllocateShared);
+    // Create buffered storage.
+    std::vector<u8> meta_data(meta_size);
+    decrypted_storage->Read(meta_data.data(), meta_size, 0);
+
+    auto buffered_storage = std::make_shared<VectorVfsFile>(std::move(meta_data));
+    R_UNLESS(buffered_storage != nullptr, ResultAllocationMemoryFailedAllocateShared);
 
     // Set the output.
-    *out = std::move(meta_storage);
+    *out = std::move(buffered_storage);
     R_SUCCEED();
 }
 
@@ -817,13 +820,15 @@ Result NcaFileSystemDriver::CreateAesCtrExStorageMetaStorage(
     auto meta_storage = std::make_shared<OffsetVfsFile>(decrypted_storage, meta_size, 0);
     R_UNLESS(meta_storage != nullptr, ResultAllocationMemoryFailedAllocateShared);
 
-    // Create an alignment-matching storage.
-    using AlignedStorage = AlignmentMatchingStorage<NcaHeader::CtrBlockSize, 1>;
-    auto aligned_storage = std::make_shared<AlignedStorage>(std::move(meta_storage));
-    R_UNLESS(aligned_storage != nullptr, ResultAllocationMemoryFailedAllocateShared);
+    // Create buffered storage.
+    std::vector<u8> meta_data(meta_size);
+    meta_storage->Read(meta_data.data(), meta_size, 0);
+
+    auto buffered_storage = std::make_shared<VectorVfsFile>(std::move(meta_data));
+    R_UNLESS(buffered_storage != nullptr, ResultAllocationMemoryFailedAllocateShared);
 
     // Set the output.
-    *out = std::move(aligned_storage);
+    *out = std::move(buffered_storage);
     R_SUCCEED();
 }
 
@@ -937,8 +942,15 @@ Result NcaFileSystemDriver::CreateIndirectStorageMetaStorage(VirtualFile* out,
                                                         patch_info.indirect_offset);
     R_UNLESS(meta_storage != nullptr, ResultAllocationMemoryFailedAllocateShared);
 
+    // Create buffered storage.
+    std::vector<u8> meta_data(patch_info.indirect_size);
+    meta_storage->Read(meta_data.data(), patch_info.indirect_size, 0);
+
+    auto buffered_storage = std::make_shared<VectorVfsFile>(std::move(meta_data));
+    R_UNLESS(buffered_storage != nullptr, ResultAllocationMemoryFailedAllocateShared);
+
     // Set the output.
-    *out = std::move(meta_storage);
+    *out = std::move(buffered_storage);
     R_SUCCEED();
 }
 
@@ -1090,7 +1102,6 @@ Result NcaFileSystemDriver::CreateSha256Storage(
 
     // Define storage types.
     using VerificationStorage = HierarchicalSha256Storage;
-    using AlignedStorage = AlignmentMatchingStoragePooledBuffer<1>;
 
     // Validate the hash data.
     R_UNLESS(Common::IsPowerOfTwo(hash_data.hash_block_size),
@@ -1141,13 +1152,8 @@ Result NcaFileSystemDriver::CreateSha256Storage(
                                            hash_data.hash_block_size,
                                            buffer_hold_storage->GetBuffer(), hash_buffer_size));
 
-    // Make the aligned storage.
-    auto aligned_storage = std::make_shared<AlignedStorage>(std::move(verification_storage),
-                                                            hash_data.hash_block_size);
-    R_UNLESS(aligned_storage != nullptr, ResultAllocationMemoryFailedAllocateShared);
-
     // Set the output.
-    *out = std::move(aligned_storage);
+    *out = std::move(verification_storage);
     R_SUCCEED();
 }
 

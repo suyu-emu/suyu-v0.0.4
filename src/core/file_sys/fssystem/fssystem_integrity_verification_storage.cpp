@@ -48,10 +48,6 @@ void IntegrityVerificationStorage::Finalize() {
 }
 
 size_t IntegrityVerificationStorage::Read(u8* buffer, size_t size, size_t offset) const {
-    // Validate preconditions.
-    ASSERT(Common::IsAligned(offset, static_cast<size_t>(m_verification_block_size)));
-    ASSERT(Common::IsAligned(size, static_cast<size_t>(m_verification_block_size)));
-
     // Succeed if zero size.
     if (size == 0) {
         return size;

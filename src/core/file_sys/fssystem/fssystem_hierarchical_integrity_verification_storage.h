@@ -123,7 +123,7 @@ private:
 
 private:
     std::shared_ptr<IntegrityVerificationStorage> m_verify_storages[MaxLayers - 1];
-    std::shared_ptr<AlignmentMatchingStoragePooledBuffer<1>> m_buffer_storages[MaxLayers - 1];
+    VirtualFile m_buffer_storages[MaxLayers - 1];
     s64 m_data_size;
     s32 m_max_layers;
 

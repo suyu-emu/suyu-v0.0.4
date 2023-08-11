@@ -73,31 +73,8 @@ size_t HierarchicalSha256Storage::Read(u8* buffer, size_t size, size_t offset) c
     // Validate that we have a buffer to read into.
     ASSERT(buffer != nullptr);
 
-    // Validate preconditions.
-    ASSERT(Common::IsAligned(offset, m_hash_target_block_size));
-    ASSERT(Common::IsAligned(size, m_hash_target_block_size));
-
     // Read the data.
-    const size_t reduced_size = static_cast<size_t>(
-        std::min<s64>(m_base_storage_size,
-                      Common::AlignUp(offset + size, m_hash_target_block_size)) -
-        offset);
-    m_base_storage->Read(buffer, reduced_size, offset);
-
-    // Setup tracking variables.
-    auto cur_offset = offset;
-    auto remaining_size = reduced_size;
-    while (remaining_size > 0) {
-        const auto cur_size =
-            static_cast<size_t>(std::min<s64>(m_hash_target_block_size, remaining_size));
-        ASSERT(static_cast<size_t>(cur_offset >> m_log_size_ratio) < m_hash_buffer_size);
-
-        // Advance.
-        cur_offset += cur_size;
-        remaining_size -= cur_size;
-    }
-
-    return size;
+    return m_base_storage->Read(buffer, size, offset);
 }
 
 } // namespace FileSys
