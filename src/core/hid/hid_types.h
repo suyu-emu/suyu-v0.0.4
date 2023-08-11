@@ -289,6 +289,19 @@ enum class GyroscopeZeroDriftMode : u32 {
     Tight = 2,
 };
 
+// This is nn::settings::system::TouchScreenMode
+enum class TouchScreenMode : u32 {
+    Stylus = 0,
+    Standard = 1,
+};
+
+// This is nn::hid::TouchScreenModeForNx
+enum class TouchScreenModeForNx : u8 {
+    UseSystemSetting,
+    Finger,
+    Heat2,
+};
+
 // This is nn::hid::NpadStyleTag
 struct NpadStyleTag {
     union {
@@ -333,6 +346,14 @@ struct TouchState {
     u32 rotation_angle{};
 };
 static_assert(sizeof(TouchState) == 0x28, "Touchstate is an invalid size");
+
+// This is nn::hid::TouchScreenConfigurationForNx
+struct TouchScreenConfigurationForNx {
+    TouchScreenModeForNx mode{TouchScreenModeForNx::UseSystemSetting};
+    INSERT_PADDING_BYTES(0xF);
+};
+static_assert(sizeof(TouchScreenConfigurationForNx) == 0x10,
+              "TouchScreenConfigurationForNx is an invalid size");
 
 struct NpadColor {
     u8 r{};
@@ -661,6 +682,11 @@ struct MouseState {
     MouseAttribute attribute{};
 };
 static_assert(sizeof(MouseState) == 0x28, "MouseState is an invalid size");
+
+struct UniquePadId {
+    u64 id;
+};
+static_assert(sizeof(UniquePadId) == 0x8, "UniquePadId is an invalid size");
 
 /// Converts a NpadIdType to an array index.
 constexpr size_t NpadIdTypeToIndex(NpadIdType npad_id_type) {
