@@ -61,9 +61,9 @@ public:
     // Currently tracked RomFS patches:
     // - Game Updates
     // - LayeredFS
-    [[nodiscard]] VirtualFile PatchRomFS(VirtualFile base, u64 ivfc_offset,
+    [[nodiscard]] VirtualFile PatchRomFS(const NCA* base_nca, VirtualFile base_romfs,
                                          ContentRecordType type = ContentRecordType::Program,
-                                         VirtualFile update_raw = nullptr,
+                                         VirtualFile packed_update_raw = nullptr,
                                          bool apply_layeredfs = true) const;
 
     // Returns a vector of pairs between patch names and patch versions.

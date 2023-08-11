@@ -46,7 +46,6 @@ public:
     LoadResult Load(Kernel::KProcess& process, Core::System& system) override;
 
     ResultStatus ReadRomFS(FileSys::VirtualFile& out_file) override;
-    u64 ReadRomFSIVFCOffset() const override;
     ResultStatus ReadUpdateRaw(FileSys::VirtualFile& out_file) override;
     ResultStatus ReadProgramId(u64& out_program_id) override;
     ResultStatus ReadProgramIds(std::vector<u64>& out_program_ids) override;

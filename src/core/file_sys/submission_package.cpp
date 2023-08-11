@@ -19,9 +19,9 @@
 namespace FileSys {
 
 NSP::NSP(VirtualFile file_, u64 title_id_, std::size_t program_index_)
-    : file(std::move(file_)), expected_program_id(title_id_),
-      program_index(program_index_), status{Loader::ResultStatus::Success},
-      pfs(std::make_shared<PartitionFilesystem>(file)), keys{Core::Crypto::KeyManager::Instance()} {
+    : file(std::move(file_)), expected_program_id(title_id_), program_index(program_index_),
+      status{Loader::ResultStatus::Success}, pfs(std::make_shared<PartitionFilesystem>(file)),
+      keys{Core::Crypto::KeyManager::Instance()} {
     if (pfs->GetStatus() != Loader::ResultStatus::Success) {
         status = pfs->GetStatus();
         return;
@@ -280,7 +280,7 @@ void NSP::ReadNCAs(const std::vector<VirtualFile>& files) {
                     continue;
                 }
 
-                auto next_nca = std::make_shared<NCA>(std::move(next_file), nullptr, 0);
+                auto next_nca = std::make_shared<NCA>(std::move(next_file));
 
                 if (next_nca->GetType() == NCAContentType::Program) {
                     program_status[next_nca->GetTitleId()] = next_nca->GetStatus();

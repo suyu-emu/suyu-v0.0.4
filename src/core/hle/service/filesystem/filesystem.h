@@ -15,6 +15,7 @@ class System;
 
 namespace FileSys {
 class BISFactory;
+class NCA;
 class RegisteredCache;
 class RegisteredCacheUnion;
 class PlaceholderCache;
@@ -70,6 +71,8 @@ public:
                                                           FileSys::ContentRecordType type) const;
     FileSys::VirtualFile OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
                                    FileSys::ContentRecordType type) const;
+    std::shared_ptr<FileSys::NCA> OpenBaseNca(u64 title_id, FileSys::StorageId storage_id,
+                                              FileSys::ContentRecordType type) const;
 
     Result CreateSaveData(FileSys::VirtualDir* out_save_data, FileSys::SaveDataSpaceId space,
                           const FileSys::SaveDataAttribute& save_struct) const;

@@ -373,6 +373,11 @@ FileSys::VirtualFile FileSystemController::OpenRomFS(u64 title_id, FileSys::Stor
     return romfs_factory->Open(title_id, storage_id, type);
 }
 
+std::shared_ptr<FileSys::NCA> FileSystemController::OpenBaseNca(
+    u64 title_id, FileSys::StorageId storage_id, FileSys::ContentRecordType type) const {
+    return romfs_factory->GetEntry(title_id, storage_id, type);
+}
+
 Result FileSystemController::CreateSaveData(FileSys::VirtualDir* out_save_data,
                                             FileSys::SaveDataSpaceId space,
                                             const FileSys::SaveDataAttribute& save_struct) const {

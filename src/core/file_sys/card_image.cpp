@@ -29,8 +29,8 @@ constexpr std::array partition_names{
 
 XCI::XCI(VirtualFile file_, u64 program_id, size_t program_index)
     : file(std::move(file_)), program_nca_status{Loader::ResultStatus::ErrorXCIMissingProgramNCA},
-      partitions(partition_names.size()),
-      partitions_raw(partition_names.size()), keys{Core::Crypto::KeyManager::Instance()} {
+      partitions(partition_names.size()), partitions_raw(partition_names.size()),
+      keys{Core::Crypto::KeyManager::Instance()} {
     if (file->ReadObject(&header) != sizeof(GamecardHeader)) {
         status = Loader::ResultStatus::ErrorBadXCIHeader;
         return;
@@ -183,7 +183,7 @@ u32 XCI::GetSystemUpdateVersion() {
     }
 
     for (const auto& update_file : update->GetFiles()) {
-        NCA nca{update_file, nullptr, 0};
+        NCA nca{update_file};
 
         if (nca.GetStatus() != Loader::ResultStatus::Success) {
             continue;
@@ -296,7 +296,7 @@ Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
             continue;
         }
 
-        auto nca = std::make_shared<NCA>(partition_file, nullptr, 0);
+        auto nca = std::make_shared<NCA>(partition_file);
         if (nca->IsUpdate()) {
             continue;
         }
