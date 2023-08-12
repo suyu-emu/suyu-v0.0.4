@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #pragma once
 
 #include "core/file_sys/fssystem/fs_i_storage.h"
@@ -7,11 +10,6 @@ namespace FileSys {
 class MemoryResourceBufferHoldStorage : public IStorage {
     YUZU_NON_COPYABLE(MemoryResourceBufferHoldStorage);
     YUZU_NON_MOVEABLE(MemoryResourceBufferHoldStorage);
-
-private:
-    VirtualFile m_storage;
-    void* m_buffer;
-    size_t m_buffer_size;
 
 public:
     MemoryResourceBufferHoldStorage(VirtualFile storage, size_t buffer_size)
@@ -53,6 +51,11 @@ public:
 
         return m_storage->Write(buffer, size, offset);
     }
+
+private:
+    VirtualFile m_storage;
+    void* m_buffer;
+    size_t m_buffer_size;
 };
 
 } // namespace FileSys

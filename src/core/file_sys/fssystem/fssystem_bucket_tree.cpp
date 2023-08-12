@@ -226,7 +226,7 @@ Result BucketTree::Initialize(VirtualFile node_storage, VirtualFile entry_storag
     m_offset_cache.offsets.end_offset = end_offset;
     m_offset_cache.is_initialized = true;
 
-    // Cancel guard.
+    // We succeeded.
     R_SUCCEED();
 }
 
@@ -357,7 +357,7 @@ Result BucketTree::Visitor::MoveNext() {
 
         entry_index = 0;
     } else {
-        m_entry_index = 1;
+        m_entry_index = -1;
     }
 
     // Read the new entry.

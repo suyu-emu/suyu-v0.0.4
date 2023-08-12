@@ -72,7 +72,7 @@ Result IndirectStorage::GetEntryList(Entry* out_entries, s32* out_entry_count, s
 
     auto cur_entry = *visitor.Get<Entry>();
     while (cur_entry.GetVirtualOffset() < end_offset) {
-        // Try to write the entry to the out list
+        // Try to write the entry to the out list.
         if (entry_count != 0) {
             if (count >= entry_count) {
                 break;
@@ -98,7 +98,6 @@ Result IndirectStorage::GetEntryList(Entry* out_entries, s32* out_entry_count, s
 
 size_t IndirectStorage::Read(u8* buffer, size_t size, size_t offset) const {
     // Validate pre-conditions.
-    ASSERT(offset >= 0);
     ASSERT(this->IsInitialized());
     ASSERT(buffer != nullptr);
 

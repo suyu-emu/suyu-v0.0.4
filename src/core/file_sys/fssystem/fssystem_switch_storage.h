@@ -17,11 +17,6 @@ public:
         s64 size;
     };
 
-private:
-    VirtualFile m_inside_region_storage;
-    VirtualFile m_outside_region_storage;
-    Region m_region;
-
 public:
     RegionSwitchStorage(VirtualFile&& i, VirtualFile&& o, Region r)
         : m_inside_region_storage(std::move(i)), m_outside_region_storage(std::move(o)),
@@ -75,6 +70,11 @@ private:
             return false;
         }
     }
+
+private:
+    VirtualFile m_inside_region_storage;
+    VirtualFile m_outside_region_storage;
+    Region m_region;
 };
 
 } // namespace FileSys

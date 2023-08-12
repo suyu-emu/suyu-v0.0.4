@@ -7,6 +7,6 @@
 
 namespace FileSys {
 
-const NcaCompressionConfiguration* GetNcaCompressionConfiguration();
+const NcaCompressionConfiguration& GetNcaCompressionConfiguration();
 
 }

@@ -29,8 +29,8 @@ constexpr std::array partition_names{
 
 XCI::XCI(VirtualFile file_, u64 program_id, size_t program_index)
     : file(std::move(file_)), program_nca_status{Loader::ResultStatus::ErrorXCIMissingProgramNCA},
-      partitions(partition_names.size()), partitions_raw(partition_names.size()),
-      keys{Core::Crypto::KeyManager::Instance()} {
+      partitions(partition_names.size()),
+      partitions_raw(partition_names.size()), keys{Core::Crypto::KeyManager::Instance()} {
     if (file->ReadObject(&header) != sizeof(GamecardHeader)) {
         status = Loader::ResultStatus::ErrorBadXCIHeader;
         return;

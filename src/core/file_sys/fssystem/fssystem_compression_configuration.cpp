@@ -9,7 +9,7 @@ namespace FileSys {
 namespace {
 
 Result DecompressLz4(void* dst, size_t dst_size, const void* src, size_t src_size) {
-    auto result = Common::Compression::DecompressLZ4(dst, dst_size, src, src_size);
+    auto result = Common::Compression::DecompressDataLZ4(dst, dst_size, src, src_size);
     R_UNLESS(static_cast<size_t>(result) == dst_size, ResultUnexpectedInCompressedStorageC);
     R_SUCCEED();
 }
@@ -23,14 +23,14 @@ constexpr DecompressorFunction GetNcaDecompressorFunction(CompressionType type) 
     }
 }
 
-constexpr NcaCompressionConfiguration g_nca_compression_configuration{
-    .get_decompressor = GetNcaDecompressorFunction,
-};
-
 } // namespace
 
-const NcaCompressionConfiguration* GetNcaCompressionConfiguration() {
-    return std::addressof(g_nca_compression_configuration);
+const NcaCompressionConfiguration& GetNcaCompressionConfiguration() {
+    static const NcaCompressionConfiguration configuration = {
+        .get_decompressor = GetNcaDecompressorFunction,
+    };
+
+    return configuration;
 }
 
 } // namespace FileSys

@@ -37,11 +37,13 @@ struct NcaCryptoConfiguration {
 
     static constexpr size_t KeyGenerationMax = 32;
 
-    const u8* header_1_sign_key_moduli[Header1SignatureKeyGenerationMax + 1];
-    u8 header_1_sign_key_public_exponent[Rsa2048KeyPublicExponentSize];
-    u8 key_area_encryption_key_source[KeyAreaEncryptionKeyIndexCount][Aes128KeySize];
-    u8 header_encryption_key_source[Aes128KeySize];
-    u8 header_encrypted_encryption_keys[HeaderEncryptionKeyCount][Aes128KeySize];
+    std::array<const u8*, Header1SignatureKeyGenerationMax + 1> header_1_sign_key_moduli;
+    std::array<u8, Rsa2048KeyPublicExponentSize> header_1_sign_key_public_exponent;
+    std::array<std::array<u8, Aes128KeySize>, KeyAreaEncryptionKeyIndexCount>
+        key_area_encryption_key_source;
+    std::array<u8, Aes128KeySize> header_encryption_key_source;
+    std::array<std::array<u8, Aes128KeySize>, HeaderEncryptionKeyCount>
+        header_encrypted_encryption_keys;
     KeyGenerationFunction generate_key;
     VerifySign1Function verify_sign1;
     bool is_plaintext_header_available;
@@ -89,18 +91,6 @@ class NcaReader {
     YUZU_NON_COPYABLE(NcaReader);
     YUZU_NON_MOVEABLE(NcaReader);
 
-private:
-    NcaHeader m_header;
-    u8 m_decryption_keys[NcaHeader::DecryptionKey_Count][NcaCryptoConfiguration::Aes128KeySize];
-    VirtualFile m_body_storage;
-    VirtualFile m_header_storage;
-    u8 m_external_decryption_key[NcaCryptoConfiguration::Aes128KeySize];
-    bool m_is_software_aes_prioritized;
-    bool m_is_available_sw_key;
-    NcaHeader::EncryptionType m_header_encryption_type;
-    bool m_is_header_sign1_signature_valid;
-    GetDecompressorFunction m_get_decompressor;
-
 public:
     NcaReader();
     ~NcaReader();
@@ -147,15 +137,25 @@ public:
     bool GetHeaderSign1Valid() const;
 
     void GetHeaderSign2(void* dst, size_t size) const;
+
+private:
+    NcaHeader m_header;
+    std::array<std::array<u8, NcaCryptoConfiguration::Aes128KeySize>,
+               NcaHeader::DecryptionKey_Count>
+        m_decryption_keys;
+    VirtualFile m_body_storage;
+    VirtualFile m_header_storage;
+    std::array<u8, NcaCryptoConfiguration::Aes128KeySize> m_external_decryption_key;
+    bool m_is_software_aes_prioritized;
+    bool m_is_available_sw_key;
+    NcaHeader::EncryptionType m_header_encryption_type;
+    bool m_is_header_sign1_signature_valid;
+    GetDecompressorFunction m_get_decompressor;
 };
 
 class NcaFsHeaderReader {
     YUZU_NON_COPYABLE(NcaFsHeaderReader);
     YUZU_NON_MOVEABLE(NcaFsHeaderReader);
-
-private:
-    NcaFsHeader m_data;
-    s32 m_fs_index;
 
 public:
     NcaFsHeaderReader() : m_fs_index(-1) {
@@ -200,6 +200,10 @@ public:
     NcaMetaDataHashDataInfo& GetSparseMetaDataHashDataInfo();
     const NcaMetaDataHashDataInfo& GetSparseMetaDataHashDataInfo() const;
     NcaFsHeader::MetaDataHashType GetSparseMetaHashType() const;
+
+private:
+    NcaFsHeader m_data;
+    s32 m_fs_index;
 };
 
 class NcaFileSystemDriver {
@@ -235,10 +239,6 @@ private:
         CacheBlockSize = 0,
         None = 1,
     };
-
-private:
-    std::shared_ptr<NcaReader> m_original_reader;
-    std::shared_ptr<NcaReader> m_reader;
 
 public:
     static Result SetupFsHeaderReader(NcaFsHeaderReader* out, const NcaReader& reader,
@@ -355,6 +355,10 @@ public:
                                    VirtualFile* out_meta, VirtualFile base_storage,
                                    const NcaCompressionInfo& compression_info,
                                    GetDecompressorFunction get_decompressor);
+
+private:
+    std::shared_ptr<NcaReader> m_original_reader;
+    std::shared_ptr<NcaReader> m_reader;
 };
 
 } // namespace FileSys

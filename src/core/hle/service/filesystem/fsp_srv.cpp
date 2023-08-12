@@ -310,8 +310,8 @@ private:
 class IFileSystem final : public ServiceFramework<IFileSystem> {
 public:
     explicit IFileSystem(Core::System& system_, FileSys::VirtualDir backend_, SizeGetter size_)
-        : ServiceFramework{system_, "IFileSystem"}, backend{std::move(backend_)},
-          size{std::move(size_)} {
+        : ServiceFramework{system_, "IFileSystem"}, backend{std::move(backend_)}, size{std::move(
+                                                                                      size_)} {
         static const FunctionInfo functions[] = {
             {0, &IFileSystem::CreateFile, "CreateFile"},
             {1, &IFileSystem::DeleteFile, "DeleteFile"},

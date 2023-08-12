@@ -50,13 +50,6 @@ private:
         YUZU_NON_COPYABLE(CompressedStorageCore);
         YUZU_NON_MOVEABLE(CompressedStorageCore);
 
-    private:
-        size_t m_block_size_max;
-        size_t m_continuous_reading_size_max;
-        BucketTree m_table;
-        VirtualFile m_data_storage;
-        GetDecompressorFunction m_get_decompressor_function;
-
     public:
         CompressedStorageCore() : m_table(), m_data_storage() {}
 
@@ -296,7 +289,7 @@ private:
             ASSERT(offset >= 0);
             ASSERT(this->IsInitialized());
 
-            // Succeed immediately, if we hvae nothing to read.
+            // Succeed immediately, if we have nothing to read.
             R_SUCCEED_IF(size == 0);
 
             // Declare read lambda.
@@ -307,10 +300,13 @@ private:
                 u32 physical_size;
                 u32 virtual_size;
             };
-            Entries entries[EntriesCountMax];
+            std::array<Entries, EntriesCountMax> entries;
             s32 entry_count = 0;
             Entry prev_entry = {
                 .virt_offset = -1,
+                .phys_offset{},
+                .compression_type{},
+                .phys_size{},
             };
             bool will_allocate_pooled_buffer = false;
             s64 required_access_physical_offset = 0;
@@ -594,7 +590,7 @@ private:
                         }
                         required_access_physical_size += physical_size + gap_from_prev;
 
-                        // Create an entry. to access the data storage.
+                        // Create an entry to access the data storage.
                         entries[entry_count++] = {
                             .compression_type = entry.compression_type,
                             .gap_from_prev = static_cast<u32>(gap_from_prev),
@@ -621,7 +617,7 @@ private:
                                 .virtual_size = static_cast<u32>(read_size),
                             };
                         } else {
-                            // We have no entries, we we can just perform the read.
+                            // We have no entries, so we can just perform the read.
                             const Result rc =
                                 read_func(static_cast<size_t>(read_size),
                                           [&](void* dst, size_t dst_size) -> Result {
@@ -668,6 +664,13 @@ private:
         bool IsInitialized() const {
             return m_table.IsInitialized();
         }
+
+    private:
+        size_t m_block_size_max;
+        size_t m_continuous_reading_size_max;
+        BucketTree m_table;
+        VirtualFile m_data_storage;
+        GetDecompressorFunction m_get_decompressor_function;
     };
 
     class CacheManager {
@@ -686,9 +689,6 @@ private:
             }
         };
         static_assert(std::is_trivial_v<AccessRange>);
-
-    private:
-        s64 m_storage_size = 0;
 
     public:
         CacheManager() = default;
@@ -890,11 +890,10 @@ private:
 
             R_SUCCEED();
         }
-    };
 
-private:
-    mutable CompressedStorageCore m_core;
-    mutable CacheManager m_cache_manager;
+    private:
+        s64 m_storage_size = 0;
+    };
 
 public:
     CompressedStorage() = default;
@@ -955,6 +954,10 @@ public:
             return 0;
         }
     }
+
+private:
+    mutable CompressedStorageCore m_core;
+    mutable CacheManager m_cache_manager;
 };
 
 } // namespace FileSys

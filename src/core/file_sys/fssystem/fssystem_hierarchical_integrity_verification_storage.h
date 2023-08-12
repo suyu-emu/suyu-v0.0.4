@@ -24,7 +24,7 @@ static_assert(alignof(HierarchicalIntegrityVerificationLevelInformation) == 0x4)
 
 struct HierarchicalIntegrityVerificationInformation {
     u32 max_layers;
-    HierarchicalIntegrityVerificationLevelInformation info[IntegrityMaxLayerCount - 1];
+    std::array<HierarchicalIntegrityVerificationLevelInformation, IntegrityMaxLayerCount - 1> info;
     HashSalt seed;
 
     s64 GetLayeredHashSize() const {
@@ -52,20 +52,13 @@ static_assert(std::is_trivial_v<HierarchicalIntegrityVerificationMetaInformation
 struct HierarchicalIntegrityVerificationSizeSet {
     s64 control_size;
     s64 master_hash_size;
-    s64 layered_hash_sizes[IntegrityMaxLayerCount - 2];
+    std::array<s64, IntegrityMaxLayerCount - 2> layered_hash_sizes;
 };
 static_assert(std::is_trivial_v<HierarchicalIntegrityVerificationSizeSet>);
 
 class HierarchicalIntegrityVerificationStorage : public IReadOnlyStorage {
     YUZU_NON_COPYABLE(HierarchicalIntegrityVerificationStorage);
     YUZU_NON_MOVEABLE(HierarchicalIntegrityVerificationStorage);
-
-private:
-    friend struct HierarchicalIntegrityVerificationMetaInformation;
-
-protected:
-    static constexpr s64 HashSize = 256 / 8;
-    static constexpr size_t MaxLayers = IntegrityMaxLayerCount;
 
 public:
     using GenerateRandomFunction = void (*)(void* dst, size_t size);
@@ -83,7 +76,7 @@ public:
         };
 
     private:
-        VirtualFile m_storages[DataStorage + 1];
+        std::array<VirtualFile, DataStorage + 1> m_storages;
 
     public:
         void SetMasterHashStorage(VirtualFile s) {
@@ -113,19 +106,6 @@ public:
             return m_storages[index];
         }
     };
-
-private:
-    static GenerateRandomFunction s_generate_random;
-
-    static void SetGenerateRandomFunction(GenerateRandomFunction func) {
-        s_generate_random = func;
-    }
-
-private:
-    std::shared_ptr<IntegrityVerificationStorage> m_verify_storages[MaxLayers - 1];
-    VirtualFile m_buffer_storages[MaxLayers - 1];
-    s64 m_data_size;
-    s32 m_max_layers;
 
 public:
     HierarchicalIntegrityVerificationStorage();
@@ -159,6 +139,26 @@ public:
     static constexpr s8 GetDefaultDataCacheBufferLevel(u32 max_layers) {
         return static_cast<s8>(16 + max_layers - 2);
     }
+
+protected:
+    static constexpr s64 HashSize = 256 / 8;
+    static constexpr size_t MaxLayers = IntegrityMaxLayerCount;
+
+private:
+    static GenerateRandomFunction s_generate_random;
+
+    static void SetGenerateRandomFunction(GenerateRandomFunction func) {
+        s_generate_random = func;
+    }
+
+private:
+    friend struct HierarchicalIntegrityVerificationMetaInformation;
+
+private:
+    std::array<std::shared_ptr<IntegrityVerificationStorage>, MaxLayers - 1> m_verify_storages;
+    std::array<VirtualFile, MaxLayers - 1> m_buffer_storages;
+    s64 m_data_size;
+    s32 m_max_layers;
 };
 
 } // namespace FileSys

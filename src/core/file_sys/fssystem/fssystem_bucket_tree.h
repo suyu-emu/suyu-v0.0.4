@@ -77,11 +77,6 @@ public:
     };
 
     class ContinuousReadingInfo {
-    private:
-        size_t m_read_size;
-        s32 m_skip_count;
-        bool m_done;
-
     public:
         constexpr ContinuousReadingInfo() : m_read_size(), m_skip_count(), m_done() {}
 
@@ -119,14 +114,16 @@ public:
         constexpr bool CanDo() const {
             return m_read_size > 0;
         }
+
+    private:
+        size_t m_read_size;
+        s32 m_skip_count;
+        bool m_done;
     };
 
 private:
     class NodeBuffer {
         YUZU_NON_COPYABLE(NodeBuffer);
-
-    private:
-        void* m_header;
 
     public:
         NodeBuffer() : m_header() {}
@@ -187,6 +184,9 @@ private:
             static_assert(sizeof(T) == sizeof(NodeHeader));
             return reinterpret_cast<T*>(m_header);
         }
+
+    private:
+        void* m_header;
     };
 
 private:
@@ -217,51 +217,6 @@ private:
         return Common::DivideUp(entry_set_count - (offset_count_per_node - (node_l2_count - 1)),
                                 offset_count_per_node);
     }
-
-public:
-    static constexpr s64 QueryHeaderStorageSize() {
-        return sizeof(Header);
-    }
-
-    static constexpr s64 QueryNodeStorageSize(size_t node_size, size_t entry_size,
-                                              s32 entry_count) {
-        ASSERT(entry_size >= sizeof(s64));
-        ASSERT(node_size >= entry_size + sizeof(NodeHeader));
-        ASSERT(NodeSizeMin <= node_size && node_size <= NodeSizeMax);
-        ASSERT(Common::IsPowerOfTwo(node_size));
-        ASSERT(entry_count >= 0);
-
-        if (entry_count <= 0) {
-            return 0;
-        }
-        return (1 + GetNodeL2Count(node_size, entry_size, entry_count)) *
-               static_cast<s64>(node_size);
-    }
-
-    static constexpr s64 QueryEntryStorageSize(size_t node_size, size_t entry_size,
-                                               s32 entry_count) {
-        ASSERT(entry_size >= sizeof(s64));
-        ASSERT(node_size >= entry_size + sizeof(NodeHeader));
-        ASSERT(NodeSizeMin <= node_size && node_size <= NodeSizeMax);
-        ASSERT(Common::IsPowerOfTwo(node_size));
-        ASSERT(entry_count >= 0);
-
-        if (entry_count <= 0) {
-            return 0;
-        }
-        return GetEntrySetCount(node_size, entry_size, entry_count) * static_cast<s64>(node_size);
-    }
-
-private:
-    mutable VirtualFile m_node_storage;
-    mutable VirtualFile m_entry_storage;
-    NodeBuffer m_node_l1;
-    size_t m_node_size;
-    size_t m_entry_size;
-    s32 m_entry_count;
-    s32 m_offset_count;
-    s32 m_entry_set_count;
-    OffsetCache m_offset_cache;
 
 public:
     BucketTree()
@@ -299,6 +254,40 @@ public:
         R_SUCCEED();
     }
 
+public:
+    static constexpr s64 QueryHeaderStorageSize() {
+        return sizeof(Header);
+    }
+
+    static constexpr s64 QueryNodeStorageSize(size_t node_size, size_t entry_size,
+                                              s32 entry_count) {
+        ASSERT(entry_size >= sizeof(s64));
+        ASSERT(node_size >= entry_size + sizeof(NodeHeader));
+        ASSERT(NodeSizeMin <= node_size && node_size <= NodeSizeMax);
+        ASSERT(Common::IsPowerOfTwo(node_size));
+        ASSERT(entry_count >= 0);
+
+        if (entry_count <= 0) {
+            return 0;
+        }
+        return (1 + GetNodeL2Count(node_size, entry_size, entry_count)) *
+               static_cast<s64>(node_size);
+    }
+
+    static constexpr s64 QueryEntryStorageSize(size_t node_size, size_t entry_size,
+                                               s32 entry_count) {
+        ASSERT(entry_size >= sizeof(s64));
+        ASSERT(node_size >= entry_size + sizeof(NodeHeader));
+        ASSERT(NodeSizeMin <= node_size && node_size <= NodeSizeMax);
+        ASSERT(Common::IsPowerOfTwo(node_size));
+        ASSERT(entry_count >= 0);
+
+        if (entry_count <= 0) {
+            return 0;
+        }
+        return GetEntrySetCount(node_size, entry_size, entry_count) * static_cast<s64>(node_size);
+    }
+
 private:
     template <typename EntryType>
     struct ContinuousReadingParam {
@@ -327,34 +316,22 @@ private:
     }
 
     Result EnsureOffsetCache();
+
+private:
+    mutable VirtualFile m_node_storage;
+    mutable VirtualFile m_entry_storage;
+    NodeBuffer m_node_l1;
+    size_t m_node_size;
+    size_t m_entry_size;
+    s32 m_entry_count;
+    s32 m_offset_count;
+    s32 m_entry_set_count;
+    OffsetCache m_offset_cache;
 };
 
 class BucketTree::Visitor {
     YUZU_NON_COPYABLE(Visitor);
     YUZU_NON_MOVEABLE(Visitor);
-
-private:
-    friend class BucketTree;
-
-    union EntrySetHeader {
-        NodeHeader header;
-        struct Info {
-            s32 index;
-            s32 count;
-            s64 end;
-            s64 start;
-        } info;
-        static_assert(std::is_trivial_v<Info>);
-    };
-    static_assert(std::is_trivial_v<EntrySetHeader>);
-
-private:
-    const BucketTree* m_tree;
-    BucketTree::Offsets m_offsets;
-    void* m_entry;
-    s32 m_entry_index;
-    s32 m_entry_set_count;
-    EntrySetHeader m_entry_set;
 
 public:
     constexpr Visitor()
@@ -412,6 +389,28 @@ private:
     Result FindEntry(s64 virtual_address, s32 entry_set_index);
     Result FindEntryWithBuffer(s64 virtual_address, s32 entry_set_index, char* buffer);
     Result FindEntryWithoutBuffer(s64 virtual_address, s32 entry_set_index);
+
+private:
+    friend class BucketTree;
+
+    union EntrySetHeader {
+        NodeHeader header;
+        struct Info {
+            s32 index;
+            s32 count;
+            s64 end;
+            s64 start;
+        } info;
+        static_assert(std::is_trivial_v<Info>);
+    };
+    static_assert(std::is_trivial_v<EntrySetHeader>);
+
+    const BucketTree* m_tree;
+    BucketTree::Offsets m_offsets;
+    void* m_entry;
+    s32 m_entry_index;
+    s32 m_entry_set_count;
+    EntrySetHeader m_entry_set;
 };
 
 } // namespace FileSys

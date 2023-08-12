@@ -70,14 +70,6 @@ public:
 
     static Result CreateSoftwareDecryptor(std::unique_ptr<IDecryptor>* out);
 
-private:
-    mutable BucketTree m_table;
-    VirtualFile m_data_storage;
-    std::array<u8, KeySize> m_key;
-    u32 m_secure_value;
-    s64 m_counter_offset;
-    std::unique_ptr<IDecryptor> m_decryptor;
-
 public:
     AesCtrCounterExtendedStorage()
         : m_table(), m_data_storage(), m_secure_value(), m_counter_offset(), m_decryptor() {}
@@ -109,6 +101,14 @@ public:
 private:
     Result Initialize(const void* key, size_t key_size, u32 secure_value, VirtualFile data_storage,
                       VirtualFile table_storage);
+
+private:
+    mutable BucketTree m_table;
+    VirtualFile m_data_storage;
+    std::array<u8, KeySize> m_key;
+    u32 m_secure_value;
+    s64 m_counter_offset;
+    std::unique_ptr<IDecryptor> m_decryptor;
 };
 
 } // namespace FileSys
