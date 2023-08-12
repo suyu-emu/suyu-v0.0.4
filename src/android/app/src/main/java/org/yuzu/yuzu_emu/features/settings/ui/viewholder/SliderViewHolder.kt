@@ -29,6 +29,8 @@ class SliderViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAda
             setting.selectedValue,
             setting.units
         )
+
+        setStyle(setting.isEditable, binding)
     }
 
     override fun onClick(clicked: View) {

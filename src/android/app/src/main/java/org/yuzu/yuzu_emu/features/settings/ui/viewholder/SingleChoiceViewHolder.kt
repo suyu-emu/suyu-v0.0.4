@@ -31,17 +31,19 @@ class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: Setti
             for (i in values.indices) {
                 if (values[i] == item.selectedValue) {
                     binding.textSettingValue.text = resMgr.getStringArray(item.choicesId)[i]
-                    return
+                    break
                 }
             }
         } else if (item is StringSingleChoiceSetting) {
             for (i in item.values!!.indices) {
                 if (item.values[i] == item.selectedValue) {
                     binding.textSettingValue.text = item.choices[i]
-                    return
+                    break
                 }
             }
         }
+
+        setStyle(setting.isEditable, binding)
     }
 
     override fun onClick(clicked: View) {
