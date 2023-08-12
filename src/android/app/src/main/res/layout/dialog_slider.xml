@@ -5,23 +5,16 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/text_value"
+        style="@style/TextAppearance.Material3.LabelMedium"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="@dimen/spacing_medlarge"
         android:layout_marginTop="@dimen/spacing_medlarge"
-        tools:text="75" />
-
-    <TextView
-        android:id="@+id/text_units"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/text_value"
-        android:layout_toEndOf="@+id/text_value"
-        tools:text="%" />
+        tools:text="75%" />
 
     <com.google.android.material.slider.Slider
         android:id="@+id/slider"
