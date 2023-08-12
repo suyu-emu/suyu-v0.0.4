@@ -207,8 +207,11 @@ class SettingsAdapter(
         val sliderBinding = DialogSliderBinding.inflate(inflater)
 
         textSliderValue = sliderBinding.textValue
-        textSliderValue!!.text = sliderProgress.toString()
-        sliderBinding.textUnits.text = item.units
+        textSliderValue!!.text = String.format(
+            context.getString(R.string.value_with_units),
+            sliderProgress.toString(),
+            item.units
+        )
 
         sliderBinding.slider.apply {
             valueFrom = item.min.toFloat()
@@ -216,7 +219,11 @@ class SettingsAdapter(
             value = sliderProgress.toFloat()
             addOnChangeListener { _: Slider, value: Float, _: Boolean ->
                 sliderProgress = value.toInt()
-                textSliderValue!!.text = sliderProgress.toString()
+                textSliderValue!!.text = String.format(
+                    context.getString(R.string.value_with_units),
+                    sliderProgress.toString(),
+                    item.units
+                )
             }
         }
 
