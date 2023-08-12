@@ -3,8 +3,6 @@
 
 package org.yuzu.yuzu_emu.adapters
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.text.TextUtils
 import android.view.LayoutInflater
@@ -15,23 +13,20 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.AsyncDifferConfig
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
-import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.HomeNavigationDirections
-import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter.GameViewHolder
 import org.yuzu.yuzu_emu.databinding.CardGameBinding
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
+import org.yuzu.yuzu_emu.utils.GameIconUtils
 
 class GameAdapter(private val activity: AppCompatActivity) :
     ListAdapter<Game, GameViewHolder>(AsyncDifferConfig.Builder(DiffCallback()).build()),
@@ -98,12 +93,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
             this.game = game
 
             binding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
-            activity.lifecycleScope.launch {
-                val bitmap = decodeGameIcon(game.path)
-                binding.imageGameScreen.load(bitmap) {
-                    error(R.drawable.default_icon)
-                }
-            }
+            GameIconUtils.loadGameIcon(game, binding.imageGameScreen)
 
             binding.textGameTitle.text = game.title.replace("[\\t\\n\\r]+".toRegex(), " ")
 
@@ -125,15 +115,5 @@ class GameAdapter(private val activity: AppCompatActivity) :
         override fun areContentsTheSame(oldItem: Game, newItem: Game): Boolean {
             return oldItem == newItem
         }
-    }
-
-    private fun decodeGameIcon(uri: String): Bitmap? {
-        val data = NativeLibrary.getIcon(uri)
-        return BitmapFactory.decodeByteArray(
-            data,
-            0,
-            data.size,
-            BitmapFactory.Options()
-        )
     }
 }
