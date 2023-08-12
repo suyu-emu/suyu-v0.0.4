@@ -32,10 +32,13 @@ import org.yuzu.yuzu_emu.adapters.SetupAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentSetupBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.model.SetupCallback
 import org.yuzu.yuzu_emu.model.SetupPage
+import org.yuzu.yuzu_emu.model.StepState
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.GameHelper
+import org.yuzu.yuzu_emu.utils.ViewUtils
 
 class SetupFragment : Fragment() {
     private var _binding: FragmentSetupBinding? = null
@@ -112,14 +115,22 @@ class SetupFragment : Fragment() {
                         0,
                         false,
                         R.string.give_permission,
-                        { permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
+                        {
+                            notificationCallback = it
+                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        },
                         true,
                         R.string.notification_warning,
                         R.string.notification_warning_description,
                         0,
                         {
-                            NotificationManagerCompat.from(requireContext())
+                            if (NotificationManagerCompat.from(requireContext())
                                 .areNotificationsEnabled()
+                            ) {
+                                StepState.COMPLETE
+                            } else {
+                                StepState.INCOMPLETE
+                            }
                         }
                     )
                 )
@@ -133,12 +144,22 @@ class SetupFragment : Fragment() {
                     R.drawable.ic_add,
                     true,
                     R.string.select_keys,
-                    { mainActivity.getProdKey.launch(arrayOf("*/*")) },
+                    {
+                        keyCallback = it
+                        getProdKey.launch(arrayOf("*/*"))
+                    },
                     true,
                     R.string.install_prod_keys_warning,
                     R.string.install_prod_keys_warning_description,
                     R.string.install_prod_keys_warning_help,
-                    { File(DirectoryInitialization.userDirectory + "/keys/prod.keys").exists() }
+                    {
+                        val file = File(DirectoryInitialization.userDirectory + "/keys/prod.keys")
+                        if (file.exists()) {
+                            StepState.COMPLETE
+                        } else {
+                            StepState.INCOMPLETE
+                        }
+                    }
                 )
             )
             add(
@@ -150,9 +171,8 @@ class SetupFragment : Fragment() {
                     true,
                     R.string.add_games,
                     {
-                        mainActivity.getGamesDirectory.launch(
-                            Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data
-                        )
+                        gamesDirCallback = it
+                        getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
                     },
                     true,
                     R.string.add_games_warning,
@@ -163,7 +183,11 @@ class SetupFragment : Fragment() {
                             PreferenceManager.getDefaultSharedPreferences(
                                 YuzuApplication.appContext
                             )
-                        preferences.getString(GameHelper.KEY_GAME_PATH, "")!!.isNotEmpty()
+                        if (preferences.getString(GameHelper.KEY_GAME_PATH, "")!!.isNotEmpty()) {
+                            StepState.COMPLETE
+                        } else {
+                            StepState.INCOMPLETE
+                        }
                     }
                 )
             )
@@ -194,15 +218,15 @@ class SetupFragment : Fragment() {
                 super.onPageSelected(position)
 
                 if (position == 1 && previousPosition == 0) {
-                    showView(binding.buttonNext)
-                    showView(binding.buttonBack)
+                    ViewUtils.showView(binding.buttonNext)
+                    ViewUtils.showView(binding.buttonBack)
                 } else if (position == 0 && previousPosition == 1) {
-                    hideView(binding.buttonBack)
-                    hideView(binding.buttonNext)
+                    ViewUtils.hideView(binding.buttonBack)
+                    ViewUtils.hideView(binding.buttonNext)
                 } else if (position == pages.size - 1 && previousPosition == pages.size - 2) {
-                    hideView(binding.buttonNext)
+                    ViewUtils.hideView(binding.buttonNext)
                 } else if (position == pages.size - 2 && previousPosition == pages.size - 1) {
-                    showView(binding.buttonNext)
+                    ViewUtils.showView(binding.buttonNext)
                 }
 
                 previousPosition = position
@@ -215,7 +239,8 @@ class SetupFragment : Fragment() {
 
             // Checks if the user has completed the task on the current page
             if (currentPage.hasWarning) {
-                if (currentPage.taskCompleted.invoke()) {
+                val stepState = currentPage.stepCompleted.invoke()
+                if (stepState != StepState.INCOMPLETE) {
                     pageForward()
                     return@setOnClickListener
                 }
@@ -264,9 +289,15 @@ class SetupFragment : Fragment() {
         _binding = null
     }
 
+    private lateinit var notificationCallback: SetupCallback
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+            if (it) {
+                notificationCallback.onStepCompleted()
+            }
+
             if (!it &&
                 !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
             ) {
@@ -277,38 +308,32 @@ class SetupFragment : Fragment() {
             }
         }
 
+    private lateinit var keyCallback: SetupCallback
+
+    val getProdKey =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result != null) {
+                if (mainActivity.processKey(result)) {
+                    keyCallback.onStepCompleted()
+                }
+            }
+        }
+
+    private lateinit var gamesDirCallback: SetupCallback
+
+    val getGamesDirectory =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
+            if (result != null) {
+                mainActivity.processGamesDir(result)
+                gamesDirCallback.onStepCompleted()
+            }
+        }
+
     private fun finishSetup() {
         PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext).edit()
             .putBoolean(Settings.PREF_FIRST_APP_LAUNCH, false)
             .apply()
         mainActivity.finishSetup(binding.root.findNavController())
-    }
-
-    private fun showView(view: View) {
-        view.apply {
-            alpha = 0f
-            visibility = View.VISIBLE
-            isClickable = true
-        }.animate().apply {
-            duration = 300
-            alpha(1f)
-        }.start()
-    }
-
-    private fun hideView(view: View) {
-        if (view.visibility == View.INVISIBLE) {
-            return
-        }
-
-        view.apply {
-            alpha = 1f
-            isClickable = false
-        }.animate().apply {
-            duration = 300
-            alpha(0f)
-        }.withEndAction {
-            view.visibility = View.INVISIBLE
-        }
     }
 
     fun pageForward() {
