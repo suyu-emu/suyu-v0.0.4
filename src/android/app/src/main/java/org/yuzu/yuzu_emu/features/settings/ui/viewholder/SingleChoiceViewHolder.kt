@@ -17,27 +17,30 @@ class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: Setti
     override fun bind(item: SettingsItem) {
         setting = item
         binding.textSettingName.setText(item.nameId)
-        binding.textSettingDescription.visibility = View.VISIBLE
         if (item.descriptionId != 0) {
             binding.textSettingDescription.setText(item.descriptionId)
-        } else if (item is SingleChoiceSetting) {
-            val resMgr = binding.textSettingDescription.context.resources
+            binding.textSettingDescription.visibility = View.VISIBLE
+        } else {
+            binding.textSettingDescription.visibility = View.GONE
+        }
+
+        binding.textSettingValue.visibility = View.VISIBLE
+        if (item is SingleChoiceSetting) {
+            val resMgr = binding.textSettingValue.context.resources
             val values = resMgr.getIntArray(item.valuesId)
             for (i in values.indices) {
                 if (values[i] == item.selectedValue) {
-                    binding.textSettingDescription.text = resMgr.getStringArray(item.choicesId)[i]
+                    binding.textSettingValue.text = resMgr.getStringArray(item.choicesId)[i]
                     return
                 }
             }
         } else if (item is StringSingleChoiceSetting) {
             for (i in item.values!!.indices) {
                 if (item.values[i] == item.selectedValue) {
-                    binding.textSettingDescription.text = item.choices[i]
+                    binding.textSettingValue.text = item.choices[i]
                     return
                 }
             }
-        } else {
-            binding.textSettingDescription.visibility = View.GONE
         }
     }
 

@@ -25,12 +25,15 @@ class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
             binding.textSettingDescription.setText(item.descriptionId)
             binding.textSettingDescription.visibility = View.VISIBLE
         } else {
-            val epochTime = setting.value.toLong()
-            val instant = Instant.ofEpochMilli(epochTime * 1000)
-            val zonedTime = ZonedDateTime.ofInstant(instant, ZoneId.of("UTC"))
-            val dateFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
-            binding.textSettingDescription.text = dateFormatter.format(zonedTime)
+            binding.textSettingDescription.visibility = View.GONE
         }
+
+        binding.textSettingValue.visibility = View.VISIBLE
+        val epochTime = setting.value.toLong()
+        val instant = Instant.ofEpochMilli(epochTime * 1000)
+        val zonedTime = ZonedDateTime.ofInstant(instant, ZoneId.of("UTC"))
+        val dateFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+        binding.textSettingValue.text = dateFormatter.format(zonedTime)
     }
 
     override fun onClick(clicked: View) {
