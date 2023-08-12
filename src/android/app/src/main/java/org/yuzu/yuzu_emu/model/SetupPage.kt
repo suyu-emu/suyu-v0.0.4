@@ -10,10 +10,20 @@ data class SetupPage(
     val buttonIconId: Int,
     val leftAlignedIcon: Boolean,
     val buttonTextId: Int,
-    val buttonAction: () -> Unit,
+    val buttonAction: (callback: SetupCallback) -> Unit,
     val hasWarning: Boolean,
     val warningTitleId: Int = 0,
     val warningDescriptionId: Int = 0,
     val warningHelpLinkId: Int = 0,
-    val taskCompleted: () -> Boolean = { true }
+    val stepCompleted: () -> StepState = { StepState.UNDEFINED }
 )
+
+interface SetupCallback {
+    fun onStepCompleted()
+}
+
+enum class StepState {
+    COMPLETE,
+    INCOMPLETE,
+    UNDEFINED
+}
