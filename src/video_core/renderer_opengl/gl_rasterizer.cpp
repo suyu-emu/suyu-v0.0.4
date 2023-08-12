@@ -1335,7 +1335,8 @@ bool AccelerateDMA::DmaBufferImageCopy(const Tegra::DMA::ImageCopy& copy_info,
     }
     const u32 buffer_size = static_cast<u32>(buffer_operand.pitch * buffer_operand.height);
     static constexpr auto sync_info = VideoCommon::ObtainBufferSynchronize::FullSynchronize;
-    const auto post_op = VideoCommon::ObtainBufferOperation::DoNothing;
+    const auto post_op = IS_IMAGE_UPLOAD ? VideoCommon::ObtainBufferOperation::DoNothing
+                                         : VideoCommon::ObtainBufferOperation::MarkAsWritten;
     const auto [buffer, offset] =
         buffer_cache.ObtainBuffer(buffer_operand.address, buffer_size, sync_info, post_op);
 
@@ -1344,8 +1345,12 @@ bool AccelerateDMA::DmaBufferImageCopy(const Tegra::DMA::ImageCopy& copy_info,
     const std::span copy_span{&copy, 1};
 
     if constexpr (IS_IMAGE_UPLOAD) {
+        texture_cache.PrepareImage(image_id, true, false);
         image->UploadMemory(buffer->Handle(), offset, copy_span);
     } else {
+        if (offset % BytesPerBlock(image->info.format)) {
+            return false;
+        }
         texture_cache.DownloadImageIntoBuffer(image, buffer->Handle(), offset, copy_span,
                                               buffer_operand.address, buffer_size);
     }
