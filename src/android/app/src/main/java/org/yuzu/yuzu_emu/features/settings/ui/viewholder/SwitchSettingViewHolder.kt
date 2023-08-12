@@ -30,7 +30,7 @@ class SwitchSettingViewHolder(val binding: ListItemSettingSwitchBinding, adapter
         }
         binding.switchWidget.isChecked = setting.isChecked
 
-        binding.switchWidget.isEnabled = setting.isEditable
+        setStyle(setting.isEditable, binding)
     }
 
     override fun onClick(clicked: View) {

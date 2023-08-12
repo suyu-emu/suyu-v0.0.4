@@ -49,6 +49,7 @@ class LicenseAdapter(private val activity: AppCompatActivity, var licenses: List
             val context = YuzuApplication.appContext
             binding.textSettingName.text = context.getString(license.titleId)
             binding.textSettingDescription.text = context.getString(license.descriptionId)
+            binding.textSettingValue.visibility = View.GONE
         }
     }
 }
