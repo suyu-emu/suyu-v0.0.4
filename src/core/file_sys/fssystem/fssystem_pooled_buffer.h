@@ -18,27 +18,6 @@ constexpr inline size_t BufferPoolWorkSize = 320;
 class PooledBuffer {
     YUZU_NON_COPYABLE(PooledBuffer);
 
-private:
-    char* m_buffer;
-    size_t m_size;
-
-private:
-    static size_t GetAllocatableSizeMaxCore(bool large);
-
-public:
-    static size_t GetAllocatableSizeMax() {
-        return GetAllocatableSizeMaxCore(false);
-    }
-    static size_t GetAllocatableParticularlyLargeSizeMax() {
-        return GetAllocatableSizeMaxCore(true);
-    }
-
-private:
-    void Swap(PooledBuffer& rhs) {
-        std::swap(m_buffer, rhs.m_buffer);
-        std::swap(m_size, rhs.m_size);
-    }
-
 public:
     // Constructor/Destructor.
     constexpr PooledBuffer() : m_buffer(), m_size() {}
@@ -89,8 +68,28 @@ public:
         return m_size;
     }
 
+public:
+    static size_t GetAllocatableSizeMax() {
+        return GetAllocatableSizeMaxCore(false);
+    }
+    static size_t GetAllocatableParticularlyLargeSizeMax() {
+        return GetAllocatableSizeMaxCore(true);
+    }
+
 private:
+    static size_t GetAllocatableSizeMaxCore(bool large);
+
+private:
+    void Swap(PooledBuffer& rhs) {
+        std::swap(m_buffer, rhs.m_buffer);
+        std::swap(m_size, rhs.m_size);
+    }
+
     void AllocateCore(size_t ideal_size, size_t required_size, bool large);
+
+private:
+    char* m_buffer;
+    size_t m_size;
 };
 
 } // namespace FileSys

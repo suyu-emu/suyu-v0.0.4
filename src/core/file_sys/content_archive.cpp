@@ -31,7 +31,7 @@ NCA::NCA(VirtualFile file_, const NCA* base_nca)
 
     reader = std::make_shared<NcaReader>();
     if (Result rc =
-            reader->Initialize(file, GetCryptoConfiguration(), *GetNcaCompressionConfiguration());
+            reader->Initialize(file, GetCryptoConfiguration(), GetNcaCompressionConfiguration());
         R_FAILED(rc)) {
         if (rc != ResultInvalidNcaSignature) {
             LOG_ERROR(Loader, "File reader errored out during header read: {:#x}",
@@ -102,7 +102,6 @@ NCA::NCA(VirtualFile file_, const NCA* base_nca)
             }
         }
 
-        // TODO: Is this correct??
         if (header_reader.GetEncryptionType() == NcaFsHeader::EncryptionType::AesCtrEx) {
             is_update = true;
         }
@@ -144,16 +143,14 @@ VirtualDir NCA::GetParentDirectory() const {
 }
 
 NCAContentType NCA::GetType() const {
-    u8 type = static_cast<u8>(reader->GetContentType());
-    return static_cast<NCAContentType>(type);
+    return static_cast<NCAContentType>(reader->GetContentType());
 }
 
 u64 NCA::GetTitleId() const {
     if (is_update) {
         return reader->GetProgramId() | 0x800;
-    } else {
-        return reader->GetProgramId();
     }
+    return reader->GetProgramId();
 }
 
 RightsId NCA::GetRightsId() const {

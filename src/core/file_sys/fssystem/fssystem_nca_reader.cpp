@@ -53,24 +53,27 @@ Result NcaReader::Initialize(VirtualFile base_storage, const NcaCryptoConfigurat
     // Generate keys for header.
     using AesXtsStorageForNcaHeader = AesXtsStorage;
 
-    constexpr const s32 HeaderKeyTypeValues[NcaCryptoConfiguration::HeaderEncryptionKeyCount] = {
-        static_cast<s32>(KeyType::NcaHeaderKey1),
-        static_cast<s32>(KeyType::NcaHeaderKey2),
-    };
+    constexpr std::array<s32, NcaCryptoConfiguration::HeaderEncryptionKeyCount>
+        HeaderKeyTypeValues = {
+            static_cast<s32>(KeyType::NcaHeaderKey1),
+            static_cast<s32>(KeyType::NcaHeaderKey2),
+        };
 
-    u8 header_decryption_keys[NcaCryptoConfiguration::HeaderEncryptionKeyCount]
-                             [NcaCryptoConfiguration::Aes128KeySize];
+    std::array<std::array<u8, NcaCryptoConfiguration::Aes128KeySize>,
+               NcaCryptoConfiguration::HeaderEncryptionKeyCount>
+        header_decryption_keys;
     for (size_t i = 0; i < NcaCryptoConfiguration::HeaderEncryptionKeyCount; i++) {
-        crypto_cfg.generate_key(header_decryption_keys[i], AesXtsStorageForNcaHeader::KeySize,
-                                crypto_cfg.header_encrypted_encryption_keys[i],
+        crypto_cfg.generate_key(header_decryption_keys[i].data(),
+                                AesXtsStorageForNcaHeader::KeySize,
+                                crypto_cfg.header_encrypted_encryption_keys[i].data(),
                                 AesXtsStorageForNcaHeader::KeySize, HeaderKeyTypeValues[i]);
     }
 
     // Create the header storage.
-    const u8 header_iv[AesXtsStorageForNcaHeader::IvSize] = {};
+    std::array<u8, AesXtsStorageForNcaHeader::IvSize> header_iv = {};
     work_header_storage = std::make_unique<AesXtsStorageForNcaHeader>(
-        base_storage, header_decryption_keys[0], header_decryption_keys[1],
-        AesXtsStorageForNcaHeader::KeySize, header_iv, AesXtsStorageForNcaHeader::IvSize,
+        base_storage, header_decryption_keys[0].data(), header_decryption_keys[1].data(),
+        AesXtsStorageForNcaHeader::KeySize, header_iv.data(), AesXtsStorageForNcaHeader::IvSize,
         NcaHeader::XtsBlockSize);
 
     // Check that we successfully created the storage.
@@ -93,20 +96,6 @@ Result NcaReader::Initialize(VirtualFile base_storage, const NcaCryptoConfigurat
         // Set encryption type as plaintext.
         m_header_encryption_type = NcaHeader::EncryptionType::None;
     }
-
-    // Validate the fixed key signature.
-    if (m_header.header1_signature_key_generation >
-        NcaCryptoConfiguration::Header1SignatureKeyGenerationMax) {
-        LOG_CRITICAL(Frontend,
-                     "NcaCryptoConfiguration::Header1SignatureKeyGenerationMax = {}, "
-                     "m_header.header1_signature_key_generation = {}",
-                     NcaCryptoConfiguration::Header1SignatureKeyGenerationMax,
-                     m_header.header1_signature_key_generation);
-    }
-
-    R_UNLESS(m_header.header1_signature_key_generation <=
-                 NcaCryptoConfiguration::Header1SignatureKeyGenerationMax,
-             ResultInvalidNcaHeader1SignatureKeyGeneration);
 
     // Verify the header sign1.
     if (crypto_cfg.verify_sign1 != nullptr) {
@@ -138,31 +127,31 @@ Result NcaReader::Initialize(VirtualFile base_storage, const NcaCryptoConfigurat
     if (std::memcmp(ZeroRightsId.data(), m_header.rights_id.data(), NcaHeader::RightsIdSize) == 0) {
         // If we don't, then we don't have an external key, so we need to generate decryption keys.
         crypto_cfg.generate_key(
-            m_decryption_keys[NcaHeader::DecryptionKey_AesCtr], Aes128KeySize,
+            m_decryption_keys[NcaHeader::DecryptionKey_AesCtr].data(), Aes128KeySize,
             m_header.encrypted_key_area.data() + NcaHeader::DecryptionKey_AesCtr * Aes128KeySize,
             Aes128KeySize, GetKeyTypeValue(m_header.key_index, m_header.GetProperKeyGeneration()));
         crypto_cfg.generate_key(
-            m_decryption_keys[NcaHeader::DecryptionKey_AesXts1], Aes128KeySize,
+            m_decryption_keys[NcaHeader::DecryptionKey_AesXts1].data(), Aes128KeySize,
             m_header.encrypted_key_area.data() + NcaHeader::DecryptionKey_AesXts1 * Aes128KeySize,
             Aes128KeySize, GetKeyTypeValue(m_header.key_index, m_header.GetProperKeyGeneration()));
         crypto_cfg.generate_key(
-            m_decryption_keys[NcaHeader::DecryptionKey_AesXts2], Aes128KeySize,
+            m_decryption_keys[NcaHeader::DecryptionKey_AesXts2].data(), Aes128KeySize,
             m_header.encrypted_key_area.data() + NcaHeader::DecryptionKey_AesXts2 * Aes128KeySize,
             Aes128KeySize, GetKeyTypeValue(m_header.key_index, m_header.GetProperKeyGeneration()));
         crypto_cfg.generate_key(
-            m_decryption_keys[NcaHeader::DecryptionKey_AesCtrEx], Aes128KeySize,
+            m_decryption_keys[NcaHeader::DecryptionKey_AesCtrEx].data(), Aes128KeySize,
             m_header.encrypted_key_area.data() + NcaHeader::DecryptionKey_AesCtrEx * Aes128KeySize,
             Aes128KeySize, GetKeyTypeValue(m_header.key_index, m_header.GetProperKeyGeneration()));
 
         // Copy the hardware speed emulation key.
-        std::memcpy(m_decryption_keys[NcaHeader::DecryptionKey_AesCtrHw],
+        std::memcpy(m_decryption_keys[NcaHeader::DecryptionKey_AesCtrHw].data(),
                     m_header.encrypted_key_area.data() +
                         NcaHeader::DecryptionKey_AesCtrHw * Aes128KeySize,
                     Aes128KeySize);
     }
 
     // Clear the external decryption key.
-    std::memset(m_external_decryption_key, 0, sizeof(m_external_decryption_key));
+    std::memset(m_external_decryption_key.data(), 0, m_external_decryption_key.size());
 
     // Set software key availability.
     m_is_available_sw_key = crypto_cfg.is_available_sw_key;
@@ -304,7 +293,7 @@ void NcaReader::GetEncryptedKey(void* dst, size_t size) const {
 const void* NcaReader::GetDecryptionKey(s32 index) const {
     ASSERT(m_body_storage != nullptr);
     ASSERT(0 <= index && index < NcaHeader::DecryptionKey_Count);
-    return m_decryption_keys[index];
+    return m_decryption_keys[index].data();
 }
 
 bool NcaReader::HasValidInternalKey() const {
@@ -339,14 +328,14 @@ bool NcaReader::HasExternalDecryptionKey() const {
 }
 
 const void* NcaReader::GetExternalDecryptionKey() const {
-    return m_external_decryption_key;
+    return m_external_decryption_key.data();
 }
 
 void NcaReader::SetExternalDecryptionKey(const void* src, size_t size) {
     ASSERT(src != nullptr);
     ASSERT(size == sizeof(m_external_decryption_key));
 
-    std::memcpy(m_external_decryption_key, src, sizeof(m_external_decryption_key));
+    std::memcpy(m_external_decryption_key.data(), src, sizeof(m_external_decryption_key));
 }
 
 void NcaReader::GetRawData(void* dst, size_t dst_size) const {

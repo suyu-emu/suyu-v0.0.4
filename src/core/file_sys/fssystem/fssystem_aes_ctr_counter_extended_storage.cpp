@@ -126,7 +126,7 @@ Result AesCtrCounterExtendedStorage::GetEntryList(Entry* out_entries, s32* out_e
 
     auto cur_entry = *visitor.Get<Entry>();
     while (cur_entry.GetOffset() < end_offset) {
-        // Try to write the entry to the out list
+        // Try to write the entry to the out list.
         if (entry_count != 0) {
             if (count >= entry_count) {
                 break;
@@ -152,7 +152,6 @@ Result AesCtrCounterExtendedStorage::GetEntryList(Entry* out_entries, s32* out_e
 
 size_t AesCtrCounterExtendedStorage::Read(u8* buffer, size_t size, size_t offset) const {
     // Validate preconditions.
-    ASSERT(offset >= 0);
     ASSERT(this->IsInitialized());
 
     // Allow zero size.

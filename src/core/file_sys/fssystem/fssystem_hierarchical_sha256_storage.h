@@ -19,15 +19,6 @@ public:
     static constexpr s32 LayerCount = 3;
     static constexpr size_t HashSize = 256 / 8;
 
-private:
-    VirtualFile m_base_storage;
-    s64 m_base_storage_size;
-    char* m_hash_buffer;
-    size_t m_hash_buffer_size;
-    s32 m_hash_target_block_size;
-    s32 m_log_size_ratio;
-    std::mutex m_mutex;
-
 public:
     HierarchicalSha256Storage() : m_mutex() {}
 
@@ -39,6 +30,15 @@ public:
     }
 
     virtual size_t Read(u8* buffer, size_t length, size_t offset) const override;
+
+private:
+    VirtualFile m_base_storage;
+    s64 m_base_storage_size;
+    char* m_hash_buffer;
+    size_t m_hash_buffer_size;
+    s32 m_hash_target_block_size;
+    s32 m_log_size_ratio;
+    std::mutex m_mutex;
 };
 
 } // namespace FileSys

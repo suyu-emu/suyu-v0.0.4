@@ -48,7 +48,15 @@ void GenerateKey(void* dst_key, size_t dst_key_size, const void* src_key, size_t
 
 const NcaCryptoConfiguration& GetCryptoConfiguration() {
     static const NcaCryptoConfiguration configuration = {
+        .header_1_sign_key_moduli{},
+        .header_1_sign_key_public_exponent{},
+        .key_area_encryption_key_source{},
+        .header_encryption_key_source{},
+        .header_encrypted_encryption_keys{},
         .generate_key = GenerateKey,
+        .verify_sign1{},
+        .is_plaintext_header_available{},
+        .is_available_sw_key{},
     };
 
     return configuration;

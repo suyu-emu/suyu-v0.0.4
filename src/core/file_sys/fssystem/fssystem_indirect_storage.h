@@ -21,27 +21,27 @@ public:
     static constexpr size_t NodeSize = 16_KiB;
 
     struct Entry {
-        u8 virt_offset[sizeof(s64)];
-        u8 phys_offset[sizeof(s64)];
+        std::array<u8, sizeof(s64)> virt_offset;
+        std::array<u8, sizeof(s64)> phys_offset;
         s32 storage_index;
 
         void SetVirtualOffset(const s64& ofs) {
-            std::memcpy(this->virt_offset, std::addressof(ofs), sizeof(s64));
+            std::memcpy(this->virt_offset.data(), std::addressof(ofs), sizeof(s64));
         }
 
         s64 GetVirtualOffset() const {
             s64 offset;
-            std::memcpy(std::addressof(offset), this->virt_offset, sizeof(s64));
+            std::memcpy(std::addressof(offset), this->virt_offset.data(), sizeof(s64));
             return offset;
         }
 
         void SetPhysicalOffset(const s64& ofs) {
-            std::memcpy(this->phys_offset, std::addressof(ofs), sizeof(s64));
+            std::memcpy(this->phys_offset.data(), std::addressof(ofs), sizeof(s64));
         }
 
         s64 GetPhysicalOffset() const {
             s64 offset;
-            std::memcpy(std::addressof(offset), this->phys_offset, sizeof(s64));
+            std::memcpy(std::addressof(offset), this->phys_offset.data(), sizeof(s64));
             return offset;
         }
     };
@@ -60,43 +60,6 @@ public:
         }
     };
     static_assert(std::is_trivial_v<EntryData>);
-
-private:
-    struct ContinuousReadingEntry {
-        static constexpr size_t FragmentSizeMax = 4_KiB;
-
-        IndirectStorage::Entry entry;
-
-        s64 GetVirtualOffset() const {
-            return this->entry.GetVirtualOffset();
-        }
-
-        s64 GetPhysicalOffset() const {
-            return this->entry.GetPhysicalOffset();
-        }
-
-        bool IsFragment() const {
-            return this->entry.storage_index != 0;
-        }
-    };
-    static_assert(std::is_trivial_v<ContinuousReadingEntry>);
-
-public:
-    static constexpr s64 QueryHeaderStorageSize() {
-        return BucketTree::QueryHeaderStorageSize();
-    }
-
-    static constexpr s64 QueryNodeStorageSize(s32 entry_count) {
-        return BucketTree::QueryNodeStorageSize(NodeSize, sizeof(Entry), entry_count);
-    }
-
-    static constexpr s64 QueryEntryStorageSize(s32 entry_count) {
-        return BucketTree::QueryEntryStorageSize(NodeSize, sizeof(Entry), entry_count);
-    }
-
-private:
-    mutable BucketTree m_table;
-    std::array<VirtualFile, StorageCount> m_data_storage;
 
 public:
     IndirectStorage() : m_table(), m_data_storage() {}
@@ -131,13 +94,26 @@ public:
                         s64 size);
 
     virtual size_t GetSize() const override {
-        BucketTree::Offsets offsets;
+        BucketTree::Offsets offsets{};
         m_table.GetOffsets(std::addressof(offsets));
 
         return offsets.end_offset;
     }
 
     virtual size_t Read(u8* buffer, size_t size, size_t offset) const override;
+
+public:
+    static constexpr s64 QueryHeaderStorageSize() {
+        return BucketTree::QueryHeaderStorageSize();
+    }
+
+    static constexpr s64 QueryNodeStorageSize(s32 entry_count) {
+        return BucketTree::QueryNodeStorageSize(NodeSize, sizeof(Entry), entry_count);
+    }
+
+    static constexpr s64 QueryEntryStorageSize(s32 entry_count) {
+        return BucketTree::QueryEntryStorageSize(NodeSize, sizeof(Entry), entry_count);
+    }
 
 protected:
     BucketTree& GetEntryTable() {
@@ -151,6 +127,30 @@ protected:
 
     template <bool ContinuousCheck, bool RangeCheck, typename F>
     Result OperatePerEntry(s64 offset, s64 size, F func);
+
+private:
+    struct ContinuousReadingEntry {
+        static constexpr size_t FragmentSizeMax = 4_KiB;
+
+        IndirectStorage::Entry entry;
+
+        s64 GetVirtualOffset() const {
+            return this->entry.GetVirtualOffset();
+        }
+
+        s64 GetPhysicalOffset() const {
+            return this->entry.GetPhysicalOffset();
+        }
+
+        bool IsFragment() const {
+            return this->entry.storage_index != 0;
+        }
+    };
+    static_assert(std::is_trivial_v<ContinuousReadingEntry>);
+
+private:
+    mutable BucketTree m_table;
+    std::array<VirtualFile, StorageCount> m_data_storage;
 };
 
 template <bool ContinuousCheck, bool RangeCheck, typename F>

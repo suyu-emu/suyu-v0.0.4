@@ -13,11 +13,6 @@ constexpr inline size_t IntegrityLayerCountRomFs = 7;
 constexpr inline size_t IntegrityHashLayerBlockSize = 16_KiB;
 
 class IntegrityRomFsStorage : public IReadOnlyStorage {
-private:
-    HierarchicalIntegrityVerificationStorage m_integrity_storage;
-    Hash m_master_hash;
-    std::shared_ptr<ArrayVfsFile<sizeof(Hash)>> m_master_hash_storage;
-
 public:
     IntegrityRomFsStorage() {}
     virtual ~IntegrityRomFsStorage() override {
@@ -37,6 +32,11 @@ public:
     virtual size_t GetSize() const override {
         return m_integrity_storage.GetSize();
     }
+
+private:
+    HierarchicalIntegrityVerificationStorage m_integrity_storage;
+    Hash m_master_hash;
+    std::shared_ptr<ArrayVfsFile<sizeof(Hash)>> m_master_hash_storage;
 };
 
 } // namespace FileSys

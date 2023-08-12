@@ -22,12 +22,6 @@ public:
     static constexpr size_t KeySize = 0x10;
     static constexpr size_t IvSize = 0x10;
 
-private:
-    VirtualFile m_base_storage;
-    std::array<u8, KeySize> m_key;
-    std::array<u8, IvSize> m_iv;
-    mutable std::optional<Core::Crypto::AESCipher<Core::Crypto::Key128>> m_cipher;
-
 public:
     static void MakeIv(void* dst, size_t dst_size, u64 upper, s64 offset);
 
@@ -38,6 +32,12 @@ public:
     virtual size_t Read(u8* buffer, size_t size, size_t offset) const override;
     virtual size_t Write(const u8* buffer, size_t size, size_t offset) override;
     virtual size_t GetSize() const override;
+
+private:
+    VirtualFile m_base_storage;
+    std::array<u8, KeySize> m_key;
+    std::array<u8, IvSize> m_iv;
+    mutable std::optional<Core::Crypto::AESCipher<Core::Crypto::Key128>> m_cipher;
 };
 
 } // namespace FileSys

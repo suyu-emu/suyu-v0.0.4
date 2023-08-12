@@ -8,7 +8,7 @@ namespace FileSys {
 
 constexpr inline u32 ILog2(u32 val) {
     ASSERT(val > 0);
-    return ((sizeof(u32) * 8) - 1 - std::countl_zero<u32>(val));
+    return static_cast<u32>((sizeof(u32) * 8) - 1 - std::countl_zero<u32>(val));
 }
 
 void IntegrityVerificationStorage::Initialize(VirtualFile hs, VirtualFile ds, s64 verif_block_size,

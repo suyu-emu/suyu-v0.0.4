@@ -22,7 +22,6 @@ private:
         }
 
         virtual size_t Read(u8* buffer, size_t size, size_t offset) const override {
-            ASSERT(offset >= 0);
             ASSERT(buffer != nullptr || size == 0);
 
             if (size > 0) {
@@ -32,9 +31,6 @@ private:
             return size;
         }
     };
-
-private:
-    VirtualFile m_zero_storage;
 
 public:
     SparseStorage() : IndirectStorage(), m_zero_storage(std::make_shared<ZeroStorage>()) {}
@@ -68,6 +64,9 @@ private:
     void SetZeroStorage() {
         return this->SetStorage(1, m_zero_storage, 0, std::numeric_limits<s64>::max());
     }
+
+private:
+    VirtualFile m_zero_storage;
 };
 
 } // namespace FileSys

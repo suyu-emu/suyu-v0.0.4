@@ -18,18 +18,9 @@ public:
     static constexpr s64 HashSize = 256 / 8;
 
     struct BlockHash {
-        u8 hash[HashSize];
+        std::array<u8, HashSize> hash;
     };
     static_assert(std::is_trivial_v<BlockHash>);
-
-private:
-    VirtualFile m_hash_storage;
-    VirtualFile m_data_storage;
-    s64 m_verification_block_size;
-    s64 m_verification_block_order;
-    s64 m_upper_layer_verification_block_size;
-    s64 m_upper_layer_verification_block_order;
-    bool m_is_real_data;
 
 public:
     IntegrityVerificationStorage()
@@ -60,6 +51,15 @@ private:
         ASSERT(hash != nullptr);
         return (hash->hash[HashSize - 1] & 0x80) != 0;
     }
+
+private:
+    VirtualFile m_hash_storage;
+    VirtualFile m_data_storage;
+    s64 m_verification_block_size;
+    s64 m_verification_block_order;
+    s64 m_upper_layer_verification_block_size;
+    s64 m_upper_layer_verification_block_order;
+    bool m_is_real_data;
 };
 
 } // namespace FileSys

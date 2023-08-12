@@ -34,7 +34,7 @@ public:
 
     virtual size_t Read(u8* buffer, size_t size, size_t offset) const override {
         // Allocate a work buffer on stack.
-        alignas(DataAlignMax) char work_buf[DataAlign];
+        alignas(DataAlignMax) std::array<char, DataAlign> work_buf;
 
         // Succeed if zero size.
         if (size == 0) {
@@ -47,13 +47,13 @@ public:
         s64 bs_size = this->GetSize();
         ASSERT(R_SUCCEEDED(IStorage::CheckAccessRange(offset, size, bs_size)));
 
-        return AlignmentMatchingStorageImpl::Read(m_base_storage, work_buf, sizeof(work_buf),
+        return AlignmentMatchingStorageImpl::Read(m_base_storage, work_buf.data(), work_buf.size(),
                                                   DataAlign, BufferAlign, offset, buffer, size);
     }
 
     virtual size_t Write(const u8* buffer, size_t size, size_t offset) override {
         // Allocate a work buffer on stack.
-        alignas(DataAlignMax) char work_buf[DataAlign];
+        alignas(DataAlignMax) std::array<char, DataAlign> work_buf;
 
         // Succeed if zero size.
         if (size == 0) {
@@ -66,7 +66,7 @@ public:
         s64 bs_size = this->GetSize();
         ASSERT(R_SUCCEEDED(IStorage::CheckAccessRange(offset, size, bs_size)));
 
-        return AlignmentMatchingStorageImpl::Write(m_base_storage, work_buf, sizeof(work_buf),
+        return AlignmentMatchingStorageImpl::Write(m_base_storage, work_buf.data(), work_buf.size(),
                                                    DataAlign, BufferAlign, offset, buffer, size);
     }
 

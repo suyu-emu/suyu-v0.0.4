@@ -56,6 +56,6 @@ namespace Common::Compression {
 [[nodiscard]] std::vector<u8> DecompressDataLZ4(std::span<const u8> compressed,
                                                 std::size_t uncompressed_size);
 
-int DecompressLZ4(void* dst, size_t dst_size, const void* src, size_t src_size);
+[[nodiscard]] int DecompressDataLZ4(void* dst, size_t dst_size, const void* src, size_t src_size);
 
 } // namespace Common::Compression
