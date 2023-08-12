@@ -232,10 +232,6 @@ class SettingsAdapter(
             .setView(sliderBinding.root)
             .setPositiveButton(android.R.string.ok, this)
             .setNegativeButton(android.R.string.cancel, defaultCancelListener)
-            .setNeutralButton(R.string.slider_default) { dialog: DialogInterface, which: Int ->
-                sliderBinding.slider.value = item.defaultValue!!.toFloat()
-                onClick(dialog, which)
-            }
             .show()
     }
 
