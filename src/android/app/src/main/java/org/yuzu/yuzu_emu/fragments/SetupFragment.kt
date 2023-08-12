@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
@@ -351,15 +352,29 @@ class SetupFragment : Fragment() {
     private fun setInsets() =
         ViewCompat.setOnApplyWindowInsetsListener(
             binding.root
-        ) { view: View, windowInsets: WindowInsetsCompat ->
+        ) { _: View, windowInsets: WindowInsetsCompat ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
-            view.setPadding(
-                barInsets.left + cutoutInsets.left,
-                barInsets.top + cutoutInsets.top,
-                barInsets.right + cutoutInsets.right,
-                barInsets.bottom + cutoutInsets.bottom
-            )
+
+            val leftPadding = barInsets.left + cutoutInsets.left
+            val topPadding = barInsets.top + cutoutInsets.top
+            val rightPadding = barInsets.right + cutoutInsets.right
+            val bottomPadding = barInsets.bottom + cutoutInsets.bottom
+
+            if (resources.getBoolean(R.bool.small_layout)) {
+                binding.viewPager2
+                    .updatePadding(left = leftPadding, top = topPadding, right = rightPadding)
+                binding.constraintButtons
+                    .updatePadding(left = leftPadding, right = rightPadding, bottom = bottomPadding)
+            } else {
+                binding.viewPager2.updatePadding(top = topPadding, bottom = bottomPadding)
+                binding.constraintButtons
+                    .updatePadding(
+                        left = leftPadding,
+                        right = rightPadding,
+                        bottom = bottomPadding
+                    )
+            }
             windowInsets
         }
 }
