@@ -220,7 +220,8 @@ GraphicsPipeline::GraphicsPipeline(const Device& device, TextureCache& texture_c
     ASSERT(num_textures <= MAX_TEXTURES);
     ASSERT(num_images <= MAX_IMAGES);
 
-    const bool assembly_shaders{assembly_programs[0].handle != 0};
+    const auto backend = device.GetShaderBackend();
+    const bool assembly_shaders{backend == Settings::ShaderBackend::Glasm};
     use_storage_buffers =
         !assembly_shaders || num_storage_buffers <= device.GetMaxGLASMStorageBufferBlocks();
     writes_global_memory &= !use_storage_buffers;
@@ -230,7 +231,6 @@ GraphicsPipeline::GraphicsPipeline(const Device& device, TextureCache& texture_c
         GenerateTransformFeedbackState();
     }
     const bool in_parallel = thread_worker != nullptr;
-    const auto backend = device.GetShaderBackend();
     auto func{[this, sources_ = std::move(sources), sources_spirv_ = std::move(sources_spirv),
                shader_notify, backend, in_parallel,
                force_context_flush](ShaderContext::Context*) mutable {
