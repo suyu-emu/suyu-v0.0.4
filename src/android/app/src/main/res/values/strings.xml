@@ -204,6 +204,7 @@
     <string name="error_saving">Error saving %1$s.ini: %2$s</string>
     <string name="unimplemented_menu">Unimplemented Menu</string>
     <string name="loading">Loading…</string>
+    <string name="shutting_down">Shutting down…</string>
     <string name="reset_setting_confirmation">Do you want to reset this setting back to its default value?</string>
     <string name="reset_to_default">Reset to default</string>
     <string name="reset_all_settings">Reset all settings?</string>
@@ -262,7 +263,6 @@
     <string name="emulation_pause">Pause emulation</string>
     <string name="emulation_unpause">Unpause emulation</string>
     <string name="emulation_input_overlay">Overlay options</string>
-    <string name="emulation_game_loading">Game loading…</string>
 
     <string name="load_settings">Loading settings…</string>
 

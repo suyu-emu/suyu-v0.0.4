@@ -28,6 +28,7 @@ import android.view.Surface
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -41,6 +42,7 @@ import org.yuzu.yuzu_emu.databinding.ActivityEmulationBinding
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.model.EmulationViewModel
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
 import org.yuzu.yuzu_emu.utils.ForegroundService
@@ -70,8 +72,11 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private val actionMute = "ACTION_EMULATOR_MUTE"
     private val actionUnmute = "ACTION_EMULATOR_UNMUTE"
 
+    private val emulationViewModel: EmulationViewModel by viewModels()
+
     override fun onDestroy() {
         stopForegroundService(this)
+        emulationViewModel.clear()
         super.onDestroy()
     }
 
@@ -413,6 +418,16 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             }
             // Always resume audio, since there is no UI button
             if (NativeLibrary.isMuted()) NativeLibrary.unmuteAudio()
+        }
+    }
+
+    fun onEmulationStarted() {
+        emulationViewModel.setEmulationStarted(true)
+    }
+
+    fun onEmulationStopped(status: Int) {
+        if (status == 0) {
+            finish()
         }
     }
 

@@ -15,5 +15,7 @@ jclass GetDiskCacheProgressClass();
 jclass GetDiskCacheLoadCallbackStageClass();
 jmethodID GetExitEmulationActivity();
 jmethodID GetDiskCacheLoadProgress();
+jmethodID GetOnEmulationStarted();
+jmethodID GetOnEmulationStopped();
 
 } // namespace IDCache

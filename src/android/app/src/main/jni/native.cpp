@@ -335,6 +335,8 @@ public:
 
         // Tear down the render window.
         m_window.reset();
+
+        OnEmulationStopped(m_load_result);
     }
 
     void PauseEmulation() {
@@ -375,6 +377,8 @@ public:
         if (m_system.DebuggerEnabled()) {
             m_system.InitializeDebugger();
         }
+
+        OnEmulationStarted();
 
         while (true) {
             {
@@ -509,6 +513,18 @@ private:
         env->CallStaticVoidMethod(IDCache::GetDiskCacheProgressClass(),
                                   IDCache::GetDiskCacheLoadProgress(), static_cast<jint>(stage),
                                   static_cast<jint>(progress), static_cast<jint>(max));
+    }
+
+    static void OnEmulationStarted() {
+        JNIEnv* env = IDCache::GetEnvForThread();
+        env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
+                                  IDCache::GetOnEmulationStarted());
+    }
+
+    static void OnEmulationStopped(Core::SystemResultStatus result) {
+        JNIEnv* env = IDCache::GetEnvForThread();
+        env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
+                                  IDCache::GetOnEmulationStopped(), static_cast<jint>(result));
     }
 
 private:

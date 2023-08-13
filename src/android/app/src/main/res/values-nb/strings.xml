@@ -213,7 +213,6 @@
     <string name="emulation_pause">Pause Emulering</string>
     <string name="emulation_unpause">Opphev pausing av emulering</string>
     <string name="emulation_input_overlay">Alternativer for overlegg</string>
-    <string name="emulation_game_loading">Spillet lastes inn...</string>
 
     <string name="load_settings">Laster inn innstillinger...</string>
 

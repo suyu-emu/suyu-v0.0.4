@@ -24,8 +24,9 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -50,6 +51,7 @@ import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.Game
+import org.yuzu.yuzu_emu.model.EmulationViewModel
 import org.yuzu.yuzu_emu.overlay.InputOverlay
 import org.yuzu.yuzu_emu.utils.*
 
@@ -65,6 +67,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private val args by navArgs<EmulationFragmentArgs>()
 
     private lateinit var game: Game
+
+    private val emulationViewModel: EmulationViewModel by activityViewModels()
 
     private var isInFoldableLayout = false
 
@@ -130,9 +134,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         binding.showFpsText.setTextColor(Color.YELLOW)
         binding.doneControlConfig.setOnClickListener { stopConfiguringControls() }
 
-        // Setup overlay.
-        updateShowFpsOverlay()
-
+        binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
         binding.inGameMenu.getHeaderView(0).findViewById<TextView>(R.id.text_game_title).text =
             game.title
         binding.inGameMenu.setNavigationItemSelectedListener {
@@ -174,7 +176,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                 R.id.menu_exit -> {
                     emulationState.stop()
-                    requireActivity().finish()
+                    emulationViewModel.setIsEmulationStopping(true)
+                    binding.drawerLayout.close()
+                    binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
                     true
                 }
 
@@ -188,6 +192,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             requireActivity(),
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
+                    if (!NativeLibrary.isRunning()) {
+                        return
+                    }
+
                     if (binding.drawerLayout.isOpen) {
                         binding.drawerLayout.close()
                     } else {
@@ -204,6 +212,54 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     .collect { updateFoldableLayout(requireActivity() as EmulationActivity, it) }
             }
         }
+
+        GameIconUtils.loadGameIcon(game, binding.loadingImage)
+        binding.loadingTitle.text = game.title
+        binding.loadingTitle.isSelected = true
+        binding.loadingText.isSelected = true
+
+        emulationViewModel.shaderProgress.observe(viewLifecycleOwner) {
+            if (it > 0 && it != emulationViewModel.totalShaders.value!!) {
+                binding.loadingProgressIndicator.isIndeterminate = false
+
+                if (it < binding.loadingProgressIndicator.max) {
+                    binding.loadingProgressIndicator.progress = it
+                }
+            }
+
+            if (it == emulationViewModel.totalShaders.value!!) {
+                binding.loadingText.setText(R.string.loading)
+                binding.loadingProgressIndicator.isIndeterminate = true
+            }
+        }
+        emulationViewModel.totalShaders.observe(viewLifecycleOwner) {
+            binding.loadingProgressIndicator.max = it
+        }
+        emulationViewModel.shaderMessage.observe(viewLifecycleOwner) {
+            if (it.isNotEmpty()) {
+                binding.loadingText.text = it
+            }
+        }
+
+        emulationViewModel.emulationStarted.observe(viewLifecycleOwner) { started ->
+            if (started) {
+                binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+                ViewUtils.showView(binding.surfaceInputOverlay)
+                ViewUtils.hideView(binding.loadingIndicator)
+
+                // Setup overlay
+                updateShowFpsOverlay()
+            }
+        }
+
+        emulationViewModel.isEmulationStopping.observe(viewLifecycleOwner) {
+            if (it) {
+                binding.loadingText.setText(R.string.shutting_down)
+                ViewUtils.showView(binding.loadingIndicator)
+                ViewUtils.hideView(binding.inputContainer)
+                ViewUtils.hideView(binding.showFpsText)
+            }
+        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -213,11 +269,21 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 binding.drawerLayout.close()
             }
             if (EmulationMenuSettings.showOverlay) {
-                binding.surfaceInputOverlay.post { binding.surfaceInputOverlay.isVisible = false }
+                binding.surfaceInputOverlay.post {
+                    binding.surfaceInputOverlay.visibility = View.VISIBLE
+                }
             }
         } else {
-            if (EmulationMenuSettings.showOverlay) {
-                binding.surfaceInputOverlay.post { binding.surfaceInputOverlay.isVisible = true }
+            if (EmulationMenuSettings.showOverlay &&
+                emulationViewModel.emulationStarted.value == true
+            ) {
+                binding.surfaceInputOverlay.post {
+                    binding.surfaceInputOverlay.visibility = View.VISIBLE
+                }
+            } else {
+                binding.surfaceInputOverlay.post {
+                    binding.surfaceInputOverlay.visibility = View.INVISIBLE
+                }
             }
             if (!isInFoldableLayout) {
                 if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -225,9 +291,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 } else {
                     binding.surfaceInputOverlay.layout = InputOverlay.LANDSCAPE
                 }
-            }
-            if (!binding.surfaceInputOverlay.isInEditMode) {
-                refreshInputOverlay()
             }
         }
     }
@@ -260,10 +323,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         super.onDetach()
     }
 
-    private fun refreshInputOverlay() {
-        binding.surfaceInputOverlay.refreshControls()
-    }
-
     private fun resetInputOverlay() {
         preferences.edit()
             .remove(Settings.PREF_CONTROL_SCALE)
@@ -281,17 +340,15 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             val FRAMETIME = 2
             val SPEED = 3
             perfStatsUpdater = {
-                val perfStats = NativeLibrary.getPerfStats()
-                if (perfStats[FPS] > 0 && _binding != null) {
-                    binding.showFpsText.text = String.format("FPS: %.1f", perfStats[FPS])
-                }
-
-                if (!emulationState.isStopped) {
+                if (emulationViewModel.emulationStarted.value == true) {
+                    val perfStats = NativeLibrary.getPerfStats()
+                    if (perfStats[FPS] > 0 && _binding != null) {
+                        binding.showFpsText.text = String.format("FPS: %.1f", perfStats[FPS])
+                    }
                     perfStatsUpdateHandler.postDelayed(perfStatsUpdater!!, 100)
                 }
             }
             perfStatsUpdateHandler.post(perfStatsUpdater!!)
-            binding.showFpsText.text = resources.getString(R.string.emulation_game_loading)
             binding.showFpsText.visibility = View.VISIBLE
         } else {
             if (perfStatsUpdater != null) {
@@ -349,7 +406,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                         isInFoldableLayout = true
                         binding.surfaceInputOverlay.layout = InputOverlay.FOLDABLE
-                        refreshInputOverlay()
                     }
                 }
                 it.isSeparating
@@ -437,7 +493,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                                 .apply()
                         }
                         .setPositiveButton(android.R.string.ok) { _, _ ->
-                            refreshInputOverlay()
+                            binding.surfaceInputOverlay.refreshControls()
                         }
                         .setNegativeButton(android.R.string.cancel, null)
                         .setNeutralButton(R.string.emulation_toggle_all) { _, _ -> }
@@ -461,7 +517,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.id.menu_show_overlay -> {
                     it.isChecked = !it.isChecked
                     EmulationMenuSettings.showOverlay = it.isChecked
-                    refreshInputOverlay()
+                    binding.surfaceInputOverlay.refreshControls()
                     true
                 }
 
@@ -567,14 +623,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         preferences.edit()
             .putInt(Settings.PREF_CONTROL_SCALE, scale)
             .apply()
-        refreshInputOverlay()
+        binding.surfaceInputOverlay.refreshControls()
     }
 
     private fun setControlOpacity(opacity: Int) {
         preferences.edit()
             .putInt(Settings.PREF_CONTROL_OPACITY, opacity)
             .apply()
-        refreshInputOverlay()
+        binding.surfaceInputOverlay.refreshControls()
     }
 
     private fun setInsets() {

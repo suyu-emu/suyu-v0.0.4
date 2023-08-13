@@ -26,6 +26,81 @@
                 android:focusable="false"
                 android:focusableInTouchMode="false" />
 
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/loading_indicator"
+                style="?attr/materialCardViewOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:focusable="false">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/loading_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal">
+
+                    <ImageView
+                        android:id="@+id/loading_image"
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:adjustViewBounds="true"
+                        app:layout_constraintBottom_toBottomOf="@+id/linearLayout"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="@+id/linearLayout"
+                        tools:src="@drawable/default_icon" />
+
+                    <LinearLayout
+                        android:id="@+id/linearLayout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="24dp"
+                        android:paddingVertical="36dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/loading_image"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/loading_title"
+                            style="@style/TextAppearance.Material3.TitleMedium"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="marquee"
+                            android:marqueeRepeatLimit="marquee_forever"
+                            android:requiresFadingEdge="horizontal"
+                            android:singleLine="true"
+                            android:textAlignment="viewStart"
+                            tools:text="@string/games" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/loading_text"
+                            style="@style/TextAppearance.Material3.TitleSmall"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:ellipsize="marquee"
+                            android:marqueeRepeatLimit="marquee_forever"
+                            android:requiresFadingEdge="horizontal"
+                            android:singleLine="true"
+                            android:text="@string/loading"
+                            android:textAlignment="viewStart" />
+
+                        <com.google.android.material.progressindicator.LinearProgressIndicator
+                            android:id="@+id/loading_progress_indicator"
+                            android:layout_width="192dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:indeterminate="true"
+                            app:trackCornerRadius="8dp" />
+
+                    </LinearLayout>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
         </FrameLayout>
 
         <FrameLayout
@@ -41,11 +116,12 @@
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:focusable="true"
-                android:focusableInTouchMode="true" />
+                android:focusableInTouchMode="true"
+                android:visibility="invisible" />
 
             <Button
-                style="@style/Widget.Material3.Button.ElevatedButton"
                 android:id="@+id/done_control_config"
+                style="@style/Widget.Material3.Button.ElevatedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -81,6 +157,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start|bottom"
         app:headerLayout="@layout/header_in_game"
-        app:menu="@menu/menu_in_game" />
+        app:menu="@menu/menu_in_game"
+        tools:visibility="gone" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

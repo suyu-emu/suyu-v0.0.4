@@ -213,7 +213,6 @@
     <string name="emulation_pause">에뮬레이션 일시 중지</string>
     <string name="emulation_unpause">에뮬레이션 일시 중지 해제</string>
     <string name="emulation_input_overlay">오버레이 옵션</string>
-    <string name="emulation_game_loading">게임 불러오기 중...</string>
 
     <string name="load_settings">설정 불러오기 중...</string>
 
