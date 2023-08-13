@@ -9,9 +9,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import org.yuzu.yuzu_emu.databinding.PageSetupBinding
+import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.model.SetupCallback
 import org.yuzu.yuzu_emu.model.SetupPage
 import org.yuzu.yuzu_emu.model.StepState
@@ -80,6 +82,7 @@ class SetupAdapter(val activity: AppCompatActivity, val pages: List<SetupPage>) 
         override fun onStepCompleted() {
             ViewUtils.hideView(binding.buttonAction, 200)
             ViewUtils.showView(binding.textConfirmation, 200)
+            ViewModelProvider(activity)[HomeViewModel::class.java].setShouldPageForward(true)
         }
     }
 }
