@@ -206,6 +206,13 @@ class SetupFragment : Fragment() {
             )
         }
 
+        homeViewModel.shouldPageForward.observe(viewLifecycleOwner) {
+            if (it) {
+                pageForward()
+                homeViewModel.setShouldPageForward(false)
+            }
+        }
+
         binding.viewPager2.apply {
             adapter = SetupAdapter(requireActivity() as AppCompatActivity, pages)
             offscreenPageLimit = 2
