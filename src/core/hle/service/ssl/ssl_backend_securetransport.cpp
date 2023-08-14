@@ -100,7 +100,7 @@ public:
 
     Result DoHandshake() override {
         OSStatus status = SSLHandshake(context);
-        return HandleReturn("SSLHandshake", 0, status).Code();
+        return HandleReturn("SSLHandshake", 0, status);
     }
 
     Result Read(size_t* out_size, std::span<u8> data) override {
