@@ -559,15 +559,13 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
 }
 
 void GraphicsPipeline::ConfigureTransformFeedbackImpl() const {
-    glTransformFeedbackStreamAttribsNV(num_xfb_attribs, xfb_attribs.data(), num_xfb_strides,
-                                       xfb_streams.data(), GL_INTERLEAVED_ATTRIBS);
+    glTransformFeedbackAttribsNV(num_xfb_attribs, xfb_attribs.data(), GL_SEPARATE_ATTRIBS);
 }
 
 void GraphicsPipeline::GenerateTransformFeedbackState() {
     // TODO(Rodrigo): Inject SKIP_COMPONENTS*_NV when required. An unimplemented message will signal
     // when this is required.
     GLint* cursor{xfb_attribs.data()};
-    GLint* current_stream{xfb_streams.data()};
 
     for (size_t feedback = 0; feedback < Maxwell::NumTransformFeedbackBuffers; ++feedback) {
         const auto& layout = key.xfb_state.layouts[feedback];
@@ -575,15 +573,6 @@ void GraphicsPipeline::GenerateTransformFeedbackState() {
         if (layout.varying_count == 0) {
             continue;
         }
-        *current_stream = static_cast<GLint>(feedback);
-        if (current_stream != xfb_streams.data()) {
-            // When stepping one stream, push the expected token
-            cursor[0] = GL_NEXT_BUFFER_NV;
-            cursor[1] = 0;
-            cursor[2] = 0;
-            cursor += XFB_ENTRY_STRIDE;
-        }
-        ++current_stream;
 
         const auto& locations = key.xfb_state.varyings[feedback];
         std::optional<u32> current_index;
@@ -619,7 +608,6 @@ void GraphicsPipeline::GenerateTransformFeedbackState() {
         }
     }
     num_xfb_attribs = static_cast<GLsizei>((cursor - xfb_attribs.data()) / XFB_ENTRY_STRIDE);
-    num_xfb_strides = static_cast<GLsizei>(current_stream - xfb_streams.data());
 }
 
 void GraphicsPipeline::WaitForBuild() {
