@@ -28,17 +28,24 @@ StagingBuffers::StagingBuffers(GLenum storage_flags_, GLenum map_flags_)
 
 StagingBuffers::~StagingBuffers() = default;
 
-StagingBufferMap StagingBuffers::RequestMap(size_t requested_size, bool insert_fence) {
+StagingBufferMap StagingBuffers::RequestMap(size_t requested_size, bool insert_fence,
+                                            bool deferred) {
     MICROPROFILE_SCOPE(OpenGL_BufferRequest);
 
     const size_t index = RequestBuffer(requested_size);
     OGLSync* const sync = insert_fence ? &allocs[index].sync : nullptr;
     allocs[index].sync_index = insert_fence ? ++current_sync_index : 0;
+    allocs[index].deferred = deferred;
     return StagingBufferMap{
         .mapped_span = std::span(allocs[index].map, requested_size),
         .sync = sync,
         .buffer = allocs[index].buffer.handle,
+        .index = index,
     };
+}
+
+void StagingBuffers::FreeDeferredStagingBuffer(size_t index) {
+    allocs[index].deferred = false;
 }
 
 size_t StagingBuffers::RequestBuffer(size_t requested_size) {
@@ -66,6 +73,9 @@ std::optional<size_t> StagingBuffers::FindBuffer(size_t requested_size) {
         StagingBufferAlloc& alloc = allocs[index];
         const size_t buffer_size = alloc.size;
         if (buffer_size < requested_size || buffer_size >= smallest_buffer) {
+            continue;
+        }
+        if (alloc.deferred) {
             continue;
         }
         if (alloc.sync.handle != 0) {
@@ -138,8 +148,12 @@ StagingBufferMap StagingBufferPool::RequestUploadBuffer(size_t size) {
     return upload_buffers.RequestMap(size, true);
 }
 
-StagingBufferMap StagingBufferPool::RequestDownloadBuffer(size_t size) {
-    return download_buffers.RequestMap(size, false);
+StagingBufferMap StagingBufferPool::RequestDownloadBuffer(size_t size, bool deferred) {
+    return download_buffers.RequestMap(size, false, deferred);
+}
+
+void StagingBufferPool::FreeDeferredStagingBuffer(size_t index) {
+    download_buffers.FreeDeferredStagingBuffer(index);
 }
 
 } // namespace OpenGL
