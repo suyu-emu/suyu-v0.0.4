@@ -4,6 +4,7 @@
 #include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/hle/kernel/k_hardware_timer.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_thread.h"
@@ -42,9 +43,9 @@ Result CreateThread(Core::System& system, Handle* out_handle, u64 entry_point, u
     R_UNLESS(process.CheckThreadPriority(priority), ResultInvalidPriority);
 
     // Reserve a new thread from the process resource limit (waiting up to 100ms).
-    KScopedResourceReservation thread_reservation(
-        std::addressof(process), LimitableResource::ThreadCountMax, 1,
-        system.CoreTiming().GetGlobalTimeNs().count() + 100000000);
+    KScopedResourceReservation thread_reservation(std::addressof(process),
+                                                  LimitableResource::ThreadCountMax, 1,
+                                                  kernel.HardwareTimer().GetTick() + 100000000);
     R_UNLESS(thread_reservation.Succeeded(), ResultLimitReached);
 
     // Create the thread.
@@ -102,20 +103,31 @@ void ExitThread(Core::System& system) {
 }
 
 /// Sleep the current thread
-void SleepThread(Core::System& system, s64 nanoseconds) {
+void SleepThread(Core::System& system, s64 ns) {
     auto& kernel = system.Kernel();
-    const auto yield_type = static_cast<Svc::YieldType>(nanoseconds);
+    const auto yield_type = static_cast<Svc::YieldType>(ns);
 
-    LOG_TRACE(Kernel_SVC, "called nanoseconds={}", nanoseconds);
+    LOG_TRACE(Kernel_SVC, "called nanoseconds={}", ns);
 
     // When the input tick is positive, sleep.
-    if (nanoseconds > 0) {
+    if (ns > 0) {
         // Convert the timeout from nanoseconds to ticks.
         // NOTE: Nintendo does not use this conversion logic in WaitSynchronization...
+        s64 timeout;
+
+        const s64 offset_tick(ns);
+        if (offset_tick > 0) {
+            timeout = kernel.HardwareTimer().GetTick() + offset_tick + 2;
+            if (timeout <= 0) {
+                timeout = std::numeric_limits<s64>::max();
+            }
+        } else {
+            timeout = std::numeric_limits<s64>::max();
+        }
 
         // Sleep.
         // NOTE: Nintendo does not check the result of this sleep.
-        static_cast<void>(GetCurrentThread(kernel).Sleep(nanoseconds));
+        static_cast<void>(GetCurrentThread(kernel).Sleep(timeout));
     } else if (yield_type == Svc::YieldType::WithoutCoreMigration) {
         KScheduler::YieldWithoutCoreMigration(kernel);
     } else if (yield_type == Svc::YieldType::WithCoreMigration) {
@@ -124,7 +136,6 @@ void SleepThread(Core::System& system, s64 nanoseconds) {
         KScheduler::YieldToAnyThread(kernel);
     } else {
         // Nintendo does nothing at all if an otherwise invalid value is passed.
-        ASSERT_MSG(false, "Unimplemented sleep yield type '{:016X}'!", nanoseconds);
     }
 }
 

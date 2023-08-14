@@ -31,7 +31,7 @@ public:
     explicit KResourceLimit(KernelCore& kernel);
     ~KResourceLimit() override;
 
-    void Initialize(const Core::Timing::CoreTiming* core_timing);
+    void Initialize();
     void Finalize() override;
 
     s64 GetLimitValue(LimitableResource which) const;
@@ -57,7 +57,6 @@ private:
     mutable KLightLock m_lock;
     s32 m_waiter_count{};
     KLightConditionVariable m_cond_var;
-    const Core::Timing::CoreTiming* m_core_timing{};
 };
 
 KResourceLimit* CreateResourceLimitForProcess(Core::System& system, s64 physical_memory_size);
