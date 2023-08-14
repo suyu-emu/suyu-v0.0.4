@@ -23,6 +23,9 @@ class RunnableViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
         } else {
             binding.textSettingDescription.visibility = View.GONE
         }
+        binding.textSettingValue.visibility = View.GONE
+
+        setStyle(setting.isEditable, binding)
     }
 
     override fun onClick(clicked: View) {
