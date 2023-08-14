@@ -16,22 +16,6 @@ class EmulatedConsole;
 namespace Service::HID {
 class Controller_Touchscreen final : public ControllerBase {
 public:
-    // This is nn::hid::TouchScreenModeForNx
-    enum class TouchScreenModeForNx : u8 {
-        UseSystemSetting,
-        Finger,
-        Heat2,
-    };
-
-    // This is nn::hid::TouchScreenConfigurationForNx
-    struct TouchScreenConfigurationForNx {
-        TouchScreenModeForNx mode{TouchScreenModeForNx::UseSystemSetting};
-        INSERT_PADDING_BYTES_NOINIT(0x7);
-        INSERT_PADDING_BYTES_NOINIT(0xF); // Reserved
-    };
-    static_assert(sizeof(TouchScreenConfigurationForNx) == 0x17,
-                  "TouchScreenConfigurationForNx is an invalid size");
-
     explicit Controller_Touchscreen(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
     ~Controller_Touchscreen() override;
 
