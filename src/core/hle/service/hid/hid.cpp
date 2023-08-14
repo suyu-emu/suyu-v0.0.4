@@ -2368,7 +2368,7 @@ void Hid::GetNpadCommunicationMode(HLERequestContext& ctx) {
 
 void Hid::SetTouchScreenConfiguration(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto touchscreen_mode{rp.PopRaw<Controller_Touchscreen::TouchScreenConfigurationForNx>()};
+    const auto touchscreen_mode{rp.PopRaw<Core::HID::TouchScreenConfigurationForNx>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
     LOG_WARNING(Service_HID, "(STUBBED) called, touchscreen_mode={}, applet_resource_user_id={}",
@@ -2543,7 +2543,8 @@ public:
 
 class HidSys final : public ServiceFramework<HidSys> {
 public:
-    explicit HidSys(Core::System& system_) : ServiceFramework{system_, "hid:sys"} {
+    explicit HidSys(Core::System& system_)
+        : ServiceFramework{system_, "hid:sys"}, service_context{system_, "hid:sys"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {31, nullptr, "SendKeyboardLockKeyEvent"},
@@ -2568,7 +2569,7 @@ public:
             {303, &HidSys::ApplyNpadSystemCommonPolicy, "ApplyNpadSystemCommonPolicy"},
             {304, nullptr, "EnableAssigningSingleOnSlSrPress"},
             {305, nullptr, "DisableAssigningSingleOnSlSrPress"},
-            {306, nullptr, "GetLastActiveNpad"},
+            {306, &HidSys::GetLastActiveNpad, "GetLastActiveNpad"},
             {307, nullptr, "GetNpadSystemExtStyle"},
             {308, nullptr, "ApplyNpadSystemCommonPolicyFull"},
             {309, nullptr, "GetNpadFullKeyGripColor"},
@@ -2624,7 +2625,7 @@ public:
             {700, nullptr, "ActivateUniquePad"},
             {702, nullptr, "AcquireUniquePadConnectionEventHandle"},
             {703, nullptr, "GetUniquePadIds"},
-            {751, nullptr, "AcquireJoyDetachOnBluetoothOffEventHandle"},
+            {751, &HidSys::AcquireJoyDetachOnBluetoothOffEventHandle, "AcquireJoyDetachOnBluetoothOffEventHandle"},
             {800, nullptr, "ListSixAxisSensorHandles"},
             {801, nullptr, "IsSixAxisSensorUserCalibrationSupported"},
             {802, nullptr, "ResetSixAxisSensorCalibrationValues"},
@@ -2650,7 +2651,7 @@ public:
             {830, nullptr, "SetNotificationLedPattern"},
             {831, nullptr, "SetNotificationLedPatternWithTimeout"},
             {832, nullptr, "PrepareHidsForNotificationWake"},
-            {850, nullptr, "IsUsbFullKeyControllerEnabled"},
+            {850, &HidSys::IsUsbFullKeyControllerEnabled, "IsUsbFullKeyControllerEnabled"},
             {851, nullptr, "EnableUsbFullKeyController"},
             {852, nullptr, "IsUsbConnected"},
             {870, nullptr, "IsHandheldButtonPressedOnConsoleMode"},
@@ -2682,7 +2683,7 @@ public:
             {1150, nullptr, "SetTouchScreenMagnification"},
             {1151, nullptr, "GetTouchScreenFirmwareVersion"},
             {1152, nullptr, "SetTouchScreenDefaultConfiguration"},
-            {1153, nullptr, "GetTouchScreenDefaultConfiguration"},
+            {1153, &HidSys::GetTouchScreenDefaultConfiguration, "GetTouchScreenDefaultConfiguration"},
             {1154, nullptr, "IsFirmwareAvailableForNotification"},
             {1155, nullptr, "SetForceHandheldStyleVibration"},
             {1156, nullptr, "SendConnectionTriggerWithoutTimeoutEvent"},
@@ -2749,6 +2750,8 @@ public:
         // clang-format on
 
         RegisterHandlers(functions);
+
+        joy_detach_event = service_context.CreateEvent("HidSys::JoyDetachEvent");
     }
 
 private:
@@ -2760,17 +2763,66 @@ private:
         rb.Push(ResultSuccess);
     }
 
+    void GetLastActiveNpad(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.PushEnum(Core::HID::NpadIdType::Handheld);
+    }
+
     void GetUniquePadsFromNpad(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto npad_id_type{rp.PopEnum<Core::HID::NpadIdType>()};
 
-        const s64 total_entries = 0;
         LOG_WARNING(Service_HID, "(STUBBED) called, npad_id_type={}", npad_id_type);
+
+        const std::vector<Core::HID::UniquePadId> unique_pads{};
+
+        ctx.WriteBuffer(unique_pads);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.Push(total_entries);
+        rb.Push(static_cast<u32>(unique_pads.size()));
     }
+
+    void AcquireJoyDetachOnBluetoothOffEventHandle(HLERequestContext& ctx) {
+        LOG_INFO(Service_AM, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(ResultSuccess);
+        rb.PushCopyObjects(joy_detach_event->GetReadableEvent());
+    }
+
+    void IsUsbFullKeyControllerEnabled(HLERequestContext& ctx) {
+        const bool is_enabled = false;
+
+        LOG_WARNING(Service_HID, "(STUBBED) called, is_enabled={}", is_enabled);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(is_enabled);
+    }
+
+    void GetTouchScreenDefaultConfiguration(HLERequestContext& ctx) {
+        LOG_WARNING(Service_HID, "(STUBBED) called");
+
+        Core::HID::TouchScreenConfigurationForNx touchscreen_config{
+            .mode = Core::HID::TouchScreenModeForNx::Finger,
+        };
+
+        if (touchscreen_config.mode != Core::HID::TouchScreenModeForNx::Heat2 &&
+            touchscreen_config.mode != Core::HID::TouchScreenModeForNx::Finger) {
+            touchscreen_config.mode = Core::HID::TouchScreenModeForNx::UseSystemSetting;
+        }
+
+        IPC::ResponseBuilder rb{ctx, 6};
+        rb.Push(ResultSuccess);
+        rb.PushRaw(touchscreen_config);
+    }
+
+    Kernel::KEvent* joy_detach_event;
+    KernelHelpers::ServiceContext service_context;
 };
 
 void LoopProcess(Core::System& system) {
