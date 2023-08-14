@@ -5,13 +5,19 @@ package org.yuzu.yuzu_emu.adapters
 
 import android.text.Html
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import org.yuzu.yuzu_emu.databinding.PageSetupBinding
+import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.model.SetupCallback
 import org.yuzu.yuzu_emu.model.SetupPage
+import org.yuzu.yuzu_emu.model.StepState
+import org.yuzu.yuzu_emu.utils.ViewUtils
 
 class SetupAdapter(val activity: AppCompatActivity, val pages: List<SetupPage>) :
     RecyclerView.Adapter<SetupAdapter.SetupPageViewHolder>() {
@@ -26,7 +32,7 @@ class SetupAdapter(val activity: AppCompatActivity, val pages: List<SetupPage>) 
         holder.bind(pages[position])
 
     inner class SetupPageViewHolder(val binding: PageSetupBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+        RecyclerView.ViewHolder(binding.root), SetupCallback {
         lateinit var page: SetupPage
 
         init {
@@ -35,6 +41,12 @@ class SetupAdapter(val activity: AppCompatActivity, val pages: List<SetupPage>) 
 
         fun bind(page: SetupPage) {
             this.page = page
+
+            if (page.stepCompleted.invoke() == StepState.COMPLETE) {
+                binding.buttonAction.visibility = View.INVISIBLE
+                binding.textConfirmation.visibility = View.VISIBLE
+            }
+
             binding.icon.setImageDrawable(
                 ResourcesCompat.getDrawable(
                     activity.resources,
@@ -62,9 +74,15 @@ class SetupAdapter(val activity: AppCompatActivity, val pages: List<SetupPage>) 
                         MaterialButton.ICON_GRAVITY_END
                     }
                 setOnClickListener {
-                    page.buttonAction.invoke()
+                    page.buttonAction.invoke(this@SetupPageViewHolder)
                 }
             }
+        }
+
+        override fun onStepCompleted() {
+            ViewUtils.hideView(binding.buttonAction, 200)
+            ViewUtils.showView(binding.textConfirmation, 200)
+            ViewModelProvider(activity)[HomeViewModel::class.java].setShouldPageForward(true)
         }
     }
 }

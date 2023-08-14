@@ -266,73 +266,80 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     val getGamesDirectory =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
-            if (result == null) {
-                return@registerForActivityResult
+            if (result != null) {
+                processGamesDir(result)
             }
-
-            contentResolver.takePersistableUriPermission(
-                result,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
-
-            // When a new directory is picked, we currently will reset the existing games
-            // database. This effectively means that only one game directory is supported.
-            PreferenceManager.getDefaultSharedPreferences(applicationContext).edit()
-                .putString(GameHelper.KEY_GAME_PATH, result.toString())
-                .apply()
-
-            Toast.makeText(
-                applicationContext,
-                R.string.games_dir_selected,
-                Toast.LENGTH_LONG
-            ).show()
-
-            gamesViewModel.reloadGames(true)
         }
+
+    fun processGamesDir(result: Uri) {
+        contentResolver.takePersistableUriPermission(
+            result,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+
+        // When a new directory is picked, we currently will reset the existing games
+        // database. This effectively means that only one game directory is supported.
+        PreferenceManager.getDefaultSharedPreferences(applicationContext).edit()
+            .putString(GameHelper.KEY_GAME_PATH, result.toString())
+            .apply()
+
+        Toast.makeText(
+            applicationContext,
+            R.string.games_dir_selected,
+            Toast.LENGTH_LONG
+        ).show()
+
+        gamesViewModel.reloadGames(true)
+    }
 
     val getProdKey =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
-            if (result == null) {
-                return@registerForActivityResult
-            }
-
-            if (FileUtil.getExtension(result) != "keys") {
-                MessageDialogFragment.newInstance(
-                    R.string.reading_keys_failure,
-                    R.string.install_prod_keys_failure_extension_description
-                ).show(supportFragmentManager, MessageDialogFragment.TAG)
-                return@registerForActivityResult
-            }
-
-            contentResolver.takePersistableUriPermission(
-                result,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
-
-            val dstPath = DirectoryInitialization.userDirectory + "/keys/"
-            if (FileUtil.copyUriToInternalStorage(
-                    applicationContext,
-                    result,
-                    dstPath,
-                    "prod.keys"
-                )
-            ) {
-                if (NativeLibrary.reloadKeys()) {
-                    Toast.makeText(
-                        applicationContext,
-                        R.string.install_keys_success,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    gamesViewModel.reloadGames(true)
-                } else {
-                    MessageDialogFragment.newInstance(
-                        R.string.invalid_keys_error,
-                        R.string.install_keys_failure_description,
-                        R.string.dumping_keys_quickstart_link
-                    ).show(supportFragmentManager, MessageDialogFragment.TAG)
-                }
+            if (result != null) {
+                processKey(result)
             }
         }
+
+    fun processKey(result: Uri): Boolean {
+        if (FileUtil.getExtension(result) != "keys") {
+            MessageDialogFragment.newInstance(
+                R.string.reading_keys_failure,
+                R.string.install_prod_keys_failure_extension_description
+            ).show(supportFragmentManager, MessageDialogFragment.TAG)
+            return false
+        }
+
+        contentResolver.takePersistableUriPermission(
+            result,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+
+        val dstPath = DirectoryInitialization.userDirectory + "/keys/"
+        if (FileUtil.copyUriToInternalStorage(
+                applicationContext,
+                result,
+                dstPath,
+                "prod.keys"
+            )
+        ) {
+            if (NativeLibrary.reloadKeys()) {
+                Toast.makeText(
+                    applicationContext,
+                    R.string.install_keys_success,
+                    Toast.LENGTH_SHORT
+                ).show()
+                gamesViewModel.reloadGames(true)
+                return true
+            } else {
+                MessageDialogFragment.newInstance(
+                    R.string.invalid_keys_error,
+                    R.string.install_keys_failure_description,
+                    R.string.dumping_keys_quickstart_link
+                ).show(supportFragmentManager, MessageDialogFragment.TAG)
+                return false
+            }
+        }
+        return false
+    }
 
     val getFirmware =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->

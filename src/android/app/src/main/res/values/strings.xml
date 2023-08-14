@@ -29,6 +29,7 @@
     <string name="back">Back</string>
     <string name="add_games">Add Games</string>
     <string name="add_games_description">Select your games folder</string>
+    <string name="step_complete">Complete!</string>
 
     <!-- Home strings -->
     <string name="home_games">Games</string>
