@@ -151,7 +151,7 @@ StagingBufferMap BufferCacheRuntime::DownloadStagingBuffer(size_t size, bool def
 }
 
 void BufferCacheRuntime::FreeDeferredStagingBuffer(StagingBufferMap& buffer) {
-    staging_buffer_pool.FreeDeferredStagingBuffer(buffer.index);
+    staging_buffer_pool.FreeDeferredStagingBuffer(buffer);
 }
 
 u64 BufferCacheRuntime::GetDeviceMemoryUsage() const {

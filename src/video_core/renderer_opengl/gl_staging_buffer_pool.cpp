@@ -45,6 +45,7 @@ StagingBufferMap StagingBuffers::RequestMap(size_t requested_size, bool insert_f
 }
 
 void StagingBuffers::FreeDeferredStagingBuffer(size_t index) {
+    ASSERT(allocs[index].deferred);
     allocs[index].deferred = false;
 }
 
@@ -152,8 +153,8 @@ StagingBufferMap StagingBufferPool::RequestDownloadBuffer(size_t size, bool defe
     return download_buffers.RequestMap(size, false, deferred);
 }
 
-void StagingBufferPool::FreeDeferredStagingBuffer(size_t index) {
-    download_buffers.FreeDeferredStagingBuffer(index);
+void StagingBufferPool::FreeDeferredStagingBuffer(StagingBufferMap& buffer) {
+    download_buffers.FreeDeferredStagingBuffer(buffer.index);
 }
 
 } // namespace OpenGL
