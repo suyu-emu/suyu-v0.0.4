@@ -32,12 +32,12 @@ StagingBufferMap StagingBuffers::RequestMap(size_t requested_size, bool insert_f
     MICROPROFILE_SCOPE(OpenGL_BufferRequest);
 
     const size_t index = RequestBuffer(requested_size);
-    OGLSync* const sync = insert_fence ? &syncs[index] : nullptr;
-    sync_indices[index] = insert_fence ? ++current_sync_index : 0;
+    OGLSync* const sync = insert_fence ? &allocs[index].sync : nullptr;
+    allocs[index].sync_index = insert_fence ? ++current_sync_index : 0;
     return StagingBufferMap{
-        .mapped_span = std::span(maps[index], requested_size),
+        .mapped_span = std::span(allocs[index].map, requested_size),
         .sync = sync,
-        .buffer = buffers[index].handle,
+        .buffer = allocs[index].buffer.handle,
     };
 }
 
@@ -45,46 +45,41 @@ size_t StagingBuffers::RequestBuffer(size_t requested_size) {
     if (const std::optional<size_t> index = FindBuffer(requested_size); index) {
         return *index;
     }
-
-    OGLBuffer& buffer = buffers.emplace_back();
-    buffer.Create();
+    StagingBufferAlloc alloc;
+    alloc.buffer.Create();
     const auto next_pow2_size = Common::NextPow2(requested_size);
-    glNamedBufferStorage(buffer.handle, next_pow2_size, nullptr,
+    glNamedBufferStorage(alloc.buffer.handle, next_pow2_size, nullptr,
                          storage_flags | GL_MAP_PERSISTENT_BIT);
-    maps.push_back(static_cast<u8*>(glMapNamedBufferRange(buffer.handle, 0, next_pow2_size,
-                                                          map_flags | GL_MAP_PERSISTENT_BIT)));
-    syncs.emplace_back();
-    sync_indices.emplace_back();
-    sizes.push_back(next_pow2_size);
-
-    ASSERT(syncs.size() == buffers.size() && buffers.size() == maps.size() &&
-           maps.size() == sizes.size());
-
-    return buffers.size() - 1;
+    alloc.map = static_cast<u8*>(glMapNamedBufferRange(alloc.buffer.handle, 0, next_pow2_size,
+                                                       map_flags | GL_MAP_PERSISTENT_BIT));
+    alloc.size = next_pow2_size;
+    allocs.emplace_back(std::move(alloc));
+    return allocs.size() - 1;
 }
 
 std::optional<size_t> StagingBuffers::FindBuffer(size_t requested_size) {
     size_t known_unsignaled_index = current_sync_index + 1;
     size_t smallest_buffer = std::numeric_limits<size_t>::max();
     std::optional<size_t> found;
-    const size_t num_buffers = sizes.size();
+    const size_t num_buffers = allocs.size();
     for (size_t index = 0; index < num_buffers; ++index) {
-        const size_t buffer_size = sizes[index];
+        StagingBufferAlloc& alloc = allocs[index];
+        const size_t buffer_size = alloc.size;
         if (buffer_size < requested_size || buffer_size >= smallest_buffer) {
             continue;
         }
-        if (syncs[index].handle != 0) {
-            if (sync_indices[index] >= known_unsignaled_index) {
+        if (alloc.sync.handle != 0) {
+            if (alloc.sync_index >= known_unsignaled_index) {
                 // This fence is later than a fence that is known to not be signaled
                 continue;
             }
-            if (!syncs[index].IsSignaled()) {
+            if (!alloc.sync.IsSignaled()) {
                 // Since this fence hasn't been signaled, it's safe to assume all later
                 // fences haven't been signaled either
-                known_unsignaled_index = std::min(known_unsignaled_index, sync_indices[index]);
+                known_unsignaled_index = std::min(known_unsignaled_index, alloc.sync_index);
                 continue;
             }
-            syncs[index].Release();
+            alloc.sync.Release();
         }
         smallest_buffer = buffer_size;
         found = index;
