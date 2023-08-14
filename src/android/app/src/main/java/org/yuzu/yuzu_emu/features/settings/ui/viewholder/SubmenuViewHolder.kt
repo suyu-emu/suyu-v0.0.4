@@ -22,6 +22,7 @@ class SubmenuViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAd
         } else {
             binding.textSettingDescription.visibility = View.GONE
         }
+        binding.textSettingValue.visibility = View.GONE
     }
 
     override fun onClick(clicked: View) {

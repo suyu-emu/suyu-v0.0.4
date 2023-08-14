@@ -4,6 +4,7 @@
 package org.yuzu.yuzu_emu.features.settings.ui.viewholder
 
 import android.view.View
+import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.model.view.SliderSetting
@@ -22,6 +23,14 @@ class SliderViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAda
         } else {
             binding.textSettingDescription.visibility = View.GONE
         }
+        binding.textSettingValue.visibility = View.VISIBLE
+        binding.textSettingValue.text = String.format(
+            binding.textSettingValue.context.getString(R.string.value_with_units),
+            setting.selectedValue,
+            setting.units
+        )
+
+        setStyle(setting.isEditable, binding)
     }
 
     override fun onClick(clicked: View) {

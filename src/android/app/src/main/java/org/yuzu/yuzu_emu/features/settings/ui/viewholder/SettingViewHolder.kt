@@ -5,6 +5,8 @@ package org.yuzu.yuzu_emu.features.settings.ui.viewholder
 
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
+import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
+import org.yuzu.yuzu_emu.databinding.ListItemSettingSwitchBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 
@@ -33,4 +35,18 @@ abstract class SettingViewHolder(itemView: View, protected val adapter: Settings
     abstract override fun onClick(clicked: View)
 
     abstract override fun onLongClick(clicked: View): Boolean
+
+    fun setStyle(isEditable: Boolean, binding: ListItemSettingBinding) {
+        val opacity = if (isEditable) 1.0f else 0.5f
+        binding.textSettingName.alpha = opacity
+        binding.textSettingDescription.alpha = opacity
+        binding.textSettingValue.alpha = opacity
+    }
+
+    fun setStyle(isEditable: Boolean, binding: ListItemSettingSwitchBinding) {
+        binding.switchWidget.isEnabled = isEditable
+        val opacity = if (isEditable) 1.0f else 0.5f
+        binding.textSettingName.alpha = opacity
+        binding.textSettingDescription.alpha = opacity
+    }
 }

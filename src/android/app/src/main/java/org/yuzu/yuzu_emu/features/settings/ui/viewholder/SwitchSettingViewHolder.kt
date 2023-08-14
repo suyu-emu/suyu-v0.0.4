@@ -25,12 +25,12 @@ class SwitchSettingViewHolder(val binding: ListItemSettingSwitchBinding, adapter
             binding.textSettingDescription.text = ""
             binding.textSettingDescription.visibility = View.GONE
         }
-        binding.switchWidget.isChecked = setting.isChecked
         binding.switchWidget.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
             adapter.onBooleanClick(item, bindingAdapterPosition, binding.switchWidget.isChecked)
         }
+        binding.switchWidget.isChecked = setting.isChecked
 
-        binding.switchWidget.isEnabled = setting.isEditable
+        setStyle(setting.isEditable, binding)
     }
 
     override fun onClick(clicked: View) {
