@@ -41,6 +41,7 @@ enum class NativeWindowScalingMode : s32 {
     ScaleToWindow = 1,
     ScaleCrop = 2,
     NoScaleCrop = 3,
+    PreserveAspectRatio = 4,
 };
 
 /// Transform parameter for QueueBuffer

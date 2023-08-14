@@ -449,6 +449,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
     case NativeWindowScalingMode::ScaleToWindow:
     case NativeWindowScalingMode::ScaleCrop:
     case NativeWindowScalingMode::NoScaleCrop:
+    case NativeWindowScalingMode::PreserveAspectRatio:
         break;
     default:
         LOG_ERROR(Service_Nvnflinger, "unknown scaling mode {}", scaling_mode);
