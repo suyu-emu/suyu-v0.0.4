@@ -14,6 +14,9 @@ class HomeViewModel : ViewModel() {
     private val _statusBarShadeVisible = MutableLiveData(true)
     val statusBarShadeVisible: LiveData<Boolean> get() = _statusBarShadeVisible
 
+    private val _shouldPageForward = MutableLiveData(false)
+    val shouldPageForward: LiveData<Boolean> get() = _shouldPageForward
+
     var navigatedToSetup = false
 
     init {
@@ -32,5 +35,9 @@ class HomeViewModel : ViewModel() {
             return
         }
         _statusBarShadeVisible.value = visible
+    }
+
+    fun setShouldPageForward(pageForward: Boolean) {
+        _shouldPageForward.value = pageForward
     }
 }
