@@ -64,7 +64,9 @@ public:
 
     [[nodiscard]] StagingBufferMap UploadStagingBuffer(size_t size);
 
-    [[nodiscard]] StagingBufferMap DownloadStagingBuffer(size_t size);
+    [[nodiscard]] StagingBufferMap DownloadStagingBuffer(size_t size, bool deferred = false);
+
+    void FreeDeferredStagingBuffer(StagingBufferMap& buffer);
 
     void CopyBuffer(GLuint dst_buffer, GLuint src_buffer,
                     std::span<const VideoCommon::BufferCopy> copies, bool barrier = true);
@@ -233,7 +235,7 @@ struct BufferCacheParams {
     static constexpr bool NEEDS_BIND_STORAGE_INDEX = true;
     static constexpr bool USE_MEMORY_MAPS = true;
     static constexpr bool SEPARATE_IMAGE_BUFFER_BINDINGS = true;
-    static constexpr bool IMPLEMENTS_ASYNC_DOWNLOADS = false;
+    static constexpr bool IMPLEMENTS_ASYNC_DOWNLOADS = true;
 
     // TODO: Investigate why OpenGL seems to perform worse with persistently mapped buffer uploads
     static constexpr bool USE_MEMORY_MAPS_FOR_UPLOADS = false;

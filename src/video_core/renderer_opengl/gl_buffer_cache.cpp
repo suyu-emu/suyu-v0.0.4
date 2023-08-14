@@ -146,8 +146,12 @@ StagingBufferMap BufferCacheRuntime::UploadStagingBuffer(size_t size) {
     return staging_buffer_pool.RequestUploadBuffer(size);
 }
 
-StagingBufferMap BufferCacheRuntime::DownloadStagingBuffer(size_t size) {
-    return staging_buffer_pool.RequestDownloadBuffer(size);
+StagingBufferMap BufferCacheRuntime::DownloadStagingBuffer(size_t size, bool deferred) {
+    return staging_buffer_pool.RequestDownloadBuffer(size, deferred);
+}
+
+void BufferCacheRuntime::FreeDeferredStagingBuffer(StagingBufferMap& buffer) {
+    staging_buffer_pool.FreeDeferredStagingBuffer(buffer.index);
 }
 
 u64 BufferCacheRuntime::GetDeviceMemoryUsage() const {
