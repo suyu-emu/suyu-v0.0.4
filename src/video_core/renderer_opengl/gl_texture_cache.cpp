@@ -557,8 +557,12 @@ StagingBufferMap TextureCacheRuntime::UploadStagingBuffer(size_t size) {
     return staging_buffer_pool.RequestUploadBuffer(size);
 }
 
-StagingBufferMap TextureCacheRuntime::DownloadStagingBuffer(size_t size) {
-    return staging_buffer_pool.RequestDownloadBuffer(size);
+StagingBufferMap TextureCacheRuntime::DownloadStagingBuffer(size_t size, bool deferred) {
+    return staging_buffer_pool.RequestDownloadBuffer(size, deferred);
+}
+
+void TextureCacheRuntime::FreeDeferredStagingBuffer(StagingBufferMap& buffer) {
+    staging_buffer_pool.FreeDeferredStagingBuffer(buffer);
 }
 
 u64 TextureCacheRuntime::GetDeviceMemoryUsage() const {

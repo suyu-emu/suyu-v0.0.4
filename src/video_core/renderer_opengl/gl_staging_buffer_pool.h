@@ -93,7 +93,7 @@ public:
 
     StagingBufferMap RequestUploadBuffer(size_t size);
     StagingBufferMap RequestDownloadBuffer(size_t size, bool deferred = false);
-    void FreeDeferredStagingBuffer(size_t index);
+    void FreeDeferredStagingBuffer(StagingBufferMap& buffer);
 
 private:
     StagingBuffers upload_buffers{GL_MAP_WRITE_BIT, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT};
