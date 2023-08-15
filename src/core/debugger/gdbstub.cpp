@@ -263,6 +263,23 @@ void GDBStub::ExecuteCommand(std::string_view packet, std::vector<DebuggerAction
 
         std::vector<u8> mem(size);
         if (system.ApplicationMemory().ReadBlock(addr, mem.data(), size)) {
+            // Restore any bytes belonging to replaced instructions.
+            auto it = replaced_instructions.lower_bound(addr);
+            for (; it != replaced_instructions.end() && it->first < addr + size; it++) {
+                // Get the bytes of the instruction we previously replaced.
+                const u32 original_bytes = it->second;
+
+                // Calculate where to start writing to the output buffer.
+                const size_t output_offset = it->first - addr;
+
+                // Calculate how many bytes to write.
+                // The loop condition ensures output_offset < size.
+                const size_t n = std::min<size_t>(size - output_offset, sizeof(u32));
+
+                // Write the bytes to the output buffer.
+                std::memcpy(mem.data() + output_offset, &original_bytes, n);
+            }
+
             SendReply(Common::HexToString(mem));
         } else {
             SendReply(GDB_STUB_REPLY_ERR);
