@@ -33,7 +33,7 @@ class SingleChoiceSetting(
      */
     fun setSelectedValue(selection: Int): AbstractIntSetting {
         val intSetting = setting as AbstractIntSetting
-        intSetting.int = selection
+        intSetting.setInt(selection)
         return intSetting
     }
 }

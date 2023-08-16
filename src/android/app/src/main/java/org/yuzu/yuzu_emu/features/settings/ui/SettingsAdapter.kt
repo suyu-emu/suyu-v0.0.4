@@ -24,12 +24,10 @@ import org.yuzu.yuzu_emu.databinding.DialogSliderBinding
 import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
 import org.yuzu.yuzu_emu.databinding.ListItemSettingSwitchBinding
 import org.yuzu.yuzu_emu.databinding.ListItemSettingsHeaderBinding
-import org.yuzu.yuzu_emu.features.settings.model.AbstractBooleanSetting
-import org.yuzu.yuzu_emu.features.settings.model.AbstractFloatSetting
-import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
-import org.yuzu.yuzu_emu.features.settings.model.AbstractStringSetting
+import org.yuzu.yuzu_emu.features.settings.model.ByteSetting
 import org.yuzu.yuzu_emu.features.settings.model.FloatSetting
+import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.*
 
@@ -115,8 +113,7 @@ class SettingsAdapter(
     }
 
     fun onBooleanClick(item: SwitchSetting, position: Int, checked: Boolean) {
-        val setting = item.setChecked(checked)
-        fragmentView.putSetting(setting)
+        item.setChecked(checked)
         fragmentView.onSettingChanged()
     }
 
@@ -150,7 +147,7 @@ class SettingsAdapter(
     fun onDateTimeClick(item: DateTimeSetting, position: Int) {
         clickedItem = item
         clickedPosition = position
-        val storedTime = java.lang.Long.decode(item.value) * 1000
+        val storedTime = item.value * 1000
 
         // Helper to extract hour and minute from epoch time
         val calendar: Calendar = Calendar.getInstance()
@@ -183,13 +180,11 @@ class SettingsAdapter(
             var epochTime: Long = datePicker.selection!! / 1000
             epochTime += timePicker.hour.toLong() * 60 * 60
             epochTime += timePicker.minute.toLong() * 60
-            val rtcString = epochTime.toString()
-            if (item.value != rtcString) {
+            if (item.value != epochTime) {
                 fragmentView.onSettingChanged()
+                notifyItemChanged(clickedPosition)
+                item.setSelectedValue(epochTime)
             }
-            notifyItemChanged(clickedPosition)
-            val setting = item.setSelectedValue(rtcString)
-            fragmentView.putSetting(setting)
             clickedItem = null
         }
         datePicker.show(
@@ -201,7 +196,7 @@ class SettingsAdapter(
     fun onSliderClick(item: SliderSetting, position: Int) {
         clickedItem = item
         clickedPosition = position
-        sliderProgress = item.selectedValue
+        sliderProgress = item.selectedValue as Int
 
         val inflater = LayoutInflater.from(context)
         val sliderBinding = DialogSliderBinding.inflate(inflater)
@@ -249,8 +244,7 @@ class SettingsAdapter(
                 }
 
                 // Get the backing Setting, which may be null (if for example it was missing from the file)
-                val setting = scSetting.setSelectedValue(value)
-                fragmentView.putSetting(setting)
+                scSetting.setSelectedValue(value)
                 closeDialog()
             }
 
@@ -258,8 +252,7 @@ class SettingsAdapter(
                 val scSetting = clickedItem as StringSingleChoiceSetting
                 val value = scSetting.getValueAt(which)
                 if (scSetting.selectedValue != value) fragmentView.onSettingChanged()
-                val setting = scSetting.setSelectedValue(value!!)
-                fragmentView.putSetting(setting)
+                scSetting.setSelectedValue(value!!)
                 closeDialog()
             }
 
@@ -268,13 +261,25 @@ class SettingsAdapter(
                 if (sliderSetting.selectedValue != sliderProgress) {
                     fragmentView.onSettingChanged()
                 }
-                if (sliderSetting.setting is FloatSetting) {
-                    val value = sliderProgress.toFloat()
-                    val setting = sliderSetting.setSelectedValue(value)
-                    fragmentView.putSetting(setting)
-                } else {
-                    val setting = sliderSetting.setSelectedValue(sliderProgress)
-                    fragmentView.putSetting(setting)
+                when (sliderSetting.setting) {
+                    is ByteSetting -> {
+                        val value = sliderProgress.toByte()
+                        sliderSetting.setSelectedValue(value)
+                    }
+
+                    is ShortSetting -> {
+                        val value = sliderProgress.toShort()
+                        sliderSetting.setSelectedValue(value)
+                    }
+
+                    is FloatSetting -> {
+                        val value = sliderProgress.toFloat()
+                        sliderSetting.setSelectedValue(value)
+                    }
+
+                    else -> {
+                        sliderSetting.setSelectedValue(sliderProgress)
+                    }
                 }
                 closeDialog()
             }
@@ -286,13 +291,8 @@ class SettingsAdapter(
     fun onLongClick(setting: AbstractSetting, position: Int): Boolean {
         MaterialAlertDialogBuilder(context)
             .setMessage(R.string.reset_setting_confirmation)
-            .setPositiveButton(android.R.string.ok) { dialog: DialogInterface, which: Int ->
-                when (setting) {
-                    is AbstractBooleanSetting -> setting.boolean = setting.defaultValue as Boolean
-                    is AbstractFloatSetting -> setting.float = setting.defaultValue as Float
-                    is AbstractIntSetting -> setting.int = setting.defaultValue as Int
-                    is AbstractStringSetting -> setting.string = setting.defaultValue as String
-                }
+            .setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
+                setting.reset()
                 notifyItemChanged(position)
                 fragmentView.onSettingChanged()
             }

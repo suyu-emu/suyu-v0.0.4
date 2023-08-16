@@ -219,10 +219,6 @@ object NativeLibrary {
 
     external fun reloadSettings()
 
-    external fun getUserSetting(gameID: String?, Section: String?, Key: String?): String?
-
-    external fun setUserSetting(gameID: String?, Section: String?, Key: String?, Value: String?)
-
     external fun initGameIni(gameID: String?)
 
     /**
@@ -413,14 +409,17 @@ object NativeLibrary {
                     details.ifEmpty { emulationActivity.getString(R.string.system_archive_general) }
                 )
             }
+
             CoreError.ErrorSavestate -> {
                 title = emulationActivity.getString(R.string.save_load_error)
                 message = details
             }
+
             CoreError.ErrorUnknown -> {
                 title = emulationActivity.getString(R.string.fatal_error)
                 message = emulationActivity.getString(R.string.fatal_error_message)
             }
+
             else -> {
                 return true
             }
@@ -454,6 +453,7 @@ object NativeLibrary {
                 captionId = R.string.loader_error_video_core
                 descriptionId = R.string.loader_error_video_core_description
             }
+
             else -> {
                 captionId = R.string.loader_error_encrypted
                 descriptionId = R.string.loader_error_encrypted_roms_description

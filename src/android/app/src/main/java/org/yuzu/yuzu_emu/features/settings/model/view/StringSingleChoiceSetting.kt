@@ -53,7 +53,7 @@ class StringSingleChoiceSetting(
      */
     fun setSelectedValue(selection: String): AbstractStringSetting {
         val stringSetting = setting as AbstractStringSetting
-        stringSetting.string = selection
+        stringSetting.setString(selection)
         return stringSetting
     }
 }

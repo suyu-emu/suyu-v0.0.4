@@ -15,7 +15,6 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsBinding
-import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 
 class SettingsFragment : Fragment(), SettingsFragmentView {
@@ -87,14 +86,6 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
             true,
             requireArguments().getString(ARGUMENT_GAME_ID)!!
         )
-    }
-
-    override fun showToastMessage(message: String?, is_long: Boolean) {
-        activityView!!.showToastMessage(message!!, is_long)
-    }
-
-    override fun putSetting(setting: AbstractSetting) {
-        fragmentPresenter.putSetting(setting)
     }
 
     override fun onSettingChanged() {

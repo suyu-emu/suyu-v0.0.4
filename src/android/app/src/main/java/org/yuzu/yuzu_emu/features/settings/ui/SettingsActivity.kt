@@ -21,12 +21,7 @@ import com.google.android.material.color.MaterialColors
 import java.io.IOException
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
-import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
-import org.yuzu.yuzu_emu.features.settings.model.FloatSetting
-import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.features.settings.model.SettingsViewModel
-import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.utils.*
 
@@ -34,10 +29,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     private val presenter = SettingsActivityPresenter(this)
 
     private lateinit var binding: ActivitySettingsBinding
-
-    private val settingsViewModel: SettingsViewModel by viewModels()
-
-    override val settings: Settings get() = settingsViewModel.settings
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.setTheme(this)
@@ -171,14 +162,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         fragment?.loadSettingsList()
     }
 
-    override fun showToastMessage(message: String, is_long: Boolean) {
-        Toast.makeText(
-            this,
-            message,
-            if (is_long) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
-        ).show()
-    }
-
     override fun onSettingChanged() {
         presenter.onSettingChanged()
     }
@@ -187,19 +170,18 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         // Prevents saving to a non-existent settings file
         presenter.onSettingsReset()
 
-        // Reset the static memory representation of each setting
-        BooleanSetting.clear()
-        FloatSetting.clear()
-        IntSetting.clear()
-        StringSetting.clear()
-
         // Delete settings file because the user may have changed values that do not exist in the UI
         val settingsFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_CONFIG)
         if (!settingsFile.delete()) {
             throw IOException("Failed to delete $settingsFile")
         }
+        Settings.settingsList.forEach { it.reset() }
 
-        showToastMessage(getString(R.string.settings_reset), true)
+        Toast.makeText(
+            applicationContext,
+            getString(R.string.settings_reset),
+            Toast.LENGTH_LONG
+        ).show()
         finish()
     }
 

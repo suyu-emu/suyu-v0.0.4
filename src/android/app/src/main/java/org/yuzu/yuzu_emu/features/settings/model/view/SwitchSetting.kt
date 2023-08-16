@@ -49,14 +49,14 @@ class SwitchSetting(
         // Try integer setting
         try {
             val setting = setting as AbstractIntSetting
-            setting.int = if (checked) 1 else 0
+            setting.setInt(if (checked) 1 else 0)
             return setting
         } catch (_: ClassCastException) {
         }
 
         // Try boolean setting
         val setting = setting as AbstractBooleanSetting
-        setting.boolean = checked
+        setting.setBoolean(checked)
         return setting
     }
 }

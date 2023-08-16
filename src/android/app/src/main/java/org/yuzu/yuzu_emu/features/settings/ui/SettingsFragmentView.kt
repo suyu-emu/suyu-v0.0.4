@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
-import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 
 /**
@@ -35,21 +34,6 @@ interface SettingsFragmentView {
      * @param menuKey Identifier for the settings group that should be shown.
      */
     fun loadSubMenu(menuKey: String)
-
-    /**
-     * Tell the Fragment to tell the containing activity to display a toast message.
-     *
-     * @param message Text to be shown in the Toast
-     * @param is_long Whether this should be a long Toast or short one.
-     */
-    fun showToastMessage(message: String?, is_long: Boolean)
-
-    /**
-     * Have the fragment add a setting to the HashMap.
-     *
-     * @param setting The (possibly previously missing) new setting.
-     */
-    fun putSetting(setting: AbstractSetting)
 
     /**
      * Have the fragment tell the containing Activity that a setting was modified.

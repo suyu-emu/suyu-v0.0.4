@@ -3,29 +3,29 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
+import org.yuzu.yuzu_emu.features.settings.model.AbstractLongSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
-import org.yuzu.yuzu_emu.features.settings.model.AbstractStringSetting
 
 class DateTimeSetting(
     setting: AbstractSetting?,
     titleId: Int,
     descriptionId: Int,
     val key: String? = null,
-    private val defaultValue: String? = null
+    private val defaultValue: Long? = null
 ) : SettingsItem(setting, titleId, descriptionId) {
     override val type = TYPE_DATETIME_SETTING
 
-    val value: String
+    val value: Long
         get() = if (setting != null) {
-            val setting = setting as AbstractStringSetting
-            setting.string
+            val setting = setting as AbstractLongSetting
+            setting.long
         } else {
             defaultValue!!
         }
 
-    fun setSelectedValue(datetime: String): AbstractStringSetting {
-        val stringSetting = setting as AbstractStringSetting
-        stringSetting.string = datetime
-        return stringSetting
+    fun setSelectedValue(datetime: Long): AbstractLongSetting {
+        val longSetting = setting as AbstractLongSetting
+        longSetting.setLong(datetime)
+        return longSetting
     }
 }

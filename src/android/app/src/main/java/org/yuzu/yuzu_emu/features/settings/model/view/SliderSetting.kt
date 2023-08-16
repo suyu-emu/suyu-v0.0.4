@@ -3,10 +3,12 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
+import org.yuzu.yuzu_emu.features.settings.model.AbstractByteSetting
 import kotlin.math.roundToInt
 import org.yuzu.yuzu_emu.features.settings.model.AbstractFloatSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractShortSetting
 import org.yuzu.yuzu_emu.utils.Log
 
 class SliderSetting(
@@ -17,14 +19,16 @@ class SliderSetting(
     val max: Int,
     val units: String,
     val key: String? = null,
-    val defaultValue: Int? = null
+    val defaultValue: Any? = null
 ) : SettingsItem(setting, titleId, descriptionId) {
     override val type = TYPE_SLIDER
 
-    val selectedValue: Int
+    val selectedValue: Any
         get() {
             val setting = setting ?: return defaultValue!!
             return when (setting) {
+                is AbstractByteSetting -> setting.byte.toInt()
+                is AbstractShortSetting -> setting.short.toInt()
                 is AbstractIntSetting -> setting.int
                 is AbstractFloatSetting -> setting.float.roundToInt()
                 else -> {
@@ -43,7 +47,7 @@ class SliderSetting(
      */
     fun setSelectedValue(selection: Int): AbstractIntSetting {
         val intSetting = setting as AbstractIntSetting
-        intSetting.int = selection
+        intSetting.setInt(selection)
         return intSetting
     }
 
@@ -56,7 +60,19 @@ class SliderSetting(
      */
     fun setSelectedValue(selection: Float): AbstractFloatSetting {
         val floatSetting = setting as AbstractFloatSetting
-        floatSetting.float = selection
+        floatSetting.setFloat(selection)
         return floatSetting
+    }
+
+    fun setSelectedValue(selection: Short): AbstractShortSetting {
+        val shortSetting = setting as AbstractShortSetting
+        shortSetting.setShort(selection)
+        return shortSetting
+    }
+
+    fun setSelectedValue(selection: Byte): AbstractByteSetting {
+        val byteSetting = setting as AbstractByteSetting
+        byteSetting.setByte(selection)
+        return byteSetting
     }
 }

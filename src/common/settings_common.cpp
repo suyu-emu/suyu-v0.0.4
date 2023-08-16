@@ -14,6 +14,7 @@ BasicSetting::BasicSetting(Linkage& linkage, const std::string& name, enum Categ
     : label{name}, category{category_}, id{linkage.count}, save{save_},
       runtime_modifiable{runtime_modifiable_}, specialization{specialization_},
       other_setting{other_setting_} {
+    linkage.by_key.insert({name, this});
     linkage.by_category[category].push_back(this);
     linkage.count++;
 }

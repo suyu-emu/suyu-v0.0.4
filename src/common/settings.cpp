@@ -159,6 +159,8 @@ float Volume() {
 
 const char* TranslateCategory(Category category) {
     switch (category) {
+    case Category::Android:
+        return "Android";
     case Category::Audio:
         return "Audio";
     case Category::Core:

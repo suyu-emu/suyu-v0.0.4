@@ -4,5 +4,7 @@
 package org.yuzu.yuzu_emu.features.settings.model
 
 interface AbstractFloatSetting : AbstractSetting {
-    var float: Float
+    val float: Float
+
+    fun setFloat(value: Float)
 }

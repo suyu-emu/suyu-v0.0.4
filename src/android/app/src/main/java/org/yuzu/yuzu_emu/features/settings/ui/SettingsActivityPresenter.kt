@@ -5,7 +5,6 @@ package org.yuzu.yuzu_emu.features.settings.ui
 
 import android.content.Context
 import android.os.Bundle
-import android.text.TextUtils
 import java.io.File
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.features.settings.model.Settings
@@ -14,8 +13,6 @@ import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.Log
 
 class SettingsActivityPresenter(private val activityView: SettingsActivityView) {
-    val settings: Settings get() = activityView.settings
-
     private var shouldSave = false
     private lateinit var menuTag: String
     private lateinit var gameId: String
@@ -33,13 +30,7 @@ class SettingsActivityPresenter(private val activityView: SettingsActivityView) 
     }
 
     private fun loadSettingsUI() {
-        if (!settings.isLoaded) {
-            if (!TextUtils.isEmpty(gameId)) {
-                settings.loadSettings(gameId, activityView)
-            } else {
-                settings.loadSettings(activityView)
-            }
-        }
+        // TODO: Load custom settings contextually
         activityView.showSettingsFragment(menuTag, false, gameId)
         activityView.onSettingsFileLoaded()
     }
@@ -67,9 +58,9 @@ class SettingsActivityPresenter(private val activityView: SettingsActivityView) 
     fun onStop(finishing: Boolean) {
         if (finishing && shouldSave) {
             Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...")
-            settings.saveSettings(activityView)
+            Settings.saveSettings()
+            NativeLibrary.reloadSettings()
         }
-        NativeLibrary.reloadSettings()
     }
 
     fun onSettingChanged() {

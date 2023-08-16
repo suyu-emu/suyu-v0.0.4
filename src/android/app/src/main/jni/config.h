@@ -13,25 +13,35 @@
 class INIReader;
 
 class Config {
-    std::filesystem::path config_loc;
-    std::unique_ptr<INIReader> config;
-
     bool LoadINI(const std::string& default_contents = "", bool retry = true);
-    void ReadValues();
 
 public:
-    explicit Config(std::optional<std::filesystem::path> config_path = std::nullopt);
+    enum class ConfigType {
+        GlobalConfig,
+        PerGameConfig,
+        InputProfile,
+    };
+
+    explicit Config(const std::string& config_name = "config",
+                    ConfigType config_type = ConfigType::GlobalConfig);
     ~Config();
 
-    void Reload();
+    void Initialize(const std::string& config_name);
 
 private:
     /**
-     * Applies a value read from the sdl2_config to a Setting.
+     * Applies a value read from the config to a Setting.
      *
      * @param group The name of the INI group
      * @param setting The yuzu setting to modify
      */
     template <typename Type, bool ranged>
     void ReadSetting(const std::string& group, Settings::Setting<Type, ranged>& setting);
+
+    void ReadValues();
+
+    const ConfigType type;
+    std::unique_ptr<INIReader> config;
+    std::string config_loc;
+    const bool global;
 };

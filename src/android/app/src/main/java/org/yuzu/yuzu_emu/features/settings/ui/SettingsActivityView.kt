@@ -3,8 +3,6 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
-import org.yuzu.yuzu_emu.features.settings.model.Settings
-
 /**
  * Abstraction for the Activity that manages SettingsFragments.
  */
@@ -18,15 +16,6 @@ interface SettingsActivityView {
     fun showSettingsFragment(menuTag: String, addToStack: Boolean, gameId: String)
 
     /**
-     * Called by a contained Fragment to get access to the Setting HashMap
-     * loaded from disk, so that each Fragment doesn't need to perform its own
-     * read operation.
-     *
-     * @return A HashMap of Settings.
-     */
-    val settings: Settings
-
-    /**
      * Called when a load operation completes.
      */
     fun onSettingsFileLoaded()
@@ -35,14 +24,6 @@ interface SettingsActivityView {
      * Called when a load operation fails.
      */
     fun onSettingsFileNotFound()
-
-    /**
-     * Display a popup text message on screen.
-     *
-     * @param message The contents of the onscreen message.
-     * @param is_long Whether this should be a long Toast or short one.
-     */
-    fun showToastMessage(message: String, is_long: Boolean)
 
     /**
      * End the activity.

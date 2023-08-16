@@ -824,34 +824,6 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_reloadSettings(JNIEnv* env, jclass cl
     Config{};
 }
 
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getUserSetting(JNIEnv* env, jclass clazz,
-                                                             jstring j_game_id, jstring j_section,
-                                                             jstring j_key) {
-    std::string_view game_id = env->GetStringUTFChars(j_game_id, 0);
-    std::string_view section = env->GetStringUTFChars(j_section, 0);
-    std::string_view key = env->GetStringUTFChars(j_key, 0);
-
-    env->ReleaseStringUTFChars(j_game_id, game_id.data());
-    env->ReleaseStringUTFChars(j_section, section.data());
-    env->ReleaseStringUTFChars(j_key, key.data());
-
-    return env->NewStringUTF("");
-}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_setUserSetting(JNIEnv* env, jclass clazz,
-                                                          jstring j_game_id, jstring j_section,
-                                                          jstring j_key, jstring j_value) {
-    std::string_view game_id = env->GetStringUTFChars(j_game_id, 0);
-    std::string_view section = env->GetStringUTFChars(j_section, 0);
-    std::string_view key = env->GetStringUTFChars(j_key, 0);
-    std::string_view value = env->GetStringUTFChars(j_value, 0);
-
-    env->ReleaseStringUTFChars(j_game_id, game_id.data());
-    env->ReleaseStringUTFChars(j_section, section.data());
-    env->ReleaseStringUTFChars(j_key, key.data());
-    env->ReleaseStringUTFChars(j_value, value.data());
-}
-
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_initGameIni(JNIEnv* env, jclass clazz,
                                                        jstring j_game_id) {
     std::string_view game_id = env->GetStringUTFChars(j_game_id, 0);

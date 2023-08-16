@@ -14,6 +14,8 @@ add_library(yuzu-android SHARED
     id_cache.cpp
     id_cache.h
     native.cpp
+    native_config.cpp
+    uisettings.cpp
 )
 
 set_property(TARGET yuzu-android PROPERTY IMPORTED_LOCATION ${FFmpeg_LIBRARY_DIR})

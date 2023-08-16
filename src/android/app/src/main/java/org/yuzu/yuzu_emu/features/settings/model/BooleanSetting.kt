@@ -3,41 +3,34 @@
 
 package org.yuzu.yuzu_emu.features.settings.model
 
+import org.yuzu.yuzu_emu.utils.NativeConfig
+
 enum class BooleanSetting(
     override val key: String,
-    override val section: String,
-    override val defaultValue: Boolean
+    override val category: Settings.Category
 ) : AbstractBooleanSetting {
-    CPU_DEBUG_MODE("cpu_debug_mode", Settings.SECTION_CPU, false),
-    FASTMEM("cpuopt_fastmem", Settings.SECTION_CPU, true),
-    FASTMEM_EXCLUSIVES("cpuopt_fastmem_exclusives", Settings.SECTION_CPU, true),
-    PICTURE_IN_PICTURE("picture_in_picture", Settings.SECTION_GENERAL, true),
-    USE_CUSTOM_RTC("custom_rtc_enabled", Settings.SECTION_SYSTEM, false);
+    CPU_DEBUG_MODE("cpu_debug_mode", Settings.Category.Cpu),
+    FASTMEM("cpuopt_fastmem", Settings.Category.Cpu),
+    FASTMEM_EXCLUSIVES("cpuopt_fastmem_exclusives", Settings.Category.Cpu),
+    RENDERER_USE_SPEED_LIMIT("use_speed_limit", Settings.Category.Core),
+    USE_DOCKED_MODE("use_docked_mode", Settings.Category.System),
+    RENDERER_USE_DISK_SHADER_CACHE("use_disk_shader_cache", Settings.Category.Renderer),
+    RENDERER_FORCE_MAX_CLOCK("force_max_clock", Settings.Category.Renderer),
+    RENDERER_ASYNCHRONOUS_SHADERS("use_asynchronous_shaders", Settings.Category.Renderer),
+    RENDERER_REACTIVE_FLUSHING("use_reactive_flushing", Settings.Category.Renderer),
+    RENDERER_DEBUG("debug", Settings.Category.Renderer),
+    PICTURE_IN_PICTURE("picture_in_picture", Settings.Category.Android),
+    USE_CUSTOM_RTC("custom_rtc_enabled", Settings.Category.System);
 
-    override var boolean: Boolean = defaultValue
+    override val boolean: Boolean
+        get() = NativeConfig.getBoolean(key, false)
+
+    override fun setBoolean(value: Boolean) = NativeConfig.setBoolean(key, value)
+
+    override val defaultValue: Boolean by lazy { NativeConfig.getBoolean(key, true) }
 
     override val valueAsString: String
-        get() = boolean.toString()
+        get() = if (boolean) "1" else "0"
 
-    override val isRuntimeEditable: Boolean
-        get() {
-            for (setting in NOT_RUNTIME_EDITABLE) {
-                if (setting == this) {
-                    return false
-                }
-            }
-            return true
-        }
-
-    companion object {
-        private val NOT_RUNTIME_EDITABLE = listOf(
-            PICTURE_IN_PICTURE,
-            USE_CUSTOM_RTC
-        )
-
-        fun from(key: String): BooleanSetting? =
-            BooleanSetting.values().firstOrNull { it.key == key }
-
-        fun clear() = BooleanSetting.values().forEach { it.boolean = it.defaultValue }
-    }
+    override fun reset() = NativeConfig.setBoolean(key, defaultValue)
 }

@@ -3,10 +3,17 @@
 
 package org.yuzu.yuzu_emu.features.settings.model
 
+import org.yuzu.yuzu_emu.utils.NativeConfig
+
 interface AbstractSetting {
     val key: String?
-    val section: String?
-    val isRuntimeEditable: Boolean
-    val valueAsString: String
+    val category: Settings.Category
     val defaultValue: Any
+    val valueAsString: String
+        get() = ""
+
+    val isRuntimeModifiable: Boolean
+        get() = NativeConfig.getIsRuntimeModifiable(key!!)
+
+    fun reset() = run { }
 }

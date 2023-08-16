@@ -3,8 +3,8 @@
 
 package org.yuzu.yuzu_emu.features.settings.model
 
-interface AbstractIntSetting : AbstractSetting {
-    val int: Int
+interface AbstractByteSetting : AbstractSetting {
+    val byte: Byte
 
-    fun setInt(value: Int)
+    fun setByte(value: Byte)
 }
