@@ -51,22 +51,4 @@ u32 CalculateWidth(u32 height, Settings::AspectRatio ratio) {
     return height * 16 / 9;
 }
 
-Settings::AspectRatio ConvertScreenshotRatioToRatio(Settings::ScreenshotAspectRatio ratio) {
-    switch (ratio) {
-    case Settings::ScreenshotAspectRatio::Auto:
-        return Settings::values.aspect_ratio.GetValue();
-    case Settings::ScreenshotAspectRatio::R16_9:
-        return Settings::AspectRatio::R16_9;
-    case Settings::ScreenshotAspectRatio::R4_3:
-        return Settings::AspectRatio::R4_3;
-    case Settings::ScreenshotAspectRatio::R21_9:
-        return Settings::AspectRatio::R21_9;
-    case Settings::ScreenshotAspectRatio::R16_10:
-        return Settings::AspectRatio::R16_10;
-    case Settings::ScreenshotAspectRatio::Unspecified:
-        break;
-    }
-    return Settings::AspectRatio::R16_9;
-}
-
 } // namespace UISettings

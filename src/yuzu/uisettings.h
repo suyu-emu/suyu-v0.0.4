@@ -132,10 +132,6 @@ struct Values {
     Setting<bool> enable_screenshot_save_as{linkage, true, "enable_screenshot_save_as",
                                             Category::Screenshots};
     Setting<u32> screenshot_height{linkage, 0, "screenshot_height", Category::Screenshots};
-    Setting<u32> screenshot_width{linkage, 0, "screenshot_width", Category::Screenshots};
-    Setting<Settings::ScreenshotAspectRatio> screenshot_aspect_ratio{
-        linkage, Settings::ScreenshotAspectRatio::Auto, "screenshot_aspect_ratio",
-        Category::Screenshots};
 
     QString roms_path;
     QString symbols_path;
@@ -195,7 +191,6 @@ struct Values {
 extern Values values;
 
 u32 CalculateWidth(u32 height, Settings::AspectRatio ratio);
-Settings::AspectRatio ConvertScreenshotRatioToRatio(Settings::ScreenshotAspectRatio ratio);
 
 } // namespace UISettings
 

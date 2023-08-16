@@ -17,6 +17,7 @@
 #include <QTimer>
 
 #include "common/fs/fs_util.h"
+#include "common/settings_enums.h"
 #include "configuration/shared_widget.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
@@ -57,7 +58,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
         std::make_unique<ConfigureGraphicsAdvanced>(system_, tab_group, *builder, this);
     graphics_tab = std::make_unique<ConfigureGraphics>(
         system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
-        tab_group, *builder, this);
+        [](Settings::AspectRatio, Settings::ResolutionSetup) {}, tab_group, *builder, this);
     input_tab = std::make_unique<ConfigureInputPerGame>(system_, game_config.get(), this);
     system_tab = std::make_unique<ConfigureSystem>(system_, tab_group, *builder, this);
 

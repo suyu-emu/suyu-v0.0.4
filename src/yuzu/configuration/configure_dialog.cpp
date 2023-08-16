@@ -4,6 +4,7 @@
 #include <memory>
 #include "common/logging/log.h"
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "core/core.h"
 #include "ui_configure.h"
 #include "vk_device_info.h"
@@ -41,16 +42,19 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_,
       general_tab{std::make_unique<ConfigureGeneral>(system_, nullptr, *builder, this)},
       graphics_advanced_tab{
           std::make_unique<ConfigureGraphicsAdvanced>(system_, nullptr, *builder, this)},
+      ui_tab{std::make_unique<ConfigureUi>(system_, this)},
       graphics_tab{std::make_unique<ConfigureGraphics>(
           system_, vk_device_records, [&]() { graphics_advanced_tab->ExposeComputeOption(); },
+          [this](Settings::AspectRatio ratio, Settings::ResolutionSetup setup) {
+              ui_tab->UpdateScreenshotInfo(ratio, setup);
+          },
           nullptr, *builder, this)},
       hotkeys_tab{std::make_unique<ConfigureHotkeys>(system_.HIDCore(), this)},
       input_tab{std::make_unique<ConfigureInput>(system_, this)},
       network_tab{std::make_unique<ConfigureNetwork>(system_, this)},
       profile_tab{std::make_unique<ConfigureProfileManager>(system_, this)},
       system_tab{std::make_unique<ConfigureSystem>(system_, nullptr, *builder, this)},
-      ui_tab{std::make_unique<ConfigureUi>(system_, this)}, web_tab{std::make_unique<ConfigureWeb>(
-                                                                this)} {
+      web_tab{std::make_unique<ConfigureWeb>(this)} {
     Settings::SetConfiguringGlobal(true);
 
     ui->setupUi(this);
