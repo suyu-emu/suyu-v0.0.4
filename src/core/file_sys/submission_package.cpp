@@ -249,7 +249,7 @@ void NSP::ReadNCAs(const std::vector<VirtualFile>& files) {
         }
 
         const auto nca = std::make_shared<NCA>(outer_file);
-        if (nca->GetStatus() != Loader::ResultStatus::Success) {
+        if (nca->GetStatus() != Loader::ResultStatus::Success || nca->GetSubdirectories().empty()) {
             program_status[nca->GetTitleId()] = nca->GetStatus();
             continue;
         }

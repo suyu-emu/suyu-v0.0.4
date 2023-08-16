@@ -418,7 +418,7 @@ void RegisteredCache::ProcessFiles(const std::vector<NcaID>& ids) {
             continue;
         const auto nca = std::make_shared<NCA>(parser(file, id));
         if (nca->GetStatus() != Loader::ResultStatus::Success ||
-            nca->GetType() != NCAContentType::Meta) {
+            nca->GetType() != NCAContentType::Meta || nca->GetSubdirectories().empty()) {
             continue;
         }
 

@@ -185,7 +185,7 @@ u32 XCI::GetSystemUpdateVersion() {
     for (const auto& update_file : update->GetFiles()) {
         NCA nca{update_file};
 
-        if (nca.GetStatus() != Loader::ResultStatus::Success) {
+        if (nca.GetStatus() != Loader::ResultStatus::Success || nca.GetSubdirectories().empty()) {
             continue;
         }
 
