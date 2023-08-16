@@ -918,7 +918,6 @@ void GRenderWindow::ReleaseRenderTarget() {
 
 void GRenderWindow::CaptureScreenshot(const QString& screenshot_path) {
     auto& renderer = system.Renderer();
-    const f32 res_scale = Settings::values.resolution_info.up_factor;
 
     if (renderer.IsScreenshotPending()) {
         LOG_WARNING(Render,
@@ -926,15 +925,11 @@ void GRenderWindow::CaptureScreenshot(const QString& screenshot_path) {
         return;
     }
 
-    const Layout::FramebufferLayout layout{[res_scale]() {
-        if (UISettings::values.screenshot_height.GetValue() == 0 &&
-            UISettings::values.screenshot_aspect_ratio.GetValue() ==
-                Settings::ScreenshotAspectRatio::Auto) {
-            return Layout::FrameLayoutFromResolutionScale(res_scale);
-        }
+    const Layout::FramebufferLayout layout{[]() {
         u32 height = UISettings::values.screenshot_height.GetValue();
         if (height == 0) {
-            height = Settings::values.use_docked_mode.GetValue() ? 1080 : 720;
+            height = Settings::values.use_docked_mode.GetValue() ? Layout::ScreenDocked::Height
+                                                                 : Layout::ScreenUndocked::Height;
             height *= Settings::values.resolution_info.up_factor;
         }
         const u32 width = UISettings::CalculateWidth(
