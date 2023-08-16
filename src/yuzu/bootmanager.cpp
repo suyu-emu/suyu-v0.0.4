@@ -932,13 +932,8 @@ void GRenderWindow::CaptureScreenshot(const QString& screenshot_path) {
                                                                  : Layout::ScreenUndocked::Height;
             height *= Settings::values.resolution_info.up_factor;
         }
-        const auto selected_ratio = UISettings::values.screenshot_aspect_ratio.GetValue();
         const u32 width =
-            selected_ratio == Settings::ScreenshotAspectRatio::Unspecified
-                ? UISettings::values.screenshot_width.GetValue()
-                : UISettings::CalculateWidth(
-                      height, UISettings::ConvertScreenshotRatioToRatio(
-                                  UISettings::values.screenshot_aspect_ratio.GetValue()));
+            UISettings::CalculateWidth(height, Settings::values.aspect_ratio.GetValue());
         return Layout::DefaultFrameLayout(width, height);
     }()};
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>363</width>
-    <height>562</height>
+    <height>603</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -206,38 +206,15 @@
           <property name="spacing">
            <number>6</number>
           </property>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Resolution:</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="screenshot_aspect_ratio"/>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Aspect Ratio:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <item>
-             <widget class="QLineEdit" name="screenshot_width">
-              <property name="enabled">
-               <bool>true</bool>
+             <widget class="QLabel" name="screenshot_width">
+              <property name="text">
+               <string>TextLabel</string>
               </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="readOnly">
-               <bool>true</bool>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
               </property>
              </widget>
             </item>
@@ -249,6 +226,13 @@
              </widget>
             </item>
            </layout>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Resolution:</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
