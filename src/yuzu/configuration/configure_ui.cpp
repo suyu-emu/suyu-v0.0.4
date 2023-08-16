@@ -66,9 +66,10 @@ QString GetTranslatedRowTextName(size_t index) {
 }
 } // Anonymous namespace
 
-constexpr static std::array<std::pair<Settings::ScreenshotAspectRatio, std::string>, 5>
+constexpr static std::array<std::pair<Settings::ScreenshotAspectRatio, std::string>, 6>
     screenshot_aspect_ratio_translations = {
         std::pair{Settings::ScreenshotAspectRatio::Auto, "Auto"},
+        std::pair{Settings::ScreenshotAspectRatio::Unspecified, "Unspecified"},
         std::pair{Settings::ScreenshotAspectRatio::R16_9, "16:9"},
         std::pair{Settings::ScreenshotAspectRatio::R4_3, "4:3"},
         std::pair{Settings::ScreenshotAspectRatio::R21_9, "21:9"},
@@ -104,7 +105,7 @@ static void PopulateResolutionComboBox(QComboBox* screenshot_height) {
     }
 }
 
-static u32 HeightToInt(const QString& height) {
+static u32 ScreenshotDimensionToInt(const QString& height) {
     try {
         return std::stoi(height.toStdString());
     } catch (std::invalid_argument& e) {
@@ -168,9 +169,16 @@ ConfigureUi::ConfigureUi(Core::System& system_, QWidget* parent)
 
     const auto update_width_text = [this]() {
         const auto index = ui->screenshot_aspect_ratio->currentIndex();
-        const Settings::AspectRatio ratio = UISettings::ConvertScreenshotRatioToRatio(
-            screenshot_aspect_ratio_translations[index].first);
-        const auto height = HeightToInt(ui->screenshot_height->currentText());
+        const auto selected_ratio = screenshot_aspect_ratio_translations[index].first;
+        if (selected_ratio == Settings::ScreenshotAspectRatio::Unspecified) {
+            ui->screenshot_width->setReadOnly(false);
+            return;
+        } else {
+            ui->screenshot_width->setReadOnly(true);
+        }
+        const Settings::AspectRatio ratio =
+            UISettings::ConvertScreenshotRatioToRatio(selected_ratio);
+        const auto height = ScreenshotDimensionToInt(ui->screenshot_height->currentText());
         const auto width = UISettings::CalculateWidth(height, ratio);
         if (height == 0) {
             ui->screenshot_width->setText(QString::fromStdString(fmt::format("Auto")));
@@ -207,10 +215,13 @@ void ConfigureUi::ApplyConfiguration() {
     const auto ratio =
         screenshot_aspect_ratio_translations[ui->screenshot_aspect_ratio->currentIndex()].first;
     UISettings::values.screenshot_aspect_ratio.SetValue(ratio);
-    const u32 height = HeightToInt(ui->screenshot_height->currentText());
+    const u32 height = ScreenshotDimensionToInt(ui->screenshot_height->currentText());
+    const u32 calculated_width =
+        UISettings::CalculateWidth(height, UISettings::ConvertScreenshotRatioToRatio(ratio));
+    const u32 width_readout = ScreenshotDimensionToInt(ui->screenshot_width->text());
     UISettings::values.screenshot_height.SetValue(height);
     UISettings::values.screenshot_width.SetValue(
-        UISettings::CalculateWidth(height, UISettings::ConvertScreenshotRatioToRatio(ratio)));
+        ratio == Settings::ScreenshotAspectRatio::Unspecified ? width_readout : calculated_width);
 
     system.ApplySettings();
 }
@@ -245,6 +256,8 @@ void ConfigureUi::SetConfiguration() {
     }
     ui->screenshot_height->setCurrentText(
         QString::fromStdString(fmt::format("{}", UISettings::values.screenshot_height.GetValue())));
+    ui->screenshot_width->setText(
+        QString::fromStdString(fmt::format("{}", UISettings::values.screenshot_width.GetValue())));
 }
 
 void ConfigureUi::changeEvent(QEvent* event) {

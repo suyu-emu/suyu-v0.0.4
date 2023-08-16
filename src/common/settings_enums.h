@@ -146,7 +146,7 @@ ENUM(AntiAliasing, None, Fxaa, Smaa, MaxEnum);
 
 ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, Stretch);
 
-ENUM(ScreenshotAspectRatio, Auto, R16_9, R4_3, R21_9, R16_10);
+ENUM(ScreenshotAspectRatio, Auto, Unspecified, R16_9, R4_3, R21_9, R16_10);
 
 template <typename Type>
 inline std::string CanonicalizeEnum(Type id) {

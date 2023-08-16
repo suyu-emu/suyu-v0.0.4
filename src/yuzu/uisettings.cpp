@@ -63,6 +63,8 @@ Settings::AspectRatio ConvertScreenshotRatioToRatio(Settings::ScreenshotAspectRa
         return Settings::AspectRatio::R21_9;
     case Settings::ScreenshotAspectRatio::R16_10:
         return Settings::AspectRatio::R16_10;
+    case Settings::ScreenshotAspectRatio::Unspecified:
+        break;
     }
     return Settings::AspectRatio::R16_9;
 }
