@@ -207,9 +207,7 @@ const char* TranslateCategory(Category category) {
     return "Miscellaneous";
 }
 
-void UpdateRescalingInfo() {
-    const auto setup = values.resolution_setup.GetValue();
-    auto& info = values.resolution_info;
+void TranslateResolutionInfo(ResolutionSetup setup, ResolutionScalingInfo& info) {
     info.downscale = false;
     switch (setup) {
     case ResolutionSetup::Res1_2X:
@@ -267,6 +265,12 @@ void UpdateRescalingInfo() {
     info.up_factor = static_cast<f32>(info.up_scale) / (1U << info.down_shift);
     info.down_factor = static_cast<f32>(1U << info.down_shift) / info.up_scale;
     info.active = info.up_scale != 1 || info.down_shift != 0;
+}
+
+void UpdateRescalingInfo() {
+    const auto setup = values.resolution_setup.GetValue();
+    auto& info = values.resolution_info;
+    TranslateResolutionInfo(setup, info);
 }
 
 void RestoreGlobalState(bool is_powered_on) {
