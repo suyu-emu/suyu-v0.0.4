@@ -96,7 +96,7 @@ static void PopulateResolutionComboBox(QComboBox* screenshot_height, QWidget* pa
 static u32 ScreenshotDimensionToInt(const QString& height) {
     try {
         return std::stoi(height.toStdString());
-    } catch (std::invalid_argument& e) {
+    } catch (std::invalid_argument&) {
         return 0;
     }
 }
