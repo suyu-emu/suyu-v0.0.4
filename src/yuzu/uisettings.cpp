@@ -36,4 +36,35 @@ bool IsDarkTheme() {
 
 Values values = {};
 
+u32 CalculateWidth(u32 height, Settings::AspectRatio ratio) {
+    switch (ratio) {
+    case Settings::AspectRatio::R4_3:
+        return height * 4 / 3;
+    case Settings::AspectRatio::R21_9:
+        return height * 21 / 9;
+    case Settings::AspectRatio::R16_10:
+        return height * 16 / 10;
+    case Settings::AspectRatio::R16_9:
+    case Settings::AspectRatio::Stretch:
+        break;
+    }
+    return height * 16 / 9;
+}
+
+Settings::AspectRatio ConvertScreenshotRatioToRatio(Settings::ScreenshotAspectRatio ratio) {
+    switch (ratio) {
+    case Settings::ScreenshotAspectRatio::Auto:
+        return Settings::values.aspect_ratio.GetValue();
+    case Settings::ScreenshotAspectRatio::R16_9:
+        return Settings::AspectRatio::R16_9;
+    case Settings::ScreenshotAspectRatio::R4_3:
+        return Settings::AspectRatio::R4_3;
+    case Settings::ScreenshotAspectRatio::R21_9:
+        return Settings::AspectRatio::R21_9;
+    case Settings::ScreenshotAspectRatio::R16_10:
+        return Settings::AspectRatio::R16_10;
+    }
+    return Settings::AspectRatio::R16_9;
+}
+
 } // namespace UISettings

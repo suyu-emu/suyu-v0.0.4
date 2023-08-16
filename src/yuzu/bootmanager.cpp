@@ -11,6 +11,8 @@
 #include <glad/glad.h>
 
 #include <QtCore/qglobal.h>
+#include "common/settings_enums.h"
+#include "uisettings.h"
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
 #include <QCamera>
 #include <QCameraImageCapture>
@@ -924,7 +926,19 @@ void GRenderWindow::CaptureScreenshot(const QString& screenshot_path) {
         return;
     }
 
-    const Layout::FramebufferLayout layout{Layout::FrameLayoutFromResolutionScale(res_scale)};
+    const Layout::FramebufferLayout layout{[res_scale]() {
+        if (UISettings::values.screenshot_height.GetValue() == 0 &&
+            UISettings::values.screenshot_aspect_ratio.GetValue() ==
+                Settings::ScreenshotAspectRatio::Auto) {
+            return Layout::FrameLayoutFromResolutionScale(res_scale);
+        }
+        const u32 height = UISettings::values.screenshot_height.GetValue();
+        const u32 width = UISettings::CalculateWidth(
+            height, UISettings::ConvertScreenshotRatioToRatio(
+                        UISettings::values.screenshot_aspect_ratio.GetValue()));
+        return Layout::DefaultFrameLayout(width, height);
+    }()};
+
     screenshot_image = QImage(QSize(layout.width, layout.height), QImage::Format_RGB32);
     renderer.RequestScreenshot(
         screenshot_image.bits(),

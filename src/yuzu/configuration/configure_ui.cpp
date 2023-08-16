@@ -1,18 +1,30 @@
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <array>
-#include <utility>
-#include <QFileDialog>
+#include "yuzu/configuration/configure_ui.h"
 
+#include <array>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <utility>
+
+#include <QCheckBox>
+#include <QComboBox>
+#include <QCoreApplication>
 #include <QDirIterator>
+#include <QFileDialog>
+#include <QString>
+#include <QToolButton>
+#include <QVariant>
+
 #include "common/common_types.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "core/core.h"
 #include "ui_configure_ui.h"
-#include "yuzu/configuration/configure_ui.h"
 #include "yuzu/uisettings.h"
 
 namespace {
@@ -54,6 +66,52 @@ QString GetTranslatedRowTextName(size_t index) {
 }
 } // Anonymous namespace
 
+constexpr static std::array<std::pair<Settings::ScreenshotAspectRatio, std::string>, 5>
+    screenshot_aspect_ratio_translations = {
+        std::pair{Settings::ScreenshotAspectRatio::Auto, "Auto"},
+        std::pair{Settings::ScreenshotAspectRatio::R16_9, "16:9"},
+        std::pair{Settings::ScreenshotAspectRatio::R4_3, "4:3"},
+        std::pair{Settings::ScreenshotAspectRatio::R21_9, "21:9"},
+        std::pair{Settings::ScreenshotAspectRatio::R16_10, "16:10"},
+};
+
+static void PopulateAspectRatioComboBox(QComboBox* screenshot_aspect_ratio) {
+    screenshot_aspect_ratio->clear();
+
+    for (const auto& [value, name] : screenshot_aspect_ratio_translations) {
+        screenshot_aspect_ratio->addItem(QString::fromStdString(name));
+    }
+}
+
+static void PopulateResolutionComboBox(QComboBox* screenshot_height) {
+    screenshot_height->clear();
+
+    const auto& enumeration =
+        Settings::EnumMetadata<Settings::ResolutionSetup>::Canonicalizations();
+    Settings::ResolutionScalingInfo info{};
+    std::set<u32> resolutions{};
+    for (const auto& [name, value] : enumeration) {
+        Settings::TranslateResolutionInfo(value, info);
+        u32 height_undocked = 720 * info.up_factor;
+        u32 height_docked = 1080 * info.up_factor;
+        resolutions.emplace(height_undocked);
+        resolutions.emplace(height_docked);
+    }
+
+    screenshot_height->addItem(QStringLiteral("0"));
+    for (const auto res : resolutions) {
+        screenshot_height->addItem(QString::fromStdString(std::to_string(res)));
+    }
+}
+
+static u32 HeightToInt(const QString& height) {
+    try {
+        return std::stoi(height.toStdString());
+    } catch (std::invalid_argument& e) {
+        return 0;
+    }
+}
+
 ConfigureUi::ConfigureUi(Core::System& system_, QWidget* parent)
     : QWidget(parent), ui{std::make_unique<Ui::ConfigureUi>()}, system{system_} {
     ui->setupUi(this);
@@ -67,6 +125,9 @@ ConfigureUi::ConfigureUi(Core::System& system_, QWidget* parent)
 
     InitializeIconSizeComboBox();
     InitializeRowComboBoxes();
+
+    PopulateAspectRatioComboBox(ui->screenshot_aspect_ratio);
+    PopulateResolutionComboBox(ui->screenshot_height);
 
     SetConfiguration();
 
@@ -104,6 +165,25 @@ ConfigureUi::ConfigureUi(Core::System& system_, QWidget* parent)
             ui->screenshot_path_edit->setText(dir);
         }
     });
+
+    const auto update_height_text = [this]() {
+        const auto index = ui->screenshot_aspect_ratio->currentIndex();
+        const Settings::AspectRatio ratio = UISettings::ConvertScreenshotRatioToRatio(
+            screenshot_aspect_ratio_translations[index].first);
+        const auto height = HeightToInt(ui->screenshot_height->currentText());
+        const auto width = UISettings::CalculateWidth(height, ratio);
+        if (height == 0) {
+            ui->screenshot_width->setText(QString::fromStdString(fmt::format("Auto")));
+        } else {
+            ui->screenshot_width->setText(QString::fromStdString(std::to_string(width)));
+        }
+    };
+
+    connect(ui->screenshot_aspect_ratio, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            update_height_text);
+    connect(ui->screenshot_height, &QComboBox::currentTextChanged, update_height_text);
+
+    update_height_text();
 }
 
 ConfigureUi::~ConfigureUi() = default;
@@ -123,6 +203,15 @@ void ConfigureUi::ApplyConfiguration() {
     UISettings::values.enable_screenshot_save_as = ui->enable_screenshot_save_as->isChecked();
     Common::FS::SetYuzuPath(Common::FS::YuzuPath::ScreenshotsDir,
                             ui->screenshot_path_edit->text().toStdString());
+
+    const auto ratio =
+        screenshot_aspect_ratio_translations[ui->screenshot_aspect_ratio->currentIndex()].first;
+    UISettings::values.screenshot_aspect_ratio.SetValue(ratio);
+    const u32 height = HeightToInt(ui->screenshot_height->currentText());
+    UISettings::values.screenshot_height.SetValue(height);
+    UISettings::values.screenshot_width.SetValue(
+        UISettings::CalculateWidth(height, UISettings::ConvertScreenshotRatioToRatio(ratio)));
+
     system.ApplySettings();
 }
 
