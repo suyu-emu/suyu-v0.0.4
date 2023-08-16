@@ -166,7 +166,7 @@ ConfigureUi::ConfigureUi(Core::System& system_, QWidget* parent)
         }
     });
 
-    const auto update_height_text = [this]() {
+    const auto update_width_text = [this]() {
         const auto index = ui->screenshot_aspect_ratio->currentIndex();
         const Settings::AspectRatio ratio = UISettings::ConvertScreenshotRatioToRatio(
             screenshot_aspect_ratio_translations[index].first);
@@ -180,10 +180,10 @@ ConfigureUi::ConfigureUi(Core::System& system_, QWidget* parent)
     };
 
     connect(ui->screenshot_aspect_ratio, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            update_height_text);
-    connect(ui->screenshot_height, &QComboBox::currentTextChanged, update_height_text);
+            update_width_text);
+    connect(ui->screenshot_height, &QComboBox::currentTextChanged, update_width_text);
 
-    update_height_text();
+    update_width_text();
 }
 
 ConfigureUi::~ConfigureUi() = default;
@@ -236,6 +236,15 @@ void ConfigureUi::SetConfiguration() {
         UISettings::values.enable_screenshot_save_as.GetValue());
     ui->screenshot_path_edit->setText(QString::fromStdString(
         Common::FS::GetYuzuPathString(Common::FS::YuzuPath::ScreenshotsDir)));
+
+    for (u32 i = 0; i < screenshot_aspect_ratio_translations.size(); i++) {
+        const auto ratio = screenshot_aspect_ratio_translations[i].first;
+        if (ratio == UISettings::values.screenshot_aspect_ratio.GetValue()) {
+            ui->screenshot_aspect_ratio->setCurrentIndex(i);
+        }
+    }
+    ui->screenshot_height->setCurrentText(
+        QString::fromStdString(fmt::format("{}", UISettings::values.screenshot_height.GetValue())));
 }
 
 void ConfigureUi::changeEvent(QEvent* event) {
