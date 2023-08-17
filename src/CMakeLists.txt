@@ -134,7 +134,7 @@ else()
     endif()
 
     # GCC bugs
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "11" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         # These diagnostics would be great if they worked, but are just completely broken
         # and produce bogus errors on external libraries like fmt.
         add_compile_options(
