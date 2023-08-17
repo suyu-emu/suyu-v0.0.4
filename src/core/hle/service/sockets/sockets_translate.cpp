@@ -23,10 +23,14 @@ Errno Translate(Network::Errno value) {
         return Errno::INVAL;
     case Network::Errno::MFILE:
         return Errno::MFILE;
+    case Network::Errno::PIPE:
+        return Errno::PIPE;
     case Network::Errno::NOTCONN:
         return Errno::NOTCONN;
     case Network::Errno::TIMEDOUT:
         return Errno::TIMEDOUT;
+    case Network::Errno::CONNABORTED:
+        return Errno::CONNABORTED;
     case Network::Errno::CONNRESET:
         return Errno::CONNRESET;
     case Network::Errno::INPROGRESS:
