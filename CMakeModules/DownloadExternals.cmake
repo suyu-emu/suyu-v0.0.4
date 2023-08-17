@@ -36,3 +36,21 @@ endif()
 message(STATUS "Using bundled binaries at ${prefix}")
 set(${prefix_var} "${prefix}" PARENT_SCOPE)
 endfunction()
+
+function(download_moltenvk_external platform version)
+    set(MOLTENVK_DIR "${CMAKE_BINARY_DIR}/externals/MoltenVK")
+    set(MOLTENVK_TAR "${CMAKE_BINARY_DIR}/externals/MoltenVK.tar")
+    if (NOT EXISTS ${MOLTENVK_DIR})
+        if (NOT EXISTS ${MOLTENVK_TAR})
+            file(DOWNLOAD https://github.com/KhronosGroup/MoltenVK/releases/download/${version}/MoltenVK-${platform}.tar
+                ${MOLTENVK_TAR} SHOW_PROGRESS)
+        endif()
+
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf "${MOLTENVK_TAR}"
+            WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/externals")
+    endif()
+
+    # Add the MoltenVK library path to the prefix so find_library can locate it.
+    list(APPEND CMAKE_PREFIX_PATH "${MOLTENVK_DIR}/MoltenVK/dylib/${platform}")
+    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} PARENT_SCOPE)
+endfunction()
