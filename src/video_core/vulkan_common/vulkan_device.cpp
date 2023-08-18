@@ -71,6 +71,11 @@ constexpr std::array R8G8B8_SSCALED{
     VK_FORMAT_UNDEFINED,
 };
 
+constexpr std::array VK_FORMAT_R32G32B32_SFLOAT{
+    VK_FORMAT_R32G32B32A32_SFLOAT,
+    VK_FORMAT_UNDEFINED,
+};
+
 } // namespace Alternatives
 
 enum class NvidiaArchitecture {
@@ -103,6 +108,8 @@ constexpr const VkFormat* GetFormatAlternatives(VkFormat format) {
         return Alternatives::R16G16B16_SSCALED.data();
     case VK_FORMAT_R8G8B8_SSCALED:
         return Alternatives::R8G8B8_SSCALED.data();
+    case VK_FORMAT_R32G32B32_SFLOAT:
+        return Alternatives::VK_FORMAT_R32G32B32_SFLOAT.data();
     default:
         return nullptr;
     }
@@ -130,6 +137,7 @@ std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(vk::Physica
         VK_FORMAT_A2B10G10R10_UINT_PACK32,
         VK_FORMAT_A2B10G10R10_UNORM_PACK32,
         VK_FORMAT_A2B10G10R10_USCALED_PACK32,
+        VK_FORMAT_A2R10G10B10_UNORM_PACK32,
         VK_FORMAT_A8B8G8R8_SINT_PACK32,
         VK_FORMAT_A8B8G8R8_SNORM_PACK32,
         VK_FORMAT_A8B8G8R8_SRGB_PACK32,
