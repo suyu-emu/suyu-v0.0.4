@@ -209,7 +209,7 @@ void TranslatorVisitor::R2B(u64) {
 }
 
 void TranslatorVisitor::RAM(u64) {
-    ThrowNotImplemented(Opcode::RAM);
+    LOG_WARNING(Shader, "(STUBBED) RAM Instruction");
 }
 
 void TranslatorVisitor::RET(u64) {
@@ -221,7 +221,7 @@ void TranslatorVisitor::RTT(u64) {
 }
 
 void TranslatorVisitor::SAM(u64) {
-    ThrowNotImplemented(Opcode::SAM);
+    LOG_WARNING(Shader, "(STUBBED) SAM Instruction");
 }
 
 void TranslatorVisitor::SETCRSPTR(u64) {
