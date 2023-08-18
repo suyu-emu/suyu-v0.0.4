@@ -19,7 +19,7 @@ void TranslatorVisitor::FSWZADD(u64 insn) {
     } const fswzadd{insn};
 
     if (fswzadd.ndv != 0) {
-        throw NotImplementedException("FSWZADD NDV");
+        LOG_WARNING(Shader, "(STUBBED) FSWZADD - NDV mode");
     }
 
     const IR::F32 src_a{GetFloatReg8(insn)};
