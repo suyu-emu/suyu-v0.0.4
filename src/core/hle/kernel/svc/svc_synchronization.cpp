@@ -4,6 +4,7 @@
 #include "common/scope_exit.h"
 #include "common/scratch_buffer.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_hardware_timer.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/svc.h"
@@ -83,9 +84,20 @@ Result WaitSynchronization(Core::System& system, int32_t* out_index, u64 user_ha
         }
     });
 
+    // Convert the timeout from nanoseconds to ticks.
+    s64 timeout;
+    if (timeout_ns > 0) {
+        u64 ticks = kernel.HardwareTimer().GetTick();
+        ticks += timeout_ns;
+        ticks += 2;
+
+        timeout = ticks;
+    } else {
+        timeout = timeout_ns;
+    }
+
     // Wait on the objects.
-    Result res =
-        KSynchronizationObject::Wait(kernel, out_index, objs.data(), num_handles, timeout_ns);
+    Result res = KSynchronizationObject::Wait(kernel, out_index, objs.data(), num_handles, timeout);
 
     R_SUCCEED_IF(res == ResultSessionClosed);
     R_RETURN(res);

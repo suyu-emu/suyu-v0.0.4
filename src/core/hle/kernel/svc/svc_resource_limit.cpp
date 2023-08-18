@@ -21,7 +21,7 @@ Result CreateResourceLimit(Core::System& system, Handle* out_handle) {
     SCOPE_EXIT({ resource_limit->Close(); });
 
     // Initialize the resource limit.
-    resource_limit->Initialize(std::addressof(system.CoreTiming()));
+    resource_limit->Initialize();
 
     // Register the limit.
     KResourceLimit::Register(kernel, resource_limit);

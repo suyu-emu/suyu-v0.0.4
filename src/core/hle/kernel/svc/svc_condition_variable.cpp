@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/core.h"
+#include "core/hle/kernel/k_hardware_timer.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/kernel.h"
@@ -25,7 +26,7 @@ Result WaitProcessWideKeyAtomic(Core::System& system, u64 address, u64 cv_key, u
     if (timeout_ns > 0) {
         const s64 offset_tick(timeout_ns);
         if (offset_tick > 0) {
-            timeout = offset_tick + 2;
+            timeout = system.Kernel().HardwareTimer().GetTick() + offset_tick + 2;
             if (timeout <= 0) {
                 timeout = std::numeric_limits<s64>::max();
             }
