@@ -243,6 +243,9 @@ public:
     /// Create channel state.
     void CreateChannel(Tegra::Control::ChannelState& channel) final override;
 
+    /// Prepare an image to be used
+    void PrepareImage(ImageId image_id, bool is_modification, bool invalidate);
+
     std::recursive_mutex mutex;
 
 private:
@@ -386,9 +389,6 @@ private:
 
     /// Synchronize image aliases, copying data if needed
     void SynchronizeAliases(ImageId image_id);
-
-    /// Prepare an image to be used
-    void PrepareImage(ImageId image_id, bool is_modification, bool invalidate);
 
     /// Prepare an image view to be used
     void PrepareImageView(ImageViewId image_view_id, bool is_modification, bool invalidate);
