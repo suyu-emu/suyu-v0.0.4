@@ -28,7 +28,7 @@ public:
     ~KScopedSchedulerLockAndSleep() {
         // Register the sleep.
         if (m_timeout_tick > 0) {
-            m_timer->RegisterTask(m_thread, m_timeout_tick);
+            m_timer->RegisterAbsoluteTask(m_thread, m_timeout_tick);
         }
 
         // Unlock the scheduler.

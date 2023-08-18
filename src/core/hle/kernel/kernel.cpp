@@ -231,7 +231,7 @@ struct KernelCore::Impl {
     void InitializeSystemResourceLimit(KernelCore& kernel,
                                        const Core::Timing::CoreTiming& core_timing) {
         system_resource_limit = KResourceLimit::Create(system.Kernel());
-        system_resource_limit->Initialize(&core_timing);
+        system_resource_limit->Initialize();
         KResourceLimit::Register(kernel, system_resource_limit);
 
         const auto sizes{memory_layout->GetTotalAndKernelMemorySizes()};

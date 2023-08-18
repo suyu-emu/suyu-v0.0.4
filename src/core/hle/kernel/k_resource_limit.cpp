@@ -5,6 +5,7 @@
 #include "common/overflow.h"
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/hle/kernel/k_hardware_timer.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/svc_results.h"
 
@@ -15,9 +16,7 @@ KResourceLimit::KResourceLimit(KernelCore& kernel)
     : KAutoObjectWithSlabHeapAndContainer{kernel}, m_lock{m_kernel}, m_cond_var{m_kernel} {}
 KResourceLimit::~KResourceLimit() = default;
 
-void KResourceLimit::Initialize(const Core::Timing::CoreTiming* core_timing) {
-    m_core_timing = core_timing;
-}
+void KResourceLimit::Initialize() {}
 
 void KResourceLimit::Finalize() {}
 
@@ -86,7 +85,7 @@ Result KResourceLimit::SetLimitValue(LimitableResource which, s64 value) {
 }
 
 bool KResourceLimit::Reserve(LimitableResource which, s64 value) {
-    return Reserve(which, value, m_core_timing->GetGlobalTimeNs().count() + DefaultTimeout);
+    return Reserve(which, value, m_kernel.HardwareTimer().GetTick() + DefaultTimeout);
 }
 
 bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
@@ -117,7 +116,7 @@ bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
         }
 
         if (m_current_hints[index] + value <= m_limit_values[index] &&
-            (timeout < 0 || m_core_timing->GetGlobalTimeNs().count() < timeout)) {
+            (timeout < 0 || m_kernel.HardwareTimer().GetTick() < timeout)) {
             m_waiter_count++;
             m_cond_var.Wait(std::addressof(m_lock), timeout, false);
             m_waiter_count--;
@@ -154,7 +153,7 @@ void KResourceLimit::Release(LimitableResource which, s64 value, s64 hint) {
 
 KResourceLimit* CreateResourceLimitForProcess(Core::System& system, s64 physical_memory_size) {
     auto* resource_limit = KResourceLimit::Create(system.Kernel());
-    resource_limit->Initialize(std::addressof(system.CoreTiming()));
+    resource_limit->Initialize();
 
     // Initialize default resource limit values.
     // TODO(bunnei): These values are the system defaults, the limits for service processes are
