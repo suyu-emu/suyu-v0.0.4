@@ -16,6 +16,7 @@
 #include "video_core/host_shaders/vulkan_blit_depth_stencil_frag_spv.h"
 #include "video_core/host_shaders/vulkan_color_clear_frag_spv.h"
 #include "video_core/host_shaders/vulkan_color_clear_vert_spv.h"
+#include "video_core/host_shaders/vulkan_depthstencil_clear_frag_spv.h"
 #include "video_core/renderer_vulkan/blit_image.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
@@ -428,6 +429,7 @@ BlitImageHelper::BlitImageHelper(const Device& device_, Scheduler& scheduler_,
       blit_depth_stencil_frag(BuildShader(device, VULKAN_BLIT_DEPTH_STENCIL_FRAG_SPV)),
       clear_color_vert(BuildShader(device, VULKAN_COLOR_CLEAR_VERT_SPV)),
       clear_color_frag(BuildShader(device, VULKAN_COLOR_CLEAR_FRAG_SPV)),
+      clear_stencil_frag(BuildShader(device, VULKAN_DEPTHSTENCIL_CLEAR_FRAG_SPV)),
       convert_depth_to_float_frag(BuildShader(device, CONVERT_DEPTH_TO_FLOAT_FRAG_SPV)),
       convert_float_to_depth_frag(BuildShader(device, CONVERT_FLOAT_TO_DEPTH_FRAG_SPV)),
       convert_abgr8_to_d24s8_frag(BuildShader(device, CONVERT_ABGR8_TO_D24S8_FRAG_SPV)),
@@ -590,6 +592,28 @@ void BlitImageHelper::ClearColor(const Framebuffer* dst_framebuffer, u8 color_ma
             cmdbuf.PushConstants(layout, VK_SHADER_STAGE_FRAGMENT_BIT, clear_color);
             cmdbuf.Draw(3, 1, 0, 0);
         });
+    scheduler.InvalidateState();
+}
+
+void BlitImageHelper::ClearDepthStencil(const Framebuffer* dst_framebuffer, bool depth_clear,
+                                        f32 clear_depth, u8 stencil_mask, u32 stencil_ref,
+                                        u32 stencil_compare_mask, const Region2D& dst_region) {
+    const BlitDepthStencilPipelineKey key{
+        .renderpass = dst_framebuffer->RenderPass(),
+        .depth_clear = depth_clear,
+        .stencil_mask = stencil_mask,
+        .stencil_compare_mask = stencil_compare_mask,
+        .stencil_ref = stencil_ref,
+    };
+    const VkPipeline pipeline = FindOrEmplaceClearStencilPipeline(key);
+    const VkPipelineLayout layout = *clear_color_pipeline_layout;
+    scheduler.RequestRenderpass(dst_framebuffer);
+    scheduler.Record([pipeline, layout, clear_depth, dst_region](vk::CommandBuffer cmdbuf) {
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        BindBlitState(cmdbuf, dst_region);
+        cmdbuf.PushConstants(layout, VK_SHADER_STAGE_FRAGMENT_BIT, clear_depth);
+        cmdbuf.Draw(3, 1, 0, 0);
+    });
     scheduler.InvalidateState();
 }
 
@@ -818,6 +842,61 @@ VkPipeline BlitImageHelper::FindOrEmplaceClearColorPipeline(const BlitImagePipel
         .basePipelineIndex = 0,
     }));
     return *clear_color_pipelines.back();
+}
+
+VkPipeline BlitImageHelper::FindOrEmplaceClearStencilPipeline(
+    const BlitDepthStencilPipelineKey& key) {
+    const auto it = std::ranges::find(clear_stencil_keys, key);
+    if (it != clear_stencil_keys.end()) {
+        return *clear_stencil_pipelines[std::distance(clear_stencil_keys.begin(), it)];
+    }
+    clear_stencil_keys.push_back(key);
+    const std::array stages = MakeStages(*clear_color_vert, *clear_stencil_frag);
+    const auto stencil = VkStencilOpState{
+        .failOp = VK_STENCIL_OP_KEEP,
+        .passOp = VK_STENCIL_OP_REPLACE,
+        .depthFailOp = VK_STENCIL_OP_KEEP,
+        .compareOp = VK_COMPARE_OP_ALWAYS,
+        .compareMask = key.stencil_compare_mask,
+        .writeMask = key.stencil_mask,
+        .reference = key.stencil_ref,
+    };
+    const VkPipelineDepthStencilStateCreateInfo depth_stencil_ci{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .depthTestEnable = VK_FALSE,
+        .depthWriteEnable = key.depth_clear,
+        .depthCompareOp = VK_COMPARE_OP_ALWAYS,
+        .depthBoundsTestEnable = VK_FALSE,
+        .stencilTestEnable = VK_TRUE,
+        .front = stencil,
+        .back = stencil,
+        .minDepthBounds = 0.0f,
+        .maxDepthBounds = 0.0f,
+    };
+    clear_stencil_pipelines.push_back(device.GetLogical().CreateGraphicsPipeline({
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stageCount = static_cast<u32>(stages.size()),
+        .pStages = stages.data(),
+        .pVertexInputState = &PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        .pInputAssemblyState = &PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+        .pTessellationState = nullptr,
+        .pViewportState = &PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+        .pRasterizationState = &PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+        .pMultisampleState = &PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+        .pDepthStencilState = &depth_stencil_ci,
+        .pColorBlendState = &PIPELINE_COLOR_BLEND_STATE_GENERIC_CREATE_INFO,
+        .pDynamicState = &PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .layout = *clear_color_pipeline_layout,
+        .renderPass = key.renderpass,
+        .subpass = 0,
+        .basePipelineHandle = VK_NULL_HANDLE,
+        .basePipelineIndex = 0,
+    }));
+    return *clear_stencil_pipelines.back();
 }
 
 void BlitImageHelper::ConvertPipeline(vk::Pipeline& pipeline, VkRenderPass renderpass,
