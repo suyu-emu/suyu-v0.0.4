@@ -27,6 +27,16 @@ struct BlitImagePipelineKey {
     Tegra::Engines::Fermi2D::Operation operation;
 };
 
+struct BlitDepthStencilPipelineKey {
+    constexpr auto operator<=>(const BlitDepthStencilPipelineKey&) const noexcept = default;
+
+    VkRenderPass renderpass;
+    bool depth_clear;
+    u8 stencil_mask;
+    u32 stencil_compare_mask;
+    u32 stencil_ref;
+};
+
 class BlitImageHelper {
 public:
     explicit BlitImageHelper(const Device& device, Scheduler& scheduler,
@@ -64,6 +74,10 @@ public:
     void ClearColor(const Framebuffer* dst_framebuffer, u8 color_mask,
                     const std::array<f32, 4>& clear_color, const Region2D& dst_region);
 
+    void ClearDepthStencil(const Framebuffer* dst_framebuffer, bool depth_clear, f32 clear_depth,
+                           u8 stencil_mask, u32 stencil_ref, u32 stencil_compare_mask,
+                           const Region2D& dst_region);
+
 private:
     void Convert(VkPipeline pipeline, const Framebuffer* dst_framebuffer,
                  const ImageView& src_image_view);
@@ -76,6 +90,8 @@ private:
     [[nodiscard]] VkPipeline FindOrEmplaceDepthStencilPipeline(const BlitImagePipelineKey& key);
 
     [[nodiscard]] VkPipeline FindOrEmplaceClearColorPipeline(const BlitImagePipelineKey& key);
+    [[nodiscard]] VkPipeline FindOrEmplaceClearStencilPipeline(
+        const BlitDepthStencilPipelineKey& key);
 
     void ConvertPipeline(vk::Pipeline& pipeline, VkRenderPass renderpass, bool is_target_depth);
 
@@ -108,6 +124,7 @@ private:
     vk::ShaderModule blit_depth_stencil_frag;
     vk::ShaderModule clear_color_vert;
     vk::ShaderModule clear_color_frag;
+    vk::ShaderModule clear_stencil_frag;
     vk::ShaderModule convert_depth_to_float_frag;
     vk::ShaderModule convert_float_to_depth_frag;
     vk::ShaderModule convert_abgr8_to_d24s8_frag;
@@ -122,6 +139,8 @@ private:
     std::vector<vk::Pipeline> blit_depth_stencil_pipelines;
     std::vector<BlitImagePipelineKey> clear_color_keys;
     std::vector<vk::Pipeline> clear_color_pipelines;
+    std::vector<BlitDepthStencilPipelineKey> clear_stencil_keys;
+    std::vector<vk::Pipeline> clear_stencil_pipelines;
     vk::Pipeline convert_d32_to_r32_pipeline;
     vk::Pipeline convert_r32_to_d32_pipeline;
     vk::Pipeline convert_d16_to_r16_pipeline;
