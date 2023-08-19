@@ -9,16 +9,15 @@
 namespace VideoCommon {
 
 enum class QueryFlagBits : u32 {
-    HasTimestamp = 1 << 0,          ///< Indicates if this query has a timestamp.
-    IsFinalValueSynced = 1 << 1,    ///< Indicates if the query has been synced in the host
-    IsHostSynced = 1 << 2,          ///< Indicates if the query has been synced in the host
-    IsGuestSynced = 1 << 3,         ///< Indicates if the query has been synced with the guest.
-    IsHostManaged = 1 << 4,         ///< Indicates if this query points to a host query
-    IsRewritten = 1 << 5,           ///< Indicates if this query was rewritten by another query
-    IsInvalidated = 1 << 6,         ///< Indicates the value of th query has been nullified.
-    IsOrphan = 1 << 7,              ///< Indicates the query has not been set by a guest query.
-    IsFence = 1 << 8,               ///< Indicates the query is a fence.
-    IsQueuedForAsyncFlush = 1 << 9, ///< Indicates that the query can be flushed at any moment
+    HasTimestamp = 1 << 0,       ///< Indicates if this query has a timestamp.
+    IsFinalValueSynced = 1 << 1, ///< Indicates if the query has been synced in the host
+    IsHostSynced = 1 << 2,       ///< Indicates if the query has been synced in the host
+    IsGuestSynced = 1 << 3,      ///< Indicates if the query has been synced with the guest.
+    IsHostManaged = 1 << 4,      ///< Indicates if this query points to a host query
+    IsRewritten = 1 << 5,        ///< Indicates if this query was rewritten by another query
+    IsInvalidated = 1 << 6,      ///< Indicates the value of th query has been nullified.
+    IsOrphan = 1 << 7,           ///< Indicates the query has not been set by a guest query.
+    IsFence = 1 << 8,            ///< Indicates the query is a fence.
 };
 DECLARE_ENUM_FLAG_OPERATORS(QueryFlagBits)
 

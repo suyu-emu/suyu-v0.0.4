@@ -586,12 +586,6 @@ void Maxwell3D::ProcessQueryCondition() {
 }
 
 void Maxwell3D::ProcessCounterReset() {
-#if ANDROID
-    if (!Settings::IsGPULevelHigh()) {
-        // This is problematic on Android, disable on GPU Normal.
-        return;
-    }
-#endif
     switch (regs.clear_report_value) {
     case Regs::ClearReport::ZPassPixelCount:
         rasterizer->ResetCounter(VideoCommon::QueryType::ZPassPixelCount64);

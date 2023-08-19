@@ -110,13 +110,16 @@ struct HostSyncValues {
 
 class SamplesStreamer : public BaseStreamer {
 public:
-    explicit SamplesStreamer(size_t id_, QueryCacheRuntime& runtime_, const Device& device_,
+    explicit SamplesStreamer(size_t id_, QueryCacheRuntime& runtime_,
+                             VideoCore::RasterizerInterface* rasterizer_, const Device& device_,
                              Scheduler& scheduler_, const MemoryAllocator& memory_allocator_)
-        : BaseStreamer(id_), runtime{runtime_}, device{device_}, scheduler{scheduler_},
-          memory_allocator{memory_allocator_} {
+        : BaseStreamer(id_), runtime{runtime_}, rasterizer{rasterizer_}, device{device_},
+          scheduler{scheduler_}, memory_allocator{memory_allocator_} {
         BuildResolveBuffer();
         current_bank = nullptr;
         current_query = nullptr;
+        ammend_value = 0;
+        acumulation_value = 0;
     }
 
     ~SamplesStreamer() = default;
@@ -151,6 +154,11 @@ public:
             PauseCounter();
         }
         AbandonCurrentQuery();
+        std::function<void()> func([this, counts = pending_flush_queries.size()] {
+            ammend_value = 0;
+            acumulation_value = 0;
+        });
+        rasterizer->SyncOperation(std::move(func));
     }
 
     void CloseCounter() override {
@@ -244,7 +252,7 @@ public:
             }
             if (query->size_slots > 1) {
                 // This is problematic.
-                UNIMPLEMENTED();
+                // UNIMPLEMENTED();
             }
             query->flags |= VideoCommon::QueryFlagBits::IsHostSynced;
             auto loc_data = offsets[query->start_bank_id];
@@ -255,16 +263,20 @@ public:
             });
         }
 
+        ReplicateCurrentQueryIfNeeded();
+        std::function<void()> func([this] { ammend_value = acumulation_value; });
+        rasterizer->SyncOperation(std::move(func));
         AbandonCurrentQuery();
         pending_sync.clear();
     }
 
     size_t WriteCounter(VAddr address, bool has_timestamp, u32 value,
                         [[maybe_unused]] std::optional<u32> subreport) override {
+        PauseCounter();
         auto index = BuildQuery();
         auto* new_query = GetQuery(index);
         new_query->guest_address = address;
-        new_query->value = 100;
+        new_query->value = 0;
         new_query->flags &= ~VideoCommon::QueryFlagBits::IsOrphan;
         if (has_timestamp) {
             new_query->flags |= VideoCommon::QueryFlagBits::HasTimestamp;
@@ -291,6 +303,7 @@ public:
 
     void PushUnsyncedQueries() override {
         PauseCounter();
+        current_bank->Close();
         {
             std::scoped_lock lk(flush_guard);
             pending_flush_sets.emplace_back(std::move(pending_flush_queries));
@@ -429,6 +442,34 @@ private:
         current_query_id = 0;
     }
 
+    void ReplicateCurrentQueryIfNeeded() {
+        if (pending_sync.empty()) {
+            return;
+        }
+        if (!current_query) {
+            return;
+        }
+        auto index = BuildQuery();
+        auto* new_query = GetQuery(index);
+        new_query->guest_address = 0;
+        new_query->value = 0;
+        new_query->flags &= ~VideoCommon::QueryFlagBits::IsOrphan;
+        new_query->start_bank_id = current_query->start_bank_id;
+        new_query->size_banks = current_query->size_banks;
+        new_query->start_slot = current_query->start_slot;
+        new_query->size_slots = current_query->size_slots;
+        ApplyBankOp(new_query, [](SamplesQueryBank* bank, size_t start, size_t amount) {
+            bank->AddReference(amount);
+        });
+        pending_flush_queries.push_back(index);
+        std::function<void()> func([this, index] {
+            auto* query = GetQuery(index);
+            query->value += GetAmmendValue();
+            SetAccumulationValue(query->value);
+            Free(index);
+        });
+    }
+
     void BuildResolveBuffer() {
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -448,6 +489,7 @@ private:
     static constexpr size_t resolve_slots = 8;
 
     QueryCacheRuntime& runtime;
+    VideoCore::RasterizerInterface* rasterizer;
     const Device& device;
     Scheduler& scheduler;
     const MemoryAllocator& memory_allocator;
@@ -470,6 +512,7 @@ private:
     size_t current_query_id;
     VideoCommon::HostQueryBase* current_query;
     bool has_started{};
+    bool current_unset{};
     std::mutex flush_guard;
 };
 
@@ -677,7 +720,6 @@ public:
         size_t offset_base = staging_ref.offset;
         for (auto q : pending_flush_queries) {
             auto* query = GetQuery(q);
-            query->flags |= VideoCommon::QueryFlagBits::IsQueuedForAsyncFlush;
             auto& bank = bank_pool.GetBank(query->start_bank_id);
             bank.Sync(staging_ref, offset_base, query->start_slot, 1);
             offset_base += TFBQueryBank::QUERY_SIZE;
@@ -1047,8 +1089,8 @@ struct QueryCacheRuntimeImpl {
           buffer_cache{buffer_cache_}, device{device_},
           memory_allocator{memory_allocator_}, scheduler{scheduler_}, staging_pool{staging_pool_},
           guest_streamer(0, runtime),
-          sample_streamer(static_cast<size_t>(QueryType::ZPassPixelCount64), runtime, device,
-                          scheduler, memory_allocator),
+          sample_streamer(static_cast<size_t>(QueryType::ZPassPixelCount64), runtime, rasterizer,
+                          device, scheduler, memory_allocator),
           tfb_streamer(static_cast<size_t>(QueryType::StreamingByteCount), runtime, device,
                        scheduler, memory_allocator, staging_pool),
           primitives_succeeded_streamer(
@@ -1276,6 +1318,10 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
             HostConditionalRenderingCompareValueImpl(*objects[j], equal_check);
             return true;
         }
+    }
+    if (!is_in_bc[0] && !is_in_bc[1]) {
+        // Both queries are in query cache, it's best to just flush.
+        return false;
     }
     HostConditionalRenderingCompareBCImpl(object_1.address, equal_check);
     return true;

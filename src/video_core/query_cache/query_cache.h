@@ -256,30 +256,32 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
     u8* pointer = impl->cpu_memory.GetPointer(cpu_addr);
     u8* pointer_timestamp = impl->cpu_memory.GetPointer(cpu_addr + 8);
     bool is_synced = !Settings::IsGPULevelHigh() && is_fence;
-    std::function<void()> operation(
-        [this, is_synced, query_base = query, query_location, pointer, pointer_timestamp] {
-            if (True(query_base->flags & QueryFlagBits::IsInvalidated)) {
-                if (!is_synced) [[likely]] {
-                    impl->pending_unregister.push_back(query_location);
-                }
-                return;
-            }
-            if (False(query_base->flags & QueryFlagBits::IsFinalValueSynced)) [[unlikely]] {
-                UNREACHABLE();
-                return;
-            }
-            if (True(query_base->flags & QueryFlagBits::HasTimestamp)) {
-                u64 timestamp = impl->gpu.GetTicks();
-                std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
-                std::memcpy(pointer, &query_base->value, sizeof(query_base->value));
-            } else {
-                u32 value = static_cast<u32>(query_base->value);
-                std::memcpy(pointer, &value, sizeof(value));
-            }
+    std::function<void()> operation([this, is_synced, streamer, query_base = query, query_location,
+                                     pointer, pointer_timestamp] {
+        if (True(query_base->flags & QueryFlagBits::IsInvalidated)) {
             if (!is_synced) [[likely]] {
                 impl->pending_unregister.push_back(query_location);
             }
-        });
+            return;
+        }
+        if (False(query_base->flags & QueryFlagBits::IsFinalValueSynced)) [[unlikely]] {
+            UNREACHABLE();
+            return;
+        }
+        query_base->value += streamer->GetAmmendValue();
+        streamer->SetAccumulationValue(query_base->value);
+        if (True(query_base->flags & QueryFlagBits::HasTimestamp)) {
+            u64 timestamp = impl->gpu.GetTicks();
+            std::memcpy(pointer_timestamp, &timestamp, sizeof(timestamp));
+            std::memcpy(pointer, &query_base->value, sizeof(query_base->value));
+        } else {
+            u32 value = static_cast<u32>(query_base->value);
+            std::memcpy(pointer, &value, sizeof(value));
+        }
+        if (!is_synced) [[likely]] {
+            impl->pending_unregister.push_back(query_location);
+        }
+    });
     if (is_fence) {
         impl->rasterizer.SignalFence(std::move(operation));
     } else {
@@ -354,9 +356,9 @@ void QueryCacheBase<Traits>::NotifySegment(bool resume) {
     if (resume) {
         impl->runtime.ResumeHostConditionalRendering();
     } else {
-        impl->runtime.PauseHostConditionalRendering();
         CounterClose(VideoCommon::QueryType::ZPassPixelCount64);
         CounterClose(VideoCommon::QueryType::StreamingByteCount);
+        impl->runtime.PauseHostConditionalRendering();
     }
 }
 

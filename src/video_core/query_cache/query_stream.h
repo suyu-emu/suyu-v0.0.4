@@ -78,6 +78,14 @@ public:
         return dependence_mask;
     }
 
+    u64 GetAmmendValue() const {
+        return ammend_value;
+    }
+
+    void SetAccumulationValue(u64 new_value) {
+        acumulation_value = new_value;
+    }
+
 protected:
     void MakeDependent(StreamerInterface* depend_on) {
         dependence_mask |= 1ULL << depend_on->id;
@@ -87,6 +95,8 @@ protected:
     const size_t id;
     u64 dependence_mask;
     u64 dependent_mask;
+    u64 ammend_value{};
+    u64 acumulation_value{};
 };
 
 template <typename QueryType>
