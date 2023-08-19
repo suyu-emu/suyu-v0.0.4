@@ -428,15 +428,27 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     if (aspect_flags == 0) {
         return;
     }
-    scheduler.Record([clear_depth = regs.clear_depth, clear_stencil = regs.clear_stencil,
-                      clear_rect, aspect_flags](vk::CommandBuffer cmdbuf) {
-        VkClearAttachment attachment;
-        attachment.aspectMask = aspect_flags;
-        attachment.colorAttachment = 0;
-        attachment.clearValue.depthStencil.depth = clear_depth;
-        attachment.clearValue.depthStencil.stencil = clear_stencil;
-        cmdbuf.ClearAttachments(attachment, clear_rect);
-    });
+
+    if (use_stencil && regs.stencil_front_mask != 0xFF && regs.stencil_front_mask != 0) {
+        Region2D dst_region = {
+            Offset2D{.x = clear_rect.rect.offset.x, .y = clear_rect.rect.offset.y},
+            Offset2D{.x = clear_rect.rect.offset.x + static_cast<s32>(clear_rect.rect.extent.width),
+                     .y = clear_rect.rect.offset.y +
+                          static_cast<s32>(clear_rect.rect.extent.height)}};
+        blit_image.ClearDepthStencil(framebuffer, use_depth, regs.clear_depth,
+                                     static_cast<u8>(regs.stencil_front_mask), regs.clear_stencil,
+                                     regs.stencil_front_func_mask, dst_region);
+    } else {
+        scheduler.Record([clear_depth = regs.clear_depth, clear_stencil = regs.clear_stencil,
+                          clear_rect, aspect_flags](vk::CommandBuffer cmdbuf) {
+            VkClearAttachment attachment;
+            attachment.aspectMask = aspect_flags;
+            attachment.colorAttachment = 0;
+            attachment.clearValue.depthStencil.depth = clear_depth;
+            attachment.clearValue.depthStencil.stencil = clear_stencil;
+            cmdbuf.ClearAttachments(attachment, clear_rect);
+        });
+    }
 }
 
 void RasterizerVulkan::DispatchCompute() {
