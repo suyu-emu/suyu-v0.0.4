@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "common/bit_util.h"
 #include "common/common_types.h"
 #include "core/memory.h"
 #include "video_core/engines/draw_manager.h"
@@ -112,14 +113,34 @@ class SamplesStreamer : public BaseStreamer {
 public:
     explicit SamplesStreamer(size_t id_, QueryCacheRuntime& runtime_,
                              VideoCore::RasterizerInterface* rasterizer_, const Device& device_,
-                             Scheduler& scheduler_, const MemoryAllocator& memory_allocator_)
+                             Scheduler& scheduler_, const MemoryAllocator& memory_allocator_,
+                             ComputePassDescriptorQueue& compute_pass_descriptor_queue,
+                             DescriptorPool& descriptor_pool)
         : BaseStreamer(id_), runtime{runtime_}, rasterizer{rasterizer_}, device{device_},
           scheduler{scheduler_}, memory_allocator{memory_allocator_} {
-        BuildResolveBuffer();
         current_bank = nullptr;
         current_query = nullptr;
         ammend_value = 0;
         acumulation_value = 0;
+        queries_prefix_scan_pass = std::make_unique<QueriesPrefixScanPass>(
+            device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
+
+        const VkBufferCreateInfo buffer_ci = {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .size = 8,
+            .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
+                     VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .queueFamilyIndexCount = 0,
+            .pQueueFamilyIndices = nullptr,
+        };
+        accumulation_buffer = memory_allocator.CreateBuffer(buffer_ci, MemoryUsage::DeviceLocal);
+        scheduler.RequestOutsideRenderPassOperationContext();
+        scheduler.Record([buffer = *accumulation_buffer](vk::CommandBuffer cmdbuf) {
+            cmdbuf.FillBuffer(buffer, 0, 8, 0);
+        });
     }
 
     ~SamplesStreamer() = default;
@@ -159,6 +180,8 @@ public:
             acumulation_value = 0;
         });
         rasterizer->SyncOperation(std::move(func));
+        accumulation_since_last_sync = false;
+        last_accumulation_checkpoint = std::min(last_accumulation_checkpoint, num_slots_used);
     }
 
     void CloseCounter() override {
@@ -175,7 +198,8 @@ public:
         }
 
         for (size_t i = 0; i < sync_values_stash.size(); i++) {
-            runtime.template SyncValues<HostSyncValues>(sync_values_stash[i], *resolve_buffers[i]);
+            runtime.template SyncValues<HostSyncValues>(sync_values_stash[i],
+                                                        *buffers[resolve_buffers[i]]);
         }
 
         sync_values_stash.clear();
@@ -189,36 +213,21 @@ public:
         sync_values_stash.clear();
         sync_values_stash.emplace_back();
         std::vector<HostSyncValues>* sync_values = &sync_values_stash.back();
-        sync_values->reserve(resolve_slots * SamplesQueryBank::BANK_SIZE);
+        sync_values->reserve(num_slots_used);
         std::unordered_map<size_t, std::pair<size_t, size_t>> offsets;
-        size_t this_bank_slot = std::numeric_limits<size_t>::max();
-        size_t resolve_slots_remaining = resolve_slots;
-        size_t resolve_buffer_index = 0;
+        resolve_buffers.clear();
+        size_t resolve_buffer_index = ObtainBuffer<true>(num_slots_used);
+        resolve_buffers.push_back(resolve_buffer_index);
+        size_t base_offset = 0;
+
         ApplyBanksWideOp<true>(pending_sync, [&](SamplesQueryBank* bank, size_t start,
                                                  size_t amount) {
             size_t bank_id = bank->GetIndex();
-            if (this_bank_slot != bank_id) {
-                this_bank_slot = bank_id;
-                if (resolve_slots_remaining == 0) {
-                    resolve_buffer_index++;
-                    if (resolve_buffer_index >= resolve_buffers.size()) {
-                        BuildResolveBuffer();
-                    }
-                    resolve_slots_remaining = resolve_slots;
-                    sync_values_stash.emplace_back();
-                    sync_values = &sync_values_stash.back();
-                    sync_values->reserve(resolve_slots * SamplesQueryBank::BANK_SIZE);
-                }
-                resolve_slots_remaining--;
-            }
-            auto& resolve_buffer = resolve_buffers[resolve_buffer_index];
-            const size_t base_offset = SamplesQueryBank::QUERY_SIZE * SamplesQueryBank::BANK_SIZE *
-                                       (resolve_slots - resolve_slots_remaining - 1);
+            auto& resolve_buffer = buffers[resolve_buffer_index];
             VkQueryPool query_pool = bank->GetInnerPool();
             scheduler.RequestOutsideRenderPassOperationContext();
             scheduler.Record([start, amount, base_offset, query_pool,
                               buffer = *resolve_buffer](vk::CommandBuffer cmdbuf) {
-                size_t final_offset = base_offset + start * SamplesQueryBank::QUERY_SIZE;
                 const VkBufferMemoryBarrier copy_query_pool_barrier{
                     .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
                     .pNext = nullptr,
@@ -227,39 +236,60 @@ public:
                     .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                     .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                     .buffer = buffer,
-                    .offset = final_offset,
+                    .offset = base_offset,
                     .size = amount * SamplesQueryBank::QUERY_SIZE,
                 };
 
                 cmdbuf.CopyQueryPoolResults(
                     query_pool, static_cast<u32>(start), static_cast<u32>(amount), buffer,
-                    static_cast<u32>(final_offset), SamplesQueryBank::QUERY_SIZE,
+                    static_cast<u32>(base_offset), SamplesQueryBank::QUERY_SIZE,
                     VK_QUERY_RESULT_WAIT_BIT | VK_QUERY_RESULT_64_BIT);
                 cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
                                        VK_PIPELINE_STAGE_TRANSFER_BIT, 0, copy_query_pool_barrier);
             });
-            offsets[bank_id] = {sync_values_stash.size() - 1, base_offset};
+            offsets[bank_id] = {start, base_offset};
+            base_offset += amount * SamplesQueryBank::QUERY_SIZE;
         });
 
         // Convert queries
+        bool has_multi_queries = false;
         for (auto q : pending_sync) {
             auto* query = GetQuery(q);
+            size_t sync_value_slot = 0;
             if (True(query->flags & VideoCommon::QueryFlagBits::IsRewritten)) {
                 continue;
             }
             if (True(query->flags & VideoCommon::QueryFlagBits::IsInvalidated)) {
                 continue;
             }
-            if (query->size_slots > 1) {
-                // This is problematic.
-                // UNIMPLEMENTED();
+            if (accumulation_since_last_sync || query->size_slots > 1) {
+                if (!has_multi_queries) {
+                    has_multi_queries = true;
+                    sync_values_stash.emplace_back();
+                }
+                sync_value_slot = 1;
             }
             query->flags |= VideoCommon::QueryFlagBits::IsHostSynced;
             auto loc_data = offsets[query->start_bank_id];
-            sync_values_stash[loc_data.first].emplace_back(HostSyncValues{
+            sync_values_stash[sync_value_slot].emplace_back(HostSyncValues{
                 .address = query->guest_address,
                 .size = SamplesQueryBank::QUERY_SIZE,
-                .offset = loc_data.second + query->start_slot * SamplesQueryBank::QUERY_SIZE,
+                .offset =
+                    loc_data.second + (query->start_slot - loc_data.first + query->size_slots - 1) *
+                                          SamplesQueryBank::QUERY_SIZE,
+            });
+        }
+
+        if (has_multi_queries) {
+            size_t intermediary_buffer_index = ObtainBuffer<false>(num_slots_used);
+            resolve_buffers.push_back(intermediary_buffer_index);
+            queries_prefix_scan_pass->Run(*accumulation_buffer, *buffers[intermediary_buffer_index],
+                                          *buffers[resolve_buffer_index], num_slots_used,
+                                          std::min(last_accumulation_checkpoint, num_slots_used));
+        } else {
+            scheduler.RequestOutsideRenderPassOperationContext();
+            scheduler.Record([buffer = *accumulation_buffer](vk::CommandBuffer cmdbuf) {
+                cmdbuf.FillBuffer(buffer, 0, 8, 0);
             });
         }
 
@@ -267,6 +297,9 @@ public:
         std::function<void()> func([this] { ammend_value = acumulation_value; });
         rasterizer->SyncOperation(std::move(func));
         AbandonCurrentQuery();
+        num_slots_used = 0;
+        last_accumulation_checkpoint = std::numeric_limits<size_t>::max();
+        accumulation_since_last_sync = has_multi_queries;
         pending_sync.clear();
     }
 
@@ -400,6 +433,7 @@ private:
     void ReserveHostQuery() {
         size_t new_slot = ReserveBankSlot();
         current_bank->AddReference(1);
+        num_slots_used++;
         if (current_query) {
             size_t bank_id = current_query->start_bank_id;
             size_t banks_set = current_query->size_banks - 1;
@@ -470,23 +504,37 @@ private:
         });
     }
 
-    void BuildResolveBuffer() {
+    template <bool is_resolve>
+    size_t ObtainBuffer(size_t num_needed) {
+        const size_t log_2 = std::max<size_t>(6U, Common::Log2Ceil64(num_needed));
+        if constexpr (is_resolve) {
+            if (resolve_table[log_2] != 0) {
+                return resolve_table[log_2] - 1;
+            }
+        } else {
+            if (intermediary_table[log_2] != 0) {
+                return intermediary_table[log_2] - 1;
+            }
+        }
         const VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
-            .size = SamplesQueryBank::QUERY_SIZE * SamplesQueryBank::BANK_SIZE * resolve_slots,
+            .size = SamplesQueryBank::QUERY_SIZE * (1ULL << log_2),
             .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
         };
-        resolve_buffers.emplace_back(
-            memory_allocator.CreateBuffer(buffer_ci, MemoryUsage::DeviceLocal));
+        buffers.emplace_back(memory_allocator.CreateBuffer(buffer_ci, MemoryUsage::DeviceLocal));
+        if constexpr (is_resolve) {
+            resolve_table[log_2] = buffers.size();
+        } else {
+            intermediary_table[log_2] = buffers.size();
+        }
+        return buffers.size() - 1;
     }
-
-    static constexpr size_t resolve_slots = 8;
 
     QueryCacheRuntime& runtime;
     VideoCore::RasterizerInterface* rasterizer;
@@ -494,8 +542,12 @@ private:
     Scheduler& scheduler;
     const MemoryAllocator& memory_allocator;
     VideoCommon::BankPool<SamplesQueryBank> bank_pool;
-    std::deque<vk::Buffer> resolve_buffers;
+    std::deque<vk::Buffer> buffers;
+    std::array<size_t, 32> resolve_table{};
+    std::array<size_t, 32> intermediary_table{};
+    vk::Buffer accumulation_buffer;
     std::deque<std::vector<HostSyncValues>> sync_values_stash;
+    std::vector<size_t> resolve_buffers;
 
     // syncing queue
     std::vector<size_t> pending_sync;
@@ -510,10 +562,14 @@ private:
     SamplesQueryBank* current_bank;
     VkQueryPool current_query_pool;
     size_t current_query_id;
+    size_t num_slots_used{};
+    size_t last_accumulation_checkpoint{};
+    bool accumulation_since_last_sync{};
     VideoCommon::HostQueryBase* current_query;
     bool has_started{};
-    bool current_unset{};
     std::mutex flush_guard;
+
+    std::unique_ptr<QueriesPrefixScanPass> queries_prefix_scan_pass;
 };
 
 // Transform feedback queries
@@ -1090,7 +1146,8 @@ struct QueryCacheRuntimeImpl {
           memory_allocator{memory_allocator_}, scheduler{scheduler_}, staging_pool{staging_pool_},
           guest_streamer(0, runtime),
           sample_streamer(static_cast<size_t>(QueryType::ZPassPixelCount64), runtime, rasterizer,
-                          device, scheduler, memory_allocator),
+                          device, scheduler, memory_allocator, compute_pass_descriptor_queue,
+                          descriptor_pool),
           tfb_streamer(static_cast<size_t>(QueryType::StreamingByteCount), runtime, device,
                        scheduler, memory_allocator, staging_pool),
           primitives_succeeded_streamer(
@@ -1319,10 +1376,10 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
             return true;
         }
     }
-    if (!is_in_bc[0] && !is_in_bc[1]) {
+    /*if (!is_in_bc[0] && !is_in_bc[1]) {
         // Both queries are in query cache, it's best to just flush.
-        return false;
-    }
+        return true;
+    }*/
     HostConditionalRenderingCompareBCImpl(object_1.address, equal_check);
     return true;
 }

@@ -95,6 +95,20 @@ private:
     ComputePassDescriptorQueue& compute_pass_descriptor_queue;
 };
 
+class QueriesPrefixScanPass final : public ComputePass {
+public:
+    explicit QueriesPrefixScanPass(const Device& device_, Scheduler& scheduler_,
+                                   DescriptorPool& descriptor_pool_,
+                                   ComputePassDescriptorQueue& compute_pass_descriptor_queue_);
+
+    void Run(VkBuffer accumulation_buffer, VkBuffer dst_buffer, VkBuffer src_buffer,
+             size_t number_of_sums, size_t max_accumulation_limit);
+
+private:
+    Scheduler& scheduler;
+    ComputePassDescriptorQueue& compute_pass_descriptor_queue;
+};
+
 class ASTCDecoderPass final : public ComputePass {
 public:
     explicit ASTCDecoderPass(const Device& device_, Scheduler& scheduler_,
