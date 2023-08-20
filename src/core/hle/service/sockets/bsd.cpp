@@ -1029,6 +1029,11 @@ BSD::~BSD() {
     }
 }
 
+std::unique_lock<std::mutex> BSD::LockService() {
+    // Do not lock socket IClient instances.
+    return {};
+}
+
 BSDCFG::BSDCFG(Core::System& system_) : ServiceFramework{system_, "bsdcfg"} {
     // clang-format off
     static const FunctionInfo functions[] = {

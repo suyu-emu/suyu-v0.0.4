@@ -186,6 +186,9 @@ private:
 
     // Callback identifier for the OnProxyPacketReceived event.
     Network::RoomMember::CallbackHandle<Network::ProxyPacket> proxy_packet_received;
+
+protected:
+    virtual std::unique_lock<std::mutex> LockService() override;
 };
 
 class BSDCFG final : public ServiceFramework<BSDCFG> {
