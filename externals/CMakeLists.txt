@@ -42,6 +42,9 @@ endif()
 # mbedtls
 add_subdirectory(mbedtls)
 target_include_directories(mbedtls PUBLIC ./mbedtls/include)
+target_compile_options(mbedcrypto PRIVATE
+    $<$<CXX_COMPILER_ID:Clang>:-Wno-unused-but-set-variable>
+    $<$<CXX_COMPILER_ID:Clang>:-Wno-string-concatenation>)
 
 # MicroProfile
 add_library(microprofile INTERFACE)
@@ -94,6 +97,10 @@ if (ENABLE_CUBEB AND NOT TARGET cubeb::cubeb)
     set(BUILD_TOOLS OFF)
     add_subdirectory(cubeb)
     add_library(cubeb::cubeb ALIAS cubeb)
+    if (NOT MSVC)
+        target_compile_options(speex PRIVATE -Wno-sign-compare)
+        target_compile_options(cubeb PRIVATE -Wno-implicit-const-int-float-conversion)
+    endif()
 endif()
 
 # DiscordRPC
@@ -151,6 +158,9 @@ endif()
 if (NOT TARGET LLVM::Demangle)
     add_library(demangle demangle/ItaniumDemangle.cpp)
     target_include_directories(demangle PUBLIC ./demangle)
+    if (NOT MSVC)
+        target_compile_options(demangle PRIVATE -Wno-deprecated-declarations) # std::is_pod
+    endif()
     add_library(LLVM::Demangle ALIAS demangle)
 endif()
 

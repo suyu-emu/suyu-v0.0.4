@@ -460,11 +460,6 @@ S operator&(const S& i, const swap_struct_t<T, F> v) {
     return i & v.swap();
 }
 
-template <typename S, typename T, typename F>
-S operator&(const swap_struct_t<T, F> v, const S& i) {
-    return static_cast<S>(v.swap() & i);
-}
-
 // Comparison
 template <typename S, typename T, typename F>
 bool operator<(const S& p, const swap_struct_t<T, F> v) {

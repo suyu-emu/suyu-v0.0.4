@@ -835,15 +835,15 @@ public:
         return input_engine->SupportsNfc(identifier);
     }
 
-    Common::Input::NfcState StartNfcPolling() {
+    Common::Input::NfcState StartNfcPolling() override {
         return input_engine->StartNfcPolling(identifier);
     }
 
-    Common::Input::NfcState StopNfcPolling() {
+    Common::Input::NfcState StopNfcPolling() override {
         return input_engine->StopNfcPolling(identifier);
     }
 
-    Common::Input::NfcState ReadAmiiboData(std::vector<u8>& out_data) {
+    Common::Input::NfcState ReadAmiiboData(std::vector<u8>& out_data) override {
         return input_engine->ReadAmiiboData(identifier, out_data);
     }
 
@@ -852,11 +852,11 @@ public:
     }
 
     Common::Input::NfcState ReadMifareData(const Common::Input::MifareRequest& request,
-                                           Common::Input::MifareRequest& out_data) {
+                                           Common::Input::MifareRequest& out_data) override {
         return input_engine->ReadMifareData(identifier, request, out_data);
     }
 
-    Common::Input::NfcState WriteMifareData(const Common::Input::MifareRequest& request) {
+    Common::Input::NfcState WriteMifareData(const Common::Input::MifareRequest& request) override {
         return input_engine->WriteMifareData(identifier, request);
     }
 

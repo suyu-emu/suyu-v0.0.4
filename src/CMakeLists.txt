@@ -117,6 +117,7 @@ else()
 
         $<$<CXX_COMPILER_ID:Clang>:-Wno-braced-scalar-init>
         $<$<CXX_COMPILER_ID:Clang>:-Wno-unused-private-field>
+        $<$<CXX_COMPILER_ID:Clang>:-Wno-nullability-completeness>
         $<$<CXX_COMPILER_ID:Clang>:-Werror=shadow-uncaptured-local>
         $<$<CXX_COMPILER_ID:Clang>:-Werror=implicit-fallthrough>
         $<$<CXX_COMPILER_ID:Clang>:-Werror=type-limits>
