@@ -43,8 +43,8 @@ endif()
 add_subdirectory(mbedtls)
 target_include_directories(mbedtls PUBLIC ./mbedtls/include)
 target_compile_options(mbedcrypto PRIVATE
-    $<$<CXX_COMPILER_ID:Clang>:-Wno-unused-but-set-variable>
-    $<$<CXX_COMPILER_ID:Clang>:-Wno-string-concatenation>)
+    -Wno-unused-but-set-variable
+    -Wno-string-concatenation)
 
 # MicroProfile
 add_library(microprofile INTERFACE)
@@ -98,7 +98,9 @@ if (ENABLE_CUBEB AND NOT TARGET cubeb::cubeb)
     add_subdirectory(cubeb)
     add_library(cubeb::cubeb ALIAS cubeb)
     if (NOT MSVC)
-        target_compile_options(speex PRIVATE -Wno-sign-compare)
+        if (TARGET speex)
+            target_compile_options(speex PRIVATE -Wno-sign-compare)
+        endif()
         target_compile_options(cubeb PRIVATE -Wno-implicit-const-int-float-conversion)
     endif()
 endif()
