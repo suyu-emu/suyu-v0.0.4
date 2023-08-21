@@ -79,8 +79,6 @@ enum class ResultStatus : u16 {
     ErrorBadPFSHeader,
     ErrorIncorrectPFSFileSize,
     ErrorBadNCAHeader,
-    ErrorCompressedNCA,
-    ErrorSparseNCA,
     ErrorMissingProductionKeyFile,
     ErrorMissingHeaderKey,
     ErrorIncorrectHeaderKey,
@@ -273,16 +271,6 @@ public:
      */
     virtual bool IsRomFSUpdatable() const {
         return true;
-    }
-
-    /**
-     * Gets the difference between the start of the IVFC header and the start of level 6 (RomFS)
-     * data. Needed for BKTR patching.
-     *
-     * @return IVFC offset for RomFS.
-     */
-    virtual u64 ReadRomFSIVFCOffset() const {
-        return 0;
     }
 
     /**

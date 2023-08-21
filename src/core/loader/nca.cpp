@@ -5,6 +5,8 @@
 
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"
+#include "core/file_sys/nca_metadata.h"
+#include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs_factory.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/service/filesystem/filesystem.h"
@@ -43,9 +45,23 @@ AppLoader_NCA::LoadResult AppLoader_NCA::Load(Kernel::KProcess& process, Core::S
         return {ResultStatus::ErrorNCANotProgram, {}};
     }
 
-    const auto exefs = nca->GetExeFS();
+    auto exefs = nca->GetExeFS();
     if (exefs == nullptr) {
-        return {ResultStatus::ErrorNoExeFS, {}};
+        LOG_INFO(Loader, "No ExeFS found in NCA, looking for ExeFS from update");
+
+        // This NCA may be a sparse base of an installed title.
+        // Try to fetch the ExeFS from the installed update.
+        const auto& installed = system.GetContentProvider();
+        const auto update_nca = installed.GetEntry(FileSys::GetUpdateTitleID(nca->GetTitleId()),
+                                                   FileSys::ContentRecordType::Program);
+
+        if (update_nca) {
+            exefs = update_nca->GetExeFS();
+        }
+
+        if (exefs == nullptr) {
+            return {ResultStatus::ErrorNoExeFS, {}};
+        }
     }
 
     directory_loader = std::make_unique<AppLoader_DeconstructedRomDirectory>(exefs, true);
@@ -75,14 +91,6 @@ ResultStatus AppLoader_NCA::ReadRomFS(FileSys::VirtualFile& dir) {
 
     dir = nca->GetRomFS();
     return ResultStatus::Success;
-}
-
-u64 AppLoader_NCA::ReadRomFSIVFCOffset() const {
-    if (nca == nullptr) {
-        return 0;
-    }
-
-    return nca->GetBaseIVFCOffset();
 }
 
 ResultStatus AppLoader_NCA::ReadProgramId(u64& out_program_id) {

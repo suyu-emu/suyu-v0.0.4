@@ -121,10 +121,6 @@ ResultStatus AppLoader_NSP::ReadRomFS(FileSys::VirtualFile& out_file) {
     return secondary_loader->ReadRomFS(out_file);
 }
 
-u64 AppLoader_NSP::ReadRomFSIVFCOffset() const {
-    return secondary_loader->ReadRomFSIVFCOffset();
-}
-
 ResultStatus AppLoader_NSP::ReadUpdateRaw(FileSys::VirtualFile& out_file) {
     if (nsp->IsExtractedType()) {
         return ResultStatus::ErrorNoPackedUpdate;

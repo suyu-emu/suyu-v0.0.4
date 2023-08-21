@@ -141,8 +141,7 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
     const auto update_tid = GetUpdateTitleID(title_id);
     const auto update = content_provider.GetEntry(update_tid, ContentRecordType::Program);
 
-    if (!update_disabled && update != nullptr && update->GetExeFS() != nullptr &&
-        update->GetStatus() == Loader::ResultStatus::ErrorMissingBKTRBaseRomFS) {
+    if (!update_disabled && update != nullptr && update->GetExeFS() != nullptr) {
         LOG_INFO(Loader, "    ExeFS: Update ({}) applied successfully",
                  FormatTitleVersion(content_provider.GetEntryVersion(update_tid).value_or(0)));
         exefs = update->GetExeFS();
@@ -358,11 +357,6 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
         return;
     }
 
-    auto extracted = ExtractRomFS(romfs);
-    if (extracted == nullptr) {
-        return;
-    }
-
     const auto& disabled = Settings::values.disabled_addons[title_id];
     std::vector<VirtualDir> patch_dirs = load_dir->GetSubdirectories();
     if (std::find(disabled.cbegin(), disabled.cend(), "SDMC") == disabled.cend()) {
@@ -394,6 +388,11 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
         return;
     }
 
+    auto extracted = ExtractRomFS(romfs);
+    if (extracted == nullptr) {
+        return;
+    }
+
     layers.push_back(std::move(extracted));
 
     auto layered = LayeredVfsDirectory::MakeLayeredDirectory(std::move(layers));
@@ -412,39 +411,43 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
     romfs = std::move(packed);
 }
 
-VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset, ContentRecordType type,
-                                     VirtualFile update_raw, bool apply_layeredfs) const {
+VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs,
+                                     ContentRecordType type, VirtualFile packed_update_raw,
+                                     bool apply_layeredfs) const {
     const auto log_string = fmt::format("Patching RomFS for title_id={:016X}, type={:02X}",
                                         title_id, static_cast<u8>(type));
-
     if (type == ContentRecordType::Program || type == ContentRecordType::Data) {
         LOG_INFO(Loader, "{}", log_string);
     } else {
         LOG_DEBUG(Loader, "{}", log_string);
     }
 
-    if (romfs == nullptr) {
-        return romfs;
+    if (base_romfs == nullptr) {
+        return base_romfs;
     }
+
+    auto romfs = base_romfs;
 
     // Game Updates
     const auto update_tid = GetUpdateTitleID(title_id);
-    const auto update = content_provider.GetEntryRaw(update_tid, type);
+    const auto update_raw = content_provider.GetEntryRaw(update_tid, type);
 
     const auto& disabled = Settings::values.disabled_addons[title_id];
     const auto update_disabled =
         std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();
 
-    if (!update_disabled && update != nullptr) {
-        const auto new_nca = std::make_shared<NCA>(update, romfs, ivfc_offset);
+    if (!update_disabled && update_raw != nullptr && base_nca != nullptr) {
+        const auto new_nca = std::make_shared<NCA>(update_raw, base_nca);
         if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
             new_nca->GetRomFS() != nullptr) {
             LOG_INFO(Loader, "    RomFS: Update ({}) applied successfully",
                      FormatTitleVersion(content_provider.GetEntryVersion(update_tid).value_or(0)));
             romfs = new_nca->GetRomFS();
+            const auto version =
+                FormatTitleVersion(content_provider.GetEntryVersion(update_tid).value_or(0));
         }
-    } else if (!update_disabled && update_raw != nullptr) {
-        const auto new_nca = std::make_shared<NCA>(update_raw, romfs, ivfc_offset);
+    } else if (!update_disabled && packed_update_raw != nullptr && base_nca != nullptr) {
+        const auto new_nca = std::make_shared<NCA>(packed_update_raw, base_nca);
         if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
             new_nca->GetRomFS() != nullptr) {
             LOG_INFO(Loader, "    RomFS: Update (PACKED) applied successfully");
@@ -608,7 +611,7 @@ PatchManager::Metadata PatchManager::ParseControlNCA(const NCA& nca) const {
         return {};
     }
 
-    const auto romfs = PatchRomFS(base_romfs, nca.GetBaseIVFCOffset(), ContentRecordType::Control);
+    const auto romfs = PatchRomFS(&nca, base_romfs, ContentRecordType::Control);
     if (romfs == nullptr) {
         return {};
     }

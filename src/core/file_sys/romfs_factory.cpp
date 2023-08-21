@@ -26,13 +26,12 @@ RomFSFactory::RomFSFactory(Loader::AppLoader& app_loader, ContentProvider& provi
     }
 
     updatable = app_loader.IsRomFSUpdatable();
-    ivfc_offset = app_loader.ReadRomFSIVFCOffset();
 }
 
 RomFSFactory::~RomFSFactory() = default;
 
 void RomFSFactory::SetPackedUpdate(VirtualFile update_raw_file) {
-    update_raw = std::move(update_raw_file);
+    packed_update_raw = std::move(update_raw_file);
 }
 
 VirtualFile RomFSFactory::OpenCurrentProcess(u64 current_process_title_id) const {
@@ -40,9 +39,11 @@ VirtualFile RomFSFactory::OpenCurrentProcess(u64 current_process_title_id) const
         return file;
     }
 
+    const auto type = ContentRecordType::Program;
+    const auto nca = content_provider.GetEntry(current_process_title_id, type);
     const PatchManager patch_manager{current_process_title_id, filesystem_controller,
                                      content_provider};
-    return patch_manager.PatchRomFS(file, ivfc_offset, ContentRecordType::Program, update_raw);
+    return patch_manager.PatchRomFS(nca.get(), file, ContentRecordType::Program, packed_update_raw);
 }
 
 VirtualFile RomFSFactory::OpenPatchedRomFS(u64 title_id, ContentRecordType type) const {
@@ -54,7 +55,7 @@ VirtualFile RomFSFactory::OpenPatchedRomFS(u64 title_id, ContentRecordType type)
 
     const PatchManager patch_manager{title_id, filesystem_controller, content_provider};
 
-    return patch_manager.PatchRomFS(nca->GetRomFS(), nca->GetBaseIVFCOffset(), type);
+    return patch_manager.PatchRomFS(nca.get(), nca->GetRomFS(), type);
 }
 
 VirtualFile RomFSFactory::OpenPatchedRomFSWithProgramIndex(u64 title_id, u8 program_index,

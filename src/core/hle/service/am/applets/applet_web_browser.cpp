@@ -139,7 +139,7 @@ FileSys::VirtualFile GetOfflineRomFS(Core::System& system, u64 title_id,
         const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
                                        system.GetContentProvider()};
 
-        return pm.PatchRomFS(nca->GetRomFS(), nca->GetBaseIVFCOffset(), nca_type);
+        return pm.PatchRomFS(nca.get(), nca->GetRomFS(), nca_type);
     }
 }
 
