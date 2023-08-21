@@ -3,19 +3,25 @@
 
 package org.yuzu.yuzu_emu.adapters
 
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.CardHomeOptionBinding
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.HomeSetting
 
-class HomeSettingAdapter(private val activity: AppCompatActivity, var options: List<HomeSetting>) :
+class HomeSettingAdapter(
+    private val activity: AppCompatActivity,
+    private val viewLifecycle: LifecycleOwner,
+    var options: List<HomeSetting>
+) :
     RecyclerView.Adapter<HomeSettingAdapter.HomeOptionViewHolder>(),
     View.OnClickListener {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HomeOptionViewHolder {
@@ -78,6 +84,22 @@ class HomeSettingAdapter(private val activity: AppCompatActivity, var options: L
                 binding.optionTitle.alpha = 0.5f
                 binding.optionDescription.alpha = 0.5f
                 binding.optionIcon.alpha = 0.5f
+            }
+
+            option.details.observe(viewLifecycle) { updateOptionDetails(it) }
+            binding.optionDetail.postDelayed(
+                {
+                    binding.optionDetail.ellipsize = TextUtils.TruncateAt.MARQUEE
+                    binding.optionDetail.isSelected = true
+                },
+                3000
+            )
+        }
+
+        private fun updateOptionDetails(detailString: String) {
+            if (detailString.isNotEmpty()) {
+                binding.optionDetail.text = detailString
+                binding.optionDetail.visibility = View.VISIBLE
             }
         }
     }
