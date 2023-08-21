@@ -331,7 +331,7 @@ Controller_Gesture::GestureProperties Controller_Gesture::GetGestureProperties()
         };
 
         // Hack: There is no touch in docked but games still allow it
-        if (Settings::values.use_docked_mode.GetValue()) {
+        if (Settings::values.use_docked_mode.GetValue() == Settings::ConsoleMode::Docked) {
             gesture.points[id] = {
                 .x = static_cast<s32>(active_x * Layout::ScreenDocked::Width),
                 .y = static_cast<s32>(active_y * Layout::ScreenDocked::Height),

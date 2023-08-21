@@ -4,6 +4,7 @@
 #include <memory>
 #include <thread>
 
+#include "common/settings_enums.h"
 #include "core/core.h"
 #include "core/hid/emulated_controller.h"
 #include "core/hid/hid_core.h"
@@ -197,9 +198,14 @@ void ConfigureInput::ApplyConfiguration() {
 
     advanced->ApplyConfiguration();
 
-    const bool pre_docked_mode = Settings::values.use_docked_mode.GetValue();
-    Settings::values.use_docked_mode.SetValue(ui->radioDocked->isChecked());
-    OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode.GetValue(), system);
+    const bool pre_docked_mode =
+        Settings::values.use_docked_mode.GetValue() == Settings::ConsoleMode::Docked;
+    Settings::values.use_docked_mode.SetValue(ui->radioDocked->isChecked()
+                                                  ? Settings::ConsoleMode::Docked
+                                                  : Settings::ConsoleMode::Handheld);
+    OnDockedModeChanged(
+        pre_docked_mode,
+        Settings::values.use_docked_mode.GetValue() == Settings::ConsoleMode::Docked, system);
 
     Settings::values.vibration_enabled.SetValue(ui->vibrationGroup->isChecked());
     Settings::values.motion_enabled.SetValue(ui->motionGroup->isChecked());
@@ -267,8 +273,10 @@ void ConfigureInput::UpdateDockedState(bool is_handheld) {
     ui->radioDocked->setEnabled(!is_handheld);
     ui->radioUndocked->setEnabled(!is_handheld);
 
-    ui->radioDocked->setChecked(Settings::values.use_docked_mode.GetValue());
-    ui->radioUndocked->setChecked(!Settings::values.use_docked_mode.GetValue());
+    ui->radioDocked->setChecked(Settings::values.use_docked_mode.GetValue() ==
+                                Settings::ConsoleMode::Docked);
+    ui->radioUndocked->setChecked(Settings::values.use_docked_mode.GetValue() ==
+                                  Settings::ConsoleMode::Handheld);
 
     // Also force into undocked mode if the controller type is handheld.
     if (is_handheld) {

@@ -6,6 +6,7 @@
 #include <cinttypes>
 #include <cstring>
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
@@ -833,7 +834,7 @@ void ICommonStateGetter::GetDefaultDisplayResolution(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
 
-    if (Settings::values.use_docked_mode.GetValue()) {
+    if (Settings::values.use_docked_mode.GetValue() == Settings::ConsoleMode::Docked) {
         rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedWidth));
         rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedHeight));
     } else {
@@ -921,7 +922,8 @@ void IStorage::Open(HLERequestContext& ctx) {
 }
 
 void ICommonStateGetter::GetOperationMode(HLERequestContext& ctx) {
-    const bool use_docked_mode{Settings::values.use_docked_mode.GetValue()};
+    const bool use_docked_mode{Settings::values.use_docked_mode.GetValue() ==
+                               Settings::ConsoleMode::Docked};
     LOG_DEBUG(Service_AM, "called, use_docked_mode={}", use_docked_mode);
 
     IPC::ResponseBuilder rb{ctx, 3};

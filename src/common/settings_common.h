@@ -56,6 +56,7 @@ enum Specialization : u8 {
     Scalar = 5,      // Values are continuous
     Countable = 6,   // Can be stepped through
     Paired = 7,      // Another setting is associated with this setting
+    Radio = 8,       // Setting should be presented in a radio group
 
     Percentage = (1 << SpecializationAttributeOffset), // Should be represented as a percentage
 };

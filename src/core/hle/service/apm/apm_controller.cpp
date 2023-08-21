@@ -7,6 +7,7 @@
 
 #include "common/logging/log.h"
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "core/core_timing.h"
 #include "core/hle/service/apm/apm_controller.h"
 
@@ -67,8 +68,9 @@ void Controller::SetFromCpuBoostMode(CpuBoostMode mode) {
 }
 
 PerformanceMode Controller::GetCurrentPerformanceMode() const {
-    return Settings::values.use_docked_mode.GetValue() ? PerformanceMode::Boost
-                                                       : PerformanceMode::Normal;
+    return Settings::values.use_docked_mode.GetValue() == Settings::ConsoleMode::Docked
+               ? PerformanceMode::Boost
+               : PerformanceMode::Normal;
 }
 
 PerformanceConfiguration Controller::GetCurrentPerformanceConfiguration(PerformanceMode mode) {
