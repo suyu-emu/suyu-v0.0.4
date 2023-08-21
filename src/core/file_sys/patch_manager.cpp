@@ -352,7 +352,8 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
                            const Service::FileSystem::FileSystemController& fs_controller) {
     const auto load_dir = fs_controller.GetModificationLoadRoot(title_id);
     const auto sdmc_load_dir = fs_controller.GetSDMCModificationLoadRoot(title_id);
-    if ((type != ContentRecordType::Program && type != ContentRecordType::Data) ||
+    if ((type != ContentRecordType::Program && type != ContentRecordType::Data &&
+         type != ContentRecordType::HtmlDocument) ||
         (load_dir == nullptr && sdmc_load_dir == nullptr)) {
         return;
     }
@@ -381,6 +382,12 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
         auto ext_dir = FindSubdirectoryCaseless(subdir, "romfs_ext");
         if (ext_dir != nullptr)
             layers_ext.push_back(std::make_shared<CachedVfsDirectory>(ext_dir));
+
+        if (type == ContentRecordType::HtmlDocument) {
+            auto manual_dir = FindSubdirectoryCaseless(subdir, "manual_html");
+            if (manual_dir != nullptr)
+                layers.push_back(std::make_shared<CachedVfsDirectory>(manual_dir));
+        }
     }
 
     // When there are no layers to apply, return early as there is no need to rebuild the RomFS
