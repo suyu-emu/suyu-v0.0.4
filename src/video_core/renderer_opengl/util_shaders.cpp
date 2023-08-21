@@ -68,6 +68,7 @@ void UtilShaders::ASTCDecode(Image& image, const StagingBufferMap& map,
                              std::span<const VideoCommon::SwizzleParameters> swizzles) {
     static constexpr GLuint BINDING_INPUT_BUFFER = 0;
     static constexpr GLuint BINDING_OUTPUT_IMAGE = 0;
+    program_manager.LocalMemoryWarmup();
 
     const Extent2D tile_size{
         .width = VideoCore::Surface::DefaultBlockWidth(image.info.format),
