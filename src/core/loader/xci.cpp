@@ -89,10 +89,6 @@ ResultStatus AppLoader_XCI::ReadRomFS(FileSys::VirtualFile& out_file) {
     return nca_loader->ReadRomFS(out_file);
 }
 
-u64 AppLoader_XCI::ReadRomFSIVFCOffset() const {
-    return nca_loader->ReadRomFSIVFCOffset();
-}
-
 ResultStatus AppLoader_XCI::ReadUpdateRaw(FileSys::VirtualFile& out_file) {
     u64 program_id{};
     nca_loader->ReadProgramId(program_id);

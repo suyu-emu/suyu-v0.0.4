@@ -71,4 +71,10 @@ std::vector<u8> DecompressDataLZ4(std::span<const u8> compressed, std::size_t un
     return uncompressed;
 }
 
+int DecompressDataLZ4(void* dst, size_t dst_size, const void* src, size_t src_size) {
+    // This is just a thin wrapper around LZ4.
+    return LZ4_decompress_safe(reinterpret_cast<const char*>(src), reinterpret_cast<char*>(dst),
+                               static_cast<int>(src_size), static_cast<int>(dst_size));
+}
+
 } // namespace Common::Compression

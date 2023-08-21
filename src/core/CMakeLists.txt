@@ -37,6 +37,49 @@ add_library(core STATIC
     debugger/gdbstub.h
     device_memory.cpp
     device_memory.h
+    file_sys/fssystem/fs_i_storage.h
+    file_sys/fssystem/fssystem_aes_ctr_counter_extended_storage.cpp
+    file_sys/fssystem/fssystem_aes_ctr_counter_extended_storage.h
+    file_sys/fssystem/fssystem_aes_ctr_storage.cpp
+    file_sys/fssystem/fssystem_aes_ctr_storage.h
+    file_sys/fssystem/fssystem_aes_xts_storage.cpp
+    file_sys/fssystem/fssystem_aes_xts_storage.h
+    file_sys/fssystem/fssystem_alignment_matching_storage.h
+    file_sys/fssystem/fssystem_alignment_matching_storage_impl.cpp
+    file_sys/fssystem/fssystem_alignment_matching_storage_impl.h
+    file_sys/fssystem/fssystem_bucket_tree.cpp
+    file_sys/fssystem/fssystem_bucket_tree.h
+    file_sys/fssystem/fssystem_bucket_tree_utils.h
+    file_sys/fssystem/fssystem_compressed_storage.h
+    file_sys/fssystem/fssystem_compression_common.h
+    file_sys/fssystem/fssystem_compression_configuration.cpp
+    file_sys/fssystem/fssystem_compression_configuration.h
+    file_sys/fssystem/fssystem_crypto_configuration.cpp
+    file_sys/fssystem/fssystem_crypto_configuration.h
+    file_sys/fssystem/fssystem_hierarchical_integrity_verification_storage.cpp
+    file_sys/fssystem/fssystem_hierarchical_integrity_verification_storage.h
+    file_sys/fssystem/fssystem_hierarchical_sha256_storage.cpp
+    file_sys/fssystem/fssystem_hierarchical_sha256_storage.h
+    file_sys/fssystem/fssystem_indirect_storage.cpp
+    file_sys/fssystem/fssystem_indirect_storage.h
+    file_sys/fssystem/fssystem_integrity_romfs_storage.cpp
+    file_sys/fssystem/fssystem_integrity_romfs_storage.h
+    file_sys/fssystem/fssystem_integrity_verification_storage.cpp
+    file_sys/fssystem/fssystem_integrity_verification_storage.h
+    file_sys/fssystem/fssystem_memory_resource_buffer_hold_storage.h
+    file_sys/fssystem/fssystem_nca_file_system_driver.cpp
+    file_sys/fssystem/fssystem_nca_file_system_driver.h
+    file_sys/fssystem/fssystem_nca_header.cpp
+    file_sys/fssystem/fssystem_nca_header.h
+    file_sys/fssystem/fssystem_nca_reader.cpp
+    file_sys/fssystem/fssystem_pooled_buffer.cpp
+    file_sys/fssystem/fssystem_pooled_buffer.h
+    file_sys/fssystem/fssystem_sparse_storage.cpp
+    file_sys/fssystem/fssystem_sparse_storage.h
+    file_sys/fssystem/fssystem_switch_storage.h
+    file_sys/fssystem/fssystem_utility.cpp
+    file_sys/fssystem/fssystem_utility.h
+    file_sys/fssystem/fs_types.h
     file_sys/bis_factory.cpp
     file_sys/bis_factory.h
     file_sys/card_image.cpp
@@ -57,8 +100,6 @@ add_library(core STATIC
     file_sys/mode.h
     file_sys/nca_metadata.cpp
     file_sys/nca_metadata.h
-    file_sys/nca_patch.cpp
-    file_sys/nca_patch.h
     file_sys/partition_filesystem.cpp
     file_sys/partition_filesystem.h
     file_sys/patch_manager.cpp

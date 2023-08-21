@@ -2535,8 +2535,8 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
         return;
     }
 
-    FileSys::VirtualFile file;
-    if (loader->ReadRomFS(file) != Loader::ResultStatus::Success) {
+    FileSys::VirtualFile base_romfs;
+    if (loader->ReadRomFS(base_romfs) != Loader::ResultStatus::Success) {
         failed();
         return;
     }
@@ -2545,6 +2545,14 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     const auto romfs_title_id = SelectRomFSDumpTarget(installed, program_id);
 
     if (!romfs_title_id) {
+        failed();
+        return;
+    }
+
+    const auto type = *romfs_title_id == program_id ? FileSys::ContentRecordType::Program
+                                                    : FileSys::ContentRecordType::Data;
+    const auto base_nca = installed.GetEntry(*romfs_title_id, type);
+    if (!base_nca) {
         failed();
         return;
     }
@@ -2560,12 +2568,10 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     FileSys::VirtualFile romfs;
 
     if (*romfs_title_id == program_id) {
-        const u64 ivfc_offset = loader->ReadRomFSIVFCOffset();
         const FileSys::PatchManager pm{program_id, system->GetFileSystemController(), installed};
-        romfs =
-            pm.PatchRomFS(file, ivfc_offset, FileSys::ContentRecordType::Program, nullptr, false);
+        romfs = pm.PatchRomFS(base_nca.get(), base_romfs, type, nullptr, false);
     } else {
-        romfs = installed.GetEntry(*romfs_title_id, FileSys::ContentRecordType::Data)->GetRomFS();
+        romfs = installed.GetEntry(*romfs_title_id, type)->GetRomFS();
     }
 
     const auto extracted = FileSys::ExtractRomFS(romfs, FileSys::RomFSExtractionType::Full);

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <bit>
 #include <cstddef>
 #include <new>
 #include <type_traits>
@@ -10,8 +11,10 @@
 namespace Common {
 
 template <typename T>
-    requires std::is_unsigned_v<T>
-[[nodiscard]] constexpr T AlignUp(T value, size_t size) {
+    requires std::is_integral_v<T>
+[[nodiscard]] constexpr T AlignUp(T value_, size_t size) {
+    using U = typename std::make_unsigned_t<T>;
+    auto value{static_cast<U>(value_)};
     auto mod{static_cast<T>(value % size)};
     value -= mod;
     return static_cast<T>(mod == T{0} ? value : value + size);
@@ -24,8 +27,10 @@ template <typename T>
 }
 
 template <typename T>
-    requires std::is_unsigned_v<T>
-[[nodiscard]] constexpr T AlignDown(T value, size_t size) {
+    requires std::is_integral_v<T>
+[[nodiscard]] constexpr T AlignDown(T value_, size_t size) {
+    using U = typename std::make_unsigned_t<T>;
+    const auto value{static_cast<U>(value_)};
     return static_cast<T>(value - value % size);
 }
 
@@ -53,6 +58,30 @@ template <typename T, typename U>
     requires std::is_integral_v<T>
 [[nodiscard]] constexpr T DivideUp(T x, U y) {
     return (x + (y - 1)) / y;
+}
+
+template <typename T>
+    requires std::is_integral_v<T>
+[[nodiscard]] constexpr T LeastSignificantOneBit(T x) {
+    return x & ~(x - 1);
+}
+
+template <typename T>
+    requires std::is_integral_v<T>
+[[nodiscard]] constexpr T ResetLeastSignificantOneBit(T x) {
+    return x & (x - 1);
+}
+
+template <typename T>
+    requires std::is_integral_v<T>
+[[nodiscard]] constexpr bool IsPowerOfTwo(T x) {
+    return x > 0 && ResetLeastSignificantOneBit(x) == 0;
+}
+
+template <typename T>
+    requires std::is_integral_v<T>
+[[nodiscard]] constexpr T FloorPowerOfTwo(T x) {
+    return T{1} << (sizeof(T) * 8 - std::countl_zero(x) - 1);
 }
 
 template <typename T, size_t Align = 16>

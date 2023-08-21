@@ -40,21 +40,22 @@ public:
                           Service::FileSystem::FileSystemController& controller);
     ~RomFSFactory();
 
-    void SetPackedUpdate(VirtualFile update_raw_file);
+    void SetPackedUpdate(VirtualFile packed_update_raw);
     [[nodiscard]] VirtualFile OpenCurrentProcess(u64 current_process_title_id) const;
     [[nodiscard]] VirtualFile OpenPatchedRomFS(u64 title_id, ContentRecordType type) const;
     [[nodiscard]] VirtualFile OpenPatchedRomFSWithProgramIndex(u64 title_id, u8 program_index,
                                                                ContentRecordType type) const;
     [[nodiscard]] VirtualFile Open(u64 title_id, StorageId storage, ContentRecordType type) const;
-
-private:
     [[nodiscard]] std::shared_ptr<NCA> GetEntry(u64 title_id, StorageId storage,
                                                 ContentRecordType type) const;
 
+private:
     VirtualFile file;
-    VirtualFile update_raw;
+    VirtualFile packed_update_raw;
+
+    VirtualFile base;
+
     bool updatable;
-    u64 ivfc_offset;
 
     ContentProvider& content_provider;
     Service::FileSystem::FileSystemController& filesystem_controller;
