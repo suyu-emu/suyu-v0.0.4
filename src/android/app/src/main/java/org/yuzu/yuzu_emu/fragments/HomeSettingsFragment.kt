@@ -129,7 +129,11 @@ class HomeSettingsFragment : Fragment() {
                         mainActivity.getGamesDirectory.launch(
                             Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data
                         )
-                    }
+                    },
+                    { true },
+                    0,
+                    0,
+                    homeViewModel.gamesDir
                 )
             )
             add(
@@ -201,7 +205,11 @@ class HomeSettingsFragment : Fragment() {
 
         binding.homeSettingsList.apply {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = HomeSettingAdapter(requireActivity() as AppCompatActivity, optionsList)
+            adapter = HomeSettingAdapter(
+                requireActivity() as AppCompatActivity,
+                viewLifecycleOwner,
+                optionsList
+            )
         }
 
         setInsets()

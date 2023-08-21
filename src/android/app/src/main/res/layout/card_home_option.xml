@@ -53,6 +53,23 @@
                 android:layout_marginTop="5dp"
                 tools:text="@string/install_prod_keys_description" />
 
+            <com.google.android.material.textview.MaterialTextView
+                style="@style/TextAppearance.Material3.LabelMedium"
+                android:id="@+id/option_detail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAlignment="viewStart"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:ellipsize="none"
+                android:requiresFadingEdge="horizontal"
+                android:layout_marginTop="5dp"
+                android:visibility="gone"
+                tools:visibility="visible"
+                tools:text="/tree/primary:Games" />
+
         </LinearLayout>
 
     </LinearLayout>

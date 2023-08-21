@@ -290,6 +290,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         ).show()
 
         gamesViewModel.reloadGames(true)
+        homeViewModel.setGamesDir(this, result.path!!)
     }
 
     val getProdKey =

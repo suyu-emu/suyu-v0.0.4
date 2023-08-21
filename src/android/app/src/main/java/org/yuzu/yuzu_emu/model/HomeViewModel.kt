@@ -3,9 +3,15 @@
 
 package org.yuzu.yuzu_emu.model
 
+import android.net.Uri
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.preference.PreferenceManager
+import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.utils.GameHelper
 
 class HomeViewModel : ViewModel() {
     private val _navigationVisible = MutableLiveData<Pair<Boolean, Boolean>>()
@@ -16,6 +22,14 @@ class HomeViewModel : ViewModel() {
 
     private val _shouldPageForward = MutableLiveData(false)
     val shouldPageForward: LiveData<Boolean> get() = _shouldPageForward
+
+    private val _gamesDir = MutableLiveData(
+        Uri.parse(
+            PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+                .getString(GameHelper.KEY_GAME_PATH, "")
+        ).path ?: ""
+    )
+    val gamesDir: LiveData<String> get() = _gamesDir
 
     var navigatedToSetup = false
 
@@ -39,5 +53,10 @@ class HomeViewModel : ViewModel() {
 
     fun setShouldPageForward(pageForward: Boolean) {
         _shouldPageForward.value = pageForward
+    }
+
+    fun setGamesDir(activity: FragmentActivity, dir: String) {
+        ViewModelProvider(activity)[GamesViewModel::class.java].reloadGames(true)
+        _gamesDir.value = dir
     }
 }
