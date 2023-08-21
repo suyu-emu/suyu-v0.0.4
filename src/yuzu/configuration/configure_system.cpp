@@ -106,6 +106,11 @@ void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
     push(Settings::values.linkage.by_category[Settings::Category::System]);
 
     for (auto setting : settings) {
+        if (setting->Id() == Settings::values.use_docked_mode.Id() &&
+            Settings::IsConfiguringGlobal()) {
+            continue;
+        }
+
         ConfigurationShared::Widget* widget = builder.BuildWidget(setting, apply_funcs);
 
         if (widget == nullptr) {
