@@ -297,11 +297,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         emulationActivity?.let {
             it.requestedOrientation = when (IntSetting.RENDERER_SCREEN_LAYOUT.int) {
                 Settings.LayoutOption_MobileLandscape ->
-                    ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 Settings.LayoutOption_MobilePortrait ->
                     ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
                 Settings.LayoutOption_Unspecified -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                else -> ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+                else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
             }
         }
     }
