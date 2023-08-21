@@ -128,6 +128,7 @@ public:
 
 private:
     Loader::ResultStatus AddNCAFromPartition(XCIPartition part);
+    Loader::ResultStatus TryReadHeader();
 
     VirtualFile file;
     GamecardHeader header{};

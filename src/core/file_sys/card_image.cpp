@@ -31,13 +31,9 @@ XCI::XCI(VirtualFile file_, u64 program_id, size_t program_index)
     : file(std::move(file_)), program_nca_status{Loader::ResultStatus::ErrorXCIMissingProgramNCA},
       partitions(partition_names.size()),
       partitions_raw(partition_names.size()), keys{Core::Crypto::KeyManager::Instance()} {
-    if (file->ReadObject(&header) != sizeof(GamecardHeader)) {
-        status = Loader::ResultStatus::ErrorBadXCIHeader;
-        return;
-    }
-
-    if (header.magic != Common::MakeMagic('H', 'E', 'A', 'D')) {
-        status = Loader::ResultStatus::ErrorBadXCIHeader;
+    const auto header_status = TryReadHeader();
+    if (header_status != Loader::ResultStatus::Success) {
+        status = header_status;
         return;
     }
 
@@ -314,6 +310,44 @@ Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
     }
 
     return Loader::ResultStatus::Success;
+}
+
+Loader::ResultStatus XCI::TryReadHeader() {
+    constexpr size_t CardInitialDataRegionSize = 0x1000;
+
+    // Define the function we'll use to determine if we read a valid header.
+    const auto ReadCardHeader = [&]() {
+        // Ensure we can read the entire header. If we can't, we can't read the card image.
+        if (file->ReadObject(&header) != sizeof(GamecardHeader)) {
+            return Loader::ResultStatus::ErrorBadXCIHeader;
+        }
+
+        // Ensure the header magic matches. If it doesn't, this isn't a card image header.
+        if (header.magic != Common::MakeMagic('H', 'E', 'A', 'D')) {
+            return Loader::ResultStatus::ErrorBadXCIHeader;
+        }
+
+        // We read a card image header.
+        return Loader::ResultStatus::Success;
+    };
+
+    // Try to read the header directly.
+    if (ReadCardHeader() == Loader::ResultStatus::Success) {
+        return Loader::ResultStatus::Success;
+    }
+
+    // Get the size of the file.
+    const size_t card_image_size = file->GetSize();
+
+    // If we are large enough to have a key area, offset past the key area and retry.
+    if (card_image_size >= CardInitialDataRegionSize) {
+        file = std::make_shared<OffsetVfsFile>(file, card_image_size - CardInitialDataRegionSize,
+                                               CardInitialDataRegionSize);
+        return ReadCardHeader();
+    }
+
+    // We had no header and aren't large enough to have a key area, so this can't be parsed.
+    return Loader::ResultStatus::ErrorBadXCIHeader;
 }
 
 u8 XCI::GetFormatVersion() {
