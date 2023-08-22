@@ -558,12 +558,15 @@ void EmitImageGradient(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                        const IR::Value& coord, const IR::Value& derivatives,
                        const IR::Value& offset, const IR::Value& lod_clamp) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
-    ScopedRegister dpdx, dpdy;
+    ScopedRegister dpdx, dpdy, coords;
     const bool multi_component{info.num_derivates > 1 || info.has_lod_clamp};
     if (multi_component) {
         // Allocate this early to avoid aliasing other registers
         dpdx = ScopedRegister{ctx.reg_alloc};
         dpdy = ScopedRegister{ctx.reg_alloc};
+        if (info.num_derivates >= 3) {
+            coords = ScopedRegister{ctx.reg_alloc};
+        }
     }
     const auto sparse_inst{PrepareSparse(inst)};
     const std::string_view sparse_mod{sparse_inst ? ".SPARSE" : ""};
@@ -580,15 +583,27 @@ void EmitImageGradient(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                 "MOV.F {}.y,{}.w;",
                 dpdx.reg, derivatives_vec, dpdx.reg, derivatives_vec, dpdy.reg, derivatives_vec,
                 dpdy.reg, derivatives_vec);
+        Register final_coord;
+        if (info.num_derivates >= 3) {
+            ctx.Add("MOV.F {}.z,{}.x;"
+                    "MOV.F {}.z,{}.y;",
+                    dpdx.reg, coord_vec, dpdy.reg, coord_vec);
+            ctx.Add("MOV.F {}.x,0;"
+                    "MOV.F {}.y,0;",
+                    "MOV.F {}.z,0;", coords.reg, coords.reg, coords.reg);
+            final_coord = coords.reg;
+        } else {
+            final_coord = coord_vec;
+        }
         if (info.has_lod_clamp) {
             const ScalarF32 lod_clamp_value{ctx.reg_alloc.Consume(lod_clamp)};
             ctx.Add("MOV.F {}.w,{};"
                     "TXD.F.LODCLAMP{} {},{},{},{},{},{}{};",
-                    dpdy.reg, lod_clamp_value, sparse_mod, ret, coord_vec, dpdx.reg, dpdy.reg,
+                    dpdy.reg, lod_clamp_value, sparse_mod, ret, final_coord, dpdx.reg, dpdy.reg,
                     texture, type, offset_vec);
         } else {
-            ctx.Add("TXD.F{} {},{},{},{},{},{}{};", sparse_mod, ret, coord_vec, dpdx.reg, dpdy.reg,
-                    texture, type, offset_vec);
+            ctx.Add("TXD.F{} {},{},{},{},{},{}{};", sparse_mod, ret, final_coord, dpdx.reg,
+                    dpdy.reg, texture, type, offset_vec);
         }
     } else {
         ctx.Add("TXD.F{} {},{},{}.x,{}.y,{},{}{};", sparse_mod, ret, coord_vec, derivatives_vec,

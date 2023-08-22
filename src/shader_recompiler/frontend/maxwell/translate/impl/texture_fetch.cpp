@@ -172,6 +172,7 @@ void Impl(TranslatorVisitor& v, u64 insn, bool aoffi, Blod blod, bool lc,
     info.is_depth.Assign(tex.dc != 0 ? 1 : 0);
     info.has_bias.Assign(blod == Blod::LB || blod == Blod::LBA ? 1 : 0);
     info.has_lod_clamp.Assign(lc ? 1 : 0);
+    info.ndv_is_active.Assign(tex.ndv != 0 ? 1 : 0);
 
     const IR::Value sample{[&]() -> IR::Value {
         if (tex.dc == 0) {
