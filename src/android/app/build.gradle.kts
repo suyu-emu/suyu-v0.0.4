@@ -160,6 +160,11 @@ android {
     }
 }
 
+tasks.create<Delete>("ktlintReset") {
+    delete(File(buildDir.path + File.separator + "intermediates/ktLint"))
+}
+
+tasks.getByPath("loadKtlintReporters").dependsOn("ktlintReset")
 tasks.getByPath("preBuild").dependsOn("ktlintCheck")
 
 ktlint {
