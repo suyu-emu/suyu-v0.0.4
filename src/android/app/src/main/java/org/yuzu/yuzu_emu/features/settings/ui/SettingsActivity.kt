@@ -3,10 +3,7 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Toast
@@ -16,19 +13,25 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.navArgs
 import com.google.android.material.color.MaterialColors
+import org.yuzu.yuzu_emu.NativeLibrary
 import java.io.IOException
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.fragments.ResetSettingsDialogFragment
+import org.yuzu.yuzu_emu.model.SettingsViewModel
 import org.yuzu.yuzu_emu.utils.*
 
-class SettingsActivity : AppCompatActivity(), SettingsActivityView {
-    private val presenter = SettingsActivityPresenter(this)
-
+class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingsBinding
+
+    private val args by navArgs<SettingsActivityArgs>()
+
+    private val settingsViewModel: SettingsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.setTheme(this)
@@ -38,16 +41,17 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        settingsViewModel.game = args.game
+
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
+        navHostFragment.navController.setGraph(R.navigation.settings_navigation, intent.extras)
+
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val launcher = intent
-        val gameID = launcher.getStringExtra(ARG_GAME_ID)
-        val menuTag = launcher.getStringExtra(ARG_MENU_TAG)
-        presenter.onCreate(savedInstanceState, menuTag!!, gameID!!)
-
-        // Show "Back" button in the action bar for navigation
-        setSupportActionBar(binding.toolbarSettings)
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        if (savedInstanceState != null) {
+            settingsViewModel.shouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE)
+        }
 
         if (InsetsHelper.getSystemGestureType(applicationContext) !=
             InsetsHelper.GESTURE_NAVIGATION
@@ -63,6 +67,28 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
             )
         }
 
+        settingsViewModel.shouldRecreate.observe(this) {
+            if (it) {
+                settingsViewModel.setShouldRecreate(false)
+                recreate()
+            }
+        }
+        settingsViewModel.shouldNavigateBack.observe(this) {
+            if (it) {
+                settingsViewModel.setShouldNavigateBack(false)
+                navigateBack()
+            }
+        }
+        settingsViewModel.shouldShowResetSettingsDialog.observe(this) {
+            if (it) {
+                settingsViewModel.setShouldShowResetSettingsDialog(false)
+                ResetSettingsDialogFragment().show(
+                    supportFragmentManager,
+                    ResetSettingsDialogFragment.TAG
+                )
+            }
+        }
+
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
@@ -73,34 +99,28 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         setInsets()
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        navigateBack()
-        return true
-    }
-
-    private fun navigateBack() {
-        if (supportFragmentManager.backStackEntryCount > 0) {
-            supportFragmentManager.popBackStack()
+    fun navigateBack() {
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
+        if (navHostFragment.childFragmentManager.backStackEntryCount > 0) {
+            navHostFragment.navController.popBackStack()
         } else {
             finish()
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater = menuInflater
-        inflater.inflate(R.menu.menu_settings, menu)
-        return true
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         // Critical: If super method is not called, rotations will be busted.
         super.onSaveInstanceState(outState)
-        presenter.saveState(outState)
+        outState.putBoolean(KEY_SHOULD_SAVE, settingsViewModel.shouldSave)
     }
 
     override fun onStart() {
         super.onStart()
-        presenter.onStart()
+        // TODO: Load custom settings contextually
+        if (!DirectoryInitialization.areDirectoriesReady) {
+            DirectoryInitialization.start()
+        }
     }
 
     /**
@@ -110,65 +130,21 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
      */
     override fun onStop() {
         super.onStop()
-        presenter.onStop(isFinishing)
-    }
-
-    override fun showSettingsFragment(menuTag: String, addToStack: Boolean, gameId: String) {
-        if (!addToStack && settingsFragment != null) {
-            return
+        if (isFinishing && settingsViewModel.shouldSave) {
+            Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...")
+            Settings.saveSettings()
+            NativeLibrary.reloadSettings()
         }
-
-        val transaction = supportFragmentManager.beginTransaction()
-        if (addToStack) {
-            if (areSystemAnimationsEnabled()) {
-                transaction.setCustomAnimations(
-                    R.anim.anim_settings_fragment_in,
-                    R.anim.anim_settings_fragment_out,
-                    0,
-                    R.anim.anim_pop_settings_fragment_out
-                )
-            }
-            transaction.addToBackStack(null)
-        }
-        transaction.replace(
-            R.id.frame_content,
-            SettingsFragment.newInstance(menuTag, gameId),
-            FRAGMENT_TAG
-        )
-        transaction.commit()
     }
 
-    private fun areSystemAnimationsEnabled(): Boolean {
-        val duration = android.provider.Settings.Global.getFloat(
-            contentResolver,
-            android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
-            1f
-        )
-        val transition = android.provider.Settings.Global.getFloat(
-            contentResolver,
-            android.provider.Settings.Global.TRANSITION_ANIMATION_SCALE,
-            1f
-        )
-        return duration != 0f && transition != 0f
-    }
-
-    override fun onSettingsFileLoaded() {
-        val fragment: SettingsFragmentView? = settingsFragment
-        fragment?.loadSettingsList()
-    }
-
-    override fun onSettingsFileNotFound() {
-        val fragment: SettingsFragmentView? = settingsFragment
-        fragment?.loadSettingsList()
-    }
-
-    override fun onSettingChanged() {
-        presenter.onSettingChanged()
+    override fun onDestroy() {
+        settingsViewModel.clear()
+        super.onDestroy()
     }
 
     fun onSettingsReset() {
         // Prevents saving to a non-existent settings file
-        presenter.onSettingsReset()
+        settingsViewModel.shouldSave = false
 
         // Delete settings file because the user may have changed values that do not exist in the UI
         val settingsFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_CONFIG)
@@ -185,47 +161,21 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         finish()
     }
 
-    fun setToolbarTitle(title: String) {
-        binding.toolbarSettingsLayout.title = title
-    }
-
-    private val settingsFragment: SettingsFragment?
-        get() = supportFragmentManager.findFragmentByTag(FRAGMENT_TAG) as SettingsFragment?
-
     private fun setInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(
-            binding.frameContent
+            binding.navigationBarShade
         ) { view: View, windowInsets: WindowInsetsCompat ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
-            view.updatePadding(
-                left = barInsets.left + cutoutInsets.left,
-                right = barInsets.right + cutoutInsets.right
-            )
 
-            val mlpAppBar = binding.appbarSettings.layoutParams as MarginLayoutParams
-            mlpAppBar.leftMargin = barInsets.left + cutoutInsets.left
-            mlpAppBar.rightMargin = barInsets.right + cutoutInsets.right
-            binding.appbarSettings.layoutParams = mlpAppBar
-
-            val mlpShade = binding.navigationBarShade.layoutParams as MarginLayoutParams
+            val mlpShade = view.layoutParams as MarginLayoutParams
             mlpShade.height = barInsets.bottom
-            binding.navigationBarShade.layoutParams = mlpShade
+            view.layoutParams = mlpShade
 
             windowInsets
         }
     }
 
     companion object {
-        private const val ARG_MENU_TAG = "menu_tag"
-        private const val ARG_GAME_ID = "game_id"
-        private const val FRAGMENT_TAG = "settings"
-
-        fun launch(context: Context, menuTag: String?, gameId: String?) {
-            val settings = Intent(context, SettingsActivity::class.java)
-            settings.putExtra(ARG_MENU_TAG, menuTag)
-            settings.putExtra(ARG_GAME_ID, gameId)
-            context.startActivity(settings)
-        }
+        private const val KEY_SHOULD_SAVE = "should_save"
     }
 }

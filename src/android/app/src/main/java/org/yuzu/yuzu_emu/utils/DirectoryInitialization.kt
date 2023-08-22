@@ -3,18 +3,18 @@
 
 package org.yuzu.yuzu_emu.utils
 
-import android.content.Context
 import java.io.IOException
 import org.yuzu.yuzu_emu.NativeLibrary
+import org.yuzu.yuzu_emu.YuzuApplication
 
 object DirectoryInitialization {
     private var userPath: String? = null
 
     var areDirectoriesReady: Boolean = false
 
-    fun start(context: Context) {
+    fun start() {
         if (!areDirectoriesReady) {
-            initializeInternalStorage(context)
+            initializeInternalStorage()
             NativeLibrary.initializeEmulation()
             areDirectoriesReady = true
         }
@@ -26,9 +26,9 @@ object DirectoryInitialization {
             return userPath
         }
 
-    private fun initializeInternalStorage(context: Context) {
+    private fun initializeInternalStorage() {
         try {
-            userPath = context.getExternalFilesDir(null)!!.canonicalPath
+            userPath = YuzuApplication.appContext.getExternalFilesDir(null)!!.canonicalPath
             NativeLibrary.setAppDirectory(userPath!!)
         } catch (e: IOException) {
             e.printStackTrace()

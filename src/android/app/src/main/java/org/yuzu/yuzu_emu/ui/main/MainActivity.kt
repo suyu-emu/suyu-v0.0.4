@@ -33,13 +33,13 @@ import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
 import org.yuzu.yuzu_emu.fragments.LongMessageDialogFragment
@@ -105,11 +105,13 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             when (it.itemId) {
                 R.id.gamesFragment -> gamesViewModel.setShouldScrollToTop(true)
                 R.id.searchFragment -> gamesViewModel.setSearchFocused(true)
-                R.id.homeSettingsFragment -> SettingsActivity.launch(
-                    this,
-                    SettingsFile.FILE_NAME_CONFIG,
-                    ""
-                )
+                R.id.homeSettingsFragment -> {
+                    val action = HomeNavigationDirections.actionGlobalSettingsActivity(
+                        null,
+                        SettingsFile.FILE_NAME_CONFIG
+                    )
+                    navHostFragment.navController.navigate(action)
+                }
             }
         }
 

@@ -85,9 +85,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
-        val navController = navHostFragment.navController
-        navController
-            .setGraph(R.navigation.emulation_navigation, intent.extras)
+        navHostFragment.navController.setGraph(R.navigation.emulation_navigation, intent.extras)
 
         isActivityRecreated = savedInstanceState != null
 

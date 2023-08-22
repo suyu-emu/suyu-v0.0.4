@@ -12,7 +12,8 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -20,6 +21,7 @@ import com.google.android.material.slider.Slider
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.SettingsNavigationDirections
 import org.yuzu.yuzu_emu.databinding.DialogSliderBinding
 import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
 import org.yuzu.yuzu_emu.databinding.ListItemSettingSwitchBinding
@@ -30,17 +32,21 @@ import org.yuzu.yuzu_emu.features.settings.model.FloatSetting
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.*
+import org.yuzu.yuzu_emu.model.SettingsViewModel
 
 class SettingsAdapter(
-    private val fragmentView: SettingsFragmentView,
+    private val fragment: SettingsFragment,
     private val context: Context
 ) : RecyclerView.Adapter<SettingViewHolder?>(), DialogInterface.OnClickListener {
-    private var settings: ArrayList<SettingsItem>? = null
+    private var settings = ArrayList<SettingsItem>()
     private var clickedItem: SettingsItem? = null
     private var clickedPosition: Int
     private var dialog: AlertDialog? = null
     private var sliderProgress = 0
     private var textSliderValue: TextView? = null
+
+    private val settingsViewModel: SettingsViewModel
+        get() = ViewModelProvider(fragment.requireActivity())[SettingsViewModel::class.java]
 
     private var defaultCancelListener =
         DialogInterface.OnClickListener { _: DialogInterface?, _: Int -> closeDialog() }
@@ -91,30 +97,22 @@ class SettingsAdapter(
         holder.bind(getItem(position))
     }
 
-    private fun getItem(position: Int): SettingsItem {
-        return settings!![position]
-    }
+    private fun getItem(position: Int): SettingsItem = settings[position]
 
-    override fun getItemCount(): Int {
-        return if (settings != null) {
-            settings!!.size
-        } else {
-            0
-        }
-    }
+    override fun getItemCount(): Int = settings.size
 
     override fun getItemViewType(position: Int): Int {
         return getItem(position).type
     }
 
-    fun setSettingsList(settings: ArrayList<SettingsItem>?) {
+    fun setSettingsList(settings: ArrayList<SettingsItem>) {
         this.settings = settings
         notifyDataSetChanged()
     }
 
     fun onBooleanClick(item: SwitchSetting, position: Int, checked: Boolean) {
         item.checked = checked
-        fragmentView.onSettingChanged()
+        settingsViewModel.shouldSave = true
     }
 
     private fun onSingleChoiceClick(item: SingleChoiceSetting) {
@@ -155,7 +153,7 @@ class SettingsAdapter(
         calendar.timeZone = TimeZone.getTimeZone("UTC")
 
         var timeFormat: Int = TimeFormat.CLOCK_12H
-        if (DateFormat.is24HourFormat(fragmentView.activityView as AppCompatActivity)) {
+        if (DateFormat.is24HourFormat(context)) {
             timeFormat = TimeFormat.CLOCK_24H
         }
 
@@ -172,7 +170,7 @@ class SettingsAdapter(
 
         datePicker.addOnPositiveButtonClickListener {
             timePicker.show(
-                (fragmentView.activityView as AppCompatActivity).supportFragmentManager,
+                fragment.childFragmentManager,
                 "TimePicker"
             )
         }
@@ -181,14 +179,14 @@ class SettingsAdapter(
             epochTime += timePicker.hour.toLong() * 60 * 60
             epochTime += timePicker.minute.toLong() * 60
             if (item.value != epochTime) {
-                fragmentView.onSettingChanged()
+                settingsViewModel.shouldSave = true
                 notifyItemChanged(clickedPosition)
                 item.value = epochTime
             }
             clickedItem = null
         }
         datePicker.show(
-            (fragmentView.activityView as AppCompatActivity).supportFragmentManager,
+            fragment.childFragmentManager,
             "DatePicker"
         )
     }
@@ -231,7 +229,8 @@ class SettingsAdapter(
     }
 
     fun onSubmenuClick(item: SubmenuSetting) {
-        fragmentView.loadSubMenu(item.menuKey)
+        val action = SettingsNavigationDirections.actionGlobalSettingsFragment(item.menuKey, null)
+        fragment.view?.findNavController()?.navigate(action)
     }
 
     override fun onClick(dialog: DialogInterface, which: Int) {
@@ -240,7 +239,7 @@ class SettingsAdapter(
                 val scSetting = clickedItem as SingleChoiceSetting
                 val value = getValueForSingleChoiceSelection(scSetting, which)
                 if (scSetting.selectedValue != value) {
-                    fragmentView.onSettingChanged()
+                    settingsViewModel.shouldSave = true
                 }
 
                 // Get the backing Setting, which may be null (if for example it was missing from the file)
@@ -251,7 +250,7 @@ class SettingsAdapter(
             is StringSingleChoiceSetting -> {
                 val scSetting = clickedItem as StringSingleChoiceSetting
                 val value = scSetting.getValueAt(which)
-                if (scSetting.selectedValue != value) fragmentView.onSettingChanged()
+                if (scSetting.selectedValue != value) settingsViewModel.shouldSave = true
                 scSetting.selectedValue = value!!
                 closeDialog()
             }
@@ -259,7 +258,7 @@ class SettingsAdapter(
             is SliderSetting -> {
                 val sliderSetting = clickedItem as SliderSetting
                 if (sliderSetting.selectedValue != sliderProgress) {
-                    fragmentView.onSettingChanged()
+                    settingsViewModel.shouldSave = true
                 }
                 when (sliderSetting.setting) {
                     is ByteSetting -> {
@@ -294,7 +293,7 @@ class SettingsAdapter(
             .setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
                 setting.reset()
                 notifyItemChanged(position)
-                fragmentView.onSettingChanged()
+                settingsViewModel.shouldSave = true
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

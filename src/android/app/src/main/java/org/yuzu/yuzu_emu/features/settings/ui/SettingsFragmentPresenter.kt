@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import android.text.TextUtils
@@ -20,36 +21,36 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
-import org.yuzu.yuzu_emu.fragments.ResetSettingsDialogFragment
-import org.yuzu.yuzu_emu.utils.ThemeHelper
+import org.yuzu.yuzu_emu.model.SettingsViewModel
 
-class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) {
-    private var menuTag: String? = null
-    private lateinit var gameId: String
-    private var settingsList: ArrayList<SettingsItem>? = null
+class SettingsFragmentPresenter(
+    private val settingsViewModel: SettingsViewModel,
+    private val adapter: SettingsAdapter,
+    private var menuTag: String,
+    private var gameId: String
+) {
+    private var settingsList = ArrayList<SettingsItem>()
 
-    private val settingsActivity get() = fragmentView.activityView as SettingsActivity
+    private val preferences: SharedPreferences
+        get() = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
-    private lateinit var preferences: SharedPreferences
-
-    fun onCreate(menuTag: String, gameId: String) {
-        this.gameId = gameId
-        this.menuTag = menuTag
-    }
+    private val context: Context get() = YuzuApplication.appContext
 
     fun onViewCreated() {
-        preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
         loadSettingsList()
     }
 
-    fun loadSettingsList() {
+    private fun loadSettingsList() {
         if (!TextUtils.isEmpty(gameId)) {
-            settingsActivity.setToolbarTitle("Game Settings: $gameId")
+            settingsViewModel.setToolbarTitle(
+                context.getString(
+                    R.string.advanced_settings_game,
+                    gameId
+                )
+            )
         }
+
         val sl = ArrayList<SettingsItem>()
-        if (menuTag == null) {
-            return
-        }
         when (menuTag) {
             SettingsFile.FILE_NAME_CONFIG -> addConfigSettings(sl)
             Settings.SECTION_GENERAL -> addGeneralSettings(sl)
@@ -69,11 +70,11 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             }
         }
         settingsList = sl
-        fragmentView.showSettingsList(settingsList!!)
+        adapter.setSettingsList(settingsList)
     }
 
     private fun addConfigSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.advanced_settings))
+        settingsViewModel.setToolbarTitle(context.getString(R.string.advanced_settings))
         sl.apply {
             add(SubmenuSetting(R.string.preferences_general, 0, Settings.SECTION_GENERAL))
             add(SubmenuSetting(R.string.preferences_system, 0, Settings.SECTION_SYSTEM))
@@ -82,17 +83,14 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             add(SubmenuSetting(R.string.preferences_debug, 0, Settings.SECTION_DEBUG))
             add(
                 RunnableSetting(R.string.reset_to_default, 0, false) {
-                    ResetSettingsDialogFragment().show(
-                        settingsActivity.supportFragmentManager,
-                        ResetSettingsDialogFragment.TAG
-                    )
+                    settingsViewModel.setShouldShowResetSettingsDialog(true)
                 }
             )
         }
     }
 
     private fun addGeneralSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_general))
+        settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_general))
         sl.apply {
             add(
                 SwitchSetting(
@@ -131,7 +129,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addSystemSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_system))
+        settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_system))
         sl.apply {
             add(
                 SwitchSetting(
@@ -170,7 +168,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_graphics))
+        settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_graphics))
         sl.apply {
             add(
                 SingleChoiceSetting(
@@ -267,7 +265,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addAudioSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_audio))
+        settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_audio))
         sl.apply {
             add(
                 SingleChoiceSetting(
@@ -292,7 +290,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addThemeSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_theme))
+        settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_theme))
         sl.apply {
             val theme: AbstractIntSetting = object : AbstractIntSetting {
                 override val int: Int
@@ -302,7 +300,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     preferences.edit()
                         .putInt(Settings.PREF_THEME, value)
                         .apply()
-                    settingsActivity.recreate()
+                    settingsViewModel.setShouldRecreate(true)
                 }
 
                 override val key: String? = null
@@ -346,7 +344,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     preferences.edit()
                         .putInt(Settings.PREF_THEME_MODE, value)
                         .apply()
-                    ThemeHelper.setThemeMode(settingsActivity)
+                    settingsViewModel.setShouldRecreate(true)
                 }
 
                 override val key: String? = null
@@ -357,6 +355,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     preferences.edit()
                         .putInt(Settings.PREF_BLACK_BACKGROUNDS, defaultValue)
                         .apply()
+                    settingsViewModel.setShouldRecreate(true)
                 }
             }
 
@@ -378,7 +377,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     preferences.edit()
                         .putBoolean(Settings.PREF_BLACK_BACKGROUNDS, value)
                         .apply()
-                    settingsActivity.recreate()
+                    settingsViewModel.setShouldRecreate(true)
                 }
 
                 override val key: String? = null
@@ -389,6 +388,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     preferences.edit()
                         .putBoolean(Settings.PREF_BLACK_BACKGROUNDS, defaultValue)
                         .apply()
+                    settingsViewModel.setShouldRecreate(true)
                 }
             }
 
@@ -403,7 +403,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addDebugSettings(sl: ArrayList<SettingsItem>) {
-        settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.preferences_debug))
+        settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_debug))
         sl.apply {
             add(HeaderSetting(R.string.gpu))
             add(
