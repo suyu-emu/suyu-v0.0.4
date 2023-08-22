@@ -11,6 +11,7 @@ import kotlinx.serialization.json.Json
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.Game
+import org.yuzu.yuzu_emu.model.MinimalDocumentFile
 
 object GameHelper {
     const val KEY_GAME_PATH = "game_path"
@@ -29,15 +30,7 @@ object GameHelper {
         // Ensure keys are loaded so that ROM metadata can be decrypted.
         NativeLibrary.reloadKeys()
 
-        val children = FileUtil.listFiles(context, gamesUri)
-        for (file in children) {
-            if (!file.isDirectory) {
-                // Check that the file has an extension we care about before trying to read out of it.
-                if (Game.extensions.contains(FileUtil.getExtension(file.uri))) {
-                    games.add(getGame(file.uri))
-                }
-            }
-        }
+        addGamesRecursive(games, FileUtil.listFiles(context, gamesUri), 3)
 
         // Cache list of games found on disk
         val serializedGames = mutableSetOf<String>()
@@ -50,6 +43,30 @@ object GameHelper {
             .apply()
 
         return games.toList()
+    }
+
+    private fun addGamesRecursive(
+        games: MutableList<Game>,
+        files: Array<MinimalDocumentFile>,
+        depth: Int
+    ) {
+        if (depth <= 0) {
+            return
+        }
+
+        files.forEach {
+            if (it.isDirectory) {
+                addGamesRecursive(
+                    games,
+                    FileUtil.listFiles(YuzuApplication.appContext, it.uri),
+                    depth - 1
+                )
+            } else {
+                if (Game.extensions.contains(FileUtil.getExtension(it.uri))) {
+                    games.add(getGame(it.uri))
+                }
+            }
+        }
     }
 
     private fun getGame(uri: Uri): Game {
