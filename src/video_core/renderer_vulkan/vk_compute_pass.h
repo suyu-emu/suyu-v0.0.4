@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <optional>
 #include <span>
 #include <utility>
 
@@ -31,7 +32,8 @@ public:
                          vk::Span<VkDescriptorSetLayoutBinding> bindings,
                          vk::Span<VkDescriptorUpdateTemplateEntry> templates,
                          const DescriptorBankInfo& bank_info,
-                         vk::Span<VkPushConstantRange> push_constants, std::span<const u32> code);
+                         vk::Span<VkPushConstantRange> push_constants, std::span<const u32> code,
+                         std::optional<u32> optional_subgroup_size = std::nullopt);
     ~ComputePass();
 
 protected:

@@ -1,26 +1,24 @@
-// SPDX-FileCopyrightText: Copyright 2015 Graham Sellers, Richard Wright Jr. and Nicholas Haemel
-// SPDX-License-Identifier: MIT
-
-// Code obtained from OpenGL SuperBible, Seventh Edition by Graham Sellers, Richard Wright Jr. and
-// Nicholas Haemel. Modified to suit needs and optimize for subgroup
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #version 460 core
 
+#extension GL_KHR_shader_subgroup_basic : require
+#extension GL_KHR_shader_subgroup_shuffle : require
+#extension GL_KHR_shader_subgroup_shuffle_relative : require
+#extension GL_KHR_shader_subgroup_arithmetic : require
+
 #ifdef VULKAN
 
-#extension GL_KHR_shader_subgroup_arithmetic : enable
 #define HAS_EXTENDED_TYPES 1
 #define BEGIN_PUSH_CONSTANTS layout(push_constant) uniform PushConstants {
-#define END_PUSH_CONSTANTS                                                                         \
-    }                                                                                              \
-    ;
+#define END_PUSH_CONSTANTS };
 #define UNIFORM(n)
 #define BINDING_INPUT_BUFFER 0
 #define BINDING_OUTPUT_IMAGE 1
 
 #else // ^^^ Vulkan ^^^ // vvv OpenGL vvv
 
-#extension GL_KHR_shader_subgroup_arithmetic : enable
 #extension GL_NV_gpu_shader5 : enable
 #ifdef GL_NV_gpu_shader5
 #define HAS_EXTENDED_TYPES 1
@@ -43,19 +41,20 @@ END_PUSH_CONSTANTS
 layout(local_size_x = 32) in;
 
 layout(std430, binding = 0) readonly buffer block1 {
-    uvec2 input_data[gl_WorkGroupSize.x];
+    uvec2 input_data[];
 };
 
-layout(std430, binding = 1) writeonly coherent buffer block2 {
-    uvec2 output_data[gl_WorkGroupSize.x];
+layout(std430, binding = 1) coherent buffer block2 {
+    uvec2 output_data[];
 };
 
 layout(std430, binding = 2) coherent buffer block3 {
     uvec2 accumulated_data;
 };
 
-shared uvec2 shared_data[gl_WorkGroupSize.x * 2];
+shared uvec2 shared_data[2];
 
+// Simple Uint64 add that uses 2 uint variables for GPUs that don't support uint64
 uvec2 AddUint64(uvec2 value_1, uvec2 value_2) {
     uint carry = 0;
     uvec2 result;
@@ -64,61 +63,102 @@ uvec2 AddUint64(uvec2 value_1, uvec2 value_2) {
     return result;
 }
 
-void main(void) {
-    uint id = gl_LocalInvocationID.x;
-    uvec2 base_value_1 = (id * 2) < max_accumulation_base ? accumulated_data : uvec2(0);
-    uvec2 base_value_2 = (id * 2 + 1) < max_accumulation_base ? accumulated_data : uvec2(0);
-    uint work_size = gl_WorkGroupSize.x;
-    uint rd_id;
-    uint wr_id;
-    uint mask;
-    uvec2 input_1 = input_data[id * 2];
-    uvec2 input_2 = input_data[id * 2 + 1];
-    // The number of steps is the log base 2 of the
-    // work group size, which should be a power of 2
-    const uint steps = uint(log2(work_size)) + 1;
-    uint step = 0;
+// do subgroup Prefix Sum using Hillis and Steele's algorithm
+uvec2 subgroupInclusiveAddUint64(uvec2 value) {
+    uvec2 result = value;
+    for (uint i = 1; i < gl_SubgroupSize; i *= 2) {
+        if (i <= gl_SubgroupInvocationID) {
+            uvec2 other = subgroupShuffleUp(result, i); // get value from subgroup_inv_id - i;
+            result = AddUint64(result, other);
+        }
+    }
+    return result;
+}
 
-    // Each invocation is responsible for the content of
-    // two elements of the output array
-    shared_data[id * 2] = input_1;
-    shared_data[id * 2 + 1] = input_2;
-    // Synchronize to make sure that everyone has initialized
-    // their elements of shared_data[] with data loaded from
-    // the input arrays
+// Writes down the results to the output buffer and to the accumulation buffer
+void WriteResults(uvec2 result) {
+    uint current_global_id = gl_GlobalInvocationID.x;
+    uvec2 base_data = current_global_id < max_accumulation_base ? accumulated_data : uvec2(0);
+    output_data[current_global_id] = result + base_data;
+    if (max_accumulation_base >= accumulation_limit + 1) {
+        if (current_global_id == accumulation_limit) {
+            accumulated_data = result;
+        }
+        return;
+    }
+    // We have that ugly case in which the accumulation data is reset in the middle somewhere.
+    barrier();
+    groupMemoryBarrier();
+    if (current_global_id == accumulation_limit) {
+        uvec2 value_1 = output_data[max_accumulation_base];
+        accumulated_data = AddUint64(result, -value_1);
+    }
+}
+
+void main() {
+    uint subgroup_inv_id = gl_SubgroupInvocationID;
+    uint subgroup_id = gl_SubgroupID;
+    uint last_subgroup_id = subgroupMax(subgroup_inv_id);
+    uint current_global_id = gl_GlobalInvocationID.x;
+    uint total_work = gl_NumWorkGroups.x * gl_WorkGroupSize.x;
+    uvec2 data = input_data[current_global_id];
+    // make sure all input data has been loaded
+    subgroupBarrier();
+    subgroupMemoryBarrier();
+
+    uvec2 result = subgroupInclusiveAddUint64(data);
+
+    // if we had less queries than our subgroup, just write down the results.
+    if (total_work <= gl_SubgroupSize) { // This condition is constant per dispatch.
+        WriteResults(result);
+        return;
+    }
+
+    // We now have more, so lets write the last result into shared memory.
+    // Only pick the last subgroup.
+    if (subgroup_inv_id == last_subgroup_id) {
+        shared_data[subgroup_id] = result;
+    }
+    // wait until everyone loaded their stuffs
     barrier();
     memoryBarrierShared();
-    // For each step...
-    for (step = 0; step < steps; step++) {
-        // Calculate the read and write index in the
-        // shared array
-        mask = (1 << step) - 1;
-        rd_id = ((id >> step) << (step + 1)) + mask;
-        wr_id = rd_id + 1 + (id & mask);
-        // Accumulate the read data into our element
 
-        shared_data[wr_id] = AddUint64(shared_data[rd_id], shared_data[wr_id]);
-        // Synchronize again to make sure that everyone
-        // has caught up with us
+    // Case 1: the total work for the grouped results can be calculated in a single subgroup
+    // operation (about 1024 queries).
+    uint total_extra_work = gl_NumSubgroups * gl_NumWorkGroups.x;
+    if (total_extra_work <= gl_SubgroupSize) { // This condition is constant per dispatch.
+        if (subgroup_id != 0) {
+            uvec2 tmp = shared_data[subgroup_inv_id];
+            subgroupBarrier();
+            subgroupMemoryBarrierShared();
+            tmp = subgroupInclusiveAddUint64(tmp);
+            result = AddUint64(result, subgroupShuffle(tmp, subgroup_id - 1));
+        }
+
+        WriteResults(result);
+        return;
+    }
+
+    // Case 2: our work amount is huge, so lets do it in O(log n) steps.
+    const uint extra = (total_extra_work ^ (total_extra_work - 1)) != 0 ? 1 : 0;
+    const uint steps = 1 << (findMSB(total_extra_work) + extra);
+    uint step;
+    // Hillis and Steele's algorithm
+    for (step = 1; step < steps; step *= 2) {
+        if (current_global_id < steps && current_global_id >= step) {
+            uvec2 current = shared_data[current_global_id];
+            uvec2 other = shared_data[current_global_id - step];
+            shared_data[current_global_id] = AddUint64(current, other);
+        }
+        // steps is constant, so this will always execute in ever workgroup's thread.
         barrier();
         memoryBarrierShared();
     }
-    // Add the accumulation
-    shared_data[id * 2] = AddUint64(shared_data[id * 2], base_value_1);
-    shared_data[id * 2 + 1] = AddUint64(shared_data[id * 2 + 1], base_value_2);
-    barrier();
-    memoryBarrierShared();
-
-    // Finally write our data back to the output buffer
-    output_data[id * 2] = shared_data[id * 2];
-    output_data[id * 2 + 1] = shared_data[id * 2 + 1];
-    if (id == 0) {
-        if (max_accumulation_base >= accumulation_limit + 1) {
-            accumulated_data = shared_data[accumulation_limit];
-            return;
-        }
-        uvec2 value_1 = shared_data[max_accumulation_base];
-        uvec2 value_2 = shared_data[accumulation_limit];
-        accumulated_data = AddUint64(value_1, -value_2);
+    // Only add results for groups higher than 0
+    if (subgroup_id != 0) {
+        result = AddUint64(result, shared_data[subgroup_id - 1]);
     }
+
+    // Just write the final results. We are done
+    WriteResults(result);
 }

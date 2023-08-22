@@ -1,0 +1,120 @@
+// SPDX-FileCopyrightText: Copyright 2015 Graham Sellers, Richard Wright Jr. and Nicholas Haemel
+// SPDX-License-Identifier: MIT
+
+// Code obtained from OpenGL SuperBible, Seventh Edition by Graham Sellers, Richard Wright Jr. and
+// Nicholas Haemel. Modified to suit needs.
+
+#version 460 core
+
+#ifdef VULKAN
+
+#define HAS_EXTENDED_TYPES 1
+#define BEGIN_PUSH_CONSTANTS layout(push_constant) uniform PushConstants {
+#define END_PUSH_CONSTANTS };
+#define UNIFORM(n)
+#define BINDING_INPUT_BUFFER 0
+#define BINDING_OUTPUT_IMAGE 1
+
+#else // ^^^ Vulkan ^^^ // vvv OpenGL vvv
+
+#extension GL_NV_gpu_shader5 : enable
+#ifdef GL_NV_gpu_shader5
+#define HAS_EXTENDED_TYPES 1
+#else
+#define HAS_EXTENDED_TYPES 0
+#endif
+#define BEGIN_PUSH_CONSTANTS
+#define END_PUSH_CONSTANTS
+#define UNIFORM(n) layout(location = n) uniform
+#define BINDING_INPUT_BUFFER 0
+#define BINDING_OUTPUT_IMAGE 0
+
+#endif
+
+BEGIN_PUSH_CONSTANTS
+UNIFORM(0) uint max_accumulation_base;
+UNIFORM(1) uint accumulation_limit;
+END_PUSH_CONSTANTS
+
+layout(local_size_x = 32) in;
+
+layout(std430, binding = 0) readonly buffer block1 {
+    uvec2 input_data[gl_WorkGroupSize.x];
+};
+
+layout(std430, binding = 1) writeonly coherent buffer block2 {
+    uvec2 output_data[gl_WorkGroupSize.x];
+};
+
+layout(std430, binding = 2) coherent buffer block3 {
+    uvec2 accumulated_data;
+};
+
+shared uvec2 shared_data[gl_WorkGroupSize.x * 2];
+
+uvec2 AddUint64(uvec2 value_1, uvec2 value_2) {
+    uint carry = 0;
+    uvec2 result;
+    result.x = uaddCarry(value_1.x, value_2.x, carry);
+    result.y = value_1.y + value_2.y + carry;
+    return result;
+}
+
+void main(void) {
+    uint id = gl_LocalInvocationID.x;
+    uvec2 base_value_1 = (id * 2) < max_accumulation_base ? accumulated_data : uvec2(0);
+    uvec2 base_value_2 = (id * 2 + 1) < max_accumulation_base ? accumulated_data : uvec2(0);
+    uint work_size = gl_WorkGroupSize.x;
+    uint rd_id;
+    uint wr_id;
+    uint mask;
+    uvec2 input_1 = input_data[id * 2];
+    uvec2 input_2 = input_data[id * 2 + 1];
+    // The number of steps is the log base 2 of the
+    // work group size, which should be a power of 2
+    const uint steps = uint(log2(work_size)) + 1;
+    uint step = 0;
+
+    // Each invocation is responsible for the content of
+    // two elements of the output array
+    shared_data[id * 2] = input_1;
+    shared_data[id * 2 + 1] = input_2;
+    // Synchronize to make sure that everyone has initialized
+    // their elements of shared_data[] with data loaded from
+    // the input arrays
+    barrier();
+    memoryBarrierShared();
+    // For each step...
+    for (step = 0; step < steps; step++) {
+        // Calculate the read and write index in the
+        // shared array
+        mask = (1 << step) - 1;
+        rd_id = ((id >> step) << (step + 1)) + mask;
+        wr_id = rd_id + 1 + (id & mask);
+        // Accumulate the read data into our element
+
+        shared_data[wr_id] = AddUint64(shared_data[rd_id], shared_data[wr_id]);
+        // Synchronize again to make sure that everyone
+        // has caught up with us
+        barrier();
+        memoryBarrierShared();
+    }
+    // Add the accumulation
+    shared_data[id * 2] = AddUint64(shared_data[id * 2], base_value_1);
+    shared_data[id * 2 + 1] = AddUint64(shared_data[id * 2 + 1], base_value_2);
+    barrier();
+    memoryBarrierShared();
+
+    // Finally write our data back to the output buffer
+    output_data[id * 2] = shared_data[id * 2];
+    output_data[id * 2 + 1] = shared_data[id * 2 + 1];
+    if (id == 0) {
+        if (max_accumulation_base >= accumulation_limit + 1) {
+            accumulated_data = shared_data[accumulation_limit];
+            return;
+        }
+        uvec2 value_1 = shared_data[max_accumulation_base];
+        uvec2 value_2 = shared_data[accumulation_limit];
+        accumulated_data = AddUint64(value_1, -value_2);
+    }
+}

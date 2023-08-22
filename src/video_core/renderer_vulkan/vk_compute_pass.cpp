@@ -13,6 +13,7 @@
 #include "common/div_ceil.h"
 #include "video_core/host_shaders/astc_decoder_comp_spv.h"
 #include "video_core/host_shaders/queries_prefix_scan_sum_comp_spv.h"
+#include "video_core/host_shaders/queries_prefix_scan_sum_nosubgroups_comp_spv.h"
 #include "video_core/host_shaders/resolve_conditional_render_comp_spv.h"
 #include "video_core/host_shaders/vulkan_quad_indexed_comp_spv.h"
 #include "video_core/host_shaders/vulkan_uint8_comp_spv.h"
@@ -187,7 +188,8 @@ ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
                          vk::Span<VkDescriptorSetLayoutBinding> bindings,
                          vk::Span<VkDescriptorUpdateTemplateEntry> templates,
                          const DescriptorBankInfo& bank_info,
-                         vk::Span<VkPushConstantRange> push_constants, std::span<const u32> code)
+                         vk::Span<VkPushConstantRange> push_constants, std::span<const u32> code,
+                         std::optional<u32> optional_subgroup_size)
     : device{device_} {
     descriptor_set_layout = device.GetLogical().CreateDescriptorSetLayout({
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -228,13 +230,19 @@ ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
         .pCode = code.data(),
     });
     device.SaveShader(code);
+    const VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT subgroup_size_ci{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT,
+        .pNext = nullptr,
+        .requiredSubgroupSize = optional_subgroup_size ? *optional_subgroup_size : 32U,
+    };
+    bool use_setup_size = device.IsExtSubgroupSizeControlSupported() && optional_subgroup_size;
     pipeline = device.GetLogical().CreateComputePipeline({
         .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .stage{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .pNext = nullptr,
+            .pNext = use_setup_size ? &subgroup_size_ci : nullptr,
             .flags = 0,
             .stage = VK_SHADER_STAGE_COMPUTE_BIT,
             .module = *module,
@@ -399,10 +407,17 @@ void ConditionalRenderingResolvePass::Resolve(VkBuffer dst_buffer, VkBuffer src_
 QueriesPrefixScanPass::QueriesPrefixScanPass(
     const Device& device_, Scheduler& scheduler_, DescriptorPool& descriptor_pool_,
     ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
-    : ComputePass(device_, descriptor_pool_, QUERIES_SCAN_DESCRIPTOR_SET_BINDINGS,
-                  QUERIES_SCAN_DESCRIPTOR_UPDATE_TEMPLATE, QUERIES_SCAN_BANK_INFO,
-                  COMPUTE_PUSH_CONSTANT_RANGE<sizeof(QueriesPrefixScanPushConstants)>,
-                  QUERIES_PREFIX_SCAN_SUM_COMP_SPV),
+    : ComputePass(
+          device_, descriptor_pool_, QUERIES_SCAN_DESCRIPTOR_SET_BINDINGS,
+          QUERIES_SCAN_DESCRIPTOR_UPDATE_TEMPLATE, QUERIES_SCAN_BANK_INFO,
+          COMPUTE_PUSH_CONSTANT_RANGE<sizeof(QueriesPrefixScanPushConstants)>,
+          device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_BASIC_BIT) &&
+                  device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_ARITHMETIC_BIT) &&
+                  device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_SHUFFLE_BIT) &&
+                  device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT)
+              ? std::span<const u32>(QUERIES_PREFIX_SCAN_SUM_COMP_SPV)
+              : std::span<const u32>(QUERIES_PREFIX_SCAN_SUM_NOSUBGROUPS_COMP_SPV),
+          {32}),
       scheduler{scheduler_}, compute_pass_descriptor_queue{compute_pass_descriptor_queue_} {}
 
 void QueriesPrefixScanPass::Run(VkBuffer accumulation_buffer, VkBuffer dst_buffer,

@@ -1376,10 +1376,10 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
             return true;
         }
     }
-    /*if (!is_in_bc[0] && !is_in_bc[1]) {
+    if (!is_in_bc[0] && !is_in_bc[1]) {
         // Both queries are in query cache, it's best to just flush.
         return true;
-    }*/
+    }
     HostConditionalRenderingCompareBCImpl(object_1.address, equal_check);
     return true;
 }
