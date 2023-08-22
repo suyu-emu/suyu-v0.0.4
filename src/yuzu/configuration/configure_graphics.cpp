@@ -24,6 +24,7 @@
 #include <QtCore/qobjectdefs.h>
 #include <qabstractbutton.h>
 #include <qboxlayout.h>
+#include <qcombobox.h>
 #include <qcoreevent.h>
 #include <qglobal.h>
 #include <qgridlayout.h>
@@ -77,13 +78,16 @@ static constexpr Settings::VSyncMode PresentModeToSetting(VkPresentModeKHR mode)
     }
 }
 
-ConfigureGraphics::ConfigureGraphics(const Core::System& system_,
-                                     std::vector<VkDeviceInfo::Record>& records_,
-                                     const std::function<void()>& expose_compute_option_,
-                                     std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,
-                                     const ConfigurationShared::Builder& builder, QWidget* parent)
+ConfigureGraphics::ConfigureGraphics(
+    const Core::System& system_, std::vector<VkDeviceInfo::Record>& records_,
+    const std::function<void()>& expose_compute_option_,
+    const std::function<void(Settings::AspectRatio, Settings::ResolutionSetup)>&
+        update_aspect_ratio_,
+    std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group_,
+    const ConfigurationShared::Builder& builder, QWidget* parent)
     : ConfigurationShared::Tab(group_, parent), ui{std::make_unique<Ui::ConfigureGraphics>()},
-      records{records_}, expose_compute_option{expose_compute_option_}, system{system_},
+      records{records_}, expose_compute_option{expose_compute_option_},
+      update_aspect_ratio{update_aspect_ratio_}, system{system_},
       combobox_translations{builder.ComboboxTranslations()},
       shader_mapping{
           combobox_translations.at(Settings::EnumMetadata<Settings::ShaderBackend>::Index())} {
@@ -139,6 +143,26 @@ ConfigureGraphics::ConfigureGraphics(const Core::System& system_,
         }
         UpdateBackgroundColorButton(new_bg_color);
     });
+
+    const auto& update_screenshot_info = [this, &builder]() {
+        const auto& combobox_enumerations = builder.ComboboxTranslations().at(
+            Settings::EnumMetadata<Settings::AspectRatio>::Index());
+        const auto index = aspect_ratio_combobox->currentIndex();
+        const auto ratio = static_cast<Settings::AspectRatio>(combobox_enumerations[index].first);
+
+        const auto& combobox_enumerations_resolution = builder.ComboboxTranslations().at(
+            Settings::EnumMetadata<Settings::ResolutionSetup>::Index());
+        const auto res_index = resolution_combobox->currentIndex();
+        const auto setup = static_cast<Settings::ResolutionSetup>(
+            combobox_enumerations_resolution[res_index].first);
+
+        update_aspect_ratio(ratio, setup);
+    };
+
+    connect(aspect_ratio_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            update_screenshot_info);
+    connect(resolution_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            update_screenshot_info);
 
     api_combobox->setEnabled(!UISettings::values.has_broken_vulkan && api_combobox->isEnabled());
     ui->api_widget->setEnabled(
@@ -279,6 +303,14 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
         } else if (setting->Id() == Settings::values.vsync_mode.Id()) {
             // Keep track of vsync_mode's combobox so we can populate it
             vsync_mode_combobox = widget->combobox;
+            hold_graphics.emplace(setting->Id(), widget);
+        } else if (setting->Id() == Settings::values.aspect_ratio.Id()) {
+            // Keep track of the aspect ratio combobox to update other UI tabs that need it
+            aspect_ratio_combobox = widget->combobox;
+            hold_graphics.emplace(setting->Id(), widget);
+        } else if (setting->Id() == Settings::values.resolution_setup.Id()) {
+            // Keep track of the resolution combobox to update other UI tabs that need it
+            resolution_combobox = widget->combobox;
             hold_graphics.emplace(setting->Id(), widget);
         } else {
             hold_graphics.emplace(setting->Id(), widget);

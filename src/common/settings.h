@@ -525,6 +525,7 @@ std::string GetTimeZoneString(TimeZone time_zone);
 
 void LogSettings();
 
+void TranslateResolutionInfo(ResolutionSetup setup, ResolutionScalingInfo& info);
 void UpdateRescalingInfo();
 
 // Restore the global state of all applicable settings in the Values struct
