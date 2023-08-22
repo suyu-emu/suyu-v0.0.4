@@ -1365,6 +1365,11 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
         return false;
     }
 
+    const bool is_gpu_high = Settings::IsGPULevelHigh();
+    if (!is_gpu_high && impl->device.GetDriverID() == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
+        return true;
+    }
+
     for (size_t i = 0; i < 2; i++) {
         is_null[i] = !is_in_ac[i] && check_value(objects[i]->address);
     }
@@ -1376,6 +1381,11 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
             return true;
         }
     }
+
+    if (!is_gpu_high) {
+        return true;
+    }
+
     if (!is_in_bc[0] && !is_in_bc[1]) {
         // Both queries are in query cache, it's best to just flush.
         return true;
