@@ -16,8 +16,10 @@ void MOV(TranslatorVisitor& v, u64 insn, const IR::U32& src, bool is_mov32i = fa
         BitField<12, 4, u64> mov32i_mask;
     } const mov{insn};
 
-    if ((is_mov32i ? mov.mov32i_mask : mov.mask) != 0xf) {
-        throw NotImplementedException("Non-full move mask");
+    u64 mask = is_mov32i ? mov.mov32i_mask : mov.mask;
+    if (mask != 0xf && mask != 0x1) {
+        LOG_WARNING(Shader, "(STUBBED) Masked Mov");
+        return;
     }
     v.X(mov.dest_reg, src);
 }
