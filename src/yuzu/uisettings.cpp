@@ -36,4 +36,20 @@ bool IsDarkTheme() {
 
 Values values = {};
 
+u32 CalculateWidth(u32 height, Settings::AspectRatio ratio) {
+    switch (ratio) {
+    case Settings::AspectRatio::R4_3:
+        return height * 4 / 3;
+    case Settings::AspectRatio::R21_9:
+        return height * 21 / 9;
+    case Settings::AspectRatio::R16_10:
+        return height * 16 / 10;
+    case Settings::AspectRatio::R16_9:
+    case Settings::AspectRatio::Stretch:
+        // TODO: Move this function wherever appropriate to implement Stretched aspect
+        break;
+    }
+    return height * 16 / 9;
+}
+
 } // namespace UISettings

@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <QWidget>
+#include "common/settings_enums.h"
 
 namespace Core {
 class System;
@@ -22,6 +23,9 @@ public:
     ~ConfigureUi() override;
 
     void ApplyConfiguration();
+
+    void UpdateScreenshotInfo(Settings::AspectRatio ratio,
+                              Settings::ResolutionSetup resolution_info);
 
 private slots:
     void OnLanguageChanged(int index);
@@ -44,7 +48,11 @@ private:
     void UpdateFirstRowComboBox(bool init = false);
     void UpdateSecondRowComboBox(bool init = false);
 
+    void UpdateWidthText();
+
     std::unique_ptr<Ui::ConfigureUi> ui;
 
+    Settings::AspectRatio ratio;
+    Settings::ResolutionSetup resolution_setting;
     Core::System& system;
 };

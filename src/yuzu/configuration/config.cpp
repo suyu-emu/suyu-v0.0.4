@@ -592,8 +592,7 @@ void Config::ReadRendererValues() {
 void Config::ReadScreenshotValues() {
     qt_config->beginGroup(QStringLiteral("Screenshots"));
 
-    UISettings::values.enable_screenshot_save_as =
-        ReadSetting(QStringLiteral("enable_screenshot_save_as"), true).toBool();
+    ReadCategory(Settings::Category::Screenshots);
     FS::SetYuzuPath(
         FS::YuzuPath::ScreenshotsDir,
         qt_config

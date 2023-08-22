@@ -81,12 +81,12 @@ private:
     std::unique_ptr<ConfigureFilesystem> filesystem_tab;
     std::unique_ptr<ConfigureGeneral> general_tab;
     std::unique_ptr<ConfigureGraphicsAdvanced> graphics_advanced_tab;
+    std::unique_ptr<ConfigureUi> ui_tab;
     std::unique_ptr<ConfigureGraphics> graphics_tab;
     std::unique_ptr<ConfigureHotkeys> hotkeys_tab;
     std::unique_ptr<ConfigureInput> input_tab;
     std::unique_ptr<ConfigureNetwork> network_tab;
     std::unique_ptr<ConfigureProfileManager> profile_tab;
     std::unique_ptr<ConfigureSystem> system_tab;
-    std::unique_ptr<ConfigureUi> ui_tab;
     std::unique_ptr<ConfigureWeb> web_tab;
 };

@@ -1,18 +1,31 @@
 // SPDX-FileCopyrightText: 2016 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <array>
-#include <utility>
-#include <QFileDialog>
+#include "yuzu/configuration/configure_ui.h"
 
+#include <array>
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <utility>
+
+#include <QCheckBox>
+#include <QComboBox>
+#include <QCoreApplication>
 #include <QDirIterator>
+#include <QFileDialog>
+#include <QString>
+#include <QToolButton>
+#include <QVariant>
+
 #include "common/common_types.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "core/core.h"
+#include "core/frontend/framebuffer_layout.h"
 #include "ui_configure_ui.h"
-#include "yuzu/configuration/configure_ui.h"
 #include "yuzu/uisettings.h"
 
 namespace {
@@ -54,8 +67,44 @@ QString GetTranslatedRowTextName(size_t index) {
 }
 } // Anonymous namespace
 
+static float GetUpFactor(Settings::ResolutionSetup res_setup) {
+    Settings::ResolutionScalingInfo info{};
+    Settings::TranslateResolutionInfo(res_setup, info);
+    return info.up_factor;
+}
+
+static void PopulateResolutionComboBox(QComboBox* screenshot_height, QWidget* parent) {
+    screenshot_height->clear();
+
+    const auto& enumeration =
+        Settings::EnumMetadata<Settings::ResolutionSetup>::Canonicalizations();
+    std::set<u32> resolutions{};
+    for (const auto& [name, value] : enumeration) {
+        const float up_factor = GetUpFactor(value);
+        u32 height_undocked = Layout::ScreenUndocked::Height * up_factor;
+        u32 height_docked = Layout::ScreenDocked::Height * up_factor;
+        resolutions.emplace(height_undocked);
+        resolutions.emplace(height_docked);
+    }
+
+    screenshot_height->addItem(parent->tr("Auto", "Screenshot height option"));
+    for (const auto res : resolutions) {
+        screenshot_height->addItem(QString::fromStdString(std::to_string(res)));
+    }
+}
+
+static u32 ScreenshotDimensionToInt(const QString& height) {
+    try {
+        return std::stoi(height.toStdString());
+    } catch (std::invalid_argument&) {
+        return 0;
+    }
+}
+
 ConfigureUi::ConfigureUi(Core::System& system_, QWidget* parent)
-    : QWidget(parent), ui{std::make_unique<Ui::ConfigureUi>()}, system{system_} {
+    : QWidget(parent), ui{std::make_unique<Ui::ConfigureUi>()},
+      ratio{Settings::values.aspect_ratio.GetValue()},
+      resolution_setting{Settings::values.resolution_setup.GetValue()}, system{system_} {
     ui->setupUi(this);
 
     InitializeLanguageComboBox();
@@ -67,6 +116,8 @@ ConfigureUi::ConfigureUi(Core::System& system_, QWidget* parent)
 
     InitializeIconSizeComboBox();
     InitializeRowComboBoxes();
+
+    PopulateResolutionComboBox(ui->screenshot_height, this);
 
     SetConfiguration();
 
@@ -104,6 +155,10 @@ ConfigureUi::ConfigureUi(Core::System& system_, QWidget* parent)
             ui->screenshot_path_edit->setText(dir);
         }
     });
+
+    connect(ui->screenshot_height, &QComboBox::currentTextChanged, [this]() { UpdateWidthText(); });
+
+    UpdateWidthText();
 }
 
 ConfigureUi::~ConfigureUi() = default;
@@ -123,6 +178,10 @@ void ConfigureUi::ApplyConfiguration() {
     UISettings::values.enable_screenshot_save_as = ui->enable_screenshot_save_as->isChecked();
     Common::FS::SetYuzuPath(Common::FS::YuzuPath::ScreenshotsDir,
                             ui->screenshot_path_edit->text().toStdString());
+
+    const u32 height = ScreenshotDimensionToInt(ui->screenshot_height->currentText());
+    UISettings::values.screenshot_height.SetValue(height);
+
     system.ApplySettings();
 }
 
@@ -147,6 +206,13 @@ void ConfigureUi::SetConfiguration() {
         UISettings::values.enable_screenshot_save_as.GetValue());
     ui->screenshot_path_edit->setText(QString::fromStdString(
         Common::FS::GetYuzuPathString(Common::FS::YuzuPath::ScreenshotsDir)));
+
+    const auto height = UISettings::values.screenshot_height.GetValue();
+    if (height == 0) {
+        ui->screenshot_height->setCurrentIndex(0);
+    } else {
+        ui->screenshot_height->setCurrentText(QStringLiteral("%1").arg(height));
+    }
 }
 
 void ConfigureUi::changeEvent(QEvent* event) {
@@ -316,4 +382,30 @@ void ConfigureUi::OnLanguageChanged(int index) {
         return;
 
     emit LanguageChanged(ui->language_combobox->itemData(index).toString());
+}
+
+void ConfigureUi::UpdateWidthText() {
+    const u32 height = ScreenshotDimensionToInt(ui->screenshot_height->currentText());
+    const u32 width = UISettings::CalculateWidth(height, ratio);
+    if (height == 0) {
+        const auto up_factor = GetUpFactor(resolution_setting);
+        const u32 height_docked = Layout::ScreenDocked::Height * up_factor;
+        const u32 width_docked = UISettings::CalculateWidth(height_docked, ratio);
+        const u32 height_undocked = Layout::ScreenUndocked::Height * up_factor;
+        const u32 width_undocked = UISettings::CalculateWidth(height_undocked, ratio);
+        ui->screenshot_width->setText(tr("Auto (%1 x %2, %3 x %4)", "Screenshot width value")
+                                          .arg(width_undocked)
+                                          .arg(height_undocked)
+                                          .arg(width_docked)
+                                          .arg(height_docked));
+    } else {
+        ui->screenshot_width->setText(QStringLiteral("%1 x").arg(width));
+    }
+}
+
+void ConfigureUi::UpdateScreenshotInfo(Settings::AspectRatio ratio_,
+                                       Settings::ResolutionSetup resolution_setting_) {
+    ratio = ratio_;
+    resolution_setting = resolution_setting_;
+    UpdateWidthText();
 }

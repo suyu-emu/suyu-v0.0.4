@@ -14,6 +14,7 @@
 #include <qobjectdefs.h>
 #include <vulkan/vulkan_core.h>
 #include "common/common_types.h"
+#include "common/settings_enums.h"
 #include "configuration/shared_translation.h"
 #include "vk_device_info.h"
 #include "yuzu/configuration/configuration_shared.h"
@@ -43,12 +44,13 @@ class Builder;
 
 class ConfigureGraphics : public ConfigurationShared::Tab {
 public:
-    explicit ConfigureGraphics(const Core::System& system_,
-                               std::vector<VkDeviceInfo::Record>& records,
-                               const std::function<void()>& expose_compute_option_,
-                               std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
-                               const ConfigurationShared::Builder& builder,
-                               QWidget* parent = nullptr);
+    explicit ConfigureGraphics(
+        const Core::System& system_, std::vector<VkDeviceInfo::Record>& records,
+        const std::function<void()>& expose_compute_option,
+        const std::function<void(Settings::AspectRatio, Settings::ResolutionSetup)>&
+            update_aspect_ratio,
+        std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,
+        const ConfigurationShared::Builder& builder, QWidget* parent = nullptr);
     ~ConfigureGraphics() override;
 
     void ApplyConfiguration() override;
@@ -91,6 +93,7 @@ private:
     u32 vulkan_device{};
     Settings::ShaderBackend shader_backend{};
     const std::function<void()>& expose_compute_option;
+    const std::function<void(Settings::AspectRatio, Settings::ResolutionSetup)> update_aspect_ratio;
 
     const Core::System& system;
     const ConfigurationShared::ComboboxTranslationMap& combobox_translations;
@@ -104,4 +107,6 @@ private:
     QWidget* vulkan_device_widget;
     QWidget* api_widget;
     QWidget* shader_backend_widget;
+    QComboBox* aspect_ratio_combobox;
+    QComboBox* resolution_combobox;
 };
