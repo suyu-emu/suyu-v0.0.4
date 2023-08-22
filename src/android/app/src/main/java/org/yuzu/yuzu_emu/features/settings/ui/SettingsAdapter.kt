@@ -113,7 +113,7 @@ class SettingsAdapter(
     }
 
     fun onBooleanClick(item: SwitchSetting, position: Int, checked: Boolean) {
-        item.setChecked(checked)
+        item.checked = checked
         fragmentView.onSettingChanged()
     }
 
@@ -183,7 +183,7 @@ class SettingsAdapter(
             if (item.value != epochTime) {
                 fragmentView.onSettingChanged()
                 notifyItemChanged(clickedPosition)
-                item.setSelectedValue(epochTime)
+                item.value = epochTime
             }
             clickedItem = null
         }
@@ -244,7 +244,7 @@ class SettingsAdapter(
                 }
 
                 // Get the backing Setting, which may be null (if for example it was missing from the file)
-                scSetting.setSelectedValue(value)
+                scSetting.selectedValue = value
                 closeDialog()
             }
 
@@ -252,7 +252,7 @@ class SettingsAdapter(
                 val scSetting = clickedItem as StringSingleChoiceSetting
                 val value = scSetting.getValueAt(which)
                 if (scSetting.selectedValue != value) fragmentView.onSettingChanged()
-                scSetting.setSelectedValue(value!!)
+                scSetting.selectedValue = value!!
                 closeDialog()
             }
 
@@ -264,21 +264,21 @@ class SettingsAdapter(
                 when (sliderSetting.setting) {
                     is ByteSetting -> {
                         val value = sliderProgress.toByte()
-                        sliderSetting.setSelectedValue(value)
+                        sliderSetting.selectedValue = value.toInt()
                     }
 
                     is ShortSetting -> {
                         val value = sliderProgress.toShort()
-                        sliderSetting.setSelectedValue(value)
+                        sliderSetting.selectedValue = value.toInt()
                     }
 
                     is FloatSetting -> {
                         val value = sliderProgress.toFloat()
-                        sliderSetting.setSelectedValue(value)
+                        sliderSetting.selectedValue = value.toInt()
                     }
 
                     else -> {
-                        sliderSetting.setSelectedValue(sliderProgress)
+                        sliderSetting.selectedValue = sliderProgress
                     }
                 }
                 closeDialog()

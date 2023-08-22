@@ -7,6 +7,6 @@ class SubmenuSetting(
     titleId: Int,
     descriptionId: Int,
     val menuKey: String
-) : SettingsItem(null, titleId, descriptionId) {
+) : SettingsItem(emptySetting, titleId, descriptionId) {
     override val type = TYPE_SUBMENU
 }

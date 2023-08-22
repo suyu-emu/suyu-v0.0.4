@@ -5,6 +5,7 @@ package org.yuzu.yuzu_emu.features.settings.model.view
 
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
+import org.yuzu.yuzu_emu.features.settings.model.Settings
 
 /**
  * ViewModel abstraction for an Item in the RecyclerView powering SettingsFragments.
@@ -14,7 +15,7 @@ import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
  * file.)
  */
 abstract class SettingsItem(
-    var setting: AbstractSetting?,
+    val setting: AbstractSetting,
     val nameId: Int,
     val descriptionId: Int
 ) {
@@ -23,7 +24,7 @@ abstract class SettingsItem(
     val isEditable: Boolean
         get() {
             if (!NativeLibrary.isRunning()) return true
-            return setting?.isRuntimeModifiable ?: false
+            return setting.isRuntimeModifiable
         }
 
     companion object {
@@ -35,5 +36,12 @@ abstract class SettingsItem(
         const val TYPE_STRING_SINGLE_CHOICE = 5
         const val TYPE_DATETIME_SETTING = 6
         const val TYPE_RUNNABLE = 7
+
+        val emptySetting = object : AbstractSetting {
+            override val key: String = ""
+            override val category: Settings.Category = Settings.Category.Ui
+            override val defaultValue: Any = false
+            override fun reset() {}
+        }
     }
 }

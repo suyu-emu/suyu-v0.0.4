@@ -15,5 +15,5 @@ interface AbstractSetting {
     val isRuntimeModifiable: Boolean
         get() = NativeConfig.getIsRuntimeModifiable(key!!)
 
-    fun reset() = run { }
+    fun reset()
 }

@@ -28,7 +28,7 @@ class SwitchSettingViewHolder(val binding: ListItemSettingSwitchBinding, adapter
         binding.switchWidget.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
             adapter.onBooleanClick(item, bindingAdapterPosition, binding.switchWidget.isChecked)
         }
-        binding.switchWidget.isChecked = setting.isChecked
+        binding.switchWidget.isChecked = setting.checked
 
         setStyle(setting.isEditable, binding)
     }

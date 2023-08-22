@@ -75,47 +75,13 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     private fun addConfigSettings(sl: ArrayList<SettingsItem>) {
         settingsActivity.setToolbarTitle(settingsActivity.getString(R.string.advanced_settings))
         sl.apply {
+            add(SubmenuSetting(R.string.preferences_general, 0, Settings.SECTION_GENERAL))
+            add(SubmenuSetting(R.string.preferences_system, 0, Settings.SECTION_SYSTEM))
+            add(SubmenuSetting(R.string.preferences_graphics, 0, Settings.SECTION_RENDERER))
+            add(SubmenuSetting(R.string.preferences_audio, 0, Settings.SECTION_AUDIO))
+            add(SubmenuSetting(R.string.preferences_debug, 0, Settings.SECTION_DEBUG))
             add(
-                SubmenuSetting(
-                    R.string.preferences_general,
-                    0,
-                    Settings.SECTION_GENERAL
-                )
-            )
-            add(
-                SubmenuSetting(
-                    R.string.preferences_system,
-                    0,
-                    Settings.SECTION_SYSTEM
-                )
-            )
-            add(
-                SubmenuSetting(
-                    R.string.preferences_graphics,
-                    0,
-                    Settings.SECTION_RENDERER
-                )
-            )
-            add(
-                SubmenuSetting(
-                    R.string.preferences_audio,
-                    0,
-                    Settings.SECTION_AUDIO
-                )
-            )
-            add(
-                SubmenuSetting(
-                    R.string.preferences_debug,
-                    0,
-                    Settings.SECTION_DEBUG
-                )
-            )
-            add(
-                RunnableSetting(
-                    R.string.reset_to_default,
-                    0,
-                    false
-                ) {
+                RunnableSetting(R.string.reset_to_default, 0, false) {
                     ResetSettingsDialogFragment().show(
                         settingsActivity.supportFragmentManager,
                         ResetSettingsDialogFragment.TAG
@@ -132,9 +98,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 SwitchSetting(
                     BooleanSetting.RENDERER_USE_SPEED_LIMIT,
                     R.string.frame_limit_enable,
-                    R.string.frame_limit_enable_description,
-                    BooleanSetting.RENDERER_USE_SPEED_LIMIT.key,
-                    BooleanSetting.RENDERER_USE_SPEED_LIMIT.defaultValue
+                    R.string.frame_limit_enable_description
                 )
             )
             add(
@@ -144,9 +108,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.frame_limit_slider_description,
                     1,
                     200,
-                    "%",
-                    ShortSetting.RENDERER_SPEED_LIMIT.key,
-                    ShortSetting.RENDERER_SPEED_LIMIT.defaultValue
+                    "%"
                 )
             )
             add(
@@ -155,18 +117,14 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.cpu_accuracy,
                     0,
                     R.array.cpuAccuracyNames,
-                    R.array.cpuAccuracyValues,
-                    IntSetting.CPU_ACCURACY.key,
-                    IntSetting.CPU_ACCURACY.defaultValue
+                    R.array.cpuAccuracyValues
                 )
             )
             add(
                 SwitchSetting(
                     BooleanSetting.PICTURE_IN_PICTURE,
                     R.string.picture_in_picture,
-                    R.string.picture_in_picture_description,
-                    BooleanSetting.PICTURE_IN_PICTURE.key,
-                    BooleanSetting.PICTURE_IN_PICTURE.defaultValue
+                    R.string.picture_in_picture_description
                 )
             )
         }
@@ -179,9 +137,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 SwitchSetting(
                     BooleanSetting.USE_DOCKED_MODE,
                     R.string.use_docked_mode,
-                    R.string.use_docked_mode_description,
-                    BooleanSetting.USE_DOCKED_MODE.key,
-                    BooleanSetting.USE_DOCKED_MODE.defaultValue
+                    R.string.use_docked_mode_description
                 )
             )
             add(
@@ -190,9 +146,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.emulated_region,
                     0,
                     R.array.regionNames,
-                    R.array.regionValues,
-                    IntSetting.REGION_INDEX.key,
-                    IntSetting.REGION_INDEX.defaultValue
+                    R.array.regionValues
                 )
             )
             add(
@@ -201,29 +155,17 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.emulated_language,
                     0,
                     R.array.languageNames,
-                    R.array.languageValues,
-                    IntSetting.LANGUAGE_INDEX.key,
-                    IntSetting.LANGUAGE_INDEX.defaultValue
+                    R.array.languageValues
                 )
             )
             add(
                 SwitchSetting(
                     BooleanSetting.USE_CUSTOM_RTC,
                     R.string.use_custom_rtc,
-                    R.string.use_custom_rtc_description,
-                    BooleanSetting.USE_CUSTOM_RTC.key,
-                    BooleanSetting.USE_CUSTOM_RTC.defaultValue
+                    R.string.use_custom_rtc_description
                 )
             )
-            add(
-                DateTimeSetting(
-                    LongSetting.CUSTOM_RTC,
-                    R.string.set_custom_rtc,
-                    0,
-                    LongSetting.CUSTOM_RTC.key,
-                    LongSetting.CUSTOM_RTC.defaultValue
-                )
-            )
+            add(DateTimeSetting(LongSetting.CUSTOM_RTC, R.string.set_custom_rtc, 0))
         }
     }
 
@@ -236,9 +178,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_accuracy,
                     0,
                     R.array.rendererAccuracyNames,
-                    R.array.rendererAccuracyValues,
-                    IntSetting.RENDERER_ACCURACY.key,
-                    IntSetting.RENDERER_ACCURACY.defaultValue
+                    R.array.rendererAccuracyValues
                 )
             )
             add(
@@ -247,9 +187,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_resolution,
                     0,
                     R.array.rendererResolutionNames,
-                    R.array.rendererResolutionValues,
-                    IntSetting.RENDERER_RESOLUTION.key,
-                    IntSetting.RENDERER_RESOLUTION.defaultValue
+                    R.array.rendererResolutionValues
                 )
             )
             add(
@@ -258,9 +196,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_vsync,
                     0,
                     R.array.rendererVSyncNames,
-                    R.array.rendererVSyncValues,
-                    IntSetting.RENDERER_VSYNC.key,
-                    IntSetting.RENDERER_VSYNC.defaultValue
+                    R.array.rendererVSyncValues
                 )
             )
             add(
@@ -269,9 +205,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_scaling_filter,
                     0,
                     R.array.rendererScalingFilterNames,
-                    R.array.rendererScalingFilterValues,
-                    IntSetting.RENDERER_SCALING_FILTER.key,
-                    IntSetting.RENDERER_SCALING_FILTER.defaultValue
+                    R.array.rendererScalingFilterValues
                 )
             )
             add(
@@ -280,9 +214,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_anti_aliasing,
                     0,
                     R.array.rendererAntiAliasingNames,
-                    R.array.rendererAntiAliasingValues,
-                    IntSetting.RENDERER_ANTI_ALIASING.key,
-                    IntSetting.RENDERER_ANTI_ALIASING.defaultValue
+                    R.array.rendererAntiAliasingValues
                 )
             )
             add(
@@ -291,9 +223,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_screen_layout,
                     0,
                     R.array.rendererScreenLayoutNames,
-                    R.array.rendererScreenLayoutValues,
-                    IntSetting.RENDERER_SCREEN_LAYOUT.key,
-                    IntSetting.RENDERER_SCREEN_LAYOUT.defaultValue
+                    R.array.rendererScreenLayoutValues
                 )
             )
             add(
@@ -302,45 +232,35 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_aspect_ratio,
                     0,
                     R.array.rendererAspectRatioNames,
-                    R.array.rendererAspectRatioValues,
-                    IntSetting.RENDERER_ASPECT_RATIO.key,
-                    IntSetting.RENDERER_ASPECT_RATIO.defaultValue
+                    R.array.rendererAspectRatioValues
                 )
             )
             add(
                 SwitchSetting(
                     BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE,
                     R.string.use_disk_shader_cache,
-                    R.string.use_disk_shader_cache_description,
-                    BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key,
-                    BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.defaultValue
+                    R.string.use_disk_shader_cache_description
                 )
             )
             add(
                 SwitchSetting(
                     BooleanSetting.RENDERER_FORCE_MAX_CLOCK,
                     R.string.renderer_force_max_clock,
-                    R.string.renderer_force_max_clock_description,
-                    BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key,
-                    BooleanSetting.RENDERER_FORCE_MAX_CLOCK.defaultValue
+                    R.string.renderer_force_max_clock_description
                 )
             )
             add(
                 SwitchSetting(
                     BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS,
                     R.string.renderer_asynchronous_shaders,
-                    R.string.renderer_asynchronous_shaders_description,
-                    BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key,
-                    BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.defaultValue
+                    R.string.renderer_asynchronous_shaders_description
                 )
             )
             add(
                 SwitchSetting(
                     BooleanSetting.RENDERER_REACTIVE_FLUSHING,
                     R.string.renderer_reactive_flushing,
-                    R.string.renderer_reactive_flushing_description,
-                    BooleanSetting.RENDERER_REACTIVE_FLUSHING.key,
-                    BooleanSetting.RENDERER_REACTIVE_FLUSHING.defaultValue
+                    R.string.renderer_reactive_flushing_description
                 )
             )
         }
@@ -355,9 +275,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.audio_output_engine,
                     0,
                     R.array.outputEngineEntries,
-                    R.array.outputEngineValues,
-                    IntSetting.AUDIO_OUTPUT_ENGINE.key,
-                    IntSetting.AUDIO_OUTPUT_ENGINE.defaultValue
+                    R.array.outputEngineValues
                 )
             )
             add(
@@ -367,9 +285,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.audio_volume_description,
                     0,
                     100,
-                    "%",
-                    ByteSetting.AUDIO_VOLUME.key,
-                    ByteSetting.AUDIO_VOLUME.defaultValue
+                    "%"
                 )
             )
         }
@@ -392,7 +308,12 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 override val key: String? = null
                 override val category = Settings.Category.UiGeneral
                 override val isRuntimeModifiable: Boolean = false
-                override val defaultValue: Any = 0
+                override val defaultValue: Int = 0
+                override fun reset() {
+                    preferences.edit()
+                        .putInt(Settings.PREF_THEME, defaultValue)
+                        .apply()
+                }
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -431,7 +352,12 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 override val key: String? = null
                 override val category = Settings.Category.UiGeneral
                 override val isRuntimeModifiable: Boolean = false
-                override val defaultValue: Any = -1
+                override val defaultValue: Int = -1
+                override fun reset() {
+                    preferences.edit()
+                        .putInt(Settings.PREF_BLACK_BACKGROUNDS, defaultValue)
+                        .apply()
+                }
             }
 
             add(
@@ -458,7 +384,12 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 override val key: String? = null
                 override val category = Settings.Category.UiGeneral
                 override val isRuntimeModifiable: Boolean = false
-                override val defaultValue: Any = false
+                override val defaultValue: Boolean = false
+                override fun reset() {
+                    preferences.edit()
+                        .putBoolean(Settings.PREF_BLACK_BACKGROUNDS, defaultValue)
+                        .apply()
+                }
             }
 
             add(
@@ -481,18 +412,14 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.string.renderer_api,
                     0,
                     R.array.rendererApiNames,
-                    R.array.rendererApiValues,
-                    IntSetting.RENDERER_BACKEND.key,
-                    IntSetting.RENDERER_BACKEND.defaultValue
+                    R.array.rendererApiValues
                 )
             )
             add(
                 SwitchSetting(
                     BooleanSetting.RENDERER_DEBUG,
                     R.string.renderer_debug,
-                    R.string.renderer_debug_description,
-                    BooleanSetting.RENDERER_DEBUG.key,
-                    BooleanSetting.RENDERER_DEBUG.defaultValue
+                    R.string.renderer_debug_description
                 )
             )
 
@@ -501,9 +428,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 SwitchSetting(
                     BooleanSetting.CPU_DEBUG_MODE,
                     R.string.cpu_debug_mode,
-                    R.string.cpu_debug_mode_description,
-                    BooleanSetting.CPU_DEBUG_MODE.key,
-                    BooleanSetting.CPU_DEBUG_MODE.defaultValue
+                    R.string.cpu_debug_mode_description
                 )
             )
 
@@ -520,15 +445,10 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 override val key: String? = null
                 override val category = Settings.Category.Cpu
                 override val isRuntimeModifiable: Boolean = false
-                override val defaultValue: Any = true
+                override val defaultValue: Boolean = true
+                override fun reset() = setBoolean(defaultValue)
             }
-            add(
-                SwitchSetting(
-                    fastmem,
-                    R.string.fastmem,
-                    0
-                )
-            )
+            add(SwitchSetting(fastmem, R.string.fastmem, 0))
         }
     }
 }
