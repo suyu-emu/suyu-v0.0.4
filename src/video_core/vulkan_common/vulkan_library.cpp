@@ -19,13 +19,17 @@ std::shared_ptr<Common::DynamicLibrary> OpenLibrary(
 #else
     auto library = std::make_shared<Common::DynamicLibrary>();
 #ifdef __APPLE__
+    const auto libvulkan_filename =
+        Common::FS::GetBundleDirectory() / "Contents/Frameworks/libvulkan.1.dylib";
+    const auto libmoltenvk_filename =
+        Common::FS::GetBundleDirectory() / "Contents/Frameworks/libMoltenVK.dylib";
+    const char* library_paths[] = {std::getenv("LIBVULKAN_PATH"), libvulkan_filename.c_str(),
+                                   libmoltenvk_filename.c_str()};
     // Check if a path to a specific Vulkan library has been specified.
-    char* const libvulkan_env = std::getenv("LIBVULKAN_PATH");
-    if (!libvulkan_env || !library->Open(libvulkan_env)) {
-        // Use the libvulkan.dylib from the application bundle.
-        const auto filename =
-            Common::FS::GetBundleDirectory() / "Contents/Frameworks/libvulkan.dylib";
-        void(library->Open(Common::FS::PathToUTF8String(filename).c_str()));
+    for (const auto& library_path : library_paths) {
+        if (library_path && library->Open(library_path)) {
+            break;
+        }
     }
 #else
     std::string filename = Common::DynamicLibrary::GetVersionedFilename("vulkan", 1);

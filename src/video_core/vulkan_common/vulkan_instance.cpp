@@ -41,9 +41,6 @@ namespace {
     bool enable_validation) {
     std::vector<const char*> extensions;
     extensions.reserve(6);
-#ifdef __APPLE__
-    extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-#endif
     switch (window_type) {
     case Core::Frontend::WindowSystemType::Headless:
         break;
@@ -74,6 +71,11 @@ namespace {
     if (window_type != Core::Frontend::WindowSystemType::Headless) {
         extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
     }
+#ifdef __APPLE__
+    if (AreExtensionsSupported(dld, std::array{VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME})) {
+        extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+    }
+#endif
     if (enable_validation) {
         const bool debug_utils =
             AreExtensionsSupported(dld, std::array{VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
