@@ -315,6 +315,11 @@ QWidget#controllerPlayer8 {
     background: transparent;
 }
 
+QDialog QPushButton {
+    min-width: 57px;
+    padding: 4px 8px;
+}
+
 QDialog#QtSoftwareKeyboardDialog,
 QStackedWidget#topOSK {
     background: rgba(51, 51, 51, .9);
