@@ -95,6 +95,7 @@ android {
         // builds a release build that doesn't need signing
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         register("relWithDebInfo") {
+            isDefault = true
             resValue("string", "app_name_suffixed", "yuzu Debug Release")
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
@@ -122,6 +123,7 @@ android {
     flavorDimensions.add("version")
     productFlavors {
         create("mainline") {
+            isDefault = true
             dimension = "version"
             buildConfigField("Boolean", "PREMIUM", "false")
         }
