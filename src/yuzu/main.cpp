@@ -1158,9 +1158,9 @@ void GMainWindow::InitializeWidgets() {
             [this](const QPoint& menu_location) {
                 QMenu context_menu;
 
-                for (auto const& [value, text] : Config::use_docked_mode_texts_map) {
-                    context_menu.addAction(text, [&] {
-                        if (value != Settings::values.use_docked_mode.GetValue()) {
+                for (auto const& pair : Config::use_docked_mode_texts_map) {
+                    context_menu.addAction(pair.second, [this, &pair] {
+                        if (pair.first != Settings::values.use_docked_mode.GetValue()) {
                             OnToggleDockedMode();
                         }
                     });
@@ -3650,8 +3650,8 @@ void GMainWindow::OnToggleDockedMode() {
         controller_dialog->refreshConfiguration();
     }
 
-    Settings::values.use_docked_mode.SetValue(is_docked ? Settings::ConsoleMode::Docked
-                                                        : Settings::ConsoleMode::Handheld);
+    Settings::values.use_docked_mode.SetValue(is_docked ? Settings::ConsoleMode::Handheld
+                                                        : Settings::ConsoleMode::Docked);
     UpdateDockedButton();
     OnDockedModeChanged(is_docked, !is_docked, *system);
 }
@@ -4082,7 +4082,7 @@ void GMainWindow::UpdateGPUAccuracyButton() {
 
 void GMainWindow::UpdateDockedButton() {
     const auto console_mode = Settings::values.use_docked_mode.GetValue();
-    dock_status_button->setChecked(console_mode == Settings::ConsoleMode::Docked);
+    dock_status_button->setChecked(Settings::IsDockedMode());
     dock_status_button->setText(
         Config::use_docked_mode_texts_map.find(console_mode)->second.toUpper());
 }
