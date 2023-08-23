@@ -9,6 +9,7 @@
 #include "audio_core/sink/sdl2_sink.h"
 #include "audio_core/sink/sink_stream.h"
 #include "common/logging/log.h"
+#include "common/scope_exit.h"
 #include "core/core.h"
 
 namespace AudioCore::Sink {
@@ -84,6 +85,7 @@ public:
         }
 
         Stop();
+        SDL_ClearQueuedAudio(device);
         SDL_CloseAudioDevice(device);
     }
 
@@ -227,8 +229,42 @@ std::vector<std::string> ListSDLSinkDevices(bool capture) {
     return device_list;
 }
 
-u32 GetSDLLatency() {
-    return TargetSampleCount * 2;
+bool IsSDLSuitable() {
+#if !defined(HAVE_SDL2)
+    return false;
+#else
+    // Check SDL can init
+    if (!SDL_WasInit(SDL_INIT_AUDIO)) {
+        if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
+            LOG_ERROR(Audio_Sink, "SDL failed to init, it is not suitable. Error: {}",
+                      SDL_GetError());
+            return false;
+        }
+    }
+
+    // We can set any latency frequency we want with SDL, so no need to check that.
+
+    // Check we can open a device with standard parameters
+    SDL_AudioSpec spec;
+    spec.freq = TargetSampleRate;
+    spec.channels = 2u;
+    spec.format = AUDIO_S16SYS;
+    spec.samples = TargetSampleCount * 2;
+    spec.callback = nullptr;
+    spec.userdata = nullptr;
+
+    SDL_AudioSpec obtained;
+    auto device = SDL_OpenAudioDevice(nullptr, false, &spec, &obtained, false);
+
+    if (device == 0) {
+        LOG_ERROR(Audio_Sink, "SDL failed to open a device, it is not suitable. Error: {}",
+                  SDL_GetError());
+        return false;
+    }
+
+    SDL_CloseAudioDevice(device);
+    return true;
+#endif
 }
 
 } // namespace AudioCore::Sink
