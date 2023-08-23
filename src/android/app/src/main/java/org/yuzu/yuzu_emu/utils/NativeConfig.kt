@@ -28,4 +28,6 @@ object NativeConfig {
     external fun getIsRuntimeModifiable(key: String): Boolean
 
     external fun getConfigHeader(category: Int): String
+
+    external fun getPairedSettingKey(key: String): String
 }

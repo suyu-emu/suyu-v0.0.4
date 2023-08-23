@@ -14,7 +14,9 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.AsyncDifferConfig
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
@@ -37,8 +39,8 @@ import org.yuzu.yuzu_emu.model.SettingsViewModel
 class SettingsAdapter(
     private val fragment: SettingsFragment,
     private val context: Context
-) : RecyclerView.Adapter<SettingViewHolder?>(), DialogInterface.OnClickListener {
-    private var settings = ArrayList<SettingsItem>()
+) : ListAdapter<SettingsItem, SettingViewHolder>(AsyncDifferConfig.Builder(DiffCallback()).build()),
+    DialogInterface.OnClickListener {
     private var clickedItem: SettingsItem? = null
     private var clickedPosition: Int
     private var dialog: AlertDialog? = null
@@ -94,24 +96,18 @@ class SettingsAdapter(
     }
 
     override fun onBindViewHolder(holder: SettingViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(currentList[position])
     }
 
-    private fun getItem(position: Int): SettingsItem = settings[position]
-
-    override fun getItemCount(): Int = settings.size
+    override fun getItemCount(): Int = currentList.size
 
     override fun getItemViewType(position: Int): Int {
-        return getItem(position).type
+        return currentList[position].type
     }
 
-    fun setSettingsList(settings: ArrayList<SettingsItem>) {
-        this.settings = settings
-        notifyDataSetChanged()
-    }
-
-    fun onBooleanClick(item: SwitchSetting, position: Int, checked: Boolean) {
+    fun onBooleanClick(item: SwitchSetting, checked: Boolean) {
         item.checked = checked
+        settingsViewModel.setShouldReloadSettingsList(true)
         settingsViewModel.shouldSave = true
     }
 
@@ -337,5 +333,15 @@ class SettingsAdapter(
             return value
         }
         return -1
+    }
+
+    private class DiffCallback : DiffUtil.ItemCallback<SettingsItem>() {
+        override fun areItemsTheSame(oldItem: SettingsItem, newItem: SettingsItem): Boolean {
+            return oldItem.setting.key == newItem.setting.key
+        }
+
+        override fun areContentsTheSame(oldItem: SettingsItem, newItem: SettingsItem): Boolean {
+            return oldItem.setting.key == newItem.setting.key
+        }
     }
 }

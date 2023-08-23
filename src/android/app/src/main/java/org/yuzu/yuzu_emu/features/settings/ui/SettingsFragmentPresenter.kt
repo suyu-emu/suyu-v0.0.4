@@ -22,6 +22,7 @@ import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.SettingsViewModel
+import org.yuzu.yuzu_emu.utils.NativeConfig
 
 class SettingsFragmentPresenter(
     private val settingsViewModel: SettingsViewModel,
@@ -36,11 +37,22 @@ class SettingsFragmentPresenter(
 
     private val context: Context get() = YuzuApplication.appContext
 
+    // Extension for populating settings list based on paired settings
+    fun ArrayList<SettingsItem>.add(key: String) {
+        val item = SettingsItem.settingsItems[key]!!
+        val pairedSettingKey = item.setting.pairedSettingKey
+        if (pairedSettingKey.isNotEmpty()) {
+            val pairedSettingValue = NativeConfig.getBoolean(pairedSettingKey, false)
+            if (!pairedSettingValue) return
+        }
+        add(item)
+    }
+
     fun onViewCreated() {
         loadSettingsList()
     }
 
-    private fun loadSettingsList() {
+    fun loadSettingsList() {
         if (!TextUtils.isEmpty(gameId)) {
             settingsViewModel.setToolbarTitle(
                 context.getString(
@@ -70,7 +82,7 @@ class SettingsFragmentPresenter(
             }
         }
         settingsList = sl
-        adapter.setSettingsList(settingsList)
+        adapter.submitList(settingsList)
     }
 
     private fun addConfigSettings(sl: ArrayList<SettingsItem>) {
@@ -92,200 +104,46 @@ class SettingsFragmentPresenter(
     private fun addGeneralSettings(sl: ArrayList<SettingsItem>) {
         settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_general))
         sl.apply {
-            add(
-                SwitchSetting(
-                    BooleanSetting.RENDERER_USE_SPEED_LIMIT,
-                    R.string.frame_limit_enable,
-                    R.string.frame_limit_enable_description
-                )
-            )
-            add(
-                SliderSetting(
-                    ShortSetting.RENDERER_SPEED_LIMIT,
-                    R.string.frame_limit_slider,
-                    R.string.frame_limit_slider_description,
-                    1,
-                    200,
-                    "%"
-                )
-            )
-            add(
-                SingleChoiceSetting(
-                    IntSetting.CPU_ACCURACY,
-                    R.string.cpu_accuracy,
-                    0,
-                    R.array.cpuAccuracyNames,
-                    R.array.cpuAccuracyValues
-                )
-            )
-            add(
-                SwitchSetting(
-                    BooleanSetting.PICTURE_IN_PICTURE,
-                    R.string.picture_in_picture,
-                    R.string.picture_in_picture_description
-                )
-            )
+            add(BooleanSetting.RENDERER_USE_SPEED_LIMIT.key)
+            add(ShortSetting.RENDERER_SPEED_LIMIT.key)
+            add(IntSetting.CPU_ACCURACY.key)
+            add(BooleanSetting.PICTURE_IN_PICTURE.key)
         }
     }
 
     private fun addSystemSettings(sl: ArrayList<SettingsItem>) {
         settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_system))
         sl.apply {
-            add(
-                SwitchSetting(
-                    BooleanSetting.USE_DOCKED_MODE,
-                    R.string.use_docked_mode,
-                    R.string.use_docked_mode_description
-                )
-            )
-            add(
-                SingleChoiceSetting(
-                    IntSetting.REGION_INDEX,
-                    R.string.emulated_region,
-                    0,
-                    R.array.regionNames,
-                    R.array.regionValues
-                )
-            )
-            add(
-                SingleChoiceSetting(
-                    IntSetting.LANGUAGE_INDEX,
-                    R.string.emulated_language,
-                    0,
-                    R.array.languageNames,
-                    R.array.languageValues
-                )
-            )
-            add(
-                SwitchSetting(
-                    BooleanSetting.USE_CUSTOM_RTC,
-                    R.string.use_custom_rtc,
-                    R.string.use_custom_rtc_description
-                )
-            )
-            add(DateTimeSetting(LongSetting.CUSTOM_RTC, R.string.set_custom_rtc, 0))
+            add(BooleanSetting.USE_DOCKED_MODE.key)
+            add(IntSetting.REGION_INDEX.key)
+            add(IntSetting.LANGUAGE_INDEX.key)
+            add(BooleanSetting.USE_CUSTOM_RTC.key)
+            add(LongSetting.CUSTOM_RTC.key)
         }
     }
 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
         settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_graphics))
         sl.apply {
-            add(
-                SingleChoiceSetting(
-                    IntSetting.RENDERER_ACCURACY,
-                    R.string.renderer_accuracy,
-                    0,
-                    R.array.rendererAccuracyNames,
-                    R.array.rendererAccuracyValues
-                )
-            )
-            add(
-                SingleChoiceSetting(
-                    IntSetting.RENDERER_RESOLUTION,
-                    R.string.renderer_resolution,
-                    0,
-                    R.array.rendererResolutionNames,
-                    R.array.rendererResolutionValues
-                )
-            )
-            add(
-                SingleChoiceSetting(
-                    IntSetting.RENDERER_VSYNC,
-                    R.string.renderer_vsync,
-                    0,
-                    R.array.rendererVSyncNames,
-                    R.array.rendererVSyncValues
-                )
-            )
-            add(
-                SingleChoiceSetting(
-                    IntSetting.RENDERER_SCALING_FILTER,
-                    R.string.renderer_scaling_filter,
-                    0,
-                    R.array.rendererScalingFilterNames,
-                    R.array.rendererScalingFilterValues
-                )
-            )
-            add(
-                SingleChoiceSetting(
-                    IntSetting.RENDERER_ANTI_ALIASING,
-                    R.string.renderer_anti_aliasing,
-                    0,
-                    R.array.rendererAntiAliasingNames,
-                    R.array.rendererAntiAliasingValues
-                )
-            )
-            add(
-                SingleChoiceSetting(
-                    IntSetting.RENDERER_SCREEN_LAYOUT,
-                    R.string.renderer_screen_layout,
-                    0,
-                    R.array.rendererScreenLayoutNames,
-                    R.array.rendererScreenLayoutValues
-                )
-            )
-            add(
-                SingleChoiceSetting(
-                    IntSetting.RENDERER_ASPECT_RATIO,
-                    R.string.renderer_aspect_ratio,
-                    0,
-                    R.array.rendererAspectRatioNames,
-                    R.array.rendererAspectRatioValues
-                )
-            )
-            add(
-                SwitchSetting(
-                    BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE,
-                    R.string.use_disk_shader_cache,
-                    R.string.use_disk_shader_cache_description
-                )
-            )
-            add(
-                SwitchSetting(
-                    BooleanSetting.RENDERER_FORCE_MAX_CLOCK,
-                    R.string.renderer_force_max_clock,
-                    R.string.renderer_force_max_clock_description
-                )
-            )
-            add(
-                SwitchSetting(
-                    BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS,
-                    R.string.renderer_asynchronous_shaders,
-                    R.string.renderer_asynchronous_shaders_description
-                )
-            )
-            add(
-                SwitchSetting(
-                    BooleanSetting.RENDERER_REACTIVE_FLUSHING,
-                    R.string.renderer_reactive_flushing,
-                    R.string.renderer_reactive_flushing_description
-                )
-            )
+            add(IntSetting.RENDERER_ACCURACY.key)
+            add(IntSetting.RENDERER_RESOLUTION.key)
+            add(IntSetting.RENDERER_VSYNC.key)
+            add(IntSetting.RENDERER_SCALING_FILTER.key)
+            add(IntSetting.RENDERER_ANTI_ALIASING.key)
+            add(IntSetting.RENDERER_SCREEN_LAYOUT.key)
+            add(IntSetting.RENDERER_ASPECT_RATIO.key)
+            add(BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key)
+            add(BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key)
+            add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
+            add(BooleanSetting.RENDERER_REACTIVE_FLUSHING.key)
         }
     }
 
     private fun addAudioSettings(sl: ArrayList<SettingsItem>) {
         settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_audio))
         sl.apply {
-            add(
-                SingleChoiceSetting(
-                    IntSetting.AUDIO_OUTPUT_ENGINE,
-                    R.string.audio_output_engine,
-                    0,
-                    R.array.outputEngineEntries,
-                    R.array.outputEngineValues
-                )
-            )
-            add(
-                SliderSetting(
-                    ByteSetting.AUDIO_VOLUME,
-                    R.string.audio_volume,
-                    R.string.audio_volume_description,
-                    0,
-                    100,
-                    "%"
-                )
-            )
+            add(IntSetting.AUDIO_OUTPUT_ENGINE.key)
+            add(ByteSetting.AUDIO_VOLUME.key)
         }
     }
 
@@ -303,7 +161,7 @@ class SettingsFragmentPresenter(
                     settingsViewModel.setShouldRecreate(true)
                 }
 
-                override val key: String? = null
+                override val key: String = Settings.PREF_THEME
                 override val category = Settings.Category.UiGeneral
                 override val isRuntimeModifiable: Boolean = false
                 override val defaultValue: Int = 0
@@ -347,7 +205,7 @@ class SettingsFragmentPresenter(
                     settingsViewModel.setShouldRecreate(true)
                 }
 
-                override val key: String? = null
+                override val key: String = Settings.PREF_THEME_MODE
                 override val category = Settings.Category.UiGeneral
                 override val isRuntimeModifiable: Boolean = false
                 override val defaultValue: Int = -1
@@ -380,7 +238,7 @@ class SettingsFragmentPresenter(
                     settingsViewModel.setShouldRecreate(true)
                 }
 
-                override val key: String? = null
+                override val key: String = Settings.PREF_BLACK_BACKGROUNDS
                 override val category = Settings.Category.UiGeneral
                 override val isRuntimeModifiable: Boolean = false
                 override val defaultValue: Boolean = false
@@ -406,49 +264,12 @@ class SettingsFragmentPresenter(
         settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_debug))
         sl.apply {
             add(HeaderSetting(R.string.gpu))
-            add(
-                SingleChoiceSetting(
-                    IntSetting.RENDERER_BACKEND,
-                    R.string.renderer_api,
-                    0,
-                    R.array.rendererApiNames,
-                    R.array.rendererApiValues
-                )
-            )
-            add(
-                SwitchSetting(
-                    BooleanSetting.RENDERER_DEBUG,
-                    R.string.renderer_debug,
-                    R.string.renderer_debug_description
-                )
-            )
+            add(IntSetting.RENDERER_BACKEND.key)
+            add(BooleanSetting.RENDERER_DEBUG.key)
 
             add(HeaderSetting(R.string.cpu))
-            add(
-                SwitchSetting(
-                    BooleanSetting.CPU_DEBUG_MODE,
-                    R.string.cpu_debug_mode,
-                    R.string.cpu_debug_mode_description
-                )
-            )
-
-            val fastmem = object : AbstractBooleanSetting {
-                override val boolean: Boolean
-                    get() =
-                        BooleanSetting.FASTMEM.boolean && BooleanSetting.FASTMEM_EXCLUSIVES.boolean
-
-                override fun setBoolean(value: Boolean) {
-                    BooleanSetting.FASTMEM.setBoolean(value)
-                    BooleanSetting.FASTMEM_EXCLUSIVES.setBoolean(value)
-                }
-
-                override val key: String? = null
-                override val category = Settings.Category.Cpu
-                override val isRuntimeModifiable: Boolean = false
-                override val defaultValue: Boolean = true
-                override fun reset() = setBoolean(defaultValue)
-            }
-            add(SwitchSetting(fastmem, R.string.fastmem, 0))
+            add(BooleanSetting.CPU_DEBUG_MODE.key)
+            add(SettingsItem.FASTMEM_COMBINED)
         }
     }
 }

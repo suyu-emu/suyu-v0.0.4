@@ -216,9 +216,22 @@ jboolean Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getIsRuntimeModifiable(JNIEn
 }
 
 jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getConfigHeader(JNIEnv* env, jobject obj,
-                                                                         jint jcategory) {
+                                                                   jint jcategory) {
     auto category = static_cast<Settings::Category>(jcategory);
     return ToJString(env, Settings::TranslateCategory(category));
+}
+
+jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getPairedSettingKey(JNIEnv* env, jobject obj,
+                                                                       jstring jkey) {
+    auto setting = getSetting<std::string>(env, jkey);
+    if (setting == nullptr) {
+        return ToJString(env, "");
+    }
+    if (setting->PairedSetting() == nullptr) {
+        return ToJString(env, "");
+    }
+
+    return ToJString(env, setting->PairedSetting()->GetLabel());
 }
 
 } // extern "C"

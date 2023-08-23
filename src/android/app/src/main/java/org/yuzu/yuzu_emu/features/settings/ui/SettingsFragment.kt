@@ -77,6 +77,13 @@ class SettingsFragment : Fragment() {
             if (it.isNotEmpty()) binding.toolbarSettingsLayout.title = it
         }
 
+        settingsViewModel.shouldReloadSettingsList.observe(viewLifecycleOwner) {
+            if (it) {
+                settingsViewModel.setShouldReloadSettingsList(false)
+                presenter.loadSettingsList()
+            }
+        }
+
         presenter.onViewCreated()
 
         setInsets()

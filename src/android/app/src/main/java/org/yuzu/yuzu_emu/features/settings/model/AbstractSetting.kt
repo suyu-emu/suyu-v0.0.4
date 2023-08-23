@@ -6,14 +6,17 @@ package org.yuzu.yuzu_emu.features.settings.model
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
 interface AbstractSetting {
-    val key: String?
+    val key: String
     val category: Settings.Category
     val defaultValue: Any
     val valueAsString: String
         get() = ""
 
     val isRuntimeModifiable: Boolean
-        get() = NativeConfig.getIsRuntimeModifiable(key!!)
+        get() = NativeConfig.getIsRuntimeModifiable(key)
+
+    val pairedSettingKey: String
+        get() = NativeConfig.getPairedSettingKey(key)
 
     fun reset()
 }
