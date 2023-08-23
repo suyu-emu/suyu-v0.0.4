@@ -525,6 +525,8 @@ bool IsGPULevelHigh();
 
 bool IsFastmemEnabled();
 
+bool IsDockedMode();
+
 float Volume();
 
 std::string GetTimeZoneString(TimeZone time_zone);

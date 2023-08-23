@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <version>
+#include "common/settings_enums.h"
 #if __cpp_lib_chrono >= 201907L
 #include <chrono>
 #include <exception>
@@ -143,6 +144,10 @@ bool IsFastmemEnabled() {
         return static_cast<bool>(values.cpuopt_fastmem);
     }
     return true;
+}
+
+bool IsDockedMode() {
+    return values.use_docked_mode.GetValue() == Settings::ConsoleMode::Docked;
 }
 
 float Volume() {
