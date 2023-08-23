@@ -989,6 +989,19 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
     if (!state_tracker.TouchScissors()) {
         return;
     }
+    if (!regs.viewport_scale_offset_enabled) {
+        const auto x = static_cast<float>(regs.surface_clip.x);
+        const auto y = static_cast<float>(regs.surface_clip.y);
+        const auto width = static_cast<float>(regs.surface_clip.width);
+        const auto height = static_cast<float>(regs.surface_clip.height);
+        VkRect2D scissor;
+        scissor.offset.x = static_cast<u32>(x);
+        scissor.offset.y = static_cast<u32>(y);
+        scissor.extent.width = static_cast<u32>(width != 0.0f ? width : 1.0f);
+        scissor.extent.height = static_cast<u32>(height != 0.0f ? height : 1.0f);
+        scheduler.Record([scissor](vk::CommandBuffer cmdbuf) { cmdbuf.SetScissor(0, scissor); });
+        return;
+    }
     u32 up_scale = 1;
     u32 down_shift = 0;
     if (texture_cache.IsRescaling()) {
