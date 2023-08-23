@@ -1159,7 +1159,7 @@ void GMainWindow::InitializeWidgets() {
                 QMenu context_menu;
 
                 for (auto const& [value, text] : Config::use_docked_mode_texts_map) {
-                    context_menu.addAction(text, [this, value] {
+                    context_menu.addAction(text, [&] {
                         if (value != Settings::values.use_docked_mode.GetValue()) {
                             OnToggleDockedMode();
                         }
