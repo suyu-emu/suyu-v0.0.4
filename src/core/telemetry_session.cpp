@@ -276,8 +276,7 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader,
              static_cast<u32>(Settings::values.shader_backend.GetValue()));
     AddField(field_type, "Renderer_UseAsynchronousShaders",
              Settings::values.use_asynchronous_shaders.GetValue());
-    AddField(field_type, "System_UseDockedMode",
-             Settings::values.use_docked_mode.GetValue() == Settings::ConsoleMode::Docked);
+    AddField(field_type, "System_UseDockedMode", Settings::IsDockedMode());
 }
 
 bool TelemetrySession::SubmitTestcase() {

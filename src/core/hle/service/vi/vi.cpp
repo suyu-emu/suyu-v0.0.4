@@ -217,7 +217,7 @@ private:
         IPC::ResponseBuilder rb{ctx, 6};
         rb.Push(ResultSuccess);
 
-        if (Settings::values.use_docked_mode.GetValue() == Settings::ConsoleMode::Docked) {
+        if (Settings::IsDockedMode()) {
             rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedWidth));
             rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedHeight));
         } else {

@@ -99,9 +99,8 @@ void ConfigurePerGame::ApplyConfiguration() {
     addons_tab->ApplyConfiguration();
     input_tab->ApplyConfiguration();
 
-    if (Settings::values.use_docked_mode.GetValue() == Settings::ConsoleMode::Docked &&
-        Settings::values.players.GetValue()[0].controller_type ==
-            Settings::ControllerType::Handheld) {
+    if (Settings::IsDockedMode() && Settings::values.players.GetValue()[0].controller_type ==
+                                        Settings::ControllerType::Handheld) {
         Settings::values.use_docked_mode.SetValue(Settings::ConsoleMode::Handheld);
         Settings::values.use_docked_mode.SetGlobal(true);
     }

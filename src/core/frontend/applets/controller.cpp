@@ -3,6 +3,7 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "common/settings_enums.h"
 #include "core/frontend/applets/controller.h"
 #include "core/hid/emulated_controller.h"
@@ -63,7 +64,7 @@ void DefaultControllerApplet::ReconfigureControllers(ReconfigureCallback callbac
                 controller->Connect(true);
             }
         } else if (index == 0 && parameters.enable_single_mode && parameters.allow_handheld &&
-                   Settings::values.use_docked_mode.GetValue() == Settings::ConsoleMode::Handheld) {
+                   !Settings::IsDockedMode()) {
             // We should *never* reach here under any normal circumstances.
             controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Handheld);
             controller->Connect(true);

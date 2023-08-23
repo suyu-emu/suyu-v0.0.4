@@ -1518,7 +1518,7 @@ bool Controller_NPad::IsControllerSupported(Core::HID::NpadStyleIndex controller
             return false;
         }
         // Handheld shouldn't be supported in docked mode
-        if (Settings::values.use_docked_mode.GetValue() == Settings::ConsoleMode::Docked) {
+        if (Settings::IsDockedMode()) {
             return false;
         }
 

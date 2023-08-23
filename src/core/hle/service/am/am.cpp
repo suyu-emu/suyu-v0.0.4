@@ -834,7 +834,7 @@ void ICommonStateGetter::GetDefaultDisplayResolution(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
 
-    if (Settings::values.use_docked_mode.GetValue() == Settings::ConsoleMode::Docked) {
+    if (Settings::IsDockedMode()) {
         rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedWidth));
         rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedHeight));
     } else {
@@ -922,8 +922,7 @@ void IStorage::Open(HLERequestContext& ctx) {
 }
 
 void ICommonStateGetter::GetOperationMode(HLERequestContext& ctx) {
-    const bool use_docked_mode{Settings::values.use_docked_mode.GetValue() ==
-                               Settings::ConsoleMode::Docked};
+    const bool use_docked_mode{Settings::IsDockedMode()};
     LOG_DEBUG(Service_AM, "called, use_docked_mode={}", use_docked_mode);
 
     IPC::ResponseBuilder rb{ctx, 3};

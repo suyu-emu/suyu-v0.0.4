@@ -3636,8 +3636,7 @@ void GMainWindow::OnTasReset() {
 }
 
 void GMainWindow::OnToggleDockedMode() {
-    const bool is_docked =
-        Settings::values.use_docked_mode.GetValue() == Settings::ConsoleMode::Docked;
+    const bool is_docked = Settings::IsDockedMode();
     auto* player_1 = system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
     auto* handheld = system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
 
@@ -4082,10 +4081,10 @@ void GMainWindow::UpdateGPUAccuracyButton() {
 }
 
 void GMainWindow::UpdateDockedButton() {
-    const auto is_docked = Settings::values.use_docked_mode.GetValue();
-    dock_status_button->setChecked(is_docked == Settings::ConsoleMode::Docked);
+    const auto console_mode = Settings::values.use_docked_mode.GetValue();
+    dock_status_button->setChecked(console_mode == Settings::ConsoleMode::Docked);
     dock_status_button->setText(
-        Config::use_docked_mode_texts_map.find(is_docked)->second.toUpper());
+        Config::use_docked_mode_texts_map.find(console_mode)->second.toUpper());
 }
 
 void GMainWindow::UpdateAPIText() {
