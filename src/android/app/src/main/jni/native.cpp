@@ -30,6 +30,7 @@
 #include "core/cpu_manager.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
+#include "core/file_sys/content_archive.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/submission_package.h"
 #include "core/file_sys/vfs.h"
@@ -224,6 +225,42 @@ public:
         m_system.Renderer().NotifySurfaceChanged();
     }
 
+    void ConfigureFilesystemProvider(const std::string& filepath) {
+        const auto file = m_system.GetFilesystem()->OpenFile(filepath, FileSys::Mode::Read);
+        if (!file) {
+            return;
+        }
+
+        auto loader = Loader::GetLoader(m_system, file);
+        if (!loader) {
+            return;
+        }
+
+        const auto file_type = loader->GetFileType();
+        if (file_type == Loader::FileType::Unknown || file_type == Loader::FileType::Error) {
+            return;
+        }
+
+        u64 program_id = 0;
+        const auto res2 = loader->ReadProgramId(program_id);
+        if (res2 == Loader::ResultStatus::Success && file_type == Loader::FileType::NCA) {
+            m_manual_provider->AddEntry(FileSys::TitleType::Application,
+                                        FileSys::GetCRTypeFromNCAType(FileSys::NCA{file}.GetType()),
+                                        program_id, file);
+        } else if (res2 == Loader::ResultStatus::Success &&
+                   (file_type == Loader::FileType::XCI || file_type == Loader::FileType::NSP)) {
+            const auto nsp = file_type == Loader::FileType::NSP
+                                 ? std::make_shared<FileSys::NSP>(file)
+                                 : FileSys::XCI{file}.GetSecurePartitionNSP();
+            for (const auto& title : nsp->GetNCAs()) {
+                for (const auto& entry : title.second) {
+                    m_manual_provider->AddEntry(entry.first.first, entry.first.second, title.first,
+                                                entry.second->GetBaseFile());
+                }
+            }
+        }
+    }
+
     Core::SystemResultStatus InitializeEmulation(const std::string& filepath) {
         std::scoped_lock lock(m_mutex);
 
@@ -254,8 +291,14 @@ public:
             std::move(android_keyboard), // Software Keyboard
             nullptr,                     // Web Browser
         });
+
+        // Initialize filesystem.
+        m_manual_provider = std::make_unique<FileSys::ManualContentProvider>();
         m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
+        m_system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
+                                         m_manual_provider.get());
         m_system.GetFileSystemController().CreateFactories(*m_vfs);
+        ConfigureFilesystemProvider(filepath);
 
         // Initialize account manager
         m_profile_manager = std::make_unique<Service::Account::ProfileManager>();
@@ -489,6 +532,7 @@ private:
     bool m_is_paused{};
     SoftwareKeyboard::AndroidKeyboard* m_software_keyboard{};
     std::unique_ptr<Service::Account::ProfileManager> m_profile_manager;
+    std::unique_ptr<FileSys::ManualContentProvider> m_manual_provider;
 
     // GPU driver parameters
     std::shared_ptr<Common::DynamicLibrary> m_vulkan_library;
