@@ -104,7 +104,7 @@ public:
                                    ComputePassDescriptorQueue& compute_pass_descriptor_queue_);
 
     void Run(VkBuffer accumulation_buffer, VkBuffer dst_buffer, VkBuffer src_buffer,
-             size_t number_of_sums, size_t max_accumulation_limit);
+             size_t number_of_sums, size_t min_accumulation_limit, size_t max_accumulation_limit);
 
 private:
     Scheduler& scheduler;

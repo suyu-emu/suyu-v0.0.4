@@ -181,7 +181,8 @@ public:
         });
         rasterizer->SyncOperation(std::move(func));
         accumulation_since_last_sync = false;
-        last_accumulation_checkpoint = std::min(last_accumulation_checkpoint, num_slots_used);
+        first_accumulation_checkpoint = std::min(first_accumulation_checkpoint, num_slots_used);
+        last_accumulation_checkpoint = std::max(last_accumulation_checkpoint, num_slots_used);
     }
 
     void CloseCounter() override {
@@ -285,7 +286,9 @@ public:
             resolve_buffers.push_back(intermediary_buffer_index);
             queries_prefix_scan_pass->Run(*accumulation_buffer, *buffers[intermediary_buffer_index],
                                           *buffers[resolve_buffer_index], num_slots_used,
-                                          std::min(last_accumulation_checkpoint, num_slots_used));
+                                          std::min(first_accumulation_checkpoint, num_slots_used),
+                                          last_accumulation_checkpoint);
+
         } else {
             scheduler.RequestOutsideRenderPassOperationContext();
             scheduler.Record([buffer = *accumulation_buffer](vk::CommandBuffer cmdbuf) {
@@ -298,7 +301,8 @@ public:
         rasterizer->SyncOperation(std::move(func));
         AbandonCurrentQuery();
         num_slots_used = 0;
-        last_accumulation_checkpoint = std::numeric_limits<size_t>::max();
+        first_accumulation_checkpoint = std::numeric_limits<size_t>::max();
+        last_accumulation_checkpoint = 0;
         accumulation_since_last_sync = has_multi_queries;
         pending_sync.clear();
     }
@@ -506,7 +510,7 @@ private:
 
     template <bool is_resolve>
     size_t ObtainBuffer(size_t num_needed) {
-        const size_t log_2 = std::max<size_t>(6U, Common::Log2Ceil64(num_needed));
+        const size_t log_2 = std::max<size_t>(11U, Common::Log2Ceil64(num_needed));
         if constexpr (is_resolve) {
             if (resolve_table[log_2] != 0) {
                 return resolve_table[log_2] - 1;
@@ -563,6 +567,7 @@ private:
     VkQueryPool current_query_pool;
     size_t current_query_id;
     size_t num_slots_used{};
+    size_t first_accumulation_checkpoint{};
     size_t last_accumulation_checkpoint{};
     bool accumulation_since_last_sync{};
     VideoCommon::HostQueryBase* current_query;
