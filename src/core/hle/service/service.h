@@ -79,8 +79,8 @@ protected:
     using HandlerFnP = void (Self::*)(HLERequestContext&);
 
     /// Used to gain exclusive access to the service members, e.g. from CoreTiming thread.
-    [[nodiscard]] std::scoped_lock<std::mutex> LockService() {
-        return std::scoped_lock{lock_service};
+    [[nodiscard]] virtual std::unique_lock<std::mutex> LockService() {
+        return std::unique_lock{lock_service};
     }
 
     /// System context that the service operates under.
