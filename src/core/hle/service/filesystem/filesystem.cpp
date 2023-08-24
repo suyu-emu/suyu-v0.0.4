@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "common/assert.h"
+#include "common/fs/fs.h"
 #include "common/fs/path_util.h"
 #include "common/settings.h"
 #include "core/core.h"
@@ -154,10 +155,18 @@ Result VfsDirectoryServiceWrapper::RenameFile(const std::string& src_path_,
     std::string src_path(Common::FS::SanitizePath(src_path_));
     std::string dest_path(Common::FS::SanitizePath(dest_path_));
     auto src = backing->GetFileRelative(src_path);
+    auto dst = backing->GetFileRelative(dest_path);
     if (Common::FS::GetParentPath(src_path) == Common::FS::GetParentPath(dest_path)) {
         // Use more-optimized vfs implementation rename.
-        if (src == nullptr)
+        if (src == nullptr) {
             return FileSys::ERROR_PATH_NOT_FOUND;
+        }
+
+        if (dst && Common::FS::Exists(dst->GetFullPath())) {
+            LOG_ERROR(Service_FS, "File at new_path={} already exists", dst->GetFullPath());
+            return FileSys::ERROR_PATH_ALREADY_EXISTS;
+        }
+
         if (!src->Rename(Common::FS::GetFilename(dest_path))) {
             // TODO(DarkLordZach): Find a better error code for this
             return ResultUnknown;
