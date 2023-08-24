@@ -191,8 +191,9 @@ QString FormatPatchNameVersions(const FileSys::PatchManager& patch_manager,
 }
 
 QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::string& name,
-                                        const std::vector<u8>& icon, Loader::AppLoader& loader,
-                                        u64 program_id, const CompatibilityList& compatibility_list,
+                                        const std::size_t size, const std::vector<u8>& icon,
+                                        Loader::AppLoader& loader, u64 program_id,
+                                        const CompatibilityList& compatibility_list,
                                         const FileSys::PatchManager& patch) {
     const auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
 
@@ -210,7 +211,7 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
                              file_type_string, program_id),
         new GameListItemCompat(compatibility),
         new GameListItem(file_type_string),
-        new GameListItemSize(Common::FS::GetSize(path)),
+        new GameListItemSize(size),
     };
 
     const auto patch_versions = GetGameListCachedObject(
@@ -278,8 +279,8 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
             GetMetadataFromControlNCA(patch, *control, icon, name);
         }
 
-        emit EntryReady(MakeGameListEntry(file->GetFullPath(), name, icon, *loader, program_id,
-                                          compatibility_list, patch),
+        emit EntryReady(MakeGameListEntry(file->GetFullPath(), name, file->GetSize(), icon, *loader,
+                                          program_id, compatibility_list, patch),
                         parent_dir);
     }
 }
@@ -354,8 +355,9 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                         const FileSys::PatchManager patch{id, system.GetFileSystemController(),
                                                           system.GetContentProvider()};
 
-                        emit EntryReady(MakeGameListEntry(physical_name, name, icon, *loader, id,
-                                                          compatibility_list, patch),
+                        emit EntryReady(MakeGameListEntry(physical_name, name,
+                                                          Common::FS::GetSize(physical_name), icon,
+                                                          *loader, id, compatibility_list, patch),
                                         parent_dir);
                     }
                 } else {
@@ -368,9 +370,10 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                     const FileSys::PatchManager patch{program_id, system.GetFileSystemController(),
                                                       system.GetContentProvider()};
 
-                    emit EntryReady(MakeGameListEntry(physical_name, name, icon, *loader,
-                                                      program_id, compatibility_list, patch),
-                                    parent_dir);
+                    emit EntryReady(
+                        MakeGameListEntry(physical_name, name, Common::FS::GetSize(physical_name),
+                                          icon, *loader, program_id, compatibility_list, patch),
+                        parent_dir);
                 }
             }
         } else if (is_dir) {
