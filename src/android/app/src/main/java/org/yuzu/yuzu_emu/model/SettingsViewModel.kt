@@ -27,6 +27,9 @@ class SettingsViewModel : ViewModel() {
     private val _shouldReloadSettingsList = MutableLiveData(false)
     val shouldReloadSettingsList: LiveData<Boolean> get() = _shouldReloadSettingsList
 
+    private val _isUsingSearch = MutableLiveData(false)
+    val isUsingSearch: LiveData<Boolean> get() = _isUsingSearch
+
     fun setToolbarTitle(value: String) {
         _toolbarTitle.value = value
     }
@@ -45,6 +48,10 @@ class SettingsViewModel : ViewModel() {
 
     fun setShouldReloadSettingsList(value: Boolean) {
         _shouldReloadSettingsList.value = value
+    }
+
+    fun setIsUsingSearch(value: Boolean) {
+        _isUsingSearch.value = value
     }
 
     fun clear() {

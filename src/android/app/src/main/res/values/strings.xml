@@ -43,6 +43,7 @@
     <string name="add_games_warning_description">Games won\'t be displayed in the Games list if a folder isn\'t selected.</string>
     <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Search games</string>
+    <string name="search_settings">Search settings</string>
     <string name="games_dir_selected">Games directory selected</string>
     <string name="install_prod_keys">Install prod.keys</string>
     <string name="install_prod_keys_description">Required to decrypt retail games</string>

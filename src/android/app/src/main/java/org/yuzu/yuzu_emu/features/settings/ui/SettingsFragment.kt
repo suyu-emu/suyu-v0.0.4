@@ -13,12 +13,14 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.transition.MaterialSharedAxis
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsBinding
+import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.SettingsViewModel
 
 class SettingsFragment : Fragment() {
@@ -84,9 +86,41 @@ class SettingsFragment : Fragment() {
             }
         }
 
+        settingsViewModel.isUsingSearch.observe(viewLifecycleOwner) {
+            if (it) {
+                reenterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
+                exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
+            } else {
+                reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
+                exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+            }
+        }
+
+        if (args.menuTag == SettingsFile.FILE_NAME_CONFIG) {
+            binding.toolbarSettings.inflateMenu(R.menu.menu_settings)
+            binding.toolbarSettings.setOnMenuItemClickListener {
+                when (it.itemId) {
+                    R.id.action_search -> {
+                        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
+                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
+                        view.findNavController()
+                            .navigate(R.id.action_settingsFragment_to_settingsSearchFragment)
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        }
+
         presenter.onViewCreated()
 
         setInsets()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        settingsViewModel.setIsUsingSearch(false)
     }
 
     override fun onDetach() {

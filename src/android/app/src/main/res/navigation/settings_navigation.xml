@@ -15,10 +15,18 @@
             android:name="game"
             app:argType="org.yuzu.yuzu_emu.model.Game"
             app:nullable="true" />
+        <action
+            android:id="@+id/action_settingsFragment_to_settingsSearchFragment"
+            app:destination="@id/settingsSearchFragment" />
     </fragment>
 
     <action
         android:id="@+id/action_global_settingsFragment"
         app:destination="@id/settingsFragment" />
+
+    <fragment
+        android:id="@+id/settingsSearchFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.SettingsSearchFragment"
+        android:label="SettingsSearchFragment" />
 
 </navigation>
