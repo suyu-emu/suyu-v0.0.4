@@ -399,6 +399,7 @@ private:
     void OpenPerGameConfiguration(u64 title_id, const std::string& file_name);
     bool CheckDarkMode();
     bool CheckSystemArchiveDecryption();
+    void ConfigureFilesystemProvider(const std::string& filepath);
 
     QString GetTasStateDescription() const;
     bool CreateShortcut(const std::string& shortcut_path, const std::string& title,
