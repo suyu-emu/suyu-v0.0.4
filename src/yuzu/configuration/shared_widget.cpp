@@ -235,6 +235,7 @@ QWidget* Widget::CreateSlider(bool reversed, float multiplier, const QString& gi
     slider->setValue(std::stoi(setting.ToString()));
 
     slider->setInvertedAppearance(reversed);
+    slider->setInvertedControls(reversed);
 
     serializer = [this]() { return std::to_string(slider->value()); };
     restore_func = [this]() { slider->setValue(std::stoi(RelevantDefault(setting))); };
