@@ -203,7 +203,7 @@ static bool LoadNroImpl(Kernel::KProcess& process, const std::vector<u8>& data) 
 
     // Load codeset for current process
     codeset.memory = std::move(program_image);
-    process.LoadModule(std::move(codeset), process.GetPageTable().GetCodeRegionStart());
+    process.LoadModule(std::move(codeset), process.GetEntryPoint());
 
     return true;
 }

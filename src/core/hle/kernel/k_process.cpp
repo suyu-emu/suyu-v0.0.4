@@ -38,7 +38,7 @@ namespace {
  */
 void SetupMainThread(Core::System& system, KProcess& owner_process, u32 priority,
                      KProcessAddress stack_top) {
-    const KProcessAddress entry_point = owner_process.GetPageTable().GetCodeRegionStart();
+    const KProcessAddress entry_point = owner_process.GetEntryPoint();
     ASSERT(owner_process.GetResourceLimit()->Reserve(LimitableResource::ThreadCountMax, 1));
 
     KThread* thread = KThread::Create(system.Kernel());
@@ -358,6 +358,21 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
     m_system_resource_size = metadata.GetSystemResourceSize();
     m_image_size = code_size;
 
+    if (metadata.GetAddressSpaceType() == FileSys::ProgramAddressSpaceType::Is39Bit) {
+        // For 39-bit processes, the ASLR region starts at 0x800'0000 and is ~512GiB large.
+        // However, some (buggy) programs/libraries like skyline incorrectly depend on the
+        // existence of ASLR pages before the entry point, so we will adjust the load address
+        // to point to about 2GiB into the ASLR region.
+        m_code_address = 0x8000'0000;
+    } else {
+        // All other processes can be mapped at the beginning of the code region.
+        if (metadata.GetAddressSpaceType() == FileSys::ProgramAddressSpaceType::Is36Bit) {
+            m_code_address = 0x800'0000;
+        } else {
+            m_code_address = 0x20'0000;
+        }
+    }
+
     KScopedResourceReservation memory_reservation(
         m_resource_limit, LimitableResource::PhysicalMemoryMax, code_size + m_system_resource_size);
     if (!memory_reservation.Succeeded()) {
@@ -368,15 +383,15 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
     // Initialize process address space
     if (const Result result{m_page_table.InitializeForProcess(
             metadata.GetAddressSpaceType(), false, false, false, KMemoryManager::Pool::Application,
-            0x8000000, code_size, std::addressof(m_kernel.GetAppSystemResource()), m_resource_limit,
-            m_kernel.System().ApplicationMemory())};
+            this->GetEntryPoint(), code_size, std::addressof(m_kernel.GetAppSystemResource()),
+            m_resource_limit, m_kernel.System().ApplicationMemory())};
         result.IsError()) {
         R_RETURN(result);
     }
 
     // Map process code region
-    if (const Result result{m_page_table.MapProcessCode(m_page_table.GetCodeRegionStart(),
-                                                        code_size / PageSize, KMemoryState::Code,
+    if (const Result result{m_page_table.MapProcessCode(this->GetEntryPoint(), code_size / PageSize,
+                                                        KMemoryState::Code,
                                                         KMemoryPermission::None)};
         result.IsError()) {
         R_RETURN(result);

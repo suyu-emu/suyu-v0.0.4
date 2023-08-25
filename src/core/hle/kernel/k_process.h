@@ -177,6 +177,10 @@ public:
         return m_program_id;
     }
 
+    KProcessAddress GetEntryPoint() const {
+        return m_code_address;
+    }
+
     /// Gets the resource limit descriptor for this process
     KResourceLimit* GetResourceLimit() const;
 
@@ -484,6 +488,9 @@ private:
 
     /// Address indicating the location of the process' dedicated TLS region.
     KProcessAddress m_plr_address = 0;
+
+    /// Address indicating the location of the process's entry point.
+    KProcessAddress m_code_address = 0;
 
     /// Random values for svcGetInfo RandomEntropy
     std::array<u64, RANDOM_ENTROPY_SIZE> m_random_entropy{};
