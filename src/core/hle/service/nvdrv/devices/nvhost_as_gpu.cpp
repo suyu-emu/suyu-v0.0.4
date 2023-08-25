@@ -204,9 +204,11 @@ void nvhost_as_gpu::FreeMappingLocked(u64 offset) {
     if (!mapping->fixed) {
         auto& allocator{mapping->big_page ? *vm.big_page_allocator : *vm.small_page_allocator};
         u32 page_size_bits{mapping->big_page ? vm.big_page_size_bits : VM::PAGE_SIZE_BITS};
+        u32 page_size{mapping->big_page ? vm.big_page_size : VM::YUZU_PAGESIZE};
+        u64 aligned_size{Common::AlignUp(mapping->size, page_size)};
 
         allocator.Free(static_cast<u32>(mapping->offset >> page_size_bits),
-                       static_cast<u32>(mapping->size >> page_size_bits));
+                       static_cast<u32>(aligned_size >> page_size_bits));
     }
 
     // Sparse mappings shouldn't be fully unmapped, just returned to their sparse state
