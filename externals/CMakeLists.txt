@@ -42,9 +42,11 @@ endif()
 # mbedtls
 add_subdirectory(mbedtls)
 target_include_directories(mbedtls PUBLIC ./mbedtls/include)
-target_compile_options(mbedcrypto PRIVATE
-    -Wno-unused-but-set-variable
-    -Wno-string-concatenation)
+if (NOT MSVC)
+    target_compile_options(mbedcrypto PRIVATE
+        -Wno-unused-but-set-variable
+        -Wno-string-concatenation)
+endif()
 
 # MicroProfile
 add_library(microprofile INTERFACE)
