@@ -139,7 +139,6 @@ private:
     bool do_not_close_socket = false;
     bool get_server_cert_chain = false;
     std::shared_ptr<Network::SocketBase> socket;
-    bool did_set_host_name = false;
     bool did_handshake = false;
 
     Result SetSocketDescriptorImpl(s32* out_fd, s32 fd) {
@@ -174,11 +173,7 @@ private:
     Result SetHostNameImpl(const std::string& hostname) {
         LOG_DEBUG(Service_SSL, "called. hostname={}", hostname);
         ASSERT(!did_handshake);
-        Result res = backend->SetHostName(hostname);
-        if (res == ResultSuccess) {
-            did_set_host_name = true;
-        }
-        return res;
+        return backend->SetHostName(hostname);
     }
 
     Result SetVerifyOptionImpl(u32 option) {
@@ -208,9 +203,6 @@ private:
 
     Result DoHandshakeImpl() {
         ASSERT_OR_EXECUTE(!did_handshake && socket, { return ResultNoSocket; });
-        ASSERT_OR_EXECUTE_MSG(
-            did_set_host_name, { return ResultInternalError; },
-            "Expected SetHostName before DoHandshake");
         Result res = backend->DoHandshake();
         did_handshake = res.IsSuccess();
         return res;

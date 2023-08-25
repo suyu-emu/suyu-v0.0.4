@@ -31,9 +31,9 @@ CredHandle cred_handle;
 static void OneTimeInit() {
     schannel_cred.dwVersion = SCHANNEL_CRED_VERSION;
     schannel_cred.dwFlags =
-        SCH_USE_STRONG_CRYPTO |         // don't allow insecure protocols
-        SCH_CRED_AUTO_CRED_VALIDATION | // validate certs
-        SCH_CRED_NO_DEFAULT_CREDS;      // don't automatically present a client certificate
+        SCH_USE_STRONG_CRYPTO |        // don't allow insecure protocols
+        SCH_CRED_NO_SERVERNAME_CHECK | // don't validate server names
+        SCH_CRED_NO_DEFAULT_CREDS;     // don't automatically present a client certificate
     // ^ I'm assuming that nobody would want to connect Yuzu to a
     // service that requires some OS-provided corporate client
     // certificate, and presenting one to some arbitrary server
@@ -227,16 +227,15 @@ public:
                       ciphertext_read_buf.size());
         }
 
-        const SECURITY_STATUS ret =
-            InitializeSecurityContextA(&cred_handle, initial_call_done ? &ctxt : nullptr,
-                                       // Caller ensured we have set a hostname:
-                                       const_cast<char*>(hostname.value().c_str()), req,
-                                       0, // Reserved1
-                                       0, // TargetDataRep not used with Schannel
-                                       initial_call_done ? &input_desc : nullptr,
-                                       0, // Reserved2
-                                       initial_call_done ? nullptr : &ctxt, &output_desc, &attr,
-                                       nullptr); // ptsExpiry
+        char* hostname_ptr = hostname ? const_cast<char*>(hostname->c_str()) : nullptr;
+        const SECURITY_STATUS ret = InitializeSecurityContextA(
+            &cred_handle, initial_call_done ? &ctxt : nullptr, hostname_ptr, req,
+            0, // Reserved1
+            0, // TargetDataRep not used with Schannel
+            initial_call_done ? &input_desc : nullptr,
+            0, // Reserved2
+            initial_call_done ? nullptr : &ctxt, &output_desc, &attr,
+            nullptr); // ptsExpiry
 
         if (output_buffers[0].pvBuffer) {
             const std::span span(static_cast<u8*>(output_buffers[0].pvBuffer),

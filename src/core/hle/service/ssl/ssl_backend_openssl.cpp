@@ -167,9 +167,8 @@ public:
     }
 
     ~SSLConnectionBackendOpenSSL() {
-        // these are null-tolerant:
+        // this is null-tolerant:
         SSL_free(ssl);
-        BIO_free(bio);
     }
 
     static void KeyLogCallback(const SSL* ssl, const char* line) {
