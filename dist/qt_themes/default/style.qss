@@ -78,6 +78,11 @@ QPushButton#buttonRefreshDevices {
     max-height: 21px;
 }
 
+QPushButton#button_reset_defaults {
+    min-width: 57px;
+    padding: 4px 8px;
+}
+
 QWidget#bottomPerGameInput,
 QWidget#topControllerApplet,
 QWidget#bottomControllerApplet,
@@ -313,11 +318,6 @@ QWidget#controllerPlayer6,
 QWidget#controllerPlayer7,
 QWidget#controllerPlayer8 {
     background: transparent;
-}
-
-QDialog QPushButton {
-    min-width: 57px;
-    padding: 4px 8px;
 }
 
 QDialog#QtSoftwareKeyboardDialog,

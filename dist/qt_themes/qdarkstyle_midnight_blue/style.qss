@@ -2228,6 +2228,10 @@ QPushButton#buttonRefreshDevices {
   padding: 0px 0px;
 }
 
+QPushButton#button_reset_defaults {
+    padding: 3px 6px;
+}
+
 QSpinBox#spinboxLStickRange,
 QSpinBox#spinboxRStickRange,
 QSpinBox#vibrationSpinPlayer1,
@@ -2239,10 +2243,6 @@ QSpinBox#vibrationSpinPlayer6,
 QSpinBox#vibrationSpinPlayer7,
 QSpinBox#vibrationSpinPlayer8 {
   min-width: 68px;
-}
-
-QDialog QPushButton {
-    padding: 3px 6px;
 }
 
 QDialog#ConfigureVibration QGroupBox::indicator,
