@@ -606,9 +606,9 @@ InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_ex
     const auto result = RemoveExistingEntry(title_id);
 
     // Install Metadata File
-    const auto res = RawInstallNCA(**meta_iter, copy, overwrite_if_exists, meta_id_data);
-    if (res != InstallResult::Success) {
-        return res;
+    const auto meta_result = RawInstallNCA(**meta_iter, copy, overwrite_if_exists, meta_id_data);
+    if (meta_result != InstallResult::Success) {
+        return meta_result;
     }
 
     // Install all the other NCAs
@@ -621,9 +621,19 @@ InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_ex
         if (nca == nullptr) {
             return InstallResult::ErrorCopyFailed;
         }
-        const auto res2 = RawInstallNCA(*nca, copy, overwrite_if_exists, record.nca_id);
-        if (res2 != InstallResult::Success) {
-            return res2;
+        if (nca->GetStatus() == Loader::ResultStatus::ErrorMissingBKTRBaseRomFS &&
+            nca->GetTitleId() != title_id) {
+            // Create fake cnmt for patch to multiprogram application
+            const auto sub_nca_result =
+                InstallEntry(*nca, TitleType::Update, overwrite_if_exists, copy);
+            if (sub_nca_result != InstallResult::Success) {
+                return sub_nca_result;
+            }
+            continue;
+        }
+        const auto nca_result = RawInstallNCA(*nca, copy, overwrite_if_exists, record.nca_id);
+        if (nca_result != InstallResult::Success) {
+            return nca_result;
         }
     }
 
@@ -663,6 +673,8 @@ InstallResult RegisteredCache::InstallEntry(const NCA& nca, TitleType type,
 }
 
 bool RegisteredCache::RemoveExistingEntry(u64 title_id) const {
+    bool removed_data = false;
+
     const auto delete_nca = [this](const NcaID& id) {
         const auto path = GetRelativePathFromNcaID(id, false, true, false);
 
@@ -706,11 +718,18 @@ bool RegisteredCache::RemoveExistingEntry(u64 title_id) const {
         const auto deleted_html = delete_nca(html_id);
         const auto deleted_legal = delete_nca(legal_id);
 
-        return deleted_meta && (deleted_meta || deleted_program || deleted_data ||
-                                deleted_control || deleted_html || deleted_legal);
+        removed_data |= (deleted_meta || deleted_program || deleted_data || deleted_control ||
+                         deleted_html || deleted_legal);
     }
 
-    return false;
+    // If patch entries for any program exist in yuzu meta, remove them
+    for (u8 i = 0; i < 0x10; i++) {
+        const auto meta_dir = dir->CreateDirectoryRelative("yuzu_meta");
+        const auto filename = GetCNMTName(TitleType::Update, title_id + i);
+        removed_data |= meta_dir->DeleteFile(filename);
+    }
+
+    return removed_data;
 }
 
 InstallResult RegisteredCache::RawInstallNCA(const NCA& nca, const VfsCopyFunction& copy,
