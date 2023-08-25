@@ -1811,6 +1811,43 @@ bool GMainWindow::SelectAndSetCurrentUser(
     return true;
 }
 
+void GMainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
+    // Ensure all NCAs are registered before launching the game
+    const auto file = vfs->OpenFile(filepath, FileSys::Mode::Read);
+    if (!file) {
+        return;
+    }
+
+    auto loader = Loader::GetLoader(*system, file);
+    if (!loader) {
+        return;
+    }
+
+    const auto file_type = loader->GetFileType();
+    if (file_type == Loader::FileType::Unknown || file_type == Loader::FileType::Error) {
+        return;
+    }
+
+    u64 program_id = 0;
+    const auto res2 = loader->ReadProgramId(program_id);
+    if (res2 == Loader::ResultStatus::Success && file_type == Loader::FileType::NCA) {
+        provider->AddEntry(FileSys::TitleType::Application,
+                           FileSys::GetCRTypeFromNCAType(FileSys::NCA{file}.GetType()), program_id,
+                           file);
+    } else if (res2 == Loader::ResultStatus::Success &&
+               (file_type == Loader::FileType::XCI || file_type == Loader::FileType::NSP)) {
+        const auto nsp = file_type == Loader::FileType::NSP
+                             ? std::make_shared<FileSys::NSP>(file)
+                             : FileSys::XCI{file}.GetSecurePartitionNSP();
+        for (const auto& title : nsp->GetNCAs()) {
+            for (const auto& entry : title.second) {
+                provider->AddEntry(entry.first.first, entry.first.second, title.first,
+                                   entry.second->GetBaseFile());
+            }
+        }
+    }
+}
+
 void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t program_index,
                            StartGameType type) {
     LOG_INFO(Frontend, "yuzu starting...");
@@ -1825,6 +1862,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
 
     last_filename_booted = filename;
 
+    ConfigureFilesystemProvider(filename.toStdString());
     const auto v_file = Core::GetGameFileFromPath(vfs, filename.toUtf8().constData());
     const auto loader = Loader::GetLoader(*system, v_file, program_id, program_index);
 
