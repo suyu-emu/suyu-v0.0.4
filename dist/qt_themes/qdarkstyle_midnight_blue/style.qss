@@ -2242,8 +2242,7 @@ QSpinBox#vibrationSpinPlayer8 {
 }
 
 QDialog QPushButton {
-    min-width: 57px;
-    padding: 4px 8px;
+    padding: 3px 6px;
 }
 
 QDialog#ConfigureVibration QGroupBox::indicator,
