@@ -135,7 +135,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, region_index, "Region:", "");
     INSERT(Settings, time_zone_index, "Time Zone:", "");
     INSERT(Settings, sound_index, "Sound Output Mode:", "");
-    INSERT(Settings, use_docked_mode, "", "");
+    INSERT(Settings, use_docked_mode, "Console Mode:", "");
     INSERT(Settings, current_user, "", "");
 
     // Controls
@@ -379,6 +379,9 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
                               PAIR(MemoryLayout, Memory_6Gb, "6GB DRAM (Unsafe)"),
                               PAIR(MemoryLayout, Memory_8Gb, "8GB DRAM (Unsafe)"),
                           }});
+    translations->insert(
+        {Settings::EnumMetadata<Settings::ConsoleMode>::Index(),
+         {PAIR(ConsoleMode, Docked, "Docked"), PAIR(ConsoleMode, Handheld, "Handheld")}});
 
 #undef PAIR
 #undef CTX_PAIR

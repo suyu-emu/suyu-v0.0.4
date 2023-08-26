@@ -11,6 +11,7 @@
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "input_common/main.h"
 #include "jni/config.h"
@@ -144,7 +145,9 @@ void Config::ReadValues() {
                                                     Service::Account::MAX_USERS - 1);
 
     // Disable docked mode by default on Android
-    Settings::values.use_docked_mode = config->GetBoolean("System", "use_docked_mode", false);
+    Settings::values.use_docked_mode.SetValue(config->GetBoolean("System", "use_docked_mode", false)
+                                                  ? Settings::ConsoleMode::Docked
+                                                  : Settings::ConsoleMode::Handheld);
 
     const auto rng_seed_enabled = config->GetBoolean("System", "rng_seed_enabled", false);
     if (rng_seed_enabled) {

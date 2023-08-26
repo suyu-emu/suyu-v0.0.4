@@ -146,6 +146,8 @@ ENUM(AntiAliasing, None, Fxaa, Smaa, MaxEnum);
 
 ENUM(AspectRatio, R16_9, R4_3, R21_9, R16_10, Stretch);
 
+ENUM(ConsoleMode, Handheld, Docked);
+
 template <typename Type>
 inline std::string CanonicalizeEnum(Type id) {
     const auto group = EnumMetadata<Type>::Canonicalizations();

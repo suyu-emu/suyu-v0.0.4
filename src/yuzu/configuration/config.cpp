@@ -9,6 +9,7 @@
 #include "common/fs/path_util.h"
 #include "common/settings.h"
 #include "common/settings_common.h"
+#include "common/settings_enums.h"
 #include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/hid/controllers/npad.h"
@@ -85,9 +86,9 @@ const std::map<Settings::ScalingFilter, QString> Config::scaling_filter_texts_ma
     {Settings::ScalingFilter::Fsr, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "FSR"))},
 };
 
-const std::map<bool, QString> Config::use_docked_mode_texts_map = {
-    {true, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Docked"))},
-    {false, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Handheld"))},
+const std::map<Settings::ConsoleMode, QString> Config::use_docked_mode_texts_map = {
+    {Settings::ConsoleMode::Docked, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Docked"))},
+    {Settings::ConsoleMode::Handheld, QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "Handheld"))},
 };
 
 const std::map<Settings::GpuAccuracy, QString> Config::gpu_accuracy_texts_map = {
@@ -376,7 +377,7 @@ void Config::ReadControlValues() {
     const auto controller_type = Settings::values.players.GetValue()[0].controller_type;
     if (controller_type == Settings::ControllerType::Handheld) {
         Settings::values.use_docked_mode.SetGlobal(!IsCustomConfig());
-        Settings::values.use_docked_mode.SetValue(false);
+        Settings::values.use_docked_mode.SetValue(Settings::ConsoleMode::Handheld);
     }
 
     if (IsCustomConfig()) {

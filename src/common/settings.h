@@ -379,7 +379,13 @@ struct Values {
 
     Setting<s32> current_user{linkage, 0, "current_user", Category::System};
 
-    SwitchableSetting<bool> use_docked_mode{linkage, true, "use_docked_mode", Category::System};
+    SwitchableSetting<ConsoleMode> use_docked_mode{linkage,
+                                                   ConsoleMode::Docked,
+                                                   "use_docked_mode",
+                                                   Category::System,
+                                                   Specialization::Radio,
+                                                   true,
+                                                   true};
 
     // Controls
     InputSetting<std::array<PlayerInput, 10>> players;
@@ -518,6 +524,8 @@ bool IsGPULevelExtreme();
 bool IsGPULevelHigh();
 
 bool IsFastmemEnabled();
+
+bool IsDockedMode();
 
 float Volume();
 

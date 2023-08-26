@@ -9,6 +9,7 @@
 #include <QMetaType>
 #include <QVariant>
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "yuzu/uisettings.h"
 
 class QSettings;
@@ -51,7 +52,7 @@ public:
 
     static const std::map<Settings::AntiAliasing, QString> anti_aliasing_texts_map;
     static const std::map<Settings::ScalingFilter, QString> scaling_filter_texts_map;
-    static const std::map<bool, QString> use_docked_mode_texts_map;
+    static const std::map<Settings::ConsoleMode, QString> use_docked_mode_texts_map;
     static const std::map<Settings::GpuAccuracy, QString> gpu_accuracy_texts_map;
     static const std::map<Settings::RendererBackend, QString> renderer_backend_texts_map;
     static const std::map<Settings::ShaderBackend, QString> shader_backend_texts_map;
