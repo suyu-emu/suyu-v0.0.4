@@ -67,6 +67,7 @@ SWITCHABLE(CpuAccuracy, true);
 SWITCHABLE(FullscreenMode, true);
 SWITCHABLE(GpuAccuracy, true);
 SWITCHABLE(Language, true);
+SWITCHABLE(MemoryLayout, true);
 SWITCHABLE(NvdecEmulation, false);
 SWITCHABLE(Region, true);
 SWITCHABLE(RendererBackend, true);
@@ -82,6 +83,10 @@ SWITCHABLE(u16, true);
 SWITCHABLE(u32, false);
 SWITCHABLE(u8, false);
 SWITCHABLE(u8, true);
+
+// Used in UISettings
+// TODO see if we can move this to uisettings.h
+SWITCHABLE(ConfirmStop, true);
 
 #undef SETTING
 #undef SWITCHABLE
