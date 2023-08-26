@@ -91,11 +91,6 @@ class SettingsSearchFragment : Fragment() {
         setInsets()
     }
 
-    override fun onDetach() {
-        super.onDetach()
-        settingsAdapter?.closeDialog()
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(SEARCH_TEXT, binding.searchText.text.toString())

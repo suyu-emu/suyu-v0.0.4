@@ -41,7 +41,7 @@ class SliderViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAda
 
     override fun onLongClick(clicked: View): Boolean {
         if (setting.isEditable) {
-            return adapter.onLongClick(setting.setting, bindingAdapterPosition)
+            return adapter.onLongClick(setting, bindingAdapterPosition)
         }
         return false
     }

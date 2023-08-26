@@ -123,11 +123,6 @@ class SettingsFragment : Fragment() {
         settingsViewModel.setIsUsingSearch(false)
     }
 
-    override fun onDetach() {
-        super.onDetach()
-        settingsAdapter?.closeDialog()
-    }
-
     private fun setInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(
             binding.root
