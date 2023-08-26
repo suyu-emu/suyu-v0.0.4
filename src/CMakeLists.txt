@@ -114,15 +114,18 @@ else()
         -Wno-attributes
         -Wno-invalid-offsetof
         -Wno-unused-parameter
-
-        $<$<CXX_COMPILER_ID:Clang>:-Wno-braced-scalar-init>
-        $<$<CXX_COMPILER_ID:Clang>:-Wno-unused-private-field>
-        $<$<CXX_COMPILER_ID:Clang>:-Werror=shadow-uncaptured-local>
-        $<$<CXX_COMPILER_ID:Clang>:-Werror=implicit-fallthrough>
-        $<$<CXX_COMPILER_ID:Clang>:-Werror=type-limits>
-        $<$<CXX_COMPILER_ID:AppleClang>:-Wno-braced-scalar-init>
-        $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unused-private-field>
     )
+
+    if (CMAKE_CXX_COMPILER_ID MATCHES Clang) # Clang or AppleClang
+        add_compile_options(
+            -Wno-braced-scalar-init
+            -Wno-unused-private-field
+            -Wno-nullability-completeness
+            -Werror=shadow-uncaptured-local
+            -Werror=implicit-fallthrough
+            -Werror=type-limits
+        )
+    endif()
 
     if (ARCHITECTURE_x86_64)
         add_compile_options("-mcx16")
