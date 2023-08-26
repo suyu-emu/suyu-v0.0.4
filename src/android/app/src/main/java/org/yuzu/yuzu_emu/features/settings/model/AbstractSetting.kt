@@ -9,6 +9,8 @@ interface AbstractSetting {
     val key: String
     val category: Settings.Category
     val defaultValue: Any
+    val androidDefault: Any?
+        get() = null
     val valueAsString: String
         get() = ""
 

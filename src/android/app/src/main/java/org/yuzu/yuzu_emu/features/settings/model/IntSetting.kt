@@ -7,13 +7,14 @@ import org.yuzu.yuzu_emu.utils.NativeConfig
 
 enum class IntSetting(
     override val key: String,
-    override val category: Settings.Category
+    override val category: Settings.Category,
+    override val androidDefault: Int? = null
 ) : AbstractIntSetting {
     CPU_ACCURACY("cpu_accuracy", Settings.Category.Cpu),
     REGION_INDEX("region_index", Settings.Category.System),
     LANGUAGE_INDEX("language_index", Settings.Category.System),
     RENDERER_BACKEND("backend", Settings.Category.Renderer),
-    RENDERER_ACCURACY("gpu_accuracy", Settings.Category.Renderer),
+    RENDERER_ACCURACY("gpu_accuracy", Settings.Category.Renderer, 0),
     RENDERER_RESOLUTION("resolution_setup", Settings.Category.Renderer),
     RENDERER_VSYNC("use_vsync", Settings.Category.Renderer),
     RENDERER_SCALING_FILTER("scaling_filter", Settings.Category.Renderer),
@@ -27,7 +28,9 @@ enum class IntSetting(
 
     override fun setInt(value: Int) = NativeConfig.setInt(key, value)
 
-    override val defaultValue: Int by lazy { NativeConfig.getInt(key, true) }
+    override val defaultValue: Int by lazy {
+        androidDefault ?: NativeConfig.getInt(key, true)
+    }
 
     override val valueAsString: String
         get() = int.toString()
