@@ -420,7 +420,7 @@ public:
             return false;
         }
 
-        return !Settings::values.use_docked_mode.GetValue();
+        return !Settings::IsDockedMode();
     }
 
     void SetDeviceType([[maybe_unused]] int index, int type) {

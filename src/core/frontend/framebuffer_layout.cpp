@@ -5,6 +5,7 @@
 
 #include "common/assert.h"
 #include "common/settings.h"
+#include "common/settings_enums.h"
 #include "core/frontend/framebuffer_layout.h"
 
 namespace Layout {
@@ -49,7 +50,7 @@ FramebufferLayout DefaultFrameLayout(u32 width, u32 height) {
 }
 
 FramebufferLayout FrameLayoutFromResolutionScale(f32 res_scale) {
-    const bool is_docked = Settings::values.use_docked_mode.GetValue();
+    const bool is_docked = Settings::IsDockedMode();
     const u32 screen_width = is_docked ? ScreenDocked::Width : ScreenUndocked::Width;
     const u32 screen_height = is_docked ? ScreenDocked::Height : ScreenUndocked::Height;
 

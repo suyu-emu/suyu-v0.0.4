@@ -22,6 +22,7 @@ class QObject;
 class QPushButton;
 class QSlider;
 class QSpinBox;
+class QRadioButton;
 
 namespace Settings {
 class BasicSetting;
@@ -38,6 +39,7 @@ enum class RequestType {
     LineEdit,
     HexEdit,
     DateTimeEdit,
+    RadioGroup,
     MaxEnum,
 };
 
@@ -91,6 +93,7 @@ public:
     QSlider* slider{};
     QComboBox* combobox{};
     QDateTimeEdit* date_time_edit{};
+    std::vector<std::pair<u32, QRadioButton*>> radio_buttons{};
 
 private:
     void SetupComponent(const QString& label, std::function<void()>& load_func, bool managed,
@@ -106,6 +109,9 @@ private:
     QWidget* CreateCombobox(std::function<std::string()>& serializer,
                             std::function<void()>& restore_func,
                             const std::function<void()>& touch);
+    QWidget* CreateRadioGroup(std::function<std::string()>& serializer,
+                              std::function<void()>& restore_func,
+                              const std::function<void()>& touch);
     QWidget* CreateLineEdit(std::function<std::string()>& serializer,
                             std::function<void()>& restore_func, const std::function<void()>& touch,
                             bool managed = true);

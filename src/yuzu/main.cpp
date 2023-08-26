@@ -1158,9 +1158,9 @@ void GMainWindow::InitializeWidgets() {
             [this](const QPoint& menu_location) {
                 QMenu context_menu;
 
-                for (auto const& docked_mode_pair : Config::use_docked_mode_texts_map) {
-                    context_menu.addAction(docked_mode_pair.second, [this, docked_mode_pair] {
-                        if (docked_mode_pair.first != Settings::values.use_docked_mode.GetValue()) {
+                for (auto const& pair : Config::use_docked_mode_texts_map) {
+                    context_menu.addAction(pair.second, [this, &pair] {
+                        if (pair.first != Settings::values.use_docked_mode.GetValue()) {
                             OnToggleDockedMode();
                         }
                     });
@@ -3674,7 +3674,7 @@ void GMainWindow::OnTasReset() {
 }
 
 void GMainWindow::OnToggleDockedMode() {
-    const bool is_docked = Settings::values.use_docked_mode.GetValue();
+    const bool is_docked = Settings::IsDockedMode();
     auto* player_1 = system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
     auto* handheld = system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
 
@@ -3688,7 +3688,8 @@ void GMainWindow::OnToggleDockedMode() {
         controller_dialog->refreshConfiguration();
     }
 
-    Settings::values.use_docked_mode.SetValue(!is_docked);
+    Settings::values.use_docked_mode.SetValue(is_docked ? Settings::ConsoleMode::Handheld
+                                                        : Settings::ConsoleMode::Docked);
     UpdateDockedButton();
     OnDockedModeChanged(is_docked, !is_docked, *system);
 }
@@ -4118,10 +4119,10 @@ void GMainWindow::UpdateGPUAccuracyButton() {
 }
 
 void GMainWindow::UpdateDockedButton() {
-    const bool is_docked = Settings::values.use_docked_mode.GetValue();
-    dock_status_button->setChecked(is_docked);
+    const auto console_mode = Settings::values.use_docked_mode.GetValue();
+    dock_status_button->setChecked(Settings::IsDockedMode());
     dock_status_button->setText(
-        Config::use_docked_mode_texts_map.find(is_docked)->second.toUpper());
+        Config::use_docked_mode_texts_map.find(console_mode)->second.toUpper());
 }
 
 void GMainWindow::UpdateAPIText() {

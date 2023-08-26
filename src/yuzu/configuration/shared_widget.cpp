@@ -23,6 +23,7 @@
 #include <QLineEdit>
 #include <QObject>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QRegularExpression>
 #include <QSizePolicy>
 #include <QSlider>
@@ -169,6 +170,65 @@ QWidget* Widget::CreateCombobox(std::function<std::string()>& serializer,
     }
 
     return combobox;
+}
+
+QWidget* Widget::CreateRadioGroup(std::function<std::string()>& serializer,
+                                  std::function<void()>& restore_func,
+                                  const std::function<void()>& touch) {
+    const auto type = setting.EnumIndex();
+
+    QWidget* group = new QWidget(this);
+    QHBoxLayout* layout = new QHBoxLayout(group);
+    layout->setContentsMargins(0, 0, 0, 0);
+    group->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    const ComboboxTranslations* enumeration{nullptr};
+    if (combobox_enumerations.contains(type)) {
+        enumeration = &combobox_enumerations.at(type);
+        for (const auto& [id, name] : *enumeration) {
+            QRadioButton* radio_button = new QRadioButton(name, group);
+            layout->addWidget(radio_button);
+            radio_buttons.push_back({id, radio_button});
+        }
+    } else {
+        return group;
+    }
+
+    const auto get_selected = [=]() -> u32 {
+        for (const auto& [id, button] : radio_buttons) {
+            if (button->isChecked()) {
+                return id;
+            }
+        }
+        return -1;
+    };
+
+    const auto set_index = [=](u32 value) {
+        for (const auto& [id, button] : radio_buttons) {
+            button->setChecked(id == value);
+        }
+    };
+
+    const u32 setting_value = std::stoi(setting.ToString());
+    set_index(setting_value);
+
+    serializer = [get_selected]() {
+        int current = get_selected();
+        return std::to_string(current);
+    };
+
+    restore_func = [this, set_index]() {
+        const u32 global_value = std::stoi(RelevantDefault(setting));
+        set_index(global_value);
+    };
+
+    if (!Settings::IsConfiguringGlobal()) {
+        for (const auto& [id, button] : radio_buttons) {
+            QObject::connect(button, &QAbstractButton::clicked, [touch]() { touch(); });
+        }
+    }
+
+    return group;
 }
 
 QWidget* Widget::CreateLineEdit(std::function<std::string()>& serializer,
@@ -411,6 +471,8 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
             return RequestType::Slider;
         case Settings::Specialization::Countable:
             return RequestType::SpinBox;
+        case Settings::Specialization::Radio:
+            return RequestType::RadioGroup;
         default:
             break;
         }
@@ -439,7 +501,11 @@ void Widget::SetupComponent(const QString& label, std::function<void()>& load_fu
     if (setting.TypeId() == typeid(bool)) {
         data_component = CreateCheckBox(&setting, label, serializer, restore_func, touch);
     } else if (setting.IsEnum()) {
-        data_component = CreateCombobox(serializer, restore_func, touch);
+        if (request == RequestType::RadioGroup) {
+            data_component = CreateRadioGroup(serializer, restore_func, touch);
+        } else {
+            data_component = CreateCombobox(serializer, restore_func, touch);
+        }
     } else if (type == typeid(u32) || type == typeid(int) || type == typeid(u16) ||
                type == typeid(s64) || type == typeid(u8)) {
         switch (request) {

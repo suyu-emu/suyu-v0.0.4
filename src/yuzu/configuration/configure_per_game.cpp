@@ -18,6 +18,7 @@
 
 #include "common/fs/fs_util.h"
 #include "common/settings_enums.h"
+#include "common/settings_input.h"
 #include "configuration/shared_widget.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
@@ -97,6 +98,12 @@ void ConfigurePerGame::ApplyConfiguration() {
     }
     addons_tab->ApplyConfiguration();
     input_tab->ApplyConfiguration();
+
+    if (Settings::IsDockedMode() && Settings::values.players.GetValue()[0].controller_type ==
+                                        Settings::ControllerType::Handheld) {
+        Settings::values.use_docked_mode.SetValue(Settings::ConsoleMode::Handheld);
+        Settings::values.use_docked_mode.SetGlobal(true);
+    }
 
     system.ApplySettings();
     Settings::LogSettings();
