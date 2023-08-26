@@ -273,7 +273,8 @@ struct System::Impl {
         time_manager.Initialize();
 
         is_powered_on = true;
-        exit_lock = false;
+        exit_locked = false;
+        exit_requested = false;
 
         microprofile_cpu[0] = MICROPROFILE_TOKEN(ARM_CPU0);
         microprofile_cpu[1] = MICROPROFILE_TOKEN(ARM_CPU1);
@@ -398,7 +399,8 @@ struct System::Impl {
         }
 
         is_powered_on = false;
-        exit_lock = false;
+        exit_locked = false;
+        exit_requested = false;
 
         if (gpu_core != nullptr) {
             gpu_core->NotifyShutdown();
@@ -507,7 +509,8 @@ struct System::Impl {
 
     CpuManager cpu_manager;
     std::atomic_bool is_powered_on{};
-    bool exit_lock = false;
+    bool exit_locked = false;
+    bool exit_requested = false;
 
     bool nvdec_active{};
 
@@ -943,12 +946,20 @@ const Service::Time::TimeManager& System::GetTimeManager() const {
     return impl->time_manager;
 }
 
-void System::SetExitLock(bool locked) {
-    impl->exit_lock = locked;
+void System::SetExitLocked(bool locked) {
+    impl->exit_locked = locked;
 }
 
-bool System::GetExitLock() const {
-    return impl->exit_lock;
+bool System::GetExitLocked() const {
+    return impl->exit_locked;
+}
+
+void System::SetExitRequested(bool requested) {
+    impl->exit_requested = requested;
+}
+
+bool System::GetExitRequested() const {
+    return impl->exit_requested;
 }
 
 void System::SetApplicationProcessBuildID(const CurrentBuildProcessID& id) {

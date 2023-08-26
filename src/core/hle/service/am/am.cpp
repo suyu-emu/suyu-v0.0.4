@@ -340,7 +340,7 @@ void ISelfController::Exit(HLERequestContext& ctx) {
 void ISelfController::LockExit(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
-    system.SetExitLock(true);
+    system.SetExitLocked(true);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -349,10 +349,14 @@ void ISelfController::LockExit(HLERequestContext& ctx) {
 void ISelfController::UnlockExit(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
-    system.SetExitLock(false);
+    system.SetExitLocked(false);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
+
+    if (system.GetExitRequested()) {
+        system.Exit();
+    }
 }
 
 void ISelfController::EnterFatalSection(HLERequestContext& ctx) {

@@ -412,8 +412,11 @@ public:
     /// Gets an immutable reference to the Room Network.
     [[nodiscard]] const Network::RoomNetwork& GetRoomNetwork() const;
 
-    void SetExitLock(bool locked);
-    [[nodiscard]] bool GetExitLock() const;
+    void SetExitLocked(bool locked);
+    bool GetExitLocked() const;
+
+    void SetExitRequested(bool requested);
+    bool GetExitRequested() const;
 
     void SetApplicationProcessBuildID(const CurrentBuildProcessID& id);
     [[nodiscard]] const CurrentBuildProcessID& GetApplicationProcessBuildID() const;
