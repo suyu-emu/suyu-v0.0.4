@@ -83,6 +83,14 @@ bool DmaPusher::Step() {
                     dma_state.dma_get, command_list_header.size * sizeof(u32));
             }
         }
+        if (Settings::IsGPULevelHigh() && dma_state.method < MacroRegistersStart) {
+            Core::Memory::GpuGuestMemory<Tegra::CommandHeader,
+                                         Core::Memory::GuestMemoryFlags::SafeRead>
+                headers(memory_manager, dma_state.dma_get, command_list_header.size,
+                        &command_headers);
+            ProcessCommands(headers);
+            return true;
+        }
         Core::Memory::GpuGuestMemory<Tegra::CommandHeader,
                                      Core::Memory::GuestMemoryFlags::UnsafeRead>
             headers(memory_manager, dma_state.dma_get, command_list_header.size, &command_headers);
