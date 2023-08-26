@@ -96,6 +96,9 @@ public:
     ~NetworkInstance();
 };
 
+void CancelPendingSocketOperations();
+void RestartSocketOperations();
+
 #ifdef _WIN32
 constexpr IPv4Address TranslateIPv4(in_addr addr) {
     auto& bytes = addr.S_un.S_un_b;
