@@ -2228,6 +2228,10 @@ QPushButton#buttonRefreshDevices {
   padding: 0px 0px;
 }
 
+QPushButton#button_reset_defaults {
+    padding: 3px 6px;
+}
+
 QSpinBox#spinboxLStickRange,
 QSpinBox#spinboxRStickRange,
 QSpinBox#vibrationSpinPlayer1,
