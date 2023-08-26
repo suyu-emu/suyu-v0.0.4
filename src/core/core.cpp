@@ -404,6 +404,7 @@ struct System::Impl {
             gpu_core->NotifyShutdown();
         }
 
+        Network::CancelPendingSocketOperations();
         kernel.SuspendApplication(true);
         if (services) {
             services->KillNVNFlinger();
@@ -425,6 +426,7 @@ struct System::Impl {
         debugger.reset();
         kernel.Shutdown();
         memory.Reset();
+        Network::RestartSocketOperations();
 
         if (auto room_member = room_network.GetRoomMember().lock()) {
             Network::GameInfo game_info{};
