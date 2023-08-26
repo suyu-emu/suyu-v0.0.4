@@ -157,7 +157,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(UISettings, select_user_on_boot, "Prompt for user on game boot", "");
     INSERT(UISettings, pause_when_in_background, "Pause emulation when in background", "");
     INSERT(UISettings, confirm_before_closing, "Confirm exit while emulation is running", "");
-    INSERT(UISettings, confirm_before_stopping, "Confirm stopping emulation", "");
+    INSERT(UISettings, confirm_before_stopping, "Confirm before stopping emulation", "");
     INSERT(UISettings, hide_mouse, "Hide mouse on inactivity", "");
     INSERT(UISettings, controller_applet_disabled, "Disable controller applet", "");
 
@@ -384,6 +384,13 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
     translations->insert(
         {Settings::EnumMetadata<Settings::ConsoleMode>::Index(),
          {PAIR(ConsoleMode, Docked, "Docked"), PAIR(ConsoleMode, Handheld, "Handheld")}});
+    translations->insert(
+        {Settings::EnumMetadata<Settings::ConfirmStop>::Index(),
+         {
+             PAIR(ConfirmStop, Ask_Always, "Always ask (Default)"),
+             PAIR(ConfirmStop, Ask_Based_On_Game, "Only if game specifies not to stop"),
+             PAIR(ConfirmStop, Ask_Never, "Never ask"),
+         }});
 
 #undef PAIR
 #undef CTX_PAIR

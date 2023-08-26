@@ -133,6 +133,8 @@ ENUM(CpuAccuracy, Auto, Accurate, Unsafe, Paranoid);
 
 ENUM(MemoryLayout, Memory_4Gb, Memory_6Gb, Memory_8Gb);
 
+ENUM(ConfirmStop, Ask_Always, Ask_Based_On_Game, Ask_Never);
+
 ENUM(FullscreenMode, Borderless, Exclusive);
 
 ENUM(NvdecEmulation, Off, Cpu, Gpu);

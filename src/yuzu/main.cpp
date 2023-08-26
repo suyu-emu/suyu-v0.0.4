@@ -3426,7 +3426,7 @@ void GMainWindow::OnPauseContinueGame() {
 
 void GMainWindow::OnStopGame() {
     // Open (or not) the right confirm dialog based on current setting and game exit lock
-    if (UISettings::values.confirm_before_stopping.GetValue() == UISettings::AskStopIndex::Always) {
+    if (UISettings::values.confirm_before_stopping.GetValue() == ConfirmStop::Ask_Always) {
         if (system->GetExitLocked()) {
             if (!ConfirmForceLockedExit()) {
                 return;
@@ -3438,7 +3438,7 @@ void GMainWindow::OnStopGame() {
         }
     } else {
         if (UISettings::values.confirm_before_stopping.GetValue() ==
-                UISettings::AskStopIndex::Game &&
+                ConfirmStop::Ask_Based_On_Game &&
             system->GetExitLocked()) {
             if (!ConfirmForceLockedExit()) {
                 return;
@@ -4081,13 +4081,15 @@ void GMainWindow::OnLoadAmiibo() {
 bool GMainWindow::question(QWidget* parent, const QString& title, const QString& text,
                            QMessageBox::StandardButtons buttons,
                            QMessageBox::StandardButton defaultButton) {
-    ControllerNavigation* controller_navigation = new ControllerNavigation(system->HIDCore(), this);
 
     QMessageBox* box_dialog = new QMessageBox(parent);
     box_dialog->setWindowTitle(title);
     box_dialog->setText(text);
     box_dialog->setStandardButtons(buttons);
     box_dialog->setDefaultButton(defaultButton);
+
+    ControllerNavigation* controller_navigation =
+        new ControllerNavigation(system->HIDCore(), box_dialog);
     connect(controller_navigation, &ControllerNavigation::TriggerKeyboardEvent,
             [box_dialog](Qt::Key key) {
                 QKeyEvent* event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
