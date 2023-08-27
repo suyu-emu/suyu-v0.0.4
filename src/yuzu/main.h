@@ -76,6 +76,10 @@ namespace DiscordRPC {
 class DiscordInterface;
 }
 
+namespace PlayTime {
+class PlayTimeManager;
+}
+
 namespace FileSys {
 class ContentProvider;
 class ManualContentProvider;
@@ -312,6 +316,7 @@ private slots:
     void OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryType type);
     void OnGameListRemoveFile(u64 program_id, GameListRemoveTarget target,
                               const std::string& game_path);
+    void OnGameListRemovePlayTimeData(u64 program_id);
     void OnGameListDumpRomFS(u64 program_id, const std::string& game_path, DumpRomFSTarget target);
     void OnGameListCopyTID(u64 program_id);
     void OnGameListNavigateToGamedbEntry(u64 program_id,
@@ -374,6 +379,7 @@ private:
     void RemoveVulkanDriverPipelineCache(u64 program_id);
     void RemoveAllTransferableShaderCaches(u64 program_id);
     void RemoveCustomConfiguration(u64 program_id, const std::string& game_path);
+    void RemovePlayTimeData(u64 program_id);
     void RemoveCacheStorage(u64 program_id);
     std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
     InstallResult InstallNSPXCI(const QString& filename);
@@ -411,6 +417,7 @@ private:
 
     std::unique_ptr<Core::System> system;
     std::unique_ptr<DiscordRPC::DiscordInterface> discord_rpc;
+    std::unique_ptr<PlayTime::PlayTimeManager> play_time_manager;
     std::shared_ptr<InputCommon::InputSubsystem> input_subsystem;
 
     MultiplayerState* multiplayer_state = nullptr;

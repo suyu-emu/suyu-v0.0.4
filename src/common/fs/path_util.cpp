@@ -122,6 +122,7 @@ public:
         GenerateYuzuPath(YuzuPath::LoadDir, yuzu_path / LOAD_DIR);
         GenerateYuzuPath(YuzuPath::LogDir, yuzu_path / LOG_DIR);
         GenerateYuzuPath(YuzuPath::NANDDir, yuzu_path / NAND_DIR);
+        GenerateYuzuPath(YuzuPath::PlayTimeDir, yuzu_path / PLAY_TIME_DIR);
         GenerateYuzuPath(YuzuPath::ScreenshotsDir, yuzu_path / SCREENSHOTS_DIR);
         GenerateYuzuPath(YuzuPath::SDMCDir, yuzu_path / SDMC_DIR);
         GenerateYuzuPath(YuzuPath::ShaderDir, yuzu_path / SHADER_DIR);

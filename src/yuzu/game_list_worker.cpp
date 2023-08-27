@@ -27,6 +27,7 @@
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
+#include "yuzu/play_time.h"
 #include "yuzu/uisettings.h"
 
 namespace {
@@ -212,6 +213,7 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
         new GameListItemCompat(compatibility),
         new GameListItem(file_type_string),
         new GameListItemSize(size),
+        new GameListItemPlayTime(PlayTime::GetPlayTime(program_id)),
     };
 
     const auto patch_versions = GetGameListCachedObject(
