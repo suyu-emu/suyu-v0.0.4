@@ -257,6 +257,7 @@ u32 Maxwell3D::GetMaxCurrentVertices() {
         const u32 address_size = static_cast<u32>(gpu_addr_end - gpu_addr_begin);
         num_vertices = std::max(
             num_vertices, address_size / std::max(attribute.SizeInBytes(), array.stride.Value()));
+        break;
     }
     return num_vertices;
 }
@@ -269,10 +270,13 @@ size_t Maxwell3D::EstimateIndexBufferSize() {
                                                         std::numeric_limits<u32>::max()};
     const size_t byte_size = regs.index_buffer.FormatSizeInBytes();
     const size_t log2_byte_size = Common::Log2Ceil64(byte_size);
+    const size_t cap{GetMaxCurrentVertices() * 3 * byte_size};
+    const size_t lower_cap =
+        std::min<size_t>(static_cast<size_t>(end_address - start_address), cap);
     return std::min<size_t>(
         memory_manager.GetMemoryLayoutSize(start_address, byte_size * max_sizes[log2_byte_size]) /
             byte_size,
-        static_cast<size_t>(end_address - start_address));
+        lower_cap);
 }
 
 u32 Maxwell3D::ProcessShadowRam(u32 method, u32 argument) {
