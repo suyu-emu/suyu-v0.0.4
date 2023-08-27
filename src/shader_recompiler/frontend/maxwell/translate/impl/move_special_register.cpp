@@ -161,7 +161,8 @@ enum class SpecialRegister : u64 {
         LOG_WARNING(Shader, "(STUBBED) SR_AFFINITY");
         return ir.Imm32(0); // This is the default value hardware returns.
     default:
-        throw NotImplementedException("S2R special register {}", special_register);
+        LOG_CRITICAL(Shader, "(STUBBED) Special register {}", special_register);
+        return ir.Imm32(0); // This is the default value hardware returns.
     }
 }
 } // Anonymous namespace
