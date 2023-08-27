@@ -18,7 +18,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
-#include "yuzu/play_time.h"
+#include "yuzu/play_time_manager.h"
 #include "yuzu/uisettings.h"
 #include "yuzu/util/util.h"
 

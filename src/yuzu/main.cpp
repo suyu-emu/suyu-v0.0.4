@@ -146,7 +146,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/install_dialog.h"
 #include "yuzu/loading_screen.h"
 #include "yuzu/main.h"
-#include "yuzu/play_time.h"
+#include "yuzu/play_time_manager.h"
 #include "yuzu/startup_checks.h"
 #include "yuzu/uisettings.h"
 #include "yuzu/util/clickable_label.h"
@@ -980,7 +980,7 @@ void GMainWindow::InitializeWidgets() {
     render_window = new GRenderWindow(this, emu_thread.get(), input_subsystem, *system);
     render_window->hide();
 
-    game_list = new GameList(vfs, provider.get(), *system, this);
+    game_list = new GameList(vfs, provider.get(), *play_time_manager, *system, this);
     ui->horizontalLayout->addWidget(game_list);
 
     game_list_placeholder = new GameListPlaceholder(this);
@@ -2469,11 +2469,8 @@ void GMainWindow::OnGameListRemovePlayTimeData(u64 program_id) {
                               QMessageBox::No) != QMessageBox::Yes) {
         return;
     }
-    if (!play_time_manager->ResetProgramPlayTime(program_id)) {
-        QMessageBox::warning(this, tr("Error Resetting Play Time Data"),
-                             tr("Play time couldn't be cleared"));
-        return;
-    }
+
+    play_time_manager->ResetProgramPlayTime(program_id);
     game_list->PopulateAsync(UISettings::values.game_dirs);
 }
 
