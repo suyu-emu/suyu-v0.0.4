@@ -74,6 +74,7 @@ public:
         COLUMN_ADD_ONS,
         COLUMN_FILE_TYPE,
         COLUMN_SIZE,
+        COLUMN_PLAY_TIME,
         COLUMN_COUNT, // Number of columns
     };
 
@@ -112,6 +113,7 @@ signals:
     void RemoveInstalledEntryRequested(u64 program_id, InstalledEntryType type);
     void RemoveFileRequested(u64 program_id, GameListRemoveTarget target,
                              const std::string& game_path);
+    void RemovePlayTimeRequested(u64 program_id);
     void DumpRomFSRequested(u64 program_id, const std::string& game_path, DumpRomFSTarget target);
     void CopyTIDRequested(u64 program_id);
     void CreateShortcut(u64 program_id, const std::string& game_path,
