@@ -27,7 +27,6 @@
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/game_list_worker.h"
-#include "yuzu/play_time.h"
 #include "yuzu/uisettings.h"
 
 namespace {
@@ -195,6 +194,7 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
                                         const std::size_t size, const std::vector<u8>& icon,
                                         Loader::AppLoader& loader, u64 program_id,
                                         const CompatibilityList& compatibility_list,
+                                        const PlayTime::PlayTimeManager& play_time_manager,
                                         const FileSys::PatchManager& patch) {
     const auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
 
@@ -213,7 +213,7 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
         new GameListItemCompat(compatibility),
         new GameListItem(file_type_string),
         new GameListItemSize(size),
-        new GameListItemPlayTime(PlayTime::GetPlayTime(program_id)),
+        new GameListItemPlayTime(play_time_manager.GetPlayTime(program_id)),
     };
 
     const auto patch_versions = GetGameListCachedObject(
@@ -229,9 +229,12 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
 GameListWorker::GameListWorker(FileSys::VirtualFilesystem vfs_,
                                FileSys::ManualContentProvider* provider_,
                                QVector<UISettings::GameDir>& game_dirs_,
-                               const CompatibilityList& compatibility_list_, Core::System& system_)
+                               const CompatibilityList& compatibility_list_,
+                               const PlayTime::PlayTimeManager& play_time_manager_,
+                               Core::System& system_)
     : vfs{std::move(vfs_)}, provider{provider_}, game_dirs{game_dirs_},
-      compatibility_list{compatibility_list_}, system{system_} {}
+      compatibility_list{compatibility_list_},
+      play_time_manager{play_time_manager_}, system{system_} {}
 
 GameListWorker::~GameListWorker() = default;
 
@@ -282,7 +285,7 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
         }
 
         emit EntryReady(MakeGameListEntry(file->GetFullPath(), name, file->GetSize(), icon, *loader,
-                                          program_id, compatibility_list, patch),
+                                          program_id, compatibility_list, play_time_manager, patch),
                         parent_dir);
     }
 }
@@ -359,7 +362,8 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
 
                         emit EntryReady(MakeGameListEntry(physical_name, name,
                                                           Common::FS::GetSize(physical_name), icon,
-                                                          *loader, id, compatibility_list, patch),
+                                                          *loader, id, compatibility_list,
+                                                          play_time_manager, patch),
                                         parent_dir);
                     }
                 } else {
@@ -372,10 +376,11 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                     const FileSys::PatchManager patch{program_id, system.GetFileSystemController(),
                                                       system.GetContentProvider()};
 
-                    emit EntryReady(
-                        MakeGameListEntry(physical_name, name, Common::FS::GetSize(physical_name),
-                                          icon, *loader, program_id, compatibility_list, patch),
-                        parent_dir);
+                    emit EntryReady(MakeGameListEntry(physical_name, name,
+                                                      Common::FS::GetSize(physical_name), icon,
+                                                      *loader, program_id, compatibility_list,
+                                                      play_time_manager, patch),
+                                    parent_dir);
                 }
             }
         } else if (is_dir) {

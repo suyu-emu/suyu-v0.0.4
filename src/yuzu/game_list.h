@@ -18,6 +18,7 @@
 #include "core/core.h"
 #include "uisettings.h"
 #include "yuzu/compatibility_list.h"
+#include "yuzu/play_time_manager.h"
 
 namespace Core {
 class System;
@@ -79,7 +80,8 @@ public:
     };
 
     explicit GameList(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
-                      FileSys::ManualContentProvider* provider_, Core::System& system_,
+                      FileSys::ManualContentProvider* provider_,
+                      PlayTime::PlayTimeManager& play_time_manager_, Core::System& system_,
                       GMainWindow* parent = nullptr);
     ~GameList() override;
 
@@ -168,6 +170,7 @@ private:
 
     friend class GameListSearchField;
 
+    const PlayTime::PlayTimeManager& play_time_manager;
     Core::System& system;
 };
 
