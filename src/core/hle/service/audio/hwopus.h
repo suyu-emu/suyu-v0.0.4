@@ -18,8 +18,10 @@ struct OpusMultiStreamParametersEx {
     u32 number_stereo_streams;
     u32 use_large_frame_size;
     u32 padding;
-    std::array<u32, 64> channel_mappings;
+    std::array<u8, 0x100> channel_mappings;
 };
+static_assert(sizeof(OpusMultiStreamParametersEx) == 0x118,
+              "OpusMultiStreamParametersEx has incorrect size");
 
 class HwOpus final : public ServiceFramework<HwOpus> {
 public:
@@ -29,6 +31,7 @@ public:
 private:
     void OpenHardwareOpusDecoder(HLERequestContext& ctx);
     void OpenHardwareOpusDecoderEx(HLERequestContext& ctx);
+    void OpenHardwareOpusDecoderForMultiStreamEx(HLERequestContext& ctx);
     void GetWorkBufferSize(HLERequestContext& ctx);
     void GetWorkBufferSizeEx(HLERequestContext& ctx);
     void GetWorkBufferSizeForMultiStreamEx(HLERequestContext& ctx);
