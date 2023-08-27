@@ -11,6 +11,14 @@
 
 namespace Tegra::Engines {
 
+enum class EngineTypes : u32 {
+    KeplerCompute,
+    Maxwell3D,
+    Fermi2D,
+    MaxwellDMA,
+    KeplerMemory,
+};
+
 class EngineInterface {
 public:
     virtual ~EngineInterface() = default;

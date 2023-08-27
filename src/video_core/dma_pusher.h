@@ -130,8 +130,10 @@ public:
 
     void DispatchCalls();
 
-    void BindSubchannel(Engines::EngineInterface* engine, u32 subchannel_id) {
+    void BindSubchannel(Engines::EngineInterface* engine, u32 subchannel_id,
+                        Engines::EngineTypes engine_type) {
         subchannels[subchannel_id] = engine;
+        subchannel_type[subchannel_id] = engine_type;
     }
 
     void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
@@ -170,6 +172,7 @@ private:
     const bool ib_enable{true}; ///< IB mode enabled
 
     std::array<Engines::EngineInterface*, max_subchannels> subchannels{};
+    std::array<Engines::EngineTypes, max_subchannels> subchannel_type;
 
     GPU& gpu;
     Core::System& system;

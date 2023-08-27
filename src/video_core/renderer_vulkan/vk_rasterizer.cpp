@@ -463,6 +463,20 @@ void RasterizerVulkan::DispatchCompute() {
     pipeline->Configure(*kepler_compute, *gpu_memory, scheduler, buffer_cache, texture_cache);
 
     const auto& qmd{kepler_compute->launch_description};
+    auto indirect_address = kepler_compute->GetIndirectComputeAddress();
+    if (indirect_address) {
+        // DispatchIndirect
+        static constexpr auto sync_info = VideoCommon::ObtainBufferSynchronize::FullSynchronize;
+        const auto post_op = VideoCommon::ObtainBufferOperation::DiscardWrite;
+        const auto [buffer, offset] =
+            buffer_cache.ObtainBuffer(*indirect_address, 12, sync_info, post_op);
+        scheduler.RequestOutsideRenderPassOperationContext();
+        scheduler.Record([indirect_buffer = buffer->Handle(),
+                          indirect_offset = offset](vk::CommandBuffer cmdbuf) {
+            cmdbuf.DispatchIndirect(indirect_buffer, indirect_offset);
+        });
+        return;
+    }
     const std::array<u32, 3> dim{qmd.grid_dim_x, qmd.grid_dim_y, qmd.grid_dim_z};
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([dim](vk::CommandBuffer cmdbuf) { cmdbuf.Dispatch(dim[0], dim[1], dim[2]); });

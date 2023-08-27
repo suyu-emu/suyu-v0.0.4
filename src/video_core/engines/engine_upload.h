@@ -69,6 +69,14 @@ public:
     /// Binds a rasterizer to this engine.
     void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
 
+    GPUVAddr ExecTargetAddress() const {
+        return regs.dest.Address();
+    }
+
+    u32 GetUploadSize() const {
+        return copy_size;
+    }
+
 private:
     void ProcessData(std::span<const u8> read_buffer);
 
