@@ -456,8 +456,7 @@ public:
 
     /// Returns true if the device supports VK_EXT_depth_bias_control.
     bool IsExtDepthBiasControlSupported() const {
-        return extensions.depth_bias_control && features.depth_bias_control.depthBiasControl &&
-               features.depth_bias_control.leastRepresentableValueForceUnormRepresentation;
+        return extensions.depth_bias_control;
     }
 
     /// Returns true if the device supports VK_EXT_shader_viewport_index_layer.
