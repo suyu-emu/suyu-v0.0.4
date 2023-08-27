@@ -289,8 +289,11 @@ std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainBuffer(GPUVAddr gpu_ad
         MarkWrittenBuffer(buffer_id, *cpu_addr, size);
         break;
     case ObtainBufferOperation::DiscardWrite: {
-        IntervalType interval{*cpu_addr, size};
+        VAddr cpu_addr_start = Common::AlignDown(*cpu_addr, 64);
+        VAddr cpu_addr_end = Common::AlignUp(*cpu_addr + size, 64);
+        IntervalType interval{cpu_addr_start, cpu_addr_end};
         ClearDownload(interval);
+        common_ranges.subtract(interval);
         break;
     }
     default:
@@ -1159,6 +1162,11 @@ void BufferCache<P>::UpdateDrawIndirect() {
             .size = static_cast<u32>(size),
             .buffer_id = FindBuffer(*cpu_addr, static_cast<u32>(size)),
         };
+        VAddr cpu_addr_start = Common::AlignDown(*cpu_addr, 64);
+        VAddr cpu_addr_end = Common::AlignUp(*cpu_addr + size, 64);
+        IntervalType interval{cpu_addr_start, cpu_addr_end};
+        ClearDownload(interval);
+        common_ranges.subtract(interval);
     };
     if (current_draw_indirect->include_count) {
         update(current_draw_indirect->count_start_address, sizeof(u32),
