@@ -1051,6 +1051,13 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
 
+    // VK_EXT_depth_bias_control
+    extensions.depth_bias_control =
+        features.depth_bias_control.depthBiasControl &&
+        features.depth_bias_control.leastRepresentableValueForceUnormRepresentation;
+    RemoveExtensionFeatureIfUnsuitable(extensions.depth_bias_control, features.depth_bias_control,
+                                       VK_EXT_DEPTH_BIAS_CONTROL_EXTENSION_NAME);
+
     // VK_EXT_depth_clip_control
     extensions.depth_clip_control = features.depth_clip_control.depthClipControl;
     RemoveExtensionFeatureIfUnsuitable(extensions.depth_clip_control, features.depth_clip_control,

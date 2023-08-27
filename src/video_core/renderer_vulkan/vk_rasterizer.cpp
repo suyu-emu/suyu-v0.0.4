@@ -1050,6 +1050,9 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
         if (device.IsExtDepthBiasControlSupported()) {
             return true;
         }
+        if (!Settings::values.renderer_amdvlk_depth_bias_workaround) {
+            return false;
+        }
         // the base formulas can be obtained from here:
         //   https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias
         const double rescale_factor =
