@@ -7,7 +7,6 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
-import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
@@ -19,8 +18,6 @@ import android.util.Rational
 import android.view.*
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.Insets
@@ -66,8 +63,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     private var isInFoldableLayout = false
 
-    private lateinit var onReturnFromSettings: ActivityResultLauncher<Intent>
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (context is EmulationActivity) {
@@ -81,11 +76,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         .collect { updateFoldableLayout(context, it) }
                 }
             }
-
-            onReturnFromSettings = context.activityResultRegistry.register(
-                "SettingsResult",
-                ActivityResultContracts.StartActivityForResult()
-            ) { updateScreenLayout() }
         } else {
             throw IllegalStateException("EmulationFragment must have EmulationActivity parent")
         }
@@ -149,12 +139,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 }
 
                 R.id.menu_settings -> {
-                    SettingsActivity.launch(
-                        requireContext(),
-                        onReturnFromSettings,
-                        SettingsFile.FILE_NAME_CONFIG,
-                        ""
-                    )
+                    SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "")
                     true
                 }
 
