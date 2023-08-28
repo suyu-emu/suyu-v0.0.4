@@ -83,8 +83,8 @@ const SinkDetails& GetOutputSinkDetails(Settings::AudioEngine sink_id) {
                 break;
             }
         }
-        LOG_ERROR(Service_Audio, "Auto-selecting the {} backend",
-                  Settings::CanonicalizeEnum(iter->id));
+        LOG_INFO(Service_Audio, "Auto-selecting the {} backend",
+                 Settings::CanonicalizeEnum(iter->id));
     } else {
         if (iter != std::end(sink_details) && !iter->is_suitable()) {
             LOG_ERROR(Service_Audio, "Selected backend {} is not suitable, falling back to null",

@@ -364,7 +364,7 @@ bool IsCubebSuitable() {
     }
 #endif
 
-    // Test min latency
+    // Get min latency
     cubeb_stream_params params{};
     params.rate = TargetSampleRate;
     params.channels = 2;
@@ -379,11 +379,6 @@ bool IsCubebSuitable() {
         return false;
     }
     latency = std::max(latency, TargetSampleCount * 2);
-
-    if (latency > TargetSampleCount * 3) {
-        LOG_ERROR(Audio_Sink, "Cubeb latency is too high, it is not suitable.");
-        return false;
-    }
 
     // Test opening a device with standard parameters
     cubeb_devid output_device{0};
