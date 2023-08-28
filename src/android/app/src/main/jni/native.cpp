@@ -203,12 +203,10 @@ public:
     }
 
     bool IsRunning() const {
-        std::scoped_lock lock(m_mutex);
         return m_is_running;
     }
 
     bool IsPaused() const {
-        std::scoped_lock lock(m_mutex);
         return m_is_running && m_is_paused;
     }
 
@@ -544,8 +542,8 @@ private:
     Core::PerfStatsResults m_perf_stats{};
     std::shared_ptr<FileSys::VfsFilesystem> m_vfs;
     Core::SystemResultStatus m_load_result{Core::SystemResultStatus::ErrorNotInitialized};
-    bool m_is_running{};
-    bool m_is_paused{};
+    std::atomic<bool> m_is_running = false;
+    std::atomic<bool> m_is_paused = false;
     SoftwareKeyboard::AndroidKeyboard* m_software_keyboard{};
     std::unique_ptr<Service::Account::ProfileManager> m_profile_manager;
     std::unique_ptr<FileSys::ManualContentProvider> m_manual_provider;
