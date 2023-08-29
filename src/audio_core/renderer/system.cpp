@@ -778,7 +778,7 @@ u32 System::DropVoices(CommandBuffer& command_buffer, u32 estimated_process_time
     while (i < command_buffer.count) {
         const auto node_id{cmd->node_id};
         const auto node_id_type{cmd->node_id >> 28};
-        const auto node_id_base{cmd->node_id & 0xFFF};
+        const auto node_id_base{(cmd->node_id >> 16) & 0xFFF};
 
         // If the new estimated process time falls below the limit, we're done dropping.
         if (estimated_process_time <= time_limit) {
