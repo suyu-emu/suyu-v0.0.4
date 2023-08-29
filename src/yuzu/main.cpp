@@ -2592,6 +2592,13 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
         return;
     }
 
+    const FileSys::NCA update_nca{packed_update_raw, nullptr};
+    if (type != FileSys::ContentRecordType::Program ||
+        update_nca.GetStatus() != Loader::ResultStatus::ErrorMissingBKTRBaseRomFS ||
+        update_nca.GetTitleId() != FileSys::GetUpdateTitleID(title_id)) {
+        packed_update_raw = {};
+    }
+
     const auto base_romfs = base_nca->GetRomFS();
     if (!base_romfs) {
         failed();
