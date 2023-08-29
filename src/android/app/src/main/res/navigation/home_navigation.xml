@@ -62,7 +62,9 @@
         android:label="EmulationActivity">
         <argument
             android:name="game"
-            app:argType="org.yuzu.yuzu_emu.model.Game" />
+            app:argType="org.yuzu.yuzu_emu.model.Game"
+            app:nullable="true"
+            android:defaultValue="@null" />
     </activity>
 
     <action

@@ -11,6 +11,7 @@ import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -47,6 +48,7 @@ import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.overlay.InputOverlay
 import org.yuzu.yuzu_emu.utils.*
 
@@ -59,7 +61,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private var _binding: FragmentEmulationBinding? = null
     private val binding get() = _binding!!
 
-    val args by navArgs<EmulationFragmentArgs>()
+    private val args by navArgs<EmulationFragmentArgs>()
+
+    private lateinit var game: Game
 
     private var isInFoldableLayout = false
 
@@ -87,10 +91,25 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val intentUri: Uri? = requireActivity().intent.data
+        var intentGame: Game? = null
+        if (intentUri != null) {
+            intentGame = if (Game.extensions.contains(FileUtil.getExtension(intentUri))) {
+                GameHelper.getGame(requireActivity().intent.data!!, false)
+            } else {
+                null
+            }
+        }
+        game = if (args.game != null) {
+            args.game!!
+        } else {
+            intentGame ?: error("[EmulationFragment] No bootable game present!")
+        }
+
         // So this fragment doesn't restart on configuration changes; i.e. rotation.
         retainInstance = true
         preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-        emulationState = EmulationState(args.game.path)
+        emulationState = EmulationState(game.path)
     }
 
     /**
@@ -114,7 +133,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         updateShowFpsOverlay()
 
         binding.inGameMenu.getHeaderView(0).findViewById<TextView>(R.id.text_game_title).text =
-            args.game.title
+            game.title
         binding.inGameMenu.setNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.menu_pause_emulation -> {

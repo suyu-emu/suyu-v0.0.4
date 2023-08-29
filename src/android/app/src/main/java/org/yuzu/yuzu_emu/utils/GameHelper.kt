@@ -63,13 +63,13 @@ object GameHelper {
                 )
             } else {
                 if (Game.extensions.contains(FileUtil.getExtension(it.uri))) {
-                    games.add(getGame(it.uri))
+                    games.add(getGame(it.uri, true))
                 }
             }
         }
     }
 
-    private fun getGame(uri: Uri): Game {
+    fun getGame(uri: Uri, addedToLibrary: Boolean): Game {
         val filePath = uri.toString()
         var name = NativeLibrary.getTitle(filePath)
 
@@ -94,11 +94,13 @@ object GameHelper {
             NativeLibrary.isHomebrew(filePath)
         )
 
-        val addedTime = preferences.getLong(newGame.keyAddedToLibraryTime, 0L)
-        if (addedTime == 0L) {
-            preferences.edit()
-                .putLong(newGame.keyAddedToLibraryTime, System.currentTimeMillis())
-                .apply()
+        if (addedToLibrary) {
+            val addedTime = preferences.getLong(newGame.keyAddedToLibraryTime, 0L)
+            if (addedTime == 0L) {
+                preferences.edit()
+                    .putLong(newGame.keyAddedToLibraryTime, System.currentTimeMillis())
+                    .apply()
+            }
         }
 
         return newGame
