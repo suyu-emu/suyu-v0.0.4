@@ -11,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -245,18 +244,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
             settings.putExtra(ARG_MENU_TAG, menuTag)
             settings.putExtra(ARG_GAME_ID, gameId)
             context.startActivity(settings)
-        }
-
-        fun launch(
-            context: Context,
-            launcher: ActivityResultLauncher<Intent>,
-            menuTag: String?,
-            gameId: String?
-        ) {
-            val settings = Intent(context, SettingsActivity::class.java)
-            settings.putExtra(ARG_MENU_TAG, menuTag)
-            settings.putExtra(ARG_GAME_ID, gameId)
-            launcher.launch(settings)
         }
     }
 }

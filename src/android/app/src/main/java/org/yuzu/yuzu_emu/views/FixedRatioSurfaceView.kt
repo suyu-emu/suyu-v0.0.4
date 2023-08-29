@@ -7,7 +7,6 @@ import android.content.Context
 import android.util.AttributeSet
 import android.util.Rational
 import android.view.SurfaceView
-import kotlin.math.roundToInt
 
 class FixedRatioSurfaceView @JvmOverloads constructor(
     context: Context,
@@ -22,27 +21,44 @@ class FixedRatioSurfaceView @JvmOverloads constructor(
      */
     fun setAspectRatio(ratio: Rational?) {
         aspectRatio = ratio?.toFloat() ?: 0f
+        requestLayout()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        val width = MeasureSpec.getSize(widthMeasureSpec)
-        val height = MeasureSpec.getSize(heightMeasureSpec)
+        val displayWidth: Float = MeasureSpec.getSize(widthMeasureSpec).toFloat()
+        val displayHeight: Float = MeasureSpec.getSize(heightMeasureSpec).toFloat()
         if (aspectRatio != 0f) {
-            val newWidth: Int
-            val newHeight: Int
-            if (height * aspectRatio < width) {
-                newWidth = (height * aspectRatio).roundToInt()
-                newHeight = height
+            val displayAspect = displayWidth / displayHeight
+            if (displayAspect < aspectRatio) {
+                // Max out width
+                val halfHeight = displayHeight / 2
+                val surfaceHeight = displayWidth / aspectRatio
+                val newTop: Float = halfHeight - (surfaceHeight / 2)
+                val newBottom: Float = halfHeight + (surfaceHeight / 2)
+                super.onMeasure(
+                    widthMeasureSpec,
+                    MeasureSpec.makeMeasureSpec(
+                        newBottom.toInt() - newTop.toInt(),
+                        MeasureSpec.EXACTLY
+                    )
+                )
+                return
             } else {
-                newWidth = width
-                newHeight = (width / aspectRatio).roundToInt()
+                // Max out height
+                val halfWidth = displayWidth / 2
+                val surfaceWidth = displayHeight * aspectRatio
+                val newLeft: Float = halfWidth - (surfaceWidth / 2)
+                val newRight: Float = halfWidth + (surfaceWidth / 2)
+                super.onMeasure(
+                    MeasureSpec.makeMeasureSpec(
+                        newRight.toInt() - newLeft.toInt(),
+                        MeasureSpec.EXACTLY
+                    ),
+                    heightMeasureSpec
+                )
+                return
             }
-            val left = (width - newWidth) / 2
-            val top = (height - newHeight) / 2
-            setLeftTopRightBottom(left, top, left + newWidth, top + newHeight)
-        } else {
-            setLeftTopRightBottom(0, 0, width, height)
         }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 }
