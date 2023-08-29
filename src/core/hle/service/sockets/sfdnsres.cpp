@@ -150,6 +150,12 @@ static std::pair<u32, GetAddrInfoError> GetHostByNameRequestImpl(HLERequestConte
     const std::string host = Common::StringFromBuffer(host_buffer);
     // For now, ignore options, which are in input buffer 1 for GetHostByNameRequestWithOptions.
 
+    // Prevent resolution of Nintendo servers
+    if (host.find("srv.nintendo.net") != std::string::npos) {
+        LOG_WARNING(Network, "Resolution of hostname {} requested, returning EAI_AGAIN", host);
+        return {0, GetAddrInfoError::AGAIN};
+    }
+
     auto res = Network::GetAddressInfo(host, /*service*/ std::nullopt);
     if (!res.has_value()) {
         return {0, Translate(res.error())};
@@ -260,6 +266,12 @@ static std::pair<u32, GetAddrInfoError> GetAddrInfoRequestImpl(HLERequestContext
 
     const auto host_buffer = ctx.ReadBuffer(0);
     const std::string host = Common::StringFromBuffer(host_buffer);
+
+    // Prevent resolution of Nintendo servers
+    if (host.find("srv.nintendo.net") != std::string::npos) {
+        LOG_WARNING(Network, "Resolution of hostname {} requested, returning EAI_AGAIN", host);
+        return {0, GetAddrInfoError::AGAIN};
+    }
 
     std::optional<std::string> service = std::nullopt;
     if (ctx.CanReadBuffer(1)) {

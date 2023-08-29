@@ -19,6 +19,12 @@ enum class ServerEnvironmentType : u8 {
     Dp,
 };
 
+// This is nn::nsd::EnvironmentIdentifier
+struct EnvironmentIdentifier {
+    std::array<u8, 8> identifier;
+};
+static_assert(sizeof(EnvironmentIdentifier) == 0x8);
+
 NSD::NSD(Core::System& system_, const char* name) : ServiceFramework{system_, name} {
     // clang-format off
     static const FunctionInfo functions[] = {
@@ -101,8 +107,9 @@ void NSD::ResolveEx(HLERequestContext& ctx) {
 }
 
 void NSD::GetEnvironmentIdentifier(HLERequestContext& ctx) {
-    const std::string environment_identifier = "lp1";
-    ctx.WriteBuffer(environment_identifier);
+    constexpr EnvironmentIdentifier lp1 = {
+        .identifier = {'l', 'p', '1', '\0', '\0', '\0', '\0', '\0'}};
+    ctx.WriteBuffer(lp1);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
