@@ -42,7 +42,6 @@ import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
-import org.yuzu.yuzu_emu.fragments.LongMessageDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
@@ -301,8 +300,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     fun processKey(result: Uri): Boolean {
         if (FileUtil.getExtension(result) != "keys") {
             MessageDialogFragment.newInstance(
-                R.string.reading_keys_failure,
-                R.string.install_prod_keys_failure_extension_description
+                titleId = R.string.reading_keys_failure,
+                descriptionId = R.string.install_prod_keys_failure_extension_description
             ).show(supportFragmentManager, MessageDialogFragment.TAG)
             return false
         }
@@ -330,9 +329,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 return true
             } else {
                 MessageDialogFragment.newInstance(
-                    R.string.invalid_keys_error,
-                    R.string.install_keys_failure_description,
-                    R.string.dumping_keys_quickstart_link
+                    titleId = R.string.invalid_keys_error,
+                    descriptionId = R.string.install_keys_failure_description,
+                    helpLinkId = R.string.dumping_keys_quickstart_link
                 ).show(supportFragmentManager, MessageDialogFragment.TAG)
                 return false
             }
@@ -370,8 +369,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
                     messageToShow = if (unfilteredNumOfFiles != filteredNumOfFiles) {
                         MessageDialogFragment.newInstance(
-                            R.string.firmware_installed_failure,
-                            R.string.firmware_installed_failure_description
+                            titleId = R.string.firmware_installed_failure,
+                            descriptionId = R.string.firmware_installed_failure_description
                         )
                     } else {
                         firmwarePath.deleteRecursively()
@@ -401,8 +400,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
             if (FileUtil.getExtension(result) != "bin") {
                 MessageDialogFragment.newInstance(
-                    R.string.reading_keys_failure,
-                    R.string.install_amiibo_keys_failure_extension_description
+                    titleId = R.string.reading_keys_failure,
+                    descriptionId = R.string.install_amiibo_keys_failure_extension_description
                 ).show(supportFragmentManager, MessageDialogFragment.TAG)
                 return@registerForActivityResult
             }
@@ -428,9 +427,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     ).show()
                 } else {
                     MessageDialogFragment.newInstance(
-                        R.string.invalid_keys_error,
-                        R.string.install_keys_failure_description,
-                        R.string.dumping_keys_quickstart_link
+                        titleId = R.string.invalid_keys_error,
+                        descriptionId = R.string.install_keys_failure_description,
+                        helpLinkId = R.string.dumping_keys_quickstart_link
                     ).show(supportFragmentManager, MessageDialogFragment.TAG)
                 }
             }
@@ -578,16 +577,16 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                                 )
                                 installResult.append(separator)
                             }
-                            LongMessageDialogFragment.newInstance(
-                                R.string.install_game_content_failure,
-                                installResult.toString().trim(),
-                                R.string.install_game_content_help_link
-                            ).show(supportFragmentManager, LongMessageDialogFragment.TAG)
+                            MessageDialogFragment.newInstance(
+                                titleId = R.string.install_game_content_failure,
+                                descriptionString = installResult.toString().trim(),
+                                helpLinkId = R.string.install_game_content_help_link
+                            ).show(supportFragmentManager, MessageDialogFragment.TAG)
                         } else {
-                            LongMessageDialogFragment.newInstance(
-                                R.string.install_game_content_success,
-                                installResult.toString().trim()
-                            ).show(supportFragmentManager, LongMessageDialogFragment.TAG)
+                            MessageDialogFragment.newInstance(
+                                titleId = R.string.install_game_content_success,
+                                descriptionString = installResult.toString().trim()
+                            ).show(supportFragmentManager, MessageDialogFragment.TAG)
                         }
                     }
                 }

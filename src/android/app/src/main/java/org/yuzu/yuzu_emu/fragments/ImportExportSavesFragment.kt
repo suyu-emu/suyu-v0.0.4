@@ -187,8 +187,8 @@ class ImportExportSavesFragment : DialogFragment() {
                 withContext(Dispatchers.Main) {
                     if (!validZip) {
                         MessageDialogFragment.newInstance(
-                            R.string.save_file_invalid_zip_structure,
-                            R.string.save_file_invalid_zip_structure_description
+                            titleId = R.string.save_file_invalid_zip_structure,
+                            descriptionId = R.string.save_file_invalid_zip_structure_description
                         ).show(activity.supportFragmentManager, MessageDialogFragment.TAG)
                         return@withContext
                     }
