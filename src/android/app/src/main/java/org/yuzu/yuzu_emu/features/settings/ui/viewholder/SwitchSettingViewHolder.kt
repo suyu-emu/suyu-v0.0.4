@@ -25,10 +25,12 @@ class SwitchSettingViewHolder(val binding: ListItemSettingSwitchBinding, adapter
             binding.textSettingDescription.text = ""
             binding.textSettingDescription.visibility = View.GONE
         }
+
+        binding.switchWidget.setOnCheckedChangeListener(null)
+        binding.switchWidget.isChecked = setting.checked
         binding.switchWidget.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
-            adapter.onBooleanClick(item, bindingAdapterPosition, binding.switchWidget.isChecked)
+            adapter.onBooleanClick(item, binding.switchWidget.isChecked)
         }
-        binding.switchWidget.isChecked = setting.isChecked
 
         setStyle(setting.isEditable, binding)
     }
@@ -41,7 +43,7 @@ class SwitchSettingViewHolder(val binding: ListItemSettingSwitchBinding, adapter
 
     override fun onLongClick(clicked: View): Boolean {
         if (setting.isEditable) {
-            return adapter.onLongClick(setting.setting!!, bindingAdapterPosition)
+            return adapter.onLongClick(setting, bindingAdapterPosition)
         }
         return false
     }

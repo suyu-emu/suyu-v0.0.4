@@ -8,6 +8,6 @@ class RunnableSetting(
     descriptionId: Int,
     val isRuntimeRunnable: Boolean,
     val runnable: () -> Unit
-) : SettingsItem(null, titleId, descriptionId) {
+) : SettingsItem(emptySetting, titleId, descriptionId) {
     override val type = TYPE_RUNNABLE
 }

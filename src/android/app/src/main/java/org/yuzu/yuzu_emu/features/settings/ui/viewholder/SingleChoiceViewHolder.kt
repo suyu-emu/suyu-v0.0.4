@@ -35,7 +35,7 @@ class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: Setti
                 }
             }
         } else if (item is StringSingleChoiceSetting) {
-            for (i in item.values!!.indices) {
+            for (i in item.values.indices) {
                 if (item.values[i] == item.selectedValue) {
                     binding.textSettingValue.text = item.choices[i]
                     break
@@ -66,7 +66,7 @@ class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: Setti
 
     override fun onLongClick(clicked: View): Boolean {
         if (setting.isEditable) {
-            return adapter.onLongClick(setting.setting!!, bindingAdapterPosition)
+            return adapter.onLongClick(setting, bindingAdapterPosition)
         }
         return false
     }

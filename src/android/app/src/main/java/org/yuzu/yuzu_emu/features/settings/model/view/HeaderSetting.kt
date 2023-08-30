@@ -5,6 +5,6 @@ package org.yuzu.yuzu_emu.features.settings.model.view
 
 class HeaderSetting(
     titleId: Int
-) : SettingsItem(null, titleId, 0) {
+) : SettingsItem(emptySetting, titleId, 0) {
     override val type = TYPE_HEADER
 }

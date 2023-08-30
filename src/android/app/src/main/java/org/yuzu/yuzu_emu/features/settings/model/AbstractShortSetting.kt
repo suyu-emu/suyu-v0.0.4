@@ -3,8 +3,8 @@
 
 package org.yuzu.yuzu_emu.features.settings.model
 
-interface AbstractIntSetting : AbstractSetting {
-    val int: Int
+interface AbstractShortSetting : AbstractSetting {
+    val short: Short
 
-    fun setInt(value: Int)
+    fun setShort(value: Short)
 }

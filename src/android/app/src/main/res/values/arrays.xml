@@ -243,10 +243,10 @@
         <item>@string/cubeb</item>
         <item>@string/string_null</item>
     </string-array>
-    <string-array name="outputEngineValues">
-        <item>auto</item>
-        <item>cubeb</item>
-        <item>null</item>
-    </string-array>
+    <integer-array name="outputEngineValues">
+        <item>0</item>
+        <item>1</item>
+        <item>3</item>
+    </integer-array>
 
 </resources>

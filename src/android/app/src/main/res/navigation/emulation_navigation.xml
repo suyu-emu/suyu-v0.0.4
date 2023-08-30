@@ -17,4 +17,21 @@
             android:defaultValue="@null" />
     </fragment>
 
+    <activity
+        android:id="@+id/settingsActivity"
+        android:name="org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity"
+        android:label="SettingsActivity">
+        <argument
+            android:name="game"
+            app:argType="org.yuzu.yuzu_emu.model.Game"
+            app:nullable="true" />
+        <argument
+            android:name="menuTag"
+            app:argType="string" />
+    </activity>
+
+    <action
+        android:id="@+id/action_global_settingsActivity"
+        app:destination="@id/settingsActivity" />
+
 </navigation>

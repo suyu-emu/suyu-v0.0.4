@@ -29,7 +29,7 @@ class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
         }
 
         binding.textSettingValue.visibility = View.VISIBLE
-        val epochTime = setting.value.toLong()
+        val epochTime = setting.value
         val instant = Instant.ofEpochMilli(epochTime * 1000)
         val zonedTime = ZonedDateTime.ofInstant(instant, ZoneId.of("UTC"))
         val dateFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
@@ -46,7 +46,7 @@ class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
 
     override fun onLongClick(clicked: View): Boolean {
         if (setting.isEditable) {
-            return adapter.onLongClick(setting.setting!!, bindingAdapterPosition)
+            return adapter.onLongClick(setting, bindingAdapterPosition)
         }
         return false
     }

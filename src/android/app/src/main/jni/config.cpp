@@ -16,18 +16,20 @@
 #include "input_common/main.h"
 #include "jni/config.h"
 #include "jni/default_ini.h"
+#include "uisettings.h"
 
 namespace FS = Common::FS;
 
-Config::Config(std::optional<std::filesystem::path> config_path)
-    : config_loc{config_path.value_or(FS::GetYuzuPath(FS::YuzuPath::ConfigDir) / "config.ini")},
-      config{std::make_unique<INIReader>(FS::PathToUTF8String(config_loc))} {
-    Reload();
+Config::Config(const std::string& config_name, ConfigType config_type)
+    : type(config_type), global{config_type == ConfigType::GlobalConfig} {
+    Initialize(config_name);
 }
 
 Config::~Config() = default;
 
 bool Config::LoadINI(const std::string& default_contents, bool retry) {
+    void(FS::CreateParentDir(config_loc));
+    config = std::make_unique<INIReader>(FS::PathToUTF8String(config_loc));
     const auto config_loc_str = FS::PathToUTF8String(config_loc);
     if (config->ParseError() < 0) {
         if (retry) {
@@ -301,9 +303,28 @@ void Config::ReadValues() {
 
     // Network
     ReadSetting("Network", Settings::values.network_interface);
+
+    // Android
+    ReadSetting("Android", AndroidSettings::values.picture_in_picture);
+    ReadSetting("Android", AndroidSettings::values.screen_layout);
 }
 
-void Config::Reload() {
+void Config::Initialize(const std::string& config_name) {
+    const auto fs_config_loc = FS::GetYuzuPath(FS::YuzuPath::ConfigDir);
+    const auto config_file = fmt::format("{}.ini", config_name);
+
+    switch (type) {
+    case ConfigType::GlobalConfig:
+        config_loc = FS::PathToUTF8String(fs_config_loc / config_file);
+        break;
+    case ConfigType::PerGameConfig:
+        config_loc = FS::PathToUTF8String(fs_config_loc / "custom" / FS::ToU8String(config_file));
+        break;
+    case ConfigType::InputProfile:
+        config_loc = FS::PathToUTF8String(fs_config_loc / "input" / config_file);
+        LoadINI(DefaultINI::android_config_file);
+        return;
+    }
     LoadINI(DefaultINI::android_config_file);
     ReadValues();
 }

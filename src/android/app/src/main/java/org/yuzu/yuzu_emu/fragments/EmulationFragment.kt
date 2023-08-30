@@ -29,6 +29,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.preference.PreferenceManager
 import androidx.window.layout.FoldingFeature
@@ -38,6 +39,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
@@ -46,7 +48,6 @@ import org.yuzu.yuzu_emu.databinding.DialogOverlayAdjustBinding
 import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.overlay.InputOverlay
@@ -158,7 +159,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 }
 
                 R.id.menu_settings -> {
-                    SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "")
+                    val action = HomeNavigationDirections.actionGlobalSettingsActivity(
+                        null,
+                        SettingsFile.FILE_NAME_CONFIG
+                    )
+                    binding.root.findNavController().navigate(action)
                     true
                 }
 
@@ -230,7 +235,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     override fun onResume() {
         super.onResume()
         if (!DirectoryInitialization.areDirectoriesReady) {
-            DirectoryInitialization.start(requireContext())
+            DirectoryInitialization.start()
         }
 
         updateScreenLayout()

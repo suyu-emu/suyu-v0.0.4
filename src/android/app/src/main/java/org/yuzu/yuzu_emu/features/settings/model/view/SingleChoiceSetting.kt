@@ -4,36 +4,27 @@
 package org.yuzu.yuzu_emu.features.settings.model.view
 
 import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 
 class SingleChoiceSetting(
-    setting: AbstractIntSetting?,
+    setting: AbstractSetting,
     titleId: Int,
     descriptionId: Int,
     val choicesId: Int,
-    val valuesId: Int,
-    val key: String? = null,
-    val defaultValue: Int? = null
+    val valuesId: Int
 ) : SettingsItem(setting, titleId, descriptionId) {
     override val type = TYPE_SINGLE_CHOICE
 
-    val selectedValue: Int
-        get() = if (setting != null) {
-            val setting = setting as AbstractIntSetting
-            setting.int
-        } else {
-            defaultValue!!
+    var selectedValue: Int
+        get() {
+            return when (setting) {
+                is AbstractIntSetting -> setting.int
+                else -> -1
+            }
         }
-
-    /**
-     * Write a value to the backing int. If that int was previously null,
-     * initializes a new one and returns it, so it can be added to the Hashmap.
-     *
-     * @param selection New value of the int.
-     * @return the existing setting with the new value applied.
-     */
-    fun setSelectedValue(selection: Int): AbstractIntSetting {
-        val intSetting = setting as AbstractIntSetting
-        intSetting.int = selection
-        return intSetting
-    }
+        set(value) {
+            when (setting) {
+                is AbstractIntSetting -> setting.setInt(value)
+            }
+        }
 }

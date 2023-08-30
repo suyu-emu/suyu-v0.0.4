@@ -25,17 +25,18 @@ import androidx.core.view.updatePadding
 import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.transition.MaterialSharedAxis
 import org.yuzu.yuzu_emu.BuildConfig
+import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.HomeSettingAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentHomeSettingsBinding
 import org.yuzu.yuzu_emu.features.DocumentProvider
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.HomeSetting
 import org.yuzu.yuzu_emu.model.HomeViewModel
@@ -74,7 +75,13 @@ class HomeSettingsFragment : Fragment() {
                     R.string.advanced_settings,
                     R.string.settings_description,
                     R.drawable.ic_settings,
-                    { SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "") }
+                    {
+                        val action = HomeNavigationDirections.actionGlobalSettingsActivity(
+                            null,
+                            SettingsFile.FILE_NAME_CONFIG
+                        )
+                        binding.root.findNavController().navigate(action)
+                    }
                 )
             )
             add(
@@ -90,7 +97,13 @@ class HomeSettingsFragment : Fragment() {
                     R.string.preferences_theme,
                     R.string.theme_and_color_description,
                     R.drawable.ic_palette,
-                    { SettingsActivity.launch(requireContext(), Settings.SECTION_THEME, "") }
+                    {
+                        val action = HomeNavigationDirections.actionGlobalSettingsActivity(
+                            null,
+                            Settings.SECTION_THEME
+                        )
+                        binding.root.findNavController().navigate(action)
+                    }
                 )
             )
             add(

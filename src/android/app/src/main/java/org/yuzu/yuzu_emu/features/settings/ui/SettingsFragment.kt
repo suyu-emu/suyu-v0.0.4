@@ -3,40 +3,43 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.divider.MaterialDividerItemDecoration
+import com.google.android.material.transition.MaterialSharedAxis
+import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsBinding
-import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
-import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
+import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.model.SettingsViewModel
 
-class SettingsFragment : Fragment(), SettingsFragmentView {
-    override var activityView: SettingsActivityView? = null
-
-    private val fragmentPresenter = SettingsFragmentPresenter(this)
+class SettingsFragment : Fragment() {
+    private lateinit var presenter: SettingsFragmentPresenter
     private var settingsAdapter: SettingsAdapter? = null
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        activityView = requireActivity() as SettingsActivityView
-    }
+    private val args by navArgs<SettingsFragmentArgs>()
+
+    private val settingsViewModel: SettingsViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val menuTag = requireArguments().getString(ARGUMENT_MENU_TAG)
-        val gameId = requireArguments().getString(ARGUMENT_GAME_ID)
-        fragmentPresenter.onCreate(menuTag!!, gameId!!)
+        enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+        returnTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
+        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
+        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
     }
 
     override fun onCreateView(
@@ -49,7 +52,14 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        settingsAdapter = SettingsAdapter(this, requireActivity())
+        settingsAdapter = SettingsAdapter(this, requireContext())
+        presenter = SettingsFragmentPresenter(
+            settingsViewModel,
+            settingsAdapter!!,
+            args.menuTag,
+            args.game?.gameId ?: ""
+        )
+
         val dividerDecoration = MaterialDividerItemDecoration(
             requireContext(),
             LinearLayoutManager.VERTICAL
@@ -57,71 +67,86 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         dividerDecoration.isLastItemDecorated = false
         binding.listSettings.apply {
             adapter = settingsAdapter
-            layoutManager = LinearLayoutManager(activity)
+            layoutManager = LinearLayoutManager(requireContext())
             addItemDecoration(dividerDecoration)
         }
-        fragmentPresenter.onViewCreated()
+
+        binding.toolbarSettings.setNavigationOnClickListener {
+            settingsViewModel.setShouldNavigateBack(true)
+        }
+
+        settingsViewModel.toolbarTitle.observe(viewLifecycleOwner) {
+            if (it.isNotEmpty()) binding.toolbarSettingsLayout.title = it
+        }
+
+        settingsViewModel.shouldReloadSettingsList.observe(viewLifecycleOwner) {
+            if (it) {
+                settingsViewModel.setShouldReloadSettingsList(false)
+                presenter.loadSettingsList()
+            }
+        }
+
+        settingsViewModel.isUsingSearch.observe(viewLifecycleOwner) {
+            if (it) {
+                reenterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
+                exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
+            } else {
+                reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
+                exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+            }
+        }
+
+        if (args.menuTag == SettingsFile.FILE_NAME_CONFIG) {
+            binding.toolbarSettings.inflateMenu(R.menu.menu_settings)
+            binding.toolbarSettings.setOnMenuItemClickListener {
+                when (it.itemId) {
+                    R.id.action_search -> {
+                        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
+                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
+                        view.findNavController()
+                            .navigate(R.id.action_settingsFragment_to_settingsSearchFragment)
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        }
+
+        presenter.onViewCreated()
 
         setInsets()
     }
 
-    override fun onDetach() {
-        super.onDetach()
-        activityView = null
-        if (settingsAdapter != null) {
-            settingsAdapter!!.closeDialog()
-        }
-    }
-
-    override fun showSettingsList(settingsList: ArrayList<SettingsItem>) {
-        settingsAdapter!!.setSettingsList(settingsList)
-    }
-
-    override fun loadSettingsList() {
-        fragmentPresenter.loadSettingsList()
-    }
-
-    override fun loadSubMenu(menuKey: String) {
-        activityView!!.showSettingsFragment(
-            menuKey,
-            true,
-            requireArguments().getString(ARGUMENT_GAME_ID)!!
-        )
-    }
-
-    override fun showToastMessage(message: String?, is_long: Boolean) {
-        activityView!!.showToastMessage(message!!, is_long)
-    }
-
-    override fun putSetting(setting: AbstractSetting) {
-        fragmentPresenter.putSetting(setting)
-    }
-
-    override fun onSettingChanged() {
-        activityView!!.onSettingChanged()
+    override fun onResume() {
+        super.onResume()
+        settingsViewModel.setIsUsingSearch(false)
     }
 
     private fun setInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(
-            binding.listSettings
-        ) { view: View, windowInsets: WindowInsetsCompat ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.updatePadding(bottom = insets.bottom)
+            binding.root
+        ) { _: View, windowInsets: WindowInsetsCompat ->
+            val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val cutoutInsets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+
+            val leftInsets = barInsets.left + cutoutInsets.left
+            val rightInsets = barInsets.right + cutoutInsets.right
+
+            val sideMargin = resources.getDimensionPixelSize(R.dimen.spacing_medlarge)
+            val mlpSettingsList = binding.listSettings.layoutParams as MarginLayoutParams
+            mlpSettingsList.leftMargin = sideMargin + leftInsets
+            mlpSettingsList.rightMargin = sideMargin + rightInsets
+            binding.listSettings.layoutParams = mlpSettingsList
+            binding.listSettings.updatePadding(
+                bottom = barInsets.bottom
+            )
+
+            val mlpAppBar = binding.appbarSettings.layoutParams as MarginLayoutParams
+            mlpAppBar.leftMargin = leftInsets
+            mlpAppBar.rightMargin = rightInsets
+            binding.appbarSettings.layoutParams = mlpAppBar
             windowInsets
-        }
-    }
-
-    companion object {
-        private const val ARGUMENT_MENU_TAG = "menu_tag"
-        private const val ARGUMENT_GAME_ID = "game_id"
-
-        fun newInstance(menuTag: String?, gameId: String?): Fragment {
-            val fragment = SettingsFragment()
-            val arguments = Bundle()
-            arguments.putString(ARGUMENT_MENU_TAG, menuTag)
-            arguments.putString(ARGUMENT_GAME_ID, gameId)
-            fragment.arguments = arguments
-            return fragment
         }
     }
 }

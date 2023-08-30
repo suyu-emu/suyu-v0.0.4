@@ -3,8 +3,8 @@
 
 package org.yuzu.yuzu_emu.features.settings.model
 
-import androidx.lifecycle.ViewModel
+interface AbstractLongSetting : AbstractSetting {
+    val long: Long
 
-class SettingsViewModel : ViewModel() {
-    val settings = Settings()
+    fun setLong(value: Long)
 }
