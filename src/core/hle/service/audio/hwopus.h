@@ -34,6 +34,7 @@ private:
     void OpenHardwareOpusDecoderForMultiStreamEx(HLERequestContext& ctx);
     void GetWorkBufferSize(HLERequestContext& ctx);
     void GetWorkBufferSizeEx(HLERequestContext& ctx);
+    void GetWorkBufferSizeExEx(HLERequestContext& ctx);
     void GetWorkBufferSizeForMultiStreamEx(HLERequestContext& ctx);
 };
 

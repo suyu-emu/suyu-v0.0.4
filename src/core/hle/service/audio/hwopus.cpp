@@ -267,6 +267,10 @@ void HwOpus::GetWorkBufferSizeEx(HLERequestContext& ctx) {
     GetWorkBufferSize(ctx);
 }
 
+void HwOpus::GetWorkBufferSizeExEx(HLERequestContext& ctx) {
+    GetWorkBufferSizeEx(ctx);
+}
+
 void HwOpus::GetWorkBufferSizeForMultiStreamEx(HLERequestContext& ctx) {
     OpusMultiStreamParametersEx param;
     std::memcpy(&param, ctx.ReadBuffer().data(), ctx.GetReadBufferSize());
@@ -409,7 +413,7 @@ HwOpus::HwOpus(Core::System& system_) : ServiceFramework{system_, "hwopus"} {
         {6, &HwOpus::OpenHardwareOpusDecoderForMultiStreamEx,
          "OpenHardwareOpusDecoderForMultiStreamEx"},
         {7, &HwOpus::GetWorkBufferSizeForMultiStreamEx, "GetWorkBufferSizeForMultiStreamEx"},
-        {8, nullptr, "GetWorkBufferSizeExEx"},
+        {8, &HwOpus::GetWorkBufferSizeExEx, "GetWorkBufferSizeExEx"},
         {9, nullptr, "GetWorkBufferSizeForMultiStreamExEx"},
     };
     RegisterHandlers(functions);
