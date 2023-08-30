@@ -4,43 +4,43 @@
 package org.yuzu.yuzu_emu.disk_shader_cache
 
 import androidx.annotation.Keep
+import androidx.lifecycle.ViewModelProvider
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.disk_shader_cache.ui.ShaderProgressDialogFragment
+import org.yuzu.yuzu_emu.activities.EmulationActivity
+import org.yuzu.yuzu_emu.model.EmulationViewModel
+import org.yuzu.yuzu_emu.utils.Log
 
 @Keep
 object DiskShaderCacheProgress {
-    val finishLock = Object()
-    private lateinit var fragment: ShaderProgressDialogFragment
+    private lateinit var emulationViewModel: EmulationViewModel
 
-    private fun prepareDialog() {
-        val emulationActivity = NativeLibrary.sEmulationActivity.get()!!
-        emulationActivity.runOnUiThread {
-            fragment = ShaderProgressDialogFragment.newInstance(
-                emulationActivity.getString(R.string.loading),
-                emulationActivity.getString(R.string.preparing_shaders)
-            )
-            fragment.show(
-                emulationActivity.supportFragmentManager,
-                ShaderProgressDialogFragment.TAG
-            )
-        }
-        synchronized(finishLock) { finishLock.wait() }
+    private fun prepareViewModel() {
+        emulationViewModel =
+            ViewModelProvider(
+                NativeLibrary.sEmulationActivity.get() as EmulationActivity
+            )[EmulationViewModel::class.java]
     }
 
     @JvmStatic
     fun loadProgress(stage: Int, progress: Int, max: Int) {
         val emulationActivity = NativeLibrary.sEmulationActivity.get()
-            ?: error("[DiskShaderCacheProgress] EmulationActivity not present")
+        if (emulationActivity == null) {
+            Log.error("[DiskShaderCacheProgress] EmulationActivity not present")
+            return
+        }
 
-        when (LoadCallbackStage.values()[stage]) {
-            LoadCallbackStage.Prepare -> prepareDialog()
-            LoadCallbackStage.Build -> fragment.onUpdateProgress(
-                emulationActivity.getString(R.string.building_shaders),
-                progress,
-                max
-            )
-            LoadCallbackStage.Complete -> fragment.dismiss()
+        emulationActivity.runOnUiThread {
+            when (LoadCallbackStage.values()[stage]) {
+                LoadCallbackStage.Prepare -> prepareViewModel()
+                LoadCallbackStage.Build -> emulationViewModel.updateProgress(
+                    emulationActivity.getString(R.string.building_shaders),
+                    progress,
+                    max
+                )
+
+                LoadCallbackStage.Complete -> {}
+            }
         }
     }
 

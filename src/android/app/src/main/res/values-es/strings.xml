@@ -213,7 +213,6 @@
     <string name="emulation_pause">Pausar Emulación</string>
     <string name="emulation_unpause">Reanudar Emulación</string>
     <string name="emulation_input_overlay">Opciones de pantalla </string>
-    <string name="emulation_game_loading">Cargando juego...</string>
 
     <string name="load_settings">Cargando configuración...</string>
 

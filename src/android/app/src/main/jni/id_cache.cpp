@@ -15,6 +15,8 @@ static jclass s_disk_cache_progress_class;
 static jclass s_load_callback_stage_class;
 static jmethodID s_exit_emulation_activity;
 static jmethodID s_disk_cache_load_progress;
+static jmethodID s_on_emulation_started;
+static jmethodID s_on_emulation_stopped;
 
 static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
 
@@ -59,6 +61,14 @@ jmethodID GetDiskCacheLoadProgress() {
     return s_disk_cache_load_progress;
 }
 
+jmethodID GetOnEmulationStarted() {
+    return s_on_emulation_started;
+}
+
+jmethodID GetOnEmulationStopped() {
+    return s_on_emulation_stopped;
+}
+
 } // namespace IDCache
 
 #ifdef __cplusplus
@@ -85,6 +95,10 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
         env->GetStaticMethodID(s_native_library_class, "exitEmulationActivity", "(I)V");
     s_disk_cache_load_progress =
         env->GetStaticMethodID(s_disk_cache_progress_class, "loadProgress", "(III)V");
+    s_on_emulation_started =
+        env->GetStaticMethodID(s_native_library_class, "onEmulationStarted", "()V");
+    s_on_emulation_stopped =
+        env->GetStaticMethodID(s_native_library_class, "onEmulationStopped", "(I)V");
 
     // Initialize Android Storage
     Common::FS::Android::RegisterCallbacks(env, s_native_library_class);

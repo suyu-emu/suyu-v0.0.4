@@ -213,7 +213,6 @@
     <string name="emulation_pause">暫停模擬</string>
     <string name="emulation_unpause">取消暫停模擬</string>
     <string name="emulation_input_overlay">覆疊選項</string>
-    <string name="emulation_game_loading">遊戲正在載入…</string>
 
     <string name="load_settings">正在載入設定…</string>
 

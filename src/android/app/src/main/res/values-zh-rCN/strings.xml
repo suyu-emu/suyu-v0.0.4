@@ -213,7 +213,6 @@
     <string name="emulation_pause">暂停模拟</string>
     <string name="emulation_unpause">继续模拟</string>
     <string name="emulation_input_overlay">虚拟按键选项</string>
-    <string name="emulation_game_loading">载入游戏中…</string>
 
     <string name="load_settings">正在载入设定…</string>
 

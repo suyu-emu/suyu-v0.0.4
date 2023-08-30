@@ -211,7 +211,6 @@
     <string name="emulation_pause">エミュレーションを一時停止</string>
     <string name="emulation_unpause">エミュレーションを再開</string>
     <string name="emulation_input_overlay">オーバーレイオプション</string>
-    <string name="emulation_game_loading">ロード中…</string>
 
     <string name="load_settings">設定をロード中…</string>
 

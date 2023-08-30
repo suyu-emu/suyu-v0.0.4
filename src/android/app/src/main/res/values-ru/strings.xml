@@ -213,7 +213,6 @@
     <string name="emulation_pause">Пауза эмуляции</string>
     <string name="emulation_unpause">Возобновление эмуляции</string>
     <string name="emulation_input_overlay">Настройки оверлея</string>
-    <string name="emulation_game_loading">Загрузка игры...</string>
 
     <string name="load_settings">Загрузка настроек...</string>
 

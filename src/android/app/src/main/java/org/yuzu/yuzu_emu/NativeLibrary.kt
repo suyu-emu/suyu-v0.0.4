@@ -22,9 +22,7 @@ import org.yuzu.yuzu_emu.utils.FileUtil.exists
 import org.yuzu.yuzu_emu.utils.FileUtil.getFileSize
 import org.yuzu.yuzu_emu.utils.FileUtil.isDirectory
 import org.yuzu.yuzu_emu.utils.FileUtil.openContentUri
-import org.yuzu.yuzu_emu.utils.Log.error
-import org.yuzu.yuzu_emu.utils.Log.verbose
-import org.yuzu.yuzu_emu.utils.Log.warning
+import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.SerializableHelper.serializable
 
 /**
@@ -465,7 +463,7 @@ object NativeLibrary {
 
         val emulationActivity = sEmulationActivity.get()
         if (emulationActivity == null) {
-            warning("[NativeLibrary] EmulationActivity is null, can't exit.")
+            Log.warning("[NativeLibrary] EmulationActivity is null, can't exit.")
             return
         }
 
@@ -490,13 +488,25 @@ object NativeLibrary {
     }
 
     fun setEmulationActivity(emulationActivity: EmulationActivity?) {
-        verbose("[NativeLibrary] Registering EmulationActivity.")
+        Log.verbose("[NativeLibrary] Registering EmulationActivity.")
         sEmulationActivity = WeakReference(emulationActivity)
     }
 
     fun clearEmulationActivity() {
-        verbose("[NativeLibrary] Unregistering EmulationActivity.")
+        Log.verbose("[NativeLibrary] Unregistering EmulationActivity.")
         sEmulationActivity.clear()
+    }
+
+    @Keep
+    @JvmStatic
+    fun onEmulationStarted() {
+        sEmulationActivity.get()!!.onEmulationStarted()
+    }
+
+    @Keep
+    @JvmStatic
+    fun onEmulationStopped(status: Int) {
+        sEmulationActivity.get()!!.onEmulationStopped(status)
     }
 
     /**

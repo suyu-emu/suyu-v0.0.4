@@ -203,12 +203,10 @@ public:
     }
 
     bool IsRunning() const {
-        std::scoped_lock lock(m_mutex);
         return m_is_running;
     }
 
     bool IsPaused() const {
-        std::scoped_lock lock(m_mutex);
         return m_is_running && m_is_paused;
     }
 
@@ -335,6 +333,8 @@ public:
 
         // Tear down the render window.
         m_window.reset();
+
+        OnEmulationStopped(m_load_result);
     }
 
     void PauseEmulation() {
@@ -375,6 +375,8 @@ public:
         if (m_system.DebuggerEnabled()) {
             m_system.InitializeDebugger();
         }
+
+        OnEmulationStarted();
 
         while (true) {
             {
@@ -511,6 +513,18 @@ private:
                                   static_cast<jint>(progress), static_cast<jint>(max));
     }
 
+    static void OnEmulationStarted() {
+        JNIEnv* env = IDCache::GetEnvForThread();
+        env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
+                                  IDCache::GetOnEmulationStarted());
+    }
+
+    static void OnEmulationStopped(Core::SystemResultStatus result) {
+        JNIEnv* env = IDCache::GetEnvForThread();
+        env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
+                                  IDCache::GetOnEmulationStopped(), static_cast<jint>(result));
+    }
+
 private:
     static EmulationSession s_instance;
 
@@ -528,8 +542,8 @@ private:
     Core::PerfStatsResults m_perf_stats{};
     std::shared_ptr<FileSys::VfsFilesystem> m_vfs;
     Core::SystemResultStatus m_load_result{Core::SystemResultStatus::ErrorNotInitialized};
-    bool m_is_running{};
-    bool m_is_paused{};
+    std::atomic<bool> m_is_running = false;
+    std::atomic<bool> m_is_paused = false;
     SoftwareKeyboard::AndroidKeyboard* m_software_keyboard{};
     std::unique_ptr<Service::Account::ProfileManager> m_profile_manager;
     std::unique_ptr<FileSys::ManualContentProvider> m_manual_provider;
