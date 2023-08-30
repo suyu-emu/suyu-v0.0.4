@@ -34,7 +34,7 @@ class IndeterminateProgressDialogFragment : DialogFragment() {
                 when (val result = taskViewModel.result.value) {
                     is String -> Toast.makeText(requireContext(), result, Toast.LENGTH_LONG).show()
                     is MessageDialogFragment -> result.show(
-                        parentFragmentManager,
+                        requireActivity().supportFragmentManager,
                         MessageDialogFragment.TAG
                     )
                 }
