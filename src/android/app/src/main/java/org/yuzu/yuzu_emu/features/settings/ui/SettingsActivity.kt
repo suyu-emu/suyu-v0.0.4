@@ -16,7 +16,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navArgs
 import com.google.android.material.color.MaterialColors
-import org.yuzu.yuzu_emu.NativeLibrary
 import java.io.IOException
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
@@ -133,7 +132,6 @@ class SettingsActivity : AppCompatActivity() {
         if (isFinishing && settingsViewModel.shouldSave) {
             Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...")
             Settings.saveSettings()
-            NativeLibrary.reloadSettings()
         }
     }
 
