@@ -3,6 +3,8 @@
 
 package org.yuzu.yuzu_emu.adapters
 
+import android.content.Intent
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.text.TextUtils
 import android.view.LayoutInflater
@@ -11,6 +13,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
@@ -22,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView
 import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.adapters.GameAdapter.GameViewHolder
 import org.yuzu.yuzu_emu.databinding.CardGameBinding
 import org.yuzu.yuzu_emu.model.Game
@@ -76,6 +82,21 @@ class GameAdapter(private val activity: AppCompatActivity) :
                 System.currentTimeMillis()
             )
             .apply()
+
+        val openIntent = Intent(YuzuApplication.appContext, EmulationActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            data = Uri.parse(holder.game.path)
+        }
+        val shortcut = ShortcutInfoCompat.Builder(YuzuApplication.appContext, holder.game.path)
+            .setShortLabel(holder.game.title)
+            .setIcon(
+                IconCompat.createWithBitmap(
+                    (holder.binding.imageGameScreen.drawable as BitmapDrawable).bitmap
+                )
+            )
+            .setIntent(openIntent)
+            .build()
+        ShortcutManagerCompat.pushDynamicShortcut(YuzuApplication.appContext, shortcut)
 
         val action = HomeNavigationDirections.actionGlobalEmulationActivity(holder.game)
         view.findNavController().navigate(action)
