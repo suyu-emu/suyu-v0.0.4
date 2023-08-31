@@ -10,6 +10,13 @@ add_library(audio_core STATIC
     adsp/apps/audio_renderer/command_buffer.h
     adsp/apps/audio_renderer/command_list_processor.cpp
     adsp/apps/audio_renderer/command_list_processor.h
+    adsp/apps/opus/opus_decoder.cpp
+    adsp/apps/opus/opus_decoder.h
+    adsp/apps/opus/opus_decode_object.cpp
+    adsp/apps/opus/opus_decode_object.h
+    adsp/apps/opus/opus_multistream_decode_object.cpp
+    adsp/apps/opus/opus_multistream_decode_object.h
+    adsp/apps/opus/shared_memory.h
     audio_core.cpp
     audio_core.h
     audio_event.h
@@ -35,6 +42,13 @@ add_library(audio_core STATIC
     in/audio_in.h
     in/audio_in_system.cpp
     in/audio_in_system.h
+    opus/hardware_opus.cpp
+    opus/hardware_opus.h
+    opus/decoder_manager.cpp
+    opus/decoder_manager.h
+    opus/decoder.cpp
+    opus/decoder.h
+    opus/parameters.h
     out/audio_out.cpp
     out/audio_out.h
     out/audio_out_system.cpp
@@ -214,7 +228,7 @@ else()
     )
 endif()
 
-target_link_libraries(audio_core PUBLIC common core)
+target_link_libraries(audio_core PUBLIC common core Opus::opus)
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_link_libraries(audio_core PRIVATE dynarmic::dynarmic)
 endif()
