@@ -9,7 +9,7 @@
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/service/audio/errors.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 Renderer::Renderer(Core::System& system_, Manager& manager_, Kernel::KEvent* rendered_event)
     : core{system_}, manager{manager_}, system{system_, rendered_event} {}
@@ -64,4 +64,4 @@ Result Renderer::RequestUpdate(std::span<const u8> input, std::span<u8> performa
     return system.Update(input, performance, output);
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

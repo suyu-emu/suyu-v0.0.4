@@ -6,7 +6,7 @@
 #include "audio_core/common/feature_support.h"
 #include "core/core.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 Manager::Manager(Core::System& system_)
     : system{system_}, system_manager{std::make_unique<SystemManager>(system)} {
@@ -67,4 +67,4 @@ bool Manager::RemoveSystem(System& system_) {
     return system_manager->Remove(system_);
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

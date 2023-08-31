@@ -3,22 +3,22 @@
 
 #include <string>
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/mix/clear_mix.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
-void ClearMixBufferCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
-                                 std::string& string) {
+void ClearMixBufferCommand::Dump(
+    [[maybe_unused]] const AudioRenderer::CommandListProcessor& processor, std::string& string) {
     string += fmt::format("ClearMixBufferCommand\n");
 }
 
-void ClearMixBufferCommand::Process(const ADSP::CommandListProcessor& processor) {
+void ClearMixBufferCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     memset(processor.mix_buffers.data(), 0, processor.mix_buffers.size_bytes());
 }
 
-bool ClearMixBufferCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool ClearMixBufferCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

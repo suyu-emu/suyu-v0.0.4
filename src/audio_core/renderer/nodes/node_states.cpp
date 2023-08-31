@@ -4,7 +4,7 @@
 #include "audio_core/renderer/nodes/node_states.h"
 #include "common/logging/log.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void NodeStates::Initialize(std::span<u8> buffer_, [[maybe_unused]] const u64 node_buffer_size,
                             const u32 count) {
@@ -138,4 +138,4 @@ std::pair<std::span<u32>::reverse_iterator, size_t> NodeStates::GetSortedResuls(
     return {results.rbegin(), result_pos};
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

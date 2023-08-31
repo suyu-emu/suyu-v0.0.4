@@ -5,7 +5,7 @@
 #include "audio_core/renderer/command/command_generator.h"
 #include "audio_core/renderer/performance/detail_aspect.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 DetailAspect::DetailAspect(CommandGenerator& command_generator_,
                            const PerformanceEntryType entry_type, const s32 node_id_,
@@ -22,4 +22,4 @@ DetailAspect::DetailAspect(CommandGenerator& command_generator_,
     }
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

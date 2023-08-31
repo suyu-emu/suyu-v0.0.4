@@ -6,7 +6,7 @@
 #include "audio_core/renderer/splitter/splitter_destinations_data.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Represents a splitter, wraps multiple output destinations to split an input mix into.
  */
@@ -104,4 +104,4 @@ private:
     u32 channel_count{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -8,7 +8,7 @@
 #include "common/common_types.h"
 #include "common/fixed_point.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Upsampling state used by the AudioRenderer across calls.
  */
@@ -37,4 +37,4 @@ struct UpsamplerState {
     u8 sample_index;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

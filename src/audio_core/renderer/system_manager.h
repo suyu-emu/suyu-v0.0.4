@@ -18,11 +18,14 @@ struct EventType;
 class System;
 } // namespace Core
 
-namespace AudioCore::AudioRenderer {
-namespace ADSP {
+namespace AudioCore::ADSP {
 class ADSP;
-class AudioRenderer_Mailbox;
-} // namespace ADSP
+namespace AudioRenderer {
+class AudioRenderer;
+} // namespace AudioRenderer
+} // namespace AudioCore::ADSP
+
+namespace AudioCore::Renderer {
 
 /**
  * Manages all audio renderers, responsible for triggering command list generation and signalling
@@ -38,7 +41,7 @@ public:
      *
      * @return True if successfully initialized, otherwise false.
      */
-    bool InitializeUnsafe();
+    void InitializeUnsafe();
 
     /**
      * Stop the system manager.
@@ -80,10 +83,8 @@ private:
     std::mutex mutex2{};
     /// Is the system manager thread active?
     std::atomic<bool> active{};
-    /// Reference to the ADSP for communication
-    ADSP::ADSP& adsp;
-    /// AudioRenderer mailbox for communication
-    ADSP::AudioRenderer_Mailbox* mailbox{};
+    /// Reference to the ADSP's AudioRenderer for communication
+    ::AudioCore::ADSP::AudioRenderer::AudioRenderer& audio_renderer;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

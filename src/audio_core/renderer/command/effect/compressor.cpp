@@ -5,11 +5,11 @@
 #include <span>
 #include <vector>
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/effect/compressor.h"
 #include "audio_core/renderer/effect/compressor.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 static void SetCompressorEffectParameter(const CompressorInfo::ParameterVersion2& params,
                                          CompressorInfo::State& state) {
@@ -110,7 +110,7 @@ static void ApplyCompressorEffect(const CompressorInfo::ParameterVersion2& param
     }
 }
 
-void CompressorCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
+void CompressorCommand::Dump([[maybe_unused]] const AudioRenderer::CommandListProcessor& processor,
                              std::string& string) {
     string += fmt::format("CompressorCommand\n\tenabled {} \n\tinputs: ", effect_enabled);
     for (s16 i = 0; i < parameter.channel_count; i++) {
@@ -123,7 +123,7 @@ void CompressorCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& 
     string += "\n";
 }
 
-void CompressorCommand::Process(const ADSP::CommandListProcessor& processor) {
+void CompressorCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     std::array<std::span<const s32>, MaxChannels> input_buffers{};
     std::array<std::span<s32>, MaxChannels> output_buffers{};
 
@@ -148,8 +148,8 @@ void CompressorCommand::Process(const ADSP::CommandListProcessor& processor) {
                           processor.sample_count);
 }
 
-bool CompressorCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool CompressorCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

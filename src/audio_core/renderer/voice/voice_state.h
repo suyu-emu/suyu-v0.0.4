@@ -9,7 +9,7 @@
 #include "common/common_types.h"
 #include "common/fixed_point.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Holds a state for a voice. One is kept host-side, and one is used by the AudioRenderer,
  * host-side is updated on the next iteration.
@@ -67,4 +67,4 @@ struct VoiceState {
     s32 loop_count;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

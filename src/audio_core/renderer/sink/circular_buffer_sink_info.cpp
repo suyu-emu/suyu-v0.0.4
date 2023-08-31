@@ -5,7 +5,7 @@
 #include "audio_core/renderer/sink/circular_buffer_sink_info.h"
 #include "audio_core/renderer/upsampler/upsampler_manager.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 CircularBufferSinkInfo::CircularBufferSinkInfo() {
     state.fill(0);
@@ -73,4 +73,4 @@ void CircularBufferSinkInfo::UpdateForCommandGeneration() {
     }
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

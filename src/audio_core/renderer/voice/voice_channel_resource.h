@@ -8,7 +8,7 @@
 #include "audio_core/common/common.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Represents one channel for mixing a voice.
  */
@@ -35,4 +35,4 @@ public:
     bool in_use{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

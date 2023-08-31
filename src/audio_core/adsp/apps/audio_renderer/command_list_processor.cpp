@@ -1,9 +1,9 @@
-// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <string>
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/command_list_header.h"
 #include "audio_core/renderer/command/commands.h"
 #include "common/settings.h"
@@ -11,15 +11,15 @@
 #include "core/core_timing.h"
 #include "core/memory.h"
 
-namespace AudioCore::AudioRenderer::ADSP {
+namespace AudioCore::ADSP::AudioRenderer {
 
 void CommandListProcessor::Initialize(Core::System& system_, CpuAddr buffer, u64 size,
                                       Sink::SinkStream* stream_) {
     system = &system_;
     memory = &system->ApplicationMemory();
     stream = stream_;
-    header = reinterpret_cast<CommandListHeader*>(buffer);
-    commands = reinterpret_cast<u8*>(buffer + sizeof(CommandListHeader));
+    header = reinterpret_cast<Renderer::CommandListHeader*>(buffer);
+    commands = reinterpret_cast<u8*>(buffer + sizeof(Renderer::CommandListHeader));
     commands_buffer_size = size;
     command_count = header->command_count;
     sample_count = header->sample_count;
@@ -38,7 +38,7 @@ u32 CommandListProcessor::GetRemainingCommandCount() const {
 }
 
 void CommandListProcessor::SetBuffer(const CpuAddr buffer, const u64 size) {
-    commands = reinterpret_cast<u8*>(buffer + sizeof(CommandListHeader));
+    commands = reinterpret_cast<u8*>(buffer + sizeof(Renderer::CommandListHeader));
     commands_buffer_size = size;
 }
 
@@ -47,7 +47,7 @@ Sink::SinkStream* CommandListProcessor::GetOutputSinkStream() const {
 }
 
 u64 CommandListProcessor::Process(u32 session_id) {
-    const auto start_time_{system->CoreTiming().GetClockTicks()};
+    const auto start_time_{system->CoreTiming().GetGlobalTimeUs().count()};
     const auto command_base{CpuAddr(commands)};
 
     if (processed_command_count > 0) {
@@ -60,12 +60,12 @@ u64 CommandListProcessor::Process(u32 session_id) {
     std::string dump{fmt::format("\nSession {}\n", session_id)};
 
     for (u32 index = 0; index < command_count; index++) {
-        auto& command{*reinterpret_cast<ICommand*>(commands)};
+        auto& command{*reinterpret_cast<Renderer::ICommand*>(commands)};
 
         if (command.magic != 0xCAFEBABE) {
             LOG_ERROR(Service_Audio, "Command has invalid magic! Expected 0xCAFEBABE, got {:08X}",
                       command.magic);
-            return system->CoreTiming().GetClockTicks() - start_time_;
+            return system->CoreTiming().GetGlobalTimeUs().count() - start_time_;
         }
 
         auto current_offset{CpuAddr(commands) - command_base};
@@ -74,8 +74,8 @@ u64 CommandListProcessor::Process(u32 session_id) {
             LOG_ERROR(Service_Audio,
                       "Command exceeded command buffer, buffer size {:08X}, command ends at {:08X}",
                       commands_buffer_size,
-                      CpuAddr(commands) + command.size - sizeof(CommandListHeader));
-            return system->CoreTiming().GetClockTicks() - start_time_;
+                      CpuAddr(commands) + command.size - sizeof(Renderer::CommandListHeader));
+            return system->CoreTiming().GetGlobalTimeUs().count() - start_time_;
         }
 
         if (Settings::values.dump_audio_commands) {
@@ -101,8 +101,8 @@ u64 CommandListProcessor::Process(u32 session_id) {
         last_dump = dump;
     }
 
-    end_time = system->CoreTiming().GetClockTicks();
+    end_time = system->CoreTiming().GetGlobalTimeUs().count();
     return end_time - start_time_;
 }
 
-} // namespace AudioCore::AudioRenderer::ADSP
+} // namespace AudioCore::ADSP::AudioRenderer

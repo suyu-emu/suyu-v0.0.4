@@ -9,7 +9,7 @@
 #include "common/alignment.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * An edge matrix, holding the connections for each node to every other node in the graph.
  */
@@ -79,4 +79,4 @@ private:
     u32 count;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

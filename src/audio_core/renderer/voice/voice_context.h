@@ -10,7 +10,7 @@
 #include "audio_core/renderer/voice/voice_state.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Contains all voices, with utility functions for managing them.
  */
@@ -123,4 +123,4 @@ private:
     u32 active_count{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

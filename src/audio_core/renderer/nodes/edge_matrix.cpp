@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/nodes/edge_matrix.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void EdgeMatrix::Initialize([[maybe_unused]] std::span<u8> buffer,
                             [[maybe_unused]] const u64 node_buffer_size, const u32 count_) {
@@ -35,4 +35,4 @@ u32 EdgeMatrix::GetNodeCount() const {
     return count;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

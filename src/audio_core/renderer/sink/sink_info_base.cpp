@@ -4,7 +4,7 @@
 #include "audio_core/renderer/memory/pool_mapper.h"
 #include "audio_core/renderer/sink/sink_info_base.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void SinkInfoBase::CleanUp() {
     type = Type::Invalid;
@@ -48,4 +48,4 @@ u8* SinkInfoBase::GetParameter() {
     return parameter.data();
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

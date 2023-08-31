@@ -228,7 +228,7 @@ AudOutU::AudOutU(Core::System& system_)
 AudOutU::~AudOutU() = default;
 
 void AudOutU::ListAudioOuts(HLERequestContext& ctx) {
-    using namespace AudioCore::AudioRenderer;
+    using namespace AudioCore::Renderer;
 
     std::scoped_lock l{impl->mutex};
 

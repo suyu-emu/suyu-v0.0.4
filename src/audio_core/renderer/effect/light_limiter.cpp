@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/effect/light_limiter.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void LightLimiterInfo::Update(BehaviorInfo::ErrorInfo& error_info,
                               const InParameterVersion1& in_params, const PoolMapper& pool_mapper) {
@@ -78,4 +78,4 @@ CpuAddr LightLimiterInfo::GetWorkbuffer(s32 index) {
     return GetSingleBuffer(index);
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -11,7 +11,7 @@
 #include "common/scratch_buffer.h"
 #include "core/memory.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 constexpr u32 TempBufferSize = 0x3F00;
 constexpr std::array<u8, 3> PitchBySrcQuality = {4, 8, 4};
@@ -364,7 +364,7 @@ void DecodeFromWaveBuffers(Core::Memory::Memory& memory, const DecodeFromWaveBuf
                     wavebuffers_consumed++;
                 } else {
                     voice_state.loop_count++;
-                    if (wavebuffer.loop_count > 0 &&
+                    if (wavebuffer.loop_count >= 0 &&
                         (voice_state.loop_count > wavebuffer.loop_count || samples_decoded == 0)) {
                         voice_state.wave_buffer_valid[wavebuffer_index] = false;
                         voice_state.loop_count = 0;
@@ -423,4 +423,4 @@ void DecodeFromWaveBuffers(Core::Memory::Memory& memory, const DecodeFromWaveBuf
     voice_state.fraction = fraction;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

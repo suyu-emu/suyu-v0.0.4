@@ -9,7 +9,7 @@
 #include "audio_core/common/common.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 class EdgeMatrix;
 class SplitterContext;
 class EffectContext;
@@ -121,4 +121,4 @@ public:
     const bool long_size_pre_delay_supported;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

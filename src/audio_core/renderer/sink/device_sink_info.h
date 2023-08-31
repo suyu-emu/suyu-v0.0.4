@@ -6,7 +6,7 @@
 #include "audio_core/renderer/sink/sink_info_base.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Info for a device sink.
  */
@@ -37,4 +37,4 @@ public:
 };
 static_assert(sizeof(DeviceSinkInfo) <= sizeof(SinkInfoBase), "DeviceSinkInfo is too large!");
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

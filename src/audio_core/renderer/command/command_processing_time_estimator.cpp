@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/command/command_processing_time_estimator.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 u32 CommandProcessingTimeEstimatorVersion1::Estimate(
     const PcmInt16DataSourceVersion1Command& command) const {
@@ -3617,4 +3617,4 @@ u32 CommandProcessingTimeEstimatorVersion5::Estimate(const CompressorCommand& co
     }
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

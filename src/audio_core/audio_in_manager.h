@@ -65,8 +65,8 @@ public:
      *
      * @return Number of names written.
      */
-    u32 GetDeviceNames(std::vector<AudioRenderer::AudioDevice::AudioDeviceName>& names,
-                       u32 max_count, bool filter);
+    u32 GetDeviceNames(std::vector<Renderer::AudioDevice::AudioDeviceName>& names, u32 max_count,
+                       bool filter);
 
     /// Core system
     Core::System& system;

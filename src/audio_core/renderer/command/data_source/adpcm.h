@@ -11,10 +11,11 @@
 #include "audio_core/renderer/command/icommand.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
-namespace ADSP {
+namespace AudioCore::ADSP::AudioRenderer {
 class CommandListProcessor;
 }
+
+namespace AudioCore::Renderer {
 
 /**
  * AudioRenderer command to decode ADPCM-encoded version 1 wavebuffers
@@ -27,14 +28,14 @@ struct AdpcmDataSourceVersion1Command : ICommand {
      * @param processor - The CommandListProcessor processing this command.
      * @param string    - The string to print into.
      */
-    void Dump(const ADSP::CommandListProcessor& processor, std::string& string) override;
+    void Dump(const AudioRenderer::CommandListProcessor& processor, std::string& string) override;
 
     /**
      * Process this command.
      *
      * @param processor - The CommandListProcessor processing this command.
      */
-    void Process(const ADSP::CommandListProcessor& processor) override;
+    void Process(const AudioRenderer::CommandListProcessor& processor) override;
 
     /**
      * Verify this command's data is valid.
@@ -42,13 +43,13 @@ struct AdpcmDataSourceVersion1Command : ICommand {
      * @param processor - The CommandListProcessor processing this command.
      * @return True if the command is valid, otherwise false.
      */
-    bool Verify(const ADSP::CommandListProcessor& processor) override;
+    bool Verify(const AudioRenderer::CommandListProcessor& processor) override;
 
     /// Quality used for sample rate conversion
     SrcQuality src_quality;
     /// Mix buffer index for decoded samples
     s16 output_index;
-    /// Flags to control decoding (see AudioCore::AudioRenderer::VoiceInfo::Flags)
+    /// Flags to control decoding (see AudioCore::Renderer::VoiceInfo::Flags)
     u16 flags;
     /// Wavebuffer sample rate
     u32 sample_rate;
@@ -75,14 +76,14 @@ struct AdpcmDataSourceVersion2Command : ICommand {
      * @param processor - The CommandListProcessor processing this command.
      * @param string    - The string to print into.
      */
-    void Dump(const ADSP::CommandListProcessor& processor, std::string& string) override;
+    void Dump(const AudioRenderer::CommandListProcessor& processor, std::string& string) override;
 
     /**
      * Process this command.
      *
      * @param processor - The CommandListProcessor processing this command.
      */
-    void Process(const ADSP::CommandListProcessor& processor) override;
+    void Process(const AudioRenderer::CommandListProcessor& processor) override;
 
     /**
      * Verify this command's data is valid.
@@ -90,13 +91,13 @@ struct AdpcmDataSourceVersion2Command : ICommand {
      * @param processor - The CommandListProcessor processing this command.
      * @return True if the command is valid, otherwise false.
      */
-    bool Verify(const ADSP::CommandListProcessor& processor) override;
+    bool Verify(const AudioRenderer::CommandListProcessor& processor) override;
 
     /// Quality used for sample rate conversion
     SrcQuality src_quality;
     /// Mix buffer index for decoded samples
     s16 output_index;
-    /// Flags to control decoding (see AudioCore::AudioRenderer::VoiceInfo::Flags)
+    /// Flags to control decoding (see AudioCore::Renderer::VoiceInfo::Flags)
     u16 flags;
     /// Wavebuffer sample rate
     u32 sample_rate;
@@ -116,4 +117,4 @@ struct AdpcmDataSourceVersion2Command : ICommand {
     u64 data_size;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -3,13 +3,17 @@
 
 #pragma once
 
+#include <string>
+
 #include "audio_core/common/common.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
-namespace ADSP {
+namespace AudioCore::ADSP::AudioRenderer {
 class CommandListProcessor;
 }
+
+namespace AudioCore::Renderer {
+using namespace ::AudioCore::ADSP;
 
 enum class CommandId : u8 {
     /* 0x00 */ Invalid,
@@ -59,14 +63,15 @@ struct ICommand {
      * @param processor - The CommandListProcessor processing this command.
      * @param string    - The string to print into.
      */
-    virtual void Dump(const ADSP::CommandListProcessor& processor, std::string& string) = 0;
+    virtual void Dump(const AudioRenderer::CommandListProcessor& processor,
+                      std::string& string) = 0;
 
     /**
      * Process this command.
      *
      * @param processor - The CommandListProcessor processing this command.
      */
-    virtual void Process(const ADSP::CommandListProcessor& processor) = 0;
+    virtual void Process(const AudioRenderer::CommandListProcessor& processor) = 0;
 
     /**
      * Verify this command's data is valid.
@@ -74,7 +79,7 @@ struct ICommand {
      * @param processor - The CommandListProcessor processing this command.
      * @return True if the command is valid, otherwise false.
      */
-    virtual bool Verify(const ADSP::CommandListProcessor& processor) = 0;
+    virtual bool Verify(const AudioRenderer::CommandListProcessor& processor) = 0;
 
     /// Command magic 0xCAFEBABE
     u32 magic{};
@@ -90,4 +95,4 @@ struct ICommand {
     u32 node_id{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

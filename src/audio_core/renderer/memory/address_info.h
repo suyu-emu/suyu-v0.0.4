@@ -6,7 +6,7 @@
 #include "audio_core/renderer/memory/memory_pool_info.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 /**
  * Represents a region of mapped or unmapped memory.
@@ -121,4 +121,4 @@ private:
     CpuAddr dsp_address;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

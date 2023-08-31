@@ -10,7 +10,7 @@
 #include "common/alignment.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Graph utility functions for sorting and getting results from the DAG.
  */
@@ -192,4 +192,4 @@ private:
     Stack stack{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -10,7 +10,7 @@
 #include "common/common_types.h"
 #include "common/fixed_point.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 class CompressorInfo : public EffectInfoBase {
 public:
@@ -103,4 +103,4 @@ public:
     CpuAddr GetWorkbuffer(s32 index) override;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

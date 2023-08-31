@@ -1,20 +1,20 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/effect/biquad_filter.h"
 #include "audio_core/renderer/command/effect/multi_tap_biquad_filter.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
-void MultiTapBiquadFilterCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
-                                       std::string& string) {
+void MultiTapBiquadFilterCommand::Dump(
+    [[maybe_unused]] const AudioRenderer::CommandListProcessor& processor, std::string& string) {
     string += fmt::format(
         "MultiTapBiquadFilterCommand\n\tinput {:02X}\n\toutput {:02X}\n\tneeds_init ({}, {})\n",
         input, output, needs_init[0], needs_init[1]);
 }
 
-void MultiTapBiquadFilterCommand::Process(const ADSP::CommandListProcessor& processor) {
+void MultiTapBiquadFilterCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     if (filter_tap_count > MaxBiquadFilters) {
         LOG_ERROR(Service_Audio, "Too many filter taps! {}", filter_tap_count);
         filter_tap_count = MaxBiquadFilters;
@@ -38,8 +38,8 @@ void MultiTapBiquadFilterCommand::Process(const ADSP::CommandListProcessor& proc
     }
 }
 
-bool MultiTapBiquadFilterCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool MultiTapBiquadFilterCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

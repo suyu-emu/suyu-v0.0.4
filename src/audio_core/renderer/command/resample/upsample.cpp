@@ -3,11 +3,11 @@
 
 #include <array>
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/resample/upsample.h"
 #include "audio_core/renderer/upsampler/upsampler_info.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Upsampling impl. Input must be 8K, 16K or 32K, output is 48K.
  *
@@ -198,7 +198,7 @@ static void SrcProcessFrame(std::span<s32> output, std::span<const s32> input,
     }
 }
 
-auto UpsampleCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
+auto UpsampleCommand::Dump([[maybe_unused]] const AudioRenderer::CommandListProcessor& processor,
                            std::string& string) -> void {
     string += fmt::format("UpsampleCommand\n\tsource_sample_count {} source_sample_rate {}",
                           source_sample_count, source_sample_rate);
@@ -213,7 +213,7 @@ auto UpsampleCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& pr
     string += "\n";
 }
 
-void UpsampleCommand::Process(const ADSP::CommandListProcessor& processor) {
+void UpsampleCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     const auto info{reinterpret_cast<UpsamplerInfo*>(upsampler_info)};
     const auto input_count{std::min(info->input_count, buffer_count)};
     const std::span<const s16> inputs_{reinterpret_cast<const s16*>(inputs), input_count};
@@ -234,8 +234,8 @@ void UpsampleCommand::Process(const ADSP::CommandListProcessor& processor) {
     }
 }
 
-bool UpsampleCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool UpsampleCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

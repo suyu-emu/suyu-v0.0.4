@@ -8,7 +8,7 @@
 #include "audio_core/common/common.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 struct CommandListHeader {
     u64 buffer_size;
@@ -19,4 +19,4 @@ struct CommandListHeader {
     u32 sample_rate;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

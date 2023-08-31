@@ -7,7 +7,7 @@
 #include "audio_core/renderer/splitter/splitter_context.h"
 #include "common/polyfill_ranges.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void MixContext::Initialize(std::span<MixInfo*> sorted_mix_infos_, std::span<MixInfo> mix_infos_,
                             const u32 count_, std::span<s32> effect_process_order_buffer_,
@@ -139,4 +139,4 @@ EdgeMatrix& MixContext::GetEdgeMatrix() {
     return edge_matrix;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

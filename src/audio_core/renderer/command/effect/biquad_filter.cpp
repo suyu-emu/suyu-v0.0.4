@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/effect/biquad_filter.h"
 #include "audio_core/renderer/voice/voice_state.h"
 #include "common/bit_cast.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Biquad filter float implementation.
  *
@@ -76,14 +76,14 @@ static void ApplyBiquadFilterInt(std::span<s32> output, std::span<const s32> inp
     }
 }
 
-void BiquadFilterCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
-                               std::string& string) {
+void BiquadFilterCommand::Dump(
+    [[maybe_unused]] const AudioRenderer::CommandListProcessor& processor, std::string& string) {
     string += fmt::format(
         "BiquadFilterCommand\n\tinput {:02X} output {:02X} needs_init {} use_float_processing {}\n",
         input, output, needs_init, use_float_processing);
 }
 
-void BiquadFilterCommand::Process(const ADSP::CommandListProcessor& processor) {
+void BiquadFilterCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     auto state_{reinterpret_cast<VoiceState::BiquadFilterState*>(state)};
     if (needs_init) {
         *state_ = {};
@@ -103,8 +103,8 @@ void BiquadFilterCommand::Process(const ADSP::CommandListProcessor& processor) {
     }
 }
 
-bool BiquadFilterCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool BiquadFilterCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

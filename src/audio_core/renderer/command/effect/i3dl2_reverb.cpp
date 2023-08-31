@@ -3,11 +3,11 @@
 
 #include <numbers>
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/effect/i3dl2_reverb.h"
 #include "common/polyfill_ranges.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 constexpr std::array<f32, I3dl2ReverbInfo::MaxDelayLines> MinDelayLineTimes{
     5.0f,
@@ -394,7 +394,7 @@ static void ApplyI3dl2ReverbEffect(const I3dl2ReverbInfo::ParameterVersion1& par
     }
 }
 
-void I3dl2ReverbCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
+void I3dl2ReverbCommand::Dump([[maybe_unused]] const AudioRenderer::CommandListProcessor& processor,
                               std::string& string) {
     string += fmt::format("I3dl2ReverbCommand\n\tenabled {} \n\tinputs: ", effect_enabled);
     for (u32 i = 0; i < parameter.channel_count; i++) {
@@ -407,7 +407,7 @@ void I3dl2ReverbCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor&
     string += "\n";
 }
 
-void I3dl2ReverbCommand::Process(const ADSP::CommandListProcessor& processor) {
+void I3dl2ReverbCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     std::array<std::span<const s32>, MaxChannels> input_buffers{};
     std::array<std::span<s32>, MaxChannels> output_buffers{};
 
@@ -431,8 +431,8 @@ void I3dl2ReverbCommand::Process(const ADSP::CommandListProcessor& processor) {
                            processor.sample_count);
 }
 
-bool I3dl2ReverbCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool I3dl2ReverbCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -9,7 +9,7 @@
 #include "audio_core/renderer/effect/effect_info_base.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 class BufferMixerInfo : public EffectInfoBase {
 public:
@@ -72,4 +72,4 @@ public:
     void UpdateResultState(EffectResultState& cpu_state, EffectResultState& dsp_state) override;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

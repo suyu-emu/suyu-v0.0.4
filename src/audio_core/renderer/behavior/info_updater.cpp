@@ -15,7 +15,7 @@
 #include "audio_core/renderer/splitter/splitter_context.h"
 #include "audio_core/renderer/voice/voice_context.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 InfoUpdater::InfoUpdater(std::span<const u8> input_, std::span<u8> output_,
                          const u32 process_handle_, BehaviorInfo& behaviour_)
@@ -536,4 +536,4 @@ Result InfoUpdater::CheckConsumedSize() {
     return ResultSuccess;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

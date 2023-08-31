@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/effect/compressor.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void CompressorInfo::Update(BehaviorInfo::ErrorInfo& error_info,
                             const InParameterVersion1& in_params, const PoolMapper& pool_mapper) {}
@@ -37,4 +37,4 @@ CpuAddr CompressorInfo::GetWorkbuffer(s32 index) {
     return GetSingleBuffer(index);
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

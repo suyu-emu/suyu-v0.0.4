@@ -12,7 +12,7 @@
 #include "audio_core/renderer/memory/address_info.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 class PoolMapper;
 class VoiceContext;
 struct VoiceState;
@@ -377,4 +377,4 @@ public:
     u8 flush_buffer_count{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

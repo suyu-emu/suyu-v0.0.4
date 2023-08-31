@@ -3,14 +3,14 @@
 
 #include <vector>
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/sink/circular_buffer.h"
 #include "core/memory.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
-void CircularBufferSinkCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
-                                     std::string& string) {
+void CircularBufferSinkCommand::Dump(
+    [[maybe_unused]] const AudioRenderer::CommandListProcessor& processor, std::string& string) {
     string += fmt::format(
         "CircularBufferSinkCommand\n\tinput_count {} ring size {:04X} ring pos {:04X}\n\tinputs: ",
         input_count, size, pos);
@@ -20,7 +20,7 @@ void CircularBufferSinkCommand::Dump([[maybe_unused]] const ADSP::CommandListPro
     string += "\n";
 }
 
-void CircularBufferSinkCommand::Process(const ADSP::CommandListProcessor& processor) {
+void CircularBufferSinkCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     constexpr s32 min{std::numeric_limits<s16>::min()};
     constexpr s32 max{std::numeric_limits<s16>::max()};
 
@@ -41,8 +41,8 @@ void CircularBufferSinkCommand::Process(const ADSP::CommandListProcessor& proces
     }
 }
 
-bool CircularBufferSinkCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool CircularBufferSinkCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -26,7 +26,7 @@
 #include "core/hle/service/ipc_helpers.h"
 #include "core/memory.h"
 
-using namespace AudioCore::AudioRenderer;
+using namespace AudioCore::Renderer;
 
 namespace Service::Audio {
 

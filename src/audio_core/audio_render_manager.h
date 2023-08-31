@@ -20,7 +20,7 @@ class System;
 namespace AudioCore {
 struct AudioRendererParameterInternal;
 
-namespace AudioRenderer {
+namespace Renderer {
 /**
  * Wrapper for the audio system manager, handles service calls.
  */
@@ -101,5 +101,5 @@ private:
     std::unique_ptr<SystemManager> system_manager{};
 };
 
-} // namespace AudioRenderer
+} // namespace Renderer
 } // namespace AudioCore

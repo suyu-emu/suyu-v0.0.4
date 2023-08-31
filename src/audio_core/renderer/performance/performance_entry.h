@@ -5,7 +5,7 @@
 
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 enum class PerformanceEntryType : u8 {
     Invalid,
@@ -34,4 +34,4 @@ struct PerformanceEntryVersion2 {
 static_assert(sizeof(PerformanceEntryVersion2) == 0x18,
               "PerformanceEntryVersion2 has the wrong size!");
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

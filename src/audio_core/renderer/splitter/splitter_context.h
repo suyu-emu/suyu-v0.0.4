@@ -13,7 +13,7 @@ namespace AudioCore {
 struct AudioRendererParameterInternal;
 class WorkbufferAllocator;
 
-namespace AudioRenderer {
+namespace Renderer {
 class BehaviorInfo;
 
 /**
@@ -185,5 +185,5 @@ private:
     bool splitter_bug_fixed{};
 };
 
-} // namespace AudioRenderer
+} // namespace Renderer
 } // namespace AudioCore

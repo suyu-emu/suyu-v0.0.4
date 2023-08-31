@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/effect/effect_context.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void EffectContext::Initialize(std::span<EffectInfoBase> effect_infos_, const u32 effect_count_,
                                std::span<EffectResultState> result_states_cpu_,
@@ -38,4 +38,4 @@ void EffectContext::UpdateStateByDspShared() {
     }
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

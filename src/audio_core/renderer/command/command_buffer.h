@@ -10,7 +10,7 @@
 #include "audio_core/renderer/performance/performance_manager.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 struct UpsamplerInfo;
 struct VoiceState;
 class EffectInfoBase;
@@ -465,4 +465,4 @@ private:
     void GenerateEnd(T& cmd);
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

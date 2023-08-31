@@ -7,7 +7,7 @@
 #include "audio_core/renderer/performance/performance_manager.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 class CommandGenerator;
 
 /**
@@ -28,4 +28,4 @@ public:
     s32 node_id;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

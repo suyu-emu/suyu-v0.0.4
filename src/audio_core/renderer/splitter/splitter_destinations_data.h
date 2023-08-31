@@ -9,7 +9,7 @@
 #include "audio_core/common/common.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Represents a mixing node, can be connected to a previous and next destination forming a chain
  * that a certain mix buffer will pass through to output.
@@ -132,4 +132,4 @@ private:
     bool need_update{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

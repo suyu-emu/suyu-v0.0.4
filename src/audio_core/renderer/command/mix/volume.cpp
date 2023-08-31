@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/mix/volume.h"
 #include "common/fixed_point.h"
 #include "common/logging/log.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Apply volume to the input mix buffer, saving to the output buffer.
  *
@@ -29,7 +29,7 @@ static void ApplyUniformGain(std::span<s32> output, std::span<const s32> input, 
     }
 }
 
-void VolumeCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
+void VolumeCommand::Dump([[maybe_unused]] const AudioRenderer::CommandListProcessor& processor,
                          std::string& string) {
     string += fmt::format("VolumeCommand");
     string += fmt::format("\n\tinput {:02X}", input_index);
@@ -38,7 +38,7 @@ void VolumeCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& proc
     string += "\n";
 }
 
-void VolumeCommand::Process(const ADSP::CommandListProcessor& processor) {
+void VolumeCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     // If input and output buffers are the same, and the volume is 1.0f, this won't do
     // anything, so just skip.
     if (input_index == output_index && volume == 1.0f) {
@@ -65,8 +65,8 @@ void VolumeCommand::Process(const ADSP::CommandListProcessor& processor) {
     }
 }
 
-bool VolumeCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool VolumeCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

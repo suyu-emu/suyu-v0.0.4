@@ -2,6 +2,14 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_library(audio_core STATIC
+    adsp/adsp.cpp
+    adsp/adsp.h
+    adsp/mailbox.h
+    adsp/apps/audio_renderer/audio_renderer.cpp
+    adsp/apps/audio_renderer/audio_renderer.h
+    adsp/apps/audio_renderer/command_buffer.h
+    adsp/apps/audio_renderer/command_list_processor.cpp
+    adsp/apps/audio_renderer/command_list_processor.h
     audio_core.cpp
     audio_core.h
     audio_event.h
@@ -32,13 +40,6 @@ add_library(audio_core STATIC
     out/audio_out_system.cpp
     out/audio_out_system.h
     precompiled_headers.h
-    renderer/adsp/adsp.cpp
-    renderer/adsp/adsp.h
-    renderer/adsp/audio_renderer.cpp
-    renderer/adsp/audio_renderer.h
-    renderer/adsp/command_buffer.h
-    renderer/adsp/command_list_processor.cpp
-    renderer/adsp/command_list_processor.h
     renderer/audio_device.cpp
     renderer/audio_device.h
     renderer/audio_renderer.h

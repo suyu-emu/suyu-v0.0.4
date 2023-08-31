@@ -12,7 +12,7 @@
 namespace AudioCore {
 struct AudioRendererSystemContext;
 
-namespace AudioRenderer {
+namespace Renderer {
 class CommandBuffer;
 struct CommandListHeader;
 class VoiceContext;
@@ -345,5 +345,5 @@ private:
     PerformanceManager* performance_manager;
 };
 
-} // namespace AudioRenderer
+} // namespace Renderer
 } // namespace AudioCore

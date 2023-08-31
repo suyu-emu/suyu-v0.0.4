@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/effect/delay.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Update the DelayInfo state according to the given parameters.
  *
@@ -194,7 +194,7 @@ static void ApplyDelayEffect(const DelayInfo::ParameterVersion1& params, DelayIn
     }
 }
 
-void DelayCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
+void DelayCommand::Dump([[maybe_unused]] const AudioRenderer::CommandListProcessor& processor,
                         std::string& string) {
     string += fmt::format("DelayCommand\n\tenabled {} \n\tinputs: ", effect_enabled);
     for (u32 i = 0; i < MaxChannels; i++) {
@@ -207,7 +207,7 @@ void DelayCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& proce
     string += "\n";
 }
 
-void DelayCommand::Process(const ADSP::CommandListProcessor& processor) {
+void DelayCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     std::array<std::span<const s32>, MaxChannels> input_buffers{};
     std::array<std::span<s32>, MaxChannels> output_buffers{};
 
@@ -231,8 +231,8 @@ void DelayCommand::Process(const ADSP::CommandListProcessor& processor) {
                      processor.sample_count);
 }
 
-bool DelayCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool DelayCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

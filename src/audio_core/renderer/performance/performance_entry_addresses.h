@@ -5,7 +5,7 @@
 
 #include "audio_core/common/common.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 struct PerformanceEntryAddresses {
     CpuAddr translated_address;
@@ -14,4 +14,4 @@ struct PerformanceEntryAddresses {
     CpuAddr entry_processed_time_offset;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -220,7 +220,7 @@ AudInU::AudInU(Core::System& system_)
 AudInU::~AudInU() = default;
 
 void AudInU::ListAudioIns(HLERequestContext& ctx) {
-    using namespace AudioCore::AudioRenderer;
+    using namespace AudioCore::Renderer;
 
     LOG_DEBUG(Service_Audio, "called");
 
@@ -240,7 +240,7 @@ void AudInU::ListAudioIns(HLERequestContext& ctx) {
 }
 
 void AudInU::ListAudioInsAutoFiltered(HLERequestContext& ctx) {
-    using namespace AudioCore::AudioRenderer;
+    using namespace AudioCore::Renderer;
 
     LOG_DEBUG(Service_Audio, "called");
 

@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/data_source/decode.h"
 #include "audio_core/renderer/command/data_source/pcm_float.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
-void PcmFloatDataSourceVersion1Command::Dump(const ADSP::CommandListProcessor& processor,
+void PcmFloatDataSourceVersion1Command::Dump(const AudioRenderer::CommandListProcessor& processor,
                                              std::string& string) {
     string +=
         fmt::format("PcmFloatDataSourceVersion1Command\n\toutput_index {:02X} channel {} "
@@ -16,7 +16,8 @@ void PcmFloatDataSourceVersion1Command::Dump(const ADSP::CommandListProcessor& p
                     processor.target_sample_rate, src_quality);
 }
 
-void PcmFloatDataSourceVersion1Command::Process(const ADSP::CommandListProcessor& processor) {
+void PcmFloatDataSourceVersion1Command::Process(
+    const AudioRenderer::CommandListProcessor& processor) {
     auto out_buffer = processor.mix_buffers.subspan(output_index * processor.sample_count,
                                                     processor.sample_count);
 
@@ -41,11 +42,12 @@ void PcmFloatDataSourceVersion1Command::Process(const ADSP::CommandListProcessor
     DecodeFromWaveBuffers(*processor.memory, args);
 }
 
-bool PcmFloatDataSourceVersion1Command::Verify(const ADSP::CommandListProcessor& processor) {
+bool PcmFloatDataSourceVersion1Command::Verify(
+    const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-void PcmFloatDataSourceVersion2Command::Dump(const ADSP::CommandListProcessor& processor,
+void PcmFloatDataSourceVersion2Command::Dump(const AudioRenderer::CommandListProcessor& processor,
                                              std::string& string) {
     string +=
         fmt::format("PcmFloatDataSourceVersion2Command\n\toutput_index {:02X} channel {} "
@@ -54,7 +56,8 @@ void PcmFloatDataSourceVersion2Command::Dump(const ADSP::CommandListProcessor& p
                     processor.target_sample_rate, src_quality);
 }
 
-void PcmFloatDataSourceVersion2Command::Process(const ADSP::CommandListProcessor& processor) {
+void PcmFloatDataSourceVersion2Command::Process(
+    const AudioRenderer::CommandListProcessor& processor) {
     auto out_buffer = processor.mix_buffers.subspan(output_index * processor.sample_count,
                                                     processor.sample_count);
 
@@ -79,8 +82,9 @@ void PcmFloatDataSourceVersion2Command::Process(const ADSP::CommandListProcessor
     DecodeFromWaveBuffers(*processor.memory, args);
 }
 
-bool PcmFloatDataSourceVersion2Command::Verify(const ADSP::CommandListProcessor& processor) {
+bool PcmFloatDataSourceVersion2Command::Verify(
+    const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -73,7 +73,7 @@ void Manager::BufferReleaseAndRegister() {
 }
 
 u32 Manager::GetAudioOutDeviceNames(
-    std::vector<AudioRenderer::AudioDevice::AudioDeviceName>& names) const {
+    std::vector<Renderer::AudioDevice::AudioDeviceName>& names) const {
     names.emplace_back("DeviceOut");
     return 1;
 }
