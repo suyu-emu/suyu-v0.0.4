@@ -42,7 +42,6 @@ import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
-import org.yuzu.yuzu_emu.fragments.LongMessageDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
@@ -301,8 +300,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     fun processKey(result: Uri): Boolean {
         if (FileUtil.getExtension(result) != "keys") {
             MessageDialogFragment.newInstance(
-                R.string.reading_keys_failure,
-                R.string.install_prod_keys_failure_extension_description
+                titleId = R.string.reading_keys_failure,
+                descriptionId = R.string.install_prod_keys_failure_extension_description
             ).show(supportFragmentManager, MessageDialogFragment.TAG)
             return false
         }
@@ -330,9 +329,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 return true
             } else {
                 MessageDialogFragment.newInstance(
-                    R.string.invalid_keys_error,
-                    R.string.install_keys_failure_description,
-                    R.string.dumping_keys_quickstart_link
+                    titleId = R.string.invalid_keys_error,
+                    descriptionId = R.string.install_keys_failure_description,
+                    helpLinkId = R.string.dumping_keys_quickstart_link
                 ).show(supportFragmentManager, MessageDialogFragment.TAG)
                 return false
             }
@@ -370,8 +369,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
                     messageToShow = if (unfilteredNumOfFiles != filteredNumOfFiles) {
                         MessageDialogFragment.newInstance(
-                            R.string.firmware_installed_failure,
-                            R.string.firmware_installed_failure_description
+                            titleId = R.string.firmware_installed_failure,
+                            descriptionId = R.string.firmware_installed_failure_description
                         )
                     } else {
                         firmwarePath.deleteRecursively()
@@ -401,8 +400,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
             if (FileUtil.getExtension(result) != "bin") {
                 MessageDialogFragment.newInstance(
-                    R.string.reading_keys_failure,
-                    R.string.install_amiibo_keys_failure_extension_description
+                    titleId = R.string.reading_keys_failure,
+                    descriptionId = R.string.install_amiibo_keys_failure_extension_description
                 ).show(supportFragmentManager, MessageDialogFragment.TAG)
                 return@registerForActivityResult
             }
@@ -428,9 +427,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     ).show()
                 } else {
                     MessageDialogFragment.newInstance(
-                        R.string.invalid_keys_error,
-                        R.string.install_keys_failure_description,
-                        R.string.dumping_keys_quickstart_link
+                        titleId = R.string.invalid_keys_error,
+                        descriptionId = R.string.install_keys_failure_description,
+                        helpLinkId = R.string.dumping_keys_quickstart_link
                     ).show(supportFragmentManager, MessageDialogFragment.TAG)
                 }
             }
@@ -502,96 +501,91 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 var errorBaseGame = 0
                 var errorExtension = 0
                 var errorOther = 0
-                var errorTotal = 0
-                lifecycleScope.launch {
-                    documents.forEach {
-                        when (NativeLibrary.installFileToNand(it.toString())) {
-                            NativeLibrary.InstallFileToNandResult.Success -> {
-                                installSuccess += 1
-                            }
-
-                            NativeLibrary.InstallFileToNandResult.SuccessFileOverwritten -> {
-                                installOverwrite += 1
-                            }
-
-                            NativeLibrary.InstallFileToNandResult.ErrorBaseGame -> {
-                                errorBaseGame += 1
-                            }
-
-                            NativeLibrary.InstallFileToNandResult.ErrorFilenameExtension -> {
-                                errorExtension += 1
-                            }
-
-                            else -> {
-                                errorOther += 1
-                            }
+                documents.forEach {
+                    when (NativeLibrary.installFileToNand(it.toString())) {
+                        NativeLibrary.InstallFileToNandResult.Success -> {
+                            installSuccess += 1
                         }
-                    }
-                    withContext(Dispatchers.Main) {
-                        val separator = System.getProperty("line.separator") ?: "\n"
-                        val installResult = StringBuilder()
-                        if (installSuccess > 0) {
-                            installResult.append(
-                                getString(
-                                    R.string.install_game_content_success_install,
-                                    installSuccess
-                                )
-                            )
-                            installResult.append(separator)
+
+                        NativeLibrary.InstallFileToNandResult.SuccessFileOverwritten -> {
+                            installOverwrite += 1
                         }
-                        if (installOverwrite > 0) {
-                            installResult.append(
-                                getString(
-                                    R.string.install_game_content_success_overwrite,
-                                    installOverwrite
-                                )
-                            )
-                            installResult.append(separator)
+
+                        NativeLibrary.InstallFileToNandResult.ErrorBaseGame -> {
+                            errorBaseGame += 1
                         }
-                        errorTotal = errorBaseGame + errorExtension + errorOther
-                        if (errorTotal > 0) {
-                            installResult.append(separator)
-                            installResult.append(
-                                getString(
-                                    R.string.install_game_content_failed_count,
-                                    errorTotal
-                                )
-                            )
-                            installResult.append(separator)
-                            if (errorBaseGame > 0) {
-                                installResult.append(separator)
-                                installResult.append(
-                                    getString(R.string.install_game_content_failure_base)
-                                )
-                                installResult.append(separator)
-                            }
-                            if (errorExtension > 0) {
-                                installResult.append(separator)
-                                installResult.append(
-                                    getString(R.string.install_game_content_failure_file_extension)
-                                )
-                                installResult.append(separator)
-                            }
-                            if (errorOther > 0) {
-                                installResult.append(
-                                    getString(R.string.install_game_content_failure_description)
-                                )
-                                installResult.append(separator)
-                            }
-                            LongMessageDialogFragment.newInstance(
-                                R.string.install_game_content_failure,
-                                installResult.toString().trim(),
-                                R.string.install_game_content_help_link
-                            ).show(supportFragmentManager, LongMessageDialogFragment.TAG)
-                        } else {
-                            LongMessageDialogFragment.newInstance(
-                                R.string.install_game_content_success,
-                                installResult.toString().trim()
-                            ).show(supportFragmentManager, LongMessageDialogFragment.TAG)
+
+                        NativeLibrary.InstallFileToNandResult.ErrorFilenameExtension -> {
+                            errorExtension += 1
+                        }
+
+                        else -> {
+                            errorOther += 1
                         }
                     }
                 }
-                return@newInstance installSuccess + installOverwrite + errorTotal
+
+                val separator = System.getProperty("line.separator") ?: "\n"
+                val installResult = StringBuilder()
+                if (installSuccess > 0) {
+                    installResult.append(
+                        getString(
+                            R.string.install_game_content_success_install,
+                            installSuccess
+                        )
+                    )
+                    installResult.append(separator)
+                }
+                if (installOverwrite > 0) {
+                    installResult.append(
+                        getString(
+                            R.string.install_game_content_success_overwrite,
+                            installOverwrite
+                        )
+                    )
+                    installResult.append(separator)
+                }
+                val errorTotal: Int = errorBaseGame + errorExtension + errorOther
+                if (errorTotal > 0) {
+                    installResult.append(separator)
+                    installResult.append(
+                        getString(
+                            R.string.install_game_content_failed_count,
+                            errorTotal
+                        )
+                    )
+                    installResult.append(separator)
+                    if (errorBaseGame > 0) {
+                        installResult.append(separator)
+                        installResult.append(
+                            getString(R.string.install_game_content_failure_base)
+                        )
+                        installResult.append(separator)
+                    }
+                    if (errorExtension > 0) {
+                        installResult.append(separator)
+                        installResult.append(
+                            getString(R.string.install_game_content_failure_file_extension)
+                        )
+                        installResult.append(separator)
+                    }
+                    if (errorOther > 0) {
+                        installResult.append(
+                            getString(R.string.install_game_content_failure_description)
+                        )
+                        installResult.append(separator)
+                    }
+                    return@newInstance MessageDialogFragment.newInstance(
+                        titleId = R.string.install_game_content_failure,
+                        descriptionString = installResult.toString().trim(),
+                        helpLinkId = R.string.install_game_content_help_link
+                    )
+                } else {
+                    return@newInstance MessageDialogFragment.newInstance(
+                        titleId = R.string.install_game_content_success,
+                        descriptionString = installResult.toString().trim()
+                    )
+                }
             }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
         }
     }

@@ -45,8 +45,8 @@ class HomeSettingAdapter(
             holder.option.onClick.invoke()
         } else {
             MessageDialogFragment.newInstance(
-                holder.option.disabledTitleId,
-                holder.option.disabledMessageId
+                titleId = holder.option.disabledTitleId,
+                descriptionId = holder.option.disabledMessageId
             ).show(activity.supportFragmentManager, MessageDialogFragment.TAG)
         }
     }
