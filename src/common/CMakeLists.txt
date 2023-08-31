@@ -26,12 +26,11 @@ add_library(common STATIC
     assert.h
     atomic_helpers.h
     atomic_ops.h
-    detached_tasks.cpp
-    detached_tasks.h
     bit_cast.h
     bit_field.h
     bit_set.h
     bit_util.h
+    bounded_threadsafe_queue.h
     cityhash.cpp
     cityhash.h
     common_funcs.h
@@ -41,6 +40,8 @@ add_library(common STATIC
     container_hash.h
     demangle.cpp
     demangle.h
+    detached_tasks.cpp
+    detached_tasks.h
     div_ceil.h
     dynamic_library.cpp
     dynamic_library.h

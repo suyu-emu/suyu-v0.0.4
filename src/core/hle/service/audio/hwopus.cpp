@@ -1,420 +1,506 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <chrono>
-#include <cstring>
 #include <memory>
 #include <vector>
 
-#include <opus.h>
-#include <opus_multistream.h>
-
+#include "audio_core/opus/decoder.h"
+#include "audio_core/opus/parameters.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/scratch_buffer.h"
+#include "core/core.h"
 #include "core/hle/service/audio/hwopus.h"
 #include "core/hle/service/ipc_helpers.h"
 
 namespace Service::Audio {
-namespace {
-struct OpusDeleter {
-    void operator()(OpusMSDecoder* ptr) const {
-        opus_multistream_decoder_destroy(ptr);
-    }
-};
+using namespace AudioCore::OpusDecoder;
 
-using OpusDecoderPtr = std::unique_ptr<OpusMSDecoder, OpusDeleter>;
-
-struct OpusPacketHeader {
-    // Packet size in bytes.
-    u32_be size;
-    // Indicates the final range of the codec's entropy coder.
-    u32_be final_range;
-};
-static_assert(sizeof(OpusPacketHeader) == 0x8, "OpusHeader is an invalid size");
-
-class OpusDecoderState {
+class IHardwareOpusDecoder final : public ServiceFramework<IHardwareOpusDecoder> {
 public:
-    /// Describes extra behavior that may be asked of the decoding context.
-    enum class ExtraBehavior {
-        /// No extra behavior.
-        None,
-
-        /// Resets the decoder context back to a freshly initialized state.
-        ResetContext,
-    };
-
-    enum class PerfTime {
-        Disabled,
-        Enabled,
-    };
-
-    explicit OpusDecoderState(OpusDecoderPtr decoder_, u32 sample_rate_, u32 channel_count_)
-        : decoder{std::move(decoder_)}, sample_rate{sample_rate_}, channel_count{channel_count_} {}
-
-    // Decodes interleaved Opus packets. Optionally allows reporting time taken to
-    // perform the decoding, as well as any relevant extra behavior.
-    void DecodeInterleaved(HLERequestContext& ctx, PerfTime perf_time,
-                           ExtraBehavior extra_behavior) {
-        if (perf_time == PerfTime::Disabled) {
-            DecodeInterleavedHelper(ctx, nullptr, extra_behavior);
-        } else {
-            u64 performance = 0;
-            DecodeInterleavedHelper(ctx, &performance, extra_behavior);
-        }
-    }
-
-private:
-    void DecodeInterleavedHelper(HLERequestContext& ctx, u64* performance,
-                                 ExtraBehavior extra_behavior) {
-        u32 consumed = 0;
-        u32 sample_count = 0;
-        samples.resize_destructive(ctx.GetWriteBufferNumElements<opus_int16>());
-
-        if (extra_behavior == ExtraBehavior::ResetContext) {
-            ResetDecoderContext();
-        }
-
-        if (!DecodeOpusData(consumed, sample_count, ctx.ReadBuffer(), samples, performance)) {
-            LOG_ERROR(Audio, "Failed to decode opus data");
-            IPC::ResponseBuilder rb{ctx, 2};
-            // TODO(ogniK): Use correct error code
-            rb.Push(ResultUnknown);
-            return;
-        }
-
-        const u32 param_size = performance != nullptr ? 6 : 4;
-        IPC::ResponseBuilder rb{ctx, param_size};
-        rb.Push(ResultSuccess);
-        rb.Push<u32>(consumed);
-        rb.Push<u32>(sample_count);
-        if (performance) {
-            rb.Push<u64>(*performance);
-        }
-        ctx.WriteBuffer(samples);
-    }
-
-    bool DecodeOpusData(u32& consumed, u32& sample_count, std::span<const u8> input,
-                        std::span<opus_int16> output, u64* out_performance_time) const {
-        const auto start_time = std::chrono::steady_clock::now();
-        const std::size_t raw_output_sz = output.size() * sizeof(opus_int16);
-        if (sizeof(OpusPacketHeader) > input.size()) {
-            LOG_ERROR(Audio, "Input is smaller than the header size, header_sz={}, input_sz={}",
-                      sizeof(OpusPacketHeader), input.size());
-            return false;
-        }
-
-        OpusPacketHeader hdr{};
-        std::memcpy(&hdr, input.data(), sizeof(OpusPacketHeader));
-        if (sizeof(OpusPacketHeader) + static_cast<u32>(hdr.size) > input.size()) {
-            LOG_ERROR(Audio, "Input does not fit in the opus header size. data_sz={}, input_sz={}",
-                      sizeof(OpusPacketHeader) + static_cast<u32>(hdr.size), input.size());
-            return false;
-        }
-
-        const auto frame = input.data() + sizeof(OpusPacketHeader);
-        const auto decoded_sample_count = opus_packet_get_nb_samples(
-            frame, static_cast<opus_int32>(input.size() - sizeof(OpusPacketHeader)),
-            static_cast<opus_int32>(sample_rate));
-        if (decoded_sample_count * channel_count * sizeof(u16) > raw_output_sz) {
-            LOG_ERROR(
-                Audio,
-                "Decoded data does not fit into the output data, decoded_sz={}, raw_output_sz={}",
-                decoded_sample_count * channel_count * sizeof(u16), raw_output_sz);
-            return false;
-        }
-
-        const int frame_size = (static_cast<int>(raw_output_sz / sizeof(s16) / channel_count));
-        const auto out_sample_count =
-            opus_multistream_decode(decoder.get(), frame, hdr.size, output.data(), frame_size, 0);
-        if (out_sample_count < 0) {
-            LOG_ERROR(Audio,
-                      "Incorrect sample count received from opus_decode, "
-                      "output_sample_count={}, frame_size={}, data_sz_from_hdr={}",
-                      out_sample_count, frame_size, static_cast<u32>(hdr.size));
-            return false;
-        }
-
-        const auto end_time = std::chrono::steady_clock::now() - start_time;
-        sample_count = out_sample_count;
-        consumed = static_cast<u32>(sizeof(OpusPacketHeader) + hdr.size);
-        if (out_performance_time != nullptr) {
-            *out_performance_time =
-                std::chrono::duration_cast<std::chrono::milliseconds>(end_time).count();
-        }
-
-        return true;
-    }
-
-    void ResetDecoderContext() {
-        ASSERT(decoder != nullptr);
-
-        opus_multistream_decoder_ctl(decoder.get(), OPUS_RESET_STATE);
-    }
-
-    OpusDecoderPtr decoder;
-    u32 sample_rate;
-    u32 channel_count;
-    Common::ScratchBuffer<opus_int16> samples;
-};
-
-class IHardwareOpusDecoderManager final : public ServiceFramework<IHardwareOpusDecoderManager> {
-public:
-    explicit IHardwareOpusDecoderManager(Core::System& system_, OpusDecoderState decoder_state_)
-        : ServiceFramework{system_, "IHardwareOpusDecoderManager"}, decoder_state{
-                                                                        std::move(decoder_state_)} {
+    explicit IHardwareOpusDecoder(Core::System& system_, HardwareOpus& hardware_opus)
+        : ServiceFramework{system_, "IHardwareOpusDecoder"},
+          impl{std::make_unique<AudioCore::OpusDecoder::OpusDecoder>(system_, hardware_opus)} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &IHardwareOpusDecoderManager::DecodeInterleavedOld, "DecodeInterleavedOld"},
-            {1, nullptr, "SetContext"},
-            {2, nullptr, "DecodeInterleavedForMultiStreamOld"},
-            {3, nullptr, "SetContextForMultiStream"},
-            {4, &IHardwareOpusDecoderManager::DecodeInterleavedWithPerfOld, "DecodeInterleavedWithPerfOld"},
-            {5, nullptr, "DecodeInterleavedForMultiStreamWithPerfOld"},
-            {6, &IHardwareOpusDecoderManager::DecodeInterleaved, "DecodeInterleavedWithPerfAndResetOld"},
-            {7, nullptr, "DecodeInterleavedForMultiStreamWithPerfAndResetOld"},
-            {8, &IHardwareOpusDecoderManager::DecodeInterleaved, "DecodeInterleaved"},
-            {9, &IHardwareOpusDecoderManager::DecodeInterleavedForMultiStream, "DecodeInterleavedForMultiStream"},
+            {0, &IHardwareOpusDecoder::DecodeInterleavedOld, "DecodeInterleavedOld"},
+            {1, &IHardwareOpusDecoder::SetContext, "SetContext"},
+            {2, &IHardwareOpusDecoder::DecodeInterleavedForMultiStreamOld, "DecodeInterleavedForMultiStreamOld"},
+            {3, &IHardwareOpusDecoder::SetContextForMultiStream, "SetContextForMultiStream"},
+            {4, &IHardwareOpusDecoder::DecodeInterleavedWithPerfOld, "DecodeInterleavedWithPerfOld"},
+            {5, &IHardwareOpusDecoder::DecodeInterleavedForMultiStreamWithPerfOld, "DecodeInterleavedForMultiStreamWithPerfOld"},
+            {6, &IHardwareOpusDecoder::DecodeInterleavedWithPerfAndResetOld, "DecodeInterleavedWithPerfAndResetOld"},
+            {7, &IHardwareOpusDecoder::DecodeInterleavedForMultiStreamWithPerfAndResetOld, "DecodeInterleavedForMultiStreamWithPerfAndResetOld"},
+            {8, &IHardwareOpusDecoder::DecodeInterleaved, "DecodeInterleaved"},
+            {9, &IHardwareOpusDecoder::DecodeInterleavedForMultiStream, "DecodeInterleavedForMultiStream"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
     }
 
+    Result Initialize(OpusParametersEx& params, Kernel::KTransferMemory* transfer_memory,
+                      u64 transfer_memory_size) {
+        return impl->Initialize(params, transfer_memory, transfer_memory_size);
+    }
+
+    Result Initialize(OpusMultiStreamParametersEx& params, Kernel::KTransferMemory* transfer_memory,
+                      u64 transfer_memory_size) {
+        return impl->Initialize(params, transfer_memory, transfer_memory_size);
+    }
+
 private:
     void DecodeInterleavedOld(HLERequestContext& ctx) {
-        LOG_DEBUG(Audio, "called");
+        IPC::RequestParser rp{ctx};
 
-        decoder_state.DecodeInterleaved(ctx, OpusDecoderState::PerfTime::Disabled,
-                                        OpusDecoderState::ExtraBehavior::None);
+        auto input_data{ctx.ReadBuffer(0)};
+        output_data.resize_destructive(ctx.GetWriteBufferSize());
+
+        u32 size{};
+        u32 sample_count{};
+        auto result =
+            impl->DecodeInterleaved(&size, nullptr, &sample_count, input_data, output_data, false);
+
+        LOG_DEBUG(Service_Audio, "bytes read 0x{:X} samples generated {}", size, sample_count);
+
+        ctx.WriteBuffer(output_data);
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(result);
+        rb.Push(size);
+        rb.Push(sample_count);
+    }
+
+    void SetContext(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        LOG_DEBUG(Service_Audio, "called");
+
+        auto input_data{ctx.ReadBuffer(0)};
+        auto result = impl->SetContext(input_data);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+    }
+
+    void DecodeInterleavedForMultiStreamOld(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        auto input_data{ctx.ReadBuffer(0)};
+        output_data.resize_destructive(ctx.GetWriteBufferSize());
+
+        u32 size{};
+        u32 sample_count{};
+        auto result = impl->DecodeInterleavedForMultiStream(&size, nullptr, &sample_count,
+                                                            input_data, output_data, false);
+
+        LOG_DEBUG(Service_Audio, "bytes read 0x{:X} samples generated {}", size, sample_count);
+
+        ctx.WriteBuffer(output_data);
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(result);
+        rb.Push(size);
+        rb.Push(sample_count);
+    }
+
+    void SetContextForMultiStream(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        LOG_DEBUG(Service_Audio, "called");
+
+        auto input_data{ctx.ReadBuffer(0)};
+        auto result = impl->SetContext(input_data);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
     }
 
     void DecodeInterleavedWithPerfOld(HLERequestContext& ctx) {
-        LOG_DEBUG(Audio, "called");
+        IPC::RequestParser rp{ctx};
 
-        decoder_state.DecodeInterleaved(ctx, OpusDecoderState::PerfTime::Enabled,
-                                        OpusDecoderState::ExtraBehavior::None);
+        auto input_data{ctx.ReadBuffer(0)};
+        output_data.resize_destructive(ctx.GetWriteBufferSize());
+
+        u32 size{};
+        u32 sample_count{};
+        u64 time_taken{};
+        auto result = impl->DecodeInterleaved(&size, &time_taken, &sample_count, input_data,
+                                              output_data, false);
+
+        LOG_DEBUG(Service_Audio, "bytes read 0x{:X} samples generated {} time taken {}", size,
+                  sample_count, time_taken);
+
+        ctx.WriteBuffer(output_data);
+
+        IPC::ResponseBuilder rb{ctx, 6};
+        rb.Push(result);
+        rb.Push(size);
+        rb.Push(sample_count);
+        rb.Push(time_taken);
+    }
+
+    void DecodeInterleavedForMultiStreamWithPerfOld(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        auto input_data{ctx.ReadBuffer(0)};
+        output_data.resize_destructive(ctx.GetWriteBufferSize());
+
+        u32 size{};
+        u32 sample_count{};
+        u64 time_taken{};
+        auto result = impl->DecodeInterleavedForMultiStream(&size, &time_taken, &sample_count,
+                                                            input_data, output_data, false);
+
+        LOG_DEBUG(Service_Audio, "bytes read 0x{:X} samples generated {} time taken {}", size,
+                  sample_count, time_taken);
+
+        ctx.WriteBuffer(output_data);
+
+        IPC::ResponseBuilder rb{ctx, 6};
+        rb.Push(result);
+        rb.Push(size);
+        rb.Push(sample_count);
+        rb.Push(time_taken);
+    }
+
+    void DecodeInterleavedWithPerfAndResetOld(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        auto reset{rp.Pop<bool>()};
+
+        auto input_data{ctx.ReadBuffer(0)};
+        output_data.resize_destructive(ctx.GetWriteBufferSize());
+
+        u32 size{};
+        u32 sample_count{};
+        u64 time_taken{};
+        auto result = impl->DecodeInterleaved(&size, &time_taken, &sample_count, input_data,
+                                              output_data, reset);
+
+        LOG_DEBUG(Service_Audio, "reset {} bytes read 0x{:X} samples generated {} time taken {}",
+                  reset, size, sample_count, time_taken);
+
+        ctx.WriteBuffer(output_data);
+
+        IPC::ResponseBuilder rb{ctx, 6};
+        rb.Push(result);
+        rb.Push(size);
+        rb.Push(sample_count);
+        rb.Push(time_taken);
+    }
+
+    void DecodeInterleavedForMultiStreamWithPerfAndResetOld(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        auto reset{rp.Pop<bool>()};
+
+        auto input_data{ctx.ReadBuffer(0)};
+        output_data.resize_destructive(ctx.GetWriteBufferSize());
+
+        u32 size{};
+        u32 sample_count{};
+        u64 time_taken{};
+        auto result = impl->DecodeInterleavedForMultiStream(&size, &time_taken, &sample_count,
+                                                            input_data, output_data, reset);
+
+        LOG_DEBUG(Service_Audio, "reset {} bytes read 0x{:X} samples generated {} time taken {}",
+                  reset, size, sample_count, time_taken);
+
+        ctx.WriteBuffer(output_data);
+
+        IPC::ResponseBuilder rb{ctx, 6};
+        rb.Push(result);
+        rb.Push(size);
+        rb.Push(sample_count);
+        rb.Push(time_taken);
     }
 
     void DecodeInterleaved(HLERequestContext& ctx) {
-        LOG_DEBUG(Audio, "called");
-
         IPC::RequestParser rp{ctx};
-        const auto extra_behavior = rp.Pop<bool>() ? OpusDecoderState::ExtraBehavior::ResetContext
-                                                   : OpusDecoderState::ExtraBehavior::None;
 
-        decoder_state.DecodeInterleaved(ctx, OpusDecoderState::PerfTime::Enabled, extra_behavior);
+        auto reset{rp.Pop<bool>()};
+
+        auto input_data{ctx.ReadBuffer(0)};
+        output_data.resize_destructive(ctx.GetWriteBufferSize());
+
+        u32 size{};
+        u32 sample_count{};
+        u64 time_taken{};
+        auto result = impl->DecodeInterleaved(&size, &time_taken, &sample_count, input_data,
+                                              output_data, reset);
+
+        LOG_DEBUG(Service_Audio, "reset {} bytes read 0x{:X} samples generated {} time taken {}",
+                  reset, size, sample_count, time_taken);
+
+        ctx.WriteBuffer(output_data);
+
+        IPC::ResponseBuilder rb{ctx, 6};
+        rb.Push(result);
+        rb.Push(size);
+        rb.Push(sample_count);
+        rb.Push(time_taken);
     }
 
     void DecodeInterleavedForMultiStream(HLERequestContext& ctx) {
-        LOG_DEBUG(Audio, "called");
-
         IPC::RequestParser rp{ctx};
-        const auto extra_behavior = rp.Pop<bool>() ? OpusDecoderState::ExtraBehavior::ResetContext
-                                                   : OpusDecoderState::ExtraBehavior::None;
 
-        decoder_state.DecodeInterleaved(ctx, OpusDecoderState::PerfTime::Enabled, extra_behavior);
+        auto reset{rp.Pop<bool>()};
+
+        auto input_data{ctx.ReadBuffer(0)};
+        output_data.resize_destructive(ctx.GetWriteBufferSize());
+
+        u32 size{};
+        u32 sample_count{};
+        u64 time_taken{};
+        auto result = impl->DecodeInterleavedForMultiStream(&size, &time_taken, &sample_count,
+                                                            input_data, output_data, reset);
+
+        LOG_DEBUG(Service_Audio, "reset {} bytes read 0x{:X} samples generated {} time taken {}",
+                  reset, size, sample_count, time_taken);
+
+        ctx.WriteBuffer(output_data);
+
+        IPC::ResponseBuilder rb{ctx, 6};
+        rb.Push(result);
+        rb.Push(size);
+        rb.Push(sample_count);
+        rb.Push(time_taken);
     }
 
-    OpusDecoderState decoder_state;
+    std::unique_ptr<AudioCore::OpusDecoder::OpusDecoder> impl;
+    Common::ScratchBuffer<u8> output_data;
 };
-
-std::size_t WorkerBufferSize(u32 channel_count) {
-    ASSERT_MSG(channel_count == 1 || channel_count == 2, "Invalid channel count");
-    constexpr int num_streams = 1;
-    const int num_stereo_streams = channel_count == 2 ? 1 : 0;
-    return opus_multistream_decoder_get_size(num_streams, num_stereo_streams);
-}
-
-// Creates the mapping table that maps the input channels to the particular
-// output channels. In the stereo case, we map the left and right input channels
-// to the left and right output channels respectively.
-//
-// However, in the monophonic case, we only map the one available channel
-// to the sole output channel. We specify 255 for the would-be right channel
-// as this is a special value defined by Opus to indicate to the decoder to
-// ignore that channel.
-std::array<u8, 2> CreateMappingTable(u32 channel_count) {
-    if (channel_count == 2) {
-        return {{0, 1}};
-    }
-
-    return {{0, 255}};
-}
-} // Anonymous namespace
-
-void HwOpus::GetWorkBufferSize(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto sample_rate = rp.Pop<u32>();
-    const auto channel_count = rp.Pop<u32>();
-
-    LOG_DEBUG(Audio, "called with sample_rate={}, channel_count={}", sample_rate, channel_count);
-
-    ASSERT_MSG(sample_rate == 48000 || sample_rate == 24000 || sample_rate == 16000 ||
-                   sample_rate == 12000 || sample_rate == 8000,
-               "Invalid sample rate");
-    ASSERT_MSG(channel_count == 1 || channel_count == 2, "Invalid channel count");
-
-    const u32 worker_buffer_sz = static_cast<u32>(WorkerBufferSize(channel_count));
-    LOG_DEBUG(Audio, "worker_buffer_sz={}", worker_buffer_sz);
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push<u32>(worker_buffer_sz);
-}
-
-void HwOpus::GetWorkBufferSizeEx(HLERequestContext& ctx) {
-    GetWorkBufferSize(ctx);
-}
-
-void HwOpus::GetWorkBufferSizeExEx(HLERequestContext& ctx) {
-    GetWorkBufferSizeEx(ctx);
-}
-
-void HwOpus::GetWorkBufferSizeForMultiStreamEx(HLERequestContext& ctx) {
-    OpusMultiStreamParametersEx param;
-    std::memcpy(&param, ctx.ReadBuffer().data(), ctx.GetReadBufferSize());
-
-    const auto sample_rate = param.sample_rate;
-    const auto channel_count = param.channel_count;
-    const auto number_streams = param.number_streams;
-    const auto number_stereo_streams = param.number_stereo_streams;
-
-    LOG_DEBUG(
-        Audio,
-        "called with sample_rate={}, channel_count={}, number_streams={}, number_stereo_streams={}",
-        sample_rate, channel_count, number_streams, number_stereo_streams);
-
-    ASSERT_MSG(sample_rate == 48000 || sample_rate == 24000 || sample_rate == 16000 ||
-                   sample_rate == 12000 || sample_rate == 8000,
-               "Invalid sample rate");
-
-    const u32 worker_buffer_sz =
-        static_cast<u32>(opus_multistream_decoder_get_size(number_streams, number_stereo_streams));
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push<u32>(worker_buffer_sz);
-}
 
 void HwOpus::OpenHardwareOpusDecoder(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto sample_rate = rp.Pop<u32>();
-    const auto channel_count = rp.Pop<u32>();
-    const auto buffer_sz = rp.Pop<u32>();
 
-    LOG_DEBUG(Audio, "called sample_rate={}, channel_count={}, buffer_size={}", sample_rate,
-              channel_count, buffer_sz);
+    auto params = rp.PopRaw<OpusParameters>();
+    auto transfer_memory_size{rp.Pop<u32>()};
+    auto transfer_memory_handle{ctx.GetCopyHandle(0)};
+    auto transfer_memory{
+        system.ApplicationProcess()->GetHandleTable().GetObject<Kernel::KTransferMemory>(
+            transfer_memory_handle)};
 
-    ASSERT_MSG(sample_rate == 48000 || sample_rate == 24000 || sample_rate == 16000 ||
-                   sample_rate == 12000 || sample_rate == 8000,
-               "Invalid sample rate");
-    ASSERT_MSG(channel_count == 1 || channel_count == 2, "Invalid channel count");
+    LOG_DEBUG(Service_Audio, "sample_rate {} channel_count {} transfer_memory_size 0x{:X}",
+              params.sample_rate, params.channel_count, transfer_memory_size);
 
-    const std::size_t worker_sz = WorkerBufferSize(channel_count);
-    ASSERT_MSG(buffer_sz >= worker_sz, "Worker buffer too large");
+    auto decoder{std::make_shared<IHardwareOpusDecoder>(system, impl.GetHardwareOpus())};
 
-    const int num_stereo_streams = channel_count == 2 ? 1 : 0;
-    const auto mapping_table = CreateMappingTable(channel_count);
-
-    int error = 0;
-    OpusDecoderPtr decoder{
-        opus_multistream_decoder_create(sample_rate, static_cast<int>(channel_count), 1,
-                                        num_stereo_streams, mapping_table.data(), &error)};
-    if (error != OPUS_OK || decoder == nullptr) {
-        LOG_ERROR(Audio, "Failed to create Opus decoder (error={}).", error);
-        IPC::ResponseBuilder rb{ctx, 2};
-        // TODO(ogniK): Use correct error code
-        rb.Push(ResultUnknown);
-        return;
-    }
+    OpusParametersEx ex{
+        .sample_rate = params.sample_rate,
+        .channel_count = params.channel_count,
+        .use_large_frame_size = false,
+    };
+    auto result = decoder->Initialize(ex, transfer_memory.GetPointerUnsafe(), transfer_memory_size);
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IHardwareOpusDecoderManager>(
-        system, OpusDecoderState{std::move(decoder), sample_rate, channel_count});
+    rb.Push(result);
+    rb.PushIpcInterface(decoder);
+}
+
+void HwOpus::GetWorkBufferSize(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    auto params = rp.PopRaw<OpusParameters>();
+
+    u64 size{};
+    auto result = impl.GetWorkBufferSize(params, size);
+
+    LOG_DEBUG(Service_Audio, "sample_rate {} channel_count {} -- returned size 0x{:X}",
+              params.sample_rate, params.channel_count, size);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(result);
+    rb.Push(size);
+}
+
+void HwOpus::OpenHardwareOpusDecoderForMultiStream(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    auto input{ctx.ReadBuffer()};
+    OpusMultiStreamParameters params;
+    std::memcpy(&params, input.data(), sizeof(OpusMultiStreamParameters));
+
+    auto transfer_memory_size{rp.Pop<u32>()};
+    auto transfer_memory_handle{ctx.GetCopyHandle(0)};
+    auto transfer_memory{
+        system.ApplicationProcess()->GetHandleTable().GetObject<Kernel::KTransferMemory>(
+            transfer_memory_handle)};
+
+    LOG_DEBUG(Service_Audio,
+              "sample_rate {} channel_count {} total_stream_count {} stereo_stream_count {} "
+              "transfer_memory_size 0x{:X}",
+              params.sample_rate, params.channel_count, params.total_stream_count,
+              params.stereo_stream_count, transfer_memory_size);
+
+    auto decoder{std::make_shared<IHardwareOpusDecoder>(system, impl.GetHardwareOpus())};
+
+    OpusMultiStreamParametersEx ex{
+        .sample_rate = params.sample_rate,
+        .channel_count = params.channel_count,
+        .total_stream_count = params.total_stream_count,
+        .stereo_stream_count = params.stereo_stream_count,
+        .use_large_frame_size = false,
+        .mappings{},
+    };
+    std::memcpy(ex.mappings.data(), params.mappings.data(), sizeof(params.mappings));
+    auto result = decoder->Initialize(ex, transfer_memory.GetPointerUnsafe(), transfer_memory_size);
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(result);
+    rb.PushIpcInterface(decoder);
+}
+
+void HwOpus::GetWorkBufferSizeForMultiStream(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    auto input{ctx.ReadBuffer()};
+    OpusMultiStreamParameters params;
+    std::memcpy(&params, input.data(), sizeof(OpusMultiStreamParameters));
+
+    u64 size{};
+    auto result = impl.GetWorkBufferSizeForMultiStream(params, size);
+
+    LOG_DEBUG(Service_Audio, "size 0x{:X}", size);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(result);
+    rb.Push(size);
 }
 
 void HwOpus::OpenHardwareOpusDecoderEx(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto sample_rate = rp.Pop<u32>();
-    const auto channel_count = rp.Pop<u32>();
 
-    LOG_DEBUG(Audio, "called sample_rate={}, channel_count={}", sample_rate, channel_count);
+    auto params = rp.PopRaw<OpusParametersEx>();
+    auto transfer_memory_size{rp.Pop<u32>()};
+    auto transfer_memory_handle{ctx.GetCopyHandle(0)};
+    auto transfer_memory{
+        system.ApplicationProcess()->GetHandleTable().GetObject<Kernel::KTransferMemory>(
+            transfer_memory_handle)};
 
-    ASSERT_MSG(sample_rate == 48000 || sample_rate == 24000 || sample_rate == 16000 ||
-                   sample_rate == 12000 || sample_rate == 8000,
-               "Invalid sample rate");
-    ASSERT_MSG(channel_count == 1 || channel_count == 2, "Invalid channel count");
+    LOG_DEBUG(Service_Audio, "sample_rate {} channel_count {} transfer_memory_size 0x{:X}",
+              params.sample_rate, params.channel_count, transfer_memory_size);
 
-    const int num_stereo_streams = channel_count == 2 ? 1 : 0;
-    const auto mapping_table = CreateMappingTable(channel_count);
+    auto decoder{std::make_shared<IHardwareOpusDecoder>(system, impl.GetHardwareOpus())};
 
-    int error = 0;
-    OpusDecoderPtr decoder{
-        opus_multistream_decoder_create(sample_rate, static_cast<int>(channel_count), 1,
-                                        num_stereo_streams, mapping_table.data(), &error)};
-    if (error != OPUS_OK || decoder == nullptr) {
-        LOG_ERROR(Audio, "Failed to create Opus decoder (error={}).", error);
-        IPC::ResponseBuilder rb{ctx, 2};
-        // TODO(ogniK): Use correct error code
-        rb.Push(ResultUnknown);
-        return;
-    }
+    auto result =
+        decoder->Initialize(params, transfer_memory.GetPointerUnsafe(), transfer_memory_size);
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IHardwareOpusDecoderManager>(
-        system, OpusDecoderState{std::move(decoder), sample_rate, channel_count});
+    rb.Push(result);
+    rb.PushIpcInterface(decoder);
+}
+
+void HwOpus::GetWorkBufferSizeEx(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    auto params = rp.PopRaw<OpusParametersEx>();
+
+    u64 size{};
+    auto result = impl.GetWorkBufferSizeEx(params, size);
+
+    LOG_DEBUG(Service_Audio, "size 0x{:X}", size);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(result);
+    rb.Push(size);
 }
 
 void HwOpus::OpenHardwareOpusDecoderForMultiStreamEx(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    auto input{ctx.ReadBuffer()};
     OpusMultiStreamParametersEx params;
-    std::memcpy(&params, ctx.ReadBuffer().data(), ctx.GetReadBufferSize());
+    std::memcpy(&params, input.data(), sizeof(OpusMultiStreamParametersEx));
 
-    const auto& sample_rate = params.sample_rate;
-    const auto& channel_count = params.channel_count;
+    auto transfer_memory_size{rp.Pop<u32>()};
+    auto transfer_memory_handle{ctx.GetCopyHandle(0)};
+    auto transfer_memory{
+        system.ApplicationProcess()->GetHandleTable().GetObject<Kernel::KTransferMemory>(
+            transfer_memory_handle)};
 
-    LOG_INFO(
-        Audio,
-        "called with sample_rate={}, channel_count={}, number_streams={}, number_stereo_streams={}",
-        sample_rate, channel_count, params.number_streams, params.number_stereo_streams);
+    LOG_DEBUG(Service_Audio,
+              "sample_rate {} channel_count {} total_stream_count {} stereo_stream_count {} "
+              "use_large_frame_size {}"
+              "transfer_memory_size 0x{:X}",
+              params.sample_rate, params.channel_count, params.total_stream_count,
+              params.stereo_stream_count, params.use_large_frame_size, transfer_memory_size);
 
-    ASSERT_MSG(sample_rate == 48000 || sample_rate == 24000 || sample_rate == 16000 ||
-                   sample_rate == 12000 || sample_rate == 8000,
-               "Invalid sample rate");
+    auto decoder{std::make_shared<IHardwareOpusDecoder>(system, impl.GetHardwareOpus())};
 
-    int error = 0;
-    OpusDecoderPtr decoder{opus_multistream_decoder_create(
-        sample_rate, static_cast<int>(channel_count), params.number_streams,
-        params.number_stereo_streams, params.channel_mappings.data(), &error)};
-    if (error != OPUS_OK || decoder == nullptr) {
-        LOG_ERROR(Audio, "Failed to create Opus decoder (error={}).", error);
-        IPC::ResponseBuilder rb{ctx, 2};
-        // TODO(ogniK): Use correct error code
-        rb.Push(ResultUnknown);
-        return;
-    }
+    auto result =
+        decoder->Initialize(params, transfer_memory.GetPointerUnsafe(), transfer_memory_size);
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IHardwareOpusDecoderManager>(
-        system, OpusDecoderState{std::move(decoder), sample_rate, channel_count});
+    rb.Push(result);
+    rb.PushIpcInterface(decoder);
 }
 
-HwOpus::HwOpus(Core::System& system_) : ServiceFramework{system_, "hwopus"} {
+void HwOpus::GetWorkBufferSizeForMultiStreamEx(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    auto input{ctx.ReadBuffer()};
+    OpusMultiStreamParametersEx params;
+    std::memcpy(&params, input.data(), sizeof(OpusMultiStreamParametersEx));
+
+    u64 size{};
+    auto result = impl.GetWorkBufferSizeForMultiStreamEx(params, size);
+
+    LOG_DEBUG(Service_Audio,
+              "sample_rate {} channel_count {} total_stream_count {} stereo_stream_count {} "
+              "use_large_frame_size {} -- returned size 0x{:X}",
+              params.sample_rate, params.channel_count, params.total_stream_count,
+              params.stereo_stream_count, params.use_large_frame_size, size);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(result);
+    rb.Push(size);
+}
+
+void HwOpus::GetWorkBufferSizeExEx(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    auto params = rp.PopRaw<OpusParametersEx>();
+
+    u64 size{};
+    auto result = impl.GetWorkBufferSizeExEx(params, size);
+
+    LOG_DEBUG(Service_Audio, "size 0x{:X}", size);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(result);
+    rb.Push(size);
+}
+
+void HwOpus::GetWorkBufferSizeForMultiStreamExEx(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    auto input{ctx.ReadBuffer()};
+    OpusMultiStreamParametersEx params;
+    std::memcpy(&params, input.data(), sizeof(OpusMultiStreamParametersEx));
+
+    u64 size{};
+    auto result = impl.GetWorkBufferSizeForMultiStreamExEx(params, size);
+
+    LOG_DEBUG(Service_Audio, "size 0x{:X}", size);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(result);
+    rb.Push(size);
+}
+
+HwOpus::HwOpus(Core::System& system_)
+    : ServiceFramework{system_, "hwopus"}, system{system_}, impl{system} {
     static const FunctionInfo functions[] = {
         {0, &HwOpus::OpenHardwareOpusDecoder, "OpenHardwareOpusDecoder"},
         {1, &HwOpus::GetWorkBufferSize, "GetWorkBufferSize"},
-        {2, nullptr, "OpenOpusDecoderForMultiStream"},
-        {3, nullptr, "GetWorkBufferSizeForMultiStream"},
+        {2, &HwOpus::OpenHardwareOpusDecoderForMultiStream, "OpenOpusDecoderForMultiStream"},
+        {3, &HwOpus::GetWorkBufferSizeForMultiStream, "GetWorkBufferSizeForMultiStream"},
         {4, &HwOpus::OpenHardwareOpusDecoderEx, "OpenHardwareOpusDecoderEx"},
         {5, &HwOpus::GetWorkBufferSizeEx, "GetWorkBufferSizeEx"},
         {6, &HwOpus::OpenHardwareOpusDecoderForMultiStreamEx,
          "OpenHardwareOpusDecoderForMultiStreamEx"},
         {7, &HwOpus::GetWorkBufferSizeForMultiStreamEx, "GetWorkBufferSizeForMultiStreamEx"},
         {8, &HwOpus::GetWorkBufferSizeExEx, "GetWorkBufferSizeExEx"},
-        {9, nullptr, "GetWorkBufferSizeForMultiStreamExEx"},
+        {9, &HwOpus::GetWorkBufferSizeForMultiStreamExEx, "GetWorkBufferSizeForMultiStreamExEx"},
     };
     RegisterHandlers(functions);
 }

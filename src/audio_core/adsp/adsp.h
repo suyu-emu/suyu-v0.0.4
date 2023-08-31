@@ -4,6 +4,7 @@
 #pragma once
 
 #include "audio_core/adsp/apps/audio_renderer/audio_renderer.h"
+#include "audio_core/adsp/apps/opus/opus_decoder.h"
 #include "common/common_types.h"
 
 namespace Core {
@@ -40,10 +41,12 @@ public:
     ~ADSP() = default;
 
     AudioRenderer::AudioRenderer& AudioRenderer();
+    OpusDecoder::OpusDecoder& OpusDecoder();
 
 private:
     /// AudioRenderer app
     std::unique_ptr<AudioRenderer::AudioRenderer> audio_renderer{};
+    std::unique_ptr<OpusDecoder::OpusDecoder> opus_decoder{};
 };
 
 } // namespace ADSP

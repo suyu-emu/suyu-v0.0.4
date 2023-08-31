@@ -14,13 +14,12 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 
-MICROPROFILE_DEFINE(Audio_Renderer, "Audio", "DSP", MP_RGB(60, 19, 97));
+MICROPROFILE_DEFINE(Audio_Renderer, "Audio", "DSP_AudioRenderer", MP_RGB(60, 19, 97));
 
 namespace AudioCore::ADSP::AudioRenderer {
 
-AudioRenderer::AudioRenderer(Core::System& system_, Core::Memory::Memory& memory_,
-                             Sink::Sink& sink_)
-    : system{system_}, memory{memory_}, sink{sink_} {}
+AudioRenderer::AudioRenderer(Core::System& system_, Sink::Sink& sink_)
+    : system{system_}, sink{sink_} {}
 
 AudioRenderer::~AudioRenderer() {
     Stop();
@@ -33,8 +32,8 @@ void AudioRenderer::Start() {
 
     main_thread = std::jthread([this](std::stop_token stop_token) { Main(stop_token); });
 
-    mailbox.Send(Direction::DSP, {Message::InitializeOK, {}});
-    if (mailbox.Receive(Direction::Host).msg != Message::InitializeOK) {
+    mailbox.Send(Direction::DSP, Message::InitializeOK);
+    if (mailbox.Receive(Direction::Host) != Message::InitializeOK) {
         LOG_ERROR(Service_Audio, "Host Audio Renderer -- Failed to receive shutdown "
                                  "message response from ADSP!");
         return;
@@ -47,8 +46,8 @@ void AudioRenderer::Stop() {
         return;
     }
 
-    mailbox.Send(Direction::DSP, {Message::Shutdown, {}});
-    if (mailbox.Receive(Direction::Host).msg != Message::Shutdown) {
+    mailbox.Send(Direction::DSP, Message::Shutdown);
+    if (mailbox.Receive(Direction::Host) != Message::Shutdown) {
         LOG_ERROR(Service_Audio, "Host Audio Renderer -- Failed to receive shutdown "
                                  "message response from ADSP!");
     }
@@ -67,25 +66,25 @@ void AudioRenderer::Stop() {
 
 void AudioRenderer::Signal() {
     signalled_tick = system.CoreTiming().GetGlobalTimeNs().count();
-    Send(Direction::DSP, {Message::Render, {}});
+    Send(Direction::DSP, Message::Render);
 }
 
 void AudioRenderer::Wait() {
-    auto received = Receive(Direction::Host);
-    if (received.msg != Message::RenderResponse) {
+    auto msg = Receive(Direction::Host);
+    if (msg != Message::RenderResponse) {
         LOG_ERROR(Service_Audio,
                   "Did not receive the expected render response from the AudioRenderer! Expected "
                   "{}, got {}",
-                  Message::RenderResponse, received.msg);
+                  Message::RenderResponse, msg);
     }
 }
 
-void AudioRenderer::Send(Direction dir, MailboxMessage message) {
+void AudioRenderer::Send(Direction dir, u32 message) {
     mailbox.Send(dir, std::move(message));
 }
 
-MailboxMessage AudioRenderer::Receive(Direction dir, bool block) {
-    return mailbox.Receive(dir, block);
+u32 AudioRenderer::Receive(Direction dir) {
+    return mailbox.Receive(dir);
 }
 
 void AudioRenderer::SetCommandBuffer(s32 session_id, CpuAddr buffer, u64 size, u64 time_limit,
@@ -120,7 +119,7 @@ void AudioRenderer::CreateSinkStreams() {
 }
 
 void AudioRenderer::Main(std::stop_token stop_token) {
-    static constexpr char name[]{"AudioRenderer"};
+    static constexpr char name[]{"DSP_AudioRenderer_Main"};
     MicroProfileOnThreadCreate(name);
     Common::SetCurrentThreadName(name);
     Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
@@ -128,28 +127,28 @@ void AudioRenderer::Main(std::stop_token stop_token) {
     // TODO: Create buffer map/unmap thread + mailbox
     // TODO: Create gMix devices, initialize them here
 
-    if (mailbox.Receive(Direction::DSP).msg != Message::InitializeOK) {
+    if (mailbox.Receive(Direction::DSP) != Message::InitializeOK) {
         LOG_ERROR(Service_Audio,
                   "ADSP Audio Renderer -- Failed to receive initialize message from host!");
         return;
     }
 
-    mailbox.Send(Direction::Host, {Message::InitializeOK, {}});
+    mailbox.Send(Direction::Host, Message::InitializeOK);
 
     // 0.12 seconds (2,304,000 / 19,200,000)
     constexpr u64 max_process_time{2'304'000ULL};
 
     while (!stop_token.stop_requested()) {
-        auto received{mailbox.Receive(Direction::DSP)};
-        switch (received.msg) {
+        auto msg{mailbox.Receive(Direction::DSP)};
+        switch (msg) {
         case Message::Shutdown:
-            mailbox.Send(Direction::Host, {Message::Shutdown, {}});
+            mailbox.Send(Direction::Host, Message::Shutdown);
             return;
 
         case Message::Render: {
             if (system.IsShuttingDown()) [[unlikely]] {
                 std::this_thread::sleep_for(std::chrono::milliseconds(5));
-                mailbox.Send(Direction::Host, {Message::RenderResponse, {}});
+                mailbox.Send(Direction::Host, Message::RenderResponse);
                 continue;
             }
             std::array<bool, MaxRendererSessions> buffers_reset{};
@@ -205,13 +204,12 @@ void AudioRenderer::Main(std::stop_token stop_token) {
                 }
             }
 
-            mailbox.Send(Direction::Host, {Message::RenderResponse, {}});
+            mailbox.Send(Direction::Host, Message::RenderResponse);
         } break;
 
         default:
             LOG_WARNING(Service_Audio,
-                        "ADSP AudioRenderer received an invalid message, msg={:02X}!",
-                        received.msg);
+                        "ADSP AudioRenderer received an invalid message, msg={:02X}!", msg);
             break;
         }
     }
