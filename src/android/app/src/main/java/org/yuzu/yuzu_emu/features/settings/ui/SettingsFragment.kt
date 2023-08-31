@@ -13,11 +13,15 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.transition.MaterialSharedAxis
+import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsBinding
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
@@ -51,6 +55,8 @@ class SettingsFragment : Fragment() {
         return binding.root
     }
 
+    // This is using the correct scope, lint is just acting up
+    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         settingsAdapter = SettingsAdapter(this, requireContext())
         presenter = SettingsFragmentPresenter(
@@ -75,24 +81,27 @@ class SettingsFragment : Fragment() {
             settingsViewModel.setShouldNavigateBack(true)
         }
 
-        settingsViewModel.toolbarTitle.observe(viewLifecycleOwner) {
-            if (it.isNotEmpty()) binding.toolbarSettingsLayout.title = it
-        }
-
-        settingsViewModel.shouldReloadSettingsList.observe(viewLifecycleOwner) {
-            if (it) {
-                settingsViewModel.setShouldReloadSettingsList(false)
-                presenter.loadSettingsList()
+        viewLifecycleOwner.lifecycleScope.apply {
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    settingsViewModel.shouldReloadSettingsList.collectLatest {
+                        if (it) {
+                            settingsViewModel.setShouldReloadSettingsList(false)
+                            presenter.loadSettingsList()
+                        }
+                    }
+                }
             }
-        }
-
-        settingsViewModel.isUsingSearch.observe(viewLifecycleOwner) {
-            if (it) {
-                reenterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
-                exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
-            } else {
-                reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
-                exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+            launch {
+                settingsViewModel.isUsingSearch.collectLatest {
+                    if (it) {
+                        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
+                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
+                    } else {
+                        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
+                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+                    }
+                }
             }
         }
 

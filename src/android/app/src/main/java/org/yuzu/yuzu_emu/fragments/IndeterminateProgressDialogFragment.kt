@@ -9,8 +9,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.model.TaskViewModel
 
@@ -28,21 +32,27 @@ class IndeterminateProgressDialogFragment : DialogFragment() {
             .create()
         dialog.setCanceledOnTouchOutside(false)
 
-        taskViewModel.isComplete.observe(this) { complete ->
-            if (complete) {
-                dialog.dismiss()
-                when (val result = taskViewModel.result.value) {
-                    is String -> Toast.makeText(requireContext(), result, Toast.LENGTH_LONG).show()
-                    is MessageDialogFragment -> result.show(
-                        requireActivity().supportFragmentManager,
-                        MessageDialogFragment.TAG
-                    )
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                taskViewModel.isComplete.collect {
+                    if (it) {
+                        dialog.dismiss()
+                        when (val result = taskViewModel.result.value) {
+                            is String -> Toast.makeText(requireContext(), result, Toast.LENGTH_LONG)
+                                .show()
+
+                            is MessageDialogFragment -> result.show(
+                                requireActivity().supportFragmentManager,
+                                MessageDialogFragment.TAG
+                            )
+                        }
+                        taskViewModel.clear()
+                    }
                 }
-                taskViewModel.clear()
             }
         }
 
-        if (taskViewModel.isRunning.value == false) {
+        if (!taskViewModel.isRunning.value) {
             taskViewModel.runTask()
         }
         return dialog

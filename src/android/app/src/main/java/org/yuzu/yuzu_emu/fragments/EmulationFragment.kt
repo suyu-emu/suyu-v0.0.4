@@ -39,6 +39,7 @@ import androidx.window.layout.WindowLayoutInfo
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -129,6 +130,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         return binding.root
     }
 
+    // This is using the correct scope, lint is just acting up
+    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.surfaceEmulation.holder.addCallback(this)
         binding.showFpsText.setTextColor(Color.YELLOW)
@@ -205,59 +208,80 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
         )
 
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                WindowInfoTracker.getOrCreate(requireContext())
-                    .windowLayoutInfo(requireActivity())
-                    .collect { updateFoldableLayout(requireActivity() as EmulationActivity, it) }
-            }
-        }
-
         GameIconUtils.loadGameIcon(game, binding.loadingImage)
         binding.loadingTitle.text = game.title
         binding.loadingTitle.isSelected = true
         binding.loadingText.isSelected = true
 
-        emulationViewModel.shaderProgress.observe(viewLifecycleOwner) {
-            if (it > 0 && it != emulationViewModel.totalShaders.value!!) {
-                binding.loadingProgressIndicator.isIndeterminate = false
-
-                if (it < binding.loadingProgressIndicator.max) {
-                    binding.loadingProgressIndicator.progress = it
+        viewLifecycleOwner.lifecycleScope.apply {
+            launch {
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    WindowInfoTracker.getOrCreate(requireContext())
+                        .windowLayoutInfo(requireActivity())
+                        .collect {
+                            updateFoldableLayout(requireActivity() as EmulationActivity, it)
+                        }
                 }
             }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    emulationViewModel.shaderProgress.collectLatest {
+                        if (it > 0 && it != emulationViewModel.totalShaders.value) {
+                            binding.loadingProgressIndicator.isIndeterminate = false
 
-            if (it == emulationViewModel.totalShaders.value!!) {
-                binding.loadingText.setText(R.string.loading)
-                binding.loadingProgressIndicator.isIndeterminate = true
+                            if (it < binding.loadingProgressIndicator.max) {
+                                binding.loadingProgressIndicator.progress = it
+                            }
+                        }
+
+                        if (it == emulationViewModel.totalShaders.value) {
+                            binding.loadingText.setText(R.string.loading)
+                            binding.loadingProgressIndicator.isIndeterminate = true
+                        }
+                    }
+                }
             }
-        }
-        emulationViewModel.totalShaders.observe(viewLifecycleOwner) {
-            binding.loadingProgressIndicator.max = it
-        }
-        emulationViewModel.shaderMessage.observe(viewLifecycleOwner) {
-            if (it.isNotEmpty()) {
-                binding.loadingText.text = it
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    emulationViewModel.totalShaders.collectLatest {
+                        binding.loadingProgressIndicator.max = it
+                    }
+                }
             }
-        }
-
-        emulationViewModel.emulationStarted.observe(viewLifecycleOwner) { started ->
-            if (started) {
-                binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
-                ViewUtils.showView(binding.surfaceInputOverlay)
-                ViewUtils.hideView(binding.loadingIndicator)
-
-                // Setup overlay
-                updateShowFpsOverlay()
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    emulationViewModel.shaderMessage.collectLatest {
+                        if (it.isNotEmpty()) {
+                            binding.loadingText.text = it
+                        }
+                    }
+                }
             }
-        }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    emulationViewModel.emulationStarted.collectLatest {
+                        if (it) {
+                            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+                            ViewUtils.showView(binding.surfaceInputOverlay)
+                            ViewUtils.hideView(binding.loadingIndicator)
 
-        emulationViewModel.isEmulationStopping.observe(viewLifecycleOwner) {
-            if (it) {
-                binding.loadingText.setText(R.string.shutting_down)
-                ViewUtils.showView(binding.loadingIndicator)
-                ViewUtils.hideView(binding.inputContainer)
-                ViewUtils.hideView(binding.showFpsText)
+                            // Setup overlay
+                            updateShowFpsOverlay()
+                        }
+                    }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    emulationViewModel.isEmulationStopping.collectLatest {
+                        if (it) {
+                            binding.loadingText.setText(R.string.shutting_down)
+                            ViewUtils.showView(binding.loadingIndicator)
+                            ViewUtils.hideView(binding.inputContainer)
+                            ViewUtils.hideView(binding.showFpsText)
+                        }
+                    }
+                }
             }
         }
     }
@@ -274,9 +298,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 }
             }
         } else {
-            if (EmulationMenuSettings.showOverlay &&
-                emulationViewModel.emulationStarted.value == true
-            ) {
+            if (EmulationMenuSettings.showOverlay && emulationViewModel.emulationStarted.value) {
                 binding.surfaceInputOverlay.post {
                     binding.surfaceInputOverlay.visibility = View.VISIBLE
                 }

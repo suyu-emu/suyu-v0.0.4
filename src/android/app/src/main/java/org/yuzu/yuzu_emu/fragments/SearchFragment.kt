@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.fragments
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -17,9 +18,13 @@ import androidx.core.view.updatePadding
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.PreferenceManager
 import info.debatty.java.stringsimilarity.Jaccard
 import info.debatty.java.stringsimilarity.JaroWinkler
+import kotlinx.coroutines.launch
 import java.util.Locale
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
@@ -52,6 +57,8 @@ class SearchFragment : Fragment() {
         return binding.root
     }
 
+    // This is using the correct scope, lint is just acting up
+    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         homeViewModel.setNavigationVisibility(visible = true, animated = false)
         preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
@@ -79,21 +86,32 @@ class SearchFragment : Fragment() {
             filterAndSearch()
         }
 
-        gamesViewModel.apply {
-            searchFocused.observe(viewLifecycleOwner) { searchFocused ->
-                if (searchFocused) {
-                    focusSearch()
-                    gamesViewModel.setSearchFocused(false)
+        viewLifecycleOwner.lifecycleScope.apply {
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    gamesViewModel.searchFocused.collect {
+                        if (it) {
+                            focusSearch()
+                            gamesViewModel.setSearchFocused(false)
+                        }
+                    }
                 }
             }
-
-            games.observe(viewLifecycleOwner) { filterAndSearch() }
-            searchedGames.observe(viewLifecycleOwner) {
-                (binding.gridGamesSearch.adapter as GameAdapter).submitList(it)
-                if (it.isEmpty()) {
-                    binding.noResultsView.visibility = View.VISIBLE
-                } else {
-                    binding.noResultsView.visibility = View.GONE
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    gamesViewModel.games.collect { filterAndSearch() }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    gamesViewModel.searchedGames.collect {
+                        (binding.gridGamesSearch.adapter as GameAdapter).submitList(it)
+                        if (it.isEmpty()) {
+                            binding.noResultsView.visibility = View.VISIBLE
+                        } else {
+                            binding.noResultsView.visibility = View.GONE
+                        }
+                    }
                 }
             }
         }
@@ -109,7 +127,7 @@ class SearchFragment : Fragment() {
     private inner class ScoredGame(val score: Double, val item: Game)
 
     private fun filterAndSearch() {
-        val baseList = gamesViewModel.games.value!!
+        val baseList = gamesViewModel.games.value
         val filteredList: List<Game> = when (binding.chipGroup.checkedChipId) {
             R.id.chip_recently_played -> {
                 baseList.filter {

@@ -5,13 +5,13 @@ package org.yuzu.yuzu_emu.model
 
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -24,23 +24,23 @@ import org.yuzu.yuzu_emu.utils.GameHelper
 
 @OptIn(ExperimentalSerializationApi::class)
 class GamesViewModel : ViewModel() {
-    private val _games = MutableLiveData<List<Game>>(emptyList())
-    val games: LiveData<List<Game>> get() = _games
+    val games: StateFlow<List<Game>> get() = _games
+    private val _games = MutableStateFlow(emptyList<Game>())
 
-    private val _searchedGames = MutableLiveData<List<Game>>(emptyList())
-    val searchedGames: LiveData<List<Game>> get() = _searchedGames
+    val searchedGames: StateFlow<List<Game>> get() = _searchedGames
+    private val _searchedGames = MutableStateFlow(emptyList<Game>())
 
-    private val _isReloading = MutableLiveData(false)
-    val isReloading: LiveData<Boolean> get() = _isReloading
+    val isReloading: StateFlow<Boolean> get() = _isReloading
+    private val _isReloading = MutableStateFlow(false)
 
-    private val _shouldSwapData = MutableLiveData(false)
-    val shouldSwapData: LiveData<Boolean> get() = _shouldSwapData
+    val shouldSwapData: StateFlow<Boolean> get() = _shouldSwapData
+    private val _shouldSwapData = MutableStateFlow(false)
 
-    private val _shouldScrollToTop = MutableLiveData(false)
-    val shouldScrollToTop: LiveData<Boolean> get() = _shouldScrollToTop
+    val shouldScrollToTop: StateFlow<Boolean> get() = _shouldScrollToTop
+    private val _shouldScrollToTop = MutableStateFlow(false)
 
-    private val _searchFocused = MutableLiveData(false)
-    val searchFocused: LiveData<Boolean> get() = _searchFocused
+    val searchFocused: StateFlow<Boolean> get() = _searchFocused
+    private val _searchFocused = MutableStateFlow(false)
 
     init {
         // Ensure keys are loaded so that ROM metadata can be decrypted.
@@ -79,36 +79,36 @@ class GamesViewModel : ViewModel() {
             )
         )
 
-        _games.postValue(sortedList)
+        _games.value = sortedList
     }
 
     fun setSearchedGames(games: List<Game>) {
-        _searchedGames.postValue(games)
+        _searchedGames.value = games
     }
 
     fun setShouldSwapData(shouldSwap: Boolean) {
-        _shouldSwapData.postValue(shouldSwap)
+        _shouldSwapData.value = shouldSwap
     }
 
     fun setShouldScrollToTop(shouldScroll: Boolean) {
-        _shouldScrollToTop.postValue(shouldScroll)
+        _shouldScrollToTop.value = shouldScroll
     }
 
     fun setSearchFocused(searchFocused: Boolean) {
-        _searchFocused.postValue(searchFocused)
+        _searchFocused.value = searchFocused
     }
 
     fun reloadGames(directoryChanged: Boolean) {
-        if (isReloading.value == true) {
+        if (isReloading.value) {
             return
         }
-        _isReloading.postValue(true)
+        _isReloading.value = true
 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 NativeLibrary.resetRomMetadata()
                 setGames(GameHelper.getGames())
-                _isReloading.postValue(false)
+                _isReloading.value = false
 
                 if (directoryChanged) {
                     setShouldSwapData(true)
