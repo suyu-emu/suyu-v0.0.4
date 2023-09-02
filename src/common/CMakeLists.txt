@@ -191,8 +191,6 @@ if (MSVC)
     _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
   )
   target_compile_options(common PRIVATE
-    /W4
-
     /we4242 # 'identifier': conversion from 'type1' to 'type2', possible loss of data
     /we4254 # 'operator': conversion from 'type1:field_bits' to 'type2:field_bits', possible loss of data
     /we4800 # Implicit conversion from 'type' to bool. Possible information loss

@@ -55,7 +55,7 @@ TEST_CASE("RingBuffer: Basic Tests", "[common]") {
     // Pushing more values than space available should partially succeed.
     {
         std::vector<char> to_push(6);
-        std::iota(to_push.begin(), to_push.end(), 88);
+        std::iota(to_push.begin(), to_push.end(), static_cast<char>(88));
         const std::size_t count = buf.Push(to_push);
         REQUIRE(count == 3U);
     }

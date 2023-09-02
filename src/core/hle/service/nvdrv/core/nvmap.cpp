@@ -160,8 +160,8 @@ u32 NvMap::PinHandle(NvMap::Handle::Id handle) {
         u32 address{};
         auto& smmu_allocator = host1x.Allocator();
         auto& smmu_memory_manager = host1x.MemoryManager();
-        while (!(address =
-                     smmu_allocator.Allocate(static_cast<u32>(handle_description->aligned_size)))) {
+        while ((address = smmu_allocator.Allocate(
+                    static_cast<u32>(handle_description->aligned_size))) == 0) {
             // Free handles until the allocation succeeds
             std::scoped_lock queueLock(unmap_queue_lock);
             if (auto freeHandleDesc{unmap_queue.front()}) {

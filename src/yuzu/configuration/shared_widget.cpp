@@ -194,7 +194,7 @@ QWidget* Widget::CreateRadioGroup(std::function<std::string()>& serializer,
         return group;
     }
 
-    const auto get_selected = [=]() -> u32 {
+    const auto get_selected = [=]() -> int {
         for (const auto& [id, button] : radio_buttons) {
             if (button->isChecked()) {
                 return id;
