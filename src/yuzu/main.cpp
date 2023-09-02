@@ -2275,40 +2275,62 @@ void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
     QDesktopServices::openUrl(QUrl::fromLocalFile(qt_shader_cache_path));
 }
 
-static std::size_t CalculateRomFSEntrySize(const FileSys::VirtualDir& dir, bool full) {
-    std::size_t out = 0;
-
-    for (const auto& subdir : dir->GetSubdirectories()) {
-        out += 1 + CalculateRomFSEntrySize(subdir, full);
-    }
-
-    return out + (full ? dir->GetFiles().size() : 0);
-}
-
-static bool RomFSRawCopy(QProgressDialog& dialog, const FileSys::VirtualDir& src,
-                         const FileSys::VirtualDir& dest, std::size_t block_size, bool full) {
+static bool RomFSRawCopy(size_t total_size, size_t& read_size, QProgressDialog& dialog,
+                         const FileSys::VirtualDir& src, const FileSys::VirtualDir& dest,
+                         bool full) {
     if (src == nullptr || dest == nullptr || !src->IsReadable() || !dest->IsWritable())
         return false;
     if (dialog.wasCanceled())
         return false;
 
+    std::vector<u8> buffer(CopyBufferSize);
+    auto last_timestamp = std::chrono::steady_clock::now();
+
+    const auto QtRawCopy = [&](const FileSys::VirtualFile& src_file,
+                               const FileSys::VirtualFile& dest_file) {
+        if (src_file == nullptr || dest_file == nullptr) {
+            return false;
+        }
+        if (!dest_file->Resize(src_file->GetSize())) {
+            return false;
+        }
+
+        for (std::size_t i = 0; i < src_file->GetSize(); i += buffer.size()) {
+            if (dialog.wasCanceled()) {
+                dest_file->Resize(0);
+                return false;
+            }
+
+            using namespace std::literals::chrono_literals;
+            const auto new_timestamp = std::chrono::steady_clock::now();
+
+            if ((new_timestamp - last_timestamp) > 33ms) {
+                last_timestamp = new_timestamp;
+                dialog.setValue(
+                    static_cast<int>(std::min(read_size, total_size) * 100 / total_size));
+                QCoreApplication::processEvents();
+            }
+
+            const auto read = src_file->Read(buffer.data(), buffer.size(), i);
+            dest_file->Write(buffer.data(), read, i);
+
+            read_size += read;
+        }
+
+        return true;
+    };
+
     if (full) {
         for (const auto& file : src->GetFiles()) {
             const auto out = VfsDirectoryCreateFileWrapper(dest, file->GetName());
-            if (!FileSys::VfsRawCopy(file, out, block_size))
-                return false;
-            dialog.setValue(dialog.value() + 1);
-            if (dialog.wasCanceled())
+            if (!QtRawCopy(file, out))
                 return false;
         }
     }
 
     for (const auto& dir : src->GetSubdirectories()) {
         const auto out = dest->CreateSubdirectory(dir->GetName());
-        if (!RomFSRawCopy(dialog, dir, out, block_size, full))
-            return false;
-        dialog.setValue(dialog.value() + 1);
-        if (dialog.wasCanceled())
+        if (!RomFSRawCopy(total_size, read_size, dialog, dir, out, full))
             return false;
     }
 
@@ -2653,10 +2675,9 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     }
 
     const auto full = res == selections.constFirst();
-    const auto entry_size = CalculateRomFSEntrySize(extracted, full);
 
-    // The minimum required space is the size of the extracted RomFS + 1 GiB
-    const auto minimum_free_space = extracted->GetSize() + 0x40000000;
+    // The expected required space is the size of the RomFS + 1 GiB
+    const auto minimum_free_space = romfs->GetSize() + 0x40000000;
 
     if (full && Common::FS::GetFreeSpaceSize(path) < minimum_free_space) {
         QMessageBox::warning(this, tr("RomFS Extraction Failed!"),
@@ -2667,12 +2688,15 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
         return;
     }
 
-    QProgressDialog progress(tr("Extracting RomFS..."), tr("Cancel"), 0,
-                             static_cast<s32>(entry_size), this);
+    QProgressDialog progress(tr("Extracting RomFS..."), tr("Cancel"), 0, 100, this);
     progress.setWindowModality(Qt::WindowModal);
     progress.setMinimumDuration(100);
+    progress.setAutoClose(false);
+    progress.setAutoReset(false);
 
-    if (RomFSRawCopy(progress, extracted, out, 0x400000, full)) {
+    size_t read_size = 0;
+
+    if (RomFSRawCopy(romfs->GetSize(), read_size, progress, extracted, out, full)) {
         progress.close();
         QMessageBox::information(this, tr("RomFS Extraction Succeeded!"),
                                  tr("The operation completed successfully."));
