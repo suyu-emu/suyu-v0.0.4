@@ -2581,24 +2581,34 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
         return;
     }
 
-    FileSys::VirtualFile base_romfs;
-    if (loader->ReadRomFS(base_romfs) != Loader::ResultStatus::Success) {
-        failed();
-        return;
-    }
+    FileSys::VirtualFile packed_update_raw{};
+    loader->ReadUpdateRaw(packed_update_raw);
 
     const auto& installed = system->GetContentProvider();
-    const auto romfs_title_id = SelectRomFSDumpTarget(installed, program_id);
 
-    if (!romfs_title_id) {
+    u64 title_id{};
+    u8 raw_type{};
+    if (!SelectRomFSDumpTarget(installed, program_id, &title_id, &raw_type)) {
         failed();
         return;
     }
 
-    const auto type = *romfs_title_id == program_id ? FileSys::ContentRecordType::Program
-                                                    : FileSys::ContentRecordType::Data;
-    const auto base_nca = installed.GetEntry(*romfs_title_id, type);
+    const auto type = static_cast<FileSys::ContentRecordType>(raw_type);
+    const auto base_nca = installed.GetEntry(title_id, type);
     if (!base_nca) {
+        failed();
+        return;
+    }
+
+    const FileSys::NCA update_nca{packed_update_raw, nullptr};
+    if (type != FileSys::ContentRecordType::Program ||
+        update_nca.GetStatus() != Loader::ResultStatus::ErrorMissingBKTRBaseRomFS ||
+        update_nca.GetTitleId() != FileSys::GetUpdateTitleID(title_id)) {
+        packed_update_raw = {};
+    }
+
+    const auto base_romfs = base_nca->GetRomFS();
+    if (!base_romfs) {
         failed();
         return;
     }
@@ -2607,24 +2617,12 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
         target == DumpRomFSTarget::Normal
             ? Common::FS::GetYuzuPath(Common::FS::YuzuPath::DumpDir)
             : Common::FS::GetYuzuPath(Common::FS::YuzuPath::SDMCDir) / "atmosphere" / "contents";
-    const auto romfs_dir = fmt::format("{:016X}/romfs", *romfs_title_id);
+    const auto romfs_dir = fmt::format("{:016X}/romfs", title_id);
 
     const auto path = Common::FS::PathToUTF8String(dump_dir / romfs_dir);
 
-    FileSys::VirtualFile romfs;
-
-    if (*romfs_title_id == program_id) {
-        const FileSys::PatchManager pm{program_id, system->GetFileSystemController(), installed};
-        romfs = pm.PatchRomFS(base_nca.get(), base_romfs, type, nullptr, false);
-    } else {
-        romfs = installed.GetEntry(*romfs_title_id, type)->GetRomFS();
-    }
-
-    const auto extracted = FileSys::ExtractRomFS(romfs, FileSys::RomFSExtractionType::Full);
-    if (extracted == nullptr) {
-        failed();
-        return;
-    }
+    const FileSys::PatchManager pm{title_id, system->GetFileSystemController(), installed};
+    auto romfs = pm.PatchRomFS(base_nca.get(), base_romfs, type, packed_update_raw, false);
 
     const auto out = VfsFilesystemCreateDirectoryWrapper(vfs, path, FileSys::Mode::ReadWrite);
 
@@ -2645,6 +2643,12 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     if (!ok) {
         failed();
         vfs->DeleteDirectory(path);
+        return;
+    }
+
+    const auto extracted = FileSys::ExtractRomFS(romfs, FileSys::RomFSExtractionType::Full);
+    if (extracted == nullptr) {
+        failed();
         return;
     }
 
@@ -4358,28 +4362,41 @@ bool GMainWindow::CheckSystemArchiveDecryption() {
     return mii_nca->GetRomFS().get() != nullptr;
 }
 
-std::optional<u64> GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installed,
-                                                      u64 program_id) {
-    const auto dlc_entries =
-        installed.ListEntriesFilter(FileSys::TitleType::AOC, FileSys::ContentRecordType::Data);
-    std::vector<FileSys::ContentProviderEntry> dlc_match;
-    dlc_match.reserve(dlc_entries.size());
-    std::copy_if(dlc_entries.begin(), dlc_entries.end(), std::back_inserter(dlc_match),
-                 [&program_id, &installed](const FileSys::ContentProviderEntry& entry) {
-                     return FileSys::GetBaseTitleID(entry.title_id) == program_id &&
-                            installed.GetEntry(entry)->GetStatus() == Loader::ResultStatus::Success;
-                 });
+bool GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installed, u64 program_id,
+                                        u64* selected_title_id, u8* selected_content_record_type) {
+    using ContentInfo = std::pair<FileSys::TitleType, FileSys::ContentRecordType>;
+    boost::container::flat_map<u64, ContentInfo> available_title_ids;
 
-    std::vector<u64> romfs_tids;
-    romfs_tids.push_back(program_id);
-    for (const auto& entry : dlc_match) {
-        romfs_tids.push_back(entry.title_id);
+    const auto RetrieveEntries = [&](FileSys::TitleType title_type,
+                                     FileSys::ContentRecordType record_type) {
+        const auto entries = installed.ListEntriesFilter(title_type, record_type);
+        for (const auto& entry : entries) {
+            if (FileSys::GetBaseTitleID(entry.title_id) == program_id &&
+                installed.GetEntry(entry)->GetStatus() == Loader::ResultStatus::Success) {
+                available_title_ids[entry.title_id] = {title_type, record_type};
+            }
+        }
+    };
+
+    RetrieveEntries(FileSys::TitleType::Application, FileSys::ContentRecordType::Program);
+    RetrieveEntries(FileSys::TitleType::AOC, FileSys::ContentRecordType::Data);
+
+    if (available_title_ids.empty()) {
+        return false;
     }
 
-    if (romfs_tids.size() > 1) {
-        QStringList list{QStringLiteral("Base")};
-        for (std::size_t i = 1; i < romfs_tids.size(); ++i) {
-            list.push_back(QStringLiteral("DLC %1").arg(romfs_tids[i] & 0x7FF));
+    size_t title_index = 0;
+
+    if (available_title_ids.size() > 1) {
+        QStringList list;
+        for (auto& [title_id, content_info] : available_title_ids) {
+            const auto hex_title_id = QString::fromStdString(fmt::format("{:X}", title_id));
+            if (content_info.first == FileSys::TitleType::Application) {
+                list.push_back(QStringLiteral("Application [%1]").arg(hex_title_id));
+            } else {
+                list.push_back(
+                    QStringLiteral("DLC %1 [%2]").arg(title_id & 0x7FF).arg(hex_title_id));
+            }
         }
 
         bool ok;
@@ -4387,13 +4404,16 @@ std::optional<u64> GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProv
             this, tr("Select RomFS Dump Target"),
             tr("Please select which RomFS you would like to dump."), list, 0, false, &ok);
         if (!ok) {
-            return {};
+            return false;
         }
 
-        return romfs_tids[list.indexOf(res)];
+        title_index = list.indexOf(res);
     }
 
-    return program_id;
+    const auto selected_info = available_title_ids.nth(title_index);
+    *selected_title_id = selected_info->first;
+    *selected_content_record_type = static_cast<u8>(selected_info->second.second);
+    return true;
 }
 
 bool GMainWindow::ConfirmClose() {

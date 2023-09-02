@@ -375,7 +375,8 @@ private:
     void RemoveAllTransferableShaderCaches(u64 program_id);
     void RemoveCustomConfiguration(u64 program_id, const std::string& game_path);
     void RemoveCacheStorage(u64 program_id);
-    std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
+    bool SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id,
+                               u64* selected_title_id, u8* selected_content_record_type);
     InstallResult InstallNSPXCI(const QString& filename);
     InstallResult InstallNCA(const QString& filename);
     void MigrateConfigFiles();
