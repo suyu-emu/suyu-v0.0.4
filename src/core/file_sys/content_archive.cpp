@@ -22,6 +22,10 @@
 
 namespace FileSys {
 
+static u8 MasterKeyIdForKeyGeneration(u8 key_generation) {
+    return std::max<u8>(key_generation, 1) - 1;
+}
+
 NCA::NCA(VirtualFile file_, const NCA* base_nca)
     : file(std::move(file_)), keys{Core::Crypto::KeyManager::Instance()} {
     if (file == nullptr) {
@@ -41,12 +45,17 @@ NCA::NCA(VirtualFile file_, const NCA* base_nca)
         return;
     }
 
+    // Ensure we have the proper key area keys to continue.
+    const u8 master_key_id = MasterKeyIdForKeyGeneration(reader->GetKeyGeneration());
+    if (!keys.HasKey(Core::Crypto::S128KeyType::KeyArea, master_key_id, reader->GetKeyIndex())) {
+        status = Loader::ResultStatus::ErrorMissingKeyAreaKey;
+        return;
+    }
+
     RightsId rights_id{};
     reader->GetRightsId(rights_id.data(), rights_id.size());
     if (rights_id != RightsId{}) {
         // External decryption key required; provide it here.
-        const auto key_generation = std::max<s32>(reader->GetKeyGeneration(), 1) - 1;
-
         u128 rights_id_u128;
         std::memcpy(rights_id_u128.data(), rights_id.data(), sizeof(rights_id));
 
@@ -57,12 +66,12 @@ NCA::NCA(VirtualFile file_, const NCA* base_nca)
             return;
         }
 
-        if (!keys.HasKey(Core::Crypto::S128KeyType::Titlekek, key_generation)) {
+        if (!keys.HasKey(Core::Crypto::S128KeyType::Titlekek, master_key_id)) {
             status = Loader::ResultStatus::ErrorMissingTitlekek;
             return;
         }
 
-        auto titlekek = keys.GetKey(Core::Crypto::S128KeyType::Titlekek, key_generation);
+        auto titlekek = keys.GetKey(Core::Crypto::S128KeyType::Titlekek, master_key_id);
         Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(titlekek, Core::Crypto::Mode::ECB);
         cipher.Transcode(titlekey.data(), titlekey.size(), titlekey.data(),
                          Core::Crypto::Op::Decrypt);
