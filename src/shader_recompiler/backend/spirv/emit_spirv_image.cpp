@@ -91,6 +91,34 @@ public:
         }
     }
 
+    explicit ImageOperands(EmitContext& ctx, bool has_lod_clamp, Id derivates_1, Id derivates_2,
+                           Id offset, Id lod_clamp) {
+        if (!Sirit::ValidId(derivates_1) || !Sirit::ValidId(derivates_2)) {
+            throw LogicError("Derivates must be present");
+        }
+        boost::container::static_vector<Id, 3> deriv_1_accum{
+            ctx.OpCompositeExtract(ctx.F32[1], derivates_1, 0),
+            ctx.OpCompositeExtract(ctx.F32[1], derivates_1, 2),
+            ctx.OpCompositeExtract(ctx.F32[1], derivates_2, 0),
+        };
+        boost::container::static_vector<Id, 3> deriv_2_accum{
+            ctx.OpCompositeExtract(ctx.F32[1], derivates_1, 1),
+            ctx.OpCompositeExtract(ctx.F32[1], derivates_1, 3),
+            ctx.OpCompositeExtract(ctx.F32[1], derivates_2, 1),
+        };
+        const Id derivates_id1{ctx.OpCompositeConstruct(
+            ctx.F32[3], std::span{deriv_1_accum.data(), deriv_1_accum.size()})};
+        const Id derivates_id2{ctx.OpCompositeConstruct(
+            ctx.F32[3], std::span{deriv_2_accum.data(), deriv_2_accum.size()})};
+        Add(spv::ImageOperandsMask::Grad, derivates_id1, derivates_id2);
+        if (Sirit::ValidId(offset)) {
+            Add(spv::ImageOperandsMask::Offset, offset);
+        }
+        if (has_lod_clamp) {
+            Add(spv::ImageOperandsMask::MinLod, lod_clamp);
+        }
+    }
+
     std::span<const Id> Span() const noexcept {
         return std::span{operands.data(), operands.size()};
     }
@@ -524,8 +552,11 @@ Id EmitImageQueryLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, I
 Id EmitImageGradient(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords,
                      Id derivates, Id offset, Id lod_clamp) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
-    const ImageOperands operands(ctx, info.has_lod_clamp != 0, derivates, info.num_derivates,
-                                 offset, lod_clamp);
+    const auto operands =
+        info.num_derivates == 3
+            ? ImageOperands(ctx, info.has_lod_clamp != 0, derivates, offset, {}, lod_clamp)
+            : ImageOperands(ctx, info.has_lod_clamp != 0, derivates, info.num_derivates, offset,
+                            lod_clamp);
     return Emit(&EmitContext::OpImageSparseSampleExplicitLod,
                 &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],
                 Texture(ctx, info, index), coords, operands.Mask(), operands.Span());

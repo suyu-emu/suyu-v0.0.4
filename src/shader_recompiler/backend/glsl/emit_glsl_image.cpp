@@ -558,7 +558,7 @@ void EmitImageGradient(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
     if (multi_component) {
         if (info.num_derivates >= 3) {
             const auto offset_vec{ctx.var_alloc.Consume(offset)};
-            ctx.Add("{}=textureGrad({},{},vec3({}.xz, {}.x),vec3({}.yz, {}.y));", texel, texture,
+            ctx.Add("{}=textureGrad({},{},vec3({}.xz, {}.x),vec3({}.yw, {}.y));", texel, texture,
                     coords, derivatives_vec, offset_vec, derivatives_vec, offset_vec);
             return;
         }
