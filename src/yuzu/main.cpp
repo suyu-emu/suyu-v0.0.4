@@ -2010,8 +2010,16 @@ bool GMainWindow::OnShutdownBegin() {
 
     emit EmulationStopping();
 
+    int shutdown_time = 1000;
+
+    if (system->DebuggerEnabled()) {
+        shutdown_time = 0;
+    } else if (system->GetExitLocked()) {
+        shutdown_time = 5000;
+    }
+
     shutdown_timer.setSingleShot(true);
-    shutdown_timer.start(system->DebuggerEnabled() ? 0 : 5000);
+    shutdown_timer.start(shutdown_time);
     connect(&shutdown_timer, &QTimer::timeout, this, &GMainWindow::OnEmulationStopTimeExpired);
     connect(emu_thread.get(), &QThread::finished, this, &GMainWindow::OnEmulationStopped);
 
@@ -3261,7 +3269,7 @@ void GMainWindow::OnPauseContinueGame() {
 }
 
 void GMainWindow::OnStopGame() {
-    if (system->GetExitLock() && !ConfirmForceLockedExit()) {
+    if (system->GetExitLocked() && !ConfirmForceLockedExit()) {
         return;
     }
 
@@ -4514,6 +4522,8 @@ void GMainWindow::RequestGameExit() {
     auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
     auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
     bool has_signalled = false;
+
+    system->SetExitRequested(true);
 
     if (applet_oe != nullptr) {
         applet_oe->GetMessageQueue()->RequestExit();
