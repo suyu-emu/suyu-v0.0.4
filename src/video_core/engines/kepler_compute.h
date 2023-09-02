@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstddef>
+#include <optional>
 #include <vector>
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
@@ -35,6 +36,9 @@ namespace Tegra::Engines {
 
 #define KEPLER_COMPUTE_REG_INDEX(field_name)                                                       \
     (offsetof(Tegra::Engines::KeplerCompute::Regs, field_name) / sizeof(u32))
+
+#define LAUNCH_REG_INDEX(field_name)                                                               \
+    (offsetof(Tegra::Engines::KeplerCompute::LaunchParams, field_name) / sizeof(u32))
 
 class KeplerCompute final : public EngineInterface {
 public:
@@ -201,6 +205,10 @@ public:
     void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
                          u32 methods_pending) override;
 
+    std::optional<GPUVAddr> GetIndirectComputeAddress() const {
+        return indirect_compute;
+    }
+
 private:
     void ProcessLaunch();
 
@@ -216,6 +224,15 @@ private:
     MemoryManager& memory_manager;
     VideoCore::RasterizerInterface* rasterizer = nullptr;
     Upload::State upload_state;
+    GPUVAddr upload_address;
+
+    struct UploadInfo {
+        GPUVAddr upload_address;
+        GPUVAddr exec_address;
+        u32 copy_size;
+    };
+    std::vector<UploadInfo> uploads;
+    std::optional<GPUVAddr> indirect_compute{};
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \

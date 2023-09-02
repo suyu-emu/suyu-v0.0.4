@@ -665,6 +665,19 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         std::move(modules), infos);
 
 } catch (const Shader::Exception& exception) {
+    auto hash = key.Hash();
+    size_t env_index{0};
+    for (size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
+        if (key.unique_hashes[index] == 0) {
+            continue;
+        }
+        Shader::Environment& env{*envs[env_index]};
+        ++env_index;
+
+        const u32 cfg_offset{static_cast<u32>(env.StartAddress() + sizeof(Shader::ProgramHeader))};
+        Shader::Maxwell::Flow::CFG cfg(env, pools.flow_block, cfg_offset, index == 0);
+        env.Dump(hash, key.unique_hashes[index]);
+    }
     LOG_ERROR(Render_Vulkan, "{}", exception.what());
     return nullptr;
 }

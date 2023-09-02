@@ -380,6 +380,17 @@ void RasterizerOpenGL::DispatchCompute() {
     pipeline->SetEngine(kepler_compute, gpu_memory);
     pipeline->Configure();
     const auto& qmd{kepler_compute->launch_description};
+    auto indirect_address = kepler_compute->GetIndirectComputeAddress();
+    if (indirect_address) {
+        // DispatchIndirect
+        static constexpr auto sync_info = VideoCommon::ObtainBufferSynchronize::FullSynchronize;
+        const auto post_op = VideoCommon::ObtainBufferOperation::DiscardWrite;
+        const auto [buffer, offset] =
+            buffer_cache.ObtainBuffer(*indirect_address, 12, sync_info, post_op);
+        glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, buffer->Handle());
+        glDispatchComputeIndirect(static_cast<GLintptr>(offset));
+        return;
+    }
     glDispatchCompute(qmd.grid_dim_x, qmd.grid_dim_y, qmd.grid_dim_z);
     ++num_queued_commands;
     has_written_global_memory |= pipeline->WritesGlobalMemory();

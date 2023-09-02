@@ -34,19 +34,24 @@ void Puller::ProcessBindMethod(const MethodCall& method_call) {
     bound_engines[method_call.subchannel] = engine_id;
     switch (engine_id) {
     case EngineID::FERMI_TWOD_A:
-        dma_pusher.BindSubchannel(channel_state.fermi_2d.get(), method_call.subchannel);
+        dma_pusher.BindSubchannel(channel_state.fermi_2d.get(), method_call.subchannel,
+                                  EngineTypes::Fermi2D);
         break;
     case EngineID::MAXWELL_B:
-        dma_pusher.BindSubchannel(channel_state.maxwell_3d.get(), method_call.subchannel);
+        dma_pusher.BindSubchannel(channel_state.maxwell_3d.get(), method_call.subchannel,
+                                  EngineTypes::Maxwell3D);
         break;
     case EngineID::KEPLER_COMPUTE_B:
-        dma_pusher.BindSubchannel(channel_state.kepler_compute.get(), method_call.subchannel);
+        dma_pusher.BindSubchannel(channel_state.kepler_compute.get(), method_call.subchannel,
+                                  EngineTypes::KeplerCompute);
         break;
     case EngineID::MAXWELL_DMA_COPY_A:
-        dma_pusher.BindSubchannel(channel_state.maxwell_dma.get(), method_call.subchannel);
+        dma_pusher.BindSubchannel(channel_state.maxwell_dma.get(), method_call.subchannel,
+                                  EngineTypes::MaxwellDMA);
         break;
     case EngineID::KEPLER_INLINE_TO_MEMORY_B:
-        dma_pusher.BindSubchannel(channel_state.kepler_memory.get(), method_call.subchannel);
+        dma_pusher.BindSubchannel(channel_state.kepler_memory.get(), method_call.subchannel,
+                                  EngineTypes::KeplerMemory);
         break;
     default:
         UNIMPLEMENTED_MSG("Unimplemented engine {:04X}", engine_id);

@@ -92,6 +92,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdCopyImage);
     X(vkCmdCopyImageToBuffer);
     X(vkCmdDispatch);
+    X(vkCmdDispatchIndirect);
     X(vkCmdDraw);
     X(vkCmdDrawIndexed);
     X(vkCmdDrawIndirect);

@@ -14,6 +14,7 @@
 namespace Tegra {
 
 constexpr u32 MacroRegistersStart = 0xE00;
+constexpr u32 ComputeInline = 0x6D;
 
 DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_, MemoryManager& memory_manager_,
                      Control::ChannelState& channel_state_)
@@ -83,12 +84,35 @@ bool DmaPusher::Step() {
                     dma_state.dma_get, command_list_header.size * sizeof(u32));
             }
         }
-        Core::Memory::GpuGuestMemory<Tegra::CommandHeader,
-                                     Core::Memory::GuestMemoryFlags::UnsafeRead>
-            headers(memory_manager, dma_state.dma_get, command_list_header.size, &command_headers);
-        ProcessCommands(headers);
+        const auto safe_process = [&] {
+            Core::Memory::GpuGuestMemory<Tegra::CommandHeader,
+                                         Core::Memory::GuestMemoryFlags::SafeRead>
+                headers(memory_manager, dma_state.dma_get, command_list_header.size,
+                        &command_headers);
+            ProcessCommands(headers);
+        };
+        const auto unsafe_process = [&] {
+            Core::Memory::GpuGuestMemory<Tegra::CommandHeader,
+                                         Core::Memory::GuestMemoryFlags::UnsafeRead>
+                headers(memory_manager, dma_state.dma_get, command_list_header.size,
+                        &command_headers);
+            ProcessCommands(headers);
+        };
+        if (Settings::IsGPULevelHigh()) {
+            if (dma_state.method >= MacroRegistersStart) {
+                unsafe_process();
+                return true;
+            }
+            if (subchannel_type[dma_state.subchannel] == Engines::EngineTypes::KeplerCompute &&
+                dma_state.method == ComputeInline) {
+                unsafe_process();
+                return true;
+            }
+            safe_process();
+            return true;
+        }
+        unsafe_process();
     }
-
     return true;
 }
 
