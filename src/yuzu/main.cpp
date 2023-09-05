@@ -444,6 +444,7 @@ GMainWindow::GMainWindow(std::unique_ptr<Config> config_, bool has_broken_vulkan
 
         Settings::values.renderer_backend = Settings::RendererBackend::OpenGL;
 
+        UpdateAPIText();
         renderer_status_button->setDisabled(true);
         renderer_status_button->setChecked(false);
     } else {
