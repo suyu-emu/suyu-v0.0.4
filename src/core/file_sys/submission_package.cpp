@@ -164,24 +164,6 @@ VirtualFile NSP::GetNCAFile(u64 title_id, ContentRecordType type, TitleType titl
     return nullptr;
 }
 
-std::vector<Core::Crypto::Key128> NSP::GetTitlekey() const {
-    if (extracted)
-        LOG_WARNING(Service_FS, "called on an NSP that is of type extracted.");
-    std::vector<Core::Crypto::Key128> out;
-    for (const auto& ticket_file : ticket_files) {
-        if (ticket_file == nullptr ||
-            ticket_file->GetSize() <
-                Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET + sizeof(Core::Crypto::Key128)) {
-            continue;
-        }
-
-        out.emplace_back();
-        ticket_file->Read(out.back().data(), out.back().size(),
-                          Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET);
-    }
-    return out;
-}
-
 std::vector<VirtualFile> NSP::GetFiles() const {
     return pfs->GetFiles();
 }
@@ -208,22 +190,11 @@ void NSP::SetTicketKeys(const std::vector<VirtualFile>& files) {
             continue;
         }
 
-        if (ticket_file->GetSize() <
-            Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET + sizeof(Core::Crypto::Key128)) {
+        auto ticket = Core::Crypto::Ticket::Read(ticket_file);
+        if (!keys.AddTicket(ticket)) {
+            LOG_WARNING(Common_Filesystem, "Could not load NSP ticket {}", ticket_file->GetName());
             continue;
         }
-
-        Core::Crypto::Key128 key{};
-        ticket_file->Read(key.data(), key.size(), Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET);
-
-        // We get the name without the extension in order to create the rights ID.
-        std::string name_only(ticket_file->GetName());
-        name_only.erase(name_only.size() - 4);
-
-        const auto rights_id_raw = Common::HexStringToArray<16>(name_only);
-        u128 rights_id;
-        std::memcpy(rights_id.data(), rights_id_raw.data(), sizeof(u128));
-        keys.SetKey(Core::Crypto::S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
     }
 }
 

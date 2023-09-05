@@ -35,7 +35,6 @@ namespace Core::Crypto {
 namespace {
 
 constexpr u64 CURRENT_CRYPTO_REVISION = 0x5;
-constexpr u64 FULL_TICKET_SIZE = 0x400;
 
 using Common::AsArray;
 
@@ -156,6 +155,10 @@ u64 GetSignatureTypePaddingSize(SignatureType type) {
     UNREACHABLE();
 }
 
+bool Ticket::IsValid() const {
+    return !std::holds_alternative<std::monostate>(data);
+}
+
 SignatureType Ticket::GetSignatureType() const {
     if (const auto* ticket = std::get_if<RSA4096Ticket>(&data)) {
         return ticket->sig_type;
@@ -208,6 +211,54 @@ Ticket Ticket::SynthesizeCommon(Key128 title_key, const std::array<u8, 16>& righ
     out.data.rights_id = rights_id;
     out.data.title_key_common = title_key;
     return Ticket{out};
+}
+
+Ticket Ticket::Read(const FileSys::VirtualFile& file) {
+    // Attempt to read up to the largest ticket size, and make sure we read at least a signature
+    // type.
+    std::array<u8, sizeof(RSA4096Ticket)> raw_data{};
+    auto read_size = file->Read(raw_data.data(), raw_data.size(), 0);
+    if (read_size < sizeof(SignatureType)) {
+        LOG_WARNING(Crypto, "Attempted to read ticket file with invalid size {}.", read_size);
+        return Ticket{std::monostate()};
+    }
+    return Read(std::span{raw_data});
+}
+
+Ticket Ticket::Read(std::span<const u8> raw_data) {
+    // Some tools read only 0x180 bytes of ticket data instead of 0x2C0, so
+    // just make sure we have at least the bare minimum of data to work with.
+    SignatureType sig_type;
+    if (raw_data.size() < sizeof(SignatureType)) {
+        LOG_WARNING(Crypto, "Attempted to parse ticket buffer with invalid size {}.",
+                    raw_data.size());
+        return Ticket{std::monostate()};
+    }
+    std::memcpy(&sig_type, raw_data.data(), sizeof(sig_type));
+
+    switch (sig_type) {
+    case SignatureType::RSA_4096_SHA1:
+    case SignatureType::RSA_4096_SHA256: {
+        RSA4096Ticket ticket{};
+        std::memcpy(&ticket, raw_data.data(), sizeof(ticket));
+        return Ticket{ticket};
+    }
+    case SignatureType::RSA_2048_SHA1:
+    case SignatureType::RSA_2048_SHA256: {
+        RSA2048Ticket ticket{};
+        std::memcpy(&ticket, raw_data.data(), sizeof(ticket));
+        return Ticket{ticket};
+    }
+    case SignatureType::ECDSA_SHA1:
+    case SignatureType::ECDSA_SHA256: {
+        ECDSATicket ticket{};
+        std::memcpy(&ticket, raw_data.data(), sizeof(ticket));
+        return Ticket{ticket};
+    }
+    default:
+        LOG_WARNING(Crypto, "Attempted to parse ticket buffer with invalid type {}.", sig_type);
+        return Ticket{std::monostate()};
+    }
 }
 
 Key128 GenerateKeyEncryptionKey(Key128 source, Key128 master, Key128 kek_seed, Key128 key_seed) {
@@ -290,9 +341,9 @@ void KeyManager::DeriveGeneralPurposeKeys(std::size_t crypto_revision) {
     }
 }
 
-RSAKeyPair<2048> KeyManager::GetETicketRSAKey() const {
+void KeyManager::DeriveETicketRSAKey() {
     if (IsAllZeroArray(eticket_extended_kek) || !HasKey(S128KeyType::ETicketRSAKek)) {
-        return {};
+        return;
     }
 
     const auto eticket_final = GetKey(S128KeyType::ETicketRSAKek);
@@ -304,12 +355,12 @@ RSAKeyPair<2048> KeyManager::GetETicketRSAKey() const {
     rsa_1.Transcode(eticket_extended_kek.data() + 0x10, eticket_extended_kek.size() - 0x10,
                     extended_dec.data(), Op::Decrypt);
 
-    RSAKeyPair<2048> rsa_key{};
-    std::memcpy(rsa_key.decryption_key.data(), extended_dec.data(), rsa_key.decryption_key.size());
-    std::memcpy(rsa_key.modulus.data(), extended_dec.data() + 0x100, rsa_key.modulus.size());
-    std::memcpy(rsa_key.exponent.data(), extended_dec.data() + 0x200, rsa_key.exponent.size());
-
-    return rsa_key;
+    std::memcpy(eticket_rsa_keypair.decryption_key.data(), extended_dec.data(),
+                eticket_rsa_keypair.decryption_key.size());
+    std::memcpy(eticket_rsa_keypair.modulus.data(), extended_dec.data() + 0x100,
+                eticket_rsa_keypair.modulus.size());
+    std::memcpy(eticket_rsa_keypair.exponent.data(), extended_dec.data() + 0x200,
+                eticket_rsa_keypair.exponent.size());
 }
 
 Key128 DeriveKeyblobMACKey(const Key128& keyblob_key, const Key128& mac_source) {
@@ -447,10 +498,12 @@ std::vector<Ticket> GetTicketblob(const Common::FS::IOFile& ticket_save) {
     for (std::size_t offset = 0; offset + 0x4 < buffer.size(); ++offset) {
         if (buffer[offset] == 0x4 && buffer[offset + 1] == 0x0 && buffer[offset + 2] == 0x1 &&
             buffer[offset + 3] == 0x0) {
-            out.emplace_back();
-            auto& next = out.back();
-            std::memcpy(&next, buffer.data() + offset, sizeof(Ticket));
-            offset += FULL_TICKET_SIZE;
+            // NOTE: Assumes ticket blob will only contain RSA-2048 tickets.
+            auto ticket = Ticket::Read(std::span{buffer.data() + offset, sizeof(RSA2048Ticket)});
+            offset += sizeof(RSA2048Ticket);
+            if (ticket.IsValid()) {
+                out.push_back(ticket);
+            }
         }
     }
 
@@ -503,25 +556,36 @@ static std::optional<u64> FindTicketOffset(const std::array<u8, size>& data) {
     return offset;
 }
 
-std::optional<std::pair<Key128, Key128>> ParseTicket(const Ticket& ticket,
-                                                     const RSAKeyPair<2048>& key) {
+std::optional<Key128> KeyManager::ParseTicketTitleKey(const Ticket& ticket) {
+    if (!ticket.IsValid()) {
+        LOG_WARNING(Crypto, "Attempted to parse title key of invalid ticket.");
+        return std::nullopt;
+    }
+
+    if (ticket.GetData().rights_id == Key128{}) {
+        LOG_WARNING(Crypto, "Attempted to parse title key of ticket with no rights ID.");
+        return std::nullopt;
+    }
+
     const auto issuer = ticket.GetData().issuer;
     if (IsAllZeroArray(issuer)) {
+        LOG_WARNING(Crypto, "Attempted to parse title key of ticket with invalid issuer.");
         return std::nullopt;
     }
+
     if (issuer[0] != 'R' || issuer[1] != 'o' || issuer[2] != 'o' || issuer[3] != 't') {
-        LOG_INFO(Crypto, "Attempting to parse ticket with non-standard certificate authority.");
+        LOG_WARNING(Crypto, "Parsing ticket with non-standard certificate authority.");
     }
 
-    Key128 rights_id = ticket.GetData().rights_id;
+    if (ticket.GetData().type == TitleKeyType::Common) {
+        return ticket.GetData().title_key_common;
+    }
 
-    if (rights_id == Key128{}) {
+    if (eticket_rsa_keypair == RSAKeyPair<2048>{}) {
+        LOG_WARNING(
+            Crypto,
+            "Skipping personalized ticket title key parsing due to missing ETicket RSA key-pair.");
         return std::nullopt;
-    }
-
-    if (!std::any_of(ticket.GetData().title_key_common_pad.begin(),
-                     ticket.GetData().title_key_common_pad.end(), [](u8 b) { return b != 0; })) {
-        return std::make_pair(rights_id, ticket.GetData().title_key_common);
     }
 
     mbedtls_mpi D; // RSA Private Exponent
@@ -534,9 +598,12 @@ std::optional<std::pair<Key128, Key128>> ParseTicket(const Ticket& ticket,
     mbedtls_mpi_init(&S);
     mbedtls_mpi_init(&M);
 
-    mbedtls_mpi_read_binary(&D, key.decryption_key.data(), key.decryption_key.size());
-    mbedtls_mpi_read_binary(&N, key.modulus.data(), key.modulus.size());
-    mbedtls_mpi_read_binary(&S, ticket.GetData().title_key_block.data(), 0x100);
+    const auto& title_key_block = ticket.GetData().title_key_block;
+    mbedtls_mpi_read_binary(&D, eticket_rsa_keypair.decryption_key.data(),
+                            eticket_rsa_keypair.decryption_key.size());
+    mbedtls_mpi_read_binary(&N, eticket_rsa_keypair.modulus.data(),
+                            eticket_rsa_keypair.modulus.size());
+    mbedtls_mpi_read_binary(&S, title_key_block.data(), title_key_block.size());
 
     mbedtls_mpi_exp_mod(&M, &S, &D, &N, nullptr);
 
@@ -564,8 +631,7 @@ std::optional<std::pair<Key128, Key128>> ParseTicket(const Ticket& ticket,
 
     Key128 key_temp{};
     std::memcpy(key_temp.data(), m_2.data() + *offset, key_temp.size());
-
-    return std::make_pair(rights_id, key_temp);
+    return key_temp;
 }
 
 KeyManager::KeyManager() {
@@ -669,6 +735,14 @@ void KeyManager::LoadFromFile(const std::filesystem::path& file_path, bool is_ti
                 encrypted_keyblobs[index] = Common::HexStringToArray<0xB0>(out[1]);
             } else if (out[0].compare(0, 20, "eticket_extended_kek") == 0) {
                 eticket_extended_kek = Common::HexStringToArray<576>(out[1]);
+            } else if (out[0].compare(0, 19, "eticket_rsa_keypair") == 0) {
+                const auto key_data = Common::HexStringToArray<528>(out[1]);
+                std::memcpy(eticket_rsa_keypair.decryption_key.data(), key_data.data(),
+                            eticket_rsa_keypair.decryption_key.size());
+                std::memcpy(eticket_rsa_keypair.modulus.data(), key_data.data() + 0x100,
+                            eticket_rsa_keypair.modulus.size());
+                std::memcpy(eticket_rsa_keypair.exponent.data(), key_data.data() + 0x200,
+                            eticket_rsa_keypair.exponent.size());
             } else {
                 for (const auto& kv : KEYS_VARIABLE_LENGTH) {
                     if (!ValidCryptoRevisionString(out[0], kv.second.size(), 2)) {
@@ -1110,56 +1184,38 @@ void KeyManager::DeriveETicket(PartitionDataManager& data,
 
     eticket_extended_kek = data.GetETicketExtendedKek();
     WriteKeyToFile(KeyCategory::Console, "eticket_extended_kek", eticket_extended_kek);
+    DeriveETicketRSAKey();
     PopulateTickets();
 }
 
 void KeyManager::PopulateTickets() {
-    const auto rsa_key = GetETicketRSAKey();
-
-    if (rsa_key == RSAKeyPair<2048>{}) {
+    if (ticket_databases_loaded) {
         return;
     }
+    ticket_databases_loaded = true;
 
-    if (!common_tickets.empty() && !personal_tickets.empty()) {
-        return;
-    }
+    std::vector<Ticket> tickets;
 
     const auto system_save_e1_path =
         Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/80000000000000e1";
-
-    const Common::FS::IOFile save_e1{system_save_e1_path, Common::FS::FileAccessMode::Read,
-                                     Common::FS::FileType::BinaryFile};
+    if (Common::FS::Exists(system_save_e1_path)) {
+        const Common::FS::IOFile save_e1{system_save_e1_path, Common::FS::FileAccessMode::Read,
+                                         Common::FS::FileType::BinaryFile};
+        const auto blob1 = GetTicketblob(save_e1);
+        tickets.insert(tickets.end(), blob1.begin(), blob1.end());
+    }
 
     const auto system_save_e2_path =
         Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/80000000000000e2";
+    if (Common::FS::Exists(system_save_e2_path)) {
+        const Common::FS::IOFile save_e2{system_save_e2_path, Common::FS::FileAccessMode::Read,
+                                         Common::FS::FileType::BinaryFile};
+        const auto blob2 = GetTicketblob(save_e2);
+        tickets.insert(tickets.end(), blob2.begin(), blob2.end());
+    }
 
-    const Common::FS::IOFile save_e2{system_save_e2_path, Common::FS::FileAccessMode::Read,
-                                     Common::FS::FileType::BinaryFile};
-
-    const auto blob2 = GetTicketblob(save_e2);
-    auto res = GetTicketblob(save_e1);
-
-    const auto idx = res.size();
-    res.insert(res.end(), blob2.begin(), blob2.end());
-
-    for (std::size_t i = 0; i < res.size(); ++i) {
-        const auto common = i < idx;
-        const auto pair = ParseTicket(res[i], rsa_key);
-        if (!pair) {
-            continue;
-        }
-
-        const auto& [rid, key] = *pair;
-        u128 rights_id;
-        std::memcpy(rights_id.data(), rid.data(), rid.size());
-
-        if (common) {
-            common_tickets[rights_id] = res[i];
-        } else {
-            personal_tickets[rights_id] = res[i];
-        }
-
-        SetKey(S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
+    for (const auto& ticket : tickets) {
+        AddTicket(ticket);
     }
 }
 
@@ -1291,41 +1347,33 @@ const std::map<u128, Ticket>& KeyManager::GetPersonalizedTickets() const {
     return personal_tickets;
 }
 
-bool KeyManager::AddTicketCommon(Ticket raw) {
-    const auto rsa_key = GetETicketRSAKey();
-    if (rsa_key == RSAKeyPair<2048>{}) {
+bool KeyManager::AddTicket(const Ticket& ticket) {
+    if (!ticket.IsValid()) {
+        LOG_WARNING(Crypto, "Attempted to add invalid ticket.");
         return false;
     }
 
-    const auto pair = ParseTicket(raw, rsa_key);
-    if (!pair) {
-        return false;
-    }
-
-    const auto& [rid, key] = *pair;
+    const auto& rid = ticket.GetData().rights_id;
     u128 rights_id;
     std::memcpy(rights_id.data(), rid.data(), rid.size());
-    common_tickets[rights_id] = raw;
-    SetKey(S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
-    return true;
-}
-
-bool KeyManager::AddTicketPersonalized(Ticket raw) {
-    const auto rsa_key = GetETicketRSAKey();
-    if (rsa_key == RSAKeyPair<2048>{}) {
-        return false;
+    if (ticket.GetData().type == Core::Crypto::TitleKeyType::Common) {
+        common_tickets[rights_id] = ticket;
+    } else {
+        personal_tickets[rights_id] = ticket;
     }
 
-    const auto pair = ParseTicket(raw, rsa_key);
-    if (!pair) {
-        return false;
+    if (HasKey(S128KeyType::Titlekey, rights_id[1], rights_id[0])) {
+        LOG_DEBUG(Crypto,
+                  "Skipping parsing title key from ticket for known rights ID {:016X}{:016X}.",
+                  rights_id[1], rights_id[0]);
+        return true;
     }
 
-    const auto& [rid, key] = *pair;
-    u128 rights_id;
-    std::memcpy(rights_id.data(), rid.data(), rid.size());
-    common_tickets[rights_id] = raw;
-    SetKey(S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
+    const auto key = ParseTicketTitleKey(ticket);
+    if (!key) {
+        return false;
+    }
+    SetKey(S128KeyType::Titlekey, key.value(), rights_id[1], rights_id[0]);
     return true;
 }
 } // namespace Core::Crypto

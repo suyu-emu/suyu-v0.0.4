@@ -53,7 +53,6 @@ public:
                                 TitleType title_type = TitleType::Application) const;
     VirtualFile GetNCAFile(u64 title_id, ContentRecordType type,
                            TitleType title_type = TitleType::Application) const;
-    std::vector<Core::Crypto::Key128> GetTitlekey() const;
 
     std::vector<VirtualFile> GetFiles() const override;
 

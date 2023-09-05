@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <map>
 #include <optional>
+#include <span>
 #include <string>
 
 #include <variant>
@@ -28,8 +29,6 @@ enum class ResultStatus : u16;
 }
 
 namespace Core::Crypto {
-
-constexpr u64 TICKET_FILE_TITLEKEY_OFFSET = 0x180;
 
 using Key128 = std::array<u8, 0x10>;
 using Key256 = std::array<u8, 0x20>;
@@ -82,6 +81,7 @@ struct RSA4096Ticket {
     INSERT_PADDING_BYTES(0x3C);
     TicketData data;
 };
+static_assert(sizeof(RSA4096Ticket) == 0x500, "RSA4096Ticket has incorrect size.");
 
 struct RSA2048Ticket {
     SignatureType sig_type;
@@ -89,6 +89,7 @@ struct RSA2048Ticket {
     INSERT_PADDING_BYTES(0x3C);
     TicketData data;
 };
+static_assert(sizeof(RSA2048Ticket) == 0x400, "RSA2048Ticket has incorrect size.");
 
 struct ECDSATicket {
     SignatureType sig_type;
@@ -96,16 +97,41 @@ struct ECDSATicket {
     INSERT_PADDING_BYTES(0x40);
     TicketData data;
 };
+static_assert(sizeof(ECDSATicket) == 0x340, "ECDSATicket has incorrect size.");
 
 struct Ticket {
-    std::variant<RSA4096Ticket, RSA2048Ticket, ECDSATicket> data;
+    std::variant<std::monostate, RSA4096Ticket, RSA2048Ticket, ECDSATicket> data;
 
-    SignatureType GetSignatureType() const;
-    TicketData& GetData();
-    const TicketData& GetData() const;
-    u64 GetSize() const;
+    [[nodiscard]] bool IsValid() const;
+    [[nodiscard]] SignatureType GetSignatureType() const;
+    [[nodiscard]] TicketData& GetData();
+    [[nodiscard]] const TicketData& GetData() const;
+    [[nodiscard]] u64 GetSize() const;
 
+    /**
+     * Synthesizes a common ticket given a title key and rights ID.
+     *
+     * @param title_key Title key to store in the ticket.
+     * @param rights_id Rights ID the ticket is for.
+     * @return The synthesized common ticket.
+     */
     static Ticket SynthesizeCommon(Key128 title_key, const std::array<u8, 0x10>& rights_id);
+
+    /**
+     * Reads a ticket from a file.
+     *
+     * @param file File to read the ticket from.
+     * @return The read ticket. If the ticket data is invalid, Ticket::IsValid() will be false.
+     */
+    static Ticket Read(const FileSys::VirtualFile& file);
+
+    /**
+     * Reads a ticket from a memory buffer.
+     *
+     * @param raw_data Buffer to read the ticket from.
+     * @return The read ticket. If the ticket data is invalid, Ticket::IsValid() will be false.
+     */
+    static Ticket Read(std::span<const u8> raw_data);
 };
 
 static_assert(sizeof(Key128) == 16, "Key128 must be 128 bytes big.");
@@ -264,8 +290,7 @@ public:
     const std::map<u128, Ticket>& GetCommonTickets() const;
     const std::map<u128, Ticket>& GetPersonalizedTickets() const;
 
-    bool AddTicketCommon(Ticket raw);
-    bool AddTicketPersonalized(Ticket raw);
+    bool AddTicket(const Ticket& ticket);
 
     void ReloadKeys();
     bool AreKeysLoaded() const;
@@ -279,10 +304,12 @@ private:
     // Map from rights ID to ticket
     std::map<u128, Ticket> common_tickets;
     std::map<u128, Ticket> personal_tickets;
+    bool ticket_databases_loaded = false;
 
     std::array<std::array<u8, 0xB0>, 0x20> encrypted_keyblobs{};
     std::array<std::array<u8, 0x90>, 0x20> keyblobs{};
     std::array<u8, 576> eticket_extended_kek{};
+    RSAKeyPair<2048> eticket_rsa_keypair{};
 
     bool dev_mode;
     void LoadFromFile(const std::filesystem::path& file_path, bool is_title_keys);
@@ -293,10 +320,13 @@ private:
 
     void DeriveGeneralPurposeKeys(std::size_t crypto_revision);
 
-    RSAKeyPair<2048> GetETicketRSAKey() const;
+    void DeriveETicketRSAKey();
 
     void SetKeyWrapped(S128KeyType id, Key128 key, u64 field1 = 0, u64 field2 = 0);
     void SetKeyWrapped(S256KeyType id, Key256 key, u64 field1 = 0, u64 field2 = 0);
+
+    /// Parses the title key section of a ticket.
+    std::optional<Key128> ParseTicketTitleKey(const Ticket& ticket);
 };
 
 Key128 GenerateKeyEncryptionKey(Key128 source, Key128 master, Key128 kek_seed, Key128 key_seed);
@@ -310,10 +340,5 @@ std::optional<Key128> DeriveSDSeed();
 Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, KeyManager& keys);
 
 std::vector<Ticket> GetTicketblob(const Common::FS::IOFile& ticket_save);
-
-// Returns a pair of {rights_id, titlekey}. Fails if the ticket has no certificate authority
-// (offset 0x140-0x144 is zero)
-std::optional<std::pair<Key128, Key128>> ParseTicket(const Ticket& ticket,
-                                                     const RSAKeyPair<2048>& eticket_extended_key);
 
 } // namespace Core::Crypto
