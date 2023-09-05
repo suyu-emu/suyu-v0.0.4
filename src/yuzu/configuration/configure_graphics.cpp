@@ -493,7 +493,7 @@ void ConfigureGraphics::RetrieveVulkanDevices() {
 }
 
 Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {
-    const auto selected_backend = [=]() {
+    const auto selected_backend = [&]() {
         if (!Settings::IsConfiguringGlobal() && !api_restore_global_button->isEnabled()) {
             return Settings::values.renderer_backend.GetValue(true);
         }
