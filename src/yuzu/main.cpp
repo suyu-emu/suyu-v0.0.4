@@ -442,7 +442,11 @@ GMainWindow::GMainWindow(std::unique_ptr<Config> config_, bool has_broken_vulkan
                                 "#yuzu-starts-with-the-error-broken-vulkan-installation-detected'>"
                                 "here for instructions to fix the issue</a>."));
 
+#ifdef HAS_OPENGL
         Settings::values.renderer_backend = Settings::RendererBackend::OpenGL;
+#else
+        Settings::values.renderer_backend = Settings::RendererBackend::Null;
+#endif
 
         UpdateAPIText();
         renderer_status_button->setDisabled(true);
@@ -3771,10 +3775,14 @@ void GMainWindow::OnToggleAdaptingFilter() {
 
 void GMainWindow::OnToggleGraphicsAPI() {
     auto api = Settings::values.renderer_backend.GetValue();
-    if (api == Settings::RendererBackend::OpenGL) {
+    if (api != Settings::RendererBackend::Vulkan) {
         api = Settings::RendererBackend::Vulkan;
     } else {
+#ifdef HAS_OPENGL
         api = Settings::RendererBackend::OpenGL;
+#else
+        api = Settings::RendererBackend::Null;
+#endif
     }
     Settings::values.renderer_backend.SetValue(api);
     renderer_status_button->setChecked(api == Settings::RendererBackend::Vulkan);
