@@ -193,14 +193,10 @@ void ConfigureGraphics::PopulateVSyncModeSelection() {
                             : vsync_mode_combobox_enum_map[current_index];
     int index{};
     const int device{vulkan_device_combobox->currentIndex()}; //< current selected Vulkan device
-    if (device == -1) {
-        // Invalid device
-        return;
-    }
 
     const auto& present_modes = //< relevant vector of present modes for the selected device or API
-        backend == Settings::RendererBackend::Vulkan ? device_present_modes[device]
-                                                     : default_present_modes;
+        backend == Settings::RendererBackend::Vulkan && device > -1 ? device_present_modes[device]
+                                                                    : default_present_modes;
 
     vsync_mode_combobox->clear();
     vsync_mode_combobox_enum_map.clear();
@@ -497,11 +493,19 @@ void ConfigureGraphics::RetrieveVulkanDevices() {
 }
 
 Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {
-    if (!Settings::IsConfiguringGlobal() && !api_restore_global_button->isEnabled()) {
-        return Settings::values.renderer_backend.GetValue(true);
+    const auto selected_backend = [=]() {
+        if (!Settings::IsConfiguringGlobal() && !api_restore_global_button->isEnabled()) {
+            return Settings::values.renderer_backend.GetValue(true);
+        }
+        return static_cast<Settings::RendererBackend>(
+            combobox_translations.at(Settings::EnumMetadata<Settings::RendererBackend>::Index())
+                .at(api_combobox->currentIndex())
+                .first);
+    }();
+
+    if (selected_backend == Settings::RendererBackend::Vulkan &&
+        UISettings::values.has_broken_vulkan) {
+        return Settings::RendererBackend::OpenGL;
     }
-    return static_cast<Settings::RendererBackend>(
-        combobox_translations.at(Settings::EnumMetadata<Settings::RendererBackend>::Index())
-            .at(api_combobox->currentIndex())
-            .first);
+    return selected_backend;
 }
