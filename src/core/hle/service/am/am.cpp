@@ -46,7 +46,7 @@ constexpr Result ResultNoMessages{ErrorModule::AM, 3};
 constexpr Result ResultInvalidOffset{ErrorModule::AM, 503};
 
 enum class LaunchParameterKind : u32 {
-    ApplicationSpecific = 1,
+    UserChannel = 1,
     AccountPreselectedUser = 2,
 };
 
@@ -1518,25 +1518,10 @@ void IApplicationFunctions::PopLaunchParameter(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto kind = rp.PopEnum<LaunchParameterKind>();
 
-    LOG_DEBUG(Service_AM, "called, kind={:08X}", kind);
+    LOG_WARNING(Service_AM, "(STUBBED) called, kind={:08X}", kind);
 
-    if (kind == LaunchParameterKind::ApplicationSpecific && !launch_popped_application_specific) {
-        const auto backend = BCAT::CreateBackendFromSettings(system, [this](u64 tid) {
-            return system.GetFileSystemController().GetBCATDirectory(tid);
-        });
-        const auto build_id_full = system.GetApplicationProcessBuildID();
-        u64 build_id{};
-        std::memcpy(&build_id, build_id_full.data(), sizeof(u64));
-
-        auto data =
-            backend->GetLaunchParameter({system.GetApplicationProcessProgramID(), build_id});
-        if (data.has_value()) {
-            IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-            rb.Push(ResultSuccess);
-            rb.PushIpcInterface<IStorage>(system, std::move(*data));
-            launch_popped_application_specific = true;
-            return;
-        }
+    if (kind == LaunchParameterKind::UserChannel) {
+        LOG_ERROR(Service_AM, "Popping from UserChannel is not supported!");
     } else if (kind == LaunchParameterKind::AccountPreselectedUser &&
                !launch_popped_account_preselect) {
         LaunchParameterAccountPreselectedUser params{};
