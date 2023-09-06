@@ -108,7 +108,7 @@ std::string GetFileTypeString(FileType type) {
     return "unknown";
 }
 
-constexpr std::array<const char*, 66> RESULT_MESSAGES{
+constexpr std::array<const char*, 68> RESULT_MESSAGES{
     "The operation completed successfully.",
     "The loader requested to load is already loaded.",
     "The operation is not implemented.",
@@ -175,6 +175,8 @@ constexpr std::array<const char*, 66> RESULT_MESSAGES{
     "The KIP BLZ decompression of the section failed unexpectedly.",
     "The INI file has a bad header.",
     "The INI file contains more than the maximum allowable number of KIP files.",
+    "Integrity verification could not be performed for this file.",
+    "Integrity verification failed.",
 };
 
 std::string GetResultStatusString(ResultStatus status) {

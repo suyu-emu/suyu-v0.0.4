@@ -85,6 +85,40 @@ AppLoader_XCI::LoadResult AppLoader_XCI::Load(Kernel::KProcess& process, Core::S
     return result;
 }
 
+ResultStatus AppLoader_XCI::VerifyIntegrity(std::function<bool(size_t, size_t)> progress_callback) {
+    // Verify secure partition, as it is the only thing we can process.
+    auto secure_partition = xci->GetSecurePartitionNSP();
+
+    // Get list of all NCAs.
+    const auto ncas = secure_partition->GetNCAsCollapsed();
+
+    size_t total_size = 0;
+    size_t processed_size = 0;
+
+    // Loop over NCAs, collecting the total size to verify.
+    for (const auto& nca : ncas) {
+        total_size += nca->GetBaseFile()->GetSize();
+    }
+
+    // Loop over NCAs again, verifying each.
+    for (const auto& nca : ncas) {
+        AppLoader_NCA loader_nca(nca->GetBaseFile());
+
+        const auto NcaProgressCallback = [&](size_t nca_processed_size, size_t nca_total_size) {
+            return progress_callback(processed_size + nca_processed_size, total_size);
+        };
+
+        const auto verification_result = loader_nca.VerifyIntegrity(NcaProgressCallback);
+        if (verification_result != ResultStatus::Success) {
+            return verification_result;
+        }
+
+        processed_size += nca->GetBaseFile()->GetSize();
+    }
+
+    return ResultStatus::Success;
+}
+
 ResultStatus AppLoader_XCI::ReadRomFS(FileSys::VirtualFile& out_file) {
     return nca_loader->ReadRomFS(out_file);
 }
