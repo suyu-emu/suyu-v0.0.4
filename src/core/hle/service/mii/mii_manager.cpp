@@ -21,7 +21,7 @@ constexpr Result ERROR_CANNOT_FIND_ENTRY{ErrorModule::Mii, 4};
 constexpr std::size_t BaseMiiCount{2};
 constexpr std::size_t DefaultMiiCount{RawData::DefaultMii.size()};
 
-constexpr MiiStoreData::Name DefaultMiiName{u'y', u'u', u'z', u'u'};
+constexpr MiiStoreData::Name DefaultMiiName{u'n', u'o', u' ', u'n', u'a', u'm', u'e'};
 constexpr std::array<u8, 8> HairColorLookup{8, 1, 2, 3, 4, 5, 6, 7};
 constexpr std::array<u8, 6> EyeColorLookup{8, 9, 10, 11, 12, 13};
 constexpr std::array<u8, 5> MouthColorLookup{19, 20, 21, 22, 23};
