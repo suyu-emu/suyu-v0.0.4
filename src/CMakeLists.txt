@@ -24,7 +24,7 @@ if (MSVC)
     # Ensure that projects build with Unicode support.
     add_definitions(-DUNICODE -D_UNICODE)
 
-    # /W3                 - Level 3 warnings
+    # /W4                 - Level 4 warnings
     # /MP                 - Multi-threaded compilation
     # /Zi                 - Output debugging information
     # /Zm                 - Specifies the precompiled header memory allocation limit
@@ -61,7 +61,7 @@ if (MSVC)
         /external:W0            # Sets the default warning level to 0 for external headers, effectively turning off warnings for external headers
 
         # Warnings
-        /W3
+        /W4
         /WX
 
         /we4062 # Enumerator 'identifier' in a switch of enum 'enumeration' is not handled
@@ -84,12 +84,16 @@ if (MSVC)
 
         /wd4100 # 'identifier': unreferenced formal parameter
         /wd4324 # 'struct_name': structure was padded due to __declspec(align())
+        /wd4201 # nonstandard extension used : nameless struct/union
     )
 
     if (USE_CCACHE OR YUZU_USE_PRECOMPILED_HEADERS)
     # when caching, we need to use /Z7 to downgrade debug info to use an older but more cacheable format
     # Precompiled headers are deleted if not using /Z7. See https://github.com/nanoant/CMakePCHCompiler/issues/21
         add_compile_options(/Z7)
+        # Avoid D9025 warning
+        string(REPLACE "/Zi" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+        string(REPLACE "/Zi" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
     else()
         add_compile_options(/Zi)
     endif()

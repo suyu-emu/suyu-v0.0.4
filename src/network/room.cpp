@@ -805,7 +805,7 @@ IPv4Address Room::RoomImpl::GenerateFakeIPAddress() {
     std::uniform_int_distribution<> dis(0x01, 0xFE); // Random byte between 1 and 0xFE
     do {
         for (std::size_t i = 2; i < result_ip.size(); ++i) {
-            result_ip[i] = dis(random_gen);
+            result_ip[i] = static_cast<u8>(dis(random_gen));
         }
     } while (!IsValidFakeIPAddress(result_ip));
 

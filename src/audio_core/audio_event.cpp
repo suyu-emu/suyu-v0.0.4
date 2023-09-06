@@ -20,7 +20,6 @@ size_t Event::GetManagerIndex(const Type type) const {
     default:
         UNREACHABLE();
     }
-    return 3;
 }
 
 void Event::SetAudioEvent(const Type type, const bool signalled) {

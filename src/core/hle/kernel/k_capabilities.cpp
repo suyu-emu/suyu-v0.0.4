@@ -156,7 +156,6 @@ Result KCapabilities::MapIoPage_(const u32 cap, KPageTable* page_table) {
     const u64 phys_addr = MapIoPage{cap}.address.Value() * PageSize;
     const size_t num_pages = 1;
     const size_t size = num_pages * PageSize;
-    R_UNLESS(num_pages != 0, ResultInvalidSize);
     R_UNLESS(phys_addr < phys_addr + size, ResultInvalidAddress);
     R_UNLESS(((phys_addr + size - 1) & ~PhysicalMapAllowedMask) == 0, ResultInvalidAddress);
 

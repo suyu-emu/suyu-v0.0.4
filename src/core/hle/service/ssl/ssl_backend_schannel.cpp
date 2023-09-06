@@ -477,7 +477,8 @@ public:
             return ResultInternalError;
         }
         PCCERT_CONTEXT some_cert = nullptr;
-        while ((some_cert = CertEnumCertificatesInStore(returned_cert->hCertStore, some_cert))) {
+        while ((some_cert = CertEnumCertificatesInStore(returned_cert->hCertStore, some_cert)) !=
+               nullptr) {
             out_certs->emplace_back(static_cast<u8*>(some_cert->pbCertEncoded),
                                     static_cast<u8*>(some_cert->pbCertEncoded) +
                                         some_cert->cbCertEncoded);
