@@ -9,7 +9,7 @@
 #include "common/common_types.h"
 #include "common/fixed_point.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Resample an input buffer into an output buffer, according to the sample_rate_ratio.
  *
@@ -26,4 +26,4 @@ void Resample(std::span<s32> output, std::span<const s16> input,
               const Common::FixedPoint<49, 15>& sample_rate_ratio,
               Common::FixedPoint<49, 15>& fraction, u32 samples_to_write, SrcQuality src_quality);
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

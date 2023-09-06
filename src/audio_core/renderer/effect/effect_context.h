@@ -9,7 +9,7 @@
 #include "audio_core/renderer/effect/effect_result_state.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 class EffectContext {
 public:
@@ -72,4 +72,4 @@ private:
     size_t dsp_state_count{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

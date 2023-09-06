@@ -8,7 +8,7 @@
 #include "common/common_types.h"
 #include "core/hle/service/audio/errors.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 class BehaviorInfo;
 class VoiceContext;
 class MixContext;
@@ -202,4 +202,4 @@ private:
     BehaviorInfo& behaviour;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -5,8 +5,8 @@
 
 #include <memory>
 
+#include "audio_core/adsp/adsp.h"
 #include "audio_core/audio_manager.h"
-#include "audio_core/renderer/adsp/adsp.h"
 #include "audio_core/sink/sink.h"
 
 namespace Core {
@@ -55,7 +55,7 @@ public:
      *
      * @return Ref to the ADSP.
      */
-    AudioRenderer::ADSP::ADSP& GetADSP();
+    ADSP::ADSP& ADSP();
 
 private:
     /**
@@ -70,7 +70,7 @@ private:
     /// Sink used for audio input
     std::unique_ptr<Sink::Sink> input_sink;
     /// The ADSP in the sysmodule
-    std::unique_ptr<AudioRenderer::ADSP::ADSP> adsp;
+    std::unique_ptr<ADSP::ADSP> adsp;
 };
 
 } // namespace AudioCore

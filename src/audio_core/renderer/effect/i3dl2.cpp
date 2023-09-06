@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/effect/i3dl2.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void I3dl2ReverbInfo::Update(BehaviorInfo::ErrorInfo& error_info,
                              const InParameterVersion1& in_params, const PoolMapper& pool_mapper) {
@@ -91,4 +91,4 @@ CpuAddr I3dl2ReverbInfo::GetWorkbuffer(s32 index) {
     return GetSingleBuffer(index);
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

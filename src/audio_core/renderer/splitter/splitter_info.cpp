@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/splitter/splitter_info.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 SplitterInfo::SplitterInfo(const s32 id_) : id{id_} {}
 
@@ -76,4 +76,4 @@ void SplitterInfo::SetDestinations(SplitterDestinationData* destinations_) {
     destinations = destinations_;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

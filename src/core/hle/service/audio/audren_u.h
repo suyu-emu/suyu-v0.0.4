@@ -28,7 +28,7 @@ private:
     void GetAudioDeviceServiceWithRevisionInfo(HLERequestContext& ctx);
 
     KernelHelpers::ServiceContext service_context;
-    std::unique_ptr<AudioCore::AudioRenderer::Manager> impl;
+    std::unique_ptr<AudioCore::Renderer::Manager> impl;
     u32 num_audio_devices{0};
 };
 

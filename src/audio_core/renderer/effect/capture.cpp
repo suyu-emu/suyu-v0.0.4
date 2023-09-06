@@ -4,7 +4,7 @@
 #include "audio_core/renderer/effect/aux_.h"
 #include "audio_core/renderer/effect/capture.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void CaptureInfo::Update(BehaviorInfo::ErrorInfo& error_info, const InParameterVersion1& in_params,
                          const PoolMapper& pool_mapper) {
@@ -79,4 +79,4 @@ CpuAddr CaptureInfo::GetWorkbuffer(s32 index) {
     return workbuffers[index].GetReference(true);
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

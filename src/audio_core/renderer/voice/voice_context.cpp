@@ -6,7 +6,7 @@
 #include "audio_core/renderer/voice/voice_context.h"
 #include "common/polyfill_ranges.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 VoiceState& VoiceContext::GetDspSharedState(const u32 index) {
     if (index >= dsp_states.size()) {
@@ -84,4 +84,4 @@ void VoiceContext::UpdateStateByDspShared() {
     std::memcpy(cpu_states.data(), dsp_states.data(), voice_count * sizeof(VoiceState));
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

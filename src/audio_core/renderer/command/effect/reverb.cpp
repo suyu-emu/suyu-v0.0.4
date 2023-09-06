@@ -4,11 +4,11 @@
 #include <numbers>
 #include <ranges>
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/effect/reverb.h"
 #include "common/polyfill_ranges.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 constexpr std::array<f32, ReverbInfo::MaxDelayLines> FdnMaxDelayLineTimes = {
     53.9532470703125f,
@@ -396,7 +396,7 @@ static void ApplyReverbEffect(const ReverbInfo::ParameterVersion2& params, Rever
     }
 }
 
-void ReverbCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
+void ReverbCommand::Dump([[maybe_unused]] const AudioRenderer::CommandListProcessor& processor,
                          std::string& string) {
     string += fmt::format(
         "ReverbCommand\n\tenabled {} long_size_pre_delay_supported {}\n\tinputs: ", effect_enabled,
@@ -411,7 +411,7 @@ void ReverbCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& proc
     string += "\n";
 }
 
-void ReverbCommand::Process(const ADSP::CommandListProcessor& processor) {
+void ReverbCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     std::array<std::span<const s32>, MaxChannels> input_buffers{};
     std::array<std::span<s32>, MaxChannels> output_buffers{};
 
@@ -435,8 +435,8 @@ void ReverbCommand::Process(const ADSP::CommandListProcessor& processor) {
                       processor.sample_count);
 }
 
-bool ReverbCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool ReverbCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

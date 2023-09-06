@@ -14,7 +14,7 @@
 #include "audio_core/renderer/performance/performance_frame_header.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 class BehaviorInfo;
 class MemoryPoolInfo;
 
@@ -272,4 +272,4 @@ private:
     PerformanceVersion version{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/effect/delay.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void DelayInfo::Update(BehaviorInfo::ErrorInfo& error_info, const InParameterVersion1& in_params,
                        const PoolMapper& pool_mapper) {
@@ -90,4 +90,4 @@ CpuAddr DelayInfo::GetWorkbuffer(s32 index) {
     return GetSingleBuffer(index);
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

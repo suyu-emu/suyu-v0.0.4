@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/upsampler/upsampler_manager.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 UpsamplerManager::UpsamplerManager(const u32 count_, std::span<UpsamplerInfo> infos_,
                                    std::span<s32> workbuffer_)
@@ -41,4 +41,4 @@ void UpsamplerManager::Free(UpsamplerInfo* info) {
     info->enabled = false;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

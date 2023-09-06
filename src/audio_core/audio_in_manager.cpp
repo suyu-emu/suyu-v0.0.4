@@ -73,7 +73,7 @@ void Manager::BufferReleaseAndRegister() {
     }
 }
 
-u32 Manager::GetDeviceNames(std::vector<AudioRenderer::AudioDevice::AudioDeviceName>& names,
+u32 Manager::GetDeviceNames(std::vector<Renderer::AudioDevice::AudioDeviceName>& names,
                             [[maybe_unused]] const u32 max_count,
                             [[maybe_unused]] const bool filter) {
     std::scoped_lock l{mutex};

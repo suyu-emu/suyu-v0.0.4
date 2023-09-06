@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/effect/light_limiter.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Update the LightLimiterInfo state according to the given parameters.
  * A no-op.
@@ -133,8 +133,8 @@ static void ApplyLightLimiterEffect(const LightLimiterInfo::ParameterVersion2& p
     }
 }
 
-void LightLimiterVersion1Command::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
-                                       std::string& string) {
+void LightLimiterVersion1Command::Dump(
+    [[maybe_unused]] const AudioRenderer::CommandListProcessor& processor, std::string& string) {
     string += fmt::format("LightLimiterVersion1Command\n\tinputs: ");
     for (u32 i = 0; i < MaxChannels; i++) {
         string += fmt::format("{:02X}, ", inputs[i]);
@@ -146,7 +146,7 @@ void LightLimiterVersion1Command::Dump([[maybe_unused]] const ADSP::CommandListP
     string += "\n";
 }
 
-void LightLimiterVersion1Command::Process(const ADSP::CommandListProcessor& processor) {
+void LightLimiterVersion1Command::Process(const AudioRenderer::CommandListProcessor& processor) {
     std::array<std::span<const s32>, MaxChannels> input_buffers{};
     std::array<std::span<s32>, MaxChannels> output_buffers{};
 
@@ -172,12 +172,12 @@ void LightLimiterVersion1Command::Process(const ADSP::CommandListProcessor& proc
                             processor.sample_count, statistics);
 }
 
-bool LightLimiterVersion1Command::Verify(const ADSP::CommandListProcessor& processor) {
+bool LightLimiterVersion1Command::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-void LightLimiterVersion2Command::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
-                                       std::string& string) {
+void LightLimiterVersion2Command::Dump(
+    [[maybe_unused]] const AudioRenderer::CommandListProcessor& processor, std::string& string) {
     string += fmt::format("LightLimiterVersion2Command\n\tinputs: \n");
     for (u32 i = 0; i < MaxChannels; i++) {
         string += fmt::format("{:02X}, ", inputs[i]);
@@ -189,7 +189,7 @@ void LightLimiterVersion2Command::Dump([[maybe_unused]] const ADSP::CommandListP
     string += "\n";
 }
 
-void LightLimiterVersion2Command::Process(const ADSP::CommandListProcessor& processor) {
+void LightLimiterVersion2Command::Process(const AudioRenderer::CommandListProcessor& processor) {
     std::array<std::span<const s32>, MaxChannels> input_buffers{};
     std::array<std::span<s32>, MaxChannels> output_buffers{};
 
@@ -215,8 +215,8 @@ void LightLimiterVersion2Command::Process(const ADSP::CommandListProcessor& proc
                             processor.sample_count, statistics);
 }
 
-bool LightLimiterVersion2Command::Verify(const ADSP::CommandListProcessor& processor) {
+bool LightLimiterVersion2Command::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

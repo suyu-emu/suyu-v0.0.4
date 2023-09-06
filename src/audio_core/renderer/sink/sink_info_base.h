@@ -11,7 +11,7 @@
 #include "common/common_types.h"
 #include "common/fixed_point.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 struct UpsamplerInfo;
 class PoolMapper;
 
@@ -174,4 +174,4 @@ protected:
         parameter{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

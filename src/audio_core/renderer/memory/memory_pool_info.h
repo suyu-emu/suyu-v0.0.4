@@ -8,7 +8,7 @@
 #include "audio_core/common/common.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * CPU pools are mapped in user memory with the supplied process_handle (see PoolMapper).
  */
@@ -167,4 +167,4 @@ private:
     bool in_use{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

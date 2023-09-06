@@ -7,7 +7,7 @@
 #include "audio_core/renderer/splitter/splitter_context.h"
 #include "common/alignment.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 SplitterDestinationData* SplitterContext::GetDesintationData(const s32 splitter_id,
                                                              const s32 destination_id) {
@@ -214,4 +214,4 @@ u64 SplitterContext::CalcWorkBufferSize(const BehaviorInfo& behavior,
     return size;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

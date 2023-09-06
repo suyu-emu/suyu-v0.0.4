@@ -9,10 +9,11 @@
 #include "common/common_types.h"
 #include "common/fixed_point.h"
 
-namespace AudioCore::AudioRenderer {
-namespace ADSP {
+namespace AudioCore::ADSP::AudioRenderer {
 class CommandListProcessor;
 }
+
+namespace AudioCore::Renderer {
 
 /**
  * AudioRenderer command for depopping a mix buffer.
@@ -25,14 +26,14 @@ struct DepopForMixBuffersCommand : ICommand {
      * @param processor - The CommandListProcessor processing this command.
      * @param string    - The string to print into.
      */
-    void Dump(const ADSP::CommandListProcessor& processor, std::string& string) override;
+    void Dump(const AudioRenderer::CommandListProcessor& processor, std::string& string) override;
 
     /**
      * Process this command.
      *
      * @param processor - The CommandListProcessor processing this command.
      */
-    void Process(const ADSP::CommandListProcessor& processor) override;
+    void Process(const AudioRenderer::CommandListProcessor& processor) override;
 
     /**
      * Verify this command's data is valid.
@@ -40,7 +41,7 @@ struct DepopForMixBuffersCommand : ICommand {
      * @param processor - The CommandListProcessor processing this command.
      * @return True if the command is valid, otherwise false.
      */
-    bool Verify(const ADSP::CommandListProcessor& processor) override;
+    bool Verify(const AudioRenderer::CommandListProcessor& processor) override;
 
     /// Starting input mix buffer index
     u32 input;
@@ -52,4 +53,4 @@ struct DepopForMixBuffersCommand : ICommand {
     CpuAddr depop_buffer;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/mix/volume_ramp.h"
 #include "common/fixed_point.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Apply volume with ramping to the input mix buffer, saving to the output buffer.
  *
@@ -38,7 +38,8 @@ static void ApplyLinearEnvelopeGain(std::span<s32> output, std::span<const s32> 
     }
 }
 
-void VolumeRampCommand::Dump(const ADSP::CommandListProcessor& processor, std::string& string) {
+void VolumeRampCommand::Dump(const AudioRenderer::CommandListProcessor& processor,
+                             std::string& string) {
     const auto ramp{(volume - prev_volume) / static_cast<f32>(processor.sample_count)};
     string += fmt::format("VolumeRampCommand");
     string += fmt::format("\n\tinput {:02X}", input_index);
@@ -49,7 +50,7 @@ void VolumeRampCommand::Dump(const ADSP::CommandListProcessor& processor, std::s
     string += "\n";
 }
 
-void VolumeRampCommand::Process(const ADSP::CommandListProcessor& processor) {
+void VolumeRampCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     auto output{processor.mix_buffers.subspan(output_index * processor.sample_count,
                                               processor.sample_count)};
     auto input{processor.mix_buffers.subspan(input_index * processor.sample_count,
@@ -77,8 +78,8 @@ void VolumeRampCommand::Process(const ADSP::CommandListProcessor& processor) {
     }
 }
 
-bool VolumeRampCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool VolumeRampCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

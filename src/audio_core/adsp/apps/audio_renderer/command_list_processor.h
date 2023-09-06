@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -6,6 +6,7 @@
 #include <span>
 
 #include "audio_core/common/common.h"
+#include "audio_core/renderer/command/command_list_header.h"
 #include "common/common_types.h"
 
 namespace Core {
@@ -20,10 +21,11 @@ namespace Sink {
 class SinkStream;
 }
 
-namespace AudioRenderer {
+namespace Renderer {
 struct CommandListHeader;
+}
 
-namespace ADSP {
+namespace ADSP::AudioRenderer {
 
 /**
  * A processor for command lists given to the AudioRenderer.
@@ -85,7 +87,7 @@ public:
     /// Stream for the processed samples
     Sink::SinkStream* stream{};
     /// Header info for this command list
-    CommandListHeader* header{};
+    Renderer::CommandListHeader* header{};
     /// The command buffer
     u8* commands{};
     /// The command buffer size
@@ -114,6 +116,5 @@ public:
     std::string last_dump{};
 };
 
-} // namespace ADSP
-} // namespace AudioRenderer
+} // namespace ADSP::AudioRenderer
 } // namespace AudioCore

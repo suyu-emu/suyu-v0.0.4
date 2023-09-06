@@ -6,7 +6,7 @@
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/svc.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 PoolMapper::PoolMapper(u32 process_handle_, bool force_map_)
     : process_handle{process_handle_}, force_map{force_map_} {}
@@ -240,4 +240,4 @@ bool PoolMapper::InitializeSystemPool(MemoryPoolInfo& pool, const u8* memory,
     }
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

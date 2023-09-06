@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/command/resample/resample.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 static void ResampleLowQuality(std::span<s32> output, std::span<const s16> input,
                                const Common::FixedPoint<49, 15>& sample_rate_ratio,
@@ -880,4 +880,4 @@ void Resample(std::span<s32> output, std::span<const s16> input,
     }
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

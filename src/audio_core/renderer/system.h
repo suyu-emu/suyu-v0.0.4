@@ -34,12 +34,16 @@ class KTransferMemory;
 
 namespace AudioCore {
 struct AudioRendererParameterInternal;
-
-namespace AudioRenderer {
-class CommandBuffer;
 namespace ADSP {
 class ADSP;
+namespace AudioRenderer {
+class AudioRenderer;
 }
+} // namespace ADSP
+
+namespace Renderer {
+using namespace ::AudioCore::ADSP;
+class CommandBuffer;
 
 /**
  * Audio Renderer System, the main worker for audio rendering.
@@ -213,8 +217,8 @@ public:
 private:
     /// Core system
     Core::System& core;
-    /// Reference to the ADSP for communication
-    ADSP::ADSP& adsp;
+    /// Reference to the ADSP's AudioRenderer for communication
+    ::AudioCore::ADSP::AudioRenderer::AudioRenderer& audio_renderer;
     /// Is this system initialized?
     bool initialized{};
     /// Is this system currently active?
@@ -319,5 +323,5 @@ private:
     f32 drop_voice_param{1.0f};
 };
 
-} // namespace AudioRenderer
+} // namespace Renderer
 } // namespace AudioCore

@@ -6,7 +6,7 @@
 #include "audio_core/renderer/performance/performance_entry.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 enum class PerformanceDetailType : u8 {
     Invalid,
@@ -47,4 +47,4 @@ struct PerformanceDetailVersion2 {
 static_assert(sizeof(PerformanceDetailVersion2) == 0x18,
               "PerformanceDetailVersion2 has the wrong size!");
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -16,7 +16,7 @@ namespace Sink {
 class Sink;
 }
 
-namespace AudioRenderer {
+namespace Renderer {
 /**
  * An interface to an output audio device available to the Switch.
  */
@@ -76,5 +76,5 @@ private:
     const u32 user_revision;
 };
 
-} // namespace AudioRenderer
+} // namespace Renderer
 } // namespace AudioCore

@@ -61,8 +61,7 @@ public:
      * @param names     - Output container to write names to.
      * @return Number of names written.
      */
-    u32 GetAudioOutDeviceNames(
-        std::vector<AudioRenderer::AudioDevice::AudioDeviceName>& names) const;
+    u32 GetAudioOutDeviceNames(std::vector<Renderer::AudioDevice::AudioDeviceName>& names) const;
 
     /// Core system
     Core::System& system;

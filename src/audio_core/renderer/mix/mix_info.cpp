@@ -7,7 +7,7 @@
 #include "audio_core/renderer/nodes/edge_matrix.h"
 #include "audio_core/renderer/splitter/splitter_context.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 MixInfo::MixInfo(std::span<s32> effect_order_buffer_, s32 effect_count_, BehaviorInfo& behavior)
     : effect_order_buffer{effect_order_buffer_}, effect_count{effect_count_},
@@ -117,4 +117,4 @@ bool MixInfo::HasAnyConnection() const {
     return dst_mix_id != UnusedMixId || dst_splitter_id != UnusedSplitterId;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

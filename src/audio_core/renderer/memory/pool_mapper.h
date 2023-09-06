@@ -10,7 +10,7 @@
 #include "common/common_types.h"
 #include "core/hle/service/audio/errors.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 class AddressInfo;
 
 /**
@@ -176,4 +176,4 @@ private:
     bool force_map;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -4,7 +4,7 @@
 #include "audio_core/renderer/sink/device_sink_info.h"
 #include "audio_core/renderer/upsampler/upsampler_manager.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 DeviceSinkInfo::DeviceSinkInfo() {
     state.fill(0);
@@ -54,4 +54,4 @@ void DeviceSinkInfo::Update(BehaviorInfo::ErrorInfo& error_info, OutStatus& out_
 
 void DeviceSinkInfo::UpdateForCommandGeneration() {}
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

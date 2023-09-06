@@ -6,7 +6,7 @@
 #include "audio_core/renderer/performance/performance_manager.h"
 #include "common/common_funcs.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void PerformanceManager::CreateImpl(const size_t version) {
     switch (version) {
@@ -643,4 +643,4 @@ void PerformanceManagerImpl<PerformanceVersion::Version2, PerformanceFrameHeader
     target_node_id = target_node_id_;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

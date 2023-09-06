@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/effect/capture.h"
 #include "audio_core/renderer/effect/aux_.h"
 #include "core/memory.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Reset an AuxBuffer.
  *
@@ -118,13 +118,13 @@ static u32 WriteAuxBufferDsp(Core::Memory::Memory& memory, const CpuAddr send_in
     return write_count_;
 }
 
-void CaptureCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
+void CaptureCommand::Dump([[maybe_unused]] const AudioRenderer::CommandListProcessor& processor,
                           std::string& string) {
     string += fmt::format("CaptureCommand\n\tenabled {} input {:02X} output {:02X}", effect_enabled,
                           input, output);
 }
 
-void CaptureCommand::Process(const ADSP::CommandListProcessor& processor) {
+void CaptureCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     if (effect_enabled) {
         auto input_buffer{
             processor.mix_buffers.subspan(input * processor.sample_count, processor.sample_count)};
@@ -135,8 +135,8 @@ void CaptureCommand::Process(const ADSP::CommandListProcessor& processor) {
     }
 }
 
-bool CaptureCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool CaptureCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

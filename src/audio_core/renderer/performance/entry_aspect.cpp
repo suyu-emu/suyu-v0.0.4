@@ -5,7 +5,7 @@
 #include "audio_core/renderer/command/command_generator.h"
 #include "audio_core/renderer/performance/entry_aspect.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 EntryAspect::EntryAspect(CommandGenerator& command_generator_, const PerformanceEntryType type,
                          const s32 node_id_)
@@ -20,4 +20,4 @@ EntryAspect::EntryAspect(CommandGenerator& command_generator_, const Performance
     }
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

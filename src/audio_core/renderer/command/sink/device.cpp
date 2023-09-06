@@ -3,13 +3,13 @@
 
 #include <algorithm>
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/sink/device.h"
 #include "audio_core/sink/sink.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
-void DeviceSinkCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
+void DeviceSinkCommand::Dump([[maybe_unused]] const AudioRenderer::CommandListProcessor& processor,
                              std::string& string) {
     string += fmt::format("DeviceSinkCommand\n\t{} session {} input_count {}\n\tinputs: ",
                           std::string_view(name), session_id, input_count);
@@ -19,7 +19,7 @@ void DeviceSinkCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& 
     string += "\n";
 }
 
-void DeviceSinkCommand::Process(const ADSP::CommandListProcessor& processor) {
+void DeviceSinkCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     constexpr s32 min = std::numeric_limits<s16>::min();
     constexpr s32 max = std::numeric_limits<s16>::max();
 
@@ -51,8 +51,8 @@ void DeviceSinkCommand::Process(const ADSP::CommandListProcessor& processor) {
     }
 }
 
-bool DeviceSinkCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool DeviceSinkCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

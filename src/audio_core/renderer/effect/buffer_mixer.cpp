@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/effect/buffer_mixer.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void BufferMixerInfo::Update(BehaviorInfo::ErrorInfo& error_info,
                              const InParameterVersion1& in_params, const PoolMapper& pool_mapper) {
@@ -46,4 +46,4 @@ void BufferMixerInfo::InitializeResultState(EffectResultState& result_state) {}
 void BufferMixerInfo::UpdateResultState(EffectResultState& cpu_state,
                                         EffectResultState& dsp_state) {}
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

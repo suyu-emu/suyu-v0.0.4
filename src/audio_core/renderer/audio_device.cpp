@@ -10,7 +10,7 @@
 #include "audio_core/sink/sink.h"
 #include "core/core.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 constexpr std::array usb_device_names{
     AudioDevice::AudioDeviceName{"AudioStereoJackOutput"},
@@ -71,4 +71,4 @@ f32 AudioDevice::GetDeviceVolume([[maybe_unused]] std::string_view name) const {
     return output_sink.GetDeviceVolume();
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

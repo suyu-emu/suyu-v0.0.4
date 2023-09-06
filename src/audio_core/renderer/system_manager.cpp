@@ -3,8 +3,8 @@
 
 #include <chrono>
 
+#include "audio_core/adsp/adsp.h"
 #include "audio_core/audio_core.h"
-#include "audio_core/renderer/adsp/adsp.h"
 #include "audio_core/renderer/system_manager.h"
 #include "common/microprofile.h"
 #include "common/thread.h"
@@ -14,24 +14,21 @@
 MICROPROFILE_DEFINE(Audio_RenderSystemManager, "Audio", "Render System Manager",
                     MP_RGB(60, 19, 97));
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 SystemManager::SystemManager(Core::System& core_)
-    : core{core_}, adsp{core.AudioCore().GetADSP()}, mailbox{adsp.GetRenderMailbox()} {}
+    : core{core_}, audio_renderer{core.AudioCore().ADSP().AudioRenderer()} {}
 
 SystemManager::~SystemManager() {
     Stop();
 }
 
-bool SystemManager::InitializeUnsafe() {
+void SystemManager::InitializeUnsafe() {
     if (!active) {
-        if (adsp.Start()) {
-            active = true;
-            thread = std::jthread([this](std::stop_token stop_token) { ThreadFunc(stop_token); });
-        }
+        active = true;
+        audio_renderer.Start();
+        thread = std::jthread([this](std::stop_token stop_token) { ThreadFunc(stop_token); });
     }
-
-    return adsp.GetState() == ADSP::State::Started;
 }
 
 void SystemManager::Stop() {
@@ -41,7 +38,7 @@ void SystemManager::Stop() {
     active = false;
     thread.request_stop();
     thread.join();
-    adsp.Stop();
+    audio_renderer.Stop();
 }
 
 bool SystemManager::Add(System& system_) {
@@ -55,10 +52,7 @@ bool SystemManager::Add(System& system_) {
     {
         std::scoped_lock l{mutex1};
         if (systems.empty()) {
-            if (!InitializeUnsafe()) {
-                LOG_ERROR(Service_Audio, "Failed to start the AudioRenderer SystemManager");
-                return false;
-            }
+            InitializeUnsafe();
         }
     }
 
@@ -100,9 +94,9 @@ void SystemManager::ThreadFunc(std::stop_token stop_token) {
             }
         }
 
-        adsp.Signal();
-        adsp.Wait();
+        audio_renderer.Signal();
+        audio_renderer.Wait();
     }
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

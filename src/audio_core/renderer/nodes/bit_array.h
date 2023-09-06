@@ -7,7 +7,7 @@
 
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Represents an array of bits used for nodes and edges for the mixing graph.
  */
@@ -22,4 +22,4 @@ struct BitArray {
     u32 size{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

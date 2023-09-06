@@ -10,7 +10,7 @@
 #include "common/common_types.h"
 #include "core/hle/service/audio/errors.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Holds host and user revisions, checks whether render features can be enabled, and reports errors.
  */
@@ -264,7 +264,7 @@ public:
     /**
      * Check if skipping voice pitch and sample rate conversion is supported.
      * This speeds up the data source commands by skipping resampling if unwanted.
-     * See AudioCore::AudioRenderer::DecodeFromWaveBuffers
+     * See AudioCore::Renderer::DecodeFromWaveBuffers
      *
      * @return True if supported, otherwise false.
      */
@@ -273,7 +273,7 @@ public:
     /**
      * Check if resetting played sample count at loop points is supported.
      * This resets the number of samples played in a voice state when a loop point is reached.
-     * See AudioCore::AudioRenderer::DecodeFromWaveBuffers
+     * See AudioCore::Renderer::DecodeFromWaveBuffers
      *
      * @return True if supported, otherwise false.
      */
@@ -373,4 +373,4 @@ public:
     u32 error_count{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

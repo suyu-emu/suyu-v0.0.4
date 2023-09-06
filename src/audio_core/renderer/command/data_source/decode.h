@@ -15,7 +15,7 @@ namespace Core::Memory {
 class Memory;
 }
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 struct DecodeFromWaveBuffersArgs {
     SampleFormat sample_format;
@@ -56,4 +56,4 @@ struct DecodeArg {
  */
 void DecodeFromWaveBuffers(Core::Memory::Memory& memory, const DecodeFromWaveBuffersArgs& args);
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

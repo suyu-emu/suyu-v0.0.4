@@ -9,7 +9,7 @@
 #include "audio_core/renderer/effect/effect_info_base.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Auxiliary Buffer used for Aux commands.
  * Send and return buffers are available (names from the game's perspective).
@@ -120,4 +120,4 @@ public:
     CpuAddr GetWorkbuffer(s32 index) override;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -1,13 +1,14 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/mix/mix_ramp.h"
 #include "audio_core/renderer/command/mix/mix_ramp_grouped.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
-void MixRampGroupedCommand::Dump(const ADSP::CommandListProcessor& processor, std::string& string) {
+void MixRampGroupedCommand::Dump(const AudioRenderer::CommandListProcessor& processor,
+                                 std::string& string) {
     string += "MixRampGroupedCommand";
     for (u32 i = 0; i < buffer_count; i++) {
         string += fmt::format("\n\t{}", i);
@@ -21,7 +22,7 @@ void MixRampGroupedCommand::Dump(const ADSP::CommandListProcessor& processor, st
     }
 }
 
-void MixRampGroupedCommand::Process(const ADSP::CommandListProcessor& processor) {
+void MixRampGroupedCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     std::span<s32> prev_samples = {reinterpret_cast<s32*>(previous_samples), MaxMixBuffers};
 
     for (u32 i = 0; i < buffer_count; i++) {
@@ -58,8 +59,8 @@ void MixRampGroupedCommand::Process(const ADSP::CommandListProcessor& processor)
     }
 }
 
-bool MixRampGroupedCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool MixRampGroupedCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

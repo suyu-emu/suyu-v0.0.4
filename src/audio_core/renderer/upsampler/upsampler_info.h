@@ -9,7 +9,7 @@
 #include "audio_core/renderer/upsampler/upsampler_state.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 class UpsamplerManager;
 
 /**
@@ -32,4 +32,4 @@ struct UpsamplerInfo {
     std::array<s16, MaxChannels> inputs{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

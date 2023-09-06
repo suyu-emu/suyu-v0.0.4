@@ -5,7 +5,7 @@
 
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 struct PerformanceFrameHeaderVersion1 {
     /* 0x00 */ u32 magic; // "PERF"
@@ -33,4 +33,4 @@ struct PerformanceFrameHeaderVersion2 {
 static_assert(sizeof(PerformanceFrameHeaderVersion2) == 0x30,
               "PerformanceFrameHeaderVersion2 has the wrong size!");
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

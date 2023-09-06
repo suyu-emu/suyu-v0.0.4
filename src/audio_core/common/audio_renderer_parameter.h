@@ -51,10 +51,10 @@ struct AudioRendererSystemContext {
     s32 session_id;
     s8 channels;
     s16 mix_buffer_count;
-    AudioRenderer::BehaviorInfo* behavior;
+    Renderer::BehaviorInfo* behavior;
     std::span<s32> depop_buffer;
-    AudioRenderer::UpsamplerManager* upsampler_manager;
-    AudioRenderer::MemoryPoolInfo* memory_pool_info;
+    Renderer::UpsamplerManager* upsampler_manager;
+    Renderer::MemoryPoolInfo* memory_pool_info;
 };
 
 } // namespace AudioCore

@@ -21,7 +21,7 @@
 #include "audio_core/renderer/voice/voice_context.h"
 #include "common/alignment.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 CommandGenerator::CommandGenerator(CommandBuffer& command_buffer_,
                                    const CommandListHeader& command_list_header_,
@@ -793,4 +793,4 @@ void CommandGenerator::GeneratePerformanceCommand(
     command_buffer.GeneratePerformanceCommand(node_id, state, entry_addresses);
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

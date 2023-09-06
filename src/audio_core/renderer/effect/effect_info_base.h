@@ -12,7 +12,7 @@
 #include "audio_core/renderer/memory/pool_mapper.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Base of all effects. Holds various data and functions used for all derived effects.
  * Should not be used directly.
@@ -432,4 +432,4 @@ protected:
     std::array<u8, sizeof(State)> state{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -16,7 +16,7 @@
 #include "audio_core/renderer/voice/voice_info.h"
 #include "audio_core/renderer/voice/voice_state.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 template <typename T, CommandId Id>
 T& CommandBuffer::GenerateStart(const s32 node_id) {
@@ -713,4 +713,4 @@ void CommandBuffer::GenerateCompressorCommand(s16 buffer_offset, EffectInfoBase&
     GenerateEnd<CompressorCommand>(cmd);
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

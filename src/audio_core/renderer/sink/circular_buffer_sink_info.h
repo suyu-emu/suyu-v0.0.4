@@ -6,7 +6,7 @@
 #include "audio_core/renderer/sink/sink_info_base.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Info for a circular buffer sink.
  */
@@ -38,4 +38,4 @@ public:
 static_assert(sizeof(CircularBufferSinkInfo) <= sizeof(SinkInfoBase),
               "CircularBufferSinkInfo is too large!");
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

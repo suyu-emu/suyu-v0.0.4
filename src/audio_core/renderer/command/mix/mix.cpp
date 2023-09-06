@@ -5,11 +5,11 @@
 #include <limits>
 #include <span>
 
-#include "audio_core/renderer/adsp/command_list_processor.h"
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/renderer/command/mix/mix.h"
 #include "common/fixed_point.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Mix input mix buffer into output mix buffer, with volume applied to the input.
  *
@@ -28,7 +28,7 @@ static void ApplyMix(std::span<s32> output, std::span<const s32> input, const f3
     }
 }
 
-void MixCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
+void MixCommand::Dump([[maybe_unused]] const AudioRenderer::CommandListProcessor& processor,
                       std::string& string) {
     string += fmt::format("MixCommand");
     string += fmt::format("\n\tinput {:02X}", input_index);
@@ -37,7 +37,7 @@ void MixCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& process
     string += "\n";
 }
 
-void MixCommand::Process(const ADSP::CommandListProcessor& processor) {
+void MixCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     auto output{processor.mix_buffers.subspan(output_index * processor.sample_count,
                                               processor.sample_count)};
     auto input{processor.mix_buffers.subspan(input_index * processor.sample_count,
@@ -63,8 +63,8 @@ void MixCommand::Process(const ADSP::CommandListProcessor& processor) {
     }
 }
 
-bool MixCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool MixCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

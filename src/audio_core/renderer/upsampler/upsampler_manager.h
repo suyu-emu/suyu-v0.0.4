@@ -9,7 +9,7 @@
 #include "audio_core/renderer/upsampler/upsampler_info.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Manages and has utility functions for upsampler infos.
  */
@@ -42,4 +42,4 @@ private:
     std::mutex lock{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

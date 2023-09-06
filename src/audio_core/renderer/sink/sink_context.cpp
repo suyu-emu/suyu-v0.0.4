@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/sink/sink_context.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void SinkContext::Initialize(std::span<SinkInfoBase> sink_infos_, const u32 sink_count_) {
     sink_infos = sink_infos_;
@@ -18,4 +18,4 @@ u32 SinkContext::GetCount() const {
     return sink_count;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -7,10 +7,10 @@
 
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 struct EffectResultState {
     std::array<u8, 0x80> state;
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

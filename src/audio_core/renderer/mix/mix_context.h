@@ -10,7 +10,7 @@
 #include "audio_core/renderer/nodes/node_states.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 class SplitterContext;
 
 /*
@@ -121,4 +121,4 @@ private:
     EdgeMatrix edge_matrix{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

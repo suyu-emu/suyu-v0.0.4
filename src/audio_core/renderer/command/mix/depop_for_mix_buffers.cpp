@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "audio_core/adsp/apps/audio_renderer/command_list_processor.h"
 #include "audio_core/common/common.h"
-#include "audio_core/renderer/adsp/command_list_processor.h"
 #include "audio_core/renderer/command/mix/depop_for_mix_buffers.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Apply depopping. Add the depopped sample to each incoming new sample, decaying it each time
  * according to decay.
@@ -36,13 +36,13 @@ static s32 ApplyDepopMix(std::span<s32> output, const s32 depop_sample,
     }
 }
 
-void DepopForMixBuffersCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& processor,
-                                     std::string& string) {
+void DepopForMixBuffersCommand::Dump(
+    [[maybe_unused]] const AudioRenderer::CommandListProcessor& processor, std::string& string) {
     string += fmt::format("DepopForMixBuffersCommand\n\tinput {:02X} count {} decay {}\n", input,
                           count, decay.to_float());
 }
 
-void DepopForMixBuffersCommand::Process(const ADSP::CommandListProcessor& processor) {
+void DepopForMixBuffersCommand::Process(const AudioRenderer::CommandListProcessor& processor) {
     auto end_index{std::min(processor.buffer_count, input + count)};
     std::span<s32> depop_buff{reinterpret_cast<s32*>(depop_buffer), end_index};
 
@@ -57,8 +57,8 @@ void DepopForMixBuffersCommand::Process(const ADSP::CommandListProcessor& proces
     }
 }
 
-bool DepopForMixBuffersCommand::Verify(const ADSP::CommandListProcessor& processor) {
+bool DepopForMixBuffersCommand::Verify(const AudioRenderer::CommandListProcessor& processor) {
     return true;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

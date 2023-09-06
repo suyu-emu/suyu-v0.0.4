@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/effect/biquad_filter.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 void BiquadFilterInfo::Update(BehaviorInfo::ErrorInfo& error_info,
                               const InParameterVersion1& in_params, const PoolMapper& pool_mapper) {
@@ -49,4 +49,4 @@ void BiquadFilterInfo::InitializeResultState(EffectResultState& result_state) {}
 void BiquadFilterInfo::UpdateResultState(EffectResultState& cpu_state,
                                          EffectResultState& dsp_state) {}
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

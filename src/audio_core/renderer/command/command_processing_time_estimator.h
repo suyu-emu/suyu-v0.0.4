@@ -6,7 +6,7 @@
 #include "audio_core/renderer/command/commands.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Estimate the processing time required for all commands.
  */
@@ -251,4 +251,4 @@ private:
     u32 buffer_count{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

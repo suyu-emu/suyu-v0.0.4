@@ -3,7 +3,7 @@
 
 #include "audio_core/renderer/memory/memory_pool_info.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 CpuAddr MemoryPoolInfo::GetCpuAddress() const {
     return cpu_address;
@@ -58,4 +58,4 @@ bool MemoryPoolInfo::IsUsed() const {
     return in_use;
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

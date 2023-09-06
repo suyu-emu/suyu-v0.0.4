@@ -8,7 +8,7 @@
 #include "audio_core/renderer/sink/sink_info_base.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Manages output sinks.
  */
@@ -44,4 +44,4 @@ private:
     u32 sink_count{};
 };
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

@@ -4,7 +4,7 @@
 #include "audio_core/common/feature_support.h"
 #include "audio_core/renderer/behavior/behavior_info.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 BehaviorInfo::BehaviorInfo() : process_revision{CurrentRevision} {}
 
@@ -190,4 +190,4 @@ bool BehaviorInfo::IsI3dl2ReverbChannelMappingChanged() const {
     return CheckFeatureSupported(SupportTags::I3dl2ReverbChannelMappingChange, user_revision);
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

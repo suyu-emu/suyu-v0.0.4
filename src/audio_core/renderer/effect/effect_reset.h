@@ -14,7 +14,7 @@
 #include "audio_core/renderer/effect/reverb.h"
 #include "common/common_types.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 /**
  * Reset an effect, and create a new one of the given type.
  *
@@ -68,4 +68,4 @@ static void ResetEffect(EffectInfoBase* effect, const EffectInfoBase::Type type)
     }
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer

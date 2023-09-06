@@ -19,7 +19,7 @@ class KTransferMemory;
 namespace AudioCore {
 struct AudioRendererParameterInternal;
 
-namespace AudioRenderer {
+namespace Renderer {
 class Manager;
 
 /**
@@ -31,7 +31,7 @@ public:
 
     /**
      * Initialize the renderer.
-     * Registers the system with the AudioRenderer::Manager, allocates workbuffers and initializes
+     * Registers the system with the Renderer::Manager, allocates workbuffers and initializes
      * everything to a default state.
      *
      * @param params                  - Input parameters to initialize the system with.
@@ -93,5 +93,5 @@ private:
     System system;
 };
 
-} // namespace AudioRenderer
+} // namespace Renderer
 } // namespace AudioCore

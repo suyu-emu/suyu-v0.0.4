@@ -6,7 +6,7 @@
 #include "audio_core/renderer/voice/voice_info.h"
 #include "audio_core/renderer/voice/voice_state.h"
 
-namespace AudioCore::AudioRenderer {
+namespace AudioCore::Renderer {
 
 VoiceInfo::VoiceInfo() {
     Initialize();
@@ -405,4 +405,4 @@ void VoiceInfo::ResetResources(VoiceContext& voice_context) const {
     }
 }
 
-} // namespace AudioCore::AudioRenderer
+} // namespace AudioCore::Renderer
