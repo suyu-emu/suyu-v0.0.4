@@ -90,7 +90,7 @@ void MiiEdit::Execute() {
         const MiiEditCharInfo char_info{
             .mii_info{applet_input_common.applet_mode == MiiEditAppletMode::EditMii
                           ? applet_input_v4.char_info.mii_info
-                          : mii_manager.BuildDefault(0)},
+                          : mii_manager.BuildBase(Mii::Gender::Male)},
         };
 
         MiiEditOutputForCharInfoEditing(MiiEditResult::Success, char_info);

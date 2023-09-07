@@ -9,6 +9,7 @@
 
 namespace Service::Mii::RawData {
 
+extern const std::array<Service::Mii::DefaultMii, 2> BaseMii;
 extern const std::array<Service::Mii::DefaultMii, 6> DefaultMii;
 extern const std::array<Service::Mii::RandomMiiData4, 18> RandomMiiFaceline;
 extern const std::array<Service::Mii::RandomMiiData3, 6> RandomMiiFacelineColor;

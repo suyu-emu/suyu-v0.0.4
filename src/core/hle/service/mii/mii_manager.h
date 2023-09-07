@@ -21,6 +21,7 @@ public:
     u32 GetCount(SourceFlag source_flag) const;
     Result UpdateLatest(CharInfo* out_info, const CharInfo& info, SourceFlag source_flag);
     CharInfo BuildRandom(Age age, Gender gender, Race race);
+    CharInfo BuildBase(Gender gender);
     CharInfo BuildDefault(std::size_t index);
     CharInfo ConvertV3ToCharInfo(const Ver3StoreData& mii_v3) const;
     bool ValidateV3Info(const Ver3StoreData& mii_v3) const;
