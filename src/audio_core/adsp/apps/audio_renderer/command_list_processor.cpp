@@ -37,11 +37,6 @@ u32 CommandListProcessor::GetRemainingCommandCount() const {
     return command_count - processed_command_count;
 }
 
-void CommandListProcessor::SetBuffer(const CpuAddr buffer, const u64 size) {
-    commands = reinterpret_cast<u8*>(buffer + sizeof(Renderer::CommandListHeader));
-    commands_buffer_size = size;
-}
-
 Sink::SinkStream* CommandListProcessor::GetOutputSinkStream() const {
     return stream;
 }

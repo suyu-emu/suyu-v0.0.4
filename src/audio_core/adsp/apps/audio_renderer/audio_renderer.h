@@ -75,7 +75,8 @@ public:
     void Send(Direction dir, MailboxMessage message);
     MailboxMessage Receive(Direction dir, bool block = true);
 
-    void SetCommandBuffer(s32 session_id, CommandBuffer& buffer) noexcept;
+    void SetCommandBuffer(s32 session_id, CpuAddr buffer, u64 size, u64 time_limit,
+                          u64 applet_resource_user_id, bool reset) noexcept;
     u32 GetRemainCommandCount(s32 session_id) const noexcept;
     void ClearRemainCommandCount(s32 session_id) noexcept;
     u64 GetRenderingStartTick(s32 session_id) const noexcept;
