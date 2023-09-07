@@ -18,7 +18,6 @@ namespace {
 
 constexpr Result ERROR_CANNOT_FIND_ENTRY{ErrorModule::Mii, 4};
 
-constexpr std::size_t BaseMiiCount{2};
 constexpr std::size_t DefaultMiiCount{RawData::DefaultMii.size()};
 
 constexpr MiiStoreData::Name DefaultMiiName{u'n', u'o', u' ', u'n', u'a', u'm', u'e'};
@@ -404,7 +403,7 @@ u32 MiiManager::GetCount(SourceFlag source_flag) const {
         count += 0;
     }
     if ((source_flag & SourceFlag::Default) != SourceFlag::None) {
-        count += (DefaultMiiCount - BaseMiiCount);
+        count += DefaultMiiCount;
     }
     return static_cast<u32>(count);
 }
@@ -422,13 +421,18 @@ CharInfo MiiManager::BuildRandom(Age age, Gender gender, Race race) {
     return ConvertStoreDataToInfo(BuildRandomStoreData(age, gender, race, user_id));
 }
 
+CharInfo MiiManager::BuildBase(Gender gender) {
+    const std::size_t index = gender == Gender::Female ? 1 : 0;
+    return ConvertStoreDataToInfo(BuildDefaultStoreData(RawData::BaseMii.at(index), user_id));
+}
+
 CharInfo MiiManager::BuildDefault(std::size_t index) {
     return ConvertStoreDataToInfo(BuildDefaultStoreData(RawData::DefaultMii.at(index), user_id));
 }
 
 CharInfo MiiManager::ConvertV3ToCharInfo(const Ver3StoreData& mii_v3) const {
     Service::Mii::MiiManager manager;
-    auto mii = manager.BuildDefault(0);
+    auto mii = manager.BuildBase(Mii::Gender::Male);
 
     if (!ValidateV3Info(mii_v3)) {
         return mii;
@@ -678,7 +682,7 @@ std::vector<MiiInfoElement> MiiManager::GetDefault(SourceFlag source_flag) {
         return result;
     }
 
-    for (std::size_t index = BaseMiiCount; index < DefaultMiiCount; index++) {
+    for (std::size_t index = 0; index < DefaultMiiCount; index++) {
         result.emplace_back(BuildDefault(index), Source::Default);
     }
 

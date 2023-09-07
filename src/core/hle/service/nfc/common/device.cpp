@@ -826,7 +826,7 @@ Result NfcDevice::SetRegisterInfoPrivate(const NFP::RegisterInfoPrivate& registe
     }
 
     Service::Mii::MiiManager manager;
-    const auto mii = manager.BuildDefault(0);
+    const auto mii = manager.BuildBase(Mii::Gender::Male);
     auto& settings = tag_data.settings;
 
     if (tag_data.settings.settings.amiibo_initialized == 0) {
@@ -1467,7 +1467,7 @@ void NfcDevice::BuildAmiiboWithoutKeys(NFP::NTAG215File& stubbed_tag_data,
     SetAmiiboName(settings, {'y', 'u', 'z', 'u', 'A', 'm', 'i', 'i', 'b', 'o'});
     settings.settings.font_region.Assign(0);
     settings.init_date = GetAmiiboDate(GetCurrentPosixTime());
-    stubbed_tag_data.owner_mii = manager.BuildFromStoreData(manager.BuildDefault(0));
+    stubbed_tag_data.owner_mii = manager.BuildFromStoreData(manager.BuildBase(Mii::Gender::Male));
 
     // Admin info
     settings.settings.amiibo_initialized.Assign(1);
