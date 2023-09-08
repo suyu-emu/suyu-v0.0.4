@@ -201,7 +201,10 @@ void InterruptSocketOperations() {
 
 void AcknowledgeInterrupt() {
     u8 value = 0;
-    read(interrupt_pipe_fd[0], &value, sizeof(value));
+    ssize_t ret = read(interrupt_pipe_fd[0], &value, sizeof(value));
+    if (ret != 1 && errno != EAGAIN && errno != EWOULDBLOCK) {
+        LOG_ERROR(Network, "Failed to acknowledge interrupt on shutdown");
+    }
 }
 
 SOCKET GetInterruptSocket() {
