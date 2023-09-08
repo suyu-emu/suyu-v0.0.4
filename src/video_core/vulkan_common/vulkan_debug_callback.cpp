@@ -63,22 +63,6 @@ VkBool32 DebugUtilCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     return VK_FALSE;
 }
 
-VkBool32 DebugReportCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
-                             uint64_t object, size_t location, int32_t messageCode,
-                             const char* pLayerPrefix, const char* pMessage, void* pUserData) {
-    const VkDebugReportFlagBitsEXT severity = static_cast<VkDebugReportFlagBitsEXT>(flags);
-    const std::string_view message{pMessage};
-    if (severity & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
-        LOG_CRITICAL(Render_Vulkan, "{}", message);
-    } else if (severity & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
-        LOG_WARNING(Render_Vulkan, "{}", message);
-    } else if (severity & VK_DEBUG_REPORT_INFORMATION_BIT_EXT) {
-        LOG_INFO(Render_Vulkan, "{}", message);
-    } else if (severity & VK_DEBUG_REPORT_DEBUG_BIT_EXT) {
-        LOG_DEBUG(Render_Vulkan, "{}", message);
-    }
-    return VK_FALSE;
-}
 } // Anonymous namespace
 
 vk::DebugUtilsMessenger CreateDebugUtilsCallback(const vk::Instance& instance) {
@@ -94,17 +78,6 @@ vk::DebugUtilsMessenger CreateDebugUtilsCallback(const vk::Instance& instance) {
                        VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
                        VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
         .pfnUserCallback = DebugUtilCallback,
-        .pUserData = nullptr,
-    });
-}
-
-vk::DebugReportCallback CreateDebugReportCallback(const vk::Instance& instance) {
-    return instance.CreateDebugReportCallback({
-        .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
-        .pNext = nullptr,
-        .flags = VK_DEBUG_REPORT_DEBUG_BIT_EXT | VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
-                 VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT,
-        .pfnCallback = DebugReportCallback,
         .pUserData = nullptr,
     });
 }

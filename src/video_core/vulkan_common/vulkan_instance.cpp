@@ -76,11 +76,9 @@ namespace {
         extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
     }
 #endif
-    if (enable_validation) {
-        const bool debug_utils =
-            AreExtensionsSupported(dld, std::array{VK_EXT_DEBUG_UTILS_EXTENSION_NAME});
-        extensions.push_back(debug_utils ? VK_EXT_DEBUG_UTILS_EXTENSION_NAME
-                                         : VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+    if (enable_validation &&
+        AreExtensionsSupported(dld, std::array{VK_EXT_DEBUG_UTILS_EXTENSION_NAME})) {
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
     return extensions;
 }

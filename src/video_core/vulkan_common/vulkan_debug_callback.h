@@ -9,6 +9,4 @@ namespace Vulkan {
 
 vk::DebugUtilsMessenger CreateDebugUtilsCallback(const vk::Instance& instance);
 
-vk::DebugReportCallback CreateDebugReportCallback(const vk::Instance& instance);
-
 } // namespace Vulkan
