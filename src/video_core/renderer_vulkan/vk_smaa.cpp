@@ -672,7 +672,7 @@ void SMAA::UploadImages(Scheduler& scheduler) {
     UploadImage(m_device, m_allocator, scheduler, m_static_images[Search], search_extent,
                 VK_FORMAT_R8_UNORM, ARRAY_TO_SPAN(searchTexBytes));
 
-    scheduler.Record([&](vk::CommandBuffer& cmdbuf) {
+    scheduler.Record([&](vk::CommandBuffer cmdbuf) {
         for (auto& images : m_dynamic_images) {
             for (size_t i = 0; i < MaxDynamicImage; i++) {
                 ClearColorImage(cmdbuf, *images.images[i]);
@@ -707,7 +707,7 @@ VkImageView SMAA::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
     UpdateDescriptorSets(source_image_view, image_index);
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([=, this](vk::CommandBuffer& cmdbuf) {
+    scheduler.Record([=, this](vk::CommandBuffer cmdbuf) {
         TransitionImageLayout(cmdbuf, source_image, VK_IMAGE_LAYOUT_GENERAL);
         TransitionImageLayout(cmdbuf, edges_image, VK_IMAGE_LAYOUT_GENERAL);
         BeginRenderPass(cmdbuf, m_renderpasses[EdgeDetection], edge_detection_framebuffer,

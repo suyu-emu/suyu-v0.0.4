@@ -358,6 +358,8 @@ struct Values {
                                           Category::RendererDebug};
     // TODO: remove this once AMDVLK supports VK_EXT_depth_bias_control
     bool renderer_amdvlk_depth_bias_workaround{};
+    Setting<bool> disable_buffer_reorder{linkage, false, "disable_buffer_reorder",
+                                         Category::RendererDebug};
 
     // System
     SwitchableSetting<Language, true> language_index{linkage,
