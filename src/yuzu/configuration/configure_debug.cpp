@@ -51,6 +51,8 @@ void ConfigureDebug::SetConfiguration() {
     ui->enable_all_controllers->setChecked(Settings::values.enable_all_controllers.GetValue());
     ui->enable_renderdoc_hotkey->setEnabled(runtime_lock);
     ui->enable_renderdoc_hotkey->setChecked(Settings::values.enable_renderdoc_hotkey.GetValue());
+    ui->disable_buffer_reorder->setEnabled(runtime_lock);
+    ui->disable_buffer_reorder->setChecked(Settings::values.disable_buffer_reorder.GetValue());
     ui->enable_graphics_debugging->setEnabled(runtime_lock);
     ui->enable_graphics_debugging->setChecked(Settings::values.renderer_debug.GetValue());
     ui->enable_shader_feedback->setEnabled(runtime_lock);
@@ -96,6 +98,7 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.enable_all_controllers = ui->enable_all_controllers->isChecked();
     Settings::values.renderer_debug = ui->enable_graphics_debugging->isChecked();
     Settings::values.enable_renderdoc_hotkey = ui->enable_renderdoc_hotkey->isChecked();
+    Settings::values.disable_buffer_reorder = ui->disable_buffer_reorder->isChecked();
     Settings::values.renderer_shader_feedback = ui->enable_shader_feedback->isChecked();
     Settings::values.cpu_debug_mode = ui->enable_cpu_debugging->isChecked();
     Settings::values.enable_nsight_aftermath = ui->enable_nsight_aftermath->isChecked();
