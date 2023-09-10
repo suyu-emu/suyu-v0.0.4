@@ -609,17 +609,11 @@ void System::SendCommandToDsp() {
                 time_limit_percent = 70.0f;
             }
 
-            AudioRenderer::CommandBuffer command_buffer{
-                .buffer{translated_addr},
-                .size{command_size},
-                .time_limit{
-                    static_cast<u64>((time_limit_percent / 100) * 2'880'000.0 *
-                                     (static_cast<f32>(render_time_limit_percent) / 100.0f))},
-                .applet_resource_user_id{applet_resource_user_id},
-                .reset_buffer{reset_command_buffers},
-            };
-
-            audio_renderer.SetCommandBuffer(session_id, command_buffer);
+            auto time_limit{
+                static_cast<u64>((time_limit_percent / 100) * 2'880'000.0 *
+                                 (static_cast<f32>(render_time_limit_percent) / 100.0f))};
+            audio_renderer.SetCommandBuffer(session_id, translated_addr, command_size, time_limit,
+                                            applet_resource_user_id, reset_command_buffers);
             reset_command_buffers = false;
             command_buffer_size = command_size;
             if (remaining_command_count == 0) {

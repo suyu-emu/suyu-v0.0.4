@@ -57,14 +57,6 @@ public:
     u32 GetRemainingCommandCount() const;
 
     /**
-     * Set the command buffer.
-     *
-     * @param buffer - The buffer to use.
-     * @param size   - The size of the buffer.
-     */
-    void SetBuffer(CpuAddr buffer, u64 size);
-
-    /**
      * Get the stream for this command list.
      *
      * @return The stream associated with this command list.

@@ -88,8 +88,13 @@ MailboxMessage AudioRenderer::Receive(Direction dir, bool block) {
     return mailbox.Receive(dir, block);
 }
 
-void AudioRenderer::SetCommandBuffer(s32 session_id, CommandBuffer& buffer) noexcept {
-    command_buffers[session_id] = buffer;
+void AudioRenderer::SetCommandBuffer(s32 session_id, CpuAddr buffer, u64 size, u64 time_limit,
+                                     u64 applet_resource_user_id, bool reset) noexcept {
+    command_buffers[session_id].buffer = buffer;
+    command_buffers[session_id].size = size;
+    command_buffers[session_id].time_limit = time_limit;
+    command_buffers[session_id].applet_resource_user_id = applet_resource_user_id;
+    command_buffers[session_id].reset_buffer = reset;
 }
 
 u32 AudioRenderer::GetRemainCommandCount(s32 session_id) const noexcept {
