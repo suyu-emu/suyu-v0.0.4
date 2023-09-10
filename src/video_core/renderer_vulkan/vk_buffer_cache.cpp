@@ -529,17 +529,20 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
         buffer_handles.push_back(handle);
     }
     if (device.IsExtExtendedDynamicStateSupported()) {
-        scheduler.Record([bindings_ = std::move(bindings),
+        scheduler.Record([this, bindings_ = std::move(bindings),
                           buffer_handles_ = std::move(buffer_handles)](vk::CommandBuffer cmdbuf) {
             cmdbuf.BindVertexBuffers2EXT(bindings_.min_index,
-                                         bindings_.max_index - bindings_.min_index,
+                                         std::min(bindings_.max_index - bindings_.min_index,
+                                                  device.GetMaxVertexInputBindings()),
                                          buffer_handles_.data(), bindings_.offsets.data(),
                                          bindings_.sizes.data(), bindings_.strides.data());
         });
     } else {
-        scheduler.Record([bindings_ = std::move(bindings),
+        scheduler.Record([this, bindings_ = std::move(bindings),
                           buffer_handles_ = std::move(buffer_handles)](vk::CommandBuffer cmdbuf) {
-            cmdbuf.BindVertexBuffers(bindings_.min_index, bindings_.max_index - bindings_.min_index,
+            cmdbuf.BindVertexBuffers(bindings_.min_index,
+                                     std::min(bindings_.max_index - bindings_.min_index,
+                                              device.GetMaxVertexInputBindings()),
                                      buffer_handles_.data(), bindings_.offsets.data());
         });
     }
