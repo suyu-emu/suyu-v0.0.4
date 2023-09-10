@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <functional>
 #include <iosfwd>
 #include <memory>
 #include <optional>
@@ -132,6 +133,8 @@ enum class ResultStatus : u16 {
     ErrorBLZDecompressionFailed,
     ErrorBadINIHeader,
     ErrorINITooManyKIPs,
+    ErrorIntegrityVerificationNotImplemented,
+    ErrorIntegrityVerificationFailed,
 };
 
 std::string GetResultStatusString(ResultStatus status);
@@ -168,6 +171,13 @@ public:
      * @return The status result of the operation.
      */
     virtual LoadResult Load(Kernel::KProcess& process, Core::System& system) = 0;
+
+    /**
+     * Try to verify the integrity of the file.
+     */
+    virtual ResultStatus VerifyIntegrity(std::function<bool(size_t, size_t)> progress_callback) {
+        return ResultStatus::ErrorIntegrityVerificationNotImplemented;
+    }
 
     /**
      * Get the code (typically .code section) of the application

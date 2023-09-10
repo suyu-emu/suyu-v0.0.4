@@ -1447,6 +1447,8 @@ void GMainWindow::ConnectWidgetEvents() {
             &GMainWindow::OnGameListRemoveInstalledEntry);
     connect(game_list, &GameList::RemoveFileRequested, this, &GMainWindow::OnGameListRemoveFile);
     connect(game_list, &GameList::DumpRomFSRequested, this, &GMainWindow::OnGameListDumpRomFS);
+    connect(game_list, &GameList::VerifyIntegrityRequested, this,
+            &GMainWindow::OnGameListVerifyIntegrity);
     connect(game_list, &GameList::CopyTIDRequested, this, &GMainWindow::OnGameListCopyTID);
     connect(game_list, &GameList::NavigateToGamedbEntryRequested, this,
             &GMainWindow::OnGameListNavigateToGamedbEntry);
@@ -2706,6 +2708,54 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
         failed();
         vfs->DeleteDirectory(path);
     }
+}
+
+void GMainWindow::OnGameListVerifyIntegrity(const std::string& game_path) {
+    const auto NotImplemented = [this] {
+        QMessageBox::warning(this, tr("Integrity verification couldn't be performed!"),
+                             tr("File contents were not checked for validity."));
+    };
+    const auto Failed = [this] {
+        QMessageBox::critical(this, tr("Integrity verification failed!"),
+                              tr("File contents may be corrupt."));
+    };
+
+    const auto loader = Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::Mode::Read));
+    if (loader == nullptr) {
+        NotImplemented();
+        return;
+    }
+
+    QProgressDialog progress(tr("Verifying integrity..."), tr("Cancel"), 0, 100, this);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setMinimumDuration(100);
+    progress.setAutoClose(false);
+    progress.setAutoReset(false);
+
+    const auto QtProgressCallback = [&](size_t processed_size, size_t total_size) {
+        if (progress.wasCanceled()) {
+            return false;
+        }
+
+        progress.setValue(static_cast<int>((processed_size * 100) / total_size));
+        return true;
+    };
+
+    const auto status = loader->VerifyIntegrity(QtProgressCallback);
+    if (progress.wasCanceled() ||
+        status == Loader::ResultStatus::ErrorIntegrityVerificationNotImplemented) {
+        NotImplemented();
+        return;
+    }
+
+    if (status == Loader::ResultStatus::ErrorIntegrityVerificationFailed) {
+        Failed();
+        return;
+    }
+
+    progress.close();
+    QMessageBox::information(this, tr("Integrity verification succeeded!"),
+                             tr("The operation completed successfully."));
 }
 
 void GMainWindow::OnGameListCopyTID(u64 program_id) {
