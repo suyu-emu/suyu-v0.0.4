@@ -123,11 +123,13 @@ static u32 DecodeAdpcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
         return 0;
     }
 
-    auto samples_to_process{
-        std::min(req.end_offset - req.start_offset - req.offset, req.samples_to_read)};
+    auto start_pos{req.start_offset + req.offset};
+    auto samples_to_process{std::min(req.end_offset - start_pos, req.samples_to_read)};
+    if (samples_to_process == 0) {
+        return 0;
+    }
 
     auto samples_to_read{samples_to_process};
-    auto start_pos{req.start_offset + req.offset};
     auto samples_remaining_in_frame{start_pos % SamplesPerFrame};
     auto position_in_frame{(start_pos / SamplesPerFrame) * NibblesPerFrame +
                            samples_remaining_in_frame};
@@ -225,13 +227,24 @@ static u32 DecodeAdpcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
  * @param args   - The wavebuffer data, and information for how to decode it.
  */
 void DecodeFromWaveBuffers(Core::Memory::Memory& memory, const DecodeFromWaveBuffersArgs& args) {
+    static constexpr auto EndWaveBuffer = [](auto& voice_state, auto& wavebuffer, auto& index,
+                                             auto& played_samples, auto& consumed) -> void {
+        voice_state.wave_buffer_valid[index] = false;
+        voice_state.loop_count = 0;
+
+        if (wavebuffer.stream_ended) {
+            played_samples = 0;
+        }
+
+        index = (index + 1) % MaxWaveBuffers;
+        consumed++;
+    };
     auto& voice_state{*args.voice_state};
     auto remaining_sample_count{args.sample_count};
     auto fraction{voice_state.fraction};
 
-    const auto sample_rate_ratio{
-        (Common::FixedPoint<49, 15>(args.source_sample_rate) / args.target_sample_rate) *
-        args.pitch};
+    const auto sample_rate_ratio{Common::FixedPoint<49, 15>(
+        (f32)args.source_sample_rate / (f32)args.target_sample_rate * (f32)args.pitch)};
     const auto size_required{fraction + remaining_sample_count * sample_rate_ratio};
 
     if (size_required < 0) {
@@ -298,22 +311,23 @@ void DecodeFromWaveBuffers(Core::Memory::Memory& memory, const DecodeFromWaveBuf
             auto end_offset{wavebuffer.end_offset};
 
             if (wavebuffer.loop && voice_state.loop_count > 0 &&
-                wavebuffer.loop_start_offset != 0 && wavebuffer.loop_end_offset != 0 &&
                 wavebuffer.loop_start_offset <= wavebuffer.loop_end_offset) {
                 start_offset = wavebuffer.loop_start_offset;
                 end_offset = wavebuffer.loop_end_offset;
             }
 
-            DecodeArg decode_arg{.buffer{wavebuffer.buffer},
-                                 .buffer_size{wavebuffer.buffer_size},
-                                 .start_offset{start_offset},
-                                 .end_offset{end_offset},
-                                 .channel_count{args.channel_count},
-                                 .coefficients{},
-                                 .adpcm_context{nullptr},
-                                 .target_channel{args.channel},
-                                 .offset{offset},
-                                 .samples_to_read{samples_to_read - samples_read}};
+            DecodeArg decode_arg{
+                .buffer{wavebuffer.buffer},
+                .buffer_size{wavebuffer.buffer_size},
+                .start_offset{start_offset},
+                .end_offset{end_offset},
+                .channel_count{args.channel_count},
+                .coefficients{},
+                .adpcm_context{nullptr},
+                .target_channel{args.channel},
+                .offset{offset},
+                .samples_to_read{samples_to_read - samples_read},
+            };
 
             s32 samples_decoded{0};
 
@@ -350,42 +364,30 @@ void DecodeFromWaveBuffers(Core::Memory::Memory& memory, const DecodeFromWaveBuf
             temp_buffer_pos += samples_decoded;
             offset += samples_decoded;
 
-            if (samples_decoded == 0 || offset >= end_offset - start_offset) {
-                offset = 0;
-                if (!wavebuffer.loop) {
-                    voice_state.wave_buffer_valid[wavebuffer_index] = false;
-                    voice_state.loop_count = 0;
+            if (samples_decoded && offset < end_offset - start_offset) {
+                continue;
+            }
 
-                    if (wavebuffer.stream_ended) {
-                        played_sample_count = 0;
-                    }
-
-                    wavebuffer_index = (wavebuffer_index + 1) % MaxWaveBuffers;
-                    wavebuffers_consumed++;
-                } else {
-                    voice_state.loop_count++;
-                    if (wavebuffer.loop_count >= 0 &&
-                        (voice_state.loop_count > wavebuffer.loop_count || samples_decoded == 0)) {
-                        voice_state.wave_buffer_valid[wavebuffer_index] = false;
-                        voice_state.loop_count = 0;
-
-                        if (wavebuffer.stream_ended) {
-                            played_sample_count = 0;
-                        }
-
-                        wavebuffer_index = (wavebuffer_index + 1) % MaxWaveBuffers;
-                        wavebuffers_consumed++;
-                    }
-
-                    if (samples_decoded == 0) {
-                        is_buffer_starved = true;
-                        break;
-                    }
-
-                    if (args.IsVoicePlayedSampleCountResetAtLoopPointSupported) {
-                        played_sample_count = 0;
-                    }
+            offset = 0;
+            if (wavebuffer.loop) {
+                voice_state.loop_count++;
+                if (wavebuffer.loop_count >= 0 &&
+                    (voice_state.loop_count > wavebuffer.loop_count || samples_decoded == 0)) {
+                    EndWaveBuffer(voice_state, wavebuffer, wavebuffer_index, played_sample_count,
+                                  wavebuffers_consumed);
                 }
+
+                if (samples_decoded == 0) {
+                    is_buffer_starved = true;
+                    break;
+                }
+
+                if (args.IsVoicePlayedSampleCountResetAtLoopPointSupported) {
+                    played_sample_count = 0;
+                }
+            } else {
+                EndWaveBuffer(voice_state, wavebuffer, wavebuffer_index, played_sample_count,
+                              wavebuffers_consumed);
             }
         }
 
