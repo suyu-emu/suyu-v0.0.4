@@ -35,8 +35,6 @@ class GPU;
 
 namespace Vulkan {
 
-using DebugCallback = std::variant<vk::DebugUtilsMessenger, vk::DebugReportCallback>;
-
 Device CreateDevice(const vk::Instance& instance, const vk::InstanceDispatch& dld,
                     VkSurfaceKHR surface);
 
@@ -75,7 +73,7 @@ private:
     vk::InstanceDispatch dld;
 
     vk::Instance instance;
-    DebugCallback debug_callback;
+    vk::DebugUtilsMessenger debug_messenger;
     vk::SurfaceKHR surface;
 
     ScreenInfo screen_info;
