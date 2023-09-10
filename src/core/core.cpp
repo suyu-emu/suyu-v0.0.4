@@ -562,6 +562,8 @@ struct System::Impl {
 
     std::array<Core::GPUDirtyMemoryManager, Core::Hardware::NUM_CPU_CORES>
         gpu_dirty_memory_write_manager{};
+
+    std::deque<std::vector<u8>> user_channel;
 };
 
 System::System() : impl{std::make_unique<Impl>(*this)} {}
@@ -1034,6 +1036,10 @@ void System::ExecuteProgram(std::size_t program_index) {
     } else {
         LOG_CRITICAL(Core, "execute_program_callback must be initialized by the frontend");
     }
+}
+
+std::deque<std::vector<u8>>& System::GetUserChannel() {
+    return impl->user_channel;
 }
 
 void System::RegisterExitCallback(ExitCallback&& callback) {

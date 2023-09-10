@@ -1518,12 +1518,26 @@ void IApplicationFunctions::PopLaunchParameter(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto kind = rp.PopEnum<LaunchParameterKind>();
 
-    LOG_WARNING(Service_AM, "(STUBBED) called, kind={:08X}", kind);
+    LOG_INFO(Service_AM, "called, kind={:08X}", kind);
 
     if (kind == LaunchParameterKind::UserChannel) {
-        LOG_ERROR(Service_AM, "Popping from UserChannel is not supported!");
+        auto channel = system.GetUserChannel();
+        if (channel.empty()) {
+            LOG_ERROR(Service_AM, "Attempted to load launch parameter but none was found!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(AM::ResultNoDataInChannel);
+            return;
+        }
+
+        auto data = channel.back();
+        channel.pop_back();
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(ResultSuccess);
+        rb.PushIpcInterface<IStorage>(system, std::move(data));
     } else if (kind == LaunchParameterKind::AccountPreselectedUser &&
                !launch_popped_account_preselect) {
+        // TODO: Verify this is hw-accurate
         LaunchParameterAccountPreselectedUser params{};
 
         params.magic = LAUNCH_PARAMETER_ACCOUNT_PRESELECTED_USER_MAGIC;
@@ -1535,7 +1549,6 @@ void IApplicationFunctions::PopLaunchParameter(HLERequestContext& ctx) {
         params.current_user = *uuid;
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-
         rb.Push(ResultSuccess);
 
         std::vector<u8> buffer(sizeof(LaunchParameterAccountPreselectedUser));
@@ -1543,12 +1556,11 @@ void IApplicationFunctions::PopLaunchParameter(HLERequestContext& ctx) {
 
         rb.PushIpcInterface<IStorage>(system, std::move(buffer));
         launch_popped_account_preselect = true;
-        return;
+    } else {
+        LOG_ERROR(Service_AM, "Unknown launch parameter kind.");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(AM::ResultNoDataInChannel);
     }
-
-    LOG_ERROR(Service_AM, "Attempted to load launch parameter but none was found!");
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(AM::ResultNoDataInChannel);
 }
 
 void IApplicationFunctions::CreateApplicationAndRequestToStartForQuest(HLERequestContext& ctx) {
@@ -1840,14 +1852,22 @@ void IApplicationFunctions::ExecuteProgram(HLERequestContext& ctx) {
 }
 
 void IApplicationFunctions::ClearUserChannel(HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    LOG_DEBUG(Service_AM, "called");
+
+    system.GetUserChannel().clear();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void IApplicationFunctions::UnpopToUserChannel(HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    LOG_DEBUG(Service_AM, "called");
+
+    IPC::RequestParser rp{ctx};
+    const auto storage = rp.PopIpcInterface<IStorage>().lock();
+    if (storage) {
+        system.GetUserChannel().push_back(storage->GetData());
+    }
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

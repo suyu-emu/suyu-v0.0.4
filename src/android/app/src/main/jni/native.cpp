@@ -270,6 +270,7 @@ public:
                                                        m_vulkan_library);
 
         m_system.SetFilesystem(m_vfs);
+        m_system.GetUserChannel().clear();
 
         // Initialize system.
         jauto android_keyboard = std::make_unique<SoftwareKeyboard::AndroidKeyboard>();

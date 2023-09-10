@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cstddef>
+#include <deque>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -458,6 +459,12 @@ public:
      * @param program_index Specifies the index within the application of the program to launch.
      */
     void ExecuteProgram(std::size_t program_index);
+
+    /**
+     * Gets a reference to the user channel stack.
+     * It is used to transfer data between programs.
+     */
+    [[nodiscard]] std::deque<std::vector<u8>>& GetUserChannel();
 
     /// Type used for the frontend to designate a callback for System to exit the application.
     using ExitCallback = std::function<void()>;

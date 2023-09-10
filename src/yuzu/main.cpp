@@ -1698,7 +1698,8 @@ void GMainWindow::AllowOSSleep() {
 #endif
 }
 
-bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t program_index) {
+bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t program_index,
+                          AmLaunchType launch_type) {
     // Shutdown previous session if the emu thread is still active...
     if (emu_thread != nullptr) {
         ShutdownGame();
@@ -1709,6 +1710,10 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
     }
 
     system->SetFilesystem(vfs);
+
+    if (launch_type == AmLaunchType::UserInitiated) {
+        system->GetUserChannel().clear();
+    }
 
     system->SetAppletFrontendSet({
         std::make_unique<QtAmiiboSettings>(*this), // Amiibo Settings
@@ -1849,7 +1854,7 @@ void GMainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
 }
 
 void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t program_index,
-                           StartGameType type) {
+                           StartGameType type, AmLaunchType launch_type) {
     LOG_INFO(Frontend, "yuzu starting...");
     StoreRecentFile(filename); // Put the filename on top of the list
 
@@ -1893,7 +1898,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
         }
     }
 
-    if (!LoadROM(filename, program_id, program_index)) {
+    if (!LoadROM(filename, program_id, program_index, launch_type)) {
         return;
     }
 
@@ -3314,7 +3319,8 @@ void GMainWindow::OnLoadComplete() {
 
 void GMainWindow::OnExecuteProgram(std::size_t program_index) {
     ShutdownGame();
-    BootGame(last_filename_booted, 0, program_index);
+    BootGame(last_filename_booted, 0, program_index, StartGameType::Normal,
+             AmLaunchType::ApplicationInitiated);
 }
 
 void GMainWindow::OnExit() {
