@@ -28,6 +28,7 @@ class GameListWorker;
 class GameListSearchField;
 class GameListDir;
 class GMainWindow;
+enum class AmLaunchType;
 enum class StartGameType;
 
 namespace FileSys {
@@ -103,7 +104,7 @@ public:
 
 signals:
     void BootGame(const QString& game_path, u64 program_id, std::size_t program_index,
-                  StartGameType type);
+                  StartGameType type, AmLaunchType launch_type);
     void GameChosen(const QString& game_path, const u64 title_id = 0);
     void ShouldCancelWorker();
     void OpenFolderRequested(u64 program_id, GameListOpenTarget target,
