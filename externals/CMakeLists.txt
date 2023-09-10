@@ -174,6 +174,9 @@ target_include_directories(stb PUBLIC ./stb)
 add_library(bc_decoder bc_decoder/bc_decoder.cpp)
 target_include_directories(bc_decoder PUBLIC ./bc_decoder)
 
+add_library(renderdoc INTERFACE)
+target_include_directories(renderdoc SYSTEM INTERFACE ./renderdoc)
+
 if (ANDROID)
    if (ARCHITECTURE_arm64)
        add_subdirectory(libadrenotools)

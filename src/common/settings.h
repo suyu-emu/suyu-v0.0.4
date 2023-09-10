@@ -348,6 +348,8 @@ struct Values {
                                           Category::RendererDebug};
     Setting<bool> disable_shader_loop_safety_checks{
         linkage, false, "disable_shader_loop_safety_checks", Category::RendererDebug};
+    Setting<bool> enable_renderdoc_hotkey{linkage, false, "renderdoc_hotkey",
+                                          Category::RendererDebug};
 
     // System
     SwitchableSetting<Language, true> language_index{linkage,

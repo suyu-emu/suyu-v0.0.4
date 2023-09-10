@@ -51,6 +51,7 @@
 #include "core/reporter.h"
 #include "core/telemetry_session.h"
 #include "core/tools/freezer.h"
+#include "core/tools/renderdoc.h"
 #include "network/network.h"
 #include "video_core/host1x/host1x.h"
 #include "video_core/renderer_base.h"
@@ -280,6 +281,10 @@ struct System::Impl {
         microprofile_cpu[1] = MICROPROFILE_TOKEN(ARM_CPU1);
         microprofile_cpu[2] = MICROPROFILE_TOKEN(ARM_CPU2);
         microprofile_cpu[3] = MICROPROFILE_TOKEN(ARM_CPU3);
+
+        if (Settings::values.enable_renderdoc_hotkey) {
+            renderdoc_api = std::make_unique<Tools::RenderdocAPI>();
+        }
 
         LOG_DEBUG(Core, "Initialized OK");
 
@@ -520,6 +525,8 @@ struct System::Impl {
     std::unique_ptr<Memory::CheatEngine> cheat_engine;
     std::unique_ptr<Tools::Freezer> memory_freezer;
     std::array<u8, 0x20> build_id{};
+
+    std::unique_ptr<Tools::RenderdocAPI> renderdoc_api;
 
     /// Frontend applets
     Service::AM::Applets::AppletManager applet_manager;
@@ -1022,6 +1029,10 @@ Network::RoomNetwork& System::GetRoomNetwork() {
 
 const Network::RoomNetwork& System::GetRoomNetwork() const {
     return impl->room_network;
+}
+
+Tools::RenderdocAPI& System::GetRenderdocAPI() {
+    return *impl->renderdoc_api;
 }
 
 void System::RunServer(std::unique_ptr<Service::ServerManager>&& server_manager) {
