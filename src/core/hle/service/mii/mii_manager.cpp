@@ -10,13 +10,12 @@
 
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/mii/mii_manager.h"
+#include "core/hle/service/mii/mii_result.h"
 #include "core/hle/service/mii/raw_data.h"
 
 namespace Service::Mii {
 
 namespace {
-
-constexpr Result ERROR_CANNOT_FIND_ENTRY{ErrorModule::Mii, 4};
 
 constexpr std::size_t DefaultMiiCount{RawData::DefaultMii.size()};
 
@@ -410,11 +409,11 @@ u32 MiiManager::GetCount(SourceFlag source_flag) const {
 
 Result MiiManager::UpdateLatest(CharInfo* out_info, const CharInfo& info, SourceFlag source_flag) {
     if ((source_flag & SourceFlag::Database) == SourceFlag::None) {
-        return ERROR_CANNOT_FIND_ENTRY;
+        return ResultNotFound;
     }
 
     // TODO(bunnei): We don't implement the Mii database, so we can't have an entry
-    return ERROR_CANNOT_FIND_ENTRY;
+    return ResultNotFound;
 }
 
 CharInfo MiiManager::BuildRandom(Age age, Gender gender, Race race) {
@@ -695,7 +694,7 @@ Result MiiManager::GetIndex([[maybe_unused]] const CharInfo& info, u32& index) {
     index = INVALID_INDEX;
 
     // TODO(bunnei): We don't implement the Mii database, so we can't have an index
-    return ERROR_CANNOT_FIND_ENTRY;
+    return ResultNotFound;
 }
 
 } // namespace Service::Mii

@@ -7,12 +7,11 @@
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/mii/mii.h"
 #include "core/hle/service/mii/mii_manager.h"
+#include "core/hle/service/mii/mii_result.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/service.h"
 
 namespace Service::Mii {
-
-constexpr Result ERROR_INVALID_ARGUMENT{ErrorModule::Mii, 1};
 
 class IDatabaseService final : public ServiceFramework<IDatabaseService> {
 public:
@@ -162,21 +161,21 @@ private:
 
         if (age > Age::All) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_INVALID_ARGUMENT);
+            rb.Push(ResultInvalidArgument);
             LOG_ERROR(Service_Mii, "invalid age={}", age);
             return;
         }
 
         if (gender > Gender::All) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_INVALID_ARGUMENT);
+            rb.Push(ResultInvalidArgument);
             LOG_ERROR(Service_Mii, "invalid gender={}", gender);
             return;
         }
 
         if (race > Race::All) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_INVALID_ARGUMENT);
+            rb.Push(ResultInvalidArgument);
             LOG_ERROR(Service_Mii, "invalid race={}", race);
             return;
         }
@@ -196,7 +195,7 @@ private:
             LOG_ERROR(Service_Mii, "invalid argument, index cannot be greater than 5 but is {:08X}",
                       index);
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_INVALID_ARGUMENT);
+            rb.Push(ResultInvalidArgument);
             return;
         }
 

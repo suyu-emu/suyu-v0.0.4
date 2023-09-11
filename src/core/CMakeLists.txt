@@ -588,6 +588,8 @@ add_library(core STATIC
     hle/service/mii/mii.h
     hle/service/mii/mii_manager.cpp
     hle/service/mii/mii_manager.h
+    hle/service/mii/mii_result.h
+    hle/service/mii/mii_util.h
     hle/service/mii/raw_data.cpp
     hle/service/mii/raw_data.h
     hle/service/mii/types.h
