@@ -1386,7 +1386,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
         {25, &IApplicationFunctions::ExtendSaveData, "ExtendSaveData"},
         {26, &IApplicationFunctions::GetSaveDataSize, "GetSaveDataSize"},
         {27, &IApplicationFunctions::CreateCacheStorage, "CreateCacheStorage"},
-        {28, nullptr, "GetSaveDataSizeMax"},
+        {28, &IApplicationFunctions::GetSaveDataSizeMax, "GetSaveDataSizeMax"},
         {29, nullptr, "GetCacheStorageMax"},
         {30, &IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed, "BeginBlockingHomeButtonShortAndLongPressed"},
         {31, &IApplicationFunctions::EndBlockingHomeButtonShortAndLongPressed, "EndBlockingHomeButtonShortAndLongPressed"},
@@ -1822,6 +1822,18 @@ void IApplicationFunctions::CreateCacheStorage(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
     rb.PushRaw(resp);
+}
+
+void IApplicationFunctions::GetSaveDataSizeMax(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    constexpr u64 size_max_normal = 0xFFFFFFF;
+    constexpr u64 size_max_journal = 0xFFFFFFF;
+
+    IPC::ResponseBuilder rb{ctx, 6};
+    rb.Push(ResultSuccess);
+    rb.Push(size_max_normal);
+    rb.Push(size_max_journal);
 }
 
 void IApplicationFunctions::QueryApplicationPlayStatistics(HLERequestContext& ctx) {
