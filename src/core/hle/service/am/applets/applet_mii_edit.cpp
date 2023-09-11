@@ -85,15 +85,18 @@ void MiiEdit::Execute() {
         break;
     case MiiEditAppletMode::CreateMii:
     case MiiEditAppletMode::EditMii: {
-        Service::Mii::MiiManager mii_manager;
+        Mii::CharInfo char_info{};
+        Mii::StoreData store_data{};
+        store_data.BuildBase(Mii::Gender::Male);
+        char_info.SetFromStoreData(store_data);
 
-        const MiiEditCharInfo char_info{
+        const MiiEditCharInfo edit_char_info{
             .mii_info{applet_input_common.applet_mode == MiiEditAppletMode::EditMii
                           ? applet_input_v4.char_info.mii_info
-                          : mii_manager.BuildBase(Mii::Gender::Male)},
+                          : char_info},
         };
 
-        MiiEditOutputForCharInfoEditing(MiiEditResult::Success, char_info);
+        MiiEditOutputForCharInfoEditing(MiiEditResult::Success, edit_char_info);
         break;
     }
     default:

@@ -165,4 +165,14 @@ struct DefaultMii {
 };
 static_assert(sizeof(DefaultMii) == 0xd8, "MiiStoreData has incorrect size.");
 
+struct DatabaseSessionMetadata {
+    u32 interface_version;
+    u32 magic;
+    u64 update_counter;
+
+    bool IsInterfaceVersionSupported(u32 version) const {
+        return version <= interface_version;
+    }
+};
+
 } // namespace Service::Mii

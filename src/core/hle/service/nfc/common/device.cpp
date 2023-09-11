@@ -680,12 +680,16 @@ Result NfcDevice::GetRegisterInfo(NFP::RegisterInfo& register_info) const {
         return ResultRegistrationIsNotInitialized;
     }
 
-    Service::Mii::MiiManager manager;
+    Mii::CharInfo char_info{};
+    Mii::StoreData store_data{};
+    tag_data.owner_mii.BuildToStoreData(store_data);
+    char_info.SetFromStoreData(store_data);
+
     const auto& settings = tag_data.settings;
 
     // TODO: Validate this data
     register_info = {
-        .mii_char_info = manager.ConvertV3ToCharInfo(tag_data.owner_mii),
+        .mii_char_info = char_info,
         .creation_date = settings.init_date.GetWriteDate(),
         .amiibo_name = GetAmiiboName(settings),
         .font_region = settings.settings.font_region,
