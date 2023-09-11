@@ -5,7 +5,7 @@
 
 namespace Service::Mii::RawData {
 
-constexpr std::array<u8, 0x10> FromVer3FacelineColorTable{
+constexpr std::array<u8, 16> FromVer3FacelineColorTable{
     0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x0, 0x1, 0x5, 0x5,
 };
 

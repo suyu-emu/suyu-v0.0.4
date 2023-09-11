@@ -47,7 +47,7 @@ public:
     u16_be mii_id;
     u64_be system_id;
     u32_be specialness_and_creation_date;
-    std::array<u8, 0x6> creator_mac;
+    std::array<u8, 6> creator_mac;
     u16_be padding;
     union {
         u16 raw;
@@ -58,7 +58,7 @@ public:
         BitField<10, 4, u16> favorite_color;
         BitField<14, 1, u16> favorite;
     } mii_information;
-    std::array<char16_t, 0xA> mii_name;
+    Nickname mii_name;
     u8 height;
     u8 build;
     union {
@@ -150,7 +150,7 @@ public:
         BitField<10, 5, u16> mole_y;
     } appearance_bits11;
 
-    std::array<u16_le, 0xA> author_name;
+    Nickname author_name;
     INSERT_PADDING_BYTES(0x2);
     u16_be crc;
 };

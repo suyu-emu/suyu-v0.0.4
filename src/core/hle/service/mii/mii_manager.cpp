@@ -37,10 +37,10 @@ bool MiiManager::IsFullDatabase() const {
 
 u32 MiiManager::GetCount(const DatabaseSessionMetadata& metadata, SourceFlag source_flag) const {
     u32 mii_count{};
-    if ((source_flag & SourceFlag::Default) == SourceFlag::None) {
+    if ((source_flag & SourceFlag::Default) != SourceFlag::None) {
         mii_count += DefaultMiiCount;
     }
-    if ((source_flag & SourceFlag::Database) == SourceFlag::None) {
+    if ((source_flag & SourceFlag::Database) != SourceFlag::None) {
         // TODO(bunnei): We don't implement the Mii database, but when we do, update this
     }
     return mii_count;
@@ -153,7 +153,7 @@ Result MiiManager::BuildDefault(std::span<CharInfo> out_char_info, u32& out_coun
 Result MiiManager::GetIndex(const DatabaseSessionMetadata& metadata, const CharInfo& char_info,
                             s32& out_index) {
 
-    if (char_info.Verify() != 0) {
+    if (char_info.Verify() != ValidationResult::NoErrors) {
         return ResultInvalidCharInfo;
     }
 

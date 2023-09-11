@@ -33,16 +33,7 @@ void Ver3StoreData::BuildToStoreData(StoreData& out_store_data) const {
     out_store_data.SetHeight(height);
     out_store_data.SetBuild(build);
 
-    // Copy name until string terminator
-    Nickname name = {};
-    for (std::size_t index = 0; index < name.data.size() - 1; index++) {
-        name.data[index] = mii_name[index];
-        if (name.data[index] == 0) {
-            break;
-        }
-    }
-
-    out_store_data.SetNickname(name);
+    out_store_data.SetNickname(mii_name);
     out_store_data.SetFontRegion(
         static_cast<FontRegion>(static_cast<u8>(region_information.font_region)));
 
@@ -108,15 +99,7 @@ void Ver3StoreData::BuildFromStoreData(const StoreData& store_data) {
     height = store_data.GetHeight();
     build = store_data.GetBuild();
 
-    // Copy name until string terminator
-    mii_name = {};
-    for (std::size_t index = 0; index < store_data.GetNickname().data.size() - 1; index++) {
-        mii_name[index] = store_data.GetNickname().data[index];
-        if (mii_name[index] == 0) {
-            break;
-        }
-    }
-
+    mii_name = store_data.GetNickname();
     region_information.font_region.Assign(static_cast<u8>(store_data.GetFontRegion()));
 
     appearance_bits1.faceline_type.Assign(store_data.GetFacelineType());
@@ -183,7 +166,7 @@ void Ver3StoreData::BuildFromStoreData(const StoreData& store_data) {
 u32 Ver3StoreData::IsValid() const {
     bool is_valid = version == 0 || version == 3;
 
-    is_valid = is_valid && (mii_name[0] != 0);
+    is_valid = is_valid && (mii_name.data[0] != 0);
 
     is_valid = is_valid && (mii_information.birth_month < 13);
     is_valid = is_valid && (mii_information.birth_day < 32);

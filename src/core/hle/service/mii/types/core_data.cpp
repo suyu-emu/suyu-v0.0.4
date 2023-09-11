@@ -26,10 +26,10 @@ void CoreData::BuildRandom(Age age, Gender gender, Race race) {
     data.build.Assign(64);
 
     if (age == Age::All) {
-        const auto temp{MiiUtil::GetRandomValue<int>(10)};
-        if (temp >= 8) {
+        const auto random{MiiUtil::GetRandomValue<int>(10)};
+        if (random >= 8) {
             age = Age::Old;
-        } else if (temp >= 4) {
+        } else if (random >= 4) {
             age = Age::Normal;
         } else {
             age = Age::Young;
@@ -37,10 +37,10 @@ void CoreData::BuildRandom(Age age, Gender gender, Race race) {
     }
 
     if (race == Race::All) {
-        const auto temp{MiiUtil::GetRandomValue<int>(10)};
-        if (temp >= 8) {
+        const auto random{MiiUtil::GetRandomValue<int>(10)};
+        if (random >= 8) {
             race = Race::Black;
-        } else if (temp >= 4) {
+        } else if (random >= 4) {
             race = Race::White;
         } else {
             race = Race::Asian;

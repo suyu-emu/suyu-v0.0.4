@@ -13,7 +13,7 @@ class CharInfo {
 public:
     void SetFromStoreData(const StoreData& store_data_raw);
 
-    u32 Verify() const;
+    ValidationResult Verify() const;
 
     Common::UUID GetCreateId() const;
     Nickname GetNickname() const;
