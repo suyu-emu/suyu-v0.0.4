@@ -30,9 +30,6 @@ public:
     std::vector<CharInfoElement> GetDefault(SourceFlag source_flag);
     Result GetIndex(const CharInfo& info, u32& index);
 
-    // This is nn::mii::detail::NfpStoreDataExtentionRaw::SetFromStoreData
-    NfpStoreDataExtension SetFromStoreData(const CharInfo& mii) const;
-
     struct MiiDatabase {
         u32 magic{}; // 'NFDB'
         std::array<StoreData, 0x64> miis{};

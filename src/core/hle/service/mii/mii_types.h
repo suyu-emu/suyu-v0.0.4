@@ -108,24 +108,8 @@ struct Nickname {
         }
         return index == MaxNameSize;
     }
-
-    bool operator==(const Nickname& name) {
-        return data == name.data;
-    };
 };
 static_assert(sizeof(Nickname) == 0x14, "Nickname is an invalid size");
-
-struct NfpStoreDataExtension {
-    u8 faceline_color;
-    u8 hair_color;
-    u8 eye_color;
-    u8 eyebrow_color;
-    u8 mouth_color;
-    u8 beard_color;
-    u8 glass_color;
-    u8 glass_type;
-};
-static_assert(sizeof(NfpStoreDataExtension) == 0x8, "NfpStoreDataExtension is an invalid size");
 
 struct DefaultMii {
     u32 face_type{};

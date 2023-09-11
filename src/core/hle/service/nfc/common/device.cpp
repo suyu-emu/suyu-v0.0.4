@@ -824,8 +824,11 @@ Result NfcDevice::SetRegisterInfoPrivate(const NFP::RegisterInfoPrivate& registe
         return ResultWrongDeviceState;
     }
 
-    Service::Mii::MiiManager manager;
-    const auto mii = manager.BuildBase(Mii::Gender::Male);
+    Service::Mii::StoreData store_data{};
+    Service::Mii::NfpStoreDataExtension extension{};
+    store_data.BuildBase(Mii::Gender::Male);
+    extension.SetFromStoreData(store_data);
+
     auto& settings = tag_data.settings;
 
     if (tag_data.settings.settings.amiibo_initialized == 0) {
@@ -834,8 +837,8 @@ Result NfcDevice::SetRegisterInfoPrivate(const NFP::RegisterInfoPrivate& registe
     }
 
     SetAmiiboName(settings, register_info.amiibo_name);
-    tag_data.owner_mii.BuildFromStoreData(mii);
-    tag_data.mii_extension = manager.SetFromStoreData(mii);
+    tag_data.owner_mii.BuildFromStoreData(store_data);
+    tag_data.mii_extension = extension;
     tag_data.unknown = 0;
     tag_data.unknown2 = {};
     settings.country_code_id = 0;
@@ -1452,7 +1455,7 @@ void NfcDevice::UpdateRegisterInfoCrc() {
 
 void NfcDevice::BuildAmiiboWithoutKeys(NFP::NTAG215File& stubbed_tag_data,
                                        const NFP::EncryptedNTAG215File& encrypted_file) const {
-    Service::Mii::MiiManager manager;
+    Service::Mii::StoreData store_data{};
     auto& settings = stubbed_tag_data.settings;
 
     stubbed_tag_data = NFP::AmiiboCrypto::NfcDataToEncodedData(encrypted_file);
@@ -1466,7 +1469,8 @@ void NfcDevice::BuildAmiiboWithoutKeys(NFP::NTAG215File& stubbed_tag_data,
     SetAmiiboName(settings, {'y', 'u', 'z', 'u', 'A', 'm', 'i', 'i', 'b', 'o'});
     settings.settings.font_region.Assign(0);
     settings.init_date = GetAmiiboDate(GetCurrentPosixTime());
-    stubbed_tag_data.owner_mii.BuildFromStoreData(manager.BuildBase(Mii::Gender::Male));
+    store_data.BuildBase(Mii::Gender::Male);
+    stubbed_tag_data.owner_mii.BuildFromStoreData(store_data);
 
     // Admin info
     settings.settings.amiibo_initialized.Assign(1);

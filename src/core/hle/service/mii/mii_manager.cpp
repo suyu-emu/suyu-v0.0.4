@@ -98,21 +98,10 @@ CharInfo MiiManager::BuildDefault(std::size_t index) {
 
 CharInfo MiiManager::ConvertV3ToCharInfo(const Ver3StoreData& mii_v3) const {
     CharInfo char_info{};
-    mii_v3.BuildToStoreData(char_info);
+    StoreData store_data{};
+    mii_v3.BuildToStoreData(store_data);
+    char_info.SetFromStoreData(store_data);
     return char_info;
-}
-
-NfpStoreDataExtension MiiManager::SetFromStoreData(const CharInfo& mii) const {
-    return {
-        .faceline_color = static_cast<u8>(mii.GetFacelineColor() & 0xf),
-        .hair_color = static_cast<u8>(mii.GetHairColor() & 0x7f),
-        .eye_color = static_cast<u8>(mii.GetEyeColor() & 0x7f),
-        .eyebrow_color = static_cast<u8>(mii.GetEyebrowColor() & 0x7f),
-        .mouth_color = static_cast<u8>(mii.GetMouthColor() & 0x7f),
-        .beard_color = static_cast<u8>(mii.GetBeardColor() & 0x7f),
-        .glass_color = static_cast<u8>(mii.GetGlassColor() & 0x7f),
-        .glass_type = static_cast<u8>(mii.GetGlassType() & 0x1f),
-    };
 }
 
 std::vector<CharInfoElement> MiiManager::GetDefault(SourceFlag source_flag) {

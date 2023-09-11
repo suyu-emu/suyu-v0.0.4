@@ -18,11 +18,61 @@ public:
     // nn::mii::detail::StoreDataRaw::BuildRandom
     void BuildRandom(Age age, Gender gender, Race race);
 
-    void SetInvalidName();
-
     bool IsSpecial() const;
 
     u32 IsValid() const;
+
+    void SetFontRegion(FontRegion value);
+    void SetFavoriteColor(u8 value);
+    void SetGender(Gender value);
+    void SetHeight(u8 value);
+    void SetBuild(u8 value);
+    void SetType(u8 value);
+    void SetRegionMove(u8 value);
+    void SetFacelineType(u8 value);
+    void SetFacelineColor(u8 value);
+    void SetFacelineWrinkle(u8 value);
+    void SetFacelineMake(u8 value);
+    void SetHairType(u8 value);
+    void SetHairColor(u8 value);
+    void SetHairFlip(HairFlip value);
+    void SetEyeType(u8 value);
+    void SetEyeColor(u8 value);
+    void SetEyeScale(u8 value);
+    void SetEyeAspect(u8 value);
+    void SetEyeRotate(u8 value);
+    void SetEyeX(u8 value);
+    void SetEyeY(u8 value);
+    void SetEyebrowType(u8 value);
+    void SetEyebrowColor(u8 value);
+    void SetEyebrowScale(u8 value);
+    void SetEyebrowAspect(u8 value);
+    void SetEyebrowRotate(u8 value);
+    void SetEyebrowX(u8 value);
+    void SetEyebrowY(u8 value);
+    void SetNoseType(u8 value);
+    void SetNoseScale(u8 value);
+    void SetNoseY(u8 value);
+    void SetMouthType(u8 value);
+    void SetMouthColor(u8 value);
+    void SetMouthScale(u8 value);
+    void SetMouthAspect(u8 value);
+    void SetMouthY(u8 value);
+    void SetBeardColor(u8 value);
+    void SetBeardType(BeardType value);
+    void SetMustacheType(MustacheType value);
+    void SetMustacheScale(u8 value);
+    void SetMustacheY(u8 value);
+    void SetGlassType(u8 value);
+    void SetGlassColor(u8 value);
+    void SetGlassScale(u8 value);
+    void SetGlassY(u8 value);
+    void SetMoleType(u8 value);
+    void SetMoleScale(u8 value);
+    void SetMoleX(u8 value);
+    void SetMoleY(u8 value);
+    void SetNickname(Nickname nickname);
+    void SetInvalidName();
 
     Common::UUID GetCreateId() const;
     FontRegion GetFontRegion() const;

@@ -425,7 +425,7 @@ u8 CharInfo::GetMoleY() const {
 
 bool CharInfo::operator==(const CharInfo& info) {
     bool is_identical = info.Verify() == 0;
-    is_identical &= name == info.GetNickname();
+    is_identical &= name.data == info.GetNickname().data;
     is_identical &= create_id == info.GetCreateId();
     is_identical &= font_region == info.GetFontRegion();
     is_identical &= favorite_color == info.GetFavoriteColor();
