@@ -210,7 +210,7 @@ private:
         LOG_DEBUG(Service_Mii, "called");
 
         s32 index{};
-        const Result result = manager.GetIndex(metadata, info, index);
+        const auto result = manager.GetIndex(metadata, info, index);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(result);

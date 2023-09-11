@@ -4,6 +4,7 @@
 #pragma once
 
 #include <random>
+#include <span>
 
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -51,7 +52,7 @@ public:
     }
 
     static bool IsFontRegionValid(FontRegion font, std::span<const char16_t> text) {
-        // Todo:: This function needs to check against the font tables
+        // TODO: This function needs to check against the font tables
         return true;
     }
 };

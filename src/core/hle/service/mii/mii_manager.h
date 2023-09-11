@@ -38,15 +38,6 @@ public:
                     s32& out_index);
     void SetInterfaceVersion(DatabaseSessionMetadata& metadata, u32 version);
 
-    struct MiiDatabase {
-        u32 magic{}; // 'NFDB'
-        std::array<StoreData, 0x64> miis{};
-        INSERT_PADDING_BYTES(1);
-        u8 count{};
-        u16 crc{};
-    };
-    static_assert(sizeof(MiiDatabase) == 0x1A98, "MiiDatabase has incorrect size.");
-
 private:
     Result BuildDefault(std::span<CharInfoElement> out_elements, u32& out_count,
                         SourceFlag source_flag);

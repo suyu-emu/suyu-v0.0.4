@@ -62,161 +62,161 @@ void CharInfo::SetFromStoreData(const StoreData& store_data) {
     padding = '\0';
 }
 
-u32 CharInfo::Verify() const {
+ValidationResult CharInfo::Verify() const {
     if (!create_id.IsValid()) {
-        return 0x32;
+        return ValidationResult::InvalidCreateId;
     }
     if (!name.IsValid()) {
-        return 0x33;
+        return ValidationResult::InvalidName;
     }
     if (3 < font_region) {
-        return 0x17;
+        return ValidationResult::InvalidFont;
     }
     if (0xb < favorite_color) {
-        return 0x16;
+        return ValidationResult::InvalidColor;
     }
     if (1 < gender) {
-        return 0x18;
+        return ValidationResult::InvalidGender;
     }
-    if (height < 0) {
-        return 0x20;
+    if (height > 0x7f) {
+        return ValidationResult::InvalidHeight;
     }
-    if (build < 0) {
-        return 3;
+    if (build > 0x7f) {
+        return ValidationResult::InvalidBuild;
     }
     if (1 < type) {
-        return 0x35;
+        return ValidationResult::InvalidType;
     }
     if (3 < region_move) {
-        return 0x31;
+        return ValidationResult::InvalidRegionMove;
     }
     if (0xb < faceline_type) {
-        return 0x15;
+        return ValidationResult::InvalidFacelineType;
     }
     if (9 < faceline_color) {
-        return 0x12;
+        return ValidationResult::InvalidFacelineColor;
     }
     if (0xb < faceline_wrinkle) {
-        return 0x14;
+        return ValidationResult::InvalidFacelineWrinkle;
     }
     if (0xb < faceline_make) {
-        return 0x13;
+        return ValidationResult::InvalidFacelineMake;
     }
     if (0x83 < hair_type) {
-        return 0x1f;
+        return ValidationResult::InvalidHairType;
     }
     if (99 < hair_color) {
-        return 0x1d;
+        return ValidationResult::InvalidHairColor;
     }
     if (1 < hair_flip) {
-        return 0x1e;
+        return ValidationResult::InvalidHairFlip;
     }
     if (0x3b < eye_type) {
-        return 8;
+        return ValidationResult::InvalidEyeType;
     }
     if (99 < eye_color) {
-        return 5;
+        return ValidationResult::InvalidEyeColor;
     }
     if (7 < eye_scale) {
-        return 7;
+        return ValidationResult::InvalidEyeScale;
     }
     if (6 < eye_aspect) {
-        return 4;
+        return ValidationResult::InvalidEyeAspect;
     }
     if (7 < eye_rotate) {
-        return 6;
+        return ValidationResult::InvalidEyeRotate;
     }
     if (0xc < eye_x) {
-        return 9;
+        return ValidationResult::InvalidEyeX;
     }
     if (0x12 < eye_y) {
-        return 10;
+        return ValidationResult::InvalidEyeY;
     }
     if (0x17 < eyebrow_type) {
-        return 0xf;
+        return ValidationResult::InvalidEyebrowType;
     }
     if (99 < eyebrow_color) {
-        return 0xc;
+        return ValidationResult::InvalidEyebrowColor;
     }
     if (8 < eyebrow_scale) {
-        return 0xe;
+        return ValidationResult::InvalidEyebrowScale;
     }
     if (6 < eyebrow_aspect) {
-        return 0xb;
+        return ValidationResult::InvalidEyebrowAspect;
     }
     if (0xb < eyebrow_rotate) {
-        return 0xd;
+        return ValidationResult::InvalidEyebrowRotate;
     }
     if (0xc < eyebrow_x) {
-        return 0x10;
+        return ValidationResult::InvalidEyebrowX;
     }
     if (0xf < eyebrow_y - 3) {
-        return 0x11;
+        return ValidationResult::InvalidEyebrowY;
     }
     if (0x11 < nose_type) {
-        return 0x2f;
+        return ValidationResult::InvalidNoseType;
     }
     if (nose_scale >= 9) {
-        return 0x2e;
+        return ValidationResult::InvalidNoseScale;
     }
     if (0x12 < nose_y) {
-        return 0x30;
+        return ValidationResult::InvalidNoseY;
     }
     if (0x23 < mouth_type) {
-        return 0x28;
+        return ValidationResult::InvalidMouthType;
     }
     if (99 < mouth_color) {
-        return 0x26;
+        return ValidationResult::InvalidMouthColor;
     }
     if (8 < mouth_scale) {
-        return 0x27;
+        return ValidationResult::InvalidMouthScale;
     }
     if (6 < mouth_aspect) {
-        return 0x25;
+        return ValidationResult::InvalidMouthAspect;
     }
     if (0x12 < mouth_y) {
-        return 0x29;
+        return ValidationResult::InvalidMoleY;
     }
     if (99 < beard_color) {
-        return 1;
+        return ValidationResult::InvalidBeardColor;
     }
     if (5 < beard_type) {
-        return 2;
+        return ValidationResult::InvalidBeardType;
     }
     if (5 < mustache_type) {
-        return 0x2b;
+        return ValidationResult::InvalidMustacheType;
     }
     if (8 < mustache_scale) {
-        return 0x2a;
+        return ValidationResult::InvalidMustacheScale;
     }
     if (0x10 < mustache_y) {
-        return 0x2c;
+        return ValidationResult::InvalidMustacheY;
     }
     if (0x13 < glasses_type) {
-        return 0x1b;
+        return ValidationResult::InvalidGlassType;
     }
     if (99 < glasses_color) {
-        return 0x19;
+        return ValidationResult::InvalidGlassColor;
     }
     if (7 < glasses_scale) {
-        return 0x1a;
+        return ValidationResult::InvalidGlassScale;
     }
     if (0x14 < glasses_y) {
-        return 0x1c;
+        return ValidationResult::InvalidGlassY;
     }
     if (mole_type >= 2) {
-        return 0x22;
+        return ValidationResult::InvalidMoleType;
     }
     if (8 < mole_scale) {
-        return 0x21;
+        return ValidationResult::InvalidMoleScale;
     }
     if (mole_x >= 0x11) {
-        return 0x23;
+        return ValidationResult::InvalidMoleX;
     }
     if (0x1e < mole_y) {
-        return 0x24;
+        return ValidationResult::InvalidMoleY;
     }
-    return 0;
+    return ValidationResult::NoErrors;
 }
 
 Common::UUID CharInfo::GetCreateId() const {
@@ -424,7 +424,7 @@ u8 CharInfo::GetMoleY() const {
 }
 
 bool CharInfo::operator==(const CharInfo& info) {
-    bool is_identical = info.Verify() == 0;
+    bool is_identical = info.Verify() == ValidationResult::NoErrors;
     is_identical &= name.data == info.GetNickname().data;
     is_identical &= create_id == info.GetCreateId();
     is_identical &= font_region == info.GetFontRegion();

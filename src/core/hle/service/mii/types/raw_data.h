@@ -10,7 +10,7 @@
 namespace Service::Mii::RawData {
 
 struct RandomMiiValues {
-    std::array<u8, 0xbc> values{};
+    std::array<u8, 188> values{};
 };
 static_assert(sizeof(RandomMiiValues) == 0xbc, "RandomMiiValues has incorrect size.");
 

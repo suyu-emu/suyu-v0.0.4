@@ -86,6 +86,61 @@ enum class SourceFlag : u32 {
 };
 DECLARE_ENUM_FLAG_OPERATORS(SourceFlag);
 
+enum class ValidationResult : u32 {
+    NoErrors = 0x0,
+    InvalidBeardColor = 0x1,
+    InvalidBeardType = 0x2,
+    InvalidBuild = 0x3,
+    InvalidEyeAspect = 0x4,
+    InvalidEyeColor = 0x5,
+    InvalidEyeRotate = 0x6,
+    InvalidEyeScale = 0x7,
+    InvalidEyeType = 0x8,
+    InvalidEyeX = 0x9,
+    InvalidEyeY = 0xa,
+    InvalidEyebrowAspect = 0xb,
+    InvalidEyebrowColor = 0xc,
+    InvalidEyebrowRotate = 0xd,
+    InvalidEyebrowScale = 0xe,
+    InvalidEyebrowType = 0xf,
+    InvalidEyebrowX = 0x10,
+    InvalidEyebrowY = 0x11,
+    InvalidFacelineColor = 0x12,
+    InvalidFacelineMake = 0x13,
+    InvalidFacelineWrinkle = 0x14,
+    InvalidFacelineType = 0x15,
+    InvalidColor = 0x16,
+    InvalidFont = 0x17,
+    InvalidGender = 0x18,
+    InvalidGlassColor = 0x19,
+    InvalidGlassScale = 0x1a,
+    InvalidGlassType = 0x1b,
+    InvalidGlassY = 0x1c,
+    InvalidHairColor = 0x1d,
+    InvalidHairFlip = 0x1e,
+    InvalidHairType = 0x1f,
+    InvalidHeight = 0x20,
+    InvalidMoleScale = 0x21,
+    InvalidMoleType = 0x22,
+    InvalidMoleX = 0x23,
+    InvalidMoleY = 0x24,
+    InvalidMouthAspect = 0x25,
+    InvalidMouthColor = 0x26,
+    InvalidMouthScale = 0x27,
+    InvalidMouthType = 0x28,
+    InvalidMouthY = 0x29,
+    InvalidMustacheScale = 0x2a,
+    InvalidMustacheType = 0x2b,
+    InvalidMustacheY = 0x2c,
+    InvalidNoseScale = 0x2e,
+    InvalidNoseType = 0x2f,
+    InvalidNoseY = 0x30,
+    InvalidRegionMove = 0x31,
+    InvalidCreateId = 0x32,
+    InvalidName = 0x33,
+    InvalidType = 0x35,
+};
+
 struct Nickname {
     static constexpr std::size_t MaxNameSize = 10;
     std::array<char16_t, MaxNameSize> data;
@@ -163,7 +218,7 @@ struct DefaultMii {
     u32 type{};
     Nickname nickname;
 };
-static_assert(sizeof(DefaultMii) == 0xd8, "MiiStoreData has incorrect size.");
+static_assert(sizeof(DefaultMii) == 0xd8, "DefaultMii has incorrect size.");
 
 struct DatabaseSessionMetadata {
     u32 interface_version;
