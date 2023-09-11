@@ -21,18 +21,10 @@ namespace {
 
 constexpr std::size_t DefaultMiiCount{RawData::DefaultMii.size()};
 
-constexpr Nickname DefaultMiiName{u'n', u'o', u' ', u'n', u'a', u'm', u'e'};
-
-template <typename T, std::size_t SourceArraySize, std::size_t DestArraySize>
-std::array<T, DestArraySize> ResizeArray(const std::array<T, SourceArraySize>& in) {
-    std::array<T, DestArraySize> out{};
-    std::memcpy(out.data(), in.data(), sizeof(T) * std::min(SourceArraySize, DestArraySize));
-    return out;
-}
-
 CharInfo ConvertStoreDataToInfo(const StoreData& data) {
-    // Next Commit Will fix this one
-    return {};
+    CharInfo char_info{};
+    char_info.SetFromStoreData(data);
+    return char_info;
 }
 
 StoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Common::UUID& user_id) {
@@ -112,14 +104,14 @@ CharInfo MiiManager::ConvertV3ToCharInfo(const Ver3StoreData& mii_v3) const {
 
 NfpStoreDataExtension MiiManager::SetFromStoreData(const CharInfo& mii) const {
     return {
-        .faceline_color = static_cast<u8>(mii.faceline_color & 0xf),
-        .hair_color = static_cast<u8>(mii.hair_color & 0x7f),
-        .eye_color = static_cast<u8>(mii.eyebrow_color & 0x7f),
-        .eyebrow_color = static_cast<u8>(mii.eyebrow_color & 0x7f),
-        .mouth_color = static_cast<u8>(mii.mouth_color & 0x7f),
-        .beard_color = static_cast<u8>(mii.beard_color & 0x7f),
-        .glass_color = static_cast<u8>(mii.glasses_color & 0x7f),
-        .glass_type = static_cast<u8>(mii.glasses_type & 0x1f),
+        .faceline_color = static_cast<u8>(mii.GetFacelineColor() & 0xf),
+        .hair_color = static_cast<u8>(mii.GetHairColor() & 0x7f),
+        .eye_color = static_cast<u8>(mii.GetEyeColor() & 0x7f),
+        .eyebrow_color = static_cast<u8>(mii.GetEyebrowColor() & 0x7f),
+        .mouth_color = static_cast<u8>(mii.GetMouthColor() & 0x7f),
+        .beard_color = static_cast<u8>(mii.GetBeardColor() & 0x7f),
+        .glass_color = static_cast<u8>(mii.GetGlassColor() & 0x7f),
+        .glass_type = static_cast<u8>(mii.GetGlassType() & 0x1f),
     };
 }
 

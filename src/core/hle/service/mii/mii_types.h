@@ -86,7 +86,34 @@ enum class SourceFlag : u32 {
 };
 DECLARE_ENUM_FLAG_OPERATORS(SourceFlag);
 
-using Nickname = std::array<char16_t, 10>;
+struct Nickname {
+    static constexpr std::size_t MaxNameSize = 10;
+    std::array<char16_t, MaxNameSize> data;
+
+    // Checks for null, non-zero terminated or dirty strings
+    bool IsValid() const {
+        if (data[0] == 0) {
+            return false;
+        }
+
+        if (data[MaxNameSize] != 0) {
+            return false;
+        }
+        std::size_t index = 1;
+        while (data[index] != 0) {
+            index++;
+        }
+        while (index < MaxNameSize && data[index] == 0) {
+            index++;
+        }
+        return index == MaxNameSize;
+    }
+
+    bool operator==(const Nickname& name) {
+        return data == name.data;
+    };
+};
+static_assert(sizeof(Nickname) == 0x14, "Nickname is an invalid size");
 
 struct NfpStoreDataExtension {
     u8 faceline_color;
