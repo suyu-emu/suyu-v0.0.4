@@ -8,7 +8,8 @@
 
 namespace Service::Mii {
 
-struct StoreData {
+class StoreData {
+public:
     StoreData();
     StoreData(const Nickname& name, const StoreDataBitFields& bit_fields,
               const Common::UUID& user_id);
