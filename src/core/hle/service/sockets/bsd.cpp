@@ -170,7 +170,7 @@ void BSD::Socket(HLERequestContext& ctx) {
 }
 
 void BSD::Select(HLERequestContext& ctx) {
-    LOG_WARNING(Service, "(STUBBED) called");
+    LOG_DEBUG(Service, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 4};
 
