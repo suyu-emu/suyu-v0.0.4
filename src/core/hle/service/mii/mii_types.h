@@ -13,20 +13,517 @@
 
 namespace Service::Mii {
 
-enum class Age : u32 {
+constexpr u8 MaxHeight = 127;
+constexpr u8 MaxBuild = 127;
+constexpr u8 MaxType = 1;
+constexpr u8 MaxRegionMove = 3;
+constexpr u8 MaxEyeScale = 7;
+constexpr u8 MaxEyeAspect = 6;
+constexpr u8 MaxEyeRotate = 7;
+constexpr u8 MaxEyeX = 12;
+constexpr u8 MaxEyeY = 18;
+constexpr u8 MaxEyebrowScale = 8;
+constexpr u8 MaxEyebrowAspect = 6;
+constexpr u8 MaxEyebrowRotate = 11;
+constexpr u8 MaxEyebrowX = 12;
+constexpr u8 MaxEyebrowY = 18;
+constexpr u8 MaxNoseScale = 8;
+constexpr u8 MaxNoseY = 18;
+constexpr u8 MaxMouthScale = 8;
+constexpr u8 MaxMoutAspect = 6;
+constexpr u8 MaxMouthY = 18;
+constexpr u8 MaxMustacheScale = 8;
+constexpr u8 MasMustacheY = 16;
+constexpr u8 MaxGlassScale = 7;
+constexpr u8 MaxGlassY = 20;
+constexpr u8 MaxMoleScale = 8;
+constexpr u8 MaxMoleX = 16;
+constexpr u8 MaxMoleY = 30;
+constexpr u8 MaxVer3CommonColor = 7;
+constexpr u8 MaxVer3GlassType = 8;
+
+enum class Age : u8 {
     Young,
     Normal,
     Old,
-    All,
+    All, // Default
+
+    Max = All,
 };
 
-enum class BeardType : u32 {
+enum class Gender : u8 {
+    Male,
+    Female,
+    All, // Default
+
+    Max = Female,
+};
+
+enum class Race : u8 {
+    Black,
+    White,
+    Asian,
+    All, // Default
+
+    Max = All,
+};
+
+enum class HairType : u8 {
+    NormalLong, // Default
+    NormalShort,
+    NormalMedium,
+    NormalExtraLong,
+    NormalLongBottom,
+    NormalTwoPeaks,
+    PartingLong,
+    FrontLock,
+    PartingShort,
+    PartingExtraLongCurved,
+    PartingExtraLong,
+    PartingMiddleLong,
+    PartingSquared,
+    PartingLongBottom,
+    PeaksTop,
+    PeaksSquared,
+    PartingPeaks,
+    PeaksLongBottom,
+    Peaks,
+    PeaksRounded,
+    PeaksSide,
+    PeaksMedium,
+    PeaksLong,
+    PeaksRoundedLong,
+    PartingFrontPeaks,
+    PartingLongFront,
+    PartingLongRounded,
+    PartingFrontPeaksLong,
+    PartingExtraLongRounded,
+    LongRounded,
+    NormalUnknown1,
+    NormalUnknown2,
+    NormalUnknown3,
+    NormalUnknown4,
+    NormalUnknown5,
+    NormalUnknown6,
+    DreadLocks,
+    PlatedMats,
+    Caps,
+    Afro,
+    PlatedMatsLong,
+    Beanie,
+    Short,
+    ShortTopLongSide,
+    ShortUnknown1,
+    ShortUnknown2,
+    MilitaryParting,
+    Military,
+    ShortUnknown3,
+    ShortUnknown4,
+    ShortUnknown5,
+    ShortUnknown6,
+    NoneTop,
     None,
-    Beard1,
-    Beard2,
-    Beard3,
-    Beard4,
-    Beard5,
+    LongUnknown1,
+    LongUnknown2,
+    LongUnknown3,
+    LongUnknown4,
+    LongUnknown5,
+    LongUnknown6,
+    LongUnknown7,
+    LongUnknown8,
+    LongUnknown9,
+    LongUnknown10,
+    LongUnknown11,
+    LongUnknown12,
+    LongUnknown13,
+    LongUnknown14,
+    LongUnknown15,
+    LongUnknown16,
+    LongUnknown17,
+    LongUnknown18,
+    LongUnknown19,
+    LongUnknown20,
+    LongUnknown21,
+    LongUnknown22,
+    LongUnknown23,
+    LongUnknown24,
+    LongUnknown25,
+    LongUnknown26,
+    LongUnknown27,
+    LongUnknown28,
+    LongUnknown29,
+    LongUnknown30,
+    LongUnknown31,
+    LongUnknown32,
+    LongUnknown33,
+    LongUnknown34,
+    LongUnknown35,
+    LongUnknown36,
+    LongUnknown37,
+    LongUnknown38,
+    LongUnknown39,
+    LongUnknown40,
+    LongUnknown41,
+    LongUnknown42,
+    LongUnknown43,
+    LongUnknown44,
+    LongUnknown45,
+    LongUnknown46,
+    LongUnknown47,
+    LongUnknown48,
+    LongUnknown49,
+    LongUnknown50,
+    LongUnknown51,
+    LongUnknown52,
+    LongUnknown53,
+    LongUnknown54,
+    LongUnknown55,
+    LongUnknown56,
+    LongUnknown57,
+    LongUnknown58,
+    LongUnknown59,
+    LongUnknown60,
+    LongUnknown61,
+    LongUnknown62,
+    LongUnknown63,
+    LongUnknown64,
+    LongUnknown65,
+    LongUnknown66,
+    TwoMediumFrontStrandsOneLongBackPonyTail,
+    TwoFrontStrandsLongBackPonyTail,
+    PartingFrontTwoLongBackPonyTails,
+    TwoFrontStrandsOneLongBackPonyTail,
+    LongBackPonyTail,
+    LongFrontTwoLongBackPonyTails,
+    StrandsTwoShortSidedPonyTails,
+    TwoMediumSidedPonyTails,
+    ShortFrontTwoBackPonyTails,
+    TwoShortSidedPonyTails,
+    TwoLongSidedPonyTails,
+    LongFrontTwoBackPonyTails,
+
+    Max = LongFrontTwoBackPonyTails,
+};
+
+enum class MoleType : u8 {
+    None, // Default
+    OneDot,
+
+    Max = OneDot,
+};
+
+enum class HairFlip : u8 {
+    Left, // Default
+    Right,
+
+    Max = Right,
+};
+
+enum class CommonColor : u8 {
+    // For simplicity common colors aren't listed
+    Max = 99,
+    Count = 100,
+};
+
+enum class FavoriteColor : u8 {
+    Red, // Default
+    Orange,
+    Yellow,
+    LimeGreen,
+    Green,
+    Blue,
+    LightBlue,
+    Pink,
+    Purple,
+    Brown,
+    White,
+    Black,
+
+    Max = Black,
+};
+
+enum class EyeType : u8 {
+    Normal, // Default
+    NormalLash,
+    WhiteLash,
+    WhiteNoBottom,
+    OvalAngledWhite,
+    AngryWhite,
+    DotLashType1,
+    Line,
+    DotLine,
+    OvalWhite,
+    RoundedWhite,
+    NormalShadow,
+    CircleWhite,
+    Circle,
+    CircleWhiteStroke,
+    NormalOvalNoBottom,
+    NormalOvalLarge,
+    NormalRoundedNoBottom,
+    SmallLash,
+    Small,
+    TwoSmall,
+    NormalLongLash,
+    WhiteTwoLashes,
+    WhiteThreeLashes,
+    DotAngry,
+    DotAngled,
+    Oval,
+    SmallWhite,
+    WhiteAngledNoBottom,
+    WhiteAngledNoLeft,
+    SmallWhiteTwoLashes,
+    LeafWhiteLash,
+    WhiteLargeNoBottom,
+    Dot,
+    DotLashType2,
+    DotThreeLashes,
+    WhiteOvalTop,
+    WhiteOvalBottom,
+    WhiteOvalBottomFlat,
+    WhiteOvalTwoLashes,
+    WhiteOvalThreeLashes,
+    WhiteOvalNoBottomTwoLashes,
+    DotWhite,
+    WhiteOvalTopFlat,
+    WhiteThinLeaf,
+    StarThreeLashes,
+    LineTwoLashes,
+    CrowsFeet,
+    WhiteNoBottomFlat,
+    WhiteNoBottomRounded,
+    WhiteSmallBottomLine,
+    WhiteNoBottomLash,
+    WhiteNoPartialBottomLash,
+    WhiteOvalBottomLine,
+    WhiteNoBottomLashTopLine,
+    WhiteNoPartialBottomTwoLashes,
+    NormalTopLine,
+    WhiteOvalLash,
+    RoundTired,
+    WhiteLarge,
+
+    Max = WhiteLarge,
+};
+
+enum class MouthType : u8 {
+    Neutral, // Default
+    NeutralLips,
+    Smile,
+    SmileStroke,
+    SmileTeeth,
+    LipsSmall,
+    LipsLarge,
+    Wave,
+    WaveAngrySmall,
+    NeutralStrokeLarge,
+    TeethSurprised,
+    LipsExtraLarge,
+    LipsUp,
+    NeutralDown,
+    Surprised,
+    TeethMiddle,
+    NeutralStroke,
+    LipsExtraSmall,
+    Malicious,
+    LipsDual,
+    NeutralComma,
+    NeutralUp,
+    TeethLarge,
+    WaveAngry,
+    LipsSexy,
+    SmileInverted,
+    LipsSexyOutline,
+    SmileRounded,
+    LipsTeeth,
+    NeutralOpen,
+    TeethRounded,
+    WaveAngrySmallInverted,
+    NeutralCommaInverted,
+    TeethFull,
+    SmileDownLine,
+    Kiss,
+
+    Max = Kiss,
+};
+
+enum class FontRegion : u8 {
+    Standard, // Default
+    China,
+    Korea,
+    Taiwan,
+
+    Max = Taiwan,
+};
+
+enum class FacelineType : u8 {
+    Sharp, // Default
+    Rounded,
+    SharpRounded,
+    SharpRoundedSmall,
+    Large,
+    LargeRounded,
+    SharpSmall,
+    Flat,
+    Bump,
+    Angular,
+    FlatRounded,
+    AngularSmall,
+
+    Max = AngularSmall,
+};
+
+enum class FacelineColor : u8 {
+    Beige, // Default
+    WarmBeige,
+    Natural,
+    Honey,
+    Chestnut,
+    Porcelain,
+    Ivory,
+    WarmIvory,
+    Almond,
+    Espresso,
+
+    Max = Espresso,
+    Count = Max + 1,
+};
+
+enum class FacelineWrinkle : u8 {
+    None, // Default
+    TearTroughs,
+    FacialPain,
+    Cheeks,
+    Folds,
+    UnderTheEyes,
+    SplitChin,
+    Chin,
+    BrowDroop,
+    MouthFrown,
+    CrowsFeet,
+    FoldsCrowsFrown,
+
+    Max = FoldsCrowsFrown,
+};
+
+enum class FacelineMake : u8 {
+    None, // Default
+    CheekPorcelain,
+    CheekNatural,
+    EyeShadowBlue,
+    CheekBlushPorcelain,
+    CheekBlushNatural,
+    CheekPorcelainEyeShadowBlue,
+    CheekPorcelainEyeShadowNatural,
+    CheekBlushPorcelainEyeShadowEspresso,
+    Freckles,
+    LionsManeBeard,
+    StubbleBeard,
+
+    Max = StubbleBeard,
+};
+
+enum class EyebrowType : u8 {
+    FlatAngledLarge, // Default
+    LowArchRoundedThin,
+    SoftAngledLarge,
+    MediumArchRoundedThin,
+    RoundedMedium,
+    LowArchMedium,
+    RoundedThin,
+    UpThin,
+    MediumArchRoundedMedium,
+    RoundedLarge,
+    UpLarge,
+    FlatAngledLargeInverted,
+    MediumArchFlat,
+    AngledThin,
+    HorizontalLarge,
+    HighArchFlat,
+    Flat,
+    MediumArchLarge,
+    LowArchThin,
+    RoundedThinInverted,
+    HighArchLarge,
+    Hairy,
+    Dotted,
+    None,
+
+    Max = None,
+};
+
+enum class NoseType : u8 {
+    Normal, // Default
+    Rounded,
+    Dot,
+    Arrow,
+    Roman,
+    Triangle,
+    Button,
+    RoundedInverted,
+    Potato,
+    Grecian,
+    Snub,
+    Aquiline,
+    ArrowLeft,
+    RoundedLarge,
+    Hooked,
+    Fat,
+    Droopy,
+    ArrowLarge,
+
+    Max = ArrowLarge,
+};
+
+enum class BeardType : u8 {
+    None,
+    Goatee,
+    GoateeLong,
+    LionsManeLong,
+    LionsMane,
+    Full,
+
+    Min = Goatee,
+    Max = Full,
+};
+
+enum class MustacheType : u8 {
+    None,
+    Walrus,
+    Pencil,
+    Horseshoe,
+    Normal,
+    Toothbrush,
+
+    Min = Walrus,
+    Max = Toothbrush,
+};
+
+enum class GlassType : u8 {
+    None,
+    Oval,
+    Wayfarer,
+    Rectangle,
+    TopRimless,
+    Rounded,
+    Oversized,
+    CatEye,
+    Square,
+    BottomRimless,
+    SemiOpaqueRounded,
+    SemiOpaqueCatEye,
+    SemiOpaqueOval,
+    SemiOpaqueRectangle,
+    SemiOpaqueAviator,
+    OpaqueRounded,
+    OpaqueCatEye,
+    OpaqueOval,
+    OpaqueRectangle,
+    OpaqueAviator,
+
+    Max = OpaqueAviator,
+    Count = Max + 1,
 };
 
 enum class BeardAndMustacheFlag : u32 {
@@ -35,42 +532,6 @@ enum class BeardAndMustacheFlag : u32 {
     All = Beard | Mustache,
 };
 DECLARE_ENUM_FLAG_OPERATORS(BeardAndMustacheFlag);
-
-enum class FontRegion : u32 {
-    Standard,
-    China,
-    Korea,
-    Taiwan,
-};
-
-enum class Gender : u32 {
-    Male,
-    Female,
-    All,
-    Maximum = Female,
-};
-
-enum class HairFlip : u32 {
-    Left,
-    Right,
-    Maximum = Right,
-};
-
-enum class MustacheType : u32 {
-    None,
-    Mustache1,
-    Mustache2,
-    Mustache3,
-    Mustache4,
-    Mustache5,
-};
-
-enum class Race : u32 {
-    Black,
-    White,
-    Asian,
-    All,
-};
 
 enum class Source : u32 {
     Database = 0,
@@ -173,7 +634,7 @@ struct DefaultMii {
     u32 face_makeup{};
     u32 hair_type{};
     u32 hair_color{};
-    HairFlip hair_flip{};
+    u32 hair_flip{};
     u32 eye_type{};
     u32 eye_color{};
     u32 eye_scale{};
@@ -196,8 +657,8 @@ struct DefaultMii {
     u32 mouth_scale{};
     u32 mouth_aspect{};
     u32 mouth_y{};
-    MustacheType mustache_type{};
-    BeardType beard_type{};
+    u32 mustache_type{};
+    u32 beard_type{};
     u32 beard_color{};
     u32 mustache_scale{};
     u32 mustache_y{};
@@ -211,10 +672,10 @@ struct DefaultMii {
     u32 mole_y{};
     u32 height{};
     u32 weight{};
-    Gender gender{};
+    u32 gender{};
     u32 favorite_color{};
     u32 region_move{};
-    FontRegion font_region{};
+    u32 font_region{};
     u32 type{};
     Nickname nickname;
 };

@@ -11,16 +11,16 @@ void StoreData::BuildDefault(u32 mii_index) {
     const auto& default_mii = RawData::DefaultMii[mii_index];
     core_data.SetDefault();
 
-    core_data.SetFacelineType(static_cast<u8>(default_mii.face_type));
+    core_data.SetFacelineType(static_cast<FacelineType>(default_mii.face_type));
     core_data.SetFacelineColor(
         RawData::GetFacelineColorFromVer3(static_cast<u8>(default_mii.face_color)));
-    core_data.SetFacelineWrinkle(static_cast<u8>(default_mii.face_wrinkle));
-    core_data.SetFacelineMake(static_cast<u8>(default_mii.face_makeup));
+    core_data.SetFacelineWrinkle(static_cast<FacelineWrinkle>(default_mii.face_wrinkle));
+    core_data.SetFacelineMake(static_cast<FacelineMake>(default_mii.face_makeup));
 
-    core_data.SetHairType(static_cast<u8>(default_mii.hair_type));
+    core_data.SetHairType(static_cast<HairType>(default_mii.hair_type));
     core_data.SetHairColor(RawData::GetHairColorFromVer3(static_cast<u8>(default_mii.hair_color)));
-    core_data.SetHairFlip(default_mii.hair_flip);
-    core_data.SetEyeType(static_cast<u8>(default_mii.eye_type));
+    core_data.SetHairFlip(static_cast<HairFlip>(default_mii.hair_flip));
+    core_data.SetEyeType(static_cast<EyeType>(default_mii.eye_type));
     core_data.SetEyeColor(RawData::GetEyeColorFromVer3(static_cast<u8>(default_mii.eye_color)));
     core_data.SetEyeScale(static_cast<u8>(default_mii.eye_scale));
     core_data.SetEyeAspect(static_cast<u8>(default_mii.eye_aspect));
@@ -28,7 +28,7 @@ void StoreData::BuildDefault(u32 mii_index) {
     core_data.SetEyeX(static_cast<u8>(default_mii.eye_x));
     core_data.SetEyeY(static_cast<u8>(default_mii.eye_y));
 
-    core_data.SetEyebrowType(static_cast<u8>(default_mii.eyebrow_type));
+    core_data.SetEyebrowType(static_cast<EyebrowType>(default_mii.eyebrow_type));
     core_data.SetEyebrowColor(
         RawData::GetHairColorFromVer3(static_cast<u8>(default_mii.eyebrow_color)));
     core_data.SetEyebrowScale(static_cast<u8>(default_mii.eyebrow_scale));
@@ -37,7 +37,7 @@ void StoreData::BuildDefault(u32 mii_index) {
     core_data.SetEyebrowX(static_cast<u8>(default_mii.eyebrow_x));
     core_data.SetEyebrowY(static_cast<u8>(default_mii.eyebrow_y));
 
-    core_data.SetNoseType(static_cast<u8>(default_mii.nose_type));
+    core_data.SetNoseType(static_cast<NoseType>(default_mii.nose_type));
     core_data.SetNoseScale(static_cast<u8>(default_mii.nose_scale));
     core_data.SetNoseY(static_cast<u8>(default_mii.nose_y));
 
@@ -48,30 +48,30 @@ void StoreData::BuildDefault(u32 mii_index) {
     core_data.SetMouthAspect(static_cast<u8>(default_mii.mouth_aspect));
     core_data.SetMouthY(static_cast<u8>(default_mii.mouth_y));
 
-    core_data.SetMustacheType(default_mii.mustache_type);
-    core_data.SetBeardType(default_mii.beard_type);
+    core_data.SetMustacheType(static_cast<MustacheType>(default_mii.mustache_type));
+    core_data.SetBeardType(static_cast<BeardType>(default_mii.beard_type));
     core_data.SetBeardColor(
         RawData::GetHairColorFromVer3(static_cast<u8>(default_mii.beard_color)));
     core_data.SetMustacheScale(static_cast<u8>(default_mii.mustache_scale));
     core_data.SetMustacheY(static_cast<u8>(default_mii.mustache_y));
 
-    core_data.SetGlassType(static_cast<u8>(default_mii.glasses_type));
+    core_data.SetGlassType(static_cast<GlassType>(default_mii.glasses_type));
     core_data.SetGlassColor(
         RawData::GetGlassColorFromVer3(static_cast<u8>(default_mii.glasses_color)));
     core_data.SetGlassScale(static_cast<u8>(default_mii.glasses_scale));
     core_data.SetGlassY(static_cast<u8>(default_mii.glasses_y));
 
-    core_data.SetMoleType(static_cast<u8>(default_mii.mole_type));
+    core_data.SetMoleType(static_cast<MoleType>(default_mii.mole_type));
     core_data.SetMoleScale(static_cast<u8>(default_mii.mole_scale));
     core_data.SetMoleX(static_cast<u8>(default_mii.mole_x));
     core_data.SetMoleY(static_cast<u8>(default_mii.mole_y));
 
     core_data.SetHeight(static_cast<u8>(default_mii.height));
     core_data.SetBuild(static_cast<u8>(default_mii.weight));
-    core_data.SetGender(default_mii.gender);
-    core_data.SetFavoriteColor(static_cast<u8>(default_mii.favorite_color));
+    core_data.SetGender(static_cast<Gender>(default_mii.gender));
+    core_data.SetFavoriteColor(static_cast<FavoriteColor>(default_mii.favorite_color));
     core_data.SetRegionMove(static_cast<u8>(default_mii.region_move));
-    core_data.SetFontRegion(default_mii.font_region);
+    core_data.SetFontRegion(static_cast<FontRegion>(default_mii.font_region));
     core_data.SetType(static_cast<u8>(default_mii.type));
     core_data.SetNickname(default_mii.nickname);
 
@@ -85,16 +85,16 @@ void StoreData::BuildBase(Gender gender) {
     const auto& default_mii = RawData::BaseMii[gender == Gender::Female ? 1 : 0];
     core_data.SetDefault();
 
-    core_data.SetFacelineType(static_cast<u8>(default_mii.face_type));
+    core_data.SetFacelineType(static_cast<FacelineType>(default_mii.face_type));
     core_data.SetFacelineColor(
         RawData::GetFacelineColorFromVer3(static_cast<u8>(default_mii.face_color)));
-    core_data.SetFacelineWrinkle(static_cast<u8>(default_mii.face_wrinkle));
-    core_data.SetFacelineMake(static_cast<u8>(default_mii.face_makeup));
+    core_data.SetFacelineWrinkle(static_cast<FacelineWrinkle>(default_mii.face_wrinkle));
+    core_data.SetFacelineMake(static_cast<FacelineMake>(default_mii.face_makeup));
 
-    core_data.SetHairType(static_cast<u8>(default_mii.hair_type));
+    core_data.SetHairType(static_cast<HairType>(default_mii.hair_type));
     core_data.SetHairColor(RawData::GetHairColorFromVer3(static_cast<u8>(default_mii.hair_color)));
-    core_data.SetHairFlip(default_mii.hair_flip);
-    core_data.SetEyeType(static_cast<u8>(default_mii.eye_type));
+    core_data.SetHairFlip(static_cast<HairFlip>(default_mii.hair_flip));
+    core_data.SetEyeType(static_cast<EyeType>(default_mii.eye_type));
     core_data.SetEyeColor(RawData::GetEyeColorFromVer3(static_cast<u8>(default_mii.eye_color)));
     core_data.SetEyeScale(static_cast<u8>(default_mii.eye_scale));
     core_data.SetEyeAspect(static_cast<u8>(default_mii.eye_aspect));
@@ -102,7 +102,7 @@ void StoreData::BuildBase(Gender gender) {
     core_data.SetEyeX(static_cast<u8>(default_mii.eye_x));
     core_data.SetEyeY(static_cast<u8>(default_mii.eye_y));
 
-    core_data.SetEyebrowType(static_cast<u8>(default_mii.eyebrow_type));
+    core_data.SetEyebrowType(static_cast<EyebrowType>(default_mii.eyebrow_type));
     core_data.SetEyebrowColor(
         RawData::GetHairColorFromVer3(static_cast<u8>(default_mii.eyebrow_color)));
     core_data.SetEyebrowScale(static_cast<u8>(default_mii.eyebrow_scale));
@@ -111,7 +111,7 @@ void StoreData::BuildBase(Gender gender) {
     core_data.SetEyebrowX(static_cast<u8>(default_mii.eyebrow_x));
     core_data.SetEyebrowY(static_cast<u8>(default_mii.eyebrow_y));
 
-    core_data.SetNoseType(static_cast<u8>(default_mii.nose_type));
+    core_data.SetNoseType(static_cast<NoseType>(default_mii.nose_type));
     core_data.SetNoseScale(static_cast<u8>(default_mii.nose_scale));
     core_data.SetNoseY(static_cast<u8>(default_mii.nose_y));
 
@@ -122,30 +122,30 @@ void StoreData::BuildBase(Gender gender) {
     core_data.SetMouthAspect(static_cast<u8>(default_mii.mouth_aspect));
     core_data.SetMouthY(static_cast<u8>(default_mii.mouth_y));
 
-    core_data.SetMustacheType(default_mii.mustache_type);
-    core_data.SetBeardType(default_mii.beard_type);
+    core_data.SetMustacheType(static_cast<MustacheType>(default_mii.mustache_type));
+    core_data.SetBeardType(static_cast<BeardType>(default_mii.beard_type));
     core_data.SetBeardColor(
         RawData::GetHairColorFromVer3(static_cast<u8>(default_mii.beard_color)));
     core_data.SetMustacheScale(static_cast<u8>(default_mii.mustache_scale));
     core_data.SetMustacheY(static_cast<u8>(default_mii.mustache_y));
 
-    core_data.SetGlassType(static_cast<u8>(default_mii.glasses_type));
+    core_data.SetGlassType(static_cast<GlassType>(default_mii.glasses_type));
     core_data.SetGlassColor(
         RawData::GetGlassColorFromVer3(static_cast<u8>(default_mii.glasses_color)));
     core_data.SetGlassScale(static_cast<u8>(default_mii.glasses_scale));
     core_data.SetGlassY(static_cast<u8>(default_mii.glasses_y));
 
-    core_data.SetMoleType(static_cast<u8>(default_mii.mole_type));
+    core_data.SetMoleType(static_cast<MoleType>(default_mii.mole_type));
     core_data.SetMoleScale(static_cast<u8>(default_mii.mole_scale));
     core_data.SetMoleX(static_cast<u8>(default_mii.mole_x));
     core_data.SetMoleY(static_cast<u8>(default_mii.mole_y));
 
     core_data.SetHeight(static_cast<u8>(default_mii.height));
     core_data.SetBuild(static_cast<u8>(default_mii.weight));
-    core_data.SetGender(default_mii.gender);
-    core_data.SetFavoriteColor(static_cast<u8>(default_mii.favorite_color));
+    core_data.SetGender(static_cast<Gender>(default_mii.gender));
+    core_data.SetFavoriteColor(static_cast<FavoriteColor>(default_mii.favorite_color));
     core_data.SetRegionMove(static_cast<u8>(default_mii.region_move));
-    core_data.SetFontRegion(default_mii.font_region);
+    core_data.SetFontRegion(static_cast<FontRegion>(default_mii.font_region));
     core_data.SetType(static_cast<u8>(default_mii.type));
     core_data.SetNickname(default_mii.nickname);
 
@@ -184,7 +184,7 @@ void StoreData::SetFontRegion(FontRegion value) {
     core_data.SetFontRegion(value);
 }
 
-void StoreData::SetFavoriteColor(u8 value) {
+void StoreData::SetFavoriteColor(FavoriteColor value) {
     core_data.SetFavoriteColor(value);
 }
 
@@ -208,27 +208,27 @@ void StoreData::SetRegionMove(u8 value) {
     core_data.SetRegionMove(value);
 }
 
-void StoreData::SetFacelineType(u8 value) {
+void StoreData::SetFacelineType(FacelineType value) {
     core_data.SetFacelineType(value);
 }
 
-void StoreData::SetFacelineColor(u8 value) {
+void StoreData::SetFacelineColor(FacelineColor value) {
     core_data.SetFacelineColor(value);
 }
 
-void StoreData::SetFacelineWrinkle(u8 value) {
+void StoreData::SetFacelineWrinkle(FacelineWrinkle value) {
     core_data.SetFacelineWrinkle(value);
 }
 
-void StoreData::SetFacelineMake(u8 value) {
+void StoreData::SetFacelineMake(FacelineMake value) {
     core_data.SetFacelineMake(value);
 }
 
-void StoreData::SetHairType(u8 value) {
+void StoreData::SetHairType(HairType value) {
     core_data.SetHairType(value);
 }
 
-void StoreData::SetHairColor(u8 value) {
+void StoreData::SetHairColor(CommonColor value) {
     core_data.SetHairColor(value);
 }
 
@@ -236,11 +236,11 @@ void StoreData::SetHairFlip(HairFlip value) {
     core_data.SetHairFlip(value);
 }
 
-void StoreData::SetEyeType(u8 value) {
+void StoreData::SetEyeType(EyeType value) {
     core_data.SetEyeType(value);
 }
 
-void StoreData::SetEyeColor(u8 value) {
+void StoreData::SetEyeColor(CommonColor value) {
     core_data.SetEyeColor(value);
 }
 
@@ -264,11 +264,11 @@ void StoreData::SetEyeY(u8 value) {
     core_data.SetEyeY(value);
 }
 
-void StoreData::SetEyebrowType(u8 value) {
+void StoreData::SetEyebrowType(EyebrowType value) {
     core_data.SetEyebrowType(value);
 }
 
-void StoreData::SetEyebrowColor(u8 value) {
+void StoreData::SetEyebrowColor(CommonColor value) {
     core_data.SetEyebrowColor(value);
 }
 
@@ -292,7 +292,7 @@ void StoreData::SetEyebrowY(u8 value) {
     core_data.SetEyebrowY(value);
 }
 
-void StoreData::SetNoseType(u8 value) {
+void StoreData::SetNoseType(NoseType value) {
     core_data.SetNoseType(value);
 }
 
@@ -308,7 +308,7 @@ void StoreData::SetMouthType(u8 value) {
     core_data.SetMouthType(value);
 }
 
-void StoreData::SetMouthColor(u8 value) {
+void StoreData::SetMouthColor(CommonColor value) {
     core_data.SetMouthColor(value);
 }
 
@@ -324,7 +324,7 @@ void StoreData::SetMouthY(u8 value) {
     core_data.SetMouthY(value);
 }
 
-void StoreData::SetBeardColor(u8 value) {
+void StoreData::SetBeardColor(CommonColor value) {
     core_data.SetBeardColor(value);
 }
 
@@ -344,11 +344,11 @@ void StoreData::SetMustacheY(u8 value) {
     core_data.SetMustacheY(value);
 }
 
-void StoreData::SetGlassType(u8 value) {
+void StoreData::SetGlassType(GlassType value) {
     core_data.SetGlassType(value);
 }
 
-void StoreData::SetGlassColor(u8 value) {
+void StoreData::SetGlassColor(CommonColor value) {
     core_data.SetGlassColor(value);
 }
 
@@ -360,7 +360,7 @@ void StoreData::SetGlassY(u8 value) {
     core_data.SetGlassY(value);
 }
 
-void StoreData::SetMoleType(u8 value) {
+void StoreData::SetMoleType(MoleType value) {
     core_data.SetMoleType(value);
 }
 
@@ -388,11 +388,11 @@ FontRegion StoreData::GetFontRegion() const {
     return static_cast<FontRegion>(core_data.GetFontRegion());
 }
 
-u8 StoreData::GetFavoriteColor() const {
+FavoriteColor StoreData::GetFavoriteColor() const {
     return core_data.GetFavoriteColor();
 }
 
-u8 StoreData::GetGender() const {
+Gender StoreData::GetGender() const {
     return core_data.GetGender();
 }
 
@@ -412,39 +412,39 @@ u8 StoreData::GetRegionMove() const {
     return core_data.GetRegionMove();
 }
 
-u8 StoreData::GetFacelineType() const {
+FacelineType StoreData::GetFacelineType() const {
     return core_data.GetFacelineType();
 }
 
-u8 StoreData::GetFacelineColor() const {
+FacelineColor StoreData::GetFacelineColor() const {
     return core_data.GetFacelineColor();
 }
 
-u8 StoreData::GetFacelineWrinkle() const {
+FacelineWrinkle StoreData::GetFacelineWrinkle() const {
     return core_data.GetFacelineWrinkle();
 }
 
-u8 StoreData::GetFacelineMake() const {
+FacelineMake StoreData::GetFacelineMake() const {
     return core_data.GetFacelineMake();
 }
 
-u8 StoreData::GetHairType() const {
+HairType StoreData::GetHairType() const {
     return core_data.GetHairType();
 }
 
-u8 StoreData::GetHairColor() const {
+CommonColor StoreData::GetHairColor() const {
     return core_data.GetHairColor();
 }
 
-u8 StoreData::GetHairFlip() const {
+HairFlip StoreData::GetHairFlip() const {
     return core_data.GetHairFlip();
 }
 
-u8 StoreData::GetEyeType() const {
+EyeType StoreData::GetEyeType() const {
     return core_data.GetEyeType();
 }
 
-u8 StoreData::GetEyeColor() const {
+CommonColor StoreData::GetEyeColor() const {
     return core_data.GetEyeColor();
 }
 
@@ -468,11 +468,11 @@ u8 StoreData::GetEyeY() const {
     return core_data.GetEyeY();
 }
 
-u8 StoreData::GetEyebrowType() const {
+EyebrowType StoreData::GetEyebrowType() const {
     return core_data.GetEyebrowType();
 }
 
-u8 StoreData::GetEyebrowColor() const {
+CommonColor StoreData::GetEyebrowColor() const {
     return core_data.GetEyebrowColor();
 }
 
@@ -496,7 +496,7 @@ u8 StoreData::GetEyebrowY() const {
     return core_data.GetEyebrowY();
 }
 
-u8 StoreData::GetNoseType() const {
+NoseType StoreData::GetNoseType() const {
     return core_data.GetNoseType();
 }
 
@@ -508,11 +508,11 @@ u8 StoreData::GetNoseY() const {
     return core_data.GetNoseY();
 }
 
-u8 StoreData::GetMouthType() const {
+MouthType StoreData::GetMouthType() const {
     return core_data.GetMouthType();
 }
 
-u8 StoreData::GetMouthColor() const {
+CommonColor StoreData::GetMouthColor() const {
     return core_data.GetMouthColor();
 }
 
@@ -528,15 +528,15 @@ u8 StoreData::GetMouthY() const {
     return core_data.GetMouthY();
 }
 
-u8 StoreData::GetBeardColor() const {
+CommonColor StoreData::GetBeardColor() const {
     return core_data.GetBeardColor();
 }
 
-u8 StoreData::GetBeardType() const {
+BeardType StoreData::GetBeardType() const {
     return core_data.GetBeardType();
 }
 
-u8 StoreData::GetMustacheType() const {
+MustacheType StoreData::GetMustacheType() const {
     return core_data.GetMustacheType();
 }
 
@@ -548,11 +548,11 @@ u8 StoreData::GetMustacheY() const {
     return core_data.GetMustacheY();
 }
 
-u8 StoreData::GetGlassType() const {
+GlassType StoreData::GetGlassType() const {
     return core_data.GetGlassType();
 }
 
-u8 StoreData::GetGlassColor() const {
+CommonColor StoreData::GetGlassColor() const {
     return core_data.GetGlassColor();
 }
 
@@ -564,7 +564,7 @@ u8 StoreData::GetGlassY() const {
     return core_data.GetGlassY();
 }
 
-u8 StoreData::GetMoleType() const {
+MoleType StoreData::GetMoleType() const {
     return core_data.GetMoleType();
 }
 

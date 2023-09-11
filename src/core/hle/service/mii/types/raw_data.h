@@ -15,9 +15,9 @@ struct RandomMiiValues {
 static_assert(sizeof(RandomMiiValues) == 0xbc, "RandomMiiValues has incorrect size.");
 
 struct RandomMiiData4 {
-    Gender gender{};
-    Age age{};
-    Race race{};
+    u32 gender{};
+    u32 age{};
+    u32 race{};
     u32 values_count{};
     std::array<u32, 47> values{};
 };
@@ -64,10 +64,10 @@ u8 FromVer3GetMouthlineColor(u8 color);
 u8 FromVer3GetGlassColor(u8 color);
 u8 FromVer3GetGlassType(u8 type);
 
-u8 GetFacelineColorFromVer3(u8 color);
-u8 GetHairColorFromVer3(u32 color);
-u8 GetEyeColorFromVer3(u32 color);
-u8 GetMouthColorFromVer3(u32 color);
-u8 GetGlassColorFromVer3(u8 color);
+FacelineColor GetFacelineColorFromVer3(u32 color);
+CommonColor GetHairColorFromVer3(u32 color);
+CommonColor GetEyeColorFromVer3(u32 color);
+CommonColor GetMouthColorFromVer3(u32 color);
+CommonColor GetGlassColorFromVer3(u32 color);
 
 } // namespace Service::Mii::RawData
