@@ -7,6 +7,7 @@
 
 #include "common/swap.h"
 #include "core/hle/service/mii/types/char_info.h"
+#include "core/hle/service/mii/types/store_data.h"
 #include "core/hle/service/mii/types/ver3_store_data.h"
 #include "core/hle/service/nfc/nfc_types.h"
 

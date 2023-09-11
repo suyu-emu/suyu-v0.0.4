@@ -27,12 +27,8 @@ public:
     CharInfo BuildBase(Gender gender);
     CharInfo BuildDefault(std::size_t index);
     CharInfo ConvertV3ToCharInfo(const Ver3StoreData& mii_v3) const;
-    bool ValidateV3Info(const Ver3StoreData& mii_v3) const;
     std::vector<CharInfoElement> GetDefault(SourceFlag source_flag);
     Result GetIndex(const CharInfo& info, u32& index);
-
-    // This is nn::mii::detail::Ver::StoreDataRaw::BuildFromStoreData
-    Ver3StoreData BuildFromStoreData(const CharInfo& mii) const;
 
     // This is nn::mii::detail::NfpStoreDataExtentionRaw::SetFromStoreData
     NfpStoreDataExtension SetFromStoreData(const CharInfo& mii) const;

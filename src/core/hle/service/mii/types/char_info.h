@@ -8,7 +8,8 @@
 namespace Service::Mii {
 
 // This is nn::mii::detail::CharInfoRaw
-struct CharInfo {
+class CharInfo {
+public:
     Common::UUID create_id;
     Nickname name;
     u16 null_terminator;

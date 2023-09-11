@@ -4,10 +4,9 @@
 #pragma once
 
 #include "core/hle/service/mii/mii_types.h"
-#include "core/hle/service/mii/types/core_data.h"
-#include "core/hle/service/mii/types/store_data.h"
 
 namespace Service::Mii {
+class CharInfo;
 
 // This is nn::mii::Ver3StoreData
 // Based on citra HLE::Applets::MiiData and PretendoNetwork.
@@ -15,7 +14,15 @@ namespace Service::Mii {
 // https://github.com/PretendoNetwork/mii-js/blob/master/mii.js#L299
 
 #pragma pack(push, 4)
-struct Ver3StoreData {
+class Ver3StoreData {
+public:
+    // TODO: This function is wrong. It should use StoreData.
+    void BuildToStoreData(CharInfo& out_char_info) const;
+    // TODO: This function is wrong. It should use StoreData.
+    void BuildFromStoreData(const CharInfo& char_info);
+
+    u32 IsValid() const;
+
     u8 version;
     union {
         u8 raw;
