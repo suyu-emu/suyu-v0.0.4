@@ -154,6 +154,7 @@ public:
     void SetMoleY(u8 value);
     void SetNickname(Nickname nickname);
 
+    u8 GetFontRegion() const;
     u8 GetFavoriteColor() const;
     u8 GetGender() const;
     u8 GetHeight() const;

@@ -31,76 +31,22 @@ std::array<T, DestArraySize> ResizeArray(const std::array<T, SourceArraySize>& i
 }
 
 CharInfo ConvertStoreDataToInfo(const StoreData& data) {
-    const StoreDataBitFields& bf = data.core_data.data;
-
-    return {
-        .create_id = data.create_id,
-        .name = data.core_data.name,
-        .font_region = static_cast<u8>(bf.font_region.Value()),
-        .favorite_color = static_cast<u8>(bf.favorite_color.Value()),
-        .gender = static_cast<u8>(bf.gender.Value()),
-        .height = static_cast<u8>(bf.height.Value()),
-        .build = static_cast<u8>(bf.build.Value()),
-        .type = static_cast<u8>(bf.type.Value()),
-        .region_move = static_cast<u8>(bf.region_move.Value()),
-        .faceline_type = static_cast<u8>(bf.faceline_type.Value()),
-        .faceline_color = static_cast<u8>(bf.faceline_color.Value()),
-        .faceline_wrinkle = static_cast<u8>(bf.faceline_wrinkle.Value()),
-        .faceline_make = static_cast<u8>(bf.faceline_makeup.Value()),
-        .hair_type = static_cast<u8>(bf.hair_type.Value()),
-        .hair_color = static_cast<u8>(bf.hair_color.Value()),
-        .hair_flip = static_cast<u8>(bf.hair_flip.Value()),
-        .eye_type = static_cast<u8>(bf.eye_type.Value()),
-        .eye_color = static_cast<u8>(bf.eye_color.Value()),
-        .eye_scale = static_cast<u8>(bf.eye_scale.Value()),
-        .eye_aspect = static_cast<u8>(bf.eye_aspect.Value()),
-        .eye_rotate = static_cast<u8>(bf.eye_rotate.Value()),
-        .eye_x = static_cast<u8>(bf.eye_x.Value()),
-        .eye_y = static_cast<u8>(bf.eye_y.Value()),
-        .eyebrow_type = static_cast<u8>(bf.eyebrow_type.Value()),
-        .eyebrow_color = static_cast<u8>(bf.eyebrow_color.Value()),
-        .eyebrow_scale = static_cast<u8>(bf.eyebrow_scale.Value()),
-        .eyebrow_aspect = static_cast<u8>(bf.eyebrow_aspect.Value()),
-        .eyebrow_rotate = static_cast<u8>(bf.eyebrow_rotate.Value()),
-        .eyebrow_x = static_cast<u8>(bf.eyebrow_x.Value()),
-        .eyebrow_y = static_cast<u8>(bf.eyebrow_y.Value() + 3),
-        .nose_type = static_cast<u8>(bf.nose_type.Value()),
-        .nose_scale = static_cast<u8>(bf.nose_scale.Value()),
-        .nose_y = static_cast<u8>(bf.nose_y.Value()),
-        .mouth_type = static_cast<u8>(bf.mouth_type.Value()),
-        .mouth_color = static_cast<u8>(bf.mouth_color.Value()),
-        .mouth_scale = static_cast<u8>(bf.mouth_scale.Value()),
-        .mouth_aspect = static_cast<u8>(bf.mouth_aspect.Value()),
-        .mouth_y = static_cast<u8>(bf.mouth_y.Value()),
-        .beard_color = static_cast<u8>(bf.beard_color.Value()),
-        .beard_type = static_cast<u8>(bf.beard_type.Value()),
-        .mustache_type = static_cast<u8>(bf.mustache_type.Value()),
-        .mustache_scale = static_cast<u8>(bf.mustache_scale.Value()),
-        .mustache_y = static_cast<u8>(bf.mustache_y.Value()),
-        .glasses_type = static_cast<u8>(bf.glasses_type.Value()),
-        .glasses_color = static_cast<u8>(bf.glasses_color.Value()),
-        .glasses_scale = static_cast<u8>(bf.glasses_scale.Value()),
-        .glasses_y = static_cast<u8>(bf.glasses_y.Value()),
-        .mole_type = static_cast<u8>(bf.mole_type.Value()),
-        .mole_scale = static_cast<u8>(bf.mole_scale.Value()),
-        .mole_x = static_cast<u8>(bf.mole_x.Value()),
-        .mole_y = static_cast<u8>(bf.mole_y.Value()),
-        .padding = 0,
-    };
+    // Next Commit Will fix this one
+    return {};
 }
 
 StoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Common::UUID& user_id) {
-    CoreData core_data{};
-    core_data.BuildRandom(age, gender, race);
+    StoreData store_data{};
+    store_data.BuildRandom(age, gender, race);
 
-    return {DefaultMiiName, core_data.data, user_id};
+    return store_data;
 }
 
 StoreData BuildDefaultStoreData(const DefaultMii& info, const Common::UUID& user_id) {
-    CoreData core_data{};
-    core_data.SetDefault();
+    StoreData store_data{};
+    store_data.BuildDefault(0);
 
-    return {DefaultMiiName, core_data.data, user_id};
+    return store_data;
 }
 
 } // namespace

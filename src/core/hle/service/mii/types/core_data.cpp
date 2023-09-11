@@ -394,6 +394,10 @@ void CoreData::SetNickname(Nickname nickname) {
     name = nickname;
 }
 
+u8 CoreData::GetFontRegion() const {
+    return static_cast<u8>(data.font_region.Value());
+}
+
 u8 CoreData::GetFavoriteColor() const {
     return static_cast<u8>(data.favorite_color.Value());
 }
