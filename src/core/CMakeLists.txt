@@ -584,15 +584,23 @@ add_library(core STATIC
     hle/service/lm/lm.h
     hle/service/mig/mig.cpp
     hle/service/mig/mig.h
+    hle/service/mii/types/char_info.cpp
+    hle/service/mii/types/char_info.h
+    hle/service/mii/types/core_data.cpp
+    hle/service/mii/types/core_data.h
+    hle/service/mii/types/raw_data.cpp
+    hle/service/mii/types/raw_data.h
+    hle/service/mii/types/store_data.cpp
+    hle/service/mii/types/store_data.h
+    hle/service/mii/types/ver3_store_data.cpp
+    hle/service/mii/types/ver3_store_data.h
     hle/service/mii/mii.cpp
     hle/service/mii/mii.h
     hle/service/mii/mii_manager.cpp
     hle/service/mii/mii_manager.h
     hle/service/mii/mii_result.h
+    hle/service/mii/mii_types.h
     hle/service/mii/mii_util.h
-    hle/service/mii/raw_data.cpp
-    hle/service/mii/raw_data.h
-    hle/service/mii/types.h
     hle/service/mm/mm_u.cpp
     hle/service/mm/mm_u.h
     hle/service/mnpp/mnpp_app.cpp

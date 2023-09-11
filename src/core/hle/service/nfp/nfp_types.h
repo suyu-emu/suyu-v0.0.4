@@ -6,7 +6,8 @@
 #include <array>
 
 #include "common/swap.h"
-#include "core/hle/service/mii/types.h"
+#include "core/hle/service/mii/types/char_info.h"
+#include "core/hle/service/mii/types/ver3_store_data.h"
 #include "core/hle/service/nfc/nfc_types.h"
 
 namespace Service::NFP {
@@ -322,7 +323,7 @@ static_assert(sizeof(RegisterInfo) == 0x100, "RegisterInfo is an invalid size");
 
 // This is nn::nfp::RegisterInfoPrivate
 struct RegisterInfoPrivate {
-    Service::Mii::MiiStoreData mii_store_data;
+    Service::Mii::StoreData mii_store_data;
     WriteDate creation_date;
     AmiiboName amiibo_name;
     u8 font_region;

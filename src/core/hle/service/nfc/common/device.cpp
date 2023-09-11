@@ -28,7 +28,6 @@
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/mii/mii_manager.h"
-#include "core/hle/service/mii/types.h"
 #include "core/hle/service/nfc/common/amiibo_crypto.h"
 #include "core/hle/service/nfc/common/device.h"
 #include "core/hle/service/nfc/mifare_result.h"

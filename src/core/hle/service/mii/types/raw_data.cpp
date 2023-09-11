@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Ryujinx Team and Contributors
 // SPDX-License-Identifier: MIT
 
-#include "core/hle/service/mii/raw_data.h"
+#include "core/hle/service/mii/types/raw_data.h"
 
 namespace Service::Mii::RawData {
 

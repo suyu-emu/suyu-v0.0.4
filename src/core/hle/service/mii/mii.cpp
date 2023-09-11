@@ -120,7 +120,7 @@ private:
 
         std::vector<CharInfo> values;
         for (const auto& element : default_miis) {
-            values.emplace_back(element.info);
+            values.emplace_back(element.char_info);
         }
 
         ctx.WriteBuffer(SerializeArray(values));

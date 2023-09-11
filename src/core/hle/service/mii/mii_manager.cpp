@@ -12,7 +12,8 @@
 #include "core/hle/service/mii/mii_manager.h"
 #include "core/hle/service/mii/mii_result.h"
 #include "core/hle/service/mii/mii_util.h"
-#include "core/hle/service/mii/raw_data.h"
+#include "core/hle/service/mii/types/core_data.h"
+#include "core/hle/service/mii/types/raw_data.h"
 
 namespace Service::Mii {
 
@@ -29,13 +30,12 @@ std::array<T, DestArraySize> ResizeArray(const std::array<T, SourceArraySize>& i
     return out;
 }
 
-CharInfo ConvertStoreDataToInfo(const MiiStoreData& data) {
-    MiiStoreBitFields bf;
-    std::memcpy(&bf, data.data.data.data(), sizeof(MiiStoreBitFields));
+CharInfo ConvertStoreDataToInfo(const StoreData& data) {
+    const StoreDataBitFields& bf = data.core_data.data;
 
     return {
-        .uuid = data.data.uuid,
-        .name = ResizeArray<char16_t, 10, 11>(data.data.name),
+        .create_id = data.create_id,
+        .name = data.core_data.name,
         .font_region = static_cast<u8>(bf.font_region.Value()),
         .favorite_color = static_cast<u8>(bf.favorite_color.Value()),
         .gender = static_cast<u8>(bf.gender.Value()),
@@ -89,8 +89,8 @@ CharInfo ConvertStoreDataToInfo(const MiiStoreData& data) {
     };
 }
 
-MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Common::UUID& user_id) {
-    MiiStoreBitFields bf{};
+StoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Common::UUID& user_id) {
+    StoreDataBitFields bf{};
 
     if (gender == Gender::All) {
         gender = MiiUtil::GetRandomValue<Gender>(Gender::Maximum);
@@ -270,8 +270,8 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
     return {DefaultMiiName, bf, user_id};
 }
 
-MiiStoreData BuildDefaultStoreData(const DefaultMii& info, const Common::UUID& user_id) {
-    MiiStoreBitFields bf{};
+StoreData BuildDefaultStoreData(const DefaultMii& info, const Common::UUID& user_id) {
+    StoreDataBitFields bf{};
 
     bf.font_region.Assign(info.font_region);
     bf.favorite_color.Assign(info.favorite_color);
@@ -328,15 +328,15 @@ MiiStoreData BuildDefaultStoreData(const DefaultMii& info, const Common::UUID& u
 
 } // namespace
 
-MiiStoreData::MiiStoreData() = default;
+StoreData::StoreData() = default;
 
-MiiStoreData::MiiStoreData(const Nickname& name, const MiiStoreBitFields& bit_fields,
-                           const Common::UUID& user_id) {
-    data.name = name;
-    data.uuid = Common::UUID::MakeRandomRFC4122V4();
+StoreData::StoreData(const Nickname& name, const StoreDataBitFields& bit_fields,
+                     const Common::UUID& user_id) {
+    core_data.name = name;
+    create_id = Common::UUID::MakeRandomRFC4122V4();
 
-    std::memcpy(data.data.data(), &bit_fields, sizeof(MiiStoreBitFields));
-    data_crc = MiiUtil::CalculateCrc16(data.data.data(), sizeof(data));
+    core_data.data = bit_fields;
+    data_crc = MiiUtil::CalculateCrc16(&core_data.data, sizeof(core_data.data));
     device_crc = MiiUtil::CalculateCrc16(&user_id, sizeof(Common::UUID));
 }
 
@@ -641,8 +641,8 @@ bool MiiManager::ValidateV3Info(const Ver3StoreData& mii_v3) const {
     return is_valid;
 }
 
-std::vector<MiiInfoElement> MiiManager::GetDefault(SourceFlag source_flag) {
-    std::vector<MiiInfoElement> result;
+std::vector<CharInfoElement> MiiManager::GetDefault(SourceFlag source_flag) {
+    std::vector<CharInfoElement> result;
 
     if ((source_flag & SourceFlag::Default) == SourceFlag::None) {
         return result;
