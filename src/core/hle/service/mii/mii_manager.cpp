@@ -11,6 +11,7 @@
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/mii/mii_manager.h"
 #include "core/hle/service/mii/mii_result.h"
+#include "core/hle/service/mii/mii_util.h"
 #include "core/hle/service/mii/raw_data.h"
 
 namespace Service::Mii {
@@ -19,19 +20,7 @@ namespace {
 
 constexpr std::size_t DefaultMiiCount{RawData::DefaultMii.size()};
 
-constexpr MiiStoreData::Name DefaultMiiName{u'n', u'o', u' ', u'n', u'a', u'm', u'e'};
-constexpr std::array<u8, 8> HairColorLookup{8, 1, 2, 3, 4, 5, 6, 7};
-constexpr std::array<u8, 6> EyeColorLookup{8, 9, 10, 11, 12, 13};
-constexpr std::array<u8, 5> MouthColorLookup{19, 20, 21, 22, 23};
-constexpr std::array<u8, 7> GlassesColorLookup{8, 14, 15, 16, 17, 18, 0};
-constexpr std::array<u8, 62> EyeRotateLookup{
-    {0x03, 0x04, 0x04, 0x04, 0x03, 0x04, 0x04, 0x04, 0x03, 0x04, 0x04, 0x04, 0x04, 0x03, 0x03, 0x04,
-     0x04, 0x04, 0x03, 0x03, 0x04, 0x03, 0x04, 0x03, 0x03, 0x04, 0x03, 0x04, 0x04, 0x03, 0x04, 0x04,
-     0x04, 0x03, 0x03, 0x03, 0x04, 0x04, 0x03, 0x03, 0x03, 0x04, 0x04, 0x03, 0x03, 0x03, 0x03, 0x03,
-     0x03, 0x03, 0x03, 0x03, 0x04, 0x04, 0x04, 0x04, 0x03, 0x04, 0x04, 0x03, 0x04, 0x04}};
-constexpr std::array<u8, 24> EyebrowRotateLookup{{0x06, 0x06, 0x05, 0x07, 0x06, 0x07, 0x06, 0x07,
-                                                  0x04, 0x07, 0x06, 0x08, 0x05, 0x05, 0x06, 0x06,
-                                                  0x07, 0x07, 0x06, 0x06, 0x05, 0x06, 0x07, 0x05}};
+constexpr Nickname DefaultMiiName{u'n', u'o', u' ', u'n', u'a', u'm', u'e'};
 
 template <typename T, std::size_t SourceArraySize, std::size_t DestArraySize>
 std::array<T, DestArraySize> ResizeArray(const std::array<T, SourceArraySize>& in) {
@@ -100,42 +89,15 @@ CharInfo ConvertStoreDataToInfo(const MiiStoreData& data) {
     };
 }
 
-u16 GenerateCrc16(const void* data, std::size_t size) {
-    s32 crc{};
-    for (std::size_t i = 0; i < size; i++) {
-        crc ^= static_cast<const u8*>(data)[i] << 8;
-        for (std::size_t j = 0; j < 8; j++) {
-            crc <<= 1;
-            if ((crc & 0x10000) != 0) {
-                crc = (crc ^ 0x1021) & 0xFFFF;
-            }
-        }
-    }
-    return Common::swap16(static_cast<u16>(crc));
-}
-
-template <typename T>
-T GetRandomValue(T min, T max) {
-    std::random_device device;
-    std::mt19937 gen(device());
-    std::uniform_int_distribution<u64> distribution(static_cast<u64>(min), static_cast<u64>(max));
-    return static_cast<T>(distribution(gen));
-}
-
-template <typename T>
-T GetRandomValue(T max) {
-    return GetRandomValue<T>({}, max);
-}
-
 MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Common::UUID& user_id) {
     MiiStoreBitFields bf{};
 
     if (gender == Gender::All) {
-        gender = GetRandomValue<Gender>(Gender::Maximum);
+        gender = MiiUtil::GetRandomValue<Gender>(Gender::Maximum);
     }
 
     bf.gender.Assign(gender);
-    bf.favorite_color.Assign(GetRandomValue<u8>(11));
+    bf.favorite_color.Assign(MiiUtil::GetRandomValue<u8>(11));
     bf.region_move.Assign(0);
     bf.font_region.Assign(FontRegion::Standard);
     bf.type.Assign(0);
@@ -143,7 +105,7 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
     bf.build.Assign(64);
 
     if (age == Age::All) {
-        const auto temp{GetRandomValue<int>(10)};
+        const auto temp{MiiUtil::GetRandomValue<int>(10)};
         if (temp >= 8) {
             age = Age::Old;
         } else if (temp >= 4) {
@@ -154,7 +116,7 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
     }
 
     if (race == Race::All) {
-        const auto temp{GetRandomValue<int>(10)};
+        const auto temp{MiiUtil::GetRandomValue<int>(10)};
         if (temp >= 8) {
             race = Race::Black;
         } else if (temp >= 4) {
@@ -166,56 +128,57 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
 
     u32 axis_y{};
     if (gender == Gender::Female && age == Age::Young) {
-        axis_y = GetRandomValue<u32>(3);
+        axis_y = MiiUtil::GetRandomValue<u32>(3);
     }
 
     const std::size_t index{3 * static_cast<std::size_t>(age) +
                             9 * static_cast<std::size_t>(gender) + static_cast<std::size_t>(race)};
 
-    const auto faceline_type_info{RawData::RandomMiiFaceline.at(index)};
-    const auto faceline_color_info{RawData::RandomMiiFacelineColor.at(
+    const auto& faceline_type_info{RawData::RandomMiiFaceline.at(index)};
+    const auto& faceline_color_info{RawData::RandomMiiFacelineColor.at(
         3 * static_cast<std::size_t>(gender) + static_cast<std::size_t>(race))};
-    const auto faceline_wrinkle_info{RawData::RandomMiiFacelineWrinkle.at(index)};
-    const auto faceline_makeup_info{RawData::RandomMiiFacelineMakeup.at(index)};
-    const auto hair_type_info{RawData::RandomMiiHairType.at(index)};
-    const auto hair_color_info{RawData::RandomMiiHairColor.at(3 * static_cast<std::size_t>(race) +
-                                                              static_cast<std::size_t>(age))};
-    const auto eye_type_info{RawData::RandomMiiEyeType.at(index)};
-    const auto eye_color_info{RawData::RandomMiiEyeColor.at(static_cast<std::size_t>(race))};
-    const auto eyebrow_type_info{RawData::RandomMiiEyebrowType.at(index)};
-    const auto nose_type_info{RawData::RandomMiiNoseType.at(index)};
-    const auto mouth_type_info{RawData::RandomMiiMouthType.at(index)};
-    const auto glasses_type_info{RawData::RandomMiiGlassType.at(static_cast<std::size_t>(age))};
+    const auto& faceline_wrinkle_info{RawData::RandomMiiFacelineWrinkle.at(index)};
+    const auto& faceline_makeup_info{RawData::RandomMiiFacelineMakeup.at(index)};
+    const auto& hair_type_info{RawData::RandomMiiHairType.at(index)};
+    const auto& hair_color_info{RawData::RandomMiiHairColor.at(3 * static_cast<std::size_t>(race) +
+                                                               static_cast<std::size_t>(age))};
+    const auto& eye_type_info{RawData::RandomMiiEyeType.at(index)};
+    const auto& eye_color_info{RawData::RandomMiiEyeColor.at(static_cast<std::size_t>(race))};
+    const auto& eyebrow_type_info{RawData::RandomMiiEyebrowType.at(index)};
+    const auto& nose_type_info{RawData::RandomMiiNoseType.at(index)};
+    const auto& mouth_type_info{RawData::RandomMiiMouthType.at(index)};
+    const auto& glasses_type_info{RawData::RandomMiiGlassType.at(static_cast<std::size_t>(age))};
 
     bf.faceline_type.Assign(
-        faceline_type_info.values[GetRandomValue<std::size_t>(faceline_type_info.values_count)]);
+        faceline_type_info
+            .values[MiiUtil::GetRandomValue<std::size_t>(faceline_type_info.values_count)]);
     bf.faceline_color.Assign(
-        faceline_color_info.values[GetRandomValue<std::size_t>(faceline_color_info.values_count)]);
+        faceline_color_info
+            .values[MiiUtil::GetRandomValue<std::size_t>(faceline_color_info.values_count)]);
     bf.faceline_wrinkle.Assign(
         faceline_wrinkle_info
-            .values[GetRandomValue<std::size_t>(faceline_wrinkle_info.values_count)]);
+            .values[MiiUtil::GetRandomValue<std::size_t>(faceline_wrinkle_info.values_count)]);
     bf.faceline_makeup.Assign(
         faceline_makeup_info
-            .values[GetRandomValue<std::size_t>(faceline_makeup_info.values_count)]);
+            .values[MiiUtil::GetRandomValue<std::size_t>(faceline_makeup_info.values_count)]);
 
     bf.hair_type.Assign(
-        hair_type_info.values[GetRandomValue<std::size_t>(hair_type_info.values_count)]);
-    bf.hair_color.Assign(
-        HairColorLookup[hair_color_info
-                            .values[GetRandomValue<std::size_t>(hair_color_info.values_count)]]);
-    bf.hair_flip.Assign(GetRandomValue<HairFlip>(HairFlip::Maximum));
+        hair_type_info.values[MiiUtil::GetRandomValue<std::size_t>(hair_type_info.values_count)]);
+    bf.hair_color.Assign(RawData::GetHairColorFromVer3(
+        hair_color_info
+            .values[MiiUtil::GetRandomValue<std::size_t>(hair_color_info.values_count)]));
+    bf.hair_flip.Assign(MiiUtil::GetRandomValue<HairFlip>(HairFlip::Maximum));
 
     bf.eye_type.Assign(
-        eye_type_info.values[GetRandomValue<std::size_t>(eye_type_info.values_count)]);
+        eye_type_info.values[MiiUtil::GetRandomValue<std::size_t>(eye_type_info.values_count)]);
 
     const auto eye_rotate_1{gender != Gender::Male ? 4 : 2};
     const auto eye_rotate_2{gender != Gender::Male ? 3 : 4};
-    const auto eye_rotate_offset{32 - EyeRotateLookup[eye_rotate_1] + eye_rotate_2};
-    const auto eye_rotate{32 - EyeRotateLookup[bf.eye_type]};
+    const auto eye_rotate_offset{32 - RawData::EyeRotateLookup[eye_rotate_1] + eye_rotate_2};
+    const auto eye_rotate{32 - RawData::EyeRotateLookup[bf.eye_type]};
 
-    bf.eye_color.Assign(
-        EyeColorLookup[eye_color_info
-                           .values[GetRandomValue<std::size_t>(eye_color_info.values_count)]]);
+    bf.eye_color.Assign(RawData::GetEyeColorFromVer3(
+        eye_color_info.values[MiiUtil::GetRandomValue<std::size_t>(eye_color_info.values_count)]));
     bf.eye_scale.Assign(4);
     bf.eye_aspect.Assign(3);
     bf.eye_rotate.Assign(eye_rotate_offset - eye_rotate);
@@ -223,13 +186,14 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
     bf.eye_y.Assign(axis_y + 12);
 
     bf.eyebrow_type.Assign(
-        eyebrow_type_info.values[GetRandomValue<std::size_t>(eyebrow_type_info.values_count)]);
+        eyebrow_type_info
+            .values[MiiUtil::GetRandomValue<std::size_t>(eyebrow_type_info.values_count)]);
 
     const auto eyebrow_rotate_1{race == Race::Asian ? 6 : 0};
     const auto eyebrow_y{race == Race::Asian ? 9 : 10};
-    const auto eyebrow_rotate_offset{32 - EyebrowRotateLookup[eyebrow_rotate_1] + 6};
+    const auto eyebrow_rotate_offset{32 - RawData::EyebrowRotateLookup[eyebrow_rotate_1] + 6};
     const auto eyebrow_rotate{
-        32 - EyebrowRotateLookup[static_cast<std::size_t>(bf.eyebrow_type.Value())]};
+        32 - RawData::EyebrowRotateLookup[static_cast<std::size_t>(bf.eyebrow_type.Value())]};
 
     bf.eyebrow_color.Assign(bf.hair_color);
     bf.eyebrow_scale.Assign(4);
@@ -241,15 +205,15 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
     const auto nose_scale{gender == Gender::Female ? 3 : 4};
 
     bf.nose_type.Assign(
-        nose_type_info.values[GetRandomValue<std::size_t>(nose_type_info.values_count)]);
+        nose_type_info.values[MiiUtil::GetRandomValue<std::size_t>(nose_type_info.values_count)]);
     bf.nose_scale.Assign(nose_scale);
     bf.nose_y.Assign(axis_y + 9);
 
-    const auto mouth_color{gender == Gender::Female ? GetRandomValue<int>(4) : 0};
+    const auto mouth_color{gender == Gender::Female ? MiiUtil::GetRandomValue<int>(4) : 0};
 
     bf.mouth_type.Assign(
-        mouth_type_info.values[GetRandomValue<std::size_t>(mouth_type_info.values_count)]);
-    bf.mouth_color.Assign(MouthColorLookup[mouth_color]);
+        mouth_type_info.values[MiiUtil::GetRandomValue<std::size_t>(mouth_type_info.values_count)]);
+    bf.mouth_color.Assign(RawData::GetMouthColorFromVer3(mouth_color));
     bf.mouth_scale.Assign(4);
     bf.mouth_aspect.Assign(3);
     bf.mouth_y.Assign(axis_y + 13);
@@ -257,22 +221,22 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
     bf.beard_color.Assign(bf.hair_color);
     bf.mustache_scale.Assign(4);
 
-    if (gender == Gender::Male && age != Age::Young && GetRandomValue<int>(10) < 2) {
+    if (gender == Gender::Male && age != Age::Young && MiiUtil::GetRandomValue<int>(10) < 2) {
         const auto mustache_and_beard_flag{
-            GetRandomValue<BeardAndMustacheFlag>(BeardAndMustacheFlag::All)};
+            MiiUtil::GetRandomValue<BeardAndMustacheFlag>(BeardAndMustacheFlag::All)};
 
         auto beard_type{BeardType::None};
         auto mustache_type{MustacheType::None};
 
         if ((mustache_and_beard_flag & BeardAndMustacheFlag::Beard) ==
             BeardAndMustacheFlag::Beard) {
-            beard_type = GetRandomValue<BeardType>(BeardType::Beard1, BeardType::Beard5);
+            beard_type = MiiUtil::GetRandomValue<BeardType>(BeardType::Beard1, BeardType::Beard5);
         }
 
         if ((mustache_and_beard_flag & BeardAndMustacheFlag::Mustache) ==
             BeardAndMustacheFlag::Mustache) {
-            mustache_type =
-                GetRandomValue<MustacheType>(MustacheType::Mustache1, MustacheType::Mustache5);
+            mustache_type = MiiUtil::GetRandomValue<MustacheType>(MustacheType::Mustache1,
+                                                                  MustacheType::Mustache5);
         }
 
         bf.mustache_type.Assign(mustache_type);
@@ -284,7 +248,7 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
         bf.mustache_y.Assign(axis_y + 10);
     }
 
-    const auto glasses_type_start{GetRandomValue<std::size_t>(100)};
+    const auto glasses_type_start{MiiUtil::GetRandomValue<std::size_t>(100)};
     u8 glasses_type{};
     while (glasses_type_start < glasses_type_info.values[glasses_type]) {
         if (++glasses_type >= glasses_type_info.values_count) {
@@ -294,7 +258,7 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
     }
 
     bf.glasses_type.Assign(glasses_type);
-    bf.glasses_color.Assign(GlassesColorLookup[0]);
+    bf.glasses_color.Assign(RawData::GetGlassColorFromVer3(0));
     bf.glasses_scale.Assign(4);
     bf.glasses_y.Assign(axis_y + 10);
 
@@ -315,23 +279,23 @@ MiiStoreData BuildDefaultStoreData(const DefaultMii& info, const Common::UUID& u
     bf.height.Assign(info.height);
     bf.build.Assign(info.weight);
     bf.type.Assign(info.type);
-    bf.region_move.Assign(info.region);
+    bf.region_move.Assign(info.region_move);
     bf.faceline_type.Assign(info.face_type);
     bf.faceline_color.Assign(info.face_color);
     bf.faceline_wrinkle.Assign(info.face_wrinkle);
     bf.faceline_makeup.Assign(info.face_makeup);
     bf.hair_type.Assign(info.hair_type);
-    bf.hair_color.Assign(HairColorLookup[info.hair_color]);
+    bf.hair_color.Assign(RawData::GetHairColorFromVer3(info.hair_color));
     bf.hair_flip.Assign(static_cast<HairFlip>(info.hair_flip));
     bf.eye_type.Assign(info.eye_type);
-    bf.eye_color.Assign(EyeColorLookup[info.eye_color]);
+    bf.eye_color.Assign(RawData::GetEyeColorFromVer3(info.eye_color));
     bf.eye_scale.Assign(info.eye_scale);
     bf.eye_aspect.Assign(info.eye_aspect);
     bf.eye_rotate.Assign(info.eye_rotate);
     bf.eye_x.Assign(info.eye_x);
     bf.eye_y.Assign(info.eye_y);
     bf.eyebrow_type.Assign(info.eyebrow_type);
-    bf.eyebrow_color.Assign(HairColorLookup[info.eyebrow_color]);
+    bf.eyebrow_color.Assign(RawData::GetHairColorFromVer3(info.eyebrow_color));
     bf.eyebrow_scale.Assign(info.eyebrow_scale);
     bf.eyebrow_aspect.Assign(info.eyebrow_aspect);
     bf.eyebrow_rotate.Assign(info.eyebrow_rotate);
@@ -341,17 +305,17 @@ MiiStoreData BuildDefaultStoreData(const DefaultMii& info, const Common::UUID& u
     bf.nose_scale.Assign(info.nose_scale);
     bf.nose_y.Assign(info.nose_y);
     bf.mouth_type.Assign(info.mouth_type);
-    bf.mouth_color.Assign(MouthColorLookup[info.mouth_color]);
+    bf.mouth_color.Assign(RawData::GetMouthColorFromVer3(info.mouth_color));
     bf.mouth_scale.Assign(info.mouth_scale);
     bf.mouth_aspect.Assign(info.mouth_aspect);
     bf.mouth_y.Assign(info.mouth_y);
-    bf.beard_color.Assign(HairColorLookup[info.beard_color]);
+    bf.beard_color.Assign(RawData::GetHairColorFromVer3(info.beard_color));
     bf.beard_type.Assign(static_cast<BeardType>(info.beard_type));
     bf.mustache_type.Assign(static_cast<MustacheType>(info.mustache_type));
     bf.mustache_scale.Assign(info.mustache_scale);
     bf.mustache_y.Assign(info.mustache_y);
     bf.glasses_type.Assign(info.glasses_type);
-    bf.glasses_color.Assign(GlassesColorLookup[info.glasses_color]);
+    bf.glasses_color.Assign(RawData::GetGlassColorFromVer3(static_cast<u8>(info.glasses_color)));
     bf.glasses_scale.Assign(info.glasses_scale);
     bf.glasses_y.Assign(info.glasses_y);
     bf.mole_type.Assign(info.mole_type);
@@ -366,14 +330,14 @@ MiiStoreData BuildDefaultStoreData(const DefaultMii& info, const Common::UUID& u
 
 MiiStoreData::MiiStoreData() = default;
 
-MiiStoreData::MiiStoreData(const MiiStoreData::Name& name, const MiiStoreBitFields& bit_fields,
+MiiStoreData::MiiStoreData(const Nickname& name, const MiiStoreBitFields& bit_fields,
                            const Common::UUID& user_id) {
     data.name = name;
     data.uuid = Common::UUID::MakeRandomRFC4122V4();
 
     std::memcpy(data.data.data(), &bit_fields, sizeof(MiiStoreBitFields));
-    data_crc = GenerateCrc16(data.data.data(), sizeof(data));
-    device_crc = GenerateCrc16(&user_id, sizeof(Common::UUID));
+    data_crc = MiiUtil::CalculateCrc16(data.data.data(), sizeof(data));
+    device_crc = MiiUtil::CalculateCrc16(&user_id, sizeof(Common::UUID));
 }
 
 MiiManager::MiiManager() : user_id{Service::Account::ProfileManager().GetLastOpenedUser()} {}
@@ -580,16 +544,19 @@ Ver3StoreData MiiManager::BuildFromStoreData(const CharInfo& mii) const {
     mii_v3.appearance_bits11.mole_y_position.Assign(mii.mole_y);
 
     // These types are converted to V3 from a table
-    mii_v3.appearance_bits1.skin_color.Assign(Ver3FacelineColorTable[mii.faceline_color]);
-    mii_v3.appearance_bits3.hair_color.Assign(Ver3HairColorTable[mii.hair_color]);
-    mii_v3.appearance_bits4.eye_color.Assign(Ver3EyeColorTable[mii.eye_color]);
-    mii_v3.appearance_bits5.eyebrow_color.Assign(Ver3HairColorTable[mii.eyebrow_color]);
-    mii_v3.appearance_bits7.mouth_color.Assign(Ver3MouthlineColorTable[mii.mouth_color]);
-    mii_v3.appearance_bits9.facial_hair_color.Assign(Ver3HairColorTable[mii.beard_color]);
-    mii_v3.appearance_bits10.glasses_color.Assign(Ver3GlassColorTable[mii.glasses_color]);
-    mii_v3.appearance_bits10.glasses_type.Assign(Ver3GlassTypeTable[mii.glasses_type]);
+    mii_v3.appearance_bits1.skin_color.Assign(
+        RawData::FromVer3GetFacelineColor(mii.faceline_color));
+    mii_v3.appearance_bits3.hair_color.Assign(RawData::FromVer3GetHairColor(mii.hair_color));
+    mii_v3.appearance_bits4.eye_color.Assign(RawData::FromVer3GetEyeColor(mii.eye_color));
+    mii_v3.appearance_bits5.eyebrow_color.Assign(RawData::FromVer3GetHairColor(mii.eyebrow_color));
+    mii_v3.appearance_bits7.mouth_color.Assign(RawData::FromVer3GetMouthlineColor(mii.mouth_color));
+    mii_v3.appearance_bits9.facial_hair_color.Assign(
+        RawData::FromVer3GetHairColor(mii.beard_color));
+    mii_v3.appearance_bits10.glasses_color.Assign(
+        RawData::FromVer3GetGlassColor(mii.glasses_color));
+    mii_v3.appearance_bits10.glasses_type.Assign(RawData::FromVer3GetGlassType(mii.glasses_type));
 
-    mii_v3.crc = GenerateCrc16(&mii_v3, sizeof(Ver3StoreData) - sizeof(u16));
+    mii_v3.crc = MiiUtil::CalculateCrc16(&mii_v3, sizeof(Ver3StoreData) - sizeof(u16));
 
     // TODO: Validate mii_v3 data
 

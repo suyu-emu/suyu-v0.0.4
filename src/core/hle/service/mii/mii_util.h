@@ -8,7 +8,7 @@
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "common/uuid.h"
-#include "core/hle/service/mii/mii_types.h"
+#include "core/hle/service/mii/types.h"
 
 namespace Service::Mii {
 class MiiUtil {
