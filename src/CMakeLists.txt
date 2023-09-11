@@ -85,6 +85,7 @@ if (MSVC)
         /wd4100 # 'identifier': unreferenced formal parameter
         /wd4324 # 'struct_name': structure was padded due to __declspec(align())
         /wd4201 # nonstandard extension used : nameless struct/union
+        /wd4702 # unreachable code (when used with LTO)
     )
 
     if (USE_CCACHE OR YUZU_USE_PRECOMPILED_HEADERS)
