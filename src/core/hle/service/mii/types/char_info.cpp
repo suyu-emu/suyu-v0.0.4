@@ -10,7 +10,7 @@ void CharInfo::SetFromStoreData(const StoreData& store_data) {
     name = store_data.GetNickname();
     null_terminator = '\0';
     create_id = store_data.GetCreateId();
-    font_region = static_cast<u8>(store_data.GetFontRegion());
+    font_region = store_data.GetFontRegion();
     favorite_color = store_data.GetFavoriteColor();
     gender = store_data.GetGender();
     height = store_data.GetHeight();
@@ -51,10 +51,10 @@ void CharInfo::SetFromStoreData(const StoreData& store_data) {
     mustache_type = store_data.GetMustacheType();
     mustache_scale = store_data.GetMustacheScale();
     mustache_y = store_data.GetMustacheY();
-    glasses_type = store_data.GetGlassType();
-    glasses_color = store_data.GetGlassColor();
-    glasses_scale = store_data.GetGlassScale();
-    glasses_y = store_data.GetGlassY();
+    glass_type = store_data.GetGlassType();
+    glass_color = store_data.GetGlassColor();
+    glass_scale = store_data.GetGlassScale();
+    glass_y = store_data.GetGlassY();
     mole_type = store_data.GetMoleType();
     mole_scale = store_data.GetMoleScale();
     mole_x = store_data.GetMoleX();
@@ -69,151 +69,151 @@ ValidationResult CharInfo::Verify() const {
     if (!name.IsValid()) {
         return ValidationResult::InvalidName;
     }
-    if (3 < font_region) {
+    if (font_region > FontRegion::Max) {
         return ValidationResult::InvalidFont;
     }
-    if (0xb < favorite_color) {
+    if (favorite_color > FavoriteColor::Max) {
         return ValidationResult::InvalidColor;
     }
-    if (1 < gender) {
+    if (gender > Gender::Max) {
         return ValidationResult::InvalidGender;
     }
-    if (height > 0x7f) {
+    if (height > MaxHeight) {
         return ValidationResult::InvalidHeight;
     }
-    if (build > 0x7f) {
+    if (build > MaxBuild) {
         return ValidationResult::InvalidBuild;
     }
-    if (1 < type) {
+    if (type > MaxType) {
         return ValidationResult::InvalidType;
     }
-    if (3 < region_move) {
+    if (region_move > MaxRegionMove) {
         return ValidationResult::InvalidRegionMove;
     }
-    if (0xb < faceline_type) {
+    if (faceline_type > FacelineType::Max) {
         return ValidationResult::InvalidFacelineType;
     }
-    if (9 < faceline_color) {
+    if (faceline_color > FacelineColor::Max) {
         return ValidationResult::InvalidFacelineColor;
     }
-    if (0xb < faceline_wrinkle) {
+    if (faceline_wrinkle > FacelineWrinkle::Max) {
         return ValidationResult::InvalidFacelineWrinkle;
     }
-    if (0xb < faceline_make) {
+    if (faceline_make > FacelineMake::Max) {
         return ValidationResult::InvalidFacelineMake;
     }
-    if (0x83 < hair_type) {
+    if (hair_type > HairType::Max) {
         return ValidationResult::InvalidHairType;
     }
-    if (99 < hair_color) {
+    if (hair_color > CommonColor::Max) {
         return ValidationResult::InvalidHairColor;
     }
-    if (1 < hair_flip) {
+    if (hair_flip > HairFlip::Max) {
         return ValidationResult::InvalidHairFlip;
     }
-    if (0x3b < eye_type) {
+    if (eye_type > EyeType::Max) {
         return ValidationResult::InvalidEyeType;
     }
-    if (99 < eye_color) {
+    if (eye_color > CommonColor::Max) {
         return ValidationResult::InvalidEyeColor;
     }
-    if (7 < eye_scale) {
+    if (eye_scale > MaxEyeScale) {
         return ValidationResult::InvalidEyeScale;
     }
-    if (6 < eye_aspect) {
+    if (eye_aspect > MaxEyeAspect) {
         return ValidationResult::InvalidEyeAspect;
     }
-    if (7 < eye_rotate) {
+    if (eye_rotate > MaxEyeX) {
         return ValidationResult::InvalidEyeRotate;
     }
-    if (0xc < eye_x) {
+    if (eye_x > MaxEyeX) {
         return ValidationResult::InvalidEyeX;
     }
-    if (0x12 < eye_y) {
+    if (eye_y > MaxEyeY) {
         return ValidationResult::InvalidEyeY;
     }
-    if (0x17 < eyebrow_type) {
+    if (eyebrow_type > EyebrowType::Max) {
         return ValidationResult::InvalidEyebrowType;
     }
-    if (99 < eyebrow_color) {
+    if (eyebrow_color > CommonColor::Max) {
         return ValidationResult::InvalidEyebrowColor;
     }
-    if (8 < eyebrow_scale) {
+    if (eyebrow_scale > MaxEyebrowScale) {
         return ValidationResult::InvalidEyebrowScale;
     }
-    if (6 < eyebrow_aspect) {
+    if (eyebrow_aspect > MaxEyebrowAspect) {
         return ValidationResult::InvalidEyebrowAspect;
     }
-    if (0xb < eyebrow_rotate) {
+    if (eyebrow_rotate > MaxEyebrowRotate) {
         return ValidationResult::InvalidEyebrowRotate;
     }
-    if (0xc < eyebrow_x) {
+    if (eyebrow_x > MaxEyebrowX) {
         return ValidationResult::InvalidEyebrowX;
     }
-    if (0xf < eyebrow_y - 3) {
+    if (eyebrow_y > MaxEyebrowY) {
         return ValidationResult::InvalidEyebrowY;
     }
-    if (0x11 < nose_type) {
+    if (nose_type > NoseType::Max) {
         return ValidationResult::InvalidNoseType;
     }
-    if (nose_scale >= 9) {
+    if (nose_scale > MaxNoseScale) {
         return ValidationResult::InvalidNoseScale;
     }
-    if (0x12 < nose_y) {
+    if (nose_y > MaxNoseY) {
         return ValidationResult::InvalidNoseY;
     }
-    if (0x23 < mouth_type) {
+    if (mouth_type > MouthType::Max) {
         return ValidationResult::InvalidMouthType;
     }
-    if (99 < mouth_color) {
+    if (mouth_color > CommonColor::Max) {
         return ValidationResult::InvalidMouthColor;
     }
-    if (8 < mouth_scale) {
+    if (mouth_scale > MaxMouthScale) {
         return ValidationResult::InvalidMouthScale;
     }
-    if (6 < mouth_aspect) {
+    if (mouth_aspect > MaxMoutAspect) {
         return ValidationResult::InvalidMouthAspect;
     }
-    if (0x12 < mouth_y) {
+    if (mouth_y > MaxMouthY) {
         return ValidationResult::InvalidMoleY;
     }
-    if (99 < beard_color) {
+    if (beard_color > CommonColor::Max) {
         return ValidationResult::InvalidBeardColor;
     }
-    if (5 < beard_type) {
+    if (beard_type > BeardType::Max) {
         return ValidationResult::InvalidBeardType;
     }
-    if (5 < mustache_type) {
+    if (mustache_type > MustacheType::Max) {
         return ValidationResult::InvalidMustacheType;
     }
-    if (8 < mustache_scale) {
+    if (mustache_scale > MaxMustacheScale) {
         return ValidationResult::InvalidMustacheScale;
     }
-    if (0x10 < mustache_y) {
+    if (mustache_y > MasMustacheY) {
         return ValidationResult::InvalidMustacheY;
     }
-    if (0x13 < glasses_type) {
+    if (glass_type > GlassType::Max) {
         return ValidationResult::InvalidGlassType;
     }
-    if (99 < glasses_color) {
+    if (glass_color > CommonColor::Max) {
         return ValidationResult::InvalidGlassColor;
     }
-    if (7 < glasses_scale) {
+    if (glass_scale > MaxGlassScale) {
         return ValidationResult::InvalidGlassScale;
     }
-    if (0x14 < glasses_y) {
+    if (glass_y > MaxGlassY) {
         return ValidationResult::InvalidGlassY;
     }
-    if (mole_type >= 2) {
+    if (mole_type > MoleType::Max) {
         return ValidationResult::InvalidMoleType;
     }
-    if (8 < mole_scale) {
+    if (mole_scale > MaxMoleScale) {
         return ValidationResult::InvalidMoleScale;
     }
-    if (mole_x >= 0x11) {
+    if (mole_x > MaxMoleX) {
         return ValidationResult::InvalidMoleX;
     }
-    if (0x1e < mole_y) {
+    if (mole_y > MaxMoleY) {
         return ValidationResult::InvalidMoleY;
     }
     return ValidationResult::NoErrors;
@@ -227,15 +227,15 @@ Nickname CharInfo::GetNickname() const {
     return name;
 }
 
-u8 CharInfo::GetFontRegion() const {
+FontRegion CharInfo::GetFontRegion() const {
     return font_region;
 }
 
-u8 CharInfo::GetFavoriteColor() const {
+FavoriteColor CharInfo::GetFavoriteColor() const {
     return favorite_color;
 }
 
-u8 CharInfo::GetGender() const {
+Gender CharInfo::GetGender() const {
     return gender;
 }
 
@@ -255,39 +255,39 @@ u8 CharInfo::GetRegionMove() const {
     return region_move;
 }
 
-u8 CharInfo::GetFacelineType() const {
+FacelineType CharInfo::GetFacelineType() const {
     return faceline_type;
 }
 
-u8 CharInfo::GetFacelineColor() const {
+FacelineColor CharInfo::GetFacelineColor() const {
     return faceline_color;
 }
 
-u8 CharInfo::GetFacelineWrinkle() const {
+FacelineWrinkle CharInfo::GetFacelineWrinkle() const {
     return faceline_wrinkle;
 }
 
-u8 CharInfo::GetFacelineMake() const {
+FacelineMake CharInfo::GetFacelineMake() const {
     return faceline_make;
 }
 
-u8 CharInfo::GetHairType() const {
+HairType CharInfo::GetHairType() const {
     return hair_type;
 }
 
-u8 CharInfo::GetHairColor() const {
+CommonColor CharInfo::GetHairColor() const {
     return hair_color;
 }
 
-u8 CharInfo::GetHairFlip() const {
+HairFlip CharInfo::GetHairFlip() const {
     return hair_flip;
 }
 
-u8 CharInfo::GetEyeType() const {
+EyeType CharInfo::GetEyeType() const {
     return eye_type;
 }
 
-u8 CharInfo::GetEyeColor() const {
+CommonColor CharInfo::GetEyeColor() const {
     return eye_color;
 }
 
@@ -311,11 +311,11 @@ u8 CharInfo::GetEyeY() const {
     return eye_y;
 }
 
-u8 CharInfo::GetEyebrowType() const {
+EyebrowType CharInfo::GetEyebrowType() const {
     return eyebrow_type;
 }
 
-u8 CharInfo::GetEyebrowColor() const {
+CommonColor CharInfo::GetEyebrowColor() const {
     return eyebrow_color;
 }
 
@@ -339,7 +339,7 @@ u8 CharInfo::GetEyebrowY() const {
     return eyebrow_y;
 }
 
-u8 CharInfo::GetNoseType() const {
+NoseType CharInfo::GetNoseType() const {
     return nose_type;
 }
 
@@ -351,11 +351,11 @@ u8 CharInfo::GetNoseY() const {
     return nose_y;
 }
 
-u8 CharInfo::GetMouthType() const {
+MouthType CharInfo::GetMouthType() const {
     return mouth_type;
 }
 
-u8 CharInfo::GetMouthColor() const {
+CommonColor CharInfo::GetMouthColor() const {
     return mouth_color;
 }
 
@@ -371,15 +371,15 @@ u8 CharInfo::GetMouthY() const {
     return mouth_y;
 }
 
-u8 CharInfo::GetBeardColor() const {
+CommonColor CharInfo::GetBeardColor() const {
     return beard_color;
 }
 
-u8 CharInfo::GetBeardType() const {
+BeardType CharInfo::GetBeardType() const {
     return beard_type;
 }
 
-u8 CharInfo::GetMustacheType() const {
+MustacheType CharInfo::GetMustacheType() const {
     return mustache_type;
 }
 
@@ -391,23 +391,23 @@ u8 CharInfo::GetMustacheY() const {
     return mustache_y;
 }
 
-u8 CharInfo::GetGlassType() const {
-    return glasses_type;
+GlassType CharInfo::GetGlassType() const {
+    return glass_type;
 }
 
-u8 CharInfo::GetGlassColor() const {
-    return glasses_color;
+CommonColor CharInfo::GetGlassColor() const {
+    return glass_color;
 }
 
 u8 CharInfo::GetGlassScale() const {
-    return glasses_scale;
+    return glass_scale;
 }
 
 u8 CharInfo::GetGlassY() const {
-    return glasses_y;
+    return glass_y;
 }
 
-u8 CharInfo::GetMoleType() const {
+MoleType CharInfo::GetMoleType() const {
     return mole_type;
 }
 
@@ -468,10 +468,10 @@ bool CharInfo::operator==(const CharInfo& info) {
     is_identical &= mustache_type == info.GetMustacheType();
     is_identical &= mustache_scale == info.GetMustacheScale();
     is_identical &= mustache_y == info.GetMustacheY();
-    is_identical &= glasses_type == info.GetGlassType();
-    is_identical &= glasses_color == info.GetGlassColor();
-    is_identical &= glasses_scale == info.GetGlassScale();
-    is_identical &= glasses_y == info.GetGlassY();
+    is_identical &= glass_type == info.GetGlassType();
+    is_identical &= glass_color == info.GetGlassColor();
+    is_identical &= glass_scale == info.GetGlassScale();
+    is_identical &= glass_y == info.GetGlassY();
     is_identical &= mole_type == info.GetMoleType();
     is_identical &= mole_scale == info.GetMoleScale();
     is_identical &= mole_x == info.GetMoleX();
