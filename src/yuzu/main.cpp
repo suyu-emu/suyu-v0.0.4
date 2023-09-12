@@ -8,6 +8,7 @@
 #include <iostream>
 #include <memory>
 #include <thread>
+#include "core/loader/nca.h"
 #ifdef __APPLE__
 #include <unistd.h> // for chdir
 #endif
@@ -1554,6 +1555,7 @@ void GMainWindow::ConnectMenuEvents() {
 
     // Help
     connect_menu(ui->action_Open_yuzu_Folder, &GMainWindow::OnOpenYuzuFolder);
+    connect_menu(ui->action_Verify_installed_contents, &GMainWindow::OnVerifyInstalledContents);
     connect_menu(ui->action_About, &GMainWindow::OnAbout);
 }
 
@@ -3998,6 +4000,108 @@ void GMainWindow::LoadAmiibo(const QString& filename) {
 void GMainWindow::OnOpenYuzuFolder() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(
         QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::YuzuDir))));
+}
+
+void GMainWindow::OnVerifyInstalledContents() {
+    // Declare sizes.
+    size_t total_size = 0;
+    size_t processed_size = 0;
+
+    // Initialize a progress dialog.
+    QProgressDialog progress(tr("Verifying integrity..."), tr("Cancel"), 0, 100, this);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setMinimumDuration(100);
+    progress.setAutoClose(false);
+    progress.setAutoReset(false);
+
+    // Declare a list of file names which failed to verify.
+    std::vector<std::string> failed;
+
+    // Declare progress callback.
+    auto QtProgressCallback = [&](size_t nca_processed, size_t nca_total) {
+        if (progress.wasCanceled()) {
+            return false;
+        }
+        progress.setValue(static_cast<int>(((processed_size + nca_processed) * 100) / total_size));
+        return true;
+    };
+
+    // Get content registries.
+    auto bis_contents = system->GetFileSystemController().GetSystemNANDContents();
+    auto user_contents = system->GetFileSystemController().GetUserNANDContents();
+
+    std::vector<FileSys::RegisteredCache*> content_providers;
+    if (bis_contents) {
+        content_providers.push_back(bis_contents);
+    }
+    if (user_contents) {
+        content_providers.push_back(user_contents);
+    }
+
+    // Get associated NCA files.
+    std::vector<FileSys::VirtualFile> nca_files;
+
+    // Get all installed IDs.
+    for (auto nca_provider : content_providers) {
+        const auto entries = nca_provider->ListEntriesFilter();
+
+        for (const auto& entry : entries) {
+            auto nca_file = nca_provider->GetEntryRaw(entry.title_id, entry.type);
+            if (!nca_file) {
+                continue;
+            }
+
+            total_size += nca_file->GetSize();
+            nca_files.push_back(std::move(nca_file));
+        }
+    }
+
+    // Using the NCA loader, determine if all NCAs are valid.
+    for (auto& nca_file : nca_files) {
+        Loader::AppLoader_NCA nca_loader(nca_file);
+
+        auto status = nca_loader.VerifyIntegrity(QtProgressCallback);
+        if (progress.wasCanceled()) {
+            break;
+        }
+        if (status != Loader::ResultStatus::Success) {
+            FileSys::NCA nca(nca_file);
+            const auto title_id = nca.GetTitleId();
+            std::string title_name = "unknown";
+
+            const auto control = provider->GetEntry(FileSys::GetBaseTitleID(title_id),
+                                                    FileSys::ContentRecordType::Control);
+            if (control && control->GetStatus() == Loader::ResultStatus::Success) {
+                const FileSys::PatchManager pm{title_id, system->GetFileSystemController(),
+                                               *provider};
+                const auto [nacp, logo] = pm.ParseControlNCA(*control);
+                if (nacp) {
+                    title_name = nacp->GetApplicationName();
+                }
+            }
+
+            if (title_id > 0) {
+                failed.push_back(
+                    fmt::format("{} ({:016X}) ({})", nca_file->GetName(), title_id, title_name));
+            } else {
+                failed.push_back(fmt::format("{} (unknown)", nca_file->GetName()));
+            }
+        }
+
+        processed_size += nca_file->GetSize();
+    }
+
+    progress.close();
+
+    if (failed.size() > 0) {
+        auto failed_names = QString::fromStdString(fmt::format("{}", fmt::join(failed, "\n")));
+        QMessageBox::critical(
+            this, tr("Integrity verification failed!"),
+            tr("Verification failed for the following files:\n\n%1").arg(failed_names));
+    } else {
+        QMessageBox::information(this, tr("Integrity verification succeeded!"),
+                                 tr("The operation completed successfully."));
+    }
 }
 
 void GMainWindow::OnAbout() {
