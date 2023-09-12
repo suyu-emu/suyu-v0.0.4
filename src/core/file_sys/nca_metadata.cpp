@@ -45,6 +45,10 @@ CNMT::CNMT(CNMTHeader header_, OptionalHeader opt_header_,
 
 CNMT::~CNMT() = default;
 
+const CNMTHeader& CNMT::GetHeader() const {
+    return header;
+}
+
 u64 CNMT::GetTitleID() const {
     return header.title_id;
 }

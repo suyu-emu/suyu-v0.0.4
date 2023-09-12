@@ -24,6 +24,7 @@ enum class NCAContentType : u8;
 enum class TitleType : u8;
 
 struct ContentRecord;
+struct CNMTHeader;
 struct MetaRecord;
 class RegisteredCache;
 
@@ -167,6 +168,10 @@ public:
     // dir inside the NAND called 'yuzu_meta' and store the raw CNMT there.
     // TODO(DarkLordZach): Author real meta-type NCAs and install those.
     InstallResult InstallEntry(const NCA& nca, TitleType type, bool overwrite_if_exists = false,
+                               const VfsCopyFunction& copy = &VfsRawCopy);
+
+    InstallResult InstallEntry(const NCA& nca, const CNMTHeader& base_header,
+                               const ContentRecord& base_record, bool overwrite_if_exists = false,
                                const VfsCopyFunction& copy = &VfsRawCopy);
 
     // Removes an existing entry based on title id
