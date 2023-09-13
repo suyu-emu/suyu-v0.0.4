@@ -46,7 +46,7 @@ constexpr Result ResultNoMessages{ErrorModule::AM, 3};
 constexpr Result ResultInvalidOffset{ErrorModule::AM, 503};
 
 enum class LaunchParameterKind : u32 {
-    ApplicationSpecific = 1,
+    UserChannel = 1,
     AccountPreselectedUser = 2,
 };
 
@@ -1518,27 +1518,26 @@ void IApplicationFunctions::PopLaunchParameter(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto kind = rp.PopEnum<LaunchParameterKind>();
 
-    LOG_DEBUG(Service_AM, "called, kind={:08X}", kind);
+    LOG_INFO(Service_AM, "called, kind={:08X}", kind);
 
-    if (kind == LaunchParameterKind::ApplicationSpecific && !launch_popped_application_specific) {
-        const auto backend = BCAT::CreateBackendFromSettings(system, [this](u64 tid) {
-            return system.GetFileSystemController().GetBCATDirectory(tid);
-        });
-        const auto build_id_full = system.GetApplicationProcessBuildID();
-        u64 build_id{};
-        std::memcpy(&build_id, build_id_full.data(), sizeof(u64));
-
-        auto data =
-            backend->GetLaunchParameter({system.GetApplicationProcessProgramID(), build_id});
-        if (data.has_value()) {
-            IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-            rb.Push(ResultSuccess);
-            rb.PushIpcInterface<IStorage>(system, std::move(*data));
-            launch_popped_application_specific = true;
+    if (kind == LaunchParameterKind::UserChannel) {
+        auto channel = system.GetUserChannel();
+        if (channel.empty()) {
+            LOG_ERROR(Service_AM, "Attempted to load launch parameter but none was found!");
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(AM::ResultNoDataInChannel);
             return;
         }
+
+        auto data = channel.back();
+        channel.pop_back();
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(ResultSuccess);
+        rb.PushIpcInterface<IStorage>(system, std::move(data));
     } else if (kind == LaunchParameterKind::AccountPreselectedUser &&
                !launch_popped_account_preselect) {
+        // TODO: Verify this is hw-accurate
         LaunchParameterAccountPreselectedUser params{};
 
         params.magic = LAUNCH_PARAMETER_ACCOUNT_PRESELECTED_USER_MAGIC;
@@ -1550,7 +1549,6 @@ void IApplicationFunctions::PopLaunchParameter(HLERequestContext& ctx) {
         params.current_user = *uuid;
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-
         rb.Push(ResultSuccess);
 
         std::vector<u8> buffer(sizeof(LaunchParameterAccountPreselectedUser));
@@ -1558,12 +1556,11 @@ void IApplicationFunctions::PopLaunchParameter(HLERequestContext& ctx) {
 
         rb.PushIpcInterface<IStorage>(system, std::move(buffer));
         launch_popped_account_preselect = true;
-        return;
+    } else {
+        LOG_ERROR(Service_AM, "Unknown launch parameter kind.");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(AM::ResultNoDataInChannel);
     }
-
-    LOG_ERROR(Service_AM, "Attempted to load launch parameter but none was found!");
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(AM::ResultNoDataInChannel);
 }
 
 void IApplicationFunctions::CreateApplicationAndRequestToStartForQuest(HLERequestContext& ctx) {
@@ -1855,14 +1852,22 @@ void IApplicationFunctions::ExecuteProgram(HLERequestContext& ctx) {
 }
 
 void IApplicationFunctions::ClearUserChannel(HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    LOG_DEBUG(Service_AM, "called");
+
+    system.GetUserChannel().clear();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void IApplicationFunctions::UnpopToUserChannel(HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    LOG_DEBUG(Service_AM, "called");
+
+    IPC::RequestParser rp{ctx};
+    const auto storage = rp.PopIpcInterface<IStorage>().lock();
+    if (storage) {
+        system.GetUserChannel().push_back(storage->GetData());
+    }
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
