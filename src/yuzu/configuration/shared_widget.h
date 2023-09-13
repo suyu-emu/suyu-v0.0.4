@@ -22,6 +22,7 @@ class QObject;
 class QPushButton;
 class QSlider;
 class QSpinBox;
+class QDoubleSpinBox;
 class QRadioButton;
 
 namespace Settings {
@@ -42,6 +43,9 @@ enum class RequestType {
     RadioGroup,
     MaxEnum,
 };
+
+constexpr const float default_multiplier{1.f};
+constexpr const float default_float_multiplier{100.f};
 
 class Widget : public QWidget {
     Q_OBJECT
@@ -89,6 +93,7 @@ public:
     QPushButton* restore_button{}; ///< Restore button for custom configurations
     QLineEdit* line_edit{};        ///< QLineEdit, used for LineEdit and HexEdit
     QSpinBox* spinbox{};
+    QDoubleSpinBox* double_spinbox{};
     QCheckBox* checkbox{};
     QSlider* slider{};
     QComboBox* combobox{};
@@ -126,6 +131,9 @@ private:
                                 const std::function<void()>& touch);
     QWidget* CreateSpinBox(const QString& suffix, std::function<std::string()>& serializer,
                            std::function<void()>& restore_func, const std::function<void()>& touch);
+    QWidget* CreateDoubleSpinBox(const QString& suffix, std::function<std::string()>& serializer,
+                                 std::function<void()>& restore_func,
+                                 const std::function<void()>& touch);
 
     QWidget* parent;
     const TranslationMap& translations;
