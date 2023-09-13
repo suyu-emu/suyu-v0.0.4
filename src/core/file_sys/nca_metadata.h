@@ -89,6 +89,7 @@ public:
          std::vector<ContentRecord> content_records_, std::vector<MetaRecord> meta_records_);
     ~CNMT();
 
+    const CNMTHeader& GetHeader() const;
     u64 GetTitleID() const;
     u32 GetTitleVersion() const;
     TitleType GetType() const;
