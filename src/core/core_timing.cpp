@@ -203,19 +203,31 @@ std::optional<s64> CoreTiming::Advance() {
     global_timer = GetGlobalTimeNs().count();
 
     while (!event_queue.empty() && event_queue.top().time <= global_timer) {
-        Event evt = event_queue.top();
-        event_queue.pop();
+        const Event& evt = event_queue.top();
 
         if (const auto event_type{evt.type.lock()}) {
-            basic_lock.unlock();
+            if (evt.reschedule_time == 0) {
+                const auto evt_user_data = evt.user_data;
+                const auto evt_time = evt.time;
 
-            const auto new_schedule_time{event_type->callback(
-                evt.user_data, evt.time,
-                std::chrono::nanoseconds{GetGlobalTimeNs().count() - evt.time})};
+                event_queue.pop();
 
-            basic_lock.lock();
+                basic_lock.unlock();
 
-            if (evt.reschedule_time != 0) {
+                event_type->callback(
+                    evt_user_data, evt_time,
+                    std::chrono::nanoseconds{GetGlobalTimeNs().count() - evt_time});
+
+                basic_lock.lock();
+            } else {
+                basic_lock.unlock();
+
+                const auto new_schedule_time{event_type->callback(
+                    evt.user_data, evt.time,
+                    std::chrono::nanoseconds{GetGlobalTimeNs().count() - evt.time})};
+
+                basic_lock.lock();
+
                 const auto next_schedule_time{new_schedule_time.has_value()
                                                   ? new_schedule_time.value().count()
                                                   : evt.reschedule_time};
@@ -227,9 +239,8 @@ std::optional<s64> CoreTiming::Advance() {
                     next_time = pause_end_time + next_schedule_time;
                 }
 
-                auto h{event_queue.emplace(Event{next_time, event_fifo_id++, evt.user_data,
-                                                 evt.type, next_schedule_time})};
-                (*h).handle = h;
+                event_queue.update(evt.handle, Event{next_time, event_fifo_id++, evt.user_data,
+                                                     evt.type, next_schedule_time, evt.handle});
             }
         }
 
