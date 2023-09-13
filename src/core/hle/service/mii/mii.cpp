@@ -7,17 +7,16 @@
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/mii/mii.h"
 #include "core/hle/service/mii/mii_manager.h"
+#include "core/hle/service/mii/mii_result.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/service.h"
 
 namespace Service::Mii {
 
-constexpr Result ERROR_INVALID_ARGUMENT{ErrorModule::Mii, 1};
-
 class IDatabaseService final : public ServiceFramework<IDatabaseService> {
 public:
-    explicit IDatabaseService(Core::System& system_)
-        : ServiceFramework{system_, "IDatabaseService"} {
+    explicit IDatabaseService(Core::System& system_, bool is_system_)
+        : ServiceFramework{system_, "IDatabaseService"}, is_system{is_system_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IDatabaseService::IsUpdated, "IsUpdated"},
@@ -54,34 +53,27 @@ public:
     }
 
 private:
-    template <typename T>
-    std::vector<u8> SerializeArray(const std::vector<T>& values) {
-        std::vector<u8> out(values.size() * sizeof(T));
-        std::size_t offset{};
-        for (const auto& value : values) {
-            std::memcpy(out.data() + offset, &value, sizeof(T));
-            offset += sizeof(T);
-        }
-        return out;
-    }
-
     void IsUpdated(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto source_flag{rp.PopRaw<SourceFlag>()};
 
         LOG_DEBUG(Service_Mii, "called with source_flag={}", source_flag);
 
+        const bool is_updated = manager.IsUpdated(metadata, source_flag);
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.Push(manager.CheckAndResetUpdateCounter(source_flag, current_update_counter));
+        rb.Push<u8>(is_updated);
     }
 
     void IsFullDatabase(HLERequestContext& ctx) {
         LOG_DEBUG(Service_Mii, "called");
 
+        const bool is_full_database = manager.IsFullDatabase();
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.Push(manager.IsFullDatabase());
+        rb.Push<u8>(is_full_database);
     }
 
     void GetCount(HLERequestContext& ctx) {
@@ -90,57 +82,63 @@ private:
 
         LOG_DEBUG(Service_Mii, "called with source_flag={}", source_flag);
 
+        const u32 mii_count = manager.GetCount(metadata, source_flag);
+
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.Push<u32>(manager.GetCount(source_flag));
+        rb.Push(mii_count);
     }
 
     void Get(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto source_flag{rp.PopRaw<SourceFlag>()};
+        const auto output_size{ctx.GetWriteBufferNumElements<CharInfoElement>()};
 
-        LOG_DEBUG(Service_Mii, "called with source_flag={}", source_flag);
+        LOG_DEBUG(Service_Mii, "called with source_flag={}, out_size={}", source_flag, output_size);
 
-        const auto default_miis{manager.GetDefault(source_flag)};
-        if (default_miis.size() > 0) {
-            ctx.WriteBuffer(SerializeArray(default_miis));
+        u32 mii_count{};
+        std::vector<CharInfoElement> char_info_elements(output_size);
+        Result result = manager.Get(metadata, char_info_elements, mii_count, source_flag);
+
+        if (mii_count != 0) {
+            ctx.WriteBuffer(char_info_elements);
         }
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(ResultSuccess);
-        rb.Push<u32>(static_cast<u32>(default_miis.size()));
+        rb.Push(result);
+        rb.Push(mii_count);
     }
 
     void Get1(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto source_flag{rp.PopRaw<SourceFlag>()};
+        const auto output_size{ctx.GetWriteBufferNumElements<CharInfo>()};
 
-        LOG_DEBUG(Service_Mii, "called with source_flag={}", source_flag);
+        LOG_DEBUG(Service_Mii, "called with source_flag={}, out_size={}", source_flag, output_size);
 
-        const auto default_miis{manager.GetDefault(source_flag)};
+        u32 mii_count{};
+        std::vector<CharInfo> char_info(output_size);
+        Result result = manager.Get(metadata, char_info, mii_count, source_flag);
 
-        std::vector<CharInfo> values;
-        for (const auto& element : default_miis) {
-            values.emplace_back(element.info);
+        if (mii_count != 0) {
+            ctx.WriteBuffer(char_info);
         }
 
-        ctx.WriteBuffer(SerializeArray(values));
-
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(ResultSuccess);
-        rb.Push<u32>(static_cast<u32>(default_miis.size()));
+        rb.Push(result);
+        rb.Push(mii_count);
     }
 
     void UpdateLatest(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        const auto info{rp.PopRaw<CharInfo>()};
+        const auto char_info{rp.PopRaw<CharInfo>()};
         const auto source_flag{rp.PopRaw<SourceFlag>()};
 
         LOG_DEBUG(Service_Mii, "called with source_flag={}", source_flag);
 
         CharInfo new_char_info{};
-        const auto result{manager.UpdateLatest(&new_char_info, info, source_flag)};
-        if (result != ResultSuccess) {
+        const auto result = manager.UpdateLatest(metadata, new_char_info, char_info, source_flag);
+        if (result.IsFailure()) {
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(result);
             return;
@@ -153,7 +151,6 @@ private:
 
     void BuildRandom(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-
         const auto age{rp.PopRaw<Age>()};
         const auto gender{rp.PopRaw<Gender>()};
         const auto race{rp.PopRaw<Race>()};
@@ -162,47 +159,48 @@ private:
 
         if (age > Age::All) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_INVALID_ARGUMENT);
-            LOG_ERROR(Service_Mii, "invalid age={}", age);
+            rb.Push(ResultInvalidArgument);
             return;
         }
 
         if (gender > Gender::All) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_INVALID_ARGUMENT);
-            LOG_ERROR(Service_Mii, "invalid gender={}", gender);
+            rb.Push(ResultInvalidArgument);
             return;
         }
 
         if (race > Race::All) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_INVALID_ARGUMENT);
-            LOG_ERROR(Service_Mii, "invalid race={}", race);
+            rb.Push(ResultInvalidArgument);
             return;
         }
 
+        CharInfo char_info{};
+        manager.BuildRandom(char_info, age, gender, race);
+
         IPC::ResponseBuilder rb{ctx, 2 + sizeof(CharInfo) / sizeof(u32)};
         rb.Push(ResultSuccess);
-        rb.PushRaw<CharInfo>(manager.BuildRandom(age, gender, race));
+        rb.PushRaw<CharInfo>(char_info);
     }
 
     void BuildDefault(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto index{rp.Pop<u32>()};
 
-        LOG_DEBUG(Service_Mii, "called with index={}", index);
+        LOG_INFO(Service_Mii, "called with index={}", index);
 
         if (index > 5) {
-            LOG_ERROR(Service_Mii, "invalid argument, index cannot be greater than 5 but is {:08X}",
-                      index);
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_INVALID_ARGUMENT);
+            rb.Push(ResultInvalidArgument);
             return;
         }
 
+        CharInfo char_info{};
+        manager.BuildDefault(char_info, index);
+
         IPC::ResponseBuilder rb{ctx, 2 + sizeof(CharInfo) / sizeof(u32)};
         rb.Push(ResultSuccess);
-        rb.PushRaw<CharInfo>(manager.BuildDefault(index));
+        rb.PushRaw<CharInfo>(char_info);
     }
 
     void GetIndex(HLERequestContext& ctx) {
@@ -211,19 +209,21 @@ private:
 
         LOG_DEBUG(Service_Mii, "called");
 
-        u32 index{};
+        s32 index{};
+        const auto result = manager.GetIndex(metadata, info, index);
+
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(manager.GetIndex(info, index));
+        rb.Push(result);
         rb.Push(index);
     }
 
     void SetInterfaceVersion(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        current_interface_version = rp.PopRaw<u32>();
+        const auto interface_version{rp.PopRaw<u32>()};
 
-        LOG_DEBUG(Service_Mii, "called, interface_version={:08X}", current_interface_version);
+        LOG_INFO(Service_Mii, "called, interface_version={:08X}", interface_version);
 
-        UNIMPLEMENTED_IF(current_interface_version != 1);
+        manager.SetInterfaceVersion(metadata, interface_version);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
@@ -231,30 +231,27 @@ private:
 
     void Convert(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-
         const auto mii_v3{rp.PopRaw<Ver3StoreData>()};
 
         LOG_INFO(Service_Mii, "called");
 
+        CharInfo char_info{};
+        manager.ConvertV3ToCharInfo(char_info, mii_v3);
+
         IPC::ResponseBuilder rb{ctx, 2 + sizeof(CharInfo) / sizeof(u32)};
         rb.Push(ResultSuccess);
-        rb.PushRaw<CharInfo>(manager.ConvertV3ToCharInfo(mii_v3));
+        rb.PushRaw<CharInfo>(char_info);
     }
 
-    constexpr bool IsInterfaceVersionSupported(u32 interface_version) const {
-        return current_interface_version >= interface_version;
-    }
-
-    MiiManager manager;
-
-    u32 current_interface_version{};
-    u64 current_update_counter{};
+    MiiManager manager{};
+    DatabaseSessionMetadata metadata{};
+    bool is_system{};
 };
 
 class MiiDBModule final : public ServiceFramework<MiiDBModule> {
 public:
-    explicit MiiDBModule(Core::System& system_, const char* name_)
-        : ServiceFramework{system_, name_} {
+    explicit MiiDBModule(Core::System& system_, const char* name_, bool is_system_)
+        : ServiceFramework{system_, name_}, is_system{is_system_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &MiiDBModule::GetDatabaseService, "GetDatabaseService"},
@@ -268,10 +265,12 @@ private:
     void GetDatabaseService(HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IDatabaseService>(system);
+        rb.PushIpcInterface<IDatabaseService>(system, is_system);
 
         LOG_DEBUG(Service_Mii, "called");
     }
+
+    bool is_system{};
 };
 
 class MiiImg final : public ServiceFramework<MiiImg> {
@@ -303,8 +302,10 @@ public:
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
-    server_manager->RegisterNamedService("mii:e", std::make_shared<MiiDBModule>(system, "mii:e"));
-    server_manager->RegisterNamedService("mii:u", std::make_shared<MiiDBModule>(system, "mii:u"));
+    server_manager->RegisterNamedService("mii:e",
+                                         std::make_shared<MiiDBModule>(system, "mii:e", true));
+    server_manager->RegisterNamedService("mii:u",
+                                         std::make_shared<MiiDBModule>(system, "mii:u", false));
     server_manager->RegisterNamedService("miiimg", std::make_shared<MiiImg>(system));
     ServerManager::RunServer(std::move(server_manager));
 }

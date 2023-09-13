@@ -160,7 +160,8 @@ void QtAmiiboSettingsDialog::LoadAmiiboData() {
     }
 
     const auto amiibo_name = std::string(register_info.amiibo_name.data());
-    const auto owner_name = Common::UTF16ToUTF8(register_info.mii_char_info.name.data());
+    const auto owner_name =
+        Common::UTF16ToUTF8(register_info.mii_char_info.GetNickname().data.data());
     const auto creation_date =
         QDate(register_info.creation_date.year, register_info.creation_date.month,
               register_info.creation_date.day);
