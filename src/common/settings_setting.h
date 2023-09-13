@@ -113,6 +113,9 @@ protected:
             return value_.has_value() ? std::to_string(*value_) : "none";
         } else if constexpr (std::is_same_v<Type, bool>) {
             return value_ ? "true" : "false";
+        } else if constexpr (std::is_same_v<Type, AudioEngine>) {
+            // Compatibility with old AudioEngine setting being a string
+            return CanonicalizeEnum(value_);
         } else if constexpr (std::is_floating_point_v<Type>) {
             return fmt::format("{:f}", value_);
         } else if constexpr (std::is_enum_v<Type>) {
