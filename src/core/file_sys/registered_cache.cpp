@@ -9,6 +9,7 @@
 #include "common/fs/path_util.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
+#include "common/scope_exit.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/common_funcs.h"
@@ -625,7 +626,7 @@ InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_ex
             nca->GetTitleId() != title_id) {
             // Create fake cnmt for patch to multiprogram application
             const auto sub_nca_result =
-                InstallEntry(*nca, TitleType::Update, overwrite_if_exists, copy);
+                InstallEntry(*nca, cnmt.GetHeader(), record, overwrite_if_exists, copy);
             if (sub_nca_result != InstallResult::Success) {
                 return sub_nca_result;
             }
@@ -670,6 +671,31 @@ InstallResult RegisteredCache::InstallEntry(const NCA& nca, TitleType type,
         return InstallResult::ErrorMetaFailed;
     }
     return RawInstallNCA(nca, copy, overwrite_if_exists, c_rec.nca_id);
+}
+
+InstallResult RegisteredCache::InstallEntry(const NCA& nca, const CNMTHeader& base_header,
+                                            const ContentRecord& base_record,
+                                            bool overwrite_if_exists, const VfsCopyFunction& copy) {
+    const CNMTHeader header{
+        .title_id = nca.GetTitleId(),
+        .title_version = base_header.title_version,
+        .type = base_header.type,
+        .reserved = {},
+        .table_offset = 0x10,
+        .number_content_entries = 1,
+        .number_meta_entries = 0,
+        .attributes = 0,
+        .reserved2 = {},
+        .is_committed = 0,
+        .required_download_system_version = 0,
+        .reserved3 = {},
+    };
+    const OptionalHeader opt_header{0, 0};
+    const CNMT new_cnmt(header, opt_header, {base_record}, {});
+    if (!RawInstallYuzuMeta(new_cnmt)) {
+        return InstallResult::ErrorMetaFailed;
+    }
+    return RawInstallNCA(nca, copy, overwrite_if_exists, base_record.nca_id);
 }
 
 bool RegisteredCache::RemoveExistingEntry(u64 title_id) const {

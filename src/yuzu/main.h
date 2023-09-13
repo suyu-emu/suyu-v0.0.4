@@ -350,6 +350,7 @@ private slots:
     void OnConfigurePerGame();
     void OnLoadAmiibo();
     void OnOpenYuzuFolder();
+    void OnVerifyInstalledContents();
     void OnAbout();
     void OnToggleFilterBar();
     void OnToggleStatusBar();
