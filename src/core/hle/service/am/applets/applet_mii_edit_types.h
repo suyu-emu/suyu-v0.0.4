@@ -7,7 +7,8 @@
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "core/hle/service/mii/types.h"
+#include "common/uuid.h"
+#include "core/hle/service/mii/types/char_info.h"
 
 namespace Service::AM::Applets {
 

@@ -1,9 +1,86 @@
 // SPDX-FileCopyrightText: Ryujinx Team and Contributors
 // SPDX-License-Identifier: MIT
 
-#include "core/hle/service/mii/raw_data.h"
+#include "core/hle/service/mii/types/raw_data.h"
 
 namespace Service::Mii::RawData {
+
+constexpr std::array<u8, static_cast<u8>(FacelineColor::Count)> FromVer3FacelineColorTable{
+    0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x0, 0x1, 0x5, 0x5,
+};
+
+constexpr std::array<u8, static_cast<u8>(CommonColor::Count)> FromVer3HairColorTable{
+    0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x0, 0x4, 0x3, 0x5, 0x4, 0x4, 0x6, 0x2, 0x0,
+    0x6, 0x4, 0x3, 0x2, 0x2, 0x7, 0x3, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2,
+    0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x0, 0x0, 0x4,
+    0x4, 0x4, 0x4, 0x4, 0x4, 0x0, 0x0, 0x0, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x5, 0x5, 0x5,
+    0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x5, 0x7, 0x5, 0x7, 0x7, 0x7, 0x7, 0x7, 0x6, 0x7,
+    0x7, 0x7, 0x7, 0x7, 0x3, 0x7, 0x7, 0x7, 0x7, 0x7, 0x0, 0x4, 0x4, 0x4, 0x4,
+};
+
+constexpr std::array<u8, static_cast<u8>(CommonColor::Count)> FromVer3EyeColorTable{
+    0x0, 0x2, 0x2, 0x2, 0x1, 0x3, 0x2, 0x3, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x2, 0x2, 0x4,
+    0x2, 0x1, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2,
+    0x2, 0x2, 0x2, 0x2, 0x0, 0x0, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x1, 0x0, 0x4, 0x4,
+    0x4, 0x4, 0x4, 0x4, 0x4, 0x0, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5,
+    0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x2, 0x2,
+    0x3, 0x3, 0x3, 0x3, 0x2, 0x2, 0x2, 0x2, 0x2, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1,
+};
+
+constexpr std::array<u8, static_cast<u8>(CommonColor::Count)> FromVer3MouthlineColorTable{
+    0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x3, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x1, 0x4,
+    0x4, 0x4, 0x0, 0x1, 0x2, 0x3, 0x4, 0x4, 0x2, 0x3, 0x3, 0x4, 0x4, 0x4, 0x4, 0x1, 0x4,
+    0x4, 0x2, 0x3, 0x3, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x3, 0x3, 0x3, 0x4, 0x4, 0x4,
+    0x3, 0x3, 0x3, 0x3, 0x3, 0x4, 0x4, 0x4, 0x4, 0x4, 0x3, 0x3, 0x3, 0x3, 0x4, 0x4, 0x4,
+    0x4, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x4, 0x4, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x4, 0x3,
+    0x3, 0x3, 0x3, 0x3, 0x4, 0x0, 0x3, 0x3, 0x3, 0x3, 0x4, 0x3, 0x3, 0x3, 0x3,
+};
+
+constexpr std::array<u8, static_cast<u8>(CommonColor::Count)> FromVer3GlassColorTable{
+    0x0, 0x1, 0x1, 0x1, 0x5, 0x1, 0x1, 0x4, 0x0, 0x5, 0x1, 0x1, 0x3, 0x5, 0x1, 0x2, 0x3,
+    0x4, 0x5, 0x4, 0x2, 0x2, 0x4, 0x4, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2,
+    0x2, 0x2, 0x2, 0x2, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3, 0x3,
+    0x3, 0x3, 0x3, 0x3, 0x3, 0x0, 0x0, 0x0, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x0, 0x5, 0x5,
+    0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5, 0x1, 0x4,
+    0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x4, 0x5, 0x5, 0x5, 0x5, 0x5, 0x5,
+};
+
+constexpr std::array<u8, static_cast<u8>(GlassType::Count)> FromVer3GlassTypeTable{
+    0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x1,
+    0x2, 0x1, 0x3, 0x7, 0x7, 0x6, 0x7, 0x8, 0x7, 0x7,
+};
+
+constexpr std::array<u8, 8> Ver3FacelineColorTable{
+    0x0, 0x1, 0x2, 0x3, 0x4, 0x5,
+};
+
+constexpr std::array<u8, 8> Ver3HairColorTable{
+    0x8, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
+};
+
+constexpr std::array<u8, 6> Ver3EyeColorTable{
+    0x8, 0x9, 0xa, 0xb, 0xc, 0xd,
+};
+
+constexpr std::array<u8, 5> Ver3MouthColorTable{
+    0x13, 0x14, 0x15, 0x16, 0x17,
+};
+
+constexpr std::array<u8, 7> Ver3GlassColorTable{
+    0x8, 0xe, 0xf, 0x10, 0x11, 0x12, 0x0,
+};
+
+const std::array<u8, 62> EyeRotateLookup{
+    0x03, 0x04, 0x04, 0x04, 0x03, 0x04, 0x04, 0x04, 0x03, 0x04, 0x04, 0x04, 0x04, 0x03, 0x03, 0x04,
+    0x04, 0x04, 0x03, 0x03, 0x04, 0x03, 0x04, 0x03, 0x03, 0x04, 0x03, 0x04, 0x04, 0x03, 0x04, 0x04,
+    0x04, 0x03, 0x03, 0x03, 0x04, 0x04, 0x03, 0x03, 0x03, 0x04, 0x04, 0x03, 0x03, 0x03, 0x03, 0x03,
+    0x03, 0x03, 0x03, 0x03, 0x04, 0x04, 0x04, 0x04, 0x03, 0x04, 0x04, 0x03, 0x04, 0x04,
+};
+
+const std::array<u8, 24> EyebrowRotateLookup{
+    0x06, 0x06, 0x05, 0x07, 0x06, 0x07, 0x06, 0x07, 0x04, 0x07, 0x06, 0x08,
+    0x05, 0x05, 0x06, 0x06, 0x07, 0x07, 0x06, 0x06, 0x05, 0x06, 0x07, 0x05,
+};
 
 const std::array<Service::Mii::DefaultMii, 2> BaseMii{
     Service::Mii::DefaultMii{
@@ -51,11 +128,12 @@ const std::array<Service::Mii::DefaultMii, 2> BaseMii{
         .mole_y = 20,
         .height = 64,
         .weight = 64,
-        .gender = Gender::Male,
+        .gender = 0,
         .favorite_color = 0,
-        .region = 0,
-        .font_region = FontRegion::Standard,
+        .region_move = 0,
+        .font_region = 0,
         .type = 0,
+        .nickname = {u'n', u'o', u' ', u'n', u'a', u'm', u'e'},
     },
     Service::Mii::DefaultMii{
         .face_type = 0,
@@ -102,11 +180,12 @@ const std::array<Service::Mii::DefaultMii, 2> BaseMii{
         .mole_y = 20,
         .height = 64,
         .weight = 64,
-        .gender = Gender::Female,
+        .gender = 1,
         .favorite_color = 0,
-        .region = 0,
-        .font_region = FontRegion::Standard,
+        .region_move = 0,
+        .font_region = 0,
         .type = 0,
+        .nickname = {u'n', u'o', u' ', u'n', u'a', u'm', u'e'},
     },
 };
 
@@ -156,11 +235,12 @@ const std::array<Service::Mii::DefaultMii, 6> DefaultMii{
         .mole_y = 20,
         .height = 64,
         .weight = 64,
-        .gender = Gender::Male,
+        .gender = 0,
         .favorite_color = 4,
-        .region = 0,
-        .font_region = FontRegion::Standard,
+        .region_move = 0,
+        .font_region = 0,
         .type = 0,
+        .nickname = {u'n', u'o', u' ', u'n', u'a', u'm', u'e'},
     },
     Service::Mii::DefaultMii{
         .face_type = 0,
@@ -207,11 +287,12 @@ const std::array<Service::Mii::DefaultMii, 6> DefaultMii{
         .mole_y = 20,
         .height = 64,
         .weight = 64,
-        .gender = Gender::Male,
+        .gender = 0,
         .favorite_color = 5,
-        .region = 0,
-        .font_region = FontRegion::Standard,
+        .region_move = 0,
+        .font_region = 0,
         .type = 0,
+        .nickname = {u'n', u'o', u' ', u'n', u'a', u'm', u'e'},
     },
     Service::Mii::DefaultMii{
         .face_type = 0,
@@ -258,11 +339,12 @@ const std::array<Service::Mii::DefaultMii, 6> DefaultMii{
         .mole_y = 20,
         .height = 64,
         .weight = 64,
-        .gender = Gender::Male,
+        .gender = 0,
         .favorite_color = 0,
-        .region = 0,
-        .font_region = FontRegion::Standard,
+        .region_move = 0,
+        .font_region = 0,
         .type = 0,
+        .nickname = {u'n', u'o', u' ', u'n', u'a', u'm', u'e'},
     },
     Service::Mii::DefaultMii{
         .face_type = 0,
@@ -309,11 +391,12 @@ const std::array<Service::Mii::DefaultMii, 6> DefaultMii{
         .mole_y = 20,
         .height = 64,
         .weight = 64,
-        .gender = Gender::Female,
+        .gender = 1,
         .favorite_color = 2,
-        .region = 0,
-        .font_region = FontRegion::Standard,
+        .region_move = 0,
+        .font_region = 0,
         .type = 0,
+        .nickname = {u'n', u'o', u' ', u'n', u'a', u'm', u'e'},
     },
     Service::Mii::DefaultMii{
         .face_type = 0,
@@ -360,11 +443,12 @@ const std::array<Service::Mii::DefaultMii, 6> DefaultMii{
         .mole_y = 20,
         .height = 64,
         .weight = 64,
-        .gender = Gender::Female,
+        .gender = 1,
         .favorite_color = 6,
-        .region = 0,
-        .font_region = FontRegion::Standard,
+        .region_move = 0,
+        .font_region = 0,
         .type = 0,
+        .nickname = {u'n', u'o', u' ', u'n', u'a', u'm', u'e'},
     },
     Service::Mii::DefaultMii{
         .face_type = 0,
@@ -411,176 +495,177 @@ const std::array<Service::Mii::DefaultMii, 6> DefaultMii{
         .mole_y = 20,
         .height = 64,
         .weight = 64,
-        .gender = Gender::Female,
+        .gender = 1,
         .favorite_color = 7,
-        .region = 0,
-        .font_region = FontRegion::Standard,
+        .region_move = 0,
+        .font_region = 0,
         .type = 0,
+        .nickname = {u'n', u'o', u' ', u'n', u'a', u'm', u'e'},
     },
 
 };
 
-const std::array<Service::Mii::RandomMiiData4, 18> RandomMiiFaceline{
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Black,
+const std::array<RandomMiiData4, 18> RandomMiiFaceline{
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 10,
         .values = {0, 0, 1, 1, 2, 3, 4, 5, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 10,
         .values = {0, 0, 1, 1, 2, 3, 4, 5, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 10,
         .values = {0, 0, 1, 1, 2, 3, 4, 5, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 12,
         .values = {0, 0, 1, 2, 2, 3, 4, 5, 6, 7, 10, 11},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 13,
         .values = {0, 1, 2, 2, 3, 4, 5, 6, 6, 7, 7, 10, 11},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 12,
         .values = {0, 0, 1, 2, 2, 3, 4, 5, 6, 7, 10, 11},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 12,
         .values = {0, 0, 1, 2, 2, 3, 4, 5, 6, 7, 10, 11},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 13,
         .values = {0, 1, 2, 2, 3, 4, 5, 6, 6, 7, 7, 10, 11},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 12,
         .values = {0, 0, 1, 2, 2, 3, 4, 5, 6, 7, 10, 11},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 10,
         .values = {0, 0, 1, 1, 2, 3, 4, 5, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 10,
         .values = {0, 0, 1, 1, 2, 3, 4, 5, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 10,
         .values = {0, 0, 1, 1, 2, 3, 4, 5, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 12,
         .values = {0, 0, 0, 1, 1, 1, 2, 3, 4, 5, 8, 10},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 12,
         .values = {0, 0, 0, 1, 1, 1, 2, 3, 4, 5, 8, 10},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 12,
         .values = {0, 0, 0, 1, 1, 1, 2, 3, 4, 5, 8, 10},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 12,
         .values = {0, 0, 0, 1, 1, 1, 2, 3, 4, 5, 8, 10},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 12,
         .values = {0, 0, 0, 1, 1, 1, 2, 3, 4, 5, 8, 10},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 12,
         .values = {0, 0, 0, 1, 1, 1, 2, 3, 4, 5, 8, 10},
     },
 };
 
-const std::array<Service::Mii::RandomMiiData3, 6> RandomMiiFacelineColor{
-    Service::Mii::RandomMiiData3{
+const std::array<RandomMiiData3, 6> RandomMiiFacelineColor{
+    RandomMiiData3{
         .arg_1 = 0,
         .arg_2 = 0,
         .values_count = 10,
         .values = {2, 2, 4, 4, 4, 4, 5, 5, 5, 5},
     },
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 0,
         .arg_2 = 1,
         .values_count = 10,
         .values = {0, 0, 0, 0, 1, 1, 2, 3, 3, 3},
     },
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 0,
         .arg_2 = 2,
         .values_count = 10,
         .values = {0, 0, 1, 1, 1, 1, 1, 1, 1, 2},
     },
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 1,
         .arg_2 = 0,
         .values_count = 10,
         .values = {2, 2, 4, 4, 4, 4, 5, 5, 5, 5},
     },
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 1,
         .arg_2 = 1,
         .values_count = 10,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 1, 3},
     },
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 1,
         .arg_2 = 2,
         .values_count = 10,
@@ -588,407 +673,407 @@ const std::array<Service::Mii::RandomMiiData3, 6> RandomMiiFacelineColor{
     },
 };
 
-const std::array<Service::Mii::RandomMiiData4, 18> RandomMiiFacelineWrinkle{
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Black,
+const std::array<RandomMiiData4, 18> RandomMiiFacelineWrinkle{
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 4, 5, 6, 7, 8, 8, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 4, 5, 6, 7, 8, 8, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 20,
         .values = {9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 20,
         .values = {9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 20,
         .values = {9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 4, 4, 8, 8},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 4, 4, 8, 8},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 4, 4},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 20,
         .values = {9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 20,
         .values = {9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 20,
         .values = {9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11},
     },
 };
 
-const std::array<Service::Mii::RandomMiiData4, 18> RandomMiiFacelineMakeup{
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Black,
+const std::array<RandomMiiData4, 18> RandomMiiFacelineMakeup{
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 3, 4, 5, 5, 6, 7, 8, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 20,
         .values = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
     },
 };
 
-const std::array<Service::Mii::RandomMiiData4, 18> RandomMiiHairType{
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Black,
+const std::array<RandomMiiData4, 18> RandomMiiHairType{
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 30,
         .values = {13, 23, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 43, 44, 45,
                    47, 48, 49, 50, 51, 52, 54, 56, 57, 64, 66, 75, 76, 86, 89},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 31,
         .values = {13, 23, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 43, 44, 45, 47,
                    48, 49, 50, 51, 52, 54, 56, 57, 64, 66, 73, 75, 81, 86, 87},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 31,
         .values = {13, 23, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 43, 44, 45, 47,
                    48, 49, 50, 51, 52, 54, 56, 57, 64, 66, 73, 75, 81, 86, 87},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 38,
         .values = {13, 23, 30, 31, 32, 33, 34, 36, 37, 38, 40, 42, 43, 44, 45, 47, 48, 49, 50,
                    51, 52, 53, 54, 55, 56, 58, 59, 60, 64, 65, 66, 67, 68, 70, 75, 76, 86, 89},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 39,
         .values = {13, 23, 30, 31, 32, 33, 34, 36, 37, 38, 39, 40, 43, 44, 45, 47, 48, 49, 50, 51,
                    52, 53, 54, 55, 56, 58, 59, 60, 64, 65, 66, 67, 68, 70, 73, 75, 81, 86, 87},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 39,
         .values = {13, 23, 30, 31, 32, 33, 34, 36, 37, 38, 39, 40, 43, 44, 45, 47, 48, 49, 50, 51,
                    52, 53, 54, 55, 56, 58, 59, 60, 64, 65, 66, 67, 68, 70, 73, 75, 81, 86, 87},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 18,
         .values = {13, 23, 30, 36, 37, 41, 45, 47, 51, 53, 54, 55, 58, 59, 65, 67, 86, 88},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 19,
         .values = {13, 23, 30, 36, 37, 39, 41, 45, 47, 51, 53, 54, 55, 58, 59, 65, 67, 86, 88},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 19,
         .values = {13, 23, 30, 36, 37, 39, 41, 45, 47, 51, 53, 54, 55, 58, 59, 65, 67, 86, 88},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 39,
         .values = {0,  1,  2,  3,  4,  5,  6,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                    21, 22, 24, 25, 26, 28, 46, 50, 61, 62, 63, 64, 69, 76, 77, 79, 80, 83, 85},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 42,
         .values = {0,  1,  2,  3,  4,  5,  6,  8,  9,  10, 11, 12, 13, 14,
                    15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 28, 46, 50,
                    61, 62, 63, 64, 69, 72, 74, 77, 78, 82, 83, 84, 85, 87},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 42,
         .values = {0,  1,  2,  3,  4,  5,  6,  8,  9,  10, 11, 12, 13, 14,
                    15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 28, 46, 50,
                    61, 62, 63, 64, 69, 72, 74, 77, 78, 82, 83, 84, 85, 87},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 44,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14,
                    15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 29, 42, 50,
                    58, 60, 62, 63, 64, 69, 71, 76, 79, 80, 81, 82, 83, 86},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 44,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14,
                    15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 29, 50, 58,
                    60, 62, 63, 64, 69, 71, 72, 74, 79, 81, 82, 83, 84, 85},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 44,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14,
                    15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 29, 50, 58,
                    60, 62, 63, 64, 69, 71, 72, 74, 79, 81, 82, 83, 84, 85},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 24,
         .values = {0,  1,  2,  3,  4,  5,  6,  10, 11, 12, 13, 14,
                    16, 17, 18, 20, 21, 24, 25, 58, 62, 69, 76, 83},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 27,
         .values = {0,  1,  2,  3,  4,  5,  6,  10, 11, 12, 13, 14, 16, 17,
                    18, 20, 21, 24, 25, 58, 62, 69, 74, 76, 81, 83, 85},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 27,
         .values = {0,  1,  2,  3,  4,  5,  6,  10, 11, 12, 13, 14, 16, 17,
                    18, 20, 21, 24, 25, 58, 62, 69, 74, 76, 81, 83, 85},
@@ -996,55 +1081,55 @@ const std::array<Service::Mii::RandomMiiData4, 18> RandomMiiHairType{
 };
 
 const std::array<RandomMiiData3, 9> RandomMiiHairColor{
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 0,
         .arg_2 = 0,
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     },
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 0,
         .arg_2 = 1,
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     },
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 0,
         .arg_2 = 2,
         .values_count = 20,
         .values = {0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4},
     },
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 1,
         .arg_2 = 0,
         .values_count = 20,
         .values = {2, 3, 3, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7},
     },
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 1,
         .arg_2 = 1,
         .values_count = 20,
         .values = {2, 3, 3, 3, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7},
     },
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 1,
         .arg_2 = 2,
         .values_count = 20,
         .values = {2, 3, 3, 4, 4, 4, 4, 4, 4, 5, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7},
     },
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 2,
         .arg_2 = 0,
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1},
     },
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 2,
         .arg_2 = 1,
         .values_count = 20,
         .values = {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3},
     },
-    Service::Mii::RandomMiiData3{
+    RandomMiiData3{
         .arg_1 = 2,
         .arg_2 = 2,
         .values_count = 20,
@@ -1052,598 +1137,642 @@ const std::array<RandomMiiData3, 9> RandomMiiHairColor{
     },
 };
 
-const std::array<Service::Mii::RandomMiiData4, 18> RandomMiiEyeType{
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Black,
+const std::array<RandomMiiData4, 18> RandomMiiEyeType{
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 26,
         .values = {2,  3,  5,  7,  8,  9,  11, 12, 13, 15, 16, 18, 27,
                    29, 32, 34, 36, 38, 39, 41, 43, 47, 49, 51, 53, 57},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 26,
         .values = {2,  3,  5,  7,  8,  9,  11, 12, 13, 15, 16, 18, 27,
                    29, 32, 34, 36, 38, 39, 41, 43, 47, 49, 51, 53, 57},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 27,
         .values = {2,  3,  5,  7,  8,  9,  11, 12, 13, 15, 16, 18, 26, 27,
                    29, 32, 34, 36, 38, 39, 41, 43, 47, 48, 49, 53, 57},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 35,
         .values = {2,  3,  5,  6,  7,  8,  9,  11, 12, 13, 15, 16, 17, 18, 21, 22, 27, 29,
                    31, 32, 34, 36, 37, 38, 39, 41, 43, 44, 47, 49, 51, 53, 55, 56, 57},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 35,
         .values = {2,  3,  5,  6,  7,  8,  9,  11, 12, 13, 15, 16, 17, 18, 21, 22, 27, 29,
                    31, 32, 34, 36, 37, 38, 39, 41, 43, 44, 47, 49, 51, 53, 55, 56, 57},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 35,
         .values = {2,  3,  5,  6,  7,  8,  9,  11, 12, 13, 15, 16, 18, 21, 22, 26, 27, 29,
                    31, 32, 34, 36, 37, 38, 39, 41, 43, 44, 47, 48, 49, 50, 53, 56, 57},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 30,
         .values = {2,  3,  5,  7,  8,  9,  11, 12, 13, 14, 15, 16, 17, 18, 21,
                    22, 31, 32, 34, 36, 37, 39, 41, 44, 49, 51, 53, 55, 56, 57},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 30,
         .values = {2,  3,  5,  7,  8,  9,  11, 12, 13, 14, 15, 16, 17, 18, 21,
                    22, 31, 32, 34, 36, 37, 39, 41, 44, 49, 51, 53, 55, 56, 57},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 30,
         .values = {2,  3,  5,  7,  8,  9,  11, 12, 13, 14, 15, 16, 18, 21, 22,
                    26, 31, 32, 34, 36, 37, 39, 41, 44, 48, 49, 50, 51, 53, 57},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 39,
         .values = {0,  1,  2,  4,  5,  7,  8,  9,  10, 11, 12, 13, 15, 16, 18, 19, 23, 24, 25, 27,
                    28, 29, 32, 33, 34, 35, 38, 39, 40, 41, 42, 45, 46, 47, 48, 53, 54, 57, 59},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 39,
         .values = {0,  1,  2,  4,  5,  7,  8,  9,  10, 11, 12, 13, 15, 16, 18, 19, 23, 24, 25, 27,
                    28, 29, 32, 33, 34, 35, 38, 39, 40, 41, 42, 45, 46, 47, 48, 53, 54, 57, 59},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 40,
         .values = {0,  1,  2,  4,  5,  7,  8,  9,  10, 11, 12, 13, 15, 16, 18, 19, 23, 24, 25, 26,
                    27, 28, 29, 32, 33, 34, 35, 38, 39, 40, 41, 42, 45, 46, 47, 48, 53, 54, 57, 59},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 46,
         .values = {0,  1,  2,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 15, 16, 17,
                    18, 19, 20, 21, 23, 24, 25, 27, 28, 29, 30, 32, 33, 34, 35, 37,
                    38, 39, 40, 41, 42, 45, 46, 47, 48, 53, 54, 57, 58, 59},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 46,
         .values = {0,  1,  2,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 15, 16, 17,
                    18, 19, 20, 21, 23, 24, 25, 27, 28, 29, 30, 32, 33, 34, 35, 37,
                    38, 39, 40, 41, 42, 45, 46, 47, 48, 53, 54, 57, 58, 59},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 46,
         .values = {0,  1,  2,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 15, 16, 18,
                    19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 37,
                    38, 39, 40, 41, 42, 45, 46, 47, 48, 53, 54, 57, 58, 59},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 34,
         .values = {0,  1,  2,  4,  5,  7,  8,  9,  10, 11, 12, 13, 15, 16, 18, 19, 23,
                    24, 25, 27, 28, 29, 32, 33, 34, 35, 38, 39, 40, 41, 42, 45, 46, 47},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 34,
         .values = {0,  1,  2,  4,  5,  7,  8,  9,  10, 11, 12, 13, 15, 16, 18, 19, 23,
                    24, 25, 27, 28, 29, 32, 33, 34, 35, 38, 39, 40, 41, 42, 45, 46, 47},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 35,
         .values = {0,  1,  2,  4,  5,  7,  8,  9,  10, 11, 12, 13, 15, 16, 18, 19, 23, 24,
                    25, 26, 27, 28, 29, 32, 33, 34, 35, 38, 39, 40, 41, 42, 45, 46, 47},
     },
 };
 
-const std::array<Service::Mii::RandomMiiData2, 3> RandomMiiEyeColor{
-    Service::Mii::RandomMiiData2{
+const std::array<RandomMiiData2, 3> RandomMiiEyeColor{
+    RandomMiiData2{
         .arg_1 = 0,
         .values_count = 10,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
     },
-    Service::Mii::RandomMiiData2{
+    RandomMiiData2{
         .arg_1 = 1,
         .values_count = 10,
         .values = {0, 1, 1, 2, 3, 3, 4, 4, 4, 5},
     },
-    Service::Mii::RandomMiiData2{
+    RandomMiiData2{
         .arg_1 = 2,
         .values_count = 10,
         .values = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
     },
 };
 
-const std::array<Service::Mii::RandomMiiData4, 18> RandomMiiEyebrowType{
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Black,
+const std::array<RandomMiiData4, 18> RandomMiiEyebrowType{
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 18,
         .values = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 20},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 18,
         .values = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 20},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 18,
         .values = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 20},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 23,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
                    12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 23,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
                    12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 23,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
                    12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 21,
         .values = {0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 21,
         .values = {0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 21,
         .values = {0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 9,
         .values = {0, 1, 3, 7, 8, 9, 10, 11, 13},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 9,
         .values = {0, 1, 3, 7, 8, 9, 10, 11, 13},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 9,
         .values = {0, 1, 3, 7, 8, 9, 10, 11, 13},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 11,
         .values = {0, 1, 3, 7, 8, 9, 10, 11, 13, 15, 19},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 11,
         .values = {0, 1, 3, 7, 8, 9, 10, 11, 13, 15, 19},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 11,
         .values = {0, 1, 3, 7, 8, 9, 10, 11, 13, 15, 19},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 9,
         .values = {0, 3, 7, 8, 9, 10, 11, 13, 15},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 9,
         .values = {0, 3, 7, 8, 9, 10, 11, 13, 15},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 9,
         .values = {0, 3, 7, 8, 9, 10, 11, 13, 15},
     },
 };
 
-const std::array<Service::Mii::RandomMiiData4, 18> RandomMiiNoseType{
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Black,
+const std::array<RandomMiiData4, 18> RandomMiiNoseType{
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 11,
         .values = {0, 1, 2, 3, 4, 5, 7, 8, 10, 13, 14},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 11,
         .values = {0, 1, 2, 3, 4, 5, 7, 8, 10, 13, 14},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 11,
         .values = {0, 1, 2, 3, 4, 5, 7, 8, 10, 13, 14},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 18,
         .values = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 18,
         .values = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 15,
         .values = {0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 16},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 18,
         .values = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 18,
         .values = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 15,
         .values = {0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 16},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 8,
         .values = {0, 1, 3, 4, 8, 10, 13, 14},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 8,
         .values = {0, 1, 3, 4, 8, 10, 13, 14},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 8,
         .values = {0, 1, 3, 4, 8, 10, 13, 14},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 12,
         .values = {0, 1, 3, 4, 6, 8, 9, 10, 11, 13, 14, 15},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 11,
         .values = {0, 1, 3, 4, 6, 8, 9, 10, 11, 13, 15},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 10,
         .values = {0, 1, 3, 4, 6, 8, 10, 11, 13, 14},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 12,
         .values = {0, 1, 3, 4, 6, 8, 9, 10, 11, 13, 14, 15},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 11,
         .values = {0, 1, 3, 4, 6, 8, 9, 10, 11, 13, 15},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 10,
         .values = {0, 1, 3, 4, 6, 8, 10, 11, 13, 14},
     },
 };
 
-const std::array<Service::Mii::RandomMiiData4, 18> RandomMiiMouthType{
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Black,
+const std::array<RandomMiiData4, 18> RandomMiiMouthType{
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 25,
         .values = {0,  2,  3,  6,  7,  8,  9,  10, 12, 14, 15, 17, 18,
                    19, 21, 22, 23, 25, 26, 28, 30, 32, 33, 34, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 27,
         .values = {0,  2,  3,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 17,
                    18, 19, 21, 22, 23, 25, 26, 28, 30, 32, 33, 34, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 28,
         .values = {0,  2,  3,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 17,
                    18, 19, 21, 22, 23, 25, 26, 28, 30, 31, 32, 33, 34, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 24,
         .values = {0,  2,  3,  6,  7,  8,  9,  10, 12, 14, 15, 16,
                    17, 18, 19, 20, 21, 22, 23, 30, 31, 33, 34, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 26,
         .values = {0,  2,  3,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
                    16, 17, 18, 19, 20, 21, 22, 23, 30, 31, 33, 34, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 26,
         .values = {0,  2,  3,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
                    16, 17, 18, 19, 20, 21, 22, 23, 30, 31, 33, 34, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 24,
         .values = {0,  2,  3,  6,  7,  8,  9,  10, 12, 14, 15, 16,
                    17, 18, 19, 20, 21, 22, 23, 30, 31, 33, 34, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 26,
         .values = {0,  2,  3,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
                    16, 17, 18, 19, 20, 21, 22, 23, 30, 31, 33, 34, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Male,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Male),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 26,
         .values = {0,  2,  3,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
                    16, 17, 18, 19, 20, 21, 22, 23, 30, 31, 33, 34, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 25,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12, 14, 15,
                    17, 18, 19, 21, 22, 23, 25, 26, 30, 33, 34, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 26,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12, 13, 14,
                    15, 17, 18, 19, 21, 22, 23, 25, 26, 30, 33, 34, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Black,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Black),
         .values_count = 26,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12, 13, 14,
                    15, 17, 18, 19, 21, 22, 23, 25, 26, 30, 33, 34, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::White),
         .values_count = 25,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12, 14, 15,
                    17, 18, 19, 21, 22, 23, 24, 26, 27, 29, 33, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::White),
         .values_count = 26,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12, 13, 14,
                    15, 17, 18, 19, 21, 22, 23, 24, 26, 27, 29, 33, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::White,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::White),
         .values_count = 25,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12, 13, 14,
                    15, 17, 18, 19, 21, 22, 23, 24, 25, 29, 33, 35},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Young,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Young),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 24,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12, 14,
                    15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 29, 33},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Normal,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Normal),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 25,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12, 13, 14,
                    15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 29, 33},
     },
-    Service::Mii::RandomMiiData4{
-        .gender = Gender::Female,
-        .age = Age::Old,
-        .race = Race::Asian,
+    RandomMiiData4{
+        .gender = static_cast<u32>(Gender::Female),
+        .age = static_cast<u32>(Age::Old),
+        .race = static_cast<u32>(Race::Asian),
         .values_count = 25,
         .values = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  12, 13, 14,
                    15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 29, 33},
     },
 };
 
-const std::array<Service::Mii::RandomMiiData2, 3> RandomMiiGlassType{
-    Service::Mii::RandomMiiData2{
+const std::array<RandomMiiData2, 3> RandomMiiGlassType{
+    RandomMiiData2{
         .arg_1 = 0,
         .values_count = 9,
         .values = {90, 94, 96, 100, 0, 0, 0, 0, 0},
     },
-    Service::Mii::RandomMiiData2{
+    RandomMiiData2{
         .arg_1 = 1,
         .values_count = 9,
         .values = {83, 86, 90, 93, 94, 96, 98, 100, 0},
     },
-    Service::Mii::RandomMiiData2{
+    RandomMiiData2{
         .arg_1 = 2,
         .values_count = 9,
         .values = {78, 83, 0, 93, 0, 0, 98, 100, 0},
     },
 };
+
+u8 FromVer3GetFacelineColor(u8 color) {
+    return FromVer3FacelineColorTable[color];
+}
+
+u8 FromVer3GetHairColor(u8 color) {
+    return FromVer3HairColorTable[color];
+}
+
+u8 FromVer3GetEyeColor(u8 color) {
+    return FromVer3EyeColorTable[color];
+}
+
+u8 FromVer3GetMouthlineColor(u8 color) {
+    return FromVer3MouthlineColorTable[color];
+}
+
+u8 FromVer3GetGlassColor(u8 color) {
+    return FromVer3GlassColorTable[color];
+}
+
+u8 FromVer3GetGlassType(u8 type) {
+    return FromVer3GlassTypeTable[type];
+}
+
+FacelineColor GetFacelineColorFromVer3(u32 color) {
+    return static_cast<FacelineColor>(Ver3FacelineColorTable[color]);
+}
+
+CommonColor GetHairColorFromVer3(u32 color) {
+    return static_cast<CommonColor>(Ver3HairColorTable[color]);
+}
+
+CommonColor GetEyeColorFromVer3(u32 color) {
+    return static_cast<CommonColor>(Ver3EyeColorTable[color]);
+}
+
+CommonColor GetMouthColorFromVer3(u32 color) {
+    return static_cast<CommonColor>(Ver3MouthColorTable[color]);
+}
+
+CommonColor GetGlassColorFromVer3(u32 color) {
+    return static_cast<CommonColor>(Ver3GlassColorTable[color]);
+}
 
 } // namespace Service::Mii::RawData
