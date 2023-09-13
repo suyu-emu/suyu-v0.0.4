@@ -11,7 +11,8 @@
 #include <optional>
 #include <string>
 #include <thread>
-#include <vector>
+
+#include <boost/heap/fibonacci_heap.hpp>
 
 #include "common/common_types.h"
 #include "common/thread.h"
@@ -151,11 +152,10 @@ private:
     s64 timer_resolution_ns;
 #endif
 
-    // The queue is a min-heap using std::make_heap/push_heap/pop_heap.
-    // We don't use std::priority_queue because we need to be able to serialize, unserialize and
-    // erase arbitrary events (RemoveEvent()) regardless of the queue order. These aren't
-    // accommodated by the standard adaptor class.
-    std::vector<Event> event_queue;
+    using heap_t =
+        boost::heap::fibonacci_heap<CoreTiming::Event, boost::heap::compare<std::greater<>>>;
+
+    heap_t event_queue;
     u64 event_fifo_id = 0;
 
     std::shared_ptr<EventType> ev_lost;

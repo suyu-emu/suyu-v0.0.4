@@ -32,6 +32,7 @@ struct CoreTiming::Event {
     std::uintptr_t user_data;
     std::weak_ptr<EventType> type;
     s64 reschedule_time;
+    heap_t::handle_type handle{};
 
     // Sort by time, unless the times are the same, in which case sort by
     // the order added to the queue
@@ -122,9 +123,9 @@ void CoreTiming::ScheduleEvent(std::chrono::nanoseconds ns_into_future,
         std::scoped_lock scope{basic_lock};
         const auto next_time{absolute_time ? ns_into_future : GetGlobalTimeNs() + ns_into_future};
 
-        event_queue.emplace_back(
-            Event{next_time.count(), event_fifo_id++, user_data, event_type, 0});
-        std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
+        auto h{event_queue.emplace(
+            Event{next_time.count(), event_fifo_id++, user_data, event_type, 0})};
+        (*h).handle = h;
     }
 
     event.Set();
@@ -138,10 +139,9 @@ void CoreTiming::ScheduleLoopingEvent(std::chrono::nanoseconds start_time,
         std::scoped_lock scope{basic_lock};
         const auto next_time{absolute_time ? start_time : GetGlobalTimeNs() + start_time};
 
-        event_queue.emplace_back(
-            Event{next_time.count(), event_fifo_id++, user_data, event_type, resched_time.count()});
-
-        std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
+        auto h{event_queue.emplace(Event{next_time.count(), event_fifo_id++, user_data, event_type,
+                                         resched_time.count()})};
+        (*h).handle = h;
     }
 
     event.Set();
@@ -151,15 +151,17 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
                                  std::uintptr_t user_data, bool wait) {
     {
         std::scoped_lock lk{basic_lock};
-        const auto itr =
-            std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
-                return e.type.lock().get() == event_type.get() && e.user_data == user_data;
-            });
 
-        // Removing random items breaks the invariant so we have to re-establish it.
-        if (itr != event_queue.end()) {
-            event_queue.erase(itr, event_queue.end());
-            std::make_heap(event_queue.begin(), event_queue.end(), std::greater<>());
+        std::vector<heap_t::handle_type> to_remove;
+        for (auto itr = event_queue.begin(); itr != event_queue.end(); itr++) {
+            const Event& e = *itr;
+            if (e.type.lock().get() == event_type.get() && e.user_data == user_data) {
+                to_remove.push_back(itr->handle);
+            }
+        }
+
+        for (auto h : to_remove) {
+            event_queue.erase(h);
         }
     }
 
@@ -200,10 +202,9 @@ std::optional<s64> CoreTiming::Advance() {
     std::scoped_lock lock{advance_lock, basic_lock};
     global_timer = GetGlobalTimeNs().count();
 
-    while (!event_queue.empty() && event_queue.front().time <= global_timer) {
-        Event evt = std::move(event_queue.front());
-        std::pop_heap(event_queue.begin(), event_queue.end(), std::greater<>());
-        event_queue.pop_back();
+    while (!event_queue.empty() && event_queue.top().time <= global_timer) {
+        Event evt = event_queue.top();
+        event_queue.pop();
 
         if (const auto event_type{evt.type.lock()}) {
             basic_lock.unlock();
@@ -219,16 +220,16 @@ std::optional<s64> CoreTiming::Advance() {
                                                   ? new_schedule_time.value().count()
                                                   : evt.reschedule_time};
 
-                // If this event was scheduled into a pause, its time now is going to be way behind.
-                // Re-set this event to continue from the end of the pause.
+                // If this event was scheduled into a pause, its time now is going to be way
+                // behind. Re-set this event to continue from the end of the pause.
                 auto next_time{evt.time + next_schedule_time};
                 if (evt.time < pause_end_time) {
                     next_time = pause_end_time + next_schedule_time;
                 }
 
-                event_queue.emplace_back(
-                    Event{next_time, event_fifo_id++, evt.user_data, evt.type, next_schedule_time});
-                std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
+                auto h{event_queue.emplace(Event{next_time, event_fifo_id++, evt.user_data,
+                                                 evt.type, next_schedule_time})};
+                (*h).handle = h;
             }
         }
 
@@ -236,7 +237,7 @@ std::optional<s64> CoreTiming::Advance() {
     }
 
     if (!event_queue.empty()) {
-        return event_queue.front().time;
+        return event_queue.top().time;
     } else {
         return std::nullopt;
     }
@@ -274,7 +275,8 @@ void CoreTiming::ThreadLoop() {
 #endif
                 }
             } else {
-                // Queue is empty, wait until another event is scheduled and signals us to continue.
+                // Queue is empty, wait until another event is scheduled and signals us to
+                // continue.
                 wait_set = true;
                 event.Wait();
             }
