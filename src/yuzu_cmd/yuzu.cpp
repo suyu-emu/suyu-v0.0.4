@@ -358,6 +358,7 @@ int main(int argc, char** argv) {
     system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
+    system.GetUserChannel().clear();
 
     const Core::SystemResultStatus load_result{system.Load(*emu_window, filepath)};
 

@@ -339,7 +339,6 @@ private:
 
     KernelHelpers::ServiceContext service_context;
 
-    bool launch_popped_application_specific = false;
     bool launch_popped_account_preselect = false;
     s32 previous_program_index{-1};
     Kernel::KEvent* gpu_error_detected_event;

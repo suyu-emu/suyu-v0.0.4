@@ -58,6 +58,11 @@ enum class StartGameType {
     Global, // Only uses global configuration
 };
 
+enum class AmLaunchType {
+    UserInitiated,
+    ApplicationInitiated,
+};
+
 namespace Core {
 enum class SystemResultStatus : u32;
 class System;
@@ -239,9 +244,11 @@ private:
     void PreventOSSleep();
     void AllowOSSleep();
 
-    bool LoadROM(const QString& filename, u64 program_id, std::size_t program_index);
+    bool LoadROM(const QString& filename, u64 program_id, std::size_t program_index,
+                 AmLaunchType launch_type);
     void BootGame(const QString& filename, u64 program_id = 0, std::size_t program_index = 0,
-                  StartGameType with_config = StartGameType::Normal);
+                  StartGameType with_config = StartGameType::Normal,
+                  AmLaunchType launch_type = AmLaunchType::UserInitiated);
     void ShutdownGame();
 
     void ShowTelemetryCallout();
