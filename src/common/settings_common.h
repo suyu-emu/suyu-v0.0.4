@@ -225,6 +225,16 @@ public:
      */
     [[nodiscard]] virtual constexpr u32 EnumIndex() const = 0;
 
+    /**
+     * @returns True if the underlying type is a floating point storage
+     */
+    [[nodiscard]] virtual constexpr bool IsFloatingPoint() const = 0;
+
+    /**
+     * @returns True if the underlying type is a integer storage
+     */
+    [[nodiscard]] virtual constexpr bool IsIntegral() const = 0;
+
     /*
      * Switchable settings
      */
