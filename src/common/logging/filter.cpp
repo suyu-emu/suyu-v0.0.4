@@ -112,7 +112,7 @@ bool ParseFilterRule(Filter& instance, Iterator begin, Iterator end) {
     SUB(Service, NCM)                                                                              \
     SUB(Service, NFC)                                                                              \
     SUB(Service, NFP)                                                                              \
-    SUB(Service, NGCT)                                                                             \
+    SUB(Service, NGC)                                                                              \
     SUB(Service, NIFM)                                                                             \
     SUB(Service, NIM)                                                                              \
     SUB(Service, NOTIF)                                                                            \
