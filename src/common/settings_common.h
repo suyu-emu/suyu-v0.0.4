@@ -231,7 +231,7 @@ public:
     [[nodiscard]] virtual constexpr bool IsFloatingPoint() const = 0;
 
     /**
-     * @returns True if the underlying type is a integer storage
+     * @returns True if the underlying type is an integer storage
      */
     [[nodiscard]] virtual constexpr bool IsIntegral() const = 0;
 
