@@ -7,8 +7,8 @@ namespace Core {
 class System;
 }
 
-namespace Service::NGCT {
+namespace Service::NGC {
 
 void LoopProcess(Core::System& system);
 
-} // namespace Service::NGCT
+} // namespace Service::NGC
