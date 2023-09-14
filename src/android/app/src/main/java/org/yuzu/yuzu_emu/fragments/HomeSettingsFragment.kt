@@ -37,7 +37,6 @@ import org.yuzu.yuzu_emu.adapters.HomeSettingAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentHomeSettingsBinding
 import org.yuzu.yuzu_emu.features.DocumentProvider
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.HomeSetting
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
@@ -78,7 +77,7 @@ class HomeSettingsFragment : Fragment() {
                     {
                         val action = HomeNavigationDirections.actionGlobalSettingsActivity(
                             null,
-                            SettingsFile.FILE_NAME_CONFIG
+                            Settings.MenuTag.SECTION_ROOT
                         )
                         binding.root.findNavController().navigate(action)
                     }
@@ -100,7 +99,7 @@ class HomeSettingsFragment : Fragment() {
                     {
                         val action = HomeNavigationDirections.actionGlobalSettingsActivity(
                             null,
-                            Settings.SECTION_THEME
+                            Settings.MenuTag.SECTION_THEME
                         )
                         binding.root.findNavController().navigate(action)
                     }

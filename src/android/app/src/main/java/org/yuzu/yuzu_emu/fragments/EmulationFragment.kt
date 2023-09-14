@@ -50,7 +50,6 @@ import org.yuzu.yuzu_emu.databinding.DialogOverlayAdjustBinding
 import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.EmulationViewModel
 import org.yuzu.yuzu_emu.overlay.InputOverlay
@@ -166,7 +165,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.id.menu_settings -> {
                     val action = HomeNavigationDirections.actionGlobalSettingsActivity(
                         null,
-                        SettingsFile.FILE_NAME_CONFIG
+                        Settings.MenuTag.SECTION_ROOT
                     )
                     binding.root.findNavController().navigate(action)
                     true

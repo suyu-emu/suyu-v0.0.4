@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -21,10 +22,11 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.transition.MaterialSharedAxis
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsBinding
-import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.model.SettingsViewModel
 
 class SettingsFragment : Fragment() {
@@ -62,10 +64,10 @@ class SettingsFragment : Fragment() {
         presenter = SettingsFragmentPresenter(
             settingsViewModel,
             settingsAdapter!!,
-            args.menuTag,
-            args.game?.gameId ?: ""
+            args.menuTag
         )
 
+        binding.toolbarSettingsLayout.title = getString(args.menuTag.titleId)
         val dividerDecoration = MaterialDividerItemDecoration(
             requireContext(),
             LinearLayoutManager.VERTICAL
@@ -105,7 +107,7 @@ class SettingsFragment : Fragment() {
             }
         }
 
-        if (args.menuTag == SettingsFile.FILE_NAME_CONFIG) {
+        if (args.menuTag == Settings.MenuTag.SECTION_ROOT) {
             binding.toolbarSettings.inflateMenu(R.menu.menu_settings)
             binding.toolbarSettings.setOnMenuItemClickListener {
                 when (it.itemId) {

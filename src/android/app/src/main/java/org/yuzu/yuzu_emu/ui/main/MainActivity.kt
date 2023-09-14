@@ -42,7 +42,6 @@ import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.GamesViewModel
@@ -109,7 +108,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 R.id.homeSettingsFragment -> {
                     val action = HomeNavigationDirections.actionGlobalSettingsActivity(
                         null,
-                        SettingsFile.FILE_NAME_CONFIG
+                        Settings.MenuTag.SECTION_ROOT
                     )
                     navHostFragment.navController.navigate(action)
                 }
