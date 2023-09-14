@@ -14,7 +14,7 @@ Result OutputDebugString(Core::System& system, u64 address, u64 len) {
 
     std::string str(len, '\0');
     GetCurrentMemory(system.Kernel()).ReadBlock(address, str.data(), str.size());
-    LOG_DEBUG(Debug_Emulated, "{}", str);
+    LOG_INFO(Debug_Emulated, "{}", str);
 
     R_SUCCEED();
 }
