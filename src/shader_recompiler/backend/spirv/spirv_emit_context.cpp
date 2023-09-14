@@ -1247,9 +1247,8 @@ void EmitContext::DefineTextureBuffers(const Info& info, u32& binding) {
     }
     const spv::ImageFormat format{spv::ImageFormat::Unknown};
     image_buffer_type = TypeImage(F32[1], spv::Dim::Buffer, 0U, false, false, 1, format);
-    sampled_texture_buffer_type = TypeSampledImage(image_buffer_type);
 
-    const Id type{TypePointer(spv::StorageClass::UniformConstant, sampled_texture_buffer_type)};
+    const Id type{TypePointer(spv::StorageClass::UniformConstant, image_buffer_type)};
     texture_buffers.reserve(info.texture_buffer_descriptors.size());
     for (const TextureBufferDescriptor& desc : info.texture_buffer_descriptors) {
         if (desc.count != 1) {

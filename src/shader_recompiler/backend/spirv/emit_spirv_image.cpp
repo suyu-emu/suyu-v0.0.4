@@ -204,9 +204,7 @@ Id TextureImage(EmitContext& ctx, IR::TextureInstInfo info, const IR::Value& ind
         if (def.count > 1) {
             throw NotImplementedException("Indirect texture sample");
         }
-        const Id sampler_id{def.id};
-        const Id id{ctx.OpLoad(ctx.sampled_texture_buffer_type, sampler_id)};
-        return ctx.OpImage(ctx.image_buffer_type, id);
+        return ctx.OpLoad(ctx.image_buffer_type, def.id);
     } else {
         const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
         if (def.count > 1) {
