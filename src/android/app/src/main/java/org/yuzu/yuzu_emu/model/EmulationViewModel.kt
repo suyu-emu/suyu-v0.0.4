@@ -3,28 +3,28 @@
 
 package org.yuzu.yuzu_emu.model
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class EmulationViewModel : ViewModel() {
-    private val _emulationStarted = MutableLiveData(false)
-    val emulationStarted: LiveData<Boolean> get() = _emulationStarted
+    val emulationStarted: StateFlow<Boolean> get() = _emulationStarted
+    private val _emulationStarted = MutableStateFlow(false)
 
-    private val _isEmulationStopping = MutableLiveData(false)
-    val isEmulationStopping: LiveData<Boolean> get() = _isEmulationStopping
+    val isEmulationStopping: StateFlow<Boolean> get() = _isEmulationStopping
+    private val _isEmulationStopping = MutableStateFlow(false)
 
-    private val _shaderProgress = MutableLiveData(0)
-    val shaderProgress: LiveData<Int> get() = _shaderProgress
+    val shaderProgress: StateFlow<Int> get() = _shaderProgress
+    private val _shaderProgress = MutableStateFlow(0)
 
-    private val _totalShaders = MutableLiveData(0)
-    val totalShaders: LiveData<Int> get() = _totalShaders
+    val totalShaders: StateFlow<Int> get() = _totalShaders
+    private val _totalShaders = MutableStateFlow(0)
 
-    private val _shaderMessage = MutableLiveData("")
-    val shaderMessage: LiveData<String> get() = _shaderMessage
+    val shaderMessage: StateFlow<String> get() = _shaderMessage
+    private val _shaderMessage = MutableStateFlow("")
 
     fun setEmulationStarted(started: Boolean) {
-        _emulationStarted.postValue(started)
+        _emulationStarted.value = started
     }
 
     fun setIsEmulationStopping(value: Boolean) {
@@ -50,10 +50,18 @@ class EmulationViewModel : ViewModel() {
     }
 
     fun clear() {
-        _emulationStarted.value = false
-        _isEmulationStopping.value = false
-        _shaderProgress.value = 0
-        _totalShaders.value = 0
-        _shaderMessage.value = ""
+        setEmulationStarted(false)
+        setIsEmulationStopping(false)
+        setShaderProgress(0)
+        setTotalShaders(0)
+        setShaderMessage("")
+    }
+
+    companion object {
+        const val KEY_EMULATION_STARTED = "EmulationStarted"
+        const val KEY_IS_EMULATION_STOPPING = "IsEmulationStarting"
+        const val KEY_SHADER_PROGRESS = "ShaderProgress"
+        const val KEY_TOTAL_SHADERS = "TotalShaders"
+        const val KEY_SHADER_MESSAGE = "ShaderMessage"
     }
 }

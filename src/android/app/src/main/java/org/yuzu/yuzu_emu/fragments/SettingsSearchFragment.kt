@@ -15,10 +15,14 @@ import androidx.core.view.updatePadding
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.transition.MaterialSharedAxis
 import info.debatty.java.stringsimilarity.Cosine
+import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsSearchBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
@@ -79,10 +83,14 @@ class SettingsSearchFragment : Fragment() {
             search()
             binding.settingsList.smoothScrollToPosition(0)
         }
-        settingsViewModel.shouldReloadSettingsList.observe(viewLifecycleOwner) {
-            if (it) {
-                settingsViewModel.setShouldReloadSettingsList(false)
-                search()
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                settingsViewModel.shouldReloadSettingsList.collect {
+                    if (it) {
+                        settingsViewModel.setShouldReloadSettingsList(false)
+                        search()
+                    }
+                }
             }
         }
 

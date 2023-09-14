@@ -3,28 +3,24 @@
 
 package org.yuzu.yuzu_emu.model
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class TaskViewModel : ViewModel() {
-    private val _result = MutableLiveData<Any>()
-    val result: LiveData<Any> = _result
+    val result: StateFlow<Any> get() = _result
+    private val _result = MutableStateFlow(Any())
 
-    private val _isComplete = MutableLiveData<Boolean>()
-    val isComplete: LiveData<Boolean> = _isComplete
+    val isComplete: StateFlow<Boolean> get() = _isComplete
+    private val _isComplete = MutableStateFlow(false)
 
-    private val _isRunning = MutableLiveData<Boolean>()
-    val isRunning: LiveData<Boolean> = _isRunning
+    val isRunning: StateFlow<Boolean> get() = _isRunning
+    private val _isRunning = MutableStateFlow(false)
 
     lateinit var task: () -> Any
-
-    init {
-        clear()
-    }
 
     fun clear() {
         _result.value = Any()
@@ -33,15 +29,16 @@ class TaskViewModel : ViewModel() {
     }
 
     fun runTask() {
-        if (_isRunning.value == true) {
+        if (isRunning.value) {
             return
         }
         _isRunning.value = true
 
         viewModelScope.launch(Dispatchers.IO) {
             val res = task()
-            _result.postValue(res)
-            _isComplete.postValue(true)
+            _result.value = res
+            _isComplete.value = true
+            _isRunning.value = false
         }
     }
 }

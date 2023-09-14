@@ -22,10 +22,14 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.google.android.material.transition.MaterialFadeThrough
+import kotlinx.coroutines.launch
 import java.io.File
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
@@ -206,10 +210,14 @@ class SetupFragment : Fragment() {
             )
         }
 
-        homeViewModel.shouldPageForward.observe(viewLifecycleOwner) {
-            if (it) {
-                pageForward()
-                homeViewModel.setShouldPageForward(false)
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                homeViewModel.shouldPageForward.collect {
+                    if (it) {
+                        pageForward()
+                        homeViewModel.setShouldPageForward(false)
+                    }
+                }
             }
         }
 

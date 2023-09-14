@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.ui
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,8 +15,12 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.transition.MaterialFadeThrough
+import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.GameAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentGamesBinding
@@ -44,6 +49,8 @@ class GamesFragment : Fragment() {
         return binding.root
     }
 
+    // This is using the correct scope, lint is just acting up
+    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         homeViewModel.setNavigationVisibility(visible = true, animated = false)
 
@@ -80,37 +87,48 @@ class GamesFragment : Fragment() {
                 if (_binding == null) {
                     return@post
                 }
-                binding.swipeRefresh.isRefreshing = gamesViewModel.isReloading.value!!
+                binding.swipeRefresh.isRefreshing = gamesViewModel.isReloading.value
             }
         }
 
-        gamesViewModel.apply {
-            // Watch for when we get updates to any of our games lists
-            isReloading.observe(viewLifecycleOwner) { isReloading ->
-                binding.swipeRefresh.isRefreshing = isReloading
-            }
-            games.observe(viewLifecycleOwner) {
-                (binding.gridGames.adapter as GameAdapter).submitList(it)
-                if (it.isEmpty()) {
-                    binding.noticeText.visibility = View.VISIBLE
-                } else {
-                    binding.noticeText.visibility = View.GONE
+        viewLifecycleOwner.lifecycleScope.apply {
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    gamesViewModel.isReloading.collect { binding.swipeRefresh.isRefreshing = it }
                 }
             }
-            shouldSwapData.observe(viewLifecycleOwner) { shouldSwapData ->
-                if (shouldSwapData) {
-                    (binding.gridGames.adapter as GameAdapter).submitList(
-                        gamesViewModel.games.value!!
-                    )
-                    gamesViewModel.setShouldSwapData(false)
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    gamesViewModel.games.collect {
+                        (binding.gridGames.adapter as GameAdapter).submitList(it)
+                        if (it.isEmpty()) {
+                            binding.noticeText.visibility = View.VISIBLE
+                        } else {
+                            binding.noticeText.visibility = View.GONE
+                        }
+                    }
                 }
             }
-
-            // Check if the user reselected the games menu item and then scroll to top of the list
-            shouldScrollToTop.observe(viewLifecycleOwner) { shouldScroll ->
-                if (shouldScroll) {
-                    scrollToTop()
-                    gamesViewModel.setShouldScrollToTop(false)
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    gamesViewModel.shouldSwapData.collect {
+                        if (it) {
+                            (binding.gridGames.adapter as GameAdapter).submitList(
+                                gamesViewModel.games.value
+                            )
+                            gamesViewModel.setShouldSwapData(false)
+                        }
+                    }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    gamesViewModel.shouldScrollToTop.collect {
+                        if (it) {
+                            scrollToTop()
+                            gamesViewModel.setShouldScrollToTop(false)
+                        }
+                    }
                 }
             }
         }

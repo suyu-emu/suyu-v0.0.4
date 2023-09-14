@@ -19,7 +19,9 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
@@ -40,7 +42,6 @@ import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.GamesViewModel
@@ -107,7 +108,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 R.id.homeSettingsFragment -> {
                     val action = HomeNavigationDirections.actionGlobalSettingsActivity(
                         null,
-                        SettingsFile.FILE_NAME_CONFIG
+                        Settings.MenuTag.SECTION_ROOT
                     )
                     navHostFragment.navController.navigate(action)
                 }
@@ -115,16 +116,22 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         }
 
         // Prevents navigation from being drawn for a short time on recreation if set to hidden
-        if (!homeViewModel.navigationVisible.value?.first!!) {
+        if (!homeViewModel.navigationVisible.value.first) {
             binding.navigationView.visibility = View.INVISIBLE
             binding.statusBarShade.visibility = View.INVISIBLE
         }
 
-        homeViewModel.navigationVisible.observe(this) {
-            showNavigation(it.first, it.second)
-        }
-        homeViewModel.statusBarShadeVisible.observe(this) { visible ->
-            showStatusBarShade(visible)
+        lifecycleScope.apply {
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    homeViewModel.navigationVisible.collect { showNavigation(it.first, it.second) }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    homeViewModel.statusBarShadeVisible.collect { showStatusBarShade(it) }
+                }
+            }
         }
 
         // Dismiss previous notifications (should not happen unless a crash occurred)
