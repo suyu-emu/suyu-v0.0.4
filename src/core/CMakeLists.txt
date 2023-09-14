@@ -627,8 +627,8 @@ add_library(core STATIC
     hle/service/nfp/nfp_interface.h
     hle/service/nfp/nfp_result.h
     hle/service/nfp/nfp_types.h
-    hle/service/ngct/ngct.cpp
-    hle/service/ngct/ngct.h
+    hle/service/ngc/ngc.cpp
+    hle/service/ngc/ngc.h
     hle/service/nifm/nifm.cpp
     hle/service/nifm/nifm.h
     hle/service/nim/nim.cpp
