@@ -52,7 +52,7 @@ public:
 
     // Checks to see if PatchNSO() will have any effect given the NSO's build ID.
     // Used to prevent expensive copies in NSO loader.
-    [[nodiscard]] bool HasNSOPatch(const BuildID& build_id) const;
+    [[nodiscard]] bool HasNSOPatch(const BuildID& build_id, std::string_view name) const;
 
     // Creates a CheatList object with all
     [[nodiscard]] std::vector<Core::Memory::CheatEntry> CreateCheatList(

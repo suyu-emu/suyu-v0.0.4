@@ -18,7 +18,7 @@ namespace Loader {
 
 AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys::VirtualFile file_,
                                                                          bool override_update_)
-    : AppLoader(std::move(file_)), override_update(override_update_) {
+    : AppLoader(std::move(file_)), override_update(override_update_), is_hbl(false) {
     const auto file_dir = file->GetContainingDirectory();
 
     // Title ID
@@ -69,9 +69,9 @@ AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys
 }
 
 AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(
-    FileSys::VirtualDir directory, bool override_update_)
+    FileSys::VirtualDir directory, bool override_update_, bool is_hbl_)
     : AppLoader(directory->GetFile("main")), dir(std::move(directory)),
-      override_update(override_update_) {}
+      override_update(override_update_), is_hbl(is_hbl_) {}
 
 FileType AppLoader_DeconstructedRomDirectory::IdentifyType(const FileSys::VirtualFile& dir_file) {
     if (FileSys::IsDirectoryExeFS(dir_file->GetContainingDirectory())) {
@@ -147,7 +147,7 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     }
 
     // Setup the process code layout
-    if (process.LoadFromMetadata(metadata, code_size).IsError()) {
+    if (process.LoadFromMetadata(metadata, code_size, is_hbl).IsError()) {
         return {ResultStatus::ErrorUnableToParseKernelMetadata, {}};
     }
 
