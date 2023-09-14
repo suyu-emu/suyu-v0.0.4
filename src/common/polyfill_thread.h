@@ -19,8 +19,8 @@
 namespace Common {
 
 template <typename Condvar, typename Lock, typename Pred>
-void CondvarWait(Condvar& cv, Lock& lock, std::stop_token token, Pred&& pred) {
-    cv.wait(lock, token, std::move(pred));
+void CondvarWait(Condvar& cv, std::unique_lock<Lock>& lk, std::stop_token token, Pred&& pred) {
+    cv.wait(lk, token, std::move(pred));
 }
 
 template <typename Rep, typename Period>
@@ -332,13 +332,17 @@ private:
 namespace Common {
 
 template <typename Condvar, typename Lock, typename Pred>
-void CondvarWait(Condvar& cv, Lock& lock, std::stop_token token, Pred pred) {
+void CondvarWait(Condvar& cv, std::unique_lock<Lock>& lk, std::stop_token token, Pred pred) {
     if (token.stop_requested()) {
         return;
     }
 
-    std::stop_callback callback(token, [&] { cv.notify_all(); });
-    cv.wait(lock, [&] { return pred() || token.stop_requested(); });
+    std::stop_callback callback(token, [&] {
+        { std::scoped_lock lk2{*lk.mutex()}; }
+        cv.notify_all();
+    });
+
+    cv.wait(lk, [&] { return pred() || token.stop_requested(); });
 }
 
 template <typename Rep, typename Period>
@@ -353,8 +357,10 @@ bool StoppableTimedWait(std::stop_token token, const std::chrono::duration<Rep, 
 
     std::stop_callback cb(token, [&] {
         // Wake up the waiting thread.
-        std::unique_lock lk{m};
-        stop_requested = true;
+        {
+            std::scoped_lock lk{m};
+            stop_requested = true;
+        }
         cv.notify_one();
     });
 
