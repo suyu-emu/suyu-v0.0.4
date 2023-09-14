@@ -63,7 +63,7 @@ static QString DefaultSuffix(QWidget* parent, Settings::BasicSetting& setting) {
         return tr("%", context.c_str());
     }
 
-    return QStringLiteral("");
+    return default_suffix;
 }
 
 QPushButton* Widget::CreateRestoreGlobalButton(bool using_global, QWidget* parent) {
@@ -71,7 +71,7 @@ QPushButton* Widget::CreateRestoreGlobalButton(bool using_global, QWidget* paren
 
     QStyle* style = parent->style();
     QIcon* icon = new QIcon(style->standardIcon(QStyle::SP_LineEditClearButton));
-    QPushButton* restore_button = new QPushButton(*icon, QStringLiteral(""), parent);
+    QPushButton* restore_button = new QPushButton(*icon, QStringLiteral(), parent);
     restore_button->setObjectName(QStringLiteral("RestoreButton%1").arg(restore_button_count));
     restore_button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
@@ -259,7 +259,7 @@ static void CreateIntSlider(Settings::BasicSetting& setting, bool reversed, floa
                             QLabel* feedback, const QString& use_format, QSlider* slider,
                             std::function<std::string()>& serializer,
                             std::function<void()>& restore_func) {
-    int max_val = std::strtol(setting.MaxVal().c_str(), nullptr, 0);
+    const int max_val = std::strtol(setting.MaxVal().c_str(), nullptr, 0);
 
     const auto update_feedback = [=](int value) {
         int present = (reversed ? max_val - value : value) * multiplier + 0.5f;
@@ -283,9 +283,10 @@ static void CreateFloatSlider(Settings::BasicSetting& setting, bool reversed, fl
                               QLabel* feedback, const QString& use_format, QSlider* slider,
                               std::function<std::string()>& serializer,
                               std::function<void()>& restore_func) {
-    float max_val = std::strtof(setting.MaxVal().c_str(), nullptr);
-    float min_val = std::strtof(setting.MinVal().c_str(), nullptr);
-    float use_multiplier = multiplier == default_multiplier ? default_float_multiplier : multiplier;
+    const float max_val = std::strtof(setting.MaxVal().c_str(), nullptr);
+    const float min_val = std::strtof(setting.MinVal().c_str(), nullptr);
+    const float use_multiplier =
+        multiplier == default_multiplier ? default_float_multiplier : multiplier;
 
     const auto update_feedback = [=](float value) {
         int present = (reversed ? max_val - value : value) + 0.5f;
@@ -330,8 +331,7 @@ QWidget* Widget::CreateSlider(bool reversed, float multiplier, const QString& gi
 
     layout->setContentsMargins(0, 0, 0, 0);
 
-    QString suffix =
-        given_suffix == QStringLiteral("") ? DefaultSuffix(this, setting) : given_suffix;
+    QString suffix = given_suffix == default_suffix ? DefaultSuffix(this, setting) : given_suffix;
 
     const QString use_format = QStringLiteral("%1").append(suffix);
 
@@ -360,8 +360,7 @@ QWidget* Widget::CreateSpinBox(const QString& given_suffix,
     const auto max_val = std::strtol(setting.MaxVal().c_str(), nullptr, 0);
     const auto default_val = std::strtol(setting.ToString().c_str(), nullptr, 0);
 
-    QString suffix =
-        given_suffix == QStringLiteral("") ? DefaultSuffix(this, setting) : given_suffix;
+    QString suffix = given_suffix == default_suffix ? DefaultSuffix(this, setting) : given_suffix;
 
     spinbox = new QSpinBox(this);
     spinbox->setRange(min_val, max_val);
@@ -395,8 +394,7 @@ QWidget* Widget::CreateDoubleSpinBox(const QString& given_suffix,
     const auto max_val = std::strtod(setting.MaxVal().c_str(), nullptr);
     const auto default_val = std::strtod(setting.ToString().c_str(), nullptr);
 
-    QString suffix =
-        given_suffix == QStringLiteral("") ? DefaultSuffix(this, setting) : given_suffix;
+    QString suffix = given_suffix == default_suffix ? DefaultSuffix(this, setting) : given_suffix;
 
     double_spinbox = new QDoubleSpinBox(this);
     double_spinbox->setRange(min_val, max_val);
@@ -733,10 +731,10 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
             return std::pair{translations.at(id).first, translations.at(id).second};
         }
         LOG_WARNING(Frontend, "Translation table lacks entry for \"{}\"", setting_label);
-        return std::pair{QString::fromStdString(setting_label), QStringLiteral("")};
+        return std::pair{QString::fromStdString(setting_label), QStringLiteral()};
     }();
 
-    if (label == QStringLiteral("")) {
+    if (label == QStringLiteral()) {
         LOG_DEBUG(Frontend, "Translation table has empty entry for \"{}\", skipping...",
                   setting.GetLabel());
         return;
