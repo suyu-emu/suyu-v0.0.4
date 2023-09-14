@@ -13,9 +13,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navArgs
 import com.google.android.material.color.MaterialColors
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.io.IOException
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
@@ -66,25 +71,39 @@ class SettingsActivity : AppCompatActivity() {
             )
         }
 
-        settingsViewModel.shouldRecreate.observe(this) {
-            if (it) {
-                settingsViewModel.setShouldRecreate(false)
-                recreate()
+        lifecycleScope.apply {
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    settingsViewModel.shouldRecreate.collectLatest {
+                        if (it) {
+                            settingsViewModel.setShouldRecreate(false)
+                            recreate()
+                        }
+                    }
+                }
             }
-        }
-        settingsViewModel.shouldNavigateBack.observe(this) {
-            if (it) {
-                settingsViewModel.setShouldNavigateBack(false)
-                navigateBack()
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    settingsViewModel.shouldNavigateBack.collectLatest {
+                        if (it) {
+                            settingsViewModel.setShouldNavigateBack(false)
+                            navigateBack()
+                        }
+                    }
+                }
             }
-        }
-        settingsViewModel.shouldShowResetSettingsDialog.observe(this) {
-            if (it) {
-                settingsViewModel.setShouldShowResetSettingsDialog(false)
-                ResetSettingsDialogFragment().show(
-                    supportFragmentManager,
-                    ResetSettingsDialogFragment.TAG
-                )
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    settingsViewModel.shouldShowResetSettingsDialog.collectLatest {
+                        if (it) {
+                            settingsViewModel.setShouldShowResetSettingsDialog(false)
+                            ResetSettingsDialogFragment().show(
+                                supportFragmentManager,
+                                ResetSettingsDialogFragment.TAG
+                            )
+                        }
+                    }
+                }
             }
         }
 

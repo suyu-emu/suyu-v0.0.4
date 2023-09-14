@@ -10,7 +10,7 @@
         android:label="SettingsFragment">
         <argument
             android:name="menuTag"
-            app:argType="string" />
+            app:argType="org.yuzu.yuzu_emu.features.settings.model.Settings$MenuTag" />
         <argument
             android:name="game"
             app:argType="org.yuzu.yuzu_emu.model.Game"

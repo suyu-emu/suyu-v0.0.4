@@ -80,6 +80,17 @@ object Settings {
     const val SECTION_THEME = "Theme"
     const val SECTION_DEBUG = "Debug"
 
+    enum class MenuTag(val titleId: Int) {
+        SECTION_ROOT(R.string.advanced_settings),
+        SECTION_GENERAL(R.string.preferences_general),
+        SECTION_SYSTEM(R.string.preferences_system),
+        SECTION_RENDERER(R.string.preferences_graphics),
+        SECTION_AUDIO(R.string.preferences_audio),
+        SECTION_CPU(R.string.cpu),
+        SECTION_THEME(R.string.preferences_theme),
+        SECTION_DEBUG(R.string.preferences_debug);
+    }
+
     const val PREF_MEMORY_WARNING_SHOWN = "MemoryWarningShown"
 
     const val PREF_OVERLAY_VERSION = "OverlayVersion"

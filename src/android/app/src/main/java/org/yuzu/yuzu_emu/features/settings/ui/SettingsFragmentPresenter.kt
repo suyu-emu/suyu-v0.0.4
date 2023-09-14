@@ -6,7 +6,6 @@ package org.yuzu.yuzu_emu.features.settings.ui
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
-import android.text.TextUtils
 import android.widget.Toast
 import androidx.preference.PreferenceManager
 import org.yuzu.yuzu_emu.R
@@ -20,15 +19,13 @@ import org.yuzu.yuzu_emu.features.settings.model.LongSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
-import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.SettingsViewModel
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
 class SettingsFragmentPresenter(
     private val settingsViewModel: SettingsViewModel,
     private val adapter: SettingsAdapter,
-    private var menuTag: String,
-    private var gameId: String
+    private var menuTag: Settings.MenuTag
 ) {
     private var settingsList = ArrayList<SettingsItem>()
 
@@ -53,24 +50,15 @@ class SettingsFragmentPresenter(
     }
 
     fun loadSettingsList() {
-        if (!TextUtils.isEmpty(gameId)) {
-            settingsViewModel.setToolbarTitle(
-                context.getString(
-                    R.string.advanced_settings_game,
-                    gameId
-                )
-            )
-        }
-
         val sl = ArrayList<SettingsItem>()
         when (menuTag) {
-            SettingsFile.FILE_NAME_CONFIG -> addConfigSettings(sl)
-            Settings.SECTION_GENERAL -> addGeneralSettings(sl)
-            Settings.SECTION_SYSTEM -> addSystemSettings(sl)
-            Settings.SECTION_RENDERER -> addGraphicsSettings(sl)
-            Settings.SECTION_AUDIO -> addAudioSettings(sl)
-            Settings.SECTION_THEME -> addThemeSettings(sl)
-            Settings.SECTION_DEBUG -> addDebugSettings(sl)
+            Settings.MenuTag.SECTION_ROOT -> addConfigSettings(sl)
+            Settings.MenuTag.SECTION_GENERAL -> addGeneralSettings(sl)
+            Settings.MenuTag.SECTION_SYSTEM -> addSystemSettings(sl)
+            Settings.MenuTag.SECTION_RENDERER -> addGraphicsSettings(sl)
+            Settings.MenuTag.SECTION_AUDIO -> addAudioSettings(sl)
+            Settings.MenuTag.SECTION_THEME -> addThemeSettings(sl)
+            Settings.MenuTag.SECTION_DEBUG -> addDebugSettings(sl)
             else -> {
                 val context = YuzuApplication.appContext
                 Toast.makeText(
@@ -86,13 +74,12 @@ class SettingsFragmentPresenter(
     }
 
     private fun addConfigSettings(sl: ArrayList<SettingsItem>) {
-        settingsViewModel.setToolbarTitle(context.getString(R.string.advanced_settings))
         sl.apply {
-            add(SubmenuSetting(R.string.preferences_general, 0, Settings.SECTION_GENERAL))
-            add(SubmenuSetting(R.string.preferences_system, 0, Settings.SECTION_SYSTEM))
-            add(SubmenuSetting(R.string.preferences_graphics, 0, Settings.SECTION_RENDERER))
-            add(SubmenuSetting(R.string.preferences_audio, 0, Settings.SECTION_AUDIO))
-            add(SubmenuSetting(R.string.preferences_debug, 0, Settings.SECTION_DEBUG))
+            add(SubmenuSetting(R.string.preferences_general, 0, Settings.MenuTag.SECTION_GENERAL))
+            add(SubmenuSetting(R.string.preferences_system, 0, Settings.MenuTag.SECTION_SYSTEM))
+            add(SubmenuSetting(R.string.preferences_graphics, 0, Settings.MenuTag.SECTION_RENDERER))
+            add(SubmenuSetting(R.string.preferences_audio, 0, Settings.MenuTag.SECTION_AUDIO))
+            add(SubmenuSetting(R.string.preferences_debug, 0, Settings.MenuTag.SECTION_DEBUG))
             add(
                 RunnableSetting(R.string.reset_to_default, 0, false) {
                     settingsViewModel.setShouldShowResetSettingsDialog(true)
@@ -102,7 +89,6 @@ class SettingsFragmentPresenter(
     }
 
     private fun addGeneralSettings(sl: ArrayList<SettingsItem>) {
-        settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_general))
         sl.apply {
             add(BooleanSetting.RENDERER_USE_SPEED_LIMIT.key)
             add(ShortSetting.RENDERER_SPEED_LIMIT.key)
@@ -112,7 +98,6 @@ class SettingsFragmentPresenter(
     }
 
     private fun addSystemSettings(sl: ArrayList<SettingsItem>) {
-        settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_system))
         sl.apply {
             add(BooleanSetting.USE_DOCKED_MODE.key)
             add(IntSetting.REGION_INDEX.key)
@@ -123,7 +108,6 @@ class SettingsFragmentPresenter(
     }
 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
-        settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_graphics))
         sl.apply {
             add(IntSetting.RENDERER_ACCURACY.key)
             add(IntSetting.RENDERER_RESOLUTION.key)
@@ -140,7 +124,6 @@ class SettingsFragmentPresenter(
     }
 
     private fun addAudioSettings(sl: ArrayList<SettingsItem>) {
-        settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_audio))
         sl.apply {
             add(IntSetting.AUDIO_OUTPUT_ENGINE.key)
             add(ByteSetting.AUDIO_VOLUME.key)
@@ -148,7 +131,6 @@ class SettingsFragmentPresenter(
     }
 
     private fun addThemeSettings(sl: ArrayList<SettingsItem>) {
-        settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_theme))
         sl.apply {
             val theme: AbstractIntSetting = object : AbstractIntSetting {
                 override val int: Int
@@ -261,7 +243,6 @@ class SettingsFragmentPresenter(
     }
 
     private fun addDebugSettings(sl: ArrayList<SettingsItem>) {
-        settingsViewModel.setToolbarTitle(context.getString(R.string.preferences_debug))
         sl.apply {
             add(HeaderSetting(R.string.gpu))
             add(IntSetting.RENDERER_BACKEND.key)

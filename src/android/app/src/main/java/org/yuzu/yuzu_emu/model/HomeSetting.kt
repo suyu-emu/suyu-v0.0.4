@@ -3,8 +3,8 @@
 
 package org.yuzu.yuzu_emu.model
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 data class HomeSetting(
     val titleId: Int,
@@ -14,5 +14,5 @@ data class HomeSetting(
     val isEnabled: () -> Boolean = { true },
     val disabledTitleId: Int = 0,
     val disabledMessageId: Int = 0,
-    val details: LiveData<String> = MutableLiveData("")
+    val details: StateFlow<String> = MutableStateFlow("")
 )

@@ -10,8 +10,12 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.CardHomeOptionBinding
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
@@ -86,7 +90,11 @@ class HomeSettingAdapter(
                 binding.optionIcon.alpha = 0.5f
             }
 
-            option.details.observe(viewLifecycle) { updateOptionDetails(it) }
+            viewLifecycle.lifecycleScope.launch {
+                viewLifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    option.details.collect { updateOptionDetails(it) }
+                }
+            }
             binding.optionDetail.postDelayed(
                 {
                     binding.optionDetail.ellipsize = TextUtils.TruncateAt.MARQUEE
