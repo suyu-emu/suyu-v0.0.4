@@ -719,6 +719,7 @@ typename P::ImageView* TextureCache<P>::TryFindFramebufferImageView(VAddr cpu_ad
         return nullptr;
     }
     const auto& image_map_ids = it->second;
+    boost::container::small_vector<const ImageBase*, 4> valid_images;
     for (const ImageMapId map_id : image_map_ids) {
         const ImageMapView& map = slot_map_views[map_id];
         const ImageBase& image = slot_images[map.image_id];
@@ -728,8 +729,20 @@ typename P::ImageView* TextureCache<P>::TryFindFramebufferImageView(VAddr cpu_ad
         if (image.image_view_ids.empty()) {
             continue;
         }
-        return &slot_image_views[image.image_view_ids.at(0)];
+        valid_images.push_back(&image);
     }
+
+    if (valid_images.size() == 1) [[likely]] {
+        return &slot_image_views[valid_images[0]->image_view_ids.at(0)];
+    }
+
+    if (valid_images.size() > 0) [[unlikely]] {
+        std::ranges::sort(valid_images, [](const auto* a, const auto* b) {
+            return a->modification_tick > b->modification_tick;
+        });
+        return &slot_image_views[valid_images[0]->image_view_ids.at(0)];
+    }
+
     return nullptr;
 }
 
