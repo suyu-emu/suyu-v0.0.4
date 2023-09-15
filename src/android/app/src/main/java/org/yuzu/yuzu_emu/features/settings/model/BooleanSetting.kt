@@ -10,6 +10,7 @@ enum class BooleanSetting(
     override val category: Settings.Category,
     override val androidDefault: Boolean? = null
 ) : AbstractBooleanSetting {
+    AUDIO_MUTED("audio_muted", Settings.Category.Audio),
     CPU_DEBUG_MODE("cpu_debug_mode", Settings.Category.Cpu),
     FASTMEM("cpuopt_fastmem", Settings.Category.Cpu),
     FASTMEM_EXCLUSIVES("cpuopt_fastmem_exclusives", Settings.Category.Cpu),
