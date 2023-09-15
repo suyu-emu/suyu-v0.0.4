@@ -670,18 +670,6 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isPaused(JNIEnv* env, jclass claz
     return static_cast<jboolean>(EmulationSession::GetInstance().IsPaused());
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_muteAduio(JNIEnv* env, jclass clazz) {
-    Settings::values.audio_muted = true;
-}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_unmuteAudio(JNIEnv* env, jclass clazz) {
-    Settings::values.audio_muted = false;
-}
-
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isMuted(JNIEnv* env, jclass clazz) {
-    return static_cast<jboolean>(Settings::values.audio_muted.GetValue());
-}
-
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isHandheldOnly(JNIEnv* env, jclass clazz) {
     return EmulationSession::GetInstance().IsHandheldOnly();
 }
