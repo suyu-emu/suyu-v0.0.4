@@ -27,7 +27,7 @@
             app:nullable="true" />
         <argument
             android:name="menuTag"
-            app:argType="string" />
+            app:argType="org.yuzu.yuzu_emu.features.settings.model.Settings$MenuTag" />
     </activity>
 
     <action
