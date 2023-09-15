@@ -262,9 +262,6 @@ public:
     Core::SystemResultStatus InitializeEmulation(const std::string& filepath) {
         std::scoped_lock lock(m_mutex);
 
-        // Loads the configuration.
-        Config{};
-
         // Create the render window.
         m_window = std::make_unique<EmuWindow_Android>(&m_input_subsystem, m_native_window,
                                                        m_vulkan_library);
