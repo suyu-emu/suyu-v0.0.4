@@ -332,7 +332,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             pictureInPictureActions.add(pauseRemoteAction)
         }
 
-        if (NativeLibrary.isMuted()) {
+        if (BooleanSetting.AUDIO_MUTED.boolean) {
             val unmuteIcon = Icon.createWithResource(
                 this@EmulationActivity,
                 R.drawable.ic_pip_unmute
@@ -389,9 +389,9 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
                 if (!NativeLibrary.isPaused()) NativeLibrary.pauseEmulation()
             }
             if (intent.action == actionUnmute) {
-                if (NativeLibrary.isMuted()) NativeLibrary.unmuteAudio()
+                if (BooleanSetting.AUDIO_MUTED.boolean) BooleanSetting.AUDIO_MUTED.setBoolean(false)
             } else if (intent.action == actionMute) {
-                if (!NativeLibrary.isMuted()) NativeLibrary.muteAudio()
+                if (!BooleanSetting.AUDIO_MUTED.boolean) BooleanSetting.AUDIO_MUTED.setBoolean(true)
             }
             buildPictureInPictureParams()
         }
@@ -417,7 +417,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             } catch (ignored: Exception) {
             }
             // Always resume audio, since there is no UI button
-            if (NativeLibrary.isMuted()) NativeLibrary.unmuteAudio()
+            if (BooleanSetting.AUDIO_MUTED.boolean) BooleanSetting.AUDIO_MUTED.setBoolean(false)
         }
     }
 
