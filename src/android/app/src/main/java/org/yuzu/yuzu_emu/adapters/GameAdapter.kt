@@ -4,7 +4,8 @@
 package org.yuzu.yuzu_emu.adapters
 
 import android.content.Intent
-import android.graphics.drawable.BitmapDrawable
+import android.graphics.Bitmap
+import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.text.TextUtils
 import android.view.LayoutInflater
@@ -15,7 +16,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.IconCompat
+import androidx.core.graphics.drawable.toBitmap
+import androidx.core.graphics.drawable.toDrawable
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
@@ -87,11 +91,24 @@ class GameAdapter(private val activity: AppCompatActivity) :
             action = Intent.ACTION_VIEW
             data = Uri.parse(holder.game.path)
         }
+
+        val layerDrawable = ResourcesCompat.getDrawable(
+            YuzuApplication.appContext.resources,
+            R.drawable.shortcut,
+            null
+        ) as LayerDrawable
+        layerDrawable.setDrawableByLayerId(
+            R.id.shortcut_foreground,
+            GameIconUtils.getGameIcon(holder.game).toDrawable(YuzuApplication.appContext.resources)
+        )
+        val inset = YuzuApplication.appContext.resources
+            .getDimensionPixelSize(R.dimen.icon_inset)
+        layerDrawable.setLayerInset(1, inset, inset, inset, inset)
         val shortcut = ShortcutInfoCompat.Builder(YuzuApplication.appContext, holder.game.path)
             .setShortLabel(holder.game.title)
             .setIcon(
-                IconCompat.createWithBitmap(
-                    (holder.binding.imageGameScreen.drawable as BitmapDrawable).bitmap
+                IconCompat.createWithAdaptiveBitmap(
+                    layerDrawable.toBitmap(config = Bitmap.Config.ARGB_8888)
                 )
             )
             .setIntent(openIntent)
