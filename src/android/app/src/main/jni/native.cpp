@@ -327,12 +327,13 @@ public:
             m_system.ShutdownMainProcess();
             m_detached_tasks.WaitForAllTasks();
             m_load_result = Core::SystemResultStatus::ErrorNotInitialized;
+            m_window.reset();
+            OnEmulationStopped(Core::SystemResultStatus::Success);
+            return;
         }
 
         // Tear down the render window.
         m_window.reset();
-
-        OnEmulationStopped(m_load_result);
     }
 
     void PauseEmulation() {
