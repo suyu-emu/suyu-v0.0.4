@@ -93,12 +93,12 @@ class GamesFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.apply {
             launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     gamesViewModel.isReloading.collect { binding.swipeRefresh.isRefreshing = it }
                 }
             }
             launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     gamesViewModel.games.collect {
                         (binding.gridGames.adapter as GameAdapter).submitList(it)
                         if (it.isEmpty()) {
@@ -110,7 +110,7 @@ class GamesFragment : Fragment() {
                 }
             }
             launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     gamesViewModel.shouldSwapData.collect {
                         if (it) {
                             (binding.gridGames.adapter as GameAdapter).submitList(
@@ -122,7 +122,7 @@ class GamesFragment : Fragment() {
                 }
             }
             launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     gamesViewModel.shouldScrollToTop.collect {
                         if (it) {
                             scrollToTop()
