@@ -6,9 +6,11 @@ package org.yuzu.yuzu_emu.utils
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.widget.ImageView
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
 import coil.ImageLoader
 import coil.decode.DataSource
+import coil.executeBlocking
 import coil.fetch.DrawableResult
 import coil.fetch.FetchResult
 import coil.fetch.Fetcher
@@ -73,5 +75,14 @@ object GameIconUtils {
             .error(R.drawable.default_icon)
             .build()
         imageLoader.enqueue(request)
+    }
+
+    fun getGameIcon(game: Game): Bitmap {
+        val request = ImageRequest.Builder(YuzuApplication.appContext)
+            .data(game)
+            .error(R.drawable.default_icon)
+            .build()
+        return imageLoader.executeBlocking(request)
+            .drawable!!.toBitmap(config = Bitmap.Config.ARGB_8888)
     }
 }
