@@ -231,8 +231,10 @@ std::shared_ptr<IAppletResource> Hid::GetAppletResource() {
     return applet_resource;
 }
 
-Hid::Hid(Core::System& system_)
-    : ServiceFramework{system_, "hid"}, service_context{system_, service_name} {
+Hid::Hid(Core::System& system_, std::shared_ptr<IAppletResource> applet_resource_)
+    : ServiceFramework{system_, "hid"}, applet_resource{applet_resource_}, service_context{
+                                                                               system_,
+                                                                               service_name} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &Hid::CreateAppletResource, "CreateAppletResource"},
@@ -2543,8 +2545,9 @@ public:
 
 class HidSys final : public ServiceFramework<HidSys> {
 public:
-    explicit HidSys(Core::System& system_)
-        : ServiceFramework{system_, "hid:sys"}, service_context{system_, "hid:sys"} {
+    explicit HidSys(Core::System& system_, std::shared_ptr<IAppletResource> applet_resource_)
+        : ServiceFramework{system_, "hid:sys"}, service_context{system_, "hid:sys"},
+          applet_resource{applet_resource_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {31, nullptr, "SendKeyboardLockKeyEvent"},
@@ -2756,8 +2759,11 @@ public:
 
 private:
     void ApplyNpadSystemCommonPolicy(HLERequestContext& ctx) {
-        // We already do this for homebrew so we can just stub it out
         LOG_WARNING(Service_HID, "called");
+
+        GetAppletResource()
+            ->GetController<Controller_NPad>(HidController::NPad)
+            .ApplyNpadSystemCommonPolicy();
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
@@ -2821,17 +2827,28 @@ private:
         rb.PushRaw(touchscreen_config);
     }
 
+    std::shared_ptr<IAppletResource> GetAppletResource() {
+        if (applet_resource == nullptr) {
+            applet_resource = std::make_shared<IAppletResource>(system, service_context);
+        }
+
+        return applet_resource;
+    }
+
     Kernel::KEvent* joy_detach_event;
     KernelHelpers::ServiceContext service_context;
+    std::shared_ptr<IAppletResource> applet_resource;
 };
 
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
+    std::shared_ptr<IAppletResource> applet_resource;
 
-    server_manager->RegisterNamedService("hid", std::make_shared<Hid>(system));
+    server_manager->RegisterNamedService("hid", std::make_shared<Hid>(system, applet_resource));
     server_manager->RegisterNamedService("hidbus", std::make_shared<HidBus>(system));
     server_manager->RegisterNamedService("hid:dbg", std::make_shared<HidDbg>(system));
-    server_manager->RegisterNamedService("hid:sys", std::make_shared<HidSys>(system));
+    server_manager->RegisterNamedService("hid:sys",
+                                         std::make_shared<HidSys>(system, applet_resource));
 
     server_manager->RegisterNamedService("irs", std::make_shared<Service::IRS::IRS>(system));
     server_manager->RegisterNamedService("irs:sys",

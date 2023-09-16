@@ -95,7 +95,7 @@ private:
 
 class Hid final : public ServiceFramework<Hid> {
 public:
-    explicit Hid(Core::System& system_);
+    explicit Hid(Core::System& system_, std::shared_ptr<IAppletResource> applet_resource_);
     ~Hid() override;
 
     std::shared_ptr<IAppletResource> GetAppletResource();

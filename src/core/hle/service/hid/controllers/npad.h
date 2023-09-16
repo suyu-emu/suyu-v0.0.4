@@ -190,6 +190,8 @@ public:
     // Specifically for cheat engine and other features.
     Core::HID::NpadButton GetAndResetPressState();
 
+    void ApplyNpadSystemCommonPolicy();
+
     static bool IsNpadIdValid(Core::HID::NpadIdType npad_id);
     static Result IsDeviceHandleValid(const Core::HID::VibrationDeviceHandle& device_handle);
     static Result VerifyValidSixAxisSensorHandle(
