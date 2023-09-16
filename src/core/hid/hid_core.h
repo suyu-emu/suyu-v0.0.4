@@ -48,6 +48,12 @@ public:
     /// Returns the first disconnected npad id
     NpadIdType GetFirstDisconnectedNpadId() const;
 
+    /// Sets the npad id of the last active controller
+    void SetLastActiveController(NpadIdType npad_id);
+
+    /// Returns the npad id of the last controller that pushed a button
+    NpadIdType GetLastActiveController() const;
+
     /// Sets all emulated controllers into configuring mode.
     void EnableAllControllerConfiguration();
 
@@ -77,6 +83,7 @@ private:
     std::unique_ptr<EmulatedConsole> console;
     std::unique_ptr<EmulatedDevices> devices;
     NpadStyleTag supported_style_tag{NpadStyleSet::All};
+    NpadIdType last_active_controller{NpadIdType::Handheld};
 };
 
 } // namespace Core::HID

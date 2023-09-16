@@ -193,7 +193,7 @@ void Controller_NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
         shared_memory->system_properties.use_minus.Assign(1);
         shared_memory->system_properties.is_charging_joy_dual.Assign(
             battery_level.dual.is_charging);
-        shared_memory->applet_nfc_xcd.applet_footer.type = AppletFooterUiType::SwitchProController;
+        shared_memory->applet_footer_type = AppletFooterUiType::SwitchProController;
         shared_memory->sixaxis_fullkey_properties.is_newly_assigned.Assign(1);
         break;
     case Core::HID::NpadStyleIndex::Handheld:
@@ -216,8 +216,7 @@ void Controller_NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
         shared_memory->system_properties.is_charging_joy_right.Assign(
             battery_level.right.is_charging);
         shared_memory->assignment_mode = NpadJoyAssignmentMode::Dual;
-        shared_memory->applet_nfc_xcd.applet_footer.type =
-            AppletFooterUiType::HandheldJoyConLeftJoyConRight;
+        shared_memory->applet_footer_type = AppletFooterUiType::HandheldJoyConLeftJoyConRight;
         shared_memory->sixaxis_handheld_properties.is_newly_assigned.Assign(1);
         break;
     case Core::HID::NpadStyleIndex::JoyconDual:
@@ -247,19 +246,19 @@ void Controller_NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
         shared_memory->assignment_mode = NpadJoyAssignmentMode::Dual;
 
         if (controller.is_dual_left_connected && controller.is_dual_right_connected) {
-            shared_memory->applet_nfc_xcd.applet_footer.type = AppletFooterUiType::JoyDual;
+            shared_memory->applet_footer_type = AppletFooterUiType::JoyDual;
             shared_memory->fullkey_color.fullkey = body_colors.left;
             shared_memory->battery_level_dual = battery_level.left.battery_level;
             shared_memory->system_properties.is_charging_joy_dual.Assign(
                 battery_level.left.is_charging);
         } else if (controller.is_dual_left_connected) {
-            shared_memory->applet_nfc_xcd.applet_footer.type = AppletFooterUiType::JoyDualLeftOnly;
+            shared_memory->applet_footer_type = AppletFooterUiType::JoyDualLeftOnly;
             shared_memory->fullkey_color.fullkey = body_colors.left;
             shared_memory->battery_level_dual = battery_level.left.battery_level;
             shared_memory->system_properties.is_charging_joy_dual.Assign(
                 battery_level.left.is_charging);
         } else {
-            shared_memory->applet_nfc_xcd.applet_footer.type = AppletFooterUiType::JoyDualRightOnly;
+            shared_memory->applet_footer_type = AppletFooterUiType::JoyDualRightOnly;
             shared_memory->fullkey_color.fullkey = body_colors.right;
             shared_memory->battery_level_dual = battery_level.right.battery_level;
             shared_memory->system_properties.is_charging_joy_dual.Assign(
@@ -278,7 +277,7 @@ void Controller_NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
         shared_memory->system_properties.use_minus.Assign(1);
         shared_memory->system_properties.is_charging_joy_left.Assign(
             battery_level.left.is_charging);
-        shared_memory->applet_nfc_xcd.applet_footer.type = AppletFooterUiType::JoyLeftHorizontal;
+        shared_memory->applet_footer_type = AppletFooterUiType::JoyLeftHorizontal;
         shared_memory->sixaxis_left_properties.is_newly_assigned.Assign(1);
         break;
     case Core::HID::NpadStyleIndex::JoyconRight:
@@ -293,7 +292,7 @@ void Controller_NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
         shared_memory->system_properties.use_plus.Assign(1);
         shared_memory->system_properties.is_charging_joy_right.Assign(
             battery_level.right.is_charging);
-        shared_memory->applet_nfc_xcd.applet_footer.type = AppletFooterUiType::JoyRightHorizontal;
+        shared_memory->applet_footer_type = AppletFooterUiType::JoyRightHorizontal;
         shared_memory->sixaxis_right_properties.is_newly_assigned.Assign(1);
         break;
     case Core::HID::NpadStyleIndex::GameCube:
@@ -314,12 +313,12 @@ void Controller_NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
     case Core::HID::NpadStyleIndex::SNES:
         shared_memory->style_tag.lucia.Assign(1);
         shared_memory->device_type.fullkey.Assign(1);
-        shared_memory->applet_nfc_xcd.applet_footer.type = AppletFooterUiType::Lucia;
+        shared_memory->applet_footer_type = AppletFooterUiType::Lucia;
         break;
     case Core::HID::NpadStyleIndex::N64:
         shared_memory->style_tag.lagoon.Assign(1);
         shared_memory->device_type.fullkey.Assign(1);
-        shared_memory->applet_nfc_xcd.applet_footer.type = AppletFooterUiType::Lagon;
+        shared_memory->applet_footer_type = AppletFooterUiType::Lagon;
         break;
     case Core::HID::NpadStyleIndex::SegaGenesis:
         shared_memory->style_tag.lager.Assign(1);
@@ -419,8 +418,16 @@ void Controller_NPad::RequestPadStateUpdate(Core::HID::NpadIdType npad_id) {
     std::scoped_lock lock{mutex};
     auto& controller = GetControllerFromNpadIdType(npad_id);
     const auto controller_type = controller.device->GetNpadStyleIndex();
+
+    if (!controller.device->IsConnected() && controller.is_connected) {
+        DisconnectNpad(npad_id);
+        return;
+    }
     if (!controller.device->IsConnected()) {
         return;
+    }
+    if (controller.device->IsConnected() && !controller.is_connected) {
+        InitNewlyAddedController(npad_id);
     }
 
     // This function is unique to yuzu for the turbo buttons and motion to work properly
@@ -467,6 +474,10 @@ void Controller_NPad::RequestPadStateUpdate(Core::HID::NpadIdType npad_id) {
         pad_entry.npad_buttons.zr.Assign(button_state.r);
         pad_entry.npad_buttons.l.Assign(button_state.zl);
         pad_entry.npad_buttons.r.Assign(button_state.zr);
+    }
+
+    if (pad_entry.npad_buttons.raw != Core::HID::NpadButton::None) {
+        hid_core.SetLastActiveController(npad_id);
     }
 }
 
@@ -736,14 +747,6 @@ void Controller_NPad::SetSupportedStyleSet(Core::HID::NpadStyleTag style_set) {
 
     // Once SetSupportedStyleSet is called controllers are fully initialized
     is_controller_initialized = true;
-
-    // Connect all active controllers
-    for (auto& controller : controller_data) {
-        const auto& device = controller.device;
-        if (device->IsConnected()) {
-            AddNewControllerAt(device->GetNpadStyleIndex(), device->GetNpadIdType());
-        }
-    }
 }
 
 Core::HID::NpadStyleTag Controller_NPad::GetSupportedStyleSet() const {
@@ -1116,7 +1119,7 @@ Result Controller_NPad::DisconnectNpad(Core::HID::NpadIdType npad_id) {
         .left = {},
         .right = {},
     };
-    shared_memory->applet_nfc_xcd.applet_footer.type = AppletFooterUiType::None;
+    shared_memory->applet_footer_type = AppletFooterUiType::None;
 
     controller.is_dual_left_connected = true;
     controller.is_dual_right_connected = true;
