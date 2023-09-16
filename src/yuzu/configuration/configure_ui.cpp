@@ -4,6 +4,7 @@
 #include "yuzu/configuration/configure_ui.h"
 
 #include <array>
+#include <cstdlib>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -94,11 +95,7 @@ static void PopulateResolutionComboBox(QComboBox* screenshot_height, QWidget* pa
 }
 
 static u32 ScreenshotDimensionToInt(const QString& height) {
-    try {
-        return std::stoi(height.toStdString());
-    } catch (std::invalid_argument&) {
-        return 0;
-    }
+    return std::strtoul(height.toUtf8(), nullptr, 0);
 }
 
 ConfigureUi::ConfigureUi(Core::System& system_, QWidget* parent)

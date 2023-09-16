@@ -22,6 +22,7 @@ class QObject;
 class QPushButton;
 class QSlider;
 class QSpinBox;
+class QDoubleSpinBox;
 class QRadioButton;
 
 namespace Settings {
@@ -42,6 +43,10 @@ enum class RequestType {
     RadioGroup,
     MaxEnum,
 };
+
+constexpr float default_multiplier{1.f};
+constexpr float default_float_multiplier{100.f};
+static const QString default_suffix = QStringLiteral();
 
 class Widget : public QWidget {
     Q_OBJECT
@@ -66,8 +71,9 @@ public:
                     const ComboboxTranslationMap& combobox_translations, QWidget* parent,
                     bool runtime_lock, std::vector<std::function<void(bool)>>& apply_funcs_,
                     RequestType request = RequestType::Default, bool managed = true,
-                    float multiplier = 1.0f, Settings::BasicSetting* other_setting = nullptr,
-                    const QString& suffix = QStringLiteral(""));
+                    float multiplier = default_multiplier,
+                    Settings::BasicSetting* other_setting = nullptr,
+                    const QString& suffix = default_suffix);
     virtual ~Widget();
 
     /**
@@ -89,6 +95,7 @@ public:
     QPushButton* restore_button{}; ///< Restore button for custom configurations
     QLineEdit* line_edit{};        ///< QLineEdit, used for LineEdit and HexEdit
     QSpinBox* spinbox{};
+    QDoubleSpinBox* double_spinbox{};
     QCheckBox* checkbox{};
     QSlider* slider{};
     QComboBox* combobox{};
@@ -126,6 +133,9 @@ private:
                                 const std::function<void()>& touch);
     QWidget* CreateSpinBox(const QString& suffix, std::function<std::string()>& serializer,
                            std::function<void()>& restore_func, const std::function<void()>& touch);
+    QWidget* CreateDoubleSpinBox(const QString& suffix, std::function<std::string()>& serializer,
+                                 std::function<void()>& restore_func,
+                                 const std::function<void()>& touch);
 
     QWidget* parent;
     const TranslationMap& translations;
@@ -145,14 +155,15 @@ public:
     Widget* BuildWidget(Settings::BasicSetting* setting,
                         std::vector<std::function<void(bool)>>& apply_funcs,
                         RequestType request = RequestType::Default, bool managed = true,
-                        float multiplier = 1.0f, Settings::BasicSetting* other_setting = nullptr,
-                        const QString& suffix = QStringLiteral("")) const;
+                        float multiplier = default_multiplier,
+                        Settings::BasicSetting* other_setting = nullptr,
+                        const QString& suffix = default_suffix) const;
 
     Widget* BuildWidget(Settings::BasicSetting* setting,
                         std::vector<std::function<void(bool)>>& apply_funcs,
                         Settings::BasicSetting* other_setting,
                         RequestType request = RequestType::Default,
-                        const QString& suffix = QStringLiteral("")) const;
+                        const QString& suffix = default_suffix) const;
 
     const ComboboxTranslationMap& ComboboxTranslations() const;
 
