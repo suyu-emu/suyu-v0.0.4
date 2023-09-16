@@ -165,7 +165,7 @@ static std::string EscapeStringSequences(std::string in) {
 void IPSwitchCompiler::ParseFlag(const std::string& line) {
     if (StartsWith(line, "@flag offset_shift ")) {
         // Offset Shift Flag
-        offset_shift = std::stoll(line.substr(19), nullptr, 0);
+        offset_shift = std::strtoll(line.substr(19).c_str(), nullptr, 0);
     } else if (StartsWith(line, "@little-endian")) {
         // Set values to read as little endian
         is_little_endian = true;
@@ -263,7 +263,7 @@ void IPSwitchCompiler::Parse() {
                 // 11 - 8 hex digit offset + space + minimum two digit overwrite val
                 if (patch_line.length() < 11)
                     break;
-                auto offset = std::stoul(patch_line.substr(0, 8), nullptr, 16);
+                auto offset = std::strtoul(patch_line.substr(0, 8).c_str(), nullptr, 16);
                 offset += static_cast<unsigned long>(offset_shift);
 
                 std::vector<u8> replace;

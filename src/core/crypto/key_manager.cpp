@@ -724,14 +724,14 @@ void KeyManager::LoadFromFile(const std::filesystem::path& file_path, bool is_ti
                     continue;
                 }
 
-                const auto index = std::stoul(out[0].substr(8, 2), nullptr, 16);
+                const auto index = std::strtoul(out[0].substr(8, 2).c_str(), nullptr, 16);
                 keyblobs[index] = Common::HexStringToArray<0x90>(out[1]);
             } else if (out[0].compare(0, 18, "encrypted_keyblob_") == 0) {
                 if (!ValidCryptoRevisionString(out[0], 18, 2)) {
                     continue;
                 }
 
-                const auto index = std::stoul(out[0].substr(18, 2), nullptr, 16);
+                const auto index = std::strtoul(out[0].substr(18, 2).c_str(), nullptr, 16);
                 encrypted_keyblobs[index] = Common::HexStringToArray<0xB0>(out[1]);
             } else if (out[0].compare(0, 20, "eticket_extended_kek") == 0) {
                 eticket_extended_kek = Common::HexStringToArray<576>(out[1]);
@@ -750,7 +750,7 @@ void KeyManager::LoadFromFile(const std::filesystem::path& file_path, bool is_ti
                     }
                     if (out[0].compare(0, kv.second.size(), kv.second) == 0) {
                         const auto index =
-                            std::stoul(out[0].substr(kv.second.size(), 2), nullptr, 16);
+                            std::strtoul(out[0].substr(kv.second.size(), 2).c_str(), nullptr, 16);
                         const auto sub = kv.first.second;
                         if (sub == 0) {
                             s128_keys[{kv.first.first, index, 0}] =
@@ -770,7 +770,7 @@ void KeyManager::LoadFromFile(const std::filesystem::path& file_path, bool is_ti
                     const auto& match = kak_names[j];
                     if (out[0].compare(0, std::strlen(match), match) == 0) {
                         const auto index =
-                            std::stoul(out[0].substr(std::strlen(match), 2), nullptr, 16);
+                            std::strtoul(out[0].substr(std::strlen(match), 2).c_str(), nullptr, 16);
                         s128_keys[{S128KeyType::KeyArea, index, j}] =
                             Common::HexStringToArray<16>(out[1]);
                     }

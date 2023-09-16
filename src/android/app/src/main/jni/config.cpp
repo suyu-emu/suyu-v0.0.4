@@ -282,7 +282,7 @@ void Config::ReadValues() {
     std::stringstream ss(title_list);
     std::string line;
     while (std::getline(ss, line, '|')) {
-        const auto title_id = std::stoul(line, nullptr, 16);
+        const auto title_id = std::strtoul(line.c_str(), nullptr, 16);
         const auto disabled_list = config->Get("AddOns", "disabled_" + line, "");
 
         std::stringstream inner_ss(disabled_list);
