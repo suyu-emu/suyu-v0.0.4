@@ -2768,7 +2768,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.PushEnum(Core::HID::NpadIdType::Handheld);
+        rb.PushEnum(system.HIDCore().GetLastActiveController());
     }
 
     void GetUniquePadsFromNpad(HLERequestContext& ctx) {
