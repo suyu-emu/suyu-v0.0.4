@@ -5,6 +5,9 @@ package org.yuzu.yuzu_emu.fragments
 
 import android.app.Dialog
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
@@ -21,22 +24,40 @@ import org.yuzu.yuzu_emu.model.TaskViewModel
 class IndeterminateProgressDialogFragment : DialogFragment() {
     private val taskViewModel: TaskViewModel by activityViewModels()
 
+    private lateinit var binding: DialogProgressBarBinding
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val titleId = requireArguments().getInt(TITLE)
 
-        val progressBinding = DialogProgressBarBinding.inflate(layoutInflater)
-        progressBinding.progressBar.isIndeterminate = true
+        binding = DialogProgressBarBinding.inflate(layoutInflater)
+        binding.progressBar.isIndeterminate = true
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(titleId)
-            .setView(progressBinding.root)
+            .setView(binding.root)
             .create()
         dialog.setCanceledOnTouchOutside(false)
 
+        if (!taskViewModel.isRunning.value) {
+            taskViewModel.runTask()
+        }
+        return dialog
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 taskViewModel.isComplete.collect {
                     if (it) {
-                        dialog.dismiss()
+                        dismiss()
                         when (val result = taskViewModel.result.value) {
                             is String -> Toast.makeText(requireContext(), result, Toast.LENGTH_LONG)
                                 .show()
@@ -51,11 +72,6 @@ class IndeterminateProgressDialogFragment : DialogFragment() {
                 }
             }
         }
-
-        if (!taskViewModel.isRunning.value) {
-            taskViewModel.runTask()
-        }
-        return dialog
     }
 
     companion object {
