@@ -528,38 +528,41 @@ void IterateDirEntriesRecursively(const std::filesystem::path& path,
 // Generic Filesystem Operations
 
 bool Exists(const fs::path& path) {
+    std::error_code ec;
 #ifdef ANDROID
     if (Android::IsContentUri(path)) {
         return Android::Exists(path);
     } else {
-        return fs::exists(path);
+        return fs::exists(path, ec);
     }
 #else
-    return fs::exists(path);
+    return fs::exists(path, ec);
 #endif
 }
 
 bool IsFile(const fs::path& path) {
+    std::error_code ec;
 #ifdef ANDROID
     if (Android::IsContentUri(path)) {
         return !Android::IsDirectory(path);
     } else {
-        return fs::is_regular_file(path);
+        return fs::is_regular_file(path, ec);
     }
 #else
-    return fs::is_regular_file(path);
+    return fs::is_regular_file(path, ec);
 #endif
 }
 
 bool IsDir(const fs::path& path) {
+    std::error_code ec;
 #ifdef ANDROID
     if (Android::IsContentUri(path)) {
         return Android::IsDirectory(path);
     } else {
-        return fs::is_directory(path);
+        return fs::is_directory(path, ec);
     }
 #else
-    return fs::is_directory(path);
+    return fs::is_directory(path, ec);
 #endif
 }
 
