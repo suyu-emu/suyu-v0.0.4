@@ -1508,6 +1508,31 @@ Core::HID::NpadButton Controller_NPad::GetAndResetPressState() {
     return static_cast<Core::HID::NpadButton>(press_state.exchange(0));
 }
 
+void Controller_NPad::ApplyNpadSystemCommonPolicy() {
+    Core::HID::NpadStyleTag styletag{};
+    styletag.fullkey.Assign(1);
+    styletag.handheld.Assign(1);
+    styletag.joycon_dual.Assign(1);
+    styletag.system_ext.Assign(1);
+    styletag.system.Assign(1);
+    SetSupportedStyleSet(styletag);
+
+    SetNpadHandheldActivationMode(NpadHandheldActivationMode::Dual);
+
+    supported_npad_id_types.clear();
+    supported_npad_id_types.resize(10);
+    supported_npad_id_types[0] = Core::HID::NpadIdType::Player1;
+    supported_npad_id_types[1] = Core::HID::NpadIdType::Player2;
+    supported_npad_id_types[2] = Core::HID::NpadIdType::Player3;
+    supported_npad_id_types[3] = Core::HID::NpadIdType::Player4;
+    supported_npad_id_types[4] = Core::HID::NpadIdType::Player5;
+    supported_npad_id_types[5] = Core::HID::NpadIdType::Player6;
+    supported_npad_id_types[6] = Core::HID::NpadIdType::Player7;
+    supported_npad_id_types[7] = Core::HID::NpadIdType::Player8;
+    supported_npad_id_types[8] = Core::HID::NpadIdType::Other;
+    supported_npad_id_types[9] = Core::HID::NpadIdType::Handheld;
+}
+
 bool Controller_NPad::IsControllerSupported(Core::HID::NpadStyleIndex controller) const {
     if (controller == Core::HID::NpadStyleIndex::Handheld) {
         const bool support_handheld =
