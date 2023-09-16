@@ -96,6 +96,7 @@ Result KProcess::Initialize(KProcess* process, Core::System& system, std::string
     process->m_is_suspended = false;
     process->m_schedule_count = 0;
     process->m_is_handle_table_initialized = false;
+    process->m_is_hbl = false;
 
     // Open a reference to the resource limit.
     process->m_resource_limit->Open();
@@ -351,12 +352,14 @@ Result KProcess::SetActivity(ProcessActivity activity) {
     R_SUCCEED();
 }
 
-Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size) {
+Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size,
+                                  bool is_hbl) {
     m_program_id = metadata.GetTitleID();
     m_ideal_core = metadata.GetMainThreadCore();
     m_is_64bit_process = metadata.Is64BitProgram();
     m_system_resource_size = metadata.GetSystemResourceSize();
     m_image_size = code_size;
+    m_is_hbl = is_hbl;
 
     if (metadata.GetAddressSpaceType() == FileSys::ProgramAddressSpaceType::Is39Bit) {
         // For 39-bit processes, the ASLR region starts at 0x800'0000 and is ~512GiB large.

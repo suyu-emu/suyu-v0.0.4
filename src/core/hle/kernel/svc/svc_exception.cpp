@@ -3,6 +3,7 @@
 
 #include "core/core.h"
 #include "core/debugger/debugger.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_types.h"
@@ -107,7 +108,10 @@ void Break(Core::System& system, BreakReason reason, u64 info1, u64 info2) {
         system.ArmInterface(static_cast<std::size_t>(thread_processor_id)).LogBacktrace();
     }
 
-    if (system.DebuggerEnabled()) {
+    const bool is_hbl = GetCurrentProcess(system.Kernel()).IsHbl();
+    const bool should_break = is_hbl || !notification_only;
+
+    if (system.DebuggerEnabled() && should_break) {
         auto* thread = system.Kernel().GetCurrentEmuThread();
         system.GetDebugger().NotifyThreadStopped(thread);
         thread->RequestSuspend(Kernel::SuspendType::Debug);

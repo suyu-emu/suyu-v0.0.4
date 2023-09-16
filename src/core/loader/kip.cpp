@@ -90,7 +90,8 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::KProcess& process,
     codeset.DataSegment().size += kip->GetBSSSize();
 
     // Setup the process code layout
-    if (process.LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), program_image.size())
+    if (process
+            .LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), program_image.size(), false)
             .IsError()) {
         return {ResultStatus::ErrorNotInitialized, {}};
     }

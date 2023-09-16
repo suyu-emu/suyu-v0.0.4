@@ -294,11 +294,11 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso, const std::st
     return out;
 }
 
-bool PatchManager::HasNSOPatch(const BuildID& build_id_) const {
+bool PatchManager::HasNSOPatch(const BuildID& build_id_, std::string_view name) const {
     const auto build_id_raw = Common::HexToString(build_id_);
     const auto build_id = build_id_raw.substr(0, build_id_raw.find_last_not_of('0') + 1);
 
-    LOG_INFO(Loader, "Querying NSO patch existence for build_id={}", build_id);
+    LOG_INFO(Loader, "Querying NSO patch existence for build_id={}, name={}", build_id, name);
 
     const auto load_dir = fs_controller.GetModificationLoadRoot(title_id);
     if (load_dir == nullptr) {
