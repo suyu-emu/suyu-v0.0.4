@@ -30,7 +30,8 @@ AppLoader_NSP::AppLoader_NSP(FileSys::VirtualFile file_,
     }
 
     if (nsp->IsExtractedType()) {
-        secondary_loader = std::make_unique<AppLoader_DeconstructedRomDirectory>(nsp->GetExeFS());
+        secondary_loader = std::make_unique<AppLoader_DeconstructedRomDirectory>(
+            nsp->GetExeFS(), false, file->GetName() == "hbl.nsp");
     } else {
         const auto control_nca =
             nsp->GetNCA(nsp->GetProgramTitleID(), FileSys::ContentRecordType::Control);

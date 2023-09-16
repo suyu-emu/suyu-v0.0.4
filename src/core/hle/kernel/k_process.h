@@ -338,7 +338,8 @@ public:
      * @returns ResultSuccess if all relevant metadata was able to be
      *          loaded and parsed. Otherwise, an error code is returned.
      */
-    Result LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size);
+    Result LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size,
+                            bool is_hbl);
 
     /**
      * Starts the main application thread for this process.
@@ -366,6 +367,10 @@ public:
 
     u64 GetId() const override {
         return GetProcessId();
+    }
+
+    bool IsHbl() const {
+        return m_is_hbl;
     }
 
     bool IsSignaled() const override;
@@ -525,6 +530,7 @@ private:
     bool m_is_immortal{};
     bool m_is_handle_table_initialized{};
     bool m_is_initialized{};
+    bool m_is_hbl{};
 
     std::atomic<u16> m_num_running_threads{};
 
