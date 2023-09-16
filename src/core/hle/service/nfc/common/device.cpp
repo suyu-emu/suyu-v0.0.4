@@ -874,16 +874,18 @@ Result NfcDevice::RestoreAmiibo() {
 }
 
 Result NfcDevice::Format() {
-    auto result1 = DeleteApplicationArea();
-    auto result2 = DeleteRegisterInfo();
+    Result result = ResultSuccess;
 
-    if (result1.IsError()) {
-        return result1;
+    if (device_state == DeviceState::TagFound) {
+        result = Mount(NFP::ModelType::Amiibo, NFP::MountTarget::All);
     }
 
-    if (result2.IsError()) {
-        return result2;
+    if (result.IsError()) {
+        return result;
     }
+
+    DeleteApplicationArea();
+    DeleteRegisterInfo();
 
     return Flush();
 }
