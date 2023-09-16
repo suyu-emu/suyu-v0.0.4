@@ -4,10 +4,12 @@
 #pragma once
 
 #include <map>
+#include <QKeySequence>
+#include <QString>
+#include <QWidget>
 #include "core/hid/hid_types.h"
 
 class QDialog;
-class QKeySequence;
 class QSettings;
 class QShortcut;
 class ControllerShortcut;

@@ -18,8 +18,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>829</width>
-     <height>758</height>
+     <width>842</width>
+     <height>741</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_1">
@@ -260,7 +260,7 @@
          <string>Graphics</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
-         <item row="3" column="0">
+         <item row="4" column="0">
           <widget class="QCheckBox" name="disable_loop_safety_checks">
            <property name="toolTip">
             <string>When checked, it executes shaders without loop logic changes</string>
@@ -270,20 +270,7 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="QCheckBox" name="dump_shaders">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="toolTip">
-            <string>When checked, it will dump all the original assembler shaders from the disk shader cache or game as found</string>
-           </property>
-           <property name="text">
-            <string>Dump Game Shaders</string>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="0">
+         <item row="8" column="0">
           <widget class="QCheckBox" name="disable_macro_hle">
            <property name="enabled">
             <bool>true</bool>
@@ -296,33 +283,7 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="0">
-          <widget class="QCheckBox" name="disable_macro_jit">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="toolTip">
-            <string>When checked, it disables the macro Just In Time compiler. Enabling this makes games run slower</string>
-           </property>
-           <property name="text">
-            <string>Disable Macro JIT</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QCheckBox" name="enable_graphics_debugging">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="toolTip">
-            <string>When checked, the graphics API enters a slower debugging mode</string>
-           </property>
-           <property name="text">
-            <string>Enable Graphics Debugging</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="0">
+         <item row="7" column="0">
           <widget class="QCheckBox" name="dump_macros">
            <property name="enabled">
             <bool>true</bool>
@@ -335,17 +296,7 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QCheckBox" name="enable_shader_feedback">
-           <property name="toolTip">
-            <string>When checked, yuzu will log statistics about the compiled pipeline cache</string>
-           </property>
-           <property name="text">
-            <string>Enable Shader Feedback</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
+         <item row="3" column="0">
           <widget class="QCheckBox" name="enable_nsight_aftermath">
            <property name="toolTip">
             <string>When checked, it enables Nsight Aftermath crash dumps</string>
@@ -355,7 +306,30 @@
            </property>
           </widget>
          </item>
-         <item row="8" column="0">
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="enable_shader_feedback">
+           <property name="toolTip">
+            <string>When checked, yuzu will log statistics about the compiled pipeline cache</string>
+           </property>
+           <property name="text">
+            <string>Enable Shader Feedback</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QCheckBox" name="disable_macro_jit">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="toolTip">
+            <string>When checked, it disables the macro Just In Time compiler. Enabling this makes games run slower</string>
+           </property>
+           <property name="text">
+            <string>Disable Macro JIT</string>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="0">
           <spacer name="verticalSpacer_5">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -370,6 +344,39 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="enable_graphics_debugging">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="toolTip">
+            <string>When checked, the graphics API enters a slower debugging mode</string>
+           </property>
+           <property name="text">
+            <string>Enable Graphics Debugging</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QCheckBox" name="dump_shaders">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="toolTip">
+            <string>When checked, it will dump all the original assembler shaders from the disk shader cache or game as found</string>
+           </property>
+           <property name="text">
+            <string>Dump Game Shaders</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="enable_renderdoc_hotkey">
+           <property name="text">
+            <string>Enable Renderdoc Hotkey</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>

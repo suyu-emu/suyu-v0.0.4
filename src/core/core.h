@@ -102,6 +102,10 @@ namespace Network {
 class RoomNetwork;
 }
 
+namespace Tools {
+class RenderdocAPI;
+}
+
 namespace Core {
 
 class ARM_Interface;
@@ -412,6 +416,8 @@ public:
 
     /// Gets an immutable reference to the Room Network.
     [[nodiscard]] const Network::RoomNetwork& GetRoomNetwork() const;
+
+    [[nodiscard]] Tools::RenderdocAPI& GetRenderdocAPI();
 
     void SetExitLocked(bool locked);
     bool GetExitLocked() const;

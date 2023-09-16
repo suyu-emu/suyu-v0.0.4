@@ -9,6 +9,7 @@
 #include <memory>
 #include <thread>
 #include "core/loader/nca.h"
+#include "core/tools/renderdoc.h"
 #ifdef __APPLE__
 #include <unistd.h> // for chdir
 #endif
@@ -1347,6 +1348,11 @@ void GMainWindow::InitializeHotkeys() {
     connect_shortcut(QStringLiteral("Audio Volume Up"), &GMainWindow::OnIncreaseVolume);
     connect_shortcut(QStringLiteral("Toggle Framerate Limit"), [] {
         Settings::values.use_speed_limit.SetValue(!Settings::values.use_speed_limit.GetValue());
+    });
+    connect_shortcut(QStringLiteral("Toggle Renderdoc Capture"), [this] {
+        if (Settings::values.enable_renderdoc_hotkey) {
+            system->GetRenderdocAPI().ToggleCapture();
+        }
     });
     connect_shortcut(QStringLiteral("Toggle Mouse Panning"), [&] {
         if (Settings::values.mouse_enabled) {

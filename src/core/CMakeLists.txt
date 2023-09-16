@@ -864,6 +864,8 @@ add_library(core STATIC
     telemetry_session.h
     tools/freezer.cpp
     tools/freezer.h
+    tools/renderdoc.cpp
+    tools/renderdoc.h
 )
 
 if (MSVC)
@@ -879,6 +881,7 @@ else()
         -Werror=conversion
 
         -Wno-sign-conversion
+        -Wno-cast-function-type
 
         $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
     )
@@ -887,7 +890,7 @@ endif()
 create_target_directory_groups(core)
 
 target_link_libraries(core PUBLIC common PRIVATE audio_core network video_core nx_tzdb)
-target_link_libraries(core PUBLIC Boost::headers PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls Opus::opus)
+target_link_libraries(core PUBLIC Boost::headers PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls Opus::opus renderdoc)
 if (MINGW)
     target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})
 endif()
