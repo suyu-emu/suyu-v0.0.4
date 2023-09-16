@@ -154,6 +154,14 @@ NpadIdType HIDCore::GetFirstDisconnectedNpadId() const {
     return NpadIdType::Player1;
 }
 
+void HIDCore::SetLastActiveController(NpadIdType npad_id) {
+    last_active_controller = npad_id;
+}
+
+NpadIdType HIDCore::GetLastActiveController() const {
+    return last_active_controller;
+}
+
 void HIDCore::EnableAllControllerConfiguration() {
     player_1->EnableConfiguration();
     player_2->EnableConfiguration();

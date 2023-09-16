@@ -360,7 +360,7 @@ private:
     enum class AppletFooterUiType : u8 {
         None = 0,
         HandheldNone = 1,
-        HandheldJoyConLeftOnly = 1,
+        HandheldJoyConLeftOnly = 2,
         HandheldJoyConRightOnly = 3,
         HandheldJoyConLeftJoyConRight = 4,
         JoyDual = 5,
@@ -381,13 +381,6 @@ private:
         Verification = 20,
         Lagon = 21,
     };
-
-    struct AppletFooterUi {
-        AppletFooterUiAttributes attributes{};
-        AppletFooterUiType type{AppletFooterUiType::None};
-        INSERT_PADDING_BYTES(0x5B); // Reserved
-    };
-    static_assert(sizeof(AppletFooterUi) == 0x60, "AppletFooterUi is an invalid size");
 
     // This is nn::hid::NpadLarkType
     enum class NpadLarkType : u32 {
@@ -419,13 +412,6 @@ private:
         U,
     };
 
-    struct AppletNfcXcd {
-        union {
-            AppletFooterUi applet_footer{};
-            Lifo<NfcXcdDeviceHandleStateImpl, 0x2> nfc_xcd_device_lifo;
-        };
-    };
-
     // This is nn::hid::detail::NpadInternalState
     struct NpadInternalState {
         Core::HID::NpadStyleTag style_tag{Core::HID::NpadStyleSet::None};
@@ -452,7 +438,9 @@ private:
         Core::HID::NpadBatteryLevel battery_level_dual{};
         Core::HID::NpadBatteryLevel battery_level_left{};
         Core::HID::NpadBatteryLevel battery_level_right{};
-        AppletNfcXcd applet_nfc_xcd{};
+        AppletFooterUiAttributes applet_footer_attributes{};
+        AppletFooterUiType applet_footer_type{AppletFooterUiType::None};
+        INSERT_PADDING_BYTES(0x5B); // Reserved
         INSERT_PADDING_BYTES(0x20); // Unknown
         Lifo<NpadGcTriggerState, hid_entry_count> gc_trigger_lifo{};
         NpadLarkType lark_type_l_and_main{};
