@@ -476,6 +476,10 @@ void Controller_NPad::RequestPadStateUpdate(Core::HID::NpadIdType npad_id) {
         pad_entry.npad_buttons.l.Assign(button_state.zl);
         pad_entry.npad_buttons.r.Assign(button_state.zr);
     }
+
+    if (pad_entry.npad_buttons.raw != Core::HID::NpadButton::None) {
+        hid_core.SetLastActiveController(npad_id);
+    }
 }
 
 void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
