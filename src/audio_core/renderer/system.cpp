@@ -684,11 +684,11 @@ u64 System::GenerateCommand(std::span<u8> in_command_buffer,
                                        sink_context,   splitter_context,     perf_manager};
 
     voice_context.SortInfo();
+    command_generator.GenerateVoiceCommands();
 
     const auto start_estimated_time{drop_voice_param *
                                     static_cast<f32>(command_buffer.estimated_process_time)};
 
-    command_generator.GenerateVoiceCommands();
     command_generator.GenerateSubMixCommands();
     command_generator.GenerateFinalMixCommands();
     command_generator.GenerateSinkCommands();
@@ -708,11 +708,13 @@ u64 System::GenerateCommand(std::span<u8> in_command_buffer,
 
         const auto end_estimated_time{drop_voice_param *
                                       static_cast<f32>(command_buffer.estimated_process_time)};
+
+        const auto dsp_time_limit{((time_limit_percent / 100.0f) * 2'880'000.0f) *
+                                  (static_cast<f32>(render_time_limit_percent) / 100.0f)};
+
         const auto estimated_time{start_estimated_time - end_estimated_time};
 
-        const auto time_limit{static_cast<u32>(
-            estimated_time + (((time_limit_percent / 100.0f) * 2'880'000.0) *
-                              (static_cast<f32>(render_time_limit_percent) / 100.0f)))};
+        const auto time_limit{static_cast<u32>(std::max(dsp_time_limit + estimated_time, 0.0f))};
         num_voices_dropped =
             DropVoices(command_buffer, static_cast<u32>(start_estimated_time), time_limit);
     }
