@@ -419,8 +419,16 @@ void Controller_NPad::RequestPadStateUpdate(Core::HID::NpadIdType npad_id) {
     std::scoped_lock lock{mutex};
     auto& controller = GetControllerFromNpadIdType(npad_id);
     const auto controller_type = controller.device->GetNpadStyleIndex();
+
+    if (!controller.device->IsConnected() && controller.is_connected) {
+        DisconnectNpad(npad_id);
+        return;
+    }
     if (!controller.device->IsConnected()) {
         return;
+    }
+    if (controller.device->IsConnected() && !controller.is_connected) {
+        InitNewlyAddedController(npad_id);
     }
 
     // This function is unique to yuzu for the turbo buttons and motion to work properly
@@ -736,14 +744,6 @@ void Controller_NPad::SetSupportedStyleSet(Core::HID::NpadStyleTag style_set) {
 
     // Once SetSupportedStyleSet is called controllers are fully initialized
     is_controller_initialized = true;
-
-    // Connect all active controllers
-    for (auto& controller : controller_data) {
-        const auto& device = controller.device;
-        if (device->IsConnected()) {
-            AddNewControllerAt(device->GetNpadStyleIndex(), device->GetNpadIdType());
-        }
-    }
 }
 
 Core::HID::NpadStyleTag Controller_NPad::GetSupportedStyleSet() const {
