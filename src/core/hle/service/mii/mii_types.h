@@ -606,15 +606,12 @@ struct Nickname {
     static constexpr std::size_t MaxNameSize = 10;
     std::array<char16_t, MaxNameSize> data;
 
-    // Checks for null, non-zero terminated or dirty strings
+    // Checks for null or dirty strings
     bool IsValid() const {
         if (data[0] == 0) {
             return false;
         }
 
-        if (data[MaxNameSize] != 0) {
-            return false;
-        }
         std::size_t index = 1;
         while (data[index] != 0) {
             index++;
