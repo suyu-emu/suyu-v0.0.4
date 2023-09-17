@@ -294,10 +294,11 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
       texture_cache{texture_cache_}, shader_notify{shader_notify_},
       use_asynchronous_shaders{Settings::values.use_asynchronous_shaders.GetValue()},
       use_vulkan_pipeline_cache{Settings::values.use_vulkan_driver_pipeline_cache.GetValue()},
-      workers(device.GetDriverID() == VK_DRIVER_ID_QUALCOMM_PROPRIETARY
-                  ? 1
-                  : (std::max(std::thread::hardware_concurrency(), 2U) - 1),
-              "VkPipelineBuilder"),
+#ifdef ANDROID
+      workers(1, "VkPipelineBuilder"),
+#else
+      workers(std::max(std::thread::hardware_concurrency(), 2U) - 1, "VkPipelineBuilder"),
+#endif
       serialization_thread(1, "VkPipelineSerialization") {
     const auto& float_control{device.FloatControlProperties()};
     const VkDriverId driver_id{device.GetDriverID()};
