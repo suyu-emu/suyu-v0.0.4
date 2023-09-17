@@ -293,7 +293,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
             if (EmulationMenuSettings.showOverlay) {
                 binding.surfaceInputOverlay.post {
-                    binding.surfaceInputOverlay.visibility = View.VISIBLE
+                    binding.surfaceInputOverlay.visibility = View.INVISIBLE
                 }
             }
         } else {
