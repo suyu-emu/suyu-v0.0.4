@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
@@ -26,14 +26,14 @@ constexpr u8 MaxEyebrowScale = 8;
 constexpr u8 MaxEyebrowAspect = 6;
 constexpr u8 MaxEyebrowRotate = 11;
 constexpr u8 MaxEyebrowX = 12;
-constexpr u8 MaxEyebrowY = 18;
+constexpr u8 MaxEyebrowY = 15;
 constexpr u8 MaxNoseScale = 8;
 constexpr u8 MaxNoseY = 18;
 constexpr u8 MaxMouthScale = 8;
 constexpr u8 MaxMoutAspect = 6;
 constexpr u8 MaxMouthY = 18;
 constexpr u8 MaxMustacheScale = 8;
-constexpr u8 MasMustacheY = 16;
+constexpr u8 MaxMustacheY = 16;
 constexpr u8 MaxGlassScale = 7;
 constexpr u8 MaxGlassY = 20;
 constexpr u8 MaxMoleScale = 8;
@@ -599,6 +599,7 @@ enum class ValidationResult : u32 {
     InvalidRegionMove = 0x31,
     InvalidCreateId = 0x32,
     InvalidName = 0x33,
+    InvalidChecksum = 0x34,
     InvalidType = 0x35,
 };
 
