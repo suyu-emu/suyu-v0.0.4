@@ -18,7 +18,7 @@ bool NintendoFigurineDatabase::IsFull() const {
 StoreData NintendoFigurineDatabase::Get(std::size_t index) const {
     StoreData store_data = miis.at(index);
 
-    // This hack is to make external database dump compatible
+    // This hack is to make external database dumps compatible
     store_data.SetDeviceChecksum();
 
     return store_data;
@@ -60,13 +60,13 @@ Result NintendoFigurineDatabase::Move(u32 current_index, u32 new_index) {
     const StoreData store_data = miis[current_index];
 
     if (new_index > current_index) {
-        // shift left
+        // Shift left
         const u32 index_diff = new_index - current_index;
         for (std::size_t i = 0; i < index_diff; i++) {
             miis[current_index + i] = miis[current_index + i + 1];
         }
     } else {
-        // shift right
+        // Shift right
         const u32 index_diff = current_index - new_index;
         for (std::size_t i = 0; i < index_diff; i++) {
             miis[current_index - i] = miis[current_index - i - 1];
@@ -90,8 +90,8 @@ void NintendoFigurineDatabase::Add(const StoreData& store_data) {
 }
 
 void NintendoFigurineDatabase::Delete(u32 index) {
-    // shift left
-    s32 new_database_size = database_length - 1;
+    // Shift left
+    const s32 new_database_size = database_length - 1;
     if (static_cast<s32>(index) < new_database_size) {
         for (std::size_t i = index; i < static_cast<std::size_t>(new_database_size); i++) {
             miis[i] = miis[i + 1];
@@ -103,7 +103,7 @@ void NintendoFigurineDatabase::Delete(u32 index) {
 }
 
 void NintendoFigurineDatabase::CleanDatabase() {
-    memset(miis.data(), 0, sizeof(miis));
+    miis = {};
     version = 1;
     magic = DatabaseMagic;
     database_length = 0;

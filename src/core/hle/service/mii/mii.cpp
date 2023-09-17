@@ -288,7 +288,7 @@ private:
         LOG_INFO(Service_Mii, "called with create_id={}, is_special={}",
                  create_id.FormattedString(), is_special);
 
-        s32 index = manager.FindIndex(create_id, is_special);
+        const s32 index = manager.FindIndex(create_id, is_special);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
@@ -304,7 +304,6 @@ private:
                  new_index);
 
         Result result = ResultSuccess;
-
         if (!is_system) {
             result = ResultPermissionDenied;
         }
@@ -366,7 +365,7 @@ private:
 
     void DestroyFile(HLERequestContext& ctx) {
         // This calls nn::settings::fwdbg::GetSettingsItemValue("is_db_test_mode_enabled");
-        bool is_db_test_mode_enabled = false;
+        const bool is_db_test_mode_enabled = false;
 
         LOG_INFO(Service_Mii, "called is_db_test_mode_enabled={}", is_db_test_mode_enabled);
 
@@ -386,7 +385,7 @@ private:
 
     void DeleteFile(HLERequestContext& ctx) {
         // This calls nn::settings::fwdbg::GetSettingsItemValue("is_db_test_mode_enabled");
-        bool is_db_test_mode_enabled = false;
+        const bool is_db_test_mode_enabled = false;
 
         LOG_INFO(Service_Mii, "called is_db_test_mode_enabled={}", is_db_test_mode_enabled);
 
@@ -406,7 +405,7 @@ private:
 
     void Format(HLERequestContext& ctx) {
         // This calls nn::settings::fwdbg::GetSettingsItemValue("is_db_test_mode_enabled");
-        bool is_db_test_mode_enabled = false;
+        const bool is_db_test_mode_enabled = false;
 
         LOG_INFO(Service_Mii, "called is_db_test_mode_enabled={}", is_db_test_mode_enabled);
 
@@ -427,7 +426,7 @@ private:
     void IsBrokenDatabaseWithClearFlag(HLERequestContext& ctx) {
         LOG_DEBUG(Service_Mii, "called");
 
-        bool is_broken_with_clear_flag{};
+        bool is_broken_with_clear_flag = false;
         Result result = ResultSuccess;
 
         if (!is_system) {
@@ -547,7 +546,7 @@ private:
         rb.Push(ResultSuccess);
         rb.PushIpcInterface<IDatabaseService>(system, is_system);
 
-        LOG_CRITICAL(Service_Mii, "called");
+        LOG_DEBUG(Service_Mii, "called");
     }
 
     bool is_system{};
@@ -580,14 +579,14 @@ public:
 
 private:
     void Initialize(HLERequestContext& ctx) {
-        LOG_CRITICAL(Service_Mii, "called");
+        LOG_INFO(Service_Mii, "called");
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
     }
 
     void GetCount(HLERequestContext& ctx) {
-        LOG_CRITICAL(Service_Mii, "called");
+        LOG_DEBUG(Service_Mii, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);

@@ -214,5 +214,6 @@ private:
     Nickname name{};
 };
 static_assert(sizeof(CoreData) == 0x30, "CoreData has incorrect size.");
+static_assert(std::is_trivially_copyable_v<CoreData>, "CoreData type must be trivially copyable.");
 
 }; // namespace Service::Mii

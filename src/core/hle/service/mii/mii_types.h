@@ -13,6 +13,7 @@
 
 namespace Service::Mii {
 
+constexpr std::size_t MaxNameSize = 10;
 constexpr u8 MaxHeight = 127;
 constexpr u8 MaxBuild = 127;
 constexpr u8 MaxType = 1;
@@ -604,8 +605,7 @@ enum class ValidationResult : u32 {
 };
 
 struct Nickname {
-    static constexpr std::size_t MaxNameSize = 10;
-    std::array<char16_t, MaxNameSize> data;
+    std::array<char16_t, MaxNameSize> data{};
 
     // Checks for null or dirty strings
     bool IsValid() const {
