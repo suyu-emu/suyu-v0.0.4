@@ -752,7 +752,9 @@ bool RegisteredCache::RemoveExistingEntry(u64 title_id) const {
     for (u8 i = 0; i < 0x10; i++) {
         const auto meta_dir = dir->CreateDirectoryRelative("yuzu_meta");
         const auto filename = GetCNMTName(TitleType::Update, title_id + i);
-        removed_data |= meta_dir->DeleteFile(filename);
+        if (meta_dir->GetFile(filename)) {
+            removed_data |= meta_dir->DeleteFile(filename);
+        }
     }
 
     return removed_data;
