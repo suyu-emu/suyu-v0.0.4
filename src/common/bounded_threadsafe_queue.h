@@ -45,13 +45,13 @@ public:
     }
 
     T PopWait() {
-        T t;
+        T t{};
         Pop<PopMode::Wait>(t);
         return t;
     }
 
     T PopWait(std::stop_token stop_token) {
-        T t;
+        T t{};
         Pop<PopMode::WaitWithStopToken>(t, stop_token);
         return t;
     }

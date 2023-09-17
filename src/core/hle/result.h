@@ -62,7 +62,7 @@ enum class ErrorModule : u32 {
     XCD = 108,
     TMP451 = 109,
     NIFM = 110,
-    Hwopus = 111,
+    HwOpus = 111,
     LSM6DS3 = 112,
     Bluetooth = 113,
     VI = 114,
