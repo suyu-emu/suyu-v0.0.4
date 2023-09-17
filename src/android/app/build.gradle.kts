@@ -77,13 +77,30 @@ android {
         buildConfigField("String", "BRANCH", "\"${getBranch()}\"")
     }
 
+    val keystoreFile = System.getenv("ANDROID_KEYSTORE_FILE")
+    if (keystoreFile != null) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(keystoreFile)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASS")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEYSTORE_PASS")
+            }
+        }
+    }
+
     // Define build types, which are orthogonal to product flavors.
     buildTypes {
 
         // Signed by release key, allowing for upload to Play Store.
         release {
+            signingConfig = if (keystoreFile != null) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
+
             resValue("string", "app_name_suffixed", "yuzu")
-            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isDebuggable = false
             proguardFiles(
