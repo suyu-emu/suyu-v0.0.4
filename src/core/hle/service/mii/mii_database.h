@@ -17,13 +17,13 @@ public:
     /// Returns the total mii count.
     u8 GetDatabaseLength() const;
 
-    /// Returns full if database is full.
+    /// Returns true if database is full.
     bool IsFull() const;
 
     /// Returns the mii of the specified index.
     StoreData Get(std::size_t index) const;
 
-    ///  Returns the total mii count. Ignoring special mii.
+    /// Returns the total mii count. Ignoring special mii.
     u32 GetCount(const DatabaseSessionMetadata& metadata) const;
 
     /// Returns the index of a mii. If the mii isn't found returns false.

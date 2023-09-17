@@ -138,6 +138,8 @@ private:
     u16 device_crc{};
 };
 static_assert(sizeof(StoreData) == 0x44, "StoreData has incorrect size.");
+static_assert(std::is_trivially_copyable_v<StoreData>,
+              "StoreData type must be trivially copyable.");
 
 struct StoreDataElement {
     StoreData store_data{};

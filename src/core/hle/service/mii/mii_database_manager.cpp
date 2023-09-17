@@ -15,7 +15,7 @@
 #include "core/hle/service/mii/types/store_data.h"
 
 namespace Service::Mii {
-constexpr std::string DbFileName = "MiiDatabase.dat";
+const char* DbFileName = "MiiDatabase.dat";
 
 DatabaseManager::DatabaseManager() {}
 
@@ -371,7 +371,7 @@ Result DatabaseManager::DestroyFile(DatabaseSessionMetadata& metadata) {
 
 Result DatabaseManager::DeleteFile() {
     const bool result = Common::FS::RemoveFile(system_save_dir / DbFileName);
-    // Return proper FS error here
+    // TODO: Return proper FS error here
     return result ? ResultSuccess : ResultUnknown;
 }
 
