@@ -20,4 +20,16 @@ constexpr Result ResultNotSupported{ErrorModule::Audio, 513};
 constexpr Result ResultInvalidHandle{ErrorModule::Audio, 1536};
 constexpr Result ResultInvalidRevision{ErrorModule::Audio, 1537};
 
+constexpr Result ResultLibOpusAllocFail{ErrorModule::HwOpus, 7};
+constexpr Result ResultInputDataTooSmall{ErrorModule::HwOpus, 8};
+constexpr Result ResultLibOpusInvalidState{ErrorModule::HwOpus, 6};
+constexpr Result ResultLibOpusUnimplemented{ErrorModule::HwOpus, 5};
+constexpr Result ResultLibOpusInvalidPacket{ErrorModule::HwOpus, 17};
+constexpr Result ResultLibOpusInternalError{ErrorModule::HwOpus, 4};
+constexpr Result ResultBufferTooSmall{ErrorModule::HwOpus, 3};
+constexpr Result ResultLibOpusBadArg{ErrorModule::HwOpus, 2};
+constexpr Result ResultInvalidOpusDSPReturnCode{ErrorModule::HwOpus, 259};
+constexpr Result ResultInvalidOpusSampleRate{ErrorModule::HwOpus, 1001};
+constexpr Result ResultInvalidOpusChannelCount{ErrorModule::HwOpus, 1002};
+
 } // namespace Service::Audio

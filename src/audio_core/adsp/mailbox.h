@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <span>
+
 #include "common/bounded_threadsafe_queue.h"
 #include "common/common_types.h"
 
@@ -19,11 +21,6 @@ enum class Direction : u32 {
     DSP,
 };
 
-struct MailboxMessage {
-    u32 msg;
-    std::span<u8> data;
-};
-
 class Mailbox {
 public:
     void Initialize(AppMailboxId id_) {
@@ -35,25 +32,19 @@ public:
         return id;
     }
 
-    void Send(Direction dir, MailboxMessage&& message) {
+    void Send(Direction dir, u32 message) {
         auto& queue = dir == Direction::Host ? host_queue : adsp_queue;
-        queue.EmplaceWait(std::move(message));
+        queue.EmplaceWait(message);
     }
 
-    MailboxMessage Receive(Direction dir, bool block = true) {
+    u32 Receive(Direction dir, std::stop_token stop_token = {}) {
         auto& queue = dir == Direction::Host ? host_queue : adsp_queue;
-        MailboxMessage t;
-        if (block) {
-            queue.PopWait(t);
-        } else {
-            queue.TryPop(t);
-        }
-        return t;
+        return queue.PopWait(stop_token);
     }
 
     void Reset() {
         id = AppMailboxId::Invalid;
-        MailboxMessage t;
+        u32 t{};
         while (host_queue.TryPop(t)) {
         }
         while (adsp_queue.TryPop(t)) {
@@ -62,8 +53,8 @@ public:
 
 private:
     AppMailboxId id{0};
-    Common::SPSCQueue<MailboxMessage> host_queue;
-    Common::SPSCQueue<MailboxMessage> adsp_queue;
+    Common::SPSCQueue<u32> host_queue;
+    Common::SPSCQueue<u32> adsp_queue;
 };
 
 } // namespace AudioCore::ADSP

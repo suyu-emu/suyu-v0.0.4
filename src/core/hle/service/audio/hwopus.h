@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "audio_core/opus/decoder_manager.h"
 #include "core/hle/service/service.h"
 
 namespace Core {
@@ -11,18 +12,6 @@ class System;
 
 namespace Service::Audio {
 
-struct OpusMultiStreamParametersEx {
-    u32 sample_rate;
-    u32 channel_count;
-    u32 number_streams;
-    u32 number_stereo_streams;
-    u32 use_large_frame_size;
-    u32 padding;
-    std::array<u8, 0x100> channel_mappings;
-};
-static_assert(sizeof(OpusMultiStreamParametersEx) == 0x118,
-              "OpusMultiStreamParametersEx has incorrect size");
-
 class HwOpus final : public ServiceFramework<HwOpus> {
 public:
     explicit HwOpus(Core::System& system_);
@@ -30,12 +19,18 @@ public:
 
 private:
     void OpenHardwareOpusDecoder(HLERequestContext& ctx);
-    void OpenHardwareOpusDecoderEx(HLERequestContext& ctx);
-    void OpenHardwareOpusDecoderForMultiStreamEx(HLERequestContext& ctx);
     void GetWorkBufferSize(HLERequestContext& ctx);
+    void OpenHardwareOpusDecoderForMultiStream(HLERequestContext& ctx);
+    void GetWorkBufferSizeForMultiStream(HLERequestContext& ctx);
+    void OpenHardwareOpusDecoderEx(HLERequestContext& ctx);
     void GetWorkBufferSizeEx(HLERequestContext& ctx);
-    void GetWorkBufferSizeExEx(HLERequestContext& ctx);
+    void OpenHardwareOpusDecoderForMultiStreamEx(HLERequestContext& ctx);
     void GetWorkBufferSizeForMultiStreamEx(HLERequestContext& ctx);
+    void GetWorkBufferSizeExEx(HLERequestContext& ctx);
+    void GetWorkBufferSizeForMultiStreamExEx(HLERequestContext& ctx);
+
+    Core::System& system;
+    AudioCore::OpusDecoder::OpusDecoderManager impl;
 };
 
 } // namespace Service::Audio
