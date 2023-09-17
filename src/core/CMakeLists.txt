@@ -598,6 +598,8 @@ add_library(core STATIC
     hle/service/mii/mii.h
     hle/service/mii/mii_database.cpp
     hle/service/mii/mii_database.h
+    hle/service/mii/mii_database_manager.cpp
+    hle/service/mii/mii_database_manager.h
     hle/service/mii/mii_manager.cpp
     hle/service/mii/mii_manager.h
     hle/service/mii/mii_result.h
