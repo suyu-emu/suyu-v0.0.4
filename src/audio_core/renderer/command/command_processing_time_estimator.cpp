@@ -27,12 +27,12 @@ u32 CommandProcessingTimeEstimatorVersion1::Estimate(
 
 u32 CommandProcessingTimeEstimatorVersion1::Estimate(
     const AdpcmDataSourceVersion1Command& command) const {
-    return static_cast<u32>(command.pitch * 0.25f * 1.2f);
+    return static_cast<u32>(command.pitch * 0.46f * 1.2f);
 }
 
 u32 CommandProcessingTimeEstimatorVersion1::Estimate(
     const AdpcmDataSourceVersion2Command& command) const {
-    return static_cast<u32>(command.pitch * 0.25f * 1.2f);
+    return static_cast<u32>(command.pitch * 0.46f * 1.2f);
 }
 
 u32 CommandProcessingTimeEstimatorVersion1::Estimate(
