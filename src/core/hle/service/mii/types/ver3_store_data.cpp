@@ -22,12 +22,6 @@ void NfpStoreDataExtension::SetFromStoreData(const StoreData& store_data) {
 void Ver3StoreData::BuildToStoreData(StoreData& out_store_data) const {
     out_store_data.BuildBase(Gender::Male);
 
-    if (!IsValid()) {
-        return;
-    }
-
-    // TODO: We are ignoring a bunch of data from the mii_v3
-
     out_store_data.SetGender(static_cast<Gender>(mii_information.gender.Value()));
     out_store_data.SetFavoriteColor(
         static_cast<FavoriteColor>(mii_information.favorite_color.Value()));
@@ -36,65 +30,71 @@ void Ver3StoreData::BuildToStoreData(StoreData& out_store_data) const {
 
     out_store_data.SetNickname(mii_name);
     out_store_data.SetFontRegion(
-        static_cast<FontRegion>(static_cast<u8>(region_information.font_region)));
+        static_cast<FontRegion>(static_cast<u8>(region_information.font_region.Value())));
 
     out_store_data.SetFacelineType(
         static_cast<FacelineType>(appearance_bits1.faceline_type.Value()));
     out_store_data.SetFacelineColor(
-        static_cast<FacelineColor>(appearance_bits1.faceline_color.Value()));
+        RawData::GetFacelineColorFromVer3(appearance_bits1.faceline_color.Value()));
     out_store_data.SetFacelineWrinkle(
         static_cast<FacelineWrinkle>(appearance_bits2.faceline_wrinkle.Value()));
     out_store_data.SetFacelineMake(
         static_cast<FacelineMake>(appearance_bits2.faceline_make.Value()));
 
     out_store_data.SetHairType(static_cast<HairType>(hair_type));
-    out_store_data.SetHairColor(static_cast<CommonColor>(appearance_bits3.hair_color.Value()));
+    out_store_data.SetHairColor(RawData::GetHairColorFromVer3(appearance_bits3.hair_color.Value()));
     out_store_data.SetHairFlip(static_cast<HairFlip>(appearance_bits3.hair_flip.Value()));
 
     out_store_data.SetEyeType(static_cast<EyeType>(appearance_bits4.eye_type.Value()));
-    out_store_data.SetEyeColor(static_cast<CommonColor>(appearance_bits4.eye_color.Value()));
-    out_store_data.SetEyeScale(static_cast<u8>(appearance_bits4.eye_scale));
-    out_store_data.SetEyeAspect(static_cast<u8>(appearance_bits4.eye_aspect));
-    out_store_data.SetEyeRotate(static_cast<u8>(appearance_bits4.eye_rotate));
-    out_store_data.SetEyeX(static_cast<u8>(appearance_bits4.eye_x));
-    out_store_data.SetEyeY(static_cast<u8>(appearance_bits4.eye_y));
+    out_store_data.SetEyeColor(RawData::GetEyeColorFromVer3(appearance_bits4.eye_color.Value()));
+    out_store_data.SetEyeScale(static_cast<u8>(appearance_bits4.eye_scale.Value()));
+    out_store_data.SetEyeAspect(static_cast<u8>(appearance_bits4.eye_aspect.Value()));
+    out_store_data.SetEyeRotate(static_cast<u8>(appearance_bits4.eye_rotate.Value()));
+    out_store_data.SetEyeX(static_cast<u8>(appearance_bits4.eye_x.Value()));
+    out_store_data.SetEyeY(static_cast<u8>(appearance_bits4.eye_y.Value()));
 
     out_store_data.SetEyebrowType(static_cast<EyebrowType>(appearance_bits5.eyebrow_type.Value()));
     out_store_data.SetEyebrowColor(
-        static_cast<CommonColor>(appearance_bits5.eyebrow_color.Value()));
-    out_store_data.SetEyebrowScale(static_cast<u8>(appearance_bits5.eyebrow_scale));
-    out_store_data.SetEyebrowAspect(static_cast<u8>(appearance_bits5.eyebrow_aspect));
-    out_store_data.SetEyebrowRotate(static_cast<u8>(appearance_bits5.eyebrow_rotate));
-    out_store_data.SetEyebrowX(static_cast<u8>(appearance_bits5.eyebrow_x));
-    out_store_data.SetEyebrowY(static_cast<u8>(appearance_bits5.eyebrow_y));
+        RawData::GetHairColorFromVer3(appearance_bits5.eyebrow_color.Value()));
+    out_store_data.SetEyebrowScale(static_cast<u8>(appearance_bits5.eyebrow_scale.Value()));
+    out_store_data.SetEyebrowAspect(static_cast<u8>(appearance_bits5.eyebrow_aspect.Value()));
+    out_store_data.SetEyebrowRotate(static_cast<u8>(appearance_bits5.eyebrow_rotate.Value()));
+    out_store_data.SetEyebrowX(static_cast<u8>(appearance_bits5.eyebrow_x.Value()));
+    out_store_data.SetEyebrowY(static_cast<u8>(appearance_bits5.eyebrow_y.Value() - 3));
 
     out_store_data.SetNoseType(static_cast<NoseType>(appearance_bits6.nose_type.Value()));
-    out_store_data.SetNoseScale(static_cast<u8>(appearance_bits6.nose_scale));
-    out_store_data.SetNoseY(static_cast<u8>(appearance_bits6.nose_y));
+    out_store_data.SetNoseScale(static_cast<u8>(appearance_bits6.nose_scale.Value()));
+    out_store_data.SetNoseY(static_cast<u8>(appearance_bits6.nose_y.Value()));
 
-    out_store_data.SetMouthType(static_cast<u8>(appearance_bits7.mouth_type));
-    out_store_data.SetMouthColor(static_cast<CommonColor>(appearance_bits7.mouth_color.Value()));
-    out_store_data.SetMouthScale(static_cast<u8>(appearance_bits7.mouth_scale));
-    out_store_data.SetMouthAspect(static_cast<u8>(appearance_bits7.mouth_aspect));
-    out_store_data.SetMouthY(static_cast<u8>(appearance_bits8.mouth_y));
+    out_store_data.SetMouthType(static_cast<MouthType>(appearance_bits7.mouth_type.Value()));
+    out_store_data.SetMouthColor(
+        RawData::GetMouthColorFromVer3(appearance_bits7.mouth_color.Value()));
+    out_store_data.SetMouthScale(static_cast<u8>(appearance_bits7.mouth_scale.Value()));
+    out_store_data.SetMouthAspect(static_cast<u8>(appearance_bits7.mouth_aspect.Value()));
+    out_store_data.SetMouthY(static_cast<u8>(appearance_bits8.mouth_y.Value()));
 
     out_store_data.SetMustacheType(
         static_cast<MustacheType>(appearance_bits8.mustache_type.Value()));
-    out_store_data.SetMustacheScale(static_cast<u8>(appearance_bits9.mustache_scale));
-    out_store_data.SetMustacheY(static_cast<u8>(appearance_bits9.mustache_y));
+    out_store_data.SetMustacheScale(static_cast<u8>(appearance_bits9.mustache_scale.Value()));
+    out_store_data.SetMustacheY(static_cast<u8>(appearance_bits9.mustache_y.Value()));
 
     out_store_data.SetBeardType(static_cast<BeardType>(appearance_bits9.beard_type.Value()));
-    out_store_data.SetBeardColor(static_cast<CommonColor>(appearance_bits9.beard_color.Value()));
+    out_store_data.SetBeardColor(
+        RawData::GetHairColorFromVer3(appearance_bits9.beard_color.Value()));
 
+    // Glass type is compatible as it is. It doesn't need a table
     out_store_data.SetGlassType(static_cast<GlassType>(appearance_bits10.glass_type.Value()));
-    out_store_data.SetGlassColor(static_cast<CommonColor>(appearance_bits10.glass_color.Value()));
-    out_store_data.SetGlassScale(static_cast<u8>(appearance_bits10.glass_scale));
-    out_store_data.SetGlassY(static_cast<u8>(appearance_bits10.glass_y));
+    out_store_data.SetGlassColor(
+        RawData::GetGlassColorFromVer3(appearance_bits10.glass_color.Value()));
+    out_store_data.SetGlassScale(static_cast<u8>(appearance_bits10.glass_scale.Value()));
+    out_store_data.SetGlassY(static_cast<u8>(appearance_bits10.glass_y.Value()));
 
     out_store_data.SetMoleType(static_cast<MoleType>(appearance_bits11.mole_type.Value()));
-    out_store_data.SetMoleScale(static_cast<u8>(appearance_bits11.mole_scale));
-    out_store_data.SetMoleX(static_cast<u8>(appearance_bits11.mole_x));
-    out_store_data.SetMoleY(static_cast<u8>(appearance_bits11.mole_y));
+    out_store_data.SetMoleScale(static_cast<u8>(appearance_bits11.mole_scale.Value()));
+    out_store_data.SetMoleX(static_cast<u8>(appearance_bits11.mole_x.Value()));
+    out_store_data.SetMoleY(static_cast<u8>(appearance_bits11.mole_y.Value()));
+
+    out_store_data.SetChecksum();
 }
 
 void Ver3StoreData::BuildFromStoreData(const StoreData& store_data) {
@@ -220,7 +220,7 @@ u32 Ver3StoreData::IsValid() const {
 
     is_valid = is_valid && (appearance_bits8.mustache_type <= static_cast<u8>(MustacheType::Max));
     is_valid = is_valid && (appearance_bits9.mustache_scale < MaxMustacheScale);
-    is_valid = is_valid && (appearance_bits9.mustache_y <= MasMustacheY);
+    is_valid = is_valid && (appearance_bits9.mustache_y <= MaxMustacheY);
 
     is_valid = is_valid && (appearance_bits9.beard_type <= static_cast<u8>(BeardType::Max));
     is_valid = is_valid && (appearance_bits9.beard_color <= MaxVer3CommonColor);
@@ -228,7 +228,7 @@ u32 Ver3StoreData::IsValid() const {
     is_valid = is_valid && (appearance_bits10.glass_type <= MaxVer3GlassType);
     is_valid = is_valid && (appearance_bits10.glass_color <= MaxVer3CommonColor - 2);
     is_valid = is_valid && (appearance_bits10.glass_scale <= MaxGlassScale);
-    is_valid = is_valid && (appearance_bits10.glass_y <= MaxGlassScale);
+    is_valid = is_valid && (appearance_bits10.glass_y <= MaxGlassY);
 
     is_valid = is_valid && (appearance_bits11.mole_type <= static_cast<u8>(MoleType::Max));
     is_valid = is_valid && (appearance_bits11.mole_scale <= MaxMoleScale);

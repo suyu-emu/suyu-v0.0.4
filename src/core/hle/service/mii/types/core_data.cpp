@@ -3,6 +3,7 @@
 
 #include "common/assert.h"
 #include "core/hle/service/mii/mii_util.h"
+#include "core/hle/service/mii/types/char_info.h"
 #include "core/hle/service/mii/types/core_data.h"
 #include "core/hle/service/mii/types/raw_data.h"
 
@@ -185,9 +186,211 @@ void CoreData::BuildRandom(Age age, Gender gender, Race race) {
     SetMoleY(20);
 }
 
-u32 CoreData::IsValid() const {
-    // TODO: Complete this
-    return 0;
+void CoreData::BuildFromCharInfo(const CharInfo& char_info) {
+    name = char_info.GetNickname();
+    SetFontRegion(char_info.GetFontRegion());
+    SetFavoriteColor(char_info.GetFavoriteColor());
+    SetGender(char_info.GetGender());
+    SetHeight(char_info.GetHeight());
+    SetBuild(char_info.GetBuild());
+    SetType(char_info.GetType());
+    SetRegionMove(char_info.GetRegionMove());
+    SetFacelineType(char_info.GetFacelineType());
+    SetFacelineColor(char_info.GetFacelineColor());
+    SetFacelineWrinkle(char_info.GetFacelineWrinkle());
+    SetFacelineMake(char_info.GetFacelineMake());
+    SetHairType(char_info.GetHairType());
+    SetHairColor(char_info.GetHairColor());
+    SetHairFlip(char_info.GetHairFlip());
+    SetEyeType(char_info.GetEyeType());
+    SetEyeColor(char_info.GetEyeColor());
+    SetEyeScale(char_info.GetEyeScale());
+    SetEyeAspect(char_info.GetEyeAspect());
+    SetEyeRotate(char_info.GetEyeRotate());
+    SetEyeX(char_info.GetEyeX());
+    SetEyeY(char_info.GetEyeY());
+    SetEyebrowType(char_info.GetEyebrowType());
+    SetEyebrowColor(char_info.GetEyebrowColor());
+    SetEyebrowScale(char_info.GetEyebrowScale());
+    SetEyebrowAspect(char_info.GetEyebrowAspect());
+    SetEyebrowRotate(char_info.GetEyebrowRotate());
+    SetEyebrowX(char_info.GetEyebrowX());
+    SetEyebrowY(char_info.GetEyebrowY() - 3);
+    SetNoseType(char_info.GetNoseType());
+    SetNoseScale(char_info.GetNoseScale());
+    SetNoseY(char_info.GetNoseY());
+    SetMouthType(char_info.GetMouthType());
+    SetMouthColor(char_info.GetMouthColor());
+    SetMouthScale(char_info.GetMouthScale());
+    SetMouthAspect(char_info.GetMouthAspect());
+    SetMouthY(char_info.GetMouthY());
+    SetBeardColor(char_info.GetBeardColor());
+    SetBeardType(char_info.GetBeardType());
+    SetMustacheType(char_info.GetMustacheType());
+    SetMustacheScale(char_info.GetMustacheScale());
+    SetMustacheY(char_info.GetMustacheY());
+    SetGlassType(char_info.GetGlassType());
+    SetGlassColor(char_info.GetGlassColor());
+    SetGlassScale(char_info.GetGlassScale());
+    SetGlassY(char_info.GetGlassY());
+    SetMoleType(char_info.GetMoleType());
+    SetMoleScale(char_info.GetMoleScale());
+    SetMoleX(char_info.GetMoleX());
+    SetMoleY(char_info.GetMoleY());
+}
+
+ValidationResult CoreData::IsValid() const {
+    if (!name.IsValid()) {
+        return ValidationResult::InvalidName;
+    }
+    if (GetFontRegion() > FontRegion::Max) {
+        return ValidationResult::InvalidFont;
+    }
+    if (GetFavoriteColor() > FavoriteColor::Max) {
+        return ValidationResult::InvalidColor;
+    }
+    if (GetGender() > Gender::Max) {
+        return ValidationResult::InvalidGender;
+    }
+    if (GetHeight() > MaxHeight) {
+        return ValidationResult::InvalidHeight;
+    }
+    if (GetBuild() > MaxBuild) {
+        return ValidationResult::InvalidBuild;
+    }
+    if (GetType() > MaxType) {
+        return ValidationResult::InvalidType;
+    }
+    if (GetRegionMove() > MaxRegionMove) {
+        return ValidationResult::InvalidRegionMove;
+    }
+    if (GetFacelineType() > FacelineType::Max) {
+        return ValidationResult::InvalidFacelineType;
+    }
+    if (GetFacelineColor() > FacelineColor::Max) {
+        return ValidationResult::InvalidFacelineColor;
+    }
+    if (GetFacelineWrinkle() > FacelineWrinkle::Max) {
+        return ValidationResult::InvalidFacelineWrinkle;
+    }
+    if (GetFacelineMake() > FacelineMake::Max) {
+        return ValidationResult::InvalidFacelineMake;
+    }
+    if (GetHairType() > HairType::Max) {
+        return ValidationResult::InvalidHairType;
+    }
+    if (GetHairColor() > CommonColor::Max) {
+        return ValidationResult::InvalidHairColor;
+    }
+    if (GetHairFlip() > HairFlip::Max) {
+        return ValidationResult::InvalidHairFlip;
+    }
+    if (GetEyeType() > EyeType::Max) {
+        return ValidationResult::InvalidEyeType;
+    }
+    if (GetEyeColor() > CommonColor::Max) {
+        return ValidationResult::InvalidEyeColor;
+    }
+    if (GetEyeScale() > MaxEyeScale) {
+        return ValidationResult::InvalidEyeScale;
+    }
+    if (GetEyeAspect() > MaxEyeAspect) {
+        return ValidationResult::InvalidEyeAspect;
+    }
+    if (GetEyeRotate() > MaxEyeRotate) {
+        return ValidationResult::InvalidEyeRotate;
+    }
+    if (GetEyeX() > MaxEyeX) {
+        return ValidationResult::InvalidEyeX;
+    }
+    if (GetEyeY() > MaxEyeY) {
+        return ValidationResult::InvalidEyeY;
+    }
+    if (GetEyebrowType() > EyebrowType::Max) {
+        return ValidationResult::InvalidEyebrowType;
+    }
+    if (GetEyebrowColor() > CommonColor::Max) {
+        return ValidationResult::InvalidEyebrowColor;
+    }
+    if (GetEyebrowScale() > MaxEyebrowScale) {
+        return ValidationResult::InvalidEyebrowScale;
+    }
+    if (GetEyebrowAspect() > MaxEyebrowAspect) {
+        return ValidationResult::InvalidEyebrowAspect;
+    }
+    if (GetEyebrowRotate() > MaxEyebrowRotate) {
+        return ValidationResult::InvalidEyebrowRotate;
+    }
+    if (GetEyebrowX() > MaxEyebrowX) {
+        return ValidationResult::InvalidEyebrowX;
+    }
+    if (GetEyebrowY() > MaxEyebrowY) {
+        return ValidationResult::InvalidEyebrowY;
+    }
+    if (GetNoseType() > NoseType::Max) {
+        return ValidationResult::InvalidNoseType;
+    }
+    if (GetNoseScale() > MaxNoseScale) {
+        return ValidationResult::InvalidNoseScale;
+    }
+    if (GetNoseY() > MaxNoseY) {
+        return ValidationResult::InvalidNoseY;
+    }
+    if (GetMouthType() > MouthType::Max) {
+        return ValidationResult::InvalidMouthType;
+    }
+    if (GetMouthColor() > CommonColor::Max) {
+        return ValidationResult::InvalidMouthColor;
+    }
+    if (GetMouthScale() > MaxMouthScale) {
+        return ValidationResult::InvalidMouthScale;
+    }
+    if (GetMouthAspect() > MaxMoutAspect) {
+        return ValidationResult::InvalidMouthAspect;
+    }
+    if (GetMouthY() > MaxMouthY) {
+        return ValidationResult::InvalidMouthY;
+    }
+    if (GetBeardColor() > CommonColor::Max) {
+        return ValidationResult::InvalidBeardColor;
+    }
+    if (GetBeardType() > BeardType::Max) {
+        return ValidationResult::InvalidBeardType;
+    }
+    if (GetMustacheType() > MustacheType::Max) {
+        return ValidationResult::InvalidMustacheType;
+    }
+    if (GetMustacheScale() > MaxMustacheScale) {
+        return ValidationResult::InvalidMustacheScale;
+    }
+    if (GetMustacheY() > MaxMustacheY) {
+        return ValidationResult::InvalidMustacheY;
+    }
+    if (GetGlassType() > GlassType::Max) {
+        return ValidationResult::InvalidGlassType;
+    }
+    if (GetGlassColor() > CommonColor::Max) {
+        return ValidationResult::InvalidGlassColor;
+    }
+    if (GetGlassScale() > MaxGlassScale) {
+        return ValidationResult::InvalidGlassScale;
+    }
+    if (GetGlassY() > MaxGlassY) {
+        return ValidationResult::InvalidGlassY;
+    }
+    if (GetMoleType() > MoleType::Max) {
+        return ValidationResult::InvalidMoleType;
+    }
+    if (GetMoleScale() > MaxMoleScale) {
+        return ValidationResult::InvalidMoleScale;
+    }
+    if (GetMoleX() > MaxMoleX) {
+        return ValidationResult::InvalidMoleX;
+    }
+    if (GetMoleY() > MaxMoleY) {
+        return ValidationResult::InvalidMoleY;
+    }
+    return ValidationResult::NoErrors;
 }
 
 void CoreData::SetFontRegion(FontRegion value) {
@@ -314,8 +517,8 @@ void CoreData::SetNoseY(u8 value) {
     data.nose_y.Assign(value);
 }
 
-void CoreData::SetMouthType(u8 value) {
-    data.mouth_type.Assign(value);
+void CoreData::SetMouthType(MouthType value) {
+    data.mouth_type.Assign(static_cast<u32>(value));
 }
 
 void CoreData::SetMouthColor(CommonColor value) {

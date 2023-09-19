@@ -439,6 +439,7 @@ Result NfcDevice::Mount(NFP::ModelType model_type, NFP::MountTarget mount_target
 
     device_state = DeviceState::TagMounted;
     mount_target = mount_target_;
+
     return ResultSuccess;
 }
 
@@ -716,12 +717,13 @@ Result NfcDevice::GetRegisterInfoPrivate(NFP::RegisterInfoPrivate& register_info
         return ResultRegistrationIsNotInitialized;
     }
 
-    Service::Mii::MiiManager manager;
+    Mii::StoreData store_data{};
     const auto& settings = tag_data.settings;
+    tag_data.owner_mii.BuildToStoreData(store_data);
 
     // TODO: Validate and complete this data
     register_info = {
-        .mii_store_data = {},
+        .mii_store_data = store_data,
         .creation_date = settings.init_date.GetWriteDate(),
         .amiibo_name = GetAmiiboName(settings),
         .font_region = settings.settings.font_region,
@@ -1372,7 +1374,7 @@ NFP::AmiiboName NfcDevice::GetAmiiboName(const NFP::AmiiboSettings& settings) co
 
     // Convert from utf16 to utf8
     const auto amiibo_name_utf8 = Common::UTF16ToUTF8(settings_amiibo_name.data());
-    memcpy(amiibo_name.data(), amiibo_name_utf8.data(), amiibo_name_utf8.size());
+    memcpy(amiibo_name.data(), amiibo_name_utf8.data(), amiibo_name_utf8.size() - 1);
 
     return amiibo_name;
 }

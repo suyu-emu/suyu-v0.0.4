@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "core/hle/result.h"
 #include "core/hle/service/mii/mii_types.h"
 #include "core/hle/service/mii/types/core_data.h"
 
@@ -10,17 +11,16 @@ namespace Service::Mii {
 
 class StoreData {
 public:
-    // nn::mii::detail::StoreDataRaw::BuildDefault
     void BuildDefault(u32 mii_index);
-    // nn::mii::detail::StoreDataRaw::BuildDefault
-
     void BuildBase(Gender gender);
-    // nn::mii::detail::StoreDataRaw::BuildRandom
     void BuildRandom(Age age, Gender gender, Race race);
+    void BuildWithCharInfo(const CharInfo& char_info);
+    void BuildWithCoreData(const CoreData& in_core_data);
+    Result Restore();
+
+    ValidationResult IsValid() const;
 
     bool IsSpecial() const;
-
-    u32 IsValid() const;
 
     void SetFontRegion(FontRegion value);
     void SetFavoriteColor(FavoriteColor value);
@@ -53,7 +53,7 @@ public:
     void SetNoseType(NoseType value);
     void SetNoseScale(u8 value);
     void SetNoseY(u8 value);
-    void SetMouthType(u8 value);
+    void SetMouthType(MouthType value);
     void SetMouthColor(CommonColor value);
     void SetMouthScale(u8 value);
     void SetMouthAspect(u8 value);
@@ -73,6 +73,9 @@ public:
     void SetMoleY(u8 value);
     void SetNickname(Nickname nickname);
     void SetInvalidName();
+    void SetChecksum();
+    void SetDataChecksum();
+    void SetDeviceChecksum();
 
     Common::UUID GetCreateId() const;
     FontRegion GetFontRegion() const;
@@ -135,6 +138,8 @@ private:
     u16 device_crc{};
 };
 static_assert(sizeof(StoreData) == 0x44, "StoreData has incorrect size.");
+static_assert(std::is_trivially_copyable_v<StoreData>,
+              "StoreData type must be trivially copyable.");
 
 struct StoreDataElement {
     StoreData store_data{};
