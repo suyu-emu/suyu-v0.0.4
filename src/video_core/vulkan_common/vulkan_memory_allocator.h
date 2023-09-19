@@ -7,6 +7,7 @@
 #include <span>
 #include <vector>
 #include "common/common_types.h"
+#include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 VK_DEFINE_HANDLE(VmaAllocator)
@@ -25,6 +26,18 @@ enum class MemoryUsage {
     Download,    ///< Requires a host visible memory type optimized for GPU to CPU readbacks
     Stream,      ///< Requests device local host visible buffer, falling back host memory.
 };
+
+template <typename F>
+void ForEachDeviceLocalHostVisibleHeap(const Device& device, F&& f) {
+    auto memory_props = device.GetPhysical().GetMemoryProperties().memoryProperties;
+    for (size_t i = 0; i < memory_props.memoryTypeCount; i++) {
+        auto& memory_type = memory_props.memoryTypes[i];
+        if ((memory_type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) &&
+            (memory_type.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)) {
+            f(memory_type.heapIndex, memory_props.memoryHeaps[memory_type.heapIndex]);
+        }
+    }
+}
 
 /// Ownership handle of a memory commitment.
 /// Points to a subregion of a memory allocation.
@@ -124,6 +137,7 @@ private:
     std::vector<std::unique_ptr<MemoryAllocation>> allocations; ///< Current allocations.
     VkDeviceSize buffer_image_granularity; // The granularity for adjacent offsets between buffers
                                            // and optimal images
+    u32 valid_memory_types{~0u};
 };
 
 } // namespace Vulkan

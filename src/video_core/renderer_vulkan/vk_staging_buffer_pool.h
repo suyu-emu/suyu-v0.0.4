@@ -90,6 +90,9 @@ private:
     void ReleaseCache(MemoryUsage usage);
 
     void ReleaseLevel(StagingBuffersCache& cache, size_t log2);
+    size_t Region(size_t iter) const noexcept {
+        return iter / region_size;
+    }
 
     const Device& device;
     MemoryAllocator& memory_allocator;
@@ -97,6 +100,8 @@ private:
 
     vk::Buffer stream_buffer;
     std::span<u8> stream_pointer;
+    VkDeviceSize stream_buffer_size;
+    VkDeviceSize region_size;
 
     size_t iterator = 0;
     size_t used_iterator = 0;

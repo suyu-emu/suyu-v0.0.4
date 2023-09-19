@@ -24,25 +24,38 @@ using namespace Common::Literals;
 
 // Maximum potential alignment of a Vulkan buffer
 constexpr VkDeviceSize MAX_ALIGNMENT = 256;
-// Maximum size to put elements in the stream buffer
-constexpr VkDeviceSize MAX_STREAM_BUFFER_REQUEST_SIZE = 8_MiB;
 // Stream buffer size in bytes
-constexpr VkDeviceSize STREAM_BUFFER_SIZE = 128_MiB;
-constexpr VkDeviceSize REGION_SIZE = STREAM_BUFFER_SIZE / StagingBufferPool::NUM_SYNCS;
+constexpr VkDeviceSize MAX_STREAM_BUFFER_SIZE = 128_MiB;
 
-size_t Region(size_t iterator) noexcept {
-    return iterator / REGION_SIZE;
+size_t GetStreamBufferSize(const Device& device) {
+    VkDeviceSize size{0};
+    if (device.HasDebuggingToolAttached()) {
+        ForEachDeviceLocalHostVisibleHeap(device, [&size](size_t index, VkMemoryHeap& heap) {
+            size = std::max(size, heap.size);
+        });
+        // If rebar is not supported, cut the max heap size to 40%. This will allow 2 captures to be
+        // loaded at the same time in RenderDoc. If rebar is supported, this shouldn't be an issue
+        // as the heap will be much larger.
+        if (size <= 256_MiB) {
+            size = size * 40 / 100;
+        }
+    } else {
+        size = MAX_STREAM_BUFFER_SIZE;
+    }
+    return std::min(Common::AlignUp(size, MAX_ALIGNMENT), MAX_STREAM_BUFFER_SIZE);
 }
 } // Anonymous namespace
 
 StagingBufferPool::StagingBufferPool(const Device& device_, MemoryAllocator& memory_allocator_,
                                      Scheduler& scheduler_)
-    : device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_} {
+    : device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_},
+      stream_buffer_size{GetStreamBufferSize(device)}, region_size{stream_buffer_size /
+                                                                   StagingBufferPool::NUM_SYNCS} {
     VkBufferCreateInfo stream_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .size = STREAM_BUFFER_SIZE,
+        .size = stream_buffer_size,
         .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT |
                  VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
@@ -63,7 +76,7 @@ StagingBufferPool::StagingBufferPool(const Device& device_, MemoryAllocator& mem
 StagingBufferPool::~StagingBufferPool() = default;
 
 StagingBufferRef StagingBufferPool::Request(size_t size, MemoryUsage usage, bool deferred) {
-    if (!deferred && usage == MemoryUsage::Upload && size <= MAX_STREAM_BUFFER_REQUEST_SIZE) {
+    if (!deferred && usage == MemoryUsage::Upload && size <= region_size) {
         return GetStreamBuffer(size);
     }
     return GetStagingBuffer(size, usage, deferred);
@@ -101,7 +114,7 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
     used_iterator = iterator;
     free_iterator = std::max(free_iterator, iterator + size);
 
-    if (iterator + size >= STREAM_BUFFER_SIZE) {
+    if (iterator + size >= stream_buffer_size) {
         std::fill(sync_ticks.begin() + Region(used_iterator), sync_ticks.begin() + NUM_SYNCS,
                   current_tick);
         used_iterator = 0;
