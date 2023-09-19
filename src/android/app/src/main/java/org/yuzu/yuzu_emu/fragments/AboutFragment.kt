@@ -26,6 +26,7 @@ import org.yuzu.yuzu_emu.BuildConfig
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.FragmentAboutBinding
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.ui.main.MainActivity
 
 class AboutFragment : Fragment() {
     private var _binding: FragmentAboutBinding? = null
@@ -90,6 +91,12 @@ class AboutFragment : Fragment() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
+        }
+
+        val mainActivity = requireActivity() as MainActivity
+        binding.buttonExport.setOnClickListener { mainActivity.exportUserData.launch("export.zip") }
+        binding.buttonImport.setOnClickListener {
+            mainActivity.importUserData.launch(arrayOf("application/zip"))
         }
 
         binding.buttonDiscord.setOnClickListener { openLink(getString(R.string.support_link)) }

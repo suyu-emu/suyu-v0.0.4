@@ -4,14 +4,21 @@
 package org.yuzu.yuzu_emu.fragments
 
 import android.app.Dialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.model.MessageDialogViewModel
 
 class MessageDialogFragment : DialogFragment() {
+    private val messageDialogViewModel: MessageDialogViewModel by activityViewModels()
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val titleId = requireArguments().getInt(TITLE_ID)
         val titleString = requireArguments().getString(TITLE_STRING)!!
@@ -37,6 +44,12 @@ class MessageDialogFragment : DialogFragment() {
         return dialog.show()
     }
 
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        messageDialogViewModel.dismissAction.invoke()
+        messageDialogViewModel.clear()
+    }
+
     private fun openLink(link: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
         startActivity(intent)
@@ -52,11 +65,13 @@ class MessageDialogFragment : DialogFragment() {
         private const val HELP_LINK = "Link"
 
         fun newInstance(
+            activity: FragmentActivity,
             titleId: Int = 0,
             titleString: String = "",
             descriptionId: Int = 0,
             descriptionString: String = "",
-            helpLinkId: Int = 0
+            helpLinkId: Int = 0,
+            dismissAction: () -> Unit = {}
         ): MessageDialogFragment {
             val dialog = MessageDialogFragment()
             val bundle = Bundle()
@@ -67,6 +82,8 @@ class MessageDialogFragment : DialogFragment() {
                 putString(DESCRIPTION_STRING, descriptionString)
                 putInt(HELP_LINK, helpLinkId)
             }
+            ViewModelProvider(activity)[MessageDialogViewModel::class.java].dismissAction =
+                dismissAction
             dialog.arguments = bundle
             return dialog
         }
