@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.activities
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
@@ -397,6 +398,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onPictureInPictureModeChanged(
         isInPictureInPictureMode: Boolean,
         newConfig: Configuration
@@ -409,7 +411,11 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
                 addAction(actionMute)
                 addAction(actionUnmute)
             }.also {
-                registerReceiver(pictureInPictureReceiver, it)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    registerReceiver(pictureInPictureReceiver, it, RECEIVER_EXPORTED)
+                } else {
+                    registerReceiver(pictureInPictureReceiver, it)
+                }
             }
         } else {
             try {
