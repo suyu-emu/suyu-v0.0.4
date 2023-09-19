@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/hle/service/mii/mii_result.h"
 #include "core/hle/service/mii/mii_util.h"
 #include "core/hle/service/mii/types/raw_data.h"
 #include "core/hle/service/mii/types/store_data.h"
@@ -35,13 +36,13 @@ void StoreData::BuildDefault(u32 mii_index) {
     core_data.SetEyebrowAspect(static_cast<u8>(default_mii.eyebrow_aspect));
     core_data.SetEyebrowRotate(static_cast<u8>(default_mii.eyebrow_rotate));
     core_data.SetEyebrowX(static_cast<u8>(default_mii.eyebrow_x));
-    core_data.SetEyebrowY(static_cast<u8>(default_mii.eyebrow_y));
+    core_data.SetEyebrowY(static_cast<u8>(default_mii.eyebrow_y - 3));
 
     core_data.SetNoseType(static_cast<NoseType>(default_mii.nose_type));
     core_data.SetNoseScale(static_cast<u8>(default_mii.nose_scale));
     core_data.SetNoseY(static_cast<u8>(default_mii.nose_y));
 
-    core_data.SetMouthType(static_cast<u8>(default_mii.mouth_type));
+    core_data.SetMouthType(static_cast<MouthType>(default_mii.mouth_type));
     core_data.SetMouthColor(
         RawData::GetMouthColorFromVer3(static_cast<u8>(default_mii.mouth_color)));
     core_data.SetMouthScale(static_cast<u8>(default_mii.mouth_scale));
@@ -75,10 +76,8 @@ void StoreData::BuildDefault(u32 mii_index) {
     core_data.SetType(static_cast<u8>(default_mii.type));
     core_data.SetNickname(default_mii.nickname);
 
-    const auto device_id = MiiUtil::GetDeviceId();
     create_id = MiiUtil::MakeCreateId();
-    device_crc = MiiUtil::CalculateCrc16(&device_id, sizeof(Common::UUID));
-    data_crc = MiiUtil::CalculateCrc16(&core_data, sizeof(CoreData));
+    SetChecksum();
 }
 
 void StoreData::BuildBase(Gender gender) {
@@ -109,13 +108,13 @@ void StoreData::BuildBase(Gender gender) {
     core_data.SetEyebrowAspect(static_cast<u8>(default_mii.eyebrow_aspect));
     core_data.SetEyebrowRotate(static_cast<u8>(default_mii.eyebrow_rotate));
     core_data.SetEyebrowX(static_cast<u8>(default_mii.eyebrow_x));
-    core_data.SetEyebrowY(static_cast<u8>(default_mii.eyebrow_y));
+    core_data.SetEyebrowY(static_cast<u8>(default_mii.eyebrow_y - 3));
 
     core_data.SetNoseType(static_cast<NoseType>(default_mii.nose_type));
     core_data.SetNoseScale(static_cast<u8>(default_mii.nose_scale));
     core_data.SetNoseY(static_cast<u8>(default_mii.nose_y));
 
-    core_data.SetMouthType(static_cast<u8>(default_mii.mouth_type));
+    core_data.SetMouthType(static_cast<MouthType>(default_mii.mouth_type));
     core_data.SetMouthColor(
         RawData::GetMouthColorFromVer3(static_cast<u8>(default_mii.mouth_color)));
     core_data.SetMouthScale(static_cast<u8>(default_mii.mouth_scale));
@@ -149,35 +148,49 @@ void StoreData::BuildBase(Gender gender) {
     core_data.SetType(static_cast<u8>(default_mii.type));
     core_data.SetNickname(default_mii.nickname);
 
-    const auto device_id = MiiUtil::GetDeviceId();
     create_id = MiiUtil::MakeCreateId();
-    device_crc = MiiUtil::CalculateCrc16(&device_id, sizeof(Common::UUID));
-    data_crc = MiiUtil::CalculateCrc16(&core_data, sizeof(CoreData));
+    SetChecksum();
 }
 
 void StoreData::BuildRandom(Age age, Gender gender, Race race) {
     core_data.BuildRandom(age, gender, race);
-    const auto device_id = MiiUtil::GetDeviceId();
     create_id = MiiUtil::MakeCreateId();
-    device_crc = MiiUtil::CalculateCrc16(&device_id, sizeof(Common::UUID));
-    data_crc = MiiUtil::CalculateCrc16(&core_data, sizeof(CoreData));
+    SetChecksum();
 }
 
-void StoreData::SetInvalidName() {
-    const auto& invalid_name = core_data.GetInvalidNickname();
+void StoreData::BuildWithCharInfo(const CharInfo& char_info) {
+    core_data.BuildFromCharInfo(char_info);
+    create_id = MiiUtil::MakeCreateId();
+    SetChecksum();
+}
+
+void StoreData::BuildWithCoreData(const CoreData& in_core_data) {
+    core_data = in_core_data;
+    create_id = MiiUtil::MakeCreateId();
+    SetChecksum();
+}
+
+Result StoreData::Restore() {
+    // TODO: Implement this
+    return ResultNotUpdated;
+}
+
+ValidationResult StoreData::IsValid() const {
+    if (core_data.IsValid() != ValidationResult::NoErrors) {
+        return core_data.IsValid();
+    }
+    if (data_crc != MiiUtil::CalculateCrc16(&core_data, sizeof(CoreData) + sizeof(Common::UUID))) {
+        return ValidationResult::InvalidChecksum;
+    }
     const auto device_id = MiiUtil::GetDeviceId();
-    core_data.SetNickname(invalid_name);
-    device_crc = MiiUtil::CalculateCrc16(&device_id, sizeof(Common::UUID));
-    data_crc = MiiUtil::CalculateCrc16(&core_data, sizeof(CoreData));
+    if (device_crc != MiiUtil::CalculateDeviceCrc16(device_id, sizeof(StoreData))) {
+        return ValidationResult::InvalidChecksum;
+    }
+    return ValidationResult::NoErrors;
 }
 
 bool StoreData::IsSpecial() const {
     return GetType() == 1;
-}
-
-u32 StoreData::IsValid() const {
-    // TODO: complete this
-    return 0;
 }
 
 void StoreData::SetFontRegion(FontRegion value) {
@@ -304,7 +317,7 @@ void StoreData::SetNoseY(u8 value) {
     core_data.SetNoseY(value);
 }
 
-void StoreData::SetMouthType(u8 value) {
+void StoreData::SetMouthType(MouthType value) {
     core_data.SetMouthType(value);
 }
 
@@ -378,6 +391,26 @@ void StoreData::SetMoleY(u8 value) {
 
 void StoreData::SetNickname(Nickname value) {
     core_data.SetNickname(value);
+}
+
+void StoreData::SetInvalidName() {
+    const auto& invalid_name = core_data.GetInvalidNickname();
+    core_data.SetNickname(invalid_name);
+    SetChecksum();
+}
+
+void StoreData::SetChecksum() {
+    SetDataChecksum();
+    SetDeviceChecksum();
+}
+
+void StoreData::SetDataChecksum() {
+    data_crc = MiiUtil::CalculateCrc16(&core_data, sizeof(CoreData) + sizeof(Common::UUID));
+}
+
+void StoreData::SetDeviceChecksum() {
+    const auto device_id = MiiUtil::GetDeviceId();
+    device_crc = MiiUtil::CalculateDeviceCrc16(device_id, sizeof(StoreData));
 }
 
 Common::UUID StoreData::GetCreateId() const {
@@ -585,7 +618,7 @@ Nickname StoreData::GetNickname() const {
 }
 
 bool StoreData::operator==(const StoreData& data) {
-    bool is_identical = data.core_data.IsValid() == 0;
+    bool is_identical = data.core_data.IsValid() == ValidationResult::NoErrors;
     is_identical &= core_data.GetNickname().data == data.core_data.GetNickname().data;
     is_identical &= GetCreateId() == data.GetCreateId();
     is_identical &= GetFontRegion() == data.GetFontRegion();

@@ -37,7 +37,7 @@ void CharInfo::SetFromStoreData(const StoreData& store_data) {
     eyebrow_aspect = store_data.GetEyebrowAspect();
     eyebrow_rotate = store_data.GetEyebrowRotate();
     eyebrow_x = store_data.GetEyebrowX();
-    eyebrow_y = store_data.GetEyebrowY();
+    eyebrow_y = store_data.GetEyebrowY() + 3;
     nose_type = store_data.GetNoseType();
     nose_scale = store_data.GetNoseScale();
     nose_y = store_data.GetNoseY();
@@ -150,7 +150,7 @@ ValidationResult CharInfo::Verify() const {
     if (eyebrow_x > MaxEyebrowX) {
         return ValidationResult::InvalidEyebrowX;
     }
-    if (eyebrow_y > MaxEyebrowY) {
+    if (eyebrow_y - 3 > MaxEyebrowY) {
         return ValidationResult::InvalidEyebrowY;
     }
     if (nose_type > NoseType::Max) {
@@ -189,7 +189,7 @@ ValidationResult CharInfo::Verify() const {
     if (mustache_scale > MaxMustacheScale) {
         return ValidationResult::InvalidMustacheScale;
     }
-    if (mustache_y > MasMustacheY) {
+    if (mustache_y > MaxMustacheY) {
         return ValidationResult::InvalidMustacheY;
     }
     if (glass_type > GlassType::Max) {

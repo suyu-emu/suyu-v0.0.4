@@ -6,6 +6,7 @@
 #include "core/hle/service/mii/mii_types.h"
 
 namespace Service::Mii {
+class CharInfo;
 
 struct StoreDataBitFields {
     union {
@@ -100,8 +101,9 @@ class CoreData {
 public:
     void SetDefault();
     void BuildRandom(Age age, Gender gender, Race race);
+    void BuildFromCharInfo(const CharInfo& char_info);
 
-    u32 IsValid() const;
+    ValidationResult IsValid() const;
 
     void SetFontRegion(FontRegion value);
     void SetFavoriteColor(FavoriteColor value);
@@ -134,7 +136,7 @@ public:
     void SetNoseType(NoseType value);
     void SetNoseScale(u8 value);
     void SetNoseY(u8 value);
-    void SetMouthType(u8 value);
+    void SetMouthType(MouthType value);
     void SetMouthColor(CommonColor value);
     void SetMouthScale(u8 value);
     void SetMouthAspect(u8 value);
@@ -212,5 +214,6 @@ private:
     Nickname name{};
 };
 static_assert(sizeof(CoreData) == 0x30, "CoreData has incorrect size.");
+static_assert(std::is_trivially_copyable_v<CoreData>, "CoreData type must be trivially copyable.");
 
 }; // namespace Service::Mii

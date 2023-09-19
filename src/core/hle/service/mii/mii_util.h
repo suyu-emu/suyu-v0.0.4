@@ -28,6 +28,32 @@ public:
         return Common::swap16(static_cast<u16>(crc));
     }
 
+    static u16 CalculateDeviceCrc16(const Common::UUID& uuid, std::size_t data_size) {
+        constexpr u16 magic{0x1021};
+        s32 crc{};
+
+        for (std::size_t i = 0; i < uuid.uuid.size(); i++) {
+            for (std::size_t j = 0; j < 8; j++) {
+                crc <<= 1;
+                if ((crc & 0x10000) != 0) {
+                    crc = crc ^ magic;
+                }
+            }
+            crc ^= uuid.uuid[i];
+        }
+
+        // As much as this looks wrong this is what N's does
+
+        for (std::size_t i = 0; i < data_size * 8; i++) {
+            crc <<= 1;
+            if ((crc & 0x10000) != 0) {
+                crc = crc ^ magic;
+            }
+        }
+
+        return Common::swap16(static_cast<u16>(crc));
+    }
+
     static Common::UUID MakeCreateId() {
         return Common::UUID::MakeRandomRFC4122V4();
     }
