@@ -15,7 +15,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Rational
 import android.view.*
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
@@ -287,13 +286,14 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        updateScreenLayout()
         if (emulationActivity?.isInPictureInPictureMode == true) {
             if (binding.drawerLayout.isOpen) {
                 binding.drawerLayout.close()
             }
             if (EmulationMenuSettings.showOverlay) {
                 binding.surfaceInputOverlay.post {
-                    binding.surfaceInputOverlay.visibility = View.VISIBLE
+                    binding.surfaceInputOverlay.visibility = View.INVISIBLE
                 }
             }
         } else {
@@ -328,7 +328,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     override fun onPause() {
-        if (emulationState.isRunning) {
+        if (emulationState.isRunning && emulationActivity?.isInPictureInPictureMode != true) {
             emulationState.pause()
         }
         super.onPause()
@@ -394,16 +394,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     private fun updateScreenLayout() {
-        binding.surfaceEmulation.setAspectRatio(
-            when (IntSetting.RENDERER_ASPECT_RATIO.int) {
-                0 -> Rational(16, 9)
-                1 -> Rational(4, 3)
-                2 -> Rational(21, 9)
-                3 -> Rational(16, 10)
-                4 -> null // Stretch
-                else -> Rational(16, 9)
-            }
-        )
+        binding.surfaceEmulation.setAspectRatio(null)
         emulationActivity?.buildPictureInPictureParams()
         updateOrientation()
     }
@@ -693,7 +684,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private class EmulationState(private val gamePath: String) {
         private var state: State
         private var surface: Surface? = null
-        private var runWhenSurfaceIsValid = false
 
         init {
             // Starting state is stopped.
@@ -751,8 +741,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             // If the surface is set, run now. Otherwise, wait for it to get set.
             if (surface != null) {
                 runWithValidSurface()
-            } else {
-                runWhenSurfaceIsValid = true
             }
         }
 
@@ -760,7 +748,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         @Synchronized
         fun newSurface(surface: Surface?) {
             this.surface = surface
-            if (runWhenSurfaceIsValid) {
+            if (this.surface != null) {
                 runWithValidSurface()
             }
         }
@@ -788,10 +776,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
 
         private fun runWithValidSurface() {
-            runWhenSurfaceIsValid = false
+            NativeLibrary.surfaceChanged(surface)
             when (state) {
                 State.STOPPED -> {
-                    NativeLibrary.surfaceChanged(surface)
                     val emulationThread = Thread({
                         Log.debug("[EmulationFragment] Starting emulation thread.")
                         NativeLibrary.run(gamePath)
@@ -801,7 +788,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                 State.PAUSED -> {
                     Log.debug("[EmulationFragment] Resuming emulation.")
-                    NativeLibrary.surfaceChanged(surface)
                     NativeLibrary.unpauseEmulation()
                 }
 

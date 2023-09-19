@@ -11,6 +11,12 @@
 #include "jni/emu_window/emu_window.h"
 
 void EmuWindow_Android::OnSurfaceChanged(ANativeWindow* surface) {
+    m_window_width = ANativeWindow_getWidth(surface);
+    m_window_height = ANativeWindow_getHeight(surface);
+
+    // Ensures that we emulate with the correct aspect ratio.
+    UpdateCurrentFramebufferLayout(m_window_width, m_window_height);
+
     window_info.render_surface = reinterpret_cast<void*>(surface);
 }
 
@@ -62,14 +68,8 @@ EmuWindow_Android::EmuWindow_Android(InputCommon::InputSubsystem* input_subsyste
         return;
     }
 
-    m_window_width = ANativeWindow_getWidth(surface);
-    m_window_height = ANativeWindow_getHeight(surface);
-
-    // Ensures that we emulate with the correct aspect ratio.
-    UpdateCurrentFramebufferLayout(m_window_width, m_window_height);
-
+    OnSurfaceChanged(surface);
     window_info.type = Core::Frontend::WindowSystemType::Android;
-    window_info.render_surface = reinterpret_cast<void*>(surface);
 
     m_input_subsystem->Initialize();
 }
