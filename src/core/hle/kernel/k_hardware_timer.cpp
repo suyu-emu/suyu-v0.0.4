@@ -35,7 +35,9 @@ void KHardwareTimer::DoTask() {
         }
 
         // Disable the timer interrupt while we handle this.
-        this->DisableInterrupt();
+        // Not necessary due to core timing already having popped this event to call it.
+        // this->DisableInterrupt();
+        m_wakeup_time = std::numeric_limits<s64>::max();
 
         if (const s64 next_time = this->DoInterruptTaskImpl(GetTick());
             0 < next_time && next_time <= m_wakeup_time) {
