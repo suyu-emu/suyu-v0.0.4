@@ -22,6 +22,8 @@
 
 namespace Service::AOC {
 
+constexpr Result ResultNoPurchasedProductInfoAvailable{ErrorModule::NIMShop, 400};
+
 static bool CheckAOCTitleIDMatchesBase(u64 title_id, u64 base) {
     return FileSys::GetBaseTitleID(title_id) == base;
 }
@@ -54,8 +56,8 @@ public:
             {0, &IPurchaseEventManager::SetDefaultDeliveryTarget, "SetDefaultDeliveryTarget"},
             {1, &IPurchaseEventManager::SetDeliveryTarget, "SetDeliveryTarget"},
             {2, &IPurchaseEventManager::GetPurchasedEventReadableHandle, "GetPurchasedEventReadableHandle"},
-            {3, nullptr, "PopPurchasedProductInfo"},
-            {4, nullptr, "PopPurchasedProductInfoWithUid"},
+            {3, &IPurchaseEventManager::PopPurchasedProductInfo, "PopPurchasedProductInfo"},
+            {4, &IPurchaseEventManager::PopPurchasedProductInfoWithUid, "PopPurchasedProductInfoWithUid"},
         };
         // clang-format on
 
@@ -99,6 +101,20 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(ResultSuccess);
         rb.PushCopyObjects(purchased_event->GetReadableEvent());
+    }
+
+    void PopPurchasedProductInfo(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AOC, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultNoPurchasedProductInfoAvailable);
+    }
+
+    void PopPurchasedProductInfoWithUid(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AOC, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultNoPurchasedProductInfoAvailable);
     }
 
     KernelHelpers::ServiceContext service_context;
