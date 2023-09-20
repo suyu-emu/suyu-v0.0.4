@@ -65,25 +65,20 @@ class ImportExportSavesFragment : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return if (savesFolderRoot == "") {
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.manage_save_data)
-                .setMessage(R.string.import_export_saves_no_profile)
-                .setPositiveButton(android.R.string.ok, null)
-                .show()
-        } else {
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.manage_save_data)
-                .setMessage(R.string.manage_save_data_description)
-                .setNegativeButton(R.string.export_saves) { _, _ ->
-                    exportSave()
-                }
-                .setPositiveButton(R.string.import_saves) { _, _ ->
-                    documentPicker.launch(arrayOf("application/zip"))
-                }
-                .setNeutralButton(android.R.string.cancel, null)
-                .show()
+        val builder = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.manage_save_data)
+            .setPositiveButton(R.string.import_saves) { _, _ ->
+                documentPicker.launch(arrayOf("application/zip"))
+            }
+            .setNeutralButton(android.R.string.cancel, null)
+
+        if (savesFolderRoot != "") {
+            builder.setNegativeButton(R.string.export_saves) { _, _ ->
+                exportSave()
+            }
         }
+
+        return builder.show()
     }
 
     /**

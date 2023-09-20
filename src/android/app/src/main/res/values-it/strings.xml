@@ -79,9 +79,7 @@
     <string name="notification_no_directory_link">Impossibile aprire la cartella di yuzu</string>
     <string name="notification_no_directory_link_description">Per favore individua la cartella dell\'utente manualmente con il pannello laterale del file manager.</string>
     <string name="manage_save_data">Gestisci i salvataggi</string>
-    <string name="manage_save_data_description">Salvataggio non trovato. Seleziona un\'opzione di seguito.</string>
     <string name="import_export_saves_description">Importa o esporta i salvataggi</string>
-    <string name="import_export_saves_no_profile">Nessun salvataggio trovato. Avvia un gioco e riprova.</string>
     <string name="save_file_imported_success">Importato con successo</string>
     <string name="save_file_invalid_zip_structure">La struttura della cartella dei salvataggi è invalida</string>
     <string name="save_file_invalid_zip_structure_description">La prima sotto cartella <b>deve</b> chiamarsi come l\'ID del titolo del gioco.</string>

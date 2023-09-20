@@ -79,9 +79,7 @@
     <string name="notification_no_directory_link">無法開啟 yuzu 目錄</string>
     <string name="notification_no_directory_link_description">請使用檔案管理員的側邊面板手動定位到使用者資料夾。</string>
     <string name="manage_save_data">管理儲存資料</string>
-    <string name="manage_save_data_description">已找到儲存資料，請選取下方的選項。</string>
     <string name="import_export_saves_description">匯入或匯出儲存檔案</string>
-    <string name="import_export_saves_no_profile">找不到儲存資料，請啟動遊戲並重試。</string>
     <string name="save_file_imported_success">已成功匯入</string>
     <string name="save_file_invalid_zip_structure">無效的儲存目錄結構</string>
     <string name="save_file_invalid_zip_structure_description">首個子資料夾名稱必須為遊戲標題 ID。</string>
