@@ -3,6 +3,7 @@
 
 #include <array>
 #include <memory>
+#include <numeric>
 #include <optional>
 #include <utility>
 
@@ -11,7 +12,10 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/div_ceil.h"
+#include "common/vector_math.h"
 #include "video_core/host_shaders/astc_decoder_comp_spv.h"
+#include "video_core/host_shaders/convert_msaa_to_non_msaa_comp_spv.h"
+#include "video_core/host_shaders/convert_non_msaa_to_msaa_comp_spv.h"
 #include "video_core/host_shaders/queries_prefix_scan_sum_comp_spv.h"
 #include "video_core/host_shaders/queries_prefix_scan_sum_nosubgroups_comp_spv.h"
 #include "video_core/host_shaders/resolve_conditional_render_comp_spv.h"
@@ -131,6 +135,33 @@ constexpr DescriptorBankInfo ASTC_BANK_INFO{
     .score = 2,
 };
 
+constexpr std::array<VkDescriptorSetLayoutBinding, ASTC_NUM_BINDINGS> MSAA_DESCRIPTOR_SET_BINDINGS{{
+    {
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+        .pImmutableSamplers = nullptr,
+    },
+    {
+        .binding = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+        .pImmutableSamplers = nullptr,
+    },
+}};
+
+constexpr DescriptorBankInfo MSAA_BANK_INFO{
+    .uniform_buffers = 0,
+    .storage_buffers = 0,
+    .texture_buffers = 0,
+    .image_buffers = 0,
+    .textures = 0,
+    .images = 2,
+    .score = 2,
+};
+
 constexpr VkDescriptorUpdateTemplateEntry INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLATE{
     .dstBinding = 0,
     .dstArrayElement = 0,
@@ -145,6 +176,15 @@ constexpr VkDescriptorUpdateTemplateEntry QUERIES_SCAN_DESCRIPTOR_UPDATE_TEMPLAT
     .dstArrayElement = 0,
     .descriptorCount = 3,
     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+    .offset = 0,
+    .stride = sizeof(DescriptorUpdateEntry),
+};
+
+constexpr VkDescriptorUpdateTemplateEntry MSAA_DESCRIPTOR_UPDATE_TEMPLATE{
+    .dstBinding = 0,
+    .dstArrayElement = 0,
+    .descriptorCount = 2,
+    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
     .offset = 0,
     .stride = sizeof(DescriptorUpdateEntry),
 };
@@ -223,6 +263,9 @@ ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
             .set = 0,
         });
         descriptor_allocator = descriptor_pool.Allocator(*descriptor_set_layout, bank_info);
+    }
+    if (code.empty()) {
+        return;
     }
     module = device.GetLogical().CreateShaderModule({
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
@@ -588,6 +631,102 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
                                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, image_barrier);
     });
     scheduler.Finish();
+}
+
+MSAACopyPass::MSAACopyPass(const Device& device_, Scheduler& scheduler_,
+                           DescriptorPool& descriptor_pool_,
+                           StagingBufferPool& staging_buffer_pool_,
+                           ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
+    : ComputePass(device_, descriptor_pool_, MSAA_DESCRIPTOR_SET_BINDINGS,
+                  MSAA_DESCRIPTOR_UPDATE_TEMPLATE, MSAA_BANK_INFO, {},
+                  CONVERT_NON_MSAA_TO_MSAA_COMP_SPV),
+      scheduler{scheduler_}, staging_buffer_pool{staging_buffer_pool_},
+      compute_pass_descriptor_queue{compute_pass_descriptor_queue_} {
+    const auto make_msaa_pipeline = [this](size_t i, std::span<const u32> code) {
+        modules[i] = device.GetLogical().CreateShaderModule({
+            .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .codeSize = static_cast<u32>(code.size_bytes()),
+            .pCode = code.data(),
+        });
+        pipelines[i] = device.GetLogical().CreateComputePipeline({
+            .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .stage{
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+                .module = *modules[i],
+                .pName = "main",
+                .pSpecializationInfo = nullptr,
+            },
+            .layout = *layout,
+            .basePipelineHandle = nullptr,
+            .basePipelineIndex = 0,
+        });
+    };
+    make_msaa_pipeline(0, CONVERT_NON_MSAA_TO_MSAA_COMP_SPV);
+    make_msaa_pipeline(1, CONVERT_MSAA_TO_NON_MSAA_COMP_SPV);
+}
+
+MSAACopyPass::~MSAACopyPass() = default;
+
+void MSAACopyPass::CopyImage(Image& dst_image, Image& src_image,
+                             std::span<const VideoCommon::ImageCopy> copies,
+                             bool msaa_to_non_msaa) {
+    const VkPipeline msaa_pipeline = *pipelines[msaa_to_non_msaa ? 1 : 0];
+    scheduler.RequestOutsideRenderPassOperationContext();
+    for (const VideoCommon::ImageCopy& copy : copies) {
+        ASSERT(copy.src_subresource.base_layer == 0);
+        ASSERT(copy.src_subresource.num_layers == 1);
+        ASSERT(copy.dst_subresource.base_layer == 0);
+        ASSERT(copy.dst_subresource.num_layers == 1);
+
+        compute_pass_descriptor_queue.Acquire();
+        compute_pass_descriptor_queue.AddImage(
+            src_image.StorageImageView(copy.src_subresource.base_level));
+        compute_pass_descriptor_queue.AddImage(
+            dst_image.StorageImageView(copy.dst_subresource.base_level));
+        const void* const descriptor_data{compute_pass_descriptor_queue.UpdateData()};
+
+        const Common::Vec3<u32> num_dispatches = {
+            Common::DivCeil(copy.extent.width, 8U),
+            Common::DivCeil(copy.extent.height, 8U),
+            copy.extent.depth,
+        };
+
+        scheduler.Record([this, dst = dst_image.Handle(), msaa_pipeline, num_dispatches,
+                          descriptor_data](vk::CommandBuffer cmdbuf) {
+            const VkDescriptorSet set = descriptor_allocator.Commit();
+            device.GetLogical().UpdateDescriptorSet(set, *descriptor_template, descriptor_data);
+            cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, msaa_pipeline);
+            cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *layout, 0, set, {});
+            cmdbuf.Dispatch(num_dispatches.x, num_dispatches.y, num_dispatches.z);
+            const VkImageMemoryBarrier write_barrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = dst,
+                .subresourceRange{
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .baseMipLevel = 0,
+                    .levelCount = VK_REMAINING_MIP_LEVELS,
+                    .baseArrayLayer = 0,
+                    .layerCount = VK_REMAINING_ARRAY_LAYERS,
+                },
+            };
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, write_barrier);
+        });
+    }
 }
 
 } // namespace Vulkan

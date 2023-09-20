@@ -324,6 +324,11 @@ public:
         return features.shader_float16_int8.shaderInt8;
     }
 
+    /// Returns true if the device supports binding multisample images as storage images.
+    bool IsStorageImageMultisampleSupported() const {
+        return features.features.shaderStorageImageMultisample;
+    }
+
     /// Returns true if the device warp size can potentially be bigger than guest's warp size.
     bool IsWarpSizePotentiallyBiggerThanGuest() const {
         return is_warp_potentially_bigger;

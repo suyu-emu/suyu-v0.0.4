@@ -176,6 +176,36 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return allocator.CreateImage(image_ci);
 }
 
+[[nodiscard]] vk::ImageView MakeStorageView(const vk::Device& device, u32 level, VkImage image,
+                                            VkFormat format) {
+    static constexpr VkImageViewUsageCreateInfo storage_image_view_usage_create_info{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
+        .pNext = nullptr,
+        .usage = VK_IMAGE_USAGE_STORAGE_BIT,
+    };
+    return device.CreateImageView(VkImageViewCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext = &storage_image_view_usage_create_info,
+        .flags = 0,
+        .image = image,
+        .viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
+        .format = format,
+        .components{
+            .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+        },
+        .subresourceRange{
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = level,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = VK_REMAINING_ARRAY_LAYERS,
+        },
+    });
+}
+
 [[nodiscard]] VkImageAspectFlags ImageAspectMask(PixelFormat format) {
     switch (VideoCore::Surface::GetFormatType(format)) {
     case VideoCore::Surface::SurfaceType::ColorTexture:
@@ -817,6 +847,10 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
         astc_decoder_pass.emplace(device, scheduler, descriptor_pool, staging_buffer_pool,
                                   compute_pass_descriptor_queue, memory_allocator);
     }
+    if (device.IsStorageImageMultisampleSupported()) {
+        msaa_copy_pass = std::make_unique<MSAACopyPass>(
+            device, scheduler, descriptor_pool, staging_buffer_pool, compute_pass_descriptor_queue);
+    }
     if (!device.IsKhrImageFormatListSupported()) {
         return;
     }
@@ -1285,7 +1319,11 @@ void TextureCacheRuntime::CopyImage(Image& dst, Image& src,
 
 void TextureCacheRuntime::CopyImageMSAA(Image& dst, Image& src,
                                         std::span<const VideoCommon::ImageCopy> copies) {
-    UNIMPLEMENTED_MSG("Copying images with different samples is not implemented in Vulkan.");
+    const bool msaa_to_non_msaa = src.info.num_samples > 1 && dst.info.num_samples == 1;
+    if (msaa_copy_pass) {
+        return msaa_copy_pass->CopyImage(dst, src, copies, msaa_to_non_msaa);
+    }
+    UNIMPLEMENTED_MSG("Copying images with different samples is not supported.");
 }
 
 u64 TextureCacheRuntime::GetDeviceLocalMemory() const {
@@ -1333,39 +1371,15 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
     if (runtime->device.HasDebuggingToolAttached()) {
         original_image.SetObjectNameEXT(VideoCommon::Name(*this).c_str());
     }
-    static constexpr VkImageViewUsageCreateInfo storage_image_view_usage_create_info{
-        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
-        .pNext = nullptr,
-        .usage = VK_IMAGE_USAGE_STORAGE_BIT,
-    };
     current_image = *original_image;
+    storage_image_views.resize(info.resources.levels);
     if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported() &&
         Settings::values.astc_recompression.GetValue() ==
             Settings::AstcRecompression::Uncompressed) {
         const auto& device = runtime->device.GetLogical();
-        storage_image_views.reserve(info.resources.levels);
         for (s32 level = 0; level < info.resources.levels; ++level) {
-            storage_image_views.push_back(device.CreateImageView(VkImageViewCreateInfo{
-                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-                .pNext = &storage_image_view_usage_create_info,
-                .flags = 0,
-                .image = *original_image,
-                .viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
-                .format = VK_FORMAT_A8B8G8R8_UNORM_PACK32,
-                .components{
-                    .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                    .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                    .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                    .a = VK_COMPONENT_SWIZZLE_IDENTITY,
-                },
-                .subresourceRange{
-                    .aspectMask = aspect_mask,
-                    .baseMipLevel = static_cast<u32>(level),
-                    .levelCount = 1,
-                    .baseArrayLayer = 0,
-                    .layerCount = VK_REMAINING_ARRAY_LAYERS,
-                },
-            }));
+            storage_image_views[level] =
+                MakeStorageView(device, level, *original_image, VK_FORMAT_A8B8G8R8_UNORM_PACK32);
         }
     }
 }
@@ -1494,6 +1508,17 @@ void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferIm
         map.offset,
     };
     DownloadMemory(buffers, offsets, copies);
+}
+
+VkImageView Image::StorageImageView(s32 level) noexcept {
+    auto& view = storage_image_views[level];
+    if (!view) {
+        const auto format_info =
+            MaxwellToVK::SurfaceFormat(runtime->device, FormatType::Optimal, true, info.format);
+        view =
+            MakeStorageView(runtime->device.GetLogical(), level, current_image, format_info.format);
+    }
+    return *view;
 }
 
 bool Image::IsRescaled() const noexcept {
