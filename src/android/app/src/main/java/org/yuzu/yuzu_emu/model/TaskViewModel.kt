@@ -20,12 +20,20 @@ class TaskViewModel : ViewModel() {
     val isRunning: StateFlow<Boolean> get() = _isRunning
     private val _isRunning = MutableStateFlow(false)
 
+    val cancelled: StateFlow<Boolean> get() = _cancelled
+    private val _cancelled = MutableStateFlow(false)
+
     lateinit var task: () -> Any
 
     fun clear() {
         _result.value = Any()
         _isComplete.value = false
         _isRunning.value = false
+        _cancelled.value = false
+    }
+
+    fun setCancelled(value: Boolean) {
+        _cancelled.value = value
     }
 
     fun runTask() {

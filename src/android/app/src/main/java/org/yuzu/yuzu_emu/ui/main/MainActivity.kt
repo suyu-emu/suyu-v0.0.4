@@ -46,13 +46,21 @@ import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.model.TaskViewModel
 import org.yuzu.yuzu_emu.utils.*
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
+import java.io.FileOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var binding: ActivityMainBinding
 
     private val homeViewModel: HomeViewModel by viewModels()
     private val gamesViewModel: GamesViewModel by viewModels()
+    private val taskViewModel: TaskViewModel by viewModels()
 
     override var themeId: Int = 0
 
@@ -307,6 +315,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     fun processKey(result: Uri): Boolean {
         if (FileUtil.getExtension(result) != "keys") {
             MessageDialogFragment.newInstance(
+                this,
                 titleId = R.string.reading_keys_failure,
                 descriptionId = R.string.install_prod_keys_failure_extension_description
             ).show(supportFragmentManager, MessageDialogFragment.TAG)
@@ -336,6 +345,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 return true
             } else {
                 MessageDialogFragment.newInstance(
+                    this,
                     titleId = R.string.invalid_keys_error,
                     descriptionId = R.string.install_keys_failure_description,
                     helpLinkId = R.string.dumping_keys_quickstart_link
@@ -376,6 +386,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
                     messageToShow = if (unfilteredNumOfFiles != filteredNumOfFiles) {
                         MessageDialogFragment.newInstance(
+                            this,
                             titleId = R.string.firmware_installed_failure,
                             descriptionId = R.string.firmware_installed_failure_description
                         )
@@ -395,7 +406,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             IndeterminateProgressDialogFragment.newInstance(
                 this,
                 R.string.firmware_installing,
-                task
+                task = task
             ).show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
         }
 
@@ -407,6 +418,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
             if (FileUtil.getExtension(result) != "bin") {
                 MessageDialogFragment.newInstance(
+                    this,
                     titleId = R.string.reading_keys_failure,
                     descriptionId = R.string.install_amiibo_keys_failure_extension_description
                 ).show(supportFragmentManager, MessageDialogFragment.TAG)
@@ -434,6 +446,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     ).show()
                 } else {
                     MessageDialogFragment.newInstance(
+                        this,
                         titleId = R.string.invalid_keys_error,
                         descriptionId = R.string.install_keys_failure_description,
                         helpLinkId = R.string.dumping_keys_quickstart_link
@@ -583,12 +596,14 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                         installResult.append(separator)
                     }
                     return@newInstance MessageDialogFragment.newInstance(
+                        this,
                         titleId = R.string.install_game_content_failure,
                         descriptionString = installResult.toString().trim(),
                         helpLinkId = R.string.install_game_content_help_link
                     )
                 } else {
                     return@newInstance MessageDialogFragment.newInstance(
+                        this,
                         titleId = R.string.install_game_content_success,
                         descriptionString = installResult.toString().trim()
                     )
@@ -596,4 +611,110 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
         }
     }
+
+    val exportUserData = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { result ->
+        if (result == null) {
+            return@registerForActivityResult
+        }
+
+        IndeterminateProgressDialogFragment.newInstance(
+            this,
+            R.string.exporting_user_data,
+            true
+        ) {
+            val zos = ZipOutputStream(
+                BufferedOutputStream(contentResolver.openOutputStream(result))
+            )
+            zos.use { stream ->
+                File(DirectoryInitialization.userDirectory!!).walkTopDown().forEach { file ->
+                    if (taskViewModel.cancelled.value) {
+                        return@newInstance R.string.user_data_export_cancelled
+                    }
+
+                    if (!file.isDirectory) {
+                        val newPath = file.path.substring(
+                            DirectoryInitialization.userDirectory!!.length,
+                            file.path.length
+                        )
+                        stream.putNextEntry(ZipEntry(newPath))
+                        stream.write(file.readBytes())
+                        stream.closeEntry()
+                    }
+                }
+            }
+            return@newInstance getString(R.string.user_data_export_success)
+        }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
+    }
+
+    val importUserData =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result == null) {
+                return@registerForActivityResult
+            }
+
+            IndeterminateProgressDialogFragment.newInstance(
+                this,
+                R.string.importing_user_data
+            ) {
+                val checkStream =
+                    ZipInputStream(BufferedInputStream(contentResolver.openInputStream(result)))
+                var isYuzuBackup = false
+                checkStream.use { stream ->
+                    var ze: ZipEntry? = null
+                    while (stream.nextEntry?.also { ze = it } != null) {
+                        if (ze!!.name.trim() == "/config/config.ini") {
+                            isYuzuBackup = true
+                            return@use
+                        }
+                    }
+                }
+                if (!isYuzuBackup) {
+                    return@newInstance getString(R.string.invalid_yuzu_backup)
+                }
+
+                File(DirectoryInitialization.userDirectory!!).deleteRecursively()
+
+                val zis =
+                    ZipInputStream(BufferedInputStream(contentResolver.openInputStream(result)))
+                val userDirectory = File(DirectoryInitialization.userDirectory!!)
+                val canonicalPath = userDirectory.canonicalPath + '/'
+                zis.use { stream ->
+                    var ze: ZipEntry? = stream.nextEntry
+                    while (ze != null) {
+                        val newFile = File(userDirectory, ze!!.name)
+                        val destinationDirectory =
+                            if (ze!!.isDirectory) newFile else newFile.parentFile
+
+                        if (!newFile.canonicalPath.startsWith(canonicalPath)) {
+                            throw SecurityException(
+                                "Zip file attempted path traversal! ${ze!!.name}"
+                            )
+                        }
+
+                        if (!destinationDirectory.isDirectory && !destinationDirectory.mkdirs()) {
+                            throw IOException("Failed to create directory $destinationDirectory")
+                        }
+
+                        if (!ze!!.isDirectory) {
+                            val buffer = ByteArray(8096)
+                            var read: Int
+                            BufferedOutputStream(FileOutputStream(newFile)).use { bos ->
+                                while (zis.read(buffer).also { read = it } != -1) {
+                                    bos.write(buffer, 0, read)
+                                }
+                            }
+                        }
+                        ze = stream.nextEntry
+                    }
+                }
+
+                // Reinitialize relevant data
+                NativeLibrary.initializeEmulation()
+                gamesViewModel.reloadGames(false)
+
+                return@newInstance getString(R.string.user_data_import_success)
+            }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
+        }
 }

@@ -128,6 +128,15 @@
     <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
     <string name="licenses_description">Projects that make yuzu for Android possible</string>
     <string name="build">Build</string>
+    <string name="user_data">User data</string>
+    <string name="user_data_description">Import/export all app data.\n\nWhen importing user data, all existing user data will be deleted!</string>
+    <string name="exporting_user_data">Exporting user data…</string>
+    <string name="importing_user_data">Importing user data…</string>
+    <string name="import_user_data">Import user data</string>
+    <string name="invalid_yuzu_backup">Invalid yuzu backup</string>
+    <string name="user_data_export_success">User data exported successfully</string>
+    <string name="user_data_import_success">User data imported successfully</string>
+    <string name="user_data_export_cancelled">Export cancelled</string>
     <string name="support_link">https://discord.gg/u77vRWY</string>
     <string name="website_link">https://yuzu-emu.org/</string>
     <string name="github_link">https://github.com/yuzu-emu</string>
@@ -215,6 +224,9 @@
     <string name="auto">Auto</string>
     <string name="submit">Submit</string>
     <string name="string_null">Null</string>
+    <string name="string_import">Import</string>
+    <string name="export">Export</string>
+    <string name="cancelling">Cancelling</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>
