@@ -79,9 +79,7 @@
     <string name="notification_no_directory_link">No se pudo abrir la carpeta yuzu</string>
     <string name="notification_no_directory_link_description">Por favor, busque la carpeta user con el panel lateral del explorador de archivos de forma manual.</string>
     <string name="manage_save_data">Administrar datos de guardado</string>
-    <string name="manage_save_data_description">Guardar los datos encontrados. Por favor, seleccione una opción de abajo.</string>
     <string name="import_export_saves_description">Importar o exportar archivos de guardado</string>
-    <string name="import_export_saves_no_profile">No se han encontrado datos de guardado. Por favor, ejecute un juego y vuelva a intentarlo.</string>
     <string name="save_file_imported_success">Importado correctamente</string>
     <string name="save_file_invalid_zip_structure">Estructura del directorio de guardado no válido</string>
     <string name="save_file_invalid_zip_structure_description">El nombre de la primera subcarpeta debe ser el Title ID del juego.</string>

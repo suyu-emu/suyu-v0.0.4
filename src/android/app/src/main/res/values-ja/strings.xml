@@ -78,9 +78,7 @@
     <string name="notification_no_directory_link">yuzuのディレクトリを開けません</string>
     <string name="notification_no_directory_link_description">ファイルマネージャのサイドパネルでユーザーフォルダを手動で探してください。</string>
     <string name="manage_save_data">セーブデータを管理</string>
-    <string name="manage_save_data_description">セーブデータが見つかりました。以下のオプションから選択してください。</string>
     <string name="import_export_saves_description">セーブファイルをインポート/エクスポート</string>
-    <string name="import_export_saves_no_profile">セーブデータがありません。ゲームを起動してから再度お試しください。</string>
     <string name="save_file_imported_success">インポートが完了しました</string>
     <string name="save_file_invalid_zip_structure">セーブデータのディレクトリ構造が無効です</string>
     <string name="save_file_invalid_zip_structure_description">最初のサブフォルダ名は、ゲームのタイトルIDである必要があります。</string>
