@@ -214,14 +214,15 @@ public:
             NO_WRITE = 6,
         };
 
-        PackedGPUVAddr address;
+        u32 remap_consta_value;
+        u32 remap_constb_value;
 
         union {
+            BitField<0, 12, u32> dst_components_raw;
             BitField<0, 3, Swizzle> dst_x;
             BitField<4, 3, Swizzle> dst_y;
             BitField<8, 3, Swizzle> dst_z;
             BitField<12, 3, Swizzle> dst_w;
-            BitField<0, 12, u32> dst_components_raw;
             BitField<16, 2, u32> component_size_minus_one;
             BitField<20, 2, u32> num_src_components_minus_one;
             BitField<24, 2, u32> num_dst_components_minus_one;
@@ -274,55 +275,57 @@ private:
     struct Regs {
         union {
             struct {
-                u32 reserved[0x40];
+                INSERT_PADDING_BYTES_NOINIT(0x100);
                 u32 nop;
-                u32 reserved01[0xf];
+                INSERT_PADDING_BYTES_NOINIT(0x3C);
                 u32 pm_trigger;
-                u32 reserved02[0x3f];
+                INSERT_PADDING_BYTES_NOINIT(0xFC);
                 Semaphore semaphore;
-                u32 reserved03[0x2];
+                INSERT_PADDING_BYTES_NOINIT(0x8);
                 RenderEnable render_enable;
                 PhysMode src_phys_mode;
                 PhysMode dst_phys_mode;
-                u32 reserved04[0x26];
+                INSERT_PADDING_BYTES_NOINIT(0x98);
                 LaunchDMA launch_dma;
-                u32 reserved05[0x3f];
+                INSERT_PADDING_BYTES_NOINIT(0xFC);
                 PackedGPUVAddr offset_in;
                 PackedGPUVAddr offset_out;
                 s32 pitch_in;
                 s32 pitch_out;
                 u32 line_length_in;
                 u32 line_count;
-                u32 reserved06[0xb6];
-                u32 remap_consta_value;
-                u32 remap_constb_value;
+                INSERT_PADDING_BYTES_NOINIT(0x2E0);
                 RemapConst remap_const;
                 DMA::Parameters dst_params;
-                u32 reserved07[0x1];
+                INSERT_PADDING_BYTES_NOINIT(0x4);
                 DMA::Parameters src_params;
-                u32 reserved08[0x275];
+                INSERT_PADDING_BYTES_NOINIT(0x9D4);
                 u32 pm_trigger_end;
-                u32 reserved09[0x3ba];
+                INSERT_PADDING_BYTES_NOINIT(0xEE8);
             };
             std::array<u32, NUM_REGS> reg_array;
         };
     } regs{};
+    static_assert(sizeof(Regs) == NUM_REGS * 4);
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \
-    static_assert(offsetof(MaxwellDMA::Regs, field_name) == position * 4,                          \
+    static_assert(offsetof(MaxwellDMA::Regs, field_name) == position,                              \
                   "Field " #field_name " has invalid position")
 
-    ASSERT_REG_POSITION(launch_dma, 0xC0);
-    ASSERT_REG_POSITION(offset_in, 0x100);
-    ASSERT_REG_POSITION(offset_out, 0x102);
-    ASSERT_REG_POSITION(pitch_in, 0x104);
-    ASSERT_REG_POSITION(pitch_out, 0x105);
-    ASSERT_REG_POSITION(line_length_in, 0x106);
-    ASSERT_REG_POSITION(line_count, 0x107);
-    ASSERT_REG_POSITION(remap_const, 0x1C0);
-    ASSERT_REG_POSITION(dst_params, 0x1C3);
-    ASSERT_REG_POSITION(src_params, 0x1CA);
-
+    ASSERT_REG_POSITION(semaphore, 0x240);
+    ASSERT_REG_POSITION(render_enable, 0x254);
+    ASSERT_REG_POSITION(src_phys_mode, 0x260);
+    ASSERT_REG_POSITION(launch_dma, 0x300);
+    ASSERT_REG_POSITION(offset_in, 0x400);
+    ASSERT_REG_POSITION(offset_out, 0x408);
+    ASSERT_REG_POSITION(pitch_in, 0x410);
+    ASSERT_REG_POSITION(pitch_out, 0x414);
+    ASSERT_REG_POSITION(line_length_in, 0x418);
+    ASSERT_REG_POSITION(line_count, 0x41C);
+    ASSERT_REG_POSITION(remap_const, 0x700);
+    ASSERT_REG_POSITION(dst_params, 0x70C);
+    ASSERT_REG_POSITION(src_params, 0x728);
+    ASSERT_REG_POSITION(pm_trigger_end, 0x1114);
 #undef ASSERT_REG_POSITION
 };
 
