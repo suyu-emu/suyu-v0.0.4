@@ -185,7 +185,7 @@ struct FormatTuple {
     {VK_FORMAT_BC2_SRGB_BLOCK},                                // BC2_SRGB
     {VK_FORMAT_BC3_SRGB_BLOCK},                                // BC3_SRGB
     {VK_FORMAT_BC7_SRGB_BLOCK},                                // BC7_SRGB
-    {VK_FORMAT_R4G4B4A4_UNORM_PACK16},                         // A4B4G4R4_UNORM
+    {VK_FORMAT_A4B4G4R4_UNORM_PACK16_EXT},                     // A4B4G4R4_UNORM
     {VK_FORMAT_R4G4_UNORM_PACK8},                              // G4R4_UNORM
     {VK_FORMAT_ASTC_4x4_SRGB_BLOCK},                           // ASTC_2D_4X4_SRGB
     {VK_FORMAT_ASTC_8x8_SRGB_BLOCK},                           // ASTC_2D_8X8_SRGB
