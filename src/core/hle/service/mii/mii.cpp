@@ -18,8 +18,10 @@ namespace Service::Mii {
 
 class IDatabaseService final : public ServiceFramework<IDatabaseService> {
 public:
-    explicit IDatabaseService(Core::System& system_, bool is_system_)
-        : ServiceFramework{system_, "IDatabaseService"}, is_system{is_system_} {
+    explicit IDatabaseService(Core::System& system_, std::shared_ptr<MiiManager> mii_manager,
+                              bool is_system_)
+        : ServiceFramework{system_, "IDatabaseService"}, manager{mii_manager}, is_system{
+                                                                                   is_system_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IDatabaseService::IsUpdated, "IsUpdated"},
@@ -54,7 +56,7 @@ public:
 
         RegisterHandlers(functions);
 
-        manager.Initialize(metadata);
+        manager->Initialize(metadata);
     }
 
 private:
@@ -64,7 +66,7 @@ private:
 
         LOG_DEBUG(Service_Mii, "called with source_flag={}", source_flag);
 
-        const bool is_updated = manager.IsUpdated(metadata, source_flag);
+        const bool is_updated = manager->IsUpdated(metadata, source_flag);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
@@ -74,7 +76,7 @@ private:
     void IsFullDatabase(HLERequestContext& ctx) {
         LOG_DEBUG(Service_Mii, "called");
 
-        const bool is_full_database = manager.IsFullDatabase();
+        const bool is_full_database = manager->IsFullDatabase();
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
@@ -85,7 +87,7 @@ private:
         IPC::RequestParser rp{ctx};
         const auto source_flag{rp.PopRaw<SourceFlag>()};
 
-        const u32 mii_count = manager.GetCount(metadata, source_flag);
+        const u32 mii_count = manager->GetCount(metadata, source_flag);
 
         LOG_DEBUG(Service_Mii, "called with source_flag={}, mii_count={}", source_flag, mii_count);
 
@@ -101,7 +103,7 @@ private:
 
         u32 mii_count{};
         std::vector<CharInfoElement> char_info_elements(output_size);
-        const auto result = manager.Get(metadata, char_info_elements, mii_count, source_flag);
+        const auto result = manager->Get(metadata, char_info_elements, mii_count, source_flag);
 
         if (mii_count != 0) {
             ctx.WriteBuffer(char_info_elements);
@@ -122,7 +124,7 @@ private:
 
         u32 mii_count{};
         std::vector<CharInfo> char_info(output_size);
-        const auto result = manager.Get(metadata, char_info, mii_count, source_flag);
+        const auto result = manager->Get(metadata, char_info, mii_count, source_flag);
 
         if (mii_count != 0) {
             ctx.WriteBuffer(char_info);
@@ -144,7 +146,7 @@ private:
         LOG_INFO(Service_Mii, "called with source_flag={}", source_flag);
 
         CharInfo new_char_info{};
-        const auto result = manager.UpdateLatest(metadata, new_char_info, char_info, source_flag);
+        const auto result = manager->UpdateLatest(metadata, new_char_info, char_info, source_flag);
         if (result.IsFailure()) {
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(result);
@@ -183,7 +185,7 @@ private:
         }
 
         CharInfo char_info{};
-        manager.BuildRandom(char_info, age, gender, race);
+        manager->BuildRandom(char_info, age, gender, race);
 
         IPC::ResponseBuilder rb{ctx, 2 + sizeof(CharInfo) / sizeof(u32)};
         rb.Push(ResultSuccess);
@@ -203,7 +205,7 @@ private:
         }
 
         CharInfo char_info{};
-        manager.BuildDefault(char_info, index);
+        manager->BuildDefault(char_info, index);
 
         IPC::ResponseBuilder rb{ctx, 2 + sizeof(CharInfo) / sizeof(u32)};
         rb.Push(ResultSuccess);
@@ -217,7 +219,7 @@ private:
 
         u32 mii_count{};
         std::vector<StoreDataElement> store_data_elements(output_size);
-        const auto result = manager.Get(metadata, store_data_elements, mii_count, source_flag);
+        const auto result = manager->Get(metadata, store_data_elements, mii_count, source_flag);
 
         if (mii_count != 0) {
             ctx.WriteBuffer(store_data_elements);
@@ -238,7 +240,7 @@ private:
 
         u32 mii_count{};
         std::vector<StoreData> store_data(output_size);
-        const auto result = manager.Get(metadata, store_data, mii_count, source_flag);
+        const auto result = manager->Get(metadata, store_data, mii_count, source_flag);
 
         if (mii_count != 0) {
             ctx.WriteBuffer(store_data);
@@ -266,7 +268,7 @@ private:
 
         StoreData new_store_data{};
         if (result.IsSuccess()) {
-            result = manager.UpdateLatest(metadata, new_store_data, store_data, source_flag);
+            result = manager->UpdateLatest(metadata, new_store_data, store_data, source_flag);
         }
 
         if (result.IsFailure()) {
@@ -288,7 +290,7 @@ private:
         LOG_INFO(Service_Mii, "called with create_id={}, is_special={}",
                  create_id.FormattedString(), is_special);
 
-        const s32 index = manager.FindIndex(create_id, is_special);
+        const s32 index = manager->FindIndex(create_id, is_special);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
@@ -309,14 +311,14 @@ private:
         }
 
         if (result.IsSuccess()) {
-            const u32 count = manager.GetCount(metadata, SourceFlag::Database);
+            const u32 count = manager->GetCount(metadata, SourceFlag::Database);
             if (new_index < 0 || new_index >= static_cast<s32>(count)) {
                 result = ResultInvalidArgument;
             }
         }
 
         if (result.IsSuccess()) {
-            result = manager.Move(metadata, new_index, create_id);
+            result = manager->Move(metadata, new_index, create_id);
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -336,7 +338,7 @@ private:
         }
 
         if (result.IsSuccess()) {
-            result = manager.AddOrReplace(metadata, store_data);
+            result = manager->AddOrReplace(metadata, store_data);
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -356,7 +358,7 @@ private:
         }
 
         if (result.IsSuccess()) {
-            result = manager.Delete(metadata, create_id);
+            result = manager->Delete(metadata, create_id);
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -376,7 +378,7 @@ private:
         }
 
         if (result.IsSuccess()) {
-            result = manager.DestroyFile(metadata);
+            result = manager->DestroyFile(metadata);
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -396,7 +398,7 @@ private:
         }
 
         if (result.IsSuccess()) {
-            result = manager.DeleteFile();
+            result = manager->DeleteFile();
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -416,7 +418,7 @@ private:
         }
 
         if (result.IsSuccess()) {
-            result = manager.Format(metadata);
+            result = manager->Format(metadata);
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -434,7 +436,7 @@ private:
         }
 
         if (result.IsSuccess()) {
-            is_broken_with_clear_flag = manager.IsBrokenWithClearFlag(metadata);
+            is_broken_with_clear_flag = manager->IsBrokenWithClearFlag(metadata);
         }
 
         IPC::ResponseBuilder rb{ctx, 3};
@@ -449,7 +451,7 @@ private:
         LOG_DEBUG(Service_Mii, "called");
 
         s32 index{};
-        const auto result = manager.GetIndex(metadata, info, index);
+        const auto result = manager->GetIndex(metadata, info, index);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(result);
@@ -462,7 +464,7 @@ private:
 
         LOG_INFO(Service_Mii, "called, interface_version={:08X}", interface_version);
 
-        manager.SetInterfaceVersion(metadata, interface_version);
+        manager->SetInterfaceVersion(metadata, interface_version);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
@@ -475,7 +477,7 @@ private:
         LOG_INFO(Service_Mii, "called");
 
         CharInfo char_info{};
-        const auto result = manager.ConvertV3ToCharInfo(char_info, mii_v3);
+        const auto result = manager->ConvertV3ToCharInfo(char_info, mii_v3);
 
         IPC::ResponseBuilder rb{ctx, 2 + sizeof(CharInfo) / sizeof(u32)};
         rb.Push(result);
@@ -489,7 +491,7 @@ private:
         LOG_INFO(Service_Mii, "called");
 
         CharInfo char_info{};
-        const auto result = manager.ConvertCoreDataToCharInfo(char_info, core_data);
+        const auto result = manager->ConvertCoreDataToCharInfo(char_info, core_data);
 
         IPC::ResponseBuilder rb{ctx, 2 + sizeof(CharInfo) / sizeof(u32)};
         rb.Push(result);
@@ -503,7 +505,7 @@ private:
         LOG_INFO(Service_Mii, "called");
 
         CoreData core_data{};
-        const auto result = manager.ConvertCharInfoToCoreData(core_data, char_info);
+        const auto result = manager->ConvertCharInfoToCoreData(core_data, char_info);
 
         IPC::ResponseBuilder rb{ctx, 2 + sizeof(CoreData) / sizeof(u32)};
         rb.Push(result);
@@ -516,41 +518,46 @@ private:
 
         LOG_INFO(Service_Mii, "called");
 
-        const auto result = manager.Append(metadata, char_info);
+        const auto result = manager->Append(metadata, char_info);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
     }
 
-    MiiManager manager{};
+    std::shared_ptr<MiiManager> manager = nullptr;
     DatabaseSessionMetadata metadata{};
     bool is_system{};
 };
 
-class MiiDBModule final : public ServiceFramework<MiiDBModule> {
-public:
-    explicit MiiDBModule(Core::System& system_, const char* name_, bool is_system_)
-        : ServiceFramework{system_, name_}, is_system{is_system_} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &MiiDBModule::GetDatabaseService, "GetDatabaseService"},
-        };
-        // clang-format on
+MiiDBModule::MiiDBModule(Core::System& system_, const char* name_,
+                         std::shared_ptr<MiiManager> mii_manager, bool is_system_)
+    : ServiceFramework{system_, name_}, manager{mii_manager}, is_system{is_system_} {
+    // clang-format off
+    static const FunctionInfo functions[] = {
+        {0, &MiiDBModule::GetDatabaseService, "GetDatabaseService"},
+    };
+    // clang-format on
 
-        RegisterHandlers(functions);
+    RegisterHandlers(functions);
+
+    if (manager == nullptr) {
+        manager = std::make_shared<MiiManager>();
     }
+}
 
-private:
-    void GetDatabaseService(HLERequestContext& ctx) {
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IDatabaseService>(system, is_system);
+MiiDBModule::~MiiDBModule() = default;
 
-        LOG_DEBUG(Service_Mii, "called");
-    }
+void MiiDBModule::GetDatabaseService(HLERequestContext& ctx) {
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(ResultSuccess);
+    rb.PushIpcInterface<IDatabaseService>(system, manager, is_system);
 
-    bool is_system{};
-};
+    LOG_DEBUG(Service_Mii, "called");
+}
+
+std::shared_ptr<MiiManager> MiiDBModule::GetMiiManager() {
+    return manager;
+}
 
 class MiiImg final : public ServiceFramework<MiiImg> {
 public:
@@ -596,11 +603,12 @@ private:
 
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
+    std::shared_ptr<MiiManager> manager = nullptr;
 
-    server_manager->RegisterNamedService("mii:e",
-                                         std::make_shared<MiiDBModule>(system, "mii:e", true));
-    server_manager->RegisterNamedService("mii:u",
-                                         std::make_shared<MiiDBModule>(system, "mii:u", false));
+    server_manager->RegisterNamedService(
+        "mii:e", std::make_shared<MiiDBModule>(system, "mii:e", manager, true));
+    server_manager->RegisterNamedService(
+        "mii:u", std::make_shared<MiiDBModule>(system, "mii:u", manager, false));
     server_manager->RegisterNamedService("miiimg", std::make_shared<MiiImg>(system));
     ServerManager::RunServer(std::move(server_manager));
 }
