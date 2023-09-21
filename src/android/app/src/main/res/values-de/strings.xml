@@ -77,7 +77,9 @@
     <string name="notification_no_directory_link">yuzu-Verzeichnis konnte nicht geöffnet werden</string>
     <string name="notification_no_directory_link_description">Bitte suche den Benutzerordner manuell über die Seitenleiste des Dateimanagers.</string>
     <string name="manage_save_data">Speicherdaten verwalten</string>
+    <string name="manage_save_data_description">Speicherdaten gefunden. Bitte wähle unten eine Option aus.</string>
     <string name="import_export_saves_description">Speicherdaten importieren oder exportieren</string>
+    <string name="import_export_saves_no_profile">Keine Speicherdaten gefunden. Bitte starte ein Spiel und versuche es erneut.</string>
     <string name="save_file_imported_success">Erfolgreich importiert</string>
     <string name="save_file_invalid_zip_structure">Ungültige Speicherverzeichnisstruktur</string>
     <string name="save_file_invalid_zip_structure_description">Der erste Unterordnername muss die Titel-ID des Spiels sein.</string>

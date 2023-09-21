@@ -88,7 +88,9 @@
     <string name="notification_no_directory_link">Could not open yuzu directory</string>
     <string name="notification_no_directory_link_description">Please locate the user folder with the file manager\'s side panel manually.</string>
     <string name="manage_save_data">Manage save data</string>
+    <string name="manage_save_data_description">Save data found. Please select an option below.</string>
     <string name="import_export_saves_description">Import or export save files</string>
+    <string name="import_export_saves_no_profile">No save data found. Please launch a game and retry.</string>
     <string name="save_file_imported_success">Imported successfully</string>
     <string name="save_file_invalid_zip_structure">Invalid save directory structure</string>
     <string name="save_file_invalid_zip_structure_description">The first subfolder name must be the title ID of the game.</string>
