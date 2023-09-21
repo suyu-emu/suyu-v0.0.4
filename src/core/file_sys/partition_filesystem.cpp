@@ -47,6 +47,7 @@ PartitionFilesystem::PartitionFilesystem(VirtualFile file) {
     // Actually read in now...
     std::vector<u8> file_data = file->ReadBytes(metadata_size);
     const std::size_t total_size = file_data.size();
+    file_data.push_back(0);
 
     if (total_size != metadata_size) {
         status = Loader::ResultStatus::ErrorIncorrectPFSFileSize;
