@@ -120,19 +120,9 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return usage;
 }
 
-/// Returns the preferred format for a VkImage
-[[nodiscard]] PixelFormat StorageFormat(PixelFormat format) {
-    switch (format) {
-    case PixelFormat::A8B8G8R8_SRGB:
-        return PixelFormat::A8B8G8R8_UNORM;
-    default:
-        return format;
-    }
-}
-
 [[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info) {
-    const PixelFormat format = StorageFormat(info.format);
-    const auto format_info = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, format);
+    const auto format_info =
+        MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, info.format);
     VkImageCreateFlags flags{};
     if (info.type == ImageType::e2D && info.resources.layers >= 6 &&
         info.size.width == info.size.height && !device.HasBrokenCubeImageCompability()) {
@@ -157,7 +147,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .arrayLayers = static_cast<u32>(info.resources.layers),
         .samples = ConvertSampleCount(info.num_samples),
         .tiling = VK_IMAGE_TILING_OPTIMAL,
-        .usage = ImageUsageFlags(format_info, format),
+        .usage = ImageUsageFlags(format_info, info.format),
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
@@ -1626,8 +1616,8 @@ bool Image::NeedsScaleHelper() const {
         return true;
     }
     static constexpr auto OPTIMAL_FORMAT = FormatType::Optimal;
-    const PixelFormat format = StorageFormat(info.format);
-    const auto vk_format = MaxwellToVK::SurfaceFormat(device, OPTIMAL_FORMAT, false, format).format;
+    const auto vk_format =
+        MaxwellToVK::SurfaceFormat(device, OPTIMAL_FORMAT, false, info.format).format;
     const auto blit_usage = VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT;
     const bool needs_blit_helper = !device.IsFormatSupported(vk_format, blit_usage, OPTIMAL_FORMAT);
     return needs_blit_helper;
