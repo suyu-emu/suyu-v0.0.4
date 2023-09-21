@@ -79,7 +79,9 @@
     <string name="notification_no_directory_link">Nie można otworzyć folderu emulatora</string>
     <string name="notification_no_directory_link_description">Proszę wybrać ręcznie folder z pomocą panelu bocznego menedżera plików.</string>
     <string name="manage_save_data">Zarządzaj plikami zapisów gier</string>
+    <string name="manage_save_data_description">Znaleziono pliki zapisów gier. Wybierz opcję poniżej.</string>
     <string name="import_export_saves_description">Importuj lub wyeksportuj pliki zapisów</string>
+    <string name="import_export_saves_no_profile">Nie znaleziono plików zapisów. Uruchom grę i spróbuj ponownie.</string>
     <string name="save_file_imported_success">Zaimportowano pomyślnie</string>
     <string name="save_file_invalid_zip_structure">Niepoprawna struktura folderów</string>
     <string name="save_file_invalid_zip_structure_description">Pierwszy podkatalog musi zawierać w nazwie numer ID tytułu gry.</string>

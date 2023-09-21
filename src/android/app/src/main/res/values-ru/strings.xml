@@ -79,7 +79,9 @@
     <string name="notification_no_directory_link">Не удалось открыть папку yuzu</string>
     <string name="notification_no_directory_link_description">Пожалуйста, найдите папку пользователя с помощью боковой панели файлового менеджера вручную.</string>
     <string name="manage_save_data">Управление данными сохранений</string>
+    <string name="manage_save_data_description">Найдено данные сохранений. Пожалуйста, выберите вариант ниже.</string>
     <string name="import_export_saves_description">Импорт или экспорт файлов сохранения</string>
+    <string name="import_export_saves_no_profile">Данные сохранений не найдены. Пожалуйста, запустите игру и повторите попытку.</string>
     <string name="save_file_imported_success">Успешно импортировано</string>
     <string name="save_file_invalid_zip_structure">Недопустимая структура папки сохранения</string>
     <string name="save_file_invalid_zip_structure_description">Название первой вложенной папки должно быть идентификатором игры.</string>

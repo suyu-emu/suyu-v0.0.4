@@ -79,7 +79,9 @@
     <string name="notification_no_directory_link">Impossível abrir pasta Yuzu</string>
     <string name="notification_no_directory_link_description">Localiza a pasta de utilizador manualmente com o painel lateral do gestor de ficheiros.</string>
     <string name="manage_save_data">Gerir dados guardados</string>
+    <string name="manage_save_data_description">Dados não encontrados. Por favor seleciona uma opção abaixo.</string>
     <string name="import_export_saves_description">Importa ou exporta dados guardados</string>
+    <string name="import_export_saves_no_profile">Dados não encontrados. Por favor lança o jogo e tenta novamente.</string>
     <string name="save_file_imported_success">Importado com sucesso</string>
     <string name="save_file_invalid_zip_structure">Estrutura de diretório de dados invalida</string>
     <string name="save_file_invalid_zip_structure_description">O nome da primeira sub pasta tem de ser a ID do jogo.</string>
