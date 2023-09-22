@@ -346,6 +346,7 @@ void Controller_NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
     }
     SignalStyleSetChangedEvent(npad_id);
     WriteEmptyEntry(controller.shared_memory);
+    hid_core.SetLastActiveController(npad_id);
 }
 
 void Controller_NPad::OnInit() {
