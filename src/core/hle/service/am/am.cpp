@@ -191,7 +191,7 @@ IDisplayController::IDisplayController(Core::System& system_)
         {5, nullptr, "GetLastForegroundCaptureImageEx"},
         {6, nullptr, "GetLastApplicationCaptureImageEx"},
         {7, nullptr, "GetCallerAppletCaptureImageEx"},
-        {8, nullptr, "TakeScreenShotOfOwnLayer"},
+        {8, &IDisplayController::TakeScreenShotOfOwnLayer, "TakeScreenShotOfOwnLayer"},
         {9, nullptr, "CopyBetweenCaptureBuffers"},
         {10, nullptr, "AcquireLastApplicationCaptureBuffer"},
         {11, nullptr, "ReleaseLastApplicationCaptureBuffer"},
@@ -218,6 +218,13 @@ IDisplayController::IDisplayController(Core::System& system_)
 }
 
 IDisplayController::~IDisplayController() = default;
+
+void IDisplayController::TakeScreenShotOfOwnLayer(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
 
 IDebugFunctions::IDebugFunctions(Core::System& system_)
     : ServiceFramework{system_, "IDebugFunctions"} {
@@ -1340,12 +1347,12 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ILibraryAppletSelfAccessor::PopInData, "PopInData"},
-        {1, nullptr, "PushOutData"},
+        {1, &ILibraryAppletSelfAccessor::PushOutData, "PushOutData"},
         {2, nullptr, "PopInteractiveInData"},
         {3, nullptr, "PushInteractiveOutData"},
         {5, nullptr, "GetPopInDataEvent"},
         {6, nullptr, "GetPopInteractiveInDataEvent"},
-        {10, nullptr, "ExitProcessAndReturn"},
+        {10, &ILibraryAppletSelfAccessor::ExitProcessAndReturn, "ExitProcessAndReturn"},
         {11, &ILibraryAppletSelfAccessor::GetLibraryAppletInfo, "GetLibraryAppletInfo"},
         {12, nullptr, "GetMainAppletIdentityInfo"},
         {13, nullptr, "CanUseApplicationCore"},
@@ -1397,6 +1404,22 @@ void ILibraryAppletSelfAccessor::PopInData(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
     rb.PushIpcInterface<IStorage>(system, std::move(data));
+}
+
+void ILibraryAppletSelfAccessor::PushOutData(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void ILibraryAppletSelfAccessor::ExitProcessAndReturn(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    system.Exit();
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 void ILibraryAppletSelfAccessor::GetLibraryAppletInfo(HLERequestContext& ctx) {

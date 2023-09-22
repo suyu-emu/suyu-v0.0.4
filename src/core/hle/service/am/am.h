@@ -120,6 +120,9 @@ class IDisplayController final : public ServiceFramework<IDisplayController> {
 public:
     explicit IDisplayController(Core::System& system_);
     ~IDisplayController() override;
+
+private:
+    void TakeScreenShotOfOwnLayer(HLERequestContext& ctx);
 };
 
 class IDebugFunctions final : public ServiceFramework<IDebugFunctions> {
@@ -303,7 +306,9 @@ public:
 
 private:
     void PopInData(HLERequestContext& ctx);
+    void PushOutData(HLERequestContext& ctx);
     void GetLibraryAppletInfo(HLERequestContext& ctx);
+    void ExitProcessAndReturn(HLERequestContext& ctx);
     void GetCallerAppletIdentityInfo(HLERequestContext& ctx);
 
     void PushInShowMiiEditData();
