@@ -1716,18 +1716,18 @@ const std::array<RandomMiiData4, 18> RandomMiiMouthType{
 const std::array<RandomMiiData2, 3> RandomMiiGlassType{
     RandomMiiData2{
         .arg_1 = 0,
-        .values_count = 9,
-        .values = {90, 94, 96, 100, 0, 0, 0, 0, 0},
+        .values_count = 4,
+        .values = {90, 94, 96, 100},
     },
     RandomMiiData2{
         .arg_1 = 1,
-        .values_count = 9,
-        .values = {83, 86, 90, 93, 94, 96, 98, 100, 0},
+        .values_count = 8,
+        .values = {83, 86, 90, 93, 94, 96, 98, 100},
     },
     RandomMiiData2{
         .arg_1 = 2,
-        .values_count = 9,
-        .values = {78, 83, 0, 93, 0, 0, 98, 100, 0},
+        .values_count = 8,
+        .values = {78, 83, 0, 93, 0, 0, 98, 100},
     },
 };
 

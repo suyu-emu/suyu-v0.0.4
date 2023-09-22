@@ -11,6 +11,11 @@ namespace Core {
 class System;
 } // namespace Core
 
+namespace Service::Mii {
+struct DatabaseSessionMetadata;
+class MiiManager;
+} // namespace Service::Mii
+
 namespace Service::AM::Applets {
 
 class MiiEdit final : public Applet {
@@ -40,6 +45,8 @@ private:
     MiiEditAppletInputV4 applet_input_v4{};
 
     bool is_complete{false};
+    std::shared_ptr<Mii::MiiManager> manager = nullptr;
+    Mii::DatabaseSessionMetadata metadata{};
 };
 
 } // namespace Service::AM::Applets

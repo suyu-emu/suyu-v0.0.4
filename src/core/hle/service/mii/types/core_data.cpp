@@ -171,7 +171,7 @@ void CoreData::BuildRandom(Age age, Gender gender, Race race) {
     u8 glasses_type{};
     while (glasses_type_start < glasses_type_info.values[glasses_type]) {
         if (++glasses_type >= glasses_type_info.values_count) {
-            ASSERT(false);
+            glasses_type = 0;
             break;
         }
     }
@@ -179,6 +179,7 @@ void CoreData::BuildRandom(Age age, Gender gender, Race race) {
     SetGlassType(static_cast<GlassType>(glasses_type));
     SetGlassColor(RawData::GetGlassColorFromVer3(0));
     SetGlassScale(4);
+    SetGlassY(static_cast<u8>(axis_y + 10));
 
     SetMoleType(MoleType::None);
     SetMoleScale(4);

@@ -130,11 +130,11 @@ Result MiiManager::GetIndex(const DatabaseSessionMetadata& metadata, const CharI
     }
 
     s32 index{};
-    Result result = {};
-    // FindIndex(index);
+    const bool is_special = metadata.magic == MiiMagic;
+    const auto result = database_manager.FindIndex(index, char_info.GetCreateId(), is_special);
 
     if (result.IsError()) {
-        return ResultNotFound;
+        index = -1;
     }
 
     if (index == -1) {

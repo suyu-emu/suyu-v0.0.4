@@ -7,7 +7,9 @@
 #include "core/frontend/applets/mii_edit.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applet_mii_edit.h"
+#include "core/hle/service/mii/mii.h"
 #include "core/hle/service/mii/mii_manager.h"
+#include "core/hle/service/sm/sm.h"
 
 namespace Service::AM::Applets {
 
@@ -56,6 +58,12 @@ void MiiEdit::Initialize() {
                     sizeof(MiiEditAppletInputV4));
         break;
     }
+
+    manager = system.ServiceManager().GetService<Mii::MiiDBModule>("mii:e")->GetMiiManager();
+    if (manager == nullptr) {
+        manager = std::make_shared<Mii::MiiManager>();
+    }
+    manager->Initialize(metadata);
 }
 
 bool MiiEdit::TransactionComplete() const {
@@ -78,22 +86,46 @@ void MiiEdit::Execute() {
     // This is a default stub for each of the MiiEdit applet modes.
     switch (applet_input_common.applet_mode) {
     case MiiEditAppletMode::ShowMiiEdit:
-    case MiiEditAppletMode::AppendMii:
     case MiiEditAppletMode::AppendMiiImage:
     case MiiEditAppletMode::UpdateMiiImage:
         MiiEditOutput(MiiEditResult::Success, 0);
         break;
-    case MiiEditAppletMode::CreateMii:
-    case MiiEditAppletMode::EditMii: {
-        Mii::CharInfo char_info{};
+    case MiiEditAppletMode::AppendMii: {
         Mii::StoreData store_data{};
-        store_data.BuildBase(Mii::Gender::Male);
-        char_info.SetFromStoreData(store_data);
+        store_data.BuildRandom(Mii::Age::All, Mii::Gender::All, Mii::Race::All);
+        store_data.SetNickname({u'y', u'u', u'z', u'u'});
+        store_data.SetChecksum();
+        const auto result = manager->AddOrReplace(metadata, store_data);
+
+        if (result.IsError()) {
+            MiiEditOutput(MiiEditResult::Cancel, 0);
+            break;
+        }
+
+        s32 index = manager->FindIndex(store_data.GetCreateId(), false);
+
+        if (index == -1) {
+            MiiEditOutput(MiiEditResult::Cancel, 0);
+            break;
+        }
+
+        MiiEditOutput(MiiEditResult::Success, index);
+        break;
+    }
+    case MiiEditAppletMode::CreateMii: {
+        Mii::CharInfo char_info{};
+        manager->BuildRandom(char_info, Mii::Age::All, Mii::Gender::All, Mii::Race::All);
 
         const MiiEditCharInfo edit_char_info{
-            .mii_info{applet_input_common.applet_mode == MiiEditAppletMode::EditMii
-                          ? applet_input_v4.char_info.mii_info
-                          : char_info},
+            .mii_info{char_info},
+        };
+
+        MiiEditOutputForCharInfoEditing(MiiEditResult::Success, edit_char_info);
+        break;
+    }
+    case MiiEditAppletMode::EditMii: {
+        const MiiEditCharInfo edit_char_info{
+            .mii_info{applet_input_v4.char_info.mii_info},
         };
 
         MiiEditOutputForCharInfoEditing(MiiEditResult::Success, edit_char_info);
