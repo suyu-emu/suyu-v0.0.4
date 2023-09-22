@@ -109,10 +109,11 @@ void MaxwellDMA::Launch() {
         const bool is_const_a_dst = regs.remap_const.dst_x == RemapConst::Swizzle::CONST_A;
         if (regs.launch_dma.remap_enable != 0 && is_const_a_dst) {
             ASSERT(regs.remap_const.component_size_minus_one == 3);
-            accelerate.BufferClear(regs.offset_out, regs.line_length_in, regs.remap_consta_value);
+            accelerate.BufferClear(regs.offset_out, regs.line_length_in,
+                                   regs.remap_const.remap_consta_value);
             read_buffer.resize_destructive(regs.line_length_in * sizeof(u32));
             std::span<u32> span(reinterpret_cast<u32*>(read_buffer.data()), regs.line_length_in);
-            std::ranges::fill(span, regs.remap_consta_value);
+            std::ranges::fill(span, regs.remap_const.remap_consta_value);
             memory_manager.WriteBlockUnsafe(regs.offset_out,
                                             reinterpret_cast<u8*>(read_buffer.data()),
                                             regs.line_length_in * sizeof(u32));
