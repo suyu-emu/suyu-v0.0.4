@@ -664,7 +664,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 checkStream.use { stream ->
                     var ze: ZipEntry? = null
                     while (stream.nextEntry?.also { ze = it } != null) {
-                        if (ze!!.name.trim() == "/config/config.ini") {
+                        val itemName = ze!!.name.trim()
+                        if (itemName == "/config/config.ini" || itemName == "config/config.ini") {
                             isYuzuBackup = true
                             return@use
                         }
