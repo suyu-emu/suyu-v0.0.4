@@ -1,0 +1,10 @@
+// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#version 460 core
+#extension GL_GOOGLE_include_directive : enable
+
+#define YUZU_USE_FP16
+#define USE_RCAS 1
+
+#include "fidelityfx_fsr.comp"
