@@ -50,6 +50,7 @@ import org.yuzu.yuzu_emu.model.TaskViewModel
 import org.yuzu.yuzu_emu.utils.*
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -639,7 +640,15 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                             file.path.length
                         )
                         stream.putNextEntry(ZipEntry(newPath))
-                        stream.write(file.readBytes())
+
+                        val buffer = ByteArray(8096)
+                        var read: Int
+                        FileInputStream(file).use { fis ->
+                            while (fis.read(buffer).also { read = it } != -1) {
+                                stream.write(buffer, 0, read)
+                            }
+                        }
+
                         stream.closeEntry()
                     }
                 }
