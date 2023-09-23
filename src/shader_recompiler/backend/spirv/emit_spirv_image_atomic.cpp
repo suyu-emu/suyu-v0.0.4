@@ -7,15 +7,12 @@
 
 namespace Shader::Backend::SPIRV {
 namespace {
-Id Image(EmitContext& ctx, const IR::Value& index, IR::TextureInstInfo info) {
-    if (!index.IsImmediate()) {
-        throw NotImplementedException("Indirect image indexing");
-    }
+Id Image(EmitContext& ctx, IR::TextureInstInfo info) {
     if (info.type == TextureType::Buffer) {
-        const ImageBufferDefinition def{ctx.image_buffers.at(index.U32())};
+        const ImageBufferDefinition def{ctx.image_buffers.at(info.descriptor_index)};
         return def.id;
     } else {
-        const ImageDefinition def{ctx.images.at(index.U32())};
+        const ImageDefinition def{ctx.images.at(info.descriptor_index)};
         return def.id;
     }
 }
@@ -28,8 +25,12 @@ std::pair<Id, Id> AtomicArgs(EmitContext& ctx) {
 
 Id ImageAtomicU32(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords, Id value,
                   Id (Sirit::Module::*atomic_func)(Id, Id, Id, Id, Id)) {
+    if (!index.IsImmediate() || index.U32() != 0) {
+        // TODO: handle layers
+        throw NotImplementedException("Image indexing");
+    }
     const auto info{inst->Flags<IR::TextureInstInfo>()};
-    const Id image{Image(ctx, index, info)};
+    const Id image{Image(ctx, info)};
     const Id pointer{ctx.OpImageTexelPointer(ctx.image_u32, image, coords, ctx.Const(0U))};
     const auto [scope, semantics]{AtomicArgs(ctx)};
     return (ctx.*atomic_func)(ctx.U32[1], pointer, scope, semantics, value);
