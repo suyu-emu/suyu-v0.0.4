@@ -1049,15 +1049,27 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
                                     dst_region, src_region, filter, operation);
         return;
     }
+    ASSERT(src.format == dst.format);
     if (aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
-        if (!device.IsBlitDepthStencilSupported()) {
+        const auto format = src.format;
+        const auto can_blit_depth_stencil = [this, format] {
+            switch (format) {
+            case VideoCore::Surface::PixelFormat::D24_UNORM_S8_UINT:
+            case VideoCore::Surface::PixelFormat::S8_UINT_D24_UNORM:
+                return device.IsBlitDepth24Stencil8Supported();
+            case VideoCore::Surface::PixelFormat::D32_FLOAT_S8_UINT:
+                return device.IsBlitDepth32Stencil8Supported();
+            default:
+                UNREACHABLE();
+            }
+        }();
+        if (!can_blit_depth_stencil) {
             UNIMPLEMENTED_IF(is_src_msaa || is_dst_msaa);
             blit_image_helper.BlitDepthStencil(dst_framebuffer, src.DepthView(), src.StencilView(),
                                                dst_region, src_region, filter, operation);
             return;
         }
     }
-    ASSERT(src.format == dst.format);
     ASSERT(!(is_dst_msaa && !is_src_msaa));
     ASSERT(operation == Fermi2D::Operation::SrcCopy);
 

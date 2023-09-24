@@ -362,9 +362,14 @@ public:
         return features.features.depthBounds;
     }
 
-    /// Returns true when blitting from and to depth stencil images is supported.
-    bool IsBlitDepthStencilSupported() const {
-        return is_blit_depth_stencil_supported;
+    /// Returns true when blitting from and to D24S8 images is supported.
+    bool IsBlitDepth24Stencil8Supported() const {
+        return is_blit_depth24_stencil8_supported;
+    }
+
+    /// Returns true when blitting from and to D32S8 images is supported.
+    bool IsBlitDepth32Stencil8Supported() const {
+        return is_blit_depth32_stencil8_supported;
     }
 
     /// Returns true if the device supports VK_NV_viewport_swizzle.
@@ -674,7 +679,7 @@ private:
     bool ComputeIsOptimalAstcSupported() const;
 
     /// Returns true if the device natively supports blitting depth stencil images.
-    bool TestDepthStencilBlits() const;
+    bool TestDepthStencilBlits(VkFormat format) const;
 
 private:
     VkInstance instance;         ///< Vulkan instance.
@@ -738,25 +743,26 @@ private:
     VkPhysicalDeviceProperties2 properties2{};
 
     // Misc features
-    bool is_optimal_astc_supported{};       ///< Support for all guest ASTC formats.
-    bool is_blit_depth_stencil_supported{}; ///< Support for blitting from and to depth stencil.
-    bool is_warp_potentially_bigger{};      ///< Host warp size can be bigger than guest.
-    bool is_integrated{};                   ///< Is GPU an iGPU.
-    bool is_virtual{};                      ///< Is GPU a virtual GPU.
-    bool is_non_gpu{};                      ///< Is SoftwareRasterizer, FPGA, non-GPU device.
-    bool has_broken_compute{};              ///< Compute shaders can cause crashes
-    bool has_broken_cube_compatibility{};   ///< Has broken cube compatibility bit
-    bool has_renderdoc{};                   ///< Has RenderDoc attached
-    bool has_nsight_graphics{};             ///< Has Nsight Graphics attached
-    bool supports_d24_depth{};              ///< Supports D24 depth buffers.
-    bool cant_blit_msaa{};                  ///< Does not support MSAA<->MSAA blitting.
-    bool must_emulate_scaled_formats{};     ///< Requires scaled vertex format emulation
-    bool must_emulate_bgr565{};             ///< Emulates BGR565 by swizzling RGB565 format.
-    bool dynamic_state3_blending{};         ///< Has all blending features of dynamic_state3.
-    bool dynamic_state3_enables{};          ///< Has all enables features of dynamic_state3.
-    bool supports_conditional_barriers{};   ///< Allows barriers in conditional control flow.
-    u64 device_access_memory{};             ///< Total size of device local memory in bytes.
-    u32 sets_per_pool{};                    ///< Sets per Description Pool
+    bool is_optimal_astc_supported{};          ///< Support for all guest ASTC formats.
+    bool is_blit_depth24_stencil8_supported{}; ///< Support for blitting from and to D24S8.
+    bool is_blit_depth32_stencil8_supported{}; ///< Support for blitting from and to D32S8.
+    bool is_warp_potentially_bigger{};         ///< Host warp size can be bigger than guest.
+    bool is_integrated{};                      ///< Is GPU an iGPU.
+    bool is_virtual{};                         ///< Is GPU a virtual GPU.
+    bool is_non_gpu{};                         ///< Is SoftwareRasterizer, FPGA, non-GPU device.
+    bool has_broken_compute{};                 ///< Compute shaders can cause crashes
+    bool has_broken_cube_compatibility{};      ///< Has broken cube compatibility bit
+    bool has_renderdoc{};                      ///< Has RenderDoc attached
+    bool has_nsight_graphics{};                ///< Has Nsight Graphics attached
+    bool supports_d24_depth{};                 ///< Supports D24 depth buffers.
+    bool cant_blit_msaa{};                     ///< Does not support MSAA<->MSAA blitting.
+    bool must_emulate_scaled_formats{};        ///< Requires scaled vertex format emulation
+    bool must_emulate_bgr565{};                ///< Emulates BGR565 by swizzling RGB565 format.
+    bool dynamic_state3_blending{};            ///< Has all blending features of dynamic_state3.
+    bool dynamic_state3_enables{};             ///< Has all enables features of dynamic_state3.
+    bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
+    u64 device_access_memory{};                ///< Total size of device local memory in bytes.
+    u32 sets_per_pool{};                       ///< Sets per Description Pool
 
     // Telemetry parameters
     std::set<std::string, std::less<>> supported_extensions; ///< Reported Vulkan extensions.

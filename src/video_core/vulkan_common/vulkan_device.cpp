@@ -428,7 +428,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         first_next = &diagnostics_nv;
     }
 
-    is_blit_depth_stencil_supported = TestDepthStencilBlits();
+    is_blit_depth24_stencil8_supported = TestDepthStencilBlits(VK_FORMAT_D24_UNORM_S8_UINT);
+    is_blit_depth32_stencil8_supported = TestDepthStencilBlits(VK_FORMAT_D32_SFLOAT_S8_UINT);
     is_optimal_astc_supported = ComputeIsOptimalAstcSupported();
     is_warp_potentially_bigger = !extensions.subgroup_size_control ||
                                  properties.subgroup_size_control.maxSubgroupSize > GuestWarpSize;
@@ -782,14 +783,13 @@ bool Device::ComputeIsOptimalAstcSupported() const {
     return true;
 }
 
-bool Device::TestDepthStencilBlits() const {
+bool Device::TestDepthStencilBlits(VkFormat format) const {
     static constexpr VkFormatFeatureFlags required_features =
         VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT;
     const auto test_features = [](VkFormatProperties props) {
         return (props.optimalTilingFeatures & required_features) == required_features;
     };
-    return test_features(format_properties.at(VK_FORMAT_D32_SFLOAT_S8_UINT)) &&
-           test_features(format_properties.at(VK_FORMAT_D24_UNORM_S8_UINT));
+    return test_features(format_properties.at(format));
 }
 
 bool Device::IsFormatSupported(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
