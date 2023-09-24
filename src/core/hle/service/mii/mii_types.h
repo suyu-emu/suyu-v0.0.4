@@ -614,7 +614,7 @@ struct Nickname {
         }
 
         std::size_t index = 1;
-        while (data[index] != 0) {
+        while (index < MaxNameSize && data[index] != 0) {
             index++;
         }
         while (index < MaxNameSize && data[index] == 0) {
