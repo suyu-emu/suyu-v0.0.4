@@ -19,6 +19,7 @@
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"
+#include "core/hle/service/am/applets/applet_mii_edit_types.h"
 #include "core/hle/service/am/applets/applet_profile_select.h"
 #include "core/hle/service/am/applets/applet_web_browser.h"
 #include "core/hle/service/am/applets/applets.h"
@@ -190,7 +191,7 @@ IDisplayController::IDisplayController(Core::System& system_)
         {5, nullptr, "GetLastForegroundCaptureImageEx"},
         {6, nullptr, "GetLastApplicationCaptureImageEx"},
         {7, nullptr, "GetCallerAppletCaptureImageEx"},
-        {8, nullptr, "TakeScreenShotOfOwnLayer"},
+        {8, &IDisplayController::TakeScreenShotOfOwnLayer, "TakeScreenShotOfOwnLayer"},
         {9, nullptr, "CopyBetweenCaptureBuffers"},
         {10, nullptr, "AcquireLastApplicationCaptureBuffer"},
         {11, nullptr, "ReleaseLastApplicationCaptureBuffer"},
@@ -217,6 +218,13 @@ IDisplayController::IDisplayController(Core::System& system_)
 }
 
 IDisplayController::~IDisplayController() = default;
+
+void IDisplayController::TakeScreenShotOfOwnLayer(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
 
 IDebugFunctions::IDebugFunctions(Core::System& system_)
     : ServiceFramework{system_, "IDebugFunctions"} {
@@ -724,7 +732,7 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_,
         {110, nullptr, "OpenMyGpuErrorHandler"},
         {120, nullptr, "GetAppletLaunchedHistory"},
         {200, nullptr, "GetOperationModeSystemInfo"},
-        {300, nullptr, "GetSettingsPlatformRegion"},
+        {300, &ICommonStateGetter::GetSettingsPlatformRegion, "GetSettingsPlatformRegion"},
         {400, nullptr, "ActivateMigrationService"},
         {401, nullptr, "DeactivateMigrationService"},
         {500, nullptr, "DisableSleepTillShutdown"},
@@ -736,6 +744,10 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_,
     // clang-format on
 
     RegisterHandlers(functions);
+
+    // Configure applets to be in foreground state
+    msg_queue->PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
+    msg_queue->PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
 }
 
 ICommonStateGetter::~ICommonStateGetter() = default;
@@ -865,6 +877,14 @@ void ICommonStateGetter::PerformSystemButtonPressingIfInFocus(HLERequestContext&
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
+}
+
+void ICommonStateGetter::GetSettingsPlatformRegion(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(SysPlatformRegion::Global);
 }
 
 void ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled(
@@ -1324,18 +1344,19 @@ void ILibraryAppletCreator::CreateHandleStorage(HLERequestContext& ctx) {
 
 ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
     : ServiceFramework{system_, "ILibraryAppletSelfAccessor"} {
+    // clang-format off
     static const FunctionInfo functions[] = {
-        {0, nullptr, "PopInData"},
-        {1, nullptr, "PushOutData"},
+        {0, &ILibraryAppletSelfAccessor::PopInData, "PopInData"},
+        {1, &ILibraryAppletSelfAccessor::PushOutData, "PushOutData"},
         {2, nullptr, "PopInteractiveInData"},
         {3, nullptr, "PushInteractiveOutData"},
         {5, nullptr, "GetPopInDataEvent"},
         {6, nullptr, "GetPopInteractiveInDataEvent"},
-        {10, nullptr, "ExitProcessAndReturn"},
-        {11, nullptr, "GetLibraryAppletInfo"},
+        {10, &ILibraryAppletSelfAccessor::ExitProcessAndReturn, "ExitProcessAndReturn"},
+        {11, &ILibraryAppletSelfAccessor::GetLibraryAppletInfo, "GetLibraryAppletInfo"},
         {12, nullptr, "GetMainAppletIdentityInfo"},
         {13, nullptr, "CanUseApplicationCore"},
-        {14, nullptr, "GetCallerAppletIdentityInfo"},
+        {14, &ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo, "GetCallerAppletIdentityInfo"},
         {15, nullptr, "GetMainAppletApplicationControlProperty"},
         {16, nullptr, "GetMainAppletStorageId"},
         {17, nullptr, "GetCallerAppletIdentityInfoStack"},
@@ -1361,10 +1382,142 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
         {140, nullptr, "SetApplicationMemoryReservation"},
         {150, nullptr, "ShouldSetGpuTimeSliceManually"},
     };
+    // clang-format on
     RegisterHandlers(functions);
+
+    PushInShowMiiEditData();
 }
 
 ILibraryAppletSelfAccessor::~ILibraryAppletSelfAccessor() = default;
+void ILibraryAppletSelfAccessor::PopInData(HLERequestContext& ctx) {
+    LOG_INFO(Service_AM, "called");
+
+    if (queue_data.empty()) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultNoDataInChannel);
+        return;
+    }
+
+    auto data = queue_data.front();
+    queue_data.pop_front();
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(ResultSuccess);
+    rb.PushIpcInterface<IStorage>(system, std::move(data));
+}
+
+void ILibraryAppletSelfAccessor::PushOutData(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void ILibraryAppletSelfAccessor::ExitProcessAndReturn(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    system.Exit();
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void ILibraryAppletSelfAccessor::GetLibraryAppletInfo(HLERequestContext& ctx) {
+    struct LibraryAppletInfo {
+        Applets::AppletId applet_id;
+        Applets::LibraryAppletMode library_applet_mode;
+    };
+
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    const LibraryAppletInfo applet_info{
+        .applet_id = Applets::AppletId::MiiEdit,
+        .library_applet_mode = Applets::LibraryAppletMode::AllForeground,
+    };
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(applet_info);
+}
+
+void ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(HLERequestContext& ctx) {
+    struct AppletIdentityInfo {
+        Applets::AppletId applet_id;
+        INSERT_PADDING_BYTES(0x4);
+        u64 application_id;
+    };
+
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    const AppletIdentityInfo applet_info{
+        .applet_id = Applets::AppletId::QLaunch,
+        .application_id = 0x0100000000001000ull,
+    };
+
+    IPC::ResponseBuilder rb{ctx, 6};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(applet_info);
+}
+
+void ILibraryAppletSelfAccessor::PushInShowMiiEditData() {
+    struct MiiEditV3 {
+        Applets::MiiEditAppletInputCommon common;
+        Applets::MiiEditAppletInputV3 input;
+    };
+    static_assert(sizeof(MiiEditV3) == 0x100, "MiiEditV3 has incorrect size.");
+
+    MiiEditV3 mii_arguments{
+        .common =
+            {
+                .version = Applets::MiiEditAppletVersion::Version3,
+                .applet_mode = Applets::MiiEditAppletMode::ShowMiiEdit,
+            },
+        .input{},
+    };
+
+    std::vector<u8> argument_data(sizeof(mii_arguments));
+    std::memcpy(argument_data.data(), &mii_arguments, sizeof(mii_arguments));
+
+    queue_data.emplace_back(std::move(argument_data));
+}
+
+IAppletCommonFunctions::IAppletCommonFunctions(Core::System& system_)
+    : ServiceFramework{system_, "IAppletCommonFunctions"} {
+    // clang-format off
+    static const FunctionInfo functions[] = {
+        {0, nullptr, "SetTerminateResult"},
+        {10, nullptr, "ReadThemeStorage"},
+        {11, nullptr, "WriteThemeStorage"},
+        {20, nullptr, "PushToAppletBoundChannel"},
+        {21, nullptr, "TryPopFromAppletBoundChannel"},
+        {40, nullptr, "GetDisplayLogicalResolution"},
+        {42, nullptr, "SetDisplayMagnification"},
+        {50, nullptr, "SetHomeButtonDoubleClickEnabled"},
+        {51, nullptr, "GetHomeButtonDoubleClickEnabled"},
+        {52, nullptr, "IsHomeButtonShortPressedBlocked"},
+        {60, nullptr, "IsVrModeCurtainRequired"},
+        {61, nullptr, "IsSleepRequiredByHighTemperature"},
+        {62, nullptr, "IsSleepRequiredByLowBattery"},
+        {70, &IAppletCommonFunctions::SetCpuBoostRequestPriority, "SetCpuBoostRequestPriority"},
+        {80, nullptr, "SetHandlingCaptureButtonShortPressedMessageEnabledForApplet"},
+        {81, nullptr, "SetHandlingCaptureButtonLongPressedMessageEnabledForApplet"},
+        {90, nullptr, "OpenNamedChannelAsParent"},
+        {91, nullptr, "OpenNamedChannelAsChild"},
+        {100, nullptr, "SetApplicationCoreUsageMode"},
+    };
+    // clang-format on
+
+    RegisterHandlers(functions);
+}
+
+IAppletCommonFunctions::~IAppletCommonFunctions() = default;
+
+void IAppletCommonFunctions::SetCpuBoostRequestPriority(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
 
 IApplicationFunctions::IApplicationFunctions(Core::System& system_)
     : ServiceFramework{system_, "IApplicationFunctions"}, service_context{system,
@@ -2049,8 +2202,8 @@ IProcessWindingController::IProcessWindingController(Core::System& system_)
     : ServiceFramework{system_, "IProcessWindingController"} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, nullptr, "GetLaunchReason"},
-        {11, nullptr, "OpenCallingLibraryApplet"},
+        {0, &IProcessWindingController::GetLaunchReason, "GetLaunchReason"},
+        {11, &IProcessWindingController::OpenCallingLibraryApplet, "OpenCallingLibraryApplet"},
         {21, nullptr, "PushContext"},
         {22, nullptr, "PopContext"},
         {23, nullptr, "CancelWindingReservation"},
@@ -2064,4 +2217,46 @@ IProcessWindingController::IProcessWindingController(Core::System& system_)
 }
 
 IProcessWindingController::~IProcessWindingController() = default;
+
+void IProcessWindingController::GetLaunchReason(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    struct AppletProcessLaunchReason {
+        u8 flag;
+        INSERT_PADDING_BYTES(3);
+    };
+    static_assert(sizeof(AppletProcessLaunchReason) == 0x4,
+                  "AppletProcessLaunchReason is an invalid size");
+
+    AppletProcessLaunchReason reason{
+        .flag = 0,
+    };
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(reason);
+}
+
+void IProcessWindingController::OpenCallingLibraryApplet(HLERequestContext& ctx) {
+    const auto applet_id = Applets::AppletId::MiiEdit;
+    const auto applet_mode = Applets::LibraryAppletMode::AllForeground;
+
+    LOG_WARNING(Service_AM, "(STUBBED) called with applet_id={:08X}, applet_mode={:08X}", applet_id,
+                applet_mode);
+
+    const auto& applet_manager{system.GetAppletManager()};
+    const auto applet = applet_manager.GetApplet(applet_id, applet_mode);
+
+    if (applet == nullptr) {
+        LOG_ERROR(Service_AM, "Applet doesn't exist! applet_id={}", applet_id);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultUnknown);
+        return;
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(ResultSuccess);
+    rb.PushIpcInterface<ILibraryAppletAccessor>(system, applet);
+}
 } // namespace Service::AM

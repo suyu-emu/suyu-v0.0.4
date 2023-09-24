@@ -27,7 +27,7 @@ public:
             {10, &ILibraryAppletProxy::GetProcessWindingController, "GetProcessWindingController"},
             {11, &ILibraryAppletProxy::GetLibraryAppletCreator, "GetLibraryAppletCreator"},
             {20, &ILibraryAppletProxy::OpenLibraryAppletSelfAccessor, "OpenLibraryAppletSelfAccessor"},
-            {21, nullptr, "GetAppletCommonFunctions"},
+            {21, &ILibraryAppletProxy::GetAppletCommonFunctions, "GetAppletCommonFunctions"},
             {22, nullptr, "GetHomeMenuFunctions"},
             {23, nullptr, "GetGlobalStateController"},
             {1000, &ILibraryAppletProxy::GetDebugFunctions, "GetDebugFunctions"},
@@ -86,14 +86,6 @@ private:
         rb.PushIpcInterface<IProcessWindingController>(system);
     }
 
-    void GetDebugFunctions(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_AM, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IDebugFunctions>(system);
-    }
-
     void GetLibraryAppletCreator(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
@@ -108,6 +100,22 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
         rb.PushIpcInterface<ILibraryAppletSelfAccessor>(system);
+    }
+
+    void GetAppletCommonFunctions(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(ResultSuccess);
+        rb.PushIpcInterface<IAppletCommonFunctions>(system);
+    }
+
+    void GetDebugFunctions(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(ResultSuccess);
+        rb.PushIpcInterface<IDebugFunctions>(system);
     }
 
     Nvnflinger::Nvnflinger& nvnflinger;
@@ -133,7 +141,7 @@ public:
             {20, &ISystemAppletProxy::GetHomeMenuFunctions, "GetHomeMenuFunctions"},
             {21, &ISystemAppletProxy::GetGlobalStateController, "GetGlobalStateController"},
             {22, &ISystemAppletProxy::GetApplicationCreator, "GetApplicationCreator"},
-            {23, nullptr, "GetAppletCommonFunctions"},
+            {23,  &ISystemAppletProxy::GetAppletCommonFunctions, "GetAppletCommonFunctions"},
             {1000, &ISystemAppletProxy::GetDebugFunctions, "GetDebugFunctions"},
         };
         // clang-format on
@@ -182,14 +190,6 @@ private:
         rb.PushIpcInterface<IDisplayController>(system);
     }
 
-    void GetDebugFunctions(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_AM, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IDebugFunctions>(system);
-    }
-
     void GetLibraryAppletCreator(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
@@ -220,6 +220,22 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
         rb.PushIpcInterface<IApplicationCreator>(system);
+    }
+
+    void GetAppletCommonFunctions(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(ResultSuccess);
+        rb.PushIpcInterface<IAppletCommonFunctions>(system);
+    }
+
+    void GetDebugFunctions(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(ResultSuccess);
+        rb.PushIpcInterface<IDebugFunctions>(system);
     }
 
     Nvnflinger::Nvnflinger& nvnflinger;

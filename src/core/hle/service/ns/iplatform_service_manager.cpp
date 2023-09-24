@@ -144,7 +144,7 @@ IPlatformServiceManager::IPlatformServiceManager(Core::System& system_, const ch
         {3, &IPlatformServiceManager::GetSharedMemoryAddressOffset, "GetSharedMemoryAddressOffset"},
         {4, &IPlatformServiceManager::GetSharedMemoryNativeHandle, "GetSharedMemoryNativeHandle"},
         {5, &IPlatformServiceManager::GetSharedFontInOrderOfPriority, "GetSharedFontInOrderOfPriority"},
-        {6, nullptr, "GetSharedFontInOrderOfPriorityForSystem"},
+        {6, &IPlatformServiceManager::GetSharedFontInOrderOfPriority, "GetSharedFontInOrderOfPriorityForSystem"},
         {100, nullptr, "RequestApplicationFunctionAuthorization"},
         {101, nullptr, "RequestApplicationFunctionAuthorizationByProcessId"},
         {102, nullptr, "RequestApplicationFunctionAuthorizationByApplicationId"},
@@ -262,8 +262,17 @@ void IPlatformServiceManager::GetSharedMemoryNativeHandle(HLERequestContext& ctx
 }
 
 void IPlatformServiceManager::GetSharedFontInOrderOfPriority(HLERequestContext& ctx) {
+    // The maximum number of elements that can be returned is 6. Regardless of the available fonts
+    // or buffer size.
+    constexpr std::size_t MaxElementCount = 6;
     IPC::RequestParser rp{ctx};
     const u64 language_code{rp.Pop<u64>()}; // TODO(ogniK): Find out what this is used for
+    const std::size_t font_codes_count =
+        std::min(MaxElementCount, ctx.GetWriteBufferNumElements<u32>(0));
+    const std::size_t font_offsets_count =
+        std::min(MaxElementCount, ctx.GetWriteBufferNumElements<u32>(1));
+    const std::size_t font_sizes_count =
+        std::min(MaxElementCount, ctx.GetWriteBufferNumElements<u32>(2));
     LOG_DEBUG(Service_NS, "called, language_code={:X}", language_code);
 
     IPC::ResponseBuilder rb{ctx, 4};
@@ -280,9 +289,9 @@ void IPlatformServiceManager::GetSharedFontInOrderOfPriority(HLERequestContext& 
     }
 
     // Resize buffers if game requests smaller size output
-    font_codes.resize(std::min(font_codes.size(), ctx.GetWriteBufferNumElements<u32>(0)));
-    font_offsets.resize(std::min(font_offsets.size(), ctx.GetWriteBufferNumElements<u32>(1)));
-    font_sizes.resize(std::min(font_sizes.size(), ctx.GetWriteBufferNumElements<u32>(2)));
+    font_codes.resize(std::min(font_codes.size(), font_codes_count));
+    font_offsets.resize(std::min(font_offsets.size(), font_offsets_count));
+    font_sizes.resize(std::min(font_sizes.size(), font_sizes_count));
 
     ctx.WriteBuffer(font_codes, 0);
     ctx.WriteBuffer(font_offsets, 1);

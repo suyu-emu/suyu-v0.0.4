@@ -1551,6 +1551,7 @@ void GMainWindow::ConnectMenuEvents() {
     // Tools
     connect_menu(ui->action_Rederive, std::bind(&GMainWindow::OnReinitializeKeys, this,
                                                 ReinitializeKeyBehavior::Warning));
+    connect_menu(ui->action_Load_Mii_Edit, &GMainWindow::OnMiiEdit);
     connect_menu(ui->action_Capture_Screenshot, &GMainWindow::OnCaptureScreenshot);
 
     // TAS
@@ -1590,6 +1591,8 @@ void GMainWindow::UpdateMenuState() {
     }
 
     multiplayer_state->UpdateNotificationStatus();
+
+    ui->action_Load_Mii_Edit->setEnabled(CheckFirmwarePresence());
 }
 
 void GMainWindow::OnDisplayTitleBars(bool show) {
@@ -4134,6 +4137,27 @@ void GMainWindow::OnToggleStatusBar() {
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
 }
 
+void GMainWindow::OnMiiEdit() {
+    constexpr u64 MiiEditId = 0x0100000000001009ull;
+    auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        QMessageBox::warning(this, tr("No firmware available"),
+                             tr("Please install the firmware to use the Mii editor."));
+        return;
+    }
+
+    auto mii_applet_nca = bis_system->GetEntry(MiiEditId, FileSys::ContentRecordType::Program);
+    if (!mii_applet_nca) {
+        QMessageBox::warning(this, tr("Mii Edit Applet"),
+                             tr("Mii editor is not available. Please reinstall firmware."));
+        return;
+    }
+
+    const auto filename = QString::fromStdString((mii_applet_nca->GetFullPath()));
+    UISettings::values.roms_path = QFileInfo(filename).path();
+    BootGame(filename);
+}
+
 void GMainWindow::OnCaptureScreenshot() {
     if (emu_thread == nullptr || !emu_thread->IsRunning()) {
         return;
@@ -4540,6 +4564,8 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
     if (behavior == ReinitializeKeyBehavior::Warning) {
         game_list->PopulateAsync(UISettings::values.game_dirs);
     }
+
+    UpdateMenuState();
 }
 
 bool GMainWindow::CheckSystemArchiveDecryption() {
@@ -4559,6 +4585,22 @@ bool GMainWindow::CheckSystemArchiveDecryption() {
 
     // Return whether we are able to decrypt the RomFS of the Mii model.
     return mii_nca->GetRomFS().get() != nullptr;
+}
+
+bool GMainWindow::CheckFirmwarePresence() {
+    constexpr u64 MiiEditId = 0x0100000000001009ull;
+
+    auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        return false;
+    }
+
+    auto mii_applet_nca = bis_system->GetEntry(MiiEditId, FileSys::ContentRecordType::Program);
+    if (!mii_applet_nca) {
+        return false;
+    }
+
+    return true;
 }
 
 bool GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installed, u64 program_id,

@@ -120,6 +120,9 @@ class IDisplayController final : public ServiceFramework<IDisplayController> {
 public:
     explicit IDisplayController(Core::System& system_);
     ~IDisplayController() override;
+
+private:
+    void TakeScreenShotOfOwnLayer(HLERequestContext& ctx);
 };
 
 class IDebugFunctions final : public ServiceFramework<IDebugFunctions> {
@@ -212,6 +215,11 @@ private:
         CaptureButtonLongPressing,
     };
 
+    enum class SysPlatformRegion : s32 {
+        Global = 1,
+        Terra = 2,
+    };
+
     void GetEventHandle(HLERequestContext& ctx);
     void ReceiveMessage(HLERequestContext& ctx);
     void GetCurrentFocusState(HLERequestContext& ctx);
@@ -227,6 +235,7 @@ private:
     void GetDefaultDisplayResolution(HLERequestContext& ctx);
     void SetCpuBoostMode(HLERequestContext& ctx);
     void PerformSystemButtonPressingIfInFocus(HLERequestContext& ctx);
+    void GetSettingsPlatformRegion(HLERequestContext& ctx);
     void SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled(HLERequestContext& ctx);
 
     std::shared_ptr<AppletMessageQueue> msg_queue;
@@ -294,6 +303,26 @@ class ILibraryAppletSelfAccessor final : public ServiceFramework<ILibraryAppletS
 public:
     explicit ILibraryAppletSelfAccessor(Core::System& system_);
     ~ILibraryAppletSelfAccessor() override;
+
+private:
+    void PopInData(HLERequestContext& ctx);
+    void PushOutData(HLERequestContext& ctx);
+    void GetLibraryAppletInfo(HLERequestContext& ctx);
+    void ExitProcessAndReturn(HLERequestContext& ctx);
+    void GetCallerAppletIdentityInfo(HLERequestContext& ctx);
+
+    void PushInShowMiiEditData();
+
+    std::deque<std::vector<u8>> queue_data;
+};
+
+class IAppletCommonFunctions final : public ServiceFramework<IAppletCommonFunctions> {
+public:
+    explicit IAppletCommonFunctions(Core::System& system_);
+    ~IAppletCommonFunctions() override;
+
+private:
+    void SetCpuBoostRequestPriority(HLERequestContext& ctx);
 };
 
 class IApplicationFunctions final : public ServiceFramework<IApplicationFunctions> {
@@ -378,6 +407,10 @@ class IProcessWindingController final : public ServiceFramework<IProcessWindingC
 public:
     explicit IProcessWindingController(Core::System& system_);
     ~IProcessWindingController() override;
+
+private:
+    void GetLaunchReason(HLERequestContext& ctx);
+    void OpenCallingLibraryApplet(HLERequestContext& ctx);
 };
 
 void LoopProcess(Nvnflinger::Nvnflinger& nvnflinger, Core::System& system);

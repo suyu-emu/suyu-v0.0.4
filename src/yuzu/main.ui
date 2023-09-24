@@ -150,6 +150,8 @@
     <addaction name="action_Rederive"/>
     <addaction name="action_Verify_installed_contents"/>
     <addaction name="separator"/>
+    <addaction name="action_Load_Mii_Edit"/>
+    <addaction name="separator"/>
     <addaction name="action_Capture_Screenshot"/>
     <addaction name="menuTAS"/>
    </widget>
@@ -217,7 +219,7 @@
   </action>
   <action name="action_Verify_installed_contents">
    <property name="text">
-    <string>Verify installed contents</string>
+    <string>&amp;Verify Installed Contents</string>
    </property>
   </action>
   <action name="action_About">
@@ -367,6 +369,11 @@
    <property name="text">
     <string>&amp;Capture Screenshot</string>
    </property>
+  </action>
+  <action name="action_Load_Mii_Edit">
+    <property name="text">
+      <string>Open &amp;Mii Editor</string>
+    </property>
   </action>
   <action name="action_Configure_Tas">
    <property name="text">

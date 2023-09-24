@@ -39,7 +39,9 @@ private:
     void OpenFileSystemWithPatch(HLERequestContext& ctx);
     void OpenSdCardFileSystem(HLERequestContext& ctx);
     void CreateSaveDataFileSystem(HLERequestContext& ctx);
+    void CreateSaveDataFileSystemBySystemSaveDataId(HLERequestContext& ctx);
     void OpenSaveDataFileSystem(HLERequestContext& ctx);
+    void OpenSaveDataFileSystemBySystemSaveDataId(HLERequestContext& ctx);
     void OpenReadOnlySaveDataFileSystem(HLERequestContext& ctx);
     void OpenSaveDataInfoReaderBySaveDataSpaceId(HLERequestContext& ctx);
     void OpenSaveDataInfoReaderOnlyCacheStorage(HLERequestContext& ctx);

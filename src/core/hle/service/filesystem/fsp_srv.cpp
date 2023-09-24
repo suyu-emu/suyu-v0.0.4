@@ -698,7 +698,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {19, nullptr, "FormatSdCardFileSystem"},
         {21, nullptr, "DeleteSaveDataFileSystem"},
         {22, &FSP_SRV::CreateSaveDataFileSystem, "CreateSaveDataFileSystem"},
-        {23, nullptr, "CreateSaveDataFileSystemBySystemSaveDataId"},
+        {23, &FSP_SRV::CreateSaveDataFileSystemBySystemSaveDataId, "CreateSaveDataFileSystemBySystemSaveDataId"},
         {24, nullptr, "RegisterSaveDataFileSystemAtomicDeletion"},
         {25, nullptr, "DeleteSaveDataFileSystemBySaveDataSpaceId"},
         {26, nullptr, "FormatSdCardDryRun"},
@@ -712,7 +712,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {35, nullptr, "CreateSaveDataFileSystemByHashSalt"},
         {36, nullptr, "OpenHostFileSystemWithOption"},
         {51, &FSP_SRV::OpenSaveDataFileSystem, "OpenSaveDataFileSystem"},
-        {52, nullptr, "OpenSaveDataFileSystemBySystemSaveDataId"},
+        {52, &FSP_SRV::OpenSaveDataFileSystemBySystemSaveDataId, "OpenSaveDataFileSystemBySystemSaveDataId"},
         {53, &FSP_SRV::OpenReadOnlySaveDataFileSystem, "OpenReadOnlySaveDataFileSystem"},
         {57, nullptr, "ReadSaveDataFileSystemExtraDataBySaveDataSpaceId"},
         {58, nullptr, "ReadSaveDataFileSystemExtraData"},
@@ -870,6 +870,21 @@ void FSP_SRV::CreateSaveDataFileSystem(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
+void FSP_SRV::CreateSaveDataFileSystemBySystemSaveDataId(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    auto save_struct = rp.PopRaw<FileSys::SaveDataAttribute>();
+    [[maybe_unused]] auto save_create_struct = rp.PopRaw<std::array<u8, 0x40>>();
+
+    LOG_DEBUG(Service_FS, "called save_struct = {}", save_struct.DebugInfo());
+
+    FileSys::VirtualDir save_data_dir{};
+    fsc.CreateSaveData(&save_data_dir, FileSys::SaveDataSpaceId::NandSystem, save_struct);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void FSP_SRV::OpenSaveDataFileSystem(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
@@ -914,6 +929,11 @@ void FSP_SRV::OpenSaveDataFileSystem(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
     rb.PushIpcInterface<IFileSystem>(std::move(filesystem));
+}
+
+void FSP_SRV::OpenSaveDataFileSystemBySystemSaveDataId(HLERequestContext& ctx) {
+    LOG_WARNING(Service_FS, "(STUBBED) called, delegating to 51 OpenSaveDataFilesystem");
+    OpenSaveDataFileSystem(ctx);
 }
 
 void FSP_SRV::OpenReadOnlySaveDataFileSystem(HLERequestContext& ctx) {
