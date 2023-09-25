@@ -181,12 +181,14 @@ class SettingsActivity : AppCompatActivity() {
     private fun setInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(
             binding.navigationBarShade
-        ) { view: View, windowInsets: WindowInsetsCompat ->
+        ) { _: View, windowInsets: WindowInsetsCompat ->
             val barInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
 
-            val mlpShade = view.layoutParams as MarginLayoutParams
-            mlpShade.height = barInsets.bottom
-            view.layoutParams = mlpShade
+            // The only situation where we care to have a nav bar shade is when it's at the bottom
+            // of the screen where scrolling list elements can go behind it.
+            val mlpNavShade = binding.navigationBarShade.layoutParams as MarginLayoutParams
+            mlpNavShade.height = barInsets.bottom
+            binding.navigationBarShade.layoutParams = mlpNavShade
 
             windowInsets
         }
