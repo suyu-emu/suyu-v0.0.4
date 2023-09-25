@@ -26,16 +26,18 @@ void RasterizerNull::Draw(bool is_indexed, u32 instance_count) {}
 void RasterizerNull::DrawTexture() {}
 void RasterizerNull::Clear(u32 layer_count) {}
 void RasterizerNull::DispatchCompute() {}
-void RasterizerNull::ResetCounter(VideoCore::QueryType type) {}
-void RasterizerNull::Query(GPUVAddr gpu_addr, VideoCore::QueryType type,
-                           std::optional<u64> timestamp) {
+void RasterizerNull::ResetCounter(VideoCommon::QueryType type) {}
+void RasterizerNull::Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
+                           VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport) {
     if (!gpu_memory) {
         return;
     }
-
-    gpu_memory->Write(gpu_addr, u64{0});
-    if (timestamp) {
-        gpu_memory->Write(gpu_addr + 8, *timestamp);
+    if (True(flags & VideoCommon::QueryPropertiesFlags::HasTimeout)) {
+        u64 ticks = m_gpu.GetTicks();
+        gpu_memory->Write<u64>(gpu_addr + 8, ticks);
+        gpu_memory->Write<u64>(gpu_addr, static_cast<u64>(payload));
+    } else {
+        gpu_memory->Write<u32>(gpu_addr, payload);
     }
 }
 void RasterizerNull::BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr,
@@ -74,7 +76,7 @@ void RasterizerNull::SignalSyncPoint(u32 value) {
     syncpoint_manager.IncrementHost(value);
 }
 void RasterizerNull::SignalReference() {}
-void RasterizerNull::ReleaseFences() {}
+void RasterizerNull::ReleaseFences(bool) {}
 void RasterizerNull::FlushAndInvalidateRegion(VAddr addr, u64 size, VideoCommon::CacheType) {}
 void RasterizerNull::WaitForIdle() {}
 void RasterizerNull::FragmentBarrier() {}

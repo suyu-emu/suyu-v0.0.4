@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <optional>
 #include <span>
 #include <utility>
 
@@ -31,7 +32,8 @@ public:
                          vk::Span<VkDescriptorSetLayoutBinding> bindings,
                          vk::Span<VkDescriptorUpdateTemplateEntry> templates,
                          const DescriptorBankInfo& bank_info,
-                         vk::Span<VkPushConstantRange> push_constants, std::span<const u32> code);
+                         vk::Span<VkPushConstantRange> push_constants, std::span<const u32> code,
+                         std::optional<u32> optional_subgroup_size = std::nullopt);
     ~ComputePass();
 
 protected:
@@ -79,6 +81,33 @@ public:
 private:
     Scheduler& scheduler;
     StagingBufferPool& staging_buffer_pool;
+    ComputePassDescriptorQueue& compute_pass_descriptor_queue;
+};
+
+class ConditionalRenderingResolvePass final : public ComputePass {
+public:
+    explicit ConditionalRenderingResolvePass(
+        const Device& device_, Scheduler& scheduler_, DescriptorPool& descriptor_pool_,
+        ComputePassDescriptorQueue& compute_pass_descriptor_queue_);
+
+    void Resolve(VkBuffer dst_buffer, VkBuffer src_buffer, u32 src_offset, bool compare_to_zero);
+
+private:
+    Scheduler& scheduler;
+    ComputePassDescriptorQueue& compute_pass_descriptor_queue;
+};
+
+class QueriesPrefixScanPass final : public ComputePass {
+public:
+    explicit QueriesPrefixScanPass(const Device& device_, Scheduler& scheduler_,
+                                   DescriptorPool& descriptor_pool_,
+                                   ComputePassDescriptorQueue& compute_pass_descriptor_queue_);
+
+    void Run(VkBuffer accumulation_buffer, VkBuffer dst_buffer, VkBuffer src_buffer,
+             size_t number_of_sums, size_t min_accumulation_limit, size_t max_accumulation_limit);
+
+private:
+    Scheduler& scheduler;
     ComputePassDescriptorQueue& compute_pass_descriptor_queue;
 };
 

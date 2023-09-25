@@ -46,6 +46,7 @@ public:
     };
 
     struct IndirectParams {
+        bool is_byte_count;
         bool is_indexed;
         bool include_count;
         GPUVAddr count_start_address;

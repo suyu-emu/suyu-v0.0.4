@@ -12,6 +12,9 @@
 #include "common/common_types.h"
 #include "common/div_ceil.h"
 #include "video_core/host_shaders/astc_decoder_comp_spv.h"
+#include "video_core/host_shaders/queries_prefix_scan_sum_comp_spv.h"
+#include "video_core/host_shaders/queries_prefix_scan_sum_nosubgroups_comp_spv.h"
+#include "video_core/host_shaders/resolve_conditional_render_comp_spv.h"
 #include "video_core/host_shaders/vulkan_quad_indexed_comp_spv.h"
 #include "video_core/host_shaders/vulkan_uint8_comp_spv.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
@@ -57,6 +60,30 @@ constexpr std::array<VkDescriptorSetLayoutBinding, 2> INPUT_OUTPUT_DESCRIPTOR_SE
     },
 }};
 
+constexpr std::array<VkDescriptorSetLayoutBinding, 3> QUERIES_SCAN_DESCRIPTOR_SET_BINDINGS{{
+    {
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+        .pImmutableSamplers = nullptr,
+    },
+    {
+        .binding = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+        .pImmutableSamplers = nullptr,
+    },
+    {
+        .binding = 2,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+        .pImmutableSamplers = nullptr,
+    },
+}};
+
 constexpr DescriptorBankInfo INPUT_OUTPUT_BANK_INFO{
     .uniform_buffers = 0,
     .storage_buffers = 2,
@@ -65,6 +92,16 @@ constexpr DescriptorBankInfo INPUT_OUTPUT_BANK_INFO{
     .textures = 0,
     .images = 0,
     .score = 2,
+};
+
+constexpr DescriptorBankInfo QUERIES_SCAN_BANK_INFO{
+    .uniform_buffers = 0,
+    .storage_buffers = 3,
+    .texture_buffers = 0,
+    .image_buffers = 0,
+    .textures = 0,
+    .images = 0,
+    .score = 3,
 };
 
 constexpr std::array<VkDescriptorSetLayoutBinding, ASTC_NUM_BINDINGS> ASTC_DESCRIPTOR_SET_BINDINGS{{
@@ -103,6 +140,15 @@ constexpr VkDescriptorUpdateTemplateEntry INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLAT
     .stride = sizeof(DescriptorUpdateEntry),
 };
 
+constexpr VkDescriptorUpdateTemplateEntry QUERIES_SCAN_DESCRIPTOR_UPDATE_TEMPLATE{
+    .dstBinding = 0,
+    .dstArrayElement = 0,
+    .descriptorCount = 3,
+    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+    .offset = 0,
+    .stride = sizeof(DescriptorUpdateEntry),
+};
+
 constexpr std::array<VkDescriptorUpdateTemplateEntry, ASTC_NUM_BINDINGS>
     ASTC_PASS_DESCRIPTOR_UPDATE_TEMPLATE_ENTRY{{
         {
@@ -131,13 +177,21 @@ struct AstcPushConstants {
     u32 block_height;
     u32 block_height_mask;
 };
+
+struct QueriesPrefixScanPushConstants {
+    u32 min_accumulation_base;
+    u32 max_accumulation_base;
+    u32 accumulation_limit;
+    u32 buffer_offset;
+};
 } // Anonymous namespace
 
 ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
                          vk::Span<VkDescriptorSetLayoutBinding> bindings,
                          vk::Span<VkDescriptorUpdateTemplateEntry> templates,
                          const DescriptorBankInfo& bank_info,
-                         vk::Span<VkPushConstantRange> push_constants, std::span<const u32> code)
+                         vk::Span<VkPushConstantRange> push_constants, std::span<const u32> code,
+                         std::optional<u32> optional_subgroup_size)
     : device{device_} {
     descriptor_set_layout = device.GetLogical().CreateDescriptorSetLayout({
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -178,13 +232,19 @@ ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
         .pCode = code.data(),
     });
     device.SaveShader(code);
+    const VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT subgroup_size_ci{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT,
+        .pNext = nullptr,
+        .requiredSubgroupSize = optional_subgroup_size ? *optional_subgroup_size : 32U,
+    };
+    bool use_setup_size = device.IsExtSubgroupSizeControlSupported() && optional_subgroup_size;
     pipeline = device.GetLogical().CreateComputePipeline({
         .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .stage{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .pNext = nullptr,
+            .pNext = use_setup_size ? &subgroup_size_ci : nullptr,
             .flags = 0,
             .stage = VK_SHADER_STAGE_COMPUTE_BIT,
             .module = *module,
@@ -300,6 +360,123 @@ std::pair<VkBuffer, VkDeviceSize> QuadIndexedPass::Assemble(
                                VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, WRITE_BARRIER);
     });
     return {staging.buffer, staging.offset};
+}
+
+ConditionalRenderingResolvePass::ConditionalRenderingResolvePass(
+    const Device& device_, Scheduler& scheduler_, DescriptorPool& descriptor_pool_,
+    ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
+    : ComputePass(device_, descriptor_pool_, INPUT_OUTPUT_DESCRIPTOR_SET_BINDINGS,
+                  INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLATE, INPUT_OUTPUT_BANK_INFO, nullptr,
+                  RESOLVE_CONDITIONAL_RENDER_COMP_SPV),
+      scheduler{scheduler_}, compute_pass_descriptor_queue{compute_pass_descriptor_queue_} {}
+
+void ConditionalRenderingResolvePass::Resolve(VkBuffer dst_buffer, VkBuffer src_buffer,
+                                              u32 src_offset, bool compare_to_zero) {
+    const size_t compare_size = compare_to_zero ? 8 : 24;
+
+    compute_pass_descriptor_queue.Acquire();
+    compute_pass_descriptor_queue.AddBuffer(src_buffer, src_offset, compare_size);
+    compute_pass_descriptor_queue.AddBuffer(dst_buffer, 0, sizeof(u32));
+    const void* const descriptor_data{compute_pass_descriptor_queue.UpdateData()};
+
+    scheduler.RequestOutsideRenderPassOperationContext();
+    scheduler.Record([this, descriptor_data](vk::CommandBuffer cmdbuf) {
+        static constexpr VkMemoryBarrier read_barrier{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+        };
+        static constexpr VkMemoryBarrier write_barrier{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT,
+        };
+        const VkDescriptorSet set = descriptor_allocator.Commit();
+        device.GetLogical().UpdateDescriptorSet(set, *descriptor_template, descriptor_data);
+
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                               VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, read_barrier);
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline);
+        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *layout, 0, set, {});
+        cmdbuf.Dispatch(1, 1, 1);
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                               VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT, 0, write_barrier);
+    });
+}
+
+QueriesPrefixScanPass::QueriesPrefixScanPass(
+    const Device& device_, Scheduler& scheduler_, DescriptorPool& descriptor_pool_,
+    ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
+    : ComputePass(
+          device_, descriptor_pool_, QUERIES_SCAN_DESCRIPTOR_SET_BINDINGS,
+          QUERIES_SCAN_DESCRIPTOR_UPDATE_TEMPLATE, QUERIES_SCAN_BANK_INFO,
+          COMPUTE_PUSH_CONSTANT_RANGE<sizeof(QueriesPrefixScanPushConstants)>,
+          device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_BASIC_BIT) &&
+                  device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_ARITHMETIC_BIT) &&
+                  device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_SHUFFLE_BIT) &&
+                  device_.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT)
+              ? std::span<const u32>(QUERIES_PREFIX_SCAN_SUM_COMP_SPV)
+              : std::span<const u32>(QUERIES_PREFIX_SCAN_SUM_NOSUBGROUPS_COMP_SPV)),
+      scheduler{scheduler_}, compute_pass_descriptor_queue{compute_pass_descriptor_queue_} {}
+
+void QueriesPrefixScanPass::Run(VkBuffer accumulation_buffer, VkBuffer dst_buffer,
+                                VkBuffer src_buffer, size_t number_of_sums,
+                                size_t min_accumulation_limit, size_t max_accumulation_limit) {
+    size_t current_runs = number_of_sums;
+    size_t offset = 0;
+    while (current_runs != 0) {
+        static constexpr size_t DISPATCH_SIZE = 2048U;
+        size_t runs_to_do = std::min<size_t>(current_runs, DISPATCH_SIZE);
+        current_runs -= runs_to_do;
+        compute_pass_descriptor_queue.Acquire();
+        compute_pass_descriptor_queue.AddBuffer(src_buffer, 0, number_of_sums * sizeof(u64));
+        compute_pass_descriptor_queue.AddBuffer(dst_buffer, 0, number_of_sums * sizeof(u64));
+        compute_pass_descriptor_queue.AddBuffer(accumulation_buffer, 0, sizeof(u64));
+        const void* const descriptor_data{compute_pass_descriptor_queue.UpdateData()};
+        size_t used_offset = offset;
+        offset += runs_to_do;
+
+        scheduler.RequestOutsideRenderPassOperationContext();
+        scheduler.Record([this, descriptor_data, min_accumulation_limit, max_accumulation_limit,
+                          runs_to_do, used_offset](vk::CommandBuffer cmdbuf) {
+            static constexpr VkMemoryBarrier read_barrier{
+                .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+            };
+            static constexpr VkMemoryBarrier write_barrier{
+                .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT |
+                                 VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
+                                 VK_ACCESS_INDIRECT_COMMAND_READ_BIT | VK_ACCESS_INDEX_READ_BIT |
+                                 VK_ACCESS_UNIFORM_READ_BIT |
+                                 VK_ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT,
+            };
+            const QueriesPrefixScanPushConstants uniforms{
+                .min_accumulation_base = static_cast<u32>(min_accumulation_limit),
+                .max_accumulation_base = static_cast<u32>(max_accumulation_limit),
+                .accumulation_limit = static_cast<u32>(runs_to_do - 1),
+                .buffer_offset = static_cast<u32>(used_offset),
+            };
+            const VkDescriptorSet set = descriptor_allocator.Commit();
+            device.GetLogical().UpdateDescriptorSet(set, *descriptor_template, descriptor_data);
+
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                   VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, read_barrier);
+            cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline);
+            cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *layout, 0, set, {});
+            cmdbuf.PushConstants(*layout, VK_SHADER_STAGE_COMPUTE_BIT, uniforms);
+            cmdbuf.Dispatch(1, 1, 1);
+            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                   VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT, 0,
+                                   write_barrier);
+        });
+    }
 }
 
 ASTCDecoderPass::ASTCDecoderPass(const Device& device_, Scheduler& scheduler_,

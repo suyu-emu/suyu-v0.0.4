@@ -295,6 +295,10 @@ public:
     [[nodiscard]] std::pair<Buffer*, u32> ObtainBuffer(GPUVAddr gpu_addr, u32 size,
                                                        ObtainBufferSynchronize sync_info,
                                                        ObtainBufferOperation post_op);
+
+    [[nodiscard]] std::pair<Buffer*, u32> ObtainCPUBuffer(VAddr gpu_addr, u32 size,
+                                                          ObtainBufferSynchronize sync_info,
+                                                          ObtainBufferOperation post_op);
     void FlushCachedWrites();
 
     /// Return true when there are uncommitted buffers to be downloaded
@@ -334,6 +338,14 @@ public:
     [[nodiscard]] std::pair<Buffer*, u32> GetDrawIndirectCount();
 
     [[nodiscard]] std::pair<Buffer*, u32> GetDrawIndirectBuffer();
+
+    template <typename Func>
+    void BufferOperations(Func&& func) {
+        do {
+            channel_state->has_deleted_buffers = false;
+            func();
+        } while (channel_state->has_deleted_buffers);
+    }
 
     std::recursive_mutex mutex;
     Runtime& runtime;

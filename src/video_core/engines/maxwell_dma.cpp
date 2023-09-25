@@ -362,21 +362,17 @@ void MaxwellDMA::ReleaseSemaphore() {
     const auto type = regs.launch_dma.semaphore_type;
     const GPUVAddr address = regs.semaphore.address;
     const u32 payload = regs.semaphore.payload;
+    VideoCommon::QueryPropertiesFlags flags{VideoCommon::QueryPropertiesFlags::IsAFence};
     switch (type) {
     case LaunchDMA::SemaphoreType::NONE:
         break;
     case LaunchDMA::SemaphoreType::RELEASE_ONE_WORD_SEMAPHORE: {
-        std::function<void()> operation(
-            [this, address, payload] { memory_manager.Write<u32>(address, payload); });
-        rasterizer->SignalFence(std::move(operation));
+        rasterizer->Query(address, VideoCommon::QueryType::Payload, flags, payload, 0);
         break;
     }
     case LaunchDMA::SemaphoreType::RELEASE_FOUR_WORD_SEMAPHORE: {
-        std::function<void()> operation([this, address, payload] {
-            memory_manager.Write<u64>(address + sizeof(u64), system.GPU().GetTicks());
-            memory_manager.Write<u64>(address, payload);
-        });
-        rasterizer->SignalFence(std::move(operation));
+        rasterizer->Query(address, VideoCommon::QueryType::Payload,
+                          flags | VideoCommon::QueryPropertiesFlags::HasTimeout, payload, 0);
         break;
     }
     default:

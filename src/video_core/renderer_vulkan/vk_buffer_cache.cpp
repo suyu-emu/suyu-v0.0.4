@@ -61,6 +61,9 @@ vk::Buffer CreateBuffer(const Device& device, const MemoryAllocator& memory_allo
     if (device.IsExtTransformFeedbackSupported()) {
         flags |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
     }
+    if (device.IsExtConditionalRendering()) {
+        flags |= VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;
+    }
     const VkBufferCreateInfo buffer_ci = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,

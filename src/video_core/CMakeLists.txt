@@ -95,6 +95,12 @@ add_library(video_core STATIC
     memory_manager.h
     precompiled_headers.h
     pte_kind.h
+    query_cache/bank_base.h
+    query_cache/query_base.h
+    query_cache/query_cache_base.h
+    query_cache/query_cache.h
+    query_cache/query_stream.h
+    query_cache/types.h
     query_cache.h
     rasterizer_accelerated.cpp
     rasterizer_accelerated.h

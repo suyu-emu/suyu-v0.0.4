@@ -3182,9 +3182,6 @@ private:
     /// Handles writes to syncing register.
     void ProcessSyncPoint();
 
-    /// Returns a query's value or an empty object if the value will be deferred through a cache.
-    std::optional<u64> GetQueryResult();
-
     void RefreshParametersImpl();
 
     bool IsMethodExecutable(u32 method);

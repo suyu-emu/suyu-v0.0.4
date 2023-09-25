@@ -67,6 +67,7 @@ public:
         }
 
         auto& params = maxwell3d.draw_manager->GetIndirectParams();
+        params.is_byte_count = false;
         params.is_indexed = false;
         params.include_count = false;
         params.count_start_address = 0;
@@ -161,6 +162,7 @@ public:
                 0, 0x644, Maxwell3D::HLEReplacementAttributeType::BaseInstance);
         }
         auto& params = maxwell3d.draw_manager->GetIndirectParams();
+        params.is_byte_count = false;
         params.is_indexed = true;
         params.include_count = false;
         params.count_start_address = 0;
@@ -256,6 +258,7 @@ public:
         const u32 estimate = static_cast<u32>(maxwell3d.EstimateIndexBufferSize());
         maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
         auto& params = maxwell3d.draw_manager->GetIndirectParams();
+        params.is_byte_count = false;
         params.is_indexed = true;
         params.include_count = true;
         params.count_start_address = maxwell3d.GetMacroAddress(4);
@@ -316,6 +319,47 @@ private:
             maxwell3d.draw_manager->DrawIndex(topology, parameters[base + 2], parameters[base],
                                               base_vertex, base_instance, parameters[base + 1]);
         }
+    }
+};
+
+class HLE_DrawIndirectByteCount final : public HLEMacroImpl {
+public:
+    explicit HLE_DrawIndirectByteCount(Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
+
+    void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+        auto topology = static_cast<Maxwell3D::Regs::PrimitiveTopology>(parameters[0] & 0xFFFFU);
+        if (!maxwell3d.AnyParametersDirty() || !IsTopologySafe(topology)) {
+            Fallback(parameters);
+            return;
+        }
+
+        auto& params = maxwell3d.draw_manager->GetIndirectParams();
+        params.is_byte_count = true;
+        params.is_indexed = false;
+        params.include_count = false;
+        params.count_start_address = 0;
+        params.indirect_start_address = maxwell3d.GetMacroAddress(2);
+        params.buffer_size = 4;
+        params.max_draw_counts = 1;
+        params.stride = parameters[1];
+        maxwell3d.regs.draw.begin = parameters[0];
+        maxwell3d.regs.draw_auto_stride = parameters[1];
+        maxwell3d.regs.draw_auto_byte_count = parameters[2];
+
+        maxwell3d.draw_manager->DrawArrayIndirect(topology);
+    }
+
+private:
+    void Fallback(const std::vector<u32>& parameters) {
+        maxwell3d.RefreshParameters();
+
+        maxwell3d.regs.draw.begin = parameters[0];
+        maxwell3d.regs.draw_auto_stride = parameters[1];
+        maxwell3d.regs.draw_auto_byte_count = parameters[2];
+
+        maxwell3d.draw_manager->DrawArray(
+            maxwell3d.regs.draw.topology, 0,
+            maxwell3d.regs.draw_auto_byte_count / maxwell3d.regs.draw_auto_stride, 0, 1);
     }
 };
 
@@ -535,6 +579,11 @@ HLEMacro::HLEMacro(Maxwell3D& maxwell3d_) : maxwell3d{maxwell3d_} {
                      std::function<std::unique_ptr<CachedMacro>(Maxwell3D&)>(
                          [](Maxwell3D& maxwell3d__) -> std::unique_ptr<CachedMacro> {
                              return std::make_unique<HLE_TransformFeedbackSetup>(maxwell3d__);
+                         }));
+    builders.emplace(0xB5F74EDB717278ECULL,
+                     std::function<std::unique_ptr<CachedMacro>(Maxwell3D&)>(
+                         [](Maxwell3D& maxwell3d__) -> std::unique_ptr<CachedMacro> {
+                             return std::make_unique<HLE_DrawIndirectByteCount>(maxwell3d__);
                          }));
 }
 
