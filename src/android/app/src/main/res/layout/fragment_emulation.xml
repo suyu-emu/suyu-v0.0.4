@@ -155,7 +155,7 @@
         android:id="@+id/in_game_menu"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_gravity="start|bottom"
+        android:layout_gravity="start"
         app:headerLayout="@layout/header_in_game"
         app:menu="@menu/menu_in_game"
         tools:visibility="gone" />
