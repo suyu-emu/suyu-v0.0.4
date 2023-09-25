@@ -26,7 +26,7 @@ class RasterizerOpenGL;
 using CounterStream = VideoCommon::CounterStreamBase<QueryCache, HostCounter>;
 
 class QueryCache final
-    : public VideoCommon::QueryCacheBase<QueryCache, CachedQuery, CounterStream, HostCounter> {
+    : public VideoCommon::QueryCacheLegacy<QueryCache, CachedQuery, CounterStream, HostCounter> {
 public:
     explicit QueryCache(RasterizerOpenGL& rasterizer_, Core::Memory::Memory& cpu_memory_);
     ~QueryCache();

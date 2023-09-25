@@ -12,6 +12,7 @@
 #include "video_core/cache_types.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/gpu.h"
+#include "video_core/query_cache/types.h"
 #include "video_core/rasterizer_download_area.h"
 
 namespace Tegra {
@@ -25,11 +26,6 @@ struct ChannelState;
 } // namespace Tegra
 
 namespace VideoCore {
-
-enum class QueryType {
-    SamplesPassed,
-};
-constexpr std::size_t NumQueryTypes = 1;
 
 enum class LoadCallbackStage {
     Prepare,
@@ -58,10 +54,11 @@ public:
     virtual void DispatchCompute() = 0;
 
     /// Resets the counter of a query
-    virtual void ResetCounter(QueryType type) = 0;
+    virtual void ResetCounter(VideoCommon::QueryType type) = 0;
 
     /// Records a GPU query and caches it
-    virtual void Query(GPUVAddr gpu_addr, QueryType type, std::optional<u64> timestamp) = 0;
+    virtual void Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
+                       VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport) = 0;
 
     /// Signal an uniform buffer binding
     virtual void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr,
@@ -83,7 +80,7 @@ public:
     virtual void SignalReference() = 0;
 
     /// Release all pending fences.
-    virtual void ReleaseFences() = 0;
+    virtual void ReleaseFences(bool force = true) = 0;
 
     /// Notify rasterizer that all caches should be flushed to Switch memory
     virtual void FlushAll() = 0;

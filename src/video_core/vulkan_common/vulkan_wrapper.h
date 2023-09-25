@@ -185,6 +185,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkBeginCommandBuffer vkBeginCommandBuffer{};
     PFN_vkBindBufferMemory vkBindBufferMemory{};
     PFN_vkBindImageMemory vkBindImageMemory{};
+    PFN_vkCmdBeginConditionalRenderingEXT vkCmdBeginConditionalRenderingEXT{};
     PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT{};
     PFN_vkCmdBeginQuery vkCmdBeginQuery{};
     PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass{};
@@ -202,6 +203,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdCopyBufferToImage vkCmdCopyBufferToImage{};
     PFN_vkCmdCopyImage vkCmdCopyImage{};
     PFN_vkCmdCopyImageToBuffer vkCmdCopyImageToBuffer{};
+    PFN_vkCmdCopyQueryPoolResults vkCmdCopyQueryPoolResults{};
     PFN_vkCmdDispatch vkCmdDispatch{};
     PFN_vkCmdDispatchIndirect vkCmdDispatchIndirect{};
     PFN_vkCmdDraw vkCmdDraw{};
@@ -210,6 +212,8 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect{};
     PFN_vkCmdDrawIndirectCount vkCmdDrawIndirectCount{};
     PFN_vkCmdDrawIndexedIndirectCount vkCmdDrawIndexedIndirectCount{};
+    PFN_vkCmdDrawIndirectByteCountEXT vkCmdDrawIndirectByteCountEXT{};
+    PFN_vkCmdEndConditionalRenderingEXT vkCmdEndConditionalRenderingEXT{};
     PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT{};
     PFN_vkCmdEndQuery vkCmdEndQuery{};
     PFN_vkCmdEndRenderPass vkCmdEndRenderPass{};
@@ -1182,6 +1186,13 @@ public:
                                            count_offset, draw_count, stride);
     }
 
+    void DrawIndirectByteCountEXT(u32 instance_count, u32 first_instance, VkBuffer counter_buffer,
+                                  VkDeviceSize counter_buffer_offset, u32 counter_offset,
+                                  u32 stride) {
+        dld->vkCmdDrawIndirectByteCountEXT(handle, instance_count, first_instance, counter_buffer,
+                                           counter_buffer_offset, counter_offset, stride);
+    }
+
     void ClearAttachments(Span<VkClearAttachment> attachments,
                           Span<VkClearRect> rects) const noexcept {
         dld->vkCmdClearAttachments(handle, attachments.size(), attachments.data(), rects.size(),
@@ -1268,6 +1279,13 @@ public:
                            Span<VkBufferImageCopy> regions) const noexcept {
         dld->vkCmdCopyImageToBuffer(handle, src_image, src_layout, dst_buffer, regions.size(),
                                     regions.data());
+    }
+
+    void CopyQueryPoolResults(VkQueryPool query_pool, u32 first_query, u32 query_count,
+                              VkBuffer dst_buffer, VkDeviceSize dst_offset, VkDeviceSize stride,
+                              VkQueryResultFlags flags) const noexcept {
+        dld->vkCmdCopyQueryPoolResults(handle, query_pool, first_query, query_count, dst_buffer,
+                                       dst_offset, stride, flags);
     }
 
     void FillBuffer(VkBuffer dst_buffer, VkDeviceSize dst_offset, VkDeviceSize size,
@@ -1446,6 +1464,15 @@ public:
                                  const VkDeviceSize* counter_buffer_offsets) const noexcept {
         dld->vkCmdEndTransformFeedbackEXT(handle, first_counter_buffer, counter_buffers_count,
                                           counter_buffers, counter_buffer_offsets);
+    }
+
+    void BeginConditionalRenderingEXT(
+        const VkConditionalRenderingBeginInfoEXT& info) const noexcept {
+        dld->vkCmdBeginConditionalRenderingEXT(handle, &info);
+    }
+
+    void EndConditionalRenderingEXT() const noexcept {
+        dld->vkCmdEndConditionalRenderingEXT(handle);
     }
 
     void BeginDebugUtilsLabelEXT(const char* label, std::span<float, 4> color) const noexcept {

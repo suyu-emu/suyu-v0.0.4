@@ -75,6 +75,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkBeginCommandBuffer);
     X(vkBindBufferMemory);
     X(vkBindImageMemory);
+    X(vkCmdBeginConditionalRenderingEXT);
     X(vkCmdBeginQuery);
     X(vkCmdBeginRenderPass);
     X(vkCmdBeginTransformFeedbackEXT);
@@ -91,6 +92,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdCopyBufferToImage);
     X(vkCmdCopyImage);
     X(vkCmdCopyImageToBuffer);
+    X(vkCmdCopyQueryPoolResults);
     X(vkCmdDispatch);
     X(vkCmdDispatchIndirect);
     X(vkCmdDraw);
@@ -99,6 +101,8 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdDrawIndexedIndirect);
     X(vkCmdDrawIndirectCount);
     X(vkCmdDrawIndexedIndirectCount);
+    X(vkCmdDrawIndirectByteCountEXT);
+    X(vkCmdEndConditionalRenderingEXT);
     X(vkCmdEndQuery);
     X(vkCmdEndRenderPass);
     X(vkCmdEndTransformFeedbackEXT);

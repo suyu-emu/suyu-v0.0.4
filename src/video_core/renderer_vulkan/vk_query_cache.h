@@ -1,101 +1,75 @@
-// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
-#include <cstddef>
 #include <memory>
-#include <utility>
-#include <vector>
 
-#include "common/common_types.h"
-#include "video_core/query_cache.h"
-#include "video_core/renderer_vulkan/vk_resource_pool.h"
-#include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "video_core/query_cache/query_cache_base.h"
+#include "video_core/renderer_vulkan/vk_buffer_cache.h"
 
 namespace VideoCore {
 class RasterizerInterface;
 }
 
+namespace VideoCommon {
+class StreamerInterface;
+}
+
 namespace Vulkan {
 
-class CachedQuery;
 class Device;
-class HostCounter;
-class QueryCache;
 class Scheduler;
+class StagingBufferPool;
 
-using CounterStream = VideoCommon::CounterStreamBase<QueryCache, HostCounter>;
+struct QueryCacheRuntimeImpl;
 
-class QueryPool final : public ResourcePool {
+class QueryCacheRuntime {
 public:
-    explicit QueryPool(const Device& device, Scheduler& scheduler, VideoCore::QueryType type);
-    ~QueryPool() override;
+    explicit QueryCacheRuntime(VideoCore::RasterizerInterface* rasterizer,
+                               Core::Memory::Memory& cpu_memory_,
+                               Vulkan::BufferCache& buffer_cache_, const Device& device_,
+                               const MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
+                               StagingBufferPool& staging_pool_,
+                               ComputePassDescriptorQueue& compute_pass_descriptor_queue,
+                               DescriptorPool& descriptor_pool);
+    ~QueryCacheRuntime();
 
-    std::pair<VkQueryPool, u32> Commit();
+    template <typename SyncValuesType>
+    void SyncValues(std::span<SyncValuesType> values, VkBuffer base_src_buffer = nullptr);
 
-    void Reserve(std::pair<VkQueryPool, u32> query);
+    void Barriers(bool is_prebarrier);
 
-protected:
-    void Allocate(std::size_t begin, std::size_t end) override;
+    void EndHostConditionalRendering();
+
+    void PauseHostConditionalRendering();
+
+    void ResumeHostConditionalRendering();
+
+    bool HostConditionalRenderingCompareValue(VideoCommon::LookupData object_1, bool qc_dirty);
+
+    bool HostConditionalRenderingCompareValues(VideoCommon::LookupData object_1,
+                                               VideoCommon::LookupData object_2, bool qc_dirty,
+                                               bool equal_check);
+
+    VideoCommon::StreamerInterface* GetStreamerInterface(VideoCommon::QueryType query_type);
+
+    void Bind3DEngine(Tegra::Engines::Maxwell3D* maxwell3d);
+
+    template <typename Func>
+    void View3DRegs(Func&& func);
 
 private:
-    static constexpr std::size_t GROW_STEP = 512;
-
-    const Device& device;
-    const VideoCore::QueryType type;
-
-    std::vector<vk::QueryPool> pools;
-    std::vector<bool> usage;
+    void HostConditionalRenderingCompareValueImpl(VideoCommon::LookupData object, bool is_equal);
+    void HostConditionalRenderingCompareBCImpl(VAddr address, bool is_equal);
+    friend struct QueryCacheRuntimeImpl;
+    std::unique_ptr<QueryCacheRuntimeImpl> impl;
 };
 
-class QueryCache final
-    : public VideoCommon::QueryCacheBase<QueryCache, CachedQuery, CounterStream, HostCounter> {
-public:
-    explicit QueryCache(VideoCore::RasterizerInterface& rasterizer_,
-                        Core::Memory::Memory& cpu_memory_, const Device& device_,
-                        Scheduler& scheduler_);
-    ~QueryCache();
-
-    std::pair<VkQueryPool, u32> AllocateQuery(VideoCore::QueryType type);
-
-    void Reserve(VideoCore::QueryType type, std::pair<VkQueryPool, u32> query);
-
-    const Device& GetDevice() const noexcept {
-        return device;
-    }
-
-    Scheduler& GetScheduler() const noexcept {
-        return scheduler;
-    }
-
-private:
-    const Device& device;
-    Scheduler& scheduler;
-    std::array<QueryPool, VideoCore::NumQueryTypes> query_pools;
+struct QueryCacheParams {
+    using RuntimeType = typename Vulkan::QueryCacheRuntime;
 };
 
-class HostCounter final : public VideoCommon::HostCounterBase<QueryCache, HostCounter> {
-public:
-    explicit HostCounter(QueryCache& cache_, std::shared_ptr<HostCounter> dependency_,
-                         VideoCore::QueryType type_);
-    ~HostCounter();
-
-    void EndQuery();
-
-private:
-    u64 BlockingQuery(bool async = false) const override;
-
-    QueryCache& cache;
-    const VideoCore::QueryType type;
-    const std::pair<VkQueryPool, u32> query;
-    const u64 tick;
-};
-
-class CachedQuery : public VideoCommon::CachedQueryBase<HostCounter> {
-public:
-    explicit CachedQuery(QueryCache&, VideoCore::QueryType, VAddr cpu_addr_, u8* host_ptr_)
-        : CachedQueryBase{cpu_addr_, host_ptr_} {}
-};
+using QueryCache = VideoCommon::QueryCacheBase<QueryCacheParams>;
 
 } // namespace Vulkan

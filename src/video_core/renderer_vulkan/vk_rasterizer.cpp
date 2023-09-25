@@ -24,6 +24,7 @@
 #include "video_core/renderer_vulkan/vk_compute_pipeline.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
+#include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/renderer_vulkan/vk_rasterizer.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
@@ -170,9 +171,11 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
       buffer_cache_runtime(device, memory_allocator, scheduler, staging_pool,
                            guest_descriptor_queue, compute_pass_descriptor_queue, descriptor_pool),
       buffer_cache(*this, cpu_memory_, buffer_cache_runtime),
+      query_cache_runtime(this, cpu_memory_, buffer_cache, device, memory_allocator, scheduler,
+                          staging_pool, compute_pass_descriptor_queue, descriptor_pool),
+      query_cache(gpu, *this, cpu_memory_, query_cache_runtime),
       pipeline_cache(*this, device, scheduler, descriptor_pool, guest_descriptor_queue,
                      render_pass_cache, buffer_cache, texture_cache, gpu.ShaderNotify()),
-      query_cache{*this, cpu_memory_, device, scheduler},
       accelerate_dma(buffer_cache, texture_cache, scheduler),
       fence_manager(*this, gpu, texture_cache, buffer_cache, query_cache, device, scheduler),
       wfi_event(device.GetLogical().CreateEvent()) {
@@ -189,14 +192,7 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     FlushWork();
     gpu_memory->FlushCaching();
 
-#if ANDROID
-    if (Settings::IsGPULevelHigh()) {
-        // This is problematic on Android, disable on GPU Normal.
-        query_cache.UpdateCounters();
-    }
-#else
-    query_cache.UpdateCounters();
-#endif
+    query_cache.NotifySegment(true);
 
     GraphicsPipeline* const pipeline{pipeline_cache.CurrentGraphicsPipeline()};
     if (!pipeline) {
@@ -207,13 +203,12 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     pipeline->SetEngine(maxwell3d, gpu_memory);
     pipeline->Configure(is_indexed);
 
-    BeginTransformFeedback();
-
     UpdateDynamicStates();
 
+    HandleTransformFeedback();
+    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
+                              maxwell3d->regs.zpass_pixel_count_enable);
     draw_func();
-
-    EndTransformFeedback();
 }
 
 void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
@@ -241,6 +236,14 @@ void RasterizerVulkan::DrawIndirect() {
         const auto indirect_buffer = buffer_cache.GetDrawIndirectBuffer();
         const auto& buffer = indirect_buffer.first;
         const auto& offset = indirect_buffer.second;
+        if (params.is_byte_count) {
+            scheduler.Record([buffer_obj = buffer->Handle(), offset,
+                              stride = params.stride](vk::CommandBuffer cmdbuf) {
+                cmdbuf.DrawIndirectByteCountEXT(1, 0, buffer_obj, offset, 0,
+                                                static_cast<u32>(stride));
+            });
+            return;
+        }
         if (params.include_count) {
             const auto count = buffer_cache.GetDrawIndirectCount();
             const auto& draw_buffer = count.first;
@@ -280,20 +283,15 @@ void RasterizerVulkan::DrawTexture() {
     SCOPE_EXIT({ gpu.TickWork(); });
     FlushWork();
 
-#if ANDROID
-    if (Settings::IsGPULevelHigh()) {
-        // This is problematic on Android, disable on GPU Normal.
-        query_cache.UpdateCounters();
-    }
-#else
-    query_cache.UpdateCounters();
-#endif
+    query_cache.NotifySegment(true);
 
     texture_cache.SynchronizeGraphicsDescriptors();
     texture_cache.UpdateRenderTargets(false);
 
     UpdateDynamicStates();
 
+    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
+                              maxwell3d->regs.zpass_pixel_count_enable);
     const auto& draw_texture_state = maxwell3d->draw_manager->GetDrawTextureState();
     const auto& sampler = texture_cache.GetGraphicsSampler(draw_texture_state.src_sampler);
     const auto& texture = texture_cache.GetImageView(draw_texture_state.src_texture);
@@ -316,14 +314,9 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     FlushWork();
     gpu_memory->FlushCaching();
 
-#if ANDROID
-    if (Settings::IsGPULevelHigh()) {
-        // This is problematic on Android, disable on GPU Normal.
-        query_cache.UpdateCounters();
-    }
-#else
-    query_cache.UpdateCounters();
-#endif
+    query_cache.NotifySegment(true);
+    query_cache.CounterEnable(VideoCommon::QueryType::ZPassPixelCount64,
+                              maxwell3d->regs.zpass_pixel_count_enable);
 
     auto& regs = maxwell3d->regs;
     const bool use_color = regs.clear_surface.R || regs.clear_surface.G || regs.clear_surface.B ||
@@ -482,13 +475,13 @@ void RasterizerVulkan::DispatchCompute() {
     scheduler.Record([dim](vk::CommandBuffer cmdbuf) { cmdbuf.Dispatch(dim[0], dim[1], dim[2]); });
 }
 
-void RasterizerVulkan::ResetCounter(VideoCore::QueryType type) {
-    query_cache.ResetCounter(type);
+void RasterizerVulkan::ResetCounter(VideoCommon::QueryType type) {
+    query_cache.CounterReset(type);
 }
 
-void RasterizerVulkan::Query(GPUVAddr gpu_addr, VideoCore::QueryType type,
-                             std::optional<u64> timestamp) {
-    query_cache.Query(gpu_addr, type, timestamp);
+void RasterizerVulkan::Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
+                             VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport) {
+    query_cache.CounterReport(gpu_addr, type, flags, payload, subreport);
 }
 
 void RasterizerVulkan::BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr,
@@ -669,8 +662,8 @@ void RasterizerVulkan::SignalReference() {
     fence_manager.SignalReference();
 }
 
-void RasterizerVulkan::ReleaseFences() {
-    fence_manager.WaitPendingFences();
+void RasterizerVulkan::ReleaseFences(bool force) {
+    fence_manager.WaitPendingFences(force);
 }
 
 void RasterizerVulkan::FlushAndInvalidateRegion(VAddr addr, u64 size,
@@ -693,6 +686,8 @@ void RasterizerVulkan::WaitForIdle() {
     if (device.IsExtTransformFeedbackSupported()) {
         flags |= VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT;
     }
+
+    query_cache.NotifyWFI();
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([event = *wfi_event, flags](vk::CommandBuffer cmdbuf) {
@@ -737,19 +732,7 @@ void RasterizerVulkan::TickFrame() {
 
 bool RasterizerVulkan::AccelerateConditionalRendering() {
     gpu_memory->FlushCaching();
-    if (Settings::IsGPULevelHigh()) {
-        // TODO(Blinkhawk): Reimplement Host conditional rendering.
-        return false;
-    }
-    // Medium / Low Hack: stub any checks on queries written into the buffer cache.
-    const GPUVAddr condition_address{maxwell3d->regs.render_enable.Address()};
-    Maxwell::ReportSemaphore::Compare cmp;
-    if (gpu_memory->IsMemoryDirty(condition_address, sizeof(cmp),
-                                  VideoCommon::CacheType::BufferCache |
-                                      VideoCommon::CacheType::QueryCache)) {
-        return true;
-    }
-    return false;
+    return query_cache.AccelerateHostConditionalRendering();
 }
 
 bool RasterizerVulkan::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surface& src,
@@ -795,6 +778,7 @@ bool RasterizerVulkan::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     if (!image_view) {
         return false;
     }
+    query_cache.NotifySegment(false);
     screen_info.image = image_view->ImageHandle();
     screen_info.image_view = image_view->Handle(Shader::TextureType::Color2D);
     screen_info.width = image_view->size.width;
@@ -933,31 +917,18 @@ void RasterizerVulkan::UpdateDynamicStates() {
     }
 }
 
-void RasterizerVulkan::BeginTransformFeedback() {
+void RasterizerVulkan::HandleTransformFeedback() {
     const auto& regs = maxwell3d->regs;
-    if (regs.transform_feedback_enabled == 0) {
-        return;
-    }
     if (!device.IsExtTransformFeedbackSupported()) {
         LOG_ERROR(Render_Vulkan, "Transform feedbacks used but not supported");
         return;
     }
-    UNIMPLEMENTED_IF(regs.IsShaderConfigEnabled(Maxwell::ShaderType::TessellationInit) ||
-                     regs.IsShaderConfigEnabled(Maxwell::ShaderType::Tessellation));
-    scheduler.Record(
-        [](vk::CommandBuffer cmdbuf) { cmdbuf.BeginTransformFeedbackEXT(0, 0, nullptr, nullptr); });
-}
-
-void RasterizerVulkan::EndTransformFeedback() {
-    const auto& regs = maxwell3d->regs;
-    if (regs.transform_feedback_enabled == 0) {
-        return;
+    query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount,
+                              regs.transform_feedback_enabled);
+    if (regs.transform_feedback_enabled != 0) {
+        UNIMPLEMENTED_IF(regs.IsShaderConfigEnabled(Maxwell::ShaderType::TessellationInit) ||
+                         regs.IsShaderConfigEnabled(Maxwell::ShaderType::Tessellation));
     }
-    if (!device.IsExtTransformFeedbackSupported()) {
-        return;
-    }
-    scheduler.Record(
-        [](vk::CommandBuffer cmdbuf) { cmdbuf.EndTransformFeedbackEXT(0, 0, nullptr, nullptr); });
 }
 
 void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs) {

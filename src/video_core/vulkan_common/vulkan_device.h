@@ -61,6 +61,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 // Define miscellaneous extensions which may be used by the implementation here.
 #define FOR_EACH_VK_EXTENSION(EXTENSION)                                                           \
+    EXTENSION(EXT, CONDITIONAL_RENDERING, conditional_rendering)                                   \
     EXTENSION(EXT, CONSERVATIVE_RASTERIZATION, conservative_rasterization)                         \
     EXTENSION(EXT, DEPTH_RANGE_UNRESTRICTED, depth_range_unrestricted)                             \
     EXTENSION(EXT, MEMORY_BUDGET, memory_budget)                                                   \
@@ -93,6 +94,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 // Define extensions where the absence of the extension may result in a degraded experience.
 #define FOR_EACH_VK_RECOMMENDED_EXTENSION(EXTENSION_NAME)                                          \
+    EXTENSION_NAME(VK_EXT_CONDITIONAL_RENDERING_EXTENSION_NAME)                                    \
     EXTENSION_NAME(VK_EXT_CONSERVATIVE_RASTERIZATION_EXTENSION_NAME)                               \
     EXTENSION_NAME(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME)                                 \
     EXTENSION_NAME(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME)                                   \
@@ -539,6 +541,10 @@ public:
     /// Returns true if the device supports VK_KHR_shader_atomic_int64.
     bool IsExtShaderAtomicInt64Supported() const {
         return extensions.shader_atomic_int64;
+    }
+
+    bool IsExtConditionalRendering() const {
+        return extensions.conditional_rendering;
     }
 
     bool HasTimelineSemaphore() const;
