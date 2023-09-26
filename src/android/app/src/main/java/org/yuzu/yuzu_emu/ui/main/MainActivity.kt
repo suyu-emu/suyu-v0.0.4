@@ -515,7 +515,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         if (documents.isNotEmpty()) {
             IndeterminateProgressDialogFragment.newInstance(
                 this@MainActivity,
-                R.string.install_game_content
+                R.string.installing_game_content
             ) {
                 var installSuccess = 0
                 var installOverwrite = 0
