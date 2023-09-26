@@ -4,12 +4,12 @@
 package org.yuzu.yuzu_emu.fragments
 
 import android.app.Dialog
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
@@ -39,9 +39,7 @@ class IndeterminateProgressDialogFragment : DialogFragment() {
             .setView(binding.root)
 
         if (cancellable) {
-            dialog.setNegativeButton(android.R.string.cancel) { _: DialogInterface, _: Int ->
-                taskViewModel.setCancelled(true)
-            }
+            dialog.setNegativeButton(android.R.string.cancel, null)
         }
 
         val alertDialog = dialog.create()
@@ -95,6 +93,18 @@ class IndeterminateProgressDialogFragment : DialogFragment() {
                     }
                 }
             }
+        }
+    }
+
+    // By default, the ProgressDialog will immediately dismiss itself upon a button being pressed.
+    // Setting the OnClickListener again after the dialog is shown overrides this behavior.
+    override fun onResume() {
+        super.onResume()
+        val alertDialog = dialog as AlertDialog
+        val negativeButton = alertDialog.getButton(Dialog.BUTTON_NEGATIVE)
+        negativeButton.setOnClickListener {
+            alertDialog.setTitle(getString(R.string.cancelling))
+            taskViewModel.setCancelled(true)
         }
     }
 
