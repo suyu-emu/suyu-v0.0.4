@@ -229,6 +229,7 @@
     <string name="string_null">Null</string>
     <string name="string_import">Import</string>
     <string name="export">Export</string>
+    <string name="export_failed">Export failed</string>
     <string name="cancelling">Cancelling</string>
 
     <!-- GPU driver installation -->
