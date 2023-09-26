@@ -310,19 +310,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 binding.drawerLayout.close()
             }
             if (EmulationMenuSettings.showOverlay) {
-                binding.surfaceInputOverlay.post {
-                    binding.surfaceInputOverlay.visibility = View.INVISIBLE
-                }
+                binding.surfaceInputOverlay.visibility = View.INVISIBLE
             }
         } else {
             if (EmulationMenuSettings.showOverlay && emulationViewModel.emulationStarted.value) {
-                binding.surfaceInputOverlay.post {
-                    binding.surfaceInputOverlay.visibility = View.VISIBLE
-                }
+                binding.surfaceInputOverlay.visibility = View.VISIBLE
             } else {
-                binding.surfaceInputOverlay.post {
-                    binding.surfaceInputOverlay.visibility = View.INVISIBLE
-                }
+                binding.surfaceInputOverlay.visibility = View.INVISIBLE
             }
             if (!isInFoldableLayout) {
                 if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
