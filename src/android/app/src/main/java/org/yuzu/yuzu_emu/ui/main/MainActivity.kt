@@ -676,7 +676,11 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     }
                 }
                 if (!isYuzuBackup) {
-                    return@newInstance getString(R.string.invalid_yuzu_backup)
+                    return@newInstance MessageDialogFragment.newInstance(
+                        this,
+                        titleId = R.string.invalid_yuzu_backup,
+                        descriptionId = R.string.user_data_import_failed_description
+                    )
                 }
 
                 // Clear existing user data
@@ -689,7 +693,11 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                         File(DirectoryInitialization.userDirectory!!)
                     )
                 } catch (e: Exception) {
-                    return@newInstance getString(R.string.invalid_yuzu_backup)
+                    return@newInstance MessageDialogFragment.newInstance(
+                        this,
+                        titleId = R.string.import_failed,
+                        descriptionId = R.string.user_data_import_failed_description
+                    )
                 }
 
                 // Reinitialize relevant data

@@ -100,7 +100,7 @@
     <string name="firmware_installing">Installing firmware</string>
     <string name="firmware_installed_success">Firmware installed successfully</string>
     <string name="firmware_installed_failure">Firmware installation failed</string>
-    <string name="firmware_installed_failure_description">Verify that the ZIP contains valid firmware and try again.</string>
+    <string name="firmware_installed_failure_description">Make sure the firmware nca files are at the root of the zip and try again.</string>
     <string name="share_log">Share debug logs</string>
     <string name="share_log_description">Share yuzu\'s log file to debug issues</string>
     <string name="share_log_missing">No log file found</string>
@@ -140,6 +140,7 @@
     <string name="user_data_export_success">User data exported successfully</string>
     <string name="user_data_import_success">User data imported successfully</string>
     <string name="user_data_export_cancelled">Export cancelled</string>
+    <string name="user_data_import_failed_description">Make sure the user data folders are at the root of the zip folder and contain a config file at config/config.ini and try again.</string>
     <string name="support_link">https://discord.gg/u77vRWY</string>
     <string name="website_link">https://yuzu-emu.org/</string>
     <string name="github_link">https://github.com/yuzu-emu</string>
@@ -230,6 +231,7 @@
     <string name="string_import">Import</string>
     <string name="export">Export</string>
     <string name="export_failed">Export failed</string>
+    <string name="import_failed">Import failed</string>
     <string name="cancelling">Cancelling</string>
 
     <!-- GPU driver installation -->
