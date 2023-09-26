@@ -90,7 +90,6 @@
     <string name="manage_save_data">Manage save data</string>
     <string name="manage_save_data_description">Save data found. Please select an option below.</string>
     <string name="import_export_saves_description">Import or export save files</string>
-    <string name="import_export_saves_no_profile">No save data found. Please launch a game and retry.</string>
     <string name="save_file_imported_success">Imported successfully</string>
     <string name="save_file_invalid_zip_structure">Invalid save directory structure</string>
     <string name="save_file_invalid_zip_structure_description">The first subfolder name must be the title ID of the game.</string>
@@ -118,6 +117,10 @@
     <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
     <string name="custom_driver_not_supported">Custom drivers not supported</string>
     <string name="custom_driver_not_supported_description">Custom driver loading isn\'t currently supported for this device.\nCheck this option again in the future to see if support was added!</string>
+    <string name="manage_yuzu_data">Manage yuzu data</string>
+    <string name="manage_yuzu_data_description">Import/export firmware, keys, user data, and more!</string>
+    <string name="share_save_file">Share save file</string>
+    <string name="export_save_failed">Failed to export save</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia isn\'t real</string>

@@ -13,6 +13,8 @@
 
 #include <android/api-level.h>
 #include <android/native_window_jni.h>
+#include <common/fs/fs.h>
+#include <core/file_sys/savedata_factory.h>
 #include <core/loader/nro.h>
 #include <jni.h>
 
@@ -877,6 +879,26 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_submitInlineKeyboardText(JNIEnv* env,
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_submitInlineKeyboardInput(JNIEnv* env, jclass clazz,
                                                                      jint j_key_code) {
     EmulationSession::GetInstance().SoftwareKeyboard()->SubmitInlineKeyboardInput(j_key_code);
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmptyUserDirectory(JNIEnv* env,
+                                                                        jobject instance) {
+    const auto nand_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir);
+    auto vfs_nand_dir = EmulationSession::GetInstance().System().GetFilesystem()->OpenDirectory(
+        Common::FS::PathToUTF8String(nand_dir), FileSys::Mode::Read);
+
+    Service::Account::ProfileManager manager;
+    const auto user_id = manager.GetUser(static_cast<std::size_t>(0));
+    ASSERT(user_id);
+
+    const auto user_save_data_path = FileSys::SaveDataFactory::GetFullPath(
+        EmulationSession::GetInstance().System(), vfs_nand_dir, FileSys::SaveDataSpaceId::NandUser,
+        FileSys::SaveDataType::SaveData, 1, user_id->AsU128(), 0);
+
+    const auto full_path = Common::FS::ConcatPathSafe(nand_dir, user_save_data_path);
+    if (!Common::FS::CreateParentDirs(full_path)) {
+        LOG_WARNING(Frontend, "Failed to create full path of the default user's save directory");
+    }
 }
 
 } // extern "C"

@@ -81,7 +81,6 @@
     <string name="manage_save_data">저장 데이터 관리</string>
     <string name="manage_save_data_description">데이터를 저장했습니다. 아래에서 옵션을 선택하세요.</string>
     <string name="import_export_saves_description">저장 파일 가져오기 또는 내보내기</string>
-    <string name="import_export_saves_no_profile">저장 데이터를 찾을 수 없습니다. 게임을 실행한 후 다시 시도하세요.</string>
     <string name="save_file_imported_success">가져오기 성공</string>
     <string name="save_file_invalid_zip_structure">저장 디렉터리 구조가 잘못됨</string>
     <string name="save_file_invalid_zip_structure_description">첫 번째 하위 폴더 이름은 게임의 타이틀 ID여야 합니다.</string>

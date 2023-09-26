@@ -19,6 +19,9 @@
         <action
             android:id="@+id/action_homeSettingsFragment_to_earlyAccessFragment"
             app:destination="@id/earlyAccessFragment" />
+        <action
+            android:id="@+id/action_homeSettingsFragment_to_installableFragment"
+            app:destination="@id/installableFragment" />
     </fragment>
 
     <fragment
@@ -88,5 +91,9 @@
     <action
         android:id="@+id/action_global_settingsActivity"
         app:destination="@id/settingsActivity" />
+    <fragment
+        android:id="@+id/installableFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.InstallableFragment"
+        android:label="InstallableFragment" />
 
 </navigation>

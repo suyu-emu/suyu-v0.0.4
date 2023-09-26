@@ -81,7 +81,6 @@
     <string name="manage_save_data">Administrere lagringsdata</string>
     <string name="manage_save_data_description">Lagringsdata funnet. Velg et alternativ nedenfor.</string>
     <string name="import_export_saves_description">Importer eller eksporter lagringsfiler</string>
-    <string name="import_export_saves_no_profile">Ingen lagringsdata funnet. Start et nytt spill og prøv på nytt.</string>
     <string name="save_file_imported_success">Vellykket import</string>
     <string name="save_file_invalid_zip_structure">Ugyldig struktur for lagringskatalog</string>
     <string name="save_file_invalid_zip_structure_description">Det første undermappenavnet må være spillets tittel-ID.</string>
