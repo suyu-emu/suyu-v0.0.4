@@ -295,8 +295,10 @@ class SetupFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putBoolean(KEY_NEXT_VISIBILITY, binding.buttonNext.isVisible)
-        outState.putBoolean(KEY_BACK_VISIBILITY, binding.buttonBack.isVisible)
+        if (_binding != null) {
+            outState.putBoolean(KEY_NEXT_VISIBILITY, binding.buttonNext.isVisible)
+            outState.putBoolean(KEY_BACK_VISIBILITY, binding.buttonBack.isVisible)
+        }
         outState.putBooleanArray(KEY_HAS_BEEN_WARNED, hasBeenWarned)
     }
 
