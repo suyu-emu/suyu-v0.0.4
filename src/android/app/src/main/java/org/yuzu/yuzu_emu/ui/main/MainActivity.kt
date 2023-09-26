@@ -523,7 +523,12 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 var errorExtension = 0
                 var errorOther = 0
                 documents.forEach {
-                    when (NativeLibrary.installFileToNand(it.toString())) {
+                    when (
+                        NativeLibrary.installFileToNand(
+                            it.toString(),
+                            FileUtil.getExtension(it)
+                        )
+                    ) {
                         NativeLibrary.InstallFileToNandResult.Success -> {
                             installSuccess += 1
                         }

@@ -247,7 +247,12 @@ object NativeLibrary {
 
     external fun setAppDirectory(directory: String)
 
-    external fun installFileToNand(filename: String): Int
+    /**
+     * Installs a nsp or xci file to nand
+     * @param filename String representation of file uri
+     * @param extension Lowercase string representation of file extension without "."
+     */
+    external fun installFileToNand(filename: String, extension: String): Int
 
     external fun initializeGpuDriver(
         hookLibDir: String?,
