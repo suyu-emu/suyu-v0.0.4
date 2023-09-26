@@ -32,7 +32,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:focusable="false">
+                android:focusable="false"
+                android:clickable="false">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/loading_layout"
@@ -155,7 +156,7 @@
         android:id="@+id/in_game_menu"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_gravity="start|bottom"
+        android:layout_gravity="start"
         app:headerLayout="@layout/header_in_game"
         app:menu="@menu/menu_in_game"
         tools:visibility="gone" />
