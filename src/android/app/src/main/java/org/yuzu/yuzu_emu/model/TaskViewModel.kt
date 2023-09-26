@@ -50,3 +50,9 @@ class TaskViewModel : ViewModel() {
         }
     }
 }
+
+enum class TaskState {
+    Completed,
+    Failed,
+    Cancelled
+}

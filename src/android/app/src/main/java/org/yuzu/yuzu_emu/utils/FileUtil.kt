@@ -8,6 +8,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
+import kotlinx.coroutines.flow.StateFlow
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -18,6 +19,9 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.MinimalDocumentFile
+import org.yuzu.yuzu_emu.model.TaskState
+import java.io.BufferedOutputStream
+import java.util.zip.ZipOutputStream
 
 object FileUtil {
     const val PATH_TREE = "tree"
@@ -282,30 +286,65 @@ object FileUtil {
 
     /**
      * Extracts the given zip file into the given directory.
-     * @exception IOException if the file was being created outside of the target directory
      */
     @Throws(SecurityException::class)
-    fun unzip(zipStream: InputStream, destDir: File): Boolean {
-        ZipInputStream(BufferedInputStream(zipStream)).use { zis ->
+    fun unzipToInternalStorage(zipStream: BufferedInputStream, destDir: File) {
+        ZipInputStream(zipStream).use { zis ->
             var entry: ZipEntry? = zis.nextEntry
             while (entry != null) {
-                val entryName = entry.name
-                val entryFile = File(destDir, entryName)
-                if (!entryFile.canonicalPath.startsWith(destDir.canonicalPath + File.separator)) {
-                    throw SecurityException("Entry is outside of the target dir: " + entryFile.name)
+                val newFile = File(destDir, entry.name)
+                val destinationDirectory = if (entry.isDirectory) newFile else newFile.parentFile
+
+                if (!newFile.canonicalPath.startsWith(destDir.canonicalPath + File.separator)) {
+                    throw SecurityException("Zip file attempted path traversal! ${entry.name}")
                 }
-                if (entry.isDirectory) {
-                    entryFile.mkdirs()
-                } else {
-                    entryFile.parentFile?.mkdirs()
-                    entryFile.createNewFile()
-                    entryFile.outputStream().use { fos -> zis.copyTo(fos) }
+
+                if (!destinationDirectory.isDirectory && !destinationDirectory.mkdirs()) {
+                    throw IOException("Failed to create directory $destinationDirectory")
+                }
+
+                if (!entry.isDirectory) {
+                    newFile.outputStream().use { fos -> zis.copyTo(fos) }
                 }
                 entry = zis.nextEntry
             }
         }
+    }
 
-        return true
+    /**
+     * Creates a zip file from a directory within internal storage
+     * @param inputFile File representation of the item that will be zipped
+     * @param rootDir Directory containing the inputFile
+     * @param outputStream Stream where the zip file will be output
+     */
+    fun zipFromInternalStorage(
+        inputFile: File,
+        rootDir: String,
+        outputStream: BufferedOutputStream,
+        cancelled: StateFlow<Boolean>? = null
+    ): TaskState {
+        try {
+            ZipOutputStream(outputStream).use { zos ->
+                inputFile.walkTopDown().forEach { file ->
+                    if (cancelled?.value == true) {
+                        return TaskState.Cancelled
+                    }
+
+                    if (!file.isDirectory) {
+                        val entryName =
+                            file.absolutePath.removePrefix(rootDir).removePrefix("/")
+                        val entry = ZipEntry(entryName)
+                        zos.putNextEntry(entry)
+                        if (file.isFile) {
+                            file.inputStream().use { fis -> fis.copyTo(zos) }
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            return TaskState.Failed
+        }
+        return TaskState.Completed
     }
 
     fun isRootTreeUri(uri: Uri): Boolean {

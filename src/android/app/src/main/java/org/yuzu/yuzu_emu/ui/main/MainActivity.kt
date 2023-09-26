@@ -51,17 +51,16 @@ import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.getPublicFilesDir
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.model.TaskState
 import org.yuzu.yuzu_emu.model.TaskViewModel
 import org.yuzu.yuzu_emu.utils.*
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
-import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var binding: ActivityMainBinding
@@ -396,7 +395,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             val task: () -> Any = {
                 var messageToShow: Any
                 try {
-                    FileUtil.unzip(inputZip, cacheFirmwareDir)
+                    FileUtil.unzipToInternalStorage(BufferedInputStream(inputZip), cacheFirmwareDir)
                     val unfilteredNumOfFiles = cacheFirmwareDir.list()?.size ?: -1
                     val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
                     messageToShow = if (unfilteredNumOfFiles != filteredNumOfFiles) {
@@ -639,35 +638,17 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             R.string.exporting_user_data,
             true
         ) {
-            val zos = ZipOutputStream(
-                BufferedOutputStream(contentResolver.openOutputStream(result))
+            val zipResult = FileUtil.zipFromInternalStorage(
+                File(DirectoryInitialization.userDirectory!!),
+                DirectoryInitialization.userDirectory!!,
+                BufferedOutputStream(contentResolver.openOutputStream(result)),
+                taskViewModel.cancelled
             )
-            zos.use { stream ->
-                File(DirectoryInitialization.userDirectory!!).walkTopDown().forEach { file ->
-                    if (taskViewModel.cancelled.value) {
-                        return@newInstance R.string.user_data_export_cancelled
-                    }
-
-                    if (!file.isDirectory) {
-                        val newPath = file.path.substring(
-                            DirectoryInitialization.userDirectory!!.length,
-                            file.path.length
-                        )
-                        stream.putNextEntry(ZipEntry(newPath))
-
-                        val buffer = ByteArray(8096)
-                        var read: Int
-                        FileInputStream(file).use { fis ->
-                            while (fis.read(buffer).also { read = it } != -1) {
-                                stream.write(buffer, 0, read)
-                            }
-                        }
-
-                        stream.closeEntry()
-                    }
-                }
+            return@newInstance when (zipResult) {
+                TaskState.Completed -> getString(R.string.user_data_export_success)
+                TaskState.Failed -> R.string.export_failed
+                TaskState.Cancelled -> R.string.user_data_export_cancelled
             }
-            return@newInstance getString(R.string.user_data_export_success)
         }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
     }
 
@@ -698,40 +679,17 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     return@newInstance getString(R.string.invalid_yuzu_backup)
                 }
 
+                // Clear existing user data
                 File(DirectoryInitialization.userDirectory!!).deleteRecursively()
 
-                val zis =
-                    ZipInputStream(BufferedInputStream(contentResolver.openInputStream(result)))
-                val userDirectory = File(DirectoryInitialization.userDirectory!!)
-                val canonicalPath = userDirectory.canonicalPath + '/'
-                zis.use { stream ->
-                    var ze: ZipEntry? = stream.nextEntry
-                    while (ze != null) {
-                        val newFile = File(userDirectory, ze!!.name)
-                        val destinationDirectory =
-                            if (ze!!.isDirectory) newFile else newFile.parentFile
-
-                        if (!newFile.canonicalPath.startsWith(canonicalPath)) {
-                            throw SecurityException(
-                                "Zip file attempted path traversal! ${ze!!.name}"
-                            )
-                        }
-
-                        if (!destinationDirectory.isDirectory && !destinationDirectory.mkdirs()) {
-                            throw IOException("Failed to create directory $destinationDirectory")
-                        }
-
-                        if (!ze!!.isDirectory) {
-                            val buffer = ByteArray(8096)
-                            var read: Int
-                            BufferedOutputStream(FileOutputStream(newFile)).use { bos ->
-                                while (zis.read(buffer).also { read = it } != -1) {
-                                    bos.write(buffer, 0, read)
-                                }
-                            }
-                        }
-                        ze = stream.nextEntry
-                    }
+                // Copy archive to internal storage
+                try {
+                    FileUtil.unzipToInternalStorage(
+                        BufferedInputStream(contentResolver.openInputStream(result)),
+                        File(DirectoryInitialization.userDirectory!!)
+                    )
+                } catch (e: Exception) {
+                    return@newInstance getString(R.string.invalid_yuzu_backup)
                 }
 
                 // Reinitialize relevant data
@@ -758,19 +716,13 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 }.zip"
             )
             outputZipFile.createNewFile()
-            ZipOutputStream(BufferedOutputStream(FileOutputStream(outputZipFile))).use { zos ->
-                saveFolder.walkTopDown().forEach { file ->
-                    val zipFileName =
-                        file.absolutePath.removePrefix(savesFolderRoot).removePrefix("/")
-                    if (zipFileName == "") {
-                        return@forEach
-                    }
-                    val entry = ZipEntry("$zipFileName${(if (file.isDirectory) "/" else "")}")
-                    zos.putNextEntry(entry)
-                    if (file.isFile) {
-                        file.inputStream().use { fis -> fis.copyTo(zos) }
-                    }
-                }
+            val result = FileUtil.zipFromInternalStorage(
+                saveFolder,
+                savesFolderRoot,
+                BufferedOutputStream(FileOutputStream(outputZipFile))
+            )
+            if (result == TaskState.Failed) {
+                return false
             }
             lastZipCreated = outputZipFile
         } catch (e: Exception) {
@@ -832,7 +784,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
             NativeLibrary.initializeEmptyUserDirectory()
 
-            val inputZip = applicationContext.contentResolver.openInputStream(result)
+            val inputZip = contentResolver.openInputStream(result)
             // A zip needs to have at least one subfolder named after a TitleId in order to be considered valid.
             var validZip = false
             val savesFolder = File(savesFolderRoot)
@@ -853,7 +805,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
             try {
                 CoroutineScope(Dispatchers.IO).launch {
-                    FileUtil.unzip(inputZip, cacheSaveDir)
+                    FileUtil.unzipToInternalStorage(BufferedInputStream(inputZip), cacheSaveDir)
                     cacheSaveDir.list(filterTitleId)?.forEach { savePath ->
                         File(savesFolder, savePath).deleteRecursively()
                         File(cacheSaveDir, savePath).copyRecursively(
