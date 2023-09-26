@@ -107,6 +107,7 @@
     <string name="share_log_missing">No log file found</string>
     <string name="install_game_content">Install game content</string>
     <string name="install_game_content_description">Install game updates or DLC</string>
+    <string name="installing_game_content">Installing content…</string>
     <string name="install_game_content_failure">Error installing file(s) to NAND</string>
     <string name="install_game_content_failure_description">Please ensure content(s) are valid and that the prod.keys file is installed.</string>
     <string name="install_game_content_failure_base">Installation of base games isn\'t permitted in order to avoid possible conflicts.</string>
