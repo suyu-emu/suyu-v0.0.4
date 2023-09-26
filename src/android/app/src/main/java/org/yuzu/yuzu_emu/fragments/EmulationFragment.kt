@@ -304,6 +304,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        if (_binding == null) {
+            return
+        }
+
         updateScreenLayout()
         if (emulationActivity?.isInPictureInPictureMode == true) {
             if (binding.drawerLayout.isOpen) {
