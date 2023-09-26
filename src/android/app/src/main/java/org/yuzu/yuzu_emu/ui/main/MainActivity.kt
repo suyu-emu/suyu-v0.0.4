@@ -515,7 +515,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         if (documents.isNotEmpty()) {
             IndeterminateProgressDialogFragment.newInstance(
                 this@MainActivity,
-                R.string.install_game_content
+                R.string.installing_game_content
             ) {
                 var installSuccess = 0
                 var installOverwrite = 0
@@ -523,7 +523,12 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 var errorExtension = 0
                 var errorOther = 0
                 documents.forEach {
-                    when (NativeLibrary.installFileToNand(it.toString())) {
+                    when (
+                        NativeLibrary.installFileToNand(
+                            it.toString(),
+                            FileUtil.getExtension(it)
+                        )
+                    ) {
                         NativeLibrary.InstallFileToNandResult.Success -> {
                             installSuccess += 1
                         }

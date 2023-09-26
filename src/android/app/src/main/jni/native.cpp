@@ -102,7 +102,7 @@ public:
         m_native_window = native_window;
     }
 
-    int InstallFileToNand(std::string filename) {
+    int InstallFileToNand(std::string filename, std::string file_extension) {
         jconst copy_func = [](const FileSys::VirtualFile& src, const FileSys::VirtualFile& dest,
                               std::size_t block_size) {
             if (src == nullptr || dest == nullptr) {
@@ -134,12 +134,12 @@ public:
         m_system.GetFileSystemController().CreateFactories(*m_vfs);
 
         [[maybe_unused]] std::shared_ptr<FileSys::NSP> nsp;
-        if (filename.ends_with("nsp")) {
+        if (file_extension == "nsp") {
             nsp = std::make_shared<FileSys::NSP>(m_vfs->OpenFile(filename, FileSys::Mode::Read));
             if (nsp->IsExtractedType()) {
                 return InstallError;
             }
-        } else if (filename.ends_with("xci")) {
+        } else if (file_extension == "xci") {
             jconst xci =
                 std::make_shared<FileSys::XCI>(m_vfs->OpenFile(filename, FileSys::Mode::Read));
             nsp = xci->GetSecurePartitionNSP();
@@ -607,8 +607,10 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_setAppDirectory(JNIEnv* env, jobject 
 }
 
 int Java_org_yuzu_yuzu_1emu_NativeLibrary_installFileToNand(JNIEnv* env, jobject instance,
-                                                            [[maybe_unused]] jstring j_file) {
-    return EmulationSession::GetInstance().InstallFileToNand(GetJString(env, j_file));
+                                                            jstring j_file,
+                                                            jstring j_file_extension) {
+    return EmulationSession::GetInstance().InstallFileToNand(GetJString(env, j_file),
+                                                             GetJString(env, j_file_extension));
 }
 
 void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeGpuDriver(JNIEnv* env, jclass clazz,
