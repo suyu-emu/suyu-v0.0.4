@@ -187,6 +187,8 @@ public:
                 this->SetValue(input == "true");
             } else if constexpr (std::is_same_v<Type, float>) {
                 this->SetValue(std::stof(input));
+            } else if constexpr (std::is_same_v<Type, AudioEngine>) {
+                this->SetValue(ToEnum<AudioEngine>(input));
             } else {
                 this->SetValue(static_cast<Type>(std::stoll(input)));
             }
