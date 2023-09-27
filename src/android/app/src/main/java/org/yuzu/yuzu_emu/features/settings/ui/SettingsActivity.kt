@@ -21,6 +21,7 @@ import androidx.navigation.navArgs
 import com.google.android.material.color.MaterialColors
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import org.yuzu.yuzu_emu.NativeLibrary
 import java.io.IOException
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
@@ -168,7 +169,7 @@ class SettingsActivity : AppCompatActivity() {
         if (!settingsFile.delete()) {
             throw IOException("Failed to delete $settingsFile")
         }
-        Settings.settingsList.forEach { it.reset() }
+        NativeLibrary.reloadSettings()
 
         Toast.makeText(
             applicationContext,
