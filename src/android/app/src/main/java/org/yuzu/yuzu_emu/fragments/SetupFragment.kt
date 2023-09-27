@@ -355,11 +355,15 @@ class SetupFragment : Fragment() {
     }
 
     fun pageForward() {
-        binding.viewPager2.currentItem = binding.viewPager2.currentItem + 1
+        if (_binding != null) {
+            binding.viewPager2.currentItem += 1
+        }
     }
 
     fun pageBackward() {
-        binding.viewPager2.currentItem = binding.viewPager2.currentItem - 1
+        if (_binding != null) {
+            binding.viewPager2.currentItem -= 1
+        }
     }
 
     fun setPageWarned(page: Int) {
