@@ -1160,7 +1160,7 @@ struct QueryCacheRuntimeImpl {
               cpu_memory_),
           primitives_needed_minus_suceeded_streamer(
               static_cast<size_t>(QueryType::StreamingPrimitivesNeededMinusSucceeded), runtime, 0u),
-          hcr_setup{}, hcr_is_set{}, is_hcr_running{} {
+          hcr_setup{}, hcr_is_set{}, is_hcr_running{}, maxwell3d{} {
 
         hcr_setup.sType = VK_STRUCTURE_TYPE_CONDITIONAL_RENDERING_BEGIN_INFO_EXT;
         hcr_setup.pNext = nullptr;
@@ -1235,7 +1235,9 @@ void QueryCacheRuntime::Bind3DEngine(Maxwell3D* maxwell3d) {
 
 template <typename Func>
 void QueryCacheRuntime::View3DRegs(Func&& func) {
-    func(*impl->maxwell3d);
+    if (impl->maxwell3d) {
+        func(*impl->maxwell3d);
+    }
 }
 
 void QueryCacheRuntime::EndHostConditionalRendering() {
