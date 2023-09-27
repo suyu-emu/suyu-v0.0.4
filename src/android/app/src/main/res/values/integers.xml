@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer name="game_title_lines">2</integer>
+    <integer name="grid_columns">1</integer>
 
     <!-- Default SWITCH landscape layout -->
     <integer name="SWITCH_BUTTON_A_X">760</integer>

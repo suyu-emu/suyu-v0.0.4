@@ -118,18 +118,13 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
-                    R.string.install_amiibo_keys,
-                    R.string.install_amiibo_keys_description,
-                    R.drawable.ic_nfc,
-                    { mainActivity.getAmiiboKey.launch(arrayOf("*/*")) }
-                )
-            )
-            add(
-                HomeSetting(
-                    R.string.install_game_content,
-                    R.string.install_game_content_description,
-                    R.drawable.ic_system_update_alt,
-                    { mainActivity.installGameUpdate.launch(arrayOf("*/*")) }
+                    R.string.manage_yuzu_data,
+                    R.string.manage_yuzu_data_description,
+                    R.drawable.ic_install,
+                    {
+                        binding.root.findNavController()
+                            .navigate(R.id.action_homeSettingsFragment_to_installableFragment)
+                    }
                 )
             )
             add(
@@ -146,35 +141,6 @@ class HomeSettingsFragment : Fragment() {
                     0,
                     0,
                     homeViewModel.gamesDir
-                )
-            )
-            add(
-                HomeSetting(
-                    R.string.manage_save_data,
-                    R.string.import_export_saves_description,
-                    R.drawable.ic_save,
-                    {
-                        ImportExportSavesFragment().show(
-                            parentFragmentManager,
-                            ImportExportSavesFragment.TAG
-                        )
-                    }
-                )
-            )
-            add(
-                HomeSetting(
-                    R.string.install_prod_keys,
-                    R.string.install_prod_keys_description,
-                    R.drawable.ic_unlock,
-                    { mainActivity.getProdKey.launch(arrayOf("*/*")) }
-                )
-            )
-            add(
-                HomeSetting(
-                    R.string.install_firmware,
-                    R.string.install_firmware_description,
-                    R.drawable.ic_firmware,
-                    { mainActivity.getFirmware.launch(arrayOf("application/zip")) }
                 )
             )
             add(
