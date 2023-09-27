@@ -117,6 +117,7 @@ public:
     BlitImageHelper& blit_image_helper;
     RenderPassCache& render_pass_cache;
     std::optional<ASTCDecoderPass> astc_decoder_pass;
+    std::unique_ptr<MSAACopyPass> msaa_copy_pass;
     const Settings::ResolutionScalingInfo& resolution;
     std::array<std::vector<VkFormat>, VideoCore::Surface::MaxPixelFormat> view_formats;
 
@@ -161,14 +162,12 @@ public:
         return aspect_mask;
     }
 
-    [[nodiscard]] VkImageView StorageImageView(s32 level) const noexcept {
-        return *storage_image_views[level];
-    }
-
     /// Returns true when the image is already initialized and mark it as initialized
     [[nodiscard]] bool ExchangeInitialization() noexcept {
         return std::exchange(initialized, true);
     }
+
+    VkImageView StorageImageView(s32 level) noexcept;
 
     bool IsRescaled() const noexcept;
 
