@@ -17,6 +17,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.*
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.res.ResourcesCompat
@@ -53,6 +54,7 @@ import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.EmulationViewModel
 import org.yuzu.yuzu_emu.overlay.InputOverlay
 import org.yuzu.yuzu_emu.utils.*
+import java.lang.NullPointerException
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private lateinit var preferences: SharedPreferences
@@ -104,10 +106,21 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 null
             }
         }
-        game = if (args.game != null) {
-            args.game!!
-        } else {
-            intentGame ?: error("[EmulationFragment] No bootable game present!")
+
+        try {
+            game = if (args.game != null) {
+                args.game!!
+            } else {
+                intentGame!!
+            }
+        } catch (e: NullPointerException) {
+            Toast.makeText(
+                requireContext(),
+                R.string.no_game_present,
+                Toast.LENGTH_SHORT
+            ).show()
+            requireActivity().finish()
+            return
         }
 
         // So this fragment doesn't restart on configuration changes; i.e. rotation.
@@ -131,6 +144,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     // This is using the correct scope, lint is just acting up
     @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        if (requireActivity().isFinishing) {
+            return
+        }
+
         binding.surfaceEmulation.holder.addCallback(this)
         binding.showFpsText.setTextColor(Color.YELLOW)
         binding.doneControlConfig.setOnClickListener { stopConfiguringControls() }
@@ -286,25 +304,23 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        if (_binding == null) {
+            return
+        }
+
         updateScreenLayout()
         if (emulationActivity?.isInPictureInPictureMode == true) {
             if (binding.drawerLayout.isOpen) {
                 binding.drawerLayout.close()
             }
             if (EmulationMenuSettings.showOverlay) {
-                binding.surfaceInputOverlay.post {
-                    binding.surfaceInputOverlay.visibility = View.INVISIBLE
-                }
+                binding.surfaceInputOverlay.visibility = View.INVISIBLE
             }
         } else {
             if (EmulationMenuSettings.showOverlay && emulationViewModel.emulationStarted.value) {
-                binding.surfaceInputOverlay.post {
-                    binding.surfaceInputOverlay.visibility = View.VISIBLE
-                }
+                binding.surfaceInputOverlay.visibility = View.VISIBLE
             } else {
-                binding.surfaceInputOverlay.post {
-                    binding.surfaceInputOverlay.visibility = View.INVISIBLE
-                }
+                binding.surfaceInputOverlay.visibility = View.INVISIBLE
             }
             if (!isInFoldableLayout) {
                 if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
