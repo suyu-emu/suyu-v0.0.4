@@ -81,7 +81,6 @@
     <string name="manage_save_data">Gérer les données de sauvegarde</string>
     <string name="manage_save_data_description">Données de sauvegarde trouvées. Veuillez sélectionner une option ci-dessous.</string>
     <string name="import_export_saves_description">Importer ou exporter des fichiers de sauvegarde</string>
-    <string name="import_export_saves_no_profile">Aucune données de sauvegarde trouvées. Veuillez lancer un jeu et réessayer.</string>
     <string name="save_file_imported_success">Importé avec succès</string>
     <string name="save_file_invalid_zip_structure">Structure de répertoire de sauvegarde non valide</string>
     <string name="save_file_invalid_zip_structure_description">Le nom du premier sous-dossier doit être l\'identifiant du titre du jeu.</string>

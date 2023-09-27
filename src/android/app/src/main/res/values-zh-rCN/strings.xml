@@ -81,7 +81,6 @@
     <string name="manage_save_data">管理存档数据</string>
     <string name="manage_save_data_description">已找到存档数据，请选择下方的选项。</string>
     <string name="import_export_saves_description">导入或导出存档</string>
-    <string name="import_export_saves_no_profile">找不到存档数据，请启动游戏并重试。</string>
     <string name="save_file_imported_success">已成功导入存档</string>
     <string name="save_file_invalid_zip_structure">无效的存档目录</string>
     <string name="save_file_invalid_zip_structure_description">第一个子文件夹名称必须为当前游戏的 ID。</string>

@@ -6,6 +6,7 @@ package org.yuzu.yuzu_emu.ui.main
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.WindowManager
@@ -19,6 +20,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -29,6 +31,7 @@ import androidx.preference.PreferenceManager
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationBarView
+import kotlinx.coroutines.CoroutineScope
 import java.io.File
 import java.io.FilenameFilter
 import java.io.IOException
@@ -41,20 +44,23 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
+import org.yuzu.yuzu_emu.features.DocumentProvider
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
+import org.yuzu.yuzu_emu.getPublicFilesDir
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
+import org.yuzu.yuzu_emu.model.TaskState
 import org.yuzu.yuzu_emu.model.TaskViewModel
 import org.yuzu.yuzu_emu.utils.*
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
-import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
 
 class MainActivity : AppCompatActivity(), ThemeProvider {
     private lateinit var binding: ActivityMainBinding
@@ -64,6 +70,13 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     private val taskViewModel: TaskViewModel by viewModels()
 
     override var themeId: Int = 0
+
+    private val savesFolder
+        get() = "${getPublicFilesDir().canonicalPath}/nand/user/save/0000000000000000"
+
+    // Get first subfolder in saves folder (should be the user folder)
+    val savesFolderRoot get() = File(savesFolder).listFiles()?.firstOrNull()?.canonicalPath ?: ""
+    private var lastZipCreated: File? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -382,7 +395,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             val task: () -> Any = {
                 var messageToShow: Any
                 try {
-                    FileUtil.unzip(inputZip, cacheFirmwareDir)
+                    FileUtil.unzipToInternalStorage(BufferedInputStream(inputZip), cacheFirmwareDir)
                     val unfilteredNumOfFiles = cacheFirmwareDir.list()?.size ?: -1
                     val filteredNumOfFiles = cacheFirmwareDir.list(filterNCA)?.size ?: -2
                     messageToShow = if (unfilteredNumOfFiles != filteredNumOfFiles) {
@@ -630,35 +643,17 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             R.string.exporting_user_data,
             true
         ) {
-            val zos = ZipOutputStream(
-                BufferedOutputStream(contentResolver.openOutputStream(result))
+            val zipResult = FileUtil.zipFromInternalStorage(
+                File(DirectoryInitialization.userDirectory!!),
+                DirectoryInitialization.userDirectory!!,
+                BufferedOutputStream(contentResolver.openOutputStream(result)),
+                taskViewModel.cancelled
             )
-            zos.use { stream ->
-                File(DirectoryInitialization.userDirectory!!).walkTopDown().forEach { file ->
-                    if (taskViewModel.cancelled.value) {
-                        return@newInstance R.string.user_data_export_cancelled
-                    }
-
-                    if (!file.isDirectory) {
-                        val newPath = file.path.substring(
-                            DirectoryInitialization.userDirectory!!.length,
-                            file.path.length
-                        )
-                        stream.putNextEntry(ZipEntry(newPath))
-
-                        val buffer = ByteArray(8096)
-                        var read: Int
-                        FileInputStream(file).use { fis ->
-                            while (fis.read(buffer).also { read = it } != -1) {
-                                stream.write(buffer, 0, read)
-                            }
-                        }
-
-                        stream.closeEntry()
-                    }
-                }
+            return@newInstance when (zipResult) {
+                TaskState.Completed -> getString(R.string.user_data_export_success)
+                TaskState.Failed -> R.string.export_failed
+                TaskState.Cancelled -> R.string.user_data_export_cancelled
             }
-            return@newInstance getString(R.string.user_data_export_success)
         }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
     }
 
@@ -686,43 +681,28 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     }
                 }
                 if (!isYuzuBackup) {
-                    return@newInstance getString(R.string.invalid_yuzu_backup)
+                    return@newInstance MessageDialogFragment.newInstance(
+                        this,
+                        titleId = R.string.invalid_yuzu_backup,
+                        descriptionId = R.string.user_data_import_failed_description
+                    )
                 }
 
+                // Clear existing user data
                 File(DirectoryInitialization.userDirectory!!).deleteRecursively()
 
-                val zis =
-                    ZipInputStream(BufferedInputStream(contentResolver.openInputStream(result)))
-                val userDirectory = File(DirectoryInitialization.userDirectory!!)
-                val canonicalPath = userDirectory.canonicalPath + '/'
-                zis.use { stream ->
-                    var ze: ZipEntry? = stream.nextEntry
-                    while (ze != null) {
-                        val newFile = File(userDirectory, ze!!.name)
-                        val destinationDirectory =
-                            if (ze!!.isDirectory) newFile else newFile.parentFile
-
-                        if (!newFile.canonicalPath.startsWith(canonicalPath)) {
-                            throw SecurityException(
-                                "Zip file attempted path traversal! ${ze!!.name}"
-                            )
-                        }
-
-                        if (!destinationDirectory.isDirectory && !destinationDirectory.mkdirs()) {
-                            throw IOException("Failed to create directory $destinationDirectory")
-                        }
-
-                        if (!ze!!.isDirectory) {
-                            val buffer = ByteArray(8096)
-                            var read: Int
-                            BufferedOutputStream(FileOutputStream(newFile)).use { bos ->
-                                while (zis.read(buffer).also { read = it } != -1) {
-                                    bos.write(buffer, 0, read)
-                                }
-                            }
-                        }
-                        ze = stream.nextEntry
-                    }
+                // Copy archive to internal storage
+                try {
+                    FileUtil.unzipToInternalStorage(
+                        BufferedInputStream(contentResolver.openInputStream(result)),
+                        File(DirectoryInitialization.userDirectory!!)
+                    )
+                } catch (e: Exception) {
+                    return@newInstance MessageDialogFragment.newInstance(
+                        this,
+                        titleId = R.string.import_failed,
+                        descriptionId = R.string.user_data_import_failed_description
+                    )
                 }
 
                 // Reinitialize relevant data
@@ -731,5 +711,147 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
                 return@newInstance getString(R.string.user_data_import_success)
             }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
+        }
+
+    /**
+     * Zips the save files located in the given folder path and creates a new zip file with the current date and time.
+     * @return true if the zip file is successfully created, false otherwise.
+     */
+    private fun zipSave(): Boolean {
+        try {
+            val tempFolder = File(getPublicFilesDir().canonicalPath, "temp")
+            tempFolder.mkdirs()
+            val saveFolder = File(savesFolderRoot)
+            val outputZipFile = File(
+                tempFolder,
+                "yuzu saves - ${
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                }.zip"
+            )
+            outputZipFile.createNewFile()
+            val result = FileUtil.zipFromInternalStorage(
+                saveFolder,
+                savesFolderRoot,
+                BufferedOutputStream(FileOutputStream(outputZipFile))
+            )
+            if (result == TaskState.Failed) {
+                return false
+            }
+            lastZipCreated = outputZipFile
+        } catch (e: Exception) {
+            return false
+        }
+        return true
+    }
+
+    /**
+     * Exports the save file located in the given folder path by creating a zip file and sharing it via intent.
+     */
+    fun exportSave() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val wasZipCreated = zipSave()
+            val lastZipFile = lastZipCreated
+            if (!wasZipCreated || lastZipFile == null) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        getString(R.string.export_save_failed),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                return@launch
+            }
+
+            withContext(Dispatchers.Main) {
+                val file = DocumentFile.fromSingleUri(
+                    this@MainActivity,
+                    DocumentsContract.buildDocumentUri(
+                        DocumentProvider.AUTHORITY,
+                        "${DocumentProvider.ROOT_ID}/temp/${lastZipFile.name}"
+                    )
+                )!!
+                val intent = Intent(Intent.ACTION_SEND)
+                    .setDataAndType(file.uri, "application/zip")
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    .putExtra(Intent.EXTRA_STREAM, file.uri)
+                startForResultExportSave.launch(
+                    Intent.createChooser(
+                        intent,
+                        getString(R.string.share_save_file)
+                    )
+                )
+            }
+        }
+    }
+
+    private val startForResultExportSave =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
+            File(getPublicFilesDir().canonicalPath, "temp").deleteRecursively()
+        }
+
+    val importSaves =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result == null) {
+                return@registerForActivityResult
+            }
+
+            NativeLibrary.initializeEmptyUserDirectory()
+
+            val inputZip = contentResolver.openInputStream(result)
+            // A zip needs to have at least one subfolder named after a TitleId in order to be considered valid.
+            var validZip = false
+            val savesFolder = File(savesFolderRoot)
+            val cacheSaveDir = File("${applicationContext.cacheDir.path}/saves/")
+            cacheSaveDir.mkdir()
+
+            if (inputZip == null) {
+                Toast.makeText(
+                    applicationContext,
+                    getString(R.string.fatal_error),
+                    Toast.LENGTH_LONG
+                ).show()
+                return@registerForActivityResult
+            }
+
+            val filterTitleId =
+                FilenameFilter { _, dirName -> dirName.matches(Regex("^0100[\\dA-Fa-f]{12}$")) }
+
+            try {
+                CoroutineScope(Dispatchers.IO).launch {
+                    FileUtil.unzipToInternalStorage(BufferedInputStream(inputZip), cacheSaveDir)
+                    cacheSaveDir.list(filterTitleId)?.forEach { savePath ->
+                        File(savesFolder, savePath).deleteRecursively()
+                        File(cacheSaveDir, savePath).copyRecursively(
+                            File(savesFolder, savePath),
+                            true
+                        )
+                        validZip = true
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        if (!validZip) {
+                            MessageDialogFragment.newInstance(
+                                this@MainActivity,
+                                titleId = R.string.save_file_invalid_zip_structure,
+                                descriptionId = R.string.save_file_invalid_zip_structure_description
+                            ).show(supportFragmentManager, MessageDialogFragment.TAG)
+                            return@withContext
+                        }
+                        Toast.makeText(
+                            applicationContext,
+                            getString(R.string.save_file_imported_success),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
+                    cacheSaveDir.deleteRecursively()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    applicationContext,
+                    getString(R.string.fatal_error),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
 }

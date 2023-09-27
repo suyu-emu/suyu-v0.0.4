@@ -517,6 +517,11 @@ object NativeLibrary {
     external fun submitInlineKeyboardInput(key_code: Int)
 
     /**
+     * Creates a generic user directory if it doesn't exist already
+     */
+    external fun initializeEmptyUserDirectory()
+
+    /**
      * Button type for use in onTouchEvent
      */
     object ButtonType {
