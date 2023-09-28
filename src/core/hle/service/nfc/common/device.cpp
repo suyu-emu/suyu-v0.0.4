@@ -1374,7 +1374,7 @@ NFP::AmiiboName NfcDevice::GetAmiiboName(const NFP::AmiiboSettings& settings) co
 
     // Convert from utf16 to utf8
     const auto amiibo_name_utf8 = Common::UTF16ToUTF8(settings_amiibo_name.data());
-    memcpy(amiibo_name.data(), amiibo_name_utf8.data(), amiibo_name_utf8.size() - 1);
+    memcpy(amiibo_name.data(), amiibo_name_utf8.data(), amiibo_name_utf8.size());
 
     return amiibo_name;
 }

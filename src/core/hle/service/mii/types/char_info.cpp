@@ -37,7 +37,7 @@ void CharInfo::SetFromStoreData(const StoreData& store_data) {
     eyebrow_aspect = store_data.GetEyebrowAspect();
     eyebrow_rotate = store_data.GetEyebrowRotate();
     eyebrow_x = store_data.GetEyebrowX();
-    eyebrow_y = store_data.GetEyebrowY();
+    eyebrow_y = store_data.GetEyebrowY() + 3;
     nose_type = store_data.GetNoseType();
     nose_scale = store_data.GetNoseScale();
     nose_y = store_data.GetNoseY();

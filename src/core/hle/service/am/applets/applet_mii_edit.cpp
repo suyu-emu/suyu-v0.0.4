@@ -145,6 +145,8 @@ void MiiEdit::MiiEditOutput(MiiEditResult result, s32 index) {
         .index{index},
     };
 
+    LOG_INFO(Input, "called, result={}, index={}", result, index);
+
     std::vector<u8> out_data(sizeof(MiiEditAppletOutput));
     std::memcpy(out_data.data(), &applet_output, sizeof(MiiEditAppletOutput));
 
