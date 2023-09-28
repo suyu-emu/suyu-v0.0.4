@@ -113,7 +113,7 @@ void CoreData::BuildRandom(Age age, Gender gender, Race race) {
             .values[MiiUtil::GetRandomValue<std::size_t>(eyebrow_type_info.values_count)]);
 
     const auto eyebrow_rotate_1{race == Race::Asian ? 6 : 0};
-    const auto eyebrow_y{race == Race::Asian ? 9 : 10};
+    const auto eyebrow_y{race == Race::Asian ? 6 : 7};
     const auto eyebrow_rotate_offset{32 - RawData::EyebrowRotateLookup[eyebrow_rotate_1] + 6};
     const auto eyebrow_rotate{
         32 - RawData::EyebrowRotateLookup[static_cast<std::size_t>(data.eyebrow_type.Value())]};
