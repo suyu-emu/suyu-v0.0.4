@@ -343,7 +343,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         val dstPath = DirectoryInitialization.userDirectory + "/keys/"
         if (FileUtil.copyUriToInternalStorage(
-                applicationContext,
                 result,
                 dstPath,
                 "prod.keys"
@@ -446,7 +445,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
             val dstPath = DirectoryInitialization.userDirectory + "/keys/"
             if (FileUtil.copyUriToInternalStorage(
-                    applicationContext,
                     result,
                     dstPath,
                     "key_retail.bin"
@@ -493,20 +491,20 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 withContext(Dispatchers.IO) {
                     // Ignore file exceptions when a user selects an invalid zip
                     try {
-                        GpuDriverHelper.installCustomDriver(applicationContext, result)
+                        GpuDriverHelper.installCustomDriver(result)
                     } catch (_: IOException) {
                     }
 
                     withContext(Dispatchers.Main) {
                         installationDialog.dismiss()
 
-                        val driverName = GpuDriverHelper.customDriverName
-                        if (driverName != null) {
+                        val driverData = GpuDriverHelper.customDriverData
+                        if (driverData.name != null) {
                             Toast.makeText(
                                 applicationContext,
                                 getString(
                                     R.string.select_gpu_driver_install_success,
-                                    driverName
+                                    driverData.name
                                 ),
                                 Toast.LENGTH_SHORT
                             ).show()

@@ -15,13 +15,9 @@ import androidx.annotation.Keep
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.lang.ref.WeakReference
-import org.yuzu.yuzu_emu.YuzuApplication.Companion.appContext
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.utils.DocumentsTree.Companion.isNativePath
-import org.yuzu.yuzu_emu.utils.FileUtil.exists
-import org.yuzu.yuzu_emu.utils.FileUtil.getFileSize
-import org.yuzu.yuzu_emu.utils.FileUtil.isDirectory
-import org.yuzu.yuzu_emu.utils.FileUtil.openContentUri
+import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.SerializableHelper.serializable
 
@@ -75,7 +71,7 @@ object NativeLibrary {
         return if (isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.openContentUri(path, openmode)
         } else {
-            openContentUri(appContext, path, openmode)
+            FileUtil.openContentUri(path, openmode)
         }
     }
 
@@ -85,7 +81,7 @@ object NativeLibrary {
         return if (isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.getFileSize(path)
         } else {
-            getFileSize(appContext, path)
+            FileUtil.getFileSize(path)
         }
     }
 
@@ -95,7 +91,7 @@ object NativeLibrary {
         return if (isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.exists(path)
         } else {
-            exists(appContext, path)
+            FileUtil.exists(path)
         }
     }
 
@@ -105,7 +101,7 @@ object NativeLibrary {
         return if (isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.isDirectory(path)
         } else {
-            isDirectory(appContext, path)
+            FileUtil.isDirectory(path)
         }
     }
 

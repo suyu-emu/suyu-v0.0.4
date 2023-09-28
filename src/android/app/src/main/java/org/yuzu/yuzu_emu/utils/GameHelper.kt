@@ -30,7 +30,7 @@ object GameHelper {
         // Ensure keys are loaded so that ROM metadata can be decrypted.
         NativeLibrary.reloadKeys()
 
-        addGamesRecursive(games, FileUtil.listFiles(context, gamesUri), 3)
+        addGamesRecursive(games, FileUtil.listFiles(gamesUri), 3)
 
         // Cache list of games found on disk
         val serializedGames = mutableSetOf<String>()
@@ -58,7 +58,7 @@ object GameHelper {
             if (it.isDirectory) {
                 addGamesRecursive(
                     games,
-                    FileUtil.listFiles(YuzuApplication.appContext, it.uri),
+                    FileUtil.listFiles(it.uri),
                     depth - 1
                 )
             } else {

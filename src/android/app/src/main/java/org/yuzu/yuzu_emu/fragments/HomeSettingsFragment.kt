@@ -304,7 +304,7 @@ class HomeSettingsFragment : Fragment() {
             .setMessage(driverName)
             .setNegativeButton(android.R.string.cancel, null)
             .setNeutralButton(R.string.select_gpu_driver_default) { _: DialogInterface?, _: Int ->
-                GpuDriverHelper.installDefaultDriver(requireContext())
+                GpuDriverHelper.installDefaultDriver()
                 Toast.makeText(
                     requireContext(),
                     R.string.select_gpu_driver_use_default,

@@ -47,7 +47,7 @@ class YuzuApplication : Application() {
         application = this
         documentsTree = DocumentsTree()
         DirectoryInitialization.start()
-        GpuDriverHelper.initializeDriverParameters(applicationContext)
+        GpuDriverHelper.initializeDriverParameters()
         NativeLibrary.logDeviceInfo()
 
         createNotificationChannels()
