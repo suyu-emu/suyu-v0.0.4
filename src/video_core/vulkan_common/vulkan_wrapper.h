@@ -226,6 +226,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetBlendConstants vkCmdSetBlendConstants{};
     PFN_vkCmdSetCullModeEXT vkCmdSetCullModeEXT{};
     PFN_vkCmdSetDepthBias vkCmdSetDepthBias{};
+    PFN_vkCmdSetDepthBias2EXT vkCmdSetDepthBias2EXT{};
     PFN_vkCmdSetDepthBounds vkCmdSetDepthBounds{};
     PFN_vkCmdSetDepthBoundsTestEnableEXT vkCmdSetDepthBoundsTestEnableEXT{};
     PFN_vkCmdSetDepthCompareOpEXT vkCmdSetDepthCompareOpEXT{};
@@ -1331,6 +1332,18 @@ public:
 
     void SetDepthBias(float constant_factor, float clamp, float slope_factor) const noexcept {
         dld->vkCmdSetDepthBias(handle, constant_factor, clamp, slope_factor);
+    }
+
+    void SetDepthBias(float constant_factor, float clamp, float slope_factor,
+                      VkDepthBiasRepresentationInfoEXT* extra) const noexcept {
+        VkDepthBiasInfoEXT info{
+            .sType = VK_STRUCTURE_TYPE_DEPTH_BIAS_INFO_EXT,
+            .pNext = extra,
+            .depthBiasConstantFactor = constant_factor,
+            .depthBiasClamp = clamp,
+            .depthBiasSlopeFactor = slope_factor,
+        };
+        dld->vkCmdSetDepthBias2EXT(handle, &info);
     }
 
     void SetDepthBounds(float min_depth_bounds, float max_depth_bounds) const noexcept {

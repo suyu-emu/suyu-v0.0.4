@@ -41,6 +41,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
 // Define all features which may be used by the implementation and require an extension here.
 #define FOR_EACH_VK_FEATURE_EXT(FEATURE)                                                           \
     FEATURE(EXT, CustomBorderColor, CUSTOM_BORDER_COLOR, custom_border_color)                      \
+    FEATURE(EXT, DepthBiasControl, DEPTH_BIAS_CONTROL, depth_bias_control)                         \
     FEATURE(EXT, DepthClipControl, DEPTH_CLIP_CONTROL, depth_clip_control)                         \
     FEATURE(EXT, ExtendedDynamicState, EXTENDED_DYNAMIC_STATE, extended_dynamic_state)             \
     FEATURE(EXT, ExtendedDynamicState2, EXTENDED_DYNAMIC_STATE_2, extended_dynamic_state2)         \
@@ -96,6 +97,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
 #define FOR_EACH_VK_RECOMMENDED_EXTENSION(EXTENSION_NAME)                                          \
     EXTENSION_NAME(VK_EXT_CONDITIONAL_RENDERING_EXTENSION_NAME)                                    \
     EXTENSION_NAME(VK_EXT_CONSERVATIVE_RASTERIZATION_EXTENSION_NAME)                               \
+    EXTENSION_NAME(VK_EXT_DEPTH_BIAS_CONTROL_EXTENSION_NAME)                                       \
     EXTENSION_NAME(VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME)                                 \
     EXTENSION_NAME(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME)                                   \
     EXTENSION_NAME(VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME)                                 \
@@ -147,6 +149,9 @@ VK_DEFINE_HANDLE(VmaAllocator)
 // Define features where the absence of the feature may result in a degraded experience.
 #define FOR_EACH_VK_RECOMMENDED_FEATURE(FEATURE_NAME)                                              \
     FEATURE_NAME(custom_border_color, customBorderColors)                                          \
+    FEATURE_NAME(depth_bias_control, depthBiasControl)                                             \
+    FEATURE_NAME(depth_bias_control, leastRepresentableValueForceUnormRepresentation)              \
+    FEATURE_NAME(depth_bias_control, depthBiasExact)                                               \
     FEATURE_NAME(extended_dynamic_state, extendedDynamicState)                                     \
     FEATURE_NAME(format_a4b4g4r4, formatA4B4G4R4)                                                  \
     FEATURE_NAME(index_type_uint8, indexTypeUint8)                                                 \
@@ -464,6 +469,11 @@ public:
         return extensions.depth_clip_control;
     }
 
+    /// Returns true if the device supports VK_EXT_depth_bias_control.
+    bool IsExtDepthBiasControlSupported() const {
+        return extensions.depth_bias_control;
+    }
+
     /// Returns true if the device supports VK_EXT_shader_viewport_index_layer.
     bool IsExtShaderViewportIndexLayerSupported() const {
         return extensions.shader_viewport_index_layer;
@@ -622,6 +632,10 @@ public:
 
     bool HasNullDescriptor() const {
         return features.robustness2.nullDescriptor;
+    }
+
+    bool HasExactDepthBiasControl() const {
+        return features.depth_bias_control.depthBiasExact;
     }
 
     u32 GetMaxVertexInputAttributes() const {
