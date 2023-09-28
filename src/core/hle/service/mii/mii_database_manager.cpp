@@ -168,7 +168,7 @@ Result DatabaseManager::FindIndex(s32& out_index, const Common::UUID& create_id,
         return ResultSuccess;
     }
 
-    for (std::size_t i = 0; i <= index; ++i) {
+    for (std::size_t i = 0; i < index; ++i) {
         if (database.Get(i).IsSpecial()) {
             continue;
         }
