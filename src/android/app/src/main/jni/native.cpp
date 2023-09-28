@@ -141,10 +141,6 @@ public:
             if (nsp->IsExtractedType()) {
                 return InstallError;
             }
-        } else if (file_extension == "xci") {
-            jconst xci =
-                std::make_shared<FileSys::XCI>(m_vfs->OpenFile(filename, FileSys::Mode::Read));
-            nsp = xci->GetSecurePartitionNSP();
         } else {
             return ErrorFilenameExtension;
         }
