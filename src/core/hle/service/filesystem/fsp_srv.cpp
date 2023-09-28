@@ -329,6 +329,7 @@ public:
             {13, &IFileSystem::CleanDirectoryRecursively, "CleanDirectoryRecursively"},
             {14, &IFileSystem::GetFileTimeStampRaw, "GetFileTimeStampRaw"},
             {15, nullptr, "QueryEntry"},
+            {16, &IFileSystem::GetFileSystemAttribute, "GetFileSystemAttribute"},
         };
         RegisterHandlers(functions);
     }
@@ -519,6 +520,46 @@ public:
         IPC::ResponseBuilder rb{ctx, 10};
         rb.Push(ResultSuccess);
         rb.PushRaw(vfs_timestamp);
+    }
+
+    void GetFileSystemAttribute(HLERequestContext& ctx) {
+        LOG_WARNING(Service_FS, "(STUBBED) called");
+
+        struct FileSystemAttribute {
+            u8 dir_entry_name_length_max_defined;
+            u8 file_entry_name_length_max_defined;
+            u8 dir_path_name_length_max_defined;
+            u8 file_path_name_length_max_defined;
+            INSERT_PADDING_BYTES_NOINIT(0x5);
+            u8 utf16_dir_entry_name_length_max_defined;
+            u8 utf16_file_entry_name_length_max_defined;
+            u8 utf16_dir_path_name_length_max_defined;
+            u8 utf16_file_path_name_length_max_defined;
+            INSERT_PADDING_BYTES_NOINIT(0x18);
+            s32 dir_entry_name_length_max;
+            s32 file_entry_name_length_max;
+            s32 dir_path_name_length_max;
+            s32 file_path_name_length_max;
+            INSERT_PADDING_WORDS_NOINIT(0x5);
+            s32 utf16_dir_entry_name_length_max;
+            s32 utf16_file_entry_name_length_max;
+            s32 utf16_dir_path_name_length_max;
+            s32 utf16_file_path_name_length_max;
+            INSERT_PADDING_WORDS_NOINIT(0x18);
+            INSERT_PADDING_WORDS_NOINIT(0x1);
+        };
+        static_assert(sizeof(FileSystemAttribute) == 0xc0,
+                      "FileSystemAttribute has incorrect size");
+
+        FileSystemAttribute savedata_attribute{};
+        savedata_attribute.dir_entry_name_length_max_defined = true;
+        savedata_attribute.file_entry_name_length_max_defined = true;
+        savedata_attribute.dir_entry_name_length_max = 0x40;
+        savedata_attribute.file_entry_name_length_max = 0x40;
+
+        IPC::ResponseBuilder rb{ctx, 50};
+        rb.Push(ResultSuccess);
+        rb.PushRaw(savedata_attribute);
     }
 
 private:
