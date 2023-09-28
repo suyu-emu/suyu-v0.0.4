@@ -429,7 +429,8 @@ void RasterizerVulkan::Clear(u32 layer_count) {
         return;
     }
 
-    if (use_stencil && regs.stencil_front_mask != 0xFF && regs.stencil_front_mask != 0) {
+    if (use_stencil && framebuffer->HasAspectStencilBit() && regs.stencil_front_mask != 0xFF &&
+        regs.stencil_front_mask != 0) {
         Region2D dst_region = {
             Offset2D{.x = clear_rect.rect.offset.x, .y = clear_rect.rect.offset.y},
             Offset2D{.x = clear_rect.rect.offset.x + static_cast<s32>(clear_rect.rect.extent.width),
