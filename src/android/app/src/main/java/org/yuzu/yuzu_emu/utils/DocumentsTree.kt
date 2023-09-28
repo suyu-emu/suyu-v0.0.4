@@ -7,7 +7,6 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import java.io.File
 import java.util.*
-import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.MinimalDocumentFile
 
 class DocumentsTree {
@@ -22,7 +21,7 @@ class DocumentsTree {
 
     fun openContentUri(filepath: String, openMode: String?): Int {
         val node = resolvePath(filepath) ?: return -1
-        return FileUtil.openContentUri(YuzuApplication.appContext, node.uri.toString(), openMode)
+        return FileUtil.openContentUri(node.uri.toString(), openMode)
     }
 
     fun getFileSize(filepath: String): Long {
@@ -30,7 +29,7 @@ class DocumentsTree {
         return if (node == null || node.isDirectory) {
             0
         } else {
-            FileUtil.getFileSize(YuzuApplication.appContext, node.uri.toString())
+            FileUtil.getFileSize(node.uri.toString())
         }
     }
 
@@ -67,7 +66,7 @@ class DocumentsTree {
      * @param parent parent node of this level
      */
     private fun structTree(parent: DocumentsNode) {
-        val documents = FileUtil.listFiles(YuzuApplication.appContext, parent.uri!!)
+        val documents = FileUtil.listFiles(parent.uri!!)
         for (document in documents) {
             val node = DocumentsNode(document)
             node.parent = parent

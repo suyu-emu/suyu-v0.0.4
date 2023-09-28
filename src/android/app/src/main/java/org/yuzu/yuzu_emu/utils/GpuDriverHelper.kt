@@ -13,6 +13,7 @@ import java.io.IOException
 import java.util.zip.ZipInputStream
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.utils.FileUtil.copyUriToInternalStorage
+import org.yuzu.yuzu_emu.YuzuApplication
 
 object GpuDriverHelper {
     private const val META_JSON_FILENAME = "meta.json"
@@ -61,6 +62,7 @@ object GpuDriverHelper {
 
             // Initialize the driver installation directory.
             driverInstallationPath = context.filesDir.canonicalPath + "/gpu_driver/"
+                .filesDir.canonicalPath + "/gpu_driver/"
         } catch (e: IOException) {
             throw RuntimeException(e)
         }
@@ -70,6 +72,7 @@ object GpuDriverHelper {
 
         // Initialize hook libraries directory.
         hookLibPath = context.applicationInfo.nativeLibraryDir + "/"
+        hookLibPath = YuzuApplication.appContext.applicationInfo.nativeLibraryDir + "/"
 
         // Initialize GPU driver.
         NativeLibrary.initializeGpuDriver(
@@ -81,15 +84,15 @@ object GpuDriverHelper {
     }
 
     fun installDefaultDriver(context: Context) {
+    fun installDefaultDriver() {
         // Removing the installed driver will result in the backend using the default system driver.
         val driverInstallationDir = File(driverInstallationPath!!)
         deleteRecursive(driverInstallationDir)
-        initializeDriverParameters(context)
     }
 
     fun installCustomDriver(context: Context, driverPathUri: Uri?) {
         // Revert to system default in the event the specified driver is bad.
-        installDefaultDriver(context)
+        installDefaultDriver()
 
         // Ensure we have directories.
         initializeDirectories()
