@@ -122,7 +122,10 @@ public:
     ~IDisplayController() override;
 
 private:
+    void GetCallerAppletCaptureImageEx(HLERequestContext& ctx);
     void TakeScreenShotOfOwnLayer(HLERequestContext& ctx);
+    void AcquireCallerAppletCaptureSharedBuffer(HLERequestContext& ctx);
+    void ReleaseCallerAppletCaptureSharedBuffer(HLERequestContext& ctx);
 };
 
 class IDebugFunctions final : public ServiceFramework<IDebugFunctions> {
@@ -150,9 +153,13 @@ private:
     void SetRestartMessageEnabled(HLERequestContext& ctx);
     void SetOutOfFocusSuspendingEnabled(HLERequestContext& ctx);
     void SetAlbumImageOrientation(HLERequestContext& ctx);
+    void IsSystemBufferSharingEnabled(HLERequestContext& ctx);
+    void GetSystemSharedBufferHandle(HLERequestContext& ctx);
+    void GetSystemSharedLayerHandle(HLERequestContext& ctx);
     void CreateManagedDisplayLayer(HLERequestContext& ctx);
     void CreateManagedDisplaySeparableLayer(HLERequestContext& ctx);
     void SetHandlesRequestToDisplay(HLERequestContext& ctx);
+    void ApproveToDisplay(HLERequestContext& ctx);
     void SetIdleTimeDetectionExtension(HLERequestContext& ctx);
     void GetIdleTimeDetectionExtension(HLERequestContext& ctx);
     void ReportUserIsActive(HLERequestContext& ctx);
@@ -163,6 +170,8 @@ private:
     void SetAlbumImageTakenNotificationEnabled(HLERequestContext& ctx);
     void SaveCurrentScreenshot(HLERequestContext& ctx);
     void SetRecordVolumeMuted(HLERequestContext& ctx);
+
+    Result EnsureBufferSharingEnabled();
 
     enum class ScreenshotPermission : u32 {
         Inherit = 0,
@@ -179,7 +188,10 @@ private:
 
     u32 idle_time_detection_extension = 0;
     u64 num_fatal_sections_entered = 0;
+    u64 system_shared_buffer_id = 0;
+    u64 system_shared_layer_id = 0;
     bool is_auto_sleep_disabled = false;
+    bool buffer_sharing_enabled = false;
     ScreenshotPermission screenshot_permission = ScreenshotPermission::Inherit;
 };
 
@@ -223,6 +235,8 @@ private:
     void GetEventHandle(HLERequestContext& ctx);
     void ReceiveMessage(HLERequestContext& ctx);
     void GetCurrentFocusState(HLERequestContext& ctx);
+    void RequestToAcquireSleepLock(HLERequestContext& ctx);
+    void GetAcquiredSleepLockEvent(HLERequestContext& ctx);
     void GetDefaultDisplayResolutionChangeEvent(HLERequestContext& ctx);
     void GetOperationMode(HLERequestContext& ctx);
     void GetPerformanceMode(HLERequestContext& ctx);
@@ -240,6 +254,8 @@ private:
 
     std::shared_ptr<AppletMessageQueue> msg_queue;
     bool vr_mode_state{};
+    Kernel::KEvent* sleep_lock_event;
+    KernelHelpers::ServiceContext service_context;
 };
 
 class IStorageImpl {
