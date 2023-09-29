@@ -171,9 +171,7 @@
     <string name="select_gpu_driver_title">Хотите заменить текущий драйвер ГП?</string>
     <string name="select_gpu_driver_install">Установить</string>
     <string name="select_gpu_driver_default">По умолчанию</string>
-    <string name="select_gpu_driver_install_success">Установлено %s</string>
     <string name="select_gpu_driver_use_default">Используется стандартный драйвер ГП </string>
-    <string name="select_gpu_driver_error">Выбран неверный драйвер, используется стандартный системный!</string>
     <string name="system_gpu_driver">Системный драйвер ГП</string>
     <string name="installing_driver">Установка драйвера...</string>
 

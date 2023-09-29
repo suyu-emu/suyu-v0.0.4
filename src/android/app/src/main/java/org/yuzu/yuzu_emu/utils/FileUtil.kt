@@ -10,7 +10,6 @@ import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.flow.StateFlow
 import java.io.BufferedInputStream
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.URLDecoder
@@ -20,6 +19,8 @@ import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.MinimalDocumentFile
 import org.yuzu.yuzu_emu.model.TaskState
 import java.io.BufferedOutputStream
+import java.lang.NullPointerException
+import java.nio.charset.StandardCharsets
 import java.util.zip.ZipOutputStream
 
 object FileUtil {
@@ -243,43 +244,38 @@ object FileUtil {
         return size
     }
 
+    /**
+     * Creates an input stream with a given [Uri] and copies its data to the given path. This will
+     * overwrite any pre-existing files.
+     *
+     * @param sourceUri The [Uri] to copy data from
+     * @param destinationParentPath Destination directory
+     * @param destinationFilename Optionally renames the file once copied
+     */
     fun copyUriToInternalStorage(
-        sourceUri: Uri?,
+        sourceUri: Uri,
         destinationParentPath: String,
-        destinationFilename: String
-    ): Boolean {
-        var input: InputStream? = null
-        var output: FileOutputStream? = null
+        destinationFilename: String = ""
+    ): File? =
         try {
-            input = context.contentResolver.openInputStream(sourceUri!!)
-            output = FileOutputStream("$destinationParentPath/$destinationFilename")
-            val buffer = ByteArray(1024)
-            var len: Int
-            while (input!!.read(buffer).also { len = it } != -1) {
-                output.write(buffer, 0, len)
+            val fileName =
+                if (destinationFilename == "") getFilename(sourceUri) else "/$destinationFilename"
+            val inputStream = context.contentResolver.openInputStream(sourceUri)!!
+
+            val destinationFile = File("$destinationParentPath$fileName")
+            if (destinationFile.exists()) {
+                destinationFile.delete()
             }
-            output.flush()
-            return true
-        } catch (e: Exception) {
-            Log.error("[FileUtil]: Cannot copy file, error: " + e.message)
-        } finally {
-            if (input != null) {
-                try {
-                    input.close()
-                } catch (e: IOException) {
-                    Log.error("[FileUtil]: Cannot close input file, error: " + e.message)
-                }
+
+            destinationFile.outputStream().use { fos ->
+                inputStream.use { it.copyTo(fos) }
             }
-            if (output != null) {
-                try {
-                    output.close()
-                } catch (e: IOException) {
-                    Log.error("[FileUtil]: Cannot close output file, error: " + e.message)
-                }
-            }
+            destinationFile
+        } catch (e: IOException) {
+            null
+        } catch (e: NullPointerException) {
+            null
         }
-        return false
-    }
 
     /**
      * Extracts the given zip file into the given directory.
@@ -365,4 +361,12 @@ object FileUtil {
         return fileName.substring(fileName.lastIndexOf(".") + 1)
             .lowercase()
     }
+
+    @Throws(IOException::class)
+    fun getStringFromFile(file: File): String =
+        String(file.readBytes(), StandardCharsets.UTF_8)
+
+    @Throws(IOException::class)
+    fun getStringFromInputStream(stream: InputStream): String =
+        String(stream.readBytes(), StandardCharsets.UTF_8)
 }

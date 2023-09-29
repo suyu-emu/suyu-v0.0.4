@@ -171,9 +171,7 @@
     <string name="select_gpu_driver_title">Vuoi sostituire il driver della tua GPU attuale?</string>
     <string name="select_gpu_driver_install">Installa</string>
     <string name="select_gpu_driver_default">Predefinito</string>
-    <string name="select_gpu_driver_install_success">Installato%s</string>
     <string name="select_gpu_driver_use_default">Utilizza il driver predefinito della GPU.</string>
-    <string name="select_gpu_driver_error">Il driver selezionato è invalido, è in utilizzo quello predefinito di sistema!</string>
     <string name="system_gpu_driver">Driver GPU del sistema</string>
     <string name="installing_driver">Installando i driver...</string>
 
