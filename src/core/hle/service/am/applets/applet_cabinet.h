@@ -29,6 +29,15 @@ enum class CabinetAppletVersion : u32 {
     Version1 = 0x1,
 };
 
+enum class CabinetFlags : u8 {
+    None = 0,
+    DeviceHandle = 1 << 0,
+    TagInfo = 1 << 1,
+    RegisterInfo = 1 << 2,
+    All = DeviceHandle | TagInfo | RegisterInfo,
+};
+DECLARE_ENUM_FLAG_OPERATORS(CabinetFlags)
+
 enum class CabinetResult : u8 {
     Cancel = 0,
     TagInfo = 1 << 1,
@@ -51,7 +60,7 @@ static_assert(sizeof(AmiiboSettingsStartParam) == 0x30,
 struct StartParamForAmiiboSettings {
     u8 param_1;
     Service::NFP::CabinetMode applet_mode;
-    u8 flags;
+    CabinetFlags flags;
     u8 amiibo_settings_1;
     u64 device_handle;
     Service::NFP::TagInfo tag_info;

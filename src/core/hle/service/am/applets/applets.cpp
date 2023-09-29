@@ -199,6 +199,14 @@ const AppletFrontendSet& AppletManager::GetAppletFrontendSet() const {
     return frontend;
 }
 
+NFP::CabinetMode AppletManager::GetCabinetMode() const {
+    return cabinet_mode;
+}
+
+AppletId AppletManager::GetCurrentAppletId() const {
+    return current_applet_id;
+}
+
 void AppletManager::SetAppletFrontendSet(AppletFrontendSet set) {
     if (set.cabinet != nullptr) {
         frontend.cabinet = std::move(set.cabinet);
@@ -235,6 +243,14 @@ void AppletManager::SetAppletFrontendSet(AppletFrontendSet set) {
     if (set.web_browser != nullptr) {
         frontend.web_browser = std::move(set.web_browser);
     }
+}
+
+void AppletManager::SetCabinetMode(NFP::CabinetMode mode) {
+    cabinet_mode = mode;
+}
+
+void AppletManager::SetCurrentAppletId(AppletId applet_id) {
+    current_applet_id = applet_id;
 }
 
 void AppletManager::SetDefaultAppletFrontendSet() {

@@ -2122,6 +2122,8 @@ void GMainWindow::OnEmulationStopped() {
     OnTasStateChanged();
     render_window->FinalizeCamera();
 
+    system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::None);
+
     // Enable all controllers
     system->HIDCore().SetSupportedStyleTag({Core::HID::NpadStyleSet::All});
 
@@ -4169,6 +4171,9 @@ void GMainWindow::OnCabinet(Service::NFP::CabinetMode mode) {
         return;
     }
 
+    system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::Cabinet);
+    system->GetAppletManager().SetCabinetMode(mode);
+
     const auto filename = QString::fromStdString(cabinet_nca->GetFullPath());
     UISettings::values.roms_path = QFileInfo(filename).path();
     BootGame(filename);
@@ -4189,6 +4194,8 @@ void GMainWindow::OnMiiEdit() {
                              tr("Mii editor is not available. Please reinstall firmware."));
         return;
     }
+
+    system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::MiiEdit);
 
     const auto filename = QString::fromStdString((mii_applet_nca->GetFullPath()));
     UISettings::values.roms_path = QFileInfo(filename).path();
