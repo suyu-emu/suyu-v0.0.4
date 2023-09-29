@@ -2094,9 +2094,6 @@ void IApplicationFunctions::PrepareForJit(HLERequestContext& ctx) {
 
 void LoopProcess(Nvnflinger::Nvnflinger& nvnflinger, Core::System& system) {
     auto message_queue = std::make_shared<AppletMessageQueue>(system);
-    // Needed on game boot
-    message_queue->PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
-
     auto server_manager = std::make_unique<ServerManager>(system);
 
     server_manager->RegisterNamedService(
