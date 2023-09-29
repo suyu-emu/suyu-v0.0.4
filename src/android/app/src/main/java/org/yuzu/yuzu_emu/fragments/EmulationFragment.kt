@@ -39,6 +39,7 @@ import androidx.window.layout.WindowLayoutInfo
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.HomeNavigationDirections
@@ -50,6 +51,7 @@ import org.yuzu.yuzu_emu.databinding.DialogOverlayAdjustBinding
 import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.EmulationViewModel
 import org.yuzu.yuzu_emu.overlay.InputOverlay
@@ -70,6 +72,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private lateinit var game: Game
 
     private val emulationViewModel: EmulationViewModel by activityViewModels()
+    private val driverViewModel: DriverViewModel by activityViewModels()
 
     private var isInFoldableLayout = false
 
@@ -299,6 +302,21 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     }
                 }
             }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                    driverViewModel.isDriverReady.collect {
+                        if (it && !emulationState.isRunning) {
+                            if (!DirectoryInitialization.areDirectoriesReady) {
+                                DirectoryInitialization.start()
+                            }
+
+                            updateScreenLayout()
+
+                            emulationState.run(emulationActivity!!.isActivityRecreated)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -330,17 +348,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 }
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (!DirectoryInitialization.areDirectoriesReady) {
-            DirectoryInitialization.start()
-        }
-
-        updateScreenLayout()
-
-        emulationState.run(emulationActivity!!.isActivityRecreated)
     }
 
     override fun onPause() {

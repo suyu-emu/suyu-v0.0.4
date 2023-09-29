@@ -171,9 +171,7 @@
     <string name="select_gpu_driver_title">현재 사용 중인 GPU 드라이버를 교체하겠습니까?</string>
     <string name="select_gpu_driver_install">설치</string>
     <string name="select_gpu_driver_default">기본값</string>
-    <string name="select_gpu_driver_install_success">설치된 %s</string>
     <string name="select_gpu_driver_use_default">기본 GPU 드라이버 사용</string>
-    <string name="select_gpu_driver_error">시스템 기본값을 사용하여 잘못된 드라이버를 선택했습니다!</string>
     <string name="system_gpu_driver">시스템 GPU 드라이버</string>
     <string name="installing_driver">드라이버 설치 중...</string>
 

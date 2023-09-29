@@ -22,6 +22,9 @@
         <action
             android:id="@+id/action_homeSettingsFragment_to_installableFragment"
             app:destination="@id/installableFragment" />
+        <action
+            android:id="@+id/action_homeSettingsFragment_to_driverManagerFragment"
+            app:destination="@id/driverManagerFragment" />
     </fragment>
 
     <fragment
@@ -95,5 +98,9 @@
         android:id="@+id/installableFragment"
         android:name="org.yuzu.yuzu_emu.fragments.InstallableFragment"
         android:label="InstallableFragment" />
+    <fragment
+        android:id="@+id/driverManagerFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.DriverManagerFragment"
+        android:label="DriverManagerFragment" />
 
 </navigation>

@@ -171,9 +171,7 @@
     <string name="select_gpu_driver_title">Souhaitez vous remplacer votre pilote actuel ?</string>
     <string name="select_gpu_driver_install">Installer</string>
     <string name="select_gpu_driver_default">Défaut</string>
-    <string name="select_gpu_driver_install_success">%s Installé</string>
     <string name="select_gpu_driver_use_default">Utilisation du pilote de GPU par défaut</string>
-    <string name="select_gpu_driver_error">Pilote non valide sélectionné, utilisation du paramètre par défaut du système !</string>
     <string name="system_gpu_driver">Pilote du GPU du système</string>
     <string name="installing_driver">Installation du pilote...</string>
 
