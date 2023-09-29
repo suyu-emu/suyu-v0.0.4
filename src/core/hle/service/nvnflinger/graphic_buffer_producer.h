@@ -19,6 +19,7 @@ class InputParcel;
 #pragma pack(push, 1)
 struct QueueBufferInput final {
     explicit QueueBufferInput(InputParcel& parcel);
+    explicit QueueBufferInput() = default;
 
     void Deflate(s64* timestamp_, bool* is_auto_timestamp_, Common::Rectangle<s32>* crop_,
                  NativeWindowScalingMode* scaling_mode_, NativeWindowTransform* transform_,
@@ -34,7 +35,6 @@ struct QueueBufferInput final {
         *fence_ = fence;
     }
 
-private:
     s64 timestamp{};
     s32 is_auto_timestamp{};
     Common::Rectangle<s32> crop{};

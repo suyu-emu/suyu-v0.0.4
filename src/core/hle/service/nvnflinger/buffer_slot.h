@@ -13,7 +13,7 @@
 
 namespace Service::android {
 
-class GraphicBuffer;
+struct GraphicBuffer;
 
 enum class BufferState : u32 {
     Free = 0,
