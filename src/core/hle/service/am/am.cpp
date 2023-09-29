@@ -8,6 +8,7 @@
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "core/core.h"
+#include "core/core_timing.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
@@ -19,6 +20,7 @@
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"
+#include "core/hle/service/am/applets/applet_cabinet.h"
 #include "core/hle/service/am/applets/applet_mii_edit_types.h"
 #include "core/hle/service/am/applets/applet_profile_select.h"
 #include "core/hle/service/am/applets/applet_web_browser.h"
@@ -1385,7 +1387,16 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
     // clang-format on
     RegisterHandlers(functions);
 
-    PushInShowMiiEditData();
+    switch (system.GetAppletManager().GetCurrentAppletId()) {
+    case Applets::AppletId::Cabinet:
+        PushInShowCabinetData();
+        break;
+    case Applets::AppletId::MiiEdit:
+        PushInShowMiiEditData();
+        break;
+    default:
+        break;
+    }
 }
 
 ILibraryAppletSelfAccessor::~ILibraryAppletSelfAccessor() = default;
@@ -1431,7 +1442,7 @@ void ILibraryAppletSelfAccessor::GetLibraryAppletInfo(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     const LibraryAppletInfo applet_info{
-        .applet_id = Applets::AppletId::MiiEdit,
+        .applet_id = system.GetAppletManager().GetCurrentAppletId(),
         .library_applet_mode = Applets::LibraryAppletMode::AllForeground,
     };
 
@@ -1457,6 +1468,35 @@ void ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(HLERequestContext& 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
     rb.PushRaw(applet_info);
+}
+
+void ILibraryAppletSelfAccessor::PushInShowCabinetData() {
+    const Applets::CommonArguments arguments{
+        .arguments_version = Applets::CommonArgumentVersion::Version3,
+        .size = Applets::CommonArgumentSize::Version3,
+        .library_version = static_cast<u32>(Applets::CabinetAppletVersion::Version1),
+        .theme_color = Applets::ThemeColor::BasicBlack,
+        .play_startup_sound = true,
+        .system_tick = system.CoreTiming().GetClockTicks(),
+    };
+
+    const Applets::StartParamForAmiiboSettings amiibo_settings{
+        .param_1 = 0,
+        .applet_mode = system.GetAppletManager().GetCabinetMode(),
+        .flags = Applets::CabinetFlags::None,
+        .amiibo_settings_1 = 0,
+        .device_handle = 0,
+        .tag_info{},
+        .register_info{},
+        .amiibo_settings_3{},
+    };
+
+    std::vector<u8> argument_data(sizeof(arguments));
+    std::vector<u8> settings_data(sizeof(amiibo_settings));
+    std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
+    std::memcpy(settings_data.data(), &amiibo_settings, sizeof(amiibo_settings));
+    queue_data.emplace_back(std::move(argument_data));
+    queue_data.emplace_back(std::move(settings_data));
 }
 
 void ILibraryAppletSelfAccessor::PushInShowMiiEditData() {
@@ -2238,7 +2278,7 @@ void IProcessWindingController::GetLaunchReason(HLERequestContext& ctx) {
 }
 
 void IProcessWindingController::OpenCallingLibraryApplet(HLERequestContext& ctx) {
-    const auto applet_id = Applets::AppletId::MiiEdit;
+    const auto applet_id = system.GetAppletManager().GetCurrentAppletId();
     const auto applet_mode = Applets::LibraryAppletMode::AllForeground;
 
     LOG_WARNING(Service_AM, "(STUBBED) called with applet_id={:08X}, applet_mode={:08X}", applet_id,
@@ -2259,4 +2299,5 @@ void IProcessWindingController::OpenCallingLibraryApplet(HLERequestContext& ctx)
     rb.Push(ResultSuccess);
     rb.PushIpcInterface<ILibraryAppletAccessor>(system, applet);
 }
+
 } // namespace Service::AM

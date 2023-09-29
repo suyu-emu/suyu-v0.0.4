@@ -311,6 +311,7 @@ private:
     void ExitProcessAndReturn(HLERequestContext& ctx);
     void GetCallerAppletIdentityInfo(HLERequestContext& ctx);
 
+    void PushInShowCabinetData();
     void PushInShowMiiEditData();
 
     std::deque<std::vector<u8>> queue_data;

@@ -223,9 +223,9 @@ void StubApplet::Initialize() {
 
     const auto data = broker.PeekDataToAppletForDebug();
     system.GetReporter().SaveUnimplementedAppletReport(
-        static_cast<u32>(id), common_args.arguments_version, common_args.library_version,
-        common_args.theme_color, common_args.play_startup_sound, common_args.system_tick,
-        data.normal, data.interactive);
+        static_cast<u32>(id), static_cast<u32>(common_args.arguments_version),
+        common_args.library_version, static_cast<u32>(common_args.theme_color),
+        common_args.play_startup_sound, common_args.system_tick, data.normal, data.interactive);
 
     LogCurrentStorage(broker, "Initialize");
 }
