@@ -12,6 +12,7 @@
         "boost-context",
         "boost-crc",
         "boost-functional",
+        "boost-heap",
         "boost-icl",
         "boost-intrusive",
         "boost-mpl",
