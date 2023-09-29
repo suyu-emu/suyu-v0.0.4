@@ -23,19 +23,39 @@ public:
     explicit IMonitorService(Core::System& system_) : ServiceFramework{system_, "IMonitorService"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "GetStateForMonitor"},
+            {0, &IMonitorService::GetStateForMonitor, "GetStateForMonitor"},
             {1, nullptr, "GetNetworkInfoForMonitor"},
             {2, nullptr, "GetIpv4AddressForMonitor"},
             {3, nullptr, "GetDisconnectReasonForMonitor"},
             {4, nullptr, "GetSecurityParameterForMonitor"},
             {5, nullptr, "GetNetworkConfigForMonitor"},
-            {100, nullptr, "InitializeMonitor"},
+            {100, &IMonitorService::InitializeMonitor, "InitializeMonitor"},
             {101, nullptr, "FinalizeMonitor"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
     }
+
+private:
+    void GetStateForMonitor(HLERequestContext& ctx) {
+        LOG_INFO(Service_LDN, "called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.PushEnum(state);
+    }
+
+    void InitializeMonitor(HLERequestContext& ctx) {
+        LOG_INFO(Service_LDN, "called");
+
+        state = State::Initialized;
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    State state{State::None};
 };
 
 class LDNM final : public ServiceFramework<LDNM> {
@@ -731,14 +751,81 @@ public:
     }
 };
 
+class ISfMonitorService final : public ServiceFramework<ISfMonitorService> {
+public:
+    explicit ISfMonitorService(Core::System& system_)
+        : ServiceFramework{system_, "ISfMonitorService"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &ISfMonitorService::Initialize, "Initialize"},
+            {288, &ISfMonitorService::GetGroupInfo, "GetGroupInfo"},
+            {320, nullptr, "GetLinkLevel"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+
+private:
+    void Initialize(HLERequestContext& ctx) {
+        LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(0);
+    }
+
+    void GetGroupInfo(HLERequestContext& ctx) {
+        LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+        struct GroupInfo {
+            std::array<u8, 0x200> info;
+        };
+
+        GroupInfo group_info{};
+
+        ctx.WriteBuffer(group_info);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+};
+
+class LP2PM final : public ServiceFramework<LP2PM> {
+public:
+    explicit LP2PM(Core::System& system_) : ServiceFramework{system_, "lp2p:m"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &LP2PM::CreateMonitorService, "CreateMonitorService"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+
+private:
+    void CreateMonitorService(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const u64 reserved_input = rp.Pop<u64>();
+
+        LOG_INFO(Service_LDN, "called, reserved_input={}", reserved_input);
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(ResultSuccess);
+        rb.PushIpcInterface<ISfMonitorService>(system);
+    }
+};
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
     server_manager->RegisterNamedService("ldn:m", std::make_shared<LDNM>(system));
     server_manager->RegisterNamedService("ldn:s", std::make_shared<LDNS>(system));
     server_manager->RegisterNamedService("ldn:u", std::make_shared<LDNU>(system));
+
     server_manager->RegisterNamedService("lp2p:app", std::make_shared<LP2PAPP>(system));
     server_manager->RegisterNamedService("lp2p:sys", std::make_shared<LP2PSYS>(system));
+    server_manager->RegisterNamedService("lp2p:m", std::make_shared<LP2PM>(system));
+
     ServerManager::RunServer(std::move(server_manager));
 }
 
