@@ -17,6 +17,7 @@
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvnflinger/buffer_item_consumer.h"
 #include "core/hle/service/nvnflinger/buffer_queue_core.h"
+#include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
 #include "core/hle/service/nvnflinger/hos_binder_driver_server.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
@@ -329,6 +330,16 @@ s64 Nvnflinger::GetNextTicks() const {
                                                  : 60.f / static_cast<f32>(swap_interval);
 
     return static_cast<s64>(speed_scale * (1000000000.f / effective_fps));
+}
+
+FbShareBufferManager& Nvnflinger::GetSystemBufferManager() {
+    const auto lock_guard = Lock();
+
+    if (!system_buffer_manager) {
+        system_buffer_manager = std::make_unique<FbShareBufferManager>(system, *this, nvdrv);
+    }
+
+    return *system_buffer_manager;
 }
 
 } // namespace Service::Nvnflinger

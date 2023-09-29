@@ -45,13 +45,6 @@ public:
         IsSharedMemMapped = 6
     };
 
-private:
-    /// Id to use for the next handle that is created.
-    u32 next_handle = 0;
-
-    /// Id to use for the next object that is created.
-    u32 next_id = 0;
-
     struct IocCreateParams {
         // Input
         u32_le size{};
@@ -112,6 +105,13 @@ private:
     NvResult IocFromId(std::span<const u8> input, std::span<u8> output);
     NvResult IocParam(std::span<const u8> input, std::span<u8> output);
     NvResult IocFree(std::span<const u8> input, std::span<u8> output);
+
+private:
+    /// Id to use for the next handle that is created.
+    u32 next_handle = 0;
+
+    /// Id to use for the next object that is created.
+    u32 next_id = 0;
 
     NvCore::Container& container;
     NvCore::NvMap& file;

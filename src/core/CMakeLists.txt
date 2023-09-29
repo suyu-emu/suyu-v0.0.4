@@ -698,6 +698,8 @@ add_library(core STATIC
     hle/service/nvnflinger/consumer_base.cpp
     hle/service/nvnflinger/consumer_base.h
     hle/service/nvnflinger/consumer_listener.h
+    hle/service/nvnflinger/fb_share_buffer_manager.cpp
+    hle/service/nvnflinger/fb_share_buffer_manager.h
     hle/service/nvnflinger/graphic_buffer_producer.cpp
     hle/service/nvnflinger/graphic_buffer_producer.h
     hle/service/nvnflinger/hos_binder_driver_server.cpp

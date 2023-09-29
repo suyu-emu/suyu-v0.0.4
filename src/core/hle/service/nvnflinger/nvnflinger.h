@@ -45,6 +45,9 @@ class BufferQueueProducer;
 
 namespace Service::Nvnflinger {
 
+class FbShareBufferManager;
+class HosBinderDriverServer;
+
 class Nvnflinger final {
 public:
     explicit Nvnflinger(Core::System& system_, HosBinderDriverServer& hos_binder_driver_server_);
@@ -90,11 +93,15 @@ public:
 
     [[nodiscard]] s64 GetNextTicks() const;
 
+    FbShareBufferManager& GetSystemBufferManager();
+
 private:
     struct Layer {
         std::unique_ptr<android::BufferQueueCore> core;
         std::unique_ptr<android::BufferQueueProducer> producer;
     };
+
+    friend class FbShareBufferManager;
 
 private:
     [[nodiscard]] std::unique_lock<std::mutex> Lock() const {
@@ -139,6 +146,8 @@ private:
     /// Event that handles screen composition.
     std::shared_ptr<Core::Timing::EventType> multi_composition_event;
     std::shared_ptr<Core::Timing::EventType> single_composition_event;
+
+    std::unique_ptr<FbShareBufferManager> system_buffer_manager;
 
     std::shared_ptr<std::mutex> guard;
 
