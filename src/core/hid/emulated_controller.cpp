@@ -542,6 +542,7 @@ void EmulatedController::UnloadInput() {
 }
 
 void EmulatedController::EnableConfiguration() {
+    std::scoped_lock lock{connect_mutex, npad_mutex};
     is_configuring = true;
     tmp_is_connected = is_connected;
     tmp_npad_type = npad_type;
@@ -1556,7 +1557,7 @@ void EmulatedController::Connect(bool use_temporary_value) {
 
     auto trigger_guard =
         SCOPE_GUARD({ TriggerOnChange(ControllerTriggerType::Connected, !is_configuring); });
-    std::scoped_lock lock{mutex};
+    std::scoped_lock lock{connect_mutex, mutex};
     if (is_configuring) {
         tmp_is_connected = true;
         return;
@@ -1572,7 +1573,7 @@ void EmulatedController::Connect(bool use_temporary_value) {
 void EmulatedController::Disconnect() {
     auto trigger_guard =
         SCOPE_GUARD({ TriggerOnChange(ControllerTriggerType::Disconnected, !is_configuring); });
-    std::scoped_lock lock{mutex};
+    std::scoped_lock lock{connect_mutex, mutex};
     if (is_configuring) {
         tmp_is_connected = false;
         return;
@@ -1586,7 +1587,7 @@ void EmulatedController::Disconnect() {
 }
 
 bool EmulatedController::IsConnected(bool get_temporary_value) const {
-    std::scoped_lock lock{mutex};
+    std::scoped_lock lock{connect_mutex};
     if (get_temporary_value && is_configuring) {
         return tmp_is_connected;
     }
@@ -1599,7 +1600,7 @@ NpadIdType EmulatedController::GetNpadIdType() const {
 }
 
 NpadStyleIndex EmulatedController::GetNpadStyleIndex(bool get_temporary_value) const {
-    std::scoped_lock lock{mutex};
+    std::scoped_lock lock{npad_mutex};
     if (get_temporary_value && is_configuring) {
         return tmp_npad_type;
     }
@@ -1609,7 +1610,7 @@ NpadStyleIndex EmulatedController::GetNpadStyleIndex(bool get_temporary_value) c
 void EmulatedController::SetNpadStyleIndex(NpadStyleIndex npad_type_) {
     auto trigger_guard =
         SCOPE_GUARD({ TriggerOnChange(ControllerTriggerType::Type, !is_configuring); });
-    std::scoped_lock lock{mutex};
+    std::scoped_lock lock{mutex, npad_mutex};
 
     if (is_configuring) {
         if (tmp_npad_type == npad_type_) {

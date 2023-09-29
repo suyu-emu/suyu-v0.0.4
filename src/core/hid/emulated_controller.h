@@ -603,6 +603,8 @@ private:
 
     mutable std::mutex mutex;
     mutable std::mutex callback_mutex;
+    mutable std::mutex npad_mutex;
+    mutable std::mutex connect_mutex;
     std::unordered_map<int, ControllerUpdateCallback> callback_list;
     int last_callback_key = 0;
 
