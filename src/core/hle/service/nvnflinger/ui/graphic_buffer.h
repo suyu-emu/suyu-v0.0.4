@@ -12,8 +12,7 @@
 
 namespace Service::android {
 
-class GraphicBuffer final {
-public:
+struct GraphicBuffer final {
     constexpr GraphicBuffer() = default;
 
     constexpr GraphicBuffer(u32 width_, u32 height_, PixelFormat format_, u32 usage_)
@@ -77,7 +76,6 @@ public:
         return false;
     }
 
-private:
     u32 magic{};
     s32 width{};
     s32 height{};

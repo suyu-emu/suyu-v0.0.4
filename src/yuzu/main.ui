@@ -137,6 +137,15 @@
     <property name="title">
      <string>&amp;Tools</string>
     </property>
+    <widget class="QMenu" name="menu_cabinet_applet">
+     <property name="title">
+      <string>&amp;Amiibo</string>
+     </property>
+     <addaction name="action_Load_Cabinet_Nickname_Owner"/>
+     <addaction name="action_Load_Cabinet_Eraser"/>
+     <addaction name="action_Load_Cabinet_Restorer"/>
+     <addaction name="action_Load_Cabinet_Formatter"/>
+    </widget>
     <widget class="QMenu" name="menuTAS">
      <property name="title">
       <string>&amp;TAS</string>
@@ -150,6 +159,7 @@
     <addaction name="action_Rederive"/>
     <addaction name="action_Verify_installed_contents"/>
     <addaction name="separator"/>
+    <addaction name="menu_cabinet_applet"/>
     <addaction name="action_Load_Mii_Edit"/>
     <addaction name="separator"/>
     <addaction name="action_Capture_Screenshot"/>
@@ -368,6 +378,26 @@
    </property>
    <property name="text">
     <string>&amp;Capture Screenshot</string>
+   </property>
+  </action>
+  <action name="action_Load_Cabinet_Nickname_Owner">
+   <property name="text">
+    <string>&amp;Set Nickname and Owner</string>
+   </property>
+  </action>
+  <action name="action_Load_Cabinet_Eraser">
+   <property name="text">
+    <string>&amp;Delete Game Data</string>
+   </property>
+  </action>
+  <action name="action_Load_Cabinet_Restorer">
+   <property name="text">
+    <string>&amp;Restore Amiibo</string>
+   </property>
+  </action>
+  <action name="action_Load_Cabinet_Formatter">
+   <property name="text">
+    <string>&amp;Format Amiibo</string>
    </property>
   </action>
   <action name="action_Load_Mii_Edit">
