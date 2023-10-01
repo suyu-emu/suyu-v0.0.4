@@ -8,6 +8,7 @@
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "core/core.h"
+#include "core/core_timing.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
@@ -19,6 +20,7 @@
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"
+#include "core/hle/service/am/applets/applet_cabinet.h"
 #include "core/hle/service/am/applets/applet_mii_edit_types.h"
 #include "core/hle/service/am/applets/applet_profile_select.h"
 #include "core/hle/service/am/applets/applet_web_browser.h"
@@ -33,11 +35,13 @@
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/ns/ns.h"
+#include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/hle/service/vi/vi.h"
+#include "core/hle/service/vi/vi_results.h"
 #include "core/memory.h"
 
 namespace Service::AM {
@@ -190,7 +194,7 @@ IDisplayController::IDisplayController(Core::System& system_)
         {4, nullptr, "UpdateCallerAppletCaptureImage"},
         {5, nullptr, "GetLastForegroundCaptureImageEx"},
         {6, nullptr, "GetLastApplicationCaptureImageEx"},
-        {7, nullptr, "GetCallerAppletCaptureImageEx"},
+        {7, &IDisplayController::GetCallerAppletCaptureImageEx, "GetCallerAppletCaptureImageEx"},
         {8, &IDisplayController::TakeScreenShotOfOwnLayer, "TakeScreenShotOfOwnLayer"},
         {9, nullptr, "CopyBetweenCaptureBuffers"},
         {10, nullptr, "AcquireLastApplicationCaptureBuffer"},
@@ -208,8 +212,8 @@ IDisplayController::IDisplayController(Core::System& system_)
         {23, nullptr, "ReleaseLastApplicationCaptureSharedBuffer"},
         {24, nullptr, "AcquireLastForegroundCaptureSharedBuffer"},
         {25, nullptr, "ReleaseLastForegroundCaptureSharedBuffer"},
-        {26, nullptr, "AcquireCallerAppletCaptureSharedBuffer"},
-        {27, nullptr, "ReleaseCallerAppletCaptureSharedBuffer"},
+        {26, &IDisplayController::AcquireCallerAppletCaptureSharedBuffer, "AcquireCallerAppletCaptureSharedBuffer"},
+        {27, &IDisplayController::ReleaseCallerAppletCaptureSharedBuffer, "ReleaseCallerAppletCaptureSharedBuffer"},
         {28, nullptr, "TakeScreenShotOfOwnLayerEx"},
     };
     // clang-format on
@@ -219,7 +223,32 @@ IDisplayController::IDisplayController(Core::System& system_)
 
 IDisplayController::~IDisplayController() = default;
 
+void IDisplayController::GetCallerAppletCaptureImageEx(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push(1u);
+    rb.Push(0);
+}
+
 void IDisplayController::TakeScreenShotOfOwnLayer(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IDisplayController::AcquireCallerAppletCaptureSharedBuffer(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push(1U);
+    rb.Push(0);
+}
+
+void IDisplayController::ReleaseCallerAppletCaptureSharedBuffer(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -285,14 +314,14 @@ ISelfController::ISelfController(Core::System& system_, Nvnflinger::Nvnflinger& 
         {20, nullptr, "SetDesirableKeyboardLayout"},
         {21, nullptr, "GetScreenShotProgramId"},
         {40, &ISelfController::CreateManagedDisplayLayer, "CreateManagedDisplayLayer"},
-        {41, nullptr, "IsSystemBufferSharingEnabled"},
-        {42, nullptr, "GetSystemSharedLayerHandle"},
-        {43, nullptr, "GetSystemSharedBufferHandle"},
+        {41, &ISelfController::IsSystemBufferSharingEnabled, "IsSystemBufferSharingEnabled"},
+        {42, &ISelfController::GetSystemSharedLayerHandle, "GetSystemSharedLayerHandle"},
+        {43, &ISelfController::GetSystemSharedBufferHandle, "GetSystemSharedBufferHandle"},
         {44, &ISelfController::CreateManagedDisplaySeparableLayer, "CreateManagedDisplaySeparableLayer"},
         {45, nullptr, "SetManagedDisplayLayerSeparationMode"},
         {46, nullptr, "SetRecordingLayerCompositionEnabled"},
         {50, &ISelfController::SetHandlesRequestToDisplay, "SetHandlesRequestToDisplay"},
-        {51, nullptr, "ApproveToDisplay"},
+        {51, &ISelfController::ApproveToDisplay, "ApproveToDisplay"},
         {60, nullptr, "OverrideAutoSleepTimeAndDimmingTime"},
         {61, nullptr, "SetMediaPlaybackState"},
         {62, &ISelfController::SetIdleTimeDetectionExtension, "SetIdleTimeDetectionExtension"},
@@ -491,6 +520,50 @@ void ISelfController::CreateManagedDisplayLayer(HLERequestContext& ctx) {
     rb.Push(*layer_id);
 }
 
+void ISelfController::IsSystemBufferSharingEnabled(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(this->EnsureBufferSharingEnabled());
+}
+
+void ISelfController::GetSystemSharedLayerHandle(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 6};
+    rb.Push(this->EnsureBufferSharingEnabled());
+    rb.Push<s64>(system_shared_buffer_id);
+    rb.Push<s64>(system_shared_layer_id);
+}
+
+void ISelfController::GetSystemSharedBufferHandle(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(this->EnsureBufferSharingEnabled());
+    rb.Push<s64>(system_shared_buffer_id);
+}
+
+Result ISelfController::EnsureBufferSharingEnabled() {
+    if (buffer_sharing_enabled) {
+        return ResultSuccess;
+    }
+
+    if (system.GetAppletManager().GetCurrentAppletId() <= Applets::AppletId::Application) {
+        return VI::ResultOperationFailed;
+    }
+
+    const auto display_id = nvnflinger.OpenDisplay("Default");
+    const auto result = nvnflinger.GetSystemBufferManager().Initialize(
+        &system_shared_buffer_id, &system_shared_layer_id, *display_id);
+
+    if (result.IsSuccess()) {
+        buffer_sharing_enabled = true;
+    }
+
+    return result;
+}
+
 void ISelfController::CreateManagedDisplaySeparableLayer(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
@@ -510,6 +583,13 @@ void ISelfController::CreateManagedDisplaySeparableLayer(HLERequestContext& ctx)
 }
 
 void ISelfController::SetHandlesRequestToDisplay(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void ISelfController::ApproveToDisplay(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -686,7 +766,8 @@ void AppletMessageQueue::OperationModeChanged() {
 
 ICommonStateGetter::ICommonStateGetter(Core::System& system_,
                                        std::shared_ptr<AppletMessageQueue> msg_queue_)
-    : ServiceFramework{system_, "ICommonStateGetter"}, msg_queue{std::move(msg_queue_)} {
+    : ServiceFramework{system_, "ICommonStateGetter"}, msg_queue{std::move(msg_queue_)},
+      service_context{system_, "ICommonStateGetter"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ICommonStateGetter::GetEventHandle, "GetEventHandle"},
@@ -699,10 +780,10 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_,
         {7, nullptr, "GetCradleStatus"},
         {8, &ICommonStateGetter::GetBootMode, "GetBootMode"},
         {9, &ICommonStateGetter::GetCurrentFocusState, "GetCurrentFocusState"},
-        {10, nullptr, "RequestToAcquireSleepLock"},
+        {10, &ICommonStateGetter::RequestToAcquireSleepLock, "RequestToAcquireSleepLock"},
         {11, nullptr, "ReleaseSleepLock"},
         {12, nullptr, "ReleaseSleepLockTransiently"},
-        {13, nullptr, "GetAcquiredSleepLockEvent"},
+        {13, &ICommonStateGetter::GetAcquiredSleepLockEvent, "GetAcquiredSleepLockEvent"},
         {14, nullptr, "GetWakeupCount"},
         {20, nullptr, "PushToGeneralChannel"},
         {30, nullptr, "GetHomeButtonReaderLockAccessor"},
@@ -744,6 +825,8 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_,
     // clang-format on
 
     RegisterHandlers(functions);
+
+    sleep_lock_event = service_context.CreateEvent("ICommonStateGetter::SleepLockEvent");
 
     // Configure applets to be in foreground state
     msg_queue->PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
@@ -791,6 +874,24 @@ void ICommonStateGetter::GetCurrentFocusState(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.Push(static_cast<u8>(FocusState::InFocus));
+}
+
+void ICommonStateGetter::RequestToAcquireSleepLock(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    // Sleep lock is acquired immediately.
+    sleep_lock_event->Signal();
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void ICommonStateGetter::GetAcquiredSleepLockEvent(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(ResultSuccess);
+    rb.PushCopyObjects(sleep_lock_event->GetReadableEvent());
 }
 
 void ICommonStateGetter::IsVrModeEnabled(HLERequestContext& ctx) {
@@ -1385,7 +1486,16 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
     // clang-format on
     RegisterHandlers(functions);
 
-    PushInShowMiiEditData();
+    switch (system.GetAppletManager().GetCurrentAppletId()) {
+    case Applets::AppletId::Cabinet:
+        PushInShowCabinetData();
+        break;
+    case Applets::AppletId::MiiEdit:
+        PushInShowMiiEditData();
+        break;
+    default:
+        break;
+    }
 }
 
 ILibraryAppletSelfAccessor::~ILibraryAppletSelfAccessor() = default;
@@ -1431,7 +1541,7 @@ void ILibraryAppletSelfAccessor::GetLibraryAppletInfo(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     const LibraryAppletInfo applet_info{
-        .applet_id = Applets::AppletId::MiiEdit,
+        .applet_id = system.GetAppletManager().GetCurrentAppletId(),
         .library_applet_mode = Applets::LibraryAppletMode::AllForeground,
     };
 
@@ -1457,6 +1567,35 @@ void ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(HLERequestContext& 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
     rb.PushRaw(applet_info);
+}
+
+void ILibraryAppletSelfAccessor::PushInShowCabinetData() {
+    const Applets::CommonArguments arguments{
+        .arguments_version = Applets::CommonArgumentVersion::Version3,
+        .size = Applets::CommonArgumentSize::Version3,
+        .library_version = static_cast<u32>(Applets::CabinetAppletVersion::Version1),
+        .theme_color = Applets::ThemeColor::BasicBlack,
+        .play_startup_sound = true,
+        .system_tick = system.CoreTiming().GetClockTicks(),
+    };
+
+    const Applets::StartParamForAmiiboSettings amiibo_settings{
+        .param_1 = 0,
+        .applet_mode = system.GetAppletManager().GetCabinetMode(),
+        .flags = Applets::CabinetFlags::None,
+        .amiibo_settings_1 = 0,
+        .device_handle = 0,
+        .tag_info{},
+        .register_info{},
+        .amiibo_settings_3{},
+    };
+
+    std::vector<u8> argument_data(sizeof(arguments));
+    std::vector<u8> settings_data(sizeof(amiibo_settings));
+    std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
+    std::memcpy(settings_data.data(), &amiibo_settings, sizeof(amiibo_settings));
+    queue_data.emplace_back(std::move(argument_data));
+    queue_data.emplace_back(std::move(settings_data));
 }
 
 void ILibraryAppletSelfAccessor::PushInShowMiiEditData() {
@@ -2235,7 +2374,7 @@ void IProcessWindingController::GetLaunchReason(HLERequestContext& ctx) {
 }
 
 void IProcessWindingController::OpenCallingLibraryApplet(HLERequestContext& ctx) {
-    const auto applet_id = Applets::AppletId::MiiEdit;
+    const auto applet_id = system.GetAppletManager().GetCurrentAppletId();
     const auto applet_mode = Applets::LibraryAppletMode::AllForeground;
 
     LOG_WARNING(Service_AM, "(STUBBED) called with applet_id={:08X}, applet_mode={:08X}", applet_id,
@@ -2256,4 +2395,5 @@ void IProcessWindingController::OpenCallingLibraryApplet(HLERequestContext& ctx)
     rb.Push(ResultSuccess);
     rb.PushIpcInterface<ILibraryAppletAccessor>(system, applet);
 }
+
 } // namespace Service::AM

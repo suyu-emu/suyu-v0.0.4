@@ -1551,6 +1551,14 @@ void GMainWindow::ConnectMenuEvents() {
     // Tools
     connect_menu(ui->action_Rederive, std::bind(&GMainWindow::OnReinitializeKeys, this,
                                                 ReinitializeKeyBehavior::Warning));
+    connect_menu(ui->action_Load_Cabinet_Nickname_Owner,
+                 [this]() { OnCabinet(Service::NFP::CabinetMode::StartNicknameAndOwnerSettings); });
+    connect_menu(ui->action_Load_Cabinet_Eraser,
+                 [this]() { OnCabinet(Service::NFP::CabinetMode::StartGameDataEraser); });
+    connect_menu(ui->action_Load_Cabinet_Restorer,
+                 [this]() { OnCabinet(Service::NFP::CabinetMode::StartRestorer); });
+    connect_menu(ui->action_Load_Cabinet_Formatter,
+                 [this]() { OnCabinet(Service::NFP::CabinetMode::StartFormatter); });
     connect_menu(ui->action_Load_Mii_Edit, &GMainWindow::OnMiiEdit);
     connect_menu(ui->action_Capture_Screenshot, &GMainWindow::OnCaptureScreenshot);
 
@@ -1568,6 +1576,7 @@ void GMainWindow::ConnectMenuEvents() {
 
 void GMainWindow::UpdateMenuState() {
     const bool is_paused = emu_thread == nullptr || !emu_thread->IsRunning();
+    const bool is_firmware_available = CheckFirmwarePresence();
 
     const std::array running_actions{
         ui->action_Stop,
@@ -1578,8 +1587,20 @@ void GMainWindow::UpdateMenuState() {
         ui->action_Pause,
     };
 
+    const std::array applet_actions{
+        ui->action_Load_Cabinet_Nickname_Owner,
+        ui->action_Load_Cabinet_Eraser,
+        ui->action_Load_Cabinet_Restorer,
+        ui->action_Load_Cabinet_Formatter,
+        ui->action_Load_Mii_Edit,
+    };
+
     for (QAction* action : running_actions) {
         action->setEnabled(emulation_running);
+    }
+
+    for (QAction* action : applet_actions) {
+        action->setEnabled(is_firmware_available && !emulation_running);
     }
 
     ui->action_Capture_Screenshot->setEnabled(emulation_running && !is_paused);
@@ -1591,8 +1612,6 @@ void GMainWindow::UpdateMenuState() {
     }
 
     multiplayer_state->UpdateNotificationStatus();
-
-    ui->action_Load_Mii_Edit->setEnabled(CheckFirmwarePresence());
 }
 
 void GMainWindow::OnDisplayTitleBars(bool show) {
@@ -2102,6 +2121,8 @@ void GMainWindow::OnEmulationStopped() {
     input_subsystem->GetTas()->Stop();
     OnTasStateChanged();
     render_window->FinalizeCamera();
+
+    system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::None);
 
     // Enable all controllers
     system->HIDCore().SetSupportedStyleTag({Core::HID::NpadStyleSet::All});
@@ -4134,6 +4155,30 @@ void GMainWindow::OnToggleStatusBar() {
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
 }
 
+void GMainWindow::OnCabinet(Service::NFP::CabinetMode mode) {
+    constexpr u64 CabinetId = 0x0100000000001002ull;
+    auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        QMessageBox::warning(this, tr("No firmware available"),
+                             tr("Please install the firmware to use the Cabinet applet."));
+        return;
+    }
+
+    auto cabinet_nca = bis_system->GetEntry(CabinetId, FileSys::ContentRecordType::Program);
+    if (!cabinet_nca) {
+        QMessageBox::warning(this, tr("Cabinet Applet"),
+                             tr("Cabinet applet is not available. Please reinstall firmware."));
+        return;
+    }
+
+    system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::Cabinet);
+    system->GetAppletManager().SetCabinetMode(mode);
+
+    const auto filename = QString::fromStdString(cabinet_nca->GetFullPath());
+    UISettings::values.roms_path = QFileInfo(filename).path();
+    BootGame(filename);
+}
+
 void GMainWindow::OnMiiEdit() {
     constexpr u64 MiiEditId = 0x0100000000001009ull;
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
@@ -4149,6 +4194,8 @@ void GMainWindow::OnMiiEdit() {
                              tr("Mii editor is not available. Please reinstall firmware."));
         return;
     }
+
+    system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::MiiEdit);
 
     const auto filename = QString::fromStdString((mii_applet_nca->GetFullPath()));
     UISettings::values.roms_path = QFileInfo(filename).path();

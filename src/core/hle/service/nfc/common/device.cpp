@@ -830,11 +830,6 @@ Result NfcDevice::SetRegisterInfoPrivate(const NFP::RegisterInfoPrivate& registe
         return ResultWrongDeviceState;
     }
 
-    Service::Mii::StoreData store_data{};
-    Service::Mii::NfpStoreDataExtension extension{};
-    store_data.BuildBase(Mii::Gender::Male);
-    extension.SetFromStoreData(store_data);
-
     auto& settings = tag_data.settings;
 
     if (tag_data.settings.settings.amiibo_initialized == 0) {
@@ -843,8 +838,8 @@ Result NfcDevice::SetRegisterInfoPrivate(const NFP::RegisterInfoPrivate& registe
     }
 
     SetAmiiboName(settings, register_info.amiibo_name);
-    tag_data.owner_mii.BuildFromStoreData(store_data);
-    tag_data.mii_extension = extension;
+    tag_data.owner_mii.BuildFromStoreData(register_info.mii_store_data);
+    tag_data.mii_extension.SetFromStoreData(register_info.mii_store_data);
     tag_data.unknown = 0;
     tag_data.unknown2 = {};
     settings.country_code_id = 0;

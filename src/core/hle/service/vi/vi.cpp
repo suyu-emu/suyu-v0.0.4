@@ -20,9 +20,12 @@
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/nvdrv/devices/nvmap.h"
 #include "core/hle/service/nvdrv/nvdata.h"
+#include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvnflinger/binder.h"
 #include "core/hle/service/nvnflinger/buffer_queue_producer.h"
+#include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
 #include "core/hle/service/nvnflinger/hos_binder_driver_server.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/nvnflinger/parcel.h"
@@ -131,8 +134,9 @@ private:
 
 class ISystemDisplayService final : public ServiceFramework<ISystemDisplayService> {
 public:
-    explicit ISystemDisplayService(Core::System& system_)
-        : ServiceFramework{system_, "ISystemDisplayService"} {
+    explicit ISystemDisplayService(Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger_)
+        : ServiceFramework{system_, "ISystemDisplayService"}, nvnflinger{nvnflinger_} {
+        // clang-format off
         static const FunctionInfo functions[] = {
             {1200, nullptr, "GetZOrderCountMin"},
             {1202, nullptr, "GetZOrderCountMax"},
@@ -170,22 +174,126 @@ public:
             {3217, nullptr, "SetDisplayCmuLuma"},
             {3218, nullptr, "SetDisplayCrcMode"},
             {6013, nullptr, "GetLayerPresentationSubmissionTimestamps"},
-            {8225, nullptr, "GetSharedBufferMemoryHandleId"},
-            {8250, nullptr, "OpenSharedLayer"},
+            {8225, &ISystemDisplayService::GetSharedBufferMemoryHandleId, "GetSharedBufferMemoryHandleId"},
+            {8250, &ISystemDisplayService::OpenSharedLayer, "OpenSharedLayer"},
             {8251, nullptr, "CloseSharedLayer"},
-            {8252, nullptr, "ConnectSharedLayer"},
+            {8252, &ISystemDisplayService::ConnectSharedLayer, "ConnectSharedLayer"},
             {8253, nullptr, "DisconnectSharedLayer"},
-            {8254, nullptr, "AcquireSharedFrameBuffer"},
-            {8255, nullptr, "PresentSharedFrameBuffer"},
-            {8256, nullptr, "GetSharedFrameBufferAcquirableEvent"},
+            {8254, &ISystemDisplayService::AcquireSharedFrameBuffer, "AcquireSharedFrameBuffer"},
+            {8255, &ISystemDisplayService::PresentSharedFrameBuffer, "PresentSharedFrameBuffer"},
+            {8256, &ISystemDisplayService::GetSharedFrameBufferAcquirableEvent, "GetSharedFrameBufferAcquirableEvent"},
             {8257, nullptr, "FillSharedFrameBufferColor"},
             {8258, nullptr, "CancelSharedFrameBuffer"},
             {9000, nullptr, "GetDp2hdmiController"},
         };
+        // clang-format on
         RegisterHandlers(functions);
     }
 
 private:
+    void GetSharedBufferMemoryHandleId(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const u64 buffer_id = rp.PopRaw<u64>();
+
+        LOG_INFO(Service_VI, "called. buffer_id={:#x}", buffer_id);
+
+        struct OutputParameters {
+            s32 nvmap_handle;
+            u64 size;
+        };
+
+        OutputParameters out{};
+        Nvnflinger::SharedMemoryPoolLayout layout{};
+        const auto result = nvnflinger.GetSystemBufferManager().GetSharedBufferMemoryHandleId(
+            &out.size, &out.nvmap_handle, &layout, buffer_id, 0);
+
+        ctx.WriteBuffer(&layout, sizeof(layout));
+
+        IPC::ResponseBuilder rb{ctx, 6};
+        rb.Push(result);
+        rb.PushRaw(out);
+    }
+
+    void OpenSharedLayer(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const u64 layer_id = rp.PopRaw<u64>();
+
+        LOG_INFO(Service_VI, "(STUBBED) called. layer_id={:#x}", layer_id);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void ConnectSharedLayer(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const u64 layer_id = rp.PopRaw<u64>();
+
+        LOG_INFO(Service_VI, "(STUBBED) called. layer_id={:#x}", layer_id);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void GetSharedFrameBufferAcquirableEvent(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_VI, "called");
+
+        IPC::RequestParser rp{ctx};
+        const u64 layer_id = rp.PopRaw<u64>();
+
+        Kernel::KReadableEvent* event{};
+        const auto result = nvnflinger.GetSystemBufferManager().GetSharedFrameBufferAcquirableEvent(
+            &event, layer_id);
+
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(result);
+        rb.PushCopyObjects(event);
+    }
+
+    void AcquireSharedFrameBuffer(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_VI, "called");
+
+        IPC::RequestParser rp{ctx};
+        const u64 layer_id = rp.PopRaw<u64>();
+
+        struct OutputParameters {
+            android::Fence fence;
+            std::array<s32, 4> slots;
+            s64 target_slot;
+        };
+        static_assert(sizeof(OutputParameters) == 0x40, "OutputParameters has wrong size");
+
+        OutputParameters out{};
+        const auto result = nvnflinger.GetSystemBufferManager().AcquireSharedFrameBuffer(
+            &out.fence, out.slots, &out.target_slot, layer_id);
+
+        IPC::ResponseBuilder rb{ctx, 18};
+        rb.Push(result);
+        rb.PushRaw(out);
+    }
+
+    void PresentSharedFrameBuffer(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_VI, "called");
+
+        struct InputParameters {
+            android::Fence fence;
+            Common::Rectangle<s32> crop_region;
+            u32 window_transform;
+            s32 swap_interval;
+            u64 layer_id;
+            s64 surface_id;
+        };
+        static_assert(sizeof(InputParameters) == 0x50, "InputParameters has wrong size");
+
+        IPC::RequestParser rp{ctx};
+        auto input = rp.PopRaw<InputParameters>();
+
+        const auto result = nvnflinger.GetSystemBufferManager().PresentSharedFrameBuffer(
+            input.fence, input.crop_region, input.window_transform, input.swap_interval,
+            input.layer_id, input.surface_id);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+    }
+
     void SetLayerZ(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const u64 layer_id = rp.Pop<u64>();
@@ -228,6 +336,9 @@ private:
         rb.PushRaw<float>(60.0f); // This wouldn't seem to be correct for 30 fps games.
         rb.Push<u32>(0);
     }
+
+private:
+    Nvnflinger::Nvnflinger& nvnflinger;
 };
 
 class IManagerDisplayService final : public ServiceFramework<IManagerDisplayService> {
@@ -453,7 +564,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<ISystemDisplayService>(system);
+        rb.PushIpcInterface<ISystemDisplayService>(system, nv_flinger);
     }
 
     void GetManagerDisplayService(HLERequestContext& ctx) {
