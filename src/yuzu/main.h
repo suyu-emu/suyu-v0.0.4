@@ -369,6 +369,7 @@ private slots:
     void ResetWindowSize720();
     void ResetWindowSize900();
     void ResetWindowSize1080();
+    void OnAlbum();
     void OnCabinet(Service::NFP::CabinetMode mode);
     void OnMiiEdit();
     void OnCaptureScreenshot();

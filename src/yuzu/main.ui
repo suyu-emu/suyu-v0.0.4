@@ -160,6 +160,7 @@
     <addaction name="action_Verify_installed_contents"/>
     <addaction name="separator"/>
     <addaction name="menu_cabinet_applet"/>
+    <addaction name="action_Load_Album"/>
     <addaction name="action_Load_Mii_Edit"/>
     <addaction name="separator"/>
     <addaction name="action_Capture_Screenshot"/>
@@ -379,6 +380,11 @@
    <property name="text">
     <string>&amp;Capture Screenshot</string>
    </property>
+  </action>
+  <action name="action_Load_Album">
+    <property name="text">
+      <string>Open &amp;Album</string>
+    </property>
   </action>
   <action name="action_Load_Cabinet_Nickname_Owner">
    <property name="text">
