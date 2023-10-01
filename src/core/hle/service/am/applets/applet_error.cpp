@@ -138,6 +138,10 @@ void Error::Initialize() {
         CopyArgumentData(data, args->application_error);
         error_code = Result(args->application_error.error_code);
         break;
+    case ErrorAppletMode::ShowErrorPctl:
+        CopyArgumentData(data, args->error_record);
+        error_code = Decode64BitError(args->error_record.error_code_64);
+        break;
     case ErrorAppletMode::ShowErrorRecord:
         CopyArgumentData(data, args->error_record);
         error_code = Decode64BitError(args->error_record.error_code_64);
@@ -191,6 +195,7 @@ void Error::Execute() {
         frontend.ShowCustomErrorText(error_code, main_text_string, detail_text_string, callback);
         break;
     }
+    case ErrorAppletMode::ShowErrorPctl:
     case ErrorAppletMode::ShowErrorRecord:
         reporter.SaveErrorReport(title_id, error_code,
                                  fmt::format("{:016X}", args->error_record.posix_time));

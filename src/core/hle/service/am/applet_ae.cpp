@@ -28,8 +28,8 @@ public:
             {11, &ILibraryAppletProxy::GetLibraryAppletCreator, "GetLibraryAppletCreator"},
             {20, &ILibraryAppletProxy::OpenLibraryAppletSelfAccessor, "OpenLibraryAppletSelfAccessor"},
             {21, &ILibraryAppletProxy::GetAppletCommonFunctions, "GetAppletCommonFunctions"},
-            {22, nullptr, "GetHomeMenuFunctions"},
-            {23, nullptr, "GetGlobalStateController"},
+            {22, &ILibraryAppletProxy::GetHomeMenuFunctions, "GetHomeMenuFunctions"},
+            {23, &ILibraryAppletProxy::GetGlobalStateController, "GetGlobalStateController"},
             {1000, &ILibraryAppletProxy::GetDebugFunctions, "GetDebugFunctions"},
         };
         // clang-format on
@@ -108,6 +108,22 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
         rb.PushIpcInterface<IAppletCommonFunctions>(system);
+    }
+
+    void GetHomeMenuFunctions(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(ResultSuccess);
+        rb.PushIpcInterface<IHomeMenuFunctions>(system);
+    }
+
+    void GetGlobalStateController(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_AM, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(ResultSuccess);
+        rb.PushIpcInterface<IGlobalStateController>(system);
     }
 
     void GetDebugFunctions(HLERequestContext& ctx) {

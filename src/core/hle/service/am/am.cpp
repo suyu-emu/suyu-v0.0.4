@@ -764,6 +764,66 @@ void AppletMessageQueue::OperationModeChanged() {
     on_operation_mode_changed->Signal();
 }
 
+ILockAccessor::ILockAccessor(Core::System& system_)
+    : ServiceFramework{system_, "ILockAccessor"}, service_context{system_, "ILockAccessor"} {
+    // clang-format off
+        static const FunctionInfo functions[] = {
+            {1, &ILockAccessor::TryLock, "TryLock"},
+            {2, &ILockAccessor::Unlock, "Unlock"},
+            {3, &ILockAccessor::GetEvent, "GetEvent"},
+            {4,&ILockAccessor::IsLocked, "IsLocked"},
+        };
+    // clang-format on
+
+    RegisterHandlers(functions);
+
+    lock_event = service_context.CreateEvent("ILockAccessor::LockEvent");
+}
+
+ILockAccessor::~ILockAccessor() = default;
+
+void ILockAccessor::TryLock(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto return_handle = rp.Pop<bool>();
+
+    LOG_WARNING(Service_AM, "(STUBBED) called, return_handle={}", return_handle);
+
+    // TODO: When return_handle is true this function should return the lock handle
+
+    is_locked = true;
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u8>(is_locked);
+}
+
+void ILockAccessor::Unlock(HLERequestContext& ctx) {
+    LOG_INFO(Service_AM, "called");
+
+    is_locked = false;
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void ILockAccessor::GetEvent(HLERequestContext& ctx) {
+    LOG_INFO(Service_AM, "called");
+
+    lock_event->Signal();
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(ResultSuccess);
+    rb.PushCopyObjects(lock_event->GetReadableEvent());
+}
+
+void ILockAccessor::IsLocked(HLERequestContext& ctx) {
+    LOG_INFO(Service_AM, "called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+    rb.Push<u8>(is_locked);
+}
+
 ICommonStateGetter::ICommonStateGetter(Core::System& system_,
                                        std::shared_ptr<AppletMessageQueue> msg_queue_)
     : ServiceFramework{system_, "ICommonStateGetter"}, msg_queue{std::move(msg_queue_)},
@@ -787,7 +847,7 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_,
         {14, nullptr, "GetWakeupCount"},
         {20, nullptr, "PushToGeneralChannel"},
         {30, nullptr, "GetHomeButtonReaderLockAccessor"},
-        {31, nullptr, "GetReaderLockAccessorEx"},
+        {31, &ICommonStateGetter::GetReaderLockAccessorEx, "GetReaderLockAccessorEx"},
         {32, nullptr, "GetWriterLockAccessorEx"},
         {40, nullptr, "GetCradleFwVersion"},
         {50, &ICommonStateGetter::IsVrModeEnabled, "IsVrModeEnabled"},
@@ -805,7 +865,7 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_,
         {65, nullptr, "GetApplicationIdByContentActionName"},
         {66, &ICommonStateGetter::SetCpuBoostMode, "SetCpuBoostMode"},
         {67, nullptr, "CancelCpuBoostMode"},
-        {68, nullptr, "GetBuiltInDisplayType"},
+        {68, &ICommonStateGetter::GetBuiltInDisplayType, "GetBuiltInDisplayType"},
         {80, &ICommonStateGetter::PerformSystemButtonPressingIfInFocus, "PerformSystemButtonPressingIfInFocus"},
         {90, nullptr, "SetPerformanceConfigurationChangedNotification"},
         {91, nullptr, "GetCurrentPerformanceConfiguration"},
@@ -884,6 +944,18 @@ void ICommonStateGetter::RequestToAcquireSleepLock(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
+}
+
+void ICommonStateGetter::GetReaderLockAccessorEx(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto unknown = rp.Pop<u32>();
+
+    LOG_INFO(Service_AM, "called, unknown={}", unknown);
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+
+    rb.Push(ResultSuccess);
+    rb.PushIpcInterface<ILockAccessor>(system);
 }
 
 void ICommonStateGetter::GetAcquiredSleepLockEvent(HLERequestContext& ctx) {
@@ -968,6 +1040,14 @@ void ICommonStateGetter::SetCpuBoostMode(HLERequestContext& ctx) {
     ASSERT(apm_sys != nullptr);
 
     apm_sys->SetCpuBoostMode(ctx);
+}
+
+void ICommonStateGetter::GetBuiltInDisplayType(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(0);
 }
 
 void ICommonStateGetter::PerformSystemButtonPressingIfInFocus(HLERequestContext& ctx) {
