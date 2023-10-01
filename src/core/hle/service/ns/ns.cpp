@@ -7,6 +7,7 @@
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/vfs.h"
+#include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/glue/glue_manager.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/ns/errors.h"
@@ -502,8 +503,8 @@ IContentManagementInterface::IContentManagementInterface(Core::System& system_)
     static const FunctionInfo functions[] = {
         {11, nullptr, "CalculateApplicationOccupiedSize"},
         {43, nullptr, "CheckSdCardMountStatus"},
-        {47, nullptr, "GetTotalSpaceSize"},
-        {48, nullptr, "GetFreeSpaceSize"},
+        {47, &IContentManagementInterface::GetTotalSpaceSize, "GetTotalSpaceSize"},
+        {48, &IContentManagementInterface::GetFreeSpaceSize, "GetFreeSpaceSize"},
         {600, nullptr, "CountApplicationContentMeta"},
         {601, nullptr, "ListApplicationContentMetaStatus"},
         {605, nullptr, "ListApplicationContentMetaStatusWithRightsCheck"},
@@ -515,6 +516,28 @@ IContentManagementInterface::IContentManagementInterface(Core::System& system_)
 }
 
 IContentManagementInterface::~IContentManagementInterface() = default;
+
+void IContentManagementInterface::GetTotalSpaceSize(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto storage{rp.PopEnum<FileSys::StorageId>()};
+
+    LOG_INFO(Service_Capture, "called, storage={}", storage);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push<u64>(system.GetFileSystemController().GetTotalSpaceSize(storage));
+}
+
+void IContentManagementInterface::GetFreeSpaceSize(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto storage{rp.PopEnum<FileSys::StorageId>()};
+
+    LOG_INFO(Service_Capture, "called, storage={}", storage);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push<u64>(system.GetFileSystemController().GetFreeSpaceSize(storage));
+}
 
 IDocumentInterface::IDocumentInterface(Core::System& system_)
     : ServiceFramework{system_, "IDocumentInterface"} {
