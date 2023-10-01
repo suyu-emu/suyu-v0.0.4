@@ -135,6 +135,11 @@ std::u16string UTF8ToUTF16(std::string_view input) {
     return convert.from_bytes(input.data(), input.data() + input.size());
 }
 
+std::u32string UTF8ToUTF32(std::string_view input) {
+    std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
+    return convert.from_bytes(input.data(), input.data() + input.size());
+}
+
 #ifdef _WIN32
 static std::wstring CPToUTF16(u32 code_page, std::string_view input) {
     const auto size =
