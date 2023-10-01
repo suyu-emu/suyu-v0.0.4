@@ -48,6 +48,10 @@ class IContentManagementInterface final : public ServiceFramework<IContentManage
 public:
     explicit IContentManagementInterface(Core::System& system_);
     ~IContentManagementInterface() override;
+
+private:
+    void GetTotalSpaceSize(HLERequestContext& ctx);
+    void GetFreeSpaceSize(HLERequestContext& ctx);
 };
 
 class IDocumentInterface final : public ServiceFramework<IDocumentInterface> {
