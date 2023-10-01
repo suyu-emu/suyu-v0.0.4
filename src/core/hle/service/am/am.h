@@ -327,6 +327,7 @@ private:
     void ExitProcessAndReturn(HLERequestContext& ctx);
     void GetCallerAppletIdentityInfo(HLERequestContext& ctx);
 
+    void PushInShowAlbum();
     void PushInShowCabinetData();
     void PushInShowMiiEditData();
 

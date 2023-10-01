@@ -1493,6 +1493,9 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
     case Applets::AppletId::MiiEdit:
         PushInShowMiiEditData();
         break;
+    case Applets::AppletId::PhotoViewer:
+        PushInShowAlbum();
+        break;
     default:
         break;
     }
@@ -1567,6 +1570,23 @@ void ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(HLERequestContext& 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
     rb.PushRaw(applet_info);
+}
+
+void ILibraryAppletSelfAccessor::PushInShowAlbum() {
+    const Applets::CommonArguments arguments{
+        .arguments_version = Applets::CommonArgumentVersion::Version3,
+        .size = Applets::CommonArgumentSize::Version3,
+        .library_version = 1,
+        .theme_color = Applets::ThemeColor::BasicBlack,
+        .play_startup_sound = true,
+        .system_tick = system.CoreTiming().GetClockTicks(),
+    };
+
+    std::vector<u8> argument_data(sizeof(arguments));
+    std::vector<u8> settings_data{2};
+    std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
+    queue_data.emplace_back(std::move(argument_data));
+    queue_data.emplace_back(std::move(settings_data));
 }
 
 void ILibraryAppletSelfAccessor::PushInShowCabinetData() {
