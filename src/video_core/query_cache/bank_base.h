@@ -82,6 +82,7 @@ public:
             size_t new_index = bank_indices.front();
             bank_indices.pop_front();
             bank_pool[new_index].Reset();
+            bank_indices.push_back(new_index);
             return new_index;
         }
         size_t new_index = bank_pool.size();

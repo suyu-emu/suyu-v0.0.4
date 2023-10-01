@@ -506,6 +506,7 @@ private:
             SetAccumulationValue(query->value);
             Free(index);
         });
+        rasterizer->SyncOperation(std::move(func));
     }
 
     template <bool is_resolve>
