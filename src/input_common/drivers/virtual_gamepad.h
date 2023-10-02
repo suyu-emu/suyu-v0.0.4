@@ -67,7 +67,7 @@ public:
      * @param player_index the player number that will take this action
      * @param delta_timestamp time passed since last reading
      * @param gyro_x,gyro_y,gyro_z the gyro sensor readings
-     * @param accel_x,accel_y,accel_z the acelerometer reading
+     * @param accel_x,accel_y,accel_z the accelerometer reading
      */
     void SetMotionState(std::size_t player_index, u64 delta_timestamp, float gyro_x, float gyro_y,
                         float gyro_z, float accel_x, float accel_y, float accel_z);
