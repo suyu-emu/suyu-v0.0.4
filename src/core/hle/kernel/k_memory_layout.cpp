@@ -61,7 +61,7 @@ bool KMemoryRegionTree::Insert(u64 address, size_t size, u32 type_id, u32 new_at
         found->Reset(address, inserted_region_last, old_pair, new_attr, type_id);
         this->insert(*found);
     } else {
-        // If we can't re-use, adjust the old region.
+        // If we can't reuse, adjust the old region.
         found->Reset(old_address, address - 1, old_pair, old_attr, old_type);
         this->insert(*found);
 

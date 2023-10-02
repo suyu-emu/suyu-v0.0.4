@@ -314,7 +314,7 @@ public:
         return GetDriverID() != VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     }
 
-    /// Returns true if the device suppors float64 natively.
+    /// Returns true if the device supports float64 natively.
     bool IsFloat64Supported() const {
         return features.features.shaderFloat64;
     }
