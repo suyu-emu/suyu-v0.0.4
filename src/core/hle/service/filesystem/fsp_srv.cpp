@@ -855,6 +855,9 @@ FSP_SRV::FSP_SRV(Core::System& system_)
     if (Settings::values.enable_fs_access_log) {
         access_log_mode = AccessLogMode::SdCard;
     }
+
+    // This should be true on creation
+    fsc.SetAutoSaveDataCreation(true);
 }
 
 FSP_SRV::~FSP_SRV() = default;
