@@ -18,6 +18,8 @@
 #include <sys/socket.h>
 #endif
 
+#include <boost/container/flat_set.hpp>
+
 // VFS includes must be before glad as they will conflict with Windows file api, which uses defines.
 #include "applets/qt_amiibo_settings.h"
 #include "applets/qt_controller.h"
@@ -4649,8 +4651,8 @@ bool GMainWindow::CheckFirmwarePresence() {
 
 bool GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installed, u64 program_id,
                                         u64* selected_title_id, u8* selected_content_record_type) {
-    using ContentInfo = std::pair<FileSys::TitleType, FileSys::ContentRecordType>;
-    boost::container::flat_map<u64, ContentInfo> available_title_ids;
+    using ContentInfo = std::tuple<u64, FileSys::TitleType, FileSys::ContentRecordType>;
+    boost::container::flat_set<ContentInfo> available_title_ids;
 
     const auto RetrieveEntries = [&](FileSys::TitleType title_type,
                                      FileSys::ContentRecordType record_type) {
@@ -4658,12 +4660,14 @@ bool GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installe
         for (const auto& entry : entries) {
             if (FileSys::GetBaseTitleID(entry.title_id) == program_id &&
                 installed.GetEntry(entry)->GetStatus() == Loader::ResultStatus::Success) {
-                available_title_ids[entry.title_id] = {title_type, record_type};
+                available_title_ids.insert({entry.title_id, title_type, record_type});
             }
         }
     };
 
     RetrieveEntries(FileSys::TitleType::Application, FileSys::ContentRecordType::Program);
+    RetrieveEntries(FileSys::TitleType::Application, FileSys::ContentRecordType::HtmlDocument);
+    RetrieveEntries(FileSys::TitleType::Application, FileSys::ContentRecordType::LegalInformation);
     RetrieveEntries(FileSys::TitleType::AOC, FileSys::ContentRecordType::Data);
 
     if (available_title_ids.empty()) {
@@ -4674,10 +4678,14 @@ bool GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installe
 
     if (available_title_ids.size() > 1) {
         QStringList list;
-        for (auto& [title_id, content_info] : available_title_ids) {
+        for (auto& [title_id, title_type, record_type] : available_title_ids) {
             const auto hex_title_id = QString::fromStdString(fmt::format("{:X}", title_id));
-            if (content_info.first == FileSys::TitleType::Application) {
-                list.push_back(QStringLiteral("Application [%1]").arg(hex_title_id));
+            if (record_type == FileSys::ContentRecordType::Program) {
+                list.push_back(QStringLiteral("Program [%1]").arg(hex_title_id));
+            } else if (record_type == FileSys::ContentRecordType::HtmlDocument) {
+                list.push_back(QStringLiteral("HTML document [%1]").arg(hex_title_id));
+            } else if (record_type == FileSys::ContentRecordType::LegalInformation) {
+                list.push_back(QStringLiteral("Legal information [%1]").arg(hex_title_id));
             } else {
                 list.push_back(
                     QStringLiteral("DLC %1 [%2]").arg(title_id & 0x7FF).arg(hex_title_id));
@@ -4695,9 +4703,9 @@ bool GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installe
         title_index = list.indexOf(res);
     }
 
-    const auto selected_info = available_title_ids.nth(title_index);
-    *selected_title_id = selected_info->first;
-    *selected_content_record_type = static_cast<u8>(selected_info->second.second);
+    const auto& [title_id, title_type, record_type] = *available_title_ids.nth(title_index);
+    *selected_title_id = title_id;
+    *selected_content_record_type = static_cast<u8>(record_type);
     return true;
 }
 
