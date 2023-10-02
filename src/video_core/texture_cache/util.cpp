@@ -1195,7 +1195,7 @@ std::optional<SubresourceBase> FindSubresource(const ImageInfo& candidate, const
             return std::nullopt;
         }
     } else {
-        // Format comaptibility is not relaxed, ensure we are creating a view on a compatible format
+        // Format compatibility is not relaxed, ensure we are creating a view on a compatible format
         if (!IsViewCompatible(existing.format, candidate.format, broken_views, native_bgr)) {
             return std::nullopt;
         }

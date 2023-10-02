@@ -55,7 +55,7 @@ void CompositeInsert(EmitContext& ctx, IR::Inst& inst, Register composite, Objec
                 "MOV.{} {}.{},{};",
                 type, ret, composite, type, ret, swizzle, object);
     } else {
-        // The return value is alised so we can just insert the object, it doesn't matter if it's
+        // The return value is aliased so we can just insert the object, it doesn't matter if it's
         // aliased
         ctx.Add("MOV.{} {}.{},{};", type, ret, swizzle, object);
     }

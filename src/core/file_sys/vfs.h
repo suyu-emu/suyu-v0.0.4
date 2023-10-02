@@ -175,7 +175,7 @@ public:
         return Write(reinterpret_cast<const u8*>(&data), sizeof(T), offset);
     }
 
-    // Renames the file to name. Returns whether or not the operation was successsful.
+    // Renames the file to name. Returns whether or not the operation was successful.
     virtual bool Rename(std::string_view name) = 0;
 
     // Returns the full path of this file as a string, recursively

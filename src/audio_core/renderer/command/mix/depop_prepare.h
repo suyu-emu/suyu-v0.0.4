@@ -16,7 +16,7 @@ namespace AudioCore::Renderer {
 
 /**
  * AudioRenderer command for preparing depop.
- * Adds the previusly output last samples to the depop buffer.
+ * Adds the previously output last samples to the depop buffer.
  */
 struct DepopPrepareCommand : ICommand {
     /**

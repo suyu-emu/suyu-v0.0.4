@@ -55,7 +55,7 @@ public:
 
     /**
      * Configures the motion sensor with the specified parameters
-     * @param gsen gyroscope sensor sensitvity in degrees per second
+     * @param gsen gyroscope sensor sensitivity in degrees per second
      * @param gfrec gyroscope sensor frequency in hertz
      * @param asen accelerometer sensitivity in G force
      * @param afrec accelerometer frequency in hertz
