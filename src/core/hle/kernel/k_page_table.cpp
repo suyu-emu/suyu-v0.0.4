@@ -5,6 +5,7 @@
 #include "common/assert.h"
 #include "common/literals.h"
 #include "common/scope_exit.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_address_space_info.h"
 #include "core/hle/kernel/k_memory_block.h"
@@ -337,11 +338,14 @@ Result KPageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_type
 }
 
 void KPageTable::Finalize() {
+    auto HostUnmapCallback = [&](KProcessAddress addr, u64 size) {
+        if (Settings::IsFastmemEnabled()) {
+            m_system.DeviceMemory().buffer.Unmap(GetInteger(addr), size);
+        }
+    };
+
     // Finalize memory blocks.
-    m_memory_block_manager.Finalize(m_memory_block_slab_manager,
-                                    [&](KProcessAddress addr, u64 size) {
-                                        m_memory->UnmapRegion(*m_page_table_impl, addr, size);
-                                    });
+    m_memory_block_manager.Finalize(m_memory_block_slab_manager, std::move(HostUnmapCallback));
 
     // Release any insecure mapped memory.
     if (m_mapped_insecure_memory) {
