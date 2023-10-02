@@ -56,10 +56,6 @@ public:
         return device.GetDriverName();
     }
 
-    void NotifySurfaceChanged() override {
-        present_manager.NotifySurfaceChanged();
-    }
-
 private:
     void Report() const;
 
