@@ -29,9 +29,10 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(Settings, sink_id, "Output Engine:", "");
     INSERT(Settings, audio_output_device_id, "Output Device:", "");
     INSERT(Settings, audio_input_device_id, "Input Device:", "");
-    INSERT(Settings, audio_muted, "Mute audio when in background", "");
+    INSERT(Settings, audio_muted, "Mute audio", "");
     INSERT(Settings, volume, "Volume:", "");
     INSERT(Settings, dump_audio_commands, "", "");
+    INSERT(UISettings, mute_when_in_background, "Mute audio when in background", "");
 
     // Core
     INSERT(Settings, use_multi_core, "Multicore CPU Emulation", "");
