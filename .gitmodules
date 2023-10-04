@@ -58,3 +58,6 @@
 [submodule "VulkanMemoryAllocator"]
 	path = externals/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "breakpad"]
+	path = externals/breakpad
+	url = https://github.com/yuzu-emu/breakpad.git

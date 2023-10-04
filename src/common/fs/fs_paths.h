@@ -13,6 +13,7 @@
 #define AMIIBO_DIR "amiibo"
 #define CACHE_DIR "cache"
 #define CONFIG_DIR "config"
+#define CRASH_DUMPS_DIR "crash_dumps"
 #define DUMP_DIR "dump"
 #define KEYS_DIR "keys"
 #define LOAD_DIR "load"
