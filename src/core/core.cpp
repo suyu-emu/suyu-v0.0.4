@@ -1078,6 +1078,10 @@ void System::ApplySettings() {
     impl->RefreshTime();
 
     if (IsPoweredOn()) {
+        if (Settings::values.custom_rtc_enabled) {
+            const s64 posix_time{Settings::values.custom_rtc.GetValue()};
+            GetTimeManager().UpdateLocalSystemClockTime(posix_time);
+        }
         Renderer().RefreshBaseSettings();
     }
 }
