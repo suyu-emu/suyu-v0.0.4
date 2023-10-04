@@ -3,53 +3,21 @@
 
 #include "common/logging/log.h"
 #include "core/hle/service/caps/caps_c.h"
+#include "core/hle/service/caps/caps_manager.h"
+#include "core/hle/service/caps/caps_result.h"
+#include "core/hle/service/caps/caps_types.h"
 #include "core/hle/service/ipc_helpers.h"
 
 namespace Service::Capture {
 
-class IAlbumControlSession final : public ServiceFramework<IAlbumControlSession> {
-public:
-    explicit IAlbumControlSession(Core::System& system_)
-        : ServiceFramework{system_, "IAlbumControlSession"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {2001, nullptr, "OpenAlbumMovieReadStream"},
-            {2002, nullptr, "CloseAlbumMovieReadStream"},
-            {2003, nullptr, "GetAlbumMovieReadStreamMovieDataSize"},
-            {2004, nullptr, "ReadMovieDataFromAlbumMovieReadStream"},
-            {2005, nullptr, "GetAlbumMovieReadStreamBrokenReason"},
-            {2006, nullptr, "GetAlbumMovieReadStreamImageDataSize"},
-            {2007, nullptr, "ReadImageDataFromAlbumMovieReadStream"},
-            {2008, nullptr, "ReadFileAttributeFromAlbumMovieReadStream"},
-            {2401, nullptr, "OpenAlbumMovieWriteStream"},
-            {2402, nullptr, "FinishAlbumMovieWriteStream"},
-            {2403, nullptr, "CommitAlbumMovieWriteStream"},
-            {2404, nullptr, "DiscardAlbumMovieWriteStream"},
-            {2405, nullptr, "DiscardAlbumMovieWriteStreamNoDelete"},
-            {2406, nullptr, "CommitAlbumMovieWriteStreamEx"},
-            {2411, nullptr, "StartAlbumMovieWriteStreamDataSection"},
-            {2412, nullptr, "EndAlbumMovieWriteStreamDataSection"},
-            {2413, nullptr, "StartAlbumMovieWriteStreamMetaSection"},
-            {2414, nullptr, "EndAlbumMovieWriteStreamMetaSection"},
-            {2421, nullptr, "ReadDataFromAlbumMovieWriteStream"},
-            {2422, nullptr, "WriteDataToAlbumMovieWriteStream"},
-            {2424, nullptr, "WriteMetaToAlbumMovieWriteStream"},
-            {2431, nullptr, "GetAlbumMovieWriteStreamBrokenReason"},
-            {2433, nullptr, "GetAlbumMovieWriteStreamDataSize"},
-            {2434, nullptr, "SetAlbumMovieWriteStreamDataSize"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-};
-
-CAPS_C::CAPS_C(Core::System& system_) : ServiceFramework{system_, "caps:c"} {
+IAlbumControlService::IAlbumControlService(Core::System& system_,
+                                           std::shared_ptr<AlbumManager> album_manager)
+    : ServiceFramework{system_, "caps:c"}, manager{album_manager} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {1, nullptr, "CaptureRawImage"},
         {2, nullptr, "CaptureRawImageWithTimeout"},
-        {33, &CAPS_C::SetShimLibraryVersion, "SetShimLibraryVersion"},
+        {33, &IAlbumControlService::SetShimLibraryVersion, "SetShimLibraryVersion"},
         {1001, nullptr, "RequestTakingScreenShot"},
         {1002, nullptr, "RequestTakingScreenShotWithTimeout"},
         {1011, nullptr, "NotifyTakingScreenShotRefused"},
@@ -72,9 +40,9 @@ CAPS_C::CAPS_C(Core::System& system_) : ServiceFramework{system_, "caps:c"} {
     RegisterHandlers(functions);
 }
 
-CAPS_C::~CAPS_C() = default;
+IAlbumControlService::~IAlbumControlService() = default;
 
-void CAPS_C::SetShimLibraryVersion(HLERequestContext& ctx) {
+void IAlbumControlService::SetShimLibraryVersion(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto library_version{rp.Pop<u64>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};

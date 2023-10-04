@@ -7,10 +7,11 @@
 
 namespace Service::Capture {
 
-CAPS_SU::CAPS_SU(Core::System& system_) : ServiceFramework{system_, "caps:su"} {
+IScreenShotApplicationService::IScreenShotApplicationService(Core::System& system_)
+    : ServiceFramework{system_, "caps:su"} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {32, &CAPS_SU::SetShimLibraryVersion, "SetShimLibraryVersion"},
+        {32, &IScreenShotApplicationService::SetShimLibraryVersion, "SetShimLibraryVersion"},
         {201, nullptr, "SaveScreenShot"},
         {203, nullptr, "SaveScreenShotEx0"},
         {205, nullptr, "SaveScreenShotEx1"},
@@ -21,9 +22,9 @@ CAPS_SU::CAPS_SU(Core::System& system_) : ServiceFramework{system_, "caps:su"} {
     RegisterHandlers(functions);
 }
 
-CAPS_SU::~CAPS_SU() = default;
+IScreenShotApplicationService::~IScreenShotApplicationService() = default;
 
-void CAPS_SU::SetShimLibraryVersion(HLERequestContext& ctx) {
+void IScreenShotApplicationService::SetShimLibraryVersion(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto library_version{rp.Pop<u64>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};

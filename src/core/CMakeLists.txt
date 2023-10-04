@@ -466,14 +466,18 @@ add_library(core STATIC
     hle/service/caps/caps_a.h
     hle/service/caps/caps_c.cpp
     hle/service/caps/caps_c.h
-    hle/service/caps/caps_u.cpp
-    hle/service/caps/caps_u.h
+    hle/service/caps/caps_manager.cpp
+    hle/service/caps/caps_manager.h
+    hle/service/caps/caps_result.h
     hle/service/caps/caps_sc.cpp
     hle/service/caps/caps_sc.h
     hle/service/caps/caps_ss.cpp
     hle/service/caps/caps_ss.h
     hle/service/caps/caps_su.cpp
     hle/service/caps/caps_su.h
+    hle/service/caps/caps_types.h
+    hle/service/caps/caps_u.cpp
+    hle/service/caps/caps_u.h
     hle/service/erpt/erpt.cpp
     hle/service/erpt/erpt.h
     hle/service/es/es.cpp
