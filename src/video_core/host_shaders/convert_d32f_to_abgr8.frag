@@ -10,5 +10,5 @@ layout(location = 0) out vec4 color;
 void main() {
     ivec2 coord = ivec2(gl_FragCoord.xy);
     float depth = textureLod(depth_tex, coord, 0).r;
-    color = vec4(vec3(depth), 1.0); // Convert depth to grayscale color
+    color = vec4(depth, depth*depth, sqrt(depth), 1.0); // Convert depth to color
 }
