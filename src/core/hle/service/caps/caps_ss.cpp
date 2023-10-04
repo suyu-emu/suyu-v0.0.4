@@ -5,7 +5,8 @@
 
 namespace Service::Capture {
 
-CAPS_SS::CAPS_SS(Core::System& system_) : ServiceFramework{system_, "caps:ss"} {
+IScreenShotService::IScreenShotService(Core::System& system_)
+    : ServiceFramework{system_, "caps:ss"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {201, nullptr, "SaveScreenShot"},
@@ -21,6 +22,6 @@ CAPS_SS::CAPS_SS(Core::System& system_) : ServiceFramework{system_, "caps:ss"} {
     RegisterHandlers(functions);
 }
 
-CAPS_SS::~CAPS_SS() = default;
+IScreenShotService::~IScreenShotService() = default;
 
 } // namespace Service::Capture

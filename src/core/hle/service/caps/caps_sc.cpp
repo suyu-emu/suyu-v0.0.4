@@ -5,7 +5,8 @@
 
 namespace Service::Capture {
 
-CAPS_SC::CAPS_SC(Core::System& system_) : ServiceFramework{system_, "caps:sc"} {
+IScreenShotControlService::IScreenShotControlService(Core::System& system_)
+    : ServiceFramework{system_, "caps:sc"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {1, nullptr, "CaptureRawImage"},
@@ -34,6 +35,6 @@ CAPS_SC::CAPS_SC(Core::System& system_) : ServiceFramework{system_, "caps:sc"} {
     RegisterHandlers(functions);
 }
 
-CAPS_SC::~CAPS_SC() = default;
+IScreenShotControlService::~IScreenShotControlService() = default;
 
 } // namespace Service::Capture

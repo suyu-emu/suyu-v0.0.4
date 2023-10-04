@@ -31,7 +31,7 @@
 #include "core/hle/service/apm/apm_controller.h"
 #include "core/hle/service/apm/apm_interface.h"
 #include "core/hle/service/bcat/backend/backend.h"
-#include "core/hle/service/caps/caps.h"
+#include "core/hle/service/caps/caps_types.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/ns/ns.h"

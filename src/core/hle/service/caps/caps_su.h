@@ -11,10 +11,10 @@ class System;
 
 namespace Service::Capture {
 
-class CAPS_SU final : public ServiceFramework<CAPS_SU> {
+class IScreenShotApplicationService final : public ServiceFramework<IScreenShotApplicationService> {
 public:
-    explicit CAPS_SU(Core::System& system_);
-    ~CAPS_SU() override;
+    explicit IScreenShotApplicationService(Core::System& system_);
+    ~IScreenShotApplicationService() override;
 
 private:
     void SetShimLibraryVersion(HLERequestContext& ctx);

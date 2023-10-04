@@ -10,14 +10,18 @@ class System;
 }
 
 namespace Service::Capture {
+class AlbumManager;
 
-class CAPS_C final : public ServiceFramework<CAPS_C> {
+class IAlbumControlService final : public ServiceFramework<IAlbumControlService> {
 public:
-    explicit CAPS_C(Core::System& system_);
-    ~CAPS_C() override;
+    explicit IAlbumControlService(Core::System& system_,
+                                  std::shared_ptr<AlbumManager> album_manager);
+    ~IAlbumControlService() override;
 
 private:
     void SetShimLibraryVersion(HLERequestContext& ctx);
+
+    std::shared_ptr<AlbumManager> manager = nullptr;
 };
 
 } // namespace Service::Capture
