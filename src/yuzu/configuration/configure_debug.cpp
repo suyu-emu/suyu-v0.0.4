@@ -27,16 +27,6 @@ ConfigureDebug::ConfigureDebug(const Core::System& system_, QWidget* parent)
 
     connect(ui->toggle_gdbstub, &QCheckBox::toggled,
             [&]() { ui->gdbport_spinbox->setEnabled(ui->toggle_gdbstub->isChecked()); });
-
-    connect(ui->create_crash_dumps, &QCheckBox::stateChanged, [&](int) {
-        if (crash_dump_warning_shown) {
-            return;
-        }
-        QMessageBox::warning(this, tr("Restart Required"),
-                             tr("yuzu is required to restart in order to apply this setting."),
-                             QMessageBox::Ok, QMessageBox::Ok);
-        crash_dump_warning_shown = true;
-    });
 }
 
 ConfigureDebug::~ConfigureDebug() = default;
@@ -89,13 +79,6 @@ void ConfigureDebug::SetConfiguration() {
     ui->disable_web_applet->setEnabled(false);
     ui->disable_web_applet->setText(tr("Web applet not compiled"));
 #endif
-
-#ifdef YUZU_DBGHELP
-    ui->create_crash_dumps->setChecked(Settings::values.create_crash_dumps.GetValue());
-#else
-    ui->create_crash_dumps->setEnabled(false);
-    ui->create_crash_dumps->setText(tr("MiniDump creation not compiled"));
-#endif
 }
 
 void ConfigureDebug::ApplyConfiguration() {
@@ -107,7 +90,6 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.enable_fs_access_log = ui->fs_access_log->isChecked();
     Settings::values.reporting_services = ui->reporting_services->isChecked();
     Settings::values.dump_audio_commands = ui->dump_audio_commands->isChecked();
-    Settings::values.create_crash_dumps = ui->create_crash_dumps->isChecked();
     Settings::values.quest_flag = ui->quest_flag->isChecked();
     Settings::values.use_debug_asserts = ui->use_debug_asserts->isChecked();
     Settings::values.use_auto_stub = ui->use_auto_stub->isChecked();

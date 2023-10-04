@@ -15,6 +15,7 @@ enum class YuzuPath {
     AmiiboDir,      // Where Amiibo backups are stored.
     CacheDir,       // Where cached filesystem data is stored.
     ConfigDir,      // Where config files are stored.
+    CrashDumpsDir,  // Where crash dumps are stored.
     DumpDir,        // Where dumped data is stored.
     KeysDir,        // Where key files are stored.
     LoadDir,        // Where cheat/mod files are stored.

@@ -471,13 +471,6 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="QCheckBox" name="create_crash_dumps">
-           <property name="text">
-            <string>Create Minidump After Crash</string>
-           </property>
-          </widget>
-         </item>
          <item row="3" column="0">
           <widget class="QCheckBox" name="dump_audio_commands">
            <property name="toolTip">

@@ -500,7 +500,6 @@ struct Values {
         linkage, false, "use_auto_stub", Category::Debugging, Specialization::Default, false};
     Setting<bool> enable_all_controllers{linkage, false, "enable_all_controllers",
                                          Category::Debugging};
-    Setting<bool> create_crash_dumps{linkage, false, "create_crash_dumps", Category::Debugging};
     Setting<bool> perform_vulkan_check{linkage, true, "perform_vulkan_check", Category::Debugging};
 
     // Miscellaneous
