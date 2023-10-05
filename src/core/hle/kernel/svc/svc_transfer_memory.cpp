@@ -71,15 +71,59 @@ Result CreateTransferMemory(Core::System& system, Handle* out, u64 address, u64 
 }
 
 Result MapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t address, uint64_t size,
-                         MemoryPermission owner_perm) {
-    UNIMPLEMENTED();
-    R_THROW(ResultNotImplemented);
+                         MemoryPermission map_perm) {
+    // Validate the address/size.
+    R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
+    R_UNLESS(Common::IsAligned(size, PageSize), ResultInvalidSize);
+    R_UNLESS(size > 0, ResultInvalidSize);
+    R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
+
+    // Validate the permission.
+    R_UNLESS(IsValidTransferMemoryPermission(map_perm), ResultInvalidState);
+
+    // Get the transfer memory.
+    KScopedAutoObject trmem = GetCurrentProcess(system.Kernel())
+                                  .GetHandleTable()
+                                  .GetObject<KTransferMemory>(trmem_handle);
+    R_UNLESS(trmem.IsNotNull(), ResultInvalidHandle);
+
+    // Verify that the mapping is in range.
+    R_UNLESS(GetCurrentProcess(system.Kernel())
+                 .GetPageTable()
+                 .CanContain(address, size, KMemoryState::Transfered),
+             ResultInvalidMemoryRegion);
+
+    // Map the transfer memory.
+    R_TRY(trmem->Map(address, size, map_perm));
+
+    // We succeeded.
+    R_SUCCEED();
 }
 
 Result UnmapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t address,
                            uint64_t size) {
-    UNIMPLEMENTED();
-    R_THROW(ResultNotImplemented);
+    // Validate the address/size.
+    R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
+    R_UNLESS(Common::IsAligned(size, PageSize), ResultInvalidSize);
+    R_UNLESS(size > 0, ResultInvalidSize);
+    R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
+
+    // Get the transfer memory.
+    KScopedAutoObject trmem = GetCurrentProcess(system.Kernel())
+                                  .GetHandleTable()
+                                  .GetObject<KTransferMemory>(trmem_handle);
+    R_UNLESS(trmem.IsNotNull(), ResultInvalidHandle);
+
+    // Verify that the mapping is in range.
+    R_UNLESS(GetCurrentProcess(system.Kernel())
+                 .GetPageTable()
+                 .CanContain(address, size, KMemoryState::Transfered),
+             ResultInvalidMemoryRegion);
+
+    // Unmap the transfer memory.
+    R_TRY(trmem->Unmap(address, size));
+
+    R_SUCCEED();
 }
 
 Result MapTransferMemory64(Core::System& system, Handle trmem_handle, uint64_t address,
