@@ -2949,6 +2949,23 @@ Result KPageTable::UnlockForIpcUserBuffer(KProcessAddress address, size_t size) 
                                 KMemoryAttribute::Locked, nullptr));
 }
 
+Result KPageTable::LockForTransferMemory(KPageGroup* out, KProcessAddress address, size_t size,
+                                         KMemoryPermission perm) {
+    R_RETURN(this->LockMemoryAndOpen(out, nullptr, address, size, KMemoryState::FlagCanTransfer,
+                                     KMemoryState::FlagCanTransfer, KMemoryPermission::All,
+                                     KMemoryPermission::UserReadWrite, KMemoryAttribute::All,
+                                     KMemoryAttribute::None, perm, KMemoryAttribute::Locked));
+}
+
+Result KPageTable::UnlockForTransferMemory(KProcessAddress address, size_t size,
+                                           const KPageGroup& pg) {
+    R_RETURN(this->UnlockMemory(address, size, KMemoryState::FlagCanTransfer,
+                                KMemoryState::FlagCanTransfer, KMemoryPermission::None,
+                                KMemoryPermission::None, KMemoryAttribute::All,
+                                KMemoryAttribute::Locked, KMemoryPermission::UserReadWrite,
+                                KMemoryAttribute::Locked, std::addressof(pg)));
+}
+
 Result KPageTable::LockForCodeMemory(KPageGroup* out, KProcessAddress addr, size_t size) {
     R_RETURN(this->LockMemoryAndOpen(
         out, nullptr, addr, size, KMemoryState::FlagCanCodeMemory, KMemoryState::FlagCanCodeMemory,
