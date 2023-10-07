@@ -38,6 +38,7 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 
 [[nodiscard]] std::string UTF16ToUTF8(std::u16string_view input);
 [[nodiscard]] std::u16string UTF8ToUTF16(std::string_view input);
+[[nodiscard]] std::u32string UTF8ToUTF32(std::string_view input);
 
 #ifdef _WIN32
 [[nodiscard]] std::string UTF16ToUTF8(std::wstring_view input);
