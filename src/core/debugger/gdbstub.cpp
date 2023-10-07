@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <atomic>
+#include <codecvt>
+#include <locale>
 #include <numeric>
 #include <optional>
 #include <thread>
@@ -12,6 +14,7 @@
 #include "common/logging/log.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
+#include "common/string_util.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/debugger/gdbstub.h"
@@ -68,10 +71,16 @@ static std::string EscapeGDB(std::string_view data) {
 }
 
 static std::string EscapeXML(std::string_view data) {
+    std::u32string converted = U"[Encoding error]";
+    try {
+        converted = Common::UTF8ToUTF32(data);
+    } catch (std::range_error&) {
+    }
+
     std::string escaped;
     escaped.reserve(data.size());
 
-    for (char c : data) {
+    for (char32_t c : converted) {
         switch (c) {
         case '&':
             escaped += "&amp;";
@@ -86,7 +95,11 @@ static std::string EscapeXML(std::string_view data) {
             escaped += "&gt;";
             break;
         default:
-            escaped += c;
+            if (c > 0x7f) {
+                escaped += fmt::format("&#{};", static_cast<u32>(c));
+            } else {
+                escaped += static_cast<char>(c);
+            }
             break;
         }
     }
