@@ -214,8 +214,9 @@ struct FormatTuple {
     {VK_FORMAT_E5B9G9R9_UFLOAT_PACK32},                        // E5B9G9R9_FLOAT
 
     // Depth formats
-    {VK_FORMAT_D32_SFLOAT, Attachable}, // D32_FLOAT
-    {VK_FORMAT_D16_UNORM, Attachable},  // D16_UNORM
+    {VK_FORMAT_D32_SFLOAT, Attachable},          // D32_FLOAT
+    {VK_FORMAT_D16_UNORM, Attachable},           // D16_UNORM
+    {VK_FORMAT_X8_D24_UNORM_PACK32, Attachable}, // X8_D24_UNORM
 
     // Stencil formats
     {VK_FORMAT_S8_UINT, Attachable}, // S8_UINT

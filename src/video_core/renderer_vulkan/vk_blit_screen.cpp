@@ -96,6 +96,7 @@ std::size_t GetSizeInBytes(const Tegra::FramebufferConfig& framebuffer) {
 VkFormat GetFormat(const Tegra::FramebufferConfig& framebuffer) {
     switch (framebuffer.pixel_format) {
     case Service::android::PixelFormat::Rgba8888:
+    case Service::android::PixelFormat::Rgbx8888:
         return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
     case Service::android::PixelFormat::Rgb565:
         return VK_FORMAT_R5G6B5_UNORM_PACK16;
