@@ -84,9 +84,12 @@ constexpr std::array VK_FORMAT_A4B4G4R4_UNORM_PACK16{
 } // namespace Alternatives
 
 enum class NvidiaArchitecture {
-    AmpereOrNewer,
+    KeplerOrOlder,
+    Maxwell,
+    Pascal,
+    Volta,
     Turing,
-    VoltaOrOlder,
+    AmpereOrNewer,
 };
 
 template <typename T>
@@ -321,13 +324,38 @@ NvidiaArchitecture GetNvidiaArchitecture(vk::PhysicalDevice physical,
         physical.GetProperties2(physical_properties);
         if (shading_rate_props.primitiveFragmentShadingRateWithMultipleViewports) {
             // Only Ampere and newer support this feature
+            // TODO: Find a way to differentiate Ampere and Ada
             return NvidiaArchitecture::AmpereOrNewer;
         }
-    }
-    if (exts.contains(VK_NV_SHADING_RATE_IMAGE_EXTENSION_NAME)) {
         return NvidiaArchitecture::Turing;
     }
-    return NvidiaArchitecture::VoltaOrOlder;
+
+    if (exts.contains(VK_EXT_BLEND_OPERATION_ADVANCED_EXTENSION_NAME)) {
+        VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT advanced_blending_props{};
+        advanced_blending_props.sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BLEND_OPERATION_ADVANCED_PROPERTIES_EXT;
+        VkPhysicalDeviceProperties2 physical_properties{};
+        physical_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+        physical_properties.pNext = &advanced_blending_props;
+        physical.GetProperties2(physical_properties);
+        if (advanced_blending_props.advancedBlendMaxColorAttachments == 1) {
+            return NvidiaArchitecture::Maxwell;
+        }
+
+        if (exts.contains(VK_EXT_CONSERVATIVE_RASTERIZATION_EXTENSION_NAME)) {
+            VkPhysicalDeviceConservativeRasterizationPropertiesEXT conservative_raster_props{};
+            conservative_raster_props.sType =
+                VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONSERVATIVE_RASTERIZATION_PROPERTIES_EXT;
+            physical_properties.pNext = &conservative_raster_props;
+            physical.GetProperties2(physical_properties);
+            if (conservative_raster_props.degenerateLinesRasterized) {
+                return NvidiaArchitecture::Volta;
+            }
+            return NvidiaArchitecture::Pascal;
+        }
+    }
+
+    return NvidiaArchitecture::KeplerOrOlder;
 }
 
 std::vector<const char*> ExtensionListForVulkan(
@@ -504,19 +532,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (is_nvidia) {
         const u32 nv_major_version = (properties.properties.driverVersion >> 22) & 0x3ff;
         const auto arch = GetNvidiaArchitecture(physical, supported_extensions);
-        switch (arch) {
-        case NvidiaArchitecture::AmpereOrNewer:
+        if (arch >= NvidiaArchitecture::AmpereOrNewer) {
             LOG_WARNING(Render_Vulkan, "Ampere and newer have broken float16 math");
             features.shader_float16_int8.shaderFloat16 = false;
-            break;
-        case NvidiaArchitecture::Turing:
-            break;
-        case NvidiaArchitecture::VoltaOrOlder:
+        } else if (arch <= NvidiaArchitecture::Volta) {
             if (nv_major_version < 527) {
                 LOG_WARNING(Render_Vulkan, "Volta and older have broken VK_KHR_push_descriptor");
                 RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
             }
-            break;
         }
         if (nv_major_version >= 510) {
             LOG_WARNING(Render_Vulkan, "NVIDIA Drivers >= 510 do not support MSAA image blits");
@@ -661,7 +684,15 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                         "ANV drivers 22.3.0 to 23.1.0 have broken VK_KHR_push_descriptor");
             RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
         }
+    } else if (extensions.push_descriptor && is_nvidia) {
+        const auto arch = GetNvidiaArchitecture(physical, supported_extensions);
+        if (arch <= NvidiaArchitecture::Pascal) {
+            LOG_WARNING(Render_Vulkan,
+                        "Pascal and older architectures have broken VK_KHR_push_descriptor");
+            RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+        }
     }
+
     if (is_mvk) {
         LOG_WARNING(Render_Vulkan,
                     "MVK driver breaks when using more than 16 vertex attributes/bindings");
