@@ -1201,6 +1201,9 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
         if (src_view.format == PixelFormat::D24_UNORM_S8_UINT) {
             return blit_image_helper.ConvertS8D24ToABGR8(dst, src_view);
         }
+        if (src_view.format == PixelFormat::D32_FLOAT) {
+            return blit_image_helper.ConvertD32FToABGR8(dst, src_view);
+        }
         break;
     case PixelFormat::R32_FLOAT:
         if (src_view.format == PixelFormat::D32_FLOAT) {
