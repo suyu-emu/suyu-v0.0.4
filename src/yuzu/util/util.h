@@ -7,14 +7,22 @@
 #include <QString>
 
 /// Returns a QFont object appropriate to use as a monospace font for debugging widgets, etc.
-QFont GetMonospaceFont();
+[[nodiscard]] QFont GetMonospaceFont();
 
 /// Convert a size in bytes into a readable format (KiB, MiB, etc.)
-QString ReadableByteSize(qulonglong size);
+[[nodiscard]] QString ReadableByteSize(qulonglong size);
 
 /**
  * Creates a circle pixmap from a specified color
  * @param color The color the pixmap shall have
  * @return QPixmap circle pixmap
  */
-QPixmap CreateCirclePixmapFromColor(const QColor& color);
+[[nodiscard]] QPixmap CreateCirclePixmapFromColor(const QColor& color);
+
+/**
+ * Saves a windows icon to a file
+ * @param path The icons path
+ * @param image The image to save
+ * @return bool If the operation succeeded
+ */
+[[nodiscard]] bool SaveIconToFile(const std::string_view path, const QImage& image);

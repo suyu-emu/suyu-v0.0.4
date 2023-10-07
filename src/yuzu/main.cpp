@@ -98,6 +98,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
 #ifdef _WIN32
+#include <shlobj.h>
 #include "common/windows/timer_resolution.h"
 #endif
 #ifdef ARCHITECTURE_x86_64
@@ -2825,7 +2826,6 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
     const QStringList args = QApplication::arguments();
     std::filesystem::path yuzu_command = args[0].toStdString();
 
-#if defined(__linux__) || defined(__FreeBSD__)
     // If relative path, make it an absolute path
     if (yuzu_command.c_str()[0] == '.') {
         yuzu_command = Common::FS::GetCurrentDir() / yuzu_command;
@@ -2848,12 +2848,14 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
         UISettings::values.shortcut_already_warned = true;
     }
 #endif // __linux__
-#endif // __linux__ || __FreeBSD__
 
     std::filesystem::path target_directory{};
     // Determine target directory for shortcut
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(WIN32)
+    const char* home = std::getenv("USERPROFILE");
+#else
     const char* home = std::getenv("HOME");
+#endif
     const std::filesystem::path home_path = (home == nullptr ? "~" : home);
     const char* xdg_data_home = std::getenv("XDG_DATA_HOME");
 
@@ -2863,7 +2865,7 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
             QMessageBox::critical(
                 this, tr("Create Shortcut"),
                 tr("Cannot create shortcut on desktop. Path \"%1\" does not exist.")
-                    .arg(QString::fromStdString(target_directory)),
+                    .arg(QString::fromStdString(target_directory.generic_string())),
                 QMessageBox::StandardButton::Ok);
             return;
         }
@@ -2871,15 +2873,15 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
         target_directory = (xdg_data_home == nullptr ? home_path / ".local/share" : xdg_data_home) /
                            "applications";
         if (!Common::FS::CreateDirs(target_directory)) {
-            QMessageBox::critical(this, tr("Create Shortcut"),
-                                  tr("Cannot create shortcut in applications menu. Path \"%1\" "
-                                     "does not exist and cannot be created.")
-                                      .arg(QString::fromStdString(target_directory)),
-                                  QMessageBox::StandardButton::Ok);
+            QMessageBox::critical(
+                this, tr("Create Shortcut"),
+                tr("Cannot create shortcut in applications menu. Path \"%1\" "
+                   "does not exist and cannot be created.")
+                    .arg(QString::fromStdString(target_directory.generic_string())),
+                QMessageBox::StandardButton::Ok);
             return;
         }
     }
-#endif
 
     const std::string game_file_name = std::filesystem::path(game_path).filename().string();
     // Determine full paths for icon and shortcut
@@ -2901,9 +2903,14 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
     const std::filesystem::path shortcut_path =
         target_directory / (program_id == 0 ? fmt::format("yuzu-{}.desktop", game_file_name)
                                             : fmt::format("yuzu-{:016X}.desktop", program_id));
+#elif defined(WIN32)
+    std::filesystem::path icons_path =
+        Common::FS::GetYuzuPathString(Common::FS::YuzuPath::IconsDir);
+    std::filesystem::path icon_path =
+        icons_path / ((program_id == 0 ? fmt::format("yuzu-{}.ico", game_file_name)
+                                       : fmt::format("yuzu-{:016X}.ico", program_id)));
 #else
-    const std::filesystem::path icon_path{};
-    const std::filesystem::path shortcut_path{};
+    std::string icon_extension;
 #endif
 
     // Get title from game file
@@ -2928,29 +2935,37 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
         LOG_WARNING(Frontend, "Could not read icon from {:s}", game_path);
     }
 
-    QImage icon_jpeg =
+    QImage icon_data =
         QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
 #if defined(__linux__) || defined(__FreeBSD__)
     // Convert and write the icon as a PNG
-    if (!icon_jpeg.save(QString::fromStdString(icon_path.string()))) {
+    if (!icon_data.save(QString::fromStdString(icon_path.string()))) {
         LOG_ERROR(Frontend, "Could not write icon as PNG to file");
     } else {
         LOG_INFO(Frontend, "Wrote an icon to {}", icon_path.string());
     }
+#elif defined(WIN32)
+    if (!SaveIconToFile(icon_path.string(), icon_data)) {
+        LOG_ERROR(Frontend, "Could not write icon to file");
+        return;
+    }
 #endif // __linux__
 
-#if defined(__linux__) || defined(__FreeBSD__)
+#ifdef _WIN32
+    // Replace characters that are illegal in Windows filenames by a dash
+    const std::string illegal_chars = "<>:\"/\\|?*";
+    for (char c : illegal_chars) {
+        std::replace(title.begin(), title.end(), c, '_');
+    }
+    const std::filesystem::path shortcut_path = target_directory / (title + ".lnk").c_str();
+#endif
+
     const std::string comment =
         tr("Start %1 with the yuzu Emulator").arg(QString::fromStdString(title)).toStdString();
     const std::string arguments = fmt::format("-g \"{:s}\"", game_path);
     const std::string categories = "Game;Emulator;Qt;";
     const std::string keywords = "Switch;Nintendo;";
-#else
-    const std::string comment{};
-    const std::string arguments{};
-    const std::string categories{};
-    const std::string keywords{};
-#endif
+
     if (!CreateShortcut(shortcut_path.string(), title, comment, icon_path.string(),
                         yuzu_command.string(), arguments, categories, keywords)) {
         QMessageBox::critical(this, tr("Create Shortcut"),
@@ -3963,6 +3978,34 @@ bool GMainWindow::CreateShortcut(const std::string& shortcut_path, const std::st
     }
     shortcut_stream << shortcut_contents;
     shortcut_stream.close();
+
+    return true;
+#elif defined(WIN32)
+    IShellLinkW* shell_link;
+    auto hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW,
+                                 (void**)&shell_link);
+    if (FAILED(hres)) {
+        return false;
+    }
+    shell_link->SetPath(
+        Common::UTF8ToUTF16W(command).data()); // Path to the object we are referring to
+    shell_link->SetArguments(Common::UTF8ToUTF16W(arguments).data());
+    shell_link->SetDescription(Common::UTF8ToUTF16W(comment).data());
+    shell_link->SetIconLocation(Common::UTF8ToUTF16W(icon_path).data(), 0);
+
+    IPersistFile* persist_file;
+    hres = shell_link->QueryInterface(IID_IPersistFile, (void**)&persist_file);
+    if (FAILED(hres)) {
+        return false;
+    }
+
+    hres = persist_file->Save(Common::UTF8ToUTF16W(shortcut_path).data(), TRUE);
+    if (FAILED(hres)) {
+        return false;
+    }
+
+    persist_file->Release();
+    shell_link->Release();
 
     return true;
 #endif
