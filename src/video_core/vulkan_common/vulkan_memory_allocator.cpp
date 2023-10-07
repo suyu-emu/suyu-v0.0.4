@@ -9,6 +9,7 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "common/literals.h"
 #include "common/logging/log.h"
 #include "common/polyfill_ranges.h"
 #include "video_core/vulkan_common/vma.h"
@@ -69,8 +70,7 @@ struct Range {
     case MemoryUsage::Download:
         return VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
     case MemoryUsage::DeviceLocal:
-        return VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
-               VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
+        return {};
     }
     return {};
 }
@@ -212,7 +212,20 @@ MemoryAllocator::MemoryAllocator(const Device& device_)
     : device{device_}, allocator{device.GetAllocator()},
       properties{device_.GetPhysical().GetMemoryProperties().memoryProperties},
       buffer_image_granularity{
-          device_.GetPhysical().GetProperties().limits.bufferImageGranularity} {}
+          device_.GetPhysical().GetProperties().limits.bufferImageGranularity} {
+    // GPUs not supporting rebar may only have a region with less than 256MB host visible/device
+    // local memory. In that case, opening 2 RenderDoc captures side-by-side is not possible due to
+    // the heap running out of memory. With RenderDoc attached and only a small host/device region,
+    // only allow the stream buffer in this memory heap.
+    if (device.HasDebuggingToolAttached()) {
+        using namespace Common::Literals;
+        ForEachDeviceLocalHostVisibleHeap(device, [this](size_t index, VkMemoryHeap& heap) {
+            if (heap.size <= 256_MiB) {
+                valid_memory_types &= ~(1u << index);
+            }
+        });
+    }
+}
 
 MemoryAllocator::~MemoryAllocator() = default;
 
@@ -244,7 +257,7 @@ vk::Buffer MemoryAllocator::CreateBuffer(const VkBufferCreateInfo& ci, MemoryUsa
         .usage = MemoryUsageVma(usage),
         .requiredFlags = 0,
         .preferredFlags = MemoryUsagePreferedVmaFlags(usage),
-        .memoryTypeBits = 0,
+        .memoryTypeBits = usage == MemoryUsage::Stream ? 0u : valid_memory_types,
         .pool = VK_NULL_HANDLE,
         .pUserData = nullptr,
         .priority = 0.f,
