@@ -103,8 +103,7 @@ PresentManager::PresentManager(const vk::Instance& instance_,
       surface{surface_}, blit_supported{CanBlitToSwapchain(device.GetPhysical(),
                                                            swapchain.GetImageViewFormat())},
       use_present_thread{Settings::values.async_presentation.GetValue()},
-      image_count{swapchain.GetImageCount()}, last_render_surface{
-                                                  render_window_.GetWindowInfo().render_surface} {
+      image_count{swapchain.GetImageCount()} {
 
     auto& dld = device.GetLogical();
     cmdpool = dld.CreateCommandPool({
@@ -289,44 +288,36 @@ void PresentManager::PresentThread(std::stop_token token) {
     }
 }
 
-void PresentManager::NotifySurfaceChanged() {
-#ifdef ANDROID
-    std::scoped_lock lock{recreate_surface_mutex};
-    recreate_surface_cv.notify_one();
-#endif
+void PresentManager::RecreateSwapchain(Frame* frame) {
+    swapchain.Create(*surface, frame->width, frame->height, frame->is_srgb);
+    image_count = swapchain.GetImageCount();
 }
 
 void PresentManager::CopyToSwapchain(Frame* frame) {
-    MICROPROFILE_SCOPE(Vulkan_CopyToSwapchain);
+    bool requires_recreation = false;
 
-    const auto recreate_swapchain = [&] {
-        swapchain.Create(*surface, frame->width, frame->height, frame->is_srgb);
-        image_count = swapchain.GetImageCount();
-    };
+    while (true) {
+        try {
+            // Recreate surface and swapchain if needed.
+            if (requires_recreation) {
+                surface = CreateSurface(instance, render_window.GetWindowInfo());
+                RecreateSwapchain(frame);
+            }
 
-#ifdef ANDROID
-    std::unique_lock lock{recreate_surface_mutex};
+            // Draw to swapchain.
+            return CopyToSwapchainImpl(frame);
+        } catch (const vk::Exception& except) {
+            if (except.GetResult() != VK_ERROR_SURFACE_LOST_KHR) {
+                throw;
+            }
 
-    const auto needs_recreation = [&] {
-        if (last_render_surface != render_window.GetWindowInfo().render_surface) {
-            return true;
+            requires_recreation = true;
         }
-        if (swapchain.NeedsRecreation(frame->is_srgb)) {
-            return true;
-        }
-        return false;
-    };
-
-    recreate_surface_cv.wait_for(lock, std::chrono::milliseconds(400),
-                                 [&]() { return !needs_recreation(); });
-
-    // If the frontend recreated the surface, recreate the renderer surface and swapchain.
-    if (last_render_surface != render_window.GetWindowInfo().render_surface) {
-        last_render_surface = render_window.GetWindowInfo().render_surface;
-        surface = CreateSurface(instance, render_window.GetWindowInfo());
-        recreate_swapchain();
     }
-#endif
+}
+
+void PresentManager::CopyToSwapchainImpl(Frame* frame) {
+    MICROPROFILE_SCOPE(Vulkan_CopyToSwapchain);
 
     // If the size or colorspace of the incoming frames has changed, recreate the swapchain
     // to account for that.
@@ -334,11 +325,11 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
     const bool size_changed =
         swapchain.GetWidth() != frame->width || swapchain.GetHeight() != frame->height;
     if (srgb_changed || size_changed) {
-        recreate_swapchain();
+        RecreateSwapchain(frame);
     }
 
     while (swapchain.AcquireNextImage()) {
-        recreate_swapchain();
+        RecreateSwapchain(frame);
     }
 
     const vk::CommandBuffer cmdbuf{frame->cmdbuf};

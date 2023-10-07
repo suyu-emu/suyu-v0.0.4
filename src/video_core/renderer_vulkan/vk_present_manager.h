@@ -54,13 +54,14 @@ public:
     /// Waits for the present thread to finish presenting all queued frames.
     void WaitPresent();
 
-    /// This is called to notify the rendering backend of a surface change
-    void NotifySurfaceChanged();
-
 private:
     void PresentThread(std::stop_token token);
 
     void CopyToSwapchain(Frame* frame);
+
+    void CopyToSwapchainImpl(Frame* frame);
+
+    void RecreateSwapchain(Frame* frame);
 
 private:
     const vk::Instance& instance;
@@ -76,16 +77,13 @@ private:
     std::queue<Frame*> free_queue;
     std::condition_variable_any frame_cv;
     std::condition_variable free_cv;
-    std::condition_variable recreate_surface_cv;
     std::mutex swapchain_mutex;
-    std::mutex recreate_surface_mutex;
     std::mutex queue_mutex;
     std::mutex free_mutex;
     std::jthread present_thread;
     bool blit_supported;
     bool use_present_thread;
     std::size_t image_count{};
-    void* last_render_surface{};
 };
 
 } // namespace Vulkan

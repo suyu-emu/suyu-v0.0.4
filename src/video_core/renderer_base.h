@@ -89,9 +89,6 @@ public:
     void RequestScreenshot(void* data, std::function<void(bool)> callback,
                            const Layout::FramebufferLayout& layout);
 
-    /// This is called to notify the rendering backend of a surface change
-    virtual void NotifySurfaceChanged() {}
-
 protected:
     Core::Frontend::EmuWindow& render_window; ///< Reference to the render window handle.
     std::unique_ptr<Core::Frontend::GraphicsContext> context;
