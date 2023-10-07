@@ -103,7 +103,7 @@ struct Values {
                                            true,
                                            true};
     Setting<bool> mute_when_in_background{
-        linkage, false, "muteWhenInBackground", Category::Ui, Settings::Specialization::Default,
+        linkage, false, "muteWhenInBackground", Category::Audio, Settings::Specialization::Default,
         true,    true};
     Setting<bool> hide_mouse{
         linkage, true, "hideInactiveMouse", Category::UiGeneral, Settings::Specialization::Default,

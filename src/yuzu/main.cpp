@@ -1447,6 +1447,7 @@ void GMainWindow::OnAppFocusStateChanged(Qt::ApplicationState state) {
             Settings::values.audio_muted = false;
             auto_muted = false;
         }
+        UpdateVolumeUI();
     }
 }
 
