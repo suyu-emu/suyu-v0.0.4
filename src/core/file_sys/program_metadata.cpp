@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "common/logging/log.h"
+#include "common/scope_exit.h"
 #include "core/file_sys/program_metadata.h"
 #include "core/file_sys/vfs.h"
 #include "core/loader/loader.h"
@@ -93,6 +94,13 @@ Loader::ResultStatus ProgramMetadata::Load(VirtualFile file) {
     }
 
     return Loader::ResultStatus::Success;
+}
+
+Loader::ResultStatus ProgramMetadata::Reload(VirtualFile file) {
+    const u64 original_program_id = aci_header.title_id;
+    SCOPE_EXIT({ aci_header.title_id = original_program_id; });
+
+    return this->Load(file);
 }
 
 /*static*/ ProgramMetadata ProgramMetadata::GetDefault() {

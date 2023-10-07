@@ -118,7 +118,7 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
         return {ResultStatus::ErrorMissingNPDM, {}};
     }
 
-    const ResultStatus result2 = metadata.Load(npdm);
+    const ResultStatus result2 = metadata.Reload(npdm);
     if (result2 != ResultStatus::Success) {
         return {result2, {}};
     }
