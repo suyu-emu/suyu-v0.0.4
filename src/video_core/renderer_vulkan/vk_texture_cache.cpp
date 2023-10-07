@@ -238,6 +238,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         return any_r ? VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
     case PixelFormat::D16_UNORM:
     case PixelFormat::D32_FLOAT:
+    case PixelFormat::X8_D24_UNORM:
         return VK_IMAGE_ASPECT_DEPTH_BIT;
     case PixelFormat::S8_UINT:
         return VK_IMAGE_ASPECT_STENCIL_BIT;

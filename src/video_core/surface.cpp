@@ -85,6 +85,8 @@ PixelFormat PixelFormatFromDepthFormat(Tegra::DepthFormat format) {
         return PixelFormat::S8_UINT;
     case Tegra::DepthFormat::Z32_FLOAT_X24S8_UINT:
         return PixelFormat::D32_FLOAT_S8_UINT;
+    case Tegra::DepthFormat::X8Z24_UNORM:
+        return PixelFormat::X8_D24_UNORM;
     default:
         UNIMPLEMENTED_MSG("Unimplemented format={}", format);
         return PixelFormat::S8_UINT_D24_UNORM;
@@ -202,6 +204,7 @@ PixelFormat PixelFormatFromRenderTargetFormat(Tegra::RenderTargetFormat format) 
 PixelFormat PixelFormatFromGPUPixelFormat(Service::android::PixelFormat format) {
     switch (format) {
     case Service::android::PixelFormat::Rgba8888:
+    case Service::android::PixelFormat::Rgbx8888:
         return PixelFormat::A8B8G8R8_UNORM;
     case Service::android::PixelFormat::Rgb565:
         return PixelFormat::R5G6B5_UNORM;
