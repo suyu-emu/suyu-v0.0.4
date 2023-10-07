@@ -42,6 +42,9 @@ void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
         for (auto* setting : Settings::values.linkage.by_category[category]) {
             settings.push_back(setting);
         }
+        for (auto* setting : UISettings::values.linkage.by_category[category]) {
+            settings.push_back(setting);
+        }
     };
 
     push(Settings::Category::Audio);
