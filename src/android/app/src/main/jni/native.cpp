@@ -218,7 +218,6 @@ public:
             return;
         }
         m_window->OnSurfaceChanged(m_native_window);
-        m_system.Renderer().NotifySurfaceChanged();
     }
 
     void ConfigureFilesystemProvider(const std::string& filepath) {

@@ -117,6 +117,9 @@ public:
     virtual ~Exception() = default;
 
     const char* what() const noexcept override;
+    VkResult GetResult() const noexcept {
+        return result;
+    }
 
 private:
     VkResult result;
