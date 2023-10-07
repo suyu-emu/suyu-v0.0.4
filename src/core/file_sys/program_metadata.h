@@ -56,6 +56,7 @@ public:
     static ProgramMetadata GetDefault();
 
     Loader::ResultStatus Load(VirtualFile file);
+    Loader::ResultStatus Reload(VirtualFile file);
 
     /// Load from parameters instead of NPDM file, used for KIP
     void LoadManual(bool is_64_bit, ProgramAddressSpaceType address_space, s32 main_thread_prio,
