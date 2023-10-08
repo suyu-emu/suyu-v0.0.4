@@ -138,6 +138,8 @@ PixelFormat PixelFormatFromTextureInfo(TextureFormat format, ComponentType red, 
         return PixelFormat::E5B9G9R9_FLOAT;
     case Hash(TextureFormat::Z32, FLOAT):
         return PixelFormat::D32_FLOAT;
+    case Hash(TextureFormat::Z32, FLOAT, UINT, UINT, UINT, LINEAR):
+        return PixelFormat::D32_FLOAT;
     case Hash(TextureFormat::Z16, UNORM):
         return PixelFormat::D16_UNORM;
     case Hash(TextureFormat::Z16, UNORM, UINT, UINT, UINT, LINEAR):
