@@ -18,6 +18,7 @@
 #include "core/core.h"
 #include "uisettings.h"
 #include "yuzu/compatibility_list.h"
+#include "yuzu/play_time_manager.h"
 
 namespace Core {
 class System;
@@ -75,11 +76,13 @@ public:
         COLUMN_ADD_ONS,
         COLUMN_FILE_TYPE,
         COLUMN_SIZE,
+        COLUMN_PLAY_TIME,
         COLUMN_COUNT, // Number of columns
     };
 
     explicit GameList(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
-                      FileSys::ManualContentProvider* provider_, Core::System& system_,
+                      FileSys::ManualContentProvider* provider_,
+                      PlayTime::PlayTimeManager& play_time_manager_, Core::System& system_,
                       GMainWindow* parent = nullptr);
     ~GameList() override;
 
@@ -113,6 +116,7 @@ signals:
     void RemoveInstalledEntryRequested(u64 program_id, InstalledEntryType type);
     void RemoveFileRequested(u64 program_id, GameListRemoveTarget target,
                              const std::string& game_path);
+    void RemovePlayTimeRequested(u64 program_id);
     void DumpRomFSRequested(u64 program_id, const std::string& game_path, DumpRomFSTarget target);
     void VerifyIntegrityRequested(const std::string& game_path);
     void CopyTIDRequested(u64 program_id);
@@ -168,6 +172,7 @@ private:
 
     friend class GameListSearchField;
 
+    const PlayTime::PlayTimeManager& play_time_manager;
     Core::System& system;
 };
 

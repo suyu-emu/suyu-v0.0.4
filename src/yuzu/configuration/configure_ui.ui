@@ -105,6 +105,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="show_play_time">
+          <property name="text">
+           <string>Show Play Time Column</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="game_icon_size_qhbox_layout_2">
           <item>
            <widget class="QLabel" name="game_icon_size_label">
