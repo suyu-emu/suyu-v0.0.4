@@ -183,6 +183,9 @@ struct Values {
     Setting<bool> show_size{linkage, true, "show_size", Category::UiGameList};
     Setting<bool> show_types{linkage, true, "show_types", Category::UiGameList};
 
+    // Play time
+    Setting<bool> show_play_time{linkage, true, "show_play_time", Category::UiGameList};
+
     bool configuration_applied;
     bool reset_to_defaults;
     bool shortcut_already_warned{false};
