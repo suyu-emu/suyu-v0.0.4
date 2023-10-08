@@ -11,7 +11,7 @@ ccache -s
 mkdir build || true && cd build
 cmake .. \
       -DBoost_USE_STATIC_LIBS=ON \
-      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
       -DCMAKE_CXX_FLAGS="-march=x86-64-v2" \
       -DCMAKE_CXX_COMPILER=/usr/lib/ccache/g++ \
       -DCMAKE_C_COMPILER=/usr/lib/ccache/gcc \
@@ -30,6 +30,19 @@ ninja
 ccache -s
 
 ctest -VV -C Release
+
+# Separate debug symbols from specified executables
+for EXE in yuzu; do
+    EXE_PATH="bin/$EXE"
+    # Copy debug symbols out
+    objcopy --only-keep-debug $EXE_PATH $EXE_PATH.debug
+    # Add debug link and strip debug symbols
+    objcopy -g --add-gnu-debuglink=$EXE_PATH.debug $EXE_PATH $EXE_PATH.out
+    # Overwrite original with stripped copy
+    mv $EXE_PATH.out $EXE_PATH
+done
+# Strip debug symbols from all executables
+find -type f bin/ -not -regex '.*.debug' -exec strip -g {} ';'
 
 DESTDIR="$PWD/AppDir" ninja install
 rm -vf AppDir/usr/bin/yuzu-cmd AppDir/usr/bin/yuzu-tester
