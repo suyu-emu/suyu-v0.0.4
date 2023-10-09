@@ -11,16 +11,16 @@ option(OPUS_CUSTOM_MODES "Enable non-Opus modes, e.g. 44.1 kHz & 2^n frames" OFF
 option(OPUS_FIXED_POINT "Compile as fixed-point (for machines without a fast enough FPU)" OFF)
 option(OPUS_ENABLE_FLOAT_API "Compile with the floating point API (for machines with float library" ON)
 
-include(opus/opus_functions.cmake)
+include(opus/cmake/OpusFunctions.cmake)
 
 if(OPUS_STACK_PROTECTOR)
-    if(NOT MSVC) # GC on by default on MSVC
-        check_and_set_flag(STACK_PROTECTION_STRONG -fstack-protector-strong)
-    endif()
-else()
-    if(MSVC)
-        check_and_set_flag(BUFFER_SECURITY_CHECK /GS-)
-    endif()
+  if(MSVC)
+    target_compile_options(opus PRIVATE /GS)
+  else()
+    target_compile_options(opus PRIVATE -fstack-protector-strong)
+  endif()
+elseif(STACK_PROTECTOR_DISABLED_SUPPORTED)
+  target_compile_options(opus PRIVATE /GS-)
 endif()
 
 add_library(opus
@@ -233,7 +233,7 @@ endif()
 
 target_compile_definitions(opus
 PUBLIC
-    -DOPUS_VERSION="\\"1.3.1\\""
+    -DOPUS_VERSION="\\"1.4.0\\""
 
 PRIVATE
     # Use C99 intrinsics to speed up float-to-int conversion
