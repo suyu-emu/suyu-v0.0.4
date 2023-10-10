@@ -168,7 +168,7 @@ if (NOT TARGET LLVM::Demangle)
     add_library(LLVM::Demangle ALIAS demangle)
 endif()
 
-add_library(stb stb/stb_dxt.cpp)
+add_library(stb stb/stb_dxt.cpp stb/stb_image.cpp stb/stb_image_resize.cpp)
 target_include_directories(stb PUBLIC ./stb)
 
 add_library(bc_decoder bc_decoder/bc_decoder.cpp)

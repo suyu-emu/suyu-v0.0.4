@@ -10,11 +10,26 @@ class System;
 }
 
 namespace Service::Capture {
+class AlbumManager;
 
-class CAPS_A final : public ServiceFramework<CAPS_A> {
+class IAlbumAccessorService final : public ServiceFramework<IAlbumAccessorService> {
 public:
-    explicit CAPS_A(Core::System& system_);
-    ~CAPS_A() override;
+    explicit IAlbumAccessorService(Core::System& system_,
+                                   std::shared_ptr<AlbumManager> album_manager);
+    ~IAlbumAccessorService() override;
+
+private:
+    void DeleteAlbumFile(HLERequestContext& ctx);
+    void IsAlbumMounted(HLERequestContext& ctx);
+    void Unknown18(HLERequestContext& ctx);
+    void GetAlbumFileListEx0(HLERequestContext& ctx);
+    void GetAutoSavingStorage(HLERequestContext& ctx);
+    void LoadAlbumScreenShotImageEx1(HLERequestContext& ctx);
+    void LoadAlbumScreenShotThumbnailImageEx1(HLERequestContext& ctx);
+
+    Result TranslateResult(Result in_result);
+
+    std::shared_ptr<AlbumManager> manager = nullptr;
 };
 
 } // namespace Service::Capture

@@ -1560,6 +1560,7 @@ void GMainWindow::ConnectMenuEvents() {
     // Tools
     connect_menu(ui->action_Rederive, std::bind(&GMainWindow::OnReinitializeKeys, this,
                                                 ReinitializeKeyBehavior::Warning));
+    connect_menu(ui->action_Load_Album, &GMainWindow::OnAlbum);
     connect_menu(ui->action_Load_Cabinet_Nickname_Owner,
                  [this]() { OnCabinet(Service::NFP::CabinetMode::StartNicknameAndOwnerSettings); });
     connect_menu(ui->action_Load_Cabinet_Eraser,
@@ -1597,6 +1598,7 @@ void GMainWindow::UpdateMenuState() {
     };
 
     const std::array applet_actions{
+        ui->action_Load_Album,
         ui->action_Load_Cabinet_Nickname_Owner,
         ui->action_Load_Cabinet_Eraser,
         ui->action_Load_Cabinet_Restorer,
@@ -4222,6 +4224,29 @@ void GMainWindow::OnToggleFilterBar() {
 
 void GMainWindow::OnToggleStatusBar() {
     statusBar()->setVisible(ui->action_Show_Status_Bar->isChecked());
+}
+
+void GMainWindow::OnAlbum() {
+    constexpr u64 AlbumId = 0x010000000000100Dull;
+    auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        QMessageBox::warning(this, tr("No firmware available"),
+                             tr("Please install the firmware to use the Album applet."));
+        return;
+    }
+
+    auto album_nca = bis_system->GetEntry(AlbumId, FileSys::ContentRecordType::Program);
+    if (!album_nca) {
+        QMessageBox::warning(this, tr("Album Applet"),
+                             tr("Album applet is not available. Please reinstall firmware."));
+        return;
+    }
+
+    system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::PhotoViewer);
+
+    const auto filename = QString::fromStdString(album_nca->GetFullPath());
+    UISettings::values.roms_path = QFileInfo(filename).path();
+    BootGame(filename);
 }
 
 void GMainWindow::OnCabinet(Service::NFP::CabinetMode mode) {

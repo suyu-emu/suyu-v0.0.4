@@ -11,10 +11,10 @@ class System;
 
 namespace Service::Capture {
 
-class CAPS_SS final : public ServiceFramework<CAPS_SS> {
+class IScreenShotService final : public ServiceFramework<IScreenShotService> {
 public:
-    explicit CAPS_SS(Core::System& system_);
-    ~CAPS_SS() override;
+    explicit IScreenShotService(Core::System& system_);
+    ~IScreenShotService() override;
 };
 
 } // namespace Service::Capture

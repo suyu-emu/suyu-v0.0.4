@@ -195,6 +195,23 @@ private:
     ScreenshotPermission screenshot_permission = ScreenshotPermission::Inherit;
 };
 
+class ILockAccessor final : public ServiceFramework<ILockAccessor> {
+public:
+    explicit ILockAccessor(Core::System& system_);
+    ~ILockAccessor() override;
+
+private:
+    void TryLock(HLERequestContext& ctx);
+    void Unlock(HLERequestContext& ctx);
+    void GetEvent(HLERequestContext& ctx);
+    void IsLocked(HLERequestContext& ctx);
+
+    bool is_locked{};
+
+    Kernel::KEvent* lock_event;
+    KernelHelpers::ServiceContext service_context;
+};
+
 class ICommonStateGetter final : public ServiceFramework<ICommonStateGetter> {
 public:
     explicit ICommonStateGetter(Core::System& system_,
@@ -237,6 +254,7 @@ private:
     void GetCurrentFocusState(HLERequestContext& ctx);
     void RequestToAcquireSleepLock(HLERequestContext& ctx);
     void GetAcquiredSleepLockEvent(HLERequestContext& ctx);
+    void GetReaderLockAccessorEx(HLERequestContext& ctx);
     void GetDefaultDisplayResolutionChangeEvent(HLERequestContext& ctx);
     void GetOperationMode(HLERequestContext& ctx);
     void GetPerformanceMode(HLERequestContext& ctx);
@@ -248,6 +266,7 @@ private:
     void EndVrModeEx(HLERequestContext& ctx);
     void GetDefaultDisplayResolution(HLERequestContext& ctx);
     void SetCpuBoostMode(HLERequestContext& ctx);
+    void GetBuiltInDisplayType(HLERequestContext& ctx);
     void PerformSystemButtonPressingIfInFocus(HLERequestContext& ctx);
     void GetSettingsPlatformRegion(HLERequestContext& ctx);
     void SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled(HLERequestContext& ctx);
@@ -327,6 +346,7 @@ private:
     void ExitProcessAndReturn(HLERequestContext& ctx);
     void GetCallerAppletIdentityInfo(HLERequestContext& ctx);
 
+    void PushInShowAlbum();
     void PushInShowCabinetData();
     void PushInShowMiiEditData();
 

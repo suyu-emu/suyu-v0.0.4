@@ -2,45 +2,29 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/logging/log.h"
-#include "core/hle/service/caps/caps.h"
+#include "core/hle/service/caps/caps_manager.h"
+#include "core/hle/service/caps/caps_types.h"
 #include "core/hle/service/caps/caps_u.h"
 #include "core/hle/service/ipc_helpers.h"
 
 namespace Service::Capture {
 
-class IAlbumAccessorApplicationSession final
-    : public ServiceFramework<IAlbumAccessorApplicationSession> {
-public:
-    explicit IAlbumAccessorApplicationSession(Core::System& system_)
-        : ServiceFramework{system_, "IAlbumAccessorApplicationSession"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {2001, nullptr, "OpenAlbumMovieReadStream"},
-            {2002, nullptr, "CloseAlbumMovieReadStream"},
-            {2003, nullptr, "GetAlbumMovieReadStreamMovieDataSize"},
-            {2004, nullptr, "ReadMovieDataFromAlbumMovieReadStream"},
-            {2005, nullptr, "GetAlbumMovieReadStreamBrokenReason"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-};
-
-CAPS_U::CAPS_U(Core::System& system_) : ServiceFramework{system_, "caps:u"} {
+IAlbumApplicationService::IAlbumApplicationService(Core::System& system_,
+                                                   std::shared_ptr<AlbumManager> album_manager)
+    : ServiceFramework{system_, "caps:u"}, manager{album_manager} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {32, &CAPS_U::SetShimLibraryVersion, "SetShimLibraryVersion"},
-        {102, &CAPS_U::GetAlbumContentsFileListForApplication, "GetAlbumContentsFileListForApplication"},
-        {103, nullptr, "DeleteAlbumContentsFileForApplication"},
-        {104, nullptr, "GetAlbumContentsFileSizeForApplication"},
+        {32, &IAlbumApplicationService::SetShimLibraryVersion, "SetShimLibraryVersion"},
+        {102, &IAlbumApplicationService::GetAlbumFileList0AafeAruidDeprecated, "GetAlbumFileList0AafeAruidDeprecated"},
+        {103, nullptr, "DeleteAlbumFileByAruid"},
+        {104, nullptr, "GetAlbumFileSizeByAruid"},
         {105, nullptr, "DeleteAlbumFileByAruidForDebug"},
-        {110, nullptr, "LoadAlbumContentsFileScreenShotImageForApplication"},
-        {120, nullptr, "LoadAlbumContentsFileThumbnailImageForApplication"},
-        {130, nullptr, "PrecheckToCreateContentsForApplication"},
+        {110, nullptr, "LoadAlbumScreenShotImageByAruid"},
+        {120, nullptr, "LoadAlbumScreenShotThumbnailImageByAruid"},
+        {130, nullptr, "PrecheckToCreateContentsByAruid"},
         {140, nullptr, "GetAlbumFileList1AafeAruidDeprecated"},
         {141, nullptr, "GetAlbumFileList2AafeUidAruidDeprecated"},
-        {142, &CAPS_U::GetAlbumFileList3AaeAruid, "GetAlbumFileList3AaeAruid"},
+        {142, &IAlbumApplicationService::GetAlbumFileList3AaeAruid, "GetAlbumFileList3AaeAruid"},
         {143, nullptr, "GetAlbumFileList4AaeUidAruid"},
         {144, nullptr, "GetAllAlbumFileList3AaeAruid"},
         {60002, nullptr, "OpenAccessorSessionForApplication"},
@@ -50,9 +34,9 @@ CAPS_U::CAPS_U(Core::System& system_) : ServiceFramework{system_, "caps:u"} {
     RegisterHandlers(functions);
 }
 
-CAPS_U::~CAPS_U() = default;
+IAlbumApplicationService::~IAlbumApplicationService() = default;
 
-void CAPS_U::SetShimLibraryVersion(HLERequestContext& ctx) {
+void IAlbumApplicationService::SetShimLibraryVersion(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto library_version{rp.Pop<u64>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};
@@ -64,10 +48,7 @@ void CAPS_U::SetShimLibraryVersion(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void CAPS_U::GetAlbumContentsFileListForApplication(HLERequestContext& ctx) {
-    // Takes a type-0x6 output buffer containing an array of ApplicationAlbumFileEntry, a PID, an
-    // u8 ContentType, two s64s, and an u64 AppletResourceUserId. Returns an output u64 for total
-    // output entries (which is copied to a s32 by official SW).
+void IAlbumApplicationService::GetAlbumFileList0AafeAruidDeprecated(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto pid{rp.Pop<s32>()};
     const auto content_type{rp.PopEnum<ContentType>()};
@@ -75,26 +56,49 @@ void CAPS_U::GetAlbumContentsFileListForApplication(HLERequestContext& ctx) {
     const auto end_posix_time{rp.Pop<s64>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    // TODO: Update this when we implement the album.
-    // Currently we do not have a method of accessing album entries, set this to 0 for now.
-    constexpr u32 total_entries_1{};
-    constexpr u32 total_entries_2{};
+    LOG_WARNING(Service_Capture,
+                "(STUBBED) called. pid={}, content_type={}, start_posix_time={}, "
+                "end_posix_time={}, applet_resource_user_id={}",
+                pid, content_type, start_posix_time, end_posix_time, applet_resource_user_id);
 
-    LOG_WARNING(
-        Service_Capture,
-        "(STUBBED) called. pid={}, content_type={}, start_posix_time={}, "
-        "end_posix_time={}, applet_resource_user_id={}, total_entries_1={}, total_entries_2={}",
-        pid, content_type, start_posix_time, end_posix_time, applet_resource_user_id,
-        total_entries_1, total_entries_2);
+    // TODO: Translate posix to DateTime
+
+    std::vector<ApplicationAlbumFileEntry> entries;
+    const Result result =
+        manager->GetAlbumFileList(entries, content_type, {}, {}, applet_resource_user_id);
+
+    if (!entries.empty()) {
+        ctx.WriteBuffer(entries);
+    }
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push(total_entries_1);
-    rb.Push(total_entries_2);
+    rb.Push(result);
+    rb.Push<u64>(entries.size());
 }
 
-void CAPS_U::GetAlbumFileList3AaeAruid(HLERequestContext& ctx) {
-    GetAlbumContentsFileListForApplication(ctx);
+void IAlbumApplicationService::GetAlbumFileList3AaeAruid(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto pid{rp.Pop<s32>()};
+    const auto content_type{rp.PopEnum<ContentType>()};
+    const auto start_date_time{rp.PopRaw<AlbumFileDateTime>()};
+    const auto end_date_time{rp.PopRaw<AlbumFileDateTime>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_Capture,
+                "(STUBBED) called. pid={}, content_type={}, applet_resource_user_id={}", pid,
+                content_type, applet_resource_user_id);
+
+    std::vector<ApplicationAlbumFileEntry> entries;
+    const Result result = manager->GetAlbumFileList(entries, content_type, start_date_time,
+                                                    end_date_time, applet_resource_user_id);
+
+    if (!entries.empty()) {
+        ctx.WriteBuffer(entries);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(result);
+    rb.Push<u64>(entries.size());
 }
 
 } // namespace Service::Capture
