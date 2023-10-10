@@ -77,6 +77,7 @@ void AudioRenderer::Wait() {
                   "{}, got {}",
                   Message::RenderResponse, msg);
     }
+    PostDSPClearCommandBuffer();
 }
 
 void AudioRenderer::Send(Direction dir, u32 message) {
@@ -94,6 +95,14 @@ void AudioRenderer::SetCommandBuffer(s32 session_id, CpuAddr buffer, u64 size, u
     command_buffers[session_id].time_limit = time_limit;
     command_buffers[session_id].applet_resource_user_id = applet_resource_user_id;
     command_buffers[session_id].reset_buffer = reset;
+}
+
+void AudioRenderer::PostDSPClearCommandBuffer() noexcept {
+    for (auto& buffer : command_buffers) {
+        buffer.buffer = 0;
+        buffer.size = 0;
+        buffer.reset_buffer = false;
+    }
 }
 
 u32 AudioRenderer::GetRemainCommandCount(s32 session_id) const noexcept {
