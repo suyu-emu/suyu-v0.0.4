@@ -545,6 +545,16 @@ void IGeneralService::IsAnyInternetRequestAccepted(HLERequestContext& ctx) {
     }
 }
 
+void IGeneralService::IsAnyForegroundRequestAccepted(HLERequestContext& ctx) {
+    const bool is_accepted{};
+
+    LOG_WARNING(Service_NIFM, "(STUBBED) called, is_accepted={}", is_accepted);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u8>(is_accepted);
+}
+
 IGeneralService::IGeneralService(Core::System& system_)
     : ServiceFramework{system_, "IGeneralService"}, network{system_.GetRoomNetwork()} {
     // clang-format off
@@ -569,7 +579,7 @@ IGeneralService::IGeneralService(Core::System& system_)
         {19, nullptr, "SetEthernetCommunicationEnabled"},
         {20, &IGeneralService::IsEthernetCommunicationEnabled, "IsEthernetCommunicationEnabled"},
         {21, &IGeneralService::IsAnyInternetRequestAccepted, "IsAnyInternetRequestAccepted"},
-        {22, nullptr, "IsAnyForegroundRequestAccepted"},
+        {22, &IGeneralService::IsAnyForegroundRequestAccepted, "IsAnyForegroundRequestAccepted"},
         {23, nullptr, "PutToSleep"},
         {24, nullptr, "WakeUp"},
         {25, nullptr, "GetSsidListVersion"},

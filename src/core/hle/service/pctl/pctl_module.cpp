@@ -33,7 +33,7 @@ public:
             {1001, &IParentalControlService::CheckFreeCommunicationPermission, "CheckFreeCommunicationPermission"},
             {1002, nullptr, "ConfirmLaunchApplicationPermission"},
             {1003, nullptr, "ConfirmResumeApplicationPermission"},
-            {1004, nullptr, "ConfirmSnsPostPermission"},
+            {1004, &IParentalControlService::ConfirmSnsPostPermission, "ConfirmSnsPostPermission"},
             {1005, nullptr, "ConfirmSystemSettingsPermission"},
             {1006, &IParentalControlService::IsRestrictionTemporaryUnlocked, "IsRestrictionTemporaryUnlocked"},
             {1007, nullptr, "RevertRestrictionTemporaryUnlocked"},
@@ -234,6 +234,13 @@ private:
         }
 
         states.free_communication = true;
+    }
+
+    void ConfirmSnsPostPermission(HLERequestContext& ctx) {
+        LOG_WARNING(Service_PCTL, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(Error::ResultNoFreeCommunication);
     }
 
     void IsRestrictionTemporaryUnlocked(HLERequestContext& ctx) {

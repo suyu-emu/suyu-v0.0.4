@@ -35,6 +35,7 @@ private:
     void GetInternetConnectionStatus(HLERequestContext& ctx);
     void IsEthernetCommunicationEnabled(HLERequestContext& ctx);
     void IsAnyInternetRequestAccepted(HLERequestContext& ctx);
+    void IsAnyForegroundRequestAccepted(HLERequestContext& ctx);
 
     Network::RoomNetwork& network;
 };
