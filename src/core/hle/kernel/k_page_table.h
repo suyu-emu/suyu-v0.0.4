@@ -104,6 +104,9 @@ public:
     Result CleanupForIpcServer(KProcessAddress address, size_t size, KMemoryState dst_state);
     Result CleanupForIpcClient(KProcessAddress address, size_t size, KMemoryState dst_state);
 
+    Result LockForTransferMemory(KPageGroup* out, KProcessAddress address, size_t size,
+                                 KMemoryPermission perm);
+    Result UnlockForTransferMemory(KProcessAddress address, size_t size, const KPageGroup& pg);
     Result LockForCodeMemory(KPageGroup* out, KProcessAddress addr, size_t size);
     Result UnlockForCodeMemory(KProcessAddress addr, size_t size, const KPageGroup& pg);
     Result MakeAndOpenPageGroup(KPageGroup* out, KProcessAddress address, size_t num_pages,

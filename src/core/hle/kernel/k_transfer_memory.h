@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <optional>
+
+#include "core/hle/kernel/k_page_group.h"
 #include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/kernel/svc_types.h"
 #include "core/hle/result.h"
@@ -48,16 +51,19 @@ public:
         return m_address;
     }
 
-    size_t GetSize() const {
-        return m_is_initialized ? m_size : 0;
-    }
+    size_t GetSize() const;
+
+    Result Map(KProcessAddress address, size_t size, Svc::MemoryPermission map_perm);
+    Result Unmap(KProcessAddress address, size_t size);
 
 private:
+    std::optional<KPageGroup> m_page_group{};
     KProcess* m_owner{};
     KProcessAddress m_address{};
+    KLightLock m_lock;
     Svc::MemoryPermission m_owner_perm{};
-    size_t m_size{};
     bool m_is_initialized{};
+    bool m_is_mapped{};
 };
 
 } // namespace Kernel
