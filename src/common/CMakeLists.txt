@@ -189,6 +189,14 @@ if(ARCHITECTURE_x86_64)
     target_link_libraries(common PRIVATE xbyak::xbyak)
 endif()
 
+if (ARCHITECTURE_arm64 AND (ANDROID OR LINUX))
+    target_sources(common
+        PRIVATE
+            arm64/native_clock.cpp
+            arm64/native_clock.h
+    )
+endif()
+
 if (MSVC)
   target_compile_definitions(common PRIVATE
     # The standard library doesn't provide any replacement for codecvt yet
