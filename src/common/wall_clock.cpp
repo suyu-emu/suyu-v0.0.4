@@ -10,6 +10,10 @@
 #include "common/x64/rdtsc.h"
 #endif
 
+#if defined(ARCHITECTURE_arm64) && defined(__linux__)
+#include "common/arm64/native_clock.h"
+#endif
+
 namespace Common {
 
 class StandardWallClock final : public WallClock {
@@ -53,7 +57,7 @@ private:
 };
 
 std::unique_ptr<WallClock> CreateOptimalClock() {
-#ifdef ARCHITECTURE_x86_64
+#if defined(ARCHITECTURE_x86_64)
     const auto& caps = GetCPUCaps();
 
     if (caps.invariant_tsc && caps.tsc_frequency >= std::nano::den) {
@@ -64,6 +68,8 @@ std::unique_ptr<WallClock> CreateOptimalClock() {
         // - Is not more precise than 1 GHz (1ns resolution)
         return std::make_unique<StandardWallClock>();
     }
+#elif defined(ARCHITECTURE_arm64) && defined(__linux__)
+    return std::make_unique<Arm64::NativeClock>();
 #else
     return std::make_unique<StandardWallClock>();
 #endif
