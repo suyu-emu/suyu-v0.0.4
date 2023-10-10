@@ -42,7 +42,7 @@ for EXE in yuzu; do
     mv $EXE_PATH.out $EXE_PATH
 done
 # Strip debug symbols from all executables
-find -type f bin/ -not -regex '.*.debug' -exec strip -g {} ';'
+find bin/ -type f -not -regex '.*.debug' -exec strip -g {} ';'
 
 DESTDIR="$PWD/AppDir" ninja install
 rm -vf AppDir/usr/bin/yuzu-cmd AppDir/usr/bin/yuzu-tester
