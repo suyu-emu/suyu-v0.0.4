@@ -1048,6 +1048,10 @@ void Image::Scale(bool up_scale) {
 }
 
 bool Image::ScaleUp(bool ignore) {
+    const auto& resolution = runtime->resolution;
+    if (!resolution.active) {
+        return false;
+    }
     if (True(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
@@ -1060,9 +1064,6 @@ bool Image::ScaleUp(bool ignore) {
         return false;
     }
     flags |= ImageFlagBits::Rescaled;
-    if (!runtime->resolution.active) {
-        return false;
-    }
     has_scaled = true;
     if (ignore) {
         current_texture = upscaled_backup.handle;
@@ -1073,13 +1074,14 @@ bool Image::ScaleUp(bool ignore) {
 }
 
 bool Image::ScaleDown(bool ignore) {
+    const auto& resolution = runtime->resolution;
+    if (!resolution.active) {
+        return false;
+    }
     if (False(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
     flags &= ~ImageFlagBits::Rescaled;
-    if (!runtime->resolution.active) {
-        return false;
-    }
     if (ignore) {
         current_texture = texture.handle;
         return true;

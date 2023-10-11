@@ -1530,15 +1530,15 @@ bool Image::IsRescaled() const noexcept {
 }
 
 bool Image::ScaleUp(bool ignore) {
+    const auto& resolution = runtime->resolution;
+    if (!resolution.active) {
+        return false;
+    }
     if (True(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
     ASSERT(info.type != ImageType::Linear);
     flags |= ImageFlagBits::Rescaled;
-    const auto& resolution = runtime->resolution;
-    if (!resolution.active) {
-        return false;
-    }
     has_scaled = true;
     if (!scaled_image) {
         const bool is_2d = info.type == ImageType::e2D;
@@ -1567,15 +1567,15 @@ bool Image::ScaleUp(bool ignore) {
 }
 
 bool Image::ScaleDown(bool ignore) {
+    const auto& resolution = runtime->resolution;
+    if (!resolution.active) {
+        return false;
+    }
     if (False(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
     ASSERT(info.type != ImageType::Linear);
     flags &= ~ImageFlagBits::Rescaled;
-    const auto& resolution = runtime->resolution;
-    if (!resolution.active) {
-        return false;
-    }
     current_image = *original_image;
     if (ignore) {
         return true;
