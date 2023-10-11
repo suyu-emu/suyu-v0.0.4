@@ -118,6 +118,8 @@ public:
 
     void InsertUploadMemoryBarrier();
 
+    void TransitionImageLayout(Image& image) {}
+
     FormatProperties FormatInfo(VideoCommon::ImageType type, GLenum internal_format) const;
 
     bool HasNativeBgr() const noexcept {
