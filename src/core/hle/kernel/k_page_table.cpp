@@ -1724,29 +1724,43 @@ Result KPageTable::MapPhysicalMemory(KProcessAddress address, size_t size) {
                             PageSize;
 
                         // While we have pages to map, map them.
-                        while (map_pages > 0) {
-                            // Check if we're at the end of the physical block.
-                            if (pg_pages == 0) {
-                                // Ensure there are more pages to map.
-                                ASSERT(pg_it != pg.end());
+                        {
+                            // Create a page group for the current mapping range.
+                            KPageGroup cur_pg(m_kernel, m_block_info_manager);
+                            {
+                                ON_RESULT_FAILURE_2 {
+                                    cur_pg.OpenFirst();
+                                    cur_pg.Close();
+                                };
 
-                                // Advance our physical block.
-                                ++pg_it;
-                                pg_phys_addr = pg_it->GetAddress();
-                                pg_pages = pg_it->GetNumPages();
+                                size_t remain_pages = map_pages;
+                                while (remain_pages > 0) {
+                                    // Check if we're at the end of the physical block.
+                                    if (pg_pages == 0) {
+                                        // Ensure there are more pages to map.
+                                        ASSERT(pg_it != pg.end());
+
+                                        // Advance our physical block.
+                                        ++pg_it;
+                                        pg_phys_addr = pg_it->GetAddress();
+                                        pg_pages = pg_it->GetNumPages();
+                                    }
+
+                                    // Add whatever we can to the current block.
+                                    const size_t cur_pages = std::min(pg_pages, remain_pages);
+                                    R_TRY(cur_pg.AddBlock(pg_phys_addr +
+                                                              ((pg_pages - cur_pages) * PageSize),
+                                                          cur_pages));
+
+                                    // Advance.
+                                    remain_pages -= cur_pages;
+                                    pg_pages -= cur_pages;
+                                }
                             }
 
-                            // Map whatever we can.
-                            const size_t cur_pages = std::min(pg_pages, map_pages);
-                            R_TRY(Operate(cur_address, cur_pages, KMemoryPermission::UserReadWrite,
-                                          OperationType::MapFirst, pg_phys_addr));
-
-                            // Advance.
-                            cur_address += cur_pages * PageSize;
-                            map_pages -= cur_pages;
-
-                            pg_phys_addr += cur_pages * PageSize;
-                            pg_pages -= cur_pages;
+                            // Map the pages.
+                            R_TRY(this->Operate(cur_address, map_pages, cur_pg,
+                                                OperationType::MapFirstGroup));
                         }
                     }
 
@@ -3037,9 +3051,10 @@ Result KPageTable::Operate(KProcessAddress addr, size_t num_pages, const KPageGr
     ASSERT(num_pages == page_group.GetNumPages());
 
     switch (operation) {
-    case OperationType::MapGroup: {
+    case OperationType::MapGroup:
+    case OperationType::MapFirstGroup: {
         // We want to maintain a new reference to every page in the group.
-        KScopedPageGroup spg(page_group);
+        KScopedPageGroup spg(page_group, operation != OperationType::MapFirstGroup);
 
         for (const auto& node : page_group) {
             const size_t size{node.GetNumPages() * PageSize};
@@ -3081,7 +3096,6 @@ Result KPageTable::Operate(KProcessAddress addr, size_t num_pages, KMemoryPermis
         m_memory->UnmapRegion(*m_page_table_impl, addr, num_pages * PageSize);
         break;
     }
-    case OperationType::MapFirst:
     case OperationType::Map: {
         ASSERT(map_addr);
         ASSERT(Common::IsAligned(GetInteger(map_addr), PageSize));
@@ -3089,11 +3103,7 @@ Result KPageTable::Operate(KProcessAddress addr, size_t num_pages, KMemoryPermis
 
         // Open references to pages, if we should.
         if (IsHeapPhysicalAddress(m_kernel.MemoryLayout(), map_addr)) {
-            if (operation == OperationType::MapFirst) {
-                m_kernel.MemoryManager().OpenFirst(map_addr, num_pages);
-            } else {
-                m_kernel.MemoryManager().Open(map_addr, num_pages);
-            }
+            m_kernel.MemoryManager().Open(map_addr, num_pages);
         }
         break;
     }

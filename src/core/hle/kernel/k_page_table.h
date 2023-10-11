@@ -217,8 +217,8 @@ protected:
 private:
     enum class OperationType : u32 {
         Map = 0,
-        MapFirst = 1,
-        MapGroup = 2,
+        MapGroup = 1,
+        MapFirstGroup = 2,
         Unmap = 3,
         ChangePermissions = 4,
         ChangePermissionsAndRefresh = 5,

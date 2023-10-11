@@ -183,12 +183,17 @@ private:
 
 class KScopedPageGroup {
 public:
-    explicit KScopedPageGroup(const KPageGroup* gp) : m_pg(gp) {
+    explicit KScopedPageGroup(const KPageGroup* gp, bool not_first = true) : m_pg(gp) {
         if (m_pg) {
-            m_pg->Open();
+            if (not_first) {
+                m_pg->Open();
+            } else {
+                m_pg->OpenFirst();
+            }
         }
     }
-    explicit KScopedPageGroup(const KPageGroup& gp) : KScopedPageGroup(std::addressof(gp)) {}
+    explicit KScopedPageGroup(const KPageGroup& gp, bool not_first = true)
+        : KScopedPageGroup(std::addressof(gp), not_first) {}
     ~KScopedPageGroup() {
         if (m_pg) {
             m_pg->Close();
