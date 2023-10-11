@@ -23,6 +23,7 @@
 #include "yuzu/configuration/configure_vibration.h"
 #include "yuzu/configuration/input_profiles.h"
 #include "yuzu/main.h"
+#include "yuzu/util/controller_navigation.h"
 
 namespace {
 
@@ -132,6 +133,8 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
         ui->checkboxPlayer7Connected, ui->checkboxPlayer8Connected,
     };
 
+    ui->labelError->setVisible(false);
+
     // Setup/load everything prior to setting up connections.
     // This avoids unintentionally changing the states of elements while loading them in.
     SetSupportedControllers();
@@ -143,6 +146,8 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
 
     LoadConfiguration();
 
+    controller_navigation = new ControllerNavigation(system.HIDCore(), this);
+
     for (std::size_t i = 0; i < NUM_PLAYERS; ++i) {
         SetExplainText(i);
         UpdateControllerIcon(i);
@@ -151,6 +156,8 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
 
         connect(player_groupboxes[i], &QGroupBox::toggled, [this, i](bool checked) {
             if (checked) {
+                // Hide eventual error message about number of controllers
+                ui->labelError->setVisible(false);
                 for (std::size_t index = 0; index <= i; ++index) {
                     connected_controller_checkboxes[index]->setChecked(checked);
                 }
@@ -199,6 +206,12 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this,
             &QtControllerSelectorDialog::ApplyConfiguration);
 
+    connect(controller_navigation, &ControllerNavigation::TriggerKeyboardEvent,
+            [this](Qt::Key key) {
+                QKeyEvent* event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
+                QCoreApplication::postEvent(this, event);
+            });
+
     // Enhancement: Check if the parameters have already been met before disconnecting controllers.
     // If all the parameters are met AND only allows a single player,
     // stop the constructor here as we do not need to continue.
@@ -217,6 +230,7 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
 }
 
 QtControllerSelectorDialog::~QtControllerSelectorDialog() {
+    controller_navigation->UnloadController();
     system.HIDCore().DisableAllControllerConfiguration();
 }
 
@@ -289,6 +303,31 @@ void QtControllerSelectorDialog::CallConfigureInputProfileDialog() {
                           Qt::WindowSystemMenuHint);
     dialog.setWindowModality(Qt::WindowModal);
     dialog.exec();
+}
+
+void QtControllerSelectorDialog::keyPressEvent(QKeyEvent* evt) {
+    const auto num_connected_players = static_cast<int>(
+        std::count_if(player_groupboxes.begin(), player_groupboxes.end(),
+                      [](const QGroupBox* player) { return player->isChecked(); }));
+
+    const auto min_supported_players = parameters.enable_single_mode ? 1 : parameters.min_players;
+    const auto max_supported_players = parameters.enable_single_mode ? 1 : parameters.max_players;
+
+    if ((evt->key() == Qt::Key_Enter || evt->key() == Qt::Key_Return) && !parameters_met) {
+        // Display error message when trying to validate using "Enter" and "OK" button is disabled
+        ui->labelError->setVisible(true);
+        return;
+    } else if (evt->key() == Qt::Key_Left && num_connected_players > min_supported_players) {
+        // Remove a player if possible
+        connected_controller_checkboxes[num_connected_players - 1]->setChecked(false);
+        return;
+    } else if (evt->key() == Qt::Key_Right && num_connected_players < max_supported_players) {
+        // Add a player, if possible
+        ui->labelError->setVisible(false);
+        connected_controller_checkboxes[num_connected_players]->setChecked(true);
+        return;
+    }
+    QDialog::keyPressEvent(evt);
 }
 
 bool QtControllerSelectorDialog::CheckIfParametersMet() {
