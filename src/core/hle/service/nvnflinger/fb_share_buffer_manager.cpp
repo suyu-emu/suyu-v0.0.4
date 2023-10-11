@@ -46,7 +46,7 @@ Result AllocateIoForProcessAddressSpace(Common::ProcessAddress* out_map_address,
     // Get bounds of where mapping is possible.
     const VAddr alias_code_begin = GetInteger(page_table.GetAliasCodeRegionStart());
     const VAddr alias_code_size = page_table.GetAliasCodeRegionSize() / YUZU_PAGESIZE;
-    const auto state = Kernel::KMemoryState::Io;
+    const auto state = Kernel::KMemoryState::IoMemory;
     const auto perm = Kernel::KMemoryPermission::UserReadWrite;
     std::mt19937_64 rng{process->GetRandomEntropy(0)};
 

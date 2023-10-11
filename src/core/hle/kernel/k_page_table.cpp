@@ -2379,8 +2379,7 @@ Result KPageTable::MapPageGroup(KProcessAddress* out_addr, const KPageGroup& pg,
     KScopedPageTableUpdater updater(this);
 
     // Perform mapping operation.
-    const KPageProperties properties = {perm, state == KMemoryState::Io, false,
-                                        DisableMergeAttribute::DisableHead};
+    const KPageProperties properties = {perm, false, false, DisableMergeAttribute::DisableHead};
     R_TRY(this->MapPageGroupImpl(updater.GetPageList(), addr, pg, properties, false));
 
     // Update the blocks.
@@ -2422,8 +2421,7 @@ Result KPageTable::MapPageGroup(KProcessAddress addr, const KPageGroup& pg, KMem
     KScopedPageTableUpdater updater(this);
 
     // Perform mapping operation.
-    const KPageProperties properties = {perm, state == KMemoryState::Io, false,
-                                        DisableMergeAttribute::DisableHead};
+    const KPageProperties properties = {perm, false, false, DisableMergeAttribute::DisableHead};
     R_TRY(this->MapPageGroupImpl(updater.GetPageList(), addr, pg, properties, false));
 
     // Update the blocks.
@@ -2863,7 +2861,8 @@ Result KPageTable::LockForMapDeviceAddressSpace(bool* out_is_io, KProcessAddress
                                       &KMemoryBlock::ShareToDevice, KMemoryPermission::None);
 
     // Set whether the locked memory was io.
-    *out_is_io = old_state == KMemoryState::Io;
+    *out_is_io =
+        static_cast<Svc::MemoryState>(old_state & KMemoryState::Mask) == Svc::MemoryState::Io;
 
     R_SUCCEED();
 }
@@ -3106,79 +3105,79 @@ void KPageTable::FinalizeUpdate(PageLinkedList* page_list) {
     }
 }
 
-KProcessAddress KPageTable::GetRegionAddress(KMemoryState state) const {
+KProcessAddress KPageTable::GetRegionAddress(Svc::MemoryState state) const {
     switch (state) {
-    case KMemoryState::Free:
-    case KMemoryState::Kernel:
+    case Svc::MemoryState::Free:
+    case Svc::MemoryState::Kernel:
         return m_address_space_start;
-    case KMemoryState::Normal:
+    case Svc::MemoryState::Normal:
         return m_heap_region_start;
-    case KMemoryState::Ipc:
-    case KMemoryState::NonSecureIpc:
-    case KMemoryState::NonDeviceIpc:
+    case Svc::MemoryState::Ipc:
+    case Svc::MemoryState::NonSecureIpc:
+    case Svc::MemoryState::NonDeviceIpc:
         return m_alias_region_start;
-    case KMemoryState::Stack:
+    case Svc::MemoryState::Stack:
         return m_stack_region_start;
-    case KMemoryState::Static:
-    case KMemoryState::ThreadLocal:
+    case Svc::MemoryState::Static:
+    case Svc::MemoryState::ThreadLocal:
         return m_kernel_map_region_start;
-    case KMemoryState::Io:
-    case KMemoryState::Shared:
-    case KMemoryState::AliasCode:
-    case KMemoryState::AliasCodeData:
-    case KMemoryState::Transfered:
-    case KMemoryState::SharedTransfered:
-    case KMemoryState::SharedCode:
-    case KMemoryState::GeneratedCode:
-    case KMemoryState::CodeOut:
-    case KMemoryState::Coverage:
-    case KMemoryState::Insecure:
+    case Svc::MemoryState::Io:
+    case Svc::MemoryState::Shared:
+    case Svc::MemoryState::AliasCode:
+    case Svc::MemoryState::AliasCodeData:
+    case Svc::MemoryState::Transfered:
+    case Svc::MemoryState::SharedTransfered:
+    case Svc::MemoryState::SharedCode:
+    case Svc::MemoryState::GeneratedCode:
+    case Svc::MemoryState::CodeOut:
+    case Svc::MemoryState::Coverage:
+    case Svc::MemoryState::Insecure:
         return m_alias_code_region_start;
-    case KMemoryState::Code:
-    case KMemoryState::CodeData:
+    case Svc::MemoryState::Code:
+    case Svc::MemoryState::CodeData:
         return m_code_region_start;
     default:
         UNREACHABLE();
     }
 }
 
-size_t KPageTable::GetRegionSize(KMemoryState state) const {
+size_t KPageTable::GetRegionSize(Svc::MemoryState state) const {
     switch (state) {
-    case KMemoryState::Free:
-    case KMemoryState::Kernel:
+    case Svc::MemoryState::Free:
+    case Svc::MemoryState::Kernel:
         return m_address_space_end - m_address_space_start;
-    case KMemoryState::Normal:
+    case Svc::MemoryState::Normal:
         return m_heap_region_end - m_heap_region_start;
-    case KMemoryState::Ipc:
-    case KMemoryState::NonSecureIpc:
-    case KMemoryState::NonDeviceIpc:
+    case Svc::MemoryState::Ipc:
+    case Svc::MemoryState::NonSecureIpc:
+    case Svc::MemoryState::NonDeviceIpc:
         return m_alias_region_end - m_alias_region_start;
-    case KMemoryState::Stack:
+    case Svc::MemoryState::Stack:
         return m_stack_region_end - m_stack_region_start;
-    case KMemoryState::Static:
-    case KMemoryState::ThreadLocal:
+    case Svc::MemoryState::Static:
+    case Svc::MemoryState::ThreadLocal:
         return m_kernel_map_region_end - m_kernel_map_region_start;
-    case KMemoryState::Io:
-    case KMemoryState::Shared:
-    case KMemoryState::AliasCode:
-    case KMemoryState::AliasCodeData:
-    case KMemoryState::Transfered:
-    case KMemoryState::SharedTransfered:
-    case KMemoryState::SharedCode:
-    case KMemoryState::GeneratedCode:
-    case KMemoryState::CodeOut:
-    case KMemoryState::Coverage:
-    case KMemoryState::Insecure:
+    case Svc::MemoryState::Io:
+    case Svc::MemoryState::Shared:
+    case Svc::MemoryState::AliasCode:
+    case Svc::MemoryState::AliasCodeData:
+    case Svc::MemoryState::Transfered:
+    case Svc::MemoryState::SharedTransfered:
+    case Svc::MemoryState::SharedCode:
+    case Svc::MemoryState::GeneratedCode:
+    case Svc::MemoryState::CodeOut:
+    case Svc::MemoryState::Coverage:
+    case Svc::MemoryState::Insecure:
         return m_alias_code_region_end - m_alias_code_region_start;
-    case KMemoryState::Code:
-    case KMemoryState::CodeData:
+    case Svc::MemoryState::Code:
+    case Svc::MemoryState::CodeData:
         return m_code_region_end - m_code_region_start;
     default:
         UNREACHABLE();
     }
 }
 
-bool KPageTable::CanContain(KProcessAddress addr, size_t size, KMemoryState state) const {
+bool KPageTable::CanContain(KProcessAddress addr, size_t size, Svc::MemoryState state) const {
     const KProcessAddress end = addr + size;
     const KProcessAddress last = end - 1;
 
@@ -3192,32 +3191,32 @@ bool KPageTable::CanContain(KProcessAddress addr, size_t size, KMemoryState stat
     const bool is_in_alias = !(end <= m_alias_region_start || m_alias_region_end <= addr ||
                                m_alias_region_start == m_alias_region_end);
     switch (state) {
-    case KMemoryState::Free:
-    case KMemoryState::Kernel:
+    case Svc::MemoryState::Free:
+    case Svc::MemoryState::Kernel:
         return is_in_region;
-    case KMemoryState::Io:
-    case KMemoryState::Static:
-    case KMemoryState::Code:
-    case KMemoryState::CodeData:
-    case KMemoryState::Shared:
-    case KMemoryState::AliasCode:
-    case KMemoryState::AliasCodeData:
-    case KMemoryState::Stack:
-    case KMemoryState::ThreadLocal:
-    case KMemoryState::Transfered:
-    case KMemoryState::SharedTransfered:
-    case KMemoryState::SharedCode:
-    case KMemoryState::GeneratedCode:
-    case KMemoryState::CodeOut:
-    case KMemoryState::Coverage:
-    case KMemoryState::Insecure:
+    case Svc::MemoryState::Io:
+    case Svc::MemoryState::Static:
+    case Svc::MemoryState::Code:
+    case Svc::MemoryState::CodeData:
+    case Svc::MemoryState::Shared:
+    case Svc::MemoryState::AliasCode:
+    case Svc::MemoryState::AliasCodeData:
+    case Svc::MemoryState::Stack:
+    case Svc::MemoryState::ThreadLocal:
+    case Svc::MemoryState::Transfered:
+    case Svc::MemoryState::SharedTransfered:
+    case Svc::MemoryState::SharedCode:
+    case Svc::MemoryState::GeneratedCode:
+    case Svc::MemoryState::CodeOut:
+    case Svc::MemoryState::Coverage:
+    case Svc::MemoryState::Insecure:
         return is_in_region && !is_in_heap && !is_in_alias;
-    case KMemoryState::Normal:
+    case Svc::MemoryState::Normal:
         ASSERT(is_in_heap);
         return is_in_region && !is_in_alias;
-    case KMemoryState::Ipc:
-    case KMemoryState::NonSecureIpc:
-    case KMemoryState::NonDeviceIpc:
+    case Svc::MemoryState::Ipc:
+    case Svc::MemoryState::NonSecureIpc:
+    case Svc::MemoryState::NonDeviceIpc:
         ASSERT(is_in_alias);
         return is_in_region && !is_in_heap;
     default:
