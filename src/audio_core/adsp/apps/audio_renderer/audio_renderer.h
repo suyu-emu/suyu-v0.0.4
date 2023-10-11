@@ -85,6 +85,8 @@ private:
      */
     void CreateSinkStreams();
 
+    void PostDSPClearCommandBuffer() noexcept;
+
     /// Core system
     Core::System& system;
     /// The output sink the AudioRenderer will send samples to
