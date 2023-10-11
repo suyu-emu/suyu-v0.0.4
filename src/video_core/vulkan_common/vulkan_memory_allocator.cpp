@@ -66,9 +66,10 @@ struct Range {
     switch (usage) {
     case MemoryUsage::Upload:
     case MemoryUsage::Stream:
-        return VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+        return VMA_ALLOCATION_CREATE_MAPPED_BIT |
+               VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
     case MemoryUsage::Download:
-        return VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+        return VMA_ALLOCATION_CREATE_MAPPED_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
     case MemoryUsage::DeviceLocal:
         return {};
     }
@@ -252,8 +253,7 @@ vk::Image MemoryAllocator::CreateImage(const VkImageCreateInfo& ci) const {
 
 vk::Buffer MemoryAllocator::CreateBuffer(const VkBufferCreateInfo& ci, MemoryUsage usage) const {
     const VmaAllocationCreateInfo alloc_ci = {
-        .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT |
-                 MemoryUsageVmaFlags(usage),
+        .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT | MemoryUsageVmaFlags(usage),
         .usage = MemoryUsageVma(usage),
         .requiredFlags = 0,
         .preferredFlags = MemoryUsagePreferedVmaFlags(usage),
