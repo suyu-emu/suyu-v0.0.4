@@ -3400,10 +3400,13 @@ void GMainWindow::OnRestartGame() {
     if (!system->IsPoweredOn()) {
         return;
     }
-    // Make a copy since ShutdownGame edits game_path
-    const auto current_game = QString(current_game_path);
-    ShutdownGame();
-    BootGame(current_game);
+
+    if (ConfirmShutdownGame()) {
+        // Make a copy since ShutdownGame edits game_path
+        const auto current_game = QString(current_game_path);
+        ShutdownGame();
+        BootGame(current_game);
+    }
 }
 
 void GMainWindow::OnPauseGame() {
@@ -3425,15 +3428,27 @@ void GMainWindow::OnPauseContinueGame() {
 }
 
 void GMainWindow::OnStopGame() {
-    // Open (or not) the right confirm dialog based on current setting and game exit lock
+    if (ConfirmShutdownGame()) {
+        play_time_manager->Stop();
+        // Update game list to show new play time
+        game_list->PopulateAsync(UISettings::values.game_dirs);
+        if (OnShutdownBegin()) {
+            OnShutdownBeginDialog();
+        } else {
+            OnEmulationStopped();
+        }
+    }
+}
+
+bool GMainWindow::ConfirmShutdownGame() {
     if (UISettings::values.confirm_before_stopping.GetValue() == ConfirmStop::Ask_Always) {
         if (system->GetExitLocked()) {
             if (!ConfirmForceLockedExit()) {
-                return;
+                return false;
             }
         } else {
             if (!ConfirmChangeGame()) {
-                return;
+                return false;
             }
         }
     } else {
@@ -3441,19 +3456,11 @@ void GMainWindow::OnStopGame() {
                 ConfirmStop::Ask_Based_On_Game &&
             system->GetExitLocked()) {
             if (!ConfirmForceLockedExit()) {
-                return;
+                return false;
             }
         }
     }
-
-    play_time_manager->Stop();
-    // Update game list to show new play time
-    game_list->PopulateAsync(UISettings::values.game_dirs);
-    if (OnShutdownBegin()) {
-        OnShutdownBeginDialog();
-    } else {
-        OnEmulationStopped();
-    }
+    return true;
 }
 
 void GMainWindow::OnLoadComplete() {
