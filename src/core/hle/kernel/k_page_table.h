@@ -126,8 +126,6 @@ public:
         return m_block_info_manager;
     }
 
-    bool CanContain(KProcessAddress addr, size_t size, KMemoryState state) const;
-
     Result MapPages(KProcessAddress* out_addr, size_t num_pages, size_t alignment,
                     KPhysicalAddress phys_addr, KProcessAddress region_start,
                     size_t region_num_pages, KMemoryState state, KMemoryPermission perm) {
@@ -161,6 +159,21 @@ public:
     Result UnmapPageGroup(KProcessAddress address, const KPageGroup& pg, KMemoryState state);
     void RemapPageGroup(PageLinkedList* page_list, KProcessAddress address, size_t size,
                         const KPageGroup& pg);
+
+    KProcessAddress GetRegionAddress(Svc::MemoryState state) const;
+    size_t GetRegionSize(Svc::MemoryState state) const;
+    bool CanContain(KProcessAddress addr, size_t size, Svc::MemoryState state) const;
+
+    KProcessAddress GetRegionAddress(KMemoryState state) const {
+        return this->GetRegionAddress(static_cast<Svc::MemoryState>(state & KMemoryState::Mask));
+    }
+    size_t GetRegionSize(KMemoryState state) const {
+        return this->GetRegionSize(static_cast<Svc::MemoryState>(state & KMemoryState::Mask));
+    }
+    bool CanContain(KProcessAddress addr, size_t size, KMemoryState state) const {
+        return this->CanContain(addr, size,
+                                static_cast<Svc::MemoryState>(state & KMemoryState::Mask));
+    }
 
 protected:
     struct PageLinkedList {
@@ -228,8 +241,6 @@ private:
     Result Operate(KProcessAddress addr, size_t num_pages, KMemoryPermission perm,
                    OperationType operation, KPhysicalAddress map_addr = 0);
     void FinalizeUpdate(PageLinkedList* page_list);
-    KProcessAddress GetRegionAddress(KMemoryState state) const;
-    size_t GetRegionSize(KMemoryState state) const;
 
     KProcessAddress FindFreeArea(KProcessAddress region_start, size_t region_num_pages,
                                  size_t num_pages, size_t alignment, size_t offset,
