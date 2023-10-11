@@ -426,6 +426,10 @@ private:
     bool CheckSystemArchiveDecryption();
     bool CheckFirmwarePresence();
     void ConfigureFilesystemProvider(const std::string& filepath);
+    /**
+    * Open (or not) the right confirm dialog based on current setting and game exit lock
+    */
+    bool ConfirmShutdownGame();
 
     QString GetTasStateDescription() const;
     bool CreateShortcut(const std::string& shortcut_path, const std::string& title,
