@@ -263,6 +263,13 @@ private:
                             KMemoryAttribute attr_mask, KMemoryAttribute attr) const;
     Result CheckMemoryState(KMemoryState* out_state, KMemoryPermission* out_perm,
                             KMemoryAttribute* out_attr, size_t* out_blocks_needed,
+                            KMemoryBlockManager::const_iterator it, KProcessAddress last_addr,
+                            KMemoryState state_mask, KMemoryState state,
+                            KMemoryPermission perm_mask, KMemoryPermission perm,
+                            KMemoryAttribute attr_mask, KMemoryAttribute attr,
+                            KMemoryAttribute ignore_attr = DefaultMemoryIgnoreAttr) const;
+    Result CheckMemoryState(KMemoryState* out_state, KMemoryPermission* out_perm,
+                            KMemoryAttribute* out_attr, size_t* out_blocks_needed,
                             KProcessAddress addr, size_t size, KMemoryState state_mask,
                             KMemoryState state, KMemoryPermission perm_mask, KMemoryPermission perm,
                             KMemoryAttribute attr_mask, KMemoryAttribute attr,
