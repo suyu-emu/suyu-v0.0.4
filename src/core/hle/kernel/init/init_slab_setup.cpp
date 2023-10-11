@@ -106,7 +106,7 @@ static_assert(KernelPageBufferAdditionalSize ==
 /// memory.
 static KPhysicalAddress TranslateSlabAddrToPhysical(KMemoryLayout& memory_layout,
                                                     KVirtualAddress slab_addr) {
-    slab_addr -= GetInteger(memory_layout.GetSlabRegionAddress());
+    slab_addr -= memory_layout.GetSlabRegion().GetAddress();
     return GetInteger(slab_addr) + Core::DramMemoryMap::SlabHeapBase;
 }
 
@@ -196,7 +196,12 @@ void InitializeSlabHeaps(Core::System& system, KMemoryLayout& memory_layout) {
     auto& kernel = system.Kernel();
 
     // Get the start of the slab region, since that's where we'll be working.
-    KVirtualAddress address = memory_layout.GetSlabRegionAddress();
+    const KMemoryRegion& slab_region = memory_layout.GetSlabRegion();
+    KVirtualAddress address = slab_region.GetAddress();
+
+    // Clear the slab region.
+    // TODO: implement access to kernel VAs.
+    // std::memset(device_ptr, 0, slab_region.GetSize());
 
     // Initialize slab type array to be in sorted order.
     std::array<KSlabType, KSlabType_Count> slab_types;
