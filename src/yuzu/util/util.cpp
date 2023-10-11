@@ -63,25 +63,15 @@ bool SaveIconToFile(const std::string_view path, const QImage& image) {
     };
 #pragma pack(pop)
 
-    QImage source_image = image.convertToFormat(QImage::Format_RGB32);
+    const QImage source_image = image.convertToFormat(QImage::Format_RGB32);
+    constexpr std::array<int, 7> scale_sizes{256, 128, 64, 48, 32, 24, 16};
     constexpr int bytes_per_pixel = 4;
-    const int image_size = source_image.width() * source_image.height() * bytes_per_pixel;
 
-    BITMAPINFOHEADER info_header{};
-    info_header.biSize = sizeof(BITMAPINFOHEADER), info_header.biWidth = source_image.width(),
-    info_header.biHeight = source_image.height() * 2, info_header.biPlanes = 1,
-    info_header.biBitCount = bytes_per_pixel * 8, info_header.biCompression = BI_RGB;
-
-    const IconDir icon_dir{.id_reserved = 0, .id_type = 1, .id_count = 1};
-    const IconDirEntry icon_entry{.width = static_cast<BYTE>(source_image.width()),
-                                  .height = static_cast<BYTE>(source_image.height() * 2),
-                                  .color_count = 0,
-                                  .reserved = 0,
-                                  .planes = 1,
-                                  .bit_count = bytes_per_pixel * 8,
-                                  .bytes_in_res =
-                                      static_cast<DWORD>(sizeof(BITMAPINFOHEADER) + image_size),
-                                  .image_offset = sizeof(IconDir) + sizeof(IconDirEntry)};
+    const IconDir icon_dir{
+        .id_reserved = 0,
+        .id_type = 1,
+        .id_count = static_cast<WORD>(scale_sizes.size()),
+    };
 
     Common::FS::IOFile icon_file(path, Common::FS::FileAccessMode::Write,
                                  Common::FS::FileType::BinaryFile);
@@ -92,19 +82,54 @@ bool SaveIconToFile(const std::string_view path, const QImage& image) {
     if (!icon_file.Write(icon_dir)) {
         return false;
     }
-    if (!icon_file.Write(icon_entry)) {
-        return false;
-    }
-    if (!icon_file.Write(info_header)) {
-        return false;
+
+    std::size_t image_offset = sizeof(IconDir) + (sizeof(IconDirEntry) * scale_sizes.size());
+    for (std::size_t i = 0; i < scale_sizes.size(); i++) {
+        const int image_size = scale_sizes[i] * scale_sizes[i] * bytes_per_pixel;
+        const IconDirEntry icon_entry{
+            .width = static_cast<BYTE>(scale_sizes[i]),
+            .height = static_cast<BYTE>(scale_sizes[i]),
+            .color_count = 0,
+            .reserved = 0,
+            .planes = 1,
+            .bit_count = bytes_per_pixel * 8,
+            .bytes_in_res = static_cast<DWORD>(sizeof(BITMAPINFOHEADER) + image_size),
+            .image_offset = static_cast<DWORD>(image_offset),
+        };
+        image_offset += icon_entry.bytes_in_res;
+        if (!icon_file.Write(icon_entry)) {
+            return false;
+        }
     }
 
-    for (int y = 0; y < image.height(); y++) {
-        const auto* line = source_image.scanLine(source_image.height() - 1 - y);
-        std::vector<u8> line_data(source_image.width() * bytes_per_pixel);
-        std::memcpy(line_data.data(), line, line_data.size());
-        if (!icon_file.Write(line_data)) {
+    for (std::size_t i = 0; i < scale_sizes.size(); i++) {
+        const QImage scaled_image = source_image.scaled(
+            scale_sizes[i], scale_sizes[i], Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        const BITMAPINFOHEADER info_header{
+            .biSize = sizeof(BITMAPINFOHEADER),
+            .biWidth = scaled_image.width(),
+            .biHeight = scaled_image.height() * 2,
+            .biPlanes = 1,
+            .biBitCount = bytes_per_pixel * 8,
+            .biCompression = BI_RGB,
+            .biSizeImage{},
+            .biXPelsPerMeter{},
+            .biYPelsPerMeter{},
+            .biClrUsed{},
+            .biClrImportant{},
+        };
+
+        if (!icon_file.Write(info_header)) {
             return false;
+        }
+
+        for (int y = 0; y < scaled_image.height(); y++) {
+            const auto* line = scaled_image.scanLine(scaled_image.height() - 1 - y);
+            std::vector<u8> line_data(scaled_image.width() * bytes_per_pixel);
+            std::memcpy(line_data.data(), line, line_data.size());
+            if (!icon_file.Write(line_data)) {
+                return false;
+            }
         }
     }
     icon_file.Close();
