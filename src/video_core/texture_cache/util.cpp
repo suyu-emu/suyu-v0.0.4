@@ -885,7 +885,7 @@ boost::container::small_vector<BufferImageCopy, 16> UnswizzleImage(Tegra::Memory
         };
         const Extent3D num_tiles = AdjustTileSize(level_size, tile_size);
         const Extent3D block =
-            AdjustMipBlockSize(num_tiles, info.block, level, level_info.num_levels);
+            AdjustMipBlockSize(num_tiles, level_info.block, level, level_info.num_levels);
         const u32 stride_alignment = StrideAlignment(num_tiles, info.block, gob, bpp_log2);
         size_t guest_layer_offset = 0;
 
@@ -1062,7 +1062,7 @@ boost::container::small_vector<SwizzleParameters, 16> FullUploadSwizzles(const I
         const Extent3D level_size = AdjustMipSize(size, level);
         const Extent3D num_tiles = AdjustTileSize(level_size, tile_size);
         const Extent3D block =
-            AdjustMipBlockSize(num_tiles, info.block, level, level_info.num_levels);
+            AdjustMipBlockSize(num_tiles, level_info.block, level, level_info.num_levels);
         params[level] = SwizzleParameters{
             .num_tiles = num_tiles,
             .block = block,
