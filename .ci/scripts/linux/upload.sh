@@ -59,4 +59,9 @@ if [ "${RELEASE_NAME}" = "mainline" ] || [ "${RELEASE_NAME}" = "early-access" ];
     cp "build/${APPIMAGE_NAME}" "${DIR_NAME}/yuzu-${RELEASE_NAME}.AppImage"
 fi
 
+# Copy debug symbols to artifacts
+cd build/bin
+tar $COMPRESSION_FLAGS "${ARTIFACTS_DIR}/${REV_NAME}-debug.tar.xz" *.debug
+cd -
+
 . .ci/scripts/common/post-upload.sh
