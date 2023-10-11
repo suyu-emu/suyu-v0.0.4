@@ -19,4 +19,8 @@ static inline KPhysicalAddress GetInitialProcessBinaryPhysicalAddress() {
         MainMemoryAddress);
 }
 
+static inline size_t GetInitialProcessBinarySize() {
+    return InitialProcessBinarySizeMax;
+}
+
 } // namespace Kernel
