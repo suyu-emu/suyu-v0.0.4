@@ -505,7 +505,7 @@ Result KPageTable::UnmapCodeMemory(KProcessAddress dst_address, KProcessAddress 
     R_TRY(this->CheckMemoryStateContiguous(
         std::addressof(num_dst_allocator_blocks), dst_address, size, KMemoryState::FlagCanCodeAlias,
         KMemoryState::FlagCanCodeAlias, KMemoryPermission::None, KMemoryPermission::None,
-        KMemoryAttribute::All, KMemoryAttribute::None));
+        KMemoryAttribute::All & ~KMemoryAttribute::PermissionLocked, KMemoryAttribute::None));
 
     // Determine whether any pages being unmapped are code.
     bool any_code_pages = false;
@@ -1770,7 +1770,11 @@ Result KPageTable::MapPhysicalMemory(KProcessAddress address, size_t size) {
                 m_memory_block_manager.UpdateIfMatch(
                     std::addressof(allocator), address, size / PageSize, KMemoryState::Free,
                     KMemoryPermission::None, KMemoryAttribute::None, KMemoryState::Normal,
-                    KMemoryPermission::UserReadWrite, KMemoryAttribute::None);
+                    KMemoryPermission::UserReadWrite, KMemoryAttribute::None,
+                    address == this->GetAliasRegionStart()
+                        ? KMemoryBlockDisableMergeAttribute::Normal
+                        : KMemoryBlockDisableMergeAttribute::None,
+                    KMemoryBlockDisableMergeAttribute::None);
 
                 R_SUCCEED();
             }
@@ -1868,6 +1872,13 @@ Result KPageTable::UnmapPhysicalMemory(KProcessAddress address, size_t size) {
 
     // Iterate over the memory, unmapping as we go.
     auto it = m_memory_block_manager.FindIterator(cur_address);
+
+    const auto clear_merge_attr =
+        (it->GetState() == KMemoryState::Normal &&
+         it->GetAddress() == this->GetAliasRegionStart() && it->GetAddress() == address)
+            ? KMemoryBlockDisableMergeAttribute::Normal
+            : KMemoryBlockDisableMergeAttribute::None;
+
     while (true) {
         // Check that the iterator is valid.
         ASSERT(it != m_memory_block_manager.end());
@@ -1905,7 +1916,7 @@ Result KPageTable::UnmapPhysicalMemory(KProcessAddress address, size_t size) {
     m_memory_block_manager.Update(std::addressof(allocator), address, size / PageSize,
                                   KMemoryState::Free, KMemoryPermission::None,
                                   KMemoryAttribute::None, KMemoryBlockDisableMergeAttribute::None,
-                                  KMemoryBlockDisableMergeAttribute::None);
+                                  clear_merge_attr);
 
     // We succeeded.
     R_SUCCEED();
@@ -2650,11 +2661,18 @@ Result KPageTable::SetMemoryAttribute(KProcessAddress addr, size_t size, u32 mas
     size_t num_allocator_blocks;
     constexpr auto AttributeTestMask =
         ~(KMemoryAttribute::SetMask | KMemoryAttribute::DeviceShared);
-    R_TRY(this->CheckMemoryState(
-        std::addressof(old_state), std::addressof(old_perm), std::addressof(old_attr),
-        std::addressof(num_allocator_blocks), addr, size, KMemoryState::FlagCanChangeAttribute,
-        KMemoryState::FlagCanChangeAttribute, KMemoryPermission::None, KMemoryPermission::None,
-        AttributeTestMask, KMemoryAttribute::None, ~AttributeTestMask));
+    const KMemoryState state_test_mask =
+        static_cast<KMemoryState>(((mask & static_cast<u32>(KMemoryAttribute::Uncached))
+                                       ? static_cast<u32>(KMemoryState::FlagCanChangeAttribute)
+                                       : 0) |
+                                  ((mask & static_cast<u32>(KMemoryAttribute::PermissionLocked))
+                                       ? static_cast<u32>(KMemoryState::FlagCanPermissionLock)
+                                       : 0));
+    R_TRY(this->CheckMemoryState(std::addressof(old_state), std::addressof(old_perm),
+                                 std::addressof(old_attr), std::addressof(num_allocator_blocks),
+                                 addr, size, state_test_mask, state_test_mask,
+                                 KMemoryPermission::None, KMemoryPermission::None,
+                                 AttributeTestMask, KMemoryAttribute::None, ~AttributeTestMask));
 
     // Create an update allocator.
     Result allocator_result{ResultSuccess};
@@ -2662,18 +2680,17 @@ Result KPageTable::SetMemoryAttribute(KProcessAddress addr, size_t size, u32 mas
                                                  m_memory_block_slab_manager, num_allocator_blocks);
     R_TRY(allocator_result);
 
-    // Determine the new attribute.
-    const KMemoryAttribute new_attr =
-        static_cast<KMemoryAttribute>(((old_attr & static_cast<KMemoryAttribute>(~mask)) |
-                                       static_cast<KMemoryAttribute>(attr & mask)));
-
-    // Perform operation.
-    this->Operate(addr, num_pages, old_perm, OperationType::ChangePermissionsAndRefresh);
+    // If we need to, perform a change attribute operation.
+    if (True(KMemoryAttribute::Uncached & static_cast<KMemoryAttribute>(mask))) {
+        // Perform operation.
+        R_TRY(this->Operate(addr, num_pages, old_perm,
+                            OperationType::ChangePermissionsAndRefreshAndFlush, 0));
+    }
 
     // Update the blocks.
-    m_memory_block_manager.Update(std::addressof(allocator), addr, num_pages, old_state, old_perm,
-                                  new_attr, KMemoryBlockDisableMergeAttribute::None,
-                                  KMemoryBlockDisableMergeAttribute::None);
+    m_memory_block_manager.UpdateAttribute(std::addressof(allocator), addr, num_pages,
+                                           static_cast<KMemoryAttribute>(mask),
+                                           static_cast<KMemoryAttribute>(attr));
 
     R_SUCCEED();
 }
@@ -3086,6 +3103,7 @@ Result KPageTable::Operate(KProcessAddress addr, size_t num_pages, KMemoryPermis
     }
     case OperationType::ChangePermissions:
     case OperationType::ChangePermissionsAndRefresh:
+    case OperationType::ChangePermissionsAndRefreshAndFlush:
         break;
     default:
         ASSERT(false);

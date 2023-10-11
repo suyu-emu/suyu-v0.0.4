@@ -192,7 +192,7 @@ enum class KMemoryAttribute : u8 {
     Uncached = static_cast<u8>(Svc::MemoryAttribute::Uncached),
     PermissionLocked = static_cast<u8>(Svc::MemoryAttribute::PermissionLocked),
 
-    SetMask = Uncached,
+    SetMask = Uncached | PermissionLocked,
 };
 DECLARE_ENUM_FLAG_OPERATORS(KMemoryAttribute);
 
@@ -339,6 +339,10 @@ public:
         return this->GetEndAddress() - 1;
     }
 
+    constexpr KMemoryState GetState() const {
+        return m_memory_state;
+    }
+
     constexpr u16 GetIpcLockCount() const {
         return m_ipc_lock_count;
     }
@@ -454,6 +458,13 @@ public:
             m_disable_merge_attribute = m_disable_merge_attribute &
                                         static_cast<KMemoryBlockDisableMergeAttribute>(~clear_mask);
         }
+    }
+
+    constexpr void UpdateAttribute(KMemoryAttribute mask, KMemoryAttribute attr) {
+        ASSERT(False(mask & KMemoryAttribute::IpcLocked));
+        ASSERT(False(mask & KMemoryAttribute::DeviceShared));
+
+        m_attribute = (m_attribute & ~mask) | attr;
     }
 
     constexpr void Split(KMemoryBlock* block, KProcessAddress addr) {

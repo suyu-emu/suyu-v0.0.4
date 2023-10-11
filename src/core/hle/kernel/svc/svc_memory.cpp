@@ -108,9 +108,15 @@ Result SetMemoryAttribute(Core::System& system, u64 address, u64 size, u32 mask,
     R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
 
     // Validate the attribute and mask.
-    constexpr u32 SupportedMask = static_cast<u32>(MemoryAttribute::Uncached);
+    constexpr u32 SupportedMask =
+        static_cast<u32>(MemoryAttribute::Uncached | MemoryAttribute::PermissionLocked);
     R_UNLESS((mask | attr) == mask, ResultInvalidCombination);
     R_UNLESS((mask | attr | SupportedMask) == SupportedMask, ResultInvalidCombination);
+
+    // Check that permission locked is either being set or not masked.
+    R_UNLESS((static_cast<Svc::MemoryAttribute>(mask) & Svc::MemoryAttribute::PermissionLocked) ==
+                 (static_cast<Svc::MemoryAttribute>(attr) & Svc::MemoryAttribute::PermissionLocked),
+             ResultInvalidCombination);
 
     // Validate that the region is in range for the current process.
     auto& page_table{GetCurrentProcess(system.Kernel()).GetPageTable()};

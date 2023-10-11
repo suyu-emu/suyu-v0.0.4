@@ -222,7 +222,8 @@ private:
         Unmap = 3,
         ChangePermissions = 4,
         ChangePermissionsAndRefresh = 5,
-        Separate = 6,
+        ChangePermissionsAndRefreshAndFlush = 6,
+        Separate = 7,
     };
 
     static constexpr KMemoryAttribute DefaultMemoryIgnoreAttr =

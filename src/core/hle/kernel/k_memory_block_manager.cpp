@@ -160,8 +160,8 @@ void KMemoryBlockManager::Update(KMemoryBlockManagerUpdateAllocator* allocator,
             }
 
             // Update block state.
-            it->Update(state, perm, attr, cur_address == address, static_cast<u8>(set_disable_attr),
-                       static_cast<u8>(clear_disable_attr));
+            it->Update(state, perm, attr, it->GetAddress() == address,
+                       static_cast<u8>(set_disable_attr), static_cast<u8>(clear_disable_attr));
             cur_address += cur_info.GetSize();
             remaining_pages -= cur_info.GetNumPages();
         }
@@ -175,7 +175,9 @@ void KMemoryBlockManager::UpdateIfMatch(KMemoryBlockManagerUpdateAllocator* allo
                                         KProcessAddress address, size_t num_pages,
                                         KMemoryState test_state, KMemoryPermission test_perm,
                                         KMemoryAttribute test_attr, KMemoryState state,
-                                        KMemoryPermission perm, KMemoryAttribute attr) {
+                                        KMemoryPermission perm, KMemoryAttribute attr,
+                                        KMemoryBlockDisableMergeAttribute set_disable_attr,
+                                        KMemoryBlockDisableMergeAttribute clear_disable_attr) {
     // Ensure for auditing that we never end up with an invalid tree.
     KScopedMemoryBlockManagerAuditor auditor(this);
     ASSERT(Common::IsAligned(GetInteger(address), PageSize));
@@ -214,7 +216,8 @@ void KMemoryBlockManager::UpdateIfMatch(KMemoryBlockManagerUpdateAllocator* allo
             }
 
             // Update block state.
-            it->Update(state, perm, attr, false, 0, 0);
+            it->Update(state, perm, attr, false, static_cast<u8>(set_disable_attr),
+                       static_cast<u8>(clear_disable_attr));
             cur_address += cur_info.GetSize();
             remaining_pages -= cur_info.GetNumPages();
         } else {
@@ -278,6 +281,65 @@ void KMemoryBlockManager::UpdateLock(KMemoryBlockManagerUpdateAllocator* allocat
                                           cur_info.GetEndAddress() == end_address);
         cur_address += cur_info.GetSize();
         remaining_pages -= cur_info.GetNumPages();
+        it++;
+    }
+
+    this->CoalesceForUpdate(allocator, address, num_pages);
+}
+
+void KMemoryBlockManager::UpdateAttribute(KMemoryBlockManagerUpdateAllocator* allocator,
+                                          KProcessAddress address, size_t num_pages,
+                                          KMemoryAttribute mask, KMemoryAttribute attr) {
+    // Ensure for auditing that we never end up with an invalid tree.
+    KScopedMemoryBlockManagerAuditor auditor(this);
+    ASSERT(Common::IsAligned(GetInteger(address), PageSize));
+
+    KProcessAddress cur_address = address;
+    size_t remaining_pages = num_pages;
+    iterator it = this->FindIterator(address);
+
+    while (remaining_pages > 0) {
+        const size_t remaining_size = remaining_pages * PageSize;
+        KMemoryInfo cur_info = it->GetMemoryInfo();
+
+        if ((it->GetAttribute() & mask) != attr) {
+            // If we need to, create a new block before and insert it.
+            if (cur_info.GetAddress() != GetInteger(cur_address)) {
+                KMemoryBlock* new_block = allocator->Allocate();
+
+                it->Split(new_block, cur_address);
+                it = m_memory_block_tree.insert(*new_block);
+                it++;
+
+                cur_info = it->GetMemoryInfo();
+                cur_address = cur_info.GetAddress();
+            }
+
+            // If we need to, create a new block after and insert it.
+            if (cur_info.GetSize() > remaining_size) {
+                KMemoryBlock* new_block = allocator->Allocate();
+
+                it->Split(new_block, cur_address + remaining_size);
+                it = m_memory_block_tree.insert(*new_block);
+
+                cur_info = it->GetMemoryInfo();
+            }
+
+            // Update block state.
+            it->UpdateAttribute(mask, attr);
+            cur_address += cur_info.GetSize();
+            remaining_pages -= cur_info.GetNumPages();
+        } else {
+            // If we already have the right attributes, just advance.
+            if (cur_address + remaining_size < cur_info.GetEndAddress()) {
+                remaining_pages = 0;
+                cur_address += remaining_size;
+            } else {
+                remaining_pages =
+                    (cur_address + remaining_size - cur_info.GetEndAddress()) / PageSize;
+                cur_address = cur_info.GetEndAddress();
+            }
+        }
         it++;
     }
 
