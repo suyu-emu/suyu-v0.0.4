@@ -636,7 +636,7 @@ struct KernelCore::Impl {
         constexpr size_t SecureUnknownRegionSize = 0;
         const size_t secure_unknown_size = SecureUnknownRegionSize;
         const auto secure_unknown_end_phys_addr = secure_applet_end_phys_addr + secure_unknown_size;
-        if (secure_unknown_size > 0) {
+        if constexpr (SecureUnknownRegionSize > 0) {
             ASSERT(memory_layout->GetPhysicalMemoryRegionTree().Insert(
                 GetInteger(secure_applet_end_phys_addr), secure_unknown_size,
                 KMemoryRegionType_DramKernelSecureUnknown));
