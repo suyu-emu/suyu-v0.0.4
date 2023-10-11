@@ -156,6 +156,8 @@ public:
 
     bool LoadNRO(std::span<const u8> data) {
         local_memory.clear();
+
+        relocbase = local_memory.size();
         local_memory.insert(local_memory.end(), data.begin(), data.end());
 
         if (FixupRelocations()) {
@@ -181,8 +183,8 @@ public:
         // https://refspecs.linuxbase.org/elf/gabi4+/ch5.dynamic.html
         // https://refspecs.linuxbase.org/elf/gabi4+/ch4.reloc.html
         VAddr dynamic_offset{mod_offset + callbacks->MemoryRead32(mod_offset + 4)};
-        VAddr rela_dyn = 0;
-        size_t num_rela = 0;
+        VAddr rela_dyn = 0, relr_dyn = 0;
+        size_t num_rela = 0, num_relr = 0;
         while (true) {
             const auto dyn{callbacks->ReadMemory<Elf64_Dyn>(dynamic_offset)};
             dynamic_offset += sizeof(Elf64_Dyn);
@@ -196,6 +198,12 @@ public:
             if (dyn.d_tag == ElfDtRelasz) {
                 num_rela = dyn.d_un.d_val / sizeof(Elf64_Rela);
             }
+            if (dyn.d_tag == ElfDtRelr) {
+                relr_dyn = dyn.d_un.d_ptr;
+            }
+            if (dyn.d_tag == ElfDtRelrsz) {
+                num_relr = dyn.d_un.d_val / sizeof(Elf64_Relr);
+            }
         }
 
         for (size_t i = 0; i < num_rela; i++) {
@@ -205,6 +213,29 @@ public:
             }
             const VAddr contents{callbacks->MemoryRead64(rela.r_offset)};
             callbacks->MemoryWrite64(rela.r_offset, contents + rela.r_addend);
+        }
+
+        VAddr relr_where = 0;
+        for (size_t i = 0; i < num_relr; i++) {
+            const auto relr{callbacks->ReadMemory<Elf64_Relr>(relr_dyn + i * sizeof(Elf64_Relr))};
+            const auto incr{[&](VAddr where) {
+                callbacks->MemoryWrite64(where, callbacks->MemoryRead64(where) + relocbase);
+            }};
+
+            if ((relr & 1) == 0) {
+                // where pointer
+                relr_where = relocbase + relr;
+                incr(relr_where);
+                relr_where += sizeof(Elf64_Addr);
+            } else {
+                // bitmap
+                for (int bit = 1; bit < 64; bit++) {
+                    if ((relr & (1ULL << bit)) != 0) {
+                        incr(relr_where + i * sizeof(Elf64_Addr));
+                    }
+                }
+                relr_where += 63 * sizeof(Elf64_Addr);
+            }
         }
 
         return true;
@@ -313,6 +344,7 @@ public:
     Core::Memory::Memory& memory;
     VAddr top_of_stack;
     VAddr heap_pointer;
+    VAddr relocbase;
 };
 
 void DynarmicCallbacks64::CallSVC(u32 swi) {
