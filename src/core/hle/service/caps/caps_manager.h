@@ -37,7 +37,7 @@ namespace Service::Capture {
 
 class AlbumManager {
 public:
-    explicit AlbumManager();
+    explicit AlbumManager(Core::System& system_);
     ~AlbumManager();
 
     Result DeleteAlbumFile(const AlbumFileId& file_id);
@@ -45,6 +45,9 @@ public:
     Result GetAlbumFileList(std::vector<AlbumEntry>& out_entries, AlbumStorage storage,
                             u8 flags) const;
     Result GetAlbumFileList(std::vector<ApplicationAlbumFileEntry>& out_entries,
+                            ContentType contex_type, s64 start_posix_time, s64 end_posix_time,
+                            u64 aruid) const;
+    Result GetAlbumFileList(std::vector<ApplicationAlbumEntry>& out_entries,
                             ContentType contex_type, AlbumFileDateTime start_date,
                             AlbumFileDateTime end_date, u64 aruid) const;
     Result GetAutoSavingStorage(bool& out_is_autosaving) const;
@@ -65,8 +68,12 @@ private:
     Result LoadImage(std::span<u8> out_image, const std::filesystem::path& path, int width,
                      int height, ScreenShotDecoderFlag flag) const;
 
+    AlbumFileDateTime ConvertToAlbumDateTime(u64 posix_time) const;
+
     bool is_mounted{};
     std::unordered_map<AlbumFileId, std::filesystem::path> album_files;
+
+    Core::System& system;
 };
 
 } // namespace Service::Capture
