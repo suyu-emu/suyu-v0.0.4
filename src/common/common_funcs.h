@@ -39,7 +39,11 @@
 #define Crash() exit(1)
 #endif
 
+#define LTO_NOINLINE __attribute__((noinline))
+
 #else // _MSC_VER
+
+#define LTO_NOINLINE
 
 // Locale Cross-Compatibility
 #define locale_t _locale_t
