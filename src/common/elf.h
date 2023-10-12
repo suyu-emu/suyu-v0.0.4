@@ -211,6 +211,11 @@ struct Elf64_Rela {
     Elf64_Sxword r_addend; /* Addend */
 };
 
+/* RELR relocation table entry */
+
+using Elf32_Relr = Elf32_Word;
+using Elf64_Relr = Elf64_Xword;
+
 /* How to extract and insert information held in the r_info field.  */
 
 static inline u32 Elf32RelSymIndex(Elf32_Word r_info) {
@@ -328,6 +333,9 @@ constexpr u32 ElfDtFiniArray = 26;   /* Array with addresses of fini fct */
 constexpr u32 ElfDtInitArraySz = 27; /* Size in bytes of DT_INIT_ARRAY */
 constexpr u32 ElfDtFiniArraySz = 28; /* Size in bytes of DT_FINI_ARRAY */
 constexpr u32 ElfDtSymtabShndx = 34; /* Address of SYMTAB_SHNDX section */
+constexpr u32 ElfDtRelrsz = 35;      /* Size of RELR relative relocations */
+constexpr u32 ElfDtRelr = 36;        /* Address of RELR relative relocations */
+constexpr u32 ElfDtRelrent = 37;     /* Size of one RELR relative relocation */
 
 } // namespace ELF
 } // namespace Common
