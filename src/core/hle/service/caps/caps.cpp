@@ -16,7 +16,7 @@ namespace Service::Capture {
 
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
-    auto album_manager = std::make_shared<AlbumManager>();
+    auto album_manager = std::make_shared<AlbumManager>(system);
 
     server_manager->RegisterNamedService(
         "caps:a", std::make_shared<IAlbumAccessorService>(system, album_manager));
