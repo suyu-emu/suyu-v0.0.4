@@ -427,8 +427,9 @@ private:
     bool CheckFirmwarePresence();
     void ConfigureFilesystemProvider(const std::string& filepath);
     /**
-    * Open (or not) the right confirm dialog based on current setting and game exit lock
-    */
+     * Open (or not) the right confirm dialog based on current setting and game exit lock
+     * @returns true if the player confirmed or the settings do no require it
+     */
     bool ConfirmShutdownGame();
 
     QString GetTasStateDescription() const;
