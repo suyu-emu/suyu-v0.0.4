@@ -41,13 +41,13 @@ enum class ScreenShotDecoderFlag : u64 {
 
 // This is nn::capsrv::AlbumFileDateTime
 struct AlbumFileDateTime {
-    u16 year{};
-    u8 month{};
-    u8 day{};
-    u8 hour{};
-    u8 minute{};
-    u8 second{};
-    u8 unique_id{};
+    s16 year{};
+    s8 month{};
+    s8 day{};
+    s8 hour{};
+    s8 minute{};
+    s8 second{};
+    s8 unique_id{};
 
     friend constexpr bool operator==(const AlbumFileDateTime&, const AlbumFileDateTime&) = default;
     friend constexpr bool operator>(const AlbumFileDateTime& a, const AlbumFileDateTime& b) {

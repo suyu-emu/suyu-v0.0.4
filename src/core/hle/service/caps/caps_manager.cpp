@@ -8,12 +8,15 @@
 #include "common/fs/file.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/hle/service/caps/caps_manager.h"
 #include "core/hle/service/caps/caps_result.h"
+#include "core/hle/service/time/time_manager.h"
+#include "core/hle/service/time/time_zone_content_manager.h"
 
 namespace Service::Capture {
 
-AlbumManager::AlbumManager() {}
+AlbumManager::AlbumManager(Core::System& system_) : system{system_} {}
 
 AlbumManager::~AlbumManager() = default;
 
@@ -83,6 +86,34 @@ Result AlbumManager::GetAlbumFileList(std::vector<AlbumEntry>& out_entries, Albu
 }
 
 Result AlbumManager::GetAlbumFileList(std::vector<ApplicationAlbumFileEntry>& out_entries,
+                                      ContentType contex_type, s64 start_posix_time,
+                                      s64 end_posix_time, u64 aruid) const {
+    if (!is_mounted) {
+        return ResultIsNotMounted;
+    }
+
+    std::vector<ApplicationAlbumEntry> album_entries;
+    const auto start_date = ConvertToAlbumDateTime(start_posix_time);
+    const auto end_date = ConvertToAlbumDateTime(end_posix_time);
+    const auto result = GetAlbumFileList(album_entries, contex_type, start_date, end_date, aruid);
+
+    if (result.IsError()) {
+        return result;
+    }
+
+    for (const auto& album_entry : album_entries) {
+        ApplicationAlbumFileEntry entry{
+            .entry = album_entry,
+            .datetime = album_entry.datetime,
+            .unknown = {},
+        };
+        out_entries.push_back(entry);
+    }
+
+    return ResultSuccess;
+}
+
+Result AlbumManager::GetAlbumFileList(std::vector<ApplicationAlbumEntry>& out_entries,
                                       ContentType contex_type, AlbumFileDateTime start_date,
                                       AlbumFileDateTime end_date, u64 aruid) const {
     if (!is_mounted) {
@@ -93,31 +124,25 @@ Result AlbumManager::GetAlbumFileList(std::vector<ApplicationAlbumFileEntry>& ou
         if (file_id.type != contex_type) {
             continue;
         }
-
         if (file_id.date > start_date) {
             continue;
         }
-
         if (file_id.date < end_date) {
             continue;
         }
-
         if (out_entries.size() >= SdAlbumFileLimit) {
             break;
         }
 
         const auto entry_size = Common::FS::GetSize(path);
-        ApplicationAlbumFileEntry entry{.entry =
-                                            {
-                                                .size = entry_size,
-                                                .hash{},
-                                                .datetime = file_id.date,
-                                                .storage = file_id.storage,
-                                                .content = contex_type,
-                                                .unknown = 1,
-                                            },
-                                        .datetime = file_id.date,
-                                        .unknown = {}};
+        ApplicationAlbumEntry entry{
+            .size = entry_size,
+            .hash{},
+            .datetime = file_id.date,
+            .storage = file_id.storage,
+            .content = contex_type,
+            .unknown = 1,
+        };
         out_entries.push_back(entry);
     }
 
@@ -274,12 +299,12 @@ Result AlbumManager::GetAlbumEntry(AlbumEntry& out_entry, const std::filesystem:
                 .application_id = static_cast<u64>(std::stoll(application, 0, 16)),
                 .date =
                     {
-                        .year = static_cast<u16>(std::stoi(year)),
-                        .month = static_cast<u8>(std::stoi(month)),
-                        .day = static_cast<u8>(std::stoi(day)),
-                        .hour = static_cast<u8>(std::stoi(hour)),
-                        .minute = static_cast<u8>(std::stoi(minute)),
-                        .second = static_cast<u8>(std::stoi(second)),
+                        .year = static_cast<s16>(std::stoi(year)),
+                        .month = static_cast<s8>(std::stoi(month)),
+                        .day = static_cast<s8>(std::stoi(day)),
+                        .hour = static_cast<s8>(std::stoi(hour)),
+                        .minute = static_cast<s8>(std::stoi(minute)),
+                        .second = static_cast<s8>(std::stoi(second)),
                         .unique_id = 0,
                     },
                 .storage = AlbumStorage::Sd,
@@ -339,4 +364,23 @@ Result AlbumManager::LoadImage(std::span<u8> out_image, const std::filesystem::p
 
     return ResultSuccess;
 }
+
+AlbumFileDateTime AlbumManager::ConvertToAlbumDateTime(u64 posix_time) const {
+    Time::TimeZone::CalendarInfo calendar_date{};
+    const auto& time_zone_manager =
+        system.GetTimeManager().GetTimeZoneContentManager().GetTimeZoneManager();
+
+    time_zone_manager.ToCalendarTimeWithMyRules(posix_time, calendar_date);
+
+    return {
+        .year = calendar_date.time.year,
+        .month = calendar_date.time.month,
+        .day = calendar_date.time.day,
+        .hour = calendar_date.time.hour,
+        .minute = calendar_date.time.minute,
+        .second = calendar_date.time.second,
+        .unique_id = 0,
+    };
+}
+
 } // namespace Service::Capture

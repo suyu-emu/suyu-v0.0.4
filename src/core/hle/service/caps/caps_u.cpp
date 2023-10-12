@@ -50,22 +50,35 @@ void IAlbumApplicationService::SetShimLibraryVersion(HLERequestContext& ctx) {
 
 void IAlbumApplicationService::GetAlbumFileList0AafeAruidDeprecated(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto pid{rp.Pop<s32>()};
-    const auto content_type{rp.PopEnum<ContentType>()};
-    const auto start_posix_time{rp.Pop<s64>()};
-    const auto end_posix_time{rp.Pop<s64>()};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
+    struct Parameters {
+        ContentType content_type;
+        INSERT_PADDING_BYTES(7);
+        s64 start_posix_time;
+        s64 end_posix_time;
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x20, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
 
     LOG_WARNING(Service_Capture,
-                "(STUBBED) called. pid={}, content_type={}, start_posix_time={}, "
-                "end_posix_time={}, applet_resource_user_id={}",
-                pid, content_type, start_posix_time, end_posix_time, applet_resource_user_id);
+                "(STUBBED) called. content_type={}, start_posix_time={}, end_posix_time={}, "
+                "applet_resource_user_id={}",
+                parameters.content_type, parameters.start_posix_time, parameters.end_posix_time,
+                parameters.applet_resource_user_id);
 
-    // TODO: Translate posix to DateTime
+    Result result = ResultSuccess;
+
+    if (result.IsSuccess()) {
+        result = manager->IsAlbumMounted(AlbumStorage::Sd);
+    }
 
     std::vector<ApplicationAlbumFileEntry> entries;
-    const Result result =
-        manager->GetAlbumFileList(entries, content_type, {}, {}, applet_resource_user_id);
+    if (result.IsSuccess()) {
+        result = manager->GetAlbumFileList(entries, parameters.content_type,
+                                           parameters.start_posix_time, parameters.end_posix_time,
+                                           parameters.applet_resource_user_id);
+    }
 
     if (!entries.empty()) {
         ctx.WriteBuffer(entries);
@@ -78,19 +91,38 @@ void IAlbumApplicationService::GetAlbumFileList0AafeAruidDeprecated(HLERequestCo
 
 void IAlbumApplicationService::GetAlbumFileList3AaeAruid(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto pid{rp.Pop<s32>()};
-    const auto content_type{rp.PopEnum<ContentType>()};
-    const auto start_date_time{rp.PopRaw<AlbumFileDateTime>()};
-    const auto end_date_time{rp.PopRaw<AlbumFileDateTime>()};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
+    struct Parameters {
+        ContentType content_type;
+        INSERT_PADDING_BYTES(1);
+        AlbumFileDateTime start_date_time;
+        AlbumFileDateTime end_date_time;
+        INSERT_PADDING_BYTES(6);
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x20, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
 
     LOG_WARNING(Service_Capture,
-                "(STUBBED) called. pid={}, content_type={}, applet_resource_user_id={}", pid,
-                content_type, applet_resource_user_id);
+                "(STUBBED) called. content_type={}, start_date={}/{}/{}, "
+                "end_date={}/{}/{}, applet_resource_user_id={}",
+                parameters.content_type, parameters.start_date_time.year,
+                parameters.start_date_time.month, parameters.start_date_time.day,
+                parameters.end_date_time.year, parameters.end_date_time.month,
+                parameters.end_date_time.day, parameters.applet_resource_user_id);
 
-    std::vector<ApplicationAlbumFileEntry> entries;
-    const Result result = manager->GetAlbumFileList(entries, content_type, start_date_time,
-                                                    end_date_time, applet_resource_user_id);
+    Result result = ResultSuccess;
+
+    if (result.IsSuccess()) {
+        result = manager->IsAlbumMounted(AlbumStorage::Sd);
+    }
+
+    std::vector<ApplicationAlbumEntry> entries;
+    if (result.IsSuccess()) {
+        result =
+            manager->GetAlbumFileList(entries, parameters.content_type, parameters.start_date_time,
+                                      parameters.end_date_time, parameters.applet_resource_user_id);
+    }
 
     if (!entries.empty()) {
         ctx.WriteBuffer(entries);
