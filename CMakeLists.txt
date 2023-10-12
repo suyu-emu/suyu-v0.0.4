@@ -100,9 +100,6 @@ endif()
 
 if (ANDROID)
     set(CMAKE_SKIP_INSTALL_RULES ON)
-
-    # Disable standard header inclusion
-    set(ANDROID_STL "none")
 endif()
 
 if (YUZU_USE_BUNDLED_VCPKG)
