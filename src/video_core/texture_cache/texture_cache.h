@@ -1016,6 +1016,7 @@ void TextureCache<P>::RefreshContents(Image& image, ImageId image_id) {
 
     if (image.info.num_samples > 1 && !runtime.CanUploadMSAA()) {
         LOG_WARNING(HW_GPU, "MSAA image uploads are not implemented");
+        runtime.TransitionImageLayout(image);
         return;
     }
     if (True(image.flags & ImageFlagBits::AsynchronousDecode)) {
