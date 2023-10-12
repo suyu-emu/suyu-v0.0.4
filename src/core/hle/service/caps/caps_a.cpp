@@ -128,9 +128,9 @@ void IAlbumAccessorService::GetAlbumFileListEx0(HLERequestContext& ctx) {
         ctx.WriteBuffer(entries);
     }
 
-    IPC::ResponseBuilder rb{ctx, 3};
+    IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(result);
-    rb.Push(entries.size());
+    rb.Push<u64>(entries.size());
 }
 
 void IAlbumAccessorService::GetAutoSavingStorage(HLERequestContext& ctx) {
