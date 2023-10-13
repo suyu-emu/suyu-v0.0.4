@@ -11,7 +11,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modul
 include(DownloadExternals)
 include(CMakeDependentOption)
 include(CTest)
-include(FetchContent)
 
 # Set bundled sdl2/qt as dependent options.
 # OFF by default, but if ENABLE_SDL2 and MSVC are true then ON
@@ -99,47 +98,8 @@ if (ANDROID AND YUZU_DOWNLOAD_ANDROID_VVL)
             DESTINATION "${vvl_lib_path}")
 endif()
 
-# On Android, fetch and compile libcxx before doing anything else
 if (ANDROID)
     set(CMAKE_SKIP_INSTALL_RULES ON)
-    set(LLVM_VERSION "15.0.6")
-
-    # Note: even though libcxx and libcxxabi have separate releases on the project page,
-    # the separated releases cannot be compiled. Only in-tree builds work. Therefore we
-    # must fetch the source release for the entire llvm tree.
-    FetchContent_Declare(llvm
-        URL "https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.src.tar.xz"
-        URL_HASH SHA256=9d53ad04dc60cb7b30e810faf64c5ab8157dadef46c8766f67f286238256ff92
-        TLS_VERIFY TRUE
-    )
-    FetchContent_MakeAvailable(llvm)
-
-    # libcxx has support for most of the range library, but it's gated behind a flag:
-    add_compile_definitions(_LIBCPP_ENABLE_EXPERIMENTAL)
-
-    # Disable standard header inclusion
-    set(ANDROID_STL "none")
-
-    # libcxxabi
-    set(LIBCXXABI_INCLUDE_TESTS OFF)
-    set(LIBCXXABI_ENABLE_SHARED FALSE)
-    set(LIBCXXABI_ENABLE_STATIC TRUE)
-    set(LIBCXXABI_LIBCXX_INCLUDES "${LIBCXX_TARGET_INCLUDE_DIRECTORY}" CACHE STRING "" FORCE)
-    add_subdirectory("${llvm_SOURCE_DIR}/libcxxabi" "${llvm_BINARY_DIR}/libcxxabi")
-    link_libraries(cxxabi_static)
-
-    # libcxx
-    set(LIBCXX_ABI_NAMESPACE "__ndk1" CACHE STRING "" FORCE)
-    set(LIBCXX_CXX_ABI "libcxxabi")
-    set(LIBCXX_INCLUDE_TESTS OFF)
-    set(LIBCXX_INCLUDE_BENCHMARKS OFF)
-    set(LIBCXX_INCLUDE_DOCS OFF)
-    set(LIBCXX_ENABLE_SHARED FALSE)
-    set(LIBCXX_ENABLE_STATIC TRUE)
-    set(LIBCXX_ENABLE_ASSERTIONS FALSE)
-    add_subdirectory("${llvm_SOURCE_DIR}/libcxx" "${llvm_BINARY_DIR}/libcxx")
-    set_target_properties(cxx-headers PROPERTIES INTERFACE_COMPILE_OPTIONS "-isystem${CMAKE_BINARY_DIR}/${LIBCXX_INSTALL_INCLUDE_DIR}")
-    link_libraries(cxx_static cxx-headers)
 endif()
 
 if (YUZU_USE_BUNDLED_VCPKG)
@@ -329,7 +289,7 @@ find_package(Boost 1.79.0 REQUIRED context)
 find_package(enet 1.3 MODULE)
 find_package(fmt 9 REQUIRED)
 find_package(inih 52 MODULE COMPONENTS INIReader)
-find_package(LLVM 17 MODULE COMPONENTS Demangle)
+find_package(LLVM 17.0.2 MODULE COMPONENTS Demangle)
 find_package(lz4 REQUIRED)
 find_package(nlohmann_json 3.8 REQUIRED)
 find_package(Opus 1.3 MODULE)
