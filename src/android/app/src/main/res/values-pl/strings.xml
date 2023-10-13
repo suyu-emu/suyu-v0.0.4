@@ -171,9 +171,7 @@
     <string name="select_gpu_driver_title">Chcesz zastąpić obecny sterownik układu graficznego?</string>
     <string name="select_gpu_driver_install">Zainstaluj</string>
     <string name="select_gpu_driver_default">Domyślne</string>
-    <string name="select_gpu_driver_install_success">Zainstalowano %s</string>
     <string name="select_gpu_driver_use_default">Aktywny domyślny sterownik GPU</string>
-    <string name="select_gpu_driver_error">Wybrano błędny sterownik, powrót do domyślnego. </string>
     <string name="system_gpu_driver">Systemowy sterownik GPU</string>
     <string name="installing_driver">Instalowanie sterownika...</string>
 

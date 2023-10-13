@@ -170,9 +170,7 @@
     <string name="select_gpu_driver_title">現在のGPUドライバーを置き換えますか？</string>
     <string name="select_gpu_driver_install">インストール</string>
     <string name="select_gpu_driver_default">デフォルト</string>
-    <string name="select_gpu_driver_install_success">%s をインストールしました</string>
     <string name="select_gpu_driver_use_default">デフォルトのGPUドライバーを使用します</string>
-    <string name="select_gpu_driver_error">選択されたドライバが無効なため、システムのデフォルトを使用します！</string>
     <string name="system_gpu_driver">システムのGPUドライバ</string>
     <string name="installing_driver">インストール中…</string>
 

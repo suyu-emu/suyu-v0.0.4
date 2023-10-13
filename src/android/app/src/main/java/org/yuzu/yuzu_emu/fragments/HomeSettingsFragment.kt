@@ -5,7 +5,6 @@ package org.yuzu.yuzu_emu.fragments
 
 import android.Manifest
 import android.content.ActivityNotFoundException
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -28,7 +27,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.transition.MaterialSharedAxis
 import org.yuzu.yuzu_emu.BuildConfig
 import org.yuzu.yuzu_emu.HomeNavigationDirections
@@ -37,6 +35,7 @@ import org.yuzu.yuzu_emu.adapters.HomeSettingAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentHomeSettingsBinding
 import org.yuzu.yuzu_emu.features.DocumentProvider
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.HomeSetting
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
@@ -50,6 +49,7 @@ class HomeSettingsFragment : Fragment() {
     private lateinit var mainActivity: MainActivity
 
     private val homeViewModel: HomeViewModel by activityViewModels()
+    private val driverViewModel: DriverViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -107,13 +107,17 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
-                    R.string.install_gpu_driver,
+                    R.string.gpu_driver_manager,
                     R.string.install_gpu_driver_description,
-                    R.drawable.ic_exit,
-                    { driverInstaller() },
+                    R.drawable.ic_build,
+                    {
+                        binding.root.findNavController()
+                            .navigate(R.id.action_homeSettingsFragment_to_driverManagerFragment)
+                    },
                     { GpuDriverHelper.supportsCustomDriverLoading() },
                     R.string.custom_driver_not_supported,
-                    R.string.custom_driver_not_supported_description
+                    R.string.custom_driver_not_supported_description,
+                    driverViewModel.selectedDriverMetadata
                 )
             )
             add(
@@ -290,31 +294,6 @@ class HomeSettingsFragment : Fragment() {
             }
             notify(0, builder.build())
         }
-    }
-
-    private fun driverInstaller() {
-        // Get the driver name for the dialog message.
-        var driverName = GpuDriverHelper.customDriverName
-        if (driverName == null) {
-            driverName = getString(R.string.system_gpu_driver)
-        }
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(getString(R.string.select_gpu_driver_title))
-            .setMessage(driverName)
-            .setNegativeButton(android.R.string.cancel, null)
-            .setNeutralButton(R.string.select_gpu_driver_default) { _: DialogInterface?, _: Int ->
-                GpuDriverHelper.installDefaultDriver(requireContext())
-                Toast.makeText(
-                    requireContext(),
-                    R.string.select_gpu_driver_use_default,
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-            .setPositiveButton(R.string.select_gpu_driver_install) { _: DialogInterface?, _: Int ->
-                mainActivity.getDriver.launch(arrayOf("application/zip"))
-            }
-            .show()
     }
 
     private fun shareLog() {

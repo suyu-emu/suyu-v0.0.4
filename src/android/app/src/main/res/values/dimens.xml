@@ -13,6 +13,8 @@
     <dimen name="menu_width">256dp</dimen>
     <dimen name="card_width">165dp</dimen>
     <dimen name="icon_inset">24dp</dimen>
+    <dimen name="spacing_bottom_list_fab">72dp</dimen>
+    <dimen name="spacing_fab">24dp</dimen>
 
     <dimen name="dialog_margin">20dp</dimen>
     <dimen name="elevated_app_bar">3dp</dimen>

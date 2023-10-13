@@ -171,9 +171,7 @@
     <string name="select_gpu_driver_title">要取代您当前的 GPU 驱动程序吗？</string>
     <string name="select_gpu_driver_install">安装</string>
     <string name="select_gpu_driver_default">系统默认</string>
-    <string name="select_gpu_driver_install_success">已安装 %s</string>
     <string name="select_gpu_driver_use_default">使用默认 GPU 驱动程序</string>
-    <string name="select_gpu_driver_error">选择的驱动程序无效，将使用系统默认的驱动程序！</string>
     <string name="system_gpu_driver">系统 GPU 驱动程序</string>
     <string name="installing_driver">正在安装驱动程序…</string>
 

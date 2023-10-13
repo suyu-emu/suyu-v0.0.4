@@ -3,64 +3,33 @@
 
 package org.yuzu.yuzu_emu.utils
 
-import android.content.Context
 import android.net.Uri
+import android.os.Build
 import java.io.BufferedInputStream
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.io.IOException
-import java.util.zip.ZipInputStream
 import org.yuzu.yuzu_emu.NativeLibrary
-import org.yuzu.yuzu_emu.utils.FileUtil.copyUriToInternalStorage
+import org.yuzu.yuzu_emu.YuzuApplication
+import java.util.zip.ZipException
+import java.util.zip.ZipFile
 
 object GpuDriverHelper {
     private const val META_JSON_FILENAME = "meta.json"
-    private const val DRIVER_INTERNAL_FILENAME = "gpu_driver.zip"
     private var fileRedirectionPath: String? = null
-    private var driverInstallationPath: String? = null
+    var driverInstallationPath: String? = null
     private var hookLibPath: String? = null
 
-    @Throws(IOException::class)
-    private fun unzip(zipFilePath: String, destDir: String) {
-        val dir = File(destDir)
+    val driverStoragePath get() = DirectoryInitialization.userDirectory!! + "/gpu_drivers/"
 
-        // Create output directory if it doesn't exist
-        if (!dir.exists()) dir.mkdirs()
-
-        // Unpack the files.
-        val inputStream = FileInputStream(zipFilePath)
-        val zis = ZipInputStream(BufferedInputStream(inputStream))
-        val buffer = ByteArray(1024)
-        var ze = zis.nextEntry
-        while (ze != null) {
-            val newFile = File(destDir, ze.name)
-            val canonicalPath = newFile.canonicalPath
-            if (!canonicalPath.startsWith(destDir + ze.name)) {
-                throw SecurityException("Zip file attempted path traversal! " + ze.name)
-            }
-
-            newFile.parentFile!!.mkdirs()
-            val fos = FileOutputStream(newFile)
-            var len: Int
-            while (zis.read(buffer).also { len = it } > 0) {
-                fos.write(buffer, 0, len)
-            }
-            fos.close()
-            zis.closeEntry()
-            ze = zis.nextEntry
-        }
-        zis.closeEntry()
-    }
-
-    fun initializeDriverParameters(context: Context) {
+    fun initializeDriverParameters() {
         try {
             // Initialize the file redirection directory.
-            fileRedirectionPath =
-                context.getExternalFilesDir(null)!!.canonicalPath + "/gpu/vk_file_redirect/"
+            fileRedirectionPath = YuzuApplication.appContext
+                .getExternalFilesDir(null)!!.canonicalPath + "/gpu/vk_file_redirect/"
 
             // Initialize the driver installation directory.
-            driverInstallationPath = context.filesDir.canonicalPath + "/gpu_driver/"
+            driverInstallationPath = YuzuApplication.appContext
+                .filesDir.canonicalPath + "/gpu_driver/"
         } catch (e: IOException) {
             throw RuntimeException(e)
         }
@@ -69,68 +38,169 @@ object GpuDriverHelper {
         initializeDirectories()
 
         // Initialize hook libraries directory.
-        hookLibPath = context.applicationInfo.nativeLibraryDir + "/"
+        hookLibPath = YuzuApplication.appContext.applicationInfo.nativeLibraryDir + "/"
 
         // Initialize GPU driver.
         NativeLibrary.initializeGpuDriver(
             hookLibPath,
             driverInstallationPath,
-            customDriverLibraryName,
+            customDriverData.libraryName,
             fileRedirectionPath
         )
     }
 
-    fun installDefaultDriver(context: Context) {
-        // Removing the installed driver will result in the backend using the default system driver.
-        val driverInstallationDir = File(driverInstallationPath!!)
-        deleteRecursive(driverInstallationDir)
-        initializeDriverParameters(context)
+    fun getDrivers(): MutableList<Pair<String, GpuDriverMetadata>> {
+        val driverZips = File(driverStoragePath).listFiles()
+        val drivers: MutableList<Pair<String, GpuDriverMetadata>> =
+            driverZips
+                ?.mapNotNull {
+                    val metadata = getMetadataFromZip(it)
+                    metadata.name?.let { _ -> Pair(it.path, metadata) }
+                }
+                ?.sortedByDescending { it: Pair<String, GpuDriverMetadata> -> it.second.name }
+                ?.distinct()
+                ?.toMutableList() ?: mutableListOf()
+
+        // TODO: Get system driver information
+        drivers.add(0, Pair("", GpuDriverMetadata()))
+        return drivers
     }
 
-    fun installCustomDriver(context: Context, driverPathUri: Uri?) {
+    fun installDefaultDriver() {
+        // Removing the installed driver will result in the backend using the default system driver.
+        File(driverInstallationPath!!).deleteRecursively()
+        initializeDriverParameters()
+    }
+
+    fun copyDriverToInternalStorage(driverUri: Uri): Boolean {
+        // Ensure we have directories.
+        initializeDirectories()
+
+        // Copy the zip file URI to user data
+        val copiedFile =
+            FileUtil.copyUriToInternalStorage(driverUri, driverStoragePath) ?: return false
+
+        // Validate driver
+        val metadata = getMetadataFromZip(copiedFile)
+        if (metadata.name == null) {
+            copiedFile.delete()
+            return false
+        }
+
+        if (metadata.minApi > Build.VERSION.SDK_INT) {
+            copiedFile.delete()
+            return false
+        }
+        return true
+    }
+
+    /**
+     * Copies driver zip into user data directory so that it can be exported along with
+     * other user data and also unzipped into the installation directory
+     */
+    fun installCustomDriver(driverUri: Uri): Boolean {
         // Revert to system default in the event the specified driver is bad.
-        installDefaultDriver(context)
+        installDefaultDriver()
 
         // Ensure we have directories.
         initializeDirectories()
 
-        // Copy the zip file URI into our private storage.
-        copyUriToInternalStorage(
-            context,
-            driverPathUri,
-            driverInstallationPath!!,
-            DRIVER_INTERNAL_FILENAME
-        )
+        // Copy the zip file URI to user data
+        val copiedFile =
+            FileUtil.copyUriToInternalStorage(driverUri, driverStoragePath) ?: return false
+
+        // Validate driver
+        val metadata = getMetadataFromZip(copiedFile)
+        if (metadata.name == null) {
+            copiedFile.delete()
+            return false
+        }
+
+        if (metadata.minApi > Build.VERSION.SDK_INT) {
+            copiedFile.delete()
+            return false
+        }
 
         // Unzip the driver.
         try {
-            unzip(driverInstallationPath + DRIVER_INTERNAL_FILENAME, driverInstallationPath!!)
+            FileUtil.unzipToInternalStorage(
+                BufferedInputStream(copiedFile.inputStream()),
+                File(driverInstallationPath!!)
+            )
         } catch (e: SecurityException) {
-            return
+            return false
         }
 
         // Initialize the driver parameters.
-        initializeDriverParameters(context)
+        initializeDriverParameters()
+
+        return true
+    }
+
+    /**
+     * Unzips driver into installation directory
+     */
+    fun installCustomDriver(driver: File): Boolean {
+        // Revert to system default in the event the specified driver is bad.
+        installDefaultDriver()
+
+        // Ensure we have directories.
+        initializeDirectories()
+
+        // Validate driver
+        val metadata = getMetadataFromZip(driver)
+        if (metadata.name == null) {
+            driver.delete()
+            return false
+        }
+
+        // Unzip the driver to the private installation directory
+        try {
+            FileUtil.unzipToInternalStorage(
+                BufferedInputStream(driver.inputStream()),
+                File(driverInstallationPath!!)
+            )
+        } catch (e: SecurityException) {
+            return false
+        }
+
+        // Initialize the driver parameters.
+        initializeDriverParameters()
+
+        return true
+    }
+
+    /**
+     * Takes in a zip file and reads the meta.json file for presentation to the UI
+     *
+     * @param driver Zip containing driver and meta.json file
+     * @return A non-null [GpuDriverMetadata] instance that may have null members
+     */
+    fun getMetadataFromZip(driver: File): GpuDriverMetadata {
+        try {
+            ZipFile(driver).use { zf ->
+                val entries = zf.entries()
+                while (entries.hasMoreElements()) {
+                    val entry = entries.nextElement()
+                    if (!entry.isDirectory && entry.name.lowercase().contains(".json")) {
+                        zf.getInputStream(entry).use {
+                            return GpuDriverMetadata(it, entry.size)
+                        }
+                    }
+                }
+            }
+        } catch (_: ZipException) {
+        }
+        return GpuDriverMetadata()
     }
 
     external fun supportsCustomDriverLoading(): Boolean
 
     // Parse the custom driver metadata to retrieve the name.
-    val customDriverName: String?
-        get() {
-            val metadata = GpuDriverMetadata(driverInstallationPath + META_JSON_FILENAME)
-            return metadata.name
-        }
+    val customDriverData: GpuDriverMetadata
+        get() = GpuDriverMetadata(File(driverInstallationPath + META_JSON_FILENAME))
 
-    // Parse the custom driver metadata to retrieve the library name.
-    private val customDriverLibraryName: String?
-        get() {
-            // Parse the custom driver metadata to retrieve the library name.
-            val metadata = GpuDriverMetadata(driverInstallationPath + META_JSON_FILENAME)
-            return metadata.libraryName
-        }
-
-    private fun initializeDirectories() {
+    fun initializeDirectories() {
         // Ensure the file redirection directory exists.
         val fileRedirectionDir = File(fileRedirectionPath!!)
         if (!fileRedirectionDir.exists()) {
@@ -141,14 +211,10 @@ object GpuDriverHelper {
         if (!driverInstallationDir.exists()) {
             driverInstallationDir.mkdirs()
         }
-    }
-
-    private fun deleteRecursive(fileOrDirectory: File) {
-        if (fileOrDirectory.isDirectory) {
-            for (child in fileOrDirectory.listFiles()!!) {
-                deleteRecursive(child)
-            }
+        // Ensure the driver storage directory exists
+        val driverStorageDirectory = File(driverStoragePath)
+        if (!driverStorageDirectory.exists()) {
+            driverStorageDirectory.mkdirs()
         }
-        fileOrDirectory.delete()
     }
 }
