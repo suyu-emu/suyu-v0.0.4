@@ -26,6 +26,7 @@ import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
+import java.io.File
 import java.io.IOException
 
 class DriverManagerFragment : Fragment() {
@@ -154,29 +155,29 @@ class DriverManagerFragment : Fragment() {
                 R.string.installing_driver,
                 false
             ) {
+                val driverPath =
+                    "${GpuDriverHelper.driverStoragePath}/${FileUtil.getFilename(result)}"
+                val driverFile = File(driverPath)
+
                 // Ignore file exceptions when a user selects an invalid zip
                 try {
-                    GpuDriverHelper.copyDriverToInternalStorage(result)
+                    if (!GpuDriverHelper.copyDriverToInternalStorage(result)) {
+                        throw IOException("Driver failed validation!")
+                    }
                 } catch (_: IOException) {
+                    if (driverFile.exists()) {
+                        driverFile.delete()
+                    }
                     return@newInstance getString(R.string.select_gpu_driver_error)
                 }
 
-                val driverData = GpuDriverHelper.customDriverData
-                if (driverData.name == null) {
-                    return@newInstance getString(R.string.select_gpu_driver_error)
-                }
-
+                val driverData = GpuDriverHelper.getMetadataFromZip(driverFile)
                 val driverInList =
                     driverViewModel.driverList.value.firstOrNull { it.second == driverData }
                 if (driverInList != null) {
                     return@newInstance getString(R.string.driver_already_installed)
                 } else {
-                    driverViewModel.addDriver(
-                        Pair(
-                            "${GpuDriverHelper.driverStoragePath}/${FileUtil.getFilename(result)}",
-                            driverData
-                        )
-                    )
+                    driverViewModel.addDriver(Pair(driverPath, driverData))
                     driverViewModel.setNewDriverInstalled(true)
                 }
                 return@newInstance Any()
