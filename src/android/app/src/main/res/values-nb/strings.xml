@@ -171,9 +171,7 @@
     <string name="select_gpu_driver_title">Ønsker du å bytte ut din nåværende GPU-driver?</string>
     <string name="select_gpu_driver_install">Installer</string>
     <string name="select_gpu_driver_default">Standard</string>
-    <string name="select_gpu_driver_install_success">Installert %s</string>
     <string name="select_gpu_driver_use_default">Bruk av standard GPU-driver</string>
-    <string name="select_gpu_driver_error">Ugyldig driver valgt, bruker systemstandard!</string>
     <string name="system_gpu_driver">Systemets GPU-driver</string>
     <string name="installing_driver">Installerer driver...</string>
 

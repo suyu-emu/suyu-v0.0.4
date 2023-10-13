@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.utils
 
-import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
@@ -11,7 +10,6 @@ import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.flow.StateFlow
 import java.io.BufferedInputStream
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.URLDecoder
@@ -21,6 +19,8 @@ import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.MinimalDocumentFile
 import org.yuzu.yuzu_emu.model.TaskState
 import java.io.BufferedOutputStream
+import java.lang.NullPointerException
+import java.nio.charset.StandardCharsets
 import java.util.zip.ZipOutputStream
 
 object FileUtil {
@@ -29,6 +29,8 @@ object FileUtil {
     const val APPLICATION_OCTET_STREAM = "application/octet-stream"
     const val TEXT_PLAIN = "text/plain"
 
+    private val context get() = YuzuApplication.appContext
+
     /**
      * Create a file from directory with filename.
      * @param context Application context
@@ -36,11 +38,11 @@ object FileUtil {
      * @param filename file display name.
      * @return boolean
      */
-    fun createFile(context: Context?, directory: String?, filename: String): DocumentFile? {
+    fun createFile(directory: String?, filename: String): DocumentFile? {
         var decodedFilename = filename
         try {
             val directoryUri = Uri.parse(directory)
-            val parent = DocumentFile.fromTreeUri(context!!, directoryUri) ?: return null
+            val parent = DocumentFile.fromTreeUri(context, directoryUri) ?: return null
             decodedFilename = URLDecoder.decode(decodedFilename, DECODE_METHOD)
             var mimeType = APPLICATION_OCTET_STREAM
             if (decodedFilename.endsWith(".txt")) {
@@ -56,16 +58,15 @@ object FileUtil {
 
     /**
      * Create a directory from directory with filename.
-     * @param context Application context
      * @param directory parent path for directory.
      * @param directoryName directory display name.
      * @return boolean
      */
-    fun createDir(context: Context?, directory: String?, directoryName: String?): DocumentFile? {
+    fun createDir(directory: String?, directoryName: String?): DocumentFile? {
         var decodedDirectoryName = directoryName
         try {
             val directoryUri = Uri.parse(directory)
-            val parent = DocumentFile.fromTreeUri(context!!, directoryUri) ?: return null
+            val parent = DocumentFile.fromTreeUri(context, directoryUri) ?: return null
             decodedDirectoryName = URLDecoder.decode(decodedDirectoryName, DECODE_METHOD)
             val isExist = parent.findFile(decodedDirectoryName)
             return isExist ?: parent.createDirectory(decodedDirectoryName)
@@ -77,13 +78,12 @@ object FileUtil {
 
     /**
      * Open content uri and return file descriptor to JNI.
-     * @param context Application context
      * @param path Native content uri path
      * @param openMode will be one of "r", "r", "rw", "wa", "rwa"
      * @return file descriptor
      */
     @JvmStatic
-    fun openContentUri(context: Context, path: String, openMode: String?): Int {
+    fun openContentUri(path: String, openMode: String?): Int {
         try {
             val uri = Uri.parse(path)
             val parcelFileDescriptor = context.contentResolver.openFileDescriptor(uri, openMode!!)
@@ -103,11 +103,10 @@ object FileUtil {
     /**
      * Reference:  https://stackoverflow.com/questions/42186820/documentfile-is-very-slow
      * This function will be faster than DoucmentFile.listFiles
-     * @param context Application context
      * @param uri Directory uri.
      * @return CheapDocument lists.
      */
-    fun listFiles(context: Context, uri: Uri): Array<MinimalDocumentFile> {
+    fun listFiles(uri: Uri): Array<MinimalDocumentFile> {
         val resolver = context.contentResolver
         val columns = arrayOf(
             DocumentsContract.Document.COLUMN_DOCUMENT_ID,
@@ -145,7 +144,7 @@ object FileUtil {
      * @param path Native content uri path
      * @return bool
      */
-    fun exists(context: Context, path: String?): Boolean {
+    fun exists(path: String?): Boolean {
         var c: Cursor? = null
         try {
             val mUri = Uri.parse(path)
@@ -165,7 +164,7 @@ object FileUtil {
      * @param path content uri path
      * @return bool
      */
-    fun isDirectory(context: Context, path: String): Boolean {
+    fun isDirectory(path: String): Boolean {
         val resolver = context.contentResolver
         val columns = arrayOf(
             DocumentsContract.Document.COLUMN_MIME_TYPE
@@ -210,10 +209,10 @@ object FileUtil {
         return filename
     }
 
-    fun getFilesName(context: Context, path: String): Array<String> {
+    fun getFilesName(path: String): Array<String> {
         val uri = Uri.parse(path)
         val files: MutableList<String> = ArrayList()
-        for (file in listFiles(context, uri)) {
+        for (file in listFiles(uri)) {
             files.add(file.filename)
         }
         return files.toTypedArray()
@@ -225,7 +224,7 @@ object FileUtil {
      * @return long file size
      */
     @JvmStatic
-    fun getFileSize(context: Context, path: String): Long {
+    fun getFileSize(path: String): Long {
         val resolver = context.contentResolver
         val columns = arrayOf(
             DocumentsContract.Document.COLUMN_SIZE
@@ -245,44 +244,38 @@ object FileUtil {
         return size
     }
 
+    /**
+     * Creates an input stream with a given [Uri] and copies its data to the given path. This will
+     * overwrite any pre-existing files.
+     *
+     * @param sourceUri The [Uri] to copy data from
+     * @param destinationParentPath Destination directory
+     * @param destinationFilename Optionally renames the file once copied
+     */
     fun copyUriToInternalStorage(
-        context: Context,
-        sourceUri: Uri?,
+        sourceUri: Uri,
         destinationParentPath: String,
-        destinationFilename: String
-    ): Boolean {
-        var input: InputStream? = null
-        var output: FileOutputStream? = null
+        destinationFilename: String = ""
+    ): File? =
         try {
-            input = context.contentResolver.openInputStream(sourceUri!!)
-            output = FileOutputStream("$destinationParentPath/$destinationFilename")
-            val buffer = ByteArray(1024)
-            var len: Int
-            while (input!!.read(buffer).also { len = it } != -1) {
-                output.write(buffer, 0, len)
+            val fileName =
+                if (destinationFilename == "") getFilename(sourceUri) else "/$destinationFilename"
+            val inputStream = context.contentResolver.openInputStream(sourceUri)!!
+
+            val destinationFile = File("$destinationParentPath$fileName")
+            if (destinationFile.exists()) {
+                destinationFile.delete()
             }
-            output.flush()
-            return true
-        } catch (e: Exception) {
-            Log.error("[FileUtil]: Cannot copy file, error: " + e.message)
-        } finally {
-            if (input != null) {
-                try {
-                    input.close()
-                } catch (e: IOException) {
-                    Log.error("[FileUtil]: Cannot close input file, error: " + e.message)
-                }
+
+            destinationFile.outputStream().use { fos ->
+                inputStream.use { it.copyTo(fos) }
             }
-            if (output != null) {
-                try {
-                    output.close()
-                } catch (e: IOException) {
-                    Log.error("[FileUtil]: Cannot close output file, error: " + e.message)
-                }
-            }
+            destinationFile
+        } catch (e: IOException) {
+            null
+        } catch (e: NullPointerException) {
+            null
         }
-        return false
-    }
 
     /**
      * Extracts the given zip file into the given directory.
@@ -368,4 +361,12 @@ object FileUtil {
         return fileName.substring(fileName.lastIndexOf(".") + 1)
             .lowercase()
     }
+
+    @Throws(IOException::class)
+    fun getStringFromFile(file: File): String =
+        String(file.readBytes(), StandardCharsets.UTF_8)
+
+    @Throws(IOException::class)
+    fun getStringFromInputStream(stream: InputStream): String =
+        String(stream.readBytes(), StandardCharsets.UTF_8)
 }

@@ -29,12 +29,10 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
 import com.google.android.material.color.MaterialColors
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationBarView
 import kotlinx.coroutines.CoroutineScope
 import java.io.File
 import java.io.FilenameFilter
-import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -43,7 +41,6 @@ import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
-import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.DocumentProvider
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
@@ -343,11 +340,10 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
         val dstPath = DirectoryInitialization.userDirectory + "/keys/"
         if (FileUtil.copyUriToInternalStorage(
-                applicationContext,
                 result,
                 dstPath,
                 "prod.keys"
-            )
+            ) != null
         ) {
             if (NativeLibrary.reloadKeys()) {
                 Toast.makeText(
@@ -446,11 +442,10 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
             val dstPath = DirectoryInitialization.userDirectory + "/keys/"
             if (FileUtil.copyUriToInternalStorage(
-                    applicationContext,
                     result,
                     dstPath,
                     "key_retail.bin"
-                )
+                ) != null
             ) {
                 if (NativeLibrary.reloadKeys()) {
                     Toast.makeText(
@@ -465,59 +460,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                         descriptionId = R.string.install_keys_failure_description,
                         helpLinkId = R.string.dumping_keys_quickstart_link
                     ).show(supportFragmentManager, MessageDialogFragment.TAG)
-                }
-            }
-        }
-
-    val getDriver =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
-            if (result == null) {
-                return@registerForActivityResult
-            }
-
-            val takeFlags =
-                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
-            contentResolver.takePersistableUriPermission(
-                result,
-                takeFlags
-            )
-
-            val progressBinding = DialogProgressBarBinding.inflate(layoutInflater)
-            progressBinding.progressBar.isIndeterminate = true
-            val installationDialog = MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.installing_driver)
-                .setView(progressBinding.root)
-                .show()
-
-            lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
-                    // Ignore file exceptions when a user selects an invalid zip
-                    try {
-                        GpuDriverHelper.installCustomDriver(applicationContext, result)
-                    } catch (_: IOException) {
-                    }
-
-                    withContext(Dispatchers.Main) {
-                        installationDialog.dismiss()
-
-                        val driverName = GpuDriverHelper.customDriverName
-                        if (driverName != null) {
-                            Toast.makeText(
-                                applicationContext,
-                                getString(
-                                    R.string.select_gpu_driver_install_success,
-                                    driverName
-                                ),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            Toast.makeText(
-                                applicationContext,
-                                R.string.select_gpu_driver_error,
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
                 }
             }
         }

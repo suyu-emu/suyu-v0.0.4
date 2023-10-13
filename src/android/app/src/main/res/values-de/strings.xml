@@ -168,9 +168,7 @@
     <string name="select_gpu_driver_title">Möchtest du deinen aktuellen GPU-Treiber ersetzen?</string>
     <string name="select_gpu_driver_install">Installieren</string>
     <string name="select_gpu_driver_default">Standard</string>
-    <string name="select_gpu_driver_install_success">%s wurde installiert</string>
     <string name="select_gpu_driver_use_default">Standard GPU-Treiber wird verwendet</string>
-    <string name="select_gpu_driver_error">Ungültiger Treiber ausgewählt, Standard-Treiber wird verwendet!</string>
     <string name="system_gpu_driver">System GPU-Treiber</string>
     <string name="installing_driver">Treiber wird installiert...</string>
 
