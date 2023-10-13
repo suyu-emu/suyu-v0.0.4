@@ -826,11 +826,12 @@ void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     tree_view->setColumnHidden(COLUMN_SIZE, !UISettings::values.show_size);
     tree_view->setColumnHidden(COLUMN_PLAY_TIME, !UISettings::values.show_play_time);
 
+    // Before deleting rows, cancel the worker so that it is not using them
+    emit ShouldCancelWorker();
+
     // Delete any rows that might already exist if we're repopulating
     item_model->removeRows(0, item_model->rowCount());
     search_field->clear();
-
-    emit ShouldCancelWorker();
 
     GameListWorker* worker =
         new GameListWorker(vfs, provider, game_dirs, compatibility_list, play_time_manager, system);

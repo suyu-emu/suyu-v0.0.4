@@ -293,7 +293,7 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
 void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_path, bool deep_scan,
                                     GameListDir* parent_dir) {
     const auto callback = [this, target, parent_dir](const std::filesystem::path& path) -> bool {
-        if (stop_processing) {
+        if (stop_requested) {
             // Breaks the callback loop.
             return false;
         }
@@ -399,7 +399,6 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
 }
 
 void GameListWorker::run() {
-    stop_processing = false;
     provider->ClearAllEntries();
 
     for (UISettings::GameDir& game_dir : game_dirs) {
@@ -427,9 +426,11 @@ void GameListWorker::run() {
     }
 
     emit Finished(watch_list);
+    processing_completed.Set();
 }
 
 void GameListWorker::Cancel() {
     this->disconnect();
-    stop_processing = true;
+    stop_requested.store(true);
+    processing_completed.Wait();
 }
