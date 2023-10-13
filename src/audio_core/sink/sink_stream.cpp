@@ -204,6 +204,10 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
     // paused and we'll desync, so just play silence.
     if (system.IsPaused() || system.IsShuttingDown()) {
         if (system.IsShuttingDown()) {
+            {
+                std::scoped_lock lk{release_mutex};
+                queued_buffers.store(0);
+            }
             release_cv.notify_one();
         }
 
