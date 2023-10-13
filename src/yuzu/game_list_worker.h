@@ -12,6 +12,7 @@
 #include <QRunnable>
 #include <QString>
 
+#include "common/thread.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/play_time_manager.h"
 
@@ -82,7 +83,9 @@ private:
     const PlayTime::PlayTimeManager& play_time_manager;
 
     QStringList watch_list;
-    std::atomic_bool stop_processing;
+
+    Common::Event processing_completed;
+    std::atomic_bool stop_requested = false;
 
     Core::System& system;
 };
