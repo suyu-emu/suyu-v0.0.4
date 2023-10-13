@@ -384,7 +384,10 @@ if (USE_DISCORD_PRESENCE)
         discord_impl.cpp
         discord_impl.h
     )
-    target_link_libraries(yuzu PRIVATE DiscordRPC::discord-rpc httplib::httplib Qt${QT_MAJOR_VERSION}::Network)
+    target_link_libraries(yuzu PRIVATE DiscordRPC::discord-rpc httplib::httplib)
+    if (ENABLE_QT)
+        target_link_libraries(yuzu PRIVATE Qt${QT_MAJOR_VERSION}::Network)
+    endif()
     target_compile_definitions(yuzu PRIVATE -DUSE_DISCORD_PRESENCE)
 endif()
 
