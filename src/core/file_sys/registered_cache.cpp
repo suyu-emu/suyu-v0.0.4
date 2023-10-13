@@ -322,7 +322,8 @@ VirtualFile RegisteredCache::OpenFileOrDirectoryConcat(const VirtualDir& open_di
         return nullptr;
     }
 
-    return ConcatenatedVfsFile::MakeConcatenatedFile(concat, concat.front()->GetName());
+    auto name = concat.front()->GetName();
+    return ConcatenatedVfsFile::MakeConcatenatedFile(std::move(name), std::move(concat));
 }
 
 VirtualFile RegisteredCache::GetFileAtID(NcaID id) const {
