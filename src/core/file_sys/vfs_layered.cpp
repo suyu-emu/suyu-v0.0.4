@@ -38,7 +38,7 @@ VirtualDir LayeredVfsDirectory::GetDirectoryRelative(std::string_view path) cons
     for (const auto& layer : dirs) {
         auto dir = layer->GetDirectoryRelative(path);
         if (dir != nullptr) {
-            out.push_back(std::move(dir));
+            out.emplace_back(std::move(dir));
         }
     }
 
@@ -62,11 +62,11 @@ std::vector<VirtualFile> LayeredVfsDirectory::GetFiles() const {
     std::set<std::string, std::less<>> out_names;
 
     for (const auto& layer : dirs) {
-        for (const auto& file : layer->GetFiles()) {
+        for (auto& file : layer->GetFiles()) {
             auto file_name = file->GetName();
             if (!out_names.contains(file_name)) {
                 out_names.emplace(std::move(file_name));
-                out.push_back(file);
+                out.emplace_back(std::move(file));
             }
         }
     }
@@ -86,7 +86,7 @@ std::vector<VirtualDir> LayeredVfsDirectory::GetSubdirectories() const {
     std::vector<VirtualDir> out;
     out.reserve(names.size());
     for (const auto& subdir : names)
-        out.push_back(GetSubdirectory(subdir));
+        out.emplace_back(GetSubdirectory(subdir));
 
     return out;
 }
