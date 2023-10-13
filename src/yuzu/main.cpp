@@ -67,6 +67,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #define QT_NO_OPENGL
 #include <QClipboard>
 #include <QDesktopServices>
+#include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QInputDialog>
@@ -76,6 +77,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QPushButton>
 #include <QScreen>
 #include <QShortcut>
+#include <QStandardPaths>
 #include <QStatusBar>
 #include <QString>
 #include <QSysInfo>
@@ -2869,44 +2871,50 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
 #endif // __linux__
 
     std::filesystem::path target_directory{};
-    // Determine target directory for shortcut
-#if defined(WIN32)
-    const char* home = std::getenv("USERPROFILE");
-#else
-    const char* home = std::getenv("HOME");
-#endif
-    const std::filesystem::path home_path = (home == nullptr ? "~" : home);
-    const char* xdg_data_home = std::getenv("XDG_DATA_HOME");
 
-    if (target == GameListShortcutTarget::Desktop) {
-        target_directory = home_path / "Desktop";
-        if (!Common::FS::IsDir(target_directory)) {
-            QMessageBox::critical(
-                this, tr("Create Shortcut"),
-                tr("Cannot create shortcut on desktop. Path \"%1\" does not exist.")
-                    .arg(QString::fromStdString(target_directory.generic_string())),
-                QMessageBox::StandardButton::Ok);
-            return;
+    switch (target) {
+    case GameListShortcutTarget::Desktop: {
+        const QString desktop_path =
+            QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+        target_directory = desktop_path.toUtf8().toStdString();
+        break;
+    }
+    case GameListShortcutTarget::Applications: {
+        const QString applications_path =
+            QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
+        if (applications_path.isEmpty()) {
+            const char* home = std::getenv("HOME");
+            if (home != nullptr) {
+                target_directory = std::filesystem::path(home) / ".local/share/applications";
+            }
+        } else {
+            target_directory = applications_path.toUtf8().toStdString();
         }
-    } else if (target == GameListShortcutTarget::Applications) {
-        target_directory = (xdg_data_home == nullptr ? home_path / ".local/share" : xdg_data_home) /
-                           "applications";
-        if (!Common::FS::CreateDirs(target_directory)) {
-            QMessageBox::critical(
-                this, tr("Create Shortcut"),
-                tr("Cannot create shortcut in applications menu. Path \"%1\" "
-                   "does not exist and cannot be created.")
-                    .arg(QString::fromStdString(target_directory.generic_string())),
-                QMessageBox::StandardButton::Ok);
-            return;
-        }
+        break;
+    }
+    default:
+        return;
+    }
+
+    const QDir dir(QString::fromStdString(target_directory.generic_string()));
+    if (!dir.exists()) {
+        QMessageBox::critical(this, tr("Create Shortcut"),
+                              tr("Cannot create shortcut. Path \"%1\" does not exist.")
+                                  .arg(QString::fromStdString(target_directory.generic_string())),
+                              QMessageBox::StandardButton::Ok);
+        return;
     }
 
     const std::string game_file_name = std::filesystem::path(game_path).filename().string();
     // Determine full paths for icon and shortcut
 #if defined(__linux__) || defined(__FreeBSD__)
+    const char* home = std::getenv("HOME");
+    const std::filesystem::path home_path = (home == nullptr ? "~" : home);
+    const char* xdg_data_home = std::getenv("XDG_DATA_HOME");
+
     std::filesystem::path system_icons_path =
-        (xdg_data_home == nullptr ? home_path / ".local/share/" : xdg_data_home) /
+        (xdg_data_home == nullptr ? home_path / ".local/share/"
+                                  : std::filesystem::path(xdg_data_home)) /
         "icons/hicolor/256x256";
     if (!Common::FS::CreateDirs(system_icons_path)) {
         QMessageBox::critical(
