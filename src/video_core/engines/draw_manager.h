@@ -66,6 +66,8 @@ public:
 
     void DrawArray(PrimitiveTopology topology, u32 vertex_first, u32 vertex_count,
                    u32 base_instance, u32 num_instances);
+    void DrawArrayInstanced(PrimitiveTopology topology, u32 vertex_first, u32 vertex_count,
+                            bool subsequent);
 
     void DrawIndex(PrimitiveTopology topology, u32 index_first, u32 index_count, u32 base_index,
                    u32 base_instance, u32 num_instances);

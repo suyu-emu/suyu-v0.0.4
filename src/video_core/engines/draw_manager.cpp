@@ -48,8 +48,14 @@ void DrawManager::ProcessMethodCall(u32 method, u32 argument) {
         SetInlineIndexBuffer(regs.inline_index_4x8.index3);
         break;
     case MAXWELL3D_REG_INDEX(vertex_array_instance_first):
+        DrawArrayInstanced(regs.vertex_array_instance_first.topology.Value(),
+                           regs.vertex_array_instance_first.start.Value(),
+                           regs.vertex_array_instance_first.count.Value(), false);
+        break;
     case MAXWELL3D_REG_INDEX(vertex_array_instance_subsequent): {
-        LOG_WARNING(HW_GPU, "(STUBBED) called");
+        DrawArrayInstanced(regs.vertex_array_instance_subsequent.topology.Value(),
+                           regs.vertex_array_instance_subsequent.start.Value(),
+                           regs.vertex_array_instance_subsequent.count.Value(), true);
         break;
     }
     case MAXWELL3D_REG_INDEX(draw_texture.src_y0): {
@@ -82,6 +88,22 @@ void DrawManager::DrawArray(PrimitiveTopology topology, u32 vertex_first, u32 ve
     draw_state.vertex_buffer.count = vertex_count;
     draw_state.base_instance = base_instance;
     ProcessDraw(false, num_instances);
+}
+
+void DrawManager::DrawArrayInstanced(PrimitiveTopology topology, u32 vertex_first, u32 vertex_count,
+                                     bool subsequent) {
+    draw_state.topology = topology;
+    draw_state.vertex_buffer.first = vertex_first;
+    draw_state.vertex_buffer.count = vertex_count;
+
+    if (!subsequent) {
+        draw_state.instance_count = 1;
+    }
+
+    draw_state.base_instance = draw_state.instance_count - 1;
+    draw_state.draw_mode = DrawMode::Instance;
+    draw_state.instance_count++;
+    ProcessDraw(false, 1);
 }
 
 void DrawManager::DrawIndex(PrimitiveTopology topology, u32 index_first, u32 index_count,
