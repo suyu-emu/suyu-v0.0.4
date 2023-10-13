@@ -3405,6 +3405,11 @@ Result KPageTable::LockMemoryAndOpen(KPageGroup* out_pg, KPhysicalAddress* out_K
                                   new_attr, KMemoryBlockDisableMergeAttribute::Locked,
                                   KMemoryBlockDisableMergeAttribute::None);
 
+    // If we have an output page group, open.
+    if (out_pg) {
+        out_pg->Open();
+    }
+
     R_SUCCEED();
 }
 
