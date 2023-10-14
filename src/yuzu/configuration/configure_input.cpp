@@ -115,17 +115,9 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
     for (std::size_t i = 0; i < player_tabs.size(); ++i) {
         player_tabs[i]->setLayout(new QHBoxLayout(player_tabs[i]));
         player_tabs[i]->layout()->addWidget(player_controllers[i]);
-        connect(player_controllers[i], &ConfigureInputPlayer::Connected, [&, i](bool is_connected) {
+        connect(player_connected[i], &QCheckBox::clicked, [this, i](int checked) {
             // Ensures that the controllers are always connected in sequential order
-            if (is_connected) {
-                for (std::size_t index = 0; index <= i; ++index) {
-                    player_connected[index]->setChecked(is_connected);
-                }
-            } else {
-                for (std::size_t index = i; index < player_tabs.size(); ++index) {
-                    player_connected[index]->setChecked(is_connected);
-                }
-            }
+            this->propagateMouseClickOnPlayers(i, checked, true);
         });
         connect(player_controllers[i], &ConfigureInputPlayer::RefreshInputDevices, this,
                 &ConfigureInput::UpdateAllInputDevices);
@@ -181,6 +173,30 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
 
     RetranslateUI();
     LoadConfiguration();
+}
+
+void ConfigureInput::propagateMouseClickOnPlayers(size_t player_index, bool checked, bool origin) {
+    // Origin has already been toggled
+    if (!origin) {
+        player_connected[player_index]->setChecked(checked);
+    }
+
+    if (checked) {
+        // Check all previous buttons when checked
+        if (player_index > 0) {
+            propagateMouseClickOnPlayers(player_index - 1, checked, false);
+        }
+    } else {
+        // Unchecked all following buttons when unchecked
+        if (player_index < player_tabs.size() - 1) {
+            // Reconnect current player if it was the last one checked
+            // (player number was reduced by more than one)
+            if (origin && player_connected[player_index + 1]->checkState() == Qt::Checked) {
+                player_connected[player_index]->setCheckState(Qt::Checked);
+            }
+            propagateMouseClickOnPlayers(player_index + 1, checked, false);
+        }
+    }
 }
 
 QList<QWidget*> ConfigureInput::GetSubTabs() const {
