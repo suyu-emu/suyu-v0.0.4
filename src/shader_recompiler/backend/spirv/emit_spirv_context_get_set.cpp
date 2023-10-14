@@ -111,16 +111,33 @@ Id GetCbuf(EmitContext& ctx, Id result_type, Id UniformDefinitions::*member_ptr,
     } else if (element_size > 1) {
         const u32 log2_element_size{static_cast<u32>(std::countr_zero(element_size))};
         const Id shift{ctx.Const(log2_element_size)};
-        buffer_offset = ctx.OpShiftRightArithmetic(ctx.U32[1], ctx.Def(offset), shift);
+        buffer_offset = ctx.OpShiftRightLogical(ctx.U32[1], ctx.Def(offset), shift);
     } else {
         buffer_offset = ctx.Def(offset);
     }
     if (!binding.IsImmediate()) {
         return ctx.OpFunctionCall(result_type, indirect_func, ctx.Def(binding), buffer_offset);
     }
+
     const Id cbuf{ctx.cbufs[binding.U32()].*member_ptr};
     const Id access_chain{ctx.OpAccessChain(uniform_type, cbuf, ctx.u32_zero_value, buffer_offset)};
-    return ctx.OpLoad(result_type, access_chain);
+    const Id val = ctx.OpLoad(result_type, access_chain);
+
+    if (offset.IsImmediate() || !ctx.profile.has_broken_robust) {
+        return val;
+    }
+
+    const auto is_float = UniformDefinitions::IsFloat(member_ptr);
+    const auto num_elements = UniformDefinitions::NumElements(member_ptr);
+    const std::array zero_vec{
+        is_float ? ctx.Const(0.0f) : ctx.Const(0u),
+        is_float ? ctx.Const(0.0f) : ctx.Const(0u),
+        is_float ? ctx.Const(0.0f) : ctx.Const(0u),
+        is_float ? ctx.Const(0.0f) : ctx.Const(0u),
+    };
+    const Id cond = ctx.OpULessThanEqual(ctx.TypeBool(), buffer_offset, ctx.Const(0xFFFFu));
+    const Id zero = ctx.OpCompositeConstruct(result_type, std::span(zero_vec.data(), num_elements));
+    return ctx.OpSelect(result_type, cond, val, zero);
 }
 
 Id GetCbufU32(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset) {
@@ -138,7 +155,7 @@ Id GetCbufElement(EmitContext& ctx, Id vector, const IR::Value& offset, u32 inde
         const u32 element{(offset.U32() / 4) % 4 + index_offset};
         return ctx.OpCompositeExtract(ctx.U32[1], vector, element);
     }
-    const Id shift{ctx.OpShiftRightArithmetic(ctx.U32[1], ctx.Def(offset), ctx.Const(2u))};
+    const Id shift{ctx.OpShiftRightLogical(ctx.U32[1], ctx.Def(offset), ctx.Const(2u))};
     Id element{ctx.OpBitwiseAnd(ctx.U32[1], shift, ctx.Const(3u))};
     if (index_offset > 0) {
         element = ctx.OpIAdd(ctx.U32[1], element, ctx.Const(index_offset));

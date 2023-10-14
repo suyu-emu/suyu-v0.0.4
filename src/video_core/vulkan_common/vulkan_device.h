@@ -177,6 +177,15 @@ enum class FormatType { Linear, Optimal, Buffer };
 /// Subgroup size of the guest emulated hardware (Nvidia has 32 threads per subgroup).
 const u32 GuestWarpSize = 32;
 
+enum class NvidiaArchitecture {
+    Arch_KeplerOrOlder,
+    Arch_Maxwell,
+    Arch_Pascal,
+    Arch_Volta,
+    Arch_Turing,
+    Arch_AmpereOrNewer,
+};
+
 /// Handles data specific to a physical device.
 class Device {
 public:
@@ -670,6 +679,14 @@ public:
         return false;
     }
 
+    bool IsNvidia() const noexcept {
+        return properties.driver.driverID == VK_DRIVER_ID_NVIDIA_PROPRIETARY;
+    }
+
+    NvidiaArchitecture GetNvidiaArch() const noexcept {
+        return nvidia_arch;
+    }
+
 private:
     /// Checks if the physical device is suitable and configures the object state
     /// with all necessary info about its properties.
@@ -788,6 +805,7 @@ private:
     bool supports_conditional_barriers{};      ///< Allows barriers in conditional control flow.
     u64 device_access_memory{};                ///< Total size of device local memory in bytes.
     u32 sets_per_pool{};                       ///< Sets per Description Pool
+    NvidiaArchitecture nvidia_arch{NvidiaArchitecture::Arch_AmpereOrNewer};
 
     // Telemetry parameters
     std::set<std::string, std::less<>> supported_extensions; ///< Reported Vulkan extensions.
