@@ -167,6 +167,13 @@ template <u32 GOB_EXTENT>
 }
 
 [[nodiscard]] constexpr Extent3D TileShift(const LevelInfo& info, u32 level) {
+    if (level == 0 && info.num_levels == 1) {
+        return Extent3D{
+            .width = info.block.width,
+            .height = info.block.height,
+            .depth = info.block.depth,
+        };
+    }
     const Extent3D blocks = NumLevelBlocks(info, level);
     return Extent3D{
         .width = AdjustTileSize(info.block.width, GOB_SIZE_X, blocks.width),
@@ -1293,9 +1300,9 @@ u32 MapSizeBytes(const ImageBase& image) {
 
 static_assert(CalculateLevelSize(LevelInfo{{1920, 1080, 1}, {0, 2, 0}, {1, 1}, 2, 0, 1}, 0) ==
               0x7f8000);
-static_assert(CalculateLevelSize(LevelInfo{{32, 32, 1}, {0, 0, 4}, {1, 1}, 4, 0, 1}, 0) == 0x4000);
+static_assert(CalculateLevelSize(LevelInfo{{32, 32, 1}, {0, 0, 4}, {1, 1}, 4, 0, 1}, 0) == 0x40000);
 
-static_assert(CalculateLevelSize(LevelInfo{{128, 8, 1}, {0, 4, 0}, {1, 1}, 4, 0, 1}, 0) == 0x4000);
+static_assert(CalculateLevelSize(LevelInfo{{128, 8, 1}, {0, 4, 0}, {1, 1}, 4, 0, 1}, 0) == 0x40000);
 
 static_assert(CalculateLevelOffset(PixelFormat::R8_SINT, {1920, 1080, 1}, {0, 2, 0}, 0, 7) ==
               0x2afc00);
