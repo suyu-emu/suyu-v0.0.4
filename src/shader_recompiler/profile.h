@@ -9,7 +9,6 @@ namespace Shader {
 
 struct Profile {
     u32 supported_spirv{0x00010000};
-
     bool unified_descriptor_binding{};
     bool support_descriptor_aliasing{};
     bool support_int8{};
@@ -82,6 +81,9 @@ struct Profile {
     bool has_broken_spirv_subgroup_mask_vector_extract_dynamic{};
 
     u32 gl_max_compute_smem_size{};
+
+    /// Maxwell and earlier nVidia architectures have broken robust support
+    bool has_broken_robust{};
 };
 
 } // namespace Shader
