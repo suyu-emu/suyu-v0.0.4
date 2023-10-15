@@ -8,11 +8,9 @@
 #include <QString>
 
 /// Returns a QFont object appropriate to use as a monospace font for debugging widgets, etc.
-
 [[nodiscard]] QFont GetMonospaceFont();
 
 /// Convert a size in bytes into a readable format (KiB, MiB, etc.)
-
 [[nodiscard]] QString ReadableByteSize(qulonglong size);
 
 /**
@@ -34,5 +32,4 @@
  *
  * @return bool If the operation succeeded
  */
-
 [[nodiscard]] bool SaveIconToFile(const QImage& image, const std::filesystem::path& icon_path);
