@@ -19,6 +19,7 @@ set(SHADER_FILES
     block_linear_unswizzle_2d.comp
     block_linear_unswizzle_3d.comp
     convert_abgr8_to_d24s8.frag
+    convert_abgr8_to_d32f.frag
     convert_d32f_to_abgr8.frag
     convert_d32f_to_bgra8.frag
     convert_d24s8_to_abgr8.frag
