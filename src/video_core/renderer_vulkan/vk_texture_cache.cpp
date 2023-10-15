@@ -1236,7 +1236,9 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
         }
         break;
     case PixelFormat::D32_FLOAT:
-        if (src_view.format == PixelFormat::A8B8G8R8_SRGB ||
+        if (src_view.format == PixelFormat::A8B8G8R8_UNORM ||
+            src_view.format == PixelFormat::B8G8R8A8_UNORM ||
+            src_view.format == PixelFormat::A8B8G8R8_SRGB ||
             src_view.format == PixelFormat::B8G8R8A8_SRGB) {
             return blit_image_helper.ConvertABGR8ToD32F(dst, src_view);
         }
