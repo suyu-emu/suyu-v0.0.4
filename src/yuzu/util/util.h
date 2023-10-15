@@ -15,21 +15,15 @@
 
 /**
  * Creates a circle pixmap from a specified color
- *
  * @param color The color the pixmap shall have
- *
  * @return QPixmap circle pixmap
  */
-
 [[nodiscard]] QPixmap CreateCirclePixmapFromColor(const QColor& color);
 
 /**
  * Saves a windows icon to a file
- *
- * @param image The image to save
- *
  * @param path The icons path
- *
+ * @param image The image to save
  * @return bool If the operation succeeded
  */
-[[nodiscard]] bool SaveIconToFile(const QImage& image, const std::filesystem::path& icon_path);
+[[nodiscard]] bool SaveIconToFile(const std::filesystem::path& icon_path, const QImage& image);
