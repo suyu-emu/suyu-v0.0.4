@@ -144,7 +144,7 @@ bool SaveIconToFile(const QImage& image, const std::filesystem::path& icon_path)
     }
 
     return true;
-#endif
-
+#else
     return false;
+#endif
 }
