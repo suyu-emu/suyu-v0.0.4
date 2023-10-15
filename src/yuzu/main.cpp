@@ -3082,13 +3082,9 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
     // Shortcut path
     std::filesystem::path shortcut_path{};
     if (target == GameListShortcutTarget::Desktop) {
-        shortcut_path = Common::FS::GetDesktopPath();
-        if (!std::filesystem::exists(shortcut_path)) {
-            shortcut_path =
-                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation).toStdString();
-        }
+        shortcut_path =
+            QStandardPaths::writableLocation(QStandardPaths::DesktopLocation).toStdString();
     } else if (target == GameListShortcutTarget::Applications) {
-
 #if defined(_WIN32)
         HANDLE hProcess = GetCurrentProcess();
         if (!IsUserAnAdmin()) {
@@ -3098,12 +3094,8 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
         }
         CloseHandle(hProcess);
 #endif // _WIN32
-
-        shortcut_path = Common::FS::GetAppsShortcutsPath();
-        if (!std::filesystem::exists(shortcut_path)) {
-            shortcut_path = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation)
-                                .toStdString();
-        }
+        shortcut_path =
+            QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation).toStdString();
     }
 
     // Icon path and title
