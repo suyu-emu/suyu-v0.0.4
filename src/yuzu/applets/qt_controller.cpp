@@ -155,17 +155,26 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
         UpdateBorderColor(i);
 
         connect(player_groupboxes[i], &QGroupBox::toggled, [this, i](bool checked) {
-            if (checked) {
-                // Hide eventual error message about number of controllers
-                ui->labelError->setVisible(false);
-                for (std::size_t index = 0; index <= i; ++index) {
-                    connected_controller_checkboxes[index]->setChecked(checked);
-                }
-            } else {
-                for (std::size_t index = i; index < NUM_PLAYERS; ++index) {
-                    connected_controller_checkboxes[index]->setChecked(checked);
-                }
+            // Reconnect current controller if it was the last one checked
+            // (player number was reduced by more than one)
+            const bool reconnect_first = !checked && i < player_groupboxes.size() - 1 &&
+                                         player_groupboxes[i + 1]->isChecked();
+
+            // Ensures that connecting a controller changes the number of players
+            if (connected_controller_checkboxes[i]->isChecked() != checked) {
+                // Ensures that the players are always connected in sequential order
+                PropagatePlayerNumberChanged(i, checked, reconnect_first);
             }
+        });
+        connect(connected_controller_checkboxes[i], &QCheckBox::clicked, [this, i](bool checked) {
+            // Reconnect current controller if it was the last one checked
+            // (player number was reduced by more than one)
+            const bool reconnect_first = !checked &&
+                                         i < connected_controller_checkboxes.size() - 1 &&
+                                         connected_controller_checkboxes[i + 1]->isChecked();
+
+            // Ensures that the players are always connected in sequential order
+            PropagatePlayerNumberChanged(i, checked, reconnect_first);
         });
 
         connect(emulated_controllers[i], qOverload<int>(&QComboBox::currentIndexChanged),
@@ -665,6 +674,29 @@ void QtControllerSelectorDialog::UpdateDockedState(bool is_handheld) {
     // Also force into undocked mode if the controller type is handheld.
     if (is_handheld) {
         ui->radioUndocked->setChecked(true);
+    }
+}
+
+void QtControllerSelectorDialog::PropagatePlayerNumberChanged(size_t player_index, bool checked,
+                                                              bool reconnect_current) {
+    connected_controller_checkboxes[player_index]->setChecked(checked);
+    // Hide eventual error message about number of controllers
+    ui->labelError->setVisible(false);
+
+    if (checked) {
+        // Check all previous buttons when checked
+        if (player_index > 0) {
+            PropagatePlayerNumberChanged(player_index - 1, checked);
+        }
+    } else {
+        // Unchecked all following buttons when unchecked
+        if (player_index < connected_controller_checkboxes.size() - 1) {
+            PropagatePlayerNumberChanged(player_index + 1, checked);
+        }
+    }
+
+    if (reconnect_current) {
+        connected_controller_checkboxes[player_index]->setCheckState(Qt::Checked);
     }
 }
 
