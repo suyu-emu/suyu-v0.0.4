@@ -586,7 +586,7 @@ void BlitImageHelper::ConvertD32FToBGRA8(const Framebuffer* dst_framebuffer,
                                          ImageView& src_image_view) {
     ConvertPipelineColorTargetEx(convert_d32f_to_bgra8_pipeline, dst_framebuffer->RenderPass(),
                                  convert_d32f_to_bgra8_frag);
-    ConvertDepthStencil(*convert_d32f_to_abgr8_pipeline, dst_framebuffer, src_image_view);
+    ConvertDepthStencil(*convert_d32f_to_bgra8_pipeline, dst_framebuffer, src_image_view);
 }
 
 void BlitImageHelper::ClearColor(const Framebuffer* dst_framebuffer, u8 color_mask,
