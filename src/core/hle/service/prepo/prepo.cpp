@@ -58,14 +58,8 @@ private:
         IPC::RequestParser rp{ctx};
         const auto process_id = rp.PopRaw<u64>();
 
-        const auto data1 = ctx.ReadBuffer(0);
-        const auto data2 = [&ctx] {
-            if (ctx.CanReadBuffer(1)) {
-                return ctx.ReadBuffer(1);
-            }
-
-            return std::span<const u8>{};
-        }();
+        const auto data1 = ctx.ReadBufferA(0);
+        const auto data2 = ctx.ReadBufferX(0);
 
         LOG_DEBUG(Service_PREPO,
                   "called, type={:02X}, process_id={:016X}, data1_size={:016X}, data2_size={:016X}",
@@ -85,14 +79,8 @@ private:
         const auto user_id = rp.PopRaw<u128>();
         const auto process_id = rp.PopRaw<u64>();
 
-        const auto data1 = ctx.ReadBuffer(0);
-        const auto data2 = [&ctx] {
-            if (ctx.CanReadBuffer(1)) {
-                return ctx.ReadBuffer(1);
-            }
-
-            return std::span<const u8>{};
-        }();
+        const auto data1 = ctx.ReadBufferA(0);
+        const auto data2 = ctx.ReadBufferX(0);
 
         LOG_DEBUG(Service_PREPO,
                   "called, type={:02X}, user_id={:016X}{:016X}, process_id={:016X}, "
@@ -137,14 +125,8 @@ private:
         IPC::RequestParser rp{ctx};
         const auto title_id = rp.PopRaw<u64>();
 
-        const auto data1 = ctx.ReadBuffer(0);
-        const auto data2 = [&ctx] {
-            if (ctx.CanReadBuffer(1)) {
-                return ctx.ReadBuffer(1);
-            }
-
-            return std::span<const u8>{};
-        }();
+        const auto data1 = ctx.ReadBufferA(0);
+        const auto data2 = ctx.ReadBufferX(0);
 
         LOG_DEBUG(Service_PREPO, "called, title_id={:016X}, data1_size={:016X}, data2_size={:016X}",
                   title_id, data1.size(), data2.size());
@@ -161,14 +143,8 @@ private:
         const auto user_id = rp.PopRaw<u128>();
         const auto title_id = rp.PopRaw<u64>();
 
-        const auto data1 = ctx.ReadBuffer(0);
-        const auto data2 = [&ctx] {
-            if (ctx.CanReadBuffer(1)) {
-                return ctx.ReadBuffer(1);
-            }
-
-            return std::span<const u8>{};
-        }();
+        const auto data1 = ctx.ReadBufferA(0);
+        const auto data2 = ctx.ReadBufferX(0);
 
         LOG_DEBUG(Service_PREPO,
                   "called, user_id={:016X}{:016X}, title_id={:016X}, data1_size={:016X}, "
