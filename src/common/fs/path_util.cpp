@@ -363,13 +363,28 @@ fs::path GetDesktopPath() {
         LOG_ERROR(Common_Filesystem,
                   "[GetDesktopPath] Failed to get the path to the desktop directory");
     }
-#else
-    fs::path shortcut_path = GetHomeDirectory() / "Desktop";
-    if (fs::exists(shortcut_path)) {
-        return shortcut_path;
-    }
-#endif
     return fs::path{};
+#else
+    fs::path shortcut_path{};
+
+    // Array of possible desktop
+    std::vector<std::string> desktop_paths = {
+        "Desktop",      "Escritorio", "Bureau",       "Skrivebord", "Plocha",
+        "Skrivbord",    "Desktop",    "Рабочий стол", "Pulpit",     "Área de Trabalho",
+        "Робочий стіл", "Bureaublad", "デスクトップ", "桌面",       "Pöytä",
+        "바탕 화면",    "바탕 화면",  "سطح المكتب",   "دسکتاپ",     "שולחן עבודה"};
+
+    for (auto& path : desktop_paths) {
+        if (fs::exists(GetHomeDirectory() / path)) {
+            return path;
+        }
+    }
+
+    LOG_ERROR(Common_Filesystem,
+              "[GetDesktopPath] Failed to get the path to the desktop directory");
+
+    return shortcut_path;
+#endif
 }
 
 fs::path GetAppsShortcutsPath() {
@@ -387,16 +402,20 @@ fs::path GetAppsShortcutsPath() {
         LOG_ERROR(Common_Filesystem,
                   "[GetAppsShortcutsPath] Failed to get the path to the App Shortcuts directory");
     }
+
+    return fs::path{};
 #else
     fs::path shortcut_path = GetHomeDirectory() / ".local/share/applications";
     if (!fs::exists(shortcut_path)) {
         shortcut_path = std::filesystem::path("/usr/share/applications");
-        return shortcut_path;
-    } else {
-        return shortcut_path;
+        if (!fs::exists(shortcut_path)) {
+            LOG_ERROR(Common_Filesystem,
+                      "[GetAppsShortcutsPath] Failed to get the path to the App Shortcuts "
+                      "directory");
+        }
     }
-#endif
     return fs::path{};
+#endif
 }
 
 // vvvvvvvvvv Deprecated vvvvvvvvvv //

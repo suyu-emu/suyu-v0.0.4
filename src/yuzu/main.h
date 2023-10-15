@@ -152,7 +152,7 @@ class GMainWindow : public QMainWindow {
         UI_EMU_STOPPING,
     };
 
-    const enum {
+    enum {
         CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES,
         CREATE_SHORTCUT_MSGBOX_SUCCESS,
         CREATE_SHORTCUT_MSGBOX_ERROR,
