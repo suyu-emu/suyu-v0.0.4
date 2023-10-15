@@ -100,6 +100,10 @@ private:
     // Updates the console mode.
     void UpdateDockedState(bool is_handheld);
 
+    // Enable preceding controllers or disable following ones
+    void PropagatePlayerNumberChanged(size_t player_index, bool checked,
+                                      bool reconnect_current = false);
+
     // Disables and disconnects unsupported players based on the given parameters.
     void DisableUnsupportedPlayers();
 
