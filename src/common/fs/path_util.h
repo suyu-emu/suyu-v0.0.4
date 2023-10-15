@@ -244,7 +244,6 @@ void SetYuzuPath(YuzuPath yuzu_path, const Path& new_path) {
  * @returns The path of the current user's %APPDATA% directory.
  */
 [[nodiscard]] std::filesystem::path GetAppDataRoamingDirectory();
-
 #else
 
 /**
@@ -274,6 +273,20 @@ void SetYuzuPath(YuzuPath yuzu_path, const Path& new_path) {
 [[nodiscard]] std::filesystem::path GetBundleDirectory();
 
 #endif
+
+/**
+ * Gets the path of the current user's desktop directory.
+ *
+ * @returns The path of the current user's desktop directory.
+ */
+[[nodiscard]] std::filesystem::path GetDesktopPath();
+
+/**
+ * Gets the path of the current user's apps directory.
+ *
+ * @returns The path of the current user's apps directory.
+ */
+[[nodiscard]] std::filesystem::path GetAppsShortcutsPath();
 
 // vvvvvvvvvv Deprecated vvvvvvvvvv //
 

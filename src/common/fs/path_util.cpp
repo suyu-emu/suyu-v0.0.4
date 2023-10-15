@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "common/fs/fs.h"
+#include "common/string_util.h"
 #ifdef ANDROID
 #include "common/fs/fs_android.h"
 #endif
@@ -14,7 +15,7 @@
 #include "common/logging/log.h"
 
 #ifdef _WIN32
-#include <shlobj.h> // Used in GetExeDirectory()
+#include <shlobj.h> // Used in GetExeDirectory() and GetWindowsDesktop()
 #else
 #include <cstdlib>     // Used in Get(Home/Data)Directory()
 #include <pwd.h>       // Used in GetHomeDirectory()
@@ -250,30 +251,39 @@ void SetYuzuPath(YuzuPath yuzu_path, const fs::path& new_path) {
 #ifdef _WIN32
 
 fs::path GetExeDirectory() {
-    wchar_t exe_path[MAX_PATH];
+    WCHAR exe_path[MAX_PATH];
 
-    if (GetModuleFileNameW(nullptr, exe_path, MAX_PATH) == 0) {
+    if (SUCCEEDED(GetModuleFileNameW(nullptr, exe_path, MAX_PATH))) {
+        std::wstring wideExePath(exe_path);
+
+        // UTF-16 filesystem lib to UTF-8 is broken, so we need to convert to UTF-8 with the with
+        // the Windows library (Filesystem converts the strings literally).
+        return fs::path{Common::UTF16ToUTF8(wideExePath)}.parent_path();
+    } else {
         LOG_ERROR(Common_Filesystem,
-                  "Failed to get the path to the executable of the current process");
+                  "[GetExeDirectory] Failed to get the path to the executable of the current "
+                  "process");
     }
 
-    return fs::path{exe_path}.parent_path();
+    return fs::path{};
 }
 
 fs::path GetAppDataRoamingDirectory() {
     PWSTR appdata_roaming_path = nullptr;
 
-    SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &appdata_roaming_path);
+    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &appdata_roaming_path))) {
+        std::wstring wideAppdataRoamingPath(appdata_roaming_path);
+        CoTaskMemFree(appdata_roaming_path);
 
-    auto fs_appdata_roaming_path = fs::path{appdata_roaming_path};
-
-    CoTaskMemFree(appdata_roaming_path);
-
-    if (fs_appdata_roaming_path.empty()) {
-        LOG_ERROR(Common_Filesystem, "Failed to get the path to the %APPDATA% directory");
+        // UTF-16 filesystem lib to UTF-8 is broken, so we need to convert to UTF-8 with the with
+        // the Windows library (Filesystem converts the strings literally).
+        return fs::path{Common::UTF16ToUTF8(wideAppdataRoamingPath)};
+    } else {
+        LOG_ERROR(Common_Filesystem,
+                  "[GetAppDataRoamingDirectory] Failed to get the path to the %APPDATA% directory");
     }
 
-    return fs_appdata_roaming_path;
+    return fs::path{};
 }
 
 #else
@@ -337,6 +347,57 @@ fs::path GetBundleDirectory() {
 }
 
 #endif
+
+fs::path GetDesktopPath() {
+#if defined(_WIN32)
+    PWSTR DesktopPath = nullptr;
+
+    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Desktop, 0, NULL, &DesktopPath))) {
+        std::wstring wideDesktopPath(DesktopPath);
+        CoTaskMemFree(DesktopPath);
+
+        // UTF-16 filesystem lib to UTF-8 is broken, so we need to convert to UTF-8 with the with
+        // the Windows library (Filesystem converts the strings literally).
+        return fs::path{Common::UTF16ToUTF8(wideDesktopPath)};
+    } else {
+        LOG_ERROR(Common_Filesystem,
+                  "[GetDesktopPath] Failed to get the path to the desktop directory");
+    }
+#else
+    fs::path shortcut_path = GetHomeDirectory() / "Desktop";
+    if (fs::exists(shortcut_path)) {
+        return shortcut_path;
+    }
+#endif
+    return fs::path{};
+}
+
+fs::path GetAppsShortcutsPath() {
+#if defined(_WIN32)
+    PWSTR AppShortcutsPath = nullptr;
+
+    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_CommonPrograms, 0, NULL, &AppShortcutsPath))) {
+        std::wstring wideAppShortcutsPath(AppShortcutsPath);
+        CoTaskMemFree(AppShortcutsPath);
+
+        // UTF-16 filesystem lib to UTF-8 is broken, so we need to convert to UTF-8 with the with
+        // the Windows library (Filesystem converts the strings literally).
+        return fs::path{Common::UTF16ToUTF8(wideAppShortcutsPath)};
+    } else {
+        LOG_ERROR(Common_Filesystem,
+                  "[GetAppsShortcutsPath] Failed to get the path to the App Shortcuts directory");
+    }
+#else
+    fs::path shortcut_path = GetHomeDirectory() / ".local/share/applications";
+    if (!fs::exists(shortcut_path)) {
+        shortcut_path = std::filesystem::path("/usr/share/applications");
+        return shortcut_path;
+    } else {
+        return shortcut_path;
+    }
+#endif
+    return fs::path{};
+}
 
 // vvvvvvvvvv Deprecated vvvvvvvvvv //
 

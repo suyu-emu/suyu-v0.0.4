@@ -36,4 +36,63 @@ std::string PathToUTF8String(const std::filesystem::path& path) {
     return ToUTF8String(path.u8string());
 }
 
+std::u8string U8FilenameSantizer(const std::u8string_view u8filename) {
+    std::u8string u8path_santized{u8filename.begin(), u8filename.end()};
+    size_t eSizeSanitized = u8path_santized.size();
+
+    // Special case for ":", for example: 'Pepe: La secuela' --> 'Pepe - La
+    // secuela' or 'Pepe : La secuela' --> 'Pepe - La secuela'
+    for (size_t i = 0; i < eSizeSanitized; i++) {
+        switch (u8path_santized[i]) {
+        case u8':':
+            if (i == 0 || i == eSizeSanitized - 1) {
+                u8path_santized.replace(i, 1, u8"_");
+            } else if (u8path_santized[i - 1] == u8' ') {
+                u8path_santized.replace(i, 1, u8"-");
+            } else {
+                u8path_santized.replace(i, 1, u8" -");
+                eSizeSanitized++;
+            }
+            break;
+        case u8'\\':
+        case u8'/':
+        case u8'*':
+        case u8'?':
+        case u8'\"':
+        case u8'<':
+        case u8'>':
+        case u8'|':
+        case u8'\0':
+            u8path_santized.replace(i, 1, u8"_");
+            break;
+        default:
+            break;
+        }
+    }
+
+    // Delete duplicated spaces || Delete duplicated dots (MacOS i think)
+    for (size_t i = 0; i < eSizeSanitized - 1; i++) {
+        if ((u8path_santized[i] == u8' ' && u8path_santized[i + 1] == u8' ') ||
+            (u8path_santized[i] == u8'.' && u8path_santized[i + 1] == u8'.')) {
+            u8path_santized.erase(i, 1);
+            i--;
+        }
+    }
+
+    // Delete all spaces and dots at the end (Windows almost)
+    while (u8path_santized.back() == u8' ' || u8path_santized.back() == u8'.') {
+        u8path_santized.pop_back();
+    }
+
+    if (u8path_santized.empty()) {
+        return u8"";
+    }
+
+    return u8path_santized;
+}
+
+std::string UTF8FilenameSantizer(const std::string_view filename) {
+    return ToUTF8String(U8FilenameSantizer(ToU8String(filename)));
+}
+
 } // namespace Common::FS

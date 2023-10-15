@@ -42,7 +42,7 @@ QPixmap CreateCirclePixmapFromColor(const QColor& color) {
     return circle_pixmap;
 }
 
-bool SaveIconToFile(const std::string_view path, const QImage& image) {
+bool SaveIconToFile(const QImage& image, const std::filesystem::path& icon_path) {
 #if defined(WIN32)
 #pragma pack(push, 2)
     struct IconDir {
@@ -73,7 +73,7 @@ bool SaveIconToFile(const std::string_view path, const QImage& image) {
         .id_count = static_cast<WORD>(scale_sizes.size()),
     };
 
-    Common::FS::IOFile icon_file(path, Common::FS::FileAccessMode::Write,
+    Common::FS::IOFile icon_file(icon_path.string(), Common::FS::FileAccessMode::Write,
                                  Common::FS::FileType::BinaryFile);
     if (!icon_file.IsOpen()) {
         return false;
@@ -135,7 +135,16 @@ bool SaveIconToFile(const std::string_view path, const QImage& image) {
     icon_file.Close();
 
     return true;
-#else
-    return false;
+#elif defined(__linux__) || defined(__FreeBSD__)
+    // Convert and write the icon as a PNG
+    if (!image.save(QString::fromStdString(icon_path.string()))) {
+        LOG_ERROR(Frontend, "Could not write icon as PNG to file");
+    } else {
+        LOG_INFO(Frontend, "Wrote an icon to {}", icon_path.string());
+    }
+
+    return true;
 #endif
+
+    return false;
 }
