@@ -42,7 +42,7 @@ QPixmap CreateCirclePixmapFromColor(const QColor& color) {
     return circle_pixmap;
 }
 
-bool SaveIconToFile(const QImage& image, const std::filesystem::path& icon_path) {
+bool SaveIconToFile(const std::filesystem::path& icon_path, const QImage& image) {
 #if defined(WIN32)
 #pragma pack(push, 2)
     struct IconDir {
@@ -142,7 +142,6 @@ bool SaveIconToFile(const QImage& image, const std::filesystem::path& icon_path)
     } else {
         LOG_INFO(Frontend, "Wrote an icon to {}", icon_path.string());
     }
-
     return true;
 #else
     return false;

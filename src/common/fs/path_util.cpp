@@ -260,9 +260,8 @@ fs::path GetExeDirectory() {
         // the Windows library (Filesystem converts the strings literally).
         return fs::path{Common::UTF16ToUTF8(wideExePath)}.parent_path();
     } else {
-        LOG_ERROR(Common_Filesystem,
-                  "[GetExeDirectory] Failed to get the path to the executable of the current "
-                  "process");
+        LOG_ERROR(Common_Filesystem, "Failed to get the path to the executable of the current "
+                                     "process");
     }
 
     return fs::path{};
@@ -279,8 +278,7 @@ fs::path GetAppDataRoamingDirectory() {
         // the Windows library (Filesystem converts the strings literally).
         return fs::path{Common::UTF16ToUTF8(wideAppdataRoamingPath)};
     } else {
-        LOG_ERROR(Common_Filesystem,
-                  "[GetAppDataRoamingDirectory] Failed to get the path to the %APPDATA% directory");
+        LOG_ERROR(Common_Filesystem, "Failed to get the path to the %APPDATA% directory");
     }
 
     return fs::path{};

@@ -2851,7 +2851,7 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
 
     // Replace characters that are illegal in Windows filenames
     std::filesystem::path shortcut_path_full =
-        shortcut_path / Common::FS::UTF8FilenameSantizer(name);
+        shortcut_path / Common::FS::UTF8FilenameSanitizer(name);
 
 #if defined(__linux__) || defined(__FreeBSD__)
     shortcut_path_full += ".desktop";
@@ -2859,8 +2859,7 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
     shortcut_path_full += ".lnk";
 #endif
 
-    LOG_INFO(Common, "[GMainWindow::CreateShortcutLink] Create shortcut path: {}",
-             shortcut_path_full.string());
+    LOG_ERROR(Frontend, "Create shortcut path: {}", shortcut_path_full.string());
 
 #if defined(__linux__) || defined(__FreeBSD__)
     // This desktop file template was writing referencing
@@ -2869,7 +2868,7 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
 
         // Plus 'Type' is required
         if (name.empty()) {
-            LOG_ERROR(Common, "[GMainWindow::CreateShortcutLink] Name is empty");
+            LOG_ERROR(Frontend, "Name is empty");
             shortcut_succeeded = false;
             return shortcut_succeeded;
         }
@@ -2911,14 +2910,13 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
             return true;
 
         } else {
-            LOG_ERROR(Common, "[GMainWindow::CreateShortcutLink] Failed to create shortcut");
+            LOG_ERROR(Frontend, "Failed to create shortcut");
             return false;
         }
 
         shortcut_stream.close();
     } catch (const std::exception& e) {
-        LOG_ERROR(Common, "[GMainWindow::CreateShortcutLink] Failed to create shortcut: {}",
-                  e.what());
+        LOG_ERROR(Frontend, "Failed to create shortcut: {}", e.what());
     }
 #elif defined(_WIN32)
     // Initialize COM
@@ -2970,7 +2968,7 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
             pPersistFile->Release();
         }
     } else {
-        LOG_ERROR(Common, "[GMainWindow::CreateShortcutLink] Failed to create IShellLinkWinstance");
+        LOG_ERROR(Frontend, "Failed to create IShellLinkWinstance");
     }
 
     ps1->Release();
@@ -2978,9 +2976,9 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
 #endif
 
     if (shortcut_succeeded && std::filesystem::is_regular_file(shortcut_path_full)) {
-        LOG_INFO(Common, "[GMainWindow::CreateShortcutLink] Shortcut created");
+        LOG_ERROR(Frontend, "Shortcut created");
     } else {
-        LOG_ERROR(Common, "[GMainWindow::CreateShortcutLink] Shortcut error, failed to create it");
+        LOG_ERROR(Frontend, "Shortcut error, failed to create it");
         shortcut_succeeded = false;
     }
 
@@ -3047,7 +3045,7 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
     icons_path = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "icons";
     ico_extension = "ico";
 #elif defined(__linux__) || defined(__FreeBSD__)
-    icons_path = GetDataDirectory("XDG_DATA_HOME") / "icons/hicolor/256x256";
+    icons_path = Common::FS::GetDataDirectory("XDG_DATA_HOME") / "icons/hicolor/256x256";
 #endif
 
     // Create icons directory if it doesn't exist
@@ -3130,7 +3128,7 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
             QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
 
         if (GMainWindow::MakeShortcutIcoPath(program_id, title, icons_path)) {
-            if (!SaveIconToFile(icon_data, icons_path)) {
+            if (!SaveIconToFile(icons_path, icon_data)) {
                 LOG_ERROR(Frontend, "Could not write icon to file");
             }
         }
@@ -3138,7 +3136,7 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
     } else {
         GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
                                                title);
-        LOG_ERROR(Frontend, "[GMainWindow::OnGameListCreateShortcut] Invalid shortcut target");
+        LOG_ERROR(Frontend, "Invalid shortcut target");
         return;
     }
 
