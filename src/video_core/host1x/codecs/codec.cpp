@@ -137,16 +137,6 @@ bool Codec::CreateGpuAvDevice() {
                 break;
             }
             if ((config->methods & HW_CONFIG_METHOD) != 0 && config->device_type == type) {
-#if defined(__unix__)
-                // Some linux decoding backends are reported to crash with this config method
-                // TODO(ameerj): Properly support this method
-                if ((config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX) != 0) {
-                    // skip zero-copy decoders, we don't currently support them
-                    LOG_DEBUG(Service_NVDRV, "Skipping decoder {} with unsupported capability {}.",
-                              av_hwdevice_get_type_name(type), config->methods);
-                    continue;
-                }
-#endif
                 LOG_INFO(Service_NVDRV, "Using {} GPU decoder", av_hwdevice_get_type_name(type));
                 av_codec_ctx->pix_fmt = config->pix_fmt;
                 return true;
