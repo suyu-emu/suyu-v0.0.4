@@ -338,6 +338,7 @@ void UDPClient::StartCommunication(std::size_t client, const std::string& host, 
     for (std::size_t index = 0; index < PADS_PER_CLIENT; ++index) {
         const PadIdentifier identifier = GetPadIdentifier(client * PADS_PER_CLIENT + index);
         PreSetController(identifier);
+        PreSetMotion(identifier, 0);
     }
 }
 
