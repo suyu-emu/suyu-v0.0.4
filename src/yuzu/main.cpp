@@ -2995,12 +2995,10 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
 // Messages in pre-defined message boxes for less code spaghetti
 bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QString& game_title) {
     QMessageBox::StandardButtons buttons;
-    std::string_view game_title_sv = game_title.toStdString();
 
     int result = 0;
 
     switch (imsg) {
-
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES:
         buttons = QMessageBox::Yes | QMessageBox::No;
 
@@ -3009,12 +3007,11 @@ bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QSt
                                      tr("Do you want to launch the game in fullscreen?"), buttons);
 
         LOG_INFO(Frontend, "Shortcut will launch in fullscreen");
-        return (result == QMessageBox::No) ? false : true;
+        return result == QMessageBox::Yes;
 
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS:
         QMessageBox::information(parent, tr("Create Shortcut"),
                                  tr("Successfully created a shortcut to %1").arg(game_title));
-        LOG_INFO(Frontend, "Successfully created a shortcut to {}", game_title_sv);
         return true;
 
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING:
@@ -3024,7 +3021,7 @@ bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QSt
                                  tr("This will create a shortcut to the current AppImage. This may "
                                     "not work well if you update. Continue?"),
                                  buttons);
-        return (result == QMessageBox::StandardButton::Cancel) ? true : false;
+        return result == QMessageBox::StandardButton::Ok;
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_ADMIN:
         buttons = QMessageBox::Ok;
         QMessageBox::critical(parent, tr("Create Shortcut"),
@@ -3036,7 +3033,6 @@ bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QSt
         buttons = QMessageBox::Ok;
         QMessageBox::critical(parent, tr("Create Shortcut"),
                               tr("Failed to create a shortcut to %1").arg(game_title), buttons);
-        LOG_ERROR(Frontend, "Failed to create a shortcut to {}", game_title_sv);
         return true;
     }
 
