@@ -254,11 +254,8 @@ fs::path GetExeDirectory() {
     WCHAR exe_path[MAX_PATH];
 
     if (SUCCEEDED(GetModuleFileNameW(nullptr, exe_path, MAX_PATH))) {
-        std::wstring wideExePath(exe_path);
-
-        // UTF-16 filesystem lib to UTF-8 is broken, so we need to convert to UTF-8 with the with
-        // the Windows library (Filesystem converts the strings literally).
-        return fs::path{Common::UTF16ToUTF8(wideExePath)}.parent_path();
+        std::wstring wide_exe_path(exe_path);
+        return fs::path{Common::UTF16ToUTF8(wide_exe_path)}.parent_path();
     } else {
         LOG_ERROR(Common_Filesystem, "Failed to get the path to the executable of the current "
                                      "process");
@@ -273,9 +270,6 @@ fs::path GetAppDataRoamingDirectory() {
     if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &appdata_roaming_path))) {
         std::wstring wideAppdataRoamingPath(appdata_roaming_path);
         CoTaskMemFree(appdata_roaming_path);
-
-        // UTF-16 filesystem lib to UTF-8 is broken, so we need to convert to UTF-8 with the with
-        // the Windows library (Filesystem converts the strings literally).
         return fs::path{Common::UTF16ToUTF8(wideAppdataRoamingPath)};
     } else {
         LOG_ERROR(Common_Filesystem, "Failed to get the path to the %APPDATA% directory");

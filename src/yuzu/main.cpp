@@ -2847,8 +2847,6 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
                                      const std::string& arguments, const std::string& categories,
                                      const std::string& keywords, const std::string& name) {
 
-    bool shortcut_succeeded = false;
-
     // Copy characters if they are not illegal in Windows filenames
     std::string filename = "";
     const std::string illegal_chars = "<>:\"/\\|?*";
@@ -2858,22 +2856,13 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
 
     if (filename.empty()) {
         LOG_ERROR(Frontend, "Filename is empty");
-        shortcut_succeeded = false;
-        return shortcut_succeeded;
+        return false;
     }
 
-    // Replace characters that are illegal in Windows filenames
+    // Append .desktop or .lnk extension
     std::filesystem::path shortcut_path_full = shortcut_path / filename;
 
-#if defined(__linux__) || defined(__FreeBSD__)
-    shortcut_path_full += ".desktop";
-#elif defined(_WIN32)
-    shortcut_path_full += ".lnk";
-#endif
-
-    LOG_ERROR(Frontend, "Create shortcut path: {}", shortcut_path_full.string());
-
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) // Linux and FreeBSD
     // This desktop file template was writing referencing
     // https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-1.0.html
     try {
@@ -2881,9 +2870,13 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
         // Plus 'Type' is required
         if (name.empty()) {
             LOG_ERROR(Frontend, "Name is empty");
-            shortcut_succeeded = false;
-            return shortcut_succeeded;
+            return false;
         }
+
+        // Append .desktop extension
+        shortcut_path_full += ".desktop";
+
+        // Create shortcut file
         std::ofstream shortcut_stream(shortcut_path_full, std::ios::binary | std::ios::trunc);
 
         if (shortcut_stream.is_open()) {
@@ -2923,78 +2916,82 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
 
         } else {
             LOG_ERROR(Frontend, "Failed to create shortcut");
-            return false;
         }
 
         shortcut_stream.close();
     } catch (const std::exception& e) {
         LOG_ERROR(Frontend, "Failed to create shortcut: {}", e.what());
     }
-#elif defined(_WIN32)
-    // Initialize COM
-    auto hr = CoInitialize(NULL);
-    if (FAILED(hr)) {
-        return shortcut_succeeded;
-    }
+    return false;
+#elif defined(_WIN32) // Windows
+    HRESULT hr = CoInitialize(NULL);
+    if (SUCCEEDED(hr)) {
 
-    IShellLinkW* ps1;
+        IShellLinkW* ps1 = nullptr;
+        IPersistFile* persist_file = nullptr;
 
-    auto hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW,
-                                 (void**)&ps1);
+        SCOPE_EXIT({
+            if (persist_file != nullptr) {
+                persist_file->Release();
+            }
+            if (ps1 != nullptr) {
+                ps1->Release();
+            }
 
-    // The UTF-16 / UTF-8 conversion is broken in C++, it is necessary to perform these steps and
-    // resort to the native Windows function.
-    std::wstring wshortcut_path_full = Common::UTF8ToUTF16W(shortcut_path_full.string());
-    std::wstring wicon_path = Common::UTF8ToUTF16W(icon_path.string());
-    std::wstring wcommand = Common::UTF8ToUTF16W(command.string());
-    std::wstring warguments = Common::UTF8ToUTF16W(arguments);
-    std::wstring wcomment = Common::UTF8ToUTF16W(comment);
+            CoUninitialize();
+        });
 
-    if (SUCCEEDED(hres)) {
-        if (std::filesystem::is_regular_file(command))
-            hres = ps1->SetPath(wcommand.data());
+        HRESULT hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER,
+                                        IID_IShellLinkW, (void**)&ps1);
 
-        if (SUCCEEDED(hres) && !arguments.empty())
-            hres = ps1->SetArguments(warguments.data());
-
-        if (SUCCEEDED(hres) && !comment.empty())
-            hres = ps1->SetDescription(wcomment.data());
-
-        if (SUCCEEDED(hres) && std::filesystem::is_regular_file(icon_path))
-            hres = ps1->SetIconLocation(wicon_path.data(), 0);
-
-        IPersistFile* pPersistFile = nullptr;
+        std::wstring wshortcut_path_full = Common::UTF8ToUTF16W(shortcut_path_full.string());
+        std::wstring wicon_path = Common::UTF8ToUTF16W(icon_path.string());
+        std::wstring wcommand = Common::UTF8ToUTF16W(command.string());
+        std::wstring warguments = Common::UTF8ToUTF16W(arguments);
+        std::wstring wcomment = Common::UTF8ToUTF16W(comment);
 
         if (SUCCEEDED(hres)) {
-            hres = ps1->QueryInterface(IID_IPersistFile, (void**)&pPersistFile);
+            if (std::filesystem::is_regular_file(command)) {
+                hres = ps1->SetPath(wcommand.data());
+            } else {
+                LOG_ERROR(Frontend, "Command is not a regular file");
+                return false;
+            }
 
-            if (SUCCEEDED(hres) && pPersistFile != nullptr) {
-                hres = pPersistFile->Save(wshortcut_path_full.data(), TRUE);
+            if (SUCCEEDED(hres) && !arguments.empty()) {
+                hres = ps1->SetArguments(warguments.data());
+            }
+
+            if (SUCCEEDED(hres) && !comment.empty()) {
+                hres = ps1->SetDescription(wcomment.data());
+            }
+
+            if (SUCCEEDED(hres) && std::filesystem::is_regular_file(icon_path)) {
+                hres = ps1->SetIconLocation(wicon_path.data(), 0);
+            }
+
+            if (SUCCEEDED(hres)) {
+                hres = ps1->QueryInterface(IID_IPersistFile, (void**)&persist_file);
+            }
+
+            if (SUCCEEDED(hres) && persist_file != nullptr) {
+                // Append .lnk extension and save shortcut
+                shortcut_path_full += ".lnk";
+                hres = persist_file->Save(wshortcut_path_full.data(), TRUE);
                 if (SUCCEEDED(hres)) {
-                    shortcut_succeeded = true;
+                    return true;
+                } else {
+                    LOG_ERROR(Frontend, "Failed to create shortcut");
                 }
             }
+        } else {
+            LOG_ERROR(Frontend, "Failed to create CoCreateInstance");
         }
-
-        if (pPersistFile != nullptr) {
-            pPersistFile->Release();
-        }
-    } else {
-        LOG_ERROR(Frontend, "Failed to create IShellLinkWinstance");
     }
-
-    ps1->Release();
-    CoUninitialize();
+    return false;
+#else                 // Unsupported platform
+    return false;
 #endif
-
-    if (shortcut_succeeded && std::filesystem::is_regular_file(shortcut_path_full)) {
-        LOG_ERROR(Frontend, "Shortcut created");
-    } else {
-        LOG_ERROR(Frontend, "Shortcut error, failed to create it");
-        shortcut_succeeded = false;
-    }
-
-    return shortcut_succeeded;
 }
 
 // Messages in pre-defined message boxes for less code spaghetti
@@ -3049,31 +3046,31 @@ bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, const int& imsg,
 }
 
 bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_name,
-                                      std::filesystem::path& icons_path) {
+                                      std::filesystem::path& out_icon_path) {
 
     // Get path to Yuzu icons directory & icon extension
     std::string ico_extension = "png";
 #if defined(_WIN32)
-    icons_path = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "icons";
+    out_icon_path = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "icons";
     ico_extension = "ico";
 #elif defined(__linux__) || defined(__FreeBSD__)
-    icons_path = Common::FS::GetDataDirectory("XDG_DATA_HOME") / "icons/hicolor/256x256";
+    out_icon_path = Common::FS::GetDataDirectory("XDG_DATA_HOME") / "icons/hicolor/256x256";
 #endif
 
     // Create icons directory if it doesn't exist
-    if (!Common::FS::CreateDirs(icons_path)) {
+    if (!Common::FS::CreateDirs(out_icon_path)) {
         QMessageBox::critical(
             this, tr("Create Icon"),
             tr("Cannot create icon file. Path \"%1\" does not exist and cannot be created.")
-                .arg(QString::fromStdString(icons_path.string())),
+                .arg(QString::fromStdString(out_icon_path.string())),
             QMessageBox::StandardButton::Ok);
-        icons_path = ""; // Reset path
+        out_icon_path = ""; // Reset path
         return false;
     }
 
     // Create icon file path
-    icons_path /= (program_id == 0 ? fmt::format("yuzu-{}.{}", game_file_name, ico_extension)
-                                   : fmt::format("yuzu-{:016X}.{}", program_id, ico_extension));
+    out_icon_path /= (program_id == 0 ? fmt::format("yuzu-{}.{}", game_file_name, ico_extension)
+                                      : fmt::format("yuzu-{:016X}.{}", program_id, ico_extension));
     return true;
 }
 
@@ -3096,13 +3093,11 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
             QStandardPaths::writableLocation(QStandardPaths::DesktopLocation).toStdString();
     } else if (target == GameListShortcutTarget::Applications) {
 #if defined(_WIN32)
-        HANDLE hProcess = GetCurrentProcess();
         if (!IsUserAnAdmin()) {
             GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ADMIN,
                                                    "");
             return;
         }
-        CloseHandle(hProcess);
 #endif // _WIN32
         shortcut_path =
             QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation).toStdString();
@@ -3110,9 +3105,8 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
 
     // Icon path and title
     std::string title;
-    std::filesystem::path icons_path;
+    std::filesystem::path out_icon_path;
     if (std::filesystem::exists(shortcut_path)) {
-
         // Get title from game file
         const FileSys::PatchManager pm{program_id, system->GetFileSystemController(),
                                        system->GetContentProvider()};
@@ -3139,8 +3133,8 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
         QImage icon_data =
             QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
 
-        if (GMainWindow::MakeShortcutIcoPath(program_id, title, icons_path)) {
-            if (!SaveIconToFile(icons_path, icon_data)) {
+        if (GMainWindow::MakeShortcutIcoPath(program_id, title, out_icon_path)) {
+            if (!SaveIconToFile(out_icon_path, icon_data)) {
                 LOG_ERROR(Frontend, "Could not write icon to file");
             }
         }
@@ -3178,8 +3172,8 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
     const std::string categories = "Game;Emulator;Qt;";
     const std::string keywords = "Switch;Nintendo;";
 
-    if (GMainWindow::CreateShortcutLink(shortcut_path, comment, icons_path, yuzu_command, arguments,
-                                        categories, keywords, title)) {
+    if (GMainWindow::CreateShortcutLink(shortcut_path, comment, out_icon_path, yuzu_command,
+                                        arguments, categories, keywords, title)) {
         GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS,
                                                title);
         return;
