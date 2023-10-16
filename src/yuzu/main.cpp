@@ -2997,23 +2997,17 @@ bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QSt
     QMessageBox::StandardButtons buttons;
 
     int result = 0;
-
     switch (imsg) {
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES:
         buttons = QMessageBox::Yes | QMessageBox::No;
-
         result =
             QMessageBox::information(parent, tr("Create Shortcut"),
                                      tr("Do you want to launch the game in fullscreen?"), buttons);
-
-        LOG_INFO(Frontend, "Shortcut will launch in fullscreen");
-        return result == QMessageBox::Yes;
-
+        return (result == QMessageBox::Yes);
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS:
         QMessageBox::information(parent, tr("Create Shortcut"),
                                  tr("Successfully created a shortcut to %1").arg(game_title));
-        return true;
-
+        break;
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING:
         buttons = QMessageBox::StandardButton::Ok | QMessageBox::StandardButton::Cancel;
         result =
@@ -3021,22 +3015,20 @@ bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QSt
                                  tr("This will create a shortcut to the current AppImage. This may "
                                     "not work well if you update. Continue?"),
                                  buttons);
-        return result == QMessageBox::StandardButton::Ok;
+        return (result == QMessageBox::Ok);
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_ADMIN:
         buttons = QMessageBox::Ok;
         QMessageBox::critical(parent, tr("Create Shortcut"),
                               tr("Cannot create shortcut in Apps. Restart yuzu as administrator."),
                               buttons);
-        LOG_ERROR(Frontend, "Cannot create shortcut in Apps. Restart yuzu as administrator.");
-        return true;
+        break;
     default:
         buttons = QMessageBox::Ok;
         QMessageBox::critical(parent, tr("Create Shortcut"),
                               tr("Failed to create a shortcut to %1").arg(game_title), buttons);
-        return true;
+        break;
     }
-
-    return true;
+    return false;
 }
 
 bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_name,
@@ -3058,7 +3050,7 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
             tr("Cannot create icon file. Path \"%1\" does not exist and cannot be created.")
                 .arg(QString::fromStdString(out_icon_path.string())),
             QMessageBox::StandardButton::Ok);
-        out_icon_path = ""; // Reset path
+        out_icon_path.clear();
         return false;
     }
 
@@ -3165,7 +3157,7 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
         arguments = "-f " + arguments;
     }
     const std::string comment =
-        tr("Start %1 with the yuzu Emulator").arg(QString::fromStdString(game_title)).toStdString();
+        tr("Start %1 with the yuzu Emulator").arg(qt_game_title).toStdString();
     const std::string categories = "Game;Emulator;Qt;";
     const std::string keywords = "Switch;Nintendo;";
 
