@@ -268,9 +268,9 @@ fs::path GetAppDataRoamingDirectory() {
     PWSTR appdata_roaming_path = nullptr;
 
     if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &appdata_roaming_path))) {
-        std::wstring wideAppdataRoamingPath(appdata_roaming_path);
+        std::wstring wide_appdata_roaming_path(appdata_roaming_path);
         CoTaskMemFree(appdata_roaming_path);
-        return fs::path{Common::UTF16ToUTF8(wideAppdataRoamingPath)};
+        return fs::path{Common::UTF16ToUTF8(wide_appdata_roaming_path)};
     } else {
         LOG_ERROR(Common_Filesystem, "Failed to get the path to the %APPDATA% directory");
     }
