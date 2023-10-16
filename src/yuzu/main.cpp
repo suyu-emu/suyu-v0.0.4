@@ -2849,9 +2849,21 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
 
     bool shortcut_succeeded = false;
 
+    // Copy characters if they are not illegal in Windows filenames
+    std::string filename = "";
+    const std::string illegal_chars = "<>:\"/\\|?*";
+    filename.reserve(name.size());
+    std::copy_if(name.begin(), name.end(), std::back_inserter(filename),
+                 [&illegal_chars](char c) { return illegal_chars.find(c) == std::string::npos; });
+
+    if (filename.empty()) {
+        LOG_ERROR(Frontend, "Filename is empty");
+        shortcut_succeeded = false;
+        return shortcut_succeeded;
+    }
+
     // Replace characters that are illegal in Windows filenames
-    std::filesystem::path shortcut_path_full =
-        shortcut_path / Common::FS::UTF8FilenameSanitizer(name);
+    std::filesystem::path shortcut_path_full = shortcut_path / filename;
 
 #if defined(__linux__) || defined(__FreeBSD__)
     shortcut_path_full += ".desktop";
