@@ -3156,8 +3156,7 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
             this, GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES, qt_game_title)) {
         arguments = "-f " + arguments;
     }
-    const std::string comment =
-        tr("Start %1 with the yuzu Emulator").arg(qt_game_title).toStdString();
+    const std::string comment = fmt::format("Start {:s} with the yuzu Emulator", game_title);
     const std::string categories = "Game;Emulator;Qt;";
     const std::string keywords = "Switch;Nintendo;";
 
