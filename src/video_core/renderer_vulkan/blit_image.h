@@ -75,8 +75,6 @@ public:
 
     void ConvertS8D24ToABGR8(const Framebuffer* dst_framebuffer, ImageView& src_image_view);
 
-    void ConvertD32FToBGRA8(const Framebuffer* dst_framebuffer, ImageView& src_image_view);
-
     void ClearColor(const Framebuffer* dst_framebuffer, u8 color_mask,
                     const std::array<f32, 4>& clear_color, const Region2D& dst_region);
 
@@ -138,7 +136,6 @@ private:
     vk::ShaderModule convert_d32f_to_abgr8_frag;
     vk::ShaderModule convert_d24s8_to_abgr8_frag;
     vk::ShaderModule convert_s8d24_to_abgr8_frag;
-    vk::ShaderModule convert_d32f_to_bgra8_frag;
     vk::Sampler linear_sampler;
     vk::Sampler nearest_sampler;
 
@@ -159,7 +156,6 @@ private:
     vk::Pipeline convert_d32f_to_abgr8_pipeline;
     vk::Pipeline convert_d24s8_to_abgr8_pipeline;
     vk::Pipeline convert_s8d24_to_abgr8_pipeline;
-    vk::Pipeline convert_d32f_to_bgra8_pipeline;
 };
 
 } // namespace Vulkan
