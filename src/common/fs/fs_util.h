@@ -82,24 +82,4 @@ concept IsChar = std::same_as<T, char>;
  */
 [[nodiscard]] std::string PathToUTF8String(const std::filesystem::path& path);
 
-/**
- * Fix filename (remove invalid characters)
- *
- * @param u8_string dirty encoded filename string
- *
- * @returns utf8_string sanitized filename string
- *
- */
-[[nodiscard]] std::u8string U8FilenameSanitizer(const std::u8string_view u8filename);
-
-/**
- * Fix filename (remove invalid characters)
- *
- * @param utf8_string dirty encoded filename string
- *
- * @returns utf8_string sanitized filename string
- *
- */
-[[nodiscard]] std::string UTF8FilenameSanitizer(const std::string_view filename);
-
 } // namespace Common::FS
