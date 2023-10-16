@@ -442,7 +442,7 @@ private:
     bool ConfirmShutdownGame();
 
     QString GetTasStateDescription() const;
-    bool CreateShortcutMessagesGUI(QWidget* parent, const int& imsg, const std::string title);
+    bool CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QString& game_title);
     bool MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_name,
                              std::filesystem::path& out_icon_path);
     bool CreateShortcutLink(const std::filesystem::path& shortcut_path, const std::string& comment,
