@@ -2922,10 +2922,10 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
         } else {
             LOG_ERROR(Frontend, "Failed to create shortcut");
         }
+        shortcut_stream.close();
     } catch (const std::exception& e) {
         LOG_ERROR(Frontend, "Failed to create shortcut: {}", e.what());
     }
-    shortcut_stream.close();
     return false;
 #elif defined(_WIN32) // Windows
     HRESULT hr = CoInitialize(NULL);
