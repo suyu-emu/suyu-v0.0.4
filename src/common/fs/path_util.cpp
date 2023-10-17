@@ -252,29 +252,23 @@ void SetYuzuPath(YuzuPath yuzu_path, const fs::path& new_path) {
 
 fs::path GetExeDirectory() {
     WCHAR exe_path[MAX_PATH];
-
     if (SUCCEEDED(GetModuleFileNameW(nullptr, exe_path, MAX_PATH))) {
         std::wstring wide_exe_path(exe_path);
         return fs::path{Common::UTF16ToUTF8(wide_exe_path)}.parent_path();
-    } else {
-        LOG_ERROR(Common_Filesystem, "Failed to get the path to the executable of the current "
-                                     "process");
     }
-
+    LOG_ERROR(Common_Filesystem, "Failed to get the path to the executable of the current "
+                                 "process");
     return fs::path{};
 }
 
 fs::path GetAppDataRoamingDirectory() {
     PWSTR appdata_roaming_path = nullptr;
-
     if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &appdata_roaming_path))) {
         std::wstring wide_appdata_roaming_path(appdata_roaming_path);
         CoTaskMemFree(appdata_roaming_path);
         return fs::path{Common::UTF16ToUTF8(wide_appdata_roaming_path)};
-    } else {
-        LOG_ERROR(Common_Filesystem, "Failed to get the path to the %APPDATA% directory");
     }
-
+    LOG_ERROR(Common_Filesystem, "Failed to get the path to the %APPDATA% directory");
     return fs::path{};
 }
 

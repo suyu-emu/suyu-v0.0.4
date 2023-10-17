@@ -2845,7 +2845,7 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
                                      const std::filesystem::path& icon_path,
                                      const std::filesystem::path& command,
                                      const std::string& arguments, const std::string& categories,
-                                     const std::string& keywords, const std::string& name) {
+                                     const std::string& keywords, const std::string& name) try {
 
     // Copy characters if they are not illegal in Windows filenames
     std::string filename = "";
@@ -2869,145 +2869,120 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
 #if defined(__linux__) || defined(__FreeBSD__) // Linux and FreeBSD
     // Reference for the desktop file template:
     // https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-1.0.html
-    try {
 
-        // Plus 'Type' is required
-        if (name.empty()) {
-            LOG_ERROR(Frontend, "Name is empty");
-            return false;
-        }
-
-        // Append .desktop extension
-        shortcut_path_full += ".desktop";
-
-        // Create shortcut file
-        std::ofstream shortcut_stream(shortcut_path_full, std::ios::binary | std::ios::trunc);
-
-        if (shortcut_stream.is_open()) {
-
-            fmt::print(shortcut_stream, "[Desktop Entry]\n");
-            fmt::print(shortcut_stream, "Type=Application\n");
-            fmt::print(shortcut_stream, "Version=1.0\n");
-            fmt::print(shortcut_stream, "Name={}\n", name);
-
-            if (!comment.empty()) {
-                fmt::print(shortcut_stream, "Comment={}\n", comment);
-            }
-
-            if (std::filesystem::is_regular_file(icon_path)) {
-                fmt::print(shortcut_stream, "Icon={}\n", icon_path.string());
-            }
-
-            fmt::print(shortcut_stream, "TryExec={}\n", command.string());
-            fmt::print(shortcut_stream, "Exec={}", command.string());
-
-            if (!arguments.empty()) {
-                fmt::print(shortcut_stream, " {}", arguments);
-            }
-
-            fmt::print(shortcut_stream, "\n");
-
-            if (!categories.empty()) {
-                fmt::print(shortcut_stream, "Categories={}\n", categories);
-            }
-
-            if (!keywords.empty()) {
-                fmt::print(shortcut_stream, "Keywords={}\n", keywords);
-            }
-
-            // Flush and close file
-            shortcut_stream.flush();
-            shortcut_stream.close();
-            return true;
-        } else {
-            LOG_ERROR(Frontend, "Failed to create shortcut");
-        }
-        shortcut_stream.close();
-    } catch (const std::exception& e) {
-        LOG_ERROR(Frontend, "Failed to create shortcut: {}", e.what());
+    // Plus 'Type' is required
+    if (name.empty()) {
+        LOG_ERROR(Frontend, "Name is empty");
+        return false;
     }
-    return false;
+
+    // Append .desktop extension
+    shortcut_path_full += ".desktop";
+
+    // Create shortcut file
+    std::ofstream shortcut_stream(shortcut_path_full, std::ios::binary | std::ios::trunc);
+    if (!shortcut_stream.is_open()) {
+        LOG_ERROR(Frontend, "Failed to create shortcut");
+        return false;
+    }
+
+    fmt::print(shortcut_stream, "[Desktop Entry]\n");
+    fmt::print(shortcut_stream, "Type=Application\n");
+    fmt::print(shortcut_stream, "Version=1.0\n");
+    fmt::print(shortcut_stream, "Name={}\n", name);
+    if (!comment.empty()) {
+        fmt::print(shortcut_stream, "Comment={}\n", comment);
+    }
+    if (std::filesystem::is_regular_file(icon_path)) {
+        fmt::print(shortcut_stream, "Icon={}\n", icon_path.string());
+    }
+    fmt::print(shortcut_stream, "TryExec={}\n", command.string());
+    fmt::print(shortcut_stream, "Exec={}", command.string());
+    if (!arguments.empty()) {
+        fmt::print(shortcut_stream, " {}", arguments);
+    }
+    fmt::print(shortcut_stream, "\n");
+    if (!categories.empty()) {
+        fmt::print(shortcut_stream, "Categories={}\n", categories);
+    }
+    if (!keywords.empty()) {
+        fmt::print(shortcut_stream, "Keywords={}\n", keywords);
+    }
+    return true;
 #elif defined(_WIN32) // Windows
     HRESULT hr = CoInitialize(NULL);
-    if (SUCCEEDED(hr)) {
-
-        IShellLinkW* ps1 = nullptr;
-        IPersistFile* persist_file = nullptr;
-
-        SCOPE_EXIT({
-            if (persist_file != nullptr) {
-                persist_file->Release();
-            }
-            if (ps1 != nullptr) {
-                ps1->Release();
-            }
-
-            CoUninitialize();
-        });
-
-        HRESULT hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER,
-                                        IID_IShellLinkW, (void**)&ps1);
-
-        std::wstring wshortcut_path_full =
-            Common::UTF8ToUTF16W((shortcut_path_full).string() + ".lnk");
-        std::wstring wicon_path = Common::UTF8ToUTF16W(icon_path.string());
-        std::wstring wcommand = Common::UTF8ToUTF16W(command.string());
-        std::wstring warguments = Common::UTF8ToUTF16W(arguments);
-        std::wstring wcomment = Common::UTF8ToUTF16W(comment);
-
-        if (SUCCEEDED(hres)) {
-            hres = ps1->SetPath(wcommand.data());
-
-            if (SUCCEEDED(hres) && !arguments.empty()) {
-                hres = ps1->SetArguments(warguments.data());
-            }
-
-            if (SUCCEEDED(hres) && !comment.empty()) {
-                hres = ps1->SetDescription(wcomment.data());
-            }
-
-            if (SUCCEEDED(hres) && std::filesystem::is_regular_file(icon_path)) {
-                hres = ps1->SetIconLocation(wicon_path.data(), 0);
-            }
-
-            if (SUCCEEDED(hres)) {
-                hres = ps1->QueryInterface(IID_IPersistFile, (void**)&persist_file);
-            }
-
-            if (SUCCEEDED(hres) && persist_file != nullptr) {
-                hres = persist_file->Save(wshortcut_path_full.data(), TRUE);
-                if (SUCCEEDED(hres)) {
-                    return true;
-                } else {
-                    LOG_ERROR(Frontend, "Failed to create shortcut");
-                }
-            }
-        } else {
-            LOG_ERROR(Frontend, "Failed to create CoCreateInstance");
-        }
+    if (FAILED(hr)) {
+        LOG_ERROR(Frontend, "CoInitialize failed");
+        return false;
     }
+
+    IShellLinkW* ps1 = nullptr;
+    IPersistFile* persist_file = nullptr;
+
+    SCOPE_EXIT({
+        if (persist_file != nullptr) {
+            persist_file->Release();
+        }
+        if (ps1 != nullptr) {
+            ps1->Release();
+        }
+
+        CoUninitialize();
+    });
+
+    HRESULT hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW,
+                                    (void**)&ps1);
+
+    if (SUCCEEDED(hres)) {
+        hres = ps1->SetPath(Common::UTF8ToUTF16W(command.string()).data());
+    } else {
+        LOG_ERROR(Frontend, "Failed to create CoCreateInstance");
+        return false;
+    }
+    if (SUCCEEDED(hres) && !arguments.empty()) {
+        hres = ps1->SetArguments(Common::UTF8ToUTF16W(arguments).data());
+    }
+    if (SUCCEEDED(hres) && !comment.empty()) {
+        hres = ps1->SetDescription(Common::UTF8ToUTF16W(comment).data());
+    }
+    if (SUCCEEDED(hres) && std::filesystem::is_regular_file(icon_path)) {
+        hres = ps1->SetIconLocation(Common::UTF8ToUTF16W(icon_path.string()).data(), 0);
+    }
+    if (SUCCEEDED(hres)) {
+        hres = ps1->QueryInterface(IID_IPersistFile, (void**)&persist_file);
+    }
+    if (SUCCEEDED(hres) && persist_file != nullptr) {
+        hres = persist_file->Save(
+            Common::UTF8ToUTF16W((shortcut_path_full).string() + ".lnk").data(), TRUE);
+    }
+    if (SUCCEEDED(hres)) {
+        return true;
+    }
+    LOG_ERROR(Frontend, "Failed to create shortcut");
     return false;
 #else                 // Unsupported platform
     return false;
 #endif
+} catch (const std::exception& e) {
+    LOG_ERROR(Frontend, "Failed to create shortcut: {}", e.what());
+    return false;
 }
 
 // Messages in pre-defined message boxes for less code spaghetti
 bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QString& game_title) {
-    QMessageBox::StandardButtons buttons;
-
     int result = 0;
+    QMessageBox::StandardButtons buttons;
     switch (imsg) {
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES:
         buttons = QMessageBox::Yes | QMessageBox::No;
         result =
             QMessageBox::information(parent, tr("Create Shortcut"),
                                      tr("Do you want to launch the game in fullscreen?"), buttons);
-        return (result == QMessageBox::Yes);
+        return result == QMessageBox::Yes;
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_SUCCESS:
         QMessageBox::information(parent, tr("Create Shortcut"),
                                  tr("Successfully created a shortcut to %1").arg(game_title));
-        break;
+        return false;
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING:
         buttons = QMessageBox::StandardButton::Ok | QMessageBox::StandardButton::Cancel;
         result =
@@ -3015,20 +2990,19 @@ bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QSt
                                  tr("This will create a shortcut to the current AppImage. This may "
                                     "not work well if you update. Continue?"),
                                  buttons);
-        return (result == QMessageBox::Ok);
+        return result == QMessageBox::Ok;
     case GMainWindow::CREATE_SHORTCUT_MSGBOX_ADMIN:
         buttons = QMessageBox::Ok;
         QMessageBox::critical(parent, tr("Create Shortcut"),
                               tr("Cannot create shortcut in Apps. Restart yuzu as administrator."),
                               buttons);
-        break;
+        return false;
     default:
         buttons = QMessageBox::Ok;
         QMessageBox::critical(parent, tr("Create Shortcut"),
                               tr("Failed to create a shortcut to %1").arg(game_title), buttons);
-        break;
+        return false;
     }
-    return false;
 }
 
 bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_name,
