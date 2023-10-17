@@ -2847,6 +2847,13 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
                                      const std::string& arguments, const std::string& categories,
                                      const std::string& keywords, const std::string& name) try {
 
+#if defined(__linux__) || defined(__FreeBSD__) || defined(_WIN32) // Linux, FreeBSD and Windows
+    // Plus 'name' is required
+    if (name.empty()) {
+        LOG_ERROR(Frontend, "Name is empty");
+        return false;
+    }
+
     // Copy characters if they are not illegal in Windows filenames
     std::string filename = "";
     const std::string illegal_chars = "<>:\"/\\|?*";
@@ -2865,16 +2872,11 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
     }
 
     std::filesystem::path shortcut_path_full = shortcut_path / filename;
+#endif
 
 #if defined(__linux__) || defined(__FreeBSD__) // Linux and FreeBSD
     // Reference for the desktop file template:
     // https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-1.0.html
-
-    // Plus 'Type' is required
-    if (name.empty()) {
-        LOG_ERROR(Frontend, "Name is empty");
-        return false;
-    }
 
     // Append .desktop extension
     shortcut_path_full += ".desktop";
