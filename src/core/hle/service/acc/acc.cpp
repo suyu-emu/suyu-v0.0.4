@@ -49,7 +49,7 @@ public:
         : ServiceFramework{system_, "IManagerForSystemService"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "CheckAvailability"},
+            {0, &IManagerForSystemService::CheckAvailability, "CheckAvailability"},
             {1, nullptr, "GetAccountId"},
             {2, nullptr, "EnsureIdTokenCacheAsync"},
             {3, nullptr, "LoadIdTokenCache"},
@@ -77,6 +77,13 @@ public:
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+private:
+    void CheckAvailability(HLERequestContext& ctx) {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
     }
 };
 
@@ -837,6 +844,29 @@ void Module::Interface::InitializeApplicationInfoV2(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
+void Module::Interface::BeginUserRegistration(HLERequestContext& ctx) {
+    const auto user_id = Common::UUID::MakeRandom();
+    profile_manager->CreateNewUser(user_id, "yuzu");
+
+    LOG_INFO(Service_ACC, "called, uuid={}", user_id.FormattedString());
+
+    IPC::ResponseBuilder rb{ctx, 6};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(user_id);
+}
+
+void Module::Interface::CompleteUserRegistration(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    Common::UUID user_id = rp.PopRaw<Common::UUID>();
+
+    LOG_INFO(Service_ACC, "called, uuid={}", user_id.FormattedString());
+
+    profile_manager->WriteUserSaveFile();
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void Module::Interface::GetProfileEditor(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     Common::UUID user_id = rp.PopRaw<Common::UUID>();
@@ -878,6 +908,17 @@ void Module::Interface::StoreSaveDataThumbnailApplication(HLERequestContext& ctx
     // being.
     constexpr u64 tid{1};
     StoreSaveDataThumbnail(ctx, uuid, tid);
+}
+
+void Module::Interface::GetBaasAccountManagerForSystemService(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto uuid = rp.PopRaw<Common::UUID>();
+
+    LOG_INFO(Service_ACC, "called, uuid=0x{}", uuid.RawString());
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(ResultSuccess);
+    rb.PushIpcInterface<IManagerForSystemService>(system, uuid);
 }
 
 void Module::Interface::StoreSaveDataThumbnailSystem(HLERequestContext& ctx) {

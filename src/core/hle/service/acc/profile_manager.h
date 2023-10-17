@@ -96,9 +96,10 @@ public:
     bool SetProfileBaseAndData(Common::UUID uuid, const ProfileBase& profile_new,
                                const UserData& data_new);
 
+    void WriteUserSaveFile();
+
 private:
     void ParseUserSaveFile();
-    void WriteUserSaveFile();
     std::optional<std::size_t> AddToProfiles(const ProfileInfo& profile);
     bool RemoveProfileAtIndex(std::size_t index);
 
