@@ -24,7 +24,7 @@ namespace VideoCommon {
         return {2, 2};
     }
     ASSERT_MSG(false, "Invalid number of samples={}", num_samples);
-    return {1, 1};
+    return {0, 0};
 }
 
 [[nodiscard]] inline int NumSamples(Tegra::Texture::MsaaMode msaa_mode) {

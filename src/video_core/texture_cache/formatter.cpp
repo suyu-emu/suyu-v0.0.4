@@ -10,19 +10,23 @@
 #include "video_core/texture_cache/image_info.h"
 #include "video_core/texture_cache/image_view_base.h"
 #include "video_core/texture_cache/render_targets.h"
+#include "video_core/texture_cache/samples_helper.h"
 
 namespace VideoCommon {
 
 std::string Name(const ImageBase& image) {
     const GPUVAddr gpu_addr = image.gpu_addr;
     const ImageInfo& info = image.info;
-    const u32 width = info.size.width;
-    const u32 height = info.size.height;
+    u32 width = info.size.width;
+    u32 height = info.size.height;
     const u32 depth = info.size.depth;
     const u32 num_layers = image.info.resources.layers;
     const u32 num_levels = image.info.resources.levels;
     std::string resource;
     if (image.info.num_samples > 1) {
+        const auto [samples_x, samples_y] = VideoCommon::SamplesLog2(image.info.num_samples);
+        width >>= samples_x;
+        height >>= samples_y;
         resource += fmt::format(":{}xMSAA", image.info.num_samples);
     }
     if (num_layers > 1) {
