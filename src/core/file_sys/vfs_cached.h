@@ -11,7 +11,7 @@ namespace FileSys {
 
 class CachedVfsDirectory : public ReadOnlyVfsDirectory {
 public:
-    CachedVfsDirectory(VirtualDir& source_directory);
+    CachedVfsDirectory(VirtualDir&& source_directory);
 
     ~CachedVfsDirectory() override;
     VirtualFile GetFile(std::string_view file_name) const override;
