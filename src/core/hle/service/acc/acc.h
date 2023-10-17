@@ -33,10 +33,13 @@ public:
         void TrySelectUserWithoutInteraction(HLERequestContext& ctx);
         void IsUserAccountSwitchLocked(HLERequestContext& ctx);
         void InitializeApplicationInfoV2(HLERequestContext& ctx);
+        void BeginUserRegistration(HLERequestContext& ctx);
+        void CompleteUserRegistration(HLERequestContext& ctx);
         void GetProfileEditor(HLERequestContext& ctx);
         void ListQualifiedUsers(HLERequestContext& ctx);
         void ListOpenContextStoredUsers(HLERequestContext& ctx);
         void StoreSaveDataThumbnailApplication(HLERequestContext& ctx);
+        void GetBaasAccountManagerForSystemService(HLERequestContext& ctx);
         void StoreSaveDataThumbnailSystem(HLERequestContext& ctx);
 
     private:
