@@ -133,6 +133,10 @@ public:
 
     void ReleaseChannel(s32 channel_id) override;
 
+    std::scoped_lock<std::recursive_mutex, std::recursive_mutex> LockCaches() {
+        return std::scoped_lock{buffer_cache.mutex, texture_cache.mutex};
+    }
+
 private:
     static constexpr size_t MAX_TEXTURES = 192;
     static constexpr size_t MAX_IMAGES = 48;
