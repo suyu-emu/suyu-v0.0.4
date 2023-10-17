@@ -377,16 +377,16 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
 
         auto romfs_dir = FindSubdirectoryCaseless(subdir, "romfs");
         if (romfs_dir != nullptr)
-            layers.push_back(std::make_shared<CachedVfsDirectory>(romfs_dir));
+            layers.emplace_back(std::make_shared<CachedVfsDirectory>(std::move(romfs_dir)));
 
         auto ext_dir = FindSubdirectoryCaseless(subdir, "romfs_ext");
         if (ext_dir != nullptr)
-            layers_ext.push_back(std::make_shared<CachedVfsDirectory>(ext_dir));
+            layers_ext.emplace_back(std::make_shared<CachedVfsDirectory>(std::move(ext_dir)));
 
         if (type == ContentRecordType::HtmlDocument) {
             auto manual_dir = FindSubdirectoryCaseless(subdir, "manual_html");
             if (manual_dir != nullptr)
-                layers.push_back(std::make_shared<CachedVfsDirectory>(manual_dir));
+                layers.emplace_back(std::make_shared<CachedVfsDirectory>(std::move(manual_dir)));
         }
     }
 
@@ -400,7 +400,7 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
         return;
     }
 
-    layers.push_back(std::move(extracted));
+    layers.emplace_back(std::move(extracted));
 
     auto layered = LayeredVfsDirectory::MakeLayeredDirectory(std::move(layers));
     if (layered == nullptr) {

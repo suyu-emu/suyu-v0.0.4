@@ -24,22 +24,20 @@ private:
     };
     using ConcatenationMap = std::vector<ConcatenationEntry>;
 
-    explicit ConcatenatedVfsFile(std::vector<ConcatenationEntry>&& concatenation_map,
-                                 std::string&& name);
+    explicit ConcatenatedVfsFile(std::string&& name,
+                                 std::vector<ConcatenationEntry>&& concatenation_map);
     bool VerifyContinuity() const;
 
 public:
     ~ConcatenatedVfsFile() override;
 
     /// Wrapper function to allow for more efficient handling of files.size() == 0, 1 cases.
-    static VirtualFile MakeConcatenatedFile(const std::vector<VirtualFile>& files,
-                                            std::string&& name);
+    static VirtualFile MakeConcatenatedFile(std::string&& name, std::vector<VirtualFile>&& files);
 
     /// Convenience function that turns a map of offsets to files into a concatenated file, filling
     /// gaps with a given filler byte.
-    static VirtualFile MakeConcatenatedFile(u8 filler_byte,
-                                            const std::multimap<u64, VirtualFile>& files,
-                                            std::string&& name);
+    static VirtualFile MakeConcatenatedFile(u8 filler_byte, std::string&& name,
+                                            std::multimap<u64, VirtualFile>&& files);
 
     std::string GetName() const override;
     std::size_t GetSize() const override;
