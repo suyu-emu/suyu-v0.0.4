@@ -210,8 +210,8 @@ IDisplayController::IDisplayController(Core::System& system_)
         {21, nullptr, "ClearAppletTransitionBuffer"},
         {22, nullptr, "AcquireLastApplicationCaptureSharedBuffer"},
         {23, nullptr, "ReleaseLastApplicationCaptureSharedBuffer"},
-        {24, nullptr, "AcquireLastForegroundCaptureSharedBuffer"},
-        {25, nullptr, "ReleaseLastForegroundCaptureSharedBuffer"},
+        {24, &IDisplayController::AcquireLastForegroundCaptureSharedBuffer, "AcquireLastForegroundCaptureSharedBuffer"},
+        {25, &IDisplayController::ReleaseLastForegroundCaptureSharedBuffer, "ReleaseLastForegroundCaptureSharedBuffer"},
         {26, &IDisplayController::AcquireCallerAppletCaptureSharedBuffer, "AcquireCallerAppletCaptureSharedBuffer"},
         {27, &IDisplayController::ReleaseCallerAppletCaptureSharedBuffer, "ReleaseCallerAppletCaptureSharedBuffer"},
         {28, nullptr, "TakeScreenShotOfOwnLayerEx"},
@@ -233,6 +233,22 @@ void IDisplayController::GetCallerAppletCaptureImageEx(HLERequestContext& ctx) {
 }
 
 void IDisplayController::TakeScreenShotOfOwnLayer(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IDisplayController::AcquireLastForegroundCaptureSharedBuffer(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push(1U);
+    rb.Push(0);
+}
+
+void IDisplayController::ReleaseLastForegroundCaptureSharedBuffer(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -1557,7 +1573,7 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
         {100, nullptr, "CreateGameMovieTrimmer"},
         {101, nullptr, "ReserveResourceForMovieOperation"},
         {102, nullptr, "UnreserveResourceForMovieOperation"},
-        {110, nullptr, "GetMainAppletAvailableUsers"},
+        {110, &ILibraryAppletSelfAccessor::GetMainAppletAvailableUsers, "GetMainAppletAvailableUsers"},
         {120, nullptr, "GetLaunchStorageInfoForDebug"},
         {130, nullptr, "GetGpuErrorDetectedSystemEvent"},
         {140, nullptr, "SetApplicationMemoryReservation"},
@@ -1650,6 +1666,25 @@ void ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(HLERequestContext& 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
     rb.PushRaw(applet_info);
+}
+
+void ILibraryAppletSelfAccessor::GetMainAppletAvailableUsers(HLERequestContext& ctx) {
+    const Service::Account::ProfileManager manager{};
+    bool is_empty{true};
+    s32 user_count{-1};
+
+    LOG_INFO(Service_AM, "called");
+
+    if (manager.GetUserCount() > 0) {
+        is_empty = false;
+        user_count = static_cast<s32>(manager.GetUserCount());
+        ctx.WriteBuffer(manager.GetAllUsers());
+    }
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push<u8>(is_empty);
+    rb.Push(user_count);
 }
 
 void ILibraryAppletSelfAccessor::PushInShowAlbum() {

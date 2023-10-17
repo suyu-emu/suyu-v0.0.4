@@ -124,6 +124,8 @@ public:
 private:
     void GetCallerAppletCaptureImageEx(HLERequestContext& ctx);
     void TakeScreenShotOfOwnLayer(HLERequestContext& ctx);
+    void AcquireLastForegroundCaptureSharedBuffer(HLERequestContext& ctx);
+    void ReleaseLastForegroundCaptureSharedBuffer(HLERequestContext& ctx);
     void AcquireCallerAppletCaptureSharedBuffer(HLERequestContext& ctx);
     void ReleaseCallerAppletCaptureSharedBuffer(HLERequestContext& ctx);
 };
@@ -345,6 +347,7 @@ private:
     void GetLibraryAppletInfo(HLERequestContext& ctx);
     void ExitProcessAndReturn(HLERequestContext& ctx);
     void GetCallerAppletIdentityInfo(HLERequestContext& ctx);
+    void GetMainAppletAvailableUsers(HLERequestContext& ctx);
 
     void PushInShowAlbum();
     void PushInShowCabinetData();
