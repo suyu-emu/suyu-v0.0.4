@@ -2034,7 +2034,7 @@ void TextureCacheRuntime::TransitionImageLayout(Image& image) {
             },
         };
         scheduler.RequestOutsideRenderPassOperationContext();
-        scheduler.Record([barrier = barrier](vk::CommandBuffer cmdbuf) {
+        scheduler.Record([barrier](vk::CommandBuffer cmdbuf) {
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                    VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, barrier);
         });
