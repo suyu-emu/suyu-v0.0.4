@@ -67,6 +67,8 @@ public:
 
     void ConvertABGR8ToD24S8(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
 
+    void ConvertABGR8ToD32F(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);
+
     void ConvertD32FToABGR8(const Framebuffer* dst_framebuffer, ImageView& src_image_view);
 
     void ConvertD24S8ToABGR8(const Framebuffer* dst_framebuffer, ImageView& src_image_view);
@@ -130,6 +132,7 @@ private:
     vk::ShaderModule convert_depth_to_float_frag;
     vk::ShaderModule convert_float_to_depth_frag;
     vk::ShaderModule convert_abgr8_to_d24s8_frag;
+    vk::ShaderModule convert_abgr8_to_d32f_frag;
     vk::ShaderModule convert_d32f_to_abgr8_frag;
     vk::ShaderModule convert_d24s8_to_abgr8_frag;
     vk::ShaderModule convert_s8d24_to_abgr8_frag;
@@ -149,6 +152,7 @@ private:
     vk::Pipeline convert_d16_to_r16_pipeline;
     vk::Pipeline convert_r16_to_d16_pipeline;
     vk::Pipeline convert_abgr8_to_d24s8_pipeline;
+    vk::Pipeline convert_abgr8_to_d32f_pipeline;
     vk::Pipeline convert_d32f_to_abgr8_pipeline;
     vk::Pipeline convert_d24s8_to_abgr8_pipeline;
     vk::Pipeline convert_s8d24_to_abgr8_pipeline;
