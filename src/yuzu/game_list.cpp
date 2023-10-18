@@ -564,10 +564,13 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     QAction* verify_integrity = context_menu.addAction(tr("Verify Integrity"));
     QAction* copy_tid = context_menu.addAction(tr("Copy Title ID to Clipboard"));
     QAction* navigate_to_gamedb_entry = context_menu.addAction(tr("Navigate to GameDB entry"));
+// TODO: Implement shortcut creation for macOS
+#if !defined(__APPLE__)
     QMenu* shortcut_menu = context_menu.addMenu(tr("Create Shortcut"));
     QAction* create_desktop_shortcut = shortcut_menu->addAction(tr("Add to Desktop"));
     QAction* create_applications_menu_shortcut =
         shortcut_menu->addAction(tr("Add to Applications Menu"));
+#endif
     context_menu.addSeparator();
     QAction* properties = context_menu.addAction(tr("Properties"));
 
@@ -642,12 +645,15 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     connect(navigate_to_gamedb_entry, &QAction::triggered, [this, program_id]() {
         emit NavigateToGamedbEntryRequested(program_id, compatibility_list);
     });
+// TODO: Implement shortcut creation for macOS
+#if !defined(__APPLE__)
     connect(create_desktop_shortcut, &QAction::triggered, [this, program_id, path]() {
         emit CreateShortcut(program_id, path, GameListShortcutTarget::Desktop);
     });
     connect(create_applications_menu_shortcut, &QAction::triggered, [this, program_id, path]() {
         emit CreateShortcut(program_id, path, GameListShortcutTarget::Applications);
     });
+#endif
     connect(properties, &QAction::triggered,
             [this, path]() { emit OpenPerGameGeneralRequested(path); });
 };
