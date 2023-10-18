@@ -407,13 +407,13 @@ protected:
         IPC::RequestParser rp{ctx};
         const auto base = rp.PopRaw<ProfileBase>();
 
-        const auto user_data = ctx.ReadBuffer();
-        const auto image_data = ctx.ReadBuffer(1);
+        const auto image_data = ctx.ReadBufferA(0);
+        const auto user_data = ctx.ReadBufferX(0);
 
-        LOG_DEBUG(Service_ACC, "called, username='{}', timestamp={:016X}, uuid=0x{}",
-                  Common::StringFromFixedZeroTerminatedBuffer(
-                      reinterpret_cast<const char*>(base.username.data()), base.username.size()),
-                  base.timestamp, base.user_uuid.RawString());
+        LOG_INFO(Service_ACC, "called, username='{}', timestamp={:016X}, uuid=0x{}",
+                 Common::StringFromFixedZeroTerminatedBuffer(
+                     reinterpret_cast<const char*>(base.username.data()), base.username.size()),
+                 base.timestamp, base.user_uuid.RawString());
 
         if (user_data.size() < sizeof(UserData)) {
             LOG_ERROR(Service_ACC, "UserData buffer too small!");
