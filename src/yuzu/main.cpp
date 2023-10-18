@@ -2839,8 +2839,7 @@ void GMainWindow::OnGameListNavigateToGamedbEntry(u64 program_id,
 
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://yuzu-emu.org/game/") + directory));
 }
-// TODO: Implement shortcut creation for macOS
-#if !defined(__APPLE__)
+
 bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
                                      const std::string& comment,
                                      const std::filesystem::path& icon_path,
@@ -2998,11 +2997,9 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
                                       : fmt::format("yuzu-{:016X}.{}", program_id, ico_extension));
     return true;
 }
-#endif // !defined(__APPLE__)
+
 void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& game_path,
                                            GameListShortcutTarget target) {
-// TODO: Implement shortcut creation for macOS
-#if !defined(__APPLE__)
     std::string game_title;
     QString qt_game_title;
     std::filesystem::path out_icon_path;
@@ -3096,7 +3093,6 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
     }
     GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ERROR,
                                            qt_game_title);
-#endif
 }
 
 void GMainWindow::OnGameListOpenDirectory(const QString& directory) {
