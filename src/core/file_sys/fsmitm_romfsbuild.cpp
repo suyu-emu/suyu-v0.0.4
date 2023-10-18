@@ -107,62 +107,56 @@ static u64 romfs_get_hash_table_count(u64 num_entries) {
 
 void RomFSBuildContext::VisitDirectory(VirtualDir romfs_dir, VirtualDir ext_dir,
                                        std::shared_ptr<RomFSBuildDirectoryContext> parent) {
-    std::vector<std::shared_ptr<RomFSBuildDirectoryContext>> child_dirs;
+    for (auto& child_romfs_file : romfs_dir->GetFiles()) {
+        const auto name = child_romfs_file->GetName();
+        const auto child = std::make_shared<RomFSBuildFileContext>();
+        // Set child's path.
+        child->cur_path_ofs = parent->path_len + 1;
+        child->path_len = child->cur_path_ofs + static_cast<u32>(name.size());
+        child->path = parent->path + "/" + name;
 
-    const auto entries = romfs_dir->GetEntries();
+        if (ext_dir != nullptr && ext_dir->GetFile(name + ".stub") != nullptr) {
+            continue;
+        }
 
-    for (const auto& kv : entries) {
-        if (kv.second == VfsEntryType::Directory) {
-            const auto child = std::make_shared<RomFSBuildDirectoryContext>();
-            // Set child's path.
-            child->cur_path_ofs = parent->path_len + 1;
-            child->path_len = child->cur_path_ofs + static_cast<u32>(kv.first.size());
-            child->path = parent->path + "/" + kv.first;
+        // Sanity check on path_len
+        ASSERT(child->path_len < FS_MAX_PATH);
 
-            if (ext_dir != nullptr && ext_dir->GetFile(kv.first + ".stub") != nullptr) {
-                continue;
-            }
+        child->source = std::move(child_romfs_file);
 
-            // Sanity check on path_len
-            ASSERT(child->path_len < FS_MAX_PATH);
-
-            if (AddDirectory(parent, child)) {
-                child_dirs.push_back(child);
-            }
-        } else {
-            const auto child = std::make_shared<RomFSBuildFileContext>();
-            // Set child's path.
-            child->cur_path_ofs = parent->path_len + 1;
-            child->path_len = child->cur_path_ofs + static_cast<u32>(kv.first.size());
-            child->path = parent->path + "/" + kv.first;
-
-            if (ext_dir != nullptr && ext_dir->GetFile(kv.first + ".stub") != nullptr) {
-                continue;
-            }
-
-            // Sanity check on path_len
-            ASSERT(child->path_len < FS_MAX_PATH);
-
-            child->source = romfs_dir->GetFile(kv.first);
-
-            if (ext_dir != nullptr) {
-                if (const auto ips = ext_dir->GetFile(kv.first + ".ips")) {
-                    if (auto patched = PatchIPS(child->source, ips)) {
-                        child->source = std::move(patched);
-                    }
+        if (ext_dir != nullptr) {
+            if (const auto ips = ext_dir->GetFile(name + ".ips")) {
+                if (auto patched = PatchIPS(child->source, ips)) {
+                    child->source = std::move(patched);
                 }
             }
-
-            child->size = child->source->GetSize();
-
-            AddFile(parent, child);
         }
+
+        child->size = child->source->GetSize();
+
+        AddFile(parent, child);
     }
 
-    for (auto& child : child_dirs) {
-        auto subdir_name = std::string_view(child->path).substr(child->cur_path_ofs);
-        auto child_romfs_dir = romfs_dir->GetSubdirectory(subdir_name);
-        auto child_ext_dir = ext_dir != nullptr ? ext_dir->GetSubdirectory(subdir_name) : nullptr;
+    for (auto& child_romfs_dir : romfs_dir->GetSubdirectories()) {
+        const auto name = child_romfs_dir->GetName();
+        const auto child = std::make_shared<RomFSBuildDirectoryContext>();
+        // Set child's path.
+        child->cur_path_ofs = parent->path_len + 1;
+        child->path_len = child->cur_path_ofs + static_cast<u32>(name.size());
+        child->path = parent->path + "/" + name;
+
+        if (ext_dir != nullptr && ext_dir->GetFile(name + ".stub") != nullptr) {
+            continue;
+        }
+
+        // Sanity check on path_len
+        ASSERT(child->path_len < FS_MAX_PATH);
+
+        if (!AddDirectory(parent, child)) {
+            continue;
+        }
+
+        auto child_ext_dir = ext_dir != nullptr ? ext_dir->GetSubdirectory(name) : nullptr;
         this->VisitDirectory(child_romfs_dir, child_ext_dir, child);
     }
 }
@@ -293,7 +287,7 @@ std::multimap<u64, VirtualFile> RomFSBuildContext::Build() {
 
         cur_entry.name_size = name_size;
 
-        out.emplace(cur_file->offset + ROMFS_FILEPARTITION_OFS, cur_file->source);
+        out.emplace(cur_file->offset + ROMFS_FILEPARTITION_OFS, std::move(cur_file->source));
         std::memcpy(file_table.data() + cur_file->entry_offset, &cur_entry, sizeof(RomFSFileEntry));
         std::memset(file_table.data() + cur_file->entry_offset + sizeof(RomFSFileEntry), 0,
                     Common::AlignUp(cur_entry.name_size, 4));

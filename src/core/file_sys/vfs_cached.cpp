@@ -6,13 +6,13 @@
 
 namespace FileSys {
 
-CachedVfsDirectory::CachedVfsDirectory(VirtualDir& source_dir)
+CachedVfsDirectory::CachedVfsDirectory(VirtualDir&& source_dir)
     : name(source_dir->GetName()), parent(source_dir->GetParentDirectory()) {
     for (auto& dir : source_dir->GetSubdirectories()) {
-        dirs.emplace(dir->GetName(), std::make_shared<CachedVfsDirectory>(dir));
+        dirs.emplace(dir->GetName(), std::make_shared<CachedVfsDirectory>(std::move(dir)));
     }
     for (auto& file : source_dir->GetFiles()) {
-        files.emplace(file->GetName(), file);
+        files.emplace(file->GetName(), std::move(file));
     }
 }
 

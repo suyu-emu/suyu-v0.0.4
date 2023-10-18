@@ -10,7 +10,7 @@
 
 namespace FileSys {
 
-ConcatenatedVfsFile::ConcatenatedVfsFile(ConcatenationMap&& concatenation_map_, std::string&& name_)
+ConcatenatedVfsFile::ConcatenatedVfsFile(std::string&& name_, ConcatenationMap&& concatenation_map_)
     : concatenation_map(std::move(concatenation_map_)), name(std::move(name_)) {
     DEBUG_ASSERT(this->VerifyContinuity());
 }
@@ -30,8 +30,8 @@ bool ConcatenatedVfsFile::VerifyContinuity() const {
 
 ConcatenatedVfsFile::~ConcatenatedVfsFile() = default;
 
-VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(const std::vector<VirtualFile>& files,
-                                                      std::string&& name) {
+VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(std::string&& name,
+                                                      std::vector<VirtualFile>&& files) {
     // Fold trivial cases.
     if (files.empty()) {
         return nullptr;
@@ -46,20 +46,21 @@ VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(const std::vector<VirtualF
     u64 last_offset = 0;
 
     for (auto& file : files) {
+        const auto size = file->GetSize();
+
         concatenation_map.emplace_back(ConcatenationEntry{
             .offset = last_offset,
-            .file = file,
+            .file = std::move(file),
         });
 
-        last_offset += file->GetSize();
+        last_offset += size;
     }
 
-    return VirtualFile(new ConcatenatedVfsFile(std::move(concatenation_map), std::move(name)));
+    return VirtualFile(new ConcatenatedVfsFile(std::move(name), std::move(concatenation_map)));
 }
 
-VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(u8 filler_byte,
-                                                      const std::multimap<u64, VirtualFile>& files,
-                                                      std::string&& name) {
+VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(u8 filler_byte, std::string&& name,
+                                                      std::multimap<u64, VirtualFile>&& files) {
     // Fold trivial cases.
     if (files.empty()) {
         return nullptr;
@@ -76,6 +77,8 @@ VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(u8 filler_byte,
 
     // Iteration of a multimap is ordered, so offset will be strictly non-decreasing.
     for (auto& [offset, file] : files) {
+        const auto size = file->GetSize();
+
         if (offset > last_offset) {
             concatenation_map.emplace_back(ConcatenationEntry{
                 .offset = last_offset,
@@ -85,13 +88,13 @@ VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(u8 filler_byte,
 
         concatenation_map.emplace_back(ConcatenationEntry{
             .offset = offset,
-            .file = file,
+            .file = std::move(file),
         });
 
-        last_offset = offset + file->GetSize();
+        last_offset = offset + size;
     }
 
-    return VirtualFile(new ConcatenatedVfsFile(std::move(concatenation_map), std::move(name)));
+    return VirtualFile(new ConcatenatedVfsFile(std::move(name), std::move(concatenation_map)));
 }
 
 std::string ConcatenatedVfsFile::GetName() const {
