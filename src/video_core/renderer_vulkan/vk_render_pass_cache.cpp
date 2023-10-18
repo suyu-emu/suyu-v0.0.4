@@ -19,7 +19,7 @@ VkAttachmentDescription AttachmentDescription(const Device& device, PixelFormat 
                                               VkSampleCountFlagBits samples) {
     using MaxwellToVK::SurfaceFormat;
     return {
-        .flags = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT,
+        .flags = {},
         .format = SurfaceFormat(device, FormatType::Optimal, true, format).format,
         .samples = samples,
         .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
