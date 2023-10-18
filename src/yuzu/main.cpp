@@ -3067,13 +3067,7 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
         LOG_ERROR(Frontend, "Invalid shortcut target");
         return;
     }
-#if defined(_WIN32)
-    if (!IsUserAnAdmin() && target == GameListShortcutTarget::Applications) {
-        GMainWindow::CreateShortcutMessagesGUI(this, GMainWindow::CREATE_SHORTCUT_MSGBOX_ADMIN,
-                                               qt_game_title);
-        return;
-    }
-#elif defined(__linux__)
+#if defined(__linux__)
     // Special case for AppImages
     // Warn once if we are making a shortcut to a volatile AppImage
     const std::string appimage_ending =
