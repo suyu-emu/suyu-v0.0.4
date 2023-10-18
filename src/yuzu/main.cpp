@@ -2962,12 +2962,6 @@ bool GMainWindow::CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QSt
                                     "not work well if you update. Continue?"),
                                  buttons);
         return result == QMessageBox::Ok;
-    case GMainWindow::CREATE_SHORTCUT_MSGBOX_ADMIN:
-        buttons = QMessageBox::Ok;
-        QMessageBox::critical(parent, tr("Create Shortcut"),
-                              tr("Cannot create shortcut in Apps. Restart yuzu as administrator."),
-                              buttons);
-        return false;
     default:
         buttons = QMessageBox::Ok;
         QMessageBox::critical(parent, tr("Create Shortcut"),
