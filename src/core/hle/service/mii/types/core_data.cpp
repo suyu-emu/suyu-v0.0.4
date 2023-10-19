@@ -41,6 +41,7 @@ void CoreData::BuildRandom(Age age, Gender gender, Race race) {
         }
     }
 
+    SetDefault();
     SetGender(gender);
     SetFavoriteColor(MiiUtil::GetRandomValue(FavoriteColor::Max));
     SetRegionMove(0);
