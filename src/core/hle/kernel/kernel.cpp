@@ -623,14 +623,33 @@ struct KernelCore::Impl {
         ASSERT(memory_layout->GetPhysicalMemoryRegionTree().Insert(
             GetInteger(slab_start_phys_addr), slab_region_size, KMemoryRegionType_DramKernelSlab));
 
+        // Insert a physical region for the secure applet memory.
+        const auto secure_applet_end_phys_addr =
+            slab_end_phys_addr + KSystemControl::SecureAppletMemorySize;
+        if constexpr (KSystemControl::SecureAppletMemorySize > 0) {
+            ASSERT(memory_layout->GetPhysicalMemoryRegionTree().Insert(
+                GetInteger(slab_end_phys_addr), KSystemControl::SecureAppletMemorySize,
+                KMemoryRegionType_DramKernelSecureAppletMemory));
+        }
+
+        // Insert a physical region for the unknown debug2 region.
+        constexpr size_t SecureUnknownRegionSize = 0;
+        const size_t secure_unknown_size = SecureUnknownRegionSize;
+        const auto secure_unknown_end_phys_addr = secure_applet_end_phys_addr + secure_unknown_size;
+        if constexpr (SecureUnknownRegionSize > 0) {
+            ASSERT(memory_layout->GetPhysicalMemoryRegionTree().Insert(
+                GetInteger(secure_applet_end_phys_addr), secure_unknown_size,
+                KMemoryRegionType_DramKernelSecureUnknown));
+        }
+
         // Determine size available for kernel page table heaps, requiring > 8 MB.
         const KPhysicalAddress resource_end_phys_addr = slab_start_phys_addr + resource_region_size;
-        const size_t page_table_heap_size = resource_end_phys_addr - slab_end_phys_addr;
+        const size_t page_table_heap_size = resource_end_phys_addr - secure_unknown_end_phys_addr;
         ASSERT(page_table_heap_size / 4_MiB > 2);
 
         // Insert a physical region for the kernel page table heap region
         ASSERT(memory_layout->GetPhysicalMemoryRegionTree().Insert(
-            GetInteger(slab_end_phys_addr), page_table_heap_size,
+            GetInteger(secure_unknown_end_phys_addr), page_table_heap_size,
             KMemoryRegionType_DramKernelPtHeap));
 
         // All DRAM regions that we haven't tagged by this point will be mapped under the linear

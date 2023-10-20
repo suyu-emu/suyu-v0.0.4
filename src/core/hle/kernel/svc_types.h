@@ -46,6 +46,7 @@ enum class MemoryAttribute : u32 {
     IpcLocked = (1 << 1),
     DeviceShared = (1 << 2),
     Uncached = (1 << 3),
+    PermissionLocked = (1 << 4),
 };
 DECLARE_ENUM_FLAG_OPERATORS(MemoryAttribute);
 

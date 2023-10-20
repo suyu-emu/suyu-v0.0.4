@@ -115,7 +115,11 @@ public:
     void UpdateIfMatch(KMemoryBlockManagerUpdateAllocator* allocator, KProcessAddress address,
                        size_t num_pages, KMemoryState test_state, KMemoryPermission test_perm,
                        KMemoryAttribute test_attr, KMemoryState state, KMemoryPermission perm,
-                       KMemoryAttribute attr);
+                       KMemoryAttribute attr, KMemoryBlockDisableMergeAttribute set_disable_attr,
+                       KMemoryBlockDisableMergeAttribute clear_disable_attr);
+
+    void UpdateAttribute(KMemoryBlockManagerUpdateAllocator* allocator, KProcessAddress address,
+                         size_t num_pages, KMemoryAttribute mask, KMemoryAttribute attr);
 
     iterator FindIterator(KProcessAddress address) const {
         return m_memory_block_tree.find(KMemoryBlock(
