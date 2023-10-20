@@ -76,7 +76,7 @@ Result MapUnmapMemorySanityChecks(const KPageTable& manager, u64 dst_addr, u64 s
 } // namespace
 
 Result SetMemoryPermission(Core::System& system, u64 address, u64 size, MemoryPermission perm) {
-    LOG_DEBUG(Kernel_SVC, "called, address=0x{:016X}, size=0x{:X}, perm=0x{:08X", address, size,
+    LOG_DEBUG(Kernel_SVC, "called, address=0x{:016X}, size=0x{:X}, perm=0x{:08X}", address, size,
               perm);
 
     // Validate address / size.
