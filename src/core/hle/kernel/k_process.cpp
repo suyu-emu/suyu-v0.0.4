@@ -149,7 +149,7 @@ u64 KProcess::GetTotalPhysicalMemoryUsed() {
 }
 
 u64 KProcess::GetTotalPhysicalMemoryUsedWithoutSystemResource() {
-    return this->GetTotalPhysicalMemoryUsed() - this->GetSystemResourceUsage();
+    return this->GetTotalPhysicalMemoryUsed() - this->GetSystemResourceSize();
 }
 
 bool KProcess::ReleaseUserException(KThread* thread) {
