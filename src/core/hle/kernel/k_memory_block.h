@@ -36,6 +36,7 @@ enum class KMemoryState : u32 {
     FlagCanChangeAttribute = (1 << 24),
     FlagCanCodeMemory = (1 << 25),
     FlagLinearMapped = (1 << 26),
+    FlagCanPermissionLock = (1 << 27),
 
     FlagsData = FlagCanReprotect | FlagCanUseIpc | FlagCanUseNonDeviceIpc | FlagCanUseNonSecureIpc |
                 FlagMapped | FlagCanAlias | FlagCanTransfer | FlagCanQueryPhysical |
@@ -50,12 +51,16 @@ enum class KMemoryState : u32 {
                 FlagLinearMapped,
 
     Free = static_cast<u32>(Svc::MemoryState::Free),
-    Io = static_cast<u32>(Svc::MemoryState::Io) | FlagMapped | FlagCanDeviceMap |
-         FlagCanAlignedDeviceMap,
+
+    IoMemory = static_cast<u32>(Svc::MemoryState::Io) | FlagMapped | FlagCanDeviceMap |
+               FlagCanAlignedDeviceMap,
+    IoRegister =
+        static_cast<u32>(Svc::MemoryState::Io) | FlagCanDeviceMap | FlagCanAlignedDeviceMap,
+
     Static = static_cast<u32>(Svc::MemoryState::Static) | FlagMapped | FlagCanQueryPhysical,
     Code = static_cast<u32>(Svc::MemoryState::Code) | FlagsCode | FlagCanMapProcess,
     CodeData = static_cast<u32>(Svc::MemoryState::CodeData) | FlagsData | FlagCanMapProcess |
-               FlagCanCodeMemory,
+               FlagCanCodeMemory | FlagCanPermissionLock,
     Normal = static_cast<u32>(Svc::MemoryState::Normal) | FlagsData | FlagCanCodeMemory,
     Shared = static_cast<u32>(Svc::MemoryState::Shared) | FlagMapped | FlagReferenceCounted |
              FlagLinearMapped,
@@ -65,7 +70,8 @@ enum class KMemoryState : u32 {
     AliasCode = static_cast<u32>(Svc::MemoryState::AliasCode) | FlagsCode | FlagCanMapProcess |
                 FlagCanCodeAlias,
     AliasCodeData = static_cast<u32>(Svc::MemoryState::AliasCodeData) | FlagsData |
-                    FlagCanMapProcess | FlagCanCodeAlias | FlagCanCodeMemory,
+                    FlagCanMapProcess | FlagCanCodeAlias | FlagCanCodeMemory |
+                    FlagCanPermissionLock,
 
     Ipc = static_cast<u32>(Svc::MemoryState::Ipc) | FlagsMisc | FlagCanAlignedDeviceMap |
           FlagCanUseIpc | FlagCanUseNonSecureIpc | FlagCanUseNonDeviceIpc,
@@ -73,7 +79,7 @@ enum class KMemoryState : u32 {
     Stack = static_cast<u32>(Svc::MemoryState::Stack) | FlagsMisc | FlagCanAlignedDeviceMap |
             FlagCanUseIpc | FlagCanUseNonSecureIpc | FlagCanUseNonDeviceIpc,
 
-    ThreadLocal = static_cast<u32>(Svc::MemoryState::ThreadLocal) | FlagMapped | FlagLinearMapped,
+    ThreadLocal = static_cast<u32>(Svc::MemoryState::ThreadLocal) | FlagLinearMapped,
 
     Transfered = static_cast<u32>(Svc::MemoryState::Transfered) | FlagsMisc |
                  FlagCanAlignedDeviceMap | FlagCanChangeAttribute | FlagCanUseIpc |
@@ -94,7 +100,7 @@ enum class KMemoryState : u32 {
     NonDeviceIpc =
         static_cast<u32>(Svc::MemoryState::NonDeviceIpc) | FlagsMisc | FlagCanUseNonDeviceIpc,
 
-    Kernel = static_cast<u32>(Svc::MemoryState::Kernel) | FlagMapped,
+    Kernel = static_cast<u32>(Svc::MemoryState::Kernel),
 
     GeneratedCode = static_cast<u32>(Svc::MemoryState::GeneratedCode) | FlagMapped |
                     FlagReferenceCounted | FlagCanDebug | FlagLinearMapped,
@@ -105,34 +111,36 @@ enum class KMemoryState : u32 {
 
     Insecure = static_cast<u32>(Svc::MemoryState::Insecure) | FlagMapped | FlagReferenceCounted |
                FlagLinearMapped | FlagCanChangeAttribute | FlagCanDeviceMap |
-               FlagCanAlignedDeviceMap | FlagCanUseNonSecureIpc | FlagCanUseNonDeviceIpc,
+               FlagCanAlignedDeviceMap | FlagCanQueryPhysical | FlagCanUseNonSecureIpc |
+               FlagCanUseNonDeviceIpc,
 };
 DECLARE_ENUM_FLAG_OPERATORS(KMemoryState);
 
 static_assert(static_cast<u32>(KMemoryState::Free) == 0x00000000);
-static_assert(static_cast<u32>(KMemoryState::Io) == 0x00182001);
+static_assert(static_cast<u32>(KMemoryState::IoMemory) == 0x00182001);
+static_assert(static_cast<u32>(KMemoryState::IoRegister) == 0x00180001);
 static_assert(static_cast<u32>(KMemoryState::Static) == 0x00042002);
 static_assert(static_cast<u32>(KMemoryState::Code) == 0x04DC7E03);
-static_assert(static_cast<u32>(KMemoryState::CodeData) == 0x07FEBD04);
+static_assert(static_cast<u32>(KMemoryState::CodeData) == 0x0FFEBD04);
 static_assert(static_cast<u32>(KMemoryState::Normal) == 0x077EBD05);
 static_assert(static_cast<u32>(KMemoryState::Shared) == 0x04402006);
 
 static_assert(static_cast<u32>(KMemoryState::AliasCode) == 0x04DD7E08);
-static_assert(static_cast<u32>(KMemoryState::AliasCodeData) == 0x07FFBD09);
+static_assert(static_cast<u32>(KMemoryState::AliasCodeData) == 0x0FFFBD09);
 static_assert(static_cast<u32>(KMemoryState::Ipc) == 0x045C3C0A);
 static_assert(static_cast<u32>(KMemoryState::Stack) == 0x045C3C0B);
-static_assert(static_cast<u32>(KMemoryState::ThreadLocal) == 0x0400200C);
+static_assert(static_cast<u32>(KMemoryState::ThreadLocal) == 0x0400000C);
 static_assert(static_cast<u32>(KMemoryState::Transfered) == 0x055C3C0D);
 static_assert(static_cast<u32>(KMemoryState::SharedTransfered) == 0x045C380E);
 static_assert(static_cast<u32>(KMemoryState::SharedCode) == 0x0440380F);
 static_assert(static_cast<u32>(KMemoryState::Inaccessible) == 0x00000010);
 static_assert(static_cast<u32>(KMemoryState::NonSecureIpc) == 0x045C3811);
 static_assert(static_cast<u32>(KMemoryState::NonDeviceIpc) == 0x044C2812);
-static_assert(static_cast<u32>(KMemoryState::Kernel) == 0x00002013);
+static_assert(static_cast<u32>(KMemoryState::Kernel) == 0x00000013);
 static_assert(static_cast<u32>(KMemoryState::GeneratedCode) == 0x04402214);
 static_assert(static_cast<u32>(KMemoryState::CodeOut) == 0x04402015);
 static_assert(static_cast<u32>(KMemoryState::Coverage) == 0x00002016);
-static_assert(static_cast<u32>(KMemoryState::Insecure) == 0x05583817);
+static_assert(static_cast<u32>(KMemoryState::Insecure) == 0x055C3817);
 
 enum class KMemoryPermission : u8 {
     None = 0,
@@ -182,8 +190,9 @@ enum class KMemoryAttribute : u8 {
     IpcLocked = static_cast<u8>(Svc::MemoryAttribute::IpcLocked),
     DeviceShared = static_cast<u8>(Svc::MemoryAttribute::DeviceShared),
     Uncached = static_cast<u8>(Svc::MemoryAttribute::Uncached),
+    PermissionLocked = static_cast<u8>(Svc::MemoryAttribute::PermissionLocked),
 
-    SetMask = Uncached,
+    SetMask = Uncached | PermissionLocked,
 };
 DECLARE_ENUM_FLAG_OPERATORS(KMemoryAttribute);
 
@@ -261,6 +270,10 @@ struct KMemoryInfo {
         return m_state;
     }
 
+    constexpr Svc::MemoryState GetSvcState() const {
+        return static_cast<Svc::MemoryState>(m_state & KMemoryState::Mask);
+    }
+
     constexpr KMemoryPermission GetPermission() const {
         return m_permission;
     }
@@ -324,6 +337,10 @@ public:
 
     constexpr KProcessAddress GetLastAddress() const {
         return this->GetEndAddress() - 1;
+    }
+
+    constexpr KMemoryState GetState() const {
+        return m_memory_state;
     }
 
     constexpr u16 GetIpcLockCount() const {
@@ -441,6 +458,13 @@ public:
             m_disable_merge_attribute = m_disable_merge_attribute &
                                         static_cast<KMemoryBlockDisableMergeAttribute>(~clear_mask);
         }
+    }
+
+    constexpr void UpdateAttribute(KMemoryAttribute mask, KMemoryAttribute attr) {
+        ASSERT(False(mask & KMemoryAttribute::IpcLocked));
+        ASSERT(False(mask & KMemoryAttribute::DeviceShared));
+
+        m_attribute = (m_attribute & ~mask) | attr;
     }
 
     constexpr void Split(KMemoryBlock* block, KProcessAddress addr) {

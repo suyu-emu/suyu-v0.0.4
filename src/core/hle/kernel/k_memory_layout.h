@@ -137,11 +137,9 @@ public:
         return GetStackTopAddress(core_id, KMemoryRegionType_KernelMiscExceptionStack);
     }
 
-    KVirtualAddress GetSlabRegionAddress() const {
-        return Dereference(GetVirtualMemoryRegionTree().FindByType(KMemoryRegionType_KernelSlab))
-            .GetAddress();
+    const KMemoryRegion& GetSlabRegion() const {
+        return Dereference(GetVirtualMemoryRegionTree().FindByType(KMemoryRegionType_KernelSlab));
     }
-
     const KMemoryRegion& GetDeviceRegion(KMemoryRegionType type) const {
         return Dereference(GetPhysicalMemoryRegionTree().FindFirstDerived(type));
     }
