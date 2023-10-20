@@ -822,11 +822,13 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
                 const char i = True(mem_info.attribute & MemoryAttribute::IpcLocked) ? 'I' : '-';
                 const char d = True(mem_info.attribute & MemoryAttribute::DeviceShared) ? 'D' : '-';
                 const char u = True(mem_info.attribute & MemoryAttribute::Uncached) ? 'U' : '-';
+                const char p =
+                    True(mem_info.attribute & MemoryAttribute::PermissionLocked) ? 'P' : '-';
 
-                reply +=
-                    fmt::format("  {:#012x} - {:#012x} {} {} {}{}{}{} [{}, {}]\n",
-                                mem_info.base_address, mem_info.base_address + mem_info.size - 1,
-                                perm, state, l, i, d, u, mem_info.ipc_count, mem_info.device_count);
+                reply += fmt::format("  {:#012x} - {:#012x} {} {} {}{}{}{}{} [{}, {}]\n",
+                                     mem_info.base_address,
+                                     mem_info.base_address + mem_info.size - 1, perm, state, l, i,
+                                     d, u, p, mem_info.ipc_count, mem_info.device_count);
             }
 
             const uintptr_t next_address = mem_info.base_address + mem_info.size;
