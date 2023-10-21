@@ -64,6 +64,42 @@ struct UniformDefinitions {
     Id F32{};
     Id U32x2{};
     Id U32x4{};
+
+    constexpr static size_t NumElements(Id UniformDefinitions::*member_ptr) {
+        if (member_ptr == &UniformDefinitions::U8) {
+            return 1;
+        }
+        if (member_ptr == &UniformDefinitions::S8) {
+            return 1;
+        }
+        if (member_ptr == &UniformDefinitions::U16) {
+            return 1;
+        }
+        if (member_ptr == &UniformDefinitions::S16) {
+            return 1;
+        }
+        if (member_ptr == &UniformDefinitions::U32) {
+            return 1;
+        }
+        if (member_ptr == &UniformDefinitions::F32) {
+            return 1;
+        }
+        if (member_ptr == &UniformDefinitions::U32x2) {
+            return 2;
+        }
+        if (member_ptr == &UniformDefinitions::U32x4) {
+            return 4;
+        }
+        ASSERT(false);
+        return 1;
+    }
+
+    constexpr static bool IsFloat(Id UniformDefinitions::*member_ptr) {
+        if (member_ptr == &UniformDefinitions::F32) {
+            return true;
+        }
+        return false;
+    }
 };
 
 struct StorageTypeDefinition {
