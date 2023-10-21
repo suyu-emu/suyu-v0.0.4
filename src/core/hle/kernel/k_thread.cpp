@@ -415,10 +415,6 @@ void KThread::StartTermination() {
         m_parent->ClearRunningThread(this);
     }
 
-    // Signal.
-    m_signaled = true;
-    KSynchronizationObject::NotifyAvailable();
-
     // Clear previous thread in KScheduler.
     KScheduler::ClearPreviousThread(m_kernel, this);
 
@@ -436,6 +432,13 @@ void KThread::FinishTermination() {
             } while (core_thread == this);
         }
     }
+
+    // Acquire the scheduler lock.
+    KScopedSchedulerLock sl{m_kernel};
+
+    // Signal.
+    m_signaled = true;
+    KSynchronizationObject::NotifyAvailable();
 
     // Close the thread.
     this->Close();
