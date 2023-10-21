@@ -127,7 +127,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeCallstack::GetChildren() cons
         return list;
     }
 
-    if (thread.GetOwnerProcess() == nullptr || !thread.GetOwnerProcess()->Is64BitProcess()) {
+    if (thread.GetOwnerProcess() == nullptr || !thread.GetOwnerProcess()->Is64Bit()) {
         return list;
     }
 

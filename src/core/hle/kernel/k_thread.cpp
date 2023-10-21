@@ -122,15 +122,14 @@ Result KThread::Initialize(KThreadFunction func, uintptr_t arg, KProcessAddress 
     case ThreadType::Main:
         ASSERT(arg == 0);
         [[fallthrough]];
-    case ThreadType::HighPriority:
-        [[fallthrough]];
-    case ThreadType::Dummy:
-        [[fallthrough]];
     case ThreadType::User:
         ASSERT(((owner == nullptr) ||
                 (owner->GetCoreMask() | (1ULL << virt_core)) == owner->GetCoreMask()));
         ASSERT(((owner == nullptr) || (prio > Svc::LowestThreadPriority) ||
                 (owner->GetPriorityMask() | (1ULL << prio)) == owner->GetPriorityMask()));
+        break;
+    case ThreadType::HighPriority:
+    case ThreadType::Dummy:
         break;
     case ThreadType::Kernel:
         UNIMPLEMENTED();
@@ -403,7 +402,7 @@ void KThread::StartTermination() {
     if (m_parent != nullptr) {
         m_parent->ReleaseUserException(this);
         if (m_parent->GetPinnedThread(GetCurrentCoreId(m_kernel)) == this) {
-            m_parent->UnpinCurrentThread(m_core_id);
+            m_parent->UnpinCurrentThread();
         }
     }
 
@@ -820,7 +819,7 @@ void KThread::CloneFpuStatus() {
     ASSERT(this->GetOwnerProcess() != nullptr);
     ASSERT(this->GetOwnerProcess() == GetCurrentProcessPointer(m_kernel));
 
-    if (this->GetOwnerProcess()->Is64BitProcess()) {
+    if (this->GetOwnerProcess()->Is64Bit()) {
         // Clone FPSR and FPCR.
         ThreadContext64 cur_ctx{};
         m_kernel.System().CurrentArmInterface().SaveContext(cur_ctx);
@@ -923,7 +922,7 @@ Result KThread::GetThreadContext3(Common::ScratchBuffer<u8>& out) {
 
         // If we're not terminating, get the thread's user context.
         if (!this->IsTerminationRequested()) {
-            if (m_parent->Is64BitProcess()) {
+            if (m_parent->Is64Bit()) {
                 // Mask away mode bits, interrupt bits, IL bit, and other reserved bits.
                 auto context = GetContext64();
                 context.pstate &= 0xFF0FFE20;
@@ -1173,6 +1172,9 @@ Result KThread::Run() {
             }
             owner->IncrementRunningThreadCount();
         }
+
+        // Open a reference, now that we're running.
+        this->Open();
 
         // Set our state and finish.
         this->SetState(ThreadState::Runnable);

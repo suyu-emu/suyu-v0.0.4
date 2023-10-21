@@ -86,20 +86,19 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             R_SUCCEED();
 
         case InfoType::TotalMemorySize:
-            *result = process->GetTotalPhysicalMemoryAvailable();
+            *result = process->GetTotalUserPhysicalMemorySize();
             R_SUCCEED();
 
         case InfoType::UsedMemorySize:
-            *result = process->GetTotalPhysicalMemoryUsed();
+            *result = process->GetUsedUserPhysicalMemorySize();
             R_SUCCEED();
 
         case InfoType::SystemResourceSizeTotal:
-            *result = process->GetSystemResourceSize();
+            *result = process->GetTotalSystemResourceSize();
             R_SUCCEED();
 
         case InfoType::SystemResourceSizeUsed:
-            LOG_WARNING(Kernel_SVC, "(STUBBED) Attempted to query system resource usage");
-            *result = process->GetSystemResourceUsage();
+            *result = process->GetUsedSystemResourceSize();
             R_SUCCEED();
 
         case InfoType::ProgramId:
@@ -111,20 +110,29 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             R_SUCCEED();
 
         case InfoType::TotalNonSystemMemorySize:
-            *result = process->GetTotalPhysicalMemoryAvailableWithoutSystemResource();
+            *result = process->GetTotalNonSystemUserPhysicalMemorySize();
             R_SUCCEED();
 
         case InfoType::UsedNonSystemMemorySize:
-            *result = process->GetTotalPhysicalMemoryUsedWithoutSystemResource();
+            *result = process->GetUsedNonSystemUserPhysicalMemorySize();
             R_SUCCEED();
 
         case InfoType::IsApplication:
             LOG_WARNING(Kernel_SVC, "(STUBBED) Assuming process is application");
-            *result = true;
+            *result = process->IsApplication();
             R_SUCCEED();
 
         case InfoType::FreeThreadCount:
-            *result = process->GetFreeThreadCount();
+            if (KResourceLimit* resource_limit = process->GetResourceLimit();
+                resource_limit != nullptr) {
+                const auto current_value =
+                    resource_limit->GetCurrentValue(Svc::LimitableResource::ThreadCountMax);
+                const auto limit_value =
+                    resource_limit->GetLimitValue(Svc::LimitableResource::ThreadCountMax);
+                *result = limit_value - current_value;
+            } else {
+                *result = 0;
+            }
             R_SUCCEED();
 
         default:
@@ -161,7 +169,7 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
 
     case InfoType::RandomEntropy:
         R_UNLESS(handle == 0, ResultInvalidHandle);
-        R_UNLESS(info_sub_id < KProcess::RANDOM_ENTROPY_SIZE, ResultInvalidCombination);
+        R_UNLESS(info_sub_id < 4, ResultInvalidCombination);
 
         *result = GetCurrentProcess(system.Kernel()).GetRandomEntropy(info_sub_id);
         R_SUCCEED();

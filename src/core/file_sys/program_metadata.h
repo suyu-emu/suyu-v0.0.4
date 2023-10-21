@@ -73,6 +73,9 @@ public:
     u64 GetFilesystemPermissions() const;
     u32 GetSystemResourceSize() const;
     const KernelCapabilityDescriptors& GetKernelCapabilities() const;
+    const std::array<u8, 0x10>& GetName() const {
+        return npdm_header.application_name;
+    }
 
     void Print() const;
 
@@ -164,14 +167,14 @@ private:
         u32_le unk_size_2;
     };
 
-    Header npdm_header;
-    AciHeader aci_header;
-    AcidHeader acid_header;
+    Header npdm_header{};
+    AciHeader aci_header{};
+    AcidHeader acid_header{};
 
-    FileAccessControl acid_file_access;
-    FileAccessHeader aci_file_access;
+    FileAccessControl acid_file_access{};
+    FileAccessHeader aci_file_access{};
 
-    KernelCapabilityDescriptors aci_kernel_capabilities;
+    KernelCapabilityDescriptors aci_kernel_capabilities{};
 };
 
 } // namespace FileSys
