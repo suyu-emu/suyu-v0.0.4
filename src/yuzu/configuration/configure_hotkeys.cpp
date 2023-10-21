@@ -319,6 +319,13 @@ void ConfigureHotkeys::ApplyConfiguration(HotkeyRegistry& registry) {
 void ConfigureHotkeys::RestoreDefaults() {
     for (int r = 0; r < model->rowCount(); ++r) {
         const QStandardItem* parent = model->item(r, 0);
+        const int hotkey_size = static_cast<int>(Config::default_hotkeys.size());
+
+        if (hotkey_size != parent->rowCount()) {
+            QMessageBox::warning(this, tr("Invalid hotkey settings"),
+                                 tr("An error occurred. Please report this issue on github."));
+            return;
+        }
 
         for (int r2 = 0; r2 < parent->rowCount(); ++r2) {
             model->item(r, 0)
