@@ -46,8 +46,8 @@ TEST_CASE("UniqueFunction", "[common]") {
         Noisy noisy;
         REQUIRE(noisy.state == "Default constructed");
 
-        Common::UniqueFunction<void> func = [noisy = std::move(noisy)] {
-            REQUIRE(noisy.state == "Move constructed");
+        Common::UniqueFunction<void> func = [noisy_inner = std::move(noisy)] {
+            REQUIRE(noisy_inner.state == "Move constructed");
         };
         REQUIRE(noisy.state == "Moved away");
         func();
@@ -101,7 +101,7 @@ TEST_CASE("UniqueFunction", "[common]") {
         };
         Foo object{&num_destroyed};
         {
-            Common::UniqueFunction<void> func = [object = std::move(object)] {};
+            Common::UniqueFunction<void> func = [object_inner = std::move(object)] {};
             REQUIRE(num_destroyed == 0);
         }
         REQUIRE(num_destroyed == 1);

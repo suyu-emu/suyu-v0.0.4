@@ -198,7 +198,7 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     if (!pipeline) {
         return;
     }
-    std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
+    std::scoped_lock lock{LockCaches()};
     // update engine as channel may be different.
     pipeline->SetEngine(maxwell3d, gpu_memory);
     pipeline->Configure(is_indexed);
@@ -708,6 +708,7 @@ void RasterizerVulkan::TiledCacheBarrier() {
 }
 
 void RasterizerVulkan::FlushCommands() {
+    std::scoped_lock lock{LockCaches()};
     if (draw_counter == 0) {
         return;
     }
@@ -805,6 +806,7 @@ void RasterizerVulkan::FlushWork() {
     if ((++draw_counter & 7) != 7) {
         return;
     }
+    std::scoped_lock lock{LockCaches()};
     if (draw_counter < DRAWS_TO_DISPATCH) {
         // Send recorded tasks to the worker thread
         scheduler.DispatchWork();
@@ -1499,7 +1501,7 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) 
 void RasterizerVulkan::InitializeChannel(Tegra::Control::ChannelState& channel) {
     CreateChannel(channel);
     {
-        std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
+        std::scoped_lock lock{LockCaches()};
         texture_cache.CreateChannel(channel);
         buffer_cache.CreateChannel(channel);
     }
@@ -1512,7 +1514,7 @@ void RasterizerVulkan::BindChannel(Tegra::Control::ChannelState& channel) {
     const s32 channel_id = channel.bind_id;
     BindToChannel(channel_id);
     {
-        std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
+        std::scoped_lock lock{LockCaches()};
         texture_cache.BindToChannel(channel_id);
         buffer_cache.BindToChannel(channel_id);
     }
@@ -1525,7 +1527,7 @@ void RasterizerVulkan::BindChannel(Tegra::Control::ChannelState& channel) {
 void RasterizerVulkan::ReleaseChannel(s32 channel_id) {
     EraseChannel(channel_id);
     {
-        std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
+        std::scoped_lock lock{LockCaches()};
         texture_cache.EraseChannel(channel_id);
         buffer_cache.EraseChannel(channel_id);
     }

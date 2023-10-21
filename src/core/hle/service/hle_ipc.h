@@ -253,6 +253,12 @@ public:
         return domain_message_header.has_value();
     }
 
+    /// Helper function to get a span of a buffer using the buffer descriptor A
+    [[nodiscard]] std::span<const u8> ReadBufferA(std::size_t buffer_index = 0) const;
+
+    /// Helper function to get a span of a buffer using the buffer descriptor X
+    [[nodiscard]] std::span<const u8> ReadBufferX(std::size_t buffer_index = 0) const;
+
     /// Helper function to get a span of a buffer using the appropriate buffer descriptor
     [[nodiscard]] std::span<const u8> ReadBuffer(std::size_t buffer_index = 0) const;
 
