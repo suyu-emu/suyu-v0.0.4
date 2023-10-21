@@ -215,6 +215,7 @@ Result KThread::Initialize(KThreadFunction func, uintptr_t arg, KProcessAddress 
         // Setup the TLS, if needed.
         if (type == ThreadType::User) {
             R_TRY(owner->CreateThreadLocalRegion(std::addressof(m_tls_address)));
+            owner->GetMemory().ZeroBlock(m_tls_address, Svc::ThreadLocalRegionSize);
         }
 
         m_parent = owner;
