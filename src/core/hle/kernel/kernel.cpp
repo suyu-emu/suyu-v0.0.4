@@ -101,35 +101,31 @@ struct KernelCore::Impl {
 
     void InitializeCores() {
         for (u32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
-            cores[core_id]->Initialize((*application_process).Is64BitProcess());
+            cores[core_id]->Initialize((*application_process).Is64Bit());
             system.ApplicationMemory().SetCurrentPageTable(*application_process, core_id);
         }
     }
 
-    void CloseApplicationProcess() {
-        KProcess* old_process = application_process.exchange(nullptr);
-        if (old_process == nullptr) {
-            return;
-        }
-
-        // old_process->Close();
-        // TODO: The process should be destroyed based on accurate ref counting after
-        // calling Close(). Adding a manual Destroy() call instead to avoid a memory leak.
-        old_process->Finalize();
-        old_process->Destroy();
+    void TerminateApplicationProcess() {
+        application_process.load()->Terminate();
     }
 
     void Shutdown() {
         is_shutting_down.store(true, std::memory_order_relaxed);
         SCOPE_EXIT({ is_shutting_down.store(false, std::memory_order_relaxed); });
 
-        process_list.clear();
-
         CloseServices();
 
+        auto* old_process = application_process.exchange(nullptr);
+        if (old_process) {
+            old_process->Close();
+        }
+
+        process_list.clear();
+
         next_object_id = 0;
-        next_kernel_process_id = KProcess::InitialKIPIDMin;
-        next_user_process_id = KProcess::ProcessIDMin;
+        next_kernel_process_id = KProcess::InitialProcessIdMin;
+        next_user_process_id = KProcess::ProcessIdMin;
         next_thread_id = 1;
 
         global_handle_table->Finalize();
@@ -175,8 +171,6 @@ struct KernelCore::Impl {
                 registered_in_use_objects.clear();
             }
         }
-
-        CloseApplicationProcess();
 
         // Track kernel objects that were not freed on shutdown
         {
@@ -344,6 +338,8 @@ struct KernelCore::Impl {
         // Create the system page table managers.
         app_system_resource = std::make_unique<KSystemResource>(kernel);
         sys_system_resource = std::make_unique<KSystemResource>(kernel);
+        KAutoObject::Create(std::addressof(*app_system_resource));
+        KAutoObject::Create(std::addressof(*sys_system_resource));
 
         // Set the managers for the system resources.
         app_system_resource->SetManagers(*app_memory_block_manager, *app_block_info_manager,
@@ -368,6 +364,7 @@ struct KernelCore::Impl {
 
     void MakeApplicationProcess(KProcess* process) {
         application_process = process;
+        application_process.load()->Open();
     }
 
     static inline thread_local u8 host_thread_id = UINT8_MAX;
@@ -792,8 +789,8 @@ struct KernelCore::Impl {
     std::mutex registered_in_use_objects_lock;
 
     std::atomic<u32> next_object_id{0};
-    std::atomic<u64> next_kernel_process_id{KProcess::InitialKIPIDMin};
-    std::atomic<u64> next_user_process_id{KProcess::ProcessIDMin};
+    std::atomic<u64> next_kernel_process_id{KProcess::InitialProcessIdMin};
+    std::atomic<u64> next_user_process_id{KProcess::ProcessIdMin};
     std::atomic<u64> next_thread_id{1};
 
     // Lists all processes that exist in the current session.
@@ -922,10 +919,6 @@ KProcess* KernelCore::ApplicationProcess() {
 
 const KProcess* KernelCore::ApplicationProcess() const {
     return impl->application_process;
-}
-
-void KernelCore::CloseApplicationProcess() {
-    impl->CloseApplicationProcess();
 }
 
 const std::vector<KProcess*>& KernelCore::GetProcessList() const {
@@ -1128,8 +1121,8 @@ std::jthread KernelCore::RunOnHostCoreProcess(std::string&& process_name,
                                               std::function<void()> func) {
     // Make a new process.
     KProcess* process = KProcess::Create(*this);
-    ASSERT(R_SUCCEEDED(KProcess::Initialize(process, System(), "", KProcess::ProcessType::Userland,
-                                            GetSystemResourceLimit())));
+    ASSERT(R_SUCCEEDED(
+        process->Initialize(Svc::CreateProcessParameter{}, GetSystemResourceLimit(), false)));
 
     // Ensure that we don't hold onto any extra references.
     SCOPE_EXIT({ process->Close(); });
@@ -1156,8 +1149,8 @@ void KernelCore::RunOnGuestCoreProcess(std::string&& process_name, std::function
 
     // Make a new process.
     KProcess* process = KProcess::Create(*this);
-    ASSERT(R_SUCCEEDED(KProcess::Initialize(process, System(), "", KProcess::ProcessType::Userland,
-                                            GetSystemResourceLimit())));
+    ASSERT(R_SUCCEEDED(
+        process->Initialize(Svc::CreateProcessParameter{}, GetSystemResourceLimit(), false)));
 
     // Ensure that we don't hold onto any extra references.
     SCOPE_EXIT({ process->Close(); });
@@ -1266,7 +1259,8 @@ const Kernel::KSharedMemory& KernelCore::GetHidBusSharedMem() const {
 
 void KernelCore::SuspendApplication(bool suspended) {
     const bool should_suspend{exception_exited || suspended};
-    const auto activity = should_suspend ? ProcessActivity::Paused : ProcessActivity::Runnable;
+    const auto activity =
+        should_suspend ? Svc::ProcessActivity::Paused : Svc::ProcessActivity::Runnable;
 
     // Get the application process.
     KScopedAutoObject<KProcess> process = ApplicationProcess();
@@ -1300,6 +1294,8 @@ void KernelCore::SuspendApplication(bool suspended) {
 }
 
 void KernelCore::ShutdownCores() {
+    impl->TerminateApplicationProcess();
+
     KScopedSchedulerLock lk{*this};
 
     for (auto* thread : impl->shutdown_threads) {

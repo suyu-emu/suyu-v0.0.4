@@ -109,7 +109,7 @@ static std::string EscapeXML(std::string_view data) {
 
 GDBStub::GDBStub(DebuggerBackend& backend_, Core::System& system_)
     : DebuggerFrontend(backend_), system{system_} {
-    if (system.ApplicationProcess()->Is64BitProcess()) {
+    if (system.ApplicationProcess()->Is64Bit()) {
         arch = std::make_unique<GDBStubA64>();
     } else {
         arch = std::make_unique<GDBStubA32>();
@@ -446,10 +446,10 @@ void GDBStub::HandleBreakpointRemove(std::string_view command) {
 // See osdbg_thread_local_region.os.horizon.hpp and osdbg_thread_type.os.horizon.hpp
 
 static std::optional<std::string> GetNameFromThreadType32(Core::Memory::Memory& memory,
-                                                          const Kernel::KThread* thread) {
+                                                          const Kernel::KThread& thread) {
     // Read thread type from TLS
-    const VAddr tls_thread_type{memory.Read32(thread->GetTlsAddress() + 0x1fc)};
-    const VAddr argument_thread_type{thread->GetArgument()};
+    const VAddr tls_thread_type{memory.Read32(thread.GetTlsAddress() + 0x1fc)};
+    const VAddr argument_thread_type{thread.GetArgument()};
 
     if (argument_thread_type && tls_thread_type != argument_thread_type) {
         // Probably not created by nnsdk, no name available.
@@ -477,10 +477,10 @@ static std::optional<std::string> GetNameFromThreadType32(Core::Memory::Memory& 
 }
 
 static std::optional<std::string> GetNameFromThreadType64(Core::Memory::Memory& memory,
-                                                          const Kernel::KThread* thread) {
+                                                          const Kernel::KThread& thread) {
     // Read thread type from TLS
-    const VAddr tls_thread_type{memory.Read64(thread->GetTlsAddress() + 0x1f8)};
-    const VAddr argument_thread_type{thread->GetArgument()};
+    const VAddr tls_thread_type{memory.Read64(thread.GetTlsAddress() + 0x1f8)};
+    const VAddr argument_thread_type{thread.GetArgument()};
 
     if (argument_thread_type && tls_thread_type != argument_thread_type) {
         // Probably not created by nnsdk, no name available.
@@ -508,16 +508,16 @@ static std::optional<std::string> GetNameFromThreadType64(Core::Memory::Memory& 
 }
 
 static std::optional<std::string> GetThreadName(Core::System& system,
-                                                const Kernel::KThread* thread) {
-    if (system.ApplicationProcess()->Is64BitProcess()) {
+                                                const Kernel::KThread& thread) {
+    if (system.ApplicationProcess()->Is64Bit()) {
         return GetNameFromThreadType64(system.ApplicationMemory(), thread);
     } else {
         return GetNameFromThreadType32(system.ApplicationMemory(), thread);
     }
 }
 
-static std::string_view GetThreadWaitReason(const Kernel::KThread* thread) {
-    switch (thread->GetWaitReasonForDebugging()) {
+static std::string_view GetThreadWaitReason(const Kernel::KThread& thread) {
+    switch (thread.GetWaitReasonForDebugging()) {
     case Kernel::ThreadWaitReasonForDebugging::Sleep:
         return "Sleep";
     case Kernel::ThreadWaitReasonForDebugging::IPC:
@@ -535,8 +535,8 @@ static std::string_view GetThreadWaitReason(const Kernel::KThread* thread) {
     }
 }
 
-static std::string GetThreadState(const Kernel::KThread* thread) {
-    switch (thread->GetState()) {
+static std::string GetThreadState(const Kernel::KThread& thread) {
+    switch (thread.GetState()) {
     case Kernel::ThreadState::Initialized:
         return "Initialized";
     case Kernel::ThreadState::Waiting:
@@ -604,7 +604,7 @@ void GDBStub::HandleQuery(std::string_view command) {
         const auto& threads = system.ApplicationProcess()->GetThreadList();
         std::vector<std::string> thread_ids;
         for (const auto& thread : threads) {
-            thread_ids.push_back(fmt::format("{:x}", thread->GetThreadId()));
+            thread_ids.push_back(fmt::format("{:x}", thread.GetThreadId()));
         }
         SendReply(fmt::format("m{}", fmt::join(thread_ids, ",")));
     } else if (command.starts_with("sThreadInfo")) {
@@ -616,14 +616,14 @@ void GDBStub::HandleQuery(std::string_view command) {
         buffer += "<threads>";
 
         const auto& threads = system.ApplicationProcess()->GetThreadList();
-        for (const auto* thread : threads) {
+        for (const auto& thread : threads) {
             auto thread_name{GetThreadName(system, thread)};
             if (!thread_name) {
-                thread_name = fmt::format("Thread {:d}", thread->GetThreadId());
+                thread_name = fmt::format("Thread {:d}", thread.GetThreadId());
             }
 
             buffer += fmt::format(R"(<thread id="{:x}" core="{:d}" name="{}">{}</thread>)",
-                                  thread->GetThreadId(), thread->GetActiveCore(),
+                                  thread.GetThreadId(), thread.GetActiveCore(),
                                   EscapeXML(*thread_name), GetThreadState(thread));
         }
 
@@ -850,10 +850,10 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
 }
 
 Kernel::KThread* GDBStub::GetThreadByID(u64 thread_id) {
-    const auto& threads{system.ApplicationProcess()->GetThreadList()};
-    for (auto* thread : threads) {
-        if (thread->GetThreadId() == thread_id) {
-            return thread;
+    auto& threads{system.ApplicationProcess()->GetThreadList()};
+    for (auto& thread : threads) {
+        if (thread.GetThreadId() == thread_id) {
+            return std::addressof(thread);
         }
     }
 

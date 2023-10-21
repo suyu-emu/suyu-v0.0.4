@@ -4,6 +4,11 @@
 #pragma once
 
 #include "core/hle/kernel/k_typed_address.h"
+#include "core/hle/result.h"
+
+namespace Kernel {
+class KernelCore;
+}
 
 namespace Kernel::Board::Nintendo::Nx {
 
@@ -25,8 +30,16 @@ public:
         static std::size_t GetMinimumNonSecureSystemPoolSize();
     };
 
+    // Randomness.
     static u64 GenerateRandomRange(u64 min, u64 max);
     static u64 GenerateRandomU64();
+
+    // Secure Memory.
+    static size_t CalculateRequiredSecureMemorySize(size_t size, u32 pool);
+    static Result AllocateSecureMemory(KernelCore& kernel, KVirtualAddress* out, size_t size,
+                                       u32 pool);
+    static void FreeSecureMemory(KernelCore& kernel, KVirtualAddress address, size_t size,
+                                 u32 pool);
 };
 
 } // namespace Kernel::Board::Nintendo::Nx

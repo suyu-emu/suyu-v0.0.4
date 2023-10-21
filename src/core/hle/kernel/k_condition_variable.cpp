@@ -107,12 +107,12 @@ KConditionVariable::KConditionVariable(Core::System& system)
 
 KConditionVariable::~KConditionVariable() = default;
 
-Result KConditionVariable::SignalToAddress(KProcessAddress addr) {
-    KThread* owner_thread = GetCurrentThreadPointer(m_kernel);
+Result KConditionVariable::SignalToAddress(KernelCore& kernel, KProcessAddress addr) {
+    KThread* owner_thread = GetCurrentThreadPointer(kernel);
 
     // Signal the address.
     {
-        KScopedSchedulerLock sl(m_kernel);
+        KScopedSchedulerLock sl(kernel);
 
         // Remove waiter thread.
         bool has_waiters{};
@@ -133,7 +133,7 @@ Result KConditionVariable::SignalToAddress(KProcessAddress addr) {
 
         // Write the value to userspace.
         Result result{ResultSuccess};
-        if (WriteToUser(m_kernel, addr, std::addressof(next_value))) [[likely]] {
+        if (WriteToUser(kernel, addr, std::addressof(next_value))) [[likely]] {
             result = ResultSuccess;
         } else {
             result = ResultInvalidCurrentMemory;
@@ -148,28 +148,28 @@ Result KConditionVariable::SignalToAddress(KProcessAddress addr) {
     }
 }
 
-Result KConditionVariable::WaitForAddress(Handle handle, KProcessAddress addr, u32 value) {
-    KThread* cur_thread = GetCurrentThreadPointer(m_kernel);
-    ThreadQueueImplForKConditionVariableWaitForAddress wait_queue(m_kernel);
+Result KConditionVariable::WaitForAddress(KernelCore& kernel, Handle handle, KProcessAddress addr,
+                                          u32 value) {
+    KThread* cur_thread = GetCurrentThreadPointer(kernel);
+    ThreadQueueImplForKConditionVariableWaitForAddress wait_queue(kernel);
 
     // Wait for the address.
     KThread* owner_thread{};
     {
-        KScopedSchedulerLock sl(m_kernel);
+        KScopedSchedulerLock sl(kernel);
 
         // Check if the thread should terminate.
         R_UNLESS(!cur_thread->IsTerminationRequested(), ResultTerminationRequested);
 
         // Read the tag from userspace.
         u32 test_tag{};
-        R_UNLESS(ReadFromUser(m_kernel, std::addressof(test_tag), addr),
-                 ResultInvalidCurrentMemory);
+        R_UNLESS(ReadFromUser(kernel, std::addressof(test_tag), addr), ResultInvalidCurrentMemory);
 
         // If the tag isn't the handle (with wait mask), we're done.
         R_SUCCEED_IF(test_tag != (handle | Svc::HandleWaitMask));
 
         // Get the lock owner thread.
-        owner_thread = GetCurrentProcess(m_kernel)
+        owner_thread = GetCurrentProcess(kernel)
                            .GetHandleTable()
                            .GetObjectWithoutPseudoHandle<KThread>(handle)
                            .ReleasePointerUnsafe();

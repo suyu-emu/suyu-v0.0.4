@@ -200,8 +200,8 @@ private:
 
         RawCapabilityValue raw;
         BitField<0, 15, CapabilityType> id;
-        BitField<15, 4, u32> major_version;
-        BitField<19, 13, u32> minor_version;
+        BitField<15, 4, u32> minor_version;
+        BitField<19, 13, u32> major_version;
     };
 
     union HandleTable {

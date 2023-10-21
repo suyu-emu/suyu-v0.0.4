@@ -46,7 +46,7 @@ Result MapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
     KProcess* const current_process{GetCurrentProcessPointer(system.Kernel())};
     auto& page_table{current_process->GetPageTable()};
 
-    if (current_process->GetSystemResourceSize() == 0) {
+    if (current_process->GetTotalSystemResourceSize() == 0) {
         LOG_ERROR(Kernel_SVC, "System Resource Size is zero");
         R_THROW(ResultInvalidState);
     }
@@ -95,7 +95,7 @@ Result UnmapPhysicalMemory(Core::System& system, u64 addr, u64 size) {
     KProcess* const current_process{GetCurrentProcessPointer(system.Kernel())};
     auto& page_table{current_process->GetPageTable()};
 
-    if (current_process->GetSystemResourceSize() == 0) {
+    if (current_process->GetTotalSystemResourceSize() == 0) {
         LOG_ERROR(Kernel_SVC, "System Resource Size is zero");
         R_THROW(ResultInvalidState);
     }

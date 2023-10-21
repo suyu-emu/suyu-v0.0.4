@@ -721,6 +721,7 @@ private:
     // For core KThread implementation
     ThreadContext32 m_thread_context_32{};
     ThreadContext64 m_thread_context_64{};
+    Common::IntrusiveListNode m_process_list_node;
     Common::IntrusiveRedBlackTreeNode m_condvar_arbiter_tree_node{};
     s32 m_priority{};
     using ConditionVariableThreadTreeTraits =
