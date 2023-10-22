@@ -9,6 +9,7 @@
 #include <span>
 #include <thread>
 
+#include "common/threadsafe_queue.h"
 #include "input_common/helpers/joycon_protocol/joycon_types.h"
 
 namespace Common::Input {
@@ -151,6 +152,10 @@ private:
     SerialNumber serial_number{};        // Serial number reported by controller
     SerialNumber handle_serial_number{}; // Serial number type reported by hidapi
     SupportedFeatures supported_features{};
+
+    /// Queue of vibration request to controllers
+    Common::Input::DriverResult last_vibration_result{Common::Input::DriverResult::Success};
+    Common::SPSCQueue<VibrationValue> vibration_queue;
 
     // Thread related
     mutable std::mutex mutex;
