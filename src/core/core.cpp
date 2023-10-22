@@ -410,6 +410,7 @@ struct System::Impl {
             services->KillNVNFlinger();
         }
         kernel.CloseServices();
+        kernel.ShutdownCores();
         services.reset();
         service_manager.reset();
         cheat_engine.reset();
@@ -421,7 +422,6 @@ struct System::Impl {
         gpu_core.reset();
         host1x_core.reset();
         perf_stats.reset();
-        kernel.ShutdownCores();
         cpu_manager.Shutdown();
         debugger.reset();
         kernel.Shutdown();
