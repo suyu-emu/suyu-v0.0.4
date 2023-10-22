@@ -134,6 +134,10 @@ endif()
 
 # Opus
 if (NOT TARGET Opus::opus)
+    set(OPUS_BUILD_TESTING OFF)
+    set(OPUS_BUILD_PROGRAMS OFF)
+    set(OPUS_INSTALL_PKG_CONFIG_MODULE OFF)
+    set(OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF)
     add_subdirectory(opus)
 endif()
 
