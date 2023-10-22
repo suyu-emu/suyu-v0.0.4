@@ -139,7 +139,7 @@ void JoyconDriver::InputThread(std::stop_token stop_token) {
     input_thread_running = true;
 
     // Max update rate is 5ms, ensure we are always able to read a bit faster
-    constexpr int ThreadDelay = 2;
+    constexpr int ThreadDelay = 3;
     std::vector<u8> buffer(MaxBufferSize);
 
     while (!stop_token.stop_requested()) {
@@ -161,6 +161,17 @@ void JoyconDriver::InputThread(std::stop_token stop_token) {
 
         if (IsPayloadCorrect(status, buffer)) {
             OnNewData(buffer);
+        }
+
+        if (!vibration_queue.Empty()) {
+            VibrationValue vibration_value;
+            vibration_queue.Pop(vibration_value);
+            last_vibration_result = rumble_protocol->SendVibration(vibration_value);
+        }
+
+        // We can't keep up with vibrations. Start skipping.
+        while (vibration_queue.Size() > 6) {
+            vibration_queue.Pop();
         }
 
         std::this_thread::yield();
@@ -402,7 +413,8 @@ Common::Input::DriverResult JoyconDriver::SetVibration(const VibrationValue& vib
     if (disable_input_thread) {
         return Common::Input::DriverResult::HandleInUse;
     }
-    return rumble_protocol->SendVibration(vibration);
+    vibration_queue.Push(vibration);
+    return last_vibration_result;
 }
 
 Common::Input::DriverResult JoyconDriver::SetLedConfig(u8 led_pattern) {
