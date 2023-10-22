@@ -364,7 +364,6 @@ struct KernelCore::Impl {
 
     void MakeApplicationProcess(KProcess* process) {
         application_process = process;
-        application_process.load()->Open();
     }
 
     static inline thread_local u8 host_thread_id = UINT8_MAX;
