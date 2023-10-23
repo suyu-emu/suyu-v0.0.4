@@ -271,8 +271,9 @@ add_library(core STATIC
     hle/kernel/k_page_heap.h
     hle/kernel/k_page_group.cpp
     hle/kernel/k_page_group.h
-    hle/kernel/k_page_table.cpp
     hle/kernel/k_page_table.h
+    hle/kernel/k_page_table_base.cpp
+    hle/kernel/k_page_table_base.h
     hle/kernel/k_page_table_manager.h
     hle/kernel/k_page_table_slab_heap.h
     hle/kernel/k_port.cpp
@@ -280,6 +281,7 @@ add_library(core STATIC
     hle/kernel/k_priority_queue.h
     hle/kernel/k_process.cpp
     hle/kernel/k_process.h
+    hle/kernel/k_process_page_table.h
     hle/kernel/k_readable_event.cpp
     hle/kernel/k_readable_event.h
     hle/kernel/k_resource_limit.cpp
@@ -330,8 +332,6 @@ add_library(core STATIC
     hle/kernel/physical_core.cpp
     hle/kernel/physical_core.h
     hle/kernel/physical_memory.h
-    hle/kernel/process_capability.cpp
-    hle/kernel/process_capability.h
     hle/kernel/slab_helpers.h
     hle/kernel/svc.cpp
     hle/kernel/svc.h

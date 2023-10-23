@@ -286,9 +286,14 @@ public:
         rb.Push(ResultSuccess);
     }
 
-    bool ValidateRegionForMap(Kernel::KPageTable& page_table, VAddr start, std::size_t size) const {
+    bool ValidateRegionForMap(Kernel::KProcessPageTable& page_table, VAddr start,
+                              std::size_t size) const {
         const std::size_t padding_size{page_table.GetNumGuardPages() * Kernel::PageSize};
-        const auto start_info{page_table.QueryInfo(start - 1)};
+
+        Kernel::KMemoryInfo start_info;
+        Kernel::Svc::PageInfo page_info;
+        R_ASSERT(
+            page_table.QueryInfo(std::addressof(start_info), std::addressof(page_info), start - 1));
 
         if (start_info.GetState() != Kernel::KMemoryState::Free) {
             return {};
@@ -298,7 +303,9 @@ public:
             return {};
         }
 
-        const auto end_info{page_table.QueryInfo(start + size)};
+        Kernel::KMemoryInfo end_info;
+        R_ASSERT(page_table.QueryInfo(std::addressof(end_info), std::addressof(page_info),
+                                      start + size));
 
         if (end_info.GetState() != Kernel::KMemoryState::Free) {
             return {};
@@ -307,7 +314,7 @@ public:
         return (start + size + padding_size) <= (end_info.GetAddress() + end_info.GetSize());
     }
 
-    Result GetAvailableMapRegion(Kernel::KPageTable& page_table, u64 size, VAddr& out_addr) {
+    Result GetAvailableMapRegion(Kernel::KProcessPageTable& page_table, u64 size, VAddr& out_addr) {
         size = Common::AlignUp(size, Kernel::PageSize);
         size += page_table.GetNumGuardPages() * Kernel::PageSize * 4;
 
@@ -391,12 +398,8 @@ public:
 
             if (bss_size) {
                 auto block_guard = detail::ScopeExit([&] {
-                    page_table.UnmapCodeMemory(
-                        addr + nro_size, bss_addr, bss_size,
-                        Kernel::KPageTable::ICacheInvalidationStrategy::InvalidateRange);
-                    page_table.UnmapCodeMemory(
-                        addr, nro_addr, nro_size,
-                        Kernel::KPageTable::ICacheInvalidationStrategy::InvalidateRange);
+                    page_table.UnmapCodeMemory(addr + nro_size, bss_addr, bss_size);
+                    page_table.UnmapCodeMemory(addr, nro_addr, nro_size);
                 });
 
                 const Result result{page_table.MapCodeMemory(addr + nro_size, bss_addr, bss_size)};
@@ -578,21 +581,17 @@ public:
         auto& page_table{system.ApplicationProcess()->GetPageTable()};
 
         if (info.bss_size != 0) {
-            R_TRY(page_table.UnmapCodeMemory(
-                info.nro_address + info.text_size + info.ro_size + info.data_size, info.bss_address,
-                info.bss_size, Kernel::KPageTable::ICacheInvalidationStrategy::InvalidateRange));
+            R_TRY(page_table.UnmapCodeMemory(info.nro_address + info.text_size + info.ro_size +
+                                                 info.data_size,
+                                             info.bss_address, info.bss_size));
         }
 
-        R_TRY(page_table.UnmapCodeMemory(
-            info.nro_address + info.text_size + info.ro_size,
-            info.src_addr + info.text_size + info.ro_size, info.data_size,
-            Kernel::KPageTable::ICacheInvalidationStrategy::InvalidateRange));
-        R_TRY(page_table.UnmapCodeMemory(
-            info.nro_address + info.text_size, info.src_addr + info.text_size, info.ro_size,
-            Kernel::KPageTable::ICacheInvalidationStrategy::InvalidateRange));
-        R_TRY(page_table.UnmapCodeMemory(
-            info.nro_address, info.src_addr, info.text_size,
-            Kernel::KPageTable::ICacheInvalidationStrategy::InvalidateRange));
+        R_TRY(page_table.UnmapCodeMemory(info.nro_address + info.text_size + info.ro_size,
+                                         info.src_addr + info.text_size + info.ro_size,
+                                         info.data_size));
+        R_TRY(page_table.UnmapCodeMemory(info.nro_address + info.text_size,
+                                         info.src_addr + info.text_size, info.ro_size));
+        R_TRY(page_table.UnmapCodeMemory(info.nro_address, info.src_addr, info.text_size));
         return ResultSuccess;
     }
 

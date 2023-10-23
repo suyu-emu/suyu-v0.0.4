@@ -37,8 +37,8 @@ Result KThreadLocalPage::Initialize(KernelCore& kernel, KProcess* process) {
 
 Result KThreadLocalPage::Finalize() {
     // Get the physical address of the page.
-    const KPhysicalAddress phys_addr = m_owner->GetPageTable().GetPhysicalAddr(m_virt_addr);
-    ASSERT(phys_addr);
+    KPhysicalAddress phys_addr{};
+    ASSERT(m_owner->GetPageTable().GetPhysicalAddress(std::addressof(phys_addr), m_virt_addr));
 
     // Unmap the page.
     R_TRY(m_owner->GetPageTable().UnmapPages(this->GetAddress(), 1, KMemoryState::ThreadLocal));

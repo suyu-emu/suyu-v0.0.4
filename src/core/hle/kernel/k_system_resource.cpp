@@ -40,7 +40,7 @@ Result KSecureSystemResource::Initialize(size_t size, KResourceLimit* resource_l
 
     // Get resource pointer.
     KPhysicalAddress resource_paddr =
-        KPageTable::GetHeapPhysicalAddress(m_kernel.MemoryLayout(), m_resource_address);
+        KPageTable::GetHeapPhysicalAddress(m_kernel, m_resource_address);
     auto* resource =
         m_kernel.System().DeviceMemory().GetPointer<KPageTableManager::RefCount>(resource_paddr);
 
