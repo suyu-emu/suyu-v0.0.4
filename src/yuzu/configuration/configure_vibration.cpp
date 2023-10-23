@@ -89,7 +89,7 @@ void ConfigureVibration::VibrateController(Core::HID::ControllerTriggerType type
 
     auto& player = Settings::values.players.GetValue()[player_index];
     auto controller = hid_core.GetEmulatedControllerByIndex(player_index);
-    const int vibration_strenght = vibration_spinboxes[player_index]->value();
+    const int vibration_strength = vibration_spinboxes[player_index]->value();
     const auto& buttons = controller->GetButtonsValues();
 
     bool button_is_pressed = false;
@@ -105,10 +105,10 @@ void ConfigureVibration::VibrateController(Core::HID::ControllerTriggerType type
         return;
     }
 
-    const int old_vibration_enabled = player.vibration_enabled;
-    const bool old_vibration_strenght = player.vibration_strength;
+    const bool old_vibration_enabled = player.vibration_enabled;
+    const int old_vibration_strength = player.vibration_strength;
     player.vibration_enabled = true;
-    player.vibration_strength = vibration_strenght;
+    player.vibration_strength = vibration_strength;
 
     const Core::HID::VibrationValue vibration{
         .low_amplitude = 1.0f,
@@ -121,7 +121,7 @@ void ConfigureVibration::VibrateController(Core::HID::ControllerTriggerType type
 
     // Restore previous values
     player.vibration_enabled = old_vibration_enabled;
-    player.vibration_strength = old_vibration_strenght;
+    player.vibration_strength = old_vibration_strength;
 }
 
 void ConfigureVibration::StopVibrations() {
