@@ -5,13 +5,14 @@
 
 #include <map>
 
+#include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/k_address_arbiter.h"
 #include "core/hle/kernel/k_capabilities.h"
 #include "core/hle/kernel/k_condition_variable.h"
 #include "core/hle/kernel/k_handle_table.h"
-#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_page_table_manager.h"
+#include "core/hle/kernel/k_process_page_table.h"
 #include "core/hle/kernel/k_system_resource.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/k_thread_local_page.h"
@@ -65,7 +66,7 @@ private:
     using TLPIterator = TLPTree::iterator;
 
 private:
-    KPageTable m_page_table;
+    KProcessPageTable m_page_table;
     std::atomic<size_t> m_used_kernel_memory_size{};
     TLPTree m_fully_used_tlp_tree{};
     TLPTree m_partially_used_tlp_tree{};
@@ -254,9 +255,8 @@ public:
         return m_is_hbl;
     }
 
-    Kernel::KMemoryManager::Direction GetAllocateOption() const {
-        // TODO: property of the KPageTableBase
-        return KMemoryManager::Direction::FromFront;
+    u32 GetAllocateOption() const {
+        return m_page_table.GetAllocateOption();
     }
 
     ThreadList& GetThreadList() {
@@ -295,10 +295,10 @@ public:
         return m_list_lock;
     }
 
-    KPageTable& GetPageTable() {
+    KProcessPageTable& GetPageTable() {
         return m_page_table;
     }
-    const KPageTable& GetPageTable() const {
+    const KProcessPageTable& GetPageTable() const {
         return m_page_table;
     }
 

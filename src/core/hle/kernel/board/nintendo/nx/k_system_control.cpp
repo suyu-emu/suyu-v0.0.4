@@ -222,7 +222,7 @@ Result KSystemControl::AllocateSecureMemory(KernelCore& kernel, KVirtualAddress*
     };
 
     // We succeeded.
-    *out = KPageTable::GetHeapVirtualAddress(kernel.MemoryLayout(), paddr);
+    *out = KPageTable::GetHeapVirtualAddress(kernel, paddr);
     R_SUCCEED();
 }
 
@@ -238,8 +238,17 @@ void KSystemControl::FreeSecureMemory(KernelCore& kernel, KVirtualAddress addres
     ASSERT(Common::IsAligned(size, alignment));
 
     // Close the secure region's pages.
-    kernel.MemoryManager().Close(KPageTable::GetHeapPhysicalAddress(kernel.MemoryLayout(), address),
+    kernel.MemoryManager().Close(KPageTable::GetHeapPhysicalAddress(kernel, address),
                                  size / PageSize);
+}
+
+// Insecure Memory.
+KResourceLimit* KSystemControl::GetInsecureMemoryResourceLimit(KernelCore& kernel) {
+    return kernel.GetSystemResourceLimit();
+}
+
+u32 KSystemControl::GetInsecureMemoryPool() {
+    return static_cast<u32>(KMemoryManager::Pool::SystemNonSecure);
 }
 
 } // namespace Kernel::Board::Nintendo::Nx

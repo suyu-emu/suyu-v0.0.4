@@ -407,3 +407,34 @@ constexpr inline Result __TmpCurrentResultReference = ResultSuccess;
 
 /// Evaluates a boolean expression, and succeeds if that expression is true.
 #define R_SUCCEED_IF(expr) R_UNLESS(!(expr), ResultSuccess)
+
+#define R_TRY_CATCH(res_expr)                                                                      \
+    {                                                                                              \
+        const auto R_CURRENT_RESULT = (res_expr);                                                  \
+        if (R_FAILED(R_CURRENT_RESULT)) {                                                          \
+            if (false)
+
+#define R_END_TRY_CATCH                                                                            \
+    else if (R_FAILED(R_CURRENT_RESULT)) {                                                         \
+        R_THROW(R_CURRENT_RESULT);                                                                 \
+    }                                                                                              \
+    }                                                                                              \
+    }
+
+#define R_CATCH_ALL()                                                                              \
+    }                                                                                              \
+    else if (R_FAILED(R_CURRENT_RESULT)) {                                                         \
+        if (true)
+
+#define R_CATCH(res_expr)                                                                          \
+    }                                                                                              \
+    else if ((res_expr) == (R_CURRENT_RESULT)) {                                                   \
+        if (true)
+
+#define R_CONVERT(catch_type, convert_type)                                                        \
+    R_CATCH(catch_type) { R_THROW(static_cast<Result>(convert_type)); }
+
+#define R_CONVERT_ALL(convert_type)                                                                \
+    R_CATCH_ALL() { R_THROW(static_cast<Result>(convert_type)); }
+
+#define R_ASSERT(res_expr) ASSERT(R_SUCCEEDED(res_expr))

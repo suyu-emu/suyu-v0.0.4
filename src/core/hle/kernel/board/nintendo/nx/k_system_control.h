@@ -8,7 +8,8 @@
 
 namespace Kernel {
 class KernelCore;
-}
+class KResourceLimit;
+} // namespace Kernel
 
 namespace Kernel::Board::Nintendo::Nx {
 
@@ -40,6 +41,10 @@ public:
                                        u32 pool);
     static void FreeSecureMemory(KernelCore& kernel, KVirtualAddress address, size_t size,
                                  u32 pool);
+
+    // Insecure Memory.
+    static KResourceLimit* GetInsecureMemoryResourceLimit(KernelCore& kernel);
+    static u32 GetInsecureMemoryPool();
 };
 
 } // namespace Kernel::Board::Nintendo::Nx

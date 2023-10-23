@@ -41,7 +41,7 @@ struct Memory::Impl {
     explicit Impl(Core::System& system_) : system{system_} {}
 
     void SetCurrentPageTable(Kernel::KProcess& process, u32 core_id) {
-        current_page_table = &process.GetPageTable().PageTableImpl();
+        current_page_table = &process.GetPageTable().GetImpl();
         current_page_table->fastmem_arena = system.DeviceMemory().buffer.VirtualBasePointer();
 
         const std::size_t address_space_width = process.GetPageTable().GetAddressSpaceWidth();
@@ -195,7 +195,7 @@ struct Memory::Impl {
 
     bool WalkBlock(const Common::ProcessAddress addr, const std::size_t size, auto on_unmapped,
                    auto on_memory, auto on_rasterizer, auto increment) {
-        const auto& page_table = system.ApplicationProcess()->GetPageTable().PageTableImpl();
+        const auto& page_table = system.ApplicationProcess()->GetPageTable().GetImpl();
         std::size_t remaining_size = size;
         std::size_t page_index = addr >> YUZU_PAGEBITS;
         std::size_t page_offset = addr & YUZU_PAGEMASK;
@@ -826,7 +826,7 @@ void Memory::UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress b
 
 bool Memory::IsValidVirtualAddress(const Common::ProcessAddress vaddr) const {
     const Kernel::KProcess& process = *system.ApplicationProcess();
-    const auto& page_table = process.GetPageTable().PageTableImpl();
+    const auto& page_table = process.GetPageTable().GetImpl();
     const size_t page = vaddr >> YUZU_PAGEBITS;
     if (page >= page_table.pointers.size()) {
         return false;
