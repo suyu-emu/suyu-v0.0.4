@@ -27,8 +27,10 @@ namespace {
 static thread_local std::array read_buffer_data_a{
     Common::ScratchBuffer<u8>(),
     Common::ScratchBuffer<u8>(),
+    Common::ScratchBuffer<u8>(),
 };
 static thread_local std::array read_buffer_data_x{
+    Common::ScratchBuffer<u8>(),
     Common::ScratchBuffer<u8>(),
     Common::ScratchBuffer<u8>(),
 };
@@ -343,6 +345,7 @@ std::span<const u8> HLERequestContext::ReadBufferA(std::size_t buffer_index) con
     static thread_local std::array read_buffer_a{
         Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
         Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
+        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
     };
 
     ASSERT_OR_EXECUTE_MSG(
@@ -356,6 +359,7 @@ std::span<const u8> HLERequestContext::ReadBufferA(std::size_t buffer_index) con
 
 std::span<const u8> HLERequestContext::ReadBufferX(std::size_t buffer_index) const {
     static thread_local std::array read_buffer_x{
+        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
         Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
         Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
     };
@@ -373,8 +377,10 @@ std::span<const u8> HLERequestContext::ReadBuffer(std::size_t buffer_index) cons
     static thread_local std::array read_buffer_a{
         Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
         Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
+        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
     };
     static thread_local std::array read_buffer_x{
+        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
         Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
         Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
     };
