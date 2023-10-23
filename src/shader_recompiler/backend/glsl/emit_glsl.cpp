@@ -242,6 +242,7 @@ std::string EmitGLSL(const Profile& profile, const RuntimeInfo& runtime_info, IR
     }
     if (program.info.uses_subgroup_shuffles) {
         ctx.header += "bool shfl_in_bounds;";
+        ctx.header += "uint shfl_result;";
     }
     ctx.code.insert(0, ctx.header);
     ctx.code += '}';
