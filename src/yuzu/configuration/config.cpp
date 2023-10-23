@@ -114,7 +114,7 @@ const std::map<Settings::ShaderBackend, QString> Config::shader_backend_texts_ma
 // This must be in alphabetical order according to action name as it must have the same order as
 // UISetting::values.shortcuts, which is alphabetically ordered.
 // clang-format off
-const std::array<UISettings::Shortcut, 22> Config::default_hotkeys{{
+const std::array<UISettings::Shortcut, 23> Config::default_hotkeys{{
     {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Audio Mute/Unmute")),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")), {QStringLiteral("Ctrl+M"),  QStringLiteral("Home+Dpad_Right"), Qt::WindowShortcut, false}},
     {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Audio Volume Down")),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")), {QStringLiteral("-"),       QStringLiteral("Home+Dpad_Down"), Qt::ApplicationShortcut, true}},
     {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Audio Volume Up")),          QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")), {QStringLiteral("="),       QStringLiteral("Home+Dpad_Up"), Qt::ApplicationShortcut, true}},
@@ -136,6 +136,7 @@ const std::array<UISettings::Shortcut, 22> Config::default_hotkeys{{
     {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Filter Bar")),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")), {QStringLiteral("Ctrl+F"),  QStringLiteral(""), Qt::WindowShortcut, false}},
     {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Framerate Limit")),   QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")), {QStringLiteral("Ctrl+U"),  QStringLiteral("Home+Y"), Qt::ApplicationShortcut, false}},
     {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Mouse Panning")),     QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")), {QStringLiteral("Ctrl+F9"), QStringLiteral(""), Qt::ApplicationShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Renderdoc Capture")), QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")), {QStringLiteral(""),        QStringLiteral(""), Qt::ApplicationShortcut, false}},
     {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Status Bar")),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")), {QStringLiteral("Ctrl+S"),  QStringLiteral(""), Qt::WindowShortcut, false}},
 }};
 // clang-format on
