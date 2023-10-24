@@ -14,6 +14,7 @@ add_library(yuzu-android SHARED
     id_cache.cpp
     id_cache.h
     native.cpp
+    native.h
     native_config.cpp
     uisettings.cpp
 )
