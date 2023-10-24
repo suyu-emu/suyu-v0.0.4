@@ -4,6 +4,7 @@
 #pragma once
 
 #include <atomic>
+#include <deque>
 #include <memory>
 #include <string>
 
@@ -20,6 +21,7 @@ namespace Core {
 class System;
 }
 
+class GameList;
 class QStandardItem;
 
 namespace FileSys {
@@ -46,24 +48,22 @@ public:
     /// Starts the processing of directory tree information.
     void run() override;
 
-    /// Tells the worker that it should no longer continue processing. Thread-safe.
-    void Cancel();
+public:
+    /**
+     * Synchronously processes any events queued by the worker.
+     *
+     * AddDirEntry is called on the game list for every discovered directory.
+     * AddEntry is called on the game list for every discovered program.
+     * DonePopulating is called on the game list when processing completes.
+     */
+    void ProcessEvents(GameList* game_list);
 
 signals:
-    /**
-     * The `EntryReady` signal is emitted once an entry has been prepared and is ready
-     * to be added to the game list.
-     * @param entry_items a list with `QStandardItem`s that make up the columns of the new
-     * entry.
-     */
-    void DirEntryReady(GameListDir* entry_items);
-    void EntryReady(QList<QStandardItem*> entry_items, GameListDir* parent_dir);
+    void DataAvailable();
 
-    /**
-     * After the worker has traversed the game directory looking for entries, this signal is
-     * emitted with a list of folders that should be watched for changes as well.
-     */
-    void Finished(QStringList watch_list);
+private:
+    template <typename F>
+    void RecordEvent(F&& func);
 
 private:
     void AddTitlesToGameList(GameListDir* parent_dir);
@@ -84,8 +84,11 @@ private:
 
     QStringList watch_list;
 
-    Common::Event processing_completed;
+    std::mutex lock;
+    std::condition_variable cv;
+    std::deque<std::function<void(GameList*)>> queued_events;
     std::atomic_bool stop_requested = false;
+    Common::Event processing_completed;
 
     Core::System& system;
 };
