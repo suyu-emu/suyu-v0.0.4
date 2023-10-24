@@ -17,6 +17,7 @@ add_library(yuzu-android SHARED
     native.h
     native_config.cpp
     uisettings.cpp
+    game_metadata.cpp
 )
 
 set_property(TARGET yuzu-android PROPERTY IMPORTED_LOCATION ${FFmpeg_LIBRARY_DIR})

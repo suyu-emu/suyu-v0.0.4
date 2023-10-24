@@ -558,10 +558,6 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_stopEmulation(JNIEnv* env, jclass cla
     EmulationSession::GetInstance().HaltEmulation();
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_resetRomMetadata(JNIEnv* env, jclass clazz) {
-    EmulationSession::GetInstance().ResetRomMetadata();
-}
-
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isRunning(JNIEnv* env, jclass clazz) {
     return static_cast<jboolean>(EmulationSession::GetInstance().IsRunning());
 }
@@ -665,46 +661,6 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchReleased(JNIEnv* env, jclass c
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().Window().OnTouchReleased(id);
     }
-}
-
-jbyteArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getIcon(JNIEnv* env, jclass clazz,
-                                                         jstring j_filename) {
-    jauto icon_data = EmulationSession::GetInstance().GetRomIcon(GetJString(env, j_filename));
-    jbyteArray icon = env->NewByteArray(static_cast<jsize>(icon_data.size()));
-    env->SetByteArrayRegion(icon, 0, env->GetArrayLength(icon),
-                            reinterpret_cast<jbyte*>(icon_data.data()));
-    return icon;
-}
-
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getTitle(JNIEnv* env, jclass clazz,
-                                                       jstring j_filename) {
-    jauto title = EmulationSession::GetInstance().GetRomTitle(GetJString(env, j_filename));
-    return env->NewStringUTF(title.c_str());
-}
-
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getDescription(JNIEnv* env, jclass clazz,
-                                                             jstring j_filename) {
-    return j_filename;
-}
-
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getGameId(JNIEnv* env, jclass clazz,
-                                                        jstring j_filename) {
-    return j_filename;
-}
-
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getRegions(JNIEnv* env, jclass clazz,
-                                                         jstring j_filename) {
-    return env->NewStringUTF("");
-}
-
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCompany(JNIEnv* env, jclass clazz,
-                                                         jstring j_filename) {
-    return env->NewStringUTF("");
-}
-
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isHomebrew(JNIEnv* env, jclass clazz,
-                                                          jstring j_filename) {
-    return EmulationSession::GetInstance().GetIsHomebrew(GetJString(env, j_filename));
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmulation(JNIEnv* env, jclass clazz) {

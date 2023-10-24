@@ -14,15 +14,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.utils.GameHelper
+import org.yuzu.yuzu_emu.utils.GameMetadata
 
-@OptIn(ExperimentalSerializationApi::class)
 class GamesViewModel : ViewModel() {
     val games: StateFlow<List<Game>> get() = _games
     private val _games = MutableStateFlow(emptyList<Game>())
@@ -58,7 +56,8 @@ class GamesViewModel : ViewModel() {
                         val game: Game
                         try {
                             game = Json.decodeFromString(it)
-                        } catch (e: MissingFieldException) {
+                        } catch (e: Exception) {
+                            // We don't care about any errors related to parsing the game cache
                             return@forEach
                         }
 
@@ -113,7 +112,7 @@ class GamesViewModel : ViewModel() {
 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                NativeLibrary.resetRomMetadata()
+                GameMetadata.resetMetadata()
                 setGames(GameHelper.getGames())
                 _isReloading.value = false
 
