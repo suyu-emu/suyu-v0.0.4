@@ -29,6 +29,9 @@ std::size_t SliceVectors(std::span<const u8> input, std::vector<T>& dst, std::si
         return 0;
     }
     const size_t bytes_copied = count * sizeof(T);
+    if (input.size() < offset + bytes_copied) {
+        return 0;
+    }
     std::memcpy(dst.data(), input.data() + offset, bytes_copied);
     return bytes_copied;
 }
@@ -41,6 +44,9 @@ std::size_t WriteVectors(std::span<u8> dst, const std::vector<T>& src, std::size
         return 0;
     }
     const size_t bytes_copied = src.size() * sizeof(T);
+    if (dst.size() < offset + bytes_copied) {
+        return 0;
+    }
     std::memcpy(dst.data() + offset, src.data(), bytes_copied);
     return bytes_copied;
 }
@@ -71,6 +77,10 @@ NvResult nvhost_nvdec_common::SetNVMAPfd(IoctlSetNvmapFD& params) {
 }
 
 NvResult nvhost_nvdec_common::Submit(DeviceFD fd, std::span<const u8> input, std::span<u8> output) {
+    if (input.size() < sizeof(IoctlSubmit) || output.size() < sizeof(IoctlSubmit)) {
+        UNIMPLEMENTED();
+        return NvResult::InvalidSize;
+    }
     IoctlSubmit params{};
     std::memcpy(&params, input.data(), std::min(input.size(), sizeof(IoctlSubmit)));
     LOG_DEBUG(Service_NVDRV, "called NVDEC Submit, cmd_buffer_count={}", params.cmd_buffer_count);
