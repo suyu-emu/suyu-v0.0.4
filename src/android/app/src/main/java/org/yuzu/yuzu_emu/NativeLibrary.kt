@@ -215,32 +215,6 @@ object NativeLibrary {
 
     external fun initGameIni(gameID: String?)
 
-    /**
-     * Gets the embedded icon within the given ROM.
-     *
-     * @param filename the file path to the ROM.
-     * @return a byte array containing the JPEG data for the icon.
-     */
-    external fun getIcon(filename: String): ByteArray
-
-    /**
-     * Gets the embedded title of the given ISO/ROM.
-     *
-     * @param filename The file path to the ISO/ROM.
-     * @return the embedded title of the ISO/ROM.
-     */
-    external fun getTitle(filename: String): String
-
-    external fun getDescription(filename: String): String
-
-    external fun getGameId(filename: String): String
-
-    external fun getRegions(filename: String): String
-
-    external fun getCompany(filename: String): String
-
-    external fun isHomebrew(filename: String): Boolean
-
     external fun setAppDirectory(directory: String)
 
     /**
@@ -292,11 +266,6 @@ object NativeLibrary {
      * Stops emulation.
      */
     external fun stopEmulation()
-
-    /**
-     * Resets the in-memory ROM metadata cache.
-     */
-    external fun resetRomMetadata()
 
     /**
      * Returns true if emulation is running (or is paused).
