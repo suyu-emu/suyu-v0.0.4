@@ -63,9 +63,7 @@ nvhost_nvdec_common::~nvhost_nvdec_common() {
     core.Host1xDeviceFile().syncpts_accumulated.push_back(channel_syncpoint);
 }
 
-NvResult nvhost_nvdec_common::SetNVMAPfd(std::span<const u8> input) {
-    IoctlSetNvmapFD params{};
-    std::memcpy(&params, input.data(), sizeof(IoctlSetNvmapFD));
+NvResult nvhost_nvdec_common::SetNVMAPfd(IoctlSetNvmapFD& params) {
     LOG_DEBUG(Service_NVDRV, "called, fd={}", params.nvmap_fd);
 
     nvmap_fd = params.nvmap_fd;
@@ -74,7 +72,7 @@ NvResult nvhost_nvdec_common::SetNVMAPfd(std::span<const u8> input) {
 
 NvResult nvhost_nvdec_common::Submit(DeviceFD fd, std::span<const u8> input, std::span<u8> output) {
     IoctlSubmit params{};
-    std::memcpy(&params, input.data(), sizeof(IoctlSubmit));
+    std::memcpy(&params, input.data(), std::min(input.size(), sizeof(IoctlSubmit)));
     LOG_DEBUG(Service_NVDRV, "called NVDEC Submit, cmd_buffer_count={}", params.cmd_buffer_count);
 
     // Instantiate param buffers
@@ -120,24 +118,15 @@ NvResult nvhost_nvdec_common::Submit(DeviceFD fd, std::span<const u8> input, std
     return NvResult::Success;
 }
 
-NvResult nvhost_nvdec_common::GetSyncpoint(std::span<const u8> input, std::span<u8> output) {
-    IoctlGetSyncpoint params{};
-    std::memcpy(&params, input.data(), sizeof(IoctlGetSyncpoint));
+NvResult nvhost_nvdec_common::GetSyncpoint(IoctlGetSyncpoint& params) {
     LOG_DEBUG(Service_NVDRV, "called GetSyncpoint, id={}", params.param);
-
-    // const u32 id{NvCore::SyncpointManager::channel_syncpoints[static_cast<u32>(channel_type)]};
     params.value = channel_syncpoint;
-    std::memcpy(output.data(), &params, sizeof(IoctlGetSyncpoint));
-
     return NvResult::Success;
 }
 
-NvResult nvhost_nvdec_common::GetWaitbase(std::span<const u8> input, std::span<u8> output) {
-    IoctlGetWaitbase params{};
+NvResult nvhost_nvdec_common::GetWaitbase(IoctlGetWaitbase& params) {
     LOG_CRITICAL(Service_NVDRV, "called WAITBASE");
-    std::memcpy(&params, input.data(), sizeof(IoctlGetWaitbase));
     params.value = 0; // Seems to be hard coded at 0
-    std::memcpy(output.data(), &params, sizeof(IoctlGetWaitbase));
     return NvResult::Success;
 }
 
@@ -151,6 +140,12 @@ NvResult nvhost_nvdec_common::MapBuffer(std::span<const u8> input, std::span<u8>
     for (auto& cmd_buffer : cmd_buffer_handles) {
         cmd_buffer.map_address = nvmap.PinHandle(cmd_buffer.map_handle);
     }
+
+    if (output.size() <
+        sizeof(IoctlMapBuffer) + cmd_buffer_handles.size() * sizeof(MapBufferEntry)) {
+        return NvResult::InvalidSize;
+    }
+
     std::memcpy(output.data(), &params, sizeof(IoctlMapBuffer));
     std::memcpy(output.data() + sizeof(IoctlMapBuffer), cmd_buffer_handles.data(),
                 cmd_buffer_handles.size() * sizeof(MapBufferEntry));
@@ -160,7 +155,7 @@ NvResult nvhost_nvdec_common::MapBuffer(std::span<const u8> input, std::span<u8>
 
 NvResult nvhost_nvdec_common::UnmapBuffer(std::span<const u8> input, std::span<u8> output) {
     IoctlMapBuffer params{};
-    std::memcpy(&params, input.data(), sizeof(IoctlMapBuffer));
+    std::memcpy(&params, input.data(), std::min(input.size(), sizeof(IoctlMapBuffer)));
     std::vector<MapBufferEntry> cmd_buffer_handles(params.num_entries);
 
     SliceVectors(input, cmd_buffer_handles, params.num_entries, sizeof(IoctlMapBuffer));
@@ -172,8 +167,7 @@ NvResult nvhost_nvdec_common::UnmapBuffer(std::span<const u8> input, std::span<u
     return NvResult::Success;
 }
 
-NvResult nvhost_nvdec_common::SetSubmitTimeout(std::span<const u8> input, std::span<u8> output) {
-    std::memcpy(&submit_timeout, input.data(), input.size());
+NvResult nvhost_nvdec_common::SetSubmitTimeout(u32 timeout) {
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
     return NvResult::Success;
 }

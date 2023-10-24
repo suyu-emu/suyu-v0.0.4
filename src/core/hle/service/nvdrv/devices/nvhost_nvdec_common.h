@@ -107,13 +107,13 @@ protected:
     static_assert(sizeof(IoctlMapBuffer) == 0x0C, "IoctlMapBuffer is incorrect size");
 
     /// Ioctl command implementations
-    NvResult SetNVMAPfd(std::span<const u8> input);
+    NvResult SetNVMAPfd(IoctlSetNvmapFD&);
     NvResult Submit(DeviceFD fd, std::span<const u8> input, std::span<u8> output);
-    NvResult GetSyncpoint(std::span<const u8> input, std::span<u8> output);
-    NvResult GetWaitbase(std::span<const u8> input, std::span<u8> output);
+    NvResult GetSyncpoint(IoctlGetSyncpoint& params);
+    NvResult GetWaitbase(IoctlGetWaitbase& params);
     NvResult MapBuffer(std::span<const u8> input, std::span<u8> output);
     NvResult UnmapBuffer(std::span<const u8> input, std::span<u8> output);
-    NvResult SetSubmitTimeout(std::span<const u8> input, std::span<u8> output);
+    NvResult SetSubmitTimeout(u32 timeout);
 
     Kernel::KEvent* QueryEvent(u32 event_id) override;
 
