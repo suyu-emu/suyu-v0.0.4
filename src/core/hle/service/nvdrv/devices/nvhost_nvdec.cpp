@@ -6,6 +6,7 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/service/nvdrv/core/container.h"
+#include "core/hle/service/nvdrv/devices/ioctl_serialization.h"
 #include "core/hle/service/nvdrv/devices/nvhost_nvdec.h"
 #include "video_core/renderer_base.h"
 
@@ -28,11 +29,11 @@ NvResult nvhost_nvdec::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> in
             return Submit(fd, input, output);
         }
         case 0x2:
-            return GetSyncpoint(input, output);
+            return Wrap1(&nvhost_nvdec::GetSyncpoint, input, output);
         case 0x3:
-            return GetWaitbase(input, output);
+            return Wrap1(&nvhost_nvdec::GetWaitbase, input, output);
         case 0x7:
-            return SetSubmitTimeout(input, output);
+            return Wrap1(&nvhost_nvdec::SetSubmitTimeout, input, output);
         case 0x9:
             return MapBuffer(input, output);
         case 0xa:
@@ -44,7 +45,7 @@ NvResult nvhost_nvdec::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> in
     case 'H':
         switch (command.cmd) {
         case 0x1:
-            return SetNVMAPfd(input);
+            return Wrap1(&nvhost_nvdec::SetNVMAPfd, input, output);
         default:
             break;
         }
