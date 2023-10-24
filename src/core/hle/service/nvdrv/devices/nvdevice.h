@@ -75,6 +75,18 @@ public:
     }
 
 protected:
+    template <typename F>
+    NvResult Wrap1(F&& callable, std::span<const u8> input, std::span<u8> output);
+
+    template <typename F>
+    NvResult Wrap2(F&& callable, std::span<const u8> input, std::span<const u8> inline_input,
+                   std::span<u8> output);
+
+    template <typename F>
+    NvResult Wrap3(F&& callable, std::span<const u8> input, std::span<u8> output,
+                   std::span<u8> inline_output);
+
+protected:
     Core::System& system;
 };
 

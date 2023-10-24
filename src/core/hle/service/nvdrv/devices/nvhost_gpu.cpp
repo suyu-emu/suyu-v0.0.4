@@ -134,7 +134,7 @@ NvResult nvhost_gpu::SetClientData(std::span<const u8> input, std::span<u8> outp
     LOG_DEBUG(Service_NVDRV, "called");
 
     IoctlClientData params{};
-    std::memcpy(&params, input.data(), input.size());
+    std::memcpy(&params, input.data(), std::min(sizeof(IoctlClientData), input.size()));
     user_data = params.data;
     return NvResult::Success;
 }
@@ -143,9 +143,9 @@ NvResult nvhost_gpu::GetClientData(std::span<const u8> input, std::span<u8> outp
     LOG_DEBUG(Service_NVDRV, "called");
 
     IoctlClientData params{};
-    std::memcpy(&params, input.data(), input.size());
+    std::memcpy(&params, input.data(), std::min(sizeof(IoctlClientData), input.size()));
     params.data = user_data;
-    std::memcpy(output.data(), &params, output.size());
+    std::memcpy(output.data(), &params, std::min(sizeof(IoctlClientData), output.size()));
     return NvResult::Success;
 }
 
