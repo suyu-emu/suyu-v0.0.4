@@ -65,7 +65,7 @@ NvResult nvhost_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inpu
         case 0x3:
             return Wrap1(&nvhost_gpu::ChannelSetTimeout, input, output);
         case 0x8:
-            return SubmitGPFIFOBase1(input, output, false);
+            return SubmitGPFIFOBase1(input, false);
         case 0x9:
             return Wrap1(&nvhost_gpu::AllocateObjectContext, input, output);
         case 0xb:
@@ -77,7 +77,7 @@ NvResult nvhost_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inpu
         case 0x1a:
             return Wrap1(&nvhost_gpu::AllocGPFIFOEx2, input, output);
         case 0x1b:
-            return SubmitGPFIFOBase1(input, output, true);
+            return SubmitGPFIFOBase1(input, true);
         case 0x1d:
             return Wrap1(&nvhost_gpu::ChannelSetTimeslice, input, output);
         default:
@@ -105,7 +105,7 @@ NvResult nvhost_gpu::Ioctl2(DeviceFD fd, Ioctl command, std::span<const u8> inpu
     case 'H':
         switch (command.cmd) {
         case 0x1b:
-            return SubmitGPFIFOBase2(input, inline_input, output);
+            return SubmitGPFIFOBase2(input, inline_input);
         }
         break;
     }
@@ -227,8 +227,7 @@ static boost::container::small_vector<Tegra::CommandHeader, 512> BuildIncrementW
     return result;
 }
 
-NvResult nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, std::span<u8> output,
-                                      Tegra::CommandList&& entries) {
+NvResult nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandList&& entries) {
     LOG_TRACE(Service_NVDRV, "called, gpfifo={:X}, num_entries={:X}, flags={:X}", params.address,
               params.num_entries, params.flags.raw);
 
@@ -272,8 +271,7 @@ NvResult nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, std::span<u8> o
     return NvResult::Success;
 }
 
-NvResult nvhost_gpu::SubmitGPFIFOBase1(std::span<const u8> input, std::span<u8> output,
-                                       bool kickoff) {
+NvResult nvhost_gpu::SubmitGPFIFOBase1(std::span<const u8> input, bool kickoff) {
     if (input.size() < sizeof(IoctlSubmitGpfifo)) {
         UNIMPLEMENTED();
         return NvResult::InvalidSize;
@@ -290,11 +288,11 @@ NvResult nvhost_gpu::SubmitGPFIFOBase1(std::span<const u8> input, std::span<u8> 
                     params.num_entries * sizeof(Tegra::CommandListHeader));
     }
 
-    return SubmitGPFIFOImpl(params, output, std::move(entries));
+    return SubmitGPFIFOImpl(params, std::move(entries));
 }
 
-NvResult nvhost_gpu::SubmitGPFIFOBase2(std::span<const u8> input, std::span<const u8> input_inline,
-                                       std::span<u8> output) {
+NvResult nvhost_gpu::SubmitGPFIFOBase2(std::span<const u8> input,
+                                       std::span<const u8> input_inline) {
     if (input.size() < sizeof(IoctlSubmitGpfifo)) {
         UNIMPLEMENTED();
         return NvResult::InvalidSize;
@@ -303,7 +301,7 @@ NvResult nvhost_gpu::SubmitGPFIFOBase2(std::span<const u8> input, std::span<cons
     std::memcpy(&params, input.data(), sizeof(IoctlSubmitGpfifo));
     Tegra::CommandList entries(params.num_entries);
     std::memcpy(entries.command_lists.data(), input_inline.data(), input_inline.size());
-    return SubmitGPFIFOImpl(params, output, std::move(entries));
+    return SubmitGPFIFOImpl(params, std::move(entries));
 }
 
 NvResult nvhost_gpu::GetWaitbase(IoctlGetWaitbase& params) {
