@@ -13,6 +13,7 @@
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
+#include "core/hle/service/nvdrv/devices/ioctl_serialization.h"
 #include "core/hle/service/nvdrv/devices/nvmap.h"
 #include "core/memory.h"
 
@@ -31,17 +32,17 @@ NvResult nvmap::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> input,
     case 0x1:
         switch (command.cmd) {
         case 0x1:
-            return IocCreate(input, output);
+            return Wrap1(&nvmap::IocCreate, input, output);
         case 0x3:
-            return IocFromId(input, output);
+            return Wrap1(&nvmap::IocFromId, input, output);
         case 0x4:
-            return IocAlloc(input, output);
+            return Wrap1(&nvmap::IocAlloc, input, output);
         case 0x5:
-            return IocFree(input, output);
+            return Wrap1(&nvmap::IocFree, input, output);
         case 0x9:
-            return IocParam(input, output);
+            return Wrap1(&nvmap::IocParam, input, output);
         case 0xe:
-            return IocGetId(input, output);
+            return Wrap1(&nvmap::IocGetId, input, output);
         default:
             break;
         }
@@ -69,9 +70,7 @@ NvResult nvmap::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> input, st
 void nvmap::OnOpen(DeviceFD fd) {}
 void nvmap::OnClose(DeviceFD fd) {}
 
-NvResult nvmap::IocCreate(std::span<const u8> input, std::span<u8> output) {
-    IocCreateParams params;
-    std::memcpy(&params, input.data(), sizeof(params));
+NvResult nvmap::IocCreate(IocCreateParams& params) {
     LOG_DEBUG(Service_NVDRV, "called, size=0x{:08X}", params.size);
 
     std::shared_ptr<NvCore::NvMap::Handle> handle_description{};
@@ -85,13 +84,10 @@ NvResult nvmap::IocCreate(std::span<const u8> input, std::span<u8> output) {
     params.handle = handle_description->id;
     LOG_DEBUG(Service_NVDRV, "handle: {}, size: 0x{:X}", handle_description->id, params.size);
 
-    std::memcpy(output.data(), &params, sizeof(params));
     return NvResult::Success;
 }
 
-NvResult nvmap::IocAlloc(std::span<const u8> input, std::span<u8> output) {
-    IocAllocParams params;
-    std::memcpy(&params, input.data(), sizeof(params));
+NvResult nvmap::IocAlloc(IocAllocParams& params) {
     LOG_DEBUG(Service_NVDRV, "called, addr={:X}", params.address);
 
     if (!params.handle) {
@@ -133,14 +129,10 @@ NvResult nvmap::IocAlloc(std::span<const u8> input, std::span<u8> output) {
                                              handle_description->size,
                                              Kernel::KMemoryPermission::None, true, false)
                .IsSuccess());
-    std::memcpy(output.data(), &params, sizeof(params));
     return result;
 }
 
-NvResult nvmap::IocGetId(std::span<const u8> input, std::span<u8> output) {
-    IocGetIdParams params;
-    std::memcpy(&params, input.data(), sizeof(params));
-
+NvResult nvmap::IocGetId(IocGetIdParams& params) {
     LOG_DEBUG(Service_NVDRV, "called");
 
     // See the comment in FromId for extra info on this function
@@ -157,14 +149,10 @@ NvResult nvmap::IocGetId(std::span<const u8> input, std::span<u8> output) {
     }
 
     params.id = handle_description->id;
-    std::memcpy(output.data(), &params, sizeof(params));
     return NvResult::Success;
 }
 
-NvResult nvmap::IocFromId(std::span<const u8> input, std::span<u8> output) {
-    IocFromIdParams params;
-    std::memcpy(&params, input.data(), sizeof(params));
-
+NvResult nvmap::IocFromId(IocFromIdParams& params) {
     LOG_DEBUG(Service_NVDRV, "called, id:{}", params.id);
 
     // Handles and IDs are always the same value in nvmap however IDs can be used globally given the
@@ -188,15 +176,11 @@ NvResult nvmap::IocFromId(std::span<const u8> input, std::span<u8> output) {
         return result;
     }
     params.handle = handle_description->id;
-    std::memcpy(output.data(), &params, sizeof(params));
     return NvResult::Success;
 }
 
-NvResult nvmap::IocParam(std::span<const u8> input, std::span<u8> output) {
+NvResult nvmap::IocParam(IocParamParams& params) {
     enum class ParamTypes { Size = 1, Alignment = 2, Base = 3, Heap = 4, Kind = 5, Compr = 6 };
-
-    IocParamParams params;
-    std::memcpy(&params, input.data(), sizeof(params));
 
     LOG_DEBUG(Service_NVDRV, "called type={}", params.param);
 
@@ -237,14 +221,10 @@ NvResult nvmap::IocParam(std::span<const u8> input, std::span<u8> output) {
         return NvResult::BadValue;
     }
 
-    std::memcpy(output.data(), &params, sizeof(params));
     return NvResult::Success;
 }
 
-NvResult nvmap::IocFree(std::span<const u8> input, std::span<u8> output) {
-    IocFreeParams params;
-    std::memcpy(&params, input.data(), sizeof(params));
-
+NvResult nvmap::IocFree(IocFreeParams& params) {
     LOG_DEBUG(Service_NVDRV, "called");
 
     if (!params.handle) {
@@ -267,7 +247,6 @@ NvResult nvmap::IocFree(std::span<const u8> input, std::span<u8> output) {
         // This is possible when there's internal dups or other duplicates.
     }
 
-    std::memcpy(output.data(), &params, sizeof(params));
     return NvResult::Success;
 }
 
