@@ -120,6 +120,8 @@ add_library(common STATIC
     socket_types.h
     spin_lock.cpp
     spin_lock.h
+    stb.cpp
+    stb.h
     steady_clock.cpp
     steady_clock.h
     stream.cpp
@@ -208,6 +210,8 @@ if (MSVC)
     /we4254 # 'operator': conversion from 'type1:field_bits' to 'type2:field_bits', possible loss of data
     /we4800 # Implicit conversion from 'type' to bool. Possible information loss
   )
+else()
+  set_source_files_properties(stb.cpp PROPERTIES COMPILE_OPTIONS "-Wno-implicit-fallthrough;-Wno-missing-declarations;-Wno-missing-field-initializers")
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -223,7 +227,7 @@ endif()
 
 create_target_directory_groups(common)
 
-target_link_libraries(common PUBLIC Boost::context Boost::headers fmt::fmt microprofile Threads::Threads)
+target_link_libraries(common PUBLIC Boost::context Boost::headers fmt::fmt microprofile stb::headers Threads::Threads)
 target_link_libraries(common PRIVATE lz4::lz4 zstd::zstd LLVM::Demangle)
 
 if (ANDROID)

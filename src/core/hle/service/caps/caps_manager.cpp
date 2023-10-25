@@ -2,13 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <sstream>
-#include <stb_image.h>
-#include <stb_image_resize.h>
-#include <stb_image_write.h>
 
 #include "common/fs/file.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
+#include "common/stb.h"
 #include "core/core.h"
 #include "core/hle/service/caps/caps_manager.h"
 #include "core/hle/service/caps/caps_result.h"
@@ -409,6 +407,12 @@ Result AlbumManager::LoadImage(std::span<u8> out_image, const std::filesystem::p
     return ResultSuccess;
 }
 
+static void PNGToMemory(void* context, void* png, int len) {
+    std::vector<u8>* png_image = static_cast<std::vector<u8>*>(context);
+    png_image->reserve(len);
+    std::memcpy(png_image->data(), png, len);
+}
+
 Result AlbumManager::SaveImage(ApplicationAlbumEntry& out_entry, std::span<const u8> image,
                                u64 title_id, const AlbumFileDateTime& date) const {
     const auto screenshot_path =
@@ -422,15 +426,11 @@ Result AlbumManager::SaveImage(ApplicationAlbumEntry& out_entry, std::span<const
     const Common::FS::IOFile db_file{file_path, Common::FS::FileAccessMode::Write,
                                      Common::FS::FileType::BinaryFile};
 
-    s32 len;
-    const u8* png = stbi_write_png_to_mem(image.data(), 0, 1280, 720, STBI_rgb_alpha, &len);
-
-    if (!png) {
+    std::vector<u8> png_image;
+    if (!stbi_write_png_to_func(PNGToMemory, &png_image, 1280, 720, STBI_rgb_alpha, image.data(),
+                                0)) {
         return ResultFileCountLimit;
     }
-
-    std::vector<u8> png_image(len);
-    std::memcpy(png_image.data(), png, len);
 
     if (db_file.Write(png_image) != png_image.size()) {
         return ResultFileCountLimit;
