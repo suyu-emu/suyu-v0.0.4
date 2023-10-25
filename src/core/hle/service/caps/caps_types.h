@@ -20,6 +20,8 @@ enum class AlbumImageOrientation {
 enum class AlbumReportOption : s32 {
     Disable,
     Enable,
+    Unknown2,
+    Unknown3,
 };
 
 enum class ContentType : u8 {
