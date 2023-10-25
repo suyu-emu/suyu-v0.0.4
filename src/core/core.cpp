@@ -312,6 +312,7 @@ struct System::Impl {
         // Create the process.
         auto main_process = Kernel::KProcess::Create(system.Kernel());
         Kernel::KProcess::Register(system.Kernel(), main_process);
+        kernel.AppendNewProcess(main_process);
         kernel.MakeApplicationProcess(main_process);
         const auto [load_result, load_parameters] = app_loader->Load(*main_process, system);
         if (load_result != Loader::ResultStatus::Success) {
