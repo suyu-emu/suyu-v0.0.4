@@ -401,6 +401,16 @@ std::string SanitizePath(std::string_view path_, DirectorySeparator directory_se
 }
 
 std::string_view GetParentPath(std::string_view path) {
+    if (path.empty()) {
+        return path;
+    }
+
+#ifdef ANDROID
+    if (path[0] != '/') {
+        std::string path_string{path};
+        return FS::Android::GetParentDirectory(path_string);
+    }
+#endif
     const auto name_bck_index = path.rfind('\\');
     const auto name_fwd_index = path.rfind('/');
     std::size_t name_index;

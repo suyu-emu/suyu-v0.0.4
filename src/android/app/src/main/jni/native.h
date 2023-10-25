@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <android/native_window_jni.h>
-#include "core/core.h"
-#include "core/perf_stats.h"
-#include "jni/emu_window/emu_window.h"
-#include "jni/applets/software_keyboard.h"
-#include "video_core/rasterizer_interface.h"
 #include "common/detached_tasks.h"
-#include "core/hle/service/acc/profile_manager.h"
+#include "core/core.h"
 #include "core/file_sys/registered_cache.h"
+#include "core/hle/service/acc/profile_manager.h"
+#include "core/perf_stats.h"
+#include "jni/applets/software_keyboard.h"
+#include "jni/emu_window/emu_window.h"
+#include "video_core/rasterizer_interface.h"
 
 #pragma once
 
