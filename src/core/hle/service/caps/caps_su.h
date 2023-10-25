@@ -10,14 +10,20 @@ class System;
 }
 
 namespace Service::Capture {
+class AlbumManager;
 
 class IScreenShotApplicationService final : public ServiceFramework<IScreenShotApplicationService> {
 public:
-    explicit IScreenShotApplicationService(Core::System& system_);
+    explicit IScreenShotApplicationService(Core::System& system_,
+                                           std::shared_ptr<AlbumManager> album_manager);
     ~IScreenShotApplicationService() override;
 
 private:
     void SetShimLibraryVersion(HLERequestContext& ctx);
+    void SaveScreenShotEx0(HLERequestContext& ctx);
+    void SaveScreenShotEx1(HLERequestContext& ctx);
+
+    std::shared_ptr<AlbumManager> manager;
 };
 
 } // namespace Service::Capture
