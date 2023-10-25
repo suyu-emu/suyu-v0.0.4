@@ -14,6 +14,10 @@
 #include <windows.h>
 #endif
 
+#ifdef ANDROID
+#include <common/fs/fs_android.h>
+#endif
+
 namespace Common {
 
 /// Make a string lowercase
@@ -62,6 +66,14 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
                std::string* _pExtension) {
     if (full_path.empty())
         return false;
+
+#ifdef ANDROID
+    if (full_path[0] != '/') {
+        *_pPath = Common::FS::Android::GetParentDirectory(full_path);
+        *_pFilename = Common::FS::Android::GetFilename(full_path);
+        return true;
+    }
+#endif
 
     std::size_t dir_end = full_path.find_last_of("/"
 // windows needs the : included for something like just "C:" to be considered a directory

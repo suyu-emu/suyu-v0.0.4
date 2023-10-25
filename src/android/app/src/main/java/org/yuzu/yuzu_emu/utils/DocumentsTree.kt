@@ -42,6 +42,23 @@ class DocumentsTree {
         return node != null && node.isDirectory
     }
 
+    fun getParentDirectory(filepath: String): String {
+        val node = resolvePath(filepath)!!
+        val parentNode = node.parent
+        if (parentNode != null && parentNode.isDirectory) {
+            return parentNode.uri!!.toString()
+        }
+        return node.uri!!.toString()
+    }
+
+    fun getFilename(filepath: String): String {
+        val node = resolvePath(filepath)
+        if (node != null) {
+            return node.name!!
+        }
+        return filepath
+    }
+
     private fun resolvePath(filepath: String): DocumentsNode? {
         val tokens = StringTokenizer(filepath, File.separator, false)
         var iterator = root

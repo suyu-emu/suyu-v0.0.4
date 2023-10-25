@@ -5,6 +5,7 @@ package org.yuzu.yuzu_emu
 
 import android.app.Dialog
 import android.content.DialogInterface
+import android.net.Uri
 import android.os.Bundle
 import android.text.Html
 import android.text.method.LinkMovementMethod
@@ -16,7 +17,7 @@ import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.lang.ref.WeakReference
 import org.yuzu.yuzu_emu.activities.EmulationActivity
-import org.yuzu.yuzu_emu.utils.DocumentsTree.Companion.isNativePath
+import org.yuzu.yuzu_emu.utils.DocumentsTree
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.SerializableHelper.serializable
@@ -68,7 +69,7 @@ object NativeLibrary {
     @Keep
     @JvmStatic
     fun openContentUri(path: String?, openmode: String?): Int {
-        return if (isNativePath(path!!)) {
+        return if (DocumentsTree.isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.openContentUri(path, openmode)
         } else {
             FileUtil.openContentUri(path, openmode)
@@ -78,7 +79,7 @@ object NativeLibrary {
     @Keep
     @JvmStatic
     fun getSize(path: String?): Long {
-        return if (isNativePath(path!!)) {
+        return if (DocumentsTree.isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.getFileSize(path)
         } else {
             FileUtil.getFileSize(path)
@@ -88,7 +89,7 @@ object NativeLibrary {
     @Keep
     @JvmStatic
     fun exists(path: String?): Boolean {
-        return if (isNativePath(path!!)) {
+        return if (DocumentsTree.isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.exists(path)
         } else {
             FileUtil.exists(path)
@@ -98,12 +99,30 @@ object NativeLibrary {
     @Keep
     @JvmStatic
     fun isDirectory(path: String?): Boolean {
-        return if (isNativePath(path!!)) {
+        return if (DocumentsTree.isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.isDirectory(path)
         } else {
             FileUtil.isDirectory(path)
         }
     }
+
+    @Keep
+    @JvmStatic
+    fun getParentDirectory(path: String): String =
+        if (DocumentsTree.isNativePath(path)) {
+            YuzuApplication.documentsTree!!.getParentDirectory(path)
+        } else {
+            path
+        }
+
+    @Keep
+    @JvmStatic
+    fun getFilename(path: String): String =
+        if (DocumentsTree.isNativePath(path)) {
+            YuzuApplication.documentsTree!!.getFilename(path)
+        } else {
+            FileUtil.getFilename(Uri.parse(path))
+        }
 
     /**
      * Returns true if pro controller isn't available and handheld is
