@@ -149,7 +149,7 @@ private:
 
     void GetVARegionsImpl(IoctlGetVaRegions& params);
     NvResult GetVARegions1(IoctlGetVaRegions& params);
-    NvResult GetVARegions3(IoctlGetVaRegions& params, std::span<u8> inline_output);
+    NvResult GetVARegions3(IoctlGetVaRegions& params, std::span<VaRegion> regions);
 
     void FreeMappingLocked(u64 offset);
 

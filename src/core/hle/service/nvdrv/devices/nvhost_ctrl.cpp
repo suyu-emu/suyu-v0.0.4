@@ -41,19 +41,19 @@ NvResult nvhost_ctrl::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inp
     case 0x0:
         switch (command.cmd) {
         case 0x1b:
-            return Wrap1(&nvhost_ctrl::NvOsGetConfigU32, input, output);
+            return WrapFixed(this, &nvhost_ctrl::NvOsGetConfigU32, input, output);
         case 0x1c:
-            return Wrap1(&nvhost_ctrl::IocCtrlClearEventWait, input, output);
+            return WrapFixed(this, &nvhost_ctrl::IocCtrlClearEventWait, input, output);
         case 0x1d:
-            return Wrap1(&nvhost_ctrl::IocCtrlEventWaitWithAllocation, input, output);
+            return WrapFixed(this, &nvhost_ctrl::IocCtrlEventWait, input, output, true);
         case 0x1e:
-            return Wrap1(&nvhost_ctrl::IocCtrlEventWaitNotAllocation, input, output);
+            return WrapFixed(this, &nvhost_ctrl::IocCtrlEventWait, input, output, false);
         case 0x1f:
-            return Wrap1(&nvhost_ctrl::IocCtrlEventRegister, input, output);
+            return WrapFixed(this, &nvhost_ctrl::IocCtrlEventRegister, input, output);
         case 0x20:
-            return Wrap1(&nvhost_ctrl::IocCtrlEventUnregister, input, output);
+            return WrapFixed(this, &nvhost_ctrl::IocCtrlEventUnregister, input, output);
         case 0x21:
-            return Wrap1(&nvhost_ctrl::IocCtrlEventUnregisterBatch, input, output);
+            return WrapFixed(this, &nvhost_ctrl::IocCtrlEventUnregisterBatch, input, output);
         }
         break;
     default:
@@ -86,7 +86,7 @@ NvResult nvhost_ctrl::NvOsGetConfigU32(IocGetConfigParams& params) {
     return NvResult::ConfigVarNotFound; // Returns error on production mode
 }
 
-NvResult nvhost_ctrl::IocCtrlEventWaitImpl(IocCtrlEventWaitParams& params, bool is_allocation) {
+NvResult nvhost_ctrl::IocCtrlEventWait(IocCtrlEventWaitParams& params, bool is_allocation) {
     LOG_DEBUG(Service_NVDRV, "syncpt_id={}, threshold={}, timeout={}, is_allocation={}",
               params.fence.id, params.fence.value, params.timeout, is_allocation);
 

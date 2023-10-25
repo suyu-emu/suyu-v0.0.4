@@ -28,23 +28,23 @@ NvResult nvhost_ctrl_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8>
     case 'G':
         switch (command.cmd) {
         case 0x1:
-            return Wrap1(&nvhost_ctrl_gpu::ZCullGetCtxSize, input, output);
+            return WrapFixed(this, &nvhost_ctrl_gpu::ZCullGetCtxSize, input, output);
         case 0x2:
-            return Wrap1(&nvhost_ctrl_gpu::ZCullGetInfo, input, output);
+            return WrapFixed(this, &nvhost_ctrl_gpu::ZCullGetInfo, input, output);
         case 0x3:
-            return Wrap1(&nvhost_ctrl_gpu::ZBCSetTable, input, output);
+            return WrapFixed(this, &nvhost_ctrl_gpu::ZBCSetTable, input, output);
         case 0x4:
-            return Wrap1(&nvhost_ctrl_gpu::ZBCQueryTable, input, output);
+            return WrapFixed(this, &nvhost_ctrl_gpu::ZBCQueryTable, input, output);
         case 0x5:
-            return Wrap1(&nvhost_ctrl_gpu::GetCharacteristics1, input, output);
+            return WrapFixed(this, &nvhost_ctrl_gpu::GetCharacteristics1, input, output);
         case 0x6:
-            return Wrap1(&nvhost_ctrl_gpu::GetTPCMasks1, input, output);
+            return WrapFixed(this, &nvhost_ctrl_gpu::GetTPCMasks1, input, output);
         case 0x7:
-            return Wrap1(&nvhost_ctrl_gpu::FlushL2, input, output);
+            return WrapFixed(this, &nvhost_ctrl_gpu::FlushL2, input, output);
         case 0x14:
-            return Wrap1(&nvhost_ctrl_gpu::GetActiveSlotMask, input, output);
+            return WrapFixed(this, &nvhost_ctrl_gpu::GetActiveSlotMask, input, output);
         case 0x1c:
-            return Wrap1(&nvhost_ctrl_gpu::GetGpuTime, input, output);
+            return WrapFixed(this, &nvhost_ctrl_gpu::GetGpuTime, input, output);
         default:
             break;
         }
@@ -66,9 +66,11 @@ NvResult nvhost_ctrl_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8>
     case 'G':
         switch (command.cmd) {
         case 0x5:
-            return Wrap3(&nvhost_ctrl_gpu::GetCharacteristics3, input, output, inline_output);
+            return WrapFixedInlOut(this, &nvhost_ctrl_gpu::GetCharacteristics3, input, output,
+                                   inline_output);
         case 0x6:
-            return Wrap3(&nvhost_ctrl_gpu::GetTPCMasks3, input, output, inline_output);
+            return WrapFixedInlOut(this, &nvhost_ctrl_gpu::GetTPCMasks3, input, output,
+                                   inline_output);
         default:
             break;
         }
@@ -125,8 +127,8 @@ NvResult nvhost_ctrl_gpu::GetCharacteristics1(IoctlCharacteristics& params) {
     return NvResult::Success;
 }
 
-NvResult nvhost_ctrl_gpu::GetCharacteristics3(IoctlCharacteristics& params,
-                                              std::span<u8> inline_output) {
+NvResult nvhost_ctrl_gpu::GetCharacteristics3(
+    IoctlCharacteristics& params, std::span<IoctlGpuCharacteristics> gpu_characteristics) {
     LOG_DEBUG(Service_NVDRV, "called");
 
     params.gc.arch = 0x120;
@@ -166,8 +168,9 @@ NvResult nvhost_ctrl_gpu::GetCharacteristics3(IoctlCharacteristics& params,
     params.gc.gr_compbit_store_base_hw = 0x0;
     params.gpu_characteristics_buf_size = 0xA0;
     params.gpu_characteristics_buf_addr = 0xdeadbeef; // Cannot be 0 (UNUSED)
-    std::memcpy(inline_output.data(), &params.gc,
-                std::min(sizeof(params.gc), inline_output.size()));
+    if (!gpu_characteristics.empty()) {
+        gpu_characteristics.front() = params.gc;
+    }
     return NvResult::Success;
 }
 
@@ -179,14 +182,14 @@ NvResult nvhost_ctrl_gpu::GetTPCMasks1(IoctlGpuGetTpcMasksArgs& params) {
     return NvResult::Success;
 }
 
-NvResult nvhost_ctrl_gpu::GetTPCMasks3(IoctlGpuGetTpcMasksArgs& params,
-                                       std::span<u8> inline_output) {
+NvResult nvhost_ctrl_gpu::GetTPCMasks3(IoctlGpuGetTpcMasksArgs& params, std::span<u32> tpc_mask) {
     LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size=0x{:X}", params.mask_buffer_size);
     if (params.mask_buffer_size != 0) {
         params.tcp_mask = 3;
     }
-    std::memcpy(inline_output.data(), &params.tcp_mask,
-                std::min(sizeof(params.tcp_mask), inline_output.size()));
+    if (!tpc_mask.empty()) {
+        tpc_mask.front() = params.tcp_mask;
+    }
     return NvResult::Success;
 }
 

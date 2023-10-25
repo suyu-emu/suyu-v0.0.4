@@ -19,7 +19,7 @@ NvResult nvhost_nvjpg::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> in
     case 'H':
         switch (command.cmd) {
         case 0x1:
-            return Wrap1(&nvhost_nvjpg::SetNVMAPfd, input, output);
+            return WrapFixed(this, &nvhost_nvjpg::SetNVMAPfd, input, output);
         default:
             break;
         }

@@ -26,18 +26,18 @@ NvResult nvhost_nvdec::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> in
             if (!host1x_file.fd_to_id.contains(fd)) {
                 host1x_file.fd_to_id[fd] = host1x_file.nvdec_next_id++;
             }
-            return Submit(fd, input, output);
+            return WrapFixedVariable(this, &nvhost_nvdec::Submit, input, output, fd);
         }
         case 0x2:
-            return Wrap1(&nvhost_nvdec::GetSyncpoint, input, output);
+            return WrapFixed(this, &nvhost_nvdec::GetSyncpoint, input, output);
         case 0x3:
-            return Wrap1(&nvhost_nvdec::GetWaitbase, input, output);
+            return WrapFixed(this, &nvhost_nvdec::GetWaitbase, input, output);
         case 0x7:
-            return Wrap1(&nvhost_nvdec::SetSubmitTimeout, input, output);
+            return WrapFixed(this, &nvhost_nvdec::SetSubmitTimeout, input, output);
         case 0x9:
-            return MapBuffer(input, output);
+            return WrapFixedVariable(this, &nvhost_nvdec::MapBuffer, input, output);
         case 0xa:
-            return UnmapBuffer(input, output);
+            return WrapFixedVariable(this, &nvhost_nvdec::UnmapBuffer, input, output);
         default:
             break;
         }
@@ -45,7 +45,7 @@ NvResult nvhost_nvdec::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> in
     case 'H':
         switch (command.cmd) {
         case 0x1:
-            return Wrap1(&nvhost_nvdec::SetNVMAPfd, input, output);
+            return WrapFixed(this, &nvhost_nvdec::SetNVMAPfd, input, output);
         default:
             break;
         }

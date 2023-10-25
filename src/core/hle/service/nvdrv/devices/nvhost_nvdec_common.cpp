@@ -76,13 +76,7 @@ NvResult nvhost_nvdec_common::SetNVMAPfd(IoctlSetNvmapFD& params) {
     return NvResult::Success;
 }
 
-NvResult nvhost_nvdec_common::Submit(DeviceFD fd, std::span<const u8> input, std::span<u8> output) {
-    if (input.size() < sizeof(IoctlSubmit) || output.size() < sizeof(IoctlSubmit)) {
-        UNIMPLEMENTED();
-        return NvResult::InvalidSize;
-    }
-    IoctlSubmit params{};
-    std::memcpy(&params, input.data(), std::min(input.size(), sizeof(IoctlSubmit)));
+NvResult nvhost_nvdec_common::Submit(IoctlSubmit& params, std::span<u8> data, DeviceFD fd) {
     LOG_DEBUG(Service_NVDRV, "called NVDEC Submit, cmd_buffer_count={}", params.cmd_buffer_count);
 
     // Instantiate param buffers
@@ -93,12 +87,12 @@ NvResult nvhost_nvdec_common::Submit(DeviceFD fd, std::span<const u8> input, std
     std::vector<u32> fence_thresholds(params.fence_count);
 
     // Slice input into their respective buffers
-    std::size_t offset = sizeof(IoctlSubmit);
-    offset += SliceVectors(input, command_buffers, params.cmd_buffer_count, offset);
-    offset += SliceVectors(input, relocs, params.relocation_count, offset);
-    offset += SliceVectors(input, reloc_shifts, params.relocation_count, offset);
-    offset += SliceVectors(input, syncpt_increments, params.syncpoint_count, offset);
-    offset += SliceVectors(input, fence_thresholds, params.fence_count, offset);
+    std::size_t offset = 0;
+    offset += SliceVectors(data, command_buffers, params.cmd_buffer_count, offset);
+    offset += SliceVectors(data, relocs, params.relocation_count, offset);
+    offset += SliceVectors(data, reloc_shifts, params.relocation_count, offset);
+    offset += SliceVectors(data, syncpt_increments, params.syncpoint_count, offset);
+    offset += SliceVectors(data, fence_thresholds, params.fence_count, offset);
 
     auto& gpu = system.GPU();
     if (gpu.UseNvdec()) {
@@ -116,14 +110,13 @@ NvResult nvhost_nvdec_common::Submit(DeviceFD fd, std::span<const u8> input, std
                                              cmdlist.size() * sizeof(u32));
         gpu.PushCommandBuffer(core.Host1xDeviceFile().fd_to_id[fd], cmdlist);
     }
-    std::memcpy(output.data(), &params, sizeof(IoctlSubmit));
     // Some games expect command_buffers to be written back
-    offset = sizeof(IoctlSubmit);
-    offset += WriteVectors(output, command_buffers, offset);
-    offset += WriteVectors(output, relocs, offset);
-    offset += WriteVectors(output, reloc_shifts, offset);
-    offset += WriteVectors(output, syncpt_increments, offset);
-    offset += WriteVectors(output, fence_thresholds, offset);
+    offset = 0;
+    offset += WriteVectors(data, command_buffers, offset);
+    offset += WriteVectors(data, relocs, offset);
+    offset += WriteVectors(data, reloc_shifts, offset);
+    offset += WriteVectors(data, syncpt_increments, offset);
+    offset += WriteVectors(data, fence_thresholds, offset);
 
     return NvResult::Success;
 }
@@ -140,40 +133,24 @@ NvResult nvhost_nvdec_common::GetWaitbase(IoctlGetWaitbase& params) {
     return NvResult::Success;
 }
 
-NvResult nvhost_nvdec_common::MapBuffer(std::span<const u8> input, std::span<u8> output) {
-    IoctlMapBuffer params{};
-    std::memcpy(&params, input.data(), sizeof(IoctlMapBuffer));
-    std::vector<MapBufferEntry> cmd_buffer_handles(params.num_entries);
-
-    SliceVectors(input, cmd_buffer_handles, params.num_entries, sizeof(IoctlMapBuffer));
-
-    for (auto& cmd_buffer : cmd_buffer_handles) {
-        cmd_buffer.map_address = nvmap.PinHandle(cmd_buffer.map_handle);
+NvResult nvhost_nvdec_common::MapBuffer(IoctlMapBuffer& params, std::span<MapBufferEntry> entries) {
+    const size_t num_entries = std::min(params.num_entries, static_cast<u32>(entries.size()));
+    for (size_t i = 0; i < num_entries; i++) {
+        entries[i].map_address = nvmap.PinHandle(entries[i].map_handle);
     }
-
-    if (output.size() <
-        sizeof(IoctlMapBuffer) + cmd_buffer_handles.size() * sizeof(MapBufferEntry)) {
-        return NvResult::InvalidSize;
-    }
-
-    std::memcpy(output.data(), &params, sizeof(IoctlMapBuffer));
-    std::memcpy(output.data() + sizeof(IoctlMapBuffer), cmd_buffer_handles.data(),
-                cmd_buffer_handles.size() * sizeof(MapBufferEntry));
 
     return NvResult::Success;
 }
 
-NvResult nvhost_nvdec_common::UnmapBuffer(std::span<const u8> input, std::span<u8> output) {
-    IoctlMapBuffer params{};
-    std::memcpy(&params, input.data(), std::min(input.size(), sizeof(IoctlMapBuffer)));
-    std::vector<MapBufferEntry> cmd_buffer_handles(params.num_entries);
-
-    SliceVectors(input, cmd_buffer_handles, params.num_entries, sizeof(IoctlMapBuffer));
-    for (auto& cmd_buffer : cmd_buffer_handles) {
-        nvmap.UnpinHandle(cmd_buffer.map_handle);
+NvResult nvhost_nvdec_common::UnmapBuffer(IoctlMapBuffer& params,
+                                          std::span<MapBufferEntry> entries) {
+    const size_t num_entries = std::min(params.num_entries, static_cast<u32>(entries.size()));
+    for (size_t i = 0; i < num_entries; i++) {
+        nvmap.UnpinHandle(entries[i].map_handle);
+        entries[i] = {};
     }
 
-    std::memset(output.data(), 0, output.size());
+    params = {};
     return NvResult::Success;
 }
 

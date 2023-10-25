@@ -152,10 +152,11 @@ private:
     static_assert(sizeof(IoctlGetGpuTime) == 0x10, "IoctlGetGpuTime is incorrect size");
 
     NvResult GetCharacteristics1(IoctlCharacteristics& params);
-    NvResult GetCharacteristics3(IoctlCharacteristics& params, std::span<u8> inline_output);
+    NvResult GetCharacteristics3(IoctlCharacteristics& params,
+                                 std::span<IoctlGpuCharacteristics> gpu_characteristics);
 
     NvResult GetTPCMasks1(IoctlGpuGetTpcMasksArgs& params);
-    NvResult GetTPCMasks3(IoctlGpuGetTpcMasksArgs& params, std::span<u8> inline_output);
+    NvResult GetTPCMasks3(IoctlGpuGetTpcMasksArgs& params, std::span<u32> tpc_mask);
 
     NvResult GetActiveSlotMask(IoctlActiveSlotMask& params);
     NvResult ZCullGetCtxSize(IoctlZcullGetCtxSize& params);

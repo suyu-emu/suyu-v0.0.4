@@ -190,19 +190,10 @@ private:
     NvResult IocCtrlEventRegister(IocCtrlEventRegisterParams& params);
     NvResult IocCtrlEventUnregister(IocCtrlEventUnregisterParams& params);
     NvResult IocCtrlEventUnregisterBatch(IocCtrlEventUnregisterBatchParams& params);
+    NvResult IocCtrlEventWait(IocCtrlEventWaitParams& params, bool is_allocation);
     NvResult IocCtrlClearEventWait(IocCtrlEventClearParams& params);
 
     NvResult FreeEvent(u32 slot);
-
-    // TODO: these are not the correct names
-    NvResult IocCtrlEventWaitNotAllocation(IocCtrlEventWaitParams& params) {
-        return this->IocCtrlEventWaitImpl(params, false);
-    }
-    NvResult IocCtrlEventWaitWithAllocation(IocCtrlEventWaitParams& params) {
-        return this->IocCtrlEventWaitImpl(params, true);
-    }
-
-    NvResult IocCtrlEventWaitImpl(IocCtrlEventWaitParams& params, bool is_allocation);
 
     EventInterface& events_interface;
     NvCore::Container& core;

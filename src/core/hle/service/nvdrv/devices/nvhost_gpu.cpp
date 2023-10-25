@@ -53,7 +53,7 @@ NvResult nvhost_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inpu
     case 0x0:
         switch (command.cmd) {
         case 0x3:
-            return Wrap1(&nvhost_gpu::GetWaitbase, input, output);
+            return WrapFixed(this, &nvhost_gpu::GetWaitbase, input, output);
         default:
             break;
         }
@@ -61,25 +61,25 @@ NvResult nvhost_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inpu
     case 'H':
         switch (command.cmd) {
         case 0x1:
-            return Wrap1(&nvhost_gpu::SetNVMAPfd, input, output);
+            return WrapFixed(this, &nvhost_gpu::SetNVMAPfd, input, output);
         case 0x3:
-            return Wrap1(&nvhost_gpu::ChannelSetTimeout, input, output);
+            return WrapFixed(this, &nvhost_gpu::ChannelSetTimeout, input, output);
         case 0x8:
-            return SubmitGPFIFOBase1(input, false);
+            return WrapFixedVariable(this, &nvhost_gpu::SubmitGPFIFOBase1, input, output, false);
         case 0x9:
-            return Wrap1(&nvhost_gpu::AllocateObjectContext, input, output);
+            return WrapFixed(this, &nvhost_gpu::AllocateObjectContext, input, output);
         case 0xb:
-            return Wrap1(&nvhost_gpu::ZCullBind, input, output);
+            return WrapFixed(this, &nvhost_gpu::ZCullBind, input, output);
         case 0xc:
-            return Wrap1(&nvhost_gpu::SetErrorNotifier, input, output);
+            return WrapFixed(this, &nvhost_gpu::SetErrorNotifier, input, output);
         case 0xd:
-            return Wrap1(&nvhost_gpu::SetChannelPriority, input, output);
+            return WrapFixed(this, &nvhost_gpu::SetChannelPriority, input, output);
         case 0x1a:
-            return Wrap1(&nvhost_gpu::AllocGPFIFOEx2, input, output);
+            return WrapFixed(this, &nvhost_gpu::AllocGPFIFOEx2, input, output);
         case 0x1b:
-            return SubmitGPFIFOBase1(input, true);
+            return WrapFixedVariable(this, &nvhost_gpu::SubmitGPFIFOBase1, input, output, true);
         case 0x1d:
-            return Wrap1(&nvhost_gpu::ChannelSetTimeslice, input, output);
+            return WrapFixed(this, &nvhost_gpu::ChannelSetTimeslice, input, output);
         default:
             break;
         }
@@ -87,9 +87,9 @@ NvResult nvhost_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inpu
     case 'G':
         switch (command.cmd) {
         case 0x14:
-            return Wrap1(&nvhost_gpu::SetClientData, input, output);
+            return WrapFixed(this, &nvhost_gpu::SetClientData, input, output);
         case 0x15:
-            return Wrap1(&nvhost_gpu::GetClientData, input, output);
+            return WrapFixed(this, &nvhost_gpu::GetClientData, input, output);
         default:
             break;
         }
@@ -105,7 +105,8 @@ NvResult nvhost_gpu::Ioctl2(DeviceFD fd, Ioctl command, std::span<const u8> inpu
     case 'H':
         switch (command.cmd) {
         case 0x1b:
-            return SubmitGPFIFOBase2(input, inline_input);
+            return WrapFixedInlIn(this, &nvhost_gpu::SubmitGPFIFOBase2, input, inline_input,
+                                  output);
         }
         break;
     }
@@ -271,36 +272,35 @@ NvResult nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandL
     return NvResult::Success;
 }
 
-NvResult nvhost_gpu::SubmitGPFIFOBase1(std::span<const u8> input, bool kickoff) {
-    if (input.size() < sizeof(IoctlSubmitGpfifo)) {
+NvResult nvhost_gpu::SubmitGPFIFOBase1(IoctlSubmitGpfifo& params,
+                                       std::span<Tegra::CommandListHeader> commands, bool kickoff) {
+    if (params.num_entries > commands.size()) {
         UNIMPLEMENTED();
         return NvResult::InvalidSize;
     }
-    IoctlSubmitGpfifo params{};
-    std::memcpy(&params, input.data(), sizeof(IoctlSubmitGpfifo));
-    Tegra::CommandList entries(params.num_entries);
 
+    Tegra::CommandList entries(params.num_entries);
     if (kickoff) {
         system.ApplicationMemory().ReadBlock(params.address, entries.command_lists.data(),
                                              params.num_entries * sizeof(Tegra::CommandListHeader));
     } else {
-        std::memcpy(entries.command_lists.data(), &input[sizeof(IoctlSubmitGpfifo)],
+        std::memcpy(entries.command_lists.data(), commands.data(),
                     params.num_entries * sizeof(Tegra::CommandListHeader));
     }
 
     return SubmitGPFIFOImpl(params, std::move(entries));
 }
 
-NvResult nvhost_gpu::SubmitGPFIFOBase2(std::span<const u8> input,
-                                       std::span<const u8> input_inline) {
-    if (input.size() < sizeof(IoctlSubmitGpfifo)) {
+NvResult nvhost_gpu::SubmitGPFIFOBase2(IoctlSubmitGpfifo& params,
+                                       std::span<const Tegra::CommandListHeader> commands) {
+    if (params.num_entries > commands.size()) {
         UNIMPLEMENTED();
         return NvResult::InvalidSize;
     }
-    IoctlSubmitGpfifo params{};
-    std::memcpy(&params, input.data(), sizeof(IoctlSubmitGpfifo));
+
     Tegra::CommandList entries(params.num_entries);
-    std::memcpy(entries.command_lists.data(), input_inline.data(), input_inline.size());
+    std::memcpy(entries.command_lists.data(), commands.data(),
+                params.num_entries * sizeof(Tegra::CommandListHeader));
     return SubmitGPFIFOImpl(params, std::move(entries));
 }
 
