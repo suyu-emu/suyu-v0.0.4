@@ -147,3 +147,7 @@ License: GPL-3.0-or-later
 Files: src/android/gradle/wrapper/*
 Copyright: 2023 yuzu Emulator Project
 License: GPL-3.0-or-later
+
+Files: externals/stb/*
+Copyright: Sean Barrett
+License: MIT
