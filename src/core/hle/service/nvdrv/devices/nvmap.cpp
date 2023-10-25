@@ -32,17 +32,17 @@ NvResult nvmap::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> input,
     case 0x1:
         switch (command.cmd) {
         case 0x1:
-            return Wrap1(&nvmap::IocCreate, input, output);
+            return WrapFixed(this, &nvmap::IocCreate, input, output);
         case 0x3:
-            return Wrap1(&nvmap::IocFromId, input, output);
+            return WrapFixed(this, &nvmap::IocFromId, input, output);
         case 0x4:
-            return Wrap1(&nvmap::IocAlloc, input, output);
+            return WrapFixed(this, &nvmap::IocAlloc, input, output);
         case 0x5:
-            return Wrap1(&nvmap::IocFree, input, output);
+            return WrapFixed(this, &nvmap::IocFree, input, output);
         case 0x9:
-            return Wrap1(&nvmap::IocParam, input, output);
+            return WrapFixed(this, &nvmap::IocParam, input, output);
         case 0xe:
-            return Wrap1(&nvmap::IocGetId, input, output);
+            return WrapFixed(this, &nvmap::IocGetId, input, output);
         default:
             break;
         }

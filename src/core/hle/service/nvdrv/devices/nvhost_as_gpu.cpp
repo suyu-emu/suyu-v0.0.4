@@ -34,21 +34,21 @@ NvResult nvhost_as_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> i
     case 'A':
         switch (command.cmd) {
         case 0x1:
-            return Wrap1(&nvhost_as_gpu::BindChannel, input, output);
+            return WrapFixed(this, &nvhost_as_gpu::BindChannel, input, output);
         case 0x2:
-            return Wrap1(&nvhost_as_gpu::AllocateSpace, input, output);
+            return WrapFixed(this, &nvhost_as_gpu::AllocateSpace, input, output);
         case 0x3:
-            return Wrap1(&nvhost_as_gpu::FreeSpace, input, output);
+            return WrapFixed(this, &nvhost_as_gpu::FreeSpace, input, output);
         case 0x5:
-            return Wrap1(&nvhost_as_gpu::UnmapBuffer, input, output);
+            return WrapFixed(this, &nvhost_as_gpu::UnmapBuffer, input, output);
         case 0x6:
-            return Wrap1(&nvhost_as_gpu::MapBufferEx, input, output);
+            return WrapFixed(this, &nvhost_as_gpu::MapBufferEx, input, output);
         case 0x8:
-            return Wrap1(&nvhost_as_gpu::GetVARegions1, input, output);
+            return WrapFixed(this, &nvhost_as_gpu::GetVARegions1, input, output);
         case 0x9:
-            return Wrap1(&nvhost_as_gpu::AllocAsEx, input, output);
+            return WrapFixed(this, &nvhost_as_gpu::AllocAsEx, input, output);
         case 0x14:
-            return Wrap1(&nvhost_as_gpu::Remap, input, output);
+            return WrapVariable(this, &nvhost_as_gpu::Remap, input, output);
         default:
             break;
         }
@@ -73,7 +73,8 @@ NvResult nvhost_as_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> i
     case 'A':
         switch (command.cmd) {
         case 0x8:
-            return Wrap3(&nvhost_as_gpu::GetVARegions3, input, output, inline_output);
+            return WrapFixedInlOut(this, &nvhost_as_gpu::GetVARegions3, input, output,
+                                   inline_output);
         default:
             break;
         }
@@ -482,7 +483,7 @@ NvResult nvhost_as_gpu::GetVARegions1(IoctlGetVaRegions& params) {
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::GetVARegions3(IoctlGetVaRegions& params, std::span<u8> inline_output) {
+NvResult nvhost_as_gpu::GetVARegions3(IoctlGetVaRegions& params, std::span<VaRegion> regions) {
     LOG_DEBUG(Service_NVDRV, "called, buf_addr={:X}, buf_size={:X}", params.buf_addr,
               params.buf_size);
 
@@ -494,7 +495,10 @@ NvResult nvhost_as_gpu::GetVARegions3(IoctlGetVaRegions& params, std::span<u8> i
 
     GetVARegionsImpl(params);
 
-    std::memcpy(inline_output.data(), params.regions.data(), 2 * sizeof(VaRegion));
+    const size_t num_regions = std::min(params.regions.size(), regions.size());
+    for (size_t i = 0; i < num_regions; i++) {
+        regions[i] = params.regions[i];
+    }
 
     return NvResult::Success;
 }

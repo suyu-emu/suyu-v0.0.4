@@ -26,16 +26,16 @@ NvResult nvhost_vic::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inpu
             if (!host1x_file.fd_to_id.contains(fd)) {
                 host1x_file.fd_to_id[fd] = host1x_file.vic_next_id++;
             }
-            return Submit(fd, input, output);
+            return WrapFixedVariable(this, &nvhost_vic::Submit, input, output, fd);
         }
         case 0x2:
-            return Wrap1(&nvhost_vic::GetSyncpoint, input, output);
+            return WrapFixed(this, &nvhost_vic::GetSyncpoint, input, output);
         case 0x3:
-            return Wrap1(&nvhost_vic::GetWaitbase, input, output);
+            return WrapFixed(this, &nvhost_vic::GetWaitbase, input, output);
         case 0x9:
-            return MapBuffer(input, output);
+            return WrapFixedVariable(this, &nvhost_vic::MapBuffer, input, output);
         case 0xa:
-            return UnmapBuffer(input, output);
+            return WrapFixedVariable(this, &nvhost_vic::UnmapBuffer, input, output);
         default:
             break;
         }
@@ -43,7 +43,7 @@ NvResult nvhost_vic::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inpu
     case 'H':
         switch (command.cmd) {
         case 0x1:
-            return Wrap1(&nvhost_vic::SetNVMAPfd, input, output);
+            return WrapFixed(this, &nvhost_vic::SetNVMAPfd, input, output);
         default:
             break;
         }

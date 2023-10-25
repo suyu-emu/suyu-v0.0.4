@@ -196,8 +196,10 @@ private:
     NvResult AllocateObjectContext(IoctlAllocObjCtx& params);
 
     NvResult SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandList&& entries);
-    NvResult SubmitGPFIFOBase1(std::span<const u8> input, bool kickoff = false);
-    NvResult SubmitGPFIFOBase2(std::span<const u8> input, std::span<const u8> input_inline);
+    NvResult SubmitGPFIFOBase1(IoctlSubmitGpfifo& params,
+                               std::span<Tegra::CommandListHeader> commands, bool kickoff = false);
+    NvResult SubmitGPFIFOBase2(IoctlSubmitGpfifo& params,
+                               std::span<const Tegra::CommandListHeader> commands);
 
     NvResult GetWaitbase(IoctlGetWaitbase& params);
     NvResult ChannelSetTimeout(IoctlChannelSetTimeout& params);
