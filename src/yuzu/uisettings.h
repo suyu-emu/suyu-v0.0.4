@@ -93,10 +93,6 @@ struct Values {
     Setting<bool> show_filter_bar{linkage, true, "showFilterBar", Category::Ui};
     Setting<bool> show_status_bar{linkage, true, "showStatusBar", Category::Ui};
 
-    Setting<bool> confirm_before_closing{
-        linkage, true, "confirmClose", Category::UiGeneral, Settings::Specialization::Default,
-        true,    true};
-
     SwitchableSetting<ConfirmStop> confirm_before_stopping{linkage,
                                                            ConfirmStop::Ask_Always,
                                                            "confirmStop",
