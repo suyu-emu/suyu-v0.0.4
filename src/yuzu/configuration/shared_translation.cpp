@@ -156,7 +156,6 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     // Ui General
     INSERT(UISettings, select_user_on_boot, "Prompt for user on game boot", "");
     INSERT(UISettings, pause_when_in_background, "Pause emulation when in background", "");
-    INSERT(UISettings, confirm_before_closing, "Confirm exit while emulation is running", "");
     INSERT(UISettings, confirm_before_stopping, "Confirm before stopping emulation", "");
     INSERT(UISettings, hide_mouse, "Hide mouse on inactivity", "");
     INSERT(UISettings, controller_applet_disabled, "Disable controller applet", "");
