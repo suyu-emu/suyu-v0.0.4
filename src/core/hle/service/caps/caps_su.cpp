@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/hle/service/caps/caps_manager.h"
 #include "core/hle/service/caps/caps_su.h"
 #include "core/hle/service/caps/caps_types.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "video_core/renderer_base.h"
 
 namespace Service::Capture {
 
@@ -58,8 +60,10 @@ void IScreenShotApplicationService::SaveScreenShotEx0(HLERequestContext& ctx) {
              parameters.applet_resource_user_id);
 
     ApplicationAlbumEntry entry{};
-    const auto result = manager->SaveScreenShot(entry, parameters.attribute, image_data_buffer,
-                                                parameters.applet_resource_user_id);
+    manager->FlipVerticallyOnWrite(false);
+    const auto result =
+        manager->SaveScreenShot(entry, parameters.attribute, parameters.report_option,
+                                image_data_buffer, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 10};
     rb.Push(result);
@@ -88,13 +92,43 @@ void IScreenShotApplicationService::SaveScreenShotEx1(HLERequestContext& ctx) {
     ApplicationAlbumEntry entry{};
     ApplicationData app_data{};
     std::memcpy(&app_data, app_data_buffer.data(), sizeof(ApplicationData));
+    manager->FlipVerticallyOnWrite(false);
     const auto result =
-        manager->SaveScreenShot(entry, parameters.attribute, app_data, image_data_buffer,
-                                parameters.applet_resource_user_id);
+        manager->SaveScreenShot(entry, parameters.attribute, parameters.report_option, app_data,
+                                image_data_buffer, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 10};
     rb.Push(result);
     rb.PushRaw(entry);
+}
+
+void IScreenShotApplicationService::CaptureAndSaveScreenshot(AlbumReportOption report_option) {
+    auto& renderer = system.Renderer();
+    Layout::FramebufferLayout layout =
+        Layout::DefaultFrameLayout(screenshot_width, screenshot_height);
+
+    const Capture::ScreenShotAttribute attribute{
+        .unknown_0{},
+        .orientation = Capture::AlbumImageOrientation::None,
+        .unknown_1{},
+        .unknown_2{},
+    };
+
+    renderer.RequestScreenshot(
+        image_data.data(),
+        [attribute, report_option, this](bool invert_y) {
+            // Convert from BGRA to RGBA
+            for (std::size_t i = 0; i < image_data.size(); i += bytes_per_pixel) {
+                const u8 temp = image_data[i];
+                image_data[i] = image_data[i + 2];
+                image_data[i + 2] = temp;
+            }
+
+            Capture::ApplicationAlbumEntry entry{};
+            manager->FlipVerticallyOnWrite(invert_y);
+            manager->SaveScreenShot(entry, attribute, report_option, image_data, {});
+        },
+        layout);
 }
 
 } // namespace Service::Capture
