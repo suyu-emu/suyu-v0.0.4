@@ -190,7 +190,7 @@ void SetupDirtySpecialOps(Tables& tables) {
 void SetupDirtyViewportSwizzles(Tables& tables) {
     static constexpr size_t swizzle_offset = 6;
     for (size_t index = 0; index < Regs::NumViewports; ++index) {
-        tables[0][OFF(viewport_transform) + index * NUM(viewport_transform[0]) + swizzle_offset] =
+        tables[1][OFF(viewport_transform) + index * NUM(viewport_transform[0]) + swizzle_offset] =
             ViewportSwizzles;
     }
 }
