@@ -522,7 +522,7 @@ Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char
         .applicationVersion = VK_MAKE_VERSION(0, 1, 0),
         .pEngineName = "yuzu Emulator",
         .engineVersion = VK_MAKE_VERSION(0, 1, 0),
-        .apiVersion = version,
+        .apiVersion = VK_API_VERSION_1_3,
     };
     const VkInstanceCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,

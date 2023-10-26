@@ -25,11 +25,12 @@ void LoopProcess(Core::System& system) {
     server_manager->RegisterNamedService(
         "caps:u", std::make_shared<IAlbumApplicationService>(system, album_manager));
 
-    server_manager->RegisterNamedService("caps:ss", std::make_shared<IScreenShotService>(system));
+    server_manager->RegisterNamedService(
+        "caps:ss", std::make_shared<IScreenShotService>(system, album_manager));
     server_manager->RegisterNamedService("caps:sc",
                                          std::make_shared<IScreenShotControlService>(system));
-    server_manager->RegisterNamedService("caps:su",
-                                         std::make_shared<IScreenShotApplicationService>(system));
+    server_manager->RegisterNamedService(
+        "caps:su", std::make_shared<IScreenShotApplicationService>(system, album_manager));
 
     ServerManager::RunServer(std::move(server_manager));
 }

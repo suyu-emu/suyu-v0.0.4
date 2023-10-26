@@ -5,8 +5,13 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/string_util.h"
+#include "core/core.h"
+#include "core/file_sys/content_archive.h"
 #include "core/file_sys/errors.h"
-#include "core/file_sys/system_archive/system_version.h"
+#include "core/file_sys/nca_metadata.h"
+#include "core/file_sys/registered_cache.h"
+#include "core/file_sys/romfs.h"
+#include "core/file_sys/system_archive/system_archive.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/set/set.h"
@@ -22,18 +27,30 @@ enum class GetFirmwareVersionType {
     Version2,
 };
 
-void GetFirmwareVersionImpl(HLERequestContext& ctx, GetFirmwareVersionType type) {
-    LOG_WARNING(Service_SET, "called - Using hardcoded firmware version '{}'",
-                FileSys::SystemArchive::GetLongDisplayVersion());
-
+void GetFirmwareVersionImpl(Core::System& system, HLERequestContext& ctx,
+                            GetFirmwareVersionType type) {
     ASSERT_MSG(ctx.GetWriteBufferSize() == 0x100,
                "FirmwareVersion output buffer must be 0x100 bytes in size!");
 
-    // Instead of using the normal procedure of checking for the real system archive and if it
-    // doesn't exist, synthesizing one, I feel that that would lead to strange bugs because a
-    // used is using a really old or really new SystemVersion title. The synthesized one ensures
-    // consistence (currently reports as 5.1.0-0.0)
-    const auto archive = FileSys::SystemArchive::SystemVersion();
+    constexpr u64 FirmwareVersionSystemDataId = 0x0100000000000809;
+    auto& fsc = system.GetFileSystemController();
+
+    // Attempt to load version data from disk
+    const FileSys::RegisteredCache* bis_system{};
+    std::unique_ptr<FileSys::NCA> nca{};
+    FileSys::VirtualDir romfs{};
+
+    bis_system = fsc.GetSystemNANDContents();
+    if (bis_system) {
+        nca = bis_system->GetEntry(FirmwareVersionSystemDataId, FileSys::ContentRecordType::Data);
+    }
+    if (nca) {
+        romfs = FileSys::ExtractRomFS(nca->GetRomFS());
+    }
+    if (!romfs) {
+        romfs = FileSys::ExtractRomFS(
+            FileSys::SystemArchive::SynthesizeSystemArchive(FirmwareVersionSystemDataId));
+    }
 
     const auto early_exit_failure = [&ctx](std::string_view desc, Result code) {
         LOG_ERROR(Service_SET, "General failure while attempting to resolve firmware version ({}).",
@@ -42,13 +59,7 @@ void GetFirmwareVersionImpl(HLERequestContext& ctx, GetFirmwareVersionType type)
         rb.Push(code);
     };
 
-    if (archive == nullptr) {
-        early_exit_failure("The system version archive couldn't be synthesized.",
-                           FileSys::ERROR_FAILED_MOUNT_ARCHIVE);
-        return;
-    }
-
-    const auto ver_file = archive->GetFile("file");
+    const auto ver_file = romfs->GetFile("file");
     if (ver_file == nullptr) {
         early_exit_failure("The system version archive didn't contain the file 'file'.",
                            FileSys::ERROR_INVALID_ARGUMENT);
@@ -87,12 +98,12 @@ void SET_SYS::SetLanguageCode(HLERequestContext& ctx) {
 
 void SET_SYS::GetFirmwareVersion(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
-    GetFirmwareVersionImpl(ctx, GetFirmwareVersionType::Version1);
+    GetFirmwareVersionImpl(system, ctx, GetFirmwareVersionType::Version1);
 }
 
 void SET_SYS::GetFirmwareVersion2(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
-    GetFirmwareVersionImpl(ctx, GetFirmwareVersionType::Version2);
+    GetFirmwareVersionImpl(system, ctx, GetFirmwareVersionType::Version2);
 }
 
 void SET_SYS::GetAccountSettings(HLERequestContext& ctx) {

@@ -58,6 +58,15 @@ public:
                                         std::vector<u8>& out_image, const AlbumFileId& file_id,
                                         const ScreenShotDecodeOption& decoder_options) const;
 
+    Result SaveScreenShot(ApplicationAlbumEntry& out_entry, const ScreenShotAttribute& attribute,
+                          std::span<const u8> image_data, u64 aruid);
+    Result SaveScreenShot(ApplicationAlbumEntry& out_entry, const ScreenShotAttribute& attribute,
+                          const ApplicationData& app_data, std::span<const u8> image_data,
+                          u64 aruid);
+    Result SaveEditedScreenShot(ApplicationAlbumEntry& out_entry,
+                                const ScreenShotAttribute& attribute, const AlbumFileId& file_id,
+                                std::span<const u8> image_data);
+
 private:
     static constexpr std::size_t NandAlbumFileLimit = 1000;
     static constexpr std::size_t SdAlbumFileLimit = 10000;
@@ -67,6 +76,8 @@ private:
     Result GetAlbumEntry(AlbumEntry& out_entry, const std::filesystem::path& path) const;
     Result LoadImage(std::span<u8> out_image, const std::filesystem::path& path, int width,
                      int height, ScreenShotDecoderFlag flag) const;
+    Result SaveImage(ApplicationAlbumEntry& out_entry, std::span<const u8> image, u64 title_id,
+                     const AlbumFileDateTime& date) const;
 
     AlbumFileDateTime ConvertToAlbumDateTime(u64 posix_time) const;
 

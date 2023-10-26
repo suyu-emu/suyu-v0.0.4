@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <sstream>
-#include <stb_image.h>
-#include <stb_image_resize.h>
 
 #include "common/fs/file.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
+#include "common/stb.h"
 #include "core/core.h"
 #include "core/hle/service/caps/caps_manager.h"
 #include "core/hle/service/caps/caps_result.h"
@@ -227,6 +226,49 @@ Result AlbumManager::LoadAlbumScreenShotThumbnail(
                      +static_cast<int>(out_image_output.height), decoder_options.flags);
 }
 
+Result AlbumManager::SaveScreenShot(ApplicationAlbumEntry& out_entry,
+                                    const ScreenShotAttribute& attribute,
+                                    std::span<const u8> image_data, u64 aruid) {
+    return SaveScreenShot(out_entry, attribute, {}, image_data, aruid);
+}
+
+Result AlbumManager::SaveScreenShot(ApplicationAlbumEntry& out_entry,
+                                    const ScreenShotAttribute& attribute,
+                                    const ApplicationData& app_data, std::span<const u8> image_data,
+                                    u64 aruid) {
+    const u64 title_id = system.GetApplicationProcessProgramID();
+    const auto& user_clock = system.GetTimeManager().GetStandardUserSystemClockCore();
+
+    s64 posix_time{};
+    Result result = user_clock.GetCurrentTime(system, posix_time);
+
+    if (result.IsError()) {
+        return result;
+    }
+
+    const auto date = ConvertToAlbumDateTime(posix_time);
+
+    return SaveImage(out_entry, image_data, title_id, date);
+}
+
+Result AlbumManager::SaveEditedScreenShot(ApplicationAlbumEntry& out_entry,
+                                          const ScreenShotAttribute& attribute,
+                                          const AlbumFileId& file_id,
+                                          std::span<const u8> image_data) {
+    const auto& user_clock = system.GetTimeManager().GetStandardUserSystemClockCore();
+
+    s64 posix_time{};
+    Result result = user_clock.GetCurrentTime(system, posix_time);
+
+    if (result.IsError()) {
+        return result;
+    }
+
+    const auto date = ConvertToAlbumDateTime(posix_time);
+
+    return SaveImage(out_entry, image_data, file_id.application_id, date);
+}
+
 Result AlbumManager::GetFile(std::filesystem::path& out_path, const AlbumFileId& file_id) const {
     const auto file = album_files.find(file_id);
 
@@ -361,6 +403,47 @@ Result AlbumManager::LoadImage(std::span<u8> out_image, const std::filesystem::p
 
     stbir_resize_uint8_srgb(dbi_image, original_width, original_height, 0, out_image.data(), width,
                             height, 0, STBI_rgb_alpha, 3, filter_flag);
+
+    return ResultSuccess;
+}
+
+static void PNGToMemory(void* context, void* png, int len) {
+    std::vector<u8>* png_image = static_cast<std::vector<u8>*>(context);
+    png_image->reserve(len);
+    std::memcpy(png_image->data(), png, len);
+}
+
+Result AlbumManager::SaveImage(ApplicationAlbumEntry& out_entry, std::span<const u8> image,
+                               u64 title_id, const AlbumFileDateTime& date) const {
+    const auto screenshot_path =
+        Common::FS::GetYuzuPathString(Common::FS::YuzuPath::ScreenshotsDir);
+    const std::string formatted_date =
+        fmt::format("{:04}-{:02}-{:02}_{:02}-{:02}-{:02}-{:03}", date.year, date.month, date.day,
+                    date.hour, date.minute, date.second, 0);
+    const std::string file_path =
+        fmt::format("{}/{:016x}_{}.png", screenshot_path, title_id, formatted_date);
+
+    const Common::FS::IOFile db_file{file_path, Common::FS::FileAccessMode::Write,
+                                     Common::FS::FileType::BinaryFile};
+
+    std::vector<u8> png_image;
+    if (!stbi_write_png_to_func(PNGToMemory, &png_image, 1280, 720, STBI_rgb_alpha, image.data(),
+                                0)) {
+        return ResultFileCountLimit;
+    }
+
+    if (db_file.Write(png_image) != png_image.size()) {
+        return ResultFileCountLimit;
+    }
+
+    out_entry = {
+        .size = png_image.size(),
+        .hash = {},
+        .datetime = date,
+        .storage = AlbumStorage::Sd,
+        .content = ContentType::Screenshot,
+        .unknown = 1,
+    };
 
     return ResultSuccess;
 }

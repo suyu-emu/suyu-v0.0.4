@@ -14,13 +14,9 @@ public:
     ~TS() override;
 
 private:
-    enum class Location : u8 {
-        Internal,
-        External,
-    };
-
     void GetTemperature(HLERequestContext& ctx);
     void GetTemperatureMilliC(HLERequestContext& ctx);
+    void OpenSession(HLERequestContext& ctx);
 };
 
 } // namespace Service::PTM

@@ -83,15 +83,6 @@ constexpr std::array VK_FORMAT_A4B4G4R4_UNORM_PACK16{
 
 } // namespace Alternatives
 
-enum class NvidiaArchitecture {
-    KeplerOrOlder,
-    Maxwell,
-    Pascal,
-    Volta,
-    Turing,
-    AmpereOrNewer,
-};
-
 template <typename T>
 void SetNext(void**& next, T& data) {
     *next = &data;
@@ -326,9 +317,9 @@ NvidiaArchitecture GetNvidiaArchitecture(vk::PhysicalDevice physical,
         if (shading_rate_props.primitiveFragmentShadingRateWithMultipleViewports) {
             // Only Ampere and newer support this feature
             // TODO: Find a way to differentiate Ampere and Ada
-            return NvidiaArchitecture::AmpereOrNewer;
+            return NvidiaArchitecture::Arch_AmpereOrNewer;
         }
-        return NvidiaArchitecture::Turing;
+        return NvidiaArchitecture::Arch_Turing;
     }
 
     if (exts.contains(VK_EXT_BLEND_OPERATION_ADVANCED_EXTENSION_NAME)) {
@@ -340,7 +331,7 @@ NvidiaArchitecture GetNvidiaArchitecture(vk::PhysicalDevice physical,
         physical_properties.pNext = &advanced_blending_props;
         physical.GetProperties2(physical_properties);
         if (advanced_blending_props.advancedBlendMaxColorAttachments == 1) {
-            return NvidiaArchitecture::Maxwell;
+            return NvidiaArchitecture::Arch_Maxwell;
         }
 
         if (exts.contains(VK_EXT_CONSERVATIVE_RASTERIZATION_EXTENSION_NAME)) {
@@ -350,13 +341,13 @@ NvidiaArchitecture GetNvidiaArchitecture(vk::PhysicalDevice physical,
             physical_properties.pNext = &conservative_raster_props;
             physical.GetProperties2(physical_properties);
             if (conservative_raster_props.degenerateLinesRasterized) {
-                return NvidiaArchitecture::Volta;
+                return NvidiaArchitecture::Arch_Volta;
             }
-            return NvidiaArchitecture::Pascal;
+            return NvidiaArchitecture::Arch_Pascal;
         }
     }
 
-    return NvidiaArchitecture::KeplerOrOlder;
+    return NvidiaArchitecture::Arch_KeplerOrOlder;
 }
 
 std::vector<const char*> ExtensionListForVulkan(
@@ -434,6 +425,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan, "Unsuitable driver, continuing anyway");
     } else if (!is_suitable) {
         throw vk::Exception(VK_ERROR_INCOMPATIBLE_DRIVER);
+    }
+
+    if (is_nvidia) {
+        nvidia_arch = GetNvidiaArchitecture(physical, supported_extensions);
     }
 
     SetupFamilies(surface);
@@ -532,11 +527,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     if (is_nvidia) {
         const u32 nv_major_version = (properties.properties.driverVersion >> 22) & 0x3ff;
-        const auto arch = GetNvidiaArchitecture(physical, supported_extensions);
-        if (arch >= NvidiaArchitecture::AmpereOrNewer) {
+        const auto arch = GetNvidiaArch();
+        if (arch >= NvidiaArchitecture::Arch_AmpereOrNewer) {
             LOG_WARNING(Render_Vulkan, "Ampere and newer have broken float16 math");
             features.shader_float16_int8.shaderFloat16 = false;
-        } else if (arch <= NvidiaArchitecture::Volta) {
+        } else if (arch <= NvidiaArchitecture::Arch_Volta) {
             if (nv_major_version < 527) {
                 LOG_WARNING(Render_Vulkan, "Volta and older have broken VK_KHR_push_descriptor");
                 RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
@@ -686,8 +681,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
         }
     } else if (extensions.push_descriptor && is_nvidia) {
-        const auto arch = GetNvidiaArchitecture(physical, supported_extensions);
-        if (arch <= NvidiaArchitecture::Pascal) {
+        const auto arch = GetNvidiaArch();
+        if (arch <= NvidiaArchitecture::Arch_Pascal) {
             LOG_WARNING(Render_Vulkan,
                         "Pascal and older architectures have broken VK_KHR_push_descriptor");
             RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);

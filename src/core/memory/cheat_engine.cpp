@@ -19,14 +19,21 @@ namespace Core::Memory {
 namespace {
 constexpr auto CHEAT_ENGINE_NS = std::chrono::nanoseconds{1000000000 / 12};
 
-std::string_view ExtractName(std::string_view data, std::size_t start_index, char match) {
+std::string_view ExtractName(std::size_t& out_name_size, std::string_view data,
+                             std::size_t start_index, char match) {
     auto end_index = start_index;
     while (data[end_index] != match) {
         ++end_index;
-        if (end_index > data.size() ||
-            (end_index - start_index - 1) > sizeof(CheatDefinition::readable_name)) {
+        if (end_index > data.size()) {
             return {};
         }
+    }
+
+    out_name_size = end_index - start_index;
+
+    // Clamp name if it's too big
+    if (out_name_size > sizeof(CheatDefinition::readable_name)) {
+        end_index = start_index + sizeof(CheatDefinition::readable_name);
     }
 
     return data.substr(start_index, end_index - start_index);
@@ -113,7 +120,8 @@ std::vector<CheatEntry> TextCheatParser::Parse(std::string_view data) const {
                 return {};
             }
 
-            const auto name = ExtractName(data, i + 1, '}');
+            std::size_t name_size{};
+            const auto name = ExtractName(name_size, data, i + 1, '}');
             if (name.empty()) {
                 return {};
             }
@@ -125,12 +133,13 @@ std::vector<CheatEntry> TextCheatParser::Parse(std::string_view data) const {
                 .definition.readable_name[out[*current_entry].definition.readable_name.size() - 1] =
                 '\0';
 
-            i += name.length() + 1;
+            i += name_size + 1;
         } else if (data[i] == '[') {
             current_entry = out.size();
             out.emplace_back();
 
-            const auto name = ExtractName(data, i + 1, ']');
+            std::size_t name_size{};
+            const auto name = ExtractName(name_size, data, i + 1, ']');
             if (name.empty()) {
                 return {};
             }
@@ -142,7 +151,7 @@ std::vector<CheatEntry> TextCheatParser::Parse(std::string_view data) const {
                 .definition.readable_name[out[*current_entry].definition.readable_name.size() - 1] =
                 '\0';
 
-            i += name.length() + 1;
+            i += name_size + 1;
         } else if (::isxdigit(data[i])) {
             if (!current_entry || out[*current_entry].definition.num_opcodes >=
                                       out[*current_entry].definition.opcodes.size()) {
