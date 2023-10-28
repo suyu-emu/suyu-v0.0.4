@@ -137,6 +137,56 @@ BlitScreen::BlitScreen(Core::Memory::Memory& cpu_memory_, Core::Frontend::EmuWin
 
 BlitScreen::~BlitScreen() = default;
 
+static Common::Rectangle<f32> NormalizeCrop(const Tegra::FramebufferConfig& framebuffer,
+                                            const ScreenInfo& screen_info) {
+    f32 left, top, right, bottom;
+
+    if (!framebuffer.crop_rect.IsEmpty()) {
+        // If crop rectangle is not empty, apply properties from rectangle.
+        left = static_cast<f32>(framebuffer.crop_rect.left);
+        top = static_cast<f32>(framebuffer.crop_rect.top);
+        right = static_cast<f32>(framebuffer.crop_rect.right);
+        bottom = static_cast<f32>(framebuffer.crop_rect.bottom);
+    } else {
+        // Otherwise, fall back to framebuffer dimensions.
+        left = 0;
+        top = 0;
+        right = static_cast<f32>(framebuffer.width);
+        bottom = static_cast<f32>(framebuffer.height);
+    }
+
+    // Apply transformation flags.
+    auto framebuffer_transform_flags = framebuffer.transform_flags;
+
+    if (True(framebuffer_transform_flags & Service::android::BufferTransformFlags::FlipH)) {
+        // Switch left and right.
+        std::swap(left, right);
+    }
+    if (True(framebuffer_transform_flags & Service::android::BufferTransformFlags::FlipV)) {
+        // Switch top and bottom.
+        std::swap(top, bottom);
+    }
+
+    framebuffer_transform_flags &= ~Service::android::BufferTransformFlags::FlipH;
+    framebuffer_transform_flags &= ~Service::android::BufferTransformFlags::FlipV;
+    if (True(framebuffer_transform_flags)) {
+        UNIMPLEMENTED_MSG("Unsupported framebuffer_transform_flags={}",
+                          static_cast<u32>(framebuffer_transform_flags));
+    }
+
+    // Get the screen properties.
+    const f32 screen_width = static_cast<f32>(screen_info.width);
+    const f32 screen_height = static_cast<f32>(screen_info.height);
+
+    // Normalize coordinate space.
+    left /= screen_width;
+    top /= screen_height;
+    right /= screen_width;
+    bottom /= screen_height;
+
+    return Common::Rectangle<f32>(left, top, right, bottom);
+}
+
 void BlitScreen::Recreate() {
     present_manager.WaitPresent();
     scheduler.Finish();
@@ -354,17 +404,10 @@ void BlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
         source_image_view = smaa->Draw(scheduler, image_index, source_image, source_image_view);
     }
     if (fsr) {
-        auto crop_rect = framebuffer.crop_rect;
-        if (crop_rect.GetWidth() == 0) {
-            crop_rect.right = framebuffer.width;
-        }
-        if (crop_rect.GetHeight() == 0) {
-            crop_rect.bottom = framebuffer.height;
-        }
-        crop_rect = crop_rect.Scale(Settings::values.resolution_info.up_factor);
-        VkExtent2D fsr_input_size{
-            .width = Settings::values.resolution_info.ScaleUp(framebuffer.width),
-            .height = Settings::values.resolution_info.ScaleUp(framebuffer.height),
+        const auto crop_rect = NormalizeCrop(framebuffer, screen_info);
+        const VkExtent2D fsr_input_size{
+            .width = Settings::values.resolution_info.ScaleUp(screen_info.width),
+            .height = Settings::values.resolution_info.ScaleUp(screen_info.height),
         };
         VkImageView fsr_image_view =
             fsr->Draw(scheduler, image_index, source_image_view, fsr_input_size, crop_rect);
@@ -1395,60 +1438,27 @@ void BlitScreen::SetUniformData(BufferData& data, const Layout::FramebufferLayou
         MakeOrthographicMatrix(static_cast<f32>(layout.width), static_cast<f32>(layout.height));
 }
 
-static Common::Rectangle<f32> NormalizeCrop(Common::Rectangle<int> crop,
-                                            const Tegra::FramebufferConfig& framebuffer) {
-    f32 left, top, right, bottom;
-
-    if (!crop.IsEmpty()) {
-        // If crop rectangle is not empty, apply properties from rectangle.
-        left = static_cast<f32>(crop.left);
-        top = static_cast<f32>(crop.top);
-        right = static_cast<f32>(crop.right);
-        bottom = static_cast<f32>(crop.bottom);
-    } else {
-        // Otherwise, fall back to framebuffer dimensions.
-        left = 0;
-        top = 0;
-        right = static_cast<f32>(framebuffer.width);
-        bottom = static_cast<f32>(framebuffer.height);
-    }
-
-    // Apply transformation flags.
-    auto framebuffer_transform_flags = framebuffer.transform_flags;
-
-    if (True(framebuffer_transform_flags & Service::android::BufferTransformFlags::FlipH)) {
-        // Switch left and right.
-        std::swap(left, right);
-    }
-    if (True(framebuffer_transform_flags & Service::android::BufferTransformFlags::FlipV)) {
-        // Switch top and bottom.
-        std::swap(top, bottom);
-    }
-
-    framebuffer_transform_flags &= ~Service::android::BufferTransformFlags::FlipH;
-    framebuffer_transform_flags &= ~Service::android::BufferTransformFlags::FlipV;
-    if (True(framebuffer_transform_flags)) {
-        UNIMPLEMENTED_MSG("Unsupported framebuffer_transform_flags={}",
-                          static_cast<u32>(framebuffer_transform_flags));
-    }
-
-    return Common::Rectangle<f32>(left, top, right, bottom);
-}
-
 void BlitScreen::SetVertexData(BufferData& data, const Tegra::FramebufferConfig& framebuffer,
                                const Layout::FramebufferLayout layout) const {
-    // Get the normalized crop rectangle.
-    const auto crop = NormalizeCrop(framebuffer.crop_rect, framebuffer);
+    f32 left, top, right, bottom;
 
-    // Get the screen properties.
-    const f32 screen_width = static_cast<f32>(screen_info.width);
-    const f32 screen_height = static_cast<f32>(screen_info.height);
+    if (fsr) {
+        // FSR has already applied the crop, so we just want to render the image
+        // it has produced.
+        left = 0;
+        top = 0;
+        right = 1;
+        bottom = 1;
+    } else {
+        // Get the normalized crop rectangle.
+        const auto crop = NormalizeCrop(framebuffer, screen_info);
 
-    // Apply the crop.
-    const f32 left = crop.left / screen_width;
-    const f32 top = crop.top / screen_height;
-    const f32 right = crop.right / screen_width;
-    const f32 bottom = crop.bottom / screen_height;
+        // Apply the crop.
+        left = crop.left;
+        top = crop.top;
+        right = crop.right;
+        bottom = crop.bottom;
+    }
 
     // Map the coordinates to the screen.
     const auto& screen = layout.screen;

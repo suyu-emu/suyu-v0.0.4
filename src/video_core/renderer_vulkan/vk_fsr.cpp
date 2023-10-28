@@ -34,7 +34,7 @@ FSR::FSR(const Device& device_, MemoryAllocator& memory_allocator_, size_t image
 }
 
 VkImageView FSR::Draw(Scheduler& scheduler, size_t image_index, VkImageView image_view,
-                      VkExtent2D input_image_extent, const Common::Rectangle<int>& crop_rect) {
+                      VkExtent2D input_image_extent, const Common::Rectangle<f32>& crop_rect) {
 
     UpdateDescriptorSet(image_index, image_view);
 
@@ -61,15 +61,21 @@ VkImageView FSR::Draw(Scheduler& scheduler, size_t image_index, VkImageView imag
 
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *easu_pipeline);
 
-        std::array<u32, 4 * 4> push_constants;
-        FsrEasuConOffset(
-            push_constants.data() + 0, push_constants.data() + 4, push_constants.data() + 8,
-            push_constants.data() + 12,
+        const f32 input_image_width = static_cast<f32>(input_image_extent.width);
+        const f32 input_image_height = static_cast<f32>(input_image_extent.height);
+        const f32 output_image_width = static_cast<f32>(output_size.width);
+        const f32 output_image_height = static_cast<f32>(output_size.height);
+        const f32 viewport_width = (crop_rect.right - crop_rect.left) * input_image_width;
+        const f32 viewport_x = crop_rect.left * input_image_width;
+        const f32 viewport_height = (crop_rect.bottom - crop_rect.top) * input_image_height;
+        const f32 viewport_y = crop_rect.top * input_image_height;
 
-            static_cast<f32>(crop_rect.GetWidth()), static_cast<f32>(crop_rect.GetHeight()),
-            static_cast<f32>(input_image_extent.width), static_cast<f32>(input_image_extent.height),
-            static_cast<f32>(output_size.width), static_cast<f32>(output_size.height),
-            static_cast<f32>(crop_rect.left), static_cast<f32>(crop_rect.top));
+        std::array<u32, 4 * 4> push_constants;
+        FsrEasuConOffset(push_constants.data() + 0, push_constants.data() + 4,
+                         push_constants.data() + 8, push_constants.data() + 12,
+
+                         viewport_width, viewport_height, input_image_width, input_image_height,
+                         output_image_width, output_image_height, viewport_x, viewport_y);
         cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, push_constants);
 
         {

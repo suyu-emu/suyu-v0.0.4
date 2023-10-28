@@ -17,7 +17,7 @@ public:
     explicit FSR(const Device& device, MemoryAllocator& memory_allocator, size_t image_count,
                  VkExtent2D output_size);
     VkImageView Draw(Scheduler& scheduler, size_t image_index, VkImageView image_view,
-                     VkExtent2D input_image_extent, const Common::Rectangle<int>& crop_rect);
+                     VkExtent2D input_image_extent, const Common::Rectangle<f32>& crop_rect);
 
 private:
     void CreateDescriptorPool();
