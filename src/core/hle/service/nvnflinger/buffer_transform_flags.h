@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "common/common_funcs.h"
 #include "common/common_types.h"
 
 namespace Service::android {
@@ -21,5 +22,6 @@ enum class BufferTransformFlags : u32 {
     /// Rotate source image 270 degrees clockwise
     Rotate270 = 0x07,
 };
+DECLARE_ENUM_FLAG_OPERATORS(BufferTransformFlags);
 
 } // namespace Service::android
