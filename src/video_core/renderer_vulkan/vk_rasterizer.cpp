@@ -13,6 +13,7 @@
 #include "common/microprofile.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
+#include "video_core/buffer_cache/buffer_cache.h"
 #include "video_core/control/channel_state.h"
 #include "video_core/engines/draw_manager.h"
 #include "video_core/engines/kepler_compute.h"
@@ -285,6 +286,7 @@ void RasterizerVulkan::DrawTexture() {
 
     query_cache.NotifySegment(true);
 
+    std::scoped_lock l{texture_cache.mutex};
     texture_cache.SynchronizeGraphicsDescriptors();
     texture_cache.UpdateRenderTargets(false);
 
