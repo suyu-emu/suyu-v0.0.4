@@ -2757,6 +2757,10 @@ public:
         joy_detach_event = service_context.CreateEvent("HidSys::JoyDetachEvent");
     }
 
+    ~HidSys() {
+        service_context.CloseEvent(joy_detach_event);
+    };
+
 private:
     void ApplyNpadSystemCommonPolicy(HLERequestContext& ctx) {
         LOG_WARNING(Service_HID, "called");
