@@ -358,7 +358,7 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
         .has_broken_spirv_subgroup_mask_vector_extract_dynamic =
             driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY,
         .has_broken_robust =
-            device.IsNvidia() && device.GetNvidiaArch() <= NvidiaArchitecture::Arch_Maxwell,
+            device.IsNvidia() && device.GetNvidiaArch() <= NvidiaArchitecture::Arch_Pascal,
     };
 
     host_info = Shader::HostTranslateInfo{
