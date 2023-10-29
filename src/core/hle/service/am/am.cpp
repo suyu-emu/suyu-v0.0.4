@@ -796,7 +796,9 @@ ILockAccessor::ILockAccessor(Core::System& system_)
     lock_event = service_context.CreateEvent("ILockAccessor::LockEvent");
 }
 
-ILockAccessor::~ILockAccessor() = default;
+ILockAccessor::~ILockAccessor() {
+    service_context.CloseEvent(lock_event);
+};
 
 void ILockAccessor::TryLock(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
@@ -909,7 +911,9 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_,
     msg_queue->PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
 }
 
-ICommonStateGetter::~ICommonStateGetter() = default;
+ICommonStateGetter::~ICommonStateGetter() {
+    service_context.CloseEvent(sleep_lock_event);
+};
 
 void ICommonStateGetter::GetBootMode(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
