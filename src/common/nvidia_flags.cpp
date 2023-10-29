@@ -25,6 +25,7 @@ void ConfigureNvidiaEnvironmentFlags() {
 
     void(_putenv(fmt::format("__GL_SHADER_DISK_CACHE_PATH={}", windows_path_string).c_str()));
     void(_putenv("__GL_SHADER_DISK_CACHE_SKIP_CLEANUP=1"));
+    void(_putenv("__GL_THREADED_OPTIMIZATIONS=1"));
 #endif
 }
 
