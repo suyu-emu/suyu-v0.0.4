@@ -309,17 +309,10 @@ struct System::Impl {
 
         telemetry_session->AddInitialInfo(*app_loader, fs_controller, *content_provider);
 
-        // Create a resource limit for the process.
-        const auto physical_memory_size =
-            kernel.MemoryManager().GetSize(Kernel::KMemoryManager::Pool::Application);
-        auto* resource_limit = Kernel::CreateResourceLimitForProcess(system, physical_memory_size);
-
         // Create the process.
         auto main_process = Kernel::KProcess::Create(system.Kernel());
-        ASSERT(Kernel::KProcess::Initialize(main_process, system, "main",
-                                            Kernel::KProcess::ProcessType::Userland, resource_limit)
-                   .IsSuccess());
         Kernel::KProcess::Register(system.Kernel(), main_process);
+        kernel.AppendNewProcess(main_process);
         kernel.MakeApplicationProcess(main_process);
         const auto [load_result, load_parameters] = app_loader->Load(*main_process, system);
         if (load_result != Loader::ResultStatus::Success) {
@@ -418,6 +411,7 @@ struct System::Impl {
             services->KillNVNFlinger();
         }
         kernel.CloseServices();
+        kernel.ShutdownCores();
         services.reset();
         service_manager.reset();
         cheat_engine.reset();
@@ -429,7 +423,6 @@ struct System::Impl {
         gpu_core.reset();
         host1x_core.reset();
         perf_stats.reset();
-        kernel.ShutdownCores();
         cpu_manager.Shutdown();
         debugger.reset();
         kernel.Shutdown();

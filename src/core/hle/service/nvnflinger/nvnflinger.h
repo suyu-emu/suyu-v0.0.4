@@ -117,9 +117,6 @@ private:
     /// Finds the layer identified by the specified ID in the desired display.
     [[nodiscard]] VI::Layer* FindLayer(u64 display_id, u64 layer_id);
 
-    /// Finds the layer identified by the specified ID in the desired display.
-    [[nodiscard]] const VI::Layer* FindLayer(u64 display_id, u64 layer_id) const;
-
     /// Finds the layer identified by the specified ID in the desired display,
     /// or creates the layer if it is not found.
     /// To be used when the system expects the specified ID to already exist.

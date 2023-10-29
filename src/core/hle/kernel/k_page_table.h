@@ -63,7 +63,7 @@ public:
     explicit KPageTable(Core::System& system_);
     ~KPageTable();
 
-    Result InitializeForProcess(FileSys::ProgramAddressSpaceType as_type, bool enable_aslr,
+    Result InitializeForProcess(Svc::CreateProcessFlag as_type, bool enable_aslr,
                                 bool enable_das_merge, bool from_back, KMemoryManager::Pool pool,
                                 KProcessAddress code_addr, size_t code_size,
                                 KSystemResource* system_resource, KResourceLimit* resource_limit,
@@ -400,7 +400,7 @@ public:
     constexpr size_t GetAliasCodeRegionSize() const {
         return m_alias_code_region_end - m_alias_code_region_start;
     }
-    size_t GetNormalMemorySize() {
+    size_t GetNormalMemorySize() const {
         KScopedLightLock lk(m_general_lock);
         return GetHeapSize() + m_mapped_physical_memory_size;
     }

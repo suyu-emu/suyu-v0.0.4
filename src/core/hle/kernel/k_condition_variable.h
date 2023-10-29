@@ -24,11 +24,12 @@ public:
     explicit KConditionVariable(Core::System& system);
     ~KConditionVariable();
 
-    // Arbitration
-    Result SignalToAddress(KProcessAddress addr);
-    Result WaitForAddress(Handle handle, KProcessAddress addr, u32 value);
+    // Arbitration.
+    static Result SignalToAddress(KernelCore& kernel, KProcessAddress addr);
+    static Result WaitForAddress(KernelCore& kernel, Handle handle, KProcessAddress addr,
+                                 u32 value);
 
-    // Condition variable
+    // Condition variable.
     void Signal(u64 cv_key, s32 count);
     Result Wait(KProcessAddress addr, u64 key, u32 value, s64 timeout);
 

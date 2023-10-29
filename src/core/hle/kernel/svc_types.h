@@ -604,13 +604,57 @@ enum class ProcessActivity : u32 {
     Paused,
 };
 
+enum class CreateProcessFlag : u32 {
+    // Is 64 bit?
+    Is64Bit = (1 << 0),
+
+    // What kind of address space?
+    AddressSpaceShift = 1,
+    AddressSpaceMask = (7 << AddressSpaceShift),
+    AddressSpace32Bit = (0 << AddressSpaceShift),
+    AddressSpace64BitDeprecated = (1 << AddressSpaceShift),
+    AddressSpace32BitWithoutAlias = (2 << AddressSpaceShift),
+    AddressSpace64Bit = (3 << AddressSpaceShift),
+
+    // Should JIT debug be done on crash?
+    EnableDebug = (1 << 4),
+
+    // Should ASLR be enabled for the process?
+    EnableAslr = (1 << 5),
+
+    // Is the process an application?
+    IsApplication = (1 << 6),
+
+    // 4.x deprecated: Should use secure memory?
+    DeprecatedUseSecureMemory = (1 << 7),
+
+    // 5.x+ Pool partition type.
+    PoolPartitionShift = 7,
+    PoolPartitionMask = (0xF << PoolPartitionShift),
+    PoolPartitionApplication = (0 << PoolPartitionShift),
+    PoolPartitionApplet = (1 << PoolPartitionShift),
+    PoolPartitionSystem = (2 << PoolPartitionShift),
+    PoolPartitionSystemNonSecure = (3 << PoolPartitionShift),
+
+    // 7.x+ Should memory allocation be optimized? This requires IsApplication.
+    OptimizeMemoryAllocation = (1 << 11),
+
+    // 11.x+ DisableDeviceAddressSpaceMerge.
+    DisableDeviceAddressSpaceMerge = (1 << 12),
+
+    // Mask of all flags.
+    All = Is64Bit | AddressSpaceMask | EnableDebug | EnableAslr | IsApplication |
+          PoolPartitionMask | OptimizeMemoryAllocation | DisableDeviceAddressSpaceMerge,
+};
+DECLARE_ENUM_FLAG_OPERATORS(CreateProcessFlag);
+
 struct CreateProcessParameter {
     std::array<char, 12> name;
     u32 version;
     u64 program_id;
     u64 code_address;
     s32 code_num_pages;
-    u32 flags;
+    CreateProcessFlag flags;
     Handle reslimit;
     s32 system_resource_num_pages;
 };

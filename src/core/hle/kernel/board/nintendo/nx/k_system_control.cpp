@@ -8,7 +8,11 @@
 
 #include "core/hle/kernel/board/nintendo/nx/k_system_control.h"
 #include "core/hle/kernel/board/nintendo/nx/secure_monitor.h"
+#include "core/hle/kernel/k_memory_manager.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_trace.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/svc_results.h"
 
 namespace Kernel::Board::Nintendo::Nx {
 
@@ -29,6 +33,8 @@ constexpr const std::size_t RequiredNonSecureSystemMemorySize =
 
 constexpr const std::size_t RequiredNonSecureSystemMemorySizeWithFatal =
     RequiredNonSecureSystemMemorySize + impl::RequiredNonSecureSystemMemorySizeViFatal;
+
+constexpr const std::size_t SecureAlignment = 128_KiB;
 
 namespace {
 
@@ -181,6 +187,59 @@ u64 KSystemControl::GenerateRandomU64() {
 
 u64 KSystemControl::GenerateRandomRange(u64 min, u64 max) {
     return GenerateUniformRange(min, max, GenerateRandomU64);
+}
+
+size_t KSystemControl::CalculateRequiredSecureMemorySize(size_t size, u32 pool) {
+    if (pool == static_cast<u32>(KMemoryManager::Pool::Applet)) {
+        return 0;
+    } else {
+        // return KSystemControlBase::CalculateRequiredSecureMemorySize(size, pool);
+        return size;
+    }
+}
+
+Result KSystemControl::AllocateSecureMemory(KernelCore& kernel, KVirtualAddress* out, size_t size,
+                                            u32 pool) {
+    // Applet secure memory is handled separately.
+    UNIMPLEMENTED_IF(pool == static_cast<u32>(KMemoryManager::Pool::Applet));
+
+    // Ensure the size is aligned.
+    const size_t alignment =
+        (pool == static_cast<u32>(KMemoryManager::Pool::System) ? PageSize : SecureAlignment);
+    R_UNLESS(Common::IsAligned(size, alignment), ResultInvalidSize);
+
+    // Allocate the memory.
+    const size_t num_pages = size / PageSize;
+    const KPhysicalAddress paddr = kernel.MemoryManager().AllocateAndOpenContinuous(
+        num_pages, alignment / PageSize,
+        KMemoryManager::EncodeOption(static_cast<KMemoryManager::Pool>(pool),
+                                     KMemoryManager::Direction::FromFront));
+    R_UNLESS(paddr != 0, ResultOutOfMemory);
+
+    // Ensure we don't leak references to the memory on error.
+    ON_RESULT_FAILURE {
+        kernel.MemoryManager().Close(paddr, num_pages);
+    };
+
+    // We succeeded.
+    *out = KPageTable::GetHeapVirtualAddress(kernel.MemoryLayout(), paddr);
+    R_SUCCEED();
+}
+
+void KSystemControl::FreeSecureMemory(KernelCore& kernel, KVirtualAddress address, size_t size,
+                                      u32 pool) {
+    // Applet secure memory is handled separately.
+    UNIMPLEMENTED_IF(pool == static_cast<u32>(KMemoryManager::Pool::Applet));
+
+    // Ensure the size is aligned.
+    const size_t alignment =
+        (pool == static_cast<u32>(KMemoryManager::Pool::System) ? PageSize : SecureAlignment);
+    ASSERT(Common::IsAligned(GetInteger(address), alignment));
+    ASSERT(Common::IsAligned(size, alignment));
+
+    // Close the secure region's pages.
+    kernel.MemoryManager().Close(KPageTable::GetHeapPhysicalAddress(kernel.MemoryLayout(), address),
+                                 size / PageSize);
 }
 
 } // namespace Kernel::Board::Nintendo::Nx
