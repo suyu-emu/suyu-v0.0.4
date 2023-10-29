@@ -25,7 +25,9 @@ Cabinet::Cabinet(Core::System& system_, LibraryAppletMode applet_mode_,
         service_context.CreateEvent("CabinetApplet:AvailabilityChangeEvent");
 }
 
-Cabinet::~Cabinet() = default;
+Cabinet::~Cabinet() {
+    service_context.CloseEvent(availability_change_event);
+};
 
 void Cabinet::Initialize() {
     Applet::Initialize();

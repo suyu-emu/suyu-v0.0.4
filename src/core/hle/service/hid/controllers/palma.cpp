@@ -19,7 +19,9 @@ Controller_Palma::Controller_Palma(Core::HID::HIDCore& hid_core_, u8* raw_shared
     operation_complete_event = service_context.CreateEvent("hid:PalmaOperationCompleteEvent");
 }
 
-Controller_Palma::~Controller_Palma() = default;
+Controller_Palma::~Controller_Palma() {
+    service_context.CloseEvent(operation_complete_event);
+};
 
 void Controller_Palma::OnInit() {}
 

@@ -141,6 +141,12 @@ public:
             service_context.CreateEvent("IParentalControlService::RequestSuspensionEvent");
     }
 
+    ~IParentalControlService() {
+        service_context.CloseEvent(synchronization_event);
+        service_context.CloseEvent(unlinked_event);
+        service_context.CloseEvent(request_suspension_event);
+    };
+
 private:
     bool CheckFreeCommunicationPermissionImpl() const {
         if (states.temporary_unlocked) {
