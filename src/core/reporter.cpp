@@ -116,7 +116,7 @@ json GetProcessorStateDataAuto(Core::System& system) {
     Core::ARM_Interface::ThreadContext64 context{};
     arm.SaveContext(context);
 
-    return GetProcessorStateData(process->Is64BitProcess() ? "AArch64" : "AArch32",
+    return GetProcessorStateData(process->Is64Bit() ? "AArch64" : "AArch32",
                                  GetInteger(process->GetEntryPoint()), context.sp, context.pc,
                                  context.pstate, context.cpu_registers);
 }

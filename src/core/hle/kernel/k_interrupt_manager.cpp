@@ -22,7 +22,7 @@ void HandleInterrupt(KernelCore& kernel, s32 core_id) {
             KScopedSchedulerLock sl{kernel};
 
             // Pin the current thread.
-            process->PinCurrentThread(core_id);
+            process->PinCurrentThread();
 
             // Set the interrupt flag for the thread.
             GetCurrentThread(kernel).SetInterruptFlag();

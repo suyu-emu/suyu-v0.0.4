@@ -66,7 +66,6 @@ Nvnflinger::Nvnflinger(Core::System& system_, HosBinderDriverServer& hos_binder_
         "ScreenComposition",
         [this](std::uintptr_t, s64 time,
                std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
-            { const auto lock_guard = Lock(); }
             vsync_signal.Set();
             return std::chrono::nanoseconds(GetNextTicks());
         });
@@ -99,6 +98,7 @@ Nvnflinger::~Nvnflinger() {
     }
 
     ShutdownLayers();
+    vsync_thread = {};
 
     if (nvdrv) {
         nvdrv->Close(disp_fd);
@@ -106,6 +106,7 @@ Nvnflinger::~Nvnflinger() {
 }
 
 void Nvnflinger::ShutdownLayers() {
+    const auto lock_guard = Lock();
     for (auto& display : displays) {
         for (size_t layer = 0; layer < display.GetNumLayers(); ++layer) {
             display.GetLayer(layer).Core().NotifyShutdown();
@@ -229,16 +230,6 @@ VI::Layer* Nvnflinger::FindLayer(u64 display_id, u64 layer_id) {
     return display->FindLayer(layer_id);
 }
 
-const VI::Layer* Nvnflinger::FindLayer(u64 display_id, u64 layer_id) const {
-    const auto* const display = FindDisplay(display_id);
-
-    if (display == nullptr) {
-        return nullptr;
-    }
-
-    return display->FindLayer(layer_id);
-}
-
 VI::Layer* Nvnflinger::FindOrCreateLayer(u64 display_id, u64 layer_id) {
     auto* const display = FindDisplay(display_id);
 
@@ -288,7 +279,6 @@ void Nvnflinger::Compose() {
         auto nvdisp = nvdrv->GetDevice<Nvidia::Devices::nvdisp_disp0>(disp_fd);
         ASSERT(nvdisp);
 
-        guard->unlock();
         Common::Rectangle<int> crop_rect{
             static_cast<int>(buffer.crop.Left()), static_cast<int>(buffer.crop.Top()),
             static_cast<int>(buffer.crop.Right()), static_cast<int>(buffer.crop.Bottom())};
@@ -299,7 +289,6 @@ void Nvnflinger::Compose() {
                      buffer.fence.fences, buffer.fence.num_fences);
 
         MicroProfileFlip();
-        guard->lock();
 
         swap_interval = buffer.swap_interval;
 

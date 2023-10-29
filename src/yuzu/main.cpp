@@ -2019,7 +2019,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
             std::filesystem::path{Common::U16StringFromBuffer(filename.utf16(), filename.size())}
                 .filename());
     }
-    const bool is_64bit = system->Kernel().ApplicationProcess()->Is64BitProcess();
+    const bool is_64bit = system->Kernel().ApplicationProcess()->Is64Bit();
     const auto instruction_set_suffix = is_64bit ? tr("(64-bit)") : tr("(32-bit)");
     title_name = tr("%1 %2", "%1 is the title name. %2 indicates if the title is 64-bit or 32-bit")
                      .arg(QString::fromStdString(title_name), instruction_set_suffix)

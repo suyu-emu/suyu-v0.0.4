@@ -17,7 +17,7 @@ Result ArbitrateLock(Core::System& system, Handle thread_handle, u64 address, u3
     R_UNLESS(!IsKernelAddress(address), ResultInvalidCurrentMemory);
     R_UNLESS(Common::IsAligned(address, sizeof(u32)), ResultInvalidAddress);
 
-    R_RETURN(GetCurrentProcess(system.Kernel()).WaitForAddress(thread_handle, address, tag));
+    R_RETURN(KConditionVariable::WaitForAddress(system.Kernel(), thread_handle, address, tag));
 }
 
 /// Unlock a mutex
@@ -28,7 +28,7 @@ Result ArbitrateUnlock(Core::System& system, u64 address) {
     R_UNLESS(!IsKernelAddress(address), ResultInvalidCurrentMemory);
     R_UNLESS(Common::IsAligned(address, sizeof(u32)), ResultInvalidAddress);
 
-    R_RETURN(GetCurrentProcess(system.Kernel()).SignalToAddress(address));
+    R_RETURN(KConditionVariable::SignalToAddress(system.Kernel(), address));
 }
 
 Result ArbitrateLock64(Core::System& system, Handle thread_handle, uint64_t address, uint32_t tag) {

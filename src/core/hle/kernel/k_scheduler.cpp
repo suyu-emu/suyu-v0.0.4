@@ -190,7 +190,7 @@ u64 KScheduler::UpdateHighestPriorityThread(KThread* highest_thread) {
         if (m_state.should_count_idle) {
             if (highest_thread != nullptr) [[likely]] {
                 if (KProcess* process = highest_thread->GetOwnerProcess(); process != nullptr) {
-                    process->SetRunningThread(m_core_id, highest_thread, m_state.idle_count);
+                    process->SetRunningThread(m_core_id, highest_thread, m_state.idle_count, 0);
                 }
             } else {
                 m_state.idle_count++;
@@ -356,7 +356,7 @@ void KScheduler::SwitchThread(KThread* next_thread) {
     const s64 tick_diff = cur_tick - prev_tick;
     cur_thread->AddCpuTime(m_core_id, tick_diff);
     if (cur_process != nullptr) {
-        cur_process->UpdateCPUTimeTicks(tick_diff);
+        cur_process->AddCpuTime(tick_diff);
     }
     m_last_context_switch_time = cur_tick;
 

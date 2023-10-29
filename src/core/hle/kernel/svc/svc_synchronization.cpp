@@ -132,7 +132,7 @@ void SynchronizePreemptionState(Core::System& system) {
         GetCurrentThread(kernel).ClearInterruptFlag();
 
         // Unpin the current thread.
-        cur_process->UnpinCurrentThread(core_id);
+        cur_process->UnpinCurrentThread();
     }
 }
 

@@ -37,7 +37,7 @@ std::optional<Kernel::KProcess*> SearchProcessList(
 void GetApplicationPidGeneric(HLERequestContext& ctx,
                               const std::vector<Kernel::KProcess*>& process_list) {
     const auto process = SearchProcessList(process_list, [](const auto& proc) {
-        return proc->GetProcessId() == Kernel::KProcess::ProcessIDMin;
+        return proc->GetProcessId() == Kernel::KProcess::ProcessIdMin;
     });
 
     IPC::ResponseBuilder rb{ctx, 4};
