@@ -11,14 +11,13 @@
 #include "common/polyfill_thread.h"
 #include "common/uuid.h"
 #include "core/hle/result.h"
+#include "core/hle/service/psc/time/common.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/set/setting_formats/appln_settings.h"
 #include "core/hle/service/set/setting_formats/device_settings.h"
 #include "core/hle/service/set/setting_formats/private_settings.h"
 #include "core/hle/service/set/setting_formats/system_settings.h"
 #include "core/hle/service/set/settings_types.h"
-#include "core/hle/service/time/clock_types.h"
-#include "core/hle/service/time/time_zone_types.h"
 
 namespace Core {
 class System;
@@ -51,24 +50,24 @@ public:
 
     Result GetExternalSteadyClockSourceId(Common::UUID& out_id);
     Result SetExternalSteadyClockSourceId(Common::UUID id);
-    Result GetUserSystemClockContext(Service::Time::Clock::SystemClockContext& out_context);
-    Result SetUserSystemClockContext(Service::Time::Clock::SystemClockContext& context);
-    Result GetDeviceTimeZoneLocationName(Service::Time::TimeZone::LocationName& out_name);
-    Result SetDeviceTimeZoneLocationName(Service::Time::TimeZone::LocationName& name);
-    Result GetNetworkSystemClockContext(Service::Time::Clock::SystemClockContext& out_context);
-    Result SetNetworkSystemClockContext(Service::Time::Clock::SystemClockContext& context);
+    Result GetUserSystemClockContext(Service::PSC::Time::SystemClockContext& out_context);
+    Result SetUserSystemClockContext(Service::PSC::Time::SystemClockContext& context);
+    Result GetDeviceTimeZoneLocationName(Service::PSC::Time::LocationName& out_name);
+    Result SetDeviceTimeZoneLocationName(Service::PSC::Time::LocationName& name);
+    Result GetNetworkSystemClockContext(Service::PSC::Time::SystemClockContext& out_context);
+    Result SetNetworkSystemClockContext(Service::PSC::Time::SystemClockContext& context);
     Result IsUserSystemClockAutomaticCorrectionEnabled(bool& out_enabled);
     Result SetUserSystemClockAutomaticCorrectionEnabled(bool enabled);
     Result SetExternalSteadyClockInternalOffset(s64 offset);
     Result GetExternalSteadyClockInternalOffset(s64& out_offset);
     Result GetDeviceTimeZoneLocationUpdatedTime(
-        Service::Time::Clock::SteadyClockTimePoint& out_time_point);
+        Service::PSC::Time::SteadyClockTimePoint& out_time_point);
     Result SetDeviceTimeZoneLocationUpdatedTime(
-        Service::Time::Clock::SteadyClockTimePoint& time_point);
+        Service::PSC::Time::SteadyClockTimePoint& time_point);
     Result GetUserSystemClockAutomaticCorrectionUpdatedTime(
-        Service::Time::Clock::SteadyClockTimePoint& out_time_point);
+        Service::PSC::Time::SteadyClockTimePoint& out_time_point);
     Result SetUserSystemClockAutomaticCorrectionUpdatedTime(
-        Service::Time::Clock::SteadyClockTimePoint time_point);
+        Service::PSC::Time::SteadyClockTimePoint time_point);
 
 private:
     void SetLanguageCode(HLERequestContext& ctx);
@@ -147,8 +146,8 @@ private:
     PrivateSettings m_private_settings{};
     DeviceSettings m_device_settings{};
     ApplnSettings m_appln_settings{};
-    std::jthread m_save_thread;
     std::mutex m_save_needed_mutex;
+    std::jthread m_save_thread;
     bool m_save_needed{false};
 };
 

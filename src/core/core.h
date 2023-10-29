@@ -72,10 +72,6 @@ namespace SM {
 class ServiceManager;
 } // namespace SM
 
-namespace Time {
-class TimeManager;
-} // namespace Time
-
 } // namespace Service
 
 namespace Tegra {
@@ -376,9 +372,6 @@ public:
 
     [[nodiscard]] Service::Account::ProfileManager& GetProfileManager();
     [[nodiscard]] const Service::Account::ProfileManager& GetProfileManager() const;
-
-    [[nodiscard]] Service::Time::TimeManager& GetTimeManager();
-    [[nodiscard]] const Service::Time::TimeManager& GetTimeManager() const;
 
     [[nodiscard]] Core::Debugger& GetDebugger();
     [[nodiscard]] const Core::Debugger& GetDebugger() const;

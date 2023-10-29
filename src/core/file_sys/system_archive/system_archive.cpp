@@ -67,25 +67,29 @@ constexpr std::array<SystemArchiveDescriptor, SYSTEM_ARCHIVE_COUNT> SYSTEM_ARCHI
 }};
 
 VirtualFile SynthesizeSystemArchive(const u64 title_id) {
-    if (title_id < SYSTEM_ARCHIVES.front().title_id || title_id > SYSTEM_ARCHIVES.back().title_id)
+    if (title_id < SYSTEM_ARCHIVES.front().title_id || title_id > SYSTEM_ARCHIVES.back().title_id) {
         return nullptr;
+    }
 
     const auto& desc = SYSTEM_ARCHIVES[title_id - SYSTEM_ARCHIVE_BASE_TITLE_ID];
 
     LOG_INFO(Service_FS, "Synthesizing system archive '{}' (0x{:016X}).", desc.name, desc.title_id);
 
-    if (desc.supplier == nullptr)
+    if (desc.supplier == nullptr) {
         return nullptr;
+    }
 
     const auto dir = desc.supplier();
 
-    if (dir == nullptr)
+    if (dir == nullptr) {
         return nullptr;
+    }
 
     const auto romfs = CreateRomFS(dir);
 
-    if (romfs == nullptr)
+    if (romfs == nullptr) {
         return nullptr;
+    }
 
     LOG_INFO(Service_FS, "    - System archive generation successful!");
     return romfs;

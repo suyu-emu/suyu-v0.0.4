@@ -513,6 +513,24 @@ add_library(core STATIC
     hle/service/glue/glue_manager.h
     hle/service/glue/notif.cpp
     hle/service/glue/notif.h
+    hle/service/glue/time/alarm_worker.cpp
+    hle/service/glue/time/alarm_worker.h
+    hle/service/glue/time/file_timestamp_worker.cpp
+    hle/service/glue/time/file_timestamp_worker.h
+    hle/service/glue/time/manager.cpp
+    hle/service/glue/time/manager.h
+    hle/service/glue/time/pm_state_change_handler.cpp
+    hle/service/glue/time/pm_state_change_handler.h
+    hle/service/glue/time/standard_steady_clock_resource.cpp
+    hle/service/glue/time/standard_steady_clock_resource.h
+    hle/service/glue/time/static.cpp
+    hle/service/glue/time/static.h
+    hle/service/glue/time/time_zone.cpp
+    hle/service/glue/time/time_zone.h
+    hle/service/glue/time/time_zone_binary.cpp
+    hle/service/glue/time/time_zone_binary.h
+    hle/service/glue/time/worker.cpp
+    hle/service/glue/time/worker.h
     hle/service/grc/grc.cpp
     hle/service/grc/grc.h
     hle/service/hid/hid.cpp
@@ -689,6 +707,46 @@ add_library(core STATIC
     hle/service/prepo/prepo.h
     hle/service/psc/psc.cpp
     hle/service/psc/psc.h
+    hle/service/psc/time/alarms.cpp
+    hle/service/psc/time/alarms.h
+    hle/service/psc/time/clocks/context_writers.cpp
+    hle/service/psc/time/clocks/context_writers.h
+    hle/service/psc/time/clocks/ephemeral_network_system_clock_core.h
+    hle/service/psc/time/clocks/standard_local_system_clock_core.cpp
+    hle/service/psc/time/clocks/standard_local_system_clock_core.h
+    hle/service/psc/time/clocks/standard_network_system_clock_core.cpp
+    hle/service/psc/time/clocks/standard_network_system_clock_core.h
+    hle/service/psc/time/clocks/standard_steady_clock_core.cpp
+    hle/service/psc/time/clocks/standard_steady_clock_core.h
+    hle/service/psc/time/clocks/standard_user_system_clock_core.cpp
+    hle/service/psc/time/clocks/standard_user_system_clock_core.h
+    hle/service/psc/time/clocks/steady_clock_core.h
+    hle/service/psc/time/clocks/system_clock_core.cpp
+    hle/service/psc/time/clocks/system_clock_core.h
+    hle/service/psc/time/clocks/tick_based_steady_clock_core.cpp
+    hle/service/psc/time/clocks/tick_based_steady_clock_core.h
+    hle/service/psc/time/common.cpp
+    hle/service/psc/time/common.h
+    hle/service/psc/time/errors.h
+    hle/service/psc/time/shared_memory.cpp
+    hle/service/psc/time/shared_memory.h
+    hle/service/psc/time/static.cpp
+    hle/service/psc/time/static.h
+    hle/service/psc/time/manager.h
+    hle/service/psc/time/power_state_service.cpp
+    hle/service/psc/time/power_state_service.h
+    hle/service/psc/time/service_manager.cpp
+    hle/service/psc/time/service_manager.h
+    hle/service/psc/time/steady_clock.cpp
+    hle/service/psc/time/steady_clock.h
+    hle/service/psc/time/system_clock.cpp
+    hle/service/psc/time/system_clock.h
+    hle/service/psc/time/time_zone.cpp
+    hle/service/psc/time/time_zone.h
+    hle/service/psc/time/time_zone_service.cpp
+    hle/service/psc/time/time_zone_service.h
+    hle/service/psc/time/power_state_request_manager.cpp
+    hle/service/psc/time/power_state_request_manager.h
     hle/service/ptm/psm.cpp
     hle/service/ptm/psm.h
     hle/service/ptm/ptm.cpp
@@ -756,40 +814,6 @@ add_library(core STATIC
     hle/service/ssl/ssl.cpp
     hle/service/ssl/ssl.h
     hle/service/ssl/ssl_backend.h
-    hle/service/time/clock_types.h
-    hle/service/time/ephemeral_network_system_clock_context_writer.h
-    hle/service/time/ephemeral_network_system_clock_core.h
-    hle/service/time/errors.h
-    hle/service/time/local_system_clock_context_writer.h
-    hle/service/time/network_system_clock_context_writer.h
-    hle/service/time/standard_local_system_clock_core.h
-    hle/service/time/standard_network_system_clock_core.h
-    hle/service/time/standard_steady_clock_core.cpp
-    hle/service/time/standard_steady_clock_core.h
-    hle/service/time/standard_user_system_clock_core.cpp
-    hle/service/time/standard_user_system_clock_core.h
-    hle/service/time/steady_clock_core.h
-    hle/service/time/system_clock_context_update_callback.cpp
-    hle/service/time/system_clock_context_update_callback.h
-    hle/service/time/system_clock_core.cpp
-    hle/service/time/system_clock_core.h
-    hle/service/time/tick_based_steady_clock_core.cpp
-    hle/service/time/tick_based_steady_clock_core.h
-    hle/service/time/time.cpp
-    hle/service/time/time.h
-    hle/service/time/time_interface.cpp
-    hle/service/time/time_interface.h
-    hle/service/time/time_manager.cpp
-    hle/service/time/time_manager.h
-    hle/service/time/time_sharedmemory.cpp
-    hle/service/time/time_sharedmemory.h
-    hle/service/time/time_zone_content_manager.cpp
-    hle/service/time/time_zone_content_manager.h
-    hle/service/time/time_zone_manager.cpp
-    hle/service/time/time_zone_manager.h
-    hle/service/time/time_zone_service.cpp
-    hle/service/time/time_zone_service.h
-    hle/service/time/time_zone_types.h
     hle/service/usb/usb.cpp
     hle/service/usb/usb.h
     hle/service/vi/display/vi_display.cpp
@@ -870,7 +894,7 @@ endif()
 
 create_target_directory_groups(core)
 
-target_link_libraries(core PUBLIC common PRIVATE audio_core hid_core network video_core nx_tzdb)
+target_link_libraries(core PUBLIC common PRIVATE audio_core hid_core network video_core nx_tzdb tz)
 target_link_libraries(core PUBLIC Boost::headers PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls RenderDoc::API)
 if (MINGW)
     target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})

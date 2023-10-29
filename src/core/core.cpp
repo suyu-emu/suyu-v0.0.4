@@ -39,9 +39,14 @@
 #include "core/hle/service/apm/apm_controller.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/glue/glue_manager.h"
+#include "core/hle/service/glue/time/static.h"
+#include "core/hle/service/psc/time/static.h"
+#include "core/hle/service/psc/time/steady_clock.h"
+#include "core/hle/service/psc/time/system_clock.h"
+#include "core/hle/service/psc/time/time_zone_service.h"
 #include "core/hle/service/service.h"
+#include "core/hle/service/set/system_settings_server.h"
 #include "core/hle/service/sm/sm.h"
-#include "core/hle/service/time/time_manager.h"
 #include "core/internal_network/network.h"
 #include "core/loader/loader.h"
 #include "core/memory.h"
@@ -129,8 +134,8 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, fs_controller{system}, hid_core{}, room_network{}, cpu_manager{system},
-          reporter{system}, applet_manager{system}, profile_manager{}, time_manager{system} {}
+        : kernel{system}, fs_controller{system}, hid_core{}, room_network{},
+          cpu_manager{system}, reporter{system}, applet_manager{system}, profile_manager{} {}
 
     void Initialize(System& system) {
         device_memory = std::make_unique<Core::DeviceMemory>();
@@ -141,8 +146,6 @@ struct System::Impl {
 
         core_timing.SetMulticore(is_multicore);
         core_timing.Initialize([&system]() { system.RegisterHostThread(); });
-
-        RefreshTime();
 
         // Create a default fs if one doesn't already exist.
         if (virtual_filesystem == nullptr) {
@@ -181,14 +184,57 @@ struct System::Impl {
         Initialize(system);
     }
 
-    void RefreshTime() {
+    void RefreshTime(System& system) {
+        if (!system.IsPoweredOn()) {
+            return;
+        }
+
+        auto settings_service =
+            system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys",
+                                                                                    true);
+        auto static_service_a =
+            system.ServiceManager().GetService<Service::Glue::Time::StaticService>("time:a", true);
+
+        auto static_service_s =
+            system.ServiceManager().GetService<Service::PSC::Time::StaticService>("time:s", true);
+
+        std::shared_ptr<Service::PSC::Time::SystemClock> user_clock;
+        static_service_a->GetStandardUserSystemClock(user_clock);
+
+        std::shared_ptr<Service::PSC::Time::SystemClock> local_clock;
+        static_service_a->GetStandardLocalSystemClock(local_clock);
+
+        std::shared_ptr<Service::PSC::Time::SystemClock> network_clock;
+        static_service_s->GetStandardNetworkSystemClock(network_clock);
+
+        std::shared_ptr<Service::Glue::Time::TimeZoneService> timezone_service;
+        static_service_a->GetTimeZoneService(timezone_service);
+
+        Service::PSC::Time::LocationName name{};
+        auto new_name = Settings::GetTimeZoneString(Settings::values.time_zone_index.GetValue());
+        std::memcpy(name.name.data(), new_name.data(), std::min(name.name.size(), new_name.size()));
+
+        timezone_service->SetDeviceLocation(name);
+
+        u64 time_offset = 0;
+        if (Settings::values.custom_rtc_enabled) {
+            time_offset = Settings::values.custom_rtc_offset.GetValue();
+        }
+
         const auto posix_time = std::chrono::system_clock::now().time_since_epoch();
-        const auto current_time =
-            std::chrono::duration_cast<std::chrono::seconds>(posix_time).count();
-        Settings::values.custom_rtc_differential =
-            (Settings::values.custom_rtc_enabled ? Settings::values.custom_rtc.GetValue()
-                                                 : current_time) -
-            current_time;
+        const u64 current_time =
+            +std::chrono::duration_cast<std::chrono::seconds>(posix_time).count();
+        const u64 new_time = current_time + time_offset;
+
+        Service::PSC::Time::SystemClockContext context{};
+        settings_service->SetUserSystemClockContext(context);
+        user_clock->SetCurrentTime(new_time);
+
+        local_clock->SetCurrentTime(new_time);
+
+        network_clock->GetSystemClockContext(context);
+        settings_service->SetNetworkSystemClockContext(context);
+        network_clock->SetCurrentTime(new_time);
     }
 
     void Run() {
@@ -263,9 +309,6 @@ struct System::Impl {
 
         service_manager = std::make_shared<Service::SM::ServiceManager>(kernel);
         services = std::make_unique<Service::Services>(service_manager, system);
-
-        // Initialize time manager, which must happen after kernel is created
-        time_manager.Initialize();
 
         is_powered_on = true;
         exit_locked = false;
@@ -416,7 +459,6 @@ struct System::Impl {
         fs_controller.Reset();
         cheat_engine.reset();
         telemetry_session.reset();
-        time_manager.Shutdown();
         core_timing.ClearPendingEvents();
         app_loader.reset();
         audio_core.reset();
@@ -532,7 +574,6 @@ struct System::Impl {
     /// Service State
     Service::Glue::ARPManager arp_manager;
     Service::Account::ProfileManager profile_manager;
-    Service::Time::TimeManager time_manager;
 
     /// Service manager
     std::shared_ptr<Service::SM::ServiceManager> service_manager;
@@ -901,14 +942,6 @@ const Service::Account::ProfileManager& System::GetProfileManager() const {
     return impl->profile_manager;
 }
 
-Service::Time::TimeManager& System::GetTimeManager() {
-    return impl->time_manager;
-}
-
-const Service::Time::TimeManager& System::GetTimeManager() const {
-    return impl->time_manager;
-}
-
 void System::SetExitLocked(bool locked) {
     impl->exit_locked = locked;
 }
@@ -1020,13 +1053,9 @@ void System::Exit() {
 }
 
 void System::ApplySettings() {
-    impl->RefreshTime();
+    impl->RefreshTime(*this);
 
     if (IsPoweredOn()) {
-        if (Settings::values.custom_rtc_enabled) {
-            const s64 posix_time{Settings::values.custom_rtc.GetValue()};
-            GetTimeManager().UpdateLocalSystemClockTime(posix_time);
-        }
         Renderer().RefreshBaseSettings();
     }
 }

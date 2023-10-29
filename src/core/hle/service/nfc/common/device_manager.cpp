@@ -6,12 +6,14 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
+#include "core/hle/service/glue/time/static.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/nfc/common/device.h"
 #include "core/hle/service/nfc/common/device_manager.h"
 #include "core/hle/service/nfc/nfc_result.h"
-#include "core/hle/service/time/clock_types.h"
-#include "core/hle/service/time/time_manager.h"
+#include "core/hle/service/psc/time/steady_clock.h"
+#include "core/hle/service/service.h"
+#include "core/hle/service/sm/sm.h"
 #include "hid_core/hid_types.h"
 #include "hid_core/hid_util.h"
 
@@ -82,11 +84,19 @@ Result DeviceManager::ListDevices(std::vector<u64>& nfp_devices, std::size_t max
             continue;
         }
         if (skip_fatal_errors) {
-            constexpr u64 MinimumRecoveryTime = 60;
-            auto& standard_steady_clock{system.GetTimeManager().GetStandardSteadyClockCore()};
-            const u64 elapsed_time = standard_steady_clock.GetCurrentTimePoint(system).time_point -
-                                     time_since_last_error;
+            constexpr s64 MinimumRecoveryTime = 60;
 
+            auto static_service =
+                system.ServiceManager().GetService<Service::Glue::Time::StaticService>("time:u",
+                                                                                       true);
+
+            std::shared_ptr<Service::PSC::Time::SteadyClock> steady_clock{};
+            static_service->GetStandardSteadyClock(steady_clock);
+
+            Service::PSC::Time::SteadyClockTimePoint time_point{};
+            R_ASSERT(steady_clock->GetCurrentTimePoint(time_point));
+
+            const s64 elapsed_time = time_point.time_point - time_since_last_error;
             if (time_since_last_error != 0 && elapsed_time < MinimumRecoveryTime) {
                 continue;
             }
@@ -250,8 +260,7 @@ Result DeviceManager::WriteMifare(u64 device_handle,
     return result;
 }
 
-Result DeviceManager::SendCommandByPassThrough(u64 device_handle,
-                                               const Time::Clock::TimeSpanType& timeout,
+Result DeviceManager::SendCommandByPassThrough(u64 device_handle, const s64& timeout,
                                                std::span<const u8> command_data,
                                                std::span<u8> out_data) {
     std::scoped_lock lock{mutex};
@@ -741,8 +750,16 @@ Result DeviceManager::VerifyDeviceResult(std::shared_ptr<NfcDevice> device,
 
     if (operation_result == ResultUnknown112 || operation_result == ResultUnknown114 ||
         operation_result == ResultUnknown115) {
-        auto& standard_steady_clock{system.GetTimeManager().GetStandardSteadyClockCore()};
-        time_since_last_error = standard_steady_clock.GetCurrentTimePoint(system).time_point;
+        auto static_service =
+            system.ServiceManager().GetService<Service::Glue::Time::StaticService>("time:u", true);
+
+        std::shared_ptr<Service::PSC::Time::SteadyClock> steady_clock{};
+        static_service->GetStandardSteadyClock(steady_clock);
+
+        Service::PSC::Time::SteadyClockTimePoint time_point{};
+        R_ASSERT(steady_clock->GetCurrentTimePoint(time_point));
+
+        time_since_last_error = time_point.time_point;
     }
 
     return operation_result;
