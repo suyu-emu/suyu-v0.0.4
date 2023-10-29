@@ -144,7 +144,7 @@ object FileUtil {
      * @param path Native content uri path
      * @return bool
      */
-    fun exists(path: String?): Boolean {
+    fun exists(path: String?, suppressLog: Boolean = false): Boolean {
         var c: Cursor? = null
         try {
             val mUri = Uri.parse(path)
@@ -152,7 +152,9 @@ object FileUtil {
             c = context.contentResolver.query(mUri, columns, null, null, null)
             return c!!.count > 0
         } catch (e: Exception) {
-            Log.info("[FileUtil] Cannot find file from given path, error: " + e.message)
+            if (!suppressLog) {
+                Log.info("[FileUtil] Cannot find file from given path, error: " + e.message)
+            }
         } finally {
             closeQuietly(c)
         }

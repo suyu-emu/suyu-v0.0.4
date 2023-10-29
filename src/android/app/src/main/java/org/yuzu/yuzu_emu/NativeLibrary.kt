@@ -92,7 +92,7 @@ object NativeLibrary {
         return if (DocumentsTree.isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.exists(path)
         } else {
-            FileUtil.exists(path)
+            FileUtil.exists(path, suppressLog = true)
         }
     }
 
