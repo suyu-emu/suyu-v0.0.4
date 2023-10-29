@@ -109,7 +109,6 @@ signals:
     void BootGame(const QString& game_path, u64 program_id, std::size_t program_index,
                   StartGameType type, AmLaunchType launch_type);
     void GameChosen(const QString& game_path, const u64 title_id = 0);
-    void ShouldCancelWorker();
     void OpenFolderRequested(u64 program_id, GameListOpenTarget target,
                              const std::string& game_path);
     void OpenTransferableShaderCacheRequested(u64 program_id);
@@ -138,10 +137,15 @@ private slots:
     void OnUpdateThemedIcons();
 
 private:
+    friend class GameListWorker;
+    void WorkerEvent();
+
     void AddDirEntry(GameListDir* entry_items);
     void AddEntry(const QList<QStandardItem*>& entry_items, GameListDir* parent);
-    void ValidateEntry(const QModelIndex& item);
     void DonePopulating(const QStringList& watch_list);
+
+private:
+    void ValidateEntry(const QModelIndex& item);
 
     void RefreshGameDirectory();
 
@@ -165,7 +169,7 @@ private:
     QVBoxLayout* layout = nullptr;
     QTreeView* tree_view = nullptr;
     QStandardItemModel* item_model = nullptr;
-    GameListWorker* current_worker = nullptr;
+    std::unique_ptr<GameListWorker> current_worker;
     QFileSystemWatcher* watcher = nullptr;
     ControllerNavigation* controller_navigation = nullptr;
     CompatibilityList compatibility_list;
