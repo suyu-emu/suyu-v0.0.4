@@ -101,13 +101,13 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
         ui->tabPlayer5, ui->tabPlayer6, ui->tabPlayer7, ui->tabPlayer8,
     };
 
-    player_connected = {
+    connected_controller_checkboxes = {
         ui->checkboxPlayer1Connected, ui->checkboxPlayer2Connected, ui->checkboxPlayer3Connected,
         ui->checkboxPlayer4Connected, ui->checkboxPlayer5Connected, ui->checkboxPlayer6Connected,
         ui->checkboxPlayer7Connected, ui->checkboxPlayer8Connected,
     };
 
-    std::array<QLabel*, 8> player_connected_labels = {
+    std::array<QLabel*, 8> connected_controller_labels = {
         ui->label,   ui->label_3, ui->label_4, ui->label_5,
         ui->label_6, ui->label_7, ui->label_8, ui->label_9,
     };
@@ -115,23 +115,37 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
     for (std::size_t i = 0; i < player_tabs.size(); ++i) {
         player_tabs[i]->setLayout(new QHBoxLayout(player_tabs[i]));
         player_tabs[i]->layout()->addWidget(player_controllers[i]);
-        connect(player_connected[i], &QCheckBox::clicked, [this, i](int checked) {
-            // Ensures that the controllers are always connected in sequential order
-            this->propagateMouseClickOnPlayers(i, checked, true);
+        connect(player_controllers[i], &ConfigureInputPlayer::Connected, [this, i](bool checked) {
+            // Ensures that connecting a controller changes the number of players
+            if (connected_controller_checkboxes[i]->isChecked() != checked) {
+                // Ensures that the players are always connected in sequential order
+                PropagatePlayerNumberChanged(i, checked);
+            }
+        });
+        connect(connected_controller_checkboxes[i], &QCheckBox::clicked, [this, i](bool checked) {
+            // Reconnect current controller if it was the last one checked
+            // (player number was reduced by more than one)
+            const bool reconnect_first = !checked &&
+                                         i < connected_controller_checkboxes.size() - 1 &&
+                                         connected_controller_checkboxes[i + 1]->isChecked();
+
+            // Ensures that the players are always connected in sequential order
+            PropagatePlayerNumberChanged(i, checked, reconnect_first);
         });
         connect(player_controllers[i], &ConfigureInputPlayer::RefreshInputDevices, this,
                 &ConfigureInput::UpdateAllInputDevices);
         connect(player_controllers[i], &ConfigureInputPlayer::RefreshInputProfiles, this,
                 &ConfigureInput::UpdateAllInputProfiles, Qt::QueuedConnection);
-        connect(player_connected[i], &QCheckBox::stateChanged, [this, i](int state) {
+        connect(connected_controller_checkboxes[i], &QCheckBox::stateChanged, [this, i](int state) {
+            // Keep activated controllers synced with the "Connected Controllers" checkboxes
             player_controllers[i]->ConnectPlayer(state == Qt::Checked);
         });
 
         // Remove/hide all the elements that exceed max_players, if applicable.
         if (i >= max_players) {
             ui->tabWidget->removeTab(static_cast<int>(max_players));
-            player_connected[i]->hide();
-            player_connected_labels[i]->hide();
+            connected_controller_checkboxes[i]->hide();
+            connected_controller_labels[i]->hide();
         }
     }
     // Only the first player can choose handheld mode so connect the signal just to player 1
@@ -175,27 +189,24 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
     LoadConfiguration();
 }
 
-void ConfigureInput::propagateMouseClickOnPlayers(size_t player_index, bool checked, bool origin) {
-    // Origin has already been toggled
-    if (!origin) {
-        player_connected[player_index]->setChecked(checked);
-    }
+void ConfigureInput::PropagatePlayerNumberChanged(size_t player_index, bool checked,
+                                                  bool reconnect_current) {
+    connected_controller_checkboxes[player_index]->setChecked(checked);
 
     if (checked) {
         // Check all previous buttons when checked
         if (player_index > 0) {
-            propagateMouseClickOnPlayers(player_index - 1, checked, false);
+            PropagatePlayerNumberChanged(player_index - 1, checked);
         }
     } else {
         // Unchecked all following buttons when unchecked
-        if (player_index < player_tabs.size() - 1) {
-            // Reconnect current player if it was the last one checked
-            // (player number was reduced by more than one)
-            if (origin && player_connected[player_index + 1]->checkState() == Qt::Checked) {
-                player_connected[player_index]->setCheckState(Qt::Checked);
-            }
-            propagateMouseClickOnPlayers(player_index + 1, checked, false);
+        if (player_index < connected_controller_checkboxes.size() - 1) {
+            PropagatePlayerNumberChanged(player_index + 1, checked);
         }
+    }
+
+    if (reconnect_current) {
+        connected_controller_checkboxes[player_index]->setCheckState(Qt::Checked);
     }
 }
 
@@ -249,17 +260,17 @@ void ConfigureInput::LoadConfiguration() {
 }
 
 void ConfigureInput::LoadPlayerControllerIndices() {
-    for (std::size_t i = 0; i < player_connected.size(); ++i) {
+    for (std::size_t i = 0; i < connected_controller_checkboxes.size(); ++i) {
         if (i == 0) {
             auto* handheld =
                 system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
             if (handheld->IsConnected()) {
-                player_connected[i]->setChecked(true);
+                connected_controller_checkboxes[i]->setChecked(true);
                 continue;
             }
         }
         const auto* controller = system.HIDCore().GetEmulatedControllerByIndex(i);
-        player_connected[i]->setChecked(controller->IsConnected());
+        connected_controller_checkboxes[i]->setChecked(controller->IsConnected());
     }
 }
 
