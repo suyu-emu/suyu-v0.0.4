@@ -5,10 +5,7 @@
 
 #include <optional>
 #include "common/common_types.h"
-
-namespace Service::Set {
-enum class LanguageCode : u64;
-}
+#include "core/hle/service/set/system_settings_server.h"
 
 namespace Service::NS {
 /// This is nn::ns::detail::ApplicationLanguage

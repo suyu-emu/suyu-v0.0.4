@@ -8,7 +8,6 @@
 #include "common/common_types.h"
 #include "common/uuid.h"
 #include "core/hle/service/set/settings_types.h"
-#include "core/hle/service/time/clock_types.h"
 
 namespace Service::Set {
 

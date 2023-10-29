@@ -29,16 +29,13 @@ public:
     virtual std::chrono::milliseconds GetTimeMS() const = 0;
 
     /// @returns The guest CNTPCT ticks since the construction of this clock.
-    virtual u64 GetCNTPCT() const = 0;
+    virtual s64 GetCNTPCT() const = 0;
 
     /// @returns The guest GPU ticks since the construction of this clock.
-    virtual u64 GetGPUTick() const = 0;
+    virtual s64 GetGPUTick() const = 0;
 
     /// @returns The raw host timer ticks since an indeterminate epoch.
-    virtual u64 GetHostTicksNow() const = 0;
-
-    /// @returns The raw host timer ticks since the construction of this clock.
-    virtual u64 GetHostTicksElapsed() const = 0;
+    virtual s64 GetUptime() const = 0;
 
     /// @returns Whether the clock directly uses the host's hardware clock.
     virtual bool IsNative() const = 0;

@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/hle/service/glue/time/static.h"
+#include "core/hle/service/psc/time/steady_clock.h"
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4701) // Potentially uninitialized local variable 'result' used
@@ -29,7 +31,8 @@
 #include "core/hle/service/nfc/common/device.h"
 #include "core/hle/service/nfc/mifare_result.h"
 #include "core/hle/service/nfc/nfc_result.h"
-#include "core/hle/service/time/time_manager.h"
+#include "core/hle/service/service.h"
+#include "core/hle/service/sm/sm.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"
@@ -393,8 +396,7 @@ Result NfcDevice::WriteMifare(std::span<const MifareWriteBlockParameter> paramet
     return result;
 }
 
-Result NfcDevice::SendCommandByPassThrough(const Time::Clock::TimeSpanType& timeout,
-                                           std::span<const u8> command_data,
+Result NfcDevice::SendCommandByPassThrough(const s64& timeout, std::span<const u8> command_data,
                                            std::span<u8> out_data) {
     // Not implemented
     return ResultSuccess;
@@ -1399,27 +1401,41 @@ void NfcDevice::SetAmiiboName(NFP::AmiiboSettings& settings,
 }
 
 NFP::AmiiboDate NfcDevice::GetAmiiboDate(s64 posix_time) const {
-    const auto& time_zone_manager =
-        system.GetTimeManager().GetTimeZoneContentManager().GetTimeZoneManager();
-    Time::TimeZone::CalendarInfo calendar_info{};
+    auto static_service =
+        system.ServiceManager().GetService<Service::Glue::Time::StaticService>("time:u", true);
+
+    std::shared_ptr<Service::Glue::Time::TimeZoneService> timezone_service{};
+    static_service->GetTimeZoneService(timezone_service);
+
+    Service::PSC::Time::CalendarTime calendar_time{};
+    Service::PSC::Time::CalendarAdditionalInfo additional_info{};
+
     NFP::AmiiboDate amiibo_date{};
 
     amiibo_date.SetYear(2000);
     amiibo_date.SetMonth(1);
     amiibo_date.SetDay(1);
 
-    if (time_zone_manager.ToCalendarTime({}, posix_time, calendar_info) == ResultSuccess) {
-        amiibo_date.SetYear(calendar_info.time.year);
-        amiibo_date.SetMonth(calendar_info.time.month);
-        amiibo_date.SetDay(calendar_info.time.day);
+    if (timezone_service->ToCalendarTimeWithMyRule(calendar_time, additional_info, posix_time) ==
+        ResultSuccess) {
+        amiibo_date.SetYear(calendar_time.year);
+        amiibo_date.SetMonth(calendar_time.month);
+        amiibo_date.SetDay(calendar_time.day);
     }
 
     return amiibo_date;
 }
 
-u64 NfcDevice::GetCurrentPosixTime() const {
-    auto& standard_steady_clock{system.GetTimeManager().GetStandardSteadyClockCore()};
-    return standard_steady_clock.GetCurrentTimePoint(system).time_point;
+s64 NfcDevice::GetCurrentPosixTime() const {
+    auto static_service =
+        system.ServiceManager().GetService<Service::Glue::Time::StaticService>("time:u", true);
+
+    std::shared_ptr<Service::PSC::Time::SteadyClock> steady_clock{};
+    static_service->GetStandardSteadyClock(steady_clock);
+
+    Service::PSC::Time::SteadyClockTimePoint time_point{};
+    R_ASSERT(steady_clock->GetCurrentTimePoint(time_point));
+    return time_point.time_point;
 }
 
 u64 NfcDevice::RemoveVersionByte(u64 application_id) const {

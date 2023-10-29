@@ -45,7 +45,7 @@ SystemSettings DefaultSystemSettings() {
     };
 
     settings.device_time_zone_location_name = {"UTC"};
-    settings.user_system_clock_automatic_correction_enabled = false;
+    settings.user_system_clock_automatic_correction_enabled = true;
 
     settings.primary_album_storage = PrimaryAlbumStorage::SdCard;
     settings.battery_percentage_flag = true;

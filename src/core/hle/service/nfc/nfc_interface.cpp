@@ -13,7 +13,6 @@
 #include "core/hle/service/nfc/nfc_result.h"
 #include "core/hle/service/nfc/nfc_types.h"
 #include "core/hle/service/nfp/nfp_result.h"
-#include "core/hle/service/time/clock_types.h"
 #include "hid_core/hid_types.h"
 
 namespace Service::NFC {
@@ -261,10 +260,10 @@ void NfcInterface::WriteMifare(HLERequestContext& ctx) {
 void NfcInterface::SendCommandByPassThrough(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
-    const auto timeout{rp.PopRaw<Time::Clock::TimeSpanType>()};
+    const auto timeout{rp.PopRaw<s64>()};
     const auto command_data{ctx.ReadBuffer()};
     LOG_INFO(Service_NFC, "(STUBBED) called, device_handle={}, timeout={}, data_size={}",
-             device_handle, timeout.ToSeconds(), command_data.size());
+             device_handle, timeout, command_data.size());
 
     std::vector<u8> out_data(1);
     auto result =
