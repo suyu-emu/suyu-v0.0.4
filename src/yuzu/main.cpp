@@ -1072,7 +1072,7 @@ void GMainWindow::InitializeWidgets() {
     });
     volume_popup->layout()->addWidget(volume_slider);
 
-    volume_button = new QPushButton();
+    volume_button = new VolumeButton();
     volume_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
     volume_button->setFocusPolicy(Qt::NoFocus);
     volume_button->setCheckable(true);
@@ -1103,6 +1103,8 @@ void GMainWindow::InitializeWidgets() {
                 context_menu.exec(volume_button->mapToGlobal(menu_location));
                 volume_button->repaint();
             });
+    connect(volume_button, &VolumeButton::VolumeChanged, this, &GMainWindow::UpdateVolumeUI);
+
     statusBar()->insertPermanentWidget(0, volume_button);
 
     // setup AA button
@@ -5124,6 +5126,32 @@ void GMainWindow::changeEvent(QEvent* event) {
     }
 #endif // __unix__
     QWidget::changeEvent(event);
+}
+
+void VolumeButton::wheelEvent(QWheelEvent* event) {
+
+    int num_degrees = event->angleDelta().y() / 8;
+    int num_steps = (num_degrees / 15) * scroll_multiplier;
+    // Stated in QT docs: Most mouse types work in steps of 15 degrees, in which case the delta
+    // value is a multiple of 120; i.e., 120 units * 1/8 = 15 degrees.
+
+    if (num_steps > 0) {
+        Settings::values.volume.SetValue(
+            std::min(200, Settings::values.volume.GetValue() + num_steps));
+    } else {
+        Settings::values.volume.SetValue(
+            std::max(0, Settings::values.volume.GetValue() + num_steps));
+    }
+
+    scroll_multiplier = std::min(MaxMultiplier, scroll_multiplier * 2);
+    scroll_timer.start(100); // reset the multiplier if no scroll event occurs within 100 ms
+
+    emit VolumeChanged();
+    event->accept();
+}
+
+void VolumeButton::ResetMultiplier() {
+    scroll_multiplier = 1;
 }
 
 #ifdef main
