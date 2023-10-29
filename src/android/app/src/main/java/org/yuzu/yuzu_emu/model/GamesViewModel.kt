@@ -49,26 +49,33 @@ class GamesViewModel : ViewModel() {
         // Retrieve list of cached games
         val storedGames = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
             .getStringSet(GameHelper.KEY_GAMES, emptySet())
-        if (storedGames!!.isNotEmpty()) {
-            val deserializedGames = mutableSetOf<Game>()
-            storedGames.forEach {
-                val game: Game
-                try {
-                    game = Json.decodeFromString(it)
-                } catch (e: MissingFieldException) {
-                    return@forEach
-                }
 
-                val gameExists =
-                    DocumentFile.fromSingleUri(YuzuApplication.appContext, Uri.parse(game.path))
-                        ?.exists()
-                if (gameExists == true) {
-                    deserializedGames.add(game)
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                if (storedGames!!.isNotEmpty()) {
+                    val deserializedGames = mutableSetOf<Game>()
+                    storedGames.forEach {
+                        val game: Game
+                        try {
+                            game = Json.decodeFromString(it)
+                        } catch (e: MissingFieldException) {
+                            return@forEach
+                        }
+
+                        val gameExists =
+                            DocumentFile.fromSingleUri(
+                                YuzuApplication.appContext,
+                                Uri.parse(game.path)
+                            )?.exists()
+                        if (gameExists == true) {
+                            deserializedGames.add(game)
+                        }
+                    }
+                    setGames(deserializedGames.toList())
                 }
+                reloadGames(false)
             }
-            setGames(deserializedGames.toList())
         }
-        reloadGames(false)
     }
 
     fun setGames(games: List<Game>) {
