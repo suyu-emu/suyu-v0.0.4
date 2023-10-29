@@ -26,7 +26,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
 import org.yuzu.yuzu_emu.BuildConfig
 import org.yuzu.yuzu_emu.HomeNavigationDirections
@@ -186,7 +186,8 @@ class HomeSettingsFragment : Fragment() {
         }
 
         binding.homeSettingsList.apply {
-            layoutManager = LinearLayoutManager(requireContext())
+            layoutManager =
+                GridLayoutManager(requireContext(), resources.getInteger(R.integer.grid_columns))
             adapter = HomeSettingAdapter(
                 requireActivity() as AppCompatActivity,
                 viewLifecycleOwner,
