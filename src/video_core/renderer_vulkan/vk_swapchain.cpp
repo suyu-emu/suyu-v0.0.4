@@ -147,6 +147,9 @@ bool Swapchain::AcquireNextImage() {
     case VK_ERROR_OUT_OF_DATE_KHR:
         is_outdated = true;
         break;
+    case VK_ERROR_SURFACE_LOST_KHR:
+        vk::Check(result);
+        break;
     default:
         LOG_ERROR(Render_Vulkan, "vkAcquireNextImageKHR returned {}", vk::ToString(result));
         break;
@@ -179,6 +182,9 @@ void Swapchain::Present(VkSemaphore render_semaphore) {
         break;
     case VK_ERROR_OUT_OF_DATE_KHR:
         is_outdated = true;
+        break;
+    case VK_ERROR_SURFACE_LOST_KHR:
+        vk::Check(result);
         break;
     default:
         LOG_CRITICAL(Render_Vulkan, "Failed to present with error {}", vk::ToString(result));
