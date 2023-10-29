@@ -715,6 +715,7 @@ add_library(core STATIC
     hle/service/nvnflinger/producer_listener.h
     hle/service/nvnflinger/status.h
     hle/service/nvnflinger/ui/fence.h
+    hle/service/nvnflinger/ui/graphic_buffer.cpp
     hle/service/nvnflinger/ui/graphic_buffer.h
     hle/service/nvnflinger/window.h
     hle/service/olsc/olsc.cpp

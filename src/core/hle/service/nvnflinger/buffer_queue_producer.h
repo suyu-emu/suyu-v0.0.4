@@ -38,6 +38,7 @@ namespace Service::android {
 
 class BufferQueueCore;
 class IProducerListener;
+struct NvGraphicBuffer;
 
 class BufferQueueProducer final : public IBinder {
 public:
@@ -65,7 +66,7 @@ public:
                    bool producer_controlled_by_app, QueueBufferOutput* output);
 
     Status Disconnect(NativeWindowApi api);
-    Status SetPreallocatedBuffer(s32 slot, const std::shared_ptr<GraphicBuffer>& buffer);
+    Status SetPreallocatedBuffer(s32 slot, const std::shared_ptr<NvGraphicBuffer>& buffer);
 
 private:
     BufferQueueProducer(const BufferQueueProducer&) = delete;

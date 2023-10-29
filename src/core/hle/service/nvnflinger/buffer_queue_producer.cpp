@@ -13,7 +13,6 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/service/hle_ipc.h"
 #include "core/hle/service/kernel_helpers.h"
-#include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/hle/service/nvnflinger/buffer_queue_core.h"
 #include "core/hle/service/nvnflinger/buffer_queue_producer.h"
 #include "core/hle/service/nvnflinger/consumer_listener.h"
@@ -533,8 +532,6 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         item.is_droppable = core->dequeue_buffer_cannot_block || async;
         item.swap_interval = swap_interval;
 
-        nvmap.DuplicateHandle(item.graphic_buffer->BufferId(), true);
-
         sticky_transform = sticky_transform_;
 
         if (core->queue.empty()) {
@@ -744,19 +741,13 @@ Status BufferQueueProducer::Disconnect(NativeWindowApi api) {
             return Status::NoError;
         }
 
-        // HACK: We are not Android. Remove handle for items in queue, and clear queue.
-        // Allows synchronous destruction of nvmap handles.
-        for (auto& item : core->queue) {
-            nvmap.FreeHandle(item.graphic_buffer->BufferId(), true);
-        }
-        core->queue.clear();
-
         switch (api) {
         case NativeWindowApi::Egl:
         case NativeWindowApi::Cpu:
         case NativeWindowApi::Media:
         case NativeWindowApi::Camera:
             if (core->connected_api == api) {
+                core->queue.clear();
                 core->FreeAllBuffersLocked();
                 core->connected_producer_listener = nullptr;
                 core->connected_api = NativeWindowApi::NoConnectedApi;
@@ -785,7 +776,7 @@ Status BufferQueueProducer::Disconnect(NativeWindowApi api) {
 }
 
 Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
-                                                  const std::shared_ptr<GraphicBuffer>& buffer) {
+                                                  const std::shared_ptr<NvGraphicBuffer>& buffer) {
     LOG_DEBUG(Service_Nvnflinger, "slot {}", slot);
 
     if (slot < 0 || slot >= BufferQueueDefs::NUM_BUFFER_SLOTS) {
@@ -796,7 +787,7 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
 
     slots[slot] = {};
     slots[slot].fence = Fence::NoFence();
-    slots[slot].graphic_buffer = buffer;
+    slots[slot].graphic_buffer = std::make_shared<GraphicBuffer>(nvmap, buffer);
     slots[slot].frame_number = 0;
 
     // Most games preallocate a buffer and pass a valid buffer here. However, it is possible for
@@ -839,7 +830,7 @@ void BufferQueueProducer::Transact(HLERequestContext& ctx, TransactionId code, u
     }
     case TransactionId::SetPreallocatedBuffer: {
         const auto slot = parcel_in.Read<s32>();
-        const auto buffer = parcel_in.ReadObject<GraphicBuffer>();
+        const auto buffer = parcel_in.ReadObject<NvGraphicBuffer>();
 
         status = SetPreallocatedBuffer(slot, buffer);
         break;
@@ -867,7 +858,7 @@ void BufferQueueProducer::Transact(HLERequestContext& ctx, TransactionId code, u
 
         status = RequestBuffer(slot, &buf);
 
-        parcel_out.WriteFlattenedObject(buf);
+        parcel_out.WriteFlattenedObject<NvGraphicBuffer>(buf.get());
         break;
     }
     case TransactionId::QueueBuffer: {

@@ -179,7 +179,7 @@ constexpr SharedMemoryPoolLayout SharedBufferPoolLayout = [] {
 }();
 
 void MakeGraphicBuffer(android::BufferQueueProducer& producer, u32 slot, u32 handle) {
-    auto buffer = std::make_shared<android::GraphicBuffer>();
+    auto buffer = std::make_shared<android::NvGraphicBuffer>();
     buffer->width = SharedBufferWidth;
     buffer->height = SharedBufferHeight;
     buffer->stride = SharedBufferBlockLinearStride;
