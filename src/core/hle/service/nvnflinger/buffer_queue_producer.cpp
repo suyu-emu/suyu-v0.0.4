@@ -134,7 +134,7 @@ Status BufferQueueProducer::WaitForFreeSlotThenRelock(bool async, s32* found, St
         const s32 max_buffer_count = core->GetMaxBufferCountLocked(async);
         if (async && core->override_max_buffer_count) {
             if (core->override_max_buffer_count < max_buffer_count) {
-                LOG_ERROR(Service_Nvnflinger, "async mode is invalid with buffer count override");
+                *found = BufferQueueCore::INVALID_BUFFER_SLOT;
                 return Status::BadValue;
             }
         }
@@ -142,7 +142,8 @@ Status BufferQueueProducer::WaitForFreeSlotThenRelock(bool async, s32* found, St
         // Free up any buffers that are in slots beyond the max buffer count
         for (s32 s = max_buffer_count; s < BufferQueueDefs::NUM_BUFFER_SLOTS; ++s) {
             ASSERT(slots[s].buffer_state == BufferState::Free);
-            if (slots[s].graphic_buffer != nullptr) {
+            if (slots[s].graphic_buffer != nullptr && slots[s].buffer_state == BufferState::Free &&
+                !slots[s].is_preallocated) {
                 core->FreeBufferLocked(s);
                 *return_flags |= Status::ReleaseAllBuffers;
             }
