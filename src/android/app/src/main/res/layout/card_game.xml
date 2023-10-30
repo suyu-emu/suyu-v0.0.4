@@ -1,63 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
     <com.google.android.material.card.MaterialCardView
-        style="?attr/materialCardViewElevatedStyle"
         android:id="@+id/card_game"
+        style="?attr/materialCardViewElevatedStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:background="?attr/selectableItemBackground"
         android:clickable="true"
         android:clipToPadding="false"
         android:focusable="true"
         android:transitionName="card_game"
-        android:layout_gravity="center"
-        app:cardElevation="0dp"
-        app:cardCornerRadius="12dp">
+        app:cardCornerRadius="4dp"
+        app:cardElevation="0dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="6dp">
 
-            <com.google.android.material.card.MaterialCardView
-                style="?attr/materialCardViewElevatedStyle"
-                android:id="@+id/card_game_art"
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/image_game_screen"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
-                app:cardCornerRadius="4dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-
-                <ImageView
-                    android:id="@+id/image_game_screen"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    tools:src="@drawable/default_icon" />
-
-            </com.google.android.material.card.MaterialCardView>
+                app:layout_constraintTop_toTopOf="parent"
+                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.ExtraSmall"
+                tools:src="@drawable/default_icon" />
 
             <com.google.android.material.textview.MaterialTextView
-                style="@style/TextAppearance.Material3.TitleMedium"
                 android:id="@+id/text_game_title"
+                style="@style/TextAppearance.Material3.TitleMedium"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:ellipsize="none"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:requiresFadingEdge="horizontal"
+                android:singleLine="true"
                 android:textAlignment="center"
                 android:textSize="14sp"
-                android:singleLine="true"
-                android:marqueeRepeatLimit="marquee_forever"
-                android:ellipsize="none"
-                android:requiresFadingEdge="horizontal"
-                app:layout_constraintEnd_toEndOf="@+id/card_game_art"
-                app:layout_constraintStart_toStartOf="@+id/card_game_art"
-                app:layout_constraintTop_toBottomOf="@+id/card_game_art"
+                app:layout_constraintEnd_toEndOf="@+id/image_game_screen"
+                app:layout_constraintStart_toStartOf="@+id/image_game_screen"
+                app:layout_constraintTop_toBottomOf="@+id/image_game_screen"
                 tools:text="The Legend of Zelda: Skyward Sword" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
