@@ -25,6 +25,9 @@
         <action
             android:id="@+id/action_homeSettingsFragment_to_driverManagerFragment"
             app:destination="@id/driverManagerFragment" />
+        <action
+            android:id="@+id/action_homeSettingsFragment_to_appletLauncherFragment"
+            app:destination="@id/appletLauncherFragment" />
     </fragment>
 
     <fragment
@@ -102,5 +105,17 @@
         android:id="@+id/driverManagerFragment"
         android:name="org.yuzu.yuzu_emu.fragments.DriverManagerFragment"
         android:label="DriverManagerFragment" />
+    <fragment
+        android:id="@+id/appletLauncherFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.AppletLauncherFragment"
+        android:label="AppletLauncherFragment" >
+        <action
+            android:id="@+id/action_appletLauncherFragment_to_cabinetLauncherDialogFragment"
+            app:destination="@id/cabinetLauncherDialogFragment" />
+    </fragment>
+    <dialog
+        android:id="@+id/cabinetLauncherDialogFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.CabinetLauncherDialogFragment"
+        android:label="CabinetLauncherDialogFragment" />
 
 </navigation>

@@ -755,4 +755,49 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmptyUserDirectory(JNIEnv* 
     }
 }
 
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getAppletLaunchPath(JNIEnv* env, jclass clazz,
+                                                                  jlong jid) {
+    auto bis_system =
+        EmulationSession::GetInstance().System().GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        return ToJString(env, "");
+    }
+
+    auto applet_nca =
+        bis_system->GetEntry(static_cast<u64>(jid), FileSys::ContentRecordType::Program);
+    if (!applet_nca) {
+        return ToJString(env, "");
+    }
+
+    return ToJString(env, applet_nca->GetFullPath());
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_setCurrentAppletId(JNIEnv* env, jclass clazz,
+                                                              jint jappletId) {
+    EmulationSession::GetInstance().System().GetAppletManager().SetCurrentAppletId(
+        static_cast<Service::AM::Applets::AppletId>(jappletId));
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_setCabinetMode(JNIEnv* env, jclass clazz,
+                                                          jint jcabinetMode) {
+    EmulationSession::GetInstance().System().GetAppletManager().SetCabinetMode(
+        static_cast<Service::NFP::CabinetMode>(jcabinetMode));
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isFirmwareAvailable(JNIEnv* env, jclass clazz) {
+    auto bis_system =
+        EmulationSession::GetInstance().System().GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        return false;
+    }
+
+    // Query an applet to see if it's available
+    auto applet_nca =
+        bis_system->GetEntry(0x010000000000100Dull, FileSys::ContentRecordType::Program);
+    if (!applet_nca) {
+        return false;
+    }
+    return true;
+}
+
 } // extern "C"

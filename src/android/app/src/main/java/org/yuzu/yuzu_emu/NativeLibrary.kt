@@ -252,7 +252,7 @@ object NativeLibrary {
 
     external fun reloadKeys(): Boolean
 
-    external fun initializeEmulation()
+    external fun initializeSystem()
 
     external fun defaultCPUCore(): Int
 
@@ -504,6 +504,36 @@ object NativeLibrary {
      * Creates a generic user directory if it doesn't exist already
      */
     external fun initializeEmptyUserDirectory()
+
+    /**
+     * Gets the launch path for a given applet. It is the caller's responsibility to also
+     * set the system's current applet ID before trying to launch the nca given by this function.
+     *
+     * @param id The applet entry ID
+     * @return The applet's launch path
+     */
+    external fun getAppletLaunchPath(id: Long): String
+
+    /**
+     * Sets the system's current applet ID before launching.
+     *
+     * @param appletId One of the ids in the Service::AM::Applets::AppletId enum
+     */
+    external fun setCurrentAppletId(appletId: Int)
+
+    /**
+     * Sets the cabinet mode for launching the cabinet applet.
+     *
+     * @param cabinetMode One of the modes that corresponds to the enum in Service::NFP::CabinetMode
+     */
+    external fun setCabinetMode(cabinetMode: Int)
+
+    /**
+     * Checks whether NAND contents are available and valid.
+     *
+     * @return 'true' if firmware is available
+     */
+    external fun isFirmwareAvailable(): Boolean
 
     /**
      * Button type for use in onTouchEvent
