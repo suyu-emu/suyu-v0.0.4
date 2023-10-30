@@ -8,7 +8,7 @@ import android.view.MotionEvent
 import kotlin.math.sqrt
 import org.yuzu.yuzu_emu.NativeLibrary
 
-class InputHandler {
+object InputHandler {
     fun initialize() {
         // Connect first controller
         NativeLibrary.onGamePadConnectEvent(getPlayerNumber(NativeLibrary.Player1Device))
