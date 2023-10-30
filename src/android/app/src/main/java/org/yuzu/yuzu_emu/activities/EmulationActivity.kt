@@ -45,7 +45,6 @@ import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.model.EmulationViewModel
 import org.yuzu.yuzu_emu.model.Game
-import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
 import org.yuzu.yuzu_emu.utils.ForegroundService
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.MemoryUtil
@@ -56,8 +55,6 @@ import kotlin.math.roundToInt
 
 class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var binding: ActivityEmulationBinding
-
-    private var controllerMappingHelper: ControllerMappingHelper? = null
 
     var isActivityRecreated = false
     private lateinit var nfcReader: NfcReader
@@ -94,8 +91,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         navHostFragment.navController.setGraph(R.navigation.emulation_navigation, intent.extras)
 
         isActivityRecreated = savedInstanceState != null
-
-        controllerMappingHelper = ControllerMappingHelper()
 
         // Set these options now so that the SurfaceView the game renders into is the right size.
         enableFullscreenImmersive()
