@@ -64,6 +64,8 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private var motionTimestamp: Long = 0
     private var flipMotionOrientation: Boolean = false
 
+    private var controllerIds = InputHandler.getGameControllerIds()
+
     private val actionPause = "ACTION_EMULATOR_PAUSE"
     private val actionPlay = "ACTION_EMULATOR_PLAY"
     private val actionMute = "ACTION_EMULATOR_MUTE"
@@ -155,6 +157,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         super.onResume()
         nfcReader.startScanning()
         startMotionSensorListener()
+        InputHandler.updateControllerIds()
 
         buildPictureInPictureParams()
     }
