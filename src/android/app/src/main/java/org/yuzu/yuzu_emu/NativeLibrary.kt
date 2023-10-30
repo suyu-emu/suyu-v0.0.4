@@ -5,6 +5,7 @@ package org.yuzu.yuzu_emu
 
 import android.app.Dialog
 import android.content.DialogInterface
+import android.net.Uri
 import android.os.Bundle
 import android.text.Html
 import android.text.method.LinkMovementMethod
@@ -16,7 +17,7 @@ import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.lang.ref.WeakReference
 import org.yuzu.yuzu_emu.activities.EmulationActivity
-import org.yuzu.yuzu_emu.utils.DocumentsTree.Companion.isNativePath
+import org.yuzu.yuzu_emu.utils.DocumentsTree
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.SerializableHelper.serializable
@@ -68,7 +69,7 @@ object NativeLibrary {
     @Keep
     @JvmStatic
     fun openContentUri(path: String?, openmode: String?): Int {
-        return if (isNativePath(path!!)) {
+        return if (DocumentsTree.isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.openContentUri(path, openmode)
         } else {
             FileUtil.openContentUri(path, openmode)
@@ -78,7 +79,7 @@ object NativeLibrary {
     @Keep
     @JvmStatic
     fun getSize(path: String?): Long {
-        return if (isNativePath(path!!)) {
+        return if (DocumentsTree.isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.getFileSize(path)
         } else {
             FileUtil.getFileSize(path)
@@ -88,22 +89,40 @@ object NativeLibrary {
     @Keep
     @JvmStatic
     fun exists(path: String?): Boolean {
-        return if (isNativePath(path!!)) {
+        return if (DocumentsTree.isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.exists(path)
         } else {
-            FileUtil.exists(path)
+            FileUtil.exists(path, suppressLog = true)
         }
     }
 
     @Keep
     @JvmStatic
     fun isDirectory(path: String?): Boolean {
-        return if (isNativePath(path!!)) {
+        return if (DocumentsTree.isNativePath(path!!)) {
             YuzuApplication.documentsTree!!.isDirectory(path)
         } else {
             FileUtil.isDirectory(path)
         }
     }
+
+    @Keep
+    @JvmStatic
+    fun getParentDirectory(path: String): String =
+        if (DocumentsTree.isNativePath(path)) {
+            YuzuApplication.documentsTree!!.getParentDirectory(path)
+        } else {
+            path
+        }
+
+    @Keep
+    @JvmStatic
+    fun getFilename(path: String): String =
+        if (DocumentsTree.isNativePath(path)) {
+            YuzuApplication.documentsTree!!.getFilename(path)
+        } else {
+            FileUtil.getFilename(Uri.parse(path))
+        }
 
     /**
      * Returns true if pro controller isn't available and handheld is
@@ -215,32 +234,6 @@ object NativeLibrary {
 
     external fun initGameIni(gameID: String?)
 
-    /**
-     * Gets the embedded icon within the given ROM.
-     *
-     * @param filename the file path to the ROM.
-     * @return a byte array containing the JPEG data for the icon.
-     */
-    external fun getIcon(filename: String): ByteArray
-
-    /**
-     * Gets the embedded title of the given ISO/ROM.
-     *
-     * @param filename The file path to the ISO/ROM.
-     * @return the embedded title of the ISO/ROM.
-     */
-    external fun getTitle(filename: String): String
-
-    external fun getDescription(filename: String): String
-
-    external fun getGameId(filename: String): String
-
-    external fun getRegions(filename: String): String
-
-    external fun getCompany(filename: String): String
-
-    external fun isHomebrew(filename: String): Boolean
-
     external fun setAppDirectory(directory: String)
 
     /**
@@ -292,11 +285,6 @@ object NativeLibrary {
      * Stops emulation.
      */
     external fun stopEmulation()
-
-    /**
-     * Resets the in-memory ROM metadata cache.
-     */
-    external fun resetRomMetadata()
 
     /**
      * Returns true if emulation is running (or is paused).

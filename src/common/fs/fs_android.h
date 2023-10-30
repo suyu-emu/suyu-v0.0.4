@@ -17,19 +17,28 @@
       "(Ljava/lang/String;)Z")                                                                     \
     V(Exists, bool, file_exists, CallStaticBooleanMethod, "exists", "(Ljava/lang/String;)Z")
 
+#define ANDROID_SINGLE_PATH_HELPER_FUNCTIONS(V)                                                    \
+    V(GetParentDirectory, get_parent_directory, CallStaticObjectMethod, "getParentDirectory",      \
+      "(Ljava/lang/String;)Ljava/lang/String;")                                                    \
+    V(GetFilename, get_filename, CallStaticObjectMethod, "getFilename",                            \
+      "(Ljava/lang/String;)Ljava/lang/String;")
+
 namespace Common::FS::Android {
 
 static JavaVM* g_jvm = nullptr;
 static jclass native_library = nullptr;
 
+#define FH(FunctionName, JMethodID, Caller, JMethodName, Signature) F(JMethodID)
 #define FR(FunctionName, ReturnValue, JMethodID, Caller, JMethodName, Signature) F(JMethodID)
 #define FS(FunctionName, ReturnValue, Parameters, JMethodID, JMethodName, Signature) F(JMethodID)
 #define F(JMethodID) static jmethodID JMethodID = nullptr;
+ANDROID_SINGLE_PATH_HELPER_FUNCTIONS(FH)
 ANDROID_SINGLE_PATH_DETERMINE_FUNCTIONS(FR)
 ANDROID_STORAGE_FUNCTIONS(FS)
 #undef F
 #undef FS
 #undef FR
+#undef FH
 
 enum class OpenMode {
     Read,
@@ -61,5 +70,11 @@ ANDROID_STORAGE_FUNCTIONS(FS)
 ANDROID_SINGLE_PATH_DETERMINE_FUNCTIONS(FR)
 #undef F
 #undef FR
+
+#define FH(FunctionName, JMethodID, Caller, JMethodName, Signature) F(FunctionName)
+#define F(FunctionName) std::string FunctionName(const std::string& filepath);
+ANDROID_SINGLE_PATH_HELPER_FUNCTIONS(FH)
+#undef F
+#undef FH
 
 } // namespace Common::FS::Android
