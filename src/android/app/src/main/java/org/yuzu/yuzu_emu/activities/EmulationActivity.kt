@@ -58,7 +58,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     var isActivityRecreated = false
     private lateinit var nfcReader: NfcReader
-    private lateinit var inputHandler: InputHandler
 
     private val gyro = FloatArray(3)
     private val accel = FloatArray(3)
@@ -100,8 +99,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         nfcReader = NfcReader(this)
         nfcReader.initialize()
 
-        inputHandler = InputHandler()
-        inputHandler.initialize()
+        InputHandler.initialize()
 
         val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
         if (!preferences.getBoolean(Settings.PREF_MEMORY_WARNING_SHOWN, false)) {
@@ -190,7 +188,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             return super.dispatchKeyEvent(event)
         }
 
-        return inputHandler.dispatchKeyEvent(event)
+        return InputHandler.dispatchKeyEvent(event)
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
@@ -205,7 +203,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             return true
         }
 
-        return inputHandler.dispatchGenericMotionEvent(event)
+        return InputHandler.dispatchGenericMotionEvent(event)
     }
 
     override fun onSensorChanged(event: SensorEvent) {
