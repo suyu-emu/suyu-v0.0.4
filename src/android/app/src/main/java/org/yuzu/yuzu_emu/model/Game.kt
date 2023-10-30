@@ -11,12 +11,12 @@ import kotlinx.serialization.Serializable
 @Parcelize
 @Serializable
 class Game(
-    val title: String,
+    val title: String = "",
     val path: String,
-    val programId: String,
-    val developer: String,
-    val version: String,
-    val isHomebrew: Boolean
+    val programId: String = "",
+    val developer: String = "",
+    val version: String = "",
+    val isHomebrew: Boolean = false
 ) : Parcelable {
     val keyAddedToLibraryTime get() = "${programId}_AddedToLibraryTime"
     val keyLastPlayedTime get() = "${programId}_LastPlayed"

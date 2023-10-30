@@ -8,6 +8,7 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.text.Html
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
@@ -32,7 +33,9 @@ class MessageDialogFragment : DialogFragment() {
         if (titleId != 0) dialog.setTitle(titleId)
         if (titleString.isNotEmpty()) dialog.setTitle(titleString)
 
-        if (descriptionId != 0) dialog.setMessage(descriptionId)
+        if (descriptionId != 0) {
+            dialog.setMessage(Html.fromHtml(getString(descriptionId), Html.FROM_HTML_MODE_LEGACY))
+        }
         if (descriptionString.isNotEmpty()) dialog.setMessage(descriptionString)
 
         if (helpLinkId != 0) {
