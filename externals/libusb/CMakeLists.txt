@@ -49,11 +49,6 @@ if (MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux") OR APPLE)
 
     set(LIBUSB_INCLUDE_DIRS "${LIBUSB_SRC_DIR}/libusb" CACHE PATH "libusb headers path" FORCE)
 
-    # MINGW: causes "externals/libusb/libusb/libusb/os/windows_winusb.c:1427:2: error: conversion to non-scalar type requested", so cannot statically link it for now.
-    if (NOT MINGW)
-        set(LIBUSB_CFLAGS "-DGUID_DEVINTERFACE_USB_DEVICE=\\(GUID\\){0xA5DCBF10,0x6530,0x11D2,{0x90,0x1F,0x00,0xC0,0x4F,0xB9,0x51,0xED}}")
-    endif()
-
     make_directory("${LIBUSB_PREFIX}")
 
     add_custom_command(
@@ -146,8 +141,6 @@ else() # MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
             target_include_directories(usb BEFORE PRIVATE libusb/msvc)
         endif()
 
-        # Works around other libraries providing their own definition of USB GUIDs (e.g. SDL2)
-        target_compile_definitions(usb PRIVATE "-DGUID_DEVINTERFACE_USB_DEVICE=(GUID){ 0xA5DCBF10, 0x6530, 0x11D2, {0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED}}")
     else()
         target_include_directories(usb
             # turns out other projects also have "config.h", so make sure the
