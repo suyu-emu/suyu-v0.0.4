@@ -71,27 +71,26 @@ object GameHelper {
 
     fun getGame(uri: Uri, addedToLibrary: Boolean): Game {
         val filePath = uri.toString()
-        var name = NativeLibrary.getTitle(filePath)
+        var name = GameMetadata.getTitle(filePath)
 
         // If the game's title field is empty, use the filename.
         if (name.isEmpty()) {
             name = FileUtil.getFilename(uri)
         }
-        var gameId = NativeLibrary.getGameId(filePath)
+        var programId = GameMetadata.getProgramId(filePath)
 
         // If the game's ID field is empty, use the filename without extension.
-        if (gameId.isEmpty()) {
-            gameId = name.substring(0, name.lastIndexOf("."))
+        if (programId.isEmpty()) {
+            programId = name.substring(0, name.lastIndexOf("."))
         }
 
         val newGame = Game(
             name,
-            NativeLibrary.getDescription(filePath).replace("\n", " "),
-            NativeLibrary.getRegions(filePath),
             filePath,
-            gameId,
-            NativeLibrary.getCompany(filePath),
-            NativeLibrary.isHomebrew(filePath)
+            programId,
+            GameMetadata.getDeveloper(filePath),
+            GameMetadata.getVersion(filePath),
+            GameMetadata.getIsHomebrew(filePath)
         )
 
         if (addedToLibrary) {
