@@ -2906,7 +2906,7 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
 
     const std::string game_file_name = std::filesystem::path(game_path).filename().string();
     // Determine full paths for icon and shortcut
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
     const char* home = std::getenv("HOME");
     const std::filesystem::path home_path = (home == nullptr ? "~" : home);
     const char* xdg_data_home = std::getenv("XDG_DATA_HOME");
@@ -2963,7 +2963,7 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
 
     QImage icon_data =
         QImage::fromData(icon_image_file.data(), static_cast<int>(icon_image_file.size()));
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
     // Convert and write the icon as a PNG
     if (!icon_data.save(QString::fromStdString(icon_path.string()))) {
         LOG_ERROR(Frontend, "Could not write icon as PNG to file");
@@ -4002,7 +4002,7 @@ bool GMainWindow::CreateShortcut(const std::string& shortcut_path, const std::st
                                  const std::string& comment, const std::string& icon_path,
                                  const std::string& command, const std::string& arguments,
                                  const std::string& categories, const std::string& keywords) {
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
     // This desktop file template was writing referencing
     // https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-1.0.html
     std::string shortcut_contents{};
