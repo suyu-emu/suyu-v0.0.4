@@ -32,7 +32,7 @@
 	path = externals/xbyak
 	url = https://github.com/herumi/xbyak.git
 [submodule "opus"]
-	path = externals/opus/opus
+	path = externals/opus
 	url = https://github.com/xiph/opus.git
 [submodule "SDL"]
 	path = externals/SDL
