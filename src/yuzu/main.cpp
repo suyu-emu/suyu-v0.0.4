@@ -159,8 +159,8 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/util/clickable_label.h"
 #include "yuzu/vk_device_info.h"
 
-#ifdef YUZU_DBGHELP
-#include "yuzu/mini_dump.h"
+#ifdef YUZU_CRASH_DUMPS
+#include "yuzu/breakpad.h"
 #endif
 
 using namespace Common::Literals;
@@ -5187,21 +5187,14 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-#ifdef YUZU_DBGHELP
-    PROCESS_INFORMATION pi;
-    if (!is_child && Settings::values.create_crash_dumps.GetValue() &&
-        MiniDump::SpawnDebuggee(argv[0], pi)) {
-        // Delete the config object so that it doesn't save when the program exits
-        config.reset(nullptr);
-        MiniDump::DebugDebuggee(pi);
-        return 0;
-    }
-#endif
-
     if (StartupChecks(argv[0], &has_broken_vulkan,
                       Settings::values.perform_vulkan_check.GetValue())) {
         return 0;
     }
+
+#ifdef YUZU_CRASH_DUMPS
+    Breakpad::InstallCrashHandler();
+#endif
 
     Common::DetachedTasks detached_tasks;
     MicroProfileOnThreadCreate("Frontend");

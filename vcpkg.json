@@ -33,10 +33,6 @@
             "description": "Compile tests",
             "dependencies": [ "catch2" ]
         },
-        "dbghelp": {
-            "description": "Compile Windows crash dump (Minidump) support",
-            "dependencies": [ "dbghelp" ]
-        },
         "web-service": {
             "description": "Enable web services (telemetry, etc.)",
             "dependencies": [
