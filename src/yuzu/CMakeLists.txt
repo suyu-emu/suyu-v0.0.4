@@ -227,14 +227,14 @@ add_executable(yuzu
     yuzu.rc
 )
 
-if (WIN32 AND YUZU_CRASH_DUMPS)
+if (YUZU_CRASH_DUMPS)
     target_sources(yuzu PRIVATE
-        mini_dump.cpp
-        mini_dump.h
+        breakpad.cpp
+        breakpad.h
     )
 
-    target_link_libraries(yuzu PRIVATE ${DBGHELP_LIBRARY})
-    target_compile_definitions(yuzu PRIVATE -DYUZU_DBGHELP)
+    target_link_libraries(yuzu PRIVATE libbreakpad_client)
+    target_compile_definitions(yuzu PRIVATE YUZU_CRASH_DUMPS)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
