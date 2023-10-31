@@ -59,13 +59,16 @@ public:
                                         const ScreenShotDecodeOption& decoder_options) const;
 
     Result SaveScreenShot(ApplicationAlbumEntry& out_entry, const ScreenShotAttribute& attribute,
-                          std::span<const u8> image_data, u64 aruid);
-    Result SaveScreenShot(ApplicationAlbumEntry& out_entry, const ScreenShotAttribute& attribute,
-                          const ApplicationData& app_data, std::span<const u8> image_data,
+                          AlbumReportOption report_option, std::span<const u8> image_data,
                           u64 aruid);
+    Result SaveScreenShot(ApplicationAlbumEntry& out_entry, const ScreenShotAttribute& attribute,
+                          AlbumReportOption report_option, const ApplicationData& app_data,
+                          std::span<const u8> image_data, u64 aruid);
     Result SaveEditedScreenShot(ApplicationAlbumEntry& out_entry,
                                 const ScreenShotAttribute& attribute, const AlbumFileId& file_id,
                                 std::span<const u8> image_data);
+
+    void FlipVerticallyOnWrite(bool flip);
 
 private:
     static constexpr std::size_t NandAlbumFileLimit = 1000;
