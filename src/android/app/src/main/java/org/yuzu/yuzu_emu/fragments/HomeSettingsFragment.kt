@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
 import org.yuzu.yuzu_emu.BuildConfig
 import org.yuzu.yuzu_emu.HomeNavigationDirections
+import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.HomeSettingAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentHomeSettingsBinding
@@ -129,6 +130,20 @@ class HomeSettingsFragment : Fragment() {
                         binding.root.findNavController()
                             .navigate(R.id.action_homeSettingsFragment_to_installableFragment)
                     }
+                )
+            )
+            add(
+                HomeSetting(
+                    R.string.applets,
+                    R.string.applets_description,
+                    R.drawable.ic_applet,
+                    {
+                        binding.root.findNavController()
+                            .navigate(R.id.action_homeSettingsFragment_to_appletLauncherFragment)
+                    },
+                    { NativeLibrary.isFirmwareAvailable() },
+                    R.string.applets_error_firmware,
+                    R.string.applets_error_description
                 )
             )
             add(

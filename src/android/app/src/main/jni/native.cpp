@@ -247,15 +247,23 @@ void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) 
     }
 }
 
+void EmulationSession::InitializeSystem() {
+    // Initialize filesystem.
+    m_system.SetFilesystem(m_vfs);
+    m_system.GetUserChannel().clear();
+    m_manual_provider = std::make_unique<FileSys::ManualContentProvider>();
+    m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
+    m_system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
+                                     m_manual_provider.get());
+    m_system.GetFileSystemController().CreateFactories(*m_vfs);
+}
+
 Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string& filepath) {
     std::scoped_lock lock(m_mutex);
 
     // Create the render window.
     m_window =
         std::make_unique<EmuWindow_Android>(&m_input_subsystem, m_native_window, m_vulkan_library);
-
-    m_system.SetFilesystem(m_vfs);
-    m_system.GetUserChannel().clear();
 
     // Initialize system.
     jauto android_keyboard = std::make_unique<SoftwareKeyboard::AndroidKeyboard>();
@@ -277,11 +285,6 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
     });
 
     // Initialize filesystem.
-    m_manual_provider = std::make_unique<FileSys::ManualContentProvider>();
-    m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
-    m_system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
-                                     m_manual_provider.get());
-    m_system.GetFileSystemController().CreateFactories(*m_vfs);
     ConfigureFilesystemProvider(filepath);
 
     // Initialize account manager
@@ -663,11 +666,12 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchReleased(JNIEnv* env, jclass c
     }
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmulation(JNIEnv* env, jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeSystem(JNIEnv* env, jclass clazz) {
     // Create the default config.ini.
     Config{};
     // Initialize the emulated system.
     EmulationSession::GetInstance().System().Initialize();
+    EmulationSession::GetInstance().InitializeSystem();
 }
 
 jint Java_org_yuzu_yuzu_1emu_NativeLibrary_defaultCPUCore(JNIEnv* env, jclass clazz) {
@@ -753,6 +757,51 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmptyUserDirectory(JNIEnv* 
     if (!Common::FS::CreateParentDirs(full_path)) {
         LOG_WARNING(Frontend, "Failed to create full path of the default user's save directory");
     }
+}
+
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getAppletLaunchPath(JNIEnv* env, jclass clazz,
+                                                                  jlong jid) {
+    auto bis_system =
+        EmulationSession::GetInstance().System().GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        return ToJString(env, "");
+    }
+
+    auto applet_nca =
+        bis_system->GetEntry(static_cast<u64>(jid), FileSys::ContentRecordType::Program);
+    if (!applet_nca) {
+        return ToJString(env, "");
+    }
+
+    return ToJString(env, applet_nca->GetFullPath());
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_setCurrentAppletId(JNIEnv* env, jclass clazz,
+                                                              jint jappletId) {
+    EmulationSession::GetInstance().System().GetAppletManager().SetCurrentAppletId(
+        static_cast<Service::AM::Applets::AppletId>(jappletId));
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_setCabinetMode(JNIEnv* env, jclass clazz,
+                                                          jint jcabinetMode) {
+    EmulationSession::GetInstance().System().GetAppletManager().SetCabinetMode(
+        static_cast<Service::NFP::CabinetMode>(jcabinetMode));
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isFirmwareAvailable(JNIEnv* env, jclass clazz) {
+    auto bis_system =
+        EmulationSession::GetInstance().System().GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        return false;
+    }
+
+    // Query an applet to see if it's available
+    auto applet_nca =
+        bis_system->GetEntry(0x010000000000100Dull, FileSys::ContentRecordType::Program);
+    if (!applet_nca) {
+        return false;
+    }
+    return true;
 }
 
 } // extern "C"
