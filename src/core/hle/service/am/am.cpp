@@ -23,6 +23,7 @@
 #include "core/hle/service/am/applets/applet_cabinet.h"
 #include "core/hle/service/am/applets/applet_mii_edit_types.h"
 #include "core/hle/service/am/applets/applet_profile_select.h"
+#include "core/hle/service/am/applets/applet_software_keyboard_types.h"
 #include "core/hle/service/am/applets/applet_web_browser.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/am/idle.h"
@@ -1571,7 +1572,7 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
         {16, nullptr, "GetMainAppletStorageId"},
         {17, nullptr, "GetCallerAppletIdentityInfoStack"},
         {18, nullptr, "GetNextReturnDestinationAppletIdentityInfo"},
-        {19, nullptr, "GetDesirableKeyboardLayout"},
+        {19, &ILibraryAppletSelfAccessor::GetDesirableKeyboardLayout, "GetDesirableKeyboardLayout"},
         {20, nullptr, "PopExtraStorage"},
         {25, nullptr, "GetPopExtraStorageEvent"},
         {30, nullptr, "UnpopInData"},
@@ -1590,7 +1591,7 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
         {120, nullptr, "GetLaunchStorageInfoForDebug"},
         {130, nullptr, "GetGpuErrorDetectedSystemEvent"},
         {140, nullptr, "SetApplicationMemoryReservation"},
-        {150, nullptr, "ShouldSetGpuTimeSliceManually"},
+        {150, &ILibraryAppletSelfAccessor::ShouldSetGpuTimeSliceManually, "ShouldSetGpuTimeSliceManually"},
     };
     // clang-format on
     RegisterHandlers(functions);
@@ -1604,6 +1605,9 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
         break;
     case Applets::AppletId::PhotoViewer:
         PushInShowAlbum();
+        break;
+    case Applets::AppletId::SoftwareKeyboard:
+        PushInShowSoftwareKeyboard();
         break;
     default:
         break;
@@ -1681,6 +1685,14 @@ void ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(HLERequestContext& 
     rb.PushRaw(applet_info);
 }
 
+void ILibraryAppletSelfAccessor::GetDesirableKeyboardLayout(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u32>(0);
+}
+
 void ILibraryAppletSelfAccessor::GetMainAppletAvailableUsers(HLERequestContext& ctx) {
     const Service::Account::ProfileManager manager{};
     bool is_empty{true};
@@ -1698,6 +1710,14 @@ void ILibraryAppletSelfAccessor::GetMainAppletAvailableUsers(HLERequestContext& 
     rb.Push(ResultSuccess);
     rb.Push<u8>(is_empty);
     rb.Push(user_count);
+}
+
+void ILibraryAppletSelfAccessor::ShouldSetGpuTimeSliceManually(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+    rb.Push<u8>(0);
 }
 
 void ILibraryAppletSelfAccessor::PushInShowAlbum() {
@@ -1766,6 +1786,61 @@ void ILibraryAppletSelfAccessor::PushInShowMiiEditData() {
     std::memcpy(argument_data.data(), &mii_arguments, sizeof(mii_arguments));
 
     queue_data.emplace_back(std::move(argument_data));
+}
+
+void ILibraryAppletSelfAccessor::PushInShowSoftwareKeyboard() {
+    const Applets::CommonArguments arguments{
+        .arguments_version = Applets::CommonArgumentVersion::Version3,
+        .size = Applets::CommonArgumentSize::Version3,
+        .library_version = static_cast<u32>(Applets::SwkbdAppletVersion::Version524301),
+        .theme_color = Applets::ThemeColor::BasicBlack,
+        .play_startup_sound = true,
+        .system_tick = system.CoreTiming().GetClockTicks(),
+    };
+
+    std::vector<char16_t> initial_string(0);
+
+    const Applets::SwkbdConfigCommon swkbd_config{
+        .type = Applets::SwkbdType::Qwerty,
+        .ok_text{},
+        .left_optional_symbol_key{},
+        .right_optional_symbol_key{},
+        .use_prediction = false,
+        .key_disable_flags{},
+        .initial_cursor_position = Applets::SwkbdInitialCursorPosition::Start,
+        .header_text{},
+        .sub_text{},
+        .guide_text{},
+        .max_text_length = 500,
+        .min_text_length = 0,
+        .password_mode = Applets::SwkbdPasswordMode::Disabled,
+        .text_draw_type = Applets::SwkbdTextDrawType::Box,
+        .enable_return_button = true,
+        .use_utf8 = false,
+        .use_blur_background = true,
+        .initial_string_offset{},
+        .initial_string_length = static_cast<u32>(initial_string.size()),
+        .user_dictionary_offset{},
+        .user_dictionary_entries{},
+        .use_text_check = false,
+    };
+
+    Applets::SwkbdConfigNew swkbd_config_new{};
+
+    std::vector<u8> argument_data(sizeof(arguments));
+    std::vector<u8> swkbd_data(sizeof(swkbd_config) + sizeof(swkbd_config_new));
+    std::vector<u8> work_buffer(swkbd_config.initial_string_length * sizeof(char16_t));
+
+    std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
+    std::memcpy(swkbd_data.data(), &swkbd_config, sizeof(swkbd_config));
+    std::memcpy(swkbd_data.data() + sizeof(swkbd_config), &swkbd_config_new,
+                sizeof(Applets::SwkbdConfigNew));
+    std::memcpy(work_buffer.data(), initial_string.data(),
+                swkbd_config.initial_string_length * sizeof(char16_t));
+
+    queue_data.emplace_back(std::move(argument_data));
+    queue_data.emplace_back(std::move(swkbd_data));
+    queue_data.emplace_back(std::move(work_buffer));
 }
 
 IAppletCommonFunctions::IAppletCommonFunctions(Core::System& system_)
