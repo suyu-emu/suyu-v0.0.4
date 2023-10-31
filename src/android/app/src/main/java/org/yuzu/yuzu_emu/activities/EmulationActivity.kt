@@ -45,7 +45,6 @@ import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.model.EmulationViewModel
 import org.yuzu.yuzu_emu.model.Game
-import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
 import org.yuzu.yuzu_emu.utils.ForegroundService
 import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.MemoryUtil
@@ -57,16 +56,15 @@ import kotlin.math.roundToInt
 class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var binding: ActivityEmulationBinding
 
-    private var controllerMappingHelper: ControllerMappingHelper? = null
-
     var isActivityRecreated = false
     private lateinit var nfcReader: NfcReader
-    private lateinit var inputHandler: InputHandler
 
     private val gyro = FloatArray(3)
     private val accel = FloatArray(3)
     private var motionTimestamp: Long = 0
     private var flipMotionOrientation: Boolean = false
+
+    private var controllerIds = InputHandler.getGameControllerIds()
 
     private val actionPause = "ACTION_EMULATOR_PAUSE"
     private val actionPlay = "ACTION_EMULATOR_PLAY"
@@ -95,8 +93,6 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
         isActivityRecreated = savedInstanceState != null
 
-        controllerMappingHelper = ControllerMappingHelper()
-
         // Set these options now so that the SurfaceView the game renders into is the right size.
         enableFullscreenImmersive()
 
@@ -105,8 +101,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         nfcReader = NfcReader(this)
         nfcReader.initialize()
 
-        inputHandler = InputHandler()
-        inputHandler.initialize()
+        InputHandler.initialize()
 
         val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
         if (!preferences.getBoolean(Settings.PREF_MEMORY_WARNING_SHOWN, false)) {
@@ -162,6 +157,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         super.onResume()
         nfcReader.startScanning()
         startMotionSensorListener()
+        InputHandler.updateControllerIds()
 
         buildPictureInPictureParams()
     }
@@ -195,7 +191,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             return super.dispatchKeyEvent(event)
         }
 
-        return inputHandler.dispatchKeyEvent(event)
+        return InputHandler.dispatchKeyEvent(event)
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
@@ -210,7 +206,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             return true
         }
 
-        return inputHandler.dispatchGenericMotionEvent(event)
+        return InputHandler.dispatchGenericMotionEvent(event)
     }
 
     override fun onSensorChanged(event: SensorEvent) {
