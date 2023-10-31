@@ -247,15 +247,23 @@ void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) 
     }
 }
 
+void EmulationSession::InitializeSystem() {
+    // Initialize filesystem.
+    m_system.SetFilesystem(m_vfs);
+    m_system.GetUserChannel().clear();
+    m_manual_provider = std::make_unique<FileSys::ManualContentProvider>();
+    m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
+    m_system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
+                                     m_manual_provider.get());
+    m_system.GetFileSystemController().CreateFactories(*m_vfs);
+}
+
 Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string& filepath) {
     std::scoped_lock lock(m_mutex);
 
     // Create the render window.
     m_window =
         std::make_unique<EmuWindow_Android>(&m_input_subsystem, m_native_window, m_vulkan_library);
-
-    m_system.SetFilesystem(m_vfs);
-    m_system.GetUserChannel().clear();
 
     // Initialize system.
     jauto android_keyboard = std::make_unique<SoftwareKeyboard::AndroidKeyboard>();
@@ -277,11 +285,6 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
     });
 
     // Initialize filesystem.
-    m_manual_provider = std::make_unique<FileSys::ManualContentProvider>();
-    m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
-    m_system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
-                                     m_manual_provider.get());
-    m_system.GetFileSystemController().CreateFactories(*m_vfs);
     ConfigureFilesystemProvider(filepath);
 
     // Initialize account manager
@@ -663,11 +666,12 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchReleased(JNIEnv* env, jclass c
     }
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmulation(JNIEnv* env, jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeSystem(JNIEnv* env, jclass clazz) {
     // Create the default config.ini.
     Config{};
     // Initialize the emulated system.
     EmulationSession::GetInstance().System().Initialize();
+    EmulationSession::GetInstance().InitializeSystem();
 }
 
 jint Java_org_yuzu_yuzu_1emu_NativeLibrary_defaultCPUCore(JNIEnv* env, jclass clazz) {
