@@ -347,11 +347,14 @@ private:
     void GetLibraryAppletInfo(HLERequestContext& ctx);
     void ExitProcessAndReturn(HLERequestContext& ctx);
     void GetCallerAppletIdentityInfo(HLERequestContext& ctx);
+    void GetDesirableKeyboardLayout(HLERequestContext& ctx);
     void GetMainAppletAvailableUsers(HLERequestContext& ctx);
+    void ShouldSetGpuTimeSliceManually(HLERequestContext& ctx);
 
     void PushInShowAlbum();
     void PushInShowCabinetData();
     void PushInShowMiiEditData();
+    void PushInShowSoftwareKeyboard();
 
     std::deque<std::vector<u8>> queue_data;
 };
