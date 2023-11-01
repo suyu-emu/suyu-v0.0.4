@@ -87,6 +87,7 @@ public:
 
 private:
     void GetAppletResourceUserId(HLERequestContext& ctx);
+    void GetAppletResourceUserIdOfCallerApplet(HLERequestContext& ctx);
     void AcquireForegroundRights(HLERequestContext& ctx);
 };
 
@@ -345,6 +346,7 @@ private:
     void PopInData(HLERequestContext& ctx);
     void PushOutData(HLERequestContext& ctx);
     void GetLibraryAppletInfo(HLERequestContext& ctx);
+    void GetMainAppletIdentityInfo(HLERequestContext& ctx);
     void ExitProcessAndReturn(HLERequestContext& ctx);
     void GetCallerAppletIdentityInfo(HLERequestContext& ctx);
     void GetDesirableKeyboardLayout(HLERequestContext& ctx);
@@ -355,6 +357,7 @@ private:
     void PushInShowCabinetData();
     void PushInShowMiiEditData();
     void PushInShowSoftwareKeyboard();
+    void PushInShowController();
 
     std::deque<std::vector<u8>> queue_data;
 };

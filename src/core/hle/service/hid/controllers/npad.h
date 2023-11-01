@@ -78,6 +78,46 @@ public:
         MaxActivationMode = 3,
     };
 
+    // This is nn::hid::system::AppletFooterUiAttributesSet
+    struct AppletFooterUiAttributes {
+        INSERT_PADDING_BYTES(0x4);
+    };
+
+    // This is nn::hid::system::AppletFooterUiType
+    enum class AppletFooterUiType : u8 {
+        None = 0,
+        HandheldNone = 1,
+        HandheldJoyConLeftOnly = 2,
+        HandheldJoyConRightOnly = 3,
+        HandheldJoyConLeftJoyConRight = 4,
+        JoyDual = 5,
+        JoyDualLeftOnly = 6,
+        JoyDualRightOnly = 7,
+        JoyLeftHorizontal = 8,
+        JoyLeftVertical = 9,
+        JoyRightHorizontal = 10,
+        JoyRightVertical = 11,
+        SwitchProController = 12,
+        CompatibleProController = 13,
+        CompatibleJoyCon = 14,
+        LarkHvc1 = 15,
+        LarkHvc2 = 16,
+        LarkNesLeft = 17,
+        LarkNesRight = 18,
+        Lucia = 19,
+        Verification = 20,
+        Lagon = 21,
+    };
+
+    using AppletFooterUiVariant = u8;
+
+    // This is "nn::hid::system::AppletDetailedUiType".
+    struct AppletDetailedUiType {
+        AppletFooterUiVariant ui_variant;
+        INSERT_PADDING_BYTES(0x2);
+        AppletFooterUiType footer;
+    };
+    static_assert(sizeof(AppletDetailedUiType) == 0x4, "AppletDetailedUiType is an invalid size");
     // This is nn::hid::NpadCommunicationMode
     enum class NpadCommunicationMode : u64 {
         Mode_5ms = 0,
@@ -203,6 +243,7 @@ public:
     static Result IsDeviceHandleValid(const Core::HID::VibrationDeviceHandle& device_handle);
     static Result VerifyValidSixAxisSensorHandle(
         const Core::HID::SixAxisSensorHandle& device_handle);
+    AppletDetailedUiType GetAppletDetailedUiType(Core::HID::NpadIdType npad_id);
 
 private:
     static constexpr std::size_t NPAD_COUNT = 10;
@@ -359,37 +400,6 @@ private:
     };
     static_assert(sizeof(NfcXcdDeviceHandleStateImpl) == 0x18,
                   "NfcXcdDeviceHandleStateImpl is an invalid size");
-
-    // This is nn::hid::system::AppletFooterUiAttributesSet
-    struct AppletFooterUiAttributes {
-        INSERT_PADDING_BYTES(0x4);
-    };
-
-    // This is nn::hid::system::AppletFooterUiType
-    enum class AppletFooterUiType : u8 {
-        None = 0,
-        HandheldNone = 1,
-        HandheldJoyConLeftOnly = 2,
-        HandheldJoyConRightOnly = 3,
-        HandheldJoyConLeftJoyConRight = 4,
-        JoyDual = 5,
-        JoyDualLeftOnly = 6,
-        JoyDualRightOnly = 7,
-        JoyLeftHorizontal = 8,
-        JoyLeftVertical = 9,
-        JoyRightHorizontal = 10,
-        JoyRightVertical = 11,
-        SwitchProController = 12,
-        CompatibleProController = 13,
-        CompatibleJoyCon = 14,
-        LarkHvc1 = 15,
-        LarkHvc2 = 16,
-        LarkNesLeft = 17,
-        LarkNesRight = 18,
-        Lucia = 19,
-        Verification = 20,
-        Lagon = 21,
-    };
 
     // This is nn::hid::NpadLarkType
     enum class NpadLarkType : u32 {
