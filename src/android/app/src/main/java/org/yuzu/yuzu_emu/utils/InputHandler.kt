@@ -68,7 +68,7 @@ object InputHandler {
     private fun getPlayerNumber(index: Int, deviceId: Int = -1): Int {
         var deviceIndex = index
         if (deviceId != -1) {
-            deviceIndex = controllerIds[deviceId]!!
+            deviceIndex = controllerIds[deviceId] ?: 0
         }
 
         // TODO: Joycons are handled as different controllers. Find a way to merge them.
