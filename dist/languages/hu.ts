@@ -29,7 +29,7 @@ p, li { white-space: pre-wrap; }
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Ubuntu&apos;; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:12pt;&quot;&gt;A yuzu egy kísérleti nyílt forráskódú emulátor a Nintendo Switchhez, GPLv3.0+ licenccel.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:12pt;&quot;&gt;A yuzu egy kísérleti, nyílt forráskódú Nintendo Switch emulátor, amely a GPLv3.0+ licenc alatt áll.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:12pt;&quot;&gt;Ezt a szoftvert ne használd, ha nem legálisan szerezted meg a játékaidat.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -213,7 +213,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/multiplayer/client_room.cpp" line="100"/>
         <source>%1 - %2 (%3/%4 members) - connected</source>
-        <translation>%1 - %2 (%3/%4 tagok) - csatlakoztatva</translation>
+        <translation>%1 - %2 (%3/%4 tag) - csatlakoztatva</translation>
     </message>
 </context>
 <context>
@@ -237,7 +237,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="36"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Should you choose to submit a test case to the &lt;/span&gt;&lt;a href=&quot;https://yuzu-emu.org/game/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;yuzu Compatibility List&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;, The following information will be collected and displayed on the site:&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Hardware Information (CPU / GPU / Operating System)&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Which version of yuzu you are running&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The connected yuzu account&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Szeretnél küldeni egy tesztelési jelentést a &lt;/span&gt;&lt;a href=&quot;https://yuzu-emu.org/game/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;yuzu Kompatibilitás Listájára&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;, A következő információkat fogjuk begyűjteni és megjeleníteni az oldalon:&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Hardver Információk (CPU / GPU / Operációs rendszer)&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;A yuzu, milyen verzión fut&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;A használt yuzu fiók&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Ha úgy döntesz, hogy tesztesetet küldesz a &lt;/span&gt;&lt;a href=&quot;https://yuzu-emu.org/game/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;yuzu kompatibilitási listára&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;,a következő információkat gyűjtjük és jelenítjük meg az oldalon:&lt;/span&gt;&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Hardverinformáció (CPU / GPU / operációs rendszer)&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;A yuzu futtatott verziója&lt;/li&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;A csatlakoztatott yuzu-fiók&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/compatdb.ui" line="77"/>
@@ -373,13 +373,13 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <translation>%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="319"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="321"/>
         <source>Auto (%1)</source>
         <comment>Auto select time zone</comment>
         <translation>Automatikus (%1)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="323"/>
+        <location filename="../../src/yuzu/configuration/shared_translation.cpp" line="325"/>
         <source>Default (%1)</source>
         <comment>Default time zone</comment>
         <translation>Alapértelmezett (%1)</translation>
@@ -404,12 +404,12 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_camera.ui" line="26"/>
         <source>Select where the image of the emulated camera comes from. It may be a virtual camera or a real camera.</source>
-        <translation type="unfinished"/>
+        <translation>Válaszd ki, honnan származik az emulált kamera képe. Ez lehet egy virtuális vagy egy valódi kamera.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_camera.ui" line="52"/>
         <source>Camera Image Source:</source>
-        <translation type="unfinished"/>
+        <translation>Kamerakép forrása:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_camera.ui" line="71"/>
@@ -434,7 +434,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_camera.ui" line="140"/>
         <source>Restore Defaults</source>
-        <translation>Visszaállítás alapértelmezettre</translation>
+        <translation>Visszaállítás</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_camera.cpp" line="140"/>
@@ -447,7 +447,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu.ui" line="17"/>
@@ -480,7 +480,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="17"/>
@@ -521,7 +521,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="60"/>
         <source>Enable block linking</source>
-        <translation type="unfinished"/>
+        <translation>Blokk összekapcsolás engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="67"/>
@@ -533,7 +533,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="72"/>
         <source>Enable return stack buffer</source>
-        <translation type="unfinished"/>
+        <translation>Visszatérési puffer engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="79"/>
@@ -552,36 +552,42 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <source>
             &lt;div&gt;Enables an IR optimization that reduces unnecessary accesses to the CPU context structure.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div&gt;Engedélyezi az IR-optimalizálást, amely csökkenti a CPU-kontextus struktúrájához való szükségtelen hozzáféréseket.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="96"/>
         <source>Enable context elimination</source>
-        <translation type="unfinished"/>
+        <translation>Kontextus kiküszöbölésének engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="103"/>
         <source>
             &lt;div&gt;Enables IR optimizations that involve constant propagation.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div&gt;Lehetővé teszi az olyan IR-optimalizációkat, amelyek állandó továbbítással járnak.&lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="108"/>
         <source>Enable constant propagation</source>
-        <translation type="unfinished"/>
+        <translation>Állandó továbbítás engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="115"/>
         <source>
             &lt;div&gt;Enables miscellaneous IR optimizations.&lt;/div&gt;
            </source>
-        <translation type="unfinished"/>
+        <translation>
+            &lt;div&gt;Engedélyezi az egyéb IR-optimalizációkat. &lt;/div&gt;
+           </translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="120"/>
         <source>Enable miscellaneous optimizations</source>
-        <translation type="unfinished"/>
+        <translation>Egyéb optimalizációk engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_cpu_debug.ui" line="127"/>
@@ -666,7 +672,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="85"/>
         <source>Enable GDB Stub</source>
-        <translation type="unfinished"/>
+        <translation>GDB Stub engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="119"/>
@@ -681,22 +687,22 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="163"/>
         <source>Open Log Location</source>
-        <translation>Naplózási Hely Megnyitása</translation>
+        <translation>Naplózási hely megnyitása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="197"/>
         <source>Global Log Filter</source>
-        <translation>Globális Naplózási Szűrő</translation>
+        <translation>Globális naplózási szűrő</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="213"/>
         <source>When checked, the max size of the log increases from 100 MB to 1 GB</source>
-        <translation>Ha bepipálva marad, a naplózásnak a maximális nagysága 100 MB-ról 1 GB-ra növekszik</translation>
+        <translation>Ha be van jelölve, a napló maximális mérete 100 MB-ról 1 GB-ra nő.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="216"/>
         <source>Enable Extended Logging**</source>
-        <translation>Bővített Naplózás Engedélyezése</translation>
+        <translation>Bővített naplózás engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="223"/>
@@ -721,7 +727,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="266"/>
         <source>When checked, it executes shaders without loop logic changes</source>
-        <translation>Ha be van pipálva, végrehajtja az árnyékolókat ismétlő logikai változtatások nélkül</translation>
+        <translation>Ha be van jelölve, végrehajtja az árnyékolókat ismétlő logikai változtatások nélkül</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="269"/>
@@ -731,7 +737,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="279"/>
         <source>When checked, it disables the macro HLE functions. Enabling this makes games run slower</source>
-        <translation>Ha bepipálva marad, letiltja a macro HLE funkciókat. Ha engedélyezi, lassabban futnak a játékok</translation>
+        <translation>Ha be van jelölve, letiltja a macro HLE funkciókat. Ennek engedélyezése lelassítja a játékok sebességét.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="282"/>
@@ -741,37 +747,37 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="292"/>
         <source>When checked, it will dump all the macro programs of the GPU</source>
-        <translation type="unfinished"/>
+        <translation>Ha be van jelölve, ki fogja menteni a GPU összes makróprogramját.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="295"/>
         <source>Dump Maxwell Macros</source>
-        <translation type="unfinished"/>
+        <translation>Maxwell makrók kimentése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="302"/>
         <source>When checked, it enables Nsight Aftermath crash dumps</source>
-        <translation type="unfinished"/>
+        <translation>Ha be van jelölve, engedélyezi az Nsight Aftermath összeomlási naplókat.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="305"/>
         <source>Enable Nsight Aftermath</source>
-        <translation>Nsight Aftermath Engedélyezése</translation>
+        <translation>Nsight Aftermath engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="312"/>
         <source>When checked, yuzu will log statistics about the compiled pipeline cache</source>
-        <translation type="unfinished"/>
+        <translation>Ha be van jelölve, a yuzu naplózza a fordított pipeline gyorsítótár statisztikáit.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="315"/>
         <source>Enable Shader Feedback</source>
-        <translation>Árnyékoló Visszajelzés Engedélyezése</translation>
+        <translation>Árnyékoló visszajelzés engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="325"/>
         <source>When checked, it disables the macro Just In Time compiler. Enabling this makes games run slower</source>
-        <translation>Ha bepipálva marad, letiltja a macro Just In Time összegyűjtőt. Ha engedélyezi, lassabban futnak a játékok</translation>
+        <translation>Ha be van jelölve, letiltja a macro Just In Time fordítót. Ennek engedélyezése lelassítja a játékok sebességét.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="328"/>
@@ -781,27 +787,27 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="354"/>
         <source>When checked, the graphics API enters a slower debugging mode</source>
-        <translation>Ha bepipálva marad, a grafikai API lassabb hibakereső módba fog lépni</translation>
+        <translation>Ha be van jelölve, a grafikus API lassabb hibakereső módba lép.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="357"/>
         <source>Enable Graphics Debugging</source>
-        <translation>Grafikai Hibakereső Engedélyezése</translation>
+        <translation>Grafikai hibakereső engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="367"/>
         <source>When checked, it will dump all the original assembler shaders from the disk shader cache or game as found</source>
-        <translation type="unfinished"/>
+        <translation>Ha be van jelölve, az összes eredeti assembler árnyékolót ki fogja menteni a lemez árnyékoló gyorsítótárból vagy a játékból, ahogyan azt találja.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="370"/>
         <source>Dump Game Shaders</source>
-        <translation type="unfinished"/>
+        <translation>Játék árnyékolók kimentése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="377"/>
         <source>Enable Renderdoc Hotkey</source>
-        <translation type="unfinished"/>
+        <translation>Renderdoc gyorsgomb engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="387"/>
@@ -811,22 +817,22 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="393"/>
         <source>Enables yuzu to check for a working Vulkan environment when the program starts up. Disable this if this is causing issues with external programs seeing yuzu.</source>
-        <translation>Engedélyezi a yuzunak, hogy keressen működő Vulkan környezetet, amikor a program elindul. Tiltsa le, ha okoz problémát yuzu észlelésénél külsős programoknál</translation>
+        <translation>Lehetővé teszi, hogy a yuzu ellenőrizze a Vulkan környezet működését a program indításakor. Ha ez problémát okoz a külső programoknak a yuzu észlelésében, akkor tiltsd le ezt az opciót.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="396"/>
         <source>Perform Startup Vulkan Check</source>
-        <translation>Elindítási Vulkan Ellenőrzés Végrehajtása</translation>
+        <translation>Vulkan ellenőrzése indításkor</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="403"/>
         <source>Disable Web Applet</source>
-        <translation>Webalkalmazás letiltása</translation>
+        <translation>Web applet letiltása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="410"/>
         <source>Enable All Controller Types</source>
-        <translation>Összes Kontroller Típus Engedélyezése</translation>
+        <translation>Összes vezérlőtípus engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="417"/>
@@ -836,12 +842,12 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="424"/>
         <source>Kiosk (Quest) Mode</source>
-        <translation>Kiosk (Quest) Mód</translation>
+        <translation>Kiosk (Quest) mód</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="431"/>
         <source>Enable CPU Debugging</source>
-        <translation>CPU Hibakereső Engedélyezése</translation>
+        <translation>CPU hibakereső engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="438"/>
@@ -860,47 +866,27 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="477"/>
-        <source>Create Minidump After Crash</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="484"/>
         <source>Enable this to output the latest generated audio command list to the console. Only affects games using the audio renderer.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="487"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="480"/>
         <source>Dump Audio Commands To Console**</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="494"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="487"/>
         <source>Enable Verbose Reporting Services**</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="546"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.ui" line="539"/>
         <source>**This will be reset automatically when yuzu closes.</source>
         <translation>**Ez automatikusan visszaáll, amikor a yuzu leáll.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.cpp" line="35"/>
-        <source>Restart Required</source>
-        <translation>Újraindítás Szükséges</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.cpp" line="36"/>
-        <source>yuzu is required to restart in order to apply this setting.</source>
-        <translation>Szükséges a yuzu újraindítása, hogy alkalmazzuk ezt a beállítást.</translation>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.cpp" line="90"/>
+        <location filename="../../src/yuzu/configuration/configure_debug.cpp" line="80"/>
         <source>Web applet not compiled</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/configuration/configure_debug.cpp" line="97"/>
-        <source>MiniDump creation not compiled</source>
         <translation type="unfinished"/>
     </message>
 </context>
@@ -909,7 +895,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug_controller.ui" line="14"/>
         <source>Configure Debug Controller</source>
-        <translation>Hibakeresési Kontroller Konfigurálása</translation>
+        <translation>Hibakeresési vezérlő konfigurálása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug_controller.ui" line="40"/>
@@ -919,7 +905,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug_controller.ui" line="47"/>
         <source>Defaults</source>
-        <translation>Alapértelmezettek</translation>
+        <translation>Alap</translation>
     </message>
 </context>
 <context>
@@ -927,7 +913,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug_tab.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug_tab.ui" line="17"/>
@@ -951,7 +937,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure.ui" line="67"/>
         <source>Some settings are only available when a game is not running.</source>
-        <translation>Valamely beállítások csak akkor elérhetőek, amikor nem fut játék.</translation>
+        <translation>Néhány beállítás csak akkor érhető el, amikor nem fut játék.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_dialog.cpp" line="62"/>
@@ -1035,7 +1021,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="17"/>
@@ -1099,7 +1085,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="159"/>
         <source>Dump ExeFS</source>
-        <translation type="unfinished"/>
+        <translation>ExeFS kimentése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="168"/>
@@ -1109,7 +1095,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="175"/>
         <source>Dump Root</source>
-        <translation type="unfinished"/>
+        <translation>Gyökér kimentése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.ui" line="201"/>
@@ -1132,27 +1118,27 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="93"/>
         <source>Select Emulated NAND Directory...</source>
-        <translation>Válasszon ki Emulált NAND Könyvtárat...</translation>
+        <translation>Emulált NAND könyvtár kiválasztása...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="96"/>
         <source>Select Emulated SD Directory...</source>
-        <translation>Válasszon ki Emulált SD Könyvtárat...</translation>
+        <translation>Emulált SD könyvtár kiválasztása...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="99"/>
         <source>Select Gamecard Path...</source>
-        <translation>Válasszon ki Játékkártya Könyvtárat...</translation>
+        <translation>Játékkártya könyvtár kiválasztása...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="102"/>
         <source>Select Dump Directory...</source>
-        <translation type="unfinished"/>
+        <translation>Kimentési mappa kiválasztása...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="105"/>
         <source>Select Mod Load Directory...</source>
-        <translation>Válasszon ki Mod Betöltő Könyvtárat...</translation>
+        <translation>Mod betöltő könyvtár kiválasztása...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_filesystem.cpp" line="132"/>
@@ -1175,7 +1161,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="17"/>
@@ -1186,7 +1172,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.ui" line="82"/>
         <source>Reset All Settings</source>
-        <translation>Összes Beállítás Visszaállítása</translation>
+        <translation>Összes beállítás visszaállítása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_general.cpp" line="70"/>
@@ -1204,7 +1190,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics.ui" line="17"/>
@@ -1214,12 +1200,12 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics.ui" line="25"/>
         <source>API Settings</source>
-        <translation>API Beállítások</translation>
+        <translation>API beállítások</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics.ui" line="58"/>
         <source>Graphics Settings</source>
-        <translation>Grafikai Beállítások</translation>
+        <translation>Grafikai beállítások</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics.ui" line="103"/>
@@ -1263,7 +1249,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_advanced.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_advanced.ui" line="17"/>
@@ -1273,7 +1259,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_graphics_advanced.ui" line="25"/>
         <source>Advanced Graphics Settings</source>
-        <translation>Haladó Grafikai Beállítások</translation>
+        <translation>Haladó grafikai beállítások</translation>
     </message>
 </context>
 <context>
@@ -1281,7 +1267,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.ui" line="14"/>
         <source>Hotkey Settings</source>
-        <translation>Gyorsgomb Beállítások</translation>
+        <translation>Gyorsgomb beállítások</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.ui" line="17"/>
@@ -1296,12 +1282,12 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.ui" line="45"/>
         <source>Clear All</source>
-        <translation>Összes Törlése</translation>
+        <translation>Összes törlése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.ui" line="52"/>
         <source>Restore Defaults</source>
-        <translation>Visszaállítás alapértelmezettre</translation>
+        <translation>Visszaállítás</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="100"/>
@@ -1316,12 +1302,12 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="100"/>
         <source>Controller Hotkey</source>
-        <translation>Kontroller Gyorsgomb</translation>
+        <translation>Vezérlő gyorsgomb</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="140"/>
         <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="168"/>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="394"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="401"/>
         <source>Conflicting Key Sequence</source>
         <translation>Ütköző kulcssorozat</translation>
     </message>
@@ -1342,27 +1328,37 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <translation>Érvénytelen</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="358"/>
-        <source>Restore Default</source>
-        <translation>Alapértelmezettre állítás</translation>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="325"/>
+        <source>Invalid hotkey settings</source>
+        <translation>Érvénytelen gyorsbillentyű beállítások</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="359"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="326"/>
+        <source>An error occurred. Please report this issue on github.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="365"/>
+        <source>Restore Default</source>
+        <translation>Alapértelmezés</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="366"/>
         <source>Clear</source>
         <translation>Törlés</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="380"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="387"/>
         <source>Conflicting Button Sequence</source>
         <translation>Ütköző gombsor</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="381"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="388"/>
         <source>The default button sequence is already assigned to: %1</source>
         <translation>Az alapértelmezett gombsor már hozzá van rendelve a: %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="395"/>
+        <location filename="../../src/yuzu/configuration/configure_hotkeys.cpp" line="402"/>
         <source>The default key sequence is already assigned to: %1</source>
         <translation>Az alapértelmezett kulcssorozat már hozzá van rendelve a: %1</translation>
     </message>
@@ -1372,7 +1368,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="14"/>
         <source>ConfigureInput</source>
-        <translation>Bevitel Konfigurálása</translation>
+        <translation>Bevitel konfigurálása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="39"/>
@@ -1431,12 +1427,12 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="138"/>
         <source>Console Mode</source>
-        <translation>Konzol Mód</translation>
+        <translation>Konzol mód</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="159"/>
         <source>Docked</source>
-        <translation>Dokkolva</translation>
+        <translation>Dokkolt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="169"/>
@@ -1462,7 +1458,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="296"/>
         <source>Controllers</source>
-        <translation>Kontrollerek</translation>
+        <translation>Vezérlők</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="324"/>
@@ -1512,7 +1508,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="494"/>
         <source>Defaults</source>
-        <translation>Alapértelmezettek</translation>
+        <translation>Alap</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input.ui" line="537"/>
@@ -1525,12 +1521,12 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="14"/>
         <source>Configure Input</source>
-        <translation>Bevitel Konfigurálása</translation>
+        <translation>Bevitel konfigurálása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="74"/>
         <source>Joycon Colors</source>
-        <translation>Joycon Színei</translation>
+        <translation>Joycon színei</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="125"/>
@@ -1547,7 +1543,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="1955"/>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2241"/>
         <source>L Body</source>
-        <translation>Bal Test</translation>
+        <translation>Bal test</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="219"/>
@@ -1559,7 +1555,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2010"/>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2296"/>
         <source>L Button</source>
-        <translation>Bal Gomb</translation>
+        <translation>Bal gomb</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="295"/>
@@ -1571,7 +1567,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2086"/>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2372"/>
         <source>R Body</source>
-        <translation>Jobb Test</translation>
+        <translation>Jobb test</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="350"/>
@@ -1583,7 +1579,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2141"/>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2427"/>
         <source>R Button</source>
-        <translation>Jobb Gomb</translation>
+        <translation>Jobb gomb</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="411"/>
@@ -1623,7 +1619,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2533"/>
         <source>Emulated Devices</source>
-        <translation>Emulált Eszközök</translation>
+        <translation>Emulált eszközök</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2545"/>
@@ -1648,7 +1644,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2595"/>
         <source>Debug Controller</source>
-        <translation>Kontroller Hibakeresése</translation>
+        <translation>Vézérlő hibakeresése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2602"/>
@@ -1661,12 +1657,12 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2609"/>
         <source>Ring Controller</source>
-        <translation>Ring Kontroller</translation>
+        <translation>Ring kontroller</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2623"/>
         <source>Infrared Camera</source>
-        <translation>Infravörös Kamera</translation>
+        <translation>Infravörös kamera</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2640"/>
@@ -1676,7 +1672,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2652"/>
         <source>Emulate Analog with Keyboard Input</source>
-        <translation>Analóg Emulálása Billentyűzet Bevitellel</translation>
+        <translation>Analóg emulálása billentyűzet bevitellel</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2659"/>
@@ -1688,17 +1684,17 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2668"/>
         <source>Enable XInput 8 player support (disables web applet)</source>
-        <translation type="unfinished"/>
+        <translation>XInput 8 játékos támogatás engedélyezése (web appletet letiltja)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2681"/>
         <source>Enable UDP controllers (not needed for motion)</source>
-        <translation type="unfinished"/>
+        <translation>UDP vezérlők engedélyezése (motionhöz nem szükséges)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2694"/>
         <source>Controller navigation</source>
-        <translation>Kontroller nagiváció</translation>
+        <translation>Kontroller navigáció</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2710"/>
@@ -1713,7 +1709,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2733"/>
         <source>Allows unlimited uses of the same Amiibo in games that would otherwise limit you to one use.</source>
-        <translation>Engedélyezi az ugyanolyan Amiibo korlátlan használatát, olyan játékokban ahol másképpen egyszeri használatra lenne limitálva.</translation>
+        <translation>Lehetővé teszi, hogy ugyanazt az Amiibo-t korlátlanul használd olyan játékokban, amelyek egyébként csak egyszerre engednék használni.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_advanced.ui" line="2742"/>
@@ -1731,7 +1727,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="17"/>
@@ -1741,52 +1737,52 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="28"/>
         <source>Input Profiles</source>
-        <translation>Beviteli Profilok</translation>
+        <translation>Beviteli profilok</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="49"/>
         <source>Player 1 Profile</source>
-        <translation>Játékos 1 Profilja</translation>
+        <translation>Játékos 1 profilja</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="84"/>
         <source>Player 2 Profile</source>
-        <translation>Játékos 2 Profilja</translation>
+        <translation>Játékos 2 profilja</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="119"/>
         <source>Player 3 Profile</source>
-        <translation>Játékos 3 Profilja</translation>
+        <translation>Játékos 3 profilja</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="154"/>
         <source>Player 4 Profile</source>
-        <translation>Játékos 4 Profilja</translation>
+        <translation>Játékos 4 profilja</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="189"/>
         <source>Player 5 Profile</source>
-        <translation>Játékos 5 Profilja</translation>
+        <translation>Játékos 5 profilja</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="224"/>
         <source>Player 6 Profile</source>
-        <translation>Játékos 6 Profilja</translation>
+        <translation>Játékos 6 profilja</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="259"/>
         <source>Player 7 Profile</source>
-        <translation>Játékos 7 Profilja</translation>
+        <translation>Játékos 7 profilja</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.ui" line="294"/>
         <source>Player 8 Profile</source>
-        <translation>Játékos 8 Profilja</translation>
+        <translation>Játékos 8 profilja</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.cpp" line="35"/>
         <source>Use global input configuration</source>
-        <translation type="unfinished"/>
+        <translation>Globális bemenet konfiguráció használata</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_per_game.cpp" line="47"/>
@@ -1799,7 +1795,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="14"/>
         <source>Configure Input</source>
-        <translation>Bevitel Konfigurálása</translation>
+        <translation>Bevitel konfigurálása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="63"/>
@@ -1809,7 +1805,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="100"/>
         <source>Input Device</source>
-        <translation>Bemeneti Eszköz</translation>
+        <translation>Bemeneti eszköz</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="137"/>
@@ -1929,7 +1925,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1271"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1345"/>
         <source>L</source>
-        <translation type="unfinished"/>
+        <translation>L</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1287"/>
@@ -1942,7 +1938,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1407"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1446"/>
         <source>Minus</source>
-        <translation type="unfinished"/>
+        <translation>Mínusz</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1456"/>
@@ -1955,7 +1951,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1565"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1336"/>
         <source>Plus</source>
-        <translation type="unfinished"/>
+        <translation>Plusz</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1575"/>
@@ -1969,7 +1965,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1339"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1346"/>
         <source>R</source>
-        <translation type="unfinished"/>
+        <translation>R</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="1734"/>
@@ -2021,13 +2017,13 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2328"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2367"/>
         <source>A</source>
-        <translation type="unfinished"/>
+        <translation>A</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2410"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2449"/>
         <source>B</source>
-        <translation type="unfinished"/>
+        <translation>B</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="2497"/>
@@ -2038,7 +2034,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="3085"/>
         <source>Mouse panning</source>
-        <translation type="unfinished"/>
+        <translation>Egérpásztázás</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.ui" line="3109"/>
@@ -2060,7 +2056,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="590"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="664"/>
         <source>[not set]</source>
-        <translation>[nincs beállítva]</translation>
+        <translation>[nincs beáll.]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="389"/>
@@ -2078,7 +2074,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="401"/>
         <source>Turbo button</source>
-        <translation type="unfinished"/>
+        <translation>Turbó gomb</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="409"/>
@@ -2091,7 +2087,7 @@ Ez kitiltaná a fórum felhasználóneve és az IP címe alapján.</translation>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="425"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="478"/>
         <source>Set threshold</source>
-        <translation type="unfinished"/>
+        <translation>Küszöbérték beállítása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="425"/>
@@ -2129,7 +2125,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="592"/>
         <source>Center axis</source>
-        <translation type="unfinished"/>
+        <translation>Középtengely</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="700"/>
@@ -2167,7 +2163,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1111"/>
         <source>Handheld</source>
-        <translation>Kézben</translation>
+        <translation>Kézi</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1115"/>
@@ -2177,7 +2173,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1124"/>
         <source>Poke Ball Plus</source>
-        <translation type="unfinished"/>
+        <translation>Poke Ball Plus</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1128"/>
@@ -2197,7 +2193,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1140"/>
         <source>Sega Genesis</source>
-        <translation type="unfinished"/>
+        <translation>Sega Genesis</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1344"/>
@@ -2207,7 +2203,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1347"/>
         <source>Z</source>
-        <translation type="unfinished"/>
+        <translation>Z</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1348"/>
@@ -2222,12 +2218,12 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1450"/>
         <source>Shake!</source>
-        <translation type="unfinished"/>
+        <translation>Rázd!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1452"/>
         <source>[waiting]</source>
-        <translation>[várokazás]</translation>
+        <translation>[várakozás]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1547"/>
@@ -2237,7 +2233,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1547"/>
         <source>Enter a profile name:</source>
-        <translation type="unfinished"/>
+        <translation>Add meg a profil nevét:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1555"/>
@@ -2253,7 +2249,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1564"/>
         <source>Failed to create the input profile &quot;%1&quot;</source>
-        <translation type="unfinished"/>
+        <translation>A  &quot;%1&quot; beviteli profilt nem sikerült létrehozni</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1584"/>
@@ -2263,7 +2259,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1585"/>
         <source>Failed to delete the input profile &quot;%1&quot;</source>
-        <translation type="unfinished"/>
+        <translation>A &quot;%1&quot; beviteli profilt nem sikerült eltávolítani</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1607"/>
@@ -2273,7 +2269,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1608"/>
         <source>Failed to load the input profile &quot;%1&quot;</source>
-        <translation type="unfinished"/>
+        <translation>A &quot;%1&quot; beviteli profilt nem sikerült betölteni</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1633"/>
@@ -2283,7 +2279,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="1634"/>
         <source>Failed to save the input profile &quot;%1&quot;</source>
-        <translation type="unfinished"/>
+        <translation>A &quot;%1&quot; beviteli profilt nem sikerült elmenteni</translation>
     </message>
 </context>
 <context>
@@ -2301,7 +2297,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_profile_dialog.ui" line="47"/>
         <source>Defaults</source>
-        <translation>Alapértelmezettek</translation>
+        <translation>Alap</translation>
     </message>
 </context>
 <context>
@@ -2341,7 +2337,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="85"/>
         <source>CemuhookUDP Config</source>
-        <translation type="unfinished"/>
+        <translation>CemuhookUDP konfig</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.ui" line="91"/>
@@ -2422,7 +2418,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="193"/>
         <source>Unable to add more than 8 servers</source>
-        <translation type="unfinished"/>
+        <translation>8-nál több kiszolgálót nem lehet hozzáadni</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="209"/>
@@ -2442,7 +2438,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="257"/>
         <source>Successfully received data from the server.</source>
-        <translation type="unfinished"/>
+        <translation>Az adatok sikeresen beérkeztek a kiszolgálótól.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="259"/>
@@ -2457,7 +2453,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_motion_touch.cpp" line="288"/>
         <source>UDP Test or calibration configuration is in progress.&lt;br&gt;Please wait for them to finish.</source>
-        <translation type="unfinished"/>
+        <translation>UDP tesztelés vagy a kalibrálás konfigurálása folyamatban van.&lt;br&gt;Kérjük, várj, amíg befejeződik.</translation>
     </message>
 </context>
 <context>
@@ -2465,17 +2461,17 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="6"/>
         <source>Configure mouse panning</source>
-        <translation type="unfinished"/>
+        <translation>Egérpásztázás konfigurálása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="12"/>
         <source>Enable mouse panning</source>
-        <translation type="unfinished"/>
+        <translation>Egérpásztázás engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="15"/>
         <source>Can be toggled via a hotkey. Default hotkey is Ctrl + F9</source>
-        <translation type="unfinished"/>
+        <translation>Gyorsgombbal kapcsolható. Alapértelmezett gyorsbillentyű: Ctrl + F9</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="24"/>
@@ -2524,7 +2520,7 @@ A tengely megfordításához mozgasd a kart először függőlegesen, majd vízs
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="129"/>
         <source>Strength</source>
-        <translation type="unfinished"/>
+        <translation>Erősség</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.ui" line="155"/>
@@ -2545,7 +2541,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.cpp" line="50"/>
         <source>Emulated mouse is enabled. This is incompatible with mouse panning.</source>
-        <translation type="unfinished"/>
+        <translation>Az emulált egér engedélyezve van. Ez nem kompatibilis az egérpásztázással.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_mouse_panning.cpp" line="83"/>
@@ -2563,7 +2559,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_network.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_network.ui" line="17"/>
@@ -2578,7 +2574,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_network.ui" line="34"/>
         <source>Network Interface</source>
-        <translation type="unfinished"/>
+        <translation>Hálózati adapter</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_network.cpp" line="15"/>
@@ -2591,12 +2587,12 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.ui" line="20"/>
         <source>Dialog</source>
-        <translation type="unfinished"/>
+        <translation>Párbeszéd</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.ui" line="34"/>
         <source>Info</source>
-        <translation type="unfinished"/>
+        <translation>Infó</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.ui" line="93"/>
@@ -2636,7 +2632,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.ui" line="240"/>
         <source>Some settings are only available when a game is not running.</source>
-        <translation>Valamely beállítások csak akkor elérhetőek, amikor nem fut játék.</translation>
+        <translation>Néhány beállítás csak akkor érhető el, amikor nem fut játék.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="68"/>
@@ -2671,7 +2667,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="74"/>
         <source>Input Profiles</source>
-        <translation>Beviteli Profilok</translation>
+        <translation>Beviteli profilok</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game.cpp" line="77"/>
@@ -2684,7 +2680,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.ui" line="17"/>
@@ -2694,7 +2690,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="46"/>
         <source>Patch Name</source>
-        <translation>Patch Név</translation>
+        <translation>Patch név</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_per_game_addons.cpp" line="47"/>
@@ -2707,7 +2703,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.ui" line="17"/>
@@ -2780,12 +2776,12 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="221"/>
         <source>Enter a new username:</source>
-        <translation type="unfinished"/>
+        <translation>Add meg az új felhasználóneved:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="271"/>
         <source>Select User Image</source>
-        <translation type="unfinished"/>
+        <translation>Felhasználói kép kiválasztása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="272"/>
@@ -2800,7 +2796,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="282"/>
         <source>Error occurred attempting to overwrite previous image at: %1.</source>
-        <translation type="unfinished"/>
+        <translation>Hiba történt az előző kép felülírása során: %1.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="290"/>
@@ -2810,37 +2806,37 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="291"/>
         <source>Unable to delete existing file: %1.</source>
-        <translation type="unfinished"/>
+        <translation>A meglévő fájl törlése nem lehetséges: %1.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="298"/>
         <source>Error creating user image directory</source>
-        <translation type="unfinished"/>
+        <translation>Hiba történt a felhasználó kép könyvtárának létrehozásakor</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="299"/>
         <source>Unable to create directory %1 for storing user images.</source>
-        <translation type="unfinished"/>
+        <translation>Nem sikerült létrehozni a(z) %1 könyvtárat a felhasználó képeinek tárolásához.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="304"/>
         <source>Error copying user image</source>
-        <translation type="unfinished"/>
+        <translation>Hiba történt a felhasználói kép másolásakor</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="305"/>
         <source>Unable to copy image from %1 to %2</source>
-        <translation type="unfinished"/>
+        <translation>Nem sikerült kimásolni a képet innen %1 ide %2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="314"/>
         <source>Error resizing user image</source>
-        <translation type="unfinished"/>
+        <translation>Hiba történt a felhasználói kép átméretezésekor</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="315"/>
         <source>Unable to resize image</source>
-        <translation type="unfinished"/>
+        <translation>A kép nem méretezhető át</translation>
     </message>
 </context>
 <context>
@@ -2848,7 +2844,7 @@ Current values are %1% and %2% respectively.</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="332"/>
         <source>Delete this user? All of the user&apos;s save data will be deleted.</source>
-        <translation type="unfinished"/>
+        <translation>Törlöd a felhasználót? Minden felhasználói adat törölve lesz.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="344"/>
@@ -2859,7 +2855,8 @@ Current values are %1% and %2% respectively.</source>
         <location filename="../../src/yuzu/configuration/configure_profile_manager.cpp" line="360"/>
         <source>Name: %1
 UUID: %2</source>
-        <translation type="unfinished"/>
+        <translation>Név: %1
+UUID: %2</translation>
     </message>
 </context>
 <context>
@@ -2926,7 +2923,7 @@ UUID: %2</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.ui" line="344"/>
         <source>Restore Defaults</source>
-        <translation>Visszaállítás alapértelmezettre</translation>
+        <translation>Visszaállítás</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="168"/>
@@ -2936,7 +2933,7 @@ UUID: %2</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="170"/>
         <source>[not set]</source>
-        <translation>[nincs beállítva]</translation>
+        <translation>[nincs beáll.]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="172"/>
@@ -2977,7 +2974,7 @@ UUID: %2</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="309"/>
         <source>The current mapped device is not connected</source>
-        <translation type="unfinished"/>
+        <translation>Az jelenleg hozzárendelt eszköz nincs csatlakoztatva</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="313"/>
@@ -2987,7 +2984,7 @@ UUID: %2</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="336"/>
         <source>[waiting]</source>
-        <translation>[várokazás]</translation>
+        <translation>[várakozás]</translation>
     </message>
 </context>
 <context>
@@ -2995,7 +2992,7 @@ UUID: %2</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_system.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_system.ui" line="17"/>
@@ -3019,7 +3016,7 @@ UUID: %2</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="11"/>
         <source>TAS</source>
-        <translation type="unfinished"/>
+        <translation>TAS</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="17"/>
@@ -3044,7 +3041,7 @@ UUID: %2</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="60"/>
         <source>Enable TAS features</source>
-        <translation type="unfinished"/>
+        <translation>TAS funkciók engedélyezése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="67"/>
@@ -3054,7 +3051,7 @@ UUID: %2</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="77"/>
         <source>Pause execution during loads</source>
-        <translation type="unfinished"/>
+        <translation>Végrehajtás szüneteltetése terhelés közben</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.ui" line="91"/>
@@ -3077,7 +3074,7 @@ UUID: %2</source>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.cpp" line="19"/>
         <source>TAS Configuration</source>
-        <translation type="unfinished"/>
+        <translation>TAS konfigurálása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_tas.cpp" line="49"/>
@@ -3181,7 +3178,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="14"/>
         <source>Configure Touchscreen</source>
-        <translation type="unfinished"/>
+        <translation>Érintőképernyő konfigurálása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="26"/>
@@ -3191,27 +3188,27 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="52"/>
         <source>Touch Parameters</source>
-        <translation type="unfinished"/>
+        <translation>Érintési paraméterek</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="71"/>
         <source>Touch Diameter Y</source>
-        <translation type="unfinished"/>
+        <translation>Érintési átmérő Y</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="91"/>
         <source>Touch Diameter X</source>
-        <translation type="unfinished"/>
+        <translation>Érintési átmérő X</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="98"/>
         <source>Rotational Angle</source>
-        <translation type="unfinished"/>
+        <translation>Forgásszög</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touchscreen_advanced.ui" line="132"/>
         <source>Restore Defaults</source>
-        <translation>Visszaállítás alapértelmezettre</translation>
+        <translation>Visszaállítás</translation>
     </message>
 </context>
 <context>
@@ -3231,7 +3228,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="36"/>
         <source>Standard (64x64)</source>
-        <translation type="unfinished"/>
+        <translation>Szabványos (64x64)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="37"/>
@@ -3251,7 +3248,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="44"/>
         <source>Standard (48x48)</source>
-        <translation type="unfinished"/>
+        <translation>Szabványos (48x48)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="45"/>
@@ -3284,7 +3281,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="17"/>
@@ -3299,7 +3296,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="31"/>
         <source>Note: Changing language will apply your configuration.</source>
-        <translation type="unfinished"/>
+        <translation>Megjegyzés: A nyelvváltoztatás azonnal érvénybe lép.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ui.ui" line="43"/>
@@ -3337,70 +3334,75 @@ Drag points to change position, or double-click table cells to edit values.</sou
         <translation>Fájltípus oszlop mutatása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="112"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="110"/>
+        <source>Show Play Time Column</source>
+        <translation>Játékidő oszlop mutatása</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="119"/>
         <source>Game Icon Size:</source>
         <translation>Játék ikonméret:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="126"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="133"/>
         <source>Folder Icon Size:</source>
         <translation>Mappa ikonméret:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="140"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="147"/>
         <source>Row 1 Text:</source>
         <translation>1. sor szövege:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="154"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="161"/>
         <source>Row 2 Text:</source>
         <translation>2. sor szövege:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="171"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="178"/>
         <source>Screenshots</source>
         <translation>Képernyőmentések</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="179"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="186"/>
         <source>Ask Where To Save Screenshots (Windows Only)</source>
         <translation>Kérdezze meg a képernyőmentések útvonalát (csak Windowson)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="188"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="195"/>
         <source>Screenshots Path: </source>
         <translation>Képernyőmentések útvonala:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="198"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="205"/>
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="214"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="221"/>
         <source>TextLabel</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="233"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.ui" line="240"/>
         <source>Resolution:</source>
         <translation>Felbontás:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="144"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="146"/>
         <source>Select Screenshots Path...</source>
         <translation>Képernyőmentések útvonala...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="288"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="293"/>
         <source>&lt;System&gt;</source>
         <translation>&lt;System&gt;</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="393"/>
+        <location filename="../../src/yuzu/configuration/configure_ui.cpp" line="398"/>
         <source>Auto (%1 x %2, %3 x %4)</source>
         <comment>Screenshot width value</comment>
-        <translation>Auto (%1 x %2, %3 x %4)</translation>
+        <translation>Automatikus (%1 x %2, %3 x %4)</translation>
     </message>
 </context>
 <context>
@@ -3488,7 +3490,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"/>
+        <translation>Forma</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="17"/>
@@ -3529,7 +3531,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="93"/>
         <source>What is my token?</source>
-        <translation type="unfinished"/>
+        <translation>Mi a tokenem?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.ui" line="118"/>
@@ -3584,7 +3586,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="76"/>
         <source>&lt;a href=&apos;https://yuzu-emu.org/wiki/yuzu-web-service/&apos;&gt;&lt;span style=&quot;text-decoration: underline; color:#039be5;&quot;&gt;What is my token?&lt;/span&gt;&lt;/a&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;a href=&apos;https://yuzu-emu.org/wiki/yuzu-web-service/&apos;&gt;&lt;span style=&quot;text-decoration: underline; color:#039be5;&quot;&gt;Mi a tokenem?&lt;/span&gt;&lt;/a&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="80"/>
@@ -3596,23 +3598,23 @@ Drag points to change position, or double-click table cells to edit values.</sou
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="91"/>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="170"/>
         <source>Unspecified</source>
-        <translation type="unfinished"/>
+        <translation>Nem meghatározott</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="117"/>
         <source>Token not verified</source>
-        <translation type="unfinished"/>
+        <translation>Token nincs megerősítve</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="118"/>
         <source>Token was not verified. The change to your token has not been saved.</source>
-        <translation type="unfinished"/>
+        <translation>Token nincs megerősítve. A változtatások nem lettek elmentve.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="141"/>
         <source>Unverified, please click Verify before saving configuration</source>
         <comment>Tooltip</comment>
-        <translation type="unfinished"/>
+        <translation>Nincs megerősítve, kattints a Megerősítés gombra mielőtt elmentenéd a konfigurációt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="147"/>
@@ -3640,7 +3642,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/configuration/configure_web.cpp" line="172"/>
         <source>Verification failed. Check that you have entered your token correctly, and that your internet connection is working.</source>
-        <translation>Sikertelen megerősítése. Győződj meg róla, hogy helyesen írtad be a tokened, és van internetkapcsolatod.</translation>
+        <translation>Sikertelen megerősítés. Győződj meg róla, hogy helyesen írtad be a tokened, és van internetkapcsolatod.</translation>
     </message>
 </context>
 <context>
@@ -3661,7 +3663,7 @@ Drag points to change position, or double-click table cells to edit values.</sou
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.ui" line="14"/>
         <source>Direct Connect</source>
-        <translation>Közvetlen kapcsolat</translation>
+        <translation>Közvetlen kapcsolódás</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/direct_connect.ui" line="47"/>
@@ -3715,959 +3717,998 @@ Drag points to change position, or double-click table cells to edit values.</sou
 <context>
     <name>GMainWindow</name>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="205"/>
+        <location filename="../../src/yuzu/main.cpp" line="211"/>
         <source>&lt;a href=&apos;https://yuzu-emu.org/help/feature/telemetry/&apos;&gt;Anonymous data is collected&lt;/a&gt; to help improve yuzu. &lt;br/&gt;&lt;br/&gt;Would you like to share your usage data with us?</source>
-        <translation type="unfinished"/>
+        <translation>&lt;a href=&apos;https://yuzu-emu.org/help/feature/telemetry/&apos;&gt;Névtelen adatok begyűjtve&lt;/a&gt; a yuzu fejlesztésének segítéséhez. &lt;br/&gt;&lt;br/&gt;Szeretnéd megosztani velünk a felhasználási adataidat?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="208"/>
+        <location filename="../../src/yuzu/main.cpp" line="214"/>
         <source>Telemetry</source>
         <translation>Telemetria</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="441"/>
+        <location filename="../../src/yuzu/main.cpp" line="449"/>
         <source>Broken Vulkan Installation Detected</source>
         <translation>Hibás Vulkan telepítés észlelve</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="442"/>
+        <location filename="../../src/yuzu/main.cpp" line="450"/>
         <source>Vulkan initialization failed during boot.&lt;br&gt;&lt;br&gt;Click &lt;a href=&apos;https://yuzu-emu.org/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;here for instructions to fix the issue&lt;/a&gt;.</source>
         <translation>A Vulkan inicializálása sikertelen volt az indulás során. &lt;br&gt;&lt;br&gt;Kattints ide&lt;a href=&apos;https://yuzu-emu.org/wiki/faq/#yuzu-starts-with-the-error-broken-vulkan-installation-detected&apos;&gt;a probléma megoldásához szükséges instrukciókhoz&lt;/a&gt;.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="467"/>
+        <location filename="../../src/yuzu/main.cpp" line="475"/>
         <source>Running a game</source>
         <extracomment>TRANSLATORS: This string is shown to the user to explain why yuzu needs to prevent the computer from sleeping</extracomment>
         <translation>Játék közben</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="848"/>
+        <location filename="../../src/yuzu/main.cpp" line="856"/>
         <source>Loading Web Applet...</source>
-        <translation>Webalkalmazás betöltése...</translation>
+        <translation>Web applet betöltése...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="898"/>
-        <location filename="../../src/yuzu/main.cpp" line="901"/>
+        <location filename="../../src/yuzu/main.cpp" line="906"/>
+        <location filename="../../src/yuzu/main.cpp" line="909"/>
         <source>Disable Web Applet</source>
-        <translation>Webalkalmazás letiltása</translation>
+        <translation>Web applet letiltása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="902"/>
+        <location filename="../../src/yuzu/main.cpp" line="910"/>
         <source>Disabling the web applet can lead to undefined behavior and should only be used with Super Mario 3D All-Stars. Are you sure you want to disable the web applet?
 (This can be re-enabled in the Debug settings.)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1018"/>
+        <location filename="../../src/yuzu/main.cpp" line="1026"/>
         <source>The amount of shaders currently being built</source>
-        <translation type="unfinished"/>
+        <translation>A jelenleg készülő árnyékolók mennyisége</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1020"/>
+        <location filename="../../src/yuzu/main.cpp" line="1028"/>
         <source>The current selected resolution scaling multiplier.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1023"/>
+        <location filename="../../src/yuzu/main.cpp" line="1031"/>
         <source>Current emulation speed. Values higher or lower than 100% indicate emulation is running faster or slower than a Switch.</source>
-        <translation type="unfinished"/>
+        <translation>Jelenlegi emuláció sebessége. 100%-nál magasabb vagy alacsonyabb érték azt jelzi, hogy mennyivel gyorsabb vagy lassabb a Switch-nél.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1026"/>
+        <location filename="../../src/yuzu/main.cpp" line="1034"/>
         <source>How many frames per second the game is currently displaying. This will vary from game to game and scene to scene.</source>
-        <translation type="unfinished"/>
+        <translation>A másodpercenként megjelenített képkockák számát mutatja. Ez játékonként és jelenetenként eltérő lehet.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1030"/>
+        <location filename="../../src/yuzu/main.cpp" line="1038"/>
         <source>Time taken to emulate a Switch frame, not counting framelimiting or v-sync. For full-speed emulation this should be at most 16.67 ms.</source>
-        <translation type="unfinished"/>
+        <translation>Egy Switch-kép emulálásához szükséges idő, képkockaszám-korlátozás és v-sync nélkül. Teljes sebességű emulálás esetén ennek legfeljebb 16.67 ms-nak kell lennie.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1085"/>
+        <location filename="../../src/yuzu/main.cpp" line="1093"/>
         <source>Unmute</source>
         <translation>Némítás feloldása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1085"/>
+        <location filename="../../src/yuzu/main.cpp" line="1093"/>
         <source>Mute</source>
         <translation>Némítás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1090"/>
+        <location filename="../../src/yuzu/main.cpp" line="1098"/>
         <source>Reset Volume</source>
         <translation>Hangerő visszaállítása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1274"/>
+        <location filename="../../src/yuzu/main.cpp" line="1284"/>
         <source>&amp;Clear Recent Files</source>
         <translation>&amp;Legutóbbi fájlok törlése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1361"/>
+        <location filename="../../src/yuzu/main.cpp" line="1371"/>
         <source>Emulated mouse is enabled</source>
         <translation>Emulált egér engedélyezve</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1362"/>
+        <location filename="../../src/yuzu/main.cpp" line="1372"/>
         <source>Real mouse input and mouse panning are incompatible. Please disable the emulated mouse in input advanced settings to allow mouse panning.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1588"/>
+        <location filename="../../src/yuzu/main.cpp" line="1624"/>
         <source>&amp;Continue</source>
         <translation>&amp;Folytatás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1590"/>
+        <location filename="../../src/yuzu/main.cpp" line="1626"/>
         <source>&amp;Pause</source>
         <translation>&amp;Szünet</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1762"/>
+        <location filename="../../src/yuzu/main.cpp" line="1796"/>
         <source>Warning Outdated Game Format</source>
         <translation>Figyelmeztetés: Elavult játékformátum</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1763"/>
+        <location filename="../../src/yuzu/main.cpp" line="1797"/>
         <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats yuzu supports, &lt;a href=&apos;https://yuzu-emu.org/wiki/overview-of-switch-game-formats&apos;&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1775"/>
         <location filename="../../src/yuzu/main.cpp" line="1809"/>
+        <location filename="../../src/yuzu/main.cpp" line="1843"/>
         <source>Error while loading ROM!</source>
         <translation>Hiba történt a ROM betöltése során!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1776"/>
+        <location filename="../../src/yuzu/main.cpp" line="1810"/>
         <source>The ROM format is not supported.</source>
         <translation>A ROM formátum nem támogatott.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1780"/>
+        <location filename="../../src/yuzu/main.cpp" line="1814"/>
         <source>An error occurred initializing the video core.</source>
-        <translation type="unfinished"/>
+        <translation>Hiba történt a videómag inicializálásakor.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1781"/>
+        <location filename="../../src/yuzu/main.cpp" line="1815"/>
         <source>yuzu has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://yuzu-emu.org/help/reference/log-files/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1796"/>
+        <location filename="../../src/yuzu/main.cpp" line="1830"/>
         <source>Error while loading ROM! %1</source>
         <comment>%1 signifies a numeric error code.</comment>
         <translation>Hiba történt a ROM betöltése során! %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1799"/>
+        <location filename="../../src/yuzu/main.cpp" line="1833"/>
         <source>%1&lt;br&gt;Please follow &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;the yuzu quickstart guide&lt;/a&gt; to redump your files.&lt;br&gt;You can refer to the yuzu wiki&lt;/a&gt; or the yuzu Discord&lt;/a&gt; for help.</source>
         <comment>%1 signifies an error string.</comment>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1810"/>
+        <location filename="../../src/yuzu/main.cpp" line="1844"/>
         <source>An unknown error occurred. Please see the log for more details.</source>
         <translation>Ismeretlen hiba történt. Nyisd meg a logot a részletekért.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1991"/>
+        <location filename="../../src/yuzu/main.cpp" line="2025"/>
         <source>(64-bit)</source>
         <translation>(64-bit)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1991"/>
+        <location filename="../../src/yuzu/main.cpp" line="2025"/>
         <source>(32-bit)</source>
         <translation>(32-bit)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1992"/>
+        <location filename="../../src/yuzu/main.cpp" line="2026"/>
         <source>%1 %2</source>
         <comment>%1 is the title name. %2 indicates if the title is 64-bit or 32-bit</comment>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2058"/>
+        <location filename="../../src/yuzu/main.cpp" line="2092"/>
         <source>Closing software...</source>
         <translation>Szoftver bezárása...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2210"/>
+        <location filename="../../src/yuzu/main.cpp" line="2246"/>
         <source>Save Data</source>
         <translation>Mentett adat</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2266"/>
+        <location filename="../../src/yuzu/main.cpp" line="2302"/>
         <source>Mod Data</source>
         <translation>Modolt adat</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2279"/>
+        <location filename="../../src/yuzu/main.cpp" line="2315"/>
         <source>Error Opening %1 Folder</source>
         <translation>Hiba törént a(z) %1 mappa megnyitása során</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2280"/>
-        <location filename="../../src/yuzu/main.cpp" line="2964"/>
+        <location filename="../../src/yuzu/main.cpp" line="2316"/>
+        <location filename="../../src/yuzu/main.cpp" line="3030"/>
         <source>Folder does not exist!</source>
         <translation>A mappa nem létezik!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2292"/>
+        <location filename="../../src/yuzu/main.cpp" line="2328"/>
         <source>Error Opening Transferable Shader Cache</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2293"/>
+        <location filename="../../src/yuzu/main.cpp" line="2329"/>
         <source>Failed to create the shader cache directory for this title.</source>
         <translation>Nem sikerült létrehozni az árnyékoló gyorsítótár könyvtárat ehhez a játékhoz.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2366"/>
+        <location filename="../../src/yuzu/main.cpp" line="2402"/>
         <source>Error Removing Contents</source>
         <translation>Hiba történt a játéktartalom eltávolítása során</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2368"/>
+        <location filename="../../src/yuzu/main.cpp" line="2404"/>
         <source>Error Removing Update</source>
         <translation>Hiba történt a frissítés eltávolítása során</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2370"/>
+        <location filename="../../src/yuzu/main.cpp" line="2406"/>
         <source>Error Removing DLC</source>
         <translation>Hiba történt a DLC eltávolítása során</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2379"/>
+        <location filename="../../src/yuzu/main.cpp" line="2415"/>
         <source>Remove Installed Game Contents?</source>
         <translation>Törlöd a telepített játéktartalmat?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2381"/>
+        <location filename="../../src/yuzu/main.cpp" line="2417"/>
         <source>Remove Installed Game Update?</source>
         <translation>Törlöd a telepített játékfrissítést?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2383"/>
+        <location filename="../../src/yuzu/main.cpp" line="2419"/>
         <source>Remove Installed Game DLC?</source>
         <translation>Törlöd a telepített DLC-t?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2389"/>
+        <location filename="../../src/yuzu/main.cpp" line="2425"/>
         <source>Remove Entry</source>
         <translation>Bejegyzés törlése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2420"/>
-        <location filename="../../src/yuzu/main.cpp" line="2436"/>
-        <location filename="../../src/yuzu/main.cpp" line="2467"/>
-        <location filename="../../src/yuzu/main.cpp" line="2535"/>
-        <location filename="../../src/yuzu/main.cpp" line="2569"/>
-        <location filename="../../src/yuzu/main.cpp" line="2592"/>
+        <location filename="../../src/yuzu/main.cpp" line="2455"/>
+        <location filename="../../src/yuzu/main.cpp" line="2471"/>
+        <location filename="../../src/yuzu/main.cpp" line="2502"/>
+        <location filename="../../src/yuzu/main.cpp" line="2581"/>
+        <location filename="../../src/yuzu/main.cpp" line="2615"/>
+        <location filename="../../src/yuzu/main.cpp" line="2638"/>
         <source>Successfully Removed</source>
         <translation>Sikeresen eltávolítva</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2421"/>
+        <location filename="../../src/yuzu/main.cpp" line="2456"/>
         <source>Successfully removed the installed base game.</source>
         <translation>A telepített alapjáték sikeresen el lett távolítva.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2425"/>
+        <location filename="../../src/yuzu/main.cpp" line="2460"/>
         <source>The base game is not installed in the NAND and cannot be removed.</source>
         <translation>Az alapjáték nincs telepítve a NAND-ra, ezért nem törölhető.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2437"/>
+        <location filename="../../src/yuzu/main.cpp" line="2472"/>
         <source>Successfully removed the installed update.</source>
         <translation>A telepített frissítés sikeresen el lett távolítva.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2440"/>
+        <location filename="../../src/yuzu/main.cpp" line="2475"/>
         <source>There is no update installed for this title.</source>
         <translation>Nincs telepítve frissítés ehhez a játékhoz.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2463"/>
+        <location filename="../../src/yuzu/main.cpp" line="2498"/>
         <source>There are no DLC installed for this title.</source>
         <translation>Nincs telepítve DLC ehhez a játékhoz.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2468"/>
+        <location filename="../../src/yuzu/main.cpp" line="2503"/>
         <source>Successfully removed %1 installed DLC.</source>
         <translation>%1 telepített DLC sikeresen eltávolítva.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2476"/>
+        <location filename="../../src/yuzu/main.cpp" line="2511"/>
         <source>Delete OpenGL Transferable Shader Cache?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2478"/>
+        <location filename="../../src/yuzu/main.cpp" line="2513"/>
         <source>Delete Vulkan Transferable Shader Cache?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2480"/>
+        <location filename="../../src/yuzu/main.cpp" line="2515"/>
         <source>Delete All Transferable Shader Caches?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2482"/>
+        <location filename="../../src/yuzu/main.cpp" line="2517"/>
         <source>Remove Custom Game Configuration?</source>
         <translation>Törlöd az egyéni játék konfigurációt?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2484"/>
+        <location filename="../../src/yuzu/main.cpp" line="2519"/>
         <source>Remove Cache Storage?</source>
         <translation>Törlöd a gyorsítótárat?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2490"/>
+        <location filename="../../src/yuzu/main.cpp" line="2525"/>
         <source>Remove File</source>
         <translation>Fájl eltávolítása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2530"/>
-        <location filename="../../src/yuzu/main.cpp" line="2538"/>
+        <location filename="../../src/yuzu/main.cpp" line="2550"/>
+        <source>Remove Play Time Data</source>
+        <translation>Játékidő törlése</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="2550"/>
+        <source>Reset play time?</source>
+        <translation>Visszaállítod a játékidőt?</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="2576"/>
+        <location filename="../../src/yuzu/main.cpp" line="2584"/>
         <source>Error Removing Transferable Shader Cache</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2531"/>
-        <location filename="../../src/yuzu/main.cpp" line="2565"/>
+        <location filename="../../src/yuzu/main.cpp" line="2577"/>
+        <location filename="../../src/yuzu/main.cpp" line="2611"/>
         <source>A shader cache for this title does not exist.</source>
-        <translation type="unfinished"/>
+        <translation>Ehhez a játékhoz nem létezik árnyékoló gyorsítótár.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2536"/>
+        <location filename="../../src/yuzu/main.cpp" line="2582"/>
         <source>Successfully removed the transferable shader cache.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2539"/>
+        <location filename="../../src/yuzu/main.cpp" line="2585"/>
         <source>Failed to remove the transferable shader cache.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2554"/>
+        <location filename="../../src/yuzu/main.cpp" line="2600"/>
         <source>Error Removing Vulkan Driver Pipeline Cache</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2555"/>
+        <location filename="../../src/yuzu/main.cpp" line="2601"/>
         <source>Failed to remove the driver pipeline cache.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2564"/>
-        <location filename="../../src/yuzu/main.cpp" line="2572"/>
+        <location filename="../../src/yuzu/main.cpp" line="2610"/>
+        <location filename="../../src/yuzu/main.cpp" line="2618"/>
         <source>Error Removing Transferable Shader Caches</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2570"/>
+        <location filename="../../src/yuzu/main.cpp" line="2616"/>
         <source>Successfully removed the transferable shader caches.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2573"/>
+        <location filename="../../src/yuzu/main.cpp" line="2619"/>
         <source>Failed to remove the transferable shader cache directory.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2586"/>
-        <location filename="../../src/yuzu/main.cpp" line="2595"/>
+        <location filename="../../src/yuzu/main.cpp" line="2632"/>
+        <location filename="../../src/yuzu/main.cpp" line="2641"/>
         <source>Error Removing Custom Configuration</source>
         <translation>Hiba történt az egyéni konfiguráció törlése során</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2587"/>
+        <location filename="../../src/yuzu/main.cpp" line="2633"/>
         <source>A custom configuration for this title does not exist.</source>
         <translation>Nem létezik egyéni konfiguráció ehhez a játékhoz.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2593"/>
+        <location filename="../../src/yuzu/main.cpp" line="2639"/>
         <source>Successfully removed the custom game configuration.</source>
         <translation>Egyéni játék konfiguráció sikeresen eltávolítva.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2596"/>
+        <location filename="../../src/yuzu/main.cpp" line="2642"/>
         <source>Failed to remove the custom game configuration.</source>
         <translation>Nem sikerült eltávolítani az egyéni játék konfigurációt.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2618"/>
-        <location filename="../../src/yuzu/main.cpp" line="2706"/>
+        <location filename="../../src/yuzu/main.cpp" line="2664"/>
+        <location filename="../../src/yuzu/main.cpp" line="2752"/>
         <source>RomFS Extraction Failed!</source>
         <translation>RomFS kicsomagolása sikertelen!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2619"/>
+        <location filename="../../src/yuzu/main.cpp" line="2665"/>
         <source>There was an error copying the RomFS files or the user cancelled the operation.</source>
         <translation>Hiba történt a RomFS fájlok másolása közben, vagy a felhasználó megszakította a műveletet.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2681"/>
+        <location filename="../../src/yuzu/main.cpp" line="2727"/>
         <source>Full</source>
         <translation>Teljes</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2681"/>
+        <location filename="../../src/yuzu/main.cpp" line="2727"/>
         <source>Skeleton</source>
         <translation>Csontváz</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2683"/>
+        <location filename="../../src/yuzu/main.cpp" line="2729"/>
         <source>Select RomFS Dump Mode</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2684"/>
+        <location filename="../../src/yuzu/main.cpp" line="2730"/>
         <source>Please select the how you would like the RomFS dumped.&lt;br&gt;Full will copy all of the files into the new directory while &lt;br&gt;skeleton will only create the directory structure.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2707"/>
+        <location filename="../../src/yuzu/main.cpp" line="2753"/>
         <source>There is not enough free space at %1 to extract the RomFS. Please free up space or select a different dump directory at Emulation &gt; Configure &gt; System &gt; Filesystem &gt; Dump Root</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2714"/>
+        <location filename="../../src/yuzu/main.cpp" line="2760"/>
         <source>Extracting RomFS...</source>
         <translation>RomFS kicsomagolása...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2714"/>
-        <location filename="../../src/yuzu/main.cpp" line="2750"/>
-        <location filename="../../src/yuzu/main.cpp" line="3102"/>
-        <location filename="../../src/yuzu/main.cpp" line="4023"/>
+        <location filename="../../src/yuzu/main.cpp" line="2760"/>
+        <location filename="../../src/yuzu/main.cpp" line="2796"/>
+        <location filename="../../src/yuzu/main.cpp" line="3168"/>
+        <location filename="../../src/yuzu/main.cpp" line="4160"/>
         <source>Cancel</source>
         <translation>Mégse</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2724"/>
+        <location filename="../../src/yuzu/main.cpp" line="2770"/>
         <source>RomFS Extraction Succeeded!</source>
-        <translation type="unfinished"/>
+        <translation>RomFS kibontása sikeres volt!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2725"/>
-        <location filename="../../src/yuzu/main.cpp" line="2779"/>
-        <location filename="../../src/yuzu/main.cpp" line="4115"/>
+        <location filename="../../src/yuzu/main.cpp" line="2771"/>
+        <location filename="../../src/yuzu/main.cpp" line="2825"/>
+        <location filename="../../src/yuzu/main.cpp" line="4252"/>
         <source>The operation completed successfully.</source>
         <translation>A művelet sikeresen végrehajtva.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2736"/>
+        <location filename="../../src/yuzu/main.cpp" line="2782"/>
         <source>Integrity verification couldn&apos;t be performed!</source>
-        <translation type="unfinished"/>
+        <translation>Az integritás ellenőrzését nem lehetett elvégezni!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2737"/>
+        <location filename="../../src/yuzu/main.cpp" line="2783"/>
         <source>File contents were not checked for validity.</source>
-        <translation type="unfinished"/>
+        <translation>A fájl tartalmának érvényessége nem lett ellenőrizve.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2740"/>
-        <location filename="../../src/yuzu/main.cpp" line="4111"/>
+        <location filename="../../src/yuzu/main.cpp" line="2786"/>
+        <location filename="../../src/yuzu/main.cpp" line="4248"/>
         <source>Integrity verification failed!</source>
-        <translation type="unfinished"/>
+        <translation>Az integritás ellenőrzése sikertelen!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2741"/>
+        <location filename="../../src/yuzu/main.cpp" line="2787"/>
         <source>File contents may be corrupt.</source>
-        <translation type="unfinished"/>
+        <translation>A fájl tartalma sérült lehet.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2750"/>
-        <location filename="../../src/yuzu/main.cpp" line="4023"/>
+        <location filename="../../src/yuzu/main.cpp" line="2796"/>
+        <location filename="../../src/yuzu/main.cpp" line="4160"/>
         <source>Verifying integrity...</source>
-        <translation type="unfinished"/>
+        <translation>Integritás ellenőrzése...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2778"/>
-        <location filename="../../src/yuzu/main.cpp" line="4114"/>
+        <location filename="../../src/yuzu/main.cpp" line="2824"/>
+        <location filename="../../src/yuzu/main.cpp" line="4251"/>
         <source>Integrity verification succeeded!</source>
-        <translation type="unfinished"/>
+        <translation>Integritás ellenőrzése sikeres!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2817"/>
-        <location filename="../../src/yuzu/main.cpp" line="2841"/>
-        <location filename="../../src/yuzu/main.cpp" line="2851"/>
-        <location filename="../../src/yuzu/main.cpp" line="2933"/>
-        <location filename="../../src/yuzu/main.cpp" line="2941"/>
+        <location filename="../../src/yuzu/main.cpp" line="2862"/>
+        <location filename="../../src/yuzu/main.cpp" line="2902"/>
+        <location filename="../../src/yuzu/main.cpp" line="2999"/>
+        <location filename="../../src/yuzu/main.cpp" line="3007"/>
         <source>Create Shortcut</source>
         <translation>Parancsikon létrehozása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2818"/>
+        <location filename="../../src/yuzu/main.cpp" line="2863"/>
         <source>This will create a shortcut to the current AppImage. This may not work well if you update. Continue?</source>
-        <translation type="unfinished"/>
+        <translation>Ez létrehoz egy parancsikont az aktuális AppImage-hez. Frissítés után nem garantált a helyes működése. Folytatod?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2842"/>
-        <source>Cannot create shortcut on desktop. Path &quot;%1&quot; does not exist.</source>
-        <translation type="unfinished"/>
+        <location filename="../../src/yuzu/main.cpp" line="2903"/>
+        <source>Cannot create shortcut. Path &quot;%1&quot; does not exist.</source>
+        <translation>Nem hozható létre parancsikon. Ez az útvonal nem létezik &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2852"/>
-        <source>Cannot create shortcut in applications menu. Path &quot;%1&quot; does not exist and cannot be created.</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.cpp" line="2869"/>
+        <location filename="../../src/yuzu/main.cpp" line="2922"/>
         <source>Create Icon</source>
         <translation>Ikon létrehozása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2870"/>
+        <location filename="../../src/yuzu/main.cpp" line="2923"/>
         <source>Cannot create icon file. Path &quot;%1&quot; does not exist and cannot be created.</source>
-        <translation type="unfinished"/>
+        <translation>Nem hozható létre az ikonfájl. Az útvonal &quot;%1&quot; nem létezik és nem is hozható létre.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2921"/>
+        <location filename="../../src/yuzu/main.cpp" line="2992"/>
         <source>Start %1 with the yuzu Emulator</source>
-        <translation type="unfinished"/>
+        <translation>%1 indítása a yuzu Emulátorral</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2934"/>
+        <location filename="../../src/yuzu/main.cpp" line="3000"/>
         <source>Failed to create a shortcut at %1</source>
-        <translation type="unfinished"/>
+        <translation>Nem sikerült létrehozni ezt a parancsikont %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2942"/>
+        <location filename="../../src/yuzu/main.cpp" line="3008"/>
         <source>Successfully created a shortcut to %1</source>
-        <translation type="unfinished"/>
+        <translation>Parancsikon sikeresen létrehozva ide %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2963"/>
+        <location filename="../../src/yuzu/main.cpp" line="3029"/>
         <source>Error Opening %1</source>
-        <translation type="unfinished"/>
+        <translation>Hiba a %1 megnyitásakor</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2972"/>
+        <location filename="../../src/yuzu/main.cpp" line="3038"/>
         <source>Select Directory</source>
         <translation>Könyvtár kiválasztása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3001"/>
+        <location filename="../../src/yuzu/main.cpp" line="3067"/>
         <source>Properties</source>
         <translation>Tulajdonságok</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3002"/>
+        <location filename="../../src/yuzu/main.cpp" line="3068"/>
         <source>The game properties could not be loaded.</source>
-        <translation type="unfinished"/>
+        <translation>A játék tulajdonságait nem sikerült betölteni.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3019"/>
+        <location filename="../../src/yuzu/main.cpp" line="3085"/>
         <source>Switch Executable (%1);;All Files (*.*)</source>
         <comment>%1 is an identifier for the Switch executable file extensions.</comment>
-        <translation type="unfinished"/>
+        <translation>Switch állományok(%1);;Minden fájl (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3023"/>
+        <location filename="../../src/yuzu/main.cpp" line="3089"/>
         <source>Load File</source>
         <translation>Fájl betöltése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3036"/>
+        <location filename="../../src/yuzu/main.cpp" line="3102"/>
         <source>Open Extracted ROM Directory</source>
-        <translation type="unfinished"/>
+        <translation>Kicsomagolt ROM könyvár megnyitása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3047"/>
+        <location filename="../../src/yuzu/main.cpp" line="3113"/>
         <source>Invalid Directory Selected</source>
         <translation>Érvénytelen könyvtár kiválasztva</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3048"/>
+        <location filename="../../src/yuzu/main.cpp" line="3114"/>
         <source>The directory you have selected does not contain a &apos;main&apos; file.</source>
-        <translation type="unfinished"/>
+        <translation>A kiválasztott könyvtár nem tartalmaz &apos;main&apos; fájlt.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3058"/>
+        <location filename="../../src/yuzu/main.cpp" line="3124"/>
         <source>Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge Image (*.xci)</source>
-        <translation type="unfinished"/>
+        <translation>Telepíthető Switch fájl (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge Image (*.xci)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3063"/>
+        <location filename="../../src/yuzu/main.cpp" line="3129"/>
         <source>Install Files</source>
         <translation>Fájlok telepítése</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3109"/>
+        <location filename="../../src/yuzu/main.cpp" line="3175"/>
         <source>%n file(s) remaining</source>
         <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3111"/>
+        <location filename="../../src/yuzu/main.cpp" line="3177"/>
         <source>Installing file &quot;%1&quot;...</source>
         <translation>&quot;%1&quot; fájl telepítése...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3156"/>
-        <location filename="../../src/yuzu/main.cpp" line="3170"/>
+        <location filename="../../src/yuzu/main.cpp" line="3222"/>
+        <location filename="../../src/yuzu/main.cpp" line="3236"/>
         <source>Install Results</source>
         <translation>Telepítés eredménye</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3157"/>
+        <location filename="../../src/yuzu/main.cpp" line="3223"/>
         <source>To avoid possible conflicts, we discourage users from installing base games to the NAND.
 Please, only use this feature to install updates and DLC.</source>
         <translation type="unfinished"/>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3163"/>
+        <location filename="../../src/yuzu/main.cpp" line="3229"/>
         <source>%n file(s) were newly installed
 </source>
         <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3166"/>
+        <location filename="../../src/yuzu/main.cpp" line="3232"/>
         <source>%n file(s) were overwritten
 </source>
         <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3168"/>
+        <location filename="../../src/yuzu/main.cpp" line="3234"/>
         <source>%n file(s) failed to install
 </source>
         <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3267"/>
+        <location filename="../../src/yuzu/main.cpp" line="3333"/>
         <source>System Application</source>
         <translation>Rendszeralkalmazás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3268"/>
+        <location filename="../../src/yuzu/main.cpp" line="3334"/>
         <source>System Archive</source>
-        <translation type="unfinished"/>
+        <translation>Rendszerarchívum</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3269"/>
+        <location filename="../../src/yuzu/main.cpp" line="3335"/>
         <source>System Application Update</source>
-        <translation type="unfinished"/>
+        <translation>Rendszeralkalmazás frissítés</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3270"/>
+        <location filename="../../src/yuzu/main.cpp" line="3336"/>
         <source>Firmware Package (Type A)</source>
-        <translation type="unfinished"/>
+        <translation>Firmware csomag (A típus)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3271"/>
+        <location filename="../../src/yuzu/main.cpp" line="3337"/>
         <source>Firmware Package (Type B)</source>
-        <translation type="unfinished"/>
+        <translation>Firmware csomag (B típus)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3272"/>
+        <location filename="../../src/yuzu/main.cpp" line="3338"/>
         <source>Game</source>
         <translation>Játék</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3273"/>
+        <location filename="../../src/yuzu/main.cpp" line="3339"/>
         <source>Game Update</source>
         <translation>Játékfrissítés</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3274"/>
+        <location filename="../../src/yuzu/main.cpp" line="3340"/>
         <source>Game DLC</source>
         <translation>Játék DLC</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3275"/>
+        <location filename="../../src/yuzu/main.cpp" line="3341"/>
         <source>Delta Title</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3278"/>
+        <location filename="../../src/yuzu/main.cpp" line="3344"/>
         <source>Select NCA Install Type...</source>
-        <translation type="unfinished"/>
+        <translation>NCA telepítési típus kiválasztása...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3279"/>
+        <location filename="../../src/yuzu/main.cpp" line="3345"/>
         <source>Please select the type of title you would like to install this NCA as:
 (In most instances, the default &apos;Game&apos; is fine.)</source>
-        <translation type="unfinished"/>
+        <translation>Kérjük, válaszd ki, hogy milyen típusú címként szeretnéd telepíteni ezt az NCA-t:
+(A legtöbb esetben az alapértelmezett &quot;Játék&quot; megfelelő.)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3285"/>
+        <location filename="../../src/yuzu/main.cpp" line="3351"/>
         <source>Failed to Install</source>
-        <translation type="unfinished"/>
+        <translation>Nem sikerült telepíteni</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3286"/>
+        <location filename="../../src/yuzu/main.cpp" line="3352"/>
         <source>The title type you selected for the NCA is invalid.</source>
-        <translation type="unfinished"/>
+        <translation>Az NCA-hoz kiválasztott címtípus érvénytelen.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3321"/>
+        <location filename="../../src/yuzu/main.cpp" line="3387"/>
         <source>File not found</source>
         <translation>Fájl nem található</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3322"/>
+        <location filename="../../src/yuzu/main.cpp" line="3388"/>
         <source>File &quot;%1&quot; not found</source>
         <translation>&quot;%1&quot;  fájl nem található</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3400"/>
+        <location filename="../../src/yuzu/main.cpp" line="3497"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3426"/>
-        <location filename="../../src/yuzu/main.cpp" line="3445"/>
+        <location filename="../../src/yuzu/main.cpp" line="3523"/>
+        <location filename="../../src/yuzu/main.cpp" line="3542"/>
         <source>Hardware requirements not met</source>
-        <translation type="unfinished"/>
+        <translation>A hardverkövetelmények nem teljesülnek</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3427"/>
-        <location filename="../../src/yuzu/main.cpp" line="3446"/>
+        <location filename="../../src/yuzu/main.cpp" line="3524"/>
+        <location filename="../../src/yuzu/main.cpp" line="3543"/>
         <source>Your system does not meet the recommended hardware requirements. Compatibility reporting has been disabled.</source>
-        <translation type="unfinished"/>
+        <translation>Az eszközöd nem felel meg az ajánlott hardverkövetelményeknek. A kompatibilitás jelentése letiltásra került.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3438"/>
+        <location filename="../../src/yuzu/main.cpp" line="3535"/>
         <source>Missing yuzu Account</source>
-        <translation type="unfinished"/>
+        <translation>Hiányzó yuzu fiók</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3439"/>
+        <location filename="../../src/yuzu/main.cpp" line="3536"/>
         <source>In order to submit a game compatibility test case, you must link your yuzu account.&lt;br&gt;&lt;br/&gt;To link your yuzu account, go to Emulation &amp;gt; Configuration &amp;gt; Web.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3454"/>
+        <location filename="../../src/yuzu/main.cpp" line="3551"/>
         <source>Error opening URL</source>
         <translation>Hiba történt az URL megnyitása során</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3455"/>
+        <location filename="../../src/yuzu/main.cpp" line="3552"/>
         <source>Unable to open the URL &quot;%1&quot;.</source>
         <translation>Hiba történt az URL megnyitása során: &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3760"/>
+        <location filename="../../src/yuzu/main.cpp" line="3854"/>
         <source>TAS Recording</source>
-        <translation type="unfinished"/>
+        <translation>TAS felvétel</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3761"/>
+        <location filename="../../src/yuzu/main.cpp" line="3854"/>
         <source>Overwrite file of player 1?</source>
-        <translation type="unfinished"/>
+        <translation>Felülírod az 1. játékos fájlját?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3787"/>
+        <location filename="../../src/yuzu/main.cpp" line="3873"/>
         <source>Invalid config detected</source>
         <translation>Érvénytelen konfig észlelve</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3788"/>
+        <location filename="../../src/yuzu/main.cpp" line="3874"/>
         <source>Handheld controller can&apos;t be used on docked mode. Pro controller will be selected.</source>
-        <translation type="unfinished"/>
+        <translation>A kézi vezérlés nem használható dokkolt módban. Helyette a Pro kontroller lesz kiválasztva.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3962"/>
-        <location filename="../../src/yuzu/main.cpp" line="3990"/>
+        <location filename="../../src/yuzu/main.cpp" line="4076"/>
+        <location filename="../../src/yuzu/main.cpp" line="4127"/>
         <source>Amiibo</source>
         <translation>Amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3962"/>
-        <location filename="../../src/yuzu/main.cpp" line="3990"/>
+        <location filename="../../src/yuzu/main.cpp" line="4076"/>
+        <location filename="../../src/yuzu/main.cpp" line="4127"/>
         <source>The current amiibo has been removed</source>
-        <translation type="unfinished"/>
+        <translation>A jelenlegi amiibo el lett távolítva</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3967"/>
+        <location filename="../../src/yuzu/main.cpp" line="4081"/>
         <source>Error</source>
         <translation>Hiba</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3967"/>
-        <location filename="../../src/yuzu/main.cpp" line="4002"/>
+        <location filename="../../src/yuzu/main.cpp" line="4081"/>
+        <location filename="../../src/yuzu/main.cpp" line="4139"/>
         <source>The current game is not looking for amiibos</source>
-        <translation type="unfinished"/>
+        <translation>A jelenlegi játék nem keres amiibo-kat</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3973"/>
+        <location filename="../../src/yuzu/main.cpp" line="4087"/>
         <source>Amiibo File (%1);; All Files (*.*)</source>
         <translation>Amiibo fájl (%1);; Minden fájl (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3974"/>
+        <location filename="../../src/yuzu/main.cpp" line="4088"/>
         <source>Load Amiibo</source>
         <translation>Amiibo betöltése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3986"/>
+        <location filename="../../src/yuzu/main.cpp" line="4123"/>
         <source>Error loading Amiibo data</source>
-        <translation type="unfinished"/>
+        <translation>Amiibo adatok betöltése sikertelen</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3996"/>
+        <location filename="../../src/yuzu/main.cpp" line="4133"/>
         <source>The selected file is not a valid amiibo</source>
-        <translation type="unfinished"/>
+        <translation>A kiválasztott fájl nem érvényes amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3999"/>
+        <location filename="../../src/yuzu/main.cpp" line="4136"/>
         <source>The selected file is already on use</source>
         <translation>A kiválasztott fájl már használatban van</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4005"/>
+        <location filename="../../src/yuzu/main.cpp" line="4142"/>
         <source>An unknown error occurred</source>
         <translation>Ismeretlen hiba történt</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4112"/>
+        <location filename="../../src/yuzu/main.cpp" line="4249"/>
         <source>Verification failed for the following files:
 
 %1</source>
-        <translation type="unfinished"/>
+        <translation>Az alábbi fájlok ellenőrzése sikertelen volt:
+
+%1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4141"/>
+        <location filename="../../src/yuzu/main.cpp" line="4278"/>
+        <location filename="../../src/yuzu/main.cpp" line="4301"/>
+        <location filename="../../src/yuzu/main.cpp" line="4325"/>
         <source>No firmware available</source>
-        <translation type="unfinished"/>
+        <translation>Nincs elérhető firmware</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4142"/>
+        <location filename="../../src/yuzu/main.cpp" line="4279"/>
+        <source>Please install the firmware to use the Album applet.</source>
+        <translation>Kérjük, telepítsd a firmware-t az Album applet használatához.</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4285"/>
+        <source>Album Applet</source>
+        <translation>Album applet</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4286"/>
+        <source>Album applet is not available. Please reinstall firmware.</source>
+        <translation>Album applet nem elérhető. Kérjük, telepítsd újra a firmware-t.</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4302"/>
+        <source>Please install the firmware to use the Cabinet applet.</source>
+        <translation>Kérjük, telepítsd a firmware-t a kabinet applet használatához.</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4308"/>
+        <source>Cabinet Applet</source>
+        <translation>Kabinet applet</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4309"/>
+        <source>Cabinet applet is not available. Please reinstall firmware.</source>
+        <translation>Kabinet applet nem elérhető. Kérjük, telepítsd újra a firmware-t.</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.cpp" line="4326"/>
         <source>Please install the firmware to use the Mii editor.</source>
-        <translation type="unfinished"/>
+        <translation>Kérjük, telepítsd a firmware-t a Mii-szerkesztő használatához.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4148"/>
+        <location filename="../../src/yuzu/main.cpp" line="4332"/>
         <source>Mii Edit Applet</source>
-        <translation type="unfinished"/>
+        <translation>Mii szerkesztő applet</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4149"/>
+        <location filename="../../src/yuzu/main.cpp" line="4333"/>
         <source>Mii editor is not available. Please reinstall firmware.</source>
-        <translation type="unfinished"/>
+        <translation>A Mii szerkesztő nem elérhető. Kérjük, telepítsd újra a firmware-t.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4180"/>
+        <location filename="../../src/yuzu/main.cpp" line="4366"/>
         <source>Capture Screenshot</source>
         <translation>Képernyőkép készítése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4181"/>
+        <location filename="../../src/yuzu/main.cpp" line="4367"/>
         <source>PNG Image (*.png)</source>
         <translation>PNG kép (*.png)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4264"/>
+        <location filename="../../src/yuzu/main.cpp" line="4450"/>
         <source>TAS state: Running %1/%2</source>
-        <translation type="unfinished"/>
+        <translation>TAS állapot: %1/%2 futtatása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4268"/>
+        <location filename="../../src/yuzu/main.cpp" line="4454"/>
         <source>TAS state: Recording %1</source>
-        <translation type="unfinished"/>
+        <translation>TAS állapot: %1 felvétele</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4270"/>
+        <location filename="../../src/yuzu/main.cpp" line="4456"/>
         <source>TAS state: Idle %1/%2</source>
-        <translation type="unfinished"/>
+        <translation>TAS állapot: Tétlen %1/%2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4274"/>
+        <location filename="../../src/yuzu/main.cpp" line="4460"/>
         <source>TAS State: Invalid</source>
-        <translation type="unfinished"/>
+        <translation>TAS állapot: Érvénytelen</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4288"/>
+        <location filename="../../src/yuzu/main.cpp" line="4474"/>
         <source>&amp;Stop Running</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Futás leállítása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4288"/>
+        <location filename="../../src/yuzu/main.cpp" line="4474"/>
         <source>&amp;Start</source>
         <translation>&amp;Indítás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4289"/>
+        <location filename="../../src/yuzu/main.cpp" line="4475"/>
         <source>Stop R&amp;ecording</source>
         <translation>F&amp;elvétel leállítása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4289"/>
+        <location filename="../../src/yuzu/main.cpp" line="4475"/>
         <source>R&amp;ecord</source>
         <translation>F&amp;elvétel</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="4313"/>
+        <location filename="../../src/yuzu/main.cpp" line="4499"/>
         <source>Building: %n shader(s)</source>
         <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4322"/>
+        <location filename="../../src/yuzu/main.cpp" line="4508"/>
         <source>Scale: %1x</source>
         <comment>%1 is the resolution scaling factor</comment>
         <translation>Skálázás: %1x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4325"/>
+        <location filename="../../src/yuzu/main.cpp" line="4511"/>
         <source>Speed: %1% / %2%</source>
         <translation>Sebesség: %1% / %2%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4329"/>
+        <location filename="../../src/yuzu/main.cpp" line="4515"/>
         <source>Speed: %1%</source>
         <translation>Sebesség: %1%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4333"/>
+        <location filename="../../src/yuzu/main.cpp" line="4519"/>
         <source>Game: %1 FPS (Unlocked)</source>
         <translation>Játék: %1 FPS (Feloldva)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4336"/>
+        <location filename="../../src/yuzu/main.cpp" line="4522"/>
         <source>Game: %1 FPS</source>
         <translation>Játék: %1 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4338"/>
+        <location filename="../../src/yuzu/main.cpp" line="4524"/>
         <source>Frame: %1 ms</source>
         <translation>Képkocka: %1 ms</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4365"/>
+        <location filename="../../src/yuzu/main.cpp" line="4551"/>
         <source>%1 %2</source>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4375"/>
+        <location filename="../../src/yuzu/main.cpp" line="4561"/>
         <location filename="../../src/yuzu/configuration/config.cpp" line="86"/>
         <source>FSR</source>
         <translation>FSR</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4383"/>
+        <location filename="../../src/yuzu/main.cpp" line="4569"/>
         <source>NO AA</source>
         <translation>Nincs élsimítás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4392"/>
+        <location filename="../../src/yuzu/main.cpp" line="4578"/>
         <source>VOLUME: MUTE</source>
         <translation>HANGERŐ: NÉMÍTVA</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4395"/>
+        <location filename="../../src/yuzu/main.cpp" line="4581"/>
         <source>VOLUME: %1%</source>
         <comment>Volume percentage (e.g. 50%)</comment>
         <translation>HANGERŐ: %1%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4476"/>
+        <location filename="../../src/yuzu/main.cpp" line="4662"/>
         <source>Confirm Key Rederivation</source>
-        <translation type="unfinished"/>
+        <translation>Kulcs újragenerálásának megerősítése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4477"/>
+        <location filename="../../src/yuzu/main.cpp" line="4663"/>
         <source>You are about to force rederive all of your keys. 
 If you do not know what this means or what you are doing, 
 this is a potentially destructive action. 
@@ -4675,93 +4716,103 @@ Please make sure this is what you want
 and optionally make backups.
 
 This will delete your autogenerated key files and re-run the key derivation module.</source>
-        <translation type="unfinished"/>
+        <translation>Épp az összes kulcs kényszerített újragenerálására készülsz. 
+Ha nem tudod, mit jelent, vagy mit csinálsz,
+ez egy potenciálisan veszélyes művelet. 
+Kérljük, győződj meg róla, hogy ezt szeretnéd,
+és opcionálisan készíts biztonsági másolatot.
+
+Ez törli az automatikusan generált kulcsfájlokat, és újraindítja a kulcsgeneráló modult.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4511"/>
+        <location filename="../../src/yuzu/main.cpp" line="4697"/>
         <source>Missing fuses</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4514"/>
+        <location filename="../../src/yuzu/main.cpp" line="4700"/>
         <source> - Missing BOOT0</source>
         <translation> - Hiányzó BOOT0</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4517"/>
+        <location filename="../../src/yuzu/main.cpp" line="4703"/>
         <source> - Missing BCPKG2-1-Normal-Main</source>
         <translation> - Hiányzó BCPKG2-1-Normal-Main</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4520"/>
+        <location filename="../../src/yuzu/main.cpp" line="4706"/>
         <source> - Missing PRODINFO</source>
         <translation> - Hiányzó PRODINFO</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4525"/>
+        <location filename="../../src/yuzu/main.cpp" line="4711"/>
         <source>Derivation Components Missing</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4526"/>
+        <location filename="../../src/yuzu/main.cpp" line="4712"/>
         <source>Encryption keys are missing. &lt;br&gt;Please follow &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;the yuzu quickstart guide&lt;/a&gt; to get all your keys, firmware and games.&lt;br&gt;&lt;br&gt;&lt;small&gt;(%1)&lt;/small&gt;</source>
-        <translation type="unfinished"/>
+        <translation>Hiányzó titkosítási kulcsok. &lt;br&gt;Kérjük, kövesd a &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;yuzu gyorstájékoztatóját&lt;/a&gt;, hogy megszerezd az összes kulcsot, firmware-t és játékot.&lt;br&gt;&lt;br&gt;&lt;small&gt;(%1)&lt;/small&gt;</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4535"/>
+        <location filename="../../src/yuzu/main.cpp" line="4721"/>
         <source>Deriving keys...
 This may take up to a minute depending 
 on your system&apos;s performance.</source>
-        <translation type="unfinished"/>
+        <translation>Kulcsok generálása... 
+Ez akár egy percet is igénybe vehet,
+rendszered teljesítményétől függően.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4537"/>
+        <location filename="../../src/yuzu/main.cpp" line="4723"/>
         <source>Deriving Keys</source>
-        <translation type="unfinished"/>
+        <translation>Kulcsok generálása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4554"/>
+        <location filename="../../src/yuzu/main.cpp" line="4740"/>
         <source>System Archive Decryption Failed</source>
-        <translation type="unfinished"/>
+        <translation>Rendszerarchívum visszafejtése sikertelen</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4555"/>
+        <location filename="../../src/yuzu/main.cpp" line="4741"/>
         <source>Encryption keys failed to decrypt firmware. &lt;br&gt;Please follow &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;the yuzu quickstart guide&lt;/a&gt; to get all your keys, firmware and games.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4642"/>
+        <location filename="../../src/yuzu/main.cpp" line="4834"/>
         <source>Select RomFS Dump Target</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4643"/>
+        <location filename="../../src/yuzu/main.cpp" line="4835"/>
         <source>Please select which RomFS you would like to dump.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4661"/>
+        <location filename="../../src/yuzu/main.cpp" line="4853"/>
         <source>Are you sure you want to close yuzu?</source>
         <translation>Biztosan be akarod zárni a yuzut?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4662"/>
-        <location filename="../../src/yuzu/main.cpp" line="4757"/>
-        <location filename="../../src/yuzu/main.cpp" line="4770"/>
+        <location filename="../../src/yuzu/main.cpp" line="4854"/>
+        <location filename="../../src/yuzu/main.cpp" line="4949"/>
+        <location filename="../../src/yuzu/main.cpp" line="4961"/>
         <source>yuzu</source>
         <translation>yuzu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4758"/>
+        <location filename="../../src/yuzu/main.cpp" line="4950"/>
         <source>Are you sure you want to stop the emulation? Any unsaved progress will be lost.</source>
-        <translation type="unfinished"/>
+        <translation>Biztos le akarod állítani az emulációt? Minden nem mentett adat el fog veszni.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4767"/>
+        <location filename="../../src/yuzu/main.cpp" line="4958"/>
         <source>The currently running application has requested yuzu to not exit.
 
 Would you like to bypass this and exit anyway?</source>
-        <translation type="unfinished"/>
+        <translation>Az éppen futó alkalmazás azt kérte a yuzu-tól, hogy ne lépjen ki.
+
+Mégis ki szeretnél lépni?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="71"/>
@@ -4806,7 +4857,7 @@ Would you like to bypass this and exit anyway?</source>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="90"/>
         <source>Docked</source>
-        <translation>Dokkolva</translation>
+        <translation>Dokkolt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="91"/>
@@ -4901,247 +4952,257 @@ Would you like to bypass this and exit anyway?</source>
     <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="1028"/>
         <source>Your GPU may not support one or more required OpenGL extensions. Please ensure you have the latest graphics driver.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Unsupported extensions:&lt;br&gt;%2</source>
-        <translation type="unfinished"/>
+        <translation>Előfordulhat, hogy a GPU-d nem támogat egy vagy több szükséges OpenGL kiterjesztést. Győződj meg róla, hogy a legújabb videokártya-illesztőprogramot használod.&lt;br&gt;&lt;br&gt;GL Renderer:&lt;br&gt;%1&lt;br&gt;&lt;br&gt;Nem támogatott kiterjesztések:&lt;br&gt;%2</translation>
     </message>
 </context>
 <context>
     <name>GameList</name>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="536"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="542"/>
         <source>Favorite</source>
         <translation>Kedvenc</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="538"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="544"/>
         <source>Start Game</source>
         <translation>Játék indítása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="540"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="546"/>
         <source>Start Game without Custom Configuration</source>
         <translation>Játék indítása egyéni konfiguráció nélkül</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="542"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="548"/>
         <source>Open Save Data Location</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="543"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="549"/>
         <source>Open Mod Data Location</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="545"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="551"/>
         <source>Open Transferable Pipeline Cache</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="547"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="553"/>
         <source>Remove</source>
         <translation>Eltávolítás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="548"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="554"/>
         <source>Remove Installed Update</source>
         <translation>Telepített frissítés eltávolítása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="549"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="555"/>
         <source>Remove All Installed DLC</source>
         <translation>Összes telepített DLC eltávolítása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="550"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="556"/>
         <source>Remove Custom Configuration</source>
         <translation>Egyéni konfiguráció eltávolítása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="551"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="557"/>
+        <source>Remove Play Time Data</source>
+        <translation>Játékidő törlése</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game_list.cpp" line="558"/>
         <source>Remove Cache Storage</source>
         <translation>Gyorsítótár ürítése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="552"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="559"/>
         <source>Remove OpenGL Pipeline Cache</source>
         <translation>OpenGL Pipeline gyorsítótár eltávolítása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="553"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="560"/>
         <source>Remove Vulkan Pipeline Cache</source>
-        <translation>Vulkan Pipeline gyorsítótár eltávolítása</translation>
+        <translation>Vulkan pipeline gyorsítótár eltávolítása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="555"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="562"/>
         <source>Remove All Pipeline Caches</source>
         <translation>Az összes Pipeline gyorsítótár törlése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="556"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="563"/>
         <source>Remove All Installed Contents</source>
         <translation>Összes telepített tartalom törlése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="557"/>
-        <location filename="../../src/yuzu/game_list.cpp" line="558"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="564"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="565"/>
         <source>Dump RomFS</source>
-        <translation type="unfinished"/>
+        <translation>RomFS kimentése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="559"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="566"/>
         <source>Dump RomFS to SDMC</source>
-        <translation type="unfinished"/>
+        <translation>RomFS kimentése SDMC-re</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="560"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="567"/>
         <source>Verify Integrity</source>
         <translation>Integritás ellenőrzése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="561"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="568"/>
         <source>Copy Title ID to Clipboard</source>
         <translation>Játék címének vágólapra másolása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="562"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="569"/>
         <source>Navigate to GameDB entry</source>
-        <translation type="unfinished"/>
+        <translation>GameDB bejegyzéshez navigálás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="564"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="570"/>
         <source>Create Shortcut</source>
         <translation>Parancsikon létrehozása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="565"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="571"/>
         <source>Add to Desktop</source>
         <translation>Asztalhoz adás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="567"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="574"/>
         <source>Add to Applications Menu</source>
         <translation>Alkalmazások menühöz adás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="570"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="577"/>
         <source>Properties</source>
         <translation>Tulajdonságok</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="657"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="666"/>
         <source>Scan Subfolders</source>
         <translation>Almappák szkennelése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="658"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="667"/>
         <source>Remove Game Directory</source>
-        <translation type="unfinished"/>
+        <translation>Játékkönyvtár eltávolítása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="677"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="686"/>
         <source>▲ Move Up</source>
-        <translation type="unfinished"/>
+        <translation>▲ Feljebb mozgatás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="678"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="687"/>
         <source>▼ Move Down</source>
-        <translation type="unfinished"/>
+        <translation>▼ Lejjebb mozgatás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="679"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="688"/>
         <source>Open Directory Location</source>
-        <translation type="unfinished"/>
+        <translation>Könyvtár helyének megnyitása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="724"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="733"/>
         <source>Clear</source>
         <translation>Törlés</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="788"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="797"/>
         <source>Name</source>
         <translation>Név</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="789"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="798"/>
         <source>Compatibility</source>
         <translation>Kompatibilitás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="790"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="799"/>
         <source>Add-ons</source>
         <translation>Kiegészítők</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="791"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="800"/>
         <source>File type</source>
         <translation>Fájltípus</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="792"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="801"/>
         <source>Size</source>
         <translation>Méret</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/game_list.cpp" line="802"/>
+        <source>Play time</source>
+        <translation>Játékidő</translation>
     </message>
 </context>
 <context>
     <name>GameListItemCompat</name>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="149"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="150"/>
         <source>Ingame</source>
         <translation>Játékban</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="149"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="150"/>
         <source>Game starts, but crashes or major glitches prevent it from being completed.</source>
-        <translation type="unfinished"/>
+        <translation>A játék elindul, de összeomlik, vagy súlyos hibák miatt nem fejezhető be.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="151"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="152"/>
         <source>Perfect</source>
         <translation>Tökéletes</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="151"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="152"/>
         <source>Game can be played without issues.</source>
         <translation>A játék problémamentesen játszható.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="152"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="153"/>
         <source>Playable</source>
         <translation>Játszható</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="152"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="153"/>
         <source>Game functions with minor graphical or audio glitches and is playable from start to finish.</source>
         <translation>A játék kisebb grafikai- és hanghibákkal végigjátszható.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="155"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="156"/>
         <source>Intro/Menu</source>
         <translation>Bevezető/Menü</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="155"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="156"/>
         <source>Game loads, but is unable to progress past the Start Screen.</source>
-        <translation type="unfinished"/>
+        <translation>A játék betölt, de nem jut tovább a Kezdőképernyőn.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="156"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="157"/>
         <source>Won&apos;t Boot</source>
         <translation>Nem indul</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="156"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="157"/>
         <source>The game crashes when attempting to startup.</source>
-        <translation type="unfinished"/>
+        <translation>A játék összeomlik indításkor.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="157"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="158"/>
         <source>Not Tested</source>
         <translation>Nem tesztelt</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="157"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="158"/>
         <source>The game has not yet been tested.</source>
         <translation>Ez a játék még nem lett tesztelve.</translation>
     </message>
@@ -5149,9 +5210,9 @@ Would you like to bypass this and exit anyway?</source>
 <context>
     <name>GameListPlaceholder</name>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="965"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="970"/>
         <source>Double-click to add a new folder to the game list</source>
-        <translation type="unfinished"/>
+        <translation>Dupla kattintással új mappát adhatsz hozzá a játéklistához.</translation>
     </message>
 </context>
 <context>
@@ -5162,14 +5223,14 @@ Would you like to bypass this and exit anyway?</source>
         <translation type="unfinished"><numerusform></numerusform><numerusform></numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="804"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="814"/>
         <source>Filter:</source>
         <translation>Szűrés:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list.cpp" line="805"/>
+        <location filename="../../src/yuzu/game_list.cpp" line="815"/>
         <source>Enter pattern to filter</source>
-        <translation type="unfinished"/>
+        <translation>Adj meg egy mintát a szűréshez</translation>
     </message>
 </context>
 <context>
@@ -5187,7 +5248,7 @@ Would you like to bypass this and exit anyway?</source>
     <message>
         <location filename="../../src/yuzu/multiplayer/host_room.ui" line="51"/>
         <source>Preferred Game</source>
-        <translation type="unfinished"/>
+        <translation>Preferált játék</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/host_room.ui" line="61"/>
@@ -5237,7 +5298,7 @@ Would you like to bypass this and exit anyway?</source>
     <message>
         <location filename="../../src/yuzu/multiplayer/host_room.ui" line="197"/>
         <source>Host Room</source>
-        <translation type="unfinished"/>
+        <translation>Szoba létrehozása</translation>
     </message>
 </context>
 <context>
@@ -5251,7 +5312,8 @@ Would you like to bypass this and exit anyway?</source>
         <location filename="../../src/yuzu/multiplayer/host_room.cpp" line="186"/>
         <source>Failed to announce the room to the public lobby. In order to host a room publicly, you must have a valid yuzu account configured in Emulation -&gt; Configure -&gt; Web. If you do not want to publish a room in the public lobby, then select Unlisted instead.
 Debug Message: </source>
-        <translation type="unfinished"/>
+        <translation>Nem sikerült bejelenteni a szobát a nyilvános lobbiban. Ahhoz, hogy egy szobát nyilvánosan létrehozhass, érvényes yuzu-fiókkal kell rendelkezned, amelyet az Emuláció -&gt; Konfigurálás -&gt; Web menüpontban kell beállítanod. Ha nem szeretnél egy szobát közzétenni a nyilvános lobbiban, akkor válaszd helyette a Nem listázott lehetőséget.
+Hibakereső üzenet:</translation>
     </message>
 </context>
 <context>
@@ -5284,6 +5346,7 @@ Debug Message: </source>
         <location filename="../../src/yuzu/configuration/config.cpp" line="137"/>
         <location filename="../../src/yuzu/configuration/config.cpp" line="138"/>
         <location filename="../../src/yuzu/configuration/config.cpp" line="139"/>
+        <location filename="../../src/yuzu/configuration/config.cpp" line="140"/>
         <source>Main Window</source>
         <translation>Főablak</translation>
     </message>
@@ -5305,22 +5368,22 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="122"/>
         <source>Change Adapting Filter</source>
-        <translation type="unfinished"/>
+        <translation>Alkalmazkodó szűrő módosítása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="123"/>
         <source>Change Docked Mode</source>
-        <translation type="unfinished"/>
+        <translation>Dokkolt mód módosítása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="124"/>
         <source>Change GPU Accuracy</source>
-        <translation type="unfinished"/>
+        <translation>GPU pontosság módosítása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="125"/>
         <source>Continue/Pause Emulation</source>
-        <translation type="unfinished"/>
+        <translation>Emuláció folytatása/szüneteltetése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="126"/>
@@ -5345,7 +5408,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="130"/>
         <source>Load/Remove Amiibo</source>
-        <translation type="unfinished"/>
+        <translation>Amiibo betöltése/törlése</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="131"/>
@@ -5360,17 +5423,17 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="133"/>
         <source>TAS Record</source>
-        <translation type="unfinished"/>
+        <translation>TAS felvétel</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="134"/>
         <source>TAS Reset</source>
-        <translation type="unfinished"/>
+        <translation>TAS visszaállítása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="135"/>
         <source>TAS Start/Stop</source>
-        <translation type="unfinished"/>
+        <translation>TAS indítása/leállítása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="136"/>
@@ -5380,15 +5443,20 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="137"/>
         <source>Toggle Framerate Limit</source>
-        <translation type="unfinished"/>
+        <translation>Képfrissítési korlát kapcsoló</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="138"/>
         <source>Toggle Mouse Panning</source>
-        <translation type="unfinished"/>
+        <translation>Egérpásztázás kapcsoló</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/config.cpp" line="139"/>
+        <source>Toggle Renderdoc Capture</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/configuration/config.cpp" line="140"/>
         <source>Toggle Status Bar</source>
         <translation>Állapotsáv kapcsoló</translation>
     </message>
@@ -5398,12 +5466,12 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/install_dialog.cpp" line="29"/>
         <source>Please confirm these are the files you wish to install.</source>
-        <translation type="unfinished"/>
+        <translation>Kérjük, erősítsd meg, hogy ezeket a fájlokat szeretnéd telepíteni.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/install_dialog.cpp" line="32"/>
         <source>Installing an Update or DLC will overwrite the previously installed one.</source>
-        <translation type="unfinished"/>
+        <translation>Egy frissítés vagy DLC telepítése felülírja a korábban telepítettet.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/install_dialog.cpp" line="36"/>
@@ -5422,7 +5490,8 @@ Debug Message: </source>
         <location filename="../../src/yuzu/util/limitable_input_dialog.cpp" line="59"/>
         <source>The text can't contain any of the following characters:
 %1</source>
-        <translation type="unfinished"/>
+        <translation>A szöveg nem tartalmazhatja a következő karakterek egyikét sem:
+%1</translation>
     </message>
 </context>
 <context>
@@ -5435,7 +5504,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/loading_screen.ui" line="121"/>
         <source>Loading Shaders %v out of %m</source>
-        <translation>Loading Shaders %v out of %m</translation>
+        <translation>Árnyékolók betöltése %v / %m</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/loading_screen.ui" line="135"/>
@@ -5468,7 +5537,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/multiplayer/lobby.ui" line="14"/>
         <source>Public Room Browser</source>
-        <translation type="unfinished"/>
+        <translation>Nyilvános szoba böngésző</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/lobby.ui" line="32"/>
@@ -5529,12 +5598,12 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="219"/>
         <source>Preferred Game</source>
-        <translation type="unfinished"/>
+        <translation>Preferált játék</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="220"/>
         <source>Host</source>
-        <translation>Hoszt</translation>
+        <translation>Házigazda</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/lobby.cpp" line="227"/>
@@ -5567,7 +5636,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/main.ui" line="66"/>
         <source>&amp;Emulation</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Emuláció</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="77"/>
@@ -5626,186 +5695,216 @@ Debug Message: </source>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="142"/>
+        <source>&amp;Amiibo</source>
+        <translation>&amp;Amiibo</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="151"/>
         <source>&amp;TAS</source>
         <translation>&amp;TAS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="160"/>
+        <location filename="../../src/yuzu/main.ui" line="171"/>
         <source>&amp;Help</source>
         <translation>&amp;Segítség</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="181"/>
+        <location filename="../../src/yuzu/main.ui" line="192"/>
         <source>&amp;Install Files to NAND...</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Fájlok telepítése a NAND-ra...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="186"/>
+        <location filename="../../src/yuzu/main.ui" line="197"/>
         <source>L&amp;oad File...</source>
-        <translation type="unfinished"/>
+        <translation>F&amp;ájl betöltése...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="191"/>
+        <location filename="../../src/yuzu/main.ui" line="202"/>
         <source>Load &amp;Folder...</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Mappa betöltése...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="196"/>
+        <location filename="../../src/yuzu/main.ui" line="207"/>
         <source>E&amp;xit</source>
         <translation>K&amp;ilépés</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="204"/>
+        <location filename="../../src/yuzu/main.ui" line="215"/>
         <source>&amp;Pause</source>
         <translation>&amp;Szünet</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="212"/>
+        <location filename="../../src/yuzu/main.ui" line="223"/>
         <source>&amp;Stop</source>
         <translation>&amp;Leállítás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="217"/>
+        <location filename="../../src/yuzu/main.ui" line="228"/>
         <source>&amp;Reinitialize keys...</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Kulcsok újraaktiválása...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="222"/>
+        <location filename="../../src/yuzu/main.ui" line="233"/>
         <source>&amp;Verify Installed Contents</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Telepített tartalom ellenőrzése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="227"/>
+        <location filename="../../src/yuzu/main.ui" line="238"/>
         <source>&amp;About yuzu</source>
         <translation>&amp;A yuzuról</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="235"/>
+        <location filename="../../src/yuzu/main.ui" line="246"/>
         <source>Single &amp;Window Mode</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="240"/>
-        <source>Con&amp;figure...</source>
-        <translation>Kon@figurálás</translation>
+        <translation>&amp;Egyablakos mód</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="251"/>
-        <source>Display D&amp;ock Widget Headers</source>
-        <translation type="unfinished"/>
+        <source>Con&amp;figure...</source>
+        <translation>Kon&amp;figurálás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="259"/>
+        <location filename="../../src/yuzu/main.ui" line="262"/>
+        <source>Display D&amp;ock Widget Headers</source>
+        <translation>D&amp;ock Widget fejlécek megjelenítése</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="270"/>
         <source>Show &amp;Filter Bar</source>
         <translation>&amp;Szűrősáv mutatása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="267"/>
+        <location filename="../../src/yuzu/main.ui" line="278"/>
         <source>Show &amp;Status Bar</source>
         <translation>&amp;Állapotsáv mutatása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="270"/>
+        <location filename="../../src/yuzu/main.ui" line="281"/>
         <source>Show Status Bar</source>
         <translation>Állapotsáv mutatása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="278"/>
+        <location filename="../../src/yuzu/main.ui" line="289"/>
         <source>&amp;Browse Public Game Lobby</source>
         <translation>&amp;Nyilvános játéklobbi böngészése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="286"/>
+        <location filename="../../src/yuzu/main.ui" line="297"/>
         <source>&amp;Create Room</source>
         <translation>&amp;Szoba létrehozása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="294"/>
+        <location filename="../../src/yuzu/main.ui" line="305"/>
         <source>&amp;Leave Room</source>
         <translation>&amp;Szoba elhagyása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="299"/>
+        <location filename="../../src/yuzu/main.ui" line="310"/>
         <source>&amp;Direct Connect to Room</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Közvetlen csatlakozás a szobához</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="307"/>
+        <location filename="../../src/yuzu/main.ui" line="318"/>
         <source>&amp;Show Current Room</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Jelenlegi szoba megjelenítése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="315"/>
+        <location filename="../../src/yuzu/main.ui" line="326"/>
         <source>F&amp;ullscreen</source>
-        <translation>T@eljes képernyő</translation>
+        <translation>T&amp;eljes képernyő</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="323"/>
+        <location filename="../../src/yuzu/main.ui" line="334"/>
         <source>&amp;Restart</source>
         <translation>&amp;Újraindítás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="331"/>
+        <location filename="../../src/yuzu/main.ui" line="342"/>
         <source>Load/Remove &amp;Amiibo...</source>
         <translation>&amp;Amiibo betöltése/törlése...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="339"/>
+        <location filename="../../src/yuzu/main.ui" line="350"/>
         <source>&amp;Report Compatibility</source>
         <translation>&amp;Kompatibilitás jelentése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="347"/>
+        <location filename="../../src/yuzu/main.ui" line="358"/>
         <source>Open &amp;Mods Page</source>
         <translation>&amp;Módok oldal megnyitása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="352"/>
+        <location filename="../../src/yuzu/main.ui" line="363"/>
         <source>Open &amp;Quickstart Guide</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Gyorstájékoztató megnyitása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="357"/>
+        <location filename="../../src/yuzu/main.ui" line="368"/>
         <source>&amp;FAQ</source>
         <translation>&amp;GYIK</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="362"/>
+        <location filename="../../src/yuzu/main.ui" line="373"/>
         <source>Open &amp;yuzu Folder</source>
         <translation>&amp;yuzu mappa megnyitása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="370"/>
+        <location filename="../../src/yuzu/main.ui" line="381"/>
         <source>&amp;Capture Screenshot</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Képernyőkép készítése</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="375"/>
-        <source>Open &amp;Mii Editor</source>
-        <translation type="unfinished"/>
-    </message>
-    <message>
-        <location filename="../../src/yuzu/main.ui" line="380"/>
-        <source>&amp;Configure TAS...</source>
-        <translation type="unfinished"/>
+        <location filename="../../src/yuzu/main.ui" line="386"/>
+        <source>Open &amp;Album</source>
+        <translation>&amp;Album megnyitása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="391"/>
-        <source>Configure C&amp;urrent Game...</source>
-        <translation type="unfinished"/>
+        <source>&amp;Set Nickname and Owner</source>
+        <translation>&amp;Becenév és tulajdonos beállítása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="402"/>
+        <location filename="../../src/yuzu/main.ui" line="396"/>
+        <source>&amp;Delete Game Data</source>
+        <translation>&amp;Játékadatok törlése</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="401"/>
+        <source>&amp;Restore Amiibo</source>
+        <translation>&amp;Amiibo helyreállítása</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="406"/>
+        <source>&amp;Format Amiibo</source>
+        <translation>&amp;Amiibo formázása</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="411"/>
+        <source>Open &amp;Mii Editor</source>
+        <translation>&amp;Mii szerkesztő megnyitása</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="416"/>
+        <source>&amp;Configure TAS...</source>
+        <translation>&amp;TAS konfigurálása...</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="427"/>
+        <source>Configure C&amp;urrent Game...</source>
+        <translation>J&amp;elenlegi játék konfigurálása...</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/main.ui" line="438"/>
         <source>&amp;Start</source>
         <translation>&amp;Indítás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="410"/>
+        <location filename="../../src/yuzu/main.ui" line="446"/>
         <source>&amp;Reset</source>
         <translation>&amp;Visszaállítás</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.ui" line="418"/>
+        <location filename="../../src/yuzu/main.ui" line="454"/>
         <source>R&amp;ecord</source>
         <translation>F&amp;elvétel</translation>
     </message>
@@ -5815,7 +5914,7 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/debugger/profiler.cpp" line="50"/>
         <source>&amp;MicroProfile</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Mikroprofil</translation>
     </message>
 </context>
 <context>
@@ -5903,7 +6002,8 @@ Debug Message: </source>
         <location filename="../../src/yuzu/multiplayer/state.cpp" line="208"/>
         <source>Failed to update the room information. Please check your Internet connection and try hosting the room again.
 Debug Message: </source>
-        <translation type="unfinished"/>
+        <translation>Nem sikerült frissíteni a szoba adatait. Kérjük, ellenőrizd az internetkapcsolatot, és próbáld újra a szoba létrehozását.
+Hibakereső üzenet:</translation>
     </message>
 </context>
 <context>
@@ -5931,22 +6031,22 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="19"/>
         <source>Port must be a number between 0 to 65535.</source>
-        <translation type="unfinished"/>
+        <translation>A port csak 0 és 65535 közötti szám lehet.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="20"/>
         <source>You must choose a Preferred Game to host a room. If you do not have any games in your game list yet, add a game folder by clicking on the plus icon in the game list.</source>
-        <translation type="unfinished"/>
+        <translation>A szoba létrehozásához ki kell választanod egy Preferált játékot. Ha még nem szerepel a listádban egyetlen játék sem, adj hozzá egy játékmappát a játéklistában a plusz ikonra kattintva.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="24"/>
         <source>Unable to find an internet connection. Check your internet settings.</source>
-        <translation type="unfinished"/>
+        <translation>Nem található internetkapcsolat. Ellenőrizd az internetbeállításokat.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="26"/>
         <source>Unable to connect to the host. Verify that the connection settings are correct. If you still cannot connect, contact the room host and verify that the host is properly configured with the external port forwarded.</source>
-        <translation type="unfinished"/>
+        <translation>Nem sikerült csatlakozni a házigazdához. Ellenőrizd, hogy a kapcsolat beállításai helyesek-e. Ha még mindig nem tudsz csatlakozni, lépj kapcsolatba a gazdával, hogy ellenőrizze, megfelelően van-e konfigurálva a külső port továbbítása.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="30"/>
@@ -5956,17 +6056,17 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="32"/>
         <source>Creating a room failed. Please retry. Restarting yuzu might be necessary.</source>
-        <translation type="unfinished"/>
+        <translation>Szoba létrehozása sikertelen. Próbáld újra. A yuzu újraindítására szükség lehet.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="34"/>
         <source>The host of the room has banned you. Speak with the host to unban you or try a different room.</source>
-        <translation type="unfinished"/>
+        <translation>A szoba házigazdája kitiltott téged. Beszélj a házigazdával, hogy feloldjon téged, vagy csatlakozz másik szobához.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="37"/>
         <source>Version mismatch! Please update to the latest version of yuzu. If the problem persists, contact the room host and ask them to update the server.</source>
-        <translation type="unfinished"/>
+        <translation>Verzió eltérés! Kérjük, frissítsd a yuzut a legújabb verzióra. Ha a probléma továbbra is fennáll, vedd fel a kapcsolatot a házigazdával és kérd meg, hogy frissítse a szervert.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="39"/>
@@ -5976,39 +6076,41 @@ Debug Message: </source>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="40"/>
         <source>An unknown error occurred. If this error continues to occur, please open an issue</source>
-        <translation type="unfinished"/>
+        <translation>Ismeretlen hiba történt. Amennyiben a  hiba továbbra is fennáll, nyiss egy hibajegyet.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="43"/>
         <source>Connection to room lost. Try to reconnect.</source>
-        <translation type="unfinished"/>
+        <translation>Megszakadt a kapcsolat a szobával. Próbálj újracsatlakozni.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="45"/>
         <source>You have been kicked by the room host.</source>
-        <translation type="unfinished"/>
+        <translation>A szoba házigazdája kirúgott téged.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="47"/>
         <source>IP address is already in use. Please choose another.</source>
-        <translation type="unfinished"/>
+        <translation>Az IP-cím már használatban van. Kérjük, válassz egy másikat.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="49"/>
         <source>You do not have enough permission to perform this action.</source>
-        <translation type="unfinished"/>
+        <translation>Nincs elég jogosultságod a művelet végrehajtásához.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="50"/>
         <source>The user you are trying to kick/ban could not be found.
 They may have left the room.</source>
-        <translation type="unfinished"/>
+        <translation>A felhasználó, akit ki akarsz rúgni/tiltani, nem található.
+Lehet, hogy elhagyta a szobát.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="52"/>
         <source>No valid network interface is selected.
 Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
-        <translation type="unfinished"/>
+        <translation>Nincs kiválasztva érvényes hálózati adapter.
+Látogasd meg a Konfigurálás -&gt; Rendszer -&gt; Hálózat menüpontokat a beállításhoz.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="68"/>
@@ -6019,7 +6121,8 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="69"/>
         <source>Joining a room when the game is already running is discouraged and can cause the room feature not to work correctly.
 Proceed anyway?</source>
-        <translation type="unfinished"/>
+        <translation>Már játékban lévő szobához való csatlakozás nem ajánlott, és problémákat okozhat a szoba funkcióinak működésében.
+Mindenképp folytatod?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="75"/>
@@ -6029,7 +6132,7 @@ Proceed anyway?</source>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="76"/>
         <source>You are about to close the room. Any network connections will be closed.</source>
-        <translation type="unfinished"/>
+        <translation>Éppen készülsz bezárni a szobát. Minden hálózati kapcsolat lezárul.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="81"/>
@@ -6039,7 +6142,7 @@ Proceed anyway?</source>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="82"/>
         <source>You are about to leave the room. Any network connections will be closed.</source>
-        <translation type="unfinished"/>
+        <translation>Éppen készülsz elhagyni a szobát. Minden hálózati kapcsolat lezárul.</translation>
     </message>
 </context>
 <context>
@@ -6055,7 +6158,7 @@ Proceed anyway?</source>
     <message>
         <location filename="../../src/yuzu/util/overlay_dialog.ui" line="14"/>
         <source>Dialog</source>
-        <translation type="unfinished"/>
+        <translation>Párbeszéd</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/util/overlay_dialog.ui" line="134"/>
@@ -6076,7 +6179,11 @@ Proceed anyway?</source>
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:18pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:18pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
@@ -6105,27 +6212,27 @@ p, li { white-space: pre-wrap; }
         <translation>Nincs játékban</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="244"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="270"/>
         <source>Installed SD Titles</source>
-        <translation type="unfinished"/>
+        <translation>Telepített SD játékok</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="252"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="278"/>
         <source>Installed NAND Titles</source>
-        <translation type="unfinished"/>
+        <translation>Telepített NAND játékok</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="260"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="286"/>
         <source>System Titles</source>
-        <translation type="unfinished"/>
+        <translation>Rendszercímek</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="303"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="329"/>
         <source>Add New Game Directory</source>
-        <translation type="unfinished"/>
+        <translation>Új játékkönyvtár hozzáadása</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/game_list_p.h" line="326"/>
+        <location filename="../../src/yuzu/game_list_p.h" line="352"/>
         <source>Favorites</source>
         <translation>Kedvencek</translation>
     </message>
@@ -6134,21 +6241,21 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="32"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="43"/>
         <source>Shift</source>
-        <translation type="unfinished"/>
+        <translation>Shift</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="23"/>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="34"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="45"/>
         <source>Ctrl</source>
-        <translation type="unfinished"/>
+        <translation>Ctrl</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="25"/>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="36"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="47"/>
         <source>Alt</source>
-        <translation type="unfinished"/>
+        <translation>Alt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="35"/>
@@ -6157,7 +6264,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="181"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="249"/>
         <source>[not set]</source>
-        <translation>[nincs beállítva]</translation>
+        <translation>[nincs beáll.]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="47"/>
@@ -6175,12 +6282,12 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="280"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="284"/>
         <source>Axis %1%2</source>
-        <translation type="unfinished"/>
+        <translation>Tengely %1%2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="60"/>
         <source>Button %1</source>
-        <translation type="unfinished"/>
+        <translation>Gomb %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_touch_from_button.cpp" line="66"/>
@@ -6191,7 +6298,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="257"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="287"/>
         <source>[unknown]</source>
-        <translation type="unfinished"/>
+        <translation>[ismeretlen]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="47"/>
@@ -6225,31 +6332,31 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="55"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="66"/>
         <source>Z</source>
-        <translation type="unfinished"/>
+        <translation>Z</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="57"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="68"/>
         <source>R</source>
-        <translation type="unfinished"/>
+        <translation>R</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="59"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="70"/>
         <source>L</source>
-        <translation type="unfinished"/>
+        <translation>L</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="61"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="84"/>
         <source>A</source>
-        <translation type="unfinished"/>
+        <translation>A</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="63"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="86"/>
         <source>B</source>
-        <translation type="unfinished"/>
+        <translation>B</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="65"/>
@@ -6267,43 +6374,43 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="69"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="92"/>
         <source>Start</source>
-        <translation type="unfinished"/>
+        <translation>Start</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="71"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="102"/>
         <source>L1</source>
-        <translation type="unfinished"/>
+        <translation>L1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="73"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="104"/>
         <source>L2</source>
-        <translation type="unfinished"/>
+        <translation>L2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="75"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="106"/>
         <source>L3</source>
-        <translation type="unfinished"/>
+        <translation>L3</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="77"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="108"/>
         <source>R1</source>
-        <translation type="unfinished"/>
+        <translation>R1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="79"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="110"/>
         <source>R2</source>
-        <translation type="unfinished"/>
+        <translation>R2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="81"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="112"/>
         <source>R3</source>
-        <translation type="unfinished"/>
+        <translation>R3</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="83"/>
@@ -6345,18 +6452,18 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="95"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="140"/>
         <source>[undefined]</source>
-        <translation type="unfinished"/>
+        <translation>[nem definiált]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="402"/>
         <source>%1%2</source>
-        <translation type="unfinished"/>
+        <translation>%1%2</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="406"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="197"/>
         <source>[invalid]</source>
-        <translation type="unfinished"/>
+        <translation>[érvénytelen]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="416"/>
@@ -6370,13 +6477,13 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="446"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="237"/>
         <source>%1%2Axis %3</source>
-        <translation type="unfinished"/>
+        <translation>%1%2Tengely %3</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="426"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="217"/>
         <source>%1%2Axis %3,%4,%5</source>
-        <translation type="unfinished"/>
+        <translation>%1%2Tengely %3,%4,%5</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="430"/>
@@ -6388,13 +6495,13 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="434"/>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="449"/>
         <source>%1%2Button %3</source>
-        <translation type="unfinished"/>
+        <translation>%1%2Gomb %3</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_ringcon.cpp" line="476"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="267"/>
         <source>[unused]</source>
-        <translation type="unfinished"/>
+        <translation>[nem használt]</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="72"/>
@@ -6429,12 +6536,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="94"/>
         <source>Plus</source>
-        <translation type="unfinished"/>
+        <translation>Plusz</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="96"/>
         <source>Minus</source>
-        <translation type="unfinished"/>
+        <translation>Mínusz</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="98"/>
@@ -6461,27 +6568,27 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="132"/>
         <source>Backward</source>
-        <translation type="unfinished"/>
+        <translation>Hátra</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="134"/>
         <source>Forward</source>
-        <translation type="unfinished"/>
+        <translation>Előre</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="136"/>
         <source>Task</source>
-        <translation type="unfinished"/>
+        <translation>Feladat</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="138"/>
         <source>Extra</source>
-        <translation type="unfinished"/>
+        <translation>Extra</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="193"/>
         <source>%1%2%3%4</source>
-        <translation type="unfinished"/>
+        <translation>%1%2%3%4</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="207"/>
@@ -6493,13 +6600,13 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="211"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="234"/>
         <source>%1%2%3Axis %4</source>
-        <translation type="unfinished"/>
+        <translation>%1%2%3Tengely %4</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="225"/>
         <location filename="../../src/yuzu/configuration/configure_input_player.cpp" line="240"/>
         <source>%1%2%3Button %4</source>
-        <translation type="unfinished"/>
+        <translation>%1%2%3Gomb %4</translation>
     </message>
 </context>
 <context>
@@ -6507,12 +6614,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.ui" line="14"/>
         <source>Amiibo Settings</source>
-        <translation type="unfinished"/>
+        <translation>Amiibo beállítások</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.ui" line="169"/>
         <source>Amiibo Info</source>
-        <translation type="unfinished"/>
+        <translation>Amiibo infó</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.ui" line="177"/>
@@ -6532,7 +6639,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.ui" line="242"/>
         <source>Amiibo Data</source>
-        <translation type="unfinished"/>
+        <translation>Amiibo adatok</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.ui" line="250"/>
@@ -6577,7 +6684,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.ui" line="384"/>
         <source>Mount Amiibo</source>
-        <translation type="unfinished"/>
+        <translation>Amiibo csatolása</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.ui" line="390"/>
@@ -6597,7 +6704,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.cpp" line="232"/>
         <source>The following amiibo data will be formatted:</source>
-        <translation type="unfinished"/>
+        <translation>Az alábbi amiibo adatok formázva lesznek:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.cpp" line="235"/>
@@ -6607,12 +6714,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.cpp" line="238"/>
         <source>Set nickname and owner:</source>
-        <translation type="unfinished"/>
+        <translation>Becenév és tulajdonos beállítása:</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_amiibo_settings.cpp" line="241"/>
         <source>Do you wish to restore this amiibo?</source>
-        <translation type="unfinished"/>
+        <translation>Szeretnéd visszaállítani ezt az amiibót?</translation>
     </message>
 </context>
 <context>
@@ -6620,7 +6727,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="14"/>
         <source>Controller Applet</source>
-        <translation type="unfinished"/>
+        <translation>Vezérlő applet</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="129"/>
@@ -6640,7 +6747,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="418"/>
         <source>P4</source>
-        <translation type="unfinished"/>
+        <translation>P4</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="514"/>
@@ -6651,7 +6758,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1656"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1857"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2054"/>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="418"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="466"/>
         <source>Pro Controller</source>
         <translation>Pro kontroller</translation>
     </message>
@@ -6664,7 +6771,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1661"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1862"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2059"/>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="422"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="470"/>
         <source>Dual Joycons</source>
         <translation type="unfinished"/>
     </message>
@@ -6677,7 +6784,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1666"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1867"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2064"/>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="426"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="474"/>
         <source>Left Joycon</source>
         <translation>Bal Joycon</translation>
     </message>
@@ -6690,7 +6797,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1671"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1872"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2069"/>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="430"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="478"/>
         <source>Right Joycon</source>
         <translation>Jobb Joycon</translation>
     </message>
@@ -6719,44 +6826,44 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="932"/>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2303"/>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="434"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="482"/>
         <source>Handheld</source>
         <translation>Kézi</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1126"/>
         <source>P3</source>
-        <translation type="unfinished"/>
+        <translation>P3</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1363"/>
         <source>P7</source>
-        <translation type="unfinished"/>
+        <translation>P7</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1560"/>
         <source>P8</source>
-        <translation type="unfinished"/>
+        <translation>P8</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1757"/>
         <source>P5</source>
-        <translation type="unfinished"/>
+        <translation>P5</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="1958"/>
         <source>P6</source>
-        <translation type="unfinished"/>
+        <translation>P6</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2272"/>
         <source>Console Mode</source>
-        <translation>Konzol Mód</translation>
+        <translation>Konzol mód</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2293"/>
         <source>Docked</source>
-        <translation>Dokkolva</translation>
+        <translation>Dokkolt</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2313"/>
@@ -6787,7 +6894,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2467"/>
         <source>Controllers</source>
-        <translation>Kontrollerek</translation>
+        <translation>Vezérlők</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_controller.ui" line="2481"/>
@@ -6835,34 +6942,39 @@ p, li { white-space: pre-wrap; }
         <translation>8</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="438"/>
+        <location filename="../../src/yuzu/applets/qt_controller.ui" line="2653"/>
+        <source>Not enough controllers</source>
+        <translation>Nincs elég vezérlő</translation>
+    </message>
+    <message>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="486"/>
         <source>GameCube Controller</source>
         <translation>GameCube kontroller</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="447"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="495"/>
         <source>Poke Ball Plus</source>
-        <translation type="unfinished"/>
+        <translation>Poke Ball Plus</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="451"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="499"/>
         <source>NES Controller</source>
         <translation>NES kontroller</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="455"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="503"/>
         <source>SNES Controller</source>
         <translation>SNES kontroller</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="459"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="507"/>
         <source>N64 Controller</source>
         <translation>N64 kontroller</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="463"/>
+        <location filename="../../src/yuzu/applets/qt_controller.cpp" line="511"/>
         <source>Sega Genesis</source>
-        <translation type="unfinished"/>
+        <translation>Sega Genesis</translation>
     </message>
 </context>
 <context>
@@ -6878,7 +6990,8 @@ p, li { white-space: pre-wrap; }
         <location filename="../../src/yuzu/applets/qt_error.cpp" line="31"/>
         <source>An error has occurred.
 Please try again or contact the developer of the software.</source>
-        <translation type="unfinished"/>
+        <translation>Hiba történt.
+Kérjük, próbáld újra, vagy lépj kapcsolatba a szoftver fejlesztőjével.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_error.cpp" line="44"/>
@@ -6959,7 +7072,7 @@ Please try again or contact the developer of the software.</source>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="210"/>
         <source>Select a user to link to a Nintendo Account.</source>
-        <translation type="unfinished"/>
+        <translation>Válassz ki egy felhasználót a Nintendo fiókkal való összekapcsoláshoz.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="213"/>
@@ -6969,7 +7082,7 @@ Please try again or contact the developer of the software.</source>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="216"/>
         <source>Format data for which user?</source>
-        <translation type="unfinished"/>
+        <translation>Melyik felhasználó adatait formázzuk?</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="219"/>
@@ -7006,7 +7119,11 @@ Please try again or contact the developer of the software.</source>
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:26pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:26pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/applets/qt_software_keyboard.cpp" line="403"/>
@@ -7046,7 +7163,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="184"/>
         <source>waited by no thread</source>
-        <translation type="unfinished"/>
+        <translation>nem vár egy szálra sem</translation>
     </message>
 </context>
 <context>
@@ -7064,32 +7181,32 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="210"/>
         <source>sleeping</source>
-        <translation type="unfinished"/>
+        <translation>alszik</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="213"/>
         <source>waiting for IPC reply</source>
-        <translation type="unfinished"/>
+        <translation>IPC válaszra várakozás</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="216"/>
         <source>waiting for objects</source>
-        <translation type="unfinished"/>
+        <translation>várakozás objektumokra</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="219"/>
         <source>waiting for condition variable</source>
-        <translation type="unfinished"/>
+        <translation>várakozás állapotváltozóra</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="222"/>
         <source>waiting for address arbiter</source>
-        <translation type="unfinished"/>
+        <translation>várakozás címkiosztásra</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="225"/>
         <source>waiting for suspend resume</source>
-        <translation type="unfinished"/>
+        <translation>várakozás felfüggesztés folytatására</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="228"/>
@@ -7124,7 +7241,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="297"/>
         <source>core %1</source>
-        <translation type="unfinished"/>
+        <translation>mag %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="301"/>
@@ -7134,22 +7251,22 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="303"/>
         <source>affinity mask = %1</source>
-        <translation type="unfinished"/>
+        <translation>affinitás maszk  = %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="304"/>
         <source>thread id = %1</source>
-        <translation type="unfinished"/>
+        <translation>szál azonosító = %1</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="305"/>
         <source>priority = %1(current) / %2(normal)</source>
-        <translation type="unfinished"/>
+        <translation>prioritás = %1(jelenleg) / %2(normál)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="309"/>
         <source>last running ticks = %1</source>
-        <translation type="unfinished"/>
+        <translation>utolsó futó tickek = %1</translation>
     </message>
 </context>
 <context>
@@ -7157,7 +7274,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="325"/>
         <source>waited by thread</source>
-        <translation type="unfinished"/>
+        <translation>szálra várakozás</translation>
     </message>
 </context>
 <context>
@@ -7165,7 +7282,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../../src/yuzu/debugger/wait_tree.cpp" line="399"/>
         <source>&amp;Wait Tree</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Várófa</translation>
     </message>
 </context>
 </TS>
