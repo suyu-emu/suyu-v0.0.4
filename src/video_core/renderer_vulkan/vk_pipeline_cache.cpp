@@ -359,6 +359,7 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
             driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY,
         .has_broken_robust =
             device.IsNvidia() && device.GetNvidiaArch() <= NvidiaArchitecture::Arch_Pascal,
+        .min_ssbo_alignment = device.GetStorageBufferAlignment(),
     };
 
     host_info = Shader::HostTranslateInfo{
