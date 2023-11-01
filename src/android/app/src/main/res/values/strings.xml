@@ -72,7 +72,7 @@
     <string name="invalid_keys_error">Invalid encryption keys</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">The selected file is incorrect or corrupt. Please redump your keys.</string>
-    <string name="gpu_driver_manager">GPU Driver Manager</string>
+    <string name="gpu_driver_manager">GPU driver manager</string>
     <string name="install_gpu_driver">Install GPU driver</string>
     <string name="install_gpu_driver_description">Install alternative drivers for potentially better performance or accuracy</string>
     <string name="advanced_settings">Advanced settings</string>
