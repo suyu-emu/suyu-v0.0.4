@@ -2737,7 +2737,7 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
         return;
     }
 
-    const auto extracted = FileSys::ExtractRomFS(romfs, FileSys::RomFSExtractionType::Full);
+    const auto extracted = FileSys::ExtractRomFS(romfs);
     if (extracted == nullptr) {
         failed();
         return;
