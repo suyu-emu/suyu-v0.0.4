@@ -86,28 +86,6 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
-                    R.string.open_user_folder,
-                    R.string.open_user_folder_description,
-                    R.drawable.ic_folder_open,
-                    { openFileManager() }
-                )
-            )
-            add(
-                HomeSetting(
-                    R.string.preferences_theme,
-                    R.string.theme_and_color_description,
-                    R.drawable.ic_palette,
-                    {
-                        val action = HomeNavigationDirections.actionGlobalSettingsActivity(
-                            null,
-                            Settings.MenuTag.SECTION_THEME
-                        )
-                        binding.root.findNavController().navigate(action)
-                    }
-                )
-            )
-            add(
-                HomeSetting(
                     R.string.gpu_driver_manager,
                     R.string.install_gpu_driver_description,
                     R.drawable.ic_build,
@@ -123,17 +101,6 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
-                    R.string.manage_yuzu_data,
-                    R.string.manage_yuzu_data_description,
-                    R.drawable.ic_install,
-                    {
-                        binding.root.findNavController()
-                            .navigate(R.id.action_homeSettingsFragment_to_installableFragment)
-                    }
-                )
-            )
-            add(
-                HomeSetting(
                     R.string.applets,
                     R.string.applets_description,
                     R.drawable.ic_applet,
@@ -144,6 +111,17 @@ class HomeSettingsFragment : Fragment() {
                     { NativeLibrary.isFirmwareAvailable() },
                     R.string.applets_error_firmware,
                     R.string.applets_error_description
+                )
+            )
+            add(
+                HomeSetting(
+                    R.string.manage_yuzu_data,
+                    R.string.manage_yuzu_data_description,
+                    R.drawable.ic_install,
+                    {
+                        binding.root.findNavController()
+                            .navigate(R.id.action_homeSettingsFragment_to_installableFragment)
+                    }
                 )
             )
             add(
@@ -168,6 +146,28 @@ class HomeSettingsFragment : Fragment() {
                     R.string.share_log_description,
                     R.drawable.ic_log,
                     { shareLog() }
+                )
+            )
+            add(
+                HomeSetting(
+                    R.string.open_user_folder,
+                    R.string.open_user_folder_description,
+                    R.drawable.ic_folder_open,
+                    { openFileManager() }
+                )
+            )
+            add(
+                HomeSetting(
+                    R.string.preferences_theme,
+                    R.string.theme_and_color_description,
+                    R.drawable.ic_palette,
+                    {
+                        val action = HomeNavigationDirections.actionGlobalSettingsActivity(
+                            null,
+                            Settings.MenuTag.SECTION_THEME
+                        )
+                        binding.root.findNavController().navigate(action)
+                    }
                 )
             )
             add(
