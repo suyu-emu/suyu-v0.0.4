@@ -248,6 +248,11 @@ void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) 
 }
 
 void EmulationSession::InitializeSystem() {
+    // Initialize logging system
+    Common::Log::Initialize();
+    Common::Log::SetColorConsoleBackendEnabled(true);
+    Common::Log::Start();
+
     // Initialize filesystem.
     m_system.SetFilesystem(m_vfs);
     m_system.GetUserChannel().clear();
@@ -462,10 +467,6 @@ void EmulationSession::OnEmulationStopped(Core::SystemResultStatus result) {
 }
 
 static Core::SystemResultStatus RunEmulation(const std::string& filepath) {
-    Common::Log::Initialize();
-    Common::Log::SetColorConsoleBackendEnabled(true);
-    Common::Log::Start();
-
     MicroProfileOnThreadCreate("EmuThread");
     SCOPE_EXIT({ MicroProfileShutdown(); });
 
