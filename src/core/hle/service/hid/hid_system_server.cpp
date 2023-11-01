@@ -36,24 +36,24 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
             {233, nullptr, "GetXcdHandleForNpadWithIrSensor"},
             {301, nullptr, "ActivateNpadSystem"},
             {303, &IHidSystemServer::ApplyNpadSystemCommonPolicy, "ApplyNpadSystemCommonPolicy"},
-            {304, nullptr, "EnableAssigningSingleOnSlSrPress"},
-            {305, nullptr, "DisableAssigningSingleOnSlSrPress"},
+            {304, &IHidSystemServer::EnableAssigningSingleOnSlSrPress, "EnableAssigningSingleOnSlSrPress"},
+            {305, &IHidSystemServer::DisableAssigningSingleOnSlSrPress, "DisableAssigningSingleOnSlSrPress"},
             {306, &IHidSystemServer::GetLastActiveNpad, "GetLastActiveNpad"},
             {307, nullptr, "GetNpadSystemExtStyle"},
-            {308, nullptr, "ApplyNpadSystemCommonPolicyFull"},
-            {309, nullptr, "GetNpadFullKeyGripColor"},
-            {310, nullptr, "GetMaskedSupportedNpadStyleSet"},
+            {308, &IHidSystemServer::ApplyNpadSystemCommonPolicyFull, "ApplyNpadSystemCommonPolicyFull"},
+            {309, &IHidSystemServer::GetNpadFullKeyGripColor, "GetNpadFullKeyGripColor"},
+            {310, &IHidSystemServer::GetMaskedSupportedNpadStyleSet, "GetMaskedSupportedNpadStyleSet"},
             {311, nullptr, "SetNpadPlayerLedBlinkingDevice"},
-            {312, nullptr, "SetSupportedNpadStyleSetAll"},
+            {312, &IHidSystemServer::SetSupportedNpadStyleSetAll, "SetSupportedNpadStyleSetAll"},
             {313, nullptr, "GetNpadCaptureButtonAssignment"},
             {314, nullptr, "GetAppletFooterUiType"},
-            {315, nullptr, "GetAppletDetailedUiType"},
-            {316, nullptr, "GetNpadInterfaceType"},
-            {317, nullptr, "GetNpadLeftRightInterfaceType"},
-            {318, nullptr, "HasBattery"},
-            {319, nullptr, "HasLeftRightBattery"},
+            {315, &IHidSystemServer::GetAppletDetailedUiType, "GetAppletDetailedUiType"},
+            {316, &IHidSystemServer::GetNpadInterfaceType, "GetNpadInterfaceType"},
+            {317, &IHidSystemServer::GetNpadLeftRightInterfaceType, "GetNpadLeftRightInterfaceType"},
+            {318, &IHidSystemServer::HasBattery, "HasBattery"},
+            {319, &IHidSystemServer::HasLeftRightBattery, "HasLeftRightBattery"},
             {321, &IHidSystemServer::GetUniquePadsFromNpad, "GetUniquePadsFromNpad"},
-            {322, nullptr, "GetIrSensorState"},
+            {322, &IHidSystemServer::GetIrSensorState, "GetIrSensorState"},
             {323, nullptr, "GetXcdHandleForNpadWithIrSensor"},
             {324, nullptr, "GetUniquePadButtonSet"},
             {325, nullptr, "GetUniquePadColor"},
@@ -85,15 +85,15 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
             {541, nullptr, "GetPlayReportControllerUsages"},
             {542, nullptr, "AcquirePlayReportRegisteredDeviceUpdateEvent"},
             {543, nullptr, "GetRegisteredDevicesOld"},
-            {544, nullptr, "AcquireConnectionTriggerTimeoutEvent"},
+            {544, &IHidSystemServer::AcquireConnectionTriggerTimeoutEvent, "AcquireConnectionTriggerTimeoutEvent"},
             {545, nullptr, "SendConnectionTrigger"},
-            {546, nullptr, "AcquireDeviceRegisteredEventForControllerSupport"},
+            {546, &IHidSystemServer::AcquireDeviceRegisteredEventForControllerSupport, "AcquireDeviceRegisteredEventForControllerSupport"},
             {547, nullptr, "GetAllowedBluetoothLinksCount"},
-            {548, nullptr, "GetRegisteredDevices"},
+            {548, &IHidSystemServer::GetRegisteredDevices, "GetRegisteredDevices"},
             {549, nullptr, "GetConnectableRegisteredDevices"},
             {700, nullptr, "ActivateUniquePad"},
-            {702, nullptr, "AcquireUniquePadConnectionEventHandle"},
-            {703, nullptr, "GetUniquePadIds"},
+            {702, &IHidSystemServer::AcquireUniquePadConnectionEventHandle, "AcquireUniquePadConnectionEventHandle"},
+            {703, &IHidSystemServer::GetUniquePadIds, "GetUniquePadIds"},
             {751, &IHidSystemServer::AcquireJoyDetachOnBluetoothOffEventHandle, "AcquireJoyDetachOnBluetoothOffEventHandle"},
             {800, nullptr, "ListSixAxisSensorHandles"},
             {801, nullptr, "IsSixAxisSensorUserCalibrationSupported"},
@@ -123,10 +123,10 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
             {850, &IHidSystemServer::IsUsbFullKeyControllerEnabled, "IsUsbFullKeyControllerEnabled"},
             {851, nullptr, "EnableUsbFullKeyController"},
             {852, nullptr, "IsUsbConnected"},
-            {870, nullptr, "IsHandheldButtonPressedOnConsoleMode"},
+            {870, &IHidSystemServer::IsHandheldButtonPressedOnConsoleMode, "IsHandheldButtonPressedOnConsoleMode"},
             {900, nullptr, "ActivateInputDetector"},
             {901, nullptr, "NotifyInputDetector"},
-            {1000, nullptr, "InitializeFirmwareUpdate"},
+            {1000, &IHidSystemServer::InitializeFirmwareUpdate, "InitializeFirmwareUpdate"},
             {1001, nullptr, "GetFirmwareVersion"},
             {1002, nullptr, "GetAvailableFirmwareVersion"},
             {1003, nullptr, "IsFirmwareUpdateAvailable"},
@@ -149,6 +149,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
             {1132, nullptr, "CheckUsbFirmwareUpdateRequired"},
             {1133, nullptr, "StartUsbFirmwareUpdate"},
             {1134, nullptr, "GetUsbFirmwareUpdateState"},
+            {1135, &IHidSystemServer::InitializeUsbFirmwareUpdateWithoutMemory, "InitializeUsbFirmwareUpdateWithoutMemory"},
             {1150, nullptr, "SetTouchScreenMagnification"},
             {1151, nullptr, "GetTouchScreenFirmwareVersion"},
             {1152, nullptr, "SetTouchScreenDefaultConfiguration"},
@@ -220,11 +221,20 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
 
     RegisterHandlers(functions);
 
-    joy_detach_event = service_context.CreateEvent("HidSys::JoyDetachEvent");
+    joy_detach_event = service_context.CreateEvent("IHidSystemServer::JoyDetachEvent");
+    acquire_device_registered_event =
+        service_context.CreateEvent("IHidSystemServer::AcquireDeviceRegisteredEvent");
+    acquire_connection_trigger_timeout_event =
+        service_context.CreateEvent("IHidSystemServer::AcquireConnectionTriggerTimeoutEvent");
+    unique_pad_connection_event =
+        service_context.CreateEvent("IHidSystemServer::AcquireUniquePadConnectionEventHandle");
 }
 
 IHidSystemServer::~IHidSystemServer() {
     service_context.CloseEvent(joy_detach_event);
+    service_context.CloseEvent(acquire_device_registered_event);
+    service_context.CloseEvent(acquire_connection_trigger_timeout_event);
+    service_context.CloseEvent(unique_pad_connection_event);
 };
 
 void IHidSystemServer::ApplyNpadSystemCommonPolicy(HLERequestContext& ctx) {
@@ -238,27 +248,239 @@ void IHidSystemServer::ApplyNpadSystemCommonPolicy(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
+void IHidSystemServer::EnableAssigningSingleOnSlSrPress(HLERequestContext& ctx) {
+    LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::DisableAssigningSingleOnSlSrPress(HLERequestContext& ctx) {
+    LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void IHidSystemServer::GetLastActiveNpad(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_HID, "(STUBBED) called");
+    LOG_DEBUG(Service_HID, "(STUBBED) called"); // Spams a lot when controller applet is running
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.PushEnum(system.HIDCore().GetLastActiveController());
 }
 
+void IHidSystemServer::ApplyNpadSystemCommonPolicyFull(HLERequestContext& ctx) {
+    LOG_WARNING(Service_HID, "called");
+
+    GetResourceManager()
+        ->GetController<Controller_NPad>(HidController::NPad)
+        .ApplyNpadSystemCommonPolicy();
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::GetNpadFullKeyGripColor(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto npad_id_type{rp.PopEnum<Core::HID::NpadIdType>()};
+
+    LOG_DEBUG(Service_HID, "(STUBBED) called, npad_id_type={}",
+              npad_id_type); // Spams a lot when controller applet is running
+
+    Core::HID::NpadColor left_color{};
+    Core::HID::NpadColor right_color{};
+    // TODO: Get colors from Npad
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(left_color);
+    rb.PushRaw(right_color);
+}
+
+void IHidSystemServer::GetMaskedSupportedNpadStyleSet(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    LOG_INFO(Service_HID, "(STUBBED) called");
+
+    Core::HID::NpadStyleSet supported_styleset =
+        GetResourceManager()
+            ->GetController<Controller_NPad>(HidController::NPad)
+            .GetSupportedStyleSet()
+            .raw;
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(supported_styleset);
+}
+
+void IHidSystemServer::SetSupportedNpadStyleSetAll(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    LOG_INFO(Service_HID, "(STUBBED) called");
+
+    Core::HID::NpadStyleSet supported_styleset =
+        GetResourceManager()
+            ->GetController<Controller_NPad>(HidController::NPad)
+            .GetSupportedStyleSet()
+            .raw;
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(supported_styleset);
+}
+
+void IHidSystemServer::GetAppletDetailedUiType(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto npad_id_type{rp.PopEnum<Core::HID::NpadIdType>()};
+
+    LOG_DEBUG(Service_HID, "called, npad_id_type={}",
+              npad_id_type); // Spams a lot when controller applet is running
+
+    const Service::HID::Controller_NPad::AppletDetailedUiType detailed_ui_type =
+        GetResourceManager()
+            ->GetController<Controller_NPad>(HidController::NPad)
+            .GetAppletDetailedUiType(npad_id_type);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(detailed_ui_type);
+}
+
+void IHidSystemServer::GetNpadInterfaceType(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto npad_id_type{rp.PopEnum<Core::HID::NpadIdType>()};
+
+    LOG_DEBUG(Service_HID, "(STUBBED) called, npad_id_type={}",
+              npad_id_type); // Spams a lot when controller applet is running
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(Core::HID::NpadInterfaceType::Bluetooth);
+}
+
+void IHidSystemServer::GetNpadLeftRightInterfaceType(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto npad_id_type{rp.PopEnum<Core::HID::NpadIdType>()};
+
+    LOG_DEBUG(Service_HID, "(STUBBED) called, npad_id_type={}",
+              npad_id_type); // Spams a lot when controller applet is running
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(Core::HID::NpadInterfaceType::Bluetooth);
+    rb.PushEnum(Core::HID::NpadInterfaceType::Bluetooth);
+}
+
+void IHidSystemServer::HasBattery(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto npad_id_type{rp.PopEnum<Core::HID::NpadIdType>()};
+
+    LOG_DEBUG(Service_HID, "(STUBBED) called, npad_id_type={}",
+              npad_id_type); // Spams a lot when controller applet is running
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(false);
+}
+
+void IHidSystemServer::HasLeftRightBattery(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto npad_id_type{rp.PopEnum<Core::HID::NpadIdType>()};
+
+    LOG_DEBUG(Service_HID, "(STUBBED) called, npad_id_type={}",
+              npad_id_type); // Spams a lot when controller applet is running
+
+    struct LeftRightBattery {
+        bool left;
+        bool right;
+    };
+
+    LeftRightBattery left_right_battery{
+        .left = false,
+        .right = false,
+    };
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(left_right_battery);
+}
+
 void IHidSystemServer::GetUniquePadsFromNpad(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto npad_id_type{rp.PopEnum<Core::HID::NpadIdType>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, npad_id_type={}", npad_id_type);
+    LOG_DEBUG(Service_HID, "(STUBBED) called, npad_id_type={}",
+              npad_id_type); // Spams a lot when controller applet is running
 
     const std::vector<Core::HID::UniquePadId> unique_pads{};
 
-    ctx.WriteBuffer(unique_pads);
+    if (!unique_pads.empty()) {
+        ctx.WriteBuffer(unique_pads);
+    }
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.Push(static_cast<u32>(unique_pads.size()));
+}
+
+void IHidSystemServer::GetIrSensorState(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::AcquireConnectionTriggerTimeoutEvent(HLERequestContext& ctx) {
+    LOG_INFO(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(ResultSuccess);
+    rb.PushCopyObjects(acquire_device_registered_event->GetReadableEvent());
+}
+
+void IHidSystemServer::AcquireDeviceRegisteredEventForControllerSupport(HLERequestContext& ctx) {
+    LOG_INFO(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(ResultSuccess);
+    rb.PushCopyObjects(acquire_device_registered_event->GetReadableEvent());
+}
+
+void IHidSystemServer::GetRegisteredDevices(HLERequestContext& ctx) {
+    LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    struct RegisterData {
+        std::array<u8, 0x68> data;
+    };
+    static_assert(sizeof(RegisterData) == 0x68, "RegisterData is an invalid size");
+    std::vector<RegisterData> registered_devices{};
+
+    if (!registered_devices.empty()) {
+        ctx.WriteBuffer(registered_devices);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push<u64>(registered_devices.size());
+}
+
+void IHidSystemServer::AcquireUniquePadConnectionEventHandle(HLERequestContext& ctx) {
+    LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.PushCopyObjects(unique_pad_connection_event->GetReadableEvent());
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::GetUniquePadIds(HLERequestContext& ctx) {
+    LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push<u64>(0);
 }
 
 void IHidSystemServer::AcquireJoyDetachOnBluetoothOffEventHandle(HLERequestContext& ctx) {
@@ -277,6 +499,31 @@ void IHidSystemServer::IsUsbFullKeyControllerEnabled(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.Push(is_enabled);
+}
+
+void IHidSystemServer::IsHandheldButtonPressedOnConsoleMode(HLERequestContext& ctx) {
+    const bool button_pressed = false;
+
+    LOG_DEBUG(Service_HID, "(STUBBED) called, is_enabled={}",
+              button_pressed); // Spams a lot when controller applet is open
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(button_pressed);
+}
+
+void IHidSystemServer::InitializeFirmwareUpdate(HLERequestContext& ctx) {
+    LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::InitializeUsbFirmwareUpdateWithoutMemory(HLERequestContext& ctx) {
+    LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 void IHidSystemServer::GetTouchScreenDefaultConfiguration(HLERequestContext& ctx) {

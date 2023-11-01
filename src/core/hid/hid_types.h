@@ -218,6 +218,13 @@ enum class NpadIdType : u32 {
     Invalid = 0xFFFFFFFF,
 };
 
+enum class NpadInterfaceType : u8 {
+    Bluetooth = 1,
+    Rail = 2,
+    Usb = 3,
+    Embedded = 4,
+};
+
 // This is nn::hid::NpadStyleIndex
 enum class NpadStyleIndex : u8 {
     None = 0,

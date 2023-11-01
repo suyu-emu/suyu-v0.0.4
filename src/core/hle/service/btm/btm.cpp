@@ -127,7 +127,7 @@ public:
 
 private:
     void GetCore(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_BTM, "called");
+        LOG_WARNING(Service_BTM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
@@ -263,13 +263,13 @@ public:
     explicit IBtmSystemCore(Core::System& system_) : ServiceFramework{system_, "IBtmSystemCore"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "StartGamepadPairing"},
-            {1, nullptr, "CancelGamepadPairing"},
+            {0, &IBtmSystemCore::StartGamepadPairing, "StartGamepadPairing"},
+            {1, &IBtmSystemCore::CancelGamepadPairing, "CancelGamepadPairing"},
             {2, nullptr, "ClearGamepadPairingDatabase"},
             {3, nullptr, "GetPairedGamepadCount"},
             {4, nullptr, "EnableRadio"},
             {5, nullptr, "DisableRadio"},
-            {6, nullptr, "GetRadioOnOff"},
+            {6, &IBtmSystemCore::IsRadioEnabled, "IsRadioEnabled"},
             {7, nullptr, "AcquireRadioEvent"},
             {8, nullptr, "AcquireGamepadPairingEvent"},
             {9, nullptr, "IsGamepadPairingStarted"},
@@ -280,17 +280,57 @@ public:
             {14, nullptr, "AcquireAudioDeviceConnectionEvent"},
             {15, nullptr, "ConnectAudioDevice"},
             {16, nullptr, "IsConnectingAudioDevice"},
-            {17, nullptr, "GetConnectedAudioDevices"},
+            {17, &IBtmSystemCore::GetConnectedAudioDevices, "GetConnectedAudioDevices"},
             {18, nullptr, "DisconnectAudioDevice"},
             {19, nullptr, "AcquirePairedAudioDeviceInfoChangedEvent"},
             {20, nullptr, "GetPairedAudioDevices"},
             {21, nullptr, "RemoveAudioDevicePairing"},
-            {22, nullptr, "RequestAudioDeviceConnectionRejection"},
-            {23, nullptr, "CancelAudioDeviceConnectionRejection"}
+            {22, &IBtmSystemCore::RequestAudioDeviceConnectionRejection, "RequestAudioDeviceConnectionRejection"},
+            {23, &IBtmSystemCore::CancelAudioDeviceConnectionRejection, "CancelAudioDeviceConnectionRejection"}
         };
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+private:
+    void IsRadioEnabled(HLERequestContext& ctx) {
+        LOG_DEBUG(Service_BTM, "(STUBBED) called"); // Spams a lot when controller applet is running
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(true);
+    }
+
+    void StartGamepadPairing(HLERequestContext& ctx) {
+        LOG_WARNING(Service_BTM, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void CancelGamepadPairing(HLERequestContext& ctx) {
+        LOG_WARNING(Service_BTM, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void CancelAudioDeviceConnectionRejection(HLERequestContext& ctx) {
+        LOG_WARNING(Service_BTM, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void GetConnectedAudioDevices(HLERequestContext& ctx) {
+        LOG_WARNING(Service_BTM, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u32>(0);
+    }
+
+    void RequestAudioDeviceConnectionRejection(HLERequestContext& ctx) {
+        LOG_WARNING(Service_BTM, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
     }
 };
 
@@ -308,7 +348,7 @@ public:
 
 private:
     void GetCore(HLERequestContext& ctx) {
-        LOG_DEBUG(Service_BTM, "called");
+        LOG_WARNING(Service_BTM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
