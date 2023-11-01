@@ -47,6 +47,10 @@ android {
         jniLibs.useLegacyPackaging = true
     }
 
+    androidResources {
+        generateLocaleConfig = true
+    }
+
     defaultConfig {
         // TODO If this is ever modified, change application_id in strings.xml
         applicationId = "org.yuzu.yuzu_emu"
