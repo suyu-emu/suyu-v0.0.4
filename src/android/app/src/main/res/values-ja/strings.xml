@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_disclaimer">このソフトウェアは、Nintendo Switch用のゲームを実行します。 ゲームソフトやキーは含まれません。&lt;br /&gt;&lt;br /&gt;事前に、 <![CDATA[<b> prod.keys </b>]]> ファイルをデバイスのストレージに配置しておいてください。&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">詳細</a>]]></string>
+    <string name="app_disclaimer">このソフトウェアでは、Nintendo Switchのゲームを実行できます。 ゲームソフトやキーは含まれません。&lt;br /&gt;&lt;br /&gt;事前に、 <![CDATA[<b> prod.keys </b>]]> ファイルをストレージに配置しておいてください。&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">詳細</a>]]></string>
     <string name="emulation_notification_channel_name">エミュレーションが有効です</string>
     <string name="emulation_notification_channel_description">エミュレーションの実行中に常設通知を表示します。</string>
     <string name="emulation_notification_running">yuzu は実行中です</string>
-    <string name="notice_notification_channel_description">問題が発生したときに通知を表示します。</string>
+    <string name="notice_notification_channel_name">通知とエラー</string>
+    <string name="notice_notification_channel_description">問題の発生時に通知を表示します。</string>
     <string name="notification_permission_not_granted">通知が許可されていません!</string>
 
     <!-- Setup strings -->
@@ -16,7 +17,7 @@
     <string name="keys_description">下のボタンから &lt;b>prod.keys&lt;/b> ファイルを選択してください。</string>
     <string name="select_keys">キーを選択</string>
     <string name="games">ゲーム</string>
-    <string name="games_description">下のボタンから&lt;b>ゲーム&lt;/b>があるフォルダを選択してください。</string>
+    <string name="games_description">下のボタンから&lt;b>ゲーム&lt;/b>のあるフォルダを選択してください。</string>
     <string name="done">完了</string>
     <string name="done_description">準備が完了しました。\nゲームをお楽しみください!</string>
     <string name="text_continue">続行</string>
@@ -24,48 +25,53 @@
     <string name="back">戻る</string>
     <string name="add_games">ゲームを追加</string>
     <string name="add_games_description">ゲームフォルダを選択</string>
+    <string name="step_complete">完了!</string>
 
     <!-- Home strings -->
     <string name="home_games">ゲーム</string>
     <string name="home_search">検索</string>
     <string name="home_settings">設定</string>
-    <string name="empty_gamelist">ファイルが見つからないか、ゲームディレクトリがまだ選択されていません。</string>
+    <string name="empty_gamelist">ファイルが存在しないかゲームフォルダが選択されていません。</string>
     <string name="search_and_filter_games">ゲームの検索と絞り込み</string>
-    <string name="select_games_folder">ゲームフォルダを選択</string>
-    <string name="select_games_folder_description">yuzu がゲームリストに追加できるようにします</string>
+    <string name="select_games_folder">ゲームフォルダ</string>
+    <string name="select_games_folder_description">ゲームをyuzuのゲームリストに追加します</string>
     <string name="add_games_warning">ゲームフォルダの選択をスキップしますか?</string>
-    <string name="add_games_warning_description">フォルダを選択しない場合、ゲームはゲームリストに表示されません。</string>
+    <string name="add_games_warning_description">フォルダを選択しないと、ゲームがリストに表示されません。</string>
     <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">ゲームを検索</string>
-    <string name="games_dir_selected">ゲームディレクトリが選択されました</string>
-    <string name="install_prod_keys">prod.keys をインストール</string>
-    <string name="install_prod_keys_description">ゲームの復号化に必要</string>
+    <string name="search_settings">検索設定</string>
+    <string name="games_dir_selected">フォルダを選択しました</string>
+    <string name="install_prod_keys">prod.keys</string>
+    <string name="install_prod_keys_description">製品版ゲームの復号化に必要です</string>
     <string name="install_prod_keys_warning">キーの追加をスキップしますか？</string>
     <string name="install_prod_keys_warning_description">製品版ゲームのエミュレーションには、有効なキーが必要です。続行すると自作アプリしか機能しません。</string>
     <string name="install_prod_keys_warning_help">https://yuzu-emu.org/help/quickstart/#guide-introduction</string>
     <string name="notifications">通知</string>
-    <string name="notifications_description">下のボタンで通知の権限を許可してください。</string>
+    <string name="notifications_description">下のボタンで通知を許可してください。</string>
     <string name="give_permission">許可</string>
     <string name="notification_warning">通知の許可をスキップしますか？</string>
     <string name="notification_warning_description">yuzuは重要なお知らせを通知できません。</string>
     <string name="permission_denied">権限が拒否されました</string>
-    <string name="permission_denied_description">この権限を複数回拒否したため、システム設定で手動で許可する必要があります。</string>
+    <string name="permission_denied_description">この権限を複数回拒否したため、設定から手動で許可する必要があります。</string>
     <string name="about">情報</string>
     <string name="about_description">ビルドバージョン、クレジットなど</string>
     <string name="warning_help">ヘルプ</string>
     <string name="warning_skip">スキップ</string>
     <string name="warning_cancel">キャンセル</string>
-    <string name="install_amiibo_keys">Amiibo キーをインストール</string>
-    <string name="install_amiibo_keys_description">ゲーム内での Amiibo の使用に必要</string>
-    <string name="invalid_keys_file">無効なキーファイルが選択されました</string>
+    <string name="install_amiibo_keys">Amiibo</string>
+    <string name="install_amiibo_keys_description">ゲーム内での Amiibo の使用に必要です</string>
+    <string name="invalid_keys_file">無効なキーファイルです</string>
     <string name="install_keys_success">正常にインストールされました</string>
-    <string name="reading_keys_failure">暗号化キーの読み取りエラー</string>
-    <string name="invalid_keys_error">暗号化キーが無効です</string>
+    <string name="reading_keys_failure">暗号化キーの読み込み失敗</string>
+    <string name="install_prod_keys_failure_extension_description">キーの拡張子が.keysであることを確認し、再度お試しください。</string>
+    <string name="install_amiibo_keys_failure_extension_description">キーの拡張子が.binであることを確認し、再度お試しください。</string>
+    <string name="invalid_keys_error">暗号化キーが無効</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
-    <string name="install_keys_failure_description">選択されたファイルが不正または破損しています。キーを再ダンプしてください。</string>
-    <string name="install_gpu_driver">GPUドライバーをインストール</string>
+    <string name="install_keys_failure_description">ファイルが間違っているか破損しています。キーを再ダンプしてください。</string>
+    <string name="install_gpu_driver">GPUドライバー</string>
     <string name="install_gpu_driver_description">代替ドライバーをインストールしてパフォーマンスや精度を向上させます</string>
     <string name="advanced_settings">高度な設定</string>
+    <string name="advanced_settings_game">高度な設定: %1$s</string>
     <string name="settings_description">エミュレーターの設定を構成します</string>
     <string name="search_recently_played">最近プレイした</string>
     <string name="search_recently_added">最近追加された</string>
@@ -77,15 +83,34 @@
     <string name="no_file_manager">ファイルマネージャーが見つかりませんでした</string>
     <string name="notification_no_directory_link">yuzuのディレクトリを開けません</string>
     <string name="notification_no_directory_link_description">ファイルマネージャのサイドパネルでユーザーフォルダを手動で探してください。</string>
-    <string name="manage_save_data">セーブデータを管理</string>
-    <string name="manage_save_data_description">セーブデータが見つかりました。以下のオプションから選択してください。</string>
+    <string name="manage_save_data">セーブデータ</string>
+    <string name="manage_save_data_description">セーブデータが見つかりました。操作を選択してください。</string>
     <string name="import_export_saves_description">セーブファイルをインポート/エクスポート</string>
     <string name="save_file_imported_success">インポートが完了しました</string>
-    <string name="save_file_invalid_zip_structure">セーブデータのディレクトリ構造が無効です</string>
+    <string name="save_file_invalid_zip_structure">セーブデータのディレクトリ構造が無効</string>
     <string name="save_file_invalid_zip_structure_description">最初のサブフォルダ名は、ゲームのタイトルIDである必要があります。</string>
     <string name="import_saves">インポート</string>
     <string name="export_saves">エクスポート</string>
-
+    <string name="install_firmware">ファームウェア</string>
+    <string name="install_firmware_description">ファームウェアはZIPアーカイブである必要があり、一部のゲームを起動するのに必要です</string>
+    <string name="firmware_installing">ファームウェアをインストール中</string>
+    <string name="firmware_installed_success">インストールが完了しました</string>
+    <string name="firmware_installed_failure">インストール失敗</string>
+    <string name="share_log">デバッグログ</string>
+    <string name="share_log_description">yuzuのログファイルを共有して問題をデバッグします</string>
+    <string name="share_log_missing">ログが見つかりません</string>
+    <string name="install_game_content">追加コンテンツ</string>
+    <string name="install_game_content_description">更新データやDLCをインストールします</string>
+    <string name="installing_game_content">コンテンツをインストール中...</string>
+    <string name="install_game_content_failure_file_extension">NSPとXCI形式のコンテンツのみサポートされています。ゲームコンテンツが有効なものであるかご確認ください。</string>
+    <string name="install_game_content_failed_count">%1$d のインストールエラー</string>
+    <string name="install_game_content_success">ゲームコンテンツのインストールに成功しました</string>
+    <string name="install_game_content_success_install">%1$d のインストールに成功しました</string>
+    <string name="install_game_content_success_overwrite">%1$d の上書きに成功しました</string>
+    <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
+    <string name="custom_driver_not_supported">カスタムドライバはサポートされていません</string>
+    <string name="manage_yuzu_data">yuzu データを管理</string>
+    <string name="share_save_file">セーブファイルを共有</string>
     <!-- About screen strings -->
     <string name="gaia_is_not_real">ガイアは実在しない</string>
     <string name="copied_to_clipboard">クリップボードにコピーしました</string>
@@ -93,7 +118,15 @@
     <string name="contributors">貢献者</string>
     <string name="contributors_description">yuzuチームの\u2764で作られた</string>
     <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
+    <string name="licenses_description">yuzu for Androidの作成を可能にしたプロジェクト</string>
     <string name="build">ビルド</string>
+    <string name="user_data">ユーザデータ</string>
+    <string name="exporting_user_data">ユーザデータをエクスポート中...</string>
+    <string name="importing_user_data">ユーザデータをインポート中...</string>
+    <string name="import_user_data">ユーザデータをインポート</string>
+    <string name="user_data_export_success">ユーザデータのエクスポートに成功しました</string>
+    <string name="user_data_import_success">ユーザデータのインポートに成功しました</string>
+    <string name="user_data_export_cancelled">エクスポートをキャンセルしました</string>
     <string name="support_link">https://discord.gg/u77vRWY</string>
     <string name="website_link">https://yuzu-emu.org/</string>
     <string name="github_link">https://github.com/yuzu-emu</string>
@@ -105,72 +138,91 @@
     <string name="get_early_access_description">最先端の機能、アップデートの早期アクセスなど</string>
     <string name="early_access_benefits">早期アクセスのメリット</string>
     <string name="cutting_edge_features">最先端の機能</string>
-    <string name="early_access_updates">アップデートの早期アクセス</string>
+    <string name="early_access_updates">アップデートへの早期アクセス</string>
     <string name="no_manual_installation">手動インストールが不要</string>
-    <string name="prioritized_support">優先的なサポート</string>
+    <string name="prioritized_support">優先サポート</string>
     <string name="helping_game_preservation">ゲームの保存に貢献</string>
-    <string name="our_eternal_gratitude">私たちの永遠の感謝</string>
+    <string name="our_eternal_gratitude">私たちから永遠の感謝</string>
     <string name="are_you_interested">興味がありますか？</string>
 
     <!-- General settings strings -->
-    <string name="frame_limit_enable">速度制限を有効化</string>
-    <string name="frame_limit_enable_description">有効にすると、エミュレーション速度が任意の割合に制限されます。</string>
-    <string name="frame_limit_slider">エミュレーション速度の制限</string>
-    <string name="frame_limit_slider_description">エミュレーション速度を制限する割合を指定します。デフォルトの100%では、エミュレーションは通常の速度に制限されます。値が高いまたは低いほど、速度制限が増加または減少します。</string>
+    <string name="frame_limit_enable">エミュレーション速度を制限</string>
+    <string name="frame_limit_enable_description">エミュレーション速度を指定した割合に制限します。</string>
+    <string name="frame_limit_slider">エミュレーション速度</string>
+    <string name="frame_limit_slider_description">エミュレーション速度を制限するパーセンテージを指定します。100%は通常速度です。値の増減で速度も増減します。</string>
     <string name="cpu_accuracy">CPU精度</string>
-
     <!-- System settings strings -->
     <string name="use_docked_mode">TVモード</string>
-    <string name="use_docked_mode_description">TVモードでエミュレートします。パフォーマンスが犠牲になりますが、解像度が向上します。</string>
+    <string name="use_docked_mode_description">高解像度、低パフォーマンス。無効時には携帯モードが使用されます（低解像度、高パフォーマンス）。</string>
     <string name="emulated_region">地域</string>
     <string name="emulated_language">言語</string>
     <string name="select_rtc_date">RTCの日付を選択</string>
     <string name="select_rtc_time">RTCの時刻を選択</string>
-    <string name="use_custom_rtc">カスタムRTC</string>
-    <string name="use_custom_rtc_description">現在のシステム時間とは別にカスタムのリアルタイムクロックを設定できます。</string>
+    <string name="use_custom_rtc">カスタム RTC</string>
+    <string name="use_custom_rtc_description">現在のシステム時間とは別に、任意のリアルタイムクロックを設定できます。</string>
     <string name="set_custom_rtc">カスタムRTCを設定</string>
 
     <!-- Graphics settings strings -->
-    <string name="renderer_api">API</string>
     <string name="renderer_accuracy">精度</string>
-    <string name="renderer_resolution">解像度</string>
+    <string name="renderer_resolution">解像度（携帯モード/TVモード）</string>
     <string name="renderer_vsync">垂直同期モード</string>
+    <string name="renderer_screen_layout">画面の向き</string>
     <string name="renderer_aspect_ratio">アスペクト比</string>
     <string name="renderer_scaling_filter">ウィンドウ適応フィルター</string>
     <string name="renderer_anti_aliasing">アンチエイリアス方式</string>
     <string name="renderer_force_max_clock">最大クロックを強制 (Adrenoのみ)</string>
-    <string name="renderer_force_max_clock_description">GPUを可能な限り最大クロックで動作させます (過熱制限は引き続き適用されます)。</string>
+    <string name="renderer_force_max_clock_description">GPUを最大限可能な周波数で動作させます (過熱制限は引き続き適用されます)。</string>
     <string name="renderer_asynchronous_shaders">非同期シェーダー</string>
     <string name="renderer_asynchronous_shaders_description">シェーダーを非同期でコンパイルします。コマ落ちが軽減されますが、不具合が発生する可能性があります。</string>
+    <string name="renderer_reactive_flushing">即時書き込み</string>
+    <string name="renderer_reactive_flushing_description">一部のゲームにおいて、パフォーマンスを犠牲にしながらも、レンダリング精度を向上させます。</string>
+    <string name="use_disk_shader_cache">ディスクシェーダーキャッシュ</string>
+    <string name="use_disk_shader_cache_description">生成したシェーダーを端末に保存して読み込み、コマ落ちを軽減します。</string>
+
+    <!-- Debug settings strings -->
+    <string name="cpu">CPU</string>
+    <string name="cpu_debug_mode">CPU デバッギング</string>
+    <string name="gpu">GPU</string>
+    <string name="renderer_api">API</string>
     <string name="renderer_debug">グラフィックデバッグ</string>
-    <string name="renderer_debug_description">オンにすると、グラフィックAPI は低速のデバッグモードに入ります。</string>
-    <string name="use_disk_shader_cache">シェーダーキャッシュを使用</string>
-    <string name="use_disk_shader_cache_description">生成したシェーダーをディスクに保存して読み込むことで、コマ落ちを軽減します。</string>
+    <string name="renderer_debug_description">グラフィックAPIを低速デバッグモードに設定します。</string>
+    <string name="fastmem">Fastmem</string>
 
     <!-- Audio settings strings -->
+    <string name="audio_output_engine">出力エンジン</string>
     <string name="audio_volume">音量</string>
     <string name="audio_volume_description">オーディオ出力の音量を指定します</string>
 
     <!-- Miscellaneous -->
     <string name="slider_default">デフォルト</string>
     <string name="ini_saved">設定を保存しました</string>
-    <string name="gameid_saved">%1$sの設定を保存しました</string>
+    <string name="gameid_saved">%1$s の設定を保存しました</string>
     <string name="error_saving">%1$s.ini の保存エラー: %2$s</string>
+    <string name="unimplemented_menu">未実装のメニュー</string>
     <string name="loading">読み込み中…</string>
+    <string name="shutting_down">終了中...</string>
     <string name="reset_setting_confirmation">この設定を初期値にリセットしますか?</string>
     <string name="reset_to_default">初期設定に戻す</string>
     <string name="reset_all_settings">すべての設定をリセットしますか？</string>
-    <string name="reset_all_settings_description">すべての詳細設定が初期設定に戻されます。この操作は元に戻せません。</string>
+    <string name="reset_all_settings_description">すべての詳細設定が初期値に戻されます。この操作は元に戻せません。</string>
     <string name="settings_reset">設定をリセットしました</string>
     <string name="close">閉じる</string>
     <string name="learn_more">詳細情報</string>
+    <string name="auto">自動</string>
+    <string name="submit">送信</string>
+    <string name="string_import">インポート</string>
+    <string name="export">エクスポート</string>
+    <string name="export_failed">エクスポート失敗</string>
+    <string name="import_failed">インポート失敗</string>
+    <string name="cancelling">キャンセル中</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">GPUドライバを選択</string>
-    <string name="select_gpu_driver_title">現在のGPUドライバーを置き換えますか？</string>
+    <string name="select_gpu_driver_title">現在のGPUドライバを置き換えますか？</string>
     <string name="select_gpu_driver_install">インストール</string>
     <string name="select_gpu_driver_default">デフォルト</string>
-    <string name="select_gpu_driver_use_default">デフォルトのGPUドライバーを使用します</string>
+    <string name="select_gpu_driver_use_default">デフォルトのドライバを使用します</string>
+    <string name="select_gpu_driver_error">選択されたドライバが無効、システムのデフォルトを使用します!</string>
     <string name="system_gpu_driver">システムのGPUドライバ</string>
     <string name="installing_driver">インストール中…</string>
 
@@ -181,33 +233,34 @@
     <string name="preferences_graphics">グラフィック</string>
     <string name="preferences_audio">サウンド</string>
     <string name="preferences_theme">テーマと色</string>
+    <string name="preferences_debug">デバッグ</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROMが暗号化されています</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-cartridge-games\">ゲームカートリッジ</a>や<a href=\"https://yuzu-emu.org/help/quickstart/#dumping-installed-titles-eshop\">インストール済みのタイトル</a>を再度ダンプするためのガイドに従ってください。]]></string>
-    <string name="loader_error_encrypted_keys_description"><![CDATA[ゲームを復号化するために <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> ファイルがインストールされていることを確認してください。]]></string>
+    <string name="loader_error_encrypted_keys_description"><![CDATA[ゲームの復号化に必要な <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> ファイルがインストールされていることを確認してください。]]></string>
     <string name="loader_error_video_core">ビデオコアの初期化中にエラーが発生しました</string>
     <string name="loader_error_video_core_description">これは通常、互換性のないGPUドライバーが原因で発生します。 カスタムGPUドライバーをインストールすると、問題が解決する可能性があります。</string>
     <string name="loader_error_invalid_format">ROMの読み込みに失敗しました</string>
     <string name="loader_error_file_not_found">ROMファイルが存在しません</string>
 
     <!-- Emulation Menu -->
-    <string name="emulation_exit">エミュレーションを終了</string>
+    <string name="emulation_exit">終了</string>
     <string name="emulation_done">完了</string>
     <string name="emulation_fps_counter">FPSカウンター</string>
-    <string name="emulation_toggle_controls">コントロールを切り替え</string>
-    <string name="emulation_dpad_slide">十字キーのスライド操作</string>
-    <string name="emulation_haptics">振動</string>
-    <string name="emulation_show_overlay">オーバーレイを表示</string>
-    <string name="emulation_toggle_all">すべて選択</string>
-    <string name="emulation_control_adjust">オーバーレイを調整</string>
+    <string name="emulation_toggle_controls">ボタンの表示設定</string>
+    <string name="emulation_rel_stick_center">スティックを固定しない</string>
+    <string name="emulation_dpad_slide">十字キーをスライド操作</string>
+    <string name="emulation_haptics">タッチ振動</string>
+    <string name="emulation_show_overlay">ボタンを表示</string>
+    <string name="emulation_toggle_all">すべて切替</string>
+    <string name="emulation_control_adjust">見た目を調整</string>
     <string name="emulation_control_scale">大きさ</string>
     <string name="emulation_control_opacity">不透明度</string>
     <string name="emulation_touch_overlay_reset">リセット</string>
-    <string name="emulation_touch_overlay_edit">オーバーレイを編集</string>
-    <string name="emulation_pause">エミュレーションを一時停止</string>
-    <string name="emulation_unpause">エミュレーションを再開</string>
-    <string name="emulation_input_overlay">オーバーレイオプション</string>
+    <string name="emulation_touch_overlay_edit">位置を編集</string>
+    <string name="emulation_pause">一時停止</string>
+    <string name="emulation_unpause">再開</string>
+    <string name="emulation_input_overlay">表示オプション</string>
 
     <string name="load_settings">設定をロード中…</string>
 
@@ -220,10 +273,13 @@
     <string name="system_archive_not_found">システムアーカイブが見つかりません</string>
     <string name="system_archive_not_found_message">%s が見つかりません。システムアーカイブをダンプしてください。\nエミュレーションを続行すると、クラッシュやバグが発生する可能性があります。</string>
     <string name="system_archive_general">システムアーカイブ</string>
-    <string name="save_load_error">セーブ/ロード エラー</string>
+    <string name="save_load_error">セーブ/ロードエラー</string>
     <string name="fatal_error">致命的なエラー</string>
     <string name="fatal_error_message">致命的なエラーが発生しました。詳細はログを確認してください。\nエミュレーションを続行するとクラッシュやバグが発生する可能性があります。</string>
-    <string name="performance_warning">この設定をオフにすると、エミュレーションのパフォーマンスが著しく低下します！最高の体験を得るためには、この設定を有効にしておくことをお勧めします。</string>
+    <string name="performance_warning">この設定をオフにすると、エミュレーションのパフォーマンスが著しく低下します！最高の体験を得るためには、この設定を有効にしておくことを推奨します。</string>
+    <string name="device_memory_inadequate">デバイス RAM: %1$s\n推奨: %2$s</string>
+    <string name="memory_formatted">%1$s %2$s</string>
+    <string name="no_game_present">起動できるゲームがありません!</string>
 
     <!-- Region Names -->
     <string name="region_japan">日本</string>
@@ -234,7 +290,14 @@
     <string name="region_korea">韓国</string>
     <string name="region_taiwan">台湾</string>
 
-    <!-- Language Names -->
+    <!-- Memory Sizes -->
+    <string name="memory_byte">Byte</string>
+    <string name="memory_kilobyte">KB</string>
+    <string name="memory_megabyte">MB</string>
+    <string name="memory_gigabyte">GB</string>
+    <string name="memory_terabyte">TB</string>
+    <string name="memory_petabyte">PB</string>
+    <string name="memory_exabyte">EB</string>
 
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
@@ -242,7 +305,7 @@
 
     <!-- Renderer Accuracy -->
     <string name="renderer_accuracy_normal">標準</string>
-    <string name="renderer_accuracy_high">高い</string>
+    <string name="renderer_accuracy_high">高</string>
     <string name="renderer_accuracy_extreme">最高 (低速)</string>
 
     <!-- Resolutions -->
@@ -272,12 +335,17 @@
     <string name="anti_aliasing_fxaa">FXAA</string>
     <string name="anti_aliasing_smaa">SMAA</string>
 
+    <!-- Screen Layouts -->
+    <string name="screen_layout_landscape">横長</string>
+    <string name="screen_layout_portrait">縦長</string>
+    <string name="screen_layout_auto">自動</string>
+
     <!-- Aspect Ratios -->
     <string name="ratio_default">デフォルト (16:9)</string>
     <string name="ratio_force_four_three">強制 4:3</string>
     <string name="ratio_force_twenty_one_nine">強制 21:9</string>
     <string name="ratio_force_sixteen_ten">強制 16:10</string>
-    <string name="ratio_stretch">ウィンドウに合わせる</string>
+    <string name="ratio_stretch">画面に合わせる</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">正確</string>
@@ -289,7 +357,7 @@
     <string name="gamepad_left_stick">Lスティック</string>
     <string name="gamepad_right_stick">Rスティック</string>
     <string name="gamepad_home">HOMEボタン</string>
-    <string name="gamepad_screenshot">スクリーンショット</string>
+    <string name="gamepad_screenshot">キャプチャーボタン</string>
 
     <!-- Disk shader cache -->
     <string name="preparing_shaders">シェーダーを準備しています</string>
@@ -306,8 +374,22 @@
     <string name="theme_mode_light">ライト</string>
     <string name="theme_mode_dark">ダーク</string>
 
-    <!-- Black backgrounds theme -->
-    <string name="use_black_backgrounds">黒色の背景を使用</string>
-    <string name="use_black_backgrounds_description">ダークテーマの使用時は、黒色の背景を有効にしてください。</string>
+    <!-- Audio output engines -->
+    <string name="cubeb">cubeb</string>
 
-</resources>
+    <!-- Black backgrounds theme -->
+    <string name="use_black_backgrounds">完全な黒を使用</string>
+    <string name="use_black_backgrounds_description">ダークテーマの背景色に黒が適用されます。</string>
+
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">ピクチャーインピクチャー</string>
+    <string name="picture_in_picture_description">バックグラウンド時にウインドウを最小化する</string>
+    <string name="pause">中断</string>
+    <string name="play">プレイ</string>
+    <string name="mute">消音</string>
+    <string name="unmute">消音解除</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">ライセンス</string>
+    <string name="license_fidelityfx_fsr_description">AMDの高品質アップスケーリング</string>
+    </resources>
