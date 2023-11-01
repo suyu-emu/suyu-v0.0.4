@@ -42,6 +42,7 @@ import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
+import org.yuzu.yuzu_emu.utils.Log
 
 class HomeSettingsFragment : Fragment() {
     private var _binding: FragmentHomeSettingsBinding? = null
@@ -312,19 +313,32 @@ class HomeSettingsFragment : Fragment() {
         }
     }
 
+    // Share the current log if we just returned from a game but share the old log
+    // if we just started the app and the old log exists.
     private fun shareLog() {
-        val file = DocumentFile.fromSingleUri(
+        val currentLog = DocumentFile.fromSingleUri(
             mainActivity,
             DocumentsContract.buildDocumentUri(
                 DocumentProvider.AUTHORITY,
                 "${DocumentProvider.ROOT_ID}/log/yuzu_log.txt"
             )
         )!!
-        if (file.exists()) {
-            val intent = Intent(Intent.ACTION_SEND)
-                .setDataAndType(file.uri, FileUtil.TEXT_PLAIN)
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                .putExtra(Intent.EXTRA_STREAM, file.uri)
+        val oldLog = DocumentFile.fromSingleUri(
+            mainActivity,
+            DocumentsContract.buildDocumentUri(
+                DocumentProvider.AUTHORITY,
+                "${DocumentProvider.ROOT_ID}/log/yuzu_log.txt.old.txt"
+            )
+        )!!
+
+        val intent = Intent(Intent.ACTION_SEND)
+            .setDataAndType(currentLog.uri, FileUtil.TEXT_PLAIN)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        if (!Log.gameLaunched && oldLog.exists()) {
+            intent.putExtra(Intent.EXTRA_STREAM, oldLog.uri)
+            startActivity(Intent.createChooser(intent, getText(R.string.share_log)))
+        } else if (currentLog.exists()) {
+            intent.putExtra(Intent.EXTRA_STREAM, currentLog.uri)
             startActivity(Intent.createChooser(intent, getText(R.string.share_log)))
         } else {
             Toast.makeText(

@@ -4,6 +4,9 @@
 package org.yuzu.yuzu_emu.utils
 
 object Log {
+    // Tracks whether we should share the old log or the current log
+    var gameLaunched = false
+
     external fun debug(message: String)
 
     external fun warning(message: String)
