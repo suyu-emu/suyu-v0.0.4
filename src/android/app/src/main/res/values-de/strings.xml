@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">Diese Software kann Spiele für die Nintendo Switch abspielen. Keine Spiele oder Spielekeys sind enthalten.&lt;br /&gt;&lt;br /&gt;Bevor du beginnst, bitte halte deine <![CDATA[<b> prod.keys </b>]]> auf deinem Gerät bereit. .&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Mehr Infos</a>]]></string>
     <string name="emulation_notification_channel_name">Emulation ist aktiv</string>
@@ -25,6 +25,7 @@
     <string name="back">Zurück</string>
     <string name="add_games">Spiele hinzufügen</string>
     <string name="add_games_description">Spieleverzeichnis auswählen</string>
+    <string name="step_complete">Fertig!</string>
 
     <!-- Home strings -->
     <string name="home_games">Spiele</string>
@@ -38,6 +39,7 @@
     <string name="add_games_warning_description">Spiele werden in der Spieleliste nicht angezeigt, wenn kein Ordner ausgewählt ist.</string>
     <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Spiele suchen</string>
+    <string name="search_settings">Einstellungen suchen</string>
     <string name="games_dir_selected">Spieleverzeichnis ausgewählt</string>
     <string name="install_prod_keys">prod.keys installieren</string>
     <string name="install_prod_keys_description">Zum Entschlüsseln von Spielen benötigt</string>
@@ -60,8 +62,11 @@
     <string name="invalid_keys_file">Ungültige Schlüsseldatei ausgewählt</string>
     <string name="install_keys_success">Schlüssel erfolgreich installiert</string>
     <string name="reading_keys_failure">Fehler beim Lesen der Schlüssel</string>
+    <string name="install_prod_keys_failure_extension_description">Überprüfen Sie, ob Ihre Schlüsseldatei die Erweiterung \".keys\" hat, und versuchen Sie es erneut.</string>
+    <string name="install_amiibo_keys_failure_extension_description">Überprüfen Sie, ob Ihre Schlüsseldatei die Erweiterung \".bin\" hat, und versuchen Sie es erneut.</string>
     <string name="invalid_keys_error">Ungültige Schlüssel</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
+    <string name="install_keys_failure_description">Die ausgewählte Datei ist falsch oder beschädigt. Bitte kopieren Sie Ihre Schlüssel erneut.</string>
     <string name="install_gpu_driver">GPU-Treiber installieren</string>
     <string name="install_gpu_driver_description">Alternative Treiber für eventuell bessere Leistung oder Genauigkeit installieren</string>
     <string name="advanced_settings">Erweiterte Einstellungen</string>
@@ -84,7 +89,17 @@
     <string name="save_file_invalid_zip_structure_description">Der erste Unterordnername muss die Titel-ID des Spiels sein.</string>
     <string name="import_saves">Importieren</string>
     <string name="export_saves">Exportieren</string>
-
+    <string name="install_firmware">Firmware installieren</string>
+    <string name="install_firmware_description">Die Firmware muss in einem ZIP-Archiv vorliegen und wird zum Booten einiger Spiele benötigt</string>
+    <string name="firmware_installing">Firmware wird installiert</string>
+    <string name="firmware_installed_success">Die Firmware wurde erfolgreich installiert!</string>
+    <string name="firmware_installed_failure">Bei der Firmware installation ist etwas fehlgeschlagen.</string>
+    <string name="share_log">Debug-Logs teilen</string>
+    <string name="share_log_description">Debug-Logs an yuzu zur Untersuchung absenden</string>
+    <string name="share_log_missing">Keine Log-Datei gefunden</string>
+    <string name="install_game_content">Spiel installieren</string>
+    <string name="install_game_content_description">Spiel Update oder DLC installieren</string>
+    <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia ist nicht real</string>
     <string name="copied_to_clipboard">In die Zwischenablage kopiert</string>
@@ -92,7 +107,10 @@
     <string name="contributors">Beitragende</string>
     <string name="contributors_description">Gemacht mit \u2764 vom yuzu Team</string>
     <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
+    <string name="licenses_description">Projekte, die yuzu für Android möglich machen </string>
     <string name="build">Build</string>
+    <string name="user_data">Nutzerdaten</string>
+    <string name="user_data_export_cancelled">Export abgebrochen</string>
     <string name="support_link">https://discord.gg/u77vRWY</string>
     <string name="website_link">https://yuzu-emu.org/</string>
     <string name="github_link">https://github.com/yuzu-emu</string>
@@ -107,45 +125,39 @@
     <string name="early_access_updates">Früherer Zugriff auf Updates</string>
     <string name="no_manual_installation">Keine manuelle Installation</string>
     <string name="prioritized_support">Priorisierte Unterstützung</string>
+    <string name="helping_game_preservation">Beitrag zur Erhaltung der Spiele</string>
     <string name="our_eternal_gratitude">Unsere ewige Dankbarkeit</string>
     <string name="are_you_interested">Bist du interessiert?</string>
 
     <!-- General settings strings -->
-    <string name="frame_limit_enable">Geschwindigkeitsbegrenzung aktivieren</string>
-    <string name="frame_limit_enable_description">Wenn aktiviert, wird die Emulationsgeschwindigkeit auf einen Prozentsatz der normalen Geschwindigkeit begrenzt.</string>
+    <string name="frame_limit_enable">Limitierte Geschwindigkeit</string>
+    <string name="frame_limit_enable_description">Limitiert die Geschwindigkeit auf einen von dir festgelegten Prozentsatz.</string>
     <string name="frame_limit_slider">Geschwindkeitsbegrenzung in Prozent</string>
-    <string name="frame_limit_slider_description">Legt den Prozentsatz der Bergrenzung der Emulationsgeschwindigkeit fest. Mit dem Standardwert von 100% wird die Emulation auf die normale Geschwindigkeit begrenzt. Höhere oder niedrigere Werte erhöhen oder verringern die Geschwindigkeitsbegrenzung.</string>
+    <string name="frame_limit_slider_description">Gibt die prozentuale Geschwindigkeit der Emulation an. 100% sind normal. Werte darüber oder drunter werden die Geschwindigkeit entsprechend verändern.</string>
     <string name="cpu_accuracy">CPU-Genauigkeit</string>
-
     <!-- System settings strings -->
-    <string name="use_docked_mode">Dock-Modus</string>
-    <string name="use_docked_mode_description">Emuliert im Dock-Modus, was die Auflösung verbessert, aber die Leistung senkt.</string>
+    <string name="use_docked_mode">Gedockter Modus</string>
+    <string name="use_docked_mode_description">Der Docked Modus erhöht die Auflösung, verringert die aber die Leistung. Wird der Handheld-Modus verwendet, verringert es die Auflösung und erhöht die Leistung.</string>
     <string name="emulated_region">Emulierte Region</string>
     <string name="emulated_language">Emulierte Sprache</string>
     <string name="select_rtc_date">RTC-Datum auswählen</string>
     <string name="select_rtc_time">RTC-Zeit auswählen</string>
-    <string name="use_custom_rtc">Benutzerdefinierte RTC aktivieren</string>
-    <string name="use_custom_rtc_description">Mit dieser Einstellung kann eine benutzerdefinierte Echtzeituhr unabhängig von der aktuellen Systemzeit verwendet werden.</string>
-    <string name="set_custom_rtc">Benutzerdefinierte RTC einstellen</string>
-
+    <string name="use_custom_rtc">Benutzerdefinierte Echtzeituhr</string>
     <!-- Graphics settings strings -->
-    <string name="renderer_api">API</string>
     <string name="renderer_accuracy">Genauigkeitsstufe</string>
-    <string name="renderer_resolution">Auflösung</string>
     <string name="renderer_vsync">VSync-Modus</string>
+    <string name="renderer_screen_layout">Orientierung</string>
     <string name="renderer_aspect_ratio">Seitenverhältnis</string>
     <string name="renderer_scaling_filter">Fensteranpassungsfilter</string>
-    <string name="renderer_anti_aliasing">Kantenglättungs-Methode</string>
     <string name="renderer_force_max_clock">Maximale Taktfrequenz erzwingen (nur Adreno)</string>
     <string name="renderer_force_max_clock_description">Erzwingt den Betrieb der GPU mit der maximal möglichen Taktfrequenz (Temperaturbeschränkungen werden weiterhin angewendet).</string>
     <string name="renderer_asynchronous_shaders">Asynchrone Shader nutzen</string>
-    <string name="renderer_asynchronous_shaders_description">Kompiliert Shader asynchron, was Ruckler reduziert, aber zu Glitches führen kann.</string>
-    <string name="renderer_debug">Grafik-Debugging aktivieren</string>
-    <string name="renderer_debug_description">Wenn aktiviert, schaltet die Grafik-API in einen langsameren Debugging-Modus.</string>
-    <string name="use_disk_shader_cache">Nutze Festplatten-Shader-Cache</string>
-    <string name="use_disk_shader_cache_description">Ruckeln wird durch das Speichern und Laden von generierten Shadern auf der Festplatte reduziert.</string>
-
-    <!-- Audio settings strings -->
+    <!-- Debug settings strings -->
+    <string name="cpu">CPU</string>
+    <string name="cpu_debug_mode">CPU Debugging</string>
+    <string name="gpu">GPU</string>
+    <string name="renderer_api">API</string>
+    <string name="renderer_debug">Graphik-Debugging</string>
     <string name="audio_volume">Lautstärke</string>
     <string name="audio_volume_description">Legt die Lautstärke der Audioausgabe fest.</string>
 
@@ -154,14 +166,22 @@
     <string name="ini_saved">Einstellungen gespeichert</string>
     <string name="gameid_saved">Einstellungen für %1$s gespeichert</string>
     <string name="error_saving">Fehler beim Speichern von %1$s.ini: %2$s</string>
+    <string name="unimplemented_menu">Unimplementiertes Menü</string>
     <string name="loading">Lädt...</string>
     <string name="reset_setting_confirmation">Möchtest du diese Einstellung auf den Standardwert zurücksetzen?</string>
     <string name="reset_to_default">Auf Standard zurücksetzen</string>
     <string name="reset_all_settings">Alle Einstellungen zurücksetzen?</string>
-    <string name="reset_all_settings_description">Alle erweiterten Einstellungen werden auf ihren Standardwert zurückgesetzt. Dies kann nicht rückgängig gemacht werden.</string>
     <string name="settings_reset">Einstellungen zurückgesetzt</string>
     <string name="close">Schließen</string>
     <string name="learn_more">Mehr erfahren</string>
+    <string name="auto">Auto</string>
+    <string name="submit">Absenden</string>
+    <string name="string_null">Null</string>
+    <string name="string_import">Importieren</string>
+    <string name="export">Exportieren</string>
+    <string name="export_failed">Export fehlgeschlagen</string>
+    <string name="import_failed">Import fehlgeschlagen</string>
+    <string name="cancelling">Abbrechen</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">GPU-Treiber auswählen</string>
@@ -169,6 +189,7 @@
     <string name="select_gpu_driver_install">Installieren</string>
     <string name="select_gpu_driver_default">Standard</string>
     <string name="select_gpu_driver_use_default">Standard GPU-Treiber wird verwendet</string>
+    <string name="select_gpu_driver_error">Ungültiger Treiber ausgewählt, Standard-Treiber wird verwendet!</string>
     <string name="system_gpu_driver">System GPU-Treiber</string>
     <string name="installing_driver">Treiber wird installiert...</string>
 
@@ -179,6 +200,7 @@
     <string name="preferences_graphics">Grafik</string>
     <string name="preferences_audio">Audio</string>
     <string name="preferences_theme">Theme und Farbe</string>
+    <string name="preferences_debug">Debug</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Das ROM ist verschlüsselt</string>
@@ -192,22 +214,15 @@
     <string name="emulation_exit">Emulation beenden</string>
     <string name="emulation_done">Fertig</string>
     <string name="emulation_fps_counter">FPS Zähler</string>
-    <string name="emulation_toggle_controls">Steuerung umschalten</string>
-    <string name="emulation_rel_stick_center">Relative Stick-Mitte</string>
-    <string name="emulation_dpad_slide">DPad Slide</string>
-    <string name="emulation_haptics">Haptik</string>
-    <string name="emulation_show_overlay">Overlay anzeigen</string>
     <string name="emulation_toggle_all">Alle umschalten</string>
     <string name="emulation_control_adjust">Overlay anpassen</string>
     <string name="emulation_control_scale">Größe</string>
     <string name="emulation_control_opacity">Transparenz</string>
     <string name="emulation_touch_overlay_reset">Overlay zurücksetzen</string>
     <string name="emulation_touch_overlay_edit">Overlay bearbeiten</string>
-    <string name="emulation_pause">Emulation pausieren</string>
-    <string name="emulation_unpause">Emulation fortsetzen</string>
     <string name="emulation_input_overlay">Overlay-Optionen</string>
 
-    <string name="load_settings">Lädt Einstellungen...</string>
+    <string name="load_settings">Lade Einstellungen...</string>
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Software-Tastatur</string>
@@ -221,7 +236,7 @@
     <string name="fatal_error">Schwerwiegender Fehler</string>
     <string name="fatal_error_message">Ein schwerwiegender Fehler ist aufgetreten. Einzelheiten wurden im Log protokolliert.\nDas Fortsetzen der Emulation kann zu Abstürzen und Bugs führen.</string>
     <string name="performance_warning">Das Deaktivieren dieser Einstellung führt zu erheblichen Leistungsverlusten! Für ein optimales Erlebnis wird empfohlen, sie aktiviert zu lassen.</string>
-
+    <string name="memory_formatted">%1$s %2$s</string>
     <!-- Region Names -->
     <string name="region_japan">Japan</string>
     <string name="region_usa">USA</string>
@@ -230,6 +245,15 @@
     <string name="region_china">China</string>
     <string name="region_korea">Korea</string>
     <string name="region_taiwan">Taiwan</string>
+
+    <!-- Memory Sizes -->
+    <string name="memory_byte">Byte</string>
+    <string name="memory_kilobyte">KB</string>
+    <string name="memory_megabyte">MB</string>
+    <string name="memory_gigabyte">GB</string>
+    <string name="memory_terabyte">TB</string>
+    <string name="memory_petabyte">PB</string>
+    <string name="memory_exabyte">EB</string>
 
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
@@ -267,12 +291,15 @@
     <string name="anti_aliasing_fxaa">FXAA</string>
     <string name="anti_aliasing_smaa">SMAA</string>
 
+    <string name="screen_layout_portrait">Portrait</string>
+    <string name="screen_layout_auto">Auto</string>
+
     <!-- Aspect Ratios -->
     <string name="ratio_default">Standard (16:9)</string>
     <string name="ratio_force_four_three">4:3 erzwingen</string>
     <string name="ratio_force_twenty_one_nine">21:9 erzwingen</string>
     <string name="ratio_force_sixteen_ten">Erzwinge 16:10</string>
-    <string name="ratio_stretch">Auf Fenster anpassen</string>
+    <string name="ratio_stretch">Auf Bildschirmgröße anpsassen</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Akkurat</string>
@@ -280,9 +307,9 @@
     <string name="cpu_accuracy_paranoid">Paranoid (Langsam)</string>
 
     <!-- Gamepad Buttons -->
-    <string name="gamepad_d_pad">Steuerkreuz</string>
-    <string name="gamepad_left_stick">Linker Analogstick</string>
-    <string name="gamepad_right_stick">Rechter Analogstick</string>
+    <string name="gamepad_d_pad">D-Pad</string>
+    <string name="gamepad_left_stick">Linker Stick</string>
+    <string name="gamepad_right_stick">Rechter Stick</string>
     <string name="gamepad_home">Home</string>
     <string name="gamepad_screenshot">Screenshot</string>
 
@@ -291,18 +318,30 @@
     <string name="building_shaders">Shader werden erstellt</string>
 
     <!-- Theme options -->
-    <string name="change_app_theme">App-Theme ändern</string>
+    <string name="change_app_theme">App-Thema ändern</string>
     <string name="theme_default">Standard</string>
     <string name="theme_material_you">Material You</string>
 
     <!-- Theme Modes -->
-    <string name="change_theme_mode">Theme-Modus ändern</string>
+    <string name="change_theme_mode">Themen-Modus ändern</string>
     <string name="theme_mode_follow_system">System folgen</string>
     <string name="theme_mode_light">Hell</string>
     <string name="theme_mode_dark">Dunkel</string>
 
+    <!-- Audio output engines -->
+    <string name="cubeb">cubeb</string>
+
     <!-- Black backgrounds theme -->
-    <string name="use_black_backgrounds">Schwarze Hintergünde verwenden</string>
+    <string name="use_black_backgrounds">Schwarze Hintergründe</string>
     <string name="use_black_backgrounds_description">Bei Verwendung des dunklen Themes, schwarze Hintergründe verwenden.</string>
 
-</resources>
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">Bild im Bild</string>
+    <string name="pause">Pause</string>
+    <string name="mute">Stummschalten</string>
+    <string name="unmute">Ton aktivieren</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">Lizenzen</string>
+    <string name="license_fidelityfx_fsr_description">Hochwertiges Upscaling von AMD</string>
+    </resources>
