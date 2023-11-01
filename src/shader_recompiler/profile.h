@@ -84,6 +84,8 @@ struct Profile {
 
     /// Maxwell and earlier nVidia architectures have broken robust support
     bool has_broken_robust{};
+
+    u64 min_ssbo_alignment{};
 };
 
 } // namespace Shader

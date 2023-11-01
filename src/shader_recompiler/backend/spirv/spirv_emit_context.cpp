@@ -891,7 +891,9 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
             const Id ssbo_size_pointer{OpAccessChain(uniform_types.U32, cbufs[ssbo.cbuf_index].U32,
                                                      zero, ssbo_size_cbuf_offset)};
 
-            const Id ssbo_addr{OpBitcast(U64, OpLoad(U32[2], ssbo_addr_pointer))};
+            const u64 ssbo_align_mask{~(profile.min_ssbo_alignment - 1U)};
+            const Id unaligned_addr{OpBitcast(U64, OpLoad(U32[2], ssbo_addr_pointer))};
+            const Id ssbo_addr{OpBitwiseAnd(U64, unaligned_addr, Constant(U64, ssbo_align_mask))};
             const Id ssbo_size{OpUConvert(U64, OpLoad(U32[1], ssbo_size_pointer))};
             const Id ssbo_end{OpIAdd(U64, ssbo_addr, ssbo_size)};
             const Id cond{OpLogicalAnd(U1, OpUGreaterThanEqual(U1, addr, ssbo_addr),

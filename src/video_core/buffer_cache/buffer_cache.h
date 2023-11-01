@@ -1796,7 +1796,8 @@ Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
         return NULL_BINDING;
     }
     const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
-    ASSERT_MSG(cpu_addr, "Unaligned storage buffer address not found for cbuf index {}", cbuf_index);
+    ASSERT_MSG(cpu_addr, "Unaligned storage buffer address not found for cbuf index {}",
+               cbuf_index);
     // The end address used for size calculation does not need to be aligned
     const VAddr cpu_end = Common::AlignUp(*cpu_addr + size, Core::Memory::YUZU_PAGESIZE);
 
