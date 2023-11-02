@@ -7,6 +7,7 @@
 #include <string>
 #include "common/settings.h"
 
+#define SI_NO_CONVERSION
 #include <SimpleIni.h>
 #include <boost/algorithm/string/replace.hpp>
 
