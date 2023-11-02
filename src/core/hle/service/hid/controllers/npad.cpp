@@ -1108,9 +1108,9 @@ Result Controller_NPad::DisconnectNpad(Core::HID::NpadIdType npad_id) {
     shared_memory->sixaxis_dual_right_properties.raw = 0;
     shared_memory->sixaxis_left_properties.raw = 0;
     shared_memory->sixaxis_right_properties.raw = 0;
-    shared_memory->battery_level_dual = 0;
-    shared_memory->battery_level_left = 0;
-    shared_memory->battery_level_right = 0;
+    shared_memory->battery_level_dual = Core::HID::NpadBatteryLevel::Empty;
+    shared_memory->battery_level_left = Core::HID::NpadBatteryLevel::Empty;
+    shared_memory->battery_level_right = Core::HID::NpadBatteryLevel::Empty;
     shared_memory->fullkey_color = {
         .attribute = ColorAttribute::NoController,
         .fullkey = {},
