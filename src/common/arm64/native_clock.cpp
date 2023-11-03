@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#ifdef ANDROID
+#include <sys/system_properties.h>
+#endif
 #include "common/arm64/native_clock.h"
 
 namespace Common::Arm64 {
@@ -65,7 +68,23 @@ bool NativeClock::IsNative() const {
 
 u64 NativeClock::GetHostCNTFRQ() {
     u64 cntfrq_el0 = 0;
-    asm("mrs %[cntfrq_el0], cntfrq_el0" : [cntfrq_el0] "=r"(cntfrq_el0));
+    std::string_view board{""};
+#ifdef ANDROID
+    char buffer[PROP_VALUE_MAX];
+    int len{__system_property_get("ro.product.board", buffer)};
+    board = std::string_view(buffer, static_cast<size_t>(len));
+#endif
+    if (board == "s5e9925") { // Exynos 2200
+        cntfrq_el0 = 25600000;
+    } else if (board == "exynos2100") { // Exynos 2100
+        cntfrq_el0 = 26000000;
+    } else if (board == "exynos9810") { // Exynos 9810
+        cntfrq_el0 = 26000000;
+    } else if (board == "s5e8825") { // Exynos 1280
+        cntfrq_el0 = 26000000;
+    } else {
+        asm("mrs %[cntfrq_el0], cntfrq_el0" : [cntfrq_el0] "=r"(cntfrq_el0));
+    }
     return cntfrq_el0;
 }
 
