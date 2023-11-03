@@ -17,6 +17,7 @@
 #ifdef __unix__
 #include <csignal>
 #include <sys/socket.h>
+#include "common/linux/gamemode.h"
 #endif
 
 #include <boost/container/flat_set.hpp>
@@ -185,10 +186,6 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 #endif
 
-#ifdef __linux__
-#include <gamemode_client.h>
-#endif
-
 constexpr int default_mouse_hide_timeout = 2500;
 constexpr int default_mouse_center_timeout = 10;
 constexpr int default_input_update_timeout = 1;
@@ -323,6 +320,7 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
       provider{std::make_unique<FileSys::ManualContentProvider>()} {
 #ifdef __unix__
     SetupSigInterrupts();
+    SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
 #endif
     system->Initialize();
 
@@ -2130,14 +2128,8 @@ void GMainWindow::OnEmulationStopped() {
 
     discord_rpc->Update();
 
-#ifdef __linux__
-    if (UISettings::values.enable_gamemode) {
-        if (gamemode_request_end() < 0) {
-            LOG_WARNING(Frontend, "Failed to stop gamemode: {}", gamemode_error_string());
-        } else {
-            LOG_INFO(Frontend, "Stopped gamemode");
-        }
-    }
+#ifdef __unix__
+    Common::Linux::StopGamemode();
 #endif
 
     // The emulation is stopped, so closing the window or not does not matter anymore
@@ -3519,14 +3511,8 @@ void GMainWindow::OnStartGame() {
 
     discord_rpc->Update();
 
-#ifdef __linux__
-    if (UISettings::values.enable_gamemode) {
-        if (gamemode_request_start() < 0) {
-            LOG_WARNING(Frontend, "Failed to start gamemode: {}", gamemode_error_string());
-        } else {
-            LOG_INFO(Frontend, "Started gamemode");
-        }
-    }
+#ifdef __unix__
+    Common::Linux::StartGamemode();
 #endif
 }
 
@@ -3549,14 +3535,8 @@ void GMainWindow::OnPauseGame() {
     UpdateMenuState();
     AllowOSSleep();
 
-#ifdef __linux__
-    if (UISettings::values.enable_gamemode) {
-        if (gamemode_request_end() < 0) {
-            LOG_WARNING(Frontend, "Failed to stop gamemode: {}", gamemode_error_string());
-        } else {
-            LOG_INFO(Frontend, "Stopped gamemode");
-        }
-    }
+#ifdef __unix__
+    Common::Linux::StopGamemode();
 #endif
 }
 
@@ -3839,6 +3819,9 @@ void GMainWindow::OnConfigure() {
     const auto old_theme = UISettings::values.theme;
     const bool old_discord_presence = UISettings::values.enable_discord_presence.GetValue();
     const auto old_language_index = Settings::values.language_index.GetValue();
+#ifdef __unix__
+    const bool old_gamemode = Settings::values.enable_gamemode.GetValue();
+#endif
 
     Settings::SetConfiguringGlobal(true);
     ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(),
@@ -3900,6 +3883,11 @@ void GMainWindow::OnConfigure() {
     if (UISettings::values.enable_discord_presence.GetValue() != old_discord_presence) {
         SetDiscordEnabled(UISettings::values.enable_discord_presence.GetValue());
     }
+#ifdef __unix__
+    if (Settings::values.enable_gamemode.GetValue() != old_gamemode) {
+        SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
+    }
+#endif
 
     if (!multiplayer_state->IsHostingPublicRoom()) {
         multiplayer_state->UpdateCredentials();
@@ -5215,25 +5203,13 @@ void GMainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
     discord_rpc->Update();
 }
 
-void GMainWindow::SetGamemodeDisabled([[maybe_unused]] bool state) {
-#ifdef __linux__
+#ifdef __unix__
+void GMainWindow::SetGamemodeEnabled(bool state) {
     if (emulation_running) {
-        if (state) {
-            if (gamemode_request_end() < 0) {
-                LOG_WARNING(Frontend, "Failed to stop gamemode: {}", gamemode_error_string());
-            } else {
-                LOG_INFO(Frontend, "Stopped gamemode");
-            }
-        } else {
-            if (gamemode_request_start() < 0) {
-                LOG_WARNING(Frontend, "Failed to start gamemode: {}", gamemode_error_string());
-            } else {
-                LOG_INFO(Frontend, "Started gamemode");
-            }
-        }
+        Common::Linux::SetGamemodeState(state);
     }
-#endif
 }
+#endif
 
 void GMainWindow::changeEvent(QEvent* event) {
 #ifdef __unix__

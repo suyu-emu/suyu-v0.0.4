@@ -189,8 +189,7 @@ if (ANDROID)
    endif()
 endif()
 
-# Gamemode
-if ("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+if (UNIX)
     add_subdirectory(gamemode)
     target_include_directories(gamemode PUBLIC gamemode/include)
 endif()

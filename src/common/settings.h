@@ -178,8 +178,6 @@ struct Values {
                                              true,
                                              &use_speed_limit};
 
-    Setting<bool> enable_gamemode{linkage, false, "enable_gamemode", Category::Core};
-
     // Cpu
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage,           CpuAccuracy::Auto,
                                                       CpuAccuracy::Auto, CpuAccuracy::Paranoid,
@@ -428,6 +426,9 @@ struct Values {
                                                    Specialization::Radio,
                                                    true,
                                                    true};
+
+    // Linux
+    SwitchableSetting<bool> enable_gamemode{linkage, true, "enable_gamemode", Category::Linux};
 
     // Controls
     InputSetting<std::array<PlayerInput, 10>> players;

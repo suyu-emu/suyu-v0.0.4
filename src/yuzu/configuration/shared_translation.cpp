@@ -175,7 +175,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(UISettings, hide_mouse, tr("Hide mouse on inactivity"), QStringLiteral());
     INSERT(UISettings, controller_applet_disabled, tr("Disable controller applet"),
            QStringLiteral());
-    INSERT(UISettings, enable_gamemode, tr("Enable Gamemode"), QStringLiteral());
+
+    // Linux
+    INSERT(Settings, enable_gamemode, tr("Enable Gamemode"), QStringLiteral());
 
     // Ui Debugging
 

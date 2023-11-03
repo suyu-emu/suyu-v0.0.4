@@ -57,7 +57,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupBox">
+      <widget class="QGroupBox" name="coreGroup">
        <property name="title">
         <string>Core</string>
        </property>
