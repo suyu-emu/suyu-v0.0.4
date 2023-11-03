@@ -35,13 +35,14 @@ struct RomFSHeader {
 static_assert(sizeof(RomFSHeader) == 0x50, "RomFSHeader has incorrect size.");
 
 struct DirectoryEntry {
+    u32_le parent;
     u32_le sibling;
     u32_le child_dir;
     u32_le child_file;
     u32_le hash;
     u32_le name_length;
 };
-static_assert(sizeof(DirectoryEntry) == 0x14, "DirectoryEntry has incorrect size.");
+static_assert(sizeof(DirectoryEntry) == 0x18, "DirectoryEntry has incorrect size.");
 
 struct FileEntry {
     u32_le parent;
@@ -64,25 +65,22 @@ std::pair<Entry, std::string> GetEntry(const VirtualFile& file, std::size_t offs
     return {entry, string};
 }
 
-void ProcessFile(VirtualFile file, std::size_t file_offset, std::size_t data_offset,
-                 u32 this_file_offset, std::shared_ptr<VectorVfsDirectory> parent) {
-    while (true) {
+void ProcessFile(const VirtualFile& file, std::size_t file_offset, std::size_t data_offset,
+                 u32 this_file_offset, std::shared_ptr<VectorVfsDirectory>& parent) {
+    while (this_file_offset != ROMFS_ENTRY_EMPTY) {
         auto entry = GetEntry<FileEntry>(file, file_offset + this_file_offset);
 
         parent->AddFile(std::make_shared<OffsetVfsFile>(
             file, entry.first.size, entry.first.offset + data_offset, entry.second));
 
-        if (entry.first.sibling == ROMFS_ENTRY_EMPTY)
-            break;
-
         this_file_offset = entry.first.sibling;
     }
 }
 
-void ProcessDirectory(VirtualFile file, std::size_t dir_offset, std::size_t file_offset,
+void ProcessDirectory(const VirtualFile& file, std::size_t dir_offset, std::size_t file_offset,
                       std::size_t data_offset, u32 this_dir_offset,
-                      std::shared_ptr<VectorVfsDirectory> parent) {
-    while (true) {
+                      std::shared_ptr<VectorVfsDirectory>& parent) {
+    while (this_dir_offset != ROMFS_ENTRY_EMPTY) {
         auto entry = GetEntry<DirectoryEntry>(file, dir_offset + this_dir_offset);
         auto current = std::make_shared<VectorVfsDirectory>(
             std::vector<VirtualFile>{}, std::vector<VirtualDir>{}, entry.second);
@@ -97,14 +95,12 @@ void ProcessDirectory(VirtualFile file, std::size_t dir_offset, std::size_t file
         }
 
         parent->AddDirectory(current);
-        if (entry.first.sibling == ROMFS_ENTRY_EMPTY)
-            break;
         this_dir_offset = entry.first.sibling;
     }
 }
 } // Anonymous namespace
 
-VirtualDir ExtractRomFS(VirtualFile file, RomFSExtractionType type) {
+VirtualDir ExtractRomFS(VirtualFile file) {
     RomFSHeader header{};
     if (file->ReadObject(&header) != sizeof(RomFSHeader))
         return nullptr;
@@ -113,27 +109,17 @@ VirtualDir ExtractRomFS(VirtualFile file, RomFSExtractionType type) {
         return nullptr;
 
     const u64 file_offset = header.file_meta.offset;
-    const u64 dir_offset = header.directory_meta.offset + 4;
+    const u64 dir_offset = header.directory_meta.offset;
 
-    auto root =
-        std::make_shared<VectorVfsDirectory>(std::vector<VirtualFile>{}, std::vector<VirtualDir>{},
-                                             file->GetName(), file->GetContainingDirectory());
+    auto root_container = std::make_shared<VectorVfsDirectory>();
 
-    ProcessDirectory(file, dir_offset, file_offset, header.data_offset, 0, root);
+    ProcessDirectory(file, dir_offset, file_offset, header.data_offset, 0, root_container);
 
-    VirtualDir out = std::move(root);
-
-    if (type == RomFSExtractionType::SingleDiscard)
-        return out->GetSubdirectories().front();
-
-    while (out->GetSubdirectories().size() == 1 && out->GetFiles().empty()) {
-        if (Common::ToLower(out->GetSubdirectories().front()->GetName()) == "data" &&
-            type == RomFSExtractionType::Truncated)
-            break;
-        out = out->GetSubdirectories().front();
+    if (auto root = root_container->GetSubdirectory(""); root) {
+        return std::make_shared<CachedVfsDirectory>(std::move(root));
     }
 
-    return std::make_shared<CachedVfsDirectory>(std::move(out));
+    return nullptr;
 }
 
 VirtualFile CreateRomFS(VirtualDir dir, VirtualDir ext) {
