@@ -151,3 +151,7 @@ License: GPL-3.0-or-later
 Files: externals/stb/*
 Copyright: Sean Barrett
 License: MIT
+
+Files: externals/gamemode/*
+Copyright: Copyright 2017-2019 Feral Interactive
+License: BSD-3-Clause

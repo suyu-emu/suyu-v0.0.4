@@ -188,7 +188,7 @@ if (UNIX AND NOT APPLE)
     linux/gamemode.h
   )
 
-  target_link_libraries(common PRIVATE gamemode)
+  target_link_libraries(common PRIVATE gamemode::headers)
 endif()
 
 if(ARCHITECTURE_x86_64)

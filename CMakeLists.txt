@@ -343,6 +343,10 @@ if(ENABLE_OPENSSL)
     find_package(OpenSSL 1.1.1 REQUIRED)
 endif()
 
+if (UNIX AND NOT APPLE)
+    find_package(gamemode 1.7 MODULE)
+endif()
+
 # Please consider this as a stub
 if(ENABLE_QT6 AND Qt6_LOCATION)
     list(APPEND CMAKE_PREFIX_PATH "${Qt6_LOCATION}")
