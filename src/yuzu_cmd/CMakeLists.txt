@@ -44,7 +44,6 @@ target_link_libraries(yuzu-cmd PRIVATE SDL2::SDL2 Vulkan::Headers)
 
 if(UNIX AND NOT APPLE)
     install(TARGETS yuzu-cmd)
-    target_link_libraries(yuzu-cmd PRIVATE gamemode)
 endif()
 
 if(WIN32)
