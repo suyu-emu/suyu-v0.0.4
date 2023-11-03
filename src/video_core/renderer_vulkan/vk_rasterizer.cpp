@@ -923,9 +923,13 @@ void RasterizerVulkan::UpdateDynamicStates() {
 }
 
 void RasterizerVulkan::HandleTransformFeedback() {
+    static std::once_flag warn_unsupported;
+
     const auto& regs = maxwell3d->regs;
     if (!device.IsExtTransformFeedbackSupported()) {
-        LOG_ERROR(Render_Vulkan, "Transform feedbacks used but not supported");
+        std::call_once(warn_unsupported, [&] {
+            LOG_ERROR(Render_Vulkan, "Transform feedbacks used but not supported");
+        });
         return;
     }
     query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount,
