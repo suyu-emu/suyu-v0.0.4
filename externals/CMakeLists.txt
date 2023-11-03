@@ -191,7 +191,6 @@ endif()
 
 if (UNIX)
     add_subdirectory(gamemode)
-    target_include_directories(gamemode PUBLIC gamemode/include)
 endif()
 
 # Breakpad
