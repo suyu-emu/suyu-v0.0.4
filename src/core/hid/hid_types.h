@@ -302,6 +302,15 @@ enum class TouchScreenModeForNx : u8 {
     Heat2,
 };
 
+// This is nn::hid::system::NpadBatteryLevel
+enum class NpadBatteryLevel : u32 {
+    Empty,
+    Critical,
+    Low,
+    High,
+    Full,
+};
+
 // This is nn::hid::NpadStyleTag
 struct NpadStyleTag {
     union {
@@ -385,16 +394,12 @@ struct NpadGcTriggerState {
 };
 static_assert(sizeof(NpadGcTriggerState) == 0x10, "NpadGcTriggerState is an invalid size");
 
-// This is nn::hid::system::NpadBatteryLevel
-using NpadBatteryLevel = u32;
-static_assert(sizeof(NpadBatteryLevel) == 0x4, "NpadBatteryLevel is an invalid size");
-
 // This is nn::hid::system::NpadPowerInfo
 struct NpadPowerInfo {
     bool is_powered{};
     bool is_charging{};
     INSERT_PADDING_BYTES(0x6);
-    NpadBatteryLevel battery_level{8};
+    NpadBatteryLevel battery_level{NpadBatteryLevel::Full};
 };
 static_assert(sizeof(NpadPowerInfo) == 0xC, "NpadPowerInfo is an invalid size");
 
