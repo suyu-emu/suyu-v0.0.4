@@ -312,6 +312,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                             ViewUtils.showView(binding.surfaceInputOverlay)
                             ViewUtils.hideView(binding.loadingIndicator)
 
+                            emulationState.updateSurface()
+
                             // Setup overlay
                             updateShowFpsOverlay()
                         }
@@ -801,6 +803,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             this.surface = surface
             if (this.surface != null) {
                 runWithValidSurface()
+            }
+        }
+
+        @Synchronized
+        fun updateSurface() {
+            if (surface != null) {
+                NativeLibrary.surfaceChanged(surface)
             }
         }
 
