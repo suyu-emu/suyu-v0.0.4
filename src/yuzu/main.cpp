@@ -2174,6 +2174,7 @@ void GMainWindow::ShutdownGame() {
         return;
     }
 
+    play_time_manager->Stop();
     OnShutdownBegin();
     OnEmulationStopTimeExpired();
     OnEmulationStopped();
@@ -3484,7 +3485,7 @@ void GMainWindow::OnExecuteProgram(std::size_t program_index) {
 }
 
 void GMainWindow::OnExit() {
-    OnStopGame();
+    ShutdownGame();
 }
 
 void GMainWindow::OnSaveConfig() {
@@ -4847,7 +4848,12 @@ bool GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installe
 }
 
 bool GMainWindow::ConfirmClose() {
-    if (emu_thread == nullptr || !UISettings::values.confirm_before_closing) {
+    if (emu_thread == nullptr ||
+        UISettings::values.confirm_before_stopping.GetValue() == ConfirmStop::Ask_Never) {
+        return true;
+    }
+    if (!system->GetExitLocked() &&
+        UISettings::values.confirm_before_stopping.GetValue() == ConfirmStop::Ask_Based_On_Game) {
         return true;
     }
     const auto text = tr("Are you sure you want to close yuzu?");
@@ -4952,7 +4958,7 @@ bool GMainWindow::ConfirmChangeGame() {
 }
 
 bool GMainWindow::ConfirmForceLockedExit() {
-    if (emu_thread == nullptr || !UISettings::values.confirm_before_closing) {
+    if (emu_thread == nullptr) {
         return true;
     }
     const auto text = tr("The currently running application has requested yuzu to not exit.\n\n"
