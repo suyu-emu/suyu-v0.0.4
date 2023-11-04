@@ -3,6 +3,7 @@
 
 #include "common/alignment.h"
 #include "core/memory.h"
+#include "video_core/control/channel_state.h"
 #include "video_core/host1x/host1x.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_null/null_rasterizer.h"
@@ -99,8 +100,14 @@ bool RasterizerNull::AccelerateDisplay(const Tegra::FramebufferConfig& config,
 }
 void RasterizerNull::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
                                        const VideoCore::DiskResourceLoadCallback& callback) {}
-void RasterizerNull::InitializeChannel(Tegra::Control::ChannelState& channel) {}
-void RasterizerNull::BindChannel(Tegra::Control::ChannelState& channel) {}
-void RasterizerNull::ReleaseChannel(s32 channel_id) {}
+void RasterizerNull::InitializeChannel(Tegra::Control::ChannelState& channel) {
+    CreateChannel(channel);
+}
+void RasterizerNull::BindChannel(Tegra::Control::ChannelState& channel) {
+    BindToChannel(channel.bind_id);
+}
+void RasterizerNull::ReleaseChannel(s32 channel_id) {
+    EraseChannel(channel_id);
+}
 
 } // namespace Null
