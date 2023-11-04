@@ -41,7 +41,7 @@ public:
     void RunEmulation();
     void ShutdownEmulation();
 
-    const Core::PerfStatsResults& PerfStats() const;
+    const Core::PerfStatsResults& PerfStats();
     void ConfigureFilesystemProvider(const std::string& filepath);
     void InitializeSystem();
     Core::SystemResultStatus InitializeEmulation(const std::string& filepath);
@@ -80,6 +80,5 @@ private:
 
     // Synchronization
     std::condition_variable_any m_cv;
-    mutable std::mutex m_perf_stats_mutex;
     mutable std::mutex m_mutex;
 };
