@@ -43,7 +43,7 @@ public:
 
     const Core::PerfStatsResults& PerfStats() const;
     void ConfigureFilesystemProvider(const std::string& filepath);
-    void InitializeSystem();
+    void InitializeSystem(bool reload);
     Core::SystemResultStatus InitializeEmulation(const std::string& filepath);
 
     bool IsHandheldOnly();
