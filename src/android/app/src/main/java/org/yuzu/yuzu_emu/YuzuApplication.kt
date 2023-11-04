@@ -11,6 +11,7 @@ import java.io.File
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.DocumentsTree
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
+import org.yuzu.yuzu_emu.utils.Log
 
 fun Context.getPublicFilesDir(): File = getExternalFilesDir(null) ?: filesDir
 
@@ -49,6 +50,7 @@ class YuzuApplication : Application() {
         DirectoryInitialization.start()
         GpuDriverHelper.initializeDriverParameters()
         NativeLibrary.logDeviceInfo()
+        Log.logDeviceInfo()
 
         createNotificationChannels()
     }

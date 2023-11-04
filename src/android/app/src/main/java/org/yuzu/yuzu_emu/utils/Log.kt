@@ -3,6 +3,8 @@
 
 package org.yuzu.yuzu_emu.utils
 
+import android.os.Build
+
 object Log {
     // Tracks whether we should share the old log or the current log
     var gameLaunched = false
@@ -16,4 +18,14 @@ object Log {
     external fun error(message: String)
 
     external fun critical(message: String)
+
+    fun logDeviceInfo() {
+        info("Device Manufacturer - ${Build.MANUFACTURER}")
+        info("Device Model - ${Build.MODEL}")
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
+            info("SoC Manufacturer - ${Build.SOC_MANUFACTURER}")
+            info("SoC Model - ${Build.SOC_MODEL}")
+        }
+        info("Total System Memory - ${MemoryUtil.getDeviceRAM()}")
+    }
 }
