@@ -1353,7 +1353,7 @@ void Hid::IsUnintendedHomeButtonInputProtectionEnabled(HLERequestContext& ctx) {
 void Hid::EnableUnintendedHomeButtonInputProtection(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        bool unintended_home_button_input_protection;
+        bool is_enabled;
         INSERT_PADDING_BYTES_NOINIT(3);
         Core::HID::NpadIdType npad_id;
         u64 applet_resource_user_id;
@@ -1364,13 +1364,11 @@ void Hid::EnableUnintendedHomeButtonInputProtection(HLERequestContext& ctx) {
 
     auto& controller = GetAppletResource()->GetController<Controller_NPad>(HidController::NPad);
     const auto result = controller.SetUnintendedHomeButtonInputProtectionEnabled(
-        parameters.unintended_home_button_input_protection, parameters.npad_id);
+        parameters.is_enabled, parameters.npad_id);
 
-    LOG_WARNING(Service_HID,
-                "(STUBBED) called, unintended_home_button_input_protection={}, npad_id={},"
-                "applet_resource_user_id={}",
-                parameters.unintended_home_button_input_protection, parameters.npad_id,
-                parameters.applet_resource_user_id);
+    LOG_DEBUG(Service_HID,
+              "(STUBBED) called, is_enabled={}, npad_id={}, applet_resource_user_id={}",
+              parameters.is_enabled, parameters.npad_id, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(result);
