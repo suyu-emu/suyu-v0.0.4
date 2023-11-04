@@ -252,7 +252,7 @@ object NativeLibrary {
 
     external fun reloadKeys(): Boolean
 
-    external fun initializeSystem()
+    external fun initializeSystem(reload: Boolean)
 
     external fun defaultCPUCore(): Int
 
