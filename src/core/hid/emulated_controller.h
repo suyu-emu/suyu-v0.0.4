@@ -253,6 +253,9 @@ public:
     /// Overrides current mapped devices with the stored configuration and reloads all input devices
     void ReloadFromSettings();
 
+    /// Updates current colors with the ones stored in the configuration
+    void ReloadColorsFromSettings();
+
     /// Saves the current mapped configuration
     void SaveCurrentConfig();
 

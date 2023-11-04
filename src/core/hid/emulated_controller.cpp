@@ -96,18 +96,7 @@ void EmulatedController::ReloadFromSettings() {
     }
 
     controller.color_values = {};
-    controller.colors_state.fullkey = {
-        .body = GetNpadColor(player.body_color_left),
-        .button = GetNpadColor(player.button_color_left),
-    };
-    controller.colors_state.left = {
-        .body = GetNpadColor(player.body_color_left),
-        .button = GetNpadColor(player.button_color_left),
-    };
-    controller.colors_state.right = {
-        .body = GetNpadColor(player.body_color_right),
-        .button = GetNpadColor(player.button_color_right),
-    };
+    ReloadColorsFromSettings();
 
     ring_params[0] = Common::ParamPackage(Settings::values.ringcon_analogs);
 
@@ -126,6 +115,30 @@ void EmulatedController::ReloadFromSettings() {
     }
 
     ReloadInput();
+}
+
+void EmulatedController::ReloadColorsFromSettings() {
+    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto& player = Settings::values.players.GetValue()[player_index];
+
+    // Avoid updating colors if overridden by physical controller
+    if (controller.color_values[LeftIndex].body != 0 &&
+        controller.color_values[RightIndex].body != 0) {
+        return;
+    }
+
+    controller.colors_state.fullkey = {
+        .body = GetNpadColor(player.body_color_left),
+        .button = GetNpadColor(player.button_color_left),
+    };
+    controller.colors_state.left = {
+        .body = GetNpadColor(player.body_color_left),
+        .button = GetNpadColor(player.button_color_left),
+    };
+    controller.colors_state.right = {
+        .body = GetNpadColor(player.body_color_right),
+        .button = GetNpadColor(player.button_color_right),
+    };
 }
 
 void EmulatedController::LoadDevices() {
