@@ -247,11 +247,13 @@ void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) 
     }
 }
 
-void EmulationSession::InitializeSystem() {
-    // Initialize logging system
-    Common::Log::Initialize();
-    Common::Log::SetColorConsoleBackendEnabled(true);
-    Common::Log::Start();
+void EmulationSession::InitializeSystem(bool reload) {
+    if (!reload) {
+        // Initialize logging system
+        Common::Log::Initialize();
+        Common::Log::SetColorConsoleBackendEnabled(true);
+        Common::Log::Start();
+    }
 
     // Initialize filesystem.
     m_system.SetFilesystem(m_vfs);
@@ -667,12 +669,15 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchReleased(JNIEnv* env, jclass c
     }
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeSystem(JNIEnv* env, jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeSystem(JNIEnv* env, jclass clazz,
+                                                            jboolean reload) {
     // Create the default config.ini.
     Config{};
     // Initialize the emulated system.
-    EmulationSession::GetInstance().System().Initialize();
-    EmulationSession::GetInstance().InitializeSystem();
+    if (!reload) {
+        EmulationSession::GetInstance().System().Initialize();
+    }
+    EmulationSession::GetInstance().InitializeSystem(reload);
 }
 
 jint Java_org_yuzu_yuzu_1emu_NativeLibrary_defaultCPUCore(JNIEnv* env, jclass clazz) {

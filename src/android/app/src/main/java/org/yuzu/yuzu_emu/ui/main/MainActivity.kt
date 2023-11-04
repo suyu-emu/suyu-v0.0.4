@@ -403,7 +403,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                     } else {
                         firmwarePath.deleteRecursively()
                         cacheFirmwareDir.copyRecursively(firmwarePath, true)
-                        NativeLibrary.initializeSystem()
+                        NativeLibrary.initializeSystem(true)
                         getString(R.string.save_file_imported_success)
                     }
                 } catch (e: Exception) {
@@ -649,7 +649,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 }
 
                 // Reinitialize relevant data
-                NativeLibrary.initializeSystem()
+                NativeLibrary.initializeSystem(true)
                 gamesViewModel.reloadGames(false)
 
                 return@newInstance getString(R.string.user_data_import_success)
