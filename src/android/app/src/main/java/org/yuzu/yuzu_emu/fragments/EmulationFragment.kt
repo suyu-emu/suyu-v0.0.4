@@ -10,7 +10,6 @@ import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -155,7 +154,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
 
         binding.surfaceEmulation.holder.addCallback(this)
-        binding.showFpsText.setTextColor(Color.YELLOW)
         binding.doneControlConfig.setOnClickListener { stopConfiguringControls() }
 
         binding.drawerLayout.addDrawerListener(object : DrawerListener {
