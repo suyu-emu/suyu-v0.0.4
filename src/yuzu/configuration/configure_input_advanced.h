@@ -14,11 +14,15 @@ namespace Ui {
 class ConfigureInputAdvanced;
 }
 
+namespace Core::HID {
+class HIDCore;
+} // namespace Core::HID
+
 class ConfigureInputAdvanced : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureInputAdvanced(QWidget* parent = nullptr);
+    explicit ConfigureInputAdvanced(Core::HID::HIDCore& hid_core_, QWidget* parent = nullptr);
     ~ConfigureInputAdvanced() override;
 
     void ApplyConfiguration();
@@ -44,4 +48,6 @@ private:
 
     std::array<std::array<QColor, 4>, 8> controllers_colors;
     std::array<std::array<QPushButton*, 4>, 8> controllers_color_buttons;
+
+    Core::HID::HIDCore& hid_core;
 };
