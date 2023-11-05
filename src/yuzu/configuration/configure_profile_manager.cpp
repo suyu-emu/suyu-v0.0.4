@@ -306,10 +306,10 @@ void ConfigureProfileManager::SetUserImage() {
         return;
     }
 
-    // Some games crash when the profile image is too big. Resize any image bigger than 256x256
+    // Profile image must be 256x256
     QImage image(image_path);
-    if (image.width() > 256 || image.height() > 256) {
-        image = image.scaled(256, 256, Qt::KeepAspectRatio);
+    if (image.width() != 256 || image.height() != 256) {
+        image = image.scaled(256, 256, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
         if (!image.save(image_path)) {
             QMessageBox::warning(this, tr("Error resizing user image"),
                                  tr("Unable to resize image"));
