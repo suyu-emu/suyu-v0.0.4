@@ -152,7 +152,7 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
     connect(player_controllers[0], &ConfigureInputPlayer::HandheldStateChanged,
             [this](bool is_handheld) { UpdateDockedState(is_handheld); });
 
-    advanced = new ConfigureInputAdvanced(this);
+    advanced = new ConfigureInputAdvanced(hid_core, this);
     ui->tabAdvanced->setLayout(new QHBoxLayout(ui->tabAdvanced));
     ui->tabAdvanced->layout()->addWidget(advanced);
 
