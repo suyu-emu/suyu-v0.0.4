@@ -85,10 +85,6 @@ Result StartThread(Core::System& system, Handle thread_handle) {
     // Try to start the thread.
     R_TRY(thread->Run());
 
-    // If we succeeded, persist a reference to the thread.
-    thread->Open();
-    system.Kernel().RegisterInUseObject(thread.GetPointerUnsafe());
-
     R_SUCCEED();
 }
 
@@ -99,7 +95,6 @@ void ExitThread(Core::System& system) {
     auto* const current_thread = GetCurrentThreadPointer(system.Kernel());
     system.GlobalSchedulerContext().RemoveThread(current_thread);
     current_thread->Exit();
-    system.Kernel().UnregisterInUseObject(current_thread);
 }
 
 /// Sleep the current thread
@@ -260,7 +255,7 @@ Result GetThreadList(Core::System& system, s32* out_num_threads, u64 out_thread_
 
     auto list_iter = thread_list.cbegin();
     for (std::size_t i = 0; i < copy_amount; ++i, ++list_iter) {
-        memory.Write64(out_thread_ids, (*list_iter)->GetThreadId());
+        memory.Write64(out_thread_ids, list_iter->GetThreadId());
         out_thread_ids += sizeof(u64);
     }
 

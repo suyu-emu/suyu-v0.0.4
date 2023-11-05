@@ -15,6 +15,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.view.*
 import android.widget.TextView
 import android.widget.Toast
@@ -25,6 +26,7 @@ import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -156,6 +158,32 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         binding.showFpsText.setTextColor(Color.YELLOW)
         binding.doneControlConfig.setOnClickListener { stopConfiguringControls() }
 
+        binding.drawerLayout.addDrawerListener(object : DrawerListener {
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+                binding.surfaceInputOverlay.dispatchTouchEvent(
+                    MotionEvent.obtain(
+                        SystemClock.uptimeMillis(),
+                        SystemClock.uptimeMillis() + 100,
+                        MotionEvent.ACTION_UP,
+                        0f,
+                        0f,
+                        0
+                    )
+                )
+            }
+
+            override fun onDrawerOpened(drawerView: View) {
+                // No op
+            }
+
+            override fun onDrawerClosed(drawerView: View) {
+                // No op
+            }
+
+            override fun onDrawerStateChanged(newState: Int) {
+                // No op
+            }
+        })
         binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
         binding.inGameMenu.getHeaderView(0).findViewById<TextView>(R.id.text_game_title).text =
             game.title
@@ -283,6 +311,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                             binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
                             ViewUtils.showView(binding.surfaceInputOverlay)
                             ViewUtils.hideView(binding.loadingIndicator)
+
+                            emulationState.updateSurface()
 
                             // Setup overlay
                             updateShowFpsOverlay()
@@ -773,6 +803,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             this.surface = surface
             if (this.surface != null) {
                 runWithValidSurface()
+            }
+        }
+
+        @Synchronized
+        fun updateSurface() {
+            if (surface != null) {
+                NativeLibrary.surfaceChanged(surface)
             }
         }
 

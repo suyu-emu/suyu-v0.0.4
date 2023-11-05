@@ -159,8 +159,8 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/util/clickable_label.h"
 #include "yuzu/vk_device_info.h"
 
-#ifdef YUZU_DBGHELP
-#include "yuzu/mini_dump.h"
+#ifdef YUZU_CRASH_DUMPS
+#include "yuzu/breakpad.h"
 #endif
 
 using namespace Common::Literals;
@@ -1072,7 +1072,7 @@ void GMainWindow::InitializeWidgets() {
     });
     volume_popup->layout()->addWidget(volume_slider);
 
-    volume_button = new QPushButton();
+    volume_button = new VolumeButton();
     volume_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
     volume_button->setFocusPolicy(Qt::NoFocus);
     volume_button->setCheckable(true);
@@ -1103,6 +1103,8 @@ void GMainWindow::InitializeWidgets() {
                 context_menu.exec(volume_button->mapToGlobal(menu_location));
                 volume_button->repaint();
             });
+    connect(volume_button, &VolumeButton::VolumeChanged, this, &GMainWindow::UpdateVolumeUI);
+
     statusBar()->insertPermanentWidget(0, volume_button);
 
     // setup AA button
@@ -2019,7 +2021,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
             std::filesystem::path{Common::U16StringFromBuffer(filename.utf16(), filename.size())}
                 .filename());
     }
-    const bool is_64bit = system->Kernel().ApplicationProcess()->Is64BitProcess();
+    const bool is_64bit = system->Kernel().ApplicationProcess()->Is64Bit();
     const auto instruction_set_suffix = is_64bit ? tr("(64-bit)") : tr("(32-bit)");
     title_name = tr("%1 %2", "%1 is the title name. %2 indicates if the title is 64-bit or 32-bit")
                      .arg(QString::fromStdString(title_name), instruction_set_suffix)
@@ -2172,6 +2174,7 @@ void GMainWindow::ShutdownGame() {
         return;
     }
 
+    play_time_manager->Stop();
     OnShutdownBegin();
     OnEmulationStopTimeExpired();
     OnEmulationStopped();
@@ -2735,7 +2738,7 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
         return;
     }
 
-    const auto extracted = FileSys::ExtractRomFS(romfs, FileSys::RomFSExtractionType::Full);
+    const auto extracted = FileSys::ExtractRomFS(romfs);
     if (extracted == nullptr) {
         failed();
         return;
@@ -2980,7 +2983,7 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
 #elif defined(__linux__) || defined(__FreeBSD__)
     out_icon_path = Common::FS::GetDataDirectory("XDG_DATA_HOME") / "icons/hicolor/256x256";
 #endif
-
+  
     // Create icons directory if it doesn't exist
     if (!Common::FS::CreateDirs(out_icon_path)) {
         QMessageBox::critical(
@@ -3571,7 +3574,7 @@ void GMainWindow::OnExecuteProgram(std::size_t program_index) {
 }
 
 void GMainWindow::OnExit() {
-    OnStopGame();
+    ShutdownGame();
 }
 
 void GMainWindow::OnSaveConfig() {
@@ -4085,6 +4088,66 @@ void GMainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file
     if (!is_powered_on) {
         config->Save();
     }
+}
+
+bool GMainWindow::CreateShortcut(const std::string& shortcut_path, const std::string& title,
+                                 const std::string& comment, const std::string& icon_path,
+                                 const std::string& command, const std::string& arguments,
+                                 const std::string& categories, const std::string& keywords) {
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
+    // This desktop file template was writing referencing
+    // https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-1.0.html
+    std::string shortcut_contents{};
+    shortcut_contents.append("[Desktop Entry]\n");
+    shortcut_contents.append("Type=Application\n");
+    shortcut_contents.append("Version=1.0\n");
+    shortcut_contents.append(fmt::format("Name={:s}\n", title));
+    shortcut_contents.append(fmt::format("Comment={:s}\n", comment));
+    shortcut_contents.append(fmt::format("Icon={:s}\n", icon_path));
+    shortcut_contents.append(fmt::format("TryExec={:s}\n", command));
+    shortcut_contents.append(fmt::format("Exec={:s} {:s}\n", command, arguments));
+    shortcut_contents.append(fmt::format("Categories={:s}\n", categories));
+    shortcut_contents.append(fmt::format("Keywords={:s}\n", keywords));
+
+    std::ofstream shortcut_stream(shortcut_path);
+    if (!shortcut_stream.is_open()) {
+        LOG_WARNING(Common, "Failed to create file {:s}", shortcut_path);
+        return false;
+    }
+    shortcut_stream << shortcut_contents;
+    shortcut_stream.close();
+
+    return true;
+#elif defined(WIN32)
+    IShellLinkW* shell_link;
+    auto hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW,
+                                 (void**)&shell_link);
+    if (FAILED(hres)) {
+        return false;
+    }
+    shell_link->SetPath(
+        Common::UTF8ToUTF16W(command).data()); // Path to the object we are referring to
+    shell_link->SetArguments(Common::UTF8ToUTF16W(arguments).data());
+    shell_link->SetDescription(Common::UTF8ToUTF16W(comment).data());
+    shell_link->SetIconLocation(Common::UTF8ToUTF16W(icon_path).data(), 0);
+
+    IPersistFile* persist_file;
+    hres = shell_link->QueryInterface(IID_IPersistFile, (void**)&persist_file);
+    if (FAILED(hres)) {
+        return false;
+    }
+
+    hres = persist_file->Save(Common::UTF8ToUTF16W(shortcut_path).data(), TRUE);
+    if (FAILED(hres)) {
+        return false;
+    }
+
+    persist_file->Release();
+    shell_link->Release();
+
+    return true;
+#endif
+    return false;
 }
 
 void GMainWindow::OnLoadAmiibo() {
@@ -4873,7 +4936,12 @@ bool GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installe
 }
 
 bool GMainWindow::ConfirmClose() {
-    if (emu_thread == nullptr || !UISettings::values.confirm_before_closing) {
+    if (emu_thread == nullptr ||
+        UISettings::values.confirm_before_stopping.GetValue() == ConfirmStop::Ask_Never) {
+        return true;
+    }
+    if (!system->GetExitLocked() &&
+        UISettings::values.confirm_before_stopping.GetValue() == ConfirmStop::Ask_Based_On_Game) {
         return true;
     }
     const auto text = tr("Are you sure you want to close yuzu?");
@@ -4978,7 +5046,7 @@ bool GMainWindow::ConfirmChangeGame() {
 }
 
 bool GMainWindow::ConfirmForceLockedExit() {
-    if (emu_thread == nullptr || !UISettings::values.confirm_before_closing) {
+    if (emu_thread == nullptr) {
         return true;
     }
     const auto text = tr("The currently running application has requested yuzu to not exit.\n\n"
@@ -5154,6 +5222,32 @@ void GMainWindow::changeEvent(QEvent* event) {
     QWidget::changeEvent(event);
 }
 
+void VolumeButton::wheelEvent(QWheelEvent* event) {
+
+    int num_degrees = event->angleDelta().y() / 8;
+    int num_steps = (num_degrees / 15) * scroll_multiplier;
+    // Stated in QT docs: Most mouse types work in steps of 15 degrees, in which case the delta
+    // value is a multiple of 120; i.e., 120 units * 1/8 = 15 degrees.
+
+    if (num_steps > 0) {
+        Settings::values.volume.SetValue(
+            std::min(200, Settings::values.volume.GetValue() + num_steps));
+    } else {
+        Settings::values.volume.SetValue(
+            std::max(0, Settings::values.volume.GetValue() + num_steps));
+    }
+
+    scroll_multiplier = std::min(MaxMultiplier, scroll_multiplier * 2);
+    scroll_timer.start(100); // reset the multiplier if no scroll event occurs within 100 ms
+
+    emit VolumeChanged();
+    event->accept();
+}
+
+void VolumeButton::ResetMultiplier() {
+    scroll_multiplier = 1;
+}
+
 #ifdef main
 #undef main
 #endif
@@ -5215,21 +5309,14 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-#ifdef YUZU_DBGHELP
-    PROCESS_INFORMATION pi;
-    if (!is_child && Settings::values.create_crash_dumps.GetValue() &&
-        MiniDump::SpawnDebuggee(argv[0], pi)) {
-        // Delete the config object so that it doesn't save when the program exits
-        config.reset(nullptr);
-        MiniDump::DebugDebuggee(pi);
-        return 0;
-    }
-#endif
-
     if (StartupChecks(argv[0], &has_broken_vulkan,
                       Settings::values.perform_vulkan_check.GetValue())) {
         return 0;
     }
+
+#ifdef YUZU_CRASH_DUMPS
+    Breakpad::InstallCrashHandler();
+#endif
 
     Common::DetachedTasks detached_tasks;
     MicroProfileOnThreadCreate("Frontend");

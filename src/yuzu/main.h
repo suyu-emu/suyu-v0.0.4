@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QTimer>
 #include <QTranslator>
 
@@ -137,6 +138,28 @@ enum class ReinitializeKeyBehavior {
 namespace VkDeviceInfo {
 class Record;
 }
+
+class VolumeButton : public QPushButton {
+    Q_OBJECT
+public:
+    explicit VolumeButton(QWidget* parent = nullptr) : QPushButton(parent), scroll_multiplier(1) {
+        connect(&scroll_timer, &QTimer::timeout, this, &VolumeButton::ResetMultiplier);
+    }
+
+signals:
+    void VolumeChanged();
+
+protected:
+    void wheelEvent(QWheelEvent* event) override;
+
+private slots:
+    void ResetMultiplier();
+
+private:
+    int scroll_multiplier;
+    QTimer scroll_timer;
+    constexpr static int MaxMultiplier = 8;
+};
 
 class GMainWindow : public QMainWindow {
     Q_OBJECT
@@ -492,7 +515,7 @@ private:
     QPushButton* dock_status_button = nullptr;
     QPushButton* filter_status_button = nullptr;
     QPushButton* aa_status_button = nullptr;
-    QPushButton* volume_button = nullptr;
+    VolumeButton* volume_button = nullptr;
     QWidget* volume_popup = nullptr;
     QSlider* volume_slider = nullptr;
     QTimer status_bar_update_timer;

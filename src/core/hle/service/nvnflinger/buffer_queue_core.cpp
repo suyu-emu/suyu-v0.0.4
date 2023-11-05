@@ -41,7 +41,7 @@ bool BufferQueueCore::WaitForDequeueCondition(std::unique_lock<std::mutex>& lk) 
 s32 BufferQueueCore::GetMinUndequeuedBufferCountLocked(bool async) const {
     // If DequeueBuffer is allowed to error out, we don't have to add an extra buffer.
     if (!use_async_buffer) {
-        return max_acquired_buffer_count;
+        return 0;
     }
 
     if (dequeue_buffer_cannot_block || async) {
@@ -52,7 +52,7 @@ s32 BufferQueueCore::GetMinUndequeuedBufferCountLocked(bool async) const {
 }
 
 s32 BufferQueueCore::GetMinMaxBufferCountLocked(bool async) const {
-    return GetMinUndequeuedBufferCountLocked(async) + 1;
+    return GetMinUndequeuedBufferCountLocked(async);
 }
 
 s32 BufferQueueCore::GetMaxBufferCountLocked(bool async) const {
@@ -61,7 +61,7 @@ s32 BufferQueueCore::GetMaxBufferCountLocked(bool async) const {
 
     if (override_max_buffer_count != 0) {
         ASSERT(override_max_buffer_count >= min_buffer_count);
-        max_buffer_count = override_max_buffer_count;
+        return override_max_buffer_count;
     }
 
     // Any buffers that are dequeued by the producer or sitting in the queue waiting to be consumed

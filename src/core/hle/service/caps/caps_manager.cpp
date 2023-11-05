@@ -228,12 +228,14 @@ Result AlbumManager::LoadAlbumScreenShotThumbnail(
 
 Result AlbumManager::SaveScreenShot(ApplicationAlbumEntry& out_entry,
                                     const ScreenShotAttribute& attribute,
-                                    std::span<const u8> image_data, u64 aruid) {
-    return SaveScreenShot(out_entry, attribute, {}, image_data, aruid);
+                                    AlbumReportOption report_option, std::span<const u8> image_data,
+                                    u64 aruid) {
+    return SaveScreenShot(out_entry, attribute, report_option, {}, image_data, aruid);
 }
 
 Result AlbumManager::SaveScreenShot(ApplicationAlbumEntry& out_entry,
                                     const ScreenShotAttribute& attribute,
+                                    AlbumReportOption report_option,
                                     const ApplicationData& app_data, std::span<const u8> image_data,
                                     u64 aruid) {
     const u64 title_id = system.GetApplicationProcessProgramID();
@@ -407,10 +409,14 @@ Result AlbumManager::LoadImage(std::span<u8> out_image, const std::filesystem::p
     return ResultSuccess;
 }
 
-static void PNGToMemory(void* context, void* png, int len) {
+void AlbumManager::FlipVerticallyOnWrite(bool flip) {
+    stbi_flip_vertically_on_write(flip);
+}
+
+static void PNGToMemory(void* context, void* data, int len) {
     std::vector<u8>* png_image = static_cast<std::vector<u8>*>(context);
-    png_image->reserve(len);
-    std::memcpy(png_image->data(), png, len);
+    unsigned char* png = static_cast<unsigned char*>(data);
+    png_image->insert(png_image->end(), png, png + len);
 }
 
 Result AlbumManager::SaveImage(ApplicationAlbumEntry& out_entry, std::span<const u8> image,

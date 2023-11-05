@@ -119,6 +119,7 @@ public:
         GenerateYuzuPath(YuzuPath::AmiiboDir, yuzu_path / AMIIBO_DIR);
         GenerateYuzuPath(YuzuPath::CacheDir, yuzu_path_cache);
         GenerateYuzuPath(YuzuPath::ConfigDir, yuzu_path_config);
+        GenerateYuzuPath(YuzuPath::CrashDumpsDir, yuzu_path / CRASH_DUMPS_DIR);
         GenerateYuzuPath(YuzuPath::DumpDir, yuzu_path / DUMP_DIR);
         GenerateYuzuPath(YuzuPath::KeysDir, yuzu_path / KEYS_DIR);
         GenerateYuzuPath(YuzuPath::LoadDir, yuzu_path / LOAD_DIR);
@@ -400,6 +401,16 @@ std::string SanitizePath(std::string_view path_, DirectorySeparator directory_se
 }
 
 std::string_view GetParentPath(std::string_view path) {
+    if (path.empty()) {
+        return path;
+    }
+
+#ifdef ANDROID
+    if (path[0] != '/') {
+        std::string path_string{path};
+        return FS::Android::GetParentDirectory(path_string);
+    }
+#endif
     const auto name_bck_index = path.rfind('\\');
     const auto name_fwd_index = path.rfind('/');
     std::size_t name_index;

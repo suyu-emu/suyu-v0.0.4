@@ -75,7 +75,7 @@ public:
     void ClearAll();
 
 signals:
-    /// Emitted when this controller is connected by the user.
+    /// Emitted when this controller is (dis)connected by the user.
     void Connected(bool connected);
     /// Emitted when the Handheld mode is selected (undocked with dual joycons attached).
     void HandheldStateChanged(bool is_handheld);
@@ -182,9 +182,6 @@ private:
 
     /// Stores a pair of "Connected Controllers" combobox index and Controller Type enum.
     std::vector<std::pair<int, Core::HID::NpadStyleIndex>> index_controller_type_pairs;
-
-    static constexpr int PLAYER_COUNT = 8;
-    std::array<QCheckBox*, PLAYER_COUNT> player_connected_checkbox;
 
     /// This will be the the setting function when an input is awaiting configuration.
     std::optional<std::function<void(const Common::ParamPackage&)>> input_setter;

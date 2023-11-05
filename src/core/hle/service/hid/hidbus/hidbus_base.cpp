@@ -13,7 +13,10 @@ HidbusBase::HidbusBase(Core::System& system_, KernelHelpers::ServiceContext& ser
     : system(system_), service_context(service_context_) {
     send_command_async_event = service_context.CreateEvent("hidbus:SendCommandAsyncEvent");
 }
-HidbusBase::~HidbusBase() = default;
+
+HidbusBase::~HidbusBase() {
+    service_context.CloseEvent(send_command_async_event);
+};
 
 void HidbusBase::ActivateDevice() {
     if (is_activated) {

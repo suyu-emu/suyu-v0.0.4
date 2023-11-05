@@ -380,7 +380,6 @@ void GameList::UnloadController() {
 
 GameList::~GameList() {
     UnloadController();
-    emit ShouldCancelWorker();
 }
 
 void GameList::SetFilterFocus() {
@@ -395,6 +394,10 @@ void GameList::SetFilterVisible(bool visibility) {
 
 void GameList::ClearFilter() {
     search_field->clear();
+}
+
+void GameList::WorkerEvent() {
+    current_worker->ProcessEvents(this);
 }
 
 void GameList::AddDirEntry(GameListDir* entry_items) {
@@ -828,28 +831,21 @@ void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     tree_view->setColumnHidden(COLUMN_SIZE, !UISettings::values.show_size);
     tree_view->setColumnHidden(COLUMN_PLAY_TIME, !UISettings::values.show_play_time);
 
-    // Before deleting rows, cancel the worker so that it is not using them
-    emit ShouldCancelWorker();
+    // Cancel any existing worker.
+    current_worker.reset();
 
     // Delete any rows that might already exist if we're repopulating
     item_model->removeRows(0, item_model->rowCount());
     search_field->clear();
 
-    GameListWorker* worker =
-        new GameListWorker(vfs, provider, game_dirs, compatibility_list, play_time_manager, system);
+    current_worker = std::make_unique<GameListWorker>(vfs, provider, game_dirs, compatibility_list,
+                                                      play_time_manager, system);
 
-    connect(worker, &GameListWorker::EntryReady, this, &GameList::AddEntry, Qt::QueuedConnection);
-    connect(worker, &GameListWorker::DirEntryReady, this, &GameList::AddDirEntry,
+    // Get events from the worker as data becomes available
+    connect(current_worker.get(), &GameListWorker::DataAvailable, this, &GameList::WorkerEvent,
             Qt::QueuedConnection);
-    connect(worker, &GameListWorker::Finished, this, &GameList::DonePopulating,
-            Qt::QueuedConnection);
-    // Use DirectConnection here because worker->Cancel() is thread-safe and we want it to
-    // cancel without delay.
-    connect(this, &GameList::ShouldCancelWorker, worker, &GameListWorker::Cancel,
-            Qt::DirectConnection);
 
-    QThreadPool::globalInstance()->start(worker);
-    current_worker = std::move(worker);
+    QThreadPool::globalInstance()->start(current_worker.get());
 }
 
 void GameList::SaveInterfaceLayout() {

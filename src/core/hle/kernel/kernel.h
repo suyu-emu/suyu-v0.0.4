@@ -134,9 +134,6 @@ public:
     /// Retrieves a const pointer to the application process.
     const KProcess* ApplicationProcess() const;
 
-    /// Closes the application process.
-    void CloseApplicationProcess();
-
     /// Retrieves the list of processes.
     const std::vector<KProcess*>& GetProcessList() const;
 

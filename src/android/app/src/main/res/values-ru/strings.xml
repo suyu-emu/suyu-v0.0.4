@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">Это программное обеспечение позволяет запускать игры для игровой консоли Nintendo Switch. Мы не предоставляем сами игры или ключи.&lt;br /&gt;&lt;br /&gt;Перед началом работы найдите файл <![CDATA[<b> prod.keys </b>]]> в хранилище устройства..&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Узнать больше</a>]]></string>
     <string name="emulation_notification_channel_name">Эмуляция активна</string>
@@ -7,7 +7,7 @@
     <string name="emulation_notification_running">yuzu запущен</string>
     <string name="notice_notification_channel_name">Уведомления и ошибки</string>
     <string name="notice_notification_channel_description">Показывать уведомления, когда что-то пошло не так</string>
-    <string name="notification_permission_not_granted">Вы не предоставили разрешение уведомлений!</string>
+    <string name="notification_permission_not_granted">Вы не предоставили разрешение на уведомления!</string>
 
     <!-- Setup strings -->
     <string name="welcome">Добро пожаловать!</string>
@@ -25,6 +25,7 @@
     <string name="back">Назад</string>
     <string name="add_games">Добавить игры</string>
     <string name="add_games_description">Выберите папку с играми</string>
+    <string name="step_complete">Выполнено!</string>
 
     <!-- Home strings -->
     <string name="home_games">Игры</string>
@@ -38,6 +39,7 @@
     <string name="add_games_warning_description">Игры не будут отображаться в списке Игры, если папка не выбрана.</string>
     <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
     <string name="home_search_games">Найти игры</string>
+    <string name="search_settings">Настройки поиска</string>
     <string name="games_dir_selected">Выбрана папка с играми</string>
     <string name="install_prod_keys">Установить prod.keys</string>
     <string name="install_prod_keys_description">Требуется для расшифровки розничных игр</string>
@@ -61,14 +63,17 @@
     <string name="invalid_keys_file">Выбран неверный файл ключей</string>
     <string name="install_keys_success">Ключи успешно установлены</string>
     <string name="reading_keys_failure">Ошибка при чтении ключей шифрования</string>
+    <string name="install_prod_keys_failure_extension_description">Убедитесь, что файл ключей имеет расширение .keys, и повторите попытку.</string>
+    <string name="install_amiibo_keys_failure_extension_description">Убедитесь, что файл ключей имеет расширение .bin, и повторите попытку.</string>
     <string name="invalid_keys_error">Неверные ключи шифрования</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">Выбранный файл неверен или поврежден. Пожалуйста, пере-дампите ваши ключи.</string>
     <string name="install_gpu_driver">Установить драйвер ГП</string>
     <string name="install_gpu_driver_description">Установите альтернативные драйверы для потенциально лучшей производительности и/или точности</string>
     <string name="advanced_settings">Расширенные настройки</string>
+    <string name="advanced_settings_game">Расширенные настройки: %1$s</string>
     <string name="settings_description">Настройка параметров эмулятора</string>
-    <string name="search_recently_played">Недавно сыграно</string>
+    <string name="search_recently_played">Недавно сыгранные</string>
     <string name="search_recently_added">Недавно добавлено</string>
     <string name="search_retail">Розничные</string>
     <string name="search_homebrew">Homebrew</string>
@@ -86,6 +91,34 @@
     <string name="save_file_invalid_zip_structure_description">Название первой вложенной папки должно быть идентификатором игры.</string>
     <string name="import_saves">Импорт</string>
     <string name="export_saves">Экспорт</string>
+    <string name="install_firmware">Установить прошивку</string>
+    <string name="install_firmware_description">Прошивка должна находиться в ZIP-архиве и необходима для загрузки некоторых игр</string>
+    <string name="firmware_installing">Установка прошивки</string>
+    <string name="firmware_installed_success">Прошивка успешно установлена</string>
+    <string name="firmware_installed_failure">Не удалось установить прошивку</string>
+    <string name="firmware_installed_failure_description">Убедитесь что файлы прошивки nca находятся в корне zip-архива и повторите попытку.</string>
+    <string name="share_log">Поделиться журналом отладки</string>
+    <string name="share_log_description">Поделиться журналом отладки yuzu для устранения проблем</string>
+    <string name="share_log_missing">Файл журнала не найден</string>
+    <string name="install_game_content">Установить игровой контент</string>
+    <string name="install_game_content_description">Установить обновления игры или дополнений</string>
+    <string name="installing_game_content">Установка контента...</string>
+    <string name="install_game_content_failure">Ошибка установки файл(ов) в NAND.</string>
+    <string name="install_game_content_failure_description">Убедитесь что содержимое допустимо и что файл prod.keys установлен.</string>
+    <string name="install_game_content_failure_base">Установка базовых игр запрещена во избежание возможных конфликтов.</string>
+    <string name="install_game_content_failure_file_extension">Поддерживается только контент NSP и XCI. Пожалуйста убедитесь что игровой контент действителен.</string>
+    <string name="install_game_content_failed_count">%1$d ошибка установки</string>
+    <string name="install_game_content_success">Игровой контент успешно установлен</string>
+    <string name="install_game_content_success_install">%1$d Успешно установлено</string>
+    <string name="install_game_content_success_overwrite">%1$d Успешно перезаписано</string>
+    <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
+    <string name="custom_driver_not_supported">Пользовательские драйверы не поддерживаются</string>
+    <string name="custom_driver_not_supported_description">Загрузка пользовательского драйвера в настоящее время не поддерживается для этого устройства.\nПроверьте этот параметр еще раз в будущем чтобы узнать была ли добавлена ​​поддержка!
+ </string>
+    <string name="manage_yuzu_data">Управление данными yuzu</string>
+    <string name="manage_yuzu_data_description">Импортируйте/экспортируйте прошивку, ключи, пользовательские данные и многое другое!</string>
+    <string name="share_save_file">Поделиться файлом сохранения</string>
+    <string name="export_save_failed">Не удалось экспортировать сохранение</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia не существует</string>
@@ -94,7 +127,18 @@
     <string name="contributors">Контрибьюторы</string>
     <string name="contributors_description">Сделано с \u2764 от команды yuzu</string>
     <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
+    <string name="licenses_description">Проекты, которые сделали yuzu для Android возможным</string>
     <string name="build">Сборка</string>
+    <string name="user_data">Данные пользователя</string>
+    <string name="user_data_description">Импортируйте/экспортируйте все данные приложения.\n\nПри импорте пользовательских данных все существующие пользовательские данные будут удалены!</string>
+    <string name="exporting_user_data">Экспорт пользовательских данных…</string>
+    <string name="importing_user_data">Импорт пользовательских данных…</string>
+    <string name="import_user_data">Импортировать пользовательские данные</string>
+    <string name="invalid_yuzu_backup">Неверная резервная копия yuzu</string>
+    <string name="user_data_export_success">Пользовательские данные успешно экспортированы</string>
+    <string name="user_data_import_success">Пользовательские данные успешно импортированы</string>
+    <string name="user_data_export_cancelled">Экспорт отменен</string>
+    <string name="user_data_import_failed_description">Убедитесь что папки пользовательских данных находятся в корне zip-папки и содержат файл конфигурации config/config.ini и повторите попытку.</string>
     <string name="support_link">https://discord.gg/u77vRWY</string>
     <string name="website_link">https://yuzu-emu.org/</string>
     <string name="github_link">https://github.com/yuzu-emu</string>
@@ -114,41 +158,51 @@
     <string name="are_you_interested">Вы заинтересованы?</string>
 
     <!-- General settings strings -->
-    <string name="frame_limit_enable">Включить ограничение скорости</string>
-    <string name="frame_limit_enable_description">Если эта функция включена, скорость эмуляции будет ограничена указанным процентом от нормальной скорости.</string>
+    <string name="frame_limit_enable">Ограничить скорость</string>
+    <string name="frame_limit_enable_description">Ограничивает скорость эмуляции указанным процентом от нормальной скорости.</string>
     <string name="frame_limit_slider">Ограничение процента cкорости</string>
-    <string name="frame_limit_slider_description">Указывает процент для ограничения скорости эмуляции. При значении по умолчанию 100% эмуляция будет ограничена нормальной скоростью. Значения выше или ниже будут увеличивать или уменьшать ограничение скорости.</string>
+    <string name="frame_limit_slider_description">Указывает процент ограничения скорости эмуляции. 100% - это нормальная скорость. Значения больше или меньше увеличивают или уменьшают ограничение скорости.</string>
     <string name="cpu_accuracy">Точность ЦП</string>
+    <string name="value_with_units">%1$s%2$s</string>
 
     <!-- System settings strings -->
     <string name="use_docked_mode">Режим док-станции</string>
-    <string name="use_docked_mode_description">Эмуляция режима док-станции, что увеличивает разрешение за счет снижения производительности.</string>
-    <string name="emulated_region">Эмулируемый регион</string>
-    <string name="emulated_language">Эмулируемый язык</string>
+    <string name="use_docked_mode_description">Увеличивает разрешение, снижая производительность. Портативный режим используется при отключении, снижая разрешение и повышая производительность.</string>
+    <string name="emulated_region">Регион консоли</string>
+    <string name="emulated_language">Язык консоли</string>
     <string name="select_rtc_date">Выберите дату RTC</string>
     <string name="select_rtc_time">Выберите время RTC</string>
-    <string name="use_custom_rtc">Включить пользовательский RTC</string>
-    <string name="use_custom_rtc_description">Этот параметр позволяет установить пользовательские часы реального времени отдельно от текущего системного времени</string>
+    <string name="use_custom_rtc">Пользовательский RTC</string>
+    <string name="use_custom_rtc_description">Позволяет установить пользовательские часы реального времени отдельно от текущего системного времени.</string>
     <string name="set_custom_rtc">Установить пользовательский RTC</string>
 
     <!-- Graphics settings strings -->
-    <string name="renderer_api">API</string>
     <string name="renderer_accuracy">Уровень точности</string>
-    <string name="renderer_resolution">Разрешение</string>
+    <string name="renderer_resolution">Разрешение (портативное/в док-станции)</string>
     <string name="renderer_vsync">Режим верт. синхронизации</string>
+    <string name="renderer_screen_layout">Ориентация</string>
     <string name="renderer_aspect_ratio">Соотношение сторон</string>
     <string name="renderer_scaling_filter">Фильтр адаптации окна</string>
     <string name="renderer_anti_aliasing">Метод сглаживания</string>
     <string name="renderer_force_max_clock">Принудительно заставить максимальную тактовую частоту (только для Adreno)</string>
     <string name="renderer_force_max_clock_description">Заставляет ГП работать на максимально возможных тактовых частотах (тепловые ограничения все равно будут применяться).</string>
     <string name="renderer_asynchronous_shaders">Использовать асинхронные шейдеры</string>
-    <string name="renderer_asynchronous_shaders_description">Компилирует шейдеры асинхронно, что уменьшает зависания, но может взамен предоставить визуальные баги.</string>
-    <string name="renderer_debug">Включить отладку графики</string>
-    <string name="renderer_debug_description">Если включено, графический API переходит в более медленный режим отладки</string>
-    <string name="use_disk_shader_cache">Использовать кэш шейдеров на диске</string>
-    <string name="use_disk_shader_cache_description">Уменьшение зависаний за счет хранения и загрузки сгенерированных шейдеров на хранилище.</string>
+    <string name="renderer_asynchronous_shaders_description">Компиляция шейдеров происходит асинхронно, что уменьшает зависания, но может привести к появлению багов.</string>
+    <string name="renderer_reactive_flushing">Реактивная очистка</string>
+    <string name="renderer_reactive_flushing_description">Повышение точности рендеринга в некоторых играх за счет снижения производительности.</string>
+    <string name="use_disk_shader_cache">Кэш шейдеров на диске</string>
+    <string name="use_disk_shader_cache_description">Уменьшение зависаний за счет хранения и загрузки сгенерированных шейдеров.</string>
 
-    <!-- Audio settings strings -->
+    <!-- Debug settings strings -->
+    <string name="cpu">ЦП</string>
+    <string name="cpu_debug_mode">Отладка ЦП</string>
+    <string name="cpu_debug_mode_description">Переводит ЦП в режим медленной отладки.</string>
+    <string name="gpu">графический процессор</string>
+    <string name="renderer_api">API</string>
+    <string name="renderer_debug">Отладка графики</string>
+    <string name="renderer_debug_description">Переводит графический API в режим медленной отладки.</string>
+    <string name="fastmem">Fastmem</string>
+
     <string name="audio_volume">Громкость</string>
     <string name="audio_volume_description">Задает громкость аудиовыхода.</string>
 
@@ -157,7 +211,9 @@
     <string name="ini_saved">Сохраненные настройки</string>
     <string name="gameid_saved">Настройки сохранены для %1$s</string>
     <string name="error_saving">Ошибка сохранения %1$s.ini: %2$s</string>
+    <string name="unimplemented_menu">Нереализованное меню</string>
     <string name="loading">Загрузка...</string>
+    <string name="shutting_down">Выключение…</string>
     <string name="reset_setting_confirmation">Хотите ли вы вернуть этот параметр к значению по умолчанию?</string>
     <string name="reset_to_default">Сброс к настройкам по умолчанию</string>
     <string name="reset_all_settings">Сбросить все настройки?</string>
@@ -165,6 +221,14 @@
     <string name="settings_reset">Настройки сброшены</string>
     <string name="close">Закрыть</string>
     <string name="learn_more">Узнать больше</string>
+    <string name="auto">Авто</string>
+    <string name="submit">Отправить</string>
+    <string name="string_null">Null</string>
+    <string name="string_import">Импорт</string>
+    <string name="export">Экспорт</string>
+    <string name="export_failed">Ошибка экспорта</string>
+    <string name="import_failed">Ошибка импортирования</string>
+    <string name="cancelling">Отменяю</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Выбрать драйвер ГП</string>
@@ -172,6 +236,7 @@
     <string name="select_gpu_driver_install">Установить</string>
     <string name="select_gpu_driver_default">По умолчанию</string>
     <string name="select_gpu_driver_use_default">Используется стандартный драйвер ГП </string>
+    <string name="select_gpu_driver_error">Выбран неверный драйвер, используется стандартный системный!</string>
     <string name="system_gpu_driver">Системный драйвер ГП</string>
     <string name="installing_driver">Установка драйвера...</string>
 
@@ -182,10 +247,11 @@
     <string name="preferences_graphics">Графика</string>
     <string name="preferences_audio">Аудио</string>
     <string name="preferences_theme">Тема и цвет</string>
+    <string name="preferences_debug">Отладка</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрованный</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Пожалуйста, следуйте инструкциям, чтобы пере-дампить ваши <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-cartridge-games\">игровые картриджи</a> или <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-installed-titles-eshop\">установленные игры</a>.]]></string>
+    <string name="loader_error_encrypted_roms_description"><![CDATA[Следуйте инструкциям, чтобы пере-дампить игровые картриджи <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-physical-titles-game-cards\"> или <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-digital-titles-eshop\"> установленные игры</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Пожалуйста, убедитесь, что ваш файл <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> установлен, чтобы игры можно было расшифровать.]]></string>
     <string name="loader_error_video_core">Произошла ошибка при инициализации видеоядра.</string>
     <string name="loader_error_video_core_description">Обычно это вызвано несовместимым драйвером ГП. Установка пользовательского драйвера ГП может решить эту проблему.</string>
@@ -199,17 +265,17 @@
     <string name="emulation_toggle_controls">Переключение управления</string>
     <string name="emulation_rel_stick_center">Относительный центр стика</string>
     <string name="emulation_dpad_slide">Слайд крестовиной</string>
-    <string name="emulation_haptics">Тактильная обратная связь</string>
+    <string name="emulation_haptics">Обратная связь от нажатий</string>
     <string name="emulation_show_overlay">Показать оверлей</string>
     <string name="emulation_toggle_all">Переключить всё</string>
-    <string name="emulation_control_adjust">Настроить оверлей</string>
+    <string name="emulation_control_adjust">Регулировка оверлея</string>
     <string name="emulation_control_scale">Масштаб</string>
     <string name="emulation_control_opacity">Непрозрачность</string>
     <string name="emulation_touch_overlay_reset">Сбросить оверлей</string>
-    <string name="emulation_touch_overlay_edit">Изменить оверлей</string>
+    <string name="emulation_touch_overlay_edit">Редактировать оверлей</string>
     <string name="emulation_pause">Пауза эмуляции</string>
-    <string name="emulation_unpause">Возобновление эмуляции</string>
-    <string name="emulation_input_overlay">Настройки оверлея</string>
+    <string name="emulation_unpause">Возобновить эмуляцию</string>
+    <string name="emulation_input_overlay">Настройка оверлея</string>
 
     <string name="load_settings">Загрузка настроек...</string>
 
@@ -226,6 +292,9 @@
     <string name="fatal_error">Фатальная ошибка</string>
     <string name="fatal_error_message">Произошла фатальная ошибка. Проверьте журнал для получения подробной информации.\nПродолжение эмуляции может привести к сбоям и ошибкам.</string>
     <string name="performance_warning">Отключение этой настройки значительно снизит производительность эмуляции! Для достижения наилучших результатов рекомендуется оставить эту настройку включенной.</string>
+    <string name="device_memory_inadequate">Оперативная память устройства: %1$s\nРекомендовано: %2$s</string>
+    <string name="memory_formatted">%1$s%2$s</string>
+    <string name="no_game_present">Загрузочной игры нету!</string>
 
     <!-- Region Names -->
     <string name="region_japan">Япония</string>
@@ -236,7 +305,14 @@
     <string name="region_korea">Корея</string>
     <string name="region_taiwan">Тайвань</string>
 
-    <!-- Language Names -->
+    <!-- Memory Sizes -->
+    <string name="memory_byte">Байт</string>
+    <string name="memory_kilobyte">КБ</string>
+    <string name="memory_megabyte">МБ</string>
+    <string name="memory_gigabyte">GB</string>
+    <string name="memory_terabyte">ТБ</string>
+    <string name="memory_petabyte">ПБ</string>
+    <string name="memory_exabyte">ЕВ</string>
 
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
@@ -274,6 +350,11 @@
     <string name="anti_aliasing_fxaa">FXAA</string>
     <string name="anti_aliasing_smaa">SMAA</string>
 
+    <!-- Screen Layouts -->
+    <string name="screen_layout_landscape">Пейзаж</string>
+    <string name="screen_layout_portrait">Портрет</string>
+    <string name="screen_layout_auto">Авто</string>
+
     <!-- Aspect Ratios -->
     <string name="ratio_default">Стандартное (16:9)</string>
     <string name="ratio_force_four_three">Заставить 4:3</string>
@@ -288,8 +369,8 @@
 
     <!-- Gamepad Buttons -->
     <string name="gamepad_d_pad">Крестовина</string>
-    <string name="gamepad_left_stick">Левый мини-джойстик</string>
-    <string name="gamepad_right_stick">Правый мини-джойстик</string>
+    <string name="gamepad_left_stick">Левый стик</string>
+    <string name="gamepad_right_stick">Правый стик</string>
     <string name="gamepad_home">Home</string>
     <string name="gamepad_screenshot">Скриншот</string>
 
@@ -298,18 +379,32 @@
     <string name="building_shaders">Постройка шейдеров</string>
 
     <!-- Theme options -->
-    <string name="change_app_theme">Изменить тему приложения</string>
+    <string name="change_app_theme">Сменить тему</string>
     <string name="theme_default">По умолчанию</string>
     <string name="theme_material_you">Material You</string>
 
     <!-- Theme Modes -->
-    <string name="change_theme_mode">Изменить режим темы</string>
+    <string name="change_theme_mode">Сменить режим темы</string>
     <string name="theme_mode_follow_system">Системная</string>
     <string name="theme_mode_light">Светлая</string>
     <string name="theme_mode_dark">Темная</string>
 
+    <!-- Audio output engines -->
+    <string name="cubeb">cubeb</string>
+
     <!-- Black backgrounds theme -->
-    <string name="use_black_backgrounds">Использовать черный фон</string>
+    <string name="use_black_backgrounds">Чёрный фон</string>
     <string name="use_black_backgrounds_description">При использовании темной темы применяйте черный фон.</string>
 
-</resources>
+    <!-- Picture-In-Picture -->
+    <string name="picture_in_picture">Картинка в картинке</string>
+    <string name="picture_in_picture_description">Свернуть окно при размещении в фоновом режиме</string>
+    <string name="pause">Пауза</string>
+    <string name="play">Играть</string>
+    <string name="mute">Выключить звук</string>
+    <string name="unmute">Включить звук</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">Лицензии</string>
+    <string name="license_fidelityfx_fsr_description">Высококачественное масштабирование от AMD</string>
+    </resources>

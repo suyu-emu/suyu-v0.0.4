@@ -330,8 +330,7 @@ void WebBrowser::ExtractOfflineRomFS() {
     LOG_DEBUG(Service_AM, "Extracting RomFS to {}",
               Common::FS::PathToUTF8String(offline_cache_dir));
 
-    const auto extracted_romfs_dir =
-        FileSys::ExtractRomFS(offline_romfs, FileSys::RomFSExtractionType::SingleDiscard);
+    const auto extracted_romfs_dir = FileSys::ExtractRomFS(offline_romfs);
 
     const auto temp_dir = system.GetFilesystem()->CreateDirectory(
         Common::FS::PathToUTF8String(offline_cache_dir), FileSys::Mode::ReadWrite);

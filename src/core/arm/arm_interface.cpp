@@ -86,9 +86,9 @@ void ARM_Interface::SymbolicateBacktrace(Core::System& system, std::vector<Backt
 
     std::map<std::string, Symbols::Symbols> symbols;
     for (const auto& module : modules) {
-        symbols.insert_or_assign(
-            module.second, Symbols::GetSymbols(module.first, system.ApplicationMemory(),
-                                               system.ApplicationProcess()->Is64BitProcess()));
+        symbols.insert_or_assign(module.second,
+                                 Symbols::GetSymbols(module.first, system.ApplicationMemory(),
+                                                     system.ApplicationProcess()->Is64Bit()));
     }
 
     for (auto& entry : out) {

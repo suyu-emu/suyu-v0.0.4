@@ -72,7 +72,7 @@
     <string name="invalid_keys_error">Invalid encryption keys</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">The selected file is incorrect or corrupt. Please redump your keys.</string>
-    <string name="gpu_driver_manager">GPU Driver Manager</string>
+    <string name="gpu_driver_manager">GPU driver manager</string>
     <string name="install_gpu_driver">Install GPU driver</string>
     <string name="install_gpu_driver_description">Install alternative drivers for potentially better performance or accuracy</string>
     <string name="advanced_settings">Advanced settings</string>
@@ -123,6 +123,24 @@
     <string name="manage_yuzu_data_description">Import/export firmware, keys, user data, and more!</string>
     <string name="share_save_file">Share save file</string>
     <string name="export_save_failed">Failed to export save</string>
+
+    <!-- Applet launcher strings -->
+    <string name="applets">Applet launcher</string>
+    <string name="applets_description">Launch system applets using installed firmware</string>
+    <string name="applets_error_firmware">Firmware not installed</string>
+    <string name="applets_error_applet">Applet not available</string>
+    <string name="applets_error_description"><![CDATA[Please ensure your <a href="https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys">prod.keys</a> file and <a href="https://yuzu-emu.org/help/quickstart/#dumping-system-firmware">firmware</a> are installed and try again.]]></string>
+    <string name="album_applet">Album</string>
+    <string name="album_applet_description">See images stored in the user screenshots folder with the system photo viewer</string>
+    <string name="mii_edit_applet">Mii edit</string>
+    <string name="mii_edit_applet_description">View and edit Miis with the system editor</string>
+    <string name="cabinet_applet">Cabinet</string>
+    <string name="cabinet_applet_description">Edit and delete data stored on amiibo</string>
+    <string name="cabinet_launcher">Cabinet launcher</string>
+    <string name="cabinet_nickname_and_owner">Nickname and owner settings</string>
+    <string name="cabinet_game_data_eraser">Game data eraser</string>
+    <string name="cabinet_restorer">Restorer</string>
+    <string name="cabinet_formatter">Formatter</string>
 
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia isn\'t real</string>

@@ -33,7 +33,6 @@
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
-#include "core/file_sys/registered_cache.h"
 #include "core/file_sys/submission_package.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_real.h"
@@ -48,520 +47,428 @@
 #include "core/hid/emulated_controller.h"
 #include "core/hid/hid_core.h"
 #include "core/hid/hid_types.h"
-#include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
-#include "core/perf_stats.h"
 #include "jni/android_common/android_common.h"
-#include "jni/applets/software_keyboard.h"
 #include "jni/config.h"
-#include "jni/emu_window/emu_window.h"
 #include "jni/id_cache.h"
-#include "video_core/rasterizer_interface.h"
+#include "jni/native.h"
 #include "video_core/renderer_base.h"
 
 #define jconst [[maybe_unused]] const auto
 #define jauto [[maybe_unused]] auto
 
-namespace {
+static EmulationSession s_instance;
 
-class EmulationSession final {
-public:
-    EmulationSession() {
-        m_vfs = std::make_shared<FileSys::RealVfsFilesystem>();
-    }
+EmulationSession::EmulationSession() {
+    m_vfs = std::make_shared<FileSys::RealVfsFilesystem>();
+}
 
-    ~EmulationSession() = default;
+EmulationSession& EmulationSession::GetInstance() {
+    return s_instance;
+}
 
-    static EmulationSession& GetInstance() {
-        return s_instance;
-    }
+const Core::System& EmulationSession::System() const {
+    return m_system;
+}
 
-    const Core::System& System() const {
-        return m_system;
-    }
+Core::System& EmulationSession::System() {
+    return m_system;
+}
 
-    Core::System& System() {
-        return m_system;
-    }
+const EmuWindow_Android& EmulationSession::Window() const {
+    return *m_window;
+}
 
-    const EmuWindow_Android& Window() const {
-        return *m_window;
-    }
+EmuWindow_Android& EmulationSession::Window() {
+    return *m_window;
+}
 
-    EmuWindow_Android& Window() {
-        return *m_window;
-    }
+ANativeWindow* EmulationSession::NativeWindow() const {
+    return m_native_window;
+}
 
-    ANativeWindow* NativeWindow() const {
-        return m_native_window;
-    }
+void EmulationSession::SetNativeWindow(ANativeWindow* native_window) {
+    m_native_window = native_window;
+}
 
-    void SetNativeWindow(ANativeWindow* native_window) {
-        m_native_window = native_window;
-    }
-
-    int InstallFileToNand(std::string filename, std::string file_extension) {
-        jconst copy_func = [](const FileSys::VirtualFile& src, const FileSys::VirtualFile& dest,
-                              std::size_t block_size) {
-            if (src == nullptr || dest == nullptr) {
-                return false;
-            }
-            if (!dest->Resize(src->GetSize())) {
-                return false;
-            }
-
-            using namespace Common::Literals;
-            [[maybe_unused]] std::vector<u8> buffer(1_MiB);
-
-            for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
-                jconst read = src->Read(buffer.data(), buffer.size(), i);
-                dest->Write(buffer.data(), read, i);
-            }
-            return true;
-        };
-
-        enum InstallResult {
-            Success = 0,
-            SuccessFileOverwritten = 1,
-            InstallError = 2,
-            ErrorBaseGame = 3,
-            ErrorFilenameExtension = 4,
-        };
-
-        m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
-        m_system.GetFileSystemController().CreateFactories(*m_vfs);
-
-        [[maybe_unused]] std::shared_ptr<FileSys::NSP> nsp;
-        if (file_extension == "nsp") {
-            nsp = std::make_shared<FileSys::NSP>(m_vfs->OpenFile(filename, FileSys::Mode::Read));
-            if (nsp->IsExtractedType()) {
-                return InstallError;
-            }
-        } else {
-            return ErrorFilenameExtension;
+int EmulationSession::InstallFileToNand(std::string filename, std::string file_extension) {
+    jconst copy_func = [](const FileSys::VirtualFile& src, const FileSys::VirtualFile& dest,
+                          std::size_t block_size) {
+        if (src == nullptr || dest == nullptr) {
+            return false;
         }
-
-        if (!nsp) {
-            return InstallError;
-        }
-
-        if (nsp->GetStatus() != Loader::ResultStatus::Success) {
-            return InstallError;
-        }
-
-        jconst res = m_system.GetFileSystemController().GetUserNANDContents()->InstallEntry(
-            *nsp, true, copy_func);
-
-        switch (res) {
-        case FileSys::InstallResult::Success:
-            return Success;
-        case FileSys::InstallResult::OverwriteExisting:
-            return SuccessFileOverwritten;
-        case FileSys::InstallResult::ErrorBaseInstall:
-            return ErrorBaseGame;
-        default:
-            return InstallError;
-        }
-    }
-
-    void InitializeGpuDriver(const std::string& hook_lib_dir, const std::string& custom_driver_dir,
-                             const std::string& custom_driver_name,
-                             const std::string& file_redirect_dir) {
-#ifdef ARCHITECTURE_arm64
-        void* handle{};
-        const char* file_redirect_dir_{};
-        int featureFlags{};
-
-        // Enable driver file redirection when renderer debugging is enabled.
-        if (Settings::values.renderer_debug && file_redirect_dir.size()) {
-            featureFlags |= ADRENOTOOLS_DRIVER_FILE_REDIRECT;
-            file_redirect_dir_ = file_redirect_dir.c_str();
-        }
-
-        // Try to load a custom driver.
-        if (custom_driver_name.size()) {
-            handle = adrenotools_open_libvulkan(
-                RTLD_NOW, featureFlags | ADRENOTOOLS_DRIVER_CUSTOM, nullptr, hook_lib_dir.c_str(),
-                custom_driver_dir.c_str(), custom_driver_name.c_str(), file_redirect_dir_, nullptr);
-        }
-
-        // Try to load the system driver.
-        if (!handle) {
-            handle =
-                adrenotools_open_libvulkan(RTLD_NOW, featureFlags, nullptr, hook_lib_dir.c_str(),
-                                           nullptr, nullptr, file_redirect_dir_, nullptr);
-        }
-
-        m_vulkan_library = std::make_shared<Common::DynamicLibrary>(handle);
-#endif
-    }
-
-    bool IsRunning() const {
-        return m_is_running;
-    }
-
-    bool IsPaused() const {
-        return m_is_running && m_is_paused;
-    }
-
-    const Core::PerfStatsResults& PerfStats() const {
-        std::scoped_lock m_perf_stats_lock(m_perf_stats_mutex);
-        return m_perf_stats;
-    }
-
-    void SurfaceChanged() {
-        if (!IsRunning()) {
-            return;
-        }
-        m_window->OnSurfaceChanged(m_native_window);
-    }
-
-    void ConfigureFilesystemProvider(const std::string& filepath) {
-        const auto file = m_system.GetFilesystem()->OpenFile(filepath, FileSys::Mode::Read);
-        if (!file) {
-            return;
-        }
-
-        auto loader = Loader::GetLoader(m_system, file);
-        if (!loader) {
-            return;
-        }
-
-        const auto file_type = loader->GetFileType();
-        if (file_type == Loader::FileType::Unknown || file_type == Loader::FileType::Error) {
-            return;
-        }
-
-        u64 program_id = 0;
-        const auto res2 = loader->ReadProgramId(program_id);
-        if (res2 == Loader::ResultStatus::Success && file_type == Loader::FileType::NCA) {
-            m_manual_provider->AddEntry(FileSys::TitleType::Application,
-                                        FileSys::GetCRTypeFromNCAType(FileSys::NCA{file}.GetType()),
-                                        program_id, file);
-        } else if (res2 == Loader::ResultStatus::Success &&
-                   (file_type == Loader::FileType::XCI || file_type == Loader::FileType::NSP)) {
-            const auto nsp = file_type == Loader::FileType::NSP
-                                 ? std::make_shared<FileSys::NSP>(file)
-                                 : FileSys::XCI{file}.GetSecurePartitionNSP();
-            for (const auto& title : nsp->GetNCAs()) {
-                for (const auto& entry : title.second) {
-                    m_manual_provider->AddEntry(entry.first.first, entry.first.second, title.first,
-                                                entry.second->GetBaseFile());
-                }
-            }
-        }
-    }
-
-    Core::SystemResultStatus InitializeEmulation(const std::string& filepath) {
-        std::scoped_lock lock(m_mutex);
-
-        // Create the render window.
-        m_window = std::make_unique<EmuWindow_Android>(&m_input_subsystem, m_native_window,
-                                                       m_vulkan_library);
-
-        m_system.SetFilesystem(m_vfs);
-        m_system.GetUserChannel().clear();
-
-        // Initialize system.
-        jauto android_keyboard = std::make_unique<SoftwareKeyboard::AndroidKeyboard>();
-        m_software_keyboard = android_keyboard.get();
-        m_system.SetShuttingDown(false);
-        m_system.ApplySettings();
-        Settings::LogSettings();
-        m_system.HIDCore().ReloadInputDevices();
-        m_system.SetAppletFrontendSet({
-            nullptr,                     // Amiibo Settings
-            nullptr,                     // Controller Selector
-            nullptr,                     // Error Display
-            nullptr,                     // Mii Editor
-            nullptr,                     // Parental Controls
-            nullptr,                     // Photo Viewer
-            nullptr,                     // Profile Selector
-            std::move(android_keyboard), // Software Keyboard
-            nullptr,                     // Web Browser
-        });
-
-        // Initialize filesystem.
-        m_manual_provider = std::make_unique<FileSys::ManualContentProvider>();
-        m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
-        m_system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
-                                         m_manual_provider.get());
-        m_system.GetFileSystemController().CreateFactories(*m_vfs);
-        ConfigureFilesystemProvider(filepath);
-
-        // Initialize account manager
-        m_profile_manager = std::make_unique<Service::Account::ProfileManager>();
-
-        // Load the ROM.
-        m_load_result = m_system.Load(EmulationSession::GetInstance().Window(), filepath);
-        if (m_load_result != Core::SystemResultStatus::Success) {
-            return m_load_result;
-        }
-
-        // Complete initialization.
-        m_system.GPU().Start();
-        m_system.GetCpuManager().OnGpuReady();
-        m_system.RegisterExitCallback([&] { HaltEmulation(); });
-
-        return Core::SystemResultStatus::Success;
-    }
-
-    void ShutdownEmulation() {
-        std::scoped_lock lock(m_mutex);
-
-        m_is_running = false;
-
-        // Unload user input.
-        m_system.HIDCore().UnloadInputDevices();
-
-        // Shutdown the main emulated process
-        if (m_load_result == Core::SystemResultStatus::Success) {
-            m_system.DetachDebugger();
-            m_system.ShutdownMainProcess();
-            m_detached_tasks.WaitForAllTasks();
-            m_load_result = Core::SystemResultStatus::ErrorNotInitialized;
-            m_window.reset();
-            OnEmulationStopped(Core::SystemResultStatus::Success);
-            return;
-        }
-
-        // Tear down the render window.
-        m_window.reset();
-    }
-
-    void PauseEmulation() {
-        std::scoped_lock lock(m_mutex);
-        m_system.Pause();
-        m_is_paused = true;
-    }
-
-    void UnPauseEmulation() {
-        std::scoped_lock lock(m_mutex);
-        m_system.Run();
-        m_is_paused = false;
-    }
-
-    void HaltEmulation() {
-        std::scoped_lock lock(m_mutex);
-        m_is_running = false;
-        m_cv.notify_one();
-    }
-
-    void RunEmulation() {
-        {
-            std::scoped_lock lock(m_mutex);
-            m_is_running = true;
-        }
-
-        // Load the disk shader cache.
-        if (Settings::values.use_disk_shader_cache.GetValue()) {
-            LoadDiskCacheProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
-            m_system.Renderer().ReadRasterizer()->LoadDiskResources(
-                m_system.GetApplicationProcessProgramID(), std::stop_token{},
-                LoadDiskCacheProgress);
-            LoadDiskCacheProgress(VideoCore::LoadCallbackStage::Complete, 0, 0);
-        }
-
-        void(m_system.Run());
-
-        if (m_system.DebuggerEnabled()) {
-            m_system.InitializeDebugger();
-        }
-
-        OnEmulationStarted();
-
-        while (true) {
-            {
-                [[maybe_unused]] std::unique_lock lock(m_mutex);
-                if (m_cv.wait_for(lock, std::chrono::milliseconds(800),
-                                  [&]() { return !m_is_running; })) {
-                    // Emulation halted.
-                    break;
-                }
-            }
-            {
-                // Refresh performance stats.
-                std::scoped_lock m_perf_stats_lock(m_perf_stats_mutex);
-                m_perf_stats = m_system.GetAndResetPerfStats();
-            }
-        }
-    }
-
-    std::string GetRomTitle(const std::string& path) {
-        return GetRomMetadata(path).title;
-    }
-
-    std::vector<u8> GetRomIcon(const std::string& path) {
-        return GetRomMetadata(path).icon;
-    }
-
-    bool GetIsHomebrew(const std::string& path) {
-        return GetRomMetadata(path).isHomebrew;
-    }
-
-    void ResetRomMetadata() {
-        m_rom_metadata_cache.clear();
-    }
-
-    bool IsHandheldOnly() {
-        jconst npad_style_set = m_system.HIDCore().GetSupportedStyleTag();
-
-        if (npad_style_set.fullkey == 1) {
+        if (!dest->Resize(src->GetSize())) {
             return false;
         }
 
-        if (npad_style_set.handheld == 0) {
-            return false;
+        using namespace Common::Literals;
+        [[maybe_unused]] std::vector<u8> buffer(1_MiB);
+
+        for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
+            jconst read = src->Read(buffer.data(), buffer.size(), i);
+            dest->Write(buffer.data(), read, i);
         }
-
-        return !Settings::IsDockedMode();
-    }
-
-    void SetDeviceType([[maybe_unused]] int index, int type) {
-        jauto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
-        controller->SetNpadStyleIndex(static_cast<Core::HID::NpadStyleIndex>(type));
-    }
-
-    void OnGamepadConnectEvent([[maybe_unused]] int index) {
-        jauto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
-
-        // Ensure that player1 is configured correctly and handheld disconnected
-        if (controller->GetNpadIdType() == Core::HID::NpadIdType::Player1) {
-            jauto handheld =
-                m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
-
-            if (controller->GetNpadStyleIndex() == Core::HID::NpadStyleIndex::Handheld) {
-                handheld->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
-                controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
-                handheld->Disconnect();
-            }
-        }
-
-        // Ensure that handheld is configured correctly and player 1 disconnected
-        if (controller->GetNpadIdType() == Core::HID::NpadIdType::Handheld) {
-            jauto player1 =
-                m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
-
-            if (controller->GetNpadStyleIndex() != Core::HID::NpadStyleIndex::Handheld) {
-                player1->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Handheld);
-                controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Handheld);
-                player1->Disconnect();
-            }
-        }
-
-        if (!controller->IsConnected()) {
-            controller->Connect();
-        }
-    }
-
-    void OnGamepadDisconnectEvent([[maybe_unused]] int index) {
-        jauto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
-        controller->Disconnect();
-    }
-
-    SoftwareKeyboard::AndroidKeyboard* SoftwareKeyboard() {
-        return m_software_keyboard;
-    }
-
-private:
-    struct RomMetadata {
-        std::string title;
-        std::vector<u8> icon;
-        bool isHomebrew;
+        return true;
     };
 
-    RomMetadata GetRomMetadata(const std::string& path) {
-        if (jauto search = m_rom_metadata_cache.find(path); search != m_rom_metadata_cache.end()) {
-            return search->second;
+    enum InstallResult {
+        Success = 0,
+        SuccessFileOverwritten = 1,
+        InstallError = 2,
+        ErrorBaseGame = 3,
+        ErrorFilenameExtension = 4,
+    };
+
+    m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
+    m_system.GetFileSystemController().CreateFactories(*m_vfs);
+
+    [[maybe_unused]] std::shared_ptr<FileSys::NSP> nsp;
+    if (file_extension == "nsp") {
+        nsp = std::make_shared<FileSys::NSP>(m_vfs->OpenFile(filename, FileSys::Mode::Read));
+        if (nsp->IsExtractedType()) {
+            return InstallError;
         }
-
-        return CacheRomMetadata(path);
+    } else {
+        return ErrorFilenameExtension;
     }
 
-    RomMetadata CacheRomMetadata(const std::string& path) {
-        jconst file = Core::GetGameFileFromPath(m_vfs, path);
-        jauto loader = Loader::GetLoader(EmulationSession::GetInstance().System(), file, 0, 0);
+    if (!nsp) {
+        return InstallError;
+    }
 
-        RomMetadata entry;
-        loader->ReadTitle(entry.title);
-        loader->ReadIcon(entry.icon);
-        if (loader->GetFileType() == Loader::FileType::NRO) {
-            jauto loader_nro = reinterpret_cast<Loader::AppLoader_NRO*>(loader.get());
-            entry.isHomebrew = loader_nro->IsHomebrew();
-        } else {
-            entry.isHomebrew = false;
+    if (nsp->GetStatus() != Loader::ResultStatus::Success) {
+        return InstallError;
+    }
+
+    jconst res = m_system.GetFileSystemController().GetUserNANDContents()->InstallEntry(*nsp, true,
+                                                                                        copy_func);
+
+    switch (res) {
+    case FileSys::InstallResult::Success:
+        return Success;
+    case FileSys::InstallResult::OverwriteExisting:
+        return SuccessFileOverwritten;
+    case FileSys::InstallResult::ErrorBaseInstall:
+        return ErrorBaseGame;
+    default:
+        return InstallError;
+    }
+}
+
+void EmulationSession::InitializeGpuDriver(const std::string& hook_lib_dir,
+                                           const std::string& custom_driver_dir,
+                                           const std::string& custom_driver_name,
+                                           const std::string& file_redirect_dir) {
+#ifdef ARCHITECTURE_arm64
+    void* handle{};
+    const char* file_redirect_dir_{};
+    int featureFlags{};
+
+    // Enable driver file redirection when renderer debugging is enabled.
+    if (Settings::values.renderer_debug && file_redirect_dir.size()) {
+        featureFlags |= ADRENOTOOLS_DRIVER_FILE_REDIRECT;
+        file_redirect_dir_ = file_redirect_dir.c_str();
+    }
+
+    // Try to load a custom driver.
+    if (custom_driver_name.size()) {
+        handle = adrenotools_open_libvulkan(
+            RTLD_NOW, featureFlags | ADRENOTOOLS_DRIVER_CUSTOM, nullptr, hook_lib_dir.c_str(),
+            custom_driver_dir.c_str(), custom_driver_name.c_str(), file_redirect_dir_, nullptr);
+    }
+
+    // Try to load the system driver.
+    if (!handle) {
+        handle = adrenotools_open_libvulkan(RTLD_NOW, featureFlags, nullptr, hook_lib_dir.c_str(),
+                                            nullptr, nullptr, file_redirect_dir_, nullptr);
+    }
+
+    m_vulkan_library = std::make_shared<Common::DynamicLibrary>(handle);
+#endif
+}
+
+bool EmulationSession::IsRunning() const {
+    return m_is_running;
+}
+
+bool EmulationSession::IsPaused() const {
+    return m_is_running && m_is_paused;
+}
+
+const Core::PerfStatsResults& EmulationSession::PerfStats() const {
+    std::scoped_lock m_perf_stats_lock(m_perf_stats_mutex);
+    return m_perf_stats;
+}
+
+void EmulationSession::SurfaceChanged() {
+    if (!IsRunning()) {
+        return;
+    }
+    m_window->OnSurfaceChanged(m_native_window);
+}
+
+void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) {
+    const auto file = m_system.GetFilesystem()->OpenFile(filepath, FileSys::Mode::Read);
+    if (!file) {
+        return;
+    }
+
+    auto loader = Loader::GetLoader(m_system, file);
+    if (!loader) {
+        return;
+    }
+
+    const auto file_type = loader->GetFileType();
+    if (file_type == Loader::FileType::Unknown || file_type == Loader::FileType::Error) {
+        return;
+    }
+
+    u64 program_id = 0;
+    const auto res2 = loader->ReadProgramId(program_id);
+    if (res2 == Loader::ResultStatus::Success && file_type == Loader::FileType::NCA) {
+        m_manual_provider->AddEntry(FileSys::TitleType::Application,
+                                    FileSys::GetCRTypeFromNCAType(FileSys::NCA{file}.GetType()),
+                                    program_id, file);
+    } else if (res2 == Loader::ResultStatus::Success &&
+               (file_type == Loader::FileType::XCI || file_type == Loader::FileType::NSP)) {
+        const auto nsp = file_type == Loader::FileType::NSP
+                             ? std::make_shared<FileSys::NSP>(file)
+                             : FileSys::XCI{file}.GetSecurePartitionNSP();
+        for (const auto& title : nsp->GetNCAs()) {
+            for (const auto& entry : title.second) {
+                m_manual_provider->AddEntry(entry.first.first, entry.first.second, title.first,
+                                            entry.second->GetBaseFile());
+            }
         }
+    }
+}
 
-        m_rom_metadata_cache[path] = entry;
-
-        return entry;
+void EmulationSession::InitializeSystem(bool reload) {
+    if (!reload) {
+        // Initialize logging system
+        Common::Log::Initialize();
+        Common::Log::SetColorConsoleBackendEnabled(true);
+        Common::Log::Start();
     }
 
-private:
-    static void LoadDiskCacheProgress(VideoCore::LoadCallbackStage stage, int progress, int max) {
-        JNIEnv* env = IDCache::GetEnvForThread();
-        env->CallStaticVoidMethod(IDCache::GetDiskCacheProgressClass(),
-                                  IDCache::GetDiskCacheLoadProgress(), static_cast<jint>(stage),
-                                  static_cast<jint>(progress), static_cast<jint>(max));
+    // Initialize filesystem.
+    m_system.SetFilesystem(m_vfs);
+    m_system.GetUserChannel().clear();
+    m_manual_provider = std::make_unique<FileSys::ManualContentProvider>();
+    m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
+    m_system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
+                                     m_manual_provider.get());
+    m_system.GetFileSystemController().CreateFactories(*m_vfs);
+}
+
+Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string& filepath) {
+    std::scoped_lock lock(m_mutex);
+
+    // Create the render window.
+    m_window =
+        std::make_unique<EmuWindow_Android>(&m_input_subsystem, m_native_window, m_vulkan_library);
+
+    // Initialize system.
+    jauto android_keyboard = std::make_unique<SoftwareKeyboard::AndroidKeyboard>();
+    m_software_keyboard = android_keyboard.get();
+    m_system.SetShuttingDown(false);
+    m_system.ApplySettings();
+    Settings::LogSettings();
+    m_system.HIDCore().ReloadInputDevices();
+    m_system.SetAppletFrontendSet({
+        nullptr,                     // Amiibo Settings
+        nullptr,                     // Controller Selector
+        nullptr,                     // Error Display
+        nullptr,                     // Mii Editor
+        nullptr,                     // Parental Controls
+        nullptr,                     // Photo Viewer
+        nullptr,                     // Profile Selector
+        std::move(android_keyboard), // Software Keyboard
+        nullptr,                     // Web Browser
+    });
+
+    // Initialize filesystem.
+    ConfigureFilesystemProvider(filepath);
+
+    // Initialize account manager
+    m_profile_manager = std::make_unique<Service::Account::ProfileManager>();
+
+    // Load the ROM.
+    m_load_result = m_system.Load(EmulationSession::GetInstance().Window(), filepath);
+    if (m_load_result != Core::SystemResultStatus::Success) {
+        return m_load_result;
     }
 
-    static void OnEmulationStarted() {
-        JNIEnv* env = IDCache::GetEnvForThread();
-        env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
-                                  IDCache::GetOnEmulationStarted());
+    // Complete initialization.
+    m_system.GPU().Start();
+    m_system.GetCpuManager().OnGpuReady();
+    m_system.RegisterExitCallback([&] { HaltEmulation(); });
+
+    return Core::SystemResultStatus::Success;
+}
+
+void EmulationSession::ShutdownEmulation() {
+    std::scoped_lock lock(m_mutex);
+
+    m_is_running = false;
+
+    // Unload user input.
+    m_system.HIDCore().UnloadInputDevices();
+
+    // Shutdown the main emulated process
+    if (m_load_result == Core::SystemResultStatus::Success) {
+        m_system.DetachDebugger();
+        m_system.ShutdownMainProcess();
+        m_detached_tasks.WaitForAllTasks();
+        m_load_result = Core::SystemResultStatus::ErrorNotInitialized;
+        m_window.reset();
+        OnEmulationStopped(Core::SystemResultStatus::Success);
+        return;
     }
 
-    static void OnEmulationStopped(Core::SystemResultStatus result) {
-        JNIEnv* env = IDCache::GetEnvForThread();
-        env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
-                                  IDCache::GetOnEmulationStopped(), static_cast<jint>(result));
+    // Tear down the render window.
+    m_window.reset();
+}
+
+void EmulationSession::PauseEmulation() {
+    std::scoped_lock lock(m_mutex);
+    m_system.Pause();
+    m_is_paused = true;
+}
+
+void EmulationSession::UnPauseEmulation() {
+    std::scoped_lock lock(m_mutex);
+    m_system.Run();
+    m_is_paused = false;
+}
+
+void EmulationSession::HaltEmulation() {
+    std::scoped_lock lock(m_mutex);
+    m_is_running = false;
+    m_cv.notify_one();
+}
+
+void EmulationSession::RunEmulation() {
+    {
+        std::scoped_lock lock(m_mutex);
+        m_is_running = true;
     }
 
-private:
-    static EmulationSession s_instance;
+    // Load the disk shader cache.
+    if (Settings::values.use_disk_shader_cache.GetValue()) {
+        LoadDiskCacheProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
+        m_system.Renderer().ReadRasterizer()->LoadDiskResources(
+            m_system.GetApplicationProcessProgramID(), std::stop_token{}, LoadDiskCacheProgress);
+        LoadDiskCacheProgress(VideoCore::LoadCallbackStage::Complete, 0, 0);
+    }
 
-    // Frontend management
-    std::unordered_map<std::string, RomMetadata> m_rom_metadata_cache;
+    void(m_system.Run());
 
-    // Window management
-    std::unique_ptr<EmuWindow_Android> m_window;
-    ANativeWindow* m_native_window{};
+    if (m_system.DebuggerEnabled()) {
+        m_system.InitializeDebugger();
+    }
 
-    // Core emulation
-    Core::System m_system;
-    InputCommon::InputSubsystem m_input_subsystem;
-    Common::DetachedTasks m_detached_tasks;
-    Core::PerfStatsResults m_perf_stats{};
-    std::shared_ptr<FileSys::VfsFilesystem> m_vfs;
-    Core::SystemResultStatus m_load_result{Core::SystemResultStatus::ErrorNotInitialized};
-    std::atomic<bool> m_is_running = false;
-    std::atomic<bool> m_is_paused = false;
-    SoftwareKeyboard::AndroidKeyboard* m_software_keyboard{};
-    std::unique_ptr<Service::Account::ProfileManager> m_profile_manager;
-    std::unique_ptr<FileSys::ManualContentProvider> m_manual_provider;
+    OnEmulationStarted();
 
-    // GPU driver parameters
-    std::shared_ptr<Common::DynamicLibrary> m_vulkan_library;
+    while (true) {
+        {
+            [[maybe_unused]] std::unique_lock lock(m_mutex);
+            if (m_cv.wait_for(lock, std::chrono::milliseconds(800),
+                              [&]() { return !m_is_running; })) {
+                // Emulation halted.
+                break;
+            }
+        }
+        {
+            // Refresh performance stats.
+            std::scoped_lock m_perf_stats_lock(m_perf_stats_mutex);
+            m_perf_stats = m_system.GetAndResetPerfStats();
+        }
+    }
+}
 
-    // Synchronization
-    std::condition_variable_any m_cv;
-    mutable std::mutex m_perf_stats_mutex;
-    mutable std::mutex m_mutex;
-};
+bool EmulationSession::IsHandheldOnly() {
+    jconst npad_style_set = m_system.HIDCore().GetSupportedStyleTag();
 
-/*static*/ EmulationSession EmulationSession::s_instance;
+    if (npad_style_set.fullkey == 1) {
+        return false;
+    }
 
-} // Anonymous namespace
+    if (npad_style_set.handheld == 0) {
+        return false;
+    }
+
+    return !Settings::IsDockedMode();
+}
+
+void EmulationSession::SetDeviceType([[maybe_unused]] int index, int type) {
+    jauto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
+    controller->SetNpadStyleIndex(static_cast<Core::HID::NpadStyleIndex>(type));
+}
+
+void EmulationSession::OnGamepadConnectEvent([[maybe_unused]] int index) {
+    jauto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
+
+    // Ensure that player1 is configured correctly and handheld disconnected
+    if (controller->GetNpadIdType() == Core::HID::NpadIdType::Player1) {
+        jauto handheld = m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
+
+        if (controller->GetNpadStyleIndex() == Core::HID::NpadStyleIndex::Handheld) {
+            handheld->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
+            controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
+            handheld->Disconnect();
+        }
+    }
+
+    // Ensure that handheld is configured correctly and player 1 disconnected
+    if (controller->GetNpadIdType() == Core::HID::NpadIdType::Handheld) {
+        jauto player1 = m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+
+        if (controller->GetNpadStyleIndex() != Core::HID::NpadStyleIndex::Handheld) {
+            player1->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Handheld);
+            controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Handheld);
+            player1->Disconnect();
+        }
+    }
+
+    if (!controller->IsConnected()) {
+        controller->Connect();
+    }
+}
+
+void EmulationSession::OnGamepadDisconnectEvent([[maybe_unused]] int index) {
+    jauto controller = m_system.HIDCore().GetEmulatedControllerByIndex(index);
+    controller->Disconnect();
+}
+
+SoftwareKeyboard::AndroidKeyboard* EmulationSession::SoftwareKeyboard() {
+    return m_software_keyboard;
+}
+
+void EmulationSession::LoadDiskCacheProgress(VideoCore::LoadCallbackStage stage, int progress,
+                                             int max) {
+    JNIEnv* env = IDCache::GetEnvForThread();
+    env->CallStaticVoidMethod(IDCache::GetDiskCacheProgressClass(),
+                              IDCache::GetDiskCacheLoadProgress(), static_cast<jint>(stage),
+                              static_cast<jint>(progress), static_cast<jint>(max));
+}
+
+void EmulationSession::OnEmulationStarted() {
+    JNIEnv* env = IDCache::GetEnvForThread();
+    env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetOnEmulationStarted());
+}
+
+void EmulationSession::OnEmulationStopped(Core::SystemResultStatus result) {
+    JNIEnv* env = IDCache::GetEnvForThread();
+    env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetOnEmulationStopped(),
+                              static_cast<jint>(result));
+}
 
 static Core::SystemResultStatus RunEmulation(const std::string& filepath) {
-    Common::Log::Initialize();
-    Common::Log::SetColorConsoleBackendEnabled(true);
-    Common::Log::Start();
-
     MicroProfileOnThreadCreate("EmuThread");
     SCOPE_EXIT({ MicroProfileShutdown(); });
 
@@ -655,10 +562,6 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_pauseEmulation(JNIEnv* env, jclass cl
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_stopEmulation(JNIEnv* env, jclass clazz) {
     EmulationSession::GetInstance().HaltEmulation();
-}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_resetRomMetadata(JNIEnv* env, jclass clazz) {
-    EmulationSession::GetInstance().ResetRomMetadata();
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isRunning(JNIEnv* env, jclass clazz) {
@@ -766,51 +669,15 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchReleased(JNIEnv* env, jclass c
     }
 }
 
-jbyteArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getIcon(JNIEnv* env, jclass clazz,
-                                                         jstring j_filename) {
-    jauto icon_data = EmulationSession::GetInstance().GetRomIcon(GetJString(env, j_filename));
-    jbyteArray icon = env->NewByteArray(static_cast<jsize>(icon_data.size()));
-    env->SetByteArrayRegion(icon, 0, env->GetArrayLength(icon),
-                            reinterpret_cast<jbyte*>(icon_data.data()));
-    return icon;
-}
-
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getTitle(JNIEnv* env, jclass clazz,
-                                                       jstring j_filename) {
-    jauto title = EmulationSession::GetInstance().GetRomTitle(GetJString(env, j_filename));
-    return env->NewStringUTF(title.c_str());
-}
-
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getDescription(JNIEnv* env, jclass clazz,
-                                                             jstring j_filename) {
-    return j_filename;
-}
-
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getGameId(JNIEnv* env, jclass clazz,
-                                                        jstring j_filename) {
-    return j_filename;
-}
-
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getRegions(JNIEnv* env, jclass clazz,
-                                                         jstring j_filename) {
-    return env->NewStringUTF("");
-}
-
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCompany(JNIEnv* env, jclass clazz,
-                                                         jstring j_filename) {
-    return env->NewStringUTF("");
-}
-
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isHomebrew(JNIEnv* env, jclass clazz,
-                                                          jstring j_filename) {
-    return EmulationSession::GetInstance().GetIsHomebrew(GetJString(env, j_filename));
-}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmulation(JNIEnv* env, jclass clazz) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeSystem(JNIEnv* env, jclass clazz,
+                                                            jboolean reload) {
     // Create the default config.ini.
     Config{};
     // Initialize the emulated system.
-    EmulationSession::GetInstance().System().Initialize();
+    if (!reload) {
+        EmulationSession::GetInstance().System().Initialize();
+    }
+    EmulationSession::GetInstance().InitializeSystem(reload);
 }
 
 jint Java_org_yuzu_yuzu_1emu_NativeLibrary_defaultCPUCore(JNIEnv* env, jclass clazz) {
@@ -896,6 +763,51 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmptyUserDirectory(JNIEnv* 
     if (!Common::FS::CreateParentDirs(full_path)) {
         LOG_WARNING(Frontend, "Failed to create full path of the default user's save directory");
     }
+}
+
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getAppletLaunchPath(JNIEnv* env, jclass clazz,
+                                                                  jlong jid) {
+    auto bis_system =
+        EmulationSession::GetInstance().System().GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        return ToJString(env, "");
+    }
+
+    auto applet_nca =
+        bis_system->GetEntry(static_cast<u64>(jid), FileSys::ContentRecordType::Program);
+    if (!applet_nca) {
+        return ToJString(env, "");
+    }
+
+    return ToJString(env, applet_nca->GetFullPath());
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_setCurrentAppletId(JNIEnv* env, jclass clazz,
+                                                              jint jappletId) {
+    EmulationSession::GetInstance().System().GetAppletManager().SetCurrentAppletId(
+        static_cast<Service::AM::Applets::AppletId>(jappletId));
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_setCabinetMode(JNIEnv* env, jclass clazz,
+                                                          jint jcabinetMode) {
+    EmulationSession::GetInstance().System().GetAppletManager().SetCabinetMode(
+        static_cast<Service::NFP::CabinetMode>(jcabinetMode));
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_isFirmwareAvailable(JNIEnv* env, jclass clazz) {
+    auto bis_system =
+        EmulationSession::GetInstance().System().GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        return false;
+    }
+
+    // Query an applet to see if it's available
+    auto applet_nca =
+        bis_system->GetEntry(0x010000000000100Dull, FileSys::ContentRecordType::Program);
+    if (!applet_nca) {
+        return false;
+    }
+    return true;
 }
 
 } // extern "C"

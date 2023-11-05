@@ -11,16 +11,15 @@ import kotlinx.serialization.Serializable
 @Parcelize
 @Serializable
 class Game(
-    val title: String,
-    val description: String,
-    val regions: String,
+    val title: String = "",
     val path: String,
-    val gameId: String,
-    val company: String,
-    val isHomebrew: Boolean
+    val programId: String = "",
+    val developer: String = "",
+    val version: String = "",
+    val isHomebrew: Boolean = false
 ) : Parcelable {
-    val keyAddedToLibraryTime get() = "${gameId}_AddedToLibraryTime"
-    val keyLastPlayedTime get() = "${gameId}_LastPlayed"
+    val keyAddedToLibraryTime get() = "${programId}_AddedToLibraryTime"
+    val keyLastPlayedTime get() = "${programId}_LastPlayed"
 
     override fun equals(other: Any?): Boolean {
         if (other !is Game) {
@@ -32,11 +31,9 @@ class Game(
 
     override fun hashCode(): Int {
         var result = title.hashCode()
-        result = 31 * result + description.hashCode()
-        result = 31 * result + regions.hashCode()
         result = 31 * result + path.hashCode()
-        result = 31 * result + gameId.hashCode()
-        result = 31 * result + company.hashCode()
+        result = 31 * result + programId.hashCode()
+        result = 31 * result + developer.hashCode()
         result = 31 * result + isHomebrew.hashCode()
         return result
     }
