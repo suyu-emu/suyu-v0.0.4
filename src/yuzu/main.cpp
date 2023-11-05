@@ -1908,7 +1908,10 @@ void GMainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
 void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t program_index,
                            StartGameType type, AmLaunchType launch_type) {
     LOG_INFO(Frontend, "yuzu starting...");
-    StoreRecentFile(filename); // Put the filename on top of the list
+
+    if (program_id > static_cast<u64>(Service::AM::Applets::AppletProgramId::MaxProgramId)) {
+        StoreRecentFile(filename); // Put the filename on top of the list
+    }
 
     // Save configurations
     UpdateUISettings();
@@ -4273,7 +4276,7 @@ void GMainWindow::OnToggleStatusBar() {
 }
 
 void GMainWindow::OnAlbum() {
-    constexpr u64 AlbumId = 0x010000000000100Dull;
+    constexpr u64 AlbumId = static_cast<u64>(Service::AM::Applets::AppletProgramId::PhotoViewer);
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
@@ -4296,7 +4299,7 @@ void GMainWindow::OnAlbum() {
 }
 
 void GMainWindow::OnCabinet(Service::NFP::CabinetMode mode) {
-    constexpr u64 CabinetId = 0x0100000000001002ull;
+    constexpr u64 CabinetId = static_cast<u64>(Service::AM::Applets::AppletProgramId::Cabinet);
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
@@ -4320,7 +4323,7 @@ void GMainWindow::OnCabinet(Service::NFP::CabinetMode mode) {
 }
 
 void GMainWindow::OnMiiEdit() {
-    constexpr u64 MiiEditId = 0x0100000000001009ull;
+    constexpr u64 MiiEditId = static_cast<u64>(Service::AM::Applets::AppletProgramId::MiiEdit);
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
         QMessageBox::warning(this, tr("No firmware available"),
