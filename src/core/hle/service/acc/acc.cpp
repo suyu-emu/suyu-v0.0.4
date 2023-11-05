@@ -3,11 +3,13 @@
 
 #include <algorithm>
 #include <array>
+
 #include "common/common_types.h"
 #include "common/fs/file.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/polyfill_ranges.h"
+#include "common/stb.h"
 #include "common/string_util.h"
 #include "common/swap.h"
 #include "core/constants.h"
@@ -38,9 +40,36 @@ static std::filesystem::path GetImagePath(const Common::UUID& uuid) {
            fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
 }
 
-static constexpr u32 SanitizeJPEGSize(std::size_t size) {
+static void JPGToMemory(void* context, void* data, int len) {
+    std::vector<u8>* jpg_image = static_cast<std::vector<u8>*>(context);
+    unsigned char* jpg = static_cast<unsigned char*>(data);
+    jpg_image->insert(jpg_image->end(), jpg, jpg + len);
+}
+
+static void SanitizeJPEGImageSize(std::vector<u8>& image) {
     constexpr std::size_t max_jpeg_image_size = 0x20000;
-    return static_cast<u32>(std::min(size, max_jpeg_image_size));
+    constexpr int profile_dimensions = 256;
+    int original_width, original_height, color_channels;
+
+    const auto plain_image =
+        stbi_load_from_memory(image.data(), static_cast<int>(image.size()), &original_width,
+                              &original_height, &color_channels, STBI_rgb);
+
+    // Resize image to match 256*256
+    if (original_width != profile_dimensions || original_height != profile_dimensions) {
+        // Use vector instead of array to avoid overflowing the stack
+        std::vector<u8> out_image(profile_dimensions * profile_dimensions * STBI_rgb);
+        stbir_resize_uint8_srgb(plain_image, original_width, original_height, 0, out_image.data(),
+                                profile_dimensions, profile_dimensions, 0, STBI_rgb, 0,
+                                STBIR_FILTER_BOX);
+        image.clear();
+        if (!stbi_write_jpg_to_func(JPGToMemory, &image, profile_dimensions, profile_dimensions,
+                                    STBI_rgb, out_image.data(), 0)) {
+            LOG_ERROR(Service_ACC, "Failed to resize the user provided image.");
+        }
+    }
+
+    image.resize(std::min(image.size(), max_jpeg_image_size));
 }
 
 class IManagerForSystemService final : public ServiceFramework<IManagerForSystemService> {
@@ -339,19 +368,20 @@ protected:
             LOG_WARNING(Service_ACC,
                         "Failed to load user provided image! Falling back to built-in backup...");
             ctx.WriteBuffer(Core::Constants::ACCOUNT_BACKUP_JPEG);
-            rb.Push(SanitizeJPEGSize(Core::Constants::ACCOUNT_BACKUP_JPEG.size()));
+            rb.Push(static_cast<u32>(Core::Constants::ACCOUNT_BACKUP_JPEG.size()));
             return;
         }
 
-        const u32 size = SanitizeJPEGSize(image.GetSize());
-        std::vector<u8> buffer(size);
+        std::vector<u8> buffer(image.GetSize());
 
         if (image.Read(buffer) != buffer.size()) {
             LOG_ERROR(Service_ACC, "Failed to read all the bytes in the user provided image.");
         }
 
+        SanitizeJPEGImageSize(buffer);
+
         ctx.WriteBuffer(buffer);
-        rb.Push<u32>(size);
+        rb.Push(static_cast<u32>(buffer.size()));
     }
 
     void GetImageSize(HLERequestContext& ctx) {
@@ -365,10 +395,18 @@ protected:
         if (!image.IsOpen()) {
             LOG_WARNING(Service_ACC,
                         "Failed to load user provided image! Falling back to built-in backup...");
-            rb.Push(SanitizeJPEGSize(Core::Constants::ACCOUNT_BACKUP_JPEG.size()));
-        } else {
-            rb.Push(SanitizeJPEGSize(image.GetSize()));
+            rb.Push(static_cast<u32>(Core::Constants::ACCOUNT_BACKUP_JPEG.size()));
+            return;
         }
+
+        std::vector<u8> buffer(image.GetSize());
+
+        if (image.Read(buffer) != buffer.size()) {
+            LOG_ERROR(Service_ACC, "Failed to read all the bytes in the user provided image.");
+        }
+
+        SanitizeJPEGImageSize(buffer);
+        rb.Push(static_cast<u32>(buffer.size()));
     }
 
     void Store(HLERequestContext& ctx) {
