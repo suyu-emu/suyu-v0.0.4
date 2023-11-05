@@ -82,7 +82,7 @@ VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t in
     }
 
     if (y_negate) {
-        y += height;
+        y += conv(static_cast<f32>(regs.surface_clip.height));
         height = -height;
     }
 
