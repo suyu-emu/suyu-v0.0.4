@@ -1091,30 +1091,30 @@ void EmulatedController::SetBattery(const Common::Input::CallbackStatus& callbac
 
     bool is_charging = false;
     bool is_powered = false;
-    NpadBatteryLevel battery_level = 0;
+    NpadBatteryLevel battery_level = NpadBatteryLevel::Empty;
     switch (controller.battery_values[index]) {
     case Common::Input::BatteryLevel::Charging:
         is_charging = true;
         is_powered = true;
-        battery_level = 6;
+        battery_level = NpadBatteryLevel::Full;
         break;
     case Common::Input::BatteryLevel::Medium:
-        battery_level = 6;
+        battery_level = NpadBatteryLevel::High;
         break;
     case Common::Input::BatteryLevel::Low:
-        battery_level = 4;
+        battery_level = NpadBatteryLevel::Low;
         break;
     case Common::Input::BatteryLevel::Critical:
-        battery_level = 2;
+        battery_level = NpadBatteryLevel::Critical;
         break;
     case Common::Input::BatteryLevel::Empty:
-        battery_level = 0;
+        battery_level = NpadBatteryLevel::Empty;
         break;
     case Common::Input::BatteryLevel::None:
     case Common::Input::BatteryLevel::Full:
     default:
         is_powered = true;
-        battery_level = 8;
+        battery_level = NpadBatteryLevel::Full;
         break;
     }
 

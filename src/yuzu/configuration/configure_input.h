@@ -56,7 +56,9 @@ private:
     void UpdateDockedState(bool is_handheld);
     void UpdateAllInputDevices();
     void UpdateAllInputProfiles(std::size_t player_index);
-    void propagateMouseClickOnPlayers(size_t player_index, bool origin, bool checked);
+    // Enable preceding controllers or disable following ones
+    void PropagatePlayerNumberChanged(size_t player_index, bool checked,
+                                      bool reconnect_current = false);
 
     /// Load configuration settings.
     void LoadConfiguration();
@@ -71,7 +73,8 @@ private:
 
     std::array<ConfigureInputPlayer*, 8> player_controllers;
     std::array<QWidget*, 8> player_tabs;
-    std::array<QCheckBox*, 8> player_connected;
+    // Checkboxes representing the "Connected Controllers".
+    std::array<QCheckBox*, 8> connected_controller_checkboxes;
     ConfigureInputAdvanced* advanced;
 
     Core::System& system;

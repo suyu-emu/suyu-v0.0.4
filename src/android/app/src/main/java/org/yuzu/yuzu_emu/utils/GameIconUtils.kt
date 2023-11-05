@@ -18,7 +18,6 @@ import coil.key.Keyer
 import coil.memory.MemoryCache
 import coil.request.ImageRequest
 import coil.request.Options
-import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.Game
@@ -36,7 +35,7 @@ class GameIconFetcher(
     }
 
     private fun decodeGameIcon(uri: String): Bitmap? {
-        val data = NativeLibrary.getIcon(uri)
+        val data = GameMetadata.getIcon(uri)
         return BitmapFactory.decodeByteArray(
             data,
             0,

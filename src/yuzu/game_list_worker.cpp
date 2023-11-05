@@ -233,10 +233,53 @@ GameListWorker::GameListWorker(FileSys::VirtualFilesystem vfs_,
                                const PlayTime::PlayTimeManager& play_time_manager_,
                                Core::System& system_)
     : vfs{std::move(vfs_)}, provider{provider_}, game_dirs{game_dirs_},
-      compatibility_list{compatibility_list_},
-      play_time_manager{play_time_manager_}, system{system_} {}
+      compatibility_list{compatibility_list_}, play_time_manager{play_time_manager_}, system{
+                                                                                          system_} {
+    // We want the game list to manage our lifetime.
+    setAutoDelete(false);
+}
 
-GameListWorker::~GameListWorker() = default;
+GameListWorker::~GameListWorker() {
+    this->disconnect();
+    stop_requested.store(true);
+    processing_completed.Wait();
+}
+
+void GameListWorker::ProcessEvents(GameList* game_list) {
+    while (true) {
+        std::function<void(GameList*)> func;
+        {
+            // Lock queue to protect concurrent modification.
+            std::scoped_lock lk(lock);
+
+            // If we can't pop a function, return.
+            if (queued_events.empty()) {
+                return;
+            }
+
+            // Pop a function.
+            func = std::move(queued_events.back());
+            queued_events.pop_back();
+        }
+
+        // Run the function.
+        func(game_list);
+    }
+}
+
+template <typename F>
+void GameListWorker::RecordEvent(F&& func) {
+    {
+        // Lock queue to protect concurrent modification.
+        std::scoped_lock lk(lock);
+
+        // Add the function into the front of the queue.
+        queued_events.emplace_front(std::move(func));
+    }
+
+    // Data now available.
+    emit DataAvailable();
+}
 
 void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
     using namespace FileSys;
@@ -284,9 +327,9 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
             GetMetadataFromControlNCA(patch, *control, icon, name);
         }
 
-        emit EntryReady(MakeGameListEntry(file->GetFullPath(), name, file->GetSize(), icon, *loader,
-                                          program_id, compatibility_list, play_time_manager, patch),
-                        parent_dir);
+        auto entry = MakeGameListEntry(file->GetFullPath(), name, file->GetSize(), icon, *loader,
+                                       program_id, compatibility_list, play_time_manager, patch);
+        RecordEvent([=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
     }
 }
 
@@ -360,11 +403,12 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                         const FileSys::PatchManager patch{id, system.GetFileSystemController(),
                                                           system.GetContentProvider()};
 
-                        emit EntryReady(MakeGameListEntry(physical_name, name,
-                                                          Common::FS::GetSize(physical_name), icon,
-                                                          *loader, id, compatibility_list,
-                                                          play_time_manager, patch),
-                                        parent_dir);
+                        auto entry = MakeGameListEntry(
+                            physical_name, name, Common::FS::GetSize(physical_name), icon, *loader,
+                            id, compatibility_list, play_time_manager, patch);
+
+                        RecordEvent(
+                            [=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
                     }
                 } else {
                     std::vector<u8> icon;
@@ -376,11 +420,12 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                     const FileSys::PatchManager patch{program_id, system.GetFileSystemController(),
                                                       system.GetContentProvider()};
 
-                    emit EntryReady(MakeGameListEntry(physical_name, name,
-                                                      Common::FS::GetSize(physical_name), icon,
-                                                      *loader, program_id, compatibility_list,
-                                                      play_time_manager, patch),
-                                    parent_dir);
+                    auto entry = MakeGameListEntry(
+                        physical_name, name, Common::FS::GetSize(physical_name), icon, *loader,
+                        program_id, compatibility_list, play_time_manager, patch);
+
+                    RecordEvent(
+                        [=](GameList* game_list) { game_list->AddEntry(entry, parent_dir); });
                 }
             }
         } else if (is_dir) {
@@ -399,25 +444,34 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
 }
 
 void GameListWorker::run() {
+    watch_list.clear();
     provider->ClearAllEntries();
 
+    const auto DirEntryReady = [&](GameListDir* game_list_dir) {
+        RecordEvent([=](GameList* game_list) { game_list->AddDirEntry(game_list_dir); });
+    };
+
     for (UISettings::GameDir& game_dir : game_dirs) {
+        if (stop_requested) {
+            break;
+        }
+
         if (game_dir.path == QStringLiteral("SDMC")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SdmcDir);
-            emit DirEntryReady(game_list_dir);
+            DirEntryReady(game_list_dir);
             AddTitlesToGameList(game_list_dir);
         } else if (game_dir.path == QStringLiteral("UserNAND")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::UserNandDir);
-            emit DirEntryReady(game_list_dir);
+            DirEntryReady(game_list_dir);
             AddTitlesToGameList(game_list_dir);
         } else if (game_dir.path == QStringLiteral("SysNAND")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SysNandDir);
-            emit DirEntryReady(game_list_dir);
+            DirEntryReady(game_list_dir);
             AddTitlesToGameList(game_list_dir);
         } else {
             watch_list.append(game_dir.path);
             auto* const game_list_dir = new GameListDir(game_dir);
-            emit DirEntryReady(game_list_dir);
+            DirEntryReady(game_list_dir);
             ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path.toStdString(),
                            game_dir.deep_scan, game_list_dir);
             ScanFileSystem(ScanTarget::PopulateGameList, game_dir.path.toStdString(),
@@ -425,12 +479,6 @@ void GameListWorker::run() {
         }
     }
 
-    emit Finished(watch_list);
+    RecordEvent([=](GameList* game_list) { game_list->DonePopulating(watch_list); });
     processing_completed.Set();
-}
-
-void GameListWorker::Cancel() {
-    this->disconnect();
-    stop_requested.store(true);
-    processing_completed.Wait();
 }

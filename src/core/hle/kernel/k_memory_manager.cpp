@@ -11,6 +11,7 @@
 #include "core/hle/kernel/initial_process.h"
 #include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/kernel/k_page_group.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/svc_results.h"
 
@@ -168,11 +169,37 @@ void KMemoryManager::Initialize(KVirtualAddress management_region, size_t manage
 }
 
 Result KMemoryManager::InitializeOptimizedMemory(u64 process_id, Pool pool) {
-    UNREACHABLE();
+    const u32 pool_index = static_cast<u32>(pool);
+
+    // Lock the pool.
+    KScopedLightLock lk(m_pool_locks[pool_index]);
+
+    // Check that we don't already have an optimized process.
+    R_UNLESS(!m_has_optimized_process[pool_index], ResultBusy);
+
+    // Set the optimized process id.
+    m_optimized_process_ids[pool_index] = process_id;
+    m_has_optimized_process[pool_index] = true;
+
+    // Clear the management area for the optimized process.
+    for (auto* manager = this->GetFirstManager(pool, Direction::FromFront); manager != nullptr;
+         manager = this->GetNextManager(manager, Direction::FromFront)) {
+        manager->InitializeOptimizedMemory(m_system.Kernel());
+    }
+
+    R_SUCCEED();
 }
 
 void KMemoryManager::FinalizeOptimizedMemory(u64 process_id, Pool pool) {
-    UNREACHABLE();
+    const u32 pool_index = static_cast<u32>(pool);
+
+    // Lock the pool.
+    KScopedLightLock lk(m_pool_locks[pool_index]);
+
+    // If the process was optimized, clear it.
+    if (m_has_optimized_process[pool_index] && m_optimized_process_ids[pool_index] == process_id) {
+        m_has_optimized_process[pool_index] = false;
+    }
 }
 
 KPhysicalAddress KMemoryManager::AllocateAndOpenContinuous(size_t num_pages, size_t align_pages,
@@ -207,7 +234,7 @@ KPhysicalAddress KMemoryManager::AllocateAndOpenContinuous(size_t num_pages, siz
 
     // Maintain the optimized memory bitmap, if we should.
     if (m_has_optimized_process[static_cast<size_t>(pool)]) {
-        UNIMPLEMENTED();
+        chosen_manager->TrackUnoptimizedAllocation(m_system.Kernel(), allocated_block, num_pages);
     }
 
     // Open the first reference to the pages.
@@ -255,7 +282,8 @@ Result KMemoryManager::AllocatePageGroupImpl(KPageGroup* out, size_t num_pages, 
 
                 // Maintain the optimized memory bitmap, if we should.
                 if (unoptimized) {
-                    UNIMPLEMENTED();
+                    cur_manager->TrackUnoptimizedAllocation(m_system.Kernel(), allocated_block,
+                                                            pages_per_alloc);
                 }
 
                 num_pages -= pages_per_alloc;
@@ -358,8 +386,8 @@ Result KMemoryManager::AllocateForProcess(KPageGroup* out, size_t num_pages, u32
                     // Process part or all of the block.
                     const size_t cur_pages =
                         std::min(remaining_pages, manager.GetPageOffsetToEnd(cur_address));
-                    any_new =
-                        manager.ProcessOptimizedAllocation(cur_address, cur_pages, fill_pattern);
+                    any_new = manager.ProcessOptimizedAllocation(m_system.Kernel(), cur_address,
+                                                                 cur_pages, fill_pattern);
 
                     // Advance.
                     cur_address += cur_pages * PageSize;
@@ -382,7 +410,7 @@ Result KMemoryManager::AllocateForProcess(KPageGroup* out, size_t num_pages, u32
                     // Track some or all of the current pages.
                     const size_t cur_pages =
                         std::min(remaining_pages, manager.GetPageOffsetToEnd(cur_address));
-                    manager.TrackOptimizedAllocation(cur_address, cur_pages);
+                    manager.TrackOptimizedAllocation(m_system.Kernel(), cur_address, cur_pages);
 
                     // Advance.
                     cur_address += cur_pages * PageSize;
@@ -427,17 +455,86 @@ size_t KMemoryManager::Impl::Initialize(KPhysicalAddress address, size_t size,
     return total_management_size;
 }
 
-void KMemoryManager::Impl::TrackUnoptimizedAllocation(KPhysicalAddress block, size_t num_pages) {
-    UNREACHABLE();
+void KMemoryManager::Impl::InitializeOptimizedMemory(KernelCore& kernel) {
+    auto optimize_pa =
+        KPageTable::GetHeapPhysicalAddress(kernel.MemoryLayout(), m_management_region);
+    auto* optimize_map = kernel.System().DeviceMemory().GetPointer<u64>(optimize_pa);
+
+    std::memset(optimize_map, 0, CalculateOptimizedProcessOverheadSize(m_heap.GetSize()));
 }
 
-void KMemoryManager::Impl::TrackOptimizedAllocation(KPhysicalAddress block, size_t num_pages) {
-    UNREACHABLE();
+void KMemoryManager::Impl::TrackUnoptimizedAllocation(KernelCore& kernel, KPhysicalAddress block,
+                                                      size_t num_pages) {
+    auto optimize_pa =
+        KPageTable::GetHeapPhysicalAddress(kernel.MemoryLayout(), m_management_region);
+    auto* optimize_map = kernel.System().DeviceMemory().GetPointer<u64>(optimize_pa);
+
+    // Get the range we're tracking.
+    size_t offset = this->GetPageOffset(block);
+    const size_t last = offset + num_pages - 1;
+
+    // Track.
+    while (offset <= last) {
+        // Mark the page as not being optimized-allocated.
+        optimize_map[offset / Common::BitSize<u64>()] &=
+            ~(u64(1) << (offset % Common::BitSize<u64>()));
+
+        offset++;
+    }
 }
 
-bool KMemoryManager::Impl::ProcessOptimizedAllocation(KPhysicalAddress block, size_t num_pages,
-                                                      u8 fill_pattern) {
-    UNREACHABLE();
+void KMemoryManager::Impl::TrackOptimizedAllocation(KernelCore& kernel, KPhysicalAddress block,
+                                                    size_t num_pages) {
+    auto optimize_pa =
+        KPageTable::GetHeapPhysicalAddress(kernel.MemoryLayout(), m_management_region);
+    auto* optimize_map = kernel.System().DeviceMemory().GetPointer<u64>(optimize_pa);
+
+    // Get the range we're tracking.
+    size_t offset = this->GetPageOffset(block);
+    const size_t last = offset + num_pages - 1;
+
+    // Track.
+    while (offset <= last) {
+        // Mark the page as being optimized-allocated.
+        optimize_map[offset / Common::BitSize<u64>()] |=
+            (u64(1) << (offset % Common::BitSize<u64>()));
+
+        offset++;
+    }
+}
+
+bool KMemoryManager::Impl::ProcessOptimizedAllocation(KernelCore& kernel, KPhysicalAddress block,
+                                                      size_t num_pages, u8 fill_pattern) {
+    auto& device_memory = kernel.System().DeviceMemory();
+    auto optimize_pa =
+        KPageTable::GetHeapPhysicalAddress(kernel.MemoryLayout(), m_management_region);
+    auto* optimize_map = device_memory.GetPointer<u64>(optimize_pa);
+
+    // We want to return whether any pages were newly allocated.
+    bool any_new = false;
+
+    // Get the range we're processing.
+    size_t offset = this->GetPageOffset(block);
+    const size_t last = offset + num_pages - 1;
+
+    // Process.
+    while (offset <= last) {
+        // Check if the page has been optimized-allocated before.
+        if ((optimize_map[offset / Common::BitSize<u64>()] &
+             (u64(1) << (offset % Common::BitSize<u64>()))) == 0) {
+            // If not, it's new.
+            any_new = true;
+
+            // Fill the page.
+            auto* ptr = device_memory.GetPointer<u8>(m_heap.GetAddress());
+            std::memset(ptr + offset * PageSize, fill_pattern, PageSize);
+        }
+
+        offset++;
+    }
+
+    // Return the number of pages we processed.
+    return any_new;
 }
 
 size_t KMemoryManager::Impl::CalculateManagementOverheadSize(size_t region_size) {

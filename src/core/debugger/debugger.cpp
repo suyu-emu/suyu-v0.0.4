@@ -258,20 +258,20 @@ private:
         Kernel::KScopedSchedulerLock sl{system.Kernel()};
 
         // Put all threads to sleep on next scheduler round.
-        for (auto* thread : ThreadList()) {
-            thread->RequestSuspend(Kernel::SuspendType::Debug);
+        for (auto& thread : ThreadList()) {
+            thread.RequestSuspend(Kernel::SuspendType::Debug);
         }
     }
 
     void ResumeEmulation(Kernel::KThread* except = nullptr) {
         // Wake up all threads.
-        for (auto* thread : ThreadList()) {
-            if (thread == except) {
+        for (auto& thread : ThreadList()) {
+            if (std::addressof(thread) == except) {
                 continue;
             }
 
-            thread->SetStepState(Kernel::StepState::NotStepping);
-            thread->Resume(Kernel::SuspendType::Debug);
+            thread.SetStepState(Kernel::StepState::NotStepping);
+            thread.Resume(Kernel::SuspendType::Debug);
         }
     }
 
@@ -283,13 +283,17 @@ private:
     }
 
     void UpdateActiveThread() {
-        const auto& threads{ThreadList()};
-        if (std::find(threads.begin(), threads.end(), state->active_thread) == threads.end()) {
-            state->active_thread = threads.front();
+        auto& threads{ThreadList()};
+        for (auto& thread : threads) {
+            if (std::addressof(thread) == state->active_thread) {
+                // Thread is still alive, no need to update.
+                return;
+            }
         }
+        state->active_thread = std::addressof(threads.front());
     }
 
-    const std::list<Kernel::KThread*>& ThreadList() {
+    Kernel::KProcess::ThreadList& ThreadList() {
         return system.ApplicationProcess()->GetThreadList();
     }
 

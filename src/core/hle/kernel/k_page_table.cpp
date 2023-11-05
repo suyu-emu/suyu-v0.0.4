@@ -82,14 +82,14 @@ public:
 
 using namespace Common::Literals;
 
-constexpr size_t GetAddressSpaceWidthFromType(FileSys::ProgramAddressSpaceType as_type) {
+constexpr size_t GetAddressSpaceWidthFromType(Svc::CreateProcessFlag as_type) {
     switch (as_type) {
-    case FileSys::ProgramAddressSpaceType::Is32Bit:
-    case FileSys::ProgramAddressSpaceType::Is32BitNoMap:
+    case Svc::CreateProcessFlag::AddressSpace32Bit:
+    case Svc::CreateProcessFlag::AddressSpace32BitWithoutAlias:
         return 32;
-    case FileSys::ProgramAddressSpaceType::Is36Bit:
+    case Svc::CreateProcessFlag::AddressSpace64BitDeprecated:
         return 36;
-    case FileSys::ProgramAddressSpaceType::Is39Bit:
+    case Svc::CreateProcessFlag::AddressSpace64Bit:
         return 39;
     default:
         ASSERT(false);
@@ -105,7 +105,7 @@ KPageTable::KPageTable(Core::System& system_)
 
 KPageTable::~KPageTable() = default;
 
-Result KPageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_type, bool enable_aslr,
+Result KPageTable::InitializeForProcess(Svc::CreateProcessFlag as_type, bool enable_aslr,
                                         bool enable_das_merge, bool from_back,
                                         KMemoryManager::Pool pool, KProcessAddress code_addr,
                                         size_t code_size, KSystemResource* system_resource,
@@ -133,7 +133,7 @@ Result KPageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_type
     ASSERT(code_addr + code_size - 1 <= end - 1);
 
     // Adjust heap/alias size if we don't have an alias region
-    if (as_type == FileSys::ProgramAddressSpaceType::Is32BitNoMap) {
+    if (as_type == Svc::CreateProcessFlag::AddressSpace32BitWithoutAlias) {
         heap_region_size += alias_region_size;
         alias_region_size = 0;
     }

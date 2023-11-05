@@ -3,15 +3,22 @@
 
 package org.yuzu.yuzu_emu.utils
 
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import kotlin.math.sqrt
 import org.yuzu.yuzu_emu.NativeLibrary
 
-class InputHandler {
+object InputHandler {
+    private var controllerIds = getGameControllerIds()
+
     fun initialize() {
         // Connect first controller
         NativeLibrary.onGamePadConnectEvent(getPlayerNumber(NativeLibrary.Player1Device))
+    }
+
+    fun updateControllerIds() {
+        controllerIds = getGameControllerIds()
     }
 
     fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -35,7 +42,7 @@ class InputHandler {
         }
 
         return NativeLibrary.onGamePadButtonEvent(
-            getPlayerNumber(event.device.controllerNumber),
+            getPlayerNumber(event.device.controllerNumber, event.deviceId),
             button,
             action
         )
@@ -58,9 +65,14 @@ class InputHandler {
         return true
     }
 
-    private fun getPlayerNumber(index: Int): Int {
+    private fun getPlayerNumber(index: Int, deviceId: Int = -1): Int {
+        var deviceIndex = index
+        if (deviceId != -1) {
+            deviceIndex = controllerIds[deviceId] ?: 0
+        }
+
         // TODO: Joycons are handled as different controllers. Find a way to merge them.
-        return when (index) {
+        return when (deviceIndex) {
             2 -> NativeLibrary.Player2Device
             3 -> NativeLibrary.Player3Device
             4 -> NativeLibrary.Player4Device
@@ -238,7 +250,7 @@ class InputHandler {
     }
 
     private fun setGenericAxisInput(event: MotionEvent, axis: Int) {
-        val playerNumber = getPlayerNumber(event.device.controllerNumber)
+        val playerNumber = getPlayerNumber(event.device.controllerNumber, event.deviceId)
 
         when (axis) {
             MotionEvent.AXIS_X, MotionEvent.AXIS_Y ->
@@ -297,7 +309,7 @@ class InputHandler {
 
     private fun setJoyconAxisInput(event: MotionEvent, axis: Int) {
         // Joycon support is half dead. Right joystick doesn't work
-        val playerNumber = getPlayerNumber(event.device.controllerNumber)
+        val playerNumber = getPlayerNumber(event.device.controllerNumber, event.deviceId)
 
         when (axis) {
             MotionEvent.AXIS_X, MotionEvent.AXIS_Y ->
@@ -325,7 +337,7 @@ class InputHandler {
     }
 
     private fun setRazerAxisInput(event: MotionEvent, axis: Int) {
-        val playerNumber = getPlayerNumber(event.device.controllerNumber)
+        val playerNumber = getPlayerNumber(event.device.controllerNumber, event.deviceId)
 
         when (axis) {
             MotionEvent.AXIS_X, MotionEvent.AXIS_Y ->
@@ -361,5 +373,34 @@ class InputHandler {
                     event.getAxisValue(MotionEvent.AXIS_HAT_Y)
                 )
         }
+    }
+
+    fun getGameControllerIds(): Map<Int, Int> {
+        val gameControllerDeviceIds = mutableMapOf<Int, Int>()
+        val deviceIds = InputDevice.getDeviceIds()
+        var controllerSlot = 1
+        deviceIds.forEach { deviceId ->
+            InputDevice.getDevice(deviceId)?.apply {
+                // Don't over-assign controllers
+                if (controllerSlot >= 8) {
+                    return gameControllerDeviceIds
+                }
+
+                // Verify that the device has gamepad buttons, control sticks, or both.
+                if (sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD ||
+                    sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK
+                ) {
+                    // This device is a game controller. Store its device ID.
+                    if (deviceId and id and vendorId and productId != 0) {
+                        // Additionally filter out devices that have no ID
+                        gameControllerDeviceIds
+                            .takeIf { !it.contains(deviceId) }
+                            ?.put(deviceId, controllerSlot)
+                        controllerSlot++
+                    }
+                }
+            }
+        }
+        return gameControllerDeviceIds
     }
 }

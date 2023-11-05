@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">Denne programvaren vil kjøre spill for Nintendo Switch-spillkonsollen. Ingen spilltitler eller nøkler er inkludert.&lt;br /&gt;&lt;br /&gt;Før du begynner, må du finne <![CDATA[<b> prod.keys </b>]]> filen din på enhetslagringen.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Lær mer</a>]]></string>
     <string name="emulation_notification_channel_name">Emulering er aktiv</string>
@@ -25,7 +25,6 @@
     <string name="back">Tilbake</string>
     <string name="add_games">Legg til spill</string>
     <string name="add_games_description">Velg din spillmappe</string>
-
     <!-- Home strings -->
     <string name="home_games">Spill</string>
     <string name="home_search">Søk</string>
@@ -37,7 +36,7 @@
     <string name="add_games_warning">Hoppe over valg av spillmappe?</string>
     <string name="add_games_warning_description">Spill vises ikke i Spill-listen hvis en mappe ikke er valgt.</string>
     <string name="add_games_warning_help">https://yuzu-emu.org/help/quickstart/#dumping-games</string>
-    <string name="home_search_games">Søk i spill</string>
+    <string name="home_search_games">Søk i spill|</string>
     <string name="games_dir_selected">Spillkatalogen er valgt</string>
     <string name="install_prod_keys">Installer prod.keys</string>
     <string name="install_prod_keys_description">Nødvendig for å dekryptere spill</string>
@@ -61,6 +60,8 @@
     <string name="invalid_keys_file">Ugyldig nøkkelfil valgt</string>
     <string name="install_keys_success">Nøkler vellykket installert</string>
     <string name="reading_keys_failure">Feil ved lesing av krypteringsnøkler</string>
+    <string name="install_prod_keys_failure_extension_description">Kontroller at nøkkelfilen har filtypen .keys, og prøv igjen.</string>
+    <string name="install_amiibo_keys_failure_extension_description">Kontroller at nøkkelfilen har filtypen .bin, og prøv igjen.</string>
     <string name="invalid_keys_error">Ugyldige krypteringsnøkler</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">Den valgte filen er feil eller ødelagt. Vennligst dump nøklene på nytt.</string>
@@ -86,7 +87,17 @@
     <string name="save_file_invalid_zip_structure_description">Det første undermappenavnet må være spillets tittel-ID.</string>
     <string name="import_saves">Importer</string>
     <string name="export_saves">Eksporter</string>
-
+    <string name="install_firmware">Installer fastvare</string>
+    <string name="install_firmware_description">Fastvaren må være i et ZIP-arkiv og er nødvendig for å starte noen spill.</string>
+    <string name="firmware_installing">Installering av fastvare</string>
+    <string name="firmware_installed_success">Fastvaren er vellykket installert</string>
+    <string name="firmware_installed_failure">Installasjon av fastvare mislyktes</string>
+    <string name="share_log">Del feilsøkingslogger</string>
+    <string name="share_log_description">Del yuzus loggfil for å feilsøke problemer</string>
+    <string name="share_log_missing">Ingen loggfil funnet</string>
+    <string name="install_game_content">Installer spillinnhold</string>
+    <string name="install_game_content_description">Installer spilloppdateringer eller DLC</string>
+    <string name="install_game_content_help_link">https://yuzu-emu.org/help/quickstart/#dumping-installed-updates</string>
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia er ikke ekte</string>
     <string name="copied_to_clipboard">Kopiert til utklippstavlen</string>
@@ -94,6 +105,7 @@
     <string name="contributors">Bidragsytere</string>
     <string name="contributors_description">Laget med \u2764 fra yuzu-teamet</string>
     <string name="contributors_link">https://github.com/yuzu-emu/yuzu/graphs/contributors</string>
+    <string name="licenses_description">Prosjekter som gjør yuzu for Android mulig</string>
     <string name="build">Bygg</string>
     <string name="support_link">https://discord.gg/u77vRWY</string>
     <string name="website_link">https://yuzu-emu.org/</string>
@@ -114,41 +126,43 @@
     <string name="are_you_interested">Er du interessert?</string>
 
     <!-- General settings strings -->
-    <string name="frame_limit_enable">Aktiver hastighetsbegrensning</string>
-    <string name="frame_limit_enable_description">Når aktivert, begrenses emuleringshastigheten til en angitt prosentandel av normal hastighet.</string>
+    <string name="frame_limit_enable">Begrense hastigheten</string>
+    <string name="frame_limit_enable_description">Begrenser emuleringshastigheten til en spesifisert prosentandel av normal hastighet.</string>
     <string name="frame_limit_slider">Hastighetsbegrensning i prosent</string>
-    <string name="frame_limit_slider_description">Angir prosentandelen som skal begrense emuleringshastigheten. Med standardverdien 100 % vil emuleringen være begrenset til normal hastighet. Høyere eller lavere verdier vil øke eller redusere hastighetsbegrensningen.</string>
+    <string name="frame_limit_slider_description">Angir prosentandelen som skal begrense emuleringshastigheten. 100 % er normal hastighet. Høyere eller lavere verdier vil øke eller redusere hastighetsgrensen.</string>
     <string name="cpu_accuracy">CPU-nøyaktighet</string>
-
     <!-- System settings strings -->
     <string name="use_docked_mode">Dokket modus</string>
-    <string name="use_docked_mode_description">Emulerer i dokket modus, noe som øker oppløsningen på bekostning av ytelsen.</string>
+    <string name="use_docked_mode_description">Øker oppløsningen, men reduserer ytelsen. Håndholdt modus brukes når den er deaktivert, noe som reduserer oppløsningen og øker ytelsen.</string>
     <string name="emulated_region">Emulert region</string>
     <string name="emulated_language">Emulert språk</string>
     <string name="select_rtc_date">Velg RTC-dato</string>
     <string name="select_rtc_time">Velg RTC-tid</string>
-    <string name="use_custom_rtc">Aktiver egendefinert RTC</string>
-    <string name="use_custom_rtc_description">Med denne innstillingen kan du stille inn en egendefinert sanntidsklokke som er atskilt fra gjeldende systemtid.</string>
-    <string name="set_custom_rtc">Angi egendefinert RTC</string>
+    <string name="use_custom_rtc">Tilpasset Sannhetstidsklokke</string>
+    <string name="use_custom_rtc_description">Gjør det mulig å stille inn en egendefinert sanntidsklokke separat fra den gjeldende systemtiden.</string>
+    <string name="set_custom_rtc">Angi tilpasset RTC</string>
 
     <!-- Graphics settings strings -->
-    <string name="renderer_api">API</string>
     <string name="renderer_accuracy">Nøyaktighetsnivå</string>
-    <string name="renderer_resolution">Oppløsning</string>
+    <string name="renderer_resolution">Oppløsning (håndholdt/dokket)</string>
     <string name="renderer_vsync">VSync-modus</string>
     <string name="renderer_aspect_ratio">Størrelsesforhold</string>
     <string name="renderer_scaling_filter">Filter for vindustilpasning</string>
-    <string name="renderer_anti_aliasing">Anti-Aliasing-metode</string>
+    <string name="renderer_anti_aliasing">Anti-aliasing-metode</string>
     <string name="renderer_force_max_clock">Tving fram maksimal klokkefrekvens (kun Adreno)</string>
     <string name="renderer_force_max_clock_description">Tvinger GPU-en til å kjøre med maksimal klokkefrekvens (termiske begrensninger vil fortsatt gjelde).</string>
     <string name="renderer_asynchronous_shaders">Bruk asynkrone shaders</string>
-    <string name="renderer_asynchronous_shaders_description">Kompilerer shaders asynkront, noe som reduserer hakkingen, men kan føre til feil.</string>
-    <string name="renderer_debug">Aktiver feilsøking av grafikk</string>
-    <string name="renderer_debug_description">Når dette er merket av, går grafikk-API-et inn i en langsommere feilsøkingsmodus.</string>
-    <string name="use_disk_shader_cache">Bruk disk shader-cache</string>
-    <string name="use_disk_shader_cache_description">Reduser hakking ved å lagre og laste inn genererte shaders på disken.</string>
+    <string name="renderer_asynchronous_shaders_description">Kompilerer shaders asynkront, noe som reduserer hakking, men kan føre til feil.</string>
+    <string name="renderer_reactive_flushing">Bruk reaktiv spyling</string>
+    <string name="renderer_reactive_flushing_description">Forbedrer gjengivelsesnøyaktigheten i enkelte spill på bekostning av ytelsen.</string>
+    <string name="use_disk_shader_cache">Disk shader-hurtigbuffer</string>
+    <string name="use_disk_shader_cache_description">Reduserer hakking ved å lagre og laste inn genererte shaders lokalt.</string>
 
-    <!-- Audio settings strings -->
+    <!-- Debug settings strings -->
+    <string name="cpu">CPU</string>
+    <string name="renderer_api">API</string>
+    <string name="renderer_debug">Feilsøking av grafikk</string>
+    <string name="renderer_debug_description">Setter grafikk-API-et til en langsom feilsøkingsmodus.</string>
     <string name="audio_volume">Volum</string>
     <string name="audio_volume_description">Angir volumet på lydutgangen.</string>
 
@@ -164,14 +178,19 @@
     <string name="reset_all_settings_description">Alle avanserte innstillinger tilbakestilles til standardkonfigurasjonen. Dette kan ikke angres.</string>
     <string name="settings_reset">Tilbakestilling av innstillinger</string>
     <string name="close">Lukk</string>
-    <string name="learn_more">Lær Mer</string>
-
+    <string name="learn_more">Lær mer</string>
+    <string name="auto">Auto</string>
+    <string name="submit">Send inn</string>
+    <string name="string_null">Null</string>
+    <string name="string_import">Importer</string>
+    <string name="export">Eksporter</string>
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Velg GPU-driver</string>
     <string name="select_gpu_driver_title">Ønsker du å bytte ut din nåværende GPU-driver?</string>
     <string name="select_gpu_driver_install">Installer</string>
     <string name="select_gpu_driver_default">Standard</string>
     <string name="select_gpu_driver_use_default">Bruk av standard GPU-driver</string>
+    <string name="select_gpu_driver_error">Ugyldig driver valgt, bruker systemstandard!</string>
     <string name="system_gpu_driver">Systemets GPU-driver</string>
     <string name="installing_driver">Installerer driver...</string>
 
@@ -182,10 +201,10 @@
     <string name="preferences_graphics">Grafikk</string>
     <string name="preferences_audio">Lyd</string>
     <string name="preferences_theme">Tema og farge</string>
+    <string name="preferences_debug">Feilsøk</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">ROM-en din er kryptert</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Følg veiledningene for å redumpe dine <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-cartridge-games\">spillkassetter</a> eller <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-installed-titles-eshop\">installerte titler</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Vennligst sørg for at <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> filen er installert slik at spillene kan dekrypteres.]]></string>
     <string name="loader_error_video_core">Det oppstod en feil ved initialisering av videokjernen</string>
     <string name="loader_error_video_core_description">Dette skyldes vanligvis en inkompatibel GPU-driver. Installering av en tilpasset GPU-driver kan løse problemet.</string>
@@ -196,25 +215,25 @@
     <string name="emulation_exit">Avslutt emulering</string>
     <string name="emulation_done">Ferdig</string>
     <string name="emulation_fps_counter">FPS-teller</string>
-    <string name="emulation_toggle_controls">Veksle kontroller</string>
-    <string name="emulation_rel_stick_center">Relativt senter for stikken</string>
-    <string name="emulation_dpad_slide">DPad-skyveplate</string>
-    <string name="emulation_haptics">Haptikk</string>
+    <string name="emulation_toggle_controls">Veksle mellom kontrollene</string>
+    <string name="emulation_rel_stick_center">Relativt pinnesenter</string>
+    <string name="emulation_dpad_slide">D-pad-skyving</string>
+    <string name="emulation_haptics">Berøringshaptikk</string>
     <string name="emulation_show_overlay">Vis overlegg</string>
-    <string name="emulation_toggle_all">Slå av alt</string>
+    <string name="emulation_toggle_all">Veksle mellom alle</string>
     <string name="emulation_control_adjust">Juster overlegg</string>
     <string name="emulation_control_scale">Skaler</string>
     <string name="emulation_control_opacity">Gjennomsiktighet</string>
     <string name="emulation_touch_overlay_reset">Tilbakestill overlegg</string>
     <string name="emulation_touch_overlay_edit">Rediger overlegg</string>
-    <string name="emulation_pause">Pause Emulering</string>
-    <string name="emulation_unpause">Opphev pausing av emulering</string>
-    <string name="emulation_input_overlay">Alternativer for overlegg</string>
+    <string name="emulation_pause">Pause emulering</string>
+    <string name="emulation_unpause">Ta emuleringen ut av pause</string>
+    <string name="emulation_input_overlay">Overlay-alternativer</string>
 
     <string name="load_settings">Laster inn innstillinger...</string>
 
     <!-- Software keyboard -->
-    <string name="software_keyboard">Programvare Tastatur</string>
+    <string name="software_keyboard">Programvaretastatur</string>
 
     <!-- Errors and warnings -->
     <string name="abort_button">Avbryt</string>
@@ -226,7 +245,6 @@
     <string name="fatal_error">Fatal Feil</string>
     <string name="fatal_error_message">Det oppstod en fatal feil. Sjekk loggen for mer informasjon.\nFortsatt emulering kan føre til krasj og feil.</string>
     <string name="performance_warning">Hvis du slår av denne innstillingen, reduseres emuleringsytelsen betydelig! Vi anbefaler at du lar denne innstillingen være aktivert for å få den beste opplevelsen.</string>
-
     <!-- Region Names -->
     <string name="region_japan">Japan</string>
     <string name="region_usa">USA</string>
@@ -236,8 +254,7 @@
     <string name="region_korea">Korea</string>
     <string name="region_taiwan">Taiwan</string>
 
-    <!-- Language Names -->
-
+    <string name="memory_gigabyte">GB</string>
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Ingen</string>
@@ -274,12 +291,14 @@
     <string name="anti_aliasing_fxaa">FXAA</string>
     <string name="anti_aliasing_smaa">SMAA</string>
 
+    <string name="screen_layout_auto">Auto</string>
+
     <!-- Aspect Ratios -->
     <string name="ratio_default">Standard (16:9)</string>
     <string name="ratio_force_four_three">Tving 4:3</string>
     <string name="ratio_force_twenty_one_nine">Tving 21:9</string>
     <string name="ratio_force_sixteen_ten">Tving 16:10</string>
-    <string name="ratio_stretch">Strekk til Vindu</string>
+    <string name="ratio_stretch">Strekk til vindu</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Nøyaktig</string>
@@ -287,9 +306,9 @@
     <string name="cpu_accuracy_paranoid">Paranoid (Langsom)</string>
 
     <!-- Gamepad Buttons -->
-    <string name="gamepad_d_pad">D-Pad</string>
-    <string name="gamepad_left_stick">Venstre Pinne</string>
-    <string name="gamepad_right_stick">Høyre Pinne</string>
+    <string name="gamepad_d_pad">D-pad</string>
+    <string name="gamepad_left_stick">Venstre spak</string>
+    <string name="gamepad_right_stick">Høyre spak</string>
     <string name="gamepad_home">Hjem</string>
     <string name="gamepad_screenshot">Skjermbilde</string>
 
@@ -298,7 +317,7 @@
     <string name="building_shaders">Bygging av shaders</string>
 
     <!-- Theme options -->
-    <string name="change_app_theme">Endre appens tema</string>
+    <string name="change_app_theme">Endre app-tema</string>
     <string name="theme_default">Standard</string>
     <string name="theme_material_you">Material You</string>
 
@@ -309,7 +328,13 @@
     <string name="theme_mode_dark">Mørk</string>
 
     <!-- Black backgrounds theme -->
-    <string name="use_black_backgrounds">Bruk svart bakgrunn</string>
+    <string name="use_black_backgrounds">Svart bakgrunn</string>
     <string name="use_black_backgrounds_description">Bruk svart bakgrunn når du bruker det mørke temaet.</string>
 
-</resources>
+    <string name="mute">Lydløs</string>
+    <string name="unmute">Slå på lyden</string>
+
+    <!-- Licenses screen strings -->
+    <string name="licenses">Lisenser</string>
+    <string name="license_fidelityfx_fsr_description">Oppskalering av høy kvalitet fra AMD</string>
+    </resources>

@@ -134,6 +134,10 @@ endif()
 
 # Opus
 if (NOT TARGET Opus::opus)
+    set(OPUS_BUILD_TESTING OFF)
+    set(OPUS_BUILD_PROGRAMS OFF)
+    set(OPUS_INSTALL_PKG_CONFIG_MODULE OFF)
+    set(OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF)
     add_subdirectory(opus)
 endif()
 
@@ -188,4 +192,106 @@ if (ANDROID)
    if (ARCHITECTURE_arm64)
        add_subdirectory(libadrenotools)
    endif()
+endif()
+
+# Breakpad
+# https://github.com/microsoft/vcpkg/blob/master/ports/breakpad/CMakeLists.txt
+if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
+    set(BREAKPAD_WIN32_DEFINES
+        NOMINMAX
+        UNICODE
+        WIN32_LEAN_AND_MEAN
+        _CRT_SECURE_NO_WARNINGS
+        _CRT_SECURE_NO_DEPRECATE
+        _CRT_NONSTDC_NO_DEPRECATE
+    )
+
+    # libbreakpad
+    add_library(libbreakpad STATIC)
+    file(GLOB_RECURSE LIBBREAKPAD_SOURCES breakpad/src/processor/*.cc)
+    file(GLOB_RECURSE LIBDISASM_SOURCES breakpad/src/third_party/libdisasm/*.c)
+    list(FILTER LIBBREAKPAD_SOURCES EXCLUDE REGEX "_unittest|_selftest|synth_minidump|/tests|/testdata|/solaris|microdump_stackwalk|minidump_dump|minidump_stackwalk")
+    if (WIN32)
+        list(FILTER LIBBREAKPAD_SOURCES EXCLUDE REGEX "/linux|/mac|/android")
+        target_compile_definitions(libbreakpad PRIVATE ${BREAKPAD_WIN32_DEFINES})
+        target_include_directories(libbreakpad PRIVATE "${CMAKE_GENERATOR_INSTANCE}/DIA SDK/include")
+    elseif (APPLE)
+        list(FILTER LIBBREAKPAD_SOURCES EXCLUDE REGEX "/linux|/windows|/android")
+    else()
+        list(FILTER LIBBREAKPAD_SOURCES EXCLUDE REGEX "/mac|/windows|/android")
+    endif()
+    target_sources(libbreakpad PRIVATE ${LIBBREAKPAD_SOURCES} ${LIBDISASM_SOURCES})
+    target_include_directories(libbreakpad
+        PUBLIC
+            ${CMAKE_CURRENT_SOURCE_DIR}/breakpad/src
+            ${CMAKE_CURRENT_SOURCE_DIR}/breakpad/src/third_party/libdisasm
+    )
+
+    # libbreakpad_client
+    add_library(libbreakpad_client STATIC)
+    file(GLOB LIBBREAKPAD_COMMON_SOURCES breakpad/src/common/*.cc breakpad/src/common/*.c breakpad/src/client/*.cc)
+
+    if (WIN32)
+        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES breakpad/src/client/windows/*.cc breakpad/src/common/windows/*.cc)
+        list(FILTER LIBBREAKPAD_COMMON_SOURCES EXCLUDE REGEX "language.cc|path_helper.cc|stabs_to_module.cc|stabs_reader.cc|minidump_file_writer.cc")
+        target_include_directories(libbreakpad_client PRIVATE "${CMAKE_GENERATOR_INSTANCE}/DIA SDK/include")
+        target_compile_definitions(libbreakpad_client PRIVATE ${BREAKPAD_WIN32_DEFINES})
+    elseif (APPLE)
+        target_compile_definitions(libbreakpad_client PRIVATE HAVE_MACH_O_NLIST_H)
+        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES breakpad/src/client/mac/*.cc breakpad/src/common/mac/*.cc)
+        list(APPEND LIBBREAKPAD_CLIENT_SOURCES breakpad/src/common/mac/MachIPC.mm)
+    else()
+        target_compile_definitions(libbreakpad_client PUBLIC -DHAVE_A_OUT_H)
+        file(GLOB_RECURSE LIBBREAKPAD_CLIENT_SOURCES breakpad/src/client/linux/*.cc breakpad/src/common/linux/*.cc)
+    endif()
+    list(APPEND LIBBREAKPAD_CLIENT_SOURCES ${LIBBREAKPAD_COMMON_SOURCES})
+    list(FILTER LIBBREAKPAD_CLIENT_SOURCES EXCLUDE REGEX "/sender|/tests|/unittests|/testcases|_unittest|_test")
+    target_sources(libbreakpad_client PRIVATE ${LIBBREAKPAD_CLIENT_SOURCES})
+    target_include_directories(libbreakpad_client PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/breakpad/src)
+
+    if (WIN32)
+        target_link_libraries(libbreakpad_client PRIVATE wininet.lib)
+    elseif (APPLE)
+        find_library(CoreFoundation_FRAMEWORK CoreFoundation)
+        target_link_libraries(libbreakpad_client PRIVATE ${CoreFoundation_FRAMEWORK})
+    else()
+        find_library(PTHREAD_LIBRARIES pthread)
+        target_compile_definitions(libbreakpad_client PRIVATE HAVE_GETCONTEXT=1)
+        if (PTHREAD_LIBRARIES)
+            target_link_libraries(libbreakpad_client PRIVATE ${PTHREAD_LIBRARIES})
+        endif()
+    endif()
+
+    # Host tools for symbol processing
+    if (LINUX)
+        find_package(ZLIB REQUIRED)
+
+        add_executable(minidump_stackwalk breakpad/src/processor/minidump_stackwalk.cc)
+        target_link_libraries(minidump_stackwalk PRIVATE libbreakpad libbreakpad_client)
+
+        add_executable(dump_syms
+            breakpad/src/common/dwarf_cfi_to_module.cc
+            breakpad/src/common/dwarf_cu_to_module.cc
+            breakpad/src/common/dwarf_line_to_module.cc
+            breakpad/src/common/dwarf_range_list_handler.cc
+            breakpad/src/common/language.cc
+            breakpad/src/common/module.cc
+            breakpad/src/common/path_helper.cc
+            breakpad/src/common/stabs_reader.cc
+            breakpad/src/common/stabs_to_module.cc
+            breakpad/src/common/dwarf/bytereader.cc
+            breakpad/src/common/dwarf/dwarf2diehandler.cc
+            breakpad/src/common/dwarf/dwarf2reader.cc
+            breakpad/src/common/dwarf/elf_reader.cc
+            breakpad/src/common/linux/crc32.cc
+            breakpad/src/common/linux/dump_symbols.cc
+            breakpad/src/common/linux/elf_symbols_to_module.cc
+            breakpad/src/common/linux/elfutils.cc
+            breakpad/src/common/linux/file_id.cc
+            breakpad/src/common/linux/linux_libc_support.cc
+            breakpad/src/common/linux/memory_mapped_file.cc
+            breakpad/src/common/linux/safe_readlink.cc
+            breakpad/src/tools/linux/dump_syms/dump_syms.cc)
+        target_link_libraries(dump_syms PRIVATE libbreakpad_client ZLIB::ZLIB)
+    endif()
 endif()

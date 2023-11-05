@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <string name="app_disclaimer">Це програмне забезпечення дозволяє запускати ігри для ігрової консолі Nintendo Switch. Ми не надаємо самі ігри або ключі.&lt;br /&gt;&lt;br /&gt;Перед початком роботи знайдіть ваш файл <![CDATA[<b> prod.keys </b>]]> у сховищі пристрою.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href=\"https://yuzu-emu.org/help/quickstart\">Дізнатися більше</a>]]></string>
     <string name="emulation_notification_channel_name">Емуляція активна</string>
@@ -25,7 +25,6 @@
     <string name="back">Назад</string>
     <string name="add_games">Додати ігри</string>
     <string name="add_games_description">Виберіть папку з іграми</string>
-
     <!-- Home strings -->
     <string name="home_games">Ігри</string>
     <string name="home_search">Пошук</string>
@@ -61,6 +60,7 @@
     <string name="invalid_keys_file">Вибрано неправильний файл ключів</string>
     <string name="install_keys_success">Ключі успішно встановлено</string>
     <string name="reading_keys_failure">Помилка під час зчитування ключів шифрування</string>
+    <string name="install_prod_keys_failure_extension_description">Переконайтеся, що файл ключів має розширення .keys, і повторіть спробу.</string>
     <string name="invalid_keys_error">Невірні ключі шифрування</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">Обраний файл невірний або пошкоджений. Будь ласка, пере-дампіть ваші ключі.</string>
@@ -68,8 +68,6 @@
     <string name="install_gpu_driver_description">Встановіть альтернативні драйвери для потенційно кращої продуктивності та/або точності</string>
     <string name="advanced_settings">Розширені налаштування</string>
     <string name="settings_description">Налаштування параметрів емулятора</string>
-    <string name="search_recently_played">Нещодавно зіграно</string>
-    <string name="search_recently_added">Нещодавно додано</string>
     <string name="search_retail">Роздрібні</string>
     <string name="search_homebrew">Homebrew</string>
     <string name="open_user_folder">Відкрити папку yuzu</string>
@@ -86,7 +84,6 @@
     <string name="save_file_invalid_zip_structure_description">Назва першої вкладеної папки має бути ідентифікатором гри.</string>
     <string name="import_saves">Імпорт</string>
     <string name="export_saves">Експорт</string>
-
     <!-- About screen strings -->
     <string name="gaia_is_not_real">Gaia не існує</string>
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
@@ -113,42 +110,20 @@
     <string name="our_eternal_gratitude">Наша нескінченна вдячність</string>
     <string name="are_you_interested">Ви зацікавлені?</string>
 
-    <!-- General settings strings -->
-    <string name="frame_limit_enable">Увімкнути обмеження швидкості</string>
-    <string name="frame_limit_enable_description">Якщо цю функцію ввімкнено, швидкість емуляції буде обмежена зазначеним відсотком від нормальної швидкості.</string>
     <string name="frame_limit_slider">Обмеження відсотка швидкості</string>
-    <string name="frame_limit_slider_description">Вказує відсоток для обмеження швидкості емуляції. При значенні за замовчуванням 100% емуляція буде обмежена нормальною швидкістю. Значення вище або нижче збільшуватимуть або зменшуватимуть обмеження швидкості.</string>
     <string name="cpu_accuracy">Точність ЦП</string>
-
-    <!-- System settings strings -->
-    <string name="use_docked_mode">Режим док-станції</string>
-    <string name="use_docked_mode_description">Емуляція режиму док-станції, що збільшує роздільну здатність за рахунок зниження продуктивності.</string>
     <string name="emulated_region">Емульований регіон</string>
     <string name="emulated_language">Емульована мова</string>
-    <string name="select_rtc_date">Оберіть дату RTC</string>
-    <string name="select_rtc_time">Оберіть час RTC</string>
-    <string name="use_custom_rtc">Увімкнути користувацький RTC</string>
-    <string name="use_custom_rtc_description">Цей параметр дає змогу встановити користувацький годинник реального часу окремо від поточного системного часу</string>
-    <string name="set_custom_rtc">Встановити користувацький RTC</string>
-
+    <string name="use_custom_rtc">Користувацький RTC</string>
     <!-- Graphics settings strings -->
-    <string name="renderer_api">API</string>
     <string name="renderer_accuracy">Рівень точності</string>
-    <string name="renderer_resolution">Роздільна здатність</string>
     <string name="renderer_vsync">Режим верт. синхронізації</string>
-    <string name="renderer_aspect_ratio">Співвідношення сторін</string>
-    <string name="renderer_scaling_filter">Фільтр адаптації вікна</string>
-    <string name="renderer_anti_aliasing">Метод згладжування</string>
     <string name="renderer_force_max_clock">Примусово змусити максимальну тактову частоту (тільки для Adreno)</string>
     <string name="renderer_force_max_clock_description">Змушує ГП працювати на максимально можливих тактових частотах (теплові обмеження все одно будуть застосовуватися).</string>
     <string name="renderer_asynchronous_shaders">Використовувати асинхронні шейдери</string>
-    <string name="renderer_asynchronous_shaders_description">Компілює шейдери асинхронно, що зменшує зависання, але може натомість надати візуальні баги.</string>
-    <string name="renderer_debug">Увімкнути налагодження графіки</string>
-    <string name="renderer_debug_description">Якщо увімкнено, графічний API переходить у повільніший режим налагодження</string>
-    <string name="use_disk_shader_cache">Використовувати кеш шейдерів на диску</string>
-    <string name="use_disk_shader_cache_description">Зменшення зависань завдяки зберіганню та завантаженню згенерованих шейдерів на сховище.</string>
-
-    <!-- Audio settings strings -->
+    <!-- Debug settings strings -->
+    <string name="cpu">ЦП</string>
+    <string name="renderer_api">API</string>
     <string name="audio_volume">Гучність</string>
     <string name="audio_volume_description">Вказує гучність аудіовиходу.</string>
 
@@ -161,17 +136,20 @@
     <string name="reset_setting_confirmation">Чи хочете ви повернути цей параметр до значення за замовчуванням?</string>
     <string name="reset_to_default">Скидання до налаштувань за замовчуванням</string>
     <string name="reset_all_settings">Скинути всі налаштування</string>
-    <string name="reset_all_settings_description">Усі додаткові налаштування буде скинуто до налаштування за замовчуванням. Це неможливо скасувати.</string>
     <string name="settings_reset">Налаштування скинуто</string>
     <string name="close">Закрити</string>
     <string name="learn_more">Дізнатися більше</string>
-
+    <string name="auto">Авто</string>
+    <string name="string_null">Null</string>
+    <string name="string_import">Імпорт</string>
+    <string name="export">Експорт</string>
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Вибрати драйвер ГП</string>
     <string name="select_gpu_driver_title">Хочете замінити поточний драйвер ГП?</string>
     <string name="select_gpu_driver_install">Встановити</string>
     <string name="select_gpu_driver_default">За замовчуванням</string>
     <string name="select_gpu_driver_use_default">Використовується стандартний драйвер ГП</string>
+    <string name="select_gpu_driver_error">Обрано неправильний драйвер, використовується стандартний системний!</string>
     <string name="system_gpu_driver">Системний драйвер ГП</string>
     <string name="installing_driver">Встановлення драйвера...</string>
 
@@ -182,40 +160,19 @@
     <string name="preferences_graphics">Графіка</string>
     <string name="preferences_audio">Аудіо</string>
     <string name="preferences_theme">Тема і колір</string>
+    <string name="preferences_debug">Налагодження</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Ваш ROM зашифрований</string>
-    <string name="loader_error_encrypted_roms_description"><![CDATA[Будь ласка, дотримуйтесь інструкцій, щоб пере-дампити ваші <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-cartridge-games\">ігрові картриджі</a> або <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-installed-titles-eshop\">встановлені ігри</a>.]]></string>
     <string name="loader_error_encrypted_keys_description"><![CDATA[Будь ласка, переконайтеся, що ваш файл <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> встановлено, щоб ігри можна було розшифрувати.]]></string>
     <string name="loader_error_video_core">Сталася помилка під час ініціалізації відеоядра.</string>
     <string name="loader_error_video_core_description">Зазвичай це спричинено несумісним драйвером ГП. Встановлення користувацького драйвера ГП може вирішити цю проблему.</string>
     <string name="loader_error_invalid_format">Не вдалося запустити ROM</string>
     <string name="loader_error_file_not_found">Файл ROM не існує</string>
 
-    <!-- Emulation Menu -->
-    <string name="emulation_exit">Вихід з емуляції</string>
     <string name="emulation_done">Готово</string>
-    <string name="emulation_fps_counter">Лічильник FPS</string>
-    <string name="emulation_toggle_controls">Перемикання керування</string>
-    <string name="emulation_rel_stick_center">Відносний центр стіка</string>
-    <string name="emulation_dpad_slide">Слайд хрестовиною</string>
-    <string name="emulation_haptics">Тактильний зворотний зв\'язок</string>
-    <string name="emulation_show_overlay">Показати оверлей</string>
-    <string name="emulation_toggle_all">Перемкнути все</string>
-    <string name="emulation_control_adjust">Налаштувати оверлей</string>
     <string name="emulation_control_scale">Масштаб</string>
     <string name="emulation_control_opacity">Непрозорість</string>
-    <string name="emulation_touch_overlay_reset">Скинути оверлей</string>
-    <string name="emulation_touch_overlay_edit">Змінити оверлей</string>
-    <string name="emulation_pause">Пауза емуляції</string>
-    <string name="emulation_unpause">Відновлення емуляції</string>
-    <string name="emulation_input_overlay">Налаштування оверлея</string>
-
-    <string name="load_settings">Завантаження налаштувань...</string>
-
-    <!-- Software keyboard -->
-    <string name="software_keyboard">Віртуальна клавіатура</string>
-
     <!-- Errors and warnings -->
     <string name="abort_button">Перервати</string>
     <string name="continue_button">Продовжити</string>
@@ -226,7 +183,6 @@
     <string name="fatal_error">Фатальна помилка</string>
     <string name="fatal_error_message">Сталася фатальна помилка. Перевірте журнал для отримання докладної інформації.\nПродовження емуляції може призвести до збоїв і помилок.</string>
     <string name="performance_warning">Вимкнення цього налаштування значно знизить продуктивність емуляції! Для досягнення найкращих результатів рекомендується залишити це налаштування увімкненим.</string>
-
     <!-- Region Names -->
     <string name="region_japan">Японія</string>
     <string name="region_usa">США</string>
@@ -236,8 +192,7 @@
     <string name="region_korea">Корея</string>
     <string name="region_taiwan">Тайвань</string>
 
-    <!-- Language Names -->
-
+    <string name="memory_gigabyte">GB</string>
     <!-- Renderer APIs -->
     <string name="renderer_vulkan">Vulkan</string>
     <string name="renderer_none">Вимкнено</string>
@@ -274,22 +229,18 @@
     <string name="anti_aliasing_fxaa">FXAA</string>
     <string name="anti_aliasing_smaa">SMAA</string>
 
+    <string name="screen_layout_auto">Авто</string>
+
     <!-- Aspect Ratios -->
     <string name="ratio_default">За замовчуванням (16:9)</string>
     <string name="ratio_force_four_three">Змусити 4:3</string>
     <string name="ratio_force_twenty_one_nine">Змусити 21:9</string>
     <string name="ratio_force_sixteen_ten">Змусити 16:10</string>
-    <string name="ratio_stretch">Розтягнути до вікна</string>
-
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Точно</string>
     <string name="cpu_accuracy_unsafe">Небезпечно</string>
     <string name="cpu_accuracy_paranoid">Параноїк (повільно)</string>
 
-    <!-- Gamepad Buttons -->
-    <string name="gamepad_d_pad">Кнопки напрямків</string>
-    <string name="gamepad_left_stick">Лівий міні-джойстик</string>
-    <string name="gamepad_right_stick">Правий міні-джойстик</string>
     <string name="gamepad_home">Home</string>
     <string name="gamepad_screenshot">Знімок екрану</string>
 
@@ -297,19 +248,16 @@
     <string name="preparing_shaders">Підготовка шейдерів</string>
     <string name="building_shaders">Побудова шейдерів</string>
 
-    <!-- Theme options -->
-    <string name="change_app_theme">Змінити тему застосунку</string>
     <string name="theme_default">За замовчуванням</string>
     <string name="theme_material_you">Material You</string>
 
-    <!-- Theme Modes -->
-    <string name="change_theme_mode">Змінити режим теми</string>
     <string name="theme_mode_follow_system">Системна</string>
     <string name="theme_mode_light">Світла</string>
     <string name="theme_mode_dark">Темна</string>
 
-    <!-- Black backgrounds theme -->
-    <string name="use_black_backgrounds">Використовувати чорне тло</string>
     <string name="use_black_backgrounds_description">У разі використання темної теми застосовуйте чорне тло.</string>
 
-</resources>
+    <string name="mute">Вимкнути звук</string>
+    <string name="unmute">Увімкнути звук</string>
+
+    </resources>

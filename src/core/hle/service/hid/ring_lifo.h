@@ -32,15 +32,15 @@ struct Lifo {
     }
 
     std::size_t GetPreviousEntryIndex() const {
-        return static_cast<size_t>((buffer_tail + total_buffer_count - 1) % total_buffer_count);
+        return static_cast<size_t>((buffer_tail + max_buffer_size - 1) % max_buffer_size);
     }
 
     std::size_t GetNextEntryIndex() const {
-        return static_cast<size_t>((buffer_tail + 1) % total_buffer_count);
+        return static_cast<size_t>((buffer_tail + 1) % max_buffer_size);
     }
 
     void WriteNextEntry(const State& new_state) {
-        if (buffer_count < total_buffer_count - 1) {
+        if (buffer_count < static_cast<s64>(max_buffer_size) - 1) {
             buffer_count++;
         }
         buffer_tail = GetNextEntryIndex();

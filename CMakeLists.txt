@@ -52,7 +52,7 @@ option(YUZU_DOWNLOAD_ANDROID_VVL "Download validation layer binary for android" 
 
 CMAKE_DEPENDENT_OPTION(YUZU_ROOM "Compile LDN room server" ON "NOT ANDROID" OFF)
 
-CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile Windows crash dump (Minidump) support" OFF "WIN32" OFF)
+CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
 option(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for yuzu dependencies" "${MSVC}")
 
@@ -138,9 +138,6 @@ if (YUZU_USE_BUNDLED_VCPKG)
 
     if (YUZU_TESTS)
         list(APPEND VCPKG_MANIFEST_FEATURES "yuzu-tests")
-    endif()
-    if (YUZU_CRASH_DUMPS)
-        list(APPEND VCPKG_MANIFEST_FEATURES "dbghelp")
     endif()
     if (ENABLE_WEB_SERVICE)
         list(APPEND VCPKG_MANIFEST_FEATURES "web-service")
@@ -551,6 +548,18 @@ if (NOT YUZU_USE_BUNDLED_FFMPEG)
     find_package(FFmpeg 4.3 REQUIRED QUIET COMPONENTS ${FFmpeg_COMPONENTS})
 endif()
 
+if (WIN32 AND YUZU_CRASH_DUMPS)
+    set(BREAKPAD_VER "breakpad-c89f9dd")
+    download_bundled_external("breakpad/" ${BREAKPAD_VER} BREAKPAD_PREFIX)
+
+    set(BREAKPAD_CLIENT_INCLUDE_DIR "${BREAKPAD_PREFIX}/include")
+    set(BREAKPAD_CLIENT_LIBRARY "${BREAKPAD_PREFIX}/lib/libbreakpad_client.lib")
+
+    add_library(libbreakpad_client INTERFACE IMPORTED)
+    target_link_libraries(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_LIBRARY}")
+    target_include_directories(libbreakpad_client INTERFACE "${BREAKPAD_CLIENT_INCLUDE_DIR}")
+endif()
+
 # Prefer the -pthread flag on Linux.
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -569,13 +578,6 @@ elseif (WIN32)
     if (MINGW)
         # PSAPI is the Process Status API
         set(PLATFORM_LIBRARIES ${PLATFORM_LIBRARIES} psapi imm32 version)
-    endif()
-
-    if (YUZU_CRASH_DUMPS)
-        find_library(DBGHELP_LIBRARY dbghelp)
-        if ("${DBGHELP_LIBRARY}" STREQUAL "DBGHELP_LIBRARY-NOTFOUND")
-            message(FATAL_ERROR "YUZU_CRASH_DUMPS enabled but dbghelp library not found")
-        endif()
     endif()
 elseif (CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU|SunOS)$")
     set(PLATFORM_LIBRARIES rt)

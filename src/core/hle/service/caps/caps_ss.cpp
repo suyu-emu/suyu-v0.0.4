@@ -34,7 +34,7 @@ void IScreenShotService::SaveScreenShotEx0(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
         ScreenShotAttribute attribute{};
-        u32 report_option{};
+        AlbumReportOption report_option{};
         INSERT_PADDING_BYTES(0x4);
         u64 applet_resource_user_id{};
     };
@@ -49,13 +49,16 @@ void IScreenShotService::SaveScreenShotEx0(HLERequestContext& ctx) {
              parameters.applet_resource_user_id);
 
     ApplicationAlbumEntry entry{};
-    const auto result = manager->SaveScreenShot(entry, parameters.attribute, image_data_buffer,
-                                                parameters.applet_resource_user_id);
+    manager->FlipVerticallyOnWrite(false);
+    const auto result =
+        manager->SaveScreenShot(entry, parameters.attribute, parameters.report_option,
+                                image_data_buffer, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 10};
     rb.Push(result);
     rb.PushRaw(entry);
 }
+
 void IScreenShotService::SaveEditedScreenShotEx1(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
@@ -83,6 +86,7 @@ void IScreenShotService::SaveEditedScreenShotEx1(HLERequestContext& ctx) {
              image_data_buffer.size(), thumbnail_image_data_buffer.size());
 
     ApplicationAlbumEntry entry{};
+    manager->FlipVerticallyOnWrite(false);
     const auto result = manager->SaveEditedScreenShot(entry, parameters.attribute,
                                                       parameters.file_id, image_data_buffer);
 

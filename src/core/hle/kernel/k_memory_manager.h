@@ -216,14 +216,14 @@ private:
             m_heap.SetInitialUsedSize(reserved_size);
         }
 
-        void InitializeOptimizedMemory() {
-            UNIMPLEMENTED();
-        }
+        void InitializeOptimizedMemory(KernelCore& kernel);
 
-        void TrackUnoptimizedAllocation(KPhysicalAddress block, size_t num_pages);
-        void TrackOptimizedAllocation(KPhysicalAddress block, size_t num_pages);
+        void TrackUnoptimizedAllocation(KernelCore& kernel, KPhysicalAddress block,
+                                        size_t num_pages);
+        void TrackOptimizedAllocation(KernelCore& kernel, KPhysicalAddress block, size_t num_pages);
 
-        bool ProcessOptimizedAllocation(KPhysicalAddress block, size_t num_pages, u8 fill_pattern);
+        bool ProcessOptimizedAllocation(KernelCore& kernel, KPhysicalAddress block,
+                                        size_t num_pages, u8 fill_pattern);
 
         constexpr Pool GetPool() const {
             return m_pool;

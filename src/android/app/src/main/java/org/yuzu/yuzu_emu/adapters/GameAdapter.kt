@@ -147,7 +147,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
 
     private class DiffCallback : DiffUtil.ItemCallback<Game>() {
         override fun areItemsTheSame(oldItem: Game, newItem: Game): Boolean {
-            return oldItem.gameId == newItem.gameId
+            return oldItem.programId == newItem.programId
         }
 
         override fun areContentsTheSame(oldItem: Game, newItem: Game): Boolean {
