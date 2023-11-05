@@ -8,6 +8,7 @@
 #include <iostream>
 #include <memory>
 #include <thread>
+#include <format>
 #include "core/loader/nca.h"
 #include "core/tools/renderdoc.h"
 #ifdef __APPLE__
@@ -2856,6 +2857,7 @@ bool GMainWindow::CreateShortcutLink(const std::filesystem::path& shortcut_path,
         LOG_ERROR(Frontend, "Failed to create shortcut");
         return false;
     }
+    // TODO: Migrate fmt::print to std::print in futures STD C++ 23.
     fmt::print(shortcut_stream, "[Desktop Entry]\n");
     fmt::print(shortcut_stream, "Type=Application\n");
     fmt::print(shortcut_stream, "Version=1.0\n");
@@ -2983,7 +2985,6 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
 #elif defined(__linux__) || defined(__FreeBSD__)
     out_icon_path = Common::FS::GetDataDirectory("XDG_DATA_HOME") / "icons/hicolor/256x256";
 #endif
-  
     // Create icons directory if it doesn't exist
     if (!Common::FS::CreateDirs(out_icon_path)) {
         QMessageBox::critical(
@@ -2996,8 +2997,8 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
     }
 
     // Create icon file path
-    out_icon_path /= (program_id == 0 ? fmt::format("yuzu-{}.{}", game_file_name, ico_extension)
-                                      : fmt::format("yuzu-{:016X}.{}", program_id, ico_extension));
+    out_icon_path /= (program_id == 0 ? std::format("yuzu-{}.{}", game_file_name, ico_extension)
+                                      : std::format("yuzu-{:016X}.{}", program_id, ico_extension));
     return true;
 }
 
@@ -3030,7 +3031,7 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
         const auto control = pm.GetControlMetadata();
         const auto loader =
             Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::Mode::Read));
-        game_title = fmt::format("{:016X}", program_id);
+        game_title = std::format("{:016X}", program_id);
         if (control.first != nullptr) {
             game_title = control.first->GetApplicationName();
         } else {
@@ -3079,12 +3080,12 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
     }
 #endif // __linux__
     // Create shortcut
-    std::string arguments = fmt::format("-g \"{:s}\"", game_path);
+    std::string arguments = std::format("-g \"{:s}\"", game_path);
     if (GMainWindow::CreateShortcutMessagesGUI(
             this, GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES, qt_game_title)) {
         arguments = "-f " + arguments;
     }
-    const std::string comment = fmt::format("Start {:s} with the yuzu Emulator", game_title);
+    const std::string comment = std::format("Start {:s} with the yuzu Emulator", game_title);
     const std::string categories = "Game;Emulator;Qt;";
     const std::string keywords = "Switch;Nintendo;";
 
@@ -4088,66 +4089,6 @@ void GMainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file
     if (!is_powered_on) {
         config->Save();
     }
-}
-
-bool GMainWindow::CreateShortcut(const std::string& shortcut_path, const std::string& title,
-                                 const std::string& comment, const std::string& icon_path,
-                                 const std::string& command, const std::string& arguments,
-                                 const std::string& categories, const std::string& keywords) {
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
-    // This desktop file template was writing referencing
-    // https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-1.0.html
-    std::string shortcut_contents{};
-    shortcut_contents.append("[Desktop Entry]\n");
-    shortcut_contents.append("Type=Application\n");
-    shortcut_contents.append("Version=1.0\n");
-    shortcut_contents.append(fmt::format("Name={:s}\n", title));
-    shortcut_contents.append(fmt::format("Comment={:s}\n", comment));
-    shortcut_contents.append(fmt::format("Icon={:s}\n", icon_path));
-    shortcut_contents.append(fmt::format("TryExec={:s}\n", command));
-    shortcut_contents.append(fmt::format("Exec={:s} {:s}\n", command, arguments));
-    shortcut_contents.append(fmt::format("Categories={:s}\n", categories));
-    shortcut_contents.append(fmt::format("Keywords={:s}\n", keywords));
-
-    std::ofstream shortcut_stream(shortcut_path);
-    if (!shortcut_stream.is_open()) {
-        LOG_WARNING(Common, "Failed to create file {:s}", shortcut_path);
-        return false;
-    }
-    shortcut_stream << shortcut_contents;
-    shortcut_stream.close();
-
-    return true;
-#elif defined(WIN32)
-    IShellLinkW* shell_link;
-    auto hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW,
-                                 (void**)&shell_link);
-    if (FAILED(hres)) {
-        return false;
-    }
-    shell_link->SetPath(
-        Common::UTF8ToUTF16W(command).data()); // Path to the object we are referring to
-    shell_link->SetArguments(Common::UTF8ToUTF16W(arguments).data());
-    shell_link->SetDescription(Common::UTF8ToUTF16W(comment).data());
-    shell_link->SetIconLocation(Common::UTF8ToUTF16W(icon_path).data(), 0);
-
-    IPersistFile* persist_file;
-    hres = shell_link->QueryInterface(IID_IPersistFile, (void**)&persist_file);
-    if (FAILED(hres)) {
-        return false;
-    }
-
-    hres = persist_file->Save(Common::UTF8ToUTF16W(shortcut_path).data(), TRUE);
-    if (FAILED(hres)) {
-        return false;
-    }
-
-    persist_file->Release();
-    shell_link->Release();
-
-    return true;
-#endif
-    return false;
 }
 
 void GMainWindow::OnLoadAmiibo() {
