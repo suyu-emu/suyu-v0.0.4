@@ -4,11 +4,13 @@
 #include <QColorDialog>
 #include "common/settings.h"
 #include "core/core.h"
+#include "core/hid/emulated_controller.h"
+#include "core/hid/hid_core.h"
 #include "ui_configure_input_advanced.h"
 #include "yuzu/configuration/configure_input_advanced.h"
 
-ConfigureInputAdvanced::ConfigureInputAdvanced(QWidget* parent)
-    : QWidget(parent), ui(std::make_unique<Ui::ConfigureInputAdvanced>()) {
+ConfigureInputAdvanced::ConfigureInputAdvanced(Core::HID::HIDCore& hid_core_, QWidget* parent)
+    : QWidget(parent), ui(std::make_unique<Ui::ConfigureInputAdvanced>()), hid_core{hid_core_} {
     ui->setupUi(this);
 
     controllers_color_buttons = {{
@@ -123,6 +125,8 @@ void ConfigureInputAdvanced::ApplyConfiguration() {
         player.button_color_left = colors[1];
         player.body_color_right = colors[2];
         player.button_color_right = colors[3];
+
+        hid_core.GetEmulatedControllerByIndex(player_idx)->ReloadColorsFromSettings();
     }
 
     Settings::values.debug_pad_enabled = ui->debug_enabled->isChecked();
