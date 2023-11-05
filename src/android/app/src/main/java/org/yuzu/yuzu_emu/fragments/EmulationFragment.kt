@@ -462,7 +462,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     if (it.orientation == FoldingFeature.Orientation.HORIZONTAL) {
                         // Restrict emulation and overlays to the top of the screen
                         binding.emulationContainer.layoutParams.height = it.bounds.top
-                        binding.overlayContainer.layoutParams.height = it.bounds.top
                         // Restrict input and menu drawer to the bottom of the screen
                         binding.inputContainer.layoutParams.height = it.bounds.bottom
                         binding.inGameMenu.layoutParams.height = it.bounds.bottom
@@ -476,7 +475,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         if (!isFolding) {
             binding.emulationContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.inputContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-            binding.overlayContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.inGameMenu.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             isInFoldableLayout = false
             updateOrientation()
@@ -484,7 +482,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
         binding.emulationContainer.requestLayout()
         binding.inputContainer.requestLayout()
-        binding.overlayContainer.requestLayout()
         binding.inGameMenu.requestLayout()
     }
 
@@ -710,24 +707,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
 
             v.setPadding(left, cutInsets.top, right, 0)
-
-            // Ensure FPS text doesn't get cut off by rounded display corners
-            val sidePadding = resources.getDimensionPixelSize(R.dimen.spacing_xtralarge)
-            if (cutInsets.left == 0) {
-                binding.showFpsText.setPadding(
-                    sidePadding,
-                    cutInsets.top,
-                    cutInsets.right,
-                    cutInsets.bottom
-                )
-            } else {
-                binding.showFpsText.setPadding(
-                    cutInsets.left,
-                    cutInsets.top,
-                    cutInsets.right,
-                    cutInsets.bottom
-                )
-            }
             windowInsets
         }
     }
