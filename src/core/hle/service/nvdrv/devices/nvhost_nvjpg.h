@@ -33,7 +33,7 @@ private:
 
     s32_le nvmap_fd{};
 
-    NvResult SetNVMAPfd(std::span<const u8> input, std::span<u8> output);
+    NvResult SetNVMAPfd(IoctlSetNvmapFD& params);
 };
 
 } // namespace Service::Nvidia::Devices
