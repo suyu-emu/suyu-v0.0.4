@@ -21,7 +21,7 @@ if (MSVC)
     # Avoid windows.h from including some usually unused libs like winsocks.h, since this might cause some redefinition errors.
     add_definitions(-DWIN32_LEAN_AND_MEAN)
 
-    # Ensure that projects build with Unicode support.
+    # Ensure that projects are built with Unicode support.
     add_definitions(-DUNICODE -D_UNICODE)
 
     # /W4                 - Level 4 warnings
@@ -54,11 +54,11 @@ if (MSVC)
         /GT
 
         # Modules
-        /experimental:module- # Disable module support explicitly due to conflicts with precompiled headers
+        /experimental:module- # Explicitly disable module support due to conflicts with precompiled headers.
 
         # External headers diagnostics
         /external:anglebrackets # Treats all headers included by #include <header>, where the header file is enclosed in angle brackets (< >), as external headers
-        /external:W0            # Sets the default warning level to 0 for external headers, effectively turning off warnings for external headers
+        /external:W0            # Sets the default warning level to 0 for external headers, effectively disabling warnings for them.
 
         # Warnings
         /W4
@@ -69,7 +69,7 @@ if (MSVC)
         /we4265 # 'class': class has virtual functions, but destructor is not virtual
         /we4388 # 'expression': signed/unsigned mismatch
         /we4389 # 'operator': signed/unsigned mismatch
-        /we4456 # Declaration of 'identifier' hides previous local declaration
+        /we4456 # Declaration of 'identifier' hides a previous local declaration
         /we4457 # Declaration of 'identifier' hides function parameter
         /we4458 # Declaration of 'identifier' hides class member
         /we4459 # Declaration of 'identifier' hides global declaration
@@ -84,7 +84,7 @@ if (MSVC)
 
         /wd4100 # 'identifier': unreferenced formal parameter
         /wd4324 # 'struct_name': structure was padded due to __declspec(align())
-        /wd4201 # nonstandard extension used : nameless struct/union
+        /wd4201 # nonstandard extension used: nameless struct/union
         /wd4702 # unreachable code (when used with LTO)
     )
 
