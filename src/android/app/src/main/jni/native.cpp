@@ -199,8 +199,8 @@ bool EmulationSession::IsPaused() const {
     return m_is_running && m_is_paused;
 }
 
-const Core::PerfStatsResults& EmulationSession::PerfStats() const {
-    std::scoped_lock m_perf_stats_lock(m_perf_stats_mutex);
+const Core::PerfStatsResults& EmulationSession::PerfStats() {
+    m_perf_stats = m_system.GetAndResetPerfStats();
     return m_perf_stats;
 }
 
@@ -382,11 +382,6 @@ void EmulationSession::RunEmulation() {
                 // Emulation halted.
                 break;
             }
-        }
-        {
-            // Refresh performance stats.
-            std::scoped_lock m_perf_stats_lock(m_perf_stats_mutex);
-            m_perf_stats = m_system.GetAndResetPerfStats();
         }
     }
 }
