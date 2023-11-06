@@ -14,6 +14,7 @@
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/core/syncpoint_manager.h"
+#include "core/hle/service/nvdrv/devices/ioctl_serialization.h"
 #include "core/hle/service/nvdrv/devices/nvhost_ctrl.h"
 #include "video_core/gpu.h"
 #include "video_core/host1x/host1x.h"
@@ -40,19 +41,19 @@ NvResult nvhost_ctrl::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inp
     case 0x0:
         switch (command.cmd) {
         case 0x1b:
-            return NvOsGetConfigU32(input, output);
+            return WrapFixed(this, &nvhost_ctrl::NvOsGetConfigU32, input, output);
         case 0x1c:
-            return IocCtrlClearEventWait(input, output);
+            return WrapFixed(this, &nvhost_ctrl::IocCtrlClearEventWait, input, output);
         case 0x1d:
-            return IocCtrlEventWait(input, output, true);
+            return WrapFixed(this, &nvhost_ctrl::IocCtrlEventWait, input, output, true);
         case 0x1e:
-            return IocCtrlEventWait(input, output, false);
+            return WrapFixed(this, &nvhost_ctrl::IocCtrlEventWait, input, output, false);
         case 0x1f:
-            return IocCtrlEventRegister(input, output);
+            return WrapFixed(this, &nvhost_ctrl::IocCtrlEventRegister, input, output);
         case 0x20:
-            return IocCtrlEventUnregister(input, output);
+            return WrapFixed(this, &nvhost_ctrl::IocCtrlEventUnregister, input, output);
         case 0x21:
-            return IocCtrlEventUnregisterBatch(input, output);
+            return WrapFixed(this, &nvhost_ctrl::IocCtrlEventUnregisterBatch, input, output);
         }
         break;
     default:
@@ -79,25 +80,19 @@ void nvhost_ctrl::OnOpen(DeviceFD fd) {}
 
 void nvhost_ctrl::OnClose(DeviceFD fd) {}
 
-NvResult nvhost_ctrl::NvOsGetConfigU32(std::span<const u8> input, std::span<u8> output) {
-    IocGetConfigParams params{};
-    std::memcpy(&params, input.data(), sizeof(params));
+NvResult nvhost_ctrl::NvOsGetConfigU32(IocGetConfigParams& params) {
     LOG_TRACE(Service_NVDRV, "called, setting={}!{}", params.domain_str.data(),
               params.param_str.data());
     return NvResult::ConfigVarNotFound; // Returns error on production mode
 }
 
-NvResult nvhost_ctrl::IocCtrlEventWait(std::span<const u8> input, std::span<u8> output,
-                                       bool is_allocation) {
-    IocCtrlEventWaitParams params{};
-    std::memcpy(&params, input.data(), sizeof(params));
+NvResult nvhost_ctrl::IocCtrlEventWait(IocCtrlEventWaitParams& params, bool is_allocation) {
     LOG_DEBUG(Service_NVDRV, "syncpt_id={}, threshold={}, timeout={}, is_allocation={}",
               params.fence.id, params.fence.value, params.timeout, is_allocation);
 
     bool must_unmark_fail = !is_allocation;
     const u32 event_id = params.value.raw;
     SCOPE_EXIT({
-        std::memcpy(output.data(), &params, sizeof(params));
         if (must_unmark_fail) {
             events[event_id].fails = 0;
         }
@@ -231,9 +226,7 @@ NvResult nvhost_ctrl::FreeEvent(u32 slot) {
     return NvResult::Success;
 }
 
-NvResult nvhost_ctrl::IocCtrlEventRegister(std::span<const u8> input, std::span<u8> output) {
-    IocCtrlEventRegisterParams params{};
-    std::memcpy(&params, input.data(), sizeof(params));
+NvResult nvhost_ctrl::IocCtrlEventRegister(IocCtrlEventRegisterParams& params) {
     const u32 event_id = params.user_event_id;
     LOG_DEBUG(Service_NVDRV, " called, user_event_id: {:X}", event_id);
     if (event_id >= MaxNvEvents) {
@@ -252,9 +245,7 @@ NvResult nvhost_ctrl::IocCtrlEventRegister(std::span<const u8> input, std::span<
     return NvResult::Success;
 }
 
-NvResult nvhost_ctrl::IocCtrlEventUnregister(std::span<const u8> input, std::span<u8> output) {
-    IocCtrlEventUnregisterParams params{};
-    std::memcpy(&params, input.data(), sizeof(params));
+NvResult nvhost_ctrl::IocCtrlEventUnregister(IocCtrlEventUnregisterParams& params) {
     const u32 event_id = params.user_event_id & 0x00FF;
     LOG_DEBUG(Service_NVDRV, " called, user_event_id: {:X}", event_id);
 
@@ -262,9 +253,7 @@ NvResult nvhost_ctrl::IocCtrlEventUnregister(std::span<const u8> input, std::spa
     return FreeEvent(event_id);
 }
 
-NvResult nvhost_ctrl::IocCtrlEventUnregisterBatch(std::span<const u8> input, std::span<u8> output) {
-    IocCtrlEventUnregisterBatchParams params{};
-    std::memcpy(&params, input.data(), sizeof(params));
+NvResult nvhost_ctrl::IocCtrlEventUnregisterBatch(IocCtrlEventUnregisterBatchParams& params) {
     u64 event_mask = params.user_events;
     LOG_DEBUG(Service_NVDRV, " called, event_mask: {:X}", event_mask);
 
@@ -280,10 +269,7 @@ NvResult nvhost_ctrl::IocCtrlEventUnregisterBatch(std::span<const u8> input, std
     return NvResult::Success;
 }
 
-NvResult nvhost_ctrl::IocCtrlClearEventWait(std::span<const u8> input, std::span<u8> output) {
-    IocCtrlEventClearParams params{};
-    std::memcpy(&params, input.data(), sizeof(params));
-
+NvResult nvhost_ctrl::IocCtrlClearEventWait(IocCtrlEventClearParams& params) {
     u32 event_id = params.event_id.slot;
     LOG_DEBUG(Service_NVDRV, "called, event_id: {:X}", event_id);
 

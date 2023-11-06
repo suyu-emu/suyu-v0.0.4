@@ -5,6 +5,7 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "core/hle/service/nvdrv/devices/ioctl_serialization.h"
 #include "core/hle/service/nvdrv/devices/nvhost_nvjpg.h"
 
 namespace Service::Nvidia::Devices {
@@ -18,7 +19,7 @@ NvResult nvhost_nvjpg::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> in
     case 'H':
         switch (command.cmd) {
         case 0x1:
-            return SetNVMAPfd(input, output);
+            return WrapFixed(this, &nvhost_nvjpg::SetNVMAPfd, input, output);
         default:
             break;
         }
@@ -46,9 +47,7 @@ NvResult nvhost_nvjpg::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> in
 void nvhost_nvjpg::OnOpen(DeviceFD fd) {}
 void nvhost_nvjpg::OnClose(DeviceFD fd) {}
 
-NvResult nvhost_nvjpg::SetNVMAPfd(std::span<const u8> input, std::span<u8> output) {
-    IoctlSetNvmapFD params{};
-    std::memcpy(&params, input.data(), input.size());
+NvResult nvhost_nvjpg::SetNVMAPfd(IoctlSetNvmapFD& params) {
     LOG_DEBUG(Service_NVDRV, "called, fd={}", params.nvmap_fd);
 
     nvmap_fd = params.nvmap_fd;

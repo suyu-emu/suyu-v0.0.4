@@ -151,21 +151,20 @@ private:
     };
     static_assert(sizeof(IoctlGetGpuTime) == 0x10, "IoctlGetGpuTime is incorrect size");
 
-    NvResult GetCharacteristics(std::span<const u8> input, std::span<u8> output);
-    NvResult GetCharacteristics(std::span<const u8> input, std::span<u8> output,
-                                std::span<u8> inline_output);
+    NvResult GetCharacteristics1(IoctlCharacteristics& params);
+    NvResult GetCharacteristics3(IoctlCharacteristics& params,
+                                 std::span<IoctlGpuCharacteristics> gpu_characteristics);
 
-    NvResult GetTPCMasks(std::span<const u8> input, std::span<u8> output);
-    NvResult GetTPCMasks(std::span<const u8> input, std::span<u8> output,
-                         std::span<u8> inline_output);
+    NvResult GetTPCMasks1(IoctlGpuGetTpcMasksArgs& params);
+    NvResult GetTPCMasks3(IoctlGpuGetTpcMasksArgs& params, std::span<u32> tpc_mask);
 
-    NvResult GetActiveSlotMask(std::span<const u8> input, std::span<u8> output);
-    NvResult ZCullGetCtxSize(std::span<const u8> input, std::span<u8> output);
-    NvResult ZCullGetInfo(std::span<const u8> input, std::span<u8> output);
-    NvResult ZBCSetTable(std::span<const u8> input, std::span<u8> output);
-    NvResult ZBCQueryTable(std::span<const u8> input, std::span<u8> output);
-    NvResult FlushL2(std::span<const u8> input, std::span<u8> output);
-    NvResult GetGpuTime(std::span<const u8> input, std::span<u8> output);
+    NvResult GetActiveSlotMask(IoctlActiveSlotMask& params);
+    NvResult ZCullGetCtxSize(IoctlZcullGetCtxSize& params);
+    NvResult ZCullGetInfo(IoctlNvgpuGpuZcullGetInfoArgs& params);
+    NvResult ZBCSetTable(IoctlZbcSetTable& params);
+    NvResult ZBCQueryTable(IoctlZbcQueryTable& params);
+    NvResult FlushL2(IoctlFlushL2& params);
+    NvResult GetGpuTime(IoctlGetGpuTime& params);
 
     EventInterface& events_interface;
 

@@ -186,23 +186,24 @@ private:
     u32_le channel_priority{};
     u32_le channel_timeslice{};
 
-    NvResult SetNVMAPfd(std::span<const u8> input, std::span<u8> output);
-    NvResult SetClientData(std::span<const u8> input, std::span<u8> output);
-    NvResult GetClientData(std::span<const u8> input, std::span<u8> output);
-    NvResult ZCullBind(std::span<const u8> input, std::span<u8> output);
-    NvResult SetErrorNotifier(std::span<const u8> input, std::span<u8> output);
-    NvResult SetChannelPriority(std::span<const u8> input, std::span<u8> output);
-    NvResult AllocGPFIFOEx2(std::span<const u8> input, std::span<u8> output);
-    NvResult AllocateObjectContext(std::span<const u8> input, std::span<u8> output);
-    NvResult SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, std::span<u8> output,
-                              Tegra::CommandList&& entries);
-    NvResult SubmitGPFIFOBase(std::span<const u8> input, std::span<u8> output,
-                              bool kickoff = false);
-    NvResult SubmitGPFIFOBase(std::span<const u8> input, std::span<const u8> input_inline,
-                              std::span<u8> output);
-    NvResult GetWaitbase(std::span<const u8> input, std::span<u8> output);
-    NvResult ChannelSetTimeout(std::span<const u8> input, std::span<u8> output);
-    NvResult ChannelSetTimeslice(std::span<const u8> input, std::span<u8> output);
+    NvResult SetNVMAPfd(IoctlSetNvmapFD& params);
+    NvResult SetClientData(IoctlClientData& params);
+    NvResult GetClientData(IoctlClientData& params);
+    NvResult ZCullBind(IoctlZCullBind& params);
+    NvResult SetErrorNotifier(IoctlSetErrorNotifier& params);
+    NvResult SetChannelPriority(IoctlChannelSetPriority& params);
+    NvResult AllocGPFIFOEx2(IoctlAllocGpfifoEx2& params);
+    NvResult AllocateObjectContext(IoctlAllocObjCtx& params);
+
+    NvResult SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, Tegra::CommandList&& entries);
+    NvResult SubmitGPFIFOBase1(IoctlSubmitGpfifo& params,
+                               std::span<Tegra::CommandListHeader> commands, bool kickoff = false);
+    NvResult SubmitGPFIFOBase2(IoctlSubmitGpfifo& params,
+                               std::span<const Tegra::CommandListHeader> commands);
+
+    NvResult GetWaitbase(IoctlGetWaitbase& params);
+    NvResult ChannelSetTimeout(IoctlChannelSetTimeout& params);
+    NvResult ChannelSetTimeslice(IoctlSetTimeslice& params);
 
     EventInterface& events_interface;
     NvCore::Container& core;
