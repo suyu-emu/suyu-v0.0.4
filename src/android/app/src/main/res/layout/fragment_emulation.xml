@@ -134,16 +134,18 @@
         <FrameLayout
             android:id="@+id/overlay_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="true">
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/show_fps_text"
+                style="@style/TextAppearance.Material3.BodyMedium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="left"
                 android:clickable="false"
                 android:focusable="false"
-                android:shadowColor="@android:color/black"
+                android:paddingHorizontal="20dp"
                 android:textColor="@android:color/white"
                 android:textSize="12sp"
                 tools:ignore="RtlHardcoded" />
