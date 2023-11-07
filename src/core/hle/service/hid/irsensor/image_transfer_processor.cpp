@@ -49,7 +49,7 @@ void ImageTransferProcessor::OnControllerUpdate(Core::HID::ControllerTriggerType
         return;
     }
 
-    const auto camera_data = npad_device->GetCamera();
+    const auto& camera_data = npad_device->GetCamera();
 
     // This indicates how much ambient light is present
     processor_state.ambient_noise_level = Core::IrSensor::CameraAmbientNoiseLevel::Low;
