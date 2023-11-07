@@ -4,13 +4,14 @@
 #include <cinttypes>
 #include <clocale>
 #include <cmath>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <thread>
-#include <format>
 #include "core/loader/nca.h"
 #include "core/tools/renderdoc.h"
+
 #ifdef __APPLE__
 #include <unistd.h> // for chdir
 #endif
