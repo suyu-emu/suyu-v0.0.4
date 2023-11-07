@@ -3,16 +3,18 @@
 
 #include <queue>
 
+#include "core/core.h"
+#include "core/core_timing.h"
 #include "core/hid/emulated_controller.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/service/hid/irsensor/clustering_processor.h"
 
 namespace Service::IRS {
-ClusteringProcessor::ClusteringProcessor(Core::HID::HIDCore& hid_core_,
+ClusteringProcessor::ClusteringProcessor(Core::System& system_,
                                          Core::IrSensor::DeviceFormat& device_format,
                                          std::size_t npad_index)
-    : device{device_format} {
-    npad_device = hid_core_.GetEmulatedControllerByIndex(npad_index);
+    : device{device_format}, system{system_} {
+    npad_device = system.HIDCore().GetEmulatedControllerByIndex(npad_index);
 
     device.mode = Core::IrSensor::IrSensorMode::ClusteringProcessor;
     device.camera_status = Core::IrSensor::IrCameraStatus::Unconnected;
@@ -48,7 +50,7 @@ void ClusteringProcessor::OnControllerUpdate(Core::HID::ControllerTriggerType ty
     }
 
     next_state = {};
-    const auto camera_data = npad_device->GetCamera();
+    const auto& camera_data = npad_device->GetCamera();
     auto filtered_image = camera_data.data;
 
     RemoveLowIntensityData(filtered_image);
@@ -83,7 +85,7 @@ void ClusteringProcessor::OnControllerUpdate(Core::HID::ControllerTriggerType ty
     }
 
     next_state.sampling_number = camera_data.sample;
-    next_state.timestamp = next_state.timestamp + 131;
+    next_state.timestamp = system.CoreTiming().GetGlobalTimeNs().count();
     next_state.ambient_noise_level = Core::IrSensor::CameraAmbientNoiseLevel::Low;
     shared_memory->clustering_lifo.WriteNextEntry(next_state);
 
@@ -202,14 +204,14 @@ ClusteringProcessor::ClusteringData ClusteringProcessor::MergeCluster(
 }
 
 u8 ClusteringProcessor::GetPixel(const std::vector<u8>& data, std::size_t x, std::size_t y) const {
-    if ((y * width) + x > data.size()) {
+    if ((y * width) + x >= data.size()) {
         return 0;
     }
     return data[(y * width) + x];
 }
 
 void ClusteringProcessor::SetPixel(std::vector<u8>& data, std::size_t x, std::size_t y, u8 value) {
-    if ((y * width) + x > data.size()) {
+    if ((y * width) + x >= data.size()) {
         return;
     }
     data[(y * width) + x] = value;

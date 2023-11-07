@@ -138,7 +138,7 @@ void IRS::RunMomentProcessor(HLERequestContext& ctx) {
 
     if (result.IsSuccess()) {
         auto& device = GetIrCameraSharedMemoryDeviceEntry(parameters.camera_handle);
-        MakeProcessor<MomentProcessor>(parameters.camera_handle, device);
+        MakeProcessorWithCoreContext<MomentProcessor>(parameters.camera_handle, device);
         auto& image_transfer_processor = GetProcessor<MomentProcessor>(parameters.camera_handle);
         image_transfer_processor.SetConfig(parameters.processor_config);
         npad_device->SetPollingMode(Core::HID::EmulatedDeviceIndex::RightIndex,
