@@ -73,6 +73,11 @@ void InvalidateEntireInstructionCache(Core::System& system) {
 }
 
 template <typename AddressType>
+void InvalidateInstructionCache(Core::System& system, AddressType addr, u64 size) {
+    system.InvalidateCpuInstructionCacheRange(GetInteger(addr), size);
+}
+
+template <typename AddressType>
 Result InvalidateDataCache(AddressType addr, u64 size) {
     R_SUCCEED();
 }
@@ -1245,7 +1250,7 @@ Result KPageTableBase::UnmapCodeMemory(KProcessAddress dst_address, KProcessAddr
     bool reprotected_pages = false;
     SCOPE_EXIT({
         if (reprotected_pages && any_code_pages) {
-            InvalidateEntireInstructionCache(m_system);
+            InvalidateInstructionCache(m_system, dst_address, size);
         }
     });
 
@@ -1981,7 +1986,7 @@ Result KPageTableBase::SetProcessMemoryPermission(KProcessAddress addr, size_t s
         for (const auto& block : pg) {
             StoreDataCache(GetHeapVirtualPointer(m_kernel, block.GetAddress()), block.GetSize());
         }
-        InvalidateEntireInstructionCache(m_system);
+        InvalidateInstructionCache(m_system, addr, size);
     }
 
     R_SUCCEED();
@@ -3222,8 +3227,8 @@ Result KPageTableBase::WriteDebugMemory(KProcessAddress dst_address, KProcessAdd
     // Perform copy for the last block.
     R_TRY(PerformCopy());
 
-    // Invalidate the entire instruction cache, as this svc allows modifying executable pages.
-    InvalidateEntireInstructionCache(m_system);
+    // Invalidate the instruction cache, as this svc allows modifying executable pages.
+    InvalidateInstructionCache(m_system, dst_address, size);
 
     R_SUCCEED();
 }
