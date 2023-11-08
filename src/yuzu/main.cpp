@@ -4,7 +4,6 @@
 #include <cinttypes>
 #include <clocale>
 #include <cmath>
-#include <format>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -2998,8 +2997,8 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
     }
 
     // Create icon file path
-    out_icon_path /= (program_id == 0 ? std::format("yuzu-{}.{}", game_file_name, ico_extension)
-                                      : std::format("yuzu-{:016X}.{}", program_id, ico_extension));
+    out_icon_path /= (program_id == 0 ? fmt::format("yuzu-{}.{}", game_file_name, ico_extension)
+                                      : fmt::format("yuzu-{:016X}.{}", program_id, ico_extension));
     return true;
 }
 
@@ -3032,7 +3031,7 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
         const auto control = pm.GetControlMetadata();
         const auto loader =
             Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::Mode::Read));
-        game_title = std::format("{:016X}", program_id);
+        game_title = fmt::format("{:016X}", program_id);
         if (control.first != nullptr) {
             game_title = control.first->GetApplicationName();
         } else {
@@ -3081,12 +3080,12 @@ void GMainWindow::OnGameListCreateShortcut(u64 program_id, const std::string& ga
     }
 #endif // __linux__
     // Create shortcut
-    std::string arguments = std::format("-g \"{:s}\"", game_path);
+    std::string arguments = fmt::format("-g \"{:s}\"", game_path);
     if (GMainWindow::CreateShortcutMessagesGUI(
             this, GMainWindow::CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES, qt_game_title)) {
         arguments = "-f " + arguments;
     }
-    const std::string comment = std::format("Start {:s} with the yuzu Emulator", game_title);
+    const std::string comment = fmt::format("Start {:s} with the yuzu Emulator", game_title);
     const std::string categories = "Game;Emulator;Qt;";
     const std::string keywords = "Switch;Nintendo;";
 
