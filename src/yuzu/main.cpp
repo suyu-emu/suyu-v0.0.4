@@ -2980,7 +2980,7 @@ bool GMainWindow::MakeShortcutIcoPath(const u64 program_id, const std::string_vi
     // Get path to Yuzu icons directory & icon extension
     std::string ico_extension = "png";
 #if defined(_WIN32)
-    out_icon_path = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "icons";
+    out_icon_path = Common::FS::YuzuPath::IconsDir;
     ico_extension = "ico";
 #elif defined(__linux__) || defined(__FreeBSD__)
     out_icon_path = Common::FS::GetDataDirectory("XDG_DATA_HOME") / "icons/hicolor/256x256";
