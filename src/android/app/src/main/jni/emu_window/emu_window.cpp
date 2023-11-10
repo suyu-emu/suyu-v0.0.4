@@ -9,6 +9,7 @@
 #include "input_common/drivers/virtual_gamepad.h"
 #include "input_common/main.h"
 #include "jni/emu_window/emu_window.h"
+#include "jni/native.h"
 
 void EmuWindow_Android::OnSurfaceChanged(ANativeWindow* surface) {
     m_window_width = ANativeWindow_getWidth(surface);
@@ -55,6 +56,13 @@ void EmuWindow_Android::OnReadNfcTag(std::span<u8> data) {
 
 void EmuWindow_Android::OnRemoveNfcTag() {
     m_input_subsystem->GetVirtualAmiibo()->CloseAmiibo();
+}
+
+void EmuWindow_Android::OnFrameDisplayed() {
+    if (!m_first_frame) {
+        EmulationSession::GetInstance().OnEmulationStarted();
+        m_first_frame = true;
+    }
 }
 
 EmuWindow_Android::EmuWindow_Android(InputCommon::InputSubsystem* input_subsystem,
