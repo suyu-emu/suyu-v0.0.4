@@ -86,10 +86,7 @@ public:
             uncommitted_operations.emplace_back(std::move(func));
         }
         pending_operations.emplace_back(std::move(uncommitted_operations));
-        {
-            std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
-            QueueFence(new_fence);
-        }
+        QueueFence(new_fence);
         if (!delay_fence) {
             func();
         }
