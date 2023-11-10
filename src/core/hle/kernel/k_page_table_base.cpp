@@ -68,10 +68,6 @@ public:
     }
 };
 
-void InvalidateEntireInstructionCache(Core::System& system) {
-    system.InvalidateCpuInstructionCaches();
-}
-
 template <typename AddressType>
 void InvalidateInstructionCache(Core::System& system, AddressType addr, u64 size) {
     system.InvalidateCpuInstructionCacheRange(GetInteger(addr), size);
@@ -434,9 +430,6 @@ void KPageTableBase::Finalize() {
         m_resource_limit->Release(Svc::LimitableResource::PhysicalMemoryMax,
                                   m_mapped_ipc_server_memory);
     }
-
-    // Invalidate the entire instruction cache.
-    InvalidateEntireInstructionCache(m_system);
 
     // Close the backing page table, as the destructor is not called for guest objects.
     m_impl.reset();
