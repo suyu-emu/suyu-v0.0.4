@@ -203,6 +203,8 @@ const char* TranslateCategory(Category category) {
     case Category::Ui:
     case Category::UiGeneral:
         return "UI";
+    case Category::UiAudio:
+        return "UiAudio";
     case Category::UiLayout:
         return "UiLayout";
     case Category::UiGameList:
