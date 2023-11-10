@@ -555,7 +555,7 @@ void RasterizerOpenGL::OnCacheInvalidation(VAddr addr, u64 size) {
     }
     {
         std::scoped_lock lock{buffer_cache.mutex};
-        buffer_cache.CachedWriteMemory(addr, size);
+        buffer_cache.WriteMemory(addr, size);
     }
     shader_cache.InvalidateRegion(addr, size);
 }
