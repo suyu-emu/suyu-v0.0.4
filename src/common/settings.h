@@ -153,7 +153,7 @@ struct Values {
                                        true,
                                        true};
     Setting<bool, false> audio_muted{
-        linkage, false, "audio_muted", Category::Audio, Specialization::Default, false, true};
+        linkage, false, "audio_muted", Category::Audio, Specialization::Default, true, true};
     Setting<bool, false> dump_audio_commands{
         linkage, false, "dump_audio_commands", Category::Audio, Specialization::Default, false};
 
