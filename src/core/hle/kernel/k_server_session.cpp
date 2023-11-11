@@ -383,7 +383,7 @@ Result KServerSession::SendReply(bool is_hle) {
         if (event != nullptr) {
             // // Get the client process/page table.
             // KProcess *client_process             = client_thread->GetOwnerProcess();
-            // KPageTable *client_page_table        = std::addressof(client_process->PageTable());
+            // KProcessPageTable *client_page_table = std::addressof(client_process->PageTable());
 
             // // If we need to, reply with an async error.
             // if (R_FAILED(client_result)) {

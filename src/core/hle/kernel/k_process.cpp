@@ -298,9 +298,9 @@ Result KProcess::Initialize(const Svc::CreateProcessParameter& params, const KPa
         const bool enable_aslr = True(params.flags & Svc::CreateProcessFlag::EnableAslr);
         const bool enable_das_merge =
             False(params.flags & Svc::CreateProcessFlag::DisableDeviceAddressSpaceMerge);
-        R_TRY(m_page_table.InitializeForProcess(
-            as_type, enable_aslr, enable_das_merge, !enable_aslr, pool, params.code_address,
-            params.code_num_pages * PageSize, m_system_resource, res_limit, this->GetMemory()));
+        R_TRY(m_page_table.Initialize(as_type, enable_aslr, enable_das_merge, !enable_aslr, pool,
+                                      params.code_address, params.code_num_pages * PageSize,
+                                      m_system_resource, res_limit, this->GetMemory()));
     }
     ON_RESULT_FAILURE_2 {
         m_page_table.Finalize();
@@ -391,9 +391,9 @@ Result KProcess::Initialize(const Svc::CreateProcessParameter& params,
         const bool enable_aslr = True(params.flags & Svc::CreateProcessFlag::EnableAslr);
         const bool enable_das_merge =
             False(params.flags & Svc::CreateProcessFlag::DisableDeviceAddressSpaceMerge);
-        R_TRY(m_page_table.InitializeForProcess(as_type, enable_aslr, enable_das_merge,
-                                                !enable_aslr, pool, params.code_address, code_size,
-                                                m_system_resource, res_limit, this->GetMemory()));
+        R_TRY(m_page_table.Initialize(as_type, enable_aslr, enable_das_merge, !enable_aslr, pool,
+                                      params.code_address, code_size, m_system_resource, res_limit,
+                                      this->GetMemory()));
     }
     ON_RESULT_FAILURE_2 {
         m_page_table.Finalize();
@@ -1122,9 +1122,9 @@ Result KProcess::GetThreadList(s32* out_num_threads, KProcessAddress out_thread_
 void KProcess::Switch(KProcess* cur_process, KProcess* next_process) {}
 
 KProcess::KProcess(KernelCore& kernel)
-    : KAutoObjectWithSlabHeapAndContainer(kernel), m_page_table{kernel.System()},
-      m_state_lock{kernel}, m_list_lock{kernel}, m_cond_var{kernel.System()},
-      m_address_arbiter{kernel.System()}, m_handle_table{kernel} {}
+    : KAutoObjectWithSlabHeapAndContainer(kernel), m_page_table{kernel}, m_state_lock{kernel},
+      m_list_lock{kernel}, m_cond_var{kernel.System()}, m_address_arbiter{kernel.System()},
+      m_handle_table{kernel} {}
 KProcess::~KProcess() = default;
 
 Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size,

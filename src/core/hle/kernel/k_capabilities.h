@@ -15,15 +15,15 @@
 
 namespace Kernel {
 
-class KPageTable;
+class KProcessPageTable;
 class KernelCore;
 
 class KCapabilities {
 public:
     constexpr explicit KCapabilities() = default;
 
-    Result InitializeForKip(std::span<const u32> kern_caps, KPageTable* page_table);
-    Result InitializeForUser(std::span<const u32> user_caps, KPageTable* page_table);
+    Result InitializeForKip(std::span<const u32> kern_caps, KProcessPageTable* page_table);
+    Result InitializeForUser(std::span<const u32> user_caps, KProcessPageTable* page_table);
 
     static Result CheckCapabilities(KernelCore& kernel, std::span<const u32> user_caps);
 
@@ -264,9 +264,9 @@ private:
 
     Result SetCorePriorityCapability(const u32 cap);
     Result SetSyscallMaskCapability(const u32 cap, u32& set_svc);
-    Result MapRange_(const u32 cap, const u32 size_cap, KPageTable* page_table);
-    Result MapIoPage_(const u32 cap, KPageTable* page_table);
-    Result MapRegion_(const u32 cap, KPageTable* page_table);
+    Result MapRange_(const u32 cap, const u32 size_cap, KProcessPageTable* page_table);
+    Result MapIoPage_(const u32 cap, KProcessPageTable* page_table);
+    Result MapRegion_(const u32 cap, KProcessPageTable* page_table);
     Result SetInterruptPairCapability(const u32 cap);
     Result SetProgramTypeCapability(const u32 cap);
     Result SetKernelVersionCapability(const u32 cap);
@@ -277,8 +277,9 @@ private:
     static Result ProcessMapRegionCapability(const u32 cap, F f);
     static Result CheckMapRegion(KernelCore& kernel, const u32 cap);
 
-    Result SetCapability(const u32 cap, u32& set_flags, u32& set_svc, KPageTable* page_table);
-    Result SetCapabilities(std::span<const u32> caps, KPageTable* page_table);
+    Result SetCapability(const u32 cap, u32& set_flags, u32& set_svc,
+                         KProcessPageTable* page_table);
+    Result SetCapabilities(std::span<const u32> caps, KProcessPageTable* page_table);
 
 private:
     Svc::SvcAccessFlagSet m_svc_access_flags{};

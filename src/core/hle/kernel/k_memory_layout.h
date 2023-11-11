@@ -394,6 +394,14 @@ private:
         return region.GetEndAddress();
     }
 
+public:
+    static const KMemoryRegion* Find(const KMemoryLayout& layout, KVirtualAddress address) {
+        return Find(address, layout.GetVirtualMemoryRegionTree());
+    }
+    static const KMemoryRegion* Find(const KMemoryLayout& layout, KPhysicalAddress address) {
+        return Find(address, layout.GetPhysicalMemoryRegionTree());
+    }
+
 private:
     u64 m_linear_phys_to_virt_diff{};
     u64 m_linear_virt_to_phys_diff{};
