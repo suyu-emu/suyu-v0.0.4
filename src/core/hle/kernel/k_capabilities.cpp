@@ -5,6 +5,7 @@
 #include "core/hle/kernel/k_capabilities.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_process_page_table.h"
+#include "core/hle/kernel/k_trace.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/svc_version.h"
@@ -329,6 +330,8 @@ Result KCapabilities::SetCapabilities(std::span<const u32> caps, KProcessPageTab
 
             // Map the range.
             R_TRY(this->MapRange_(cap, size_cap, page_table));
+        } else if (GetCapabilityType(cap) == CapabilityType::MapRegion && !IsKTraceEnabled) {
+            continue;
         } else {
             R_TRY(this->SetCapability(cap, set_flags, set_svc, page_table));
         }
