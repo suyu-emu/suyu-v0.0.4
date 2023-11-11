@@ -6,6 +6,7 @@
 #include <atomic>
 
 #include "common/common_types.h"
+#include "common/typed_address.h"
 #include "common/virtual_buffer.h"
 
 namespace Common {
@@ -100,9 +101,9 @@ struct PageTable {
     PageTable(PageTable&&) noexcept = default;
     PageTable& operator=(PageTable&&) noexcept = default;
 
-    bool BeginTraversal(TraversalEntry& out_entry, TraversalContext& out_context,
-                        u64 address) const;
-    bool ContinueTraversal(TraversalEntry& out_entry, TraversalContext& context) const;
+    bool BeginTraversal(TraversalEntry* out_entry, TraversalContext* out_context,
+                        Common::ProcessAddress address) const;
+    bool ContinueTraversal(TraversalEntry* out_entry, TraversalContext* context) const;
 
     /**
      * Resizes the page table to be able to accommodate enough pages within
@@ -115,6 +116,16 @@ struct PageTable {
 
     std::size_t GetAddressSpaceBits() const {
         return current_address_space_width_in_bits;
+    }
+
+    bool GetPhysicalAddress(Common::PhysicalAddress* out_phys_addr,
+                            Common::ProcessAddress virt_addr) const {
+        if (virt_addr > (1ULL << this->GetAddressSpaceBits())) {
+            return false;
+        }
+
+        *out_phys_addr = backing_addr[virt_addr / page_size] + GetInteger(virt_addr);
+        return true;
     }
 
     /**
