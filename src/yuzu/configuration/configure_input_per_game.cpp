@@ -5,12 +5,12 @@
 #include "core/core.h"
 #include "core/hid/emulated_controller.h"
 #include "core/hid/hid_core.h"
+#include "frontend_common/config.h"
 #include "ui_configure_input_per_game.h"
-#include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_input_per_game.h"
 #include "yuzu/configuration/input_profiles.h"
 
-ConfigureInputPerGame::ConfigureInputPerGame(Core::System& system_, Config* config_,
+ConfigureInputPerGame::ConfigureInputPerGame(Core::System& system_, QtConfig* config_,
                                              QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureInputPerGame>()),
       profiles(std::make_unique<InputProfiles>()), system{system_}, config{config_} {
@@ -110,6 +110,6 @@ void ConfigureInputPerGame::SaveConfiguration() {
     // Clear all controls from the config in case the user reverted back to globals
     config->ClearControlPlayerValues();
     for (size_t index = 0; index < Settings::values.players.GetValue().size(); ++index) {
-        config->SaveControlPlayerValue(index);
+        config->SaveQtControlPlayerValues(index);
     }
 }

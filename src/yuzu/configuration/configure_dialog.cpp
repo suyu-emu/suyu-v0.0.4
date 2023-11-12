@@ -8,7 +8,6 @@
 #include "core/core.h"
 #include "ui_configure.h"
 #include "vk_device_info.h"
-#include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_audio.h"
 #include "yuzu/configuration/configure_cpu.h"
 #include "yuzu/configuration/configure_debug_tab.h"

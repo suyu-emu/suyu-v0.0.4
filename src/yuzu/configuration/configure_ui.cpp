@@ -164,7 +164,7 @@ ConfigureUi::~ConfigureUi() = default;
 
 void ConfigureUi::ApplyConfiguration() {
     UISettings::values.theme =
-        ui->theme_combobox->itemData(ui->theme_combobox->currentIndex()).toString();
+        ui->theme_combobox->itemData(ui->theme_combobox->currentIndex()).toString().toStdString();
     UISettings::values.show_add_ons = ui->show_add_ons->isChecked();
     UISettings::values.show_compat = ui->show_compat->isChecked();
     UISettings::values.show_size = ui->show_size->isChecked();
@@ -191,9 +191,10 @@ void ConfigureUi::RequestGameListUpdate() {
 }
 
 void ConfigureUi::SetConfiguration() {
-    ui->theme_combobox->setCurrentIndex(ui->theme_combobox->findData(UISettings::values.theme));
+    ui->theme_combobox->setCurrentIndex(
+        ui->theme_combobox->findData(QString::fromStdString(UISettings::values.theme)));
     ui->language_combobox->setCurrentIndex(
-        ui->language_combobox->findData(UISettings::values.language));
+        ui->language_combobox->findData(QString::fromStdString(UISettings::values.language)));
     ui->show_add_ons->setChecked(UISettings::values.show_add_ons.GetValue());
     ui->show_compat->setChecked(UISettings::values.show_compat.GetValue());
     ui->show_size->setChecked(UISettings::values.show_size.GetValue());

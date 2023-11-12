@@ -15,6 +15,7 @@
 
 #include "common/announce_multiplayer_room.h"
 #include "common/common_types.h"
+#include "configuration/qt_config.h"
 #include "input_common/drivers/tas_input.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
@@ -26,7 +27,7 @@
 #include <QtDBus/QtDBus>
 #endif
 
-class Config;
+class QtConfig;
 class ClickableLabel;
 class EmuThread;
 class GameList;
@@ -185,7 +186,7 @@ class GMainWindow : public QMainWindow {
 public:
     void filterBarSetChecked(bool state);
     void UpdateUITheme();
-    explicit GMainWindow(std::unique_ptr<Config> config_, bool has_broken_vulkan);
+    explicit GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulkan);
     ~GMainWindow() override;
 
     bool DropAction(QDropEvent* event);
@@ -521,7 +522,7 @@ private:
     QSlider* volume_slider = nullptr;
     QTimer status_bar_update_timer;
 
-    std::unique_ptr<Config> config;
+    std::unique_ptr<QtConfig> config;
 
     // Whether emulation is currently running in yuzu.
     bool emulation_running = false;

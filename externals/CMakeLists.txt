@@ -295,3 +295,6 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
         target_link_libraries(dump_syms PRIVATE libbreakpad_client ZLIB::ZLIB)
     endif()
 endif()
+
+# SimpleIni
+add_subdirectory(simpleini)

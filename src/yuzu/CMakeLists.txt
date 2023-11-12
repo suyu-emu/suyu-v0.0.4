@@ -38,8 +38,6 @@ add_executable(yuzu
     compatdb.ui
     compatibility_list.cpp
     compatibility_list.h
-    configuration/config.cpp
-    configuration/config.h
     configuration/configuration_shared.cpp
     configuration/configuration_shared.h
     configuration/configure.ui
@@ -147,6 +145,8 @@ add_executable(yuzu
     configuration/shared_translation.h
     configuration/shared_widget.cpp
     configuration/shared_widget.h
+    configuration/qt_config.cpp
+    configuration/qt_config.h
     debugger/console.cpp
     debugger/console.h
     debugger/controller.cpp
@@ -344,7 +344,7 @@ endif()
 
 create_target_directory_groups(yuzu)
 
-target_link_libraries(yuzu PRIVATE common core input_common network video_core)
+target_link_libraries(yuzu PRIVATE common core input_common frontend_common network video_core)
 target_link_libraries(yuzu PRIVATE Boost::headers glad Qt${QT_MAJOR_VERSION}::Widgets)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
