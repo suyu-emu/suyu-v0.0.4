@@ -680,8 +680,8 @@ ButtonMapping Joycons::GetButtonMappingForDevice(const Common::ParamPackage& par
         Common::ParamPackage sr_button_params = button_params;
         sl_button_params.Set("button", static_cast<int>(Joycon::PadButton::LeftSL));
         sr_button_params.Set("button", static_cast<int>(Joycon::PadButton::LeftSR));
-        mapping.insert_or_assign(Settings::NativeButton::SL, std::move(sl_button_params));
-        mapping.insert_or_assign(Settings::NativeButton::SR, std::move(sr_button_params));
+        mapping.insert_or_assign(Settings::NativeButton::SLLeft, std::move(sl_button_params));
+        mapping.insert_or_assign(Settings::NativeButton::SRLeft, std::move(sr_button_params));
     }
 
     // Map SL and SR buttons for right joycons
@@ -693,8 +693,8 @@ ButtonMapping Joycons::GetButtonMappingForDevice(const Common::ParamPackage& par
         Common::ParamPackage sr_button_params = button_params;
         sl_button_params.Set("button", static_cast<int>(Joycon::PadButton::RightSL));
         sr_button_params.Set("button", static_cast<int>(Joycon::PadButton::RightSR));
-        mapping.insert_or_assign(Settings::NativeButton::SL, std::move(sl_button_params));
-        mapping.insert_or_assign(Settings::NativeButton::SR, std::move(sr_button_params));
+        mapping.insert_or_assign(Settings::NativeButton::SLRight, std::move(sl_button_params));
+        mapping.insert_or_assign(Settings::NativeButton::SRRight, std::move(sr_button_params));
     }
 
     return mapping;

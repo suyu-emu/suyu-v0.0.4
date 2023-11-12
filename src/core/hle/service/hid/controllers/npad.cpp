@@ -457,12 +457,14 @@ void Controller_NPad::RequestPadStateUpdate(Core::HID::NpadIdType npad_id) {
         pad_entry.l_stick = stick_state.left;
     }
 
-    if (controller_type == Core::HID::NpadStyleIndex::JoyconLeft) {
+    if (controller_type == Core::HID::NpadStyleIndex::JoyconLeft ||
+        controller_type == Core::HID::NpadStyleIndex::JoyconDual) {
         pad_entry.npad_buttons.left_sl.Assign(button_state.left_sl);
         pad_entry.npad_buttons.left_sr.Assign(button_state.left_sr);
     }
 
-    if (controller_type == Core::HID::NpadStyleIndex::JoyconRight) {
+    if (controller_type == Core::HID::NpadStyleIndex::JoyconRight ||
+        controller_type == Core::HID::NpadStyleIndex::JoyconDual) {
         pad_entry.npad_buttons.right_sl.Assign(button_state.right_sl);
         pad_entry.npad_buttons.right_sr.Assign(button_state.right_sr);
     }
