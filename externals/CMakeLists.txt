@@ -34,11 +34,6 @@ endif()
 # Glad
 add_subdirectory(glad)
 
-# inih
-if (NOT TARGET inih::INIReader)
-    add_subdirectory(inih)
-endif()
-
 # mbedtls
 add_subdirectory(mbedtls)
 target_include_directories(mbedtls PUBLIC ./mbedtls/include)
