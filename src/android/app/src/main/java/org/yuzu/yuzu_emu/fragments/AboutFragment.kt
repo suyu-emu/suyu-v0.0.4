@@ -114,10 +114,10 @@ class AboutFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val mlpAppBar = binding.appbarAbout.layoutParams as MarginLayoutParams
-            mlpAppBar.leftMargin = leftInsets
-            mlpAppBar.rightMargin = rightInsets
-            binding.appbarAbout.layoutParams = mlpAppBar
+            val mlpToolbar = binding.toolbarAbout.layoutParams as MarginLayoutParams
+            mlpToolbar.leftMargin = leftInsets
+            mlpToolbar.rightMargin = rightInsets
+            binding.toolbarAbout.layoutParams = mlpToolbar
 
             val mlpScrollAbout = binding.scrollAbout.layoutParams as MarginLayoutParams
             mlpScrollAbout.leftMargin = leftInsets
