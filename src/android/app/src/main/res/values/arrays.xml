@@ -2,7 +2,6 @@
 <resources>
 
     <string-array name="regionNames">
-        <item>@string/auto</item>
         <item>@string/region_australia</item>
         <item>@string/region_china</item>
         <item>@string/region_europe</item>
@@ -13,7 +12,6 @@
     </string-array>
 
     <integer-array name="regionValues">
-        <item>-1</item>
         <item>3</item>
         <item>4</item>
         <item>2</item>
