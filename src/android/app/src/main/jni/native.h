@@ -52,9 +52,10 @@ public:
     void OnGamepadDisconnectEvent([[maybe_unused]] int index);
     SoftwareKeyboard::AndroidKeyboard* SoftwareKeyboard();
 
+    static void OnEmulationStarted();
+
 private:
     static void LoadDiskCacheProgress(VideoCore::LoadCallbackStage stage, int progress, int max);
-    static void OnEmulationStarted();
     static void OnEmulationStopped(Core::SystemResultStatus result);
 
 private:

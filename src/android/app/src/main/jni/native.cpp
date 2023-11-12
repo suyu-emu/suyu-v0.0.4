@@ -372,8 +372,6 @@ void EmulationSession::RunEmulation() {
         m_system.InitializeDebugger();
     }
 
-    OnEmulationStarted();
-
     while (true) {
         {
             [[maybe_unused]] std::unique_lock lock(m_mutex);
