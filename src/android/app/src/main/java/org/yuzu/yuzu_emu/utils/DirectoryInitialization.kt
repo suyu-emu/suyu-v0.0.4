@@ -16,6 +16,7 @@ object DirectoryInitialization {
         if (!areDirectoriesReady) {
             initializeInternalStorage()
             NativeLibrary.initializeSystem(false)
+            NativeConfig.initializeConfig()
             areDirectoriesReady = true
         }
     }

@@ -230,8 +230,6 @@ object NativeLibrary {
      */
     external fun onTouchReleased(finger_id: Int)
 
-    external fun reloadSettings()
-
     external fun initGameIni(gameID: String?)
 
     external fun setAppDirectory(directory: String)

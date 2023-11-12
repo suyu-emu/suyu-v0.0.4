@@ -7,7 +7,7 @@ import android.text.TextUtils
 import android.widget.Toast
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
-import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.utils.NativeConfig
 
 object Settings {
     private val context get() = YuzuApplication.appContext
@@ -19,7 +19,7 @@ object Settings {
                 context.getString(R.string.ini_saved),
                 Toast.LENGTH_SHORT
             ).show()
-            SettingsFile.saveFile(SettingsFile.FILE_NAME_CONFIG)
+            NativeConfig.saveSettings()
         } else {
             // TODO: Save custom game settings
             Toast.makeText(
