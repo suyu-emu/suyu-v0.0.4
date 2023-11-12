@@ -243,10 +243,12 @@ void EmulatedController::LoadTASParams() {
     tas_button_params[Settings::NativeButton::DUp].Set("button", 13);
     tas_button_params[Settings::NativeButton::DRight].Set("button", 14);
     tas_button_params[Settings::NativeButton::DDown].Set("button", 15);
-    tas_button_params[Settings::NativeButton::SL].Set("button", 16);
-    tas_button_params[Settings::NativeButton::SR].Set("button", 17);
+    tas_button_params[Settings::NativeButton::SLLeft].Set("button", 16);
+    tas_button_params[Settings::NativeButton::SRLeft].Set("button", 17);
     tas_button_params[Settings::NativeButton::Home].Set("button", 18);
     tas_button_params[Settings::NativeButton::Screenshot].Set("button", 19);
+    tas_button_params[Settings::NativeButton::SLRight].Set("button", 20);
+    tas_button_params[Settings::NativeButton::SRRight].Set("button", 21);
 
     tas_stick_params[Settings::NativeAnalog::LStick].Set("axis_x", 0);
     tas_stick_params[Settings::NativeAnalog::LStick].Set("axis_y", 1);
@@ -296,10 +298,12 @@ void EmulatedController::LoadVirtualGamepadParams() {
     virtual_button_params[Settings::NativeButton::DUp].Set("button", 13);
     virtual_button_params[Settings::NativeButton::DRight].Set("button", 14);
     virtual_button_params[Settings::NativeButton::DDown].Set("button", 15);
-    virtual_button_params[Settings::NativeButton::SL].Set("button", 16);
-    virtual_button_params[Settings::NativeButton::SR].Set("button", 17);
+    virtual_button_params[Settings::NativeButton::SLLeft].Set("button", 16);
+    virtual_button_params[Settings::NativeButton::SRLeft].Set("button", 17);
     virtual_button_params[Settings::NativeButton::Home].Set("button", 18);
     virtual_button_params[Settings::NativeButton::Screenshot].Set("button", 19);
+    virtual_button_params[Settings::NativeButton::SLRight].Set("button", 20);
+    virtual_button_params[Settings::NativeButton::SRRight].Set("button", 21);
 
     virtual_stick_params[Settings::NativeAnalog::LStick].Set("axis_x", 0);
     virtual_stick_params[Settings::NativeAnalog::LStick].Set("axis_y", 1);
@@ -867,12 +871,16 @@ void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback
         controller.npad_button_state.down.Assign(current_status.value);
         controller.debug_pad_button_state.d_down.Assign(current_status.value);
         break;
-    case Settings::NativeButton::SL:
+    case Settings::NativeButton::SLLeft:
         controller.npad_button_state.left_sl.Assign(current_status.value);
+        break;
+    case Settings::NativeButton::SLRight:
         controller.npad_button_state.right_sl.Assign(current_status.value);
         break;
-    case Settings::NativeButton::SR:
+    case Settings::NativeButton::SRLeft:
         controller.npad_button_state.left_sr.Assign(current_status.value);
+        break;
+    case Settings::NativeButton::SRRight:
         controller.npad_button_state.right_sr.Assign(current_status.value);
         break;
     case Settings::NativeButton::Home:
@@ -1890,12 +1898,16 @@ NpadButton EmulatedController::GetTurboButtonMask() const {
         case Settings::NativeButton::DDown:
             button_mask.down.Assign(1);
             break;
-        case Settings::NativeButton::SL:
+        case Settings::NativeButton::SLLeft:
             button_mask.left_sl.Assign(1);
+            break;
+        case Settings::NativeButton::SLRight:
             button_mask.right_sl.Assign(1);
             break;
-        case Settings::NativeButton::SR:
+        case Settings::NativeButton::SRLeft:
             button_mask.left_sr.Assign(1);
+            break;
+        case Settings::NativeButton::SRRight:
             button_mask.right_sr.Assign(1);
             break;
         default:

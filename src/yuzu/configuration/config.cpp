@@ -35,6 +35,7 @@ const std::array<int, Settings::NativeButton::NumButtons> Config::default_button
     Qt::Key_G,    Qt::Key_Q, Qt::Key_E,    Qt::Key_R,  Qt::Key_T,
     Qt::Key_M,    Qt::Key_N, Qt::Key_Left, Qt::Key_Up, Qt::Key_Right,
     Qt::Key_Down, Qt::Key_Q, Qt::Key_E,    0,          0,
+    Qt::Key_Q,    Qt::Key_E,
 };
 
 const std::array<int, Settings::NativeMotion::NumMotions> Config::default_motions = {
