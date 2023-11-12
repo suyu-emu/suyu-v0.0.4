@@ -45,7 +45,7 @@ public:
                               float gyro_z, float accel_x, float accel_y, float accel_z);
     void OnReadNfcTag(std::span<u8> data);
     void OnRemoveNfcTag();
-    void OnFrameDisplayed() override {}
+    void OnFrameDisplayed() override;
 
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override {
         return {std::make_unique<GraphicsContext_Android>(m_driver_library)};
@@ -61,4 +61,6 @@ private:
     float m_window_height{};
 
     std::shared_ptr<Common::DynamicLibrary> m_driver_library;
+
+    bool m_first_frame = false;
 };
