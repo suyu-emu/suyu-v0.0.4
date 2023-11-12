@@ -562,6 +562,120 @@ static std::string PaginateBuffer(std::string_view buffer, std::string_view requ
     }
 }
 
+static VAddr GetModuleEnd(Kernel::KProcessPageTable& page_table, VAddr base) {
+    Kernel::KMemoryInfo mem_info;
+    Kernel::Svc::MemoryInfo svc_mem_info;
+    Kernel::Svc::PageInfo page_info;
+    VAddr cur_addr{base};
+
+    // Expect: r-x Code (.text)
+    R_ASSERT(page_table.QueryInfo(std::addressof(mem_info), std::addressof(page_info), cur_addr));
+    svc_mem_info = mem_info.GetSvcMemoryInfo();
+    cur_addr = svc_mem_info.base_address + svc_mem_info.size;
+    if (svc_mem_info.state != Kernel::Svc::MemoryState::Code ||
+        svc_mem_info.permission != Kernel::Svc::MemoryPermission::ReadExecute) {
+        return cur_addr - 1;
+    }
+
+    // Expect: r-- Code (.rodata)
+    R_ASSERT(page_table.QueryInfo(std::addressof(mem_info), std::addressof(page_info), cur_addr));
+    svc_mem_info = mem_info.GetSvcMemoryInfo();
+    cur_addr = svc_mem_info.base_address + svc_mem_info.size;
+    if (svc_mem_info.state != Kernel::Svc::MemoryState::Code ||
+        svc_mem_info.permission != Kernel::Svc::MemoryPermission::Read) {
+        return cur_addr - 1;
+    }
+
+    // Expect: rw- CodeData (.data)
+    R_ASSERT(page_table.QueryInfo(std::addressof(mem_info), std::addressof(page_info), cur_addr));
+    svc_mem_info = mem_info.GetSvcMemoryInfo();
+    cur_addr = svc_mem_info.base_address + svc_mem_info.size;
+    return cur_addr - 1;
+}
+
+static Loader::AppLoader::Modules FindModules(Core::System& system) {
+    Loader::AppLoader::Modules modules;
+
+    auto& page_table = system.ApplicationProcess()->GetPageTable();
+    auto& memory = system.ApplicationMemory();
+    VAddr cur_addr = 0;
+
+    // Look for executable sections in Code or AliasCode regions.
+    while (true) {
+        Kernel::KMemoryInfo mem_info{};
+        Kernel::Svc::PageInfo page_info{};
+        R_ASSERT(
+            page_table.QueryInfo(std::addressof(mem_info), std::addressof(page_info), cur_addr));
+        auto svc_mem_info = mem_info.GetSvcMemoryInfo();
+
+        if (svc_mem_info.permission == Kernel::Svc::MemoryPermission::ReadExecute &&
+            (svc_mem_info.state == Kernel::Svc::MemoryState::Code ||
+             svc_mem_info.state == Kernel::Svc::MemoryState::AliasCode)) {
+            // Try to read the module name from its path.
+            constexpr s32 PathLengthMax = 0x200;
+            struct {
+                u32 zero;
+                s32 path_length;
+                std::array<char, PathLengthMax> path;
+            } module_path;
+
+            if (memory.ReadBlock(svc_mem_info.base_address + svc_mem_info.size, &module_path,
+                                 sizeof(module_path))) {
+                if (module_path.zero == 0 && module_path.path_length > 0) {
+                    // Truncate module name.
+                    module_path.path[PathLengthMax - 1] = '\0';
+
+                    // Ignore leading directories.
+                    char* path_pointer = module_path.path.data();
+
+                    for (s32 i = 0; i < std::min(PathLengthMax, module_path.path_length) &&
+                                    module_path.path[i] != '\0';
+                         i++) {
+                        if (module_path.path[i] == '/' || module_path.path[i] == '\\') {
+                            path_pointer = module_path.path.data() + i + 1;
+                        }
+                    }
+
+                    // Insert output.
+                    modules.emplace(svc_mem_info.base_address, path_pointer);
+                }
+            }
+        }
+
+        // Check if we're done.
+        const uintptr_t next_address = svc_mem_info.base_address + svc_mem_info.size;
+        if (next_address <= cur_addr) {
+            break;
+        }
+
+        cur_addr = next_address;
+    }
+
+    return modules;
+}
+
+static VAddr FindMainModuleEntrypoint(Core::System& system) {
+    Loader::AppLoader::Modules modules;
+    system.GetAppLoader().ReadNSOModules(modules);
+
+    // Do we have a module named main?
+    const auto main = std::find_if(modules.begin(), modules.end(),
+                                   [](const auto& key) { return key.second == "main"; });
+
+    if (main != modules.end()) {
+        return main->first;
+    }
+
+    // Do we have any loaded executable sections?
+    modules = FindModules(system);
+    if (!modules.empty()) {
+        return modules.begin()->first;
+    }
+
+    // As a last resort, use the start of the code region.
+    return GetInteger(system.ApplicationProcess()->GetPageTable().GetCodeRegionStart());
+}
+
 void GDBStub::HandleQuery(std::string_view command) {
     if (command.starts_with("TStatus")) {
         // no tracepoint support
@@ -573,21 +687,10 @@ void GDBStub::HandleQuery(std::string_view command) {
         const auto target_xml{arch->GetTargetXML()};
         SendReply(PaginateBuffer(target_xml, command.substr(30)));
     } else if (command.starts_with("Offsets")) {
-        Loader::AppLoader::Modules modules;
-        system.GetAppLoader().ReadNSOModules(modules);
-
-        const auto main = std::find_if(modules.begin(), modules.end(),
-                                       [](const auto& key) { return key.second == "main"; });
-        if (main != modules.end()) {
-            SendReply(fmt::format("TextSeg={:x}", main->first));
-        } else {
-            SendReply(fmt::format(
-                "TextSeg={:x}",
-                GetInteger(system.ApplicationProcess()->GetPageTable().GetCodeRegionStart())));
-        }
+        const auto main_offset = FindMainModuleEntrypoint(system);
+        SendReply(fmt::format("TextSeg={:x}", main_offset));
     } else if (command.starts_with("Xfer:libraries:read::")) {
-        Loader::AppLoader::Modules modules;
-        system.GetAppLoader().ReadNSOModules(modules);
+        auto modules = FindModules(system);
 
         std::string buffer;
         buffer += R"(<?xml version="1.0"?>)";
@@ -727,37 +830,6 @@ static constexpr const char* GetMemoryPermissionString(const Kernel::Svc::Memory
     }
 }
 
-static VAddr GetModuleEnd(Kernel::KProcessPageTable& page_table, VAddr base) {
-    Kernel::KMemoryInfo mem_info;
-    Kernel::Svc::MemoryInfo svc_mem_info;
-    Kernel::Svc::PageInfo page_info;
-    VAddr cur_addr{base};
-
-    // Expect: r-x Code (.text)
-    R_ASSERT(page_table.QueryInfo(std::addressof(mem_info), std::addressof(page_info), cur_addr));
-    svc_mem_info = mem_info.GetSvcMemoryInfo();
-    cur_addr = svc_mem_info.base_address + svc_mem_info.size;
-    if (svc_mem_info.state != Kernel::Svc::MemoryState::Code ||
-        svc_mem_info.permission != Kernel::Svc::MemoryPermission::ReadExecute) {
-        return cur_addr - 1;
-    }
-
-    // Expect: r-- Code (.rodata)
-    R_ASSERT(page_table.QueryInfo(std::addressof(mem_info), std::addressof(page_info), cur_addr));
-    svc_mem_info = mem_info.GetSvcMemoryInfo();
-    cur_addr = svc_mem_info.base_address + svc_mem_info.size;
-    if (svc_mem_info.state != Kernel::Svc::MemoryState::Code ||
-        svc_mem_info.permission != Kernel::Svc::MemoryPermission::Read) {
-        return cur_addr - 1;
-    }
-
-    // Expect: rw- CodeData (.data)
-    R_ASSERT(page_table.QueryInfo(std::addressof(mem_info), std::addressof(page_info), cur_addr));
-    svc_mem_info = mem_info.GetSvcMemoryInfo();
-    cur_addr = svc_mem_info.base_address + svc_mem_info.size;
-    return cur_addr - 1;
-}
-
 void GDBStub::HandleRcmd(const std::vector<u8>& command) {
     std::string_view command_str{reinterpret_cast<const char*>(&command[0]), command.size()};
     std::string reply;
@@ -784,8 +856,7 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
             reply = "Fastmem is not enabled.\n";
         }
     } else if (command_str == "get info") {
-        Loader::AppLoader::Modules modules;
-        system.GetAppLoader().ReadNSOModules(modules);
+        auto modules = FindModules(system);
 
         reply = fmt::format("Process:     {:#x} ({})\n"
                             "Program Id:  {:#018x}\n",
