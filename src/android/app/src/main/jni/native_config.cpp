@@ -5,11 +5,14 @@
 
 #include <jni.h>
 
+#include "android_config.h"
+#include "android_settings.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
+#include "frontend_common/config.h"
 #include "jni/android_common/android_common.h"
-#include "jni/config.h"
-#include "uisettings.h"
+
+std::unique_ptr<AndroidConfig> config;
 
 template <typename T>
 Settings::Setting<T>* getSetting(JNIEnv* env, jstring jkey) {
@@ -27,6 +30,22 @@ Settings::Setting<T>* getSetting(JNIEnv* env, jstring jkey) {
 }
 
 extern "C" {
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_initializeConfig(JNIEnv* env, jobject obj) {
+    config = std::make_unique<AndroidConfig>();
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_unloadConfig(JNIEnv* env, jobject obj) {
+    config.reset();
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_reloadSettings(JNIEnv* env, jobject obj) {
+    config->AndroidConfig::ReloadAllValues();
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_saveSettings(JNIEnv* env, jobject obj) {
+    config->AndroidConfig::SaveAllValues();
+}
 
 jboolean Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getBoolean(JNIEnv* env, jobject obj,
                                                                jstring jkey, jboolean getDefault) {

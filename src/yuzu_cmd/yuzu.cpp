@@ -29,10 +29,11 @@
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
 #include "core/telemetry_session.h"
+#include "frontend_common/config.h"
 #include "input_common/main.h"
 #include "network/network.h"
+#include "sdl_config.h"
 #include "video_core/renderer_base.h"
-#include "yuzu_cmd/config.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2_gl.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2_null.h"
@@ -300,7 +301,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    Config config{config_path};
+    SdlConfig config{config_path};
 
     // apply the log_filter setting
     // the logger was initialized before and doesn't pick up the filter on its own

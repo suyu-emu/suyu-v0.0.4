@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <fmt/format.h>
 
+#include "configuration/qt_config.h"
 #include "core/hid/emulated_controller.h"
 #include "core/hid/hid_core.h"
 #include "input_common/drivers/keyboard.h"
@@ -15,7 +16,6 @@
 #include "input_common/main.h"
 #include "ui_configure_ringcon.h"
 #include "yuzu/bootmanager.h"
-#include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_ringcon.h"
 
 const std::array<std::string, ConfigureRingController::ANALOG_SUB_BUTTONS_NUM>
@@ -270,7 +270,7 @@ void ConfigureRingController::LoadConfiguration() {
 
 void ConfigureRingController::RestoreDefaults() {
     const std::string default_ring_string = InputCommon::GenerateAnalogParamFromKeys(
-        0, 0, Config::default_ringcon_analogs[0], Config::default_ringcon_analogs[1], 0, 0.05f);
+        0, 0, QtConfig::default_ringcon_analogs[0], QtConfig::default_ringcon_analogs[1], 0, 0.05f);
     emulated_controller->SetRingParam(Common::ParamPackage(default_ring_string));
     UpdateUI();
 }

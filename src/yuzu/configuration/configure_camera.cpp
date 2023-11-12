@@ -10,10 +10,10 @@
 #include <QStandardItemModel>
 #include <QTimer>
 
+#include "common/settings.h"
 #include "input_common/drivers/camera.h"
 #include "input_common/main.h"
 #include "ui_configure_camera.h"
-#include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_camera.h"
 
 ConfigureCamera::ConfigureCamera(QWidget* parent, InputCommon::InputSubsystem* input_subsystem_)

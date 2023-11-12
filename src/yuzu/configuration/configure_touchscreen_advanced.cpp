@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <memory>
+#include "common/settings.h"
 #include "ui_configure_touchscreen_advanced.h"
-#include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_touchscreen_advanced.h"
 
 ConfigureTouchscreenAdvanced::ConfigureTouchscreenAdvanced(QWidget* parent)
