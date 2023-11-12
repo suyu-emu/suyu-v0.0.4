@@ -22,8 +22,8 @@ add_library(yuzu-android SHARED
 
 set_property(TARGET yuzu-android PROPERTY IMPORTED_LOCATION ${FFmpeg_LIBRARY_DIR})
 
-target_link_libraries(yuzu-android PRIVATE android camera2ndk EGL glad inih jnigraphics log)
 target_link_libraries(yuzu-android PRIVATE audio_core common core input_common frontend_common)
+target_link_libraries(yuzu-android PRIVATE android camera2ndk EGL glad jnigraphics log)
 if (ARCHITECTURE_arm64)
     target_link_libraries(yuzu-android PRIVATE adrenotools)
 endif()

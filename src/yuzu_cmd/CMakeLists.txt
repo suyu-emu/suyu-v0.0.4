@@ -30,8 +30,8 @@ add_executable(yuzu-cmd
 
 create_target_directory_groups(yuzu-cmd)
 
-target_link_libraries(yuzu-cmd PRIVATE inih::INIReader glad)
 target_link_libraries(yuzu-cmd PRIVATE common core input_common frontend_common)
+target_link_libraries(yuzu-cmd PRIVATE glad)
 if (MSVC)
     target_link_libraries(yuzu-cmd PRIVATE getopt)
 endif()
