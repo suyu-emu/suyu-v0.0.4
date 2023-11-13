@@ -14,13 +14,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="?attr/colorSurface">
+        android:background="?attr/colorSurface"
+        android:paddingHorizontal="8dp">
 
         <ImageView
             android:id="@+id/logo_image"
-            android:layout_width="128dp"
-            android:layout_height="128dp"
-            android:layout_margin="64dp"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_marginVertical="32dp"
             android:layout_gravity="center_horizontal"
             android:src="@drawable/ic_yuzu_full" />
 
