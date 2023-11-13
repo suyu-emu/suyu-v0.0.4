@@ -82,7 +82,6 @@ object Settings {
 
     enum class MenuTag(val titleId: Int) {
         SECTION_ROOT(R.string.advanced_settings),
-        SECTION_GENERAL(R.string.preferences_general),
         SECTION_SYSTEM(R.string.preferences_system),
         SECTION_RENDERER(R.string.preferences_graphics),
         SECTION_AUDIO(R.string.preferences_audio),
