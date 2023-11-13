@@ -4,6 +4,7 @@
 package org.yuzu.yuzu_emu.features.settings.ui.viewholder
 
 import android.view.View
+import androidx.core.content.res.ResourcesCompat
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.RunnableSetting
@@ -16,6 +17,19 @@ class RunnableViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
 
     override fun bind(item: SettingsItem) {
         setting = item as RunnableSetting
+        if (item.iconId != 0) {
+            binding.icon.visibility = View.VISIBLE
+            binding.icon.setImageDrawable(
+                ResourcesCompat.getDrawable(
+                    binding.icon.resources,
+                    item.iconId,
+                    binding.icon.context.theme
+                )
+            )
+        } else {
+            binding.icon.visibility = View.GONE
+        }
+
         binding.textSettingName.setText(item.nameId)
         if (item.descriptionId != 0) {
             binding.textSettingDescription.setText(item.descriptionId)

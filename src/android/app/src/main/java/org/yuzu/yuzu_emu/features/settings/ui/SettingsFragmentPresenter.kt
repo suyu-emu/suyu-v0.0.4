@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import android.widget.Toast
@@ -32,8 +31,6 @@ class SettingsFragmentPresenter(
     private val preferences: SharedPreferences
         get() = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
-    private val context: Context get() = YuzuApplication.appContext
-
     // Extension for populating settings list based on paired settings
     fun ArrayList<SettingsItem>.add(key: String) {
         val item = SettingsItem.settingsItems[key]!!
@@ -53,7 +50,6 @@ class SettingsFragmentPresenter(
         val sl = ArrayList<SettingsItem>()
         when (menuTag) {
             Settings.MenuTag.SECTION_ROOT -> addConfigSettings(sl)
-            Settings.MenuTag.SECTION_GENERAL -> addGeneralSettings(sl)
             Settings.MenuTag.SECTION_SYSTEM -> addSystemSettings(sl)
             Settings.MenuTag.SECTION_RENDERER -> addGraphicsSettings(sl)
             Settings.MenuTag.SECTION_AUDIO -> addAudioSettings(sl)
@@ -75,30 +71,53 @@ class SettingsFragmentPresenter(
 
     private fun addConfigSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
-            add(SubmenuSetting(R.string.preferences_general, 0, Settings.MenuTag.SECTION_GENERAL))
-            add(SubmenuSetting(R.string.preferences_system, 0, Settings.MenuTag.SECTION_SYSTEM))
-            add(SubmenuSetting(R.string.preferences_graphics, 0, Settings.MenuTag.SECTION_RENDERER))
-            add(SubmenuSetting(R.string.preferences_audio, 0, Settings.MenuTag.SECTION_AUDIO))
-            add(SubmenuSetting(R.string.preferences_debug, 0, Settings.MenuTag.SECTION_DEBUG))
             add(
-                RunnableSetting(R.string.reset_to_default, 0, false) {
-                    settingsViewModel.setShouldShowResetSettingsDialog(true)
-                }
+                SubmenuSetting(
+                    R.string.preferences_system,
+                    R.string.preferences_system_description,
+                    R.drawable.ic_system_settings,
+                    Settings.MenuTag.SECTION_SYSTEM
+                )
             )
-        }
-    }
-
-    private fun addGeneralSettings(sl: ArrayList<SettingsItem>) {
-        sl.apply {
-            add(BooleanSetting.RENDERER_USE_SPEED_LIMIT.key)
-            add(ShortSetting.RENDERER_SPEED_LIMIT.key)
-            add(IntSetting.CPU_ACCURACY.key)
-            add(BooleanSetting.PICTURE_IN_PICTURE.key)
+            add(
+                SubmenuSetting(
+                    R.string.preferences_graphics,
+                    R.string.preferences_graphics_description,
+                    R.drawable.ic_graphics,
+                    Settings.MenuTag.SECTION_RENDERER
+                )
+            )
+            add(
+                SubmenuSetting(
+                    R.string.preferences_audio,
+                    R.string.preferences_audio_description,
+                    R.drawable.ic_audio,
+                    Settings.MenuTag.SECTION_AUDIO
+                )
+            )
+            add(
+                SubmenuSetting(
+                    R.string.preferences_debug,
+                    R.string.preferences_debug_description,
+                    R.drawable.ic_code,
+                    Settings.MenuTag.SECTION_DEBUG
+                )
+            )
+            add(
+                RunnableSetting(
+                    R.string.reset_to_default,
+                    R.string.reset_to_default_description,
+                    false,
+                    R.drawable.ic_restore
+                ) { settingsViewModel.setShouldShowResetSettingsDialog(true) }
+            )
         }
     }
 
     private fun addSystemSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
+            add(BooleanSetting.RENDERER_USE_SPEED_LIMIT.key)
+            add(ShortSetting.RENDERER_SPEED_LIMIT.key)
             add(BooleanSetting.USE_DOCKED_MODE.key)
             add(IntSetting.REGION_INDEX.key)
             add(IntSetting.LANGUAGE_INDEX.key)
@@ -116,6 +135,7 @@ class SettingsFragmentPresenter(
             add(IntSetting.RENDERER_ANTI_ALIASING.key)
             add(IntSetting.RENDERER_SCREEN_LAYOUT.key)
             add(IntSetting.RENDERER_ASPECT_RATIO.key)
+            add(BooleanSetting.PICTURE_IN_PICTURE.key)
             add(BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key)
             add(BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key)
             add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
@@ -249,6 +269,7 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.RENDERER_DEBUG.key)
 
             add(HeaderSetting(R.string.cpu))
+            add(IntSetting.CPU_ACCURACY.key)
             add(BooleanSetting.CPU_DEBUG_MODE.key)
             add(SettingsItem.FASTMEM_COMBINED)
         }
