@@ -146,7 +146,7 @@ public:
             return;
         }
 
-        paused = true;
+        SignalPause();
         if (cubeb_stream_stop(stream_backend) != CUBEB_OK) {
             LOG_CRITICAL(Audio_Sink, "Error stopping cubeb stream");
         }
