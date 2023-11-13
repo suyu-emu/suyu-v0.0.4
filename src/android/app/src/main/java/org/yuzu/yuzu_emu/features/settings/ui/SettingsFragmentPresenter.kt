@@ -53,7 +53,6 @@ class SettingsFragmentPresenter(
         val sl = ArrayList<SettingsItem>()
         when (menuTag) {
             Settings.MenuTag.SECTION_ROOT -> addConfigSettings(sl)
-            Settings.MenuTag.SECTION_GENERAL -> addGeneralSettings(sl)
             Settings.MenuTag.SECTION_SYSTEM -> addSystemSettings(sl)
             Settings.MenuTag.SECTION_RENDERER -> addGraphicsSettings(sl)
             Settings.MenuTag.SECTION_AUDIO -> addAudioSettings(sl)
@@ -75,7 +74,6 @@ class SettingsFragmentPresenter(
 
     private fun addConfigSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
-            add(SubmenuSetting(R.string.preferences_general, 0, Settings.MenuTag.SECTION_GENERAL))
             add(SubmenuSetting(R.string.preferences_system, 0, Settings.MenuTag.SECTION_SYSTEM))
             add(SubmenuSetting(R.string.preferences_graphics, 0, Settings.MenuTag.SECTION_RENDERER))
             add(SubmenuSetting(R.string.preferences_audio, 0, Settings.MenuTag.SECTION_AUDIO))
@@ -88,17 +86,10 @@ class SettingsFragmentPresenter(
         }
     }
 
-    private fun addGeneralSettings(sl: ArrayList<SettingsItem>) {
+    private fun addSystemSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
             add(BooleanSetting.RENDERER_USE_SPEED_LIMIT.key)
             add(ShortSetting.RENDERER_SPEED_LIMIT.key)
-            add(IntSetting.CPU_ACCURACY.key)
-            add(BooleanSetting.PICTURE_IN_PICTURE.key)
-        }
-    }
-
-    private fun addSystemSettings(sl: ArrayList<SettingsItem>) {
-        sl.apply {
             add(BooleanSetting.USE_DOCKED_MODE.key)
             add(IntSetting.REGION_INDEX.key)
             add(IntSetting.LANGUAGE_INDEX.key)
@@ -116,6 +107,7 @@ class SettingsFragmentPresenter(
             add(IntSetting.RENDERER_ANTI_ALIASING.key)
             add(IntSetting.RENDERER_SCREEN_LAYOUT.key)
             add(IntSetting.RENDERER_ASPECT_RATIO.key)
+            add(BooleanSetting.PICTURE_IN_PICTURE.key)
             add(BooleanSetting.RENDERER_USE_DISK_SHADER_CACHE.key)
             add(BooleanSetting.RENDERER_FORCE_MAX_CLOCK.key)
             add(BooleanSetting.RENDERER_ASYNCHRONOUS_SHADERS.key)
@@ -249,6 +241,7 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.RENDERER_DEBUG.key)
 
             add(HeaderSetting(R.string.cpu))
+            add(IntSetting.CPU_ACCURACY.key)
             add(BooleanSetting.CPU_DEBUG_MODE.key)
             add(SettingsItem.FASTMEM_COMBINED)
         }
