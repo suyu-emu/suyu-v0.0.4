@@ -1064,12 +1064,6 @@ void GMainWindow::InitializeWidgets() {
     volume_slider->setObjectName(QStringLiteral("volume_slider"));
     volume_slider->setMaximum(200);
     volume_slider->setPageStep(5);
-    connect(volume_slider, &QSlider::valueChanged, this, [this](int percentage) {
-        Settings::values.audio_muted = false;
-        const auto volume = static_cast<u8>(percentage);
-        Settings::values.volume.SetValue(volume);
-        UpdateVolumeUI();
-    });
     volume_popup->layout()->addWidget(volume_slider);
 
     volume_button = new VolumeButton();
@@ -1077,6 +1071,12 @@ void GMainWindow::InitializeWidgets() {
     volume_button->setFocusPolicy(Qt::NoFocus);
     volume_button->setCheckable(true);
     UpdateVolumeUI();
+    connect(volume_slider, &QSlider::valueChanged, this, [this](int percentage) {
+        Settings::values.audio_muted = false;
+        const auto volume = static_cast<u8>(percentage);
+        Settings::values.volume.SetValue(volume);
+        UpdateVolumeUI();
+    });
     connect(volume_button, &QPushButton::clicked, this, [&] {
         UpdateVolumeUI();
         volume_popup->setVisible(!volume_popup->isVisible());

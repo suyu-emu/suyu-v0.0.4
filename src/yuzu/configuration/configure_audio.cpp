@@ -38,17 +38,21 @@ void ConfigureAudio::Setup(const ConfigurationShared::Builder& builder) {
 
     std::map<u32, QWidget*> hold;
 
-    auto push = [&](Settings::Category category) {
+    auto push_settings = [&](Settings::Category category) {
         for (auto* setting : Settings::values.linkage.by_category[category]) {
             settings.push_back(setting);
         }
+    };
+
+    auto push_ui_settings = [&](Settings::Category category) {
         for (auto* setting : UISettings::values.linkage.by_category[category]) {
             settings.push_back(setting);
         }
     };
 
-    push(Settings::Category::Audio);
-    push(Settings::Category::SystemAudio);
+    push_settings(Settings::Category::Audio);
+    push_settings(Settings::Category::SystemAudio);
+    push_ui_settings(Settings::Category::UiAudio);
 
     for (auto* setting : settings) {
         auto* widget = builder.BuildWidget(setting, apply_funcs);
