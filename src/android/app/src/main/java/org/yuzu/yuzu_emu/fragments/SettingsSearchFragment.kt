@@ -40,8 +40,10 @@ class SettingsSearchFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
-        returnTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
+        enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+        returnTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
+        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
+        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
     }
 
     override fun onCreateView(
@@ -55,7 +57,6 @@ class SettingsSearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        settingsViewModel.setIsUsingSearch(true)
 
         if (savedInstanceState != null) {
             binding.searchText.setText(savedInstanceState.getString(SEARCH_TEXT))
