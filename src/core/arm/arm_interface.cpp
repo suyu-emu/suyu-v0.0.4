@@ -153,6 +153,14 @@ void ARM_Interface::Run() {
         Kernel::KThread* current_thread{Kernel::GetCurrentThreadPointer(system.Kernel())};
         HaltReason hr{};
 
+        // If the thread is scheduled for termination, exit the thread.
+        if (current_thread->HasDpc()) {
+            if (current_thread->IsTerminationRequested()) {
+                current_thread->Exit();
+                UNREACHABLE();
+            }
+        }
+
         // Notify the debugger and go to sleep if a step was performed
         // and this thread has been scheduled again.
         if (current_thread->GetStepState() == StepState::StepPerformed) {
@@ -173,14 +181,6 @@ void ARM_Interface::Run() {
             hr = RunJit();
         }
         system.ExitCPUProfile();
-
-        // If the thread is scheduled for termination, exit the thread.
-        if (current_thread->HasDpc()) {
-            if (current_thread->IsTerminationRequested()) {
-                current_thread->Exit();
-                UNREACHABLE();
-            }
-        }
 
         // Notify the debugger and go to sleep if a breakpoint was hit,
         // or if the thread is unable to continue for any reason.
