@@ -29,9 +29,6 @@ class SettingsViewModel : ViewModel() {
     val shouldReloadSettingsList: StateFlow<Boolean> get() = _shouldReloadSettingsList
     private val _shouldReloadSettingsList = MutableStateFlow(false)
 
-    val isUsingSearch: StateFlow<Boolean> get() = _isUsingSearch
-    private val _isUsingSearch = MutableStateFlow(false)
-
     val sliderProgress: StateFlow<Int> get() = _sliderProgress
     private val _sliderProgress = MutableStateFlow(-1)
 
@@ -55,10 +52,6 @@ class SettingsViewModel : ViewModel() {
 
     fun setShouldReloadSettingsList(value: Boolean) {
         _shouldReloadSettingsList.value = value
-    }
-
-    fun setIsUsingSearch(value: Boolean) {
-        _isUsingSearch.value = value
     }
 
     fun setSliderTextValue(value: Float, units: String) {

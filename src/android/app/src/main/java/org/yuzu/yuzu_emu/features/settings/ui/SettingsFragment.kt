@@ -87,17 +87,6 @@ class SettingsFragment : Fragment() {
                     }
                 }
             }
-            launch {
-                settingsViewModel.isUsingSearch.collectLatest {
-                    if (it) {
-                        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
-                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
-                    } else {
-                        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
-                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
-                    }
-                }
-            }
         }
 
         if (args.menuTag == Settings.MenuTag.SECTION_ROOT) {
@@ -105,8 +94,6 @@ class SettingsFragment : Fragment() {
             binding.toolbarSettings.setOnMenuItemClickListener {
                 when (it.itemId) {
                     R.id.action_search -> {
-                        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
-                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
                         view.findNavController()
                             .navigate(R.id.action_settingsFragment_to_settingsSearchFragment)
                         true
@@ -120,11 +107,6 @@ class SettingsFragment : Fragment() {
         presenter.onViewCreated()
 
         setInsets()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        settingsViewModel.setIsUsingSearch(false)
     }
 
     private fun setInsets() {
