@@ -144,10 +144,9 @@ class SettingsFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val sideMargin = resources.getDimensionPixelSize(R.dimen.spacing_medlarge)
             val mlpSettingsList = binding.listSettings.layoutParams as MarginLayoutParams
-            mlpSettingsList.leftMargin = sideMargin + leftInsets
-            mlpSettingsList.rightMargin = sideMargin + rightInsets
+            mlpSettingsList.leftMargin = leftInsets
+            mlpSettingsList.rightMargin = rightInsets
             binding.listSettings.layoutParams = mlpSettingsList
             binding.listSettings.updatePadding(
                 bottom = barInsets.bottom

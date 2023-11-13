@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import android.widget.Toast
@@ -31,8 +30,6 @@ class SettingsFragmentPresenter(
 
     private val preferences: SharedPreferences
         get() = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-
-    private val context: Context get() = YuzuApplication.appContext
 
     // Extension for populating settings list based on paired settings
     fun ArrayList<SettingsItem>.add(key: String) {
@@ -74,14 +71,45 @@ class SettingsFragmentPresenter(
 
     private fun addConfigSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
-            add(SubmenuSetting(R.string.preferences_system, 0, Settings.MenuTag.SECTION_SYSTEM))
-            add(SubmenuSetting(R.string.preferences_graphics, 0, Settings.MenuTag.SECTION_RENDERER))
-            add(SubmenuSetting(R.string.preferences_audio, 0, Settings.MenuTag.SECTION_AUDIO))
-            add(SubmenuSetting(R.string.preferences_debug, 0, Settings.MenuTag.SECTION_DEBUG))
             add(
-                RunnableSetting(R.string.reset_to_default, 0, false) {
-                    settingsViewModel.setShouldShowResetSettingsDialog(true)
-                }
+                SubmenuSetting(
+                    R.string.preferences_system,
+                    R.string.preferences_system_description,
+                    R.drawable.ic_system_settings,
+                    Settings.MenuTag.SECTION_SYSTEM
+                )
+            )
+            add(
+                SubmenuSetting(
+                    R.string.preferences_graphics,
+                    R.string.preferences_graphics_description,
+                    R.drawable.ic_graphics,
+                    Settings.MenuTag.SECTION_RENDERER
+                )
+            )
+            add(
+                SubmenuSetting(
+                    R.string.preferences_audio,
+                    R.string.preferences_audio_description,
+                    R.drawable.ic_audio,
+                    Settings.MenuTag.SECTION_AUDIO
+                )
+            )
+            add(
+                SubmenuSetting(
+                    R.string.preferences_debug,
+                    R.string.preferences_debug_description,
+                    R.drawable.ic_code,
+                    Settings.MenuTag.SECTION_DEBUG
+                )
+            )
+            add(
+                RunnableSetting(
+                    R.string.reset_to_default,
+                    R.string.reset_to_default_description,
+                    false,
+                    R.drawable.ic_restore
+                ) { settingsViewModel.setShouldShowResetSettingsDialog(true) }
             )
         }
     }
