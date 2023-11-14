@@ -111,7 +111,7 @@ public:
         if (device == 0 || paused) {
             return;
         }
-        paused = true;
+        SignalPause();
         SDL_PauseAudioDevice(device, 1);
     }
 
