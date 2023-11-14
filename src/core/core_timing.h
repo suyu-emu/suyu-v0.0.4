@@ -161,7 +161,7 @@ private:
     std::shared_ptr<EventType> ev_lost;
     Common::Event event{};
     Common::Event pause_event{};
-    std::mutex basic_lock;
+    mutable std::mutex basic_lock;
     std::mutex advance_lock;
     std::unique_ptr<std::jthread> timer_thread;
     std::atomic<bool> paused{};
