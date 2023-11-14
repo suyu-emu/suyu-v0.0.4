@@ -22,12 +22,16 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.drawable.toDrawable
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.AsyncDifferConfig
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
@@ -92,28 +96,34 @@ class GameAdapter(private val activity: AppCompatActivity) :
             data = Uri.parse(holder.game.path)
         }
 
-        val layerDrawable = ResourcesCompat.getDrawable(
-            YuzuApplication.appContext.resources,
-            R.drawable.shortcut,
-            null
-        ) as LayerDrawable
-        layerDrawable.setDrawableByLayerId(
-            R.id.shortcut_foreground,
-            GameIconUtils.getGameIcon(holder.game).toDrawable(YuzuApplication.appContext.resources)
-        )
-        val inset = YuzuApplication.appContext.resources
-            .getDimensionPixelSize(R.dimen.icon_inset)
-        layerDrawable.setLayerInset(1, inset, inset, inset, inset)
-        val shortcut = ShortcutInfoCompat.Builder(YuzuApplication.appContext, holder.game.path)
-            .setShortLabel(holder.game.title)
-            .setIcon(
-                IconCompat.createWithAdaptiveBitmap(
-                    layerDrawable.toBitmap(config = Bitmap.Config.ARGB_8888)
+        activity.lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                val layerDrawable = ResourcesCompat.getDrawable(
+                    YuzuApplication.appContext.resources,
+                    R.drawable.shortcut,
+                    null
+                ) as LayerDrawable
+                layerDrawable.setDrawableByLayerId(
+                    R.id.shortcut_foreground,
+                    GameIconUtils.getGameIcon(activity, holder.game)
+                        .toDrawable(YuzuApplication.appContext.resources)
                 )
-            )
-            .setIntent(openIntent)
-            .build()
-        ShortcutManagerCompat.pushDynamicShortcut(YuzuApplication.appContext, shortcut)
+                val inset = YuzuApplication.appContext.resources
+                    .getDimensionPixelSize(R.dimen.icon_inset)
+                layerDrawable.setLayerInset(1, inset, inset, inset, inset)
+                val shortcut =
+                    ShortcutInfoCompat.Builder(YuzuApplication.appContext, holder.game.path)
+                        .setShortLabel(holder.game.title)
+                        .setIcon(
+                            IconCompat.createWithAdaptiveBitmap(
+                                layerDrawable.toBitmap(config = Bitmap.Config.ARGB_8888)
+                            )
+                        )
+                        .setIntent(openIntent)
+                        .build()
+                ShortcutManagerCompat.pushDynamicShortcut(YuzuApplication.appContext, shortcut)
+            }
+        }
 
         val action = HomeNavigationDirections.actionGlobalEmulationActivity(holder.game)
         view.findNavController().navigate(action)
