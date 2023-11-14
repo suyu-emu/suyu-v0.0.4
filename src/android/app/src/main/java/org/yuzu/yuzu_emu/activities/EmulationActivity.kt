@@ -373,8 +373,10 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         val pictureInPictureParamsBuilder = PictureInPictureParams.Builder()
             .getPictureInPictureActionsBuilder().getPictureInPictureAspectBuilder()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val isEmulationActive = emulationViewModel.emulationStarted.value &&
+                !emulationViewModel.isEmulationStopping.value
             pictureInPictureParamsBuilder.setAutoEnterEnabled(
-                BooleanSetting.PICTURE_IN_PICTURE.boolean
+                BooleanSetting.PICTURE_IN_PICTURE.boolean && isEmulationActive
             )
         }
         setPictureInPictureParams(pictureInPictureParamsBuilder.build())
