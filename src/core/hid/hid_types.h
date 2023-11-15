@@ -356,6 +356,14 @@ struct TouchState {
 };
 static_assert(sizeof(TouchState) == 0x28, "Touchstate is an invalid size");
 
+struct TouchFinger {
+    u64 last_touch{};
+    Common::Point<float> position{};
+    u32 id{};
+    TouchAttribute attribute{};
+    bool pressed{};
+};
+
 // This is nn::hid::TouchScreenConfigurationForNx
 struct TouchScreenConfigurationForNx {
     TouchScreenModeForNx mode{TouchScreenModeForNx::UseSystemSetting};
