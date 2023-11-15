@@ -23,7 +23,7 @@ public:
     void ProcessMethod(u32 method, u32 argument);
 
     /// Return most recently decoded frame
-    [[nodiscard]] AVFramePtr GetFrame();
+    [[nodiscard]] std::unique_ptr<FFmpeg::Frame> GetFrame();
 
 private:
     /// Invoke codec to decode a frame
