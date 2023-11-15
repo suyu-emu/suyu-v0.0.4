@@ -82,27 +82,26 @@ void Vic::Execute() {
         return;
     }
     const VicConfig config{host1x.MemoryManager().Read<u64>(config_struct_address + 0x20)};
-    const AVFramePtr frame_ptr = nvdec_processor->GetFrame();
-    const auto* frame = frame_ptr.get();
+    auto frame = nvdec_processor->GetFrame();
     if (!frame) {
         return;
     }
     const u64 surface_width = config.surface_width_minus1 + 1;
     const u64 surface_height = config.surface_height_minus1 + 1;
-    if (static_cast<u64>(frame->width) != surface_width ||
-        static_cast<u64>(frame->height) != surface_height) {
+    if (static_cast<u64>(frame->GetWidth()) != surface_width ||
+        static_cast<u64>(frame->GetHeight()) != surface_height) {
         // TODO: Properly support multiple video streams with differing frame dimensions
         LOG_WARNING(Service_NVDRV, "Frame dimensions {}x{} don't match surface dimensions {}x{}",
-                    frame->width, frame->height, surface_width, surface_height);
+                    frame->GetWidth(), frame->GetHeight(), surface_width, surface_height);
     }
     switch (config.pixel_format) {
     case VideoPixelFormat::RGBA8:
     case VideoPixelFormat::BGRA8:
     case VideoPixelFormat::RGBX8:
-        WriteRGBFrame(frame, config);
+        WriteRGBFrame(std::move(frame), config);
         break;
     case VideoPixelFormat::YUV420:
-        WriteYUVFrame(frame, config);
+        WriteYUVFrame(std::move(frame), config);
         break;
     default:
         UNIMPLEMENTED_MSG("Unknown video pixel format {:X}", config.pixel_format.Value());
@@ -110,10 +109,14 @@ void Vic::Execute() {
     }
 }
 
-void Vic::WriteRGBFrame(const AVFrame* frame, const VicConfig& config) {
+void Vic::WriteRGBFrame(std::unique_ptr<FFmpeg::Frame> frame, const VicConfig& config) {
     LOG_TRACE(Service_NVDRV, "Writing RGB Frame");
 
-    if (!scaler_ctx || frame->width != scaler_width || frame->height != scaler_height) {
+    const auto frame_width = frame->GetWidth();
+    const auto frame_height = frame->GetHeight();
+    const auto frame_format = frame->GetPixelFormat();
+
+    if (!scaler_ctx || frame_width != scaler_width || frame_height != scaler_height) {
         const AVPixelFormat target_format = [pixel_format = config.pixel_format]() {
             switch (pixel_format) {
             case VideoPixelFormat::RGBA8:
@@ -129,27 +132,26 @@ void Vic::WriteRGBFrame(const AVFrame* frame, const VicConfig& config) {
 
         sws_freeContext(scaler_ctx);
         // Frames are decoded into either YUV420 or NV12 formats. Convert to desired RGB format
-        scaler_ctx = sws_getContext(frame->width, frame->height,
-                                    static_cast<AVPixelFormat>(frame->format), frame->width,
-                                    frame->height, target_format, 0, nullptr, nullptr, nullptr);
-        scaler_width = frame->width;
-        scaler_height = frame->height;
+        scaler_ctx = sws_getContext(frame_width, frame_height, frame_format, frame_width,
+                                    frame_height, target_format, 0, nullptr, nullptr, nullptr);
+        scaler_width = frame_width;
+        scaler_height = frame_height;
         converted_frame_buffer.reset();
     }
     if (!converted_frame_buffer) {
-        const size_t frame_size = frame->width * frame->height * 4;
+        const size_t frame_size = frame_width * frame_height * 4;
         converted_frame_buffer = AVMallocPtr{static_cast<u8*>(av_malloc(frame_size)), av_free};
     }
-    const std::array<int, 4> converted_stride{frame->width * 4, frame->height * 4, 0, 0};
+    const std::array<int, 4> converted_stride{frame_width * 4, frame_height * 4, 0, 0};
     u8* const converted_frame_buf_addr{converted_frame_buffer.get()};
-    sws_scale(scaler_ctx, frame->data, frame->linesize, 0, frame->height, &converted_frame_buf_addr,
-              converted_stride.data());
+    sws_scale(scaler_ctx, frame->GetPlanes(), frame->GetStrides(), 0, frame_height,
+              &converted_frame_buf_addr, converted_stride.data());
 
     // Use the minimum of surface/frame dimensions to avoid buffer overflow.
     const u32 surface_width = static_cast<u32>(config.surface_width_minus1) + 1;
     const u32 surface_height = static_cast<u32>(config.surface_height_minus1) + 1;
-    const u32 width = std::min(surface_width, static_cast<u32>(frame->width));
-    const u32 height = std::min(surface_height, static_cast<u32>(frame->height));
+    const u32 width = std::min(surface_width, static_cast<u32>(frame_width));
+    const u32 height = std::min(surface_height, static_cast<u32>(frame_height));
     const u32 blk_kind = static_cast<u32>(config.block_linear_kind);
     if (blk_kind != 0) {
         // swizzle pitch linear to block linear
@@ -169,23 +171,23 @@ void Vic::WriteRGBFrame(const AVFrame* frame, const VicConfig& config) {
     }
 }
 
-void Vic::WriteYUVFrame(const AVFrame* frame, const VicConfig& config) {
+void Vic::WriteYUVFrame(std::unique_ptr<FFmpeg::Frame> frame, const VicConfig& config) {
     LOG_TRACE(Service_NVDRV, "Writing YUV420 Frame");
 
     const std::size_t surface_width = config.surface_width_minus1 + 1;
     const std::size_t surface_height = config.surface_height_minus1 + 1;
     const std::size_t aligned_width = (surface_width + 0xff) & ~0xffUL;
     // Use the minimum of surface/frame dimensions to avoid buffer overflow.
-    const auto frame_width = std::min(surface_width, static_cast<size_t>(frame->width));
-    const auto frame_height = std::min(surface_height, static_cast<size_t>(frame->height));
+    const auto frame_width = std::min(surface_width, static_cast<size_t>(frame->GetWidth()));
+    const auto frame_height = std::min(surface_height, static_cast<size_t>(frame->GetHeight()));
 
-    const auto stride = static_cast<size_t>(frame->linesize[0]);
+    const auto stride = static_cast<size_t>(frame->GetStride(0));
 
     luma_buffer.resize_destructive(aligned_width * surface_height);
     chroma_buffer.resize_destructive(aligned_width * surface_height / 2);
 
     // Populate luma buffer
-    const u8* luma_src = frame->data[0];
+    const u8* luma_src = frame->GetData(0);
     for (std::size_t y = 0; y < frame_height; ++y) {
         const std::size_t src = y * stride;
         const std::size_t dst = y * aligned_width;
@@ -196,16 +198,16 @@ void Vic::WriteYUVFrame(const AVFrame* frame, const VicConfig& config) {
 
     // Chroma
     const std::size_t half_height = frame_height / 2;
-    const auto half_stride = static_cast<size_t>(frame->linesize[1]);
+    const auto half_stride = static_cast<size_t>(frame->GetStride(1));
 
-    switch (frame->format) {
+    switch (frame->GetPixelFormat()) {
     case AV_PIX_FMT_YUV420P: {
         // Frame from FFmpeg software
         // Populate chroma buffer from both channels with interleaving.
         const std::size_t half_width = frame_width / 2;
         u8* chroma_buffer_data = chroma_buffer.data();
-        const u8* chroma_b_src = frame->data[1];
-        const u8* chroma_r_src = frame->data[2];
+        const u8* chroma_b_src = frame->GetData(1);
+        const u8* chroma_r_src = frame->GetData(2);
         for (std::size_t y = 0; y < half_height; ++y) {
             const std::size_t src = y * half_stride;
             const std::size_t dst = y * aligned_width;
@@ -219,7 +221,7 @@ void Vic::WriteYUVFrame(const AVFrame* frame, const VicConfig& config) {
     case AV_PIX_FMT_NV12: {
         // Frame from VA-API hardware
         // This is already interleaved so just copy
-        const u8* chroma_src = frame->data[1];
+        const u8* chroma_src = frame->GetData(1);
         for (std::size_t y = 0; y < half_height; ++y) {
             const std::size_t src = y * stride;
             const std::size_t dst = y * aligned_width;
