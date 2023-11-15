@@ -13,7 +13,7 @@ struct Values {
     Settings::Linkage linkage;
 
     // Android
-    Settings::Setting<bool> picture_in_picture{linkage, true, "picture_in_picture",
+    Settings::Setting<bool> picture_in_picture{linkage, false, "picture_in_picture",
                                                Settings::Category::Android};
     Settings::Setting<s32> screen_layout{linkage,
                                          5,
