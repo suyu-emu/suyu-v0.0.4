@@ -211,6 +211,13 @@ public:
             return;
         }
         PauseCounter();
+        const auto driver_id = device.GetDriverID();
+        if (driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+            driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
+            pending_sync.clear();
+            sync_values_stash.clear();
+            return;
+        }
         sync_values_stash.clear();
         sync_values_stash.emplace_back();
         std::vector<HostSyncValues>* sync_values = &sync_values_stash.back();
@@ -1375,6 +1382,12 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
 
     const bool is_gpu_high = Settings::IsGPULevelHigh();
     if (!is_gpu_high && impl->device.GetDriverID() == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
+        return true;
+    }
+
+    auto driver_id = impl->device.GetDriverID();
+    if (driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
+        driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
         return true;
     }
 
