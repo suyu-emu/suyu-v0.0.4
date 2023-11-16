@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: 2015 Citra Emulator Project
+// SPDX-FileCopyrightText: 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
 #include <cstring>
+#include <mutex>
 #include <span>
 
 #include "common/assert.h"
@@ -10,6 +12,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/page_table.h"
+#include "common/scope_exit.h"
 #include "common/settings.h"
 #include "common/swap.h"
 #include "core/core.h"
@@ -318,7 +321,7 @@ struct Memory::Impl {
             [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
                 u8* const host_ptr) {
                 if constexpr (!UNSAFE) {
-                    system.GPU().InvalidateRegion(GetInteger(current_vaddr), copy_amount);
+                    HandleRasterizerWrite(GetInteger(current_vaddr), copy_amount);
                 }
                 std::memcpy(host_ptr, src_buffer, copy_amount);
             },
@@ -351,7 +354,7 @@ struct Memory::Impl {
             },
             [&](const Common::ProcessAddress current_vaddr, const std::size_t copy_amount,
                 u8* const host_ptr) {
-                system.GPU().InvalidateRegion(GetInteger(current_vaddr), copy_amount);
+                HandleRasterizerWrite(GetInteger(current_vaddr), copy_amount);
                 std::memset(host_ptr, 0, copy_amount);
             },
             [](const std::size_t copy_amount) {});
@@ -420,7 +423,7 @@ struct Memory::Impl {
                                  const std::size_t block_size) {
             // dc cvac: Store to point of coherency
             // CPU flush -> GPU invalidate
-            system.GPU().InvalidateRegion(GetInteger(current_vaddr), block_size);
+            HandleRasterizerWrite(GetInteger(current_vaddr), block_size);
         };
         return PerformCacheOperation(dest_addr, size, on_rasterizer);
     }
@@ -430,7 +433,7 @@ struct Memory::Impl {
                                  const std::size_t block_size) {
             // dc civac: Store to point of coherency, and invalidate from cache
             // CPU flush -> GPU invalidate
-            system.GPU().InvalidateRegion(GetInteger(current_vaddr), block_size);
+            HandleRasterizerWrite(GetInteger(current_vaddr), block_size);
         };
         return PerformCacheOperation(dest_addr, size, on_rasterizer);
     }
@@ -767,7 +770,18 @@ struct Memory::Impl {
     }
 
     void HandleRasterizerWrite(VAddr address, size_t size) {
-        const size_t core = system.GetCurrentHostThreadID();
+        constexpr size_t sys_core = Core::Hardware::NUM_CPU_CORES - 1;
+        const size_t core = std::min(system.GetCurrentHostThreadID(),
+                                     sys_core); // any other calls threads go to syscore.
+        // Guard on sys_core;
+        if (core == sys_core) [[unlikely]] {
+            sys_core_guard.lock();
+        }
+        SCOPE_EXIT({
+            if (core == sys_core) [[unlikely]] {
+                sys_core_guard.unlock();
+            }
+        });
         auto& current_area = rasterizer_write_areas[core];
         VAddr subaddress = address >> YUZU_PAGEBITS;
         bool do_collection = current_area.last_address == subaddress;
@@ -799,6 +813,7 @@ struct Memory::Impl {
         rasterizer_read_areas{};
     std::array<GPUDirtyState, Core::Hardware::NUM_CPU_CORES> rasterizer_write_areas{};
     std::span<Core::GPUDirtyMemoryManager> gpu_dirty_managers;
+    std::mutex sys_core_guard;
 };
 
 Memory::Memory(Core::System& system_) : system{system_} {

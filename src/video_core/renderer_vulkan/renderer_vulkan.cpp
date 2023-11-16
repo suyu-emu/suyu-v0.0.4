@@ -132,16 +132,12 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     const bool use_accelerated =
         rasterizer.AccelerateDisplay(*framebuffer, framebuffer_addr, framebuffer->stride);
     const bool is_srgb = use_accelerated && screen_info.is_srgb;
+    RenderScreenshot(*framebuffer, use_accelerated);
 
-    {
-        std::scoped_lock lock{rasterizer.LockCaches()};
-        RenderScreenshot(*framebuffer, use_accelerated);
-
-        Frame* frame = present_manager.GetRenderFrame();
-        blit_screen.DrawToSwapchain(frame, *framebuffer, use_accelerated, is_srgb);
-        scheduler.Flush(*frame->render_ready);
-        present_manager.Present(frame);
-    }
+    Frame* frame = present_manager.GetRenderFrame();
+    blit_screen.DrawToSwapchain(frame, *framebuffer, use_accelerated, is_srgb);
+    scheduler.Flush(*frame->render_ready);
+    present_manager.Present(frame);
 
     gpu.RendererFrameEndNotify();
     rasterizer.TickFrame();
