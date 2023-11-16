@@ -75,19 +75,19 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {26, nullptr, "ActivateDebugMouse"},
         {31, &IHidServer::ActivateKeyboard, "ActivateKeyboard"},
         {32, &IHidServer::SendKeyboardLockKeyEvent, "SendKeyboardLockKeyEvent"},
-        {40, nullptr, "AcquireXpadIdEventHandle"},
-        {41, nullptr, "ReleaseXpadIdEventHandle"},
+        {40, &IHidServer::AcquireXpadIdEventHandle, "AcquireXpadIdEventHandle"},
+        {41, &IHidServer::ReleaseXpadIdEventHandle, "ReleaseXpadIdEventHandle"},
         {51, &IHidServer::ActivateXpad, "ActivateXpad"},
         {55, &IHidServer::GetXpadIds, "GetXpadIds"},
-        {56, nullptr, "ActivateJoyXpad"},
-        {58, nullptr, "GetJoyXpadLifoHandle"},
-        {59, nullptr, "GetJoyXpadIds"},
+        {56, &IHidServer::ActivateJoyXpad, "ActivateJoyXpad"},
+        {58, &IHidServer::GetJoyXpadLifoHandle, "GetJoyXpadLifoHandle"},
+        {59, &IHidServer::GetJoyXpadIds, "GetJoyXpadIds"},
         {60, &IHidServer::ActivateSixAxisSensor, "ActivateSixAxisSensor"},
         {61, &IHidServer::DeactivateSixAxisSensor, "DeactivateSixAxisSensor"},
-        {62, nullptr, "GetSixAxisSensorLifoHandle"},
-        {63, nullptr, "ActivateJoySixAxisSensor"},
-        {64, nullptr, "DeactivateJoySixAxisSensor"},
-        {65, nullptr, "GetJoySixAxisSensorLifoHandle"},
+        {62, &IHidServer::GetSixAxisSensorLifoHandle, "GetSixAxisSensorLifoHandle"},
+        {63, &IHidServer::ActivateJoySixAxisSensor, "ActivateJoySixAxisSensor"},
+        {64, &IHidServer::DeactivateJoySixAxisSensor, "DeactivateJoySixAxisSensor"},
+        {65, &IHidServer::GetJoySixAxisSensorLifoHandle, "GetJoySixAxisSensorLifoHandle"},
         {66, &IHidServer::StartSixAxisSensor, "StartSixAxisSensor"},
         {67, &IHidServer::StopSixAxisSensor, "StopSixAxisSensor"},
         {68, &IHidServer::IsSixAxisSensorFusionEnabled, "IsSixAxisSensorFusionEnabled"},
@@ -284,6 +284,31 @@ void IHidServer::SendKeyboardLockKeyEvent(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
+void IHidServer::AcquireXpadIdEventHandle(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    // This function has been stubbed since 10.0.0+
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(ResultSuccess);
+    // Handle returned is null here
+}
+
+void IHidServer::ReleaseXpadIdEventHandle(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    // This function has been stubbed since 10.0.0+
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void IHidServer::ActivateXpad(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
@@ -295,41 +320,70 @@ void IHidServer::ActivateXpad(HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    GetResourceManager()->ActivateController(HidController::XPad);
-
     LOG_DEBUG(Service_HID, "called, basic_xpad_id={}, applet_resource_user_id={}",
               parameters.basic_xpad_id, parameters.applet_resource_user_id);
+
+    // This function has been stubbed since 10.0.0+
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void IHidServer::GetXpadIds(HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
+    LOG_DEBUG(Service_HID, "called");
 
-    LOG_DEBUG(Service_HID, "(STUBBED) called, applet_resource_user_id={}", applet_resource_user_id);
+    // This function has been hardcoded since 10.0.0+
+    const std::array<u32, 4> basic_xpad_id{0, 1, 2, 3};
+    ctx.WriteBuffer(basic_xpad_id);
 
-    IPC::ResponseBuilder rb{ctx, 3};
+    IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
-    rb.Push(0);
+    rb.Push<s64>(basic_xpad_id.size());
+}
+
+void IHidServer::ActivateJoyXpad(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto joy_xpad_id{rp.Pop<u32>()};
+
+    LOG_DEBUG(Service_HID, "called, joy_xpad_id={}", joy_xpad_id);
+
+    // This function has been stubbed since 10.0.0+
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidServer::GetJoyXpadLifoHandle(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto joy_xpad_id{rp.Pop<u32>()};
+
+    LOG_DEBUG(Service_HID, "called, joy_xpad_id={}", joy_xpad_id);
+
+    // This function has been stubbed since 10.0.0+
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(ResultSuccess);
+    // Handle returned is null here
+}
+
+void IHidServer::GetJoyXpadIds(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_HID, "called");
+
+    // This function has been hardcoded since 10.0.0+
+    const s64 basic_xpad_id_count{};
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push(basic_xpad_id_count);
 }
 
 void IHidServer::ActivateSixAxisSensor(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    struct Parameters {
-        u32 basic_xpad_id;
-        INSERT_PADDING_WORDS_NOINIT(1);
-        u64 applet_resource_user_id;
-    };
-    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
+    const auto joy_xpad_id{rp.Pop<u32>()};
 
-    const auto parameters{rp.PopRaw<Parameters>()};
+    LOG_DEBUG(Service_HID, "called, joy_xpad_id={}", joy_xpad_id);
 
-    // This function does nothing on 10.0.0+
-
-    LOG_WARNING(Service_HID, "(STUBBED) called, basic_xpad_id={}, applet_resource_user_id={}",
-                parameters.basic_xpad_id, parameters.applet_resource_user_id);
+    // This function has been stubbed since 10.0.0+
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -337,22 +391,63 @@ void IHidServer::ActivateSixAxisSensor(HLERequestContext& ctx) {
 
 void IHidServer::DeactivateSixAxisSensor(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    struct Parameters {
-        u32 basic_xpad_id;
-        INSERT_PADDING_WORDS_NOINIT(1);
-        u64 applet_resource_user_id;
-    };
-    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
+    const auto joy_xpad_id{rp.Pop<u32>()};
 
-    const auto parameters{rp.PopRaw<Parameters>()};
+    LOG_DEBUG(Service_HID, "called, joy_xpad_id={}", joy_xpad_id);
 
-    // This function does nothing on 10.0.0+
+    // This function has been stubbed since 10.0.0+
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, basic_xpad_id={}, applet_resource_user_id={}",
-                parameters.basic_xpad_id, parameters.applet_resource_user_id);
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(ResultSuccess);
+}
+
+void IHidServer::GetSixAxisSensorLifoHandle(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto joy_xpad_id{rp.Pop<u32>()};
+
+    LOG_DEBUG(Service_HID, "called, joy_xpad_id={}", joy_xpad_id);
+
+    // This function has been stubbed since 10.0.0+
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
+}
+
+void IHidServer::ActivateJoySixAxisSensor(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto joy_xpad_id{rp.Pop<u32>()};
+
+    LOG_DEBUG(Service_HID, "called, joy_xpad_id={}", joy_xpad_id);
+
+    // This function has been stubbed since 10.0.0+
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidServer::DeactivateJoySixAxisSensor(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto joy_xpad_id{rp.Pop<u32>()};
+
+    LOG_DEBUG(Service_HID, "called, joy_xpad_id={}", joy_xpad_id);
+
+    // This function has been stubbed since 10.0.0+
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidServer::GetJoySixAxisSensorLifoHandle(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto joy_xpad_id{rp.Pop<u32>()};
+
+    LOG_DEBUG(Service_HID, "called, joy_xpad_id={}", joy_xpad_id);
+
+    // This function has been stubbed since 10.0.0+
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(ResultSuccess);
+    // Handle returned is null here
 }
 
 void IHidServer::StartSixAxisSensor(HLERequestContext& ctx) {
