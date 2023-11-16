@@ -521,11 +521,19 @@ add_library(core STATIC
     hle/service/grc/grc.h
     hle/service/hid/hid.cpp
     hle/service/hid/hid.h
+    hle/service/hid/hid_debug_server.cpp
+    hle/service/hid/hid_debug_server.h
+    hle/service/hid/hid_server.cpp
+    hle/service/hid/hid_server.h
+    hle/service/hid/hid_system_server.cpp
+    hle/service/hid/hid_system_server.h
     hle/service/hid/hidbus.cpp
     hle/service/hid/hidbus.h
     hle/service/hid/irs.cpp
     hle/service/hid/irs.h
     hle/service/hid/irs_ring_lifo.h
+    hle/service/hid/resource_manager.cpp
+    hle/service/hid/resource_manager.h
     hle/service/hid/ring_lifo.h
     hle/service/hid/xcd.cpp
     hle/service/hid/xcd.h

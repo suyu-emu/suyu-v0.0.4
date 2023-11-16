@@ -38,14 +38,6 @@ using TouchParams = std::array<Common::ParamPackage, MaxTouchDevices>;
 using ConsoleMotionValues = ConsoleMotionInfo;
 using TouchValues = std::array<Common::Input::TouchStatus, MaxTouchDevices>;
 
-struct TouchFinger {
-    u64 last_touch{};
-    Common::Point<float> position{};
-    u32 id{};
-    TouchAttribute attribute{};
-    bool pressed{};
-};
-
 // Contains all motion related data that is used on the services
 struct ConsoleMotion {
     Common::Vec3f accel{};
