@@ -11,10 +11,12 @@ class System;
 
 namespace Service::HID {
 class ResourceManager;
+class HidFirmwareSettings;
 
 class IHidServer final : public ServiceFramework<IHidServer> {
 public:
-    explicit IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> resource);
+    explicit IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> resource,
+                        std::shared_ptr<HidFirmwareSettings> settings);
     ~IHidServer() override;
 
     std::shared_ptr<ResourceManager> GetResourceManager();
@@ -141,6 +143,7 @@ private:
     void IsFirmwareUpdateNeededForNotification(HLERequestContext& ctx);
 
     std::shared_ptr<ResourceManager> resource_manager;
+    std::shared_ptr<HidFirmwareSettings> firmware_settings;
 };
 
 } // namespace Service::HID
