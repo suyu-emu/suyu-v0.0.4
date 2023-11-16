@@ -59,8 +59,8 @@ void ResourceManager::Initialize() {
     MakeControllerWithServiceContext<Controller_Palma>(HidController::Palma, shared_memory);
 
     // Homebrew doesn't try to activate some controllers, so we activate them by default
-    GetController<Controller_NPad>(HidController::NPad).ActivateController();
-    GetController<Controller_Touchscreen>(HidController::Touchscreen).ActivateController();
+    GetController<Controller_NPad>(HidController::NPad).Activate();
+    GetController<Controller_Touchscreen>(HidController::Touchscreen).Activate();
 
     GetController<Controller_Stubbed>(HidController::HomeButton).SetCommonHeaderOffset(0x4C00);
     GetController<Controller_Stubbed>(HidController::SleepButton).SetCommonHeaderOffset(0x4E00);
@@ -71,14 +71,6 @@ void ResourceManager::Initialize() {
 
     system.HIDCore().ReloadInputDevices();
     is_initialized = true;
-}
-
-void ResourceManager::ActivateController(HidController controller) {
-    controllers[static_cast<size_t>(controller)]->ActivateController();
-}
-
-void ResourceManager::DeactivateController(HidController controller) {
-    controllers[static_cast<size_t>(controller)]->DeactivateController();
 }
 
 void ResourceManager::UpdateControllers(std::uintptr_t user_data,

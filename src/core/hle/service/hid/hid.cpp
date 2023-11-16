@@ -3,6 +3,7 @@
 
 #include "core/hle/service/hid/hid.h"
 #include "core/hle/service/hid/hid_debug_server.h"
+#include "core/hle/service/hid/hid_firmware_settings.h"
 #include "core/hle/service/hid/hid_server.h"
 #include "core/hle/service/hid/hid_system_server.h"
 #include "core/hle/service/hid/hidbus.h"
@@ -16,9 +17,11 @@ namespace Service::HID {
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
     std::shared_ptr<ResourceManager> resouce_manager = std::make_shared<ResourceManager>(system);
+    std::shared_ptr<HidFirmwareSettings> firmware_settings =
+        std::make_shared<HidFirmwareSettings>();
 
-    server_manager->RegisterNamedService("hid",
-                                         std::make_shared<IHidServer>(system, resouce_manager));
+    server_manager->RegisterNamedService(
+        "hid", std::make_shared<IHidServer>(system, resouce_manager, firmware_settings));
     server_manager->RegisterNamedService(
         "hid:dbg", std::make_shared<IHidDebugServer>(system, resouce_manager));
     server_manager->RegisterNamedService(

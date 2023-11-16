@@ -523,6 +523,8 @@ add_library(core STATIC
     hle/service/hid/hid.h
     hle/service/hid/hid_debug_server.cpp
     hle/service/hid/hid_debug_server.h
+    hle/service/hid/hid_firmware_settings.cpp
+    hle/service/hid/hid_firmware_settings.h
     hle/service/hid/hid_server.cpp
     hle/service/hid/hid_server.h
     hle/service/hid/hid_system_server.cpp

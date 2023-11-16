@@ -8,12 +8,17 @@ namespace Service::HID {
 ControllerBase::ControllerBase(Core::HID::HIDCore& hid_core_) : hid_core(hid_core_) {}
 ControllerBase::~ControllerBase() = default;
 
-void ControllerBase::ActivateController() {
+Result ControllerBase::Activate() {
     if (is_activated) {
-        return;
+        return ResultSuccess;
     }
     is_activated = true;
     OnInit();
+    return ResultSuccess;
+}
+
+Result ControllerBase::Activate(u64 aruid) {
+    return Activate();
 }
 
 void ControllerBase::DeactivateController() {

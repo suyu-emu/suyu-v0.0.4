@@ -86,6 +86,13 @@ public:
         Default = 3,
     };
 
+    enum class NpadRevision : u32 {
+        Revision0 = 0,
+        Revision1 = 1,
+        Revision2 = 2,
+        Revision3 = 3,
+    };
+
     void SetSupportedStyleSet(Core::HID::NpadStyleTag style_set);
     Core::HID::NpadStyleTag GetSupportedStyleSet() const;
 
