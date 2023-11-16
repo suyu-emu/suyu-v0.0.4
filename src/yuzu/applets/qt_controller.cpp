@@ -13,7 +13,6 @@
 #include "core/hid/hid_core.h"
 #include "core/hid/hid_types.h"
 #include "core/hle/service/hid/controllers/npad.h"
-#include "core/hle/service/hid/hid.h"
 #include "core/hle/service/sm/sm.h"
 #include "ui_qt_controller.h"
 #include "yuzu/applets/qt_controller.h"
