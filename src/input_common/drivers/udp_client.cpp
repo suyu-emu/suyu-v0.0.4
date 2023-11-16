@@ -396,7 +396,7 @@ std::vector<Common::ParamPackage> UDPClient::GetInputDevices() const {
 
 ButtonMapping UDPClient::GetButtonMappingForDevice(const Common::ParamPackage& params) {
     // This list excludes any button that can't be really mapped
-    static constexpr std::array<std::pair<Settings::NativeButton::Values, PadButton>, 20>
+    static constexpr std::array<std::pair<Settings::NativeButton::Values, PadButton>, 22>
         switch_to_dsu_button = {
             std::pair{Settings::NativeButton::A, PadButton::Circle},
             {Settings::NativeButton::B, PadButton::Cross},
@@ -412,8 +412,10 @@ ButtonMapping UDPClient::GetButtonMappingForDevice(const Common::ParamPackage& p
             {Settings::NativeButton::R, PadButton::R1},
             {Settings::NativeButton::ZL, PadButton::L2},
             {Settings::NativeButton::ZR, PadButton::R2},
-            {Settings::NativeButton::SL, PadButton::L2},
-            {Settings::NativeButton::SR, PadButton::R2},
+            {Settings::NativeButton::SLLeft, PadButton::L2},
+            {Settings::NativeButton::SRLeft, PadButton::R2},
+            {Settings::NativeButton::SLRight, PadButton::L2},
+            {Settings::NativeButton::SRRight, PadButton::R2},
             {Settings::NativeButton::LStick, PadButton::L3},
             {Settings::NativeButton::RStick, PadButton::R3},
             {Settings::NativeButton::Home, PadButton::Home},
