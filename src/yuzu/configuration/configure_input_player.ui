@@ -1208,6 +1208,159 @@
              <property name="spacing">
               <number>3</number>
              </property>
+              <item>
+                <widget class="QWidget" name="buttonShoulderButtonsSLSRLeft" native="true">
+                  <layout class="QVBoxLayout" name="buttonShoulderButtonsSLSRLeftVerticalLayout">
+                    <property name="spacing">
+                      <number>0</number>
+                    </property>
+                    <property name="leftMargin">
+                      <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                      <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                      <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                      <number>0</number>
+                    </property>
+                    <item alignment="Qt::AlignHCenter">
+                      <widget class="QGroupBox" name="buttonShoulderButtonsSLLeftGroup">
+                        <property name="title">
+                          <string>SL</string>
+                        </property>
+                        <property name="alignment">
+                          <set>Qt::AlignCenter</set>
+                        </property>
+                        <layout class="QVBoxLayout" name="buttonShoulderButtonsSLLeftVerticalLayout">
+                          <property name="spacing">
+                            <number>3</number>
+                          </property>
+                          <property name="leftMargin">
+                            <number>3</number>
+                          </property>
+                          <property name="topMargin">
+                            <number>3</number>
+                          </property>
+                          <property name="rightMargin">
+                            <number>3</number>
+                          </property>
+                          <property name="bottomMargin">
+                            <number>3</number>
+                          </property>
+                          <item>
+                            <widget class="QPushButton" name="buttonSLLeft">
+                              <property name="minimumSize">
+                                <size>
+                                  <width>68</width>
+                                  <height>0</height>
+                                </size>
+                              </property>
+                              <property name="maximumSize">
+                                <size>
+                                  <width>68</width>
+                                  <height>16777215</height>
+                                </size>
+                              </property>
+                              <property name="styleSheet">
+                                <string notr="true">min-width: 68px;</string>
+                              </property>
+                              <property name="text">
+                                <string>SL</string>
+                              </property>
+                            </widget>
+                          </item>
+                        </layout>
+                      </widget>
+                    </item>
+                    <item alignment="Qt::AlignHCenter">
+                      <widget class="QGroupBox" name="buttonShoulderButtonsSRLeftGroup">
+                        <property name="title">
+                          <string>SR</string>
+                        </property>
+                        <property name="alignment">
+                          <set>Qt::AlignCenter</set>
+                        </property>
+                        <layout class="QVBoxLayout" name="buttonShoulderButtonsSRLeftVerticalLayout">
+                          <property name="spacing">
+                            <number>3</number>
+                          </property>
+                          <property name="leftMargin">
+                            <number>3</number>
+                          </property>
+                          <property name="topMargin">
+                            <number>3</number>
+                          </property>
+                          <property name="rightMargin">
+                            <number>3</number>
+                          </property>
+                          <property name="bottomMargin">
+                            <number>3</number>
+                          </property>
+                          <item>
+                            <widget class="QPushButton" name="buttonSRLeft">
+                              <property name="minimumSize">
+                                <size>
+                                  <width>68</width>
+                                  <height>0</height>
+                                </size>
+                              </property>
+                              <property name="maximumSize">
+                                <size>
+                                  <width>68</width>
+                                  <height>16777215</height>
+                                </size>
+                              </property>
+                              <property name="styleSheet">
+                                <string notr="true">min-width: 68px;</string>
+                              </property>
+                              <property name="text">
+                                <string>SR</string>
+                              </property>
+                            </widget>
+                          </item>
+                        </layout>
+                      </widget>
+                    </item>
+                  </layout>
+                </widget>
+              </item>
+              <item>
+                <widget class="QWidget" name="horizontalSpacerShoulderButtonsWidget4" native="true">
+                  <layout class="QHBoxLayout" name="horizontalSpacerShoulderButtonsWidget4Layout">
+                    <property name="spacing">
+                      <number>0</number>
+                    </property>
+                    <property name="leftMargin">
+                      <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                      <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                      <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                      <number>0</number>
+                    </property>
+                    <item>
+                      <spacer name="horizontalSpacerShoulderButtons5">
+                        <property name="orientation">
+                          <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                          <size>
+                            <width>0</width>
+                            <height>20</height>
+                          </size>
+                        </property>
+                      </spacer>
+                    </item>
+                  </layout>
+                </widget>
+              </item>
              <item>
               <widget class="QWidget" name="buttonShoulderButtonsLeft" native="true">
                <layout class="QVBoxLayout" name="buttonShoulderButtonsLeftVerticalLayout">
@@ -1830,125 +1983,125 @@
                </layout>
               </widget>
              </item>
-             <item>
-              <widget class="QWidget" name="buttonShoulderButtonsSLSR" native="true">
-               <layout class="QVBoxLayout" name="buttonShoulderButtonsSLSRVerticalLayout">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item alignment="Qt::AlignHCenter">
-                 <widget class="QGroupBox" name="buttonShoulderButtonsSLGroup">
-                  <property name="title">
-                   <string>SL</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <layout class="QVBoxLayout" name="buttonShoulderButtonsSLVerticalLayout">
-                   <property name="spacing">
-                    <number>3</number>
-                   </property>
-                   <property name="leftMargin">
-                    <number>3</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>3</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>3</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>3</number>
-                   </property>
-                   <item>
-                    <widget class="QPushButton" name="buttonSL">
-                     <property name="minimumSize">
-                      <size>
-                       <width>68</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>68</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                     <property name="styleSheet">
-                      <string notr="true">min-width: 68px;</string>
-                     </property>
-                     <property name="text">
-                      <string>SL</string>
-                     </property>
-                    </widget>
-                   </item>
+              <item>
+                <widget class="QWidget" name="buttonShoulderButtonsSLSRRight" native="true">
+                  <layout class="QVBoxLayout" name="buttonShoulderButtonsSLSRRightVerticalLayout">
+                    <property name="spacing">
+                      <number>0</number>
+                    </property>
+                    <property name="leftMargin">
+                      <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                      <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                      <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                      <number>0</number>
+                    </property>
+                    <item alignment="Qt::AlignHCenter">
+                      <widget class="QGroupBox" name="buttonShoulderButtonsSLRightGroup">
+                        <property name="title">
+                          <string>SL</string>
+                        </property>
+                        <property name="alignment">
+                          <set>Qt::AlignCenter</set>
+                        </property>
+                        <layout class="QVBoxLayout" name="buttonShoulderButtonsSLRightVerticalLayout">
+                          <property name="spacing">
+                            <number>3</number>
+                          </property>
+                          <property name="leftMargin">
+                            <number>3</number>
+                          </property>
+                          <property name="topMargin">
+                            <number>3</number>
+                          </property>
+                          <property name="rightMargin">
+                            <number>3</number>
+                          </property>
+                          <property name="bottomMargin">
+                            <number>3</number>
+                          </property>
+                          <item>
+                            <widget class="QPushButton" name="buttonSLRight">
+                              <property name="minimumSize">
+                                <size>
+                                  <width>68</width>
+                                  <height>0</height>
+                                </size>
+                              </property>
+                              <property name="maximumSize">
+                                <size>
+                                  <width>68</width>
+                                  <height>16777215</height>
+                                </size>
+                              </property>
+                              <property name="styleSheet">
+                                <string notr="true">min-width: 68px;</string>
+                              </property>
+                              <property name="text">
+                                <string>SL</string>
+                              </property>
+                            </widget>
+                          </item>
+                        </layout>
+                      </widget>
+                    </item>
+                    <item alignment="Qt::AlignHCenter">
+                      <widget class="QGroupBox" name="buttonShoulderButtonsSRRightGroup">
+                        <property name="title">
+                          <string>SR</string>
+                        </property>
+                        <property name="alignment">
+                          <set>Qt::AlignCenter</set>
+                        </property>
+                        <layout class="QVBoxLayout" name="buttonShoulderButtonsSRRightVerticalLayout">
+                          <property name="spacing">
+                            <number>3</number>
+                          </property>
+                          <property name="leftMargin">
+                            <number>3</number>
+                          </property>
+                          <property name="topMargin">
+                            <number>3</number>
+                          </property>
+                          <property name="rightMargin">
+                            <number>3</number>
+                          </property>
+                          <property name="bottomMargin">
+                            <number>3</number>
+                          </property>
+                          <item>
+                            <widget class="QPushButton" name="buttonSRRight">
+                              <property name="minimumSize">
+                                <size>
+                                  <width>68</width>
+                                  <height>0</height>
+                                </size>
+                              </property>
+                              <property name="maximumSize">
+                                <size>
+                                  <width>68</width>
+                                  <height>16777215</height>
+                                </size>
+                              </property>
+                              <property name="styleSheet">
+                                <string notr="true">min-width: 68px;</string>
+                              </property>
+                              <property name="text">
+                                <string>SR</string>
+                              </property>
+                            </widget>
+                          </item>
+                        </layout>
+                      </widget>
+                    </item>
                   </layout>
-                 </widget>
-                </item>
-                <item alignment="Qt::AlignHCenter">
-                 <widget class="QGroupBox" name="buttonShoulderButtonsSRGroup">
-                  <property name="title">
-                   <string>SR</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <layout class="QVBoxLayout" name="buttonShoulderButtonsSRVerticalLayout">
-                   <property name="spacing">
-                    <number>3</number>
-                   </property>
-                   <property name="leftMargin">
-                    <number>3</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>3</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>3</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>3</number>
-                   </property>
-                   <item>
-                    <widget class="QPushButton" name="buttonSR">
-                     <property name="minimumSize">
-                      <size>
-                       <width>68</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>68</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                     <property name="styleSheet">
-                      <string notr="true">min-width: 68px;</string>
-                     </property>
-                     <property name="text">
-                      <string>SR</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
+                </widget>
+              </item>
             </layout>
            </item>
             <item>

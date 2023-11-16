@@ -29,11 +29,14 @@ enum Values : int {
     DRight,
     DDown,
 
-    SL,
-    SR,
+    SLLeft,
+    SRLeft,
 
     Home,
     Screenshot,
+
+    SLRight,
+    SRRight,
 
     NumButtons,
 };
