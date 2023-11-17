@@ -136,9 +136,7 @@ struct System::Impl {
     }
 
     void Initialize(System& system) {
-        const bool direct_mapped_address = Settings::IsNceEnabled();
-        device_memory = std::make_unique<Core::DeviceMemory>(direct_mapped_address);
-
+        device_memory = std::make_unique<Core::DeviceMemory>();
         is_multicore = Settings::values.use_multi_core.GetValue();
         extended_memory_layout =
             Settings::values.memory_layout_mode.GetValue() != Settings::MemoryLayout::Memory_4Gb;

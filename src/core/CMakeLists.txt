@@ -926,6 +926,22 @@ if (ENABLE_WEB_SERVICE)
     target_link_libraries(core PRIVATE web_service)
 endif()
 
+if (ARCHITECTURE_arm64)
+    enable_language(C ASM)
+    set(CMAKE_ASM_FLAGS "${CFLAGS} -x assembler-with-cpp")
+
+    target_sources(core PRIVATE
+        arm/nce/arm_nce.cpp
+        arm/nce/arm_nce.h
+        arm/nce/arm_nce.s
+        arm/nce/guest_context.h
+        arm/nce/patch.cpp
+        arm/nce/patch.h
+        arm/nce/instructions.h
+    )
+    target_link_libraries(core PRIVATE merry::oaknut)
+endif()
+
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
     target_sources(core PRIVATE
         arm/dynarmic/arm_dynarmic.h

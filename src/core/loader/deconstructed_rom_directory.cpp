@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
@@ -13,6 +14,10 @@
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/nso.h"
+
+#ifdef ARCHITECTURE_arm64
+#include "core/arm/nce/patch.h"
+#endif
 
 namespace Loader {
 
@@ -124,21 +129,41 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     }
     metadata.Print();
 
-    const auto static_modules = {"rtld",    "main",    "subsdk0", "subsdk1", "subsdk2",
-                                 "subsdk3", "subsdk4", "subsdk5", "subsdk6", "subsdk7",
-                                 "subsdk8", "subsdk9", "sdk"};
+    // Enable NCE only for 64-bit programs.
+    Settings::SetNceEnabled(metadata.Is64BitProgram());
+
+    const std::array static_modules = {"rtld",    "main",    "subsdk0", "subsdk1", "subsdk2",
+                                       "subsdk3", "subsdk4", "subsdk5", "subsdk6", "subsdk7",
+                                       "subsdk8", "subsdk9", "sdk"};
+
+    std::size_t code_size{};
+
+    // Define an nce patch context for each potential module.
+#ifdef ARCHITECTURE_arm64
+    std::array<Core::NCE::Patcher, 13> module_patchers;
+#endif
+
+    const auto GetPatcher = [&](size_t i) -> Core::NCE::Patcher* {
+#ifdef ARCHITECTURE_arm64
+        if (Settings::IsNceEnabled()) {
+            return &module_patchers[i];
+        }
+#endif
+        return nullptr;
+    };
 
     // Use the NSO module loader to figure out the code layout
-    std::size_t code_size{};
-    for (const auto& module : static_modules) {
+    for (size_t i = 0; i < static_modules.size(); i++) {
+        const auto& module = static_modules[i];
         const FileSys::VirtualFile module_file{dir->GetFile(module)};
         if (!module_file) {
             continue;
         }
 
         const bool should_pass_arguments = std::strcmp(module, "rtld") == 0;
-        const auto tentative_next_load_addr = AppLoader_NSO::LoadModule(
-            process, system, *module_file, code_size, should_pass_arguments, false);
+        const auto tentative_next_load_addr =
+            AppLoader_NSO::LoadModule(process, system, *module_file, code_size,
+                                      should_pass_arguments, false, {}, GetPatcher(i));
         if (!tentative_next_load_addr) {
             return {ResultStatus::ErrorLoadingNSO, {}};
         }
@@ -146,8 +171,18 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
         code_size = *tentative_next_load_addr;
     }
 
+    // Enable direct memory mapping in case of NCE.
+    const u64 fastmem_base = [&]() -> size_t {
+        if (Settings::IsNceEnabled()) {
+            auto& buffer = system.DeviceMemory().buffer;
+            buffer.EnableDirectMappedAddress();
+            return reinterpret_cast<u64>(buffer.VirtualBasePointer());
+        }
+        return 0;
+    }();
+
     // Setup the process code layout
-    if (process.LoadFromMetadata(metadata, code_size, 0, is_hbl).IsError()) {
+    if (process.LoadFromMetadata(metadata, code_size, fastmem_base, is_hbl).IsError()) {
         return {ResultStatus::ErrorUnableToParseKernelMetadata, {}};
     }
 
@@ -157,7 +192,8 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     VAddr next_load_addr{base_address};
     const FileSys::PatchManager pm{metadata.GetTitleID(), system.GetFileSystemController(),
                                    system.GetContentProvider()};
-    for (const auto& module : static_modules) {
+    for (size_t i = 0; i < static_modules.size(); i++) {
+        const auto& module = static_modules[i];
         const FileSys::VirtualFile module_file{dir->GetFile(module)};
         if (!module_file) {
             continue;
@@ -165,15 +201,16 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
 
         const VAddr load_addr{next_load_addr};
         const bool should_pass_arguments = std::strcmp(module, "rtld") == 0;
-        const auto tentative_next_load_addr = AppLoader_NSO::LoadModule(
-            process, system, *module_file, load_addr, should_pass_arguments, true, pm);
+        const auto tentative_next_load_addr =
+            AppLoader_NSO::LoadModule(process, system, *module_file, load_addr,
+                                      should_pass_arguments, true, pm, GetPatcher(i));
         if (!tentative_next_load_addr) {
             return {ResultStatus::ErrorLoadingNSO, {}};
         }
 
         next_load_addr = *tentative_next_load_addr;
         modules.insert_or_assign(load_addr, module);
-        LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", module, load_addr);
+        LOG_DEBUG(Loader, "loaded module {} @ {:#X}", module, load_addr);
     }
 
     // Find the RomFS by searching for a ".romfs" file in this directory

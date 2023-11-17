@@ -158,8 +158,8 @@ bool IsFastmemEnabled() {
 
 static bool is_nce_enabled = false;
 
-void SetNceEnabled(bool is_64bit) {
-    is_nce_enabled = values.cpu_backend.GetValue() == CpuBackend::Nce && is_64bit;
+void SetNceEnabled(bool is_39bit) {
+    is_nce_enabled = values.cpu_backend.GetValue() == CpuBackend::Nce && is_39bit;
 }
 
 bool IsNceEnabled() {

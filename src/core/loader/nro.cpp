@@ -22,6 +22,10 @@
 #include "core/loader/nso.h"
 #include "core/memory.h"
 
+#ifdef ARCHITECTURE_arm64
+#include "core/arm/nce/patch.h"
+#endif
+
 namespace Loader {
 
 struct NroSegmentHeader {
@@ -139,7 +143,8 @@ static constexpr u32 PageAlignSize(u32 size) {
     return static_cast<u32>((size + Core::Memory::YUZU_PAGEMASK) & ~Core::Memory::YUZU_PAGEMASK);
 }
 
-static bool LoadNroImpl(Kernel::KProcess& process, const std::vector<u8>& data) {
+static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
+                        const std::vector<u8>& data) {
     if (data.size() < sizeof(NroHeader)) {
         return {};
     }
@@ -195,13 +200,59 @@ static bool LoadNroImpl(Kernel::KProcess& process, const std::vector<u8>& data) 
     codeset.DataSegment().size += bss_size;
     program_image.resize(static_cast<u32>(program_image.size()) + bss_size);
 
+#ifdef ARCHITECTURE_arm64
+    const auto& code = codeset.CodeSegment();
+
+    // NROs are always 64-bit programs.
+    Settings::SetNceEnabled(true);
+
+    // Create NCE patcher
+    Core::NCE::Patcher patch{};
+    size_t image_size = program_image.size();
+
+    if (Settings::IsNceEnabled()) {
+        // Patch SVCs and MRS calls in the guest code
+        patch.PatchText(program_image, code);
+
+        // We only support PostData patching for NROs.
+        ASSERT(patch.Mode() == Core::NCE::PatchMode::PostData);
+
+        // Update patch section.
+        auto& patch_segment = codeset.PatchSegment();
+        patch_segment.addr = image_size;
+        patch_segment.size = static_cast<u32>(patch.SectionSize());
+
+        // Add patch section size to the module size.
+        image_size += patch_segment.size;
+    }
+#endif
+
+    // Enable direct memory mapping in case of NCE.
+    const u64 fastmem_base = [&]() -> size_t {
+        if (Settings::IsNceEnabled()) {
+            auto& buffer = system.DeviceMemory().buffer;
+            buffer.EnableDirectMappedAddress();
+            return reinterpret_cast<u64>(buffer.VirtualBasePointer());
+        }
+        return 0;
+    }();
+
     // Setup the process code layout
     if (process
-            .LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), program_image.size(), 0,
+            .LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), image_size, fastmem_base,
                               false)
             .IsError()) {
         return false;
     }
+
+    // Relocate code patch and copy to the program_image if running under NCE.
+    // This needs to be after LoadFromMetadata so we can use the process entry point.
+#ifdef ARCHITECTURE_arm64
+    if (Settings::IsNceEnabled()) {
+        patch.RelocateAndCopy(process.GetEntryPoint(), code, program_image,
+                              &process.GetPostHandlers());
+    }
+#endif
 
     // Load codeset for current process
     codeset.memory = std::move(program_image);
@@ -210,8 +261,9 @@ static bool LoadNroImpl(Kernel::KProcess& process, const std::vector<u8>& data) 
     return true;
 }
 
-bool AppLoader_NRO::LoadNro(Kernel::KProcess& process, const FileSys::VfsFile& nro_file) {
-    return LoadNroImpl(process, nro_file.ReadAllBytes());
+bool AppLoader_NRO::LoadNro(Core::System& system, Kernel::KProcess& process,
+                            const FileSys::VfsFile& nro_file) {
+    return LoadNroImpl(system, process, nro_file.ReadAllBytes());
 }
 
 AppLoader_NRO::LoadResult AppLoader_NRO::Load(Kernel::KProcess& process, Core::System& system) {
@@ -219,7 +271,7 @@ AppLoader_NRO::LoadResult AppLoader_NRO::Load(Kernel::KProcess& process, Core::S
         return {ResultStatus::ErrorAlreadyLoaded, {}};
     }
 
-    if (!LoadNro(process, *file)) {
+    if (!LoadNro(system, process, *file)) {
         return {ResultStatus::ErrorLoadingNRO, {}};
     }
 

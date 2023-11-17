@@ -1,8 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/settings.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
 #include "core/arm/dynarmic/arm_dynarmic_64.h"
+#ifdef ARCHITECTURE_arm64
+#include "core/arm/nce/arm_nce.h"
+#endif
 #include "core/core.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
@@ -14,7 +18,8 @@ PhysicalCore::PhysicalCore(std::size_t core_index, Core::System& system, KSchedu
     : m_core_index{core_index}, m_system{system}, m_scheduler{scheduler} {
 #if defined(ARCHITECTURE_x86_64) || defined(ARCHITECTURE_arm64)
     // TODO(bunnei): Initialization relies on a core being available. We may later replace this with
-    // a 32-bit instance of Dynarmic. This should be abstracted out to a CPU manager.
+    // an NCE interface or a 32-bit instance of Dynarmic. This should be abstracted out to a CPU
+    // manager.
     auto& kernel = system.Kernel();
     m_arm_interface = std::make_unique<Core::ARM_Dynarmic_64>(
         system, kernel.IsMulticore(),
@@ -28,6 +33,13 @@ PhysicalCore::PhysicalCore(std::size_t core_index, Core::System& system, KSchedu
 PhysicalCore::~PhysicalCore() = default;
 
 void PhysicalCore::Initialize(bool is_64_bit) {
+#if defined(ARCHITECTURE_arm64)
+    if (Settings::IsNceEnabled()) {
+        m_arm_interface = std::make_unique<Core::ARM_NCE>(m_system, m_system.Kernel().IsMulticore(),
+                                                          m_core_index);
+        return;
+    }
+#endif
 #if defined(ARCHITECTURE_x86_64) || defined(ARCHITECTURE_arm64)
     auto& kernel = m_system.Kernel();
     if (!is_64_bit) {

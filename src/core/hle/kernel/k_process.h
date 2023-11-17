@@ -112,6 +112,7 @@ private:
     std::array<KThread*, Core::Hardware::NUM_CPU_CORES> m_pinned_threads{};
     std::array<DebugWatchpoint, Core::Hardware::NUM_WATCHPOINTS> m_watchpoints{};
     std::map<KProcessAddress, u64> m_debug_page_refcounts{};
+    std::unordered_map<u64, u64> m_post_handlers{};
     std::atomic<s64> m_cpu_time{};
     std::atomic<s64> m_num_process_switches{};
     std::atomic<s64> m_num_thread_switches{};
@@ -466,6 +467,14 @@ public:
     Result GetThreadList(s32* out_num_threads, KProcessAddress out_thread_ids, s32 max_out_count);
 
     static void Switch(KProcess* cur_process, KProcess* next_process);
+
+    std::unordered_map<u64, u64>& GetPostHandlers() noexcept {
+        return m_post_handlers;
+    }
+
+    KernelCore& GetKernel() noexcept {
+        return m_kernel;
+    }
 
 public:
     // Attempts to insert a watchpoint into a free slot. Returns false if none are available.
