@@ -12,7 +12,7 @@
 namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3800;
 
-Controller_Keyboard::Controller_Keyboard(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
+Keyboard::Keyboard(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
     : ControllerBase{hid_core_} {
     static_assert(SHARED_MEMORY_OFFSET + sizeof(KeyboardSharedMemory) < shared_memory_size,
                   "KeyboardSharedMemory is bigger than the shared memory");
@@ -21,13 +21,13 @@ Controller_Keyboard::Controller_Keyboard(Core::HID::HIDCore& hid_core_, u8* raw_
     emulated_devices = hid_core.GetEmulatedDevices();
 }
 
-Controller_Keyboard::~Controller_Keyboard() = default;
+Keyboard::~Keyboard() = default;
 
-void Controller_Keyboard::OnInit() {}
+void Keyboard::OnInit() {}
 
-void Controller_Keyboard::OnRelease() {}
+void Keyboard::OnRelease() {}
 
-void Controller_Keyboard::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+void Keyboard::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     if (!IsControllerActivated()) {
         shared_memory->keyboard_lifo.buffer_count = 0;
         shared_memory->keyboard_lifo.buffer_tail = 0;

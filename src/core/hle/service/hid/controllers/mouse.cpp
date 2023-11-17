@@ -12,8 +12,7 @@
 namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3400;
 
-Controller_Mouse::Controller_Mouse(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
-    : ControllerBase{hid_core_} {
+Mouse::Mouse(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_) : ControllerBase{hid_core_} {
     static_assert(SHARED_MEMORY_OFFSET + sizeof(MouseSharedMemory) < shared_memory_size,
                   "MouseSharedMemory is bigger than the shared memory");
     shared_memory = std::construct_at(
@@ -21,12 +20,12 @@ Controller_Mouse::Controller_Mouse(Core::HID::HIDCore& hid_core_, u8* raw_shared
     emulated_devices = hid_core.GetEmulatedDevices();
 }
 
-Controller_Mouse::~Controller_Mouse() = default;
+Mouse::~Mouse() = default;
 
-void Controller_Mouse::OnInit() {}
-void Controller_Mouse::OnRelease() {}
+void Mouse::OnInit() {}
+void Mouse::OnRelease() {}
 
-void Controller_Mouse::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+void Mouse::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     if (!IsControllerActivated()) {
         shared_memory->mouse_lifo.buffer_count = 0;
         shared_memory->mouse_lifo.buffer_tail = 0;

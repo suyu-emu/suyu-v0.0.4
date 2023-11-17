@@ -12,10 +12,10 @@
 #include "core/hle/service/hid/ring_lifo.h"
 
 namespace Service::HID {
-class Controller_Gesture final : public ControllerBase {
+class Gesture final : public ControllerBase {
 public:
-    explicit Controller_Gesture(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
-    ~Controller_Gesture() override;
+    explicit Gesture(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
+    ~Gesture() override;
 
     // Called when the controller is initialized
     void OnInit() override;

@@ -15,8 +15,7 @@
 namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x400;
 
-Controller_Touchscreen::Controller_Touchscreen(Core::HID::HIDCore& hid_core_,
-                                               u8* raw_shared_memory_)
+TouchScreen::TouchScreen(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
     : ControllerBase{hid_core_} {
     static_assert(SHARED_MEMORY_OFFSET + sizeof(TouchSharedMemory) < shared_memory_size,
                   "TouchSharedMemory is bigger than the shared memory");
@@ -25,13 +24,13 @@ Controller_Touchscreen::Controller_Touchscreen(Core::HID::HIDCore& hid_core_,
     console = hid_core.GetEmulatedConsole();
 }
 
-Controller_Touchscreen::~Controller_Touchscreen() = default;
+TouchScreen::~TouchScreen() = default;
 
-void Controller_Touchscreen::OnInit() {}
+void TouchScreen::OnInit() {}
 
-void Controller_Touchscreen::OnRelease() {}
+void TouchScreen::OnRelease() {}
 
-void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+void TouchScreen::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     shared_memory->touch_screen_lifo.timestamp = core_timing.GetGlobalTimeNs().count();
 
     if (!IsControllerActivated()) {
