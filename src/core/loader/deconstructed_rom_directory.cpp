@@ -147,7 +147,7 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     }
 
     // Setup the process code layout
-    if (process.LoadFromMetadata(metadata, code_size, is_hbl).IsError()) {
+    if (process.LoadFromMetadata(metadata, code_size, 0, is_hbl).IsError()) {
         return {ResultStatus::ErrorUnableToParseKernelMetadata, {}};
     }
 

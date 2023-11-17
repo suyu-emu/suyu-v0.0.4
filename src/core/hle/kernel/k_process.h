@@ -150,7 +150,8 @@ public:
                       std::span<const u32> caps, KResourceLimit* res_limit,
                       KMemoryManager::Pool pool, bool immortal);
     Result Initialize(const Svc::CreateProcessParameter& params, std::span<const u32> user_caps,
-                      KResourceLimit* res_limit, KMemoryManager::Pool pool);
+                      KResourceLimit* res_limit, KMemoryManager::Pool pool,
+                      KProcessAddress aslr_space_start);
     void Exit();
 
     const char* GetName() const {
@@ -479,7 +480,7 @@ public:
 
 public:
     Result LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size,
-                            bool is_hbl);
+                            KProcessAddress aslr_space_start, bool is_hbl);
 
     void LoadModule(CodeSet code_set, KProcessAddress base_addr);
 
