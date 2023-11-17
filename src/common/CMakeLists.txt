@@ -166,6 +166,13 @@ if (WIN32)
   target_link_libraries(common PRIVATE ntdll)
 endif()
 
+if (NOT WIN32)
+  target_sources(common PRIVATE
+    signal_chain.cpp
+    signal_chain.h
+  )
+endif()
+
 if(ANDROID)
     target_sources(common
         PRIVATE
