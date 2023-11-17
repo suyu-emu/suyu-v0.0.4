@@ -144,7 +144,7 @@ public:
         Release();
     }
 
-    void Map(size_t virtual_offset, size_t host_offset, size_t length) {
+    void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms) {
         std::unique_lock lock{placeholder_mutex};
         if (!IsNiechePlaceholder(virtual_offset, length)) {
             Split(virtual_offset, length);
@@ -163,7 +163,7 @@ public:
         }
     }
 
-    void Protect(size_t virtual_offset, size_t length, bool read, bool write) {
+    void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute) {
         DWORD new_flags{};
         if (read && write) {
             new_flags = PAGE_READWRITE;
@@ -494,15 +494,29 @@ public:
         Release();
     }
 
-    void Map(size_t virtual_offset, size_t host_offset, size_t length) {
+    void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms) {
         // Intersect the range with our address space.
         AdjustMap(&virtual_offset, &length);
 
         // We are removing a placeholder.
         free_manager.AllocateBlock(virtual_base + virtual_offset, length);
 
-        void* ret = mmap(virtual_base + virtual_offset, length, PROT_READ | PROT_WRITE,
-                         MAP_SHARED | MAP_FIXED, fd, host_offset);
+        // Deduce mapping protection flags.
+        int flags = PROT_NONE;
+        if (True(perms & MemoryPermission::Read)) {
+            flags |= PROT_READ;
+        }
+        if (True(perms & MemoryPermission::Write)) {
+            flags |= PROT_WRITE;
+        }
+#ifdef ARCHITECTURE_arm64
+        if (True(perms & MemoryPermission::Execute)) {
+            flags |= PROT_EXEC;
+        }
+#endif
+
+        void* ret = mmap(virtual_base + virtual_offset, length, flags, MAP_SHARED | MAP_FIXED, fd,
+                         host_offset);
         ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
     }
 
@@ -522,7 +536,7 @@ public:
         ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
     }
 
-    void Protect(size_t virtual_offset, size_t length, bool read, bool write) {
+    void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute) {
         // Intersect the range with our address space.
         AdjustMap(&virtual_offset, &length);
 
@@ -533,6 +547,11 @@ public:
         if (write) {
             flags |= PROT_WRITE;
         }
+#ifdef ARCHITECTURE_arm64
+        if (execute) {
+            flags |= PROT_EXEC;
+        }
+#endif
         int ret = mprotect(virtual_base + virtual_offset, length, flags);
         ASSERT_MSG(ret == 0, "mprotect failed: {}", strerror(errno));
     }
@@ -602,11 +621,11 @@ public:
         throw std::bad_alloc{};
     }
 
-    void Map(size_t virtual_offset, size_t host_offset, size_t length) {}
+    void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perm) {}
 
     void Unmap(size_t virtual_offset, size_t length) {}
 
-    void Protect(size_t virtual_offset, size_t length, bool read, bool write) {}
+    void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute) {}
 
     u8* backing_base{nullptr};
     u8* virtual_base{nullptr};
@@ -647,7 +666,8 @@ HostMemory::HostMemory(HostMemory&&) noexcept = default;
 
 HostMemory& HostMemory::operator=(HostMemory&&) noexcept = default;
 
-void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length) {
+void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length,
+                     MemoryPermission perms) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(host_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
@@ -656,7 +676,7 @@ void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length) {
     if (length == 0 || !virtual_base || !impl) {
         return;
     }
-    impl->Map(virtual_offset + virtual_base_offset, host_offset, length);
+    impl->Map(virtual_offset + virtual_base_offset, host_offset, length, perms);
 }
 
 void HostMemory::Unmap(size_t virtual_offset, size_t length) {
@@ -669,14 +689,15 @@ void HostMemory::Unmap(size_t virtual_offset, size_t length) {
     impl->Unmap(virtual_offset + virtual_base_offset, length);
 }
 
-void HostMemory::Protect(size_t virtual_offset, size_t length, bool read, bool write) {
+void HostMemory::Protect(size_t virtual_offset, size_t length, bool read, bool write,
+                         bool execute) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
     ASSERT(virtual_offset + length <= virtual_size);
     if (length == 0 || !virtual_base || !impl) {
         return;
     }
-    impl->Protect(virtual_offset + virtual_base_offset, length, read, write);
+    impl->Protect(virtual_offset + virtual_base_offset, length, read, write, execute);
 }
 
 void HostMemory::EnableDirectMappedAddress() {

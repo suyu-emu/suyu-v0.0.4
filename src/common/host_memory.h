@@ -4,10 +4,19 @@
 #pragma once
 
 #include <memory>
+#include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/virtual_buffer.h"
 
 namespace Common {
+
+enum class MemoryPermission : u32 {
+    Read = 1 << 0,
+    Write = 1 << 1,
+    ReadWrite = Read | Write,
+    Execute = 1 << 2,
+};
+DECLARE_ENUM_FLAG_OPERATORS(MemoryPermission)
 
 /**
  * A low level linear memory buffer, which supports multiple mappings
@@ -31,11 +40,11 @@ public:
     HostMemory(HostMemory&& other) noexcept;
     HostMemory& operator=(HostMemory&& other) noexcept;
 
-    void Map(size_t virtual_offset, size_t host_offset, size_t length);
+    void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms);
 
     void Unmap(size_t virtual_offset, size_t length);
 
-    void Protect(size_t virtual_offset, size_t length, bool read, bool write);
+    void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute = false);
 
     void EnableDirectMappedAddress();
 

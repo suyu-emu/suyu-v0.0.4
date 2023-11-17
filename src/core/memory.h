@@ -15,8 +15,9 @@
 #include "core/hle/result.h"
 
 namespace Common {
+enum class MemoryPermission : u32;
 struct PageTable;
-}
+} // namespace Common
 
 namespace Core {
 class System;
@@ -82,9 +83,10 @@ public:
      * @param size       The amount of bytes to map. Must be page-aligned.
      * @param target     Buffer with the memory backing the mapping. Must be of length at least
      *                   `size`.
+     * @param perms      The permissions to map the memory with.
      */
     void MapMemoryRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
-                         Common::PhysicalAddress target);
+                         Common::PhysicalAddress target, Common::MemoryPermission perms);
 
     /**
      * Unmaps a region of the emulated process address space.
