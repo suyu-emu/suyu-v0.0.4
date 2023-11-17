@@ -197,7 +197,8 @@ static bool LoadNroImpl(Kernel::KProcess& process, const std::vector<u8>& data) 
 
     // Setup the process code layout
     if (process
-            .LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), program_image.size(), false)
+            .LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), program_image.size(), 0,
+                              false)
             .IsError()) {
         return false;
     }
