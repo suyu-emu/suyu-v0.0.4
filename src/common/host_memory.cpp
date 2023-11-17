@@ -21,12 +21,14 @@
 #include <boost/icl/interval_set.hpp>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <sys/random.h>
 #include <unistd.h>
 #include "common/scope_exit.h"
 
 #endif // ^^^ Linux ^^^
 
 #include <mutex>
+#include <random>
 
 #include "common/alignment.h"
 #include "common/assert.h"
@@ -353,6 +355,61 @@ private:
 
 #elif defined(__linux__) || defined(__FreeBSD__) // ^^^ Windows ^^^ vvv Linux vvv
 
+#ifdef ARCHITECTURE_arm64
+
+uint64_t GetRandomU64() {
+    uint64_t ret;
+    ASSERT(getrandom(&ret, sizeof(ret), 0) == 0);
+    return ret;
+}
+
+void* ChooseVirtualBase(size_t virtual_size) {
+    constexpr uintptr_t Map39BitSize = (1ULL << 39);
+    constexpr uintptr_t Map36BitSize = (1ULL << 36);
+
+    // Seed the MT with some initial strong randomness.
+    //
+    // This is not a cryptographic application, we just want something more
+    // random than the current time.
+    std::mt19937_64 rng(GetRandomU64());
+
+    // We want to ensure we are allocating at an address aligned to the L2 block size.
+    // For Qualcomm devices, we must also allocate memory above 36 bits.
+    const size_t lower = Map36BitSize / HugePageSize;
+    const size_t upper = (Map39BitSize - virtual_size) / HugePageSize;
+    const size_t range = upper - lower;
+
+    // Try up to 64 times to allocate memory at random addresses in the range.
+    for (int i = 0; i < 64; i++) {
+        // Calculate a possible location.
+        uintptr_t hint_address = ((rng() % range) + lower) * HugePageSize;
+
+        // Try to map.
+        // Note: we may be able to take advantage of MAP_FIXED_NOREPLACE here.
+        void* map_pointer =
+            mmap(reinterpret_cast<void*>(hint_address), virtual_size, PROT_READ | PROT_WRITE,
+                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+
+        // If we successfully mapped, we're done.
+        if (reinterpret_cast<uintptr_t>(map_pointer) == hint_address) {
+            return map_pointer;
+        }
+
+        // Unmap if necessary, and try again.
+        if (map_pointer != MAP_FAILED) {
+            munmap(map_pointer, virtual_size);
+        }
+    }
+
+    return MAP_FAILED;
+}
+#else
+void* ChooseVirtualBase(size_t virtual_size) {
+    return mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE,
+                MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+}
+#endif
+
 class HostMemory::Impl {
 public:
     explicit Impl(size_t backing_size_, size_t virtual_size_)
@@ -415,8 +472,7 @@ public:
             }
         }
 #else
-        virtual_base = static_cast<u8*>(mmap(nullptr, virtual_size, PROT_NONE,
-                                             MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0));
+        virtual_base = static_cast<u8*>(ChooseVirtualBase(virtual_size));
         if (virtual_base == MAP_FAILED) {
             LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
             throw std::bad_alloc{};
