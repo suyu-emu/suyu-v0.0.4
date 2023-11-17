@@ -37,6 +37,8 @@ public:
 
     void Protect(size_t virtual_offset, size_t length, bool read, bool write);
 
+    void EnableDirectMappedAddress();
+
     [[nodiscard]] u8* BackingBasePointer() noexcept {
         return backing_base;
     }
