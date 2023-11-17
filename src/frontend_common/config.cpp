@@ -56,7 +56,7 @@ void Config::Initialize(const std::optional<std::string> config_path) {
 }
 
 void Config::WriteToIni() const {
-    if (const SI_Error rc = config->SaveFile(config_loc.c_str()); rc < 0) {
+    if (const SI_Error rc = config->SaveFile(config_loc.c_str(), false); rc < 0) {
         LOG_ERROR(Frontend, "Config file could not be saved!");
     }
 }
