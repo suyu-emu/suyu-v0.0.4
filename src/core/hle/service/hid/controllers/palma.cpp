@@ -44,7 +44,7 @@ Result Controller_Palma::InitializePalma(const PalmaConnectionHandle& handle) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
-    ActivateController();
+    Activate();
     return ResultSuccess;
 }
 
