@@ -129,6 +129,8 @@ ENUM(ShaderBackend, Glsl, Glasm, SpirV);
 
 ENUM(GpuAccuracy, Normal, High, Extreme);
 
+ENUM(CpuBackend, Dynarmic, Nce);
+
 ENUM(CpuAccuracy, Auto, Accurate, Unsafe, Paranoid);
 
 ENUM(MemoryLayout, Memory_4Gb, Memory_6Gb, Memory_8Gb);

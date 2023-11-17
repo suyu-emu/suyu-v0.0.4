@@ -41,6 +41,7 @@ SWITCHABLE(AspectRatio, true);
 SWITCHABLE(AstcDecodeMode, true);
 SWITCHABLE(AstcRecompression, true);
 SWITCHABLE(AudioMode, true);
+SWITCHABLE(CpuBackend, true);
 SWITCHABLE(CpuAccuracy, true);
 SWITCHABLE(FullscreenMode, true);
 SWITCHABLE(GpuAccuracy, true);
@@ -153,6 +154,10 @@ bool IsFastmemEnabled() {
         return static_cast<bool>(values.cpuopt_fastmem);
     }
     return true;
+}
+
+bool IsNceEnabled(bool is_64bit) {
+    return values.cpu_backend.GetValue() == CpuBackend::Nce && is_64bit;
 }
 
 bool IsDockedMode() {
