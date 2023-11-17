@@ -10,6 +10,7 @@
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/service/hid/errors.h"
+#include "core/hle/service/hid/hid_firmware_settings.h"
 #include "core/hle/service/hid/hid_server.h"
 #include "core/hle/service/hid/resource_manager.h"
 #include "core/hle/service/ipc_helpers.h"
@@ -64,8 +65,9 @@ private:
     std::shared_ptr<ResourceManager> resource_manager;
 };
 
-IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> resource)
-    : ServiceFramework{system_, "hid"}, resource_manager{resource} {
+IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> resource,
+                       std::shared_ptr<HidFirmwareSettings> settings)
+    : ServiceFramework{system_, "hid"}, resource_manager{resource}, firmware_settings{settings} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &IHidServer::CreateAppletResource, "CreateAppletResource"},
@@ -230,48 +232,87 @@ void IHidServer::ActivateDebugPad(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->ActivateController(HidController::DebugPad);
-
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
+    Result result = ResultSuccess;
+    auto& debug_pad =
+        GetResourceManager()->GetController<Controller_DebugPad>(HidController::DebugPad);
+
+    if (!firmware_settings->IsDeviceManaged()) {
+        result = debug_pad.Activate();
+    }
+
+    if (result.IsSuccess()) {
+        result = debug_pad.Activate(applet_resource_user_id);
+    }
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::ActivateTouchScreen(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->ActivateController(HidController::Touchscreen);
-
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
+    Result result = ResultSuccess;
+    auto& touch_screen =
+        GetResourceManager()->GetController<Controller_Touchscreen>(HidController::Touchscreen);
+
+    if (!firmware_settings->IsDeviceManaged()) {
+        result = touch_screen.Activate();
+    }
+
+    if (result.IsSuccess()) {
+        result = touch_screen.Activate(applet_resource_user_id);
+    }
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::ActivateMouse(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->ActivateController(HidController::Mouse);
-
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
+    Result result = ResultSuccess;
+    auto& mouse = GetResourceManager()->GetController<Controller_Mouse>(HidController::Mouse);
+
+    if (!firmware_settings->IsDeviceManaged()) {
+        result = mouse.Activate();
+    }
+
+    if (result.IsSuccess()) {
+        result = mouse.Activate(applet_resource_user_id);
+    }
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::ActivateKeyboard(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->ActivateController(HidController::Keyboard);
-
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
+    Result result = ResultSuccess;
+    auto& keyboard =
+        GetResourceManager()->GetController<Controller_Keyboard>(HidController::Keyboard);
+
+    if (!firmware_settings->IsDeviceManaged()) {
+        result = keyboard.Activate();
+    }
+
+    if (result.IsSuccess()) {
+        result = keyboard.Activate(applet_resource_user_id);
+    }
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::SendKeyboardLockKeyEvent(HLERequestContext& ctx) {
@@ -898,7 +939,7 @@ void IHidServer::ResetIsSixAxisSensorDeviceNewlyAssigned(HLERequestContext& ctx)
 void IHidServer::ActivateGesture(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        u32 unknown;
+        u32 basic_gesture_id;
         INSERT_PADDING_WORDS_NOINIT(1);
         u64 applet_resource_user_id;
     };
@@ -906,13 +947,23 @@ void IHidServer::ActivateGesture(HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    GetResourceManager()->ActivateController(HidController::Gesture);
+    LOG_INFO(Service_HID, "called, basic_gesture_id={}, applet_resource_user_id={}",
+             parameters.basic_gesture_id, parameters.applet_resource_user_id);
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, unknown={}, applet_resource_user_id={}",
-                parameters.unknown, parameters.applet_resource_user_id);
+    Result result = ResultSuccess;
+    auto& gesture = GetResourceManager()->GetController<Controller_Gesture>(HidController::Gesture);
+
+    if (!firmware_settings->IsDeviceManaged()) {
+        result = gesture.Activate();
+    }
+
+    if (result.IsSuccess()) {
+        // TODO: Use gesture id here
+        result = gesture.Activate(parameters.applet_resource_user_id);
+    }
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::SetSupportedNpadStyleSet(HLERequestContext& ctx) {
@@ -969,21 +1020,24 @@ void IHidServer::ActivateNpad(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->ActivateController(HidController::NPad);
-
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
+    auto& npad = GetResourceManager()->GetController<Controller_NPad>(HidController::NPad);
+
+    // TODO: npad->SetRevision(applet_resource_user_id, NpadRevision::Revision0);
+    const Result result = npad.Activate(applet_resource_user_id);
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::DeactivateNpad(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->DeactivateController(HidController::NPad);
-
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    // This function does nothing since 10.0.0+
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -1053,10 +1107,9 @@ void IHidServer::GetPlayerLedPattern(HLERequestContext& ctx) {
 }
 
 void IHidServer::ActivateNpadWithRevision(HLERequestContext& ctx) {
-    // Should have no effect with how our npad sets up the data
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        s32 revision;
+        Controller_NPad::NpadRevision revision;
         INSERT_PADDING_WORDS_NOINIT(1);
         u64 applet_resource_user_id;
     };
@@ -1064,13 +1117,16 @@ void IHidServer::ActivateNpadWithRevision(HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    GetResourceManager()->ActivateController(HidController::NPad);
-
     LOG_DEBUG(Service_HID, "called, revision={}, applet_resource_user_id={}", parameters.revision,
               parameters.applet_resource_user_id);
 
+    auto& npad = GetResourceManager()->GetController<Controller_NPad>(HidController::NPad);
+
+    // TODO: npad->SetRevision(applet_resource_user_id, revision);
+    const auto result = npad.Activate(parameters.applet_resource_user_id);
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::SetNpadJoyHoldType(HLERequestContext& ctx) {
@@ -1718,12 +1774,22 @@ void IHidServer::ActivateConsoleSixAxisSensor(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->ActivateController(HidController::ConsoleSixAxisSensor);
+    LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
-    LOG_WARNING(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+    Result result = ResultSuccess;
+    auto console_sixaxis = GetResourceManager()->GetController<Controller_ConsoleSixAxis>(
+        HidController::ConsoleSixAxisSensor);
+
+    if (!firmware_settings->IsDeviceManaged()) {
+        result = console_sixaxis.Activate();
+    }
+
+    if (result.IsSuccess()) {
+        result = console_sixaxis.Activate(applet_resource_user_id);
+    }
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::StartConsoleSixAxisSensor(HLERequestContext& ctx) {
@@ -1770,9 +1836,19 @@ void IHidServer::ActivateSevenSixAxisSensor(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->ActivateController(HidController::ConsoleSixAxisSensor);
+    LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
-    LOG_WARNING(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+    Result result = ResultSuccess;
+    auto console_sixaxis = GetResourceManager()->GetController<Controller_ConsoleSixAxis>(
+        HidController::ConsoleSixAxisSensor);
+
+    if (!firmware_settings->IsDeviceManaged()) {
+        result = console_sixaxis.Activate();
+    }
+
+    if (result.IsSuccess()) {
+        console_sixaxis.Activate(applet_resource_user_id);
+    }
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -1837,7 +1913,7 @@ void IHidServer::InitializeSevenSixAxisSensor(HLERequestContext& ctx) {
     // Activate console six axis controller
     GetResourceManager()
         ->GetController<Controller_ConsoleSixAxis>(HidController::ConsoleSixAxisSensor)
-        .ActivateController();
+        .Activate();
 
     GetResourceManager()
         ->GetController<Controller_ConsoleSixAxis>(HidController::ConsoleSixAxisSensor)

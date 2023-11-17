@@ -55,8 +55,6 @@ public:
     }
 
     void Initialize();
-    void ActivateController(HidController controller);
-    void DeactivateController(HidController controller);
 
     void UpdateControllers(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
     void UpdateNpad(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
