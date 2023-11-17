@@ -26,6 +26,10 @@ if ((ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64) AND NOT TARGET dynarmic::dynarmi
     add_library(dynarmic::dynarmic ALIAS dynarmic)
 endif()
 
+if (ARCHITECTURE_arm64 AND NOT TARGET merry::oaknut)
+    add_subdirectory(oaknut)
+endif()
+
 # getopt
 if (MSVC)
     add_subdirectory(getopt)
