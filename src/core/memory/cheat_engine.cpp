@@ -68,10 +68,7 @@ u64 StandardVmCallbacks::HidKeysDown() {
         return 0;
     }
 
-    const auto press_state =
-        applet_resource
-            ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad)
-            .GetAndResetPressState();
+    const auto press_state = applet_resource->GetNpad()->GetAndResetPressState();
     return static_cast<u64>(press_state & HID::NpadButton::All);
 }
 

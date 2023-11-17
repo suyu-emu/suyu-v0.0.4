@@ -8,6 +8,7 @@
 #include "common/common_types.h"
 #include "common/point.h"
 #include "common/uuid.h"
+#include "common/vector_math.h"
 
 namespace Core::HID {
 
@@ -598,6 +599,29 @@ struct SixAxisSensorIcInformation {
 static_assert(sizeof(SixAxisSensorIcInformation) == 0xC8,
               "SixAxisSensorIcInformation is an invalid size");
 
+// This is nn::hid::SixAxisSensorAttribute
+struct SixAxisSensorAttribute {
+    union {
+        u32 raw{};
+        BitField<0, 1, u32> is_connected;
+        BitField<1, 1, u32> is_interpolated;
+    };
+};
+static_assert(sizeof(SixAxisSensorAttribute) == 4, "SixAxisSensorAttribute is an invalid size");
+
+// This is nn::hid::SixAxisSensorState
+struct SixAxisSensorState {
+    s64 delta_time{};
+    s64 sampling_number{};
+    Common::Vec3f accel{};
+    Common::Vec3f gyro{};
+    Common::Vec3f rotation{};
+    std::array<Common::Vec3f, 3> orientation{};
+    SixAxisSensorAttribute attribute{};
+    INSERT_PADDING_BYTES(4); // Reserved
+};
+static_assert(sizeof(SixAxisSensorState) == 0x60, "SixAxisSensorState is an invalid size");
+
 // This is nn::hid::VibrationDeviceHandle
 struct VibrationDeviceHandle {
     NpadStyleIndex npad_type{NpadStyleIndex::None};
@@ -707,61 +731,5 @@ struct UniquePadId {
     u64 id;
 };
 static_assert(sizeof(UniquePadId) == 0x8, "UniquePadId is an invalid size");
-
-/// Converts a NpadIdType to an array index.
-constexpr size_t NpadIdTypeToIndex(NpadIdType npad_id_type) {
-    switch (npad_id_type) {
-    case NpadIdType::Player1:
-        return 0;
-    case NpadIdType::Player2:
-        return 1;
-    case NpadIdType::Player3:
-        return 2;
-    case NpadIdType::Player4:
-        return 3;
-    case NpadIdType::Player5:
-        return 4;
-    case NpadIdType::Player6:
-        return 5;
-    case NpadIdType::Player7:
-        return 6;
-    case NpadIdType::Player8:
-        return 7;
-    case NpadIdType::Handheld:
-        return 8;
-    case NpadIdType::Other:
-        return 9;
-    default:
-        return 0;
-    }
-}
-
-/// Converts an array index to a NpadIdType
-constexpr NpadIdType IndexToNpadIdType(size_t index) {
-    switch (index) {
-    case 0:
-        return NpadIdType::Player1;
-    case 1:
-        return NpadIdType::Player2;
-    case 2:
-        return NpadIdType::Player3;
-    case 3:
-        return NpadIdType::Player4;
-    case 4:
-        return NpadIdType::Player5;
-    case 5:
-        return NpadIdType::Player6;
-    case 6:
-        return NpadIdType::Player7;
-    case 7:
-        return NpadIdType::Player8;
-    case 8:
-        return NpadIdType::Handheld;
-    case 9:
-        return NpadIdType::Other;
-    default:
-        return NpadIdType::Invalid;
-    }
-}
 
 } // namespace Core::HID

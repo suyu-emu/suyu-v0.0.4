@@ -14,10 +14,10 @@ struct KeyboardKey;
 } // namespace Core::HID
 
 namespace Service::HID {
-class Controller_Keyboard final : public ControllerBase {
+class Keyboard final : public ControllerBase {
 public:
-    explicit Controller_Keyboard(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
-    ~Controller_Keyboard() override;
+    explicit Keyboard(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
+    ~Keyboard() override;
 
     // Called when the controller is initialized
     void OnInit() override;

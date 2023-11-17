@@ -13,7 +13,7 @@
 namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x00000;
 
-Controller_DebugPad::Controller_DebugPad(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
+DebugPad::DebugPad(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
     : ControllerBase{hid_core_} {
     static_assert(SHARED_MEMORY_OFFSET + sizeof(DebugPadSharedMemory) < shared_memory_size,
                   "DebugPadSharedMemory is bigger than the shared memory");
@@ -22,13 +22,13 @@ Controller_DebugPad::Controller_DebugPad(Core::HID::HIDCore& hid_core_, u8* raw_
     controller = hid_core.GetEmulatedController(Core::HID::NpadIdType::Other);
 }
 
-Controller_DebugPad::~Controller_DebugPad() = default;
+DebugPad::~DebugPad() = default;
 
-void Controller_DebugPad::OnInit() {}
+void DebugPad::OnInit() {}
 
-void Controller_DebugPad::OnRelease() {}
+void DebugPad::OnRelease() {}
 
-void Controller_DebugPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+void DebugPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     if (!IsControllerActivated()) {
         shared_memory->debug_pad_lifo.buffer_count = 0;
         shared_memory->debug_pad_lifo.buffer_tail = 0;

@@ -14,10 +14,10 @@ struct AnalogStickState;
 } // namespace Core::HID
 
 namespace Service::HID {
-class Controller_Mouse final : public ControllerBase {
+class Mouse final : public ControllerBase {
 public:
-    explicit Controller_Mouse(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
-    ~Controller_Mouse() override;
+    explicit Mouse(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
+    ~Mouse() override;
 
     // Called when the controller is initialized
     void OnInit() override;
