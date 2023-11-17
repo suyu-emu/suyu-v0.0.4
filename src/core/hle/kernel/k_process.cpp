@@ -1214,6 +1214,17 @@ void KProcess::LoadModule(CodeSet code_set, KProcessAddress base_addr) {
     ReprotectSegment(code_set.CodeSegment(), Svc::MemoryPermission::ReadExecute);
     ReprotectSegment(code_set.RODataSegment(), Svc::MemoryPermission::Read);
     ReprotectSegment(code_set.DataSegment(), Svc::MemoryPermission::ReadWrite);
+
+#ifdef ARCHITECTURE_arm64
+    if (Settings::IsNceEnabled()) {
+        auto& buffer = m_kernel.System().DeviceMemory().buffer;
+        const auto& code = code_set.CodeSegment();
+        const auto& patch = code_set.PatchSegment();
+        buffer.Protect(GetInteger(base_addr + code.addr), code.size, true, true, true);
+        buffer.Protect(GetInteger(base_addr + patch.addr), patch.size, true, true, true);
+        ReprotectSegment(code_set.PatchSegment(), Svc::MemoryPermission::None);
+    }
+#endif
 }
 
 bool KProcess::InsertWatchpoint(KProcessAddress addr, u64 size, DebugWatchpointType type) {

@@ -20,14 +20,14 @@ if ((ARCHITECTURE_x86 OR ARCHITECTURE_x86_64) AND NOT TARGET xbyak::xbyak)
 endif()
 
 # Dynarmic
+if (ARCHITECTURE_arm64 AND NOT TARGET merry::oaknut)
+    add_subdirectory(oaknut)
+endif()
+
 if ((ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64) AND NOT TARGET dynarmic::dynarmic)
     set(DYNARMIC_IGNORE_ASSERTS ON)
     add_subdirectory(dynarmic)
     add_library(dynarmic::dynarmic ALIAS dynarmic)
-endif()
-
-if (ARCHITECTURE_arm64 AND NOT TARGET merry::oaknut)
-    add_subdirectory(oaknut)
 endif()
 
 # getopt

@@ -75,11 +75,20 @@ struct CodeSet final {
         return segments[2];
     }
 
+    Segment& PatchSegment() {
+        return patch_segment;
+    }
+
+    const Segment& PatchSegment() const {
+        return patch_segment;
+    }
+
     /// The overall data that backs this code set.
     Kernel::PhysicalMemory memory;
 
     /// The segments that comprise this code set.
     std::array<Segment, 3> segments;
+    Segment patch_segment;
 
     /// The entry point address for this code set.
     KProcessAddress entrypoint = 0;

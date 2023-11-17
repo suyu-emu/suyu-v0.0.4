@@ -12,13 +12,9 @@ constexpr size_t VirtualReserveSize = 1ULL << 38;
 constexpr size_t VirtualReserveSize = 1ULL << 39;
 #endif
 
-DeviceMemory::DeviceMemory(bool direct_mapped_address)
+DeviceMemory::DeviceMemory()
     : buffer{Kernel::Board::Nintendo::Nx::KSystemControl::Init::GetIntendedMemorySize(),
-             VirtualReserveSize} {
-    if (direct_mapped_address) {
-        buffer.EnableDirectMappedAddress();
-    }
-}
+             VirtualReserveSize} {}
 
 DeviceMemory::~DeviceMemory() = default;
 

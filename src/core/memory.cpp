@@ -1001,4 +1001,17 @@ void Memory::FlushRegion(Common::ProcessAddress dest_addr, size_t size) {
     impl->FlushRegion(dest_addr, size);
 }
 
+bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
+    bool mapped = true;
+    u8* const ptr = impl->GetPointerImpl(
+        GetInteger(vaddr),
+        [&] {
+            LOG_ERROR(HW_Memory, "Unmapped InvalidateNCE for {} bytes @ {:#x}", size,
+                      GetInteger(vaddr));
+            mapped = false;
+        },
+        [&] { impl->system.GPU().InvalidateRegion(GetInteger(vaddr), size); });
+    return mapped && ptr != nullptr;
+}
+
 } // namespace Core::Memory

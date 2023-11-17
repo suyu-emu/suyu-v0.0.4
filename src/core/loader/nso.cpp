@@ -20,6 +20,10 @@
 #include "core/loader/nso.h"
 #include "core/memory.h"
 
+#ifdef ARCHITECTURE_arm64
+#include "core/arm/nce/patch.h"
+#endif
+
 namespace Loader {
 namespace {
 struct MODHeader {
@@ -72,7 +76,8 @@ FileType AppLoader_NSO::IdentifyType(const FileSys::VirtualFile& in_file) {
 std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::System& system,
                                                const FileSys::VfsFile& nso_file, VAddr load_base,
                                                bool should_pass_arguments, bool load_into_process,
-                                               std::optional<FileSys::PatchManager> pm) {
+                                               std::optional<FileSys::PatchManager> pm,
+                                               Core::NCE::Patcher* patch) {
     if (nso_file.GetSize() < sizeof(NSOHeader)) {
         return std::nullopt;
     }
@@ -86,6 +91,16 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
         return std::nullopt;
     }
 
+    // Allocate some space at the beginning if we are patching in PreText mode.
+    const size_t module_start = [&]() -> size_t {
+#ifdef ARCHITECTURE_arm64
+        if (patch && patch->Mode() == Core::NCE::PatchMode::PreText) {
+            return patch->SectionSize();
+        }
+#endif
+        return 0;
+    }();
+
     // Build program image
     Kernel::CodeSet codeset;
     Kernel::PhysicalMemory program_image;
@@ -95,11 +110,12 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
         if (nso_header.IsSegmentCompressed(i)) {
             data = DecompressSegment(data, nso_header.segments[i]);
         }
-        program_image.resize(nso_header.segments[i].location + static_cast<u32>(data.size()));
-        std::memcpy(program_image.data() + nso_header.segments[i].location, data.data(),
-                    data.size());
-        codeset.segments[i].addr = nso_header.segments[i].location;
-        codeset.segments[i].offset = nso_header.segments[i].location;
+        program_image.resize(module_start + nso_header.segments[i].location +
+                             static_cast<u32>(data.size()));
+        std::memcpy(program_image.data() + module_start + nso_header.segments[i].location,
+                    data.data(), data.size());
+        codeset.segments[i].addr = module_start + nso_header.segments[i].location;
+        codeset.segments[i].offset = module_start + nso_header.segments[i].location;
         codeset.segments[i].size = nso_header.segments[i].size;
     }
 
@@ -118,7 +134,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
     }
 
     codeset.DataSegment().size += nso_header.segments[2].bss_size;
-    const u32 image_size{
+    u32 image_size{
         PageAlignSize(static_cast<u32>(program_image.size()) + nso_header.segments[2].bss_size)};
     program_image.resize(image_size);
 
@@ -138,6 +154,32 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
 
         std::copy(pi_header.begin() + sizeof(NSOHeader), pi_header.end(), program_image.data());
     }
+
+#ifdef ARCHITECTURE_arm64
+    // If we are computing the process code layout and using nce backend, patch.
+    const auto& code = codeset.CodeSegment();
+    if (patch && patch->Mode() == Core::NCE::PatchMode::None) {
+        // Patch SVCs and MRS calls in the guest code
+        patch->PatchText(program_image, code);
+
+        // Add patch section size to the module size.
+        image_size += patch->SectionSize();
+    } else if (patch) {
+        // Relocate code patch and copy to the program_image.
+        patch->RelocateAndCopy(load_base, code, program_image, &process.GetPostHandlers());
+
+        // Update patch section.
+        auto& patch_segment = codeset.PatchSegment();
+        patch_segment.addr = patch->Mode() == Core::NCE::PatchMode::PreText ? 0 : image_size;
+        patch_segment.size = static_cast<u32>(patch->SectionSize());
+
+        // Add patch section size to the module size. In PreText mode image_size
+        // already contains the patch segment as part of module_start.
+        if (patch->Mode() == Core::NCE::PatchMode::PostData) {
+            image_size += patch_segment.size;
+        }
+    }
+#endif
 
     // If we aren't actually loading (i.e. just computing the process code layout), we are done
     if (!load_into_process) {

@@ -189,6 +189,11 @@ public:
         }
     }
 
+    void EnableDirectMappedAddress() {
+        // TODO
+        UNREACHABLE();
+    }
+
     const size_t backing_size; ///< Size of the backing memory in bytes
     const size_t virtual_size; ///< Size of the virtual address placeholder in bytes
 
@@ -338,11 +343,6 @@ private:
                                               : std::prev(it)->upper() == virtual_offset;
         }
         return false;
-    }
-
-    void EnableDirectMappedAddress() {
-        // TODO
-        UNREACHABLE();
     }
 
     HANDLE process{};        ///< Current process handle
