@@ -18,7 +18,7 @@ enum : u64 {
 
 class DeviceMemory {
 public:
-    explicit DeviceMemory();
+    explicit DeviceMemory(bool direct_mapped_address);
     ~DeviceMemory();
 
     DeviceMemory& operator=(const DeviceMemory&) = delete;

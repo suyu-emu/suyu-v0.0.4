@@ -156,8 +156,14 @@ bool IsFastmemEnabled() {
     return true;
 }
 
-bool IsNceEnabled(bool is_64bit) {
-    return values.cpu_backend.GetValue() == CpuBackend::Nce && is_64bit;
+static bool is_nce_enabled = false;
+
+void SetNceEnabled(bool is_64bit) {
+    is_nce_enabled = values.cpu_backend.GetValue() == CpuBackend::Nce && is_64bit;
+}
+
+bool IsNceEnabled() {
+    return is_nce_enabled;
 }
 
 bool IsDockedMode() {
