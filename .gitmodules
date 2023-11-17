@@ -61,3 +61,6 @@
 [submodule "simpleini"]
 	path = externals/simpleini
 	url = https://github.com/brofield/simpleini.git
+[submodule "oaknut"]
+	path = externals/oaknut
+	url = https://github.com/merryhime/oaknut
