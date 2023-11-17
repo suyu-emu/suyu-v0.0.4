@@ -573,7 +573,8 @@ bool IsGPULevelExtreme();
 bool IsGPULevelHigh();
 
 bool IsFastmemEnabled();
-bool IsNceEnabled(bool is_64bit = true);
+void SetNceEnabled(bool is_64bit);
+bool IsNceEnabled();
 
 bool IsDockedMode();
 

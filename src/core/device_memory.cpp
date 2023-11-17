@@ -6,15 +6,20 @@
 
 namespace Core {
 
-#ifdef ANDROID
+#ifdef ARCHITECTURE_arm64
 constexpr size_t VirtualReserveSize = 1ULL << 38;
 #else
 constexpr size_t VirtualReserveSize = 1ULL << 39;
 #endif
 
-DeviceMemory::DeviceMemory()
+DeviceMemory::DeviceMemory(bool direct_mapped_address)
     : buffer{Kernel::Board::Nintendo::Nx::KSystemControl::Init::GetIntendedMemorySize(),
-             VirtualReserveSize} {}
+             VirtualReserveSize} {
+    if (direct_mapped_address) {
+        buffer.EnableDirectMappedAddress();
+    }
+}
+
 DeviceMemory::~DeviceMemory() = default;
 
 } // namespace Core
