@@ -88,6 +88,20 @@ Result FlushDataCache(AddressType addr, u64 size) {
     R_SUCCEED();
 }
 
+constexpr Common::MemoryPermission ConvertToMemoryPermission(KMemoryPermission perm) {
+    Common::MemoryPermission perms{};
+    if (True(perm & KMemoryPermission::UserRead)) {
+        perms |= Common::MemoryPermission::Read;
+    }
+    if (True(perm & KMemoryPermission::UserWrite)) {
+        perms |= Common::MemoryPermission::Write;
+    }
+    if (True(perm & KMemoryPermission::UserExecute)) {
+        perms |= Common::MemoryPermission::Execute;
+    }
+    return perms;
+}
+
 } // namespace
 
 void KPageTableBase::MemoryRange::Open() {
@@ -5643,7 +5657,8 @@ Result KPageTableBase::Operate(PageLinkedList* page_list, KProcessAddress virt_a
     case OperationType::Map: {
         ASSERT(virt_addr != 0);
         ASSERT(Common::IsAligned(GetInteger(virt_addr), PageSize));
-        m_memory->MapMemoryRegion(*m_impl, virt_addr, num_pages * PageSize, phys_addr);
+        m_memory->MapMemoryRegion(*m_impl, virt_addr, num_pages * PageSize, phys_addr,
+                                  ConvertToMemoryPermission(properties.perm));
 
         // Open references to pages, if we should.
         if (this->IsHeapPhysicalAddress(phys_addr)) {
@@ -5658,8 +5673,18 @@ Result KPageTableBase::Operate(PageLinkedList* page_list, KProcessAddress virt_a
     }
     case OperationType::ChangePermissions:
     case OperationType::ChangePermissionsAndRefresh:
-    case OperationType::ChangePermissionsAndRefreshAndFlush:
+    case OperationType::ChangePermissionsAndRefreshAndFlush: {
+        const bool read = True(properties.perm & Kernel::KMemoryPermission::UserRead);
+        const bool write = True(properties.perm & Kernel::KMemoryPermission::UserWrite);
+        // todo: this doesn't really belong here and should go into m_memory to handle rasterizer
+        // access todo: ignore exec on non-direct-mapped case
+        const bool exec = True(properties.perm & Kernel::KMemoryPermission::UserExecute);
+        if (Settings::IsFastmemEnabled()) {
+            m_system.DeviceMemory().buffer.Protect(GetInteger(virt_addr), num_pages * PageSize,
+                                                   read, write, exec);
+        }
         R_SUCCEED();
+    }
     default:
         UNREACHABLE();
     }
@@ -5687,7 +5712,8 @@ Result KPageTableBase::Operate(PageLinkedList* page_list, KProcessAddress virt_a
             const size_t size{node.GetNumPages() * PageSize};
 
             // Map the pages.
-            m_memory->MapMemoryRegion(*m_impl, virt_addr, size, node.GetAddress());
+            m_memory->MapMemoryRegion(*m_impl, virt_addr, size, node.GetAddress(),
+                                      ConvertToMemoryPermission(properties.perm));
 
             virt_addr += size;
         }
