@@ -269,6 +269,7 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.RENDERER_DEBUG.key)
 
             add(HeaderSetting(R.string.cpu))
+            add(IntSetting.CPU_BACKEND.key)
             add(IntSetting.CPU_ACCURACY.key)
             add(BooleanSetting.CPU_DEBUG_MODE.key)
             add(SettingsItem.FASTMEM_COMBINED)

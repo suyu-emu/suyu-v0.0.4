@@ -199,6 +199,7 @@ static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
 
     codeset.DataSegment().size += bss_size;
     program_image.resize(static_cast<u32>(program_image.size()) + bss_size);
+    size_t image_size = program_image.size();
 
 #ifdef ARCHITECTURE_arm64
     const auto& code = codeset.CodeSegment();
@@ -208,7 +209,6 @@ static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
 
     // Create NCE patcher
     Core::NCE::Patcher patch{};
-    size_t image_size = program_image.size();
 
     if (Settings::IsNceEnabled()) {
         // Patch SVCs and MRS calls in the guest code
