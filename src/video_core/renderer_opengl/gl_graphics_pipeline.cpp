@@ -559,7 +559,9 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
 }
 
 void GraphicsPipeline::ConfigureTransformFeedbackImpl() const {
-    glTransformFeedbackAttribsNV(num_xfb_attribs, xfb_attribs.data(), GL_SEPARATE_ATTRIBS);
+    const GLenum buffer_mode =
+        num_xfb_buffers_active == 1 ? GL_INTERLEAVED_ATTRIBS : GL_SEPARATE_ATTRIBS;
+    glTransformFeedbackAttribsNV(num_xfb_attribs, xfb_attribs.data(), buffer_mode);
 }
 
 void GraphicsPipeline::GenerateTransformFeedbackState() {
@@ -567,12 +569,14 @@ void GraphicsPipeline::GenerateTransformFeedbackState() {
     // when this is required.
     GLint* cursor{xfb_attribs.data()};
 
+    num_xfb_buffers_active = 0;
     for (size_t feedback = 0; feedback < Maxwell::NumTransformFeedbackBuffers; ++feedback) {
         const auto& layout = key.xfb_state.layouts[feedback];
         UNIMPLEMENTED_IF_MSG(layout.stride != layout.varying_count * 4, "Stride padding");
         if (layout.varying_count == 0) {
             continue;
         }
+        num_xfb_buffers_active++;
 
         const auto& locations = key.xfb_state.varyings[feedback];
         std::optional<u32> current_index;
