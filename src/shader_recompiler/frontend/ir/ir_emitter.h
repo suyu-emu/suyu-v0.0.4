@@ -335,7 +335,7 @@ public:
     [[nodiscard]] Value ImageFetch(const Value& handle, const Value& coords, const Value& offset,
                                    const U32& lod, const U32& multisampling, TextureInstInfo info);
     [[nodiscard]] Value ImageGradient(const Value& handle, const Value& coords,
-                                      const Value& derivates, const Value& offset,
+                                      const Value& derivatives, const Value& offset,
                                       const F32& lod_clamp, TextureInstInfo info);
     [[nodiscard]] Value ImageRead(const Value& handle, const Value& coords, TextureInstInfo info);
     void ImageWrite(const Value& handle, const Value& coords, const Value& color,
