@@ -18,7 +18,7 @@ T* LookupLibcSymbol(const char* name) {
         UNREACHABLE_MSG("Failed to open libc!");
     }
 #else
-    // For other operating environments, we assume the symbol is not overriden.
+    // For other operating environments, we assume the symbol is not overridden.
     const char* base = nullptr;
     Common::DynamicLibrary provider(base);
 #endif

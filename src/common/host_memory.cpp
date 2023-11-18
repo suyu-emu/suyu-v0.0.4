@@ -363,13 +363,13 @@ private:
 
 #ifdef ARCHITECTURE_arm64
 
-uint64_t GetRandomU64() {
+static uint64_t GetRandomU64() {
     uint64_t ret;
     ASSERT(getrandom(&ret, sizeof(ret), 0) == 0);
     return ret;
 }
 
-void* ChooseVirtualBase(size_t virtual_size) {
+static void* ChooseVirtualBase(size_t virtual_size) {
     constexpr uintptr_t Map39BitSize = (1ULL << 39);
     constexpr uintptr_t Map36BitSize = (1ULL << 36);
 
@@ -410,7 +410,7 @@ void* ChooseVirtualBase(size_t virtual_size) {
     return MAP_FAILED;
 }
 #else
-void* ChooseVirtualBase(size_t virtual_size) {
+static void* ChooseVirtualBase(size_t virtual_size) {
     return mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE,
                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
 }

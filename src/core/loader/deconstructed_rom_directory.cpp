@@ -129,8 +129,10 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     }
     metadata.Print();
 
-    // Enable NCE only for 64-bit programs.
-    Settings::SetNceEnabled(metadata.Is64BitProgram());
+    // Enable NCE only for programs with 39-bit address space.
+    const bool is_39bit =
+        metadata.GetAddressSpaceType() == FileSys::ProgramAddressSpaceType::Is39Bit;
+    Settings::SetNceEnabled(is_39bit);
 
     const std::array static_modules = {"rtld",    "main",    "subsdk0", "subsdk1", "subsdk2",
                                        "subsdk3", "subsdk4", "subsdk5", "subsdk6", "subsdk7",

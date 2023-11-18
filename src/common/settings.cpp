@@ -159,7 +159,13 @@ bool IsFastmemEnabled() {
 static bool is_nce_enabled = false;
 
 void SetNceEnabled(bool is_39bit) {
-    is_nce_enabled = values.cpu_backend.GetValue() == CpuBackend::Nce && is_39bit;
+    const bool is_nce_selected = values.cpu_backend.GetValue() == CpuBackend::Nce;
+    is_nce_enabled = is_nce_selected && is_39bit;
+    if (is_nce_selected && !is_nce_enabled) {
+        LOG_WARNING(
+            Common,
+            "Program does not utilize 39-bit address space, unable to natively execute code");
+    }
 }
 
 bool IsNceEnabled() {

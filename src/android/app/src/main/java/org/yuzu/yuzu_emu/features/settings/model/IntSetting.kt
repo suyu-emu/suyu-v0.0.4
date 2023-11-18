@@ -10,6 +10,7 @@ enum class IntSetting(
     override val category: Settings.Category,
     override val androidDefault: Int? = null
 ) : AbstractIntSetting {
+    CPU_BACKEND("cpu_backend", Settings.Category.Cpu),
     CPU_ACCURACY("cpu_accuracy", Settings.Category.Cpu),
     REGION_INDEX("region_index", Settings.Category.System),
     LANGUAGE_INDEX("language_index", Settings.Category.System),
