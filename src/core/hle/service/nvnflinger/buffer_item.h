@@ -15,7 +15,7 @@
 
 namespace Service::android {
 
-struct GraphicBuffer;
+class GraphicBuffer;
 
 class BufferItem final {
 public:
