@@ -47,7 +47,10 @@ void Nvnflinger::SplitVSync(std::stop_token stop_token) {
         vsync_signal.Wait();
 
         const auto lock_guard = Lock();
-        Compose();
+
+        if (!is_abandoned) {
+            Compose();
+        }
     }
 }
 
@@ -98,7 +101,6 @@ Nvnflinger::~Nvnflinger() {
     }
 
     ShutdownLayers();
-    vsync_thread = {};
 
     if (nvdrv) {
         nvdrv->Close(disp_fd);
@@ -106,12 +108,20 @@ Nvnflinger::~Nvnflinger() {
 }
 
 void Nvnflinger::ShutdownLayers() {
-    const auto lock_guard = Lock();
-    for (auto& display : displays) {
-        for (size_t layer = 0; layer < display.GetNumLayers(); ++layer) {
-            display.GetLayer(layer).Core().NotifyShutdown();
+    // Abandon consumers.
+    {
+        const auto lock_guard = Lock();
+        for (auto& display : displays) {
+            for (size_t layer = 0; layer < display.GetNumLayers(); ++layer) {
+                display.GetLayer(layer).GetConsumer().Abandon();
+            }
         }
+
+        is_abandoned = true;
     }
+
+    // Join the vsync thread, if it exists.
+    vsync_thread = {};
 }
 
 void Nvnflinger::SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance) {

@@ -175,6 +175,25 @@ Status BufferQueueConsumer::Connect(std::shared_ptr<IConsumerListener> consumer_
     return Status::NoError;
 }
 
+Status BufferQueueConsumer::Disconnect() {
+    LOG_DEBUG(Service_Nvnflinger, "called");
+
+    std::scoped_lock lock{core->mutex};
+
+    if (core->consumer_listener == nullptr) {
+        LOG_ERROR(Service_Nvnflinger, "no consumer is connected");
+        return Status::BadValue;
+    }
+
+    core->is_abandoned = true;
+    core->consumer_listener = nullptr;
+    core->queue.clear();
+    core->FreeAllBuffersLocked();
+    core->SignalDequeueCondition();
+
+    return Status::NoError;
+}
+
 Status BufferQueueConsumer::GetReleasedBuffers(u64* out_slot_mask) {
     if (out_slot_mask == nullptr) {
         LOG_ERROR(Service_Nvnflinger, "out_slot_mask may not be nullptr");
