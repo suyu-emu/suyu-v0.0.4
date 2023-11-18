@@ -548,15 +548,15 @@ void EmitImageGradient(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
     if (sparse_inst) {
         throw NotImplementedException("EmitImageGradient Sparse");
     }
-    if (!offset.IsEmpty() && info.num_derivates <= 2) {
+    if (!offset.IsEmpty() && info.num_derivatives <= 2) {
         throw NotImplementedException("EmitImageGradient offset");
     }
     const auto texture{Texture(ctx, info, index)};
     const auto texel{ctx.var_alloc.Define(inst, GlslVarType::F32x4)};
-    const bool multi_component{info.num_derivates > 1 || info.has_lod_clamp};
+    const bool multi_component{info.num_derivatives > 1 || info.has_lod_clamp};
     const auto derivatives_vec{ctx.var_alloc.Consume(derivatives)};
     if (multi_component) {
-        if (info.num_derivates >= 3) {
+        if (info.num_derivatives >= 3) {
             const auto offset_vec{ctx.var_alloc.Consume(offset)};
             ctx.Add("{}=textureGrad({},{},vec3({}.xz, {}.x),vec3({}.yw, {}.y));", texel, texture,
                     coords, derivatives_vec, offset_vec, derivatives_vec, offset_vec);

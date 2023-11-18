@@ -40,7 +40,7 @@ union TextureInstInfo {
     BitField<21, 1, u32> has_lod_clamp;
     BitField<22, 1, u32> relaxed_precision;
     BitField<23, 2, u32> gather_component;
-    BitField<25, 2, u32> num_derivates;
+    BitField<25, 2, u32> num_derivatives;
     BitField<27, 3, ImageFormat> image_format;
     BitField<30, 1, u32> ndv_is_active;
 };
