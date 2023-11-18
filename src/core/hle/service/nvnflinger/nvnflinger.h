@@ -140,6 +140,8 @@ private:
 
     s32 swap_interval = 1;
 
+    bool is_abandoned = false;
+
     /// Event that handles screen composition.
     std::shared_ptr<Core::Timing::EventType> multi_composition_event;
     std::shared_ptr<Core::Timing::EventType> single_composition_event;

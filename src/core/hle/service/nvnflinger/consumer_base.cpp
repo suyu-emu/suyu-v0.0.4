@@ -27,6 +27,26 @@ void ConsumerBase::Connect(bool controlled_by_app) {
     consumer->Connect(shared_from_this(), controlled_by_app);
 }
 
+void ConsumerBase::Abandon() {
+    LOG_DEBUG(Service_Nvnflinger, "called");
+
+    std::scoped_lock lock{mutex};
+
+    if (!is_abandoned) {
+        this->AbandonLocked();
+        is_abandoned = true;
+    }
+}
+
+void ConsumerBase::AbandonLocked() {
+    for (int i = 0; i < BufferQueueDefs::NUM_BUFFER_SLOTS; i++) {
+        this->FreeBufferLocked(i);
+    }
+    // disconnect from the BufferQueue
+    consumer->Disconnect();
+    consumer = nullptr;
+}
+
 void ConsumerBase::FreeBufferLocked(s32 slot_index) {
     LOG_DEBUG(Service_Nvnflinger, "slot_index={}", slot_index);
 

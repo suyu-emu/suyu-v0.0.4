@@ -24,6 +24,7 @@ class BufferQueueConsumer;
 class ConsumerBase : public IConsumerListener, public std::enable_shared_from_this<ConsumerBase> {
 public:
     void Connect(bool controlled_by_app);
+    void Abandon();
 
 protected:
     explicit ConsumerBase(std::unique_ptr<BufferQueueConsumer> consumer_);
@@ -34,6 +35,7 @@ protected:
     void OnBuffersReleased() override;
     void OnSidebandStreamChanged() override;
 
+    void AbandonLocked();
     void FreeBufferLocked(s32 slot_index);
     Status AcquireBufferLocked(BufferItem* item, std::chrono::nanoseconds present_when);
     Status ReleaseBufferLocked(s32 slot, const std::shared_ptr<GraphicBuffer>& graphic_buffer);
