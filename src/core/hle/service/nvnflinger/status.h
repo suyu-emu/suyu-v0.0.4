@@ -19,7 +19,7 @@ enum class Status : s32 {
     Busy = -16,
     NoInit = -19,
     BadValue = -22,
-    InvalidOperation = -37,
+    InvalidOperation = -38,
     BufferNeedsReallocation = 1,
     ReleaseAllBuffers = 2,
 };
