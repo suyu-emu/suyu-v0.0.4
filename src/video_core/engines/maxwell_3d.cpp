@@ -268,7 +268,7 @@ size_t Maxwell3D::EstimateIndexBufferSize() {
                                                         std::numeric_limits<u32>::max()};
     const size_t byte_size = regs.index_buffer.FormatSizeInBytes();
     const size_t log2_byte_size = Common::Log2Ceil64(byte_size);
-    const size_t cap{GetMaxCurrentVertices() * 3 * byte_size};
+    const size_t cap{GetMaxCurrentVertices() * 4 * byte_size};
     const size_t lower_cap =
         std::min<size_t>(static_cast<size_t>(end_address - start_address), cap);
     return std::min<size_t>(
