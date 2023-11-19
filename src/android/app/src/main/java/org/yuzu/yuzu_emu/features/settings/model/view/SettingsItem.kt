@@ -73,7 +73,7 @@ abstract class SettingsItem(
                     R.string.frame_limit_slider,
                     R.string.frame_limit_slider_description,
                     1,
-                    200,
+                    400,
                     "%"
                 )
             )
