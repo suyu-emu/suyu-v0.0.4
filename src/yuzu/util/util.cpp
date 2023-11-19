@@ -4,7 +4,10 @@
 #include <array>
 #include <cmath>
 #include <QPainter>
+
+#include "common/logging/log.h"
 #include "yuzu/util/util.h"
+
 #ifdef _WIN32
 #include <windows.h>
 #include "common/fs/file.h"
