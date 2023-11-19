@@ -194,7 +194,6 @@ private:
 
     bool has_fast_buffer_sub_data = false;
     bool use_assembly_shaders = false;
-    bool has_unified_vertex_buffers = false;
 
     bool use_storage_buffers = false;
 
