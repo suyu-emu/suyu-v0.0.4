@@ -856,7 +856,15 @@ std::string Config::AdjustKey(const std::string& key) {
 std::string Config::AdjustOutputString(const std::string& string) {
     std::string adjusted_string(string);
     boost::replace_all(adjusted_string, "\\", "/");
-    boost::replace_all(adjusted_string, "//", "/");
+
+    // Windows requires that two forward slashes are used at the start of a path for unmapped
+    // network drives so we have to watch for that here
+    if (string.substr(0, 2) == "//") {
+        boost::replace_all(adjusted_string, "//", "/");
+        adjusted_string.insert(0, "/");
+    } else {
+        boost::replace_all(adjusted_string, "//", "/");
+    }
 
     // Needed for backwards compatibility with QSettings deserialization
     for (const auto& special_character : special_characters) {
