@@ -84,6 +84,10 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
         }
         return std::nullopt;
     case IR::Attribute::ViewportIndex:
+        if (!ctx.profile.support_multi_viewport) {
+            LOG_WARNING(Shader, "Ignoring viewport index store on non-supporting driver");
+            return std::nullopt;
+        }
         if (ctx.profile.support_viewport_index_layer_non_geometry ||
             ctx.stage == Shader::Stage::Geometry) {
             return OutAttr{ctx.viewport_index, ctx.U32[1]};

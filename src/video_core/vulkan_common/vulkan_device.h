@@ -669,6 +669,10 @@ public:
         return supports_conditional_barriers;
     }
 
+    bool SupportsMultiViewport() const {
+        return features2.features.multiViewport;
+    }
+
     [[nodiscard]] static constexpr bool CheckBrokenCompute(VkDriverId driver_id,
                                                            u32 driver_version) {
         if (driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
