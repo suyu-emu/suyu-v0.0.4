@@ -100,7 +100,7 @@ void Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
                               const Kernel::CodeSet::Segment& code,
                               Kernel::PhysicalMemory& program_image,
                               EntryTrampolines* out_trampolines) {
-    const size_t patch_size = SectionSize();
+    const size_t patch_size = GetSectionSize();
     const size_t image_size = program_image.size();
 
     // Retrieve text segment data.
@@ -180,7 +180,7 @@ void Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
     }
 }
 
-size_t Patcher::SectionSize() const noexcept {
+size_t Patcher::GetSectionSize() const noexcept {
     return Common::AlignUp(m_patch_instructions.size() * sizeof(u32), Core::Memory::YUZU_PAGESIZE);
 }
 
@@ -256,7 +256,6 @@ void Patcher::WriteSaveContext() {
 }
 
 void Patcher::WriteSvcTrampoline(ModuleDestLabel module_dest, u32 svc_id) {
-    LOG_ERROR(Core_ARM, "Patching SVC {:#x} at {:#x}", svc_id, module_dest - 4);
     // We are about to start saving state, so we need to lock the context.
     this->LockContext();
 

@@ -10,8 +10,8 @@
 namespace Common {
 
 // Android's ART overrides sigaction with its own wrapper. This is problematic for SIGSEGV
-// in particular, because ARTs handler access TPIDR_EL0, so this extracts the libc version
-// and calls it directly.
+// in particular, because ART's handler accesses tpidr_el0, which conflicts with NCE.
+// This extracts the libc symbol and calls it directly.
 int SigAction(int signum, const struct sigaction* act, struct sigaction* oldact);
 
 } // namespace Common

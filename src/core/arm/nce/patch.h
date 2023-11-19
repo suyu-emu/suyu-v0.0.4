@@ -7,22 +7,16 @@
 #include <unordered_map>
 #include <vector>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshorten-64-to-32"
 #include <oaknut/code_block.hpp>
 #include <oaknut/oaknut.hpp>
-#pragma clang diagnostic pop
+#pragma GCC diagnostic pop
 
 #include "common/common_types.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/k_typed_address.h"
 #include "core/hle/kernel/physical_memory.h"
-
-#include <signal.h>
-
-namespace Core {
-struct GuestContext;
-}
 
 namespace Core::NCE {
 
@@ -45,9 +39,9 @@ public:
                    const Kernel::CodeSet::Segment& code);
     void RelocateAndCopy(Common::ProcessAddress load_base, const Kernel::CodeSet::Segment& code,
                          Kernel::PhysicalMemory& program_image, EntryTrampolines* out_trampolines);
-    size_t SectionSize() const noexcept;
+    size_t GetSectionSize() const noexcept;
 
-    [[nodiscard]] PatchMode Mode() const noexcept {
+    [[nodiscard]] PatchMode GetPatchMode() const noexcept {
         return mode;
     }
 

@@ -472,10 +472,6 @@ public:
         return m_post_handlers;
     }
 
-    KernelCore& GetKernel() noexcept {
-        return m_kernel;
-    }
-
 public:
     // Attempts to insert a watchpoint into a free slot. Returns false if none are available.
     bool InsertWatchpoint(KProcessAddress addr, u64 size, DebugWatchpointType type);
