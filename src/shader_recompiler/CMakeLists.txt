@@ -231,6 +231,7 @@ add_library(shader_recompiler STATIC
     ir_opt/rescaling_pass.cpp
     ir_opt/ssa_rewrite_pass.cpp
     ir_opt/texture_pass.cpp
+    ir_opt/vendor_workaround_pass.cpp
     ir_opt/verification_pass.cpp
     object_pool.h
     precompiled_headers.h
