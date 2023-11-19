@@ -635,6 +635,12 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             has_broken_cube_compatibility = true;
         }
     }
+    if (is_qualcomm) {
+        const u32 version = (properties.properties.driverVersion << 3) >> 3;
+        if (version < VK_MAKE_API_VERSION(0, 255, 615, 512)) {
+            has_broken_parallel_compiling = true;
+        }
+    }
     if (extensions.sampler_filter_minmax && is_amd) {
         // Disable ext_sampler_filter_minmax on AMD GCN4 and lower as it is broken.
         if (!features.shader_float16_int8.shaderFloat16) {
