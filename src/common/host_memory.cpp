@@ -409,11 +409,14 @@ static void* ChooseVirtualBase(size_t virtual_size) {
 
     return MAP_FAILED;
 }
+
 #else
+
 static void* ChooseVirtualBase(size_t virtual_size) {
     return mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE,
                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
 }
+
 #endif
 
 class HostMemory::Impl {

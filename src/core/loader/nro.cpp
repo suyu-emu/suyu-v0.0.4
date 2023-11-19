@@ -204,7 +204,7 @@ static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
 #ifdef ARCHITECTURE_arm64
     const auto& code = codeset.CodeSegment();
 
-    // NROs are always 64-bit programs.
+    // NROs always have a 39-bit address space.
     Settings::SetNceEnabled(true);
 
     // Create NCE patcher
@@ -215,12 +215,12 @@ static bool LoadNroImpl(Core::System& system, Kernel::KProcess& process,
         patch.PatchText(program_image, code);
 
         // We only support PostData patching for NROs.
-        ASSERT(patch.Mode() == Core::NCE::PatchMode::PostData);
+        ASSERT(patch.GetPatchMode() == Core::NCE::PatchMode::PostData);
 
         // Update patch section.
         auto& patch_segment = codeset.PatchSegment();
         patch_segment.addr = image_size;
-        patch_segment.size = static_cast<u32>(patch.SectionSize());
+        patch_segment.size = static_cast<u32>(patch.GetSectionSize());
 
         // Add patch section size to the module size.
         image_size += patch_segment.size;

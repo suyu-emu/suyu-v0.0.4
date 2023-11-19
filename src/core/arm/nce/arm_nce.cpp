@@ -4,7 +4,6 @@
 #include <cinttypes>
 #include <memory>
 
-#include "common/scope_exit.h"
 #include "common/signal_chain.h"
 #include "core/arm/nce/arm_nce.h"
 #include "core/arm/nce/patch.h"
@@ -32,7 +31,7 @@ static_assert(offsetof(NativeExecutionParameters, magic) == TpidrEl0TlsMagic);
 fpsimd_context* GetFloatingPointState(mcontext_t& host_ctx) {
     _aarch64_ctx* header = reinterpret_cast<_aarch64_ctx*>(&host_ctx.__reserved);
     while (header->magic != FPSIMD_MAGIC) {
-        header = reinterpret_cast<_aarch64_ctx*>((char*)header + header->size);
+        header = reinterpret_cast<_aarch64_ctx*>(reinterpret_cast<char*>(header) + header->size);
     }
     return reinterpret_cast<fpsimd_context*>(header);
 }
@@ -124,7 +123,7 @@ bool ARM_NCE::HandleGuestFault(GuestContext* guest_ctx, void* raw_info, void* ra
 
     // Forcibly mark the context as locked. We are still running.
     // We may race with SignalInterrupt here:
-    // - If we lose the race, then SignalInterrupt will send us a signal which are masking,
+    // - If we lose the race, then SignalInterrupt will send us a signal we are masking,
     //   and it will do nothing when it is unmasked, as we have already left guest code.
     // - If we win the race, then SignalInterrupt will wait for us to unlock first.
     auto& thread_params = guest_ctx->parent->running_thread->GetNativeExecutionParameters();

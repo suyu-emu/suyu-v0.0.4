@@ -94,8 +94,8 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
     // Allocate some space at the beginning if we are patching in PreText mode.
     const size_t module_start = [&]() -> size_t {
 #ifdef ARCHITECTURE_arm64
-        if (patch && patch->Mode() == Core::NCE::PatchMode::PreText) {
-            return patch->SectionSize();
+        if (patch && patch->GetPatchMode() == Core::NCE::PatchMode::PreText) {
+            return patch->GetSectionSize();
         }
 #endif
         return 0;
@@ -158,24 +158,25 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
 #ifdef ARCHITECTURE_arm64
     // If we are computing the process code layout and using nce backend, patch.
     const auto& code = codeset.CodeSegment();
-    if (patch && patch->Mode() == Core::NCE::PatchMode::None) {
+    if (patch && patch->GetPatchMode() == Core::NCE::PatchMode::None) {
         // Patch SVCs and MRS calls in the guest code
         patch->PatchText(program_image, code);
 
         // Add patch section size to the module size.
-        image_size += patch->SectionSize();
+        image_size += patch->GetSectionSize();
     } else if (patch) {
         // Relocate code patch and copy to the program_image.
         patch->RelocateAndCopy(load_base, code, program_image, &process.GetPostHandlers());
 
         // Update patch section.
         auto& patch_segment = codeset.PatchSegment();
-        patch_segment.addr = patch->Mode() == Core::NCE::PatchMode::PreText ? 0 : image_size;
-        patch_segment.size = static_cast<u32>(patch->SectionSize());
+        patch_segment.addr =
+            patch->GetPatchMode() == Core::NCE::PatchMode::PreText ? 0 : image_size;
+        patch_segment.size = static_cast<u32>(patch->GetSectionSize());
 
         // Add patch section size to the module size. In PreText mode image_size
         // already contains the patch segment as part of module_start.
-        if (patch->Mode() == Core::NCE::PatchMode::PostData) {
+        if (patch->GetPatchMode() == Core::NCE::PatchMode::PostData) {
             image_size += patch_segment.size;
         }
     }
