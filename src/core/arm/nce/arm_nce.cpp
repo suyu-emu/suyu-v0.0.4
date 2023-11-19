@@ -377,9 +377,7 @@ void ARM_NCE::ClearInstructionCache() {
 }
 
 void ARM_NCE::InvalidateCacheRange(u64 addr, std::size_t size) {
-    // Clean cache.
-    auto* ptr = reinterpret_cast<char*>(addr);
-    __builtin___clear_cache(ptr, ptr + size);
+    this->ClearInstructionCache();
 }
 
 void ARM_NCE::ClearExclusiveState() {
