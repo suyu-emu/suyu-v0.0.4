@@ -21,6 +21,8 @@ import org.yuzu.yuzu_emu.databinding.FragmentInstallablesBinding
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.model.Installable
 import org.yuzu.yuzu_emu.ui.main.MainActivity
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class InstallableFragment : Fragment() {
     private var _binding: FragmentInstallablesBinding? = null
@@ -78,7 +80,15 @@ class InstallableFragment : Fragment() {
                     R.string.manage_save_data,
                     R.string.import_export_saves_description,
                     install = { mainActivity.importSaves.launch(arrayOf("application/zip")) },
-                    export = { mainActivity.exportSave() }
+                    export = {
+                        mainActivity.exportSaves.launch(
+                            "yuzu saves - ${
+                            LocalDateTime.now().format(
+                                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                            )
+                            }.zip"
+                        )
+                    }
                 )
             } else {
                 Installable(

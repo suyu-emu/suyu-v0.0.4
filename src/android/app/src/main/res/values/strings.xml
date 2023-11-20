@@ -91,6 +91,7 @@
     <string name="manage_save_data">Manage save data</string>
     <string name="manage_save_data_description">Save data found. Please select an option below.</string>
     <string name="import_export_saves_description">Import or export save files</string>
+    <string name="save_files_exporting">Exporting save files…</string>
     <string name="save_file_imported_success">Imported successfully</string>
     <string name="save_file_invalid_zip_structure">Invalid save directory structure</string>
     <string name="save_file_invalid_zip_structure_description">The first subfolder name must be the title ID of the game.</string>
@@ -256,6 +257,7 @@
     <string name="cancelling">Cancelling</string>
     <string name="install">Install</string>
     <string name="delete">Delete</string>
+    <string name="export_success">Exported successfully</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>
