@@ -20,6 +20,7 @@ using namespace oaknut::util;
 using NativeExecutionParameters = Kernel::KThread::NativeExecutionParameters;
 
 constexpr size_t MaxRelativeBranch = 128_MiB;
+constexpr u32 ModuleCodeIndex = 0x24 / sizeof(u32);
 
 Patcher::Patcher() : c(m_patch_instructions) {}
 
@@ -42,7 +43,7 @@ void Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
         std::span<const u32>{reinterpret_cast<const u32*>(text.data()), text.size() / sizeof(u32)};
 
     // Loop through instructions, patching as needed.
-    for (u32 i = 0; i < static_cast<u32>(text_words.size()); i++) {
+    for (u32 i = ModuleCodeIndex; i < static_cast<u32>(text_words.size()); i++) {
         const u32 inst = text_words[i];
 
         const auto AddRelocations = [&] {
@@ -161,8 +162,8 @@ void Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
     }
 
     // Cortex-A57 seems to treat all exclusives as ordered, but newer processors do not.
-    // Convert to ordered to preserve this assumption
-    for (u32 i = 0; i < static_cast<u32>(text_words.size()); i++) {
+    // Convert to ordered to preserve this assumption.
+    for (u32 i = ModuleCodeIndex; i < static_cast<u32>(text_words.size()); i++) {
         const u32 inst = text_words[i];
         if (auto exclusive = Exclusive{inst}; exclusive.Verify()) {
             text_words[i] = exclusive.AsOrdered();
