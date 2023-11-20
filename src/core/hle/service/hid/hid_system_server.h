@@ -24,15 +24,38 @@ public:
 
 private:
     void ApplyNpadSystemCommonPolicy(HLERequestContext& ctx);
+    void EnableAssigningSingleOnSlSrPress(HLERequestContext& ctx);
+    void DisableAssigningSingleOnSlSrPress(HLERequestContext& ctx);
     void GetLastActiveNpad(HLERequestContext& ctx);
+    void ApplyNpadSystemCommonPolicyFull(HLERequestContext& ctx);
+    void GetNpadFullKeyGripColor(HLERequestContext& ctx);
+    void GetMaskedSupportedNpadStyleSet(HLERequestContext& ctx);
+    void SetSupportedNpadStyleSetAll(HLERequestContext& ctx);
+    void GetAppletDetailedUiType(HLERequestContext& ctx);
+    void GetNpadInterfaceType(HLERequestContext& ctx);
+    void GetNpadLeftRightInterfaceType(HLERequestContext& ctx);
+    void HasBattery(HLERequestContext& ctx);
+    void HasLeftRightBattery(HLERequestContext& ctx);
     void GetUniquePadsFromNpad(HLERequestContext& ctx);
+    void GetIrSensorState(HLERequestContext& ctx);
+    void AcquireConnectionTriggerTimeoutEvent(HLERequestContext& ctx);
+    void AcquireDeviceRegisteredEventForControllerSupport(HLERequestContext& ctx);
+    void GetRegisteredDevices(HLERequestContext& ctx);
+    void AcquireUniquePadConnectionEventHandle(HLERequestContext& ctx);
+    void GetUniquePadIds(HLERequestContext& ctx);
     void AcquireJoyDetachOnBluetoothOffEventHandle(HLERequestContext& ctx);
     void IsUsbFullKeyControllerEnabled(HLERequestContext& ctx);
+    void IsHandheldButtonPressedOnConsoleMode(HLERequestContext& ctx);
+    void InitializeFirmwareUpdate(HLERequestContext& ctx);
+    void InitializeUsbFirmwareUpdateWithoutMemory(HLERequestContext& ctx);
     void GetTouchScreenDefaultConfiguration(HLERequestContext& ctx);
 
     std::shared_ptr<ResourceManager> GetResourceManager();
 
+    Kernel::KEvent* acquire_connection_trigger_timeout_event;
+    Kernel::KEvent* acquire_device_registered_event;
     Kernel::KEvent* joy_detach_event;
+    Kernel::KEvent* unique_pad_connection_event;
     KernelHelpers::ServiceContext service_context;
     std::shared_ptr<ResourceManager> resource_manager;
 };

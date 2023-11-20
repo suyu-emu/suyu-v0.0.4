@@ -269,6 +269,16 @@ private:
     };
     static_assert(sizeof(EulaVersion) == 0x30, "EulaVersion is incorrect size");
 
+    /// This is nn::settings::system::HomeMenuScheme
+    struct HomeMenuScheme {
+        u32 main;
+        u32 back;
+        u32 sub;
+        u32 bezel;
+        u32 extra;
+    };
+    static_assert(sizeof(HomeMenuScheme) == 0x14, "HomeMenuScheme is incorrect size");
+
     void SetLanguageCode(HLERequestContext& ctx);
     void GetFirmwareVersion(HLERequestContext& ctx);
     void GetFirmwareVersion2(HLERequestContext& ctx);
@@ -305,6 +315,8 @@ private:
     void GetKeyboardLayout(HLERequestContext& ctx);
     void GetChineseTraditionalInputMethod(HLERequestContext& ctx);
     void GetFieldTestingFlag(HLERequestContext& ctx);
+    void GetHomeMenuScheme(HLERequestContext& ctx);
+    void GetHomeMenuSchemeModel(HLERequestContext& ctx);
 
     AccountSettings account_settings{
         .flags = {},

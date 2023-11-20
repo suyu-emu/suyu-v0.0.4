@@ -1575,6 +1575,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Load_Cabinet_Formatter,
                  [this]() { OnCabinet(Service::NFP::CabinetMode::StartFormatter); });
     connect_menu(ui->action_Load_Mii_Edit, &GMainWindow::OnMiiEdit);
+    connect_menu(ui->action_Open_Controller_Menu, &GMainWindow::OnOpenControllerMenu);
     connect_menu(ui->action_Capture_Screenshot, &GMainWindow::OnCaptureScreenshot);
 
     // TAS
@@ -1602,14 +1603,13 @@ void GMainWindow::UpdateMenuState() {
         ui->action_Pause,
     };
 
-    const std::array applet_actions{
-        ui->action_Load_Album,
-        ui->action_Load_Cabinet_Nickname_Owner,
-        ui->action_Load_Cabinet_Eraser,
-        ui->action_Load_Cabinet_Restorer,
-        ui->action_Load_Cabinet_Formatter,
-        ui->action_Load_Mii_Edit,
-    };
+    const std::array applet_actions{ui->action_Load_Album,
+                                    ui->action_Load_Cabinet_Nickname_Owner,
+                                    ui->action_Load_Cabinet_Eraser,
+                                    ui->action_Load_Cabinet_Restorer,
+                                    ui->action_Load_Cabinet_Formatter,
+                                    ui->action_Load_Mii_Edit,
+                                    ui->action_Open_Controller_Menu};
 
     for (QAction* action : running_actions) {
         action->setEnabled(emulation_running);
@@ -4373,6 +4373,31 @@ void GMainWindow::OnMiiEdit() {
     const auto filename = QString::fromStdString((mii_applet_nca->GetFullPath()));
     UISettings::values.roms_path = QFileInfo(filename).path();
     BootGame(filename, MiiEditId);
+}
+
+void GMainWindow::OnOpenControllerMenu() {
+    constexpr u64 ControllerAppletId =
+        static_cast<u64>(Service::AM::Applets::AppletProgramId::Controller);
+    auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
+    if (!bis_system) {
+        QMessageBox::warning(this, tr("No firmware available"),
+                             tr("Please install the firmware to use the Controller Menu."));
+        return;
+    }
+
+    auto controller_applet_nca =
+        bis_system->GetEntry(ControllerAppletId, FileSys::ContentRecordType::Program);
+    if (!controller_applet_nca) {
+        QMessageBox::warning(this, tr("Controller Applet"),
+                             tr("Controller Menu is not available. Please reinstall firmware."));
+        return;
+    }
+
+    system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::Controller);
+
+    const auto filename = QString::fromStdString((controller_applet_nca->GetFullPath()));
+    UISettings::values.roms_path = QFileInfo(filename).path();
+    BootGame(filename, ControllerAppletId);
 }
 
 void GMainWindow::OnCaptureScreenshot() {

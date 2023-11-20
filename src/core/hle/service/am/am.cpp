@@ -13,6 +13,7 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/savedata_factory.h"
+#include "core/hid/hid_types.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/result.h"
@@ -21,6 +22,7 @@
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/am/applets/applet_cabinet.h"
+#include "core/hle/service/am/applets/applet_controller.h"
 #include "core/hle/service/am/applets/applet_mii_edit_types.h"
 #include "core/hle/service/am/applets/applet_profile_select.h"
 #include "core/hle/service/am/applets/applet_software_keyboard_types.h"
@@ -35,6 +37,7 @@
 #include "core/hle/service/caps/caps_su.h"
 #include "core/hle/service/caps/caps_types.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
@@ -73,7 +76,7 @@ IWindowController::IWindowController(Core::System& system_)
     static const FunctionInfo functions[] = {
         {0, nullptr, "CreateWindow"},
         {1, &IWindowController::GetAppletResourceUserId, "GetAppletResourceUserId"},
-        {2, nullptr, "GetAppletResourceUserIdOfCallerApplet"},
+        {2, &IWindowController::GetAppletResourceUserIdOfCallerApplet, "GetAppletResourceUserIdOfCallerApplet"},
         {10, &IWindowController::AcquireForegroundRights, "AcquireForegroundRights"},
         {11, nullptr, "ReleaseForegroundRights"},
         {12, nullptr, "RejectToChangeIntoBackground"},
@@ -91,6 +94,16 @@ void IWindowController::GetAppletResourceUserId(HLERequestContext& ctx) {
     const u64 process_id = system.ApplicationProcess()->GetProcessId();
 
     LOG_DEBUG(Service_AM, "called. Process ID=0x{:016X}", process_id);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push<u64>(process_id);
+}
+
+void IWindowController::GetAppletResourceUserIdOfCallerApplet(HLERequestContext& ctx) {
+    const u64 process_id = 0;
+
+    LOG_WARNING(Service_AM, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
@@ -1565,7 +1578,7 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
         {6, nullptr, "GetPopInteractiveInDataEvent"},
         {10, &ILibraryAppletSelfAccessor::ExitProcessAndReturn, "ExitProcessAndReturn"},
         {11, &ILibraryAppletSelfAccessor::GetLibraryAppletInfo, "GetLibraryAppletInfo"},
-        {12, nullptr, "GetMainAppletIdentityInfo"},
+        {12, &ILibraryAppletSelfAccessor::GetMainAppletIdentityInfo, "GetMainAppletIdentityInfo"},
         {13, nullptr, "CanUseApplicationCore"},
         {14, &ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo, "GetCallerAppletIdentityInfo"},
         {15, nullptr, "GetMainAppletApplicationControlProperty"},
@@ -1608,6 +1621,9 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
         break;
     case Applets::AppletId::SoftwareKeyboard:
         PushInShowSoftwareKeyboard();
+        break;
+    case Applets::AppletId::Controller:
+        PushInShowController();
         break;
     default:
         break;
@@ -1666,13 +1682,33 @@ void ILibraryAppletSelfAccessor::GetLibraryAppletInfo(HLERequestContext& ctx) {
     rb.PushRaw(applet_info);
 }
 
+void ILibraryAppletSelfAccessor::GetMainAppletIdentityInfo(HLERequestContext& ctx) {
+    struct AppletIdentityInfo {
+        Applets::AppletId applet_id;
+        INSERT_PADDING_BYTES(0x4);
+        u64 application_id;
+    };
+    static_assert(sizeof(AppletIdentityInfo) == 0x10, "AppletIdentityInfo has incorrect size.");
+
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    const AppletIdentityInfo applet_info{
+        .applet_id = Applets::AppletId::QLaunch,
+        .application_id = 0x0100000000001000ull,
+    };
+
+    IPC::ResponseBuilder rb{ctx, 6};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(applet_info);
+}
+
 void ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(HLERequestContext& ctx) {
     struct AppletIdentityInfo {
         Applets::AppletId applet_id;
         INSERT_PADDING_BYTES(0x4);
         u64 application_id;
     };
-
+    static_assert(sizeof(AppletIdentityInfo) == 0x10, "AppletIdentityInfo has incorrect size.");
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     const AppletIdentityInfo applet_info{
@@ -1735,6 +1771,55 @@ void ILibraryAppletSelfAccessor::PushInShowAlbum() {
     std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
     queue_data.emplace_back(std::move(argument_data));
     queue_data.emplace_back(std::move(settings_data));
+}
+
+void ILibraryAppletSelfAccessor::PushInShowController() {
+    const Applets::CommonArguments common_args = {
+        .arguments_version = Applets::CommonArgumentVersion::Version3,
+        .size = Applets::CommonArgumentSize::Version3,
+        .library_version = static_cast<u32>(Applets::ControllerAppletVersion::Version8),
+        .theme_color = Applets::ThemeColor::BasicBlack,
+        .play_startup_sound = true,
+        .system_tick = system.CoreTiming().GetClockTicks(),
+    };
+
+    Applets::ControllerSupportArgNew user_args = {
+        .header = {.player_count_min = 1,
+                   .player_count_max = 4,
+                   .enable_take_over_connection = true,
+                   .enable_left_justify = false,
+                   .enable_permit_joy_dual = true,
+                   .enable_single_mode = false,
+                   .enable_identification_color = false},
+        .identification_colors = {},
+        .enable_explain_text = false,
+        .explain_text = {},
+    };
+
+    Applets::ControllerSupportArgPrivate private_args = {
+        .arg_private_size = sizeof(Applets::ControllerSupportArgPrivate),
+        .arg_size = sizeof(Applets::ControllerSupportArgNew),
+        .is_home_menu = true,
+        .flag_1 = true,
+        .mode = Applets::ControllerSupportMode::ShowControllerSupport,
+        .caller = Applets::ControllerSupportCaller::
+            Application, // switchbrew: Always zero except with
+                         // ShowControllerFirmwareUpdateForSystem/ShowControllerKeyRemappingForSystem,
+                         // which sets this to the input param
+        .style_set = Core::HID::NpadStyleSet::None,
+        .joy_hold_type = 0,
+    };
+    std::vector<u8> common_args_data(sizeof(common_args));
+    std::vector<u8> private_args_data(sizeof(private_args));
+    std::vector<u8> user_args_data(sizeof(user_args));
+
+    std::memcpy(common_args_data.data(), &common_args, sizeof(common_args));
+    std::memcpy(private_args_data.data(), &private_args, sizeof(private_args));
+    std::memcpy(user_args_data.data(), &user_args, sizeof(user_args));
+
+    queue_data.emplace_back(std::move(common_args_data));
+    queue_data.emplace_back(std::move(private_args_data));
+    queue_data.emplace_back(std::move(user_args_data));
 }
 
 void ILibraryAppletSelfAccessor::PushInShowCabinetData() {
