@@ -32,7 +32,7 @@ public:
             {10200, nullptr, "SendFriendRequestForApplication"},
             {10211, nullptr, "AddFacedFriendRequestForApplication"},
             {10400, &IFriendService::GetBlockedUserListIds, "GetBlockedUserListIds"},
-            {10420, nullptr, "IsBlockedUserListCacheAvailable"},
+            {10420, &IFriendService::CheckBlockedUserListAvailability, "CheckBlockedUserListAvailability"},
             {10421, nullptr, "EnsureBlockedUserListAvailable"},
             {10500, nullptr, "GetProfileList"},
             {10600, nullptr, "DeclareOpenOnlinePlaySession"},
@@ -196,6 +196,17 @@ private:
     }
 
     void CheckFriendListAvailability(HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto uuid{rp.PopRaw<Common::UUID>()};
+
+        LOG_WARNING(Service_Friend, "(STUBBED) called, uuid=0x{}", uuid.RawString());
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(true);
+    }
+
+    void CheckBlockedUserListAvailability(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto uuid{rp.PopRaw<Common::UUID>()};
 
