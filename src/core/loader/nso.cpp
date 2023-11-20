@@ -20,7 +20,7 @@
 #include "core/loader/nso.h"
 #include "core/memory.h"
 
-#ifdef ARCHITECTURE_arm64
+#ifdef HAS_NCE
 #include "core/arm/nce/patch.h"
 #endif
 
@@ -93,7 +93,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
 
     // Allocate some space at the beginning if we are patching in PreText mode.
     const size_t module_start = [&]() -> size_t {
-#ifdef ARCHITECTURE_arm64
+#ifdef HAS_NCE
         if (patch && patch->GetPatchMode() == Core::NCE::PatchMode::PreText) {
             return patch->GetSectionSize();
         }
@@ -155,7 +155,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
         std::copy(pi_header.begin() + sizeof(NSOHeader), pi_header.end(), program_image.data());
     }
 
-#ifdef ARCHITECTURE_arm64
+#ifdef HAS_NCE
     // If we are computing the process code layout and using nce backend, patch.
     const auto& code = codeset.CodeSegment();
     if (patch && patch->GetPatchMode() == Core::NCE::PatchMode::None) {

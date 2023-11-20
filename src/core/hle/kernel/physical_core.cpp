@@ -4,7 +4,7 @@
 #include "common/settings.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
 #include "core/arm/dynarmic/arm_dynarmic_64.h"
-#ifdef ARCHITECTURE_arm64
+#ifdef HAS_NCE
 #include "core/arm/nce/arm_nce.h"
 #endif
 #include "core/core.h"
@@ -33,7 +33,7 @@ PhysicalCore::PhysicalCore(std::size_t core_index, Core::System& system, KSchedu
 PhysicalCore::~PhysicalCore() = default;
 
 void PhysicalCore::Initialize(bool is_64_bit) {
-#if defined(ARCHITECTURE_arm64)
+#if defined(HAS_NCE)
     if (Settings::IsNceEnabled()) {
         m_arm_interface = std::make_unique<Core::ARM_NCE>(m_system, m_system.Kernel().IsMulticore(),
                                                           m_core_index);
