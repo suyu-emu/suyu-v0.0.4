@@ -18,8 +18,8 @@ class Game(
     val version: String = "",
     val isHomebrew: Boolean = false
 ) : Parcelable {
-    val keyAddedToLibraryTime get() = "${programId}_AddedToLibraryTime"
-    val keyLastPlayedTime get() = "${programId}_LastPlayed"
+    val keyAddedToLibraryTime get() = "${path}_AddedToLibraryTime"
+    val keyLastPlayedTime get() = "${path}_LastPlayed"
 
     override fun equals(other: Any?): Boolean {
         if (other !is Game) {
