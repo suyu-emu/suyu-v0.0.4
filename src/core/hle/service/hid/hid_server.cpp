@@ -1563,7 +1563,7 @@ void IHidServer::CreateActiveVibrationDeviceList(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IActiveVibrationDeviceList>(system, resource_manager);
+    rb.PushIpcInterface<IActiveVibrationDeviceList>(system, GetResourceManager());
 }
 
 void IHidServer::PermitVibration(HLERequestContext& ctx) {
