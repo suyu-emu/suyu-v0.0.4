@@ -25,7 +25,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
-    <property name="margin">
+    <property name="margin" stdset="0">
      <number>0</number>
     </property>
    </layout>
@@ -36,7 +36,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -162,6 +162,7 @@
     <addaction name="menu_cabinet_applet"/>
     <addaction name="action_Load_Album"/>
     <addaction name="action_Load_Mii_Edit"/>
+    <addaction name="action_Open_Controller_Menu"/>
     <addaction name="separator"/>
     <addaction name="action_Capture_Screenshot"/>
     <addaction name="menuTAS"/>
@@ -382,9 +383,9 @@
    </property>
   </action>
   <action name="action_Load_Album">
-    <property name="text">
-      <string>Open &amp;Album</string>
-    </property>
+   <property name="text">
+    <string>Open &amp;Album</string>
+   </property>
   </action>
   <action name="action_Load_Cabinet_Nickname_Owner">
    <property name="text">
@@ -407,9 +408,9 @@
    </property>
   </action>
   <action name="action_Load_Mii_Edit">
-    <property name="text">
-      <string>Open &amp;Mii Editor</string>
-    </property>
+   <property name="text">
+    <string>Open &amp;Mii Editor</string>
+   </property>
   </action>
   <action name="action_Configure_Tas">
    <property name="text">
@@ -452,6 +453,11 @@
    </property>
    <property name="text">
     <string>R&amp;ecord</string>
+   </property>
+  </action>
+  <action name="action_Open_Controller_Menu">
+   <property name="text">
+    <string>Open &amp;Controller Menu</string>
    </property>
   </action>
  </widget>
