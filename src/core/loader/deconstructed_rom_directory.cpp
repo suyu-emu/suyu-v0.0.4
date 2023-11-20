@@ -15,7 +15,7 @@
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/nso.h"
 
-#ifdef ARCHITECTURE_arm64
+#ifdef HAS_NCE
 #include "core/arm/nce/patch.h"
 #endif
 
@@ -141,12 +141,12 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     std::size_t code_size{};
 
     // Define an nce patch context for each potential module.
-#ifdef ARCHITECTURE_arm64
+#ifdef HAS_NCE
     std::array<Core::NCE::Patcher, 13> module_patchers;
 #endif
 
     const auto GetPatcher = [&](size_t i) -> Core::NCE::Patcher* {
-#ifdef ARCHITECTURE_arm64
+#ifdef HAS_NCE
         if (Settings::IsNceEnabled()) {
             return &module_patchers[i];
         }
