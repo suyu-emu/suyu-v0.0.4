@@ -1785,8 +1785,22 @@ ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo& info,
     : VideoCommon::ImageViewBase{info, view_info, gpu_addr_},
       buffer_size{VideoCommon::CalculateGuestSizeInBytes(info)} {}
 
-ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::NullImageViewParams& params)
-    : VideoCommon::ImageViewBase{params} {}
+ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageViewParams& params)
+    : VideoCommon::ImageViewBase{params}, device{&runtime.device} {
+    if (device->HasNullDescriptor()) {
+        return;
+    }
+
+    // Handle fallback for devices without nullDescriptor
+    ImageInfo info{};
+    info.format = PixelFormat::A8B8G8R8_UNORM;
+
+    null_image = MakeImage(*device, runtime.memory_allocator, info, {});
+    image_handle = *null_image;
+    for (u32 i = 0; i < Shader::NUM_TEXTURE_TYPES; i++) {
+        image_views[i] = MakeView(VK_FORMAT_A8B8G8R8_UNORM_PACK32, VK_IMAGE_ASPECT_COLOR_BIT);
+    }
+}
 
 ImageView::~ImageView() = default;
 
