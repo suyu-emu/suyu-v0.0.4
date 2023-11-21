@@ -252,6 +252,7 @@ file(GLOB_RECURSE THEMES ${PROJECT_SOURCE_DIR}/dist/qt_themes/*)
 if (ENABLE_QT_TRANSLATION)
     set(YUZU_QT_LANGUAGES "${PROJECT_SOURCE_DIR}/dist/languages" CACHE PATH "Path to the translation bundle for the Qt frontend")
     option(GENERATE_QT_TRANSLATION "Generate en.ts as the translation source file" OFF)
+    option(WORKAROUND_BROKEN_LUPDATE "Run lupdate directly through CMake if Qt's convenience wrappers don't work" OFF)
 
     # Update source TS file if enabled
     if (GENERATE_QT_TRANSLATION)
@@ -259,19 +260,51 @@ if (ENABLE_QT_TRANSLATION)
         # these calls to qt_create_translation also creates a rule to generate en.qm which conflicts with providing english plurals
         # so we have to set a OUTPUT_LOCATION so that we don't have multiple rules to generate en.qm
         set_source_files_properties(${YUZU_QT_LANGUAGES}/en.ts PROPERTIES OUTPUT_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/translations")
-        qt_create_translation(QM_FILES
-            ${SRCS}
-            ${UIS}
-            ${YUZU_QT_LANGUAGES}/en.ts
-        OPTIONS
-            -source-language en_US
-            -target-language en_US
-        )
+        if (WORKAROUND_BROKEN_LUPDATE)
+            add_custom_command(OUTPUT ${YUZU_QT_LANGUAGES}/en.ts
+                COMMAND lupdate
+                    -source-language en_US
+                    -target-language en_US
+                    ${SRCS}
+                    ${UIS}
+                    -ts ${YUZU_QT_LANGUAGES}/en.ts
+                DEPENDS
+                    ${SRCS}
+                    ${UIS}
+                WORKING_DIRECTORY
+                    ${CMAKE_CURRENT_SOURCE_DIR}
+            )
+        else()
+            qt_create_translation(QM_FILES
+                ${SRCS}
+                ${UIS}
+                ${YUZU_QT_LANGUAGES}/en.ts
+            OPTIONS
+                -source-language en_US
+                -target-language en_US
+            )
+        endif()
 
         # Generate plurals into dist/english_plurals/generated_en.ts so it can be used to revise dist/english_plurals/en.ts
         set(GENERATED_PLURALS_FILE ${PROJECT_SOURCE_DIR}/dist/english_plurals/generated_en.ts)
         set_source_files_properties(${GENERATED_PLURALS_FILE} PROPERTIES OUTPUT_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/plurals")
-        qt_create_translation(QM_FILES ${SRCS} ${UIS} ${GENERATED_PLURALS_FILE} OPTIONS -pluralonly -source-language en_US -target-language en_US)
+        if (WORKAROUND_BROKEN_LUPDATE)
+            add_custom_command(OUTPUT ${GENERATED_PLURALS_FILE}
+                COMMAND lupdate
+                    -source-language en_US
+                    -target-language en_US
+                    ${SRCS}
+                    ${UIS}
+                    -ts ${GENERATED_PLURALS_FILE}
+                DEPENDS
+                    ${SRCS}
+                    ${UIS}
+                WORKING_DIRECTORY
+                    ${CMAKE_CURRENT_SOURCE_DIR}
+            )
+        else()
+            qt_create_translation(QM_FILES ${SRCS} ${UIS} ${GENERATED_PLURALS_FILE} OPTIONS -pluralonly -source-language en_US -target-language en_US)
+        endif()
 
         add_custom_target(translation ALL DEPENDS ${YUZU_QT_LANGUAGES}/en.ts ${GENERATED_PLURALS_FILE})
     endif()
