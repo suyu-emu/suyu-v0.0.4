@@ -30,7 +30,7 @@ H264::H264(Host1x::Host1x& host1x_) : host1x{host1x_} {}
 H264::~H264() = default;
 
 std::span<const u8> H264::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state,
-                                       bool is_first_frame) {
+                                       size_t* out_configuration_size, bool is_first_frame) {
     H264DecoderContext context;
     host1x.MemoryManager().ReadBlock(state.picture_info_offset, &context,
                                      sizeof(H264DecoderContext));
@@ -39,6 +39,7 @@ std::span<const u8> H264::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters
     if (!is_first_frame && frame_number != 0) {
         frame.resize_destructive(context.stream_len);
         host1x.MemoryManager().ReadBlock(state.frame_bitstream_offset, frame.data(), frame.size());
+        *out_configuration_size = 0;
         return frame;
     }
 
@@ -157,6 +158,7 @@ std::span<const u8> H264::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters
     frame.resize(encoded_header.size() + context.stream_len);
     std::memcpy(frame.data(), encoded_header.data(), encoded_header.size());
 
+    *out_configuration_size = encoded_header.size();
     host1x.MemoryManager().ReadBlock(state.frame_bitstream_offset,
                                      frame.data() + encoded_header.size(), context.stream_len);
 

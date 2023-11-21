@@ -67,6 +67,7 @@ public:
 
     /// Compose the H264 frame for FFmpeg decoding
     [[nodiscard]] std::span<const u8> ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state,
+                                                   size_t* out_configuration_size,
                                                    bool is_first_frame = false);
 
 private:

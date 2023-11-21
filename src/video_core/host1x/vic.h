@@ -39,9 +39,9 @@ public:
 private:
     void Execute();
 
-    void WriteRGBFrame(const AVFrame* frame, const VicConfig& config);
+    void WriteRGBFrame(std::unique_ptr<FFmpeg::Frame> frame, const VicConfig& config);
 
-    void WriteYUVFrame(const AVFrame* frame, const VicConfig& config);
+    void WriteYUVFrame(std::unique_ptr<FFmpeg::Frame> frame, const VicConfig& config);
 
     Host1x& host1x;
     std::shared_ptr<Tegra::Host1x::Nvdec> nvdec_processor;
