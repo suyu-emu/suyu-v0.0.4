@@ -16,6 +16,8 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
+#include "common/string_util.h"
+
 namespace FS = Common::FS;
 
 Config::Config(const ConfigType config_type)
@@ -56,16 +58,43 @@ void Config::Initialize(const std::optional<std::string> config_path) {
 }
 
 void Config::WriteToIni() const {
-    if (const SI_Error rc = config->SaveFile(config_loc.c_str(), false); rc < 0) {
+    FILE* fp = nullptr;
+#ifdef _WIN32
+    fp = _wfopen(Common::UTF8ToUTF16W(config_loc).data(), L"wb");
+#else
+    fp = fopen(config_loc.c_str(), "wb");
+#endif
+
+    CSimpleIniA::FileWriter writer(fp);
+    const SI_Error rc = config->Save(writer, false);
+    if (rc < 0) {
         LOG_ERROR(Frontend, "Config file could not be saved!");
     }
+    fclose(fp);
 }
 
 void Config::SetUpIni() {
     config = std::make_unique<CSimpleIniA>();
     config->SetUnicode(true);
     config->SetSpaces(false);
-    config->LoadFile(config_loc.c_str());
+
+    FILE* fp = nullptr;
+#ifdef _WIN32
+    _wfopen_s(&fp, Common::UTF8ToUTF16W(config_loc).data(), L"rb, ccs=UTF-8");
+    if (fp == nullptr) {
+        fp = _wfopen(Common::UTF8ToUTF16W(config_loc).data(), L"wb, ccs=UTF-8");
+    }
+#else
+    fp = fopen(config_loc.c_str(), "rb");
+    if (fp == nullptr) {
+        fp = fopen(config_loc.c_str(), "wb");
+    }
+#endif
+
+    if (SI_Error rc = config->LoadFile(fp); rc < 0) {
+        LOG_ERROR(Frontend, "Config file could not be loaded!");
+    }
+    fclose(fp);
 }
 
 bool Config::IsCustomConfig() const {
