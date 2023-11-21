@@ -937,15 +937,19 @@ void Config::EndArray() {
     // You can't end a config array before starting one
     ASSERT(!array_stack.empty());
 
+    // Set the array size to 0 if the array is ended without changing the index
+    int size = 0;
+    if (array_stack.back().index != 0) {
+        size = array_stack.back().size;
+    }
+
     // Write out the size to config
     if (key_stack.size() == 1 && array_stack.back().name.empty()) {
         // Edge-case where the first array created doesn't have a name
-        config->SetValue(GetSection().c_str(), std::string("size").c_str(),
-                         ToString(array_stack.back().size).c_str());
+        config->SetValue(GetSection().c_str(), std::string("size").c_str(), ToString(size).c_str());
     } else {
         const auto key = GetFullKey(std::string("size"), true);
-        config->SetValue(GetSection().c_str(), key.c_str(),
-                         ToString(array_stack.back().size).c_str());
+        config->SetValue(GetSection().c_str(), key.c_str(), ToString(size).c_str());
     }
 
     array_stack.pop_back();
