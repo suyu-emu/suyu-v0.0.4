@@ -137,6 +137,8 @@ protected:
     bool ReadBooleanSetting(const std::string& key,
                             std::optional<bool> default_value = std::nullopt);
     s64 ReadIntegerSetting(const std::string& key, std::optional<s64> default_value = std::nullopt);
+    u64 ReadUnsignedIntegerSetting(const std::string& key,
+                                   std::optional<u64> default_value = std::nullopt);
     double ReadDoubleSetting(const std::string& key,
                              std::optional<double> default_value = std::nullopt);
     std::string ReadStringSetting(const std::string& key,
@@ -170,6 +172,8 @@ protected:
             return value_.has_value() ? std::to_string(*value_) : "none";
         } else if constexpr (std::is_same_v<T, bool>) {
             return value_ ? "true" : "false";
+        } else if constexpr (std::is_same_v<T, u64>) {
+            return std::to_string(static_cast<u64>(value_));
         } else {
             return std::to_string(static_cast<s64>(value_));
         }

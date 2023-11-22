@@ -284,7 +284,7 @@ void Config::ReadDisabledAddOnValues() {
     const int size = BeginArray(std::string(""));
     for (int i = 0; i < size; ++i) {
         SetArrayIndex(i);
-        const auto title_id = ReadIntegerSetting(std::string("title_id"), 0);
+        const auto title_id = ReadUnsignedIntegerSetting(std::string("title_id"), 0);
         std::vector<std::string> out;
         const int d_size = BeginArray("disabled");
         for (int j = 0; j < d_size; ++j) {
@@ -656,6 +656,33 @@ s64 Config::ReadIntegerSetting(const std::string& key, const std::optional<s64> 
     } else {
         try {
             result = std::stoll(std::string(config->GetValue(
+                GetSection().c_str(), full_key.c_str(), ToString(default_value.value()).c_str())));
+        } catch (...) {
+            result = default_value.value();
+        }
+    }
+    return result;
+}
+
+u64 Config::ReadUnsignedIntegerSetting(const std::string& key,
+                                       const std::optional<u64> default_value) {
+    std::string full_key = GetFullKey(key, false);
+    if (!default_value.has_value()) {
+        try {
+            return std::stoull(
+                std::string(config->GetValue(GetSection().c_str(), full_key.c_str(), "0")));
+        } catch (...) {
+            return 0;
+        }
+    }
+
+    u64 result = 0;
+    if (config->GetBoolValue(GetSection().c_str(),
+                             std::string(full_key).append("\\default").c_str(), true)) {
+        result = default_value.value();
+    } else {
+        try {
+            result = std::stoull(std::string(config->GetValue(
                 GetSection().c_str(), full_key.c_str(), ToString(default_value.value()).c_str())));
         } catch (...) {
             result = default_value.value();

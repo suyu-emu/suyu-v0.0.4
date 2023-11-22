@@ -283,7 +283,8 @@ void QtConfig::ReadUIGamelistValues() {
     const int favorites_size = BeginArray("favorites");
     for (int i = 0; i < favorites_size; i++) {
         SetArrayIndex(i);
-        UISettings::values.favorited_ids.append(ReadIntegerSetting(std::string("program_id")));
+        UISettings::values.favorited_ids.append(
+            ReadUnsignedIntegerSetting(std::string("program_id")));
     }
     EndArray();
 
