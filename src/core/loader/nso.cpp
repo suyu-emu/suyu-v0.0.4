@@ -145,14 +145,16 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
     // Apply patches if necessary
     const auto name = nso_file.GetName();
     if (pm && (pm->HasNSOPatch(nso_header.build_id, name) || Settings::values.dump_nso)) {
-        std::vector<u8> pi_header(sizeof(NSOHeader) + program_image.size());
+        std::span<u8> patchable_section(program_image.data() + module_start,
+                                        program_image.size() - module_start);
+        std::vector<u8> pi_header(sizeof(NSOHeader) + patchable_section.size());
         std::memcpy(pi_header.data(), &nso_header, sizeof(NSOHeader));
-        std::memcpy(pi_header.data() + sizeof(NSOHeader), program_image.data(),
-                    program_image.size());
+        std::memcpy(pi_header.data() + sizeof(NSOHeader), patchable_section.data(),
+                    patchable_section.size());
 
         pi_header = pm->PatchNSO(pi_header, name);
 
-        std::copy(pi_header.begin() + sizeof(NSOHeader), pi_header.end(), program_image.data());
+        std::copy(pi_header.begin() + sizeof(NSOHeader), pi_header.end(), patchable_section.data());
     }
 
 #ifdef HAS_NCE
