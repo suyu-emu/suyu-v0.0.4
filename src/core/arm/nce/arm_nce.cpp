@@ -116,10 +116,18 @@ bool ARM_NCE::HandleGuestFault(GuestContext* guest_ctx, void* raw_info, void* ra
         return true;
     }
 
-    // We can't handle the access, so trigger an exception.
+    // We can't handle the access, so determine why we crashed.
     const bool is_prefetch_abort = host_ctx.pc == reinterpret_cast<u64>(info->si_addr);
-    guest_ctx->esr_el1.fetch_or(
-        static_cast<u64>(is_prefetch_abort ? HaltReason::PrefetchAbort : HaltReason::DataAbort));
+
+    // For data aborts, skip the instruction and return to guest code.
+    // This will allow games to continue in many scenarios where they would otherwise crash.
+    if (!is_prefetch_abort) {
+        host_ctx.pc += 4;
+        return true;
+    }
+
+    // This is a prefetch abort.
+    guest_ctx->esr_el1.fetch_or(static_cast<u64>(HaltReason::PrefetchAbort));
 
     // Forcibly mark the context as locked. We are still running.
     // We may race with SignalInterrupt here:
