@@ -479,6 +479,6 @@ void GameListWorker::run() {
         }
     }
 
-    RecordEvent([=](GameList* game_list) { game_list->DonePopulating(watch_list); });
+    RecordEvent([this](GameList* game_list) { game_list->DonePopulating(watch_list); });
     processing_completed.Set();
 }
