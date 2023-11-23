@@ -7,6 +7,7 @@
 #include "core/core.h"
 #include "core/hid/hid_types.h"
 #include "core/hle/kernel/k_event.h"
+#include "core/hle/service/hid/hid_util.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/nfc/common/device.h"
 #include "core/hle/service/nfc/common/device_manager.h"
@@ -24,7 +25,7 @@ DeviceManager::DeviceManager(Core::System& system_, KernelHelpers::ServiceContex
 
     for (u32 device_index = 0; device_index < devices.size(); device_index++) {
         devices[device_index] =
-            std::make_shared<NfcDevice>(Core::HID::IndexToNpadIdType(device_index), system,
+            std::make_shared<NfcDevice>(HID::IndexToNpadIdType(device_index), system,
                                         service_context, availability_change_event);
     }
 

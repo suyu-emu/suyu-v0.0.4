@@ -529,6 +529,7 @@ add_library(core STATIC
     hle/service/hid/hid_server.h
     hle/service/hid/hid_system_server.cpp
     hle/service/hid/hid_system_server.h
+    hle/service/hid/hid_util.h
     hle/service/hid/hidbus.cpp
     hle/service/hid/hidbus.h
     hle/service/hid/irs.cpp
@@ -540,8 +541,8 @@ add_library(core STATIC
     hle/service/hid/xcd.cpp
     hle/service/hid/xcd.h
     hle/service/hid/errors.h
-    hle/service/hid/controllers/console_sixaxis.cpp
-    hle/service/hid/controllers/console_sixaxis.h
+    hle/service/hid/controllers/console_six_axis.cpp
+    hle/service/hid/controllers/console_six_axis.h
     hle/service/hid/controllers/controller_base.cpp
     hle/service/hid/controllers/controller_base.h
     hle/service/hid/controllers/debug_pad.cpp
@@ -556,6 +557,10 @@ add_library(core STATIC
     hle/service/hid/controllers/npad.h
     hle/service/hid/controllers/palma.cpp
     hle/service/hid/controllers/palma.h
+    hle/service/hid/controllers/seven_six_axis.cpp
+    hle/service/hid/controllers/seven_six_axis.h
+    hle/service/hid/controllers/six_axis.cpp
+    hle/service/hid/controllers/six_axis.h
     hle/service/hid/controllers/stubbed.cpp
     hle/service/hid/controllers/stubbed.h
     hle/service/hid/controllers/touchscreen.cpp

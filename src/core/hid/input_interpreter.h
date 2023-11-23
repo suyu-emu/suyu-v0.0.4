@@ -16,7 +16,7 @@ enum class NpadButton : u64;
 }
 
 namespace Service::HID {
-class Controller_NPad;
+class NPad;
 }
 
 /**
@@ -101,7 +101,7 @@ public:
     }
 
 private:
-    Service::HID::Controller_NPad& npad;
+    std::shared_ptr<Service::HID::NPad> npad;
 
     /// Stores 9 consecutive button states polled from HID.
     std::array<Core::HID::NpadButton, 9> button_states{};

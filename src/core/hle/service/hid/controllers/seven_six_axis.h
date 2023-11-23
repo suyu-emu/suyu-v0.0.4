@@ -1,10 +1,9 @@
-// SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
-#include <array>
-
+#include "common/common_types.h"
 #include "common/quaternion.h"
 #include "common/typed_address.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
@@ -19,10 +18,10 @@ class EmulatedConsole;
 } // namespace Core::HID
 
 namespace Service::HID {
-class Controller_ConsoleSixAxis final : public ControllerBase {
+class SevenSixAxis final : public ControllerBase {
 public:
-    explicit Controller_ConsoleSixAxis(Core::System& system_, u8* raw_shared_memory_);
-    ~Controller_ConsoleSixAxis() override;
+    explicit SevenSixAxis(Core::System& system_);
+    ~SevenSixAxis() override;
 
     // Called when the controller is initialized
     void OnInit() override;
@@ -51,27 +50,15 @@ private:
     };
     static_assert(sizeof(SevenSixAxisState) == 0x48, "SevenSixAxisState is an invalid size");
 
-    // This is nn::hid::detail::ConsoleSixAxisSensorSharedMemoryFormat
-    struct ConsoleSharedMemory {
-        u64 sampling_number{};
-        bool is_seven_six_axis_sensor_at_rest{};
-        INSERT_PADDING_BYTES(3); // padding
-        f32 verticalization_error{};
-        Common::Vec3f gyro_bias{};
-        INSERT_PADDING_BYTES(4); // padding
-    };
-    static_assert(sizeof(ConsoleSharedMemory) == 0x20, "ConsoleSharedMemory is an invalid size");
-
     Lifo<SevenSixAxisState, 0x21> seven_sixaxis_lifo{};
     static_assert(sizeof(seven_sixaxis_lifo) == 0xA70, "SevenSixAxisState is an invalid size");
 
-    SevenSixAxisState next_seven_sixaxis_state{};
-    Common::ProcessAddress transfer_memory{};
-    ConsoleSharedMemory* shared_memory = nullptr;
-    Core::HID::EmulatedConsole* console = nullptr;
-
     u64 last_saved_timestamp{};
     u64 last_global_timestamp{};
+
+    SevenSixAxisState next_seven_sixaxis_state{};
+    Common::ProcessAddress transfer_memory{};
+    Core::HID::EmulatedConsole* console = nullptr;
 
     Core::System& system;
 };

@@ -23,7 +23,7 @@ class EmulatedController;
 } // namespace Core::HID
 
 namespace Service::HID {
-class Controller_Palma final : public ControllerBase {
+class Palma final : public ControllerBase {
 public:
     using PalmaOperationData = std::array<u8, 0x140>;
 
@@ -97,9 +97,9 @@ public:
     static_assert(sizeof(PalmaConnectionHandle) == 0x8,
                   "PalmaConnectionHandle has incorrect size.");
 
-    explicit Controller_Palma(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_,
-                              KernelHelpers::ServiceContext& service_context_);
-    ~Controller_Palma() override;
+    explicit Palma(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_,
+                   KernelHelpers::ServiceContext& service_context_);
+    ~Palma() override;
 
     // Called when the controller is initialized
     void OnInit() override;

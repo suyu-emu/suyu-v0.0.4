@@ -13,14 +13,14 @@ InputInterpreter::InputInterpreter(Core::System& system)
     : npad{system.ServiceManager()
                .GetService<Service::HID::IHidServer>("hid")
                ->GetResourceManager()
-               ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad)} {
+               ->GetNpad()} {
     ResetButtonStates();
 }
 
 InputInterpreter::~InputInterpreter() = default;
 
 void InputInterpreter::PollInput() {
-    const auto button_state = npad.GetAndResetPressState();
+    const auto button_state = npad->GetAndResetPressState();
 
     previous_index = current_index;
     current_index = (current_index + 1) % button_states.size();

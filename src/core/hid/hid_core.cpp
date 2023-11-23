@@ -6,6 +6,7 @@
 #include "core/hid/emulated_controller.h"
 #include "core/hid/emulated_devices.h"
 #include "core/hid/hid_core.h"
+#include "core/hle/service/hid/hid_util.h"
 
 namespace Core::HID {
 
@@ -98,11 +99,11 @@ const EmulatedDevices* HIDCore::GetEmulatedDevices() const {
 }
 
 EmulatedController* HIDCore::GetEmulatedControllerByIndex(std::size_t index) {
-    return GetEmulatedController(IndexToNpadIdType(index));
+    return GetEmulatedController(Service::HID::IndexToNpadIdType(index));
 }
 
 const EmulatedController* HIDCore::GetEmulatedControllerByIndex(std::size_t index) const {
-    return GetEmulatedController(IndexToNpadIdType(index));
+    return GetEmulatedController(Service::HID::IndexToNpadIdType(index));
 }
 
 void HIDCore::SetSupportedStyleTag(NpadStyleTag style_tag) {
