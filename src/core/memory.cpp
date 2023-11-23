@@ -78,6 +78,51 @@ struct Memory::Impl {
         }
     }
 
+    void ProtectRegion(Common::PageTable& page_table, VAddr vaddr, u64 size,
+                       Common::MemoryPermission perms) {
+        ASSERT_MSG((size & YUZU_PAGEMASK) == 0, "non-page aligned size: {:016X}", size);
+        ASSERT_MSG((vaddr & YUZU_PAGEMASK) == 0, "non-page aligned base: {:016X}", vaddr);
+
+        if (!Settings::IsFastmemEnabled()) {
+            return;
+        }
+
+        const bool is_r = True(perms & Common::MemoryPermission::Read);
+        const bool is_w = True(perms & Common::MemoryPermission::Write);
+        const bool is_x =
+            True(perms & Common::MemoryPermission::Execute) && Settings::IsNceEnabled();
+
+        if (!current_page_table) {
+            system.DeviceMemory().buffer.Protect(vaddr, size, is_r, is_w, is_x);
+            return;
+        }
+
+        u64 protect_bytes{};
+        u64 protect_begin{};
+        for (u64 addr = vaddr; addr < vaddr + size; addr += YUZU_PAGESIZE) {
+            const Common::PageType page_type{
+                current_page_table->pointers[addr >> YUZU_PAGEBITS].Type()};
+            switch (page_type) {
+            case Common::PageType::RasterizerCachedMemory:
+                if (protect_bytes > 0) {
+                    system.DeviceMemory().buffer.Protect(protect_begin, protect_bytes, is_r, is_w,
+                                                         is_x);
+                    protect_bytes = 0;
+                }
+                break;
+            default:
+                if (protect_bytes == 0) {
+                    protect_begin = addr;
+                }
+                protect_bytes += YUZU_PAGESIZE;
+            }
+        }
+
+        if (protect_bytes > 0) {
+            system.DeviceMemory().buffer.Protect(protect_begin, protect_bytes, is_r, is_w, is_x);
+        }
+    }
+
     [[nodiscard]] u8* GetPointerFromRasterizerCachedMemory(u64 vaddr) const {
         const Common::PhysicalAddress paddr{
             current_page_table->backing_addr[vaddr >> YUZU_PAGEBITS]};
@@ -837,6 +882,11 @@ void Memory::MapMemoryRegion(Common::PageTable& page_table, Common::ProcessAddre
 
 void Memory::UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size) {
     impl->UnmapRegion(page_table, base, size);
+}
+
+void Memory::ProtectRegion(Common::PageTable& page_table, Common::ProcessAddress vaddr, u64 size,
+                           Common::MemoryPermission perms) {
+    impl->ProtectRegion(page_table, GetInteger(vaddr), size, perms);
 }
 
 bool Memory::IsValidVirtualAddress(const Common::ProcessAddress vaddr) const {

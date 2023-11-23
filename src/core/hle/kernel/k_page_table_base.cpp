@@ -5678,15 +5678,8 @@ Result KPageTableBase::Operate(PageLinkedList* page_list, KProcessAddress virt_a
     case OperationType::ChangePermissions:
     case OperationType::ChangePermissionsAndRefresh:
     case OperationType::ChangePermissionsAndRefreshAndFlush: {
-        const bool read = True(properties.perm & Kernel::KMemoryPermission::UserRead);
-        const bool write = True(properties.perm & Kernel::KMemoryPermission::UserWrite);
-        // todo: this doesn't really belong here and should go into m_memory to handle rasterizer
-        // access todo: ignore exec on non-direct-mapped case
-        const bool exec = True(properties.perm & Kernel::KMemoryPermission::UserExecute);
-        if (Settings::IsFastmemEnabled()) {
-            m_system.DeviceMemory().buffer.Protect(GetInteger(virt_addr), num_pages * PageSize,
-                                                   read, write, exec);
-        }
+        m_memory->ProtectRegion(*m_impl, virt_addr, num_pages * PageSize,
+                                ConvertToMemoryPermission(properties.perm));
         R_SUCCEED();
     }
     default:

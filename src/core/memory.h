@@ -98,6 +98,17 @@ public:
     void UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size);
 
     /**
+     * Protects a region of the emulated process address space with the new permissions.
+     *
+     * @param page_table The page table of the emulated process.
+     * @param base       The start address to re-protect. Must be page-aligned.
+     * @param size       The amount of bytes to protect. Must be page-aligned.
+     * @param perms      The permissions the address range is mapped.
+     */
+    void ProtectRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
+                       Common::MemoryPermission perms);
+
+    /**
      * Checks whether or not the supplied address is a valid virtual
      * address for the current process.
      *

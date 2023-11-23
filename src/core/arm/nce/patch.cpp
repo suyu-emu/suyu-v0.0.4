@@ -90,6 +90,10 @@ void Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
             WriteMsrHandler(AddRelocations(), oaknut::XReg{static_cast<int>(msr.GetRt())});
             continue;
         }
+
+        if (auto exclusive = Exclusive{inst}; exclusive.Verify()) {
+            m_exclusives.push_back(i);
+        }
     }
 
     // Determine patching mode for the final relocation step
@@ -163,11 +167,9 @@ void Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
 
     // Cortex-A57 seems to treat all exclusives as ordered, but newer processors do not.
     // Convert to ordered to preserve this assumption.
-    for (u32 i = ModuleCodeIndex; i < static_cast<u32>(text_words.size()); i++) {
-        const u32 inst = text_words[i];
-        if (auto exclusive = Exclusive{inst}; exclusive.Verify()) {
-            text_words[i] = exclusive.AsOrdered();
-        }
+    for (const ModuleTextAddress i : m_exclusives) {
+        auto exclusive = Exclusive{text_words[i]};
+        text_words[i] = exclusive.AsOrdered();
     }
 
     // Copy to program image
