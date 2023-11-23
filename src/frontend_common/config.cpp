@@ -342,8 +342,7 @@ void Config::ReadScreenshotValues() {
 
     ReadCategory(Settings::Category::Screenshots);
     FS::SetYuzuPath(FS::YuzuPath::ScreenshotsDir,
-                    ReadStringSetting(std::string("screenshot_path"),
-                                      FS::GetYuzuPathString(FS::YuzuPath::ScreenshotsDir)));
+                    ReadStringSetting(std::string("screenshot_path")));
 
     EndGroup();
 }
