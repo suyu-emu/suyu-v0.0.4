@@ -8,6 +8,7 @@
 #include "common/thread.h"
 #include "core/hid/emulated_controller.h"
 #include "core/hid/input_converter.h"
+#include "core/hle/service/hid/hid_util.h"
 
 namespace Core::HID {
 constexpr s32 HID_JOYSTICK_MAX = 0x7fff;
@@ -82,7 +83,7 @@ Settings::ControllerType EmulatedController::MapNPadToSettingsType(NpadStyleInde
 }
 
 void EmulatedController::ReloadFromSettings() {
-    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
 
     for (std::size_t index = 0; index < player.buttons.size(); ++index) {
@@ -118,7 +119,7 @@ void EmulatedController::ReloadFromSettings() {
 }
 
 void EmulatedController::ReloadColorsFromSettings() {
-    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
 
     // Avoid updating colors if overridden by physical controller
@@ -215,7 +216,7 @@ void EmulatedController::LoadDevices() {
 }
 
 void EmulatedController::LoadTASParams() {
-    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     Common::ParamPackage common_params{};
     common_params.Set("engine", "tas");
     common_params.Set("port", static_cast<int>(player_index));
@@ -264,7 +265,7 @@ void EmulatedController::LoadTASParams() {
 }
 
 void EmulatedController::LoadVirtualGamepadParams() {
-    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     Common::ParamPackage common_params{};
     common_params.Set("engine", "virtual_gamepad");
     common_params.Set("port", static_cast<int>(player_index));
@@ -615,7 +616,7 @@ bool EmulatedController::IsConfiguring() const {
 }
 
 void EmulatedController::SaveCurrentConfig() {
-    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     auto& player = Settings::values.players.GetValue()[player_index];
     player.connected = is_connected;
     player.controller_type = MapNPadToSettingsType(npad_type);
@@ -1212,7 +1213,7 @@ bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue v
     if (!output_devices[device_index]) {
         return false;
     }
-    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
     const f32 strength = static_cast<f32>(player.vibration_strength) / 100.0f;
 
@@ -1238,7 +1239,7 @@ bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue v
 }
 
 bool EmulatedController::IsVibrationEnabled(std::size_t device_index) {
-    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
 
     if (!player.vibration_enabled) {
@@ -1648,7 +1649,7 @@ void EmulatedController::SetNpadStyleIndex(NpadStyleIndex npad_type_) {
     }
     if (is_connected) {
         LOG_WARNING(Service_HID, "Controller {} type changed while it's connected",
-                    NpadIdTypeToIndex(npad_id_type));
+                    Service::HID::NpadIdTypeToIndex(npad_id_type));
     }
     npad_type = npad_type_;
 }

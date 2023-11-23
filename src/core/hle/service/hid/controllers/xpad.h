@@ -10,10 +10,10 @@
 #include "core/hle/service/hid/ring_lifo.h"
 
 namespace Service::HID {
-class Controller_XPad final : public ControllerBase {
+class XPad final : public ControllerBase {
 public:
-    explicit Controller_XPad(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
-    ~Controller_XPad() override;
+    explicit XPad(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
+    ~XPad() override;
 
     // Called when the controller is initialized
     void OnInit() override;

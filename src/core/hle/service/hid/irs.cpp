@@ -12,6 +12,7 @@
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/service/hid/errors.h"
+#include "core/hle/service/hid/hid_util.h"
 #include "core/hle/service/hid/irs.h"
 #include "core/hle/service/hid/irsensor/clustering_processor.h"
 #include "core/hle/service/hid/irsensor/image_transfer_processor.h"
@@ -320,7 +321,7 @@ void IRS::GetNpadIrCameraHandle(HLERequestContext& ctx) {
     }
 
     Core::IrSensor::IrCameraHandle camera_handle{
-        .npad_id = static_cast<u8>(NpadIdTypeToIndex(npad_id)),
+        .npad_id = static_cast<u8>(HID::NpadIdTypeToIndex(npad_id)),
         .npad_type = Core::HID::NpadStyleIndex::None,
     };
 
@@ -545,7 +546,7 @@ void IRS::ActivateIrsensorWithFunctionLevel(HLERequestContext& ctx) {
 
 Result IRS::IsIrCameraHandleValid(const Core::IrSensor::IrCameraHandle& camera_handle) const {
     if (camera_handle.npad_id >
-        static_cast<u8>(NpadIdTypeToIndex(Core::HID::NpadIdType::Handheld))) {
+        static_cast<u8>(HID::NpadIdTypeToIndex(Core::HID::NpadIdType::Handheld))) {
         return InvalidIrCameraHandle;
     }
     if (camera_handle.npad_type != Core::HID::NpadStyleIndex::None) {

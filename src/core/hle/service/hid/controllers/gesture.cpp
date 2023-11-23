@@ -23,7 +23,7 @@ constexpr f32 Square(s32 num) {
     return static_cast<f32>(num * num);
 }
 
-Controller_Gesture::Controller_Gesture(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
+Gesture::Gesture(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
     : ControllerBase(hid_core_) {
     static_assert(SHARED_MEMORY_OFFSET + sizeof(GestureSharedMemory) < shared_memory_size,
                   "GestureSharedMemory is bigger than the shared memory");
@@ -31,17 +31,17 @@ Controller_Gesture::Controller_Gesture(Core::HID::HIDCore& hid_core_, u8* raw_sh
         reinterpret_cast<GestureSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
     console = hid_core.GetEmulatedConsole();
 }
-Controller_Gesture::~Controller_Gesture() = default;
+Gesture::~Gesture() = default;
 
-void Controller_Gesture::OnInit() {
+void Gesture::OnInit() {
     shared_memory->gesture_lifo.buffer_count = 0;
     shared_memory->gesture_lifo.buffer_tail = 0;
     force_update = true;
 }
 
-void Controller_Gesture::OnRelease() {}
+void Gesture::OnRelease() {}
 
-void Controller_Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+void Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     if (!IsControllerActivated()) {
         shared_memory->gesture_lifo.buffer_count = 0;
         shared_memory->gesture_lifo.buffer_tail = 0;
@@ -64,7 +64,7 @@ void Controller_Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     UpdateGestureSharedMemory(gesture, time_difference);
 }
 
-void Controller_Gesture::ReadTouchInput() {
+void Gesture::ReadTouchInput() {
     if (!Settings::values.touchscreen.enabled) {
         fingers = {};
         return;
@@ -76,8 +76,7 @@ void Controller_Gesture::ReadTouchInput() {
     }
 }
 
-bool Controller_Gesture::ShouldUpdateGesture(const GestureProperties& gesture,
-                                             f32 time_difference) {
+bool Gesture::ShouldUpdateGesture(const GestureProperties& gesture, f32 time_difference) {
     const auto& last_entry = GetLastGestureEntry();
     if (force_update) {
         force_update = false;
@@ -100,8 +99,7 @@ bool Controller_Gesture::ShouldUpdateGesture(const GestureProperties& gesture,
     return false;
 }
 
-void Controller_Gesture::UpdateGestureSharedMemory(GestureProperties& gesture,
-                                                   f32 time_difference) {
+void Gesture::UpdateGestureSharedMemory(GestureProperties& gesture, f32 time_difference) {
     GestureType type = GestureType::Idle;
     GestureAttribute attributes{};
 
@@ -138,8 +136,8 @@ void Controller_Gesture::UpdateGestureSharedMemory(GestureProperties& gesture,
     shared_memory->gesture_lifo.WriteNextEntry(next_state);
 }
 
-void Controller_Gesture::NewGesture(GestureProperties& gesture, GestureType& type,
-                                    GestureAttribute& attributes) {
+void Gesture::NewGesture(GestureProperties& gesture, GestureType& type,
+                         GestureAttribute& attributes) {
     const auto& last_entry = GetLastGestureEntry();
 
     gesture.detection_count++;
@@ -152,8 +150,8 @@ void Controller_Gesture::NewGesture(GestureProperties& gesture, GestureType& typ
     }
 }
 
-void Controller_Gesture::UpdateExistingGesture(GestureProperties& gesture, GestureType& type,
-                                               f32 time_difference) {
+void Gesture::UpdateExistingGesture(GestureProperties& gesture, GestureType& type,
+                                    f32 time_difference) {
     const auto& last_entry = GetLastGestureEntry();
 
     // Promote to pan type if touch moved
@@ -186,9 +184,8 @@ void Controller_Gesture::UpdateExistingGesture(GestureProperties& gesture, Gestu
     }
 }
 
-void Controller_Gesture::EndGesture(GestureProperties& gesture,
-                                    GestureProperties& last_gesture_props, GestureType& type,
-                                    GestureAttribute& attributes, f32 time_difference) {
+void Gesture::EndGesture(GestureProperties& gesture, GestureProperties& last_gesture_props,
+                         GestureType& type, GestureAttribute& attributes, f32 time_difference) {
     const auto& last_entry = GetLastGestureEntry();
 
     if (last_gesture_props.active_points != 0) {
@@ -222,9 +219,8 @@ void Controller_Gesture::EndGesture(GestureProperties& gesture,
     }
 }
 
-void Controller_Gesture::SetTapEvent(GestureProperties& gesture,
-                                     GestureProperties& last_gesture_props, GestureType& type,
-                                     GestureAttribute& attributes) {
+void Gesture::SetTapEvent(GestureProperties& gesture, GestureProperties& last_gesture_props,
+                          GestureType& type, GestureAttribute& attributes) {
     type = GestureType::Tap;
     gesture = last_gesture_props;
     force_update = true;
@@ -236,9 +232,8 @@ void Controller_Gesture::SetTapEvent(GestureProperties& gesture,
     }
 }
 
-void Controller_Gesture::UpdatePanEvent(GestureProperties& gesture,
-                                        GestureProperties& last_gesture_props, GestureType& type,
-                                        f32 time_difference) {
+void Gesture::UpdatePanEvent(GestureProperties& gesture, GestureProperties& last_gesture_props,
+                             GestureType& type, f32 time_difference) {
     const auto& last_entry = GetLastGestureEntry();
 
     next_state.delta = gesture.mid_point - last_entry.pos;
@@ -263,9 +258,8 @@ void Controller_Gesture::UpdatePanEvent(GestureProperties& gesture,
     }
 }
 
-void Controller_Gesture::EndPanEvent(GestureProperties& gesture,
-                                     GestureProperties& last_gesture_props, GestureType& type,
-                                     f32 time_difference) {
+void Gesture::EndPanEvent(GestureProperties& gesture, GestureProperties& last_gesture_props,
+                          GestureType& type, f32 time_difference) {
     const auto& last_entry = GetLastGestureEntry();
     next_state.vel_x =
         static_cast<f32>(last_entry.delta.x) / (last_pan_time_difference + time_difference);
@@ -287,8 +281,8 @@ void Controller_Gesture::EndPanEvent(GestureProperties& gesture,
     force_update = true;
 }
 
-void Controller_Gesture::SetSwipeEvent(GestureProperties& gesture,
-                                       GestureProperties& last_gesture_props, GestureType& type) {
+void Gesture::SetSwipeEvent(GestureProperties& gesture, GestureProperties& last_gesture_props,
+                            GestureType& type) {
     const auto& last_entry = GetLastGestureEntry();
 
     type = GestureType::Swipe;
@@ -311,11 +305,11 @@ void Controller_Gesture::SetSwipeEvent(GestureProperties& gesture,
     next_state.direction = GestureDirection::Up;
 }
 
-const Controller_Gesture::GestureState& Controller_Gesture::GetLastGestureEntry() const {
+const Gesture::GestureState& Gesture::GetLastGestureEntry() const {
     return shared_memory->gesture_lifo.ReadCurrentEntry().state;
 }
 
-Controller_Gesture::GestureProperties Controller_Gesture::GetGestureProperties() {
+Gesture::GestureProperties Gesture::GetGestureProperties() {
     GestureProperties gesture;
     std::array<Core::HID::TouchFinger, MAX_POINTS> active_fingers;
     const auto end_iter = std::copy_if(fingers.begin(), fingers.end(), active_fingers.begin(),
