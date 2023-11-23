@@ -93,6 +93,7 @@ private:
     std::vector<Relocation> m_branch_to_patch_relocations{};
     std::vector<Relocation> m_branch_to_module_relocations{};
     std::vector<Relocation> m_write_module_pc_relocations{};
+    std::vector<ModuleTextAddress> m_exclusives{};
     oaknut::Label m_save_context{};
     oaknut::Label m_load_context{};
     PatchMode mode{PatchMode::None};

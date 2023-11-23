@@ -82,8 +82,8 @@ abstract class SettingsItem(
                     IntSetting.CPU_BACKEND,
                     R.string.cpu_backend,
                     0,
-                    R.array.cpuBackendNames,
-                    R.array.cpuBackendValues
+                    R.array.cpuBackendArm64Names,
+                    R.array.cpuBackendArm64Values
                 )
             )
             put(
