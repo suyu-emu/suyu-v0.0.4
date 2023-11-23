@@ -363,21 +363,12 @@ private:
 
 #ifdef ARCHITECTURE_arm64
 
-static uint64_t GetRandomU64() {
-    uint64_t ret;
-    ASSERT(getrandom(&ret, sizeof(ret), 0) == 0);
-    return ret;
-}
-
 static void* ChooseVirtualBase(size_t virtual_size) {
     constexpr uintptr_t Map39BitSize = (1ULL << 39);
     constexpr uintptr_t Map36BitSize = (1ULL << 36);
 
-    // Seed the MT with some initial strong randomness.
-    //
-    // This is not a cryptographic application, we just want something more
-    // random than the current time.
-    std::mt19937_64 rng(GetRandomU64());
+    // This is not a cryptographic application, we just want something random.
+    std::mt19937_64 rng;
 
     // We want to ensure we are allocating at an address aligned to the L2 block size.
     // For Qualcomm devices, we must also allocate memory above 36 bits.
