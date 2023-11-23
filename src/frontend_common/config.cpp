@@ -65,6 +65,11 @@ void Config::WriteToIni() const {
     fp = fopen(config_loc.c_str(), "wb");
 #endif
 
+    if (fp == nullptr) {
+        LOG_ERROR(Frontend, "Config file could not be saved!");
+        return;
+    }
+
     CSimpleIniA::FileWriter writer(fp);
     const SI_Error rc = config->Save(writer, false);
     if (rc < 0) {
@@ -90,6 +95,11 @@ void Config::SetUpIni() {
         fp = fopen(config_loc.c_str(), "wb");
     }
 #endif
+
+    if (fp == nullptr) {
+        LOG_ERROR(Frontend, "Config file could not be loaded!");
+        return;
+    }
 
     if (SI_Error rc = config->LoadFile(fp); rc < 0) {
         LOG_ERROR(Frontend, "Config file could not be loaded!");
