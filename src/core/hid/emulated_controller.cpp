@@ -508,9 +508,11 @@ void EmulatedController::ReloadInput() {
         });
     }
     turbo_button_state = 0;
+    is_initalized = true;
 }
 
 void EmulatedController::UnloadInput() {
+    is_initalized = false;
     for (auto& button : button_devices) {
         button.reset();
     }
@@ -1206,6 +1208,9 @@ void EmulatedController::SetNfc(const Common::Input::CallbackStatus& callback) {
 }
 
 bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue vibration) {
+    if (!is_initalized) {
+        return false;
+    }
     if (device_index >= output_devices.size()) {
         return false;
     }
@@ -1241,6 +1246,10 @@ bool EmulatedController::IsVibrationEnabled(std::size_t device_index) {
     const auto player_index = NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
 
+    if (!is_initalized) {
+        return false;
+    }
+
     if (!player.vibration_enabled) {
         return false;
     }
@@ -1259,6 +1268,10 @@ bool EmulatedController::IsVibrationEnabled(std::size_t device_index) {
 Common::Input::DriverResult EmulatedController::SetPollingMode(
     EmulatedDeviceIndex device_index, Common::Input::PollingMode polling_mode) {
     LOG_INFO(Service_HID, "Set polling mode {}, device_index={}", polling_mode, device_index);
+
+    if (!is_initalized) {
+        return Common::Input::DriverResult::InvalidHandle;
+    }
 
     auto& left_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Left)];
     auto& right_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
@@ -1305,6 +1318,10 @@ bool EmulatedController::SetCameraFormat(
     Core::IrSensor::ImageTransferProcessorFormat camera_format) {
     LOG_INFO(Service_HID, "Set camera format {}", camera_format);
 
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& right_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& camera_output_device = output_devices[2];
 
@@ -1328,6 +1345,11 @@ void EmulatedController::SetRingParam(Common::ParamPackage param) {
 }
 
 bool EmulatedController::HasNfc() const {
+
+    if (!is_initalized) {
+        return false;
+    }
+
     const auto& nfc_output_device = output_devices[3];
 
     switch (npad_type) {
@@ -1365,6 +1387,10 @@ bool EmulatedController::RemoveNfcHandle() {
 }
 
 bool EmulatedController::StartNfcPolling() {
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
@@ -1376,6 +1402,10 @@ bool EmulatedController::StartNfcPolling() {
 }
 
 bool EmulatedController::StopNfcPolling() {
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
@@ -1387,6 +1417,10 @@ bool EmulatedController::StopNfcPolling() {
 }
 
 bool EmulatedController::ReadAmiiboData(std::vector<u8>& data) {
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
@@ -1399,6 +1433,10 @@ bool EmulatedController::ReadAmiiboData(std::vector<u8>& data) {
 
 bool EmulatedController::ReadMifareData(const Common::Input::MifareRequest& request,
                                         Common::Input::MifareRequest& out_data) {
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
@@ -1411,6 +1449,10 @@ bool EmulatedController::ReadMifareData(const Common::Input::MifareRequest& requ
 }
 
 bool EmulatedController::WriteMifareData(const Common::Input::MifareRequest& request) {
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
@@ -1422,6 +1464,10 @@ bool EmulatedController::WriteMifareData(const Common::Input::MifareRequest& req
 }
 
 bool EmulatedController::WriteNfc(const std::vector<u8>& data) {
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
@@ -1433,6 +1479,10 @@ bool EmulatedController::WriteNfc(const std::vector<u8>& data) {
 }
 
 void EmulatedController::SetLedPattern() {
+    if (!is_initalized) {
+        return;
+    }
+
     for (auto& device : output_devices) {
         if (!device) {
             continue;
