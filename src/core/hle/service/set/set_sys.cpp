@@ -19,19 +19,8 @@
 
 namespace Service::Set {
 
-namespace {
-constexpr u64 SYSTEM_VERSION_FILE_MINOR_REVISION_OFFSET = 0x05;
-
-enum class GetFirmwareVersionType {
-    Version1,
-    Version2,
-};
-
-void GetFirmwareVersionImpl(Core::System& system, HLERequestContext& ctx,
-                            GetFirmwareVersionType type) {
-    ASSERT_MSG(ctx.GetWriteBufferSize() == 0x100,
-               "FirmwareVersion output buffer must be 0x100 bytes in size!");
-
+Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System& system,
+                              GetFirmwareVersionType type) {
     constexpr u64 FirmwareVersionSystemDataId = 0x0100000000000809;
     auto& fsc = system.GetFileSystemController();
 
@@ -52,39 +41,34 @@ void GetFirmwareVersionImpl(Core::System& system, HLERequestContext& ctx,
             FileSys::SystemArchive::SynthesizeSystemArchive(FirmwareVersionSystemDataId));
     }
 
-    const auto early_exit_failure = [&ctx](std::string_view desc, Result code) {
+    const auto early_exit_failure = [](std::string_view desc, Result code) {
         LOG_ERROR(Service_SET, "General failure while attempting to resolve firmware version ({}).",
                   desc);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(code);
+        return code;
     };
 
     const auto ver_file = romfs->GetFile("file");
     if (ver_file == nullptr) {
-        early_exit_failure("The system version archive didn't contain the file 'file'.",
-                           FileSys::ERROR_INVALID_ARGUMENT);
-        return;
+        return early_exit_failure("The system version archive didn't contain the file 'file'.",
+                                  FileSys::ERROR_INVALID_ARGUMENT);
     }
 
     auto data = ver_file->ReadAllBytes();
-    if (data.size() != 0x100) {
-        early_exit_failure("The system version file 'file' was not the correct size.",
-                           FileSys::ERROR_OUT_OF_BOUNDS);
-        return;
+    if (data.size() != sizeof(FirmwareVersionFormat)) {
+        return early_exit_failure("The system version file 'file' was not the correct size.",
+                                  FileSys::ERROR_OUT_OF_BOUNDS);
     }
+
+    std::memcpy(&out_firmware, data.data(), sizeof(FirmwareVersionFormat));
 
     // If the command is GetFirmwareVersion (as opposed to GetFirmwareVersion2), hardware will
     // zero out the REVISION_MINOR field.
     if (type == GetFirmwareVersionType::Version1) {
-        data[SYSTEM_VERSION_FILE_MINOR_REVISION_OFFSET] = 0;
+        out_firmware.revision_minor = 0;
     }
 
-    ctx.WriteBuffer(data);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    return ResultSuccess;
 }
-} // Anonymous namespace
 
 void SET_SYS::SetLanguageCode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
@@ -98,12 +82,32 @@ void SET_SYS::SetLanguageCode(HLERequestContext& ctx) {
 
 void SET_SYS::GetFirmwareVersion(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
-    GetFirmwareVersionImpl(system, ctx, GetFirmwareVersionType::Version1);
+
+    FirmwareVersionFormat firmware_data{};
+    const auto result =
+        GetFirmwareVersionImpl(firmware_data, system, GetFirmwareVersionType::Version1);
+
+    if (result.IsSuccess()) {
+        ctx.WriteBuffer(firmware_data);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
 }
 
 void SET_SYS::GetFirmwareVersion2(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
-    GetFirmwareVersionImpl(system, ctx, GetFirmwareVersionType::Version2);
+
+    FirmwareVersionFormat firmware_data{};
+    const auto result =
+        GetFirmwareVersionImpl(firmware_data, system, GetFirmwareVersionType::Version2);
+
+    if (result.IsSuccess()) {
+        ctx.WriteBuffer(firmware_data);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
 }
 
 void SET_SYS::GetAccountSettings(HLERequestContext& ctx) {
