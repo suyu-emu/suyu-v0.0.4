@@ -6,12 +6,8 @@
 #include <span>
 #include <unordered_map>
 #include <vector>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshorten-64-to-32"
 #include <oaknut/code_block.hpp>
 #include <oaknut/oaknut.hpp>
-#pragma GCC diagnostic pop
 
 #include "common/common_types.h"
 #include "core/hle/kernel/code_set.h"
