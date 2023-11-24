@@ -4,6 +4,7 @@
 #pragma once
 
 #include "common/uuid.h"
+#include "core/hle/result.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/time/clock_types.h"
 
@@ -12,6 +13,29 @@ class System;
 }
 
 namespace Service::Set {
+enum class LanguageCode : u64;
+enum class GetFirmwareVersionType {
+    Version1,
+    Version2,
+};
+
+struct FirmwareVersionFormat {
+    u8 major;
+    u8 minor;
+    u8 micro;
+    INSERT_PADDING_BYTES(1);
+    u8 revision_major;
+    u8 revision_minor;
+    INSERT_PADDING_BYTES(2);
+    std::array<char, 0x20> platform;
+    std::array<u8, 0x40> version_hash;
+    std::array<char, 0x18> display_version;
+    std::array<char, 0x80> display_title;
+};
+static_assert(sizeof(FirmwareVersionFormat) == 0x100, "FirmwareVersionFormat is an invalid size");
+
+Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System& system,
+                              GetFirmwareVersionType type);
 
 class SET_SYS final : public ServiceFramework<SET_SYS> {
 public:
