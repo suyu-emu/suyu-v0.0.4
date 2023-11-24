@@ -266,7 +266,7 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
             return;
         }
         if (False(query_base->flags & QueryFlagBits::IsFinalValueSynced)) [[unlikely]] {
-            UNREACHABLE();
+            ASSERT(false);
             return;
         }
         query_base->value += streamer->GetAmmendValue();
