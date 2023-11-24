@@ -869,7 +869,8 @@ bool Device::ShouldBoostClocks() const {
         driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA ||
         driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP;
 
-    const bool is_steam_deck = vendor_id == 0x1002 && device_id == 0x163F;
+    const bool is_steam_deck = (vendor_id == 0x1002 && device_id == 0x163F) ||
+                               (vendor_id == 0x1002 && device_id == 0x1435);
 
     const bool is_debugging = this->HasDebuggingToolAttached();
 
