@@ -559,6 +559,7 @@ private:
     NpadStyleTag supported_style_tag{NpadStyleSet::All};
     bool is_connected{false};
     bool is_configuring{false};
+    bool is_initalized{false};
     bool system_buttons_enabled{true};
     f32 motion_sensitivity{Core::HID::MotionInput::IsAtRestStandard};
     u32 turbo_button_state{0};
