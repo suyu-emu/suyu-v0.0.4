@@ -27,6 +27,7 @@ object InputHandler {
             0x054C -> getInputDS5ButtonKey(event.keyCode)
             0x057E -> getInputJoyconButtonKey(event.keyCode)
             0x1532 -> getInputRazerButtonKey(event.keyCode)
+            0x3537 -> getInputRedmagicButtonKey(event.keyCode)
             else -> getInputGenericButtonKey(event.keyCode)
         }
 
@@ -219,6 +220,24 @@ object InputHandler {
             KeyEvent.KEYCODE_BUTTON_Y -> NativeLibrary.ButtonType.BUTTON_X
             KeyEvent.KEYCODE_BUTTON_L1 -> NativeLibrary.ButtonType.TRIGGER_L
             KeyEvent.KEYCODE_BUTTON_R1 -> NativeLibrary.ButtonType.TRIGGER_R
+            KeyEvent.KEYCODE_BUTTON_THUMBL -> NativeLibrary.ButtonType.STICK_L
+            KeyEvent.KEYCODE_BUTTON_THUMBR -> NativeLibrary.ButtonType.STICK_R
+            KeyEvent.KEYCODE_BUTTON_START -> NativeLibrary.ButtonType.BUTTON_PLUS
+            KeyEvent.KEYCODE_BUTTON_SELECT -> NativeLibrary.ButtonType.BUTTON_MINUS
+            else -> -1
+        }
+    }
+
+    private fun getInputRedmagicButtonKey(key: Int): Int {
+        return when (key) {
+            KeyEvent.KEYCODE_BUTTON_A -> NativeLibrary.ButtonType.BUTTON_B
+            KeyEvent.KEYCODE_BUTTON_B -> NativeLibrary.ButtonType.BUTTON_A
+            KeyEvent.KEYCODE_BUTTON_X -> NativeLibrary.ButtonType.BUTTON_Y
+            KeyEvent.KEYCODE_BUTTON_Y -> NativeLibrary.ButtonType.BUTTON_X
+            KeyEvent.KEYCODE_BUTTON_L1 -> NativeLibrary.ButtonType.TRIGGER_L
+            KeyEvent.KEYCODE_BUTTON_R1 -> NativeLibrary.ButtonType.TRIGGER_R
+            KeyEvent.KEYCODE_BUTTON_L2 -> NativeLibrary.ButtonType.TRIGGER_ZL
+            KeyEvent.KEYCODE_BUTTON_R2 -> NativeLibrary.ButtonType.TRIGGER_ZR
             KeyEvent.KEYCODE_BUTTON_THUMBL -> NativeLibrary.ButtonType.STICK_L
             KeyEvent.KEYCODE_BUTTON_THUMBR -> NativeLibrary.ButtonType.STICK_R
             KeyEvent.KEYCODE_BUTTON_START -> NativeLibrary.ButtonType.BUTTON_PLUS
