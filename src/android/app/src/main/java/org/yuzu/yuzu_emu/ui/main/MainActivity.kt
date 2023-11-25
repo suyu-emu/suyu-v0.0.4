@@ -625,6 +625,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 }
 
                 // Clear existing user data
+                NativeConfig.unloadConfig()
                 File(DirectoryInitialization.userDirectory!!).deleteRecursively()
 
                 // Copy archive to internal storage
@@ -643,6 +644,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
                 // Reinitialize relevant data
                 NativeLibrary.initializeSystem(true)
+                NativeConfig.initializeConfig()
                 gamesViewModel.reloadGames(false)
 
                 return@newInstance getString(R.string.user_data_import_success)

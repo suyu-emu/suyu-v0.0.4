@@ -19,7 +19,7 @@ void HotkeyRegistry::SaveHotkeys() {
         for (const auto& hotkey : group.second) {
             UISettings::values.shortcuts.push_back(
                 {hotkey.first, group.first,
-                 UISettings::ContextualShortcut({hotkey.second.keyseq.toString(),
+                 UISettings::ContextualShortcut({hotkey.second.keyseq.toString().toStdString(),
                                                  hotkey.second.controller_keyseq,
                                                  hotkey.second.context, hotkey.second.repeat})});
         }
@@ -31,12 +31,12 @@ void HotkeyRegistry::LoadHotkeys() {
     // beginGroup()
     for (auto shortcut : UISettings::values.shortcuts) {
         Hotkey& hk = hotkey_groups[shortcut.group][shortcut.name];
-        if (!shortcut.shortcut.keyseq.isEmpty()) {
-            hk.keyseq =
-                QKeySequence::fromString(shortcut.shortcut.keyseq, QKeySequence::NativeText);
+        if (!shortcut.shortcut.keyseq.empty()) {
+            hk.keyseq = QKeySequence::fromString(QString::fromStdString(shortcut.shortcut.keyseq),
+                                                 QKeySequence::NativeText);
             hk.context = static_cast<Qt::ShortcutContext>(shortcut.shortcut.context);
         }
-        if (!shortcut.shortcut.controller_keyseq.isEmpty()) {
+        if (!shortcut.shortcut.controller_keyseq.empty()) {
             hk.controller_keyseq = shortcut.shortcut.controller_keyseq;
         }
         if (hk.shortcut) {
@@ -51,7 +51,8 @@ void HotkeyRegistry::LoadHotkeys() {
     }
 }
 
-QShortcut* HotkeyRegistry::GetHotkey(const QString& group, const QString& action, QWidget* widget) {
+QShortcut* HotkeyRegistry::GetHotkey(const std::string& group, const std::string& action,
+                                     QWidget* widget) {
     Hotkey& hk = hotkey_groups[group][action];
 
     if (!hk.shortcut) {
@@ -62,7 +63,8 @@ QShortcut* HotkeyRegistry::GetHotkey(const QString& group, const QString& action
     return hk.shortcut;
 }
 
-ControllerShortcut* HotkeyRegistry::GetControllerHotkey(const QString& group, const QString& action,
+ControllerShortcut* HotkeyRegistry::GetControllerHotkey(const std::string& group,
+                                                        const std::string& action,
                                                         Core::HID::EmulatedController* controller) {
     Hotkey& hk = hotkey_groups[group][action];
 
@@ -74,12 +76,12 @@ ControllerShortcut* HotkeyRegistry::GetControllerHotkey(const QString& group, co
     return hk.controller_shortcut;
 }
 
-QKeySequence HotkeyRegistry::GetKeySequence(const QString& group, const QString& action) {
+QKeySequence HotkeyRegistry::GetKeySequence(const std::string& group, const std::string& action) {
     return hotkey_groups[group][action].keyseq;
 }
 
-Qt::ShortcutContext HotkeyRegistry::GetShortcutContext(const QString& group,
-                                                       const QString& action) {
+Qt::ShortcutContext HotkeyRegistry::GetShortcutContext(const std::string& group,
+                                                       const std::string& action) {
     return hotkey_groups[group][action].context;
 }
 
@@ -101,10 +103,10 @@ void ControllerShortcut::SetKey(const ControllerButtonSequence& buttons) {
     button_sequence = buttons;
 }
 
-void ControllerShortcut::SetKey(const QString& buttons_shortcut) {
+void ControllerShortcut::SetKey(const std::string& buttons_shortcut) {
     ControllerButtonSequence sequence{};
-    name = buttons_shortcut.toStdString();
-    std::istringstream command_line(buttons_shortcut.toStdString());
+    name = buttons_shortcut;
+    std::istringstream command_line(buttons_shortcut);
     std::string line;
     while (std::getline(command_line, line, '+')) {
         if (line.empty()) {

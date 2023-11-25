@@ -34,11 +34,6 @@ endif()
 # Glad
 add_subdirectory(glad)
 
-# inih
-if (NOT TARGET inih::INIReader)
-    add_subdirectory(inih)
-endif()
-
 # mbedtls
 add_subdirectory(mbedtls)
 target_include_directories(mbedtls PUBLIC ./mbedtls/include)
@@ -295,3 +290,6 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
         target_link_libraries(dump_syms PRIVATE libbreakpad_client ZLIB::ZLIB)
     endif()
 endif()
+
+# SimpleIni
+add_subdirectory(simpleini)

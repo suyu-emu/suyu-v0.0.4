@@ -14,6 +14,7 @@
 #include "common/common_types.h"
 #include "common/settings.h"
 #include "common/settings_enums.h"
+#include "configuration/qt_config.h"
 
 using Settings::Category;
 using Settings::ConfirmStop;
@@ -37,15 +38,15 @@ namespace UISettings {
 bool IsDarkTheme();
 
 struct ContextualShortcut {
-    QString keyseq;
-    QString controller_keyseq;
+    std::string keyseq;
+    std::string controller_keyseq;
     int context;
     bool repeat;
 };
 
 struct Shortcut {
-    QString name;
-    QString group;
+    std::string name;
+    std::string group;
     ContextualShortcut shortcut;
 };
 
@@ -58,11 +59,19 @@ enum class Theme {
     MidnightBlueColorful,
 };
 
+static constexpr Theme default_theme{
+#ifdef _WIN32
+    Theme::DarkColorful
+#else
+    Theme::DefaultColorful
+#endif
+};
+
 using Themes = std::array<std::pair<const char*, const char*>, 6>;
 extern const Themes themes;
 
 struct GameDir {
-    QString path;
+    std::string path;
     bool deep_scan = false;
     bool expanded = false;
     bool operator==(const GameDir& rhs) const {
@@ -144,15 +153,15 @@ struct Values {
                                             Category::Screenshots};
     Setting<u32> screenshot_height{linkage, 0, "screenshot_height", Category::Screenshots};
 
-    QString roms_path;
-    QString symbols_path;
-    QString game_dir_deprecated;
+    std::string roms_path;
+    std::string symbols_path;
+    std::string game_dir_deprecated;
     bool game_dir_deprecated_deepscan;
-    QVector<UISettings::GameDir> game_dirs;
+    QVector<GameDir> game_dirs;
     QStringList recent_files;
-    QString language;
+    std::string language;
 
-    QString theme;
+    std::string theme;
 
     // Shortcut name <Shortcut, context>
     std::vector<Shortcut> shortcuts;
@@ -206,6 +215,54 @@ extern Values values;
 
 u32 CalculateWidth(u32 height, Settings::AspectRatio ratio);
 
+void SaveWindowState();
+void RestoreWindowState(std::unique_ptr<QtConfig>& qtConfig);
+
+// This shouldn't have anything except static initializers (no functions). So
+// QKeySequence(...).toString() is NOT ALLOWED HERE.
+// This must be in alphabetical order according to action name as it must have the same order as
+// UISetting::values.shortcuts, which is alphabetically ordered.
+// clang-format off
+const std::array<Shortcut, 23> default_hotkeys{{
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Audio Mute/Unmute")).toStdString(),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+M"),  std::string("Home+Dpad_Right"), Qt::WindowShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Audio Volume Down")).toStdString(),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("-"),       std::string("Home+Dpad_Down"), Qt::ApplicationShortcut, true}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Audio Volume Up")).toStdString(),          QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("="),       std::string("Home+Dpad_Up"), Qt::ApplicationShortcut, true}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Capture Screenshot")).toStdString(),       QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+P"),  std::string("Screenshot"), Qt::WidgetWithChildrenShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Change Adapting Filter")).toStdString(),   QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F8"),      std::string("Home+L"), Qt::ApplicationShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Change Docked Mode")).toStdString(),       QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F10"),     std::string("Home+X"), Qt::ApplicationShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Change GPU Accuracy")).toStdString(),      QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F9"),      std::string("Home+R"), Qt::ApplicationShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Continue/Pause Emulation")).toStdString(), QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F4"),      std::string("Home+Plus"), Qt::WindowShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Exit Fullscreen")).toStdString(),          QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Esc"),     std::string(""), Qt::WindowShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Exit yuzu")).toStdString(),                QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+Q"),  std::string("Home+Minus"), Qt::WindowShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Fullscreen")).toStdString(),               QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F11"),     std::string("Home+B"), Qt::WindowShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Load File")).toStdString(),                QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+O"),  std::string(""), Qt::WidgetWithChildrenShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Load/Remove Amiibo")).toStdString(),       QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F2"),      std::string("Home+A"), Qt::WidgetWithChildrenShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Restart Emulation")).toStdString(),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F6"),      std::string("R+Plus+Minus"), Qt::WindowShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Stop Emulation")).toStdString(),           QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("F5"),      std::string("L+Plus+Minus"), Qt::WindowShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "TAS Record")).toStdString(),               QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+F7"), std::string(""), Qt::ApplicationShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "TAS Reset")).toStdString(),                QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+F6"), std::string(""), Qt::ApplicationShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "TAS Start/Stop")).toStdString(),           QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+F5"), std::string(""), Qt::ApplicationShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Filter Bar")).toStdString(),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+F"),  std::string(""), Qt::WindowShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Framerate Limit")).toStdString(),   QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+U"),  std::string("Home+Y"), Qt::ApplicationShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Mouse Panning")).toStdString(),     QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+F9"), std::string(""), Qt::ApplicationShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Renderdoc Capture")).toStdString(), QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string(""),        std::string(""), Qt::ApplicationShortcut, false}},
+    {QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Toggle Status Bar")).toStdString(),        QStringLiteral(QT_TRANSLATE_NOOP("Hotkeys", "Main Window")).toStdString(), {std::string("Ctrl+S"),  std::string(""), Qt::WindowShortcut, false}},
+}};
+// clang-format on
+
 } // namespace UISettings
 
 Q_DECLARE_METATYPE(UISettings::GameDir*);
+
+// These metatype declarations cannot be in common/settings.h because core is devoid of QT
+Q_DECLARE_METATYPE(Settings::CpuAccuracy);
+Q_DECLARE_METATYPE(Settings::GpuAccuracy);
+Q_DECLARE_METATYPE(Settings::FullscreenMode);
+Q_DECLARE_METATYPE(Settings::NvdecEmulation);
+Q_DECLARE_METATYPE(Settings::ResolutionSetup);
+Q_DECLARE_METATYPE(Settings::ScalingFilter);
+Q_DECLARE_METATYPE(Settings::AntiAliasing);
+Q_DECLARE_METATYPE(Settings::RendererBackend);
+Q_DECLARE_METATYPE(Settings::ShaderBackend);
+Q_DECLARE_METATYPE(Settings::AstcRecompression);
+Q_DECLARE_METATYPE(Settings::AstcDecodeMode);

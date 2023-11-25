@@ -456,26 +456,26 @@ void GameListWorker::run() {
             break;
         }
 
-        if (game_dir.path == QStringLiteral("SDMC")) {
+        if (game_dir.path == std::string("SDMC")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SdmcDir);
             DirEntryReady(game_list_dir);
             AddTitlesToGameList(game_list_dir);
-        } else if (game_dir.path == QStringLiteral("UserNAND")) {
+        } else if (game_dir.path == std::string("UserNAND")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::UserNandDir);
             DirEntryReady(game_list_dir);
             AddTitlesToGameList(game_list_dir);
-        } else if (game_dir.path == QStringLiteral("SysNAND")) {
+        } else if (game_dir.path == std::string("SysNAND")) {
             auto* const game_list_dir = new GameListDir(game_dir, GameListItemType::SysNandDir);
             DirEntryReady(game_list_dir);
             AddTitlesToGameList(game_list_dir);
         } else {
-            watch_list.append(game_dir.path);
+            watch_list.append(QString::fromStdString(game_dir.path));
             auto* const game_list_dir = new GameListDir(game_dir);
             DirEntryReady(game_list_dir);
-            ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path.toStdString(),
-                           game_dir.deep_scan, game_list_dir);
-            ScanFileSystem(ScanTarget::PopulateGameList, game_dir.path.toStdString(),
-                           game_dir.deep_scan, game_list_dir);
+            ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path, game_dir.deep_scan,
+                           game_list_dir);
+            ScanFileSystem(ScanTarget::PopulateGameList, game_dir.path, game_dir.deep_scan,
+                           game_list_dir);
         }
     }
 
