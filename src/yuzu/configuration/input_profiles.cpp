@@ -5,7 +5,7 @@
 
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
-#include "yuzu/configuration/config.h"
+#include "frontend_common/config.h"
 #include "yuzu/configuration/input_profiles.h"
 
 namespace FS = Common::FS;
@@ -44,7 +44,7 @@ InputProfiles::InputProfiles() {
             if (IsINI(filename) && IsProfileNameValid(name_without_ext)) {
                 map_profiles.insert_or_assign(
                     name_without_ext,
-                    std::make_unique<Config>(name_without_ext, Config::ConfigType::InputProfile));
+                    std::make_unique<QtConfig>(name_without_ext, Config::ConfigType::InputProfile));
             }
 
             return true;
@@ -85,7 +85,7 @@ bool InputProfiles::CreateProfile(const std::string& profile_name, std::size_t p
     }
 
     map_profiles.insert_or_assign(
-        profile_name, std::make_unique<Config>(profile_name, Config::ConfigType::InputProfile));
+        profile_name, std::make_unique<QtConfig>(profile_name, Config::ConfigType::InputProfile));
 
     return SaveProfile(profile_name, player_index);
 }
@@ -113,7 +113,7 @@ bool InputProfiles::LoadProfile(const std::string& profile_name, std::size_t pla
         return false;
     }
 
-    map_profiles[profile_name]->ReadControlPlayerValue(player_index);
+    map_profiles[profile_name]->ReadQtControlPlayerValues(player_index);
     return true;
 }
 
@@ -122,7 +122,7 @@ bool InputProfiles::SaveProfile(const std::string& profile_name, std::size_t pla
         return false;
     }
 
-    map_profiles[profile_name]->SaveControlPlayerValue(player_index);
+    map_profiles[profile_name]->SaveQtControlPlayerValues(player_index);
     return true;
 }
 

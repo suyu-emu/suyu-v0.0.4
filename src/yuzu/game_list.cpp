@@ -278,7 +278,7 @@ void GameList::OnUpdateThemedIcons() {
         case GameListItemType::CustomDir: {
             const UISettings::GameDir& game_dir =
                 UISettings::values.game_dirs[child->data(GameListDir::GameDirRole).toInt()];
-            const QString icon_name = QFileInfo::exists(game_dir.path)
+            const QString icon_name = QFileInfo::exists(QString::fromStdString(game_dir.path))
                                           ? QStringLiteral("folder")
                                           : QStringLiteral("bad_folder");
             child->setData(
@@ -727,7 +727,8 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
     });
 
     connect(open_directory_location, &QAction::triggered, [this, game_dir_index] {
-        emit OpenDirectory(UISettings::values.game_dirs[game_dir_index].path);
+        emit OpenDirectory(
+            QString::fromStdString(UISettings::values.game_dirs[game_dir_index].path));
     });
 }
 
@@ -869,7 +870,7 @@ const QStringList GameList::supported_file_extensions = {
     QStringLiteral("xci"), QStringLiteral("nsp"), QStringLiteral("kip")};
 
 void GameList::RefreshGameDirectory() {
-    if (!UISettings::values.game_dirs.isEmpty() && current_worker != nullptr) {
+    if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
         PopulateAsync(UISettings::values.game_dirs);
     }

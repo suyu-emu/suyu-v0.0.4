@@ -12,9 +12,10 @@
 
 #include "configuration/shared_widget.h"
 #include "core/file_sys/vfs_types.h"
+#include "frontend_common/config.h"
 #include "vk_device_info.h"
-#include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configuration_shared.h"
+#include "yuzu/configuration/qt_config.h"
 #include "yuzu/configuration/shared_translation.h"
 
 namespace Core {
@@ -72,7 +73,7 @@ private:
 
     QGraphicsScene* scene;
 
-    std::unique_ptr<Config> game_config;
+    std::unique_ptr<QtConfig> game_config;
 
     Core::System& system;
     std::unique_ptr<ConfigurationShared::Builder> builder;

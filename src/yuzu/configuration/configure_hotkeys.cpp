@@ -9,10 +9,11 @@
 #include "core/hid/emulated_controller.h"
 #include "core/hid/hid_core.h"
 
+#include "frontend_common/config.h"
 #include "ui_configure_hotkeys.h"
-#include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_hotkeys.h"
 #include "yuzu/hotkeys.h"
+#include "yuzu/uisettings.h"
 #include "yuzu/util/sequence_dialog/sequence_dialog.h"
 
 constexpr int name_column = 0;
@@ -62,18 +63,21 @@ ConfigureHotkeys::~ConfigureHotkeys() = default;
 
 void ConfigureHotkeys::Populate(const HotkeyRegistry& registry) {
     for (const auto& group : registry.hotkey_groups) {
+        QString parent_item_data = QString::fromStdString(group.first);
         auto* parent_item =
-            new QStandardItem(QCoreApplication::translate("Hotkeys", qPrintable(group.first)));
+            new QStandardItem(QCoreApplication::translate("Hotkeys", qPrintable(parent_item_data)));
         parent_item->setEditable(false);
-        parent_item->setData(group.first);
+        parent_item->setData(parent_item_data);
         for (const auto& hotkey : group.second) {
-            auto* action =
-                new QStandardItem(QCoreApplication::translate("Hotkeys", qPrintable(hotkey.first)));
+            QString hotkey_action_data = QString::fromStdString(hotkey.first);
+            auto* action = new QStandardItem(
+                QCoreApplication::translate("Hotkeys", qPrintable(hotkey_action_data)));
             auto* keyseq =
                 new QStandardItem(hotkey.second.keyseq.toString(QKeySequence::NativeText));
-            auto* controller_keyseq = new QStandardItem(hotkey.second.controller_keyseq);
+            auto* controller_keyseq =
+                new QStandardItem(QString::fromStdString(hotkey.second.controller_keyseq));
             action->setEditable(false);
-            action->setData(hotkey.first);
+            action->setData(hotkey_action_data);
             keyseq->setEditable(false);
             controller_keyseq->setEditable(false);
             parent_item->appendRow({action, keyseq, controller_keyseq});
@@ -301,13 +305,13 @@ void ConfigureHotkeys::ApplyConfiguration(HotkeyRegistry& registry) {
             const QStandardItem* controller_keyseq =
                 parent->child(key_column_id, controller_column);
             for (auto& [group, sub_actions] : registry.hotkey_groups) {
-                if (group != parent->data())
+                if (group != parent->data().toString().toStdString())
                     continue;
                 for (auto& [action_name, hotkey] : sub_actions) {
-                    if (action_name != action->data())
+                    if (action_name != action->data().toString().toStdString())
                         continue;
                     hotkey.keyseq = QKeySequence(keyseq->text());
-                    hotkey.controller_keyseq = controller_keyseq->text();
+                    hotkey.controller_keyseq = controller_keyseq->text().toStdString();
                 }
             }
         }
@@ -319,7 +323,7 @@ void ConfigureHotkeys::ApplyConfiguration(HotkeyRegistry& registry) {
 void ConfigureHotkeys::RestoreDefaults() {
     for (int r = 0; r < model->rowCount(); ++r) {
         const QStandardItem* parent = model->item(r, 0);
-        const int hotkey_size = static_cast<int>(Config::default_hotkeys.size());
+        const int hotkey_size = static_cast<int>(UISettings::default_hotkeys.size());
 
         if (hotkey_size != parent->rowCount()) {
             QMessageBox::warning(this, tr("Invalid hotkey settings"),
@@ -330,10 +334,11 @@ void ConfigureHotkeys::RestoreDefaults() {
         for (int r2 = 0; r2 < parent->rowCount(); ++r2) {
             model->item(r, 0)
                 ->child(r2, hotkey_column)
-                ->setText(Config::default_hotkeys[r2].shortcut.keyseq);
+                ->setText(QString::fromStdString(UISettings::default_hotkeys[r2].shortcut.keyseq));
             model->item(r, 0)
                 ->child(r2, controller_column)
-                ->setText(Config::default_hotkeys[r2].shortcut.controller_keyseq);
+                ->setText(QString::fromStdString(
+                    UISettings::default_hotkeys[r2].shortcut.controller_keyseq));
         }
     }
 }
@@ -379,7 +384,7 @@ void ConfigureHotkeys::PopupContextMenu(const QPoint& menu_location) {
 
 void ConfigureHotkeys::RestoreControllerHotkey(QModelIndex index) {
     const QString& default_key_sequence =
-        Config::default_hotkeys[index.row()].shortcut.controller_keyseq;
+        QString::fromStdString(UISettings::default_hotkeys[index.row()].shortcut.controller_keyseq);
     const auto [key_sequence_used, used_action] = IsUsedControllerKey(default_key_sequence);
 
     if (key_sequence_used && default_key_sequence != model->data(index).toString()) {
@@ -393,7 +398,8 @@ void ConfigureHotkeys::RestoreControllerHotkey(QModelIndex index) {
 
 void ConfigureHotkeys::RestoreHotkey(QModelIndex index) {
     const QKeySequence& default_key_sequence = QKeySequence::fromString(
-        Config::default_hotkeys[index.row()].shortcut.keyseq, QKeySequence::NativeText);
+        QString::fromStdString(UISettings::default_hotkeys[index.row()].shortcut.keyseq),
+        QKeySequence::NativeText);
     const auto [key_sequence_used, used_action] = IsUsedKey(default_key_sequence);
 
     if (key_sequence_used && default_key_sequence != QKeySequence(model->data(index).toString())) {

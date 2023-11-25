@@ -128,6 +128,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/loader/loader.h"
 #include "core/perf_stats.h"
 #include "core/telemetry_session.h"
+#include "frontend_common/config.h"
 #include "input_common/drivers/tas_input.h"
 #include "input_common/drivers/virtual_amiibo.h"
 #include "input_common/main.h"
@@ -140,9 +141,9 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/bootmanager.h"
 #include "yuzu/compatdb.h"
 #include "yuzu/compatibility_list.h"
-#include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_dialog.h"
 #include "yuzu/configuration/configure_input_per_game.h"
+#include "yuzu/configuration/qt_config.h"
 #include "yuzu/debugger/console.h"
 #include "yuzu/debugger/controller.h"
 #include "yuzu/debugger/profiler.h"
@@ -311,7 +312,7 @@ bool GMainWindow::CheckDarkMode() {
 #endif // __unix__
 }
 
-GMainWindow::GMainWindow(std::unique_ptr<Config> config_, bool has_broken_vulkan)
+GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulkan)
     : ui{std::make_unique<Ui::MainWindow>()}, system{std::make_unique<Core::System>()},
       input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, config{std::move(config_)},
       vfs{std::make_shared<FileSys::RealVfsFilesystem>()},
@@ -676,7 +677,7 @@ void GMainWindow::ControllerSelectorReconfigureControllers(
     // Don't forget to apply settings.
     system->HIDCore().DisableAllControllerConfiguration();
     system->ApplySettings();
-    config->Save();
+    config->SaveAllValues();
 
     UpdateStatusButtons();
 
@@ -1129,7 +1130,7 @@ void GMainWindow::InitializeWidgets() {
     connect(aa_status_button, &QPushButton::customContextMenuRequested,
             [this](const QPoint& menu_location) {
                 QMenu context_menu;
-                for (auto const& aa_text_pair : Config::anti_aliasing_texts_map) {
+                for (auto const& aa_text_pair : ConfigurationShared::anti_aliasing_texts_map) {
                     context_menu.addAction(aa_text_pair.second, [this, aa_text_pair] {
                         Settings::values.anti_aliasing.SetValue(aa_text_pair.first);
                         UpdateAAText();
@@ -1153,7 +1154,7 @@ void GMainWindow::InitializeWidgets() {
     connect(filter_status_button, &QPushButton::customContextMenuRequested,
             [this](const QPoint& menu_location) {
                 QMenu context_menu;
-                for (auto const& filter_text_pair : Config::scaling_filter_texts_map) {
+                for (auto const& filter_text_pair : ConfigurationShared::scaling_filter_texts_map) {
                     context_menu.addAction(filter_text_pair.second, [this, filter_text_pair] {
                         Settings::values.scaling_filter.SetValue(filter_text_pair.first);
                         UpdateFilterText();
@@ -1176,7 +1177,7 @@ void GMainWindow::InitializeWidgets() {
             [this](const QPoint& menu_location) {
                 QMenu context_menu;
 
-                for (auto const& pair : Config::use_docked_mode_texts_map) {
+                for (auto const& pair : ConfigurationShared::use_docked_mode_texts_map) {
                     context_menu.addAction(pair.second, [this, &pair] {
                         if (pair.first != Settings::values.use_docked_mode.GetValue()) {
                             OnToggleDockedMode();
@@ -1200,7 +1201,7 @@ void GMainWindow::InitializeWidgets() {
             [this](const QPoint& menu_location) {
                 QMenu context_menu;
 
-                for (auto const& gpu_accuracy_pair : Config::gpu_accuracy_texts_map) {
+                for (auto const& gpu_accuracy_pair : ConfigurationShared::gpu_accuracy_texts_map) {
                     if (gpu_accuracy_pair.first == Settings::GpuAccuracy::Extreme) {
                         continue;
                     }
@@ -1229,7 +1230,8 @@ void GMainWindow::InitializeWidgets() {
             [this](const QPoint& menu_location) {
                 QMenu context_menu;
 
-                for (auto const& renderer_backend_pair : Config::renderer_backend_texts_map) {
+                for (auto const& renderer_backend_pair :
+                     ConfigurationShared::renderer_backend_texts_map) {
                     if (renderer_backend_pair.first == Settings::RendererBackend::Null) {
                         continue;
                     }
@@ -1294,16 +1296,17 @@ void GMainWindow::InitializeRecentFileMenuActions() {
 
 void GMainWindow::LinkActionShortcut(QAction* action, const QString& action_name,
                                      const bool tas_allowed) {
-    static const QString main_window = QStringLiteral("Main Window");
-    action->setShortcut(hotkey_registry.GetKeySequence(main_window, action_name));
-    action->setShortcutContext(hotkey_registry.GetShortcutContext(main_window, action_name));
+    static const auto main_window = std::string("Main Window");
+    action->setShortcut(hotkey_registry.GetKeySequence(main_window, action_name.toStdString()));
+    action->setShortcutContext(
+        hotkey_registry.GetShortcutContext(main_window, action_name.toStdString()));
     action->setAutoRepeat(false);
 
     this->addAction(action);
 
     auto* controller = system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
     const auto* controller_hotkey =
-        hotkey_registry.GetControllerHotkey(main_window, action_name, controller);
+        hotkey_registry.GetControllerHotkey(main_window, action_name.toStdString(), controller);
     connect(
         controller_hotkey, &ControllerShortcut::Activated, this,
         [action, tas_allowed, this] {
@@ -1335,10 +1338,11 @@ void GMainWindow::InitializeHotkeys() {
 
     static const QString main_window = QStringLiteral("Main Window");
     const auto connect_shortcut = [&]<typename Fn>(const QString& action_name, const Fn& function) {
-        const auto* hotkey = hotkey_registry.GetHotkey(main_window, action_name, this);
+        const auto* hotkey =
+            hotkey_registry.GetHotkey(main_window.toStdString(), action_name.toStdString(), this);
         auto* controller = system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
-        const auto* controller_hotkey =
-            hotkey_registry.GetControllerHotkey(main_window, action_name, controller);
+        const auto* controller_hotkey = hotkey_registry.GetControllerHotkey(
+            main_window.toStdString(), action_name.toStdString(), controller);
         connect(hotkey, &QShortcut::activated, this, function);
         connect(controller_hotkey, &ControllerShortcut::Activated, this, function,
                 Qt::QueuedConnection);
@@ -1918,7 +1922,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
     // Save configurations
     UpdateUISettings();
     game_list->SaveInterfaceLayout();
-    config->Save();
+    config->SaveAllValues();
 
     u64 title_id{0};
 
@@ -1936,7 +1940,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
         const auto config_file_name = title_id == 0
                                           ? Common::FS::PathToUTF8String(file_path.filename())
                                           : fmt::format("{:016X}", title_id);
-        Config per_game_config(config_file_name, Config::ConfigType::PerGameConfig);
+        QtConfig per_game_config(config_file_name, Config::ConfigType::PerGameConfig);
         system->HIDCore().ReloadInputDevices();
         system->ApplySettings();
     }
@@ -3135,7 +3139,7 @@ void GMainWindow::OnGameListAddDirectory() {
         return;
     }
 
-    UISettings::GameDir game_dir{dir_path, false, true};
+    UISettings::GameDir game_dir{dir_path.toStdString(), false, true};
     if (!UISettings::values.game_dirs.contains(game_dir)) {
         UISettings::values.game_dirs.append(game_dir);
         game_list->PopulateAsync(UISettings::values.game_dirs);
@@ -3181,14 +3185,14 @@ void GMainWindow::OnMenuLoadFile() {
                                    "%1 is an identifier for the Switch executable file extensions.")
                                     .arg(extensions);
     const QString filename = QFileDialog::getOpenFileName(
-        this, tr("Load File"), UISettings::values.roms_path, file_filter);
+        this, tr("Load File"), QString::fromStdString(UISettings::values.roms_path), file_filter);
     is_load_file_select_active = false;
 
     if (filename.isEmpty()) {
         return;
     }
 
-    UISettings::values.roms_path = QFileInfo(filename).path();
+    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
     BootGame(filename);
 }
 
@@ -3221,7 +3225,8 @@ void GMainWindow::OnMenuInstallToNAND() {
            "Image (*.xci)");
 
     QStringList filenames = QFileDialog::getOpenFileNames(
-        this, tr("Install Files"), UISettings::values.roms_path, file_filter);
+        this, tr("Install Files"), QString::fromStdString(UISettings::values.roms_path),
+        file_filter);
 
     if (filenames.isEmpty()) {
         return;
@@ -3239,7 +3244,7 @@ void GMainWindow::OnMenuInstallToNAND() {
     }
 
     // Save folder location of the first selected file
-    UISettings::values.roms_path = QFileInfo(filenames[0]).path();
+    UISettings::values.roms_path = QFileInfo(filenames[0]).path().toStdString();
 
     int remaining = filenames.size();
 
@@ -3584,7 +3589,7 @@ void GMainWindow::OnExit() {
 
 void GMainWindow::OnSaveConfig() {
     system->ApplySettings();
-    config->Save();
+    config->SaveAllValues();
 }
 
 void GMainWindow::ErrorDisplayDisplayError(QString error_code, QString error_text) {
@@ -3840,7 +3845,7 @@ void GMainWindow::OnConfigure() {
 
         Settings::values.disabled_addons.clear();
 
-        config = std::make_unique<Config>();
+        config = std::make_unique<QtConfig>();
         UISettings::values.reset_to_defaults = false;
 
         UISettings::values.game_dirs = std::move(old_game_dirs);
@@ -3875,7 +3880,7 @@ void GMainWindow::OnConfigure() {
 
     UISettings::values.configuration_applied = false;
 
-    config->Save();
+    config->SaveAllValues();
 
     if ((UISettings::values.hide_mouse || Settings::values.mouse_panning) && emulation_running) {
         render_window->installEventFilter(render_window);
@@ -4091,7 +4096,7 @@ void GMainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file
     UISettings::values.configuration_applied = false;
 
     if (!is_powered_on) {
-        config->Save();
+        config->SaveAllValues();
     }
 }
 
@@ -4324,7 +4329,7 @@ void GMainWindow::OnAlbum() {
     system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::PhotoViewer);
 
     const auto filename = QString::fromStdString(album_nca->GetFullPath());
-    UISettings::values.roms_path = QFileInfo(filename).path();
+    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
     BootGame(filename, AlbumId);
 }
 
@@ -4348,7 +4353,7 @@ void GMainWindow::OnCabinet(Service::NFP::CabinetMode mode) {
     system->GetAppletManager().SetCabinetMode(mode);
 
     const auto filename = QString::fromStdString(cabinet_nca->GetFullPath());
-    UISettings::values.roms_path = QFileInfo(filename).path();
+    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
     BootGame(filename, CabinetId);
 }
 
@@ -4371,7 +4376,7 @@ void GMainWindow::OnMiiEdit() {
     system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::MiiEdit);
 
     const auto filename = QString::fromStdString((mii_applet_nca->GetFullPath()));
-    UISettings::values.roms_path = QFileInfo(filename).path();
+    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
     BootGame(filename, MiiEditId);
 }
 
@@ -4396,7 +4401,7 @@ void GMainWindow::OnOpenControllerMenu() {
     system->GetAppletManager().SetCurrentAppletId(Service::AM::Applets::AppletId::Controller);
 
     const auto filename = QString::fromStdString((controller_applet_nca->GetFullPath()));
-    UISettings::values.roms_path = QFileInfo(filename).path();
+    UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
     BootGame(filename, ControllerAppletId);
 }
 
@@ -4590,7 +4595,8 @@ void GMainWindow::UpdateStatusBar() {
 
 void GMainWindow::UpdateGPUAccuracyButton() {
     const auto gpu_accuracy = Settings::values.gpu_accuracy.GetValue();
-    const auto gpu_accuracy_text = Config::gpu_accuracy_texts_map.find(gpu_accuracy)->second;
+    const auto gpu_accuracy_text =
+        ConfigurationShared::gpu_accuracy_texts_map.find(gpu_accuracy)->second;
     gpu_accuracy_button->setText(gpu_accuracy_text.toUpper());
     gpu_accuracy_button->setChecked(gpu_accuracy != Settings::GpuAccuracy::Normal);
 }
@@ -4599,31 +4605,32 @@ void GMainWindow::UpdateDockedButton() {
     const auto console_mode = Settings::values.use_docked_mode.GetValue();
     dock_status_button->setChecked(Settings::IsDockedMode());
     dock_status_button->setText(
-        Config::use_docked_mode_texts_map.find(console_mode)->second.toUpper());
+        ConfigurationShared::use_docked_mode_texts_map.find(console_mode)->second.toUpper());
 }
 
 void GMainWindow::UpdateAPIText() {
     const auto api = Settings::values.renderer_backend.GetValue();
-    const auto renderer_status_text = Config::renderer_backend_texts_map.find(api)->second;
+    const auto renderer_status_text =
+        ConfigurationShared::renderer_backend_texts_map.find(api)->second;
     renderer_status_button->setText(
         api == Settings::RendererBackend::OpenGL
-            ? tr("%1 %2").arg(
-                  renderer_status_text.toUpper(),
-                  Config::shader_backend_texts_map.find(Settings::values.shader_backend.GetValue())
-                      ->second)
+            ? tr("%1 %2").arg(renderer_status_text.toUpper(),
+                              ConfigurationShared::shader_backend_texts_map
+                                  .find(Settings::values.shader_backend.GetValue())
+                                  ->second)
             : renderer_status_text.toUpper());
 }
 
 void GMainWindow::UpdateFilterText() {
     const auto filter = Settings::values.scaling_filter.GetValue();
-    const auto filter_text = Config::scaling_filter_texts_map.find(filter)->second;
+    const auto filter_text = ConfigurationShared::scaling_filter_texts_map.find(filter)->second;
     filter_status_button->setText(filter == Settings::ScalingFilter::Fsr ? tr("FSR")
                                                                          : filter_text.toUpper());
 }
 
 void GMainWindow::UpdateAAText() {
     const auto aa_mode = Settings::values.anti_aliasing.GetValue();
-    const auto aa_text = Config::anti_aliasing_texts_map.find(aa_mode)->second;
+    const auto aa_text = ConfigurationShared::anti_aliasing_texts_map.find(aa_mode)->second;
     aa_status_button->setText(aa_mode == Settings::AntiAliasing::None
                                   ? QStringLiteral(QT_TRANSLATE_NOOP("GMainWindow", "NO AA"))
                                   : aa_text.toUpper());
@@ -4926,6 +4933,7 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
 
     UpdateUISettings();
     game_list->SaveInterfaceLayout();
+    UISettings::SaveWindowState();
     hotkey_registry.SaveHotkeys();
 
     // Unload controllers early
@@ -5080,9 +5088,9 @@ static void AdjustLinkColor() {
 }
 
 void GMainWindow::UpdateUITheme() {
-    const QString default_theme =
-        QString::fromUtf8(UISettings::themes[static_cast<size_t>(Config::default_theme)].second);
-    QString current_theme = UISettings::values.theme;
+    const QString default_theme = QString::fromUtf8(
+        UISettings::themes[static_cast<size_t>(UISettings::default_theme)].second);
+    QString current_theme = QString::fromStdString(UISettings::values.theme);
 
     if (current_theme.isEmpty()) {
         current_theme = default_theme;
@@ -5110,7 +5118,7 @@ void GMainWindow::UpdateUITheme() {
         QFile f(theme_uri);
         if (!f.open(QFile::ReadOnly | QFile::Text)) {
             LOG_ERROR(Frontend, "Unable to open style \"{}\", fallback to the default theme",
-                      UISettings::values.theme.toStdString());
+                      UISettings::values.theme);
             current_theme = default_theme;
         }
     }
@@ -5123,7 +5131,7 @@ void GMainWindow::UpdateUITheme() {
         setStyleSheet(ts.readAll());
     } else {
         LOG_ERROR(Frontend, "Unable to set style \"{}\", stylesheet file not found",
-                  UISettings::values.theme.toStdString());
+                  UISettings::values.theme);
         qApp->setStyleSheet({});
         setStyleSheet({});
     }
@@ -5132,27 +5140,28 @@ void GMainWindow::UpdateUITheme() {
 void GMainWindow::LoadTranslation() {
     bool loaded;
 
-    if (UISettings::values.language.isEmpty()) {
+    if (UISettings::values.language.empty()) {
         // If the selected language is empty, use system locale
         loaded = translator.load(QLocale(), {}, {}, QStringLiteral(":/languages/"));
     } else {
         // Otherwise load from the specified file
-        loaded = translator.load(UISettings::values.language, QStringLiteral(":/languages/"));
+        loaded = translator.load(QString::fromStdString(UISettings::values.language),
+                                 QStringLiteral(":/languages/"));
     }
 
     if (loaded) {
         qApp->installTranslator(&translator);
     } else {
-        UISettings::values.language = QStringLiteral("en");
+        UISettings::values.language = std::string("en");
     }
 }
 
 void GMainWindow::OnLanguageChanged(const QString& locale) {
-    if (UISettings::values.language != QStringLiteral("en")) {
+    if (UISettings::values.language != std::string("en")) {
         qApp->removeTranslator(&translator);
     }
 
-    UISettings::values.language = locale;
+    UISettings::values.language = locale.toStdString();
     LoadTranslation();
     ui->retranslateUi(this);
     multiplayer_state->retranslateUi();
@@ -5178,7 +5187,7 @@ void GMainWindow::changeEvent(QEvent* event) {
     // UpdateUITheme is a decent work around
     if (event->type() == QEvent::PaletteChange) {
         const QPalette test_palette(qApp->palette());
-        const QString current_theme = UISettings::values.theme;
+        const QString current_theme = QString::fromStdString(UISettings::values.theme);
         // Keeping eye on QPalette::Window to avoid looping. QPalette::Text might be useful too
         static QColor last_window_color;
         const QColor window_color = test_palette.color(QPalette::Active, QPalette::Window);
@@ -5272,7 +5281,8 @@ static void SetHighDPIAttributes() {
 }
 
 int main(int argc, char* argv[]) {
-    std::unique_ptr<Config> config = std::make_unique<Config>();
+    std::unique_ptr<QtConfig> config = std::make_unique<QtConfig>();
+    UISettings::RestoreWindowState(config);
     bool has_broken_vulkan = false;
     bool is_child = false;
     if (CheckEnvVars(&is_child)) {

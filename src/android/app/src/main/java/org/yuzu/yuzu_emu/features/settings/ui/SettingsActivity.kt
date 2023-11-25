@@ -21,7 +21,6 @@ import androidx.navigation.navArgs
 import com.google.android.material.color.MaterialColors
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import org.yuzu.yuzu_emu.NativeLibrary
 import java.io.IOException
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
@@ -165,11 +164,12 @@ class SettingsActivity : AppCompatActivity() {
         settingsViewModel.shouldSave = false
 
         // Delete settings file because the user may have changed values that do not exist in the UI
+        NativeConfig.unloadConfig()
         val settingsFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_CONFIG)
         if (!settingsFile.delete()) {
             throw IOException("Failed to delete $settingsFile")
         }
-        NativeLibrary.reloadSettings()
+        NativeConfig.initializeConfig()
 
         Toast.makeText(
             applicationContext,

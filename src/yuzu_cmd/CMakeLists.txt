@@ -13,9 +13,6 @@ function(create_resource file output filename)
 endfunction()
 
 add_executable(yuzu-cmd
-    config.cpp
-    config.h
-    default_ini.h
     emu_window/emu_window_sdl2.cpp
     emu_window/emu_window_sdl2.h
     emu_window/emu_window_sdl2_gl.cpp
@@ -25,14 +22,16 @@ add_executable(yuzu-cmd
     emu_window/emu_window_sdl2_vk.cpp
     emu_window/emu_window_sdl2_vk.h
     precompiled_headers.h
+    sdl_config.cpp
+    sdl_config.h
     yuzu.cpp
     yuzu.rc
 )
 
 create_target_directory_groups(yuzu-cmd)
 
-target_link_libraries(yuzu-cmd PRIVATE common core input_common)
-target_link_libraries(yuzu-cmd PRIVATE inih::INIReader glad)
+target_link_libraries(yuzu-cmd PRIVATE common core input_common frontend_common)
+target_link_libraries(yuzu-cmd PRIVATE glad)
 if (MSVC)
     target_link_libraries(yuzu-cmd PRIVATE getopt)
 endif()

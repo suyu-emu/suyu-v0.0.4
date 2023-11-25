@@ -6,6 +6,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "configuration/qt_config.h"
+
 namespace Core {
 class System;
 }
@@ -30,5 +32,5 @@ public:
 private:
     bool ProfileExistsInMap(const std::string& profile_name) const;
 
-    std::unordered_map<std::string, std::unique_ptr<Config>> map_profiles;
+    std::unordered_map<std::string, std::unique_ptr<QtConfig>> map_profiles;
 };
