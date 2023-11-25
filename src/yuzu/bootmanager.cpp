@@ -30,7 +30,6 @@
 #include <QSize>
 #include <QStringLiteral>
 #include <QSurfaceFormat>
-#include <QTimer>
 #include <QWindow>
 #include <QtCore/qobjectdefs.h>
 
@@ -65,6 +64,8 @@
 class QObject;
 class QPaintEngine;
 class QSurface;
+
+constexpr int default_mouse_constrain_timeout = 10;
 
 EmuThread::EmuThread(Core::System& system) : m_system{system} {}
 
@@ -304,6 +305,9 @@ GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
             Qt::QueuedConnection);
     connect(this, &GRenderWindow::ExitSignal, parent, &GMainWindow::OnExit, Qt::QueuedConnection);
     connect(this, &GRenderWindow::TasPlaybackStateChanged, parent, &GMainWindow::OnTasStateChanged);
+
+    mouse_constrain_timer.setInterval(default_mouse_constrain_timeout);
+    connect(&mouse_constrain_timer, &QTimer::timeout, this, &GRenderWindow::ConstrainMouse);
 }
 
 void GRenderWindow::ExecuteProgram(std::size_t program_index) {
@@ -391,6 +395,22 @@ std::pair<u32, u32> GRenderWindow::ScaleTouch(const QPointF& pos) const {
 void GRenderWindow::closeEvent(QCloseEvent* event) {
     emit Closed();
     QWidget::closeEvent(event);
+}
+
+void GRenderWindow::leaveEvent(QEvent* event) {
+    if (Settings::values.mouse_panning) {
+        const QRect& rect = QWidget::geometry();
+        QPoint position = QCursor::pos();
+
+        qint32 x = qBound(rect.left(), position.x(), rect.right());
+        qint32 y = qBound(rect.top(), position.y(), rect.bottom());
+        // Only start the timer if the mouse has left the window bound.
+        // The leave event is also triggered when the window looses focus.
+        if (x != position.x() || y != position.y()) {
+            mouse_constrain_timer.start();
+        }
+        event->accept();
+    }
 }
 
 int GRenderWindow::QtKeyToSwitchKey(Qt::Key qt_key) {
@@ -658,10 +678,19 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
     input_subsystem->GetMouse()->TouchMove(touch_x, touch_y);
     input_subsystem->GetMouse()->Move(pos.x(), pos.y(), center_x, center_y);
 
+    // Center mouse for mouse panning
     if (Settings::values.mouse_panning && !Settings::values.mouse_enabled) {
         QCursor::setPos(mapToGlobal(QPoint{center_x, center_y}));
     }
 
+    // Constrain mouse for mouse emulation with mouse panning
+    if (Settings::values.mouse_panning && Settings::values.mouse_enabled) {
+        const auto [clamped_mouse_x, clamped_mouse_y] = ClipToTouchScreen(x, y);
+        QCursor::setPos(mapToGlobal(
+            QPoint{static_cast<int>(clamped_mouse_x), static_cast<int>(clamped_mouse_y)}));
+    }
+
+    mouse_constrain_timer.stop();
     emit MouseActivity();
 }
 
@@ -673,6 +702,31 @@ void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
 
     const auto button = QtButtonToMouseButton(event->button());
     input_subsystem->GetMouse()->ReleaseButton(button);
+}
+
+void GRenderWindow::ConstrainMouse() {
+    if (emu_thread == nullptr || !Settings::values.mouse_panning) {
+        mouse_constrain_timer.stop();
+        return;
+    }
+    if (!this->isActiveWindow()) {
+        mouse_constrain_timer.stop();
+        return;
+    }
+
+    if (Settings::values.mouse_enabled) {
+        const auto pos = mapFromGlobal(QCursor::pos());
+        const int new_pos_x = std::clamp(pos.x(), 0, width());
+        const int new_pos_y = std::clamp(pos.y(), 0, height());
+
+        QCursor::setPos(mapToGlobal(QPoint{new_pos_x, new_pos_y}));
+        return;
+    }
+
+    const int center_x = width() / 2;
+    const int center_y = height() / 2;
+
+    QCursor::setPos(mapToGlobal(QPoint{center_x, center_y}));
 }
 
 void GRenderWindow::wheelEvent(QWheelEvent* event) {

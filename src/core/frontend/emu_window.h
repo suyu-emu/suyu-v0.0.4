@@ -167,6 +167,11 @@ protected:
      */
     std::pair<f32, f32> MapToTouchScreen(u32 framebuffer_x, u32 framebuffer_y) const;
 
+    /**
+     * Clip the provided coordinates to be inside the touchscreen area.
+     */
+    std::pair<u32, u32> ClipToTouchScreen(u32 new_x, u32 new_y) const;
+
     WindowSystemInfo window_info;
 
     bool strict_context_required = false;
@@ -180,11 +185,6 @@ private:
     virtual void OnMinimalClientAreaChangeRequest(std::pair<u32, u32>) {
         // By default, ignore this request and do nothing.
     }
-
-    /**
-     * Clip the provided coordinates to be inside the touchscreen area.
-     */
-    std::pair<u32, u32> ClipToTouchScreen(u32 new_x, u32 new_y) const;
 
     Layout::FramebufferLayout framebuffer_layout; ///< Current framebuffer layout
 
