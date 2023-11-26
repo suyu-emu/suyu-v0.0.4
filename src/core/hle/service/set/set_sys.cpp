@@ -1,7 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <fstream>
+
 #include "common/assert.h"
+#include "common/fs/file.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/string_util.h"
@@ -18,6 +23,16 @@
 #include "core/hle/service/set/set_sys.h"
 
 namespace Service::Set {
+
+namespace {
+constexpr u32 SETTINGS_VERSION{1u};
+constexpr auto SETTINGS_MAGIC = Common::MakeMagic('y', 'u', 'z', 'u', '_', 's', 'e', 't');
+struct SettingsHeader {
+    u64 magic;
+    u32 version;
+    u32 reserved;
+};
+} // Anonymous namespace
 
 Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System& system,
                               GetFirmwareVersionType type) {
@@ -72,11 +87,120 @@ Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System&
     return ResultSuccess;
 }
 
+bool SET_SYS::LoadSettingsFile(std::filesystem::path& path, auto&& default_func) {
+    using settings_type = decltype(default_func());
+
+    if (!Common::FS::CreateDirs(path)) {
+        return false;
+    }
+
+    auto settings_file = path / "settings.dat";
+    auto exists = std::filesystem::exists(settings_file);
+    auto file_size_ok = exists && std::filesystem::file_size(settings_file) ==
+                                      sizeof(SettingsHeader) + sizeof(settings_type);
+
+    auto ResetToDefault = [&]() {
+        auto default_settings{default_func()};
+
+        SettingsHeader hdr{
+            .magic = SETTINGS_MAGIC,
+            .version = SETTINGS_VERSION,
+            .reserved = 0u,
+        };
+
+        std::ofstream out_settings_file(settings_file, std::ios::out | std::ios::binary);
+        out_settings_file.write(reinterpret_cast<const char*>(&hdr), sizeof(hdr));
+        out_settings_file.write(reinterpret_cast<const char*>(&default_settings),
+                                sizeof(settings_type));
+        out_settings_file.flush();
+        out_settings_file.close();
+    };
+
+    constexpr auto IsHeaderValid = [](std::ifstream& file) -> bool {
+        if (!file.is_open()) {
+            return false;
+        }
+        SettingsHeader hdr{};
+        file.read(reinterpret_cast<char*>(&hdr), sizeof(hdr));
+        return hdr.magic == SETTINGS_MAGIC && hdr.version == SETTINGS_VERSION;
+    };
+
+    if (!exists || !file_size_ok) {
+        ResetToDefault();
+    }
+
+    std::ifstream file(settings_file, std::ios::binary | std::ios::in);
+    if (!IsHeaderValid(file)) {
+        file.close();
+        ResetToDefault();
+        file = std::ifstream(settings_file, std::ios::binary | std::ios::in);
+        if (!IsHeaderValid(file)) {
+            return false;
+        }
+    }
+
+    if constexpr (std::is_same_v<settings_type, PrivateSettings>) {
+        file.read(reinterpret_cast<char*>(&m_private_settings), sizeof(settings_type));
+    } else if constexpr (std::is_same_v<settings_type, DeviceSettings>) {
+        file.read(reinterpret_cast<char*>(&m_device_settings), sizeof(settings_type));
+    } else if constexpr (std::is_same_v<settings_type, ApplnSettings>) {
+        file.read(reinterpret_cast<char*>(&m_appln_settings), sizeof(settings_type));
+    } else if constexpr (std::is_same_v<settings_type, SystemSettings>) {
+        file.read(reinterpret_cast<char*>(&m_system_settings), sizeof(settings_type));
+    } else {
+        UNREACHABLE();
+    }
+    file.close();
+
+    return true;
+}
+
+bool SET_SYS::StoreSettingsFile(std::filesystem::path& path, auto& settings) {
+    using settings_type = std::decay_t<decltype(settings)>;
+
+    if (!Common::FS::IsDir(path)) {
+        return false;
+    }
+
+    auto settings_base = path / "settings";
+    auto settings_tmp_file = settings_base;
+    settings_tmp_file = settings_tmp_file.replace_extension("tmp");
+    std::ofstream file(settings_tmp_file, std::ios::binary | std::ios::out);
+    if (!file.is_open()) {
+        return false;
+    }
+
+    SettingsHeader hdr{
+        .magic = SETTINGS_MAGIC,
+        .version = SETTINGS_VERSION,
+        .reserved = 0u,
+    };
+    file.write(reinterpret_cast<const char*>(&hdr), sizeof(hdr));
+
+    if constexpr (std::is_same_v<settings_type, PrivateSettings>) {
+        file.write(reinterpret_cast<const char*>(&m_private_settings), sizeof(settings_type));
+    } else if constexpr (std::is_same_v<settings_type, DeviceSettings>) {
+        file.write(reinterpret_cast<const char*>(&m_device_settings), sizeof(settings_type));
+    } else if constexpr (std::is_same_v<settings_type, ApplnSettings>) {
+        file.write(reinterpret_cast<const char*>(&m_appln_settings), sizeof(settings_type));
+    } else if constexpr (std::is_same_v<settings_type, SystemSettings>) {
+        file.write(reinterpret_cast<const char*>(&m_system_settings), sizeof(settings_type));
+    } else {
+        UNREACHABLE();
+    }
+    file.close();
+
+    std::filesystem::rename(settings_tmp_file, settings_base.replace_extension("dat"));
+
+    return true;
+}
+
 void SET_SYS::SetLanguageCode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    language_code_setting = rp.PopEnum<LanguageCode>();
+    m_system_settings.language_code = rp.PopEnum<LanguageCode>();
+    SetSaveNeeded();
 
-    LOG_INFO(Service_SET, "called, language_code={}", language_code_setting);
+    LOG_INFO(Service_SET, "called, language_code={}", m_system_settings.language_code);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -112,19 +236,68 @@ void SET_SYS::GetFirmwareVersion2(HLERequestContext& ctx) {
     rb.Push(result);
 }
 
+void SET_SYS::GetExternalSteadyClockSourceId(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    Common::UUID id{};
+    auto res = GetExternalSteadyClockSourceId(id);
+
+    IPC::ResponseBuilder rb{ctx, 2 + sizeof(Common::UUID) / sizeof(u32)};
+    rb.Push(res);
+    rb.PushRaw(id);
+}
+
+void SET_SYS::SetExternalSteadyClockSourceId(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    IPC::RequestParser rp{ctx};
+    auto id{rp.PopRaw<Common::UUID>()};
+
+    auto res = SetExternalSteadyClockSourceId(id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(res);
+}
+
+void SET_SYS::GetUserSystemClockContext(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    Service::Time::Clock::SystemClockContext context{};
+    auto res = GetUserSystemClockContext(context);
+
+    IPC::ResponseBuilder rb{ctx,
+                            2 + sizeof(Service::Time::Clock::SystemClockContext) / sizeof(u32)};
+    rb.Push(res);
+    rb.PushRaw(context);
+}
+
+void SET_SYS::SetUserSystemClockContext(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    IPC::RequestParser rp{ctx};
+    auto context{rp.PopRaw<Service::Time::Clock::SystemClockContext>()};
+
+    auto res = SetUserSystemClockContext(context);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(res);
+}
+
 void SET_SYS::GetAccountSettings(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.PushRaw(account_settings);
+    rb.PushRaw(m_system_settings.account_settings);
 }
 
 void SET_SYS::SetAccountSettings(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    account_settings = rp.PopRaw<AccountSettings>();
+    m_system_settings.account_settings = rp.PopRaw<AccountSettings>();
+    SetSaveNeeded();
 
-    LOG_INFO(Service_SET, "called, account_settings_flags={}", account_settings.flags);
+    LOG_INFO(Service_SET, "called, account_settings_flags={}",
+             m_system_settings.account_settings.flags);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -133,11 +306,11 @@ void SET_SYS::SetAccountSettings(HLERequestContext& ctx) {
 void SET_SYS::GetEulaVersions(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
-    ctx.WriteBuffer(eula_versions);
+    ctx.WriteBuffer(m_system_settings.eula_versions);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(static_cast<u32>(eula_versions.size()));
+    rb.Push(m_system_settings.eula_version_count);
 }
 
 void SET_SYS::SetEulaVersions(HLERequestContext& ctx) {
@@ -145,13 +318,12 @@ void SET_SYS::SetEulaVersions(HLERequestContext& ctx) {
     const auto buffer_data = ctx.ReadBuffer();
 
     LOG_INFO(Service_SET, "called, elements={}", elements);
+    ASSERT(elements <= m_system_settings.eula_versions.size());
 
-    eula_versions.resize(elements);
-    for (std::size_t index = 0; index < elements; index++) {
-        const std::size_t start_index = index * sizeof(EulaVersion);
-        memcpy(eula_versions.data() + start_index, buffer_data.data() + start_index,
-               sizeof(EulaVersion));
-    }
+    m_system_settings.eula_version_count = static_cast<u32>(elements);
+    std::memcpy(&m_system_settings.eula_versions, buffer_data.data(),
+                sizeof(EulaVersion) * elements);
+    SetSaveNeeded();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -162,14 +334,15 @@ void SET_SYS::GetColorSetId(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.PushEnum(color_set);
+    rb.PushEnum(m_system_settings.color_set_id);
 }
 
 void SET_SYS::SetColorSetId(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    color_set = rp.PopEnum<ColorSet>();
+    m_system_settings.color_set_id = rp.PopEnum<ColorSet>();
+    SetSaveNeeded();
 
-    LOG_DEBUG(Service_SET, "called, color_set={}", color_set);
+    LOG_DEBUG(Service_SET, "called, color_set={}", m_system_settings.color_set_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -180,17 +353,21 @@ void SET_SYS::GetNotificationSettings(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 8};
     rb.Push(ResultSuccess);
-    rb.PushRaw(notification_settings);
+    rb.PushRaw(m_system_settings.notification_settings);
 }
 
 void SET_SYS::SetNotificationSettings(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    notification_settings = rp.PopRaw<NotificationSettings>();
+    m_system_settings.notification_settings = rp.PopRaw<NotificationSettings>();
+    SetSaveNeeded();
 
     LOG_INFO(Service_SET, "called, flags={}, volume={}, head_time={}:{}, tailt_time={}:{}",
-             notification_settings.flags.raw, notification_settings.volume,
-             notification_settings.start_time.hour, notification_settings.start_time.minute,
-             notification_settings.stop_time.hour, notification_settings.stop_time.minute);
+             m_system_settings.notification_settings.flags.raw,
+             m_system_settings.notification_settings.volume,
+             m_system_settings.notification_settings.start_time.hour,
+             m_system_settings.notification_settings.start_time.minute,
+             m_system_settings.notification_settings.stop_time.hour,
+             m_system_settings.notification_settings.stop_time.minute);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -199,11 +376,11 @@ void SET_SYS::SetNotificationSettings(HLERequestContext& ctx) {
 void SET_SYS::GetAccountNotificationSettings(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
-    ctx.WriteBuffer(account_notifications);
+    ctx.WriteBuffer(m_system_settings.account_notification_settings);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(static_cast<u32>(account_notifications.size()));
+    rb.Push(m_system_settings.account_notification_settings_count);
 }
 
 void SET_SYS::SetAccountNotificationSettings(HLERequestContext& ctx) {
@@ -212,12 +389,12 @@ void SET_SYS::SetAccountNotificationSettings(HLERequestContext& ctx) {
 
     LOG_INFO(Service_SET, "called, elements={}", elements);
 
-    account_notifications.resize(elements);
-    for (std::size_t index = 0; index < elements; index++) {
-        const std::size_t start_index = index * sizeof(AccountNotificationSettings);
-        memcpy(account_notifications.data() + start_index, buffer_data.data() + start_index,
-               sizeof(AccountNotificationSettings));
-    }
+    ASSERT(elements <= m_system_settings.account_notification_settings.size());
+
+    m_system_settings.account_notification_settings_count = static_cast<u32>(elements);
+    std::memcpy(&m_system_settings.account_notification_settings, buffer_data.data(),
+                elements * sizeof(AccountNotificationSettings));
+    SetSaveNeeded();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -243,6 +420,14 @@ static Settings GetSettings() {
 
     ret["hbloader"]["applet_heap_size"] = ToBytes(u64{0x0});
     ret["hbloader"]["applet_heap_reservation_size"] = ToBytes(u64{0x8600000});
+
+    // Time
+    ret["time"]["notify_time_to_fs_interval_seconds"] = ToBytes(s32{600});
+    ret["time"]["standard_network_clock_sufficient_accuracy_minutes"] =
+        ToBytes(s32{43200}); // 30 days
+    ret["time"]["standard_steady_clock_rtc_update_interval_minutes"] = ToBytes(s32{5});
+    ret["time"]["standard_steady_clock_test_offset_minutes"] = ToBytes(s32{0});
+    ret["time"]["standard_user_clock_initial_year"] = ToBytes(s32{2023});
 
     return ret;
 }
@@ -273,8 +458,6 @@ void SET_SYS::GetSettingsItemValueSize(HLERequestContext& ctx) {
 }
 
 void SET_SYS::GetSettingsItemValue(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_SET, "called");
-
     // The category of the setting. This corresponds to the top-level keys of
     // system_settings.ini.
     const auto setting_category_buf{ctx.ReadBuffer(0)};
@@ -285,14 +468,13 @@ void SET_SYS::GetSettingsItemValue(HLERequestContext& ctx) {
     const auto setting_name_buf{ctx.ReadBuffer(1)};
     const std::string setting_name{setting_name_buf.begin(), setting_name_buf.end()};
 
-    auto settings{GetSettings()};
-    Result response{ResultUnknown};
+    std::vector<u8> value;
+    auto response = GetSettingsItemValue(value, setting_category, setting_name);
 
-    if (settings.contains(setting_category) && settings[setting_category].contains(setting_name)) {
-        auto setting_value = settings[setting_category][setting_name];
-        ctx.WriteBuffer(setting_value.data(), setting_value.size());
-        response = ResultSuccess;
-    }
+    LOG_INFO(Service_SET, "called. category={}, name={} -- res=0x{:X}", setting_category,
+             setting_name, response.raw);
+
+    ctx.WriteBuffer(value.data(), value.size());
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(response);
@@ -303,19 +485,23 @@ void SET_SYS::GetTvSettings(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 10};
     rb.Push(ResultSuccess);
-    rb.PushRaw(tv_settings);
+    rb.PushRaw(m_system_settings.tv_settings);
 }
 
 void SET_SYS::SetTvSettings(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    tv_settings = rp.PopRaw<TvSettings>();
+    m_system_settings.tv_settings = rp.PopRaw<TvSettings>();
+    SetSaveNeeded();
 
     LOG_INFO(Service_SET,
              "called, flags={}, cmu_mode={}, constrast_ratio={}, hdmi_content_type={}, "
              "rgb_range={}, tv_gama={}, tv_resolution={}, tv_underscan={}",
-             tv_settings.flags.raw, tv_settings.cmu_mode, tv_settings.constrast_ratio,
-             tv_settings.hdmi_content_type, tv_settings.rgb_range, tv_settings.tv_gama,
-             tv_settings.tv_resolution, tv_settings.tv_underscan);
+             m_system_settings.tv_settings.flags.raw, m_system_settings.tv_settings.cmu_mode,
+             m_system_settings.tv_settings.constrast_ratio,
+             m_system_settings.tv_settings.hdmi_content_type,
+             m_system_settings.tv_settings.rgb_range, m_system_settings.tv_settings.tv_gama,
+             m_system_settings.tv_settings.tv_resolution,
+             m_system_settings.tv_settings.tv_underscan);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -329,14 +515,85 @@ void SET_SYS::GetQuestFlag(HLERequestContext& ctx) {
     rb.PushEnum(QuestFlag::Retail);
 }
 
+void SET_SYS::GetDeviceTimeZoneLocationName(HLERequestContext& ctx) {
+    LOG_WARNING(Service_SET, "called");
+
+    Service::Time::TimeZone::LocationName name{};
+    auto res = GetDeviceTimeZoneLocationName(name);
+
+    IPC::ResponseBuilder rb{ctx, 2 + sizeof(Service::Time::TimeZone::LocationName) / sizeof(u32)};
+    rb.Push(res);
+    rb.PushRaw<Service::Time::TimeZone::LocationName>(name);
+}
+
+void SET_SYS::SetDeviceTimeZoneLocationName(HLERequestContext& ctx) {
+    LOG_WARNING(Service_SET, "called");
+
+    IPC::RequestParser rp{ctx};
+    auto name{rp.PopRaw<Service::Time::TimeZone::LocationName>()};
+
+    auto res = SetDeviceTimeZoneLocationName(name);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(res);
+}
+
 void SET_SYS::SetRegionCode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    region_code = rp.PopEnum<RegionCode>();
+    m_system_settings.region_code = rp.PopEnum<RegionCode>();
+    SetSaveNeeded();
 
-    LOG_INFO(Service_SET, "called, region_code={}", region_code);
+    LOG_INFO(Service_SET, "called, region_code={}", m_system_settings.region_code);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
+}
+
+void SET_SYS::GetNetworkSystemClockContext(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    Service::Time::Clock::SystemClockContext context{};
+    auto res = GetNetworkSystemClockContext(context);
+
+    IPC::ResponseBuilder rb{ctx,
+                            2 + sizeof(Service::Time::Clock::SystemClockContext) / sizeof(u32)};
+    rb.Push(res);
+    rb.PushRaw(context);
+}
+
+void SET_SYS::SetNetworkSystemClockContext(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    IPC::RequestParser rp{ctx};
+    auto context{rp.PopRaw<Service::Time::Clock::SystemClockContext>()};
+
+    auto res = SetNetworkSystemClockContext(context);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(res);
+}
+
+void SET_SYS::IsUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    bool enabled{};
+    auto res = IsUserSystemClockAutomaticCorrectionEnabled(enabled);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(res);
+    rb.PushRaw(enabled);
+}
+
+void SET_SYS::SetUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx) {
+    LOG_INFO(Service_SET, "called");
+
+    IPC::RequestParser rp{ctx};
+    auto enabled{rp.Pop<bool>()};
+
+    auto res = SetUserSystemClockAutomaticCorrectionEnabled(enabled);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(res);
 }
 
 void SET_SYS::GetPrimaryAlbumStorage(HLERequestContext& ctx) {
@@ -352,16 +609,18 @@ void SET_SYS::GetSleepSettings(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 5};
     rb.Push(ResultSuccess);
-    rb.PushRaw(sleep_settings);
+    rb.PushRaw(m_system_settings.sleep_settings);
 }
 
 void SET_SYS::SetSleepSettings(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    sleep_settings = rp.PopRaw<SleepSettings>();
+    m_system_settings.sleep_settings = rp.PopRaw<SleepSettings>();
+    SetSaveNeeded();
 
     LOG_INFO(Service_SET, "called, flags={}, handheld_sleep_plan={}, console_sleep_plan={}",
-             sleep_settings.flags.raw, sleep_settings.handheld_sleep_plan,
-             sleep_settings.console_sleep_plan);
+             m_system_settings.sleep_settings.flags.raw,
+             m_system_settings.sleep_settings.handheld_sleep_plan,
+             m_system_settings.sleep_settings.console_sleep_plan);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -371,15 +630,20 @@ void SET_SYS::GetInitialLaunchSettings(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
     IPC::ResponseBuilder rb{ctx, 10};
     rb.Push(ResultSuccess);
-    rb.PushRaw(launch_settings);
+    rb.PushRaw(m_system_settings.initial_launch_settings_packed);
 }
 
 void SET_SYS::SetInitialLaunchSettings(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    launch_settings = rp.PopRaw<InitialLaunchSettings>();
+    auto inital_launch_settings = rp.PopRaw<InitialLaunchSettings>();
 
-    LOG_INFO(Service_SET, "called, flags={}, timestamp={}", launch_settings.flags.raw,
-             launch_settings.timestamp.time_point);
+    m_system_settings.initial_launch_settings_packed.flags = inital_launch_settings.flags;
+    m_system_settings.initial_launch_settings_packed.timestamp = inital_launch_settings.timestamp;
+    SetSaveNeeded();
+
+    LOG_INFO(Service_SET, "called, flags={}, timestamp={}",
+             m_system_settings.initial_launch_settings_packed.flags.raw,
+             m_system_settings.initial_launch_settings_packed.timestamp.time_point);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -437,11 +701,35 @@ void SET_SYS::GetAutoUpdateEnableFlag(HLERequestContext& ctx) {
 void SET_SYS::GetBatteryPercentageFlag(HLERequestContext& ctx) {
     u8 battery_percentage_flag{1};
 
-    LOG_DEBUG(Service_SET, "(STUBBED) called, battery_percentage_flag={}", battery_percentage_flag);
+    LOG_WARNING(Service_SET, "(STUBBED) called, battery_percentage_flag={}",
+                battery_percentage_flag);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.Push(battery_percentage_flag);
+}
+
+void SET_SYS::SetExternalSteadyClockInternalOffset(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_SET, "called.");
+
+    IPC::RequestParser rp{ctx};
+    auto offset{rp.Pop<s64>()};
+
+    auto res = SetExternalSteadyClockInternalOffset(offset);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(res);
+}
+
+void SET_SYS::GetExternalSteadyClockInternalOffset(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_SET, "called.");
+
+    s64 offset{};
+    auto res = GetExternalSteadyClockInternalOffset(offset);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(res);
+    rb.Push(offset);
 }
 
 void SET_SYS::GetErrorReportSharePermission(HLERequestContext& ctx) {
@@ -453,18 +741,19 @@ void SET_SYS::GetErrorReportSharePermission(HLERequestContext& ctx) {
 }
 
 void SET_SYS::GetAppletLaunchFlags(HLERequestContext& ctx) {
-    LOG_INFO(Service_SET, "called, applet_launch_flag={}", applet_launch_flag);
+    LOG_INFO(Service_SET, "called, applet_launch_flag={}", m_system_settings.applet_launch_flag);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(applet_launch_flag);
+    rb.Push(m_system_settings.applet_launch_flag);
 }
 
 void SET_SYS::SetAppletLaunchFlags(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    applet_launch_flag = rp.Pop<u32>();
+    m_system_settings.applet_launch_flag = rp.Pop<u32>();
+    SetSaveNeeded();
 
-    LOG_INFO(Service_SET, "called, applet_launch_flag={}", applet_launch_flag);
+    LOG_INFO(Service_SET, "called, applet_launch_flag={}", m_system_settings.applet_launch_flag);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -489,6 +778,52 @@ void SET_SYS::GetKeyboardLayout(HLERequestContext& ctx) {
     rb.Push(static_cast<u32>(selected_keyboard_layout));
 }
 
+void SET_SYS::GetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx) {
+    LOG_WARNING(Service_SET, "called.");
+
+    Service::Time::Clock::SteadyClockTimePoint time_point{};
+    auto res = GetDeviceTimeZoneLocationUpdatedTime(time_point);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(res);
+    rb.PushRaw<Service::Time::Clock::SteadyClockTimePoint>(time_point);
+}
+
+void SET_SYS::SetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx) {
+    LOG_WARNING(Service_SET, "called.");
+
+    IPC::RequestParser rp{ctx};
+    auto time_point{rp.PopRaw<Service::Time::Clock::SteadyClockTimePoint>()};
+
+    auto res = SetDeviceTimeZoneLocationUpdatedTime(time_point);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(res);
+}
+
+void SET_SYS::GetUserSystemClockAutomaticCorrectionUpdatedTime(HLERequestContext& ctx) {
+    LOG_WARNING(Service_SET, "called.");
+
+    Service::Time::Clock::SteadyClockTimePoint time_point{};
+    auto res = GetUserSystemClockAutomaticCorrectionUpdatedTime(time_point);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(res);
+    rb.PushRaw<Service::Time::Clock::SteadyClockTimePoint>(time_point);
+}
+
+void SET_SYS::SetUserSystemClockAutomaticCorrectionUpdatedTime(HLERequestContext& ctx) {
+    LOG_WARNING(Service_SET, "called.");
+
+    IPC::RequestParser rp{ctx};
+    auto time_point{rp.PopRaw<Service::Time::Clock::SteadyClockTimePoint>()};
+
+    auto res = SetUserSystemClockAutomaticCorrectionUpdatedTime(time_point);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(res);
+}
+
 void SET_SYS::GetChineseTraditionalInputMethod(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
@@ -508,7 +843,7 @@ void SET_SYS::GetHomeMenuScheme(HLERequestContext& ctx) {
         .extra = 0xFF000000,
     };
 
-    IPC::ResponseBuilder rb{ctx, 7};
+    IPC::ResponseBuilder rb{ctx, 2 + sizeof(HomeMenuScheme) / sizeof(u32)};
     rb.Push(ResultSuccess);
     rb.PushRaw(default_color);
 }
@@ -520,6 +855,7 @@ void SET_SYS::GetHomeMenuSchemeModel(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
     rb.Push(0);
 }
+
 void SET_SYS::GetFieldTestingFlag(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
@@ -528,7 +864,7 @@ void SET_SYS::GetFieldTestingFlag(HLERequestContext& ctx) {
     rb.Push<u8>(false);
 }
 
-SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
+SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"}, m_system{system} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &SET_SYS::SetLanguageCode, "SetLanguageCode"},
@@ -543,10 +879,10 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {10, nullptr, "SetBacklightSettings"},
         {11, nullptr, "SetBluetoothDevicesSettings"},
         {12, nullptr, "GetBluetoothDevicesSettings"},
-        {13, nullptr, "GetExternalSteadyClockSourceId"},
-        {14, nullptr, "SetExternalSteadyClockSourceId"},
-        {15, nullptr, "GetUserSystemClockContext"},
-        {16, nullptr, "SetUserSystemClockContext"},
+        {13, &SET_SYS::GetExternalSteadyClockSourceId, "GetExternalSteadyClockSourceId"},
+        {14, &SET_SYS::SetExternalSteadyClockSourceId, "SetExternalSteadyClockSourceId"},
+        {15, &SET_SYS::GetUserSystemClockContext, "GetUserSystemClockContext"},
+        {16, &SET_SYS::SetUserSystemClockContext, "SetUserSystemClockContext"},
         {17, &SET_SYS::GetAccountSettings, "GetAccountSettings"},
         {18, &SET_SYS::SetAccountSettings, "SetAccountSettings"},
         {19, nullptr, "GetAudioVolume"},
@@ -581,15 +917,15 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {50, nullptr, "SetDataDeletionSettings"},
         {51, nullptr, "GetInitialSystemAppletProgramId"},
         {52, nullptr, "GetOverlayDispProgramId"},
-        {53, nullptr, "GetDeviceTimeZoneLocationName"},
-        {54, nullptr, "SetDeviceTimeZoneLocationName"},
+        {53, &SET_SYS::GetDeviceTimeZoneLocationName, "GetDeviceTimeZoneLocationName"},
+        {54, &SET_SYS::SetDeviceTimeZoneLocationName, "SetDeviceTimeZoneLocationName"},
         {55, nullptr, "GetWirelessCertificationFileSize"},
         {56, nullptr, "GetWirelessCertificationFile"},
         {57, &SET_SYS::SetRegionCode, "SetRegionCode"},
-        {58, nullptr, "GetNetworkSystemClockContext"},
-        {59, nullptr, "SetNetworkSystemClockContext"},
-        {60, nullptr, "IsUserSystemClockAutomaticCorrectionEnabled"},
-        {61, nullptr, "SetUserSystemClockAutomaticCorrectionEnabled"},
+        {58, &SET_SYS::GetNetworkSystemClockContext, "GetNetworkSystemClockContext"},
+        {59, &SET_SYS::SetNetworkSystemClockContext, "SetNetworkSystemClockContext"},
+        {60, &SET_SYS::IsUserSystemClockAutomaticCorrectionEnabled, "IsUserSystemClockAutomaticCorrectionEnabled"},
+        {61, &SET_SYS::SetUserSystemClockAutomaticCorrectionEnabled, "SetUserSystemClockAutomaticCorrectionEnabled"},
         {62, nullptr, "GetDebugModeFlag"},
         {63, &SET_SYS::GetPrimaryAlbumStorage, "GetPrimaryAlbumStorage"},
         {64, nullptr, "SetPrimaryAlbumStorage"},
@@ -633,8 +969,8 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {102, nullptr, "SetExternalRtcResetFlag"},
         {103, nullptr, "GetUsbFullKeyEnableFlag"},
         {104, nullptr, "SetUsbFullKeyEnableFlag"},
-        {105, nullptr, "SetExternalSteadyClockInternalOffset"},
-        {106, nullptr, "GetExternalSteadyClockInternalOffset"},
+        {105, &SET_SYS::SetExternalSteadyClockInternalOffset, "SetExternalSteadyClockInternalOffset"},
+        {106, &SET_SYS::GetExternalSteadyClockInternalOffset, "GetExternalSteadyClockInternalOffset"},
         {107, nullptr, "GetBacklightSettingsEx"},
         {108, nullptr, "SetBacklightSettingsEx"},
         {109, nullptr, "GetHeadphoneVolumeWarningCount"},
@@ -678,10 +1014,10 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {147, nullptr, "GetConsoleSixAxisSensorAngularAcceleration"},
         {148, nullptr, "SetConsoleSixAxisSensorAngularAcceleration"},
         {149, nullptr, "GetRebootlessSystemUpdateVersion"},
-        {150, nullptr, "GetDeviceTimeZoneLocationUpdatedTime"},
-        {151, nullptr, "SetDeviceTimeZoneLocationUpdatedTime"},
-        {152, nullptr, "GetUserSystemClockAutomaticCorrectionUpdatedTime"},
-        {153, nullptr, "SetUserSystemClockAutomaticCorrectionUpdatedTime"},
+        {150, &SET_SYS::GetDeviceTimeZoneLocationUpdatedTime, "GetDeviceTimeZoneLocationUpdatedTime"},
+        {151, &SET_SYS::SetDeviceTimeZoneLocationUpdatedTime, "SetDeviceTimeZoneLocationUpdatedTime"},
+        {152, &SET_SYS::GetUserSystemClockAutomaticCorrectionUpdatedTime, "GetUserSystemClockAutomaticCorrectionUpdatedTime"},
+        {153, &SET_SYS::SetUserSystemClockAutomaticCorrectionUpdatedTime, "SetUserSystemClockAutomaticCorrectionUpdatedTime"},
         {154, nullptr, "GetAccountOnlineStorageSettings"},
         {155, nullptr, "SetAccountOnlineStorageSettings"},
         {156, nullptr, "GetPctlReadyFlag"},
@@ -743,8 +1079,184 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
     // clang-format on
 
     RegisterHandlers(functions);
+
+    SetupSettings();
+    m_save_thread =
+        std::jthread([this](std::stop_token stop_token) { StoreSettingsThreadFunc(stop_token); });
 }
 
-SET_SYS::~SET_SYS() = default;
+SET_SYS::~SET_SYS() {
+    SetSaveNeeded();
+    m_save_thread.request_stop();
+}
+
+void SET_SYS::SetupSettings() {
+    auto system_dir =
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/8000000000000050";
+    if (!LoadSettingsFile(system_dir, []() { return DefaultSystemSettings(); })) {
+        ASSERT(false);
+    }
+
+    auto private_dir =
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/8000000000000052";
+    if (!LoadSettingsFile(private_dir, []() { return DefaultPrivateSettings(); })) {
+        ASSERT(false);
+    }
+
+    auto device_dir =
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/8000000000000053";
+    if (!LoadSettingsFile(device_dir, []() { return DefaultDeviceSettings(); })) {
+        ASSERT(false);
+    }
+
+    auto appln_dir =
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/8000000000000054";
+    if (!LoadSettingsFile(appln_dir, []() { return DefaultApplnSettings(); })) {
+        ASSERT(false);
+    }
+}
+
+void SET_SYS::StoreSettings() {
+    auto system_dir =
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/8000000000000050";
+    if (!StoreSettingsFile(system_dir, m_system_settings)) {
+        LOG_ERROR(HW_GPU, "Failed to store System settings");
+    }
+
+    auto private_dir =
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/8000000000000052";
+    if (!StoreSettingsFile(private_dir, m_private_settings)) {
+        LOG_ERROR(HW_GPU, "Failed to store Private settings");
+    }
+
+    auto device_dir =
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/8000000000000053";
+    if (!StoreSettingsFile(device_dir, m_device_settings)) {
+        LOG_ERROR(HW_GPU, "Failed to store Device settings");
+    }
+
+    auto appln_dir =
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/8000000000000054";
+    if (!StoreSettingsFile(appln_dir, m_appln_settings)) {
+        LOG_ERROR(HW_GPU, "Failed to store ApplLn settings");
+    }
+}
+
+void SET_SYS::StoreSettingsThreadFunc(std::stop_token stop_token) {
+    while (Common::StoppableTimedWait(stop_token, std::chrono::minutes(1))) {
+        std::scoped_lock l{m_save_needed_mutex};
+        if (!std::exchange(m_save_needed, false)) {
+            continue;
+        }
+        StoreSettings();
+    }
+}
+
+void SET_SYS::SetSaveNeeded() {
+    std::scoped_lock l{m_save_needed_mutex};
+    m_save_needed = true;
+}
+
+Result SET_SYS::GetSettingsItemValue(std::vector<u8>& out_value, const std::string& category,
+                                     const std::string& name) {
+    auto settings{GetSettings()};
+    R_UNLESS(settings.contains(category) && settings[category].contains(name), ResultUnknown);
+
+    out_value = settings[category][name];
+    R_SUCCEED();
+}
+
+Result SET_SYS::GetExternalSteadyClockSourceId(Common::UUID& out_id) {
+    out_id = m_private_settings.external_clock_source_id;
+    R_SUCCEED();
+}
+
+Result SET_SYS::SetExternalSteadyClockSourceId(Common::UUID id) {
+    m_private_settings.external_clock_source_id = id;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result SET_SYS::GetUserSystemClockContext(Service::Time::Clock::SystemClockContext& out_context) {
+    out_context = m_system_settings.user_system_clock_context;
+    R_SUCCEED();
+}
+
+Result SET_SYS::SetUserSystemClockContext(Service::Time::Clock::SystemClockContext& context) {
+    m_system_settings.user_system_clock_context = context;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result SET_SYS::GetDeviceTimeZoneLocationName(Service::Time::TimeZone::LocationName& out_name) {
+    out_name = m_system_settings.device_time_zone_location_name;
+    R_SUCCEED();
+}
+
+Result SET_SYS::SetDeviceTimeZoneLocationName(Service::Time::TimeZone::LocationName& name) {
+    m_system_settings.device_time_zone_location_name = name;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result SET_SYS::GetNetworkSystemClockContext(
+    Service::Time::Clock::SystemClockContext& out_context) {
+    out_context = m_system_settings.network_system_clock_context;
+    R_SUCCEED();
+}
+
+Result SET_SYS::SetNetworkSystemClockContext(Service::Time::Clock::SystemClockContext& context) {
+    m_system_settings.network_system_clock_context = context;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result SET_SYS::IsUserSystemClockAutomaticCorrectionEnabled(bool& out_enabled) {
+    out_enabled = m_system_settings.user_system_clock_automatic_correction_enabled;
+    R_SUCCEED();
+}
+
+Result SET_SYS::SetUserSystemClockAutomaticCorrectionEnabled(bool enabled) {
+    m_system_settings.user_system_clock_automatic_correction_enabled = enabled;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result SET_SYS::SetExternalSteadyClockInternalOffset(s64 offset) {
+    m_private_settings.external_steady_clock_internal_offset = offset;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result SET_SYS::GetExternalSteadyClockInternalOffset(s64& out_offset) {
+    out_offset = m_private_settings.external_steady_clock_internal_offset;
+    R_SUCCEED();
+}
+
+Result SET_SYS::GetDeviceTimeZoneLocationUpdatedTime(
+    Service::Time::Clock::SteadyClockTimePoint& out_time_point) {
+    out_time_point = m_system_settings.device_time_zone_location_updated_time;
+    R_SUCCEED();
+}
+
+Result SET_SYS::SetDeviceTimeZoneLocationUpdatedTime(
+    Service::Time::Clock::SteadyClockTimePoint& time_point) {
+    m_system_settings.device_time_zone_location_updated_time = time_point;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result SET_SYS::GetUserSystemClockAutomaticCorrectionUpdatedTime(
+    Service::Time::Clock::SteadyClockTimePoint& out_time_point) {
+    out_time_point = m_system_settings.user_system_clock_automatic_correction_updated_time_point;
+    R_SUCCEED();
+}
+
+Result SET_SYS::SetUserSystemClockAutomaticCorrectionUpdatedTime(
+    Service::Time::Clock::SteadyClockTimePoint out_time_point) {
+    m_system_settings.user_system_clock_automatic_correction_updated_time_point = out_time_point;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
 
 } // namespace Service::Set

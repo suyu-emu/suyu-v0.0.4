@@ -4,35 +4,13 @@
 #pragma once
 
 #include "core/hle/service/service.h"
+#include "core/hle/service/set/system_settings.h"
 
 namespace Core {
 class System;
 }
 
 namespace Service::Set {
-
-/// This is "nn::settings::LanguageCode", which is a NUL-terminated string stored in a u64.
-enum class LanguageCode : u64 {
-    JA = 0x000000000000616A,
-    EN_US = 0x00000053552D6E65,
-    FR = 0x0000000000007266,
-    DE = 0x0000000000006564,
-    IT = 0x0000000000007469,
-    ES = 0x0000000000007365,
-    ZH_CN = 0x0000004E432D687A,
-    KO = 0x0000000000006F6B,
-    NL = 0x0000000000006C6E,
-    PT = 0x0000000000007470,
-    RU = 0x0000000000007572,
-    ZH_TW = 0x00000057542D687A,
-    EN_GB = 0x00000042472D6E65,
-    FR_CA = 0x00000041432D7266,
-    ES_419 = 0x00003931342D7365,
-    ZH_HANS = 0x00736E61482D687A,
-    ZH_HANT = 0x00746E61482D687A,
-    PT_BR = 0x00000052422D7470,
-};
-
 enum class KeyboardLayout : u64 {
     Japanese = 0,
     EnglishUs = 1,
