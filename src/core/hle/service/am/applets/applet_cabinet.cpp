@@ -130,7 +130,7 @@ void Cabinet::DisplayCompleted(bool apply_changes, std::string_view amiibo_name)
         nfp_device->DeleteApplicationArea();
         break;
     case Service::NFP::CabinetMode::StartRestorer:
-        nfp_device->RestoreAmiibo();
+        nfp_device->Restore();
         break;
     case Service::NFP::CabinetMode::StartFormatter:
         nfp_device->Format();

@@ -68,7 +68,6 @@ public:
 
     Result DeleteRegisterInfo();
     Result SetRegisterInfoPrivate(const NFP::RegisterInfoPrivate& register_info);
-    Result RestoreAmiibo();
     Result Format();
 
     Result OpenApplicationArea(u32 access_id);
