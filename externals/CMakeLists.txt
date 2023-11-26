@@ -292,4 +292,6 @@ if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)
 endif()
 
 # SimpleIni
-add_subdirectory(simpleini)
+if (NOT TARGET SimpleIni::SimpleIni)
+    add_subdirectory(simpleini)
+endif()
