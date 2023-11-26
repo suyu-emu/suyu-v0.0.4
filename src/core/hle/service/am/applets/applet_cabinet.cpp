@@ -122,7 +122,8 @@ void Cabinet::DisplayCompleted(bool apply_changes, std::string_view amiibo_name)
         Service::NFP::RegisterInfoPrivate register_info{};
         std::memcpy(register_info.amiibo_name.data(), amiibo_name.data(),
                     std::min(amiibo_name.size(), register_info.amiibo_name.size() - 1));
-
+        register_info.mii_store_data.BuildRandom(Mii::Age::All, Mii::Gender::All, Mii::Race::All);
+        register_info.mii_store_data.SetNickname({u'y', u'u', u'z', u'u'});
         nfp_device->SetRegisterInfoPrivate(register_info);
         break;
     }
