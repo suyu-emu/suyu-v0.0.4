@@ -47,6 +47,7 @@
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/set/set_sys.h"
 #include "yuzu/multiplayer/state.h"
 #include "yuzu/util/controller_navigation.h"
 
@@ -1048,7 +1049,12 @@ void GMainWindow::InitializeWidgets() {
         statusBar()->addPermanentWidget(label);
     }
 
-    // TODO (flTobi): Add the widget when multiplayer is fully implemented
+    firmware_label = new QLabel();
+    firmware_label->setObjectName(QStringLiteral("FirmwareLabel"));
+    firmware_label->setVisible(false);
+    firmware_label->setFocusPolicy(Qt::NoFocus);
+    statusBar()->addPermanentWidget(firmware_label);
+
     statusBar()->addPermanentWidget(multiplayer_state->GetStatusText(), 0);
     statusBar()->addPermanentWidget(multiplayer_state->GetStatusIcon(), 0);
 
@@ -2164,6 +2170,10 @@ void GMainWindow::OnEmulationStopped() {
     game_fps_label->setVisible(false);
     emu_frametime_label->setVisible(false);
     renderer_status_button->setEnabled(!UISettings::values.has_broken_vulkan);
+
+    if (!firmware_label->text().isEmpty()) {
+        firmware_label->setVisible(true);
+    }
 
     current_game_path.clear();
 
@@ -4591,6 +4601,7 @@ void GMainWindow::UpdateStatusBar() {
     emu_speed_label->setVisible(!Settings::values.use_multi_core.GetValue());
     game_fps_label->setVisible(true);
     emu_frametime_label->setVisible(true);
+    firmware_label->setVisible(false);
 }
 
 void GMainWindow::UpdateGPUAccuracyButton() {
@@ -4810,6 +4821,8 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
                "games."));
     }
 
+    SetFirmwareVersion();
+
     if (behavior == ReinitializeKeyBehavior::Warning) {
         game_list->PopulateAsync(UISettings::values.game_dirs);
     }
@@ -4837,7 +4850,7 @@ bool GMainWindow::CheckSystemArchiveDecryption() {
 }
 
 bool GMainWindow::CheckFirmwarePresence() {
-    constexpr u64 MiiEditId = 0x0100000000001009ull;
+    constexpr u64 MiiEditId = static_cast<u64>(Service::AM::Applets::AppletProgramId::MiiEdit);
 
     auto bis_system = system->GetFileSystemController().GetSystemNANDContents();
     if (!bis_system) {
@@ -4850,6 +4863,28 @@ bool GMainWindow::CheckFirmwarePresence() {
     }
 
     return true;
+}
+
+void GMainWindow::SetFirmwareVersion() {
+    Service::Set::FirmwareVersionFormat firmware_data{};
+    const auto result = Service::Set::GetFirmwareVersionImpl(
+        firmware_data, *system, Service::Set::GetFirmwareVersionType::Version2);
+
+    if (result.IsError() || !CheckFirmwarePresence()) {
+        LOG_INFO(Frontend, "Installed firmware: No firmware available");
+        firmware_label->setVisible(false);
+        return;
+    }
+
+    firmware_label->setVisible(true);
+
+    const std::string display_version(firmware_data.display_version.data());
+    const std::string display_title(firmware_data.display_title.data());
+
+    LOG_INFO(Frontend, "Installed firmware: {}", display_title);
+
+    firmware_label->setText(QString::fromStdString(display_version));
+    firmware_label->setToolTip(QString::fromStdString(display_title));
 }
 
 bool GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProvider& installed, u64 program_id,
