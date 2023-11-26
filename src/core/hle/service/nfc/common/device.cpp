@@ -401,6 +401,12 @@ Result NfcDevice::SendCommandByPassThrough(const Time::Clock::TimeSpanType& time
 }
 
 Result NfcDevice::Mount(NFP::ModelType model_type, NFP::MountTarget mount_target_) {
+    bool is_corrupted = false;
+
+    if (model_type != NFP::ModelType::Amiibo) {
+        return ResultInvalidArgument;
+    }
+
     if (device_state != DeviceState::TagFound) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         return ResultWrongDeviceState;
@@ -420,25 +426,31 @@ Result NfcDevice::Mount(NFP::ModelType model_type, NFP::MountTarget mount_target
     if (is_plain_amiibo) {
         std::vector<u8> data(sizeof(NFP::NTAG215File));
         memcpy(data.data(), &tag_data, sizeof(tag_data));
-        WriteBackupData(tag_data.uid, data);
-
-        device_state = DeviceState::TagMounted;
-        mount_target = mount_target_;
-        return ResultSuccess;
     }
 
-    if (!NFP::AmiiboCrypto::DecodeAmiibo(encrypted_tag_data, tag_data)) {
-        bool has_backup = HasBackup(encrypted_tag_data.uuid).IsSuccess();
-        LOG_ERROR(Service_NFP, "Can't decode amiibo, has_backup= {}", has_backup);
-        return has_backup ? ResultCorruptedDataWithBackup : ResultCorruptedData;
+    if (!is_plain_amiibo && !NFP::AmiiboCrypto::DecodeAmiibo(encrypted_tag_data, tag_data)) {
+        LOG_ERROR(Service_NFP, "Can't decode amiibo");
+        is_corrupted = true;
     }
 
-    std::vector<u8> data(sizeof(NFP::EncryptedNTAG215File));
-    memcpy(data.data(), &encrypted_tag_data, sizeof(encrypted_tag_data));
-    WriteBackupData(encrypted_tag_data.uuid, data);
+    if (tag_data.settings.settings.amiibo_initialized && !tag_data.owner_mii.IsValid()) {
+        LOG_ERROR(Service_NFP, "Invalid mii data");
+        is_corrupted = true;
+    }
+
+    if (!is_corrupted) {
+        std::vector<u8> data(sizeof(NFP::EncryptedNTAG215File));
+        memcpy(data.data(), &encrypted_tag_data, sizeof(encrypted_tag_data));
+        WriteBackupData(encrypted_tag_data.uuid, data);
+    }
 
     device_state = DeviceState::TagMounted;
     mount_target = mount_target_;
+
+    if (is_corrupted) {
+        bool has_backup = HasBackup(encrypted_tag_data.uuid).IsSuccess();
+        return has_backup ? ResultCorruptedDataWithBackup : ResultCorruptedData;
+    }
 
     return ResultSuccess;
 }
@@ -604,6 +616,17 @@ Result NfcDevice::Restore() {
             LOG_ERROR(Service_NFP, "Can't decode amiibo");
             return ResultCorruptedData;
         }
+    }
+
+    // Restore mii data in case is corrupted by previous instances of yuzu
+    if (tag_data.settings.settings.amiibo_initialized && !tag_data.owner_mii.IsValid()) {
+        LOG_ERROR(Service_NFP, "Regenerating mii data");
+        Mii::StoreData new_mii{};
+        new_mii.BuildRandom(Mii::Age::All, Mii::Gender::All, Mii::Race::All);
+        new_mii.SetNickname({u'y', u'u', u'z', u'u', u'\0'});
+
+        tag_data.owner_mii.BuildFromStoreData(new_mii);
+        tag_data.mii_extension.SetFromStoreData(new_mii);
     }
 
     // Overwrite tag contents with backup and mount the tag
@@ -851,25 +874,6 @@ Result NfcDevice::SetRegisterInfoPrivate(const NFP::RegisterInfoPrivate& registe
     return Flush();
 }
 
-Result NfcDevice::RestoreAmiibo() {
-    if (device_state != DeviceState::TagMounted) {
-        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
-        if (device_state == DeviceState::TagRemoved) {
-            return ResultTagRemoved;
-        }
-        return ResultWrongDeviceState;
-    }
-
-    if (mount_target == NFP::MountTarget::None || mount_target == NFP::MountTarget::Rom) {
-        LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
-        return ResultWrongDeviceState;
-    }
-
-    // TODO: Load amiibo from backup on system
-    LOG_ERROR(Service_NFP, "Not Implemented");
-    return ResultSuccess;
-}
-
 Result NfcDevice::Format() {
     Result result = ResultSuccess;
 
@@ -877,7 +881,9 @@ Result NfcDevice::Format() {
         result = Mount(NFP::ModelType::Amiibo, NFP::MountTarget::All);
     }
 
-    if (result.IsError()) {
+    // We are formatting all data. Corruption is not an issue.
+    if (result.IsError() &&
+        (result != ResultCorruptedData && result != ResultCorruptedDataWithBackup)) {
         return result;
     }
 
