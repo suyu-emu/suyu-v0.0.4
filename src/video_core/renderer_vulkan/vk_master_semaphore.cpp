@@ -100,12 +100,14 @@ void MasterSemaphore::Wait(u64 tick) {
     Refresh();
 }
 
-VkResult MasterSemaphore::SubmitQueue(vk::CommandBuffer& cmdbuf, VkSemaphore signal_semaphore,
-                                      VkSemaphore wait_semaphore, u64 host_tick) {
+VkResult MasterSemaphore::SubmitQueue(vk::CommandBuffer& cmdbuf, vk::CommandBuffer& upload_cmdbuf,
+                                      VkSemaphore signal_semaphore, VkSemaphore wait_semaphore,
+                                      u64 host_tick) {
     if (semaphore) {
-        return SubmitQueueTimeline(cmdbuf, signal_semaphore, wait_semaphore, host_tick);
+        return SubmitQueueTimeline(cmdbuf, upload_cmdbuf, signal_semaphore, wait_semaphore,
+                                   host_tick);
     } else {
-        return SubmitQueueFence(cmdbuf, signal_semaphore, wait_semaphore, host_tick);
+        return SubmitQueueFence(cmdbuf, upload_cmdbuf, signal_semaphore, wait_semaphore, host_tick);
     }
 }
 
@@ -115,6 +117,7 @@ static constexpr std::array<VkPipelineStageFlags, 2> wait_stage_masks{
 };
 
 VkResult MasterSemaphore::SubmitQueueTimeline(vk::CommandBuffer& cmdbuf,
+                                              vk::CommandBuffer& upload_cmdbuf,
                                               VkSemaphore signal_semaphore,
                                               VkSemaphore wait_semaphore, u64 host_tick) {
     const VkSemaphore timeline_semaphore = *semaphore;
@@ -122,6 +125,8 @@ VkResult MasterSemaphore::SubmitQueueTimeline(vk::CommandBuffer& cmdbuf,
     const u32 num_signal_semaphores = signal_semaphore ? 2 : 1;
     const std::array signal_values{host_tick, u64(0)};
     const std::array signal_semaphores{timeline_semaphore, signal_semaphore};
+
+    const std::array cmdbuffers{*upload_cmdbuf, *cmdbuf};
 
     const u32 num_wait_semaphores = wait_semaphore ? 1 : 0;
     const VkTimelineSemaphoreSubmitInfo timeline_si{
@@ -138,8 +143,8 @@ VkResult MasterSemaphore::SubmitQueueTimeline(vk::CommandBuffer& cmdbuf,
         .waitSemaphoreCount = num_wait_semaphores,
         .pWaitSemaphores = &wait_semaphore,
         .pWaitDstStageMask = wait_stage_masks.data(),
-        .commandBufferCount = 1,
-        .pCommandBuffers = cmdbuf.address(),
+        .commandBufferCount = static_cast<u32>(cmdbuffers.size()),
+        .pCommandBuffers = cmdbuffers.data(),
         .signalSemaphoreCount = num_signal_semaphores,
         .pSignalSemaphores = signal_semaphores.data(),
     };
@@ -147,10 +152,14 @@ VkResult MasterSemaphore::SubmitQueueTimeline(vk::CommandBuffer& cmdbuf,
     return device.GetGraphicsQueue().Submit(submit_info);
 }
 
-VkResult MasterSemaphore::SubmitQueueFence(vk::CommandBuffer& cmdbuf, VkSemaphore signal_semaphore,
-                                           VkSemaphore wait_semaphore, u64 host_tick) {
+VkResult MasterSemaphore::SubmitQueueFence(vk::CommandBuffer& cmdbuf,
+                                           vk::CommandBuffer& upload_cmdbuf,
+                                           VkSemaphore signal_semaphore, VkSemaphore wait_semaphore,
+                                           u64 host_tick) {
     const u32 num_signal_semaphores = signal_semaphore ? 1 : 0;
     const u32 num_wait_semaphores = wait_semaphore ? 1 : 0;
+
+    const std::array cmdbuffers{*upload_cmdbuf, *cmdbuf};
 
     const VkSubmitInfo submit_info{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -158,8 +167,8 @@ VkResult MasterSemaphore::SubmitQueueFence(vk::CommandBuffer& cmdbuf, VkSemaphor
         .waitSemaphoreCount = num_wait_semaphores,
         .pWaitSemaphores = &wait_semaphore,
         .pWaitDstStageMask = wait_stage_masks.data(),
-        .commandBufferCount = 1,
-        .pCommandBuffers = cmdbuf.address(),
+        .commandBufferCount = static_cast<u32>(cmdbuffers.size()),
+        .pCommandBuffers = cmdbuffers.data(),
         .signalSemaphoreCount = num_signal_semaphores,
         .pSignalSemaphores = &signal_semaphore,
     };

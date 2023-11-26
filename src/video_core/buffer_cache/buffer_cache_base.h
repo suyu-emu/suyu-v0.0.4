@@ -529,10 +529,6 @@ private:
 
     bool SynchronizeBuffer(Buffer& buffer, VAddr cpu_addr, u32 size);
 
-    bool SynchronizeBufferImpl(Buffer& buffer, VAddr cpu_addr, u32 size);
-
-    bool SynchronizeBufferNoModified(Buffer& buffer, VAddr cpu_addr, u32 size);
-
     void UploadMemory(Buffer& buffer, u64 total_size_bytes, u64 largest_copy,
                       std::span<BufferCopy> copies);
 

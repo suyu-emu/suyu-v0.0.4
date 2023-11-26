@@ -15,6 +15,7 @@ add_library(video_core STATIC
     buffer_cache/buffer_cache.cpp
     buffer_cache/buffer_cache.h
     buffer_cache/memory_tracker_base.h
+    buffer_cache/usage_tracker.h
     buffer_cache/word_manager.h
     cache_types.h
     cdma_pusher.cpp
