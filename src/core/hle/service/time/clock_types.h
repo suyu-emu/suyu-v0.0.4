@@ -11,6 +11,11 @@
 #include "core/hle/service/time/errors.h"
 #include "core/hle/service/time/time_zone_types.h"
 
+// Defined by WinBase.h on Windows
+#ifdef GetCurrentTime
+#undef GetCurrentTime
+#endif
+
 namespace Service::Time::Clock {
 
 enum class TimeType : u8 {
