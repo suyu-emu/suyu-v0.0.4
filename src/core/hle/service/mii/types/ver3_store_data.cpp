@@ -98,7 +98,7 @@ void Ver3StoreData::BuildToStoreData(StoreData& out_store_data) const {
 }
 
 void Ver3StoreData::BuildFromStoreData(const StoreData& store_data) {
-    version = 1;
+    version = 3;
     mii_information.gender.Assign(static_cast<u8>(store_data.GetGender()));
     mii_information.favorite_color.Assign(static_cast<u8>(store_data.GetFavoriteColor()));
     height = store_data.GetHeight();
