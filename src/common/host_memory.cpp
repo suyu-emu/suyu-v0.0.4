@@ -621,6 +621,8 @@ public:
 
     void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute) {}
 
+    void EnableDirectMappedAddress() {}
+
     u8* backing_base{nullptr};
     u8* virtual_base{nullptr};
 };

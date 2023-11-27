@@ -1215,7 +1215,7 @@ void KProcess::LoadModule(CodeSet code_set, KProcessAddress base_addr) {
     ReprotectSegment(code_set.RODataSegment(), Svc::MemoryPermission::Read);
     ReprotectSegment(code_set.DataSegment(), Svc::MemoryPermission::ReadWrite);
 
-#ifdef ARCHITECTURE_arm64
+#ifdef HAS_NCE
     if (Settings::IsNceEnabled()) {
         auto& buffer = m_kernel.System().DeviceMemory().buffer;
         const auto& code = code_set.CodeSegment();
