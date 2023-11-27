@@ -13,6 +13,8 @@ static JavaVM* s_java_vm;
 static jclass s_native_library_class;
 static jclass s_disk_cache_progress_class;
 static jclass s_load_callback_stage_class;
+static jclass s_game_dir_class;
+static jmethodID s_game_dir_constructor;
 static jmethodID s_exit_emulation_activity;
 static jmethodID s_disk_cache_load_progress;
 static jmethodID s_on_emulation_started;
@@ -53,6 +55,14 @@ jclass GetDiskCacheLoadCallbackStageClass() {
     return s_load_callback_stage_class;
 }
 
+jclass GetGameDirClass() {
+    return s_game_dir_class;
+}
+
+jmethodID GetGameDirConstructor() {
+    return s_game_dir_constructor;
+}
+
 jmethodID GetExitEmulationActivity() {
     return s_exit_emulation_activity;
 }
@@ -90,6 +100,11 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     s_load_callback_stage_class = reinterpret_cast<jclass>(env->NewGlobalRef(env->FindClass(
         "org/yuzu/yuzu_emu/disk_shader_cache/DiskShaderCacheProgress$LoadCallbackStage")));
 
+    const jclass game_dir_class = env->FindClass("org/yuzu/yuzu_emu/model/GameDir");
+    s_game_dir_class = reinterpret_cast<jclass>(env->NewGlobalRef(game_dir_class));
+    s_game_dir_constructor = env->GetMethodID(game_dir_class, "<init>", "(Ljava/lang/String;Z)V");
+    env->DeleteLocalRef(game_dir_class);
+
     // Initialize methods
     s_exit_emulation_activity =
         env->GetStaticMethodID(s_native_library_class, "exitEmulationActivity", "(I)V");
@@ -120,6 +135,7 @@ void JNI_OnUnload(JavaVM* vm, void* reserved) {
     env->DeleteGlobalRef(s_native_library_class);
     env->DeleteGlobalRef(s_disk_cache_progress_class);
     env->DeleteGlobalRef(s_load_callback_stage_class);
+    env->DeleteGlobalRef(s_game_dir_class);
 
     // UnInitialize applets
     SoftwareKeyboard::CleanupJNI(env);

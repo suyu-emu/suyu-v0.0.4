@@ -3,6 +3,8 @@
 
 package org.yuzu.yuzu_emu.utils
 
+import org.yuzu.yuzu_emu.model.GameDir
+
 object NativeConfig {
     /**
      * Creates a Config object and opens the emulation config.
@@ -54,4 +56,22 @@ object NativeConfig {
     external fun getConfigHeader(category: Int): String
 
     external fun getPairedSettingKey(key: String): String
+
+    /**
+     * Gets every [GameDir] in AndroidSettings::values.game_dirs
+     */
+    @Synchronized
+    external fun getGameDirs(): Array<GameDir>
+
+    /**
+     * Clears the AndroidSettings::values.game_dirs array and replaces them with the provided array
+     */
+    @Synchronized
+    external fun setGameDirs(dirs: Array<GameDir>)
+
+    /**
+     * Adds a single [GameDir] to the AndroidSettings::values.game_dirs array
+     */
+    @Synchronized
+    external fun addGameDir(dir: GameDir)
 }

@@ -13,6 +13,8 @@ JNIEnv* GetEnvForThread();
 jclass GetNativeLibraryClass();
 jclass GetDiskCacheProgressClass();
 jclass GetDiskCacheLoadCallbackStageClass();
+jclass GetGameDirClass();
+jmethodID GetGameDirConstructor();
 jmethodID GetExitEmulationActivity();
 jmethodID GetDiskCacheLoadProgress();
 jmethodID GetOnEmulationStarted();

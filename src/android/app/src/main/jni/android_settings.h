@@ -9,8 +9,16 @@
 
 namespace AndroidSettings {
 
+struct GameDir {
+    std::string path;
+    bool deep_scan = false;
+};
+
 struct Values {
     Settings::Linkage linkage;
+
+    // Path settings
+    std::vector<GameDir> game_dirs;
 
     // Android
     Settings::Setting<bool> picture_in_picture{linkage, false, "picture_in_picture",

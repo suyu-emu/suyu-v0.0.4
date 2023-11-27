@@ -34,6 +34,7 @@ void AndroidConfig::SaveAllValues() {
 void AndroidConfig::ReadAndroidValues() {
     if (global) {
         ReadAndroidUIValues();
+        ReadUIValues();
     }
 }
 
@@ -45,9 +46,35 @@ void AndroidConfig::ReadAndroidUIValues() {
     EndGroup();
 }
 
+void AndroidConfig::ReadUIValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::Ui));
+
+    ReadPathValues();
+
+    EndGroup();
+}
+
+void AndroidConfig::ReadPathValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::Paths));
+
+    const int gamedirs_size = BeginArray(std::string("gamedirs"));
+    for (int i = 0; i < gamedirs_size; ++i) {
+        SetArrayIndex(i);
+        AndroidSettings::GameDir game_dir;
+        game_dir.path = ReadStringSetting(std::string("path"));
+        game_dir.deep_scan =
+            ReadBooleanSetting(std::string("deep_scan"), std::make_optional(false));
+        AndroidSettings::values.game_dirs.push_back(game_dir);
+    }
+    EndArray();
+
+    EndGroup();
+}
+
 void AndroidConfig::SaveAndroidValues() {
     if (global) {
         SaveAndroidUIValues();
+        SaveUIValues();
     }
 
     WriteToIni();
@@ -57,6 +84,29 @@ void AndroidConfig::SaveAndroidUIValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Android));
 
     WriteCategory(Settings::Category::Android);
+
+    EndGroup();
+}
+
+void AndroidConfig::SaveUIValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::Ui));
+
+    SavePathValues();
+
+    EndGroup();
+}
+
+void AndroidConfig::SavePathValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::Paths));
+
+    BeginArray(std::string("gamedirs"));
+    for (size_t i = 0; i < AndroidSettings::values.game_dirs.size(); ++i) {
+        SetArrayIndex(i);
+        const auto& game_dir = AndroidSettings::values.game_dirs[i];
+        WriteSetting(std::string("path"), game_dir.path);
+        WriteSetting(std::string("deep_scan"), game_dir.deep_scan, std::make_optional(false));
+    }
+    EndArray();
 
     EndGroup();
 }
