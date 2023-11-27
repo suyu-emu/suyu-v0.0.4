@@ -141,6 +141,7 @@ private:
     void GetNpadCommunicationMode(HLERequestContext& ctx);
     void SetTouchScreenConfiguration(HLERequestContext& ctx);
     void IsFirmwareUpdateNeededForNotification(HLERequestContext& ctx);
+    void SetTouchScreenResolution(HLERequestContext& ctx);
 
     std::shared_ptr<ResourceManager> resource_manager;
     std::shared_ptr<HidFirmwareSettings> firmware_settings;
