@@ -3,33 +3,9 @@
 
 package org.yuzu.yuzu_emu.features.settings.model
 
-import android.text.TextUtils
-import android.widget.Toast
 import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.YuzuApplication
-import org.yuzu.yuzu_emu.utils.NativeConfig
 
 object Settings {
-    private val context get() = YuzuApplication.appContext
-
-    fun saveSettings(gameId: String = "") {
-        if (TextUtils.isEmpty(gameId)) {
-            Toast.makeText(
-                context,
-                context.getString(R.string.ini_saved),
-                Toast.LENGTH_SHORT
-            ).show()
-            NativeConfig.saveSettings()
-        } else {
-            // TODO: Save custom game settings
-            Toast.makeText(
-                context,
-                context.getString(R.string.gameid_saved, gameId),
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
-
     enum class Category {
         Android,
         Audio,

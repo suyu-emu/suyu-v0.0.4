@@ -105,7 +105,6 @@ class SettingsAdapter(
     fun onBooleanClick(item: SwitchSetting, checked: Boolean) {
         item.checked = checked
         settingsViewModel.setShouldReloadSettingsList(true)
-        settingsViewModel.shouldSave = true
     }
 
     fun onSingleChoiceClick(item: SingleChoiceSetting, position: Int) {
@@ -161,7 +160,6 @@ class SettingsAdapter(
             epochTime += timePicker.hour.toLong() * 60 * 60
             epochTime += timePicker.minute.toLong() * 60
             if (item.value != epochTime) {
-                settingsViewModel.shouldSave = true
                 notifyItemChanged(position)
                 item.value = epochTime
             }

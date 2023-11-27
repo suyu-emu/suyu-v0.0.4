@@ -253,6 +253,13 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         super.onResume()
     }
 
+    override fun onStop() {
+        super.onStop()
+        CoroutineScope(Dispatchers.IO).launch {
+            NativeConfig.saveSettings()
+        }
+    }
+
     override fun onDestroy() {
         EmulationActivity.stopForegroundService(this)
         super.onDestroy()
