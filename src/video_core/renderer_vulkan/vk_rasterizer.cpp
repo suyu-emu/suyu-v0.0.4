@@ -82,7 +82,7 @@ VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t in
     }
 
     if (y_negate) {
-        y += height;
+        y += conv(static_cast<f32>(regs.surface_clip.height));
         height = -height;
     }
 
@@ -199,7 +199,7 @@ void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     if (!pipeline) {
         return;
     }
-    std::scoped_lock lock{LockCaches()};
+    std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
     // update engine as channel may be different.
     pipeline->SetEngine(maxwell3d, gpu_memory);
     pipeline->Configure(is_indexed);
@@ -621,7 +621,7 @@ void RasterizerVulkan::OnCacheInvalidation(VAddr addr, u64 size) {
     }
     {
         std::scoped_lock lock{buffer_cache.mutex};
-        buffer_cache.CachedWriteMemory(addr, size);
+        buffer_cache.WriteMemory(addr, size);
     }
     pipeline_cache.InvalidateRegion(addr, size);
 }
@@ -710,7 +710,6 @@ void RasterizerVulkan::TiledCacheBarrier() {
 }
 
 void RasterizerVulkan::FlushCommands() {
-    std::scoped_lock lock{LockCaches()};
     if (draw_counter == 0) {
         return;
     }
@@ -808,7 +807,6 @@ void RasterizerVulkan::FlushWork() {
     if ((++draw_counter & 7) != 7) {
         return;
     }
-    std::scoped_lock lock{LockCaches()};
     if (draw_counter < DRAWS_TO_DISPATCH) {
         // Send recorded tasks to the worker thread
         scheduler.DispatchWork();
@@ -923,9 +921,13 @@ void RasterizerVulkan::UpdateDynamicStates() {
 }
 
 void RasterizerVulkan::HandleTransformFeedback() {
+    static std::once_flag warn_unsupported;
+
     const auto& regs = maxwell3d->regs;
     if (!device.IsExtTransformFeedbackSupported()) {
-        LOG_ERROR(Render_Vulkan, "Transform feedbacks used but not supported");
+        std::call_once(warn_unsupported, [&] {
+            LOG_ERROR(Render_Vulkan, "Transform feedbacks used but not supported");
+        });
         return;
     }
     query_cache.CounterEnable(VideoCommon::QueryType::StreamingByteCount,
@@ -1503,7 +1505,7 @@ void RasterizerVulkan::UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs) 
 void RasterizerVulkan::InitializeChannel(Tegra::Control::ChannelState& channel) {
     CreateChannel(channel);
     {
-        std::scoped_lock lock{LockCaches()};
+        std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
         texture_cache.CreateChannel(channel);
         buffer_cache.CreateChannel(channel);
     }
@@ -1516,7 +1518,7 @@ void RasterizerVulkan::BindChannel(Tegra::Control::ChannelState& channel) {
     const s32 channel_id = channel.bind_id;
     BindToChannel(channel_id);
     {
-        std::scoped_lock lock{LockCaches()};
+        std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
         texture_cache.BindToChannel(channel_id);
         buffer_cache.BindToChannel(channel_id);
     }
@@ -1529,7 +1531,7 @@ void RasterizerVulkan::BindChannel(Tegra::Control::ChannelState& channel) {
 void RasterizerVulkan::ReleaseChannel(s32 channel_id) {
     EraseChannel(channel_id);
     {
-        std::scoped_lock lock{LockCaches()};
+        std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
         texture_cache.EraseChannel(channel_id);
         buffer_cache.EraseChannel(channel_id);
     }

@@ -72,7 +72,7 @@
     <string name="invalid_keys_error">Invalid encryption keys</string>
     <string name="dumping_keys_quickstart_link">https://yuzu-emu.org/help/quickstart/#dumping-decryption-keys</string>
     <string name="install_keys_failure_description">The selected file is incorrect or corrupt. Please redump your keys.</string>
-    <string name="gpu_driver_manager">GPU Driver Manager</string>
+    <string name="gpu_driver_manager">GPU driver manager</string>
     <string name="install_gpu_driver">Install GPU driver</string>
     <string name="install_gpu_driver_description">Install alternative drivers for potentially better performance or accuracy</string>
     <string name="advanced_settings">Advanced settings</string>
@@ -91,6 +91,7 @@
     <string name="manage_save_data">Manage save data</string>
     <string name="manage_save_data_description">Save data found. Please select an option below.</string>
     <string name="import_export_saves_description">Import or export save files</string>
+    <string name="save_files_exporting">Exporting save files…</string>
     <string name="save_file_imported_success">Imported successfully</string>
     <string name="save_file_invalid_zip_structure">Invalid save directory structure</string>
     <string name="save_file_invalid_zip_structure_description">The first subfolder name must be the title ID of the game.</string>
@@ -240,6 +241,7 @@
     <string name="shutting_down">Shutting down…</string>
     <string name="reset_setting_confirmation">Do you want to reset this setting back to its default value?</string>
     <string name="reset_to_default">Reset to default</string>
+    <string name="reset_to_default_description">Resets all advanced settings</string>
     <string name="reset_all_settings">Reset all settings?</string>
     <string name="reset_all_settings_description">All advanced settings will be reset to their default configuration. This can not be undone.</string>
     <string name="settings_reset">Settings reset</string>
@@ -255,6 +257,7 @@
     <string name="cancelling">Cancelling</string>
     <string name="install">Install</string>
     <string name="delete">Delete</string>
+    <string name="export_success">Exported successfully</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>
@@ -271,10 +274,14 @@
     <string name="preferences_settings">Settings</string>
     <string name="preferences_general">General</string>
     <string name="preferences_system">System</string>
+    <string name="preferences_system_description">Docked mode, region, language</string>
     <string name="preferences_graphics">Graphics</string>
+    <string name="preferences_graphics_description">Accuracy level, resolution, shader cache</string>
     <string name="preferences_audio">Audio</string>
+    <string name="preferences_audio_description">Output engine, volume</string>
     <string name="preferences_theme">Theme and color</string>
     <string name="preferences_debug">Debug</string>
+    <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Your ROM is encrypted</string>

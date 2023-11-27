@@ -10,7 +10,8 @@
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/service/hid/controllers/npad.h"
-#include "core/hle/service/hid/hid.h"
+#include "core/hle/service/hid/hid_server.h"
+#include "core/hle/service/hid/resource_manager.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/memory.h"
 #include "core/memory/cheat_engine.h"
@@ -54,23 +55,20 @@ void StandardVmCallbacks::MemoryWrite(VAddr address, const void* data, u64 size)
 }
 
 u64 StandardVmCallbacks::HidKeysDown() {
-    const auto hid = system.ServiceManager().GetService<Service::HID::Hid>("hid");
+    const auto hid = system.ServiceManager().GetService<Service::HID::IHidServer>("hid");
     if (hid == nullptr) {
         LOG_WARNING(CheatEngine, "Attempted to read input state, but hid is not initialized!");
         return 0;
     }
 
-    const auto applet_resource = hid->GetAppletResource();
+    const auto applet_resource = hid->GetResourceManager();
     if (applet_resource == nullptr) {
         LOG_WARNING(CheatEngine,
                     "Attempted to read input state, but applet resource is not initialized!");
         return 0;
     }
 
-    const auto press_state =
-        applet_resource
-            ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad)
-            .GetAndResetPressState();
+    const auto press_state = applet_resource->GetNpad()->GetAndResetPressState();
     return static_cast<u64>(press_state & HID::NpadButton::All);
 }
 

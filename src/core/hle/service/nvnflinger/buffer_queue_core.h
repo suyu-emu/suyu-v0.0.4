@@ -34,8 +34,6 @@ public:
     BufferQueueCore();
     ~BufferQueueCore();
 
-    void NotifyShutdown();
-
 private:
     void SignalDequeueCondition();
     bool WaitForDequeueCondition(std::unique_lock<std::mutex>& lk);
@@ -74,7 +72,6 @@ private:
     u32 transform_hint{};
     bool is_allocating{};
     mutable std::condition_variable_any is_allocating_condition;
-    bool is_shutting_down{};
 };
 
 } // namespace Service::android

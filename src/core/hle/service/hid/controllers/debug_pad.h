@@ -15,10 +15,10 @@ struct AnalogStickState;
 } // namespace Core::HID
 
 namespace Service::HID {
-class Controller_DebugPad final : public ControllerBase {
+class DebugPad final : public ControllerBase {
 public:
-    explicit Controller_DebugPad(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
-    ~Controller_DebugPad() override;
+    explicit DebugPad(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
+    ~DebugPad() override;
 
     // Called when the controller is initialized
     void OnInit() override;

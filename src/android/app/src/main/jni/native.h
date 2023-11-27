@@ -41,9 +41,9 @@ public:
     void RunEmulation();
     void ShutdownEmulation();
 
-    const Core::PerfStatsResults& PerfStats() const;
+    const Core::PerfStatsResults& PerfStats();
     void ConfigureFilesystemProvider(const std::string& filepath);
-    void InitializeSystem();
+    void InitializeSystem(bool reload);
     Core::SystemResultStatus InitializeEmulation(const std::string& filepath);
 
     bool IsHandheldOnly();
@@ -52,9 +52,10 @@ public:
     void OnGamepadDisconnectEvent([[maybe_unused]] int index);
     SoftwareKeyboard::AndroidKeyboard* SoftwareKeyboard();
 
+    static void OnEmulationStarted();
+
 private:
     static void LoadDiskCacheProgress(VideoCore::LoadCallbackStage stage, int progress, int max);
-    static void OnEmulationStarted();
     static void OnEmulationStopped(Core::SystemResultStatus result);
 
 private:
@@ -80,6 +81,5 @@ private:
 
     // Synchronization
     std::condition_variable_any m_cv;
-    mutable std::mutex m_perf_stats_mutex;
     mutable std::mutex m_mutex;
 };

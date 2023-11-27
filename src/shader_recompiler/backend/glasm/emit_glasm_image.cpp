@@ -559,12 +559,12 @@ void EmitImageGradient(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                        const IR::Value& offset, const IR::Value& lod_clamp) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     ScopedRegister dpdx, dpdy, coords;
-    const bool multi_component{info.num_derivates > 1 || info.has_lod_clamp};
+    const bool multi_component{info.num_derivatives > 1 || info.has_lod_clamp};
     if (multi_component) {
         // Allocate this early to avoid aliasing other registers
         dpdx = ScopedRegister{ctx.reg_alloc};
         dpdy = ScopedRegister{ctx.reg_alloc};
-        if (info.num_derivates >= 3) {
+        if (info.num_derivatives >= 3) {
             coords = ScopedRegister{ctx.reg_alloc};
         }
     }
@@ -584,7 +584,7 @@ void EmitImageGradient(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                 dpdx.reg, derivatives_vec, dpdx.reg, derivatives_vec, dpdy.reg, derivatives_vec,
                 dpdy.reg, derivatives_vec);
         Register final_coord;
-        if (info.num_derivates >= 3) {
+        if (info.num_derivatives >= 3) {
             ctx.Add("MOV.F {}.z,{}.x;"
                     "MOV.F {}.z,{}.y;",
                     dpdx.reg, coord_vec, dpdy.reg, coord_vec);

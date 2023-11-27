@@ -6,6 +6,7 @@
 #include <memory>
 #include <optional>
 
+#include <filesystem>
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QPushButton>
@@ -14,6 +15,7 @@
 
 #include "common/announce_multiplayer_room.h"
 #include "common/common_types.h"
+#include "configuration/qt_config.h"
 #include "input_common/drivers/tas_input.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
@@ -25,7 +27,7 @@
 #include <QtDBus/QtDBus>
 #endif
 
-class Config;
+class QtConfig;
 class ClickableLabel;
 class EmuThread;
 class GameList;
@@ -174,10 +176,17 @@ class GMainWindow : public QMainWindow {
         UI_EMU_STOPPING,
     };
 
+    enum {
+        CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES,
+        CREATE_SHORTCUT_MSGBOX_SUCCESS,
+        CREATE_SHORTCUT_MSGBOX_ERROR,
+        CREATE_SHORTCUT_MSGBOX_APPVOLATILE_WARNING,
+    };
+
 public:
     void filterBarSetChecked(bool state);
     void UpdateUITheme();
-    explicit GMainWindow(std::unique_ptr<Config> config_, bool has_broken_vulkan);
+    explicit GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulkan);
     ~GMainWindow() override;
 
     bool DropAction(QDropEvent* event);
@@ -402,6 +411,7 @@ private slots:
     void OnAlbum();
     void OnCabinet(Service::NFP::CabinetMode mode);
     void OnMiiEdit();
+    void OnOpenControllerMenu();
     void OnCaptureScreenshot();
     void OnReinitializeKeys(ReinitializeKeyBehavior behavior);
     void OnLanguageChanged(const QString& locale);
@@ -448,6 +458,7 @@ private:
     bool CheckDarkMode();
     bool CheckSystemArchiveDecryption();
     bool CheckFirmwarePresence();
+    void SetFirmwareVersion();
     void ConfigureFilesystemProvider(const std::string& filepath);
     /**
      * Open (or not) the right confirm dialog based on current setting and game exit lock
@@ -456,11 +467,14 @@ private:
     bool ConfirmShutdownGame();
 
     QString GetTasStateDescription() const;
-    bool CreateShortcut(const std::string& shortcut_path, const std::string& title,
-                        const std::string& comment, const std::string& icon_path,
-                        const std::string& command, const std::string& arguments,
-                        const std::string& categories, const std::string& keywords);
-
+    bool CreateShortcutMessagesGUI(QWidget* parent, int imsg, const QString& game_title);
+    bool MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_name,
+                             std::filesystem::path& out_icon_path);
+    bool CreateShortcutLink(const std::filesystem::path& shortcut_path, const std::string& comment,
+                            const std::filesystem::path& icon_path,
+                            const std::filesystem::path& command, const std::string& arguments,
+                            const std::string& categories, const std::string& keywords,
+                            const std::string& name);
     /**
      * Mimic the behavior of QMessageBox::question but link controller navigation to the dialog
      * The only difference is that it returns a boolean.
@@ -499,6 +513,7 @@ private:
     QLabel* game_fps_label = nullptr;
     QLabel* emu_frametime_label = nullptr;
     QLabel* tas_label = nullptr;
+    QLabel* firmware_label = nullptr;
     QPushButton* gpu_accuracy_button = nullptr;
     QPushButton* renderer_status_button = nullptr;
     QPushButton* dock_status_button = nullptr;
@@ -509,7 +524,7 @@ private:
     QSlider* volume_slider = nullptr;
     QTimer status_bar_update_timer;
 
-    std::unique_ptr<Config> config;
+    std::unique_ptr<QtConfig> config;
 
     // Whether emulation is currently running in yuzu.
     bool emulation_running = false;

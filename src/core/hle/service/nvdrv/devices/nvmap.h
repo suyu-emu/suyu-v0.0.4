@@ -99,12 +99,12 @@ public:
     };
     static_assert(sizeof(IocGetIdParams) == 8, "IocGetIdParams has wrong size");
 
-    NvResult IocCreate(std::span<const u8> input, std::span<u8> output);
-    NvResult IocAlloc(std::span<const u8> input, std::span<u8> output);
-    NvResult IocGetId(std::span<const u8> input, std::span<u8> output);
-    NvResult IocFromId(std::span<const u8> input, std::span<u8> output);
-    NvResult IocParam(std::span<const u8> input, std::span<u8> output);
-    NvResult IocFree(std::span<const u8> input, std::span<u8> output);
+    NvResult IocCreate(IocCreateParams& params);
+    NvResult IocAlloc(IocAllocParams& params);
+    NvResult IocGetId(IocGetIdParams& params);
+    NvResult IocFromId(IocFromIdParams& params);
+    NvResult IocParam(IocParamParams& params);
+    NvResult IocFree(IocFreeParams& params);
 
 private:
     /// Id to use for the next handle that is created.

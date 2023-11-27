@@ -4,9 +4,6 @@
 [submodule "enet"]
 	path = externals/enet
 	url = https://github.com/lsalzman/enet.git
-[submodule "inih"]
-	path = externals/inih/inih
-	url = https://github.com/benhoyt/inih.git
 [submodule "cubeb"]
 	path = externals/cubeb
 	url = https://github.com/mozilla/cubeb.git
@@ -61,3 +58,6 @@
 [submodule "breakpad"]
 	path = externals/breakpad
 	url = https://github.com/yuzu-emu/breakpad.git
+[submodule "simpleini"]
+	path = externals/simpleini
+	url = https://github.com/brofield/simpleini.git

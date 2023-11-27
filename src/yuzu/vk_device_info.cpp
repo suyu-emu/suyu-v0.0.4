@@ -31,6 +31,7 @@ void PopulateRecords(std::vector<Record>& records, QWindow* window) try {
     // Create a test window with a Vulkan surface type for checking present modes.
     QWindow test_window(window);
     test_window.setSurfaceType(QWindow::VulkanSurface);
+    test_window.create();
     auto wsi = QtCommon::GetWindowSystemInfo(&test_window);
 
     vk::InstanceDispatch dld;

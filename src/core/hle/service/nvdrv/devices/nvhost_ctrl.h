@@ -186,12 +186,12 @@ private:
     static_assert(sizeof(IocCtrlEventUnregisterBatchParams) == 8,
                   "IocCtrlEventKill is incorrect size");
 
-    NvResult NvOsGetConfigU32(std::span<const u8> input, std::span<u8> output);
-    NvResult IocCtrlEventWait(std::span<const u8> input, std::span<u8> output, bool is_allocation);
-    NvResult IocCtrlEventRegister(std::span<const u8> input, std::span<u8> output);
-    NvResult IocCtrlEventUnregister(std::span<const u8> input, std::span<u8> output);
-    NvResult IocCtrlEventUnregisterBatch(std::span<const u8> input, std::span<u8> output);
-    NvResult IocCtrlClearEventWait(std::span<const u8> input, std::span<u8> output);
+    NvResult NvOsGetConfigU32(IocGetConfigParams& params);
+    NvResult IocCtrlEventRegister(IocCtrlEventRegisterParams& params);
+    NvResult IocCtrlEventUnregister(IocCtrlEventUnregisterParams& params);
+    NvResult IocCtrlEventUnregisterBatch(IocCtrlEventUnregisterBatchParams& params);
+    NvResult IocCtrlEventWait(IocCtrlEventWaitParams& params, bool is_allocation);
+    NvResult IocCtrlClearEventWait(IocCtrlEventClearParams& params);
 
     NvResult FreeEvent(u32 slot);
 

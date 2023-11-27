@@ -28,7 +28,7 @@ void Nvdec::ProcessMethod(u32 method, u32 argument) {
     }
 }
 
-AVFramePtr Nvdec::GetFrame() {
+std::unique_ptr<FFmpeg::Frame> Nvdec::GetFrame() {
     return codec->GetCurrentFrame();
 }
 

@@ -10,7 +10,6 @@ import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -155,7 +154,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
 
         binding.surfaceEmulation.holder.addCallback(this)
-        binding.showFpsText.setTextColor(Color.YELLOW)
         binding.doneControlConfig.setOnClickListener { stopConfiguringControls() }
 
         binding.drawerLayout.addDrawerListener(object : DrawerListener {
@@ -312,6 +310,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                             ViewUtils.showView(binding.surfaceInputOverlay)
                             ViewUtils.hideView(binding.loadingIndicator)
 
+                            emulationState.updateSurface()
+
                             // Setup overlay
                             updateShowFpsOverlay()
                         }
@@ -412,12 +412,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             val FRAMETIME = 2
             val SPEED = 3
             perfStatsUpdater = {
-                if (emulationViewModel.emulationStarted.value == true) {
+                if (emulationViewModel.emulationStarted.value) {
                     val perfStats = NativeLibrary.getPerfStats()
-                    if (perfStats[FPS] > 0 && _binding != null) {
+                    if (_binding != null) {
                         binding.showFpsText.text = String.format("FPS: %.1f", perfStats[FPS])
                     }
-                    perfStatsUpdateHandler.postDelayed(perfStatsUpdater!!, 100)
+                    perfStatsUpdateHandler.postDelayed(perfStatsUpdater!!, 800)
                 }
             }
             perfStatsUpdateHandler.post(perfStatsUpdater!!)
@@ -462,7 +462,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     if (it.orientation == FoldingFeature.Orientation.HORIZONTAL) {
                         // Restrict emulation and overlays to the top of the screen
                         binding.emulationContainer.layoutParams.height = it.bounds.top
-                        binding.overlayContainer.layoutParams.height = it.bounds.top
                         // Restrict input and menu drawer to the bottom of the screen
                         binding.inputContainer.layoutParams.height = it.bounds.bottom
                         binding.inGameMenu.layoutParams.height = it.bounds.bottom
@@ -476,7 +475,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         if (!isFolding) {
             binding.emulationContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.inputContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-            binding.overlayContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             binding.inGameMenu.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
             isInFoldableLayout = false
             updateOrientation()
@@ -484,7 +482,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
         binding.emulationContainer.requestLayout()
         binding.inputContainer.requestLayout()
-        binding.overlayContainer.requestLayout()
         binding.inGameMenu.requestLayout()
     }
 
@@ -710,24 +707,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
 
             v.setPadding(left, cutInsets.top, right, 0)
-
-            // Ensure FPS text doesn't get cut off by rounded display corners
-            val sidePadding = resources.getDimensionPixelSize(R.dimen.spacing_xtralarge)
-            if (cutInsets.left == 0) {
-                binding.showFpsText.setPadding(
-                    sidePadding,
-                    cutInsets.top,
-                    cutInsets.right,
-                    cutInsets.bottom
-                )
-            } else {
-                binding.showFpsText.setPadding(
-                    cutInsets.left,
-                    cutInsets.top,
-                    cutInsets.right,
-                    cutInsets.bottom
-                )
-            }
             windowInsets
         }
     }
@@ -801,6 +780,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             this.surface = surface
             if (this.surface != null) {
                 runWithValidSurface()
+            }
+        }
+
+        @Synchronized
+        fun updateSurface() {
+            if (surface != null) {
+                NativeLibrary.surfaceChanged(surface)
             }
         }
 

@@ -14,10 +14,10 @@ class EmulatedConsole;
 } // namespace Core::HID
 
 namespace Service::HID {
-class Controller_Touchscreen final : public ControllerBase {
+class TouchScreen final : public ControllerBase {
 public:
-    explicit Controller_Touchscreen(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
-    ~Controller_Touchscreen() override;
+    explicit TouchScreen(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
+    ~TouchScreen() override;
 
     // Called when the controller is initialized
     void OnInit() override;

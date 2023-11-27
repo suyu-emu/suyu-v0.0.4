@@ -163,7 +163,7 @@ private:
     Errno ListenImpl(s32 fd, s32 backlog);
     std::pair<s32, Errno> FcntlImpl(s32 fd, FcntlCmd cmd, s32 arg);
     Errno GetSockOptImpl(s32 fd, u32 level, OptName optname, std::vector<u8>& optval);
-    Errno SetSockOptImpl(s32 fd, u32 level, OptName optname, size_t optlen, const void* optval);
+    Errno SetSockOptImpl(s32 fd, u32 level, OptName optname, std::span<const u8> optval);
     Errno ShutdownImpl(s32 fd, s32 how);
     std::pair<s32, Errno> RecvImpl(s32 fd, u32 flags, std::vector<u8>& message);
     std::pair<s32, Errno> RecvFromImpl(s32 fd, u32 flags, std::vector<u8>& message,

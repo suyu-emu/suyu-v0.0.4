@@ -5,7 +5,6 @@
 // https://cs.android.com/android/platform/superproject/+/android-5.1.1_r38:frameworks/native/libs/gui/BufferQueueConsumer.cpp
 
 #include "common/logging/log.h"
-#include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/hle/service/nvnflinger/buffer_item.h"
 #include "core/hle/service/nvnflinger/buffer_queue_consumer.h"
 #include "core/hle/service/nvnflinger/buffer_queue_core.h"
@@ -14,9 +13,8 @@
 
 namespace Service::android {
 
-BufferQueueConsumer::BufferQueueConsumer(std::shared_ptr<BufferQueueCore> core_,
-                                         Service::Nvidia::NvCore::NvMap& nvmap_)
-    : core{std::move(core_)}, slots{core->slots}, nvmap(nvmap_) {}
+BufferQueueConsumer::BufferQueueConsumer(std::shared_ptr<BufferQueueCore> core_)
+    : core{std::move(core_)}, slots{core->slots} {}
 
 BufferQueueConsumer::~BufferQueueConsumer() = default;
 
@@ -136,8 +134,6 @@ Status BufferQueueConsumer::ReleaseBuffer(s32 slot, u64 frame_number, const Fenc
 
         slots[slot].buffer_state = BufferState::Free;
 
-        nvmap.FreeHandle(slots[slot].graphic_buffer->BufferId(), true);
-
         listener = core->connected_producer_listener;
 
         LOG_DEBUG(Service_Nvnflinger, "releasing slot {}", slot);
@@ -171,6 +167,25 @@ Status BufferQueueConsumer::Connect(std::shared_ptr<IConsumerListener> consumer_
 
     core->consumer_listener = std::move(consumer_listener);
     core->consumer_controlled_by_app = controlled_by_app;
+
+    return Status::NoError;
+}
+
+Status BufferQueueConsumer::Disconnect() {
+    LOG_DEBUG(Service_Nvnflinger, "called");
+
+    std::scoped_lock lock{core->mutex};
+
+    if (core->consumer_listener == nullptr) {
+        LOG_ERROR(Service_Nvnflinger, "no consumer is connected");
+        return Status::BadValue;
+    }
+
+    core->is_abandoned = true;
+    core->consumer_listener = nullptr;
+    core->queue.clear();
+    core->FreeAllBuffersLocked();
+    core->SignalDequeueCondition();
 
     return Status::NoError;
 }

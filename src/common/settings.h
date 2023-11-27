@@ -153,7 +153,7 @@ struct Values {
                                        true,
                                        true};
     Setting<bool, false> audio_muted{
-        linkage, false, "audio_muted", Category::Audio, Specialization::Default, false, true};
+        linkage, false, "audio_muted", Category::Audio, Specialization::Default, true, true};
     Setting<bool, false> dump_audio_commands{
         linkage, false, "dump_audio_commands", Category::Audio, Specialization::Default, false};
 
@@ -232,7 +232,11 @@ struct Values {
     SwitchableSetting<bool> use_asynchronous_gpu_emulation{
         linkage, true, "use_asynchronous_gpu_emulation", Category::Renderer};
     SwitchableSetting<AstcDecodeMode, true> accelerate_astc{linkage,
+#ifdef ANDROID
+                                                            AstcDecodeMode::Cpu,
+#else
                                                             AstcDecodeMode::Gpu,
+#endif
                                                             AstcDecodeMode::Cpu,
                                                             AstcDecodeMode::CpuAsynchronous,
                                                             "accelerate_astc",
@@ -304,7 +308,11 @@ struct Values {
         linkage, 0, "bg_blue", Category::Renderer, Specialization::Default, true, true};
 
     SwitchableSetting<GpuAccuracy, true> gpu_accuracy{linkage,
+#ifdef ANDROID
+                                                      GpuAccuracy::Normal,
+#else
                                                       GpuAccuracy::High,
+#endif
                                                       GpuAccuracy::Normal,
                                                       GpuAccuracy::Extreme,
                                                       "gpu_accuracy",
@@ -313,20 +321,38 @@ struct Values {
                                                       true,
                                                       true};
     GpuAccuracy current_gpu_accuracy{GpuAccuracy::High};
-    SwitchableSetting<AnisotropyMode, true> max_anisotropy{
-        linkage,          AnisotropyMode::Automatic, AnisotropyMode::Automatic, AnisotropyMode::X16,
-        "max_anisotropy", Category::RendererAdvanced};
+    SwitchableSetting<AnisotropyMode, true> max_anisotropy{linkage,
+#ifdef ANDROID
+                                                           AnisotropyMode::Default,
+#else
+                                                           AnisotropyMode::Automatic,
+#endif
+                                                           AnisotropyMode::Automatic,
+                                                           AnisotropyMode::X16,
+                                                           "max_anisotropy",
+                                                           Category::RendererAdvanced};
     SwitchableSetting<AstcRecompression, true> astc_recompression{linkage,
                                                                   AstcRecompression::Uncompressed,
                                                                   AstcRecompression::Uncompressed,
                                                                   AstcRecompression::Bc3,
                                                                   "astc_recompression",
                                                                   Category::RendererAdvanced};
-    SwitchableSetting<bool> async_presentation{linkage, false, "async_presentation",
-                                               Category::RendererAdvanced};
+    SwitchableSetting<bool> async_presentation{linkage,
+#ifdef ANDROID
+                                               true,
+#else
+                                               false,
+#endif
+                                               "async_presentation", Category::RendererAdvanced};
     SwitchableSetting<bool> renderer_force_max_clock{linkage, false, "force_max_clock",
                                                      Category::RendererAdvanced};
-    SwitchableSetting<bool> use_reactive_flushing{linkage, true, "use_reactive_flushing",
+    SwitchableSetting<bool> use_reactive_flushing{linkage,
+#ifdef ANDROID
+                                                  false,
+#else
+                                                  true,
+#endif
+                                                  "use_reactive_flushing",
                                                   Category::RendererAdvanced};
     SwitchableSetting<bool> use_asynchronous_shaders{linkage, false, "use_asynchronous_shaders",
                                                      Category::RendererAdvanced};
@@ -358,6 +384,8 @@ struct Values {
                                           Category::RendererDebug};
     // TODO: remove this once AMDVLK supports VK_EXT_depth_bias_control
     bool renderer_amdvlk_depth_bias_workaround{};
+    Setting<bool> disable_buffer_reorder{linkage, false, "disable_buffer_reorder",
+                                         Category::RendererDebug};
 
     // System
     SwitchableSetting<Language, true> language_index{linkage,
@@ -390,7 +418,11 @@ struct Values {
     Setting<s32> current_user{linkage, 0, "current_user", Category::System};
 
     SwitchableSetting<ConsoleMode> use_docked_mode{linkage,
+#ifdef ANDROID
+                                                   ConsoleMode::Handheld,
+#else
                                                    ConsoleMode::Docked,
+#endif
                                                    "use_docked_mode",
                                                    Category::System,
                                                    Specialization::Radio,

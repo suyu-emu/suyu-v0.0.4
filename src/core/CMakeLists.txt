@@ -271,8 +271,9 @@ add_library(core STATIC
     hle/kernel/k_page_heap.h
     hle/kernel/k_page_group.cpp
     hle/kernel/k_page_group.h
-    hle/kernel/k_page_table.cpp
     hle/kernel/k_page_table.h
+    hle/kernel/k_page_table_base.cpp
+    hle/kernel/k_page_table_base.h
     hle/kernel/k_page_table_manager.h
     hle/kernel/k_page_table_slab_heap.h
     hle/kernel/k_port.cpp
@@ -280,6 +281,7 @@ add_library(core STATIC
     hle/kernel/k_priority_queue.h
     hle/kernel/k_process.cpp
     hle/kernel/k_process.h
+    hle/kernel/k_process_page_table.h
     hle/kernel/k_readable_event.cpp
     hle/kernel/k_readable_event.h
     hle/kernel/k_resource_limit.cpp
@@ -330,8 +332,6 @@ add_library(core STATIC
     hle/kernel/physical_core.cpp
     hle/kernel/physical_core.h
     hle/kernel/physical_memory.h
-    hle/kernel/process_capability.cpp
-    hle/kernel/process_capability.h
     hle/kernel/slab_helpers.h
     hle/kernel/svc.cpp
     hle/kernel/svc.h
@@ -521,17 +521,28 @@ add_library(core STATIC
     hle/service/grc/grc.h
     hle/service/hid/hid.cpp
     hle/service/hid/hid.h
+    hle/service/hid/hid_debug_server.cpp
+    hle/service/hid/hid_debug_server.h
+    hle/service/hid/hid_firmware_settings.cpp
+    hle/service/hid/hid_firmware_settings.h
+    hle/service/hid/hid_server.cpp
+    hle/service/hid/hid_server.h
+    hle/service/hid/hid_system_server.cpp
+    hle/service/hid/hid_system_server.h
+    hle/service/hid/hid_util.h
     hle/service/hid/hidbus.cpp
     hle/service/hid/hidbus.h
     hle/service/hid/irs.cpp
     hle/service/hid/irs.h
     hle/service/hid/irs_ring_lifo.h
+    hle/service/hid/resource_manager.cpp
+    hle/service/hid/resource_manager.h
     hle/service/hid/ring_lifo.h
     hle/service/hid/xcd.cpp
     hle/service/hid/xcd.h
     hle/service/hid/errors.h
-    hle/service/hid/controllers/console_sixaxis.cpp
-    hle/service/hid/controllers/console_sixaxis.h
+    hle/service/hid/controllers/console_six_axis.cpp
+    hle/service/hid/controllers/console_six_axis.h
     hle/service/hid/controllers/controller_base.cpp
     hle/service/hid/controllers/controller_base.h
     hle/service/hid/controllers/debug_pad.cpp
@@ -546,6 +557,10 @@ add_library(core STATIC
     hle/service/hid/controllers/npad.h
     hle/service/hid/controllers/palma.cpp
     hle/service/hid/controllers/palma.h
+    hle/service/hid/controllers/seven_six_axis.cpp
+    hle/service/hid/controllers/seven_six_axis.h
+    hle/service/hid/controllers/six_axis.cpp
+    hle/service/hid/controllers/six_axis.h
     hle/service/hid/controllers/stubbed.cpp
     hle/service/hid/controllers/stubbed.h
     hle/service/hid/controllers/touchscreen.cpp
@@ -715,6 +730,7 @@ add_library(core STATIC
     hle/service/nvnflinger/producer_listener.h
     hle/service/nvnflinger/status.h
     hle/service/nvnflinger/ui/fence.h
+    hle/service/nvnflinger/ui/graphic_buffer.cpp
     hle/service/nvnflinger/ui/graphic_buffer.h
     hle/service/nvnflinger/window.h
     hle/service/olsc/olsc.cpp

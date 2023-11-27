@@ -263,6 +263,22 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
     info.y_negate = key.state.y_negate != 0;
     return info;
 }
+
+size_t GetTotalPipelineWorkers() {
+    const size_t max_core_threads =
+        std::max<size_t>(static_cast<size_t>(std::thread::hardware_concurrency()), 2ULL) - 1ULL;
+#ifdef ANDROID
+    // Leave at least a few cores free in android
+    constexpr size_t free_cores = 3ULL;
+    if (max_core_threads <= free_cores) {
+        return 1ULL;
+    }
+    return max_core_threads - free_cores;
+#else
+    return max_core_threads;
+#endif
+}
+
 } // Anonymous namespace
 
 size_t ComputePipelineCacheKey::Hash() const noexcept {
@@ -294,11 +310,8 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
       texture_cache{texture_cache_}, shader_notify{shader_notify_},
       use_asynchronous_shaders{Settings::values.use_asynchronous_shaders.GetValue()},
       use_vulkan_pipeline_cache{Settings::values.use_vulkan_driver_pipeline_cache.GetValue()},
-#ifdef ANDROID
-      workers(1, "VkPipelineBuilder"),
-#else
-      workers(std::max(std::thread::hardware_concurrency(), 2U) - 1, "VkPipelineBuilder"),
-#endif
+      workers(device.HasBrokenParallelShaderCompiling() ? 1ULL : GetTotalPipelineWorkers(),
+              "VkPipelineBuilder"),
       serialization_thread(1, "VkPipelineSerialization") {
     const auto& float_control{device.FloatControlProperties()};
     const VkDriverId driver_id{device.GetDriverID()};
@@ -338,6 +351,7 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
         .support_geometry_shader_passthrough = device.IsNvGeometryShaderPassthroughSupported(),
         .support_native_ndc = device.IsExtDepthClipControlSupported(),
         .support_scaled_attributes = !device.MustEmulateScaledFormats(),
+        .support_multi_viewport = device.SupportsMultiViewport(),
 
         .warp_size_potentially_larger_than_guest = device.IsWarpSizePotentiallyBiggerThanGuest(),
 

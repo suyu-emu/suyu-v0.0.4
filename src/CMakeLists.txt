@@ -21,7 +21,7 @@ if (MSVC)
     # Avoid windows.h from including some usually unused libs like winsocks.h, since this might cause some redefinition errors.
     add_definitions(-DWIN32_LEAN_AND_MEAN)
 
-    # Ensure that projects build with Unicode support.
+    # Ensure that projects are built with Unicode support.
     add_definitions(-DUNICODE -D_UNICODE)
 
     # /W4                 - Level 4 warnings
@@ -54,11 +54,11 @@ if (MSVC)
         /GT
 
         # Modules
-        /experimental:module- # Disable module support explicitly due to conflicts with precompiled headers
+        /experimental:module- # Explicitly disable module support due to conflicts with precompiled headers.
 
         # External headers diagnostics
         /external:anglebrackets # Treats all headers included by #include <header>, where the header file is enclosed in angle brackets (< >), as external headers
-        /external:W0            # Sets the default warning level to 0 for external headers, effectively turning off warnings for external headers
+        /external:W0            # Sets the default warning level to 0 for external headers, effectively disabling warnings for them.
 
         # Warnings
         /W4
@@ -187,6 +187,7 @@ add_subdirectory(audio_core)
 add_subdirectory(video_core)
 add_subdirectory(network)
 add_subdirectory(input_common)
+add_subdirectory(frontend_common)
 add_subdirectory(shader_recompiler)
 
 if (YUZU_ROOM)

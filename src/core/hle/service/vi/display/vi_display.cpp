@@ -35,7 +35,7 @@ static BufferQueue CreateBufferQueue(KernelHelpers::ServiceContext& service_cont
     return {
         buffer_queue_core,
         std::make_unique<android::BufferQueueProducer>(service_context, buffer_queue_core, nvmap),
-        std::make_unique<android::BufferQueueConsumer>(buffer_queue_core, nvmap)};
+        std::make_unique<android::BufferQueueConsumer>(buffer_queue_core)};
 }
 
 Display::Display(u64 id, std::string name_,

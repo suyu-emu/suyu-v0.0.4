@@ -139,18 +139,17 @@ private:
     static_assert(sizeof(IoctlGetVaRegions) == 16 + sizeof(VaRegion) * 2,
                   "IoctlGetVaRegions is incorrect size");
 
-    NvResult AllocAsEx(std::span<const u8> input, std::span<u8> output);
-    NvResult AllocateSpace(std::span<const u8> input, std::span<u8> output);
-    NvResult Remap(std::span<const u8> input, std::span<u8> output);
-    NvResult MapBufferEx(std::span<const u8> input, std::span<u8> output);
-    NvResult UnmapBuffer(std::span<const u8> input, std::span<u8> output);
-    NvResult FreeSpace(std::span<const u8> input, std::span<u8> output);
-    NvResult BindChannel(std::span<const u8> input, std::span<u8> output);
+    NvResult AllocAsEx(IoctlAllocAsEx& params);
+    NvResult AllocateSpace(IoctlAllocSpace& params);
+    NvResult Remap(std::span<IoctlRemapEntry> params);
+    NvResult MapBufferEx(IoctlMapBufferEx& params);
+    NvResult UnmapBuffer(IoctlUnmapBuffer& params);
+    NvResult FreeSpace(IoctlFreeSpace& params);
+    NvResult BindChannel(IoctlBindChannel& params);
 
     void GetVARegionsImpl(IoctlGetVaRegions& params);
-    NvResult GetVARegions(std::span<const u8> input, std::span<u8> output);
-    NvResult GetVARegions(std::span<const u8> input, std::span<u8> output,
-                          std::span<u8> inline_output);
+    NvResult GetVARegions1(IoctlGetVaRegions& params);
+    NvResult GetVARegions3(IoctlGetVaRegions& params, std::span<VaRegion> regions);
 
     void FreeMappingLocked(u64 offset);
 
@@ -213,7 +212,6 @@ private:
         bool initialised{};
     } vm;
     std::shared_ptr<Tegra::MemoryManager> gmmu;
-    Common::ScratchBuffer<IoctlRemapEntry> entries;
 
     // s32 channel{};
     // u32 big_page_size{VM::DEFAULT_BIG_PAGE_SIZE};

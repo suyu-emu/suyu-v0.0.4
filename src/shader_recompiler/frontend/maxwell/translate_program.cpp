@@ -310,6 +310,7 @@ IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Blo
     }
     Optimization::CollectShaderInfoPass(env, program);
     Optimization::LayerPass(program, host_info);
+    Optimization::VendorWorkaroundPass(program);
 
     CollectInterpolationInfo(env, program);
     AddNVNStorageBuffers(program);

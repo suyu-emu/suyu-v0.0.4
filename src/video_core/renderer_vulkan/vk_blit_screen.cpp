@@ -137,6 +137,56 @@ BlitScreen::BlitScreen(Core::Memory::Memory& cpu_memory_, Core::Frontend::EmuWin
 
 BlitScreen::~BlitScreen() = default;
 
+static Common::Rectangle<f32> NormalizeCrop(const Tegra::FramebufferConfig& framebuffer,
+                                            const ScreenInfo& screen_info) {
+    f32 left, top, right, bottom;
+
+    if (!framebuffer.crop_rect.IsEmpty()) {
+        // If crop rectangle is not empty, apply properties from rectangle.
+        left = static_cast<f32>(framebuffer.crop_rect.left);
+        top = static_cast<f32>(framebuffer.crop_rect.top);
+        right = static_cast<f32>(framebuffer.crop_rect.right);
+        bottom = static_cast<f32>(framebuffer.crop_rect.bottom);
+    } else {
+        // Otherwise, fall back to framebuffer dimensions.
+        left = 0;
+        top = 0;
+        right = static_cast<f32>(framebuffer.width);
+        bottom = static_cast<f32>(framebuffer.height);
+    }
+
+    // Apply transformation flags.
+    auto framebuffer_transform_flags = framebuffer.transform_flags;
+
+    if (True(framebuffer_transform_flags & Service::android::BufferTransformFlags::FlipH)) {
+        // Switch left and right.
+        std::swap(left, right);
+    }
+    if (True(framebuffer_transform_flags & Service::android::BufferTransformFlags::FlipV)) {
+        // Switch top and bottom.
+        std::swap(top, bottom);
+    }
+
+    framebuffer_transform_flags &= ~Service::android::BufferTransformFlags::FlipH;
+    framebuffer_transform_flags &= ~Service::android::BufferTransformFlags::FlipV;
+    if (True(framebuffer_transform_flags)) {
+        UNIMPLEMENTED_MSG("Unsupported framebuffer_transform_flags={}",
+                          static_cast<u32>(framebuffer_transform_flags));
+    }
+
+    // Get the screen properties.
+    const f32 screen_width = static_cast<f32>(screen_info.width);
+    const f32 screen_height = static_cast<f32>(screen_info.height);
+
+    // Normalize coordinate space.
+    left /= screen_width;
+    top /= screen_height;
+    right /= screen_width;
+    bottom /= screen_height;
+
+    return Common::Rectangle<f32>(left, top, right, bottom);
+}
+
 void BlitScreen::Recreate() {
     present_manager.WaitPresent();
     scheduler.Finish();
@@ -354,17 +404,10 @@ void BlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
         source_image_view = smaa->Draw(scheduler, image_index, source_image, source_image_view);
     }
     if (fsr) {
-        auto crop_rect = framebuffer.crop_rect;
-        if (crop_rect.GetWidth() == 0) {
-            crop_rect.right = framebuffer.width;
-        }
-        if (crop_rect.GetHeight() == 0) {
-            crop_rect.bottom = framebuffer.height;
-        }
-        crop_rect = crop_rect.Scale(Settings::values.resolution_info.up_factor);
-        VkExtent2D fsr_input_size{
-            .width = Settings::values.resolution_info.ScaleUp(framebuffer.width),
-            .height = Settings::values.resolution_info.ScaleUp(framebuffer.height),
+        const auto crop_rect = NormalizeCrop(framebuffer, screen_info);
+        const VkExtent2D fsr_input_size{
+            .width = Settings::values.resolution_info.ScaleUp(screen_info.width),
+            .height = Settings::values.resolution_info.ScaleUp(screen_info.height),
         };
         VkImageView fsr_image_view =
             fsr->Draw(scheduler, image_index, source_image_view, fsr_input_size, crop_rect);
@@ -1397,61 +1440,37 @@ void BlitScreen::SetUniformData(BufferData& data, const Layout::FramebufferLayou
 
 void BlitScreen::SetVertexData(BufferData& data, const Tegra::FramebufferConfig& framebuffer,
                                const Layout::FramebufferLayout layout) const {
-    const auto& framebuffer_transform_flags = framebuffer.transform_flags;
-    const auto& framebuffer_crop_rect = framebuffer.crop_rect;
+    f32 left, top, right, bottom;
 
-    static constexpr Common::Rectangle<f32> texcoords{0.f, 0.f, 1.f, 1.f};
-    auto left = texcoords.left;
-    auto right = texcoords.right;
+    if (fsr) {
+        // FSR has already applied the crop, so we just want to render the image
+        // it has produced.
+        left = 0;
+        top = 0;
+        right = 1;
+        bottom = 1;
+    } else {
+        // Get the normalized crop rectangle.
+        const auto crop = NormalizeCrop(framebuffer, screen_info);
 
-    switch (framebuffer_transform_flags) {
-    case Service::android::BufferTransformFlags::Unset:
-        break;
-    case Service::android::BufferTransformFlags::FlipV:
-        // Flip the framebuffer vertically
-        left = texcoords.right;
-        right = texcoords.left;
-        break;
-    default:
-        UNIMPLEMENTED_MSG("Unsupported framebuffer_transform_flags={}",
-                          static_cast<u32>(framebuffer_transform_flags));
-        break;
+        // Apply the crop.
+        left = crop.left;
+        top = crop.top;
+        right = crop.right;
+        bottom = crop.bottom;
     }
 
-    UNIMPLEMENTED_IF(framebuffer_crop_rect.left != 0);
-
-    f32 left_start{};
-    if (framebuffer_crop_rect.Top() > 0) {
-        left_start = static_cast<f32>(framebuffer_crop_rect.Top()) /
-                     static_cast<f32>(framebuffer_crop_rect.Bottom());
-    }
-    f32 scale_u = static_cast<f32>(framebuffer.width) / static_cast<f32>(screen_info.width);
-    f32 scale_v = static_cast<f32>(framebuffer.height) / static_cast<f32>(screen_info.height);
-    // Scale the output by the crop width/height. This is commonly used with 1280x720 rendering
-    // (e.g. handheld mode) on a 1920x1080 framebuffer.
-    if (!fsr) {
-        if (framebuffer_crop_rect.GetWidth() > 0) {
-            scale_u = static_cast<f32>(framebuffer_crop_rect.GetWidth()) /
-                      static_cast<f32>(screen_info.width);
-        }
-        if (framebuffer_crop_rect.GetHeight() > 0) {
-            scale_v = static_cast<f32>(framebuffer_crop_rect.GetHeight()) /
-                      static_cast<f32>(screen_info.height);
-        }
-    }
-
+    // Map the coordinates to the screen.
     const auto& screen = layout.screen;
     const auto x = static_cast<f32>(screen.left);
     const auto y = static_cast<f32>(screen.top);
     const auto w = static_cast<f32>(screen.GetWidth());
     const auto h = static_cast<f32>(screen.GetHeight());
-    data.vertices[0] = ScreenRectVertex(x, y, texcoords.top * scale_u, left_start + left * scale_v);
-    data.vertices[1] =
-        ScreenRectVertex(x + w, y, texcoords.bottom * scale_u, left_start + left * scale_v);
-    data.vertices[2] =
-        ScreenRectVertex(x, y + h, texcoords.top * scale_u, left_start + right * scale_v);
-    data.vertices[3] =
-        ScreenRectVertex(x + w, y + h, texcoords.bottom * scale_u, left_start + right * scale_v);
+
+    data.vertices[0] = ScreenRectVertex(x, y, left, top);
+    data.vertices[1] = ScreenRectVertex(x + w, y, right, top);
+    data.vertices[2] = ScreenRectVertex(x, y + h, left, bottom);
+    data.vertices[3] = ScreenRectVertex(x + w, y + h, right, bottom);
 }
 
 void BlitScreen::CreateSMAA(VkExtent2D smaa_size) {

@@ -4,27 +4,14 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <queue>
 #include "common/common_types.h"
+#include "video_core/host1x/ffmpeg/ffmpeg.h"
 #include "video_core/host1x/nvdec_common.h"
 
-extern "C" {
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-#include <libavcodec/avcodec.h>
-#include <libavfilter/avfilter.h>
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
-}
-
 namespace Tegra {
-
-void AVFrameDeleter(AVFrame* ptr);
-using AVFramePtr = std::unique_ptr<AVFrame, decltype(&AVFrameDeleter)>;
 
 namespace Decoder {
 class H264;
@@ -51,7 +38,7 @@ public:
     void Decode();
 
     /// Returns next decoded frame
-    [[nodiscard]] AVFramePtr GetCurrentFrame();
+    [[nodiscard]] std::unique_ptr<FFmpeg::Frame> GetCurrentFrame();
 
     /// Returns the value of current_codec
     [[nodiscard]] Host1x::NvdecCommon::VideoCodec GetCurrentCodec() const;
@@ -60,25 +47,9 @@ public:
     [[nodiscard]] std::string_view GetCurrentCodecName() const;
 
 private:
-    void InitializeAvCodecContext();
-
-    void InitializeAvFilters(AVFrame* frame);
-
-    void InitializeGpuDecoder();
-
-    bool CreateGpuAvDevice();
-
     bool initialized{};
-    bool filters_initialized{};
     Host1x::NvdecCommon::VideoCodec current_codec{Host1x::NvdecCommon::VideoCodec::None};
-
-    const AVCodec* av_codec{nullptr};
-    AVCodecContext* av_codec_ctx{nullptr};
-    AVBufferRef* av_gpu_decoder{nullptr};
-
-    AVFilterContext* av_filter_src_ctx{nullptr};
-    AVFilterContext* av_filter_sink_ctx{nullptr};
-    AVFilterGraph* av_filter_graph{nullptr};
+    FFmpeg::DecodeApi decode_api;
 
     Host1x::Host1x& host1x;
     const Host1x::NvdecCommon::NvdecRegisters& state;
@@ -86,7 +57,7 @@ private:
     std::unique_ptr<Decoder::VP8> vp8_decoder;
     std::unique_ptr<Decoder::VP9> vp9_decoder;
 
-    std::queue<AVFramePtr> av_frames{};
+    std::queue<std::unique_ptr<FFmpeg::Frame>> frames{};
 };
 
 } // namespace Tegra

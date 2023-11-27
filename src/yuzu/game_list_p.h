@@ -286,13 +286,13 @@ public:
             setData(QObject::tr("System Titles"), Qt::DisplayRole);
             break;
         case GameListItemType::CustomDir: {
-            const QString icon_name = QFileInfo::exists(game_dir->path)
-                                          ? QStringLiteral("folder")
-                                          : QStringLiteral("bad_folder");
+            const QString path = QString::fromStdString(game_dir->path);
+            const QString icon_name =
+                QFileInfo::exists(path) ? QStringLiteral("folder") : QStringLiteral("bad_folder");
             setData(QIcon::fromTheme(icon_name).pixmap(icon_size).scaled(
                         icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
                     Qt::DecorationRole);
-            setData(game_dir->path, Qt::DisplayRole);
+            setData(path, Qt::DisplayRole);
             break;
         }
         default:

@@ -16,7 +16,14 @@ Result SetHeapSize(Core::System& system, u64* out_address, u64 size) {
     R_UNLESS(size < MainMemorySizeMax, ResultInvalidSize);
 
     // Set the heap size.
-    R_RETURN(GetCurrentProcess(system.Kernel()).GetPageTable().SetHeapSize(out_address, size));
+    KProcessAddress address{};
+    R_TRY(GetCurrentProcess(system.Kernel())
+              .GetPageTable()
+              .SetHeapSize(std::addressof(address), size));
+
+    // We succeeded.
+    *out_address = GetInteger(address);
+    R_SUCCEED();
 }
 
 /// Maps memory at a desired address

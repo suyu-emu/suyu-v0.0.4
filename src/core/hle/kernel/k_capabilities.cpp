@@ -4,14 +4,16 @@
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/k_capabilities.h"
 #include "core/hle/kernel/k_memory_layout.h"
-#include "core/hle/kernel/k_page_table.h"
+#include "core/hle/kernel/k_process_page_table.h"
+#include "core/hle/kernel/k_trace.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/svc_version.h"
 
 namespace Kernel {
 
-Result KCapabilities::InitializeForKip(std::span<const u32> kern_caps, KPageTable* page_table) {
+Result KCapabilities::InitializeForKip(std::span<const u32> kern_caps,
+                                       KProcessPageTable* page_table) {
     // We're initializing an initial process.
     m_svc_access_flags.reset();
     m_irq_access_flags.reset();
@@ -41,7 +43,8 @@ Result KCapabilities::InitializeForKip(std::span<const u32> kern_caps, KPageTabl
     R_RETURN(this->SetCapabilities(kern_caps, page_table));
 }
 
-Result KCapabilities::InitializeForUser(std::span<const u32> user_caps, KPageTable* page_table) {
+Result KCapabilities::InitializeForUser(std::span<const u32> user_caps,
+                                        KProcessPageTable* page_table) {
     // We're initializing a user process.
     m_svc_access_flags.reset();
     m_irq_access_flags.reset();
@@ -121,7 +124,7 @@ Result KCapabilities::SetSyscallMaskCapability(const u32 cap, u32& set_svc) {
     R_SUCCEED();
 }
 
-Result KCapabilities::MapRange_(const u32 cap, const u32 size_cap, KPageTable* page_table) {
+Result KCapabilities::MapRange_(const u32 cap, const u32 size_cap, KProcessPageTable* page_table) {
     const auto range_pack = MapRange{cap};
     const auto size_pack = MapRangeSize{size_cap};
 
@@ -142,16 +145,13 @@ Result KCapabilities::MapRange_(const u32 cap, const u32 size_cap, KPageTable* p
                                                         ? KMemoryPermission::UserRead
                                                         : KMemoryPermission::UserReadWrite;
     if (MapRangeSize{size_cap}.normal) {
-        // R_RETURN(page_table->MapStatic(phys_addr, size, perm));
+        R_RETURN(page_table->MapStatic(phys_addr, size, perm));
     } else {
-        // R_RETURN(page_table->MapIo(phys_addr, size, perm));
+        R_RETURN(page_table->MapIo(phys_addr, size, perm));
     }
-
-    UNIMPLEMENTED();
-    R_SUCCEED();
 }
 
-Result KCapabilities::MapIoPage_(const u32 cap, KPageTable* page_table) {
+Result KCapabilities::MapIoPage_(const u32 cap, KProcessPageTable* page_table) {
     // Get/validate address/size
     const u64 phys_addr = MapIoPage{cap}.address.Value() * PageSize;
     const size_t num_pages = 1;
@@ -160,10 +160,7 @@ Result KCapabilities::MapIoPage_(const u32 cap, KPageTable* page_table) {
     R_UNLESS(((phys_addr + size - 1) & ~PhysicalMapAllowedMask) == 0, ResultInvalidAddress);
 
     // Do the mapping.
-    // R_RETURN(page_table->MapIo(phys_addr, size, KMemoryPermission_UserReadWrite));
-
-    UNIMPLEMENTED();
-    R_SUCCEED();
+    R_RETURN(page_table->MapIo(phys_addr, size, KMemoryPermission::UserReadWrite));
 }
 
 template <typename F>
@@ -200,13 +197,11 @@ Result KCapabilities::ProcessMapRegionCapability(const u32 cap, F f) {
     R_SUCCEED();
 }
 
-Result KCapabilities::MapRegion_(const u32 cap, KPageTable* page_table) {
+Result KCapabilities::MapRegion_(const u32 cap, KProcessPageTable* page_table) {
     // Map each region into the process's page table.
     return ProcessMapRegionCapability(
-        cap, [](KMemoryRegionType region_type, KMemoryPermission perm) -> Result {
-            // R_RETURN(page_table->MapRegion(region_type, perm));
-            UNIMPLEMENTED();
-            R_SUCCEED();
+        cap, [page_table](KMemoryRegionType region_type, KMemoryPermission perm) -> Result {
+            R_RETURN(page_table->MapRegion(region_type, perm));
         });
 }
 
@@ -280,7 +275,7 @@ Result KCapabilities::SetDebugFlagsCapability(const u32 cap) {
 }
 
 Result KCapabilities::SetCapability(const u32 cap, u32& set_flags, u32& set_svc,
-                                    KPageTable* page_table) {
+                                    KProcessPageTable* page_table) {
     // Validate this is a capability we can act on.
     const auto type = GetCapabilityType(cap);
     R_UNLESS(type != CapabilityType::Invalid, ResultInvalidArgument);
@@ -318,7 +313,7 @@ Result KCapabilities::SetCapability(const u32 cap, u32& set_flags, u32& set_svc,
     }
 }
 
-Result KCapabilities::SetCapabilities(std::span<const u32> caps, KPageTable* page_table) {
+Result KCapabilities::SetCapabilities(std::span<const u32> caps, KProcessPageTable* page_table) {
     u32 set_flags = 0, set_svc = 0;
 
     for (size_t i = 0; i < caps.size(); i++) {
@@ -335,6 +330,8 @@ Result KCapabilities::SetCapabilities(std::span<const u32> caps, KPageTable* pag
 
             // Map the range.
             R_TRY(this->MapRange_(cap, size_cap, page_table));
+        } else if (GetCapabilityType(cap) == CapabilityType::MapRegion && !IsKTraceEnabled) {
+            continue;
         } else {
             R_TRY(this->SetCapability(cap, set_flags, set_svc, page_table));
         }

@@ -19,19 +19,8 @@
 
 namespace Service::Set {
 
-namespace {
-constexpr u64 SYSTEM_VERSION_FILE_MINOR_REVISION_OFFSET = 0x05;
-
-enum class GetFirmwareVersionType {
-    Version1,
-    Version2,
-};
-
-void GetFirmwareVersionImpl(Core::System& system, HLERequestContext& ctx,
-                            GetFirmwareVersionType type) {
-    ASSERT_MSG(ctx.GetWriteBufferSize() == 0x100,
-               "FirmwareVersion output buffer must be 0x100 bytes in size!");
-
+Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System& system,
+                              GetFirmwareVersionType type) {
     constexpr u64 FirmwareVersionSystemDataId = 0x0100000000000809;
     auto& fsc = system.GetFileSystemController();
 
@@ -52,39 +41,34 @@ void GetFirmwareVersionImpl(Core::System& system, HLERequestContext& ctx,
             FileSys::SystemArchive::SynthesizeSystemArchive(FirmwareVersionSystemDataId));
     }
 
-    const auto early_exit_failure = [&ctx](std::string_view desc, Result code) {
+    const auto early_exit_failure = [](std::string_view desc, Result code) {
         LOG_ERROR(Service_SET, "General failure while attempting to resolve firmware version ({}).",
                   desc);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(code);
+        return code;
     };
 
     const auto ver_file = romfs->GetFile("file");
     if (ver_file == nullptr) {
-        early_exit_failure("The system version archive didn't contain the file 'file'.",
-                           FileSys::ERROR_INVALID_ARGUMENT);
-        return;
+        return early_exit_failure("The system version archive didn't contain the file 'file'.",
+                                  FileSys::ERROR_INVALID_ARGUMENT);
     }
 
     auto data = ver_file->ReadAllBytes();
-    if (data.size() != 0x100) {
-        early_exit_failure("The system version file 'file' was not the correct size.",
-                           FileSys::ERROR_OUT_OF_BOUNDS);
-        return;
+    if (data.size() != sizeof(FirmwareVersionFormat)) {
+        return early_exit_failure("The system version file 'file' was not the correct size.",
+                                  FileSys::ERROR_OUT_OF_BOUNDS);
     }
+
+    std::memcpy(&out_firmware, data.data(), sizeof(FirmwareVersionFormat));
 
     // If the command is GetFirmwareVersion (as opposed to GetFirmwareVersion2), hardware will
     // zero out the REVISION_MINOR field.
     if (type == GetFirmwareVersionType::Version1) {
-        data[SYSTEM_VERSION_FILE_MINOR_REVISION_OFFSET] = 0;
+        out_firmware.revision_minor = 0;
     }
 
-    ctx.WriteBuffer(data);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    return ResultSuccess;
 }
-} // Anonymous namespace
 
 void SET_SYS::SetLanguageCode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
@@ -98,12 +82,32 @@ void SET_SYS::SetLanguageCode(HLERequestContext& ctx) {
 
 void SET_SYS::GetFirmwareVersion(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
-    GetFirmwareVersionImpl(system, ctx, GetFirmwareVersionType::Version1);
+
+    FirmwareVersionFormat firmware_data{};
+    const auto result =
+        GetFirmwareVersionImpl(firmware_data, system, GetFirmwareVersionType::Version1);
+
+    if (result.IsSuccess()) {
+        ctx.WriteBuffer(firmware_data);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
 }
 
 void SET_SYS::GetFirmwareVersion2(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
-    GetFirmwareVersionImpl(system, ctx, GetFirmwareVersionType::Version2);
+
+    FirmwareVersionFormat firmware_data{};
+    const auto result =
+        GetFirmwareVersionImpl(firmware_data, system, GetFirmwareVersionType::Version2);
+
+    if (result.IsSuccess()) {
+        ctx.WriteBuffer(firmware_data);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
 }
 
 void SET_SYS::GetAccountSettings(HLERequestContext& ctx) {
@@ -431,8 +435,7 @@ void SET_SYS::GetAutoUpdateEnableFlag(HLERequestContext& ctx) {
 void SET_SYS::GetBatteryPercentageFlag(HLERequestContext& ctx) {
     u8 battery_percentage_flag{1};
 
-    LOG_WARNING(Service_SET, "(STUBBED) called, battery_percentage_flag={}",
-                battery_percentage_flag);
+    LOG_DEBUG(Service_SET, "(STUBBED) called, battery_percentage_flag={}", battery_percentage_flag);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
@@ -492,6 +495,29 @@ void SET_SYS::GetChineseTraditionalInputMethod(HLERequestContext& ctx) {
     rb.PushEnum(ChineseTraditionalInputMethod::Unknown0);
 }
 
+void SET_SYS::GetHomeMenuScheme(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_SET, "(STUBBED) called");
+
+    const HomeMenuScheme default_color = {
+        .main = 0xFF323232,
+        .back = 0xFF323232,
+        .sub = 0xFFFFFFFF,
+        .bezel = 0xFFFFFFFF,
+        .extra = 0xFF000000,
+    };
+
+    IPC::ResponseBuilder rb{ctx, 7};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(default_color);
+}
+
+void SET_SYS::GetHomeMenuSchemeModel(HLERequestContext& ctx) {
+    LOG_WARNING(Service_SET, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(0);
+}
 void SET_SYS::GetFieldTestingFlag(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
@@ -674,7 +700,7 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {171, nullptr, "SetChineseTraditionalInputMethod"},
         {172, nullptr, "GetPtmCycleCountReliability"},
         {173, nullptr, "SetPtmCycleCountReliability"},
-        {174, nullptr, "GetHomeMenuScheme"},
+        {174, &SET_SYS::GetHomeMenuScheme, "GetHomeMenuScheme"},
         {175, nullptr, "GetThemeSettings"},
         {176, nullptr, "SetThemeSettings"},
         {177, nullptr, "GetThemeKey"},
@@ -685,7 +711,7 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
         {182, nullptr, "SetT"},
         {183, nullptr, "GetPlatformRegion"},
         {184, nullptr, "SetPlatformRegion"},
-        {185, nullptr, "GetHomeMenuSchemeModel"},
+        {185, &SET_SYS::GetHomeMenuSchemeModel, "GetHomeMenuSchemeModel"},
         {186, nullptr, "GetMemoryUsageRateFlag"},
         {187, nullptr, "GetTouchScreenMode"},
         {188, nullptr, "SetTouchScreenMode"},

@@ -282,11 +282,19 @@ u64 SinkStream::GetExpectedPlayedSampleCount() {
 void SinkStream::WaitFreeSpace(std::stop_token stop_token) {
     std::unique_lock lk{release_mutex};
     release_cv.wait_for(lk, std::chrono::milliseconds(5),
-                        [this]() { return queued_buffers < max_queue_size; });
+                        [this]() { return paused || queued_buffers < max_queue_size; });
     if (queued_buffers > max_queue_size + 3) {
         Common::CondvarWait(release_cv, lk, stop_token,
-                            [this] { return queued_buffers < max_queue_size; });
+                            [this] { return paused || queued_buffers < max_queue_size; });
     }
+}
+
+void SinkStream::SignalPause() {
+    {
+        std::scoped_lock lk{release_mutex};
+        paused = true;
+    }
+    release_cv.notify_one();
 }
 
 } // namespace AudioCore::Sink

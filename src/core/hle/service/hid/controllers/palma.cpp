@@ -12,43 +12,43 @@
 
 namespace Service::HID {
 
-Controller_Palma::Controller_Palma(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_,
-                                   KernelHelpers::ServiceContext& service_context_)
+Palma::Palma(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_,
+             KernelHelpers::ServiceContext& service_context_)
     : ControllerBase{hid_core_}, service_context{service_context_} {
     controller = hid_core.GetEmulatedController(Core::HID::NpadIdType::Other);
     operation_complete_event = service_context.CreateEvent("hid:PalmaOperationCompleteEvent");
 }
 
-Controller_Palma::~Controller_Palma() {
+Palma::~Palma() {
     service_context.CloseEvent(operation_complete_event);
 };
 
-void Controller_Palma::OnInit() {}
+void Palma::OnInit() {}
 
-void Controller_Palma::OnRelease() {}
+void Palma::OnRelease() {}
 
-void Controller_Palma::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+void Palma::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     if (!IsControllerActivated()) {
         return;
     }
 }
 
-Result Controller_Palma::GetPalmaConnectionHandle(Core::HID::NpadIdType npad_id,
-                                                  PalmaConnectionHandle& handle) {
+Result Palma::GetPalmaConnectionHandle(Core::HID::NpadIdType npad_id,
+                                       PalmaConnectionHandle& handle) {
     active_handle.npad_id = npad_id;
     handle = active_handle;
     return ResultSuccess;
 }
 
-Result Controller_Palma::InitializePalma(const PalmaConnectionHandle& handle) {
+Result Palma::InitializePalma(const PalmaConnectionHandle& handle) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
-    ActivateController();
+    Activate();
     return ResultSuccess;
 }
 
-Kernel::KReadableEvent& Controller_Palma::AcquirePalmaOperationCompleteEvent(
+Kernel::KReadableEvent& Palma::AcquirePalmaOperationCompleteEvent(
     const PalmaConnectionHandle& handle) const {
     if (handle.npad_id != active_handle.npad_id) {
         LOG_ERROR(Service_HID, "Invalid npad id {}", handle.npad_id);
@@ -56,9 +56,9 @@ Kernel::KReadableEvent& Controller_Palma::AcquirePalmaOperationCompleteEvent(
     return operation_complete_event->GetReadableEvent();
 }
 
-Result Controller_Palma::GetPalmaOperationInfo(const PalmaConnectionHandle& handle,
-                                               PalmaOperationType& operation_type,
-                                               PalmaOperationData& data) const {
+Result Palma::GetPalmaOperationInfo(const PalmaConnectionHandle& handle,
+                                    PalmaOperationType& operation_type,
+                                    PalmaOperationData& data) const {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
@@ -67,8 +67,7 @@ Result Controller_Palma::GetPalmaOperationInfo(const PalmaConnectionHandle& hand
     return ResultSuccess;
 }
 
-Result Controller_Palma::PlayPalmaActivity(const PalmaConnectionHandle& handle,
-                                           u64 palma_activity) {
+Result Palma::PlayPalmaActivity(const PalmaConnectionHandle& handle, u64 palma_activity) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
@@ -79,8 +78,7 @@ Result Controller_Palma::PlayPalmaActivity(const PalmaConnectionHandle& handle,
     return ResultSuccess;
 }
 
-Result Controller_Palma::SetPalmaFrModeType(const PalmaConnectionHandle& handle,
-                                            PalmaFrModeType fr_mode_) {
+Result Palma::SetPalmaFrModeType(const PalmaConnectionHandle& handle, PalmaFrModeType fr_mode_) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
@@ -88,7 +86,7 @@ Result Controller_Palma::SetPalmaFrModeType(const PalmaConnectionHandle& handle,
     return ResultSuccess;
 }
 
-Result Controller_Palma::ReadPalmaStep(const PalmaConnectionHandle& handle) {
+Result Palma::ReadPalmaStep(const PalmaConnectionHandle& handle) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
@@ -99,25 +97,25 @@ Result Controller_Palma::ReadPalmaStep(const PalmaConnectionHandle& handle) {
     return ResultSuccess;
 }
 
-Result Controller_Palma::EnablePalmaStep(const PalmaConnectionHandle& handle, bool is_enabled) {
+Result Palma::EnablePalmaStep(const PalmaConnectionHandle& handle, bool is_enabled) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
     return ResultSuccess;
 }
 
-Result Controller_Palma::ResetPalmaStep(const PalmaConnectionHandle& handle) {
+Result Palma::ResetPalmaStep(const PalmaConnectionHandle& handle) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
     return ResultSuccess;
 }
 
-void Controller_Palma::ReadPalmaApplicationSection() {}
+void Palma::ReadPalmaApplicationSection() {}
 
-void Controller_Palma::WritePalmaApplicationSection() {}
+void Palma::WritePalmaApplicationSection() {}
 
-Result Controller_Palma::ReadPalmaUniqueCode(const PalmaConnectionHandle& handle) {
+Result Palma::ReadPalmaUniqueCode(const PalmaConnectionHandle& handle) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
@@ -128,7 +126,7 @@ Result Controller_Palma::ReadPalmaUniqueCode(const PalmaConnectionHandle& handle
     return ResultSuccess;
 }
 
-Result Controller_Palma::SetPalmaUniqueCodeInvalid(const PalmaConnectionHandle& handle) {
+Result Palma::SetPalmaUniqueCodeInvalid(const PalmaConnectionHandle& handle) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
@@ -139,10 +137,9 @@ Result Controller_Palma::SetPalmaUniqueCodeInvalid(const PalmaConnectionHandle& 
     return ResultSuccess;
 }
 
-void Controller_Palma::WritePalmaActivityEntry() {}
+void Palma::WritePalmaActivityEntry() {}
 
-Result Controller_Palma::WritePalmaRgbLedPatternEntry(const PalmaConnectionHandle& handle,
-                                                      u64 unknown) {
+Result Palma::WritePalmaRgbLedPatternEntry(const PalmaConnectionHandle& handle, u64 unknown) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
@@ -153,8 +150,8 @@ Result Controller_Palma::WritePalmaRgbLedPatternEntry(const PalmaConnectionHandl
     return ResultSuccess;
 }
 
-Result Controller_Palma::WritePalmaWaveEntry(const PalmaConnectionHandle& handle, PalmaWaveSet wave,
-                                             Common::ProcessAddress t_mem, u64 size) {
+Result Palma::WritePalmaWaveEntry(const PalmaConnectionHandle& handle, PalmaWaveSet wave,
+                                  Common::ProcessAddress t_mem, u64 size) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
@@ -165,8 +162,8 @@ Result Controller_Palma::WritePalmaWaveEntry(const PalmaConnectionHandle& handle
     return ResultSuccess;
 }
 
-Result Controller_Palma::SetPalmaDataBaseIdentificationVersion(const PalmaConnectionHandle& handle,
-                                                               s32 database_id_version_) {
+Result Palma::SetPalmaDataBaseIdentificationVersion(const PalmaConnectionHandle& handle,
+                                                    s32 database_id_version_) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
@@ -178,8 +175,7 @@ Result Controller_Palma::SetPalmaDataBaseIdentificationVersion(const PalmaConnec
     return ResultSuccess;
 }
 
-Result Controller_Palma::GetPalmaDataBaseIdentificationVersion(
-    const PalmaConnectionHandle& handle) {
+Result Palma::GetPalmaDataBaseIdentificationVersion(const PalmaConnectionHandle& handle) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
@@ -191,26 +187,26 @@ Result Controller_Palma::GetPalmaDataBaseIdentificationVersion(
     return ResultSuccess;
 }
 
-void Controller_Palma::SuspendPalmaFeature() {}
+void Palma::SuspendPalmaFeature() {}
 
-Result Controller_Palma::GetPalmaOperationResult(const PalmaConnectionHandle& handle) const {
+Result Palma::GetPalmaOperationResult(const PalmaConnectionHandle& handle) const {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
     return operation.result;
 }
-void Controller_Palma::ReadPalmaPlayLog() {}
+void Palma::ReadPalmaPlayLog() {}
 
-void Controller_Palma::ResetPalmaPlayLog() {}
+void Palma::ResetPalmaPlayLog() {}
 
-void Controller_Palma::SetIsPalmaAllConnectable(bool is_all_connectable) {
+void Palma::SetIsPalmaAllConnectable(bool is_all_connectable) {
     // If true controllers are able to be paired
     is_connectable = is_all_connectable;
 }
 
-void Controller_Palma::SetIsPalmaPairedConnectable() {}
+void Palma::SetIsPalmaPairedConnectable() {}
 
-Result Controller_Palma::PairPalma(const PalmaConnectionHandle& handle) {
+Result Palma::PairPalma(const PalmaConnectionHandle& handle) {
     if (handle.npad_id != active_handle.npad_id) {
         return InvalidPalmaHandle;
     }
@@ -218,14 +214,14 @@ Result Controller_Palma::PairPalma(const PalmaConnectionHandle& handle) {
     return ResultSuccess;
 }
 
-void Controller_Palma::SetPalmaBoostMode(bool boost_mode) {}
+void Palma::SetPalmaBoostMode(bool boost_mode) {}
 
-void Controller_Palma::CancelWritePalmaWaveEntry() {}
+void Palma::CancelWritePalmaWaveEntry() {}
 
-void Controller_Palma::EnablePalmaBoostMode() {}
+void Palma::EnablePalmaBoostMode() {}
 
-void Controller_Palma::GetPalmaBluetoothAddress() {}
+void Palma::GetPalmaBluetoothAddress() {}
 
-void Controller_Palma::SetDisallowedPalmaConnection() {}
+void Palma::SetDisallowedPalmaConnection() {}
 
 } // namespace Service::HID

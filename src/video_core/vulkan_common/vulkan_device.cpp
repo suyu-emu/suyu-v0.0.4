@@ -635,6 +635,12 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             has_broken_cube_compatibility = true;
         }
     }
+    if (is_qualcomm) {
+        const u32 version = (properties.properties.driverVersion << 3) >> 3;
+        if (version < VK_MAKE_API_VERSION(0, 255, 615, 512)) {
+            has_broken_parallel_compiling = true;
+        }
+    }
     if (extensions.sampler_filter_minmax && is_amd) {
         // Disable ext_sampler_filter_minmax on AMD GCN4 and lower as it is broken.
         if (!features.shader_float16_int8.shaderFloat16) {
@@ -863,7 +869,8 @@ bool Device::ShouldBoostClocks() const {
         driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA ||
         driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP;
 
-    const bool is_steam_deck = vendor_id == 0x1002 && device_id == 0x163F;
+    const bool is_steam_deck = (vendor_id == 0x1002 && device_id == 0x163F) ||
+                               (vendor_id == 0x1002 && device_id == 0x1435);
 
     const bool is_debugging = this->HasDebuggingToolAttached();
 

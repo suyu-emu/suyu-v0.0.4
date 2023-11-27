@@ -47,6 +47,7 @@ import org.yuzu.yuzu_emu.model.EmulationViewModel
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.ForegroundService
 import org.yuzu.yuzu_emu.utils.InputHandler
+import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.MemoryUtil
 import org.yuzu.yuzu_emu.utils.NfcReader
 import org.yuzu.yuzu_emu.utils.ThemeHelper
@@ -80,6 +81,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.gameLaunched = true
         ThemeHelper.setTheme(this)
 
         super.onCreate(savedInstanceState)
@@ -105,7 +107,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
         val preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
         if (!preferences.getBoolean(Settings.PREF_MEMORY_WARNING_SHOWN, false)) {
-            if (MemoryUtil.isLessThan(MemoryUtil.REQUIRED_MEMORY, MemoryUtil.Gb)) {
+            if (MemoryUtil.isLessThan(MemoryUtil.REQUIRED_MEMORY, MemoryUtil.totalMemory)) {
                 Toast.makeText(
                     this,
                     getString(
@@ -371,8 +373,10 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
         val pictureInPictureParamsBuilder = PictureInPictureParams.Builder()
             .getPictureInPictureActionsBuilder().getPictureInPictureAspectBuilder()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val isEmulationActive = emulationViewModel.emulationStarted.value &&
+                !emulationViewModel.isEmulationStopping.value
             pictureInPictureParamsBuilder.setAutoEnterEnabled(
-                BooleanSetting.PICTURE_IN_PICTURE.boolean
+                BooleanSetting.PICTURE_IN_PICTURE.boolean && isEmulationActive
             )
         }
         setPictureInPictureParams(pictureInPictureParamsBuilder.build())

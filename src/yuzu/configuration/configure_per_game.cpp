@@ -25,8 +25,8 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
+#include "frontend_common/config.h"
 #include "ui_configure_per_game.h"
-#include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_audio.h"
 #include "yuzu/configuration/configure_cpu.h"
@@ -50,8 +50,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
     const auto file_path = std::filesystem::path(Common::FS::ToU8String(file_name));
     const auto config_file_name = title_id == 0 ? Common::FS::PathToUTF8String(file_path.filename())
                                                 : fmt::format("{:016X}", title_id);
-    game_config = std::make_unique<Config>(config_file_name, Config::ConfigType::PerGameConfig);
-
+    game_config = std::make_unique<QtConfig>(config_file_name, Config::ConfigType::PerGameConfig);
     addons_tab = std::make_unique<ConfigurePerGameAddons>(system_, this);
     audio_tab = std::make_unique<ConfigureAudio>(system_, tab_group, *builder, this);
     cpu_tab = std::make_unique<ConfigureCpu>(system_, tab_group, *builder, this);
@@ -108,7 +107,7 @@ void ConfigurePerGame::ApplyConfiguration() {
     system.ApplySettings();
     Settings::LogSettings();
 
-    game_config->Save();
+    game_config->SaveAllValues();
 }
 
 void ConfigurePerGame::changeEvent(QEvent* event) {

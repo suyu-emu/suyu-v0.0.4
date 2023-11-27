@@ -297,8 +297,8 @@ void PlayerControlPreview::DrawLeftController(QPainter& p, const QPointF center)
 
         // Sideview SL and SR buttons
         button_color = colors.slider_button;
-        DrawRoundButton(p, center + QPoint(59, 52), button_values[SR], 5, 12, Direction::Left);
-        DrawRoundButton(p, center + QPoint(59, -69), button_values[SL], 5, 12, Direction::Left);
+        DrawRoundButton(p, center + QPoint(59, 52), button_values[SRLeft], 5, 12, Direction::Left);
+        DrawRoundButton(p, center + QPoint(59, -69), button_values[SLLeft], 5, 12, Direction::Left);
 
         DrawLeftBody(p, center);
 
@@ -353,8 +353,10 @@ void PlayerControlPreview::DrawLeftController(QPainter& p, const QPointF center)
     // SR and SL buttons
     p.setPen(colors.outline);
     button_color = colors.slider_button;
-    DrawRoundButton(p, center + QPoint(155, 52), button_values[SR], 5.2f, 12, Direction::None, 4);
-    DrawRoundButton(p, center + QPoint(155, -69), button_values[SL], 5.2f, 12, Direction::None, 4);
+    DrawRoundButton(p, center + QPoint(155, 52), button_values[SRLeft], 5.2f, 12, Direction::None,
+                    4);
+    DrawRoundButton(p, center + QPoint(155, -69), button_values[SLLeft], 5.2f, 12, Direction::None,
+                    4);
 
     // SR and SL text
     p.setPen(colors.transparent);
@@ -428,8 +430,10 @@ void PlayerControlPreview::DrawRightController(QPainter& p, const QPointF center
 
         // Sideview SL and SR buttons
         button_color = colors.slider_button;
-        DrawRoundButton(p, center + QPoint(-59, 52), button_values[SL], 5, 11, Direction::Right);
-        DrawRoundButton(p, center + QPoint(-59, -69), button_values[SR], 5, 11, Direction::Right);
+        DrawRoundButton(p, center + QPoint(-59, 52), button_values[SLRight], 5, 11,
+                        Direction::Right);
+        DrawRoundButton(p, center + QPoint(-59, -69), button_values[SRRight], 5, 11,
+                        Direction::Right);
 
         DrawRightBody(p, center);
 
@@ -484,8 +488,10 @@ void PlayerControlPreview::DrawRightController(QPainter& p, const QPointF center
     // SR and SL buttons
     p.setPen(colors.outline);
     button_color = colors.slider_button;
-    DrawRoundButton(p, center + QPoint(-155, 52), button_values[SL], 5, 12, Direction::None, 4.0f);
-    DrawRoundButton(p, center + QPoint(-155, -69), button_values[SR], 5, 12, Direction::None, 4.0f);
+    DrawRoundButton(p, center + QPoint(-155, 52), button_values[SLRight], 5, 12, Direction::None,
+                    4.0f);
+    DrawRoundButton(p, center + QPoint(-155, -69), button_values[SRRight], 5, 12, Direction::None,
+                    4.0f);
 
     // SR and SL text
     p.setPen(colors.transparent);
@@ -556,6 +562,19 @@ void PlayerControlPreview::DrawDualController(QPainter& p, const QPointF center)
         button_color = colors.button;
         DrawRoundButton(p, center + QPoint(-154, -72), button_values[Minus], 7, 4, Direction::Up,
                         1);
+
+        // Left SR and SL sideview buttons
+        button_color = colors.slider_button;
+        DrawRoundButton(p, center + QPoint(-20, -62), button_values[SLLeft], 4, 11,
+                        Direction::Left);
+        DrawRoundButton(p, center + QPoint(-20, 47), button_values[SRLeft], 4, 11, Direction::Left);
+
+        // Right SR and SL sideview buttons
+        button_color = colors.slider_button;
+        DrawRoundButton(p, center + QPoint(20, 47), button_values[SLRight], 4, 11,
+                        Direction::Right);
+        DrawRoundButton(p, center + QPoint(20, -62), button_values[SRRight], 4, 11,
+                        Direction::Right);
 
         DrawDualBody(p, center);
 
@@ -1791,16 +1810,6 @@ void PlayerControlPreview::DrawDualBody(QPainter& p, const QPointF center) {
     DrawPolygon(p, qleft_joycon_topview);
     p.setBrush(colors.right);
     DrawPolygon(p, qright_joycon_topview);
-
-    // Right SR and SL sideview buttons
-    p.setPen(colors.outline);
-    p.setBrush(colors.slider_button);
-    DrawRoundRectangle(p, center + QPoint(19, 47), 7, 22, 1);
-    DrawRoundRectangle(p, center + QPoint(19, -62), 7, 22, 1);
-
-    // Left SR and SL sideview buttons
-    DrawRoundRectangle(p, center + QPoint(-19, 47), 7, 22, 1);
-    DrawRoundRectangle(p, center + QPoint(-19, -62), 7, 22, 1);
 
     // Right Sideview body
     p.setBrush(colors.slider);

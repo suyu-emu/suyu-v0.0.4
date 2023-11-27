@@ -71,24 +71,17 @@ Result AllocateIoForProcessAddressSpace(Common::ProcessAddress* out_map_address,
     R_SUCCEED();
 }
 
-template <typename T>
-std::span<u8> SerializeIoc(T& params) {
-    return std::span(reinterpret_cast<u8*>(std::addressof(params)), sizeof(T));
-}
-
 Result CreateNvMapHandle(u32* out_nv_map_handle, Nvidia::Devices::nvmap& nvmap, u32 size) {
     // Create a handle.
-    Nvidia::Devices::nvmap::IocCreateParams create_in_params{
+    Nvidia::Devices::nvmap::IocCreateParams create_params{
         .size = size,
         .handle = 0,
     };
-    Nvidia::Devices::nvmap::IocCreateParams create_out_params{};
-    R_UNLESS(nvmap.IocCreate(SerializeIoc(create_in_params), SerializeIoc(create_out_params)) ==
-                 Nvidia::NvResult::Success,
+    R_UNLESS(nvmap.IocCreate(create_params) == Nvidia::NvResult::Success,
              VI::ResultOperationFailed);
 
     // Assign the output handle.
-    *out_nv_map_handle = create_out_params.handle;
+    *out_nv_map_handle = create_params.handle;
 
     // We succeeded.
     R_SUCCEED();
@@ -96,13 +89,10 @@ Result CreateNvMapHandle(u32* out_nv_map_handle, Nvidia::Devices::nvmap& nvmap, 
 
 Result FreeNvMapHandle(Nvidia::Devices::nvmap& nvmap, u32 handle) {
     // Free the handle.
-    Nvidia::Devices::nvmap::IocFreeParams free_in_params{
+    Nvidia::Devices::nvmap::IocFreeParams free_params{
         .handle = handle,
     };
-    Nvidia::Devices::nvmap::IocFreeParams free_out_params{};
-    R_UNLESS(nvmap.IocFree(SerializeIoc(free_in_params), SerializeIoc(free_out_params)) ==
-                 Nvidia::NvResult::Success,
-             VI::ResultOperationFailed);
+    R_UNLESS(nvmap.IocFree(free_params) == Nvidia::NvResult::Success, VI::ResultOperationFailed);
 
     // We succeeded.
     R_SUCCEED();
@@ -111,7 +101,7 @@ Result FreeNvMapHandle(Nvidia::Devices::nvmap& nvmap, u32 handle) {
 Result AllocNvMapHandle(Nvidia::Devices::nvmap& nvmap, u32 handle, Common::ProcessAddress buffer,
                         u32 size) {
     // Assign the allocated memory to the handle.
-    Nvidia::Devices::nvmap::IocAllocParams alloc_in_params{
+    Nvidia::Devices::nvmap::IocAllocParams alloc_params{
         .handle = handle,
         .heap_mask = 0,
         .flags = {},
@@ -119,10 +109,7 @@ Result AllocNvMapHandle(Nvidia::Devices::nvmap& nvmap, u32 handle, Common::Proce
         .kind = 0,
         .address = GetInteger(buffer),
     };
-    Nvidia::Devices::nvmap::IocAllocParams alloc_out_params{};
-    R_UNLESS(nvmap.IocAlloc(SerializeIoc(alloc_in_params), SerializeIoc(alloc_out_params)) ==
-                 Nvidia::NvResult::Success,
-             VI::ResultOperationFailed);
+    R_UNLESS(nvmap.IocAlloc(alloc_params) == Nvidia::NvResult::Success, VI::ResultOperationFailed);
 
     // We succeeded.
     R_SUCCEED();
@@ -179,7 +166,7 @@ constexpr SharedMemoryPoolLayout SharedBufferPoolLayout = [] {
 }();
 
 void MakeGraphicBuffer(android::BufferQueueProducer& producer, u32 slot, u32 handle) {
-    auto buffer = std::make_shared<android::GraphicBuffer>();
+    auto buffer = std::make_shared<android::NvGraphicBuffer>();
     buffer->width = SharedBufferWidth;
     buffer->height = SharedBufferHeight;
     buffer->stride = SharedBufferBlockLinearStride;

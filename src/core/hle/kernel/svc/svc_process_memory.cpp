@@ -247,8 +247,7 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
         R_THROW(ResultInvalidCurrentMemory);
     }
 
-    R_RETURN(page_table.UnmapCodeMemory(dst_address, src_address, size,
-                                        KPageTable::ICacheInvalidationStrategy::InvalidateAll));
+    R_RETURN(page_table.UnmapCodeMemory(dst_address, src_address, size));
 }
 
 Result SetProcessMemoryPermission64(Core::System& system, Handle process_handle, uint64_t address,

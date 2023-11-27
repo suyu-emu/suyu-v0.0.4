@@ -33,7 +33,7 @@ public:
     ~ControllerShortcut();
 
     void SetKey(const ControllerButtonSequence& buttons);
-    void SetKey(const QString& buttons_shortcut);
+    void SetKey(const std::string& buttons_shortcut);
 
     ControllerButtonSequence ButtonSequence() const;
 
@@ -88,8 +88,8 @@ public:
      *          will be the same. Thus, you shouldn't rely on the caller really being the
      *          QShortcut's parent.
      */
-    QShortcut* GetHotkey(const QString& group, const QString& action, QWidget* widget);
-    ControllerShortcut* GetControllerHotkey(const QString& group, const QString& action,
+    QShortcut* GetHotkey(const std::string& group, const std::string& action, QWidget* widget);
+    ControllerShortcut* GetControllerHotkey(const std::string& group, const std::string& action,
                                             Core::HID::EmulatedController* controller);
 
     /**
@@ -98,7 +98,7 @@ public:
      * @param group  General group this hotkey belongs to (e.g. "Main Window", "Debugger").
      * @param action Name of the action (e.g. "Start Emulation", "Load Image").
      */
-    QKeySequence GetKeySequence(const QString& group, const QString& action);
+    QKeySequence GetKeySequence(const std::string& group, const std::string& action);
 
     /**
      * Returns a Qt::ShortcutContext object who can be connected to other
@@ -108,20 +108,20 @@ public:
      * "Debugger").
      * @param action Name of the action (e.g. "Start Emulation", "Load Image").
      */
-    Qt::ShortcutContext GetShortcutContext(const QString& group, const QString& action);
+    Qt::ShortcutContext GetShortcutContext(const std::string& group, const std::string& action);
 
 private:
     struct Hotkey {
         QKeySequence keyseq;
-        QString controller_keyseq;
+        std::string controller_keyseq;
         QShortcut* shortcut = nullptr;
         ControllerShortcut* controller_shortcut = nullptr;
         Qt::ShortcutContext context = Qt::WindowShortcut;
         bool repeat;
     };
 
-    using HotkeyMap = std::map<QString, Hotkey>;
-    using HotkeyGroupMap = std::map<QString, HotkeyMap>;
+    using HotkeyMap = std::map<std::string, Hotkey>;
+    using HotkeyGroupMap = std::map<std::string, HotkeyMap>;
 
     HotkeyGroupMap hotkey_groups;
 };

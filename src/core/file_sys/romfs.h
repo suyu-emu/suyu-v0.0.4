@@ -7,16 +7,9 @@
 
 namespace FileSys {
 
-enum class RomFSExtractionType {
-    Full,          // Includes data directory
-    Truncated,     // Traverses into data directory
-    SingleDiscard, // Traverses into the first subdirectory of root
-};
-
 // Converts a RomFS binary blob to VFS Filesystem
 // Returns nullptr on failure
-VirtualDir ExtractRomFS(VirtualFile file,
-                        RomFSExtractionType type = RomFSExtractionType::Truncated);
+VirtualDir ExtractRomFS(VirtualFile file);
 
 // Converts a VFS filesystem into a RomFS binary
 // Returns nullptr on failure

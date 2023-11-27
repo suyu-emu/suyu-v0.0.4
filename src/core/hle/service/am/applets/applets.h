@@ -69,6 +69,30 @@ enum class AppletId : u32 {
     MyPage = 0x1A,
 };
 
+enum class AppletProgramId : u64 {
+    QLaunch = 0x0100000000001000ull,
+    Auth = 0x0100000000001001ull,
+    Cabinet = 0x0100000000001002ull,
+    Controller = 0x0100000000001003ull,
+    DataErase = 0x0100000000001004ull,
+    Error = 0x0100000000001005ull,
+    NetConnect = 0x0100000000001006ull,
+    ProfileSelect = 0x0100000000001007ull,
+    SoftwareKeyboard = 0x0100000000001008ull,
+    MiiEdit = 0x0100000000001009ull,
+    Web = 0x010000000000100Aull,
+    Shop = 0x010000000000100Bull,
+    OverlayDisplay = 0x010000000000100Cull,
+    PhotoViewer = 0x010000000000100Dull,
+    Settings = 0x010000000000100Eull,
+    OfflineWeb = 0x010000000000100Full,
+    LoginShare = 0x0100000000001010ull,
+    WebAuth = 0x0100000000001011ull,
+    Starter = 0x0100000000001012ull,
+    MyPage = 0x0100000000001013ull,
+    MaxProgramId = 0x0100000000001FFFull,
+};
+
 enum class LibraryAppletMode : u32 {
     AllForeground = 0,
     Background = 1,

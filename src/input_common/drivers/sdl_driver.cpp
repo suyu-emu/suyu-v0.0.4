@@ -828,16 +828,18 @@ ButtonMapping SDLDriver::GetButtonMappingForDevice(const Common::ParamPackage& p
 ButtonBindings SDLDriver::GetDefaultButtonBinding(
     const std::shared_ptr<SDLJoystick>& joystick) const {
     // Default SL/SR mapping for other controllers
-    auto sl_button = SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
-    auto sr_button = SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
+    auto sll_button = SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
+    auto srl_button = SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
+    auto slr_button = SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
+    auto srr_button = SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
 
     if (joystick->IsJoyconLeft()) {
-        sl_button = SDL_CONTROLLER_BUTTON_PADDLE2;
-        sr_button = SDL_CONTROLLER_BUTTON_PADDLE4;
+        sll_button = SDL_CONTROLLER_BUTTON_PADDLE2;
+        srl_button = SDL_CONTROLLER_BUTTON_PADDLE4;
     }
     if (joystick->IsJoyconRight()) {
-        sl_button = SDL_CONTROLLER_BUTTON_PADDLE3;
-        sr_button = SDL_CONTROLLER_BUTTON_PADDLE1;
+        slr_button = SDL_CONTROLLER_BUTTON_PADDLE3;
+        srr_button = SDL_CONTROLLER_BUTTON_PADDLE1;
     }
 
     return {
@@ -855,8 +857,10 @@ ButtonBindings SDLDriver::GetDefaultButtonBinding(
         {Settings::NativeButton::DUp, SDL_CONTROLLER_BUTTON_DPAD_UP},
         {Settings::NativeButton::DRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT},
         {Settings::NativeButton::DDown, SDL_CONTROLLER_BUTTON_DPAD_DOWN},
-        {Settings::NativeButton::SL, sl_button},
-        {Settings::NativeButton::SR, sr_button},
+        {Settings::NativeButton::SLLeft, sll_button},
+        {Settings::NativeButton::SRLeft, srl_button},
+        {Settings::NativeButton::SLRight, slr_button},
+        {Settings::NativeButton::SRRight, srr_button},
         {Settings::NativeButton::Home, SDL_CONTROLLER_BUTTON_GUIDE},
         {Settings::NativeButton::Screenshot, SDL_CONTROLLER_BUTTON_MISC1},
     };
