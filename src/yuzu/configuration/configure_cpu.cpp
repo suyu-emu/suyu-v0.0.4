@@ -27,6 +27,13 @@ ConfigureCpu::ConfigureCpu(const Core::System& system_,
 
     connect(accuracy_combobox, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ConfigureCpu::UpdateGroup);
+
+    connect(backend_combobox, qOverload<int>(&QComboBox::currentIndexChanged), this,
+            &ConfigureCpu::UpdateGroup);
+
+#ifdef HAS_NCE
+    ui->backend_group->setVisible(true);
+#endif
 }
 
 ConfigureCpu::~ConfigureCpu() = default;
@@ -34,6 +41,7 @@ ConfigureCpu::~ConfigureCpu() = default;
 void ConfigureCpu::SetConfiguration() {}
 void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
     auto* accuracy_layout = ui->widget_accuracy->layout();
+    auto* backend_layout = ui->widget_backend->layout();
     auto* unsafe_layout = ui->unsafe_widget->layout();
     std::map<u32, QWidget*> unsafe_hold{};
 
@@ -62,6 +70,9 @@ void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
             // Keep track of cpu_accuracy combobox to display/hide the unsafe settings
             accuracy_layout->addWidget(widget);
             accuracy_combobox = widget->combobox;
+        } else if (setting->Id() == Settings::values.cpu_backend.Id()) {
+            backend_layout->addWidget(widget);
+            backend_combobox = widget->combobox;
         } else {
             // Presently, all other settings here are unsafe checkboxes
             unsafe_hold.insert({setting->Id(), widget});
@@ -73,6 +84,7 @@ void ConfigureCpu::Setup(const ConfigurationShared::Builder& builder) {
     }
 
     UpdateGroup(accuracy_combobox->currentIndex());
+    UpdateGroup(backend_combobox->currentIndex());
 }
 
 void ConfigureCpu::UpdateGroup(int index) {

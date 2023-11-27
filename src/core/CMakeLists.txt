@@ -926,8 +926,7 @@ if (ENABLE_WEB_SERVICE)
     target_link_libraries(core PRIVATE web_service)
 endif()
 
-if (ARCHITECTURE_arm64 AND (ANDROID OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux"))
-    target_compile_definitions(core PRIVATE -DHAS_NCE)
+if (HAS_NCE)
     enable_language(C ASM)
     set(CMAKE_ASM_FLAGS "${CFLAGS} -x assembler-with-cpp")
 

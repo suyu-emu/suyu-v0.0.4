@@ -182,7 +182,7 @@ struct Values {
     // Cpu
     SwitchableSetting<CpuBackend, true> cpu_backend{
         linkage,         CpuBackend::Dynarmic, CpuBackend::Dynarmic,
-#ifdef ARCHITECTURE_arm64
+#ifdef HAS_NCE
         CpuBackend::Nce,
 #else
                                                     CpuBackend::Dynarmic,
