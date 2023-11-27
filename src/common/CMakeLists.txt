@@ -199,7 +199,7 @@ if(ARCHITECTURE_x86_64)
     target_link_libraries(common PRIVATE xbyak::xbyak)
 endif()
 
-if (ARCHITECTURE_arm64 AND (ANDROID OR LINUX))
+if (HAS_NCE)
     target_sources(common
         PRIVATE
             arm64/native_clock.cpp
