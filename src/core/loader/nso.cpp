@@ -165,7 +165,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
         patch->PatchText(program_image, code);
 
         // Add patch section size to the module size.
-        image_size += patch->GetSectionSize();
+        image_size += static_cast<u32>(patch->GetSectionSize());
     } else if (patch) {
         // Relocate code patch and copy to the program_image.
         patch->RelocateAndCopy(load_base, code, program_image, &process.GetPostHandlers());
