@@ -12,6 +12,7 @@ import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
@@ -20,6 +21,7 @@ import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.utils.GameHelper
 import org.yuzu.yuzu_emu.utils.GameMetadata
+import org.yuzu.yuzu_emu.utils.NativeConfig
 
 class GamesViewModel : ViewModel() {
     val games: StateFlow<List<Game>> get() = _games
@@ -40,6 +42,9 @@ class GamesViewModel : ViewModel() {
     val searchFocused: StateFlow<Boolean> get() = _searchFocused
     private val _searchFocused = MutableStateFlow(false)
 
+    private val _folders = MutableStateFlow(mutableListOf<GameDir>())
+    val folders = _folders.asStateFlow()
+
     init {
         // Ensure keys are loaded so that ROM metadata can be decrypted.
         NativeLibrary.reloadKeys()
@@ -50,6 +55,7 @@ class GamesViewModel : ViewModel() {
 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
+                getGameDirs()
                 if (storedGames!!.isNotEmpty()) {
                     val deserializedGames = mutableSetOf<Game>()
                     storedGames.forEach {
@@ -104,7 +110,7 @@ class GamesViewModel : ViewModel() {
         _searchFocused.value = searchFocused
     }
 
-    fun reloadGames(directoryChanged: Boolean) {
+    fun reloadGames(directoriesChanged: Boolean) {
         if (isReloading.value) {
             return
         }
@@ -116,10 +122,61 @@ class GamesViewModel : ViewModel() {
                 setGames(GameHelper.getGames())
                 _isReloading.value = false
 
-                if (directoryChanged) {
+                if (directoriesChanged) {
                     setShouldSwapData(true)
                 }
             }
+        }
+    }
+
+    fun addFolder(gameDir: GameDir) =
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                NativeConfig.addGameDir(gameDir)
+                getGameDirs()
+            }
+        }
+
+    fun removeFolder(gameDir: GameDir) =
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val gameDirs = _folders.value.toMutableList()
+                val removedDirIndex = gameDirs.indexOf(gameDir)
+                if (removedDirIndex != -1) {
+                    gameDirs.removeAt(removedDirIndex)
+                    NativeConfig.setGameDirs(gameDirs.toTypedArray())
+                    getGameDirs()
+                }
+            }
+        }
+
+    fun updateGameDirs() =
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                NativeConfig.setGameDirs(_folders.value.toTypedArray())
+                getGameDirs()
+            }
+        }
+
+    fun onOpenGameFoldersFragment() =
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                getGameDirs()
+            }
+        }
+
+    fun onCloseGameFoldersFragment() =
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                getGameDirs(true)
+            }
+        }
+
+    private fun getGameDirs(reloadList: Boolean = false) {
+        val gameDirs = NativeConfig.getGameDirs()
+        _folders.value = gameDirs.toMutableList()
+        if (reloadList) {
+            reloadGames(true)
         }
     }
 }

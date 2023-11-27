@@ -38,6 +38,7 @@
     <string name="empty_gamelist">No files were found or no game directory has been selected yet.</string>
     <string name="search_and_filter_games">Search and filter games</string>
     <string name="select_games_folder">Select games folder</string>
+    <string name="manage_game_folders">Manage game folders</string>
     <string name="select_games_folder_description">Allows yuzu to populate the games list</string>
     <string name="add_games_warning">Skip selecting games folder?</string>
     <string name="add_games_warning_description">Games won\'t be displayed in the Games list if a folder isn\'t selected.</string>
@@ -124,6 +125,11 @@
     <string name="manage_yuzu_data_description">Import/export firmware, keys, user data, and more!</string>
     <string name="share_save_file">Share save file</string>
     <string name="export_save_failed">Failed to export save</string>
+    <string name="game_folders">Game folders</string>
+    <string name="deep_scan">Deep scan</string>
+    <string name="add_game_folder">Add game folder</string>
+    <string name="folder_already_added">This folder was already added!</string>
+    <string name="game_folder_properties">Game folder properties</string>
 
     <!-- Applet launcher strings -->
     <string name="applets">Applet launcher</string>
@@ -257,6 +263,7 @@
     <string name="cancelling">Cancelling</string>
     <string name="install">Install</string>
     <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
     <string name="export_success">Exported successfully</string>
 
     <!-- GPU driver installation -->
