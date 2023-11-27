@@ -208,6 +208,7 @@ IHidServer::IHidServer(Core::System& system_, std::shared_ptr<ResourceManager> r
         {1001, &IHidServer::GetNpadCommunicationMode, "GetNpadCommunicationMode"},
         {1002, &IHidServer::SetTouchScreenConfiguration, "SetTouchScreenConfiguration"},
         {1003, &IHidServer::IsFirmwareUpdateNeededForNotification, "IsFirmwareUpdateNeededForNotification"},
+        {1004, &IHidServer::SetTouchScreenResolution, "SetTouchScreenResolution"},
         {2000, nullptr, "ActivateDigitizer"},
     };
     // clang-format on
@@ -2361,6 +2362,21 @@ void IHidServer::IsFirmwareUpdateNeededForNotification(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.Push(false);
+}
+
+void IHidServer::SetTouchScreenResolution(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto width{rp.Pop<u32>()};
+    const auto height{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    GetResourceManager()->GetTouchScreen()->SetTouchscreenDimensions(width, height);
+
+    LOG_INFO(Service_HID, "called, width={}, height={}, applet_resource_user_id={}", width, height,
+             applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 std::shared_ptr<ResourceManager> IHidServer::GetResourceManager() {
