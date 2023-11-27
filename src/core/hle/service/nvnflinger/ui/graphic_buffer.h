@@ -6,16 +6,22 @@
 
 #pragma once
 
+#include <memory>
+
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "core/hle/service/nvnflinger/pixel_format.h"
 
+namespace Service::Nvidia::NvCore {
+class NvMap;
+} // namespace Service::Nvidia::NvCore
+
 namespace Service::android {
 
-struct GraphicBuffer final {
-    constexpr GraphicBuffer() = default;
+struct NvGraphicBuffer {
+    constexpr NvGraphicBuffer() = default;
 
-    constexpr GraphicBuffer(u32 width_, u32 height_, PixelFormat format_, u32 usage_)
+    constexpr NvGraphicBuffer(u32 width_, u32 height_, PixelFormat format_, u32 usage_)
         : width{static_cast<s32>(width_)}, height{static_cast<s32>(height_)}, format{format_},
           usage{static_cast<s32>(usage_)} {}
 
@@ -93,6 +99,17 @@ struct GraphicBuffer final {
     u32 offset{};
     INSERT_PADDING_WORDS(60);
 };
-static_assert(sizeof(GraphicBuffer) == 0x16C, "GraphicBuffer has wrong size");
+static_assert(sizeof(NvGraphicBuffer) == 0x16C, "NvGraphicBuffer has wrong size");
+
+class GraphicBuffer final : public NvGraphicBuffer {
+public:
+    explicit GraphicBuffer(u32 width, u32 height, PixelFormat format, u32 usage);
+    explicit GraphicBuffer(Service::Nvidia::NvCore::NvMap& nvmap,
+                           std::shared_ptr<NvGraphicBuffer> buffer);
+    ~GraphicBuffer();
+
+private:
+    Service::Nvidia::NvCore::NvMap* m_nvmap{};
+};
 
 } // namespace Service::android

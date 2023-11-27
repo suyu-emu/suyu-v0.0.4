@@ -56,7 +56,7 @@ enum class ControllerSupportResult : u32 {
 struct ControllerSupportArgPrivate {
     u32 arg_private_size{};
     u32 arg_size{};
-    bool flag_0{};
+    bool is_home_menu{};
     bool flag_1{};
     ControllerSupportMode mode{};
     ControllerSupportCaller caller{};

@@ -214,6 +214,12 @@ public:
     void WaitFreeSpace(std::stop_token stop_token);
 
 protected:
+    /**
+     * Unblocks the ADSP if the stream is paused.
+     */
+    void SignalPause();
+
+protected:
     /// Core system
     Core::System& system;
     /// Type of this stream

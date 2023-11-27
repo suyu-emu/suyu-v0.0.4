@@ -59,7 +59,7 @@ void Impl(TranslatorVisitor& v, u64 insn, bool is_bindless) {
         BitField<51, 3, IR::Pred> sparse_pred;
         BitField<0, 8, IR::Reg> dest_reg;
         BitField<8, 8, IR::Reg> coord_reg;
-        BitField<20, 8, IR::Reg> derivate_reg;
+        BitField<20, 8, IR::Reg> derivative_reg;
         BitField<28, 3, TextureType> type;
         BitField<31, 4, u64> mask;
         BitField<36, 13, u64> cbuf_offset;
@@ -71,7 +71,7 @@ void Impl(TranslatorVisitor& v, u64 insn, bool is_bindless) {
     }
 
     IR::Value coords;
-    u32 num_derivates{};
+    u32 num_derivatives{};
     IR::Reg base_reg{txd.coord_reg};
     IR::Reg last_reg;
     IR::Value handle;
@@ -90,42 +90,42 @@ void Impl(TranslatorVisitor& v, u64 insn, bool is_bindless) {
     switch (txd.type) {
     case TextureType::_1D: {
         coords = v.F(base_reg);
-        num_derivates = 1;
+        num_derivatives = 1;
         last_reg = base_reg + 1;
         break;
     }
     case TextureType::ARRAY_1D: {
         last_reg = base_reg + 1;
         coords = v.ir.CompositeConstruct(v.F(base_reg), read_array());
-        num_derivates = 1;
+        num_derivatives = 1;
         break;
     }
     case TextureType::_2D: {
         last_reg = base_reg + 2;
         coords = v.ir.CompositeConstruct(v.F(base_reg), v.F(base_reg + 1));
-        num_derivates = 2;
+        num_derivatives = 2;
         break;
     }
     case TextureType::ARRAY_2D: {
         last_reg = base_reg + 2;
         coords = v.ir.CompositeConstruct(v.F(base_reg), v.F(base_reg + 1), read_array());
-        num_derivates = 2;
+        num_derivatives = 2;
         break;
     }
     default:
         throw NotImplementedException("Invalid texture type");
     }
 
-    const IR::Reg derivate_reg{txd.derivate_reg};
-    IR::Value derivates;
-    switch (num_derivates) {
+    const IR::Reg derivative_reg{txd.derivative_reg};
+    IR::Value derivatives;
+    switch (num_derivatives) {
     case 1: {
-        derivates = v.ir.CompositeConstruct(v.F(derivate_reg), v.F(derivate_reg + 1));
+        derivatives = v.ir.CompositeConstruct(v.F(derivative_reg), v.F(derivative_reg + 1));
         break;
     }
     case 2: {
-        derivates = v.ir.CompositeConstruct(v.F(derivate_reg), v.F(derivate_reg + 1),
-                                            v.F(derivate_reg + 2), v.F(derivate_reg + 3));
+        derivatives = v.ir.CompositeConstruct(v.F(derivative_reg), v.F(derivative_reg + 1),
+                                              v.F(derivative_reg + 2), v.F(derivative_reg + 3));
         break;
     }
     default:
@@ -150,9 +150,10 @@ void Impl(TranslatorVisitor& v, u64 insn, bool is_bindless) {
 
     IR::TextureInstInfo info{};
     info.type.Assign(GetType(txd.type));
-    info.num_derivates.Assign(num_derivates);
+    info.num_derivatives.Assign(num_derivatives);
     info.has_lod_clamp.Assign(has_lod_clamp ? 1 : 0);
-    const IR::Value sample{v.ir.ImageGradient(handle, coords, derivates, offset, lod_clamp, info)};
+    const IR::Value sample{
+        v.ir.ImageGradient(handle, coords, derivatives, offset, lod_clamp, info)};
 
     IR::Reg dest_reg{txd.dest_reg};
     for (size_t element = 0; element < 4; ++element) {

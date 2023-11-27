@@ -20,7 +20,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.transition.MaterialSharedAxis
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -68,15 +67,9 @@ class SettingsFragment : Fragment() {
         )
 
         binding.toolbarSettingsLayout.title = getString(args.menuTag.titleId)
-        val dividerDecoration = MaterialDividerItemDecoration(
-            requireContext(),
-            LinearLayoutManager.VERTICAL
-        )
-        dividerDecoration.isLastItemDecorated = false
         binding.listSettings.apply {
             adapter = settingsAdapter
             layoutManager = LinearLayoutManager(requireContext())
-            addItemDecoration(dividerDecoration)
         }
 
         binding.toolbarSettings.setNavigationOnClickListener {
@@ -94,17 +87,6 @@ class SettingsFragment : Fragment() {
                     }
                 }
             }
-            launch {
-                settingsViewModel.isUsingSearch.collectLatest {
-                    if (it) {
-                        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
-                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
-                    } else {
-                        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
-                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
-                    }
-                }
-            }
         }
 
         if (args.menuTag == Settings.MenuTag.SECTION_ROOT) {
@@ -112,8 +94,6 @@ class SettingsFragment : Fragment() {
             binding.toolbarSettings.setOnMenuItemClickListener {
                 when (it.itemId) {
                     R.id.action_search -> {
-                        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.Z, true)
-                        exitTransition = MaterialSharedAxis(MaterialSharedAxis.Z, false)
                         view.findNavController()
                             .navigate(R.id.action_settingsFragment_to_settingsSearchFragment)
                         true
@@ -129,11 +109,6 @@ class SettingsFragment : Fragment() {
         setInsets()
     }
 
-    override fun onResume() {
-        super.onResume()
-        settingsViewModel.setIsUsingSearch(false)
-    }
-
     private fun setInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(
             binding.root
@@ -144,10 +119,9 @@ class SettingsFragment : Fragment() {
             val leftInsets = barInsets.left + cutoutInsets.left
             val rightInsets = barInsets.right + cutoutInsets.right
 
-            val sideMargin = resources.getDimensionPixelSize(R.dimen.spacing_medlarge)
             val mlpSettingsList = binding.listSettings.layoutParams as MarginLayoutParams
-            mlpSettingsList.leftMargin = sideMargin + leftInsets
-            mlpSettingsList.rightMargin = sideMargin + rightInsets
+            mlpSettingsList.leftMargin = leftInsets
+            mlpSettingsList.rightMargin = rightInsets
             binding.listSettings.layoutParams = mlpSettingsList
             binding.listSettings.updatePadding(
                 bottom = barInsets.bottom

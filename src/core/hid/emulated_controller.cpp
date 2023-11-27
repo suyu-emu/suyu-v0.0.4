@@ -8,6 +8,7 @@
 #include "common/thread.h"
 #include "core/hid/emulated_controller.h"
 #include "core/hid/input_converter.h"
+#include "core/hle/service/hid/hid_util.h"
 
 namespace Core::HID {
 constexpr s32 HID_JOYSTICK_MAX = 0x7fff;
@@ -82,7 +83,7 @@ Settings::ControllerType EmulatedController::MapNPadToSettingsType(NpadStyleInde
 }
 
 void EmulatedController::ReloadFromSettings() {
-    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
 
     for (std::size_t index = 0; index < player.buttons.size(); ++index) {
@@ -96,18 +97,7 @@ void EmulatedController::ReloadFromSettings() {
     }
 
     controller.color_values = {};
-    controller.colors_state.fullkey = {
-        .body = GetNpadColor(player.body_color_left),
-        .button = GetNpadColor(player.button_color_left),
-    };
-    controller.colors_state.left = {
-        .body = GetNpadColor(player.body_color_left),
-        .button = GetNpadColor(player.button_color_left),
-    };
-    controller.colors_state.right = {
-        .body = GetNpadColor(player.body_color_right),
-        .button = GetNpadColor(player.button_color_right),
-    };
+    ReloadColorsFromSettings();
 
     ring_params[0] = Common::ParamPackage(Settings::values.ringcon_analogs);
 
@@ -126,6 +116,30 @@ void EmulatedController::ReloadFromSettings() {
     }
 
     ReloadInput();
+}
+
+void EmulatedController::ReloadColorsFromSettings() {
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
+    const auto& player = Settings::values.players.GetValue()[player_index];
+
+    // Avoid updating colors if overridden by physical controller
+    if (controller.color_values[LeftIndex].body != 0 &&
+        controller.color_values[RightIndex].body != 0) {
+        return;
+    }
+
+    controller.colors_state.fullkey = {
+        .body = GetNpadColor(player.body_color_left),
+        .button = GetNpadColor(player.button_color_left),
+    };
+    controller.colors_state.left = {
+        .body = GetNpadColor(player.body_color_left),
+        .button = GetNpadColor(player.button_color_left),
+    };
+    controller.colors_state.right = {
+        .body = GetNpadColor(player.body_color_right),
+        .button = GetNpadColor(player.button_color_right),
+    };
 }
 
 void EmulatedController::LoadDevices() {
@@ -202,7 +216,7 @@ void EmulatedController::LoadDevices() {
 }
 
 void EmulatedController::LoadTASParams() {
-    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     Common::ParamPackage common_params{};
     common_params.Set("engine", "tas");
     common_params.Set("port", static_cast<int>(player_index));
@@ -230,10 +244,12 @@ void EmulatedController::LoadTASParams() {
     tas_button_params[Settings::NativeButton::DUp].Set("button", 13);
     tas_button_params[Settings::NativeButton::DRight].Set("button", 14);
     tas_button_params[Settings::NativeButton::DDown].Set("button", 15);
-    tas_button_params[Settings::NativeButton::SL].Set("button", 16);
-    tas_button_params[Settings::NativeButton::SR].Set("button", 17);
+    tas_button_params[Settings::NativeButton::SLLeft].Set("button", 16);
+    tas_button_params[Settings::NativeButton::SRLeft].Set("button", 17);
     tas_button_params[Settings::NativeButton::Home].Set("button", 18);
     tas_button_params[Settings::NativeButton::Screenshot].Set("button", 19);
+    tas_button_params[Settings::NativeButton::SLRight].Set("button", 20);
+    tas_button_params[Settings::NativeButton::SRRight].Set("button", 21);
 
     tas_stick_params[Settings::NativeAnalog::LStick].Set("axis_x", 0);
     tas_stick_params[Settings::NativeAnalog::LStick].Set("axis_y", 1);
@@ -249,7 +265,7 @@ void EmulatedController::LoadTASParams() {
 }
 
 void EmulatedController::LoadVirtualGamepadParams() {
-    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     Common::ParamPackage common_params{};
     common_params.Set("engine", "virtual_gamepad");
     common_params.Set("port", static_cast<int>(player_index));
@@ -283,10 +299,12 @@ void EmulatedController::LoadVirtualGamepadParams() {
     virtual_button_params[Settings::NativeButton::DUp].Set("button", 13);
     virtual_button_params[Settings::NativeButton::DRight].Set("button", 14);
     virtual_button_params[Settings::NativeButton::DDown].Set("button", 15);
-    virtual_button_params[Settings::NativeButton::SL].Set("button", 16);
-    virtual_button_params[Settings::NativeButton::SR].Set("button", 17);
+    virtual_button_params[Settings::NativeButton::SLLeft].Set("button", 16);
+    virtual_button_params[Settings::NativeButton::SRLeft].Set("button", 17);
     virtual_button_params[Settings::NativeButton::Home].Set("button", 18);
     virtual_button_params[Settings::NativeButton::Screenshot].Set("button", 19);
+    virtual_button_params[Settings::NativeButton::SLRight].Set("button", 20);
+    virtual_button_params[Settings::NativeButton::SRRight].Set("button", 21);
 
     virtual_stick_params[Settings::NativeAnalog::LStick].Set("axis_x", 0);
     virtual_stick_params[Settings::NativeAnalog::LStick].Set("axis_y", 1);
@@ -491,9 +509,11 @@ void EmulatedController::ReloadInput() {
         });
     }
     turbo_button_state = 0;
+    is_initalized = true;
 }
 
 void EmulatedController::UnloadInput() {
+    is_initalized = false;
     for (auto& button : button_devices) {
         button.reset();
     }
@@ -598,7 +618,7 @@ bool EmulatedController::IsConfiguring() const {
 }
 
 void EmulatedController::SaveCurrentConfig() {
-    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     auto& player = Settings::values.players.GetValue()[player_index];
     player.connected = is_connected;
     player.controller_type = MapNPadToSettingsType(npad_type);
@@ -854,12 +874,16 @@ void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback
         controller.npad_button_state.down.Assign(current_status.value);
         controller.debug_pad_button_state.d_down.Assign(current_status.value);
         break;
-    case Settings::NativeButton::SL:
+    case Settings::NativeButton::SLLeft:
         controller.npad_button_state.left_sl.Assign(current_status.value);
+        break;
+    case Settings::NativeButton::SLRight:
         controller.npad_button_state.right_sl.Assign(current_status.value);
         break;
-    case Settings::NativeButton::SR:
+    case Settings::NativeButton::SRLeft:
         controller.npad_button_state.left_sr.Assign(current_status.value);
+        break;
+    case Settings::NativeButton::SRRight:
         controller.npad_button_state.right_sr.Assign(current_status.value);
         break;
     case Settings::NativeButton::Home:
@@ -1091,30 +1115,30 @@ void EmulatedController::SetBattery(const Common::Input::CallbackStatus& callbac
 
     bool is_charging = false;
     bool is_powered = false;
-    NpadBatteryLevel battery_level = 0;
+    NpadBatteryLevel battery_level = NpadBatteryLevel::Empty;
     switch (controller.battery_values[index]) {
     case Common::Input::BatteryLevel::Charging:
         is_charging = true;
         is_powered = true;
-        battery_level = 6;
+        battery_level = NpadBatteryLevel::Full;
         break;
     case Common::Input::BatteryLevel::Medium:
-        battery_level = 6;
+        battery_level = NpadBatteryLevel::High;
         break;
     case Common::Input::BatteryLevel::Low:
-        battery_level = 4;
+        battery_level = NpadBatteryLevel::Low;
         break;
     case Common::Input::BatteryLevel::Critical:
-        battery_level = 2;
+        battery_level = NpadBatteryLevel::Critical;
         break;
     case Common::Input::BatteryLevel::Empty:
-        battery_level = 0;
+        battery_level = NpadBatteryLevel::Empty;
         break;
     case Common::Input::BatteryLevel::None:
     case Common::Input::BatteryLevel::Full:
     default:
         is_powered = true;
-        battery_level = 8;
+        battery_level = NpadBatteryLevel::Full;
         break;
     }
 
@@ -1185,13 +1209,16 @@ void EmulatedController::SetNfc(const Common::Input::CallbackStatus& callback) {
 }
 
 bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue vibration) {
+    if (!is_initalized) {
+        return false;
+    }
     if (device_index >= output_devices.size()) {
         return false;
     }
     if (!output_devices[device_index]) {
         return false;
     }
-    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
     const f32 strength = static_cast<f32>(player.vibration_strength) / 100.0f;
 
@@ -1217,8 +1244,12 @@ bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue v
 }
 
 bool EmulatedController::IsVibrationEnabled(std::size_t device_index) {
-    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
+
+    if (!is_initalized) {
+        return false;
+    }
 
     if (!player.vibration_enabled) {
         return false;
@@ -1238,6 +1269,10 @@ bool EmulatedController::IsVibrationEnabled(std::size_t device_index) {
 Common::Input::DriverResult EmulatedController::SetPollingMode(
     EmulatedDeviceIndex device_index, Common::Input::PollingMode polling_mode) {
     LOG_INFO(Service_HID, "Set polling mode {}, device_index={}", polling_mode, device_index);
+
+    if (!is_initalized) {
+        return Common::Input::DriverResult::InvalidHandle;
+    }
 
     auto& left_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Left)];
     auto& right_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
@@ -1284,6 +1319,10 @@ bool EmulatedController::SetCameraFormat(
     Core::IrSensor::ImageTransferProcessorFormat camera_format) {
     LOG_INFO(Service_HID, "Set camera format {}", camera_format);
 
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& right_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& camera_output_device = output_devices[2];
 
@@ -1307,6 +1346,11 @@ void EmulatedController::SetRingParam(Common::ParamPackage param) {
 }
 
 bool EmulatedController::HasNfc() const {
+
+    if (!is_initalized) {
+        return false;
+    }
+
     const auto& nfc_output_device = output_devices[3];
 
     switch (npad_type) {
@@ -1344,6 +1388,10 @@ bool EmulatedController::RemoveNfcHandle() {
 }
 
 bool EmulatedController::StartNfcPolling() {
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
@@ -1355,6 +1403,10 @@ bool EmulatedController::StartNfcPolling() {
 }
 
 bool EmulatedController::StopNfcPolling() {
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
@@ -1366,6 +1418,10 @@ bool EmulatedController::StopNfcPolling() {
 }
 
 bool EmulatedController::ReadAmiiboData(std::vector<u8>& data) {
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
@@ -1378,6 +1434,10 @@ bool EmulatedController::ReadAmiiboData(std::vector<u8>& data) {
 
 bool EmulatedController::ReadMifareData(const Common::Input::MifareRequest& request,
                                         Common::Input::MifareRequest& out_data) {
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
@@ -1390,6 +1450,10 @@ bool EmulatedController::ReadMifareData(const Common::Input::MifareRequest& requ
 }
 
 bool EmulatedController::WriteMifareData(const Common::Input::MifareRequest& request) {
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
@@ -1401,6 +1465,10 @@ bool EmulatedController::WriteMifareData(const Common::Input::MifareRequest& req
 }
 
 bool EmulatedController::WriteNfc(const std::vector<u8>& data) {
+    if (!is_initalized) {
+        return false;
+    }
+
     auto& nfc_output_device = output_devices[static_cast<std::size_t>(DeviceIndex::Right)];
     auto& nfc_virtual_output_device = output_devices[3];
 
@@ -1412,6 +1480,10 @@ bool EmulatedController::WriteNfc(const std::vector<u8>& data) {
 }
 
 void EmulatedController::SetLedPattern() {
+    if (!is_initalized) {
+        return;
+    }
+
     for (auto& device : output_devices) {
         if (!device) {
             continue;
@@ -1627,7 +1699,7 @@ void EmulatedController::SetNpadStyleIndex(NpadStyleIndex npad_type_) {
     }
     if (is_connected) {
         LOG_WARNING(Service_HID, "Controller {} type changed while it's connected",
-                    NpadIdTypeToIndex(npad_id_type));
+                    Service::HID::NpadIdTypeToIndex(npad_id_type));
     }
     npad_type = npad_type_;
 }
@@ -1877,12 +1949,16 @@ NpadButton EmulatedController::GetTurboButtonMask() const {
         case Settings::NativeButton::DDown:
             button_mask.down.Assign(1);
             break;
-        case Settings::NativeButton::SL:
+        case Settings::NativeButton::SLLeft:
             button_mask.left_sl.Assign(1);
+            break;
+        case Settings::NativeButton::SLRight:
             button_mask.right_sl.Assign(1);
             break;
-        case Settings::NativeButton::SR:
+        case Settings::NativeButton::SRLeft:
             button_mask.left_sr.Assign(1);
+            break;
+        case Settings::NativeButton::SRRight:
             button_mask.right_sr.Assign(1);
             break;
         default:

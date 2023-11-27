@@ -30,6 +30,8 @@ public:
 
     void MakeResident(GLenum access) noexcept;
 
+    void MarkUsage(u64 offset, u64 size) {}
+
     [[nodiscard]] GLuint View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format);
 
     [[nodiscard]] GLuint64EXT HostGpuAddr() const noexcept {
@@ -66,21 +68,28 @@ public:
 
     [[nodiscard]] StagingBufferMap DownloadStagingBuffer(size_t size);
 
+    bool CanReorderUpload(const Buffer&, std::span<const VideoCommon::BufferCopy>) {
+        return false;
+    }
+
     void CopyBuffer(GLuint dst_buffer, GLuint src_buffer,
-                    std::span<const VideoCommon::BufferCopy> copies, bool barrier = true);
+                    std::span<const VideoCommon::BufferCopy> copies, bool barrier);
 
     void CopyBuffer(GLuint dst_buffer, Buffer& src_buffer,
-                    std::span<const VideoCommon::BufferCopy> copies, bool barrier = true);
+                    std::span<const VideoCommon::BufferCopy> copies, bool barrier);
 
     void CopyBuffer(Buffer& dst_buffer, GLuint src_buffer,
-                    std::span<const VideoCommon::BufferCopy> copies, bool barrier = true);
+                    std::span<const VideoCommon::BufferCopy> copies, bool barrier,
+                    bool can_reorder_upload = false);
 
     void CopyBuffer(Buffer& dst_buffer, Buffer& src_buffer,
-                    std::span<const VideoCommon::BufferCopy> copies);
+                    std::span<const VideoCommon::BufferCopy> copies, bool);
 
     void PreCopyBarrier();
     void PostCopyBarrier();
     void Finish();
+
+    void TickFrame(VideoCommon::SlotVector<Buffer>&) noexcept {}
 
     void ClearBuffer(Buffer& dest_buffer, u32 offset, size_t size, u32 value);
 

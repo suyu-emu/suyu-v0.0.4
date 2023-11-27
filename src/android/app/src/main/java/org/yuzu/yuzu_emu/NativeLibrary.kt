@@ -230,8 +230,6 @@ object NativeLibrary {
      */
     external fun onTouchReleased(finger_id: Int)
 
-    external fun reloadSettings()
-
     external fun initGameIni(gameID: String?)
 
     external fun setAppDirectory(directory: String)
@@ -252,7 +250,7 @@ object NativeLibrary {
 
     external fun reloadKeys(): Boolean
 
-    external fun initializeSystem()
+    external fun initializeSystem(reload: Boolean)
 
     external fun defaultCPUCore(): Int
 
@@ -462,12 +460,12 @@ object NativeLibrary {
     }
 
     fun setEmulationActivity(emulationActivity: EmulationActivity?) {
-        Log.verbose("[NativeLibrary] Registering EmulationActivity.")
+        Log.debug("[NativeLibrary] Registering EmulationActivity.")
         sEmulationActivity = WeakReference(emulationActivity)
     }
 
     fun clearEmulationActivity() {
-        Log.verbose("[NativeLibrary] Unregistering EmulationActivity.")
+        Log.debug("[NativeLibrary] Unregistering EmulationActivity.")
         sEmulationActivity.clear()
     }
 

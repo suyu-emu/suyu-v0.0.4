@@ -14,24 +14,12 @@ BufferQueueCore::BufferQueueCore() = default;
 
 BufferQueueCore::~BufferQueueCore() = default;
 
-void BufferQueueCore::NotifyShutdown() {
-    std::scoped_lock lock{mutex};
-
-    is_shutting_down = true;
-
-    SignalDequeueCondition();
-}
-
 void BufferQueueCore::SignalDequeueCondition() {
     dequeue_possible.store(true);
     dequeue_condition.notify_all();
 }
 
 bool BufferQueueCore::WaitForDequeueCondition(std::unique_lock<std::mutex>& lk) {
-    if (is_shutting_down) {
-        return false;
-    }
-
     dequeue_condition.wait(lk, [&] { return dequeue_possible.load(); });
     dequeue_possible.store(false);
 

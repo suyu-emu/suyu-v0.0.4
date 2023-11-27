@@ -10,20 +10,19 @@
 namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3C00;
 
-Controller_XPad::Controller_XPad(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
-    : ControllerBase{hid_core_} {
+XPad::XPad(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_) : ControllerBase{hid_core_} {
     static_assert(SHARED_MEMORY_OFFSET + sizeof(XpadSharedMemory) < shared_memory_size,
                   "XpadSharedMemory is bigger than the shared memory");
     shared_memory = std::construct_at(
         reinterpret_cast<XpadSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
 }
-Controller_XPad::~Controller_XPad() = default;
+XPad::~XPad() = default;
 
-void Controller_XPad::OnInit() {}
+void XPad::OnInit() {}
 
-void Controller_XPad::OnRelease() {}
+void XPad::OnRelease() {}
 
-void Controller_XPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+void XPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     if (!IsControllerActivated()) {
         shared_memory->basic_xpad_lifo.buffer_count = 0;
         shared_memory->basic_xpad_lifo.buffer_tail = 0;

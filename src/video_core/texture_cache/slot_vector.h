@@ -138,6 +138,10 @@ public:
         return Iterator(this, SlotId{SlotId::INVALID_INDEX});
     }
 
+    [[nodiscard]] size_t size() const noexcept {
+        return values_capacity - free_list.size();
+    }
+
 private:
     struct NonTrivialDummy {
         NonTrivialDummy() noexcept {}

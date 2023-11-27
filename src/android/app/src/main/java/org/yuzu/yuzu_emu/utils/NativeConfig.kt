@@ -4,6 +4,30 @@
 package org.yuzu.yuzu_emu.utils
 
 object NativeConfig {
+    /**
+     * Creates a Config object and opens the emulation config.
+     */
+    @Synchronized
+    external fun initializeConfig()
+
+    /**
+     * Destroys the stored config object. This automatically saves the existing config.
+     */
+    @Synchronized
+    external fun unloadConfig()
+
+    /**
+     * Reads values saved to the config file and saves them.
+     */
+    @Synchronized
+    external fun reloadSettings()
+
+    /**
+     * Saves settings values in memory to disk.
+     */
+    @Synchronized
+    external fun saveSettings()
+
     external fun getBoolean(key: String, getDefault: Boolean): Boolean
     external fun setBoolean(key: String, value: Boolean)
 

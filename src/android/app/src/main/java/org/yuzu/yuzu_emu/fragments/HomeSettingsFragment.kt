@@ -42,6 +42,7 @@ import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.FileUtil
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
+import org.yuzu.yuzu_emu.utils.Log
 
 class HomeSettingsFragment : Fragment() {
     private var _binding: FragmentHomeSettingsBinding? = null
@@ -86,28 +87,6 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
-                    R.string.open_user_folder,
-                    R.string.open_user_folder_description,
-                    R.drawable.ic_folder_open,
-                    { openFileManager() }
-                )
-            )
-            add(
-                HomeSetting(
-                    R.string.preferences_theme,
-                    R.string.theme_and_color_description,
-                    R.drawable.ic_palette,
-                    {
-                        val action = HomeNavigationDirections.actionGlobalSettingsActivity(
-                            null,
-                            Settings.MenuTag.SECTION_THEME
-                        )
-                        binding.root.findNavController().navigate(action)
-                    }
-                )
-            )
-            add(
-                HomeSetting(
                     R.string.gpu_driver_manager,
                     R.string.install_gpu_driver_description,
                     R.drawable.ic_build,
@@ -123,17 +102,6 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
-                    R.string.manage_yuzu_data,
-                    R.string.manage_yuzu_data_description,
-                    R.drawable.ic_install,
-                    {
-                        binding.root.findNavController()
-                            .navigate(R.id.action_homeSettingsFragment_to_installableFragment)
-                    }
-                )
-            )
-            add(
-                HomeSetting(
                     R.string.applets,
                     R.string.applets_description,
                     R.drawable.ic_applet,
@@ -144,6 +112,17 @@ class HomeSettingsFragment : Fragment() {
                     { NativeLibrary.isFirmwareAvailable() },
                     R.string.applets_error_firmware,
                     R.string.applets_error_description
+                )
+            )
+            add(
+                HomeSetting(
+                    R.string.manage_yuzu_data,
+                    R.string.manage_yuzu_data_description,
+                    R.drawable.ic_install,
+                    {
+                        binding.root.findNavController()
+                            .navigate(R.id.action_homeSettingsFragment_to_installableFragment)
+                    }
                 )
             )
             add(
@@ -168,6 +147,28 @@ class HomeSettingsFragment : Fragment() {
                     R.string.share_log_description,
                     R.drawable.ic_log,
                     { shareLog() }
+                )
+            )
+            add(
+                HomeSetting(
+                    R.string.open_user_folder,
+                    R.string.open_user_folder_description,
+                    R.drawable.ic_folder_open,
+                    { openFileManager() }
+                )
+            )
+            add(
+                HomeSetting(
+                    R.string.preferences_theme,
+                    R.string.theme_and_color_description,
+                    R.drawable.ic_palette,
+                    {
+                        val action = HomeNavigationDirections.actionGlobalSettingsActivity(
+                            null,
+                            Settings.MenuTag.SECTION_THEME
+                        )
+                        binding.root.findNavController().navigate(action)
+                    }
                 )
             )
             add(
@@ -312,19 +313,32 @@ class HomeSettingsFragment : Fragment() {
         }
     }
 
+    // Share the current log if we just returned from a game but share the old log
+    // if we just started the app and the old log exists.
     private fun shareLog() {
-        val file = DocumentFile.fromSingleUri(
+        val currentLog = DocumentFile.fromSingleUri(
             mainActivity,
             DocumentsContract.buildDocumentUri(
                 DocumentProvider.AUTHORITY,
                 "${DocumentProvider.ROOT_ID}/log/yuzu_log.txt"
             )
         )!!
-        if (file.exists()) {
-            val intent = Intent(Intent.ACTION_SEND)
-                .setDataAndType(file.uri, FileUtil.TEXT_PLAIN)
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                .putExtra(Intent.EXTRA_STREAM, file.uri)
+        val oldLog = DocumentFile.fromSingleUri(
+            mainActivity,
+            DocumentsContract.buildDocumentUri(
+                DocumentProvider.AUTHORITY,
+                "${DocumentProvider.ROOT_ID}/log/yuzu_log.txt.old.txt"
+            )
+        )!!
+
+        val intent = Intent(Intent.ACTION_SEND)
+            .setDataAndType(currentLog.uri, FileUtil.TEXT_PLAIN)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        if (!Log.gameLaunched && oldLog.exists()) {
+            intent.putExtra(Intent.EXTRA_STREAM, oldLog.uri)
+            startActivity(Intent.createChooser(intent, getText(R.string.share_log)))
+        } else if (currentLog.exists()) {
+            intent.putExtra(Intent.EXTRA_STREAM, currentLog.uri)
             startActivity(Intent.createChooser(intent, getText(R.string.share_log)))
         } else {
             Toast.makeText(

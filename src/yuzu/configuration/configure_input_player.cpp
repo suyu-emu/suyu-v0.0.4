@@ -12,15 +12,16 @@
 #include <QTimer>
 #include "common/assert.h"
 #include "common/param_package.h"
+#include "configuration/qt_config.h"
 #include "core/hid/emulated_controller.h"
 #include "core/hid/hid_core.h"
 #include "core/hid/hid_types.h"
+#include "frontend_common/config.h"
 #include "input_common/drivers/keyboard.h"
 #include "input_common/drivers/mouse.h"
 #include "input_common/main.h"
 #include "ui_configure_input_player.h"
 #include "yuzu/bootmanager.h"
-#include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_input_player.h"
 #include "yuzu/configuration/configure_input_player_widget.h"
 #include "yuzu/configuration/configure_mouse_panning.h"
@@ -322,11 +323,12 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     setFocusPolicy(Qt::ClickFocus);
 
     button_map = {
-        ui->buttonA,        ui->buttonB,      ui->buttonX,         ui->buttonY,
-        ui->buttonLStick,   ui->buttonRStick, ui->buttonL,         ui->buttonR,
-        ui->buttonZL,       ui->buttonZR,     ui->buttonPlus,      ui->buttonMinus,
-        ui->buttonDpadLeft, ui->buttonDpadUp, ui->buttonDpadRight, ui->buttonDpadDown,
-        ui->buttonSL,       ui->buttonSR,     ui->buttonHome,      ui->buttonScreenshot,
+        ui->buttonA,        ui->buttonB,       ui->buttonX,         ui->buttonY,
+        ui->buttonLStick,   ui->buttonRStick,  ui->buttonL,         ui->buttonR,
+        ui->buttonZL,       ui->buttonZR,      ui->buttonPlus,      ui->buttonMinus,
+        ui->buttonDpadLeft, ui->buttonDpadUp,  ui->buttonDpadRight, ui->buttonDpadDown,
+        ui->buttonSLLeft,   ui->buttonSRLeft,  ui->buttonHome,      ui->buttonScreenshot,
+        ui->buttonSLRight,  ui->buttonSRRight,
     };
 
     analog_map_buttons = {{
@@ -1181,10 +1183,13 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
 
     // List of all the widgets that will be hidden by any of the following layouts that need
     // "unhidden" after the controller type changes
-    const std::array<QWidget*, 11> layout_show = {
-        ui->buttonShoulderButtonsSLSR,
+    const std::array<QWidget*, 14> layout_show = {
+        ui->buttonShoulderButtonsSLSRLeft,
+        ui->buttonShoulderButtonsSLSRRight,
         ui->horizontalSpacerShoulderButtonsWidget,
         ui->horizontalSpacerShoulderButtonsWidget2,
+        ui->horizontalSpacerShoulderButtonsWidget3,
+        ui->horizontalSpacerShoulderButtonsWidget4,
         ui->buttonShoulderButtonsLeft,
         ui->buttonMiscButtonsMinusScreenshot,
         ui->bottomLeft,
@@ -1202,16 +1207,19 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
     std::vector<QWidget*> layout_hidden;
     switch (layout) {
     case Core::HID::NpadStyleIndex::ProController:
-    case Core::HID::NpadStyleIndex::JoyconDual:
     case Core::HID::NpadStyleIndex::Handheld:
         layout_hidden = {
-            ui->buttonShoulderButtonsSLSR,
+            ui->buttonShoulderButtonsSLSRLeft,
+            ui->buttonShoulderButtonsSLSRRight,
             ui->horizontalSpacerShoulderButtonsWidget2,
+            ui->horizontalSpacerShoulderButtonsWidget4,
         };
         break;
     case Core::HID::NpadStyleIndex::JoyconLeft:
         layout_hidden = {
+            ui->buttonShoulderButtonsSLSRRight,
             ui->horizontalSpacerShoulderButtonsWidget2,
+            ui->horizontalSpacerShoulderButtonsWidget3,
             ui->buttonShoulderButtonsRight,
             ui->buttonMiscButtonsPlusHome,
             ui->bottomRight,
@@ -1219,16 +1227,17 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
         break;
     case Core::HID::NpadStyleIndex::JoyconRight:
         layout_hidden = {
-            ui->horizontalSpacerShoulderButtonsWidget,
-            ui->buttonShoulderButtonsLeft,
-            ui->buttonMiscButtonsMinusScreenshot,
-            ui->bottomLeft,
+            ui->buttonShoulderButtonsSLSRLeft,          ui->horizontalSpacerShoulderButtonsWidget,
+            ui->horizontalSpacerShoulderButtonsWidget4, ui->buttonShoulderButtonsLeft,
+            ui->buttonMiscButtonsMinusScreenshot,       ui->bottomLeft,
         };
         break;
     case Core::HID::NpadStyleIndex::GameCube:
         layout_hidden = {
-            ui->buttonShoulderButtonsSLSR,
+            ui->buttonShoulderButtonsSLSRLeft,
+            ui->buttonShoulderButtonsSLSRRight,
             ui->horizontalSpacerShoulderButtonsWidget2,
+            ui->horizontalSpacerShoulderButtonsWidget4,
             ui->buttonMiscButtonsMinusGroup,
             ui->buttonMiscButtonsScreenshotGroup,
         };
@@ -1389,25 +1398,25 @@ void ConfigureInputPlayer::UpdateMappingWithDefaults() {
         for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; ++button_id) {
             emulated_controller->SetButtonParam(
                 button_id, Common::ParamPackage{InputCommon::GenerateKeyboardParam(
-                               Config::default_buttons[button_id])});
+                               QtConfig::default_buttons[button_id])});
         }
         for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; ++analog_id) {
             Common::ParamPackage analog_param{};
             for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; ++sub_button_id) {
                 Common::ParamPackage params{InputCommon::GenerateKeyboardParam(
-                    Config::default_analogs[analog_id][sub_button_id])};
+                    QtConfig::default_analogs[analog_id][sub_button_id])};
                 SetAnalogParam(params, analog_param, analog_sub_buttons[sub_button_id]);
             }
 
             analog_param.Set("modifier", InputCommon::GenerateKeyboardParam(
-                                             Config::default_stick_mod[analog_id]));
+                                             QtConfig::default_stick_mod[analog_id]));
             emulated_controller->SetStickParam(analog_id, analog_param);
         }
 
         for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
             emulated_controller->SetMotionParam(
                 motion_id, Common::ParamPackage{InputCommon::GenerateKeyboardParam(
-                               Config::default_motions[motion_id])});
+                               QtConfig::default_motions[motion_id])});
         }
 
         // If mouse is selected we want to override with mappings from the driver

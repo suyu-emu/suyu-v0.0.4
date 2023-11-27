@@ -67,22 +67,22 @@ public:
         }
     }
 
-    explicit ImageOperands(EmitContext& ctx, bool has_lod_clamp, Id derivates, u32 num_derivates,
-                           Id offset, Id lod_clamp) {
-        if (!Sirit::ValidId(derivates)) {
-            throw LogicError("Derivates must be present");
+    explicit ImageOperands(EmitContext& ctx, bool has_lod_clamp, Id derivatives,
+                           u32 num_derivatives, Id offset, Id lod_clamp) {
+        if (!Sirit::ValidId(derivatives)) {
+            throw LogicError("Derivatives must be present");
         }
         boost::container::static_vector<Id, 3> deriv_x_accum;
         boost::container::static_vector<Id, 3> deriv_y_accum;
-        for (u32 i = 0; i < num_derivates; ++i) {
-            deriv_x_accum.push_back(ctx.OpCompositeExtract(ctx.F32[1], derivates, i * 2));
-            deriv_y_accum.push_back(ctx.OpCompositeExtract(ctx.F32[1], derivates, i * 2 + 1));
+        for (u32 i = 0; i < num_derivatives; ++i) {
+            deriv_x_accum.push_back(ctx.OpCompositeExtract(ctx.F32[1], derivatives, i * 2));
+            deriv_y_accum.push_back(ctx.OpCompositeExtract(ctx.F32[1], derivatives, i * 2 + 1));
         }
-        const Id derivates_X{ctx.OpCompositeConstruct(
-            ctx.F32[num_derivates], std::span{deriv_x_accum.data(), deriv_x_accum.size()})};
-        const Id derivates_Y{ctx.OpCompositeConstruct(
-            ctx.F32[num_derivates], std::span{deriv_y_accum.data(), deriv_y_accum.size()})};
-        Add(spv::ImageOperandsMask::Grad, derivates_X, derivates_Y);
+        const Id derivatives_X{ctx.OpCompositeConstruct(
+            ctx.F32[num_derivatives], std::span{deriv_x_accum.data(), deriv_x_accum.size()})};
+        const Id derivatives_Y{ctx.OpCompositeConstruct(
+            ctx.F32[num_derivatives], std::span{deriv_y_accum.data(), deriv_y_accum.size()})};
+        Add(spv::ImageOperandsMask::Grad, derivatives_X, derivatives_Y);
         if (Sirit::ValidId(offset)) {
             Add(spv::ImageOperandsMask::Offset, offset);
         }
@@ -91,26 +91,26 @@ public:
         }
     }
 
-    explicit ImageOperands(EmitContext& ctx, bool has_lod_clamp, Id derivates_1, Id derivates_2,
+    explicit ImageOperands(EmitContext& ctx, bool has_lod_clamp, Id derivatives_1, Id derivatives_2,
                            Id offset, Id lod_clamp) {
-        if (!Sirit::ValidId(derivates_1) || !Sirit::ValidId(derivates_2)) {
-            throw LogicError("Derivates must be present");
+        if (!Sirit::ValidId(derivatives_1) || !Sirit::ValidId(derivatives_2)) {
+            throw LogicError("Derivatives must be present");
         }
         boost::container::static_vector<Id, 3> deriv_1_accum{
-            ctx.OpCompositeExtract(ctx.F32[1], derivates_1, 0),
-            ctx.OpCompositeExtract(ctx.F32[1], derivates_1, 2),
-            ctx.OpCompositeExtract(ctx.F32[1], derivates_2, 0),
+            ctx.OpCompositeExtract(ctx.F32[1], derivatives_1, 0),
+            ctx.OpCompositeExtract(ctx.F32[1], derivatives_1, 2),
+            ctx.OpCompositeExtract(ctx.F32[1], derivatives_2, 0),
         };
         boost::container::static_vector<Id, 3> deriv_2_accum{
-            ctx.OpCompositeExtract(ctx.F32[1], derivates_1, 1),
-            ctx.OpCompositeExtract(ctx.F32[1], derivates_1, 3),
-            ctx.OpCompositeExtract(ctx.F32[1], derivates_2, 1),
+            ctx.OpCompositeExtract(ctx.F32[1], derivatives_1, 1),
+            ctx.OpCompositeExtract(ctx.F32[1], derivatives_1, 3),
+            ctx.OpCompositeExtract(ctx.F32[1], derivatives_2, 1),
         };
-        const Id derivates_id1{ctx.OpCompositeConstruct(
+        const Id derivatives_id1{ctx.OpCompositeConstruct(
             ctx.F32[3], std::span{deriv_1_accum.data(), deriv_1_accum.size()})};
-        const Id derivates_id2{ctx.OpCompositeConstruct(
+        const Id derivatives_id2{ctx.OpCompositeConstruct(
             ctx.F32[3], std::span{deriv_2_accum.data(), deriv_2_accum.size()})};
-        Add(spv::ImageOperandsMask::Grad, derivates_id1, derivates_id2);
+        Add(spv::ImageOperandsMask::Grad, derivatives_id1, derivatives_id2);
         if (Sirit::ValidId(offset)) {
             Add(spv::ImageOperandsMask::Offset, offset);
         }
@@ -548,12 +548,12 @@ Id EmitImageQueryLod(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, I
 }
 
 Id EmitImageGradient(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords,
-                     Id derivates, Id offset, Id lod_clamp) {
+                     Id derivatives, Id offset, Id lod_clamp) {
     const auto info{inst->Flags<IR::TextureInstInfo>()};
     const auto operands =
-        info.num_derivates == 3
-            ? ImageOperands(ctx, info.has_lod_clamp != 0, derivates, offset, {}, lod_clamp)
-            : ImageOperands(ctx, info.has_lod_clamp != 0, derivates, info.num_derivates, offset,
+        info.num_derivatives == 3
+            ? ImageOperands(ctx, info.has_lod_clamp != 0, derivatives, offset, {}, lod_clamp)
+            : ImageOperands(ctx, info.has_lod_clamp != 0, derivatives, info.num_derivatives, offset,
                             lod_clamp);
     return Emit(&EmitContext::OpImageSparseSampleExplicitLod,
                 &EmitContext::OpImageSampleExplicitLod, ctx, inst, ctx.F32[4],

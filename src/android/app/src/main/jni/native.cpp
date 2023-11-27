@@ -52,8 +52,8 @@
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
+#include "frontend_common/config.h"
 #include "jni/android_common/android_common.h"
-#include "jni/config.h"
 #include "jni/id_cache.h"
 #include "jni/native.h"
 #include "video_core/renderer_base.h"
@@ -199,8 +199,8 @@ bool EmulationSession::IsPaused() const {
     return m_is_running && m_is_paused;
 }
 
-const Core::PerfStatsResults& EmulationSession::PerfStats() const {
-    std::scoped_lock m_perf_stats_lock(m_perf_stats_mutex);
+const Core::PerfStatsResults& EmulationSession::PerfStats() {
+    m_perf_stats = m_system.GetAndResetPerfStats();
     return m_perf_stats;
 }
 
@@ -247,7 +247,14 @@ void EmulationSession::ConfigureFilesystemProvider(const std::string& filepath) 
     }
 }
 
-void EmulationSession::InitializeSystem() {
+void EmulationSession::InitializeSystem(bool reload) {
+    if (!reload) {
+        // Initialize logging system
+        Common::Log::Initialize();
+        Common::Log::SetColorConsoleBackendEnabled(true);
+        Common::Log::Start();
+    }
+
     // Initialize filesystem.
     m_system.SetFilesystem(m_vfs);
     m_system.GetUserChannel().clear();
@@ -365,8 +372,6 @@ void EmulationSession::RunEmulation() {
         m_system.InitializeDebugger();
     }
 
-    OnEmulationStarted();
-
     while (true) {
         {
             [[maybe_unused]] std::unique_lock lock(m_mutex);
@@ -375,11 +380,6 @@ void EmulationSession::RunEmulation() {
                 // Emulation halted.
                 break;
             }
-        }
-        {
-            // Refresh performance stats.
-            std::scoped_lock m_perf_stats_lock(m_perf_stats_mutex);
-            m_perf_stats = m_system.GetAndResetPerfStats();
         }
     }
 }
@@ -462,10 +462,6 @@ void EmulationSession::OnEmulationStopped(Core::SystemResultStatus result) {
 }
 
 static Core::SystemResultStatus RunEmulation(const std::string& filepath) {
-    Common::Log::Initialize();
-    Common::Log::SetColorConsoleBackendEnabled(true);
-    Common::Log::Start();
-
     MicroProfileOnThreadCreate("EmuThread");
     SCOPE_EXIT({ MicroProfileShutdown(); });
 
@@ -666,12 +662,13 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchReleased(JNIEnv* env, jclass c
     }
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeSystem(JNIEnv* env, jclass clazz) {
-    // Create the default config.ini.
-    Config{};
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeSystem(JNIEnv* env, jclass clazz,
+                                                            jboolean reload) {
     // Initialize the emulated system.
-    EmulationSession::GetInstance().System().Initialize();
-    EmulationSession::GetInstance().InitializeSystem();
+    if (!reload) {
+        EmulationSession::GetInstance().System().Initialize();
+    }
+    EmulationSession::GetInstance().InitializeSystem(reload);
 }
 
 jint Java_org_yuzu_yuzu_1emu_NativeLibrary_defaultCPUCore(JNIEnv* env, jclass clazz) {
@@ -680,17 +677,6 @@ jint Java_org_yuzu_yuzu_1emu_NativeLibrary_defaultCPUCore(JNIEnv* env, jclass cl
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_run__Ljava_lang_String_2Ljava_lang_String_2Z(
     JNIEnv* env, jclass clazz, jstring j_file, jstring j_savestate, jboolean j_delete_savestate) {}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_reloadSettings(JNIEnv* env, jclass clazz) {
-    Config{};
-}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_initGameIni(JNIEnv* env, jclass clazz,
-                                                       jstring j_game_id) {
-    std::string_view game_id = env->GetStringUTFChars(j_game_id, 0);
-
-    env->ReleaseStringUTFChars(j_game_id, game_id.data());
-}
 
 jdoubleArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPerfStats(JNIEnv* env, jclass clazz) {
     jdoubleArray j_stats = env->NewDoubleArray(4);

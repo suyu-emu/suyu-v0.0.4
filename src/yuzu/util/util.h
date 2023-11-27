@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <QFont>
 #include <QString>
 
@@ -25,4 +26,4 @@
  * @param image The image to save
  * @return bool If the operation succeeded
  */
-[[nodiscard]] bool SaveIconToFile(const std::string_view path, const QImage& image);
+[[nodiscard]] bool SaveIconToFile(const std::filesystem::path& icon_path, const QImage& image);

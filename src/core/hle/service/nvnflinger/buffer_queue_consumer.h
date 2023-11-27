@@ -13,10 +13,6 @@
 #include "core/hle/service/nvnflinger/buffer_queue_defs.h"
 #include "core/hle/service/nvnflinger/status.h"
 
-namespace Service::Nvidia::NvCore {
-class NvMap;
-} // namespace Service::Nvidia::NvCore
-
 namespace Service::android {
 
 class BufferItem;
@@ -25,19 +21,18 @@ class IConsumerListener;
 
 class BufferQueueConsumer final {
 public:
-    explicit BufferQueueConsumer(std::shared_ptr<BufferQueueCore> core_,
-                                 Service::Nvidia::NvCore::NvMap& nvmap_);
+    explicit BufferQueueConsumer(std::shared_ptr<BufferQueueCore> core_);
     ~BufferQueueConsumer();
 
     Status AcquireBuffer(BufferItem* out_buffer, std::chrono::nanoseconds expected_present);
     Status ReleaseBuffer(s32 slot, u64 frame_number, const Fence& release_fence);
     Status Connect(std::shared_ptr<IConsumerListener> consumer_listener, bool controlled_by_app);
+    Status Disconnect();
     Status GetReleasedBuffers(u64* out_slot_mask);
 
 private:
     std::shared_ptr<BufferQueueCore> core;
     BufferQueueDefs::SlotsType& slots;
-    Service::Nvidia::NvCore::NvMap& nvmap;
 };
 
 } // namespace Service::android

@@ -127,6 +127,7 @@
             android:layout_height="wrap_content"
             android:clipToPadding="false"
             android:paddingVertical="4dp"
+            app:checkedChip="@id/chip_recently_played"
             app:chipSpacingHorizontal="12dp"
             app:singleLine="true"
             app:singleSelection="true">

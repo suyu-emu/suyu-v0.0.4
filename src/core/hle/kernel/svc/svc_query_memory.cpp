@@ -31,12 +31,12 @@ Result QueryProcessMemory(Core::System& system, uint64_t out_memory_info, PageIn
     }
 
     auto& current_memory{GetCurrentMemory(system.Kernel())};
-    const auto memory_info{process->GetPageTable().QueryInfo(address).GetSvcMemoryInfo()};
 
-    current_memory.WriteBlock(out_memory_info, std::addressof(memory_info), sizeof(memory_info));
+    KMemoryInfo mem_info;
+    R_TRY(process->GetPageTable().QueryInfo(std::addressof(mem_info), out_page_info, address));
 
-    //! This is supposed to be part of the QueryInfo call.
-    *out_page_info = {};
+    const auto svc_mem_info = mem_info.GetSvcMemoryInfo();
+    current_memory.WriteBlock(out_memory_info, std::addressof(svc_mem_info), sizeof(svc_mem_info));
 
     R_SUCCEED();
 }

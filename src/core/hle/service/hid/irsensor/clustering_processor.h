@@ -8,6 +8,10 @@
 #include "core/hle/service/hid/irs_ring_lifo.h"
 #include "core/hle/service/hid/irsensor/processor_base.h"
 
+namespace Core {
+class System;
+}
+
 namespace Core::HID {
 class EmulatedController;
 } // namespace Core::HID
@@ -15,8 +19,7 @@ class EmulatedController;
 namespace Service::IRS {
 class ClusteringProcessor final : public ProcessorBase {
 public:
-    explicit ClusteringProcessor(Core::HID::HIDCore& hid_core_,
-                                 Core::IrSensor::DeviceFormat& device_format,
+    explicit ClusteringProcessor(Core::System& system_, Core::IrSensor::DeviceFormat& device_format,
                                  std::size_t npad_index);
     ~ClusteringProcessor() override;
 
@@ -106,5 +109,7 @@ private:
     Core::IrSensor::DeviceFormat& device;
     Core::HID::EmulatedController* npad_device;
     int callback_key{};
+
+    Core::System& system;
 };
 } // namespace Service::IRS

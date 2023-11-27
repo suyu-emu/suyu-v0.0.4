@@ -428,7 +428,7 @@ void FoldFPAdd32(IR::Inst& inst) {
     }
 }
 
-bool FoldDerivateYFromCorrection(IR::Inst& inst) {
+bool FoldDerivativeYFromCorrection(IR::Inst& inst) {
     const IR::Value lhs_value{inst.Arg(0)};
     const IR::Value rhs_value{inst.Arg(1)};
     IR::Inst* const lhs_op{lhs_value.InstRecursive()};
@@ -464,7 +464,7 @@ void FoldFPMul32(IR::Inst& inst) {
     if (lhs_value.IsImmediate() || rhs_value.IsImmediate()) {
         return;
     }
-    if (FoldDerivateYFromCorrection(inst)) {
+    if (FoldDerivativeYFromCorrection(inst)) {
         return;
     }
     IR::Inst* const lhs_op{lhs_value.InstRecursive()};
@@ -699,7 +699,7 @@ void FoldFSwizzleAdd(IR::Block& block, IR::Inst& inst) {
     }
 }
 
-bool FindGradient3DDerivates(std::array<IR::Value, 3>& results, IR::Value coord) {
+bool FindGradient3DDerivatives(std::array<IR::Value, 3>& results, IR::Value coord) {
     if (coord.IsImmediate()) {
         return false;
     }
@@ -834,7 +834,7 @@ void FoldImageSampleImplicitLod(IR::Block& block, IR::Inst& inst) {
     IR::Inst* const inst2 = coords.InstRecursive();
     std::array<std::array<IR::Value, 3>, 3> results_matrix;
     for (size_t i = 0; i < 3; i++) {
-        if (!FindGradient3DDerivates(results_matrix[i], inst2->Arg(i).Resolve())) {
+        if (!FindGradient3DDerivatives(results_matrix[i], inst2->Arg(i).Resolve())) {
             return;
         }
     }
@@ -852,7 +852,7 @@ void FoldImageSampleImplicitLod(IR::Block& block, IR::Inst& inst) {
     IR::Value derivatives_1 = ir.CompositeConstruct(results_matrix[0][1], results_matrix[0][2],
                                                     results_matrix[1][1], results_matrix[1][2]);
     IR::Value derivatives_2 = ir.CompositeConstruct(results_matrix[2][1], results_matrix[2][2]);
-    info.num_derivates.Assign(3);
+    info.num_derivatives.Assign(3);
     IR::Value new_gradient_instruction =
         ir.ImageGradient(handle, new_coords, derivatives_1, derivatives_2, lod_clamp, info);
     IR::Inst* const new_inst = new_gradient_instruction.InstRecursive();

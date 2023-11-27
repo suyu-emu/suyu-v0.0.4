@@ -19,7 +19,6 @@
 #include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
 #include "ui_configure_per_game_addons.h"
-#include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_input.h"
 #include "yuzu/configuration/configure_per_game_addons.h"
 #include "yuzu/uisettings.h"

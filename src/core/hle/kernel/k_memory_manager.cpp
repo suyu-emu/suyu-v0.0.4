@@ -456,8 +456,7 @@ size_t KMemoryManager::Impl::Initialize(KPhysicalAddress address, size_t size,
 }
 
 void KMemoryManager::Impl::InitializeOptimizedMemory(KernelCore& kernel) {
-    auto optimize_pa =
-        KPageTable::GetHeapPhysicalAddress(kernel.MemoryLayout(), m_management_region);
+    auto optimize_pa = KPageTable::GetHeapPhysicalAddress(kernel, m_management_region);
     auto* optimize_map = kernel.System().DeviceMemory().GetPointer<u64>(optimize_pa);
 
     std::memset(optimize_map, 0, CalculateOptimizedProcessOverheadSize(m_heap.GetSize()));
@@ -465,8 +464,7 @@ void KMemoryManager::Impl::InitializeOptimizedMemory(KernelCore& kernel) {
 
 void KMemoryManager::Impl::TrackUnoptimizedAllocation(KernelCore& kernel, KPhysicalAddress block,
                                                       size_t num_pages) {
-    auto optimize_pa =
-        KPageTable::GetHeapPhysicalAddress(kernel.MemoryLayout(), m_management_region);
+    auto optimize_pa = KPageTable::GetHeapPhysicalAddress(kernel, m_management_region);
     auto* optimize_map = kernel.System().DeviceMemory().GetPointer<u64>(optimize_pa);
 
     // Get the range we're tracking.
@@ -485,8 +483,7 @@ void KMemoryManager::Impl::TrackUnoptimizedAllocation(KernelCore& kernel, KPhysi
 
 void KMemoryManager::Impl::TrackOptimizedAllocation(KernelCore& kernel, KPhysicalAddress block,
                                                     size_t num_pages) {
-    auto optimize_pa =
-        KPageTable::GetHeapPhysicalAddress(kernel.MemoryLayout(), m_management_region);
+    auto optimize_pa = KPageTable::GetHeapPhysicalAddress(kernel, m_management_region);
     auto* optimize_map = kernel.System().DeviceMemory().GetPointer<u64>(optimize_pa);
 
     // Get the range we're tracking.
@@ -506,8 +503,7 @@ void KMemoryManager::Impl::TrackOptimizedAllocation(KernelCore& kernel, KPhysica
 bool KMemoryManager::Impl::ProcessOptimizedAllocation(KernelCore& kernel, KPhysicalAddress block,
                                                       size_t num_pages, u8 fill_pattern) {
     auto& device_memory = kernel.System().DeviceMemory();
-    auto optimize_pa =
-        KPageTable::GetHeapPhysicalAddress(kernel.MemoryLayout(), m_management_region);
+    auto optimize_pa = KPageTable::GetHeapPhysicalAddress(kernel, m_management_region);
     auto* optimize_map = device_memory.GetPointer<u64>(optimize_pa);
 
     // We want to return whether any pages were newly allocated.

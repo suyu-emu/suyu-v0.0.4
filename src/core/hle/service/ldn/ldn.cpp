@@ -115,11 +115,19 @@ public:
             {400, nullptr, "InitializeSystem"},
             {401, nullptr, "FinalizeSystem"},
             {402, nullptr, "SetOperationMode"},
-            {403, nullptr, "InitializeSystem2"},
+            {403, &ISystemLocalCommunicationService::InitializeSystem2, "InitializeSystem2"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+private:
+    void InitializeSystem2(HLERequestContext& ctx) {
+        LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
     }
 };
 

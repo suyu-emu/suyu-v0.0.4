@@ -102,6 +102,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     EXTENSION_NAME(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME)                                   \
     EXTENSION_NAME(VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME)                                 \
     EXTENSION_NAME(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME)                                 \
+    EXTENSION_NAME(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME)                                     \
     EXTENSION_NAME(VK_EXT_4444_FORMATS_EXTENSION_NAME)                                             \
     EXTENSION_NAME(VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME)                                       \
     EXTENSION_NAME(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME)                                             \
@@ -599,6 +600,11 @@ public:
         return has_broken_cube_compatibility;
     }
 
+    /// Returns true if parallel shader compiling has issues with the current driver.
+    bool HasBrokenParallelShaderCompiling() const {
+        return has_broken_parallel_compiling;
+    }
+
     /// Returns the vendor name reported from Vulkan.
     std::string_view GetVendorName() const {
         return properties.driver.driverName;
@@ -661,6 +667,10 @@ public:
 
     bool SupportsConditionalBarriers() const {
         return supports_conditional_barriers;
+    }
+
+    bool SupportsMultiViewport() const {
+        return features2.features.multiViewport;
     }
 
     [[nodiscard]] static constexpr bool CheckBrokenCompute(VkDriverId driver_id,
@@ -794,6 +804,7 @@ private:
     bool is_non_gpu{};                         ///< Is SoftwareRasterizer, FPGA, non-GPU device.
     bool has_broken_compute{};                 ///< Compute shaders can cause crashes
     bool has_broken_cube_compatibility{};      ///< Has broken cube compatibility bit
+    bool has_broken_parallel_compiling{};      ///< Has broken parallel shader compiling.
     bool has_renderdoc{};                      ///< Has RenderDoc attached
     bool has_nsight_graphics{};                ///< Has Nsight Graphics attached
     bool supports_d24_depth{};                 ///< Supports D24 depth buffers.

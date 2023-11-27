@@ -4,6 +4,7 @@
 #pragma once
 
 #include "common/common_types.h"
+#include "core/hle/result.h"
 
 namespace Core::Timing {
 class CoreTiming;
@@ -31,7 +32,8 @@ public:
     // When the controller is requesting a motion update for the shared memory
     virtual void OnMotionUpdate(const Core::Timing::CoreTiming& core_timing) {}
 
-    void ActivateController();
+    Result Activate();
+    Result Activate(u64 aruid);
 
     void DeactivateController();
 

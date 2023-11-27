@@ -30,9 +30,9 @@ bool IsValidMultiStreamChannelCount(u32 channel_count) {
     return channel_count <= OpusStreamCountMax;
 }
 
-bool IsValidMultiStreamStreamCounts(s32 total_stream_count, s32 sterero_stream_count) {
+bool IsValidMultiStreamStreamCounts(s32 total_stream_count, s32 stereo_stream_count) {
     return IsValidMultiStreamChannelCount(total_stream_count) && total_stream_count > 0 &&
-           sterero_stream_count > 0 && sterero_stream_count <= total_stream_count;
+           stereo_stream_count >= 0 && stereo_stream_count <= total_stream_count;
 }
 } // namespace
 

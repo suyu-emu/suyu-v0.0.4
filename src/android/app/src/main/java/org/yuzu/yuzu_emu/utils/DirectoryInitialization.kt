@@ -15,7 +15,8 @@ object DirectoryInitialization {
     fun start() {
         if (!areDirectoriesReady) {
             initializeInternalStorage()
-            NativeLibrary.initializeSystem()
+            NativeLibrary.initializeSystem(false)
+            NativeConfig.initializeConfig()
             areDirectoriesReady = true
         }
     }

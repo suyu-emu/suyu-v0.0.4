@@ -79,13 +79,13 @@ vk::Buffer CreateBuffer(const Device& device, const MemoryAllocator& memory_allo
 } // Anonymous namespace
 
 Buffer::Buffer(BufferCacheRuntime&, VideoCommon::NullBufferParams null_params)
-    : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(null_params) {}
+    : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(null_params), tracker{4096} {}
 
 Buffer::Buffer(BufferCacheRuntime& runtime, VideoCore::RasterizerInterface& rasterizer_,
                VAddr cpu_addr_, u64 size_bytes_)
     : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(rasterizer_, cpu_addr_, size_bytes_),
-      device{&runtime.device}, buffer{
-                                   CreateBuffer(*device, runtime.memory_allocator, SizeBytes())} {
+      device{&runtime.device}, buffer{CreateBuffer(*device, runtime.memory_allocator, SizeBytes())},
+      tracker{SizeBytes()} {
     if (runtime.device.HasDebuggingToolAttached()) {
         buffer.SetObjectNameEXT(fmt::format("Buffer 0x{:x}", CpuAddr()).c_str());
     }
@@ -359,12 +359,31 @@ u32 BufferCacheRuntime::GetStorageBufferAlignment() const {
     return static_cast<u32>(device.GetStorageBufferAlignment());
 }
 
+void BufferCacheRuntime::TickFrame(VideoCommon::SlotVector<Buffer>& slot_buffers) noexcept {
+    for (auto it = slot_buffers.begin(); it != slot_buffers.end(); it++) {
+        it->ResetUsageTracking();
+    }
+}
+
 void BufferCacheRuntime::Finish() {
     scheduler.Finish();
 }
 
+bool BufferCacheRuntime::CanReorderUpload(const Buffer& buffer,
+                                          std::span<const VideoCommon::BufferCopy> copies) {
+    if (Settings::values.disable_buffer_reorder) {
+        return false;
+    }
+    const bool can_use_upload_cmdbuf =
+        std::ranges::all_of(copies, [&](const VideoCommon::BufferCopy& copy) {
+            return !buffer.IsRegionUsed(copy.dst_offset, copy.size);
+        });
+    return can_use_upload_cmdbuf;
+}
+
 void BufferCacheRuntime::CopyBuffer(VkBuffer dst_buffer, VkBuffer src_buffer,
-                                    std::span<const VideoCommon::BufferCopy> copies, bool barrier) {
+                                    std::span<const VideoCommon::BufferCopy> copies, bool barrier,
+                                    bool can_reorder_upload) {
     if (dst_buffer == VK_NULL_HANDLE || src_buffer == VK_NULL_HANDLE) {
         return;
     }
@@ -380,9 +399,18 @@ void BufferCacheRuntime::CopyBuffer(VkBuffer dst_buffer, VkBuffer src_buffer,
         .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
         .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
     };
+
     // Measuring a popular game, this number never exceeds the specified size once data is warmed up
     boost::container::small_vector<VkBufferCopy, 8> vk_copies(copies.size());
     std::ranges::transform(copies, vk_copies.begin(), MakeBufferCopy);
+    if (src_buffer == staging_pool.StreamBuf() && can_reorder_upload) {
+        scheduler.RecordWithUploadBuffer([src_buffer, dst_buffer, vk_copies](
+                                             vk::CommandBuffer, vk::CommandBuffer upload_cmdbuf) {
+            upload_cmdbuf.CopyBuffer(src_buffer, dst_buffer, vk_copies);
+        });
+        return;
+    }
+
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([src_buffer, dst_buffer, vk_copies, barrier](vk::CommandBuffer cmdbuf) {
         if (barrier) {

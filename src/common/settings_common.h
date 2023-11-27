@@ -32,6 +32,7 @@ enum class Category : u32 {
     AddOns,
     Controls,
     Ui,
+    UiAudio,
     UiGeneral,
     UiLayout,
     UiGameList,

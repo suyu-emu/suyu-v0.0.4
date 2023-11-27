@@ -4,7 +4,7 @@
 add_subdirectory(host_shaders)
 
 if(LIBVA_FOUND)
-    set_source_files_properties(host1x/codecs/codec.cpp
+    set_source_files_properties(host1x/ffmpeg/ffmpeg.cpp
         PROPERTIES COMPILE_DEFINITIONS LIBVA_FOUND=1)
     list(APPEND FFmpeg_LIBRARIES ${LIBVA_LIBRARIES})
 endif()
@@ -15,6 +15,7 @@ add_library(video_core STATIC
     buffer_cache/buffer_cache.cpp
     buffer_cache/buffer_cache.h
     buffer_cache/memory_tracker_base.h
+    buffer_cache/usage_tracker.h
     buffer_cache/word_manager.h
     cache_types.h
     cdma_pusher.cpp
@@ -66,6 +67,8 @@ add_library(video_core STATIC
     host1x/codecs/vp9.cpp
     host1x/codecs/vp9.h
     host1x/codecs/vp9_types.h
+    host1x/ffmpeg/ffmpeg.cpp
+    host1x/ffmpeg/ffmpeg.h
     host1x/control.cpp
     host1x/control.h
     host1x/host1x.cpp

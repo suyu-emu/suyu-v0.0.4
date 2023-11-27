@@ -154,6 +154,7 @@ private:
 
     static constexpr std::size_t XFB_ENTRY_STRIDE = 3;
     GLsizei num_xfb_attribs{};
+    u32 num_xfb_buffers_active{};
     std::array<GLint, 128 * XFB_ENTRY_STRIDE * Maxwell::NumTransformFeedbackBuffers> xfb_attribs{};
 
     std::mutex built_mutex;

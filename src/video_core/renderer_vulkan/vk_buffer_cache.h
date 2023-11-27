@@ -5,6 +5,7 @@
 
 #include "video_core/buffer_cache/buffer_cache_base.h"
 #include "video_core/buffer_cache/memory_tracker_base.h"
+#include "video_core/buffer_cache/usage_tracker.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
@@ -34,6 +35,18 @@ public:
         return *buffer;
     }
 
+    [[nodiscard]] bool IsRegionUsed(u64 offset, u64 size) const noexcept {
+        return tracker.IsUsed(offset, size);
+    }
+
+    void MarkUsage(u64 offset, u64 size) noexcept {
+        tracker.Track(offset, size);
+    }
+
+    void ResetUsageTracking() noexcept {
+        tracker.Reset();
+    }
+
     operator VkBuffer() const noexcept {
         return *buffer;
     }
@@ -49,6 +62,7 @@ private:
     const Device* device{};
     vk::Buffer buffer;
     std::vector<BufferView> views;
+    VideoCommon::UsageTracker tracker;
 };
 
 class QuadArrayIndexBuffer;
@@ -67,6 +81,8 @@ public:
                                 ComputePassDescriptorQueue& compute_pass_descriptor_queue,
                                 DescriptorPool& descriptor_pool);
 
+    void TickFrame(VideoCommon::SlotVector<Buffer>& slot_buffers) noexcept;
+
     void Finish();
 
     u64 GetDeviceLocalMemory() const;
@@ -81,12 +97,15 @@ public:
 
     [[nodiscard]] StagingBufferRef DownloadStagingBuffer(size_t size, bool deferred = false);
 
+    bool CanReorderUpload(const Buffer& buffer, std::span<const VideoCommon::BufferCopy> copies);
+
     void FreeDeferredStagingBuffer(StagingBufferRef& ref);
 
     void PreCopyBarrier();
 
     void CopyBuffer(VkBuffer src_buffer, VkBuffer dst_buffer,
-                    std::span<const VideoCommon::BufferCopy> copies, bool barrier = true);
+                    std::span<const VideoCommon::BufferCopy> copies, bool barrier,
+                    bool can_reorder_upload = false);
 
     void PostCopyBarrier();
 

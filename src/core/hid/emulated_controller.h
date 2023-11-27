@@ -253,6 +253,9 @@ public:
     /// Overrides current mapped devices with the stored configuration and reloads all input devices
     void ReloadFromSettings();
 
+    /// Updates current colors with the ones stored in the configuration
+    void ReloadColorsFromSettings();
+
     /// Saves the current mapped configuration
     void SaveCurrentConfig();
 
@@ -556,6 +559,7 @@ private:
     NpadStyleTag supported_style_tag{NpadStyleSet::All};
     bool is_connected{false};
     bool is_configuring{false};
+    bool is_initalized{false};
     bool system_buttons_enabled{true};
     f32 motion_sensitivity{Core::HID::MotionInput::IsAtRestStandard};
     u32 turbo_button_state{0};

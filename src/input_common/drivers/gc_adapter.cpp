@@ -415,7 +415,7 @@ ButtonMapping GCAdapter::GetButtonMappingForDevice(const Common::ParamPackage& p
     // This list is missing ZL/ZR since those are not considered buttons.
     // We will add those afterwards
     // This list also excludes any button that can't be really mapped
-    static constexpr std::array<std::pair<Settings::NativeButton::Values, PadButton>, 12>
+    static constexpr std::array<std::pair<Settings::NativeButton::Values, PadButton>, 14>
         switch_to_gcadapter_button = {
             std::pair{Settings::NativeButton::A, PadButton::ButtonA},
             {Settings::NativeButton::B, PadButton::ButtonB},
@@ -426,8 +426,10 @@ ButtonMapping GCAdapter::GetButtonMappingForDevice(const Common::ParamPackage& p
             {Settings::NativeButton::DUp, PadButton::ButtonUp},
             {Settings::NativeButton::DRight, PadButton::ButtonRight},
             {Settings::NativeButton::DDown, PadButton::ButtonDown},
-            {Settings::NativeButton::SL, PadButton::TriggerL},
-            {Settings::NativeButton::SR, PadButton::TriggerR},
+            {Settings::NativeButton::SLLeft, PadButton::TriggerL},
+            {Settings::NativeButton::SRLeft, PadButton::TriggerR},
+            {Settings::NativeButton::SLRight, PadButton::TriggerL},
+            {Settings::NativeButton::SRRight, PadButton::TriggerR},
             {Settings::NativeButton::R, PadButton::TriggerZ},
         };
     if (!params.Has("port")) {

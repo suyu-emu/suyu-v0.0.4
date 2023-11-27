@@ -11,6 +11,7 @@
 #include "core/core.h"
 #include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
+#include "core/hle/service/nvdrv/devices/ioctl_serialization.h"
 #include "core/hle/service/nvdrv/devices/nvhost_as_gpu.h"
 #include "core/hle/service/nvdrv/devices/nvhost_gpu.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
@@ -33,21 +34,21 @@ NvResult nvhost_as_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> i
     case 'A':
         switch (command.cmd) {
         case 0x1:
-            return BindChannel(input, output);
+            return WrapFixed(this, &nvhost_as_gpu::BindChannel, input, output);
         case 0x2:
-            return AllocateSpace(input, output);
+            return WrapFixed(this, &nvhost_as_gpu::AllocateSpace, input, output);
         case 0x3:
-            return FreeSpace(input, output);
+            return WrapFixed(this, &nvhost_as_gpu::FreeSpace, input, output);
         case 0x5:
-            return UnmapBuffer(input, output);
+            return WrapFixed(this, &nvhost_as_gpu::UnmapBuffer, input, output);
         case 0x6:
-            return MapBufferEx(input, output);
+            return WrapFixed(this, &nvhost_as_gpu::MapBufferEx, input, output);
         case 0x8:
-            return GetVARegions(input, output);
+            return WrapFixed(this, &nvhost_as_gpu::GetVARegions1, input, output);
         case 0x9:
-            return AllocAsEx(input, output);
+            return WrapFixed(this, &nvhost_as_gpu::AllocAsEx, input, output);
         case 0x14:
-            return Remap(input, output);
+            return WrapVariable(this, &nvhost_as_gpu::Remap, input, output);
         default:
             break;
         }
@@ -72,7 +73,8 @@ NvResult nvhost_as_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> i
     case 'A':
         switch (command.cmd) {
         case 0x8:
-            return GetVARegions(input, output, inline_output);
+            return WrapFixedInlOut(this, &nvhost_as_gpu::GetVARegions3, input, output,
+                                   inline_output);
         default:
             break;
         }
@@ -87,10 +89,7 @@ NvResult nvhost_as_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> i
 void nvhost_as_gpu::OnOpen(DeviceFD fd) {}
 void nvhost_as_gpu::OnClose(DeviceFD fd) {}
 
-NvResult nvhost_as_gpu::AllocAsEx(std::span<const u8> input, std::span<u8> output) {
-    IoctlAllocAsEx params{};
-    std::memcpy(&params, input.data(), input.size());
-
+NvResult nvhost_as_gpu::AllocAsEx(IoctlAllocAsEx& params) {
     LOG_DEBUG(Service_NVDRV, "called, big_page_size=0x{:X}", params.big_page_size);
 
     std::scoped_lock lock(mutex);
@@ -141,10 +140,7 @@ NvResult nvhost_as_gpu::AllocAsEx(std::span<const u8> input, std::span<u8> outpu
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::AllocateSpace(std::span<const u8> input, std::span<u8> output) {
-    IoctlAllocSpace params{};
-    std::memcpy(&params, input.data(), input.size());
-
+NvResult nvhost_as_gpu::AllocateSpace(IoctlAllocSpace& params) {
     LOG_DEBUG(Service_NVDRV, "called, pages={:X}, page_size={:X}, flags={:X}", params.pages,
               params.page_size, params.flags);
 
@@ -194,7 +190,6 @@ NvResult nvhost_as_gpu::AllocateSpace(std::span<const u8> input, std::span<u8> o
         .big_pages = params.page_size != VM::YUZU_PAGESIZE,
     };
 
-    std::memcpy(output.data(), &params, output.size());
     return NvResult::Success;
 }
 
@@ -222,10 +217,7 @@ void nvhost_as_gpu::FreeMappingLocked(u64 offset) {
     mapping_map.erase(offset);
 }
 
-NvResult nvhost_as_gpu::FreeSpace(std::span<const u8> input, std::span<u8> output) {
-    IoctlFreeSpace params{};
-    std::memcpy(&params, input.data(), input.size());
-
+NvResult nvhost_as_gpu::FreeSpace(IoctlFreeSpace& params) {
     LOG_DEBUG(Service_NVDRV, "called, offset={:X}, pages={:X}, page_size={:X}", params.offset,
               params.pages, params.page_size);
 
@@ -264,18 +256,11 @@ NvResult nvhost_as_gpu::FreeSpace(std::span<const u8> input, std::span<u8> outpu
         return NvResult::BadValue;
     }
 
-    std::memcpy(output.data(), &params, output.size());
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::Remap(std::span<const u8> input, std::span<u8> output) {
-    const auto num_entries = input.size() / sizeof(IoctlRemapEntry);
-
-    LOG_DEBUG(Service_NVDRV, "called, num_entries=0x{:X}", num_entries);
-
-    std::scoped_lock lock(mutex);
-    entries.resize_destructive(num_entries);
-    std::memcpy(entries.data(), input.data(), input.size());
+NvResult nvhost_as_gpu::Remap(std::span<IoctlRemapEntry> entries) {
+    LOG_DEBUG(Service_NVDRV, "called, num_entries=0x{:X}", entries.size());
 
     if (!vm.initialised) {
         return NvResult::BadValue;
@@ -317,14 +302,10 @@ NvResult nvhost_as_gpu::Remap(std::span<const u8> input, std::span<u8> output) {
         }
     }
 
-    std::memcpy(output.data(), entries.data(), output.size());
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::MapBufferEx(std::span<const u8> input, std::span<u8> output) {
-    IoctlMapBufferEx params{};
-    std::memcpy(&params, input.data(), input.size());
-
+NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
     LOG_DEBUG(Service_NVDRV,
               "called, flags={:X}, nvmap_handle={:X}, buffer_offset={}, mapping_size={}"
               ", offset={}",
@@ -421,14 +402,10 @@ NvResult nvhost_as_gpu::MapBufferEx(std::span<const u8> input, std::span<u8> out
         mapping_map[params.offset] = mapping;
     }
 
-    std::memcpy(output.data(), &params, output.size());
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::UnmapBuffer(std::span<const u8> input, std::span<u8> output) {
-    IoctlUnmapBuffer params{};
-    std::memcpy(&params, input.data(), input.size());
-
+NvResult nvhost_as_gpu::UnmapBuffer(IoctlUnmapBuffer& params) {
     LOG_DEBUG(Service_NVDRV, "called, offset=0x{:X}", params.offset);
 
     std::scoped_lock lock(mutex);
@@ -464,9 +441,7 @@ NvResult nvhost_as_gpu::UnmapBuffer(std::span<const u8> input, std::span<u8> out
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::BindChannel(std::span<const u8> input, std::span<u8> output) {
-    IoctlBindChannel params{};
-    std::memcpy(&params, input.data(), input.size());
+NvResult nvhost_as_gpu::BindChannel(IoctlBindChannel& params) {
     LOG_DEBUG(Service_NVDRV, "called, fd={:X}", params.fd);
 
     auto gpu_channel_device = module.GetDevice<nvhost_gpu>(params.fd);
@@ -493,10 +468,7 @@ void nvhost_as_gpu::GetVARegionsImpl(IoctlGetVaRegions& params) {
     };
 }
 
-NvResult nvhost_as_gpu::GetVARegions(std::span<const u8> input, std::span<u8> output) {
-    IoctlGetVaRegions params{};
-    std::memcpy(&params, input.data(), input.size());
-
+NvResult nvhost_as_gpu::GetVARegions1(IoctlGetVaRegions& params) {
     LOG_DEBUG(Service_NVDRV, "called, buf_addr={:X}, buf_size={:X}", params.buf_addr,
               params.buf_size);
 
@@ -508,15 +480,10 @@ NvResult nvhost_as_gpu::GetVARegions(std::span<const u8> input, std::span<u8> ou
 
     GetVARegionsImpl(params);
 
-    std::memcpy(output.data(), &params, output.size());
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::GetVARegions(std::span<const u8> input, std::span<u8> output,
-                                     std::span<u8> inline_output) {
-    IoctlGetVaRegions params{};
-    std::memcpy(&params, input.data(), input.size());
-
+NvResult nvhost_as_gpu::GetVARegions3(IoctlGetVaRegions& params, std::span<VaRegion> regions) {
     LOG_DEBUG(Service_NVDRV, "called, buf_addr={:X}, buf_size={:X}", params.buf_addr,
               params.buf_size);
 
@@ -528,9 +495,10 @@ NvResult nvhost_as_gpu::GetVARegions(std::span<const u8> input, std::span<u8> ou
 
     GetVARegionsImpl(params);
 
-    std::memcpy(output.data(), &params, output.size());
-    std::memcpy(inline_output.data(), &params.regions[0], sizeof(VaRegion));
-    std::memcpy(inline_output.data() + sizeof(VaRegion), &params.regions[1], sizeof(VaRegion));
+    const size_t num_regions = std::min(params.regions.size(), regions.size());
+    for (size_t i = 0; i < num_regions; i++) {
+        regions[i] = params.regions[i];
+    }
 
     return NvResult::Success;
 }
