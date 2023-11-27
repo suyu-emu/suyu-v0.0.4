@@ -17,6 +17,7 @@
 #include <QString>
 #include <QStringList>
 #include <QThread>
+#include <QTimer>
 #include <QWidget>
 #include <qglobal.h>
 #include <qnamespace.h>
@@ -38,7 +39,6 @@ class QMouseEvent;
 class QObject;
 class QResizeEvent;
 class QShowEvent;
-class QTimer;
 class QTouchEvent;
 class QWheelEvent;
 
@@ -166,6 +166,7 @@ public:
     std::pair<u32, u32> ScaleTouch(const QPointF& pos) const;
 
     void closeEvent(QCloseEvent* event) override;
+    void leaveEvent(QEvent* event) override;
 
     void resizeEvent(QResizeEvent* event) override;
 
@@ -229,6 +230,7 @@ private:
     void TouchBeginEvent(const QTouchEvent* event);
     void TouchUpdateEvent(const QTouchEvent* event);
     void TouchEndEvent();
+    void ConstrainMouse();
 
     void RequestCameraCapture();
     void OnCameraCapture(int requestId, const QImage& img);
@@ -267,6 +269,8 @@ private:
     std::unique_ptr<QCameraImageCapture> camera_capture;
     std::unique_ptr<QTimer> camera_timer;
 #endif
+
+    QTimer mouse_constrain_timer;
 
     Core::System& system;
 
