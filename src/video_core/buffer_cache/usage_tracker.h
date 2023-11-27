@@ -58,7 +58,7 @@ private:
     void TrackPage(u64 page, u64 offset, u64 size) noexcept {
         const size_t offset_in_page = offset % PAGE_BYTES;
         const size_t first_bit = offset_in_page >> BYTES_PER_BIT_SHIFT;
-        const size_t num_bits = std::min(size, PAGE_BYTES) >> BYTES_PER_BIT_SHIFT;
+        const size_t num_bits = std::min<size_t>(size, PAGE_BYTES) >> BYTES_PER_BIT_SHIFT;
         const size_t mask = ~u64{0} >> (64 - num_bits);
         pages[page] |= (~u64{0} & mask) << first_bit;
     }
@@ -66,7 +66,7 @@ private:
     bool IsPageUsed(u64 page, u64 offset, u64 size) const noexcept {
         const size_t offset_in_page = offset % PAGE_BYTES;
         const size_t first_bit = offset_in_page >> BYTES_PER_BIT_SHIFT;
-        const size_t num_bits = std::min(size, PAGE_BYTES) >> BYTES_PER_BIT_SHIFT;
+        const size_t num_bits = std::min<size_t>(size, PAGE_BYTES) >> BYTES_PER_BIT_SHIFT;
         const size_t mask = ~u64{0} >> (64 - num_bits);
         const size_t mask2 = (~u64{0} & mask) << first_bit;
         return (pages[page] & mask2) != 0;
