@@ -38,7 +38,6 @@ namespace Core {
 namespace Memory {
 class Memory;
 }
-class ARM_Interface;
 class System;
 } // namespace Core
 
@@ -137,8 +136,6 @@ public:
     ~KThread() override;
 
 public:
-    using ThreadContext32 = Core::ARM_Interface::ThreadContext32;
-    using ThreadContext64 = Core::ARM_Interface::ThreadContext64;
     using WaiterList = Common::IntrusiveListBaseTraits<KThread>::ListType;
 
     /**
@@ -246,31 +243,22 @@ public:
      * @returns The value of the TPIDR_EL0 register.
      */
     u64 GetTpidrEl0() const {
-        return m_thread_context_64.tpidr;
+        return m_thread_context.tpidr;
     }
 
     /// Sets the value of the TPIDR_EL0 Read/Write system register for this thread.
     void SetTpidrEl0(u64 value) {
-        m_thread_context_64.tpidr = value;
-        m_thread_context_32.tpidr = static_cast<u32>(value);
+        m_thread_context.tpidr = value;
     }
 
     void CloneFpuStatus();
 
-    ThreadContext32& GetContext32() {
-        return m_thread_context_32;
+    Svc::ThreadContext& GetContext() {
+        return m_thread_context;
     }
 
-    const ThreadContext32& GetContext32() const {
-        return m_thread_context_32;
-    }
-
-    ThreadContext64& GetContext64() {
-        return m_thread_context_64;
-    }
-
-    const ThreadContext64& GetContext64() const {
-        return m_thread_context_64;
+    const Svc::ThreadContext& GetContext() const {
+        return m_thread_context;
     }
 
     std::shared_ptr<Common::Fiber>& GetHostContext();
@@ -577,7 +565,7 @@ public:
 
     void RemoveWaiter(KThread* thread);
 
-    Result GetThreadContext3(Common::ScratchBuffer<u8>& out);
+    Result GetThreadContext3(Svc::ThreadContext* out);
 
     KThread* RemoveUserWaiterByKey(bool* out_has_waiters, KProcessAddress key) {
         return this->RemoveWaiterByKey(out_has_waiters, key, false);
@@ -734,8 +722,7 @@ private:
                                    std::function<void()>&& init_func);
 
     // For core KThread implementation
-    ThreadContext32 m_thread_context_32{};
-    ThreadContext64 m_thread_context_64{};
+    Svc::ThreadContext m_thread_context{};
     Common::IntrusiveListNode m_process_list_node;
     Common::IntrusiveRedBlackTreeNode m_condvar_arbiter_tree_node{};
     s32 m_priority{};

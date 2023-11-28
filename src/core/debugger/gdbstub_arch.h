@@ -36,6 +36,7 @@ public:
     u32 BreakpointInstruction() const override;
 
 private:
+    static constexpr u32 FP_REGISTER = 29;
     static constexpr u32 LR_REGISTER = 30;
     static constexpr u32 SP_REGISTER = 31;
     static constexpr u32 PC_REGISTER = 32;

@@ -1,25 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cinttypes>
-#include <memory>
-#include <dynarmic/interface/A64/a64.h>
-#include <dynarmic/interface/A64/config.h>
-#include "common/assert.h"
-#include "common/literals.h"
-#include "common/logging/log.h"
-#include "common/page_table.h"
 #include "common/settings.h"
 #include "core/arm/dynarmic/arm_dynarmic.h"
 #include "core/arm/dynarmic/arm_dynarmic_64.h"
 #include "core/arm/dynarmic/dynarmic_exclusive_monitor.h"
-#include "core/core.h"
 #include "core/core_timing.h"
-#include "core/debugger/debugger.h"
-#include "core/hardware_properties.h"
 #include "core/hle/kernel/k_process.h"
-#include "core/hle/kernel/svc.h"
-#include "core/memory.h"
 
 namespace Core {
 
@@ -28,92 +15,92 @@ using namespace Common::Literals;
 
 class DynarmicCallbacks64 : public Dynarmic::A64::UserCallbacks {
 public:
-    explicit DynarmicCallbacks64(ARM_Dynarmic_64& parent_)
-        : parent{parent_}, memory(parent.system.ApplicationMemory()),
-          debugger_enabled{parent.system.DebuggerEnabled()},
-          check_memory_access{debugger_enabled ||
-                              !Settings::values.cpuopt_ignore_memory_aborts.GetValue()} {}
+    explicit DynarmicCallbacks64(ArmDynarmic64& parent, const Kernel::KProcess* process)
+        : m_parent{parent}, m_memory(process->GetMemory()),
+          m_process(process), m_debugger_enabled{parent.m_system.DebuggerEnabled()},
+          m_check_memory_access{m_debugger_enabled ||
+                                !Settings::values.cpuopt_ignore_memory_aborts.GetValue()} {}
 
     u8 MemoryRead8(u64 vaddr) override {
         CheckMemoryAccess(vaddr, 1, Kernel::DebugWatchpointType::Read);
-        return memory.Read8(vaddr);
+        return m_memory.Read8(vaddr);
     }
     u16 MemoryRead16(u64 vaddr) override {
         CheckMemoryAccess(vaddr, 2, Kernel::DebugWatchpointType::Read);
-        return memory.Read16(vaddr);
+        return m_memory.Read16(vaddr);
     }
     u32 MemoryRead32(u64 vaddr) override {
         CheckMemoryAccess(vaddr, 4, Kernel::DebugWatchpointType::Read);
-        return memory.Read32(vaddr);
+        return m_memory.Read32(vaddr);
     }
     u64 MemoryRead64(u64 vaddr) override {
         CheckMemoryAccess(vaddr, 8, Kernel::DebugWatchpointType::Read);
-        return memory.Read64(vaddr);
+        return m_memory.Read64(vaddr);
     }
     Vector MemoryRead128(u64 vaddr) override {
         CheckMemoryAccess(vaddr, 16, Kernel::DebugWatchpointType::Read);
-        return {memory.Read64(vaddr), memory.Read64(vaddr + 8)};
+        return {m_memory.Read64(vaddr), m_memory.Read64(vaddr + 8)};
     }
     std::optional<u32> MemoryReadCode(u64 vaddr) override {
-        if (!memory.IsValidVirtualAddressRange(vaddr, sizeof(u32))) {
+        if (!m_memory.IsValidVirtualAddressRange(vaddr, sizeof(u32))) {
             return std::nullopt;
         }
-        return memory.Read32(vaddr);
+        return m_memory.Read32(vaddr);
     }
 
     void MemoryWrite8(u64 vaddr, u8 value) override {
         if (CheckMemoryAccess(vaddr, 1, Kernel::DebugWatchpointType::Write)) {
-            memory.Write8(vaddr, value);
+            m_memory.Write8(vaddr, value);
         }
     }
     void MemoryWrite16(u64 vaddr, u16 value) override {
         if (CheckMemoryAccess(vaddr, 2, Kernel::DebugWatchpointType::Write)) {
-            memory.Write16(vaddr, value);
+            m_memory.Write16(vaddr, value);
         }
     }
     void MemoryWrite32(u64 vaddr, u32 value) override {
         if (CheckMemoryAccess(vaddr, 4, Kernel::DebugWatchpointType::Write)) {
-            memory.Write32(vaddr, value);
+            m_memory.Write32(vaddr, value);
         }
     }
     void MemoryWrite64(u64 vaddr, u64 value) override {
         if (CheckMemoryAccess(vaddr, 8, Kernel::DebugWatchpointType::Write)) {
-            memory.Write64(vaddr, value);
+            m_memory.Write64(vaddr, value);
         }
     }
     void MemoryWrite128(u64 vaddr, Vector value) override {
         if (CheckMemoryAccess(vaddr, 16, Kernel::DebugWatchpointType::Write)) {
-            memory.Write64(vaddr, value[0]);
-            memory.Write64(vaddr + 8, value[1]);
+            m_memory.Write64(vaddr, value[0]);
+            m_memory.Write64(vaddr + 8, value[1]);
         }
     }
 
     bool MemoryWriteExclusive8(u64 vaddr, std::uint8_t value, std::uint8_t expected) override {
         return CheckMemoryAccess(vaddr, 1, Kernel::DebugWatchpointType::Write) &&
-               memory.WriteExclusive8(vaddr, value, expected);
+               m_memory.WriteExclusive8(vaddr, value, expected);
     }
     bool MemoryWriteExclusive16(u64 vaddr, std::uint16_t value, std::uint16_t expected) override {
         return CheckMemoryAccess(vaddr, 2, Kernel::DebugWatchpointType::Write) &&
-               memory.WriteExclusive16(vaddr, value, expected);
+               m_memory.WriteExclusive16(vaddr, value, expected);
     }
     bool MemoryWriteExclusive32(u64 vaddr, std::uint32_t value, std::uint32_t expected) override {
         return CheckMemoryAccess(vaddr, 4, Kernel::DebugWatchpointType::Write) &&
-               memory.WriteExclusive32(vaddr, value, expected);
+               m_memory.WriteExclusive32(vaddr, value, expected);
     }
     bool MemoryWriteExclusive64(u64 vaddr, std::uint64_t value, std::uint64_t expected) override {
         return CheckMemoryAccess(vaddr, 8, Kernel::DebugWatchpointType::Write) &&
-               memory.WriteExclusive64(vaddr, value, expected);
+               m_memory.WriteExclusive64(vaddr, value, expected);
     }
     bool MemoryWriteExclusive128(u64 vaddr, Vector value, Vector expected) override {
         return CheckMemoryAccess(vaddr, 16, Kernel::DebugWatchpointType::Write) &&
-               memory.WriteExclusive128(vaddr, value, expected);
+               m_memory.WriteExclusive128(vaddr, value, expected);
     }
 
     void InterpreterFallback(u64 pc, std::size_t num_instructions) override {
-        parent.LogBacktrace();
+        m_parent.LogBacktrace(m_process);
         LOG_ERROR(Core_ARM,
                   "Unimplemented instruction @ 0x{:X} for {} instructions (instr = {:08X})", pc,
-                  num_instructions, memory.Read32(pc));
+                  num_instructions, m_memory.Read32(pc));
         ReturnException(pc, PrefetchAbort);
     }
 
@@ -124,11 +111,11 @@ public:
             static constexpr u64 ICACHE_LINE_SIZE = 64;
 
             const u64 cache_line_start = value & ~(ICACHE_LINE_SIZE - 1);
-            parent.system.InvalidateCpuInstructionCacheRange(cache_line_start, ICACHE_LINE_SIZE);
+            m_parent.InvalidateCacheRange(cache_line_start, ICACHE_LINE_SIZE);
             break;
         }
         case Dynarmic::A64::InstructionCacheOperation::InvalidateAllToPoU:
-            parent.system.InvalidateCpuInstructionCaches();
+            m_parent.ClearInstructionCache();
             break;
         case Dynarmic::A64::InstructionCacheOperation::InvalidateAllToPoUInnerSharable:
         default:
@@ -136,7 +123,7 @@ public:
             break;
         }
 
-        parent.jit.load()->HaltExecution(Dynarmic::HaltReason::CacheInvalidation);
+        m_parent.m_jit->HaltExecution(Dynarmic::HaltReason::CacheInvalidation);
     }
 
     void ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) override {
@@ -152,26 +139,24 @@ public:
             ReturnException(pc, PrefetchAbort);
             return;
         default:
-            if (debugger_enabled) {
+            if (m_debugger_enabled) {
                 ReturnException(pc, InstructionBreakpoint);
                 return;
             }
 
-            parent.LogBacktrace();
+            m_parent.LogBacktrace(m_process);
             LOG_CRITICAL(Core_ARM, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})",
-                         static_cast<std::size_t>(exception), pc, memory.Read32(pc));
+                         static_cast<std::size_t>(exception), pc, m_memory.Read32(pc));
         }
     }
 
-    void CallSVC(u32 swi) override {
-        parent.svc_swi = swi;
-        parent.jit.load()->HaltExecution(SupervisorCall);
+    void CallSVC(u32 svc) override {
+        m_parent.m_svc = svc;
+        m_parent.m_jit->HaltExecution(SupervisorCall);
     }
 
     void AddTicks(u64 ticks) override {
-        if (parent.uses_wall_clock) {
-            return;
-        }
+        ASSERT_MSG(!m_parent.m_uses_wall_clock, "Dynarmic ticking disabled");
 
         // Divide the number of ticks by the amount of CPU cores. TODO(Subv): This yields only a
         // rough approximation of the amount of executed ticks in the system, it may be thrown off
@@ -182,44 +167,39 @@ public:
         // Always execute at least one tick.
         amortized_ticks = std::max<u64>(amortized_ticks, 1);
 
-        parent.system.CoreTiming().AddTicks(amortized_ticks);
+        m_parent.m_system.CoreTiming().AddTicks(amortized_ticks);
     }
 
     u64 GetTicksRemaining() override {
-        if (parent.uses_wall_clock) {
-            if (!IsInterrupted()) {
-                return minimum_run_cycles;
-            }
-            return 0U;
-        }
+        ASSERT_MSG(!m_parent.m_uses_wall_clock, "Dynarmic ticking disabled");
 
-        return std::max<s64>(parent.system.CoreTiming().GetDowncount(), 0);
+        return std::max<s64>(m_parent.m_system.CoreTiming().GetDowncount(), 0);
     }
 
     u64 GetCNTPCT() override {
-        return parent.system.CoreTiming().GetClockTicks();
+        return m_parent.m_system.CoreTiming().GetClockTicks();
     }
 
     bool CheckMemoryAccess(u64 addr, u64 size, Kernel::DebugWatchpointType type) {
-        if (!check_memory_access) {
+        if (!m_check_memory_access) {
             return true;
         }
 
-        if (!memory.IsValidVirtualAddressRange(addr, size)) {
+        if (!m_memory.IsValidVirtualAddressRange(addr, size)) {
             LOG_CRITICAL(Core_ARM, "Stopping execution due to unmapped memory access at {:#x}",
                          addr);
-            parent.jit.load()->HaltExecution(PrefetchAbort);
+            m_parent.m_jit->HaltExecution(PrefetchAbort);
             return false;
         }
 
-        if (!debugger_enabled) {
+        if (!m_debugger_enabled) {
             return true;
         }
 
-        const auto match{parent.MatchingWatchpoint(addr, size, type)};
+        const auto match{m_parent.MatchingWatchpoint(addr, size, type)};
         if (match) {
-            parent.halted_watchpoint = match;
-            parent.jit.load()->HaltExecution(DataAbort);
+            m_parent.m_halted_watchpoint = match;
+            m_parent.m_jit->HaltExecution(DataAbort);
             return false;
         }
 
@@ -227,30 +207,27 @@ public:
     }
 
     void ReturnException(u64 pc, Dynarmic::HaltReason hr) {
-        parent.SaveContext(parent.breakpoint_context);
-        parent.breakpoint_context.pc = pc;
-        parent.jit.load()->HaltExecution(hr);
+        m_parent.GetContext(m_parent.m_breakpoint_context);
+        m_parent.m_breakpoint_context.pc = pc;
+        m_parent.m_jit->HaltExecution(hr);
     }
 
-    bool IsInterrupted() {
-        return parent.system.Kernel().PhysicalCore(parent.core_index).IsInterrupted();
-    }
-
-    ARM_Dynarmic_64& parent;
-    Core::Memory::Memory& memory;
-    u64 tpidrro_el0 = 0;
-    u64 tpidr_el0 = 0;
-    const bool debugger_enabled{};
-    const bool check_memory_access{};
-    static constexpr u64 minimum_run_cycles = 10000U;
+    ArmDynarmic64& m_parent;
+    Core::Memory::Memory& m_memory;
+    u64 m_tpidrro_el0{};
+    u64 m_tpidr_el0{};
+    const Kernel::KProcess* m_process{};
+    const bool m_debugger_enabled{};
+    const bool m_check_memory_access{};
+    static constexpr u64 MinimumRunCycles = 10000U;
 };
 
-std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* page_table,
-                                                             std::size_t address_space_bits) const {
+std::shared_ptr<Dynarmic::A64::Jit> ArmDynarmic64::MakeJit(Common::PageTable* page_table,
+                                                           std::size_t address_space_bits) const {
     Dynarmic::A64::UserConfig config;
 
     // Callbacks
-    config.callbacks = cb.get();
+    config.callbacks = m_cb.get();
 
     // Memory
     if (page_table) {
@@ -271,12 +248,12 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
     }
 
     // Multi-process state
-    config.processor_id = core_index;
-    config.global_monitor = &exclusive_monitor.monitor;
+    config.processor_id = m_core_index;
+    config.global_monitor = &m_exclusive_monitor.monitor;
 
     // System registers
-    config.tpidrro_el0 = &cb->tpidrro_el0;
-    config.tpidr_el0 = &cb->tpidr_el0;
+    config.tpidrro_el0 = &m_cb->m_tpidrro_el0;
+    config.tpidr_el0 = &m_cb->m_tpidr_el0;
     config.dczid_el0 = 4;
     config.ctr_el0 = 0x8444c004;
     config.cntfrq_el0 = Hardware::CNTFREQ;
@@ -285,8 +262,8 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
     config.define_unpredictable_behaviour = true;
 
     // Timing
-    config.wall_clock_cntpct = uses_wall_clock;
-    config.enable_cycle_counting = true;
+    config.wall_clock_cntpct = m_uses_wall_clock;
+    config.enable_cycle_counting = !m_uses_wall_clock;
 
     // Code cache size
 #ifdef ARCHITECTURE_arm64
@@ -296,7 +273,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
 #endif
 
     // Allow memory fault handling to work
-    if (system.DebuggerEnabled()) {
+    if (m_system.DebuggerEnabled()) {
         config.check_halt_on_memory_access = true;
     }
 
@@ -384,147 +361,112 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
     return std::make_shared<Dynarmic::A64::Jit>(config);
 }
 
-HaltReason ARM_Dynarmic_64::RunJit() {
-    return TranslateHaltReason(jit.load()->Run());
+HaltReason ArmDynarmic64::RunThread(Kernel::KThread* thread) {
+    m_jit->ClearExclusiveState();
+    return TranslateHaltReason(m_jit->Run());
 }
 
-HaltReason ARM_Dynarmic_64::StepJit() {
-    return TranslateHaltReason(jit.load()->Step());
+HaltReason ArmDynarmic64::StepThread(Kernel::KThread* thread) {
+    m_jit->ClearExclusiveState();
+    return TranslateHaltReason(m_jit->Step());
 }
 
-u32 ARM_Dynarmic_64::GetSvcNumber() const {
-    return svc_swi;
+u32 ArmDynarmic64::GetSvcNumber() const {
+    return m_svc;
 }
 
-const Kernel::DebugWatchpoint* ARM_Dynarmic_64::HaltedWatchpoint() const {
-    return halted_watchpoint;
-}
+void ArmDynarmic64::GetSvcArguments(std::span<uint64_t, 8> args) const {
+    Dynarmic::A64::Jit& j = *m_jit;
 
-void ARM_Dynarmic_64::RewindBreakpointInstruction() {
-    LoadContext(breakpoint_context);
-}
-
-ARM_Dynarmic_64::ARM_Dynarmic_64(System& system_, bool uses_wall_clock_,
-                                 DynarmicExclusiveMonitor& exclusive_monitor_,
-                                 std::size_t core_index_)
-    : ARM_Interface{system_, uses_wall_clock_},
-      cb(std::make_unique<DynarmicCallbacks64>(*this)), core_index{core_index_},
-      exclusive_monitor{exclusive_monitor_}, null_jit{MakeJit(nullptr, 48)}, jit{null_jit.get()} {}
-
-ARM_Dynarmic_64::~ARM_Dynarmic_64() = default;
-
-void ARM_Dynarmic_64::SetPC(u64 pc) {
-    jit.load()->SetPC(pc);
-}
-
-u64 ARM_Dynarmic_64::GetPC() const {
-    return jit.load()->GetPC();
-}
-
-u64 ARM_Dynarmic_64::GetSP() const {
-    return jit.load()->GetSP();
-}
-
-u64 ARM_Dynarmic_64::GetReg(int index) const {
-    return jit.load()->GetRegister(index);
-}
-
-void ARM_Dynarmic_64::SetReg(int index, u64 value) {
-    jit.load()->SetRegister(index, value);
-}
-
-u128 ARM_Dynarmic_64::GetVectorReg(int index) const {
-    return jit.load()->GetVector(index);
-}
-
-void ARM_Dynarmic_64::SetVectorReg(int index, u128 value) {
-    jit.load()->SetVector(index, value);
-}
-
-u32 ARM_Dynarmic_64::GetPSTATE() const {
-    return jit.load()->GetPstate();
-}
-
-void ARM_Dynarmic_64::SetPSTATE(u32 pstate) {
-    jit.load()->SetPstate(pstate);
-}
-
-u64 ARM_Dynarmic_64::GetTlsAddress() const {
-    return cb->tpidrro_el0;
-}
-
-void ARM_Dynarmic_64::SetTlsAddress(u64 address) {
-    cb->tpidrro_el0 = address;
-}
-
-u64 ARM_Dynarmic_64::GetTPIDR_EL0() const {
-    return cb->tpidr_el0;
-}
-
-void ARM_Dynarmic_64::SetTPIDR_EL0(u64 value) {
-    cb->tpidr_el0 = value;
-}
-
-void ARM_Dynarmic_64::SaveContext(ThreadContext64& ctx) const {
-    Dynarmic::A64::Jit* j = jit.load();
-    ctx.cpu_registers = j->GetRegisters();
-    ctx.sp = j->GetSP();
-    ctx.pc = j->GetPC();
-    ctx.pstate = j->GetPstate();
-    ctx.vector_registers = j->GetVectors();
-    ctx.fpcr = j->GetFpcr();
-    ctx.fpsr = j->GetFpsr();
-    ctx.tpidr = cb->tpidr_el0;
-}
-
-void ARM_Dynarmic_64::LoadContext(const ThreadContext64& ctx) {
-    Dynarmic::A64::Jit* j = jit.load();
-    j->SetRegisters(ctx.cpu_registers);
-    j->SetSP(ctx.sp);
-    j->SetPC(ctx.pc);
-    j->SetPstate(ctx.pstate);
-    j->SetVectors(ctx.vector_registers);
-    j->SetFpcr(ctx.fpcr);
-    j->SetFpsr(ctx.fpsr);
-    SetTPIDR_EL0(ctx.tpidr);
-}
-
-void ARM_Dynarmic_64::SignalInterrupt() {
-    jit.load()->HaltExecution(BreakLoop);
-}
-
-void ARM_Dynarmic_64::ClearInterrupt() {
-    jit.load()->ClearHalt(BreakLoop);
-}
-
-void ARM_Dynarmic_64::ClearInstructionCache() {
-    jit.load()->ClearCache();
-}
-
-void ARM_Dynarmic_64::InvalidateCacheRange(u64 addr, std::size_t size) {
-    jit.load()->InvalidateCacheRange(addr, size);
-}
-
-void ARM_Dynarmic_64::ClearExclusiveState() {
-    jit.load()->ClearExclusiveState();
-}
-
-void ARM_Dynarmic_64::PageTableChanged(Common::PageTable& page_table,
-                                       std::size_t new_address_space_size_in_bits) {
-    ThreadContext64 ctx{};
-    SaveContext(ctx);
-
-    auto key = std::make_pair(&page_table, new_address_space_size_in_bits);
-    auto iter = jit_cache.find(key);
-    if (iter != jit_cache.end()) {
-        jit.store(iter->second.get());
-        LoadContext(ctx);
-        return;
+    for (size_t i = 0; i < 8; i++) {
+        args[i] = j.GetRegister(i);
     }
-    std::shared_ptr new_jit = MakeJit(&page_table, new_address_space_size_in_bits);
-    jit.store(new_jit.get());
-    LoadContext(ctx);
-    jit_cache.emplace(key, std::move(new_jit));
+}
+
+void ArmDynarmic64::SetSvcArguments(std::span<const uint64_t, 8> args) {
+    Dynarmic::A64::Jit& j = *m_jit;
+
+    for (size_t i = 0; i < 8; i++) {
+        j.SetRegister(i, args[i]);
+    }
+}
+
+const Kernel::DebugWatchpoint* ArmDynarmic64::HaltedWatchpoint() const {
+    return m_halted_watchpoint;
+}
+
+void ArmDynarmic64::RewindBreakpointInstruction() {
+    this->SetContext(m_breakpoint_context);
+}
+
+ArmDynarmic64::ArmDynarmic64(System& system, bool uses_wall_clock, const Kernel::KProcess* process,
+                             DynarmicExclusiveMonitor& exclusive_monitor, std::size_t core_index)
+    : ArmInterface{uses_wall_clock}, m_system{system}, m_exclusive_monitor{exclusive_monitor},
+      m_cb(std::make_unique<DynarmicCallbacks64>(*this, process)), m_core_index{core_index} {
+    auto& page_table = process->GetPageTable().GetBasePageTable();
+    auto& page_table_impl = page_table.GetImpl();
+    m_jit = MakeJit(&page_table_impl, page_table.GetAddressSpaceWidth());
+}
+
+ArmDynarmic64::~ArmDynarmic64() = default;
+
+void ArmDynarmic64::SetTpidrroEl0(u64 value) {
+    m_cb->m_tpidrro_el0 = value;
+}
+
+void ArmDynarmic64::GetContext(Kernel::Svc::ThreadContext& ctx) const {
+    Dynarmic::A64::Jit& j = *m_jit;
+    auto gpr = j.GetRegisters();
+    auto fpr = j.GetVectors();
+
+    // TODO: this is inconvenient
+    for (size_t i = 0; i < 29; i++) {
+        ctx.r[i] = gpr[i];
+    }
+    ctx.fp = gpr[29];
+    ctx.lr = gpr[30];
+
+    ctx.sp = j.GetSP();
+    ctx.pc = j.GetPC();
+    ctx.pstate = j.GetPstate();
+    ctx.v = fpr;
+    ctx.fpcr = j.GetFpcr();
+    ctx.fpsr = j.GetFpsr();
+    ctx.tpidr = m_cb->m_tpidr_el0;
+}
+
+void ArmDynarmic64::SetContext(const Kernel::Svc::ThreadContext& ctx) {
+    Dynarmic::A64::Jit& j = *m_jit;
+
+    // TODO: this is inconvenient
+    std::array<u64, 31> gpr;
+
+    for (size_t i = 0; i < 29; i++) {
+        gpr[i] = ctx.r[i];
+    }
+    gpr[29] = ctx.fp;
+    gpr[30] = ctx.lr;
+
+    j.SetRegisters(gpr);
+    j.SetSP(ctx.sp);
+    j.SetPC(ctx.pc);
+    j.SetPstate(ctx.pstate);
+    j.SetVectors(ctx.v);
+    j.SetFpcr(ctx.fpcr);
+    j.SetFpsr(ctx.fpsr);
+    m_cb->m_tpidr_el0 = ctx.tpidr;
+}
+
+void ArmDynarmic64::SignalInterrupt(Kernel::KThread* thread) {
+    m_jit->HaltExecution(BreakLoop);
+}
+
+void ArmDynarmic64::ClearInstructionCache() {
+    m_jit->ClearCache();
+}
+
+void ArmDynarmic64::InvalidateCacheRange(u64 addr, std::size_t size) {
+    m_jit->InvalidateCacheRange(addr, size);
 }
 
 } // namespace Core

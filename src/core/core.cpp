@@ -323,7 +323,6 @@ struct System::Impl {
                 static_cast<u32>(SystemResultStatus::ErrorLoader) + static_cast<u32>(load_result));
         }
         AddGlueRegistrationForProcess(*app_loader, *main_process);
-        kernel.InitializeCores();
 
         // Initialize cheat engine
         if (cheat_engine) {
@@ -600,14 +599,6 @@ bool System::IsPaused() const {
     return impl->IsPaused();
 }
 
-void System::InvalidateCpuInstructionCaches() {
-    impl->kernel.InvalidateAllInstructionCaches();
-}
-
-void System::InvalidateCpuInstructionCacheRange(u64 addr, std::size_t size) {
-    impl->kernel.InvalidateCpuInstructionCacheRange(addr, size);
-}
-
 void System::ShutdownMainProcess() {
     impl->ShutdownMainProcess();
 }
@@ -696,14 +687,6 @@ const TelemetrySession& System::TelemetrySession() const {
     return *impl->telemetry_session;
 }
 
-ARM_Interface& System::CurrentArmInterface() {
-    return impl->kernel.CurrentPhysicalCore().ArmInterface();
-}
-
-const ARM_Interface& System::CurrentArmInterface() const {
-    return impl->kernel.CurrentPhysicalCore().ArmInterface();
-}
-
 Kernel::PhysicalCore& System::CurrentPhysicalCore() {
     return impl->kernel.CurrentPhysicalCore();
 }
@@ -736,14 +719,6 @@ const Core::DeviceMemory& System::DeviceMemory() const {
 
 const Kernel::KProcess* System::ApplicationProcess() const {
     return impl->kernel.ApplicationProcess();
-}
-
-ARM_Interface& System::ArmInterface(std::size_t core_index) {
-    return impl->kernel.PhysicalCore(core_index).ArmInterface();
-}
-
-const ARM_Interface& System::ArmInterface(std::size_t core_index) const {
-    return impl->kernel.PhysicalCore(core_index).ArmInterface();
 }
 
 ExclusiveMonitor& System::Monitor() {

@@ -278,7 +278,7 @@ void Patcher::WriteSvcTrampoline(ModuleDestLabel module_dest, u32 svc_id) {
 
     // Store SVC number to execute when we return
     c.MOV(X2, svc_id);
-    c.STR(W2, X1, offsetof(GuestContext, svc_swi));
+    c.STR(W2, X1, offsetof(GuestContext, svc));
 
     // We are calling a SVC. Clear esr_el1 and return it.
     static_assert(std::is_same_v<std::underlying_type_t<HaltReason>, u64>);

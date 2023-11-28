@@ -5,6 +5,7 @@
 
 #include <map>
 
+#include "core/arm/arm_interface.h"
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/k_address_arbiter.h"
@@ -106,6 +107,8 @@ private:
     bool m_is_suspended{};
     bool m_is_immortal{};
     bool m_is_handle_table_initialized{};
+    std::array<std::unique_ptr<Core::ArmInterface>, Core::Hardware::NUM_CPU_CORES>
+        m_arm_interfaces{};
     std::array<KThread*, Core::Hardware::NUM_CPU_CORES> m_running_threads{};
     std::array<u64, Core::Hardware::NUM_CPU_CORES> m_running_thread_idle_counts{};
     std::array<u64, Core::Hardware::NUM_CPU_CORES> m_running_thread_switch_counts{};
@@ -476,6 +479,10 @@ public:
     }
 #endif
 
+    Core::ArmInterface* GetArmInterface(size_t core_index) const {
+        return m_arm_interfaces[core_index].get();
+    }
+
 public:
     // Attempts to insert a watchpoint into a free slot. Returns false if none are available.
     bool InsertWatchpoint(KProcessAddress addr, u64 size, DebugWatchpointType type);
@@ -492,6 +499,8 @@ public:
                             KProcessAddress aslr_space_start, bool is_hbl);
 
     void LoadModule(CodeSet code_set, KProcessAddress base_addr);
+
+    void InitializeInterfaces();
 
     Core::Memory::Memory& GetMemory() const;
 

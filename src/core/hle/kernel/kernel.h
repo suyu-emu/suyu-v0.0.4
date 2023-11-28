@@ -104,9 +104,6 @@ public:
     /// Resets the kernel to a clean slate for use.
     void Initialize();
 
-    /// Initializes the CPU cores.
-    void InitializeCores();
-
     /// Clears all resources in use by the kernel instance.
     void Shutdown();
 
@@ -180,10 +177,6 @@ public:
     KAutoObjectWithListContainer& ObjectListContainer();
 
     const KAutoObjectWithListContainer& ObjectListContainer() const;
-
-    void InvalidateAllInstructionCaches();
-
-    void InvalidateCpuInstructionCacheRange(KProcessAddress addr, std::size_t size);
 
     /// Registers all kernel objects with the global emulation state, this is purely for tracking
     /// leaks after emulation has been shutdown.

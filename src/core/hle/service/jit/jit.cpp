@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/arm/debug.h"
 #include "core/arm/symbols.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_code_memory.h"
@@ -98,8 +99,9 @@ public:
         if (return_value == 0) {
             // The callback has written to the output executable code range,
             // requiring an instruction cache invalidation
-            system.InvalidateCpuInstructionCacheRange(configuration.user_rx_memory.offset,
-                                                      configuration.user_rx_memory.size);
+            Core::InvalidateInstructionCacheRange(process.GetPointerUnsafe(),
+                                                  configuration.user_rx_memory.offset,
+                                                  configuration.user_rx_memory.size);
 
             // Write back to the IPC output buffer, if provided
             if (ctx.CanWriteBuffer()) {

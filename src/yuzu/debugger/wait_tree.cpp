@@ -7,7 +7,7 @@
 #include "yuzu/debugger/wait_tree.h"
 #include "yuzu/uisettings.h"
 
-#include "core/arm/arm_interface.h"
+#include "core/arm/debug.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_class_token.h"
 #include "core/hle/kernel/k_handle_table.h"
@@ -129,7 +129,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeCallstack::GetChildren() cons
         return list;
     }
 
-    auto backtrace = Core::ARM_Interface::GetBacktraceFromContext(system, thread.GetContext64());
+    auto backtrace = Core::GetBacktraceFromContext(thread.GetOwnerProcess(), thread.GetContext());
 
     for (auto& entry : backtrace) {
         std::string s = fmt::format("{:20}{:016X} {:016X} {:016X} {}", entry.module, entry.address,
@@ -238,10 +238,10 @@ QString WaitTreeThread::GetText() const {
         break;
     }
 
-    const auto& context = thread.GetContext64();
+    const auto& context = thread.GetContext();
     const QString pc_info = tr(" PC = 0x%1 LR = 0x%2")
                                 .arg(context.pc, 8, 16, QLatin1Char{'0'})
-                                .arg(context.cpu_registers[30], 8, 16, QLatin1Char{'0'});
+                                .arg(context.lr, 8, 16, QLatin1Char{'0'});
     return QStringLiteral("%1%2 (%3) ")
         .arg(WaitTreeSynchronizationObject::GetText(), pc_info, status);
 }

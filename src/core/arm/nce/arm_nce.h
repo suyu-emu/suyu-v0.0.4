@@ -3,11 +3,7 @@
 
 #pragma once
 
-#include <atomic>
-#include <memory>
-#include <span>
-#include <unordered_map>
-#include <vector>
+#include <mutex>
 
 #include "core/arm/arm_interface.h"
 #include "core/arm/nce/guest_context.h"
@@ -20,51 +16,36 @@ namespace Core {
 
 class System;
 
-class ARM_NCE final : public ARM_Interface {
+class ArmNce final : public ArmInterface {
 public:
-    ARM_NCE(System& system_, bool uses_wall_clock_, std::size_t core_index_);
-
-    ~ARM_NCE() override;
+    ArmNce(System& system, bool uses_wall_clock, std::size_t core_index);
+    ~ArmNce() override;
 
     void Initialize() override;
-    void SetPC(u64 pc) override;
-    u64 GetPC() const override;
-    u64 GetSP() const override;
-    u64 GetReg(int index) const override;
-    void SetReg(int index, u64 value) override;
-    u128 GetVectorReg(int index) const override;
-    void SetVectorReg(int index, u128 value) override;
-
-    u32 GetPSTATE() const override;
-    void SetPSTATE(u32 pstate) override;
-    u64 GetTlsAddress() const override;
-    void SetTlsAddress(u64 address) override;
-    void SetTPIDR_EL0(u64 value) override;
-    u64 GetTPIDR_EL0() const override;
 
     Architecture GetArchitecture() const override {
-        return Architecture::Aarch64;
+        return Architecture::AArch64;
     }
 
-    void SaveContext(ThreadContext32& ctx) const override {}
-    void SaveContext(ThreadContext64& ctx) const override;
-    void LoadContext(const ThreadContext32& ctx) override {}
-    void LoadContext(const ThreadContext64& ctx) override;
+    HaltReason RunThread(Kernel::KThread* thread) override;
+    HaltReason StepThread(Kernel::KThread* thread) override;
 
-    void SignalInterrupt() override;
-    void ClearInterrupt() override;
-    void ClearExclusiveState() override;
-    void ClearInstructionCache() override;
-    void InvalidateCacheRange(u64 addr, std::size_t size) override;
-    void PageTableChanged(Common::PageTable& new_page_table,
-                          std::size_t new_address_space_size_in_bits) override;
+    void GetContext(Kernel::Svc::ThreadContext& ctx) const override;
+    void SetContext(const Kernel::Svc::ThreadContext& ctx) override;
+    void SetTpidrroEl0(u64 value) override;
 
-protected:
-    HaltReason RunJit() override;
-    HaltReason StepJit() override;
-
+    void GetSvcArguments(std::span<uint64_t, 8> args) const override;
+    void SetSvcArguments(std::span<const uint64_t, 8> args) override;
     u32 GetSvcNumber() const override;
 
+    void SignalInterrupt(Kernel::KThread* thread) override;
+    void ClearInstructionCache() override;
+    void InvalidateCacheRange(u64 addr, std::size_t size) override;
+
+    void LockThread(Kernel::KThread* thread) override;
+    void UnlockThread(Kernel::KThread* thread) override;
+
+protected:
     const Kernel::DebugWatchpoint* HaltedWatchpoint() const override {
         return nullptr;
     }
@@ -93,16 +74,15 @@ private:
     static void HandleHostFault(int sig, void* info, void* raw_context);
 
 public:
+    Core::System& m_system;
+
     // Members set on initialization.
-    std::size_t core_index{};
-    pid_t thread_id{-1};
+    std::size_t m_core_index{};
+    pid_t m_thread_id{-1};
 
     // Core context.
-    GuestContext guest_ctx;
-
-    // Thread and invalidation info.
-    std::mutex lock;
-    Kernel::KThread* running_thread{};
+    GuestContext m_guest_ctx{};
+    Kernel::KThread* m_running_thread{};
 };
 
 } // namespace Core

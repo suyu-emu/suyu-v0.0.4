@@ -13,6 +13,12 @@
 #include "core/hle/kernel/k_thread_queue.h"
 #include "core/hle/kernel/k_worker_task_manager.h"
 
+#include "core/arm/dynarmic/arm_dynarmic_32.h"
+#include "core/arm/dynarmic/arm_dynarmic_64.h"
+#ifdef HAS_NCE
+#include "core/arm/nce/arm_nce.h"
+#endif
+
 namespace Kernel {
 
 namespace {
@@ -957,10 +963,8 @@ Result KProcess::Run(s32 priority, size_t stack_size) {
     R_TRY(m_handle_table.Add(std::addressof(thread_handle), main_thread));
 
     // Set the thread arguments.
-    main_thread->GetContext32().cpu_registers[0] = 0;
-    main_thread->GetContext64().cpu_registers[0] = 0;
-    main_thread->GetContext32().cpu_registers[1] = thread_handle;
-    main_thread->GetContext64().cpu_registers[1] = thread_handle;
+    main_thread->GetContext().r[0] = 0;
+    main_thread->GetContext().r[1] = thread_handle;
 
     // Update our state.
     this->ChangeState((state == State::Created) ? State::Running : State::RunningAttached);
@@ -1199,6 +1203,9 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
     m_is_hbl = is_hbl;
     m_ideal_core_id = metadata.GetMainThreadCore();
 
+    // Set up emulation context.
+    this->InitializeInterfaces();
+
     // We succeeded.
     R_SUCCEED();
 }
@@ -1225,6 +1232,31 @@ void KProcess::LoadModule(CodeSet code_set, KProcessAddress base_addr) {
         ReprotectSegment(code_set.PatchSegment(), Svc::MemoryPermission::None);
     }
 #endif
+}
+
+void KProcess::InitializeInterfaces() {
+    this->GetMemory().SetCurrentPageTable(*this);
+
+#ifdef HAS_NCE
+    if (this->Is64Bit() && Settings::IsNceEnabled()) {
+        for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            m_arm_interfaces[i] = std::make_unique<Core::ArmNce>(m_kernel.System(), true, i);
+        }
+    } else
+#endif
+        if (this->Is64Bit()) {
+        for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            m_arm_interfaces[i] = std::make_unique<Core::ArmDynarmic64>(
+                m_kernel.System(), m_kernel.IsMulticore(), this,
+                static_cast<Core::DynarmicExclusiveMonitor&>(m_kernel.GetExclusiveMonitor()), i);
+        }
+    } else {
+        for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            m_arm_interfaces[i] = std::make_unique<Core::ArmDynarmic32>(
+                m_kernel.System(), m_kernel.IsMulticore(), this,
+                static_cast<Core::DynarmicExclusiveMonitor&>(m_kernel.GetExclusiveMonitor()), i);
+        }
+    }
 }
 
 bool KProcess::InsertWatchpoint(KProcessAddress addr, u64 size, DebugWatchpointType type) {

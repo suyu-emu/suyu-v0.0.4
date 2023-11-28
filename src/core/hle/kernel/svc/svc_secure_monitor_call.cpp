@@ -22,31 +22,29 @@ void CallSecureMonitor64From32(Core::System& system, ilp32::SecureMonitorArgumen
 
 // Custom ABI for CallSecureMonitor.
 
-void SvcWrap_CallSecureMonitor64(Core::System& system) {
-    auto& core = system.CurrentPhysicalCore().ArmInterface();
-    lp64::SecureMonitorArguments args{};
+void SvcWrap_CallSecureMonitor64(Core::System& system, std::span<uint64_t, 8> args) {
+    lp64::SecureMonitorArguments smc_args{};
     for (int i = 0; i < 8; i++) {
-        args.r[i] = core.GetReg(i);
+        smc_args.r[i] = args[i];
     }
 
-    CallSecureMonitor64(system, std::addressof(args));
+    CallSecureMonitor64(system, std::addressof(smc_args));
 
     for (int i = 0; i < 8; i++) {
-        core.SetReg(i, args.r[i]);
+        args[i] = smc_args.r[i];
     }
 }
 
-void SvcWrap_CallSecureMonitor64From32(Core::System& system) {
-    auto& core = system.CurrentPhysicalCore().ArmInterface();
-    ilp32::SecureMonitorArguments args{};
+void SvcWrap_CallSecureMonitor64From32(Core::System& system, std::span<uint64_t, 8> args) {
+    ilp32::SecureMonitorArguments smc_args{};
     for (int i = 0; i < 8; i++) {
-        args.r[i] = static_cast<u32>(core.GetReg(i));
+        smc_args.r[i] = static_cast<u32>(args[i]);
     }
 
-    CallSecureMonitor64From32(system, std::addressof(args));
+    CallSecureMonitor64From32(system, std::addressof(smc_args));
 
     for (int i = 0; i < 8; i++) {
-        core.SetReg(i, args.r[i]);
+        args[i] = smc_args.r[i];
     }
 }
 

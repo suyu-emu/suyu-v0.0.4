@@ -90,8 +90,6 @@ Result StartThread(Core::System& system, Handle thread_handle) {
 
 /// Called when a thread exits
 void ExitThread(Core::System& system) {
-    LOG_DEBUG(Kernel_SVC, "called, pc=0x{:08X}", system.CurrentArmInterface().GetPC());
-
     auto* const current_thread = GetCurrentThreadPointer(system.Kernel());
     system.GlobalSchedulerContext().RemoveThread(current_thread);
     current_thread->Exit();
@@ -147,47 +145,19 @@ Result GetThreadContext3(Core::System& system, u64 out_context, Handle thread_ha
     R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Require the handle be to a non-current thread in the current process.
-    const auto* current_process = GetCurrentProcessPointer(kernel);
-    R_UNLESS(current_process == thread->GetOwnerProcess(), ResultInvalidId);
+    R_UNLESS(thread->GetOwnerProcess() == GetCurrentProcessPointer(kernel), ResultInvalidHandle);
+    R_UNLESS(thread.GetPointerUnsafe() != GetCurrentThreadPointer(kernel), ResultBusy);
 
-    // Verify that the thread isn't terminated.
-    R_UNLESS(thread->GetState() != ThreadState::Terminated, ResultTerminationRequested);
+    // Get the thread context.
+    Svc::ThreadContext context{};
+    R_TRY(thread->GetThreadContext3(std::addressof(context)));
 
-    /// Check that the thread is not the current one.
-    /// NOTE: Nintendo does not check this, and thus the following loop will deadlock.
-    R_UNLESS(thread.GetPointerUnsafe() != GetCurrentThreadPointer(kernel), ResultInvalidId);
+    // Copy the thread context to user space.
+    R_UNLESS(
+        GetCurrentMemory(kernel).WriteBlock(out_context, std::addressof(context), sizeof(context)),
+        ResultInvalidPointer);
 
-    // Try to get the thread context until the thread isn't current on any core.
-    while (true) {
-        KScopedSchedulerLock sl{kernel};
-
-        // TODO(bunnei): Enforce that thread is suspended for debug here.
-
-        // If the thread's raw state isn't runnable, check if it's current on some core.
-        if (thread->GetRawState() != ThreadState::Runnable) {
-            bool current = false;
-            for (auto i = 0; i < static_cast<s32>(Core::Hardware::NUM_CPU_CORES); ++i) {
-                if (thread.GetPointerUnsafe() == kernel.Scheduler(i).GetSchedulerCurrentThread()) {
-                    current = true;
-                    break;
-                }
-            }
-
-            // If the thread is current, retry until it isn't.
-            if (current) {
-                continue;
-            }
-        }
-
-        // Get the thread context.
-        static thread_local Common::ScratchBuffer<u8> context;
-        R_TRY(thread->GetThreadContext3(context));
-
-        // Copy the thread context to user space.
-        GetCurrentMemory(kernel).WriteBlock(out_context, context.data(), context.size());
-
-        R_SUCCEED();
-    }
+    R_SUCCEED();
 }
 
 /// Gets the priority for the specified thread
