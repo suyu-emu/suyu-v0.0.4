@@ -22,14 +22,14 @@ public:
     ~RomFSBuildContext();
 
     // This finalizes the context.
-    std::multimap<u64, VirtualFile> Build();
+    std::vector<std::pair<u64, VirtualFile>> Build();
 
 private:
     VirtualDir base;
     VirtualDir ext;
     std::shared_ptr<RomFSBuildDirectoryContext> root;
-    std::map<std::string, std::shared_ptr<RomFSBuildDirectoryContext>, std::less<>> directories;
-    std::map<std::string, std::shared_ptr<RomFSBuildFileContext>, std::less<>> files;
+    std::vector<std::shared_ptr<RomFSBuildDirectoryContext>> directories;
+    std::vector<std::shared_ptr<RomFSBuildFileContext>> files;
     u64 num_dirs = 0;
     u64 num_files = 0;
     u64 dir_table_size = 0;

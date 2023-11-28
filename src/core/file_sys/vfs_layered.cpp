@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <set>
+#include <unordered_set>
 #include <utility>
 #include "core/file_sys/vfs_layered.h"
 
@@ -59,13 +60,12 @@ std::string LayeredVfsDirectory::GetFullPath() const {
 
 std::vector<VirtualFile> LayeredVfsDirectory::GetFiles() const {
     std::vector<VirtualFile> out;
-    std::set<std::string, std::less<>> out_names;
+    std::unordered_set<std::string> out_names;
 
     for (const auto& layer : dirs) {
         for (auto& file : layer->GetFiles()) {
-            auto file_name = file->GetName();
-            if (!out_names.contains(file_name)) {
-                out_names.emplace(std::move(file_name));
+            const auto [it, is_new] = out_names.emplace(file->GetName());
+            if (is_new) {
                 out.emplace_back(std::move(file));
             }
         }
@@ -75,18 +75,19 @@ std::vector<VirtualFile> LayeredVfsDirectory::GetFiles() const {
 }
 
 std::vector<VirtualDir> LayeredVfsDirectory::GetSubdirectories() const {
-    std::vector<std::string> names;
+    std::vector<VirtualDir> out;
+    std::unordered_set<std::string> out_names;
+
     for (const auto& layer : dirs) {
         for (const auto& sd : layer->GetSubdirectories()) {
-            if (std::find(names.begin(), names.end(), sd->GetName()) == names.end())
-                names.push_back(sd->GetName());
+            out_names.emplace(sd->GetName());
         }
     }
 
-    std::vector<VirtualDir> out;
-    out.reserve(names.size());
-    for (const auto& subdir : names)
+    out.reserve(out_names.size());
+    for (const auto& subdir : out_names) {
         out.emplace_back(GetSubdirectory(subdir));
+    }
 
     return out;
 }
