@@ -59,8 +59,8 @@ VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(std::string&& name,
     return VirtualFile(new ConcatenatedVfsFile(std::move(name), std::move(concatenation_map)));
 }
 
-VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(u8 filler_byte, std::string&& name,
-                                                      std::multimap<u64, VirtualFile>&& files) {
+VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(
+    u8 filler_byte, std::string&& name, std::vector<std::pair<u64, VirtualFile>>&& files) {
     // Fold trivial cases.
     if (files.empty()) {
         return nullptr;

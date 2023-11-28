@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstring>
+#include <span>
 #include <string_view>
 #include "common/alignment.h"
 #include "common/assert.h"
@@ -134,7 +135,7 @@ void RomFSBuildContext::VisitDirectory(VirtualDir romfs_dir, VirtualDir ext_dir,
 
         child->size = child->source->GetSize();
 
-        AddFile(parent, child);
+        AddFile(parent, std::move(child));
     }
 
     for (auto& child_romfs_dir : romfs_dir->GetSubdirectories()) {
@@ -163,36 +164,24 @@ void RomFSBuildContext::VisitDirectory(VirtualDir romfs_dir, VirtualDir ext_dir,
 
 bool RomFSBuildContext::AddDirectory(std::shared_ptr<RomFSBuildDirectoryContext> parent_dir_ctx,
                                      std::shared_ptr<RomFSBuildDirectoryContext> dir_ctx) {
-    // Check whether it's already in the known directories.
-    const auto [it, is_new] = directories.emplace(dir_ctx->path, nullptr);
-    if (!is_new) {
-        return false;
-    }
-
     // Add a new directory.
     num_dirs++;
     dir_table_size +=
         sizeof(RomFSDirectoryEntry) + Common::AlignUp(dir_ctx->path_len - dir_ctx->cur_path_ofs, 4);
-    dir_ctx->parent = parent_dir_ctx;
-    it->second = dir_ctx;
+    dir_ctx->parent = std::move(parent_dir_ctx);
+    directories.emplace_back(std::move(dir_ctx));
 
     return true;
 }
 
 bool RomFSBuildContext::AddFile(std::shared_ptr<RomFSBuildDirectoryContext> parent_dir_ctx,
                                 std::shared_ptr<RomFSBuildFileContext> file_ctx) {
-    // Check whether it's already in the known files.
-    const auto [it, is_new] = files.emplace(file_ctx->path, nullptr);
-    if (!is_new) {
-        return false;
-    }
-
     // Add a new file.
     num_files++;
     file_table_size +=
         sizeof(RomFSFileEntry) + Common::AlignUp(file_ctx->path_len - file_ctx->cur_path_ofs, 4);
-    file_ctx->parent = parent_dir_ctx;
-    it->second = file_ctx;
+    file_ctx->parent = std::move(parent_dir_ctx);
+    files.emplace_back(std::move(file_ctx));
 
     return true;
 }
@@ -201,7 +190,7 @@ RomFSBuildContext::RomFSBuildContext(VirtualDir base_, VirtualDir ext_)
     : base(std::move(base_)), ext(std::move(ext_)) {
     root = std::make_shared<RomFSBuildDirectoryContext>();
     root->path = "\0";
-    directories.emplace(root->path, root);
+    directories.emplace_back(root);
     num_dirs = 1;
     dir_table_size = 0x18;
 
@@ -210,28 +199,43 @@ RomFSBuildContext::RomFSBuildContext(VirtualDir base_, VirtualDir ext_)
 
 RomFSBuildContext::~RomFSBuildContext() = default;
 
-std::multimap<u64, VirtualFile> RomFSBuildContext::Build() {
+std::vector<std::pair<u64, VirtualFile>> RomFSBuildContext::Build() {
     const u64 dir_hash_table_entry_count = romfs_get_hash_table_count(num_dirs);
     const u64 file_hash_table_entry_count = romfs_get_hash_table_count(num_files);
     dir_hash_table_size = 4 * dir_hash_table_entry_count;
     file_hash_table_size = 4 * file_hash_table_entry_count;
 
-    // Assign metadata pointers
+    // Assign metadata pointers.
     RomFSHeader header{};
 
-    std::vector<u32> dir_hash_table(dir_hash_table_entry_count, ROMFS_ENTRY_EMPTY);
-    std::vector<u32> file_hash_table(file_hash_table_entry_count, ROMFS_ENTRY_EMPTY);
+    std::vector<u8> metadata(file_hash_table_size + file_table_size + dir_hash_table_size +
+                             dir_table_size);
+    u32* const dir_hash_table_pointer = reinterpret_cast<u32*>(metadata.data());
+    u8* const dir_table_pointer = metadata.data() + dir_hash_table_size;
+    u32* const file_hash_table_pointer =
+        reinterpret_cast<u32*>(metadata.data() + dir_hash_table_size + dir_table_size);
+    u8* const file_table_pointer =
+        metadata.data() + dir_hash_table_size + dir_table_size + file_hash_table_size;
 
-    std::vector<u8> dir_table(dir_table_size);
-    std::vector<u8> file_table(file_table_size);
+    std::span<u32> dir_hash_table(dir_hash_table_pointer, dir_hash_table_entry_count);
+    std::span<u32> file_hash_table(file_hash_table_pointer, file_hash_table_entry_count);
+    std::span<u8> dir_table(dir_table_pointer, dir_table_size);
+    std::span<u8> file_table(file_table_pointer, file_table_size);
 
-    std::shared_ptr<RomFSBuildFileContext> cur_file;
+    // Initialize hash tables.
+    std::memset(dir_hash_table.data(), 0xFF, dir_hash_table.size_bytes());
+    std::memset(file_hash_table.data(), 0xFF, file_hash_table.size_bytes());
+
+    // Sort tables by name.
+    std::sort(files.begin(), files.end(),
+              [](const auto& a, const auto& b) { return a->path < b->path; });
+    std::sort(directories.begin(), directories.end(),
+              [](const auto& a, const auto& b) { return a->path < b->path; });
 
     // Determine file offsets.
     u32 entry_offset = 0;
     std::shared_ptr<RomFSBuildFileContext> prev_file = nullptr;
-    for (const auto& it : files) {
-        cur_file = it.second;
+    for (const auto& cur_file : files) {
         file_partition_size = Common::AlignUp(file_partition_size, 16);
         cur_file->offset = file_partition_size;
         file_partition_size += cur_file->size;
@@ -243,34 +247,48 @@ std::multimap<u64, VirtualFile> RomFSBuildContext::Build() {
     }
     // Assign deferred parent/sibling ownership.
     for (auto it = files.rbegin(); it != files.rend(); ++it) {
-        cur_file = it->second;
+        auto& cur_file = *it;
         cur_file->sibling = cur_file->parent->file;
         cur_file->parent->file = cur_file;
     }
 
-    std::shared_ptr<RomFSBuildDirectoryContext> cur_dir;
-
     // Determine directory offsets.
     entry_offset = 0;
-    for (const auto& it : directories) {
-        cur_dir = it.second;
+    for (const auto& cur_dir : directories) {
         cur_dir->entry_offset = entry_offset;
         entry_offset +=
             static_cast<u32>(sizeof(RomFSDirectoryEntry) +
                              Common::AlignUp(cur_dir->path_len - cur_dir->cur_path_ofs, 4));
     }
     // Assign deferred parent/sibling ownership.
-    for (auto it = directories.rbegin(); it->second != root; ++it) {
-        cur_dir = it->second;
+    for (auto it = directories.rbegin(); (*it) != root; ++it) {
+        auto& cur_dir = *it;
         cur_dir->sibling = cur_dir->parent->child;
         cur_dir->parent->child = cur_dir;
     }
 
-    std::multimap<u64, VirtualFile> out;
+    // Create output map.
+    std::vector<std::pair<u64, VirtualFile>> out;
+    out.reserve(num_files + 2);
+
+    // Set header fields.
+    header.header_size = sizeof(RomFSHeader);
+    header.file_hash_table_size = file_hash_table_size;
+    header.file_table_size = file_table_size;
+    header.dir_hash_table_size = dir_hash_table_size;
+    header.dir_table_size = dir_table_size;
+    header.file_partition_ofs = ROMFS_FILEPARTITION_OFS;
+    header.dir_hash_table_ofs = Common::AlignUp(header.file_partition_ofs + file_partition_size, 4);
+    header.dir_table_ofs = header.dir_hash_table_ofs + header.dir_hash_table_size;
+    header.file_hash_table_ofs = header.dir_table_ofs + header.dir_table_size;
+    header.file_table_ofs = header.file_hash_table_ofs + header.file_hash_table_size;
+
+    std::vector<u8> header_data(sizeof(RomFSHeader));
+    std::memcpy(header_data.data(), &header, header_data.size());
+    out.emplace_back(0, std::make_shared<VectorVfsFile>(std::move(header_data)));
 
     // Populate file tables.
-    for (const auto& it : files) {
-        cur_file = it.second;
+    for (const auto& cur_file : files) {
         RomFSFileEntry cur_entry{};
 
         cur_entry.parent = cur_file->parent->entry_offset;
@@ -287,7 +305,7 @@ std::multimap<u64, VirtualFile> RomFSBuildContext::Build() {
 
         cur_entry.name_size = name_size;
 
-        out.emplace(cur_file->offset + ROMFS_FILEPARTITION_OFS, std::move(cur_file->source));
+        out.emplace_back(cur_file->offset + ROMFS_FILEPARTITION_OFS, std::move(cur_file->source));
         std::memcpy(file_table.data() + cur_file->entry_offset, &cur_entry, sizeof(RomFSFileEntry));
         std::memset(file_table.data() + cur_file->entry_offset + sizeof(RomFSFileEntry), 0,
                     Common::AlignUp(cur_entry.name_size, 4));
@@ -296,8 +314,7 @@ std::multimap<u64, VirtualFile> RomFSBuildContext::Build() {
     }
 
     // Populate dir tables.
-    for (const auto& it : directories) {
-        cur_dir = it.second;
+    for (const auto& cur_dir : directories) {
         RomFSDirectoryEntry cur_entry{};
 
         cur_entry.parent = cur_dir == root ? 0 : cur_dir->parent->entry_offset;
@@ -323,34 +340,13 @@ std::multimap<u64, VirtualFile> RomFSBuildContext::Build() {
                     cur_dir->path.data() + cur_dir->cur_path_ofs, name_size);
     }
 
-    // Set header fields.
-    header.header_size = sizeof(RomFSHeader);
-    header.file_hash_table_size = file_hash_table_size;
-    header.file_table_size = file_table_size;
-    header.dir_hash_table_size = dir_hash_table_size;
-    header.dir_table_size = dir_table_size;
-    header.file_partition_ofs = ROMFS_FILEPARTITION_OFS;
-    header.dir_hash_table_ofs = Common::AlignUp(header.file_partition_ofs + file_partition_size, 4);
-    header.dir_table_ofs = header.dir_hash_table_ofs + header.dir_hash_table_size;
-    header.file_hash_table_ofs = header.dir_table_ofs + header.dir_table_size;
-    header.file_table_ofs = header.file_hash_table_ofs + header.file_hash_table_size;
+    // Write metadata.
+    out.emplace_back(header.dir_hash_table_ofs,
+                     std::make_shared<VectorVfsFile>(std::move(metadata)));
 
-    std::vector<u8> header_data(sizeof(RomFSHeader));
-    std::memcpy(header_data.data(), &header, header_data.size());
-    out.emplace(0, std::make_shared<VectorVfsFile>(std::move(header_data)));
-
-    std::vector<u8> metadata(file_hash_table_size + file_table_size + dir_hash_table_size +
-                             dir_table_size);
-    std::size_t index = 0;
-    std::memcpy(metadata.data(), dir_hash_table.data(), dir_hash_table.size() * sizeof(u32));
-    index += dir_hash_table.size() * sizeof(u32);
-    std::memcpy(metadata.data() + index, dir_table.data(), dir_table.size());
-    index += dir_table.size();
-    std::memcpy(metadata.data() + index, file_hash_table.data(),
-                file_hash_table.size() * sizeof(u32));
-    index += file_hash_table.size() * sizeof(u32);
-    std::memcpy(metadata.data() + index, file_table.data(), file_table.size());
-    out.emplace(header.dir_hash_table_ofs, std::make_shared<VectorVfsFile>(std::move(metadata)));
+    // Sort the output.
+    std::sort(out.begin(), out.end(),
+              [](const auto& a, const auto& b) { return a.first < b.first; });
 
     return out;
 }
