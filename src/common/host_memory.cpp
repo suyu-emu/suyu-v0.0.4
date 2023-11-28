@@ -541,7 +541,7 @@ public:
         if (write) {
             flags |= PROT_WRITE;
         }
-#ifdef ARCHITECTURE_arm64
+#ifdef HAS_NCE
         if (execute) {
             flags |= PROT_EXEC;
         }
