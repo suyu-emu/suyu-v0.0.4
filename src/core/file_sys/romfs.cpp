@@ -55,44 +55,68 @@ struct FileEntry {
 };
 static_assert(sizeof(FileEntry) == 0x20, "FileEntry has incorrect size.");
 
-template <typename Entry>
-std::pair<Entry, std::string> GetEntry(const VirtualFile& file, std::size_t offset) {
-    Entry entry{};
-    if (file->ReadObject(&entry, offset) != sizeof(Entry))
+struct RomFSTraversalContext {
+    RomFSHeader header;
+    VirtualFile file;
+    std::vector<u8> directory_meta;
+    std::vector<u8> file_meta;
+};
+
+template <typename EntryType, auto Member>
+std::pair<EntryType, std::string> GetEntry(const RomFSTraversalContext& ctx, size_t offset) {
+    const size_t entry_end = offset + sizeof(EntryType);
+    const std::vector<u8>& vec = ctx.*Member;
+    const size_t size = vec.size();
+    const u8* data = vec.data();
+    EntryType entry{};
+
+    if (entry_end > size) {
         return {};
-    std::string string(entry.name_length, '\0');
-    if (file->ReadArray(&string[0], string.size(), offset + sizeof(Entry)) != string.size())
-        return {};
-    return {entry, string};
+    }
+    std::memcpy(&entry, data + offset, sizeof(EntryType));
+
+    const size_t name_length = std::min(entry_end + entry.name_length, size) - entry_end;
+    std::string name(reinterpret_cast<const char*>(data + entry_end), name_length);
+
+    return {entry, std::move(name)};
 }
 
-void ProcessFile(const VirtualFile& file, std::size_t file_offset, std::size_t data_offset,
-                 u32 this_file_offset, std::shared_ptr<VectorVfsDirectory>& parent) {
-    while (this_file_offset != ROMFS_ENTRY_EMPTY) {
-        auto entry = GetEntry<FileEntry>(file, file_offset + this_file_offset);
+std::pair<DirectoryEntry, std::string> GetDirectoryEntry(const RomFSTraversalContext& ctx,
+                                                         size_t directory_offset) {
+    return GetEntry<DirectoryEntry, &RomFSTraversalContext::directory_meta>(ctx, directory_offset);
+}
 
-        parent->AddFile(std::make_shared<OffsetVfsFile>(
-            file, entry.first.size, entry.first.offset + data_offset, entry.second));
+std::pair<FileEntry, std::string> GetFileEntry(const RomFSTraversalContext& ctx,
+                                               size_t file_offset) {
+    return GetEntry<FileEntry, &RomFSTraversalContext::file_meta>(ctx, file_offset);
+}
+
+void ProcessFile(const RomFSTraversalContext& ctx, u32 this_file_offset,
+                 std::shared_ptr<VectorVfsDirectory>& parent) {
+    while (this_file_offset != ROMFS_ENTRY_EMPTY) {
+        auto entry = GetFileEntry(ctx, this_file_offset);
+
+        parent->AddFile(std::make_shared<OffsetVfsFile>(ctx.file, entry.first.size,
+                                                        entry.first.offset + ctx.header.data_offset,
+                                                        std::move(entry.second)));
 
         this_file_offset = entry.first.sibling;
     }
 }
 
-void ProcessDirectory(const VirtualFile& file, std::size_t dir_offset, std::size_t file_offset,
-                      std::size_t data_offset, u32 this_dir_offset,
+void ProcessDirectory(const RomFSTraversalContext& ctx, u32 this_dir_offset,
                       std::shared_ptr<VectorVfsDirectory>& parent) {
     while (this_dir_offset != ROMFS_ENTRY_EMPTY) {
-        auto entry = GetEntry<DirectoryEntry>(file, dir_offset + this_dir_offset);
+        auto entry = GetDirectoryEntry(ctx, this_dir_offset);
         auto current = std::make_shared<VectorVfsDirectory>(
             std::vector<VirtualFile>{}, std::vector<VirtualDir>{}, entry.second);
 
         if (entry.first.child_file != ROMFS_ENTRY_EMPTY) {
-            ProcessFile(file, file_offset, data_offset, entry.first.child_file, current);
+            ProcessFile(ctx, entry.first.child_file, current);
         }
 
         if (entry.first.child_dir != ROMFS_ENTRY_EMPTY) {
-            ProcessDirectory(file, dir_offset, file_offset, data_offset, entry.first.child_dir,
-                             current);
+            ProcessDirectory(ctx, entry.first.child_dir, current);
         }
 
         parent->AddDirectory(current);
@@ -107,22 +131,25 @@ VirtualDir ExtractRomFS(VirtualFile file) {
         return root_container;
     }
 
-    RomFSHeader header{};
-    if (file->ReadObject(&header) != sizeof(RomFSHeader)) {
-        return root_container;
+    RomFSTraversalContext ctx{};
+
+    if (file->ReadObject(&ctx.header) != sizeof(RomFSHeader)) {
+        return nullptr;
     }
 
-    if (header.header_size != sizeof(RomFSHeader)) {
-        return root_container;
+    if (ctx.header.header_size != sizeof(RomFSHeader)) {
+        return nullptr;
     }
 
-    const u64 file_offset = header.file_meta.offset;
-    const u64 dir_offset = header.directory_meta.offset;
+    ctx.file = file;
+    ctx.directory_meta =
+        file->ReadBytes(ctx.header.directory_meta.size, ctx.header.directory_meta.offset);
+    ctx.file_meta = file->ReadBytes(ctx.header.file_meta.size, ctx.header.file_meta.offset);
 
-    ProcessDirectory(file, dir_offset, file_offset, header.data_offset, 0, root_container);
+    ProcessDirectory(ctx, 0, root_container);
 
     if (auto root = root_container->GetSubdirectory(""); root) {
-        return std::make_shared<CachedVfsDirectory>(std::move(root));
+        return root;
     }
 
     ASSERT(false);
