@@ -11,7 +11,7 @@
 #include "core/arm/arm_interface.h"
 
 namespace Kernel {
-class KScheduler;
+class KernelCore;
 } // namespace Kernel
 
 namespace Core {
@@ -23,62 +23,55 @@ namespace Kernel {
 
 class PhysicalCore {
 public:
-    PhysicalCore(std::size_t core_index_, Core::System& system_, KScheduler& scheduler_);
+    PhysicalCore(KernelCore& kernel, std::size_t core_index);
     ~PhysicalCore();
 
     YUZU_NON_COPYABLE(PhysicalCore);
     YUZU_NON_MOVEABLE(PhysicalCore);
 
-    /// Initialize the core for the specified parameters.
-    void Initialize(bool is_64_bit);
+    // Execute guest code running on the given thread.
+    void RunThread(KThread* thread);
 
-    /// Execute current jit state
-    void Run();
+    // Copy context from thread to current core.
+    void LoadContext(const KThread* thread);
+    void LoadSvcArguments(const KProcess& process, std::span<const uint64_t, 8> args);
 
+    // Copy context from current core to thread.
+    void SaveContext(KThread* thread) const;
+    void SaveSvcArguments(KProcess& process, std::span<uint64_t, 8> args) const;
+
+    // Copy floating point status registers to the target thread.
+    void CloneFpuStatus(KThread* dst) const;
+
+    // Log backtrace of current processor state.
+    void LogBacktrace();
+
+    // Wait for an interrupt.
     void Idle();
 
-    /// Interrupt this physical core.
+    // Interrupt this core.
     void Interrupt();
 
-    /// Clear this core's interrupt
+    // Clear this core's interrupt.
     void ClearInterrupt();
 
-    /// Check if this core is interrupted
+    // Check if this core is interrupted.
     bool IsInterrupted() const;
-
-    bool IsInitialized() const {
-        return m_arm_interface != nullptr;
-    }
-
-    Core::ARM_Interface& ArmInterface() {
-        return *m_arm_interface;
-    }
-
-    const Core::ARM_Interface& ArmInterface() const {
-        return *m_arm_interface;
-    }
 
     std::size_t CoreIndex() const {
         return m_core_index;
     }
 
-    Kernel::KScheduler& Scheduler() {
-        return m_scheduler;
-    }
-
-    const Kernel::KScheduler& Scheduler() const {
-        return m_scheduler;
-    }
-
 private:
+    KernelCore& m_kernel;
     const std::size_t m_core_index;
-    Core::System& m_system;
-    Kernel::KScheduler& m_scheduler;
 
     std::mutex m_guard;
     std::condition_variable m_on_interrupt;
-    std::unique_ptr<Core::ARM_Interface> m_arm_interface;
+    Core::ArmInterface* m_arm_interface{};
+    KThread* m_current_thread{};
     bool m_is_interrupted{};
+    bool m_is_single_core{};
 };
 
 } // namespace Kernel

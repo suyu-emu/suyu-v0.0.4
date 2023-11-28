@@ -374,11 +374,11 @@ def get_registers(parse_result, bitness):
 
 # Collects possibly multiple source registers into the named C++ value.
 def emit_gather(sources, name, type_name, reg_size):
-    get_fn = f"GetReg{reg_size*8}"
+    get_fn = f"GetArg{reg_size*8}"
 
     if len(sources) == 1:
         s, = sources
-        line = f"{name} = Convert<{type_name}>({get_fn}(system, {s}));"
+        line = f"{name} = Convert<{type_name}>({get_fn}(args, {s}));"
         return [line]
 
     var_type = f"std::array<uint{reg_size*8}_t, {len(sources)}>"
@@ -387,7 +387,7 @@ def emit_gather(sources, name, type_name, reg_size):
     ]
     for i in range(0, len(sources)):
         lines.append(
-            f"{name}_gather[{i}] = {get_fn}(system, {sources[i]});")
+            f"{name}_gather[{i}] = {get_fn}(args, {sources[i]});")
 
     lines.append(f"{name} = Convert<{type_name}>({name}_gather);")
     return lines
@@ -396,12 +396,12 @@ def emit_gather(sources, name, type_name, reg_size):
 # Produces one or more statements which assign the named C++ value
 # into possibly multiple registers.
 def emit_scatter(destinations, name, reg_size):
-    set_fn = f"SetReg{reg_size*8}"
+    set_fn = f"SetArg{reg_size*8}"
     reg_type = f"uint{reg_size*8}_t"
 
     if len(destinations) == 1:
         d, = destinations
-        line = f"{set_fn}(system, {d}, Convert<{reg_type}>({name}));"
+        line = f"{set_fn}(args, {d}, Convert<{reg_type}>({name}));"
         return [line]
 
     var_type = f"std::array<{reg_type}, {len(destinations)}>"
@@ -411,7 +411,7 @@ def emit_scatter(destinations, name, reg_size):
 
     for i in range(0, len(destinations)):
         lines.append(
-            f"{set_fn}(system, {destinations[i]}, {name}_scatter[{i}]);")
+            f"{set_fn}(args, {destinations[i]}, {name}_scatter[{i}]);")
 
     return lines
 
@@ -433,7 +433,7 @@ def emit_lines(lines, indent='    '):
 def emit_wrapper(wrapped_fn, suffix, register_info, arguments, byte_size):
     return_write, output_writes, input_reads = register_info
     lines = [
-        f"static void SvcWrap_{wrapped_fn}{suffix}(Core::System& system) {{"
+        f"static void SvcWrap_{wrapped_fn}{suffix}(Core::System& system, std::span<uint64_t, 8> args) {{"
     ]
 
     # Get everything ready.
@@ -498,6 +498,8 @@ namespace Core {
 class System;
 }
 
+#include <span>
+
 #include "common/common_types.h"
 #include "core/hle/kernel/svc_types.h"
 #include "core/hle/result.h"
@@ -524,15 +526,15 @@ void CallSecureMonitor64From32(Core::System& system, ilp32::SecureMonitorArgumen
 void CallSecureMonitor64(Core::System& system, lp64::SecureMonitorArguments* args);
 
 // Defined in svc_light_ipc.cpp.
-void SvcWrap_ReplyAndReceiveLight64From32(Core::System& system);
-void SvcWrap_ReplyAndReceiveLight64(Core::System& system);
+void SvcWrap_ReplyAndReceiveLight64From32(Core::System& system, std::span<uint64_t, 8> args);
+void SvcWrap_ReplyAndReceiveLight64(Core::System& system, std::span<uint64_t, 8> args);
 
-void SvcWrap_SendSyncRequestLight64From32(Core::System& system);
-void SvcWrap_SendSyncRequestLight64(Core::System& system);
+void SvcWrap_SendSyncRequestLight64From32(Core::System& system, std::span<uint64_t, 8> args);
+void SvcWrap_SendSyncRequestLight64(Core::System& system, std::span<uint64_t, 8> args);
 
 // Defined in svc_secure_monitor_call.cpp.
-void SvcWrap_CallSecureMonitor64From32(Core::System& system);
-void SvcWrap_CallSecureMonitor64(Core::System& system);
+void SvcWrap_CallSecureMonitor64From32(Core::System& system, std::span<uint64_t, 8> args);
+void SvcWrap_CallSecureMonitor64(Core::System& system, std::span<uint64_t, 8> args);
 
 // Perform a supervisor call by index.
 void Call(Core::System& system, u32 imm);
@@ -550,20 +552,20 @@ PROLOGUE_CPP = """
 
 namespace Kernel::Svc {
 
-static uint32_t GetReg32(Core::System& system, int n) {
-    return static_cast<uint32_t>(system.CurrentArmInterface().GetReg(n));
+static uint32_t GetArg32(std::span<uint64_t, 8> args, int n) {
+    return static_cast<uint32_t>(args[n]);
 }
 
-static void SetReg32(Core::System& system, int n, uint32_t result) {
-    system.CurrentArmInterface().SetReg(n, static_cast<uint64_t>(result));
+static void SetArg32(std::span<uint64_t, 8> args, int n, uint32_t result) {
+    args[n] = result;
 }
 
-static uint64_t GetReg64(Core::System& system, int n) {
-    return system.CurrentArmInterface().GetReg(n);
+static uint64_t GetArg64(std::span<uint64_t, 8> args, int n) {
+    return args[n];
 }
 
-static void SetReg64(Core::System& system, int n, uint64_t result) {
-    system.CurrentArmInterface().SetReg(n, result);
+static void SetArg64(std::span<uint64_t, 8> args, int n, uint64_t result) {
+    args[n] = result;
 }
 
 // Like bit_cast, but handles the case when the source and dest
@@ -590,15 +592,20 @@ EPILOGUE_CPP = """
 
 void Call(Core::System& system, u32 imm) {
     auto& kernel = system.Kernel();
+    auto& process = GetCurrentProcess(kernel);
+
+    std::array<uint64_t, 8> args;
+    kernel.CurrentPhysicalCore().SaveSvcArguments(process, args);
     kernel.EnterSVCProfile();
 
-    if (GetCurrentProcess(system.Kernel()).Is64Bit()) {
-        Call64(system, imm);
+    if (process.Is64Bit()) {
+        Call64(system, imm, args);
     } else {
-        Call32(system, imm);
+        Call32(system, imm, args);
     }
 
     kernel.ExitSVCProfile();
+    kernel.CurrentPhysicalCore().LoadSvcArguments(process, args);
 }
 
 } // namespace Kernel::Svc
@@ -609,13 +616,13 @@ def emit_call(bitness, names, suffix):
     bit_size = REG_SIZES[bitness]*8
     indent = "    "
     lines = [
-        f"static void Call{bit_size}(Core::System& system, u32 imm) {{",
+        f"static void Call{bit_size}(Core::System& system, u32 imm, std::span<uint64_t, 8> args) {{",
         f"{indent}switch (static_cast<SvcId>(imm)) {{"
     ]
 
     for _, name in names:
         lines.append(f"{indent}case SvcId::{name}:")
-        lines.append(f"{indent*2}return SvcWrap_{name}{suffix}(system);")
+        lines.append(f"{indent*2}return SvcWrap_{name}{suffix}(system, args);")
 
     lines.append(f"{indent}default:")
     lines.append(

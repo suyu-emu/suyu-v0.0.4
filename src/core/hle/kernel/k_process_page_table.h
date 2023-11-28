@@ -7,10 +7,6 @@
 #include "core/hle/kernel/k_scoped_lock.h"
 #include "core/hle/kernel/svc_types.h"
 
-namespace Core {
-class ARM_Interface;
-}
-
 namespace Kernel {
 
 class KProcessPageTable {

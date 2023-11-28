@@ -4,6 +4,8 @@
 add_library(core STATIC
     arm/arm_interface.h
     arm/arm_interface.cpp
+    arm/debug.cpp
+    arm/debug.h
     arm/exclusive_monitor.cpp
     arm/exclusive_monitor.h
     arm/symbols.cpp

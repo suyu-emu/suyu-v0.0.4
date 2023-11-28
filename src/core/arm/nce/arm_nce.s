@@ -8,11 +8,11 @@
     movk    reg, #(((val) >> 0x10) & 0xFFFF), lsl #16
 
 
-/* static HaltReason Core::ARM_NCE::ReturnToRunCodeByTrampoline(void* tpidr, Core::GuestContext* ctx, u64 trampoline_addr) */
-.section    .text._ZN4Core7ARM_NCE27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm, "ax", %progbits
-.global     _ZN4Core7ARM_NCE27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm
-.type       _ZN4Core7ARM_NCE27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm, %function
-_ZN4Core7ARM_NCE27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm:
+/* static HaltReason Core::ArmNce::ReturnToRunCodeByTrampoline(void* tpidr, Core::GuestContext* ctx, u64 trampoline_addr) */
+.section    .text._ZN4Core6ArmNce27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm, "ax", %progbits
+.global     _ZN4Core6ArmNce27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm
+.type       _ZN4Core6ArmNce27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm, %function
+_ZN4Core6ArmNce27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm:
     /* Back up host sp to x3. */
     /* Back up host tpidr_el0 to x4. */
     mov     x3, sp
@@ -49,11 +49,11 @@ _ZN4Core7ARM_NCE27ReturnToRunCodeByTrampolineEPvPNS_12GuestContextEm:
     br      x2
 
 
-/* static HaltReason Core::ARM_NCE::ReturnToRunCodeByExceptionLevelChange(int tid, void* tpidr) */
-.section    .text._ZN4Core7ARM_NCE37ReturnToRunCodeByExceptionLevelChangeEiPv, "ax", %progbits
-.global     _ZN4Core7ARM_NCE37ReturnToRunCodeByExceptionLevelChangeEiPv
-.type       _ZN4Core7ARM_NCE37ReturnToRunCodeByExceptionLevelChangeEiPv, %function
-_ZN4Core7ARM_NCE37ReturnToRunCodeByExceptionLevelChangeEiPv:
+/* static HaltReason Core::ArmNce::ReturnToRunCodeByExceptionLevelChange(int tid, void* tpidr) */
+.section    .text._ZN4Core6ArmNce37ReturnToRunCodeByExceptionLevelChangeEiPv, "ax", %progbits
+.global     _ZN4Core6ArmNce37ReturnToRunCodeByExceptionLevelChangeEiPv
+.type       _ZN4Core6ArmNce37ReturnToRunCodeByExceptionLevelChangeEiPv, %function
+_ZN4Core6ArmNce37ReturnToRunCodeByExceptionLevelChangeEiPv:
     /* This jumps to the signal handler, which will restore the entire context. */
     /* On entry, x0 = thread id, which is already in the right place. */
 
@@ -71,17 +71,17 @@ _ZN4Core7ARM_NCE37ReturnToRunCodeByExceptionLevelChangeEiPv:
     brk     #1000
 
 
-/* static void Core::ARM_NCE::ReturnToRunCodeByExceptionLevelChangeSignalHandler(int sig, void* info, void* raw_context) */
-.section    .text._ZN4Core7ARM_NCE50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_, "ax", %progbits
-.global     _ZN4Core7ARM_NCE50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_
-.type       _ZN4Core7ARM_NCE50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_, %function
-_ZN4Core7ARM_NCE50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_:
+/* static void Core::ArmNce::ReturnToRunCodeByExceptionLevelChangeSignalHandler(int sig, void* info, void* raw_context) */
+.section    .text._ZN4Core6ArmNce50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_, "ax", %progbits
+.global     _ZN4Core6ArmNce50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_
+.type       _ZN4Core6ArmNce50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_, %function
+_ZN4Core6ArmNce50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_:
     stp     x29, x30, [sp, #-0x10]!
     mov     x29, sp
 
     /* Call the context restorer with the raw context. */
     mov     x0, x2
-    bl      _ZN4Core7ARM_NCE19RestoreGuestContextEPv
+    bl      _ZN4Core6ArmNce19RestoreGuestContextEPv
 
     /* Save the old value of tpidr_el0. */
     mrs     x8, tpidr_el0
@@ -92,18 +92,18 @@ _ZN4Core7ARM_NCE50ReturnToRunCodeByExceptionLevelChangeSignalHandlerEiPvS1_:
     msr     tpidr_el0, x0
 
     /* Unlock the context. */
-    bl      _ZN4Core7ARM_NCE22UnlockThreadParametersEPv
+    bl      _ZN4Core6ArmNce22UnlockThreadParametersEPv
 
     /* Returning from here will enter the guest. */
     ldp     x29, x30, [sp], #0x10
     ret
 
 
-/* static void Core::ARM_NCE::BreakFromRunCodeSignalHandler(int sig, void* info, void* raw_context) */
-.section    .text._ZN4Core7ARM_NCE29BreakFromRunCodeSignalHandlerEiPvS1_, "ax", %progbits
-.global     _ZN4Core7ARM_NCE29BreakFromRunCodeSignalHandlerEiPvS1_
-.type       _ZN4Core7ARM_NCE29BreakFromRunCodeSignalHandlerEiPvS1_, %function
-_ZN4Core7ARM_NCE29BreakFromRunCodeSignalHandlerEiPvS1_:
+/* static void Core::ArmNce::BreakFromRunCodeSignalHandler(int sig, void* info, void* raw_context) */
+.section    .text._ZN4Core6ArmNce29BreakFromRunCodeSignalHandlerEiPvS1_, "ax", %progbits
+.global     _ZN4Core6ArmNce29BreakFromRunCodeSignalHandlerEiPvS1_
+.type       _ZN4Core6ArmNce29BreakFromRunCodeSignalHandlerEiPvS1_, %function
+_ZN4Core6ArmNce29BreakFromRunCodeSignalHandlerEiPvS1_:
     /* Check to see if we have the correct TLS magic. */
     mrs     x8, tpidr_el0
     ldr     w9, [x8, #(TpidrEl0TlsMagic)]
@@ -121,7 +121,7 @@ _ZN4Core7ARM_NCE29BreakFromRunCodeSignalHandlerEiPvS1_:
 
     /* Tail call the restorer. */
     mov     x1, x2
-    b       _ZN4Core7ARM_NCE16SaveGuestContextEPNS_12GuestContextEPv
+    b       _ZN4Core6ArmNce16SaveGuestContextEPNS_12GuestContextEPv
 
     /* Returning from here will enter host code. */
 
@@ -130,11 +130,11 @@ _ZN4Core7ARM_NCE29BreakFromRunCodeSignalHandlerEiPvS1_:
     ret
 
 
-/* static void Core::ARM_NCE::GuestFaultSignalHandler(int sig, void* info, void* raw_context) */
-.section    .text._ZN4Core7ARM_NCE23GuestFaultSignalHandlerEiPvS1_, "ax", %progbits
-.global     _ZN4Core7ARM_NCE23GuestFaultSignalHandlerEiPvS1_
-.type       _ZN4Core7ARM_NCE23GuestFaultSignalHandlerEiPvS1_, %function
-_ZN4Core7ARM_NCE23GuestFaultSignalHandlerEiPvS1_:
+/* static void Core::ArmNce::GuestFaultSignalHandler(int sig, void* info, void* raw_context) */
+.section    .text._ZN4Core6ArmNce23GuestFaultSignalHandlerEiPvS1_, "ax", %progbits
+.global     _ZN4Core6ArmNce23GuestFaultSignalHandlerEiPvS1_
+.type       _ZN4Core6ArmNce23GuestFaultSignalHandlerEiPvS1_, %function
+_ZN4Core6ArmNce23GuestFaultSignalHandlerEiPvS1_:
     /* Check to see if we have the correct TLS magic. */
     mrs     x8, tpidr_el0
     ldr     w9, [x8, #(TpidrEl0TlsMagic)]
@@ -146,7 +146,7 @@ _ZN4Core7ARM_NCE23GuestFaultSignalHandlerEiPvS1_:
 
     /* Incorrect TLS magic, so this is a host fault. */
     /* Tail call the handler. */
-    b       _ZN4Core7ARM_NCE15HandleHostFaultEiPvS1_
+    b       _ZN4Core6ArmNce15HandleHostFaultEiPvS1_
 
 1:
     /* Correct TLS magic, so this is a guest fault. */
@@ -163,7 +163,7 @@ _ZN4Core7ARM_NCE23GuestFaultSignalHandlerEiPvS1_:
     msr     tpidr_el0, x3
 
     /* Call the handler. */
-    bl       _ZN4Core7ARM_NCE16HandleGuestFaultEPNS_12GuestContextEPvS3_
+    bl       _ZN4Core6ArmNce16HandleGuestFaultEPNS_12GuestContextEPvS3_
 
     /* If the handler returned false, we want to preserve the host tpidr_el0. */
     cbz     x0, 2f
@@ -177,11 +177,11 @@ _ZN4Core7ARM_NCE23GuestFaultSignalHandlerEiPvS1_:
     ret
 
 
-/* static void Core::ARM_NCE::LockThreadParameters(void* tpidr) */
-.section    .text._ZN4Core7ARM_NCE20LockThreadParametersEPv, "ax", %progbits
-.global     _ZN4Core7ARM_NCE20LockThreadParametersEPv
-.type       _ZN4Core7ARM_NCE20LockThreadParametersEPv, %function
-_ZN4Core7ARM_NCE20LockThreadParametersEPv:
+/* static void Core::ArmNce::LockThreadParameters(void* tpidr) */
+.section    .text._ZN4Core6ArmNce20LockThreadParametersEPv, "ax", %progbits
+.global     _ZN4Core6ArmNce20LockThreadParametersEPv
+.type       _ZN4Core6ArmNce20LockThreadParametersEPv, %function
+_ZN4Core6ArmNce20LockThreadParametersEPv:
     /* Offset to lock member. */
     add     x0, x0, #(TpidrEl0Lock)
 
@@ -205,11 +205,11 @@ _ZN4Core7ARM_NCE20LockThreadParametersEPv:
     ret
 
 
-/* static void Core::ARM_NCE::UnlockThreadParameters(void* tpidr) */
-.section    .text._ZN4Core7ARM_NCE22UnlockThreadParametersEPv, "ax", %progbits
-.global     _ZN4Core7ARM_NCE22UnlockThreadParametersEPv
-.type       _ZN4Core7ARM_NCE22UnlockThreadParametersEPv, %function
-_ZN4Core7ARM_NCE22UnlockThreadParametersEPv:
+/* static void Core::ArmNce::UnlockThreadParameters(void* tpidr) */
+.section    .text._ZN4Core6ArmNce22UnlockThreadParametersEPv, "ax", %progbits
+.global     _ZN4Core6ArmNce22UnlockThreadParametersEPv
+.type       _ZN4Core6ArmNce22UnlockThreadParametersEPv, %function
+_ZN4Core6ArmNce22UnlockThreadParametersEPv:
     /* Offset to lock member. */
     add     x0, x0, #(TpidrEl0Lock)
 

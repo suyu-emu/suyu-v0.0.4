@@ -16,6 +16,7 @@
 #include "common/settings.h"
 #include "common/string_util.h"
 #include "core/arm/arm_interface.h"
+#include "core/arm/debug.h"
 #include "core/core.h"
 #include "core/debugger/gdbstub.h"
 #include "core/debugger/gdbstub_arch.h"
@@ -310,7 +311,7 @@ void GDBStub::ExecuteCommand(std::string_view packet, std::vector<DebuggerAction
         const auto mem{Common::HexStringToVector(mem_substr, false)};
 
         if (system.ApplicationMemory().WriteBlock(addr, mem.data(), size)) {
-            system.InvalidateCpuInstructionCacheRange(addr, size);
+            Core::InvalidateInstructionCacheRange(system.ApplicationProcess(), addr, size);
             SendReply(GDB_STUB_REPLY_OK);
         } else {
             SendReply(GDB_STUB_REPLY_ERR);
@@ -363,7 +364,7 @@ void GDBStub::HandleBreakpointInsert(std::string_view command) {
     case BreakpointType::Software:
         replaced_instructions[addr] = system.ApplicationMemory().Read32(addr);
         system.ApplicationMemory().Write32(addr, arch->BreakpointInstruction());
-        system.InvalidateCpuInstructionCacheRange(addr, sizeof(u32));
+        Core::InvalidateInstructionCacheRange(system.ApplicationProcess(), addr, sizeof(u32));
         success = true;
         break;
     case BreakpointType::WriteWatch:
@@ -411,7 +412,7 @@ void GDBStub::HandleBreakpointRemove(std::string_view command) {
         const auto orig_insn{replaced_instructions.find(addr)};
         if (orig_insn != replaced_instructions.end()) {
             system.ApplicationMemory().Write32(addr, orig_insn->second);
-            system.InvalidateCpuInstructionCacheRange(addr, sizeof(u32));
+            Core::InvalidateInstructionCacheRange(system.ApplicationProcess(), addr, sizeof(u32));
             replaced_instructions.erase(addr);
             success = true;
         }
@@ -442,114 +443,6 @@ void GDBStub::HandleBreakpointRemove(std::string_view command) {
     }
 }
 
-// Structure offsets are from Atmosphere
-// See osdbg_thread_local_region.os.horizon.hpp and osdbg_thread_type.os.horizon.hpp
-
-static std::optional<std::string> GetNameFromThreadType32(Core::Memory::Memory& memory,
-                                                          const Kernel::KThread& thread) {
-    // Read thread type from TLS
-    const VAddr tls_thread_type{memory.Read32(thread.GetTlsAddress() + 0x1fc)};
-    const VAddr argument_thread_type{thread.GetArgument()};
-
-    if (argument_thread_type && tls_thread_type != argument_thread_type) {
-        // Probably not created by nnsdk, no name available.
-        return std::nullopt;
-    }
-
-    if (!tls_thread_type) {
-        return std::nullopt;
-    }
-
-    const u16 version{memory.Read16(tls_thread_type + 0x26)};
-    VAddr name_pointer{};
-    if (version == 1) {
-        name_pointer = memory.Read32(tls_thread_type + 0xe4);
-    } else {
-        name_pointer = memory.Read32(tls_thread_type + 0xe8);
-    }
-
-    if (!name_pointer) {
-        // No name provided.
-        return std::nullopt;
-    }
-
-    return memory.ReadCString(name_pointer, 256);
-}
-
-static std::optional<std::string> GetNameFromThreadType64(Core::Memory::Memory& memory,
-                                                          const Kernel::KThread& thread) {
-    // Read thread type from TLS
-    const VAddr tls_thread_type{memory.Read64(thread.GetTlsAddress() + 0x1f8)};
-    const VAddr argument_thread_type{thread.GetArgument()};
-
-    if (argument_thread_type && tls_thread_type != argument_thread_type) {
-        // Probably not created by nnsdk, no name available.
-        return std::nullopt;
-    }
-
-    if (!tls_thread_type) {
-        return std::nullopt;
-    }
-
-    const u16 version{memory.Read16(tls_thread_type + 0x46)};
-    VAddr name_pointer{};
-    if (version == 1) {
-        name_pointer = memory.Read64(tls_thread_type + 0x1a0);
-    } else {
-        name_pointer = memory.Read64(tls_thread_type + 0x1a8);
-    }
-
-    if (!name_pointer) {
-        // No name provided.
-        return std::nullopt;
-    }
-
-    return memory.ReadCString(name_pointer, 256);
-}
-
-static std::optional<std::string> GetThreadName(Core::System& system,
-                                                const Kernel::KThread& thread) {
-    if (system.ApplicationProcess()->Is64Bit()) {
-        return GetNameFromThreadType64(system.ApplicationMemory(), thread);
-    } else {
-        return GetNameFromThreadType32(system.ApplicationMemory(), thread);
-    }
-}
-
-static std::string_view GetThreadWaitReason(const Kernel::KThread& thread) {
-    switch (thread.GetWaitReasonForDebugging()) {
-    case Kernel::ThreadWaitReasonForDebugging::Sleep:
-        return "Sleep";
-    case Kernel::ThreadWaitReasonForDebugging::IPC:
-        return "IPC";
-    case Kernel::ThreadWaitReasonForDebugging::Synchronization:
-        return "Synchronization";
-    case Kernel::ThreadWaitReasonForDebugging::ConditionVar:
-        return "ConditionVar";
-    case Kernel::ThreadWaitReasonForDebugging::Arbitration:
-        return "Arbitration";
-    case Kernel::ThreadWaitReasonForDebugging::Suspended:
-        return "Suspended";
-    default:
-        return "Unknown";
-    }
-}
-
-static std::string GetThreadState(const Kernel::KThread& thread) {
-    switch (thread.GetState()) {
-    case Kernel::ThreadState::Initialized:
-        return "Initialized";
-    case Kernel::ThreadState::Waiting:
-        return fmt::format("Waiting ({})", GetThreadWaitReason(thread));
-    case Kernel::ThreadState::Runnable:
-        return "Runnable";
-    case Kernel::ThreadState::Terminated:
-        return "Terminated";
-    default:
-        return "Unknown";
-    }
-}
-
 static std::string PaginateBuffer(std::string_view buffer, std::string_view request) {
     const auto amount{request.substr(request.find(',') + 1)};
     const auto offset_val{static_cast<u64>(strtoll(request.data(), nullptr, 16))};
@@ -560,120 +453,6 @@ static std::string PaginateBuffer(std::string_view buffer, std::string_view requ
     } else {
         return fmt::format("m{}", buffer.substr(offset_val, amount_val));
     }
-}
-
-static VAddr GetModuleEnd(Kernel::KProcessPageTable& page_table, VAddr base) {
-    Kernel::KMemoryInfo mem_info;
-    Kernel::Svc::MemoryInfo svc_mem_info;
-    Kernel::Svc::PageInfo page_info;
-    VAddr cur_addr{base};
-
-    // Expect: r-x Code (.text)
-    R_ASSERT(page_table.QueryInfo(std::addressof(mem_info), std::addressof(page_info), cur_addr));
-    svc_mem_info = mem_info.GetSvcMemoryInfo();
-    cur_addr = svc_mem_info.base_address + svc_mem_info.size;
-    if (svc_mem_info.state != Kernel::Svc::MemoryState::Code ||
-        svc_mem_info.permission != Kernel::Svc::MemoryPermission::ReadExecute) {
-        return cur_addr - 1;
-    }
-
-    // Expect: r-- Code (.rodata)
-    R_ASSERT(page_table.QueryInfo(std::addressof(mem_info), std::addressof(page_info), cur_addr));
-    svc_mem_info = mem_info.GetSvcMemoryInfo();
-    cur_addr = svc_mem_info.base_address + svc_mem_info.size;
-    if (svc_mem_info.state != Kernel::Svc::MemoryState::Code ||
-        svc_mem_info.permission != Kernel::Svc::MemoryPermission::Read) {
-        return cur_addr - 1;
-    }
-
-    // Expect: rw- CodeData (.data)
-    R_ASSERT(page_table.QueryInfo(std::addressof(mem_info), std::addressof(page_info), cur_addr));
-    svc_mem_info = mem_info.GetSvcMemoryInfo();
-    cur_addr = svc_mem_info.base_address + svc_mem_info.size;
-    return cur_addr - 1;
-}
-
-static Loader::AppLoader::Modules FindModules(Core::System& system) {
-    Loader::AppLoader::Modules modules;
-
-    auto& page_table = system.ApplicationProcess()->GetPageTable();
-    auto& memory = system.ApplicationMemory();
-    VAddr cur_addr = 0;
-
-    // Look for executable sections in Code or AliasCode regions.
-    while (true) {
-        Kernel::KMemoryInfo mem_info{};
-        Kernel::Svc::PageInfo page_info{};
-        R_ASSERT(
-            page_table.QueryInfo(std::addressof(mem_info), std::addressof(page_info), cur_addr));
-        auto svc_mem_info = mem_info.GetSvcMemoryInfo();
-
-        if (svc_mem_info.permission == Kernel::Svc::MemoryPermission::ReadExecute &&
-            (svc_mem_info.state == Kernel::Svc::MemoryState::Code ||
-             svc_mem_info.state == Kernel::Svc::MemoryState::AliasCode)) {
-            // Try to read the module name from its path.
-            constexpr s32 PathLengthMax = 0x200;
-            struct {
-                u32 zero;
-                s32 path_length;
-                std::array<char, PathLengthMax> path;
-            } module_path;
-
-            if (memory.ReadBlock(svc_mem_info.base_address + svc_mem_info.size, &module_path,
-                                 sizeof(module_path))) {
-                if (module_path.zero == 0 && module_path.path_length > 0) {
-                    // Truncate module name.
-                    module_path.path[PathLengthMax - 1] = '\0';
-
-                    // Ignore leading directories.
-                    char* path_pointer = module_path.path.data();
-
-                    for (s32 i = 0; i < std::min(PathLengthMax, module_path.path_length) &&
-                                    module_path.path[i] != '\0';
-                         i++) {
-                        if (module_path.path[i] == '/' || module_path.path[i] == '\\') {
-                            path_pointer = module_path.path.data() + i + 1;
-                        }
-                    }
-
-                    // Insert output.
-                    modules.emplace(svc_mem_info.base_address, path_pointer);
-                }
-            }
-        }
-
-        // Check if we're done.
-        const uintptr_t next_address = svc_mem_info.base_address + svc_mem_info.size;
-        if (next_address <= cur_addr) {
-            break;
-        }
-
-        cur_addr = next_address;
-    }
-
-    return modules;
-}
-
-static VAddr FindMainModuleEntrypoint(Core::System& system) {
-    Loader::AppLoader::Modules modules;
-    system.GetAppLoader().ReadNSOModules(modules);
-
-    // Do we have a module named main?
-    const auto main = std::find_if(modules.begin(), modules.end(),
-                                   [](const auto& key) { return key.second == "main"; });
-
-    if (main != modules.end()) {
-        return main->first;
-    }
-
-    // Do we have any loaded executable sections?
-    modules = FindModules(system);
-    if (!modules.empty()) {
-        return modules.begin()->first;
-    }
-
-    // As a last resort, use the start of the code region.
-    return GetInteger(system.ApplicationProcess()->GetPageTable().GetCodeRegionStart());
 }
 
 void GDBStub::HandleQuery(std::string_view command) {
@@ -687,10 +466,10 @@ void GDBStub::HandleQuery(std::string_view command) {
         const auto target_xml{arch->GetTargetXML()};
         SendReply(PaginateBuffer(target_xml, command.substr(30)));
     } else if (command.starts_with("Offsets")) {
-        const auto main_offset = FindMainModuleEntrypoint(system);
-        SendReply(fmt::format("TextSeg={:x}", main_offset));
+        const auto main_offset = Core::FindMainModuleEntrypoint(system.ApplicationProcess());
+        SendReply(fmt::format("TextSeg={:x}", GetInteger(main_offset)));
     } else if (command.starts_with("Xfer:libraries:read::")) {
-        auto modules = FindModules(system);
+        auto modules = Core::FindModules(system.ApplicationProcess());
 
         std::string buffer;
         buffer += R"(<?xml version="1.0"?>)";
@@ -720,14 +499,14 @@ void GDBStub::HandleQuery(std::string_view command) {
 
         const auto& threads = system.ApplicationProcess()->GetThreadList();
         for (const auto& thread : threads) {
-            auto thread_name{GetThreadName(system, thread)};
+            auto thread_name{Core::GetThreadName(&thread)};
             if (!thread_name) {
                 thread_name = fmt::format("Thread {:d}", thread.GetThreadId());
             }
 
             buffer += fmt::format(R"(<thread id="{:x}" core="{:d}" name="{}">{}</thread>)",
                                   thread.GetThreadId(), thread.GetActiveCore(),
-                                  EscapeXML(*thread_name), GetThreadState(thread));
+                                  EscapeXML(*thread_name), GetThreadState(&thread));
         }
 
         buffer += "</threads>";
@@ -856,7 +635,7 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
             reply = "Fastmem is not enabled.\n";
         }
     } else if (command_str == "get info") {
-        auto modules = FindModules(system);
+        auto modules = Core::FindModules(process);
 
         reply = fmt::format("Process:     {:#x} ({})\n"
                             "Program Id:  {:#018x}\n",
@@ -880,7 +659,7 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
 
         for (const auto& [vaddr, name] : modules) {
             reply += fmt::format("  {:#012x} - {:#012x} {}\n", vaddr,
-                                 GetModuleEnd(page_table, vaddr), name);
+                                 GetInteger(Core::GetModuleEnd(process, vaddr)), name);
         }
     } else if (command_str == "get mappings") {
         reply = "Mappings:\n";

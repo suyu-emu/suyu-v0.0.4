@@ -37,37 +37,36 @@ Result ReplyAndReceiveLight64From32(Core::System& system, Handle session_handle,
 // Custom ABI implementation for light IPC.
 
 template <typename F>
-static void SvcWrap_LightIpc(Core::System& system, F&& cb) {
-    auto& core = system.CurrentArmInterface();
-    std::array<u32, 7> arguments{};
+static void SvcWrap_LightIpc(Core::System& system, std::span<uint64_t, 8> args, F&& cb) {
+    std::array<u32, 7> ipc_args{};
 
-    Handle session_handle = static_cast<Handle>(core.GetReg(0));
+    Handle session_handle = static_cast<Handle>(args[0]);
     for (int i = 0; i < 7; i++) {
-        arguments[i] = static_cast<u32>(core.GetReg(i + 1));
+        ipc_args[i] = static_cast<u32>(args[i + 1]);
     }
 
-    Result ret = cb(system, session_handle, arguments.data());
+    Result ret = cb(system, session_handle, ipc_args.data());
 
-    core.SetReg(0, ret.raw);
+    args[0] = ret.raw;
     for (int i = 0; i < 7; i++) {
-        core.SetReg(i + 1, arguments[i]);
+        args[i + 1] = ipc_args[i];
     }
 }
 
-void SvcWrap_SendSyncRequestLight64(Core::System& system) {
-    SvcWrap_LightIpc(system, SendSyncRequestLight64);
+void SvcWrap_SendSyncRequestLight64(Core::System& system, std::span<uint64_t, 8> args) {
+    SvcWrap_LightIpc(system, args, SendSyncRequestLight64);
 }
 
-void SvcWrap_ReplyAndReceiveLight64(Core::System& system) {
-    SvcWrap_LightIpc(system, ReplyAndReceiveLight64);
+void SvcWrap_ReplyAndReceiveLight64(Core::System& system, std::span<uint64_t, 8> args) {
+    SvcWrap_LightIpc(system, args, ReplyAndReceiveLight64);
 }
 
-void SvcWrap_SendSyncRequestLight64From32(Core::System& system) {
-    SvcWrap_LightIpc(system, SendSyncRequestLight64From32);
+void SvcWrap_SendSyncRequestLight64From32(Core::System& system, std::span<uint64_t, 8> args) {
+    SvcWrap_LightIpc(system, args, SendSyncRequestLight64From32);
 }
 
-void SvcWrap_ReplyAndReceiveLight64From32(Core::System& system) {
-    SvcWrap_LightIpc(system, ReplyAndReceiveLight64From32);
+void SvcWrap_ReplyAndReceiveLight64From32(Core::System& system, std::span<uint64_t, 8> args) {
+    SvcWrap_LightIpc(system, args, ReplyAndReceiveLight64From32);
 }
 
 } // namespace Kernel::Svc

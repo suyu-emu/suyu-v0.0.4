@@ -9,6 +9,8 @@ namespace Core {
 class System;
 }
 
+#include <span>
+
 #include "common/common_types.h"
 #include "core/hle/kernel/svc_types.h"
 #include "core/hle/result.h"
@@ -520,15 +522,15 @@ void CallSecureMonitor64From32(Core::System& system, ilp32::SecureMonitorArgumen
 void CallSecureMonitor64(Core::System& system, lp64::SecureMonitorArguments* args);
 
 // Defined in svc_light_ipc.cpp.
-void SvcWrap_ReplyAndReceiveLight64From32(Core::System& system);
-void SvcWrap_ReplyAndReceiveLight64(Core::System& system);
+void SvcWrap_ReplyAndReceiveLight64From32(Core::System& system, std::span<uint64_t, 8> args);
+void SvcWrap_ReplyAndReceiveLight64(Core::System& system, std::span<uint64_t, 8> args);
 
-void SvcWrap_SendSyncRequestLight64From32(Core::System& system);
-void SvcWrap_SendSyncRequestLight64(Core::System& system);
+void SvcWrap_SendSyncRequestLight64From32(Core::System& system, std::span<uint64_t, 8> args);
+void SvcWrap_SendSyncRequestLight64(Core::System& system, std::span<uint64_t, 8> args);
 
 // Defined in svc_secure_monitor_call.cpp.
-void SvcWrap_CallSecureMonitor64From32(Core::System& system);
-void SvcWrap_CallSecureMonitor64(Core::System& system);
+void SvcWrap_CallSecureMonitor64From32(Core::System& system, std::span<uint64_t, 8> args);
+void SvcWrap_CallSecureMonitor64(Core::System& system, std::span<uint64_t, 8> args);
 
 // Perform a supervisor call by index.
 void Call(Core::System& system, u32 imm);
