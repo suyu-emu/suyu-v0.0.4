@@ -935,8 +935,8 @@ if (HAS_NCE)
         arm/nce/arm_nce.h
         arm/nce/arm_nce.s
         arm/nce/guest_context.h
-        arm/nce/patch.cpp
-        arm/nce/patch.h
+        arm/nce/patcher.cpp
+        arm/nce/patcher.h
         arm/nce/instructions.h
     )
     target_link_libraries(core PRIVATE merry::oaknut)

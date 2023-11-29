@@ -16,7 +16,7 @@
 #include "core/loader/nso.h"
 
 #ifdef HAS_NCE
-#include "core/arm/nce/patch.h"
+#include "core/arm/nce/patcher.h"
 #endif
 
 namespace Loader {
