@@ -16,7 +16,8 @@ namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x400;
 
 TouchScreen::TouchScreen(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
-    : ControllerBase{hid_core_} {
+    : ControllerBase{hid_core_}, touchscreen_width(Layout::ScreenUndocked::Width),
+      touchscreen_height(Layout::ScreenUndocked::Height) {
     static_assert(SHARED_MEMORY_OFFSET + sizeof(TouchSharedMemory) < shared_memory_size,
                   "TouchSharedMemory is bigger than the shared memory");
     shared_memory = std::construct_at(
@@ -95,8 +96,8 @@ void TouchScreen::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         if (id < active_fingers_count) {
             const auto& [active_x, active_y] = active_fingers[id].position;
             touch_entry.position = {
-                .x = static_cast<u16>(active_x * Layout::ScreenUndocked::Width),
-                .y = static_cast<u16>(active_y * Layout::ScreenUndocked::Height),
+                .x = static_cast<u16>(active_x * static_cast<float>(touchscreen_width)),
+                .y = static_cast<u16>(active_y * static_cast<float>(touchscreen_height)),
             };
             touch_entry.diameter_x = Settings::values.touchscreen.diameter_x;
             touch_entry.diameter_y = Settings::values.touchscreen.diameter_y;
@@ -118,6 +119,11 @@ void TouchScreen::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     }
 
     shared_memory->touch_screen_lifo.WriteNextEntry(next_state);
+}
+
+void TouchScreen::SetTouchscreenDimensions(u32 width, u32 height) {
+    touchscreen_width = width;
+    touchscreen_height = height;
 }
 
 } // namespace Service::HID

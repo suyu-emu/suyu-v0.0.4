@@ -28,6 +28,8 @@ public:
     // When the controller is requesting an update for the shared memory
     void OnUpdate(const Core::Timing::CoreTiming& core_timing) override;
 
+    void SetTouchscreenDimensions(u32 width, u32 height);
+
 private:
     static constexpr std::size_t MAX_FINGERS = 16;
 
@@ -53,5 +55,7 @@ private:
     Core::HID::EmulatedConsole* console = nullptr;
 
     std::array<Core::HID::TouchFinger, MAX_FINGERS> fingers{};
+    u32 touchscreen_width;
+    u32 touchscreen_height;
 };
 } // namespace Service::HID
