@@ -41,6 +41,7 @@ enum class Category : u32 {
     Multiplayer,
     Services,
     Paths,
+    Linux,
     MaxEnum,
 };
 

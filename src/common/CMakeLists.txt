@@ -174,6 +174,15 @@ if(ANDROID)
     )
 endif()
 
+if (UNIX)
+  target_sources(common PRIVATE
+    linux/gamemode.cpp
+    linux/gamemode.h
+  )
+
+  target_link_libraries(common PRIVATE gamemode)
+endif()
+
 if(ARCHITECTURE_x86_64)
     target_sources(common
         PRIVATE

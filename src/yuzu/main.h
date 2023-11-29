@@ -340,6 +340,7 @@ private:
     void SetupSigInterrupts();
     static void HandleSigInterrupt(int);
     void OnSigInterruptNotifierActivated();
+    void SetGamemodeEnabled(bool state);
 #endif
 
 private slots:
