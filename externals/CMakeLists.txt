@@ -189,6 +189,10 @@ if (ANDROID)
    endif()
 endif()
 
+if (UNIX)
+    add_subdirectory(gamemode)
+endif()
+
 # Breakpad
 # https://github.com/microsoft/vcpkg/blob/master/ports/breakpad/CMakeLists.txt
 if (YUZU_CRASH_DUMPS AND NOT TARGET libbreakpad_client)

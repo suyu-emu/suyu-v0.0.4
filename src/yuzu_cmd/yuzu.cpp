@@ -63,6 +63,10 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 #endif
 
+#ifdef __unix__
+#include "common/linux/gamemode.h"
+#endif
+
 static void PrintHelp(const char* argv0) {
     std::cout << "Usage: " << argv0
               << " [options] <filename>\n"
@@ -425,6 +429,10 @@ int main(int argc, char** argv) {
         exit(0);
     });
 
+#ifdef __unix__
+    Common::Linux::StartGamemode();
+#endif
+
     void(system.Run());
     if (system.DebuggerEnabled()) {
         system.InitializeDebugger();
@@ -435,6 +443,10 @@ int main(int argc, char** argv) {
     system.DetachDebugger();
     void(system.Pause());
     system.ShutdownMainProcess();
+
+#ifdef __unix__
+    Common::Linux::StopGamemode();
+#endif
 
     detached_tasks.WaitForAllTasks();
     return 0;

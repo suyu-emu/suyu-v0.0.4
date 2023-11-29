@@ -36,12 +36,29 @@ ConfigureGeneral::~ConfigureGeneral() = default;
 void ConfigureGeneral::SetConfiguration() {}
 
 void ConfigureGeneral::Setup(const ConfigurationShared::Builder& builder) {
-    QLayout& layout = *ui->general_widget->layout();
+    QLayout& general_layout = *ui->general_widget->layout();
+    QLayout& linux_layout = *ui->linux_widget->layout();
 
-    std::map<u32, QWidget*> hold{};
+    std::map<u32, QWidget*> general_hold{};
+    std::map<u32, QWidget*> linux_hold{};
 
-    for (const auto setting :
-         UISettings::values.linkage.by_category[Settings::Category::UiGeneral]) {
+    std::vector<Settings::BasicSetting*> settings;
+
+    auto push = [&settings](auto& list) {
+        for (auto setting : list) {
+            settings.push_back(setting);
+        }
+    };
+
+    push(UISettings::values.linkage.by_category[Settings::Category::UiGeneral]);
+    push(Settings::values.linkage.by_category[Settings::Category::Linux]);
+
+    // Only show Linux group on Unix
+#ifndef __unix__
+    ui->LinuxGroupBox->setVisible(false);
+#endif
+
+    for (const auto setting : settings) {
         auto* widget = builder.BuildWidget(setting, apply_funcs);
 
         if (widget == nullptr) {
@@ -52,11 +69,23 @@ void ConfigureGeneral::Setup(const ConfigurationShared::Builder& builder) {
             continue;
         }
 
-        hold.emplace(setting->Id(), widget);
+        switch (setting->GetCategory()) {
+        case Settings::Category::UiGeneral:
+            general_hold.emplace(setting->Id(), widget);
+            break;
+        case Settings::Category::Linux:
+            linux_hold.emplace(setting->Id(), widget);
+            break;
+        default:
+            widget->deleteLater();
+        }
     }
 
-    for (const auto& [id, widget] : hold) {
-        layout.addWidget(widget);
+    for (const auto& [id, widget] : general_hold) {
+        general_layout.addWidget(widget);
+    }
+    for (const auto& [id, widget] : linux_hold) {
+        linux_layout.addWidget(widget);
     }
 }
 

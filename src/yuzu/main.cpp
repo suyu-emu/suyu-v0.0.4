@@ -17,6 +17,7 @@
 #ifdef __unix__
 #include <csignal>
 #include <sys/socket.h>
+#include "common/linux/gamemode.h"
 #endif
 
 #include <boost/container/flat_set.hpp>
@@ -319,6 +320,7 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
       provider{std::make_unique<FileSys::ManualContentProvider>()} {
 #ifdef __unix__
     SetupSigInterrupts();
+    SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
 #endif
     system->Initialize();
 
@@ -2120,6 +2122,10 @@ void GMainWindow::OnEmulationStopped() {
 
     discord_rpc->Update();
 
+#ifdef __unix__
+    Common::Linux::StopGamemode();
+#endif
+
     // The emulation is stopped, so closing the window or not does not matter anymore
     disconnect(render_window, &GRenderWindow::Closed, this, &GMainWindow::OnStopGame);
 
@@ -3502,6 +3508,10 @@ void GMainWindow::OnStartGame() {
     play_time_manager->Start();
 
     discord_rpc->Update();
+
+#ifdef __unix__
+    Common::Linux::StartGamemode();
+#endif
 }
 
 void GMainWindow::OnRestartGame() {
@@ -3522,6 +3532,10 @@ void GMainWindow::OnPauseGame() {
     play_time_manager->Stop();
     UpdateMenuState();
     AllowOSSleep();
+
+#ifdef __unix__
+    Common::Linux::StopGamemode();
+#endif
 }
 
 void GMainWindow::OnPauseContinueGame() {
@@ -3803,6 +3817,9 @@ void GMainWindow::OnConfigure() {
     const auto old_theme = UISettings::values.theme;
     const bool old_discord_presence = UISettings::values.enable_discord_presence.GetValue();
     const auto old_language_index = Settings::values.language_index.GetValue();
+#ifdef __unix__
+    const bool old_gamemode = Settings::values.enable_gamemode.GetValue();
+#endif
 
     Settings::SetConfiguringGlobal(true);
     ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(),
@@ -3864,6 +3881,11 @@ void GMainWindow::OnConfigure() {
     if (UISettings::values.enable_discord_presence.GetValue() != old_discord_presence) {
         SetDiscordEnabled(UISettings::values.enable_discord_presence.GetValue());
     }
+#ifdef __unix__
+    if (Settings::values.enable_gamemode.GetValue() != old_gamemode) {
+        SetGamemodeEnabled(Settings::values.enable_gamemode.GetValue());
+    }
+#endif
 
     if (!multiplayer_state->IsHostingPublicRoom()) {
         multiplayer_state->UpdateCredentials();
@@ -5171,6 +5193,14 @@ void GMainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
 #endif
     discord_rpc->Update();
 }
+
+#ifdef __unix__
+void GMainWindow::SetGamemodeEnabled(bool state) {
+    if (emulation_running) {
+        Common::Linux::SetGamemodeState(state);
+    }
+}
+#endif
 
 void GMainWindow::changeEvent(QEvent* event) {
 #ifdef __unix__

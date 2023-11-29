@@ -429,6 +429,9 @@ struct Values {
                                                    true,
                                                    true};
 
+    // Linux
+    SwitchableSetting<bool> enable_gamemode{linkage, true, "enable_gamemode", Category::Linux};
+
     // Controls
     InputSetting<std::array<PlayerInput, 10>> players;
 

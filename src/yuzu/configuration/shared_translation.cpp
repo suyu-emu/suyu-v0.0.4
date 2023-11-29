@@ -176,6 +176,9 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QWidget* parent) {
     INSERT(UISettings, controller_applet_disabled, tr("Disable controller applet"),
            QStringLiteral());
 
+    // Linux
+    INSERT(Settings, enable_gamemode, tr("Enable Gamemode"), QStringLiteral());
+
     // Ui Debugging
 
     // Ui Multiplayer
