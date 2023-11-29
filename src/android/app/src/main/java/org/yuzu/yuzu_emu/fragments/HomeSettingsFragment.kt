@@ -127,18 +127,13 @@ class HomeSettingsFragment : Fragment() {
             )
             add(
                 HomeSetting(
-                    R.string.select_games_folder,
+                    R.string.manage_game_folders,
                     R.string.select_games_folder_description,
                     R.drawable.ic_add,
                     {
-                        mainActivity.getGamesDirectory.launch(
-                            Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data
-                        )
-                    },
-                    { true },
-                    0,
-                    0,
-                    homeViewModel.gamesDir
+                        binding.root.findNavController()
+                            .navigate(R.id.action_homeSettingsFragment_to_gameFoldersFragment)
+                    }
                 )
             )
             add(

@@ -42,7 +42,7 @@ import org.yuzu.yuzu_emu.model.SetupPage
 import org.yuzu.yuzu_emu.model.StepState
 import org.yuzu.yuzu_emu.ui.main.MainActivity
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
-import org.yuzu.yuzu_emu.utils.GameHelper
+import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.ViewUtils
 
 class SetupFragment : Fragment() {
@@ -184,11 +184,7 @@ class SetupFragment : Fragment() {
                     R.string.add_games_warning_description,
                     R.string.add_games_warning_help,
                     {
-                        val preferences =
-                            PreferenceManager.getDefaultSharedPreferences(
-                                YuzuApplication.appContext
-                            )
-                        if (preferences.getString(GameHelper.KEY_GAME_PATH, "")!!.isNotEmpty()) {
+                        if (NativeConfig.getGameDirs().isNotEmpty()) {
                             StepState.COMPLETE
                         } else {
                             StepState.INCOMPLETE

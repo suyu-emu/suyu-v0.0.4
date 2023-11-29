@@ -19,12 +19,13 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navArgs
 import com.google.android.material.color.MaterialColors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.IOException
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
-import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.fragments.ResetSettingsDialogFragment
 import org.yuzu.yuzu_emu.model.SettingsViewModel
@@ -52,10 +53,6 @@ class SettingsActivity : AppCompatActivity() {
         navHostFragment.navController.setGraph(R.navigation.settings_navigation, intent.extras)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        if (savedInstanceState != null) {
-            settingsViewModel.shouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE)
-        }
 
         if (InsetsHelper.getSystemGestureType(applicationContext) !=
             InsetsHelper.GESTURE_NAVIGATION
@@ -127,12 +124,6 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        // Critical: If super method is not called, rotations will be busted.
-        super.onSaveInstanceState(outState)
-        outState.putBoolean(KEY_SHOULD_SAVE, settingsViewModel.shouldSave)
-    }
-
     override fun onStart() {
         super.onStart()
         // TODO: Load custom settings contextually
@@ -141,16 +132,10 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * If this is called, the user has left the settings screen (potentially through the
-     * home button) and will expect their changes to be persisted. So we kick off an
-     * IntentService which will do so on a background thread.
-     */
     override fun onStop() {
         super.onStop()
-        if (isFinishing && settingsViewModel.shouldSave) {
-            Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...")
-            Settings.saveSettings()
+        CoroutineScope(Dispatchers.IO).launch {
+            NativeConfig.saveSettings()
         }
     }
 
@@ -160,9 +145,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     fun onSettingsReset() {
-        // Prevents saving to a non-existent settings file
-        settingsViewModel.shouldSave = false
-
         // Delete settings file because the user may have changed values that do not exist in the UI
         NativeConfig.unloadConfig()
         val settingsFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_CONFIG)
@@ -193,9 +175,5 @@ class SettingsActivity : AppCompatActivity() {
 
             windowInsets
         }
-    }
-
-    companion object {
-        private const val KEY_SHOULD_SAVE = "should_save"
     }
 }

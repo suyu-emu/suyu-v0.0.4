@@ -40,6 +40,7 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.fragments.AddGameFolderDialogFragment
 import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.getPublicFilesDir
@@ -252,6 +253,13 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
         super.onResume()
     }
 
+    override fun onStop() {
+        super.onStop()
+        CoroutineScope(Dispatchers.IO).launch {
+            NativeConfig.saveSettings()
+        }
+    }
+
     override fun onDestroy() {
         EmulationActivity.stopForegroundService(this)
         super.onDestroy()
@@ -293,20 +301,19 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             Intent.FLAG_GRANT_READ_URI_PERMISSION
         )
 
-        // When a new directory is picked, we currently will reset the existing games
-        // database. This effectively means that only one game directory is supported.
-        PreferenceManager.getDefaultSharedPreferences(applicationContext).edit()
-            .putString(GameHelper.KEY_GAME_PATH, result.toString())
-            .apply()
+        val uriString = result.toString()
+        val folder = gamesViewModel.folders.value.firstOrNull { it.uriString == uriString }
+        if (folder != null) {
+            Toast.makeText(
+                applicationContext,
+                R.string.folder_already_added,
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
 
-        Toast.makeText(
-            applicationContext,
-            R.string.games_dir_selected,
-            Toast.LENGTH_LONG
-        ).show()
-
-        gamesViewModel.reloadGames(true)
-        homeViewModel.setGamesDir(this, result.path!!)
+        AddGameFolderDialogFragment.newInstance(uriString)
+            .show(supportFragmentManager, AddGameFolderDialogFragment.TAG)
     }
 
     val getProdKey =

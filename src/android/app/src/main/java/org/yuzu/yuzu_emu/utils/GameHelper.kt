@@ -11,10 +11,11 @@ import kotlinx.serialization.json.Json
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.model.Game
+import org.yuzu.yuzu_emu.model.GameDir
 import org.yuzu.yuzu_emu.model.MinimalDocumentFile
 
 object GameHelper {
-    const val KEY_GAME_PATH = "game_path"
+    private const val KEY_OLD_GAME_PATH = "game_path"
     const val KEY_GAMES = "Games"
 
     private lateinit var preferences: SharedPreferences
@@ -22,15 +23,43 @@ object GameHelper {
     fun getGames(): List<Game> {
         val games = mutableListOf<Game>()
         val context = YuzuApplication.appContext
-        val gamesDir =
-            PreferenceManager.getDefaultSharedPreferences(context).getString(KEY_GAME_PATH, "")
-        val gamesUri = Uri.parse(gamesDir)
         preferences = PreferenceManager.getDefaultSharedPreferences(context)
+
+        val gameDirs = mutableListOf<GameDir>()
+        val oldGamesDir = preferences.getString(KEY_OLD_GAME_PATH, "") ?: ""
+        if (oldGamesDir.isNotEmpty()) {
+            gameDirs.add(GameDir(oldGamesDir, true))
+            preferences.edit().remove(KEY_OLD_GAME_PATH).apply()
+        }
+        gameDirs.addAll(NativeConfig.getGameDirs())
 
         // Ensure keys are loaded so that ROM metadata can be decrypted.
         NativeLibrary.reloadKeys()
 
-        addGamesRecursive(games, FileUtil.listFiles(gamesUri), 3)
+        val badDirs = mutableListOf<Int>()
+        gameDirs.forEachIndexed { index: Int, gameDir: GameDir ->
+            val gameDirUri = Uri.parse(gameDir.uriString)
+            val isValid = FileUtil.isTreeUriValid(gameDirUri)
+            if (isValid) {
+                addGamesRecursive(
+                    games,
+                    FileUtil.listFiles(gameDirUri),
+                    if (gameDir.deepScan) 3 else 1
+                )
+            } else {
+                badDirs.add(index)
+            }
+        }
+
+        // Remove all game dirs with insufficient permissions from config
+        if (badDirs.isNotEmpty()) {
+            var offset = 0
+            badDirs.forEach {
+                gameDirs.removeAt(it - offset)
+                offset++
+            }
+        }
+        NativeConfig.setGameDirs(gameDirs.toTypedArray())
 
         // Cache list of games found on disk
         val serializedGames = mutableSetOf<String>()
