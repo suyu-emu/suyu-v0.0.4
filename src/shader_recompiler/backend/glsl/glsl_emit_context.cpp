@@ -601,7 +601,10 @@ std::string EmitContext::DefineGlobalMemoryFunctions() {
             addr_xy[i] = fmt::format("ftou({}[{}].{})", cbuf, addr_loc / 16, Swizzle(addr_loc));
             size_xy[i] = fmt::format("ftou({}[{}].{})", cbuf, size_loc / 16, Swizzle(size_loc));
         }
-        const auto addr_pack{fmt::format("packUint2x32(uvec2({},{}))", addr_xy[0], addr_xy[1])};
+        const u32 ssbo_align_mask{~(static_cast<u32>(profile.min_ssbo_alignment) - 1U)};
+        const auto aligned_low_addr{fmt::format("{}&{}", addr_xy[0], ssbo_align_mask)};
+        const auto aligned_addr{fmt::format("uvec2({},{})", aligned_low_addr, addr_xy[1])};
+        const auto addr_pack{fmt::format("packUint2x32({})", aligned_addr)};
         const auto addr_statment{fmt::format("uint64_t {}={};", ssbo_addr, addr_pack)};
         func += addr_statment;
 

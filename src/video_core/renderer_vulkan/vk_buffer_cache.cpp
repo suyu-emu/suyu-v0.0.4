@@ -355,6 +355,10 @@ bool BufferCacheRuntime::CanReportMemoryUsage() const {
     return device.CanReportMemoryUsage();
 }
 
+u32 BufferCacheRuntime::GetStorageBufferAlignment() const {
+    return static_cast<u32>(device.GetStorageBufferAlignment());
+}
+
 void BufferCacheRuntime::TickFrame(VideoCommon::SlotVector<Buffer>& slot_buffers) noexcept {
     for (auto it = slot_buffers.begin(); it != slot_buffers.end(); it++) {
         it->ResetUsageTracking();

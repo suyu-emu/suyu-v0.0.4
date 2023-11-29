@@ -1753,15 +1753,25 @@ Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
         const u32 memory_layout_size = static_cast<u32>(gpu_memory->GetMemoryLayoutSize(gpu_addr));
         return std::min(memory_layout_size, static_cast<u32>(8_MiB));
     }();
-    const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
-    if (!cpu_addr || size == 0) {
+    // Alignment only applies to the offset of the buffer
+    const u32 alignment = runtime.GetStorageBufferAlignment();
+    const GPUVAddr aligned_gpu_addr = Common::AlignDown(gpu_addr, alignment);
+    const u32 aligned_size = static_cast<u32>(gpu_addr - aligned_gpu_addr) + size;
+
+    const std::optional<VAddr> aligned_cpu_addr = gpu_memory->GpuToCpuAddress(aligned_gpu_addr);
+    if (!aligned_cpu_addr || size == 0) {
         LOG_WARNING(HW_GPU, "Failed to find storage buffer for cbuf index {}", cbuf_index);
         return NULL_BINDING;
     }
-    const VAddr cpu_end = Common::AlignUp(*cpu_addr + size, YUZU_PAGESIZE);
+    const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
+    ASSERT_MSG(cpu_addr, "Unaligned storage buffer address not found for cbuf index {}",
+               cbuf_index);
+    // The end address used for size calculation does not need to be aligned
+    const VAddr cpu_end = Common::AlignUp(*cpu_addr + size, Core::Memory::YUZU_PAGESIZE);
+
     const Binding binding{
-        .cpu_addr = *cpu_addr,
-        .size = is_written ? size : static_cast<u32>(cpu_end - *cpu_addr),
+        .cpu_addr = *aligned_cpu_addr,
+        .size = is_written ? aligned_size : static_cast<u32>(cpu_end - *aligned_cpu_addr),
         .buffer_id = BufferId{},
     };
     return binding;

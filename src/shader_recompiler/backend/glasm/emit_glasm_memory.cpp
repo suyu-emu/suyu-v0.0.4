@@ -5,6 +5,7 @@
 #include "shader_recompiler/backend/glasm/glasm_emit_context.h"
 #include "shader_recompiler/frontend/ir/program.h"
 #include "shader_recompiler/frontend/ir/value.h"
+#include "shader_recompiler/profile.h"
 #include "shader_recompiler/runtime_info.h"
 
 namespace Shader::Backend::GLASM {
@@ -35,7 +36,9 @@ void GlobalStorageOp(EmitContext& ctx, Register address, bool pointer_based, std
             continue;
         }
         const auto& ssbo{ctx.info.storage_buffers_descriptors[index]};
-        ctx.Add("LDC.U64 DC.x,c{}[{}];"    // ssbo_addr
+        const u64 ssbo_align_mask{~(ctx.profile.min_ssbo_alignment - 1U)};
+        ctx.Add("LDC.U64 DC.x,c{}[{}];"    // unaligned_ssbo_addr
+                "AND.U64 DC.x,DC.x,{};"    // ssbo_addr = unaligned_ssbo_addr & ssbo_align_mask
                 "LDC.U32 RC.x,c{}[{}];"    // ssbo_size_u32
                 "CVT.U64.U32 DC.y,RC.x;"   // ssbo_size = ssbo_size_u32
                 "ADD.U64 DC.y,DC.y,DC.x;"  // ssbo_end = ssbo_addr + ssbo_size
@@ -44,8 +47,8 @@ void GlobalStorageOp(EmitContext& ctx, Register address, bool pointer_based, std
                 "AND.U.CC RC.x,RC.x,RC.y;" // cond = a && b
                 "IF NE.x;"                 // if cond
                 "SUB.U64 DC.x,{}.x,DC.x;", // offset = input_addr - ssbo_addr
-                ssbo.cbuf_index, ssbo.cbuf_offset, ssbo.cbuf_index, ssbo.cbuf_offset + 8, address,
-                address, address);
+                ssbo.cbuf_index, ssbo.cbuf_offset, ssbo_align_mask, ssbo.cbuf_index,
+                ssbo.cbuf_offset + 8, address, address, address);
         if (pointer_based) {
             ctx.Add("PK64.U DC.y,c[{}];"      // host_ssbo = cbuf
                     "ADD.U64 DC.x,DC.x,DC.y;" // host_addr = host_ssbo + offset

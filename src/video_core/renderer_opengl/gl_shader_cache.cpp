@@ -232,6 +232,7 @@ ShaderCache::ShaderCache(RasterizerOpenGL& rasterizer_, Core::Frontend::EmuWindo
           .has_gl_bool_ref_bug = device.HasBoolRefBug(),
           .ignore_nan_fp_comparisons = true,
           .gl_max_compute_smem_size = device.GetMaxComputeSharedMemorySize(),
+          .min_ssbo_alignment = device.GetShaderStorageBufferAlignment(),
       },
       host_info{
           .support_float64 = true,
@@ -240,6 +241,7 @@ ShaderCache::ShaderCache(RasterizerOpenGL& rasterizer_, Core::Frontend::EmuWindo
           .needs_demote_reorder = device.IsAmd(),
           .support_snorm_render_buffer = false,
           .support_viewport_index_layer = device.HasVertexViewportLayer(),
+          .min_ssbo_alignment = static_cast<u32>(device.GetShaderStorageBufferAlignment()),
           .support_geometry_shader_passthrough = device.HasGeometryShaderPassthrough(),
           .support_conditional_barrier = device.SupportsConditionalBarriers(),
       } {
