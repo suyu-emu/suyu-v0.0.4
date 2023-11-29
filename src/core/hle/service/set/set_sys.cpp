@@ -34,7 +34,9 @@ Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System&
         nca = bis_system->GetEntry(FirmwareVersionSystemDataId, FileSys::ContentRecordType::Data);
     }
     if (nca) {
-        romfs = FileSys::ExtractRomFS(nca->GetRomFS());
+        if (auto nca_romfs = nca->GetRomFS(); nca_romfs) {
+            romfs = FileSys::ExtractRomFS(nca_romfs);
+        }
     }
     if (!romfs) {
         romfs = FileSys::ExtractRomFS(
