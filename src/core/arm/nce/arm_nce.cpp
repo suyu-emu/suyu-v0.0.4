@@ -6,7 +6,7 @@
 
 #include "common/signal_chain.h"
 #include "core/arm/nce/arm_nce.h"
-#include "core/arm/nce/patch.h"
+#include "core/arm/nce/patcher.h"
 #include "core/core.h"
 #include "core/memory.h"
 
