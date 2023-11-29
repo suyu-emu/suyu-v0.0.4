@@ -28,6 +28,9 @@
         <action
             android:id="@+id/action_homeSettingsFragment_to_appletLauncherFragment"
             app:destination="@id/appletLauncherFragment" />
+        <action
+            android:id="@+id/action_homeSettingsFragment_to_gameFoldersFragment"
+            app:destination="@id/gameFoldersFragment" />
     </fragment>
 
     <fragment
@@ -117,5 +120,9 @@
         android:id="@+id/cabinetLauncherDialogFragment"
         android:name="org.yuzu.yuzu_emu.fragments.CabinetLauncherDialogFragment"
         android:label="CabinetLauncherDialogFragment" />
+    <fragment
+        android:id="@+id/gameFoldersFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.GameFoldersFragment"
+        android:label="GameFoldersFragment" />
 
 </navigation>

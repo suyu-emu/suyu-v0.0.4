@@ -13,8 +13,6 @@ import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 class SettingsViewModel : ViewModel() {
     var game: Game? = null
 
-    var shouldSave = false
-
     var clickedItem: SettingsItem? = null
 
     val shouldRecreate: StateFlow<Boolean> get() = _shouldRecreate
@@ -73,6 +71,5 @@ class SettingsViewModel : ViewModel() {
 
     fun clear() {
         game = null
-        shouldSave = false
     }
 }

@@ -52,7 +52,6 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                     .setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
                         settingsViewModel.clickedItem!!.setting.reset()
                         settingsViewModel.setAdapterItemChanged(position)
-                        settingsViewModel.shouldSave = true
                     }
                     .setNegativeButton(android.R.string.cancel, null)
                     .create()
@@ -137,24 +136,17 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
             is SingleChoiceSetting -> {
                 val scSetting = settingsViewModel.clickedItem as SingleChoiceSetting
                 val value = getValueForSingleChoiceSelection(scSetting, which)
-                if (scSetting.selectedValue != value) {
-                    settingsViewModel.shouldSave = true
-                }
                 scSetting.selectedValue = value
             }
 
             is StringSingleChoiceSetting -> {
                 val scSetting = settingsViewModel.clickedItem as StringSingleChoiceSetting
                 val value = scSetting.getValueAt(which)
-                if (scSetting.selectedValue != value) settingsViewModel.shouldSave = true
                 scSetting.selectedValue = value
             }
 
             is SliderSetting -> {
                 val sliderSetting = settingsViewModel.clickedItem as SliderSetting
-                if (sliderSetting.selectedValue != settingsViewModel.sliderProgress.value) {
-                    settingsViewModel.shouldSave = true
-                }
                 sliderSetting.selectedValue = settingsViewModel.sliderProgress.value
             }
         }

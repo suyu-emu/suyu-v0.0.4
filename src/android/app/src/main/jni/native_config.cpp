@@ -11,6 +11,7 @@
 #include "common/settings.h"
 #include "frontend_common/config.h"
 #include "jni/android_common/android_common.h"
+#include "jni/id_cache.h"
 
 std::unique_ptr<AndroidConfig> config;
 
@@ -251,6 +252,57 @@ jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getPairedSettingKey(JNIEnv* e
     }
 
     return ToJString(env, setting->PairedSetting()->GetLabel());
+}
+
+jobjectArray Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getGameDirs(JNIEnv* env, jobject obj) {
+    jclass gameDirClass = IDCache::GetGameDirClass();
+    jmethodID gameDirConstructor = IDCache::GetGameDirConstructor();
+    jobjectArray jgameDirArray =
+        env->NewObjectArray(AndroidSettings::values.game_dirs.size(), gameDirClass, nullptr);
+    for (size_t i = 0; i < AndroidSettings::values.game_dirs.size(); ++i) {
+        jobject jgameDir =
+            env->NewObject(gameDirClass, gameDirConstructor,
+                           ToJString(env, AndroidSettings::values.game_dirs[i].path),
+                           static_cast<jboolean>(AndroidSettings::values.game_dirs[i].deep_scan));
+        env->SetObjectArrayElement(jgameDirArray, i, jgameDir);
+    }
+    return jgameDirArray;
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setGameDirs(JNIEnv* env, jobject obj,
+                                                            jobjectArray gameDirs) {
+    AndroidSettings::values.game_dirs.clear();
+    int size = env->GetArrayLength(gameDirs);
+
+    if (size == 0) {
+        return;
+    }
+
+    jobject dir = env->GetObjectArrayElement(gameDirs, 0);
+    jclass gameDirClass = IDCache::GetGameDirClass();
+    jfieldID uriStringField = env->GetFieldID(gameDirClass, "uriString", "Ljava/lang/String;");
+    jfieldID deepScanBooleanField = env->GetFieldID(gameDirClass, "deepScan", "Z");
+    for (int i = 0; i < size; ++i) {
+        dir = env->GetObjectArrayElement(gameDirs, i);
+        jstring juriString = static_cast<jstring>(env->GetObjectField(dir, uriStringField));
+        jboolean jdeepScanBoolean = env->GetBooleanField(dir, deepScanBooleanField);
+        std::string uriString = GetJString(env, juriString);
+        AndroidSettings::values.game_dirs.push_back(
+            AndroidSettings::GameDir{uriString, static_cast<bool>(jdeepScanBoolean)});
+    }
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_addGameDir(JNIEnv* env, jobject obj,
+                                                           jobject gameDir) {
+    jclass gameDirClass = IDCache::GetGameDirClass();
+    jfieldID uriStringField = env->GetFieldID(gameDirClass, "uriString", "Ljava/lang/String;");
+    jfieldID deepScanBooleanField = env->GetFieldID(gameDirClass, "deepScan", "Z");
+
+    jstring juriString = static_cast<jstring>(env->GetObjectField(gameDir, uriStringField));
+    jboolean jdeepScanBoolean = env->GetBooleanField(gameDir, deepScanBooleanField);
+    std::string uriString = GetJString(env, juriString);
+    AndroidSettings::values.game_dirs.push_back(
+        AndroidSettings::GameDir{uriString, static_cast<bool>(jdeepScanBoolean)});
 }
 
 } // extern "C"

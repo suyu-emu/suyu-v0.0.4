@@ -364,6 +364,27 @@ object FileUtil {
             .lowercase()
     }
 
+    fun isTreeUriValid(uri: Uri): Boolean {
+        val resolver = context.contentResolver
+        val columns = arrayOf(
+            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+            DocumentsContract.Document.COLUMN_MIME_TYPE
+        )
+        return try {
+            val docId: String = if (isRootTreeUri(uri)) {
+                DocumentsContract.getTreeDocumentId(uri)
+            } else {
+                DocumentsContract.getDocumentId(uri)
+            }
+            val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, docId)
+            resolver.query(childrenUri, columns, null, null, null)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     @Throws(IOException::class)
     fun getStringFromFile(file: File): String =
         String(file.readBytes(), StandardCharsets.UTF_8)

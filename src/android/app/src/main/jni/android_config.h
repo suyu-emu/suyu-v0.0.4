@@ -19,9 +19,9 @@ protected:
     void ReadAndroidUIValues();
     void ReadHidbusValues() override {}
     void ReadDebugControlValues() override {}
-    void ReadPathValues() override {}
+    void ReadPathValues() override;
     void ReadShortcutValues() override {}
-    void ReadUIValues() override {}
+    void ReadUIValues() override;
     void ReadUIGamelistValues() override {}
     void ReadUILayoutValues() override {}
     void ReadMultiplayerValues() override {}
@@ -30,9 +30,9 @@ protected:
     void SaveAndroidUIValues();
     void SaveHidbusValues() override {}
     void SaveDebugControlValues() override {}
-    void SavePathValues() override {}
+    void SavePathValues() override;
     void SaveShortcutValues() override {}
-    void SaveUIValues() override {}
+    void SaveUIValues() override;
     void SaveUIGamelistValues() override {}
     void SaveUILayoutValues() override {}
     void SaveMultiplayerValues() override {}
