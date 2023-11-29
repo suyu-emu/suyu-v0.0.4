@@ -265,33 +265,33 @@ std::string Device::GetVendorName() const {
     if (vendor_name == "Intel") {
         // For Mesa, `Intel` is an overloaded vendor string that could mean crocus or iris.
         // Simply return `INTEL` for those as well as the Windows driver.
-        return "INTEL";
+        return "Intel";
     }
     if (vendor_name == "Intel Open Source Technology Center") {
-        return "I965";
+        return "i965";
     }
     if (vendor_name == "Mesa Project") {
-        return "I915";
+        return "i915";
     }
     if (vendor_name == "Mesa/X.org") {
         // This vendor string is overloaded between llvmpipe, softpipe, and virgl, so just return
         // MESA instead of one of those driver names.
-        return "MESA";
+        return "Mesa";
     }
     if (vendor_name == "AMD") {
-        return "RADEONSI";
+        return "RadeonSI";
     }
     if (vendor_name == "nouveau") {
-        return "NOUVEAU";
+        return "Nouveau";
     }
     if (vendor_name == "X.Org") {
         return "R600";
     }
     if (vendor_name == "Collabora Ltd") {
-        return "ZINK";
+        return "Zink";
     }
     if (vendor_name == "Intel Corporation") {
-        return "OPENSWR";
+        return "OpenSWR";
     }
     if (vendor_name == "Microsoft Corporation") {
         return "D3D12";
@@ -300,7 +300,7 @@ std::string Device::GetVendorName() const {
         // Mesa's tegra driver reports `NVIDIA`. Only present in this list because the default
         // strategy would have returned `NVIDIA` here for this driver, the same result as the
         // proprietary driver.
-        return "TEGRA";
+        return "Tegra";
     }
     return vendor_name;
 }
