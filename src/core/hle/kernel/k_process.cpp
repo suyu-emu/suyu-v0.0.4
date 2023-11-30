@@ -300,7 +300,7 @@ Result KProcess::Initialize(const Svc::CreateProcessParameter& params, const KPa
             False(params.flags & Svc::CreateProcessFlag::DisableDeviceAddressSpaceMerge);
         R_TRY(m_page_table.Initialize(as_type, enable_aslr, enable_das_merge, !enable_aslr, pool,
                                       params.code_address, params.code_num_pages * PageSize,
-                                      m_system_resource, res_limit, this->GetMemory()));
+                                      m_system_resource, res_limit, this->GetMemory(), 0));
     }
     ON_RESULT_FAILURE_2 {
         m_page_table.Finalize();
@@ -332,7 +332,7 @@ Result KProcess::Initialize(const Svc::CreateProcessParameter& params, const KPa
 
 Result KProcess::Initialize(const Svc::CreateProcessParameter& params,
                             std::span<const u32> user_caps, KResourceLimit* res_limit,
-                            KMemoryManager::Pool pool) {
+                            KMemoryManager::Pool pool, KProcessAddress aslr_space_start) {
     ASSERT(res_limit != nullptr);
 
     // Set members.
@@ -393,7 +393,7 @@ Result KProcess::Initialize(const Svc::CreateProcessParameter& params,
             False(params.flags & Svc::CreateProcessFlag::DisableDeviceAddressSpaceMerge);
         R_TRY(m_page_table.Initialize(as_type, enable_aslr, enable_das_merge, !enable_aslr, pool,
                                       params.code_address, code_size, m_system_resource, res_limit,
-                                      this->GetMemory()));
+                                      this->GetMemory(), aslr_space_start));
     }
     ON_RESULT_FAILURE_2 {
         m_page_table.Finalize();
@@ -1128,7 +1128,7 @@ KProcess::KProcess(KernelCore& kernel)
 KProcess::~KProcess() = default;
 
 Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size,
-                                  bool is_hbl) {
+                                  KProcessAddress aslr_space_start, bool is_hbl) {
     // Create a resource limit for the process.
     const auto physical_memory_size =
         m_kernel.MemoryManager().GetSize(Kernel::KMemoryManager::Pool::Application);
@@ -1179,7 +1179,7 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
         .name = {},
         .version = {},
         .program_id = metadata.GetTitleID(),
-        .code_address = code_address,
+        .code_address = code_address + GetInteger(aslr_space_start),
         .code_num_pages = static_cast<s32>(code_size / PageSize),
         .flags = flag,
         .reslimit = Svc::InvalidHandle,
@@ -1193,7 +1193,7 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
 
     // Initialize for application process.
     R_TRY(this->Initialize(params, metadata.GetKernelCapabilities(), res_limit,
-                           KMemoryManager::Pool::Application));
+                           KMemoryManager::Pool::Application, aslr_space_start));
 
     // Assign remaining properties.
     m_is_hbl = is_hbl;
@@ -1214,6 +1214,17 @@ void KProcess::LoadModule(CodeSet code_set, KProcessAddress base_addr) {
     ReprotectSegment(code_set.CodeSegment(), Svc::MemoryPermission::ReadExecute);
     ReprotectSegment(code_set.RODataSegment(), Svc::MemoryPermission::Read);
     ReprotectSegment(code_set.DataSegment(), Svc::MemoryPermission::ReadWrite);
+
+#ifdef HAS_NCE
+    if (Settings::IsNceEnabled()) {
+        auto& buffer = m_kernel.System().DeviceMemory().buffer;
+        const auto& code = code_set.CodeSegment();
+        const auto& patch = code_set.PatchSegment();
+        buffer.Protect(GetInteger(base_addr + code.addr), code.size, true, true, true);
+        buffer.Protect(GetInteger(base_addr + patch.addr), patch.size, true, true, true);
+        ReprotectSegment(code_set.PatchSegment(), Svc::MemoryPermission::None);
+    }
+#endif
 }
 
 bool KProcess::InsertWatchpoint(KProcessAddress addr, u64 size, DebugWatchpointType type) {

@@ -191,6 +191,7 @@
     <string name="frame_limit_enable_description">Limits emulation speed to a specified percentage of normal speed.</string>
     <string name="frame_limit_slider">Limit speed percent</string>
     <string name="frame_limit_slider_description">Specifies the percentage to limit emulation speed. 100% is the normal speed. Values higher or lower will increase or decrease the speed limit.</string>
+    <string name="cpu_backend">CPU backend</string>
     <string name="cpu_accuracy">CPU accuracy</string>
     <string name="value_with_units">%1$s%2$s</string>
 
@@ -422,6 +423,10 @@
     <string name="ratio_force_twenty_one_nine">Force 21:9</string>
     <string name="ratio_force_sixteen_ten">Force 16:10</string>
     <string name="ratio_stretch">Stretch to window</string>
+
+    <!-- CPU Backend -->
+    <string name="cpu_backend_dynarmic">Dynarmic (Slow)</string>
+    <string name="cpu_backend_nce">Native code execution (NCE)</string>
 
     <!-- CPU Accuracy -->
     <string name="cpu_accuracy_accurate">Accurate</string>

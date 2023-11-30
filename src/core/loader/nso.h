@@ -15,6 +15,10 @@ namespace Core {
 class System;
 }
 
+namespace Core::NCE {
+class Patcher;
+}
+
 namespace Kernel {
 class KProcess;
 }
@@ -88,7 +92,8 @@ public:
     static std::optional<VAddr> LoadModule(Kernel::KProcess& process, Core::System& system,
                                            const FileSys::VfsFile& nso_file, VAddr load_base,
                                            bool should_pass_arguments, bool load_into_process,
-                                           std::optional<FileSys::PatchManager> pm = {});
+                                           std::optional<FileSys::PatchManager> pm = {},
+                                           Core::NCE::Patcher* patch = nullptr);
 
     LoadResult Load(Kernel::KProcess& process, Core::System& system) override;
 

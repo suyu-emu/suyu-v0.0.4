@@ -3,4 +3,4 @@
 
 [codespell]
 skip = ./.git,./build,./dist,./Doxyfile,./externals,./LICENSES,./src/android/app/src/main/res
-ignore-words-list = aci,allright,ba,canonicalizations,deques,froms,hda,inout,lod,masia,nam,nax,nd,optin,pullrequests,pullrequest,te,transfered,unstall,uscaled,vas,zink
+ignore-words-list = aci,allright,ba,canonicalizations,deques,froms,hda,inout,lod,masia,nam,nax,nce,nd,optin,pullrequests,pullrequest,te,transfered,unstall,uscaled,vas,zink

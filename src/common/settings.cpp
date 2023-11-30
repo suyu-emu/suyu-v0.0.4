@@ -41,6 +41,7 @@ SWITCHABLE(AspectRatio, true);
 SWITCHABLE(AstcDecodeMode, true);
 SWITCHABLE(AstcRecompression, true);
 SWITCHABLE(AudioMode, true);
+SWITCHABLE(CpuBackend, true);
 SWITCHABLE(CpuAccuracy, true);
 SWITCHABLE(FullscreenMode, true);
 SWITCHABLE(GpuAccuracy, true);
@@ -153,6 +154,22 @@ bool IsFastmemEnabled() {
         return static_cast<bool>(values.cpuopt_fastmem);
     }
     return true;
+}
+
+static bool is_nce_enabled = false;
+
+void SetNceEnabled(bool is_39bit) {
+    const bool is_nce_selected = values.cpu_backend.GetValue() == CpuBackend::Nce;
+    is_nce_enabled = IsFastmemEnabled() && is_nce_selected && is_39bit;
+    if (is_nce_selected && !is_nce_enabled) {
+        LOG_WARNING(
+            Common,
+            "Program does not utilize 39-bit address space, unable to natively execute code");
+    }
+}
+
+bool IsNceEnabled() {
+    return is_nce_enabled;
 }
 
 bool IsDockedMode() {

@@ -694,6 +694,14 @@ jdoubleArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getPerfStats(JNIEnv* env, jcl
     return j_stats;
 }
 
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getCpuBackend(JNIEnv* env, jclass clazz) {
+    if (Settings::IsNceEnabled()) {
+        return ToJString(env, "NCE");
+    }
+
+    return ToJString(env, "JIT");
+}
+
 void Java_org_yuzu_yuzu_1emu_utils_DirectoryInitialization_setSysDirectory(JNIEnv* env,
                                                                            jclass clazz,
                                                                            jstring j_path) {}

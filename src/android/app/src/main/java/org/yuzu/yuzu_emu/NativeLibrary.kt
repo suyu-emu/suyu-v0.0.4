@@ -300,6 +300,11 @@ object NativeLibrary {
     external fun getPerfStats(): DoubleArray
 
     /**
+     * Returns the current CPU backend.
+     */
+    external fun getCpuBackend(): String
+
+    /**
      * Notifies the core emulation that the orientation has changed.
      */
     external fun notifyOrientationChange(layout_option: Int, rotation: Int)

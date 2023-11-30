@@ -120,6 +120,9 @@ private:
     std::atomic<s64> m_num_ipc_messages{};
     std::atomic<s64> m_num_ipc_replies{};
     std::atomic<s64> m_num_ipc_receives{};
+#ifdef HAS_NCE
+    std::unordered_map<u64, u64> m_post_handlers{};
+#endif
 
 private:
     Result StartTermination();
@@ -150,7 +153,8 @@ public:
                       std::span<const u32> caps, KResourceLimit* res_limit,
                       KMemoryManager::Pool pool, bool immortal);
     Result Initialize(const Svc::CreateProcessParameter& params, std::span<const u32> user_caps,
-                      KResourceLimit* res_limit, KMemoryManager::Pool pool);
+                      KResourceLimit* res_limit, KMemoryManager::Pool pool,
+                      KProcessAddress aslr_space_start);
     void Exit();
 
     const char* GetName() const {
@@ -466,6 +470,12 @@ public:
 
     static void Switch(KProcess* cur_process, KProcess* next_process);
 
+#ifdef HAS_NCE
+    std::unordered_map<u64, u64>& GetPostHandlers() noexcept {
+        return m_post_handlers;
+    }
+#endif
+
 public:
     // Attempts to insert a watchpoint into a free slot. Returns false if none are available.
     bool InsertWatchpoint(KProcessAddress addr, u64 size, DebugWatchpointType type);
@@ -479,7 +489,7 @@ public:
 
 public:
     Result LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size,
-                            bool is_hbl);
+                            KProcessAddress aslr_space_start, bool is_hbl);
 
     void LoadModule(CodeSet code_set, KProcessAddress base_addr);
 

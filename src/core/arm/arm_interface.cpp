@@ -201,6 +201,8 @@ void ARM_Interface::Run() {
         if (True(hr & HaltReason::DataAbort)) {
             if (system.DebuggerEnabled()) {
                 system.GetDebugger().NotifyThreadWatchpoint(current_thread, *HaltedWatchpoint());
+            } else {
+                LogBacktrace();
             }
             current_thread->RequestSuspend(SuspendType::Debug);
             break;

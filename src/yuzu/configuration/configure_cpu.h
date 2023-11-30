@@ -49,4 +49,5 @@ private:
     std::vector<std::function<void(bool)>> apply_funcs{};
 
     QComboBox* accuracy_combobox;
+    QComboBox* backend_combobox;
 };
