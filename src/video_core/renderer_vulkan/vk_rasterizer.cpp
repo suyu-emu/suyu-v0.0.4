@@ -892,10 +892,6 @@ void RasterizerVulkan::UpdateDynamicStates() {
         UpdateFrontFace(regs);
         UpdateStencilOp(regs);
 
-        if (device.IsExtVertexInputDynamicStateSupported()) {
-            UpdateVertexInput(regs);
-        }
-
         if (state_tracker.TouchStateEnable()) {
             UpdateDepthBoundsTestEnable(regs);
             UpdateDepthTestEnable(regs);
@@ -917,6 +913,9 @@ void RasterizerVulkan::UpdateDynamicStates() {
         if (device.IsExtExtendedDynamicState3Supported()) {
             UpdateBlending(regs);
         }
+    }
+    if (device.IsExtVertexInputDynamicStateSupported()) {
+        UpdateVertexInput(regs);
     }
 }
 
