@@ -53,7 +53,7 @@ struct Memory::Impl {
     }
 
     void MapMemoryRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
-                         Common::PhysicalAddress target) {
+                         Common::PhysicalAddress target, Common::MemoryPermission perms) {
         ASSERT_MSG((size & YUZU_PAGEMASK) == 0, "non-page aligned size: {:016X}", size);
         ASSERT_MSG((base & YUZU_PAGEMASK) == 0, "non-page aligned base: {:016X}", GetInteger(base));
         ASSERT_MSG(target >= DramMemoryMap::Base, "Out of bounds target: {:016X}",
@@ -63,7 +63,7 @@ struct Memory::Impl {
 
         if (Settings::IsFastmemEnabled()) {
             system.DeviceMemory().buffer.Map(GetInteger(base),
-                                             GetInteger(target) - DramMemoryMap::Base, size);
+                                             GetInteger(target) - DramMemoryMap::Base, size, perms);
         }
     }
 
@@ -75,6 +75,51 @@ struct Memory::Impl {
 
         if (Settings::IsFastmemEnabled()) {
             system.DeviceMemory().buffer.Unmap(GetInteger(base), size);
+        }
+    }
+
+    void ProtectRegion(Common::PageTable& page_table, VAddr vaddr, u64 size,
+                       Common::MemoryPermission perms) {
+        ASSERT_MSG((size & YUZU_PAGEMASK) == 0, "non-page aligned size: {:016X}", size);
+        ASSERT_MSG((vaddr & YUZU_PAGEMASK) == 0, "non-page aligned base: {:016X}", vaddr);
+
+        if (!Settings::IsFastmemEnabled()) {
+            return;
+        }
+
+        const bool is_r = True(perms & Common::MemoryPermission::Read);
+        const bool is_w = True(perms & Common::MemoryPermission::Write);
+        const bool is_x =
+            True(perms & Common::MemoryPermission::Execute) && Settings::IsNceEnabled();
+
+        if (!current_page_table) {
+            system.DeviceMemory().buffer.Protect(vaddr, size, is_r, is_w, is_x);
+            return;
+        }
+
+        u64 protect_bytes{};
+        u64 protect_begin{};
+        for (u64 addr = vaddr; addr < vaddr + size; addr += YUZU_PAGESIZE) {
+            const Common::PageType page_type{
+                current_page_table->pointers[addr >> YUZU_PAGEBITS].Type()};
+            switch (page_type) {
+            case Common::PageType::RasterizerCachedMemory:
+                if (protect_bytes > 0) {
+                    system.DeviceMemory().buffer.Protect(protect_begin, protect_bytes, is_r, is_w,
+                                                         is_x);
+                    protect_bytes = 0;
+                }
+                break;
+            default:
+                if (protect_bytes == 0) {
+                    protect_begin = addr;
+                }
+                protect_bytes += YUZU_PAGESIZE;
+            }
+        }
+
+        if (protect_bytes > 0) {
+            system.DeviceMemory().buffer.Protect(protect_begin, protect_bytes, is_r, is_w, is_x);
         }
     }
 
@@ -831,12 +876,17 @@ void Memory::SetCurrentPageTable(Kernel::KProcess& process, u32 core_id) {
 }
 
 void Memory::MapMemoryRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
-                             Common::PhysicalAddress target) {
-    impl->MapMemoryRegion(page_table, base, size, target);
+                             Common::PhysicalAddress target, Common::MemoryPermission perms) {
+    impl->MapMemoryRegion(page_table, base, size, target, perms);
 }
 
 void Memory::UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size) {
     impl->UnmapRegion(page_table, base, size);
+}
+
+void Memory::ProtectRegion(Common::PageTable& page_table, Common::ProcessAddress vaddr, u64 size,
+                           Common::MemoryPermission perms) {
+    impl->ProtectRegion(page_table, GetInteger(vaddr), size, perms);
 }
 
 bool Memory::IsValidVirtualAddress(const Common::ProcessAddress vaddr) const {
@@ -999,6 +1049,19 @@ void Memory::InvalidateRegion(Common::ProcessAddress dest_addr, size_t size) {
 
 void Memory::FlushRegion(Common::ProcessAddress dest_addr, size_t size) {
     impl->FlushRegion(dest_addr, size);
+}
+
+bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
+    bool mapped = true;
+    u8* const ptr = impl->GetPointerImpl(
+        GetInteger(vaddr),
+        [&] {
+            LOG_ERROR(HW_Memory, "Unmapped InvalidateNCE for {} bytes @ {:#x}", size,
+                      GetInteger(vaddr));
+            mapped = false;
+        },
+        [&] { impl->system.GPU().InvalidateRegion(GetInteger(vaddr), size); });
+    return mapped && ptr != nullptr;
 }
 
 } // namespace Core::Memory

@@ -88,6 +88,22 @@ Result FlushDataCache(AddressType addr, u64 size) {
     R_SUCCEED();
 }
 
+constexpr Common::MemoryPermission ConvertToMemoryPermission(KMemoryPermission perm) {
+    Common::MemoryPermission perms{};
+    if (True(perm & KMemoryPermission::UserRead)) {
+        perms |= Common::MemoryPermission::Read;
+    }
+    if (True(perm & KMemoryPermission::UserWrite)) {
+        perms |= Common::MemoryPermission::Write;
+    }
+#ifdef HAS_NCE
+    if (True(perm & KMemoryPermission::UserExecute)) {
+        perms |= Common::MemoryPermission::Execute;
+    }
+#endif
+    return perms;
+}
+
 } // namespace
 
 void KPageTableBase::MemoryRange::Open() {
@@ -170,7 +186,8 @@ Result KPageTableBase::InitializeForProcess(Svc::CreateProcessFlag as_type, bool
                                             KMemoryManager::Pool pool, KProcessAddress code_address,
                                             size_t code_size, KSystemResource* system_resource,
                                             KResourceLimit* resource_limit,
-                                            Core::Memory::Memory& memory) {
+                                            Core::Memory::Memory& memory,
+                                            KProcessAddress aslr_space_start) {
     // Calculate region extents.
     const size_t as_width = GetAddressSpaceWidth(as_type);
     const KProcessAddress start = 0;
@@ -211,7 +228,8 @@ Result KPageTableBase::InitializeForProcess(Svc::CreateProcessFlag as_type, bool
         heap_region_size = GetSpaceSize(KAddressSpaceInfo::Type::Heap);
         stack_region_size = GetSpaceSize(KAddressSpaceInfo::Type::Stack);
         kernel_map_region_size = GetSpaceSize(KAddressSpaceInfo::Type::MapSmall);
-        m_code_region_start = GetSpaceStart(KAddressSpaceInfo::Type::Map39Bit);
+        m_code_region_start = m_address_space_start + aslr_space_start +
+                              GetSpaceStart(KAddressSpaceInfo::Type::Map39Bit);
         m_code_region_end = m_code_region_start + GetSpaceSize(KAddressSpaceInfo::Type::Map39Bit);
         m_alias_code_region_start = m_code_region_start;
         m_alias_code_region_end = m_code_region_end;
@@ -5643,7 +5661,8 @@ Result KPageTableBase::Operate(PageLinkedList* page_list, KProcessAddress virt_a
     case OperationType::Map: {
         ASSERT(virt_addr != 0);
         ASSERT(Common::IsAligned(GetInteger(virt_addr), PageSize));
-        m_memory->MapMemoryRegion(*m_impl, virt_addr, num_pages * PageSize, phys_addr);
+        m_memory->MapMemoryRegion(*m_impl, virt_addr, num_pages * PageSize, phys_addr,
+                                  ConvertToMemoryPermission(properties.perm));
 
         // Open references to pages, if we should.
         if (this->IsHeapPhysicalAddress(phys_addr)) {
@@ -5658,8 +5677,11 @@ Result KPageTableBase::Operate(PageLinkedList* page_list, KProcessAddress virt_a
     }
     case OperationType::ChangePermissions:
     case OperationType::ChangePermissionsAndRefresh:
-    case OperationType::ChangePermissionsAndRefreshAndFlush:
+    case OperationType::ChangePermissionsAndRefreshAndFlush: {
+        m_memory->ProtectRegion(*m_impl, virt_addr, num_pages * PageSize,
+                                ConvertToMemoryPermission(properties.perm));
         R_SUCCEED();
+    }
     default:
         UNREACHABLE();
     }
@@ -5687,7 +5709,8 @@ Result KPageTableBase::Operate(PageLinkedList* page_list, KProcessAddress virt_a
             const size_t size{node.GetNumPages() * PageSize};
 
             // Map the pages.
-            m_memory->MapMemoryRegion(*m_impl, virt_addr, size, node.GetAddress());
+            m_memory->MapMemoryRegion(*m_impl, virt_addr, size, node.GetAddress(),
+                                      ConvertToMemoryPermission(properties.perm));
 
             virt_addr += size;
         }

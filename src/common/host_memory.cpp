@@ -21,15 +21,18 @@
 #include <boost/icl/interval_set.hpp>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <sys/random.h>
 #include <unistd.h>
 #include "common/scope_exit.h"
 
 #endif // ^^^ Linux ^^^
 
 #include <mutex>
+#include <random>
 
 #include "common/alignment.h"
 #include "common/assert.h"
+#include "common/free_region_manager.h"
 #include "common/host_memory.h"
 #include "common/logging/log.h"
 
@@ -141,7 +144,7 @@ public:
         Release();
     }
 
-    void Map(size_t virtual_offset, size_t host_offset, size_t length) {
+    void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms) {
         std::unique_lock lock{placeholder_mutex};
         if (!IsNiechePlaceholder(virtual_offset, length)) {
             Split(virtual_offset, length);
@@ -160,7 +163,7 @@ public:
         }
     }
 
-    void Protect(size_t virtual_offset, size_t length, bool read, bool write) {
+    void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute) {
         DWORD new_flags{};
         if (read && write) {
             new_flags = PAGE_READWRITE;
@@ -184,6 +187,11 @@ public:
             }
             ++it;
         }
+    }
+
+    void EnableDirectMappedAddress() {
+        // TODO
+        UNREACHABLE();
     }
 
     const size_t backing_size; ///< Size of the backing memory in bytes
@@ -353,6 +361,55 @@ private:
 
 #elif defined(__linux__) || defined(__FreeBSD__) // ^^^ Windows ^^^ vvv Linux vvv
 
+#ifdef ARCHITECTURE_arm64
+
+static void* ChooseVirtualBase(size_t virtual_size) {
+    constexpr uintptr_t Map39BitSize = (1ULL << 39);
+    constexpr uintptr_t Map36BitSize = (1ULL << 36);
+
+    // This is not a cryptographic application, we just want something random.
+    std::mt19937_64 rng;
+
+    // We want to ensure we are allocating at an address aligned to the L2 block size.
+    // For Qualcomm devices, we must also allocate memory above 36 bits.
+    const size_t lower = Map36BitSize / HugePageSize;
+    const size_t upper = (Map39BitSize - virtual_size) / HugePageSize;
+    const size_t range = upper - lower;
+
+    // Try up to 64 times to allocate memory at random addresses in the range.
+    for (int i = 0; i < 64; i++) {
+        // Calculate a possible location.
+        uintptr_t hint_address = ((rng() % range) + lower) * HugePageSize;
+
+        // Try to map.
+        // Note: we may be able to take advantage of MAP_FIXED_NOREPLACE here.
+        void* map_pointer =
+            mmap(reinterpret_cast<void*>(hint_address), virtual_size, PROT_READ | PROT_WRITE,
+                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+
+        // If we successfully mapped, we're done.
+        if (reinterpret_cast<uintptr_t>(map_pointer) == hint_address) {
+            return map_pointer;
+        }
+
+        // Unmap if necessary, and try again.
+        if (map_pointer != MAP_FAILED) {
+            munmap(map_pointer, virtual_size);
+        }
+    }
+
+    return MAP_FAILED;
+}
+
+#else
+
+static void* ChooseVirtualBase(size_t virtual_size) {
+    return mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE,
+                MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+}
+
+#endif
+
 class HostMemory::Impl {
 public:
     explicit Impl(size_t backing_size_, size_t virtual_size_)
@@ -415,8 +472,7 @@ public:
             }
         }
 #else
-        virtual_base = static_cast<u8*>(mmap(nullptr, virtual_size, PROT_NONE,
-                                             MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0));
+        virtual_base = virtual_map_base = static_cast<u8*>(ChooseVirtualBase(virtual_size));
         if (virtual_base == MAP_FAILED) {
             LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
             throw std::bad_alloc{};
@@ -424,7 +480,7 @@ public:
         madvise(virtual_base, virtual_size, MADV_HUGEPAGE);
 #endif
 
-        placeholders.add({0, virtual_size});
+        free_manager.SetAddressSpace(virtual_base, virtual_size);
         good = true;
     }
 
@@ -432,14 +488,29 @@ public:
         Release();
     }
 
-    void Map(size_t virtual_offset, size_t host_offset, size_t length) {
-        {
-            std::scoped_lock lock{placeholder_mutex};
-            placeholders.subtract({virtual_offset, virtual_offset + length});
-        }
+    void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms) {
+        // Intersect the range with our address space.
+        AdjustMap(&virtual_offset, &length);
 
-        void* ret = mmap(virtual_base + virtual_offset, length, PROT_READ | PROT_WRITE,
-                         MAP_SHARED | MAP_FIXED, fd, host_offset);
+        // We are removing a placeholder.
+        free_manager.AllocateBlock(virtual_base + virtual_offset, length);
+
+        // Deduce mapping protection flags.
+        int flags = PROT_NONE;
+        if (True(perms & MemoryPermission::Read)) {
+            flags |= PROT_READ;
+        }
+        if (True(perms & MemoryPermission::Write)) {
+            flags |= PROT_WRITE;
+        }
+#ifdef ARCHITECTURE_arm64
+        if (True(perms & MemoryPermission::Execute)) {
+            flags |= PROT_EXEC;
+        }
+#endif
+
+        void* ret = mmap(virtual_base + virtual_offset, length, flags, MAP_SHARED | MAP_FIXED, fd,
+                         host_offset);
         ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
     }
 
@@ -447,34 +518,40 @@ public:
         // The method name is wrong. We're still talking about the virtual range.
         // We don't want to unmap, we want to reserve this memory.
 
-        {
-            std::scoped_lock lock{placeholder_mutex};
-            auto it = placeholders.find({virtual_offset - 1, virtual_offset + length + 1});
+        // Intersect the range with our address space.
+        AdjustMap(&virtual_offset, &length);
 
-            if (it != placeholders.end()) {
-                size_t prev_upper = virtual_offset + length;
-                virtual_offset = std::min(virtual_offset, it->lower());
-                length = std::max(it->upper(), prev_upper) - virtual_offset;
-            }
+        // Merge with any adjacent placeholder mappings.
+        auto [merged_pointer, merged_size] =
+            free_manager.FreeBlock(virtual_base + virtual_offset, length);
 
-            placeholders.add({virtual_offset, virtual_offset + length});
-        }
-
-        void* ret = mmap(virtual_base + virtual_offset, length, PROT_NONE,
+        void* ret = mmap(merged_pointer, merged_size, PROT_NONE,
                          MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
         ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
     }
 
-    void Protect(size_t virtual_offset, size_t length, bool read, bool write) {
-        int flags = 0;
+    void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute) {
+        // Intersect the range with our address space.
+        AdjustMap(&virtual_offset, &length);
+
+        int flags = PROT_NONE;
         if (read) {
             flags |= PROT_READ;
         }
         if (write) {
             flags |= PROT_WRITE;
         }
+#ifdef HAS_NCE
+        if (execute) {
+            flags |= PROT_EXEC;
+        }
+#endif
         int ret = mprotect(virtual_base + virtual_offset, length, flags);
         ASSERT_MSG(ret == 0, "mprotect failed: {}", strerror(errno));
+    }
+
+    void EnableDirectMappedAddress() {
+        virtual_base = nullptr;
     }
 
     const size_t backing_size; ///< Size of the backing memory in bytes
@@ -482,12 +559,13 @@ public:
 
     u8* backing_base{reinterpret_cast<u8*>(MAP_FAILED)};
     u8* virtual_base{reinterpret_cast<u8*>(MAP_FAILED)};
+    u8* virtual_map_base{reinterpret_cast<u8*>(MAP_FAILED)};
 
 private:
     /// Release all resources in the object
     void Release() {
-        if (virtual_base != MAP_FAILED) {
-            int ret = munmap(virtual_base, virtual_size);
+        if (virtual_map_base != MAP_FAILED) {
+            int ret = munmap(virtual_map_base, virtual_size);
             ASSERT_MSG(ret == 0, "munmap failed: {}", strerror(errno));
         }
 
@@ -502,10 +580,29 @@ private:
         }
     }
 
-    int fd{-1}; // memfd file descriptor, -1 is the error value of memfd_create
+    void AdjustMap(size_t* virtual_offset, size_t* length) {
+        if (virtual_base != nullptr) {
+            return;
+        }
 
-    boost::icl::interval_set<size_t> placeholders; ///< Mapped placeholders
-    std::mutex placeholder_mutex;                  ///< Mutex for placeholders
+        // If we are direct mapped, we want to make sure we are operating on a region
+        // that is in range of our virtual mapping.
+        size_t intended_start = *virtual_offset;
+        size_t intended_end = intended_start + *length;
+        size_t address_space_start = reinterpret_cast<size_t>(virtual_map_base);
+        size_t address_space_end = address_space_start + virtual_size;
+
+        if (address_space_start > intended_end || intended_start > address_space_end) {
+            *virtual_offset = 0;
+            *length = 0;
+        } else {
+            *virtual_offset = std::max(intended_start, address_space_start);
+            *length = std::min(intended_end, address_space_end) - *virtual_offset;
+        }
+    }
+
+    int fd{-1}; // memfd file descriptor, -1 is the error value of memfd_create
+    FreeRegionManager free_manager{};
 };
 
 #else // ^^^ Linux ^^^ vvv Generic vvv
@@ -518,11 +615,13 @@ public:
         throw std::bad_alloc{};
     }
 
-    void Map(size_t virtual_offset, size_t host_offset, size_t length) {}
+    void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perm) {}
 
     void Unmap(size_t virtual_offset, size_t length) {}
 
-    void Protect(size_t virtual_offset, size_t length, bool read, bool write) {}
+    void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute) {}
+
+    void EnableDirectMappedAddress() {}
 
     u8* backing_base{nullptr};
     u8* virtual_base{nullptr};
@@ -535,15 +634,16 @@ HostMemory::HostMemory(size_t backing_size_, size_t virtual_size_)
     try {
         // Try to allocate a fastmem arena.
         // The implementation will fail with std::bad_alloc on errors.
-        impl = std::make_unique<HostMemory::Impl>(AlignUp(backing_size, PageAlignment),
-                                                  AlignUp(virtual_size, PageAlignment) +
-                                                      3 * HugePageSize);
+        impl =
+            std::make_unique<HostMemory::Impl>(AlignUp(backing_size, PageAlignment),
+                                               AlignUp(virtual_size, PageAlignment) + HugePageSize);
         backing_base = impl->backing_base;
         virtual_base = impl->virtual_base;
 
         if (virtual_base) {
-            virtual_base += 2 * HugePageSize - 1;
-            virtual_base -= reinterpret_cast<size_t>(virtual_base) & (HugePageSize - 1);
+            // Ensure the virtual base is aligned to the L2 block size.
+            virtual_base = reinterpret_cast<u8*>(
+                Common::AlignUp(reinterpret_cast<uintptr_t>(virtual_base), HugePageSize));
             virtual_base_offset = virtual_base - impl->virtual_base;
         }
 
@@ -562,7 +662,8 @@ HostMemory::HostMemory(HostMemory&&) noexcept = default;
 
 HostMemory& HostMemory::operator=(HostMemory&&) noexcept = default;
 
-void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length) {
+void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length,
+                     MemoryPermission perms) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(host_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
@@ -571,7 +672,7 @@ void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length) {
     if (length == 0 || !virtual_base || !impl) {
         return;
     }
-    impl->Map(virtual_offset + virtual_base_offset, host_offset, length);
+    impl->Map(virtual_offset + virtual_base_offset, host_offset, length, perms);
 }
 
 void HostMemory::Unmap(size_t virtual_offset, size_t length) {
@@ -584,14 +685,22 @@ void HostMemory::Unmap(size_t virtual_offset, size_t length) {
     impl->Unmap(virtual_offset + virtual_base_offset, length);
 }
 
-void HostMemory::Protect(size_t virtual_offset, size_t length, bool read, bool write) {
+void HostMemory::Protect(size_t virtual_offset, size_t length, bool read, bool write,
+                         bool execute) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
     ASSERT(virtual_offset + length <= virtual_size);
     if (length == 0 || !virtual_base || !impl) {
         return;
     }
-    impl->Protect(virtual_offset + virtual_base_offset, length, read, write);
+    impl->Protect(virtual_offset + virtual_base_offset, length, read, write, execute);
+}
+
+void HostMemory::EnableDirectMappedAddress() {
+    if (impl) {
+        impl->EnableDirectMappedAddress();
+        virtual_size += reinterpret_cast<uintptr_t>(virtual_base);
+    }
 }
 
 } // namespace Common

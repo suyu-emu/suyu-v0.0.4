@@ -655,6 +655,21 @@ public:
         return m_stack_top;
     }
 
+public:
+    // TODO: This shouldn't be defined in kernel namespace
+    struct NativeExecutionParameters {
+        u64 tpidr_el0{};
+        u64 tpidrro_el0{};
+        void* native_context{};
+        std::atomic<u32> lock{1};
+        bool is_running{};
+        u32 magic{Common::MakeMagic('Y', 'U', 'Z', 'U')};
+    };
+
+    NativeExecutionParameters& GetNativeExecutionParameters() {
+        return m_native_execution_parameters;
+    }
+
 private:
     KThread* RemoveWaiterByKey(bool* out_has_waiters, KProcessAddress key,
                                bool is_kernel_address_key);
@@ -914,6 +929,7 @@ private:
     ThreadWaitReasonForDebugging m_wait_reason_for_debugging{};
     uintptr_t m_argument{};
     KProcessAddress m_stack_top{};
+    NativeExecutionParameters m_native_execution_parameters{};
 
 public:
     using ConditionVariableThreadTreeType = ConditionVariableThreadTree;

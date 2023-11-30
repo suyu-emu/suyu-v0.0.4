@@ -81,6 +81,9 @@ public:
     // thread context to be 800 bytes in size.
     static_assert(sizeof(ThreadContext64) == 0x320);
 
+    /// Perform any backend-specific initialization.
+    virtual void Initialize() {}
+
     /// Runs the CPU until an event happens
     void Run();
 

@@ -63,6 +63,7 @@ SWITCHABLE(AspectRatio, true);
 SWITCHABLE(AstcDecodeMode, true);
 SWITCHABLE(AstcRecompression, true);
 SWITCHABLE(AudioMode, true);
+SWITCHABLE(CpuBackend, true);
 SWITCHABLE(CpuAccuracy, true);
 SWITCHABLE(FullscreenMode, true);
 SWITCHABLE(GpuAccuracy, true);
@@ -179,6 +180,14 @@ struct Values {
                                              &use_speed_limit};
 
     // Cpu
+    SwitchableSetting<CpuBackend, true> cpu_backend{
+        linkage,         CpuBackend::Dynarmic, CpuBackend::Dynarmic,
+#ifdef HAS_NCE
+        CpuBackend::Nce,
+#else
+                                                    CpuBackend::Dynarmic,
+#endif
+        "cpu_backend",   Category::Cpu};
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage,           CpuAccuracy::Auto,
                                                       CpuAccuracy::Auto, CpuAccuracy::Paranoid,
                                                       "cpu_accuracy",    Category::Cpu};
@@ -569,6 +578,8 @@ bool IsGPULevelExtreme();
 bool IsGPULevelHigh();
 
 bool IsFastmemEnabled();
+void SetNceEnabled(bool is_64bit);
+bool IsNceEnabled();
 
 bool IsDockedMode();
 

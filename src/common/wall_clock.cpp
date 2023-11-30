@@ -10,7 +10,7 @@
 #include "common/x64/rdtsc.h"
 #endif
 
-#if defined(ARCHITECTURE_arm64) && defined(__linux__)
+#ifdef HAS_NCE
 #include "common/arm64/native_clock.h"
 #endif
 
@@ -68,7 +68,7 @@ std::unique_ptr<WallClock> CreateOptimalClock() {
         // - Is not more precise than 1 GHz (1ns resolution)
         return std::make_unique<StandardWallClock>();
     }
-#elif defined(ARCHITECTURE_arm64) && defined(__linux__)
+#elif defined(HAS_NCE)
     return std::make_unique<Arm64::NativeClock>();
 #else
     return std::make_unique<StandardWallClock>();

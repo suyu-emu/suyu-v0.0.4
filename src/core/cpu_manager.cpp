@@ -211,6 +211,8 @@ void CpuManager::RunThread(std::stop_token token, std::size_t core) {
         system.GPU().ObtainContext();
     }
 
+    system.ArmInterface(core).Initialize();
+
     auto& kernel = system.Kernel();
     auto& scheduler = *kernel.CurrentScheduler();
     auto* thread = scheduler.GetSchedulerCurrentThread();

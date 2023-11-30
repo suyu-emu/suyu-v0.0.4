@@ -414,8 +414,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             perfStatsUpdater = {
                 if (emulationViewModel.emulationStarted.value) {
                     val perfStats = NativeLibrary.getPerfStats()
+                    val cpuBackend = NativeLibrary.getCpuBackend()
                     if (_binding != null) {
-                        binding.showFpsText.text = String.format("FPS: %.1f", perfStats[FPS])
+                        binding.showFpsText.text =
+                            String.format("FPS: %.1f\n%s", perfStats[FPS], cpuBackend)
                     }
                     perfStatsUpdateHandler.postDelayed(perfStatsUpdater!!, 800)
                 }

@@ -79,6 +79,15 @@ abstract class SettingsItem(
             )
             put(
                 SingleChoiceSetting(
+                    IntSetting.CPU_BACKEND,
+                    R.string.cpu_backend,
+                    0,
+                    R.array.cpuBackendArm64Names,
+                    R.array.cpuBackendArm64Values
+                )
+            )
+            put(
+                SingleChoiceSetting(
                     IntSetting.CPU_ACCURACY,
                     R.string.cpu_accuracy,
                     0,
