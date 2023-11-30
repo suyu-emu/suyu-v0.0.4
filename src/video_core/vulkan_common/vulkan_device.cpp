@@ -519,10 +519,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan, "ARM drivers have broken VK_EXT_extended_dynamic_state");
         RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
                                VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
-
-        LOG_WARNING(Render_Vulkan, "ARM drivers have broken VK_EXT_extended_dynamic_state2");
-        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
-                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
     }
 
     if (is_nvidia) {
@@ -611,17 +607,12 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
     }
     if (extensions.vertex_input_dynamic_state && is_qualcomm) {
-        const u32 version = (properties.properties.driverVersion << 3) >> 3;
-        if (version >= VK_MAKE_API_VERSION(0, 0, 676, 0) &&
-            version < VK_MAKE_API_VERSION(0, 0, 680, 0)) {
-            // Qualcomm Adreno 7xx drivers do not properly support vertex_input_dynamic_state.
-            LOG_WARNING(
-                Render_Vulkan,
-                "Qualcomm Adreno 7xx drivers have broken VK_EXT_vertex_input_dynamic_state");
-            RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
-                                   features.vertex_input_dynamic_state,
-                                   VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
-        }
+        // Qualcomm drivers do not properly support vertex_input_dynamic_state.
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm drivers have broken VK_EXT_vertex_input_dynamic_state");
+        RemoveExtensionFeature(extensions.vertex_input_dynamic_state,
+                               features.vertex_input_dynamic_state,
+                               VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
 
     sets_per_pool = 64;
@@ -702,6 +693,22 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             std::min(properties.properties.limits.maxVertexInputAttributes, 16U);
         properties.properties.limits.maxVertexInputBindings =
             std::min(properties.properties.limits.maxVertexInputBindings, 16U);
+    }
+
+    if (!extensions.extended_dynamic_state && extensions.extended_dynamic_state2) {
+        LOG_INFO(Render_Vulkan,
+                 "Removing extendedDynamicState2 due to missing extendedDynamicState");
+        RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
+                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
+    }
+
+    if (!extensions.extended_dynamic_state2 && extensions.extended_dynamic_state3) {
+        LOG_INFO(Render_Vulkan,
+                 "Removing extendedDynamicState3 due to missing extendedDynamicState2");
+        RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
+                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+        dynamic_state3_blending = false;
+        dynamic_state3_enables = false;
     }
 
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions),
