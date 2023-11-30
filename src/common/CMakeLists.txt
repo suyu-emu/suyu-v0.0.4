@@ -182,7 +182,7 @@ if(ANDROID)
     )
 endif()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (UNIX AND NOT APPLE)
   target_sources(common PRIVATE
     linux/gamemode.cpp
     linux/gamemode.h
