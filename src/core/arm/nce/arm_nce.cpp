@@ -6,7 +6,7 @@
 
 #include "common/signal_chain.h"
 #include "core/arm/nce/arm_nce.h"
-#include "core/arm/nce/guest_context.h"
+#include "core/arm/nce/interpreter_visitor.h"
 #include "core/arm/nce/patcher.h"
 #include "core/core.h"
 #include "core/memory.h"
@@ -21,7 +21,8 @@ namespace Core {
 
 namespace {
 
-struct sigaction g_orig_action;
+struct sigaction g_orig_bus_action;
+struct sigaction g_orig_segv_action;
 
 // Verify assembly offsets.
 using NativeExecutionParameters = Kernel::KThread::NativeExecutionParameters;
@@ -36,6 +37,9 @@ fpsimd_context* GetFloatingPointState(mcontext_t& host_ctx) {
     }
     return reinterpret_cast<fpsimd_context*>(header);
 }
+
+using namespace Common::Literals;
+constexpr u32 StackSize = 32_KiB;
 
 } // namespace
 
@@ -104,18 +108,9 @@ void ArmNce::SaveGuestContext(GuestContext* guest_ctx, void* raw_context) {
     host_ctx.regs[0] = guest_ctx->esr_el1.exchange(0);
 }
 
-bool ArmNce::HandleGuestFault(GuestContext* guest_ctx, void* raw_info, void* raw_context) {
+bool ArmNce::HandleFailedGuestFault(GuestContext* guest_ctx, void* raw_info, void* raw_context) {
     auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
     auto* info = static_cast<siginfo_t*>(raw_info);
-
-    // Try to handle an invalid access.
-    // TODO: handle accesses which split a page?
-    const Common::ProcessAddress addr =
-        (reinterpret_cast<u64>(info->si_addr) & ~Memory::YUZU_PAGEMASK);
-    if (guest_ctx->system->ApplicationMemory().InvalidateNCE(addr, Memory::YUZU_PAGESIZE)) {
-        // We handled the access successfully and are returning to guest code.
-        return true;
-    }
 
     // We can't handle the access, so determine why we crashed.
     const bool is_prefetch_abort = host_ctx.pc == reinterpret_cast<u64>(info->si_addr);
@@ -143,8 +138,44 @@ bool ArmNce::HandleGuestFault(GuestContext* guest_ctx, void* raw_info, void* raw
     return false;
 }
 
-void ArmNce::HandleHostFault(int sig, void* raw_info, void* raw_context) {
-    return g_orig_action.sa_sigaction(sig, static_cast<siginfo_t*>(raw_info), raw_context);
+bool ArmNce::HandleGuestAlignmentFault(GuestContext* guest_ctx, void* raw_info, void* raw_context) {
+    auto& host_ctx = static_cast<ucontext_t*>(raw_context)->uc_mcontext;
+    auto* fpctx = GetFloatingPointState(host_ctx);
+    auto& memory = guest_ctx->system->ApplicationMemory();
+
+    // Match and execute an instruction.
+    auto next_pc = MatchAndExecuteOneInstruction(memory, &host_ctx, fpctx);
+    if (next_pc) {
+        host_ctx.pc = *next_pc;
+        return true;
+    }
+
+    // We couldn't handle the access.
+    return HandleFailedGuestFault(guest_ctx, raw_info, raw_context);
+}
+
+bool ArmNce::HandleGuestAccessFault(GuestContext* guest_ctx, void* raw_info, void* raw_context) {
+    auto* info = static_cast<siginfo_t*>(raw_info);
+
+    // Try to handle an invalid access.
+    // TODO: handle accesses which split a page?
+    const Common::ProcessAddress addr =
+        (reinterpret_cast<u64>(info->si_addr) & ~Memory::YUZU_PAGEMASK);
+    if (guest_ctx->system->ApplicationMemory().InvalidateNCE(addr, Memory::YUZU_PAGESIZE)) {
+        // We handled the access successfully and are returning to guest code.
+        return true;
+    }
+
+    // We couldn't handle the access.
+    return HandleFailedGuestFault(guest_ctx, raw_info, raw_context);
+}
+
+void ArmNce::HandleHostAlignmentFault(int sig, void* raw_info, void* raw_context) {
+    return g_orig_bus_action.sa_sigaction(sig, static_cast<siginfo_t*>(raw_info), raw_context);
+}
+
+void ArmNce::HandleHostAccessFault(int sig, void* raw_info, void* raw_context) {
+    return g_orig_segv_action.sa_sigaction(sig, static_cast<siginfo_t*>(raw_info), raw_context);
 }
 
 void ArmNce::LockThread(Kernel::KThread* thread) {
@@ -220,6 +251,9 @@ void ArmNce::SetSvcArguments(std::span<const uint64_t, 8> args) {
 ArmNce::ArmNce(System& system, bool uses_wall_clock, std::size_t core_index)
     : ArmInterface{uses_wall_clock}, m_system{system}, m_core_index{core_index} {
     m_guest_ctx.system = &m_system;
+
+    // Allocate signal stack.
+    m_stack = std::make_unique<u8[]>(StackSize);
 }
 
 ArmNce::~ArmNce() = default;
@@ -227,16 +261,23 @@ ArmNce::~ArmNce() = default;
 void ArmNce::Initialize() {
     m_thread_id = gettid();
 
-    // Setup our signals
-    static std::once_flag signals;
-    std::call_once(signals, [] {
+    // Configure signal stack.
+    stack_t ss{};
+    ss.ss_sp = m_stack.get();
+    ss.ss_size = StackSize;
+    sigaltstack(&ss, nullptr);
+
+    // Set up signals.
+    static std::once_flag flag;
+    std::call_once(flag, [] {
         using HandlerType = decltype(sigaction::sa_sigaction);
 
         sigset_t signal_mask;
         sigemptyset(&signal_mask);
         sigaddset(&signal_mask, ReturnToRunCodeByExceptionLevelChangeSignal);
         sigaddset(&signal_mask, BreakFromRunCodeSignal);
-        sigaddset(&signal_mask, GuestFaultSignal);
+        sigaddset(&signal_mask, GuestAlignmentFaultSignal);
+        sigaddset(&signal_mask, GuestAccessFaultSignal);
 
         struct sigaction return_to_run_code_action {};
         return_to_run_code_action.sa_flags = SA_SIGINFO | SA_ONSTACK;
@@ -253,18 +294,19 @@ void ArmNce::Initialize() {
         break_from_run_code_action.sa_mask = signal_mask;
         Common::SigAction(BreakFromRunCodeSignal, &break_from_run_code_action, nullptr);
 
-        struct sigaction fault_action {};
-        fault_action.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESTART;
-        fault_action.sa_sigaction = reinterpret_cast<HandlerType>(&ArmNce::GuestFaultSignalHandler);
-        fault_action.sa_mask = signal_mask;
-        Common::SigAction(GuestFaultSignal, &fault_action, &g_orig_action);
+        struct sigaction alignment_fault_action {};
+        alignment_fault_action.sa_flags = SA_SIGINFO | SA_ONSTACK;
+        alignment_fault_action.sa_sigaction =
+            reinterpret_cast<HandlerType>(&ArmNce::GuestAlignmentFaultSignalHandler);
+        alignment_fault_action.sa_mask = signal_mask;
+        Common::SigAction(GuestAlignmentFaultSignal, &alignment_fault_action, nullptr);
 
-        // Simplify call for g_orig_action.
-        // These fields occupy the same space in memory, so this should be a no-op in practice.
-        if (!(g_orig_action.sa_flags & SA_SIGINFO)) {
-            g_orig_action.sa_sigaction =
-                reinterpret_cast<decltype(g_orig_action.sa_sigaction)>(g_orig_action.sa_handler);
-        }
+        struct sigaction access_fault_action {};
+        access_fault_action.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESTART;
+        access_fault_action.sa_sigaction =
+            reinterpret_cast<HandlerType>(&ArmNce::GuestAccessFaultSignalHandler);
+        access_fault_action.sa_mask = signal_mask;
+        Common::SigAction(GuestAccessFaultSignal, &access_fault_action, &g_orig_segv_action);
     });
 }
 
