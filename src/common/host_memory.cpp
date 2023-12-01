@@ -408,6 +408,16 @@ static void* ChooseVirtualBase(size_t virtual_size) {
 #else
 
 static void* ChooseVirtualBase(size_t virtual_size) {
+#if defined(__FreeBSD__)
+    void* virtual_base =
+        mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE,
+             MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_ALIGNED_SUPER, -1, 0);
+
+    if (virtual_base != MAP_FAILED) {
+        return virtual_base;
+    }
+#endif
+
     return mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE,
                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
 }
@@ -463,24 +473,12 @@ public:
         }
 
         // Virtual memory initialization
-#if defined(__FreeBSD__)
-        virtual_base =
-            static_cast<u8*>(mmap(nullptr, virtual_size, PROT_NONE,
-                                  MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER, -1, 0));
-        if (virtual_base == MAP_FAILED) {
-            virtual_base = static_cast<u8*>(
-                mmap(nullptr, virtual_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
-            if (virtual_base == MAP_FAILED) {
-                LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
-                throw std::bad_alloc{};
-            }
-        }
-#else
         virtual_base = virtual_map_base = static_cast<u8*>(ChooseVirtualBase(virtual_size));
         if (virtual_base == MAP_FAILED) {
             LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
             throw std::bad_alloc{};
         }
+#if defined(__linux__)
         madvise(virtual_base, virtual_size, MADV_HUGEPAGE);
 #endif
 
