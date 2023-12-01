@@ -26,23 +26,30 @@ struct StagingBufferMap {
     size_t offset = 0;
     OGLSync* sync;
     GLuint buffer;
+    size_t index;
 };
 
 struct StagingBuffers {
     explicit StagingBuffers(GLenum storage_flags_, GLenum map_flags_);
     ~StagingBuffers();
 
-    StagingBufferMap RequestMap(size_t requested_size, bool insert_fence);
+    StagingBufferMap RequestMap(size_t requested_size, bool insert_fence, bool deferred = false);
+
+    void FreeDeferredStagingBuffer(size_t index);
 
     size_t RequestBuffer(size_t requested_size);
 
     std::optional<size_t> FindBuffer(size_t requested_size);
 
-    std::vector<OGLSync> syncs;
-    std::vector<OGLBuffer> buffers;
-    std::vector<u8*> maps;
-    std::vector<size_t> sizes;
-    std::vector<size_t> sync_indices;
+    struct StagingBufferAlloc {
+        OGLSync sync;
+        OGLBuffer buffer;
+        u8* map;
+        size_t size;
+        size_t sync_index;
+        bool deferred;
+    };
+    std::vector<StagingBufferAlloc> allocs;
     GLenum storage_flags;
     GLenum map_flags;
     size_t current_sync_index = 0;
@@ -85,7 +92,8 @@ public:
     ~StagingBufferPool() = default;
 
     StagingBufferMap RequestUploadBuffer(size_t size);
-    StagingBufferMap RequestDownloadBuffer(size_t size);
+    StagingBufferMap RequestDownloadBuffer(size_t size, bool deferred = false);
+    void FreeDeferredStagingBuffer(StagingBufferMap& buffer);
 
 private:
     StagingBuffers upload_buffers{GL_MAP_WRITE_BIT, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT};

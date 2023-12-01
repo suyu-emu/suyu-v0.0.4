@@ -74,7 +74,9 @@ public:
 
     StagingBufferMap UploadStagingBuffer(size_t size);
 
-    StagingBufferMap DownloadStagingBuffer(size_t size);
+    StagingBufferMap DownloadStagingBuffer(size_t size, bool deferred = false);
+
+    void FreeDeferredStagingBuffer(StagingBufferMap& buffer);
 
     u64 GetDeviceLocalMemory() const {
         return device_access_memory;
@@ -359,7 +361,7 @@ struct TextureCacheParams {
     static constexpr bool FRAMEBUFFER_BLITS = true;
     static constexpr bool HAS_EMULATED_COPIES = true;
     static constexpr bool HAS_DEVICE_MEMORY_INFO = true;
-    static constexpr bool IMPLEMENTS_ASYNC_DOWNLOADS = false;
+    static constexpr bool IMPLEMENTS_ASYNC_DOWNLOADS = true;
 
     using Runtime = OpenGL::TextureCacheRuntime;
     using Image = OpenGL::Image;
@@ -367,7 +369,7 @@ struct TextureCacheParams {
     using ImageView = OpenGL::ImageView;
     using Sampler = OpenGL::Sampler;
     using Framebuffer = OpenGL::Framebuffer;
-    using AsyncBuffer = u32;
+    using AsyncBuffer = OpenGL::StagingBufferMap;
     using BufferType = GLuint;
 };
 
