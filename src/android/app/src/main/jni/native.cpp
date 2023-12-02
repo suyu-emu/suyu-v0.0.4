@@ -123,9 +123,6 @@ int EmulationSession::InstallFileToNand(std::string filename, std::string file_e
         ErrorFilenameExtension = 4,
     };
 
-    m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
-    m_system.GetFileSystemController().CreateFactories(*m_vfs);
-
     [[maybe_unused]] std::shared_ptr<FileSys::NSP> nsp;
     if (file_extension == "nsp") {
         nsp = std::make_shared<FileSys::NSP>(m_vfs->OpenFile(filename, FileSys::Mode::Read));
