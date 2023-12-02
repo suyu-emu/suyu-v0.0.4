@@ -2713,11 +2713,6 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
     }
 
     const auto base_romfs = base_nca->GetRomFS();
-    if (!base_romfs) {
-        failed();
-        return;
-    }
-
     const auto dump_dir =
         target == DumpRomFSTarget::Normal
             ? Common::FS::GetYuzuPath(Common::FS::YuzuPath::DumpDir)
