@@ -147,10 +147,10 @@ public:
     void UploadMemory(const StagingBufferRef& map,
                       std::span<const VideoCommon::BufferImageCopy> copies);
 
-    void DownloadMemory(VkBuffer buffer, VkDeviceSize offset,
+    void DownloadMemory(VkBuffer buffer, size_t offset,
                         std::span<const VideoCommon::BufferImageCopy> copies);
 
-    void DownloadMemory(std::span<VkBuffer> buffers, std::span<VkDeviceSize> offsets,
+    void DownloadMemory(std::span<VkBuffer> buffers, std::span<size_t> offsets,
                         std::span<const VideoCommon::BufferImageCopy> copies);
 
     void DownloadMemory(const StagingBufferRef& map,
