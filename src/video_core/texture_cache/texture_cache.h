@@ -995,7 +995,7 @@ void TextureCache<P>::DownloadImageIntoBuffer(typename TextureCache<P>::Image* i
             buffer,
             download_map.buffer,
         };
-        std::array<u64, 2> buffer_offsets{
+        std::array<size_t, 2> buffer_offsets{
             buffer_offset,
             download_map.offset,
         };
