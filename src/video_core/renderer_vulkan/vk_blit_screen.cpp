@@ -1211,7 +1211,7 @@ void BlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
         aa_framebuffer = CreateFramebuffer(*aa_image_view, size, aa_renderpass);
         return;
     }
-    aa_renderpass = CreateRenderPassImpl(GetFormat(framebuffer));
+    aa_renderpass = CreateRenderPassImpl(VK_FORMAT_R16G16B16A16_SFLOAT);
     aa_framebuffer = CreateFramebuffer(*aa_image_view, size, aa_renderpass);
 
     const std::array<VkPipelineShaderStageCreateInfo, 2> fxaa_shader_stages{{
