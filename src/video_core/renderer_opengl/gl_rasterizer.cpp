@@ -726,7 +726,6 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     screen_info.texture.width = image_view->size.width;
     screen_info.texture.height = image_view->size.height;
     screen_info.display_texture = image_view->Handle(Shader::TextureType::Color2D);
-    screen_info.display_srgb = VideoCore::Surface::IsPixelFormatSRGB(image_view->format);
     return true;
 }
 
