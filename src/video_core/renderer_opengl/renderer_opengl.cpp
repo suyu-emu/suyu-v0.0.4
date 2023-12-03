@@ -168,15 +168,6 @@ RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
     if (!GLAD_GL_ARB_seamless_cubemap_per_texture && !GLAD_GL_AMD_seamless_cubemap_per_texture) {
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     }
-    // Enable unified vertex attributes and query vertex buffer address when the driver supports it
-    if (device.HasVertexBufferUnifiedMemory()) {
-        glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
-        glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
-
-        glMakeNamedBufferResidentNV(vertex_buffer.handle, GL_READ_ONLY);
-        glGetNamedBufferParameterui64vNV(vertex_buffer.handle, GL_BUFFER_GPU_ADDRESS_NV,
-                                         &vertex_buffer_address);
-    }
 }
 
 RendererOpenGL::~RendererOpenGL() = default;
@@ -680,13 +671,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
                          offsetof(ScreenRectVertex, tex_coord));
     glVertexAttribBinding(PositionLocation, 0);
     glVertexAttribBinding(TexCoordLocation, 0);
-    if (device.HasVertexBufferUnifiedMemory()) {
-        glBindVertexBuffer(0, 0, 0, sizeof(ScreenRectVertex));
-        glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 0, vertex_buffer_address,
-                               sizeof(vertices));
-    } else {
-        glBindVertexBuffer(0, vertex_buffer.handle, 0, sizeof(ScreenRectVertex));
-    }
+    glBindVertexBuffer(0, vertex_buffer.handle, 0, sizeof(ScreenRectVertex));
 
     if (Settings::values.scaling_filter.GetValue() != Settings::ScalingFilter::NearestNeighbor) {
         glBindSampler(0, present_sampler.handle);
