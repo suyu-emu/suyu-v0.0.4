@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "common/assert.h"
 #include "common/common_types.h"
 #include "common/string_util.h"
 #include "common/swap.h"
@@ -101,17 +102,22 @@ void ProcessDirectory(const VirtualFile& file, std::size_t dir_offset, std::size
 } // Anonymous namespace
 
 VirtualDir ExtractRomFS(VirtualFile file) {
-    RomFSHeader header{};
-    if (file->ReadObject(&header) != sizeof(RomFSHeader))
-        return nullptr;
+    auto root_container = std::make_shared<VectorVfsDirectory>();
+    if (!file) {
+        return root_container;
+    }
 
-    if (header.header_size != sizeof(RomFSHeader))
-        return nullptr;
+    RomFSHeader header{};
+    if (file->ReadObject(&header) != sizeof(RomFSHeader)) {
+        return root_container;
+    }
+
+    if (header.header_size != sizeof(RomFSHeader)) {
+        return root_container;
+    }
 
     const u64 file_offset = header.file_meta.offset;
     const u64 dir_offset = header.directory_meta.offset;
-
-    auto root_container = std::make_shared<VectorVfsDirectory>();
 
     ProcessDirectory(file, dir_offset, file_offset, header.data_offset, 0, root_container);
 
@@ -119,6 +125,7 @@ VirtualDir ExtractRomFS(VirtualFile file) {
         return std::make_shared<CachedVfsDirectory>(std::move(root));
     }
 
+    ASSERT(false);
     return nullptr;
 }
 

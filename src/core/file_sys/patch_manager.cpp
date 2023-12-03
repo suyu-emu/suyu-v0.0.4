@@ -429,10 +429,6 @@ VirtualFile PatchManager::PatchRomFS(const NCA* base_nca, VirtualFile base_romfs
         LOG_DEBUG(Loader, "{}", log_string);
     }
 
-    if (base_romfs == nullptr) {
-        return base_romfs;
-    }
-
     auto romfs = base_romfs;
 
     // Game Updates
