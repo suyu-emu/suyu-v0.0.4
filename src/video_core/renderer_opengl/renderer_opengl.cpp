@@ -653,11 +653,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     };
     glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
 
-    if (screen_info.display_srgb) {
-        glEnable(GL_FRAMEBUFFER_SRGB);
-    } else {
-        glDisable(GL_FRAMEBUFFER_SRGB);
-    }
+    glDisable(GL_FRAMEBUFFER_SRGB);
     glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(layout.width),
                        static_cast<GLfloat>(layout.height));
 
@@ -710,8 +706,7 @@ void RendererOpenGL::RenderScreenshot() {
     GLuint renderbuffer;
     glGenRenderbuffers(1, &renderbuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, screen_info.display_srgb ? GL_SRGB8 : GL_RGB8,
-                          layout.width, layout.height);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_SRGB8, layout.width, layout.height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
 
     DrawScreen(layout);
