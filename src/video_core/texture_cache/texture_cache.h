@@ -755,7 +755,7 @@ typename P::ImageView* TextureCache<P>::TryFindFramebufferImageView(
 
     if (valid_image_ids.size() > 0) [[unlikely]] {
         auto most_recent = std::ranges::max_element(valid_image_ids, [&](auto a, auto b) {
-            return slot_images[a].modification_tick > slot_images[b].modification_tick;
+            return slot_images[a].modification_tick < slot_images[b].modification_tick;
         });
         return GetImageViewForFramebuffer(*most_recent);
     }
