@@ -53,13 +53,11 @@ Buffer::Buffer(BufferCacheRuntime& runtime, VideoCore::RasterizerInterface& rast
                VAddr cpu_addr_, u64 size_bytes_)
     : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(rasterizer_, cpu_addr_, size_bytes_) {
     buffer.Create();
-    const std::string name = fmt::format("Buffer 0x{:x}", CpuAddr());
-    glObjectLabel(GL_BUFFER, buffer.handle, static_cast<GLsizei>(name.size()), name.data());
-    glNamedBufferData(buffer.handle, SizeBytes(), nullptr, GL_DYNAMIC_DRAW);
-
-    if (runtime.has_unified_vertex_buffers) {
-        glGetNamedBufferParameterui64vNV(buffer.handle, GL_BUFFER_GPU_ADDRESS_NV, &address);
+    if (runtime.device.HasDebuggingToolAttached()) {
+        const std::string name = fmt::format("Buffer 0x{:x}", CpuAddr());
+        glObjectLabel(GL_BUFFER, buffer.handle, static_cast<GLsizei>(name.size()), name.data());
     }
+    glNamedBufferData(buffer.handle, SizeBytes(), nullptr, GL_DYNAMIC_DRAW);
 }
 
 void Buffer::ImmediateUpload(size_t offset, std::span<const u8> data) noexcept {
@@ -111,7 +109,6 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_,
     : device{device_}, staging_buffer_pool{staging_buffer_pool_},
       has_fast_buffer_sub_data{device.HasFastBufferSubData()},
       use_assembly_shaders{device.UseAssemblyShaders()},
-      has_unified_vertex_buffers{device.HasVertexBufferUnifiedMemory()},
       stream_buffer{has_fast_buffer_sub_data ? std::nullopt : std::make_optional<StreamBuffer>()} {
     GLint gl_max_attributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &gl_max_attributes);
@@ -123,15 +120,17 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_,
                               GL_STREAM_DRAW);
         }
     }
-    for (auto& stage_uniforms : copy_uniforms) {
-        for (OGLBuffer& buffer : stage_uniforms) {
+    if (use_assembly_shaders) {
+        for (auto& stage_uniforms : copy_uniforms) {
+            for (OGLBuffer& buffer : stage_uniforms) {
+                buffer.Create();
+                glNamedBufferData(buffer.handle, 0x10'000, nullptr, GL_STREAM_COPY);
+            }
+        }
+        for (OGLBuffer& buffer : copy_compute_uniforms) {
             buffer.Create();
             glNamedBufferData(buffer.handle, 0x10'000, nullptr, GL_STREAM_COPY);
         }
-    }
-    for (OGLBuffer& buffer : copy_compute_uniforms) {
-        buffer.Create();
-        glNamedBufferData(buffer.handle, 0x10'000, nullptr, GL_STREAM_COPY);
     }
 
     device_access_memory = [this]() -> u64 {
@@ -211,14 +210,8 @@ void BufferCacheRuntime::ClearBuffer(Buffer& dest_buffer, u32 offset, size_t siz
 }
 
 void BufferCacheRuntime::BindIndexBuffer(Buffer& buffer, u32 offset, u32 size) {
-    if (has_unified_vertex_buffers) {
-        buffer.MakeResident(GL_READ_ONLY);
-        glBufferAddressRangeNV(GL_ELEMENT_ARRAY_ADDRESS_NV, 0, buffer.HostGpuAddr() + offset,
-                               static_cast<GLsizeiptr>(Common::AlignUp(size, 4)));
-    } else {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.Handle());
-        index_buffer_offset = offset;
-    }
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.Handle());
+    index_buffer_offset = offset;
 }
 
 void BufferCacheRuntime::BindVertexBuffer(u32 index, Buffer& buffer, u32 offset, u32 size,
@@ -226,24 +219,23 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, Buffer& buffer, u32 offset,
     if (index >= max_attributes) {
         return;
     }
-    if (has_unified_vertex_buffers) {
-        buffer.MakeResident(GL_READ_ONLY);
-        glBindVertexBuffer(index, 0, 0, static_cast<GLsizei>(stride));
-        glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, index,
-                               buffer.HostGpuAddr() + offset, static_cast<GLsizeiptr>(size));
-    } else {
-        glBindVertexBuffer(index, buffer.Handle(), static_cast<GLintptr>(offset),
-                           static_cast<GLsizei>(stride));
-    }
+    glBindVertexBuffer(index, buffer.Handle(), static_cast<GLintptr>(offset),
+                       static_cast<GLsizei>(stride));
 }
 
 void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings) {
-    for (u32 index = 0; index < bindings.buffers.size(); ++index) {
-        BindVertexBuffer(bindings.min_index + index, *bindings.buffers[index],
-                         static_cast<u32>(bindings.offsets[index]),
-                         static_cast<u32>(bindings.sizes[index]),
-                         static_cast<u32>(bindings.strides[index]));
-    }
+    // TODO: Should HostBindings provide the correct runtime types to avoid these transforms?
+    std::array<GLuint, 32> buffer_handles;
+    std::array<GLsizei, 32> buffer_strides;
+    std::ranges::transform(bindings.buffers, buffer_handles.begin(),
+                           [](const Buffer* const buffer) { return buffer->Handle(); });
+    std::ranges::transform(bindings.strides, buffer_strides.begin(),
+                           [](u64 stride) { return static_cast<GLsizei>(stride); });
+    const u32 count =
+        std::min(static_cast<u32>(bindings.buffers.size()), max_attributes - bindings.min_index);
+    glBindVertexBuffers(bindings.min_index, static_cast<GLsizei>(count), buffer_handles.data(),
+                        reinterpret_cast<const GLintptr*>(bindings.offsets.data()),
+                        buffer_strides.data());
 }
 
 void BufferCacheRuntime::BindUniformBuffer(size_t stage, u32 binding_index, Buffer& buffer,
@@ -335,11 +327,13 @@ void BufferCacheRuntime::BindTransformFeedbackBuffer(u32 index, Buffer& buffer, 
 }
 
 void BufferCacheRuntime::BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings) {
-    for (u32 index = 0; index < bindings.buffers.size(); ++index) {
-        glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index, bindings.buffers[index]->Handle(),
-                          static_cast<GLintptr>(bindings.offsets[index]),
-                          static_cast<GLsizeiptr>(bindings.sizes[index]));
-    }
+    std::array<GLuint, 4> buffer_handles;
+    std::ranges::transform(bindings.buffers, buffer_handles.begin(),
+                           [](const Buffer* const buffer) { return buffer->Handle(); });
+    glBindBuffersRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0,
+                       static_cast<GLsizei>(bindings.buffers.size()), buffer_handles.data(),
+                       reinterpret_cast<const GLintptr*>(bindings.offsets.data()),
+                       reinterpret_cast<const GLsizeiptr*>(bindings.strides.data()));
 }
 
 void BufferCacheRuntime::BindTextureBuffer(Buffer& buffer, u32 offset, u32 size,
