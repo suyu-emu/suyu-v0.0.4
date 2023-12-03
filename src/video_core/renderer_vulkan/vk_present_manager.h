@@ -25,7 +25,6 @@ class Swapchain;
 struct Frame {
     u32 width;
     u32 height;
-    bool is_srgb;
     vk::Image image;
     vk::ImageView image_view;
     vk::Framebuffer framebuffer;
@@ -48,8 +47,8 @@ public:
     void Present(Frame* frame);
 
     /// Recreates the present frame to match the provided parameters
-    void RecreateFrame(Frame* frame, u32 width, u32 height, bool is_srgb,
-                       VkFormat image_view_format, VkRenderPass rd);
+    void RecreateFrame(Frame* frame, u32 width, u32 height, VkFormat image_view_format,
+                       VkRenderPass rd);
 
     /// Waits for the present thread to finish presenting all queued frames.
     void WaitPresent();
