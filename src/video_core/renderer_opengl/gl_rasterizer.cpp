@@ -714,7 +714,8 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
 
     std::scoped_lock lock{texture_cache.mutex};
-    ImageView* const image_view{texture_cache.TryFindFramebufferImageView(framebuffer_addr)};
+    ImageView* const image_view{
+        texture_cache.TryFindFramebufferImageView(config, framebuffer_addr)};
     if (!image_view) {
         return false;
     }

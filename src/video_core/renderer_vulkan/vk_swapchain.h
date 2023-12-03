@@ -20,11 +20,11 @@ class Scheduler;
 class Swapchain {
 public:
     explicit Swapchain(VkSurfaceKHR surface, const Device& device, Scheduler& scheduler, u32 width,
-                       u32 height, bool srgb);
+                       u32 height);
     ~Swapchain();
 
     /// Creates (or recreates) the swapchain with a given size.
-    void Create(VkSurfaceKHR surface, u32 width, u32 height, bool srgb);
+    void Create(VkSurfaceKHR surface, u32 width, u32 height);
 
     /// Acquires the next image in the swapchain, waits as needed.
     bool AcquireNextImage();
@@ -33,13 +33,8 @@ public:
     void Present(VkSemaphore render_semaphore);
 
     /// Returns true when the swapchain needs to be recreated.
-    bool NeedsRecreation(bool is_srgb) const {
-        return HasColorSpaceChanged(is_srgb) || IsSubOptimal() || NeedsPresentModeUpdate();
-    }
-
-    /// Returns true when the color space has changed.
-    bool HasColorSpaceChanged(bool is_srgb) const {
-        return current_srgb != is_srgb;
+    bool NeedsRecreation() const {
+        return IsSubOptimal() || NeedsPresentModeUpdate();
     }
 
     /// Returns true when the swapchain is outdated.
@@ -50,11 +45,6 @@ public:
     /// Returns true when the swapchain is suboptimal.
     bool IsSubOptimal() const {
         return is_suboptimal;
-    }
-
-    /// Returns true when the swapchain format is in the srgb color space
-    bool IsSrgb() const {
-        return current_srgb;
     }
 
     VkExtent2D GetSize() const {
@@ -110,7 +100,7 @@ public:
     }
 
 private:
-    void CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, bool srgb);
+    void CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities);
     void CreateSemaphores();
     void CreateImageViews();
 
@@ -144,7 +134,6 @@ private:
     bool has_mailbox{false};
     bool has_fifo_relaxed{false};
 
-    bool current_srgb{};
     bool is_outdated{};
     bool is_suboptimal{};
 };

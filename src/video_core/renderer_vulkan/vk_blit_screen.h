@@ -52,7 +52,6 @@ struct ScreenInfo {
     VkImageView image_view{};
     u32 width{};
     u32 height{};
-    bool is_srgb{};
 };
 
 class BlitScreen {
@@ -69,7 +68,7 @@ public:
               const Layout::FramebufferLayout layout, VkExtent2D render_area, bool use_accelerated);
 
     void DrawToSwapchain(Frame* frame, const Tegra::FramebufferConfig& framebuffer,
-                         bool use_accelerated, bool is_srgb);
+                         bool use_accelerated);
 
     [[nodiscard]] vk::Framebuffer CreateFramebuffer(const VkImageView& image_view,
                                                     VkExtent2D extent);
@@ -161,8 +160,8 @@ private:
     u32 raw_width = 0;
     u32 raw_height = 0;
     Service::android::PixelFormat pixel_format{};
-    bool current_srgb;
-    VkFormat image_view_format;
+    VkFormat framebuffer_view_format;
+    VkFormat swapchain_view_format;
 
     std::unique_ptr<FSR> fsr;
     std::unique_ptr<SMAA> smaa;
