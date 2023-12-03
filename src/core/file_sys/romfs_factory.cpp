@@ -22,7 +22,7 @@ RomFSFactory::RomFSFactory(Loader::AppLoader& app_loader, ContentProvider& provi
     : content_provider{provider}, filesystem_controller{controller} {
     // Load the RomFS from the app
     if (app_loader.ReadRomFS(file) != Loader::ResultStatus::Success) {
-        LOG_ERROR(Service_FS, "Unable to read RomFS!");
+        LOG_WARNING(Service_FS, "Unable to read base RomFS");
     }
 
     updatable = app_loader.IsRomFSUpdatable();

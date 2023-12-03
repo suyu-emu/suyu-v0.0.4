@@ -74,10 +74,8 @@ AppLoader_NCA::LoadResult AppLoader_NCA::Load(Kernel::KProcess& process, Core::S
         return load_result;
     }
 
-    if (nca->GetRomFS() != nullptr && nca->GetRomFS()->GetSize() > 0) {
-        system.GetFileSystemController().RegisterRomFS(std::make_unique<FileSys::RomFSFactory>(
-            *this, system.GetContentProvider(), system.GetFileSystemController()));
-    }
+    system.GetFileSystemController().RegisterRomFS(std::make_unique<FileSys::RomFSFactory>(
+        *this, system.GetContentProvider(), system.GetFileSystemController()));
 
     is_loaded = true;
     return load_result;
