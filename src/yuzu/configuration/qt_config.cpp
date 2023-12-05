@@ -225,7 +225,8 @@ void QtConfig::ReadPathValues() {
     UISettings::values.recent_files =
         QString::fromStdString(ReadStringSetting(std::string("recentFiles")))
             .split(QStringLiteral(", "), Qt::SkipEmptyParts, Qt::CaseSensitive);
-    UISettings::values.language = ReadStringSetting(std::string("language"), std::string(""));
+    UISettings::values.language =
+        ReadStringSetting(std::string("language"), std::make_optional(std::string("")));
 
     EndGroup();
 }
