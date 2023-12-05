@@ -400,9 +400,8 @@ void ArmDynarmic32::GetContext(Kernel::Svc::ThreadContext& ctx) const {
     ctx.pc = gpr[15];
     ctx.pstate = j.Cpsr();
 
-    for (size_t i = 0; i < 32; i++) {
-        ctx.v[i] = {fpr[i], 0};
-    }
+    static_assert(sizeof(fpr) <= sizeof(ctx.v));
+    std::memcpy(ctx.v.data(), &fpr, sizeof(fpr));
 
     auto [fpsr, fpcr] = FpscrToFpsrFpcr(j.Fpscr());
     ctx.fpcr = fpcr;
@@ -421,9 +420,8 @@ void ArmDynarmic32::SetContext(const Kernel::Svc::ThreadContext& ctx) {
 
     j.SetCpsr(ctx.pstate);
 
-    for (size_t i = 0; i < 32; i++) {
-        fpr[i] = static_cast<u32>(ctx.v[i][0]);
-    }
+    static_assert(sizeof(fpr) <= sizeof(ctx.v));
+    std::memcpy(&fpr, ctx.v.data(), sizeof(fpr));
 
     j.SetFpscr(FpsrFpcrToFpscr(ctx.fpsr, ctx.fpcr));
     m_cp15->uprw = static_cast<u32>(ctx.tpidr);
