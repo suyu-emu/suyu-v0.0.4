@@ -28,6 +28,8 @@ Patcher::~Patcher() = default;
 
 void Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
                         const Kernel::CodeSet::Segment& code) {
+    // Branch to the first instruction of the module.
+    this->BranchToModule(0);
 
     // Write save context helper function.
     c.l(m_save_context);
