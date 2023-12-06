@@ -289,7 +289,11 @@ enum class DirectorySeparator {
 
 // Splits the path on '/' or '\' and put the components into a vector
 // i.e. "C:\Users\Yuzu\Documents\save.bin" becomes {"C:", "Users", "Yuzu", "Documents", "save.bin" }
-[[nodiscard]] std::vector<std::string> SplitPathComponents(std::string_view filename);
+[[nodiscard]] std::vector<std::string_view> SplitPathComponents(std::string_view filename);
+
+// Splits the path on '/' or '\' and put the components into a vector
+// i.e. "C:\Users\Yuzu\Documents\save.bin" becomes {"C:", "Users", "Yuzu", "Documents", "save.bin" }
+[[nodiscard]] std::vector<std::string> SplitPathComponentsCopy(std::string_view filename);
 
 // Removes trailing slash, makes all '\\' into '/', and removes duplicate '/'. Makes '/' into '\\'
 // depending if directory_separator is BackwardSlash or PlatformDefault and running on windows
