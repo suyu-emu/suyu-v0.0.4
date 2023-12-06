@@ -10,9 +10,7 @@
 
 namespace Kernel {
 
-static constexpr u32 MessageBufferSize = 0x100;
-
-KClientSession::KClientSession(KernelCore& kernel) : KAutoObjectWithSlabHeapAndContainer{kernel} {}
+KClientSession::KClientSession(KernelCore& kernel) : KAutoObject{kernel} {}
 KClientSession::~KClientSession() = default;
 
 void KClientSession::Destroy() {
@@ -22,18 +20,30 @@ void KClientSession::Destroy() {
 
 void KClientSession::OnServerClosed() {}
 
-Result KClientSession::SendSyncRequest() {
+Result KClientSession::SendSyncRequest(uintptr_t address, size_t size) {
     // Create a session request.
     KSessionRequest* request = KSessionRequest::Create(m_kernel);
     R_UNLESS(request != nullptr, ResultOutOfResource);
     SCOPE_EXIT({ request->Close(); });
 
     // Initialize the request.
-    request->Initialize(nullptr, GetInteger(GetCurrentThread(m_kernel).GetTlsAddress()),
-                        MessageBufferSize);
+    request->Initialize(nullptr, address, size);
 
     // Send the request.
-    R_RETURN(m_parent->GetServerSession().OnRequest(request));
+    R_RETURN(m_parent->OnRequest(request));
+}
+
+Result KClientSession::SendAsyncRequest(KEvent* event, uintptr_t address, size_t size) {
+    // Create a session request.
+    KSessionRequest* request = KSessionRequest::Create(m_kernel);
+    R_UNLESS(request != nullptr, ResultOutOfResource);
+    SCOPE_EXIT({ request->Close(); });
+
+    // Initialize the request.
+    request->Initialize(event, address, size);
+
+    // Send the request.
+    R_RETURN(m_parent->OnRequest(request));
 }
 
 } // namespace Kernel
