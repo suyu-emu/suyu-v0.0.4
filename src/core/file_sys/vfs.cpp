@@ -201,8 +201,6 @@ std::string VfsFile::GetFullPath() const {
 
 VirtualFile VfsDirectory::GetFileRelative(std::string_view path) const {
     auto vec = Common::FS::SplitPathComponents(path);
-    vec.erase(std::remove_if(vec.begin(), vec.end(), [](const auto& str) { return str.empty(); }),
-              vec.end());
     if (vec.empty()) {
         return nullptr;
     }
@@ -237,8 +235,6 @@ VirtualFile VfsDirectory::GetFileAbsolute(std::string_view path) const {
 
 VirtualDir VfsDirectory::GetDirectoryRelative(std::string_view path) const {
     auto vec = Common::FS::SplitPathComponents(path);
-    vec.erase(std::remove_if(vec.begin(), vec.end(), [](const auto& str) { return str.empty(); }),
-              vec.end());
     if (vec.empty()) {
         // TODO(DarkLordZach): Return this directory if path is '/' or similar. Can't currently
         // because of const-ness
@@ -303,8 +299,6 @@ std::size_t VfsDirectory::GetSize() const {
 
 VirtualFile VfsDirectory::CreateFileRelative(std::string_view path) {
     auto vec = Common::FS::SplitPathComponents(path);
-    vec.erase(std::remove_if(vec.begin(), vec.end(), [](const auto& str) { return str.empty(); }),
-              vec.end());
     if (vec.empty()) {
         return nullptr;
     }
@@ -334,8 +328,6 @@ VirtualFile VfsDirectory::CreateFileAbsolute(std::string_view path) {
 
 VirtualDir VfsDirectory::CreateDirectoryRelative(std::string_view path) {
     auto vec = Common::FS::SplitPathComponents(path);
-    vec.erase(std::remove_if(vec.begin(), vec.end(), [](const auto& str) { return str.empty(); }),
-              vec.end());
     if (vec.empty()) {
         return nullptr;
     }

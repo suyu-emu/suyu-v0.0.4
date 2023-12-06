@@ -104,11 +104,7 @@ Result VfsDirectoryServiceWrapper::CreateDirectory(const std::string& path_) con
     const auto components = Common::FS::SplitPathComponents(path);
     std::string relative_path;
     for (const auto& component : components) {
-        // Skip empty path components
-        if (component.empty()) {
-            continue;
-        }
-        relative_path = Common::FS::SanitizePath(relative_path + '/' + component);
+        relative_path = Common::FS::SanitizePath(fmt::format("{}/{}", relative_path, component));
         auto new_dir = backing->CreateSubdirectory(relative_path);
         if (new_dir == nullptr) {
             // TODO(DarkLordZach): Find a better error code for this
