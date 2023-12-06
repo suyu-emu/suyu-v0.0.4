@@ -46,6 +46,10 @@ public:
         return this->GetState() != State::Normal;
     }
 
+    Result OnRequest(KSessionRequest* request) {
+        R_RETURN(m_server.OnRequest(request));
+    }
+
     KClientSession& GetClientSession() {
         return m_client;
     }
