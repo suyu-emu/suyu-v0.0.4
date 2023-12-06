@@ -41,24 +41,25 @@ namespace {
 
 constexpr inline s32 TerminatingThreadPriority = Kernel::Svc::SystemThreadPriorityHighest - 1;
 
-static void ResetThreadContext32(Kernel::KThread::ThreadContext32& context, u32 stack_top,
-                                 u32 entry_point, u32 arg) {
-    context = {};
-    context.cpu_registers[0] = arg;
-    context.cpu_registers[15] = entry_point;
-    context.cpu_registers[13] = stack_top;
-    context.fpscr = 0;
+static void ResetThreadContext32(Kernel::Svc::ThreadContext& ctx, u64 stack_top, u64 entry_point,
+                                 u64 arg) {
+    ctx = {};
+    ctx.r[0] = arg;
+    ctx.r[15] = entry_point;
+    ctx.r[13] = stack_top;
+    ctx.fpcr = 0;
+    ctx.fpsr = 0;
 }
 
-static void ResetThreadContext64(Kernel::KThread::ThreadContext64& context, u64 stack_top,
-                                 u64 entry_point, u64 arg) {
-    context = {};
-    context.cpu_registers[0] = arg;
-    context.cpu_registers[18] = Kernel::KSystemControl::GenerateRandomU64() | 1;
-    context.pc = entry_point;
-    context.sp = stack_top;
-    context.fpcr = 0;
-    context.fpsr = 0;
+static void ResetThreadContext64(Kernel::Svc::ThreadContext& ctx, u64 stack_top, u64 entry_point,
+                                 u64 arg) {
+    ctx = {};
+    ctx.r[0] = arg;
+    ctx.r[18] = Kernel::KSystemControl::GenerateRandomU64() | 1;
+    ctx.pc = entry_point;
+    ctx.sp = stack_top;
+    ctx.fpcr = 0;
+    ctx.fpsr = 0;
 }
 } // namespace
 
@@ -223,9 +224,11 @@ Result KThread::Initialize(KThreadFunction func, uintptr_t arg, KProcessAddress 
     }
 
     // Initialize thread context.
-    ResetThreadContext64(m_thread_context_64, GetInteger(user_stack_top), GetInteger(func), arg);
-    ResetThreadContext32(m_thread_context_32, static_cast<u32>(GetInteger(user_stack_top)),
-                         static_cast<u32>(GetInteger(func)), static_cast<u32>(arg));
+    if (m_parent != nullptr && !m_parent->Is64Bit()) {
+        ResetThreadContext32(m_thread_context, GetInteger(user_stack_top), GetInteger(func), arg);
+    } else {
+        ResetThreadContext64(m_thread_context, GetInteger(user_stack_top), GetInteger(func), arg);
+    }
 
     // Setup the stack parameters.
     StackParameters& sp = this->GetStackParameters();
@@ -823,20 +826,7 @@ void KThread::CloneFpuStatus() {
     ASSERT(this->GetOwnerProcess() != nullptr);
     ASSERT(this->GetOwnerProcess() == GetCurrentProcessPointer(m_kernel));
 
-    if (this->GetOwnerProcess()->Is64Bit()) {
-        // Clone FPSR and FPCR.
-        ThreadContext64 cur_ctx{};
-        m_kernel.System().CurrentArmInterface().SaveContext(cur_ctx);
-
-        this->GetContext64().fpcr = cur_ctx.fpcr;
-        this->GetContext64().fpsr = cur_ctx.fpsr;
-    } else {
-        // Clone FPSCR.
-        ThreadContext32 cur_ctx{};
-        m_kernel.System().CurrentArmInterface().SaveContext(cur_ctx);
-
-        this->GetContext32().fpscr = cur_ctx.fpscr;
-    }
+    m_kernel.CurrentPhysicalCore().CloneFpuStatus(this);
 }
 
 Result KThread::SetActivity(Svc::ThreadActivity activity) {
@@ -912,7 +902,7 @@ Result KThread::SetActivity(Svc::ThreadActivity activity) {
     R_SUCCEED();
 }
 
-Result KThread::GetThreadContext3(Common::ScratchBuffer<u8>& out) {
+Result KThread::GetThreadContext3(Svc::ThreadContext* out) {
     // Lock ourselves.
     KScopedLightLock lk{m_activity_pause_lock};
 
@@ -926,18 +916,16 @@ Result KThread::GetThreadContext3(Common::ScratchBuffer<u8>& out) {
 
         // If we're not terminating, get the thread's user context.
         if (!this->IsTerminationRequested()) {
+            *out = m_thread_context;
+
+            // Mask away mode bits, interrupt bits, IL bit, and other reserved bits.
+            constexpr u32 El0Aarch64PsrMask = 0xF0000000;
+            constexpr u32 El0Aarch32PsrMask = 0xFE0FFE20;
+
             if (m_parent->Is64Bit()) {
-                // Mask away mode bits, interrupt bits, IL bit, and other reserved bits.
-                auto context = GetContext64();
-                context.pstate &= 0xFF0FFE20;
-                out.resize_destructive(sizeof(context));
-                std::memcpy(out.data(), std::addressof(context), sizeof(context));
+                out->pstate &= El0Aarch64PsrMask;
             } else {
-                // Mask away mode bits, interrupt bits, IL bit, and other reserved bits.
-                auto context = GetContext32();
-                context.cpsr &= 0xFF0FFE20;
-                out.resize_destructive(sizeof(context));
-                std::memcpy(out.data(), std::addressof(context), sizeof(context));
+                out->pstate &= El0Aarch32PsrMask;
             }
         }
     }

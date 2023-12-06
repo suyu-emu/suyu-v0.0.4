@@ -43,13 +43,9 @@ bool AddressSpaceContains(const Common::PageTable& table, const Common::ProcessA
 struct Memory::Impl {
     explicit Impl(Core::System& system_) : system{system_} {}
 
-    void SetCurrentPageTable(Kernel::KProcess& process, u32 core_id) {
+    void SetCurrentPageTable(Kernel::KProcess& process) {
         current_page_table = &process.GetPageTable().GetImpl();
         current_page_table->fastmem_arena = system.DeviceMemory().buffer.VirtualBasePointer();
-
-        const std::size_t address_space_width = process.GetPageTable().GetAddressSpaceWidth();
-
-        system.ArmInterface(core_id).PageTableChanged(*current_page_table, address_space_width);
     }
 
     void MapMemoryRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
@@ -871,8 +867,8 @@ void Memory::Reset() {
     impl = std::make_unique<Impl>(system);
 }
 
-void Memory::SetCurrentPageTable(Kernel::KProcess& process, u32 core_id) {
-    impl->SetCurrentPageTable(process, core_id);
+void Memory::SetCurrentPageTable(Kernel::KProcess& process) {
+    impl->SetCurrentPageTable(process);
 }
 
 void Memory::MapMemoryRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,

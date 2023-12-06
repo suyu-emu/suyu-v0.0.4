@@ -24,21 +24,6 @@ static std::string ValueToHex(const T value) {
     return Common::HexToString(mem);
 }
 
-template <typename T>
-static T GetSIMDRegister(const std::array<u32, 64>& simd_regs, size_t offset) {
-    static_assert(std::is_trivially_copyable_v<T>);
-    T value{};
-    std::memcpy(&value, reinterpret_cast<const u8*>(simd_regs.data()) + sizeof(T) * offset,
-                sizeof(T));
-    return value;
-}
-
-template <typename T>
-static void PutSIMDRegister(std::array<u32, 64>& simd_regs, size_t offset, const T value) {
-    static_assert(std::is_trivially_copyable_v<T>);
-    std::memcpy(reinterpret_cast<u8*>(simd_regs.data()) + sizeof(T) * offset, &value, sizeof(T));
-}
-
 // For sample XML files see the GDB source /gdb/features
 // This XML defines what the registers are for this specific ARM device
 std::string_view GDBStubA64::GetTargetXML() const {
@@ -184,12 +169,16 @@ std::string GDBStubA64::RegRead(const Kernel::KThread* thread, size_t id) const 
         return "";
     }
 
-    const auto& context{thread->GetContext64()};
-    const auto& gprs{context.cpu_registers};
-    const auto& fprs{context.vector_registers};
+    const auto& context{thread->GetContext()};
+    const auto& gprs{context.r};
+    const auto& fprs{context.v};
 
-    if (id < SP_REGISTER) {
+    if (id < FP_REGISTER) {
         return ValueToHex(gprs[id]);
+    } else if (id == FP_REGISTER) {
+        return ValueToHex(context.fp);
+    } else if (id == LR_REGISTER) {
+        return ValueToHex(context.lr);
     } else if (id == SP_REGISTER) {
         return ValueToHex(context.sp);
     } else if (id == PC_REGISTER) {
@@ -212,10 +201,14 @@ void GDBStubA64::RegWrite(Kernel::KThread* thread, size_t id, std::string_view v
         return;
     }
 
-    auto& context{thread->GetContext64()};
+    auto& context{thread->GetContext()};
 
-    if (id < SP_REGISTER) {
-        context.cpu_registers[id] = HexToValue<u64>(value);
+    if (id < FP_REGISTER) {
+        context.r[id] = HexToValue<u64>(value);
+    } else if (id == FP_REGISTER) {
+        context.fp = HexToValue<u64>(value);
+    } else if (id == LR_REGISTER) {
+        context.lr = HexToValue<u64>(value);
     } else if (id == SP_REGISTER) {
         context.sp = HexToValue<u64>(value);
     } else if (id == PC_REGISTER) {
@@ -223,7 +216,7 @@ void GDBStubA64::RegWrite(Kernel::KThread* thread, size_t id, std::string_view v
     } else if (id == PSTATE_REGISTER) {
         context.pstate = HexToValue<u32>(value);
     } else if (id >= Q0_REGISTER && id < FPSR_REGISTER) {
-        context.vector_registers[id - Q0_REGISTER] = HexToValue<u128>(value);
+        context.v[id - Q0_REGISTER] = HexToValue<u128>(value);
     } else if (id == FPSR_REGISTER) {
         context.fpsr = HexToValue<u32>(value);
     } else if (id == FPCR_REGISTER) {
@@ -381,22 +374,20 @@ std::string GDBStubA32::RegRead(const Kernel::KThread* thread, size_t id) const 
         return "";
     }
 
-    const auto& context{thread->GetContext32()};
-    const auto& gprs{context.cpu_registers};
-    const auto& fprs{context.extension_registers};
+    const auto& context{thread->GetContext()};
+    const auto& gprs{context.r};
+    const auto& fprs{context.v};
 
     if (id <= PC_REGISTER) {
-        return ValueToHex(gprs[id]);
+        return ValueToHex(static_cast<u32>(gprs[id]));
     } else if (id == CPSR_REGISTER) {
-        return ValueToHex(context.cpsr);
+        return ValueToHex(context.pstate);
     } else if (id >= D0_REGISTER && id < Q0_REGISTER) {
-        const u64 dN{GetSIMDRegister<u64>(fprs, id - D0_REGISTER)};
-        return ValueToHex(dN);
+        return ValueToHex(fprs[id - D0_REGISTER][0]);
     } else if (id >= Q0_REGISTER && id < FPSCR_REGISTER) {
-        const u128 qN{GetSIMDRegister<u128>(fprs, id - Q0_REGISTER)};
-        return ValueToHex(qN);
+        return ValueToHex(fprs[id - Q0_REGISTER]);
     } else if (id == FPSCR_REGISTER) {
-        return ValueToHex(context.fpscr);
+        return ValueToHex(context.fpcr | context.fpsr);
     } else {
         return "";
     }
@@ -407,19 +398,20 @@ void GDBStubA32::RegWrite(Kernel::KThread* thread, size_t id, std::string_view v
         return;
     }
 
-    auto& context{thread->GetContext32()};
-    auto& fprs{context.extension_registers};
+    auto& context{thread->GetContext()};
+    auto& fprs{context.v};
 
     if (id <= PC_REGISTER) {
-        context.cpu_registers[id] = HexToValue<u32>(value);
+        context.r[id] = HexToValue<u32>(value);
     } else if (id == CPSR_REGISTER) {
-        context.cpsr = HexToValue<u32>(value);
+        context.pstate = HexToValue<u32>(value);
     } else if (id >= D0_REGISTER && id < Q0_REGISTER) {
-        PutSIMDRegister(fprs, id - D0_REGISTER, HexToValue<u64>(value));
+        fprs[id - D0_REGISTER] = {HexToValue<u64>(value), 0};
     } else if (id >= Q0_REGISTER && id < FPSCR_REGISTER) {
-        PutSIMDRegister(fprs, id - Q0_REGISTER, HexToValue<u128>(value));
+        fprs[id - Q0_REGISTER] = HexToValue<u128>(value);
     } else if (id == FPSCR_REGISTER) {
-        context.fpscr = HexToValue<u32>(value);
+        context.fpcr = HexToValue<u32>(value);
+        context.fpsr = HexToValue<u32>(value);
     }
 }
 

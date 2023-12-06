@@ -73,12 +73,13 @@ void CpuManager::HandleInterrupt() {
 void CpuManager::MultiCoreRunGuestThread() {
     // Similar to UserModeThreadStarter in HOS
     auto& kernel = system.Kernel();
+    auto* thread = Kernel::GetCurrentThreadPointer(kernel);
     kernel.CurrentScheduler()->OnThreadStart();
 
     while (true) {
         auto* physical_core = &kernel.CurrentPhysicalCore();
         while (!physical_core->IsInterrupted()) {
-            physical_core->Run();
+            physical_core->RunThread(thread);
             physical_core = &kernel.CurrentPhysicalCore();
         }
 
@@ -110,12 +111,13 @@ void CpuManager::MultiCoreRunIdleThread() {
 
 void CpuManager::SingleCoreRunGuestThread() {
     auto& kernel = system.Kernel();
+    auto* thread = Kernel::GetCurrentThreadPointer(kernel);
     kernel.CurrentScheduler()->OnThreadStart();
 
     while (true) {
         auto* physical_core = &kernel.CurrentPhysicalCore();
         if (!physical_core->IsInterrupted()) {
-            physical_core->Run();
+            physical_core->RunThread(thread);
             physical_core = &kernel.CurrentPhysicalCore();
         }
 
@@ -210,8 +212,6 @@ void CpuManager::RunThread(std::stop_token token, std::size_t core) {
     if (!is_async_gpu && !is_multicore) {
         system.GPU().ObtainContext();
     }
-
-    system.ArmInterface(core).Initialize();
 
     auto& kernel = system.Kernel();
     auto& scheduler = *kernel.CurrentScheduler();

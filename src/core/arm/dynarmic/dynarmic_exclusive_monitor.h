@@ -14,8 +14,8 @@ class Memory;
 
 namespace Core {
 
-class ARM_Dynarmic_32;
-class ARM_Dynarmic_64;
+class ArmDynarmic32;
+class ArmDynarmic64;
 
 class DynarmicExclusiveMonitor final : public ExclusiveMonitor {
 public:
@@ -36,8 +36,8 @@ public:
     bool ExclusiveWrite128(std::size_t core_index, VAddr vaddr, u128 value) override;
 
 private:
-    friend class ARM_Dynarmic_32;
-    friend class ARM_Dynarmic_64;
+    friend class ArmDynarmic32;
+    friend class ArmDynarmic64;
     Dynarmic::ExclusiveMonitor monitor;
     Core::Memory::Memory& memory;
 };

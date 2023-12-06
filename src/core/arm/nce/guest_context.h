@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "core/arm/arm_interface.h"
@@ -10,7 +12,7 @@
 
 namespace Core {
 
-class ARM_NCE;
+class ArmNce;
 class System;
 
 struct HostContext {
@@ -33,9 +35,9 @@ struct GuestContext {
     u64 tpidr_el0{};
     std::atomic<u64> esr_el1{};
     u32 nzcv{};
-    u32 svc_swi{};
+    u32 svc{};
     System* system{};
-    ARM_NCE* parent{};
+    ArmNce* parent{};
 };
 
 // Verify assembly offsets.

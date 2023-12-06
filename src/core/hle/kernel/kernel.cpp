@@ -99,13 +99,6 @@ struct KernelCore::Impl {
         RegisterHostThread(nullptr);
     }
 
-    void InitializeCores() {
-        for (u32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
-            cores[core_id]->Initialize((*application_process).Is64Bit());
-            system.ApplicationMemory().SetCurrentPageTable(*application_process, core_id);
-        }
-    }
-
     void TerminateApplicationProcess() {
         application_process.load()->Terminate();
     }
@@ -205,7 +198,7 @@ struct KernelCore::Impl {
             const s32 core{static_cast<s32>(i)};
 
             schedulers[i] = std::make_unique<Kernel::KScheduler>(system.Kernel());
-            cores[i] = std::make_unique<Kernel::PhysicalCore>(i, system, *schedulers[i]);
+            cores[i] = std::make_unique<Kernel::PhysicalCore>(system.Kernel(), i);
 
             auto* main_thread{Kernel::KThread::Create(system.Kernel())};
             main_thread->SetCurrentCore(core);
@@ -880,10 +873,6 @@ void KernelCore::Initialize() {
     impl->Initialize(*this);
 }
 
-void KernelCore::InitializeCores() {
-    impl->InitializeCores();
-}
-
 void KernelCore::Shutdown() {
     impl->Shutdown();
 }
@@ -991,21 +980,6 @@ KAutoObjectWithListContainer& KernelCore::ObjectListContainer() {
 
 const KAutoObjectWithListContainer& KernelCore::ObjectListContainer() const {
     return *impl->global_object_list_container;
-}
-
-void KernelCore::InvalidateAllInstructionCaches() {
-    for (auto& physical_core : impl->cores) {
-        physical_core->ArmInterface().ClearInstructionCache();
-    }
-}
-
-void KernelCore::InvalidateCpuInstructionCacheRange(KProcessAddress addr, std::size_t size) {
-    for (auto& physical_core : impl->cores) {
-        if (!physical_core->IsInitialized()) {
-            continue;
-        }
-        physical_core->ArmInterface().InvalidateCacheRange(GetInteger(addr), size);
-    }
 }
 
 void KernelCore::PrepareReschedule(std::size_t id) {
