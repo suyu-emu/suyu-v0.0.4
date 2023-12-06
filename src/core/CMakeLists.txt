@@ -541,6 +541,8 @@ add_library(core STATIC
     hle/service/hid/xcd.cpp
     hle/service/hid/xcd.h
     hle/service/hid/errors.h
+    hle/service/hid/controllers/applet_resource.cpp
+    hle/service/hid/controllers/applet_resource.h
     hle/service/hid/controllers/console_six_axis.cpp
     hle/service/hid/controllers/console_six_axis.h
     hle/service/hid/controllers/controller_base.cpp

@@ -224,8 +224,13 @@ void IHidServer::CreateAppletResource(HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
+    Result result = GetResourceManager()->CreateAppletResource(applet_resource_user_id);
+    if (result.IsSuccess()) {
+        result = GetResourceManager()->GetNpad()->Activate(applet_resource_user_id);
+    }
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
     rb.PushIpcInterface<IAppletResource>(system, resource_manager);
 }
 
