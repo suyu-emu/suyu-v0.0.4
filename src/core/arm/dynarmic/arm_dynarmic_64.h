@@ -23,76 +23,55 @@ class DynarmicCallbacks64;
 class DynarmicExclusiveMonitor;
 class System;
 
-class ARM_Dynarmic_64 final : public ARM_Interface {
+class ArmDynarmic64 final : public ArmInterface {
 public:
-    ARM_Dynarmic_64(System& system_, bool uses_wall_clock_,
-                    DynarmicExclusiveMonitor& exclusive_monitor_, std::size_t core_index_);
-    ~ARM_Dynarmic_64() override;
-
-    void SetPC(u64 pc) override;
-    u64 GetPC() const override;
-    u64 GetSP() const override;
-    u64 GetReg(int index) const override;
-    void SetReg(int index, u64 value) override;
-    u128 GetVectorReg(int index) const override;
-    void SetVectorReg(int index, u128 value) override;
-    u32 GetPSTATE() const override;
-    void SetPSTATE(u32 pstate) override;
-    u64 GetTlsAddress() const override;
-    void SetTlsAddress(u64 address) override;
-    void SetTPIDR_EL0(u64 value) override;
-    u64 GetTPIDR_EL0() const override;
+    ArmDynarmic64(System& system, bool uses_wall_clock, const Kernel::KProcess* process,
+                  DynarmicExclusiveMonitor& exclusive_monitor, std::size_t core_index);
+    ~ArmDynarmic64() override;
 
     Architecture GetArchitecture() const override {
-        return Architecture::Aarch64;
+        return Architecture::AArch64;
     }
-    void SaveContext(ThreadContext32& ctx) const override {}
-    void SaveContext(ThreadContext64& ctx) const override;
-    void LoadContext(const ThreadContext32& ctx) override {}
-    void LoadContext(const ThreadContext64& ctx) override;
 
-    void SignalInterrupt() override;
-    void ClearInterrupt() override;
-    void ClearExclusiveState() override;
+    HaltReason RunThread(Kernel::KThread* thread) override;
+    HaltReason StepThread(Kernel::KThread* thread) override;
 
+    void GetContext(Kernel::Svc::ThreadContext& ctx) const override;
+    void SetContext(const Kernel::Svc::ThreadContext& ctx) override;
+    void SetTpidrroEl0(u64 value) override;
+
+    void GetSvcArguments(std::span<uint64_t, 8> args) const override;
+    void SetSvcArguments(std::span<const uint64_t, 8> args) override;
+    u32 GetSvcNumber() const override;
+
+    void SignalInterrupt(Kernel::KThread* thread) override;
     void ClearInstructionCache() override;
     void InvalidateCacheRange(u64 addr, std::size_t size) override;
-    void PageTableChanged(Common::PageTable& new_page_table,
-                          std::size_t new_address_space_size_in_bits) override;
 
 protected:
-    HaltReason RunJit() override;
-    HaltReason StepJit() override;
-    u32 GetSvcNumber() const override;
     const Kernel::DebugWatchpoint* HaltedWatchpoint() const override;
     void RewindBreakpointInstruction() override;
 
 private:
+    System& m_system;
+    DynarmicExclusiveMonitor& m_exclusive_monitor;
+
+private:
+    friend class DynarmicCallbacks64;
+
     std::shared_ptr<Dynarmic::A64::Jit> MakeJit(Common::PageTable* page_table,
                                                 std::size_t address_space_bits) const;
+    std::unique_ptr<DynarmicCallbacks64> m_cb{};
+    std::size_t m_core_index{};
 
-    using JitCacheKey = std::pair<Common::PageTable*, std::size_t>;
-    using JitCacheType =
-        std::unordered_map<JitCacheKey, std::shared_ptr<Dynarmic::A64::Jit>, Common::PairHash>;
-
-    friend class DynarmicCallbacks64;
-    std::unique_ptr<DynarmicCallbacks64> cb;
-    JitCacheType jit_cache;
-
-    std::size_t core_index;
-    DynarmicExclusiveMonitor& exclusive_monitor;
-
-    std::shared_ptr<Dynarmic::A64::Jit> null_jit;
-
-    // A raw pointer here is fine; we never delete Jit instances.
-    std::atomic<Dynarmic::A64::Jit*> jit;
+    std::shared_ptr<Dynarmic::A64::Jit> m_jit{};
 
     // SVC callback
-    u32 svc_swi{};
+    u32 m_svc{};
 
-    // Breakpoint info
-    const Kernel::DebugWatchpoint* halted_watchpoint;
-    ThreadContext64 breakpoint_context;
+    // Watchpoint info
+    const Kernel::DebugWatchpoint* m_halted_watchpoint{};
+    Kernel::Svc::ThreadContext m_breakpoint_context{};
 };
 
 } // namespace Core

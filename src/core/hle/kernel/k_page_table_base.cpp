@@ -69,8 +69,16 @@ public:
 };
 
 template <typename AddressType>
-void InvalidateInstructionCache(Core::System& system, AddressType addr, u64 size) {
-    system.InvalidateCpuInstructionCacheRange(GetInteger(addr), size);
+void InvalidateInstructionCache(KernelCore& kernel, AddressType addr, u64 size) {
+    // TODO: lock the process list
+    for (auto& process : kernel.GetProcessList()) {
+        for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            auto* interface = process->GetArmInterface(i);
+            if (interface) {
+                interface->InvalidateCacheRange(GetInteger(addr), size);
+            }
+        }
+    }
 }
 
 template <typename AddressType>
@@ -1261,7 +1269,7 @@ Result KPageTableBase::UnmapCodeMemory(KProcessAddress dst_address, KProcessAddr
     bool reprotected_pages = false;
     SCOPE_EXIT({
         if (reprotected_pages && any_code_pages) {
-            InvalidateInstructionCache(m_system, dst_address, size);
+            InvalidateInstructionCache(m_kernel, dst_address, size);
         }
     });
 
@@ -1997,7 +2005,7 @@ Result KPageTableBase::SetProcessMemoryPermission(KProcessAddress addr, size_t s
         for (const auto& block : pg) {
             StoreDataCache(GetHeapVirtualPointer(m_kernel, block.GetAddress()), block.GetSize());
         }
-        InvalidateInstructionCache(m_system, addr, size);
+        InvalidateInstructionCache(m_kernel, addr, size);
     }
 
     R_SUCCEED();
@@ -3239,7 +3247,7 @@ Result KPageTableBase::WriteDebugMemory(KProcessAddress dst_address, KProcessAdd
     R_TRY(PerformCopy());
 
     // Invalidate the instruction cache, as this svc allows modifying executable pages.
-    InvalidateInstructionCache(m_system, dst_address, size);
+    InvalidateInstructionCache(m_kernel, dst_address, size);
 
     R_SUCCEED();
 }

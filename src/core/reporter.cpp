@@ -109,41 +109,11 @@ json GetProcessorStateData(const std::string& architecture, u64 entry_point, u64
     return out;
 }
 
-json GetProcessorStateDataAuto(Core::System& system) {
-    const auto* process{system.ApplicationProcess()};
-    auto& arm{system.CurrentArmInterface()};
-
-    Core::ARM_Interface::ThreadContext64 context{};
-    arm.SaveContext(context);
-
-    return GetProcessorStateData(process->Is64Bit() ? "AArch64" : "AArch32",
-                                 GetInteger(process->GetEntryPoint()), context.sp, context.pc,
-                                 context.pstate, context.cpu_registers);
-}
-
-json GetBacktraceData(Core::System& system) {
-    auto out = json::array();
-    const auto& backtrace{system.CurrentArmInterface().GetBacktrace()};
-    for (const auto& entry : backtrace) {
-        out.push_back({
-            {"module", entry.module},
-            {"address", fmt::format("{:016X}", entry.address)},
-            {"original_address", fmt::format("{:016X}", entry.original_address)},
-            {"offset", fmt::format("{:016X}", entry.offset)},
-            {"symbol_name", entry.name},
-        });
-    }
-
-    return out;
-}
-
 json GetFullDataAuto(const std::string& timestamp, u64 title_id, Core::System& system) {
     json out;
 
     out["yuzu_version"] = GetYuzuVersionData();
     out["report_common"] = GetReportCommonData(title_id, ResultSuccess, timestamp);
-    out["processor_state"] = GetProcessorStateDataAuto(system);
-    out["backtrace"] = GetBacktraceData(system);
 
     return out;
 }
@@ -351,8 +321,6 @@ void Reporter::SaveErrorReport(u64 title_id, Result result,
 
     out["yuzu_version"] = GetYuzuVersionData();
     out["report_common"] = GetReportCommonData(title_id, result, timestamp);
-    out["processor_state"] = GetProcessorStateDataAuto(system);
-    out["backtrace"] = GetBacktraceData(system);
 
     out["error_custom_text"] = {
         {"main", custom_text_main.value_or("")},

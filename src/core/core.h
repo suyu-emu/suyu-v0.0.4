@@ -108,7 +108,6 @@ class RenderdocAPI;
 
 namespace Core {
 
-class ARM_Interface;
 class CpuManager;
 class Debugger;
 class DeviceMemory;
@@ -170,15 +169,6 @@ public:
 
     /// Check if the core is currently paused.
     [[nodiscard]] bool IsPaused() const;
-
-    /**
-     * Invalidate the CPU instruction caches
-     * This function should only be used by GDB Stub to support breakpoints, memory updates and
-     * step/continue commands.
-     */
-    void InvalidateCpuInstructionCaches();
-
-    void InvalidateCpuInstructionCacheRange(u64 addr, std::size_t size);
 
     /// Shutdown the main emulated process.
     void ShutdownMainProcess();
@@ -244,23 +234,11 @@ public:
     /// Gets and resets core performance statistics
     [[nodiscard]] PerfStatsResults GetAndResetPerfStats();
 
-    /// Gets an ARM interface to the CPU core that is currently running
-    [[nodiscard]] ARM_Interface& CurrentArmInterface();
-
-    /// Gets an ARM interface to the CPU core that is currently running
-    [[nodiscard]] const ARM_Interface& CurrentArmInterface() const;
-
     /// Gets the physical core for the CPU core that is currently running
     [[nodiscard]] Kernel::PhysicalCore& CurrentPhysicalCore();
 
     /// Gets the physical core for the CPU core that is currently running
     [[nodiscard]] const Kernel::PhysicalCore& CurrentPhysicalCore() const;
-
-    /// Gets a reference to an ARM interface for the CPU core with the specified index
-    [[nodiscard]] ARM_Interface& ArmInterface(std::size_t core_index);
-
-    /// Gets a const reference to an ARM interface from the CPU core with the specified index
-    [[nodiscard]] const ARM_Interface& ArmInterface(std::size_t core_index) const;
 
     /// Gets a reference to the underlying CPU manager.
     [[nodiscard]] CpuManager& GetCpuManager();
