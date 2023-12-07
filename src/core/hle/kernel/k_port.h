@@ -13,6 +13,7 @@
 
 namespace Kernel {
 
+class KLightServerSession;
 class KServerSession;
 
 class KPort final : public KAutoObjectWithSlabHeapAndContainer<KPort, KAutoObjectWithList> {
@@ -38,6 +39,7 @@ public:
     bool IsServerClosed() const;
 
     Result EnqueueSession(KServerSession* session);
+    Result EnqueueSession(KLightServerSession* session);
 
     KClientPort& GetClientPort() {
         return m_client;

@@ -3,8 +3,10 @@
 
 #include "common/scope_exit.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_light_session.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
+#include "core/hle/kernel/k_server_port.h"
 #include "core/hle/kernel/k_session.h"
 #include "core/hle/kernel/svc.h"
 
@@ -20,7 +22,7 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
     T* session;
 
     // Reserve a new session from the process resource limit.
-    // FIXME: LimitableResource_SessionCountMax
+    // TODO: Dynamic resource limits
     KScopedResourceReservation session_reservation(std::addressof(process),
                                                    LimitableResource::SessionCountMax);
     if (session_reservation.Succeeded()) {
@@ -92,16 +94,42 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
 Result CreateSession(Core::System& system, Handle* out_server, Handle* out_client, bool is_light,
                      u64 name) {
     if (is_light) {
-        // return CreateSession<KLightSession>(system, out_server, out_client, name);
-        R_THROW(ResultNotImplemented);
+        R_RETURN(CreateSession<KLightSession>(system, out_server, out_client, name));
     } else {
         R_RETURN(CreateSession<KSession>(system, out_server, out_client, name));
     }
 }
 
-Result AcceptSession(Core::System& system, Handle* out_handle, Handle port_handle) {
-    UNIMPLEMENTED();
-    R_THROW(ResultNotImplemented);
+Result AcceptSession(Core::System& system, Handle* out, Handle port_handle) {
+    // Get the current handle table.
+    auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
+
+    // Get the server port.
+    KScopedAutoObject port = handle_table.GetObject<KServerPort>(port_handle);
+    R_UNLESS(port.IsNotNull(), ResultInvalidHandle);
+
+    // Reserve an entry for the new session.
+    R_TRY(handle_table.Reserve(out));
+    ON_RESULT_FAILURE {
+        handle_table.Unreserve(*out);
+    };
+
+    // Accept the session.
+    KAutoObject* session;
+    if (port->IsLight()) {
+        session = port->AcceptLightSession();
+    } else {
+        session = port->AcceptSession();
+    }
+
+    // Ensure we accepted successfully.
+    R_UNLESS(session != nullptr, ResultNotFound);
+
+    // Register the session.
+    handle_table.Register(*out, session);
+    session->Close();
+
+    R_SUCCEED();
 }
 
 Result CreateSession64(Core::System& system, Handle* out_server_session_handle,
