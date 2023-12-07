@@ -385,6 +385,13 @@ public:
         m_cancellable = false;
     }
 
+    u32* GetLightSessionData() const {
+        return m_light_ipc_data;
+    }
+    void SetLightSessionData(u32* data) {
+        m_light_ipc_data = data;
+    }
+
     bool IsTerminationRequested() const {
         return m_termination_requested || GetRawState() == ThreadState::Terminated;
     }

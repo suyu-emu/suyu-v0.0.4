@@ -251,10 +251,16 @@ add_library(core STATIC
     hle/kernel/k_hardware_timer.h
     hle/kernel/k_interrupt_manager.cpp
     hle/kernel/k_interrupt_manager.h
+    hle/kernel/k_light_client_session.cpp
+    hle/kernel/k_light_client_session.h
     hle/kernel/k_light_condition_variable.cpp
     hle/kernel/k_light_condition_variable.h
     hle/kernel/k_light_lock.cpp
     hle/kernel/k_light_lock.h
+    hle/kernel/k_light_server_session.cpp
+    hle/kernel/k_light_server_session.h
+    hle/kernel/k_light_session.cpp
+    hle/kernel/k_light_session.h
     hle/kernel/k_memory_block.h
     hle/kernel/k_memory_block_manager.cpp
     hle/kernel/k_memory_block_manager.h

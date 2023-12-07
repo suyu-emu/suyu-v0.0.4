@@ -58,4 +58,13 @@ Result KPort::EnqueueSession(KServerSession* session) {
     R_SUCCEED();
 }
 
+Result KPort::EnqueueSession(KLightServerSession* session) {
+    KScopedSchedulerLock sl{m_kernel};
+
+    R_UNLESS(m_state == State::Normal, ResultPortClosed);
+
+    m_server.EnqueueSession(session);
+    R_SUCCEED();
+}
+
 } // namespace Kernel
