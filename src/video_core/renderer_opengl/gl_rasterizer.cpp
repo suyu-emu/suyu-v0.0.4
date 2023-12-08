@@ -714,7 +714,8 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
 
     std::scoped_lock lock{texture_cache.mutex};
-    ImageView* const image_view{texture_cache.TryFindFramebufferImageView(framebuffer_addr)};
+    ImageView* const image_view{
+        texture_cache.TryFindFramebufferImageView(config, framebuffer_addr)};
     if (!image_view) {
         return false;
     }
@@ -725,7 +726,6 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     screen_info.texture.width = image_view->size.width;
     screen_info.texture.height = image_view->size.height;
     screen_info.display_texture = image_view->Handle(Shader::TextureType::Color2D);
-    screen_info.display_srgb = VideoCore::Surface::IsPixelFormatSRGB(image_view->format);
     return true;
 }
 

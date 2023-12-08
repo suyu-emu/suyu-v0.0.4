@@ -127,9 +127,9 @@ BlitScreen::BlitScreen(Core::Memory::Memory& cpu_memory_, Core::Frontend::EmuWin
                        Scheduler& scheduler_, const ScreenInfo& screen_info_)
     : cpu_memory{cpu_memory_}, render_window{render_window_}, device{device_},
       memory_allocator{memory_allocator_}, swapchain{swapchain_}, present_manager{present_manager_},
-      scheduler{scheduler_}, image_count{swapchain.GetImageCount()}, screen_info{screen_info_},
-      current_srgb{swapchain.IsSrgb()}, image_view_format{swapchain.GetImageViewFormat()} {
+      scheduler{scheduler_}, image_count{swapchain.GetImageCount()}, screen_info{screen_info_} {
     resource_ticks.resize(image_count);
+    swapchain_view_format = swapchain.GetImageViewFormat();
 
     CreateStaticResources();
     CreateDynamicResources();
@@ -480,28 +480,22 @@ void BlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
 }
 
 void BlitScreen::DrawToSwapchain(Frame* frame, const Tegra::FramebufferConfig& framebuffer,
-                                 bool use_accelerated, bool is_srgb) {
-    // Recreate dynamic resources if the the image count or colorspace changed
+                                 bool use_accelerated) {
+    // Recreate dynamic resources if the the image count or input format changed
+    const VkFormat current_framebuffer_format =
+        std::exchange(framebuffer_view_format, GetFormat(framebuffer));
     if (const std::size_t swapchain_images = swapchain.GetImageCount();
-        swapchain_images != image_count || current_srgb != is_srgb) {
-        current_srgb = is_srgb;
-#ifdef ANDROID
-        // Android is already ordered the same as Switch.
-        image_view_format = current_srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
-#else
-        image_view_format = current_srgb ? VK_FORMAT_B8G8R8A8_SRGB : VK_FORMAT_B8G8R8A8_UNORM;
-#endif
+        swapchain_images != image_count || current_framebuffer_format != framebuffer_view_format) {
         image_count = swapchain_images;
         Recreate();
     }
 
     // Recreate the presentation frame if the dimensions of the window changed
     const Layout::FramebufferLayout layout = render_window.GetFramebufferLayout();
-    if (layout.width != frame->width || layout.height != frame->height ||
-        is_srgb != frame->is_srgb) {
+    if (layout.width != frame->width || layout.height != frame->height) {
         Recreate();
-        present_manager.RecreateFrame(frame, layout.width, layout.height, is_srgb,
-                                      image_view_format, *renderpass);
+        present_manager.RecreateFrame(frame, layout.width, layout.height, swapchain_view_format,
+                                      *renderpass);
     }
 
     const VkExtent2D render_area{frame->width, frame->height};
@@ -629,7 +623,7 @@ void BlitScreen::CreateDescriptorPool() {
 }
 
 void BlitScreen::CreateRenderPass() {
-    renderpass = CreateRenderPassImpl(image_view_format);
+    renderpass = CreateRenderPassImpl(swapchain_view_format);
 }
 
 vk::RenderPass BlitScreen::CreateRenderPassImpl(VkFormat format) {
@@ -1149,7 +1143,7 @@ void BlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
             .pNext = nullptr,
             .flags = 0,
             .imageType = VK_IMAGE_TYPE_2D,
-            .format = used_on_framebuffer ? VK_FORMAT_R16G16B16A16_SFLOAT : GetFormat(framebuffer),
+            .format = used_on_framebuffer ? VK_FORMAT_R16G16B16A16_SFLOAT : framebuffer_view_format,
             .extent =
                 {
                     .width = (up_scale * framebuffer.width) >> down_shift,
@@ -1174,7 +1168,7 @@ void BlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
             .flags = 0,
             .image = *image,
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = used_on_framebuffer ? VK_FORMAT_R16G16B16A16_SFLOAT : GetFormat(framebuffer),
+            .format = used_on_framebuffer ? VK_FORMAT_R16G16B16A16_SFLOAT : framebuffer_view_format,
             .components =
                 {
                     .r = VK_COMPONENT_SWIZZLE_IDENTITY,

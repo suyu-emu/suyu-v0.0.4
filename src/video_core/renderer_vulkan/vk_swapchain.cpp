@@ -105,14 +105,14 @@ VkCompositeAlphaFlagBitsKHR ChooseAlphaFlags(const VkSurfaceCapabilitiesKHR& cap
 } // Anonymous namespace
 
 Swapchain::Swapchain(VkSurfaceKHR surface_, const Device& device_, Scheduler& scheduler_,
-                     u32 width_, u32 height_, bool srgb)
+                     u32 width_, u32 height_)
     : surface{surface_}, device{device_}, scheduler{scheduler_} {
-    Create(surface_, width_, height_, srgb);
+    Create(surface_, width_, height_);
 }
 
 Swapchain::~Swapchain() = default;
 
-void Swapchain::Create(VkSurfaceKHR surface_, u32 width_, u32 height_, bool srgb) {
+void Swapchain::Create(VkSurfaceKHR surface_, u32 width_, u32 height_) {
     is_outdated = false;
     is_suboptimal = false;
     width = width_;
@@ -127,7 +127,7 @@ void Swapchain::Create(VkSurfaceKHR surface_, u32 width_, u32 height_, bool srgb
 
     Destroy();
 
-    CreateSwapchain(capabilities, srgb);
+    CreateSwapchain(capabilities);
     CreateSemaphores();
 
     resource_ticks.clear();
@@ -196,7 +196,7 @@ void Swapchain::Present(VkSemaphore render_semaphore) {
     }
 }
 
-void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, bool srgb) {
+void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities) {
     const auto physical_device{device.GetPhysical()};
     const auto formats{physical_device.GetSurfaceFormatsKHR(surface)};
     const auto present_modes = physical_device.GetSurfacePresentModesKHR(surface);
@@ -274,15 +274,14 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, bo
     swapchain = device.GetLogical().CreateSwapchainKHR(swapchain_ci);
 
     extent = swapchain_ci.imageExtent;
-    current_srgb = srgb;
 
     images = swapchain.GetImages();
     image_count = static_cast<u32>(images.size());
 #ifdef ANDROID
     // Android is already ordered the same as Switch.
-    image_view_format = srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
+    image_view_format = VK_FORMAT_R8G8B8A8_UNORM;
 #else
-    image_view_format = srgb ? VK_FORMAT_B8G8R8A8_SRGB : VK_FORMAT_B8G8R8A8_UNORM;
+    image_view_format = VK_FORMAT_B8G8R8A8_UNORM;
 #endif
 }
 

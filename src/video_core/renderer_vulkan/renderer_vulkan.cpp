@@ -94,7 +94,7 @@ RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
       device(CreateDevice(instance, dld, *surface)), memory_allocator(device), state_tracker(),
       scheduler(device, state_tracker),
       swapchain(*surface, device, scheduler, render_window.GetFramebufferLayout().width,
-                render_window.GetFramebufferLayout().height, false),
+                render_window.GetFramebufferLayout().height),
       present_manager(instance, render_window, device, memory_allocator, scheduler, swapchain,
                       surface),
       blit_screen(cpu_memory, render_window, device, memory_allocator, swapchain, present_manager,
@@ -131,11 +131,10 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     const VAddr framebuffer_addr = framebuffer->address + framebuffer->offset;
     const bool use_accelerated =
         rasterizer.AccelerateDisplay(*framebuffer, framebuffer_addr, framebuffer->stride);
-    const bool is_srgb = use_accelerated && screen_info.is_srgb;
     RenderScreenshot(*framebuffer, use_accelerated);
 
     Frame* frame = present_manager.GetRenderFrame();
-    blit_screen.DrawToSwapchain(frame, *framebuffer, use_accelerated, is_srgb);
+    blit_screen.DrawToSwapchain(frame, *framebuffer, use_accelerated);
     scheduler.Flush(*frame->render_ready);
     present_manager.Present(frame);
 
@@ -205,7 +204,7 @@ void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& fr
         .flags = 0,
         .image = *staging_image,
         .viewType = VK_IMAGE_VIEW_TYPE_2D,
-        .format = screen_info.is_srgb ? VK_FORMAT_B8G8R8A8_SRGB : VK_FORMAT_B8G8R8A8_UNORM,
+        .format = VK_FORMAT_B8G8R8A8_UNORM,
         .components{
             .r = VK_COMPONENT_SWIZZLE_IDENTITY,
             .g = VK_COMPONENT_SWIZZLE_IDENTITY,
