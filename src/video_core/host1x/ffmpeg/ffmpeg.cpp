@@ -233,7 +233,12 @@ std::unique_ptr<Frame> DecoderContext::ReceiveFrame(bool* out_is_interlaced) {
             return false;
         }
 
-        *out_is_interlaced = frame->interlaced_frame != 0;
+        *out_is_interlaced =
+#if defined(FF_API_INTERLACED_FRAME) || LIBAVUTIL_VERSION_MAJOR >= 59
+            (frame->flags & AV_FRAME_FLAG_INTERLACED) != 0;
+#else
+            frame->interlaced_frame != 0;
+#endif
         return true;
     };
 
