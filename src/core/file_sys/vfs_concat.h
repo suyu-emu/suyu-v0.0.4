@@ -37,7 +37,7 @@ public:
     /// Convenience function that turns a map of offsets to files into a concatenated file, filling
     /// gaps with a given filler byte.
     static VirtualFile MakeConcatenatedFile(u8 filler_byte, std::string&& name,
-                                            std::multimap<u64, VirtualFile>&& files);
+                                            std::vector<std::pair<u64, VirtualFile>>&& files);
 
     std::string GetName() const override;
     std::size_t GetSize() const override;
