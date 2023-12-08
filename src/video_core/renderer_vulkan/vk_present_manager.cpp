@@ -172,13 +172,12 @@ void PresentManager::Present(Frame* frame) {
     });
 }
 
-void PresentManager::RecreateFrame(Frame* frame, u32 width, u32 height, bool is_srgb,
-                                   VkFormat image_view_format, VkRenderPass rd) {
+void PresentManager::RecreateFrame(Frame* frame, u32 width, u32 height, VkFormat image_view_format,
+                                   VkRenderPass rd) {
     auto& dld = device.GetLogical();
 
     frame->width = width;
     frame->height = height;
-    frame->is_srgb = is_srgb;
 
     frame->image = memory_allocator.CreateImage({
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -289,7 +288,7 @@ void PresentManager::PresentThread(std::stop_token token) {
 }
 
 void PresentManager::RecreateSwapchain(Frame* frame) {
-    swapchain.Create(*surface, frame->width, frame->height, frame->is_srgb);
+    swapchain.Create(*surface, frame->width, frame->height);
     image_count = swapchain.GetImageCount();
 }
 
@@ -319,12 +318,12 @@ void PresentManager::CopyToSwapchain(Frame* frame) {
 void PresentManager::CopyToSwapchainImpl(Frame* frame) {
     MICROPROFILE_SCOPE(Vulkan_CopyToSwapchain);
 
-    // If the size or colorspace of the incoming frames has changed, recreate the swapchain
+    // If the size of the incoming frames has changed, recreate the swapchain
     // to account for that.
-    const bool srgb_changed = swapchain.NeedsRecreation(frame->is_srgb);
+    const bool is_suboptimal = swapchain.NeedsRecreation();
     const bool size_changed =
         swapchain.GetWidth() != frame->width || swapchain.GetHeight() != frame->height;
-    if (srgb_changed || size_changed) {
+    if (is_suboptimal || size_changed) {
         RecreateSwapchain(frame);
     }
 

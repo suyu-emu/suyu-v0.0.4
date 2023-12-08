@@ -783,7 +783,8 @@ bool RasterizerVulkan::AccelerateDisplay(const Tegra::FramebufferConfig& config,
         return false;
     }
     std::scoped_lock lock{texture_cache.mutex};
-    ImageView* const image_view = texture_cache.TryFindFramebufferImageView(framebuffer_addr);
+    ImageView* const image_view =
+        texture_cache.TryFindFramebufferImageView(config, framebuffer_addr);
     if (!image_view) {
         return false;
     }
@@ -792,7 +793,6 @@ bool RasterizerVulkan::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     screen_info.image_view = image_view->Handle(Shader::TextureType::Color2D);
     screen_info.width = image_view->size.width;
     screen_info.height = image_view->size.height;
-    screen_info.is_srgb = VideoCore::Surface::IsPixelFormatSRGB(image_view->format);
     return true;
 }
 

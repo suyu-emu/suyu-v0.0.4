@@ -712,14 +712,15 @@ bool TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
 }
 
 template <class P>
-typename P::ImageView* TextureCache<P>::TryFindFramebufferImageView(VAddr cpu_addr) {
+typename P::ImageView* TextureCache<P>::TryFindFramebufferImageView(
+    const Tegra::FramebufferConfig& config, VAddr cpu_addr) {
     // TODO: Properly implement this
     const auto it = page_table.find(cpu_addr >> YUZU_PAGEBITS);
     if (it == page_table.end()) {
         return nullptr;
     }
     const auto& image_map_ids = it->second;
-    boost::container::small_vector<const ImageBase*, 4> valid_images;
+    boost::container::small_vector<ImageId, 4> valid_image_ids;
     for (const ImageMapId map_id : image_map_ids) {
         const ImageMapView& map = slot_map_views[map_id];
         const ImageBase& image = slot_images[map.image_id];
@@ -729,18 +730,34 @@ typename P::ImageView* TextureCache<P>::TryFindFramebufferImageView(VAddr cpu_ad
         if (image.image_view_ids.empty()) {
             continue;
         }
-        valid_images.push_back(&image);
+        valid_image_ids.push_back(map.image_id);
     }
 
-    if (valid_images.size() == 1) [[likely]] {
-        return &slot_image_views[valid_images[0]->image_view_ids.at(0)];
+    const auto view_format = [&]() {
+        switch (config.pixel_format) {
+        case Service::android::PixelFormat::Rgb565:
+            return PixelFormat::R5G6B5_UNORM;
+        case Service::android::PixelFormat::Bgra8888:
+            return PixelFormat::B8G8R8A8_UNORM;
+        default:
+            return PixelFormat::A8B8G8R8_UNORM;
+        }
+    }();
+
+    const auto GetImageViewForFramebuffer = [&](ImageId image_id) {
+        const ImageViewInfo info{ImageViewType::e2D, view_format};
+        return &slot_image_views[FindOrEmplaceImageView(image_id, info)];
+    };
+
+    if (valid_image_ids.size() == 1) [[likely]] {
+        return GetImageViewForFramebuffer(valid_image_ids.front());
     }
 
-    if (valid_images.size() > 0) [[unlikely]] {
-        std::ranges::sort(valid_images, [](const auto* a, const auto* b) {
-            return a->modification_tick > b->modification_tick;
+    if (valid_image_ids.size() > 0) [[unlikely]] {
+        auto most_recent = std::ranges::max_element(valid_image_ids, [&](auto a, auto b) {
+            return slot_images[a].modification_tick < slot_images[b].modification_tick;
         });
-        return &slot_image_views[valid_images[0]->image_view_ids.at(0)];
+        return GetImageViewForFramebuffer(*most_recent);
     }
 
     return nullptr;
