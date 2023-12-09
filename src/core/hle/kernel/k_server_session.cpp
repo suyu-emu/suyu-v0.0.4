@@ -462,8 +462,7 @@ Result KServerSession::ReceiveRequest(std::shared_ptr<Service::HLERequestContext
             std::make_shared<Service::HLERequestContext>(m_kernel, memory, this, client_thread);
         (*out_context)->SetSessionRequestManager(manager);
         (*out_context)
-            ->PopulateFromIncomingCommandBuffer(client_thread->GetOwnerProcess()->GetHandleTable(),
-                                                cmd_buf);
+            ->PopulateFromIncomingCommandBuffer(*client_thread->GetOwnerProcess(), cmd_buf);
     } else {
         KThread* server_thread = GetCurrentThreadPointer(m_kernel);
         KProcess& src_process = *client_thread->GetOwnerProcess();
