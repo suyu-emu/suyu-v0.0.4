@@ -4,6 +4,7 @@
 package org.yuzu.yuzu_emu.fragments
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -75,6 +76,8 @@ class SetupFragment : Fragment() {
         return binding.root
     }
 
+    // This is using the correct scope, lint is just acting up
+    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         mainActivity = requireActivity() as MainActivity
 
@@ -206,12 +209,24 @@ class SetupFragment : Fragment() {
             )
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                homeViewModel.shouldPageForward.collect {
-                    if (it) {
-                        pageForward()
-                        homeViewModel.setShouldPageForward(false)
+        viewLifecycleOwner.lifecycleScope.apply {
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    homeViewModel.shouldPageForward.collect {
+                        if (it) {
+                            pageForward()
+                            homeViewModel.setShouldPageForward(false)
+                        }
+                    }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    homeViewModel.gamesDirSelected.collect {
+                        if (it) {
+                            gamesDirCallback.onStepCompleted()
+                            homeViewModel.setGamesDirSelected(false)
+                        }
                     }
                 }
             }
@@ -339,7 +354,6 @@ class SetupFragment : Fragment() {
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
             if (result != null) {
                 mainActivity.processGamesDir(result)
-                gamesDirCallback.onStepCompleted()
             }
         }
 

@@ -133,7 +133,7 @@ class GamesViewModel : ViewModel() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 NativeConfig.addGameDir(gameDir)
-                getGameDirs()
+                getGameDirs(true)
             }
         }
 

@@ -6,6 +6,7 @@ package org.yuzu.yuzu_emu.model
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class HomeViewModel : ViewModel() {
     val navigationVisible: StateFlow<Pair<Boolean, Boolean>> get() = _navigationVisible
@@ -16,6 +17,9 @@ class HomeViewModel : ViewModel() {
 
     val shouldPageForward: StateFlow<Boolean> get() = _shouldPageForward
     private val _shouldPageForward = MutableStateFlow(false)
+
+    private val _gamesDirSelected = MutableStateFlow(false)
+    val gamesDirSelected get() = _gamesDirSelected.asStateFlow()
 
     var navigatedToSetup = false
 
@@ -35,5 +39,9 @@ class HomeViewModel : ViewModel() {
 
     fun setShouldPageForward(pageForward: Boolean) {
         _shouldPageForward.value = pageForward
+    }
+
+    fun setGamesDirSelected(selected: Boolean) {
+        _gamesDirSelected.value = selected
     }
 }
