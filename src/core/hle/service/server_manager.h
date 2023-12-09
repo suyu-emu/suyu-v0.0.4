@@ -13,6 +13,7 @@
 #include "common/polyfill_thread.h"
 #include "common/thread.h"
 #include "core/hle/result.h"
+#include "core/hle/service/hle_ipc.h"
 #include "core/hle/service/mutex.h"
 
 namespace Core {
@@ -28,10 +29,6 @@ class KSynchronizationObject;
 
 namespace Service {
 
-class HLERequestContext;
-class SessionRequestHandler;
-class SessionRequestManager;
-
 class ServerManager {
 public:
     explicit ServerManager(Core::System& system);
@@ -40,10 +37,13 @@ public:
     Result RegisterSession(Kernel::KServerSession* session,
                            std::shared_ptr<SessionRequestManager> manager);
     Result RegisterNamedService(const std::string& service_name,
+                                SessionRequestHandlerFactory&& handler_factory,
+                                u32 max_sessions = 64);
+    Result RegisterNamedService(const std::string& service_name,
                                 std::shared_ptr<SessionRequestHandler>&& handler,
                                 u32 max_sessions = 64);
     Result ManageNamedPort(const std::string& service_name,
-                           std::shared_ptr<SessionRequestHandler>&& handler, u32 max_sessions = 64);
+                           SessionRequestHandlerFactory&& handler_factory, u32 max_sessions = 64);
     Result ManageDeferral(Kernel::KEvent** out_event);
 
     Result LoopProcess();
@@ -56,7 +56,7 @@ private:
 
     Result LoopProcessImpl();
     Result WaitAndProcessImpl();
-    Result OnPortEvent(Kernel::KServerPort* port, std::shared_ptr<SessionRequestHandler>&& handler);
+    Result OnPortEvent(Kernel::KServerPort* port, SessionRequestHandlerFactory&& handler_factory);
     Result OnSessionEvent(Kernel::KServerSession* session,
                           std::shared_ptr<SessionRequestManager>&& manager);
     Result OnDeferralEvent(std::list<RequestState>&& deferrals);
@@ -68,7 +68,7 @@ private:
     std::mutex m_list_mutex;
 
     // Guest state tracking
-    std::map<Kernel::KServerPort*, std::shared_ptr<SessionRequestHandler>> m_ports{};
+    std::map<Kernel::KServerPort*, SessionRequestHandlerFactory> m_ports{};
     std::map<Kernel::KServerSession*, std::shared_ptr<SessionRequestManager>> m_sessions{};
     Kernel::KEvent* m_event{};
     Kernel::KEvent* m_deferral_event{};
