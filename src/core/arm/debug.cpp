@@ -282,6 +282,8 @@ Loader::AppLoader::Modules FindModules(const Kernel::KProcess* process) {
 
                     // Ignore leading directories.
                     char* path_pointer = module_path.path.data();
+                    char* path_end =
+                        path_pointer + std::min(PathLengthMax, module_path.path_length);
 
                     for (s32 i = 0; i < std::min(PathLengthMax, module_path.path_length) &&
                                     module_path.path[i] != '\0';
@@ -292,7 +294,8 @@ Loader::AppLoader::Modules FindModules(const Kernel::KProcess* process) {
                     }
 
                     // Insert output.
-                    modules.emplace(svc_mem_info.base_address, path_pointer);
+                    modules.emplace(svc_mem_info.base_address,
+                                    std::string_view(path_pointer, path_end));
                 }
             }
         }
