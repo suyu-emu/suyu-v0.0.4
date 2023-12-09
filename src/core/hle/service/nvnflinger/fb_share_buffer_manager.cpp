@@ -171,6 +171,7 @@ void MakeGraphicBuffer(android::BufferQueueProducer& producer, u32 slot, u32 han
     buffer->height = SharedBufferHeight;
     buffer->stride = SharedBufferBlockLinearStride;
     buffer->format = SharedBufferBlockLinearFormat;
+    buffer->external_format = SharedBufferBlockLinearFormat;
     buffer->buffer_id = handle;
     buffer->offset = slot * SharedBufferSlotSize;
     ASSERT(producer.SetPreallocatedBuffer(slot, buffer) == android::Status::NoError);
