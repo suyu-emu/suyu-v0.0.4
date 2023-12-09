@@ -6,11 +6,20 @@
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Core::Timing {
 struct EventType;
 }
 
+namespace Kernel {
+class KSharedMemory;
+}
+
 namespace Service::HID {
+class AppletResource;
 class Controller_Stubbed;
 class ConsoleSixAxis;
 class DebugPad;
@@ -38,6 +47,7 @@ public:
 
     void Initialize();
 
+    std::shared_ptr<AppletResource> GetAppletResource() const;
     std::shared_ptr<CaptureButton> GetCaptureButton() const;
     std::shared_ptr<ConsoleSixAxis> GetConsoleSixAxis() const;
     std::shared_ptr<DebugMouse> GetDebugMouse() const;
@@ -54,6 +64,18 @@ public:
     std::shared_ptr<TouchScreen> GetTouchScreen() const;
     std::shared_ptr<UniquePad> GetUniquePad() const;
 
+    Result CreateAppletResource(u64 aruid);
+
+    Result RegisterAppletResourceUserId(u64 aruid, bool bool_value);
+    void UnregisterAppletResourceUserId(u64 aruid);
+
+    Result GetSharedMemoryHandle(Kernel::KSharedMemory** out_handle, u64 aruid);
+
+    void EnableInput(u64 aruid, bool is_enabled);
+    void EnableSixAxisSensor(u64 aruid, bool is_enabled);
+    void EnablePadInput(u64 aruid, bool is_enabled);
+    void EnableTouchScreen(u64 aruid, bool is_enabled);
+
     void UpdateControllers(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
     void UpdateNpad(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
     void UpdateMouseKeyboard(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
@@ -61,6 +83,9 @@ public:
 
 private:
     bool is_initialized{false};
+
+    mutable std::mutex shared_mutex;
+    std::shared_ptr<AppletResource> applet_resource = nullptr;
 
     std::shared_ptr<CaptureButton> capture_button = nullptr;
     std::shared_ptr<ConsoleSixAxis> console_six_axis = nullptr;
@@ -106,6 +131,8 @@ private:
     std::shared_ptr<Core::Timing::EventType> default_update_event;
     std::shared_ptr<Core::Timing::EventType> mouse_keyboard_update_event;
     std::shared_ptr<Core::Timing::EventType> motion_update_event;
+
+    std::shared_ptr<ResourceManager> resource_manager;
 };
 
 } // namespace Service::HID

@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/hle/kernel/k_process.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/hle/service/hid/hid_debug_server.h"
 #include "core/hle/service/hid/hid_firmware_settings.h"
@@ -19,6 +21,12 @@ void LoopProcess(Core::System& system) {
     std::shared_ptr<ResourceManager> resouce_manager = std::make_shared<ResourceManager>(system);
     std::shared_ptr<HidFirmwareSettings> firmware_settings =
         std::make_shared<HidFirmwareSettings>();
+
+    // TODO: Remove this hack until this service is emulated properly.
+    const auto process_list = system.Kernel().GetProcessList();
+    if (!process_list.empty()) {
+        resouce_manager->RegisterAppletResourceUserId(process_list[0]->GetId(), true);
+    }
 
     server_manager->RegisterNamedService(
         "hid", std::make_shared<IHidServer>(system, resouce_manager, firmware_settings));

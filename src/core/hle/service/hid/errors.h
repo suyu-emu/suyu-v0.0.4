@@ -19,6 +19,11 @@ constexpr Result NpadIsSameType{ErrorModule::HID, 602};
 constexpr Result InvalidNpadId{ErrorModule::HID, 709};
 constexpr Result NpadNotConnected{ErrorModule::HID, 710};
 constexpr Result InvalidArraySize{ErrorModule::HID, 715};
+
+constexpr Result ResultAruidNoAvailableEntries{ErrorModule::HID, 1044};
+constexpr Result ResultAruidAlreadyRegistered{ErrorModule::HID, 1046};
+constexpr Result ResultAruidNotRegistered{ErrorModule::HID, 1047};
+
 constexpr Result InvalidPalmaHandle{ErrorModule::HID, 3302};
 
 } // namespace Service::HID

@@ -9,6 +9,7 @@
 #include "core/hle/service/hid/resource_manager.h"
 #include "core/hle/service/ipc_helpers.h"
 
+#include "core/hle/service/hid/controllers/applet_resource.h"
 #include "core/hle/service/hid/controllers/console_six_axis.h"
 #include "core/hle/service/hid/controllers/debug_pad.h"
 #include "core/hle/service/hid/controllers/gesture.h"
@@ -33,7 +34,9 @@ constexpr auto mouse_keyboard_update_ns = std::chrono::nanoseconds{8 * 1000 * 10
 constexpr auto motion_update_ns = std::chrono::nanoseconds{5 * 1000 * 1000};         // (5ms, 200Hz)
 
 ResourceManager::ResourceManager(Core::System& system_)
-    : system{system_}, service_context{system_, "hid"} {}
+    : system{system_}, service_context{system_, "hid"} {
+    applet_resource = std::make_shared<AppletResource>(system);
+}
 
 ResourceManager::~ResourceManager() = default;
 
@@ -77,6 +80,11 @@ void ResourceManager::Initialize() {
     system.HIDCore().ReloadInputDevices();
     is_initialized = true;
 }
+
+std::shared_ptr<AppletResource> ResourceManager::GetAppletResource() const {
+    return applet_resource;
+}
+
 std::shared_ptr<CaptureButton> ResourceManager::GetCaptureButton() const {
     return capture_button;
 }
@@ -137,6 +145,46 @@ std::shared_ptr<UniquePad> ResourceManager::GetUniquePad() const {
     return unique_pad;
 }
 
+Result ResourceManager::CreateAppletResource(u64 aruid) {
+    std::scoped_lock lock{shared_mutex};
+    return applet_resource->CreateAppletResource(aruid);
+}
+
+Result ResourceManager::RegisterAppletResourceUserId(u64 aruid, bool bool_value) {
+    std::scoped_lock lock{shared_mutex};
+    return applet_resource->RegisterAppletResourceUserId(aruid, bool_value);
+}
+
+void ResourceManager::UnregisterAppletResourceUserId(u64 aruid) {
+    std::scoped_lock lock{shared_mutex};
+    applet_resource->UnregisterAppletResourceUserId(aruid);
+}
+
+Result ResourceManager::GetSharedMemoryHandle(Kernel::KSharedMemory** out_handle, u64 aruid) {
+    std::scoped_lock lock{shared_mutex};
+    return applet_resource->GetSharedMemoryHandle(out_handle, aruid);
+}
+
+void ResourceManager::EnableInput(u64 aruid, bool is_enabled) {
+    std::scoped_lock lock{shared_mutex};
+    applet_resource->EnableInput(aruid, is_enabled);
+}
+
+void ResourceManager::EnableSixAxisSensor(u64 aruid, bool is_enabled) {
+    std::scoped_lock lock{shared_mutex};
+    applet_resource->EnableSixAxisSensor(aruid, is_enabled);
+}
+
+void ResourceManager::EnablePadInput(u64 aruid, bool is_enabled) {
+    std::scoped_lock lock{shared_mutex};
+    applet_resource->EnablePadInput(aruid, is_enabled);
+}
+
+void ResourceManager::EnableTouchScreen(u64 aruid, bool is_enabled) {
+    std::scoped_lock lock{shared_mutex};
+    applet_resource->EnableTouchScreen(aruid, is_enabled);
+}
+
 void ResourceManager::UpdateControllers(std::uintptr_t user_data,
                                         std::chrono::nanoseconds ns_late) {
     auto& core_timing = system.CoreTiming();
@@ -172,13 +220,11 @@ void ResourceManager::UpdateMotion(std::uintptr_t user_data, std::chrono::nanose
 }
 
 IAppletResource::IAppletResource(Core::System& system_, std::shared_ptr<ResourceManager> resource)
-    : ServiceFramework{system_, "IAppletResource"} {
+    : ServiceFramework{system_, "IAppletResource"}, resource_manager{resource} {
     static const FunctionInfo functions[] = {
         {0, &IAppletResource::GetSharedMemoryHandle, "GetSharedMemoryHandle"},
     };
     RegisterHandlers(functions);
-
-    resource->Initialize();
 
     // Register update callbacks
     npad_update_event = Core::Timing::CreateEvent(
@@ -233,9 +279,13 @@ IAppletResource::~IAppletResource() {
 void IAppletResource::GetSharedMemoryHandle(HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called");
 
+    Kernel::KSharedMemory* handle;
+    const u64 applet_resource_user_id = resource_manager->GetAppletResource()->GetActiveAruid();
+    const auto result = resource_manager->GetSharedMemoryHandle(&handle, applet_resource_user_id);
+
     IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(&system.Kernel().GetHidSharedMem());
+    rb.Push(result);
+    rb.PushCopyObjects(handle);
 }
 
 } // namespace Service::HID

@@ -3,6 +3,7 @@
 
 #include "core/hid/hid_core.h"
 #include "core/hle/service/hid/controllers/npad.h"
+#include "core/hle/service/hid/controllers/palma.h"
 #include "core/hle/service/hid/controllers/touchscreen.h"
 #include "core/hle/service/hid/errors.h"
 #include "core/hle/service/hid/hid_system_server.h"
@@ -63,13 +64,13 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {329, nullptr, "DetachAbstractedPadAll"},
         {330, nullptr, "CheckAbstractedPadConnection"},
         {500, nullptr, "SetAppletResourceUserId"},
-        {501, nullptr, "RegisterAppletResourceUserId"},
-        {502, nullptr, "UnregisterAppletResourceUserId"},
-        {503, nullptr, "EnableAppletToGetInput"},
+        {501, &IHidSystemServer::RegisterAppletResourceUserId, "RegisterAppletResourceUserId"},
+        {502, &IHidSystemServer::UnregisterAppletResourceUserId, "UnregisterAppletResourceUserId"},
+        {503, &IHidSystemServer::EnableAppletToGetInput, "EnableAppletToGetInput"},
         {504, nullptr, "SetAruidValidForVibration"},
-        {505, nullptr, "EnableAppletToGetSixAxisSensor"},
-        {506, nullptr, "EnableAppletToGetPadInput"},
-        {507, nullptr, "EnableAppletToGetTouchScreen"},
+        {505, &IHidSystemServer::EnableAppletToGetSixAxisSensor, "EnableAppletToGetSixAxisSensor"},
+        {506, &IHidSystemServer::EnableAppletToGetPadInput, "EnableAppletToGetPadInput"},
+        {507, &IHidSystemServer::EnableAppletToGetTouchScreen, "EnableAppletToGetTouchScreen"},
         {510, nullptr, "SetVibrationMasterVolume"},
         {511, nullptr, "GetVibrationMasterVolume"},
         {512, nullptr, "BeginPermitVibrationSession"},
@@ -416,6 +417,129 @@ void IHidSystemServer::GetIrSensorState(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
     LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+void IHidSystemServer::RegisterAppletResourceUserId(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        bool enable_input;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_INFO(Service_HID, "called, enable_input={}, applet_resource_user_id={}",
+             parameters.enable_input, parameters.applet_resource_user_id);
+
+    Result result = GetResourceManager()->RegisterAppletResourceUserId(
+        parameters.applet_resource_user_id, parameters.enable_input);
+
+    if (result.IsSuccess()) {
+        // result = GetResourceManager()->GetNpad()->RegisterAppletResourceUserId(
+        //     parameters.applet_resource_user_id);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::UnregisterAppletResourceUserId(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    u64 applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    GetResourceManager()->UnregisterAppletResourceUserId(applet_resource_user_id);
+    // GetResourceManager()->GetNpad()->UnregisterAppletResourceUserId(applet_resource_user_id);
+    // GetResourceManager()->GetPalma()->UnregisterAppletResourceUserId(applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::EnableAppletToGetInput(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        bool is_enabled;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_INFO(Service_HID, "called, is_enabled={}, applet_resource_user_id={}",
+             parameters.is_enabled, parameters.applet_resource_user_id);
+
+    GetResourceManager()->EnableInput(parameters.applet_resource_user_id, parameters.is_enabled);
+    // GetResourceManager()->GetNpad()->EnableInput(parameters.applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::EnableAppletToGetSixAxisSensor(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        bool is_enabled;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_INFO(Service_HID, "called, is_enabled={}, applet_resource_user_id={}",
+             parameters.is_enabled, parameters.applet_resource_user_id);
+
+    GetResourceManager()->EnableTouchScreen(parameters.applet_resource_user_id,
+                                            parameters.is_enabled);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::EnableAppletToGetPadInput(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        bool is_enabled;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_INFO(Service_HID, "called, is_enabled={}, applet_resource_user_id={}",
+             parameters.is_enabled, parameters.applet_resource_user_id);
+
+    GetResourceManager()->EnablePadInput(parameters.applet_resource_user_id, parameters.is_enabled);
+    // GetResourceManager()->GetNpad()->EnableInput(parameters.applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::EnableAppletToGetTouchScreen(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        bool is_enabled;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_INFO(Service_HID, "called, is_enabled={}, applet_resource_user_id={}",
+             parameters.is_enabled, parameters.applet_resource_user_id);
+
+    GetResourceManager()->EnableTouchScreen(parameters.applet_resource_user_id,
+                                            parameters.is_enabled);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
