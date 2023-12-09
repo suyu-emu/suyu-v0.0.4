@@ -766,6 +766,12 @@ add_library(core STATIC
     hle/service/kernel_helpers.h
     hle/service/mutex.cpp
     hle/service/mutex.h
+    hle/service/ro/ro_nro_utils.cpp
+    hle/service/ro/ro_nro_utils.h
+    hle/service/ro/ro_results.h
+    hle/service/ro/ro_types.h
+    hle/service/ro/ro.cpp
+    hle/service/ro/ro.h
     hle/service/server_manager.cpp
     hle/service/server_manager.h
     hle/service/service.cpp
