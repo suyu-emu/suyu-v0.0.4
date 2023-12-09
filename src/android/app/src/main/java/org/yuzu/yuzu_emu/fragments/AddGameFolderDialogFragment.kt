@@ -14,8 +14,10 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogAddFolderBinding
 import org.yuzu.yuzu_emu.model.GameDir
 import org.yuzu.yuzu_emu.model.GamesViewModel
+import org.yuzu.yuzu_emu.model.HomeViewModel
 
 class AddGameFolderDialogFragment : DialogFragment() {
+    private val homeViewModel: HomeViewModel by activityViewModels()
     private val gamesViewModel: GamesViewModel by activityViewModels()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -30,6 +32,7 @@ class AddGameFolderDialogFragment : DialogFragment() {
             .setTitle(R.string.add_game_folder)
             .setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
                 val newGameDir = GameDir(folderUriString!!, binding.deepScanSwitch.isChecked)
+                homeViewModel.setGamesDirSelected(true)
                 gamesViewModel.addFolder(newGameDir)
             }
             .setNegativeButton(android.R.string.cancel, null)
