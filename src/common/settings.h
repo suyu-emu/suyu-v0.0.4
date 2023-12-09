@@ -180,14 +180,20 @@ struct Values {
                                              &use_speed_limit};
 
     // Cpu
-    SwitchableSetting<CpuBackend, true> cpu_backend{
-        linkage,         CpuBackend::Dynarmic, CpuBackend::Dynarmic,
+    SwitchableSetting<CpuBackend, true> cpu_backend{linkage,
 #ifdef HAS_NCE
-        CpuBackend::Nce,
+                                                    CpuBackend::Nce,
 #else
                                                     CpuBackend::Dynarmic,
 #endif
-        "cpu_backend",   Category::Cpu};
+                                                    CpuBackend::Dynarmic,
+#ifdef HAS_NCE
+                                                    CpuBackend::Nce,
+#else
+                                                    CpuBackend::Dynarmic,
+#endif
+                                                    "cpu_backend",
+                                                    Category::Cpu};
     SwitchableSetting<CpuAccuracy, true> cpu_accuracy{linkage,           CpuAccuracy::Auto,
                                                       CpuAccuracy::Auto, CpuAccuracy::Paranoid,
                                                       "cpu_accuracy",    Category::Cpu};
