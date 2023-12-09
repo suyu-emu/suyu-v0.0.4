@@ -75,6 +75,7 @@ protected:
 
 using SessionRequestHandlerWeakPtr = std::weak_ptr<SessionRequestHandler>;
 using SessionRequestHandlerPtr = std::shared_ptr<SessionRequestHandler>;
+using SessionRequestHandlerFactory = std::function<SessionRequestHandlerPtr()>;
 
 /**
  * Manages the underlying HLE requests for a session, and whether (or not) the session should be

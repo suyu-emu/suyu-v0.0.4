@@ -93,13 +93,13 @@ Result ServerManager::RegisterSession(Kernel::KServerSession* session,
 }
 
 Result ServerManager::RegisterNamedService(const std::string& service_name,
-                                           std::shared_ptr<SessionRequestHandler>&& handler,
+                                           SessionRequestHandlerFactory&& handler_factory,
                                            u32 max_sessions) {
     ASSERT(m_sessions.size() + m_ports.size() < MaximumWaitObjects);
 
     // Add the new server to sm:.
     ASSERT(R_SUCCEEDED(
-        m_system.ServiceManager().RegisterService(service_name, max_sessions, handler)));
+        m_system.ServiceManager().RegisterService(service_name, max_sessions, handler_factory)));
 
     // Get the registered port.
     Kernel::KPort* port{};
@@ -112,7 +112,7 @@ Result ServerManager::RegisterNamedService(const std::string& service_name,
     // Begin tracking the server port.
     {
         std::scoped_lock ll{m_list_mutex};
-        m_ports.emplace(std::addressof(port->GetServerPort()), std::move(handler));
+        m_ports.emplace(std::addressof(port->GetServerPort()), std::move(handler_factory));
     }
 
     // Signal the wakeup event.
@@ -121,8 +121,18 @@ Result ServerManager::RegisterNamedService(const std::string& service_name,
     R_SUCCEED();
 }
 
+Result ServerManager::RegisterNamedService(const std::string& service_name,
+                                           std::shared_ptr<SessionRequestHandler>&& handler,
+                                           u32 max_sessions) {
+    // Make the factory.
+    const auto HandlerFactory = [handler]() { return handler; };
+
+    // Register the service with the new factory.
+    R_RETURN(this->RegisterNamedService(service_name, std::move(HandlerFactory), max_sessions));
+}
+
 Result ServerManager::ManageNamedPort(const std::string& service_name,
-                                      std::shared_ptr<SessionRequestHandler>&& handler,
+                                      SessionRequestHandlerFactory&& handler_factory,
                                       u32 max_sessions) {
     ASSERT(m_sessions.size() + m_ports.size() < MaximumWaitObjects);
 
@@ -149,7 +159,7 @@ Result ServerManager::ManageNamedPort(const std::string& service_name,
     // Begin tracking the server port.
     {
         std::scoped_lock ll{m_list_mutex};
-        m_ports.emplace(std::addressof(port->GetServerPort()), std::move(handler));
+        m_ports.emplace(std::addressof(port->GetServerPort()), std::move(handler_factory));
     }
 
     // We succeeded.
@@ -269,13 +279,13 @@ Result ServerManager::WaitAndProcessImpl() {
         case HandleType::Port: {
             // Port signaled.
             auto* port = wait_obj->DynamicCast<Kernel::KServerPort*>();
-            std::shared_ptr<SessionRequestHandler> handler;
+            SessionRequestHandlerFactory handler_factory;
 
             // Remove from tracking.
             {
                 std::scoped_lock ll{m_list_mutex};
                 ASSERT(m_ports.contains(port));
-                m_ports.at(port).swap(handler);
+                m_ports.at(port).swap(handler_factory);
                 m_ports.erase(port);
             }
 
@@ -283,7 +293,7 @@ Result ServerManager::WaitAndProcessImpl() {
             sl.unlock();
 
             // Finish.
-            R_RETURN(this->OnPortEvent(port, std::move(handler)));
+            R_RETURN(this->OnPortEvent(port, std::move(handler_factory)));
         }
         case HandleType::Session: {
             // Session signaled.
@@ -333,19 +343,19 @@ Result ServerManager::WaitAndProcessImpl() {
 }
 
 Result ServerManager::OnPortEvent(Kernel::KServerPort* port,
-                                  std::shared_ptr<SessionRequestHandler>&& handler) {
+                                  SessionRequestHandlerFactory&& handler_factory) {
     // Accept a new server session.
     Kernel::KServerSession* session = port->AcceptSession();
     ASSERT(session != nullptr);
 
     // Create the session manager and install the handler.
     auto manager = std::make_shared<SessionRequestManager>(m_system.Kernel(), *this);
-    manager->SetSessionHandler(std::shared_ptr(handler));
+    manager->SetSessionHandler(handler_factory());
 
     // Track the server session.
     {
         std::scoped_lock ll{m_list_mutex};
-        m_ports.emplace(port, std::move(handler));
+        m_ports.emplace(port, std::move(handler_factory));
         m_sessions.emplace(session, std::move(manager));
     }
 
