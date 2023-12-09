@@ -12,8 +12,6 @@
 
 namespace FileSys {
 
-constexpr char SAVE_DATA_SIZE_FILENAME[] = ".yuzu_save_size";
-
 namespace {
 
 void PrintSaveDataAttributeWarnings(SaveDataAttribute meta) {
@@ -197,7 +195,7 @@ SaveDataSize SaveDataFactory::ReadSaveDataSize(SaveDataType type, u64 title_id,
         GetFullPath(system, dir, SaveDataSpaceId::NandUser, type, title_id, user_id, 0);
     const auto relative_dir = GetOrCreateDirectoryRelative(dir, path);
 
-    const auto size_file = relative_dir->GetFile(SAVE_DATA_SIZE_FILENAME);
+    const auto size_file = relative_dir->GetFile(GetSaveDataSizeFileName());
     if (size_file == nullptr || size_file->GetSize() < sizeof(SaveDataSize)) {
         return {0, 0};
     }
@@ -216,7 +214,7 @@ void SaveDataFactory::WriteSaveDataSize(SaveDataType type, u64 title_id, u128 us
         GetFullPath(system, dir, SaveDataSpaceId::NandUser, type, title_id, user_id, 0);
     const auto relative_dir = GetOrCreateDirectoryRelative(dir, path);
 
-    const auto size_file = relative_dir->CreateFile(SAVE_DATA_SIZE_FILENAME);
+    const auto size_file = relative_dir->CreateFile(GetSaveDataSizeFileName());
     if (size_file == nullptr) {
         return;
     }

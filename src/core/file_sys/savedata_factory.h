@@ -83,6 +83,10 @@ struct SaveDataSize {
     u64 journal;
 };
 
+constexpr const char* GetSaveDataSizeFileName() {
+    return ".yuzu_save_size";
+}
+
 /// File system interface to the SaveData archive
 class SaveDataFactory {
 public:
