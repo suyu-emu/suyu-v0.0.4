@@ -38,6 +38,12 @@ private:
     void HasLeftRightBattery(HLERequestContext& ctx);
     void GetUniquePadsFromNpad(HLERequestContext& ctx);
     void GetIrSensorState(HLERequestContext& ctx);
+    void RegisterAppletResourceUserId(HLERequestContext& ctx);
+    void UnregisterAppletResourceUserId(HLERequestContext& ctx);
+    void EnableAppletToGetInput(HLERequestContext& ctx);
+    void EnableAppletToGetSixAxisSensor(HLERequestContext& ctx);
+    void EnableAppletToGetPadInput(HLERequestContext& ctx);
+    void EnableAppletToGetTouchScreen(HLERequestContext& ctx);
     void AcquireConnectionTriggerTimeoutEvent(HLERequestContext& ctx);
     void AcquireDeviceRegisteredEventForControllerSupport(HLERequestContext& ctx);
     void GetRegisteredDevices(HLERequestContext& ctx);
