@@ -59,6 +59,7 @@
 #include "core/hle/service/prepo/prepo.h"
 #include "core/hle/service/psc/psc.h"
 #include "core/hle/service/ptm/ptm.h"
+#include "core/hle/service/ro/ro.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/set/settings.h"
 #include "core/hle/service/sm/sm.h"
@@ -270,6 +271,7 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
     kernel.RunOnGuestCoreProcess("ProcessManager", [&] { PM::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("psc",        [&] { PSC::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("ptm",        [&] { PTM::LoopProcess(system); });
+    kernel.RunOnGuestCoreProcess("ro",         [&] { RO::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("settings",   [&] { Set::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("spl",        [&] { SPL::LoopProcess(system); });
     kernel.RunOnGuestCoreProcess("ssl",        [&] { SSL::LoopProcess(system); });
