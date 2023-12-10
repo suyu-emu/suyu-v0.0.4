@@ -246,7 +246,13 @@ static void BuildEntryIndex(std::vector<FileSys::Entry>& entries, const std::vec
     entries.reserve(entries.size() + new_data.size());
 
     for (const auto& new_entry : new_data) {
-        entries.emplace_back(new_entry->GetName(), type,
+        auto name = new_entry->GetName();
+
+        if (type == FileSys::EntryType::File && name == FileSys::GetSaveDataSizeFileName()) {
+            continue;
+        }
+
+        entries.emplace_back(name, type,
                              type == FileSys::EntryType::Directory ? 0 : new_entry->GetSize());
     }
 }
