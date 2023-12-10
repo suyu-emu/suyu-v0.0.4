@@ -53,7 +53,8 @@ public:
     explicit ServiceManager(Kernel::KernelCore& kernel_);
     ~ServiceManager();
 
-    Result RegisterService(std::string name, u32 max_sessions, SessionRequestHandlerPtr handler);
+    Result RegisterService(std::string name, u32 max_sessions,
+                           SessionRequestHandlerFactory handler_factory);
     Result UnregisterService(const std::string& name);
     Result GetServicePort(Kernel::KPort** out_port, const std::string& name);
 
@@ -64,7 +65,7 @@ public:
             LOG_DEBUG(Service, "Can't find service: {}", service_name);
             return nullptr;
         }
-        return std::static_pointer_cast<T>(service->second);
+        return std::static_pointer_cast<T>(service->second());
     }
 
     void InvokeControlRequest(HLERequestContext& context);
@@ -79,7 +80,7 @@ private:
 
     /// Map of registered services, retrieved using GetServicePort.
     std::mutex lock;
-    std::unordered_map<std::string, SessionRequestHandlerPtr> registered_services;
+    std::unordered_map<std::string, SessionRequestHandlerFactory> registered_services;
     std::unordered_map<std::string, Kernel::KPort*> service_ports;
 
     /// Kernel context

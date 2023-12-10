@@ -51,7 +51,7 @@ static Result ValidateServiceName(const std::string& name) {
 }
 
 Result ServiceManager::RegisterService(std::string name, u32 max_sessions,
-                                       SessionRequestHandlerPtr handler) {
+                                       SessionRequestHandlerFactory handler) {
     R_TRY(ValidateServiceName(name));
 
     std::scoped_lock lk{lock};
@@ -262,7 +262,9 @@ void LoopProcess(Core::System& system) {
     server_manager->ManageDeferral(&deferral_event);
     service_manager.SetDeferralEvent(deferral_event);
 
-    server_manager->ManageNamedPort("sm:", std::make_shared<SM>(system.ServiceManager(), system));
+    auto sm_service = std::make_shared<SM>(system.ServiceManager(), system);
+    server_manager->ManageNamedPort("sm:", [sm_service] { return sm_service; });
+
     ServerManager::RunServer(std::move(server_manager));
 }
 

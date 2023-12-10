@@ -38,6 +38,7 @@ namespace Kernel {
 class KAutoObject;
 class KernelCore;
 class KHandleTable;
+class KProcess;
 class KServerSession;
 class KThread;
 } // namespace Kernel
@@ -75,6 +76,7 @@ protected:
 
 using SessionRequestHandlerWeakPtr = std::weak_ptr<SessionRequestHandler>;
 using SessionRequestHandlerPtr = std::shared_ptr<SessionRequestHandler>;
+using SessionRequestHandlerFactory = std::function<SessionRequestHandlerPtr()>;
 
 /**
  * Manages the underlying HLE requests for a session, and whether (or not) the session should be
@@ -194,8 +196,7 @@ public:
     }
 
     /// Populates this context with data from the requesting process/thread.
-    Result PopulateFromIncomingCommandBuffer(const Kernel::KHandleTable& handle_table,
-                                             u32_le* src_cmdbuf);
+    Result PopulateFromIncomingCommandBuffer(Kernel::KProcess& process, u32_le* src_cmdbuf);
 
     /// Writes data from this context back to the requesting process/thread.
     Result WriteToOutgoingCommandBuffer(Kernel::KThread& requesting_thread);
@@ -358,6 +359,10 @@ public:
         return *thread;
     }
 
+    Kernel::KHandleTable& GetClientHandleTable() {
+        return *client_handle_table;
+    }
+
     [[nodiscard]] std::shared_ptr<SessionRequestManager> GetManager() const {
         return manager.lock();
     }
@@ -373,12 +378,12 @@ public:
 private:
     friend class IPC::ResponseBuilder;
 
-    void ParseCommandBuffer(const Kernel::KHandleTable& handle_table, u32_le* src_cmdbuf,
-                            bool incoming);
+    void ParseCommandBuffer(Kernel::KProcess& process, u32_le* src_cmdbuf, bool incoming);
 
     std::array<u32, IPC::COMMAND_BUFFER_LENGTH> cmd_buf;
     Kernel::KServerSession* server_session{};
-    Kernel::KThread* thread;
+    Kernel::KHandleTable* client_handle_table{};
+    Kernel::KThread* thread{};
 
     std::vector<Handle> incoming_move_handles;
     std::vector<Handle> incoming_copy_handles;
