@@ -139,7 +139,7 @@ void PhysicalCore::RunThread(Kernel::KThread* thread) {
         }
 
         // Handle external interrupt sources.
-        if (interrupt || !m_is_single_core) {
+        if (interrupt || m_is_single_core) {
             return;
         }
     }
