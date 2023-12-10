@@ -11,6 +11,7 @@
 
 namespace Kernel {
 
+class KLightClientSession;
 class KClientSession;
 class KernelCore;
 class KPort;
@@ -51,6 +52,7 @@ public:
     bool IsSignaled() const override;
 
     Result CreateSession(KClientSession** out);
+    Result CreateLightSession(KLightClientSession** out);
 
 private:
     std::atomic<s32> m_num_sessions{};
