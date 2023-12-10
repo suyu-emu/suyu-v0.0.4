@@ -45,6 +45,10 @@ class Memory;
 
 namespace Service {
 
+namespace Account {
+class ProfileManager;
+} // namespace Account
+
 namespace AM::Applets {
 struct AppletFrontendSet;
 class AppletManager;
@@ -382,6 +386,9 @@ public:
 
     [[nodiscard]] Service::APM::Controller& GetAPMController();
     [[nodiscard]] const Service::APM::Controller& GetAPMController() const;
+
+    [[nodiscard]] Service::Account::ProfileManager& GetProfileManager();
+    [[nodiscard]] const Service::Account::ProfileManager& GetProfileManager() const;
 
     [[nodiscard]] Service::Time::TimeManager& GetTimeManager();
     [[nodiscard]] const Service::Time::TimeManager& GetTimeManager() const;

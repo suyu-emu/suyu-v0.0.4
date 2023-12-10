@@ -14,6 +14,8 @@
 #include "common/fs/path_util.h"
 #include "common/string_util.h"
 #include "core/constants.h"
+#include "core/core.h"
+#include "core/hle/service/acc/profile_manager.h"
 #include "yuzu/applets/qt_profile_select.h"
 #include "yuzu/main.h"
 #include "yuzu/util/controller_navigation.h"
@@ -47,9 +49,9 @@ QPixmap GetIcon(Common::UUID uuid) {
 } // Anonymous namespace
 
 QtProfileSelectionDialog::QtProfileSelectionDialog(
-    Core::HID::HIDCore& hid_core, QWidget* parent,
+    Core::System& system, QWidget* parent,
     const Core::Frontend::ProfileSelectParameters& parameters)
-    : QDialog(parent), profile_manager(std::make_unique<Service::Account::ProfileManager>()) {
+    : QDialog(parent), profile_manager{system.GetProfileManager()} {
     outer_layout = new QVBoxLayout;
 
     instruction_label = new QLabel();
@@ -68,7 +70,7 @@ QtProfileSelectionDialog::QtProfileSelectionDialog(
     tree_view = new QTreeView;
     item_model = new QStandardItemModel(tree_view);
     tree_view->setModel(item_model);
-    controller_navigation = new ControllerNavigation(hid_core, this);
+    controller_navigation = new ControllerNavigation(system.HIDCore(), this);
 
     tree_view->setAlternatingRowColors(true);
     tree_view->setSelectionMode(QHeaderView::SingleSelection);
@@ -106,10 +108,10 @@ QtProfileSelectionDialog::QtProfileSelectionDialog(
                 SelectUser(tree_view->currentIndex());
             });
 
-    const auto& profiles = profile_manager->GetAllUsers();
+    const auto& profiles = profile_manager.GetAllUsers();
     for (const auto& user : profiles) {
         Service::Account::ProfileBase profile{};
-        if (!profile_manager->GetProfileBase(user, profile))
+        if (!profile_manager.GetProfileBase(user, profile))
             continue;
 
         const auto username = Common::StringFromFixedZeroTerminatedBuffer(
@@ -134,7 +136,7 @@ QtProfileSelectionDialog::~QtProfileSelectionDialog() {
 
 int QtProfileSelectionDialog::exec() {
     // Skip profile selection when there's only one.
-    if (profile_manager->GetUserCount() == 1) {
+    if (profile_manager.GetUserCount() == 1) {
         user_index = 0;
         return QDialog::Accepted;
     }
