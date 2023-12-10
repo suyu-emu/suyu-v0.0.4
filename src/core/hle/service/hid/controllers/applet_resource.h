@@ -28,6 +28,8 @@ public:
     Result RegisterAppletResourceUserId(u64 aruid, bool enable_input);
     void UnregisterAppletResourceUserId(u64 aruid);
 
+    void FreeAppletResourceId(u64 aruid);
+
     u64 GetActiveAruid();
     Result GetSharedMemoryHandle(Kernel::KSharedMemory** out_handle, u64 aruid);
 
@@ -41,6 +43,9 @@ public:
     void EnableTouchScreen(u64 aruid, bool is_enabled);
     void SetIsPalmaConnectable(u64 aruid, bool is_connectable);
     void EnablePalmaBoostMode(u64 aruid, bool is_enabled);
+
+    Result RegisterCoreAppletResource();
+    Result UnregisterCoreAppletResource();
 
 private:
     static constexpr std::size_t AruidIndexMax = 0x20;
@@ -81,6 +86,7 @@ private:
     u64 active_aruid{};
     AruidRegisterList registration_list{};
     std::array<AruidData, AruidIndexMax> data{};
+    s32 ref_counter{};
 
     Core::System& system;
 };

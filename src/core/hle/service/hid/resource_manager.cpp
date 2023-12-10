@@ -146,8 +146,34 @@ std::shared_ptr<UniquePad> ResourceManager::GetUniquePad() const {
 }
 
 Result ResourceManager::CreateAppletResource(u64 aruid) {
+    if (aruid == 0) {
+        const auto result = RegisterCoreAppletResource();
+        if (result.IsError()) {
+            return result;
+        }
+        return GetNpad()->Activate();
+    }
+
+    const auto result = CreateAppletResourceImpl(aruid);
+    if (result.IsError()) {
+        return result;
+    }
+    return GetNpad()->Activate(aruid);
+}
+
+Result ResourceManager::CreateAppletResourceImpl(u64 aruid) {
     std::scoped_lock lock{shared_mutex};
     return applet_resource->CreateAppletResource(aruid);
+}
+
+Result ResourceManager::RegisterCoreAppletResource() {
+    std::scoped_lock lock{shared_mutex};
+    return applet_resource->RegisterCoreAppletResource();
+}
+
+Result ResourceManager::UnregisterCoreAppletResource() {
+    std::scoped_lock lock{shared_mutex};
+    return applet_resource->UnregisterCoreAppletResource();
 }
 
 Result ResourceManager::RegisterAppletResourceUserId(u64 aruid, bool bool_value) {
@@ -163,6 +189,11 @@ void ResourceManager::UnregisterAppletResourceUserId(u64 aruid) {
 Result ResourceManager::GetSharedMemoryHandle(Kernel::KSharedMemory** out_handle, u64 aruid) {
     std::scoped_lock lock{shared_mutex};
     return applet_resource->GetSharedMemoryHandle(out_handle, aruid);
+}
+
+void ResourceManager::FreeAppletResourceId(u64 aruid) {
+    std::scoped_lock lock{shared_mutex};
+    applet_resource->FreeAppletResourceId(aruid);
 }
 
 void ResourceManager::EnableInput(u64 aruid, bool is_enabled) {
@@ -219,8 +250,10 @@ void ResourceManager::UpdateMotion(std::uintptr_t user_data, std::chrono::nanose
     console_six_axis->OnUpdate(core_timing);
 }
 
-IAppletResource::IAppletResource(Core::System& system_, std::shared_ptr<ResourceManager> resource)
-    : ServiceFramework{system_, "IAppletResource"}, resource_manager{resource} {
+IAppletResource::IAppletResource(Core::System& system_, std::shared_ptr<ResourceManager> resource,
+                                 u64 applet_resource_user_id)
+    : ServiceFramework{system_, "IAppletResource"}, aruid{applet_resource_user_id},
+      resource_manager{resource} {
     static const FunctionInfo functions[] = {
         {0, &IAppletResource::GetSharedMemoryHandle, "GetSharedMemoryHandle"},
     };
@@ -274,14 +307,14 @@ IAppletResource::~IAppletResource() {
     system.CoreTiming().UnscheduleEvent(default_update_event, 0);
     system.CoreTiming().UnscheduleEvent(mouse_keyboard_update_event, 0);
     system.CoreTiming().UnscheduleEvent(motion_update_event, 0);
+    resource_manager->FreeAppletResourceId(aruid);
 }
 
 void IAppletResource::GetSharedMemoryHandle(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_HID, "called");
-
     Kernel::KSharedMemory* handle;
-    const u64 applet_resource_user_id = resource_manager->GetAppletResource()->GetActiveAruid();
-    const auto result = resource_manager->GetSharedMemoryHandle(&handle, applet_resource_user_id);
+    const auto result = resource_manager->GetSharedMemoryHandle(&handle, aruid);
+
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, result=0x{:X}", aruid, result.raw);
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(result);
