@@ -1340,6 +1340,7 @@ struct KernelCore::SlabHeapContainer {
     KSlabHeap<KProcess> process;
     KSlabHeap<KResourceLimit> resource_limit;
     KSlabHeap<KSession> session;
+    KSlabHeap<KLightSession> light_session;
     KSlabHeap<KSharedMemory> shared_memory;
     KSlabHeap<KSharedMemoryInfo> shared_memory_info;
     KSlabHeap<KThread> thread;
@@ -1370,6 +1371,8 @@ KSlabHeap<T>& KernelCore::SlabHeap() {
         return slab_heap_container->resource_limit;
     } else if constexpr (std::is_same_v<T, KSession>) {
         return slab_heap_container->session;
+    } else if constexpr (std::is_same_v<T, KLightSession>) {
+        return slab_heap_container->light_session;
     } else if constexpr (std::is_same_v<T, KSharedMemory>) {
         return slab_heap_container->shared_memory;
     } else if constexpr (std::is_same_v<T, KSharedMemoryInfo>) {
@@ -1407,6 +1410,7 @@ template KSlabHeap<KPort>& KernelCore::SlabHeap();
 template KSlabHeap<KProcess>& KernelCore::SlabHeap();
 template KSlabHeap<KResourceLimit>& KernelCore::SlabHeap();
 template KSlabHeap<KSession>& KernelCore::SlabHeap();
+template KSlabHeap<KLightSession>& KernelCore::SlabHeap();
 template KSlabHeap<KSharedMemory>& KernelCore::SlabHeap();
 template KSlabHeap<KSharedMemoryInfo>& KernelCore::SlabHeap();
 template KSlabHeap<KThread>& KernelCore::SlabHeap();

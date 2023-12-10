@@ -27,18 +27,40 @@ bool KServerPort::IsLight() const {
 void KServerPort::CleanupSessions() {
     // Ensure our preconditions are met.
     if (this->IsLight()) {
-        UNIMPLEMENTED();
+        ASSERT(m_session_list.empty());
+    } else {
+        ASSERT(m_light_session_list.empty());
     }
 
     // Cleanup the session list.
     while (true) {
-        // Get the last session in the list
+        // Get the last session in the list.
         KServerSession* session = nullptr;
         {
             KScopedSchedulerLock sl{m_kernel};
             if (!m_session_list.empty()) {
                 session = std::addressof(m_session_list.front());
                 m_session_list.pop_front();
+            }
+        }
+
+        // Close the session.
+        if (session != nullptr) {
+            session->Close();
+        } else {
+            break;
+        }
+    }
+
+    // Cleanup the light session list.
+    while (true) {
+        // Get the last session in the list.
+        KLightServerSession* session = nullptr;
+        {
+            KScopedSchedulerLock sl{m_kernel};
+            if (!m_light_session_list.empty()) {
+                session = std::addressof(m_light_session_list.front());
+                m_light_session_list.pop_front();
             }
         }
 
@@ -64,8 +86,7 @@ void KServerPort::Destroy() {
 
 bool KServerPort::IsSignaled() const {
     if (this->IsLight()) {
-        UNIMPLEMENTED();
-        return false;
+        return !m_light_session_list.empty();
     } else {
         return !m_session_list.empty();
     }
@@ -83,6 +104,18 @@ void KServerPort::EnqueueSession(KServerSession* session) {
     }
 }
 
+void KServerPort::EnqueueSession(KLightServerSession* session) {
+    ASSERT(this->IsLight());
+
+    KScopedSchedulerLock sl{m_kernel};
+
+    // Add the session to our queue.
+    m_light_session_list.push_back(*session);
+    if (m_light_session_list.size() == 1) {
+        this->NotifyAvailable();
+    }
+}
+
 KServerSession* KServerPort::AcceptSession() {
     ASSERT(!this->IsLight());
 
@@ -95,6 +128,21 @@ KServerSession* KServerPort::AcceptSession() {
 
     KServerSession* session = std::addressof(m_session_list.front());
     m_session_list.pop_front();
+    return session;
+}
+
+KLightServerSession* KServerPort::AcceptLightSession() {
+    ASSERT(this->IsLight());
+
+    KScopedSchedulerLock sl{m_kernel};
+
+    // Return the first session in the list.
+    if (m_light_session_list.empty()) {
+        return nullptr;
+    }
+
+    KLightServerSession* session = std::addressof(m_light_session_list.front());
+    m_light_session_list.pop_front();
     return session;
 }
 

@@ -3,6 +3,7 @@
 
 #include "common/scope_exit.h"
 #include "core/hle/kernel/k_client_port.h"
+#include "core/hle/kernel/k_light_session.h"
 #include "core/hle/kernel/k_port.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
@@ -63,6 +64,7 @@ Result KClientPort::CreateSession(KClientSession** out) {
     R_UNLESS(session_reservation.Succeeded(), ResultLimitReached);
 
     // Allocate a session normally.
+    // TODO: Dynamic resource limits
     session = KSession::Create(m_kernel);
 
     // Check that we successfully created a session.
@@ -106,6 +108,73 @@ Result KClientPort::CreateSession(KClientSession** out) {
 
     // Register the session.
     KSession::Register(m_kernel, session);
+    ON_RESULT_FAILURE {
+        session->GetClientSession().Close();
+        session->GetServerSession().Close();
+    };
+
+    // Enqueue the session with our parent.
+    R_TRY(m_parent->EnqueueSession(std::addressof(session->GetServerSession())));
+
+    // We succeeded, so set the output.
+    *out = std::addressof(session->GetClientSession());
+    R_SUCCEED();
+}
+
+Result KClientPort::CreateLightSession(KLightClientSession** out) {
+    // Declare the session we're going to allocate.
+    KLightSession* session{};
+
+    // Reserve a new session from the resource limit.
+    KScopedResourceReservation session_reservation(GetCurrentProcessPointer(m_kernel),
+                                                   Svc::LimitableResource::SessionCountMax);
+    R_UNLESS(session_reservation.Succeeded(), ResultLimitReached);
+
+    // Allocate a session normally.
+    // TODO: Dynamic resource limits
+    session = KLightSession::Create(m_kernel);
+
+    // Check that we successfully created a session.
+    R_UNLESS(session != nullptr, ResultOutOfResource);
+
+    // Update the session counts.
+    {
+        ON_RESULT_FAILURE {
+            session->Close();
+        };
+
+        // Atomically increment the number of sessions.
+        s32 new_sessions;
+        {
+            const auto max = m_max_sessions;
+            auto cur_sessions = m_num_sessions.load(std::memory_order_acquire);
+            do {
+                R_UNLESS(cur_sessions < max, ResultOutOfSessions);
+                new_sessions = cur_sessions + 1;
+            } while (!m_num_sessions.compare_exchange_weak(cur_sessions, new_sessions,
+                                                           std::memory_order_relaxed));
+        }
+
+        // Atomically update the peak session tracking.
+        {
+            auto peak = m_peak_sessions.load(std::memory_order_acquire);
+            do {
+                if (peak >= new_sessions) {
+                    break;
+                }
+            } while (!m_peak_sessions.compare_exchange_weak(peak, new_sessions,
+                                                            std::memory_order_relaxed));
+        }
+    }
+
+    // Initialize the session.
+    session->Initialize(this, m_parent->GetName());
+
+    // Commit the session reservation.
+    session_reservation.Commit();
+
+    // Register the session.
+    KLightSession::Register(m_kernel, session);
     ON_RESULT_FAILURE {
         session->GetClientSession().Close();
         session->GetServerSession().Close();
