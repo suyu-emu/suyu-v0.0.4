@@ -719,6 +719,8 @@ private:
             return;
         }
 
+        nv_flinger.OpenLayer(layer_id);
+
         android::OutputParcel parcel;
         parcel.WriteInterface(NativeWindow{*buffer_queue_id});
 
@@ -783,6 +785,7 @@ private:
         const u64 layer_id = rp.Pop<u64>();
 
         LOG_WARNING(Service_VI, "(STUBBED) called. layer_id=0x{:016X}", layer_id);
+        nv_flinger.DestroyLayer(layer_id);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
