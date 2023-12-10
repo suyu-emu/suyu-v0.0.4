@@ -453,6 +453,11 @@ Result KServerSession::ReceiveRequest(std::shared_ptr<Service::HLERequestContext
     size_t client_buffer_size = request->GetSize();
     // bool recv_list_broken = false;
 
+    if (!client_message) {
+        client_message = GetInteger(client_thread->GetTlsAddress());
+        client_buffer_size = MessageBufferSize;
+    }
+
     // Receive the message.
     Core::Memory::Memory& memory{client_thread->GetOwnerProcess()->GetMemory()};
     if (out_context != nullptr) {
