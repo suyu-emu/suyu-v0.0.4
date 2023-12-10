@@ -146,8 +146,10 @@ HLERequestContext::HLERequestContext(Kernel::KernelCore& kernel_, Core::Memory::
 
 HLERequestContext::~HLERequestContext() = default;
 
-void HLERequestContext::ParseCommandBuffer(const Kernel::KHandleTable& handle_table,
-                                           u32_le* src_cmdbuf, bool incoming) {
+void HLERequestContext::ParseCommandBuffer(Kernel::KProcess& process, u32_le* src_cmdbuf,
+                                           bool incoming) {
+    client_handle_table = &process.GetHandleTable();
+
     IPC::RequestParser rp(src_cmdbuf);
     command_header = rp.PopRaw<IPC::CommandHeader>();
 
@@ -160,7 +162,8 @@ void HLERequestContext::ParseCommandBuffer(const Kernel::KHandleTable& handle_ta
     if (command_header->enable_handle_descriptor) {
         handle_descriptor_header = rp.PopRaw<IPC::HandleDescriptorHeader>();
         if (handle_descriptor_header->send_current_pid) {
-            pid = rp.Pop<u64>();
+            pid = process.GetProcessId();
+            rp.Skip(2, false);
         }
         if (incoming) {
             // Populate the object lists with the data in the IPC request.
@@ -267,9 +270,9 @@ void HLERequestContext::ParseCommandBuffer(const Kernel::KHandleTable& handle_ta
     rp.Skip(1, false); // The command is actually an u64, but we don't use the high part.
 }
 
-Result HLERequestContext::PopulateFromIncomingCommandBuffer(
-    const Kernel::KHandleTable& handle_table, u32_le* src_cmdbuf) {
-    ParseCommandBuffer(handle_table, src_cmdbuf, true);
+Result HLERequestContext::PopulateFromIncomingCommandBuffer(Kernel::KProcess& process,
+                                                            u32_le* src_cmdbuf) {
+    ParseCommandBuffer(process, src_cmdbuf, true);
 
     if (command_header->IsCloseCommand()) {
         // Close does not populate the rest of the IPC header
