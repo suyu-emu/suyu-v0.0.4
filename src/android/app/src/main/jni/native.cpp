@@ -291,9 +291,6 @@ Core::SystemResultStatus EmulationSession::InitializeEmulation(const std::string
     // Initialize filesystem.
     ConfigureFilesystemProvider(filepath);
 
-    // Initialize account manager
-    m_profile_manager = std::make_unique<Service::Account::ProfileManager>();
-
     // Load the ROM.
     m_load_result = m_system.Load(EmulationSession::GetInstance().Window(), filepath);
     if (m_load_result != Core::SystemResultStatus::Success) {
@@ -736,8 +733,8 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_initializeEmptyUserDirectory(JNIEnv* 
     auto vfs_nand_dir = EmulationSession::GetInstance().System().GetFilesystem()->OpenDirectory(
         Common::FS::PathToUTF8String(nand_dir), FileSys::Mode::Read);
 
-    Service::Account::ProfileManager manager;
-    const auto user_id = manager.GetUser(static_cast<std::size_t>(0));
+    const auto user_id = EmulationSession::GetInstance().System().GetProfileManager().GetUser(
+        static_cast<std::size_t>(0));
     ASSERT(user_id);
 
     const auto user_save_data_path = FileSys::SaveDataFactory::GetFullPath(
