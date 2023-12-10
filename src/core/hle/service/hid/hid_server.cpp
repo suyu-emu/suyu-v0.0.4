@@ -222,16 +222,14 @@ void IHidServer::CreateAppletResource(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
-
     Result result = GetResourceManager()->CreateAppletResource(applet_resource_user_id);
-    if (result.IsSuccess()) {
-        result = GetResourceManager()->GetNpad()->Activate(applet_resource_user_id);
-    }
+
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, result=0x{:X}",
+              applet_resource_user_id, result.raw);
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(result);
-    rb.PushIpcInterface<IAppletResource>(system, resource_manager);
+    rb.PushIpcInterface<IAppletResource>(system, resource_manager, applet_resource_user_id);
 }
 
 void IHidServer::ActivateDebugPad(HLERequestContext& ctx) {

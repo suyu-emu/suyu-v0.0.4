@@ -112,6 +112,19 @@ void AppletResource::UnregisterAppletResourceUserId(u64 aruid) {
     }
 }
 
+void AppletResource::FreeAppletResourceId(u64 aruid) {
+    u64 index = GetIndexFromAruid(aruid);
+    if (index >= AruidIndexMax) {
+        return;
+    }
+
+    auto& aruid_data = data[index];
+    if (aruid_data.flag.is_assigned) {
+        aruid_data.shared_memory_handle = nullptr;
+        aruid_data.flag.is_assigned.Assign(false);
+    }
+}
+
 u64 AppletResource::GetActiveAruid() {
     return active_aruid;
 }
@@ -194,6 +207,82 @@ void AppletResource::EnablePalmaBoostMode(u64 aruid, bool is_enabled) {
     }
 
     data[index].flag.enable_palma_boost_mode.Assign(is_enabled);
+}
+
+Result AppletResource::RegisterCoreAppletResource() {
+    if (ref_counter == std::numeric_limits<s32>::max() - 1) {
+        return ResultAppletResourceOverflow;
+    }
+    if (ref_counter == 0) {
+        const u64 index = GetIndexFromAruid(0);
+        if (index < AruidIndexMax) {
+            return ResultAruidAlreadyRegistered;
+        }
+
+        std::size_t data_index = AruidIndexMax;
+        for (std::size_t i = 0; i < AruidIndexMax; i++) {
+            if (!data[i].flag.is_initialized) {
+                data_index = i;
+                break;
+            }
+        }
+
+        if (data_index == AruidIndexMax) {
+            return ResultAruidNoAvailableEntries;
+        }
+
+        AruidData& aruid_data = data[data_index];
+
+        aruid_data.aruid = 0;
+        aruid_data.flag.is_initialized.Assign(true);
+        aruid_data.flag.enable_pad_input.Assign(true);
+        aruid_data.flag.enable_six_axis_sensor.Assign(true);
+        aruid_data.flag.bit_18.Assign(true);
+        aruid_data.flag.enable_touchscreen.Assign(true);
+
+        data_index = AruidIndexMax;
+        for (std::size_t i = 0; i < AruidIndexMax; i++) {
+            if (registration_list.flag[i] == RegistrationStatus::Initialized) {
+                if (registration_list.aruid[i] != 0) {
+                    continue;
+                }
+                data_index = i;
+                break;
+            }
+            if (registration_list.flag[i] == RegistrationStatus::None) {
+                data_index = i;
+                break;
+            }
+        }
+
+        Result result = ResultSuccess;
+
+        if (data_index == AruidIndexMax) {
+            result = CreateAppletResource(0);
+        } else {
+            registration_list.flag[data_index] = RegistrationStatus::Initialized;
+            registration_list.aruid[data_index] = 0;
+        }
+
+        if (result.IsError()) {
+            UnregisterAppletResourceUserId(0);
+            return result;
+        }
+    }
+    ref_counter++;
+    return ResultSuccess;
+}
+
+Result AppletResource::UnregisterCoreAppletResource() {
+    if (ref_counter == 0) {
+        return ResultAppletResourceNotInitialized;
+    }
+
+    if (--ref_counter == 0) {
+        UnregisterAppletResourceUserId(0);
+    }
+
+    return ResultSuccess;
 }
 
 } // namespace Service::HID

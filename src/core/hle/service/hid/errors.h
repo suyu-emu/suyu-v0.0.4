@@ -20,6 +20,9 @@ constexpr Result InvalidNpadId{ErrorModule::HID, 709};
 constexpr Result NpadNotConnected{ErrorModule::HID, 710};
 constexpr Result InvalidArraySize{ErrorModule::HID, 715};
 
+constexpr Result ResultAppletResourceOverflow{ErrorModule::HID, 1041};
+constexpr Result ResultAppletResourceNotInitialized{ErrorModule::HID, 1042};
+constexpr Result ResultSharedMemoryNotInitialized{ErrorModule::HID, 1043};
 constexpr Result ResultAruidNoAvailableEntries{ErrorModule::HID, 1044};
 constexpr Result ResultAruidAlreadyRegistered{ErrorModule::HID, 1046};
 constexpr Result ResultAruidNotRegistered{ErrorModule::HID, 1047};
