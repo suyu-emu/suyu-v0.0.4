@@ -121,7 +121,7 @@ void SM::Initialize(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void SM::GetService(HLERequestContext& ctx) {
+void SM::GetServiceCmif(HLERequestContext& ctx) {
     Kernel::KClientSession* client_session{};
     auto result = GetServiceImpl(&client_session, ctx);
     if (ctx.GetIsDeferred()) {
@@ -196,13 +196,28 @@ Result SM::GetServiceImpl(Kernel::KClientSession** out_client_session, HLEReques
     return ResultSuccess;
 }
 
-void SM::RegisterService(HLERequestContext& ctx) {
+void SM::RegisterServiceCmif(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     std::string name(PopServiceName(rp));
 
     const auto is_light = static_cast<bool>(rp.PopRaw<u32>());
     const auto max_session_count = rp.PopRaw<u32>();
 
+    this->RegisterServiceImpl(ctx, name, max_session_count, is_light);
+}
+
+void SM::RegisterServiceTipc(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    std::string name(PopServiceName(rp));
+
+    const auto max_session_count = rp.PopRaw<u32>();
+    const auto is_light = static_cast<bool>(rp.PopRaw<u32>());
+
+    this->RegisterServiceImpl(ctx, name, max_session_count, is_light);
+}
+
+void SM::RegisterServiceImpl(HLERequestContext& ctx, std::string name, u32 max_session_count,
+                             bool is_light) {
     LOG_DEBUG(Service_SM, "called with name={}, max_session_count={}, is_light={}", name,
               max_session_count, is_light);
 
@@ -238,15 +253,15 @@ SM::SM(ServiceManager& service_manager_, Core::System& system_)
       service_manager{service_manager_}, kernel{system_.Kernel()} {
     RegisterHandlers({
         {0, &SM::Initialize, "Initialize"},
-        {1, &SM::GetService, "GetService"},
-        {2, &SM::RegisterService, "RegisterService"},
+        {1, &SM::GetServiceCmif, "GetService"},
+        {2, &SM::RegisterServiceCmif, "RegisterService"},
         {3, &SM::UnregisterService, "UnregisterService"},
         {4, nullptr, "DetachClient"},
     });
     RegisterHandlersTipc({
         {0, &SM::Initialize, "Initialize"},
         {1, &SM::GetServiceTipc, "GetService"},
-        {2, &SM::RegisterService, "RegisterService"},
+        {2, &SM::RegisterServiceTipc, "RegisterService"},
         {3, &SM::UnregisterService, "UnregisterService"},
         {4, nullptr, "DetachClient"},
     });
