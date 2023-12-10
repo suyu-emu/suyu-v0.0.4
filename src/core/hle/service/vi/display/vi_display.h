@@ -66,18 +66,13 @@ public:
 
     /// Whether or not this display has any layers added to it.
     bool HasLayers() const {
-        return !layers.empty();
+        return GetNumLayers() > 0;
     }
 
     /// Gets a layer for this display based off an index.
     Layer& GetLayer(std::size_t index);
 
-    /// Gets a layer for this display based off an index.
-    const Layer& GetLayer(std::size_t index) const;
-
-    std::size_t GetNumLayers() const {
-        return layers.size();
-    }
+    std::size_t GetNumLayers() const;
 
     /**
      * Gets the internal vsync event.
@@ -100,11 +95,11 @@ public:
     ///
     void CreateLayer(u64 layer_id, u32 binder_id, Service::Nvidia::NvCore::Container& core);
 
-    /// Closes and removes a layer from this display with the given ID.
+    /// Removes a layer from this display with the given ID.
     ///
-    /// @param layer_id The ID assigned to the layer to close.
+    /// @param layer_id The ID assigned to the layer to destroy.
     ///
-    void CloseLayer(u64 layer_id);
+    void DestroyLayer(u64 layer_id);
 
     /// Resets the display for a new connection.
     void Reset() {
