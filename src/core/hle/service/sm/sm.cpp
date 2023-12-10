@@ -192,8 +192,6 @@ Result SM::GetServiceImpl(Kernel::KClientSession** out_client_session, HLEReques
         return result;
     }
 
-    LOG_DEBUG(Service_SM, "called service={} -> session={}", name, session->GetId());
-
     *out_client_session = session;
     return ResultSuccess;
 }

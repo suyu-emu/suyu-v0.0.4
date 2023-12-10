@@ -9,24 +9,12 @@
 #include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/result.h"
 
-union Result;
-
-namespace Core::Memory {
-class Memory;
-}
-
-namespace Core::Timing {
-class CoreTiming;
-}
-
 namespace Kernel {
 
 class KernelCore;
 class KSession;
-class KThread;
 
-class KClientSession final
-    : public KAutoObjectWithSlabHeapAndContainer<KClientSession, KAutoObjectWithList> {
+class KClientSession final : public KAutoObject {
     KERNEL_AUTOOBJECT_TRAITS(KClientSession, KAutoObject);
 
 public:
@@ -39,13 +27,13 @@ public:
     }
 
     void Destroy() override;
-    static void PostDestroy(uintptr_t arg) {}
 
     KSession* GetParent() const {
         return m_parent;
     }
 
-    Result SendSyncRequest();
+    Result SendSyncRequest(uintptr_t address, size_t size);
+    Result SendAsyncRequest(KEvent* event, uintptr_t address, size_t size);
 
     void OnServerClosed();
 
