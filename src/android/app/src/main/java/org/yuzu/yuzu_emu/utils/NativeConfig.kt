@@ -105,4 +105,23 @@ object NativeConfig {
      */
     @Synchronized
     external fun addGameDir(dir: GameDir)
+
+    /**
+     * Gets an array of the addons that are disabled for a given game
+     *
+     * @param programId String representation of a game's program ID
+     * @return An array of disabled addons
+     */
+    @Synchronized
+    external fun getDisabledAddons(programId: String): Array<String>
+
+    /**
+     * Clears the disabled addons array corresponding to [programId] and replaces them
+     * with [disabledAddons]
+     *
+     * @param programId String representation of a game's program ID
+     * @param disabledAddons Replacement array of disabled addons
+     */
+    @Synchronized
+    external fun setDisabledAddons(programId: String, disabledAddons: Array<String>)
 }

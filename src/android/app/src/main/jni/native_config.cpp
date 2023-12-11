@@ -283,4 +283,30 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_addGameDir(JNIEnv* env, jobject 
         AndroidSettings::GameDir{uriString, static_cast<bool>(jdeepScanBoolean)});
 }
 
+jobjectArray Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getDisabledAddons(JNIEnv* env, jobject obj,
+                                                                          jstring jprogramId) {
+    auto program_id = EmulationSession::GetProgramId(env, jprogramId);
+    auto& disabledAddons = Settings::values.disabled_addons[program_id];
+    jobjectArray jdisabledAddonsArray =
+        env->NewObjectArray(disabledAddons.size(), IDCache::GetStringClass(), ToJString(env, ""));
+    for (size_t i = 0; i < disabledAddons.size(); ++i) {
+        env->SetObjectArrayElement(jdisabledAddonsArray, i, ToJString(env, disabledAddons[i]));
+    }
+    return jdisabledAddonsArray;
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setDisabledAddons(JNIEnv* env, jobject obj,
+                                                                  jstring jprogramId,
+                                                                  jobjectArray jdisabledAddons) {
+    auto program_id = EmulationSession::GetProgramId(env, jprogramId);
+    Settings::values.disabled_addons[program_id].clear();
+    std::vector<std::string> disabled_addons;
+    const int size = env->GetArrayLength(jdisabledAddons);
+    for (int i = 0; i < size; ++i) {
+        auto jaddon = static_cast<jstring>(env->GetObjectArrayElement(jdisabledAddons, i));
+        disabled_addons.push_back(GetJString(env, jaddon));
+    }
+    Settings::values.disabled_addons[program_id] = disabled_addons;
+}
+
 } // extern "C"

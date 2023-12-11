@@ -6,9 +6,9 @@ package org.yuzu.yuzu_emu.model
 import androidx.lifecycle.ViewModel
 
 class MessageDialogViewModel : ViewModel() {
-    var dismissAction: () -> Unit = {}
+    var positiveAction: (() -> Unit)? = null
 
     fun clear() {
-        dismissAction = {}
+        positiveAction = null
     }
 }

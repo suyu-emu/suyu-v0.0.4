@@ -20,4 +20,10 @@ jmethodID GetDiskCacheLoadProgress();
 jmethodID GetOnEmulationStarted();
 jmethodID GetOnEmulationStopped();
 
+jclass GetStringClass();
+jclass GetPairClass();
+jmethodID GetPairConstructor();
+jfieldID GetPairFirstField();
+jfieldID GetPairSecondField();
+
 } // namespace IDCache

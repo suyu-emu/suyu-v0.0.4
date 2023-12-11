@@ -15,7 +15,7 @@ import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
-import org.yuzu.yuzu_emu.databinding.CardAppletOptionBinding
+import org.yuzu.yuzu_emu.databinding.CardSimpleOutlinedBinding
 import org.yuzu.yuzu_emu.model.Applet
 import org.yuzu.yuzu_emu.model.AppletInfo
 import org.yuzu.yuzu_emu.model.Game
@@ -28,7 +28,7 @@ class AppletAdapter(val activity: FragmentActivity, var applets: List<Applet>) :
         parent: ViewGroup,
         viewType: Int
     ): AppletAdapter.AppletViewHolder {
-        CardAppletOptionBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        CardSimpleOutlinedBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             .apply { root.setOnClickListener(this@AppletAdapter) }
             .also { return AppletViewHolder(it) }
     }
@@ -65,7 +65,7 @@ class AppletAdapter(val activity: FragmentActivity, var applets: List<Applet>) :
         view.findNavController().navigate(action)
     }
 
-    inner class AppletViewHolder(val binding: CardAppletOptionBinding) :
+    inner class AppletViewHolder(val binding: CardSimpleOutlinedBinding) :
         RecyclerView.ViewHolder(binding.root) {
         lateinit var applet: Applet
 

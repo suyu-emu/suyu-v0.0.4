@@ -43,7 +43,7 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.AddGameFolderDialogFragment
 import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
-import org.yuzu.yuzu_emu.getPublicFilesDir
+import org.yuzu.yuzu_emu.model.AddonViewModel
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.model.TaskState
@@ -60,14 +60,9 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     private val homeViewModel: HomeViewModel by viewModels()
     private val gamesViewModel: GamesViewModel by viewModels()
     private val taskViewModel: TaskViewModel by viewModels()
+    private val addonViewModel: AddonViewModel by viewModels()
 
     override var themeId: Int = 0
-
-    private val savesFolder
-        get() = "${getPublicFilesDir().canonicalPath}/nand/user/save/0000000000000000"
-
-    // Get first subfolder in saves folder (should be the user folder)
-    val savesFolderRoot get() = File(savesFolder).listFiles()?.firstOrNull()?.canonicalPath ?: ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -143,6 +138,16 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
             launch {
                 repeatOnLifecycle(Lifecycle.State.CREATED) {
                     homeViewModel.statusBarShadeVisible.collect { showStatusBarShade(it) }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    homeViewModel.contentToInstall.collect {
+                        if (it != null) {
+                            installContent(it)
+                            homeViewModel.setContentToInstall(null)
+                        }
+                    }
                 }
             }
         }
@@ -468,110 +473,150 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     val installGameUpdate = registerForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
     ) { documents: List<Uri> ->
-        if (documents.isNotEmpty()) {
-            IndeterminateProgressDialogFragment.newInstance(
-                this@MainActivity,
-                R.string.installing_game_content
-            ) {
-                var installSuccess = 0
-                var installOverwrite = 0
-                var errorBaseGame = 0
-                var errorExtension = 0
-                var errorOther = 0
-                documents.forEach {
-                    when (
-                        NativeLibrary.installFileToNand(
-                            it.toString(),
-                            FileUtil.getExtension(it)
-                        )
-                    ) {
-                        NativeLibrary.InstallFileToNandResult.Success -> {
-                            installSuccess += 1
-                        }
-
-                        NativeLibrary.InstallFileToNandResult.SuccessFileOverwritten -> {
-                            installOverwrite += 1
-                        }
-
-                        NativeLibrary.InstallFileToNandResult.ErrorBaseGame -> {
-                            errorBaseGame += 1
-                        }
-
-                        NativeLibrary.InstallFileToNandResult.ErrorFilenameExtension -> {
-                            errorExtension += 1
-                        }
-
-                        else -> {
-                            errorOther += 1
-                        }
-                    }
-                }
-
-                val separator = System.getProperty("line.separator") ?: "\n"
-                val installResult = StringBuilder()
-                if (installSuccess > 0) {
-                    installResult.append(
-                        getString(
-                            R.string.install_game_content_success_install,
-                            installSuccess
-                        )
-                    )
-                    installResult.append(separator)
-                }
-                if (installOverwrite > 0) {
-                    installResult.append(
-                        getString(
-                            R.string.install_game_content_success_overwrite,
-                            installOverwrite
-                        )
-                    )
-                    installResult.append(separator)
-                }
-                val errorTotal: Int = errorBaseGame + errorExtension + errorOther
-                if (errorTotal > 0) {
-                    installResult.append(separator)
-                    installResult.append(
-                        getString(
-                            R.string.install_game_content_failed_count,
-                            errorTotal
-                        )
-                    )
-                    installResult.append(separator)
-                    if (errorBaseGame > 0) {
-                        installResult.append(separator)
-                        installResult.append(
-                            getString(R.string.install_game_content_failure_base)
-                        )
-                        installResult.append(separator)
-                    }
-                    if (errorExtension > 0) {
-                        installResult.append(separator)
-                        installResult.append(
-                            getString(R.string.install_game_content_failure_file_extension)
-                        )
-                        installResult.append(separator)
-                    }
-                    if (errorOther > 0) {
-                        installResult.append(
-                            getString(R.string.install_game_content_failure_description)
-                        )
-                        installResult.append(separator)
-                    }
-                    return@newInstance MessageDialogFragment.newInstance(
-                        this,
-                        titleId = R.string.install_game_content_failure,
-                        descriptionString = installResult.toString().trim(),
-                        helpLinkId = R.string.install_game_content_help_link
-                    )
-                } else {
-                    return@newInstance MessageDialogFragment.newInstance(
-                        this,
-                        titleId = R.string.install_game_content_success,
-                        descriptionString = installResult.toString().trim()
-                    )
-                }
-            }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
+        if (documents.isEmpty()) {
+            return@registerForActivityResult
         }
+
+        if (addonViewModel.game == null) {
+            installContent(documents)
+            return@registerForActivityResult
+        }
+
+        IndeterminateProgressDialogFragment.newInstance(
+            this@MainActivity,
+            R.string.verifying_content,
+            false
+        ) {
+            var updatesMatchProgram = true
+            for (document in documents) {
+                val valid = NativeLibrary.doesUpdateMatchProgram(
+                    addonViewModel.game!!.programId,
+                    document.toString()
+                )
+                if (!valid) {
+                    updatesMatchProgram = false
+                    break
+                }
+            }
+
+            if (updatesMatchProgram) {
+                homeViewModel.setContentToInstall(documents)
+            } else {
+                MessageDialogFragment.newInstance(
+                    this@MainActivity,
+                    titleId = R.string.content_install_notice,
+                    descriptionId = R.string.content_install_notice_description,
+                    positiveAction = { homeViewModel.setContentToInstall(documents) }
+                )
+            }
+        }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
+    }
+
+    private fun installContent(documents: List<Uri>) {
+        IndeterminateProgressDialogFragment.newInstance(
+            this@MainActivity,
+            R.string.installing_game_content
+        ) {
+            var installSuccess = 0
+            var installOverwrite = 0
+            var errorBaseGame = 0
+            var errorExtension = 0
+            var errorOther = 0
+            documents.forEach {
+                when (
+                    NativeLibrary.installFileToNand(
+                        it.toString(),
+                        FileUtil.getExtension(it)
+                    )
+                ) {
+                    NativeLibrary.InstallFileToNandResult.Success -> {
+                        installSuccess += 1
+                    }
+
+                    NativeLibrary.InstallFileToNandResult.SuccessFileOverwritten -> {
+                        installOverwrite += 1
+                    }
+
+                    NativeLibrary.InstallFileToNandResult.ErrorBaseGame -> {
+                        errorBaseGame += 1
+                    }
+
+                    NativeLibrary.InstallFileToNandResult.ErrorFilenameExtension -> {
+                        errorExtension += 1
+                    }
+
+                    else -> {
+                        errorOther += 1
+                    }
+                }
+            }
+
+            addonViewModel.refreshAddons()
+
+            val separator = System.getProperty("line.separator") ?: "\n"
+            val installResult = StringBuilder()
+            if (installSuccess > 0) {
+                installResult.append(
+                    getString(
+                        R.string.install_game_content_success_install,
+                        installSuccess
+                    )
+                )
+                installResult.append(separator)
+            }
+            if (installOverwrite > 0) {
+                installResult.append(
+                    getString(
+                        R.string.install_game_content_success_overwrite,
+                        installOverwrite
+                    )
+                )
+                installResult.append(separator)
+            }
+            val errorTotal: Int = errorBaseGame + errorExtension + errorOther
+            if (errorTotal > 0) {
+                installResult.append(separator)
+                installResult.append(
+                    getString(
+                        R.string.install_game_content_failed_count,
+                        errorTotal
+                    )
+                )
+                installResult.append(separator)
+                if (errorBaseGame > 0) {
+                    installResult.append(separator)
+                    installResult.append(
+                        getString(R.string.install_game_content_failure_base)
+                    )
+                    installResult.append(separator)
+                }
+                if (errorExtension > 0) {
+                    installResult.append(separator)
+                    installResult.append(
+                        getString(R.string.install_game_content_failure_file_extension)
+                    )
+                    installResult.append(separator)
+                }
+                if (errorOther > 0) {
+                    installResult.append(
+                        getString(R.string.install_game_content_failure_description)
+                    )
+                    installResult.append(separator)
+                }
+                return@newInstance MessageDialogFragment.newInstance(
+                    this,
+                    titleId = R.string.install_game_content_failure,
+                    descriptionString = installResult.toString().trim(),
+                    helpLinkId = R.string.install_game_content_help_link
+                )
+            } else {
+                return@newInstance MessageDialogFragment.newInstance(
+                    this,
+                    titleId = R.string.install_game_content_success,
+                    descriptionString = installResult.toString().trim()
+                )
+            }
+        }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
     }
 
     val exportUserData = registerForActivityResult(
@@ -656,103 +701,5 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
                 return@newInstance getString(R.string.user_data_import_success)
             }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
-        }
-
-    /**
-     * Exports the save file located in the given folder path by creating a zip file and sharing it via intent.
-     */
-    val exportSaves = registerForActivityResult(
-        ActivityResultContracts.CreateDocument("application/zip")
-    ) { result ->
-        if (result == null) {
-            return@registerForActivityResult
-        }
-
-        IndeterminateProgressDialogFragment.newInstance(
-            this,
-            R.string.save_files_exporting,
-            false
-        ) {
-            val zipResult = FileUtil.zipFromInternalStorage(
-                File(savesFolderRoot),
-                savesFolderRoot,
-                BufferedOutputStream(contentResolver.openOutputStream(result))
-            )
-            return@newInstance when (zipResult) {
-                TaskState.Completed -> getString(R.string.export_success)
-                TaskState.Cancelled, TaskState.Failed -> getString(R.string.export_failed)
-            }
-        }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
-    }
-
-    private val startForResultExportSave =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
-            File(getPublicFilesDir().canonicalPath, "temp").deleteRecursively()
-        }
-
-    val importSaves =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
-            if (result == null) {
-                return@registerForActivityResult
-            }
-
-            NativeLibrary.initializeEmptyUserDirectory()
-
-            val inputZip = contentResolver.openInputStream(result)
-            // A zip needs to have at least one subfolder named after a TitleId in order to be considered valid.
-            var validZip = false
-            val savesFolder = File(savesFolderRoot)
-            val cacheSaveDir = File("${applicationContext.cacheDir.path}/saves/")
-            cacheSaveDir.mkdir()
-
-            if (inputZip == null) {
-                Toast.makeText(
-                    applicationContext,
-                    getString(R.string.fatal_error),
-                    Toast.LENGTH_LONG
-                ).show()
-                return@registerForActivityResult
-            }
-
-            val filterTitleId =
-                FilenameFilter { _, dirName -> dirName.matches(Regex("^0100[\\dA-Fa-f]{12}$")) }
-
-            try {
-                CoroutineScope(Dispatchers.IO).launch {
-                    FileUtil.unzipToInternalStorage(BufferedInputStream(inputZip), cacheSaveDir)
-                    cacheSaveDir.list(filterTitleId)?.forEach { savePath ->
-                        File(savesFolder, savePath).deleteRecursively()
-                        File(cacheSaveDir, savePath).copyRecursively(
-                            File(savesFolder, savePath),
-                            true
-                        )
-                        validZip = true
-                    }
-
-                    withContext(Dispatchers.Main) {
-                        if (!validZip) {
-                            MessageDialogFragment.newInstance(
-                                this@MainActivity,
-                                titleId = R.string.save_file_invalid_zip_structure,
-                                descriptionId = R.string.save_file_invalid_zip_structure_description
-                            ).show(supportFragmentManager, MessageDialogFragment.TAG)
-                            return@withContext
-                        }
-                        Toast.makeText(
-                            applicationContext,
-                            getString(R.string.save_file_imported_success),
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-
-                    cacheSaveDir.deleteRecursively()
-                }
-            } catch (e: Exception) {
-                Toast.makeText(
-                    applicationContext,
-                    getString(R.string.fatal_error),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
         }
 }

@@ -54,6 +54,8 @@ public:
 
     static void OnEmulationStarted();
 
+    static u64 GetProgramId(JNIEnv* env, jstring jprogramId);
+
 private:
     static void LoadDiskCacheProgress(VideoCore::LoadCallbackStage stage, int progress, int max);
     static void OnEmulationStopped(Core::SystemResultStatus result);
