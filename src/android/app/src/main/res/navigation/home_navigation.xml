@@ -111,7 +111,13 @@
     <fragment
         android:id="@+id/driverManagerFragment"
         android:name="org.yuzu.yuzu_emu.fragments.DriverManagerFragment"
-        android:label="DriverManagerFragment" />
+        android:label="DriverManagerFragment" >
+        <argument
+            android:name="game"
+            app:argType="org.yuzu.yuzu_emu.model.Game"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
     <fragment
         android:id="@+id/appletLauncherFragment"
         android:name="org.yuzu.yuzu_emu.fragments.AppletLauncherFragment"
@@ -141,6 +147,9 @@
         <action
             android:id="@+id/action_perGamePropertiesFragment_to_addonsFragment"
             app:destination="@id/addonsFragment" />
+        <action
+            android:id="@+id/action_perGamePropertiesFragment_to_driverManagerFragment"
+            app:destination="@id/driverManagerFragment" />
     </fragment>
     <action
         android:id="@+id/action_global_perGamePropertiesFragment"

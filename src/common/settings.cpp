@@ -211,6 +211,8 @@ const char* TranslateCategory(Category category) {
     case Category::Debugging:
     case Category::DebuggingGraphics:
         return "Debugging";
+    case Category::GpuDriver:
+        return "GpuDriver";
     case Category::Miscellaneous:
         return "Miscellaneous";
     case Category::Network:
