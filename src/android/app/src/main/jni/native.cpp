@@ -80,7 +80,7 @@ Core::System& EmulationSession::System() {
     return m_system;
 }
 
-FileSys::ManualContentProvider* EmulationSession::ContentProvider() {
+FileSys::ManualContentProvider* EmulationSession::GetContentProvider() {
     return m_manual_provider.get();
 }
 
@@ -878,6 +878,15 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getSavePath(JNIEnv* env, jobject j
         system, vfsNandDir, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::SaveData,
         program_id, user_id->AsU128(), 0);
     return ToJString(env, user_save_data_path);
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_addFileToFilesystemProvider(JNIEnv* env, jobject jobj,
+                                                                       jstring jpath) {
+    EmulationSession::GetInstance().ConfigureFilesystemProvider(GetJString(env, jpath));
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_clearFilesystemProvider(JNIEnv* env, jobject jobj) {
+    EmulationSession::GetInstance().GetContentProvider()->ClearAllEntries();
 }
 
 } // extern "C"

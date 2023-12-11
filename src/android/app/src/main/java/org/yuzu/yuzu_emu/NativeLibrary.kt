@@ -548,6 +548,18 @@ object NativeLibrary {
     external fun getSavePath(programId: String): String
 
     /**
+     * Adds a file to the manual filesystem provider in our EmulationSession instance
+     * @param path Path to the file we're adding. Can be a string representation of a [Uri] or
+     * a normal path
+     */
+    external fun addFileToFilesystemProvider(path: String)
+
+    /**
+     * Clears all files added to the manual filesystem provider in our EmulationSession instance
+     */
+    external fun clearFilesystemProvider()
+
+    /**
      * Button type for use in onTouchEvent
      */
     object ButtonType {

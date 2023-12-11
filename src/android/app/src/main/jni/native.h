@@ -21,6 +21,7 @@ public:
     static EmulationSession& GetInstance();
     const Core::System& System() const;
     Core::System& System();
+    FileSys::ManualContentProvider* GetContentProvider();
 
     const EmuWindow_Android& Window() const;
     EmuWindow_Android& Window();
