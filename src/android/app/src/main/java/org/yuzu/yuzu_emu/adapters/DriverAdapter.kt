@@ -42,7 +42,7 @@ class DriverAdapter(private val driverViewModel: DriverViewModel) :
         if (driverViewModel.selectedDriver > position) {
             driverViewModel.setSelectedDriverIndex(driverViewModel.selectedDriver - 1)
         }
-        if (GpuDriverHelper.customDriverData == driverData.second) {
+        if (GpuDriverHelper.customDriverSettingData == driverData.second) {
             driverViewModel.setSelectedDriverIndex(0)
         }
         driverViewModel.driversToDelete.add(driverData.first)

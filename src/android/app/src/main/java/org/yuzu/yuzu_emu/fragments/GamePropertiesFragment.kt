@@ -148,6 +148,21 @@ class GamePropertiesFragment : Fragment() {
                 }
             )
 
+            if (GpuDriverHelper.supportsCustomDriverLoading()) {
+                add(
+                    SubmenuProperty(
+                        R.string.gpu_driver_manager,
+                        R.string.install_gpu_driver_description,
+                        R.drawable.ic_build,
+                        detailsFlow = driverViewModel.selectedDriverTitle
+                    ) {
+                        val action = GamePropertiesFragmentDirections
+                            .actionPerGamePropertiesFragmentToDriverManagerFragment(args.game)
+                        binding.root.findNavController().navigate(action)
+                    }
+                )
+            }
+
             if (!args.game.isHomebrew) {
                 add(
                     SubmenuProperty(

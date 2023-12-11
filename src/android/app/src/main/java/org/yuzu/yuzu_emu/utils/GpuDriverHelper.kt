@@ -10,6 +10,8 @@ import java.io.File
 import java.io.IOException
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.features.settings.model.StringSetting
+import java.io.FileNotFoundException
 import java.util.zip.ZipException
 import java.util.zip.ZipFile
 
@@ -44,7 +46,7 @@ object GpuDriverHelper {
         NativeLibrary.initializeGpuDriver(
             hookLibPath,
             driverInstallationPath,
-            customDriverData.libraryName,
+            installedCustomDriverData.libraryName,
             fileRedirectionPath
         )
     }
@@ -190,6 +192,7 @@ object GpuDriverHelper {
                 }
             }
         } catch (_: ZipException) {
+        } catch (_: FileNotFoundException) {
         }
         return GpuDriverMetadata()
     }
@@ -197,8 +200,11 @@ object GpuDriverHelper {
     external fun supportsCustomDriverLoading(): Boolean
 
     // Parse the custom driver metadata to retrieve the name.
-    val customDriverData: GpuDriverMetadata
+    val installedCustomDriverData: GpuDriverMetadata
         get() = GpuDriverMetadata(File(driverInstallationPath + META_JSON_FILENAME))
+
+    val customDriverSettingData: GpuDriverMetadata
+        get() = getMetadataFromZip(File(StringSetting.DRIVER_PATH.getString()))
 
     fun initializeDirectories() {
         // Ensure the file redirection directory exists.

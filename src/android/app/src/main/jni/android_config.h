@@ -17,6 +17,7 @@ public:
 protected:
     void ReadAndroidValues();
     void ReadAndroidUIValues();
+    void ReadDriverValues();
     void ReadHidbusValues() override {}
     void ReadDebugControlValues() override {}
     void ReadPathValues() override;
@@ -28,6 +29,7 @@ protected:
 
     void SaveAndroidValues();
     void SaveAndroidUIValues();
+    void SaveDriverValues();
     void SaveHidbusValues() override {}
     void SaveDebugControlValues() override {}
     void SavePathValues() override;

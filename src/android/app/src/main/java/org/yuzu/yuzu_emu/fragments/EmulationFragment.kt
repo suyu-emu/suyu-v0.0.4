@@ -352,19 +352,25 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
             launch {
                 repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    driverViewModel.isDriverReady.collect {
-                        if (it && !emulationState.isRunning) {
-                            if (!DirectoryInitialization.areDirectoriesReady) {
-                                DirectoryInitialization.start()
-                            }
-
-                            updateScreenLayout()
-
-                            emulationState.run(emulationActivity!!.isActivityRecreated)
+                    driverViewModel.isInteractionAllowed.collect {
+                        if (it) {
+                            onEmulationStart()
                         }
                     }
                 }
             }
+        }
+    }
+
+    private fun onEmulationStart() {
+        if (!NativeLibrary.isRunning() && !NativeLibrary.isPaused()) {
+            if (!DirectoryInitialization.areDirectoriesReady) {
+                DirectoryInitialization.start()
+            }
+
+            updateScreenLayout()
+
+            emulationState.run(emulationActivity!!.isActivityRecreated)
         }
     }
 

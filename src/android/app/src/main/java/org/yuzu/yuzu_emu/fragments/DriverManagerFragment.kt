@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialSharedAxis
 import kotlinx.coroutines.flow.collectLatest
@@ -35,6 +36,8 @@ class DriverManagerFragment : Fragment() {
 
     private val homeViewModel: HomeViewModel by activityViewModels()
     private val driverViewModel: DriverViewModel by activityViewModels()
+
+    private val args by navArgs<DriverManagerFragmentArgs>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,7 +60,9 @@ class DriverManagerFragment : Fragment() {
         homeViewModel.setNavigationVisibility(visible = false, animated = true)
         homeViewModel.setStatusBarShadeVisibility(visible = false)
 
-        if (!driverViewModel.isInteractionAllowed) {
+        driverViewModel.onOpenDriverManager(args.game)
+
+        if (!driverViewModel.isInteractionAllowed.value) {
             DriversLoadingDialogFragment().show(
                 childFragmentManager,
                 DriversLoadingDialogFragment.TAG
@@ -102,10 +107,9 @@ class DriverManagerFragment : Fragment() {
         setInsets()
     }
 
-    // Start installing requested driver
-    override fun onStop() {
-        super.onStop()
-        driverViewModel.onCloseDriverManager()
+    override fun onDestroy() {
+        super.onDestroy()
+        driverViewModel.onCloseDriverManager(args.game)
     }
 
     private fun setInsets() =

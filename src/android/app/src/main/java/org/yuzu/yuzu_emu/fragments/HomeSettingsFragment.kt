@@ -68,6 +68,9 @@ class HomeSettingsFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        homeViewModel.setNavigationVisibility(visible = true, animated = true)
+        homeViewModel.setStatusBarShadeVisibility(visible = true)
         mainActivity = requireActivity() as MainActivity
 
         val optionsList: MutableList<HomeSetting> = mutableListOf<HomeSetting>().apply {
@@ -91,13 +94,14 @@ class HomeSettingsFragment : Fragment() {
                     R.string.install_gpu_driver_description,
                     R.drawable.ic_build,
                     {
-                        binding.root.findNavController()
-                            .navigate(R.id.action_homeSettingsFragment_to_driverManagerFragment)
+                        val action = HomeSettingsFragmentDirections
+                            .actionHomeSettingsFragmentToDriverManagerFragment(null)
+                        binding.root.findNavController().navigate(action)
                     },
                     { GpuDriverHelper.supportsCustomDriverLoading() },
                     R.string.custom_driver_not_supported,
                     R.string.custom_driver_not_supported_description,
-                    driverViewModel.selectedDriverMetadata
+                    driverViewModel.selectedDriverTitle
                 )
             )
             add(
@@ -212,8 +216,11 @@ class HomeSettingsFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         exitTransition = null
-        homeViewModel.setNavigationVisibility(visible = true, animated = true)
-        homeViewModel.setStatusBarShadeVisibility(visible = true)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        driverViewModel.updateDriverNameForGame(null)
     }
 
     override fun onDestroyView() {
