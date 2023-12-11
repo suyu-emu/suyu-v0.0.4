@@ -31,31 +31,62 @@ object NativeConfig {
     external fun saveSettings()
 
     external fun getBoolean(key: String, getDefault: Boolean): Boolean
+
+    @Synchronized
+    external fun getBoolean(key: String, needsGlobal: Boolean): Boolean
+
+    @Synchronized
     external fun setBoolean(key: String, value: Boolean)
 
-    external fun getByte(key: String, getDefault: Boolean): Byte
+    @Synchronized
+    external fun getByte(key: String, needsGlobal: Boolean): Byte
+
+    @Synchronized
     external fun setByte(key: String, value: Byte)
 
-    external fun getShort(key: String, getDefault: Boolean): Short
+    @Synchronized
+    external fun getShort(key: String, needsGlobal: Boolean): Short
+
+    @Synchronized
     external fun setShort(key: String, value: Short)
 
-    external fun getInt(key: String, getDefault: Boolean): Int
+    @Synchronized
+    external fun getInt(key: String, needsGlobal: Boolean): Int
+
+    @Synchronized
     external fun setInt(key: String, value: Int)
 
-    external fun getFloat(key: String, getDefault: Boolean): Float
+    @Synchronized
+    external fun getFloat(key: String, needsGlobal: Boolean): Float
+
+    @Synchronized
     external fun setFloat(key: String, value: Float)
 
-    external fun getLong(key: String, getDefault: Boolean): Long
+    @Synchronized
+    external fun getLong(key: String, needsGlobal: Boolean): Long
+
+    @Synchronized
     external fun setLong(key: String, value: Long)
 
-    external fun getString(key: String, getDefault: Boolean): String
+    @Synchronized
+    external fun getString(key: String, needsGlobal: Boolean): String
+
+    @Synchronized
     external fun setString(key: String, value: String)
 
     external fun getIsRuntimeModifiable(key: String): Boolean
 
-    external fun getConfigHeader(category: Int): String
-
     external fun getPairedSettingKey(key: String): String
+
+    external fun getIsSwitchable(key: String): Boolean
+
+    @Synchronized
+    external fun usingGlobal(key: String): Boolean
+
+    @Synchronized
+    external fun setGlobal(key: String, global: Boolean)
+
+    external fun getDefaultToString(key: String): String
 
     /**
      * Gets every [GameDir] in AndroidSettings::values.game_dirs

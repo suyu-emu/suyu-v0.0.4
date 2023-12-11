@@ -5,22 +5,22 @@ package org.yuzu.yuzu_emu.features.settings.model
 
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
-enum class FloatSetting(
-    override val key: String,
-    override val category: Settings.Category
-) : AbstractFloatSetting {
+enum class FloatSetting(override val key: String) : AbstractFloatSetting {
     // No float settings currently exist
-    EMPTY_SETTING("", Settings.Category.UiGeneral);
+    EMPTY_SETTING("");
 
-    override val float: Float
-        get() = NativeConfig.getFloat(key, false)
+    override fun getFloat(needsGlobal: Boolean): Float = NativeConfig.getFloat(key, false)
 
-    override fun setFloat(value: Float) = NativeConfig.setFloat(key, value)
+    override fun setFloat(value: Float) {
+        if (NativeConfig.isPerGameConfigLoaded()) {
+            global = false
+        }
+        NativeConfig.setFloat(key, value)
+    }
 
-    override val defaultValue: Float by lazy { NativeConfig.getFloat(key, true) }
+    override val defaultValue: Float by lazy { NativeConfig.getDefaultToString(key).toFloat() }
 
-    override val valueAsString: String
-        get() = float.toString()
+    override fun getValueAsString(needsGlobal: Boolean): String = getFloat(needsGlobal).toString()
 
     override fun reset() = NativeConfig.setFloat(key, defaultValue)
 }

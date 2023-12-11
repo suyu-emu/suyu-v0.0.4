@@ -29,14 +29,14 @@ class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: Setti
             val resMgr = binding.textSettingValue.context.resources
             val values = resMgr.getIntArray(item.valuesId)
             for (i in values.indices) {
-                if (values[i] == item.selectedValue) {
+                if (values[i] == item.getSelectedValue()) {
                     binding.textSettingValue.text = resMgr.getStringArray(item.choicesId)[i]
                     break
                 }
             }
         } else if (item is StringSingleChoiceSetting) {
             for (i in item.values.indices) {
-                if (item.values[i] == item.selectedValue) {
+                if (item.values[i] == item.getSelectedValue()) {
                     binding.textSettingValue.text = item.choices[i]
                     break
                 }

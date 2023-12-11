@@ -4,7 +4,6 @@
 package org.yuzu.yuzu_emu.features.settings.model
 
 interface AbstractIntSetting : AbstractSetting {
-    val int: Int
-
+    fun getInt(needsGlobal: Boolean = false): Int
     fun setInt(value: Int)
 }

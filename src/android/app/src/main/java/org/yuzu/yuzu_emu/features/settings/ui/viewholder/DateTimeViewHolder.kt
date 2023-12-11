@@ -29,7 +29,7 @@ class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
         }
 
         binding.textSettingValue.visibility = View.VISIBLE
-        val epochTime = setting.value
+        val epochTime = setting.getValue()
         val instant = Instant.ofEpochMilli(epochTime * 1000)
         val zonedTime = ZonedDateTime.ofInstant(instant, ZoneId.of("UTC"))
         val dateFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
