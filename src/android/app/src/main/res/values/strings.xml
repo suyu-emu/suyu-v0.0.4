@@ -414,6 +414,7 @@
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
     <string name="memory_megabyte">MB</string>
     <string name="memory_gigabyte">GB</string>
