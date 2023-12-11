@@ -36,6 +36,12 @@ object GameHelper {
         // Ensure keys are loaded so that ROM metadata can be decrypted.
         NativeLibrary.reloadKeys()
 
+        // Reset metadata so we don't use stale information
+        GameMetadata.resetMetadata()
+
+        // Remove previous filesystem provider information so we can get up to date version info
+        NativeLibrary.clearFilesystemProvider()
+
         val badDirs = mutableListOf<Int>()
         gameDirs.forEachIndexed { index: Int, gameDir: GameDir ->
             val gameDirUri = Uri.parse(gameDir.uriString)
@@ -92,14 +98,24 @@ object GameHelper {
                 )
             } else {
                 if (Game.extensions.contains(FileUtil.getExtension(it.uri))) {
-                    games.add(getGame(it.uri, true))
+                    val game = getGame(it.uri, true)
+                    if (game != null) {
+                        games.add(game)
+                    }
                 }
             }
         }
     }
 
-    fun getGame(uri: Uri, addedToLibrary: Boolean): Game {
+    fun getGame(uri: Uri, addedToLibrary: Boolean): Game? {
         val filePath = uri.toString()
+        if (!GameMetadata.getIsValid(filePath)) {
+            return null
+        }
+
+        // Needed to update installed content information
+        NativeLibrary.addFileToFilesystemProvider(filePath)
+
         var name = GameMetadata.getTitle(filePath)
 
         // If the game's title field is empty, use the filename.
@@ -118,7 +134,7 @@ object GameHelper {
             filePath,
             programId,
             GameMetadata.getDeveloper(filePath),
-            GameMetadata.getVersion(filePath),
+            GameMetadata.getVersion(filePath, false),
             GameMetadata.getIsHomebrew(filePath)
         )
 
