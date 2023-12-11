@@ -74,6 +74,7 @@ class Game(
         result = 31 * result + path.hashCode()
         result = 31 * result + programId.hashCode()
         result = 31 * result + developer.hashCode()
+        result = 31 * result + version.hashCode()
         result = 31 * result + isHomebrew.hashCode()
         return result
     }
