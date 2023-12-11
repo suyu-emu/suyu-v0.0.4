@@ -20,6 +20,15 @@ jmethodID GetDiskCacheLoadProgress();
 jmethodID GetOnEmulationStarted();
 jmethodID GetOnEmulationStopped();
 
+jclass GetGameClass();
+jmethodID GetGameConstructor();
+jfieldID GetGameTitleField();
+jfieldID GetGamePathField();
+jfieldID GetGameProgramIdField();
+jfieldID GetGameDeveloperField();
+jfieldID GetGameVersionField();
+jfieldID GetGameIsHomebrewField();
+
 jclass GetStringClass();
 jclass GetPairClass();
 jmethodID GetPairConstructor();
