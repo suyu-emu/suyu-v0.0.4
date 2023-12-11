@@ -96,7 +96,7 @@ class GamesFragment : Fragment() {
             }
             launch {
                 repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    gamesViewModel.games.collect {
+                    gamesViewModel.games.collectLatest {
                         (binding.gridGames.adapter as GameAdapter).submitList(it)
                         if (it.isEmpty()) {
                             binding.noticeText.visibility = View.VISIBLE
