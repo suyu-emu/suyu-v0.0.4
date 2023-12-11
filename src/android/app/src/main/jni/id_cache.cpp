@@ -20,6 +20,15 @@ static jmethodID s_disk_cache_load_progress;
 static jmethodID s_on_emulation_started;
 static jmethodID s_on_emulation_stopped;
 
+static jclass s_game_class;
+static jmethodID s_game_constructor;
+static jfieldID s_game_title_field;
+static jfieldID s_game_path_field;
+static jfieldID s_game_program_id_field;
+static jfieldID s_game_developer_field;
+static jfieldID s_game_version_field;
+static jfieldID s_game_is_homebrew_field;
+
 static jclass s_string_class;
 static jclass s_pair_class;
 static jmethodID s_pair_constructor;
@@ -85,6 +94,38 @@ jmethodID GetOnEmulationStopped() {
     return s_on_emulation_stopped;
 }
 
+jclass GetGameClass() {
+    return s_game_class;
+}
+
+jmethodID GetGameConstructor() {
+    return s_game_constructor;
+}
+
+jfieldID GetGameTitleField() {
+    return s_game_title_field;
+}
+
+jfieldID GetGamePathField() {
+    return s_game_path_field;
+}
+
+jfieldID GetGameProgramIdField() {
+    return s_game_program_id_field;
+}
+
+jfieldID GetGameDeveloperField() {
+    return s_game_developer_field;
+}
+
+jfieldID GetGameVersionField() {
+    return s_game_version_field;
+}
+
+jfieldID GetGameIsHomebrewField() {
+    return s_game_is_homebrew_field;
+}
+
 jclass GetStringClass() {
     return s_string_class;
 }
@@ -141,6 +182,19 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     s_on_emulation_stopped =
         env->GetStaticMethodID(s_native_library_class, "onEmulationStopped", "(I)V");
 
+    const jclass game_class = env->FindClass("org/yuzu/yuzu_emu/model/Game");
+    s_game_class = reinterpret_cast<jclass>(env->NewGlobalRef(game_class));
+    s_game_constructor = env->GetMethodID(game_class, "<init>",
+                                          "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/"
+                                          "String;Ljava/lang/String;Ljava/lang/String;Z)V");
+    s_game_title_field = env->GetFieldID(game_class, "title", "Ljava/lang/String;");
+    s_game_path_field = env->GetFieldID(game_class, "path", "Ljava/lang/String;");
+    s_game_program_id_field = env->GetFieldID(game_class, "programId", "Ljava/lang/String;");
+    s_game_developer_field = env->GetFieldID(game_class, "developer", "Ljava/lang/String;");
+    s_game_version_field = env->GetFieldID(game_class, "version", "Ljava/lang/String;");
+    s_game_is_homebrew_field = env->GetFieldID(game_class, "isHomebrew", "Z");
+    env->DeleteLocalRef(game_class);
+
     const jclass string_class = env->FindClass("java/lang/String");
     s_string_class = reinterpret_cast<jclass>(env->NewGlobalRef(string_class));
     env->DeleteLocalRef(string_class);
@@ -174,6 +228,7 @@ void JNI_OnUnload(JavaVM* vm, void* reserved) {
     env->DeleteGlobalRef(s_disk_cache_progress_class);
     env->DeleteGlobalRef(s_load_callback_stage_class);
     env->DeleteGlobalRef(s_game_dir_class);
+    env->DeleteGlobalRef(s_game_class);
     env->DeleteGlobalRef(s_string_class);
     env->DeleteGlobalRef(s_pair_class);
 
