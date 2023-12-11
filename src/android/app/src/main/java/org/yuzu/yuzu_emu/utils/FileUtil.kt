@@ -22,6 +22,7 @@ import java.io.BufferedOutputStream
 import java.lang.NullPointerException
 import java.nio.charset.StandardCharsets
 import java.util.zip.ZipOutputStream
+import kotlin.IllegalStateException
 
 object FileUtil {
     const val PATH_TREE = "tree"
@@ -340,6 +341,37 @@ object FileUtil {
             return TaskState.Failed
         }
         return TaskState.Completed
+    }
+
+    /**
+     * Helper function that copies the contents of a DocumentFile folder into a [File]
+     * @param file [File] representation of the folder to copy into
+     * @throws IllegalStateException Fails when trying to copy a folder into a file and vice versa
+     */
+    fun DocumentFile.copyFilesTo(file: File) {
+        file.mkdirs()
+        if (!this.isDirectory || !file.isDirectory) {
+            throw IllegalStateException(
+                "[FileUtil] Tried to copy a folder into a file or vice versa"
+            )
+        }
+
+        this.listFiles().forEach {
+            val newFile = File(file, it.name!!)
+            if (it.isDirectory) {
+                newFile.mkdirs()
+                DocumentFile.fromTreeUri(YuzuApplication.appContext, it.uri)?.copyFilesTo(newFile)
+            } else {
+                val inputStream =
+                    YuzuApplication.appContext.contentResolver.openInputStream(it.uri)
+                BufferedInputStream(inputStream).use { bos ->
+                    if (!newFile.exists()) {
+                        newFile.createNewFile()
+                    }
+                    newFile.outputStream().use { os -> bos.copyTo(os) }
+                }
+            }
+        }
     }
 
     fun isRootTreeUri(uri: Uri): Boolean {

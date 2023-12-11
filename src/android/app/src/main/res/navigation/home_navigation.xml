@@ -124,5 +124,38 @@
         android:id="@+id/gameFoldersFragment"
         android:name="org.yuzu.yuzu_emu.fragments.GameFoldersFragment"
         android:label="GameFoldersFragment" />
+    <fragment
+        android:id="@+id/perGamePropertiesFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.GamePropertiesFragment"
+        android:label="PerGamePropertiesFragment" >
+        <argument
+            android:name="game"
+            app:argType="org.yuzu.yuzu_emu.model.Game" />
+        <action
+            android:id="@+id/action_perGamePropertiesFragment_to_gameInfoFragment"
+            app:destination="@id/gameInfoFragment" />
+        <action
+            android:id="@+id/action_perGamePropertiesFragment_to_addonsFragment"
+            app:destination="@id/addonsFragment" />
+    </fragment>
+    <action
+        android:id="@+id/action_global_perGamePropertiesFragment"
+        app:destination="@id/perGamePropertiesFragment" />
+    <fragment
+        android:id="@+id/gameInfoFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.GameInfoFragment"
+        android:label="GameInfoFragment" >
+        <argument
+            android:name="game"
+            app:argType="org.yuzu.yuzu_emu.model.Game" />
+    </fragment>
+    <fragment
+        android:id="@+id/addonsFragment"
+        android:name="org.yuzu.yuzu_emu.fragments.AddonsFragment"
+        android:label="AddonsFragment" >
+        <argument
+            android:name="game"
+            app:argType="org.yuzu.yuzu_emu.model.Game" />
+    </fragment>
 
 </navigation>

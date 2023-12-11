@@ -122,7 +122,7 @@ class IndeterminateProgressDialogFragment : DialogFragment() {
             activity: FragmentActivity,
             titleId: Int,
             cancellable: Boolean = false,
-            task: () -> Any
+            task: suspend () -> Any
         ): IndeterminateProgressDialogFragment {
             val dialog = IndeterminateProgressDialogFragment()
             val args = Bundle()

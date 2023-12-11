@@ -20,6 +20,12 @@ static jmethodID s_disk_cache_load_progress;
 static jmethodID s_on_emulation_started;
 static jmethodID s_on_emulation_stopped;
 
+static jclass s_string_class;
+static jclass s_pair_class;
+static jmethodID s_pair_constructor;
+static jfieldID s_pair_first_field;
+static jfieldID s_pair_second_field;
+
 static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
 
 namespace IDCache {
@@ -79,6 +85,26 @@ jmethodID GetOnEmulationStopped() {
     return s_on_emulation_stopped;
 }
 
+jclass GetStringClass() {
+    return s_string_class;
+}
+
+jclass GetPairClass() {
+    return s_pair_class;
+}
+
+jmethodID GetPairConstructor() {
+    return s_pair_constructor;
+}
+
+jfieldID GetPairFirstField() {
+    return s_pair_first_field;
+}
+
+jfieldID GetPairSecondField() {
+    return s_pair_second_field;
+}
+
 } // namespace IDCache
 
 #ifdef __cplusplus
@@ -115,6 +141,18 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     s_on_emulation_stopped =
         env->GetStaticMethodID(s_native_library_class, "onEmulationStopped", "(I)V");
 
+    const jclass string_class = env->FindClass("java/lang/String");
+    s_string_class = reinterpret_cast<jclass>(env->NewGlobalRef(string_class));
+    env->DeleteLocalRef(string_class);
+
+    const jclass pair_class = env->FindClass("kotlin/Pair");
+    s_pair_class = reinterpret_cast<jclass>(env->NewGlobalRef(pair_class));
+    s_pair_constructor =
+        env->GetMethodID(pair_class, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+    s_pair_first_field = env->GetFieldID(pair_class, "first", "Ljava/lang/Object;");
+    s_pair_second_field = env->GetFieldID(pair_class, "second", "Ljava/lang/Object;");
+    env->DeleteLocalRef(pair_class);
+
     // Initialize Android Storage
     Common::FS::Android::RegisterCallbacks(env, s_native_library_class);
 
@@ -136,6 +174,8 @@ void JNI_OnUnload(JavaVM* vm, void* reserved) {
     env->DeleteGlobalRef(s_disk_cache_progress_class);
     env->DeleteGlobalRef(s_load_callback_stage_class);
     env->DeleteGlobalRef(s_game_dir_class);
+    env->DeleteGlobalRef(s_string_class);
+    env->DeleteGlobalRef(s_pair_class);
 
     // UnInitialize applets
     SoftwareKeyboard::CleanupJNI(env);

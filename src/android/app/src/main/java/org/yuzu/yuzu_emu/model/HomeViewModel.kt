@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.model
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,12 @@ class HomeViewModel : ViewModel() {
 
     private val _gamesDirSelected = MutableStateFlow(false)
     val gamesDirSelected get() = _gamesDirSelected.asStateFlow()
+
+    private val _openImportSaves = MutableStateFlow(false)
+    val openImportSaves get() = _openImportSaves.asStateFlow()
+
+    private val _contentToInstall = MutableStateFlow<List<Uri>?>(null)
+    val contentToInstall get() = _contentToInstall.asStateFlow()
 
     var navigatedToSetup = false
 
@@ -43,5 +50,13 @@ class HomeViewModel : ViewModel() {
 
     fun setGamesDirSelected(selected: Boolean) {
         _gamesDirSelected.value = selected
+    }
+
+    fun setOpenImportSaves(import: Boolean) {
+        _openImportSaves.value = import
+    }
+
+    fun setContentToInstall(documents: List<Uri>?) {
+        _contentToInstall.value = documents
     }
 }
