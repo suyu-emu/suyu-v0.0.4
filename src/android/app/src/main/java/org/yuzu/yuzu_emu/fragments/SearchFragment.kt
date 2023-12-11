@@ -24,6 +24,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.PreferenceManager
 import info.debatty.java.stringsimilarity.Jaccard
 import info.debatty.java.stringsimilarity.JaroWinkler
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.Locale
 import org.yuzu.yuzu_emu.R
@@ -101,7 +102,7 @@ class SearchFragment : Fragment() {
             }
             launch {
                 repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    gamesViewModel.games.collect { filterAndSearch() }
+                    gamesViewModel.games.collectLatest { filterAndSearch() }
                 }
             }
             launch {
