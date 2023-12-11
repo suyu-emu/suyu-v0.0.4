@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <common/fs/fs_util.h>
 #include <jni.h>
 
 #include "android_config.h"
@@ -12,17 +13,19 @@
 #include "frontend_common/config.h"
 #include "jni/android_common/android_common.h"
 #include "jni/id_cache.h"
+#include "native.h"
 
-std::unique_ptr<AndroidConfig> config;
+std::unique_ptr<AndroidConfig> global_config;
+std::unique_ptr<AndroidConfig> per_game_config;
 
 template <typename T>
 Settings::Setting<T>* getSetting(JNIEnv* env, jstring jkey) {
     auto key = GetJString(env, jkey);
     auto basicSetting = Settings::values.linkage.by_key[key];
-    auto basicAndroidSetting = AndroidSettings::values.linkage.by_key[key];
     if (basicSetting != 0) {
         return static_cast<Settings::Setting<T>*>(basicSetting);
     }
+    auto basicAndroidSetting = AndroidSettings::values.linkage.by_key[key];
     if (basicAndroidSetting != 0) {
         return static_cast<Settings::Setting<T>*>(basicAndroidSetting);
     }
@@ -32,20 +35,43 @@ Settings::Setting<T>* getSetting(JNIEnv* env, jstring jkey) {
 
 extern "C" {
 
-void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_initializeConfig(JNIEnv* env, jobject obj) {
-    config = std::make_unique<AndroidConfig>();
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_initializeGlobalConfig(JNIEnv* env, jobject obj) {
+    global_config = std::make_unique<AndroidConfig>();
 }
 
-void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_unloadConfig(JNIEnv* env, jobject obj) {
-    config.reset();
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_unloadGlobalConfig(JNIEnv* env, jobject obj) {
+    global_config.reset();
 }
 
-void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_reloadSettings(JNIEnv* env, jobject obj) {
-    config->AndroidConfig::ReloadAllValues();
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_reloadGlobalConfig(JNIEnv* env, jobject obj) {
+    global_config->AndroidConfig::ReloadAllValues();
 }
 
-void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_saveSettings(JNIEnv* env, jobject obj) {
-    config->AndroidConfig::SaveAllValues();
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_saveGlobalConfig(JNIEnv* env, jobject obj) {
+    global_config->AndroidConfig::SaveAllValues();
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_initializePerGameConfig(JNIEnv* env, jobject obj,
+                                                                        jstring jprogramId,
+                                                                        jstring jfileName) {
+    auto program_id = EmulationSession::GetProgramId(env, jprogramId);
+    auto file_name = GetJString(env, jfileName);
+    const auto config_file_name = program_id == 0 ? file_name : fmt::format("{:016X}", program_id);
+    per_game_config =
+        std::make_unique<AndroidConfig>(config_file_name, Config::ConfigType::PerGameConfig);
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_utils_NativeConfig_isPerGameConfigLoaded(JNIEnv* env,
+                                                                          jobject obj) {
+    return per_game_config != nullptr;
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_savePerGameConfig(JNIEnv* env, jobject obj) {
+    per_game_config->AndroidConfig::SaveAllValues();
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_unloadPerGameConfig(JNIEnv* env, jobject obj) {
+    per_game_config.reset();
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getBoolean(JNIEnv* env, jobject obj,

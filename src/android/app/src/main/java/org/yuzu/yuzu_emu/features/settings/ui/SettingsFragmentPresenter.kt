@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import android.os.Build
 import android.widget.Toast
 import androidx.preference.PreferenceManager
+import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.features.settings.model.AbstractBooleanSetting
@@ -31,9 +32,17 @@ class SettingsFragmentPresenter(
     private val preferences: SharedPreferences
         get() = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
-    // Extension for populating settings list based on paired settings
+    // Extension for altering settings list based on each setting's properties
     fun ArrayList<SettingsItem>.add(key: String) {
         val item = SettingsItem.settingsItems[key]!!
+        if (settingsViewModel.game != null && !item.setting.isSwitchable) {
+            return
+        }
+
+        if (!NativeConfig.isPerGameConfigLoaded() && !NativeLibrary.isRunning()) {
+            item.setting.global = true
+        }
+
         val pairedSettingKey = item.setting.pairedSettingKey
         if (pairedSettingKey.isNotEmpty()) {
             val pairedSettingValue = NativeConfig.getBoolean(

@@ -66,7 +66,13 @@ class SettingsFragment : Fragment() {
             args.menuTag
         )
 
-        binding.toolbarSettingsLayout.title = getString(args.menuTag.titleId)
+        binding.toolbarSettingsLayout.title = if (args.menuTag == Settings.MenuTag.SECTION_ROOT &&
+            args.game != null
+        ) {
+            args.game!!.title
+        } else {
+            getString(args.menuTag.titleId)
+        }
         binding.listSettings.apply {
             adapter = settingsAdapter
             layoutManager = LinearLayoutManager(requireContext())

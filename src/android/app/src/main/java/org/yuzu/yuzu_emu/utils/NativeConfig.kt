@@ -7,30 +7,54 @@ import org.yuzu.yuzu_emu.model.GameDir
 
 object NativeConfig {
     /**
-     * Creates a Config object and opens the emulation config.
+     * Loads global config.
      */
     @Synchronized
-    external fun initializeConfig()
+    external fun initializeGlobalConfig()
 
     /**
-     * Destroys the stored config object. This automatically saves the existing config.
+     * Destroys the stored global config object. This does not save the existing config.
      */
     @Synchronized
-    external fun unloadConfig()
+    external fun unloadGlobalConfig()
 
     /**
-     * Reads values saved to the config file and saves them.
+     * Reads values in the global config file and saves them.
      */
     @Synchronized
-    external fun reloadSettings()
+    external fun reloadGlobalConfig()
 
     /**
-     * Saves settings values in memory to disk.
+     * Saves global settings values in memory to disk.
      */
     @Synchronized
-    external fun saveSettings()
+    external fun saveGlobalConfig()
 
-    external fun getBoolean(key: String, getDefault: Boolean): Boolean
+    /**
+     * Creates per-game config for the specified parameters. Must be unloaded once per-game config
+     * is closed with [unloadPerGameConfig]. All switchable values that [NativeConfig] gets/sets
+     * will follow the per-game config until the global config is reloaded.
+     *
+     * @param programId String representation of the u64 programId
+     * @param fileName Filename of the game, including its extension
+     */
+    @Synchronized
+    external fun initializePerGameConfig(programId: String, fileName: String)
+
+    @Synchronized
+    external fun isPerGameConfigLoaded(): Boolean
+
+    /**
+     * Saves per-game settings values in memory to disk.
+     */
+    @Synchronized
+    external fun savePerGameConfig()
+
+    /**
+     * Destroys the stored per-game config object. This does not save the config.
+     */
+    @Synchronized
+    external fun unloadPerGameConfig()
 
     @Synchronized
     external fun getBoolean(key: String, needsGlobal: Boolean): Boolean

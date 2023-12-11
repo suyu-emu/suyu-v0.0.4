@@ -13,6 +13,7 @@ import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.DateTimeSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
+import org.yuzu.yuzu_emu.utils.NativeConfig
 
 class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
@@ -34,6 +35,17 @@ class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
         val zonedTime = ZonedDateTime.ofInstant(instant, ZoneId.of("UTC"))
         val dateFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
         binding.textSettingValue.text = dateFormatter.format(zonedTime)
+
+        binding.buttonClear.visibility = if (setting.setting.global ||
+            !NativeConfig.isPerGameConfigLoaded()
+        ) {
+            View.GONE
+        } else {
+            View.VISIBLE
+        }
+        binding.buttonClear.setOnClickListener {
+            adapter.onClearClick(setting, bindingAdapterPosition)
+        }
 
         setStyle(setting.isEditable, binding)
     }
