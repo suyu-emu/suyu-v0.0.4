@@ -52,6 +52,7 @@ import org.yuzu.yuzu_emu.databinding.DialogOverlayAdjustBinding
 import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.EmulationViewModel
@@ -126,6 +127,16 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             requireActivity().finish()
             return
         }
+
+        if (args.custom) {
+            SettingsFile.loadCustomConfig(args.game!!)
+            NativeConfig.unloadPerGameConfig()
+        } else {
+            NativeConfig.reloadGlobalConfig()
+        }
+
+        // Install the selected driver asynchronously as the game starts
+        driverViewModel.onLaunchGame()
 
         // So this fragment doesn't restart on configuration changes; i.e. rotation.
         retainInstance = true
@@ -211,6 +222,15 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.id.menu_settings -> {
                     val action = HomeNavigationDirections.actionGlobalSettingsActivity(
                         null,
+                        Settings.MenuTag.SECTION_ROOT
+                    )
+                    binding.root.findNavController().navigate(action)
+                    true
+                }
+
+                R.id.menu_settings_per_game -> {
+                    val action = HomeNavigationDirections.actionGlobalSettingsActivity(
+                        args.game,
                         Settings.MenuTag.SECTION_ROOT
                     )
                     binding.root.findNavController().navigate(action)

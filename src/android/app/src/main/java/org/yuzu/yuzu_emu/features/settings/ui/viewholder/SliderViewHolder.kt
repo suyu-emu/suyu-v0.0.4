@@ -9,6 +9,7 @@ import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.model.view.SliderSetting
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
+import org.yuzu.yuzu_emu.utils.NativeConfig
 
 class SliderViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
@@ -29,6 +30,17 @@ class SliderViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAda
             setting.getSelectedValue(),
             setting.units
         )
+
+        binding.buttonClear.visibility = if (setting.setting.global ||
+            !NativeConfig.isPerGameConfigLoaded()
+        ) {
+            View.GONE
+        } else {
+            View.VISIBLE
+        }
+        binding.buttonClear.setOnClickListener {
+            adapter.onClearClick(setting, bindingAdapterPosition)
+        }
 
         setStyle(setting.isEditable, binding)
     }

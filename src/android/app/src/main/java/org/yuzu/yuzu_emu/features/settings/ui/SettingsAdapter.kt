@@ -196,6 +196,12 @@ class SettingsAdapter(
         return true
     }
 
+    fun onClearClick(item: SettingsItem, position: Int) {
+        item.setting.global = true
+        notifyItemChanged(position)
+        settingsViewModel.setShouldReloadSettingsList(true)
+    }
+
     private class DiffCallback : DiffUtil.ItemCallback<SettingsItem>() {
         override fun areItemsTheSame(oldItem: SettingsItem, newItem: SettingsItem): Boolean {
             return oldItem.setting.key == newItem.setting.key

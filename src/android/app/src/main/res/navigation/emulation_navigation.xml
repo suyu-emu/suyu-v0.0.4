@@ -15,6 +15,10 @@
             app:argType="org.yuzu.yuzu_emu.model.Game"
             app:nullable="true"
             android:defaultValue="@null" />
+        <argument
+            android:name="custom"
+            app:argType="boolean"
+            android:defaultValue="false" />
     </fragment>
 
     <activity

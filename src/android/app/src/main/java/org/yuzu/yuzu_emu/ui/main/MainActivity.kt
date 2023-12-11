@@ -28,12 +28,9 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.navigation.NavigationBarView
-import kotlinx.coroutines.CoroutineScope
 import java.io.File
 import java.io.FilenameFilter
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
@@ -256,13 +253,6 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     override fun onResume() {
         ThemeHelper.setCorrectTheme(this)
         super.onResume()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        CoroutineScope(Dispatchers.IO).launch {
-            NativeConfig.saveSettings()
-        }
     }
 
     override fun onDestroy() {
@@ -677,7 +667,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 }
 
                 // Clear existing user data
-                NativeConfig.unloadConfig()
+                NativeConfig.unloadGlobalConfig()
                 File(DirectoryInitialization.userDirectory!!).deleteRecursively()
 
                 // Copy archive to internal storage
@@ -696,7 +686,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
                 // Reinitialize relevant data
                 NativeLibrary.initializeSystem(true)
-                NativeConfig.initializeConfig()
+                NativeConfig.initializeGlobalConfig()
                 gamesViewModel.reloadGames(false)
 
                 return@newInstance getString(R.string.user_data_import_success)

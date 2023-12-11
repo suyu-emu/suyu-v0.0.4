@@ -38,6 +38,7 @@ class RunnableViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
             binding.textSettingDescription.visibility = View.GONE
         }
         binding.textSettingValue.visibility = View.GONE
+        binding.buttonClear.visibility = View.GONE
 
         setStyle(setting.isEditable, binding)
     }

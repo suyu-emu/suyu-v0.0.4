@@ -304,6 +304,11 @@ class SetupFragment : Fragment() {
         setInsets()
     }
 
+    override fun onStop() {
+        super.onStop()
+        NativeConfig.saveGlobalConfig()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         if (_binding != null) {

@@ -9,6 +9,7 @@ import org.yuzu.yuzu_emu.databinding.ListItemSettingSwitchBinding
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.model.view.SwitchSetting
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
+import org.yuzu.yuzu_emu.utils.NativeConfig
 
 class SwitchSettingViewHolder(val binding: ListItemSettingSwitchBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
@@ -29,7 +30,18 @@ class SwitchSettingViewHolder(val binding: ListItemSettingSwitchBinding, adapter
         binding.switchWidget.setOnCheckedChangeListener(null)
         binding.switchWidget.isChecked = setting.getIsChecked(setting.needsRuntimeGlobal)
         binding.switchWidget.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
-            adapter.onBooleanClick(item, binding.switchWidget.isChecked)
+            adapter.onBooleanClick(item, binding.switchWidget.isChecked, bindingAdapterPosition)
+        }
+
+        binding.buttonClear.visibility = if (setting.setting.global ||
+            !NativeConfig.isPerGameConfigLoaded()
+        ) {
+            View.GONE
+        } else {
+            View.VISIBLE
+        }
+        binding.buttonClear.setOnClickListener {
+            adapter.onClearClick(setting, bindingAdapterPosition)
         }
 
         setStyle(setting.isEditable, binding)

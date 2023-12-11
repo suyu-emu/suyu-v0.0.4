@@ -12,6 +12,7 @@ import org.yuzu.yuzu_emu.features.settings.model.ByteSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.LongSetting
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
+import org.yuzu.yuzu_emu.utils.NativeConfig
 
 /**
  * ViewModel abstraction for an Item in the RecyclerView powering SettingsFragments.
@@ -30,8 +31,18 @@ abstract class SettingsItem(
     val isEditable: Boolean
         get() {
             if (!NativeLibrary.isRunning()) return true
+
+            // Prevent editing settings that were modified in per-game config while editing global
+            // config
+            if (!NativeConfig.isPerGameConfigLoaded() && !setting.global) {
+                return false
+            }
             return setting.isRuntimeModifiable
         }
+
+    val needsRuntimeGlobal: Boolean
+        get() = NativeLibrary.isRunning() && !setting.global &&
+            !NativeConfig.isPerGameConfigLoaded()
 
     companion object {
         const val TYPE_HEADER = 0

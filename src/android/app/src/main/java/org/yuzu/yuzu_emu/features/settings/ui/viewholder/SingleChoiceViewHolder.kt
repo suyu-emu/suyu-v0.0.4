@@ -9,6 +9,7 @@ import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.model.view.SingleChoiceSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.StringSingleChoiceSetting
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
+import org.yuzu.yuzu_emu.utils.NativeConfig
 
 class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
@@ -41,6 +42,17 @@ class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: Setti
                     break
                 }
             }
+        }
+
+        binding.buttonClear.visibility = if (setting.setting.global ||
+            !NativeConfig.isPerGameConfigLoaded()
+        ) {
+            View.GONE
+        } else {
+            View.VISIBLE
+        }
+        binding.buttonClear.setOnClickListener {
+            adapter.onClearClick(setting, bindingAdapterPosition)
         }
 
         setStyle(setting.isEditable, binding)
