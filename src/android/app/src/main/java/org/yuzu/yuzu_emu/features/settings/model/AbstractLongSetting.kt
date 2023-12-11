@@ -4,7 +4,6 @@
 package org.yuzu.yuzu_emu.features.settings.model
 
 interface AbstractLongSetting : AbstractSetting {
-    val long: Long
-
+    fun getLong(needsGlobal: Boolean = false): Long
     fun setLong(value: Long)
 }

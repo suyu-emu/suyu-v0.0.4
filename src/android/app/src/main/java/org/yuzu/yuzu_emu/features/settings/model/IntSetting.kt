@@ -5,36 +5,33 @@ package org.yuzu.yuzu_emu.features.settings.model
 
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
-enum class IntSetting(
-    override val key: String,
-    override val category: Settings.Category,
-    override val androidDefault: Int? = null
-) : AbstractIntSetting {
-    CPU_BACKEND("cpu_backend", Settings.Category.Cpu),
-    CPU_ACCURACY("cpu_accuracy", Settings.Category.Cpu),
-    REGION_INDEX("region_index", Settings.Category.System),
-    LANGUAGE_INDEX("language_index", Settings.Category.System),
-    RENDERER_BACKEND("backend", Settings.Category.Renderer),
-    RENDERER_ACCURACY("gpu_accuracy", Settings.Category.Renderer, 0),
-    RENDERER_RESOLUTION("resolution_setup", Settings.Category.Renderer),
-    RENDERER_VSYNC("use_vsync", Settings.Category.Renderer),
-    RENDERER_SCALING_FILTER("scaling_filter", Settings.Category.Renderer),
-    RENDERER_ANTI_ALIASING("anti_aliasing", Settings.Category.Renderer),
-    RENDERER_SCREEN_LAYOUT("screen_layout", Settings.Category.Android),
-    RENDERER_ASPECT_RATIO("aspect_ratio", Settings.Category.Renderer),
-    AUDIO_OUTPUT_ENGINE("output_engine", Settings.Category.Audio);
+enum class IntSetting(override val key: String) : AbstractIntSetting {
+    CPU_BACKEND("cpu_backend"),
+    CPU_ACCURACY("cpu_accuracy"),
+    REGION_INDEX("region_index"),
+    LANGUAGE_INDEX("language_index"),
+    RENDERER_BACKEND("backend"),
+    RENDERER_ACCURACY("gpu_accuracy"),
+    RENDERER_RESOLUTION("resolution_setup"),
+    RENDERER_VSYNC("use_vsync"),
+    RENDERER_SCALING_FILTER("scaling_filter"),
+    RENDERER_ANTI_ALIASING("anti_aliasing"),
+    RENDERER_SCREEN_LAYOUT("screen_layout"),
+    RENDERER_ASPECT_RATIO("aspect_ratio"),
+    AUDIO_OUTPUT_ENGINE("output_engine");
 
-    override val int: Int
-        get() = NativeConfig.getInt(key, false)
+    override fun getInt(needsGlobal: Boolean): Int = NativeConfig.getInt(key, needsGlobal)
 
-    override fun setInt(value: Int) = NativeConfig.setInt(key, value)
-
-    override val defaultValue: Int by lazy {
-        androidDefault ?: NativeConfig.getInt(key, true)
+    override fun setInt(value: Int) {
+        if (NativeConfig.isPerGameConfigLoaded()) {
+            global = false
+        }
+        NativeConfig.setInt(key, value)
     }
 
-    override val valueAsString: String
-        get() = int.toString()
+    override val defaultValue: Int by lazy { NativeConfig.getDefaultToString(key).toInt() }
+
+    override fun getValueAsString(needsGlobal: Boolean): String = getInt(needsGlobal).toString()
 
     override fun reset() = NativeConfig.setInt(key, defaultValue)
 }

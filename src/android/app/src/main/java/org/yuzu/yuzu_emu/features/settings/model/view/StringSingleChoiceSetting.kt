@@ -17,14 +17,13 @@ class StringSingleChoiceSetting(
     fun getValueAt(index: Int): String =
         if (index >= 0 && index < values.size) values[index] else ""
 
-    var selectedValue: String
-        get() = stringSetting.string
-        set(value) = stringSetting.setString(value)
+    fun getSelectedValue(needsGlobal: Boolean = false) = stringSetting.getString(needsGlobal)
+    fun setSelectedValue(value: String) = stringSetting.setString(value)
 
     val selectValueIndex: Int
         get() {
             for (i in values.indices) {
-                if (values[i] == selectedValue) {
+                if (values[i] == getSelectedValue()) {
                     return i
                 }
             }

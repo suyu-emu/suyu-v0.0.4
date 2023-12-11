@@ -11,7 +11,6 @@ import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.ByteSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.LongSetting
-import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
 
 /**
@@ -48,8 +47,8 @@ abstract class SettingsItem(
 
         val emptySetting = object : AbstractSetting {
             override val key: String = ""
-            override val category: Settings.Category = Settings.Category.Ui
             override val defaultValue: Any = false
+            override fun getValueAsString(needsGlobal: Boolean): String = ""
             override fun reset() {}
         }
 
@@ -270,9 +269,9 @@ abstract class SettingsItem(
             )
 
             val fastmem = object : AbstractBooleanSetting {
-                override val boolean: Boolean
-                    get() =
-                        BooleanSetting.FASTMEM.boolean && BooleanSetting.FASTMEM_EXCLUSIVES.boolean
+                override fun getBoolean(needsGlobal: Boolean): Boolean =
+                    BooleanSetting.FASTMEM.getBoolean() &&
+                        BooleanSetting.FASTMEM_EXCLUSIVES.getBoolean()
 
                 override fun setBoolean(value: Boolean) {
                     BooleanSetting.FASTMEM.setBoolean(value)
@@ -280,9 +279,22 @@ abstract class SettingsItem(
                 }
 
                 override val key: String = FASTMEM_COMBINED
-                override val category = Settings.Category.Cpu
                 override val isRuntimeModifiable: Boolean = false
                 override val defaultValue: Boolean = true
+                override val isSwitchable: Boolean = true
+                override var global: Boolean
+                    get() {
+                        return BooleanSetting.FASTMEM.global &&
+                            BooleanSetting.FASTMEM_EXCLUSIVES.global
+                    }
+                    set(value) {
+                        BooleanSetting.FASTMEM.global = value
+                        BooleanSetting.FASTMEM_EXCLUSIVES.global = value
+                    }
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    getBoolean().toString()
+
                 override fun reset() = setBoolean(defaultValue)
             }
             put(SwitchSetting(fastmem, R.string.fastmem, 0))

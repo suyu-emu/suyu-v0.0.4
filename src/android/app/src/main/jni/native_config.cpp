@@ -49,18 +49,12 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_saveSettings(JNIEnv* env, jobjec
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getBoolean(JNIEnv* env, jobject obj,
-                                                               jstring jkey, jboolean getDefault) {
+                                                               jstring jkey, jboolean needGlobal) {
     auto setting = getSetting<bool>(env, jkey);
     if (setting == nullptr) {
         return false;
     }
-    setting->SetGlobal(true);
-
-    if (static_cast<bool>(getDefault)) {
-        return setting->GetDefault();
-    }
-
-    return setting->GetValue();
+    return setting->GetValue(static_cast<bool>(needGlobal));
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setBoolean(JNIEnv* env, jobject obj, jstring jkey,
@@ -69,23 +63,16 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setBoolean(JNIEnv* env, jobject 
     if (setting == nullptr) {
         return;
     }
-    setting->SetGlobal(true);
     setting->SetValue(static_cast<bool>(value));
 }
 
 jbyte Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getByte(JNIEnv* env, jobject obj, jstring jkey,
-                                                         jboolean getDefault) {
+                                                         jboolean needGlobal) {
     auto setting = getSetting<u8>(env, jkey);
     if (setting == nullptr) {
         return -1;
     }
-    setting->SetGlobal(true);
-
-    if (static_cast<bool>(getDefault)) {
-        return setting->GetDefault();
-    }
-
-    return setting->GetValue();
+    return setting->GetValue(static_cast<bool>(needGlobal));
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setByte(JNIEnv* env, jobject obj, jstring jkey,
@@ -94,23 +81,16 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setByte(JNIEnv* env, jobject obj
     if (setting == nullptr) {
         return;
     }
-    setting->SetGlobal(true);
     setting->SetValue(value);
 }
 
 jshort Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getShort(JNIEnv* env, jobject obj, jstring jkey,
-                                                           jboolean getDefault) {
+                                                           jboolean needGlobal) {
     auto setting = getSetting<u16>(env, jkey);
     if (setting == nullptr) {
         return -1;
     }
-    setting->SetGlobal(true);
-
-    if (static_cast<bool>(getDefault)) {
-        return setting->GetDefault();
-    }
-
-    return setting->GetValue();
+    return setting->GetValue(static_cast<bool>(needGlobal));
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setShort(JNIEnv* env, jobject obj, jstring jkey,
@@ -119,23 +99,16 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setShort(JNIEnv* env, jobject ob
     if (setting == nullptr) {
         return;
     }
-    setting->SetGlobal(true);
     setting->SetValue(value);
 }
 
 jint Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getInt(JNIEnv* env, jobject obj, jstring jkey,
-                                                       jboolean getDefault) {
+                                                       jboolean needGlobal) {
     auto setting = getSetting<int>(env, jkey);
     if (setting == nullptr) {
         return -1;
     }
-    setting->SetGlobal(true);
-
-    if (static_cast<bool>(getDefault)) {
-        return setting->GetDefault();
-    }
-
-    return setting->GetValue();
+    return setting->GetValue(needGlobal);
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setInt(JNIEnv* env, jobject obj, jstring jkey,
@@ -144,23 +117,16 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setInt(JNIEnv* env, jobject obj,
     if (setting == nullptr) {
         return;
     }
-    setting->SetGlobal(true);
     setting->SetValue(value);
 }
 
 jfloat Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getFloat(JNIEnv* env, jobject obj, jstring jkey,
-                                                           jboolean getDefault) {
+                                                           jboolean needGlobal) {
     auto setting = getSetting<float>(env, jkey);
     if (setting == nullptr) {
         return -1;
     }
-    setting->SetGlobal(true);
-
-    if (static_cast<bool>(getDefault)) {
-        return setting->GetDefault();
-    }
-
-    return setting->GetValue();
+    return setting->GetValue(static_cast<bool>(needGlobal));
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setFloat(JNIEnv* env, jobject obj, jstring jkey,
@@ -169,23 +135,16 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setFloat(JNIEnv* env, jobject ob
     if (setting == nullptr) {
         return;
     }
-    setting->SetGlobal(true);
     setting->SetValue(value);
 }
 
 jlong Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getLong(JNIEnv* env, jobject obj, jstring jkey,
-                                                         jboolean getDefault) {
-    auto setting = getSetting<long>(env, jkey);
+                                                         jboolean needGlobal) {
+    auto setting = getSetting<s64>(env, jkey);
     if (setting == nullptr) {
         return -1;
     }
-    setting->SetGlobal(true);
-
-    if (static_cast<bool>(getDefault)) {
-        return setting->GetDefault();
-    }
-
-    return setting->GetValue();
+    return setting->GetValue(static_cast<bool>(needGlobal));
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setLong(JNIEnv* env, jobject obj, jstring jkey,
@@ -194,23 +153,16 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setLong(JNIEnv* env, jobject obj
     if (setting == nullptr) {
         return;
     }
-    setting->SetGlobal(true);
     setting->SetValue(value);
 }
 
 jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getString(JNIEnv* env, jobject obj, jstring jkey,
-                                                             jboolean getDefault) {
+                                                             jboolean needGlobal) {
     auto setting = getSetting<std::string>(env, jkey);
     if (setting == nullptr) {
         return ToJString(env, "");
     }
-    setting->SetGlobal(true);
-
-    if (static_cast<bool>(getDefault)) {
-        return ToJString(env, setting->GetDefault());
-    }
-
-    return ToJString(env, setting->GetValue());
+    return ToJString(env, setting->GetValue(static_cast<bool>(needGlobal)));
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setString(JNIEnv* env, jobject obj, jstring jkey,
@@ -220,25 +172,16 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setString(JNIEnv* env, jobject o
         return;
     }
 
-    setting->SetGlobal(true);
     setting->SetValue(GetJString(env, value));
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getIsRuntimeModifiable(JNIEnv* env, jobject obj,
                                                                            jstring jkey) {
-    auto key = GetJString(env, jkey);
-    auto setting = Settings::values.linkage.by_key[key];
-    if (setting != 0) {
+    auto setting = getSetting<std::string>(env, jkey);
+    if (setting != nullptr) {
         return setting->RuntimeModfiable();
     }
-    LOG_ERROR(Frontend, "[Android Native] Could not find setting - {}", key);
     return true;
-}
-
-jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getConfigHeader(JNIEnv* env, jobject obj,
-                                                                   jint jcategory) {
-    auto category = static_cast<Settings::Category>(jcategory);
-    return ToJString(env, Settings::TranslateCategory(category));
 }
 
 jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getPairedSettingKey(JNIEnv* env, jobject obj,
@@ -252,6 +195,41 @@ jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getPairedSettingKey(JNIEnv* e
     }
 
     return ToJString(env, setting->PairedSetting()->GetLabel());
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getIsSwitchable(JNIEnv* env, jobject obj,
+                                                                    jstring jkey) {
+    auto setting = getSetting<std::string>(env, jkey);
+    if (setting != nullptr) {
+        return setting->Switchable();
+    }
+    return false;
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_utils_NativeConfig_usingGlobal(JNIEnv* env, jobject obj,
+                                                                jstring jkey) {
+    auto setting = getSetting<std::string>(env, jkey);
+    if (setting != nullptr) {
+        return setting->UsingGlobal();
+    }
+    return true;
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setGlobal(JNIEnv* env, jobject obj, jstring jkey,
+                                                          jboolean global) {
+    auto setting = getSetting<std::string>(env, jkey);
+    if (setting != nullptr) {
+        setting->SetGlobal(static_cast<bool>(global));
+    }
+}
+
+jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getDefaultToString(JNIEnv* env, jobject obj,
+                                                                      jstring jkey) {
+    auto setting = getSetting<std::string>(env, jkey);
+    if (setting != nullptr) {
+        return ToJString(env, setting->DefaultToString());
+    }
+    return ToJString(env, "");
 }
 
 jobjectArray Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getGameDirs(JNIEnv* env, jobject obj) {

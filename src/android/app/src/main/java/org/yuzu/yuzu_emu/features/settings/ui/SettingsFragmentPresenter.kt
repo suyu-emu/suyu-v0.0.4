@@ -36,7 +36,14 @@ class SettingsFragmentPresenter(
         val item = SettingsItem.settingsItems[key]!!
         val pairedSettingKey = item.setting.pairedSettingKey
         if (pairedSettingKey.isNotEmpty()) {
-            val pairedSettingValue = NativeConfig.getBoolean(pairedSettingKey, false)
+            val pairedSettingValue = NativeConfig.getBoolean(
+                pairedSettingKey,
+                if (NativeLibrary.isRunning() && !NativeConfig.isPerGameConfigLoaded()) {
+                    !NativeConfig.usingGlobal(pairedSettingKey)
+                } else {
+                    NativeConfig.usingGlobal(pairedSettingKey)
+                }
+            )
             if (!pairedSettingValue) return
         }
         add(item)
@@ -153,8 +160,8 @@ class SettingsFragmentPresenter(
     private fun addThemeSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
             val theme: AbstractIntSetting = object : AbstractIntSetting {
-                override val int: Int
-                    get() = preferences.getInt(Settings.PREF_THEME, 0)
+                override fun getInt(needsGlobal: Boolean): Int =
+                    preferences.getInt(Settings.PREF_THEME, 0)
 
                 override fun setInt(value: Int) {
                     preferences.edit()
@@ -164,8 +171,8 @@ class SettingsFragmentPresenter(
                 }
 
                 override val key: String = Settings.PREF_THEME
-                override val category = Settings.Category.UiGeneral
                 override val isRuntimeModifiable: Boolean = false
+                override fun getValueAsString(needsGlobal: Boolean): String = getInt().toString()
                 override val defaultValue: Int = 0
                 override fun reset() {
                     preferences.edit()
@@ -197,8 +204,8 @@ class SettingsFragmentPresenter(
             }
 
             val themeMode: AbstractIntSetting = object : AbstractIntSetting {
-                override val int: Int
-                    get() = preferences.getInt(Settings.PREF_THEME_MODE, -1)
+                override fun getInt(needsGlobal: Boolean): Int =
+                    preferences.getInt(Settings.PREF_THEME_MODE, -1)
 
                 override fun setInt(value: Int) {
                     preferences.edit()
@@ -208,8 +215,8 @@ class SettingsFragmentPresenter(
                 }
 
                 override val key: String = Settings.PREF_THEME_MODE
-                override val category = Settings.Category.UiGeneral
                 override val isRuntimeModifiable: Boolean = false
+                override fun getValueAsString(needsGlobal: Boolean): String = getInt().toString()
                 override val defaultValue: Int = -1
                 override fun reset() {
                     preferences.edit()
@@ -230,8 +237,8 @@ class SettingsFragmentPresenter(
             )
 
             val blackBackgrounds: AbstractBooleanSetting = object : AbstractBooleanSetting {
-                override val boolean: Boolean
-                    get() = preferences.getBoolean(Settings.PREF_BLACK_BACKGROUNDS, false)
+                override fun getBoolean(needsGlobal: Boolean): Boolean =
+                    preferences.getBoolean(Settings.PREF_BLACK_BACKGROUNDS, false)
 
                 override fun setBoolean(value: Boolean) {
                     preferences.edit()
@@ -241,8 +248,10 @@ class SettingsFragmentPresenter(
                 }
 
                 override val key: String = Settings.PREF_BLACK_BACKGROUNDS
-                override val category = Settings.Category.UiGeneral
                 override val isRuntimeModifiable: Boolean = false
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    getBoolean().toString()
+
                 override val defaultValue: Boolean = false
                 override fun reset() {
                     preferences.edit()

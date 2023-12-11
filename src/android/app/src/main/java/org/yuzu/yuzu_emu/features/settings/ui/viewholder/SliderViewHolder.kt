@@ -26,7 +26,7 @@ class SliderViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAda
         binding.textSettingValue.visibility = View.VISIBLE
         binding.textSettingValue.text = String.format(
             binding.textSettingValue.context.getString(R.string.value_with_units),
-            setting.selectedValue,
+            setting.getSelectedValue(),
             setting.units
         )
 
