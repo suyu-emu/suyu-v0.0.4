@@ -22,6 +22,9 @@ interface AbstractSetting {
         get() = NativeConfig.usingGlobal(key)
         set(value) = NativeConfig.setGlobal(key, value)
 
+    val isSaveable: Boolean
+        get() = NativeConfig.getIsSaveable(key)
+
     fun getValueAsString(needsGlobal: Boolean = false): String
 
     fun reset()

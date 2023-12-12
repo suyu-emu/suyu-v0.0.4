@@ -110,6 +110,8 @@ object NativeConfig {
     @Synchronized
     external fun setGlobal(key: String, global: Boolean)
 
+    external fun getIsSaveable(key: String): Boolean
+
     external fun getDefaultToString(key: String): String
 
     /**

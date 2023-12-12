@@ -249,6 +249,15 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setGlobal(JNIEnv* env, jobject o
     }
 }
 
+jboolean Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getIsSaveable(JNIEnv* env, jobject obj,
+                                                                  jstring jkey) {
+    auto setting = getSetting<std::string>(env, jkey);
+    if (setting != nullptr) {
+        return setting->Save();
+    }
+    return false;
+}
+
 jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getDefaultToString(JNIEnv* env, jobject obj,
                                                                       jstring jkey) {
     auto setting = getSetting<std::string>(env, jkey);
