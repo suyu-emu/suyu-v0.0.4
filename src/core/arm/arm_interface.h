@@ -95,7 +95,7 @@ public:
     virtual void SignalInterrupt(Kernel::KThread* thread) = 0;
 
     // Stack trace generation.
-    void LogBacktrace(const Kernel::KProcess* process) const;
+    void LogBacktrace(Kernel::KProcess* process) const;
 
     // Debug functionality.
     virtual const Kernel::DebugWatchpoint* HaltedWatchpoint() const = 0;

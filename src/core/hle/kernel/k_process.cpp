@@ -1128,7 +1128,8 @@ void KProcess::Switch(KProcess* cur_process, KProcess* next_process) {}
 KProcess::KProcess(KernelCore& kernel)
     : KAutoObjectWithSlabHeapAndContainer(kernel), m_page_table{kernel}, m_state_lock{kernel},
       m_list_lock{kernel}, m_cond_var{kernel.System()}, m_address_arbiter{kernel.System()},
-      m_handle_table{kernel} {}
+      m_handle_table{kernel}, m_dirty_memory_managers{}, m_exclusive_monitor{},
+      m_memory{kernel.System()} {}
 KProcess::~KProcess() = default;
 
 Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size,
@@ -1235,7 +1236,11 @@ void KProcess::LoadModule(CodeSet code_set, KProcessAddress base_addr) {
 }
 
 void KProcess::InitializeInterfaces() {
+    m_exclusive_monitor =
+        Core::MakeExclusiveMonitor(this->GetMemory(), Core::Hardware::NUM_CPU_CORES);
+
     this->GetMemory().SetCurrentPageTable(*this);
+    this->GetMemory().SetGPUDirtyManagers(m_dirty_memory_managers);
 
 #ifdef HAS_NCE
     if (this->Is64Bit() && Settings::IsNceEnabled()) {
@@ -1248,13 +1253,13 @@ void KProcess::InitializeInterfaces() {
         for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             m_arm_interfaces[i] = std::make_unique<Core::ArmDynarmic64>(
                 m_kernel.System(), m_kernel.IsMulticore(), this,
-                static_cast<Core::DynarmicExclusiveMonitor&>(m_kernel.GetExclusiveMonitor()), i);
+                static_cast<Core::DynarmicExclusiveMonitor&>(*m_exclusive_monitor), i);
         }
     } else {
         for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             m_arm_interfaces[i] = std::make_unique<Core::ArmDynarmic32>(
                 m_kernel.System(), m_kernel.IsMulticore(), this,
-                static_cast<Core::DynarmicExclusiveMonitor&>(m_kernel.GetExclusiveMonitor()), i);
+                static_cast<Core::DynarmicExclusiveMonitor&>(*m_exclusive_monitor), i);
         }
     }
 }
@@ -1305,9 +1310,10 @@ bool KProcess::RemoveWatchpoint(KProcessAddress addr, u64 size, DebugWatchpointT
     return true;
 }
 
-Core::Memory::Memory& KProcess::GetMemory() const {
-    // TODO: per-process memory
-    return m_kernel.System().ApplicationMemory();
+void KProcess::GatherGPUDirtyMemory(std::function<void(VAddr, size_t)>& callback) {
+    for (auto& manager : m_dirty_memory_managers) {
+        manager.Gather(callback);
+    }
 }
 
 } // namespace Kernel

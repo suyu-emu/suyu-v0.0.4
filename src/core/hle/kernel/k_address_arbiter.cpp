@@ -4,6 +4,7 @@
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_address_arbiter.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_thread.h"
@@ -26,9 +27,9 @@ bool ReadFromUser(KernelCore& kernel, s32* out, KProcessAddress address) {
     return true;
 }
 
-bool DecrementIfLessThan(Core::System& system, s32* out, KProcessAddress address, s32 value) {
-    auto& monitor = system.Monitor();
-    const auto current_core = system.Kernel().CurrentPhysicalCoreIndex();
+bool DecrementIfLessThan(KernelCore& kernel, s32* out, KProcessAddress address, s32 value) {
+    auto& monitor = GetCurrentProcess(kernel).GetExclusiveMonitor();
+    const auto current_core = kernel.CurrentPhysicalCoreIndex();
 
     // NOTE: If scheduler lock is not held here, interrupt disable is required.
     // KScopedInterruptDisable di;
@@ -66,10 +67,10 @@ bool DecrementIfLessThan(Core::System& system, s32* out, KProcessAddress address
     return true;
 }
 
-bool UpdateIfEqual(Core::System& system, s32* out, KProcessAddress address, s32 value,
+bool UpdateIfEqual(KernelCore& kernel, s32* out, KProcessAddress address, s32 value,
                    s32 new_value) {
-    auto& monitor = system.Monitor();
-    const auto current_core = system.Kernel().CurrentPhysicalCoreIndex();
+    auto& monitor = GetCurrentProcess(kernel).GetExclusiveMonitor();
+    const auto current_core = kernel.CurrentPhysicalCoreIndex();
 
     // NOTE: If scheduler lock is not held here, interrupt disable is required.
     // KScopedInterruptDisable di;
@@ -159,7 +160,7 @@ Result KAddressArbiter::SignalAndIncrementIfEqual(uint64_t addr, s32 value, s32 
 
         // Check the userspace value.
         s32 user_value{};
-        R_UNLESS(UpdateIfEqual(m_system, std::addressof(user_value), addr, value, value + 1),
+        R_UNLESS(UpdateIfEqual(m_kernel, std::addressof(user_value), addr, value, value + 1),
                  ResultInvalidCurrentMemory);
         R_UNLESS(user_value == value, ResultInvalidState);
 
@@ -219,7 +220,7 @@ Result KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(uint64_t addr, s32 
         s32 user_value{};
         bool succeeded{};
         if (value != new_value) {
-            succeeded = UpdateIfEqual(m_system, std::addressof(user_value), addr, value, new_value);
+            succeeded = UpdateIfEqual(m_kernel, std::addressof(user_value), addr, value, new_value);
         } else {
             succeeded = ReadFromUser(m_kernel, std::addressof(user_value), addr);
         }
@@ -262,7 +263,7 @@ Result KAddressArbiter::WaitIfLessThan(uint64_t addr, s32 value, bool decrement,
         s32 user_value{};
         bool succeeded{};
         if (decrement) {
-            succeeded = DecrementIfLessThan(m_system, std::addressof(user_value), addr, value);
+            succeeded = DecrementIfLessThan(m_kernel, std::addressof(user_value), addr, value);
         } else {
             succeeded = ReadFromUser(m_kernel, std::addressof(user_value), addr);
         }

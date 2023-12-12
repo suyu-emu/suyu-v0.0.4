@@ -170,10 +170,6 @@ public:
     /// Stops execution of 'id' core, in order to reschedule a new thread.
     void PrepareReschedule(std::size_t id);
 
-    Core::ExclusiveMonitor& GetExclusiveMonitor();
-
-    const Core::ExclusiveMonitor& GetExclusiveMonitor() const;
-
     KAutoObjectWithListContainer& ObjectListContainer();
 
     const KAutoObjectWithListContainer& ObjectListContainer() const;

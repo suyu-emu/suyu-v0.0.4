@@ -28,10 +28,10 @@ bool WriteToUser(KernelCore& kernel, KProcessAddress address, const u32* p) {
     return true;
 }
 
-bool UpdateLockAtomic(Core::System& system, u32* out, KProcessAddress address, u32 if_zero,
+bool UpdateLockAtomic(KernelCore& kernel, u32* out, KProcessAddress address, u32 if_zero,
                       u32 new_orr_mask) {
-    auto& monitor = system.Monitor();
-    const auto current_core = system.Kernel().CurrentPhysicalCoreIndex();
+    auto& monitor = GetCurrentProcess(kernel).GetExclusiveMonitor();
+    const auto current_core = kernel.CurrentPhysicalCoreIndex();
 
     u32 expected{};
 
@@ -208,7 +208,7 @@ void KConditionVariable::SignalImpl(KThread* thread) {
         // TODO(bunnei): We should call CanAccessAtomic(..) here.
         can_access = true;
         if (can_access) [[likely]] {
-            UpdateLockAtomic(m_system, std::addressof(prev_tag), address, own_tag,
+            UpdateLockAtomic(m_kernel, std::addressof(prev_tag), address, own_tag,
                              Svc::HandleWaitMask);
         }
     }

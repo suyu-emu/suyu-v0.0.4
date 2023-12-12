@@ -28,7 +28,6 @@
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_real.h"
-#include "core/gpu_dirty_memory_manager.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/kernel/k_process.h"
@@ -130,11 +129,8 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, fs_controller{system}, memory{system}, hid_core{}, room_network{},
-          cpu_manager{system}, reporter{system}, applet_manager{system}, profile_manager{},
-          time_manager{system}, gpu_dirty_memory_write_manager{} {
-        memory.SetGPUDirtyManagers(gpu_dirty_memory_write_manager);
-    }
+        : kernel{system}, fs_controller{system}, hid_core{}, room_network{}, cpu_manager{system},
+          reporter{system}, applet_manager{system}, profile_manager{}, time_manager{system} {}
 
     void Initialize(System& system) {
         device_memory = std::make_unique<Core::DeviceMemory>();
@@ -241,17 +237,17 @@ struct System::Impl {
         debugger = std::make_unique<Debugger>(system, port);
     }
 
-    SystemResultStatus SetupForApplicationProcess(System& system, Frontend::EmuWindow& emu_window) {
+    void InitializeKernel(System& system) {
         LOG_DEBUG(Core, "initialized OK");
 
         // Setting changes may require a full system reinitialization (e.g., disabling multicore).
         ReinitializeIfNecessary(system);
 
-        memory.SetGPUDirtyManagers(gpu_dirty_memory_write_manager);
-
         kernel.Initialize();
         cpu_manager.Initialize();
+    }
 
+    SystemResultStatus SetupForApplicationProcess(System& system, Frontend::EmuWindow& emu_window) {
         /// Reset all glue registrations
         arp_manager.ResetAll();
 
@@ -300,17 +296,9 @@ struct System::Impl {
             return SystemResultStatus::ErrorGetLoader;
         }
 
-        SystemResultStatus init_result{SetupForApplicationProcess(system, emu_window)};
-        if (init_result != SystemResultStatus::Success) {
-            LOG_CRITICAL(Core, "Failed to initialize system (Error {})!",
-                         static_cast<int>(init_result));
-            ShutdownMainProcess();
-            return init_result;
-        }
+        InitializeKernel(system);
 
-        telemetry_session->AddInitialInfo(*app_loader, fs_controller, *content_provider);
-
-        // Create the process.
+        // Create the application process.
         auto main_process = Kernel::KProcess::Create(system.Kernel());
         Kernel::KProcess::Register(system.Kernel(), main_process);
         kernel.AppendNewProcess(main_process);
@@ -323,7 +311,18 @@ struct System::Impl {
             return static_cast<SystemResultStatus>(
                 static_cast<u32>(SystemResultStatus::ErrorLoader) + static_cast<u32>(load_result));
         }
+
+        // Set up the rest of the system.
+        SystemResultStatus init_result{SetupForApplicationProcess(system, emu_window)};
+        if (init_result != SystemResultStatus::Success) {
+            LOG_CRITICAL(Core, "Failed to initialize system (Error {})!",
+                         static_cast<int>(init_result));
+            ShutdownMainProcess();
+            return init_result;
+        }
+
         AddGlueRegistrationForProcess(*app_loader, *main_process);
+        telemetry_session->AddInitialInfo(*app_loader, fs_controller, *content_provider);
 
         // Initialize cheat engine
         if (cheat_engine) {
@@ -426,7 +425,6 @@ struct System::Impl {
         cpu_manager.Shutdown();
         debugger.reset();
         kernel.Shutdown();
-        memory.Reset();
         Network::RestartSocketOperations();
 
         if (auto room_member = room_network.GetRoomMember().lock()) {
@@ -507,7 +505,6 @@ struct System::Impl {
     std::unique_ptr<Tegra::Host1x::Host1x> host1x_core;
     std::unique_ptr<Core::DeviceMemory> device_memory;
     std::unique_ptr<AudioCore::AudioCore> audio_core;
-    Core::Memory::Memory memory;
     Core::HID::HIDCore hid_core;
     Network::RoomNetwork room_network;
 
@@ -566,9 +563,6 @@ struct System::Impl {
 
     std::array<u64, Core::Hardware::NUM_CPU_CORES> dynarmic_ticks{};
     std::array<MicroProfileToken, Core::Hardware::NUM_CPU_CORES> microprofile_cpu{};
-
-    std::array<Core::GPUDirtyMemoryManager, Core::Hardware::NUM_CPU_CORES>
-        gpu_dirty_memory_write_manager{};
 
     std::deque<std::vector<u8>> user_channel;
 };
@@ -652,29 +646,12 @@ void System::PrepareReschedule(const u32 core_index) {
     impl->kernel.PrepareReschedule(core_index);
 }
 
-Core::GPUDirtyMemoryManager& System::CurrentGPUDirtyMemoryManager() {
-    const std::size_t core = impl->kernel.GetCurrentHostThreadID();
-    return impl->gpu_dirty_memory_write_manager[core < Core::Hardware::NUM_CPU_CORES
-                                                    ? core
-                                                    : Core::Hardware::NUM_CPU_CORES - 1];
-}
-
-/// Provides a constant reference to the current gou dirty memory manager.
-const Core::GPUDirtyMemoryManager& System::CurrentGPUDirtyMemoryManager() const {
-    const std::size_t core = impl->kernel.GetCurrentHostThreadID();
-    return impl->gpu_dirty_memory_write_manager[core < Core::Hardware::NUM_CPU_CORES
-                                                    ? core
-                                                    : Core::Hardware::NUM_CPU_CORES - 1];
-}
-
 size_t System::GetCurrentHostThreadID() const {
     return impl->kernel.GetCurrentHostThreadID();
 }
 
 void System::GatherGPUDirtyMemory(std::function<void(VAddr, size_t)>& callback) {
-    for (auto& manager : impl->gpu_dirty_memory_write_manager) {
-        manager.Gather(callback);
-    }
+    return this->ApplicationProcess()->GatherGPUDirtyMemory(callback);
 }
 
 PerfStatsResults System::GetAndResetPerfStats() {
@@ -723,20 +700,12 @@ const Kernel::KProcess* System::ApplicationProcess() const {
     return impl->kernel.ApplicationProcess();
 }
 
-ExclusiveMonitor& System::Monitor() {
-    return impl->kernel.GetExclusiveMonitor();
-}
-
-const ExclusiveMonitor& System::Monitor() const {
-    return impl->kernel.GetExclusiveMonitor();
-}
-
 Memory::Memory& System::ApplicationMemory() {
-    return impl->memory;
+    return impl->kernel.ApplicationProcess()->GetMemory();
 }
 
 const Core::Memory::Memory& System::ApplicationMemory() const {
-    return impl->memory;
+    return impl->kernel.ApplicationProcess()->GetMemory();
 }
 
 Tegra::GPU& System::GPU() {
