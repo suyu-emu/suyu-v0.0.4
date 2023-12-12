@@ -128,8 +128,9 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             return
         }
 
-        if (args.custom) {
-            SettingsFile.loadCustomConfig(args.game!!)
+        // Always load custom settings when launching a game from an intent
+        if (args.custom || intentGame != null) {
+            SettingsFile.loadCustomConfig(game)
             NativeConfig.unloadPerGameConfig()
         } else {
             NativeConfig.reloadGlobalConfig()
