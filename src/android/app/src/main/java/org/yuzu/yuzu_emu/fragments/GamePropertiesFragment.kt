@@ -194,6 +194,7 @@ class GamePropertiesFragment : Fragment() {
                     InstallableProperty(
                         R.string.save_data,
                         R.string.save_data_description,
+                        R.drawable.ic_save,
                         {
                             MessageDialogFragment.newInstance(
                                 requireActivity(),

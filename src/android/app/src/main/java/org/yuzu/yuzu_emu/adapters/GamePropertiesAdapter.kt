@@ -14,7 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
-import org.yuzu.yuzu_emu.databinding.CardInstallableBinding
+import org.yuzu.yuzu_emu.databinding.CardInstallableIconBinding
 import org.yuzu.yuzu_emu.databinding.CardSimpleOutlinedBinding
 import org.yuzu.yuzu_emu.model.GameProperty
 import org.yuzu.yuzu_emu.model.InstallableProperty
@@ -42,7 +42,7 @@ class GamePropertiesAdapter(
             }
 
             else -> InstallablePropertyViewHolder(
-                CardInstallableBinding.inflate(
+                CardInstallableIconBinding.inflate(
                     inflater,
                     parent,
                     false
@@ -107,13 +107,20 @@ class GamePropertiesAdapter(
         }
     }
 
-    inner class InstallablePropertyViewHolder(val binding: CardInstallableBinding) :
+    inner class InstallablePropertyViewHolder(val binding: CardInstallableIconBinding) :
         GamePropertyViewHolder(binding.root) {
         override fun bind(property: GameProperty) {
             val installableProperty = property as InstallableProperty
 
             binding.title.setText(installableProperty.titleId)
             binding.description.setText(installableProperty.descriptionId)
+            binding.icon.setImageDrawable(
+                ResourcesCompat.getDrawable(
+                    binding.icon.context.resources,
+                    installableProperty.iconId,
+                    binding.icon.context.theme
+                )
+            )
 
             if (installableProperty.install != null) {
                 binding.buttonInstall.visibility = View.VISIBLE
