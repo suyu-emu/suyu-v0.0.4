@@ -256,7 +256,7 @@ struct Values {
                                                             AstcDecodeMode::CpuAsynchronous,
                                                             "accelerate_astc",
                                                             Category::Renderer};
-    Setting<VSyncMode, true> vsync_mode{
+    SwitchableSetting<VSyncMode, true> vsync_mode{
         linkage,     VSyncMode::Fifo,    VSyncMode::Immediate,        VSyncMode::FifoRelaxed,
         "use_vsync", Category::Renderer, Specialization::RuntimeList, true,
         true};
