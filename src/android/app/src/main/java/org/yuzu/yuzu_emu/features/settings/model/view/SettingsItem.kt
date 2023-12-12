@@ -30,6 +30,11 @@ abstract class SettingsItem(
 
     val isEditable: Boolean
         get() {
+            // Can't edit settings that aren't saveable in per-game config even if they are switchable
+            if (NativeConfig.isPerGameConfigLoaded() && !setting.isSaveable) {
+                return false
+            }
+
             if (!NativeLibrary.isRunning()) return true
 
             // Prevent editing settings that were modified in per-game config while editing global
@@ -37,6 +42,7 @@ abstract class SettingsItem(
             if (!NativeConfig.isPerGameConfigLoaded() && !setting.global) {
                 return false
             }
+
             return setting.isRuntimeModifiable
         }
 
@@ -59,6 +65,7 @@ abstract class SettingsItem(
         val emptySetting = object : AbstractSetting {
             override val key: String = ""
             override val defaultValue: Any = false
+            override val isSaveable = true
             override fun getValueAsString(needsGlobal: Boolean): String = ""
             override fun reset() {}
         }
@@ -302,6 +309,8 @@ abstract class SettingsItem(
                         BooleanSetting.FASTMEM.global = value
                         BooleanSetting.FASTMEM_EXCLUSIVES.global = value
                     }
+
+                override val isSaveable = true
 
                 override fun getValueAsString(needsGlobal: Boolean): String =
                     getBoolean().toString()
