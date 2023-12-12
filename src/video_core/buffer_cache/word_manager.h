@@ -473,7 +473,7 @@ private:
         VAddr addr = cpu_addr + word_index * BYTES_PER_WORD;
         IteratePages(changed_bits, [&](size_t offset, size_t size) {
             rasterizer->UpdatePagesCachedCount(addr + offset * BYTES_PER_PAGE,
-                                               size * BYTES_PER_PAGE, add_to_rasterizer ? 1 : -1);
+                                               size * BYTES_PER_PAGE, add_to_rasterizer);
         });
     }
 

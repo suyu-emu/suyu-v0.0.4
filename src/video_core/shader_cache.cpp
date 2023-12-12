@@ -132,7 +132,7 @@ void ShaderCache::Register(std::unique_ptr<ShaderInfo> data, VAddr addr, size_t 
 
     storage.push_back(std::move(data));
 
-    rasterizer.UpdatePagesCachedCount(addr, size, 1);
+    rasterizer.UpdatePagesCachedCount(addr, size, true);
 }
 
 void ShaderCache::InvalidatePagesInRegion(VAddr addr, size_t size) {
@@ -209,7 +209,7 @@ void ShaderCache::UnmarkMemory(Entry* entry) {
 
     const VAddr addr = entry->addr_start;
     const size_t size = entry->addr_end - addr;
-    rasterizer.UpdatePagesCachedCount(addr, size, -1);
+    rasterizer.UpdatePagesCachedCount(addr, size, false);
 }
 
 void ShaderCache::RemoveShadersFromStorage(std::span<ShaderInfo*> removed_shaders) {
