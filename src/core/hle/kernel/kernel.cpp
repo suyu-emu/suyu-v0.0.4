@@ -126,8 +126,6 @@ struct KernelCore::Impl {
 
         preemption_event = nullptr;
 
-        exclusive_monitor.reset();
-
         // Cleanup persistent kernel objects
         auto CleanupObject = [](KAutoObject* obj) {
             if (obj) {
@@ -191,8 +189,6 @@ struct KernelCore::Impl {
     }
 
     void InitializePhysicalCores() {
-        exclusive_monitor =
-            Core::MakeExclusiveMonitor(system.ApplicationMemory(), Core::Hardware::NUM_CPU_CORES);
         for (u32 i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             const s32 core{static_cast<s32>(i)};
 
@@ -805,7 +801,6 @@ struct KernelCore::Impl {
     std::mutex server_lock;
     std::vector<std::unique_ptr<Service::ServerManager>> server_managers;
 
-    std::unique_ptr<Core::ExclusiveMonitor> exclusive_monitor;
     std::array<std::unique_ptr<Kernel::PhysicalCore>, Core::Hardware::NUM_CPU_CORES> cores;
 
     // Next host thead ID to use, 0-3 IDs represent core threads, >3 represent others
@@ -957,14 +952,6 @@ Kernel::KScheduler* KernelCore::CurrentScheduler() {
 
 Kernel::KHardwareTimer& KernelCore::HardwareTimer() {
     return *impl->hardware_timer;
-}
-
-Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() {
-    return *impl->exclusive_monitor;
-}
-
-const Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() const {
-    return *impl->exclusive_monitor;
 }
 
 KAutoObjectWithListContainer& KernelCore::ObjectListContainer() {

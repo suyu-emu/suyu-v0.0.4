@@ -9,7 +9,7 @@
 
 namespace Core {
 
-void ArmInterface::LogBacktrace(const Kernel::KProcess* process) const {
+void ArmInterface::LogBacktrace(Kernel::KProcess* process) const {
     Kernel::Svc::ThreadContext ctx;
     this->GetContext(ctx);
 
