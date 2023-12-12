@@ -52,7 +52,7 @@ class ConfigureProfileManager : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureProfileManager(const Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureProfileManager(Core::System& system_, QWidget* parent = nullptr);
     ~ConfigureProfileManager() override;
 
     void ApplyConfiguration();
@@ -85,7 +85,6 @@ private:
     std::unique_ptr<Ui::ConfigureProfileManager> ui;
     bool enabled = false;
 
-    std::unique_ptr<Service::Account::ProfileManager> profile_manager;
-
+    Service::Account::ProfileManager& profile_manager;
     const Core::System& system;
 };

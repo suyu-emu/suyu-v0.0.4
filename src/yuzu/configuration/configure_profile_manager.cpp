@@ -76,9 +76,9 @@ QString GetProfileUsernameFromUser(QWidget* parent, const QString& description_t
 }
 } // Anonymous namespace
 
-ConfigureProfileManager::ConfigureProfileManager(const Core::System& system_, QWidget* parent)
+ConfigureProfileManager::ConfigureProfileManager(Core::System& system_, QWidget* parent)
     : QWidget(parent), ui{std::make_unique<Ui::ConfigureProfileManager>()},
-      profile_manager(std::make_unique<Service::Account::ProfileManager>()), system{system_} {
+      profile_manager{system_.GetProfileManager()}, system{system_} {
     ui->setupUi(this);
 
     tree_view = new QTreeView;
@@ -149,10 +149,10 @@ void ConfigureProfileManager::SetConfiguration() {
 }
 
 void ConfigureProfileManager::PopulateUserList() {
-    const auto& profiles = profile_manager->GetAllUsers();
+    const auto& profiles = profile_manager.GetAllUsers();
     for (const auto& user : profiles) {
         Service::Account::ProfileBase profile{};
-        if (!profile_manager->GetProfileBase(user, profile))
+        if (!profile_manager.GetProfileBase(user, profile))
             continue;
 
         const auto username = Common::StringFromFixedZeroTerminatedBuffer(
@@ -167,11 +167,11 @@ void ConfigureProfileManager::PopulateUserList() {
 }
 
 void ConfigureProfileManager::UpdateCurrentUser() {
-    ui->pm_add->setEnabled(profile_manager->GetUserCount() < Service::Account::MAX_USERS);
+    ui->pm_add->setEnabled(profile_manager.GetUserCount() < Service::Account::MAX_USERS);
 
-    const auto& current_user = profile_manager->GetUser(Settings::values.current_user.GetValue());
+    const auto& current_user = profile_manager.GetUser(Settings::values.current_user.GetValue());
     ASSERT(current_user);
-    const auto username = GetAccountUsername(*profile_manager, *current_user);
+    const auto username = GetAccountUsername(profile_manager, *current_user);
 
     scene->clear();
     scene->addPixmap(
@@ -187,11 +187,11 @@ void ConfigureProfileManager::ApplyConfiguration() {
 
 void ConfigureProfileManager::SelectUser(const QModelIndex& index) {
     Settings::values.current_user =
-        std::clamp<s32>(index.row(), 0, static_cast<s32>(profile_manager->GetUserCount() - 1));
+        std::clamp<s32>(index.row(), 0, static_cast<s32>(profile_manager.GetUserCount() - 1));
 
     UpdateCurrentUser();
 
-    ui->pm_remove->setEnabled(profile_manager->GetUserCount() >= 2);
+    ui->pm_remove->setEnabled(profile_manager.GetUserCount() >= 2);
     ui->pm_rename->setEnabled(true);
     ui->pm_set_image->setEnabled(true);
 }
@@ -204,18 +204,18 @@ void ConfigureProfileManager::AddUser() {
     }
 
     const auto uuid = Common::UUID::MakeRandom();
-    profile_manager->CreateNewUser(uuid, username.toStdString());
+    profile_manager.CreateNewUser(uuid, username.toStdString());
 
     item_model->appendRow(new QStandardItem{GetIcon(uuid), FormatUserEntryText(username, uuid)});
 }
 
 void ConfigureProfileManager::RenameUser() {
     const auto user = tree_view->currentIndex().row();
-    const auto uuid = profile_manager->GetUser(user);
+    const auto uuid = profile_manager.GetUser(user);
     ASSERT(uuid);
 
     Service::Account::ProfileBase profile{};
-    if (!profile_manager->GetProfileBase(*uuid, profile))
+    if (!profile_manager.GetProfileBase(*uuid, profile))
         return;
 
     const auto new_username = GetProfileUsernameFromUser(this, tr("Enter a new username:"));
@@ -227,7 +227,7 @@ void ConfigureProfileManager::RenameUser() {
     std::fill(profile.username.begin(), profile.username.end(), '\0');
     std::copy(username_std.begin(), username_std.end(), profile.username.begin());
 
-    profile_manager->SetProfileBase(*uuid, profile);
+    profile_manager.SetProfileBase(*uuid, profile);
 
     item_model->setItem(
         user, 0,
@@ -238,9 +238,9 @@ void ConfigureProfileManager::RenameUser() {
 
 void ConfigureProfileManager::ConfirmDeleteUser() {
     const auto index = tree_view->currentIndex().row();
-    const auto uuid = profile_manager->GetUser(index);
+    const auto uuid = profile_manager.GetUser(index);
     ASSERT(uuid);
-    const auto username = GetAccountUsername(*profile_manager, *uuid);
+    const auto username = GetAccountUsername(profile_manager, *uuid);
 
     confirm_dialog->SetInfo(username, *uuid, [this, uuid]() { DeleteUser(*uuid); });
     confirm_dialog->show();
@@ -252,7 +252,7 @@ void ConfigureProfileManager::DeleteUser(const Common::UUID& uuid) {
     }
     UpdateCurrentUser();
 
-    if (!profile_manager->RemoveUser(uuid)) {
+    if (!profile_manager.RemoveUser(uuid)) {
         return;
     }
 
@@ -265,7 +265,7 @@ void ConfigureProfileManager::DeleteUser(const Common::UUID& uuid) {
 
 void ConfigureProfileManager::SetUserImage() {
     const auto index = tree_view->currentIndex().row();
-    const auto uuid = profile_manager->GetUser(index);
+    const auto uuid = profile_manager.GetUser(index);
     ASSERT(uuid);
 
     const auto file = QFileDialog::getOpenFileName(this, tr("Select User Image"), QString(),
@@ -317,7 +317,7 @@ void ConfigureProfileManager::SetUserImage() {
         }
     }
 
-    const auto username = GetAccountUsername(*profile_manager, *uuid);
+    const auto username = GetAccountUsername(profile_manager, *uuid);
     item_model->setItem(index, 0,
                         new QStandardItem{GetIcon(*uuid), FormatUserEntryText(username, *uuid)});
     UpdateCurrentUser();

@@ -11,6 +11,10 @@
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
 
+namespace Service::Account {
+class ProfileManager;
+}
+
 namespace PlayTime {
 
 using ProgramId = u64;
@@ -19,7 +23,7 @@ using PlayTimeDatabase = std::map<ProgramId, PlayTime>;
 
 class PlayTimeManager {
 public:
-    explicit PlayTimeManager();
+    explicit PlayTimeManager(Service::Account::ProfileManager& profile_manager);
     ~PlayTimeManager();
 
     YUZU_NON_COPYABLE(PlayTimeManager);
@@ -32,11 +36,13 @@ public:
     void Stop();
 
 private:
+    void AutoTimestamp(std::stop_token stop_token);
+    void Save();
+
     PlayTimeDatabase database;
     u64 running_program_id;
     std::jthread play_time_thread;
-    void AutoTimestamp(std::stop_token stop_token);
-    void Save();
+    Service::Account::ProfileManager& manager;
 };
 
 QString ReadablePlayTime(qulonglong time_seconds);
