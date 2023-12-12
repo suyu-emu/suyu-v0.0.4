@@ -10,17 +10,18 @@ import kotlinx.coroutines.flow.StateFlow
 interface GameProperty {
     @get:StringRes
     val titleId: Int
-        get() = -1
 
     @get:StringRes
     val descriptionId: Int
-        get() = -1
+
+    @get:DrawableRes
+    val iconId: Int
 }
 
 data class SubmenuProperty(
     override val titleId: Int,
     override val descriptionId: Int,
-    @DrawableRes val iconId: Int,
+    override val iconId: Int,
     val details: (() -> String)? = null,
     val detailsFlow: StateFlow<String>? = null,
     val action: () -> Unit
@@ -29,6 +30,7 @@ data class SubmenuProperty(
 data class InstallableProperty(
     override val titleId: Int,
     override val descriptionId: Int,
+    override val iconId: Int,
     val install: (() -> Unit)? = null,
     val export: (() -> Unit)? = null
 ) : GameProperty
