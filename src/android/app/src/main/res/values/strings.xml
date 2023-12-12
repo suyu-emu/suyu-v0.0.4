@@ -314,6 +314,7 @@
     <string name="add_ons_description">Toggle mods, updates and DLC</string>
     <string name="clear_shader_cache">Clear shader cache</string>
     <string name="clear_shader_cache_description">Removes all shaders built while playing this game</string>
+    <string name="clear_shader_cache_warning_description">You will experience more stuttering as the shader cache regenerates</string>
     <string name="cleared_shaders_successfully">Cleared shaders successfully</string>
     <string name="addons_game">Addons: %1$s</string>
     <string name="save_data">Save data</string>

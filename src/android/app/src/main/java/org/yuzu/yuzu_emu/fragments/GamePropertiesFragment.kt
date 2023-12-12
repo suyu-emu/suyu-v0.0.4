@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.LayoutInflater
@@ -73,6 +74,8 @@ class GamePropertiesFragment : Fragment() {
         return binding.root
     }
 
+    // This is using the correct scope, lint is just acting up
+    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         homeViewModel.setNavigationVisibility(visible = false, animated = true)
@@ -99,12 +102,24 @@ class GamePropertiesFragment : Fragment() {
 
         reloadList()
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                homeViewModel.openImportSaves.collect {
-                    if (it) {
-                        importSaves.launch(arrayOf("application/zip"))
-                        homeViewModel.setOpenImportSaves(false)
+        viewLifecycleOwner.lifecycleScope.apply {
+            launch {
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    homeViewModel.openImportSaves.collect {
+                        if (it) {
+                            importSaves.launch(arrayOf("application/zip"))
+                            homeViewModel.setOpenImportSaves(false)
+                        }
+                    }
+                }
+            }
+            launch {
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    homeViewModel.reloadPropertiesList.collect {
+                        if (it) {
+                            reloadList()
+                            homeViewModel.reloadPropertiesList(false)
+                        }
                     }
                 }
             }
@@ -214,7 +229,7 @@ class GamePropertiesFragment : Fragment() {
                                             R.string.save_data_deleted_successfully,
                                             Toast.LENGTH_SHORT
                                         ).show()
-                                        reloadList()
+                                        homeViewModel.reloadPropertiesList(true)
                                     }
                                 ).show(parentFragmentManager, MessageDialogFragment.TAG)
                             }
@@ -242,13 +257,20 @@ class GamePropertiesFragment : Fragment() {
                                 }
                             }
                         ) {
-                            shaderCacheDir.deleteRecursively()
-                            Toast.makeText(
-                                YuzuApplication.appContext,
-                                R.string.cleared_shaders_successfully,
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            reloadList()
+                            MessageDialogFragment.newInstance(
+                                requireActivity(),
+                                titleId = R.string.clear_shader_cache,
+                                descriptionId = R.string.clear_shader_cache_warning_description,
+                                positiveAction = {
+                                    shaderCacheDir.deleteRecursively()
+                                    Toast.makeText(
+                                        YuzuApplication.appContext,
+                                        R.string.cleared_shaders_successfully,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    homeViewModel.reloadPropertiesList(true)
+                                }
+                            ).show(parentFragmentManager, MessageDialogFragment.TAG)
                         }
                     )
                 }
@@ -388,7 +410,7 @@ class GamePropertiesFragment : Fragment() {
                             getString(R.string.save_file_imported_success),
                             Toast.LENGTH_LONG
                         ).show()
-                        reloadList()
+                        homeViewModel.reloadPropertiesList(true)
                     }
 
                     cacheSaveDir.deleteRecursively()

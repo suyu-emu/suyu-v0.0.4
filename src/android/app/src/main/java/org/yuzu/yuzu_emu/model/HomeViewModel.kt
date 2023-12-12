@@ -28,6 +28,9 @@ class HomeViewModel : ViewModel() {
     private val _contentToInstall = MutableStateFlow<List<Uri>?>(null)
     val contentToInstall get() = _contentToInstall.asStateFlow()
 
+    private val _reloadPropertiesList = MutableStateFlow(false)
+    val reloadPropertiesList get() = _reloadPropertiesList.asStateFlow()
+
     var navigatedToSetup = false
 
     fun setNavigationVisibility(visible: Boolean, animated: Boolean) {
@@ -58,5 +61,9 @@ class HomeViewModel : ViewModel() {
 
     fun setContentToInstall(documents: List<Uri>?) {
         _contentToInstall.value = documents
+    }
+
+    fun reloadPropertiesList(reload: Boolean) {
+        _reloadPropertiesList.value = reload
     }
 }
