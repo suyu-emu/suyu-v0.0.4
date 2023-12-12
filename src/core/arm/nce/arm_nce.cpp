@@ -251,21 +251,24 @@ void ArmNce::SetSvcArguments(std::span<const uint64_t, 8> args) {
 ArmNce::ArmNce(System& system, bool uses_wall_clock, std::size_t core_index)
     : ArmInterface{uses_wall_clock}, m_system{system}, m_core_index{core_index} {
     m_guest_ctx.system = &m_system;
-
-    // Allocate signal stack.
-    m_stack = std::make_unique<u8[]>(StackSize);
 }
 
 ArmNce::~ArmNce() = default;
 
 void ArmNce::Initialize() {
-    m_thread_id = gettid();
+    if (m_thread_id == -1) {
+        m_thread_id = gettid();
+    }
 
     // Configure signal stack.
-    stack_t ss{};
-    ss.ss_sp = m_stack.get();
-    ss.ss_size = StackSize;
-    sigaltstack(&ss, nullptr);
+    if (!m_stack) {
+        m_stack = std::make_unique<u8[]>(StackSize);
+
+        stack_t ss{};
+        ss.ss_sp = m_stack.get();
+        ss.ss_size = StackSize;
+        sigaltstack(&ss, nullptr);
+    }
 
     // Set up signals.
     static std::once_flag flag;
