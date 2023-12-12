@@ -21,13 +21,13 @@ std::unique_ptr<AndroidConfig> per_game_config;
 template <typename T>
 Settings::Setting<T>* getSetting(JNIEnv* env, jstring jkey) {
     auto key = GetJString(env, jkey);
-    auto basicSetting = Settings::values.linkage.by_key[key];
-    if (basicSetting != 0) {
-        return static_cast<Settings::Setting<T>*>(basicSetting);
+    auto basic_setting = Settings::values.linkage.by_key[key];
+    if (basic_setting != 0) {
+        return static_cast<Settings::Setting<T>*>(basic_setting);
     }
-    auto basicAndroidSetting = AndroidSettings::values.linkage.by_key[key];
-    if (basicAndroidSetting != 0) {
-        return static_cast<Settings::Setting<T>*>(basicAndroidSetting);
+    auto basic_android_setting = AndroidSettings::values.linkage.by_key[key];
+    if (basic_android_setting != 0) {
+        return static_cast<Settings::Setting<T>*>(basic_android_setting);
     }
     LOG_ERROR(Frontend, "[Android Native] Could not find setting - {}", key);
     return nullptr;
