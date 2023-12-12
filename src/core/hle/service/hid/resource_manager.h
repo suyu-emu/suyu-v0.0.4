@@ -66,10 +66,13 @@ public:
 
     Result CreateAppletResource(u64 aruid);
 
+    Result RegisterCoreAppletResource();
+    Result UnregisterCoreAppletResource();
     Result RegisterAppletResourceUserId(u64 aruid, bool bool_value);
     void UnregisterAppletResourceUserId(u64 aruid);
 
     Result GetSharedMemoryHandle(Kernel::KSharedMemory** out_handle, u64 aruid);
+    void FreeAppletResourceId(u64 aruid);
 
     void EnableInput(u64 aruid, bool is_enabled);
     void EnableSixAxisSensor(u64 aruid, bool is_enabled);
@@ -82,6 +85,8 @@ public:
     void UpdateMotion(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
 
 private:
+    Result CreateAppletResourceImpl(u64 aruid);
+
     bool is_initialized{false};
 
     mutable std::mutex shared_mutex;
@@ -121,7 +126,8 @@ private:
 
 class IAppletResource final : public ServiceFramework<IAppletResource> {
 public:
-    explicit IAppletResource(Core::System& system_, std::shared_ptr<ResourceManager> resource);
+    explicit IAppletResource(Core::System& system_, std::shared_ptr<ResourceManager> resource,
+                             u64 applet_resource_user_id);
     ~IAppletResource() override;
 
 private:
@@ -132,6 +138,7 @@ private:
     std::shared_ptr<Core::Timing::EventType> mouse_keyboard_update_event;
     std::shared_ptr<Core::Timing::EventType> motion_update_event;
 
+    u64 aruid;
     std::shared_ptr<ResourceManager> resource_manager;
 };
 
