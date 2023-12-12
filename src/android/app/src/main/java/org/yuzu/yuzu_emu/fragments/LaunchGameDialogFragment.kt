@@ -15,7 +15,7 @@ import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
 
 class LaunchGameDialogFragment : DialogFragment() {
-    private var selectedItem = 0
+    private var selectedItem = 1
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val game = requireArguments().parcelable<Game>(GAME)
@@ -32,7 +32,7 @@ class LaunchGameDialogFragment : DialogFragment() {
                     .actionGlobalEmulationActivity(game, selectedItem != 0)
                 requireParentFragment().findNavController().navigate(action)
             }
-            .setSingleChoiceItems(launchOptions, 0) { _: DialogInterface, i: Int ->
+            .setSingleChoiceItems(launchOptions, 1) { _: DialogInterface, i: Int ->
                 selectedItem = i
             }
             .setNegativeButton(android.R.string.cancel, null)
