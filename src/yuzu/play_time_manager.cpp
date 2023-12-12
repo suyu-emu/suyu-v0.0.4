@@ -20,8 +20,8 @@ struct PlayTimeElement {
     PlayTime play_time;
 };
 
-std::optional<std::filesystem::path> GetCurrentUserPlayTimePath() {
-    const Service::Account::ProfileManager manager;
+std::optional<std::filesystem::path> GetCurrentUserPlayTimePath(
+    const Service::Account::ProfileManager& manager) {
     const auto uuid = manager.GetUser(static_cast<s32>(Settings::values.current_user));
     if (!uuid.has_value()) {
         return std::nullopt;
@@ -30,8 +30,9 @@ std::optional<std::filesystem::path> GetCurrentUserPlayTimePath() {
            uuid->RawString().append(".bin");
 }
 
-[[nodiscard]] bool ReadPlayTimeFile(PlayTimeDatabase& out_play_time_db) {
-    const auto filename = GetCurrentUserPlayTimePath();
+[[nodiscard]] bool ReadPlayTimeFile(PlayTimeDatabase& out_play_time_db,
+                                    const Service::Account::ProfileManager& manager) {
+    const auto filename = GetCurrentUserPlayTimePath(manager);
 
     if (!filename.has_value()) {
         LOG_ERROR(Frontend, "Failed to get current user path");
@@ -66,8 +67,9 @@ std::optional<std::filesystem::path> GetCurrentUserPlayTimePath() {
     return true;
 }
 
-[[nodiscard]] bool WritePlayTimeFile(const PlayTimeDatabase& play_time_db) {
-    const auto filename = GetCurrentUserPlayTimePath();
+[[nodiscard]] bool WritePlayTimeFile(const PlayTimeDatabase& play_time_db,
+                                     const Service::Account::ProfileManager& manager) {
+    const auto filename = GetCurrentUserPlayTimePath(manager);
 
     if (!filename.has_value()) {
         LOG_ERROR(Frontend, "Failed to get current user path");
@@ -96,8 +98,9 @@ std::optional<std::filesystem::path> GetCurrentUserPlayTimePath() {
 
 } // namespace
 
-PlayTimeManager::PlayTimeManager() {
-    if (!ReadPlayTimeFile(database)) {
+PlayTimeManager::PlayTimeManager(Service::Account::ProfileManager& profile_manager)
+    : manager{profile_manager} {
+    if (!ReadPlayTimeFile(database, manager)) {
         LOG_ERROR(Frontend, "Failed to read play time database! Resetting to default.");
     }
 }
@@ -142,7 +145,7 @@ void PlayTimeManager::AutoTimestamp(std::stop_token stop_token) {
 }
 
 void PlayTimeManager::Save() {
-    if (!WritePlayTimeFile(database)) {
+    if (!WritePlayTimeFile(database, manager)) {
         LOG_ERROR(Frontend, "Failed to update play time database!");
     }
 }

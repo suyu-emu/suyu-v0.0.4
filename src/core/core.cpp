@@ -36,6 +36,7 @@
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
+#include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/apm/apm_controller.h"
 #include "core/hle/service/filesystem/filesystem.h"
@@ -130,8 +131,8 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 struct System::Impl {
     explicit Impl(System& system)
         : kernel{system}, fs_controller{system}, memory{system}, hid_core{}, room_network{},
-          cpu_manager{system}, reporter{system}, applet_manager{system}, time_manager{system},
-          gpu_dirty_memory_write_manager{} {
+          cpu_manager{system}, reporter{system}, applet_manager{system}, profile_manager{},
+          time_manager{system}, gpu_dirty_memory_write_manager{} {
         memory.SetGPUDirtyManagers(gpu_dirty_memory_write_manager);
     }
 
@@ -532,6 +533,7 @@ struct System::Impl {
 
     /// Service State
     Service::Glue::ARPManager arp_manager;
+    Service::Account::ProfileManager profile_manager;
     Service::Time::TimeManager time_manager;
 
     /// Service manager
@@ -919,6 +921,14 @@ Service::APM::Controller& System::GetAPMController() {
 
 const Service::APM::Controller& System::GetAPMController() const {
     return impl->apm_controller;
+}
+
+Service::Account::ProfileManager& System::GetProfileManager() {
+    return impl->profile_manager;
+}
+
+const Service::Account::ProfileManager& System::GetProfileManager() const {
+    return impl->profile_manager;
 }
 
 Service::Time::TimeManager& System::GetTimeManager() {

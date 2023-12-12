@@ -346,7 +346,7 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
     SetDiscordEnabled(UISettings::values.enable_discord_presence.GetValue());
     discord_rpc->Update();
 
-    play_time_manager = std::make_unique<PlayTime::PlayTimeManager>();
+    play_time_manager = std::make_unique<PlayTime::PlayTimeManager>(system->GetProfileManager());
 
     system->GetRoomNetwork().Init();
 
@@ -526,8 +526,7 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
                 continue;
             }
 
-            const Service::Account::ProfileManager manager;
-            if (!manager.UserExistsIndex(selected_user)) {
+            if (!system->GetProfileManager().UserExistsIndex(selected_user)) {
                 LOG_ERROR(Frontend, "Selected user doesn't exist");
                 continue;
             }
@@ -691,7 +690,7 @@ void GMainWindow::ControllerSelectorRequestExit() {
 
 void GMainWindow::ProfileSelectorSelectProfile(
     const Core::Frontend::ProfileSelectParameters& parameters) {
-    profile_select_applet = new QtProfileSelectionDialog(system->HIDCore(), this, parameters);
+    profile_select_applet = new QtProfileSelectionDialog(*system, this, parameters);
     SCOPE_EXIT({
         profile_select_applet->deleteLater();
         profile_select_applet = nullptr;
@@ -706,8 +705,8 @@ void GMainWindow::ProfileSelectorSelectProfile(
         return;
     }
 
-    const Service::Account::ProfileManager manager;
-    const auto uuid = manager.GetUser(static_cast<std::size_t>(profile_select_applet->GetIndex()));
+    const auto uuid = system->GetProfileManager().GetUser(
+        static_cast<std::size_t>(profile_select_applet->GetIndex()));
     if (!uuid.has_value()) {
         emit ProfileSelectorFinishedSelection(std::nullopt);
         return;
@@ -1856,7 +1855,7 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
 
 bool GMainWindow::SelectAndSetCurrentUser(
     const Core::Frontend::ProfileSelectParameters& parameters) {
-    QtProfileSelectionDialog dialog(system->HIDCore(), this, parameters);
+    QtProfileSelectionDialog dialog(*system, this, parameters);
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                           Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
     dialog.setWindowModality(Qt::WindowModal);
@@ -2271,7 +2270,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
                     .display_options = {},
                     .purpose = Service::AM::Applets::UserSelectionPurpose::General,
                 };
-                QtProfileSelectionDialog dialog(system->HIDCore(), this, parameters);
+                QtProfileSelectionDialog dialog(*system, this, parameters);
                 dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                                       Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
                 dialog.setWindowModality(Qt::WindowModal);
@@ -2288,8 +2287,8 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
                 return;
             }
 
-            Service::Account::ProfileManager manager;
-            const auto user_id = manager.GetUser(static_cast<std::size_t>(index));
+            const auto user_id =
+                system->GetProfileManager().GetUser(static_cast<std::size_t>(index));
             ASSERT(user_id);
 
             const auto user_save_data_path = FileSys::SaveDataFactory::GetFullPath(

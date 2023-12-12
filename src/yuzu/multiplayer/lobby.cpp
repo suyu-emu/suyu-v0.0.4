@@ -27,9 +27,9 @@
 Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
              std::shared_ptr<Core::AnnounceMultiplayerSession> session, Core::System& system_)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
-      ui(std::make_unique<Ui::Lobby>()), announce_multiplayer_session(session),
-      profile_manager(std::make_unique<Service::Account::ProfileManager>()), system{system_},
-      room_network{system.GetRoomNetwork()} {
+      ui(std::make_unique<Ui::Lobby>()),
+      announce_multiplayer_session(session), system{system_}, room_network{
+                                                                  system.GetRoomNetwork()} {
     ui->setupUi(this);
 
     // setup the watcher for background connections
@@ -299,14 +299,15 @@ void Lobby::OnRefreshLobby() {
 }
 
 std::string Lobby::GetProfileUsername() {
-    const auto& current_user = profile_manager->GetUser(Settings::values.current_user.GetValue());
+    const auto& current_user =
+        system.GetProfileManager().GetUser(Settings::values.current_user.GetValue());
     Service::Account::ProfileBase profile{};
 
     if (!current_user.has_value()) {
         return "";
     }
 
-    if (!profile_manager->GetProfileBase(*current_user, profile)) {
+    if (!system.GetProfileManager().GetProfileBase(*current_user, profile)) {
         return "";
     }
 
