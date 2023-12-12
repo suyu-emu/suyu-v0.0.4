@@ -3,6 +3,7 @@
 
 #include <atomic>
 
+#include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/div_ceil.h"
@@ -11,61 +12,63 @@
 
 namespace VideoCore {
 
+static constexpr u16 IdentityValue = 1;
+
 using namespace Core::Memory;
 
-RasterizerAccelerated::RasterizerAccelerated(Memory& cpu_memory_)
-    : cached_pages(std::make_unique<CachedPages>()), cpu_memory{cpu_memory_} {}
+RasterizerAccelerated::RasterizerAccelerated(Memory& cpu_memory_) : map{}, cpu_memory{cpu_memory_} {
+    // We are tracking CPU memory, which cannot map more than 39 bits.
+    const VAddr start_address = 0;
+    const VAddr end_address = (1ULL << 39);
+    const IntervalType address_space_interval(start_address, end_address);
+    const auto value = std::make_pair(address_space_interval, IdentityValue);
+
+    map.add(value);
+}
 
 RasterizerAccelerated::~RasterizerAccelerated() = default;
 
-void RasterizerAccelerated::UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {
-    u64 uncache_begin = 0;
-    u64 cache_begin = 0;
-    u64 uncache_bytes = 0;
-    u64 cache_bytes = 0;
+void RasterizerAccelerated::UpdatePagesCachedCount(VAddr addr, u64 size, bool cache) {
+    // Align sizes.
+    addr = Common::AlignDown(addr, YUZU_PAGESIZE);
+    size = Common::AlignUp(size, YUZU_PAGESIZE);
 
-    std::atomic_thread_fence(std::memory_order_acquire);
-    const u64 page_end = Common::DivCeil(addr + size, YUZU_PAGESIZE);
-    for (u64 page = addr >> YUZU_PAGEBITS; page != page_end; ++page) {
-        std::atomic_uint16_t& count = cached_pages->at(page >> 2).Count(page);
+    // Declare the overall interval we are going to operate on.
+    const VAddr start_address = addr;
+    const VAddr end_address = addr + size;
+    const IntervalType modification_range(start_address, end_address);
 
-        if (delta > 0) {
-            ASSERT_MSG(count.load(std::memory_order::relaxed) < UINT16_MAX, "Count may overflow!");
-        } else if (delta < 0) {
-            ASSERT_MSG(count.load(std::memory_order::relaxed) > 0, "Count may underflow!");
-        } else {
-            ASSERT_MSG(false, "Delta must be non-zero!");
-        }
+    // Find the boundaries of where to iterate.
+    const auto lower = map.lower_bound(modification_range);
+    const auto upper = map.upper_bound(modification_range);
 
-        // Adds or subtracts 1, as count is a unsigned 8-bit value
-        count.fetch_add(static_cast<u16>(delta), std::memory_order_release);
+    // Iterate over the contained intervals.
+    for (auto it = lower; it != upper; it++) {
+        // Intersect interval range with modification range.
+        const auto current_range = modification_range & it->first;
 
-        // Assume delta is either -1 or 1
-        if (count.load(std::memory_order::relaxed) == 0) {
-            if (uncache_bytes == 0) {
-                uncache_begin = page;
-            }
-            uncache_bytes += YUZU_PAGESIZE;
-        } else if (uncache_bytes > 0) {
-            cpu_memory.RasterizerMarkRegionCached(uncache_begin << YUZU_PAGEBITS, uncache_bytes,
-                                                  false);
-            uncache_bytes = 0;
-        }
-        if (count.load(std::memory_order::relaxed) == 1 && delta > 0) {
-            if (cache_bytes == 0) {
-                cache_begin = page;
-            }
-            cache_bytes += YUZU_PAGESIZE;
-        } else if (cache_bytes > 0) {
-            cpu_memory.RasterizerMarkRegionCached(cache_begin << YUZU_PAGEBITS, cache_bytes, true);
-            cache_bytes = 0;
+        // Calculate the address and size to operate over.
+        const auto current_addr = current_range.lower();
+        const auto current_size = current_range.upper() - current_addr;
+
+        // Get the current value of the range.
+        const auto value = it->second;
+
+        if (cache && value == IdentityValue) {
+            // If we are going to cache, and the value is not yet referenced, then cache this range.
+            cpu_memory.RasterizerMarkRegionCached(current_addr, current_size, true);
+        } else if (!cache && value == IdentityValue + 1) {
+            // If we are going to uncache, and this is the last reference, then uncache this range.
+            cpu_memory.RasterizerMarkRegionCached(current_addr, current_size, false);
         }
     }
-    if (uncache_bytes > 0) {
-        cpu_memory.RasterizerMarkRegionCached(uncache_begin << YUZU_PAGEBITS, uncache_bytes, false);
-    }
-    if (cache_bytes > 0) {
-        cpu_memory.RasterizerMarkRegionCached(cache_begin << YUZU_PAGEBITS, cache_bytes, true);
+
+    // Update the set.
+    const auto value = std::make_pair(modification_range, IdentityValue);
+    if (cache) {
+        map.add(value);
+    } else {
+        map.subtract(value);
     }
 }
 
