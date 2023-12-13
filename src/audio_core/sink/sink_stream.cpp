@@ -40,29 +40,38 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
 
     if (system_channels == 6 && device_channels == 2) {
         // We're given 6 channels, but our device only outputs 2, so downmix.
-        static constexpr std::array<f32, 4> down_mix_coeff{1.0f, 0.707f, 0.251f, 0.707f};
+        // Front = 1.0
+        // Center = 0.596
+        // Back = 0.707
+        // LFE = 0.354
+        // 1.0 + 0.596 + 0.707 + 0.354 = 2.657, 1/2.657 = 0.37636f downscale coefficient
+        static constexpr std::array<f32, 4> down_mix_coeff{0.37636f, 0.22431056f, 0.13323144f,
+                                                           0.26608652f};
 
         for (u32 read_index = 0, write_index = 0; read_index < samples.size();
              read_index += system_channels, write_index += device_channels) {
+            const auto fl =
+                static_cast<f32>(samples[read_index + static_cast<u32>(Channels::FrontLeft)]);
+            const auto fr =
+                static_cast<f32>(samples[read_index + static_cast<u32>(Channels::FrontRight)]);
+            const auto c =
+                static_cast<f32>(samples[read_index + static_cast<u32>(Channels::Center)]);
+            const auto lfe =
+                static_cast<f32>(samples[read_index + static_cast<u32>(Channels::LFE)]);
+            const auto bl =
+                static_cast<f32>(samples[read_index + static_cast<u32>(Channels::BackLeft)]);
+            const auto br =
+                static_cast<f32>(samples[read_index + static_cast<u32>(Channels::BackRight)]);
+
             const auto left_sample{
-                ((Common::FixedPoint<49, 15>(
-                      samples[read_index + static_cast<u32>(Channels::FrontLeft)]) *
-                      down_mix_coeff[0] +
-                  samples[read_index + static_cast<u32>(Channels::Center)] * down_mix_coeff[1] +
-                  samples[read_index + static_cast<u32>(Channels::LFE)] * down_mix_coeff[2] +
-                  samples[read_index + static_cast<u32>(Channels::BackLeft)] * down_mix_coeff[3]) *
-                 volume)
-                    .to_int()};
+                static_cast<s32>((fl * down_mix_coeff[0] + c * down_mix_coeff[1] +
+                                  lfe * down_mix_coeff[2] + bl * down_mix_coeff[3]) *
+                                 volume)};
 
             const auto right_sample{
-                ((Common::FixedPoint<49, 15>(
-                      samples[read_index + static_cast<u32>(Channels::FrontRight)]) *
-                      down_mix_coeff[0] +
-                  samples[read_index + static_cast<u32>(Channels::Center)] * down_mix_coeff[1] +
-                  samples[read_index + static_cast<u32>(Channels::LFE)] * down_mix_coeff[2] +
-                  samples[read_index + static_cast<u32>(Channels::BackRight)] * down_mix_coeff[3]) *
-                 volume)
-                    .to_int()};
+                static_cast<s32>((fr * down_mix_coeff[0] + c * down_mix_coeff[1] +
+                                  lfe * down_mix_coeff[2] + br * down_mix_coeff[3]) *
+                                 volume)};
 
             samples[write_index + static_cast<u32>(Channels::FrontLeft)] =
                 static_cast<s16>(std::clamp(left_sample, min, max));
