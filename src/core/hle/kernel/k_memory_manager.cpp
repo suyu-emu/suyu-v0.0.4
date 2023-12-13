@@ -421,8 +421,9 @@ Result KMemoryManager::AllocateForProcess(KPageGroup* out, size_t num_pages, u32
     } else {
         // Set all the allocated memory.
         for (const auto& block : *out) {
-            std::memset(m_system.DeviceMemory().GetPointer<void>(block.GetAddress()), fill_pattern,
-                        block.GetSize());
+            m_system.DeviceMemory().buffer.ClearBackingRegion(GetInteger(block.GetAddress()) -
+                                                                  Core::DramMemoryMap::Base,
+                                                              block.GetSize(), fill_pattern);
         }
     }
 

@@ -81,6 +81,11 @@ void InvalidateInstructionCache(KernelCore& kernel, AddressType addr, u64 size) 
     }
 }
 
+void ClearBackingRegion(Core::System& system, KPhysicalAddress addr, u64 size, u32 fill_value) {
+    system.DeviceMemory().buffer.ClearBackingRegion(GetInteger(addr) - Core::DramMemoryMap::Base,
+                                                    size, fill_value);
+}
+
 template <typename AddressType>
 Result InvalidateDataCache(AddressType addr, u64 size) {
     R_SUCCEED();
@@ -1363,8 +1368,7 @@ Result KPageTableBase::MapInsecureMemory(KProcessAddress address, size_t size) {
 
     // Clear all the newly allocated pages.
     for (const auto& it : pg) {
-        std::memset(GetHeapVirtualPointer(m_kernel, it.GetAddress()),
-                    static_cast<u32>(m_heap_fill_value), it.GetSize());
+        ClearBackingRegion(m_system, it.GetAddress(), it.GetSize(), m_heap_fill_value);
     }
 
     // Lock the table.
@@ -1570,8 +1574,7 @@ Result KPageTableBase::AllocateAndMapPagesImpl(PageLinkedList* page_list, KProce
 
     // Clear all pages.
     for (const auto& it : pg) {
-        std::memset(GetHeapVirtualPointer(m_kernel, it.GetAddress()),
-                    static_cast<u32>(m_heap_fill_value), it.GetSize());
+        ClearBackingRegion(m_system, it.GetAddress(), it.GetSize(), m_heap_fill_value);
     }
 
     // Map the pages.
@@ -2159,8 +2162,7 @@ Result KPageTableBase::SetHeapSize(KProcessAddress* out, size_t size) {
 
     // Clear all the newly allocated pages.
     for (const auto& it : pg) {
-        std::memset(GetHeapVirtualPointer(m_kernel, it.GetAddress()), m_heap_fill_value,
-                    it.GetSize());
+        ClearBackingRegion(m_system, it.GetAddress(), it.GetSize(), m_heap_fill_value);
     }
 
     // Map the pages.

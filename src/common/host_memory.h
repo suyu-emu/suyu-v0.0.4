@@ -48,6 +48,8 @@ public:
 
     void EnableDirectMappedAddress();
 
+    void ClearBackingRegion(size_t physical_offset, size_t length, u32 fill_value);
+
     [[nodiscard]] u8* BackingBasePointer() noexcept {
         return backing_base;
     }
