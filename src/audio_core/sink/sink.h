@@ -85,9 +85,21 @@ public:
      */
     virtual void SetSystemVolume(f32 volume) = 0;
 
+    /**
+     * Get the number of channels the game has set, can be different to the host hardware's support.
+     * Either 2 or 6.
+     *
+     * @return Number of device channels.
+     */
+    u32 GetSystemChannels() const {
+        return system_channels;
+    }
+
 protected:
     /// Number of device channels supported by the hardware
     u32 device_channels{2};
+    /// Number of channels the game is sending
+    u32 system_channels{2};
 };
 
 using SinkPtr = std::unique_ptr<Sink>;
