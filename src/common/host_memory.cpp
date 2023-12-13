@@ -11,10 +11,6 @@
 
 #elif defined(__linux__) || defined(__FreeBSD__) // ^^^ Windows ^^^ vvv Linux vvv
 
-#ifdef ANDROID
-#include <android/sharedmem.h>
-#endif
-
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -191,6 +187,11 @@ public:
             }
             ++it;
         }
+    }
+
+    bool ClearBackingRegion(size_t physical_offset, size_t length) {
+        // TODO: This does not seem to be possible on Windows.
+        return false;
     }
 
     void EnableDirectMappedAddress() {
@@ -442,9 +443,7 @@ public:
         }
 
         // Backing memory initialization
-#ifdef ANDROID
-        fd = ASharedMemory_create("HostMemory", backing_size);
-#elif defined(__FreeBSD__) && __FreeBSD__ < 13
+#if defined(__FreeBSD__) && __FreeBSD__ < 13
         // XXX Drop after FreeBSD 12.* reaches EOL on 2024-06-30
         fd = shm_open(SHM_ANON, O_RDWR, 0600);
 #else
@@ -455,7 +454,6 @@ public:
             throw std::bad_alloc{};
         }
 
-#ifndef ANDROID
         // Defined to extend the file with zeros
         int ret = ftruncate(fd, backing_size);
         if (ret != 0) {
@@ -463,7 +461,6 @@ public:
                          strerror(errno));
             throw std::bad_alloc{};
         }
-#endif
 
         backing_base = static_cast<u8*>(
             mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
@@ -552,6 +549,19 @@ public:
         ASSERT_MSG(ret == 0, "mprotect failed: {}", strerror(errno));
     }
 
+    bool ClearBackingRegion(size_t physical_offset, size_t length) {
+#ifdef __linux__
+        // Set MADV_REMOVE on backing map to destroy it instantly.
+        // This also deletes the area from the backing file.
+        int ret = madvise(backing_base + physical_offset, length, MADV_REMOVE);
+        ASSERT_MSG(ret == 0, "madvise failed: {}", strerror(errno));
+
+        return true;
+#else
+        return false;
+#endif
+    }
+
     void EnableDirectMappedAddress() {
         virtual_base = nullptr;
     }
@@ -622,6 +632,10 @@ public:
     void Unmap(size_t virtual_offset, size_t length) {}
 
     void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute) {}
+
+    bool ClearBackingRegion(size_t physical_offset, size_t length) {
+        return false;
+    }
 
     void EnableDirectMappedAddress() {}
 
@@ -696,6 +710,12 @@ void HostMemory::Protect(size_t virtual_offset, size_t length, bool read, bool w
         return;
     }
     impl->Protect(virtual_offset + virtual_base_offset, length, read, write, execute);
+}
+
+void HostMemory::ClearBackingRegion(size_t physical_offset, size_t length, u32 fill_value) {
+    if (!impl || fill_value != 0 || !impl->ClearBackingRegion(physical_offset, length)) {
+        std::memset(backing_base + physical_offset, fill_value, length);
+    }
 }
 
 void HostMemory::EnableDirectMappedAddress() {
