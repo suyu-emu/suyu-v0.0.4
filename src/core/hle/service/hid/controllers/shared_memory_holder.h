@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "common/common_types.h"
 #include "core/hle/result.h"
 
 namespace Core {
@@ -21,6 +20,7 @@ struct SharedMemoryFormat;
 class SharedMemoryHolder {
 public:
     SharedMemoryHolder();
+    ~SharedMemoryHolder();
 
     Result Initialize(Core::System& system);
     void Finalize();

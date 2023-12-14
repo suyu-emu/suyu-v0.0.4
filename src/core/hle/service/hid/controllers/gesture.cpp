@@ -1,11 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
 #include "common/math_util.h"
 #include "common/settings.h"
-#include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
+#include "core/hid/emulated_console.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/service/hid/controllers/gesture.h"
 #include "core/hle/service/hid/controllers/shared_memory_format.h"

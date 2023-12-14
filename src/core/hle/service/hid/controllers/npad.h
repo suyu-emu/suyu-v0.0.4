@@ -8,13 +8,10 @@
 #include <mutex>
 #include <span>
 
-#include "common/bit_field.h"
 #include "common/common_types.h"
-
 #include "core/hid/hid_types.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 #include "core/hle/service/hid/controllers/types/npad_types.h"
-#include "core/hle/service/hid/ring_lifo.h"
 
 namespace Core::HID {
 class EmulatedController;
@@ -192,7 +189,7 @@ private:
 
     std::atomic<u64> press_state{};
 
-    std::array<NpadControllerData, NPAD_COUNT> controller_data{};
+    std::array<NpadControllerData, NpadCount> controller_data{};
     KernelHelpers::ServiceContext& service_context;
     std::mutex mutex;
     std::vector<Core::HID::NpadIdType> supported_npad_id_types{};
