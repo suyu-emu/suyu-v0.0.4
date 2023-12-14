@@ -6,6 +6,7 @@
 #include "core/hid/emulated_controller.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/service/hid/controllers/npad.h"
+#include "core/hle/service/hid/controllers/shared_memory_format.h"
 #include "core/hle/service/hid/controllers/six_axis.h"
 #include "core/hle/service/hid/errors.h"
 #include "core/hle/service/hid/hid_util.h"
@@ -132,30 +133,30 @@ void SixAxis::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         }
 
         sixaxis_fullkey_state.sampling_number =
-            sixaxis_fullkey_lifo.ReadCurrentEntry().state.sampling_number + 1;
+            sixaxis_fullkey_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
         sixaxis_handheld_state.sampling_number =
-            sixaxis_handheld_lifo.ReadCurrentEntry().state.sampling_number + 1;
+            sixaxis_handheld_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
         sixaxis_dual_left_state.sampling_number =
-            sixaxis_dual_left_lifo.ReadCurrentEntry().state.sampling_number + 1;
+            sixaxis_dual_left_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
         sixaxis_dual_right_state.sampling_number =
-            sixaxis_dual_right_lifo.ReadCurrentEntry().state.sampling_number + 1;
+            sixaxis_dual_right_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
         sixaxis_left_lifo_state.sampling_number =
-            sixaxis_left_lifo.ReadCurrentEntry().state.sampling_number + 1;
+            sixaxis_left_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
         sixaxis_right_lifo_state.sampling_number =
-            sixaxis_right_lifo.ReadCurrentEntry().state.sampling_number + 1;
+            sixaxis_right_lifo.lifo.ReadCurrentEntry().state.sampling_number + 1;
 
         if (IndexToNpadIdType(i) == Core::HID::NpadIdType::Handheld) {
             // This buffer only is updated on handheld on HW
-            sixaxis_handheld_lifo.WriteNextEntry(sixaxis_handheld_state);
+            sixaxis_handheld_lifo.lifo.WriteNextEntry(sixaxis_handheld_state);
         } else {
             // Handheld doesn't update this buffer on HW
-            sixaxis_fullkey_lifo.WriteNextEntry(sixaxis_fullkey_state);
+            sixaxis_fullkey_lifo.lifo.WriteNextEntry(sixaxis_fullkey_state);
         }
 
-        sixaxis_dual_left_lifo.WriteNextEntry(sixaxis_dual_left_state);
-        sixaxis_dual_right_lifo.WriteNextEntry(sixaxis_dual_right_state);
-        sixaxis_left_lifo.WriteNextEntry(sixaxis_left_lifo_state);
-        sixaxis_right_lifo.WriteNextEntry(sixaxis_right_lifo_state);
+        sixaxis_dual_left_lifo.lifo.WriteNextEntry(sixaxis_dual_left_state);
+        sixaxis_dual_right_lifo.lifo.WriteNextEntry(sixaxis_dual_right_state);
+        sixaxis_left_lifo.lifo.WriteNextEntry(sixaxis_left_lifo_state);
+        sixaxis_right_lifo.lifo.WriteNextEntry(sixaxis_right_lifo_state);
     }
 }
 

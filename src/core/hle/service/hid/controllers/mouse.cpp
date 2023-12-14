@@ -8,15 +8,12 @@
 #include "core/hid/emulated_devices.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/service/hid/controllers/mouse.h"
+#include "core/hle/service/hid/controllers/shared_memory_format.h"
 
 namespace Service::HID {
-constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3400;
 
-Mouse::Mouse(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_) : ControllerBase{hid_core_} {
-    static_assert(SHARED_MEMORY_OFFSET + sizeof(MouseSharedMemory) < shared_memory_size,
-                  "MouseSharedMemory is bigger than the shared memory");
-    shared_memory = std::construct_at(
-        reinterpret_cast<MouseSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
+Mouse::Mouse(Core::HID::HIDCore& hid_core_, MouseSharedMemoryFormat& mouse_shared_memory)
+    : ControllerBase{hid_core_}, shared_memory{mouse_shared_memory} {
     emulated_devices = hid_core.GetEmulatedDevices();
 }
 
@@ -27,14 +24,14 @@ void Mouse::OnRelease() {}
 
 void Mouse::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     if (!IsControllerActivated()) {
-        shared_memory->mouse_lifo.buffer_count = 0;
-        shared_memory->mouse_lifo.buffer_tail = 0;
+        shared_memory.mouse_lifo.buffer_count = 0;
+        shared_memory.mouse_lifo.buffer_tail = 0;
         return;
     }
 
     next_state = {};
 
-    const auto& last_entry = shared_memory->mouse_lifo.ReadCurrentEntry().state;
+    const auto& last_entry = shared_memory.mouse_lifo.ReadCurrentEntry().state;
     next_state.sampling_number = last_entry.sampling_number + 1;
 
     if (Settings::values.mouse_enabled) {
@@ -53,7 +50,7 @@ void Mouse::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         next_state.button = mouse_button_state;
     }
 
-    shared_memory->mouse_lifo.WriteNextEntry(next_state);
+    shared_memory.mouse_lifo.WriteNextEntry(next_state);
 }
 
 } // namespace Service::HID

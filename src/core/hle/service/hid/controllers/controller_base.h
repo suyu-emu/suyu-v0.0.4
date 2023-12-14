@@ -39,9 +39,6 @@ public:
 
     bool IsControllerActivated() const;
 
-    static const std::size_t hid_entry_count = 17;
-    static const std::size_t shared_memory_size = 0x40000;
-
 protected:
     bool is_activated{false};
 

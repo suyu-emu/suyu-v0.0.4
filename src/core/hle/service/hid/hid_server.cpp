@@ -28,6 +28,7 @@
 #include "core/hle/service/hid/controllers/seven_six_axis.h"
 #include "core/hle/service/hid/controllers/six_axis.h"
 #include "core/hle/service/hid/controllers/touchscreen.h"
+#include "core/hle/service/hid/controllers/types/npad_types.h"
 
 namespace Service::HID {
 
@@ -1099,7 +1100,7 @@ void IHidServer::GetPlayerLedPattern(HLERequestContext& ctx) {
 void IHidServer::ActivateNpadWithRevision(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        NPad::NpadRevision revision;
+        NpadRevision revision;
         INSERT_PADDING_WORDS_NOINIT(1);
         u64 applet_resource_user_id;
     };
@@ -1122,7 +1123,7 @@ void IHidServer::ActivateNpadWithRevision(HLERequestContext& ctx) {
 void IHidServer::SetNpadJoyHoldType(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
-    const auto hold_type{rp.PopEnum<NPad::NpadJoyHoldType>()};
+    const auto hold_type{rp.PopEnum<NpadJoyHoldType>()};
 
     GetResourceManager()->GetNpad()->SetHoldType(hold_type);
 
@@ -1157,8 +1158,8 @@ void IHidServer::SetNpadJoyAssignmentModeSingleByDefault(HLERequestContext& ctx)
 
     Core::HID::NpadIdType new_npad_id{};
     auto controller = GetResourceManager()->GetNpad();
-    controller->SetNpadMode(new_npad_id, parameters.npad_id, NPad::NpadJoyDeviceType::Left,
-                            NPad::NpadJoyAssignmentMode::Single);
+    controller->SetNpadMode(new_npad_id, parameters.npad_id, NpadJoyDeviceType::Left,
+                            NpadJoyAssignmentMode::Single);
 
     LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}", parameters.npad_id,
              parameters.applet_resource_user_id);
@@ -1173,7 +1174,7 @@ void IHidServer::SetNpadJoyAssignmentModeSingle(HLERequestContext& ctx) {
         Core::HID::NpadIdType npad_id;
         INSERT_PADDING_WORDS_NOINIT(1);
         u64 applet_resource_user_id;
-        NPad::NpadJoyDeviceType npad_joy_device_type;
+        NpadJoyDeviceType npad_joy_device_type;
     };
     static_assert(sizeof(Parameters) == 0x18, "Parameters has incorrect size.");
 
@@ -1182,7 +1183,7 @@ void IHidServer::SetNpadJoyAssignmentModeSingle(HLERequestContext& ctx) {
     Core::HID::NpadIdType new_npad_id{};
     auto controller = GetResourceManager()->GetNpad();
     controller->SetNpadMode(new_npad_id, parameters.npad_id, parameters.npad_joy_device_type,
-                            NPad::NpadJoyAssignmentMode::Single);
+                            NpadJoyAssignmentMode::Single);
 
     LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}, npad_joy_device_type={}",
              parameters.npad_id, parameters.applet_resource_user_id,
@@ -1205,7 +1206,7 @@ void IHidServer::SetNpadJoyAssignmentModeDual(HLERequestContext& ctx) {
 
     Core::HID::NpadIdType new_npad_id{};
     auto controller = GetResourceManager()->GetNpad();
-    controller->SetNpadMode(new_npad_id, parameters.npad_id, {}, NPad::NpadJoyAssignmentMode::Dual);
+    controller->SetNpadMode(new_npad_id, parameters.npad_id, {}, NpadJoyAssignmentMode::Dual);
 
     LOG_DEBUG(Service_HID, "called, npad_id={}, applet_resource_user_id={}", parameters.npad_id,
               parameters.applet_resource_user_id); // Spams a lot when controller applet is open
@@ -1257,7 +1258,7 @@ void IHidServer::StopLrAssignmentMode(HLERequestContext& ctx) {
 void IHidServer::SetNpadHandheldActivationMode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
-    const auto activation_mode{rp.PopEnum<NPad::NpadHandheldActivationMode>()};
+    const auto activation_mode{rp.PopEnum<NpadHandheldActivationMode>()};
 
     GetResourceManager()->GetNpad()->SetNpadHandheldActivationMode(activation_mode);
 
@@ -1349,7 +1350,7 @@ void IHidServer::SetNpadJoyAssignmentModeSingleWithDestination(HLERequestContext
         Core::HID::NpadIdType npad_id;
         INSERT_PADDING_WORDS_NOINIT(1);
         u64 applet_resource_user_id;
-        NPad::NpadJoyDeviceType npad_joy_device_type;
+        NpadJoyDeviceType npad_joy_device_type;
     };
     static_assert(sizeof(Parameters) == 0x18, "Parameters has incorrect size.");
 
@@ -1359,7 +1360,7 @@ void IHidServer::SetNpadJoyAssignmentModeSingleWithDestination(HLERequestContext
     auto controller = GetResourceManager()->GetNpad();
     const auto is_reassigned =
         controller->SetNpadMode(new_npad_id, parameters.npad_id, parameters.npad_joy_device_type,
-                                NPad::NpadJoyAssignmentMode::Single);
+                                NpadJoyAssignmentMode::Single);
 
     LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}, npad_joy_device_type={}",
              parameters.npad_id, parameters.applet_resource_user_id,
@@ -2315,7 +2316,7 @@ void IHidServer::SetDisallowedPalmaConnection(HLERequestContext& ctx) {
 void IHidServer::SetNpadCommunicationMode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
-    const auto communication_mode{rp.PopEnum<NPad::NpadCommunicationMode>()};
+    const auto communication_mode{rp.PopEnum<NpadCommunicationMode>()};
 
     GetResourceManager()->GetNpad()->SetNpadCommunicationMode(communication_mode);
 

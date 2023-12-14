@@ -4,15 +4,14 @@
 #include <cstring>
 #include "common/common_types.h"
 #include "core/core_timing.h"
-#include "core/hid/hid_core.h"
+#include "core/hle/service/hid/controllers/shared_memory_format.h"
 #include "core/hle/service/hid/controllers/stubbed.h"
 
 namespace Service::HID {
 
-Controller_Stubbed::Controller_Stubbed(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
-    : ControllerBase{hid_core_} {
-    raw_shared_memory = raw_shared_memory_;
-}
+Controller_Stubbed::Controller_Stubbed(Core::HID::HIDCore& hid_core_,
+                                       CommonHeader& ring_lifo_header)
+    : ControllerBase{hid_core_}, header{ring_lifo_header} {}
 
 Controller_Stubbed::~Controller_Stubbed() = default;
 
@@ -25,18 +24,10 @@ void Controller_Stubbed::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         return;
     }
 
-    CommonHeader header{};
     header.timestamp = core_timing.GetGlobalTimeNs().count();
     header.total_entry_count = 17;
     header.entry_count = 0;
     header.last_entry_index = 0;
-
-    std::memcpy(raw_shared_memory + common_offset, &header, sizeof(CommonHeader));
-}
-
-void Controller_Stubbed::SetCommonHeaderOffset(std::size_t off) {
-    common_offset = off;
-    smart_update = true;
 }
 
 } // namespace Service::HID

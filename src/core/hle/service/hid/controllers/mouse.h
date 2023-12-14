@@ -14,9 +14,11 @@ struct AnalogStickState;
 } // namespace Core::HID
 
 namespace Service::HID {
+struct MouseSharedMemoryFormat;
+
 class Mouse final : public ControllerBase {
 public:
-    explicit Mouse(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
+    explicit Mouse(Core::HID::HIDCore& hid_core_, MouseSharedMemoryFormat& mouse_shared_memory);
     ~Mouse() override;
 
     // Called when the controller is initialized
@@ -29,17 +31,9 @@ public:
     void OnUpdate(const Core::Timing::CoreTiming& core_timing) override;
 
 private:
-    struct MouseSharedMemory {
-        // This is nn::hid::detail::MouseLifo
-        Lifo<Core::HID::MouseState, hid_entry_count> mouse_lifo{};
-        static_assert(sizeof(mouse_lifo) == 0x350, "mouse_lifo is an invalid size");
-        INSERT_PADDING_WORDS(0x2C);
-    };
-    static_assert(sizeof(MouseSharedMemory) == 0x400, "MouseSharedMemory is an invalid size");
-
     Core::HID::MouseState next_state{};
     Core::HID::AnalogStickState last_mouse_wheel_state{};
-    MouseSharedMemory* shared_memory = nullptr;
+    MouseSharedMemoryFormat& shared_memory;
     Core::HID::EmulatedDevices* emulated_devices = nullptr;
 };
 } // namespace Service::HID

@@ -97,8 +97,7 @@ public:
     static_assert(sizeof(PalmaConnectionHandle) == 0x8,
                   "PalmaConnectionHandle has incorrect size.");
 
-    explicit Palma(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_,
-                   KernelHelpers::ServiceContext& service_context_);
+    explicit Palma(Core::HID::HIDCore& hid_core_, KernelHelpers::ServiceContext& service_context_);
     ~Palma() override;
 
     // Called when the controller is initialized

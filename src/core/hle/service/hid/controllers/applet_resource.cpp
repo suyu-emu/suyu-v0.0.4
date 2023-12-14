@@ -4,6 +4,7 @@
 #include "core/core.h"
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/service/hid/controllers/applet_resource.h"
+#include "core/hle/service/hid/controllers/shared_memory_format.h"
 #include "core/hle/service/hid/errors.h"
 
 namespace Service::HID {
@@ -23,11 +24,24 @@ Result AppletResource::CreateAppletResource(u64 aruid) {
         return ResultAruidAlreadyRegistered;
     }
 
-    // TODO: Here shared memory is created for the process we don't quite emulate this part so
-    // obtain this pointer from system
-    auto& shared_memory = system.Kernel().GetHidSharedMem();
+    auto& shared_memory = shared_memory_holder[index];
+    if (!shared_memory.IsMapped()) {
+        const Result result = shared_memory.Initialize(system);
+        if (result.IsError()) {
+            return result;
+        }
+        if (shared_memory.GetAddress() == nullptr) {
+            shared_memory.Finalize();
+            return ResultSharedMemoryNotInitialized;
+        }
+    }
 
-    data[index].shared_memory_handle = &shared_memory;
+    auto* shared_memory_format = shared_memory.GetAddress();
+    if (shared_memory_format != nullptr) {
+        shared_memory_format->Initialize();
+    }
+
+    data[index].shared_memory_format = shared_memory_format;
     data[index].flag.is_assigned.Assign(true);
     // TODO: InitializeSixAxisControllerConfig(false);
     active_aruid = aruid;
@@ -94,7 +108,7 @@ void AppletResource::UnregisterAppletResourceUserId(u64 aruid) {
 
     if (index < AruidIndexMax) {
         if (data[index].flag.is_assigned) {
-            data[index].shared_memory_handle = nullptr;
+            data[index].shared_memory_format = nullptr;
             data[index].flag.is_assigned.Assign(false);
         }
     }
@@ -120,7 +134,7 @@ void AppletResource::FreeAppletResourceId(u64 aruid) {
 
     auto& aruid_data = data[index];
     if (aruid_data.flag.is_assigned) {
-        aruid_data.shared_memory_handle = nullptr;
+        aruid_data.shared_memory_format = nullptr;
         aruid_data.flag.is_assigned.Assign(false);
     }
 }
@@ -135,7 +149,18 @@ Result AppletResource::GetSharedMemoryHandle(Kernel::KSharedMemory** out_handle,
         return ResultAruidNotRegistered;
     }
 
-    *out_handle = data[index].shared_memory_handle;
+    *out_handle = shared_memory_holder[index].GetHandle();
+    return ResultSuccess;
+}
+
+Result AppletResource::GetSharedMemoryFormat(SharedMemoryFormat** out_shared_memory_format,
+                                             u64 aruid) {
+    u64 index = GetIndexFromAruid(aruid);
+    if (index >= AruidIndexMax) {
+        return ResultAruidNotRegistered;
+    }
+
+    *out_shared_memory_format = data[index].shared_memory_format;
     return ResultSuccess;
 }
 

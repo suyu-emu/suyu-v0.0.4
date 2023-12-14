@@ -18,10 +18,10 @@
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/controllers/palma.h"
 #include "core/hle/service/hid/controllers/seven_six_axis.h"
+#include "core/hle/service/hid/controllers/shared_memory_format.h"
 #include "core/hle/service/hid/controllers/six_axis.h"
 #include "core/hle/service/hid/controllers/stubbed.h"
 #include "core/hle/service/hid/controllers/touchscreen.h"
-#include "core/hle/service/hid/controllers/xpad.h"
 
 namespace Service::HID {
 
@@ -45,40 +45,43 @@ void ResourceManager::Initialize() {
         return;
     }
 
-    u8* shared_memory = system.Kernel().GetHidSharedMem().GetPointer();
-    debug_pad = std::make_shared<DebugPad>(system.HIDCore(), shared_memory);
-    mouse = std::make_shared<Mouse>(system.HIDCore(), shared_memory);
-    debug_mouse = std::make_shared<DebugMouse>(system.HIDCore(), shared_memory);
-    keyboard = std::make_shared<Keyboard>(system.HIDCore(), shared_memory);
-    unique_pad = std::make_shared<UniquePad>(system.HIDCore(), shared_memory);
-    npad = std::make_shared<NPad>(system.HIDCore(), shared_memory, service_context);
-    gesture = std::make_shared<Gesture>(system.HIDCore(), shared_memory);
-    touch_screen = std::make_shared<TouchScreen>(system.HIDCore(), shared_memory);
-    xpad = std::make_shared<XPad>(system.HIDCore(), shared_memory);
+    system.HIDCore().ReloadInputDevices();
+    is_initialized = true;
+}
 
-    palma = std::make_shared<Palma>(system.HIDCore(), shared_memory, service_context);
+void ResourceManager::InitializeController(u64 aruid) {
+    SharedMemoryFormat* shared_memory = nullptr;
+    const auto result = applet_resource->GetSharedMemoryFormat(&shared_memory, aruid);
+    if (result.IsError()) {
+        return;
+    }
 
-    home_button = std::make_shared<HomeButton>(system.HIDCore(), shared_memory);
-    sleep_button = std::make_shared<SleepButton>(system.HIDCore(), shared_memory);
-    capture_button = std::make_shared<CaptureButton>(system.HIDCore(), shared_memory);
+    debug_pad = std::make_shared<DebugPad>(system.HIDCore(), shared_memory->debug_pad);
+    mouse = std::make_shared<Mouse>(system.HIDCore(), shared_memory->mouse);
+    debug_mouse = std::make_shared<DebugMouse>(system.HIDCore(), shared_memory->debug_mouse);
+    keyboard = std::make_shared<Keyboard>(system.HIDCore(), shared_memory->keyboard);
+    unique_pad = std::make_shared<UniquePad>(system.HIDCore(), shared_memory->unique_pad.header);
+    npad = std::make_shared<NPad>(system.HIDCore(), shared_memory->npad, service_context);
+    gesture = std::make_shared<Gesture>(system.HIDCore(), shared_memory->gesture);
+    touch_screen = std::make_shared<TouchScreen>(system.HIDCore(), shared_memory->touch_screen);
+
+    palma = std::make_shared<Palma>(system.HIDCore(), service_context);
+
+    home_button = std::make_shared<HomeButton>(system.HIDCore(), shared_memory->home_button.header);
+    sleep_button =
+        std::make_shared<SleepButton>(system.HIDCore(), shared_memory->sleep_button.header);
+    capture_button =
+        std::make_shared<CaptureButton>(system.HIDCore(), shared_memory->capture_button.header);
+    digitizer = std::make_shared<Digitizer>(system.HIDCore(), shared_memory->digitizer.header);
 
     six_axis = std::make_shared<SixAxis>(system.HIDCore(), npad);
-    console_six_axis = std::make_shared<ConsoleSixAxis>(system.HIDCore(), shared_memory);
+    console_six_axis = std::make_shared<ConsoleSixAxis>(system.HIDCore(), shared_memory->console);
     seven_six_axis = std::make_shared<SevenSixAxis>(system);
-
-    home_button->SetCommonHeaderOffset(0x4C00);
-    sleep_button->SetCommonHeaderOffset(0x4E00);
-    capture_button->SetCommonHeaderOffset(0x5000);
-    unique_pad->SetCommonHeaderOffset(0x5A00);
-    debug_mouse->SetCommonHeaderOffset(0x3DC00);
 
     // Homebrew doesn't try to activate some controllers, so we activate them by default
     npad->Activate();
     six_axis->Activate();
     touch_screen->Activate();
-
-    system.HIDCore().ReloadInputDevices();
-    is_initialized = true;
 }
 
 std::shared_ptr<AppletResource> ResourceManager::GetAppletResource() const {
@@ -99,6 +102,10 @@ std::shared_ptr<DebugMouse> ResourceManager::GetDebugMouse() const {
 
 std::shared_ptr<DebugPad> ResourceManager::GetDebugPad() const {
     return debug_pad;
+}
+
+std::shared_ptr<Digitizer> ResourceManager::GetDigitizer() const {
+    return digitizer;
 }
 
 std::shared_ptr<Gesture> ResourceManager::GetGesture() const {
@@ -163,7 +170,11 @@ Result ResourceManager::CreateAppletResource(u64 aruid) {
 
 Result ResourceManager::CreateAppletResourceImpl(u64 aruid) {
     std::scoped_lock lock{shared_mutex};
-    return applet_resource->CreateAppletResource(aruid);
+    const auto result = applet_resource->CreateAppletResource(aruid);
+    if (result.IsSuccess()) {
+        InitializeController(aruid);
+    }
+    return result;
 }
 
 Result ResourceManager::RegisterCoreAppletResource() {
@@ -227,7 +238,6 @@ void ResourceManager::UpdateControllers(std::uintptr_t user_data,
     home_button->OnUpdate(core_timing);
     sleep_button->OnUpdate(core_timing);
     capture_button->OnUpdate(core_timing);
-    xpad->OnUpdate(core_timing);
 }
 
 void ResourceManager::UpdateNpad(std::uintptr_t user_data, std::chrono::nanoseconds ns_late) {
