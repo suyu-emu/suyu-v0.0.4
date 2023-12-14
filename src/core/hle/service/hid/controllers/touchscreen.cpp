@@ -10,18 +10,16 @@
 #include "core/frontend/emu_window.h"
 #include "core/hid/emulated_console.h"
 #include "core/hid/hid_core.h"
+#include "core/hle/service/hid/controllers/shared_memory_format.h"
 #include "core/hle/service/hid/controllers/touchscreen.h"
 
 namespace Service::HID {
-constexpr std::size_t SHARED_MEMORY_OFFSET = 0x400;
 
-TouchScreen::TouchScreen(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
-    : ControllerBase{hid_core_}, touchscreen_width(Layout::ScreenUndocked::Width),
+TouchScreen::TouchScreen(Core::HID::HIDCore& hid_core_,
+                         TouchScreenSharedMemoryFormat& touch_shared_memory)
+    : ControllerBase{hid_core_}, shared_memory{touch_shared_memory},
+      touchscreen_width(Layout::ScreenUndocked::Width),
       touchscreen_height(Layout::ScreenUndocked::Height) {
-    static_assert(SHARED_MEMORY_OFFSET + sizeof(TouchSharedMemory) < shared_memory_size,
-                  "TouchSharedMemory is bigger than the shared memory");
-    shared_memory = std::construct_at(
-        reinterpret_cast<TouchSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
     console = hid_core.GetEmulatedConsole();
 }
 
@@ -32,11 +30,11 @@ void TouchScreen::OnInit() {}
 void TouchScreen::OnRelease() {}
 
 void TouchScreen::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
-    shared_memory->touch_screen_lifo.timestamp = core_timing.GetGlobalTimeNs().count();
+    shared_memory.touch_screen_lifo.timestamp = core_timing.GetGlobalTimeNs().count();
 
     if (!IsControllerActivated()) {
-        shared_memory->touch_screen_lifo.buffer_count = 0;
-        shared_memory->touch_screen_lifo.buffer_tail = 0;
+        shared_memory.touch_screen_lifo.buffer_count = 0;
+        shared_memory.touch_screen_lifo.buffer_tail = 0;
         return;
     }
 
@@ -86,7 +84,7 @@ void TouchScreen::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         static_cast<std::size_t>(std::distance(active_fingers.begin(), end_iter));
 
     const u64 timestamp = static_cast<u64>(core_timing.GetGlobalTimeNs().count());
-    const auto& last_entry = shared_memory->touch_screen_lifo.ReadCurrentEntry().state;
+    const auto& last_entry = shared_memory.touch_screen_lifo.ReadCurrentEntry().state;
 
     next_state.sampling_number = last_entry.sampling_number + 1;
     next_state.entry_count = static_cast<s32>(active_fingers_count);
@@ -118,7 +116,7 @@ void TouchScreen::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         }
     }
 
-    shared_memory->touch_screen_lifo.WriteNextEntry(next_state);
+    shared_memory.touch_screen_lifo.WriteNextEntry(next_state);
 }
 
 void TouchScreen::SetTouchscreenDimensions(u32 width, u32 height) {

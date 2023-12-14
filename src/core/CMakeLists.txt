@@ -549,6 +549,11 @@ add_library(core STATIC
     hle/service/hid/xcd.cpp
     hle/service/hid/xcd.h
     hle/service/hid/errors.h
+    hle/service/hid/controllers/types/debug_pad_types.h
+    hle/service/hid/controllers/types/keyboard_types.h
+    hle/service/hid/controllers/types/mouse_types.h
+    hle/service/hid/controllers/types/npad_types.h
+    hle/service/hid/controllers/types/touch_types.h
     hle/service/hid/controllers/applet_resource.cpp
     hle/service/hid/controllers/applet_resource.h
     hle/service/hid/controllers/console_six_axis.cpp
@@ -569,14 +574,15 @@ add_library(core STATIC
     hle/service/hid/controllers/palma.h
     hle/service/hid/controllers/seven_six_axis.cpp
     hle/service/hid/controllers/seven_six_axis.h
+    hle/service/hid/controllers/shared_memory_format.h
+    hle/service/hid/controllers/shared_memory_holder.cpp
+    hle/service/hid/controllers/shared_memory_holder.h
     hle/service/hid/controllers/six_axis.cpp
     hle/service/hid/controllers/six_axis.h
     hle/service/hid/controllers/stubbed.cpp
     hle/service/hid/controllers/stubbed.h
     hle/service/hid/controllers/touchscreen.cpp
     hle/service/hid/controllers/touchscreen.h
-    hle/service/hid/controllers/xpad.cpp
-    hle/service/hid/controllers/xpad.h
     hle/service/hid/hidbus/hidbus_base.cpp
     hle/service/hid/hidbus/hidbus_base.h
     hle/service/hid/hidbus/ringcon.cpp

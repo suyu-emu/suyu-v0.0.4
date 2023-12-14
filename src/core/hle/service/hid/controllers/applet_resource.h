@@ -8,6 +8,7 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "core/hle/result.h"
+#include "core/hle/service/hid/controllers/shared_memory_holder.h"
 
 namespace Core {
 class System;
@@ -18,6 +19,8 @@ class KSharedMemory;
 }
 
 namespace Service::HID {
+struct SharedMemoryFormat;
+
 class AppletResource {
 public:
     explicit AppletResource(Core::System& system_);
@@ -32,6 +35,7 @@ public:
 
     u64 GetActiveAruid();
     Result GetSharedMemoryHandle(Kernel::KSharedMemory** out_handle, u64 aruid);
+    Result GetSharedMemoryFormat(SharedMemoryFormat** out_shared_memory_format, u64 aruid);
 
     u64 GetIndexFromAruid(u64 aruid);
 
@@ -80,12 +84,13 @@ private:
     struct AruidData {
         DataStatusFlag flag{};
         u64 aruid{};
-        Kernel::KSharedMemory* shared_memory_handle{nullptr};
+        SharedMemoryFormat* shared_memory_format{nullptr};
     };
 
     u64 active_aruid{};
     AruidRegisterList registration_list{};
     std::array<AruidData, AruidIndexMax> data{};
+    std::array<SharedMemoryHolder, AruidIndexMax> shared_memory_holder{};
     s32 ref_counter{};
 
     Core::System& system;

@@ -9,16 +9,13 @@
 #include "core/hid/hid_core.h"
 #include "core/hid/hid_types.h"
 #include "core/hle/service/hid/controllers/debug_pad.h"
+#include "core/hle/service/hid/controllers/shared_memory_format.h"
 
 namespace Service::HID {
-constexpr std::size_t SHARED_MEMORY_OFFSET = 0x00000;
 
-DebugPad::DebugPad(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
-    : ControllerBase{hid_core_} {
-    static_assert(SHARED_MEMORY_OFFSET + sizeof(DebugPadSharedMemory) < shared_memory_size,
-                  "DebugPadSharedMemory is bigger than the shared memory");
-    shared_memory = std::construct_at(
-        reinterpret_cast<DebugPadSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
+DebugPad::DebugPad(Core::HID::HIDCore& hid_core_,
+                   DebugPadSharedMemoryFormat& debug_pad_shared_memory)
+    : ControllerBase{hid_core_}, shared_memory{debug_pad_shared_memory} {
     controller = hid_core.GetEmulatedController(Core::HID::NpadIdType::Other);
 }
 
@@ -30,12 +27,12 @@ void DebugPad::OnRelease() {}
 
 void DebugPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     if (!IsControllerActivated()) {
-        shared_memory->debug_pad_lifo.buffer_count = 0;
-        shared_memory->debug_pad_lifo.buffer_tail = 0;
+        shared_memory.debug_pad_lifo.buffer_count = 0;
+        shared_memory.debug_pad_lifo.buffer_tail = 0;
         return;
     }
 
-    const auto& last_entry = shared_memory->debug_pad_lifo.ReadCurrentEntry().state;
+    const auto& last_entry = shared_memory.debug_pad_lifo.ReadCurrentEntry().state;
     next_state.sampling_number = last_entry.sampling_number + 1;
 
     if (Settings::values.debug_pad_enabled) {
@@ -49,7 +46,7 @@ void DebugPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         next_state.r_stick = stick_state.right;
     }
 
-    shared_memory->debug_pad_lifo.WriteNextEntry(next_state);
+    shared_memory.debug_pad_lifo.WriteNextEntry(next_state);
 }
 
 } // namespace Service::HID
