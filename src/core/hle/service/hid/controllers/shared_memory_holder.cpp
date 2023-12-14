@@ -10,6 +10,10 @@
 namespace Service::HID {
 SharedMemoryHolder::SharedMemoryHolder() {}
 
+SharedMemoryHolder::~SharedMemoryHolder() {
+    Finalize();
+}
+
 Result SharedMemoryHolder::Initialize(Core::System& system) {
     shared_memory = Kernel::KSharedMemory::Create(system.Kernel());
     const Result result = shared_memory->Initialize(

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "common/common_types.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 
 namespace Service::HID {

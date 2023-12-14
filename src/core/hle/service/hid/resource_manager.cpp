@@ -231,6 +231,7 @@ void ResourceManager::UpdateControllers(std::uintptr_t user_data,
                                         std::chrono::nanoseconds ns_late) {
     auto& core_timing = system.CoreTiming();
     debug_pad->OnUpdate(core_timing);
+    digitizer->OnUpdate(core_timing);
     unique_pad->OnUpdate(core_timing);
     gesture->OnUpdate(core_timing);
     touch_screen->OnUpdate(core_timing);

@@ -6,9 +6,12 @@
 #include <array>
 
 #include "common/common_types.h"
-#include "core/hid/emulated_console.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 #include "core/hle/service/hid/controllers/types/touch_types.h"
+
+namespace Core::HID {
+class EmulatedConsole;
+}
 
 namespace Service::HID {
 struct GestureSharedMemoryFormat;

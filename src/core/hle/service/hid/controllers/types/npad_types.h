@@ -3,14 +3,13 @@
 
 #pragma once
 
+#include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "common/vector_math.h"
 #include "core/hid/hid_types.h"
-#include "core/hle/service/hid/ring_lifo.h"
 
 namespace Service::HID {
-static constexpr std::size_t NPAD_COUNT = 10;
+static constexpr std::size_t NpadCount = 10;
 
 // This is nn::hid::NpadJoyHoldType
 enum class NpadJoyHoldType : u64 {
