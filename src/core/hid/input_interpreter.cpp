@@ -20,6 +20,9 @@ InputInterpreter::InputInterpreter(Core::System& system)
 InputInterpreter::~InputInterpreter() = default;
 
 void InputInterpreter::PollInput() {
+    if (npad == nullptr) {
+        return;
+    }
     const auto button_state = npad->GetAndResetPressState();
 
     previous_index = current_index;

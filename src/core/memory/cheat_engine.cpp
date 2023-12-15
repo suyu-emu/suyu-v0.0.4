@@ -62,7 +62,7 @@ u64 StandardVmCallbacks::HidKeysDown() {
     }
 
     const auto applet_resource = hid->GetResourceManager();
-    if (applet_resource == nullptr) {
+    if (applet_resource == nullptr || applet_resource->GetNpad() == nullptr) {
         LOG_WARNING(CheatEngine,
                     "Attempted to read input state, but applet resource is not initialized!");
         return 0;
