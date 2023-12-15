@@ -29,6 +29,8 @@ RasterizerAccelerated::RasterizerAccelerated(Memory& cpu_memory_) : map{}, cpu_m
 RasterizerAccelerated::~RasterizerAccelerated() = default;
 
 void RasterizerAccelerated::UpdatePagesCachedCount(VAddr addr, u64 size, bool cache) {
+    std::scoped_lock lk{map_lock};
+
     // Align sizes.
     addr = Common::AlignDown(addr, YUZU_PAGESIZE);
     size = Common::AlignUp(size, YUZU_PAGESIZE);
