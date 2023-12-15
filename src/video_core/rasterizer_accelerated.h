@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <mutex>
 #include <boost/icl/interval_map.hpp>
 
 #include "common/common_types.h"
@@ -30,6 +31,7 @@ private:
     using IntervalType = IntervalMap::interval_type;
 
     IntervalMap map;
+    std::mutex map_lock;
     Core::Memory::Memory& cpu_memory;
 };
 
