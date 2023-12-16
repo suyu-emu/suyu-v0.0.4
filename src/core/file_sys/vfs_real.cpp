@@ -268,7 +268,7 @@ void RealVfsFilesystem::RemoveReferenceFromListLocked(FileReference& reference) 
 RealVfsFile::RealVfsFile(RealVfsFilesystem& base_, std::unique_ptr<FileReference> reference_,
                          const std::string& path_, Mode perms_, std::optional<u64> size_)
     : base(base_), reference(std::move(reference_)), path(path_),
-      parent_path(FS::GetParentPath(path_)), path_components(FS::SplitPathComponents(path_)),
+      parent_path(FS::GetParentPath(path_)), path_components(FS::SplitPathComponentsCopy(path_)),
       size(size_), perms(perms_) {}
 
 RealVfsFile::~RealVfsFile() {
@@ -276,7 +276,7 @@ RealVfsFile::~RealVfsFile() {
 }
 
 std::string RealVfsFile::GetName() const {
-    return path_components.back();
+    return path_components.empty() ? "" : std::string(path_components.back());
 }
 
 std::size_t RealVfsFile::GetSize() const {
@@ -375,7 +375,7 @@ std::vector<VirtualDir> RealVfsDirectory::IterateEntries<RealVfsDirectory, VfsDi
 
 RealVfsDirectory::RealVfsDirectory(RealVfsFilesystem& base_, const std::string& path_, Mode perms_)
     : base(base_), path(FS::RemoveTrailingSlash(path_)), parent_path(FS::GetParentPath(path)),
-      path_components(FS::SplitPathComponents(path)), perms(perms_) {
+      path_components(FS::SplitPathComponentsCopy(path)), perms(perms_) {
     if (!FS::Exists(path) && True(perms & Mode::Write)) {
         void(FS::CreateDirs(path));
     }
@@ -464,7 +464,7 @@ bool RealVfsDirectory::IsReadable() const {
 }
 
 std::string RealVfsDirectory::GetName() const {
-    return path_components.back();
+    return path_components.empty() ? "" : std::string(path_components.back());
 }
 
 VirtualDir RealVfsDirectory::GetParentDirectory() const {
