@@ -3,17 +3,27 @@
 
 #pragma once
 
+#include <filesystem>
+#include <mutex>
+#include <string>
+#include <thread>
+
+#include "common/polyfill_thread.h"
 #include "common/uuid.h"
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
+#include "core/hle/service/set/appln_settings.h"
+#include "core/hle/service/set/device_settings.h"
+#include "core/hle/service/set/private_settings.h"
+#include "core/hle/service/set/system_settings.h"
 #include "core/hle/service/time/clock_types.h"
+#include "core/hle/service/time/time_zone_types.h"
 
 namespace Core {
 class System;
 }
 
 namespace Service::Set {
-enum class LanguageCode : u64;
 enum class GetFirmwareVersionType {
     Version1,
     Version2,
@@ -42,270 +52,38 @@ public:
     explicit SET_SYS(Core::System& system_);
     ~SET_SYS() override;
 
+    Result GetSettingsItemValue(std::vector<u8>& out_value, const std::string& category,
+                                const std::string& name);
+
+    Result GetExternalSteadyClockSourceId(Common::UUID& out_id);
+    Result SetExternalSteadyClockSourceId(Common::UUID id);
+    Result GetUserSystemClockContext(Service::Time::Clock::SystemClockContext& out_context);
+    Result SetUserSystemClockContext(Service::Time::Clock::SystemClockContext& context);
+    Result GetDeviceTimeZoneLocationName(Service::Time::TimeZone::LocationName& out_name);
+    Result SetDeviceTimeZoneLocationName(Service::Time::TimeZone::LocationName& name);
+    Result GetNetworkSystemClockContext(Service::Time::Clock::SystemClockContext& out_context);
+    Result SetNetworkSystemClockContext(Service::Time::Clock::SystemClockContext& context);
+    Result IsUserSystemClockAutomaticCorrectionEnabled(bool& out_enabled);
+    Result SetUserSystemClockAutomaticCorrectionEnabled(bool enabled);
+    Result SetExternalSteadyClockInternalOffset(s64 offset);
+    Result GetExternalSteadyClockInternalOffset(s64& out_offset);
+    Result GetDeviceTimeZoneLocationUpdatedTime(
+        Service::Time::Clock::SteadyClockTimePoint& out_time_point);
+    Result SetDeviceTimeZoneLocationUpdatedTime(
+        Service::Time::Clock::SteadyClockTimePoint& time_point);
+    Result GetUserSystemClockAutomaticCorrectionUpdatedTime(
+        Service::Time::Clock::SteadyClockTimePoint& out_time_point);
+    Result SetUserSystemClockAutomaticCorrectionUpdatedTime(
+        Service::Time::Clock::SteadyClockTimePoint time_point);
+
 private:
-    /// Indicates the current theme set by the system settings
-    enum class ColorSet : u32 {
-        BasicWhite = 0,
-        BasicBlack = 1,
-    };
-
-    /// Indicates the current console is a retail or kiosk unit
-    enum class QuestFlag : u8 {
-        Retail = 0,
-        Kiosk = 1,
-    };
-
-    /// This is nn::settings::system::TvResolution
-    enum class TvResolution : u32 {
-        Auto,
-        Resolution1080p,
-        Resolution720p,
-        Resolution480p,
-    };
-
-    /// This is nn::settings::system::HdmiContentType
-    enum class HdmiContentType : u32 {
-        None,
-        Graphics,
-        Cinema,
-        Photo,
-        Game,
-    };
-
-    /// This is nn::settings::system::RgbRange
-    enum class RgbRange : u32 {
-        Auto,
-        Full,
-        Limited,
-    };
-
-    /// This is nn::settings::system::CmuMode
-    enum class CmuMode : u32 {
-        None,
-        ColorInvert,
-        HighContrast,
-        GrayScale,
-    };
-
-    /// This is nn::settings::system::PrimaryAlbumStorage
-    enum class PrimaryAlbumStorage : u32 {
-        Nand,
-        SdCard,
-    };
-
-    /// This is nn::settings::system::NotificationVolume
-    enum class NotificationVolume : u32 {
-        Mute,
-        Low,
-        High,
-    };
-
-    /// This is nn::settings::system::ChineseTraditionalInputMethod
-    enum class ChineseTraditionalInputMethod : u32 {
-        Unknown0 = 0,
-        Unknown1 = 1,
-        Unknown2 = 2,
-    };
-
-    /// This is nn::settings::system::ErrorReportSharePermission
-    enum class ErrorReportSharePermission : u32 {
-        NotConfirmed,
-        Granted,
-        Denied,
-    };
-
-    /// This is nn::settings::system::FriendPresenceOverlayPermission
-    enum class FriendPresenceOverlayPermission : u8 {
-        NotConfirmed,
-        NoDisplay,
-        FavoriteFriends,
-        Friends,
-    };
-
-    /// This is nn::settings::system::HandheldSleepPlan
-    enum class HandheldSleepPlan : u32 {
-        Sleep1Min,
-        Sleep3Min,
-        Sleep5Min,
-        Sleep10Min,
-        Sleep30Min,
-        Never,
-    };
-
-    /// This is nn::settings::system::ConsoleSleepPlan
-    enum class ConsoleSleepPlan : u32 {
-        Sleep1Hour,
-        Sleep2Hour,
-        Sleep3Hour,
-        Sleep6Hour,
-        Sleep12Hour,
-        Never,
-    };
-
-    /// This is nn::settings::system::RegionCode
-    enum class RegionCode : u32 {
-        Japan,
-        Usa,
-        Europe,
-        Australia,
-        HongKongTaiwanKorea,
-        China,
-    };
-
-    /// This is nn::settings::system::EulaVersionClockType
-    enum class EulaVersionClockType : u32 {
-        NetworkSystemClock,
-        SteadyClock,
-    };
-
-    /// This is nn::settings::system::SleepFlag
-    struct SleepFlag {
-        union {
-            u32 raw{};
-
-            BitField<0, 1, u32> SleepsWhilePlayingMedia;
-            BitField<1, 1, u32> WakesAtPowerStateChange;
-        };
-    };
-    static_assert(sizeof(SleepFlag) == 4, "TvFlag is an invalid size");
-
-    /// This is nn::settings::system::TvFlag
-    struct TvFlag {
-        union {
-            u32 raw{};
-
-            BitField<0, 1, u32> Allows4k;
-            BitField<1, 1, u32> Allows3d;
-            BitField<2, 1, u32> AllowsCec;
-            BitField<3, 1, u32> PreventsScreenBurnIn;
-        };
-    };
-    static_assert(sizeof(TvFlag) == 4, "TvFlag is an invalid size");
-
-    /// This is nn::settings::system::InitialLaunchFlag
-    struct InitialLaunchFlag {
-        union {
-            u32 raw{};
-
-            BitField<0, 1, u32> InitialLaunchCompletionFlag;
-            BitField<8, 1, u32> InitialLaunchUserAdditionFlag;
-            BitField<16, 1, u32> InitialLaunchTimestampFlag;
-        };
-    };
-    static_assert(sizeof(InitialLaunchFlag) == 4, "InitialLaunchFlag is an invalid size");
-
-    /// This is nn::settings::system::NotificationFlag
-    struct NotificationFlag {
-        union {
-            u32 raw{};
-
-            BitField<0, 1, u32> RingtoneFlag;
-            BitField<1, 1, u32> DownloadCompletionFlag;
-            BitField<8, 1, u32> EnablesNews;
-            BitField<9, 1, u32> IncomingLampFlag;
-        };
-    };
-    static_assert(sizeof(NotificationFlag) == 4, "NotificationFlag is an invalid size");
-
-    /// This is nn::settings::system::AccountNotificationFlag
-    struct AccountNotificationFlag {
-        union {
-            u32 raw{};
-
-            BitField<0, 1, u32> FriendOnlineFlag;
-            BitField<1, 1, u32> FriendRequestFlag;
-            BitField<8, 1, u32> CoralInvitationFlag;
-        };
-    };
-    static_assert(sizeof(AccountNotificationFlag) == 4,
-                  "AccountNotificationFlag is an invalid size");
-
-    /// This is nn::settings::system::TvSettings
-    struct TvSettings {
-        TvFlag flags;
-        TvResolution tv_resolution;
-        HdmiContentType hdmi_content_type;
-        RgbRange rgb_range;
-        CmuMode cmu_mode;
-        u32 tv_underscan;
-        f32 tv_gama;
-        f32 constrast_ratio;
-    };
-    static_assert(sizeof(TvSettings) == 0x20, "TvSettings is an invalid size");
-
-    /// This is nn::settings::system::NotificationTime
-    struct NotificationTime {
-        u32 hour;
-        u32 minute;
-    };
-    static_assert(sizeof(NotificationTime) == 0x8, "NotificationTime is an invalid size");
-
-    /// This is nn::settings::system::NotificationSettings
-    struct NotificationSettings {
-        NotificationFlag flags;
-        NotificationVolume volume;
-        NotificationTime start_time;
-        NotificationTime stop_time;
-    };
-    static_assert(sizeof(NotificationSettings) == 0x18, "NotificationSettings is an invalid size");
-
-    /// This is nn::settings::system::AccountSettings
-    struct AccountSettings {
-        u32 flags;
-    };
-    static_assert(sizeof(AccountSettings) == 0x4, "AccountSettings is an invalid size");
-
-    /// This is nn::settings::system::AccountNotificationSettings
-    struct AccountNotificationSettings {
-        Common::UUID uid;
-        AccountNotificationFlag flags;
-        FriendPresenceOverlayPermission friend_presence_permission;
-        FriendPresenceOverlayPermission friend_invitation_permission;
-        INSERT_PADDING_BYTES(0x2);
-    };
-    static_assert(sizeof(AccountNotificationSettings) == 0x18,
-                  "AccountNotificationSettings is an invalid size");
-
-    /// This is nn::settings::system::InitialLaunchSettings
-    struct SleepSettings {
-        SleepFlag flags;
-        HandheldSleepPlan handheld_sleep_plan;
-        ConsoleSleepPlan console_sleep_plan;
-    };
-    static_assert(sizeof(SleepSettings) == 0xc, "SleepSettings is incorrect size");
-
-    /// This is nn::settings::system::InitialLaunchSettings
-    struct InitialLaunchSettings {
-        InitialLaunchFlag flags;
-        INSERT_PADDING_BYTES(0x4);
-        Time::Clock::SteadyClockTimePoint timestamp;
-    };
-    static_assert(sizeof(InitialLaunchSettings) == 0x20, "InitialLaunchSettings is incorrect size");
-
-    /// This is nn::settings::system::InitialLaunchSettings
-    struct EulaVersion {
-        u32 version;
-        RegionCode region_code;
-        EulaVersionClockType clock_type;
-        INSERT_PADDING_BYTES(0x4);
-        s64 posix_time;
-        Time::Clock::SteadyClockTimePoint timestamp;
-    };
-    static_assert(sizeof(EulaVersion) == 0x30, "EulaVersion is incorrect size");
-
-    /// This is nn::settings::system::HomeMenuScheme
-    struct HomeMenuScheme {
-        u32 main;
-        u32 back;
-        u32 sub;
-        u32 bezel;
-        u32 extra;
-    };
-    static_assert(sizeof(HomeMenuScheme) == 0x14, "HomeMenuScheme is incorrect size");
-
     void SetLanguageCode(HLERequestContext& ctx);
     void GetFirmwareVersion(HLERequestContext& ctx);
     void GetFirmwareVersion2(HLERequestContext& ctx);
+    void GetExternalSteadyClockSourceId(HLERequestContext& ctx);
+    void SetExternalSteadyClockSourceId(HLERequestContext& ctx);
+    void GetUserSystemClockContext(HLERequestContext& ctx);
+    void SetUserSystemClockContext(HLERequestContext& ctx);
     void GetAccountSettings(HLERequestContext& ctx);
     void SetAccountSettings(HLERequestContext& ctx);
     void GetEulaVersions(HLERequestContext& ctx);
@@ -321,7 +99,13 @@ private:
     void GetTvSettings(HLERequestContext& ctx);
     void SetTvSettings(HLERequestContext& ctx);
     void GetQuestFlag(HLERequestContext& ctx);
+    void GetDeviceTimeZoneLocationName(HLERequestContext& ctx);
+    void SetDeviceTimeZoneLocationName(HLERequestContext& ctx);
     void SetRegionCode(HLERequestContext& ctx);
+    void GetNetworkSystemClockContext(HLERequestContext& ctx);
+    void SetNetworkSystemClockContext(HLERequestContext& ctx);
+    void IsUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx);
+    void SetUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx);
     void GetPrimaryAlbumStorage(HLERequestContext& ctx);
     void GetSleepSettings(HLERequestContext& ctx);
     void SetSleepSettings(HLERequestContext& ctx);
@@ -333,59 +117,36 @@ private:
     void GetMiiAuthorId(HLERequestContext& ctx);
     void GetAutoUpdateEnableFlag(HLERequestContext& ctx);
     void GetBatteryPercentageFlag(HLERequestContext& ctx);
+    void SetExternalSteadyClockInternalOffset(HLERequestContext& ctx);
+    void GetExternalSteadyClockInternalOffset(HLERequestContext& ctx);
     void GetErrorReportSharePermission(HLERequestContext& ctx);
     void GetAppletLaunchFlags(HLERequestContext& ctx);
     void SetAppletLaunchFlags(HLERequestContext& ctx);
     void GetKeyboardLayout(HLERequestContext& ctx);
+    void GetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx);
+    void SetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx);
+    void GetUserSystemClockAutomaticCorrectionUpdatedTime(HLERequestContext& ctx);
+    void SetUserSystemClockAutomaticCorrectionUpdatedTime(HLERequestContext& ctx);
     void GetChineseTraditionalInputMethod(HLERequestContext& ctx);
-    void GetFieldTestingFlag(HLERequestContext& ctx);
     void GetHomeMenuScheme(HLERequestContext& ctx);
     void GetHomeMenuSchemeModel(HLERequestContext& ctx);
+    void GetFieldTestingFlag(HLERequestContext& ctx);
 
-    AccountSettings account_settings{
-        .flags = {},
-    };
+    bool LoadSettingsFile(std::filesystem::path& path, auto&& default_func);
+    bool StoreSettingsFile(std::filesystem::path& path, auto& settings);
+    void SetupSettings();
+    void StoreSettings();
+    void StoreSettingsThreadFunc(std::stop_token stop_token);
+    void SetSaveNeeded();
 
-    ColorSet color_set = ColorSet::BasicWhite;
-
-    NotificationSettings notification_settings{
-        .flags = {0x300},
-        .volume = NotificationVolume::High,
-        .start_time = {.hour = 9, .minute = 0},
-        .stop_time = {.hour = 21, .minute = 0},
-    };
-
-    std::vector<AccountNotificationSettings> account_notifications{};
-
-    TvSettings tv_settings{
-        .flags = {0xc},
-        .tv_resolution = TvResolution::Auto,
-        .hdmi_content_type = HdmiContentType::Game,
-        .rgb_range = RgbRange::Auto,
-        .cmu_mode = CmuMode::None,
-        .tv_underscan = {},
-        .tv_gama = 1.0f,
-        .constrast_ratio = 0.5f,
-    };
-
-    InitialLaunchSettings launch_settings{
-        .flags = {0x10001},
-        .timestamp = {},
-    };
-
-    SleepSettings sleep_settings{
-        .flags = {0x3},
-        .handheld_sleep_plan = HandheldSleepPlan::Sleep10Min,
-        .console_sleep_plan = ConsoleSleepPlan::Sleep1Hour,
-    };
-
-    u32 applet_launch_flag{};
-
-    std::vector<EulaVersion> eula_versions{};
-
-    RegionCode region_code;
-
-    LanguageCode language_code_setting;
+    Core::System& m_system;
+    SystemSettings m_system_settings{};
+    PrivateSettings m_private_settings{};
+    DeviceSettings m_device_settings{};
+    ApplnSettings m_appln_settings{};
+    std::jthread m_save_thread;
+    std::mutex m_save_needed_mutex;
+    bool m_save_needed{false};
 };
 
 } // namespace Service::Set

@@ -123,6 +123,12 @@ namespace Common {
     return u32(a) | u32(b) << 8 | u32(c) << 16 | u32(d) << 24;
 }
 
+[[nodiscard]] constexpr u64 MakeMagic(char a, char b, char c, char d, char e, char f, char g,
+                                      char h) {
+    return u64(a) << 0 | u64(b) << 8 | u64(c) << 16 | u64(d) << 24 | u64(e) << 32 | u64(f) << 40 |
+           u64(g) << 48 | u64(h) << 56;
+}
+
 // std::size() does not support zero-size C arrays. We're fixing that.
 template <class C>
 constexpr auto Size(const C& c) -> decltype(c.size()) {
