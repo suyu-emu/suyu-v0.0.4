@@ -51,11 +51,24 @@ Display::~Display() {
 }
 
 Layer& Display::GetLayer(std::size_t index) {
-    return *layers.at(index);
+    size_t i = 0;
+    for (auto& layer : layers) {
+        if (!layer->IsOpen()) {
+            continue;
+        }
+
+        if (i == index) {
+            return *layer;
+        }
+
+        i++;
+    }
+
+    UNREACHABLE();
 }
 
-const Layer& Display::GetLayer(std::size_t index) const {
-    return *layers.at(index);
+size_t Display::GetNumLayers() const {
+    return std::ranges::count_if(layers, [](auto& l) { return l->IsOpen(); });
 }
 
 Result Display::GetVSyncEvent(Kernel::KReadableEvent** out_vsync_event) {
@@ -92,7 +105,11 @@ void Display::CreateLayer(u64 layer_id, u32 binder_id,
     hos_binder_driver_server.RegisterProducer(std::move(producer));
 }
 
-void Display::CloseLayer(u64 layer_id) {
+void Display::DestroyLayer(u64 layer_id) {
+    if (auto* layer = this->FindLayer(layer_id); layer != nullptr) {
+        layer->GetConsumer().Abandon();
+    }
+
     std::erase_if(layers,
                   [layer_id](const auto& layer) { return layer->GetLayerId() == layer_id; });
 }
