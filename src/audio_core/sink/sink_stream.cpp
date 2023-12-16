@@ -42,11 +42,9 @@ void SinkStream::AppendBuffer(SinkBuffer& buffer, std::span<s16> samples) {
         // We're given 6 channels, but our device only outputs 2, so downmix.
         // Front = 1.0
         // Center = 0.596
-        // Back = 0.707
         // LFE = 0.354
-        // 1.0 + 0.596 + 0.707 + 0.354 = 2.657, 1/2.657 = 0.37636f downscale coefficient
-        static constexpr std::array<f32, 4> down_mix_coeff{0.37636f, 0.22431056f, 0.13323144f,
-                                                           0.26608652f};
+        // Back = 0.707
+        static constexpr std::array<f32, 4> down_mix_coeff{1.0, 0.596f, 0.354f, 0.707f};
 
         for (u32 read_index = 0, write_index = 0; read_index < samples.size();
              read_index += system_channels, write_index += device_channels) {
