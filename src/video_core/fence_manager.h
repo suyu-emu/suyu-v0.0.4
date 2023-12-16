@@ -270,7 +270,7 @@ private:
 
     std::jthread fence_thread;
 
-    DelayedDestructionRing<TFence, 6> delayed_destruction_ring;
+    DelayedDestructionRing<TFence, 8> delayed_destruction_ring;
 };
 
 } // namespace VideoCommon
