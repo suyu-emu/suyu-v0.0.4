@@ -204,8 +204,9 @@ Result FbShareBufferManager::Initialize(u64* out_buffer_id, u64* out_layer_id, u
     // Record the display id.
     m_display_id = display_id;
 
-    // Create a layer for the display.
+    // Create and open a layer for the display.
     m_layer_id = m_flinger.CreateLayer(m_display_id).value();
+    m_flinger.OpenLayer(m_layer_id);
 
     // Set up the buffer.
     m_buffer_id = m_next_buffer_id++;

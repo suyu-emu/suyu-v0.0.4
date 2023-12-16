@@ -71,12 +71,25 @@ public:
         return core;
     }
 
+    bool IsOpen() const {
+        return open;
+    }
+
+    void Close() {
+        open = false;
+    }
+
+    void Open() {
+        open = true;
+    }
+
 private:
     const u64 layer_id;
     const u32 binder_id;
     android::BufferQueueCore& core;
     android::BufferQueueProducer& binder;
     std::shared_ptr<android::BufferItemConsumer> consumer;
+    bool open;
 };
 
 } // namespace Service::VI

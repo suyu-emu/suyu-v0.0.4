@@ -176,17 +176,37 @@ void Nvnflinger::CreateLayerAtId(VI::Display& display, u64 layer_id) {
     display.CreateLayer(layer_id, buffer_id, nvdrv->container);
 }
 
+void Nvnflinger::OpenLayer(u64 layer_id) {
+    const auto lock_guard = Lock();
+
+    for (auto& display : displays) {
+        if (auto* layer = display.FindLayer(layer_id); layer) {
+            layer->Open();
+        }
+    }
+}
+
 void Nvnflinger::CloseLayer(u64 layer_id) {
     const auto lock_guard = Lock();
 
     for (auto& display : displays) {
-        display.CloseLayer(layer_id);
+        if (auto* layer = display.FindLayer(layer_id); layer) {
+            layer->Close();
+        }
+    }
+}
+
+void Nvnflinger::DestroyLayer(u64 layer_id) {
+    const auto lock_guard = Lock();
+
+    for (auto& display : displays) {
+        display.DestroyLayer(layer_id);
     }
 }
 
 std::optional<u32> Nvnflinger::FindBufferQueueId(u64 display_id, u64 layer_id) {
     const auto lock_guard = Lock();
-    const auto* const layer = FindOrCreateLayer(display_id, layer_id);
+    const auto* const layer = FindLayer(display_id, layer_id);
 
     if (layer == nullptr) {
         return std::nullopt;
@@ -238,24 +258,6 @@ VI::Layer* Nvnflinger::FindLayer(u64 display_id, u64 layer_id) {
     }
 
     return display->FindLayer(layer_id);
-}
-
-VI::Layer* Nvnflinger::FindOrCreateLayer(u64 display_id, u64 layer_id) {
-    auto* const display = FindDisplay(display_id);
-
-    if (display == nullptr) {
-        return nullptr;
-    }
-
-    auto* layer = display->FindLayer(layer_id);
-
-    if (layer == nullptr) {
-        LOG_DEBUG(Service_Nvnflinger, "Layer at id {} not found. Trying to create it.", layer_id);
-        CreateLayerAtId(*display, layer_id);
-        return display->FindLayer(layer_id);
-    }
-
-    return layer;
 }
 
 void Nvnflinger::Compose() {
