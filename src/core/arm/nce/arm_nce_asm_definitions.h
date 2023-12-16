@@ -10,7 +10,8 @@
 
 #define ReturnToRunCodeByExceptionLevelChangeSignal SIGUSR2
 #define BreakFromRunCodeSignal SIGURG
-#define GuestFaultSignal SIGSEGV
+#define GuestAccessFaultSignal SIGSEGV
+#define GuestAlignmentFaultSignal SIGBUS
 
 #define GuestContextSp 0xF8
 #define GuestContextHostContext 0x320

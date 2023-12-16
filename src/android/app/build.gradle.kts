@@ -174,7 +174,8 @@ android {
                     "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
                     "-DYUZU_USE_BUNDLED_VCPKG=ON",
                     "-DYUZU_USE_BUNDLED_FFMPEG=ON",
-                    "-DYUZU_ENABLE_LTO=ON"
+                    "-DYUZU_ENABLE_LTO=ON",
+                    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
                 )
 
                 abiFilters("arm64-v8a", "x86_64")

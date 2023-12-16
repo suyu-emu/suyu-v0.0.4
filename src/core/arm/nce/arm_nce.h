@@ -61,7 +61,8 @@ private:
     static void ReturnToRunCodeByExceptionLevelChangeSignalHandler(int sig, void* info,
                                                                    void* raw_context);
     static void BreakFromRunCodeSignalHandler(int sig, void* info, void* raw_context);
-    static void GuestFaultSignalHandler(int sig, void* info, void* raw_context);
+    static void GuestAlignmentFaultSignalHandler(int sig, void* info, void* raw_context);
+    static void GuestAccessFaultSignalHandler(int sig, void* info, void* raw_context);
 
     static void LockThreadParameters(void* tpidr);
     static void UnlockThreadParameters(void* tpidr);
@@ -70,8 +71,11 @@ private:
     // C++ implementation functions for assembly definitions.
     static void* RestoreGuestContext(void* raw_context);
     static void SaveGuestContext(GuestContext* ctx, void* raw_context);
-    static bool HandleGuestFault(GuestContext* ctx, void* info, void* raw_context);
-    static void HandleHostFault(int sig, void* info, void* raw_context);
+    static bool HandleFailedGuestFault(GuestContext* ctx, void* info, void* raw_context);
+    static bool HandleGuestAlignmentFault(GuestContext* ctx, void* info, void* raw_context);
+    static bool HandleGuestAccessFault(GuestContext* ctx, void* info, void* raw_context);
+    static void HandleHostAlignmentFault(int sig, void* info, void* raw_context);
+    static void HandleHostAccessFault(int sig, void* info, void* raw_context);
 
 public:
     Core::System& m_system;
@@ -83,6 +87,9 @@ public:
     // Core context.
     GuestContext m_guest_ctx{};
     Kernel::KThread* m_running_thread{};
+
+    // Stack for signal processing.
+    std::unique_ptr<u8[]> m_stack{};
 };
 
 } // namespace Core
