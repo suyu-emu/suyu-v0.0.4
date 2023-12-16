@@ -31,7 +31,7 @@ struct DescriptorUpdateEntry {
 class UpdateDescriptorQueue final {
     // This should be plenty for the vast majority of cases. Most desktop platforms only
     // provide up to 3 swapchain images.
-    static constexpr size_t FRAMES_IN_FLIGHT = 7;
+    static constexpr size_t FRAMES_IN_FLIGHT = 8;
     static constexpr size_t FRAME_PAYLOAD_SIZE = 0x20000;
     static constexpr size_t PAYLOAD_SIZE = FRAME_PAYLOAD_SIZE * FRAMES_IN_FLIGHT;
 

@@ -293,10 +293,10 @@ void PresentManager::RecreateSwapchain(Frame* frame) {
 }
 
 void PresentManager::SetImageCount() {
-    // We cannot have more than 5 images in flight at any given time.
-    // FRAMES_IN_FLIGHT is 7, and the cache TICKS_TO_DESTROY is 6.
+    // We cannot have more than 7 images in flight at any given time.
+    // FRAMES_IN_FLIGHT is 8, and the cache TICKS_TO_DESTROY is 8.
     // Mali drivers will give us 6.
-    image_count = std::min<size_t>(swapchain.GetImageCount(), 5);
+    image_count = std::min<size_t>(swapchain.GetImageCount(), 7);
 }
 
 void PresentManager::CopyToSwapchain(Frame* frame) {
