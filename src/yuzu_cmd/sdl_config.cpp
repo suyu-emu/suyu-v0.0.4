@@ -5,6 +5,7 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
+#include "common/logging/log.h"
 #include "input_common/main.h"
 #include "sdl_config.h"
 
@@ -64,7 +65,7 @@ void SdlConfig::ReloadAllValues() {
 }
 
 void SdlConfig::SaveAllValues() {
-    Save();
+    SaveValues();
     SaveSdlValues();
 }
 
@@ -177,6 +178,7 @@ void SdlConfig::ReadHidbusValues() {
 }
 
 void SdlConfig::SaveSdlValues() {
+    LOG_DEBUG(Config, "Saving SDL configuration values");
     SaveSdlControlValues();
 
     WriteToIni();

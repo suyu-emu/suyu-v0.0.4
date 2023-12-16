@@ -21,7 +21,7 @@ void AndroidConfig::ReloadAllValues() {
 }
 
 void AndroidConfig::SaveAllValues() {
-    Save();
+    SaveValues();
     SaveAndroidValues();
 }
 

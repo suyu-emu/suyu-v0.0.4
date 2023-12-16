@@ -1650,9 +1650,21 @@ void ConfigureInputPlayer::SaveProfile() {
 void ConfigureInputPlayer::UpdateInputProfiles() {
     ui->comboProfiles->clear();
 
-    for (const auto& profile_name : profiles->GetInputProfileNames()) {
+    // Set current profile as empty by default
+    int profile_index = -1;
+
+    // Add every available profile and search the player profile to set it as current one
+    auto& current_profile = Settings::values.players.GetValue()[player_index].profile_name;
+    std::vector<std::string> profile_names = profiles->GetInputProfileNames();
+    std::string profile_name;
+    for (size_t i = 0; i < profile_names.size(); i++) {
+        profile_name = profile_names[i];
         ui->comboProfiles->addItem(QString::fromStdString(profile_name));
+        if (current_profile == profile_name) {
+            profile_index = (int)i;
+        }
     }
 
-    ui->comboProfiles->setCurrentIndex(-1);
+    LOG_DEBUG(Frontend, "Setting the current input profile to index {}", profile_index);
+    ui->comboProfiles->setCurrentIndex(profile_index);
 }
