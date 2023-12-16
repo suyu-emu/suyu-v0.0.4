@@ -240,7 +240,7 @@ private:
         return ret;
     }
 
-    Result ReadImpl(std::vector<u8>* out_data, size_t size) {
+    Result ReadImpl(std::vector<u8>* out_data) {
         ASSERT_OR_EXECUTE(did_handshake, { return ResultInternalError; });
         size_t actual_size{};
         Result res = backend->Read(&actual_size, *out_data);
@@ -326,8 +326,8 @@ private:
     }
 
     void Read(HLERequestContext& ctx) {
-        std::vector<u8> output_bytes;
-        const Result res = ReadImpl(&output_bytes, ctx.GetWriteBufferSize());
+        std::vector<u8> output_bytes(ctx.GetWriteBufferSize());
+        const Result res = ReadImpl(&output_bytes);
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(res);
         if (res == ResultSuccess) {
