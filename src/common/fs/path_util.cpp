@@ -354,18 +354,36 @@ std::string_view RemoveTrailingSlash(std::string_view path) {
     return path;
 }
 
-std::vector<std::string> SplitPathComponents(std::string_view filename) {
-    std::string copy(filename);
-    std::replace(copy.begin(), copy.end(), '\\', '/');
-    std::vector<std::string> out;
-
-    std::stringstream stream(copy);
-    std::string item;
-    while (std::getline(stream, item, '/')) {
-        out.push_back(std::move(item));
+template <typename F>
+static void ForEachPathComponent(std::string_view filename, F&& cb) {
+    const char* component_begin = filename.data();
+    const char* const end = component_begin + filename.size();
+    for (const char* it = component_begin; it != end; ++it) {
+        const char c = *it;
+        if (c == '\\' || c == '/') {
+            if (component_begin != it) {
+                cb(std::string_view{component_begin, it});
+            }
+            component_begin = it + 1;
+        }
     }
+    if (component_begin != end) {
+        cb(std::string_view{component_begin, end});
+    }
+}
 
-    return out;
+std::vector<std::string_view> SplitPathComponents(std::string_view filename) {
+    std::vector<std::string_view> components;
+    ForEachPathComponent(filename, [&](auto component) { components.emplace_back(component); });
+
+    return components;
+}
+
+std::vector<std::string> SplitPathComponentsCopy(std::string_view filename) {
+    std::vector<std::string> components;
+    ForEachPathComponent(filename, [&](auto component) { components.emplace_back(component); });
+
+    return components;
 }
 
 std::string SanitizePath(std::string_view path_, DirectorySeparator directory_separator) {
