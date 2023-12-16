@@ -62,6 +62,8 @@ private:
 
     void RecreateSwapchain(Frame* frame);
 
+    void SetImageCount();
+
 private:
     const vk::Instance& instance;
     Core::Frontend::EmuWindow& render_window;
