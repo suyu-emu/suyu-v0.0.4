@@ -135,7 +135,6 @@ struct KernelCore::Impl {
                 obj = nullptr;
             }
         };
-        CleanupObject(hid_shared_mem);
         CleanupObject(font_shared_mem);
         CleanupObject(irs_shared_mem);
         CleanupObject(time_shared_mem);
@@ -744,21 +743,15 @@ struct KernelCore::Impl {
     void InitializeHackSharedMemory(KernelCore& kernel) {
         // Setup memory regions for emulated processes
         // TODO(bunnei): These should not be hardcoded regions initialized within the kernel
-        constexpr std::size_t hid_size{0x40000};
         constexpr std::size_t font_size{0x1100000};
         constexpr std::size_t irs_size{0x8000};
         constexpr std::size_t time_size{0x1000};
         constexpr std::size_t hidbus_size{0x1000};
 
-        hid_shared_mem = KSharedMemory::Create(system.Kernel());
         font_shared_mem = KSharedMemory::Create(system.Kernel());
         irs_shared_mem = KSharedMemory::Create(system.Kernel());
         time_shared_mem = KSharedMemory::Create(system.Kernel());
         hidbus_shared_mem = KSharedMemory::Create(system.Kernel());
-
-        hid_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
-                                   Svc::MemoryPermission::Read, hid_size);
-        KSharedMemory::Register(kernel, hid_shared_mem);
 
         font_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
                                     Svc::MemoryPermission::Read, font_size);
@@ -1188,14 +1181,6 @@ KSystemResource& KernelCore::GetSystemSystemResource() {
 
 const KSystemResource& KernelCore::GetSystemSystemResource() const {
     return *impl->sys_system_resource;
-}
-
-Kernel::KSharedMemory& KernelCore::GetHidSharedMem() {
-    return *impl->hid_shared_mem;
-}
-
-const Kernel::KSharedMemory& KernelCore::GetHidSharedMem() const {
-    return *impl->hid_shared_mem;
 }
 
 Kernel::KSharedMemory& KernelCore::GetFontSharedMem() {

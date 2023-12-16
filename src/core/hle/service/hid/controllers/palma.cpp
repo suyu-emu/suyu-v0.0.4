@@ -12,8 +12,7 @@
 
 namespace Service::HID {
 
-Palma::Palma(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_,
-             KernelHelpers::ServiceContext& service_context_)
+Palma::Palma(Core::HID::HIDCore& hid_core_, KernelHelpers::ServiceContext& service_context_)
     : ControllerBase{hid_core_}, service_context{service_context_} {
     controller = hid_core.GetEmulatedController(Core::HID::NpadIdType::Other);
     operation_complete_event = service_context.CreateEvent("hid:PalmaOperationCompleteEvent");

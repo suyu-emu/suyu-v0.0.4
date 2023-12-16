@@ -239,12 +239,6 @@ public:
     /// Gets the system resource manager.
     const KSystemResource& GetSystemSystemResource() const;
 
-    /// Gets the shared memory object for HID services.
-    Kernel::KSharedMemory& GetHidSharedMem();
-
-    /// Gets the shared memory object for HID services.
-    const Kernel::KSharedMemory& GetHidSharedMem() const;
-
     /// Gets the shared memory object for font services.
     Kernel::KSharedMemory& GetFontSharedMem();
 

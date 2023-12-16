@@ -1,17 +1,15 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "common/logging/log.h"
 #include "common/math_util.h"
 #include "common/settings.h"
-#include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
+#include "core/hid/emulated_console.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/service/hid/controllers/gesture.h"
+#include "core/hle/service/hid/controllers/shared_memory_format.h"
 
 namespace Service::HID {
-constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3BA00;
-
 // HW is around 700, value is set to 400 to make it easier to trigger with mouse
 constexpr f32 swipe_threshold = 400.0f; // Threshold in pixels/s
 constexpr f32 angle_threshold = 0.015f; // Threshold in radians
@@ -23,19 +21,15 @@ constexpr f32 Square(s32 num) {
     return static_cast<f32>(num * num);
 }
 
-Gesture::Gesture(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_)
-    : ControllerBase(hid_core_) {
-    static_assert(SHARED_MEMORY_OFFSET + sizeof(GestureSharedMemory) < shared_memory_size,
-                  "GestureSharedMemory is bigger than the shared memory");
-    shared_memory = std::construct_at(
-        reinterpret_cast<GestureSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
+Gesture::Gesture(Core::HID::HIDCore& hid_core_, GestureSharedMemoryFormat& gesture_shared_memory)
+    : ControllerBase(hid_core_), shared_memory{gesture_shared_memory} {
     console = hid_core.GetEmulatedConsole();
 }
 Gesture::~Gesture() = default;
 
 void Gesture::OnInit() {
-    shared_memory->gesture_lifo.buffer_count = 0;
-    shared_memory->gesture_lifo.buffer_tail = 0;
+    shared_memory.gesture_lifo.buffer_count = 0;
+    shared_memory.gesture_lifo.buffer_tail = 0;
     force_update = true;
 }
 
@@ -43,8 +37,8 @@ void Gesture::OnRelease() {}
 
 void Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     if (!IsControllerActivated()) {
-        shared_memory->gesture_lifo.buffer_count = 0;
-        shared_memory->gesture_lifo.buffer_tail = 0;
+        shared_memory.gesture_lifo.buffer_count = 0;
+        shared_memory.gesture_lifo.buffer_tail = 0;
         return;
     }
 
@@ -52,7 +46,7 @@ void Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
 
     GestureProperties gesture = GetGestureProperties();
     f32 time_difference =
-        static_cast<f32>(shared_memory->gesture_lifo.timestamp - last_update_timestamp) /
+        static_cast<f32>(shared_memory.gesture_lifo.timestamp - last_update_timestamp) /
         (1000 * 1000 * 1000);
 
     // Only update if necessary
@@ -60,7 +54,7 @@ void Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         return;
     }
 
-    last_update_timestamp = shared_memory->gesture_lifo.timestamp;
+    last_update_timestamp = shared_memory.gesture_lifo.timestamp;
     UpdateGestureSharedMemory(gesture, time_difference);
 }
 
@@ -103,7 +97,7 @@ void Gesture::UpdateGestureSharedMemory(GestureProperties& gesture, f32 time_dif
     GestureType type = GestureType::Idle;
     GestureAttribute attributes{};
 
-    const auto& last_entry = shared_memory->gesture_lifo.ReadCurrentEntry().state;
+    const auto& last_entry = shared_memory.gesture_lifo.ReadCurrentEntry().state;
 
     // Reset next state to default
     next_state.sampling_number = last_entry.sampling_number + 1;
@@ -133,7 +127,7 @@ void Gesture::UpdateGestureSharedMemory(GestureProperties& gesture, f32 time_dif
     next_state.points = gesture.points;
     last_gesture = gesture;
 
-    shared_memory->gesture_lifo.WriteNextEntry(next_state);
+    shared_memory.gesture_lifo.WriteNextEntry(next_state);
 }
 
 void Gesture::NewGesture(GestureProperties& gesture, GestureType& type,
@@ -305,11 +299,11 @@ void Gesture::SetSwipeEvent(GestureProperties& gesture, GestureProperties& last_
     next_state.direction = GestureDirection::Up;
 }
 
-const Gesture::GestureState& Gesture::GetLastGestureEntry() const {
-    return shared_memory->gesture_lifo.ReadCurrentEntry().state;
+const GestureState& Gesture::GetLastGestureEntry() const {
+    return shared_memory.gesture_lifo.ReadCurrentEntry().state;
 }
 
-Gesture::GestureProperties Gesture::GetGestureProperties() {
+GestureProperties Gesture::GetGestureProperties() {
     GestureProperties gesture;
     std::array<Core::HID::TouchFinger, MAX_POINTS> active_fingers;
     const auto end_iter = std::copy_if(fingers.begin(), fingers.end(), active_fingers.begin(),
