@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/logging/log.h"
 #include "input_common/main.h"
 #include "qt_config.h"
 #include "uisettings.h"
@@ -65,7 +66,7 @@ void QtConfig::ReloadAllValues() {
 }
 
 void QtConfig::SaveAllValues() {
-    Save();
+    SaveValues();
     SaveQtValues();
 }
 
@@ -327,7 +328,10 @@ void QtConfig::ReadMultiplayerValues() {
 
 void QtConfig::SaveQtValues() {
     if (global) {
+        LOG_DEBUG(Config, "Saving global Qt configuration values");
         SaveUIValues();
+    } else {
+        LOG_DEBUG(Config, "Saving Qt configuration values");
     }
     SaveQtControlValues();
 
@@ -545,6 +549,7 @@ void QtConfig::ReadQtControlPlayerValues(std::size_t player_index) {
 void QtConfig::SaveQtControlPlayerValues(std::size_t player_index) {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Controls));
 
+    LOG_DEBUG(Config, "Saving players control configuration values");
     SavePlayerValues(player_index);
     SaveQtPlayerValues(player_index);
 
