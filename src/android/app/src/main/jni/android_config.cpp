@@ -36,6 +36,7 @@ void AndroidConfig::ReadAndroidValues() {
         ReadAndroidUIValues();
         ReadUIValues();
     }
+    ReadDriverValues();
 }
 
 void AndroidConfig::ReadAndroidUIValues() {
@@ -57,6 +58,7 @@ void AndroidConfig::ReadUIValues() {
 void AndroidConfig::ReadPathValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Paths));
 
+    AndroidSettings::values.game_dirs.clear();
     const int gamedirs_size = BeginArray(std::string("gamedirs"));
     for (int i = 0; i < gamedirs_size; ++i) {
         SetArrayIndex(i);
@@ -71,11 +73,20 @@ void AndroidConfig::ReadPathValues() {
     EndGroup();
 }
 
+void AndroidConfig::ReadDriverValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::GpuDriver));
+
+    ReadCategory(Settings::Category::GpuDriver);
+
+    EndGroup();
+}
+
 void AndroidConfig::SaveAndroidValues() {
     if (global) {
         SaveAndroidUIValues();
         SaveUIValues();
     }
+    SaveDriverValues();
 
     WriteToIni();
 }
@@ -107,6 +118,14 @@ void AndroidConfig::SavePathValues() {
         WriteSetting(std::string("deep_scan"), game_dir.deep_scan, std::make_optional(false));
     }
     EndArray();
+
+    EndGroup();
+}
+
+void AndroidConfig::SaveDriverValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::GpuDriver));
+
+    WriteCategory(Settings::Category::GpuDriver);
 
     EndGroup();
 }

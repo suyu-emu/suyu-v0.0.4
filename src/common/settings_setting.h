@@ -81,6 +81,9 @@ public:
     [[nodiscard]] virtual const Type& GetValue() const {
         return value;
     }
+    [[nodiscard]] virtual const Type& GetValue(bool need_global) const {
+        return value;
+    }
 
     /**
      * Sets the setting to the given value.
@@ -353,7 +356,7 @@ public:
         }
         return custom;
     }
-    [[nodiscard]] const Type& GetValue(bool need_global) const {
+    [[nodiscard]] const Type& GetValue(bool need_global) const override final {
         if (use_global || need_global) {
             return this->value;
         }

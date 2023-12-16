@@ -47,25 +47,9 @@ class DriversLoadingDialogFragment : DialogFragment() {
         viewLifecycleOwner.lifecycleScope.apply {
             launch {
                 repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    driverViewModel.areDriversLoading.collect { checkForDismiss() }
+                    driverViewModel.isInteractionAllowed.collect { if (it) dismiss() }
                 }
             }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    driverViewModel.isDriverReady.collect { checkForDismiss() }
-                }
-            }
-            launch {
-                repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    driverViewModel.isDeletingDrivers.collect { checkForDismiss() }
-                }
-            }
-        }
-    }
-
-    private fun checkForDismiss() {
-        if (driverViewModel.isInteractionAllowed) {
-            dismiss()
         }
     }
 

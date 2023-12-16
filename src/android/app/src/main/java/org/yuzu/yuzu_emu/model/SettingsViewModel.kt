@@ -68,8 +68,4 @@ class SettingsViewModel : ViewModel() {
     fun setAdapterItemChanged(value: Int) {
         _adapterItemChanged.value = value
     }
-
-    fun clear() {
-        game = null
-    }
 }

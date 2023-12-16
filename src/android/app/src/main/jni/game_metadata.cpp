@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <core/core.h>
+#include <core/file_sys/mode.h>
 #include <core/file_sys/patch_manager.h>
 #include <core/loader/nro.h>
 #include <jni.h>
@@ -61,7 +62,11 @@ RomMetadata CacheRomMetadata(const std::string& path) {
     return entry;
 }
 
-RomMetadata GetRomMetadata(const std::string& path) {
+RomMetadata GetRomMetadata(const std::string& path, bool reload = false) {
+    if (reload) {
+        return CacheRomMetadata(path);
+    }
+
     if (auto search = m_rom_metadata_cache.find(path); search != m_rom_metadata_cache.end()) {
         return search->second;
     }
@@ -70,6 +75,32 @@ RomMetadata GetRomMetadata(const std::string& path) {
 }
 
 extern "C" {
+
+jboolean Java_org_yuzu_yuzu_1emu_utils_GameMetadata_getIsValid(JNIEnv* env, jobject obj,
+                                                               jstring jpath) {
+    const auto file = EmulationSession::GetInstance().System().GetFilesystem()->OpenFile(
+        GetJString(env, jpath), FileSys::Mode::Read);
+    if (!file) {
+        return false;
+    }
+
+    auto loader = Loader::GetLoader(EmulationSession::GetInstance().System(), file);
+    if (!loader) {
+        return false;
+    }
+
+    const auto file_type = loader->GetFileType();
+    if (file_type == Loader::FileType::Unknown || file_type == Loader::FileType::Error) {
+        return false;
+    }
+
+    u64 program_id = 0;
+    Loader::ResultStatus res = loader->ReadProgramId(program_id);
+    if (res != Loader::ResultStatus::Success) {
+        return false;
+    }
+    return true;
+}
 
 jstring Java_org_yuzu_yuzu_1emu_utils_GameMetadata_getTitle(JNIEnv* env, jobject obj,
                                                             jstring jpath) {
@@ -87,8 +118,8 @@ jstring Java_org_yuzu_yuzu_1emu_utils_GameMetadata_getDeveloper(JNIEnv* env, job
 }
 
 jstring Java_org_yuzu_yuzu_1emu_utils_GameMetadata_getVersion(JNIEnv* env, jobject obj,
-                                                              jstring jpath) {
-    return ToJString(env, GetRomMetadata(GetJString(env, jpath)).version);
+                                                              jstring jpath, jboolean jreload) {
+    return ToJString(env, GetRomMetadata(GetJString(env, jpath), jreload).version);
 }
 
 jbyteArray Java_org_yuzu_yuzu_1emu_utils_GameMetadata_getIcon(JNIEnv* env, jobject obj,
@@ -106,7 +137,7 @@ jboolean Java_org_yuzu_yuzu_1emu_utils_GameMetadata_getIsHomebrew(JNIEnv* env, j
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_GameMetadata_resetMetadata(JNIEnv* env, jobject obj) {
-    return m_rom_metadata_cache.clear();
+    m_rom_metadata_cache.clear();
 }
 
 } // extern "C"

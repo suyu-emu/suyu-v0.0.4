@@ -4,7 +4,6 @@
 package org.yuzu.yuzu_emu.features.settings.model
 
 interface AbstractBooleanSetting : AbstractSetting {
-    val boolean: Boolean
-
+    fun getBoolean(needsGlobal: Boolean = false): Boolean
     fun setBoolean(value: Boolean)
 }

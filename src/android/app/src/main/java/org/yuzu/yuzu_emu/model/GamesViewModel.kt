@@ -20,8 +20,8 @@ import kotlinx.serialization.json.Json
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.utils.GameHelper
-import org.yuzu.yuzu_emu.utils.GameMetadata
 import org.yuzu.yuzu_emu.utils.NativeConfig
+import java.util.concurrent.atomic.AtomicBoolean
 
 class GamesViewModel : ViewModel() {
     val games: StateFlow<List<Game>> get() = _games
@@ -32,6 +32,8 @@ class GamesViewModel : ViewModel() {
 
     val isReloading: StateFlow<Boolean> get() = _isReloading
     private val _isReloading = MutableStateFlow(false)
+
+    private val reloading = AtomicBoolean(false)
 
     val shouldSwapData: StateFlow<Boolean> get() = _shouldSwapData
     private val _shouldSwapData = MutableStateFlow(false)
@@ -49,38 +51,8 @@ class GamesViewModel : ViewModel() {
         // Ensure keys are loaded so that ROM metadata can be decrypted.
         NativeLibrary.reloadKeys()
 
-        // Retrieve list of cached games
-        val storedGames = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-            .getStringSet(GameHelper.KEY_GAMES, emptySet())
-
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                getGameDirs()
-                if (storedGames!!.isNotEmpty()) {
-                    val deserializedGames = mutableSetOf<Game>()
-                    storedGames.forEach {
-                        val game: Game
-                        try {
-                            game = Json.decodeFromString(it)
-                        } catch (e: Exception) {
-                            // We don't care about any errors related to parsing the game cache
-                            return@forEach
-                        }
-
-                        val gameExists =
-                            DocumentFile.fromSingleUri(
-                                YuzuApplication.appContext,
-                                Uri.parse(game.path)
-                            )?.exists()
-                        if (gameExists == true) {
-                            deserializedGames.add(game)
-                        }
-                    }
-                    setGames(deserializedGames.toList())
-                }
-                reloadGames(false)
-            }
-        }
+        getGameDirs()
+        reloadGames(directoriesChanged = false, firstStartup = true)
     }
 
     fun setGames(games: List<Game>) {
@@ -110,16 +82,46 @@ class GamesViewModel : ViewModel() {
         _searchFocused.value = searchFocused
     }
 
-    fun reloadGames(directoriesChanged: Boolean) {
-        if (isReloading.value) {
+    fun reloadGames(directoriesChanged: Boolean, firstStartup: Boolean = false) {
+        if (reloading.get()) {
             return
         }
+        reloading.set(true)
         _isReloading.value = true
 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                GameMetadata.resetMetadata()
+                if (firstStartup) {
+                    // Retrieve list of cached games
+                    val storedGames =
+                        PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+                            .getStringSet(GameHelper.KEY_GAMES, emptySet())
+                    if (storedGames!!.isNotEmpty()) {
+                        val deserializedGames = mutableSetOf<Game>()
+                        storedGames.forEach {
+                            val game: Game
+                            try {
+                                game = Json.decodeFromString(it)
+                            } catch (e: Exception) {
+                                // We don't care about any errors related to parsing the game cache
+                                return@forEach
+                            }
+
+                            val gameExists =
+                                DocumentFile.fromSingleUri(
+                                    YuzuApplication.appContext,
+                                    Uri.parse(game.path)
+                                )?.exists()
+                            if (gameExists == true) {
+                                deserializedGames.add(game)
+                            }
+                        }
+                        setGames(deserializedGames.toList())
+                    }
+                }
+
                 setGames(GameHelper.getGames())
+                reloading.set(false)
                 _isReloading.value = false
 
                 if (directoriesChanged) {
@@ -168,6 +170,7 @@ class GamesViewModel : ViewModel() {
     fun onCloseGameFoldersFragment() =
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
+                NativeConfig.saveGlobalConfig()
                 getGameDirs(true)
             }
         }

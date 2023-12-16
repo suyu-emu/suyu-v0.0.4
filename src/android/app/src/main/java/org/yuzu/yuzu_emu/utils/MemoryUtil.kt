@@ -27,13 +27,13 @@ object MemoryUtil {
     const val Pb = Tb * 1024
     const val Eb = Pb * 1024
 
-    private fun bytesToSizeUnit(size: Float, roundUp: Boolean = false): String =
+    fun bytesToSizeUnit(size: Float, roundUp: Boolean = false): String =
         when {
             size < Kb -> {
                 context.getString(
                     R.string.memory_formatted,
                     size.hundredths,
-                    context.getString(R.string.memory_byte)
+                    context.getString(R.string.memory_byte_shorthand)
                 )
             }
             size < Mb -> {

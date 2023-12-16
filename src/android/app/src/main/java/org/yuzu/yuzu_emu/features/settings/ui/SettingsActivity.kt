@@ -19,10 +19,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navArgs
 import com.google.android.material.color.MaterialColors
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import org.yuzu.yuzu_emu.NativeLibrary
 import java.io.IOException
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
@@ -46,6 +45,9 @@ class SettingsActivity : AppCompatActivity() {
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        if (!NativeConfig.isPerGameConfigLoaded() && args.game != null) {
+            SettingsFile.loadCustomConfig(args.game!!)
+        }
         settingsViewModel.game = args.game
 
         val navHostFragment =
@@ -126,7 +128,6 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        // TODO: Load custom settings contextually
         if (!DirectoryInitialization.areDirectoriesReady) {
             DirectoryInitialization.start()
         }
@@ -134,24 +135,35 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        CoroutineScope(Dispatchers.IO).launch {
-            NativeConfig.saveSettings()
+        Log.info("[SettingsActivity] Settings activity stopping. Saving settings to INI...")
+        if (isFinishing) {
+            NativeLibrary.applySettings()
+            if (args.game == null) {
+                NativeConfig.saveGlobalConfig()
+            } else if (NativeConfig.isPerGameConfigLoaded()) {
+                NativeLibrary.logSettings()
+                NativeConfig.savePerGameConfig()
+                NativeConfig.unloadPerGameConfig()
+            }
         }
-    }
-
-    override fun onDestroy() {
-        settingsViewModel.clear()
-        super.onDestroy()
     }
 
     fun onSettingsReset() {
         // Delete settings file because the user may have changed values that do not exist in the UI
-        NativeConfig.unloadConfig()
-        val settingsFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_CONFIG)
-        if (!settingsFile.delete()) {
-            throw IOException("Failed to delete $settingsFile")
+        if (args.game == null) {
+            NativeConfig.unloadGlobalConfig()
+            val settingsFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_CONFIG)
+            if (!settingsFile.delete()) {
+                throw IOException("Failed to delete $settingsFile")
+            }
+            NativeConfig.initializeGlobalConfig()
+        } else {
+            NativeConfig.unloadPerGameConfig()
+            val settingsFile = SettingsFile.getCustomSettingsFile(args.game!!)
+            if (!settingsFile.delete()) {
+                throw IOException("Failed to delete $settingsFile")
+            }
         }
-        NativeConfig.initializeConfig()
 
         Toast.makeText(
             applicationContext,

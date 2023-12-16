@@ -24,6 +24,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.PreferenceManager
 import info.debatty.java.stringsimilarity.Jaccard
 import info.debatty.java.stringsimilarity.JaroWinkler
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.Locale
 import org.yuzu.yuzu_emu.R
@@ -60,7 +61,9 @@ class SearchFragment : Fragment() {
     // This is using the correct scope, lint is just acting up
     @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        homeViewModel.setNavigationVisibility(visible = true, animated = false)
+        super.onViewCreated(view, savedInstanceState)
+        homeViewModel.setNavigationVisibility(visible = true, animated = true)
+        homeViewModel.setStatusBarShadeVisibility(true)
         preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
         if (savedInstanceState != null) {
@@ -99,7 +102,7 @@ class SearchFragment : Fragment() {
             }
             launch {
                 repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    gamesViewModel.games.collect { filterAndSearch() }
+                    gamesViewModel.games.collectLatest { filterAndSearch() }
                 }
             }
             launch {

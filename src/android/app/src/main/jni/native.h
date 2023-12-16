@@ -21,6 +21,7 @@ public:
     static EmulationSession& GetInstance();
     const Core::System& System() const;
     Core::System& System();
+    FileSys::ManualContentProvider* GetContentProvider();
 
     const EmuWindow_Android& Window() const;
     EmuWindow_Android& Window();
@@ -53,6 +54,8 @@ public:
     SoftwareKeyboard::AndroidKeyboard* SoftwareKeyboard();
 
     static void OnEmulationStarted();
+
+    static u64 GetProgramId(JNIEnv* env, jstring jprogramId);
 
 private:
     static void LoadDiskCacheProgress(VideoCore::LoadCallbackStage stage, int progress, int max);

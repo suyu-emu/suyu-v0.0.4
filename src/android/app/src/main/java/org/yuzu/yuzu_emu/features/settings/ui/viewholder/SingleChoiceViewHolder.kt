@@ -9,6 +9,7 @@ import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.model.view.SingleChoiceSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.StringSingleChoiceSetting
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
+import org.yuzu.yuzu_emu.utils.NativeConfig
 
 class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
@@ -29,18 +30,29 @@ class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: Setti
             val resMgr = binding.textSettingValue.context.resources
             val values = resMgr.getIntArray(item.valuesId)
             for (i in values.indices) {
-                if (values[i] == item.selectedValue) {
+                if (values[i] == item.getSelectedValue()) {
                     binding.textSettingValue.text = resMgr.getStringArray(item.choicesId)[i]
                     break
                 }
             }
         } else if (item is StringSingleChoiceSetting) {
             for (i in item.values.indices) {
-                if (item.values[i] == item.selectedValue) {
+                if (item.values[i] == item.getSelectedValue()) {
                     binding.textSettingValue.text = item.choices[i]
                     break
                 }
             }
+        }
+
+        binding.buttonClear.visibility = if (setting.setting.global ||
+            !NativeConfig.isPerGameConfigLoaded()
+        ) {
+            View.GONE
+        } else {
+            View.VISIBLE
+        }
+        binding.buttonClear.setOnClickListener {
+            adapter.onClearClick(setting, bindingAdapterPosition)
         }
 
         setStyle(setting.isEditable, binding)

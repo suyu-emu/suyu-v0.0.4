@@ -52,6 +52,7 @@ import org.yuzu.yuzu_emu.databinding.DialogOverlayAdjustBinding
 import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.EmulationViewModel
@@ -126,6 +127,17 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             requireActivity().finish()
             return
         }
+
+        // Always load custom settings when launching a game from an intent
+        if (args.custom || intentGame != null) {
+            SettingsFile.loadCustomConfig(game)
+            NativeConfig.unloadPerGameConfig()
+        } else {
+            NativeConfig.reloadGlobalConfig()
+        }
+
+        // Install the selected driver asynchronously as the game starts
+        driverViewModel.onLaunchGame()
 
         // So this fragment doesn't restart on configuration changes; i.e. rotation.
         retainInstance = true
@@ -211,6 +223,15 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.id.menu_settings -> {
                     val action = HomeNavigationDirections.actionGlobalSettingsActivity(
                         null,
+                        Settings.MenuTag.SECTION_ROOT
+                    )
+                    binding.root.findNavController().navigate(action)
+                    true
+                }
+
+                R.id.menu_settings_per_game -> {
+                    val action = HomeNavigationDirections.actionGlobalSettingsActivity(
+                        args.game,
                         Settings.MenuTag.SECTION_ROOT
                     )
                     binding.root.findNavController().navigate(action)
@@ -332,19 +353,25 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
             launch {
                 repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    driverViewModel.isDriverReady.collect {
-                        if (it && !emulationState.isRunning) {
-                            if (!DirectoryInitialization.areDirectoriesReady) {
-                                DirectoryInitialization.start()
-                            }
-
-                            updateScreenLayout()
-
-                            emulationState.run(emulationActivity!!.isActivityRecreated)
+                    driverViewModel.isInteractionAllowed.collect {
+                        if (it) {
+                            onEmulationStart()
                         }
                     }
                 }
             }
+        }
+    }
+
+    private fun onEmulationStart() {
+        if (!NativeLibrary.isRunning() && !NativeLibrary.isPaused()) {
+            if (!DirectoryInitialization.areDirectoriesReady) {
+                DirectoryInitialization.start()
+            }
+
+            updateScreenLayout()
+
+            emulationState.run(emulationActivity!!.isActivityRecreated)
         }
     }
 
@@ -435,7 +462,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     @SuppressLint("SourceLockedOrientationActivity")
     private fun updateOrientation() {
         emulationActivity?.let {
-            it.requestedOrientation = when (IntSetting.RENDERER_SCREEN_LAYOUT.int) {
+            it.requestedOrientation = when (IntSetting.RENDERER_SCREEN_LAYOUT.getInt()) {
                 Settings.LayoutOption_MobileLandscape ->
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 Settings.LayoutOption_MobilePortrait ->
@@ -617,7 +644,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     @SuppressLint("SourceLockedOrientationActivity")
     private fun startConfiguringControls() {
         // Lock the current orientation to prevent editing inconsistencies
-        if (IntSetting.RENDERER_SCREEN_LAYOUT.int == Settings.LayoutOption_Unspecified) {
+        if (IntSetting.RENDERER_SCREEN_LAYOUT.getInt() == Settings.LayoutOption_Unspecified) {
             emulationActivity?.let {
                 it.requestedOrientation =
                     if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -635,7 +662,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         binding.doneControlConfig.visibility = View.GONE
         binding.surfaceInputOverlay.setIsInEditMode(false)
         // Unlock the orientation if it was locked for editing
-        if (IntSetting.RENDERER_SCREEN_LAYOUT.int == Settings.LayoutOption_Unspecified) {
+        if (IntSetting.RENDERER_SCREEN_LAYOUT.getInt() == Settings.LayoutOption_Unspecified) {
             emulationActivity?.let {
                 it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }

@@ -41,6 +41,7 @@ abstract class SettingViewHolder(itemView: View, protected val adapter: Settings
         binding.textSettingName.alpha = opacity
         binding.textSettingDescription.alpha = opacity
         binding.textSettingValue.alpha = opacity
+        binding.buttonClear.isEnabled = isEditable
     }
 
     fun setStyle(isEditable: Boolean, binding: ListItemSettingSwitchBinding) {
@@ -48,5 +49,6 @@ abstract class SettingViewHolder(itemView: View, protected val adapter: Settings
         val opacity = if (isEditable) 1.0f else 0.5f
         binding.textSettingName.alpha = opacity
         binding.textSettingDescription.alpha = opacity
+        binding.buttonClear.isEnabled = isEditable
     }
 }

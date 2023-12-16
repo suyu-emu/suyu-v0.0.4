@@ -5,21 +5,21 @@ package org.yuzu.yuzu_emu.features.settings.model
 
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
-enum class LongSetting(
-    override val key: String,
-    override val category: Settings.Category
-) : AbstractLongSetting {
-    CUSTOM_RTC("custom_rtc", Settings.Category.System);
+enum class LongSetting(override val key: String) : AbstractLongSetting {
+    CUSTOM_RTC("custom_rtc");
 
-    override val long: Long
-        get() = NativeConfig.getLong(key, false)
+    override fun getLong(needsGlobal: Boolean): Long = NativeConfig.getLong(key, needsGlobal)
 
-    override fun setLong(value: Long) = NativeConfig.setLong(key, value)
+    override fun setLong(value: Long) {
+        if (NativeConfig.isPerGameConfigLoaded()) {
+            global = false
+        }
+        NativeConfig.setLong(key, value)
+    }
 
-    override val defaultValue: Long by lazy { NativeConfig.getLong(key, true) }
+    override val defaultValue: Long by lazy { NativeConfig.getDefaultToString(key).toLong() }
 
-    override val valueAsString: String
-        get() = long.toString()
+    override fun getValueAsString(needsGlobal: Boolean): String = getLong(needsGlobal).toString()
 
     override fun reset() = NativeConfig.setLong(key, defaultValue)
 }

@@ -4,7 +4,6 @@
 package org.yuzu.yuzu_emu.features.settings.model
 
 interface AbstractStringSetting : AbstractSetting {
-    val string: String
-
+    fun getString(needsGlobal: Boolean = false): String
     fun setString(value: String)
 }

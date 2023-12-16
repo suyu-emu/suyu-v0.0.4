@@ -5,36 +5,34 @@ package org.yuzu.yuzu_emu.features.settings.model
 
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
-enum class BooleanSetting(
-    override val key: String,
-    override val category: Settings.Category,
-    override val androidDefault: Boolean? = null
-) : AbstractBooleanSetting {
-    AUDIO_MUTED("audio_muted", Settings.Category.Audio),
-    CPU_DEBUG_MODE("cpu_debug_mode", Settings.Category.Cpu),
-    FASTMEM("cpuopt_fastmem", Settings.Category.Cpu),
-    FASTMEM_EXCLUSIVES("cpuopt_fastmem_exclusives", Settings.Category.Cpu),
-    RENDERER_USE_SPEED_LIMIT("use_speed_limit", Settings.Category.Core),
-    USE_DOCKED_MODE("use_docked_mode", Settings.Category.System, false),
-    RENDERER_USE_DISK_SHADER_CACHE("use_disk_shader_cache", Settings.Category.Renderer),
-    RENDERER_FORCE_MAX_CLOCK("force_max_clock", Settings.Category.Renderer),
-    RENDERER_ASYNCHRONOUS_SHADERS("use_asynchronous_shaders", Settings.Category.Renderer),
-    RENDERER_REACTIVE_FLUSHING("use_reactive_flushing", Settings.Category.Renderer, false),
-    RENDERER_DEBUG("debug", Settings.Category.Renderer),
-    PICTURE_IN_PICTURE("picture_in_picture", Settings.Category.Android),
-    USE_CUSTOM_RTC("custom_rtc_enabled", Settings.Category.System);
+enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
+    AUDIO_MUTED("audio_muted"),
+    CPU_DEBUG_MODE("cpu_debug_mode"),
+    FASTMEM("cpuopt_fastmem"),
+    FASTMEM_EXCLUSIVES("cpuopt_fastmem_exclusives"),
+    RENDERER_USE_SPEED_LIMIT("use_speed_limit"),
+    USE_DOCKED_MODE("use_docked_mode"),
+    RENDERER_USE_DISK_SHADER_CACHE("use_disk_shader_cache"),
+    RENDERER_FORCE_MAX_CLOCK("force_max_clock"),
+    RENDERER_ASYNCHRONOUS_SHADERS("use_asynchronous_shaders"),
+    RENDERER_REACTIVE_FLUSHING("use_reactive_flushing"),
+    RENDERER_DEBUG("debug"),
+    PICTURE_IN_PICTURE("picture_in_picture"),
+    USE_CUSTOM_RTC("custom_rtc_enabled");
 
-    override val boolean: Boolean
-        get() = NativeConfig.getBoolean(key, false)
+    override fun getBoolean(needsGlobal: Boolean): Boolean =
+        NativeConfig.getBoolean(key, needsGlobal)
 
-    override fun setBoolean(value: Boolean) = NativeConfig.setBoolean(key, value)
-
-    override val defaultValue: Boolean by lazy {
-        androidDefault ?: NativeConfig.getBoolean(key, true)
+    override fun setBoolean(value: Boolean) {
+        if (NativeConfig.isPerGameConfigLoaded()) {
+            global = false
+        }
+        NativeConfig.setBoolean(key, value)
     }
 
-    override val valueAsString: String
-        get() = if (boolean) "1" else "0"
+    override val defaultValue: Boolean by lazy { NativeConfig.getDefaultToString(key).toBoolean() }
+
+    override fun getValueAsString(needsGlobal: Boolean): String = getBoolean(needsGlobal).toString()
 
     override fun reset() = NativeConfig.setBoolean(key, defaultValue)
 }

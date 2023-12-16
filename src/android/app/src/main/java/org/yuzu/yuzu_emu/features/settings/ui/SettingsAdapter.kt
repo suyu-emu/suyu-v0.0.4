@@ -102,8 +102,9 @@ class SettingsAdapter(
         return currentList[position].type
     }
 
-    fun onBooleanClick(item: SwitchSetting, checked: Boolean) {
-        item.checked = checked
+    fun onBooleanClick(item: SwitchSetting, checked: Boolean, position: Int) {
+        item.setChecked(checked)
+        notifyItemChanged(position)
         settingsViewModel.setShouldReloadSettingsList(true)
     }
 
@@ -126,7 +127,7 @@ class SettingsAdapter(
     }
 
     fun onDateTimeClick(item: DateTimeSetting, position: Int) {
-        val storedTime = item.value * 1000
+        val storedTime = item.getValue() * 1000
 
         // Helper to extract hour and minute from epoch time
         val calendar: Calendar = Calendar.getInstance()
@@ -159,9 +160,9 @@ class SettingsAdapter(
             var epochTime: Long = datePicker.selection!! / 1000
             epochTime += timePicker.hour.toLong() * 60 * 60
             epochTime += timePicker.minute.toLong() * 60
-            if (item.value != epochTime) {
+            if (item.getValue() != epochTime) {
                 notifyItemChanged(position)
-                item.value = epochTime
+                item.setValue(epochTime)
             }
         }
         datePicker.show(
@@ -193,6 +194,12 @@ class SettingsAdapter(
         ).show(fragment.childFragmentManager, SettingsDialogFragment.TAG)
 
         return true
+    }
+
+    fun onClearClick(item: SettingsItem, position: Int) {
+        item.setting.global = true
+        notifyItemChanged(position)
+        settingsViewModel.setShouldReloadSettingsList(true)
     }
 
     private class DiffCallback : DiffUtil.ItemCallback<SettingsItem>() {

@@ -13,6 +13,7 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogFolderPropertiesBinding
 import org.yuzu.yuzu_emu.model.GameDir
 import org.yuzu.yuzu_emu.model.GamesViewModel
+import org.yuzu.yuzu_emu.utils.NativeConfig
 import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
 
 class GameFolderPropertiesDialogFragment : DialogFragment() {
@@ -47,6 +48,11 @@ class GameFolderPropertiesDialogFragment : DialogFragment() {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        NativeConfig.saveGlobalConfig()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

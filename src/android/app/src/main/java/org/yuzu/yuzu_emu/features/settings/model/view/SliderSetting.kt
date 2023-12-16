@@ -20,22 +20,20 @@ class SliderSetting(
 ) : SettingsItem(setting, titleId, descriptionId) {
     override val type = TYPE_SLIDER
 
-    var selectedValue: Int
-        get() {
-            return when (setting) {
-                is AbstractByteSetting -> setting.byte.toInt()
-                is AbstractShortSetting -> setting.short.toInt()
-                is AbstractIntSetting -> setting.int
-                is AbstractFloatSetting -> setting.float.roundToInt()
-                else -> -1
-            }
+    fun getSelectedValue(needsGlobal: Boolean = false) =
+        when (setting) {
+            is AbstractByteSetting -> setting.getByte(needsGlobal).toInt()
+            is AbstractShortSetting -> setting.getShort(needsGlobal).toInt()
+            is AbstractIntSetting -> setting.getInt(needsGlobal)
+            is AbstractFloatSetting -> setting.getFloat(needsGlobal).roundToInt()
+            else -> -1
         }
-        set(value) {
-            when (setting) {
-                is AbstractByteSetting -> setting.setByte(value.toByte())
-                is AbstractShortSetting -> setting.setShort(value.toShort())
-                is AbstractIntSetting -> setting.setInt(value)
-                is AbstractFloatSetting -> setting.setFloat(value.toFloat())
-            }
+
+    fun setSelectedValue(value: Int) =
+        when (setting) {
+            is AbstractByteSetting -> setting.setByte(value.toByte())
+            is AbstractShortSetting -> setting.setShort(value.toShort())
+            is AbstractFloatSetting -> setting.setFloat(value.toFloat())
+            else -> (setting as AbstractIntSetting).setInt(value)
         }
 }

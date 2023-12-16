@@ -14,18 +14,18 @@ class SwitchSetting(
 ) : SettingsItem(setting, titleId, descriptionId) {
     override val type = TYPE_SWITCH
 
-    var checked: Boolean
-        get() {
-            return when (setting) {
-                is AbstractIntSetting -> setting.int == 1
-                is AbstractBooleanSetting -> setting.boolean
-                else -> false
-            }
+    fun getIsChecked(needsGlobal: Boolean = false): Boolean {
+        return when (setting) {
+            is AbstractIntSetting -> setting.getInt(needsGlobal) == 1
+            is AbstractBooleanSetting -> setting.getBoolean(needsGlobal)
+            else -> false
         }
-        set(value) {
-            when (setting) {
-                is AbstractIntSetting -> setting.setInt(if (value) 1 else 0)
-                is AbstractBooleanSetting -> setting.setBoolean(value)
-            }
+    }
+
+    fun setChecked(value: Boolean) {
+        when (setting) {
+            is AbstractIntSetting -> setting.setInt(if (value) 1 else 0)
+            is AbstractBooleanSetting -> setting.setBoolean(value)
         }
+    }
 }

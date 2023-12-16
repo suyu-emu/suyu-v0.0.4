@@ -7,55 +7,112 @@ import org.yuzu.yuzu_emu.model.GameDir
 
 object NativeConfig {
     /**
-     * Creates a Config object and opens the emulation config.
+     * Loads global config.
      */
     @Synchronized
-    external fun initializeConfig()
+    external fun initializeGlobalConfig()
 
     /**
-     * Destroys the stored config object. This automatically saves the existing config.
+     * Destroys the stored global config object. This does not save the existing config.
      */
     @Synchronized
-    external fun unloadConfig()
+    external fun unloadGlobalConfig()
 
     /**
-     * Reads values saved to the config file and saves them.
+     * Reads values in the global config file and saves them.
      */
     @Synchronized
-    external fun reloadSettings()
+    external fun reloadGlobalConfig()
 
     /**
-     * Saves settings values in memory to disk.
+     * Saves global settings values in memory to disk.
      */
     @Synchronized
-    external fun saveSettings()
+    external fun saveGlobalConfig()
 
-    external fun getBoolean(key: String, getDefault: Boolean): Boolean
+    /**
+     * Creates per-game config for the specified parameters. Must be unloaded once per-game config
+     * is closed with [unloadPerGameConfig]. All switchable values that [NativeConfig] gets/sets
+     * will follow the per-game config until the global config is reloaded.
+     *
+     * @param programId String representation of the u64 programId
+     * @param fileName Filename of the game, including its extension
+     */
+    @Synchronized
+    external fun initializePerGameConfig(programId: String, fileName: String)
+
+    @Synchronized
+    external fun isPerGameConfigLoaded(): Boolean
+
+    /**
+     * Saves per-game settings values in memory to disk.
+     */
+    @Synchronized
+    external fun savePerGameConfig()
+
+    /**
+     * Destroys the stored per-game config object. This does not save the config.
+     */
+    @Synchronized
+    external fun unloadPerGameConfig()
+
+    @Synchronized
+    external fun getBoolean(key: String, needsGlobal: Boolean): Boolean
+
+    @Synchronized
     external fun setBoolean(key: String, value: Boolean)
 
-    external fun getByte(key: String, getDefault: Boolean): Byte
+    @Synchronized
+    external fun getByte(key: String, needsGlobal: Boolean): Byte
+
+    @Synchronized
     external fun setByte(key: String, value: Byte)
 
-    external fun getShort(key: String, getDefault: Boolean): Short
+    @Synchronized
+    external fun getShort(key: String, needsGlobal: Boolean): Short
+
+    @Synchronized
     external fun setShort(key: String, value: Short)
 
-    external fun getInt(key: String, getDefault: Boolean): Int
+    @Synchronized
+    external fun getInt(key: String, needsGlobal: Boolean): Int
+
+    @Synchronized
     external fun setInt(key: String, value: Int)
 
-    external fun getFloat(key: String, getDefault: Boolean): Float
+    @Synchronized
+    external fun getFloat(key: String, needsGlobal: Boolean): Float
+
+    @Synchronized
     external fun setFloat(key: String, value: Float)
 
-    external fun getLong(key: String, getDefault: Boolean): Long
+    @Synchronized
+    external fun getLong(key: String, needsGlobal: Boolean): Long
+
+    @Synchronized
     external fun setLong(key: String, value: Long)
 
-    external fun getString(key: String, getDefault: Boolean): String
+    @Synchronized
+    external fun getString(key: String, needsGlobal: Boolean): String
+
+    @Synchronized
     external fun setString(key: String, value: String)
 
     external fun getIsRuntimeModifiable(key: String): Boolean
 
-    external fun getConfigHeader(category: Int): String
-
     external fun getPairedSettingKey(key: String): String
+
+    external fun getIsSwitchable(key: String): Boolean
+
+    @Synchronized
+    external fun usingGlobal(key: String): Boolean
+
+    @Synchronized
+    external fun setGlobal(key: String, global: Boolean)
+
+    external fun getIsSaveable(key: String): Boolean
+
+    external fun getDefaultToString(key: String): String
 
     /**
      * Gets every [GameDir] in AndroidSettings::values.game_dirs
@@ -74,4 +131,23 @@ object NativeConfig {
      */
     @Synchronized
     external fun addGameDir(dir: GameDir)
+
+    /**
+     * Gets an array of the addons that are disabled for a given game
+     *
+     * @param programId String representation of a game's program ID
+     * @return An array of disabled addons
+     */
+    @Synchronized
+    external fun getDisabledAddons(programId: String): Array<String>
+
+    /**
+     * Clears the disabled addons array corresponding to [programId] and replaces them
+     * with [disabledAddons]
+     *
+     * @param programId String representation of a game's program ID
+     * @param disabledAddons Replacement array of disabled addons
+     */
+    @Synchronized
+    external fun setDisabledAddons(programId: String, disabledAddons: Array<String>)
 }

@@ -172,7 +172,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onUserLeaveHint() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            if (BooleanSetting.PICTURE_IN_PICTURE.boolean && !isInPictureInPictureMode) {
+            if (BooleanSetting.PICTURE_IN_PICTURE.getBoolean() && !isInPictureInPictureMode) {
                 val pictureInPictureParamsBuilder = PictureInPictureParams.Builder()
                     .getPictureInPictureActionsBuilder().getPictureInPictureAspectBuilder()
                 enterPictureInPictureMode(pictureInPictureParamsBuilder.build())
@@ -284,7 +284,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
 
     private fun PictureInPictureParams.Builder.getPictureInPictureAspectBuilder():
         PictureInPictureParams.Builder {
-        val aspectRatio = when (IntSetting.RENDERER_ASPECT_RATIO.int) {
+        val aspectRatio = when (IntSetting.RENDERER_ASPECT_RATIO.getInt()) {
             0 -> Rational(16, 9)
             1 -> Rational(4, 3)
             2 -> Rational(21, 9)
@@ -331,7 +331,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             pictureInPictureActions.add(pauseRemoteAction)
         }
 
-        if (BooleanSetting.AUDIO_MUTED.boolean) {
+        if (BooleanSetting.AUDIO_MUTED.getBoolean()) {
             val unmuteIcon = Icon.createWithResource(
                 this@EmulationActivity,
                 R.drawable.ic_pip_unmute
@@ -376,7 +376,7 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             val isEmulationActive = emulationViewModel.emulationStarted.value &&
                 !emulationViewModel.isEmulationStopping.value
             pictureInPictureParamsBuilder.setAutoEnterEnabled(
-                BooleanSetting.PICTURE_IN_PICTURE.boolean && isEmulationActive
+                BooleanSetting.PICTURE_IN_PICTURE.getBoolean() && isEmulationActive
             )
         }
         setPictureInPictureParams(pictureInPictureParamsBuilder.build())
@@ -390,9 +390,13 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
                 if (!NativeLibrary.isPaused()) NativeLibrary.pauseEmulation()
             }
             if (intent.action == actionUnmute) {
-                if (BooleanSetting.AUDIO_MUTED.boolean) BooleanSetting.AUDIO_MUTED.setBoolean(false)
+                if (BooleanSetting.AUDIO_MUTED.getBoolean()) {
+                    BooleanSetting.AUDIO_MUTED.setBoolean(false)
+                }
             } else if (intent.action == actionMute) {
-                if (!BooleanSetting.AUDIO_MUTED.boolean) BooleanSetting.AUDIO_MUTED.setBoolean(true)
+                if (!BooleanSetting.AUDIO_MUTED.getBoolean()) {
+                    BooleanSetting.AUDIO_MUTED.setBoolean(true)
+                }
             }
             buildPictureInPictureParams()
         }
@@ -423,7 +427,9 @@ class EmulationActivity : AppCompatActivity(), SensorEventListener {
             } catch (ignored: Exception) {
             }
             // Always resume audio, since there is no UI button
-            if (BooleanSetting.AUDIO_MUTED.boolean) BooleanSetting.AUDIO_MUTED.setBoolean(false)
+            if (BooleanSetting.AUDIO_MUTED.getBoolean()) {
+                BooleanSetting.AUDIO_MUTED.setBoolean(false)
+            }
         }
     }
 

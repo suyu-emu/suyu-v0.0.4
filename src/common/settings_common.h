@@ -26,6 +26,7 @@ enum class Category : u32 {
     DataStorage,
     Debugging,
     DebuggingGraphics,
+    GpuDriver,
     Miscellaneous,
     Network,
     WebService,

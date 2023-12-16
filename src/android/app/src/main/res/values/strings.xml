@@ -91,7 +91,10 @@
     <string name="notification_no_directory_link_description">Please locate the user folder with the file manager\'s side panel manually.</string>
     <string name="manage_save_data">Manage save data</string>
     <string name="manage_save_data_description">Save data found. Please select an option below.</string>
+    <string name="import_save_warning">Import save data</string>
+    <string name="import_save_warning_description">This will overwrite all existing save data with the provided file. Are you sure that you want to continue?</string>
     <string name="import_export_saves_description">Import or export save files</string>
+    <string name="save_files_importing">Importing save files…</string>
     <string name="save_files_exporting">Exporting save files…</string>
     <string name="save_file_imported_success">Imported successfully</string>
     <string name="save_file_invalid_zip_structure">Invalid save directory structure</string>
@@ -266,6 +269,11 @@
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
     <string name="export_success">Exported successfully</string>
+    <string name="start">Start</string>
+    <string name="clear">Clear</string>
+    <string name="global">Global</string>
+    <string name="custom">Custom</string>
+    <string name="notice">Notice</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>
@@ -290,6 +298,44 @@
     <string name="preferences_theme">Theme and color</string>
     <string name="preferences_debug">Debug</string>
     <string name="preferences_debug_description">CPU/GPU debugging, graphics API, fastmem</string>
+
+    <!-- Game properties -->
+    <string name="info">Info</string>
+    <string name="info_description">Program ID, developer, version</string>
+    <string name="per_game_settings">Per-game settings</string>
+    <string name="per_game_settings_description">Edit settings specific to this game</string>
+    <string name="launch_options">Launch config</string>
+    <string name="path">Path</string>
+    <string name="program_id">Program ID</string>
+    <string name="developer">Developer</string>
+    <string name="version">Version</string>
+    <string name="copy_details">Copy details</string>
+    <string name="add_ons">Add-ons</string>
+    <string name="add_ons_description">Toggle mods, updates and DLC</string>
+    <string name="clear_shader_cache">Clear shader cache</string>
+    <string name="clear_shader_cache_description">Removes all shaders built while playing this game</string>
+    <string name="clear_shader_cache_warning_description">You will experience more stuttering as the shader cache regenerates</string>
+    <string name="cleared_shaders_successfully">Cleared shaders successfully</string>
+    <string name="addons_game">Addons: %1$s</string>
+    <string name="save_data">Save data</string>
+    <string name="save_data_description">Manage save data specific to this game</string>
+    <string name="delete_save_data">Delete save data</string>
+    <string name="delete_save_data_description">Removes all save data specific to this game</string>
+    <string name="delete_save_data_warning_description">This irrecoverably removes all of this game\'s save data. Are you sure you want to continue?</string>
+    <string name="save_data_deleted_successfully">Save data deleted successfully</string>
+    <string name="select_content_type">Content type</string>
+    <string name="updates_and_dlc">Updates and DLC</string>
+    <string name="mods_and_cheats">Mods and cheats</string>
+    <string name="addon_notice">Important addon notice</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="addon_notice_description">In order to install mods and cheats, you must select a folder that contains a cheats/, romfs/, or exefs/ directory. We can\'t verify if these will be compatible with your game so be careful!</string>
+    <string name="invalid_directory">Invalid directory</string>
+    <!-- "cheats/" "romfs/" and "exefs/ should not be translated -->
+    <string name="invalid_directory_description">Please make sure that the directory you selected contains a cheats/, romfs/, or exefs/ folder and try again.</string>
+    <string name="addon_installed_successfully">Addon installed successfully</string>
+    <string name="verifying_content">Verifying content…</string>
+    <string name="content_install_notice">Content install notice</string>
+    <string name="content_install_notice_description">The content that you selected does not match this game.\nInstall anyway?</string>
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Your ROM is encrypted</string>
@@ -369,6 +415,7 @@
 
     <!-- Memory Sizes -->
     <string name="memory_byte">Byte</string>
+    <string name="memory_byte_shorthand">B</string>
     <string name="memory_kilobyte">KB</string>
     <string name="memory_megabyte">MB</string>
     <string name="memory_gigabyte">GB</string>

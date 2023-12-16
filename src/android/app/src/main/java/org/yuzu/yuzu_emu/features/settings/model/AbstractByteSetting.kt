@@ -4,7 +4,6 @@
 package org.yuzu.yuzu_emu.features.settings.model
 
 interface AbstractByteSetting : AbstractSetting {
-    val byte: Byte
-
+    fun getByte(needsGlobal: Boolean = false): Byte
     fun setByte(value: Byte)
 }

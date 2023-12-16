@@ -30,6 +30,9 @@ struct Values {
                                          Settings::Specialization::Default,
                                          true,
                                          true};
+
+    Settings::SwitchableSetting<std::string, false> driver_path{linkage, "", "driver_path",
+                                                                Settings::Category::GpuDriver};
 };
 
 extern Values values;
