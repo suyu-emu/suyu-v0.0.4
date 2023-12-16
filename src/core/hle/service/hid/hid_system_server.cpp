@@ -5,6 +5,7 @@
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/controllers/palma.h"
 #include "core/hle/service/hid/controllers/touchscreen.h"
+#include "core/hle/service/hid/controllers/types/npad_types.h"
 #include "core/hle/service/hid/errors.h"
 #include "core/hle/service/hid/hid_system_server.h"
 #include "core/hle/service/hid/resource_manager.h"
@@ -328,7 +329,7 @@ void IHidSystemServer::GetAppletDetailedUiType(HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, npad_id_type={}",
               npad_id_type); // Spams a lot when controller applet is running
 
-    const NPad::AppletDetailedUiType detailed_ui_type =
+    const AppletDetailedUiType detailed_ui_type =
         GetResourceManager()->GetNpad()->GetAppletDetailedUiType(npad_id_type);
 
     IPC::ResponseBuilder rb{ctx, 3};

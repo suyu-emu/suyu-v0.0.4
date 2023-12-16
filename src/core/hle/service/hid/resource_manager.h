@@ -31,10 +31,10 @@ class Palma;
 class SevenSixAxis;
 class SixAxis;
 class TouchScreen;
-class XPad;
 
 using CaptureButton = Controller_Stubbed;
-using DebugMouse = Controller_Stubbed;
+using DebugMouse = Mouse;
+using Digitizer = Controller_Stubbed;
 using HomeButton = Controller_Stubbed;
 using SleepButton = Controller_Stubbed;
 using UniquePad = Controller_Stubbed;
@@ -46,12 +46,14 @@ public:
     ~ResourceManager();
 
     void Initialize();
+    void InitializeController(u64 aruid);
 
     std::shared_ptr<AppletResource> GetAppletResource() const;
     std::shared_ptr<CaptureButton> GetCaptureButton() const;
     std::shared_ptr<ConsoleSixAxis> GetConsoleSixAxis() const;
     std::shared_ptr<DebugMouse> GetDebugMouse() const;
     std::shared_ptr<DebugPad> GetDebugPad() const;
+    std::shared_ptr<Digitizer> GetDigitizer() const;
     std::shared_ptr<Gesture> GetGesture() const;
     std::shared_ptr<HomeButton> GetHomeButton() const;
     std::shared_ptr<Keyboard> GetKeyboard() const;
@@ -96,6 +98,7 @@ private:
     std::shared_ptr<ConsoleSixAxis> console_six_axis = nullptr;
     std::shared_ptr<DebugMouse> debug_mouse = nullptr;
     std::shared_ptr<DebugPad> debug_pad = nullptr;
+    std::shared_ptr<Digitizer> digitizer = nullptr;
     std::shared_ptr<Gesture> gesture = nullptr;
     std::shared_ptr<HomeButton> home_button = nullptr;
     std::shared_ptr<Keyboard> keyboard = nullptr;
@@ -107,7 +110,6 @@ private:
     std::shared_ptr<SleepButton> sleep_button = nullptr;
     std::shared_ptr<TouchScreen> touch_screen = nullptr;
     std::shared_ptr<UniquePad> unique_pad = nullptr;
-    std::shared_ptr<XPad> xpad = nullptr;
 
     // TODO: Create these resources
     // std::shared_ptr<AudioControl> audio_control = nullptr;
