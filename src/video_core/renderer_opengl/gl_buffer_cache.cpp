@@ -333,7 +333,7 @@ void BufferCacheRuntime::BindTransformFeedbackBuffers(VideoCommon::HostBindings<
     glBindBuffersRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0,
                        static_cast<GLsizei>(bindings.buffers.size()), buffer_handles.data(),
                        reinterpret_cast<const GLintptr*>(bindings.offsets.data()),
-                       reinterpret_cast<const GLsizeiptr*>(bindings.strides.data()));
+                       reinterpret_cast<const GLsizeiptr*>(bindings.sizes.data()));
 }
 
 void BufferCacheRuntime::BindTextureBuffer(Buffer& buffer, u32 offset, u32 size,
