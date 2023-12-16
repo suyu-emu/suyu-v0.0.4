@@ -162,7 +162,7 @@ public:
     }
 
     /// Increase/decrease the number of object in pages touching the specified region
-    virtual void UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {}
+    virtual void UpdatePagesCachedCount(VAddr addr, u64 size, bool cache) {}
 
     /// Initialize disk cached resources for the game being emulated
     virtual void LoadDiskResources(u64 title_id, std::stop_token stop_loading,
