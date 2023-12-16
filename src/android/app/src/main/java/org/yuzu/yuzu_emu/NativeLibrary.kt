@@ -230,8 +230,6 @@ object NativeLibrary {
      */
     external fun onTouchReleased(finger_id: Int)
 
-    external fun initGameIni(gameID: String?)
-
     external fun setAppDirectory(directory: String)
 
     /**
@@ -240,6 +238,8 @@ object NativeLibrary {
      * @param extension Lowercase string representation of file extension without "."
      */
     external fun installFileToNand(filename: String, extension: String): Int
+
+    external fun doesUpdateMatchProgram(programId: String, updatePath: String): Boolean
 
     external fun initializeGpuDriver(
         hookLibDir: String?,
@@ -252,17 +252,10 @@ object NativeLibrary {
 
     external fun initializeSystem(reload: Boolean)
 
-    external fun defaultCPUCore(): Int
-
     /**
      * Begins emulation.
      */
     external fun run(path: String?)
-
-    /**
-     * Begins emulation from the specified savestate.
-     */
-    external fun run(path: String?, savestatePath: String?, deleteSavestate: Boolean)
 
     // Surface Handling
     external fun surfaceChanged(surf: Surface?)
@@ -304,10 +297,9 @@ object NativeLibrary {
      */
     external fun getCpuBackend(): String
 
-    /**
-     * Notifies the core emulation that the orientation has changed.
-     */
-    external fun notifyOrientationChange(layout_option: Int, rotation: Int)
+    external fun applySettings()
+
+    external fun logSettings()
 
     enum class CoreError {
         ErrorSystemFiles,
@@ -537,6 +529,35 @@ object NativeLibrary {
      * @return 'true' if firmware is available
      */
     external fun isFirmwareAvailable(): Boolean
+
+    /**
+     * Checks the PatchManager for any addons that are available
+     *
+     * @param path Path to game file. Can be a [Uri].
+     * @param programId String representation of a game's program ID
+     * @return Array of pairs where the first value is the name of an addon and the second is the version
+     */
+    external fun getAddonsForFile(path: String, programId: String): Array<Pair<String, String>>?
+
+    /**
+     * Gets the save location for a specific game
+     *
+     * @param programId String representation of a game's program ID
+     * @return Save data path that may not exist yet
+     */
+    external fun getSavePath(programId: String): String
+
+    /**
+     * Adds a file to the manual filesystem provider in our EmulationSession instance
+     * @param path Path to the file we're adding. Can be a string representation of a [Uri] or
+     * a normal path
+     */
+    external fun addFileToFilesystemProvider(path: String)
+
+    /**
+     * Clears all files added to the manual filesystem provider in our EmulationSession instance
+     */
+    external fun clearFilesystemProvider()
 
     /**
      * Button type for use in onTouchEvent

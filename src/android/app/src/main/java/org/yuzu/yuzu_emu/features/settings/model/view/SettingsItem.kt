@@ -11,8 +11,8 @@ import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.ByteSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.LongSetting
-import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.ShortSetting
+import org.yuzu.yuzu_emu.utils.NativeConfig
 
 /**
  * ViewModel abstraction for an Item in the RecyclerView powering SettingsFragments.
@@ -30,9 +30,25 @@ abstract class SettingsItem(
 
     val isEditable: Boolean
         get() {
+            // Can't edit settings that aren't saveable in per-game config even if they are switchable
+            if (NativeConfig.isPerGameConfigLoaded() && !setting.isSaveable) {
+                return false
+            }
+
             if (!NativeLibrary.isRunning()) return true
+
+            // Prevent editing settings that were modified in per-game config while editing global
+            // config
+            if (!NativeConfig.isPerGameConfigLoaded() && !setting.global) {
+                return false
+            }
+
             return setting.isRuntimeModifiable
         }
+
+    val needsRuntimeGlobal: Boolean
+        get() = NativeLibrary.isRunning() && !setting.global &&
+            !NativeConfig.isPerGameConfigLoaded()
 
     companion object {
         const val TYPE_HEADER = 0
@@ -48,8 +64,9 @@ abstract class SettingsItem(
 
         val emptySetting = object : AbstractSetting {
             override val key: String = ""
-            override val category: Settings.Category = Settings.Category.Ui
             override val defaultValue: Any = false
+            override val isSaveable = true
+            override fun getValueAsString(needsGlobal: Boolean): String = ""
             override fun reset() {}
         }
 
@@ -270,9 +287,9 @@ abstract class SettingsItem(
             )
 
             val fastmem = object : AbstractBooleanSetting {
-                override val boolean: Boolean
-                    get() =
-                        BooleanSetting.FASTMEM.boolean && BooleanSetting.FASTMEM_EXCLUSIVES.boolean
+                override fun getBoolean(needsGlobal: Boolean): Boolean =
+                    BooleanSetting.FASTMEM.getBoolean() &&
+                        BooleanSetting.FASTMEM_EXCLUSIVES.getBoolean()
 
                 override fun setBoolean(value: Boolean) {
                     BooleanSetting.FASTMEM.setBoolean(value)
@@ -280,9 +297,24 @@ abstract class SettingsItem(
                 }
 
                 override val key: String = FASTMEM_COMBINED
-                override val category = Settings.Category.Cpu
                 override val isRuntimeModifiable: Boolean = false
                 override val defaultValue: Boolean = true
+                override val isSwitchable: Boolean = true
+                override var global: Boolean
+                    get() {
+                        return BooleanSetting.FASTMEM.global &&
+                            BooleanSetting.FASTMEM_EXCLUSIVES.global
+                    }
+                    set(value) {
+                        BooleanSetting.FASTMEM.global = value
+                        BooleanSetting.FASTMEM_EXCLUSIVES.global = value
+                    }
+
+                override val isSaveable = true
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    getBoolean().toString()
+
                 override fun reset() = setBoolean(defaultValue)
             }
             put(SwitchSetting(fastmem, R.string.fastmem, 0))

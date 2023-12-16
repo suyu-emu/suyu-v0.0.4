@@ -12,7 +12,6 @@ class DateTimeSetting(
 ) : SettingsItem(longSetting, titleId, descriptionId) {
     override val type = TYPE_DATETIME_SETTING
 
-    var value: Long
-        get() = longSetting.long
-        set(value) = (setting as AbstractLongSetting).setLong(value)
+    fun getValue(needsGlobal: Boolean = false): Long = longSetting.getLong(needsGlobal)
+    fun setValue(value: Long) = (setting as AbstractLongSetting).setLong(value)
 }

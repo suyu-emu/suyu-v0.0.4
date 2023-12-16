@@ -70,7 +70,7 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                 sliderBinding = DialogSliderBinding.inflate(layoutInflater)
                 val item = settingsViewModel.clickedItem as SliderSetting
 
-                settingsViewModel.setSliderTextValue(item.selectedValue.toFloat(), item.units)
+                settingsViewModel.setSliderTextValue(item.getSelectedValue().toFloat(), item.units)
                 sliderBinding.slider.apply {
                     valueFrom = item.min.toFloat()
                     valueTo = item.max.toFloat()
@@ -136,18 +136,18 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
             is SingleChoiceSetting -> {
                 val scSetting = settingsViewModel.clickedItem as SingleChoiceSetting
                 val value = getValueForSingleChoiceSelection(scSetting, which)
-                scSetting.selectedValue = value
+                scSetting.setSelectedValue(value)
             }
 
             is StringSingleChoiceSetting -> {
                 val scSetting = settingsViewModel.clickedItem as StringSingleChoiceSetting
                 val value = scSetting.getValueAt(which)
-                scSetting.selectedValue = value
+                scSetting.setSelectedValue(value)
             }
 
             is SliderSetting -> {
                 val sliderSetting = settingsViewModel.clickedItem as SliderSetting
-                sliderSetting.selectedValue = settingsViewModel.sliderProgress.value
+                sliderSetting.setSelectedValue(settingsViewModel.sliderProgress.value)
             }
         }
         closeDialog()
@@ -171,7 +171,7 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
     }
 
     private fun getSelectionForSingleChoiceValue(item: SingleChoiceSetting): Int {
-        val value = item.selectedValue
+        val value = item.getSelectedValue()
         val valuesId = item.valuesId
         if (valuesId > 0) {
             val valuesArray = requireContext().resources.getIntArray(valuesId)
@@ -211,7 +211,7 @@ class SettingsDialogFragment : DialogFragment(), DialogInterface.OnClickListener
                     throw IllegalArgumentException("[SettingsDialogFragment] Incompatible type!")
 
                 SettingsItem.TYPE_SLIDER -> settingsViewModel.setSliderProgress(
-                    (clickedItem as SliderSetting).selectedValue.toFloat()
+                    (clickedItem as SliderSetting).getSelectedValue().toFloat()
                 )
             }
             settingsViewModel.clickedItem = clickedItem

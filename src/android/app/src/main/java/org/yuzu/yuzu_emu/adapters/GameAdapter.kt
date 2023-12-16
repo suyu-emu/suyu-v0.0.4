@@ -44,19 +44,20 @@ import org.yuzu.yuzu_emu.utils.GameIconUtils
 
 class GameAdapter(private val activity: AppCompatActivity) :
     ListAdapter<Game, GameViewHolder>(AsyncDifferConfig.Builder(DiffCallback()).build()),
-    View.OnClickListener {
+    View.OnClickListener,
+    View.OnLongClickListener {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameViewHolder {
         // Create a new view.
         val binding = CardGameBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         binding.cardGame.setOnClickListener(this)
+        binding.cardGame.setOnLongClickListener(this)
 
         // Use that view to create a ViewHolder.
         return GameViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: GameViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: GameViewHolder, position: Int) =
         holder.bind(currentList[position])
-    }
 
     override fun getItemCount(): Int = currentList.size
 
@@ -125,8 +126,15 @@ class GameAdapter(private val activity: AppCompatActivity) :
             }
         }
 
-        val action = HomeNavigationDirections.actionGlobalEmulationActivity(holder.game)
+        val action = HomeNavigationDirections.actionGlobalEmulationActivity(holder.game, true)
         view.findNavController().navigate(action)
+    }
+
+    override fun onLongClick(view: View): Boolean {
+        val holder = view.tag as GameViewHolder
+        val action = HomeNavigationDirections.actionGlobalPerGamePropertiesFragment(holder.game)
+        view.findNavController().navigate(action)
+        return true
     }
 
     inner class GameViewHolder(val binding: CardGameBinding) :
@@ -157,7 +165,7 @@ class GameAdapter(private val activity: AppCompatActivity) :
 
     private class DiffCallback : DiffUtil.ItemCallback<Game>() {
         override fun areItemsTheSame(oldItem: Game, newItem: Game): Boolean {
-            return oldItem.programId == newItem.programId
+            return oldItem == newItem
         }
 
         override fun areContentsTheSame(oldItem: Game, newItem: Game): Boolean {

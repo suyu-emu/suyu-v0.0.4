@@ -27,30 +27,31 @@ class MessageDialogFragment : DialogFragment() {
         val descriptionString = requireArguments().getString(DESCRIPTION_STRING)!!
         val helpLinkId = requireArguments().getInt(HELP_LINK)
 
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setPositiveButton(R.string.close, null)
+        val builder = MaterialAlertDialogBuilder(requireContext())
 
-        if (titleId != 0) dialog.setTitle(titleId)
-        if (titleString.isNotEmpty()) dialog.setTitle(titleString)
+        if (messageDialogViewModel.positiveAction == null) {
+            builder.setPositiveButton(R.string.close, null)
+        } else {
+            builder.setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
+                messageDialogViewModel.positiveAction?.invoke()
+            }.setNegativeButton(android.R.string.cancel, null)
+        }
+
+        if (titleId != 0) builder.setTitle(titleId)
+        if (titleString.isNotEmpty()) builder.setTitle(titleString)
 
         if (descriptionId != 0) {
-            dialog.setMessage(Html.fromHtml(getString(descriptionId), Html.FROM_HTML_MODE_LEGACY))
+            builder.setMessage(Html.fromHtml(getString(descriptionId), Html.FROM_HTML_MODE_LEGACY))
         }
-        if (descriptionString.isNotEmpty()) dialog.setMessage(descriptionString)
+        if (descriptionString.isNotEmpty()) builder.setMessage(descriptionString)
 
         if (helpLinkId != 0) {
-            dialog.setNeutralButton(R.string.learn_more) { _, _ ->
+            builder.setNeutralButton(R.string.learn_more) { _, _ ->
                 openLink(getString(helpLinkId))
             }
         }
 
-        return dialog.show()
-    }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-        messageDialogViewModel.dismissAction.invoke()
-        messageDialogViewModel.clear()
+        return builder.show()
     }
 
     private fun openLink(link: String) {
@@ -74,7 +75,7 @@ class MessageDialogFragment : DialogFragment() {
             descriptionId: Int = 0,
             descriptionString: String = "",
             helpLinkId: Int = 0,
-            dismissAction: () -> Unit = {}
+            positiveAction: (() -> Unit)? = null
         ): MessageDialogFragment {
             val dialog = MessageDialogFragment()
             val bundle = Bundle()
@@ -85,8 +86,10 @@ class MessageDialogFragment : DialogFragment() {
                 putString(DESCRIPTION_STRING, descriptionString)
                 putInt(HELP_LINK, helpLinkId)
             }
-            ViewModelProvider(activity)[MessageDialogViewModel::class.java].dismissAction =
-                dismissAction
+            ViewModelProvider(activity)[MessageDialogViewModel::class.java].apply {
+                clear()
+                this.positiveAction = positiveAction
+            }
             dialog.arguments = bundle
             return dialog
         }

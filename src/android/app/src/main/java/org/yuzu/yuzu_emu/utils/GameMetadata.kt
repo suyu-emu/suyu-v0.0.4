@@ -4,13 +4,15 @@
 package org.yuzu.yuzu_emu.utils
 
 object GameMetadata {
+    external fun getIsValid(path: String): Boolean
+
     external fun getTitle(path: String): String
 
     external fun getProgramId(path: String): String
 
     external fun getDeveloper(path: String): String
 
-    external fun getVersion(path: String): String
+    external fun getVersion(path: String, reload: Boolean): String
 
     external fun getIcon(path: String): ByteArray
 

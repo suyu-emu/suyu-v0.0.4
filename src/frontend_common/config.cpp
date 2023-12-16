@@ -214,6 +214,7 @@ void Config::ReadControlValues() {
 }
 
 void Config::ReadMotionTouchValues() {
+    Settings::values.touch_from_button_maps.clear();
     int num_touch_from_button_maps = BeginArray(std::string("touch_from_button_maps"));
 
     if (num_touch_from_button_maps > 0) {

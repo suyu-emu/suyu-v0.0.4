@@ -23,7 +23,7 @@ class TaskViewModel : ViewModel() {
     val cancelled: StateFlow<Boolean> get() = _cancelled
     private val _cancelled = MutableStateFlow(false)
 
-    lateinit var task: () -> Any
+    lateinit var task: suspend () -> Any
 
     fun clear() {
         _result.value = Any()

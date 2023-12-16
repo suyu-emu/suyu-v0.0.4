@@ -6,62 +6,11 @@ package org.yuzu.yuzu_emu.features.settings.model
 import org.yuzu.yuzu_emu.R
 
 object Settings {
-    enum class Category {
-        Android,
-        Audio,
-        Core,
-        Cpu,
-        CpuDebug,
-        CpuUnsafe,
-        Renderer,
-        RendererAdvanced,
-        RendererDebug,
-        System,
-        SystemAudio,
-        DataStorage,
-        Debugging,
-        DebuggingGraphics,
-        Miscellaneous,
-        Network,
-        WebService,
-        AddOns,
-        Controls,
-        Ui,
-        UiGeneral,
-        UiLayout,
-        UiGameList,
-        Screenshots,
-        Shortcuts,
-        Multiplayer,
-        Services,
-        Paths,
-        MaxEnum
-    }
-
-    val settingsList = listOf<AbstractSetting>(
-        *BooleanSetting.values(),
-        *ByteSetting.values(),
-        *ShortSetting.values(),
-        *IntSetting.values(),
-        *FloatSetting.values(),
-        *LongSetting.values(),
-        *StringSetting.values()
-    )
-
-    const val SECTION_GENERAL = "General"
-    const val SECTION_SYSTEM = "System"
-    const val SECTION_RENDERER = "Renderer"
-    const val SECTION_AUDIO = "Audio"
-    const val SECTION_CPU = "Cpu"
-    const val SECTION_THEME = "Theme"
-    const val SECTION_DEBUG = "Debug"
-
     enum class MenuTag(val titleId: Int) {
         SECTION_ROOT(R.string.advanced_settings),
         SECTION_SYSTEM(R.string.preferences_system),
         SECTION_RENDERER(R.string.preferences_graphics),
         SECTION_AUDIO(R.string.preferences_audio),
-        SECTION_CPU(R.string.cpu),
         SECTION_THEME(R.string.preferences_theme),
         SECTION_DEBUG(R.string.preferences_debug);
     }

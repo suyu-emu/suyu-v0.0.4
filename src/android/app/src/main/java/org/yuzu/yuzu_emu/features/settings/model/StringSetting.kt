@@ -5,22 +5,21 @@ package org.yuzu.yuzu_emu.features.settings.model
 
 import org.yuzu.yuzu_emu.utils.NativeConfig
 
-enum class StringSetting(
-    override val key: String,
-    override val category: Settings.Category
-) : AbstractStringSetting {
-    // No string settings currently exist
-    EMPTY_SETTING("", Settings.Category.UiGeneral);
+enum class StringSetting(override val key: String) : AbstractStringSetting {
+    DRIVER_PATH("driver_path");
 
-    override val string: String
-        get() = NativeConfig.getString(key, false)
+    override fun getString(needsGlobal: Boolean): String = NativeConfig.getString(key, needsGlobal)
 
-    override fun setString(value: String) = NativeConfig.setString(key, value)
+    override fun setString(value: String) {
+        if (NativeConfig.isPerGameConfigLoaded()) {
+            global = false
+        }
+        NativeConfig.setString(key, value)
+    }
 
-    override val defaultValue: String by lazy { NativeConfig.getString(key, true) }
+    override val defaultValue: String by lazy { NativeConfig.getDefaultToString(key) }
 
-    override val valueAsString: String
-        get() = string
+    override fun getValueAsString(needsGlobal: Boolean): String = getString(needsGlobal)
 
     override fun reset() = NativeConfig.setString(key, defaultValue)
 }

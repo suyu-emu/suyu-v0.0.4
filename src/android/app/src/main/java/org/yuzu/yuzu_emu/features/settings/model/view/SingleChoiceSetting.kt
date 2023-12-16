@@ -15,16 +15,11 @@ class SingleChoiceSetting(
 ) : SettingsItem(setting, titleId, descriptionId) {
     override val type = TYPE_SINGLE_CHOICE
 
-    var selectedValue: Int
-        get() {
-            return when (setting) {
-                is AbstractIntSetting -> setting.int
-                else -> -1
-            }
+    fun getSelectedValue(needsGlobal: Boolean = false) =
+        when (setting) {
+            is AbstractIntSetting -> setting.getInt(needsGlobal)
+            else -> -1
         }
-        set(value) {
-            when (setting) {
-                is AbstractIntSetting -> setting.setInt(value)
-            }
-        }
+
+    fun setSelectedValue(value: Int) = (setting as AbstractIntSetting).setInt(value)
 }

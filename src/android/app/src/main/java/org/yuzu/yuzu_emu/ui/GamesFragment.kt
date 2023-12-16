@@ -19,7 +19,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.color.MaterialColors
-import com.google.android.material.transition.MaterialFadeThrough
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.adapters.GameAdapter
@@ -35,11 +35,6 @@ class GamesFragment : Fragment() {
     private val gamesViewModel: GamesViewModel by activityViewModels()
     private val homeViewModel: HomeViewModel by activityViewModels()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enterTransition = MaterialFadeThrough()
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -52,7 +47,9 @@ class GamesFragment : Fragment() {
     // This is using the correct scope, lint is just acting up
     @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        homeViewModel.setNavigationVisibility(visible = true, animated = false)
+        super.onViewCreated(view, savedInstanceState)
+        homeViewModel.setNavigationVisibility(visible = true, animated = true)
+        homeViewModel.setStatusBarShadeVisibility(true)
 
         binding.gridGames.apply {
             layoutManager = AutofitGridLayoutManager(
@@ -99,7 +96,7 @@ class GamesFragment : Fragment() {
             }
             launch {
                 repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    gamesViewModel.games.collect {
+                    gamesViewModel.games.collectLatest {
                         (binding.gridGames.adapter as GameAdapter).submitList(it)
                         if (it.isEmpty()) {
                             binding.noticeText.visibility = View.VISIBLE

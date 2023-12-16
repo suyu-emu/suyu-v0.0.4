@@ -7,18 +7,25 @@ import org.yuzu.yuzu_emu.utils.NativeConfig
 
 interface AbstractSetting {
     val key: String
-    val category: Settings.Category
     val defaultValue: Any
-    val androidDefault: Any?
-        get() = null
-    val valueAsString: String
-        get() = ""
 
     val isRuntimeModifiable: Boolean
         get() = NativeConfig.getIsRuntimeModifiable(key)
 
     val pairedSettingKey: String
         get() = NativeConfig.getPairedSettingKey(key)
+
+    val isSwitchable: Boolean
+        get() = NativeConfig.getIsSwitchable(key)
+
+    var global: Boolean
+        get() = NativeConfig.usingGlobal(key)
+        set(value) = NativeConfig.setGlobal(key, value)
+
+    val isSaveable: Boolean
+        get() = NativeConfig.getIsSaveable(key)
+
+    fun getValueAsString(needsGlobal: Boolean = false): String
 
     fun reset()
 }
