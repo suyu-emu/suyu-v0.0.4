@@ -256,11 +256,13 @@
 
     <string-array name="outputEngineEntries">
         <item>@string/auto</item>
+        <item>@string/oboe</item>
         <item>@string/cubeb</item>
         <item>@string/string_null</item>
     </string-array>
     <integer-array name="outputEngineValues">
         <item>0</item>
+        <item>4</item>
         <item>1</item>
         <item>3</item>
     </integer-array>
