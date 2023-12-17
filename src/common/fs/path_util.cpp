@@ -418,9 +418,9 @@ std::string SanitizePath(std::string_view path_, DirectorySeparator directory_se
     return std::string(RemoveTrailingSlash(path));
 }
 
-std::string_view GetParentPath(std::string_view path) {
+std::string GetParentPath(std::string_view path) {
     if (path.empty()) {
-        return path;
+        return std::string(path);
     }
 
 #ifdef ANDROID
@@ -439,7 +439,7 @@ std::string_view GetParentPath(std::string_view path) {
         name_index = std::max(name_bck_index, name_fwd_index);
     }
 
-    return path.substr(0, name_index);
+    return std::string(path.substr(0, name_index));
 }
 
 std::string_view GetPathWithoutTop(std::string_view path) {

@@ -302,7 +302,7 @@ enum class DirectorySeparator {
     DirectorySeparator directory_separator = DirectorySeparator::ForwardSlash);
 
 // Gets all of the text up to the last '/' or '\' in the path.
-[[nodiscard]] std::string_view GetParentPath(std::string_view path);
+[[nodiscard]] std::string GetParentPath(std::string_view path);
 
 // Gets all of the text after the first '/' or '\' in the path.
 [[nodiscard]] std::string_view GetPathWithoutTop(std::string_view path);
