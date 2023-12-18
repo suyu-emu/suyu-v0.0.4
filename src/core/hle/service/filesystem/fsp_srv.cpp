@@ -259,7 +259,7 @@ static void BuildEntryIndex(std::vector<FileSys::Entry>& entries, const std::vec
 
 class IDirectory final : public ServiceFramework<IDirectory> {
 public:
-    explicit IDirectory(Core::System& system_, FileSys::VirtualDir backend_)
+    explicit IDirectory(Core::System& system_, FileSys::VirtualDir backend_, OpenDirectoryMode mode)
         : ServiceFramework{system_, "IDirectory"}, backend(std::move(backend_)) {
         static const FunctionInfo functions[] = {
             {0, &IDirectory::Read, "Read"},
@@ -269,8 +269,12 @@ public:
 
         // TODO(DarkLordZach): Verify that this is the correct behavior.
         // Build entry index now to save time later.
-        BuildEntryIndex(entries, backend->GetFiles(), FileSys::EntryType::File);
-        BuildEntryIndex(entries, backend->GetSubdirectories(), FileSys::EntryType::Directory);
+        if (True(mode & OpenDirectoryMode::Directory)) {
+            BuildEntryIndex(entries, backend->GetSubdirectories(), FileSys::EntryType::Directory);
+        }
+        if (True(mode & OpenDirectoryMode::File)) {
+            BuildEntryIndex(entries, backend->GetFiles(), FileSys::EntryType::File);
+        }
     }
 
 private:
@@ -446,11 +450,9 @@ public:
 
         const auto file_buffer = ctx.ReadBuffer();
         const std::string name = Common::StringFromBuffer(file_buffer);
+        const auto mode = rp.PopRaw<OpenDirectoryMode>();
 
-        // TODO(Subv): Implement this filter.
-        const u32 filter_flags = rp.Pop<u32>();
-
-        LOG_DEBUG(Service_FS, "called. directory={}, filter={}", name, filter_flags);
+        LOG_DEBUG(Service_FS, "called. directory={}, mode={}", name, mode);
 
         FileSys::VirtualDir vfs_dir{};
         auto result = backend.OpenDirectory(&vfs_dir, name);
@@ -460,7 +462,7 @@ public:
             return;
         }
 
-        auto directory = std::make_shared<IDirectory>(system, vfs_dir);
+        auto directory = std::make_shared<IDirectory>(system, vfs_dir, mode);
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
