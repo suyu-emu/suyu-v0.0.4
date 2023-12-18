@@ -29,7 +29,7 @@ public:
     }
 
     ~OboeSinkStream() override {
-        LOG_DEBUG(Audio_Sink, "Destructing Oboe stream {}", name);
+        LOG_INFO(Audio_Sink, "Destroyed Oboe stream");
     }
 
     void Finalize() override {
@@ -66,12 +66,7 @@ public:
         std::shared_ptr<oboe::AudioStream> temp_stream;
         oboe::AudioStreamBuilder builder;
 
-        const auto result = builder.setDirection(direction)
-                                ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
-                                ->setSampleRate(TargetSampleRate)
-                                ->setFormat(oboe::AudioFormat::I16)
-                                ->setFormatConversionAllowed(true)
-                                ->openStream(temp_stream);
+        const auto result = ConfigureBuilder(builder, direction)->openStream(temp_stream);
         ASSERT(result == oboe::Result::OK);
 
         return temp_stream->getChannelCount() >= 6 ? 6 : 2;
@@ -106,6 +101,20 @@ protected:
     }
 
 private:
+    static oboe::AudioStreamBuilder* ConfigureBuilder(oboe::AudioStreamBuilder& builder,
+                                                      oboe::Direction direction) {
+        // TODO: investigate callback delay issues when using AAudio
+        return builder.setPerformanceMode(oboe::PerformanceMode::LowLatency)
+            ->setAudioApi(oboe::AudioApi::OpenSLES)
+            ->setDirection(direction)
+            ->setSampleRate(TargetSampleRate)
+            ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::High)
+            ->setFormat(oboe::AudioFormat::I16)
+            ->setFormatConversionAllowed(true)
+            ->setUsage(oboe::Usage::Game)
+            ->setBufferCapacityInFrames(TargetSampleCount * 2);
+    }
+
     bool OpenStream() {
         const auto direction = [&]() {
             switch (type) {
@@ -136,13 +145,10 @@ private:
         }();
 
         oboe::AudioStreamBuilder builder;
-        const auto result = builder.setDirection(direction)
-                                ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
-                                ->setSampleRate(TargetSampleRate)
+        const auto result = ConfigureBuilder(builder, direction)
                                 ->setChannelCount(expected_channels)
                                 ->setChannelMask(expected_mask)
-                                ->setFormat(oboe::AudioFormat::I16)
-                                ->setFormatConversionAllowed(true)
+                                ->setChannelConversionAllowed(true)
                                 ->setDataCallback(this)
                                 ->setErrorCallback(this)
                                 ->openStream(m_stream);
@@ -153,8 +159,16 @@ private:
     bool SetStreamProperties() {
         ASSERT(m_stream);
 
+        m_stream->setBufferSizeInFrames(TargetSampleCount * 2);
         device_channels = m_stream->getChannelCount();
-        LOG_INFO(Audio_Sink, "Opened Oboe stream with {} channels", device_channels);
+
+        const auto sample_rate = m_stream->getSampleRate();
+        const auto buffer_capacity = m_stream->getBufferCapacityInFrames();
+        const auto stream_backend =
+            m_stream->getAudioApi() == oboe::AudioApi::AAudio ? "AAudio" : "OpenSLES";
+
+        LOG_INFO(Audio_Sink, "Opened Oboe {} stream with {} channels sample rate {} capacity {}",
+                 stream_backend, device_channels, sample_rate, buffer_capacity);
 
         return true;
     }
