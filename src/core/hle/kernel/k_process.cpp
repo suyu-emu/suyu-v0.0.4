@@ -306,11 +306,15 @@ Result KProcess::Initialize(const Svc::CreateProcessParameter& params, const KPa
             False(params.flags & Svc::CreateProcessFlag::DisableDeviceAddressSpaceMerge);
         R_TRY(m_page_table.Initialize(as_type, enable_aslr, enable_das_merge, !enable_aslr, pool,
                                       params.code_address, params.code_num_pages * PageSize,
-                                      m_system_resource, res_limit, this->GetMemory(), 0));
+                                      m_system_resource, res_limit, m_memory, 0));
     }
     ON_RESULT_FAILURE_2 {
         m_page_table.Finalize();
     };
+
+    // Ensure our memory is initialized.
+    m_memory.SetCurrentPageTable(*this);
+    m_memory.SetGPUDirtyManagers(m_dirty_memory_managers);
 
     // Ensure we can insert the code region.
     R_UNLESS(m_page_table.CanContain(params.code_address, params.code_num_pages * PageSize,
@@ -399,11 +403,15 @@ Result KProcess::Initialize(const Svc::CreateProcessParameter& params,
             False(params.flags & Svc::CreateProcessFlag::DisableDeviceAddressSpaceMerge);
         R_TRY(m_page_table.Initialize(as_type, enable_aslr, enable_das_merge, !enable_aslr, pool,
                                       params.code_address, code_size, m_system_resource, res_limit,
-                                      this->GetMemory(), aslr_space_start));
+                                      m_memory, aslr_space_start));
     }
     ON_RESULT_FAILURE_2 {
         m_page_table.Finalize();
     };
+
+    // Ensure our memory is initialized.
+    m_memory.SetCurrentPageTable(*this);
+    m_memory.SetGPUDirtyManagers(m_dirty_memory_managers);
 
     // Ensure we can insert the code region.
     R_UNLESS(m_page_table.CanContain(params.code_address, code_size, KMemoryState::Code),
@@ -1094,8 +1102,7 @@ void KProcess::UnpinThread(KThread* thread) {
 
 Result KProcess::GetThreadList(s32* out_num_threads, KProcessAddress out_thread_ids,
                                s32 max_out_count) {
-    // TODO: use current memory reference
-    auto& memory = m_kernel.System().ApplicationMemory();
+    auto& memory = this->GetMemory();
 
     // Lock the list.
     KScopedLightLock lk(m_list_lock);
@@ -1128,15 +1135,15 @@ void KProcess::Switch(KProcess* cur_process, KProcess* next_process) {}
 KProcess::KProcess(KernelCore& kernel)
     : KAutoObjectWithSlabHeapAndContainer(kernel), m_page_table{kernel}, m_state_lock{kernel},
       m_list_lock{kernel}, m_cond_var{kernel.System()}, m_address_arbiter{kernel.System()},
-      m_handle_table{kernel}, m_dirty_memory_managers{}, m_exclusive_monitor{},
-      m_memory{kernel.System()} {}
+      m_handle_table{kernel}, m_dirty_memory_managers{},
+      m_exclusive_monitor{}, m_memory{kernel.System()} {}
 KProcess::~KProcess() = default;
 
 Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size,
                                   KProcessAddress aslr_space_start, bool is_hbl) {
     // Create a resource limit for the process.
-    const auto physical_memory_size =
-        m_kernel.MemoryManager().GetSize(Kernel::KMemoryManager::Pool::Application);
+    const auto pool = static_cast<KMemoryManager::Pool>(metadata.GetPoolPartition());
+    const auto physical_memory_size = m_kernel.MemoryManager().GetSize(pool);
     auto* res_limit =
         Kernel::CreateResourceLimitForProcess(m_kernel.System(), physical_memory_size);
 
@@ -1147,8 +1154,10 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
     Svc::CreateProcessFlag flag{};
     u64 code_address{};
 
-    // We are an application.
-    flag |= Svc::CreateProcessFlag::IsApplication;
+    // Determine if we are an application.
+    if (pool == KMemoryManager::Pool::Application) {
+        flag |= Svc::CreateProcessFlag::IsApplication;
+    }
 
     // If we are 64-bit, create as such.
     if (metadata.Is64BitProgram()) {
@@ -1197,8 +1206,8 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
     std::memcpy(params.name.data(), name.data(), sizeof(params.name));
 
     // Initialize for application process.
-    R_TRY(this->Initialize(params, metadata.GetKernelCapabilities(), res_limit,
-                           KMemoryManager::Pool::Application, aslr_space_start));
+    R_TRY(this->Initialize(params, metadata.GetKernelCapabilities(), res_limit, pool,
+                           aslr_space_start));
 
     // Assign remaining properties.
     m_is_hbl = is_hbl;
@@ -1238,9 +1247,6 @@ void KProcess::LoadModule(CodeSet code_set, KProcessAddress base_addr) {
 void KProcess::InitializeInterfaces() {
     m_exclusive_monitor =
         Core::MakeExclusiveMonitor(this->GetMemory(), Core::Hardware::NUM_CPU_CORES);
-
-    this->GetMemory().SetCurrentPageTable(*this);
-    this->GetMemory().SetGPUDirtyManagers(m_dirty_memory_managers);
 
 #ifdef HAS_NCE
     if (this->Is64Bit() && Settings::IsNceEnabled()) {

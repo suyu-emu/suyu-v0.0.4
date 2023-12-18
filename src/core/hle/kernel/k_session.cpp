@@ -33,8 +33,7 @@ void KSession::Initialize(KClientPort* client_port, uintptr_t name) {
     m_name = name;
 
     // Set our owner process.
-    //! FIXME: this is the wrong process!
-    m_process = m_kernel.ApplicationProcess();
+    m_process = GetCurrentProcessPointer(m_kernel);
     m_process->Open();
 
     // Set our port.

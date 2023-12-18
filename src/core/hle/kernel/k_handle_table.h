@@ -30,7 +30,7 @@ public:
 public:
     explicit KHandleTable(KernelCore& kernel) : m_kernel(kernel) {}
 
-    Result Initialize(s32 size) {
+    Result Initialize(KProcess* owner, s32 size) {
         // Check that the table size is valid.
         R_UNLESS(size <= static_cast<s32>(MaxTableSize), ResultOutOfMemory);
 
@@ -44,6 +44,7 @@ public:
         m_next_linear_id = MinLinearId;
         m_count = 0;
         m_free_head_index = -1;
+        m_owner = owner;
 
         // Free all entries.
         for (s32 i = 0; i < static_cast<s32>(m_table_size); ++i) {
@@ -90,8 +91,8 @@ public:
         // Handle pseudo-handles.
         if constexpr (std::derived_from<KProcess, T>) {
             if (handle == Svc::PseudoHandle::CurrentProcess) {
-                //! FIXME: this is the wrong process!
-                auto* const cur_process = m_kernel.ApplicationProcess();
+                // TODO: this should be the current process
+                auto* const cur_process = m_owner;
                 ASSERT(cur_process != nullptr);
                 return cur_process;
             }
@@ -301,6 +302,7 @@ private:
 
 private:
     KernelCore& m_kernel;
+    KProcess* m_owner{};
     std::array<EntryInfo, MaxTableSize> m_entry_infos{};
     std::array<KAutoObject*, MaxTableSize> m_objects{};
     mutable KSpinLock m_lock;

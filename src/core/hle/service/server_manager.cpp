@@ -47,7 +47,7 @@ ServerManager::~ServerManager() {
     m_stopped.Wait();
     m_threads.clear();
 
-    // Clean up ports.
+    // Clean up server ports.
     for (const auto& [port, handler] : m_ports) {
         port->Close();
     }
@@ -97,22 +97,15 @@ Result ServerManager::RegisterNamedService(const std::string& service_name,
                                            u32 max_sessions) {
     ASSERT(m_sessions.size() + m_ports.size() < MaximumWaitObjects);
 
-    // Add the new server to sm:.
-    ASSERT(R_SUCCEEDED(
-        m_system.ServiceManager().RegisterService(service_name, max_sessions, handler_factory)));
-
-    // Get the registered port.
-    Kernel::KPort* port{};
-    ASSERT(
-        R_SUCCEEDED(m_system.ServiceManager().GetServicePort(std::addressof(port), service_name)));
-
-    // Open a new reference to the server port.
-    port->GetServerPort().Open();
+    // Add the new server to sm: and get the moved server port.
+    Kernel::KServerPort* server_port{};
+    R_ASSERT(m_system.ServiceManager().RegisterService(std::addressof(server_port), service_name,
+                                                       max_sessions, handler_factory));
 
     // Begin tracking the server port.
     {
         std::scoped_lock ll{m_list_mutex};
-        m_ports.emplace(std::addressof(port->GetServerPort()), std::move(handler_factory));
+        m_ports.emplace(server_port, std::move(handler_factory));
     }
 
     // Signal the wakeup event.
