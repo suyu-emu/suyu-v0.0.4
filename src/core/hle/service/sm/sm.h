@@ -56,10 +56,10 @@ public:
     explicit ServiceManager(Kernel::KernelCore& kernel_);
     ~ServiceManager();
 
-    Result RegisterService(std::string name, u32 max_sessions,
-                           SessionRequestHandlerFactory handler_factory);
+    Result RegisterService(Kernel::KServerPort** out_server_port, std::string name,
+                           u32 max_sessions, SessionRequestHandlerFactory handler_factory);
     Result UnregisterService(const std::string& name);
-    Result GetServicePort(Kernel::KPort** out_port, const std::string& name);
+    Result GetServicePort(Kernel::KClientPort** out_client_port, const std::string& name);
 
     template <Common::DerivedFrom<SessionRequestHandler> T>
     std::shared_ptr<T> GetService(const std::string& service_name) const {
@@ -84,7 +84,7 @@ private:
     /// Map of registered services, retrieved using GetServicePort.
     std::mutex lock;
     std::unordered_map<std::string, SessionRequestHandlerFactory> registered_services;
-    std::unordered_map<std::string, Kernel::KPort*> service_ports;
+    std::unordered_map<std::string, Kernel::KClientPort*> service_ports;
 
     /// Kernel context
     Kernel::KernelCore& kernel;

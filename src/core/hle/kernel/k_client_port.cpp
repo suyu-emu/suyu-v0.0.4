@@ -58,9 +58,8 @@ Result KClientPort::CreateSession(KClientSession** out) {
     KSession* session{};
 
     // Reserve a new session from the resource limit.
-    //! FIXME: we are reserving this from the wrong resource limit!
     KScopedResourceReservation session_reservation(
-        m_kernel.ApplicationProcess()->GetResourceLimit(), LimitableResource::SessionCountMax);
+        GetCurrentProcessPointer(m_kernel)->GetResourceLimit(), LimitableResource::SessionCountMax);
     R_UNLESS(session_reservation.Succeeded(), ResultLimitReached);
 
     // Allocate a session normally.
