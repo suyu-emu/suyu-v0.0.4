@@ -359,7 +359,7 @@ private:
 
     void GetActiveChannelCount(HLERequestContext& ctx) {
         const auto& sink{system.AudioCore().GetOutputSink()};
-        u32 channel_count{sink.GetDeviceChannels()};
+        u32 channel_count{sink.GetSystemChannels()};
 
         LOG_DEBUG(Service_Audio, "(STUBBED) called. Channels={}", channel_count);
 

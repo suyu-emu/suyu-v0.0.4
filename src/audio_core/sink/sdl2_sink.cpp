@@ -168,8 +168,9 @@ SDLSink::SDLSink(std::string_view target_device_name) {
 
 SDLSink::~SDLSink() = default;
 
-SinkStream* SDLSink::AcquireSinkStream(Core::System& system, u32 system_channels,
+SinkStream* SDLSink::AcquireSinkStream(Core::System& system, u32 system_channels_,
                                        const std::string&, StreamType type) {
+    system_channels = system_channels_;
     SinkStreamPtr& stream = sink_streams.emplace_back(std::make_unique<SDLSinkStream>(
         device_channels, system_channels, output_device, input_device, type, system));
     return stream.get();
