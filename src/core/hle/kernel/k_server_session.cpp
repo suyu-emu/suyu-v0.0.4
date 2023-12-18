@@ -37,8 +37,6 @@ constexpr inline size_t ReceiveListDataSize =
 
 using ThreadQueueImplForKServerSessionRequest = KThreadQueue;
 
-static thread_local Common::ScratchBuffer<u8> temp_buffer;
-
 class ReceiveList {
 public:
     static constexpr int GetEntryCount(const MessageBuffer::MessageHeader& header) {
@@ -269,12 +267,20 @@ Result ProcessReceiveMessagePointerDescriptors(int& offset, int& pointer_key,
         R_UNLESS(recv_pointer != 0, ResultOutOfResource);
 
         // Perform the pointer data copy.
-        // TODO: KProcessPageTable::CopyMemoryFromHeapToHeapWithoutCheckDestination
-        // TODO: KProcessPageTable::CopyMemoryFromLinearToUser
-
-        temp_buffer.resize_destructive(recv_size);
-        src_page_table.GetMemory().ReadBlock(src_pointer, temp_buffer.data(), recv_size);
-        dst_page_table.GetMemory().WriteBlock(recv_pointer, temp_buffer.data(), recv_size);
+        if (dst_user) {
+            R_TRY(src_page_table.CopyMemoryFromHeapToHeapWithoutCheckDestination(
+                dst_page_table, recv_pointer, recv_size, KMemoryState::FlagReferenceCounted,
+                KMemoryState::FlagReferenceCounted,
+                KMemoryPermission::NotMapped | KMemoryPermission::KernelReadWrite,
+                KMemoryAttribute::Uncached | KMemoryAttribute::Locked, KMemoryAttribute::Locked,
+                src_pointer, KMemoryState::FlagLinearMapped, KMemoryState::FlagLinearMapped,
+                KMemoryPermission::UserRead, KMemoryAttribute::Uncached, KMemoryAttribute::None));
+        } else {
+            R_TRY(src_page_table.CopyMemoryFromLinearToUser(
+                recv_pointer, recv_size, src_pointer, KMemoryState::FlagLinearMapped,
+                KMemoryState::FlagLinearMapped, KMemoryPermission::UserRead,
+                KMemoryAttribute::Uncached, KMemoryAttribute::None));
+        }
     }
 
     // Set the output descriptor.
@@ -303,21 +309,22 @@ constexpr Result GetMapAliasMemoryState(KMemoryState& out,
     R_SUCCEED();
 }
 
-constexpr Result GetMapAliasTestStateAndAttributeMask(u32& out_state, u32& out_attr_mask,
+constexpr Result GetMapAliasTestStateAndAttributeMask(KMemoryState& out_state,
+                                                      KMemoryAttribute& out_attr_mask,
                                                       KMemoryState state) {
     switch (state) {
     case KMemoryState::Ipc:
-        out_state = static_cast<u32>(KMemoryState::FlagCanUseIpc);
-        out_attr_mask = static_cast<u32>(KMemoryAttribute::Uncached |
-                                         KMemoryAttribute::DeviceShared | KMemoryAttribute::Locked);
+        out_state = KMemoryState::FlagCanUseIpc;
+        out_attr_mask =
+            KMemoryAttribute::Uncached | KMemoryAttribute::DeviceShared | KMemoryAttribute::Locked;
         break;
     case KMemoryState::NonSecureIpc:
-        out_state = static_cast<u32>(KMemoryState::FlagCanUseNonSecureIpc);
-        out_attr_mask = static_cast<u32>(KMemoryAttribute::Uncached | KMemoryAttribute::Locked);
+        out_state = KMemoryState::FlagCanUseNonSecureIpc;
+        out_attr_mask = KMemoryAttribute::Uncached | KMemoryAttribute::Locked;
         break;
     case KMemoryState::NonDeviceIpc:
-        out_state = static_cast<u32>(KMemoryState::FlagCanUseNonDeviceIpc);
-        out_attr_mask = static_cast<u32>(KMemoryAttribute::Uncached | KMemoryAttribute::Locked);
+        out_state = KMemoryState::FlagCanUseNonDeviceIpc;
+        out_attr_mask = KMemoryAttribute::Uncached | KMemoryAttribute::Locked;
         break;
     default:
         R_THROW(ResultInvalidCombination);
@@ -708,13 +715,48 @@ Result ReceiveMessage(KernelCore& kernel, bool& recv_list_broken, uint64_t dst_m
         if (!dst_user && !src_user) {
             // Fast case is TLS -> TLS, do raw memcpy if we can.
             std::memcpy(dst_msg_ptr + offset, src_msg_ptr + offset, raw_size);
-        } else {
+        } else if (dst_user) {
+            // Determine how much fast size we can copy.
+            const size_t max_fast_size = std::min<size_t>(offset_words + raw_size, PageSize);
+            const size_t fast_size = max_fast_size - offset_words;
+
+            // Determine source state; if user buffer, we require heap, and otherwise only linear
+            // mapped (to enable tls use).
+            const auto src_state =
+                src_user ? KMemoryState::FlagReferenceCounted : KMemoryState::FlagLinearMapped;
+
+            // Determine the source permission. User buffer should be unmapped + read, TLS should be
+            // user readable.
+            const KMemoryPermission src_perm = static_cast<KMemoryPermission>(
+                src_user ? KMemoryPermission::NotMapped | KMemoryPermission::KernelRead
+                         : KMemoryPermission::UserRead);
+
+            // Perform the fast part of the copy.
+            R_TRY(src_page_table.CopyMemoryFromLinearToKernel(
+                dst_msg_ptr + offset, fast_size, src_message_buffer + offset_words, src_state,
+                src_state, src_perm, KMemoryAttribute::Uncached, KMemoryAttribute::None));
+
+            // If the fast part of the copy didn't get everything, perform the slow part of the
+            // copy.
+            if (fast_size < raw_size) {
+                R_TRY(src_page_table.CopyMemoryFromHeapToHeap(
+                    dst_page_table, dst_message_buffer + max_fast_size, raw_size - fast_size,
+                    KMemoryState::FlagReferenceCounted, KMemoryState::FlagReferenceCounted,
+                    KMemoryPermission::NotMapped | KMemoryPermission::KernelReadWrite,
+                    KMemoryAttribute::Uncached | KMemoryAttribute::Locked, KMemoryAttribute::Locked,
+                    src_message_buffer + max_fast_size, src_state, src_state, src_perm,
+                    KMemoryAttribute::Uncached, KMemoryAttribute::None));
+            }
+        } else /* if (src_user) */ {
+            // The source is a user buffer, so it should be unmapped + readable.
+            constexpr KMemoryPermission SourcePermission = static_cast<KMemoryPermission>(
+                KMemoryPermission::NotMapped | KMemoryPermission::KernelRead);
+
             // Copy the memory.
-            temp_buffer.resize_destructive(raw_size);
-            src_page_table.GetMemory().ReadBlock(src_message_buffer + offset_words,
-                                                 temp_buffer.data(), raw_size);
-            dst_page_table.GetMemory().WriteBlock(dst_message_buffer + offset_words,
-                                                  temp_buffer.data(), raw_size);
+            R_TRY(src_page_table.CopyMemoryFromLinearToUser(
+                dst_message_buffer + offset_words, raw_size, src_message_buffer + offset_words,
+                KMemoryState::FlagReferenceCounted, KMemoryState::FlagReferenceCounted,
+                SourcePermission, KMemoryAttribute::Uncached, KMemoryAttribute::None));
         }
     }
 
@@ -731,8 +773,8 @@ Result ProcessSendMessageReceiveMapping(KProcessPageTable& src_page_table,
     R_SUCCEED_IF(size == 0);
 
     // Get the memory state and attribute mask to test.
-    u32 test_state;
-    u32 test_attr_mask;
+    KMemoryState test_state;
+    KMemoryAttribute test_attr_mask;
     R_TRY(GetMapAliasTestStateAndAttributeMask(test_state, test_attr_mask, src_state));
 
     // Determine buffer extents.
@@ -749,18 +791,18 @@ Result ProcessSendMessageReceiveMapping(KProcessPageTable& src_page_table,
     if (aligned_dst_start != mapping_dst_start) {
         ASSERT(client_address < mapping_dst_start);
         const size_t copy_size = std::min<size_t>(size, mapping_dst_start - client_address);
-        temp_buffer.resize_destructive(copy_size);
-        src_page_table.GetMemory().ReadBlock(client_address, temp_buffer.data(), copy_size);
-        dst_page_table.GetMemory().WriteBlock(server_address, temp_buffer.data(), copy_size);
+        R_TRY(dst_page_table.CopyMemoryFromUserToLinear(
+            client_address, copy_size, test_state, test_state, KMemoryPermission::UserReadWrite,
+            test_attr_mask, KMemoryAttribute::None, server_address));
     }
 
     // If the end of the buffer is unaligned, handle that.
     if (mapping_dst_end < aligned_dst_end &&
         (aligned_dst_start == mapping_dst_start || aligned_dst_start < mapping_dst_end)) {
         const size_t copy_size = client_address + size - mapping_dst_end;
-        temp_buffer.resize_destructive(copy_size);
-        src_page_table.GetMemory().ReadBlock(mapping_src_end, temp_buffer.data(), copy_size);
-        dst_page_table.GetMemory().WriteBlock(mapping_dst_end, temp_buffer.data(), copy_size);
+        R_TRY(dst_page_table.CopyMemoryFromUserToLinear(
+            mapping_dst_end, copy_size, test_state, test_state, KMemoryPermission::UserReadWrite,
+            test_attr_mask, KMemoryAttribute::None, mapping_src_end));
     }
 
     R_SUCCEED();
@@ -796,9 +838,15 @@ Result ProcessSendMessagePointerDescriptors(int& offset, int& pointer_key,
         R_UNLESS(recv_pointer != 0, ResultOutOfResource);
 
         // Perform the pointer data copy.
-        temp_buffer.resize_destructive(recv_size);
-        src_page_table.GetMemory().ReadBlock(src_pointer, temp_buffer.data(), recv_size);
-        dst_page_table.GetMemory().WriteBlock(recv_pointer, temp_buffer.data(), recv_size);
+        const bool dst_heap = dst_user && dst_recv_list.IsToMessageBuffer();
+        const auto dst_state =
+            dst_heap ? KMemoryState::FlagReferenceCounted : KMemoryState::FlagLinearMapped;
+        const KMemoryPermission dst_perm =
+            dst_heap ? KMemoryPermission::NotMapped | KMemoryPermission::KernelReadWrite
+                     : KMemoryPermission::UserReadWrite;
+        R_TRY(dst_page_table.CopyMemoryFromUserToLinear(
+            recv_pointer, recv_size, dst_state, dst_state, dst_perm, KMemoryAttribute::Uncached,
+            KMemoryAttribute::None, src_pointer));
     }
 
     // Set the output descriptor.
@@ -964,13 +1012,50 @@ Result SendMessage(KernelCore& kernel, uint64_t src_message_buffer, size_t src_b
             if (!dst_user && !src_user) {
                 // Fast case is TLS -> TLS, do raw memcpy if we can.
                 std::memcpy(dst_msg_ptr + offset, src_msg_ptr + offset, raw_size);
-            } else {
+            } else if (src_user) {
+                // Determine how much fast size we can copy.
+                const size_t max_fast_size = std::min<size_t>(offset_words + raw_size, PageSize);
+                const size_t fast_size = max_fast_size - offset_words;
+
+                // Determine dst state; if user buffer, we require heap, and otherwise only linear
+                // mapped (to enable tls use).
+                const auto dst_state =
+                    dst_user ? KMemoryState::FlagReferenceCounted : KMemoryState::FlagLinearMapped;
+
+                // Determine the dst permission. User buffer should be unmapped + read, TLS should
+                // be user readable.
+                const KMemoryPermission dst_perm =
+                    dst_user ? KMemoryPermission::NotMapped | KMemoryPermission::KernelReadWrite
+                             : KMemoryPermission::UserReadWrite;
+
+                // Perform the fast part of the copy.
+                R_TRY(dst_page_table.CopyMemoryFromKernelToLinear(
+                    dst_message_buffer + offset_words, fast_size, dst_state, dst_state, dst_perm,
+                    KMemoryAttribute::Uncached, KMemoryAttribute::None, src_msg_ptr + offset));
+
+                // If the fast part of the copy didn't get everything, perform the slow part of the
+                // copy.
+                if (fast_size < raw_size) {
+                    R_TRY(dst_page_table.CopyMemoryFromHeapToHeap(
+                        dst_page_table, dst_message_buffer + max_fast_size, raw_size - fast_size,
+                        dst_state, dst_state, dst_perm, KMemoryAttribute::Uncached,
+                        KMemoryAttribute::None, src_message_buffer + max_fast_size,
+                        KMemoryState::FlagReferenceCounted, KMemoryState::FlagReferenceCounted,
+                        KMemoryPermission::NotMapped | KMemoryPermission::KernelRead,
+                        KMemoryAttribute::Uncached | KMemoryAttribute::Locked,
+                        KMemoryAttribute::Locked));
+                }
+            } else /* if (dst_user) */ {
+                // The destination is a user buffer, so it should be unmapped + readable.
+                constexpr KMemoryPermission DestinationPermission =
+                    KMemoryPermission::NotMapped | KMemoryPermission::KernelReadWrite;
+
                 // Copy the memory.
-                temp_buffer.resize_destructive(raw_size);
-                src_page_table.GetMemory().ReadBlock(src_message_buffer + offset_words,
-                                                     temp_buffer.data(), raw_size);
-                dst_page_table.GetMemory().WriteBlock(dst_message_buffer + offset_words,
-                                                      temp_buffer.data(), raw_size);
+                R_TRY(dst_page_table.CopyMemoryFromUserToLinear(
+                    dst_message_buffer + offset_words, raw_size, KMemoryState::FlagReferenceCounted,
+                    KMemoryState::FlagReferenceCounted, DestinationPermission,
+                    KMemoryAttribute::Uncached, KMemoryAttribute::None,
+                    src_message_buffer + offset_words));
             }
         }
     }
