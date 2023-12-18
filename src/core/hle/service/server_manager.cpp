@@ -372,7 +372,7 @@ Result ServerManager::OnSessionEvent(Kernel::KServerSession* session,
 
     // Try to receive a message.
     std::shared_ptr<HLERequestContext> context;
-    rc = session->ReceiveRequest(&context, manager);
+    rc = session->ReceiveRequestHLE(&context, manager);
 
     // If the session has been closed, we're done.
     if (rc == Kernel::ResultSessionClosed) {
