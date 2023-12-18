@@ -1233,7 +1233,7 @@ void KProcess::LoadModule(CodeSet code_set, KProcessAddress base_addr) {
     ReprotectSegment(code_set.DataSegment(), Svc::MemoryPermission::ReadWrite);
 
 #ifdef HAS_NCE
-    if (Settings::IsNceEnabled()) {
+    if (this->IsApplication() && Settings::IsNceEnabled()) {
         auto& buffer = m_kernel.System().DeviceMemory().buffer;
         const auto& code = code_set.CodeSegment();
         const auto& patch = code_set.PatchSegment();
@@ -1249,7 +1249,7 @@ void KProcess::InitializeInterfaces() {
         Core::MakeExclusiveMonitor(this->GetMemory(), Core::Hardware::NUM_CPU_CORES);
 
 #ifdef HAS_NCE
-    if (this->Is64Bit() && Settings::IsNceEnabled()) {
+    if (this->IsApplication() && Settings::IsNceEnabled()) {
         for (size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             m_arm_interfaces[i] = std::make_unique<Core::ArmNce>(m_kernel.System(), true, i);
         }
