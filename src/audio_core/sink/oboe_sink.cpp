@@ -67,6 +67,7 @@ public:
         oboe::AudioStreamBuilder builder;
 
         const auto result = builder.setDirection(direction)
+                                ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
                                 ->setSampleRate(TargetSampleRate)
                                 ->setFormat(oboe::AudioFormat::I16)
                                 ->setFormatConversionAllowed(true)
@@ -136,6 +137,7 @@ private:
 
         oboe::AudioStreamBuilder builder;
         const auto result = builder.setDirection(direction)
+                                ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
                                 ->setSampleRate(TargetSampleRate)
                                 ->setChannelCount(expected_channels)
                                 ->setChannelMask(expected_mask)
