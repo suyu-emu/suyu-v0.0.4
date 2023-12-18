@@ -151,8 +151,8 @@ public:
         if (manager->IsDomain()) {
             context->AddDomainObject(std::move(iface));
         } else {
-            kernel.ApplicationProcess()->GetResourceLimit()->Reserve(
-                Kernel::LimitableResource::SessionCountMax, 1);
+            ASSERT(Kernel::GetCurrentProcess(kernel).GetResourceLimit()->Reserve(
+                Kernel::LimitableResource::SessionCountMax, 1));
 
             auto* session = Kernel::KSession::Create(kernel);
             session->Initialize(nullptr, 0);
