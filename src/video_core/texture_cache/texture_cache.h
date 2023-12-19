@@ -2080,7 +2080,7 @@ void TextureCache<P>::TrackImage(ImageBase& image, ImageId image_id) {
     ASSERT(False(image.flags & ImageFlagBits::Tracked));
     image.flags |= ImageFlagBits::Tracked;
     if (False(image.flags & ImageFlagBits::Sparse)) {
-        rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, true);
+        rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, 1);
         return;
     }
     if (True(image.flags & ImageFlagBits::Registered)) {
@@ -2091,13 +2091,13 @@ void TextureCache<P>::TrackImage(ImageBase& image, ImageId image_id) {
             const auto& map = slot_map_views[map_view_id];
             const VAddr cpu_addr = map.cpu_addr;
             const std::size_t size = map.size;
-            rasterizer.UpdatePagesCachedCount(cpu_addr, size, true);
+            rasterizer.UpdatePagesCachedCount(cpu_addr, size, 1);
         }
         return;
     }
     ForEachSparseSegment(image,
                          [this]([[maybe_unused]] GPUVAddr gpu_addr, VAddr cpu_addr, size_t size) {
-                             rasterizer.UpdatePagesCachedCount(cpu_addr, size, true);
+                             rasterizer.UpdatePagesCachedCount(cpu_addr, size, 1);
                          });
 }
 
@@ -2106,7 +2106,7 @@ void TextureCache<P>::UntrackImage(ImageBase& image, ImageId image_id) {
     ASSERT(True(image.flags & ImageFlagBits::Tracked));
     image.flags &= ~ImageFlagBits::Tracked;
     if (False(image.flags & ImageFlagBits::Sparse)) {
-        rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, false);
+        rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, -1);
         return;
     }
     ASSERT(True(image.flags & ImageFlagBits::Registered));
@@ -2117,7 +2117,7 @@ void TextureCache<P>::UntrackImage(ImageBase& image, ImageId image_id) {
         const auto& map = slot_map_views[map_view_id];
         const VAddr cpu_addr = map.cpu_addr;
         const std::size_t size = map.size;
-        rasterizer.UpdatePagesCachedCount(cpu_addr, size, false);
+        rasterizer.UpdatePagesCachedCount(cpu_addr, size, -1);
     }
 }
 
