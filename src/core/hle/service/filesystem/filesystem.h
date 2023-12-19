@@ -54,6 +54,13 @@ enum class ImageDirectoryId : u32 {
     SdCard,
 };
 
+enum class OpenDirectoryMode : u64 {
+    Directory = (1 << 0),
+    File = (1 << 1),
+    All = Directory | File
+};
+DECLARE_ENUM_FLAG_OPERATORS(OpenDirectoryMode);
+
 class FileSystemController {
 public:
     explicit FileSystemController(Core::System& system_);
