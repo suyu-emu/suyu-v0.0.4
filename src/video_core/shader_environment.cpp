@@ -62,23 +62,9 @@ static Shader::TextureType ConvertTextureType(const Tegra::Texture::TICEntry& en
 }
 
 static Shader::TexturePixelFormat ConvertTexturePixelFormat(const Tegra::Texture::TICEntry& entry) {
-    switch (PixelFormatFromTextureInfo(entry.format, entry.r_type, entry.g_type, entry.b_type,
-                                       entry.a_type, entry.srgb_conversion)) {
-    case VideoCore::Surface::PixelFormat::A8B8G8R8_SNORM:
-        return Shader::TexturePixelFormat::A8B8G8R8_SNORM;
-    case VideoCore::Surface::PixelFormat::R8_SNORM:
-        return Shader::TexturePixelFormat::R8_SNORM;
-    case VideoCore::Surface::PixelFormat::R8G8_SNORM:
-        return Shader::TexturePixelFormat::R8G8_SNORM;
-    case VideoCore::Surface::PixelFormat::R16G16B16A16_SNORM:
-        return Shader::TexturePixelFormat::R16G16B16A16_SNORM;
-    case VideoCore::Surface::PixelFormat::R16G16_SNORM:
-        return Shader::TexturePixelFormat::R16G16_SNORM;
-    case VideoCore::Surface::PixelFormat::R16_SNORM:
-        return Shader::TexturePixelFormat::R16_SNORM;
-    default:
-        return Shader::TexturePixelFormat::OTHER;
-    }
+    return static_cast<Shader::TexturePixelFormat>(
+        PixelFormatFromTextureInfo(entry.format, entry.r_type, entry.g_type, entry.b_type,
+                                   entry.a_type, entry.srgb_conversion));
 }
 
 static std::string_view StageToPrefix(Shader::Stage stage) {
@@ -398,6 +384,11 @@ Shader::TexturePixelFormat GraphicsEnvironment::ReadTexturePixelFormat(u32 handl
     return result;
 }
 
+bool GraphicsEnvironment::IsTexturePixelFormatInteger(u32 handle) {
+    return VideoCore::Surface::IsPixelFormatInteger(
+        static_cast<VideoCore::Surface::PixelFormat>(ReadTexturePixelFormat(handle)));
+}
+
 u32 GraphicsEnvironment::ReadViewportTransformState() {
     const auto& regs{maxwell3d->regs};
     viewport_transform_state = regs.viewport_scale_offset_enabled;
@@ -446,6 +437,11 @@ Shader::TexturePixelFormat ComputeEnvironment::ReadTexturePixelFormat(u32 handle
     const Shader::TexturePixelFormat result(ConvertTexturePixelFormat(entry));
     texture_pixel_formats.emplace(handle, result);
     return result;
+}
+
+bool ComputeEnvironment::IsTexturePixelFormatInteger(u32 handle) {
+    return VideoCore::Surface::IsPixelFormatInteger(
+        static_cast<VideoCore::Surface::PixelFormat>(ReadTexturePixelFormat(handle)));
 }
 
 u32 ComputeEnvironment::ReadViewportTransformState() {
@@ -549,6 +545,11 @@ Shader::TexturePixelFormat FileEnvironment::ReadTexturePixelFormat(u32 handle) {
         throw Shader::LogicError("Uncached read texture pixel format");
     }
     return it->second;
+}
+
+bool FileEnvironment::IsTexturePixelFormatInteger(u32 handle) {
+    return VideoCore::Surface::IsPixelFormatInteger(
+        static_cast<VideoCore::Surface::PixelFormat>(ReadTexturePixelFormat(handle)));
 }
 
 u32 FileEnvironment::ReadViewportTransformState() {

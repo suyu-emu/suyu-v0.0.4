@@ -47,12 +47,14 @@ struct ImageBufferDefinition {
     Id id;
     Id image_type;
     u32 count;
+    bool is_integer;
 };
 
 struct ImageDefinition {
     Id id;
     Id image_type;
     u32 count;
+    bool is_integer;
 };
 
 struct UniformDefinitions {
