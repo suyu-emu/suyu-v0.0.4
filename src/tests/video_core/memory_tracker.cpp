@@ -23,13 +23,13 @@ constexpr VAddr c = 16 * HIGH_PAGE_SIZE;
 
 class RasterizerInterface {
 public:
-    void UpdatePagesCachedCount(VAddr addr, u64 size, bool cache) {
+    void UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {
         const u64 page_start{addr >> Core::Memory::YUZU_PAGEBITS};
         const u64 page_end{(addr + size + Core::Memory::YUZU_PAGESIZE - 1) >>
                            Core::Memory::YUZU_PAGEBITS};
         for (u64 page = page_start; page < page_end; ++page) {
             int& value = page_table[page];
-            value += (cache ? 1 : -1);
+            value += delta;
             if (value < 0) {
                 throw std::logic_error{"negative page"};
             }

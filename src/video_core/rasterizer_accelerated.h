@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <mutex>
-#include <boost/icl/interval_map.hpp>
+#include <array>
+#include <atomic>
 
 #include "common/common_types.h"
 #include "video_core/rasterizer_interface.h"
@@ -21,17 +21,28 @@ public:
     explicit RasterizerAccelerated(Core::Memory::Memory& cpu_memory_);
     ~RasterizerAccelerated() override;
 
-    void UpdatePagesCachedCount(VAddr addr, u64 size, bool cache) override;
+    void UpdatePagesCachedCount(VAddr addr, u64 size, int delta) override;
 
 private:
-    using PageIndex = VAddr;
-    using PageReferenceCount = u16;
+    class CacheEntry final {
+    public:
+        CacheEntry() = default;
 
-    using IntervalMap = boost::icl::interval_map<PageIndex, PageReferenceCount>;
-    using IntervalType = IntervalMap::interval_type;
+        std::atomic_uint16_t& Count(std::size_t page) {
+            return values[page & 3];
+        }
 
-    IntervalMap map;
-    std::mutex map_lock;
+        const std::atomic_uint16_t& Count(std::size_t page) const {
+            return values[page & 3];
+        }
+
+    private:
+        std::array<std::atomic_uint16_t, 4> values{};
+    };
+    static_assert(sizeof(CacheEntry) == 8, "CacheEntry should be 8 bytes!");
+
+    using CachedPages = std::array<CacheEntry, 0x2000000>;
+    std::unique_ptr<CachedPages> cached_pages;
     Core::Memory::Memory& cpu_memory;
 };
 
