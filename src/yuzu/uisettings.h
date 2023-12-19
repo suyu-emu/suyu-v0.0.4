@@ -154,12 +154,11 @@ struct Values {
     Setting<u32> screenshot_height{linkage, 0, "screenshot_height", Category::Screenshots};
 
     std::string roms_path;
-    std::string symbols_path;
     std::string game_dir_deprecated;
     bool game_dir_deprecated_deepscan;
     QVector<GameDir> game_dirs;
     QStringList recent_files;
-    std::string language;
+    Setting<std::string> language{linkage, {}, "language", Category::Paths};
 
     std::string theme;
 

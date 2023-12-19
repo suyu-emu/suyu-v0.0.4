@@ -5147,12 +5147,12 @@ void GMainWindow::UpdateUITheme() {
 void GMainWindow::LoadTranslation() {
     bool loaded;
 
-    if (UISettings::values.language.empty()) {
+    if (UISettings::values.language.GetValue().empty()) {
         // If the selected language is empty, use system locale
         loaded = translator.load(QLocale(), {}, {}, QStringLiteral(":/languages/"));
     } else {
         // Otherwise load from the specified file
-        loaded = translator.load(QString::fromStdString(UISettings::values.language),
+        loaded = translator.load(QString::fromStdString(UISettings::values.language.GetValue()),
                                  QStringLiteral(":/languages/"));
     }
 
@@ -5164,7 +5164,7 @@ void GMainWindow::LoadTranslation() {
 }
 
 void GMainWindow::OnLanguageChanged(const QString& locale) {
-    if (UISettings::values.language != std::string("en")) {
+    if (UISettings::values.language.GetValue() != std::string("en")) {
         qApp->removeTranslator(&translator);
     }
 

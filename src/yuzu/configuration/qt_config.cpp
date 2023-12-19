@@ -187,7 +187,6 @@ void QtConfig::ReadPathValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Paths));
 
     UISettings::values.roms_path = ReadStringSetting(std::string("romsPath"));
-    UISettings::values.symbols_path = ReadStringSetting(std::string("symbolsPath"));
     UISettings::values.game_dir_deprecated =
         ReadStringSetting(std::string("gameListRootDir"), std::string("."));
     UISettings::values.game_dir_deprecated_deepscan =
@@ -225,8 +224,6 @@ void QtConfig::ReadPathValues() {
     UISettings::values.recent_files =
         QString::fromStdString(ReadStringSetting(std::string("recentFiles")))
             .split(QStringLiteral(", "), Qt::SkipEmptyParts, Qt::CaseSensitive);
-    UISettings::values.language =
-        ReadStringSetting(std::string("language"), std::make_optional(std::string("")));
 
     EndGroup();
 }
@@ -409,7 +406,6 @@ void QtConfig::SavePathValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Paths));
 
     WriteSetting(std::string("romsPath"), UISettings::values.roms_path);
-    WriteSetting(std::string("symbolsPath"), UISettings::values.symbols_path);
     BeginArray(std::string("gamedirs"));
     for (int i = 0; i < UISettings::values.game_dirs.size(); ++i) {
         SetArrayIndex(i);
@@ -422,7 +418,6 @@ void QtConfig::SavePathValues() {
 
     WriteSetting(std::string("recentFiles"),
                  UISettings::values.recent_files.join(QStringLiteral(", ")).toStdString());
-    WriteSetting(std::string("language"), UISettings::values.language);
 
     EndGroup();
 }
