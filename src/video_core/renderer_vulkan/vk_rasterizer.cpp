@@ -485,6 +485,10 @@ void RasterizerVulkan::DispatchCompute() {
 }
 
 void RasterizerVulkan::ResetCounter(VideoCommon::QueryType type) {
+    if (type != VideoCommon::QueryType::ZPassPixelCount64) {
+        LOG_DEBUG(Render_Vulkan, "Unimplemented counter reset={}", type);
+        return;
+    }
     query_cache.CounterReset(type);
 }
 
