@@ -225,6 +225,8 @@ void QtConfig::ReadPathValues() {
         QString::fromStdString(ReadStringSetting(std::string("recentFiles")))
             .split(QStringLiteral(", "), Qt::SkipEmptyParts, Qt::CaseSensitive);
 
+    ReadCategory(Settings::Category::Paths);
+
     EndGroup();
 }
 
@@ -404,6 +406,8 @@ void QtConfig::SaveQtControlValues() {
 
 void QtConfig::SavePathValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Paths));
+
+    WriteCategory(Settings::Category::Paths);
 
     WriteSetting(std::string("romsPath"), UISettings::values.roms_path);
     BeginArray(std::string("gamedirs"));
