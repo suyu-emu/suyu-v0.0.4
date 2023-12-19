@@ -225,6 +225,9 @@ private:
     /// End a transform feedback
     void EndTransformFeedback();
 
+    void QueryFallback(GPUVAddr gpu_addr, VideoCommon::QueryType type,
+                       VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport);
+
     Tegra::GPU& gpu;
 
     const Device& device;
