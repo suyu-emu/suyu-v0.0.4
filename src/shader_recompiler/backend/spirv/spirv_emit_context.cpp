@@ -1528,7 +1528,7 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
         if (stage == Stage::Fragment) {
             throw NotImplementedException("Storing ClipDistance in fragment stage");
         }
-        const Id type{TypeArray(F32[1], Const(8U))};
+        const Id type{TypeArray(F32[1], Const(std::min(8U, profile.max_user_clip_distances)))};
         clip_distances = DefineOutput(*this, type, invocations, spv::BuiltIn::ClipDistance);
     }
     if (info.stores[IR::Attribute::Layer] &&
