@@ -294,6 +294,13 @@ void RasterizerOpenGL::DrawIndirect() {
     const auto& params = maxwell3d->draw_manager->GetIndirectParams();
     buffer_cache.SetDrawIndirect(&params);
     PrepareDraw(params.is_indexed, [this, &params](GLenum primitive_mode) {
+        if (params.is_byte_count) {
+            const GPUVAddr tfb_object_base_addr = params.indirect_start_address - 4U;
+            const GLuint tfb_object =
+                buffer_cache_runtime.GetTransformFeedbackObject(tfb_object_base_addr);
+            glDrawTransformFeedback(primitive_mode, tfb_object);
+            return;
+        }
         const auto [buffer, offset] = buffer_cache.GetDrawIndirectBuffer();
         const GLvoid* const gl_offset =
             reinterpret_cast<const GLvoid*>(static_cast<uintptr_t>(offset));
@@ -1348,6 +1355,10 @@ void RasterizerOpenGL::ReleaseChannel(s32 channel_id) {
     }
     shader_cache.EraseChannel(channel_id);
     query_cache.EraseChannel(channel_id);
+}
+
+void RasterizerOpenGL::RegisterTransformFeedback(GPUVAddr tfb_object_addr) {
+    buffer_cache_runtime.BindTransformFeedbackObject(tfb_object_addr);
 }
 
 AccelerateDMA::AccelerateDMA(BufferCache& buffer_cache_, TextureCache& texture_cache_)

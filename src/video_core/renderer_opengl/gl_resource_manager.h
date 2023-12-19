@@ -323,4 +323,31 @@ public:
     GLuint handle = 0;
 };
 
+class OGLTransformFeedback final {
+public:
+    YUZU_NON_COPYABLE(OGLTransformFeedback);
+
+    OGLTransformFeedback() = default;
+
+    OGLTransformFeedback(OGLTransformFeedback&& o) noexcept : handle(std::exchange(o.handle, 0)) {}
+
+    ~OGLTransformFeedback() {
+        Release();
+    }
+
+    OGLTransformFeedback& operator=(OGLTransformFeedback&& o) noexcept {
+        Release();
+        handle = std::exchange(o.handle, 0);
+        return *this;
+    }
+
+    /// Creates a new internal OpenGL resource and stores the handle
+    void Create();
+
+    /// Deletes the internal OpenGL resource
+    void Release();
+
+    GLuint handle = 0;
+};
+
 } // namespace OpenGL
