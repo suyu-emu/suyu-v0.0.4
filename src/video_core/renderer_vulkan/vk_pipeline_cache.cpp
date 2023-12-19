@@ -374,6 +374,7 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
         .has_broken_robust =
             device.IsNvidia() && device.GetNvidiaArch() <= NvidiaArchitecture::Arch_Pascal,
         .min_ssbo_alignment = device.GetStorageBufferAlignment(),
+        .max_user_clip_distances = device.GetMaxUserClipDistances(),
     };
 
     host_info = Shader::HostTranslateInfo{

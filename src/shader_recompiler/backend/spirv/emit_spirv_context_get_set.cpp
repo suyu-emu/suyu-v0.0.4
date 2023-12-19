@@ -74,6 +74,11 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
     case IR::Attribute::ClipDistance7: {
         const u32 base{static_cast<u32>(IR::Attribute::ClipDistance0)};
         const u32 index{static_cast<u32>(attr) - base};
+        if (index >= ctx.profile.max_user_clip_distances) {
+            LOG_WARNING(Shader, "Ignoring clip distance store {} >= {} supported", index,
+                        ctx.profile.max_user_clip_distances);
+            return std::nullopt;
+        }
         const Id clip_num{ctx.Const(index)};
         return OutputAccessChain(ctx, ctx.output_f32, ctx.clip_distances, clip_num);
     }
