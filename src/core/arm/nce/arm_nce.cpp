@@ -39,7 +39,7 @@ fpsimd_context* GetFloatingPointState(mcontext_t& host_ctx) {
 }
 
 using namespace Common::Literals;
-constexpr u32 StackSize = 32_KiB;
+constexpr u32 StackSize = 128_KiB;
 
 } // namespace
 
