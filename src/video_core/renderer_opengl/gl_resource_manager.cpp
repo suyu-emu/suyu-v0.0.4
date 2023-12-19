@@ -207,4 +207,21 @@ void OGLQuery::Release() {
     handle = 0;
 }
 
+void OGLTransformFeedback::Create() {
+    if (handle != 0)
+        return;
+
+    MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
+    glCreateTransformFeedbacks(1, &handle);
+}
+
+void OGLTransformFeedback::Release() {
+    if (handle == 0)
+        return;
+
+    MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
+    glDeleteTransformFeedbacks(1, &handle);
+    handle = 0;
+}
+
 } // namespace OpenGL
