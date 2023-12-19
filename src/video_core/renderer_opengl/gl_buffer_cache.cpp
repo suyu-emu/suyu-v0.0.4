@@ -58,6 +58,9 @@ Buffer::Buffer(BufferCacheRuntime& runtime, VideoCore::RasterizerInterface& rast
         glObjectLabel(GL_BUFFER, buffer.handle, static_cast<GLsizei>(name.size()), name.data());
     }
     glNamedBufferData(buffer.handle, SizeBytes(), nullptr, GL_DYNAMIC_DRAW);
+    if (runtime.has_unified_vertex_buffers) {
+        glGetNamedBufferParameterui64vNV(buffer.handle, GL_BUFFER_GPU_ADDRESS_NV, &address);
+    }
 }
 
 void Buffer::ImmediateUpload(size_t offset, std::span<const u8> data) noexcept {
@@ -109,6 +112,7 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_,
     : device{device_}, staging_buffer_pool{staging_buffer_pool_},
       has_fast_buffer_sub_data{device.HasFastBufferSubData()},
       use_assembly_shaders{device.UseAssemblyShaders()},
+      has_unified_vertex_buffers{device.HasVertexBufferUnifiedMemory()},
       stream_buffer{has_fast_buffer_sub_data ? std::nullopt : std::make_optional<StreamBuffer>()} {
     GLint gl_max_attributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &gl_max_attributes);
@@ -210,8 +214,14 @@ void BufferCacheRuntime::ClearBuffer(Buffer& dest_buffer, u32 offset, size_t siz
 }
 
 void BufferCacheRuntime::BindIndexBuffer(Buffer& buffer, u32 offset, u32 size) {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.Handle());
-    index_buffer_offset = offset;
+    if (has_unified_vertex_buffers) {
+        buffer.MakeResident(GL_READ_ONLY);
+        glBufferAddressRangeNV(GL_ELEMENT_ARRAY_ADDRESS_NV, 0, buffer.HostGpuAddr() + offset,
+                               static_cast<GLsizeiptr>(Common::AlignUp(size, 4)));
+    } else {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.Handle());
+        index_buffer_offset = offset;
+    }
 }
 
 void BufferCacheRuntime::BindVertexBuffer(u32 index, Buffer& buffer, u32 offset, u32 size,
@@ -219,8 +229,15 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, Buffer& buffer, u32 offset,
     if (index >= max_attributes) {
         return;
     }
-    glBindVertexBuffer(index, buffer.Handle(), static_cast<GLintptr>(offset),
-                       static_cast<GLsizei>(stride));
+    if (has_unified_vertex_buffers) {
+        buffer.MakeResident(GL_READ_ONLY);
+        glBindVertexBuffer(index, 0, 0, static_cast<GLsizei>(stride));
+        glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, index,
+                               buffer.HostGpuAddr() + offset, static_cast<GLsizeiptr>(size));
+    } else {
+        glBindVertexBuffer(index, buffer.Handle(), static_cast<GLintptr>(offset),
+                           static_cast<GLsizei>(stride));
+    }
 }
 
 void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings) {
@@ -233,9 +250,23 @@ void BufferCacheRuntime::BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bi
                            [](u64 stride) { return static_cast<GLsizei>(stride); });
     const u32 count =
         std::min(static_cast<u32>(bindings.buffers.size()), max_attributes - bindings.min_index);
-    glBindVertexBuffers(bindings.min_index, static_cast<GLsizei>(count), buffer_handles.data(),
-                        reinterpret_cast<const GLintptr*>(bindings.offsets.data()),
-                        buffer_strides.data());
+    if (has_unified_vertex_buffers) {
+        for (u32 index = 0; index < count; ++index) {
+            Buffer& buffer = *bindings.buffers[index];
+            buffer.MakeResident(GL_READ_ONLY);
+            glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, bindings.min_index + index,
+                                   buffer.HostGpuAddr() + bindings.offsets[index],
+                                   static_cast<GLsizeiptr>(bindings.sizes[index]));
+        }
+        static constexpr std::array<size_t, 32> ZEROS{};
+        glBindVertexBuffers(bindings.min_index, static_cast<GLsizei>(count),
+                            reinterpret_cast<const GLuint*>(ZEROS.data()),
+                            reinterpret_cast<const GLintptr*>(ZEROS.data()), buffer_strides.data());
+    } else {
+        glBindVertexBuffers(bindings.min_index, static_cast<GLsizei>(count), buffer_handles.data(),
+                            reinterpret_cast<const GLintptr*>(bindings.offsets.data()),
+                            buffer_strides.data());
+    }
 }
 
 void BufferCacheRuntime::BindUniformBuffer(size_t stage, u32 binding_index, Buffer& buffer,
