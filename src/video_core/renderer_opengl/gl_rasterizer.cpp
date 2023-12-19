@@ -162,14 +162,18 @@ void RasterizerOpenGL::Clear(u32 layer_count) {
         SyncFramebufferSRGB();
     }
     if (regs.clear_surface.Z) {
-        ASSERT_MSG(regs.zeta_enable != 0, "Tried to clear Z but buffer is not enabled!");
+        if (regs.zeta_enable != 0) {
+            LOG_DEBUG(Render_OpenGL, "Tried to clear Z but buffer is not enabled!");
+        }
         use_depth = true;
 
         state_tracker.NotifyDepthMask();
         glDepthMask(GL_TRUE);
     }
     if (regs.clear_surface.S) {
-        ASSERT_MSG(regs.zeta_enable, "Tried to clear stencil but buffer is not enabled!");
+        if (regs.zeta_enable) {
+            LOG_DEBUG(Render_OpenGL, "Tried to clear stencil but buffer is not enabled!");
+        }
         use_stencil = true;
     }
 
@@ -1294,15 +1298,13 @@ void RasterizerOpenGL::BeginTransformFeedback(GraphicsPipeline* program, GLenum 
     program->ConfigureTransformFeedback();
 
     UNIMPLEMENTED_IF(regs.IsShaderConfigEnabled(Maxwell::ShaderType::TessellationInit) ||
-                     regs.IsShaderConfigEnabled(Maxwell::ShaderType::Tessellation) ||
-                     regs.IsShaderConfigEnabled(Maxwell::ShaderType::Geometry));
-    UNIMPLEMENTED_IF(primitive_mode != GL_POINTS);
+                     regs.IsShaderConfigEnabled(Maxwell::ShaderType::Tessellation));
 
     // We may have to call BeginTransformFeedbackNV here since they seem to call different
     // implementations on Nvidia's driver (the pointer is different) but we are using
     // ARB_transform_feedback3 features with NV_transform_feedback interactions and the ARB
     // extension doesn't define BeginTransformFeedback (without NV) interactions. It just works.
-    glBeginTransformFeedback(GL_POINTS);
+    glBeginTransformFeedback(primitive_mode);
 }
 
 void RasterizerOpenGL::EndTransformFeedback() {
