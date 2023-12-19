@@ -913,7 +913,11 @@ void GatherInfoFromHeader(Environment& env, Info& info) {
         }
         for (size_t index = 0; index < 8; ++index) {
             const u16 mask{header.vtg.omap_systemc.clip_distances};
-            info.stores.Set(IR::Attribute::ClipDistance0 + index, ((mask >> index) & 1) != 0);
+            const bool used{((mask >> index) & 1) != 0};
+            info.stores.Set(IR::Attribute::ClipDistance0 + index, used);
+            if (used) {
+                info.used_clip_distances = static_cast<u32>(index) + 1;
+            }
         }
         info.stores.Set(IR::Attribute::PrimitiveId,
                         header.vtg.omap_systemb.primitive_array_id != 0);
