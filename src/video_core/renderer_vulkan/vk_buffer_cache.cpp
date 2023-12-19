@@ -78,8 +78,15 @@ vk::Buffer CreateBuffer(const Device& device, const MemoryAllocator& memory_allo
 }
 } // Anonymous namespace
 
-Buffer::Buffer(BufferCacheRuntime&, VideoCommon::NullBufferParams null_params)
-    : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(null_params), tracker{4096} {}
+Buffer::Buffer(BufferCacheRuntime& runtime, VideoCommon::NullBufferParams null_params)
+    : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(null_params), tracker{4096} {
+    if (runtime.device.HasNullDescriptor()) {
+        return;
+    }
+    device = &runtime.device;
+    buffer = runtime.CreateNullBuffer();
+    is_null = true;
+}
 
 Buffer::Buffer(BufferCacheRuntime& runtime, VideoCore::RasterizerInterface& rasterizer_,
                VAddr cpu_addr_, u64 size_bytes_)
@@ -93,8 +100,12 @@ Buffer::Buffer(BufferCacheRuntime& runtime, VideoCore::RasterizerInterface& rast
 
 VkBufferView Buffer::View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format) {
     if (!device) {
-        // Null buffer, return a null descriptor
+        // Null buffer supported, return a null descriptor
         return VK_NULL_HANDLE;
+    } else if (is_null) {
+        // Null buffer not supported, adjust offset and size
+        offset = 0;
+        size = 0;
     }
     const auto it{std::ranges::find_if(views, [offset, size, format](const BufferView& view) {
         return offset == view.offset && size == view.size && format == view.format;
@@ -622,9 +633,12 @@ void BufferCacheRuntime::BindTransformFeedbackBuffers(VideoCommon::HostBindings<
 }
 
 void BufferCacheRuntime::ReserveNullBuffer() {
-    if (null_buffer) {
-        return;
+    if (!null_buffer) {
+        null_buffer = CreateNullBuffer();
     }
+}
+
+vk::Buffer BufferCacheRuntime::CreateNullBuffer() {
     VkBufferCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
@@ -639,15 +653,17 @@ void BufferCacheRuntime::ReserveNullBuffer() {
     if (device.IsExtTransformFeedbackSupported()) {
         create_info.usage |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
     }
-    null_buffer = memory_allocator.CreateBuffer(create_info, MemoryUsage::DeviceLocal);
+    vk::Buffer ret = memory_allocator.CreateBuffer(create_info, MemoryUsage::DeviceLocal);
     if (device.HasDebuggingToolAttached()) {
-        null_buffer.SetObjectNameEXT("Null buffer");
+        ret.SetObjectNameEXT("Null buffer");
     }
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([buffer = *null_buffer](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([buffer = *ret](vk::CommandBuffer cmdbuf) {
         cmdbuf.FillBuffer(buffer, 0, VK_WHOLE_SIZE, 0);
     });
+
+    return ret;
 }
 
 } // namespace Vulkan
