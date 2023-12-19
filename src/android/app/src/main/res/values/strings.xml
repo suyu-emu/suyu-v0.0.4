@@ -503,6 +503,7 @@
     <string name="theme_mode_dark">Dark</string>
 
     <!-- Audio output engines -->
+    <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
 
     <!-- Black backgrounds theme -->
