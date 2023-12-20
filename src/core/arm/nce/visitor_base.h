@@ -4,8 +4,14 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+
 #include <dynarmic/frontend/A64/a64_types.h>
+#include <dynarmic/frontend/A64/decoder/a64.h>
 #include <dynarmic/frontend/imm.h>
+
+#pragma GCC diagnostic pop
 
 namespace Core {
 
