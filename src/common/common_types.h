@@ -45,6 +45,7 @@ using f32 = float;  ///< 32-bit floating point
 using f64 = double; ///< 64-bit floating point
 
 using VAddr = u64;    ///< Represents a pointer in the userspace virtual address space.
+using DAddr = u64;    ///< Represents a pointer in the device specific virtual address space.
 using PAddr = u64;    ///< Represents a pointer in the ARM11 physical address space.
 using GPUVAddr = u64; ///< Represents a pointer in the GPU virtual address space.
 
