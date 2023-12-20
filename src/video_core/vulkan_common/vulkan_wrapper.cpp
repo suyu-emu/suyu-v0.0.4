@@ -377,6 +377,8 @@ const char* ToString(VkResult result) noexcept {
         return "VK_OPERATION_DEFERRED_KHR";
     case VkResult::VK_OPERATION_NOT_DEFERRED_KHR:
         return "VK_OPERATION_NOT_DEFERRED_KHR";
+    case VkResult::VK_ERROR_INVALID_VIDEO_STD_PARAMETERS_KHR:
+        return "VK_ERROR_INVALID_VIDEO_STD_PARAMETERS_KHR";
     case VkResult::VK_PIPELINE_COMPILE_REQUIRED_EXT:
         return "VK_PIPELINE_COMPILE_REQUIRED_EXT";
     case VkResult::VK_RESULT_MAX_ENUM:
