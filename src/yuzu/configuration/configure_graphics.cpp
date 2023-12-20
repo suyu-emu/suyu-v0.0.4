@@ -106,32 +106,30 @@ ConfigureGraphics::ConfigureGraphics(
                                                 Settings::values.bg_green.GetValue(),
                                                 Settings::values.bg_blue.GetValue()));
     UpdateAPILayout();
-    PopulateVSyncModeSelection(); //< must happen after UpdateAPILayout
+    PopulateVSyncModeSelection(false); //< must happen after UpdateAPILayout
 
     // VSync setting needs to be determined after populating the VSync combobox
-    if (Settings::IsConfiguringGlobal()) {
-        const auto vsync_mode_setting = Settings::values.vsync_mode.GetValue();
-        const auto vsync_mode = VSyncSettingToMode(vsync_mode_setting);
-        int index{};
-        for (const auto mode : vsync_mode_combobox_enum_map) {
-            if (mode == vsync_mode) {
-                break;
-            }
-            index++;
+    const auto vsync_mode_setting = Settings::values.vsync_mode.GetValue();
+    const auto vsync_mode = VSyncSettingToMode(vsync_mode_setting);
+    int index{};
+    for (const auto mode : vsync_mode_combobox_enum_map) {
+        if (mode == vsync_mode) {
+            break;
         }
-        if (static_cast<unsigned long>(index) < vsync_mode_combobox_enum_map.size()) {
-            vsync_mode_combobox->setCurrentIndex(index);
-        }
+        index++;
+    }
+    if (static_cast<unsigned long>(index) < vsync_mode_combobox_enum_map.size()) {
+        vsync_mode_combobox->setCurrentIndex(index);
     }
 
     connect(api_combobox, qOverload<int>(&QComboBox::activated), this, [this] {
         UpdateAPILayout();
-        PopulateVSyncModeSelection();
+        PopulateVSyncModeSelection(false);
     });
     connect(vulkan_device_combobox, qOverload<int>(&QComboBox::activated), this,
             [this](int device) {
                 UpdateDeviceSelection(device);
-                PopulateVSyncModeSelection();
+                PopulateVSyncModeSelection(false);
             });
     connect(shader_backend_combobox, qOverload<int>(&QComboBox::activated), this,
             [this](int backend) { UpdateShaderBackendSelection(backend); });
@@ -147,8 +145,9 @@ ConfigureGraphics::ConfigureGraphics(
     const auto& update_screenshot_info = [this, &builder]() {
         const auto& combobox_enumerations = builder.ComboboxTranslations().at(
             Settings::EnumMetadata<Settings::AspectRatio>::Index());
-        const auto index = aspect_ratio_combobox->currentIndex();
-        const auto ratio = static_cast<Settings::AspectRatio>(combobox_enumerations[index].first);
+        const auto ratio_index = aspect_ratio_combobox->currentIndex();
+        const auto ratio =
+            static_cast<Settings::AspectRatio>(combobox_enumerations[ratio_index].first);
 
         const auto& combobox_enumerations_resolution = builder.ComboboxTranslations().at(
             Settings::EnumMetadata<Settings::ResolutionSetup>::Index());
@@ -174,11 +173,7 @@ ConfigureGraphics::ConfigureGraphics(
     }
 }
 
-void ConfigureGraphics::PopulateVSyncModeSelection() {
-    if (!Settings::IsConfiguringGlobal()) {
-        return;
-    }
-
+void ConfigureGraphics::PopulateVSyncModeSelection(bool use_setting) {
     const Settings::RendererBackend backend{GetCurrentGraphicsBackend()};
     if (backend == Settings::RendererBackend::Null) {
         vsync_mode_combobox->setEnabled(false);
@@ -189,8 +184,9 @@ void ConfigureGraphics::PopulateVSyncModeSelection() {
     const int current_index = //< current selected vsync mode from combobox
         vsync_mode_combobox->currentIndex();
     const auto current_mode = //< current selected vsync mode as a VkPresentModeKHR
-        current_index == -1 ? VSyncSettingToMode(Settings::values.vsync_mode.GetValue())
-                            : vsync_mode_combobox_enum_map[current_index];
+        current_index == -1 || use_setting
+            ? VSyncSettingToMode(Settings::values.vsync_mode.GetValue())
+            : vsync_mode_combobox_enum_map[current_index];
     int index{};
     const int device{vulkan_device_combobox->currentIndex()}; //< current selected Vulkan device
 
@@ -214,6 +210,23 @@ void ConfigureGraphics::PopulateVSyncModeSelection() {
         }
         index++;
     }
+
+    if (!Settings::IsConfiguringGlobal()) {
+        vsync_restore_global_button->setVisible(!Settings::values.vsync_mode.UsingGlobal());
+
+        const Settings::VSyncMode global_vsync_mode = Settings::values.vsync_mode.GetValue(true);
+        vsync_restore_global_button->setEnabled(
+            (backend == Settings::RendererBackend::OpenGL &&
+             (global_vsync_mode == Settings::VSyncMode::Immediate ||
+              global_vsync_mode == Settings::VSyncMode::Fifo)) ||
+            backend == Settings::RendererBackend::Vulkan);
+    }
+}
+
+void ConfigureGraphics::UpdateVsyncSetting() const {
+    const auto mode = vsync_mode_combobox_enum_map[vsync_mode_combobox->currentIndex()];
+    const auto vsync_mode = PresentModeToSetting(mode);
+    Settings::values.vsync_mode.SetValue(vsync_mode);
 }
 
 void ConfigureGraphics::UpdateDeviceSelection(int device) {
@@ -299,6 +312,33 @@ void ConfigureGraphics::Setup(const ConfigurationShared::Builder& builder) {
         } else if (setting->Id() == Settings::values.vsync_mode.Id()) {
             // Keep track of vsync_mode's combobox so we can populate it
             vsync_mode_combobox = widget->combobox;
+
+            // Since vsync is populated at runtime, we have to manually set up the button for
+            // restoring the global setting.
+            if (!Settings::IsConfiguringGlobal()) {
+                QPushButton* restore_button =
+                    ConfigurationShared::Widget::CreateRestoreGlobalButton(
+                        Settings::values.vsync_mode.UsingGlobal(), widget);
+                restore_button->setEnabled(true);
+                widget->layout()->addWidget(restore_button);
+
+                QObject::connect(restore_button, &QAbstractButton::clicked,
+                                 [restore_button, this](bool) {
+                                     Settings::values.vsync_mode.SetGlobal(true);
+                                     PopulateVSyncModeSelection(true);
+
+                                     restore_button->setVisible(false);
+                                 });
+
+                std::function<void()> set_non_global = [restore_button, this]() {
+                    Settings::values.vsync_mode.SetGlobal(false);
+                    UpdateVsyncSetting();
+                    restore_button->setVisible(true);
+                };
+                QObject::connect(widget->combobox, QOverload<int>::of(&QComboBox::activated),
+                                 [set_non_global]() { set_non_global(); });
+                vsync_restore_global_button = restore_button;
+            }
             hold_graphics.emplace(setting->Id(), widget);
         } else if (setting->Id() == Settings::values.aspect_ratio.Id()) {
             // Keep track of the aspect ratio combobox to update other UI tabs that need it
@@ -400,11 +440,7 @@ void ConfigureGraphics::ApplyConfiguration() {
         func(powered_on);
     }
 
-    if (Settings::IsConfiguringGlobal()) {
-        const auto mode = vsync_mode_combobox_enum_map[vsync_mode_combobox->currentIndex()];
-        const auto vsync_mode = PresentModeToSetting(mode);
-        Settings::values.vsync_mode.SetValue(vsync_mode);
-    }
+    UpdateVsyncSetting();
 
     Settings::values.vulkan_device.SetGlobal(true);
     Settings::values.shader_backend.SetGlobal(true);
