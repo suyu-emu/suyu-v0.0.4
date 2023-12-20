@@ -413,7 +413,7 @@ void RasterizerOpenGL::DispatchCompute() {
 void RasterizerOpenGL::ResetCounter(VideoCommon::QueryType type) {
     const auto query_cache_type = MaxwellToVideoCoreQuery(type);
     if (!query_cache_type.has_value()) {
-        UNIMPLEMENTED_MSG("Reset query type: {}", type);
+        UNIMPLEMENTED_IF_MSG(type != VideoCommon::QueryType::Payload, "Reset query type: {}", type);
         return;
     }
     query_cache.ResetCounter(*query_cache_type);
