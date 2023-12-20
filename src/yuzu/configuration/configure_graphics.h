@@ -62,7 +62,8 @@ private:
 
     void Setup(const ConfigurationShared::Builder& builder);
 
-    void PopulateVSyncModeSelection();
+    void PopulateVSyncModeSelection(bool use_setting);
+    void UpdateVsyncSetting() const;
     void UpdateBackgroundColorButton(QColor color);
     void UpdateAPILayout();
     void UpdateDeviceSelection(int device);
@@ -104,6 +105,7 @@ private:
     QComboBox* api_combobox;
     QComboBox* shader_backend_combobox;
     QComboBox* vsync_mode_combobox;
+    QPushButton* vsync_restore_global_button;
     QWidget* vulkan_device_widget;
     QWidget* api_widget;
     QWidget* shader_backend_widget;
