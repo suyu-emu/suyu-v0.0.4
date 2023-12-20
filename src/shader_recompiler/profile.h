@@ -87,6 +87,8 @@ struct Profile {
     bool has_broken_robust{};
 
     u64 min_ssbo_alignment{};
+
+    u32 max_user_clip_distances{};
 };
 
 } // namespace Shader

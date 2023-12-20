@@ -227,6 +227,8 @@ struct Info {
     bool requires_layer_emulation{};
     IR::Attribute emulated_layer{};
 
+    u32 used_clip_distances{};
+
     boost::container::static_vector<ConstantBufferDescriptor, MAX_CBUFS>
         constant_buffer_descriptors;
     boost::container::static_vector<StorageBufferDescriptor, MAX_SSBOS> storage_buffers_descriptors;
