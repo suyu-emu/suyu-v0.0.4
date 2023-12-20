@@ -233,6 +233,7 @@ ShaderCache::ShaderCache(RasterizerOpenGL& rasterizer_, Core::Frontend::EmuWindo
           .ignore_nan_fp_comparisons = true,
           .gl_max_compute_smem_size = device.GetMaxComputeSharedMemorySize(),
           .min_ssbo_alignment = device.GetShaderStorageBufferAlignment(),
+          .max_user_clip_distances = 8,
       },
       host_info{
           .support_float64 = true,
