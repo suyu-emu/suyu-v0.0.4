@@ -289,12 +289,15 @@ public:
         }
 
         if (has_multi_queries) {
-            size_t intermediary_buffer_index = ObtainBuffer<false>(num_slots_used);
+            const size_t min_accumulation_limit =
+                std::min(first_accumulation_checkpoint, num_slots_used);
+            const size_t max_accumulation_limit =
+                std::max(last_accumulation_checkpoint, num_slots_used);
+            const size_t intermediary_buffer_index = ObtainBuffer<false>(num_slots_used);
             resolve_buffers.push_back(intermediary_buffer_index);
             queries_prefix_scan_pass->Run(*accumulation_buffer, *buffers[intermediary_buffer_index],
                                           *buffers[resolve_buffer_index], num_slots_used,
-                                          std::min(first_accumulation_checkpoint, num_slots_used),
-                                          last_accumulation_checkpoint);
+                                          min_accumulation_limit, max_accumulation_limit);
 
         } else {
             scheduler.RequestOutsideRenderPassOperationContext();
