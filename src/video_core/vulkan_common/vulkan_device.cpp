@@ -695,6 +695,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             std::min(properties.properties.limits.maxVertexInputBindings, 16U);
     }
 
+    if (is_turnip) {
+        LOG_WARNING(Render_Vulkan, "Turnip requires higher-than-reported binding limits");
+        properties.properties.limits.maxVertexInputBindings = 32;
+    }
+
     if (!extensions.extended_dynamic_state && extensions.extended_dynamic_state2) {
         LOG_INFO(Render_Vulkan,
                  "Removing extendedDynamicState2 due to missing extendedDynamicState");
