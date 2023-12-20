@@ -5,8 +5,6 @@
 #include "common/bit_cast.h"
 #include "core/arm/nce/interpreter_visitor.h"
 
-#include <dynarmic/frontend/A64/decoder/a64.h>
-
 namespace Core {
 
 template <u32 BitSize>
