@@ -1427,7 +1427,7 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         if (profile.support_vertex_instance_id) {
             instance_id = DefineInput(*this, U32[1], true, spv::BuiltIn::InstanceId);
             if (loads[IR::Attribute::BaseInstance]) {
-                base_instance = DefineInput(*this, U32[1], true, spv::BuiltIn::BaseVertex);
+                base_instance = DefineInput(*this, U32[1], true, spv::BuiltIn::BaseInstance);
             }
         } else {
             instance_index = DefineInput(*this, U32[1], true, spv::BuiltIn::InstanceIndex);
