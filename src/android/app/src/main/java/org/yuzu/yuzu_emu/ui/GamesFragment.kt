@@ -91,18 +91,20 @@ class GamesFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.apply {
             launch {
                 repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    gamesViewModel.isReloading.collect { binding.swipeRefresh.isRefreshing = it }
+                    gamesViewModel.isReloading.collect {
+                        binding.swipeRefresh.isRefreshing = it
+                        if (gamesViewModel.games.value.isEmpty() && !it) {
+                            binding.noticeText.visibility = View.VISIBLE
+                        } else {
+                            binding.noticeText.visibility = View.INVISIBLE
+                        }
+                    }
                 }
             }
             launch {
                 repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     gamesViewModel.games.collectLatest {
                         (binding.gridGames.adapter as GameAdapter).submitList(it)
-                        if (it.isEmpty()) {
-                            binding.noticeText.visibility = View.VISIBLE
-                        } else {
-                            binding.noticeText.visibility = View.GONE
-                        }
                     }
                 }
             }
