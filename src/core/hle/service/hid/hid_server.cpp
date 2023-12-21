@@ -51,7 +51,7 @@ private:
         IPC::RequestParser rp{ctx};
         const auto vibration_device_handle{rp.PopRaw<Core::HID::VibrationDeviceHandle>()};
 
-        if (resource_manager != nullptr) {
+        if (resource_manager != nullptr && resource_manager->GetNpad()) {
             resource_manager->GetNpad()->InitializeVibrationDevice(vibration_device_handle);
         }
 
