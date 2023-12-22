@@ -228,7 +228,7 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QWidget* parent) {
          {
              PAIR(ShaderBackend, Glsl, tr("GLSL")),
              PAIR(ShaderBackend, Glasm, tr("GLASM (Assembly Shaders, NVIDIA Only)")),
-             PAIR(ShaderBackend, SpirV, tr("SPIR-V (Experimental, Mesa Only)")),
+             PAIR(ShaderBackend, SpirV, tr("SPIR-V (Experimental, AMD/Mesa Only)")),
          }});
     translations->insert({Settings::EnumMetadata<Settings::GpuAccuracy>::Index(),
                           {
