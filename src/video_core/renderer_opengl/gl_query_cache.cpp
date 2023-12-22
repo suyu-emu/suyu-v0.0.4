@@ -18,16 +18,27 @@ namespace OpenGL {
 
 namespace {
 
-constexpr std::array<GLenum, VideoCore::NumQueryTypes> QueryTargets = {GL_SAMPLES_PASSED};
-
 constexpr GLenum GetTarget(VideoCore::QueryType type) {
-    return QueryTargets[static_cast<std::size_t>(type)];
+    switch (type) {
+    case VideoCore::QueryType::SamplesPassed:
+        return GL_SAMPLES_PASSED;
+    case VideoCore::QueryType::PrimitivesGenerated:
+        return GL_PRIMITIVES_GENERATED;
+    case VideoCore::QueryType::TfbPrimitivesWritten:
+        return GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN;
+    default:
+        break;
+    }
+    UNIMPLEMENTED_MSG("Query type {}", type);
+    return 0;
 }
 
 } // Anonymous namespace
 
 QueryCache::QueryCache(RasterizerOpenGL& rasterizer_, Core::Memory::Memory& cpu_memory_)
-    : QueryCacheLegacy(rasterizer_, cpu_memory_), gl_rasterizer{rasterizer_} {}
+    : QueryCacheLegacy(rasterizer_, cpu_memory_), gl_rasterizer{rasterizer_} {
+    EnableCounters();
+}
 
 QueryCache::~QueryCache() = default;
 
@@ -103,13 +114,13 @@ u64 CachedQuery::Flush([[maybe_unused]] bool async) {
     auto& stream = cache->Stream(type);
     const bool slice_counter = WaitPending() && stream.IsEnabled();
     if (slice_counter) {
-        stream.Update(false);
+        stream.Disable();
     }
 
     auto result = VideoCommon::CachedQueryBase<HostCounter>::Flush();
 
     if (slice_counter) {
-        stream.Update(true);
+        stream.Enable();
     }
 
     return result;
