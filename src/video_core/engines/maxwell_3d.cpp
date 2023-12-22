@@ -586,14 +586,22 @@ void Maxwell3D::ProcessQueryCondition() {
 }
 
 void Maxwell3D::ProcessCounterReset() {
-    switch (regs.clear_report_value) {
-    case Regs::ClearReport::ZPassPixelCount:
-        rasterizer->ResetCounter(VideoCommon::QueryType::ZPassPixelCount64);
-        break;
-    default:
-        LOG_DEBUG(Render_OpenGL, "Unimplemented counter reset={}", regs.clear_report_value);
-        break;
-    }
+    const auto query_type = [clear_report = regs.clear_report_value]() {
+        switch (clear_report) {
+        case Tegra::Engines::Maxwell3D::Regs::ClearReport::ZPassPixelCount:
+            return VideoCommon::QueryType::ZPassPixelCount64;
+        case Tegra::Engines::Maxwell3D::Regs::ClearReport::StreamingPrimitivesSucceeded:
+            return VideoCommon::QueryType::StreamingPrimitivesSucceeded;
+        case Tegra::Engines::Maxwell3D::Regs::ClearReport::PrimitivesGenerated:
+            return VideoCommon::QueryType::PrimitivesGenerated;
+        case Tegra::Engines::Maxwell3D::Regs::ClearReport::VtgPrimitivesOut:
+            return VideoCommon::QueryType::VtgPrimitivesOut;
+        default:
+            LOG_DEBUG(HW_GPU, "Unimplemented counter reset={}", clear_report);
+            return VideoCommon::QueryType::Payload;
+        }
+    }();
+    rasterizer->ResetCounter(query_type);
 }
 
 void Maxwell3D::ProcessSyncPoint() {

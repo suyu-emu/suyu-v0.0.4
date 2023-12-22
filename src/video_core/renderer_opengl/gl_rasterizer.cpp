@@ -51,6 +51,22 @@ constexpr size_t NUM_SUPPORTED_VERTEX_ATTRIBUTES = 16;
 void oglEnable(GLenum cap, bool state) {
     (state ? glEnable : glDisable)(cap);
 }
+
+std::optional<VideoCore::QueryType> MaxwellToVideoCoreQuery(VideoCommon::QueryType type) {
+    switch (type) {
+    case VideoCommon::QueryType::PrimitivesGenerated:
+    case VideoCommon::QueryType::VtgPrimitivesOut:
+        return VideoCore::QueryType::PrimitivesGenerated;
+    case VideoCommon::QueryType::ZPassPixelCount64:
+        return VideoCore::QueryType::SamplesPassed;
+    case VideoCommon::QueryType::StreamingPrimitivesSucceeded:
+        // case VideoCommon::QueryType::StreamingByteCount:
+        // TODO: StreamingByteCount = StreamingPrimitivesSucceeded * num_verts * vert_stride
+        return VideoCore::QueryType::TfbPrimitivesWritten;
+    default:
+        return std::nullopt;
+    }
+}
 } // Anonymous namespace
 
 RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
@@ -216,7 +232,6 @@ void RasterizerOpenGL::PrepareDraw(bool is_indexed, Func&& draw_func) {
 
     SCOPE_EXIT({ gpu.TickWork(); });
     gpu_memory->FlushCaching();
-    query_cache.UpdateCounters();
 
     GraphicsPipeline* const pipeline{shader_cache.CurrentGraphicsPipeline()};
     if (!pipeline) {
@@ -334,7 +349,6 @@ void RasterizerOpenGL::DrawTexture() {
     MICROPROFILE_SCOPE(OpenGL_Drawing);
 
     SCOPE_EXIT({ gpu.TickWork(); });
-    query_cache.UpdateCounters();
 
     texture_cache.SynchronizeGraphicsDescriptors();
     texture_cache.UpdateRenderTargets(false);
@@ -401,21 +415,28 @@ void RasterizerOpenGL::DispatchCompute() {
 }
 
 void RasterizerOpenGL::ResetCounter(VideoCommon::QueryType type) {
-    if (type == VideoCommon::QueryType::ZPassPixelCount64) {
-        query_cache.ResetCounter(VideoCore::QueryType::SamplesPassed);
+    const auto query_cache_type = MaxwellToVideoCoreQuery(type);
+    if (!query_cache_type.has_value()) {
+        UNIMPLEMENTED_IF_MSG(type != VideoCommon::QueryType::Payload, "Reset query type: {}", type);
+        return;
     }
+    query_cache.ResetCounter(*query_cache_type);
 }
 
 void RasterizerOpenGL::Query(GPUVAddr gpu_addr, VideoCommon::QueryType type,
                              VideoCommon::QueryPropertiesFlags flags, u32 payload, u32 subreport) {
-    if (type == VideoCommon::QueryType::ZPassPixelCount64) {
-        if (True(flags & VideoCommon::QueryPropertiesFlags::HasTimeout)) {
-            query_cache.Query(gpu_addr, VideoCore::QueryType::SamplesPassed, {gpu.GetTicks()});
-        } else {
-            query_cache.Query(gpu_addr, VideoCore::QueryType::SamplesPassed, std::nullopt);
-        }
-        return;
+    const auto query_cache_type = MaxwellToVideoCoreQuery(type);
+    if (!query_cache_type.has_value()) {
+        return QueryFallback(gpu_addr, type, flags, payload, subreport);
     }
+    const bool has_timeout = True(flags & VideoCommon::QueryPropertiesFlags::HasTimeout);
+    const auto timestamp = has_timeout ? std::optional<u64>{gpu.GetTicks()} : std::nullopt;
+    query_cache.Query(gpu_addr, *query_cache_type, timestamp);
+}
+
+void RasterizerOpenGL::QueryFallback(GPUVAddr gpu_addr, VideoCommon::QueryType type,
+                                     VideoCommon::QueryPropertiesFlags flags, u32 payload,
+                                     u32 subreport) {
     if (type != VideoCommon::QueryType::Payload) {
         payload = 1u;
     }

@@ -28,8 +28,11 @@
 namespace VideoCore {
 enum class QueryType {
     SamplesPassed,
+    PrimitivesGenerated,
+    TfbPrimitivesWritten,
+    Count,
 };
-constexpr std::size_t NumQueryTypes = 1;
+constexpr std::size_t NumQueryTypes = static_cast<size_t>(QueryType::Count);
 } // namespace VideoCore
 
 namespace VideoCommon {
@@ -43,15 +46,6 @@ class CounterStreamBase {
 public:
     explicit CounterStreamBase(QueryCache& cache_, VideoCore::QueryType type_)
         : cache{cache_}, type{type_} {}
-
-    /// Updates the state of the stream, enabling or disabling as needed.
-    void Update(bool enabled) {
-        if (enabled) {
-            Enable();
-        } else {
-            Disable();
-        }
-    }
 
     /// Resets the stream to zero. It doesn't disable the query after resetting.
     void Reset() {
@@ -80,7 +74,6 @@ public:
         return current != nullptr;
     }
 
-private:
     /// Enables the stream.
     void Enable() {
         if (current) {
@@ -97,6 +90,7 @@ private:
         last = std::exchange(current, nullptr);
     }
 
+private:
     QueryCache& cache;
     const VideoCore::QueryType type;
 
@@ -112,8 +106,14 @@ public:
         : rasterizer{rasterizer_},
           // Use reinterpret_cast instead of static_cast as workaround for
           // UBSan bug (https://github.com/llvm/llvm-project/issues/59060)
-          cpu_memory{cpu_memory_}, streams{{CounterStream{reinterpret_cast<QueryCache&>(*this),
-                                                          VideoCore::QueryType::SamplesPassed}}} {
+          cpu_memory{cpu_memory_}, streams{{
+                                       {CounterStream{reinterpret_cast<QueryCache&>(*this),
+                                                      VideoCore::QueryType::SamplesPassed}},
+                                       {CounterStream{reinterpret_cast<QueryCache&>(*this),
+                                                      VideoCore::QueryType::PrimitivesGenerated}},
+                                       {CounterStream{reinterpret_cast<QueryCache&>(*this),
+                                                      VideoCore::QueryType::TfbPrimitivesWritten}},
+                                   }} {
         (void)slot_async_jobs.insert(); // Null value
     }
 
@@ -157,12 +157,11 @@ public:
         AsyncFlushQuery(query, timestamp, lock);
     }
 
-    /// Updates counters from GPU state. Expected to be called once per draw, clear or dispatch.
-    void UpdateCounters() {
+    /// Enables all available GPU counters
+    void EnableCounters() {
         std::unique_lock lock{mutex};
-        if (maxwell3d) {
-            const auto& regs = maxwell3d->regs;
-            Stream(VideoCore::QueryType::SamplesPassed).Update(regs.zpass_pixel_count_enable);
+        for (auto& stream : streams) {
+            stream.Enable();
         }
     }
 
@@ -176,7 +175,7 @@ public:
     void DisableStreams() {
         std::unique_lock lock{mutex};
         for (auto& stream : streams) {
-            stream.Update(false);
+            stream.Disable();
         }
     }
 
@@ -353,7 +352,7 @@ private:
 
     std::shared_ptr<std::vector<AsyncJobId>> uncommitted_flushes{};
     std::list<std::shared_ptr<std::vector<AsyncJobId>>> committed_flushes;
-};
+}; // namespace VideoCommon
 
 template <class QueryCache, class HostCounter>
 class HostCounterBase {
