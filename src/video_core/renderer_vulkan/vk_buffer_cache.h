@@ -63,6 +63,7 @@ private:
     vk::Buffer buffer;
     std::vector<BufferView> views;
     VideoCommon::UsageTracker tracker;
+    bool is_null{};
 };
 
 class QuadArrayIndexBuffer;
@@ -151,6 +152,7 @@ private:
     }
 
     void ReserveNullBuffer();
+    vk::Buffer CreateNullBuffer();
 
     const Device& device;
     MemoryAllocator& memory_allocator;
