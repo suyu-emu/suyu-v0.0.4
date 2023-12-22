@@ -372,6 +372,10 @@ TexturePixelFormat ReadTexturePixelFormat(Environment& env, const ConstBufferAdd
     return env.ReadTexturePixelFormat(GetTextureHandle(env, cbuf));
 }
 
+bool IsTexturePixelFormatInteger(Environment& env, const ConstBufferAddr& cbuf) {
+    return env.IsTexturePixelFormatInteger(GetTextureHandle(env, cbuf));
+}
+
 class Descriptors {
 public:
     explicit Descriptors(TextureBufferDescriptors& texture_buffer_descriptors_,
@@ -403,6 +407,7 @@ public:
         })};
         image_buffer_descriptors[index].is_written |= desc.is_written;
         image_buffer_descriptors[index].is_read |= desc.is_read;
+        image_buffer_descriptors[index].is_integer |= desc.is_integer;
         return index;
     }
 
@@ -432,6 +437,7 @@ public:
         })};
         image_descriptors[index].is_written |= desc.is_written;
         image_descriptors[index].is_read |= desc.is_read;
+        image_descriptors[index].is_integer |= desc.is_integer;
         return index;
     }
 
@@ -467,6 +473,20 @@ void PatchImageSampleImplicitLod(IR::Block& block, IR::Inst& inst) {
                         ir.FPRecip(ir.ConvertUToF(32, 32, ir.CompositeExtract(texture_size, 0)))),
                ir.FPMul(IR::F32(ir.CompositeExtract(coord, 1)),
                         ir.FPRecip(ir.ConvertUToF(32, 32, ir.CompositeExtract(texture_size, 1))))));
+}
+
+bool IsPixelFormatSNorm(TexturePixelFormat pixel_format) {
+    switch (pixel_format) {
+    case TexturePixelFormat::A8B8G8R8_SNORM:
+    case TexturePixelFormat::R8G8_SNORM:
+    case TexturePixelFormat::R8_SNORM:
+    case TexturePixelFormat::R16G16B16A16_SNORM:
+    case TexturePixelFormat::R16G16_SNORM:
+    case TexturePixelFormat::R16_SNORM:
+        return true;
+    default:
+        return false;
+    }
 }
 
 void PatchTexelFetch(IR::Block& block, IR::Inst& inst, TexturePixelFormat pixel_format) {
@@ -587,11 +607,13 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
             }
             const bool is_written{inst->GetOpcode() != IR::Opcode::ImageRead};
             const bool is_read{inst->GetOpcode() != IR::Opcode::ImageWrite};
+            const bool is_integer{IsTexturePixelFormatInteger(env, cbuf)};
             if (flags.type == TextureType::Buffer) {
                 index = descriptors.Add(ImageBufferDescriptor{
                     .format = flags.image_format,
                     .is_written = is_written,
                     .is_read = is_read,
+                    .is_integer = is_integer,
                     .cbuf_index = cbuf.index,
                     .cbuf_offset = cbuf.offset,
                     .count = cbuf.count,
@@ -603,6 +625,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
                     .format = flags.image_format,
                     .is_written = is_written,
                     .is_read = is_read,
+                    .is_integer = is_integer,
                     .cbuf_index = cbuf.index,
                     .cbuf_offset = cbuf.offset,
                     .count = cbuf.count,
@@ -658,7 +681,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
         if (!host_info.support_snorm_render_buffer && inst->GetOpcode() == IR::Opcode::ImageFetch &&
             flags.type == TextureType::Buffer) {
             const auto pixel_format = ReadTexturePixelFormat(env, cbuf);
-            if (pixel_format != TexturePixelFormat::OTHER) {
+            if (IsPixelFormatSNorm(pixel_format)) {
                 PatchTexelFetch(*texture_inst.block, *texture_inst.inst, pixel_format);
             }
         }
