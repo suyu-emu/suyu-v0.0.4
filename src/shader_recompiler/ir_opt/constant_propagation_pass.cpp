@@ -815,6 +815,15 @@ bool FindGradient3DDerivatives(std::array<IR::Value, 3>& results, IR::Value coor
     return true;
 }
 
+void ConvertDerivatives(std::array<IR::Value, 3>& results, IR::IREmitter& ir) {
+    for (size_t i = 0; i < 3; i++) {
+        if (results[i].Type() == IR::Type::U32) {
+            results[i] = results[i].IsImmediate() ? ir.Imm32(Common::BitCast<f32>(results[i].U32()))
+                                                  : ir.BitCast<IR::F32>(IR::U32(results[i]));
+        }
+    }
+}
+
 void FoldImageSampleImplicitLod(IR::Block& block, IR::Inst& inst) {
     IR::TextureInstInfo info = inst.Flags<IR::TextureInstInfo>();
     auto orig_opcode = inst.GetOpcode();
@@ -831,12 +840,14 @@ void FoldImageSampleImplicitLod(IR::Block& block, IR::Inst& inst) {
     if (!offset.IsImmediate()) {
         return;
     }
+    IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
     IR::Inst* const inst2 = coords.InstRecursive();
     std::array<std::array<IR::Value, 3>, 3> results_matrix;
     for (size_t i = 0; i < 3; i++) {
         if (!FindGradient3DDerivatives(results_matrix[i], inst2->Arg(i).Resolve())) {
             return;
         }
+        ConvertDerivatives(results_matrix[i], ir);
     }
     IR::F32 lod_clamp{};
     if (info.has_lod_clamp != 0) {
@@ -846,7 +857,6 @@ void FoldImageSampleImplicitLod(IR::Block& block, IR::Inst& inst) {
             lod_clamp = IR::F32{bias_lc};
         }
     }
-    IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
     IR::Value new_coords =
         ir.CompositeConstruct(results_matrix[0][0], results_matrix[1][0], results_matrix[2][0]);
     IR::Value derivatives_1 = ir.CompositeConstruct(results_matrix[0][1], results_matrix[0][2],
