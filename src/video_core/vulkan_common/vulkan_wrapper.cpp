@@ -246,7 +246,9 @@ void SetObjectName(const DeviceDispatch* dld, VkDevice device, T handle, VkObjec
         .objectHandle = reinterpret_cast<u64>(handle),
         .pObjectName = name,
     };
-    Check(dld->vkSetDebugUtilsObjectNameEXT(device, &name_info));
+    if (dld->vkSetDebugUtilsObjectNameEXT) {
+        Check(dld->vkSetDebugUtilsObjectNameEXT(device, &name_info));
+    }
 }
 
 } // Anonymous namespace
