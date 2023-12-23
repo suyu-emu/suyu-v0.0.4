@@ -72,8 +72,9 @@ void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
 }
 
 void CoreTiming::ClearPendingEvents() {
-    std::scoped_lock lock{basic_lock};
+    std::scoped_lock lock{advance_lock, basic_lock};
     event_queue.clear();
+    event.Set();
 }
 
 void CoreTiming::Pause(bool is_paused) {
