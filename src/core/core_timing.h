@@ -27,12 +27,15 @@ using TimedCallback = std::function<std::optional<std::chrono::nanoseconds>(
 /// Contains the characteristics of a particular event.
 struct EventType {
     explicit EventType(TimedCallback&& callback_, std::string&& name_)
-        : callback{std::move(callback_)}, name{std::move(name_)} {}
+        : callback{std::move(callback_)}, name{std::move(name_)}, sequence_number{0} {}
 
     /// The event's callback function.
     TimedCallback callback;
     /// A pointer to the name of the event.
     const std::string name;
+    /// A monotonic sequence number, incremented when this event is
+    /// changed externally.
+    size_t sequence_number;
 };
 
 enum class UnscheduleEventType {
