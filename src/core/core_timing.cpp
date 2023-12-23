@@ -143,7 +143,8 @@ void CoreTiming::ScheduleLoopingEvent(std::chrono::nanoseconds start_time,
     event.Set();
 }
 
-void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, bool wait) {
+void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
+                                 UnscheduleEventType type) {
     {
         std::scoped_lock lk{basic_lock};
 
@@ -161,7 +162,7 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, b
     }
 
     // Force any in-progress events to finish
-    if (wait) {
+    if (type == UnscheduleEventType::Wait) {
         std::scoped_lock lk{advance_lock};
     }
 }

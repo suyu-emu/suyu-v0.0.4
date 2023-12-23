@@ -61,7 +61,8 @@ void KHardwareTimer::EnableInterrupt(s64 wakeup_time) {
 }
 
 void KHardwareTimer::DisableInterrupt() {
-    m_kernel.System().CoreTiming().UnscheduleEventWithoutWait(m_event_type);
+    m_kernel.System().CoreTiming().UnscheduleEvent(m_event_type,
+                                                   Core::Timing::UnscheduleEventType::NoWait);
     m_wakeup_time = std::numeric_limits<s64>::max();
 }
 
