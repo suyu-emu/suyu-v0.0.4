@@ -70,7 +70,7 @@ public:
     void Reload(std::vector<CheatEntry> reload_cheats);
 
 private:
-    void FrameCallback(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
+    void FrameCallback(std::chrono::nanoseconds ns_late);
 
     DmntCheatVm vm;
     CheatProcessMetadata metadata;

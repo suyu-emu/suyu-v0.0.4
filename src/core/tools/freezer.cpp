@@ -51,18 +51,17 @@ void MemoryWriteWidth(Core::Memory::Memory& memory, u32 width, VAddr addr, u64 v
 
 Freezer::Freezer(Core::Timing::CoreTiming& core_timing_, Core::Memory::Memory& memory_)
     : core_timing{core_timing_}, memory{memory_} {
-    event = Core::Timing::CreateEvent(
-        "MemoryFreezer::FrameCallback",
-        [this](std::uintptr_t user_data, s64 time,
-               std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
-            FrameCallback(user_data, ns_late);
-            return std::nullopt;
-        });
+    event = Core::Timing::CreateEvent("MemoryFreezer::FrameCallback",
+                                      [this](s64 time, std::chrono::nanoseconds ns_late)
+                                          -> std::optional<std::chrono::nanoseconds> {
+                                          FrameCallback(ns_late);
+                                          return std::nullopt;
+                                      });
     core_timing.ScheduleEvent(memory_freezer_ns, event);
 }
 
 Freezer::~Freezer() {
-    core_timing.UnscheduleEvent(event, 0);
+    core_timing.UnscheduleEvent(event);
 }
 
 void Freezer::SetActive(bool is_active) {
@@ -159,7 +158,7 @@ Freezer::Entries::const_iterator Freezer::FindEntry(VAddr address) const {
                         [address](const Entry& entry) { return entry.address == address; });
 }
 
-void Freezer::FrameCallback(std::uintptr_t, std::chrono::nanoseconds ns_late) {
+void Freezer::FrameCallback(std::chrono::nanoseconds ns_late) {
     if (!IsActive()) {
         LOG_DEBUG(Common_Memory, "Memory freezer has been deactivated, ending callback events.");
         return;

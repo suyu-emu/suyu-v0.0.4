@@ -108,7 +108,7 @@ private:
     void DisableJoyPollingReceiveMode(HLERequestContext& ctx);
     void SetStatusManagerType(HLERequestContext& ctx);
 
-    void UpdateHidbus(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
+    void UpdateHidbus(std::chrono::nanoseconds ns_late);
     std::optional<std::size_t> GetDeviceIndexFromHandle(BusHandle handle) const;
 
     template <typename T>

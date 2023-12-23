@@ -81,10 +81,10 @@ public:
     void EnablePadInput(u64 aruid, bool is_enabled);
     void EnableTouchScreen(u64 aruid, bool is_enabled);
 
-    void UpdateControllers(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
-    void UpdateNpad(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
-    void UpdateMouseKeyboard(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
-    void UpdateMotion(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
+    void UpdateControllers(std::chrono::nanoseconds ns_late);
+    void UpdateNpad(std::chrono::nanoseconds ns_late);
+    void UpdateMouseKeyboard(std::chrono::nanoseconds ns_late);
+    void UpdateMotion(std::chrono::nanoseconds ns_late);
 
 private:
     Result CreateAppletResourceImpl(u64 aruid);

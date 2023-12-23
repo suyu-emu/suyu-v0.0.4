@@ -29,7 +29,6 @@ std::shared_ptr<EventType> CreateEvent(std::string name, TimedCallback&& callbac
 struct CoreTiming::Event {
     s64 time;
     u64 fifo_order;
-    std::uintptr_t user_data;
     std::weak_ptr<EventType> type;
     s64 reschedule_time;
     heap_t::handle_type handle{};
@@ -67,9 +66,6 @@ void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
     event_fifo_id = 0;
     shutting_down = false;
     cpu_ticks = 0;
-    const auto empty_timed_callback = [](std::uintptr_t, u64, std::chrono::nanoseconds)
-        -> std::optional<std::chrono::nanoseconds> { return std::nullopt; };
-    ev_lost = CreateEvent("_lost_event", empty_timed_callback);
     if (is_multicore) {
         timer_thread = std::make_unique<std::jthread>(ThreadEntry, std::ref(*this));
     }
@@ -119,14 +115,12 @@ bool CoreTiming::HasPendingEvents() const {
 }
 
 void CoreTiming::ScheduleEvent(std::chrono::nanoseconds ns_into_future,
-                               const std::shared_ptr<EventType>& event_type,
-                               std::uintptr_t user_data, bool absolute_time) {
+                               const std::shared_ptr<EventType>& event_type, bool absolute_time) {
     {
         std::scoped_lock scope{basic_lock};
         const auto next_time{absolute_time ? ns_into_future : GetGlobalTimeNs() + ns_into_future};
 
-        auto h{event_queue.emplace(
-            Event{next_time.count(), event_fifo_id++, user_data, event_type, 0})};
+        auto h{event_queue.emplace(Event{next_time.count(), event_fifo_id++, event_type, 0})};
         (*h).handle = h;
     }
 
@@ -136,28 +130,27 @@ void CoreTiming::ScheduleEvent(std::chrono::nanoseconds ns_into_future,
 void CoreTiming::ScheduleLoopingEvent(std::chrono::nanoseconds start_time,
                                       std::chrono::nanoseconds resched_time,
                                       const std::shared_ptr<EventType>& event_type,
-                                      std::uintptr_t user_data, bool absolute_time) {
+                                      bool absolute_time) {
     {
         std::scoped_lock scope{basic_lock};
         const auto next_time{absolute_time ? start_time : GetGlobalTimeNs() + start_time};
 
-        auto h{event_queue.emplace(Event{next_time.count(), event_fifo_id++, user_data, event_type,
-                                         resched_time.count()})};
+        auto h{event_queue.emplace(
+            Event{next_time.count(), event_fifo_id++, event_type, resched_time.count()})};
         (*h).handle = h;
     }
 
     event.Set();
 }
 
-void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
-                                 std::uintptr_t user_data, bool wait) {
+void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, bool wait) {
     {
         std::scoped_lock lk{basic_lock};
 
         std::vector<heap_t::handle_type> to_remove;
         for (auto itr = event_queue.begin(); itr != event_queue.end(); itr++) {
             const Event& e = *itr;
-            if (e.type.lock().get() == event_type.get() && e.user_data == user_data) {
+            if (e.type.lock().get() == event_type.get()) {
                 to_remove.push_back(itr->handle);
             }
         }
@@ -209,7 +202,6 @@ std::optional<s64> CoreTiming::Advance() {
 
         if (const auto event_type{evt.type.lock()}) {
             if (evt.reschedule_time == 0) {
-                const auto evt_user_data = evt.user_data;
                 const auto evt_time = evt.time;
 
                 event_queue.pop();
@@ -217,16 +209,14 @@ std::optional<s64> CoreTiming::Advance() {
                 basic_lock.unlock();
 
                 event_type->callback(
-                    evt_user_data, evt_time,
-                    std::chrono::nanoseconds{GetGlobalTimeNs().count() - evt_time});
+                    evt_time, std::chrono::nanoseconds{GetGlobalTimeNs().count() - evt_time});
 
                 basic_lock.lock();
             } else {
                 basic_lock.unlock();
 
                 const auto new_schedule_time{event_type->callback(
-                    evt.user_data, evt.time,
-                    std::chrono::nanoseconds{GetGlobalTimeNs().count() - evt.time})};
+                    evt.time, std::chrono::nanoseconds{GetGlobalTimeNs().count() - evt.time})};
 
                 basic_lock.lock();
 
@@ -241,8 +231,8 @@ std::optional<s64> CoreTiming::Advance() {
                     next_time = pause_end_time + next_schedule_time;
                 }
 
-                event_queue.update(evt.handle, Event{next_time, event_fifo_id++, evt.user_data,
-                                                     evt.type, next_schedule_time, evt.handle});
+                event_queue.update(evt.handle, Event{next_time, event_fifo_id++, evt.type,
+                                                     next_schedule_time, evt.handle});
             }
         }
 

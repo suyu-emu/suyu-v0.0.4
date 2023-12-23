@@ -67,7 +67,7 @@ Nvnflinger::Nvnflinger(Core::System& system_, HosBinderDriverServer& hos_binder_
     // Schedule the screen composition events
     multi_composition_event = Core::Timing::CreateEvent(
         "ScreenComposition",
-        [this](std::uintptr_t, s64 time,
+        [this](s64 time,
                std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
             vsync_signal.Set();
             return std::chrono::nanoseconds(GetNextTicks());
@@ -75,7 +75,7 @@ Nvnflinger::Nvnflinger(Core::System& system_, HosBinderDriverServer& hos_binder_
 
     single_composition_event = Core::Timing::CreateEvent(
         "ScreenComposition",
-        [this](std::uintptr_t, s64 time,
+        [this](s64 time,
                std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
             const auto lock_guard = Lock();
             Compose();
@@ -93,11 +93,11 @@ Nvnflinger::Nvnflinger(Core::System& system_, HosBinderDriverServer& hos_binder_
 
 Nvnflinger::~Nvnflinger() {
     if (system.IsMulticore()) {
-        system.CoreTiming().UnscheduleEvent(multi_composition_event, {});
+        system.CoreTiming().UnscheduleEvent(multi_composition_event);
         vsync_thread.request_stop();
         vsync_signal.Set();
     } else {
-        system.CoreTiming().UnscheduleEvent(single_composition_event, {});
+        system.CoreTiming().UnscheduleEvent(single_composition_event);
     }
 
     ShutdownLayers();

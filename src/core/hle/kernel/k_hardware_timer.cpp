@@ -10,15 +10,15 @@ namespace Kernel {
 
 void KHardwareTimer::Initialize() {
     // Create the timing callback to register with CoreTiming.
-    m_event_type = Core::Timing::CreateEvent(
-        "KHardwareTimer::Callback", [](std::uintptr_t timer_handle, s64, std::chrono::nanoseconds) {
-            reinterpret_cast<KHardwareTimer*>(timer_handle)->DoTask();
-            return std::nullopt;
-        });
+    m_event_type = Core::Timing::CreateEvent("KHardwareTimer::Callback",
+                                             [this](s64, std::chrono::nanoseconds) {
+                                                 this->DoTask();
+                                                 return std::nullopt;
+                                             });
 }
 
 void KHardwareTimer::Finalize() {
-    m_kernel.System().CoreTiming().UnscheduleEvent(m_event_type, reinterpret_cast<uintptr_t>(this));
+    m_kernel.System().CoreTiming().UnscheduleEvent(m_event_type);
     m_wakeup_time = std::numeric_limits<s64>::max();
     m_event_type.reset();
 }
@@ -57,13 +57,11 @@ void KHardwareTimer::EnableInterrupt(s64 wakeup_time) {
 
     m_wakeup_time = wakeup_time;
     m_kernel.System().CoreTiming().ScheduleEvent(std::chrono::nanoseconds{m_wakeup_time},
-                                                 m_event_type, reinterpret_cast<uintptr_t>(this),
-                                                 true);
+                                                 m_event_type, true);
 }
 
 void KHardwareTimer::DisableInterrupt() {
-    m_kernel.System().CoreTiming().UnscheduleEventWithoutWait(m_event_type,
-                                                              reinterpret_cast<uintptr_t>(this));
+    m_kernel.System().CoreTiming().UnscheduleEventWithoutWait(m_event_type);
     m_wakeup_time = std::numeric_limits<s64>::max();
 }
 

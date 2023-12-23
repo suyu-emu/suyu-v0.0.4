@@ -22,7 +22,7 @@ namespace Core::Timing {
 
 /// A callback that may be scheduled for a particular core timing event.
 using TimedCallback = std::function<std::optional<std::chrono::nanoseconds>(
-    std::uintptr_t user_data, s64 time, std::chrono::nanoseconds ns_late)>;
+    s64 time, std::chrono::nanoseconds ns_late)>;
 
 /// Contains the characteristics of a particular event.
 struct EventType {
@@ -89,22 +89,19 @@ public:
 
     /// Schedules an event in core timing
     void ScheduleEvent(std::chrono::nanoseconds ns_into_future,
-                       const std::shared_ptr<EventType>& event_type, std::uintptr_t user_data = 0,
-                       bool absolute_time = false);
+                       const std::shared_ptr<EventType>& event_type, bool absolute_time = false);
 
     /// Schedules an event which will automatically re-schedule itself with the given time, until
     /// unscheduled
     void ScheduleLoopingEvent(std::chrono::nanoseconds start_time,
                               std::chrono::nanoseconds resched_time,
                               const std::shared_ptr<EventType>& event_type,
-                              std::uintptr_t user_data = 0, bool absolute_time = false);
+                              bool absolute_time = false);
 
-    void UnscheduleEvent(const std::shared_ptr<EventType>& event_type, std::uintptr_t user_data,
-                         bool wait = true);
+    void UnscheduleEvent(const std::shared_ptr<EventType>& event_type, bool wait = true);
 
-    void UnscheduleEventWithoutWait(const std::shared_ptr<EventType>& event_type,
-                                    std::uintptr_t user_data) {
-        UnscheduleEvent(event_type, user_data, false);
+    void UnscheduleEventWithoutWait(const std::shared_ptr<EventType>& event_type) {
+        UnscheduleEvent(event_type, false);
     }
 
     void AddTicks(u64 ticks_to_add);
@@ -158,7 +155,6 @@ private:
     heap_t event_queue;
     u64 event_fifo_id = 0;
 
-    std::shared_ptr<EventType> ev_lost;
     Common::Event event{};
     Common::Event pause_event{};
     mutable std::mutex basic_lock;

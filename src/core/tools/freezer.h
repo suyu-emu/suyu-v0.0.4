@@ -77,7 +77,7 @@ private:
     Entries::iterator FindEntry(VAddr address);
     Entries::const_iterator FindEntry(VAddr address) const;
 
-    void FrameCallback(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
+    void FrameCallback(std::chrono::nanoseconds ns_late);
     void FillEntryReads();
 
     std::atomic_bool active{false};
