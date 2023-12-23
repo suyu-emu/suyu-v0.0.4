@@ -35,6 +35,11 @@ struct EventType {
     const std::string name;
 };
 
+enum class UnscheduleEventType {
+    Wait,
+    NoWait,
+};
+
 /**
  * This is a system to schedule events into the emulated machine's future. Time is measured
  * in main CPU clock cycles.
@@ -98,11 +103,8 @@ public:
                               const std::shared_ptr<EventType>& event_type,
                               bool absolute_time = false);
 
-    void UnscheduleEvent(const std::shared_ptr<EventType>& event_type, bool wait = true);
-
-    void UnscheduleEventWithoutWait(const std::shared_ptr<EventType>& event_type) {
-        UnscheduleEvent(event_type, false);
-    }
+    void UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
+                         UnscheduleEventType type = UnscheduleEventType::Wait);
 
     void AddTicks(u64 ticks_to_add);
 
