@@ -7,7 +7,7 @@
 
 #include "common/common_funcs.h"
 #include "core/hle/kernel/k_auto_object.h"
-#include "core/hle/kernel/k_light_lock.h"
+#include "core/hle/kernel/k_spin_lock.h"
 
 namespace Kernel {
 
@@ -21,32 +21,7 @@ public:
 
     using ListType = boost::intrusive::rbtree<KAutoObjectWithList>;
 
-    class ListAccessor : public KScopedLightLock {
-    public:
-        explicit ListAccessor(KAutoObjectWithListContainer* container)
-            : KScopedLightLock(container->m_lock), m_list(container->m_object_list) {}
-        explicit ListAccessor(KAutoObjectWithListContainer& container)
-            : KScopedLightLock(container.m_lock), m_list(container.m_object_list) {}
-
-        typename ListType::iterator begin() const {
-            return m_list.begin();
-        }
-
-        typename ListType::iterator end() const {
-            return m_list.end();
-        }
-
-        typename ListType::iterator find(typename ListType::const_reference ref) const {
-            return m_list.find(ref);
-        }
-
-    private:
-        ListType& m_list;
-    };
-
-    friend class ListAccessor;
-
-    KAutoObjectWithListContainer(KernelCore& kernel) : m_lock(kernel), m_object_list() {}
+    KAutoObjectWithListContainer(KernelCore& kernel) : m_lock(), m_object_list() {}
 
     void Initialize() {}
     void Finalize() {}
@@ -56,7 +31,7 @@ public:
     size_t GetOwnedCount(KProcess* owner);
 
 private:
-    KLightLock m_lock;
+    KSpinLock m_lock;
     ListType m_object_list;
 };
 
