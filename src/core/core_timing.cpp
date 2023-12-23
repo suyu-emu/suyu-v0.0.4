@@ -159,6 +159,8 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
         for (auto h : to_remove) {
             event_queue.erase(h);
         }
+
+        event_type->sequence_number++;
     }
 
     // Force any in-progress events to finish
@@ -202,9 +204,10 @@ std::optional<s64> CoreTiming::Advance() {
         const Event& evt = event_queue.top();
 
         if (const auto event_type{evt.type.lock()}) {
-            if (evt.reschedule_time == 0) {
-                const auto evt_time = evt.time;
+            const auto evt_time = evt.time;
+            const auto evt_sequence_num = event_type->sequence_number;
 
+            if (evt.reschedule_time == 0) {
                 event_queue.pop();
 
                 basic_lock.unlock();
@@ -217,9 +220,14 @@ std::optional<s64> CoreTiming::Advance() {
                 basic_lock.unlock();
 
                 const auto new_schedule_time{event_type->callback(
-                    evt.time, std::chrono::nanoseconds{GetGlobalTimeNs().count() - evt.time})};
+                    evt_time, std::chrono::nanoseconds{GetGlobalTimeNs().count() - evt_time})};
 
                 basic_lock.lock();
+
+                if (evt_sequence_num != event_type->sequence_number) {
+                    // Heap handle is invalidated after external modification.
+                    continue;
+                }
 
                 const auto next_schedule_time{new_schedule_time.has_value()
                                                   ? new_schedule_time.value().count()
