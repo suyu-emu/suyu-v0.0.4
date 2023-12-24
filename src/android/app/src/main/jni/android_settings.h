@@ -33,6 +33,11 @@ struct Values {
 
     Settings::SwitchableSetting<std::string, false> driver_path{linkage, "", "driver_path",
                                                                 Settings::Category::GpuDriver};
+
+    Settings::Setting<s32> theme{linkage, 0, "theme", Settings::Category::Android};
+    Settings::Setting<s32> theme_mode{linkage, -1, "theme_mode", Settings::Category::Android};
+    Settings::Setting<bool> black_backgrounds{linkage, false, "black_backgrounds",
+                                              Settings::Category::Android};
 };
 
 extern Values values;
