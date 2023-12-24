@@ -34,6 +34,13 @@ enum class ProgramFilePermission : u64 {
     Everything = 1ULL << 63,
 };
 
+enum class PoolPartition : u32 {
+    Application = 0,
+    Applet = 1,
+    System = 2,
+    SystemNonSecure = 3,
+};
+
 /**
  * Helper which implements an interface to parse Program Description Metadata (NPDM)
  * Data can either be loaded from a file path or with data and an offset into it.
@@ -72,6 +79,7 @@ public:
     u64 GetTitleID() const;
     u64 GetFilesystemPermissions() const;
     u32 GetSystemResourceSize() const;
+    PoolPartition GetPoolPartition() const;
     const KernelCapabilityDescriptors& GetKernelCapabilities() const;
     const std::array<u8, 0x10>& GetName() const {
         return npdm_header.application_name;
@@ -116,8 +124,9 @@ private:
         union {
             u32 flags;
 
-            BitField<0, 1, u32> is_retail;
-            BitField<1, 31, u32> flags_unk;
+            BitField<0, 1, u32> production_flag;
+            BitField<1, 1, u32> unqualified_approval;
+            BitField<2, 4, PoolPartition> pool_partition;
         };
         u64_le title_id_min;
         u64_le title_id_max;

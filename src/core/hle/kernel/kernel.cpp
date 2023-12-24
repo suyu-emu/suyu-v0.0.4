@@ -68,8 +68,6 @@ struct KernelCore::Impl {
 
         global_object_list_container = std::make_unique<KAutoObjectWithListContainer>(kernel);
         global_scheduler_context = std::make_unique<Kernel::GlobalSchedulerContext>(kernel);
-        global_handle_table = std::make_unique<Kernel::KHandleTable>(kernel);
-        global_handle_table->Initialize(KHandleTable::MaxTableSize);
 
         is_phantom_mode_for_singlecore = false;
 
@@ -121,12 +119,7 @@ struct KernelCore::Impl {
         next_user_process_id = KProcess::ProcessIdMin;
         next_thread_id = 1;
 
-        global_handle_table->Finalize();
-        global_handle_table.reset();
-
         preemption_event = nullptr;
-
-        exclusive_monitor.reset();
 
         // Cleanup persistent kernel objects
         auto CleanupObject = [](KAutoObject* obj) {
@@ -191,8 +184,6 @@ struct KernelCore::Impl {
     }
 
     void InitializePhysicalCores() {
-        exclusive_monitor =
-            Core::MakeExclusiveMonitor(system.ApplicationMemory(), Core::Hardware::NUM_CPU_CORES);
         for (u32 i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             const s32 core{static_cast<s32>(i)};
 
@@ -791,10 +782,6 @@ struct KernelCore::Impl {
 
     std::shared_ptr<Core::Timing::EventType> preemption_event;
 
-    // This is the kernel's handle table or supervisor handle table which
-    // stores all the objects in place.
-    std::unique_ptr<KHandleTable> global_handle_table;
-
     std::unique_ptr<KAutoObjectWithListContainer> global_object_list_container;
 
     std::unique_ptr<KObjectNameGlobalData> object_name_global_data;
@@ -805,7 +792,6 @@ struct KernelCore::Impl {
     std::mutex server_lock;
     std::vector<std::unique_ptr<Service::ServerManager>> server_managers;
 
-    std::unique_ptr<Core::ExclusiveMonitor> exclusive_monitor;
     std::array<std::unique_ptr<Kernel::PhysicalCore>, Core::Hardware::NUM_CPU_CORES> cores;
 
     // Next host thead ID to use, 0-3 IDs represent core threads, >3 represent others
@@ -882,10 +868,6 @@ KResourceLimit* KernelCore::GetSystemResourceLimit() {
     return impl->system_resource_limit;
 }
 
-KScopedAutoObject<KThread> KernelCore::RetrieveThreadFromGlobalHandleTable(Handle handle) const {
-    return impl->global_handle_table->GetObject<KThread>(handle);
-}
-
 void KernelCore::AppendNewProcess(KProcess* process) {
     impl->process_list.push_back(process);
 }
@@ -959,14 +941,6 @@ Kernel::KHardwareTimer& KernelCore::HardwareTimer() {
     return *impl->hardware_timer;
 }
 
-Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() {
-    return *impl->exclusive_monitor;
-}
-
-const Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() const {
-    return *impl->exclusive_monitor;
-}
-
 KAutoObjectWithListContainer& KernelCore::ObjectListContainer() {
     return *impl->global_object_list_container;
 }
@@ -1028,14 +1002,6 @@ u64 KernelCore::CreateNewKernelProcessID() {
 
 u64 KernelCore::CreateNewUserProcessID() {
     return impl->next_user_process_id++;
-}
-
-KHandleTable& KernelCore::GlobalHandleTable() {
-    return *impl->global_handle_table;
-}
-
-const KHandleTable& KernelCore::GlobalHandleTable() const {
-    return *impl->global_handle_table;
 }
 
 void KernelCore::RegisterCoreThread(std::size_t core_id) {

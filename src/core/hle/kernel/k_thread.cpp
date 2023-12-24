@@ -1422,8 +1422,7 @@ s32 GetCurrentCoreId(KernelCore& kernel) {
 }
 
 Core::Memory::Memory& GetCurrentMemory(KernelCore& kernel) {
-    // TODO: per-process memory
-    return kernel.System().ApplicationMemory();
+    return GetCurrentProcess(kernel).GetMemory();
 }
 
 KScopedDisableDispatch::~KScopedDisableDispatch() {

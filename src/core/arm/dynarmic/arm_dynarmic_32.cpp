@@ -15,7 +15,7 @@ using namespace Common::Literals;
 
 class DynarmicCallbacks32 : public Dynarmic::A32::UserCallbacks {
 public:
-    explicit DynarmicCallbacks32(ArmDynarmic32& parent, const Kernel::KProcess* process)
+    explicit DynarmicCallbacks32(ArmDynarmic32& parent, Kernel::KProcess* process)
         : m_parent{parent}, m_memory(process->GetMemory()),
           m_process(process), m_debugger_enabled{parent.m_system.DebuggerEnabled()},
           m_check_memory_access{m_debugger_enabled ||
@@ -169,7 +169,7 @@ public:
 
     ArmDynarmic32& m_parent;
     Core::Memory::Memory& m_memory;
-    const Kernel::KProcess* m_process{};
+    Kernel::KProcess* m_process{};
     const bool m_debugger_enabled{};
     const bool m_check_memory_access{};
     static constexpr u64 MinimumRunCycles = 10000U;
@@ -370,7 +370,7 @@ void ArmDynarmic32::RewindBreakpointInstruction() {
     this->SetContext(m_breakpoint_context);
 }
 
-ArmDynarmic32::ArmDynarmic32(System& system, bool uses_wall_clock, const Kernel::KProcess* process,
+ArmDynarmic32::ArmDynarmic32(System& system, bool uses_wall_clock, Kernel::KProcess* process,
                              DynarmicExclusiveMonitor& exclusive_monitor, std::size_t core_index)
     : ArmInterface{uses_wall_clock}, m_system{system}, m_exclusive_monitor{exclusive_monitor},
       m_cb(std::make_unique<DynarmicCallbacks32>(*this, process)),

@@ -29,8 +29,7 @@ ServiceManager::ServiceManager(Kernel::KernelCore& kernel_) : kernel{kernel_} {
 
 ServiceManager::~ServiceManager() {
     for (auto& [name, port] : service_ports) {
-        port->GetClientPort().Close();
-        port->GetServerPort().Close();
+        port->Close();
     }
 
     if (deferral_event) {
@@ -50,8 +49,8 @@ static Result ValidateServiceName(const std::string& name) {
     return ResultSuccess;
 }
 
-Result ServiceManager::RegisterService(std::string name, u32 max_sessions,
-                                       SessionRequestHandlerFactory handler) {
+Result ServiceManager::RegisterService(Kernel::KServerPort** out_server_port, std::string name,
+                                       u32 max_sessions, SessionRequestHandlerFactory handler) {
     R_TRY(ValidateServiceName(name));
 
     std::scoped_lock lk{lock};
@@ -66,13 +65,17 @@ Result ServiceManager::RegisterService(std::string name, u32 max_sessions,
     // Register the port.
     Kernel::KPort::Register(kernel, port);
 
-    service_ports.emplace(name, port);
+    service_ports.emplace(name, std::addressof(port->GetClientPort()));
     registered_services.emplace(name, handler);
     if (deferral_event) {
         deferral_event->Signal();
     }
 
-    return ResultSuccess;
+    // Set our output.
+    *out_server_port = std::addressof(port->GetServerPort());
+
+    // We succeeded.
+    R_SUCCEED();
 }
 
 Result ServiceManager::UnregisterService(const std::string& name) {
@@ -91,7 +94,8 @@ Result ServiceManager::UnregisterService(const std::string& name) {
     return ResultSuccess;
 }
 
-Result ServiceManager::GetServicePort(Kernel::KPort** out_port, const std::string& name) {
+Result ServiceManager::GetServicePort(Kernel::KClientPort** out_client_port,
+                                      const std::string& name) {
     R_TRY(ValidateServiceName(name));
 
     std::scoped_lock lk{lock};
@@ -101,7 +105,7 @@ Result ServiceManager::GetServicePort(Kernel::KPort** out_port, const std::strin
         return Service::SM::ResultNotRegistered;
     }
 
-    *out_port = it->second;
+    *out_client_port = it->second;
     return ResultSuccess;
 }
 
@@ -172,8 +176,8 @@ Result SM::GetServiceImpl(Kernel::KClientSession** out_client_session, HLEReques
     std::string name(PopServiceName(rp));
 
     // Find the named port.
-    Kernel::KPort* port{};
-    auto port_result = service_manager.GetServicePort(&port, name);
+    Kernel::KClientPort* client_port{};
+    auto port_result = service_manager.GetServicePort(&client_port, name);
     if (port_result == Service::SM::ResultInvalidServiceName) {
         LOG_ERROR(Service_SM, "Invalid service name '{}'", name);
         return Service::SM::ResultInvalidServiceName;
@@ -187,7 +191,7 @@ Result SM::GetServiceImpl(Kernel::KClientSession** out_client_session, HLEReques
 
     // Create a new session.
     Kernel::KClientSession* session{};
-    if (const auto result = port->GetClientPort().CreateSession(&session); result.IsError()) {
+    if (const auto result = client_port->CreateSession(&session); result.IsError()) {
         LOG_ERROR(Service_SM, "called service={} -> error 0x{:08X}", name, result.raw);
         return result;
     }
@@ -221,7 +225,9 @@ void SM::RegisterServiceImpl(HLERequestContext& ctx, std::string name, u32 max_s
     LOG_DEBUG(Service_SM, "called with name={}, max_session_count={}, is_light={}", name,
               max_session_count, is_light);
 
-    if (const auto result = service_manager.RegisterService(name, max_session_count, nullptr);
+    Kernel::KServerPort* server_port{};
+    if (const auto result = service_manager.RegisterService(std::addressof(server_port), name,
+                                                            max_session_count, nullptr);
         result.IsError()) {
         LOG_ERROR(Service_SM, "failed to register service with error_code={:08X}", result.raw);
         IPC::ResponseBuilder rb{ctx, 2};
@@ -229,13 +235,9 @@ void SM::RegisterServiceImpl(HLERequestContext& ctx, std::string name, u32 max_s
         return;
     }
 
-    auto* port = Kernel::KPort::Create(kernel);
-    port->Initialize(ServerSessionCountMax, is_light, 0);
-    SCOPE_EXIT({ port->GetClientPort().Close(); });
-
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(ResultSuccess);
-    rb.PushMoveObjects(port->GetServerPort());
+    rb.PushMoveObjects(server_port);
 }
 
 void SM::UnregisterService(HLERequestContext& ctx) {

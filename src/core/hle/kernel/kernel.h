@@ -116,9 +116,6 @@ public:
     /// Retrieves a shared pointer to the system resource limit instance.
     KResourceLimit* GetSystemResourceLimit();
 
-    /// Retrieves a shared pointer to a Thread instance within the thread wakeup handle table.
-    KScopedAutoObject<KThread> RetrieveThreadFromGlobalHandleTable(Handle handle) const;
-
     /// Adds the given shared pointer to an internal list of active processes.
     void AppendNewProcess(KProcess* process);
 
@@ -169,10 +166,6 @@ public:
 
     /// Stops execution of 'id' core, in order to reschedule a new thread.
     void PrepareReschedule(std::size_t id);
-
-    Core::ExclusiveMonitor& GetExclusiveMonitor();
-
-    const Core::ExclusiveMonitor& GetExclusiveMonitor() const;
 
     KAutoObjectWithListContainer& ObjectListContainer();
 
