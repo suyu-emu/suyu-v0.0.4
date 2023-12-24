@@ -62,7 +62,7 @@ public:
      * Called once a device is opened
      * @param fd The device fd
      */
-    virtual void OnOpen(DeviceFD fd) = 0;
+    virtual void OnOpen(size_t session_id, DeviceFD fd) = 0;
 
     /**
      * Called once a device is closed

@@ -10,6 +10,10 @@
 
 #include "core/hle/service/nvdrv/nvdata.h"
 
+namespace Kernel {
+class KProcess;
+}
+
 namespace Tegra::Host1x {
 class Host1x;
 } // namespace Tegra::Host1x
@@ -21,10 +25,21 @@ class SyncpointManager;
 
 struct ContainerImpl;
 
+struct Session {
+    size_t id;
+    Kernel::KProcess* process;
+    size_t smmu_id;
+};
+
 class Container {
 public:
     explicit Container(Tegra::Host1x::Host1x& host1x);
     ~Container();
+
+    size_t OpenSession(Kernel::KProcess* process);
+    void CloseSession(size_t id);
+
+    Session* GetSession(size_t id);
 
     NvMap& GetNvMapFile();
 

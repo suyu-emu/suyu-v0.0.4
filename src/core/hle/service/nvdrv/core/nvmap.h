@@ -61,8 +61,10 @@ public:
         } flags{};
         static_assert(sizeof(Flags) == sizeof(u32));
 
-        u64 address{}; //!< The memory location in the guest's AS that this handle corresponds to,
-                       //!< this can also be in the nvdrv tmem
+        VAddr address{};   //!< The memory location in the guest's AS that this handle corresponds to,
+                           //!< this can also be in the nvdrv tmem
+        DAddr d_address{}; //!< The memory location in the device's AS that this handle corresponds to,
+                           //!< this can also be in the nvdrv tmem
         bool is_shared_mem_mapped{}; //!< If this nvmap has been mapped with the MapSharedMem IPC
                                      //!< call
 
@@ -125,7 +127,15 @@ public:
      * number of calls to `UnpinHandle`
      * @return The SMMU virtual address that the handle has been mapped to
      */
-    u32 PinHandle(Handle::Id handle);
+    u32 PinHandle(Handle::Id handle, size_t session_id);
+
+    /**
+     * @brief Maps a handle into the SMMU address space
+     * @note This operation is refcounted, the number of calls to this must eventually match the
+     * number of calls to `UnpinHandle`
+     * @return The SMMU virtual address that the handle has been mapped to
+     */
+    NvResult AllocateHandle(Handle::Id handle, Handle::Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress, size_t session_id);
 
     /**
      * @brief When this has been called an equal number of times to `PinHandle` for the supplied

@@ -35,6 +35,7 @@ private:
 
     u64 pid{};
     bool is_initialized{};
+    size_t session_id{};
     Common::ScratchBuffer<u8> output_buffer;
     Common::ScratchBuffer<u8> inline_output_buffer;
 };

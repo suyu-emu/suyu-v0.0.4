@@ -33,7 +33,7 @@ NvResult nvhost_vic::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> inpu
         case 0x3:
             return WrapFixed(this, &nvhost_vic::GetWaitbase, input, output);
         case 0x9:
-            return WrapFixedVariable(this, &nvhost_vic::MapBuffer, input, output);
+            return WrapFixedVariable(this, &nvhost_vic::MapBuffer, input, output, fd);
         case 0xa:
             return WrapFixedVariable(this, &nvhost_vic::UnmapBuffer, input, output);
         default:
@@ -68,13 +68,19 @@ NvResult nvhost_vic::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> inpu
     return NvResult::NotImplemented;
 }
 
-void nvhost_vic::OnOpen(DeviceFD fd) {}
+void nvhost_vic::OnOpen(size_t session_id, DeviceFD fd) {
+        sessions[fd] = session_id;
+}
 
 void nvhost_vic::OnClose(DeviceFD fd) {
     auto& host1x_file = core.Host1xDeviceFile();
     const auto iter = host1x_file.fd_to_id.find(fd);
     if (iter != host1x_file.fd_to_id.end()) {
         system.GPU().ClearCdmaInstance(iter->second);
+    }
+    auto it = sessions.find(fd);
+    if (it != sessions.end()) {
+        sessions.erase(it);
     }
 }
 
