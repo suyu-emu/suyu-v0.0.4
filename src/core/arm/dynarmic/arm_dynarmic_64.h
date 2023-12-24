@@ -25,7 +25,7 @@ class System;
 
 class ArmDynarmic64 final : public ArmInterface {
 public:
-    ArmDynarmic64(System& system, bool uses_wall_clock, const Kernel::KProcess* process,
+    ArmDynarmic64(System& system, bool uses_wall_clock, Kernel::KProcess* process,
                   DynarmicExclusiveMonitor& exclusive_monitor, std::size_t core_index);
     ~ArmDynarmic64() override;
 

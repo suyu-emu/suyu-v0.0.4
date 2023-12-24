@@ -98,6 +98,7 @@ private:
     void GetSettingsItemValue(HLERequestContext& ctx);
     void GetTvSettings(HLERequestContext& ctx);
     void SetTvSettings(HLERequestContext& ctx);
+    void GetDebugModeFlag(HLERequestContext& ctx);
     void GetQuestFlag(HLERequestContext& ctx);
     void GetDeviceTimeZoneLocationName(HLERequestContext& ctx);
     void SetDeviceTimeZoneLocationName(HLERequestContext& ctx);

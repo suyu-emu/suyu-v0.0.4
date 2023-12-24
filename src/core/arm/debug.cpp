@@ -79,7 +79,7 @@ constexpr std::array<u64, 2> SegmentBases{
     0x7100000000ULL,
 };
 
-void SymbolicateBacktrace(const Kernel::KProcess* process, std::vector<BacktraceEntry>& out) {
+void SymbolicateBacktrace(Kernel::KProcess* process, std::vector<BacktraceEntry>& out) {
     auto modules = FindModules(process);
 
     const bool is_64 = process->Is64Bit();
@@ -118,7 +118,7 @@ void SymbolicateBacktrace(const Kernel::KProcess* process, std::vector<Backtrace
     }
 }
 
-std::vector<BacktraceEntry> GetAArch64Backtrace(const Kernel::KProcess* process,
+std::vector<BacktraceEntry> GetAArch64Backtrace(Kernel::KProcess* process,
                                                 const Kernel::Svc::ThreadContext& ctx) {
     std::vector<BacktraceEntry> out;
     auto& memory = process->GetMemory();
@@ -144,7 +144,7 @@ std::vector<BacktraceEntry> GetAArch64Backtrace(const Kernel::KProcess* process,
     return out;
 }
 
-std::vector<BacktraceEntry> GetAArch32Backtrace(const Kernel::KProcess* process,
+std::vector<BacktraceEntry> GetAArch32Backtrace(Kernel::KProcess* process,
                                                 const Kernel::Svc::ThreadContext& ctx) {
     std::vector<BacktraceEntry> out;
     auto& memory = process->GetMemory();
@@ -173,7 +173,7 @@ std::vector<BacktraceEntry> GetAArch32Backtrace(const Kernel::KProcess* process,
 } // namespace
 
 std::optional<std::string> GetThreadName(const Kernel::KThread* thread) {
-    const auto* process = thread->GetOwnerProcess();
+    auto* process = thread->GetOwnerProcess();
     if (process->Is64Bit()) {
         return GetNameFromThreadType64(process->GetMemory(), *thread);
     } else {
@@ -248,7 +248,7 @@ Kernel::KProcessAddress GetModuleEnd(const Kernel::KProcess* process,
     return cur_addr - 1;
 }
 
-Loader::AppLoader::Modules FindModules(const Kernel::KProcess* process) {
+Loader::AppLoader::Modules FindModules(Kernel::KProcess* process) {
     Loader::AppLoader::Modules modules;
 
     auto& page_table = process->GetPageTable();
@@ -312,7 +312,7 @@ Loader::AppLoader::Modules FindModules(const Kernel::KProcess* process) {
     return modules;
 }
 
-Kernel::KProcessAddress FindMainModuleEntrypoint(const Kernel::KProcess* process) {
+Kernel::KProcessAddress FindMainModuleEntrypoint(Kernel::KProcess* process) {
     // Do we have any loaded executable sections?
     auto modules = FindModules(process);
 
@@ -337,7 +337,7 @@ void InvalidateInstructionCacheRange(const Kernel::KProcess* process, u64 addres
     }
 }
 
-std::vector<BacktraceEntry> GetBacktraceFromContext(const Kernel::KProcess* process,
+std::vector<BacktraceEntry> GetBacktraceFromContext(Kernel::KProcess* process,
                                                     const Kernel::Svc::ThreadContext& ctx) {
     if (process->Is64Bit()) {
         return GetAArch64Backtrace(process, ctx);

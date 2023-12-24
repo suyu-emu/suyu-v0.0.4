@@ -7,6 +7,7 @@
 
 #include "core/arm/arm_interface.h"
 #include "core/file_sys/program_metadata.h"
+#include "core/gpu_dirty_memory_manager.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/k_address_arbiter.h"
 #include "core/hle/kernel/k_capabilities.h"
@@ -17,6 +18,7 @@
 #include "core/hle/kernel/k_system_resource.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/k_thread_local_page.h"
+#include "core/memory.h"
 
 namespace Kernel {
 
@@ -126,6 +128,9 @@ private:
 #ifdef HAS_NCE
     std::unordered_map<u64, u64> m_post_handlers{};
 #endif
+    std::array<Core::GPUDirtyMemoryManager, Core::Hardware::NUM_CPU_CORES> m_dirty_memory_managers;
+    std::unique_ptr<Core::ExclusiveMonitor> m_exclusive_monitor;
+    Core::Memory::Memory m_memory;
 
 private:
     Result StartTermination();
@@ -502,7 +507,15 @@ public:
 
     void InitializeInterfaces();
 
-    Core::Memory::Memory& GetMemory() const;
+    Core::Memory::Memory& GetMemory() {
+        return m_memory;
+    }
+
+    void GatherGPUDirtyMemory(std::function<void(VAddr, size_t)>& callback);
+
+    Core::ExclusiveMonitor& GetExclusiveMonitor() const {
+        return *m_exclusive_monitor;
+    }
 
 public:
     // Overridden parent functions.
@@ -539,7 +552,7 @@ private:
 
     Result InitializeHandleTable(s32 size) {
         // Try to initialize the handle table.
-        R_TRY(m_handle_table.Initialize(size));
+        R_TRY(m_handle_table.Initialize(this, size));
 
         // We succeeded, so note that we did.
         m_is_handle_table_initialized = true;

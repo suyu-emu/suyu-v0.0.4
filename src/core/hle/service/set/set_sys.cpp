@@ -507,6 +507,14 @@ void SET_SYS::SetTvSettings(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
+void SET_SYS::GetDebugModeFlag(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_SET, "called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u32>(0);
+}
+
 void SET_SYS::GetQuestFlag(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
@@ -926,7 +934,7 @@ SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"}, 
         {59, &SET_SYS::SetNetworkSystemClockContext, "SetNetworkSystemClockContext"},
         {60, &SET_SYS::IsUserSystemClockAutomaticCorrectionEnabled, "IsUserSystemClockAutomaticCorrectionEnabled"},
         {61, &SET_SYS::SetUserSystemClockAutomaticCorrectionEnabled, "SetUserSystemClockAutomaticCorrectionEnabled"},
-        {62, nullptr, "GetDebugModeFlag"},
+        {62, &SET_SYS::GetDebugModeFlag, "GetDebugModeFlag"},
         {63, &SET_SYS::GetPrimaryAlbumStorage, "GetPrimaryAlbumStorage"},
         {64, nullptr, "SetPrimaryAlbumStorage"},
         {65, nullptr, "GetUsb30EnableFlag"},
@@ -1143,6 +1151,8 @@ void SET_SYS::StoreSettings() {
 }
 
 void SET_SYS::StoreSettingsThreadFunc(std::stop_token stop_token) {
+    Common::SetCurrentThreadName("SettingsStore");
+
     while (Common::StoppableTimedWait(stop_token, std::chrono::minutes(1))) {
         std::scoped_lock l{m_save_needed_mutex};
         if (!std::exchange(m_save_needed, false)) {

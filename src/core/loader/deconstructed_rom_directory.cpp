@@ -129,9 +129,10 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     }
     metadata.Print();
 
-    // Enable NCE only for programs with 39-bit address space.
+    // Enable NCE only for applications with 39-bit address space.
     const bool is_39bit =
         metadata.GetAddressSpaceType() == FileSys::ProgramAddressSpaceType::Is39Bit;
+    const bool is_application = metadata.GetPoolPartition() == FileSys::PoolPartition::Application;
     Settings::SetNceEnabled(is_39bit);
 
     const std::array static_modules = {"rtld",    "main",    "subsdk0", "subsdk1", "subsdk2",
@@ -147,7 +148,7 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
 
     const auto GetPatcher = [&](size_t i) -> Core::NCE::Patcher* {
 #ifdef HAS_NCE
-        if (Settings::IsNceEnabled()) {
+        if (is_application && Settings::IsNceEnabled()) {
             return &module_patchers[i];
         }
 #endif
@@ -175,7 +176,7 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
 
     // Enable direct memory mapping in case of NCE.
     const u64 fastmem_base = [&]() -> size_t {
-        if (Settings::IsNceEnabled()) {
+        if (is_application && Settings::IsNceEnabled()) {
             auto& buffer = system.DeviceMemory().buffer;
             buffer.EnableDirectMappedAddress();
             return reinterpret_cast<u64>(buffer.VirtualBasePointer());

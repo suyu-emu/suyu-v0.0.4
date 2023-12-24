@@ -166,6 +166,10 @@ u32 ProgramMetadata::GetSystemResourceSize() const {
     return npdm_header.system_resource_size;
 }
 
+PoolPartition ProgramMetadata::GetPoolPartition() const {
+    return acid_header.pool_partition;
+}
+
 const ProgramMetadata::KernelCapabilityDescriptors& ProgramMetadata::GetKernelCapabilities() const {
     return aci_kernel_capabilities;
 }
@@ -201,7 +205,7 @@ void ProgramMetadata::Print() const {
     // Begin ACID printing (potential perms, signed)
     LOG_DEBUG(Service_FS, "Magic:                  {:.4}", acid_header.magic.data());
     LOG_DEBUG(Service_FS, "Flags:                  0x{:02X}", acid_header.flags);
-    LOG_DEBUG(Service_FS, " > Is Retail:           {}", acid_header.is_retail ? "YES" : "NO");
+    LOG_DEBUG(Service_FS, " > Is Retail:           {}", acid_header.production_flag ? "YES" : "NO");
     LOG_DEBUG(Service_FS, "Title ID Min:           0x{:016X}", acid_header.title_id_min);
     LOG_DEBUG(Service_FS, "Title ID Max:           0x{:016X}", acid_header.title_id_max);
     LOG_DEBUG(Service_FS, "Filesystem Access:      0x{:016X}\n", acid_file_access.permissions);

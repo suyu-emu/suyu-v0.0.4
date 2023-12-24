@@ -48,8 +48,7 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
         };
 
         // Send the reply.
-        R_TRY(session->SendReply());
-        // R_TRY(session->SendReply(message, buffer_size, message_paddr));
+        R_TRY(session->SendReply(message, buffer_size, message_paddr));
     }
 
     // Receive a message.
@@ -85,8 +84,7 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
             if (R_SUCCEEDED(result)) {
                 KServerSession* session = objs[index]->DynamicCast<KServerSession*>();
                 if (session != nullptr) {
-                    // result = session->ReceiveRequest(message, buffer_size, message_paddr);
-                    result = session->ReceiveRequest();
+                    result = session->ReceiveRequest(message, buffer_size, message_paddr);
                     if (ResultNotFound == result) {
                         continue;
                     }

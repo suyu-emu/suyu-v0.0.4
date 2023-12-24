@@ -314,11 +314,7 @@ public:
         m_current_core_id = core;
     }
 
-    KProcess* GetOwnerProcess() {
-        return m_parent;
-    }
-
-    const KProcess* GetOwnerProcess() const {
+    KProcess* GetOwnerProcess() const {
         return m_parent;
     }
 

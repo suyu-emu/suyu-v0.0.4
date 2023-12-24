@@ -18,13 +18,13 @@ public:
         static constexpr inline u64 NullTag = 0;
 
     public:
-        enum class ReceiveListCountType : u32 {
-            None = 0,
-            ToMessageBuffer = 1,
-            ToSingleBuffer = 2,
+        enum ReceiveListCountType : u32 {
+            ReceiveListCountType_None = 0,
+            ReceiveListCountType_ToMessageBuffer = 1,
+            ReceiveListCountType_ToSingleBuffer = 2,
 
-            CountOffset = 2,
-            CountMax = 13,
+            ReceiveListCountType_CountOffset = 2,
+            ReceiveListCountType_CountMax = 13,
         };
 
     private:
@@ -591,16 +591,16 @@ public:
         // Add the size of the receive list.
         const auto count = hdr.GetReceiveListCount();
         switch (count) {
-        case MessageHeader::ReceiveListCountType::None:
+        case MessageHeader::ReceiveListCountType_None:
             break;
-        case MessageHeader::ReceiveListCountType::ToMessageBuffer:
+        case MessageHeader::ReceiveListCountType_ToMessageBuffer:
             break;
-        case MessageHeader::ReceiveListCountType::ToSingleBuffer:
+        case MessageHeader::ReceiveListCountType_ToSingleBuffer:
             msg_size += ReceiveListEntry::GetDataSize();
             break;
         default:
             msg_size += (static_cast<s32>(count) -
-                         static_cast<s32>(MessageHeader::ReceiveListCountType::CountOffset)) *
+                         static_cast<s32>(MessageHeader::ReceiveListCountType_CountOffset)) *
                         ReceiveListEntry::GetDataSize();
             break;
         }

@@ -118,7 +118,6 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             R_SUCCEED();
 
         case InfoType::IsApplication:
-            LOG_WARNING(Kernel_SVC, "(STUBBED) Assuming process is application");
             *result = process->IsApplication();
             R_SUCCEED();
 

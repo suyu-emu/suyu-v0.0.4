@@ -45,7 +45,13 @@ struct Memory::Impl {
 
     void SetCurrentPageTable(Kernel::KProcess& process) {
         current_page_table = &process.GetPageTable().GetImpl();
-        current_page_table->fastmem_arena = system.DeviceMemory().buffer.VirtualBasePointer();
+
+        if (std::addressof(process) == system.ApplicationProcess() &&
+            Settings::IsFastmemEnabled()) {
+            current_page_table->fastmem_arena = system.DeviceMemory().buffer.VirtualBasePointer();
+        } else {
+            current_page_table->fastmem_arena = nullptr;
+        }
     }
 
     void MapMemoryRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
@@ -57,7 +63,7 @@ struct Memory::Impl {
         MapPages(page_table, base / YUZU_PAGESIZE, size / YUZU_PAGESIZE, target,
                  Common::PageType::Memory);
 
-        if (Settings::IsFastmemEnabled()) {
+        if (current_page_table->fastmem_arena) {
             system.DeviceMemory().buffer.Map(GetInteger(base),
                                              GetInteger(target) - DramMemoryMap::Base, size, perms);
         }
@@ -69,7 +75,7 @@ struct Memory::Impl {
         MapPages(page_table, base / YUZU_PAGESIZE, size / YUZU_PAGESIZE, 0,
                  Common::PageType::Unmapped);
 
-        if (Settings::IsFastmemEnabled()) {
+        if (current_page_table->fastmem_arena) {
             system.DeviceMemory().buffer.Unmap(GetInteger(base), size);
         }
     }
@@ -79,7 +85,7 @@ struct Memory::Impl {
         ASSERT_MSG((size & YUZU_PAGEMASK) == 0, "non-page aligned size: {:016X}", size);
         ASSERT_MSG((vaddr & YUZU_PAGEMASK) == 0, "non-page aligned base: {:016X}", vaddr);
 
-        if (!Settings::IsFastmemEnabled()) {
+        if (!current_page_table->fastmem_arena) {
             return;
         }
 
@@ -87,11 +93,6 @@ struct Memory::Impl {
         const bool is_w = True(perms & Common::MemoryPermission::Write);
         const bool is_x =
             True(perms & Common::MemoryPermission::Execute) && Settings::IsNceEnabled();
-
-        if (!current_page_table) {
-            system.DeviceMemory().buffer.Protect(vaddr, size, is_r, is_w, is_x);
-            return;
-        }
 
         u64 protect_bytes{};
         u64 protect_begin{};
@@ -239,7 +240,7 @@ struct Memory::Impl {
 
     bool WalkBlock(const Common::ProcessAddress addr, const std::size_t size, auto on_unmapped,
                    auto on_memory, auto on_rasterizer, auto increment) {
-        const auto& page_table = system.ApplicationProcess()->GetPageTable().GetImpl();
+        const auto& page_table = *current_page_table;
         std::size_t remaining_size = size;
         std::size_t page_index = addr >> YUZU_PAGEBITS;
         std::size_t page_offset = addr & YUZU_PAGEMASK;
@@ -484,7 +485,7 @@ struct Memory::Impl {
             return;
         }
 
-        if (Settings::IsFastmemEnabled()) {
+        if (current_page_table->fastmem_arena) {
             system.DeviceMemory().buffer.Protect(vaddr, size, !debug, !debug);
         }
 
@@ -541,7 +542,7 @@ struct Memory::Impl {
             return;
         }
 
-        if (Settings::IsFastmemEnabled()) {
+        if (current_page_table->fastmem_arena) {
             const bool is_read_enable =
                 !Settings::values.use_reactive_flushing.GetValue() || !cached;
             system.DeviceMemory().buffer.Protect(vaddr, size, is_read_enable, !cached);
@@ -886,8 +887,7 @@ void Memory::ProtectRegion(Common::PageTable& page_table, Common::ProcessAddress
 }
 
 bool Memory::IsValidVirtualAddress(const Common::ProcessAddress vaddr) const {
-    const Kernel::KProcess& process = *system.ApplicationProcess();
-    const auto& page_table = process.GetPageTable().GetImpl();
+    const auto& page_table = *impl->current_page_table;
     const size_t page = vaddr >> YUZU_PAGEBITS;
     if (page >= page_table.pointers.size()) {
         return false;

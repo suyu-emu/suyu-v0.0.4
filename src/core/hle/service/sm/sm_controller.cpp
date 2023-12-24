@@ -28,7 +28,6 @@ void Controller::ConvertCurrentObjectToDomain(HLERequestContext& ctx) {
 void Controller::CloneCurrentObject(HLERequestContext& ctx) {
     LOG_DEBUG(Service, "called");
 
-    auto& process = *ctx.GetThread().GetOwnerProcess();
     auto session_manager = ctx.GetManager();
 
     // FIXME: this is duplicated from the SVC, it should just call it instead
@@ -36,11 +35,11 @@ void Controller::CloneCurrentObject(HLERequestContext& ctx) {
 
     // Reserve a new session from the process resource limit.
     Kernel::KScopedResourceReservation session_reservation(
-        &process, Kernel::LimitableResource::SessionCountMax);
+        Kernel::GetCurrentProcessPointer(kernel), Kernel::LimitableResource::SessionCountMax);
     ASSERT(session_reservation.Succeeded());
 
     // Create the session.
-    Kernel::KSession* session = Kernel::KSession::Create(system.Kernel());
+    Kernel::KSession* session = Kernel::KSession::Create(kernel);
     ASSERT(session != nullptr);
 
     // Initialize the session.
@@ -50,7 +49,7 @@ void Controller::CloneCurrentObject(HLERequestContext& ctx) {
     session_reservation.Commit();
 
     // Register the session.
-    Kernel::KSession::Register(system.Kernel(), session);
+    Kernel::KSession::Register(kernel, session);
 
     // Register with server manager.
     session_manager->GetServerManager().RegisterSession(&session->GetServerSession(),
