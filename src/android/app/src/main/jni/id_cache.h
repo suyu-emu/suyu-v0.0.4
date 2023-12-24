@@ -35,4 +35,16 @@ jmethodID GetPairConstructor();
 jfieldID GetPairFirstField();
 jfieldID GetPairSecondField();
 
+jclass GetOverlayControlDataClass();
+jmethodID GetOverlayControlDataConstructor();
+jfieldID GetOverlayControlDataIdField();
+jfieldID GetOverlayControlDataEnabledField();
+jfieldID GetOverlayControlDataLandscapePositionField();
+jfieldID GetOverlayControlDataPortraitPositionField();
+jfieldID GetOverlayControlDataFoldablePositionField();
+
+jclass GetDoubleClass();
+jmethodID GetDoubleConstructor();
+jfieldID GetDoubleValueField();
+
 } // namespace IDCache

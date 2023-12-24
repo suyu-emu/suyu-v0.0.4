@@ -15,18 +15,10 @@ object Settings {
         SECTION_DEBUG(R.string.preferences_debug);
     }
 
+    const val PREF_FIRST_APP_LAUNCH = "FirstApplicationLaunch"
     const val PREF_MEMORY_WARNING_SHOWN = "MemoryWarningShown"
 
-    const val PREF_OVERLAY_VERSION = "OverlayVersion"
-    const val PREF_LANDSCAPE_OVERLAY_VERSION = "LandscapeOverlayVersion"
-    const val PREF_PORTRAIT_OVERLAY_VERSION = "PortraitOverlayVersion"
-    const val PREF_FOLDABLE_OVERLAY_VERSION = "FoldableOverlayVersion"
-    val overlayLayoutPrefs = listOf(
-        PREF_LANDSCAPE_OVERLAY_VERSION,
-        PREF_PORTRAIT_OVERLAY_VERSION,
-        PREF_FOLDABLE_OVERLAY_VERSION
-    )
-
+    // Deprecated input overlay preference keys
     const val PREF_CONTROL_SCALE = "controlScale"
     const val PREF_CONTROL_OPACITY = "controlOpacity"
     const val PREF_TOUCH_ENABLED = "isTouchEnabled"
@@ -47,24 +39,12 @@ object Settings {
     const val PREF_BUTTON_STICK_R = "buttonToggle14"
     const val PREF_BUTTON_HOME = "buttonToggle15"
     const val PREF_BUTTON_SCREENSHOT = "buttonToggle16"
-
     const val PREF_MENU_SETTINGS_JOYSTICK_REL_CENTER = "EmulationMenuSettings_JoystickRelCenter"
     const val PREF_MENU_SETTINGS_DPAD_SLIDE = "EmulationMenuSettings_DpadSlideEnable"
     const val PREF_MENU_SETTINGS_HAPTICS = "EmulationMenuSettings_Haptics"
     const val PREF_MENU_SETTINGS_SHOW_FPS = "EmulationMenuSettings_ShowFps"
     const val PREF_MENU_SETTINGS_SHOW_OVERLAY = "EmulationMenuSettings_ShowOverlay"
-
-    // Deprecated theme preference keys
-    const val PREF_FIRST_APP_LAUNCH = "FirstApplicationLaunch"
-    const val PREF_THEME = "Theme"
-    const val PREF_THEME_MODE = "ThemeMode"
-    const val PREF_BLACK_BACKGROUNDS = "BlackBackgrounds"
-
     val overlayPreferences = listOf(
-        PREF_OVERLAY_VERSION,
-        PREF_CONTROL_SCALE,
-        PREF_CONTROL_OPACITY,
-        PREF_TOUCH_ENABLED,
         PREF_BUTTON_A,
         PREF_BUTTON_B,
         PREF_BUTTON_X,
@@ -83,6 +63,21 @@ object Settings {
         PREF_BUTTON_STICK_L,
         PREF_BUTTON_STICK_R
     )
+
+    // Deprecated layout preference keys
+    const val PREF_LANDSCAPE_SUFFIX = "_Landscape"
+    const val PREF_PORTRAIT_SUFFIX = "_Portrait"
+    const val PREF_FOLDABLE_SUFFIX = "_Foldable"
+    val overlayLayoutSuffixes = listOf(
+        PREF_LANDSCAPE_SUFFIX,
+        PREF_PORTRAIT_SUFFIX,
+        PREF_FOLDABLE_SUFFIX
+    )
+
+    // Deprecated theme preference keys
+    const val PREF_THEME = "Theme"
+    const val PREF_THEME_MODE = "ThemeMode"
+    const val PREF_BLACK_BACKGROUNDS = "BlackBackgrounds"
 
     const val LayoutOption_Unspecified = 0
     const val LayoutOption_MobilePortrait = 4
