@@ -5,6 +5,8 @@
 
 #include <deque>
 #include <memory>
+#include <array>
+#include <atomic>
 
 #include "common/common_types.h"
 #include "common/virtual_buffer.h"
@@ -23,6 +25,7 @@ struct DeviceMemoryManagerAllocator;
 template <typename Traits>
 class DeviceMemoryManager {
     using DeviceInterface = typename Traits::DeviceInterface;
+    using DeviceMethods = Traits::DeviceMethods;
 
 public:
     DeviceMemoryManager(const DeviceMemory& device_memory);
@@ -35,7 +38,7 @@ public:
     DAddr AllocatePinned(size_t size);
     void Free(DAddr start, size_t size);
 
-    void Map(DAddr address, VAddr virtual_address, size_t size, size_t p_id);
+    void Map(DAddr address, VAddr virtual_address, size_t size, size_t process_id);
     void Unmap(DAddr address, size_t size);
 
     // Write / Read
@@ -56,6 +59,8 @@ public:
 
     size_t RegisterProcess(Memory::Memory* memory);
     void UnregisterProcess(size_t id);
+
+    void UpdatePagesCachedCount(DAddr addr, size_t size, s32 delta);
 
 private:
     static constexpr bool supports_pinning = Traits::supports_pinning;
@@ -90,8 +95,52 @@ private:
     Common::VirtualBuffer<u32> compressed_physical_ptr;
     Common::VirtualBuffer<u32> compressed_device_addr;
 
+    // Process memory interfaces
+
     std::deque<size_t> id_pool;
     std::deque<Memory::Memory*> registered_processes;
+
+    // Memory protection management
+
+    static constexpr size_t guest_max_as_bits = 39;
+    static constexpr size_t guest_as_size = 1ULL << guest_max_as_bits;
+    static constexpr size_t guest_mask = guest_as_size - 1ULL;
+    static constexpr size_t process_id_start_bit = guest_max_as_bits;
+
+    std::pair<size_t, VAddr> ExtractCPUBacking(size_t page_index) {
+        auto content = cpu_backing_address[page_index];
+        const VAddr address = content & guest_mask;
+        const size_t process_id = static_cast<size_t>(content >> process_id_start_bit);
+        return std::make_pair(process_id, address);
+    }
+
+    void InsertCPUBacking(size_t page_index, VAddr address, size_t process_id) {
+        cpu_backing_address[page_index] = address | (process_id << page_index);
+    }
+
+    Common::VirtualBuffer<VAddr> cpu_backing_address;
+    static constexpr size_t subentries = 4;
+    static constexpr size_t subentries_mask = subentries - 1;
+    class CounterEntry final {
+    public:
+        CounterEntry() = default;
+
+        std::atomic_uint16_t& Count(std::size_t page) {
+            return values[page & subentries_mask];
+        }
+
+        const std::atomic_uint16_t& Count(std::size_t page) const {
+            return values[page & subentries_mask];
+        }
+
+    private:
+        std::array<std::atomic_uint16_t, subentries> values{};
+    };
+    static_assert(sizeof(CounterEntry) == subentries * sizeof(u16), "CounterEntry should be 8 bytes!");
+
+    static constexpr size_t num_counter_entries = (1ULL << (device_virtual_bits - page_bits)) / subentries;
+    using CachedPages = std::array<CounterEntry, num_counter_entries>;
+    std::unique_ptr<CachedPages> cached_pages;
 };
 
 } // namespace Core

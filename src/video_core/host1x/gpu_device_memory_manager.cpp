@@ -5,6 +5,17 @@
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 
+namespace Tegra {
+
+struct MaxwellDeviceMethods {
+    static inline void MarkRegionCaching(Core::Memory::Memory* interface, VAddr address,
+                                         size_t size, bool caching) {
+        interface->RasterizerMarkRegionCached(address, size, caching);
+    }
+};
+
+} // namespace Tegra
+
 template struct Core::DeviceMemoryManagerAllocator<Tegra::MaxwellDeviceTraits>;
 template class Core::DeviceMemoryManager<Tegra::MaxwellDeviceTraits>;
 
