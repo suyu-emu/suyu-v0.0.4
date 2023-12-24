@@ -54,6 +54,7 @@ object Settings {
     const val PREF_MENU_SETTINGS_SHOW_FPS = "EmulationMenuSettings_ShowFps"
     const val PREF_MENU_SETTINGS_SHOW_OVERLAY = "EmulationMenuSettings_ShowOverlay"
 
+    // Deprecated theme preference keys
     const val PREF_FIRST_APP_LAUNCH = "FirstApplicationLaunch"
     const val PREF_THEME = "Theme"
     const val PREF_THEME_MODE = "ThemeMode"
