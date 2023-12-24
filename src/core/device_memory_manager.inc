@@ -2,12 +2,15 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <atomic>
+#include <limits>
 #include <memory>
 #include <type_traits>
 
 #include "common/address_space.h"
 #include "common/address_space.inc"
 #include "common/alignment.h"
+#include "common/assert.h"
+#include "common/div_ceil.h"
 #include "common/scope_exit.h"
 #include "core/device_memory.h"
 #include "core/device_memory_manager.h"
@@ -51,7 +54,11 @@ struct DeviceMemoryManagerAllocator {
     }
 
     DAddr AllocatePinned(size_t size) {
-        return pin_allocator.Allocate(size);
+        if constexpr (supports_pinning) {
+            return pin_allocator.Allocate(size);
+        } else {
+            return DAddr{};
+        }
     }
 
     void DoInRange(DAddr address, size_t size, auto pin_func, auto main_func) {
@@ -100,6 +107,7 @@ DeviceMemoryManager<Traits>::DeviceMemoryManager(const DeviceMemory& device_memo
       interface{nullptr}, compressed_physical_ptr(device_as_size >> Memory::YUZU_PAGEBITS),
       compressed_device_addr(1ULL << (physical_max_bits - Memory::YUZU_PAGEBITS)) {
     impl = std::make_unique<DeviceMemoryManagerAllocator<Traits>>();
+    cached_pages = std::make_unique<CachedPages>();
 }
 
 template <typename Traits>
@@ -132,14 +140,14 @@ void DeviceMemoryManager<Traits>::Free(DAddr start, size_t size) {
 
 template <typename Traits>
 void DeviceMemoryManager<Traits>::Map(DAddr address, VAddr virtual_address, size_t size,
-                                      size_t p_id) {
-    Core::Memory::Memory* process_memory = registered_processes[p_id];
+                                      size_t process_id) {
+    Core::Memory::Memory* process_memory = registered_processes[process_id];
     size_t start_page_d = address >> Memory::YUZU_PAGEBITS;
     size_t num_pages = Common::AlignUp(size, Memory::YUZU_PAGESIZE) >> Memory::YUZU_PAGEBITS;
     std::atomic_thread_fence(std::memory_order_acquire);
     for (size_t i = 0; i < num_pages; i++) {
-        auto* ptr = process_memory->GetPointer(
-            Common::ProcessAddress(virtual_address + i * Memory::YUZU_PAGESIZE));
+        const VAddr new_vaddress = virtual_address + i * Memory::YUZU_PAGESIZE;
+        auto* ptr = process_memory->GetPointer(Common::ProcessAddress(new_vaddress));
         if (ptr == nullptr) [[unlikely]] {
             compressed_physical_ptr[start_page_d + i] = 0;
             continue;
@@ -147,6 +155,7 @@ void DeviceMemoryManager<Traits>::Map(DAddr address, VAddr virtual_address, size
         auto phys_addr = static_cast<u32>(GetRawPhysicalAddr(ptr) >> Memory::YUZU_PAGEBITS) + 1U;
         compressed_physical_ptr[start_page_d + i] = phys_addr;
         compressed_device_addr[phys_addr - 1U] = static_cast<u32>(start_page_d + i);
+        InsertCPUBacking(start_page_d + i, new_vaddress, process_id);
     }
     std::atomic_thread_fence(std::memory_order_release);
 }
@@ -159,6 +168,7 @@ void DeviceMemoryManager<Traits>::Unmap(DAddr address, size_t size) {
     for (size_t i = 0; i < num_pages; i++) {
         auto phys_addr = compressed_physical_ptr[start_page_d + i];
         compressed_physical_ptr[start_page_d + i] = 0;
+        cpu_backing_address[start_page_d + i] = 0;
         if (phys_addr != 0) {
             compressed_device_addr[phys_addr - 1] = 0;
         }
@@ -299,6 +309,68 @@ template <typename Traits>
 void DeviceMemoryManager<Traits>::UnregisterProcess(size_t id) {
     registered_processes[id] = nullptr;
     id_pool.push_front(id);
+}
+
+template <typename Traits>
+void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size, s32 delta) {
+    u64 uncache_begin = 0;
+    u64 cache_begin = 0;
+    u64 uncache_bytes = 0;
+    u64 cache_bytes = 0;
+    const auto* MarkRegionCaching = &DeviceMemoryManager<Traits>::DeviceMethods::MarkRegionCaching;
+
+    std::atomic_thread_fence(std::memory_order_acquire);
+    const size_t page_end = Common::DivCeil(addr + size, Memory::YUZU_PAGESIZE);
+    size_t page = addr >> Memory::YUZU_PAGEBITS;
+    auto [process_id, base_vaddress] = ExtractCPUBacking(page);
+    size_t vpage = base_vaddress >> Memory::YUZU_PAGEBITS;
+    auto* memory_interface = registered_processes[process_id];
+    for (; page != page_end; ++page) {
+        std::atomic_uint16_t& count = cached_pages->at(page >> 2).Count(page);
+
+        if (delta > 0) {
+            ASSERT_MSG(count.load(std::memory_order::relaxed) < std::numeric_limits<u16>::max(),
+                       "Count may overflow!");
+        } else if (delta < 0) {
+            ASSERT_MSG(count.load(std::memory_order::relaxed) > 0, "Count may underflow!");
+        } else {
+            ASSERT_MSG(false, "Delta must be non-zero!");
+        }
+
+        // Adds or subtracts 1, as count is a unsigned 8-bit value
+        count.fetch_add(static_cast<u16>(delta), std::memory_order_release);
+
+        // Assume delta is either -1 or 1
+        if (count.load(std::memory_order::relaxed) == 0) {
+            if (uncache_bytes == 0) {
+                uncache_begin = vpage;
+            }
+            uncache_bytes += Memory::YUZU_PAGESIZE;
+        } else if (uncache_bytes > 0) {
+            MarkRegionCaching(memory_interface, uncache_begin << Memory::YUZU_PAGEBITS,
+                              uncache_bytes, false);
+            uncache_bytes = 0;
+        }
+        if (count.load(std::memory_order::relaxed) == 1 && delta > 0) {
+            if (cache_bytes == 0) {
+                cache_begin = vpage;
+            }
+            cache_bytes += Memory::YUZU_PAGESIZE;
+        } else if (cache_bytes > 0) {
+            MarkRegionCaching(memory_interface, cache_begin << Memory::YUZU_PAGEBITS, cache_bytes,
+                              true);
+            cache_bytes = 0;
+        }
+        vpage++;
+    }
+    if (uncache_bytes > 0) {
+        MarkRegionCaching(memory_interface, uncache_begin << Memory::YUZU_PAGEBITS, uncache_bytes,
+                          false);
+    }
+    if (cache_bytes > 0) {
+        MarkRegionCaching(memory_interface, cache_begin << Memory::YUZU_PAGEBITS, cache_bytes,
+                          true);
+    }
 }
 
 } // namespace Core

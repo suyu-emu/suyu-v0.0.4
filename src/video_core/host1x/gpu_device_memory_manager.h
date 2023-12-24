@@ -9,10 +9,13 @@ class RasterizerInterface;
 
 namespace Tegra {
 
+struct MaxwellDeviceMethods;
+
 struct MaxwellDeviceTraits {
     static constexpr bool supports_pinning = true;
     static constexpr size_t device_virtual_bits = 34;
     using DeviceInterface = typename VideoCore::RasterizerInterface;
+    using DeviceMethods = typename MaxwellDeviceMethods;
 };
 
 using MaxwellDeviceMemoryManager = Core::DeviceMemoryManager<MaxwellDeviceTraits>;
