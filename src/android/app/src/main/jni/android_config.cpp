@@ -35,6 +35,7 @@ void AndroidConfig::ReadAndroidValues() {
     if (global) {
         ReadAndroidUIValues();
         ReadUIValues();
+        ReadOverlayValues();
     }
     ReadDriverValues();
 }
@@ -81,10 +82,42 @@ void AndroidConfig::ReadDriverValues() {
     EndGroup();
 }
 
+void AndroidConfig::ReadOverlayValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::Overlay));
+
+    ReadCategory(Settings::Category::Overlay);
+
+    AndroidSettings::values.overlay_control_data.clear();
+    const int control_data_size = BeginArray("control_data");
+    for (int i = 0; i < control_data_size; ++i) {
+        SetArrayIndex(i);
+        AndroidSettings::OverlayControlData control_data;
+        control_data.id = ReadStringSetting(std::string("id"));
+        control_data.enabled = ReadBooleanSetting(std::string("enabled"));
+        control_data.landscape_position.first =
+            ReadDoubleSetting(std::string("landscape\\x_position"));
+        control_data.landscape_position.second =
+            ReadDoubleSetting(std::string("landscape\\y_position"));
+        control_data.portrait_position.first =
+            ReadDoubleSetting(std::string("portrait\\x_position"));
+        control_data.portrait_position.second =
+            ReadDoubleSetting(std::string("portrait\\y_position"));
+        control_data.foldable_position.first =
+            ReadDoubleSetting(std::string("foldable\\x_position"));
+        control_data.foldable_position.second =
+            ReadDoubleSetting(std::string("foldable\\y_position"));
+        AndroidSettings::values.overlay_control_data.push_back(control_data);
+    }
+    EndArray();
+
+    EndGroup();
+}
+
 void AndroidConfig::SaveAndroidValues() {
     if (global) {
         SaveAndroidUIValues();
         SaveUIValues();
+        SaveOverlayValues();
     }
     SaveDriverValues();
 
@@ -127,6 +160,35 @@ void AndroidConfig::SaveDriverValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::GpuDriver));
 
     WriteCategory(Settings::Category::GpuDriver);
+
+    EndGroup();
+}
+
+void AndroidConfig::SaveOverlayValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::Overlay));
+
+    WriteCategory(Settings::Category::Overlay);
+
+    BeginArray("control_data");
+    for (size_t i = 0; i < AndroidSettings::values.overlay_control_data.size(); ++i) {
+        SetArrayIndex(i);
+        const auto& control_data = AndroidSettings::values.overlay_control_data[i];
+        WriteStringSetting(std::string("id"), control_data.id);
+        WriteBooleanSetting(std::string("enabled"), control_data.enabled);
+        WriteDoubleSetting(std::string("landscape\\x_position"),
+                           control_data.landscape_position.first);
+        WriteDoubleSetting(std::string("landscape\\y_position"),
+                           control_data.landscape_position.second);
+        WriteDoubleSetting(std::string("portrait\\x_position"),
+                           control_data.portrait_position.first);
+        WriteDoubleSetting(std::string("portrait\\y_position"),
+                           control_data.portrait_position.second);
+        WriteDoubleSetting(std::string("foldable\\x_position"),
+                           control_data.foldable_position.first);
+        WriteDoubleSetting(std::string("foldable\\y_position"),
+                           control_data.foldable_position.second);
+    }
+    EndArray();
 
     EndGroup();
 }

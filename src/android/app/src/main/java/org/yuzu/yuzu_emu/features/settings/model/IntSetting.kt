@@ -21,7 +21,9 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     AUDIO_OUTPUT_ENGINE("output_engine"),
     MAX_ANISOTROPY("max_anisotropy"),
     THEME("theme"),
-    THEME_MODE("theme_mode");
+    THEME_MODE("theme_mode"),
+    OVERLAY_SCALE("control_scale"),
+    OVERLAY_OPACITY("control_opacity");
 
     override fun getInt(needsGlobal: Boolean): Int = NativeConfig.getInt(key, needsGlobal)
 

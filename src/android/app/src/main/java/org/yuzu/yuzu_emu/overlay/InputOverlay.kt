@@ -21,7 +21,6 @@ import android.view.View
 import android.view.View.OnTouchListener
 import android.view.WindowInsets
 import androidx.core.content.ContextCompat
-import androidx.preference.PreferenceManager
 import androidx.window.layout.WindowMetricsCalculator
 import kotlin.math.max
 import kotlin.math.min
@@ -29,9 +28,13 @@ import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.NativeLibrary.ButtonType
 import org.yuzu.yuzu_emu.NativeLibrary.StickType
 import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
+import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
+import org.yuzu.yuzu_emu.overlay.model.OverlayControl
+import org.yuzu.yuzu_emu.overlay.model.OverlayControlData
+import org.yuzu.yuzu_emu.overlay.model.OverlayLayout
+import org.yuzu.yuzu_emu.utils.NativeConfig
 
 /**
  * Draws the interactive input overlay on top of the
@@ -51,23 +54,18 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
     private lateinit var windowInsets: WindowInsets
 
-    var layout = LANDSCAPE
+    var layout = OverlayLayout.Landscape
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
 
         windowInsets = rootWindowInsets
 
-        val overlayVersion = preferences.getInt(Settings.PREF_OVERLAY_VERSION, 0)
-        if (overlayVersion != OVERLAY_VERSION) {
-            resetAllLayouts()
+        val overlayControlData = NativeConfig.getOverlayControlData()
+        if (overlayControlData.isEmpty()) {
+            populateDefaultConfig()
         } else {
-            val layoutIndex = overlayLayouts.indexOf(layout)
-            val currentLayoutVersion =
-                preferences.getInt(Settings.overlayLayoutPrefs[layoutIndex], 0)
-            if (currentLayoutVersion != overlayLayoutVersions[layoutIndex]) {
-                resetCurrentLayout()
-            }
+            checkForNewControls(overlayControlData)
         }
 
         // Load the controls.
@@ -123,7 +121,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         }
 
         for (dpad in overlayDpads) {
-            if (!dpad.updateStatus(event, EmulationMenuSettings.dpadSlide)) {
+            if (!dpad.updateStatus(event, BooleanSetting.DPAD_SLIDE.getBoolean())) {
                 continue
             }
             NativeLibrary.onGamePadButtonEvent(
@@ -174,7 +172,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             invalidate()
         }
 
-        if (!preferences.getBoolean(Settings.PREF_TOUCH_ENABLED, true)) {
+        if (!BooleanSetting.TOUCHSCREEN.getBoolean()) {
             return true
         }
 
@@ -211,7 +209,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
     }
 
     private fun playHaptics(event: MotionEvent) {
-        if (EmulationMenuSettings.hapticFeedback) {
+        if (BooleanSetting.HAPTIC_FEEDBACK.getBoolean()) {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN,
                 MotionEvent.ACTION_POINTER_DOWN ->
@@ -255,10 +253,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 MotionEvent.ACTION_POINTER_DOWN ->
                     // If no button is being moved now, remember the currently touched button to move.
                     if (buttonBeingConfigured == null &&
-                        button.bounds.contains(
-                                fingerPositionX,
-                                fingerPositionY
-                            )
+                        button.bounds.contains(fingerPositionX, fingerPositionY)
                     ) {
                         buttonBeingConfigured = button
                         buttonBeingConfigured!!.onConfigureTouch(event)
@@ -274,7 +269,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 MotionEvent.ACTION_POINTER_UP -> if (buttonBeingConfigured === button) {
                     // Persist button position by saving new place.
                     saveControlPosition(
-                        buttonBeingConfigured!!.prefId,
+                        buttonBeingConfigured!!.overlayControlData.id,
                         buttonBeingConfigured!!.bounds.centerX(),
                         buttonBeingConfigured!!.bounds.centerY(),
                         layout
@@ -321,10 +316,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             when (event.action) {
                 MotionEvent.ACTION_DOWN,
                 MotionEvent.ACTION_POINTER_DOWN -> if (joystickBeingConfigured == null &&
-                    joystick.bounds.contains(
-                            fingerPositionX,
-                            fingerPositionY
-                        )
+                    joystick.bounds.contains(fingerPositionX, fingerPositionY)
                 ) {
                     joystickBeingConfigured = joystick
                     joystickBeingConfigured!!.onConfigureTouch(event)
@@ -351,231 +343,257 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         return true
     }
 
-    private fun addOverlayControls(layout: String) {
+    private fun addOverlayControls(layout: OverlayLayout) {
         val windowSize = getSafeScreenSize(context, Pair(measuredWidth, measuredHeight))
-        if (preferences.getBoolean(Settings.PREF_BUTTON_A, true)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.facebutton_a,
-                    R.drawable.facebutton_a_depressed,
-                    ButtonType.BUTTON_A,
-                    Settings.PREF_BUTTON_A,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_B, true)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.facebutton_b,
-                    R.drawable.facebutton_b_depressed,
-                    ButtonType.BUTTON_B,
-                    Settings.PREF_BUTTON_B,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_X, true)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.facebutton_x,
-                    R.drawable.facebutton_x_depressed,
-                    ButtonType.BUTTON_X,
-                    Settings.PREF_BUTTON_X,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_Y, true)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.facebutton_y,
-                    R.drawable.facebutton_y_depressed,
-                    ButtonType.BUTTON_Y,
-                    Settings.PREF_BUTTON_Y,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_L, true)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.l_shoulder,
-                    R.drawable.l_shoulder_depressed,
-                    ButtonType.TRIGGER_L,
-                    Settings.PREF_BUTTON_L,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_R, true)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.r_shoulder,
-                    R.drawable.r_shoulder_depressed,
-                    ButtonType.TRIGGER_R,
-                    Settings.PREF_BUTTON_R,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_ZL, true)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.zl_trigger,
-                    R.drawable.zl_trigger_depressed,
-                    ButtonType.TRIGGER_ZL,
-                    Settings.PREF_BUTTON_ZL,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_ZR, true)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.zr_trigger,
-                    R.drawable.zr_trigger_depressed,
-                    ButtonType.TRIGGER_ZR,
-                    Settings.PREF_BUTTON_ZR,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_PLUS, true)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.facebutton_plus,
-                    R.drawable.facebutton_plus_depressed,
-                    ButtonType.BUTTON_PLUS,
-                    Settings.PREF_BUTTON_PLUS,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_MINUS, true)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.facebutton_minus,
-                    R.drawable.facebutton_minus_depressed,
-                    ButtonType.BUTTON_MINUS,
-                    Settings.PREF_BUTTON_MINUS,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_DPAD, true)) {
-            overlayDpads.add(
-                initializeOverlayDpad(
-                    context,
-                    windowSize,
-                    R.drawable.dpad_standard,
-                    R.drawable.dpad_standard_cardinal_depressed,
-                    R.drawable.dpad_standard_diagonal_depressed,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_STICK_L, true)) {
-            overlayJoysticks.add(
-                initializeOverlayJoystick(
-                    context,
-                    windowSize,
-                    R.drawable.joystick_range,
-                    R.drawable.joystick,
-                    R.drawable.joystick_depressed,
-                    StickType.STICK_L,
-                    ButtonType.STICK_L,
-                    Settings.PREF_STICK_L,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_STICK_R, true)) {
-            overlayJoysticks.add(
-                initializeOverlayJoystick(
-                    context,
-                    windowSize,
-                    R.drawable.joystick_range,
-                    R.drawable.joystick,
-                    R.drawable.joystick_depressed,
-                    StickType.STICK_R,
-                    ButtonType.STICK_R,
-                    Settings.PREF_STICK_R,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_HOME, false)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.facebutton_home,
-                    R.drawable.facebutton_home_depressed,
-                    ButtonType.BUTTON_HOME,
-                    Settings.PREF_BUTTON_HOME,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_SCREENSHOT, false)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.facebutton_screenshot,
-                    R.drawable.facebutton_screenshot_depressed,
-                    ButtonType.BUTTON_CAPTURE,
-                    Settings.PREF_BUTTON_SCREENSHOT,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_STICK_L, true)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.button_l3,
-                    R.drawable.button_l3_depressed,
-                    ButtonType.STICK_L,
-                    Settings.PREF_BUTTON_STICK_L,
-                    layout
-                )
-            )
-        }
-        if (preferences.getBoolean(Settings.PREF_BUTTON_STICK_R, true)) {
-            overlayButtons.add(
-                initializeOverlayButton(
-                    context,
-                    windowSize,
-                    R.drawable.button_r3,
-                    R.drawable.button_r3_depressed,
-                    ButtonType.STICK_R,
-                    Settings.PREF_BUTTON_STICK_R,
-                    layout
-                )
-            )
+        val overlayControlData = NativeConfig.getOverlayControlData()
+        for (data in overlayControlData) {
+            if (!data.enabled) {
+                continue
+            }
+
+            val position = data.positionFromLayout(layout)
+            when (data.id) {
+                OverlayControl.BUTTON_A.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.facebutton_a,
+                            R.drawable.facebutton_a_depressed,
+                            ButtonType.BUTTON_A,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.BUTTON_B.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.facebutton_b,
+                            R.drawable.facebutton_b_depressed,
+                            ButtonType.BUTTON_B,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.BUTTON_X.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.facebutton_x,
+                            R.drawable.facebutton_x_depressed,
+                            ButtonType.BUTTON_X,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.BUTTON_Y.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.facebutton_y,
+                            R.drawable.facebutton_y_depressed,
+                            ButtonType.BUTTON_Y,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.BUTTON_PLUS.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.facebutton_plus,
+                            R.drawable.facebutton_plus_depressed,
+                            ButtonType.BUTTON_PLUS,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.BUTTON_MINUS.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.facebutton_minus,
+                            R.drawable.facebutton_minus_depressed,
+                            ButtonType.BUTTON_MINUS,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.BUTTON_HOME.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.facebutton_home,
+                            R.drawable.facebutton_home_depressed,
+                            ButtonType.BUTTON_HOME,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.BUTTON_CAPTURE.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.facebutton_screenshot,
+                            R.drawable.facebutton_screenshot_depressed,
+                            ButtonType.BUTTON_CAPTURE,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.BUTTON_L.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.l_shoulder,
+                            R.drawable.l_shoulder_depressed,
+                            ButtonType.TRIGGER_L,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.BUTTON_R.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.r_shoulder,
+                            R.drawable.r_shoulder_depressed,
+                            ButtonType.TRIGGER_R,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.BUTTON_ZL.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.zl_trigger,
+                            R.drawable.zl_trigger_depressed,
+                            ButtonType.TRIGGER_ZL,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.BUTTON_ZR.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.zr_trigger,
+                            R.drawable.zr_trigger_depressed,
+                            ButtonType.TRIGGER_ZR,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.BUTTON_STICK_L.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.button_l3,
+                            R.drawable.button_l3_depressed,
+                            ButtonType.STICK_L,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.BUTTON_STICK_R.id -> {
+                    overlayButtons.add(
+                        initializeOverlayButton(
+                            context,
+                            windowSize,
+                            R.drawable.button_r3,
+                            R.drawable.button_r3_depressed,
+                            ButtonType.STICK_R,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.STICK_L.id -> {
+                    overlayJoysticks.add(
+                        initializeOverlayJoystick(
+                            context,
+                            windowSize,
+                            R.drawable.joystick_range,
+                            R.drawable.joystick,
+                            R.drawable.joystick_depressed,
+                            StickType.STICK_L,
+                            ButtonType.STICK_L,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.STICK_R.id -> {
+                    overlayJoysticks.add(
+                        initializeOverlayJoystick(
+                            context,
+                            windowSize,
+                            R.drawable.joystick_range,
+                            R.drawable.joystick,
+                            R.drawable.joystick_depressed,
+                            StickType.STICK_R,
+                            ButtonType.STICK_R,
+                            data,
+                            position
+                        )
+                    )
+                }
+
+                OverlayControl.COMBINED_DPAD.id -> {
+                    overlayDpads.add(
+                        initializeOverlayDpad(
+                            context,
+                            windowSize,
+                            R.drawable.dpad_standard,
+                            R.drawable.dpad_standard_cardinal_depressed,
+                            R.drawable.dpad_standard_diagonal_depressed,
+                            position
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -586,313 +604,87 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
         overlayJoysticks.clear()
 
         // Add all the enabled overlay items back to the HashSet.
-        if (EmulationMenuSettings.showOverlay) {
+        if (BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()) {
             addOverlayControls(layout)
         }
         invalidate()
     }
 
-    private fun saveControlPosition(prefId: String, x: Int, y: Int, layout: String) {
+    private fun saveControlPosition(id: String, x: Int, y: Int, layout: OverlayLayout) {
         val windowSize = getSafeScreenSize(context, Pair(measuredWidth, measuredHeight))
         val min = windowSize.first
         val max = windowSize.second
-        PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext).edit()
-            .putFloat("$prefId-X$layout", (x - min.x).toFloat() / max.x)
-            .putFloat("$prefId-Y$layout", (y - min.y).toFloat() / max.y)
-            .apply()
+        val overlayControlData = NativeConfig.getOverlayControlData()
+        val data = overlayControlData.firstOrNull { it.id == id }
+        val newPosition = Pair((x - min.x).toDouble() / max.x, (y - min.y).toDouble() / max.y)
+        when (layout) {
+            OverlayLayout.Landscape -> data?.landscapePosition = newPosition
+            OverlayLayout.Portrait -> data?.portraitPosition = newPosition
+            OverlayLayout.Foldable -> data?.foldablePosition = newPosition
+        }
+        NativeConfig.setOverlayControlData(overlayControlData)
     }
 
     fun setIsInEditMode(editMode: Boolean) {
         inEditMode = editMode
     }
 
-    private fun resetCurrentLayout() {
-        defaultOverlayByLayout(layout)
-        val layoutIndex = overlayLayouts.indexOf(layout)
-        preferences.edit()
-            .putInt(Settings.overlayLayoutPrefs[layoutIndex], overlayLayoutVersions[layoutIndex])
-            .apply()
+    /**
+     * Applies and saves all default values for the overlay
+     */
+    private fun populateDefaultConfig() {
+        val newConfig = OverlayControl.entries.map { it.toOverlayControlData() }
+        NativeConfig.setOverlayControlData(newConfig.toTypedArray())
+        NativeConfig.saveGlobalConfig()
     }
 
-    private fun resetAllLayouts() {
-        val editor = preferences.edit()
-        overlayLayouts.forEachIndexed { i, layout ->
-            defaultOverlayByLayout(layout)
-            editor.putInt(Settings.overlayLayoutPrefs[i], overlayLayoutVersions[i])
+    /**
+     * Checks if any new controls were added to OverlayControl that do not exist within deserialized
+     * config and adds / saves them if necessary
+     *
+     * @param overlayControlData Overlay control data from [NativeConfig.getOverlayControlData]
+     */
+    private fun checkForNewControls(overlayControlData: Array<OverlayControlData>) {
+        val missingControls = mutableListOf<OverlayControlData>()
+        OverlayControl.entries.forEach { defaultControl ->
+            val controlData = overlayControlData.firstOrNull { it.id == defaultControl.id }
+            if (controlData == null) {
+                missingControls.add(defaultControl.toOverlayControlData())
+            }
         }
-        editor.putInt(Settings.PREF_OVERLAY_VERSION, OVERLAY_VERSION)
-        editor.apply()
+
+        if (missingControls.isNotEmpty()) {
+            NativeConfig.setOverlayControlData(
+                arrayOf(*overlayControlData, *(missingControls.toTypedArray()))
+            )
+            NativeConfig.saveGlobalConfig()
+        }
     }
 
     fun resetLayoutVisibilityAndPlacement() {
-        defaultOverlayByLayout(layout)
-        val editor = preferences.edit()
-        Settings.overlayPreferences.forEachIndexed { _, pref ->
-            editor.remove(pref)
+        defaultOverlayPositionByLayout(layout)
+
+        val overlayControlData = NativeConfig.getOverlayControlData()
+        overlayControlData.forEach {
+            it.enabled = OverlayControl.from(it.id)?.defaultVisibility == false
         }
-        editor.apply()
+        NativeConfig.setOverlayControlData(overlayControlData)
+
         refreshControls()
     }
 
-    private val landscapeResources = arrayOf(
-        R.integer.SWITCH_BUTTON_A_X,
-        R.integer.SWITCH_BUTTON_A_Y,
-        R.integer.SWITCH_BUTTON_B_X,
-        R.integer.SWITCH_BUTTON_B_Y,
-        R.integer.SWITCH_BUTTON_X_X,
-        R.integer.SWITCH_BUTTON_X_Y,
-        R.integer.SWITCH_BUTTON_Y_X,
-        R.integer.SWITCH_BUTTON_Y_Y,
-        R.integer.SWITCH_TRIGGER_ZL_X,
-        R.integer.SWITCH_TRIGGER_ZL_Y,
-        R.integer.SWITCH_TRIGGER_ZR_X,
-        R.integer.SWITCH_TRIGGER_ZR_Y,
-        R.integer.SWITCH_BUTTON_DPAD_X,
-        R.integer.SWITCH_BUTTON_DPAD_Y,
-        R.integer.SWITCH_TRIGGER_L_X,
-        R.integer.SWITCH_TRIGGER_L_Y,
-        R.integer.SWITCH_TRIGGER_R_X,
-        R.integer.SWITCH_TRIGGER_R_Y,
-        R.integer.SWITCH_BUTTON_PLUS_X,
-        R.integer.SWITCH_BUTTON_PLUS_Y,
-        R.integer.SWITCH_BUTTON_MINUS_X,
-        R.integer.SWITCH_BUTTON_MINUS_Y,
-        R.integer.SWITCH_BUTTON_HOME_X,
-        R.integer.SWITCH_BUTTON_HOME_Y,
-        R.integer.SWITCH_BUTTON_CAPTURE_X,
-        R.integer.SWITCH_BUTTON_CAPTURE_Y,
-        R.integer.SWITCH_STICK_R_X,
-        R.integer.SWITCH_STICK_R_Y,
-        R.integer.SWITCH_STICK_L_X,
-        R.integer.SWITCH_STICK_L_Y,
-        R.integer.SWITCH_BUTTON_STICK_L_X,
-        R.integer.SWITCH_BUTTON_STICK_L_Y,
-        R.integer.SWITCH_BUTTON_STICK_R_X,
-        R.integer.SWITCH_BUTTON_STICK_R_Y
-    )
-
-    private val portraitResources = arrayOf(
-        R.integer.SWITCH_BUTTON_A_X_PORTRAIT,
-        R.integer.SWITCH_BUTTON_A_Y_PORTRAIT,
-        R.integer.SWITCH_BUTTON_B_X_PORTRAIT,
-        R.integer.SWITCH_BUTTON_B_Y_PORTRAIT,
-        R.integer.SWITCH_BUTTON_X_X_PORTRAIT,
-        R.integer.SWITCH_BUTTON_X_Y_PORTRAIT,
-        R.integer.SWITCH_BUTTON_Y_X_PORTRAIT,
-        R.integer.SWITCH_BUTTON_Y_Y_PORTRAIT,
-        R.integer.SWITCH_TRIGGER_ZL_X_PORTRAIT,
-        R.integer.SWITCH_TRIGGER_ZL_Y_PORTRAIT,
-        R.integer.SWITCH_TRIGGER_ZR_X_PORTRAIT,
-        R.integer.SWITCH_TRIGGER_ZR_Y_PORTRAIT,
-        R.integer.SWITCH_BUTTON_DPAD_X_PORTRAIT,
-        R.integer.SWITCH_BUTTON_DPAD_Y_PORTRAIT,
-        R.integer.SWITCH_TRIGGER_L_X_PORTRAIT,
-        R.integer.SWITCH_TRIGGER_L_Y_PORTRAIT,
-        R.integer.SWITCH_TRIGGER_R_X_PORTRAIT,
-        R.integer.SWITCH_TRIGGER_R_Y_PORTRAIT,
-        R.integer.SWITCH_BUTTON_PLUS_X_PORTRAIT,
-        R.integer.SWITCH_BUTTON_PLUS_Y_PORTRAIT,
-        R.integer.SWITCH_BUTTON_MINUS_X_PORTRAIT,
-        R.integer.SWITCH_BUTTON_MINUS_Y_PORTRAIT,
-        R.integer.SWITCH_BUTTON_HOME_X_PORTRAIT,
-        R.integer.SWITCH_BUTTON_HOME_Y_PORTRAIT,
-        R.integer.SWITCH_BUTTON_CAPTURE_X_PORTRAIT,
-        R.integer.SWITCH_BUTTON_CAPTURE_Y_PORTRAIT,
-        R.integer.SWITCH_STICK_R_X_PORTRAIT,
-        R.integer.SWITCH_STICK_R_Y_PORTRAIT,
-        R.integer.SWITCH_STICK_L_X_PORTRAIT,
-        R.integer.SWITCH_STICK_L_Y_PORTRAIT,
-        R.integer.SWITCH_BUTTON_STICK_L_X_PORTRAIT,
-        R.integer.SWITCH_BUTTON_STICK_L_Y_PORTRAIT,
-        R.integer.SWITCH_BUTTON_STICK_R_X_PORTRAIT,
-        R.integer.SWITCH_BUTTON_STICK_R_Y_PORTRAIT
-    )
-
-    private val foldableResources = arrayOf(
-        R.integer.SWITCH_BUTTON_A_X_FOLDABLE,
-        R.integer.SWITCH_BUTTON_A_Y_FOLDABLE,
-        R.integer.SWITCH_BUTTON_B_X_FOLDABLE,
-        R.integer.SWITCH_BUTTON_B_Y_FOLDABLE,
-        R.integer.SWITCH_BUTTON_X_X_FOLDABLE,
-        R.integer.SWITCH_BUTTON_X_Y_FOLDABLE,
-        R.integer.SWITCH_BUTTON_Y_X_FOLDABLE,
-        R.integer.SWITCH_BUTTON_Y_Y_FOLDABLE,
-        R.integer.SWITCH_TRIGGER_ZL_X_FOLDABLE,
-        R.integer.SWITCH_TRIGGER_ZL_Y_FOLDABLE,
-        R.integer.SWITCH_TRIGGER_ZR_X_FOLDABLE,
-        R.integer.SWITCH_TRIGGER_ZR_Y_FOLDABLE,
-        R.integer.SWITCH_BUTTON_DPAD_X_FOLDABLE,
-        R.integer.SWITCH_BUTTON_DPAD_Y_FOLDABLE,
-        R.integer.SWITCH_TRIGGER_L_X_FOLDABLE,
-        R.integer.SWITCH_TRIGGER_L_Y_FOLDABLE,
-        R.integer.SWITCH_TRIGGER_R_X_FOLDABLE,
-        R.integer.SWITCH_TRIGGER_R_Y_FOLDABLE,
-        R.integer.SWITCH_BUTTON_PLUS_X_FOLDABLE,
-        R.integer.SWITCH_BUTTON_PLUS_Y_FOLDABLE,
-        R.integer.SWITCH_BUTTON_MINUS_X_FOLDABLE,
-        R.integer.SWITCH_BUTTON_MINUS_Y_FOLDABLE,
-        R.integer.SWITCH_BUTTON_HOME_X_FOLDABLE,
-        R.integer.SWITCH_BUTTON_HOME_Y_FOLDABLE,
-        R.integer.SWITCH_BUTTON_CAPTURE_X_FOLDABLE,
-        R.integer.SWITCH_BUTTON_CAPTURE_Y_FOLDABLE,
-        R.integer.SWITCH_STICK_R_X_FOLDABLE,
-        R.integer.SWITCH_STICK_R_Y_FOLDABLE,
-        R.integer.SWITCH_STICK_L_X_FOLDABLE,
-        R.integer.SWITCH_STICK_L_Y_FOLDABLE,
-        R.integer.SWITCH_BUTTON_STICK_L_X_FOLDABLE,
-        R.integer.SWITCH_BUTTON_STICK_L_Y_FOLDABLE,
-        R.integer.SWITCH_BUTTON_STICK_R_X_FOLDABLE,
-        R.integer.SWITCH_BUTTON_STICK_R_Y_FOLDABLE
-    )
-
-    private fun getResourceValue(layout: String, position: Int): Float {
-        return when (layout) {
-            PORTRAIT -> resources.getInteger(portraitResources[position]).toFloat() / 1000
-            FOLDABLE -> resources.getInteger(foldableResources[position]).toFloat() / 1000
-            else -> resources.getInteger(landscapeResources[position]).toFloat() / 1000
+    private fun defaultOverlayPositionByLayout(layout: OverlayLayout) {
+        val overlayControlData = NativeConfig.getOverlayControlData()
+        for (data in overlayControlData) {
+            val defaultControlData = OverlayControl.from(data.id) ?: continue
+            val position = defaultControlData.getDefaultPositionForLayout(layout)
+            when (layout) {
+                OverlayLayout.Landscape -> data.landscapePosition = position
+                OverlayLayout.Portrait -> data.portraitPosition = position
+                OverlayLayout.Foldable -> data.foldablePosition = position
+            }
         }
-    }
-
-    private fun defaultOverlayByLayout(layout: String) {
-        // Each value represents the position of the button in relation to the screen size without insets.
-        preferences.edit()
-            .putFloat(
-                "${Settings.PREF_BUTTON_A}-X$layout",
-                getResourceValue(layout, 0)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_A}-Y$layout",
-                getResourceValue(layout, 1)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_B}-X$layout",
-                getResourceValue(layout, 2)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_B}-Y$layout",
-                getResourceValue(layout, 3)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_X}-X$layout",
-                getResourceValue(layout, 4)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_X}-Y$layout",
-                getResourceValue(layout, 5)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_Y}-X$layout",
-                getResourceValue(layout, 6)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_Y}-Y$layout",
-                getResourceValue(layout, 7)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_ZL}-X$layout",
-                getResourceValue(layout, 8)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_ZL}-Y$layout",
-                getResourceValue(layout, 9)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_ZR}-X$layout",
-                getResourceValue(layout, 10)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_ZR}-Y$layout",
-                getResourceValue(layout, 11)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_DPAD}-X$layout",
-                getResourceValue(layout, 12)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_DPAD}-Y$layout",
-                getResourceValue(layout, 13)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_L}-X$layout",
-                getResourceValue(layout, 14)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_L}-Y$layout",
-                getResourceValue(layout, 15)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_R}-X$layout",
-                getResourceValue(layout, 16)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_R}-Y$layout",
-                getResourceValue(layout, 17)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_PLUS}-X$layout",
-                getResourceValue(layout, 18)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_PLUS}-Y$layout",
-                getResourceValue(layout, 19)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_MINUS}-X$layout",
-                getResourceValue(layout, 20)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_MINUS}-Y$layout",
-                getResourceValue(layout, 21)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_HOME}-X$layout",
-                getResourceValue(layout, 22)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_HOME}-Y$layout",
-                getResourceValue(layout, 23)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_SCREENSHOT}-X$layout",
-                getResourceValue(layout, 24)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_SCREENSHOT}-Y$layout",
-                getResourceValue(layout, 25)
-            )
-            .putFloat(
-                "${Settings.PREF_STICK_R}-X$layout",
-                getResourceValue(layout, 26)
-            )
-            .putFloat(
-                "${Settings.PREF_STICK_R}-Y$layout",
-                getResourceValue(layout, 27)
-            )
-            .putFloat(
-                "${Settings.PREF_STICK_L}-X$layout",
-                getResourceValue(layout, 28)
-            )
-            .putFloat(
-                "${Settings.PREF_STICK_L}-Y$layout",
-                getResourceValue(layout, 29)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_STICK_L}-X$layout",
-                getResourceValue(layout, 30)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_STICK_L}-Y$layout",
-                getResourceValue(layout, 31)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_STICK_R}-X$layout",
-                getResourceValue(layout, 32)
-            )
-            .putFloat(
-                "${Settings.PREF_BUTTON_STICK_R}-Y$layout",
-                getResourceValue(layout, 33)
-            )
-            .apply()
+        NativeConfig.setOverlayControlData(overlayControlData)
     }
 
     override fun isInEditMode(): Boolean {
@@ -911,18 +703,6 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             LANDSCAPE_OVERLAY_VERSION,
             PORTRAIT_OVERLAY_VERSION,
             FOLDABLE_OVERLAY_VERSION
-        )
-
-        private val preferences: SharedPreferences =
-            PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-
-        const val LANDSCAPE = "_Landscape"
-        const val PORTRAIT = "_Portrait"
-        const val FOLDABLE = "_Foldable"
-        val overlayLayouts = listOf(
-            LANDSCAPE,
-            PORTRAIT,
-            FOLDABLE
         )
 
         /**
@@ -1036,29 +816,19 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
          * In the input overlay configuration menu,
          * once a touch event begins and then ends (ie. Organizing the buttons to one's own liking for the overlay).
          * the X and Y coordinates of the button at the END of its touch event
-         * (when you remove your finger/stylus from the touchscreen) are then stored
-         * within a SharedPreferences instance so that those values can be retrieved here.
-         *
-         *
-         * This has a few benefits over the conventional way of storing the values
-         * (ie. within the yuzu ini file).
-         *
-         *  * No native calls
-         *  * Keeps Android-only values inside the Android environment
-         *
-         *
+         * (when you remove your finger/stylus from the touchscreen) are then stored in a native .
          *
          * Technically no modifications should need to be performed on the returned
          * InputOverlayDrawableButton. Simply add it to the HashSet of overlay items and wait
          * for Android to call the onDraw method.
          *
-         * @param context      The current [Context].
-         * @param windowSize   The size of the window to draw the overlay on.
-         * @param defaultResId The resource ID of the [Drawable] to get the [Bitmap] of (Default State).
-         * @param pressedResId The resource ID of the [Drawable] to get the [Bitmap] of (Pressed State).
-         * @param buttonId     Identifier for determining what type of button the initialized InputOverlayDrawableButton represents.
-         * @param prefId       Identifier for determining where a button appears on screen.
-         * @param layout       The current screen layout as determined by [LANDSCAPE], [PORTRAIT], or [FOLDABLE].
+         * @param context            The current [Context].
+         * @param windowSize         The size of the window to draw the overlay on.
+         * @param defaultResId       The resource ID of the [Drawable] to get the [Bitmap] of (Default State).
+         * @param pressedResId       The resource ID of the [Drawable] to get the [Bitmap] of (Pressed State).
+         * @param buttonId           Identifier for determining what type of button the initialized InputOverlayDrawableButton represents.
+         * @param overlayControlData Identifier for determining where a button appears on screen.
+         * @param position           The position on screen as represented by an x and y value between 0 and 1.
          * @return An [InputOverlayDrawableButton] with the correct drawing bounds set.
          */
         private fun initializeOverlayButton(
@@ -1067,33 +837,30 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             defaultResId: Int,
             pressedResId: Int,
             buttonId: Int,
-            prefId: String,
-            layout: String
+            overlayControlData: OverlayControlData,
+            position: Pair<Double, Double>
         ): InputOverlayDrawableButton {
             // Resources handle for fetching the initial Drawable resource.
             val res = context.resources
 
-            // SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableButton.
-            val sPrefs = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-
             // Decide scale based on button preference ID and user preference
-            var scale: Float = when (prefId) {
-                Settings.PREF_BUTTON_HOME,
-                Settings.PREF_BUTTON_SCREENSHOT,
-                Settings.PREF_BUTTON_PLUS,
-                Settings.PREF_BUTTON_MINUS -> 0.07f
+            var scale: Float = when (overlayControlData.id) {
+                OverlayControl.BUTTON_HOME.id,
+                OverlayControl.BUTTON_CAPTURE.id,
+                OverlayControl.BUTTON_PLUS.id,
+                OverlayControl.BUTTON_MINUS.id -> 0.07f
 
-                Settings.PREF_BUTTON_L,
-                Settings.PREF_BUTTON_R,
-                Settings.PREF_BUTTON_ZL,
-                Settings.PREF_BUTTON_ZR -> 0.26f
+                OverlayControl.BUTTON_L.id,
+                OverlayControl.BUTTON_R.id,
+                OverlayControl.BUTTON_ZL.id,
+                OverlayControl.BUTTON_ZR.id -> 0.26f
 
-                Settings.PREF_BUTTON_STICK_L,
-                Settings.PREF_BUTTON_STICK_R -> 0.155f
+                OverlayControl.BUTTON_STICK_L.id,
+                OverlayControl.BUTTON_STICK_R.id -> 0.155f
 
                 else -> 0.11f
             }
-            scale *= (sPrefs.getInt(Settings.PREF_CONTROL_SCALE, 50) + 50).toFloat()
+            scale *= (IntSetting.OVERLAY_SCALE.getInt() + 50).toFloat()
             scale /= 100f
 
             // Initialize the InputOverlayDrawableButton.
@@ -1104,7 +871,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 defaultStateBitmap,
                 pressedStateBitmap,
                 buttonId,
-                prefId
+                overlayControlData
             )
 
             // Get the minimum and maximum coordinates of the screen where the button can be placed.
@@ -1113,12 +880,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
             // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val xKey = "$prefId-X$layout"
-            val yKey = "$prefId-Y$layout"
-            val drawableXPercent = sPrefs.getFloat(xKey, 0f)
-            val drawableYPercent = sPrefs.getFloat(yKey, 0f)
-            val drawableX = (drawableXPercent * max.x + min.x).toInt()
-            val drawableY = (drawableYPercent * max.y + min.y).toInt()
+            val drawableX = (position.first * max.x + min.x).toInt()
+            val drawableY = (position.second * max.y + min.y).toInt()
             val width = overlayDrawable.width
             val height = overlayDrawable.height
 
@@ -1136,8 +899,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 drawableX - (width / 2),
                 drawableY - (height / 2)
             )
-            val savedOpacity = preferences.getInt(Settings.PREF_CONTROL_OPACITY, 100)
-            overlayDrawable.setOpacity(savedOpacity * 255 / 100)
+            overlayDrawable.setOpacity(IntSetting.OVERLAY_OPACITY.getInt() * 255 / 100)
             return overlayDrawable
         }
 
@@ -1149,7 +911,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
          * @param defaultResId              The [Bitmap] resource ID of the default state.
          * @param pressedOneDirectionResId  The [Bitmap] resource ID of the pressed state in one direction.
          * @param pressedTwoDirectionsResId The [Bitmap] resource ID of the pressed state in two directions.
-         * @param layout                    The current screen layout as determined by [LANDSCAPE], [PORTRAIT], or [FOLDABLE].
+         * @param position                  The position on screen as represented by an x and y value between 0 and 1.
          * @return The initialized [InputOverlayDrawableDpad]
          */
         private fun initializeOverlayDpad(
@@ -1158,17 +920,14 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             defaultResId: Int,
             pressedOneDirectionResId: Int,
             pressedTwoDirectionsResId: Int,
-            layout: String
+            position: Pair<Double, Double>
         ): InputOverlayDrawableDpad {
             // Resources handle for fetching the initial Drawable resource.
             val res = context.resources
 
-            // SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableDpad.
-            val sPrefs = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-
             // Decide scale based on button ID and user preference
             var scale = 0.25f
-            scale *= (sPrefs.getInt(Settings.PREF_CONTROL_SCALE, 50) + 50).toFloat()
+            scale *= (IntSetting.OVERLAY_SCALE.getInt() + 50).toFloat()
             scale /= 100f
 
             // Initialize the InputOverlayDrawableDpad.
@@ -1195,10 +954,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
             // The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val drawableXPercent = sPrefs.getFloat("${Settings.PREF_BUTTON_DPAD}-X$layout", 0f)
-            val drawableYPercent = sPrefs.getFloat("${Settings.PREF_BUTTON_DPAD}-Y$layout", 0f)
-            val drawableX = (drawableXPercent * max.x + min.x).toInt()
-            val drawableY = (drawableYPercent * max.y + min.y).toInt()
+            val drawableX = (position.first * max.x + min.x).toInt()
+            val drawableY = (position.second * max.y + min.y).toInt()
             val width = overlayDrawable.width
             val height = overlayDrawable.height
 
@@ -1213,8 +970,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
             // Need to set the image's position
             overlayDrawable.setPosition(drawableX - (width / 2), drawableY - (height / 2))
-            val savedOpacity = preferences.getInt(Settings.PREF_CONTROL_OPACITY, 100)
-            overlayDrawable.setOpacity(savedOpacity * 255 / 100)
+            overlayDrawable.setOpacity(IntSetting.OVERLAY_OPACITY.getInt() * 255 / 100)
             return overlayDrawable
         }
 
@@ -1227,9 +983,9 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
          * @param defaultResInner Resource ID for the default inner image of the joystick (the one you actually move around).
          * @param pressedResInner Resource ID for the pressed inner image of the joystick.
          * @param joystick        Identifier for which joystick this is.
-         * @param button          Identifier for which joystick button this is.
-         * @param prefId          Identifier for determining where a button appears on screen.
-         * @param layout          The current screen layout as determined by [LANDSCAPE], [PORTRAIT], or [FOLDABLE].
+         * @param buttonId          Identifier for which joystick button this is.
+         * @param overlayControlData Identifier for determining where a button appears on screen.
+         * @param position           The position on screen as represented by an x and y value between 0 and 1.
          * @return The initialized [InputOverlayDrawableJoystick].
          */
         private fun initializeOverlayJoystick(
@@ -1239,19 +995,16 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
             defaultResInner: Int,
             pressedResInner: Int,
             joystick: Int,
-            button: Int,
-            prefId: String,
-            layout: String
+            buttonId: Int,
+            overlayControlData: OverlayControlData,
+            position: Pair<Double, Double>
         ): InputOverlayDrawableJoystick {
             // Resources handle for fetching the initial Drawable resource.
             val res = context.resources
 
-            // SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableJoystick.
-            val sPrefs = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-
             // Decide scale based on user preference
             var scale = 0.3f
-            scale *= (sPrefs.getInt(Settings.PREF_CONTROL_SCALE, 50) + 50).toFloat()
+            scale *= (IntSetting.OVERLAY_SCALE.getInt() + 50).toFloat()
             scale /= 100f
 
             // Initialize the InputOverlayDrawableJoystick.
@@ -1265,10 +1018,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
 
             // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
             // These were set in the input overlay configuration menu.
-            val drawableXPercent = sPrefs.getFloat("$prefId-X$layout", 0f)
-            val drawableYPercent = sPrefs.getFloat("$prefId-Y$layout", 0f)
-            val drawableX = (drawableXPercent * max.x + min.x).toInt()
-            val drawableY = (drawableYPercent * max.y + min.y).toInt()
+            val drawableX = (position.first * max.x + min.x).toInt()
+            val drawableY = (position.second * max.y + min.y).toInt()
             val outerScale = 1.66f
 
             // Now set the bounds for the InputOverlayDrawableJoystick.
@@ -1292,14 +1043,13 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 outerRect,
                 innerRect,
                 joystick,
-                button,
-                prefId
+                buttonId,
+                overlayControlData.id
             )
 
             // Need to set the image's position
             overlayDrawable.setPosition(drawableX, drawableY)
-            val savedOpacity = preferences.getInt(Settings.PREF_CONTROL_OPACITY, 100)
-            overlayDrawable.setOpacity(savedOpacity * 255 / 100)
+            overlayDrawable.setOpacity(IntSetting.OVERLAY_OPACITY.getInt() * 255 / 100)
             return overlayDrawable
         }
     }

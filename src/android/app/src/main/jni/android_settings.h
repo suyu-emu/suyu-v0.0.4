@@ -14,6 +14,14 @@ struct GameDir {
     bool deep_scan = false;
 };
 
+struct OverlayControlData {
+    std::string id;
+    bool enabled;
+    std::pair<double, double> landscape_position;
+    std::pair<double, double> portrait_position;
+    std::pair<double, double> foldable_position;
+};
+
 struct Values {
     Settings::Linkage linkage;
 
@@ -38,6 +46,23 @@ struct Values {
     Settings::Setting<s32> theme_mode{linkage, -1, "theme_mode", Settings::Category::Android};
     Settings::Setting<bool> black_backgrounds{linkage, false, "black_backgrounds",
                                               Settings::Category::Android};
+
+    // Input/performance overlay settings
+    std::vector<OverlayControlData> overlay_control_data;
+    Settings::Setting<s32> overlay_scale{linkage, 50, "control_scale", Settings::Category::Overlay};
+    Settings::Setting<s32> overlay_opacity{linkage, 100, "control_opacity",
+                                           Settings::Category::Overlay};
+
+    Settings::Setting<bool> joystick_rel_center{linkage, true, "joystick_rel_center",
+                                                Settings::Category::Overlay};
+    Settings::Setting<bool> dpad_slide{linkage, true, "dpad_slide", Settings::Category::Overlay};
+    Settings::Setting<bool> haptic_feedback{linkage, true, "haptic_feedback",
+                                            Settings::Category::Overlay};
+    Settings::Setting<bool> show_performance_overlay{linkage, true, "show_performance_overlay",
+                                                     Settings::Category::Overlay};
+    Settings::Setting<bool> show_input_overlay{linkage, true, "show_input_overlay",
+                                               Settings::Category::Overlay};
+    Settings::Setting<bool> touchscreen{linkage, true, "touchscreen", Settings::Category::Overlay};
 };
 
 extern Values values;

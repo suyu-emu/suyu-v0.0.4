@@ -14,7 +14,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 import org.yuzu.yuzu_emu.NativeLibrary
-import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 
 /**
  * Custom [BitmapDrawable] that is capable
@@ -125,7 +125,7 @@ class InputOverlayDrawableJoystick(
             pressedState = true
             outerBitmap.alpha = 0
             boundsBoxBitmap.alpha = opacity
-            if (EmulationMenuSettings.joystickRelCenter) {
+            if (BooleanSetting.JOYSTICK_REL_CENTER.getBoolean()) {
                 virtBounds.offset(
                     xPosition - virtBounds.centerX(),
                     yPosition - virtBounds.centerY()

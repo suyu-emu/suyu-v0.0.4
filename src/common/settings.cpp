@@ -199,6 +199,8 @@ const char* TranslateCategory(Category category) {
     case Category::CpuDebug:
     case Category::CpuUnsafe:
         return "Cpu";
+    case Category::Overlay:
+        return "Overlay";
     case Category::Renderer:
     case Category::RendererAdvanced:
     case Category::RendererDebug:

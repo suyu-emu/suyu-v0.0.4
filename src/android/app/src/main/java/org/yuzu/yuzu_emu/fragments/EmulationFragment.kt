@@ -7,7 +7,6 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
-import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.net.Uri
@@ -33,7 +32,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.preference.PreferenceManager
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
@@ -46,22 +44,22 @@ import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.HomeNavigationDirections
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.DialogOverlayAdjustBinding
 import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.EmulationViewModel
-import org.yuzu.yuzu_emu.overlay.InputOverlay
+import org.yuzu.yuzu_emu.overlay.model.OverlayControl
+import org.yuzu.yuzu_emu.overlay.model.OverlayLayout
 import org.yuzu.yuzu_emu.utils.*
 import java.lang.NullPointerException
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback {
-    private lateinit var preferences: SharedPreferences
     private lateinit var emulationState: EmulationState
     private var emulationActivity: EmulationActivity? = null
     private var perfStatsUpdater: (() -> Unit)? = null
@@ -141,7 +139,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         // So this fragment doesn't restart on configuration changes; i.e. rotation.
         retainInstance = true
-        preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
         emulationState = EmulationState(game.path)
     }
 
@@ -382,24 +379,25 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         }
 
         updateScreenLayout()
+        val showInputOverlay = BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
         if (emulationActivity?.isInPictureInPictureMode == true) {
             if (binding.drawerLayout.isOpen) {
                 binding.drawerLayout.close()
             }
-            if (EmulationMenuSettings.showOverlay) {
+            if (showInputOverlay) {
                 binding.surfaceInputOverlay.visibility = View.INVISIBLE
             }
         } else {
-            if (EmulationMenuSettings.showOverlay && emulationViewModel.emulationStarted.value) {
+            if (showInputOverlay && emulationViewModel.emulationStarted.value) {
                 binding.surfaceInputOverlay.visibility = View.VISIBLE
             } else {
                 binding.surfaceInputOverlay.visibility = View.INVISIBLE
             }
             if (!isInFoldableLayout) {
                 if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                    binding.surfaceInputOverlay.layout = InputOverlay.PORTRAIT
+                    binding.surfaceInputOverlay.layout = OverlayLayout.Portrait
                 } else {
-                    binding.surfaceInputOverlay.layout = InputOverlay.LANDSCAPE
+                    binding.surfaceInputOverlay.layout = OverlayLayout.Landscape
                 }
             }
         }
@@ -423,17 +421,15 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     private fun resetInputOverlay() {
-        preferences.edit()
-            .remove(Settings.PREF_CONTROL_SCALE)
-            .remove(Settings.PREF_CONTROL_OPACITY)
-            .apply()
+        IntSetting.OVERLAY_SCALE.reset()
+        IntSetting.OVERLAY_OPACITY.reset()
         binding.surfaceInputOverlay.post {
             binding.surfaceInputOverlay.resetLayoutVisibilityAndPlacement()
         }
     }
 
     private fun updateShowFpsOverlay() {
-        if (EmulationMenuSettings.showFps) {
+        if (BooleanSetting.SHOW_PERFORMANCE_OVERLAY.getBoolean()) {
             val SYSTEM_FPS = 0
             val FPS = 1
             val FRAMETIME = 2
@@ -496,7 +492,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         binding.inGameMenu.layoutParams.height = it.bounds.bottom
 
                         isInFoldableLayout = true
-                        binding.surfaceInputOverlay.layout = InputOverlay.FOLDABLE
+                        binding.surfaceInputOverlay.layout = OverlayLayout.Foldable
                     }
                 }
                 it.isSeparating
@@ -535,18 +531,21 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         popup.menuInflater.inflate(R.menu.menu_overlay_options, popup.menu)
 
         popup.menu.apply {
-            findItem(R.id.menu_toggle_fps).isChecked = EmulationMenuSettings.showFps
-            findItem(R.id.menu_rel_stick_center).isChecked = EmulationMenuSettings.joystickRelCenter
-            findItem(R.id.menu_dpad_slide).isChecked = EmulationMenuSettings.dpadSlide
-            findItem(R.id.menu_show_overlay).isChecked = EmulationMenuSettings.showOverlay
-            findItem(R.id.menu_haptics).isChecked = EmulationMenuSettings.hapticFeedback
+            findItem(R.id.menu_toggle_fps).isChecked =
+                BooleanSetting.SHOW_PERFORMANCE_OVERLAY.getBoolean()
+            findItem(R.id.menu_rel_stick_center).isChecked =
+                BooleanSetting.JOYSTICK_REL_CENTER.getBoolean()
+            findItem(R.id.menu_dpad_slide).isChecked = BooleanSetting.DPAD_SLIDE.getBoolean()
+            findItem(R.id.menu_show_overlay).isChecked =
+                BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
+            findItem(R.id.menu_haptics).isChecked = BooleanSetting.HAPTIC_FEEDBACK.getBoolean()
         }
 
         popup.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.menu_toggle_fps -> {
                     it.isChecked = !it.isChecked
-                    EmulationMenuSettings.showFps = it.isChecked
+                    BooleanSetting.SHOW_PERFORMANCE_OVERLAY.setBoolean(it.isChecked)
                     updateShowFpsOverlay()
                     true
                 }
@@ -564,11 +563,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 }
 
                 R.id.menu_toggle_controls -> {
-                    val preferences =
-                        PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-                    val optionsArray = BooleanArray(Settings.overlayPreferences.size)
-                    Settings.overlayPreferences.forEachIndexed { i, _ ->
-                        optionsArray[i] = preferences.getBoolean("buttonToggle$i", i < 15)
+                    val overlayControlData = NativeConfig.getOverlayControlData()
+                    val optionsArray = BooleanArray(overlayControlData.size)
+                    overlayControlData.forEachIndexed { i, _ ->
+                        optionsArray[i] = overlayControlData.firstOrNull { data ->
+                            OverlayControl.entries[i].id == data.id
+                        }?.enabled == true
                     }
 
                     val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -577,11 +577,13 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                             R.array.gamepadButtons,
                             optionsArray
                         ) { _, indexSelected, isChecked ->
-                            preferences.edit()
-                                .putBoolean("buttonToggle$indexSelected", isChecked)
-                                .apply()
+                            overlayControlData.firstOrNull { data ->
+                                OverlayControl.entries[indexSelected].id == data.id
+                            }?.enabled = isChecked
                         }
                         .setPositiveButton(android.R.string.ok) { _, _ ->
+                            NativeConfig.setOverlayControlData(overlayControlData)
+                            NativeConfig.saveGlobalConfig()
                             binding.surfaceInputOverlay.refreshControls()
                         }
                         .setNegativeButton(android.R.string.cancel, null)
@@ -592,12 +594,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                     dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
                         .setOnClickListener {
                             val isChecked = !optionsArray[0]
-                            Settings.overlayPreferences.forEachIndexed { i, _ ->
+                            overlayControlData.forEachIndexed { i, _ ->
                                 optionsArray[i] = isChecked
                                 dialog.listView.setItemChecked(i, isChecked)
-                                preferences.edit()
-                                    .putBoolean("buttonToggle$i", isChecked)
-                                    .apply()
+                                overlayControlData[i].enabled = isChecked
                             }
                         }
                     true
@@ -605,26 +605,26 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
                 R.id.menu_show_overlay -> {
                     it.isChecked = !it.isChecked
-                    EmulationMenuSettings.showOverlay = it.isChecked
+                    BooleanSetting.SHOW_INPUT_OVERLAY.setBoolean(it.isChecked)
                     binding.surfaceInputOverlay.refreshControls()
                     true
                 }
 
                 R.id.menu_rel_stick_center -> {
                     it.isChecked = !it.isChecked
-                    EmulationMenuSettings.joystickRelCenter = it.isChecked
+                    BooleanSetting.JOYSTICK_REL_CENTER.setBoolean(it.isChecked)
                     true
                 }
 
                 R.id.menu_dpad_slide -> {
                     it.isChecked = !it.isChecked
-                    EmulationMenuSettings.dpadSlide = it.isChecked
+                    BooleanSetting.DPAD_SLIDE.setBoolean(it.isChecked)
                     true
                 }
 
                 R.id.menu_haptics -> {
                     it.isChecked = !it.isChecked
-                    EmulationMenuSettings.hapticFeedback = it.isChecked
+                    BooleanSetting.HAPTIC_FEEDBACK.setBoolean(it.isChecked)
                     true
                 }
 
@@ -667,6 +667,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
         }
+        NativeConfig.saveGlobalConfig()
     }
 
     @SuppressLint("SetTextI18n")
@@ -675,7 +676,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         adjustBinding.apply {
             inputScaleSlider.apply {
                 valueTo = 150F
-                value = preferences.getInt(Settings.PREF_CONTROL_SCALE, 50).toFloat()
+                value = IntSetting.OVERLAY_SCALE.getInt().toFloat()
                 addOnChangeListener(
                     Slider.OnChangeListener { _, value, _ ->
                         inputScaleValue.text = "${value.toInt()}%"
@@ -685,7 +686,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             }
             inputOpacitySlider.apply {
                 valueTo = 100F
-                value = preferences.getInt(Settings.PREF_CONTROL_OPACITY, 100).toFloat()
+                value = IntSetting.OVERLAY_OPACITY.getInt().toFloat()
                 addOnChangeListener(
                     Slider.OnChangeListener { _, value, _ ->
                         inputOpacityValue.text = "${value.toInt()}%"
@@ -709,16 +710,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     }
 
     private fun setControlScale(scale: Int) {
-        preferences.edit()
-            .putInt(Settings.PREF_CONTROL_SCALE, scale)
-            .apply()
+        IntSetting.OVERLAY_SCALE.setInt(scale)
         binding.surfaceInputOverlay.refreshControls()
     }
 
     private fun setControlOpacity(opacity: Int) {
-        preferences.edit()
-            .putInt(Settings.PREF_CONTROL_OPACITY, opacity)
-            .apply()
+        IntSetting.OVERLAY_OPACITY.setInt(opacity)
         binding.surfaceInputOverlay.refreshControls()
     }
 

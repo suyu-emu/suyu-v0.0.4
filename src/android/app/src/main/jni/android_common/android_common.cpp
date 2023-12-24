@@ -9,6 +9,7 @@
 #include <jni.h>
 
 #include "common/string_util.h"
+#include "jni/id_cache.h"
 
 std::string GetJString(JNIEnv* env, jstring jstr) {
     if (!jstr) {
@@ -32,4 +33,12 @@ jstring ToJString(JNIEnv* env, std::string_view str) {
 
 jstring ToJString(JNIEnv* env, std::u16string_view str) {
     return ToJString(env, Common::UTF16ToUTF8(str));
+}
+
+double GetJDouble(JNIEnv* env, jobject jdouble) {
+    return env->GetDoubleField(jdouble, IDCache::GetDoubleValueField());
+}
+
+jobject ToJDouble(JNIEnv* env, double value) {
+    return env->NewObject(IDCache::GetDoubleClass(), IDCache::GetDoubleConstructor(), value);
 }

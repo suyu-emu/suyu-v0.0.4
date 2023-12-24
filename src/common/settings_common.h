@@ -18,6 +18,7 @@ enum class Category : u32 {
     Cpu,
     CpuDebug,
     CpuUnsafe,
+    Overlay,
     Renderer,
     RendererAdvanced,
     RendererDebug,

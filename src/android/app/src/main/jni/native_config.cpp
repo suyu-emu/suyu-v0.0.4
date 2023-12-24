@@ -344,4 +344,74 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setDisabledAddons(JNIEnv* env, j
     Settings::values.disabled_addons[program_id] = disabled_addons;
 }
 
+jobjectArray Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getOverlayControlData(JNIEnv* env,
+                                                                              jobject obj) {
+    jobjectArray joverlayControlDataArray =
+        env->NewObjectArray(AndroidSettings::values.overlay_control_data.size(),
+                            IDCache::GetOverlayControlDataClass(), nullptr);
+    for (size_t i = 0; i < AndroidSettings::values.overlay_control_data.size(); ++i) {
+        const auto& control_data = AndroidSettings::values.overlay_control_data[i];
+        jobject jlandscapePosition =
+            env->NewObject(IDCache::GetPairClass(), IDCache::GetPairConstructor(),
+                           ToJDouble(env, control_data.landscape_position.first),
+                           ToJDouble(env, control_data.landscape_position.second));
+        jobject jportraitPosition =
+            env->NewObject(IDCache::GetPairClass(), IDCache::GetPairConstructor(),
+                           ToJDouble(env, control_data.portrait_position.first),
+                           ToJDouble(env, control_data.portrait_position.second));
+        jobject jfoldablePosition =
+            env->NewObject(IDCache::GetPairClass(), IDCache::GetPairConstructor(),
+                           ToJDouble(env, control_data.foldable_position.first),
+                           ToJDouble(env, control_data.foldable_position.second));
+
+        jobject jcontrolData = env->NewObject(
+            IDCache::GetOverlayControlDataClass(), IDCache::GetOverlayControlDataConstructor(),
+            ToJString(env, control_data.id), control_data.enabled, jlandscapePosition,
+            jportraitPosition, jfoldablePosition);
+        env->SetObjectArrayElement(joverlayControlDataArray, i, jcontrolData);
+    }
+    return joverlayControlDataArray;
+}
+
+void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setOverlayControlData(
+    JNIEnv* env, jobject obj, jobjectArray joverlayControlDataArray) {
+    AndroidSettings::values.overlay_control_data.clear();
+    int size = env->GetArrayLength(joverlayControlDataArray);
+
+    if (size == 0) {
+        return;
+    }
+
+    for (int i = 0; i < size; ++i) {
+        jobject joverlayControlData = env->GetObjectArrayElement(joverlayControlDataArray, i);
+        jstring jidString = static_cast<jstring>(
+            env->GetObjectField(joverlayControlData, IDCache::GetOverlayControlDataIdField()));
+        bool enabled = static_cast<bool>(env->GetBooleanField(
+            joverlayControlData, IDCache::GetOverlayControlDataEnabledField()));
+
+        jobject jlandscapePosition = env->GetObjectField(
+            joverlayControlData, IDCache::GetOverlayControlDataLandscapePositionField());
+        std::pair<double, double> landscape_position = std::make_pair(
+            GetJDouble(env, env->GetObjectField(jlandscapePosition, IDCache::GetPairFirstField())),
+            GetJDouble(env,
+                       env->GetObjectField(jlandscapePosition, IDCache::GetPairSecondField())));
+
+        jobject jportraitPosition = env->GetObjectField(
+            joverlayControlData, IDCache::GetOverlayControlDataPortraitPositionField());
+        std::pair<double, double> portrait_position = std::make_pair(
+            GetJDouble(env, env->GetObjectField(jportraitPosition, IDCache::GetPairFirstField())),
+            GetJDouble(env, env->GetObjectField(jportraitPosition, IDCache::GetPairSecondField())));
+
+        jobject jfoldablePosition = env->GetObjectField(
+            joverlayControlData, IDCache::GetOverlayControlDataFoldablePositionField());
+        std::pair<double, double> foldable_position = std::make_pair(
+            GetJDouble(env, env->GetObjectField(jfoldablePosition, IDCache::GetPairFirstField())),
+            GetJDouble(env, env->GetObjectField(jfoldablePosition, IDCache::GetPairSecondField())));
+
+        AndroidSettings::values.overlay_control_data.push_back(AndroidSettings::OverlayControlData{
+            GetJString(env, jidString), enabled, landscape_position, portrait_position,
+            foldable_position});
+    }
+}
+
 } // extern "C"
