@@ -82,7 +82,7 @@ NvResult nvhost_ctrl_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8>
     return NvResult::NotImplemented;
 }
 
-void nvhost_ctrl_gpu::OnOpen(DeviceFD fd) {}
+void nvhost_ctrl_gpu::OnOpen(size_t session_id, DeviceFD fd) {}
 void nvhost_ctrl_gpu::OnClose(DeviceFD fd) {}
 
 NvResult nvhost_ctrl_gpu::GetCharacteristics1(IoctlCharacteristics& params) {

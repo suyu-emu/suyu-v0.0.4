@@ -44,7 +44,7 @@ NvResult nvhost_nvjpg::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> in
     return NvResult::NotImplemented;
 }
 
-void nvhost_nvjpg::OnOpen(DeviceFD fd) {}
+void nvhost_nvjpg::OnOpen(size_t session_id, DeviceFD fd) {}
 void nvhost_nvjpg::OnClose(DeviceFD fd) {}
 
 NvResult nvhost_nvjpg::SetNVMAPfd(IoctlSetNvmapFD& params) {

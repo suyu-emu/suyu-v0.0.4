@@ -19,6 +19,8 @@
 #include "core/hle/ipc.h"
 #include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/svc_common.h"
+#include "core/hle/kernel/k_auto_object.h"
+#include "core/hle/kernel/k_handle_table.h"
 
 union Result;
 
@@ -41,6 +43,8 @@ class KernelCore;
 class KHandleTable;
 class KProcess;
 class KServerSession;
+template <typename T>
+class KScopedAutoObject;
 class KThread;
 } // namespace Kernel
 
@@ -371,6 +375,10 @@ public:
             return obj->DynamicCast<T*>();
         }
         return nullptr;
+    }
+
+    Kernel::KScopedAutoObject<Kernel::KAutoObject> GetObjectFromHandle(u32 handle) {
+        return GetClientHandleTable().GetObjectForIpc(handle, thread);
     }
 
     [[nodiscard]] std::shared_ptr<SessionRequestManager> GetManager() const {

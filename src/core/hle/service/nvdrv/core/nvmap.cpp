@@ -18,8 +18,6 @@ NvMap::Handle::Handle(u64 size_, Id id_)
 }
 
 NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress) {
-    std::scoped_lock lock(mutex);
-
     // Handles cannot be allocated twice
     if (allocated) {
         return NvResult::AccessDenied;
@@ -79,10 +77,11 @@ void NvMap::UnmapHandle(Handle& handle_description) {
     }
 
     // Free and unmap the handle from the SMMU
-    host1x.MemoryManager().Unmap(static_cast<GPUVAddr>(handle_description.pin_virt_address),
-                                 handle_description.aligned_size);
-    host1x.Allocator().Free(handle_description.pin_virt_address,
-                            static_cast<u32>(handle_description.aligned_size));
+    auto& smmu = host1x.MemoryManager();
+    smmu.Unmap(static_cast<DAddr>(handle_description.pin_virt_address),
+               handle_description.aligned_size);
+    smmu.Free(handle_description.pin_virt_address,
+              static_cast<size_t>(handle_description.aligned_size));
     handle_description.pin_virt_address = 0;
 }
 
@@ -133,7 +132,32 @@ VAddr NvMap::GetHandleAddress(Handle::Id handle) {
     }
 }
 
-u32 NvMap::PinHandle(NvMap::Handle::Id handle) {
+NvResult NvMap::AllocateHandle(Handle::Id handle, Handle::Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress, size_t session_id) {
+    auto handle_description{GetHandle(handle)};
+    if (!handle_description) [[unlikely]] {
+        return NvResult::BadParameter;
+    }
+
+    if (handle_description->allocated) [[unlikely]] {
+        return NvResult::InsufficientMemory;
+    }
+
+    std::scoped_lock lock(handle_description->mutex);
+    NvResult result = handle_description->Alloc(pFlags, pAlign, pKind, pAddress);
+    if (result != NvResult::Success) {
+        return result;
+    }
+    auto& smmu = host1x.MemoryManager();
+    size_t total_size = static_cast<size_t>(handle_description->aligned_size);
+    handle_description->d_address = smmu.Allocate(total_size);
+    if (handle_description->d_address == 0) {
+        return NvResult::InsufficientMemory;
+    }
+    smmu.Map(handle_description->d_address, handle_description->address, total_size, session_id);
+    return NvResult::Success;
+}
+
+u32 NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id) {
     auto handle_description{GetHandle(handle)};
     if (!handle_description) [[unlikely]] {
         return 0;
@@ -157,11 +181,10 @@ u32 NvMap::PinHandle(NvMap::Handle::Id handle) {
         }
 
         // If not then allocate some space and map it
-        u32 address{};
-        auto& smmu_allocator = host1x.Allocator();
-        auto& smmu_memory_manager = host1x.MemoryManager();
-        while ((address = smmu_allocator.Allocate(
-                    static_cast<u32>(handle_description->aligned_size))) == 0) {
+        DAddr address{};
+        auto& smmu = host1x.MemoryManager();
+        while ((address = smmu.AllocatePinned(
+                    static_cast<size_t>(handle_description->aligned_size))) == 0) {
             // Free handles until the allocation succeeds
             std::scoped_lock queueLock(unmap_queue_lock);
             if (auto freeHandleDesc{unmap_queue.front()}) {
@@ -175,9 +198,9 @@ u32 NvMap::PinHandle(NvMap::Handle::Id handle) {
             }
         }
 
-        smmu_memory_manager.Map(static_cast<GPUVAddr>(address), handle_description->address,
-                                handle_description->aligned_size);
-        handle_description->pin_virt_address = address;
+        smmu.Map(address, handle_description->address, handle_description->aligned_size,
+                 session_id);
+        handle_description->pin_virt_address = static_cast<u32>(address);
     }
 
     handle_description->pins++;
@@ -235,6 +258,11 @@ std::optional<NvMap::FreeInfo> NvMap::FreeHandle(Handle::Id handle, bool interna
                 if (handle_description->pin_virt_address) {
                     std::scoped_lock queueLock(unmap_queue_lock);
                     UnmapHandle(*handle_description);
+                }
+                if (handle_description->allocated) {
+                    auto& smmu = host1x.MemoryManager();
+                    smmu.Free(handle_description->d_address, handle_description->aligned_size);
+                    smmu.Unmap(handle_description->d_address, handle_description->aligned_size);
                 }
 
                 handle_description->pins = 0;

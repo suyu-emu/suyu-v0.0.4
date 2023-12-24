@@ -133,10 +133,10 @@ NvResult nvhost_nvdec_common::GetWaitbase(IoctlGetWaitbase& params) {
     return NvResult::Success;
 }
 
-NvResult nvhost_nvdec_common::MapBuffer(IoctlMapBuffer& params, std::span<MapBufferEntry> entries) {
+NvResult nvhost_nvdec_common::MapBuffer(IoctlMapBuffer& params, std::span<MapBufferEntry> entries, DeviceFD fd) {
     const size_t num_entries = std::min(params.num_entries, static_cast<u32>(entries.size()));
     for (size_t i = 0; i < num_entries; i++) {
-        entries[i].map_address = nvmap.PinHandle(entries[i].map_handle);
+        entries[i].map_address = nvmap.PinHandle(entries[i].map_handle, sessions[fd]);
     }
 
     return NvResult::Success;
