@@ -168,14 +168,6 @@ class GMainWindow : public QMainWindow {
     /// Max number of recently loaded items to keep track of
     static const int max_recent_files_item = 10;
 
-    // TODO: Make use of this!
-    enum {
-        UI_IDLE,
-        UI_EMU_BOOTING,
-        UI_EMU_RUNNING,
-        UI_EMU_STOPPING,
-    };
-
     enum {
         CREATE_SHORTCUT_MSGBOX_FULLSCREEN_YES,
         CREATE_SHORTCUT_MSGBOX_SUCCESS,
