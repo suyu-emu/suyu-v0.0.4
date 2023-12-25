@@ -12,6 +12,7 @@
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/memory_manager.h"
 #include "video_core/shader_cache.h"
 #include "video_core/shader_environment.h"
@@ -34,7 +35,7 @@ void ShaderCache::SyncGuestHost() {
     RemovePendingShaders();
 }
 
-ShaderCache::ShaderCache(VideoCore::RasterizerInterface& rasterizer_) : rasterizer{rasterizer_} {}
+ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_) : device_memory{device_memory_} {}
 
 bool ShaderCache::RefreshStages(std::array<u64, 6>& unique_hashes) {
     auto& dirty{maxwell3d->dirty.flags};
@@ -132,7 +133,7 @@ void ShaderCache::Register(std::unique_ptr<ShaderInfo> data, VAddr addr, size_t 
 
     storage.push_back(std::move(data));
 
-    rasterizer.UpdatePagesCachedCount(addr, size, 1);
+    device_memory.UpdatePagesCachedCount(addr, size, 1);
 }
 
 void ShaderCache::InvalidatePagesInRegion(VAddr addr, size_t size) {
@@ -209,7 +210,7 @@ void ShaderCache::UnmarkMemory(Entry* entry) {
 
     const VAddr addr = entry->addr_start;
     const size_t size = entry->addr_end - addr;
-    rasterizer.UpdatePagesCachedCount(addr, size, -1);
+    device_memory.UpdatePagesCachedCount(addr, size, -1);
 }
 
 void ShaderCache::RemoveShadersFromStorage(std::span<ShaderInfo*> removed_shaders) {

@@ -13,8 +13,6 @@
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvdrv/nvdrv_interface.h"
 
-#pragma optimize("", off)
-
 namespace Service::Nvidia {
 
 void NVDRV::Open(HLERequestContext& ctx) {
@@ -173,8 +171,8 @@ void NVDRV::Initialize(HLERequestContext& ctx) {
     [[maybe_unused]] const auto transfer_memory_size = rp.Pop<u32>();
 
     auto& container = nvdrv->GetContainer();
-    auto process = ctx.GetObjectFromHandle(process_handle);
-    session_id = container.OpenSession(process->DynamicCast<Kernel::KProcess*>());
+    auto process = ctx.GetObjectFromHandle<Kernel::KProcess>(process_handle);
+    session_id = container.OpenSession(process.GetPointerUnsafe());
 
     is_initialized = true;
 }

@@ -10,6 +10,7 @@
 #include "common/logging/log.h"
 #include "common/scratch_buffer.h"
 #include "core/memory.h"
+#include "core/guest_memory.h"
 
 namespace AudioCore::Renderer {
 

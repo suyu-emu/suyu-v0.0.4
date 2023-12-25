@@ -158,7 +158,7 @@ public:
     void InitAddressSpace(Tegra::MemoryManager& memory_manager);
 
     /// Request a host GPU memory flush from the CPU.
-    [[nodiscard]] u64 RequestFlush(VAddr addr, std::size_t size);
+    [[nodiscard]] u64 RequestFlush(DAddr addr, std::size_t size);
 
     /// Obtains current flush request fence id.
     [[nodiscard]] u64 CurrentSyncRequestFence() const;
@@ -242,20 +242,20 @@ public:
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer);
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
-    [[nodiscard]] VideoCore::RasterizerDownloadArea OnCPURead(VAddr addr, u64 size);
+    [[nodiscard]] VideoCore::RasterizerDownloadArea OnCPURead(DAddr addr, u64 size);
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
-    void FlushRegion(VAddr addr, u64 size);
+    void FlushRegion(DAddr addr, u64 size);
 
     /// Notify rasterizer that any caches of the specified region should be invalidated
-    void InvalidateRegion(VAddr addr, u64 size);
+    void InvalidateRegion(DAddr addr, u64 size);
 
     /// Notify rasterizer that CPU is trying to write this area. It returns true if the area is
     /// sensible, false otherwise
-    bool OnCPUWrite(VAddr addr, u64 size);
+    bool OnCPUWrite(DAddr addr, u64 size);
 
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
-    void FlushAndInvalidateRegion(VAddr addr, u64 size);
+    void FlushAndInvalidateRegion(DAddr addr, u64 size);
 
 private:
     struct Impl;

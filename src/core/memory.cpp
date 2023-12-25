@@ -24,6 +24,8 @@
 #include "core/hle/kernel/k_process.h"
 #include "core/memory.h"
 #include "video_core/gpu.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
+#include "video_core/host1x/host1x.h"
 #include "video_core/rasterizer_download_area.h"
 
 namespace Core::Memory {
@@ -638,15 +640,16 @@ struct Memory::Impl {
                   base * YUZU_PAGESIZE, (base + size) * YUZU_PAGESIZE);
 
         // During boot, current_page_table might not be set yet, in which case we need not flush
-        if (system.IsPoweredOn()) {
+        /*if (system.IsPoweredOn()) {
             auto& gpu = system.GPU();
             for (u64 i = 0; i < size; i++) {
                 const auto page = base + i;
                 if (page_table.pointers[page].Type() == Common::PageType::RasterizerCachedMemory) {
+
                     gpu.FlushAndInvalidateRegion(page << YUZU_PAGEBITS, YUZU_PAGESIZE);
                 }
             }
-        }
+        }*/
 
         const auto end = base + size;
         ASSERT_MSG(end <= page_table.pointers.size(), "out of range mapping at {:016X}",
@@ -811,10 +814,15 @@ struct Memory::Impl {
         return true;
     }
 
-    void HandleRasterizerDownload(VAddr address, size_t size) {
+    void HandleRasterizerDownload(VAddr v_address, size_t size) {
+        const auto* p = GetPointerImpl(
+            v_address, []() {}, []() {});
+        auto& gpu_device_memory = system.Host1x().MemoryManager();
+        DAddr address =
+            gpu_device_memory.GetAddressFromPAddr(system.DeviceMemory().GetRawPhysicalAddr(p));
         const size_t core = system.GetCurrentHostThreadID();
         auto& current_area = rasterizer_read_areas[core];
-        const VAddr end_address = address + size;
+        const DAddr end_address = address + size;
         if (current_area.start_address <= address && end_address <= current_area.end_address)
             [[likely]] {
             return;
@@ -822,7 +830,10 @@ struct Memory::Impl {
         current_area = system.GPU().OnCPURead(address, size);
     }
 
-    void HandleRasterizerWrite(VAddr address, size_t size) {
+    void HandleRasterizerWrite(VAddr v_address, size_t size) {
+        const auto* p = GetPointerImpl(
+            v_address, []() {}, []() {});
+        PAddr address = system.DeviceMemory().GetRawPhysicalAddr(p);
         constexpr size_t sys_core = Core::Hardware::NUM_CPU_CORES - 1;
         const size_t core = std::min(system.GetCurrentHostThreadID(),
                                      sys_core); // any other calls threads go to syscore.
@@ -836,7 +847,7 @@ struct Memory::Impl {
             }
         });
         auto& current_area = rasterizer_write_areas[core];
-        VAddr subaddress = address >> YUZU_PAGEBITS;
+        PAddr subaddress = address >> YUZU_PAGEBITS;
         bool do_collection = current_area.last_address == subaddress;
         if (!do_collection) [[unlikely]] {
             do_collection = system.GPU().OnCPUWrite(address, size);
@@ -849,7 +860,7 @@ struct Memory::Impl {
     }
 
     struct GPUDirtyState {
-        VAddr last_address;
+        PAddr last_address;
     };
 
     void InvalidateRegion(Common::ProcessAddress dest_addr, size_t size) {

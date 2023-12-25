@@ -37,6 +37,8 @@ add_library(core STATIC
     debugger/gdbstub_arch.h
     debugger/gdbstub.cpp
     debugger/gdbstub.h
+    device_memory_manager.h
+    device_memory_manager.inc
     device_memory.cpp
     device_memory.h
     file_sys/fssystem/fs_i_storage.h

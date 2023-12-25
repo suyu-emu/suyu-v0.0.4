@@ -47,11 +47,10 @@ constexpr std::array PROGRAM_LUT{
 } // Anonymous namespace
 
 Buffer::Buffer(BufferCacheRuntime&, VideoCommon::NullBufferParams null_params)
-    : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(null_params) {}
+    : VideoCommon::BufferBase(null_params) {}
 
-Buffer::Buffer(BufferCacheRuntime& runtime, VideoCore::RasterizerInterface& rasterizer_,
-               VAddr cpu_addr_, u64 size_bytes_)
-    : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(rasterizer_, cpu_addr_, size_bytes_) {
+Buffer::Buffer(BufferCacheRuntime& runtime, DAddr cpu_addr_, u64 size_bytes_)
+    : VideoCommon::BufferBase(cpu_addr_, size_bytes_) {
     buffer.Create();
     if (runtime.device.HasDebuggingToolAttached()) {
         const std::string name = fmt::format("Buffer 0x{:x}", CpuAddr());

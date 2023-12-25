@@ -33,13 +33,12 @@ struct NullBufferParams {};
  *
  * The buffer size and address is forcefully aligned to CPU page boundaries.
  */
-template <class RasterizerInterface>
 class BufferBase {
 public:
     static constexpr u64 BASE_PAGE_BITS = 16;
     static constexpr u64 BASE_PAGE_SIZE = 1ULL << BASE_PAGE_BITS;
 
-    explicit BufferBase(RasterizerInterface& rasterizer_, VAddr cpu_addr_, u64 size_bytes_)
+    explicit BufferBase(VAddr cpu_addr_, u64 size_bytes_)
         : cpu_addr{cpu_addr_}, size_bytes{size_bytes_} {}
 
     explicit BufferBase(NullBufferParams) {}

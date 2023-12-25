@@ -48,7 +48,7 @@ public:
         using Id = u32;
         Id id; //!< A globally unique identifier for this handle
 
-        s32 pins{};
+        s64 pins{};
         u32 pin_virt_address{};
         std::optional<typename std::list<std::shared_ptr<Handle>>::iterator> unmap_queue_entry{};
 
@@ -63,15 +63,14 @@ public:
 
         VAddr address{};   //!< The memory location in the guest's AS that this handle corresponds to,
                            //!< this can also be in the nvdrv tmem
-        DAddr d_address{}; //!< The memory location in the device's AS that this handle corresponds to,
-                           //!< this can also be in the nvdrv tmem
         bool is_shared_mem_mapped{}; //!< If this nvmap has been mapped with the MapSharedMem IPC
                                      //!< call
 
         u8 kind{};        //!< Used for memory compression
         bool allocated{}; //!< If the handle has been allocated with `Alloc`
 
-        u64 dma_map_addr{}; //! remove me after implementing pinning.
+        DAddr d_address{}; //!< The memory location in the device's AS that this handle corresponds to,
+                           //!< this can also be in the nvdrv tmem
 
         Handle(u64 size, Id id);
 
@@ -119,7 +118,7 @@ public:
 
     std::shared_ptr<Handle> GetHandle(Handle::Id handle);
 
-    VAddr GetHandleAddress(Handle::Id handle);
+    DAddr GetHandleAddress(Handle::Id handle);
 
     /**
      * @brief Maps a handle into the SMMU address space
@@ -127,15 +126,7 @@ public:
      * number of calls to `UnpinHandle`
      * @return The SMMU virtual address that the handle has been mapped to
      */
-    u32 PinHandle(Handle::Id handle, size_t session_id);
-
-    /**
-     * @brief Maps a handle into the SMMU address space
-     * @note This operation is refcounted, the number of calls to this must eventually match the
-     * number of calls to `UnpinHandle`
-     * @return The SMMU virtual address that the handle has been mapped to
-     */
-    NvResult AllocateHandle(Handle::Id handle, Handle::Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress, size_t session_id);
+    DAddr PinHandle(Handle::Id handle, size_t session_id, bool low_area_pin);
 
     /**
      * @brief When this has been called an equal number of times to `PinHandle` for the supplied

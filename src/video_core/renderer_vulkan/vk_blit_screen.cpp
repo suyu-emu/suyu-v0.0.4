@@ -14,8 +14,8 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
-#include "core/memory.h"
 #include "video_core/gpu.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/host_shaders/fxaa_frag_spv.h"
 #include "video_core/host_shaders/fxaa_vert_spv.h"
 #include "video_core/host_shaders/present_bicubic_frag_spv.h"
@@ -121,11 +121,12 @@ struct BlitScreen::BufferData {
     // Unaligned image data goes here
 };
 
-BlitScreen::BlitScreen(Core::Memory::Memory& cpu_memory_, Core::Frontend::EmuWindow& render_window_,
-                       const Device& device_, MemoryAllocator& memory_allocator_,
-                       Swapchain& swapchain_, PresentManager& present_manager_,
-                       Scheduler& scheduler_, const ScreenInfo& screen_info_)
-    : cpu_memory{cpu_memory_}, render_window{render_window_}, device{device_},
+BlitScreen::BlitScreen(Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                       Core::Frontend::EmuWindow& render_window_, const Device& device_,
+                       MemoryAllocator& memory_allocator_, Swapchain& swapchain_,
+                       PresentManager& present_manager_, Scheduler& scheduler_,
+                       const ScreenInfo& screen_info_)
+    : device_memory{device_memory_}, render_window{render_window_}, device{device_},
       memory_allocator{memory_allocator_}, swapchain{swapchain_}, present_manager{present_manager_},
       scheduler{scheduler_}, image_count{swapchain.GetImageCount()}, screen_info{screen_info_} {
     resource_ticks.resize(image_count);
@@ -219,8 +220,8 @@ void BlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
     if (!use_accelerated) {
         const u64 image_offset = GetRawImageOffset(framebuffer);
 
-        const VAddr framebuffer_addr = framebuffer.address + framebuffer.offset;
-        const u8* const host_ptr = cpu_memory.GetPointer(framebuffer_addr);
+        const DAddr framebuffer_addr = framebuffer.address + framebuffer.offset;
+        const u8* const host_ptr = device_memory.GetPointer<u8>(framebuffer_addr);
 
         // TODO(Rodrigo): Read this from HLE
         constexpr u32 block_height_log2 = 4;

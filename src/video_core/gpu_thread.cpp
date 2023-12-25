@@ -82,7 +82,7 @@ void ThreadManager::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     PushCommand(SwapBuffersCommand(framebuffer ? std::make_optional(*framebuffer) : std::nullopt));
 }
 
-void ThreadManager::FlushRegion(VAddr addr, u64 size) {
+void ThreadManager::FlushRegion(DAddr addr, u64 size) {
     if (!is_async) {
         // Always flush with synchronous GPU mode
         PushCommand(FlushRegionCommand(addr, size));
@@ -101,11 +101,11 @@ void ThreadManager::TickGPU() {
     PushCommand(GPUTickCommand());
 }
 
-void ThreadManager::InvalidateRegion(VAddr addr, u64 size) {
+void ThreadManager::InvalidateRegion(DAddr addr, u64 size) {
     rasterizer->OnCacheInvalidation(addr, size);
 }
 
-void ThreadManager::FlushAndInvalidateRegion(VAddr addr, u64 size) {
+void ThreadManager::FlushAndInvalidateRegion(DAddr addr, u64 size) {
     // Skip flush on asynch mode, as FlushAndInvalidateRegion is not used for anything too important
     rasterizer->OnCacheInvalidation(addr, size);
 }

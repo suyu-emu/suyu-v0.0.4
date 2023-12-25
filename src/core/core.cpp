@@ -651,7 +651,7 @@ size_t System::GetCurrentHostThreadID() const {
     return impl->kernel.GetCurrentHostThreadID();
 }
 
-void System::GatherGPUDirtyMemory(std::function<void(VAddr, size_t)>& callback) {
+void System::GatherGPUDirtyMemory(std::function<void(PAddr, size_t)>& callback) {
     return this->ApplicationProcess()->GatherGPUDirtyMemory(callback);
 }
 

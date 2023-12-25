@@ -40,15 +40,15 @@ NvResult nvhost_as_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> i
         case 0x3:
             return WrapFixed(this, &nvhost_as_gpu::FreeSpace, input, output);
         case 0x5:
-            return WrapFixed(this, &nvhost_as_gpu::UnmapBuffer, input, output);
+            return WrapFixed(this, &nvhost_as_gpu::UnmapBuffer, input, output, fd);
         case 0x6:
-            return WrapFixed(this, &nvhost_as_gpu::MapBufferEx, input, output);
+            return WrapFixed(this, &nvhost_as_gpu::MapBufferEx, input, output, fd);
         case 0x8:
             return WrapFixed(this, &nvhost_as_gpu::GetVARegions1, input, output);
         case 0x9:
             return WrapFixed(this, &nvhost_as_gpu::AllocAsEx, input, output);
         case 0x14:
-            return WrapVariable(this, &nvhost_as_gpu::Remap, input, output);
+            return WrapVariable(this, &nvhost_as_gpu::Remap, input, output, fd);
         default:
             break;
         }
@@ -86,8 +86,15 @@ NvResult nvhost_as_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> i
     return NvResult::NotImplemented;
 }
 
-void nvhost_as_gpu::OnOpen(size_t session_id, DeviceFD fd) {}
-void nvhost_as_gpu::OnClose(DeviceFD fd) {}
+void nvhost_as_gpu::OnOpen(size_t session_id, DeviceFD fd) {
+    sessions[fd] = session_id;
+}
+void nvhost_as_gpu::OnClose(DeviceFD fd) {
+    auto it = sessions.find(fd);
+    if (it != sessions.end()) {
+        sessions.erase(it);
+    }
+}
 
 NvResult nvhost_as_gpu::AllocAsEx(IoctlAllocAsEx& params) {
     LOG_DEBUG(Service_NVDRV, "called, big_page_size=0x{:X}", params.big_page_size);
@@ -206,6 +213,8 @@ void nvhost_as_gpu::FreeMappingLocked(u64 offset) {
                        static_cast<u32>(aligned_size >> page_size_bits));
     }
 
+    nvmap.UnpinHandle(mapping->handle);
+
     // Sparse mappings shouldn't be fully unmapped, just returned to their sparse state
     // Only FreeSpace can unmap them fully
     if (mapping->sparse_alloc) {
@@ -259,7 +268,7 @@ NvResult nvhost_as_gpu::FreeSpace(IoctlFreeSpace& params) {
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::Remap(std::span<IoctlRemapEntry> entries) {
+NvResult nvhost_as_gpu::Remap(std::span<IoctlRemapEntry> entries, DeviceFD fd) {
     LOG_DEBUG(Service_NVDRV, "called, num_entries=0x{:X}", entries.size());
 
     if (!vm.initialised) {
@@ -293,19 +302,19 @@ NvResult nvhost_as_gpu::Remap(std::span<IoctlRemapEntry> entries) {
                 return NvResult::BadValue;
             }
 
-            VAddr cpu_address{static_cast<VAddr>(
-                handle->address +
-                (static_cast<u64>(entry.handle_offset_big_pages) << vm.big_page_size_bits))};
+            DAddr base = nvmap.PinHandle(entry.handle, sessions[fd], false);
+            DAddr device_address{static_cast<DAddr>(
+                base + (static_cast<u64>(entry.handle_offset_big_pages) << vm.big_page_size_bits))};
 
-            gmmu->Map(virtual_address, cpu_address, size, static_cast<Tegra::PTEKind>(entry.kind),
-                      use_big_pages);
+            gmmu->Map(virtual_address, device_address, size,
+                      static_cast<Tegra::PTEKind>(entry.kind), use_big_pages);
         }
     }
 
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
+NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params, DeviceFD fd) {
     LOG_DEBUG(Service_NVDRV,
               "called, flags={:X}, nvmap_handle={:X}, buffer_offset={}, mapping_size={}"
               ", offset={}",
@@ -331,9 +340,9 @@ NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
             }
 
             u64 gpu_address{static_cast<u64>(params.offset + params.buffer_offset)};
-            VAddr cpu_address{mapping->ptr + params.buffer_offset};
+            VAddr device_address{mapping->ptr + params.buffer_offset};
 
-            gmmu->Map(gpu_address, cpu_address, params.mapping_size,
+            gmmu->Map(gpu_address, device_address, params.mapping_size,
                       static_cast<Tegra::PTEKind>(params.kind), mapping->big_page);
 
             return NvResult::Success;
@@ -349,7 +358,8 @@ NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
         return NvResult::BadValue;
     }
 
-    VAddr cpu_address{static_cast<VAddr>(handle->address + params.buffer_offset)};
+    DAddr device_address{static_cast<DAddr>(nvmap.PinHandle(params.handle, sessions[fd], false) +
+                                            params.buffer_offset)};
     u64 size{params.mapping_size ? params.mapping_size : handle->orig_size};
 
     bool big_page{[&]() {
@@ -373,15 +383,14 @@ NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
         }
 
         const bool use_big_pages = alloc->second.big_pages && big_page;
-        gmmu->Map(params.offset, cpu_address, size, static_cast<Tegra::PTEKind>(params.kind),
+        gmmu->Map(params.offset, device_address, size, static_cast<Tegra::PTEKind>(params.kind),
                   use_big_pages);
 
-        auto mapping{std::make_shared<Mapping>(cpu_address, params.offset, size, true,
-                                               use_big_pages, alloc->second.sparse)};
+        auto mapping{std::make_shared<Mapping>(params.handle, device_address, params.offset, size,
+                                               true, use_big_pages, alloc->second.sparse)};
         alloc->second.mappings.push_back(mapping);
         mapping_map[params.offset] = mapping;
     } else {
-
         auto& allocator{big_page ? *vm.big_page_allocator : *vm.small_page_allocator};
         u32 page_size{big_page ? vm.big_page_size : VM::YUZU_PAGESIZE};
         u32 page_size_bits{big_page ? vm.big_page_size_bits : VM::PAGE_SIZE_BITS};
@@ -394,18 +403,18 @@ NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
             return NvResult::InsufficientMemory;
         }
 
-        gmmu->Map(params.offset, cpu_address, Common::AlignUp(size, page_size),
+        gmmu->Map(params.offset, device_address, Common::AlignUp(size, page_size),
                   static_cast<Tegra::PTEKind>(params.kind), big_page);
 
-        auto mapping{
-            std::make_shared<Mapping>(cpu_address, params.offset, size, false, big_page, false)};
+        auto mapping{std::make_shared<Mapping>(params.handle, device_address, params.offset, size,
+                                               false, big_page, false)};
         mapping_map[params.offset] = mapping;
     }
 
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::UnmapBuffer(IoctlUnmapBuffer& params) {
+NvResult nvhost_as_gpu::UnmapBuffer(IoctlUnmapBuffer& params, DeviceFD fd) {
     LOG_DEBUG(Service_NVDRV, "called, offset=0x{:X}", params.offset);
 
     std::scoped_lock lock(mutex);
@@ -432,6 +441,8 @@ NvResult nvhost_as_gpu::UnmapBuffer(IoctlUnmapBuffer& params) {
         } else {
             gmmu->Unmap(params.offset, mapping->size);
         }
+
+        nvmap.UnpinHandle(mapping->handle);
 
         mapping_map.erase(params.offset);
     } catch (const std::out_of_range&) {
