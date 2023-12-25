@@ -360,6 +360,10 @@ public:
         return *thread;
     }
 
+    [[nodiscard]] Core::Memory::Memory& GetMemory() const {
+        return memory;
+    }
+
     template <typename T>
     Kernel::KScopedAutoObject<T> GetObjectFromHandle(u32 handle) {
         auto obj = client_handle_table->GetObjectForIpc(handle, thread);
