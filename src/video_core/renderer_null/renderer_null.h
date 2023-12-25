@@ -13,8 +13,7 @@ namespace Null {
 
 class RendererNull final : public VideoCore::RendererBase {
 public:
-    explicit RendererNull(Core::Frontend::EmuWindow& emu_window, Core::Memory::Memory& cpu_memory,
-                          Tegra::GPU& gpu,
+    explicit RendererNull(Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gpu,
                           std::unique_ptr<Core::Frontend::GraphicsContext> context);
     ~RendererNull() override;
 

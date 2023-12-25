@@ -19,8 +19,6 @@
 #include "core/hle/ipc.h"
 #include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/svc_common.h"
-#include "core/hle/kernel/k_auto_object.h"
-#include "core/hle/kernel/k_handle_table.h"
 
 union Result;
 
@@ -377,10 +375,6 @@ public:
         return nullptr;
     }
 
-    Kernel::KScopedAutoObject<Kernel::KAutoObject> GetObjectFromHandle(u32 handle) {
-        return GetClientHandleTable().GetObjectForIpc(handle, thread);
-    }
-
     [[nodiscard]] std::shared_ptr<SessionRequestManager> GetManager() const {
         return manager.lock();
     }
@@ -432,6 +426,9 @@ private:
 
     Kernel::KernelCore& kernel;
     Core::Memory::Memory& memory;
+
+    mutable std::array<Common::ScratchBuffer<u8>, 3> read_buffer_data_a{};
+    mutable std::array<Common::ScratchBuffer<u8>, 3> read_buffer_data_x{};
 };
 
 } // namespace Service

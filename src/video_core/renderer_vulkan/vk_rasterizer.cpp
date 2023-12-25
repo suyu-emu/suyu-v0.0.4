@@ -18,6 +18,7 @@
 #include "video_core/engines/draw_manager.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/renderer_vulkan/blit_image.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
@@ -36,6 +37,7 @@
 #include "video_core/texture_cache/texture_cache_base.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+
 
 namespace Vulkan {
 
@@ -163,10 +165,11 @@ DrawParams MakeDrawParams(const MaxwellDrawState& draw_state, u32 num_instances,
 } // Anonymous namespace
 
 RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
-                                   Core::Memory::Memory& cpu_memory_, ScreenInfo& screen_info_,
-                                   const Device& device_, MemoryAllocator& memory_allocator_,
-                                   StateTracker& state_tracker_, Scheduler& scheduler_)
-    : RasterizerAccelerated{cpu_memory_}, gpu{gpu_}, screen_info{screen_info_}, device{device_},
+                                   Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                                   ScreenInfo& screen_info_, const Device& device_,
+                                   MemoryAllocator& memory_allocator_, StateTracker& state_tracker_,
+                                   Scheduler& scheduler_)
+    : gpu{gpu_}, device_memory{device_memory_}, screen_info{screen_info_}, device{device_},
       memory_allocator{memory_allocator_}, state_tracker{state_tracker_}, scheduler{scheduler_},
       staging_pool(device, memory_allocator, scheduler), descriptor_pool(device, scheduler),
       guest_descriptor_queue(device, scheduler), compute_pass_descriptor_queue(device, scheduler),
@@ -174,14 +177,14 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
       texture_cache_runtime{
           device,     scheduler,         memory_allocator, staging_pool,
           blit_image, render_pass_cache, descriptor_pool,  compute_pass_descriptor_queue},
-      texture_cache(texture_cache_runtime, *this),
+      texture_cache(texture_cache_runtime, device_memory),
       buffer_cache_runtime(device, memory_allocator, scheduler, staging_pool,
                            guest_descriptor_queue, compute_pass_descriptor_queue, descriptor_pool),
-      buffer_cache(*this, cpu_memory_, buffer_cache_runtime),
-      query_cache_runtime(this, cpu_memory_, buffer_cache, device, memory_allocator, scheduler,
+      buffer_cache(device_memory, buffer_cache_runtime),
+      query_cache_runtime(this, device_memory, buffer_cache, device, memory_allocator, scheduler,
                           staging_pool, compute_pass_descriptor_queue, descriptor_pool),
-      query_cache(gpu, *this, cpu_memory_, query_cache_runtime),
-      pipeline_cache(*this, device, scheduler, descriptor_pool, guest_descriptor_queue,
+      query_cache(gpu, *this, device_memory, query_cache_runtime),
+      pipeline_cache(device_memory, device, scheduler, descriptor_pool, guest_descriptor_queue,
                      render_pass_cache, buffer_cache, texture_cache, gpu.ShaderNotify()),
       accelerate_dma(buffer_cache, texture_cache, scheduler),
       fence_manager(*this, gpu, texture_cache, buffer_cache, query_cache, device, scheduler),
@@ -508,7 +511,7 @@ void Vulkan::RasterizerVulkan::DisableGraphicsUniformBuffer(size_t stage, u32 in
 
 void RasterizerVulkan::FlushAll() {}
 
-void RasterizerVulkan::FlushRegion(VAddr addr, u64 size, VideoCommon::CacheType which) {
+void RasterizerVulkan::FlushRegion(DAddr addr, u64 size, VideoCommon::CacheType which) {
     if (addr == 0 || size == 0) {
         return;
     }
@@ -525,7 +528,7 @@ void RasterizerVulkan::FlushRegion(VAddr addr, u64 size, VideoCommon::CacheType 
     }
 }
 
-bool RasterizerVulkan::MustFlushRegion(VAddr addr, u64 size, VideoCommon::CacheType which) {
+bool RasterizerVulkan::MustFlushRegion(DAddr addr, u64 size, VideoCommon::CacheType which) {
     if ((True(which & VideoCommon::CacheType::BufferCache))) {
         std::scoped_lock lock{buffer_cache.mutex};
         if (buffer_cache.IsRegionGpuModified(addr, size)) {
@@ -542,7 +545,7 @@ bool RasterizerVulkan::MustFlushRegion(VAddr addr, u64 size, VideoCommon::CacheT
     return false;
 }
 
-VideoCore::RasterizerDownloadArea RasterizerVulkan::GetFlushArea(VAddr addr, u64 size) {
+VideoCore::RasterizerDownloadArea RasterizerVulkan::GetFlushArea(DAddr addr, u64 size) {
     {
         std::scoped_lock lock{texture_cache.mutex};
         auto area = texture_cache.GetFlushArea(addr, size);
@@ -558,7 +561,7 @@ VideoCore::RasterizerDownloadArea RasterizerVulkan::GetFlushArea(VAddr addr, u64
     return new_area;
 }
 
-void RasterizerVulkan::InvalidateRegion(VAddr addr, u64 size, VideoCommon::CacheType which) {
+void RasterizerVulkan::InvalidateRegion(DAddr addr, u64 size, VideoCommon::CacheType which) {
     if (addr == 0 || size == 0) {
         return;
     }
@@ -578,7 +581,7 @@ void RasterizerVulkan::InvalidateRegion(VAddr addr, u64 size, VideoCommon::Cache
     }
 }
 
-void RasterizerVulkan::InnerInvalidation(std::span<const std::pair<VAddr, std::size_t>> sequences) {
+void RasterizerVulkan::InnerInvalidation(std::span<const std::pair<DAddr, std::size_t>> sequences) {
     {
         std::scoped_lock lock{texture_cache.mutex};
         for (const auto& [addr, size] : sequences) {
@@ -599,7 +602,8 @@ void RasterizerVulkan::InnerInvalidation(std::span<const std::pair<VAddr, std::s
     }
 }
 
-bool RasterizerVulkan::OnCPUWrite(VAddr addr, u64 size) {
+bool RasterizerVulkan::OnCPUWrite(PAddr p_addr, u64 size) {
+    const DAddr addr = device_memory.GetAddressFromPAddr(p_addr);
     if (addr == 0 || size == 0) {
         return false;
     }
@@ -620,7 +624,8 @@ bool RasterizerVulkan::OnCPUWrite(VAddr addr, u64 size) {
     return false;
 }
 
-void RasterizerVulkan::OnCacheInvalidation(VAddr addr, u64 size) {
+void RasterizerVulkan::OnCacheInvalidation(PAddr p_addr, u64 size) {
+    const DAddr addr = device_memory.GetAddressFromPAddr(p_addr);
     if (addr == 0 || size == 0) {
         return;
     }
@@ -640,7 +645,7 @@ void RasterizerVulkan::InvalidateGPUCache() {
     gpu.InvalidateGPUCache();
 }
 
-void RasterizerVulkan::UnmapMemory(VAddr addr, u64 size) {
+void RasterizerVulkan::UnmapMemory(DAddr addr, u64 size) {
     {
         std::scoped_lock lock{texture_cache.mutex};
         texture_cache.UnmapMemory(addr, size);
@@ -679,7 +684,7 @@ void RasterizerVulkan::ReleaseFences(bool force) {
     fence_manager.WaitPendingFences(force);
 }
 
-void RasterizerVulkan::FlushAndInvalidateRegion(VAddr addr, u64 size,
+void RasterizerVulkan::FlushAndInvalidateRegion(DAddr addr, u64 size,
                                                 VideoCommon::CacheType which) {
     if (Settings::IsGPULevelExtreme()) {
         FlushRegion(addr, size, which);
@@ -782,7 +787,7 @@ void RasterizerVulkan::AccelerateInlineToMemory(GPUVAddr address, size_t copy_si
 }
 
 bool RasterizerVulkan::AccelerateDisplay(const Tegra::FramebufferConfig& config,
-                                         VAddr framebuffer_addr, u32 pixel_stride) {
+                                         DAddr framebuffer_addr, u32 pixel_stride) {
     if (!framebuffer_addr) {
         return false;
     }

@@ -22,19 +22,7 @@
 #include "core/hle/service/hle_ipc.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/memory.h"
-
-namespace {
-static thread_local std::array read_buffer_data_a{
-    Common::ScratchBuffer<u8>(),
-    Common::ScratchBuffer<u8>(),
-    Common::ScratchBuffer<u8>(),
-};
-static thread_local std::array read_buffer_data_x{
-    Common::ScratchBuffer<u8>(),
-    Common::ScratchBuffer<u8>(),
-    Common::ScratchBuffer<u8>(),
-};
-} // Anonymous namespace
+#include "core/guest_memory.h"
 
 namespace Service {
 
@@ -343,48 +331,27 @@ std::vector<u8> HLERequestContext::ReadBufferCopy(std::size_t buffer_index) cons
 }
 
 std::span<const u8> HLERequestContext::ReadBufferA(std::size_t buffer_index) const {
-    static thread_local std::array read_buffer_a{
-        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
-        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
-        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
-    };
+    Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::UnsafeRead> gm(memory, 0, 0);
 
     ASSERT_OR_EXECUTE_MSG(
         BufferDescriptorA().size() > buffer_index, { return {}; },
         "BufferDescriptorA invalid buffer_index {}", buffer_index);
-    auto& read_buffer = read_buffer_a[buffer_index];
-    return read_buffer.Read(BufferDescriptorA()[buffer_index].Address(),
-                            BufferDescriptorA()[buffer_index].Size(),
-                            &read_buffer_data_a[buffer_index]);
+    return gm.Read(BufferDescriptorA()[buffer_index].Address(),
+                   BufferDescriptorA()[buffer_index].Size(), &read_buffer_data_a[buffer_index]);
 }
 
 std::span<const u8> HLERequestContext::ReadBufferX(std::size_t buffer_index) const {
-    static thread_local std::array read_buffer_x{
-        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
-        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
-        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
-    };
+    Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::UnsafeRead> gm(memory, 0, 0);
 
     ASSERT_OR_EXECUTE_MSG(
         BufferDescriptorX().size() > buffer_index, { return {}; },
         "BufferDescriptorX invalid buffer_index {}", buffer_index);
-    auto& read_buffer = read_buffer_x[buffer_index];
-    return read_buffer.Read(BufferDescriptorX()[buffer_index].Address(),
-                            BufferDescriptorX()[buffer_index].Size(),
-                            &read_buffer_data_x[buffer_index]);
+    return gm.Read(BufferDescriptorX()[buffer_index].Address(),
+                   BufferDescriptorX()[buffer_index].Size(), &read_buffer_data_x[buffer_index]);
 }
 
 std::span<const u8> HLERequestContext::ReadBuffer(std::size_t buffer_index) const {
-    static thread_local std::array read_buffer_a{
-        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
-        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
-        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
-    };
-    static thread_local std::array read_buffer_x{
-        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
-        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
-        Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead>(memory, 0, 0),
-    };
+    Core::Memory::CpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::UnsafeRead> gm(memory, 0, 0);
 
     const bool is_buffer_a{BufferDescriptorA().size() > buffer_index &&
                            BufferDescriptorA()[buffer_index].Size()};
@@ -401,18 +368,14 @@ std::span<const u8> HLERequestContext::ReadBuffer(std::size_t buffer_index) cons
         ASSERT_OR_EXECUTE_MSG(
             BufferDescriptorA().size() > buffer_index, { return {}; },
             "BufferDescriptorA invalid buffer_index {}", buffer_index);
-        auto& read_buffer = read_buffer_a[buffer_index];
-        return read_buffer.Read(BufferDescriptorA()[buffer_index].Address(),
-                                BufferDescriptorA()[buffer_index].Size(),
-                                &read_buffer_data_a[buffer_index]);
+        return gm.Read(BufferDescriptorA()[buffer_index].Address(),
+                       BufferDescriptorA()[buffer_index].Size(), &read_buffer_data_a[buffer_index]);
     } else {
         ASSERT_OR_EXECUTE_MSG(
             BufferDescriptorX().size() > buffer_index, { return {}; },
             "BufferDescriptorX invalid buffer_index {}", buffer_index);
-        auto& read_buffer = read_buffer_x[buffer_index];
-        return read_buffer.Read(BufferDescriptorX()[buffer_index].Address(),
-                                BufferDescriptorX()[buffer_index].Size(),
-                                &read_buffer_data_x[buffer_index]);
+        return gm.Read(BufferDescriptorX()[buffer_index].Address(),
+                       BufferDescriptorX()[buffer_index].Size(), &read_buffer_data_x[buffer_index]);
     }
 }
 

@@ -8,16 +8,16 @@
 #include <numeric>
 
 #include "video_core/buffer_cache/buffer_cache_base.h"
+#include "video_core/guest_memory.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 
 namespace VideoCommon {
 
 using Core::Memory::YUZU_PAGESIZE;
 
 template <class P>
-BufferCache<P>::BufferCache(VideoCore::RasterizerInterface& rasterizer_,
-                            Core::Memory::Memory& cpu_memory_, Runtime& runtime_)
-    : runtime{runtime_}, rasterizer{rasterizer_}, cpu_memory{cpu_memory_}, memory_tracker{
-                                                                               rasterizer} {
+BufferCache<P>::BufferCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, Runtime& runtime_)
+    : runtime{runtime_}, device_memory{device_memory_}, memory_tracker{device_memory} {
     // Ensure the first slot is used for the null buffer
     void(slot_buffers.insert(runtime, NullBufferParams{}));
     common_ranges.clear();
@@ -29,17 +29,17 @@ BufferCache<P>::BufferCache(VideoCore::RasterizerInterface& rasterizer_,
         return;
     }
 
-    const s64 device_memory = static_cast<s64>(runtime.GetDeviceLocalMemory());
-    const s64 min_spacing_expected = device_memory - 1_GiB;
-    const s64 min_spacing_critical = device_memory - 512_MiB;
-    const s64 mem_threshold = std::min(device_memory, TARGET_THRESHOLD);
+    const s64 device_local_memory = static_cast<s64>(runtime.GetDeviceLocalMemory());
+    const s64 min_spacing_expected = device_local_memory - 1_GiB;
+    const s64 min_spacing_critical = device_local_memory - 512_MiB;
+    const s64 mem_threshold = std::min(device_local_memory, TARGET_THRESHOLD);
     const s64 min_vacancy_expected = (6 * mem_threshold) / 10;
     const s64 min_vacancy_critical = (3 * mem_threshold) / 10;
     minimum_memory = static_cast<u64>(
-        std::max(std::min(device_memory - min_vacancy_expected, min_spacing_expected),
+        std::max(std::min(device_local_memory - min_vacancy_expected, min_spacing_expected),
                  DEFAULT_EXPECTED_MEMORY));
     critical_memory = static_cast<u64>(
-        std::max(std::min(device_memory - min_vacancy_critical, min_spacing_critical),
+        std::max(std::min(device_local_memory - min_vacancy_critical, min_spacing_critical),
                  DEFAULT_CRITICAL_MEMORY));
 }
 
@@ -105,71 +105,72 @@ void BufferCache<P>::TickFrame() {
 }
 
 template <class P>
-void BufferCache<P>::WriteMemory(VAddr cpu_addr, u64 size) {
-    if (memory_tracker.IsRegionGpuModified(cpu_addr, size)) {
-        const IntervalType subtract_interval{cpu_addr, cpu_addr + size};
+void BufferCache<P>::WriteMemory(DAddr device_addr, u64 size) {
+    if (memory_tracker.IsRegionGpuModified(device_addr, size)) {
+        const IntervalType subtract_interval{device_addr, device_addr + size};
         ClearDownload(subtract_interval);
         common_ranges.subtract(subtract_interval);
     }
-    memory_tracker.MarkRegionAsCpuModified(cpu_addr, size);
+    memory_tracker.MarkRegionAsCpuModified(device_addr, size);
 }
 
 template <class P>
-void BufferCache<P>::CachedWriteMemory(VAddr cpu_addr, u64 size) {
-    const bool is_dirty = IsRegionRegistered(cpu_addr, size);
+void BufferCache<P>::CachedWriteMemory(DAddr device_addr, u64 size) {
+    const bool is_dirty = IsRegionRegistered(device_addr, size);
     if (!is_dirty) {
         return;
     }
-    VAddr aligned_start = Common::AlignDown(cpu_addr, YUZU_PAGESIZE);
-    VAddr aligned_end = Common::AlignUp(cpu_addr + size, YUZU_PAGESIZE);
+    DAddr aligned_start = Common::AlignDown(device_addr, YUZU_PAGESIZE);
+    DAddr aligned_end = Common::AlignUp(device_addr + size, YUZU_PAGESIZE);
     if (!IsRegionGpuModified(aligned_start, aligned_end - aligned_start)) {
-        WriteMemory(cpu_addr, size);
+        WriteMemory(device_addr, size);
         return;
     }
 
     tmp_buffer.resize_destructive(size);
-    cpu_memory.ReadBlockUnsafe(cpu_addr, tmp_buffer.data(), size);
+    device_memory.ReadBlockUnsafe(device_addr, tmp_buffer.data(), size);
 
-    InlineMemoryImplementation(cpu_addr, size, tmp_buffer);
+    InlineMemoryImplementation(device_addr, size, tmp_buffer);
 }
 
 template <class P>
-bool BufferCache<P>::OnCPUWrite(VAddr cpu_addr, u64 size) {
-    const bool is_dirty = IsRegionRegistered(cpu_addr, size);
+bool BufferCache<P>::OnCPUWrite(DAddr device_addr, u64 size) {
+    const bool is_dirty = IsRegionRegistered(device_addr, size);
     if (!is_dirty) {
         return false;
     }
-    if (memory_tracker.IsRegionGpuModified(cpu_addr, size)) {
+    if (memory_tracker.IsRegionGpuModified(device_addr, size)) {
         return true;
     }
-    WriteMemory(cpu_addr, size);
+    WriteMemory(device_addr, size);
     return false;
 }
 
 template <class P>
-std::optional<VideoCore::RasterizerDownloadArea> BufferCache<P>::GetFlushArea(VAddr cpu_addr,
+std::optional<VideoCore::RasterizerDownloadArea> BufferCache<P>::GetFlushArea(DAddr device_addr,
                                                                               u64 size) {
     std::optional<VideoCore::RasterizerDownloadArea> area{};
     area.emplace();
-    VAddr cpu_addr_start_aligned = Common::AlignDown(cpu_addr, Core::Memory::YUZU_PAGESIZE);
-    VAddr cpu_addr_end_aligned = Common::AlignUp(cpu_addr + size, Core::Memory::YUZU_PAGESIZE);
-    area->start_address = cpu_addr_start_aligned;
-    area->end_address = cpu_addr_end_aligned;
-    if (memory_tracker.IsRegionPreflushable(cpu_addr, size)) {
+    DAddr device_addr_start_aligned = Common::AlignDown(device_addr, Core::Memory::YUZU_PAGESIZE);
+    DAddr device_addr_end_aligned =
+        Common::AlignUp(device_addr + size, Core::Memory::YUZU_PAGESIZE);
+    area->start_address = device_addr_start_aligned;
+    area->end_address = device_addr_end_aligned;
+    if (memory_tracker.IsRegionPreflushable(device_addr, size)) {
         area->preemtive = true;
         return area;
     };
-    area->preemtive =
-        !IsRegionGpuModified(cpu_addr_start_aligned, cpu_addr_end_aligned - cpu_addr_start_aligned);
-    memory_tracker.MarkRegionAsPreflushable(cpu_addr_start_aligned,
-                                            cpu_addr_end_aligned - cpu_addr_start_aligned);
+    area->preemtive = !IsRegionGpuModified(device_addr_start_aligned,
+                                           device_addr_end_aligned - device_addr_start_aligned);
+    memory_tracker.MarkRegionAsPreflushable(device_addr_start_aligned,
+                                            device_addr_end_aligned - device_addr_start_aligned);
     return area;
 }
 
 template <class P>
-void BufferCache<P>::DownloadMemory(VAddr cpu_addr, u64 size) {
-    ForEachBufferInRange(cpu_addr, size, [&](BufferId, Buffer& buffer) {
-        DownloadBufferMemory(buffer, cpu_addr, size);
+void BufferCache<P>::DownloadMemory(DAddr device_addr, u64 size) {
+    ForEachBufferInRange(device_addr, size, [&](BufferId, Buffer& buffer) {
+        DownloadBufferMemory(buffer, device_addr, size);
     });
 }
 
@@ -184,8 +185,8 @@ void BufferCache<P>::ClearDownload(IntervalType subtract_interval) {
 
 template <class P>
 bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 amount) {
-    const std::optional<VAddr> cpu_src_address = gpu_memory->GpuToCpuAddress(src_address);
-    const std::optional<VAddr> cpu_dest_address = gpu_memory->GpuToCpuAddress(dest_address);
+    const std::optional<DAddr> cpu_src_address = gpu_memory->GpuToCpuAddress(src_address);
+    const std::optional<DAddr> cpu_dest_address = gpu_memory->GpuToCpuAddress(dest_address);
     if (!cpu_src_address || !cpu_dest_address) {
         return false;
     }
@@ -216,10 +217,10 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     }};
 
     boost::container::small_vector<IntervalType, 4> tmp_intervals;
-    auto mirror = [&](VAddr base_address, VAddr base_address_end) {
+    auto mirror = [&](DAddr base_address, DAddr base_address_end) {
         const u64 size = base_address_end - base_address;
-        const VAddr diff = base_address - *cpu_src_address;
-        const VAddr new_base_address = *cpu_dest_address + diff;
+        const DAddr diff = base_address - *cpu_src_address;
+        const DAddr new_base_address = *cpu_dest_address + diff;
         const IntervalType add_interval{new_base_address, new_base_address + size};
         tmp_intervals.push_back(add_interval);
         uncommitted_ranges.add(add_interval);
@@ -239,15 +240,15 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
         memory_tracker.MarkRegionAsGpuModified(*cpu_dest_address, amount);
     }
 
-    Core::Memory::CpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::UnsafeReadWrite> tmp(
-        cpu_memory, *cpu_src_address, amount, &tmp_buffer);
+    Tegra::Memory::DeviceGuestMemoryScoped<u8, Tegra::Memory::GuestMemoryFlags::UnsafeReadWrite> tmp(
+        device_memory, *cpu_src_address, amount, &tmp_buffer);
     tmp.SetAddressAndSize(*cpu_dest_address, amount);
     return true;
 }
 
 template <class P>
 bool BufferCache<P>::DMAClear(GPUVAddr dst_address, u64 amount, u32 value) {
-    const std::optional<VAddr> cpu_dst_address = gpu_memory->GpuToCpuAddress(dst_address);
+    const std::optional<DAddr> cpu_dst_address = gpu_memory->GpuToCpuAddress(dst_address);
     if (!cpu_dst_address) {
         return false;
     }
@@ -273,23 +274,23 @@ template <class P>
 std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainBuffer(GPUVAddr gpu_addr, u32 size,
                                                                  ObtainBufferSynchronize sync_info,
                                                                  ObtainBufferOperation post_op) {
-    const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
-    if (!cpu_addr) {
+    const std::optional<DAddr> device_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
+    if (!device_addr) {
         return {&slot_buffers[NULL_BUFFER_ID], 0};
     }
-    return ObtainCPUBuffer(*cpu_addr, size, sync_info, post_op);
+    return ObtainCPUBuffer(*device_addr, size, sync_info, post_op);
 }
 
 template <class P>
 std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainCPUBuffer(
-    VAddr cpu_addr, u32 size, ObtainBufferSynchronize sync_info, ObtainBufferOperation post_op) {
-    const BufferId buffer_id = FindBuffer(cpu_addr, size);
+    DAddr device_addr, u32 size, ObtainBufferSynchronize sync_info, ObtainBufferOperation post_op) {
+    const BufferId buffer_id = FindBuffer(device_addr, size);
     Buffer& buffer = slot_buffers[buffer_id];
 
     // synchronize op
     switch (sync_info) {
     case ObtainBufferSynchronize::FullSynchronize:
-        SynchronizeBuffer(buffer, cpu_addr, size);
+        SynchronizeBuffer(buffer, device_addr, size);
         break;
     default:
         break;
@@ -297,12 +298,12 @@ std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainCPUBuffer(
 
     switch (post_op) {
     case ObtainBufferOperation::MarkAsWritten:
-        MarkWrittenBuffer(buffer_id, cpu_addr, size);
+        MarkWrittenBuffer(buffer_id, device_addr, size);
         break;
     case ObtainBufferOperation::DiscardWrite: {
-        VAddr cpu_addr_start = Common::AlignDown(cpu_addr, 64);
-        VAddr cpu_addr_end = Common::AlignUp(cpu_addr + size, 64);
-        IntervalType interval{cpu_addr_start, cpu_addr_end};
+        DAddr device_addr_start = Common::AlignDown(device_addr, 64);
+        DAddr device_addr_end = Common::AlignUp(device_addr + size, 64);
+        IntervalType interval{device_addr_start, device_addr_end};
         ClearDownload(interval);
         common_ranges.subtract(interval);
         break;
@@ -311,15 +312,15 @@ std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainCPUBuffer(
         break;
     }
 
-    return {&buffer, buffer.Offset(cpu_addr)};
+    return {&buffer, buffer.Offset(device_addr)};
 }
 
 template <class P>
 void BufferCache<P>::BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr,
                                                u32 size) {
-    const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
+    const std::optional<DAddr> device_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
     const Binding binding{
-        .cpu_addr = *cpu_addr,
+        .device_addr = *device_addr,
         .size = size,
         .buffer_id = BufferId{},
     };
@@ -555,16 +556,17 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
     for (const IntervalSet& intervals : committed_ranges) {
         for (auto& interval : intervals) {
             const std::size_t size = interval.upper() - interval.lower();
-            const VAddr cpu_addr = interval.lower();
-            ForEachBufferInRange(cpu_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
-                const VAddr buffer_start = buffer.CpuAddr();
-                const VAddr buffer_end = buffer_start + buffer.SizeBytes();
-                const VAddr new_start = std::max(buffer_start, cpu_addr);
-                const VAddr new_end = std::min(buffer_end, cpu_addr + size);
+            const DAddr device_addr = interval.lower();
+            ForEachBufferInRange(device_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
+                const DAddr buffer_start = buffer.CpuAddr();
+                const DAddr buffer_end = buffer_start + buffer.SizeBytes();
+                const DAddr new_start = std::max(buffer_start, device_addr);
+                const DAddr new_end = std::min(buffer_end, device_addr + size);
                 memory_tracker.ForEachDownloadRange(
-                    new_start, new_end - new_start, false, [&](u64 cpu_addr_out, u64 range_size) {
-                        const VAddr buffer_addr = buffer.CpuAddr();
-                        const auto add_download = [&](VAddr start, VAddr end) {
+                    new_start, new_end - new_start, false,
+                    [&](u64 device_addr_out, u64 range_size) {
+                        const DAddr buffer_addr = buffer.CpuAddr();
+                        const auto add_download = [&](DAddr start, DAddr end) {
                             const u64 new_offset = start - buffer_addr;
                             const u64 new_size = end - start;
                             downloads.push_back({
@@ -582,7 +584,7 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
                             largest_copy = std::max(largest_copy, new_size);
                         };
 
-                        ForEachInRangeSet(common_ranges, cpu_addr_out, range_size, add_download);
+                        ForEachInRangeSet(common_ranges, device_addr_out, range_size, add_download);
                     });
             });
         }
@@ -605,8 +607,8 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
             BufferCopy second_copy{copy};
             Buffer& buffer = slot_buffers[buffer_id];
             second_copy.src_offset = static_cast<size_t>(buffer.CpuAddr()) + copy.src_offset;
-            VAddr orig_cpu_addr = static_cast<VAddr>(second_copy.src_offset);
-            const IntervalType base_interval{orig_cpu_addr, orig_cpu_addr + copy.size};
+            DAddr orig_device_addr = static_cast<DAddr>(second_copy.src_offset);
+            const IntervalType base_interval{orig_device_addr, orig_device_addr + copy.size};
             async_downloads += std::make_pair(base_interval, 1);
             buffer.MarkUsage(copy.src_offset, copy.size);
             runtime.CopyBuffer(download_staging.buffer, buffer, copies, false);
@@ -635,11 +637,11 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
                 runtime.Finish();
                 for (const auto& [copy, buffer_id] : downloads) {
                     const Buffer& buffer = slot_buffers[buffer_id];
-                    const VAddr cpu_addr = buffer.CpuAddr() + copy.src_offset;
+                    const DAddr device_addr = buffer.CpuAddr() + copy.src_offset;
                     // Undo the modified offset
                     const u64 dst_offset = copy.dst_offset - download_staging.offset;
                     const u8* read_mapped_memory = download_staging.mapped_span.data() + dst_offset;
-                    cpu_memory.WriteBlockUnsafe(cpu_addr, read_mapped_memory, copy.size);
+                    device_memory.WriteBlockUnsafe(device_addr, read_mapped_memory, copy.size);
                 }
             } else {
                 const std::span<u8> immediate_buffer = ImmediateBuffer(largest_copy);
@@ -647,8 +649,8 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
                     Buffer& buffer = slot_buffers[buffer_id];
                     buffer.ImmediateDownload(copy.src_offset,
                                              immediate_buffer.subspan(0, copy.size));
-                    const VAddr cpu_addr = buffer.CpuAddr() + copy.src_offset;
-                    cpu_memory.WriteBlockUnsafe(cpu_addr, immediate_buffer.data(), copy.size);
+                    const DAddr device_addr = buffer.CpuAddr() + copy.src_offset;
+                    device_memory.WriteBlockUnsafe(device_addr, immediate_buffer.data(), copy.size);
                 }
             }
         }
@@ -681,19 +683,19 @@ void BufferCache<P>::PopAsyncBuffers() {
         u8* base = async_buffer->mapped_span.data();
         const size_t base_offset = async_buffer->offset;
         for (const auto& copy : downloads) {
-            const VAddr cpu_addr = static_cast<VAddr>(copy.src_offset);
+            const DAddr device_addr = static_cast<DAddr>(copy.src_offset);
             const u64 dst_offset = copy.dst_offset - base_offset;
             const u8* read_mapped_memory = base + dst_offset;
             ForEachInOverlapCounter(
-                async_downloads, cpu_addr, copy.size, [&](VAddr start, VAddr end, int count) {
-                    cpu_memory.WriteBlockUnsafe(start, &read_mapped_memory[start - cpu_addr],
-                                                end - start);
+                async_downloads, device_addr, copy.size, [&](DAddr start, DAddr end, int count) {
+                    device_memory.WriteBlockUnsafe(start, &read_mapped_memory[start - device_addr],
+                                                   end - start);
                     if (count == 1) {
                         const IntervalType base_interval{start, end};
                         common_ranges.subtract(base_interval);
                     }
                 });
-            const IntervalType subtract_interval{cpu_addr, cpu_addr + copy.size};
+            const IntervalType subtract_interval{device_addr, device_addr + copy.size};
             RemoveEachInOverlapCounter(async_downloads, subtract_interval, -1);
         }
         async_buffers_death_ring.emplace_back(*async_buffer);
@@ -703,15 +705,15 @@ void BufferCache<P>::PopAsyncBuffers() {
 }
 
 template <class P>
-bool BufferCache<P>::IsRegionGpuModified(VAddr addr, size_t size) {
+bool BufferCache<P>::IsRegionGpuModified(DAddr addr, size_t size) {
     bool is_dirty = false;
-    ForEachInRangeSet(common_ranges, addr, size, [&](VAddr, VAddr) { is_dirty = true; });
+    ForEachInRangeSet(common_ranges, addr, size, [&](DAddr, DAddr) { is_dirty = true; });
     return is_dirty;
 }
 
 template <class P>
-bool BufferCache<P>::IsRegionRegistered(VAddr addr, size_t size) {
-    const VAddr end_addr = addr + size;
+bool BufferCache<P>::IsRegionRegistered(DAddr addr, size_t size) {
+    const DAddr end_addr = addr + size;
     const u64 page_end = Common::DivCeil(end_addr, CACHING_PAGESIZE);
     for (u64 page = addr >> CACHING_PAGEBITS; page < page_end;) {
         const BufferId buffer_id = page_table[page];
@@ -720,8 +722,8 @@ bool BufferCache<P>::IsRegionRegistered(VAddr addr, size_t size) {
             continue;
         }
         Buffer& buffer = slot_buffers[buffer_id];
-        const VAddr buf_start_addr = buffer.CpuAddr();
-        const VAddr buf_end_addr = buf_start_addr + buffer.SizeBytes();
+        const DAddr buf_start_addr = buffer.CpuAddr();
+        const DAddr buf_end_addr = buf_start_addr + buffer.SizeBytes();
         if (buf_start_addr < end_addr && addr < buf_end_addr) {
             return true;
         }
@@ -731,7 +733,7 @@ bool BufferCache<P>::IsRegionRegistered(VAddr addr, size_t size) {
 }
 
 template <class P>
-bool BufferCache<P>::IsRegionCpuModified(VAddr addr, size_t size) {
+bool BufferCache<P>::IsRegionCpuModified(DAddr addr, size_t size) {
     return memory_tracker.IsRegionCpuModified(addr, size);
 }
 
@@ -739,7 +741,7 @@ template <class P>
 void BufferCache<P>::BindHostIndexBuffer() {
     Buffer& buffer = slot_buffers[channel_state->index_buffer.buffer_id];
     TouchBuffer(buffer, channel_state->index_buffer.buffer_id);
-    const u32 offset = buffer.Offset(channel_state->index_buffer.cpu_addr);
+    const u32 offset = buffer.Offset(channel_state->index_buffer.device_addr);
     const u32 size = channel_state->index_buffer.size;
     const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
     if (!draw_state.inline_index_draw_indexes.empty()) [[unlikely]] {
@@ -754,7 +756,7 @@ void BufferCache<P>::BindHostIndexBuffer() {
             buffer.ImmediateUpload(0, draw_state.inline_index_draw_indexes);
         }
     } else {
-        SynchronizeBuffer(buffer, channel_state->index_buffer.cpu_addr, size);
+        SynchronizeBuffer(buffer, channel_state->index_buffer.device_addr, size);
     }
     if constexpr (HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT) {
         const u32 new_offset =
@@ -777,7 +779,7 @@ void BufferCache<P>::BindHostVertexBuffers() {
         const Binding& binding = channel_state->vertex_buffers[index];
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
-        SynchronizeBuffer(buffer, binding.cpu_addr, binding.size);
+        SynchronizeBuffer(buffer, binding.device_addr, binding.size);
         if (!flags[Dirty::VertexBuffer0 + index]) {
             continue;
         }
@@ -797,7 +799,7 @@ void BufferCache<P>::BindHostVertexBuffers() {
             Buffer& buffer = slot_buffers[binding.buffer_id];
 
             const u32 stride = maxwell3d->regs.vertex_streams[index].stride;
-            const u32 offset = buffer.Offset(binding.cpu_addr);
+            const u32 offset = buffer.Offset(binding.device_addr);
             buffer.MarkUsage(offset, binding.size);
 
             host_bindings.buffers.push_back(&buffer);
@@ -814,7 +816,7 @@ void BufferCache<P>::BindHostDrawIndirectBuffers() {
     const auto bind_buffer = [this](const Binding& binding) {
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
-        SynchronizeBuffer(buffer, binding.cpu_addr, binding.size);
+        SynchronizeBuffer(buffer, binding.device_addr, binding.size);
     };
     if (current_draw_indirect->include_count) {
         bind_buffer(channel_state->count_buffer_binding);
@@ -842,13 +844,13 @@ template <class P>
 void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 binding_index,
                                                    bool needs_bind) {
     const Binding& binding = channel_state->uniform_buffers[stage][index];
-    const VAddr cpu_addr = binding.cpu_addr;
+    const DAddr device_addr = binding.device_addr;
     const u32 size = std::min(binding.size, (*channel_state->uniform_buffer_sizes)[stage][index]);
     Buffer& buffer = slot_buffers[binding.buffer_id];
     TouchBuffer(buffer, binding.buffer_id);
     const bool use_fast_buffer = binding.buffer_id != NULL_BUFFER_ID &&
                                  size <= channel_state->uniform_buffer_skip_cache_size &&
-                                 !memory_tracker.IsRegionGpuModified(cpu_addr, size);
+                                 !memory_tracker.IsRegionGpuModified(device_addr, size);
     if (use_fast_buffer) {
         if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
@@ -862,7 +864,7 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
                     channel_state->uniform_buffer_binding_sizes[stage][binding_index] = size;
                     runtime.BindFastUniformBuffer(stage, binding_index, size);
                 }
-                const auto span = ImmediateBufferWithData(cpu_addr, size);
+                const auto span = ImmediateBufferWithData(device_addr, size);
                 runtime.PushFastUniformBuffer(stage, binding_index, span);
                 return;
             }
@@ -873,11 +875,11 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
         }
         // Stream buffer path to avoid stalling on non-Nvidia drivers or Vulkan
         const std::span<u8> span = runtime.BindMappedUniformBuffer(stage, binding_index, size);
-        cpu_memory.ReadBlockUnsafe(cpu_addr, span.data(), size);
+        device_memory.ReadBlockUnsafe(device_addr, span.data(), size);
         return;
     }
     // Classic cached path
-    const bool sync_cached = SynchronizeBuffer(buffer, cpu_addr, size);
+    const bool sync_cached = SynchronizeBuffer(buffer, device_addr, size);
     if (sync_cached) {
         ++channel_state->uniform_cache_hits[0];
     }
@@ -892,7 +894,7 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     if (!needs_bind) {
         return;
     }
-    const u32 offset = buffer.Offset(cpu_addr);
+    const u32 offset = buffer.Offset(device_addr);
     if constexpr (IS_OPENGL) {
         // Fast buffer will be unbound
         channel_state->fast_bound_uniform_buffers[stage] &= ~(1U << binding_index);
@@ -920,14 +922,14 @@ void BufferCache<P>::BindHostGraphicsStorageBuffers(size_t stage) {
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
         const u32 size = binding.size;
-        SynchronizeBuffer(buffer, binding.cpu_addr, size);
+        SynchronizeBuffer(buffer, binding.device_addr, size);
 
-        const u32 offset = buffer.Offset(binding.cpu_addr);
+        const u32 offset = buffer.Offset(binding.device_addr);
         buffer.MarkUsage(offset, size);
         const bool is_written = ((channel_state->written_storage_buffers[stage] >> index) & 1) != 0;
 
         if (is_written) {
-            MarkWrittenBuffer(binding.buffer_id, binding.cpu_addr, size);
+            MarkWrittenBuffer(binding.buffer_id, binding.device_addr, size);
         }
 
         if constexpr (NEEDS_BIND_STORAGE_INDEX) {
@@ -945,14 +947,14 @@ void BufferCache<P>::BindHostGraphicsTextureBuffers(size_t stage) {
         const TextureBufferBinding& binding = channel_state->texture_buffers[stage][index];
         Buffer& buffer = slot_buffers[binding.buffer_id];
         const u32 size = binding.size;
-        SynchronizeBuffer(buffer, binding.cpu_addr, size);
+        SynchronizeBuffer(buffer, binding.device_addr, size);
 
         const bool is_written = ((channel_state->written_texture_buffers[stage] >> index) & 1) != 0;
         if (is_written) {
-            MarkWrittenBuffer(binding.buffer_id, binding.cpu_addr, size);
+            MarkWrittenBuffer(binding.buffer_id, binding.device_addr, size);
         }
 
-        const u32 offset = buffer.Offset(binding.cpu_addr);
+        const u32 offset = buffer.Offset(binding.device_addr);
         const PixelFormat format = binding.format;
         buffer.MarkUsage(offset, size);
         if constexpr (SEPARATE_IMAGE_BUFFERS_BINDINGS) {
@@ -982,11 +984,11 @@ void BufferCache<P>::BindHostTransformFeedbackBuffers() {
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
         const u32 size = binding.size;
-        SynchronizeBuffer(buffer, binding.cpu_addr, size);
+        SynchronizeBuffer(buffer, binding.device_addr, size);
 
-        MarkWrittenBuffer(binding.buffer_id, binding.cpu_addr, size);
+        MarkWrittenBuffer(binding.buffer_id, binding.device_addr, size);
 
-        const u32 offset = buffer.Offset(binding.cpu_addr);
+        const u32 offset = buffer.Offset(binding.device_addr);
         buffer.MarkUsage(offset, size);
         host_bindings.buffers.push_back(&buffer);
         host_bindings.offsets.push_back(offset);
@@ -1011,9 +1013,9 @@ void BufferCache<P>::BindHostComputeUniformBuffers() {
         TouchBuffer(buffer, binding.buffer_id);
         const u32 size =
             std::min(binding.size, (*channel_state->compute_uniform_buffer_sizes)[index]);
-        SynchronizeBuffer(buffer, binding.cpu_addr, size);
+        SynchronizeBuffer(buffer, binding.device_addr, size);
 
-        const u32 offset = buffer.Offset(binding.cpu_addr);
+        const u32 offset = buffer.Offset(binding.device_addr);
         buffer.MarkUsage(offset, size);
         if constexpr (NEEDS_BIND_UNIFORM_INDEX) {
             runtime.BindComputeUniformBuffer(binding_index, buffer, offset, size);
@@ -1032,15 +1034,15 @@ void BufferCache<P>::BindHostComputeStorageBuffers() {
         Buffer& buffer = slot_buffers[binding.buffer_id];
         TouchBuffer(buffer, binding.buffer_id);
         const u32 size = binding.size;
-        SynchronizeBuffer(buffer, binding.cpu_addr, size);
+        SynchronizeBuffer(buffer, binding.device_addr, size);
 
-        const u32 offset = buffer.Offset(binding.cpu_addr);
+        const u32 offset = buffer.Offset(binding.device_addr);
         buffer.MarkUsage(offset, size);
         const bool is_written =
             ((channel_state->written_compute_storage_buffers >> index) & 1) != 0;
 
         if (is_written) {
-            MarkWrittenBuffer(binding.buffer_id, binding.cpu_addr, size);
+            MarkWrittenBuffer(binding.buffer_id, binding.device_addr, size);
         }
 
         if constexpr (NEEDS_BIND_STORAGE_INDEX) {
@@ -1058,15 +1060,15 @@ void BufferCache<P>::BindHostComputeTextureBuffers() {
         const TextureBufferBinding& binding = channel_state->compute_texture_buffers[index];
         Buffer& buffer = slot_buffers[binding.buffer_id];
         const u32 size = binding.size;
-        SynchronizeBuffer(buffer, binding.cpu_addr, size);
+        SynchronizeBuffer(buffer, binding.device_addr, size);
 
         const bool is_written =
             ((channel_state->written_compute_texture_buffers >> index) & 1) != 0;
         if (is_written) {
-            MarkWrittenBuffer(binding.buffer_id, binding.cpu_addr, size);
+            MarkWrittenBuffer(binding.buffer_id, binding.device_addr, size);
         }
 
-        const u32 offset = buffer.Offset(binding.cpu_addr);
+        const u32 offset = buffer.Offset(binding.device_addr);
         const PixelFormat format = binding.format;
         buffer.MarkUsage(offset, size);
         if constexpr (SEPARATE_IMAGE_BUFFERS_BINDINGS) {
@@ -1131,7 +1133,7 @@ void BufferCache<P>::UpdateIndexBuffer() {
             inline_buffer_id = CreateBuffer(0, buffer_size);
         }
         channel_state->index_buffer = Binding{
-            .cpu_addr = 0,
+            .device_addr = 0,
             .size = inline_index_size,
             .buffer_id = inline_buffer_id,
         };
@@ -1140,19 +1142,19 @@ void BufferCache<P>::UpdateIndexBuffer() {
 
     const GPUVAddr gpu_addr_begin = index_buffer_ref.StartAddress();
     const GPUVAddr gpu_addr_end = index_buffer_ref.EndAddress();
-    const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr_begin);
+    const std::optional<DAddr> device_addr = gpu_memory->GpuToCpuAddress(gpu_addr_begin);
     const u32 address_size = static_cast<u32>(gpu_addr_end - gpu_addr_begin);
     const u32 draw_size =
         (index_buffer_ref.count + index_buffer_ref.first) * index_buffer_ref.FormatSizeInBytes();
     const u32 size = std::min(address_size, draw_size);
-    if (size == 0 || !cpu_addr) {
+    if (size == 0 || !device_addr) {
         channel_state->index_buffer = NULL_BINDING;
         return;
     }
     channel_state->index_buffer = Binding{
-        .cpu_addr = *cpu_addr,
+        .device_addr = *device_addr,
         .size = size,
-        .buffer_id = FindBuffer(*cpu_addr, size),
+        .buffer_id = FindBuffer(*device_addr, size),
     };
 }
 
@@ -1178,19 +1180,19 @@ void BufferCache<P>::UpdateVertexBuffer(u32 index) {
     const auto& limit = maxwell3d->regs.vertex_stream_limits[index];
     const GPUVAddr gpu_addr_begin = array.Address();
     const GPUVAddr gpu_addr_end = limit.Address() + 1;
-    const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr_begin);
+    const std::optional<DAddr> device_addr = gpu_memory->GpuToCpuAddress(gpu_addr_begin);
     const u32 address_size = static_cast<u32>(gpu_addr_end - gpu_addr_begin);
     u32 size = address_size; // TODO: Analyze stride and number of vertices
-    if (array.enable == 0 || size == 0 || !cpu_addr) {
+    if (array.enable == 0 || size == 0 || !device_addr) {
         channel_state->vertex_buffers[index] = NULL_BINDING;
         return;
     }
     if (!gpu_memory->IsWithinGPUAddressRange(gpu_addr_end)) {
         size = static_cast<u32>(gpu_memory->MaxContinuousRange(gpu_addr_begin, size));
     }
-    const BufferId buffer_id = FindBuffer(*cpu_addr, size);
+    const BufferId buffer_id = FindBuffer(*device_addr, size);
     channel_state->vertex_buffers[index] = Binding{
-        .cpu_addr = *cpu_addr,
+        .device_addr = *device_addr,
         .size = size,
         .buffer_id = buffer_id,
     };
@@ -1199,15 +1201,15 @@ void BufferCache<P>::UpdateVertexBuffer(u32 index) {
 template <class P>
 void BufferCache<P>::UpdateDrawIndirect() {
     const auto update = [this](GPUVAddr gpu_addr, size_t size, Binding& binding) {
-        const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
-        if (!cpu_addr) {
+        const std::optional<DAddr> device_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
+        if (!device_addr) {
             binding = NULL_BINDING;
             return;
         }
         binding = Binding{
-            .cpu_addr = *cpu_addr,
+            .device_addr = *device_addr,
             .size = static_cast<u32>(size),
-            .buffer_id = FindBuffer(*cpu_addr, static_cast<u32>(size)),
+            .buffer_id = FindBuffer(*device_addr, static_cast<u32>(size)),
         };
     };
     if (current_draw_indirect->include_count) {
@@ -1231,7 +1233,7 @@ void BufferCache<P>::UpdateUniformBuffers(size_t stage) {
             channel_state->dirty_uniform_buffers[stage] |= 1U << index;
         }
         // Resolve buffer
-        binding.buffer_id = FindBuffer(binding.cpu_addr, binding.size);
+        binding.buffer_id = FindBuffer(binding.device_addr, binding.size);
     });
 }
 
@@ -1240,7 +1242,7 @@ void BufferCache<P>::UpdateStorageBuffers(size_t stage) {
     ForEachEnabledBit(channel_state->enabled_storage_buffers[stage], [&](u32 index) {
         // Resolve buffer
         Binding& binding = channel_state->storage_buffers[stage][index];
-        const BufferId buffer_id = FindBuffer(binding.cpu_addr, binding.size);
+        const BufferId buffer_id = FindBuffer(binding.device_addr, binding.size);
         binding.buffer_id = buffer_id;
     });
 }
@@ -1249,7 +1251,7 @@ template <class P>
 void BufferCache<P>::UpdateTextureBuffers(size_t stage) {
     ForEachEnabledBit(channel_state->enabled_texture_buffers[stage], [&](u32 index) {
         Binding& binding = channel_state->texture_buffers[stage][index];
-        binding.buffer_id = FindBuffer(binding.cpu_addr, binding.size);
+        binding.buffer_id = FindBuffer(binding.device_addr, binding.size);
     });
 }
 
@@ -1268,14 +1270,14 @@ void BufferCache<P>::UpdateTransformFeedbackBuffer(u32 index) {
     const auto& binding = maxwell3d->regs.transform_feedback.buffers[index];
     const GPUVAddr gpu_addr = binding.Address() + binding.start_offset;
     const u32 size = binding.size;
-    const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
-    if (binding.enable == 0 || size == 0 || !cpu_addr) {
+    const std::optional<DAddr> device_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
+    if (binding.enable == 0 || size == 0 || !device_addr) {
         channel_state->transform_feedback_buffers[index] = NULL_BINDING;
         return;
     }
-    const BufferId buffer_id = FindBuffer(*cpu_addr, size);
+    const BufferId buffer_id = FindBuffer(*device_addr, size);
     channel_state->transform_feedback_buffers[index] = Binding{
-        .cpu_addr = *cpu_addr,
+        .device_addr = *device_addr,
         .size = size,
         .buffer_id = buffer_id,
     };
@@ -1289,13 +1291,13 @@ void BufferCache<P>::UpdateComputeUniformBuffers() {
         const auto& launch_desc = kepler_compute->launch_description;
         if (((launch_desc.const_buffer_enable_mask >> index) & 1) != 0) {
             const auto& cbuf = launch_desc.const_buffer_config[index];
-            const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(cbuf.Address());
-            if (cpu_addr) {
-                binding.cpu_addr = *cpu_addr;
+            const std::optional<DAddr> device_addr = gpu_memory->GpuToCpuAddress(cbuf.Address());
+            if (device_addr) {
+                binding.device_addr = *device_addr;
                 binding.size = cbuf.size;
             }
         }
-        binding.buffer_id = FindBuffer(binding.cpu_addr, binding.size);
+        binding.buffer_id = FindBuffer(binding.device_addr, binding.size);
     });
 }
 
@@ -1304,7 +1306,7 @@ void BufferCache<P>::UpdateComputeStorageBuffers() {
     ForEachEnabledBit(channel_state->enabled_compute_storage_buffers, [&](u32 index) {
         // Resolve buffer
         Binding& binding = channel_state->compute_storage_buffers[index];
-        binding.buffer_id = FindBuffer(binding.cpu_addr, binding.size);
+        binding.buffer_id = FindBuffer(binding.device_addr, binding.size);
     });
 }
 
@@ -1312,45 +1314,63 @@ template <class P>
 void BufferCache<P>::UpdateComputeTextureBuffers() {
     ForEachEnabledBit(channel_state->enabled_compute_texture_buffers, [&](u32 index) {
         Binding& binding = channel_state->compute_texture_buffers[index];
-        binding.buffer_id = FindBuffer(binding.cpu_addr, binding.size);
+        binding.buffer_id = FindBuffer(binding.device_addr, binding.size);
     });
 }
 
 template <class P>
-void BufferCache<P>::MarkWrittenBuffer(BufferId buffer_id, VAddr cpu_addr, u32 size) {
-    memory_tracker.MarkRegionAsGpuModified(cpu_addr, size);
+void BufferCache<P>::MarkWrittenBuffer(BufferId buffer_id, DAddr device_addr, u32 size) {
+    memory_tracker.MarkRegionAsGpuModified(device_addr, size);
 
-    const IntervalType base_interval{cpu_addr, cpu_addr + size};
+    const IntervalType base_interval{device_addr, device_addr + size};
     common_ranges.add(base_interval);
     uncommitted_ranges.add(base_interval);
 }
 
 template <class P>
-BufferId BufferCache<P>::FindBuffer(VAddr cpu_addr, u32 size) {
-    if (cpu_addr == 0) {
+BufferId BufferCache<P>::FindBuffer(DAddr device_addr, u32 size) {
+    if (device_addr == 0) {
         return NULL_BUFFER_ID;
     }
-    const u64 page = cpu_addr >> CACHING_PAGEBITS;
+    const u64 page = device_addr >> CACHING_PAGEBITS;
     const BufferId buffer_id = page_table[page];
     if (!buffer_id) {
-        return CreateBuffer(cpu_addr, size);
+        return CreateBuffer(device_addr, size);
     }
     const Buffer& buffer = slot_buffers[buffer_id];
-    if (buffer.IsInBounds(cpu_addr, size)) {
+    if (buffer.IsInBounds(device_addr, size)) {
         return buffer_id;
     }
-    return CreateBuffer(cpu_addr, size);
+    return CreateBuffer(device_addr, size);
 }
 
 template <class P>
-typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(VAddr cpu_addr,
+typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(DAddr device_addr,
                                                                        u32 wanted_size) {
     static constexpr int STREAM_LEAP_THRESHOLD = 16;
     boost::container::small_vector<BufferId, 16> overlap_ids;
-    VAddr begin = cpu_addr;
-    VAddr end = cpu_addr + wanted_size;
+    DAddr begin = device_addr;
+    DAddr end = device_addr + wanted_size;
     int stream_score = 0;
     bool has_stream_leap = false;
+    auto expand_begin = [&](DAddr add_value) {
+        static constexpr DAddr min_page = CACHING_PAGESIZE + Core::Memory::YUZU_PAGESIZE;
+        if (add_value > begin - min_page ) {
+            begin = min_page;
+            device_addr = Core::Memory::YUZU_PAGESIZE;
+            return;
+        }
+        begin -= add_value;
+        device_addr = begin - CACHING_PAGESIZE;
+    };
+    auto expand_end = [&](DAddr add_value) {
+        static constexpr DAddr max_page = 1ULL << Tegra::MaxwellDeviceMemoryManager::AS_BITS;
+        if (add_value > max_page - end ) {
+            end = max_page;
+            return;
+        }
+        end += add_value;
+    };
     if (begin == 0) {
         return OverlapResult{
             .ids = std::move(overlap_ids),
@@ -1359,9 +1379,9 @@ typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(VAddr cpu
             .has_stream_leap = has_stream_leap,
         };
     }
-    for (; cpu_addr >> CACHING_PAGEBITS < Common::DivCeil(end, CACHING_PAGESIZE);
-         cpu_addr += CACHING_PAGESIZE) {
-        const BufferId overlap_id = page_table[cpu_addr >> CACHING_PAGEBITS];
+    for (; device_addr >> CACHING_PAGEBITS < Common::DivCeil(end, CACHING_PAGESIZE);
+         device_addr += CACHING_PAGESIZE) {
+        const BufferId overlap_id = page_table[device_addr >> CACHING_PAGEBITS];
         if (!overlap_id) {
             continue;
         }
@@ -1371,12 +1391,12 @@ typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(VAddr cpu
         }
         overlap_ids.push_back(overlap_id);
         overlap.Pick();
-        const VAddr overlap_cpu_addr = overlap.CpuAddr();
-        const bool expands_left = overlap_cpu_addr < begin;
+        const DAddr overlap_device_addr = overlap.CpuAddr();
+        const bool expands_left = overlap_device_addr < begin;
         if (expands_left) {
-            begin = overlap_cpu_addr;
+            begin = overlap_device_addr;
         }
-        const VAddr overlap_end = overlap_cpu_addr + overlap.SizeBytes();
+        const DAddr overlap_end = overlap_device_addr + overlap.SizeBytes();
         const bool expands_right = overlap_end > end;
         if (overlap_end > end) {
             end = overlap_end;
@@ -1387,11 +1407,10 @@ typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(VAddr cpu
             // as a stream buffer. Increase the size to skip constantly recreating buffers.
             has_stream_leap = true;
             if (expands_right) {
-                begin -= CACHING_PAGESIZE * 256;
-                cpu_addr = begin - CACHING_PAGESIZE;
+                expand_begin(CACHING_PAGESIZE * 128);
             }
             if (expands_left) {
-                end += CACHING_PAGESIZE * 256;
+                expand_end(CACHING_PAGESIZE * 128);
             }
         }
     }
@@ -1424,13 +1443,13 @@ void BufferCache<P>::JoinOverlap(BufferId new_buffer_id, BufferId overlap_id,
 }
 
 template <class P>
-BufferId BufferCache<P>::CreateBuffer(VAddr cpu_addr, u32 wanted_size) {
-    VAddr cpu_addr_end = Common::AlignUp(cpu_addr + wanted_size, CACHING_PAGESIZE);
-    cpu_addr = Common::AlignDown(cpu_addr, CACHING_PAGESIZE);
-    wanted_size = static_cast<u32>(cpu_addr_end - cpu_addr);
-    const OverlapResult overlap = ResolveOverlaps(cpu_addr, wanted_size);
+BufferId BufferCache<P>::CreateBuffer(DAddr device_addr, u32 wanted_size) {
+    DAddr device_addr_end = Common::AlignUp(device_addr + wanted_size, CACHING_PAGESIZE);
+    device_addr = Common::AlignDown(device_addr, CACHING_PAGESIZE);
+    wanted_size = static_cast<u32>(device_addr_end - device_addr);
+    const OverlapResult overlap = ResolveOverlaps(device_addr, wanted_size);
     const u32 size = static_cast<u32>(overlap.end - overlap.begin);
-    const BufferId new_buffer_id = slot_buffers.insert(runtime, rasterizer, overlap.begin, size);
+    const BufferId new_buffer_id = slot_buffers.insert(runtime, overlap.begin, size);
     auto& new_buffer = slot_buffers[new_buffer_id];
     const size_t size_bytes = new_buffer.SizeBytes();
     runtime.ClearBuffer(new_buffer, 0, size_bytes, 0);
@@ -1465,10 +1484,10 @@ void BufferCache<P>::ChangeRegister(BufferId buffer_id) {
         total_used_memory -= Common::AlignUp(size, 1024);
         lru_cache.Free(buffer.getLRUID());
     }
-    const VAddr cpu_addr_begin = buffer.CpuAddr();
-    const VAddr cpu_addr_end = cpu_addr_begin + size;
-    const u64 page_begin = cpu_addr_begin / CACHING_PAGESIZE;
-    const u64 page_end = Common::DivCeil(cpu_addr_end, CACHING_PAGESIZE);
+    const DAddr device_addr_begin = buffer.CpuAddr();
+    const DAddr device_addr_end = device_addr_begin + size;
+    const u64 page_begin = device_addr_begin / CACHING_PAGESIZE;
+    const u64 page_end = Common::DivCeil(device_addr_end, CACHING_PAGESIZE);
     for (u64 page = page_begin; page != page_end; ++page) {
         if constexpr (insert) {
             page_table[page] = buffer_id;
@@ -1486,15 +1505,15 @@ void BufferCache<P>::TouchBuffer(Buffer& buffer, BufferId buffer_id) noexcept {
 }
 
 template <class P>
-bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, VAddr cpu_addr, u32 size) {
+bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, DAddr device_addr, u32 size) {
     boost::container::small_vector<BufferCopy, 4> copies;
     u64 total_size_bytes = 0;
     u64 largest_copy = 0;
-    VAddr buffer_start = buffer.CpuAddr();
-    memory_tracker.ForEachUploadRange(cpu_addr, size, [&](u64 cpu_addr_out, u64 range_size) {
+    DAddr buffer_start = buffer.CpuAddr();
+    memory_tracker.ForEachUploadRange(device_addr, size, [&](u64 device_addr_out, u64 range_size) {
         copies.push_back(BufferCopy{
             .src_offset = total_size_bytes,
-            .dst_offset = cpu_addr_out - buffer_start,
+            .dst_offset = device_addr_out - buffer_start,
             .size = range_size,
         });
         total_size_bytes += range_size;
@@ -1526,14 +1545,14 @@ void BufferCache<P>::ImmediateUploadMemory([[maybe_unused]] Buffer& buffer,
         std::span<u8> immediate_buffer;
         for (const BufferCopy& copy : copies) {
             std::span<const u8> upload_span;
-            const VAddr cpu_addr = buffer.CpuAddr() + copy.dst_offset;
-            if (IsRangeGranular(cpu_addr, copy.size)) {
-                upload_span = std::span(cpu_memory.GetPointer(cpu_addr), copy.size);
+            const DAddr device_addr = buffer.CpuAddr() + copy.dst_offset;
+            if (IsRangeGranular(device_addr, copy.size)) {
+                upload_span = std::span(device_memory.GetPointer<u8>(device_addr), copy.size);
             } else {
                 if (immediate_buffer.empty()) {
                     immediate_buffer = ImmediateBuffer(largest_copy);
                 }
-                cpu_memory.ReadBlockUnsafe(cpu_addr, immediate_buffer.data(), copy.size);
+                device_memory.ReadBlockUnsafe(device_addr, immediate_buffer.data(), copy.size);
                 upload_span = immediate_buffer.subspan(0, copy.size);
             }
             buffer.ImmediateUpload(copy.dst_offset, upload_span);
@@ -1550,8 +1569,8 @@ void BufferCache<P>::MappedUploadMemory([[maybe_unused]] Buffer& buffer,
         const std::span<u8> staging_pointer = upload_staging.mapped_span;
         for (BufferCopy& copy : copies) {
             u8* const src_pointer = staging_pointer.data() + copy.src_offset;
-            const VAddr cpu_addr = buffer.CpuAddr() + copy.dst_offset;
-            cpu_memory.ReadBlockUnsafe(cpu_addr, src_pointer, copy.size);
+            const DAddr device_addr = buffer.CpuAddr() + copy.dst_offset;
+            device_memory.ReadBlockUnsafe(device_addr, src_pointer, copy.size);
 
             // Apply the staging offset
             copy.src_offset += upload_staging.offset;
@@ -1562,14 +1581,14 @@ void BufferCache<P>::MappedUploadMemory([[maybe_unused]] Buffer& buffer,
 }
 
 template <class P>
-bool BufferCache<P>::InlineMemory(VAddr dest_address, size_t copy_size,
+bool BufferCache<P>::InlineMemory(DAddr dest_address, size_t copy_size,
                                   std::span<const u8> inlined_buffer) {
     const bool is_dirty = IsRegionRegistered(dest_address, copy_size);
     if (!is_dirty) {
         return false;
     }
-    VAddr aligned_start = Common::AlignDown(dest_address, YUZU_PAGESIZE);
-    VAddr aligned_end = Common::AlignUp(dest_address + copy_size, YUZU_PAGESIZE);
+    DAddr aligned_start = Common::AlignDown(dest_address, YUZU_PAGESIZE);
+    DAddr aligned_end = Common::AlignUp(dest_address + copy_size, YUZU_PAGESIZE);
     if (!IsRegionGpuModified(aligned_start, aligned_end - aligned_start)) {
         return false;
     }
@@ -1580,7 +1599,7 @@ bool BufferCache<P>::InlineMemory(VAddr dest_address, size_t copy_size,
 }
 
 template <class P>
-void BufferCache<P>::InlineMemoryImplementation(VAddr dest_address, size_t copy_size,
+void BufferCache<P>::InlineMemoryImplementation(DAddr dest_address, size_t copy_size,
                                                 std::span<const u8> inlined_buffer) {
     const IntervalType subtract_interval{dest_address, dest_address + copy_size};
     ClearDownload(subtract_interval);
@@ -1612,14 +1631,14 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer) {
 }
 
 template <class P>
-void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, VAddr cpu_addr, u64 size) {
+void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, DAddr device_addr, u64 size) {
     boost::container::small_vector<BufferCopy, 1> copies;
     u64 total_size_bytes = 0;
     u64 largest_copy = 0;
     memory_tracker.ForEachDownloadRangeAndClear(
-        cpu_addr, size, [&](u64 cpu_addr_out, u64 range_size) {
-            const VAddr buffer_addr = buffer.CpuAddr();
-            const auto add_download = [&](VAddr start, VAddr end) {
+        device_addr, size, [&](u64 device_addr_out, u64 range_size) {
+            const DAddr buffer_addr = buffer.CpuAddr();
+            const auto add_download = [&](DAddr start, DAddr end) {
                 const u64 new_offset = start - buffer_addr;
                 const u64 new_size = end - start;
                 copies.push_back(BufferCopy{
@@ -1634,8 +1653,8 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, VAddr cpu_addr, u64 si
                 largest_copy = std::max(largest_copy, new_size);
             };
 
-            const VAddr start_address = cpu_addr_out;
-            const VAddr end_address = start_address + range_size;
+            const DAddr start_address = device_addr_out;
+            const DAddr end_address = start_address + range_size;
             ForEachInRangeSet(common_ranges, start_address, range_size, add_download);
             const IntervalType subtract_interval{start_address, end_address};
             ClearDownload(subtract_interval);
@@ -1658,18 +1677,18 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, VAddr cpu_addr, u64 si
         runtime.CopyBuffer(download_staging.buffer, buffer, copies_span, true);
         runtime.Finish();
         for (const BufferCopy& copy : copies) {
-            const VAddr copy_cpu_addr = buffer.CpuAddr() + copy.src_offset;
+            const DAddr copy_device_addr = buffer.CpuAddr() + copy.src_offset;
             // Undo the modified offset
             const u64 dst_offset = copy.dst_offset - download_staging.offset;
             const u8* copy_mapped_memory = mapped_memory + dst_offset;
-            cpu_memory.WriteBlockUnsafe(copy_cpu_addr, copy_mapped_memory, copy.size);
+            device_memory.WriteBlockUnsafe(copy_device_addr, copy_mapped_memory, copy.size);
         }
     } else {
         const std::span<u8> immediate_buffer = ImmediateBuffer(largest_copy);
         for (const BufferCopy& copy : copies) {
             buffer.ImmediateDownload(copy.src_offset, immediate_buffer.subspan(0, copy.size));
-            const VAddr copy_cpu_addr = buffer.CpuAddr() + copy.src_offset;
-            cpu_memory.WriteBlockUnsafe(copy_cpu_addr, immediate_buffer.data(), copy.size);
+            const DAddr copy_device_addr = buffer.CpuAddr() + copy.src_offset;
+            device_memory.WriteBlockUnsafe(copy_device_addr, immediate_buffer.data(), copy.size);
         }
     }
 }
@@ -1758,20 +1777,20 @@ Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
     const GPUVAddr aligned_gpu_addr = Common::AlignDown(gpu_addr, alignment);
     const u32 aligned_size = static_cast<u32>(gpu_addr - aligned_gpu_addr) + size;
 
-    const std::optional<VAddr> aligned_cpu_addr = gpu_memory->GpuToCpuAddress(aligned_gpu_addr);
-    if (!aligned_cpu_addr || size == 0) {
+    const std::optional<DAddr> aligned_device_addr = gpu_memory->GpuToCpuAddress(aligned_gpu_addr);
+    if (!aligned_device_addr || size == 0) {
         LOG_WARNING(HW_GPU, "Failed to find storage buffer for cbuf index {}", cbuf_index);
         return NULL_BINDING;
     }
-    const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
-    ASSERT_MSG(cpu_addr, "Unaligned storage buffer address not found for cbuf index {}",
+    const std::optional<DAddr> device_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
+    ASSERT_MSG(device_addr, "Unaligned storage buffer address not found for cbuf index {}",
                cbuf_index);
     // The end address used for size calculation does not need to be aligned
-    const VAddr cpu_end = Common::AlignUp(*cpu_addr + size, Core::Memory::YUZU_PAGESIZE);
+    const DAddr cpu_end = Common::AlignUp(*device_addr + size, Core::Memory::YUZU_PAGESIZE);
 
     const Binding binding{
-        .cpu_addr = *aligned_cpu_addr,
-        .size = is_written ? aligned_size : static_cast<u32>(cpu_end - *aligned_cpu_addr),
+        .device_addr = *aligned_device_addr,
+        .size = is_written ? aligned_size : static_cast<u32>(cpu_end - *aligned_device_addr),
         .buffer_id = BufferId{},
     };
     return binding;
@@ -1780,15 +1799,15 @@ Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
 template <class P>
 TextureBufferBinding BufferCache<P>::GetTextureBufferBinding(GPUVAddr gpu_addr, u32 size,
                                                              PixelFormat format) {
-    const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
+    const std::optional<DAddr> device_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
     TextureBufferBinding binding;
-    if (!cpu_addr || size == 0) {
-        binding.cpu_addr = 0;
+    if (!device_addr || size == 0) {
+        binding.device_addr = 0;
         binding.size = 0;
         binding.buffer_id = NULL_BUFFER_ID;
         binding.format = PixelFormat::Invalid;
     } else {
-        binding.cpu_addr = *cpu_addr;
+        binding.device_addr = *device_addr;
         binding.size = size;
         binding.buffer_id = BufferId{};
         binding.format = format;
@@ -1797,14 +1816,14 @@ TextureBufferBinding BufferCache<P>::GetTextureBufferBinding(GPUVAddr gpu_addr, 
 }
 
 template <class P>
-std::span<const u8> BufferCache<P>::ImmediateBufferWithData(VAddr cpu_addr, size_t size) {
-    u8* const base_pointer = cpu_memory.GetPointer(cpu_addr);
-    if (IsRangeGranular(cpu_addr, size) ||
-        base_pointer + size == cpu_memory.GetPointer(cpu_addr + size)) {
+std::span<const u8> BufferCache<P>::ImmediateBufferWithData(DAddr device_addr, size_t size) {
+    u8* const base_pointer = device_memory.GetPointer<u8>(device_addr);
+    if (IsRangeGranular(device_addr, size) ||
+        base_pointer + size == device_memory.GetPointer<u8>(device_addr + size)) {
         return std::span(base_pointer, size);
     } else {
         const std::span<u8> span = ImmediateBuffer(size);
-        cpu_memory.ReadBlockUnsafe(cpu_addr, span.data(), size);
+        device_memory.ReadBlockUnsafe(device_addr, span.data(), size);
         return span;
     }
 }
@@ -1828,13 +1847,14 @@ bool BufferCache<P>::HasFastUniformBufferBound(size_t stage, u32 binding_index) 
 template <class P>
 std::pair<typename BufferCache<P>::Buffer*, u32> BufferCache<P>::GetDrawIndirectCount() {
     auto& buffer = slot_buffers[channel_state->count_buffer_binding.buffer_id];
-    return std::make_pair(&buffer, buffer.Offset(channel_state->count_buffer_binding.cpu_addr));
+    return std::make_pair(&buffer, buffer.Offset(channel_state->count_buffer_binding.device_addr));
 }
 
 template <class P>
 std::pair<typename BufferCache<P>::Buffer*, u32> BufferCache<P>::GetDrawIndirectBuffer() {
     auto& buffer = slot_buffers[channel_state->indirect_buffer_binding.buffer_id];
-    return std::make_pair(&buffer, buffer.Offset(channel_state->indirect_buffer_binding.cpu_addr));
+    return std::make_pair(&buffer,
+                          buffer.Offset(channel_state->indirect_buffer_binding.device_addr));
 }
 
 } // namespace VideoCommon

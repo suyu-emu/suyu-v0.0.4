@@ -3,10 +3,11 @@
 
 #pragma once
 
-#include <deque>
-#include <memory>
 #include <array>
 #include <atomic>
+#include <deque>
+#include <memory>
+#include <mutex>
 
 #include "common/common_types.h"
 #include "common/virtual_buffer.h"
@@ -48,19 +49,45 @@ public:
     template <typename T>
     const T* GetPointer(DAddr address) const;
 
+    DAddr GetAddressFromPAddr(PAddr address) const {
+        DAddr subbits = static_cast<DAddr>(address & page_mask);
+        return (static_cast<DAddr>(compressed_device_addr[(address >> page_bits)]) << page_bits) + subbits;
+    }
+
+    PAddr GetPhysicalRawAddressFromDAddr(DAddr address) const {
+        PAddr subbits = static_cast<PAddr>(address & page_mask);
+        auto paddr = compressed_physical_ptr[(address >> page_bits)];
+        if (paddr == 0) {
+            return 0;
+        }
+        return (static_cast<PAddr>(paddr - 1) << page_bits) + subbits;
+    }
+
     template <typename T>
     void Write(DAddr address, T value);
 
     template <typename T>
     T Read(DAddr address) const;
 
+    const u8* GetSpan(const DAddr src_addr, const std::size_t size) const {
+        return nullptr;
+    }
+
+    u8* GetSpan(const DAddr src_addr, const std::size_t size) {
+        return nullptr;
+    }
+
     void ReadBlock(DAddr address, void* dest_pointer, size_t size);
-    void WriteBlock(DAddr address, void* src_pointer, size_t size);
+    void ReadBlockUnsafe(DAddr address, void* dest_pointer, size_t size);
+    void WriteBlock(DAddr address, const void* src_pointer, size_t size);
+    void WriteBlockUnsafe(DAddr address, const void* src_pointer, size_t size);
 
     size_t RegisterProcess(Memory::Memory* memory);
     void UnregisterProcess(size_t id);
 
     void UpdatePagesCachedCount(DAddr addr, size_t size, s32 delta);
+
+    static constexpr size_t AS_BITS = Traits::device_virtual_bits;
 
 private:
     static constexpr bool supports_pinning = Traits::supports_pinning;
@@ -68,6 +95,8 @@ private:
     static constexpr size_t device_as_size = 1ULL << device_virtual_bits;
     static constexpr size_t physical_max_bits = 33;
     static constexpr size_t page_bits = 12;
+    static constexpr size_t page_size = 1ULL << page_bits;
+    static constexpr size_t page_mask = page_size - 1ULL;
     static constexpr u32 physical_address_base = 1U << page_bits;
 
     template <typename T>
@@ -136,11 +165,15 @@ private:
     private:
         std::array<std::atomic_uint16_t, subentries> values{};
     };
-    static_assert(sizeof(CounterEntry) == subentries * sizeof(u16), "CounterEntry should be 8 bytes!");
+    static_assert(sizeof(CounterEntry) == subentries * sizeof(u16),
+                  "CounterEntry should be 8 bytes!");
 
-    static constexpr size_t num_counter_entries = (1ULL << (device_virtual_bits - page_bits)) / subentries;
+    static constexpr size_t num_counter_entries =
+        (1ULL << (device_virtual_bits - page_bits)) / subentries;
     using CachedPages = std::array<CounterEntry, num_counter_entries>;
     std::unique_ptr<CachedPages> cached_pages;
+    std::mutex counter_guard;
+    std::mutex mapping_guard;
 };
 
 } // namespace Core

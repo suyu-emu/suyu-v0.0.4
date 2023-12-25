@@ -32,7 +32,6 @@
 #include "common/microprofile.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
-#include "core/memory.h"
 #include "video_core/buffer_cache/buffer_base.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/delayed_destruction_ring.h"
@@ -41,7 +40,6 @@
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/memory_manager.h"
-#include "video_core/rasterizer_interface.h"
 #include "video_core/surface.h"
 #include "video_core/texture_cache/slot_vector.h"
 #include "video_core/texture_cache/types.h"
@@ -94,7 +92,7 @@ static constexpr BufferId NULL_BUFFER_ID{0};
 static constexpr u32 DEFAULT_SKIP_CACHE_SIZE = static_cast<u32>(4_KiB);
 
 struct Binding {
-    VAddr cpu_addr{};
+    DAddr device_addr{};
     u32 size{};
     BufferId buffer_id;
 };
@@ -104,7 +102,7 @@ struct TextureBufferBinding : Binding {
 };
 
 static constexpr Binding NULL_BINDING{
-    .cpu_addr = 0,
+    .device_addr = 0,
     .size = 0,
     .buffer_id = NULL_BUFFER_ID,
 };
@@ -204,10 +202,10 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<BufferCacheChannelInf
     using Async_Buffer = typename P::Async_Buffer;
     using MemoryTracker = typename P::MemoryTracker;
 
-    using IntervalCompare = std::less<VAddr>;
-    using IntervalInstance = boost::icl::interval_type_default<VAddr, std::less>;
-    using IntervalAllocator = boost::fast_pool_allocator<VAddr>;
-    using IntervalSet = boost::icl::interval_set<VAddr>;
+    using IntervalCompare = std::less<DAddr>;
+    using IntervalInstance = boost::icl::interval_type_default<DAddr, std::less>;
+    using IntervalAllocator = boost::fast_pool_allocator<DAddr>;
+    using IntervalSet = boost::icl::interval_set<DAddr>;
     using IntervalType = typename IntervalSet::interval_type;
 
     template <typename Type>
@@ -230,32 +228,31 @@ class BufferCache : public VideoCommon::ChannelSetupCaches<BufferCacheChannelInf
 
     using OverlapCombine = counter_add_functor<int>;
     using OverlapSection = boost::icl::inter_section<int>;
-    using OverlapCounter = boost::icl::split_interval_map<VAddr, int>;
+    using OverlapCounter = boost::icl::split_interval_map<DAddr, int>;
 
     struct OverlapResult {
         boost::container::small_vector<BufferId, 16> ids;
-        VAddr begin;
-        VAddr end;
+        DAddr begin;
+        DAddr end;
         bool has_stream_leap = false;
     };
 
 public:
-    explicit BufferCache(VideoCore::RasterizerInterface& rasterizer_,
-                         Core::Memory::Memory& cpu_memory_, Runtime& runtime_);
+    explicit BufferCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, Runtime& runtime_);
 
     void TickFrame();
 
-    void WriteMemory(VAddr cpu_addr, u64 size);
+    void WriteMemory(DAddr device_addr, u64 size);
 
-    void CachedWriteMemory(VAddr cpu_addr, u64 size);
+    void CachedWriteMemory(DAddr device_addr, u64 size);
 
-    bool OnCPUWrite(VAddr cpu_addr, u64 size);
+    bool OnCPUWrite(DAddr device_addr, u64 size);
 
-    void DownloadMemory(VAddr cpu_addr, u64 size);
+    void DownloadMemory(DAddr device_addr, u64 size);
 
-    std::optional<VideoCore::RasterizerDownloadArea> GetFlushArea(VAddr cpu_addr, u64 size);
+    std::optional<VideoCore::RasterizerDownloadArea> GetFlushArea(DAddr device_addr, u64 size);
 
-    bool InlineMemory(VAddr dest_address, size_t copy_size, std::span<const u8> inlined_buffer);
+    bool InlineMemory(DAddr dest_address, size_t copy_size, std::span<const u8> inlined_buffer);
 
     void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr, u32 size);
 
@@ -300,7 +297,7 @@ public:
                                                        ObtainBufferSynchronize sync_info,
                                                        ObtainBufferOperation post_op);
 
-    [[nodiscard]] std::pair<Buffer*, u32> ObtainCPUBuffer(VAddr gpu_addr, u32 size,
+    [[nodiscard]] std::pair<Buffer*, u32> ObtainCPUBuffer(DAddr gpu_addr, u32 size,
                                                           ObtainBufferSynchronize sync_info,
                                                           ObtainBufferOperation post_op);
     void FlushCachedWrites();
@@ -326,13 +323,13 @@ public:
     bool DMAClear(GPUVAddr src_address, u64 amount, u32 value);
 
     /// Return true when a CPU region is modified from the GPU
-    [[nodiscard]] bool IsRegionGpuModified(VAddr addr, size_t size);
+    [[nodiscard]] bool IsRegionGpuModified(DAddr addr, size_t size);
 
     /// Return true when a region is registered on the cache
-    [[nodiscard]] bool IsRegionRegistered(VAddr addr, size_t size);
+    [[nodiscard]] bool IsRegionRegistered(DAddr addr, size_t size);
 
     /// Return true when a CPU region is modified from the CPU
-    [[nodiscard]] bool IsRegionCpuModified(VAddr addr, size_t size);
+    [[nodiscard]] bool IsRegionCpuModified(DAddr addr, size_t size);
 
     void SetDrawIndirect(
         const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect_) {
@@ -366,9 +363,9 @@ private:
     }
 
     template <typename Func>
-    void ForEachBufferInRange(VAddr cpu_addr, u64 size, Func&& func) {
-        const u64 page_end = Common::DivCeil(cpu_addr + size, CACHING_PAGESIZE);
-        for (u64 page = cpu_addr >> CACHING_PAGEBITS; page < page_end;) {
+    void ForEachBufferInRange(DAddr device_addr, u64 size, Func&& func) {
+        const u64 page_end = Common::DivCeil(device_addr + size, CACHING_PAGESIZE);
+        for (u64 page = device_addr >> CACHING_PAGEBITS; page < page_end;) {
             const BufferId buffer_id = page_table[page];
             if (!buffer_id) {
                 ++page;
@@ -377,15 +374,15 @@ private:
             Buffer& buffer = slot_buffers[buffer_id];
             func(buffer_id, buffer);
 
-            const VAddr end_addr = buffer.CpuAddr() + buffer.SizeBytes();
+            const DAddr end_addr = buffer.CpuAddr() + buffer.SizeBytes();
             page = Common::DivCeil(end_addr, CACHING_PAGESIZE);
         }
     }
 
     template <typename Func>
-    void ForEachInRangeSet(IntervalSet& current_range, VAddr cpu_addr, u64 size, Func&& func) {
-        const VAddr start_address = cpu_addr;
-        const VAddr end_address = start_address + size;
+    void ForEachInRangeSet(IntervalSet& current_range, DAddr device_addr, u64 size, Func&& func) {
+        const DAddr start_address = device_addr;
+        const DAddr end_address = start_address + size;
         const IntervalType search_interval{start_address, end_address};
         auto it = current_range.lower_bound(search_interval);
         if (it == current_range.end()) {
@@ -393,8 +390,8 @@ private:
         }
         auto end_it = current_range.upper_bound(search_interval);
         for (; it != end_it; it++) {
-            VAddr inter_addr_end = it->upper();
-            VAddr inter_addr = it->lower();
+            DAddr inter_addr_end = it->upper();
+            DAddr inter_addr = it->lower();
             if (inter_addr_end > end_address) {
                 inter_addr_end = end_address;
             }
@@ -406,10 +403,10 @@ private:
     }
 
     template <typename Func>
-    void ForEachInOverlapCounter(OverlapCounter& current_range, VAddr cpu_addr, u64 size,
+    void ForEachInOverlapCounter(OverlapCounter& current_range, DAddr device_addr, u64 size,
                                  Func&& func) {
-        const VAddr start_address = cpu_addr;
-        const VAddr end_address = start_address + size;
+        const DAddr start_address = device_addr;
+        const DAddr end_address = start_address + size;
         const IntervalType search_interval{start_address, end_address};
         auto it = current_range.lower_bound(search_interval);
         if (it == current_range.end()) {
@@ -418,8 +415,8 @@ private:
         auto end_it = current_range.upper_bound(search_interval);
         for (; it != end_it; it++) {
             auto& inter = it->first;
-            VAddr inter_addr_end = inter.upper();
-            VAddr inter_addr = inter.lower();
+            DAddr inter_addr_end = inter.upper();
+            DAddr inter_addr = inter.lower();
             if (inter_addr_end > end_address) {
                 inter_addr_end = end_address;
             }
@@ -451,9 +448,9 @@ private:
         } while (any_removals);
     }
 
-    static bool IsRangeGranular(VAddr cpu_addr, size_t size) {
-        return (cpu_addr & ~Core::Memory::YUZU_PAGEMASK) ==
-               ((cpu_addr + size) & ~Core::Memory::YUZU_PAGEMASK);
+    static bool IsRangeGranular(DAddr device_addr, size_t size) {
+        return (device_addr & ~Core::Memory::YUZU_PAGEMASK) ==
+               ((device_addr + size) & ~Core::Memory::YUZU_PAGEMASK);
     }
 
     void RunGarbageCollector();
@@ -508,15 +505,15 @@ private:
 
     void UpdateComputeTextureBuffers();
 
-    void MarkWrittenBuffer(BufferId buffer_id, VAddr cpu_addr, u32 size);
+    void MarkWrittenBuffer(BufferId buffer_id, DAddr device_addr, u32 size);
 
-    [[nodiscard]] BufferId FindBuffer(VAddr cpu_addr, u32 size);
+    [[nodiscard]] BufferId FindBuffer(DAddr device_addr, u32 size);
 
-    [[nodiscard]] OverlapResult ResolveOverlaps(VAddr cpu_addr, u32 wanted_size);
+    [[nodiscard]] OverlapResult ResolveOverlaps(DAddr device_addr, u32 wanted_size);
 
     void JoinOverlap(BufferId new_buffer_id, BufferId overlap_id, bool accumulate_stream_score);
 
-    [[nodiscard]] BufferId CreateBuffer(VAddr cpu_addr, u32 wanted_size);
+    [[nodiscard]] BufferId CreateBuffer(DAddr device_addr, u32 wanted_size);
 
     void Register(BufferId buffer_id);
 
@@ -527,7 +524,7 @@ private:
 
     void TouchBuffer(Buffer& buffer, BufferId buffer_id) noexcept;
 
-    bool SynchronizeBuffer(Buffer& buffer, VAddr cpu_addr, u32 size);
+    bool SynchronizeBuffer(Buffer& buffer, DAddr device_addr, u32 size);
 
     void UploadMemory(Buffer& buffer, u64 total_size_bytes, u64 largest_copy,
                       std::span<BufferCopy> copies);
@@ -539,7 +536,7 @@ private:
 
     void DownloadBufferMemory(Buffer& buffer_id);
 
-    void DownloadBufferMemory(Buffer& buffer_id, VAddr cpu_addr, u64 size);
+    void DownloadBufferMemory(Buffer& buffer_id, DAddr device_addr, u64 size);
 
     void DeleteBuffer(BufferId buffer_id, bool do_not_mark = false);
 
@@ -549,7 +546,7 @@ private:
     [[nodiscard]] TextureBufferBinding GetTextureBufferBinding(GPUVAddr gpu_addr, u32 size,
                                                                PixelFormat format);
 
-    [[nodiscard]] std::span<const u8> ImmediateBufferWithData(VAddr cpu_addr, size_t size);
+    [[nodiscard]] std::span<const u8> ImmediateBufferWithData(DAddr device_addr, size_t size);
 
     [[nodiscard]] std::span<u8> ImmediateBuffer(size_t wanted_capacity);
 
@@ -557,11 +554,10 @@ private:
 
     void ClearDownload(IntervalType subtract_interval);
 
-    void InlineMemoryImplementation(VAddr dest_address, size_t copy_size,
+    void InlineMemoryImplementation(DAddr dest_address, size_t copy_size,
                                     std::span<const u8> inlined_buffer);
 
-    VideoCore::RasterizerInterface& rasterizer;
-    Core::Memory::Memory& cpu_memory;
+    Tegra::MaxwellDeviceMemoryManager& device_memory;
 
     SlotVector<Buffer> slot_buffers;
     DelayedDestructionRing<Buffer, 8> delayed_destruction_ring;
@@ -598,7 +594,7 @@ private:
     u64 critical_memory = 0;
     BufferId inline_buffer_id;
 
-    std::array<BufferId, ((1ULL << 39) >> CACHING_PAGEBITS)> page_table;
+    std::array<BufferId, ((1ULL << 34) >> CACHING_PAGEBITS)> page_table;
     Common::ScratchBuffer<u8> tmp_buffer;
 };
 

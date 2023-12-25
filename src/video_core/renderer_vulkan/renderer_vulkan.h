@@ -20,6 +20,7 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 
 namespace Core {
 class TelemetrySession;
@@ -42,7 +43,7 @@ class RendererVulkan final : public VideoCore::RendererBase {
 public:
     explicit RendererVulkan(Core::TelemetrySession& telemtry_session,
                             Core::Frontend::EmuWindow& emu_window,
-                            Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu_,
+                            Tegra::MaxwellDeviceMemoryManager& device_memory_, Tegra::GPU& gpu_,
                             std::unique_ptr<Core::Frontend::GraphicsContext> context_);
     ~RendererVulkan() override;
 
@@ -62,7 +63,7 @@ private:
     void RenderScreenshot(const Tegra::FramebufferConfig& framebuffer, bool use_accelerated);
 
     Core::TelemetrySession& telemetry_session;
-    Core::Memory::Memory& cpu_memory;
+    Tegra::MaxwellDeviceMemoryManager& device_memory;
     Tegra::GPU& gpu;
 
     std::shared_ptr<Common::DynamicLibrary> library;

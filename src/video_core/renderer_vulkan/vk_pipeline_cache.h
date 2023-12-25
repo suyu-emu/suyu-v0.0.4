@@ -26,6 +26,7 @@
 #include "video_core/renderer_vulkan/vk_graphics_pipeline.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/shader_cache.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 
 namespace Core {
 class System;
@@ -79,7 +80,6 @@ class ComputePipeline;
 class DescriptorPool;
 class Device;
 class PipelineStatistics;
-class RasterizerVulkan;
 class RenderPassCache;
 class Scheduler;
 
@@ -99,7 +99,7 @@ struct ShaderPools {
 
 class PipelineCache : public VideoCommon::ShaderCache {
 public:
-    explicit PipelineCache(RasterizerVulkan& rasterizer, const Device& device, Scheduler& scheduler,
+    explicit PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, const Device& device, Scheduler& scheduler,
                            DescriptorPool& descriptor_pool,
                            GuestDescriptorQueue& guest_descriptor_queue,
                            RenderPassCache& render_pass_cache, BufferCache& buffer_cache,

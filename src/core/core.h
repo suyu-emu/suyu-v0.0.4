@@ -224,7 +224,7 @@ public:
     /// Prepare the core emulation for a reschedule
     void PrepareReschedule(u32 core_index);
 
-    void GatherGPUDirtyMemory(std::function<void(VAddr, size_t)>& callback);
+    void GatherGPUDirtyMemory(std::function<void(PAddr, size_t)>& callback);
 
     [[nodiscard]] size_t GetCurrentHostThreadID() const;
 

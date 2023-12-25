@@ -2,6 +2,8 @@
 // SPDX-FileCopyrightText: 2022 Skyline Team and Contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <functional>
+
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
@@ -18,6 +20,7 @@ NvMap::Handle::Handle(u64 size_, Id id_)
 }
 
 NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress) {
+    std::scoped_lock lock(mutex);
     // Handles cannot be allocated twice
     if (allocated) {
         return NvResult::AccessDenied;
@@ -78,11 +81,9 @@ void NvMap::UnmapHandle(Handle& handle_description) {
 
     // Free and unmap the handle from the SMMU
     auto& smmu = host1x.MemoryManager();
-    smmu.Unmap(static_cast<DAddr>(handle_description.pin_virt_address),
-               handle_description.aligned_size);
-    smmu.Free(handle_description.pin_virt_address,
-              static_cast<size_t>(handle_description.aligned_size));
-    handle_description.pin_virt_address = 0;
+    smmu.Unmap(handle_description.d_address, handle_description.aligned_size);
+    smmu.Free(handle_description.d_address, static_cast<size_t>(handle_description.aligned_size));
+    handle_description.d_address = 0;
 }
 
 bool NvMap::TryRemoveHandle(const Handle& handle_description) {
@@ -123,41 +124,16 @@ std::shared_ptr<NvMap::Handle> NvMap::GetHandle(Handle::Id handle) {
     }
 }
 
-VAddr NvMap::GetHandleAddress(Handle::Id handle) {
+DAddr NvMap::GetHandleAddress(Handle::Id handle) {
     std::scoped_lock lock(handles_lock);
     try {
-        return handles.at(handle)->address;
+        return handles.at(handle)->d_address;
     } catch (std::out_of_range&) {
         return 0;
     }
 }
 
-NvResult NvMap::AllocateHandle(Handle::Id handle, Handle::Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress, size_t session_id) {
-    auto handle_description{GetHandle(handle)};
-    if (!handle_description) [[unlikely]] {
-        return NvResult::BadParameter;
-    }
-
-    if (handle_description->allocated) [[unlikely]] {
-        return NvResult::InsufficientMemory;
-    }
-
-    std::scoped_lock lock(handle_description->mutex);
-    NvResult result = handle_description->Alloc(pFlags, pAlign, pKind, pAddress);
-    if (result != NvResult::Success) {
-        return result;
-    }
-    auto& smmu = host1x.MemoryManager();
-    size_t total_size = static_cast<size_t>(handle_description->aligned_size);
-    handle_description->d_address = smmu.Allocate(total_size);
-    if (handle_description->d_address == 0) {
-        return NvResult::InsufficientMemory;
-    }
-    smmu.Map(handle_description->d_address, handle_description->address, total_size, session_id);
-    return NvResult::Success;
-}
-
-u32 NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id) {
+DAddr NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id, bool low_area_pin) {
     auto handle_description{GetHandle(handle)};
     if (!handle_description) [[unlikely]] {
         return 0;
@@ -176,35 +152,38 @@ u32 NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id) {
                 handle_description->unmap_queue_entry.reset();
 
                 handle_description->pins++;
-                return handle_description->pin_virt_address;
+                return handle_description->d_address;
             }
         }
 
+        using namespace std::placeholders;
         // If not then allocate some space and map it
         DAddr address{};
         auto& smmu = host1x.MemoryManager();
-        while ((address = smmu.AllocatePinned(
-                    static_cast<size_t>(handle_description->aligned_size))) == 0) {
+        auto allocate = std::bind(&Tegra::MaxwellDeviceMemoryManager::Allocate, &smmu, _1);
+                         //: std::bind(&Tegra::MaxwellDeviceMemoryManager::Allocate, &smmu, _1);
+        while ((address = allocate(static_cast<size_t>(handle_description->aligned_size))) == 0) {
             // Free handles until the allocation succeeds
             std::scoped_lock queueLock(unmap_queue_lock);
             if (auto freeHandleDesc{unmap_queue.front()}) {
                 // Handles in the unmap queue are guaranteed not to be pinned so don't bother
                 // checking if they are before unmapping
                 std::scoped_lock freeLock(freeHandleDesc->mutex);
-                if (handle_description->pin_virt_address)
+                if (handle_description->d_address)
                     UnmapHandle(*freeHandleDesc);
             } else {
                 LOG_CRITICAL(Service_NVDRV, "Ran out of SMMU address space!");
             }
         }
 
+        handle_description->d_address = address;
+
         smmu.Map(address, handle_description->address, handle_description->aligned_size,
                  session_id);
-        handle_description->pin_virt_address = static_cast<u32>(address);
     }
 
     handle_description->pins++;
-    return handle_description->pin_virt_address;
+    return handle_description->d_address;
 }
 
 void NvMap::UnpinHandle(Handle::Id handle) {
@@ -255,14 +234,9 @@ std::optional<NvMap::FreeInfo> NvMap::FreeHandle(Handle::Id handle, bool interna
                 LOG_WARNING(Service_NVDRV, "User duplicate count imbalance detected!");
             } else if (handle_description->dupes == 0) {
                 // Force unmap the handle
-                if (handle_description->pin_virt_address) {
+                if (handle_description->d_address) {
                     std::scoped_lock queueLock(unmap_queue_lock);
                     UnmapHandle(*handle_description);
-                }
-                if (handle_description->allocated) {
-                    auto& smmu = host1x.MemoryManager();
-                    smmu.Free(handle_description->d_address, handle_description->aligned_size);
-                    smmu.Unmap(handle_description->d_address, handle_description->aligned_size);
                 }
 
                 handle_description->pins = 0;

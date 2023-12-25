@@ -163,11 +163,11 @@ struct Words {
     WordsArray<stack_words> preflushable;
 };
 
-template <class RasterizerInterface, size_t stack_words = 1>
+template <class DeviceTracker, size_t stack_words = 1>
 class WordManager {
 public:
-    explicit WordManager(VAddr cpu_addr_, RasterizerInterface& rasterizer_, u64 size_bytes)
-        : cpu_addr{cpu_addr_}, rasterizer{&rasterizer_}, words{size_bytes} {}
+    explicit WordManager(VAddr cpu_addr_, DeviceTracker& tracker_, u64 size_bytes)
+        : cpu_addr{cpu_addr_}, tracker{&tracker_}, words{size_bytes} {}
 
     explicit WordManager() = default;
 
@@ -279,7 +279,7 @@ public:
     }
 
     /**
-     * Loop over each page in the given range, turn off those bits and notify the rasterizer if
+     * Loop over each page in the given range, turn off those bits and notify the tracker if
      * needed. Call the given function on each turned off range.
      *
      * @param query_cpu_range Base CPU address to loop over
@@ -459,26 +459,26 @@ private:
     }
 
     /**
-     * Notify rasterizer about changes in the CPU tracking state of a word in the buffer
+     * Notify tracker about changes in the CPU tracking state of a word in the buffer
      *
-     * @param word_index   Index to the word to notify to the rasterizer
+     * @param word_index   Index to the word to notify to the tracker
      * @param current_bits Current state of the word
      * @param new_bits     New state of the word
      *
-     * @tparam add_to_rasterizer True when the rasterizer should start tracking the new pages
+     * @tparam add_to_tracker True when the tracker should start tracking the new pages
      */
-    template <bool add_to_rasterizer>
+    template <bool add_to_tracker>
     void NotifyRasterizer(u64 word_index, u64 current_bits, u64 new_bits) const {
-        u64 changed_bits = (add_to_rasterizer ? current_bits : ~current_bits) & new_bits;
+        u64 changed_bits = (add_to_tracker ? current_bits : ~current_bits) & new_bits;
         VAddr addr = cpu_addr + word_index * BYTES_PER_WORD;
         IteratePages(changed_bits, [&](size_t offset, size_t size) {
-            rasterizer->UpdatePagesCachedCount(addr + offset * BYTES_PER_PAGE,
-                                               size * BYTES_PER_PAGE, add_to_rasterizer ? 1 : -1);
+            tracker->UpdatePagesCachedCount(addr + offset * BYTES_PER_PAGE,
+                                               size * BYTES_PER_PAGE, add_to_tracker ? 1 : -1);
         });
     }
 
     VAddr cpu_addr = 0;
-    RasterizerInterface* rasterizer = nullptr;
+    DeviceTracker* tracker = nullptr;
     Words<stack_words> words;
 };
 
