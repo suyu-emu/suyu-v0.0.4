@@ -552,7 +552,7 @@ private:
 
     Result InitializeHandleTable(s32 size) {
         // Try to initialize the handle table.
-        R_TRY(m_handle_table.Initialize(this, size));
+        R_TRY(m_handle_table.Initialize(size));
 
         // We succeeded, so note that we did.
         m_is_handle_table_initialized = true;
