@@ -14,6 +14,9 @@ void Initialize();
 
 void Start();
 
+/// Explicitly stops the logger thread and flushes the buffers
+void Stop();
+
 void DisableLoggingInTests();
 
 /**
