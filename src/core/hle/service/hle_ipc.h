@@ -17,6 +17,7 @@
 #include "common/concepts.h"
 #include "common/swap.h"
 #include "core/hle/ipc.h"
+#include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/svc_common.h"
 
 union Result;
@@ -196,10 +197,10 @@ public:
     }
 
     /// Populates this context with data from the requesting process/thread.
-    Result PopulateFromIncomingCommandBuffer(Kernel::KProcess& process, u32_le* src_cmdbuf);
+    Result PopulateFromIncomingCommandBuffer(u32_le* src_cmdbuf);
 
     /// Writes data from this context back to the requesting process/thread.
-    Result WriteToOutgoingCommandBuffer(Kernel::KThread& requesting_thread);
+    Result WriteToOutgoingCommandBuffer();
 
     [[nodiscard]] u32_le GetHipcCommand() const {
         return command;
@@ -359,8 +360,13 @@ public:
         return *thread;
     }
 
-    Kernel::KHandleTable& GetClientHandleTable() {
-        return *client_handle_table;
+    template <typename T>
+    Kernel::KScopedAutoObject<T> GetObjectFromHandle(u32 handle) {
+        auto obj = client_handle_table->GetObjectForIpc(handle, thread);
+        if (obj.IsNotNull()) {
+            return obj->DynamicCast<T*>();
+        }
+        return nullptr;
     }
 
     [[nodiscard]] std::shared_ptr<SessionRequestManager> GetManager() const {
@@ -378,7 +384,7 @@ public:
 private:
     friend class IPC::ResponseBuilder;
 
-    void ParseCommandBuffer(Kernel::KProcess& process, u32_le* src_cmdbuf, bool incoming);
+    void ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming);
 
     std::array<u32, IPC::COMMAND_BUFFER_LENGTH> cmd_buf;
     Kernel::KServerSession* server_session{};

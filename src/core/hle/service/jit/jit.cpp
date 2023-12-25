@@ -188,7 +188,7 @@ public:
             return;
         }
 
-        auto tmem{process->GetHandleTable().GetObject<Kernel::KTransferMemory>(tmem_handle)};
+        auto tmem{ctx.GetObjectFromHandle<Kernel::KTransferMemory>(tmem_handle)};
         if (tmem.IsNull()) {
             LOG_ERROR(Service_JIT, "attempted to load plugin with invalid transfer memory handle");
             IPC::ResponseBuilder rb{ctx, 2};
@@ -356,11 +356,7 @@ public:
             return;
         }
 
-        // Fetch using the handle table for the application process here,
-        // since we are not multiprocess yet.
-        const auto& handle_table{system.ApplicationProcess()->GetHandleTable()};
-
-        auto process{handle_table.GetObject<Kernel::KProcess>(process_handle)};
+        auto process{ctx.GetObjectFromHandle<Kernel::KProcess>(process_handle)};
         if (process.IsNull()) {
             LOG_ERROR(Service_JIT, "process is null for handle=0x{:08X}", process_handle);
             IPC::ResponseBuilder rb{ctx, 2};
@@ -368,7 +364,7 @@ public:
             return;
         }
 
-        auto rx_mem{handle_table.GetObject<Kernel::KCodeMemory>(rx_mem_handle)};
+        auto rx_mem{ctx.GetObjectFromHandle<Kernel::KCodeMemory>(rx_mem_handle)};
         if (rx_mem.IsNull()) {
             LOG_ERROR(Service_JIT, "rx_mem is null for handle=0x{:08X}", rx_mem_handle);
             IPC::ResponseBuilder rb{ctx, 2};
@@ -376,7 +372,7 @@ public:
             return;
         }
 
-        auto ro_mem{handle_table.GetObject<Kernel::KCodeMemory>(ro_mem_handle)};
+        auto ro_mem{ctx.GetObjectFromHandle<Kernel::KCodeMemory>(ro_mem_handle)};
         if (ro_mem.IsNull()) {
             LOG_ERROR(Service_JIT, "ro_mem is null for handle=0x{:08X}", ro_mem_handle);
             IPC::ResponseBuilder rb{ctx, 2};

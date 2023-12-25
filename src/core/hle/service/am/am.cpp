@@ -1513,8 +1513,7 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(HLERequestContext& ctx) 
         return;
     }
 
-    auto transfer_mem =
-        system.ApplicationProcess()->GetHandleTable().GetObject<Kernel::KTransferMemory>(handle);
+    auto transfer_mem = ctx.GetObjectFromHandle<Kernel::KTransferMemory>(handle);
 
     if (transfer_mem.IsNull()) {
         LOG_ERROR(Service_AM, "transfer_mem is a nullptr for handle={:08X}", handle);
@@ -1547,8 +1546,7 @@ void ILibraryAppletCreator::CreateHandleStorage(HLERequestContext& ctx) {
         return;
     }
 
-    auto transfer_mem =
-        system.ApplicationProcess()->GetHandleTable().GetObject<Kernel::KTransferMemory>(handle);
+    auto transfer_mem = ctx.GetObjectFromHandle<Kernel::KTransferMemory>(handle);
 
     if (transfer_mem.IsNull()) {
         LOG_ERROR(Service_AM, "transfer_mem is a nullptr for handle={:08X}", handle);

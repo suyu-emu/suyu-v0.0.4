@@ -203,7 +203,7 @@ Result ServiceFrameworkBase::HandleSyncRequest(Kernel::KServerSession& session,
     // If emulation was shutdown, we are closing service threads, do not write the response back to
     // memory that may be shutting down as well.
     if (system.IsPoweredOn()) {
-        ctx.WriteToOutgoingCommandBuffer(ctx.GetThread());
+        ctx.WriteToOutgoingCommandBuffer();
     }
 
     return result;

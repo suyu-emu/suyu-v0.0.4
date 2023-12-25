@@ -146,10 +146,7 @@ HLERequestContext::HLERequestContext(Kernel::KernelCore& kernel_, Core::Memory::
 
 HLERequestContext::~HLERequestContext() = default;
 
-void HLERequestContext::ParseCommandBuffer(Kernel::KProcess& process, u32_le* src_cmdbuf,
-                                           bool incoming) {
-    client_handle_table = &process.GetHandleTable();
-
+void HLERequestContext::ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming) {
     IPC::RequestParser rp(src_cmdbuf);
     command_header = rp.PopRaw<IPC::CommandHeader>();
 
@@ -162,7 +159,7 @@ void HLERequestContext::ParseCommandBuffer(Kernel::KProcess& process, u32_le* sr
     if (command_header->enable_handle_descriptor) {
         handle_descriptor_header = rp.PopRaw<IPC::HandleDescriptorHeader>();
         if (handle_descriptor_header->send_current_pid) {
-            pid = process.GetProcessId();
+            pid = thread->GetOwnerProcess()->GetProcessId();
             rp.Skip(2, false);
         }
         if (incoming) {
@@ -270,9 +267,10 @@ void HLERequestContext::ParseCommandBuffer(Kernel::KProcess& process, u32_le* sr
     rp.Skip(1, false); // The command is actually an u64, but we don't use the high part.
 }
 
-Result HLERequestContext::PopulateFromIncomingCommandBuffer(Kernel::KProcess& process,
-                                                            u32_le* src_cmdbuf) {
-    ParseCommandBuffer(process, src_cmdbuf, true);
+Result HLERequestContext::PopulateFromIncomingCommandBuffer(u32_le* src_cmdbuf) {
+    client_handle_table = &thread->GetOwnerProcess()->GetHandleTable();
+
+    ParseCommandBuffer(src_cmdbuf, true);
 
     if (command_header->IsCloseCommand()) {
         // Close does not populate the rest of the IPC header
@@ -284,9 +282,9 @@ Result HLERequestContext::PopulateFromIncomingCommandBuffer(Kernel::KProcess& pr
     return ResultSuccess;
 }
 
-Result HLERequestContext::WriteToOutgoingCommandBuffer(Kernel::KThread& requesting_thread) {
+Result HLERequestContext::WriteToOutgoingCommandBuffer() {
     auto current_offset = handles_offset;
-    auto& owner_process = *requesting_thread.GetOwnerProcess();
+    auto& owner_process = *thread->GetOwnerProcess();
     auto& handle_table = owner_process.GetHandleTable();
 
     for (auto& object : outgoing_copy_objects) {
@@ -319,7 +317,7 @@ Result HLERequestContext::WriteToOutgoingCommandBuffer(Kernel::KThread& requesti
     }
 
     // Copy the translated command buffer back into the thread's command buffer area.
-    memory.WriteBlock(requesting_thread.GetTlsAddress(), cmd_buf.data(), write_size * sizeof(u32));
+    memory.WriteBlock(thread->GetTlsAddress(), cmd_buf.data(), write_size * sizeof(u32));
 
     return ResultSuccess;
 }

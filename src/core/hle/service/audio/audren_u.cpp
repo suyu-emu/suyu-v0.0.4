@@ -454,10 +454,8 @@ void AudRenU::OpenAudioRenderer(HLERequestContext& ctx) {
         return;
     }
 
-    const auto& handle_table{system.ApplicationProcess()->GetHandleTable()};
-    auto process{handle_table.GetObject<Kernel::KProcess>(process_handle)};
-    auto transfer_memory{
-        process->GetHandleTable().GetObject<Kernel::KTransferMemory>(transfer_memory_handle)};
+    auto process{ctx.GetObjectFromHandle<Kernel::KProcess>(process_handle)};
+    auto transfer_memory{ctx.GetObjectFromHandle<Kernel::KTransferMemory>(transfer_memory_handle)};
 
     const auto session_id{impl->GetSessionId()};
     if (session_id == -1) {
