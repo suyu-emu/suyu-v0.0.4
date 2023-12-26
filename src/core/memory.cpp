@@ -10,6 +10,7 @@
 #include "common/assert.h"
 #include "common/atomic_ops.h"
 #include "common/common_types.h"
+#include "common/heap_tracker.h"
 #include "common/logging/log.h"
 #include "common/page_table.h"
 #include "common/scope_exit.h"
@@ -52,10 +53,18 @@ struct Memory::Impl {
         } else {
             current_page_table->fastmem_arena = nullptr;
         }
+
+#ifdef __linux__
+        heap_tracker.emplace(system.DeviceMemory().buffer);
+        buffer = std::addressof(*heap_tracker);
+#else
+        buffer = std::addressof(system.DeviceMemory().buffer);
+#endif
     }
 
     void MapMemoryRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
-                         Common::PhysicalAddress target, Common::MemoryPermission perms) {
+                         Common::PhysicalAddress target, Common::MemoryPermission perms,
+                         bool separate_heap) {
         ASSERT_MSG((size & YUZU_PAGEMASK) == 0, "non-page aligned size: {:016X}", size);
         ASSERT_MSG((base & YUZU_PAGEMASK) == 0, "non-page aligned base: {:016X}", GetInteger(base));
         ASSERT_MSG(target >= DramMemoryMap::Base, "Out of bounds target: {:016X}",
@@ -64,19 +73,20 @@ struct Memory::Impl {
                  Common::PageType::Memory);
 
         if (current_page_table->fastmem_arena) {
-            system.DeviceMemory().buffer.Map(GetInteger(base),
-                                             GetInteger(target) - DramMemoryMap::Base, size, perms);
+            buffer->Map(GetInteger(base), GetInteger(target) - DramMemoryMap::Base, size, perms,
+                        separate_heap);
         }
     }
 
-    void UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size) {
+    void UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
+                     bool separate_heap) {
         ASSERT_MSG((size & YUZU_PAGEMASK) == 0, "non-page aligned size: {:016X}", size);
         ASSERT_MSG((base & YUZU_PAGEMASK) == 0, "non-page aligned base: {:016X}", GetInteger(base));
         MapPages(page_table, base / YUZU_PAGESIZE, size / YUZU_PAGESIZE, 0,
                  Common::PageType::Unmapped);
 
         if (current_page_table->fastmem_arena) {
-            system.DeviceMemory().buffer.Unmap(GetInteger(base), size);
+            buffer->Unmap(GetInteger(base), size, separate_heap);
         }
     }
 
@@ -89,11 +99,6 @@ struct Memory::Impl {
             return;
         }
 
-        const bool is_r = True(perms & Common::MemoryPermission::Read);
-        const bool is_w = True(perms & Common::MemoryPermission::Write);
-        const bool is_x =
-            True(perms & Common::MemoryPermission::Execute) && Settings::IsNceEnabled();
-
         u64 protect_bytes{};
         u64 protect_begin{};
         for (u64 addr = vaddr; addr < vaddr + size; addr += YUZU_PAGESIZE) {
@@ -102,8 +107,7 @@ struct Memory::Impl {
             switch (page_type) {
             case Common::PageType::RasterizerCachedMemory:
                 if (protect_bytes > 0) {
-                    system.DeviceMemory().buffer.Protect(protect_begin, protect_bytes, is_r, is_w,
-                                                         is_x);
+                    buffer->Protect(protect_begin, protect_bytes, perms);
                     protect_bytes = 0;
                 }
                 break;
@@ -116,7 +120,7 @@ struct Memory::Impl {
         }
 
         if (protect_bytes > 0) {
-            system.DeviceMemory().buffer.Protect(protect_begin, protect_bytes, is_r, is_w, is_x);
+            buffer->Protect(protect_begin, protect_bytes, perms);
         }
     }
 
@@ -486,7 +490,9 @@ struct Memory::Impl {
         }
 
         if (current_page_table->fastmem_arena) {
-            system.DeviceMemory().buffer.Protect(vaddr, size, !debug, !debug);
+            const auto perm{debug ? Common::MemoryPermission{}
+                                  : Common::MemoryPermission::ReadWrite};
+            buffer->Protect(vaddr, size, perm);
         }
 
         // Iterate over a contiguous CPU address space, marking/unmarking the region.
@@ -543,9 +549,14 @@ struct Memory::Impl {
         }
 
         if (current_page_table->fastmem_arena) {
-            const bool is_read_enable =
-                !Settings::values.use_reactive_flushing.GetValue() || !cached;
-            system.DeviceMemory().buffer.Protect(vaddr, size, is_read_enable, !cached);
+            Common::MemoryPermission perm{};
+            if (!Settings::values.use_reactive_flushing.GetValue() || !cached) {
+                perm |= Common::MemoryPermission::Read;
+            }
+            if (!cached) {
+                perm |= Common::MemoryPermission::Write;
+            }
+            buffer->Protect(vaddr, size, perm);
         }
 
         // Iterate over a contiguous CPU address space, which corresponds to the specified GPU
@@ -856,6 +867,13 @@ struct Memory::Impl {
     std::array<GPUDirtyState, Core::Hardware::NUM_CPU_CORES> rasterizer_write_areas{};
     std::span<Core::GPUDirtyMemoryManager> gpu_dirty_managers;
     std::mutex sys_core_guard;
+
+    std::optional<Common::HeapTracker> heap_tracker;
+#ifdef __linux__
+    Common::HeapTracker* buffer{};
+#else
+    Common::HostMemory* buffer{};
+#endif
 };
 
 Memory::Memory(Core::System& system_) : system{system_} {
@@ -873,12 +891,14 @@ void Memory::SetCurrentPageTable(Kernel::KProcess& process) {
 }
 
 void Memory::MapMemoryRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
-                             Common::PhysicalAddress target, Common::MemoryPermission perms) {
-    impl->MapMemoryRegion(page_table, base, size, target, perms);
+                             Common::PhysicalAddress target, Common::MemoryPermission perms,
+                             bool separate_heap) {
+    impl->MapMemoryRegion(page_table, base, size, target, perms, separate_heap);
 }
 
-void Memory::UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size) {
-    impl->UnmapRegion(page_table, base, size);
+void Memory::UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
+                         bool separate_heap) {
+    impl->UnmapRegion(page_table, base, size, separate_heap);
 }
 
 void Memory::ProtectRegion(Common::PageTable& page_table, Common::ProcessAddress vaddr, u64 size,
@@ -1048,7 +1068,9 @@ void Memory::FlushRegion(Common::ProcessAddress dest_addr, size_t size) {
 }
 
 bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
-    bool mapped = true;
+    [[maybe_unused]] bool mapped = true;
+    [[maybe_unused]] bool rasterizer = false;
+
     u8* const ptr = impl->GetPointerImpl(
         GetInteger(vaddr),
         [&] {
@@ -1056,8 +1078,26 @@ bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
                       GetInteger(vaddr));
             mapped = false;
         },
-        [&] { impl->system.GPU().InvalidateRegion(GetInteger(vaddr), size); });
+        [&] {
+            impl->system.GPU().InvalidateRegion(GetInteger(vaddr), size);
+            rasterizer = true;
+        });
+
+#ifdef __linux__
+    if (!rasterizer && mapped) {
+        impl->buffer->DeferredMapSeparateHeap(GetInteger(vaddr));
+    }
+#endif
+
     return mapped && ptr != nullptr;
+}
+
+bool Memory::InvalidateSeparateHeap(void* fault_address) {
+#ifdef __linux__
+    return impl->buffer->DeferredMapSeparateHeap(static_cast<u8*>(fault_address));
+#else
+    return false;
+#endif
 }
 
 } // namespace Core::Memory
