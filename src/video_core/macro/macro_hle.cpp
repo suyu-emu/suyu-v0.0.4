@@ -327,12 +327,13 @@ public:
     explicit HLE_DrawIndirectByteCount(Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
 
     void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
+        const bool force = maxwell3d.Rasterizer().HasDrawTransformFeedback();
+
         auto topology = static_cast<Maxwell3D::Regs::PrimitiveTopology>(parameters[0] & 0xFFFFU);
-        if (!maxwell3d.AnyParametersDirty() || !IsTopologySafe(topology)) {
+        if (!force && (!maxwell3d.AnyParametersDirty() || !IsTopologySafe(topology))) {
             Fallback(parameters);
             return;
         }
-
         auto& params = maxwell3d.draw_manager->GetIndirectParams();
         params.is_byte_count = true;
         params.is_indexed = false;
@@ -503,6 +504,8 @@ public:
         maxwell3d.CallMethod(static_cast<size_t>(MAXWELL3D_REG_INDEX(launch_dma)), 0x1011, true);
         maxwell3d.CallMethod(static_cast<size_t>(MAXWELL3D_REG_INDEX(inline_data)),
                              regs.transform_feedback.controls[0].stride, true);
+
+        maxwell3d.Rasterizer().RegisterTransformFeedback(regs.upload.dest.Address());
     }
 };
 

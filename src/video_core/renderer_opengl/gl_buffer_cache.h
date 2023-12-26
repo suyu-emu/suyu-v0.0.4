@@ -5,6 +5,7 @@
 
 #include <array>
 #include <span>
+#include <unordered_map>
 
 #include "common/common_types.h"
 #include "video_core/buffer_cache/buffer_cache_base.h"
@@ -121,6 +122,9 @@ public:
     void BindImageBuffer(Buffer& buffer, u32 offset, u32 size,
                          VideoCore::Surface::PixelFormat format);
 
+    void BindTransformFeedbackObject(GPUVAddr tfb_object_addr);
+    GLuint GetTransformFeedbackObject(GPUVAddr tfb_object_addr);
+
     u64 GetDeviceMemoryUsage() const;
 
     void BindFastUniformBuffer(size_t stage, u32 binding_index, u32 size) {
@@ -233,6 +237,7 @@ private:
     u32 index_buffer_offset = 0;
 
     u64 device_access_memory;
+    std::unordered_map<GPUVAddr, OGLTransformFeedback> tfb_objects;
 };
 
 struct BufferCacheParams {
