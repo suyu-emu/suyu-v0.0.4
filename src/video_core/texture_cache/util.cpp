@@ -837,6 +837,7 @@ boost::container::small_vector<BufferImageCopy, 16> UnswizzleImage(Tegra::Memory
                                                                    std::span<u8> output) {
     const size_t guest_size_bytes = input.size_bytes();
     const u32 bpp_log2 = BytesPerBlockLog2(info.format);
+    const Extent2D tile_size = DefaultBlockSize(info.format);
     const Extent3D size = info.size;
 
     if (info.type == ImageType::Linear) {
@@ -847,7 +848,7 @@ boost::container::small_vector<BufferImageCopy, 16> UnswizzleImage(Tegra::Memory
         return {{
             .buffer_offset = 0,
             .buffer_size = guest_size_bytes,
-            .buffer_row_length = info.pitch >> bpp_log2,
+            .buffer_row_length = info.pitch * tile_size.width >> bpp_log2,
             .buffer_image_height = size.height,
             .image_subresource =
                 {
@@ -862,7 +863,6 @@ boost::container::small_vector<BufferImageCopy, 16> UnswizzleImage(Tegra::Memory
     const LevelInfo level_info = MakeLevelInfo(info);
     const s32 num_layers = info.resources.layers;
     const s32 num_levels = info.resources.levels;
-    const Extent2D tile_size = DefaultBlockSize(info.format);
     const std::array level_sizes = CalculateLevelSizes(level_info, num_levels);
     const Extent2D gob = GobSize(bpp_log2, info.block.height, info.tile_width_spacing);
     const u32 layer_size = CalculateLevelBytes(level_sizes, num_levels);
@@ -926,8 +926,6 @@ void ConvertImage(std::span<const u8> input, const ImageInfo& info, std::span<u8
 
         const auto input_offset = input.subspan(copy.buffer_offset);
         copy.buffer_offset = output_offset;
-        copy.buffer_row_length = mip_size.width;
-        copy.buffer_image_height = mip_size.height;
 
         const auto recompression_setting = Settings::values.astc_recompression.GetValue();
         const bool astc = IsPixelFormatASTC(info.format);
@@ -972,16 +970,14 @@ void ConvertImage(std::span<const u8> input, const ImageInfo& info, std::span<u8
                 bpp_div;
             output_offset += static_cast<u32>(copy.buffer_size);
         } else {
-            const Extent3D image_extent{
-                .width = copy.image_extent.width,
-                .height = copy.image_extent.height * copy.image_subresource.num_layers,
-                .depth = copy.image_extent.depth,
-            };
-            DecompressBCn(input_offset, output.subspan(output_offset), image_extent, info.format);
+            DecompressBCn(input_offset, output.subspan(output_offset), copy, info.format);
             output_offset += copy.image_extent.width * copy.image_extent.height *
                              copy.image_subresource.num_layers *
                              ConvertedBytesPerBlock(info.format);
         }
+
+        copy.buffer_row_length = mip_size.width;
+        copy.buffer_image_height = mip_size.height;
     }
 }
 

@@ -13,7 +13,7 @@ namespace VideoCommon {
 
 [[nodiscard]] u32 ConvertedBytesPerBlock(VideoCore::Surface::PixelFormat pixel_format);
 
-void DecompressBCn(std::span<const u8> input, std::span<u8> output, Extent3D extent,
+void DecompressBCn(std::span<const u8> input, std::span<u8> output, BufferImageCopy& copy,
                    VideoCore::Surface::PixelFormat pixel_format);
 
 } // namespace VideoCommon
