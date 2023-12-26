@@ -755,10 +755,10 @@ VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags
     // The wanted format is not supported by hardware, search for alternatives
     const VkFormat* alternatives = GetFormatAlternatives(wanted_format);
     if (alternatives == nullptr) {
-        ASSERT_MSG(false,
-                   "Format={} with usage={} and type={} has no defined alternatives and host "
-                   "hardware does not support it",
-                   wanted_format, wanted_usage, format_type);
+        LOG_ERROR(Render_Vulkan,
+                  "Format={} with usage={} and type={} has no defined alternatives and host "
+                  "hardware does not support it",
+                  wanted_format, wanted_usage, format_type);
         return wanted_format;
     }
 
@@ -774,10 +774,10 @@ VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags
     }
 
     // No alternatives found, panic
-    ASSERT_MSG(false,
-               "Format={} with usage={} and type={} is not supported by the host hardware and "
-               "doesn't support any of the alternatives",
-               wanted_format, wanted_usage, format_type);
+    LOG_ERROR(Render_Vulkan,
+              "Format={} with usage={} and type={} is not supported by the host hardware and "
+              "doesn't support any of the alternatives",
+              wanted_format, wanted_usage, format_type);
     return wanted_format;
 }
 
