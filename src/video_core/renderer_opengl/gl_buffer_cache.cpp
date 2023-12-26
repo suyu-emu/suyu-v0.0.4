@@ -376,4 +376,15 @@ void BufferCacheRuntime::BindImageBuffer(Buffer& buffer, u32 offset, u32 size, P
     *image_handles++ = buffer.View(offset, size, format);
 }
 
+void BufferCacheRuntime::BindTransformFeedbackObject(GPUVAddr tfb_object_addr) {
+    OGLTransformFeedback& tfb_object = tfb_objects[tfb_object_addr];
+    tfb_object.Create();
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, tfb_object.handle);
+}
+
+GLuint BufferCacheRuntime::GetTransformFeedbackObject(GPUVAddr tfb_object_addr) {
+    ASSERT(tfb_objects.contains(tfb_object_addr));
+    return tfb_objects[tfb_object_addr].handle;
+}
+
 } // namespace OpenGL

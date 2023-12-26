@@ -139,6 +139,12 @@ public:
 
     void ReleaseChannel(s32 channel_id) override;
 
+    void RegisterTransformFeedback(GPUVAddr tfb_object_addr) override;
+
+    bool HasDrawTransformFeedback() override {
+        return true;
+    }
+
 private:
     static constexpr size_t MAX_TEXTURES = 192;
     static constexpr size_t MAX_IMAGES = 48;

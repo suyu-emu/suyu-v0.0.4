@@ -173,5 +173,13 @@ public:
     virtual void BindChannel(Tegra::Control::ChannelState& channel) {}
 
     virtual void ReleaseChannel(s32 channel_id) {}
+
+    /// Register the address as a Transform Feedback Object
+    virtual void RegisterTransformFeedback(GPUVAddr tfb_object_addr) {}
+
+    /// Returns true when the rasterizer has Draw Transform Feedback capabilities
+    virtual bool HasDrawTransformFeedback() {
+        return false;
+    }
 };
 } // namespace VideoCore
