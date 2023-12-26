@@ -5,6 +5,7 @@
 
 #include <optional>
 
+#include "core/hle/kernel/k_light_lock.h"
 #include "core/hle/kernel/k_page_group.h"
 #include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/kernel/svc_types.h"
