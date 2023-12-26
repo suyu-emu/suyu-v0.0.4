@@ -104,6 +104,9 @@ protected:
         ChangePermissionsAndRefresh = 5,
         ChangePermissionsAndRefreshAndFlush = 6,
         Separate = 7,
+
+        MapFirstGroupPhysical = 65000,
+        UnmapPhysical = 65001,
     };
 
     static constexpr size_t MaxPhysicalMapAlignment = 1_GiB;

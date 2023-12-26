@@ -434,7 +434,7 @@ Result KPageTableBase::InitializeForProcess(Svc::CreateProcessFlag as_type, bool
 void KPageTableBase::Finalize() {
     auto HostUnmapCallback = [&](KProcessAddress addr, u64 size) {
         if (Settings::IsFastmemEnabled()) {
-            m_system.DeviceMemory().buffer.Unmap(GetInteger(addr), size);
+            m_system.DeviceMemory().buffer.Unmap(GetInteger(addr), size, false);
         }
     };
 
@@ -5243,7 +5243,7 @@ Result KPageTableBase::MapPhysicalMemory(KProcessAddress address, size_t size) {
                                 // Unmap.
                                 R_ASSERT(this->Operate(updater.GetPageList(), cur_address,
                                                        cur_pages, 0, false, unmap_properties,
-                                                       OperationType::Unmap, true));
+                                                       OperationType::UnmapPhysical, true));
                             }
 
                             // Check if we're done.
@@ -5326,7 +5326,7 @@ Result KPageTableBase::MapPhysicalMemory(KProcessAddress address, size_t size) {
                             // Map the papges.
                             R_TRY(this->Operate(updater.GetPageList(), cur_address, map_pages,
                                                 cur_pg, map_properties,
-                                                OperationType::MapFirstGroup, false));
+                                                OperationType::MapFirstGroupPhysical, false));
                         }
                     }
 
@@ -5480,7 +5480,7 @@ Result KPageTableBase::UnmapPhysicalMemory(KProcessAddress address, size_t size)
 
             // Unmap.
             R_ASSERT(this->Operate(updater.GetPageList(), cur_address, cur_pages, 0, false,
-                                   unmap_properties, OperationType::Unmap, false));
+                                   unmap_properties, OperationType::UnmapPhysical, false));
         }
 
         // Check if we're done.
@@ -5655,7 +5655,10 @@ Result KPageTableBase::Operate(PageLinkedList* page_list, KProcessAddress virt_a
     // or free them to the page list, and so it goes unused (along with page properties).
 
     switch (operation) {
-    case OperationType::Unmap: {
+    case OperationType::Unmap:
+    case OperationType::UnmapPhysical: {
+        const bool separate_heap = operation == OperationType::UnmapPhysical;
+
         // Ensure that any pages we track are closed on exit.
         KPageGroup pages_to_close(m_kernel, this->GetBlockInfoManager());
         SCOPE_EXIT({ pages_to_close.CloseAndReset(); });
@@ -5664,7 +5667,7 @@ Result KPageTableBase::Operate(PageLinkedList* page_list, KProcessAddress virt_a
         this->MakePageGroup(pages_to_close, virt_addr, num_pages);
 
         // Unmap.
-        m_memory->UnmapRegion(*m_impl, virt_addr, num_pages * PageSize);
+        m_memory->UnmapRegion(*m_impl, virt_addr, num_pages * PageSize, separate_heap);
 
         R_SUCCEED();
     }
@@ -5672,7 +5675,7 @@ Result KPageTableBase::Operate(PageLinkedList* page_list, KProcessAddress virt_a
         ASSERT(virt_addr != 0);
         ASSERT(Common::IsAligned(GetInteger(virt_addr), PageSize));
         m_memory->MapMemoryRegion(*m_impl, virt_addr, num_pages * PageSize, phys_addr,
-                                  ConvertToMemoryPermission(properties.perm));
+                                  ConvertToMemoryPermission(properties.perm), false);
 
         // Open references to pages, if we should.
         if (this->IsHeapPhysicalAddress(phys_addr)) {
@@ -5711,16 +5714,19 @@ Result KPageTableBase::Operate(PageLinkedList* page_list, KProcessAddress virt_a
 
     switch (operation) {
     case OperationType::MapGroup:
-    case OperationType::MapFirstGroup: {
+    case OperationType::MapFirstGroup:
+    case OperationType::MapFirstGroupPhysical: {
+        const bool separate_heap = operation == OperationType::MapFirstGroupPhysical;
+
         // We want to maintain a new reference to every page in the group.
-        KScopedPageGroup spg(page_group, operation != OperationType::MapFirstGroup);
+        KScopedPageGroup spg(page_group, operation == OperationType::MapGroup);
 
         for (const auto& node : page_group) {
             const size_t size{node.GetNumPages() * PageSize};
 
             // Map the pages.
             m_memory->MapMemoryRegion(*m_impl, virt_addr, size, node.GetAddress(),
-                                      ConvertToMemoryPermission(properties.perm));
+                                      ConvertToMemoryPermission(properties.perm), separate_heap);
 
             virt_addr += size;
         }

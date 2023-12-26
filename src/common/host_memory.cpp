@@ -679,7 +679,7 @@ HostMemory::HostMemory(HostMemory&&) noexcept = default;
 HostMemory& HostMemory::operator=(HostMemory&&) noexcept = default;
 
 void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length,
-                     MemoryPermission perms) {
+                     MemoryPermission perms, bool separate_heap) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(host_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
@@ -691,7 +691,7 @@ void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length,
     impl->Map(virtual_offset + virtual_base_offset, host_offset, length, perms);
 }
 
-void HostMemory::Unmap(size_t virtual_offset, size_t length) {
+void HostMemory::Unmap(size_t virtual_offset, size_t length, bool separate_heap) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
     ASSERT(virtual_offset + length <= virtual_size);
@@ -701,14 +701,16 @@ void HostMemory::Unmap(size_t virtual_offset, size_t length) {
     impl->Unmap(virtual_offset + virtual_base_offset, length);
 }
 
-void HostMemory::Protect(size_t virtual_offset, size_t length, bool read, bool write,
-                         bool execute) {
+void HostMemory::Protect(size_t virtual_offset, size_t length, MemoryPermission perm) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
     ASSERT(virtual_offset + length <= virtual_size);
     if (length == 0 || !virtual_base || !impl) {
         return;
     }
+    const bool read = True(perm & MemoryPermission::Read);
+    const bool write = True(perm & MemoryPermission::Write);
+    const bool execute = True(perm & MemoryPermission::Execute);
     impl->Protect(virtual_offset + virtual_base_offset, length, read, write, execute);
 }
 
