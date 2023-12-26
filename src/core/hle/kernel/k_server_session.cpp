@@ -1147,8 +1147,7 @@ Result KServerSession::ReceiveRequest(uintptr_t server_message, uintptr_t server
         *out_context =
             std::make_shared<Service::HLERequestContext>(m_kernel, memory, this, client_thread);
         (*out_context)->SetSessionRequestManager(manager);
-        (*out_context)
-            ->PopulateFromIncomingCommandBuffer(*client_thread->GetOwnerProcess(), cmd_buf);
+        (*out_context)->PopulateFromIncomingCommandBuffer(cmd_buf);
         // We succeeded.
         R_SUCCEED();
     } else {

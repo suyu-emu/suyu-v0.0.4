@@ -651,10 +651,9 @@ private:
     void RegisterProcessHandle(HLERequestContext& ctx) {
         LOG_DEBUG(Service_LDR, "(called)");
 
-        auto process_h = ctx.GetClientHandleTable().GetObject(ctx.GetCopyHandle(0));
+        auto process = ctx.GetObjectFromHandle<Kernel::KProcess>(ctx.GetCopyHandle(0));
         auto client_pid = ctx.GetPID();
-        auto result = interface.RegisterProcessHandle(client_pid,
-                                                      process_h->DynamicCast<Kernel::KProcess*>());
+        auto result = interface.RegisterProcessHandle(client_pid, process.GetPointerUnsafe());
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
@@ -671,12 +670,11 @@ private:
 
         IPC::RequestParser rp{ctx};
         auto params = rp.PopRaw<InputParameters>();
-        auto process_h = ctx.GetClientHandleTable().GetObject(ctx.GetCopyHandle(0));
+        auto process = ctx.GetObjectFromHandle<Kernel::KProcess>(ctx.GetCopyHandle(0));
 
         auto client_pid = ctx.GetPID();
-        auto result =
-            interface.RegisterProcessModuleInfo(client_pid, params.nrr_address, params.nrr_size,
-                                                process_h->DynamicCast<Kernel::KProcess*>());
+        auto result = interface.RegisterProcessModuleInfo(
+            client_pid, params.nrr_address, params.nrr_size, process.GetPointerUnsafe());
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
