@@ -278,9 +278,7 @@ void HwOpus::OpenHardwareOpusDecoder(HLERequestContext& ctx) {
     auto params = rp.PopRaw<OpusParameters>();
     auto transfer_memory_size{rp.Pop<u32>()};
     auto transfer_memory_handle{ctx.GetCopyHandle(0)};
-    auto transfer_memory{
-        system.ApplicationProcess()->GetHandleTable().GetObject<Kernel::KTransferMemory>(
-            transfer_memory_handle)};
+    auto transfer_memory{ctx.GetObjectFromHandle<Kernel::KTransferMemory>(transfer_memory_handle)};
 
     LOG_DEBUG(Service_Audio, "sample_rate {} channel_count {} transfer_memory_size 0x{:X}",
               params.sample_rate, params.channel_count, transfer_memory_size);
@@ -323,9 +321,7 @@ void HwOpus::OpenHardwareOpusDecoderForMultiStream(HLERequestContext& ctx) {
 
     auto transfer_memory_size{rp.Pop<u32>()};
     auto transfer_memory_handle{ctx.GetCopyHandle(0)};
-    auto transfer_memory{
-        system.ApplicationProcess()->GetHandleTable().GetObject<Kernel::KTransferMemory>(
-            transfer_memory_handle)};
+    auto transfer_memory{ctx.GetObjectFromHandle<Kernel::KTransferMemory>(transfer_memory_handle)};
 
     LOG_DEBUG(Service_Audio,
               "sample_rate {} channel_count {} total_stream_count {} stereo_stream_count {} "
@@ -374,9 +370,7 @@ void HwOpus::OpenHardwareOpusDecoderEx(HLERequestContext& ctx) {
     auto params = rp.PopRaw<OpusParametersEx>();
     auto transfer_memory_size{rp.Pop<u32>()};
     auto transfer_memory_handle{ctx.GetCopyHandle(0)};
-    auto transfer_memory{
-        system.ApplicationProcess()->GetHandleTable().GetObject<Kernel::KTransferMemory>(
-            transfer_memory_handle)};
+    auto transfer_memory{ctx.GetObjectFromHandle<Kernel::KTransferMemory>(transfer_memory_handle)};
 
     LOG_DEBUG(Service_Audio, "sample_rate {} channel_count {} transfer_memory_size 0x{:X}",
               params.sample_rate, params.channel_count, transfer_memory_size);
@@ -414,9 +408,7 @@ void HwOpus::OpenHardwareOpusDecoderForMultiStreamEx(HLERequestContext& ctx) {
 
     auto transfer_memory_size{rp.Pop<u32>()};
     auto transfer_memory_handle{ctx.GetCopyHandle(0)};
-    auto transfer_memory{
-        system.ApplicationProcess()->GetHandleTable().GetObject<Kernel::KTransferMemory>(
-            transfer_memory_handle)};
+    auto transfer_memory{ctx.GetObjectFromHandle<Kernel::KTransferMemory>(transfer_memory_handle)};
 
     LOG_DEBUG(Service_Audio,
               "sample_rate {} channel_count {} total_stream_count {} stereo_stream_count {} "

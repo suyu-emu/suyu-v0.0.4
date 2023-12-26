@@ -1513,8 +1513,7 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(HLERequestContext& ctx) 
         return;
     }
 
-    auto transfer_mem =
-        system.ApplicationProcess()->GetHandleTable().GetObject<Kernel::KTransferMemory>(handle);
+    auto transfer_mem = ctx.GetObjectFromHandle<Kernel::KTransferMemory>(handle);
 
     if (transfer_mem.IsNull()) {
         LOG_ERROR(Service_AM, "transfer_mem is a nullptr for handle={:08X}", handle);
@@ -1524,8 +1523,7 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(HLERequestContext& ctx) 
     }
 
     std::vector<u8> memory(transfer_mem->GetSize());
-    system.ApplicationMemory().ReadBlock(transfer_mem->GetSourceAddress(), memory.data(),
-                                         memory.size());
+    ctx.GetMemory().ReadBlock(transfer_mem->GetSourceAddress(), memory.data(), memory.size());
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
@@ -1547,8 +1545,7 @@ void ILibraryAppletCreator::CreateHandleStorage(HLERequestContext& ctx) {
         return;
     }
 
-    auto transfer_mem =
-        system.ApplicationProcess()->GetHandleTable().GetObject<Kernel::KTransferMemory>(handle);
+    auto transfer_mem = ctx.GetObjectFromHandle<Kernel::KTransferMemory>(handle);
 
     if (transfer_mem.IsNull()) {
         LOG_ERROR(Service_AM, "transfer_mem is a nullptr for handle={:08X}", handle);
@@ -1558,8 +1555,7 @@ void ILibraryAppletCreator::CreateHandleStorage(HLERequestContext& ctx) {
     }
 
     std::vector<u8> memory(transfer_mem->GetSize());
-    system.ApplicationMemory().ReadBlock(transfer_mem->GetSourceAddress(), memory.data(),
-                                         memory.size());
+    ctx.GetMemory().ReadBlock(transfer_mem->GetSourceAddress(), memory.data(), memory.size());
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
