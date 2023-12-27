@@ -86,6 +86,7 @@ private:
 
 private:
     Common::HostMemory& m_buffer;
+    const s64 m_max_resident_map_count;
 
     std::shared_mutex m_rebuild_lock{};
     std::mutex m_lock{};
