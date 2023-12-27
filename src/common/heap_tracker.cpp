@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <algorithm>
+#include <fstream>
 #include <vector>
 
 #include "common/heap_tracker.h"
@@ -11,11 +11,25 @@ namespace Common {
 
 namespace {
 
-constexpr s64 MaxResidentMapCount = 0x8000;
+s64 GetMaxPermissibleResidentMapCount() {
+    // Default value.
+    s64 value = 65530;
+
+    // Try to read how many mappings we can make.
+    std::ifstream s("/proc/sys/vm/max_map_count");
+    s >> value;
+
+    // Print, for debug.
+    LOG_INFO(HW_Memory, "Current maximum map count: {}", value);
+
+    // Allow 20000 maps for other code and to account for split inaccuracy.
+    return std::max<s64>(value - 20000, 0);
+}
 
 } // namespace
 
-HeapTracker::HeapTracker(Common::HostMemory& buffer) : m_buffer(buffer) {}
+HeapTracker::HeapTracker(Common::HostMemory& buffer)
+    : m_buffer(buffer), m_max_resident_map_count(GetMaxPermissibleResidentMapCount()) {}
 HeapTracker::~HeapTracker() = default;
 
 void HeapTracker::Map(size_t virtual_offset, size_t host_offset, size_t length,
@@ -74,8 +88,8 @@ void HeapTracker::Unmap(size_t virtual_offset, size_t size, bool is_separate_hea
             }
 
             // Erase from map.
-            it = m_mappings.erase(it);
             ASSERT(--m_map_count >= 0);
+            it = m_mappings.erase(it);
 
             // Free the item.
             delete item;
@@ -94,8 +108,8 @@ void HeapTracker::Protect(size_t virtual_offset, size_t size, MemoryPermission p
     this->SplitHeapMap(virtual_offset, size);
 
     // Declare tracking variables.
+    const VAddr end = virtual_offset + size;
     VAddr cur = virtual_offset;
-    VAddr end = virtual_offset + size;
 
     while (cur < end) {
         VAddr next = cur;
@@ -167,7 +181,7 @@ bool HeapTracker::DeferredMapSeparateHeap(size_t virtual_offset) {
         it->tick = m_tick++;
 
         // Check if we need to rebuild.
-        if (m_resident_map_count > MaxResidentMapCount) {
+        if (m_resident_map_count > m_max_resident_map_count) {
             rebuild_required = true;
         }
 
@@ -193,8 +207,12 @@ void HeapTracker::RebuildSeparateHeapAddressSpace() {
 
     ASSERT(!m_resident_mappings.empty());
 
-    // Unmap so we have at least 4 maps available.
-    const size_t desired_count = std::min(m_resident_map_count, MaxResidentMapCount - 4);
+    // Dump half of the mappings.
+    //
+    // Despite being worse in theory, this has proven to be better in practice than more
+    // regularly dumping a smaller amount, because it significantly reduces average case
+    // lock contention.
+    const size_t desired_count = std::min(m_resident_map_count, m_max_resident_map_count) / 2;
     const size_t evict_count = m_resident_map_count - desired_count;
     auto it = m_resident_mappings.begin();
 
@@ -247,8 +265,8 @@ void HeapTracker::SplitHeapMapLocked(VAddr offset) {
 
     // If resident, also insert into resident map.
     if (right->is_resident) {
-        m_resident_mappings.insert(*right);
         m_resident_map_count++;
+        m_resident_mappings.insert(*right);
     }
 }
 
