@@ -96,9 +96,9 @@ Id ImageType(EmitContext& ctx, const ImageDescriptor& desc, Id sampled_type) {
 }
 
 Id DefineVariable(EmitContext& ctx, Id type, std::optional<spv::BuiltIn> builtin,
-                  spv::StorageClass storage_class) {
+                  spv::StorageClass storage_class, std::optional<Id> initializer = std::nullopt) {
     const Id pointer_type{ctx.TypePointer(storage_class, type)};
-    const Id id{ctx.AddGlobalVariable(pointer_type, storage_class)};
+    const Id id{ctx.AddGlobalVariable(pointer_type, storage_class, initializer)};
     if (builtin) {
         ctx.Decorate(id, spv::Decoration::BuiltIn, *builtin);
     }
@@ -144,11 +144,12 @@ Id DefineInput(EmitContext& ctx, Id type, bool per_invocation,
 }
 
 Id DefineOutput(EmitContext& ctx, Id type, std::optional<u32> invocations,
-                std::optional<spv::BuiltIn> builtin = std::nullopt) {
+                std::optional<spv::BuiltIn> builtin = std::nullopt,
+                std::optional<Id> initializer = std::nullopt) {
     if (invocations && ctx.stage == Stage::TessellationControl) {
         type = ctx.TypeArray(type, ctx.Const(*invocations));
     }
-    return DefineVariable(ctx, type, builtin, spv::StorageClass::Output);
+    return DefineVariable(ctx, type, builtin, spv::StorageClass::Output, initializer);
 }
 
 void DefineGenericOutput(EmitContext& ctx, size_t index, std::optional<u32> invocations) {
@@ -1541,9 +1542,14 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
             throw NotImplementedException("Storing ClipDistance in fragment stage");
         }
         if (profile.max_user_clip_distances > 0) {
-            const Id type{TypeArray(F32[1], Const(std::min(info.used_clip_distances,
-                                                           profile.max_user_clip_distances)))};
-            clip_distances = DefineOutput(*this, type, invocations, spv::BuiltIn::ClipDistance);
+            const u32 used{std::min(profile.max_user_clip_distances, 8u)};
+            const std::array<Id, 8> zero{f32_zero_value, f32_zero_value, f32_zero_value,
+                                         f32_zero_value, f32_zero_value, f32_zero_value,
+                                         f32_zero_value, f32_zero_value};
+            const Id type{TypeArray(F32[1], Const(used))};
+            const Id initializer{ConstantComposite(type, std::span(zero).subspan(0, used))};
+            clip_distances =
+                DefineOutput(*this, type, invocations, spv::BuiltIn::ClipDistance, initializer);
         }
     }
     if (info.stores[IR::Attribute::Layer] &&
