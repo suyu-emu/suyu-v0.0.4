@@ -185,6 +185,10 @@ Result KCapabilities::ProcessMapRegionCapability(const u32 cap, F f) {
         case RegionType::NoMapping:
             break;
         case RegionType::KernelTraceBuffer:
+            if constexpr (!IsKTraceEnabled) {
+                break;
+            }
+            [[fallthrough]];
         case RegionType::OnMemoryBootImage:
         case RegionType::DTB:
             R_TRY(f(MemoryRegions[static_cast<u32>(type)], perm));
@@ -330,8 +334,6 @@ Result KCapabilities::SetCapabilities(std::span<const u32> caps, KProcessPageTab
 
             // Map the range.
             R_TRY(this->MapRange_(cap, size_cap, page_table));
-        } else if (GetCapabilityType(cap) == CapabilityType::MapRegion && !IsKTraceEnabled) {
-            continue;
         } else {
             R_TRY(this->SetCapability(cap, set_flags, set_svc, page_table));
         }
