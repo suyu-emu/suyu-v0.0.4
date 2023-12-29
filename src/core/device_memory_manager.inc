@@ -18,9 +18,116 @@
 
 namespace Core {
 
+namespace {
+
+class PhysicalAddressContainer {
+public:
+    PhysicalAddressContainer() = default;
+    ~PhysicalAddressContainer() = default;
+
+    void GatherValues(u32 start_entry, Common::ScratchBuffer<u32>& buffer) {
+        buffer.resize(8);
+        buffer.resize(0);
+        size_t index = 0;
+        const auto add_value = [&](u32 value) {
+            buffer[index] = value;
+            index++;
+            buffer.resize(index);
+        };
+
+        u32 iter_entry = start_entry;
+        Entry* current = &storage[iter_entry - 1];
+        add_value(current->value);
+        while (current->next_entry != 0) {
+            iter_entry = current->next_entry;
+            current = &storage[iter_entry - 1];
+            add_value(current->value);
+        }
+    }
+
+    u32 Register(u32 value) {
+        return RegisterImplementation(value);
+    }
+
+    void Register(u32 value, u32 start_entry) {
+        auto entry_id = RegisterImplementation(value);
+        u32 iter_entry = start_entry;
+        Entry* current = &storage[iter_entry - 1];
+        while (current->next_entry != 0) {
+            iter_entry = current->next_entry;
+            current = &storage[iter_entry - 1];
+        }
+        current->next_entry = entry_id;
+    }
+
+    std::pair<bool, u32> Unregister(u32 value, u32 start_entry) {
+        u32 iter_entry = start_entry;
+        Entry* previous{};
+        Entry* current = &storage[iter_entry - 1];
+        Entry* next{};
+        bool more_than_one_remaining = false;
+        u32 result_start{start_entry};
+        size_t count = 0;
+        while (current->value != value) {
+            count++;
+            previous = current;
+            iter_entry = current->next_entry;
+            current = &storage[iter_entry - 1];
+        }
+        // Find next
+        u32 next_entry = current->next_entry;
+        if (next_entry != 0) {
+            next = &storage[next_entry - 1];
+            more_than_one_remaining = next->next_entry != 0;
+        }
+        if (previous) {
+            previous->next_entry = next_entry;
+        } else {
+            result_start = next_entry;
+        }
+        free_entries.emplace_back(iter_entry);
+        return std::make_pair(more_than_one_remaining || count > 1, result_start);
+    }
+
+    u32 ReleaseEntry(u32 start_entry) {
+        Entry* current = &storage[start_entry - 1];
+        free_entries.emplace_back(start_entry);
+        return current->value;
+    }
+
+private:
+    u32 RegisterImplementation(u32 value) {
+        auto entry_id = GetNewEntry();
+        auto& entry = storage[entry_id - 1];
+        entry.next_entry = 0;
+        entry.value = value;
+        return entry_id;
+    }
+    u32 GetNewEntry() {
+        if (!free_entries.empty()) {
+            u32 result = free_entries.front();
+            free_entries.pop_front();
+            return result;
+        }
+        storage.emplace_back();
+        u32 new_entry = static_cast<u32>(storage.size());
+        return new_entry;
+    }
+
+    struct Entry {
+        u32 next_entry{};
+        u32 value{};
+    };
+
+    std::deque<Entry> storage;
+    std::deque<u32> free_entries;
+};
+
 struct EmptyAllocator {
     EmptyAllocator([[maybe_unused]] DAddr address) {}
 };
+
+} // namespace
 
 template <typename DTraits>
 struct DeviceMemoryManagerAllocator {
@@ -38,6 +145,7 @@ struct DeviceMemoryManagerAllocator {
     std::conditional_t<supports_pinning, Common::FlatAllocator<DAddr, 0, pin_bits>, EmptyAllocator>
         pin_allocator;
     Common::FlatAllocator<DAddr, 0, device_virtual_bits> main_allocator;
+    PhysicalAddressContainer multi_dev_address;
 
     /// Returns true when vaddr -> vaddr+size is fully contained in the buffer
     template <bool pin_area>
@@ -109,6 +217,9 @@ DeviceMemoryManager<Traits>::DeviceMemoryManager(const DeviceMemory& device_memo
       cpu_backing_address(device_as_size >> Memory::YUZU_PAGEBITS) {
     impl = std::make_unique<DeviceMemoryManagerAllocator<Traits>>();
     cached_pages = std::make_unique<CachedPages>();
+    for (size_t i = 0; i < 1ULL << (33 - 12); i++) {
+        compressed_device_addr[i] = 0;
+    }
 }
 
 template <typename Traits>
@@ -155,8 +266,19 @@ void DeviceMemoryManager<Traits>::Map(DAddr address, VAddr virtual_address, size
         }
         auto phys_addr = static_cast<u32>(GetRawPhysicalAddr(ptr) >> Memory::YUZU_PAGEBITS) + 1U;
         compressed_physical_ptr[start_page_d + i] = phys_addr;
-        compressed_device_addr[phys_addr - 1U] = static_cast<u32>(start_page_d + i);
         InsertCPUBacking(start_page_d + i, new_vaddress, process_id);
+        const u32 base_dev = compressed_device_addr[phys_addr - 1U];
+        const u32 new_dev = static_cast<u32>(start_page_d + i);
+        if (base_dev == 0) [[likely]] {
+            compressed_device_addr[phys_addr - 1U] = new_dev;
+            continue;
+        }
+        u32 start_id = base_dev & MULTI_MASK;
+        if ((base_dev >> MULTI_FLAG_BITS) == 0) {
+            start_id = impl->multi_dev_address.Register(base_dev);
+            compressed_device_addr[phys_addr - 1U] = MULTI_FLAG | start_id;
+        }
+        impl->multi_dev_address.Register(new_dev, start_id);
     }
 }
 
@@ -170,10 +292,36 @@ void DeviceMemoryManager<Traits>::Unmap(DAddr address, size_t size) {
         auto phys_addr = compressed_physical_ptr[start_page_d + i];
         compressed_physical_ptr[start_page_d + i] = 0;
         cpu_backing_address[start_page_d + i] = 0;
-        if (phys_addr != 0) {
-            compressed_device_addr[phys_addr - 1] = 0;
+        if (phys_addr != 0) [[likely]] {
+            const u32 base_dev = compressed_device_addr[phys_addr - 1U];
+            if ((base_dev >> MULTI_FLAG_BITS) == 0) [[likely]] {
+                compressed_device_addr[phys_addr - 1] = 0;
+                continue;
+            }
+            const auto [more_entries, new_start] = impl->multi_dev_address.Unregister(
+                static_cast<u32>(start_page_d + i), base_dev & MULTI_MASK);
+            if (!more_entries) {
+                compressed_device_addr[phys_addr - 1] =
+                    impl->multi_dev_address.ReleaseEntry(new_start);
+                continue;
+            }
+            compressed_device_addr[phys_addr - 1] = new_start | MULTI_FLAG;
         }
     }
+}
+
+template <typename Traits>
+void DeviceMemoryManager<Traits>::InnerGatherDeviceAddresses(Common::ScratchBuffer<u32>& buffer,
+                                                             PAddr address) {
+    size_t phys_addr = address >> page_bits;
+    std::scoped_lock lk(mapping_guard);
+    u32 backing = compressed_device_addr[phys_addr];
+    if ((backing >> MULTI_FLAG_BITS) != 0) {
+        impl->multi_dev_address.GatherValues(backing & MULTI_MASK, buffer);
+        return;
+    }
+    buffer.resize(1);
+    buffer[0] = backing;
 }
 
 template <typename Traits>

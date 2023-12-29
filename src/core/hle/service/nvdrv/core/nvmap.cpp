@@ -7,6 +7,7 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/memory.h"
 #include "video_core/host1x/host1x.h"
@@ -64,7 +65,7 @@ NvResult NvMap::Handle::Duplicate(bool internal_session) {
     return NvResult::Success;
 }
 
-NvMap::NvMap(Tegra::Host1x::Host1x& host1x_) : host1x{host1x_} {}
+NvMap::NvMap(Container& core_, Tegra::Host1x::Host1x& host1x_) : host1x{host1x_}, core{core_} {}
 
 void NvMap::AddHandle(std::shared_ptr<Handle> handle_description) {
     std::scoped_lock lock(handles_lock);
@@ -160,6 +161,8 @@ DAddr NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id, bool low_are
         // If not then allocate some space and map it
         DAddr address{};
         auto& smmu = host1x.MemoryManager();
+        auto* session = core.GetSession(session_id);
+
         auto allocate = std::bind(&Tegra::MaxwellDeviceMemoryManager::Allocate, &smmu, _1);
                          //: std::bind(&Tegra::MaxwellDeviceMemoryManager::Allocate, &smmu, _1);
         while ((address = allocate(static_cast<size_t>(handle_description->aligned_size))) == 0) {
@@ -179,7 +182,7 @@ DAddr NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id, bool low_are
         handle_description->d_address = address;
 
         smmu.Map(address, handle_description->address, handle_description->aligned_size,
-                 session_id);
+                 session->smmu_id);
     }
 
     handle_description->pins++;

@@ -25,6 +25,8 @@ class Host1x;
 } // namespace Tegra
 
 namespace Service::Nvidia::NvCore {
+
+class Container;
 /**
  * @brief The nvmap core class holds the global state for nvmap and provides methods to manage
  * handles
@@ -109,7 +111,7 @@ public:
         bool can_unlock;   //!< If the address region is ready to be unlocked
     };
 
-    explicit NvMap(Tegra::Host1x::Host1x& host1x);
+    explicit NvMap(Container& core, Tegra::Host1x::Host1x& host1x);
 
     /**
      * @brief Creates an unallocated handle of the given size
@@ -173,5 +175,7 @@ private:
      * @return If the handle was removed from the map
      */
     bool TryRemoveHandle(const Handle& handle_description);
+
+    Container& core;
 };
 } // namespace Service::Nvidia::NvCore

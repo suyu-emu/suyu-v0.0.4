@@ -16,8 +16,8 @@
 namespace Service::Nvidia::NvCore {
 
 struct ContainerImpl {
-    explicit ContainerImpl(Tegra::Host1x::Host1x& host1x_)
-        : host1x{host1x_}, file{host1x_}, manager{host1x_}, device_file_data{} {}
+    explicit ContainerImpl(Container& core, Tegra::Host1x::Host1x& host1x_)
+        : host1x{host1x_}, file{core, host1x_}, manager{host1x_}, device_file_data{} {}
     Tegra::Host1x::Host1x& host1x;
     NvMap file;
     SyncpointManager manager;
@@ -29,7 +29,7 @@ struct ContainerImpl {
 };
 
 Container::Container(Tegra::Host1x::Host1x& host1x_) {
-    impl = std::make_unique<ContainerImpl>(host1x_);
+    impl = std::make_unique<ContainerImpl>(*this, host1x_);
 }
 
 Container::~Container() = default;
