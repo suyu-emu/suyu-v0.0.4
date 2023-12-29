@@ -16,18 +16,17 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
 
-
 namespace Tegra {
 using Tegra::Memory::GuestMemoryFlags;
 
 std::atomic<size_t> MemoryManager::unique_identifier_generator{};
 
-MemoryManager::MemoryManager(Core::System& system_, u64 address_space_bits_, u64 big_page_bits_,
-                             u64 page_bits_)
-    : system{system_}, memory{system.Host1x().MemoryManager()},
-      address_space_bits{address_space_bits_}, page_bits{page_bits_}, big_page_bits{big_page_bits_},
-      entries{}, big_entries{}, page_table{address_space_bits, address_space_bits + page_bits - 38,
-                                           page_bits != big_page_bits ? page_bits : 0},
+MemoryManager::MemoryManager(Core::System& system_, MaxwellDeviceMemoryManager& memory_,
+                             u64 address_space_bits_, u64 big_page_bits_, u64 page_bits_)
+    : system{system_}, memory{memory_}, address_space_bits{address_space_bits_},
+      page_bits{page_bits_}, big_page_bits{big_page_bits_}, entries{}, big_entries{},
+      page_table{address_space_bits, address_space_bits + page_bits - 38,
+                 page_bits != big_page_bits ? page_bits : 0},
       kind_map{PTEKind::INVALID}, unique_identifier{unique_identifier_generator.fetch_add(
                                       1, std::memory_order_acq_rel)},
       accumulator{std::make_unique<VideoCommon::InvalidationAccumulator>()} {
@@ -48,6 +47,11 @@ MemoryManager::MemoryManager(Core::System& system_, u64 address_space_bits_, u64
     big_page_continuous.resize(big_page_table_size / continuous_bits, 0);
     entries.resize(page_table_size / 32, 0);
 }
+
+MemoryManager::MemoryManager(Core::System& system_, u64 address_space_bits_, u64 big_page_bits_,
+                             u64 page_bits_)
+    : MemoryManager(system_, system_.Host1x().MemoryManager(), address_space_bits_, big_page_bits_,
+                    page_bits_) {}
 
 MemoryManager::~MemoryManager() = default;
 

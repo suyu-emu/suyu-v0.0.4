@@ -81,7 +81,7 @@ void Vic::Execute() {
         LOG_ERROR(Service_NVDRV, "VIC Luma address not set.");
         return;
     }
-    const VicConfig config{host1x.MemoryManager().Read<u64>(config_struct_address + 0x20)};
+    const VicConfig config{host1x.GMMU().Read<u64>(config_struct_address + 0x20)};
     auto frame = nvdec_processor->GetFrame();
     if (!frame) {
         return;
@@ -162,11 +162,11 @@ void Vic::WriteRGBFrame(std::unique_ptr<FFmpeg::Frame> frame, const VicConfig& c
         Texture::SwizzleSubrect(luma_buffer, frame_buff, 4, width, height, 1, 0, 0, width, height,
                                 block_height, 0, width * 4);
 
-        host1x.MemoryManager().WriteBlock(output_surface_luma_address, luma_buffer.data(), size);
+        host1x.GMMU().WriteBlock(output_surface_luma_address, luma_buffer.data(), size);
     } else {
         // send pitch linear frame
         const size_t linear_size = width * height * 4;
-        host1x.MemoryManager().WriteBlock(output_surface_luma_address, converted_frame_buf_addr,
+        host1x.GMMU().WriteBlock(output_surface_luma_address, converted_frame_buf_addr,
                                           linear_size);
     }
 }
@@ -193,7 +193,7 @@ void Vic::WriteYUVFrame(std::unique_ptr<FFmpeg::Frame> frame, const VicConfig& c
         const std::size_t dst = y * aligned_width;
         std::memcpy(luma_buffer.data() + dst, luma_src + src, frame_width);
     }
-    host1x.MemoryManager().WriteBlock(output_surface_luma_address, luma_buffer.data(),
+    host1x.GMMU().WriteBlock(output_surface_luma_address, luma_buffer.data(),
                                       luma_buffer.size());
 
     // Chroma
@@ -233,7 +233,7 @@ void Vic::WriteYUVFrame(std::unique_ptr<FFmpeg::Frame> frame, const VicConfig& c
         ASSERT(false);
         break;
     }
-    host1x.MemoryManager().WriteBlock(output_surface_chroma_address, chroma_buffer.data(),
+    host1x.GMMU().WriteBlock(output_surface_chroma_address, chroma_buffer.data(),
                                       chroma_buffer.size());
 }
 

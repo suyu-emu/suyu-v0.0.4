@@ -80,6 +80,15 @@ void NvMap::UnmapHandle(Handle& handle_description) {
         handle_description.unmap_queue_entry.reset();
     }
 
+    // Free and unmap the handle from Host1x GMMU
+    if (handle_description.pin_virt_address) {
+        host1x.GMMU().Unmap(static_cast<GPUVAddr>(handle_description.pin_virt_address),
+                            handle_description.aligned_size);
+        host1x.Allocator().Free(handle_description.pin_virt_address,
+                                static_cast<u32>(handle_description.aligned_size));
+        handle_description.pin_virt_address = 0;
+    }
+
     // Free and unmap the handle from the SMMU
     auto& smmu = host1x.MemoryManager();
     smmu.Unmap(handle_description.d_address, handle_description.aligned_size);
@@ -141,6 +150,17 @@ DAddr NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id, bool low_are
     }
 
     std::scoped_lock lock(handle_description->mutex);
+    const auto map_low_area = [&] {
+        if (handle_description->pin_virt_address == 0) {
+            auto& gmmu_allocator = host1x.Allocator();
+            auto& gmmu = host1x.GMMU();
+            u32 address =
+                gmmu_allocator.Allocate(static_cast<u32>(handle_description->aligned_size));
+            gmmu.Map(static_cast<GPUVAddr>(address), handle_description->d_address,
+                     handle_description->aligned_size);
+            handle_description->pin_virt_address = address;
+        }
+    };
     if (!handle_description->pins) {
         // If we're in the unmap queue we can just remove ourselves and return since we're already
         // mapped
@@ -152,6 +172,12 @@ DAddr NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id, bool low_are
                 unmap_queue.erase(*handle_description->unmap_queue_entry);
                 handle_description->unmap_queue_entry.reset();
 
+                if (low_area_pin) {
+                    map_low_area();
+                    handle_description->pins++;
+                    return static_cast<DAddr>(handle_description->pin_virt_address);
+                }
+
                 handle_description->pins++;
                 return handle_description->d_address;
             }
@@ -162,10 +188,7 @@ DAddr NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id, bool low_are
         DAddr address{};
         auto& smmu = host1x.MemoryManager();
         auto* session = core.GetSession(session_id);
-
-        auto allocate = std::bind(&Tegra::MaxwellDeviceMemoryManager::Allocate, &smmu, _1);
-                         //: std::bind(&Tegra::MaxwellDeviceMemoryManager::Allocate, &smmu, _1);
-        while ((address = allocate(static_cast<size_t>(handle_description->aligned_size))) == 0) {
+        while ((address = smmu.Allocate(handle_description->aligned_size)) == 0) {
             // Free handles until the allocation succeeds
             std::scoped_lock queueLock(unmap_queue_lock);
             if (auto freeHandleDesc{unmap_queue.front()}) {
@@ -185,7 +208,14 @@ DAddr NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id, bool low_are
                  session->smmu_id);
     }
 
+    if (low_area_pin) {
+        map_low_area();
+    }
+
     handle_description->pins++;
+    if (low_area_pin) {
+        return static_cast<DAddr>(handle_description->pin_virt_address);
+    }
     return handle_description->d_address;
 }
 
