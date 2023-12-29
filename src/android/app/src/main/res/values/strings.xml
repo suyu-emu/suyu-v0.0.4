@@ -366,6 +366,7 @@
     <string name="emulation_pause">Pause emulation</string>
     <string name="emulation_unpause">Unpause emulation</string>
     <string name="emulation_input_overlay">Overlay options</string>
+    <string name="touchscreen">Touchscreen</string>
 
     <string name="load_settings">Loading settings…</string>
 
