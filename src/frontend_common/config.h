@@ -213,9 +213,8 @@ private:
                               const std::optional<bool>& use_global);
     void WriteString(const std::string& key, const std::string& value);
 
-    inline static std::array<char, 19> special_characters = {'!', '#', '$',  '%',  '^', '&', '*',
-                                                             '|', ';', '\'', '\"', ',', '<', '.',
-                                                             '>', '?', '`',  '~',  '='};
+    inline static std::array<char, 18> special_characters = {
+        '!', '#', '$', '%', '^', '&', '*', '|', ';', '\'', '\"', ',', '<', '>', '?', '`', '~', '='};
 
     struct ConfigArray {
         std::string name;
