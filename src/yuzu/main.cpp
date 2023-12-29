@@ -5342,6 +5342,10 @@ int main(int argc, char* argv[]) {
     if (QString::fromLocal8Bit(qgetenv("DISPLAY")).isEmpty()) {
         qputenv("DISPLAY", ":0");
     }
+
+    // Fix the Wayland appId. This needs to match the name of the .desktop file without the .desktop
+    // suffix.
+    QGuiApplication::setDesktopFileName(QStringLiteral("org.yuzu_emu.yuzu"));
 #endif
 
     SetHighDPIAttributes();
