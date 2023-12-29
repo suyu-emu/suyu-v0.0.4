@@ -44,7 +44,8 @@ bool AddressSpaceContains(const Common::PageTable& table, const Common::ProcessA
 // from outside classes. This also allows modification to the internals of the memory
 // subsystem without needing to rebuild all files that make use of the memory interface.
 struct Memory::Impl {
-    explicit Impl(Core::System& system_) : system{system_} {}
+    explicit Impl(Core::System& system_)
+        : system{system_} {}
 
     void SetCurrentPageTable(Kernel::KProcess& process) {
         current_page_table = &process.GetPageTable().GetImpl();
@@ -817,26 +818,31 @@ struct Memory::Impl {
     void HandleRasterizerDownload(VAddr v_address, size_t size) {
         const auto* p = GetPointerImpl(
             v_address, []() {}, []() {});
-        auto& gpu_device_memory = system.Host1x().MemoryManager();
-        DAddr address =
-            gpu_device_memory.GetAddressFromPAddr(system.DeviceMemory().GetRawPhysicalAddr(p));
+        if (!gpu_device_memory) [[unlikely]] {
+            gpu_device_memory = &system.Host1x().MemoryManager();
+        }
         const size_t core = system.GetCurrentHostThreadID();
         auto& current_area = rasterizer_read_areas[core];
-        const DAddr end_address = address + size;
-        if (current_area.start_address <= address && end_address <= current_area.end_address)
-            [[likely]] {
-            return;
-        }
-        current_area = system.GPU().OnCPURead(address, size);
+        gpu_device_memory->ApplyOpOnPointer(
+            p, scratch_buffers[core], [&](DAddr address) {
+            const DAddr end_address = address + size;
+            if (current_area.start_address <= address && end_address <= current_area.end_address)
+                [[likely]] {
+                return;
+            }
+            current_area = system.GPU().OnCPURead(address, size);
+        });
     }
 
     void HandleRasterizerWrite(VAddr v_address, size_t size) {
         const auto* p = GetPointerImpl(
             v_address, []() {}, []() {});
-        PAddr address = system.DeviceMemory().GetRawPhysicalAddr(p);
         constexpr size_t sys_core = Core::Hardware::NUM_CPU_CORES - 1;
         const size_t core = std::min(system.GetCurrentHostThreadID(),
                                      sys_core); // any other calls threads go to syscore.
+        if (!gpu_device_memory) [[unlikely]] {
+            gpu_device_memory = &system.Host1x().MemoryManager();
+        }
         // Guard on sys_core;
         if (core == sys_core) [[unlikely]] {
             sys_core_guard.lock();
@@ -846,17 +852,20 @@ struct Memory::Impl {
                 sys_core_guard.unlock();
             }
         });
-        auto& current_area = rasterizer_write_areas[core];
-        PAddr subaddress = address >> YUZU_PAGEBITS;
-        bool do_collection = current_area.last_address == subaddress;
-        if (!do_collection) [[unlikely]] {
-            do_collection = system.GPU().OnCPUWrite(address, size);
-            if (!do_collection) {
-                return;
+        gpu_device_memory->ApplyOpOnPointer(
+            p, scratch_buffers[core], [&](DAddr address) {
+            auto& current_area = rasterizer_write_areas[core];
+            PAddr subaddress = address >> YUZU_PAGEBITS;
+            bool do_collection = current_area.last_address == subaddress;
+            if (!do_collection) [[unlikely]] {
+                do_collection = system.GPU().OnCPUWrite(address, size);
+                if (!do_collection) {
+                    return;
+                }
+                current_area.last_address = subaddress;
             }
-            current_area.last_address = subaddress;
-        }
-        gpu_dirty_managers[core].Collect(address, size);
+            gpu_dirty_managers[core].Collect(address, size);
+        });
     }
 
     struct GPUDirtyState {
@@ -872,10 +881,12 @@ struct Memory::Impl {
     }
 
     Core::System& system;
+    Tegra::MaxwellDeviceMemoryManager* gpu_device_memory{};
     Common::PageTable* current_page_table = nullptr;
     std::array<VideoCore::RasterizerDownloadArea, Core::Hardware::NUM_CPU_CORES>
         rasterizer_read_areas{};
     std::array<GPUDirtyState, Core::Hardware::NUM_CPU_CORES> rasterizer_write_areas{};
+    std::array<Common::ScratchBuffer<u32>, Core::Hardware::NUM_CPU_CORES> scratch_buffers{};
     std::span<Core::GPUDirtyMemoryManager> gpu_dirty_managers;
     std::mutex sys_core_guard;
 

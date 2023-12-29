@@ -602,8 +602,7 @@ void RasterizerVulkan::InnerInvalidation(std::span<const std::pair<DAddr, std::s
     }
 }
 
-bool RasterizerVulkan::OnCPUWrite(PAddr p_addr, u64 size) {
-    const DAddr addr = device_memory.GetAddressFromPAddr(p_addr);
+bool RasterizerVulkan::OnCPUWrite(DAddr addr, u64 size) {
     if (addr == 0 || size == 0) {
         return false;
     }
@@ -624,8 +623,7 @@ bool RasterizerVulkan::OnCPUWrite(PAddr p_addr, u64 size) {
     return false;
 }
 
-void RasterizerVulkan::OnCacheInvalidation(PAddr p_addr, u64 size) {
-    const DAddr addr = device_memory.GetAddressFromPAddr(p_addr);
+void RasterizerVulkan::OnCacheInvalidation(DAddr addr, u64 size) {
     if (addr == 0 || size == 0) {
         return;
     }

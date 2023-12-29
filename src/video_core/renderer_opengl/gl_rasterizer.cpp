@@ -554,9 +554,8 @@ void RasterizerOpenGL::InvalidateRegion(DAddr addr, u64 size, VideoCommon::Cache
     }
 }
 
-bool RasterizerOpenGL::OnCPUWrite(PAddr p_addr, u64 size) {
+bool RasterizerOpenGL::OnCPUWrite(DAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
-    const DAddr addr = device_memory.GetAddressFromPAddr(p_addr);
     if (addr == 0 || size == 0) {
         return false;
     }
@@ -577,9 +576,9 @@ bool RasterizerOpenGL::OnCPUWrite(PAddr p_addr, u64 size) {
     return false;
 }
 
-void RasterizerOpenGL::OnCacheInvalidation(PAddr p_addr, u64 size) {
+void RasterizerOpenGL::OnCacheInvalidation(DAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
-    const DAddr addr = device_memory.GetAddressFromPAddr(p_addr);
+
     if (addr == 0 || size == 0) {
         return;
     }

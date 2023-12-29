@@ -10,7 +10,9 @@
 #include <mutex>
 
 #include "common/common_types.h"
+#include "common/scratch_buffer.h"
 #include "common/virtual_buffer.h"
+
 
 namespace Core {
 
@@ -49,9 +51,25 @@ public:
     template <typename T>
     const T* GetPointer(DAddr address) const;
 
-    DAddr GetAddressFromPAddr(PAddr address) const {
+    template <typename Func>
+    void ApplyOpOnPAddr(PAddr address, Common::ScratchBuffer<u32>& buffer, Func&& operation) {
         DAddr subbits = static_cast<DAddr>(address & page_mask);
-        return (static_cast<DAddr>(compressed_device_addr[(address >> page_bits)]) << page_bits) + subbits;
+        const u32 base = compressed_device_addr[(address >> page_bits)];
+        if ((base >> MULTI_FLAG_BITS) == 0) [[likely]] {
+            const DAddr d_address = static_cast<DAddr>(base << page_bits) + subbits;
+            operation(d_address);
+            return;
+        }
+        InnerGatherDeviceAddresses(buffer, address);
+        for (u32 value : buffer) {
+            operation(static_cast<DAddr>(value << page_bits) + subbits);
+        }
+    }
+
+    template <typename Func>
+    void ApplyOpOnPointer(const u8* p, Common::ScratchBuffer<u32>& buffer, Func&& operation) {
+        PAddr address = GetRawPhysicalAddr<u8>(p);
+        ApplyOpOnPAddr(address, buffer, operation);
     }
 
     PAddr GetPhysicalRawAddressFromDAddr(DAddr address) const {
@@ -98,6 +116,9 @@ private:
     static constexpr size_t page_size = 1ULL << page_bits;
     static constexpr size_t page_mask = page_size - 1ULL;
     static constexpr u32 physical_address_base = 1U << page_bits;
+    static constexpr u32 MULTI_FLAG_BITS = 31;
+    static constexpr u32 MULTI_FLAG = 1U << MULTI_FLAG_BITS;
+    static constexpr u32 MULTI_MASK = ~MULTI_FLAG;
 
     template <typename T>
     T* GetPointerFromRaw(PAddr addr) {
@@ -116,6 +137,8 @@ private:
 
     void WalkBlock(const DAddr addr, const std::size_t size, auto on_unmapped, auto on_memory,
                    auto increment);
+
+    void InnerGatherDeviceAddresses(Common::ScratchBuffer<u32>& buffer, PAddr address);
 
     std::unique_ptr<DeviceMemoryManagerAllocator<Traits>> impl;
 
