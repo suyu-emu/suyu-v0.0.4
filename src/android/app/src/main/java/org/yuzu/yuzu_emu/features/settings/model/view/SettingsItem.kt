@@ -298,6 +298,7 @@ abstract class SettingsItem(
 
                 override val key: String = FASTMEM_COMBINED
                 override val isRuntimeModifiable: Boolean = false
+                override val pairedSettingKey = BooleanSetting.CPU_DEBUG_MODE.key
                 override val defaultValue: Boolean = true
                 override val isSwitchable: Boolean = true
                 override var global: Boolean
