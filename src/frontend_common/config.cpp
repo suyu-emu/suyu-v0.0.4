@@ -403,59 +403,63 @@ void Config::SavePlayerValues(const std::size_t player_index) {
             // No custom profile selected
             return;
         }
-        WriteSetting(std::string(player_prefix).append("profile_name"), player.profile_name,
-                     std::make_optional(std::string("")));
+        WriteStringSetting(std::string(player_prefix).append("profile_name"), player.profile_name,
+                           std::make_optional(std::string("")));
     }
 
-    WriteSetting(std::string(player_prefix).append("type"), static_cast<u8>(player.controller_type),
-                 std::make_optional(static_cast<u8>(Settings::ControllerType::ProController)));
+    WriteIntegerSetting(
+        std::string(player_prefix).append("type"), static_cast<u8>(player.controller_type),
+        std::make_optional(static_cast<u8>(Settings::ControllerType::ProController)));
 
     if (!player_prefix.empty() || !Settings::IsConfiguringGlobal()) {
-        WriteSetting(std::string(player_prefix).append("connected"), player.connected,
-                     std::make_optional(player_index == 0));
-        WriteSetting(std::string(player_prefix).append("vibration_enabled"),
-                     player.vibration_enabled, std::make_optional(true));
-        WriteSetting(std::string(player_prefix).append("vibration_strength"),
-                     player.vibration_strength, std::make_optional(100));
-        WriteSetting(std::string(player_prefix).append("body_color_left"), player.body_color_left,
-                     std::make_optional(Settings::JOYCON_BODY_NEON_BLUE));
-        WriteSetting(std::string(player_prefix).append("body_color_right"), player.body_color_right,
-                     std::make_optional(Settings::JOYCON_BODY_NEON_RED));
-        WriteSetting(std::string(player_prefix).append("button_color_left"),
-                     player.button_color_left,
-                     std::make_optional(Settings::JOYCON_BUTTONS_NEON_BLUE));
-        WriteSetting(std::string(player_prefix).append("button_color_right"),
-                     player.button_color_right,
-                     std::make_optional(Settings::JOYCON_BUTTONS_NEON_RED));
+        WriteBooleanSetting(std::string(player_prefix).append("connected"), player.connected,
+                            std::make_optional(player_index == 0));
+        WriteIntegerSetting(std::string(player_prefix).append("vibration_enabled"),
+                            player.vibration_enabled, std::make_optional(true));
+        WriteIntegerSetting(std::string(player_prefix).append("vibration_strength"),
+                            player.vibration_strength, std::make_optional(100));
+        WriteIntegerSetting(std::string(player_prefix).append("body_color_left"),
+                            player.body_color_left,
+                            std::make_optional(Settings::JOYCON_BODY_NEON_BLUE));
+        WriteIntegerSetting(std::string(player_prefix).append("body_color_right"),
+                            player.body_color_right,
+                            std::make_optional(Settings::JOYCON_BODY_NEON_RED));
+        WriteIntegerSetting(std::string(player_prefix).append("button_color_left"),
+                            player.button_color_left,
+                            std::make_optional(Settings::JOYCON_BUTTONS_NEON_BLUE));
+        WriteIntegerSetting(std::string(player_prefix).append("button_color_right"),
+                            player.button_color_right,
+                            std::make_optional(Settings::JOYCON_BUTTONS_NEON_RED));
     }
 }
 
 void Config::SaveTouchscreenValues() {
     const auto& touchscreen = Settings::values.touchscreen;
 
-    WriteSetting(std::string("touchscreen_enabled"), touchscreen.enabled, std::make_optional(true));
+    WriteBooleanSetting(std::string("touchscreen_enabled"), touchscreen.enabled,
+                        std::make_optional(true));
 
-    WriteSetting(std::string("touchscreen_angle"), touchscreen.rotation_angle,
-                 std::make_optional(static_cast<u32>(0)));
-    WriteSetting(std::string("touchscreen_diameter_x"), touchscreen.diameter_x,
-                 std::make_optional(static_cast<u32>(15)));
-    WriteSetting(std::string("touchscreen_diameter_y"), touchscreen.diameter_y,
-                 std::make_optional(static_cast<u32>(15)));
+    WriteIntegerSetting(std::string("touchscreen_angle"), touchscreen.rotation_angle,
+                        std::make_optional(static_cast<u32>(0)));
+    WriteIntegerSetting(std::string("touchscreen_diameter_x"), touchscreen.diameter_x,
+                        std::make_optional(static_cast<u32>(15)));
+    WriteIntegerSetting(std::string("touchscreen_diameter_y"), touchscreen.diameter_y,
+                        std::make_optional(static_cast<u32>(15)));
 }
 
 void Config::SaveMotionTouchValues() {
     BeginArray(std::string("touch_from_button_maps"));
     for (std::size_t p = 0; p < Settings::values.touch_from_button_maps.size(); ++p) {
         SetArrayIndex(static_cast<int>(p));
-        WriteSetting(std::string("name"), Settings::values.touch_from_button_maps[p].name,
-                     std::make_optional(std::string("default")));
+        WriteStringSetting(std::string("name"), Settings::values.touch_from_button_maps[p].name,
+                           std::make_optional(std::string("default")));
 
         BeginArray(std::string("entries"));
         for (std::size_t q = 0; q < Settings::values.touch_from_button_maps[p].buttons.size();
              ++q) {
             SetArrayIndex(static_cast<int>(q));
-            WriteSetting(std::string("bind"),
-                         Settings::values.touch_from_button_maps[p].buttons[q]);
+            WriteStringSetting(std::string("bind"),
+                               Settings::values.touch_from_button_maps[p].buttons[q]);
         }
         EndArray(); // entries
     }
@@ -520,16 +524,16 @@ void Config::SaveCoreValues() {
 void Config::SaveDataStorageValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::DataStorage));
 
-    WriteSetting(std::string("nand_directory"), FS::GetYuzuPathString(FS::YuzuPath::NANDDir),
-                 std::make_optional(FS::GetYuzuPathString(FS::YuzuPath::NANDDir)));
-    WriteSetting(std::string("sdmc_directory"), FS::GetYuzuPathString(FS::YuzuPath::SDMCDir),
-                 std::make_optional(FS::GetYuzuPathString(FS::YuzuPath::SDMCDir)));
-    WriteSetting(std::string("load_directory"), FS::GetYuzuPathString(FS::YuzuPath::LoadDir),
-                 std::make_optional(FS::GetYuzuPathString(FS::YuzuPath::LoadDir)));
-    WriteSetting(std::string("dump_directory"), FS::GetYuzuPathString(FS::YuzuPath::DumpDir),
-                 std::make_optional(FS::GetYuzuPathString(FS::YuzuPath::DumpDir)));
-    WriteSetting(std::string("tas_directory"), FS::GetYuzuPathString(FS::YuzuPath::TASDir),
-                 std::make_optional(FS::GetYuzuPathString(FS::YuzuPath::TASDir)));
+    WriteStringSetting(std::string("nand_directory"), FS::GetYuzuPathString(FS::YuzuPath::NANDDir),
+                       std::make_optional(FS::GetYuzuPathString(FS::YuzuPath::NANDDir)));
+    WriteStringSetting(std::string("sdmc_directory"), FS::GetYuzuPathString(FS::YuzuPath::SDMCDir),
+                       std::make_optional(FS::GetYuzuPathString(FS::YuzuPath::SDMCDir)));
+    WriteStringSetting(std::string("load_directory"), FS::GetYuzuPathString(FS::YuzuPath::LoadDir),
+                       std::make_optional(FS::GetYuzuPathString(FS::YuzuPath::LoadDir)));
+    WriteStringSetting(std::string("dump_directory"), FS::GetYuzuPathString(FS::YuzuPath::DumpDir),
+                       std::make_optional(FS::GetYuzuPathString(FS::YuzuPath::DumpDir)));
+    WriteStringSetting(std::string("tas_directory"), FS::GetYuzuPathString(FS::YuzuPath::TASDir),
+                       std::make_optional(FS::GetYuzuPathString(FS::YuzuPath::TASDir)));
 
     WriteCategory(Settings::Category::DataStorage);
 
@@ -540,7 +544,7 @@ void Config::SaveDebuggingValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Debugging));
 
     // Intentionally not using the QT default setting as this is intended to be changed in the ini
-    WriteSetting(std::string("record_frame_times"), Settings::values.record_frame_times);
+    WriteBooleanSetting(std::string("record_frame_times"), Settings::values.record_frame_times);
 
     WriteCategory(Settings::Category::Debugging);
     WriteCategory(Settings::Category::DebuggingGraphics);
@@ -564,11 +568,13 @@ void Config::SaveDisabledAddOnValues() {
     BeginArray(std::string(""));
     for (const auto& elem : Settings::values.disabled_addons) {
         SetArrayIndex(i);
-        WriteSetting(std::string("title_id"), elem.first, std::make_optional(static_cast<u64>(0)));
+        WriteIntegerSetting(std::string("title_id"), elem.first,
+                            std::make_optional(static_cast<u64>(0)));
         BeginArray(std::string("disabled"));
         for (std::size_t j = 0; j < elem.second.size(); ++j) {
             SetArrayIndex(static_cast<int>(j));
-            WriteSetting(std::string("d"), elem.second[j], std::make_optional(std::string("")));
+            WriteStringSetting(std::string("d"), elem.second[j],
+                               std::make_optional(std::string("")));
         }
         EndArray(); // disabled
         ++i;
@@ -609,8 +615,8 @@ void Config::SaveRendererValues() {
 void Config::SaveScreenshotValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Screenshots));
 
-    WriteSetting(std::string("screenshot_path"),
-                 FS::GetYuzuPathString(FS::YuzuPath::ScreenshotsDir));
+    WriteStringSetting(std::string("screenshot_path"),
+                       FS::GetYuzuPathString(FS::YuzuPath::ScreenshotsDir));
     WriteCategory(Settings::Category::Screenshots);
 
     EndGroup();
@@ -746,46 +752,70 @@ bool Config::Exists(const std::string& section, const std::string& key) const {
     return !value.empty();
 }
 
-template <typename Type>
-void Config::WriteSetting(const std::string& key, const Type& value,
-                          const std::optional<Type>& default_value,
-                          const std::optional<bool>& use_global) {
-    std::string full_key = GetFullKey(key, false);
-
-    std::string saved_value;
-    std::string string_default;
-    if constexpr (std::is_same_v<Type, std::string>) {
-        saved_value.append(AdjustOutputString(value));
-        if (default_value.has_value()) {
-            string_default.append(AdjustOutputString(default_value.value()));
-        }
-    } else {
-        saved_value.append(AdjustOutputString(ToString(value)));
-        if (default_value.has_value()) {
-            string_default.append(ToString(default_value.value()));
-        }
+void Config::WriteBooleanSetting(const std::string& key, const bool& value,
+                                 const std::optional<bool>& default_value,
+                                 const std::optional<bool>& use_global) {
+    std::optional<std::string> string_default = std::nullopt;
+    if (default_value.has_value()) {
+        string_default = std::make_optional(ToString(default_value.value()));
     }
+    WritePreparedSetting(key, AdjustOutputString(ToString(value)), string_default, use_global);
+}
 
-    if (default_value.has_value() && use_global.has_value()) {
+template <typename T>
+std::enable_if_t<std::is_integral_v<T>> Config::WriteIntegerSetting(
+    const std::string& key, const T& value, const std::optional<T>& default_value,
+    const std::optional<bool>& use_global) {
+    std::optional<std::string> string_default = std::nullopt;
+    if (default_value.has_value()) {
+        string_default = std::make_optional(ToString(default_value.value()));
+    }
+    WritePreparedSetting(key, AdjustOutputString(ToString(value)), string_default, use_global);
+}
+
+void Config::WriteDoubleSetting(const std::string& key, const double& value,
+                                const std::optional<double>& default_value,
+                                const std::optional<bool>& use_global) {
+    std::optional<std::string> string_default = std::nullopt;
+    if (default_value.has_value()) {
+        string_default = std::make_optional(ToString(default_value.value()));
+    }
+    WritePreparedSetting(key, AdjustOutputString(ToString(value)), string_default, use_global);
+}
+
+void Config::WriteStringSetting(const std::string& key, const std::string& value,
+                                const std::optional<std::string>& default_value,
+                                const std::optional<bool>& use_global) {
+    std::optional string_default = default_value;
+    if (default_value.has_value()) {
+        string_default.value().append(AdjustOutputString(default_value.value()));
+    }
+    WritePreparedSetting(key, AdjustOutputString(value), string_default, use_global);
+}
+
+void Config::WritePreparedSetting(const std::string& key, const std::string& adjusted_value,
+                                  const std::optional<std::string>& adjusted_default_value,
+                                  const std::optional<bool>& use_global) {
+    std::string full_key = GetFullKey(key, false);
+    if (adjusted_default_value.has_value() && use_global.has_value()) {
         if (!global) {
-            WriteSettingInternal(std::string(full_key).append("\\global"),
-                                 ToString(use_global.value()));
+            WriteString(std::string(full_key).append("\\global"), ToString(use_global.value()));
         }
         if (global || use_global.value() == false) {
-            WriteSettingInternal(std::string(full_key).append("\\default"),
-                                 ToString(string_default == saved_value));
-            WriteSettingInternal(full_key, saved_value);
+            WriteString(std::string(full_key).append("\\default"),
+                        ToString(adjusted_default_value == adjusted_value));
+            WriteString(full_key, adjusted_value);
         }
-    } else if (default_value.has_value() && !use_global.has_value()) {
-        WriteSettingInternal(std::string(full_key).append("\\default"),
-                             ToString(string_default == saved_value));
-        WriteSettingInternal(full_key, saved_value);
+    } else if (adjusted_default_value.has_value() && !use_global.has_value()) {
+        WriteString(std::string(full_key).append("\\default"),
+                    ToString(adjusted_default_value == adjusted_value));
+        WriteString(full_key, adjusted_value);
     } else {
-        WriteSettingInternal(full_key, saved_value);
+        WriteString(full_key, adjusted_value);
     }
 }
 
-void Config::WriteSettingInternal(const std::string& key, const std::string& value) {
+void Config::WriteString(const std::string& key, const std::string& value) {
     config->SetValue(GetSection().c_str(), key.c_str(), value.c_str());
 }
 
@@ -861,17 +891,17 @@ void Config::WriteSettingGeneric(const Settings::BasicSetting* const setting) {
     std::string key = AdjustKey(setting->GetLabel());
     if (setting->Switchable()) {
         if (!global) {
-            WriteSetting(std::string(key).append("\\use_global"), setting->UsingGlobal());
+            WriteBooleanSetting(std::string(key).append("\\use_global"), setting->UsingGlobal());
         }
         if (global || !setting->UsingGlobal()) {
-            WriteSetting(std::string(key).append("\\default"),
-                         setting->ToString() == setting->DefaultToString());
-            WriteSetting(key, setting->ToString());
+            WriteBooleanSetting(std::string(key).append("\\default"),
+                                setting->ToString() == setting->DefaultToString());
+            WriteStringSetting(key, setting->ToString());
         }
     } else if (global) {
-        WriteSetting(std::string(key).append("\\default"),
-                     setting->ToString() == setting->DefaultToString());
-        WriteSetting(key, setting->ToString());
+        WriteBooleanSetting(std::string(key).append("\\default"),
+                            setting->ToString() == setting->DefaultToString());
+        WriteStringSetting(key, setting->ToString());
     }
 }
 
