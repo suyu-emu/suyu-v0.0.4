@@ -114,8 +114,9 @@ void AndroidConfig::SavePathValues() {
     for (size_t i = 0; i < AndroidSettings::values.game_dirs.size(); ++i) {
         SetArrayIndex(i);
         const auto& game_dir = AndroidSettings::values.game_dirs[i];
-        WriteSetting(std::string("path"), game_dir.path);
-        WriteSetting(std::string("deep_scan"), game_dir.deep_scan, std::make_optional(false));
+        WriteStringSetting(std::string("path"), game_dir.path);
+        WriteBooleanSetting(std::string("deep_scan"), game_dir.deep_scan,
+                            std::make_optional(false));
     }
     EndArray();
 

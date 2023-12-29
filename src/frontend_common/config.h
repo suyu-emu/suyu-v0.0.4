@@ -154,11 +154,20 @@ protected:
      * @param use_global Specifies if the custom or global config should be in use, for custom
      * configs
      */
-    template <typename Type = int>
-    void WriteSetting(const std::string& key, const Type& value,
-                      const std::optional<Type>& default_value = std::nullopt,
-                      const std::optional<bool>& use_global = std::nullopt);
-    void WriteSettingInternal(const std::string& key, const std::string& value);
+    void WriteBooleanSetting(const std::string& key, const bool& value,
+                             const std::optional<bool>& default_value = std::nullopt,
+                             const std::optional<bool>& use_global = std::nullopt);
+    template <typename T>
+    std::enable_if_t<std::is_integral_v<T>> WriteIntegerSetting(
+        const std::string& key, const T& value,
+        const std::optional<T>& default_value = std::nullopt,
+        const std::optional<bool>& use_global = std::nullopt);
+    void WriteDoubleSetting(const std::string& key, const double& value,
+                            const std::optional<double>& default_value = std::nullopt,
+                            const std::optional<bool>& use_global = std::nullopt);
+    void WriteStringSetting(const std::string& key, const std::string& value,
+                            const std::optional<std::string>& default_value = std::nullopt,
+                            const std::optional<bool>& use_global = std::nullopt);
 
     void ReadCategory(Settings::Category category);
     void WriteCategory(Settings::Category category);
@@ -175,8 +184,10 @@ protected:
             return value_ ? "true" : "false";
         } else if constexpr (std::is_same_v<T, u64>) {
             return std::to_string(static_cast<u64>(value_));
-        } else {
+        } else if constexpr (std::is_same_v<T, s64>) {
             return std::to_string(static_cast<s64>(value_));
+        } else {
+            return std::to_string(value_);
         }
     }
 
@@ -197,6 +208,11 @@ protected:
     const bool global;
 
 private:
+    void WritePreparedSetting(const std::string& key, const std::string& adjusted_value,
+                              const std::optional<std::string>& adjusted_default_value,
+                              const std::optional<bool>& use_global);
+    void WriteString(const std::string& key, const std::string& value);
+
     inline static std::array<char, 19> special_characters = {'!', '#', '$',  '%',  '^', '&', '*',
                                                              '|', ';', '\'', '\"', ',', '<', '.',
                                                              '>', '?', '`',  '~',  '='};
