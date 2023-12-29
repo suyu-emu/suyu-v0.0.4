@@ -539,6 +539,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             findItem(R.id.menu_show_overlay).isChecked =
                 BooleanSetting.SHOW_INPUT_OVERLAY.getBoolean()
             findItem(R.id.menu_haptics).isChecked = BooleanSetting.HAPTIC_FEEDBACK.getBoolean()
+            findItem(R.id.menu_touchscreen).isChecked = BooleanSetting.TOUCHSCREEN.getBoolean()
         }
 
         popup.setOnMenuItemClickListener {
@@ -625,6 +626,12 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 R.id.menu_haptics -> {
                     it.isChecked = !it.isChecked
                     BooleanSetting.HAPTIC_FEEDBACK.setBoolean(it.isChecked)
+                    true
+                }
+
+                R.id.menu_touchscreen -> {
+                    it.isChecked = !it.isChecked
+                    BooleanSetting.TOUCHSCREEN.setBoolean(it.isChecked)
                     true
                 }
 
