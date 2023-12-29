@@ -245,6 +245,15 @@ abstract class SettingsItem(
             )
             put(
                 SingleChoiceSetting(
+                    IntSetting.MAX_ANISOTROPY,
+                    R.string.anisotropic_filtering,
+                    R.string.anisotropic_filtering_description,
+                    R.array.anisoEntries,
+                    R.array.anisoValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
                     IntSetting.AUDIO_OUTPUT_ENGINE,
                     R.string.audio_output_engine,
                     0,

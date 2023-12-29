@@ -267,4 +267,21 @@
         <item>3</item>
     </integer-array>
 
+    <string-array name="anisoEntries">
+        <item>@string/auto</item>
+        <item>@string/slider_default</item>
+        <item>@string/multiplier_two</item>
+        <item>@string/multiplier_four</item>
+        <item>@string/multiplier_eight</item>
+        <item>@string/multiplier_sixteen</item>
+    </string-array>
+    <integer-array name="anisoValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </integer-array>
+
 </resources>

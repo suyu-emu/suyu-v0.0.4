@@ -225,6 +225,8 @@
     <string name="renderer_reactive_flushing_description">Improves rendering accuracy in some games at the cost of performance.</string>
     <string name="use_disk_shader_cache">Disk shader cache</string>
     <string name="use_disk_shader_cache_description">Reduces stuttering by locally storing and loading generated shaders.</string>
+    <string name="anisotropic_filtering">Anisotropic filtering</string>
+    <string name="anisotropic_filtering_description">Improves the quality of textures when viewed at oblique angles</string>
 
     <!-- Debug settings strings -->
     <string name="cpu">CPU</string>
@@ -505,6 +507,12 @@
     <!-- Audio output engines -->
     <string name="oboe">oboe</string>
     <string name="cubeb">cubeb</string>
+
+    <!-- Anisotropic filtering options -->
+    <string name="multiplier_two">2x</string>
+    <string name="multiplier_four">4x</string>
+    <string name="multiplier_eight">8x</string>
+    <string name="multiplier_sixteen">16x</string>
 
     <!-- Black backgrounds theme -->
     <string name="use_black_backgrounds">Black backgrounds</string>
