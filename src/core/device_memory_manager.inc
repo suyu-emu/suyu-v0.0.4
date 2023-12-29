@@ -78,7 +78,7 @@ public:
         u32 next_entry = current->next_entry;
         if (next_entry != 0) {
             next = &storage[next_entry - 1];
-            more_than_one_remaining = next->next_entry != 0;
+            more_than_one_remaining = next->next_entry != 0 || previous != nullptr;
         }
         if (previous) {
             previous->next_entry = next_entry;
