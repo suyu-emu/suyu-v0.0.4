@@ -88,6 +88,7 @@ struct GPU::Impl {
         renderer = std::move(renderer_);
         rasterizer = renderer->ReadRasterizer();
         host1x.MemoryManager().BindInterface(rasterizer);
+        host1x.GMMU().BindRasterizer(rasterizer);
     }
 
     /// Flush all current written commands into the host GPU for execution.

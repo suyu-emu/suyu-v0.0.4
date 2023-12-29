@@ -95,7 +95,6 @@ NvResult nvhost_nvdec_common::Submit(IoctlSubmit& params, std::span<u8> data, De
     offset += SliceVectors(data, fence_thresholds, params.fence_count, offset);
 
     auto& gpu = system.GPU();
-    //auto& device_memory = system.Host1x().MemoryManager();
     auto* session = core.GetSession(sessions[fd]);
 
     if (gpu.UseNvdec()) {
