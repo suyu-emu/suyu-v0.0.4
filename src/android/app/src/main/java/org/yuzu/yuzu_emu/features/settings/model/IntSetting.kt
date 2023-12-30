@@ -18,7 +18,8 @@ enum class IntSetting(override val key: String) : AbstractIntSetting {
     RENDERER_ANTI_ALIASING("anti_aliasing"),
     RENDERER_SCREEN_LAYOUT("screen_layout"),
     RENDERER_ASPECT_RATIO("aspect_ratio"),
-    AUDIO_OUTPUT_ENGINE("output_engine");
+    AUDIO_OUTPUT_ENGINE("output_engine"),
+    MAX_ANISOTROPY("max_anisotropy");
 
     override fun getInt(needsGlobal: Boolean): Int = NativeConfig.getInt(key, needsGlobal)
 

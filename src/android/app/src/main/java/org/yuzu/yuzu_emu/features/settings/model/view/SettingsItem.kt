@@ -245,6 +245,15 @@ abstract class SettingsItem(
             )
             put(
                 SingleChoiceSetting(
+                    IntSetting.MAX_ANISOTROPY,
+                    R.string.anisotropic_filtering,
+                    R.string.anisotropic_filtering_description,
+                    R.array.anisoEntries,
+                    R.array.anisoValues
+                )
+            )
+            put(
+                SingleChoiceSetting(
                     IntSetting.AUDIO_OUTPUT_ENGINE,
                     R.string.audio_output_engine,
                     0,
@@ -298,6 +307,7 @@ abstract class SettingsItem(
 
                 override val key: String = FASTMEM_COMBINED
                 override val isRuntimeModifiable: Boolean = false
+                override val pairedSettingKey = BooleanSetting.CPU_DEBUG_MODE.key
                 override val defaultValue: Boolean = true
                 override val isSwitchable: Boolean = true
                 override var global: Boolean
