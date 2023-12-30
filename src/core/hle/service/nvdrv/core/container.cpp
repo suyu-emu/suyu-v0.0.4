@@ -95,6 +95,7 @@ size_t Container::OpenSession(Kernel::KProcess* process) {
         if (start_region != 0) {
             session.mapper = std::make_unique<HeapMapper>(region_start, start_region, region_size,
                                                           smmu_id, impl->host1x);
+            smmu.TrackContinuity(start_region, region_start, region_size, smmu_id);
             session.has_preallocated_area = true;
             LOG_CRITICAL(Debug, "Preallocation created!");
         }

@@ -164,6 +164,7 @@ DeviceMemoryManager<Traits>::DeviceMemoryManager(const DeviceMemory& device_memo
     : physical_base{reinterpret_cast<const uintptr_t>(device_memory_.buffer.BackingBasePointer())},
       interface{nullptr}, compressed_physical_ptr(device_as_size >> Memory::YUZU_PAGEBITS),
       compressed_device_addr(1ULL << (physical_max_bits - Memory::YUZU_PAGEBITS)),
+      continuity_tracker(device_as_size >> Memory::YUZU_PAGEBITS),
       cpu_backing_address(device_as_size >> Memory::YUZU_PAGEBITS) {
     impl = std::make_unique<DeviceMemoryManagerAllocator<Traits>>();
     cached_pages = std::make_unique<CachedPages>();
@@ -194,7 +195,7 @@ void DeviceMemoryManager<Traits>::Free(DAddr start, size_t size) {
 
 template <typename Traits>
 void DeviceMemoryManager<Traits>::Map(DAddr address, VAddr virtual_address, size_t size,
-                                      size_t process_id) {
+                                      size_t process_id, bool track) {
     Core::Memory::Memory* process_memory = registered_processes[process_id];
     size_t start_page_d = address >> Memory::YUZU_PAGEBITS;
     size_t num_pages = Common::AlignUp(size, Memory::YUZU_PAGESIZE) >> Memory::YUZU_PAGEBITS;
@@ -221,6 +222,9 @@ void DeviceMemoryManager<Traits>::Map(DAddr address, VAddr virtual_address, size
             compressed_device_addr[phys_addr - 1U] = MULTI_FLAG | start_id;
         }
         impl->multi_dev_address.Register(new_dev, start_id);
+    }
+    if (track) {
+        TrackContinuityImpl(address, virtual_address, size, process_id);
     }
 }
 
@@ -250,6 +254,47 @@ void DeviceMemoryManager<Traits>::Unmap(DAddr address, size_t size) {
             compressed_device_addr[phys_addr - 1] = new_start | MULTI_FLAG;
         }
     }
+}
+template <typename Traits>
+void DeviceMemoryManager<Traits>::TrackContinuityImpl(DAddr address, VAddr virtual_address,
+                                                      size_t size, size_t process_id) {
+    Core::Memory::Memory* process_memory = registered_processes[process_id];
+    size_t start_page_d = address >> Memory::YUZU_PAGEBITS;
+    size_t num_pages = Common::AlignUp(size, Memory::YUZU_PAGESIZE) >> Memory::YUZU_PAGEBITS;
+    uintptr_t last_ptr = 0;
+    size_t page_count = 1;
+    for (size_t i = num_pages; i > 0; i--) {
+        size_t index = i - 1;
+        const VAddr new_vaddress = virtual_address + index * Memory::YUZU_PAGESIZE;
+        const uintptr_t new_ptr = reinterpret_cast<uintptr_t>(
+            process_memory->GetPointerSilent(Common::ProcessAddress(new_vaddress)));
+        if (new_ptr + page_size == last_ptr) {
+            page_count++;
+        } else {
+            page_count = 1;
+        }
+        last_ptr = new_ptr;
+        continuity_tracker[start_page_d + index] = static_cast<u32>(page_count);
+    }
+}
+template <typename Traits>
+u8* DeviceMemoryManager<Traits>::GetSpan(const DAddr src_addr, const std::size_t size) {
+    size_t page_index = src_addr >> page_bits;
+    size_t subbits = src_addr & page_mask;
+    if ((continuity_tracker[page_index] << page_bits) >= size + subbits) {
+        return GetPointer<u8>(src_addr);
+    }
+    return nullptr;
+}
+
+template <typename Traits>
+const u8* DeviceMemoryManager<Traits>::GetSpan(const DAddr src_addr, const std::size_t size) const {
+    size_t page_index = src_addr >> page_bits;
+    size_t subbits = src_addr & page_mask;
+    if ((continuity_tracker[page_index] << page_bits) >= size + subbits) {
+        return GetPointer<u8>(src_addr);
+    }
+    return nullptr;
 }
 
 template <typename Traits>
@@ -322,12 +367,13 @@ void DeviceMemoryManager<Traits>::WalkBlock(DAddr addr, std::size_t size, auto o
     std::size_t page_offset = addr & Memory::YUZU_PAGEMASK;
 
     while (remaining_size) {
+        const size_t next_pages = static_cast<std::size_t>(continuity_tracker[page_index]);
         const std::size_t copy_amount =
-            std::min(static_cast<std::size_t>(Memory::YUZU_PAGESIZE) - page_offset, remaining_size);
+            std::min((next_pages << Memory::YUZU_PAGEBITS) - page_offset, remaining_size);
         const auto current_vaddr =
             static_cast<u64>((page_index << Memory::YUZU_PAGEBITS) + page_offset);
         SCOPE_EXIT({
-            page_index++;
+            page_index += next_pages;
             page_offset = 0;
             increment(copy_amount);
             remaining_size -= copy_amount;
