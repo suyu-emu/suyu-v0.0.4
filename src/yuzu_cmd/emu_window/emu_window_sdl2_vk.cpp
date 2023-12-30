@@ -28,7 +28,8 @@ EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(InputCommon::InputSubsystem* input_subsyste
     SDL_SysWMinfo wm;
     SDL_VERSION(&wm.version);
     if (SDL_GetWindowWMInfo(render_window, &wm) == SDL_FALSE) {
-        LOG_CRITICAL(Frontend, "Failed to get information from the window manager");
+        LOG_CRITICAL(Frontend, "Failed to get information from the window manager: {}",
+                     SDL_GetError());
         std::exit(EXIT_FAILURE);
     }
 
