@@ -611,6 +611,8 @@ add_library(core STATIC
     hle/service/ns/pdm_qry.h
     hle/service/nvdrv/core/container.cpp
     hle/service/nvdrv/core/container.h
+    hle/service/nvdrv/core/heap_mapper.cpp
+    hle/service/nvdrv/core/heap_mapper.h
     hle/service/nvdrv/core/nvmap.cpp
     hle/service/nvdrv/core/nvmap.h
     hle/service/nvdrv/core/syncpoint_manager.cpp

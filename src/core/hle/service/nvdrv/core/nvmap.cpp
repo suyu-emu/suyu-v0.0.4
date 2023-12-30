@@ -8,9 +8,11 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/hle/service/nvdrv/core/container.h"
+#include "core/hle/service/nvdrv/core/heap_mapper.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/memory.h"
 #include "video_core/host1x/host1x.h"
+
 
 using Core::Memory::YUZU_PAGESIZE;
 
@@ -90,10 +92,19 @@ void NvMap::UnmapHandle(Handle& handle_description) {
     }
 
     // Free and unmap the handle from the SMMU
-    auto& smmu = host1x.MemoryManager();
-    smmu.Unmap(handle_description.d_address, handle_description.aligned_size);
-    smmu.Free(handle_description.d_address, static_cast<size_t>(handle_description.aligned_size));
+    const size_t map_size = handle_description.aligned_size;
+    if (!handle_description.in_heap) {
+        auto& smmu = host1x.MemoryManager();
+        smmu.Unmap(handle_description.d_address, map_size);
+        smmu.Free(handle_description.d_address, static_cast<size_t>(map_size));
+        handle_description.d_address = 0;
+        return;
+    }
+    const VAddr vaddress = handle_description.address;
+    auto* session = core.GetSession(handle_description.session_id);
+    session->mapper->Unmap(vaddress, map_size);
     handle_description.d_address = 0;
+    handle_description.in_heap = false;
 }
 
 bool NvMap::TryRemoveHandle(const Handle& handle_description) {
@@ -188,24 +199,31 @@ DAddr NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id, bool low_are
         DAddr address{};
         auto& smmu = host1x.MemoryManager();
         auto* session = core.GetSession(session_id);
-        while ((address = smmu.Allocate(handle_description->aligned_size)) == 0) {
-            // Free handles until the allocation succeeds
-            std::scoped_lock queueLock(unmap_queue_lock);
-            if (auto freeHandleDesc{unmap_queue.front()}) {
-                // Handles in the unmap queue are guaranteed not to be pinned so don't bother
-                // checking if they are before unmapping
-                std::scoped_lock freeLock(freeHandleDesc->mutex);
-                if (handle_description->d_address)
-                    UnmapHandle(*freeHandleDesc);
-            } else {
-                LOG_CRITICAL(Service_NVDRV, "Ran out of SMMU address space!");
+        const VAddr vaddress = handle_description->address;
+        const size_t map_size = handle_description->aligned_size;
+        handle_description->session_id = session_id;
+        if (session->has_preallocated_area && session->mapper->IsInBounds(vaddress, map_size)) {
+            handle_description->d_address = session->mapper->Map(vaddress, map_size);
+            handle_description->in_heap = true;
+        } else {
+            while ((address = smmu.Allocate(map_size)) == 0) {
+                // Free handles until the allocation succeeds
+                std::scoped_lock queueLock(unmap_queue_lock);
+                if (auto freeHandleDesc{unmap_queue.front()}) {
+                    // Handles in the unmap queue are guaranteed not to be pinned so don't bother
+                    // checking if they are before unmapping
+                    std::scoped_lock freeLock(freeHandleDesc->mutex);
+                    if (handle_description->d_address)
+                        UnmapHandle(*freeHandleDesc);
+                } else {
+                    LOG_CRITICAL(Service_NVDRV, "Ran out of SMMU address space!");
+                }
             }
+
+            handle_description->d_address = address;
+            smmu.Map(address, vaddress, map_size, session->smmu_id);
+            handle_description->in_heap = false;
         }
-
-        handle_description->d_address = address;
-
-        smmu.Map(address, handle_description->address, handle_description->aligned_size,
-                 session->smmu_id);
     }
 
     if (low_area_pin) {

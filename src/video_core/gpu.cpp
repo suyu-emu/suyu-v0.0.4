@@ -34,8 +34,6 @@
 #include "video_core/renderer_base.h"
 #include "video_core/shader_notify.h"
 
-#pragma optimize("", off)
-
 namespace Tegra {
 
 struct GPU::Impl {
