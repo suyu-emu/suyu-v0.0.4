@@ -131,81 +131,31 @@ struct EmptyAllocator {
 
 template <typename DTraits>
 struct DeviceMemoryManagerAllocator {
-    static constexpr bool supports_pinning = DTraits::supports_pinning;
     static constexpr size_t device_virtual_bits = DTraits::device_virtual_bits;
-    static constexpr size_t pin_bits = 32;
     static constexpr DAddr first_address = 1ULL << Memory::YUZU_PAGEBITS;
-    static constexpr DAddr max_pin_area = supports_pinning ? 1ULL << pin_bits : first_address;
     static constexpr DAddr max_device_area = 1ULL << device_virtual_bits;
 
-    DeviceMemoryManagerAllocator()
-        : pin_allocator(first_address),
-          main_allocator(supports_pinning ? 1ULL << pin_bits : first_address) {}
+    DeviceMemoryManagerAllocator() : main_allocator(first_address) {}
 
-    std::conditional_t<supports_pinning, Common::FlatAllocator<DAddr, 0, pin_bits>, EmptyAllocator>
-        pin_allocator;
     Common::FlatAllocator<DAddr, 0, device_virtual_bits> main_allocator;
     MultiAddressContainer multi_dev_address;
 
     /// Returns true when vaddr -> vaddr+size is fully contained in the buffer
     template <bool pin_area>
     [[nodiscard]] bool IsInBounds(VAddr addr, u64 size) const noexcept {
-        if constexpr (pin_area) {
-            return addr >= 0 && addr + size <= max_pin_area;
-        } else {
-            return addr >= max_pin_area && addr + size <= max_device_area;
-        }
+        return addr >= 0 && addr + size <= max_device_area;
     }
 
     DAddr Allocate(size_t size) {
         return main_allocator.Allocate(size);
     }
 
-    DAddr AllocatePinned(size_t size) {
-        if constexpr (supports_pinning) {
-            return pin_allocator.Allocate(size);
-        } else {
-            return DAddr{};
-        }
-    }
-
-    void DoInRange(DAddr address, size_t size, auto pin_func, auto main_func) {
-        if (IsInBounds<true>(address, size)) {
-            pin_func(address, size);
-            return;
-        }
-        if (IsInBounds<false>(address, size)) {
-            main_func(address, size);
-            return;
-        }
-        DAddr end_size = address + size - max_pin_area;
-        DAddr end_size2 = max_pin_area - address;
-        pin_func(address, end_size2);
-        main_func(max_pin_area, end_size);
-    }
-
     void AllocateFixed(DAddr b_address, size_t b_size) {
-        if constexpr (supports_pinning) {
-            DoInRange(
-                b_address, b_size,
-                [this](DAddr address, size_t size) { pin_allocator.AllocateFixed(address, size); },
-                [this](DAddr address, size_t size) {
-                    main_allocator.AllocateFixed(address, size);
-                });
-        } else {
-            main_allocator.AllocateFixed(b_address, b_size);
-        }
+        main_allocator.AllocateFixed(b_address, b_size);
     }
 
     void Free(DAddr b_address, size_t b_size) {
-        if constexpr (supports_pinning) {
-            DoInRange(
-                b_address, b_size,
-                [this](DAddr address, size_t size) { pin_allocator.Free(address, size); },
-                [this](DAddr address, size_t size) { main_allocator.Free(address, size); });
-        } else {
-            main_allocator.Free(b_address, b_size);
-        }
+        main_allocator.Free(b_address, b_size);
     }
 };
 
@@ -235,11 +185,6 @@ DAddr DeviceMemoryManager<Traits>::Allocate(size_t size) {
 template <typename Traits>
 void DeviceMemoryManager<Traits>::AllocateFixed(DAddr start, size_t size) {
     return impl->AllocateFixed(start, size);
-}
-
-template <typename Traits>
-DAddr DeviceMemoryManager<Traits>::AllocatePinned(size_t size) {
-    return impl->AllocatePinned(size);
 }
 
 template <typename Traits>
@@ -523,10 +468,10 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
     size_t vpage = base_vaddress >> Memory::YUZU_PAGEBITS;
     auto* memory_interface = registered_processes[process_id];
     for (; page != page_end; ++page) {
-        std::atomic_uint16_t& count = cached_pages->at(page >> 2).Count(page);
+        std::atomic_uint8_t& count = cached_pages->at(page >> 3).Count(page);
 
         if (delta > 0) {
-            ASSERT_MSG(count.load(std::memory_order::relaxed) < std::numeric_limits<u16>::max(),
+            ASSERT_MSG(count.load(std::memory_order::relaxed) < std::numeric_limits<u8>::max(),
                        "Count may overflow!");
         } else if (delta < 0) {
             ASSERT_MSG(count.load(std::memory_order::relaxed) > 0, "Count may underflow!");
@@ -535,7 +480,7 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
         }
 
         // Adds or subtracts 1, as count is a unsigned 8-bit value
-        count.fetch_add(static_cast<u16>(delta), std::memory_order_release);
+        count.fetch_add(static_cast<u8>(delta), std::memory_order_release);
 
         // Assume delta is either -1 or 1
         if (count.load(std::memory_order::relaxed) == 0) {

@@ -38,7 +38,6 @@ public:
 
     DAddr Allocate(size_t size);
     void AllocateFixed(DAddr start, size_t size);
-    DAddr AllocatePinned(size_t size);
     void Free(DAddr start, size_t size);
 
     void Map(DAddr address, VAddr virtual_address, size_t size, size_t process_id);
@@ -108,7 +107,6 @@ public:
     static constexpr size_t AS_BITS = Traits::device_virtual_bits;
 
 private:
-    static constexpr bool supports_pinning = Traits::supports_pinning;
     static constexpr size_t device_virtual_bits = Traits::device_virtual_bits;
     static constexpr size_t device_as_size = 1ULL << device_virtual_bits;
     static constexpr size_t physical_max_bits = 33;
@@ -167,28 +165,28 @@ private:
     }
 
     void InsertCPUBacking(size_t page_index, VAddr address, size_t process_id) {
-        cpu_backing_address[page_index] = address | (process_id << page_index);
+        cpu_backing_address[page_index] = address | (process_id << process_id_start_bit);
     }
 
     Common::VirtualBuffer<VAddr> cpu_backing_address;
-    static constexpr size_t subentries = 4;
+    static constexpr size_t subentries = 8 / sizeof(u8);
     static constexpr size_t subentries_mask = subentries - 1;
     class CounterEntry final {
     public:
         CounterEntry() = default;
 
-        std::atomic_uint16_t& Count(std::size_t page) {
+        std::atomic_uint8_t& Count(std::size_t page) {
             return values[page & subentries_mask];
         }
 
-        const std::atomic_uint16_t& Count(std::size_t page) const {
+        const std::atomic_uint8_t& Count(std::size_t page) const {
             return values[page & subentries_mask];
         }
 
     private:
-        std::array<std::atomic_uint16_t, subentries> values{};
+        std::array<std::atomic_uint8_t, subentries> values{};
     };
-    static_assert(sizeof(CounterEntry) == subentries * sizeof(u16),
+    static_assert(sizeof(CounterEntry) == subentries * sizeof(u8),
                   "CounterEntry should be 8 bytes!");
 
     static constexpr size_t num_counter_entries =

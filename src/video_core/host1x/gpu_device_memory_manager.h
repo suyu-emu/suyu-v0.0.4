@@ -14,7 +14,6 @@ namespace Tegra {
 struct MaxwellDeviceMethods;
 
 struct MaxwellDeviceTraits {
-    static constexpr bool supports_pinning = false;
     static constexpr size_t device_virtual_bits = 34;
     using DeviceInterface = typename VideoCore::RasterizerInterface;
     using DeviceMethods = MaxwellDeviceMethods;
