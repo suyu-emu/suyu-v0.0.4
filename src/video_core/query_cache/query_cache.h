@@ -256,8 +256,8 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
         return std::make_pair<u64, u32>(cur_addr >> Core::Memory::YUZU_PAGEBITS,
                                         static_cast<u32>(cur_addr & Core::Memory::YUZU_PAGEMASK));
     };
-    u8* pointer = impl->device_memory.GetPointer<u8>(cpu_addr);
-    u8* pointer_timestamp = impl->device_memory.GetPointer<u8>(cpu_addr + 8);
+    u8* pointer = impl->device_memory.template GetPointer<u8>(cpu_addr);
+    u8* pointer_timestamp = impl->device_memory.template GetPointer<u8>(cpu_addr + 8);
     bool is_synced = !Settings::IsGPULevelHigh() && is_fence;
     std::function<void()> operation([this, is_synced, streamer, query_base = query, query_location,
                                      pointer, pointer_timestamp] {
@@ -561,7 +561,7 @@ bool QueryCacheBase<Traits>::SemiFlushQueryDirty(QueryCacheBase<Traits>::QueryLo
     }
     if (True(query_base->flags & QueryFlagBits::IsFinalValueSynced) &&
         False(query_base->flags & QueryFlagBits::IsGuestSynced)) {
-        auto* ptr = impl->device_memory.GetPointer<u8>(query_base->guest_address);
+        auto* ptr = impl->device_memory.template GetPointer<u8>(query_base->guest_address);
         if (True(query_base->flags & QueryFlagBits::HasTimestamp)) {
             std::memcpy(ptr, &query_base->value, sizeof(query_base->value));
             return false;

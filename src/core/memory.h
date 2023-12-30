@@ -486,10 +486,10 @@ public:
     void MarkRegionDebug(Common::ProcessAddress vaddr, u64 size, bool debug);
 
     void SetGPUDirtyManagers(std::span<Core::GPUDirtyMemoryManager> managers);
-    void InvalidateRegion(Common::ProcessAddress dest_addr, size_t size);
+
     bool InvalidateNCE(Common::ProcessAddress vaddr, size_t size);
+    
     bool InvalidateSeparateHeap(void* fault_address);
-    void FlushRegion(Common::ProcessAddress dest_addr, size_t size);
 
 private:
     Core::System& system;
