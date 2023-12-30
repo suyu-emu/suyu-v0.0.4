@@ -40,15 +40,15 @@ NvResult nvhost_as_gpu::Ioctl1(DeviceFD fd, Ioctl command, std::span<const u8> i
         case 0x3:
             return WrapFixed(this, &nvhost_as_gpu::FreeSpace, input, output);
         case 0x5:
-            return WrapFixed(this, &nvhost_as_gpu::UnmapBuffer, input, output, fd);
+            return WrapFixed(this, &nvhost_as_gpu::UnmapBuffer, input, output);
         case 0x6:
-            return WrapFixed(this, &nvhost_as_gpu::MapBufferEx, input, output, fd);
+            return WrapFixed(this, &nvhost_as_gpu::MapBufferEx, input, output);
         case 0x8:
             return WrapFixed(this, &nvhost_as_gpu::GetVARegions1, input, output);
         case 0x9:
             return WrapFixed(this, &nvhost_as_gpu::AllocAsEx, input, output);
         case 0x14:
-            return WrapVariable(this, &nvhost_as_gpu::Remap, input, output, fd);
+            return WrapVariable(this, &nvhost_as_gpu::Remap, input, output);
         default:
             break;
         }
@@ -86,15 +86,8 @@ NvResult nvhost_as_gpu::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> i
     return NvResult::NotImplemented;
 }
 
-void nvhost_as_gpu::OnOpen(size_t session_id, DeviceFD fd) {
-    sessions[fd] = session_id;
-}
-void nvhost_as_gpu::OnClose(DeviceFD fd) {
-    auto it = sessions.find(fd);
-    if (it != sessions.end()) {
-        sessions.erase(it);
-    }
-}
+void nvhost_as_gpu::OnOpen(size_t session_id, DeviceFD fd) {}
+void nvhost_as_gpu::OnClose(DeviceFD fd) {}
 
 NvResult nvhost_as_gpu::AllocAsEx(IoctlAllocAsEx& params) {
     LOG_DEBUG(Service_NVDRV, "called, big_page_size=0x{:X}", params.big_page_size);
@@ -268,7 +261,7 @@ NvResult nvhost_as_gpu::FreeSpace(IoctlFreeSpace& params) {
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::Remap(std::span<IoctlRemapEntry> entries, DeviceFD fd) {
+NvResult nvhost_as_gpu::Remap(std::span<IoctlRemapEntry> entries) {
     LOG_DEBUG(Service_NVDRV, "called, num_entries=0x{:X}", entries.size());
 
     if (!vm.initialised) {
@@ -302,7 +295,7 @@ NvResult nvhost_as_gpu::Remap(std::span<IoctlRemapEntry> entries, DeviceFD fd) {
                 return NvResult::BadValue;
             }
 
-            DAddr base = nvmap.PinHandle(entry.handle, sessions[fd], false);
+            DAddr base = nvmap.PinHandle(entry.handle, false);
             DAddr device_address{static_cast<DAddr>(
                 base + (static_cast<u64>(entry.handle_offset_big_pages) << vm.big_page_size_bits))};
 
@@ -314,7 +307,7 @@ NvResult nvhost_as_gpu::Remap(std::span<IoctlRemapEntry> entries, DeviceFD fd) {
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params, DeviceFD fd) {
+NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params) {
     LOG_DEBUG(Service_NVDRV,
               "called, flags={:X}, nvmap_handle={:X}, buffer_offset={}, mapping_size={}"
               ", offset={}",
@@ -358,8 +351,8 @@ NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params, DeviceFD fd) {
         return NvResult::BadValue;
     }
 
-    DAddr device_address{static_cast<DAddr>(nvmap.PinHandle(params.handle, sessions[fd], false) +
-                                            params.buffer_offset)};
+    DAddr device_address{
+        static_cast<DAddr>(nvmap.PinHandle(params.handle, false) + params.buffer_offset)};
     u64 size{params.mapping_size ? params.mapping_size : handle->orig_size};
 
     bool big_page{[&]() {
@@ -414,7 +407,7 @@ NvResult nvhost_as_gpu::MapBufferEx(IoctlMapBufferEx& params, DeviceFD fd) {
     return NvResult::Success;
 }
 
-NvResult nvhost_as_gpu::UnmapBuffer(IoctlUnmapBuffer& params, DeviceFD fd) {
+NvResult nvhost_as_gpu::UnmapBuffer(IoctlUnmapBuffer& params) {
     LOG_DEBUG(Service_NVDRV, "called, offset=0x{:X}", params.offset);
 
     std::scoped_lock lock(mutex);

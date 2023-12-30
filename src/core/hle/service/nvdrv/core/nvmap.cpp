@@ -22,7 +22,7 @@ NvMap::Handle::Handle(u64 size_, Id id_)
     flags.raw = 0;
 }
 
-NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress) {
+NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress, size_t pSessionId) {
     std::scoped_lock lock(mutex);
     // Handles cannot be allocated twice
     if (allocated) {
@@ -32,6 +32,7 @@ NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress) 
     flags = pFlags;
     kind = pKind;
     align = pAlign < YUZU_PAGESIZE ? YUZU_PAGESIZE : pAlign;
+    session_id = pSessionId;
 
     // This flag is only applicable for handles with an address passed
     if (pAddress) {
@@ -154,7 +155,7 @@ DAddr NvMap::GetHandleAddress(Handle::Id handle) {
     }
 }
 
-DAddr NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id, bool low_area_pin) {
+DAddr NvMap::PinHandle(NvMap::Handle::Id handle, bool low_area_pin) {
     auto handle_description{GetHandle(handle)};
     if (!handle_description) [[unlikely]] {
         return 0;
@@ -198,10 +199,9 @@ DAddr NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id, bool low_are
         // If not then allocate some space and map it
         DAddr address{};
         auto& smmu = host1x.MemoryManager();
-        auto* session = core.GetSession(session_id);
+        auto* session = core.GetSession(handle_description->session_id);
         const VAddr vaddress = handle_description->address;
         const size_t map_size = handle_description->aligned_size;
-        handle_description->session_id = session_id;
         if (session->has_preallocated_area && session->mapper->IsInBounds(vaddress, map_size)) {
             handle_description->d_address = session->mapper->Map(vaddress, map_size);
             handle_description->in_heap = true;

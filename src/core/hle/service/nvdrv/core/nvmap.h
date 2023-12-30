@@ -82,7 +82,7 @@ public:
          * @brief Sets up the handle with the given memory config, can allocate memory from the tmem
          * if a 0 address is passed
          */
-        [[nodiscard]] NvResult Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress);
+        [[nodiscard]] NvResult Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress, size_t pSessionId);
 
         /**
          * @brief Increases the dupe counter of the handle for the given session
@@ -130,7 +130,7 @@ public:
      * number of calls to `UnpinHandle`
      * @return The SMMU virtual address that the handle has been mapped to
      */
-    DAddr PinHandle(Handle::Id handle, size_t session_id, bool low_area_pin);
+    DAddr PinHandle(Handle::Id handle, bool low_area_pin);
 
     /**
      * @brief When this has been called an equal number of times to `PinHandle` for the supplied
