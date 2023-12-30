@@ -8,6 +8,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/hle/service/nvdrv/core/syncpoint_manager.h"
@@ -109,7 +110,7 @@ NvResult nvhost_nvdec_common::Submit(IoctlSubmit& params, std::span<u8> data, De
         ASSERT_OR_EXECUTE(object, return NvResult::InvalidState;);
         Tegra::ChCommandHeaderList cmdlist(cmd_buffer.word_count);
         session->process->GetMemory().ReadBlock(object->address + cmd_buffer.offset, cmdlist.data(),
-                                             cmdlist.size() * sizeof(u32));
+                                                cmdlist.size() * sizeof(u32));
         gpu.PushCommandBuffer(core.Host1xDeviceFile().fd_to_id[fd], cmdlist);
     }
     // Some games expect command_buffers to be written back
@@ -135,7 +136,8 @@ NvResult nvhost_nvdec_common::GetWaitbase(IoctlGetWaitbase& params) {
     return NvResult::Success;
 }
 
-NvResult nvhost_nvdec_common::MapBuffer(IoctlMapBuffer& params, std::span<MapBufferEntry> entries, DeviceFD fd) {
+NvResult nvhost_nvdec_common::MapBuffer(IoctlMapBuffer& params, std::span<MapBufferEntry> entries,
+                                        DeviceFD fd) {
     const size_t num_entries = std::min(params.num_entries, static_cast<u32>(entries.size()));
     for (size_t i = 0; i < num_entries; i++) {
         DAddr pin_address = nvmap.PinHandle(entries[i].map_handle, sessions[fd], true);

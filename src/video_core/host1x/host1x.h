@@ -21,6 +21,7 @@ namespace Host1x {
 class Host1x {
 public:
     explicit Host1x(Core::System& system);
+    ~Host1x();
 
     SyncpointManager& GetSyncpointManager() {
         return syncpoint_manager;

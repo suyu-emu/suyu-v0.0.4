@@ -217,9 +217,6 @@ DeviceMemoryManager<Traits>::DeviceMemoryManager(const DeviceMemory& device_memo
       cpu_backing_address(device_as_size >> Memory::YUZU_PAGEBITS) {
     impl = std::make_unique<DeviceMemoryManagerAllocator<Traits>>();
     cached_pages = std::make_unique<CachedPages>();
-    for (size_t i = 0; i < 1ULL << (33 - 12); i++) {
-        compressed_device_addr[i] = 0;
-    }
 }
 
 template <typename Traits>
@@ -517,7 +514,7 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
     u64 cache_begin = 0;
     u64 uncache_bytes = 0;
     u64 cache_bytes = 0;
-    const auto* MarkRegionCaching = &DeviceMemoryManager<Traits>::DeviceMethods::MarkRegionCaching;
+    const auto MarkRegionCaching = &DeviceMemoryManager<Traits>::DeviceMethods::MarkRegionCaching;
 
     std::atomic_thread_fence(std::memory_order_acquire);
     const size_t page_end = Common::DivCeil(addr + size, Memory::YUZU_PAGESIZE);

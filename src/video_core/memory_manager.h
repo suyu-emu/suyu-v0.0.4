@@ -68,7 +68,7 @@ public:
         if (!address) {
             return {};
         }
-        return memory.GetPointer(*address);
+        return memory.GetPointer<T>(*address);
     }
 
     template <typename T>
