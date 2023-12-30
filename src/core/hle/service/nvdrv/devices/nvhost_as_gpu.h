@@ -141,9 +141,9 @@ private:
 
     NvResult AllocAsEx(IoctlAllocAsEx& params);
     NvResult AllocateSpace(IoctlAllocSpace& params);
-    NvResult Remap(std::span<IoctlRemapEntry> params, DeviceFD fd);
-    NvResult MapBufferEx(IoctlMapBufferEx& params, DeviceFD fd);
-    NvResult UnmapBuffer(IoctlUnmapBuffer& params, DeviceFD fd);
+    NvResult Remap(std::span<IoctlRemapEntry> params);
+    NvResult MapBufferEx(IoctlMapBufferEx& params);
+    NvResult UnmapBuffer(IoctlUnmapBuffer& params);
     NvResult FreeSpace(IoctlFreeSpace& params);
     NvResult BindChannel(IoctlBindChannel& params);
 
@@ -214,7 +214,6 @@ private:
         bool initialised{};
     } vm;
     std::shared_ptr<Tegra::MemoryManager> gmmu;
-    std::unordered_map<DeviceFD, size_t> sessions;
 };
 
 } // namespace Service::Nvidia::Devices
