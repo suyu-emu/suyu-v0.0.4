@@ -6,7 +6,12 @@
 export NDK_CCACHE="$(which ccache)"
 ccache -s
 
-BUILD_FLAVOR=mainline
+BUILD_FLAVOR="mainline"
+
+BUILD_TYPE="release"
+if [ "${GITHUB_REPOSITORY}" == "yuzu-emu/yuzu" ]; then
+    BUILD_TYPE="relWithDebInfo"
+fi
 
 if [ ! -z "${ANDROID_KEYSTORE_B64}" ]; then
     export ANDROID_KEYSTORE_FILE="${GITHUB_WORKSPACE}/ks.jks"
@@ -15,7 +20,7 @@ fi
 
 cd src/android
 chmod +x ./gradlew
-./gradlew "assemble${BUILD_FLAVOR}Release" "bundle${BUILD_FLAVOR}Release"
+./gradlew "assemble${BUILD_FLAVOR}${BUILD_TYPE}" "bundle${BUILD_FLAVOR}${BUILD_TYPE}"
 
 ccache -s
 
