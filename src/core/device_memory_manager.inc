@@ -20,10 +20,10 @@ namespace Core {
 
 namespace {
 
-class PhysicalAddressContainer {
+class MultiAddressContainer {
 public:
-    PhysicalAddressContainer() = default;
-    ~PhysicalAddressContainer() = default;
+    MultiAddressContainer() = default;
+    ~MultiAddressContainer() = default;
 
     void GatherValues(u32 start_entry, Common::ScratchBuffer<u32>& buffer) {
         buffer.resize(8);
@@ -145,7 +145,7 @@ struct DeviceMemoryManagerAllocator {
     std::conditional_t<supports_pinning, Common::FlatAllocator<DAddr, 0, pin_bits>, EmptyAllocator>
         pin_allocator;
     Common::FlatAllocator<DAddr, 0, device_virtual_bits> main_allocator;
-    PhysicalAddressContainer multi_dev_address;
+    MultiAddressContainer multi_dev_address;
 
     /// Returns true when vaddr -> vaddr+size is fully contained in the buffer
     template <bool pin_area>

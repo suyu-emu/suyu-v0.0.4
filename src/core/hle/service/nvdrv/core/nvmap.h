@@ -70,6 +70,8 @@ public:
 
         u8 kind{};        //!< Used for memory compression
         bool allocated{}; //!< If the handle has been allocated with `Alloc`
+        bool in_heap{};
+        size_t session_id{};
 
         DAddr d_address{}; //!< The memory location in the device's AS that this handle corresponds to,
                            //!< this can also be in the nvdrv tmem

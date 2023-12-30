@@ -8,6 +8,7 @@
 
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/service/nvdrv/core/container.h"
+#include "core/hle/service/nvdrv/core/heap_mapper.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/hle/service/nvdrv/core/syncpoint_manager.h"
 #include "core/memory.h"
@@ -36,6 +37,14 @@ Container::~Container() = default;
 
 size_t Container::OpenSession(Kernel::KProcess* process) {
     std::scoped_lock lk(impl->session_guard);
+    for (auto& session : impl->sessions) {
+        if (!session.is_active) {
+            continue;
+        }
+        if (session.process == process) {
+            return session.id;
+        }
+    }
     size_t new_id{};
     auto* memory_interface = &process->GetMemory();
     auto& smmu = impl->host1x.MemoryManager();
@@ -48,16 +57,65 @@ size_t Container::OpenSession(Kernel::KProcess* process) {
         impl->sessions.emplace_back(new_id, process, smmu_id);
         new_id = impl->new_ids++;
     }
-    LOG_CRITICAL(Debug, "Created Session {}", new_id);
+    auto& session = impl->sessions[new_id];
+    session.is_active = true;
+    // Optimization
+    if (process->IsApplication()) {
+        auto& page_table = process->GetPageTable().GetBasePageTable();
+        auto heap_start = page_table.GetHeapRegionStart();
+
+        Kernel::KProcessAddress cur_addr = heap_start;
+        size_t region_size = 0;
+        VAddr region_start = 0;
+        while (true) {
+            Kernel::KMemoryInfo mem_info{};
+            Kernel::Svc::PageInfo page_info{};
+            R_ASSERT(page_table.QueryInfo(std::addressof(mem_info), std::addressof(page_info),
+                                          cur_addr));
+            auto svc_mem_info = mem_info.GetSvcMemoryInfo();
+
+            // check if this memory block is heap
+            if (svc_mem_info.state == Kernel::Svc::MemoryState::Normal) {
+                if (svc_mem_info.size > region_size) {
+                    region_size = svc_mem_info.size;
+                    region_start = svc_mem_info.base_address;
+                }
+            }
+
+            // Check if we're done.
+            const uintptr_t next_address = svc_mem_info.base_address + svc_mem_info.size;
+            if (next_address <= GetInteger(cur_addr)) {
+                break;
+            }
+
+            cur_addr = next_address;
+        }
+        session.has_preallocated_area = false;
+        auto start_region = (region_size >> 15) >= 1024 ? smmu.Allocate(region_size) : 0;
+        if (start_region != 0) {
+            session.mapper = std::make_unique<HeapMapper>(region_start, start_region, region_size,
+                                                          smmu_id, impl->host1x);
+            session.has_preallocated_area = true;
+            LOG_CRITICAL(Debug, "Preallocation created!");
+        }
+    }
     return new_id;
 }
 
 void Container::CloseSession(size_t id) {
     std::scoped_lock lk(impl->session_guard);
+    auto& session = impl->sessions[id];
     auto& smmu = impl->host1x.MemoryManager();
+    if (session.has_preallocated_area) {
+        const DAddr region_start = session.mapper->GetRegionStart();
+        const size_t region_size = session.mapper->GetRegionSize();
+        session.mapper.reset();
+        smmu.Free(region_start, region_size);
+        session.has_preallocated_area = false;
+    }
+    session.is_active = false;
     smmu.UnregisterProcess(impl->sessions[id].smmu_id);
     impl->id_pool.emplace_front(id);
-    LOG_CRITICAL(Debug, "Closed Session {}", id);
 }
 
 Session* Container::GetSession(size_t id) {

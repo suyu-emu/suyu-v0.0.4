@@ -20,6 +20,7 @@ class Host1x;
 
 namespace Service::Nvidia::NvCore {
 
+class HeapMapper;
 class NvMap;
 class SyncpointManager;
 
@@ -29,6 +30,9 @@ struct Session {
     size_t id;
     Kernel::KProcess* process;
     size_t smmu_id;
+    bool has_preallocated_area{};
+    std::unique_ptr<HeapMapper> mapper{};
+    bool is_active{};
 };
 
 class Container {
