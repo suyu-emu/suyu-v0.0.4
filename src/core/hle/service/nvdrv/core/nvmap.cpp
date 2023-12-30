@@ -221,7 +221,7 @@ DAddr NvMap::PinHandle(NvMap::Handle::Id handle, size_t session_id, bool low_are
             }
 
             handle_description->d_address = address;
-            smmu.Map(address, vaddress, map_size, session->smmu_id);
+            smmu.Map(address, vaddress, map_size, session->smmu_id, true);
             handle_description->in_heap = false;
         }
     }

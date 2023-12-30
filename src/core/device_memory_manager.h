@@ -13,7 +13,6 @@
 #include "common/scratch_buffer.h"
 #include "common/virtual_buffer.h"
 
-
 namespace Core {
 
 class DeviceMemory;
@@ -40,8 +39,16 @@ public:
     void AllocateFixed(DAddr start, size_t size);
     void Free(DAddr start, size_t size);
 
-    void Map(DAddr address, VAddr virtual_address, size_t size, size_t process_id);
+    void Map(DAddr address, VAddr virtual_address, size_t size, size_t process_id,
+             bool track = false);
+
     void Unmap(DAddr address, size_t size);
+
+    void TrackContinuityImpl(DAddr address, VAddr virtual_address, size_t size, size_t process_id);
+    void TrackContinuity(DAddr address, VAddr virtual_address, size_t size, size_t process_id) {
+        std::scoped_lock lk(mapping_guard);
+        TrackContinuityImpl(address, virtual_address, size, process_id);
+    }
 
     // Write / Read
     template <typename T>
@@ -86,13 +93,8 @@ public:
     template <typename T>
     T Read(DAddr address) const;
 
-    const u8* GetSpan(const DAddr src_addr, const std::size_t size) const {
-        return nullptr;
-    }
-
-    u8* GetSpan(const DAddr src_addr, const std::size_t size) {
-        return nullptr;
-    }
+    u8* GetSpan(const DAddr src_addr, const std::size_t size);
+    const u8* GetSpan(const DAddr src_addr, const std::size_t size) const;
 
     void ReadBlock(DAddr address, void* dest_pointer, size_t size);
     void ReadBlockUnsafe(DAddr address, void* dest_pointer, size_t size);
@@ -144,6 +146,7 @@ private:
     DeviceInterface* interface;
     Common::VirtualBuffer<u32> compressed_physical_ptr;
     Common::VirtualBuffer<u32> compressed_device_addr;
+    Common::VirtualBuffer<u32> continuity_tracker;
 
     // Process memory interfaces
 
