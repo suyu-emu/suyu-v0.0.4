@@ -96,9 +96,9 @@ Id ImageType(EmitContext& ctx, const ImageDescriptor& desc, Id sampled_type) {
 }
 
 Id DefineVariable(EmitContext& ctx, Id type, std::optional<spv::BuiltIn> builtin,
-                  spv::StorageClass storage_class) {
+                  spv::StorageClass storage_class, std::optional<Id> initializer = std::nullopt) {
     const Id pointer_type{ctx.TypePointer(storage_class, type)};
-    const Id id{ctx.AddGlobalVariable(pointer_type, storage_class)};
+    const Id id{ctx.AddGlobalVariable(pointer_type, storage_class, initializer)};
     if (builtin) {
         ctx.Decorate(id, spv::Decoration::BuiltIn, *builtin);
     }
@@ -144,11 +144,12 @@ Id DefineInput(EmitContext& ctx, Id type, bool per_invocation,
 }
 
 Id DefineOutput(EmitContext& ctx, Id type, std::optional<u32> invocations,
-                std::optional<spv::BuiltIn> builtin = std::nullopt) {
+                std::optional<spv::BuiltIn> builtin = std::nullopt,
+                std::optional<Id> initializer = std::nullopt) {
     if (invocations && ctx.stage == Stage::TessellationControl) {
         type = ctx.TypeArray(type, ctx.Const(*invocations));
     }
-    return DefineVariable(ctx, type, builtin, spv::StorageClass::Output);
+    return DefineVariable(ctx, type, builtin, spv::StorageClass::Output, initializer);
 }
 
 void DefineGenericOutput(EmitContext& ctx, size_t index, std::optional<u32> invocations) {
@@ -811,10 +812,14 @@ void EmitContext::DefineAttributeMemAccess(const Info& info) {
             labels.push_back(OpLabel());
         }
         if (info.stores.ClipDistances()) {
-            literals.push_back(static_cast<u32>(IR::Attribute::ClipDistance0) >> 2);
-            labels.push_back(OpLabel());
-            literals.push_back(static_cast<u32>(IR::Attribute::ClipDistance4) >> 2);
-            labels.push_back(OpLabel());
+            if (profile.max_user_clip_distances >= 4) {
+                literals.push_back(static_cast<u32>(IR::Attribute::ClipDistance0) >> 2);
+                labels.push_back(OpLabel());
+            }
+            if (profile.max_user_clip_distances >= 8) {
+                literals.push_back(static_cast<u32>(IR::Attribute::ClipDistance4) >> 2);
+                labels.push_back(OpLabel());
+            }
         }
         OpSelectionMerge(end_block, spv::SelectionControlMask::MaskNone);
         OpSwitch(compare_index, default_label, literals, labels);
@@ -843,17 +848,21 @@ void EmitContext::DefineAttributeMemAccess(const Info& info) {
             ++label_index;
         }
         if (info.stores.ClipDistances()) {
-            AddLabel(labels[label_index]);
-            const Id pointer{OpAccessChain(output_f32, clip_distances, masked_index)};
-            OpStore(pointer, store_value);
-            OpReturn();
-            ++label_index;
-            AddLabel(labels[label_index]);
-            const Id fixed_index{OpIAdd(U32[1], masked_index, Const(4U))};
-            const Id pointer2{OpAccessChain(output_f32, clip_distances, fixed_index)};
-            OpStore(pointer2, store_value);
-            OpReturn();
-            ++label_index;
+            if (profile.max_user_clip_distances >= 4) {
+                AddLabel(labels[label_index]);
+                const Id pointer{OpAccessChain(output_f32, clip_distances, masked_index)};
+                OpStore(pointer, store_value);
+                OpReturn();
+                ++label_index;
+            }
+            if (profile.max_user_clip_distances >= 8) {
+                AddLabel(labels[label_index]);
+                const Id fixed_index{OpIAdd(U32[1], masked_index, Const(4U))};
+                const Id pointer{OpAccessChain(output_f32, clip_distances, fixed_index)};
+                OpStore(pointer, store_value);
+                OpReturn();
+                ++label_index;
+            }
         }
         AddLabel(end_block);
         OpUnreachable();
@@ -1532,9 +1541,16 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
         if (stage == Stage::Fragment) {
             throw NotImplementedException("Storing ClipDistance in fragment stage");
         }
-        const Id type{TypeArray(
-            F32[1], Const(std::min(info.used_clip_distances, profile.max_user_clip_distances)))};
-        clip_distances = DefineOutput(*this, type, invocations, spv::BuiltIn::ClipDistance);
+        if (profile.max_user_clip_distances > 0) {
+            const u32 used{std::min(profile.max_user_clip_distances, 8u)};
+            const std::array<Id, 8> zero{f32_zero_value, f32_zero_value, f32_zero_value,
+                                         f32_zero_value, f32_zero_value, f32_zero_value,
+                                         f32_zero_value, f32_zero_value};
+            const Id type{TypeArray(F32[1], Const(used))};
+            const Id initializer{ConstantComposite(type, std::span(zero).subspan(0, used))};
+            clip_distances =
+                DefineOutput(*this, type, invocations, spv::BuiltIn::ClipDistance, initializer);
+        }
     }
     if (info.stores[IR::Attribute::Layer] &&
         (profile.support_viewport_index_layer_non_geometry || stage == Stage::Geometry)) {
