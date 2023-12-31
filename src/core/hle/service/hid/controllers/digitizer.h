@@ -5,17 +5,12 @@
 
 #include "core/hle/service/hid/controllers/controller_base.h"
 
-namespace Core::HID {
-class EmulatedDevices;
-struct MouseState;
-struct AnalogStickState;
-} // namespace Core::HID
-
 namespace Service::HID {
-class Mouse final : public ControllerBase {
+
+class Digitizer final : public ControllerBase {
 public:
-    explicit Mouse(Core::HID::HIDCore& hid_core_);
-    ~Mouse() override;
+    explicit Digitizer(Core::HID::HIDCore& hid_core_);
+    ~Digitizer() override;
 
     // Called when the controller is initialized
     void OnInit() override;
@@ -27,8 +22,6 @@ public:
     void OnUpdate(const Core::Timing::CoreTiming& core_timing) override;
 
 private:
-    Core::HID::MouseState next_state{};
-    Core::HID::AnalogStickState last_mouse_wheel_state{};
-    Core::HID::EmulatedDevices* emulated_devices = nullptr;
+    bool smart_update{};
 };
 } // namespace Service::HID

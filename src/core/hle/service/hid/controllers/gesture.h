@@ -18,8 +18,7 @@ struct GestureSharedMemoryFormat;
 
 class Gesture final : public ControllerBase {
 public:
-    explicit Gesture(Core::HID::HIDCore& hid_core_,
-                     GestureSharedMemoryFormat& gesture_shared_memory);
+    explicit Gesture(Core::HID::HIDCore& hid_core_);
     ~Gesture() override;
 
     // Called when the controller is initialized
@@ -74,7 +73,7 @@ private:
     GestureProperties GetGestureProperties();
 
     GestureState next_state{};
-    GestureSharedMemoryFormat& shared_memory;
+    GestureSharedMemoryFormat* shared_memory;
     Core::HID::EmulatedConsole* console = nullptr;
 
     std::array<Core::HID::TouchFinger, MAX_POINTS> fingers{};

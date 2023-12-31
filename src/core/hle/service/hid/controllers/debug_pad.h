@@ -15,12 +15,9 @@ class CoreTiming;
 }
 
 namespace Service::HID {
-struct DebugPadSharedMemoryFormat;
-
 class DebugPad final : public ControllerBase {
 public:
-    explicit DebugPad(Core::HID::HIDCore& hid_core_,
-                      DebugPadSharedMemoryFormat& debug_pad_shared_memory);
+    explicit DebugPad(Core::HID::HIDCore& hid_core_);
     ~DebugPad() override;
 
     // Called when the controller is initialized
@@ -34,7 +31,6 @@ public:
 
 private:
     DebugPadState next_state{};
-    DebugPadSharedMemoryFormat& shared_memory;
     Core::HID::EmulatedController* controller = nullptr;
 };
 } // namespace Service::HID

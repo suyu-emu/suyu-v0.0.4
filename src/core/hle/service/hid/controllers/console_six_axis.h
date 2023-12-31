@@ -10,12 +10,9 @@ class EmulatedConsole;
 } // namespace Core::HID
 
 namespace Service::HID {
-struct ConsoleSixAxisSensorSharedMemoryFormat;
-
 class ConsoleSixAxis final : public ControllerBase {
 public:
-    explicit ConsoleSixAxis(Core::HID::HIDCore& hid_core_,
-                            ConsoleSixAxisSensorSharedMemoryFormat& console_shared_memory);
+    explicit ConsoleSixAxis(Core::HID::HIDCore& hid_core_);
     ~ConsoleSixAxis() override;
 
     // Called when the controller is initialized
@@ -28,7 +25,6 @@ public:
     void OnUpdate(const Core::Timing::CoreTiming& core_timing) override;
 
 private:
-    ConsoleSixAxisSensorSharedMemoryFormat& shared_memory;
     Core::HID::EmulatedConsole* console = nullptr;
 };
 } // namespace Service::HID

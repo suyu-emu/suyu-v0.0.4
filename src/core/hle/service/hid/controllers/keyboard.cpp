@@ -5,14 +5,13 @@
 #include "core/core_timing.h"
 #include "core/hid/emulated_devices.h"
 #include "core/hid/hid_core.h"
+#include "core/hle/service/hid/controllers/applet_resource.h"
 #include "core/hle/service/hid/controllers/keyboard.h"
-#include "core/hle/service/hid/controllers/shared_memory_format.h"
+#include "core/hle/service/hid/controllers/types/shared_memory_format.h"
 
 namespace Service::HID {
 
-Keyboard::Keyboard(Core::HID::HIDCore& hid_core_,
-                   KeyboardSharedMemoryFormat& keyboard_shared_memory)
-    : ControllerBase{hid_core_}, shared_memory{keyboard_shared_memory} {
+Keyboard::Keyboard(Core::HID::HIDCore& hid_core_) : ControllerBase{hid_core_} {
     emulated_devices = hid_core.GetEmulatedDevices();
 }
 
@@ -23,6 +22,15 @@ void Keyboard::OnInit() {}
 void Keyboard::OnRelease() {}
 
 void Keyboard::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+    const u64 aruid = applet_resource->GetActiveAruid();
+    auto* data = applet_resource->GetAruidData(aruid);
+
+    if (data == nullptr) {
+        return;
+    }
+
+    KeyboardSharedMemoryFormat& shared_memory = data->shared_memory_format->keyboard;
+
     if (!IsControllerActivated()) {
         shared_memory.keyboard_lifo.buffer_count = 0;
         shared_memory.keyboard_lifo.buffer_tail = 0;

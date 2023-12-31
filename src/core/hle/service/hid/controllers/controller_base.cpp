@@ -31,4 +31,9 @@ void ControllerBase::DeactivateController() {
 bool ControllerBase::IsControllerActivated() const {
     return is_activated;
 }
+
+void ControllerBase::SetAppletResource(std::shared_ptr<AppletResource> resource) {
+    applet_resource = resource;
+}
+
 } // namespace Service::HID
