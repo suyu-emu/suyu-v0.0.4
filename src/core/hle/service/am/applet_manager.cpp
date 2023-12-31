@@ -7,10 +7,10 @@
 #include "core/core_timing.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_manager.h"
-#include "core/hle/service/am/applets/applet_cabinet.h"
-#include "core/hle/service/am/applets/applet_controller.h"
-#include "core/hle/service/am/applets/applet_mii_edit_types.h"
-#include "core/hle/service/am/applets/applet_software_keyboard_types.h"
+#include "core/hle/service/am/frontend/applet_cabinet.h"
+#include "core/hle/service/am/frontend/applet_controller.h"
+#include "core/hle/service/am/frontend/applet_mii_edit_types.h"
+#include "core/hle/service/am/frontend/applet_software_keyboard_types.h"
 #include "hid_core/hid_types.h"
 
 namespace Service::AM {
@@ -54,13 +54,13 @@ void PushInShowController(Core::System& system, AppletStorageChannel& channel) {
     const CommonArguments common_args = {
         .arguments_version = CommonArgumentVersion::Version3,
         .size = CommonArgumentSize::Version3,
-        .library_version = static_cast<u32>(Applets::ControllerAppletVersion::Version8),
+        .library_version = static_cast<u32>(Frontend::ControllerAppletVersion::Version8),
         .theme_color = ThemeColor::BasicBlack,
         .play_startup_sound = true,
         .system_tick = system.CoreTiming().GetClockTicks(),
     };
 
-    Applets::ControllerSupportArgNew user_args = {
+    Frontend::ControllerSupportArgNew user_args = {
         .header = {.player_count_min = 1,
                    .player_count_max = 4,
                    .enable_take_over_connection = true,
@@ -73,13 +73,13 @@ void PushInShowController(Core::System& system, AppletStorageChannel& channel) {
         .explain_text = {},
     };
 
-    Applets::ControllerSupportArgPrivate private_args = {
-        .arg_private_size = sizeof(Applets::ControllerSupportArgPrivate),
-        .arg_size = sizeof(Applets::ControllerSupportArgNew),
+    Frontend::ControllerSupportArgPrivate private_args = {
+        .arg_private_size = sizeof(Frontend::ControllerSupportArgPrivate),
+        .arg_size = sizeof(Frontend::ControllerSupportArgNew),
         .is_home_menu = true,
         .flag_1 = true,
-        .mode = Applets::ControllerSupportMode::ShowControllerSupport,
-        .caller = Applets::ControllerSupportCaller::
+        .mode = Frontend::ControllerSupportMode::ShowControllerSupport,
+        .caller = Frontend::ControllerSupportCaller::
             Application, // switchbrew: Always zero except with
                          // ShowControllerFirmwareUpdateForSystem/ShowControllerKeyRemappingForSystem,
                          // which sets this to the input param
@@ -103,16 +103,16 @@ void PushInShowCabinetData(Core::System& system, AppletStorageChannel& channel) 
     const CommonArguments arguments{
         .arguments_version = CommonArgumentVersion::Version3,
         .size = CommonArgumentSize::Version3,
-        .library_version = static_cast<u32>(Applets::CabinetAppletVersion::Version1),
+        .library_version = static_cast<u32>(Frontend::CabinetAppletVersion::Version1),
         .theme_color = ThemeColor::BasicBlack,
         .play_startup_sound = true,
         .system_tick = system.CoreTiming().GetClockTicks(),
     };
 
-    const Applets::StartParamForAmiiboSettings amiibo_settings{
+    const Frontend::StartParamForAmiiboSettings amiibo_settings{
         .param_1 = 0,
-        .applet_mode = system.GetAppletManager().GetCabinetMode(),
-        .flags = Applets::CabinetFlags::None,
+        .applet_mode = system.GetFrontendAppletHolder().GetCabinetMode(),
+        .flags = Frontend::CabinetFlags::None,
         .amiibo_settings_1 = 0,
         .device_handle = 0,
         .tag_info{},
@@ -130,16 +130,16 @@ void PushInShowCabinetData(Core::System& system, AppletStorageChannel& channel) 
 
 void PushInShowMiiEditData(Core::System& system, AppletStorageChannel& channel) {
     struct MiiEditV3 {
-        Applets::MiiEditAppletInputCommon common;
-        Applets::MiiEditAppletInputV3 input;
+        Frontend::MiiEditAppletInputCommon common;
+        Frontend::MiiEditAppletInputV3 input;
     };
     static_assert(sizeof(MiiEditV3) == 0x100, "MiiEditV3 has incorrect size.");
 
     MiiEditV3 mii_arguments{
         .common =
             {
-                .version = Applets::MiiEditAppletVersion::Version3,
-                .applet_mode = Applets::MiiEditAppletMode::ShowMiiEdit,
+                .version = Frontend::MiiEditAppletVersion::Version3,
+                .applet_mode = Frontend::MiiEditAppletMode::ShowMiiEdit,
             },
         .input{},
     };
@@ -154,7 +154,7 @@ void PushInShowSoftwareKeyboard(Core::System& system, AppletStorageChannel& chan
     const CommonArguments arguments{
         .arguments_version = CommonArgumentVersion::Version3,
         .size = CommonArgumentSize::Version3,
-        .library_version = static_cast<u32>(Applets::SwkbdAppletVersion::Version524301),
+        .library_version = static_cast<u32>(Frontend::SwkbdAppletVersion::Version524301),
         .theme_color = ThemeColor::BasicBlack,
         .play_startup_sound = true,
         .system_tick = system.CoreTiming().GetClockTicks(),
@@ -162,21 +162,21 @@ void PushInShowSoftwareKeyboard(Core::System& system, AppletStorageChannel& chan
 
     std::vector<char16_t> initial_string(0);
 
-    const Applets::SwkbdConfigCommon swkbd_config{
-        .type = Applets::SwkbdType::Qwerty,
+    const Frontend::SwkbdConfigCommon swkbd_config{
+        .type = Frontend::SwkbdType::Qwerty,
         .ok_text{},
         .left_optional_symbol_key{},
         .right_optional_symbol_key{},
         .use_prediction = false,
         .key_disable_flags{},
-        .initial_cursor_position = Applets::SwkbdInitialCursorPosition::Start,
+        .initial_cursor_position = Frontend::SwkbdInitialCursorPosition::Start,
         .header_text{},
         .sub_text{},
         .guide_text{},
         .max_text_length = 500,
         .min_text_length = 0,
-        .password_mode = Applets::SwkbdPasswordMode::Disabled,
-        .text_draw_type = Applets::SwkbdTextDrawType::Box,
+        .password_mode = Frontend::SwkbdPasswordMode::Disabled,
+        .text_draw_type = Frontend::SwkbdTextDrawType::Box,
         .enable_return_button = true,
         .use_utf8 = false,
         .use_blur_background = true,
@@ -187,7 +187,7 @@ void PushInShowSoftwareKeyboard(Core::System& system, AppletStorageChannel& chan
         .use_text_check = false,
     };
 
-    Applets::SwkbdConfigNew swkbd_config_new{};
+    Frontend::SwkbdConfigNew swkbd_config_new{};
 
     std::vector<u8> argument_data(sizeof(arguments));
     std::vector<u8> swkbd_data(sizeof(swkbd_config) + sizeof(swkbd_config_new));
@@ -196,7 +196,7 @@ void PushInShowSoftwareKeyboard(Core::System& system, AppletStorageChannel& chan
     std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
     std::memcpy(swkbd_data.data(), &swkbd_config, sizeof(swkbd_config));
     std::memcpy(swkbd_data.data() + sizeof(swkbd_config), &swkbd_config_new,
-                sizeof(Applets::SwkbdConfigNew));
+                sizeof(Frontend::SwkbdConfigNew));
     std::memcpy(work_buffer.data(), initial_string.data(),
                 swkbd_config.initial_string_length * sizeof(char16_t));
 

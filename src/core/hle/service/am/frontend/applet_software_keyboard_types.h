@@ -11,7 +11,7 @@
 #include "common/swap.h"
 #include "common/uuid.h"
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 constexpr std::size_t MAX_OK_TEXT_LENGTH = 8;
 constexpr std::size_t MAX_HEADER_TEXT_LENGTH = 64;
@@ -351,4 +351,4 @@ struct SwkbdDecidedEnterArg {
 };
 static_assert(sizeof(SwkbdDecidedEnterArg) == 0x4, "SwkbdDecidedEnterArg has incorrect size.");
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

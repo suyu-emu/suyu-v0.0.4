@@ -8,15 +8,15 @@
 
 #include "common/uuid.h"
 #include "core/frontend/applets/applet.h"
-#include "core/hle/service/am/applets/applet_profile_select.h"
+#include "core/hle/service/am/frontend/applet_profile_select.h"
 
 namespace Core::Frontend {
 
 struct ProfileSelectParameters {
-    Service::AM::Applets::UiMode mode;
+    Service::AM::Frontend::UiMode mode;
     std::array<Common::UUID, 8> invalid_uid_list;
-    Service::AM::Applets::UiSettingsDisplayOptions display_options;
-    Service::AM::Applets::UserSelectionPurpose purpose;
+    Service::AM::Frontend::UiSettingsDisplayOptions display_options;
+    Service::AM::Frontend::UserSelectionPurpose purpose;
 };
 
 class ProfileSelectApplet : public Applet {

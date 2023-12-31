@@ -9,11 +9,11 @@
 #include "core/core.h"
 #include "core/frontend/applets/error.h"
 #include "core/hle/service/am/am.h"
-#include "core/hle/service/am/applets/applet_error.h"
+#include "core/hle/service/am/frontend/applet_error.h"
 #include "core/hle/service/am/storage.h"
 #include "core/reporter.h"
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 struct ErrorCode {
     u32 error_category{};
@@ -106,12 +106,12 @@ Result Decode64BitError(u64 error) {
 
 Error::Error(Core::System& system_, LibraryAppletMode applet_mode_,
              const Core::Frontend::ErrorApplet& frontend_)
-    : Applet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
 
 Error::~Error() = default;
 
 void Error::Initialize() {
-    Applet::Initialize();
+    FrontendApplet::Initialize();
     args = std::make_unique<ErrorArguments>();
     complete = false;
 
@@ -220,4 +220,4 @@ Result Error::RequestExit() {
     R_SUCCEED();
 }
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

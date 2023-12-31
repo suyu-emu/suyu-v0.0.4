@@ -10,7 +10,7 @@
 #include "common/uuid.h"
 #include "core/hle/service/mii/types/char_info.h"
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 enum class MiiEditAppletVersion : s32 {
     Version3 = 0x3, // 1.0.0 - 10.1.1
@@ -80,4 +80,4 @@ struct MiiEditAppletOutputForCharInfoEditing {
 static_assert(sizeof(MiiEditAppletOutputForCharInfoEditing) == 0x80,
               "MiiEditAppletOutputForCharInfoEditing has incorrect size.");
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

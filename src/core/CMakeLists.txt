@@ -176,8 +176,8 @@ add_library(core STATIC
     frontend/applets/controller.h
     frontend/applets/error.cpp
     frontend/applets/error.h
-    frontend/applets/general_frontend.cpp
-    frontend/applets/general_frontend.h
+    frontend/applets/general.cpp
+    frontend/applets/general.h
     frontend/applets/mii_edit.cpp
     frontend/applets/mii_edit.h
     frontend/applets/profile_select.cpp
@@ -390,6 +390,27 @@ add_library(core STATIC
     hle/service/acc/errors.h
     hle/service/acc/profile_manager.cpp
     hle/service/acc/profile_manager.h
+    hle/service/am/frontend/applet_cabinet.cpp
+    hle/service/am/frontend/applet_cabinet.h
+    hle/service/am/frontend/applet_controller.cpp
+    hle/service/am/frontend/applet_controller.h
+    hle/service/am/frontend/applet_error.cpp
+    hle/service/am/frontend/applet_error.h
+    hle/service/am/frontend/applet_general.cpp
+    hle/service/am/frontend/applet_general.h
+    hle/service/am/frontend/applet_mii_edit.cpp
+    hle/service/am/frontend/applet_mii_edit.h
+    hle/service/am/frontend/applet_mii_edit_types.h
+    hle/service/am/frontend/applet_profile_select.cpp
+    hle/service/am/frontend/applet_profile_select.h
+    hle/service/am/frontend/applet_software_keyboard.cpp
+    hle/service/am/frontend/applet_software_keyboard.h
+    hle/service/am/frontend/applet_software_keyboard_types.h
+    hle/service/am/frontend/applet_web_browser.cpp
+    hle/service/am/frontend/applet_web_browser.h
+    hle/service/am/frontend/applet_web_browser_types.h
+    hle/service/am/frontend/applets.cpp
+    hle/service/am/frontend/applets.h
     hle/service/am/am.cpp
     hle/service/am/am.h
     hle/service/am/am_results.h
@@ -402,27 +423,6 @@ add_library(core STATIC
     hle/service/am/applet_manager.h
     hle/service/am/applet_oe.cpp
     hle/service/am/applet_oe.h
-    hle/service/am/applets/applet_cabinet.cpp
-    hle/service/am/applets/applet_cabinet.h
-    hle/service/am/applets/applet_controller.cpp
-    hle/service/am/applets/applet_controller.h
-    hle/service/am/applets/applet_error.cpp
-    hle/service/am/applets/applet_error.h
-    hle/service/am/applets/applet_general_backend.cpp
-    hle/service/am/applets/applet_general_backend.h
-    hle/service/am/applets/applet_mii_edit.cpp
-    hle/service/am/applets/applet_mii_edit.h
-    hle/service/am/applets/applet_mii_edit_types.h
-    hle/service/am/applets/applet_profile_select.cpp
-    hle/service/am/applets/applet_profile_select.h
-    hle/service/am/applets/applet_software_keyboard.cpp
-    hle/service/am/applets/applet_software_keyboard.h
-    hle/service/am/applets/applet_software_keyboard_types.h
-    hle/service/am/applets/applet_web_browser.cpp
-    hle/service/am/applets/applet_web_browser.h
-    hle/service/am/applets/applet_web_browser_types.h
-    hle/service/am/applets/applets.cpp
-    hle/service/am/applets/applets.h
     hle/service/am/applet_common_functions.cpp
     hle/service/am/applet_common_functions.h
     hle/service/am/applet_message_queue.cpp

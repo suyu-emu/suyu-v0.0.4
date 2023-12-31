@@ -5,8 +5,8 @@
 
 #include "common/common_types.h"
 #include "core/hle/result.h"
-#include "core/hle/service/am/applets/applet_software_keyboard_types.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applet_software_keyboard_types.h"
+#include "core/hle/service/am/frontend/applets.h"
 
 namespace Core {
 class System;
@@ -17,9 +17,9 @@ struct KeyboardInitializeParameters;
 struct InlineAppearParameters;
 } // namespace Core::Frontend
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
-class SoftwareKeyboard final : public Applet {
+class SoftwareKeyboard final : public FrontendApplet {
 public:
     explicit SoftwareKeyboard(Core::System& system_, LibraryAppletMode applet_mode_,
                               Core::Frontend::SoftwareKeyboardApplet& frontend_);
@@ -184,4 +184,4 @@ private:
     Result status{ResultSuccess};
 };
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

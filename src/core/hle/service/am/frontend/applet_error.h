@@ -4,13 +4,13 @@
 #pragma once
 
 #include "core/hle/result.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applets.h"
 
 namespace Core {
 class System;
 }
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 enum class ErrorAppletMode : u8 {
     ShowError = 0,
@@ -22,7 +22,7 @@ enum class ErrorAppletMode : u8 {
     ShowUpdateEula = 8,
 };
 
-class Error final : public Applet {
+class Error final : public FrontendApplet {
 public:
     explicit Error(Core::System& system_, LibraryAppletMode applet_mode_,
                    const Core::Frontend::ErrorApplet& frontend_);
@@ -50,4 +50,4 @@ private:
     Core::System& system;
 };
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

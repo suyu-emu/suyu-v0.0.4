@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/logging/log.h"
-#include "core/frontend/applets/general_frontend.h"
+#include "core/frontend/applets/general.h"
 
 namespace Core::Frontend {
 

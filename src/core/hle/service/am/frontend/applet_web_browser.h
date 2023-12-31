@@ -9,8 +9,8 @@
 #include "common/common_types.h"
 #include "core/file_sys/vfs/vfs_types.h"
 #include "core/hle/result.h"
-#include "core/hle/service/am/applets/applet_web_browser_types.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applet_web_browser_types.h"
+#include "core/hle/service/am/frontend/applets.h"
 
 namespace Core {
 class System;
@@ -20,9 +20,9 @@ namespace FileSys {
 enum class ContentRecordType : u8;
 }
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
-class WebBrowser final : public Applet {
+class WebBrowser final : public FrontendApplet {
 public:
     WebBrowser(Core::System& system_, LibraryAppletMode applet_mode_,
                const Core::Frontend::WebBrowserApplet& frontend_);
@@ -84,4 +84,4 @@ private:
     Core::System& system;
 };
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

@@ -9,7 +9,7 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "core/hle/result.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applets.h"
 
 namespace Core {
 class System;
@@ -19,7 +19,7 @@ namespace Core::HID {
 enum class NpadStyleSet : u32;
 }
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 using IdentificationColor = std::array<u8, 4>;
 using ExplainText = std::array<char, 0x81>;
@@ -122,7 +122,7 @@ struct ControllerSupportResultInfo {
 static_assert(sizeof(ControllerSupportResultInfo) == 0xC,
               "ControllerSupportResultInfo has incorrect size.");
 
-class Controller final : public Applet {
+class Controller final : public FrontendApplet {
 public:
     explicit Controller(Core::System& system_, LibraryAppletMode applet_mode_,
                         const Core::Frontend::ControllerApplet& frontend_);
@@ -154,4 +154,4 @@ private:
     std::vector<u8> out_data;
 };
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

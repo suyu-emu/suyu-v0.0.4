@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applets.h"
 
 namespace Core {
 class System;
 }
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 enum class AuthAppletType : u32 {
     ShowParentalAuthentication,
@@ -17,7 +17,7 @@ enum class AuthAppletType : u32 {
     ChangeParentalPasscode,
 };
 
-class Auth final : public Applet {
+class Auth final : public FrontendApplet {
 public:
     explicit Auth(Core::System& system_, LibraryAppletMode applet_mode_,
                   Core::Frontend::ParentalControlsApplet& frontend_);
@@ -49,7 +49,7 @@ enum class PhotoViewerAppletMode : u8 {
     AllApps = 1,
 };
 
-class PhotoViewer final : public Applet {
+class PhotoViewer final : public FrontendApplet {
 public:
     explicit PhotoViewer(Core::System& system_, LibraryAppletMode applet_mode_,
                          const Core::Frontend::PhotoViewerApplet& frontend_);
@@ -71,7 +71,7 @@ private:
     Core::System& system;
 };
 
-class StubApplet final : public Applet {
+class StubApplet final : public FrontendApplet {
 public:
     explicit StubApplet(Core::System& system_, AppletId id_, LibraryAppletMode applet_mode_);
     ~StubApplet() override;
@@ -89,4 +89,4 @@ private:
     Core::System& system;
 };
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

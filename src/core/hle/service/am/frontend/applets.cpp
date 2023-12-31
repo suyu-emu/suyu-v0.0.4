@@ -8,7 +8,7 @@
 #include "core/frontend/applets/cabinet.h"
 #include "core/frontend/applets/controller.h"
 #include "core/frontend/applets/error.h"
-#include "core/frontend/applets/general_frontend.h"
+#include "core/frontend/applets/general.h"
 #include "core/frontend/applets/mii_edit.h"
 #include "core/frontend/applets/profile_select.h"
 #include "core/frontend/applets/software_keyboard.h"
@@ -18,19 +18,19 @@
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_message_queue.h"
 #include "core/hle/service/am/applet_oe.h"
-#include "core/hle/service/am/applets/applet_cabinet.h"
-#include "core/hle/service/am/applets/applet_controller.h"
-#include "core/hle/service/am/applets/applet_error.h"
-#include "core/hle/service/am/applets/applet_general_backend.h"
-#include "core/hle/service/am/applets/applet_mii_edit.h"
-#include "core/hle/service/am/applets/applet_profile_select.h"
-#include "core/hle/service/am/applets/applet_software_keyboard.h"
-#include "core/hle/service/am/applets/applet_web_browser.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applet_cabinet.h"
+#include "core/hle/service/am/frontend/applet_controller.h"
+#include "core/hle/service/am/frontend/applet_error.h"
+#include "core/hle/service/am/frontend/applet_general.h"
+#include "core/hle/service/am/frontend/applet_mii_edit.h"
+#include "core/hle/service/am/frontend/applet_profile_select.h"
+#include "core/hle/service/am/frontend/applet_software_keyboard.h"
+#include "core/hle/service/am/frontend/applet_web_browser.h"
+#include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/am/storage.h"
 #include "core/hle/service/sm/sm.h"
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 AppletDataBroker::AppletDataBroker(Core::System& system_, LibraryAppletMode applet_mode_)
     : system{system_}, applet_mode{applet_mode_},
@@ -156,12 +156,12 @@ Kernel::KReadableEvent& AppletDataBroker::GetStateChangedEvent() {
     return state_changed_event->GetReadableEvent();
 }
 
-Applet::Applet(Core::System& system_, LibraryAppletMode applet_mode_)
+FrontendApplet::FrontendApplet(Core::System& system_, LibraryAppletMode applet_mode_)
     : broker{system_, applet_mode_}, applet_mode{applet_mode_} {}
 
-Applet::~Applet() = default;
+FrontendApplet::~FrontendApplet() = default;
 
-void Applet::Initialize() {
+void FrontendApplet::Initialize() {
     const auto common = broker.PopNormalDataToApplet();
     ASSERT(common != nullptr);
 
@@ -173,9 +173,9 @@ void Applet::Initialize() {
     initialized = true;
 }
 
-AppletFrontendSet::AppletFrontendSet() = default;
+FrontendAppletSet::FrontendAppletSet() = default;
 
-AppletFrontendSet::AppletFrontendSet(CabinetApplet cabinet_applet,
+FrontendAppletSet::FrontendAppletSet(CabinetApplet cabinet_applet,
                                      ControllerApplet controller_applet, ErrorApplet error_applet,
                                      MiiEdit mii_edit_,
                                      ParentalControlsApplet parental_controls_applet,
@@ -187,29 +187,29 @@ AppletFrontendSet::AppletFrontendSet(CabinetApplet cabinet_applet,
       photo_viewer{std::move(photo_viewer_)}, profile_select{std::move(profile_select_)},
       software_keyboard{std::move(software_keyboard_)}, web_browser{std::move(web_browser_)} {}
 
-AppletFrontendSet::~AppletFrontendSet() = default;
+FrontendAppletSet::~FrontendAppletSet() = default;
 
-AppletFrontendSet::AppletFrontendSet(AppletFrontendSet&&) noexcept = default;
+FrontendAppletSet::FrontendAppletSet(FrontendAppletSet&&) noexcept = default;
 
-AppletFrontendSet& AppletFrontendSet::operator=(AppletFrontendSet&&) noexcept = default;
+FrontendAppletSet& FrontendAppletSet::operator=(FrontendAppletSet&&) noexcept = default;
 
-AppletManager::AppletManager(Core::System& system_) : system{system_} {}
+FrontendAppletHolder::FrontendAppletHolder(Core::System& system_) : system{system_} {}
 
-AppletManager::~AppletManager() = default;
+FrontendAppletHolder::~FrontendAppletHolder() = default;
 
-const AppletFrontendSet& AppletManager::GetAppletFrontendSet() const {
+const FrontendAppletSet& FrontendAppletHolder::GetFrontendAppletSet() const {
     return frontend;
 }
 
-NFP::CabinetMode AppletManager::GetCabinetMode() const {
+NFP::CabinetMode FrontendAppletHolder::GetCabinetMode() const {
     return cabinet_mode;
 }
 
-AppletId AppletManager::GetCurrentAppletId() const {
+AppletId FrontendAppletHolder::GetCurrentAppletId() const {
     return current_applet_id;
 }
 
-void AppletManager::SetAppletFrontendSet(AppletFrontendSet set) {
+void FrontendAppletHolder::SetFrontendAppletSet(FrontendAppletSet set) {
     if (set.cabinet != nullptr) {
         frontend.cabinet = std::move(set.cabinet);
     }
@@ -247,20 +247,20 @@ void AppletManager::SetAppletFrontendSet(AppletFrontendSet set) {
     }
 }
 
-void AppletManager::SetCabinetMode(NFP::CabinetMode mode) {
+void FrontendAppletHolder::SetCabinetMode(NFP::CabinetMode mode) {
     cabinet_mode = mode;
 }
 
-void AppletManager::SetCurrentAppletId(AppletId applet_id) {
+void FrontendAppletHolder::SetCurrentAppletId(AppletId applet_id) {
     current_applet_id = applet_id;
 }
 
-void AppletManager::SetDefaultAppletFrontendSet() {
+void FrontendAppletHolder::SetDefaultAppletFrontendSet() {
     ClearAll();
     SetDefaultAppletsIfMissing();
 }
 
-void AppletManager::SetDefaultAppletsIfMissing() {
+void FrontendAppletHolder::SetDefaultAppletsIfMissing() {
     if (frontend.cabinet == nullptr) {
         frontend.cabinet = std::make_unique<Core::Frontend::DefaultCabinetApplet>();
     }
@@ -301,11 +301,12 @@ void AppletManager::SetDefaultAppletsIfMissing() {
     }
 }
 
-void AppletManager::ClearAll() {
+void FrontendAppletHolder::ClearAll() {
     frontend = {};
 }
 
-std::shared_ptr<Applet> AppletManager::GetApplet(AppletId id, LibraryAppletMode mode) const {
+std::shared_ptr<FrontendApplet> FrontendAppletHolder::GetApplet(AppletId id,
+                                                                LibraryAppletMode mode) const {
     switch (id) {
     case AppletId::Auth:
         return std::make_shared<Auth>(system, mode, *frontend.parental_controls);
@@ -337,4 +338,4 @@ std::shared_ptr<Applet> AppletManager::GetApplet(AppletId id, LibraryAppletMode 
     }
 }
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

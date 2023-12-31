@@ -7,7 +7,7 @@
 #include <queue>
 
 #include "common/swap.h"
-#include "core/hle/service/kernel_helpers.h"
+#include "core/hle/service/am/applet.h"
 
 union Result;
 
@@ -42,90 +42,7 @@ namespace Service::AM {
 
 class IStorage;
 
-namespace Applets {
-
-enum class AppletId : u32 {
-    None = 0x00,
-    Application = 0x01,
-    OverlayDisplay = 0x02,
-    QLaunch = 0x03,
-    Starter = 0x04,
-    Auth = 0x0A,
-    Cabinet = 0x0B,
-    Controller = 0x0C,
-    DataErase = 0x0D,
-    Error = 0x0E,
-    NetConnect = 0x0F,
-    ProfileSelect = 0x10,
-    SoftwareKeyboard = 0x11,
-    MiiEdit = 0x12,
-    Web = 0x13,
-    Shop = 0x14,
-    PhotoViewer = 0x15,
-    Settings = 0x16,
-    OfflineWeb = 0x17,
-    LoginShare = 0x18,
-    WebAuth = 0x19,
-    MyPage = 0x1A,
-};
-
-enum class AppletProgramId : u64 {
-    QLaunch = 0x0100000000001000ull,
-    Auth = 0x0100000000001001ull,
-    Cabinet = 0x0100000000001002ull,
-    Controller = 0x0100000000001003ull,
-    DataErase = 0x0100000000001004ull,
-    Error = 0x0100000000001005ull,
-    NetConnect = 0x0100000000001006ull,
-    ProfileSelect = 0x0100000000001007ull,
-    SoftwareKeyboard = 0x0100000000001008ull,
-    MiiEdit = 0x0100000000001009ull,
-    Web = 0x010000000000100Aull,
-    Shop = 0x010000000000100Bull,
-    OverlayDisplay = 0x010000000000100Cull,
-    PhotoViewer = 0x010000000000100Dull,
-    Settings = 0x010000000000100Eull,
-    OfflineWeb = 0x010000000000100Full,
-    LoginShare = 0x0100000000001010ull,
-    WebAuth = 0x0100000000001011ull,
-    Starter = 0x0100000000001012ull,
-    MyPage = 0x0100000000001013ull,
-    MaxProgramId = 0x0100000000001FFFull,
-};
-
-enum class LibraryAppletMode : u32 {
-    AllForeground = 0,
-    Background = 1,
-    NoUI = 2,
-    BackgroundIndirectDisplay = 3,
-    AllForegroundInitiallyHidden = 4,
-};
-
-enum class CommonArgumentVersion : u32 {
-    Version0,
-    Version1,
-    Version2,
-    Version3,
-};
-
-enum class CommonArgumentSize : u32 {
-    Version3 = 0x20,
-};
-
-enum class ThemeColor : u32 {
-    BasicWhite = 0,
-    BasicBlack = 3,
-};
-
-struct CommonArguments {
-    CommonArgumentVersion arguments_version;
-    CommonArgumentSize size;
-    u32 library_version;
-    ThemeColor theme_color;
-    bool play_startup_sound;
-    u64_le system_tick;
-};
-static_assert(sizeof(CommonArguments) == 0x20, "CommonArguments has incorrect size.");
+namespace Frontend {
 
 class AppletDataBroker final {
 public:
@@ -187,10 +104,10 @@ private:
     Kernel::KEvent* pop_interactive_out_data_event;
 };
 
-class Applet {
+class FrontendApplet {
 public:
-    explicit Applet(Core::System& system_, LibraryAppletMode applet_mode_);
-    virtual ~Applet();
+    explicit FrontendApplet(Core::System& system_, LibraryAppletMode applet_mode_);
+    virtual ~FrontendApplet();
 
     virtual void Initialize();
 
@@ -223,7 +140,7 @@ protected:
     bool initialized = false;
 };
 
-struct AppletFrontendSet {
+struct FrontendAppletSet {
     using CabinetApplet = std::unique_ptr<Core::Frontend::CabinetApplet>;
     using ControllerApplet = std::unique_ptr<Core::Frontend::ControllerApplet>;
     using ErrorApplet = std::unique_ptr<Core::Frontend::ErrorApplet>;
@@ -234,19 +151,19 @@ struct AppletFrontendSet {
     using SoftwareKeyboard = std::unique_ptr<Core::Frontend::SoftwareKeyboardApplet>;
     using WebBrowser = std::unique_ptr<Core::Frontend::WebBrowserApplet>;
 
-    AppletFrontendSet();
-    AppletFrontendSet(CabinetApplet cabinet_applet, ControllerApplet controller_applet,
+    FrontendAppletSet();
+    FrontendAppletSet(CabinetApplet cabinet_applet, ControllerApplet controller_applet,
                       ErrorApplet error_applet, MiiEdit mii_edit_,
                       ParentalControlsApplet parental_controls_applet, PhotoViewer photo_viewer_,
                       ProfileSelect profile_select_, SoftwareKeyboard software_keyboard_,
                       WebBrowser web_browser_);
-    ~AppletFrontendSet();
+    ~FrontendAppletSet();
 
-    AppletFrontendSet(const AppletFrontendSet&) = delete;
-    AppletFrontendSet& operator=(const AppletFrontendSet&) = delete;
+    FrontendAppletSet(const FrontendAppletSet&) = delete;
+    FrontendAppletSet& operator=(const FrontendAppletSet&) = delete;
 
-    AppletFrontendSet(AppletFrontendSet&&) noexcept;
-    AppletFrontendSet& operator=(AppletFrontendSet&&) noexcept;
+    FrontendAppletSet(FrontendAppletSet&&) noexcept;
+    FrontendAppletSet& operator=(FrontendAppletSet&&) noexcept;
 
     CabinetApplet cabinet;
     ControllerApplet controller;
@@ -259,31 +176,31 @@ struct AppletFrontendSet {
     WebBrowser web_browser;
 };
 
-class AppletManager {
+class FrontendAppletHolder {
 public:
-    explicit AppletManager(Core::System& system_);
-    ~AppletManager();
+    explicit FrontendAppletHolder(Core::System& system_);
+    ~FrontendAppletHolder();
 
-    const AppletFrontendSet& GetAppletFrontendSet() const;
+    const FrontendAppletSet& GetFrontendAppletSet() const;
     NFP::CabinetMode GetCabinetMode() const;
     AppletId GetCurrentAppletId() const;
 
-    void SetAppletFrontendSet(AppletFrontendSet set);
+    void SetFrontendAppletSet(FrontendAppletSet set);
     void SetCabinetMode(NFP::CabinetMode mode);
     void SetCurrentAppletId(AppletId applet_id);
     void SetDefaultAppletFrontendSet();
     void SetDefaultAppletsIfMissing();
     void ClearAll();
 
-    std::shared_ptr<Applet> GetApplet(AppletId id, LibraryAppletMode mode) const;
+    std::shared_ptr<FrontendApplet> GetApplet(AppletId id, LibraryAppletMode mode) const;
 
 private:
     AppletId current_applet_id{};
     NFP::CabinetMode cabinet_mode{};
 
-    AppletFrontendSet frontend;
+    FrontendAppletSet frontend;
     Core::System& system;
 };
 
-} // namespace Applets
+} // namespace Frontend
 } // namespace Service::AM

@@ -5,14 +5,14 @@
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/frontend/applets/general_frontend.h"
+#include "core/frontend/applets/general.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/am.h"
-#include "core/hle/service/am/applets/applet_general_backend.h"
+#include "core/hle/service/am/frontend/applet_general.h"
 #include "core/hle/service/am/storage.h"
 #include "core/reporter.h"
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 constexpr Result ERROR_INVALID_PIN{ErrorModule::PCTL, 221};
 
@@ -36,12 +36,12 @@ static void LogCurrentStorage(AppletDataBroker& broker, std::string_view prefix)
 
 Auth::Auth(Core::System& system_, LibraryAppletMode applet_mode_,
            Core::Frontend::ParentalControlsApplet& frontend_)
-    : Applet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
 
 Auth::~Auth() = default;
 
 void Auth::Initialize() {
-    Applet::Initialize();
+    FrontendApplet::Initialize();
     complete = false;
 
     const auto storage = broker.PopNormalDataToApplet();
@@ -158,12 +158,12 @@ Result Auth::RequestExit() {
 
 PhotoViewer::PhotoViewer(Core::System& system_, LibraryAppletMode applet_mode_,
                          const Core::Frontend::PhotoViewerApplet& frontend_)
-    : Applet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
 
 PhotoViewer::~PhotoViewer() = default;
 
 void PhotoViewer::Initialize() {
-    Applet::Initialize();
+    FrontendApplet::Initialize();
     complete = false;
 
     const auto storage = broker.PopNormalDataToApplet();
@@ -214,13 +214,13 @@ Result PhotoViewer::RequestExit() {
 }
 
 StubApplet::StubApplet(Core::System& system_, AppletId id_, LibraryAppletMode applet_mode_)
-    : Applet{system_, applet_mode_}, id{id_}, system{system_} {}
+    : FrontendApplet{system_, applet_mode_}, id{id_}, system{system_} {}
 
 StubApplet::~StubApplet() = default;
 
 void StubApplet::Initialize() {
     LOG_WARNING(Service_AM, "called (STUBBED)");
-    Applet::Initialize();
+    FrontendApplet::Initialize();
 
     const auto data = broker.PeekDataToAppletForDebug();
     system.GetReporter().SaveUnimplementedAppletReport(
@@ -266,4 +266,4 @@ Result StubApplet::RequestExit() {
     R_SUCCEED();
 }
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

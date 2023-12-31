@@ -4,11 +4,11 @@
 #include "core/core_timing.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am_results.h"
-#include "core/hle/service/am/applets/applet_cabinet.h"
-#include "core/hle/service/am/applets/applet_controller.h"
-#include "core/hle/service/am/applets/applet_mii_edit_types.h"
-#include "core/hle/service/am/applets/applet_software_keyboard_types.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applet_cabinet.h"
+#include "core/hle/service/am/frontend/applet_controller.h"
+#include "core/hle/service/am/frontend/applet_mii_edit_types.h"
+#include "core/hle/service/am/frontend/applet_software_keyboard_types.h"
+#include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/am/library_applet_self_accessor.h"
 #include "core/hle/service/am/storage.h"
 #include "core/hle/service/ipc_helpers.h"
@@ -59,20 +59,20 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
     // clang-format on
     RegisterHandlers(functions);
 
-    switch (system.GetAppletManager().GetCurrentAppletId()) {
-    case Applets::AppletId::Cabinet:
+    switch (system.GetFrontendAppletHolder().GetCurrentAppletId()) {
+    case AppletId::Cabinet:
         PushInShowCabinetData();
         break;
-    case Applets::AppletId::MiiEdit:
+    case AppletId::MiiEdit:
         PushInShowMiiEditData();
         break;
-    case Applets::AppletId::PhotoViewer:
+    case AppletId::PhotoViewer:
         PushInShowAlbum();
         break;
-    case Applets::AppletId::SoftwareKeyboard:
+    case AppletId::SoftwareKeyboard:
         PushInShowSoftwareKeyboard();
         break;
-    case Applets::AppletId::Controller:
+    case AppletId::Controller:
         PushInShowController();
         break;
     default:
@@ -117,15 +117,15 @@ void ILibraryAppletSelfAccessor::ExitProcessAndReturn(HLERequestContext& ctx) {
 
 void ILibraryAppletSelfAccessor::GetLibraryAppletInfo(HLERequestContext& ctx) {
     struct LibraryAppletInfo {
-        Applets::AppletId applet_id;
-        Applets::LibraryAppletMode library_applet_mode;
+        AppletId applet_id;
+        LibraryAppletMode library_applet_mode;
     };
 
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     const LibraryAppletInfo applet_info{
-        .applet_id = system.GetAppletManager().GetCurrentAppletId(),
-        .library_applet_mode = Applets::LibraryAppletMode::AllForeground,
+        .applet_id = system.GetFrontendAppletHolder().GetCurrentAppletId(),
+        .library_applet_mode = LibraryAppletMode::AllForeground,
     };
 
     IPC::ResponseBuilder rb{ctx, 4};
@@ -135,7 +135,7 @@ void ILibraryAppletSelfAccessor::GetLibraryAppletInfo(HLERequestContext& ctx) {
 
 void ILibraryAppletSelfAccessor::GetMainAppletIdentityInfo(HLERequestContext& ctx) {
     struct AppletIdentityInfo {
-        Applets::AppletId applet_id;
+        AppletId applet_id;
         INSERT_PADDING_BYTES(0x4);
         u64 application_id;
     };
@@ -144,7 +144,7 @@ void ILibraryAppletSelfAccessor::GetMainAppletIdentityInfo(HLERequestContext& ct
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     const AppletIdentityInfo applet_info{
-        .applet_id = Applets::AppletId::QLaunch,
+        .applet_id = AppletId::QLaunch,
         .application_id = 0x0100000000001000ull,
     };
 
@@ -155,7 +155,7 @@ void ILibraryAppletSelfAccessor::GetMainAppletIdentityInfo(HLERequestContext& ct
 
 void ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(HLERequestContext& ctx) {
     struct AppletIdentityInfo {
-        Applets::AppletId applet_id;
+        AppletId applet_id;
         INSERT_PADDING_BYTES(0x4);
         u64 application_id;
     };
@@ -163,7 +163,7 @@ void ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(HLERequestContext& 
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     const AppletIdentityInfo applet_info{
-        .applet_id = Applets::AppletId::QLaunch,
+        .applet_id = AppletId::QLaunch,
         .application_id = 0x0100000000001000ull,
     };
 
@@ -208,11 +208,11 @@ void ILibraryAppletSelfAccessor::ShouldSetGpuTimeSliceManually(HLERequestContext
 }
 
 void ILibraryAppletSelfAccessor::PushInShowAlbum() {
-    const Applets::CommonArguments arguments{
-        .arguments_version = Applets::CommonArgumentVersion::Version3,
-        .size = Applets::CommonArgumentSize::Version3,
+    const CommonArguments arguments{
+        .arguments_version = CommonArgumentVersion::Version3,
+        .size = CommonArgumentSize::Version3,
         .library_version = 1,
-        .theme_color = Applets::ThemeColor::BasicBlack,
+        .theme_color = ThemeColor::BasicBlack,
         .play_startup_sound = true,
         .system_tick = system.CoreTiming().GetClockTicks(),
     };
@@ -225,16 +225,16 @@ void ILibraryAppletSelfAccessor::PushInShowAlbum() {
 }
 
 void ILibraryAppletSelfAccessor::PushInShowController() {
-    const Applets::CommonArguments common_args = {
-        .arguments_version = Applets::CommonArgumentVersion::Version3,
-        .size = Applets::CommonArgumentSize::Version3,
-        .library_version = static_cast<u32>(Applets::ControllerAppletVersion::Version8),
-        .theme_color = Applets::ThemeColor::BasicBlack,
+    const CommonArguments common_args = {
+        .arguments_version = CommonArgumentVersion::Version3,
+        .size = CommonArgumentSize::Version3,
+        .library_version = static_cast<u32>(Frontend::ControllerAppletVersion::Version8),
+        .theme_color = ThemeColor::BasicBlack,
         .play_startup_sound = true,
         .system_tick = system.CoreTiming().GetClockTicks(),
     };
 
-    Applets::ControllerSupportArgNew user_args = {
+    Frontend::ControllerSupportArgNew user_args = {
         .header = {.player_count_min = 1,
                    .player_count_max = 4,
                    .enable_take_over_connection = true,
@@ -247,13 +247,13 @@ void ILibraryAppletSelfAccessor::PushInShowController() {
         .explain_text = {},
     };
 
-    Applets::ControllerSupportArgPrivate private_args = {
-        .arg_private_size = sizeof(Applets::ControllerSupportArgPrivate),
-        .arg_size = sizeof(Applets::ControllerSupportArgNew),
+    Frontend::ControllerSupportArgPrivate private_args = {
+        .arg_private_size = sizeof(Frontend::ControllerSupportArgPrivate),
+        .arg_size = sizeof(Frontend::ControllerSupportArgNew),
         .is_home_menu = true,
         .flag_1 = true,
-        .mode = Applets::ControllerSupportMode::ShowControllerSupport,
-        .caller = Applets::ControllerSupportCaller::
+        .mode = Frontend::ControllerSupportMode::ShowControllerSupport,
+        .caller = Frontend::ControllerSupportCaller::
             Application, // switchbrew: Always zero except with
                          // ShowControllerFirmwareUpdateForSystem/ShowControllerKeyRemappingForSystem,
                          // which sets this to the input param
@@ -274,19 +274,19 @@ void ILibraryAppletSelfAccessor::PushInShowController() {
 }
 
 void ILibraryAppletSelfAccessor::PushInShowCabinetData() {
-    const Applets::CommonArguments arguments{
-        .arguments_version = Applets::CommonArgumentVersion::Version3,
-        .size = Applets::CommonArgumentSize::Version3,
-        .library_version = static_cast<u32>(Applets::CabinetAppletVersion::Version1),
-        .theme_color = Applets::ThemeColor::BasicBlack,
+    const CommonArguments arguments{
+        .arguments_version = CommonArgumentVersion::Version3,
+        .size = CommonArgumentSize::Version3,
+        .library_version = static_cast<u32>(Frontend::CabinetAppletVersion::Version1),
+        .theme_color = ThemeColor::BasicBlack,
         .play_startup_sound = true,
         .system_tick = system.CoreTiming().GetClockTicks(),
     };
 
-    const Applets::StartParamForAmiiboSettings amiibo_settings{
+    const Frontend::StartParamForAmiiboSettings amiibo_settings{
         .param_1 = 0,
-        .applet_mode = system.GetAppletManager().GetCabinetMode(),
-        .flags = Applets::CabinetFlags::None,
+        .applet_mode = system.GetFrontendAppletHolder().GetCabinetMode(),
+        .flags = Frontend::CabinetFlags::None,
         .amiibo_settings_1 = 0,
         .device_handle = 0,
         .tag_info{},
@@ -304,16 +304,16 @@ void ILibraryAppletSelfAccessor::PushInShowCabinetData() {
 
 void ILibraryAppletSelfAccessor::PushInShowMiiEditData() {
     struct MiiEditV3 {
-        Applets::MiiEditAppletInputCommon common;
-        Applets::MiiEditAppletInputV3 input;
+        Frontend::MiiEditAppletInputCommon common;
+        Frontend::MiiEditAppletInputV3 input;
     };
     static_assert(sizeof(MiiEditV3) == 0x100, "MiiEditV3 has incorrect size.");
 
     MiiEditV3 mii_arguments{
         .common =
             {
-                .version = Applets::MiiEditAppletVersion::Version3,
-                .applet_mode = Applets::MiiEditAppletMode::ShowMiiEdit,
+                .version = Frontend::MiiEditAppletVersion::Version3,
+                .applet_mode = Frontend::MiiEditAppletMode::ShowMiiEdit,
             },
         .input{},
     };
@@ -325,32 +325,32 @@ void ILibraryAppletSelfAccessor::PushInShowMiiEditData() {
 }
 
 void ILibraryAppletSelfAccessor::PushInShowSoftwareKeyboard() {
-    const Applets::CommonArguments arguments{
-        .arguments_version = Applets::CommonArgumentVersion::Version3,
-        .size = Applets::CommonArgumentSize::Version3,
-        .library_version = static_cast<u32>(Applets::SwkbdAppletVersion::Version524301),
-        .theme_color = Applets::ThemeColor::BasicBlack,
+    const CommonArguments arguments{
+        .arguments_version = CommonArgumentVersion::Version3,
+        .size = CommonArgumentSize::Version3,
+        .library_version = static_cast<u32>(Frontend::SwkbdAppletVersion::Version524301),
+        .theme_color = ThemeColor::BasicBlack,
         .play_startup_sound = true,
         .system_tick = system.CoreTiming().GetClockTicks(),
     };
 
     std::vector<char16_t> initial_string(0);
 
-    const Applets::SwkbdConfigCommon swkbd_config{
-        .type = Applets::SwkbdType::Qwerty,
+    const Frontend::SwkbdConfigCommon swkbd_config{
+        .type = Frontend::SwkbdType::Qwerty,
         .ok_text{},
         .left_optional_symbol_key{},
         .right_optional_symbol_key{},
         .use_prediction = false,
         .key_disable_flags{},
-        .initial_cursor_position = Applets::SwkbdInitialCursorPosition::Start,
+        .initial_cursor_position = Frontend::SwkbdInitialCursorPosition::Start,
         .header_text{},
         .sub_text{},
         .guide_text{},
         .max_text_length = 500,
         .min_text_length = 0,
-        .password_mode = Applets::SwkbdPasswordMode::Disabled,
-        .text_draw_type = Applets::SwkbdTextDrawType::Box,
+        .password_mode = Frontend::SwkbdPasswordMode::Disabled,
+        .text_draw_type = Frontend::SwkbdTextDrawType::Box,
         .enable_return_button = true,
         .use_utf8 = false,
         .use_blur_background = true,
@@ -361,7 +361,7 @@ void ILibraryAppletSelfAccessor::PushInShowSoftwareKeyboard() {
         .use_text_check = false,
     };
 
-    Applets::SwkbdConfigNew swkbd_config_new{};
+    Frontend::SwkbdConfigNew swkbd_config_new{};
 
     std::vector<u8> argument_data(sizeof(arguments));
     std::vector<u8> swkbd_data(sizeof(swkbd_config) + sizeof(swkbd_config_new));
@@ -370,7 +370,7 @@ void ILibraryAppletSelfAccessor::PushInShowSoftwareKeyboard() {
     std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
     std::memcpy(swkbd_data.data(), &swkbd_config, sizeof(swkbd_config));
     std::memcpy(swkbd_data.data() + sizeof(swkbd_config), &swkbd_config_new,
-                sizeof(Applets::SwkbdConfigNew));
+                sizeof(Frontend::SwkbdConfigNew));
     std::memcpy(work_buffer.data(), initial_string.data(),
                 swkbd_config.initial_string_length * sizeof(char16_t));
 
