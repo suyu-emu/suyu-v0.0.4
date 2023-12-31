@@ -392,6 +392,7 @@ add_library(core STATIC
     hle/service/acc/profile_manager.h
     hle/service/am/am.cpp
     hle/service/am/am.h
+    hle/service/am/am_results.h
     hle/service/am/applet_ae.cpp
     hle/service/am/applet_ae.h
     hle/service/am/applet_oe.cpp
@@ -417,12 +418,56 @@ add_library(core STATIC
     hle/service/am/applets/applet_web_browser_types.h
     hle/service/am/applets/applets.cpp
     hle/service/am/applets/applets.h
+    hle/service/am/applet_common_functions.cpp
+    hle/service/am/applet_common_functions.h
+    hle/service/am/applet_message_queue.cpp
+    hle/service/am/applet_message_queue.h
+    hle/service/am/application_creator.cpp
+    hle/service/am/application_creator.h
+    hle/service/am/application_functions.cpp
+    hle/service/am/application_functions.h
+    hle/service/am/application_proxy.cpp
+    hle/service/am/application_proxy.h
+    hle/service/am/audio_controller.cpp
+    hle/service/am/audio_controller.h
+    hle/service/am/common_state_getter.cpp
+    hle/service/am/common_state_getter.h
+    hle/service/am/debug_functions.cpp
+    hle/service/am/debug_functions.h
+    hle/service/am/display_controller.cpp
+    hle/service/am/display_controller.h
+    hle/service/am/global_state_controller.cpp
+    hle/service/am/global_state_controller.h
+    hle/service/am/home_menu_functions.cpp
+    hle/service/am/home_menu_functions.h
     hle/service/am/idle.cpp
     hle/service/am/idle.h
+    hle/service/am/library_applet_accessor.cpp
+    hle/service/am/library_applet_accessor.h
+    hle/service/am/library_applet_creator.cpp
+    hle/service/am/library_applet_creator.h
+    hle/service/am/library_applet_proxy.cpp
+    hle/service/am/library_applet_proxy.h
+    hle/service/am/library_applet_self_accessor.cpp
+    hle/service/am/library_applet_self_accessor.h
+    hle/service/am/lock_accessor.cpp
+    hle/service/am/lock_accessor.h
     hle/service/am/omm.cpp
     hle/service/am/omm.h
+    hle/service/am/process_winding_controller.cpp
+    hle/service/am/process_winding_controller.h
+    hle/service/am/self_controller.cpp
+    hle/service/am/self_controller.h
+    hle/service/am/system_applet_proxy.cpp
+    hle/service/am/system_applet_proxy.h
     hle/service/am/spsm.cpp
     hle/service/am/spsm.h
+    hle/service/am/storage_accessor.cpp
+    hle/service/am/storage_accessor.h
+    hle/service/am/storage.cpp
+    hle/service/am/storage.h
+    hle/service/am/window_controller.cpp
+    hle/service/am/window_controller.h
     hle/service/aoc/aoc_u.cpp
     hle/service/aoc/aoc_u.h
     hle/service/apm/apm.cpp

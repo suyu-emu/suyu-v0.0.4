@@ -10,6 +10,7 @@
 #include "core/frontend/applets/error.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applet_error.h"
+#include "core/hle/service/am/storage.h"
 #include "core/reporter.h"
 
 namespace Service::AM::Applets {

@@ -6,6 +6,7 @@
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applet_software_keyboard.h"
+#include "core/hle/service/am/storage.h"
 
 namespace Service::AM::Applets {
 

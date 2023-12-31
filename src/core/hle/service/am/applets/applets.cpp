@@ -16,6 +16,7 @@
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
+#include "core/hle/service/am/applet_message_queue.h"
 #include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/am/applets/applet_cabinet.h"
 #include "core/hle/service/am/applets/applet_controller.h"
@@ -26,13 +27,14 @@
 #include "core/hle/service/am/applets/applet_software_keyboard.h"
 #include "core/hle/service/am/applets/applet_web_browser.h"
 #include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/storage.h"
 #include "core/hle/service/sm/sm.h"
 
 namespace Service::AM::Applets {
 
 AppletDataBroker::AppletDataBroker(Core::System& system_, LibraryAppletMode applet_mode_)
-    : system{system_}, applet_mode{applet_mode_}, service_context{system,
-                                                                  "ILibraryAppletAccessor"} {
+    : system{system_}, applet_mode{applet_mode_},
+      service_context{system, "ILibraryAppletAccessor"} {
     state_changed_event = service_context.CreateEvent("ILibraryAppletAccessor:StateChangedEvent");
     pop_out_data_event = service_context.CreateEvent("ILibraryAppletAccessor:PopDataOutEvent");
     pop_interactive_out_data_event =
