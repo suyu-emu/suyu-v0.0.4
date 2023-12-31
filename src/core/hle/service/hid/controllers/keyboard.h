@@ -7,12 +7,9 @@
 #include "core/hle/service/hid/controllers/types/keyboard_types.h"
 
 namespace Service::HID {
-struct KeyboardSharedMemoryFormat;
-
 class Keyboard final : public ControllerBase {
 public:
-    explicit Keyboard(Core::HID::HIDCore& hid_core_,
-                      KeyboardSharedMemoryFormat& keyboard_shared_memory);
+    explicit Keyboard(Core::HID::HIDCore& hid_core_);
     ~Keyboard() override;
 
     // Called when the controller is initialized
@@ -26,7 +23,6 @@ public:
 
 private:
     KeyboardState next_state{};
-    KeyboardSharedMemoryFormat& shared_memory;
     Core::HID::EmulatedDevices* emulated_devices = nullptr;
 };
 } // namespace Service::HID

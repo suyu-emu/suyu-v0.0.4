@@ -6,8 +6,8 @@
 #include "core/hid/emulated_controller.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/service/hid/controllers/npad.h"
-#include "core/hle/service/hid/controllers/shared_memory_format.h"
 #include "core/hle/service/hid/controllers/six_axis.h"
+#include "core/hle/service/hid/controllers/types/shared_memory_format.h"
 #include "core/hle/service/hid/errors.h"
 #include "core/hle/service/hid/hid_util.h"
 
@@ -27,14 +27,20 @@ void SixAxis::OnInit() {}
 void SixAxis::OnRelease() {}
 
 void SixAxis::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+    const u64 aruid = applet_resource->GetActiveAruid();
+    auto* data = applet_resource->GetAruidData(aruid);
+
+    if (data == nullptr) {
+        return;
+    }
+
     if (!IsControllerActivated()) {
         return;
     }
 
     for (std::size_t i = 0; i < controller_data.size(); ++i) {
+        NpadSharedMemoryEntry& shared_memory = data->shared_memory_format->npad.npad_entry[i];
         auto& controller = controller_data[i];
-
-        const auto npad_id = IndexToNpadIdType(i);
         const auto& controller_type = controller.device->GetNpadStyleIndex();
 
         if (controller_type == Core::HID::NpadStyleIndex::None ||
@@ -50,12 +56,12 @@ void SixAxis::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         auto& sixaxis_left_lifo_state = controller.sixaxis_left_lifo_state;
         auto& sixaxis_right_lifo_state = controller.sixaxis_right_lifo_state;
 
-        auto& sixaxis_fullkey_lifo = npad->GetSixAxisFullkeyLifo(npad_id);
-        auto& sixaxis_handheld_lifo = npad->GetSixAxisHandheldLifo(npad_id);
-        auto& sixaxis_dual_left_lifo = npad->GetSixAxisDualLeftLifo(npad_id);
-        auto& sixaxis_dual_right_lifo = npad->GetSixAxisDualRightLifo(npad_id);
-        auto& sixaxis_left_lifo = npad->GetSixAxisLeftLifo(npad_id);
-        auto& sixaxis_right_lifo = npad->GetSixAxisRightLifo(npad_id);
+        auto& sixaxis_fullkey_lifo = shared_memory.internal_state.sixaxis_fullkey_lifo;
+        auto& sixaxis_handheld_lifo = shared_memory.internal_state.sixaxis_handheld_lifo;
+        auto& sixaxis_dual_left_lifo = shared_memory.internal_state.sixaxis_dual_left_lifo;
+        auto& sixaxis_dual_right_lifo = shared_memory.internal_state.sixaxis_dual_right_lifo;
+        auto& sixaxis_left_lifo = shared_memory.internal_state.sixaxis_left_lifo;
+        auto& sixaxis_right_lifo = shared_memory.internal_state.sixaxis_right_lifo;
 
         // Clear previous state
         sixaxis_fullkey_state = {};

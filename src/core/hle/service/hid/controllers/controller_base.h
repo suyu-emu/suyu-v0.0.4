@@ -3,8 +3,11 @@
 
 #pragma once
 
+#include <memory>
+
 #include "common/common_types.h"
 #include "core/hle/result.h"
+#include "core/hle/service/hid/controllers/applet_resource.h"
 
 namespace Core::Timing {
 class CoreTiming;
@@ -12,7 +15,7 @@ class CoreTiming;
 
 namespace Core::HID {
 class HIDCore;
-}
+} // namespace Core::HID
 
 namespace Service::HID {
 class ControllerBase {
@@ -39,8 +42,11 @@ public:
 
     bool IsControllerActivated() const;
 
+    void SetAppletResource(std::shared_ptr<AppletResource> resource);
+
 protected:
     bool is_activated{false};
+    std::shared_ptr<AppletResource> applet_resource{nullptr};
 
     Core::HID::HIDCore& hid_core;
 };

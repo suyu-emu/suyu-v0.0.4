@@ -16,8 +16,9 @@
 #include "core/hid/hid_core.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/service/hid/controllers/applet_resource.h"
 #include "core/hle/service/hid/controllers/npad.h"
-#include "core/hle/service/hid/controllers/shared_memory_format.h"
+#include "core/hle/service/hid/controllers/types/shared_memory_format.h"
 #include "core/hle/service/hid/errors.h"
 #include "core/hle/service/hid/hid_util.h"
 #include "core/hle/service/kernel_helpers.h"
@@ -30,12 +31,10 @@ constexpr std::array<Core::HID::NpadIdType, 10> npad_id_list{
     Core::HID::NpadIdType::Handheld,
 };
 
-NPad::NPad(Core::HID::HIDCore& hid_core_, NpadSharedMemoryFormat& npad_shared_memory_format,
-           KernelHelpers::ServiceContext& service_context_)
+NPad::NPad(Core::HID::HIDCore& hid_core_, KernelHelpers::ServiceContext& service_context_)
     : ControllerBase{hid_core_}, service_context{service_context_} {
     for (std::size_t i = 0; i < controller_data.size(); ++i) {
         auto& controller = controller_data[i];
-        controller.shared_memory = &npad_shared_memory_format.npad_entry[i].internal_state;
         controller.device = hid_core.GetEmulatedControllerByIndex(i);
         controller.vibration[Core::HID::EmulatedDeviceIndex::LeftIndex].latest_vibration_value =
             Core::HID::DEFAULT_VIBRATION_VALUE;
@@ -297,12 +296,20 @@ void NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
 }
 
 void NPad::OnInit() {
+    const u64 aruid = applet_resource->GetActiveAruid();
+    auto* data = applet_resource->GetAruidData(aruid);
+
+    if (data == nullptr) {
+        return;
+    }
+
     if (!IsControllerActivated()) {
         return;
     }
 
     for (std::size_t i = 0; i < controller_data.size(); ++i) {
         auto& controller = controller_data[i];
+        controller.shared_memory = &data->shared_memory_format->npad.npad_entry[i].internal_state;
         controller.styleset_changed_event =
             service_context.CreateEvent(fmt::format("npad:NpadStyleSetChanged_{}", i));
     }
@@ -355,7 +362,9 @@ void NPad::OnRelease() {
     is_controller_initialized = false;
     for (std::size_t i = 0; i < controller_data.size(); ++i) {
         auto& controller = controller_data[i];
-        service_context.CloseEvent(controller.styleset_changed_event);
+        if (controller.styleset_changed_event) {
+            service_context.CloseEvent(controller.styleset_changed_event);
+        }
         for (std::size_t device_idx = 0; device_idx < controller.vibration.size(); ++device_idx) {
             VibrateControllerAtIndex(controller.device->GetNpadIdType(), device_idx, {});
         }
@@ -432,12 +441,20 @@ void NPad::RequestPadStateUpdate(Core::HID::NpadIdType npad_id) {
 }
 
 void NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+    const u64 aruid = applet_resource->GetActiveAruid();
+    auto* data = applet_resource->GetAruidData(aruid);
+
+    if (data == nullptr) {
+        return;
+    }
+
     if (!IsControllerActivated()) {
         return;
     }
 
     for (std::size_t i = 0; i < controller_data.size(); ++i) {
         auto& controller = controller_data[i];
+        controller.shared_memory = &data->shared_memory_format->npad.npad_entry[i].internal_state;
         auto* npad = controller.shared_memory;
 
         const auto& controller_type = controller.device->GetNpadStyleIndex();
@@ -974,30 +991,6 @@ Result NPad::ResetIsSixAxisSensorDeviceNewlyAssigned(
     sixaxis_properties.is_newly_assigned.Assign(0);
 
     return ResultSuccess;
-}
-
-NpadSixAxisSensorLifo& NPad::GetSixAxisFullkeyLifo(Core::HID::NpadIdType npad_id) {
-    return GetControllerFromNpadIdType(npad_id).shared_memory->sixaxis_fullkey_lifo;
-}
-
-NpadSixAxisSensorLifo& NPad::GetSixAxisHandheldLifo(Core::HID::NpadIdType npad_id) {
-    return GetControllerFromNpadIdType(npad_id).shared_memory->sixaxis_handheld_lifo;
-}
-
-NpadSixAxisSensorLifo& NPad::GetSixAxisDualLeftLifo(Core::HID::NpadIdType npad_id) {
-    return GetControllerFromNpadIdType(npad_id).shared_memory->sixaxis_dual_left_lifo;
-}
-
-NpadSixAxisSensorLifo& NPad::GetSixAxisDualRightLifo(Core::HID::NpadIdType npad_id) {
-    return GetControllerFromNpadIdType(npad_id).shared_memory->sixaxis_dual_right_lifo;
-}
-
-NpadSixAxisSensorLifo& NPad::GetSixAxisLeftLifo(Core::HID::NpadIdType npad_id) {
-    return GetControllerFromNpadIdType(npad_id).shared_memory->sixaxis_left_lifo;
-}
-
-NpadSixAxisSensorLifo& NPad::GetSixAxisRightLifo(Core::HID::NpadIdType npad_id) {
-    return GetControllerFromNpadIdType(npad_id).shared_memory->sixaxis_right_lifo;
 }
 
 Result NPad::MergeSingleJoyAsDualJoy(Core::HID::NpadIdType npad_id_1,
