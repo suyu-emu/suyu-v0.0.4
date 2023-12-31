@@ -5,10 +5,10 @@
 #include "core/core.h"
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/hle/service/am/am.h"
-#include "core/hle/service/am/applets/applet_software_keyboard.h"
+#include "core/hle/service/am/frontend/applet_software_keyboard.h"
 #include "core/hle/service/am/storage.h"
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 namespace {
 
@@ -44,12 +44,12 @@ void SetReplyBase(std::vector<u8>& reply, SwkbdState state, SwkbdReplyType reply
 
 SoftwareKeyboard::SoftwareKeyboard(Core::System& system_, LibraryAppletMode applet_mode_,
                                    Core::Frontend::SoftwareKeyboardApplet& frontend_)
-    : Applet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
 
 SoftwareKeyboard::~SoftwareKeyboard() = default;
 
 void SoftwareKeyboard::Initialize() {
-    Applet::Initialize();
+    FrontendApplet::Initialize();
 
     LOG_INFO(Service_AM, "Initializing Software Keyboard Applet with LibraryAppletMode={}",
              applet_mode);
@@ -1274,4 +1274,4 @@ void SoftwareKeyboard::ReplyMovedCursorUtf8V2() {
     broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

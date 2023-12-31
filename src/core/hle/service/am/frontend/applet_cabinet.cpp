@@ -8,18 +8,18 @@
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/service/am/am.h"
-#include "core/hle/service/am/applets/applet_cabinet.h"
+#include "core/hle/service/am/frontend/applet_cabinet.h"
 #include "core/hle/service/am/storage.h"
 #include "core/hle/service/mii/mii_manager.h"
 #include "core/hle/service/nfc/common/device.h"
 #include "hid_core/hid_core.h"
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 Cabinet::Cabinet(Core::System& system_, LibraryAppletMode applet_mode_,
                  const Core::Frontend::CabinetApplet& frontend_)
-    : Applet{system_, applet_mode_}, frontend{frontend_}, system{system_},
-      service_context{system_, "CabinetApplet"} {
+    : FrontendApplet{system_, applet_mode_}, frontend{frontend_},
+      system{system_}, service_context{system_, "CabinetApplet"} {
 
     availability_change_event =
         service_context.CreateEvent("CabinetApplet:AvailabilityChangeEvent");
@@ -30,7 +30,7 @@ Cabinet::~Cabinet() {
 };
 
 void Cabinet::Initialize() {
-    Applet::Initialize();
+    FrontendApplet::Initialize();
 
     LOG_INFO(Service_HID, "Initializing Cabinet Applet.");
 
@@ -184,4 +184,4 @@ Result Cabinet::RequestExit() {
     R_SUCCEED();
 }
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

@@ -4,8 +4,8 @@
 #pragma once
 
 #include "core/hle/result.h"
-#include "core/hle/service/am/applets/applet_mii_edit_types.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applet_mii_edit_types.h"
+#include "core/hle/service/am/frontend/applets.h"
 
 namespace Core {
 class System;
@@ -16,9 +16,9 @@ struct DatabaseSessionMetadata;
 class MiiManager;
 } // namespace Service::Mii
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
-class MiiEdit final : public Applet {
+class MiiEdit final : public FrontendApplet {
 public:
     explicit MiiEdit(Core::System& system_, LibraryAppletMode applet_mode_,
                      const Core::Frontend::MiiEditApplet& frontend_);
@@ -49,4 +49,4 @@ private:
     Mii::DatabaseSessionMetadata metadata{};
 };
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

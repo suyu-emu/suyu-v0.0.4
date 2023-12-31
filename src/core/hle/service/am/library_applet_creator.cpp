@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/kernel/k_transfer_memory.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/am/library_applet_accessor.h"
 #include "core/hle/service/am/library_applet_creator.h"
 #include "core/hle/service/am/storage.h"
@@ -28,14 +28,14 @@ ILibraryAppletCreator::~ILibraryAppletCreator() = default;
 void ILibraryAppletCreator::CreateLibraryApplet(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
-    const auto applet_id = rp.PopRaw<Applets::AppletId>();
-    const auto applet_mode = rp.PopRaw<Applets::LibraryAppletMode>();
+    const auto applet_id = rp.PopRaw<AppletId>();
+    const auto applet_mode = rp.PopRaw<LibraryAppletMode>();
 
     LOG_DEBUG(Service_AM, "called with applet_id={:08X}, applet_mode={:08X}", applet_id,
               applet_mode);
 
-    const auto& applet_manager{system.GetAppletManager()};
-    const auto applet = applet_manager.GetApplet(applet_id, applet_mode);
+    const auto& holder{system.GetFrontendAppletHolder()};
+    const auto applet = holder.GetApplet(applet_id, applet_mode);
 
     if (applet == nullptr) {
         LOG_ERROR(Service_AM, "Applet doesn't exist! applet_id={}", applet_id);

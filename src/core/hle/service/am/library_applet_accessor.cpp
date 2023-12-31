@@ -9,7 +9,7 @@
 namespace Service::AM {
 
 ILibraryAppletAccessor::ILibraryAppletAccessor(Core::System& system_,
-                                               std::shared_ptr<Applets::Applet> applet_)
+                                               std::shared_ptr<Frontend::FrontendApplet> applet_)
     : ServiceFramework{system_, "ILibraryAppletAccessor"}, applet{std::move(applet_)} {
     // clang-format off
     static const FunctionInfo functions[] = {

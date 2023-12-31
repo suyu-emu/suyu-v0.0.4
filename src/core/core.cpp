@@ -36,7 +36,7 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/service/acc/profile_manager.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/apm/apm_controller.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/glue/glue_manager.h"
@@ -135,8 +135,8 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, fs_controller{system}, hid_core{}, room_network{},
-          cpu_manager{system}, reporter{system}, applet_manager{system}, profile_manager{} {}
+        : kernel{system}, fs_controller{system}, hid_core{}, room_network{}, cpu_manager{system},
+          reporter{system}, frontend_applets{system}, profile_manager{} {}
 
     void Initialize(System& system) {
         device_memory = std::make_unique<Core::DeviceMemory>();
@@ -157,7 +157,7 @@ struct System::Impl {
         }
 
         // Create default implementations of applets if one is not provided.
-        applet_manager.SetDefaultAppletsIfMissing();
+        frontend_applets.SetDefaultAppletsIfMissing();
 
         is_async_gpu = Settings::values.use_asynchronous_gpu_emulation.GetValue();
 
@@ -567,7 +567,7 @@ struct System::Impl {
     std::unique_ptr<Tools::RenderdocAPI> renderdoc_api;
 
     /// Frontend applets
-    Service::AM::Applets::AppletManager applet_manager;
+    Service::AM::Frontend::FrontendAppletHolder frontend_applets;
 
     /// APM (Performance) services
     Service::APM::Controller apm_controller{core_timing};
@@ -871,20 +871,20 @@ void System::RegisterCheatList(const std::vector<Memory::CheatEntry>& list,
     impl->cheat_engine->SetMainMemoryParameters(main_region_begin, main_region_size);
 }
 
-void System::SetAppletFrontendSet(Service::AM::Applets::AppletFrontendSet&& set) {
-    impl->applet_manager.SetAppletFrontendSet(std::move(set));
+void System::SetFrontendAppletSet(Service::AM::Frontend::FrontendAppletSet&& set) {
+    impl->frontend_applets.SetFrontendAppletSet(std::move(set));
 }
 
 void System::SetDefaultAppletFrontendSet() {
-    impl->applet_manager.SetDefaultAppletFrontendSet();
+    impl->frontend_applets.SetDefaultAppletFrontendSet();
 }
 
-Service::AM::Applets::AppletManager& System::GetAppletManager() {
-    return impl->applet_manager;
+Service::AM::Frontend::FrontendAppletHolder& System::GetFrontendAppletHolder() {
+    return impl->frontend_applets;
 }
 
-const Service::AM::Applets::AppletManager& System::GetAppletManager() const {
-    return impl->applet_manager;
+const Service::AM::Frontend::FrontendAppletHolder& System::GetFrontendAppletHolder() const {
+    return impl->frontend_applets;
 }
 
 void System::SetContentProvider(std::unique_ptr<FileSys::ContentProviderUnion> provider) {

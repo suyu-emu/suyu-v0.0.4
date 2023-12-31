@@ -11,7 +11,7 @@
 #include "common/common_types.h"
 #include "common/swap.h"
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 enum class WebAppletVersion : u32_le {
     Version0 = 0x0,          // Only used by WifiWebAuthApplet
@@ -174,4 +174,4 @@ static_assert(sizeof(WebCommonReturnValue) == 0x1010, "WebCommonReturnValue has 
 
 using WebArgInputTLVMap = std::unordered_map<WebArgInputTLVType, std::vector<u8>>;
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

@@ -6,17 +6,17 @@
 #include "core/core.h"
 #include "core/frontend/applets/mii_edit.h"
 #include "core/hle/service/am/am.h"
-#include "core/hle/service/am/applets/applet_mii_edit.h"
+#include "core/hle/service/am/frontend/applet_mii_edit.h"
 #include "core/hle/service/am/storage.h"
 #include "core/hle/service/mii/mii.h"
 #include "core/hle/service/mii/mii_manager.h"
 #include "core/hle/service/sm/sm.h"
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 MiiEdit::MiiEdit(Core::System& system_, LibraryAppletMode applet_mode_,
                  const Core::Frontend::MiiEditApplet& frontend_)
-    : Applet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
 
 MiiEdit::~MiiEdit() = default;
 
@@ -178,4 +178,4 @@ Result MiiEdit::RequestExit() {
     R_SUCCEED();
 }
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

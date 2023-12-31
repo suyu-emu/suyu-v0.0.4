@@ -50,10 +50,10 @@ namespace Account {
 class ProfileManager;
 } // namespace Account
 
-namespace AM::Applets {
-struct AppletFrontendSet;
-class AppletManager;
-} // namespace AM::Applets
+namespace AM::Frontend {
+struct FrontendAppletSet;
+class FrontendAppletHolder;
+} // namespace AM::Frontend
 
 namespace APM {
 class Controller;
@@ -344,11 +344,12 @@ public:
                            const std::array<u8, 0x20>& build_id, u64 main_region_begin,
                            u64 main_region_size);
 
-    void SetAppletFrontendSet(Service::AM::Applets::AppletFrontendSet&& set);
+    void SetFrontendAppletSet(Service::AM::Frontend::FrontendAppletSet&& set);
     void SetDefaultAppletFrontendSet();
 
-    [[nodiscard]] Service::AM::Applets::AppletManager& GetAppletManager();
-    [[nodiscard]] const Service::AM::Applets::AppletManager& GetAppletManager() const;
+    [[nodiscard]] Service::AM::Frontend::FrontendAppletHolder& GetFrontendAppletHolder();
+    [[nodiscard]] const Service::AM::Frontend::FrontendAppletHolder& GetFrontendAppletHolder()
+        const;
 
     void SetContentProvider(std::unique_ptr<FileSys::ContentProviderUnion> provider);
 

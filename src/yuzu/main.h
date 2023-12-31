@@ -101,12 +101,12 @@ namespace InputCommon {
 class InputSubsystem;
 }
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 enum class SwkbdResult : u32;
 enum class SwkbdTextCheckResult : u32;
 enum class SwkbdReplyType : u32;
 enum class WebExitReason : u32;
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend
 
 namespace Service::NFC {
 class NfcDevice;
@@ -204,13 +204,13 @@ signals:
 
     void ProfileSelectorFinishedSelection(std::optional<Common::UUID> uuid);
 
-    void SoftwareKeyboardSubmitNormalText(Service::AM::Applets::SwkbdResult result,
+    void SoftwareKeyboardSubmitNormalText(Service::AM::Frontend::SwkbdResult result,
                                           std::u16string submitted_text, bool confirmed);
-    void SoftwareKeyboardSubmitInlineText(Service::AM::Applets::SwkbdReplyType reply_type,
+    void SoftwareKeyboardSubmitInlineText(Service::AM::Frontend::SwkbdReplyType reply_type,
                                           std::u16string submitted_text, s32 cursor_position);
 
     void WebBrowserExtractOfflineRomFS();
-    void WebBrowserClosed(Service::AM::Applets::WebExitReason exit_reason, std::string last_url);
+    void WebBrowserClosed(Service::AM::Frontend::WebExitReason exit_reason, std::string last_url);
 
     void SigInterrupt();
 
@@ -228,8 +228,9 @@ public slots:
     void SoftwareKeyboardInitialize(
         bool is_inline, Core::Frontend::KeyboardInitializeParameters initialize_parameters);
     void SoftwareKeyboardShowNormal();
-    void SoftwareKeyboardShowTextCheck(Service::AM::Applets::SwkbdTextCheckResult text_check_result,
-                                       std::u16string text_check_message);
+    void SoftwareKeyboardShowTextCheck(
+        Service::AM::Frontend::SwkbdTextCheckResult text_check_result,
+        std::u16string text_check_message);
     void SoftwareKeyboardShowInline(Core::Frontend::InlineAppearParameters appear_parameters);
     void SoftwareKeyboardHideInline();
     void SoftwareKeyboardInlineTextChanged(Core::Frontend::InlineTextParameters text_parameters);

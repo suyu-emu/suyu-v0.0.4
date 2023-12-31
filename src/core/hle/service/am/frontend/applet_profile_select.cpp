@@ -9,14 +9,14 @@
 #include "core/frontend/applets/profile_select.h"
 #include "core/hle/service/acc/errors.h"
 #include "core/hle/service/am/am.h"
-#include "core/hle/service/am/applets/applet_profile_select.h"
+#include "core/hle/service/am/frontend/applet_profile_select.h"
 #include "core/hle/service/am/storage.h"
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 ProfileSelect::ProfileSelect(Core::System& system_, LibraryAppletMode applet_mode_,
                              const Core::Frontend::ProfileSelectApplet& frontend_)
-    : Applet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
 
 ProfileSelect::~ProfileSelect() = default;
 
@@ -25,7 +25,7 @@ void ProfileSelect::Initialize() {
     status = ResultSuccess;
     final_data.clear();
 
-    Applet::Initialize();
+    FrontendApplet::Initialize();
     profile_select_version = ProfileSelectAppletVersion{common_args.library_version};
 
     const auto user_config_storage = broker.PopNormalDataToApplet();
@@ -121,4 +121,4 @@ Result ProfileSelect::RequestExit() {
     R_SUCCEED();
 }
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

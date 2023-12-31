@@ -11,14 +11,14 @@
 #include "core/frontend/applets/controller.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/am.h"
-#include "core/hle/service/am/applets/applet_controller.h"
+#include "core/hle/service/am/frontend/applet_controller.h"
 #include "core/hle/service/am/storage.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "hid_core/hid_types.h"
 #include "hid_core/resources/npad/npad.h"
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 [[maybe_unused]] constexpr Result ResultControllerSupportCanceled{ErrorModule::HID, 3101};
 [[maybe_unused]] constexpr Result ResultControllerSupportNotSupportedNpadStyle{ErrorModule::HID,
@@ -49,12 +49,12 @@ static Core::Frontend::ControllerParameters ConvertToFrontendParameters(
 
 Controller::Controller(Core::System& system_, LibraryAppletMode applet_mode_,
                        const Core::Frontend::ControllerApplet& frontend_)
-    : Applet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
 
 Controller::~Controller() = default;
 
 void Controller::Initialize() {
-    Applet::Initialize();
+    FrontendApplet::Initialize();
 
     LOG_INFO(Service_HID, "Initializing Controller Applet.");
 
@@ -270,4 +270,4 @@ Result Controller::RequestExit() {
     R_SUCCEED();
 }
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

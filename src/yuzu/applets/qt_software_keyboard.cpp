@@ -20,7 +20,7 @@
 
 namespace {
 
-using namespace Service::AM::Applets;
+using namespace Service::AM::Frontend;
 
 constexpr float BASE_HEADER_FONT_SIZE = 23.0f;
 constexpr float BASE_SUB_FONT_SIZE = 17.0f;
@@ -389,7 +389,7 @@ void QtSoftwareKeyboardDialog::ShowNormalKeyboard(QPoint pos, QSize size) {
 }
 
 void QtSoftwareKeyboardDialog::ShowTextCheckDialog(
-    Service::AM::Applets::SwkbdTextCheckResult text_check_result,
+    Service::AM::Frontend::SwkbdTextCheckResult text_check_result,
     std::u16string text_check_message) {
     switch (text_check_result) {
     case SwkbdTextCheckResult::Success:
@@ -1612,7 +1612,7 @@ void QtSoftwareKeyboard::ShowNormalKeyboard() const {
 }
 
 void QtSoftwareKeyboard::ShowTextCheckDialog(
-    Service::AM::Applets::SwkbdTextCheckResult text_check_result,
+    Service::AM::Frontend::SwkbdTextCheckResult text_check_result,
     std::u16string text_check_message) const {
     emit MainWindowShowTextCheckDialog(text_check_result, std::move(text_check_message));
 }
@@ -1662,12 +1662,12 @@ void QtSoftwareKeyboard::ExitKeyboard() const {
     emit MainWindowExitKeyboard();
 }
 
-void QtSoftwareKeyboard::SubmitNormalText(Service::AM::Applets::SwkbdResult result,
+void QtSoftwareKeyboard::SubmitNormalText(Service::AM::Frontend::SwkbdResult result,
                                           std::u16string submitted_text, bool confirmed) const {
     submit_normal_callback(result, submitted_text, confirmed);
 }
 
-void QtSoftwareKeyboard::SubmitInlineText(Service::AM::Applets::SwkbdReplyType reply_type,
+void QtSoftwareKeyboard::SubmitInlineText(Service::AM::Frontend::SwkbdReplyType reply_type,
                                           std::u16string submitted_text,
                                           s32 cursor_position) const {
     submit_inline_callback(reply_type, submitted_text, cursor_position);

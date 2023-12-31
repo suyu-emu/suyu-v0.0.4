@@ -8,13 +8,13 @@
 #include "common/common_funcs.h"
 #include "common/uuid.h"
 #include "core/hle/result.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applets.h"
 
 namespace Core {
 class System;
 }
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 enum class ProfileSelectAppletVersion : u32 {
     Version1 = 0x1,     // 1.0.0+
@@ -111,7 +111,7 @@ struct UiReturnArg {
 };
 static_assert(sizeof(UiReturnArg) == 0x18, "UiReturnArg has incorrect size.");
 
-class ProfileSelect final : public Applet {
+class ProfileSelect final : public FrontendApplet {
 public:
     explicit ProfileSelect(Core::System& system_, LibraryAppletMode applet_mode_,
                            const Core::Frontend::ProfileSelectApplet& frontend_);
@@ -140,4 +140,4 @@ private:
     Core::System& system;
 };
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

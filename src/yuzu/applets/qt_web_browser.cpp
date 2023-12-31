@@ -96,7 +96,7 @@ QtNXWebEngineView::QtNXWebEngineView(QWidget* parent, Core::System& system,
         [this] {
             if (page()->url() == url_interceptor->GetRequestedURL()) {
                 SetFinished(true);
-                SetExitReason(Service::AM::Applets::WebExitReason::WindowClosed);
+                SetExitReason(Service::AM::Frontend::WebExitReason::WindowClosed);
             }
         },
         Qt::QueuedConnection);
@@ -115,7 +115,7 @@ void QtNXWebEngineView::LoadLocalWebPage(const std::string& main_url,
     FocusFirstLinkElement();
     SetUserAgent(UserAgent::WebApplet);
     SetFinished(false);
-    SetExitReason(Service::AM::Applets::WebExitReason::EndButtonPressed);
+    SetExitReason(Service::AM::Frontend::WebExitReason::EndButtonPressed);
     SetLastURL("http://localhost/");
     StartInputThread();
 
@@ -130,7 +130,7 @@ void QtNXWebEngineView::LoadExternalWebPage(const std::string& main_url,
     FocusFirstLinkElement();
     SetUserAgent(UserAgent::WebApplet);
     SetFinished(false);
-    SetExitReason(Service::AM::Applets::WebExitReason::EndButtonPressed);
+    SetExitReason(Service::AM::Frontend::WebExitReason::EndButtonPressed);
     SetLastURL("http://localhost/");
     StartInputThread();
 
@@ -170,11 +170,11 @@ void QtNXWebEngineView::SetFinished(bool finished_) {
     finished = finished_;
 }
 
-Service::AM::Applets::WebExitReason QtNXWebEngineView::GetExitReason() const {
+Service::AM::Frontend::WebExitReason QtNXWebEngineView::GetExitReason() const {
     return exit_reason;
 }
 
-void QtNXWebEngineView::SetExitReason(Service::AM::Applets::WebExitReason exit_reason_) {
+void QtNXWebEngineView::SetExitReason(Service::AM::Frontend::WebExitReason exit_reason_) {
     exit_reason = exit_reason_;
 }
 
@@ -441,7 +441,7 @@ void QtWebBrowser::MainWindowExtractOfflineRomFS() {
     extract_romfs_callback();
 }
 
-void QtWebBrowser::MainWindowWebBrowserClosed(Service::AM::Applets::WebExitReason exit_reason,
+void QtWebBrowser::MainWindowWebBrowserClosed(Service::AM::Frontend::WebExitReason exit_reason,
                                               std::string last_url) {
     if (callback) {
         callback(exit_reason, last_url);

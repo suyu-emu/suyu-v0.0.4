@@ -6,7 +6,7 @@
 #include <array>
 
 #include "core/hle/result.h"
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/nfp/nfp_types.h"
 
@@ -23,7 +23,7 @@ namespace Service::NFC {
 class NfcDevice;
 }
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 enum class CabinetAppletVersion : u32 {
     Version1 = 0x1,
@@ -84,7 +84,7 @@ static_assert(sizeof(ReturnValueForAmiiboSettings) == 0x188,
               "ReturnValueForAmiiboSettings is an invalid size");
 #pragma pack(pop)
 
-class Cabinet final : public Applet {
+class Cabinet final : public FrontendApplet {
 public:
     explicit Cabinet(Core::System& system_, LibraryAppletMode applet_mode_,
                      const Core::Frontend::CabinetApplet& frontend_);
@@ -111,4 +111,4 @@ private:
     StartParamForAmiiboSettings applet_input_common{};
 };
 
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

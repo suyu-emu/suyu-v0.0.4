@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/service.h"
 
 namespace Service::AM {
@@ -11,7 +11,7 @@ namespace Service::AM {
 class ILibraryAppletAccessor final : public ServiceFramework<ILibraryAppletAccessor> {
 public:
     explicit ILibraryAppletAccessor(Core::System& system_,
-                                    std::shared_ptr<Applets::Applet> applet_);
+                                    std::shared_ptr<Frontend::FrontendApplet> applet_);
 
 private:
     void GetAppletStateChangedEvent(HLERequestContext& ctx);
@@ -28,7 +28,7 @@ private:
     void GetPopInteractiveOutDataEvent(HLERequestContext& ctx);
     void GetIndirectLayerConsumerHandle(HLERequestContext& ctx);
 
-    std::shared_ptr<Applets::Applet> applet;
+    std::shared_ptr<Frontend::FrontendApplet> applet;
 };
 
 } // namespace Service::AM

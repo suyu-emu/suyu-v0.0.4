@@ -19,13 +19,13 @@
 #include "core/frontend/applets/web_browser.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/am.h"
-#include "core/hle/service/am/applets/applet_web_browser.h"
+#include "core/hle/service/am/frontend/applet_web_browser.h"
 #include "core/hle/service/am/storage.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ns/iplatform_service_manager.h"
 #include "core/loader/loader.h"
 
-namespace Service::AM::Applets {
+namespace Service::AM::Frontend {
 
 namespace {
 
@@ -226,12 +226,12 @@ void ExtractSharedFonts(Core::System& system) {
 
 WebBrowser::WebBrowser(Core::System& system_, LibraryAppletMode applet_mode_,
                        const Core::Frontend::WebBrowserApplet& frontend_)
-    : Applet{system_, applet_mode_}, frontend(frontend_), system{system_} {}
+    : FrontendApplet{system_, applet_mode_}, frontend(frontend_), system{system_} {}
 
 WebBrowser::~WebBrowser() = default;
 
 void WebBrowser::Initialize() {
-    Applet::Initialize();
+    FrontendApplet::Initialize();
 
     LOG_INFO(Service_AM, "Initializing Web Browser Applet.");
 
@@ -505,4 +505,4 @@ void WebBrowser::ExecuteLobby() {
     LOG_WARNING(Service_AM, "(STUBBED) called, Lobby Applet is not implemented");
     WebBrowserExit(WebExitReason::EndButtonPressed);
 }
-} // namespace Service::AM::Applets
+} // namespace Service::AM::Frontend

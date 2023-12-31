@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/am/self_controller.h"
 #include "core/hle/service/caps/caps_su.h"
 #include "core/hle/service/ipc_helpers.h"
@@ -271,7 +271,7 @@ Result ISelfController::EnsureBufferSharingEnabled(Kernel::KProcess* process) {
         return ResultSuccess;
     }
 
-    if (system.GetAppletManager().GetCurrentAppletId() <= Applets::AppletId::Application) {
+    if (system.GetFrontendAppletHolder().GetCurrentAppletId() <= AppletId::Application) {
         return VI::ResultOperationFailed;
     }
 

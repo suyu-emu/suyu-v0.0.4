@@ -85,8 +85,8 @@ public:
     [[nodiscard]] bool IsFinished() const;
     void SetFinished(bool finished_);
 
-    [[nodiscard]] Service::AM::Applets::WebExitReason GetExitReason() const;
-    void SetExitReason(Service::AM::Applets::WebExitReason exit_reason_);
+    [[nodiscard]] Service::AM::Frontend::WebExitReason GetExitReason() const;
+    void SetExitReason(Service::AM::Frontend::WebExitReason exit_reason_);
 
     [[nodiscard]] const std::string& GetLastURL() const;
     void SetLastURL(std::string last_url_);
@@ -176,8 +176,8 @@ private:
 
     std::atomic<bool> finished{};
 
-    Service::AM::Applets::WebExitReason exit_reason{
-        Service::AM::Applets::WebExitReason::EndButtonPressed};
+    Service::AM::Frontend::WebExitReason exit_reason{
+        Service::AM::Frontend::WebExitReason::EndButtonPressed};
 
     std::string last_url{"http://localhost/"};
 
@@ -212,7 +212,7 @@ signals:
 private:
     void MainWindowExtractOfflineRomFS();
 
-    void MainWindowWebBrowserClosed(Service::AM::Applets::WebExitReason exit_reason,
+    void MainWindowWebBrowserClosed(Service::AM::Frontend::WebExitReason exit_reason,
                                     std::string last_url);
 
     mutable ExtractROMFSCallback extract_romfs_callback;
