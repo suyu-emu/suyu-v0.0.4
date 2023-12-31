@@ -124,10 +124,11 @@ DAddr HeapMapper::Map(VAddr start, size_t size) {
     m_internal->base_set.clear();
     const IntervalType interval{start, start + size};
     m_internal->base_set.insert(interval);
-    m_internal->ForEachInOverlapCounter(m_internal->mapping_overlaps, start, size, [this](VAddr start_addr, VAddr end_addr, int){
-        const IntervalType other{start_addr, end_addr};
-        m_internal->base_set.subtract(other);
-    });
+    m_internal->ForEachInOverlapCounter(m_internal->mapping_overlaps, start, size,
+                                        [this](VAddr start_addr, VAddr end_addr, int) {
+                                            const IntervalType other{start_addr, end_addr};
+                                            m_internal->base_set.subtract(other);
+                                        });
     if (!m_internal->base_set.empty()) {
         auto it = m_internal->base_set.begin();
         auto end_it = m_internal->base_set.end();
@@ -136,7 +137,8 @@ DAddr HeapMapper::Map(VAddr start, size_t size) {
             const VAddr inter_addr = it->lower();
             const size_t offset = inter_addr - m_vaddress;
             const size_t sub_size = inter_addr_end - inter_addr;
-            m_internal->device_memory.Map(m_daddress + offset, m_vaddress + offset, sub_size, m_smmu_id);
+            m_internal->device_memory.Map(m_daddress + offset, m_vaddress + offset, sub_size,
+                                          m_smmu_id);
         }
     }
     m_internal->mapping_overlaps += std::make_pair(interval, 1);
@@ -147,12 +149,13 @@ DAddr HeapMapper::Map(VAddr start, size_t size) {
 void HeapMapper::Unmap(VAddr start, size_t size) {
     std::scoped_lock lk(m_internal->guard);
     m_internal->base_set.clear();
-    m_internal->ForEachInOverlapCounter(m_internal->mapping_overlaps, start, size, [this](VAddr start_addr, VAddr end_addr, int value) {
-        if (value <= 1) {
-            const IntervalType other{start_addr, end_addr};
-            m_internal->base_set.insert(other);
-        }
-    });
+    m_internal->ForEachInOverlapCounter(m_internal->mapping_overlaps, start, size,
+                                        [this](VAddr start_addr, VAddr end_addr, int value) {
+                                            if (value <= 1) {
+                                                const IntervalType other{start_addr, end_addr};
+                                                m_internal->base_set.insert(other);
+                                            }
+                                        });
     if (!m_internal->base_set.empty()) {
         auto it = m_internal->base_set.begin();
         auto end_it = m_internal->base_set.end();

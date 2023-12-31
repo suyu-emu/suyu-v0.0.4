@@ -240,8 +240,8 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
         memory_tracker.MarkRegionAsGpuModified(*cpu_dest_address, amount);
     }
 
-    Tegra::Memory::DeviceGuestMemoryScoped<u8, Tegra::Memory::GuestMemoryFlags::UnsafeReadWrite> tmp(
-        device_memory, *cpu_src_address, amount, &tmp_buffer);
+    Tegra::Memory::DeviceGuestMemoryScoped<u8, Tegra::Memory::GuestMemoryFlags::UnsafeReadWrite>
+        tmp(device_memory, *cpu_src_address, amount, &tmp_buffer);
     tmp.SetAddressAndSize(*cpu_dest_address, amount);
     return true;
 }
@@ -1355,7 +1355,7 @@ typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(DAddr dev
     bool has_stream_leap = false;
     auto expand_begin = [&](DAddr add_value) {
         static constexpr DAddr min_page = CACHING_PAGESIZE + Core::Memory::YUZU_PAGESIZE;
-        if (add_value > begin - min_page ) {
+        if (add_value > begin - min_page) {
             begin = min_page;
             device_addr = Core::Memory::YUZU_PAGESIZE;
             return;
@@ -1365,7 +1365,7 @@ typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(DAddr dev
     };
     auto expand_end = [&](DAddr add_value) {
         static constexpr DAddr max_page = 1ULL << Tegra::MaxwellDeviceMemoryManager::AS_BITS;
-        if (add_value > max_page - end ) {
+        if (add_value > max_page - end) {
             end = max_page;
             return;
         }

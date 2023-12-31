@@ -92,7 +92,8 @@ Result FreeNvMapHandle(Nvidia::Devices::nvmap& nvmap, u32 handle, Nvidia::Device
     Nvidia::Devices::nvmap::IocFreeParams free_params{
         .handle = handle,
     };
-    R_UNLESS(nvmap.IocFree(free_params, nvmap_fd) == Nvidia::NvResult::Success, VI::ResultOperationFailed);
+    R_UNLESS(nvmap.IocFree(free_params, nvmap_fd) == Nvidia::NvResult::Success,
+             VI::ResultOperationFailed);
 
     // We succeeded.
     R_SUCCEED();
@@ -109,7 +110,8 @@ Result AllocNvMapHandle(Nvidia::Devices::nvmap& nvmap, u32 handle, Common::Proce
         .kind = 0,
         .address = GetInteger(buffer),
     };
-    R_UNLESS(nvmap.IocAlloc(alloc_params, nvmap_fd) == Nvidia::NvResult::Success, VI::ResultOperationFailed);
+    R_UNLESS(nvmap.IocAlloc(alloc_params, nvmap_fd) == Nvidia::NvResult::Success,
+             VI::ResultOperationFailed);
 
     // We succeeded.
     R_SUCCEED();
@@ -201,8 +203,8 @@ Result FbShareBufferManager::Initialize(u64* out_buffer_id, u64* out_layer_id, u
     m_nvmap_fd = m_nvdrv->Open("/dev/nvmap", m_session_id);
 
     // Create an nvmap handle for the buffer and assign the memory to it.
-    R_TRY(AllocateHandleForBuffer(std::addressof(m_buffer_nvmap_handle), *m_nvdrv, m_nvmap_fd, map_address,
-                                  SharedBufferSize));
+    R_TRY(AllocateHandleForBuffer(std::addressof(m_buffer_nvmap_handle), *m_nvdrv, m_nvmap_fd,
+                                  map_address, SharedBufferSize));
 
     // Record the display id.
     m_display_id = display_id;

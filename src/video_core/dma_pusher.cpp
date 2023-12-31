@@ -86,14 +86,14 @@ bool DmaPusher::Step() {
         }
         const auto safe_process = [&] {
             Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader,
-                                         Tegra::Memory::GuestMemoryFlags::SafeRead>
+                                          Tegra::Memory::GuestMemoryFlags::SafeRead>
                 headers(memory_manager, dma_state.dma_get, command_list_header.size,
                         &command_headers);
             ProcessCommands(headers);
         };
         const auto unsafe_process = [&] {
             Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader,
-                                         Tegra::Memory::GuestMemoryFlags::UnsafeRead>
+                                          Tegra::Memory::GuestMemoryFlags::UnsafeRead>
                 headers(memory_manager, dma_state.dma_get, command_list_header.size,
                         &command_headers);
             ProcessCommands(headers);

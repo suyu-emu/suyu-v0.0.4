@@ -97,8 +97,8 @@ RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
                 render_window.GetFramebufferLayout().height),
       present_manager(instance, render_window, device, memory_allocator, scheduler, swapchain,
                       surface),
-      blit_screen(device_memory, render_window, device, memory_allocator, swapchain, present_manager,
-                  scheduler, screen_info),
+      blit_screen(device_memory, render_window, device, memory_allocator, swapchain,
+                  present_manager, scheduler, screen_info),
       rasterizer(render_window, gpu, device_memory, screen_info, device, memory_allocator,
                  state_tracker, scheduler) {
     if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {

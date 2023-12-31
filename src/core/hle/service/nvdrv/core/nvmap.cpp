@@ -13,8 +13,8 @@
 #include "core/memory.h"
 #include "video_core/host1x/host1x.h"
 
-
 using Core::Memory::YUZU_PAGESIZE;
+constexpr size_t BIG_PAGE_SIZE = YUZU_PAGESIZE * 16;
 
 namespace Service::Nvidia::NvCore {
 NvMap::Handle::Handle(u64 size_, Id id_)
@@ -96,8 +96,9 @@ void NvMap::UnmapHandle(Handle& handle_description) {
     const size_t map_size = handle_description.aligned_size;
     if (!handle_description.in_heap) {
         auto& smmu = host1x.MemoryManager();
+        size_t aligned_up = Common::AlignUp(map_size, BIG_PAGE_SIZE);
         smmu.Unmap(handle_description.d_address, map_size);
-        smmu.Free(handle_description.d_address, static_cast<size_t>(map_size));
+        smmu.Free(handle_description.d_address, static_cast<size_t>(aligned_up));
         handle_description.d_address = 0;
         return;
     }
@@ -206,7 +207,8 @@ DAddr NvMap::PinHandle(NvMap::Handle::Id handle, bool low_area_pin) {
             handle_description->d_address = session->mapper->Map(vaddress, map_size);
             handle_description->in_heap = true;
         } else {
-            while ((address = smmu.Allocate(map_size)) == 0) {
+            size_t aligned_up = Common::AlignUp(map_size, BIG_PAGE_SIZE);
+            while ((address = smmu.Allocate(aligned_up)) == 0) {
                 // Free handles until the allocation succeeds
                 std::scoped_lock queueLock(unmap_queue_lock);
                 if (auto freeHandleDesc{unmap_queue.front()}) {

@@ -63,8 +63,8 @@ public:
         } flags{};
         static_assert(sizeof(Flags) == sizeof(u32));
 
-        VAddr address{};   //!< The memory location in the guest's AS that this handle corresponds to,
-                           //!< this can also be in the nvdrv tmem
+        VAddr address{}; //!< The memory location in the guest's AS that this handle corresponds to,
+                         //!< this can also be in the nvdrv tmem
         bool is_shared_mem_mapped{}; //!< If this nvmap has been mapped with the MapSharedMem IPC
                                      //!< call
 
@@ -73,8 +73,8 @@ public:
         bool in_heap{};
         size_t session_id{};
 
-        DAddr d_address{}; //!< The memory location in the device's AS that this handle corresponds to,
-                           //!< this can also be in the nvdrv tmem
+        DAddr d_address{}; //!< The memory location in the device's AS that this handle corresponds
+                           //!< to, this can also be in the nvdrv tmem
 
         Handle(u64 size, Id id);
 
@@ -82,7 +82,8 @@ public:
          * @brief Sets up the handle with the given memory config, can allocate memory from the tmem
          * if a 0 address is passed
          */
-        [[nodiscard]] NvResult Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress, size_t pSessionId);
+        [[nodiscard]] NvResult Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress,
+                                     size_t pSessionId);
 
         /**
          * @brief Increases the dupe counter of the handle for the given session

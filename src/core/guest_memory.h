@@ -202,7 +202,8 @@ public:
                 } else {
                     this->m_memory.WriteBlockUnsafe(this->m_addr, this->data(), this->size_bytes());
                 }
-            } else if constexpr ((FLAGS & GuestMemoryFlags::Safe) || (FLAGS & GuestMemoryFlags::Cached))  {
+            } else if constexpr ((FLAGS & GuestMemoryFlags::Safe) ||
+                                 (FLAGS & GuestMemoryFlags::Cached)) {
                 this->m_memory.InvalidateRegion(this->m_addr, this->size_bytes());
             }
         }
@@ -215,4 +216,4 @@ using CpuGuestMemory = GuestMemory<Core::Memory::Memory, T, FLAGS>;
 template <typename T, GuestMemoryFlags FLAGS>
 using CpuGuestMemoryScoped = GuestMemoryScoped<Core::Memory::Memory, T, FLAGS>;
 
-} // namespace Tegra::Memory
+} // namespace Core::Memory

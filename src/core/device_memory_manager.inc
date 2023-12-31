@@ -12,6 +12,7 @@
 #include "common/assert.h"
 #include "common/div_ceil.h"
 #include "common/scope_exit.h"
+#include "common/settings.h"
 #include "core/device_memory.h"
 #include "core/device_memory_manager.h"
 #include "core/memory.h"
@@ -162,20 +163,39 @@ struct DeviceMemoryManagerAllocator {
 template <typename Traits>
 DeviceMemoryManager<Traits>::DeviceMemoryManager(const DeviceMemory& device_memory_)
     : physical_base{reinterpret_cast<const uintptr_t>(device_memory_.buffer.BackingBasePointer())},
-      interface{nullptr}, compressed_physical_ptr(device_as_size >> Memory::YUZU_PAGEBITS),
-      compressed_device_addr(1ULL << (physical_max_bits - Memory::YUZU_PAGEBITS)),
+      device_inter{nullptr}, compressed_physical_ptr(device_as_size >> Memory::YUZU_PAGEBITS),
+      compressed_device_addr(1ULL << ((Settings::values.memory_layout_mode.GetValue() ==
+                                               Settings::MemoryLayout::Memory_4Gb
+                                           ? physical_min_bits
+                                           : physical_max_bits) -
+                                      Memory::YUZU_PAGEBITS)),
       continuity_tracker(device_as_size >> Memory::YUZU_PAGEBITS),
       cpu_backing_address(device_as_size >> Memory::YUZU_PAGEBITS) {
     impl = std::make_unique<DeviceMemoryManagerAllocator<Traits>>();
     cached_pages = std::make_unique<CachedPages>();
+
+    const size_t total_virtual = device_as_size >> Memory::YUZU_PAGEBITS;
+    for (size_t i = 0; i < total_virtual; i++) {
+        compressed_physical_ptr[i] = 0;
+        continuity_tracker[i] = 1;
+        cpu_backing_address[i] = 0;
+    }
+    const size_t total_phys = 1ULL << ((Settings::values.memory_layout_mode.GetValue() ==
+                                                Settings::MemoryLayout::Memory_4Gb
+                                            ? physical_min_bits
+                                            : physical_max_bits) -
+                                       Memory::YUZU_PAGEBITS);
+    for (size_t i = 0; i < total_phys; i++) {
+        compressed_device_addr[i] = 0;
+    }
 }
 
 template <typename Traits>
 DeviceMemoryManager<Traits>::~DeviceMemoryManager() = default;
 
 template <typename Traits>
-void DeviceMemoryManager<Traits>::BindInterface(DeviceInterface* interface_) {
-    interface = interface_;
+void DeviceMemoryManager<Traits>::BindInterface(DeviceInterface* device_inter_) {
+    device_inter = device_inter_;
 }
 
 template <typename Traits>
@@ -232,7 +252,7 @@ template <typename Traits>
 void DeviceMemoryManager<Traits>::Unmap(DAddr address, size_t size) {
     size_t start_page_d = address >> Memory::YUZU_PAGEBITS;
     size_t num_pages = Common::AlignUp(size, Memory::YUZU_PAGESIZE) >> Memory::YUZU_PAGEBITS;
-    interface->InvalidateRegion(address, size);
+    device_inter->InvalidateRegion(address, size);
     std::scoped_lock lk(mapping_guard);
     for (size_t i = 0; i < num_pages; i++) {
         auto phys_addr = compressed_physical_ptr[start_page_d + i];
@@ -392,7 +412,7 @@ void DeviceMemoryManager<Traits>::WalkBlock(DAddr addr, std::size_t size, auto o
 
 template <typename Traits>
 void DeviceMemoryManager<Traits>::ReadBlock(DAddr address, void* dest_pointer, size_t size) {
-    interface->FlushRegion(address, size);
+    device_inter->FlushRegion(address, size);
     WalkBlock(
         address, size,
         [&](size_t copy_amount, DAddr current_vaddr) {
@@ -426,7 +446,7 @@ void DeviceMemoryManager<Traits>::WriteBlock(DAddr address, const void* src_poin
         [&](const std::size_t copy_amount) {
             src_pointer = static_cast<const u8*>(src_pointer) + copy_amount;
         });
-    interface->InvalidateRegion(address, size);
+    device_inter->InvalidateRegion(address, size);
 }
 
 template <typename Traits>
@@ -468,14 +488,14 @@ void DeviceMemoryManager<Traits>::WriteBlockUnsafe(DAddr address, const void* sr
 }
 
 template <typename Traits>
-size_t DeviceMemoryManager<Traits>::RegisterProcess(Memory::Memory* memory_interface) {
+size_t DeviceMemoryManager<Traits>::RegisterProcess(Memory::Memory* memory_device_inter) {
     size_t new_id;
     if (!id_pool.empty()) {
         new_id = id_pool.front();
         id_pool.pop_front();
-        registered_processes[new_id] = memory_interface;
+        registered_processes[new_id] = memory_device_inter;
     } else {
-        registered_processes.emplace_back(memory_interface);
+        registered_processes.emplace_back(memory_device_inter);
         new_id = registered_processes.size() - 1U;
     }
     return new_id;
@@ -512,7 +532,7 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
     size_t page = addr >> Memory::YUZU_PAGEBITS;
     auto [process_id, base_vaddress] = ExtractCPUBacking(page);
     size_t vpage = base_vaddress >> Memory::YUZU_PAGEBITS;
-    auto* memory_interface = registered_processes[process_id];
+    auto* memory_device_inter = registered_processes[process_id];
     for (; page != page_end; ++page) {
         std::atomic_uint8_t& count = cached_pages->at(page >> 3).Count(page);
 
@@ -536,7 +556,7 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
             uncache_bytes += Memory::YUZU_PAGESIZE;
         } else if (uncache_bytes > 0) {
             lock();
-            MarkRegionCaching(memory_interface, uncache_begin << Memory::YUZU_PAGEBITS,
+            MarkRegionCaching(memory_device_inter, uncache_begin << Memory::YUZU_PAGEBITS,
                               uncache_bytes, false);
             uncache_bytes = 0;
         }
@@ -547,7 +567,7 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
             cache_bytes += Memory::YUZU_PAGESIZE;
         } else if (cache_bytes > 0) {
             lock();
-            MarkRegionCaching(memory_interface, cache_begin << Memory::YUZU_PAGEBITS, cache_bytes,
+            MarkRegionCaching(memory_device_inter, cache_begin << Memory::YUZU_PAGEBITS, cache_bytes,
                               true);
             cache_bytes = 0;
         }
@@ -555,12 +575,12 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
     }
     if (uncache_bytes > 0) {
         lock();
-        MarkRegionCaching(memory_interface, uncache_begin << Memory::YUZU_PAGEBITS, uncache_bytes,
+        MarkRegionCaching(memory_device_inter, uncache_begin << Memory::YUZU_PAGEBITS, uncache_bytes,
                           false);
     }
     if (cache_bytes > 0) {
         lock();
-        MarkRegionCaching(memory_interface, cache_begin << Memory::YUZU_PAGEBITS, cache_bytes,
+        MarkRegionCaching(memory_device_inter, cache_begin << Memory::YUZU_PAGEBITS, cache_bytes,
                           true);
     }
 }

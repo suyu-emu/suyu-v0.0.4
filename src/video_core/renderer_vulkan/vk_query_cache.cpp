@@ -14,10 +14,10 @@
 #include "common/bit_util.h"
 #include "common/common_types.h"
 #include "core/memory.h"
-#include "video_core/rasterizer_interface.h"
 #include "video_core/engines/draw_manager.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/query_cache/query_cache.h"
+#include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
 #include "video_core/renderer_vulkan/vk_query_cache.h"
@@ -1156,9 +1156,10 @@ private:
 
 struct QueryCacheRuntimeImpl {
     QueryCacheRuntimeImpl(QueryCacheRuntime& runtime, VideoCore::RasterizerInterface* rasterizer_,
-                          Tegra::MaxwellDeviceMemoryManager& device_memory_, Vulkan::BufferCache& buffer_cache_,
-                          const Device& device_, const MemoryAllocator& memory_allocator_,
-                          Scheduler& scheduler_, StagingBufferPool& staging_pool_,
+                          Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                          Vulkan::BufferCache& buffer_cache_, const Device& device_,
+                          const MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
+                          StagingBufferPool& staging_pool_,
                           ComputePassDescriptorQueue& compute_pass_descriptor_queue,
                           DescriptorPool& descriptor_pool)
         : rasterizer{rasterizer_}, device_memory{device_memory_},

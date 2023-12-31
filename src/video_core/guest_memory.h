@@ -20,7 +20,8 @@ using GuestMemoryFlags = Core::Memory::GuestMemoryFlags;
 template <typename T, GuestMemoryFlags FLAGS>
 using DeviceGuestMemory = Core::Memory::GuestMemory<Tegra::MaxwellDeviceMemoryManager, T, FLAGS>;
 template <typename T, GuestMemoryFlags FLAGS>
-using DeviceGuestMemoryScoped = Core::Memory::GuestMemoryScoped<Tegra::MaxwellDeviceMemoryManager, T, FLAGS>;
+using DeviceGuestMemoryScoped =
+    Core::Memory::GuestMemoryScoped<Tegra::MaxwellDeviceMemoryManager, T, FLAGS>;
 template <typename T, GuestMemoryFlags FLAGS>
 using GpuGuestMemory = Core::Memory::GuestMemory<Tegra::MemoryManager, T, FLAGS>;
 template <typename T, GuestMemoryFlags FLAGS>

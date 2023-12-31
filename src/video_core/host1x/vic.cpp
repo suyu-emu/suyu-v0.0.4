@@ -167,7 +167,7 @@ void Vic::WriteRGBFrame(std::unique_ptr<FFmpeg::Frame> frame, const VicConfig& c
         // send pitch linear frame
         const size_t linear_size = width * height * 4;
         host1x.GMMU().WriteBlock(output_surface_luma_address, converted_frame_buf_addr,
-                                          linear_size);
+                                 linear_size);
     }
 }
 
@@ -193,8 +193,7 @@ void Vic::WriteYUVFrame(std::unique_ptr<FFmpeg::Frame> frame, const VicConfig& c
         const std::size_t dst = y * aligned_width;
         std::memcpy(luma_buffer.data() + dst, luma_src + src, frame_width);
     }
-    host1x.GMMU().WriteBlock(output_surface_luma_address, luma_buffer.data(),
-                                      luma_buffer.size());
+    host1x.GMMU().WriteBlock(output_surface_luma_address, luma_buffer.data(), luma_buffer.size());
 
     // Chroma
     const std::size_t half_height = frame_height / 2;
@@ -234,7 +233,7 @@ void Vic::WriteYUVFrame(std::unique_ptr<FFmpeg::Frame> frame, const VicConfig& c
         break;
     }
     host1x.GMMU().WriteBlock(output_surface_chroma_address, chroma_buffer.data(),
-                                      chroma_buffer.size());
+                             chroma_buffer.size());
 }
 
 } // namespace Host1x

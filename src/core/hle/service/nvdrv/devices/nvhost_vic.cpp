@@ -69,7 +69,7 @@ NvResult nvhost_vic::Ioctl3(DeviceFD fd, Ioctl command, std::span<const u8> inpu
 }
 
 void nvhost_vic::OnOpen(size_t session_id, DeviceFD fd) {
-        sessions[fd] = session_id;
+    sessions[fd] = session_id;
 }
 
 void nvhost_vic::OnClose(DeviceFD fd) {

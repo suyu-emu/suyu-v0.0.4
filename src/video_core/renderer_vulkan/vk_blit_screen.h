@@ -6,9 +6,9 @@
 #include <memory>
 
 #include "core/frontend/framebuffer_layout.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
-#include "video_core/host1x/gpu_device_memory_manager.h"
 
 namespace Core {
 class System;
@@ -53,8 +53,9 @@ struct ScreenInfo {
 
 class BlitScreen {
 public:
-    explicit BlitScreen(Tegra::MaxwellDeviceMemoryManager& device_memory, Core::Frontend::EmuWindow& render_window,
-                        const Device& device, MemoryAllocator& memory_manager, Swapchain& swapchain,
+    explicit BlitScreen(Tegra::MaxwellDeviceMemoryManager& device_memory,
+                        Core::Frontend::EmuWindow& render_window, const Device& device,
+                        MemoryAllocator& memory_manager, Swapchain& swapchain,
                         PresentManager& present_manager, Scheduler& scheduler,
                         const ScreenInfo& screen_info);
     ~BlitScreen();

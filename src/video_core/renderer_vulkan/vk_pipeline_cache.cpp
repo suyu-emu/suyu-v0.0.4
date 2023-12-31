@@ -298,8 +298,9 @@ bool GraphicsPipelineCacheKey::operator==(const GraphicsPipelineCacheKey& rhs) c
     return std::memcmp(&rhs, this, Size()) == 0;
 }
 
-PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, const Device& device_,
-                             Scheduler& scheduler_, DescriptorPool& descriptor_pool_,
+PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                             const Device& device_, Scheduler& scheduler_,
+                             DescriptorPool& descriptor_pool_,
                              GuestDescriptorQueue& guest_descriptor_queue_,
                              RenderPassCache& render_pass_cache_, BufferCache& buffer_cache_,
                              TextureCache& texture_cache_, VideoCore::ShaderNotify& shader_notify_)

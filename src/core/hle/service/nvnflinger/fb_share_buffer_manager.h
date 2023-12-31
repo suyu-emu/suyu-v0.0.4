@@ -4,9 +4,9 @@
 #pragma once
 
 #include "common/math_util.h"
+#include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/nvnflinger/ui/fence.h"
-#include "core/hle/service/nvdrv/nvdata.h"
 
 namespace Kernel {
 class KPageGroup;
@@ -62,7 +62,6 @@ private:
     Core::System& m_system;
     Nvnflinger& m_flinger;
     std::shared_ptr<Nvidia::Module> m_nvdrv;
-
 };
 
 } // namespace Service::Nvnflinger

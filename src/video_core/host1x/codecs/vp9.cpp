@@ -383,9 +383,8 @@ Vp9FrameContainer VP9::GetCurrentFrame(const Host1x::NvdecCommon::NvdecRegisters
         // gpu.SyncGuestHost(); epic, why?
         current_frame.info = GetVp9PictureInfo(state);
         current_frame.bit_stream.resize(current_frame.info.bitstream_size);
-        host1x.GMMU().ReadBlock(state.frame_bitstream_offset,
-                                         current_frame.bit_stream.data(),
-                                         current_frame.info.bitstream_size);
+        host1x.GMMU().ReadBlock(state.frame_bitstream_offset, current_frame.bit_stream.data(),
+                                current_frame.info.bitstream_size);
     }
     if (!next_frame.bit_stream.empty()) {
         Vp9FrameContainer temp{

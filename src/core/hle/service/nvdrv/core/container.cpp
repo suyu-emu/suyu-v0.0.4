@@ -16,6 +16,12 @@
 
 namespace Service::Nvidia::NvCore {
 
+Session::Session(size_t id_, Kernel::KProcess* process_, size_t smmu_id_)
+    : id{id_}, process{process_}, smmu_id{smmu_id_},
+      has_preallocated_area{}, mapper{}, is_active{} {}
+
+Session::~Session() = default;
+
 struct ContainerImpl {
     explicit ContainerImpl(Container& core, Tegra::Host1x::Host1x& host1x_)
         : host1x{host1x_}, file{core, host1x_}, manager{host1x_}, device_file_data{} {}
@@ -54,8 +60,8 @@ size_t Container::OpenSession(Kernel::KProcess* process) {
         impl->id_pool.pop_front();
         impl->sessions[new_id] = Session{new_id, process, smmu_id};
     } else {
-        impl->sessions.emplace_back(new_id, process, smmu_id);
         new_id = impl->new_ids++;
+        impl->sessions.emplace_back(new_id, process, smmu_id);
     }
     auto& session = impl->sessions[new_id];
     session.is_active = true;
