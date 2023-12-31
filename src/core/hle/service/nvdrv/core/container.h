@@ -27,6 +27,14 @@ class SyncpointManager;
 struct ContainerImpl;
 
 struct Session {
+    Session(size_t id_, Kernel::KProcess* process_, size_t smmu_id_);
+    ~Session();
+
+    Session(const Session&) = delete;
+    Session& operator=(const Session&) = delete;
+    Session(Session&&) = default;
+    Session& operator=(Session&&) = default;
+
     size_t id;
     Kernel::KProcess* process;
     size_t smmu_id;

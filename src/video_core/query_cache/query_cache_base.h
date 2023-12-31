@@ -15,9 +15,9 @@
 #include "common/common_types.h"
 #include "core/memory.h"
 #include "video_core/control/channel_state_cache.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/query_cache/query_base.h"
 #include "video_core/query_cache/types.h"
-#include "video_core/host1x/gpu_device_memory_manager.h"
 
 namespace VideoCore {
 class RasterizerInterface;
@@ -50,7 +50,8 @@ public:
     };
 
     explicit QueryCacheBase(Tegra::GPU& gpu, VideoCore::RasterizerInterface& rasterizer_,
-                            Tegra::MaxwellDeviceMemoryManager& device_memory_, RuntimeType& runtime_);
+                            Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                            RuntimeType& runtime_);
 
     ~QueryCacheBase();
 

@@ -35,7 +35,8 @@ void ShaderCache::SyncGuestHost() {
     RemovePendingShaders();
 }
 
-ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_) : device_memory{device_memory_} {}
+ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_)
+    : device_memory{device_memory_} {}
 
 bool ShaderCache::RefreshStages(std::array<u64, 6>& unique_hashes) {
     auto& dirty{maxwell3d->dirty.flags};

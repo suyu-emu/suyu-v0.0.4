@@ -75,9 +75,9 @@ class RasterizerOpenGL : public VideoCore::RasterizerInterface,
                          protected VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
 public:
     explicit RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
-                              Tegra::MaxwellDeviceMemoryManager& device_memory_, const Device& device_,
-                              ScreenInfo& screen_info_, ProgramManager& program_manager_,
-                              StateTracker& state_tracker_);
+                              Tegra::MaxwellDeviceMemoryManager& device_memory_,
+                              const Device& device_, ScreenInfo& screen_info_,
+                              ProgramManager& program_manager_, StateTracker& state_tracker_);
     ~RasterizerOpenGL() override;
 
     void Draw(bool is_indexed, u32 instance_count) override;

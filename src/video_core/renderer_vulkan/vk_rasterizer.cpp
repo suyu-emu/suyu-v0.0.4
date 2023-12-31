@@ -38,7 +38,6 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
-
 namespace Vulkan {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;

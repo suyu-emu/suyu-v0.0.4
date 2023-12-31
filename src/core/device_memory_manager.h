@@ -27,13 +27,13 @@ struct DeviceMemoryManagerAllocator;
 template <typename Traits>
 class DeviceMemoryManager {
     using DeviceInterface = typename Traits::DeviceInterface;
-    using DeviceMethods = Traits::DeviceMethods;
+    using DeviceMethods = typename Traits::DeviceMethods;
 
 public:
     DeviceMemoryManager(const DeviceMemory& device_memory);
     ~DeviceMemoryManager();
 
-    void BindInterface(DeviceInterface* interface);
+    void BindInterface(DeviceInterface* device_inter);
 
     DAddr Allocate(size_t size);
     void AllocateFixed(DAddr start, size_t size);
@@ -111,6 +111,7 @@ public:
 private:
     static constexpr size_t device_virtual_bits = Traits::device_virtual_bits;
     static constexpr size_t device_as_size = 1ULL << device_virtual_bits;
+    static constexpr size_t physical_min_bits = 32;
     static constexpr size_t physical_max_bits = 33;
     static constexpr size_t page_bits = 12;
     static constexpr size_t page_size = 1ULL << page_bits;
@@ -143,7 +144,7 @@ private:
     std::unique_ptr<DeviceMemoryManagerAllocator<Traits>> impl;
 
     const uintptr_t physical_base;
-    DeviceInterface* interface;
+    DeviceInterface* device_inter;
     Common::VirtualBuffer<u32> compressed_physical_ptr;
     Common::VirtualBuffer<u32> compressed_device_addr;
     Common::VirtualBuffer<u32> continuity_tracker;

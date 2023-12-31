@@ -123,8 +123,8 @@ NvResult nvmap::IocAlloc(IocAllocParams& params, DeviceFD fd) {
         return NvResult::InsufficientMemory;
     }
 
-    const auto result =
-        handle_description->Alloc(params.flags, params.align, params.kind, params.address, sessions[fd]);
+    const auto result = handle_description->Alloc(params.flags, params.align, params.kind,
+                                                  params.address, sessions[fd]);
     if (result != NvResult::Success) {
         LOG_CRITICAL(Service_NVDRV, "Object failed to allocate, handle={:08X}", params.handle);
         return result;

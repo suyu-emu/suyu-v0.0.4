@@ -12,6 +12,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/scratch_buffer.h"
+#include "core/guest_memory.h"
 #include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_process.h"
@@ -22,7 +23,6 @@
 #include "core/hle/service/hle_ipc.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/memory.h"
-#include "core/guest_memory.h"
 
 namespace Service {
 

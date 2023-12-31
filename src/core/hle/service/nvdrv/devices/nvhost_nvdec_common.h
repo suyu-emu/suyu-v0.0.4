@@ -4,8 +4,8 @@
 #pragma once
 
 #include <deque>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 #include "common/common_types.h"
 #include "common/swap.h"

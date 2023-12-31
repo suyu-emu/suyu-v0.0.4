@@ -20,13 +20,13 @@
 #include "shader_recompiler/object_pool.h"
 #include "shader_recompiler/profile.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_compute_pipeline.h"
 #include "video_core/renderer_vulkan/vk_graphics_pipeline.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/shader_cache.h"
-#include "video_core/host1x/gpu_device_memory_manager.h"
 
 namespace Core {
 class System;
@@ -99,8 +99,8 @@ struct ShaderPools {
 
 class PipelineCache : public VideoCommon::ShaderCache {
 public:
-    explicit PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, const Device& device, Scheduler& scheduler,
-                           DescriptorPool& descriptor_pool,
+    explicit PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, const Device& device,
+                           Scheduler& scheduler, DescriptorPool& descriptor_pool,
                            GuestDescriptorQueue& guest_descriptor_queue,
                            RenderPassCache& render_pass_cache, BufferCache& buffer_cache,
                            TextureCache& texture_cache, VideoCore::ShaderNotify& shader_notify_);

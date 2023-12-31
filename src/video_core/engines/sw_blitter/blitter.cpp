@@ -8,10 +8,10 @@
 #include "common/scratch_buffer.h"
 #include "video_core/engines/sw_blitter/blitter.h"
 #include "video_core/engines/sw_blitter/converter.h"
+#include "video_core/guest_memory.h"
 #include "video_core/memory_manager.h"
 #include "video_core/surface.h"
 #include "video_core/textures/decoders.h"
-#include "video_core/guest_memory.h"
 
 namespace Tegra {
 class MemoryManager;

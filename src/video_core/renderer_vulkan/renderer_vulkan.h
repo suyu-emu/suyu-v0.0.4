@@ -7,12 +7,12 @@
 #include <string>
 #include <variant>
 
-#include "video_core/renderer_vulkan/vk_rasterizer.h"
-
 #include "common/dynamic_library.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
 #include "video_core/renderer_vulkan/vk_present_manager.h"
+#include "video_core/renderer_vulkan/vk_rasterizer.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
@@ -20,7 +20,6 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
-#include "video_core/host1x/gpu_device_memory_manager.h"
 
 namespace Core {
 class TelemetrySession;
