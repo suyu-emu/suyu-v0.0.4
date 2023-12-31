@@ -10,6 +10,7 @@
 #include "core/hle/service/acc/errors.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applet_profile_select.h"
+#include "core/hle/service/am/storage.h"
 
 namespace Service::AM::Applets {
 

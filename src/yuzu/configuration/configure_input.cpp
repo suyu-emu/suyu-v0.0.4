@@ -9,6 +9,7 @@
 #include "core/core.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
+#include "core/hle/service/am/applet_message_queue.h"
 #include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/sm/sm.h"
 #include "hid_core/frontend/emulated_controller.h"
