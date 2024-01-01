@@ -212,19 +212,19 @@
         <item>B</item>
         <item>X</item>
         <item>Y</item>
+        <item>+</item>
+        <item>-</item>
+        <item>@string/gamepad_home</item>
+        <item>@string/gamepad_screenshot</item>
         <item>L</item>
         <item>R</item>
         <item>ZL</item>
         <item>ZR</item>
-        <item>+</item>
-        <item>-</item>
-        <item>@string/gamepad_d_pad</item>
         <item>@string/gamepad_left_stick</item>
         <item>@string/gamepad_right_stick</item>
         <item>L3</item>
         <item>R3</item>
-        <item>@string/gamepad_home</item>
-        <item>@string/gamepad_screenshot</item>
+        <item>@string/gamepad_d_pad</item>
     </string-array>
 
     <string-array name="themeEntries">

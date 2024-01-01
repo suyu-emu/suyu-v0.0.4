@@ -18,7 +18,14 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     RENDERER_REACTIVE_FLUSHING("use_reactive_flushing"),
     RENDERER_DEBUG("debug"),
     PICTURE_IN_PICTURE("picture_in_picture"),
-    USE_CUSTOM_RTC("custom_rtc_enabled");
+    USE_CUSTOM_RTC("custom_rtc_enabled"),
+    BLACK_BACKGROUNDS("black_backgrounds"),
+    JOYSTICK_REL_CENTER("joystick_rel_center"),
+    DPAD_SLIDE("dpad_slide"),
+    HAPTIC_FEEDBACK("haptic_feedback"),
+    SHOW_PERFORMANCE_OVERLAY("show_performance_overlay"),
+    SHOW_INPUT_OVERLAY("show_input_overlay"),
+    TOUCHSCREEN("touchscreen");
 
     override fun getBoolean(needsGlobal: Boolean): Boolean =
         NativeConfig.getBoolean(key, needsGlobal)

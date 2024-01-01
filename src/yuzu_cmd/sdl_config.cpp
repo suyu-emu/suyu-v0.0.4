@@ -213,43 +213,45 @@ void SdlConfig::SaveSdlPlayerValues(const std::size_t player_index) {
 
     for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
         const std::string default_param = InputCommon::GenerateKeyboardParam(default_buttons[i]);
-        WriteSetting(std::string(player_prefix).append(Settings::NativeButton::mapping[i]),
-                     player.buttons[i], std::make_optional(default_param));
+        WriteStringSetting(std::string(player_prefix).append(Settings::NativeButton::mapping[i]),
+                           player.buttons[i], std::make_optional(default_param));
     }
     for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
         const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
             default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
             default_analogs[i][3], default_stick_mod[i], 0.5f);
-        WriteSetting(std::string(player_prefix).append(Settings::NativeAnalog::mapping[i]),
-                     player.analogs[i], std::make_optional(default_param));
+        WriteStringSetting(std::string(player_prefix).append(Settings::NativeAnalog::mapping[i]),
+                           player.analogs[i], std::make_optional(default_param));
     }
     for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
         const std::string default_param = InputCommon::GenerateKeyboardParam(default_motions[i]);
-        WriteSetting(std::string(player_prefix).append(Settings::NativeMotion::mapping[i]),
-                     player.motions[i], std::make_optional(default_param));
+        WriteStringSetting(std::string(player_prefix).append(Settings::NativeMotion::mapping[i]),
+                           player.motions[i], std::make_optional(default_param));
     }
 }
 
 void SdlConfig::SaveDebugControlValues() {
     for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
         const std::string default_param = InputCommon::GenerateKeyboardParam(default_buttons[i]);
-        WriteSetting(std::string("debug_pad_").append(Settings::NativeButton::mapping[i]),
-                     Settings::values.debug_pad_buttons[i], std::make_optional(default_param));
+        WriteStringSetting(std::string("debug_pad_").append(Settings::NativeButton::mapping[i]),
+                           Settings::values.debug_pad_buttons[i],
+                           std::make_optional(default_param));
     }
     for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
         const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
             default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
             default_analogs[i][3], default_stick_mod[i], 0.5f);
-        WriteSetting(std::string("debug_pad_").append(Settings::NativeAnalog::mapping[i]),
-                     Settings::values.debug_pad_analogs[i], std::make_optional(default_param));
+        WriteStringSetting(std::string("debug_pad_").append(Settings::NativeAnalog::mapping[i]),
+                           Settings::values.debug_pad_analogs[i],
+                           std::make_optional(default_param));
     }
 }
 
 void SdlConfig::SaveHidbusValues() {
     const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
         0, 0, default_ringcon_analogs[0], default_ringcon_analogs[1], 0, 0.05f);
-    WriteSetting(std::string("ring_controller"), Settings::values.ringcon_analogs,
-                 std::make_optional(default_param));
+    WriteStringSetting(std::string("ring_controller"), Settings::values.ringcon_analogs,
+                       std::make_optional(default_param));
 }
 
 std::vector<Settings::BasicSetting*>& SdlConfig::FindRelevantList(Settings::Category category) {
