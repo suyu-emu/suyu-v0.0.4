@@ -6,14 +6,13 @@
 #include "core/hid/emulated_controller.h"
 #include "core/hid/hid_core.h"
 #include "core/hid/hid_types.h"
+#include "core/hle/service/hid/controllers/applet_resource.h"
 #include "core/hle/service/hid/controllers/debug_pad.h"
-#include "core/hle/service/hid/controllers/shared_memory_format.h"
+#include "core/hle/service/hid/controllers/types/shared_memory_format.h"
 
 namespace Service::HID {
 
-DebugPad::DebugPad(Core::HID::HIDCore& hid_core_,
-                   DebugPadSharedMemoryFormat& debug_pad_shared_memory)
-    : ControllerBase{hid_core_}, shared_memory{debug_pad_shared_memory} {
+DebugPad::DebugPad(Core::HID::HIDCore& hid_core_) : ControllerBase{hid_core_} {
     controller = hid_core.GetEmulatedController(Core::HID::NpadIdType::Other);
 }
 
@@ -24,6 +23,15 @@ void DebugPad::OnInit() {}
 void DebugPad::OnRelease() {}
 
 void DebugPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+    const u64 aruid = applet_resource->GetActiveAruid();
+    auto* data = applet_resource->GetAruidData(aruid);
+
+    if (data == nullptr) {
+        return;
+    }
+
+    DebugPadSharedMemoryFormat& shared_memory = data->shared_memory_format->debug_pad;
+
     if (!IsControllerActivated()) {
         shared_memory.debug_pad_lifo.buffer_count = 0;
         shared_memory.debug_pad_lifo.buffer_tail = 0;

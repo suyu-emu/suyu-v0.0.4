@@ -4,7 +4,7 @@
 #include "core/core.h"
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/service/hid/controllers/applet_resource.h"
-#include "core/hle/service/hid/controllers/shared_memory_format.h"
+#include "core/hle/service/hid/controllers/types/shared_memory_format.h"
 #include "core/hle/service/hid/errors.h"
 
 namespace Service::HID {
@@ -162,6 +162,22 @@ Result AppletResource::GetSharedMemoryFormat(SharedMemoryFormat** out_shared_mem
 
     *out_shared_memory_format = data[index].shared_memory_format;
     return ResultSuccess;
+}
+
+AruidData* AppletResource::GetAruidData(u64 aruid) {
+    const u64 aruid_index = GetIndexFromAruid(aruid);
+    if (aruid_index == AruidIndexMax) {
+        return nullptr;
+    }
+    return &data[aruid_index];
+}
+
+AruidData* AppletResource::GetAruidDataByIndex(std::size_t aruid_index) {
+    return &data[aruid_index];
+}
+
+bool AppletResource::IsVibrationAruidActive(u64 aruid) const {
+    return aruid == 0 || aruid == active_vibration_aruid;
 }
 
 u64 AppletResource::GetIndexFromAruid(u64 aruid) {

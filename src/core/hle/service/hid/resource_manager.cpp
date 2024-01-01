@@ -10,18 +10,23 @@
 #include "core/hle/service/ipc_helpers.h"
 
 #include "core/hle/service/hid/controllers/applet_resource.h"
+#include "core/hle/service/hid/controllers/capture_button.h"
 #include "core/hle/service/hid/controllers/console_six_axis.h"
+#include "core/hle/service/hid/controllers/debug_mouse.h"
 #include "core/hle/service/hid/controllers/debug_pad.h"
+#include "core/hle/service/hid/controllers/digitizer.h"
 #include "core/hle/service/hid/controllers/gesture.h"
+#include "core/hle/service/hid/controllers/home_button.h"
 #include "core/hle/service/hid/controllers/keyboard.h"
 #include "core/hle/service/hid/controllers/mouse.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/controllers/palma.h"
 #include "core/hle/service/hid/controllers/seven_six_axis.h"
-#include "core/hle/service/hid/controllers/shared_memory_format.h"
 #include "core/hle/service/hid/controllers/six_axis.h"
-#include "core/hle/service/hid/controllers/stubbed.h"
+#include "core/hle/service/hid/controllers/sleep_button.h"
 #include "core/hle/service/hid/controllers/touchscreen.h"
+#include "core/hle/service/hid/controllers/types/shared_memory_format.h"
+#include "core/hle/service/hid/controllers/unique_pad.h"
 
 namespace Service::HID {
 
@@ -46,42 +51,13 @@ void ResourceManager::Initialize() {
     }
 
     system.HIDCore().ReloadInputDevices();
+
+    InitializeHidCommonSampler();
+    InitializeTouchScreenSampler();
+    InitializeConsoleSixAxisSampler();
+    InitializeAHidSampler();
+
     is_initialized = true;
-}
-
-void ResourceManager::InitializeController(u64 aruid) {
-    SharedMemoryFormat* shared_memory = nullptr;
-    const auto result = applet_resource->GetSharedMemoryFormat(&shared_memory, aruid);
-    if (result.IsError()) {
-        return;
-    }
-
-    debug_pad = std::make_shared<DebugPad>(system.HIDCore(), shared_memory->debug_pad);
-    mouse = std::make_shared<Mouse>(system.HIDCore(), shared_memory->mouse);
-    debug_mouse = std::make_shared<DebugMouse>(system.HIDCore(), shared_memory->debug_mouse);
-    keyboard = std::make_shared<Keyboard>(system.HIDCore(), shared_memory->keyboard);
-    unique_pad = std::make_shared<UniquePad>(system.HIDCore(), shared_memory->unique_pad.header);
-    npad = std::make_shared<NPad>(system.HIDCore(), shared_memory->npad, service_context);
-    gesture = std::make_shared<Gesture>(system.HIDCore(), shared_memory->gesture);
-    touch_screen = std::make_shared<TouchScreen>(system.HIDCore(), shared_memory->touch_screen);
-
-    palma = std::make_shared<Palma>(system.HIDCore(), service_context);
-
-    home_button = std::make_shared<HomeButton>(system.HIDCore(), shared_memory->home_button.header);
-    sleep_button =
-        std::make_shared<SleepButton>(system.HIDCore(), shared_memory->sleep_button.header);
-    capture_button =
-        std::make_shared<CaptureButton>(system.HIDCore(), shared_memory->capture_button.header);
-    digitizer = std::make_shared<Digitizer>(system.HIDCore(), shared_memory->digitizer.header);
-
-    six_axis = std::make_shared<SixAxis>(system.HIDCore(), npad);
-    console_six_axis = std::make_shared<ConsoleSixAxis>(system.HIDCore(), shared_memory->console);
-    seven_six_axis = std::make_shared<SevenSixAxis>(system);
-
-    // Homebrew doesn't try to activate some controllers, so we activate them by default
-    npad->Activate();
-    six_axis->Activate();
-    touch_screen->Activate();
 }
 
 std::shared_ptr<AppletResource> ResourceManager::GetAppletResource() const {
@@ -165,16 +141,65 @@ Result ResourceManager::CreateAppletResource(u64 aruid) {
     if (result.IsError()) {
         return result;
     }
+
+    // Homebrew doesn't try to activate some controllers, so we activate them by default
+    npad->Activate();
+    six_axis->Activate();
+    touch_screen->Activate();
+
     return GetNpad()->Activate(aruid);
 }
 
 Result ResourceManager::CreateAppletResourceImpl(u64 aruid) {
     std::scoped_lock lock{shared_mutex};
-    const auto result = applet_resource->CreateAppletResource(aruid);
-    if (result.IsSuccess()) {
-        InitializeController(aruid);
-    }
-    return result;
+    return applet_resource->CreateAppletResource(aruid);
+}
+
+void ResourceManager::InitializeHidCommonSampler() {
+    debug_pad = std::make_shared<DebugPad>(system.HIDCore());
+    mouse = std::make_shared<Mouse>(system.HIDCore());
+    debug_mouse = std::make_shared<DebugMouse>(system.HIDCore());
+    keyboard = std::make_shared<Keyboard>(system.HIDCore());
+    unique_pad = std::make_shared<UniquePad>(system.HIDCore());
+    npad = std::make_shared<NPad>(system.HIDCore(), service_context);
+    gesture = std::make_shared<Gesture>(system.HIDCore());
+    home_button = std::make_shared<HomeButton>(system.HIDCore());
+    sleep_button = std::make_shared<SleepButton>(system.HIDCore());
+    capture_button = std::make_shared<CaptureButton>(system.HIDCore());
+    digitizer = std::make_shared<Digitizer>(system.HIDCore());
+
+    palma = std::make_shared<Palma>(system.HIDCore(), service_context);
+    six_axis = std::make_shared<SixAxis>(system.HIDCore(), npad);
+
+    debug_pad->SetAppletResource(applet_resource);
+    digitizer->SetAppletResource(applet_resource);
+    keyboard->SetAppletResource(applet_resource);
+    npad->SetAppletResource(applet_resource);
+    six_axis->SetAppletResource(applet_resource);
+    mouse->SetAppletResource(applet_resource);
+    debug_mouse->SetAppletResource(applet_resource);
+    home_button->SetAppletResource(applet_resource);
+    sleep_button->SetAppletResource(applet_resource);
+    capture_button->SetAppletResource(applet_resource);
+}
+
+void ResourceManager::InitializeTouchScreenSampler() {
+    gesture = std::make_shared<Gesture>(system.HIDCore());
+    touch_screen = std::make_shared<TouchScreen>(system.HIDCore());
+
+    touch_screen->SetAppletResource(applet_resource);
+    gesture->SetAppletResource(applet_resource);
+}
+
+void ResourceManager::InitializeConsoleSixAxisSampler() {
+    console_six_axis = std::make_shared<ConsoleSixAxis>(system.HIDCore());
+    seven_six_axis = std::make_shared<SevenSixAxis>(system);
+
+    console_six_axis->SetAppletResource(applet_resource);
+}
+
+void ResourceManager::InitializeAHidSampler() {
+    // TODO
 }
 
 Result ResourceManager::RegisterCoreAppletResource() {

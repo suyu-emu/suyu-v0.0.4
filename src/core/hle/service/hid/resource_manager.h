@@ -20,24 +20,23 @@ class KSharedMemory;
 
 namespace Service::HID {
 class AppletResource;
+class CaptureButton;
 class Controller_Stubbed;
 class ConsoleSixAxis;
+class DebugMouse;
 class DebugPad;
+class Digitizer;
 class Gesture;
+class HomeButton;
 class Keyboard;
 class Mouse;
 class NPad;
 class Palma;
 class SevenSixAxis;
 class SixAxis;
+class SleepButton;
 class TouchScreen;
-
-using CaptureButton = Controller_Stubbed;
-using DebugMouse = Mouse;
-using Digitizer = Controller_Stubbed;
-using HomeButton = Controller_Stubbed;
-using SleepButton = Controller_Stubbed;
-using UniquePad = Controller_Stubbed;
+class UniquePad;
 
 class ResourceManager {
 
@@ -46,7 +45,6 @@ public:
     ~ResourceManager();
 
     void Initialize();
-    void InitializeController(u64 aruid);
 
     std::shared_ptr<AppletResource> GetAppletResource() const;
     std::shared_ptr<CaptureButton> GetCaptureButton() const;
@@ -88,6 +86,10 @@ public:
 
 private:
     Result CreateAppletResourceImpl(u64 aruid);
+    void InitializeHidCommonSampler();
+    void InitializeTouchScreenSampler();
+    void InitializeConsoleSixAxisSampler();
+    void InitializeAHidSampler();
 
     bool is_initialized{false};
 
