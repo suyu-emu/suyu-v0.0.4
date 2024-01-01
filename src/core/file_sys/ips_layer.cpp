@@ -73,6 +73,9 @@ VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
         return nullptr;
 
     auto in_data = in->ReadAllBytes();
+    if (in_data.size() == 0) {
+        return nullptr;
+    }
 
     std::vector<u8> temp(type == IPSFileType::IPS ? 3 : 4);
     u64 offset = 5; // After header
@@ -87,6 +90,10 @@ VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
             real_offset = (temp[0] << 24) | (temp[1] << 16) | (temp[2] << 8) | temp[3];
         else
             real_offset = (temp[0] << 16) | (temp[1] << 8) | temp[2];
+
+        if (real_offset > in_data.size()) {
+            return nullptr;
+        }
 
         u16 data_size{};
         if (ips->ReadObject(&data_size, offset) != sizeof(u16))
