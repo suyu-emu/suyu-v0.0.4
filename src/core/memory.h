@@ -86,7 +86,8 @@ public:
      * @param perms      The permissions to map the memory with.
      */
     void MapMemoryRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
-                         Common::PhysicalAddress target, Common::MemoryPermission perms);
+                         Common::PhysicalAddress target, Common::MemoryPermission perms,
+                         bool separate_heap);
 
     /**
      * Unmaps a region of the emulated process address space.
@@ -95,7 +96,8 @@ public:
      * @param base       The address to begin unmapping at.
      * @param size       The amount of bytes to unmap.
      */
-    void UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size);
+    void UnmapRegion(Common::PageTable& page_table, Common::ProcessAddress base, u64 size,
+                     bool separate_heap);
 
     /**
      * Protects a region of the emulated process address space with the new permissions.
@@ -486,6 +488,7 @@ public:
     void SetGPUDirtyManagers(std::span<Core::GPUDirtyMemoryManager> managers);
     void InvalidateRegion(Common::ProcessAddress dest_addr, size_t size);
     bool InvalidateNCE(Common::ProcessAddress vaddr, size_t size);
+    bool InvalidateSeparateHeap(void* fault_address);
     void FlushRegion(Common::ProcessAddress dest_addr, size_t size);
 
 private:

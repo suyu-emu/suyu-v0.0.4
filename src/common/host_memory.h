@@ -40,11 +40,12 @@ public:
     HostMemory(HostMemory&& other) noexcept;
     HostMemory& operator=(HostMemory&& other) noexcept;
 
-    void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms);
+    void Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms,
+             bool separate_heap);
 
-    void Unmap(size_t virtual_offset, size_t length);
+    void Unmap(size_t virtual_offset, size_t length, bool separate_heap);
 
-    void Protect(size_t virtual_offset, size_t length, bool read, bool write, bool execute = false);
+    void Protect(size_t virtual_offset, size_t length, MemoryPermission perms);
 
     void EnableDirectMappedAddress();
 
@@ -62,6 +63,10 @@ public:
     }
     [[nodiscard]] const u8* VirtualBasePointer() const noexcept {
         return virtual_base;
+    }
+
+    bool IsInVirtualRange(void* address) const noexcept {
+        return address >= virtual_base && address < virtual_base + virtual_size;
     }
 
 private:

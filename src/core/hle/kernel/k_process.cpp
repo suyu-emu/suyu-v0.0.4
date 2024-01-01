@@ -1237,8 +1237,10 @@ void KProcess::LoadModule(CodeSet code_set, KProcessAddress base_addr) {
         auto& buffer = m_kernel.System().DeviceMemory().buffer;
         const auto& code = code_set.CodeSegment();
         const auto& patch = code_set.PatchSegment();
-        buffer.Protect(GetInteger(base_addr + code.addr), code.size, true, true, true);
-        buffer.Protect(GetInteger(base_addr + patch.addr), patch.size, true, true, true);
+        buffer.Protect(GetInteger(base_addr + code.addr), code.size,
+                       Common::MemoryPermission::Read | Common::MemoryPermission::Execute);
+        buffer.Protect(GetInteger(base_addr + patch.addr), patch.size,
+                       Common::MemoryPermission::Read | Common::MemoryPermission::Execute);
         ReprotectSegment(code_set.PatchSegment(), Svc::MemoryPermission::None);
     }
 #endif
