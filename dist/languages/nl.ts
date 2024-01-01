@@ -1885,7 +1885,7 @@ Compute pipelines are always enabled on all other drivers.</source>
     </message>
     <message>
         <location filename="../../src/yuzu/configuration/configure_debug.ui" line="384"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When checked, disables reording of mapped memory uploads which allows to associate uploads with specific draws. May reduce performance in some cases.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When checked, disables reordering of mapped memory uploads which allows to associate uploads with specific draws. May reduce performance in some cases.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"/>
     </message>
     <message>
@@ -2302,33 +2302,33 @@ Compute pipelines are always enabled on all other drivers.</source>
         <translation>Achtergrondkleur:</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="259"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="272"/>
         <source>%</source>
         <comment>FSR sharpening percentage (e.g. 50%)</comment>
         <translation>%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="372"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="412"/>
         <source>Off</source>
         <translation>Uit</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="373"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="413"/>
         <source>VSync Off</source>
         <translation>VSync Uit</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="375"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="415"/>
         <source>Recommended</source>
         <translation>Aanbevolen</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="378"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="418"/>
         <source>On</source>
         <translation>Aan</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="379"/>
+        <location filename="../../src/yuzu/configuration/configure_graphics.cpp" line="419"/>
         <source>VSync On</source>
         <translation>VSync Aan</translation>
     </message>
@@ -4838,575 +4838,575 @@ Versleep punten om de positie te veranderen, of dubbelklik op tabelcellen om waa
         <translation>Een spel uitvoeren</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="857"/>
+        <location filename="../../src/yuzu/main.cpp" line="856"/>
         <source>Loading Web Applet...</source>
         <translation>Web Applet Laden...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="907"/>
-        <location filename="../../src/yuzu/main.cpp" line="910"/>
+        <location filename="../../src/yuzu/main.cpp" line="906"/>
+        <location filename="../../src/yuzu/main.cpp" line="909"/>
         <source>Disable Web Applet</source>
         <translation>Schakel Webapplet uit</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="911"/>
+        <location filename="../../src/yuzu/main.cpp" line="910"/>
         <source>Disabling the web applet can lead to undefined behavior and should only be used with Super Mario 3D All-Stars. Are you sure you want to disable the web applet?
 (This can be re-enabled in the Debug settings.)</source>
         <translation>Het uitschakelen van de webapplet kan leiden tot ongedefinieerd gedrag en mag alleen gebruikt worden met Super Mario 3D All-Stars. Weet je zeker dat je de webapplet wilt uitschakelen?
 (Deze kan opnieuw worden ingeschakeld in de Debug-instellingen).</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1027"/>
+        <location filename="../../src/yuzu/main.cpp" line="1026"/>
         <source>The amount of shaders currently being built</source>
         <translation>Het aantal shaders dat momenteel wordt gebouwd</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1029"/>
+        <location filename="../../src/yuzu/main.cpp" line="1028"/>
         <source>The current selected resolution scaling multiplier.</source>
         <translation>De huidige geselecteerde resolutieschaalmultiplier.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1032"/>
+        <location filename="../../src/yuzu/main.cpp" line="1031"/>
         <source>Current emulation speed. Values higher or lower than 100% indicate emulation is running faster or slower than a Switch.</source>
         <translation>Huidige emulatiesnelheid. Waarden hoger of lager dan 100% geven aan dat de emulatie sneller of langzamer werkt dan een Switch.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1035"/>
+        <location filename="../../src/yuzu/main.cpp" line="1034"/>
         <source>How many frames per second the game is currently displaying. This will vary from game to game and scene to scene.</source>
         <translation>Hoeveel beelden per seconde het spel momenteel weergeeft. Dit varieert van spel tot spel en van scène tot scène.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1039"/>
+        <location filename="../../src/yuzu/main.cpp" line="1038"/>
         <source>Time taken to emulate a Switch frame, not counting framelimiting or v-sync. For full-speed emulation this should be at most 16.67 ms.</source>
         <translation>Tijd die nodig is om een Switch-beeld te emuleren, beeldbeperking of v-sync niet meegerekend. Voor emulatie op volle snelheid mag dit maximaal 16,67 ms zijn.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1099"/>
+        <location filename="../../src/yuzu/main.cpp" line="1098"/>
         <source>Unmute</source>
         <translation>Dempen opheffen</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1099"/>
+        <location filename="../../src/yuzu/main.cpp" line="1098"/>
         <source>Mute</source>
         <translation>Dempen</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1104"/>
+        <location filename="../../src/yuzu/main.cpp" line="1103"/>
         <source>Reset Volume</source>
         <translation>Herstel Volume</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1291"/>
+        <location filename="../../src/yuzu/main.cpp" line="1290"/>
         <source>&amp;Clear Recent Files</source>
         <translation>&amp;Wis Recente Bestanden</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1625"/>
+        <location filename="../../src/yuzu/main.cpp" line="1624"/>
         <source>&amp;Continue</source>
         <translation>&amp;Doorgaan</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1627"/>
+        <location filename="../../src/yuzu/main.cpp" line="1626"/>
         <source>&amp;Pause</source>
         <translation>&amp;Onderbreken</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1797"/>
+        <location filename="../../src/yuzu/main.cpp" line="1796"/>
         <source>Warning Outdated Game Format</source>
         <translation>Waarschuwing Verouderd Spelformaat</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1798"/>
+        <location filename="../../src/yuzu/main.cpp" line="1797"/>
         <source>You are using the deconstructed ROM directory format for this game, which is an outdated format that has been superseded by others such as NCA, NAX, XCI, or NSP. Deconstructed ROM directories lack icons, metadata, and update support.&lt;br&gt;&lt;br&gt;For an explanation of the various Switch formats yuzu supports, &lt;a href=&apos;https://yuzu-emu.org/wiki/overview-of-switch-game-formats&apos;&gt;check out our wiki&lt;/a&gt;. This message will not be shown again.</source>
         <translation>Je gebruikt het gedeconstrueerde ROM-mapformaat voor dit spel, wat een verouderd formaat is dat vervangen is door andere zoals NCA, NAX, XCI, of NSP. Deconstructed ROM-mappen missen iconen, metadata, en update-ondersteuning.&lt;br&gt;&lt;br&gt;Voor een uitleg van de verschillende Switch-formaten die yuzu ondersteunt,&lt;a href=&apos;https://yuzu-emu.org/wiki/overview-of-switch-game-formats&apos;&gt; bekijk onze wiki&lt;/a&gt;. Dit bericht wordt niet meer getoond.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1810"/>
-        <location filename="../../src/yuzu/main.cpp" line="1844"/>
+        <location filename="../../src/yuzu/main.cpp" line="1809"/>
+        <location filename="../../src/yuzu/main.cpp" line="1843"/>
         <source>Error while loading ROM!</source>
         <translation>Fout tijdens het laden van een ROM!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1811"/>
+        <location filename="../../src/yuzu/main.cpp" line="1810"/>
         <source>The ROM format is not supported.</source>
         <translation>Het ROM-formaat wordt niet ondersteund.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1815"/>
+        <location filename="../../src/yuzu/main.cpp" line="1814"/>
         <source>An error occurred initializing the video core.</source>
         <translation>Er is een fout opgetreden tijdens het initialiseren van de videokern.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1816"/>
+        <location filename="../../src/yuzu/main.cpp" line="1815"/>
         <source>yuzu has encountered an error while running the video core. This is usually caused by outdated GPU drivers, including integrated ones. Please see the log for more details. For more information on accessing the log, please see the following page: &lt;a href=&apos;https://yuzu-emu.org/help/reference/log-files/&apos;&gt;How to Upload the Log File&lt;/a&gt;. </source>
         <translation>yuzu is een fout tegengekomen tijdens het uitvoeren van de videokern. Dit wordt meestal veroorzaakt door verouderde GPU-drivers, inclusief geïntegreerde. Zie het logboek voor meer details. Voor meer informatie over toegang tot het log, zie de volgende pagina: &lt;a href=&apos;https://yuzu-emu.org/help/reference/log-files/&apos;&gt;Hoe upload je het logbestand&lt;/a&gt;. </translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1831"/>
+        <location filename="../../src/yuzu/main.cpp" line="1830"/>
         <source>Error while loading ROM! %1</source>
         <comment>%1 signifies a numeric error code.</comment>
         <translation>Fout tijdens het laden van ROM! %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1834"/>
+        <location filename="../../src/yuzu/main.cpp" line="1833"/>
         <source>%1&lt;br&gt;Please follow &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;the yuzu quickstart guide&lt;/a&gt; to redump your files.&lt;br&gt;You can refer to the yuzu wiki&lt;/a&gt; or the yuzu Discord&lt;/a&gt; for help.</source>
         <comment>%1 signifies an error string.</comment>
         <translation>%1&lt;br&gt;Volg de &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;yuzu snelstartgids&lt;/a&gt; om je bestanden te redumpen.&lt;br&gt;Je kunt de yuzu-wiki&lt;/a&gt;of de yuzu-Discord&lt;/a&gt; raadplegen voor hulp.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="1845"/>
+        <location filename="../../src/yuzu/main.cpp" line="1844"/>
         <source>An unknown error occurred. Please see the log for more details.</source>
         <translation>Een onbekende fout heeft plaatsgevonden. Kijk in de log voor meer details.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2030"/>
+        <location filename="../../src/yuzu/main.cpp" line="2029"/>
         <source>(64-bit)</source>
         <translation>(64-bit)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2030"/>
+        <location filename="../../src/yuzu/main.cpp" line="2029"/>
         <source>(32-bit)</source>
         <translation>(32-bit)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2031"/>
+        <location filename="../../src/yuzu/main.cpp" line="2030"/>
         <source>%1 %2</source>
         <comment>%1 is the title name. %2 indicates if the title is 64-bit or 32-bit</comment>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2097"/>
+        <location filename="../../src/yuzu/main.cpp" line="2096"/>
         <source>Closing software...</source>
         <translation>Software sluiten...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2260"/>
+        <location filename="../../src/yuzu/main.cpp" line="2259"/>
         <source>Save Data</source>
         <translation>Save Data</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2316"/>
+        <location filename="../../src/yuzu/main.cpp" line="2315"/>
         <source>Mod Data</source>
         <translation>Mod Data</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2329"/>
+        <location filename="../../src/yuzu/main.cpp" line="2328"/>
         <source>Error Opening %1 Folder</source>
         <translation>Fout tijdens het openen van %1 map</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2330"/>
-        <location filename="../../src/yuzu/main.cpp" line="3133"/>
+        <location filename="../../src/yuzu/main.cpp" line="2329"/>
+        <location filename="../../src/yuzu/main.cpp" line="3127"/>
         <source>Folder does not exist!</source>
         <translation>Map bestaat niet!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2342"/>
+        <location filename="../../src/yuzu/main.cpp" line="2341"/>
         <source>Error Opening Transferable Shader Cache</source>
         <translation>Fout bij het openen van overdraagbare shader-cache</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2343"/>
+        <location filename="../../src/yuzu/main.cpp" line="2342"/>
         <source>Failed to create the shader cache directory for this title.</source>
         <translation>Kon de shader-cache-map voor dit spel niet aanmaken.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2416"/>
+        <location filename="../../src/yuzu/main.cpp" line="2415"/>
         <source>Error Removing Contents</source>
         <translation>Fout bij het verwijderen van de inhoud</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2418"/>
+        <location filename="../../src/yuzu/main.cpp" line="2417"/>
         <source>Error Removing Update</source>
         <translation>Fout bij het verwijderen van de update</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2420"/>
+        <location filename="../../src/yuzu/main.cpp" line="2419"/>
         <source>Error Removing DLC</source>
         <translation>Fout bij het verwijderen van DLC</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2429"/>
+        <location filename="../../src/yuzu/main.cpp" line="2428"/>
         <source>Remove Installed Game Contents?</source>
         <translation>Geïnstalleerde Spelinhoud Verwijderen?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2431"/>
+        <location filename="../../src/yuzu/main.cpp" line="2430"/>
         <source>Remove Installed Game Update?</source>
         <translation>Geïnstalleerde Spel-update Verwijderen?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2433"/>
+        <location filename="../../src/yuzu/main.cpp" line="2432"/>
         <source>Remove Installed Game DLC?</source>
         <translation>Geïnstalleerde Spel-DLC Verwijderen?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2439"/>
+        <location filename="../../src/yuzu/main.cpp" line="2438"/>
         <source>Remove Entry</source>
         <translation>Verwijder Invoer</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2469"/>
-        <location filename="../../src/yuzu/main.cpp" line="2485"/>
-        <location filename="../../src/yuzu/main.cpp" line="2516"/>
-        <location filename="../../src/yuzu/main.cpp" line="2595"/>
-        <location filename="../../src/yuzu/main.cpp" line="2629"/>
-        <location filename="../../src/yuzu/main.cpp" line="2652"/>
+        <location filename="../../src/yuzu/main.cpp" line="2468"/>
+        <location filename="../../src/yuzu/main.cpp" line="2484"/>
+        <location filename="../../src/yuzu/main.cpp" line="2515"/>
+        <location filename="../../src/yuzu/main.cpp" line="2594"/>
+        <location filename="../../src/yuzu/main.cpp" line="2628"/>
+        <location filename="../../src/yuzu/main.cpp" line="2651"/>
         <source>Successfully Removed</source>
         <translation>Met Succes Verwijderd</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2470"/>
+        <location filename="../../src/yuzu/main.cpp" line="2469"/>
         <source>Successfully removed the installed base game.</source>
         <translation>Het geïnstalleerde basisspel is succesvol verwijderd.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2474"/>
+        <location filename="../../src/yuzu/main.cpp" line="2473"/>
         <source>The base game is not installed in the NAND and cannot be removed.</source>
         <translation>Het basisspel is niet geïnstalleerd in de NAND en kan niet worden verwijderd.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2486"/>
+        <location filename="../../src/yuzu/main.cpp" line="2485"/>
         <source>Successfully removed the installed update.</source>
         <translation>De geïnstalleerde update is succesvol verwijderd.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2489"/>
+        <location filename="../../src/yuzu/main.cpp" line="2488"/>
         <source>There is no update installed for this title.</source>
         <translation>Er is geen update geïnstalleerd voor dit spel.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2512"/>
+        <location filename="../../src/yuzu/main.cpp" line="2511"/>
         <source>There are no DLC installed for this title.</source>
         <translation>Er is geen DLC geïnstalleerd voor dit spel.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2517"/>
+        <location filename="../../src/yuzu/main.cpp" line="2516"/>
         <source>Successfully removed %1 installed DLC.</source>
         <translation>%1 geïnstalleerde DLC met succes verwijderd.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2525"/>
+        <location filename="../../src/yuzu/main.cpp" line="2524"/>
         <source>Delete OpenGL Transferable Shader Cache?</source>
         <translation>Overdraagbare OpenGL-shader-cache Verwijderen?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2527"/>
+        <location filename="../../src/yuzu/main.cpp" line="2526"/>
         <source>Delete Vulkan Transferable Shader Cache?</source>
         <translation>Overdraagbare Vulkan-shader-cache Verwijderen?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2529"/>
+        <location filename="../../src/yuzu/main.cpp" line="2528"/>
         <source>Delete All Transferable Shader Caches?</source>
         <translation>Alle Overdraagbare Shader-caches Verwijderen?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2531"/>
+        <location filename="../../src/yuzu/main.cpp" line="2530"/>
         <source>Remove Custom Game Configuration?</source>
         <translation>Aangepaste Spelconfiguratie Verwijderen?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2533"/>
+        <location filename="../../src/yuzu/main.cpp" line="2532"/>
         <source>Remove Cache Storage?</source>
         <translation>Verwijder Cache-opslag?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2539"/>
+        <location filename="../../src/yuzu/main.cpp" line="2538"/>
         <source>Remove File</source>
         <translation>Verwijder Bestand</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2564"/>
+        <location filename="../../src/yuzu/main.cpp" line="2563"/>
         <source>Remove Play Time Data</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2564"/>
+        <location filename="../../src/yuzu/main.cpp" line="2563"/>
         <source>Reset play time?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2590"/>
-        <location filename="../../src/yuzu/main.cpp" line="2598"/>
+        <location filename="../../src/yuzu/main.cpp" line="2589"/>
+        <location filename="../../src/yuzu/main.cpp" line="2597"/>
         <source>Error Removing Transferable Shader Cache</source>
         <translation>Fout bij het verwijderen van Overdraagbare Shader-cache</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2591"/>
-        <location filename="../../src/yuzu/main.cpp" line="2625"/>
+        <location filename="../../src/yuzu/main.cpp" line="2590"/>
+        <location filename="../../src/yuzu/main.cpp" line="2624"/>
         <source>A shader cache for this title does not exist.</source>
         <translation>Er bestaat geen shader-cache voor dit spel.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2596"/>
+        <location filename="../../src/yuzu/main.cpp" line="2595"/>
         <source>Successfully removed the transferable shader cache.</source>
         <translation>De overdraagbare shader-cache is verwijderd.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2599"/>
+        <location filename="../../src/yuzu/main.cpp" line="2598"/>
         <source>Failed to remove the transferable shader cache.</source>
         <translation>Kon de overdraagbare shader-cache niet verwijderen.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2614"/>
+        <location filename="../../src/yuzu/main.cpp" line="2613"/>
         <source>Error Removing Vulkan Driver Pipeline Cache</source>
         <translation>Fout bij het verwijderen van Pijplijn-cache van Vulkan-driver</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2615"/>
+        <location filename="../../src/yuzu/main.cpp" line="2614"/>
         <source>Failed to remove the driver pipeline cache.</source>
         <translation>Kon de pijplijn-cache van de driver niet verwijderen.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2624"/>
-        <location filename="../../src/yuzu/main.cpp" line="2632"/>
+        <location filename="../../src/yuzu/main.cpp" line="2623"/>
+        <location filename="../../src/yuzu/main.cpp" line="2631"/>
         <source>Error Removing Transferable Shader Caches</source>
         <translation>Fout bij het verwijderen van overdraagbare shader-caches</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2630"/>
+        <location filename="../../src/yuzu/main.cpp" line="2629"/>
         <source>Successfully removed the transferable shader caches.</source>
         <translation>De overdraagbare shader-caches zijn verwijderd.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2633"/>
+        <location filename="../../src/yuzu/main.cpp" line="2632"/>
         <source>Failed to remove the transferable shader cache directory.</source>
         <translation>Kon de overdraagbare shader-cache-map niet verwijderen.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2646"/>
-        <location filename="../../src/yuzu/main.cpp" line="2655"/>
+        <location filename="../../src/yuzu/main.cpp" line="2645"/>
+        <location filename="../../src/yuzu/main.cpp" line="2654"/>
         <source>Error Removing Custom Configuration</source>
         <translation>Fout bij het verwijderen van aangepaste configuratie</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2647"/>
+        <location filename="../../src/yuzu/main.cpp" line="2646"/>
         <source>A custom configuration for this title does not exist.</source>
         <translation>Er bestaat geen aangepaste configuratie voor dit spel.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2653"/>
+        <location filename="../../src/yuzu/main.cpp" line="2652"/>
         <source>Successfully removed the custom game configuration.</source>
         <translation>De aangepaste spelconfiguratie is verwijderd.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2656"/>
+        <location filename="../../src/yuzu/main.cpp" line="2655"/>
         <source>Failed to remove the custom game configuration.</source>
         <translation>Kon de aangepaste spelconfiguratie niet verwijderen.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2678"/>
-        <location filename="../../src/yuzu/main.cpp" line="2766"/>
+        <location filename="../../src/yuzu/main.cpp" line="2677"/>
+        <location filename="../../src/yuzu/main.cpp" line="2760"/>
         <source>RomFS Extraction Failed!</source>
         <translation>RomFS-extractie Mislukt!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2679"/>
+        <location filename="../../src/yuzu/main.cpp" line="2678"/>
         <source>There was an error copying the RomFS files or the user cancelled the operation.</source>
         <translation>Er is een fout opgetreden bij het kopiëren van de RomFS-bestanden of de gebruiker heeft de bewerking geannuleerd.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2741"/>
+        <location filename="../../src/yuzu/main.cpp" line="2735"/>
         <source>Full</source>
         <translation>Volledig</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2741"/>
+        <location filename="../../src/yuzu/main.cpp" line="2735"/>
         <source>Skeleton</source>
         <translation>Skelet</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2743"/>
+        <location filename="../../src/yuzu/main.cpp" line="2737"/>
         <source>Select RomFS Dump Mode</source>
         <translation>Selecteer RomFS-dumpmodus</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2744"/>
+        <location filename="../../src/yuzu/main.cpp" line="2738"/>
         <source>Please select the how you would like the RomFS dumped.&lt;br&gt;Full will copy all of the files into the new directory while &lt;br&gt;skeleton will only create the directory structure.</source>
         <translation>Selecteer hoe je de RomFS gedumpt wilt hebben.&lt;br&gt;Volledig zal alle bestanden naar de nieuwe map kopiëren, terwijl &lt;br&gt;Skelet alleen de mapstructuur zal aanmaken.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2767"/>
+        <location filename="../../src/yuzu/main.cpp" line="2761"/>
         <source>There is not enough free space at %1 to extract the RomFS. Please free up space or select a different dump directory at Emulation &gt; Configure &gt; System &gt; Filesystem &gt; Dump Root</source>
         <translation>Er is niet genoeg vrije ruimte op %1 om de RomFS uit te pakken. Maak ruimte vrij of kies een andere dumpmap bij Emulatie &gt; Configuratie &gt; Systeem &gt; Bestandssysteem &gt; Dump Root.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2774"/>
+        <location filename="../../src/yuzu/main.cpp" line="2768"/>
         <source>Extracting RomFS...</source>
         <translation>RomFS uitpakken...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2774"/>
-        <location filename="../../src/yuzu/main.cpp" line="2810"/>
-        <location filename="../../src/yuzu/main.cpp" line="3272"/>
-        <location filename="../../src/yuzu/main.cpp" line="4219"/>
+        <location filename="../../src/yuzu/main.cpp" line="2768"/>
+        <location filename="../../src/yuzu/main.cpp" line="2804"/>
+        <location filename="../../src/yuzu/main.cpp" line="3266"/>
+        <location filename="../../src/yuzu/main.cpp" line="4213"/>
         <source>Cancel</source>
         <translation>Annuleren</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2784"/>
+        <location filename="../../src/yuzu/main.cpp" line="2778"/>
         <source>RomFS Extraction Succeeded!</source>
         <translation>RomFS-extractie Geslaagd!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2785"/>
-        <location filename="../../src/yuzu/main.cpp" line="2839"/>
-        <location filename="../../src/yuzu/main.cpp" line="4311"/>
+        <location filename="../../src/yuzu/main.cpp" line="2779"/>
+        <location filename="../../src/yuzu/main.cpp" line="2833"/>
+        <location filename="../../src/yuzu/main.cpp" line="4305"/>
         <source>The operation completed successfully.</source>
         <translation>De bewerking is succesvol voltooid.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2796"/>
+        <location filename="../../src/yuzu/main.cpp" line="2790"/>
         <source>Integrity verification couldn&apos;t be performed!</source>
         <translation>Integriteitsverificatie kon niet worden uitgevoerd!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2797"/>
+        <location filename="../../src/yuzu/main.cpp" line="2791"/>
         <source>File contents were not checked for validity.</source>
         <translation>De inhoud van bestanden werd niet gecontroleerd op geldigheid.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2800"/>
-        <location filename="../../src/yuzu/main.cpp" line="4307"/>
+        <location filename="../../src/yuzu/main.cpp" line="2794"/>
+        <location filename="../../src/yuzu/main.cpp" line="4301"/>
         <source>Integrity verification failed!</source>
         <translation>Integriteitsverificatie mislukt!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2801"/>
+        <location filename="../../src/yuzu/main.cpp" line="2795"/>
         <source>File contents may be corrupt.</source>
         <translation>Bestandsinhoud kan corrupt zijn.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2810"/>
-        <location filename="../../src/yuzu/main.cpp" line="4219"/>
+        <location filename="../../src/yuzu/main.cpp" line="2804"/>
+        <location filename="../../src/yuzu/main.cpp" line="4213"/>
         <source>Verifying integrity...</source>
         <translation>Integriteit verifiëren...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2838"/>
-        <location filename="../../src/yuzu/main.cpp" line="4310"/>
+        <location filename="../../src/yuzu/main.cpp" line="2832"/>
+        <location filename="../../src/yuzu/main.cpp" line="4304"/>
         <source>Integrity verification succeeded!</source>
         <translation>Integriteitsverificatie geslaagd!</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2967"/>
+        <location filename="../../src/yuzu/main.cpp" line="2961"/>
+        <location filename="../../src/yuzu/main.cpp" line="2965"/>
         <location filename="../../src/yuzu/main.cpp" line="2971"/>
-        <location filename="../../src/yuzu/main.cpp" line="2977"/>
-        <location filename="../../src/yuzu/main.cpp" line="2984"/>
+        <location filename="../../src/yuzu/main.cpp" line="2978"/>
         <source>Create Shortcut</source>
         <translation>Maak Snelkoppeling</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2968"/>
+        <location filename="../../src/yuzu/main.cpp" line="2962"/>
         <source>Do you want to launch the game in fullscreen?</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2972"/>
+        <location filename="../../src/yuzu/main.cpp" line="2966"/>
         <source>Successfully created a shortcut to %1</source>
         <translation>Succesvol een snelkoppeling naar %1 gemaakt</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2978"/>
+        <location filename="../../src/yuzu/main.cpp" line="2972"/>
         <source>This will create a shortcut to the current AppImage. This may not work well if you update. Continue?</source>
         <translation>Dit maakt een snelkoppeling naar de huidige AppImage. Dit werkt mogelijk niet goed als je een update uitvoert. Doorgaan?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="2985"/>
+        <location filename="../../src/yuzu/main.cpp" line="2979"/>
         <source>Failed to create a shortcut to %1</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3003"/>
+        <location filename="../../src/yuzu/main.cpp" line="2997"/>
         <source>Create Icon</source>
         <translation>Maak Icoon</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3004"/>
+        <location filename="../../src/yuzu/main.cpp" line="2998"/>
         <source>Cannot create icon file. Path &quot;%1&quot; does not exist and cannot be created.</source>
         <translation>Kan geen icoonbestand maken. Pad &quot;%1&quot; bestaat niet en kan niet worden aangemaakt.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3132"/>
+        <location filename="../../src/yuzu/main.cpp" line="3126"/>
         <source>Error Opening %1</source>
         <translation>Fout bij openen %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3141"/>
+        <location filename="../../src/yuzu/main.cpp" line="3135"/>
         <source>Select Directory</source>
         <translation>Selecteer Map</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3170"/>
+        <location filename="../../src/yuzu/main.cpp" line="3164"/>
         <source>Properties</source>
         <translation>Eigenschappen</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3171"/>
+        <location filename="../../src/yuzu/main.cpp" line="3165"/>
         <source>The game properties could not be loaded.</source>
         <translation>De speleigenschappen kunnen niet geladen worden.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3188"/>
+        <location filename="../../src/yuzu/main.cpp" line="3182"/>
         <source>Switch Executable (%1);;All Files (*.*)</source>
         <comment>%1 is an identifier for the Switch executable file extensions.</comment>
         <translation>Switch Executable (%1);;Alle Bestanden (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3192"/>
+        <location filename="../../src/yuzu/main.cpp" line="3186"/>
         <source>Load File</source>
         <translation>Laad Bestand</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3205"/>
+        <location filename="../../src/yuzu/main.cpp" line="3199"/>
         <source>Open Extracted ROM Directory</source>
         <translation>Open Uitgepakte ROM-map</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3216"/>
+        <location filename="../../src/yuzu/main.cpp" line="3210"/>
         <source>Invalid Directory Selected</source>
         <translation>Ongeldige Map Geselecteerd</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3217"/>
+        <location filename="../../src/yuzu/main.cpp" line="3211"/>
         <source>The directory you have selected does not contain a &apos;main&apos; file.</source>
         <translation>De map die je hebt geselecteerd bevat geen &apos;main&apos;-bestand.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3227"/>
+        <location filename="../../src/yuzu/main.cpp" line="3221"/>
         <source>Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge Image (*.xci)</source>
         <translation>Installeerbaar Switch-bestand (*.nca *.nsp *.xci);;Nintendo Content Archive (*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge Image (*.xci)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3232"/>
+        <location filename="../../src/yuzu/main.cpp" line="3226"/>
         <source>Install Files</source>
         <translation>Installeer Bestanden</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3279"/>
+        <location filename="../../src/yuzu/main.cpp" line="3273"/>
         <source>%n file(s) remaining</source>
         <translation><numerusform>%n bestand(en) resterend</numerusform><numerusform>%n bestand(en) resterend</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3281"/>
+        <location filename="../../src/yuzu/main.cpp" line="3275"/>
         <source>Installing file &quot;%1&quot;...</source>
         <translation>Bestand &quot;%1&quot; Installeren...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3326"/>
-        <location filename="../../src/yuzu/main.cpp" line="3340"/>
+        <location filename="../../src/yuzu/main.cpp" line="3320"/>
+        <location filename="../../src/yuzu/main.cpp" line="3334"/>
         <source>Install Results</source>
         <translation>Installeerresultaten</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3327"/>
+        <location filename="../../src/yuzu/main.cpp" line="3321"/>
         <source>To avoid possible conflicts, we discourage users from installing base games to the NAND.
 Please, only use this feature to install updates and DLC.</source>
         <translation>Om mogelijke conflicten te voorkomen, raden we gebruikers af om basisgames te installeren op de NAND.
 Gebruik deze functie alleen om updates en DLC te installeren.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3333"/>
+        <location filename="../../src/yuzu/main.cpp" line="3327"/>
         <source>%n file(s) were newly installed
 </source>
         <translation><numerusform>%n bestand(en) zijn recent geïnstalleerd
@@ -5414,7 +5414,7 @@ Gebruik deze functie alleen om updates en DLC te installeren.</translation>
 </numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3336"/>
+        <location filename="../../src/yuzu/main.cpp" line="3330"/>
         <source>%n file(s) were overwritten
 </source>
         <translation><numerusform>%n bestand(en) werden overschreven
@@ -5422,7 +5422,7 @@ Gebruik deze functie alleen om updates en DLC te installeren.</translation>
 </numerusform></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="3338"/>
+        <location filename="../../src/yuzu/main.cpp" line="3332"/>
         <source>%n file(s) failed to install
 </source>
         <translation><numerusform>%n bestand(en) niet geïnstalleerd
@@ -5430,194 +5430,194 @@ Gebruik deze functie alleen om updates en DLC te installeren.</translation>
 </numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3437"/>
+        <location filename="../../src/yuzu/main.cpp" line="3431"/>
         <source>System Application</source>
         <translation>Systeemapplicatie</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3438"/>
+        <location filename="../../src/yuzu/main.cpp" line="3432"/>
         <source>System Archive</source>
         <translation>Systeemarchief</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3439"/>
+        <location filename="../../src/yuzu/main.cpp" line="3433"/>
         <source>System Application Update</source>
         <translation>Systeemapplicatie-update</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3440"/>
+        <location filename="../../src/yuzu/main.cpp" line="3434"/>
         <source>Firmware Package (Type A)</source>
         <translation>Filmware-pakket (Type A)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3441"/>
+        <location filename="../../src/yuzu/main.cpp" line="3435"/>
         <source>Firmware Package (Type B)</source>
         <translation>Filmware-pakket (Type B)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3442"/>
+        <location filename="../../src/yuzu/main.cpp" line="3436"/>
         <source>Game</source>
         <translation>Spel</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3443"/>
+        <location filename="../../src/yuzu/main.cpp" line="3437"/>
         <source>Game Update</source>
         <translation>Spelupdate</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3444"/>
+        <location filename="../../src/yuzu/main.cpp" line="3438"/>
         <source>Game DLC</source>
         <translation>Spel-DLC</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3445"/>
+        <location filename="../../src/yuzu/main.cpp" line="3439"/>
         <source>Delta Title</source>
         <translation>Delta Titel</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3448"/>
+        <location filename="../../src/yuzu/main.cpp" line="3442"/>
         <source>Select NCA Install Type...</source>
         <translation>Selecteer NCA-installatiesoort...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3449"/>
+        <location filename="../../src/yuzu/main.cpp" line="3443"/>
         <source>Please select the type of title you would like to install this NCA as:
 (In most instances, the default &apos;Game&apos; is fine.)</source>
         <translation>Selecteer het type titel waarin je deze NCA wilt installeren:
 (In de meeste gevallen is de standaard &quot;Spel&quot; prima).</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3455"/>
+        <location filename="../../src/yuzu/main.cpp" line="3449"/>
         <source>Failed to Install</source>
         <translation>Installatie Mislukt</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3456"/>
+        <location filename="../../src/yuzu/main.cpp" line="3450"/>
         <source>The title type you selected for the NCA is invalid.</source>
         <translation>Het soort title dat je hebt geselecteerd voor de NCA is ongeldig.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3491"/>
+        <location filename="../../src/yuzu/main.cpp" line="3485"/>
         <source>File not found</source>
         <translation>Bestand niet gevonden</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3492"/>
+        <location filename="../../src/yuzu/main.cpp" line="3486"/>
         <source>File &quot;%1&quot; not found</source>
         <translation>Bestand &quot;%1&quot; niet gevonden</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3609"/>
+        <location filename="../../src/yuzu/main.cpp" line="3603"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3635"/>
-        <location filename="../../src/yuzu/main.cpp" line="3654"/>
+        <location filename="../../src/yuzu/main.cpp" line="3629"/>
+        <location filename="../../src/yuzu/main.cpp" line="3648"/>
         <source>Hardware requirements not met</source>
         <translation>Er is niet voldaan aan de hardwarevereisten</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3636"/>
-        <location filename="../../src/yuzu/main.cpp" line="3655"/>
+        <location filename="../../src/yuzu/main.cpp" line="3630"/>
+        <location filename="../../src/yuzu/main.cpp" line="3649"/>
         <source>Your system does not meet the recommended hardware requirements. Compatibility reporting has been disabled.</source>
         <translation>Je systeem voldoet niet aan de aanbevolen hardwarevereisten. Compatibiliteitsrapportage is uitgeschakeld.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3647"/>
+        <location filename="../../src/yuzu/main.cpp" line="3641"/>
         <source>Missing yuzu Account</source>
         <translation>yuzu-account Ontbreekt</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3648"/>
+        <location filename="../../src/yuzu/main.cpp" line="3642"/>
         <source>In order to submit a game compatibility test case, you must link your yuzu account.&lt;br&gt;&lt;br/&gt;To link your yuzu account, go to Emulation &amp;gt; Configuration &amp;gt; Web.</source>
         <translation>Om een spelcompatibiliteitstest in te dienen, moet je je yuzu-account koppelen.&lt;br&gt;&lt;br/&gt;Om je yuzu-account te koppelen, ga naar Emulatie &amp;gt; Configuratie &amp;gt; Web.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3663"/>
+        <location filename="../../src/yuzu/main.cpp" line="3657"/>
         <source>Error opening URL</source>
         <translation>Fout bij het openen van URL</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3664"/>
+        <location filename="../../src/yuzu/main.cpp" line="3658"/>
         <source>Unable to open the URL &quot;%1&quot;.</source>
         <translation>Kan de URL &quot;%1&quot; niet openen.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3974"/>
+        <location filename="../../src/yuzu/main.cpp" line="3968"/>
         <source>TAS Recording</source>
         <translation>TAS-opname</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3974"/>
+        <location filename="../../src/yuzu/main.cpp" line="3968"/>
         <source>Overwrite file of player 1?</source>
         <translation>Het bestand van speler 1 overschrijven?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3993"/>
+        <location filename="../../src/yuzu/main.cpp" line="3987"/>
         <source>Invalid config detected</source>
         <translation>Ongeldige configuratie gedetecteerd</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="3994"/>
+        <location filename="../../src/yuzu/main.cpp" line="3988"/>
         <source>Handheld controller can&apos;t be used on docked mode. Pro controller will be selected.</source>
         <translation>Handheld-controller kan niet gebruikt worden in docked-modus. Pro controller wordt geselecteerd.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4136"/>
-        <location filename="../../src/yuzu/main.cpp" line="4186"/>
+        <location filename="../../src/yuzu/main.cpp" line="4130"/>
+        <location filename="../../src/yuzu/main.cpp" line="4180"/>
         <source>Amiibo</source>
         <translation>Amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4136"/>
-        <location filename="../../src/yuzu/main.cpp" line="4186"/>
+        <location filename="../../src/yuzu/main.cpp" line="4130"/>
+        <location filename="../../src/yuzu/main.cpp" line="4180"/>
         <source>The current amiibo has been removed</source>
         <translation>De huidige amiibo is verwijderd</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4141"/>
+        <location filename="../../src/yuzu/main.cpp" line="4135"/>
         <source>Error</source>
         <translation>Fout</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4141"/>
-        <location filename="../../src/yuzu/main.cpp" line="4198"/>
+        <location filename="../../src/yuzu/main.cpp" line="4135"/>
+        <location filename="../../src/yuzu/main.cpp" line="4192"/>
         <source>The current game is not looking for amiibos</source>
         <translation>Het huidige spel is niet op zoek naar amiibo&apos;s</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4147"/>
+        <location filename="../../src/yuzu/main.cpp" line="4141"/>
         <source>Amiibo File (%1);; All Files (*.*)</source>
         <translation>Amiibo-bestand (%1);; Alle Bestanden (*.*)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4148"/>
+        <location filename="../../src/yuzu/main.cpp" line="4142"/>
         <source>Load Amiibo</source>
         <translation>Laad Amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4182"/>
+        <location filename="../../src/yuzu/main.cpp" line="4176"/>
         <source>Error loading Amiibo data</source>
         <translation>Fout tijdens het laden van de Amiibo-gegevens</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4192"/>
+        <location filename="../../src/yuzu/main.cpp" line="4186"/>
         <source>The selected file is not a valid amiibo</source>
         <translation>Het geselecteerde bestand is geen geldige amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4195"/>
+        <location filename="../../src/yuzu/main.cpp" line="4189"/>
         <source>The selected file is already on use</source>
         <translation>Het geselecteerde bestand is al in gebruik</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4201"/>
+        <location filename="../../src/yuzu/main.cpp" line="4195"/>
         <source>An unknown error occurred</source>
         <translation>Er is een onbekende fout opgetreden</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4308"/>
+        <location filename="../../src/yuzu/main.cpp" line="4302"/>
         <source>Verification failed for the following files:
 
 %1</source>
@@ -5626,193 +5626,193 @@ Gebruik deze functie alleen om updates en DLC te installeren.</translation>
 %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4337"/>
-        <location filename="../../src/yuzu/main.cpp" line="4360"/>
-        <location filename="../../src/yuzu/main.cpp" line="4384"/>
-        <location filename="../../src/yuzu/main.cpp" line="4408"/>
+        <location filename="../../src/yuzu/main.cpp" line="4331"/>
+        <location filename="../../src/yuzu/main.cpp" line="4354"/>
+        <location filename="../../src/yuzu/main.cpp" line="4378"/>
+        <location filename="../../src/yuzu/main.cpp" line="4402"/>
         <source>No firmware available</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4338"/>
+        <location filename="../../src/yuzu/main.cpp" line="4332"/>
         <source>Please install the firmware to use the Album applet.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4344"/>
+        <location filename="../../src/yuzu/main.cpp" line="4338"/>
         <source>Album Applet</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4345"/>
+        <location filename="../../src/yuzu/main.cpp" line="4339"/>
         <source>Album applet is not available. Please reinstall firmware.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4361"/>
+        <location filename="../../src/yuzu/main.cpp" line="4355"/>
         <source>Please install the firmware to use the Cabinet applet.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4367"/>
+        <location filename="../../src/yuzu/main.cpp" line="4361"/>
         <source>Cabinet Applet</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4368"/>
+        <location filename="../../src/yuzu/main.cpp" line="4362"/>
         <source>Cabinet applet is not available. Please reinstall firmware.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4385"/>
+        <location filename="../../src/yuzu/main.cpp" line="4379"/>
         <source>Please install the firmware to use the Mii editor.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4391"/>
+        <location filename="../../src/yuzu/main.cpp" line="4385"/>
         <source>Mii Edit Applet</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4392"/>
+        <location filename="../../src/yuzu/main.cpp" line="4386"/>
         <source>Mii editor is not available. Please reinstall firmware.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4409"/>
+        <location filename="../../src/yuzu/main.cpp" line="4403"/>
         <source>Please install the firmware to use the Controller Menu.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4416"/>
+        <location filename="../../src/yuzu/main.cpp" line="4410"/>
         <source>Controller Applet</source>
         <translation>Controller Applet</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4417"/>
+        <location filename="../../src/yuzu/main.cpp" line="4411"/>
         <source>Controller Menu is not available. Please reinstall firmware.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4450"/>
+        <location filename="../../src/yuzu/main.cpp" line="4444"/>
         <source>Capture Screenshot</source>
         <translation>Leg Schermafbeelding Vast</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4451"/>
+        <location filename="../../src/yuzu/main.cpp" line="4445"/>
         <source>PNG Image (*.png)</source>
         <translation>PNG-afbeelding (*.png)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4534"/>
+        <location filename="../../src/yuzu/main.cpp" line="4528"/>
         <source>TAS state: Running %1/%2</source>
         <translation>TAS-status: %1/%2 In werking</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4538"/>
+        <location filename="../../src/yuzu/main.cpp" line="4532"/>
         <source>TAS state: Recording %1</source>
         <translation>TAS-status: %1 Aan het opnemen</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4540"/>
+        <location filename="../../src/yuzu/main.cpp" line="4534"/>
         <source>TAS state: Idle %1/%2</source>
         <translation>TAS-status: %1/%2 Inactief</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4544"/>
+        <location filename="../../src/yuzu/main.cpp" line="4538"/>
         <source>TAS State: Invalid</source>
         <translation>TAS-status: Ongeldig</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4558"/>
+        <location filename="../../src/yuzu/main.cpp" line="4552"/>
         <source>&amp;Stop Running</source>
         <translation>&amp;Stop Uitvoering</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4558"/>
+        <location filename="../../src/yuzu/main.cpp" line="4552"/>
         <source>&amp;Start</source>
         <translation>&amp;Start</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4559"/>
+        <location filename="../../src/yuzu/main.cpp" line="4553"/>
         <source>Stop R&amp;ecording</source>
         <translation>Stop Opname</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4559"/>
+        <location filename="../../src/yuzu/main.cpp" line="4553"/>
         <source>R&amp;ecord</source>
         <translation>Opnemen</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../src/yuzu/main.cpp" line="4583"/>
+        <location filename="../../src/yuzu/main.cpp" line="4577"/>
         <source>Building: %n shader(s)</source>
         <translation><numerusform>Bouwen: %n shader(s)</numerusform><numerusform>Bouwen: %n shader(s)</numerusform></translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4592"/>
+        <location filename="../../src/yuzu/main.cpp" line="4586"/>
         <source>Scale: %1x</source>
         <comment>%1 is the resolution scaling factor</comment>
         <translation>Schaal: %1x</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4595"/>
+        <location filename="../../src/yuzu/main.cpp" line="4589"/>
         <source>Speed: %1% / %2%</source>
         <translation>Snelheid: %1% / %2%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4599"/>
+        <location filename="../../src/yuzu/main.cpp" line="4593"/>
         <source>Speed: %1%</source>
         <translation>Snelheid: %1%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4603"/>
+        <location filename="../../src/yuzu/main.cpp" line="4597"/>
         <source>Game: %1 FPS (Unlocked)</source>
         <translation>Spel: %1 FPS (Ontgrendeld)</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4606"/>
+        <location filename="../../src/yuzu/main.cpp" line="4600"/>
         <source>Game: %1 FPS</source>
         <translation>Game: %1 FPS</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4608"/>
+        <location filename="../../src/yuzu/main.cpp" line="4602"/>
         <source>Frame: %1 ms</source>
         <translation>Frame: %1 ms</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4638"/>
+        <location filename="../../src/yuzu/main.cpp" line="4632"/>
         <source>%1 %2</source>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4648"/>
+        <location filename="../../src/yuzu/main.cpp" line="4642"/>
         <location filename="../../src/yuzu/configuration/shared_translation.h" line="42"/>
         <source>FSR</source>
         <translation>FSR</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4656"/>
+        <location filename="../../src/yuzu/main.cpp" line="4650"/>
         <source>NO AA</source>
         <translation>GEEN AA</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4665"/>
+        <location filename="../../src/yuzu/main.cpp" line="4659"/>
         <source>VOLUME: MUTE</source>
         <translation>VOLUME: GEDEMPT</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4668"/>
+        <location filename="../../src/yuzu/main.cpp" line="4662"/>
         <source>VOLUME: %1%</source>
         <comment>Volume percentage (e.g. 50%)</comment>
         <translation>VOLUME: %1%</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4733"/>
+        <location filename="../../src/yuzu/main.cpp" line="4727"/>
         <source>Confirm Key Rederivation</source>
         <translation>Bevestig Sleutelherhaling</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4734"/>
+        <location filename="../../src/yuzu/main.cpp" line="4728"/>
         <source>You are about to force rederive all of your keys. 
 If you do not know what this means or what you are doing, 
 this is a potentially destructive action. 
@@ -5829,37 +5829,37 @@ en maak eventueel back-ups.
 Dit zal je automatisch gegenereerde sleutelbestanden verwijderen en de sleutelafleidingsmodule opnieuw uitvoeren.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4768"/>
+        <location filename="../../src/yuzu/main.cpp" line="4762"/>
         <source>Missing fuses</source>
         <translation>Missing fuses</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4771"/>
+        <location filename="../../src/yuzu/main.cpp" line="4765"/>
         <source> - Missing BOOT0</source>
         <translation> - BOOT0 Ontbreekt</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4774"/>
+        <location filename="../../src/yuzu/main.cpp" line="4768"/>
         <source> - Missing BCPKG2-1-Normal-Main</source>
         <translation> - BCPKG2-1-Normal-Main Ontbreekt</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4777"/>
+        <location filename="../../src/yuzu/main.cpp" line="4771"/>
         <source> - Missing PRODINFO</source>
         <translation> - PRODINFO Ontbreekt</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4782"/>
+        <location filename="../../src/yuzu/main.cpp" line="4776"/>
         <source>Derivation Components Missing</source>
         <translation>Afleidingscomponenten ontbreken</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4783"/>
+        <location filename="../../src/yuzu/main.cpp" line="4777"/>
         <source>Encryption keys are missing. &lt;br&gt;Please follow &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;the yuzu quickstart guide&lt;/a&gt; to get all your keys, firmware and games.&lt;br&gt;&lt;br&gt;&lt;small&gt;(%1)&lt;/small&gt;</source>
         <translation>Encryptiesleutels ontbreken. &lt;br&gt;Volg &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;de yuzu-snelstartgids&lt;/a&gt; om al je sleutels, firmware en spellen te krijgen.&lt;br&gt;&lt;br&gt;&lt;small&gt;(%1)&lt;/small&gt;</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4792"/>
+        <location filename="../../src/yuzu/main.cpp" line="4786"/>
         <source>Deriving keys...
 This may take up to a minute depending 
 on your system&apos;s performance.</source>
@@ -5868,49 +5868,49 @@ Dit kan tot een minuut duren,
 afhankelijk van de prestaties van je systeem.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4794"/>
+        <location filename="../../src/yuzu/main.cpp" line="4788"/>
         <source>Deriving Keys</source>
         <translation>Sleutels Afleiden</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4811"/>
+        <location filename="../../src/yuzu/main.cpp" line="4805"/>
         <source>System Archive Decryption Failed</source>
         <translation>Decryptie van Systeemarchief Mislukt</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4812"/>
+        <location filename="../../src/yuzu/main.cpp" line="4806"/>
         <source>Encryption keys failed to decrypt firmware. &lt;br&gt;Please follow &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;the yuzu quickstart guide&lt;/a&gt; to get all your keys, firmware and games.</source>
         <translation>Encryptiesleutels zijn mislukt om firmware te decoderen. &lt;br&gt;Volg &lt;a href=&apos;https://yuzu-emu.org/help/quickstart/&apos;&gt;de yuzu-snelstartgids&lt;/a&gt; om al je sleutels, firmware en games te krijgen.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4929"/>
+        <location filename="../../src/yuzu/main.cpp" line="4923"/>
         <source>Select RomFS Dump Target</source>
         <translation>Selecteer RomFS-dumpdoel</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4930"/>
+        <location filename="../../src/yuzu/main.cpp" line="4924"/>
         <source>Please select which RomFS you would like to dump.</source>
         <translation>Selecteer welke RomFS je zou willen dumpen.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4953"/>
+        <location filename="../../src/yuzu/main.cpp" line="4947"/>
         <source>Are you sure you want to close yuzu?</source>
         <translation>Weet je zeker dat je yuzu wilt sluiten?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="4954"/>
-        <location filename="../../src/yuzu/main.cpp" line="5034"/>
-        <location filename="../../src/yuzu/main.cpp" line="5046"/>
+        <location filename="../../src/yuzu/main.cpp" line="4948"/>
+        <location filename="../../src/yuzu/main.cpp" line="5028"/>
+        <location filename="../../src/yuzu/main.cpp" line="5040"/>
         <source>yuzu</source>
         <translation>yuzu</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="5035"/>
+        <location filename="../../src/yuzu/main.cpp" line="5029"/>
         <source>Are you sure you want to stop the emulation? Any unsaved progress will be lost.</source>
         <translation>Weet je zeker dat je de emulatie wilt stoppen? Alle niet opgeslagen voortgang zal verloren gaan.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/main.cpp" line="5043"/>
+        <location filename="../../src/yuzu/main.cpp" line="5037"/>
         <source>The currently running application has requested yuzu to not exit.
 
 Would you like to bypass this and exit anyway?</source>
@@ -6423,11 +6423,12 @@ Debug-bericht: </translation>
 <context>
     <name>Hotkeys</name>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="227"/>
+        <location filename="../../src/yuzu/uisettings.h" line="226"/>
         <source>Audio Mute/Unmute</source>
         <translation>Audio Dempen/Dempen Opheffen</translation>
     </message>
     <message>
+        <location filename="../../src/yuzu/uisettings.h" line="226"/>
         <location filename="../../src/yuzu/uisettings.h" line="227"/>
         <location filename="../../src/yuzu/uisettings.h" line="228"/>
         <location filename="../../src/yuzu/uisettings.h" line="229"/>
@@ -6450,117 +6451,116 @@ Debug-bericht: </translation>
         <location filename="../../src/yuzu/uisettings.h" line="246"/>
         <location filename="../../src/yuzu/uisettings.h" line="247"/>
         <location filename="../../src/yuzu/uisettings.h" line="248"/>
-        <location filename="../../src/yuzu/uisettings.h" line="249"/>
         <source>Main Window</source>
         <translation>Hoofdvenster</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="228"/>
+        <location filename="../../src/yuzu/uisettings.h" line="227"/>
         <source>Audio Volume Down</source>
         <translation>Audiovolume Omlaag</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="229"/>
+        <location filename="../../src/yuzu/uisettings.h" line="228"/>
         <source>Audio Volume Up</source>
         <translation>Audiovolume Omhoog</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="230"/>
+        <location filename="../../src/yuzu/uisettings.h" line="229"/>
         <source>Capture Screenshot</source>
         <translation>Leg Schermafbeelding Vast</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="231"/>
+        <location filename="../../src/yuzu/uisettings.h" line="230"/>
         <source>Change Adapting Filter</source>
         <translation>Wijzig Aanpassingsfilter</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="232"/>
+        <location filename="../../src/yuzu/uisettings.h" line="231"/>
         <source>Change Docked Mode</source>
         <translation>Wijzig Docked-modus</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="233"/>
+        <location filename="../../src/yuzu/uisettings.h" line="232"/>
         <source>Change GPU Accuracy</source>
         <translation>Wijzig GPU-nauwkeurigheid</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="234"/>
+        <location filename="../../src/yuzu/uisettings.h" line="233"/>
         <source>Continue/Pause Emulation</source>
         <translation>Emulatie Doorgaan/Onderbreken</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="235"/>
+        <location filename="../../src/yuzu/uisettings.h" line="234"/>
         <source>Exit Fullscreen</source>
         <translation>Volledig Scherm Afsluiten</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="236"/>
+        <location filename="../../src/yuzu/uisettings.h" line="235"/>
         <source>Exit yuzu</source>
         <translation>yuzu afsluiten</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="237"/>
+        <location filename="../../src/yuzu/uisettings.h" line="236"/>
         <source>Fullscreen</source>
         <translation>Volledig Scherm</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="238"/>
+        <location filename="../../src/yuzu/uisettings.h" line="237"/>
         <source>Load File</source>
         <translation>Laad Bestand</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="239"/>
+        <location filename="../../src/yuzu/uisettings.h" line="238"/>
         <source>Load/Remove Amiibo</source>
         <translation>Laad/Verwijder Amiibo</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="240"/>
+        <location filename="../../src/yuzu/uisettings.h" line="239"/>
         <source>Restart Emulation</source>
         <translation>Herstart Emulatie</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="241"/>
+        <location filename="../../src/yuzu/uisettings.h" line="240"/>
         <source>Stop Emulation</source>
         <translation>Stop Emulatie</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="242"/>
+        <location filename="../../src/yuzu/uisettings.h" line="241"/>
         <source>TAS Record</source>
         <translation>TAS Opname</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="243"/>
+        <location filename="../../src/yuzu/uisettings.h" line="242"/>
         <source>TAS Reset</source>
         <translation>TAS Reset</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="244"/>
+        <location filename="../../src/yuzu/uisettings.h" line="243"/>
         <source>TAS Start/Stop</source>
         <translation>TAS Start/Stop</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="245"/>
+        <location filename="../../src/yuzu/uisettings.h" line="244"/>
         <source>Toggle Filter Bar</source>
         <translation>Schakel Filterbalk</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="246"/>
+        <location filename="../../src/yuzu/uisettings.h" line="245"/>
         <source>Toggle Framerate Limit</source>
         <translation>Schakel Frameratelimiet</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="247"/>
+        <location filename="../../src/yuzu/uisettings.h" line="246"/>
         <source>Toggle Mouse Panning</source>
         <translation>Schakel Muispanning</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="248"/>
+        <location filename="../../src/yuzu/uisettings.h" line="247"/>
         <source>Toggle Renderdoc Capture</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/uisettings.h" line="249"/>
+        <location filename="../../src/yuzu/uisettings.h" line="248"/>
         <source>Toggle Status Bar</source>
         <translation>Schakel Statusbalk</translation>
     </message>
@@ -8126,7 +8126,7 @@ Probeer het opnieuw of neem contact op met de software-ontwikkelaar.</translatio
 <context>
     <name>QtProfileSelectionDialog</name>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="23"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="25"/>
         <source>%1
 %2</source>
         <comment>%1 is the profile username, %2 is the formatted UUID (e.g. 00112233-4455-6677-8899-AABBCCDDEEFF))</comment>
@@ -8134,78 +8134,78 @@ Probeer het opnieuw of neem contact op met de software-ontwikkelaar.</translatio
 %2</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="85"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="87"/>
         <source>Users</source>
         <translation>Gebruikers</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="167"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="169"/>
         <source>Profile Creator</source>
         <translation>Profielmaker</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="170"/>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="188"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="172"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="190"/>
         <source>Profile Selector</source>
         <translation>Profielkiezer</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="173"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="175"/>
         <source>Profile Icon Editor</source>
         <translation>Profielicoon-editor</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="176"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="178"/>
         <source>Profile Nickname Editor</source>
         <translation>Profielnaam-editor</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="198"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="200"/>
         <source>Who will receive the points?</source>
         <translation>Wie krijgt de punten?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="201"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="203"/>
         <source>Who is using Nintendo eShop?</source>
         <translation>Wie gebruikt de Nintendo eShop?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="204"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="206"/>
         <source>Who is making this purchase?</source>
         <translation>Wie doet deze aankoop?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="207"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="209"/>
         <source>Who is posting?</source>
         <translation>Wie post er?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="210"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="212"/>
         <source>Select a user to link to a Nintendo Account.</source>
         <translation>Selecteer een gebruiker om te koppelen aan een Nintendo-account.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="213"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="215"/>
         <source>Change settings for which user?</source>
         <translation>Instellingen wijzigen voor welke gebruiker?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="216"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="218"/>
         <source>Format data for which user?</source>
         <translation>Formatteer gegevens voor welke gebruiker?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="219"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="221"/>
         <source>Which user will be transferred to another console?</source>
         <translation>Welke gebruiker wordt overgezet naar een andere console?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="222"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="224"/>
         <source>Send save data for which user?</source>
         <translation>Gegevens verzenden voor welke gebruiker?</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="226"/>
+        <location filename="../../src/yuzu/applets/qt_profile_select.cpp" line="228"/>
         <source>Select a user:</source>
         <translation>Selecteer een gebruiker:</translation>
     </message>
