@@ -3,8 +3,9 @@
 
 #include "core/core.h"
 #include "core/hle/kernel/k_shared_memory.h"
-#include "core/hle/service/hid/controllers/shared_memory_format.h"
+#include "core/hle/service/hid/controllers/applet_resource.h"
 #include "core/hle/service/hid/controllers/shared_memory_holder.h"
+#include "core/hle/service/hid/controllers/types/shared_memory_format.h"
 #include "core/hle/service/hid/errors.h"
 
 namespace Service::HID {

@@ -5,13 +5,11 @@
 #include "core/hid/emulated_console.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/service/hid/controllers/console_six_axis.h"
-#include "core/hle/service/hid/controllers/shared_memory_format.h"
+#include "core/hle/service/hid/controllers/types/shared_memory_format.h"
 
 namespace Service::HID {
 
-ConsoleSixAxis::ConsoleSixAxis(Core::HID::HIDCore& hid_core_,
-                               ConsoleSixAxisSensorSharedMemoryFormat& console_shared_memory)
-    : ControllerBase{hid_core_}, shared_memory{console_shared_memory} {
+ConsoleSixAxis::ConsoleSixAxis(Core::HID::HIDCore& hid_core_) : ControllerBase{hid_core_} {
     console = hid_core.GetEmulatedConsole();
 }
 
@@ -22,6 +20,15 @@ void ConsoleSixAxis::OnInit() {}
 void ConsoleSixAxis::OnRelease() {}
 
 void ConsoleSixAxis::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+    const u64 aruid = applet_resource->GetActiveAruid();
+    auto* data = applet_resource->GetAruidData(aruid);
+
+    if (data == nullptr) {
+        return;
+    }
+
+    ConsoleSixAxisSensorSharedMemoryFormat& shared_memory = data->shared_memory_format->console;
+
     if (!IsControllerActivated()) {
         return;
     }

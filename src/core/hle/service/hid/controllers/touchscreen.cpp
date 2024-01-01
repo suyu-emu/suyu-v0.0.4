@@ -8,15 +8,14 @@
 #include "core/frontend/emu_window.h"
 #include "core/hid/emulated_console.h"
 #include "core/hid/hid_core.h"
-#include "core/hle/service/hid/controllers/shared_memory_format.h"
+#include "core/hle/service/hid/controllers/applet_resource.h"
 #include "core/hle/service/hid/controllers/touchscreen.h"
+#include "core/hle/service/hid/controllers/types/shared_memory_format.h"
 
 namespace Service::HID {
 
-TouchScreen::TouchScreen(Core::HID::HIDCore& hid_core_,
-                         TouchScreenSharedMemoryFormat& touch_shared_memory)
-    : ControllerBase{hid_core_}, shared_memory{touch_shared_memory},
-      touchscreen_width(Layout::ScreenUndocked::Width),
+TouchScreen::TouchScreen(Core::HID::HIDCore& hid_core_)
+    : ControllerBase{hid_core_}, touchscreen_width(Layout::ScreenUndocked::Width),
       touchscreen_height(Layout::ScreenUndocked::Height) {
     console = hid_core.GetEmulatedConsole();
 }
@@ -28,6 +27,14 @@ void TouchScreen::OnInit() {}
 void TouchScreen::OnRelease() {}
 
 void TouchScreen::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+    const u64 aruid = applet_resource->GetActiveAruid();
+    auto* data = applet_resource->GetAruidData(aruid);
+
+    if (data == nullptr) {
+        return;
+    }
+
+    TouchScreenSharedMemoryFormat& shared_memory = data->shared_memory_format->touch_screen;
     shared_memory.touch_screen_lifo.timestamp = core_timing.GetGlobalTimeNs().count();
 
     if (!IsControllerActivated()) {

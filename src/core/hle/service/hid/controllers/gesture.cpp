@@ -6,8 +6,9 @@
 #include "core/frontend/emu_window.h"
 #include "core/hid/emulated_console.h"
 #include "core/hid/hid_core.h"
+#include "core/hle/service/hid/controllers/applet_resource.h"
 #include "core/hle/service/hid/controllers/gesture.h"
-#include "core/hle/service/hid/controllers/shared_memory_format.h"
+#include "core/hle/service/hid/controllers/types/shared_memory_format.h"
 
 namespace Service::HID {
 // HW is around 700, value is set to 400 to make it easier to trigger with mouse
@@ -21,24 +22,40 @@ constexpr f32 Square(s32 num) {
     return static_cast<f32>(num * num);
 }
 
-Gesture::Gesture(Core::HID::HIDCore& hid_core_, GestureSharedMemoryFormat& gesture_shared_memory)
-    : ControllerBase(hid_core_), shared_memory{gesture_shared_memory} {
+Gesture::Gesture(Core::HID::HIDCore& hid_core_) : ControllerBase(hid_core_) {
     console = hid_core.GetEmulatedConsole();
 }
 Gesture::~Gesture() = default;
 
 void Gesture::OnInit() {
-    shared_memory.gesture_lifo.buffer_count = 0;
-    shared_memory.gesture_lifo.buffer_tail = 0;
+    const u64 aruid = applet_resource->GetActiveAruid();
+    auto* data = applet_resource->GetAruidData(aruid);
+
+    if (data == nullptr) {
+        return;
+    }
+
+    shared_memory = &data->shared_memory_format->gesture;
+    shared_memory->gesture_lifo.buffer_count = 0;
+    shared_memory->gesture_lifo.buffer_tail = 0;
     force_update = true;
 }
 
 void Gesture::OnRelease() {}
 
 void Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+    const u64 aruid = applet_resource->GetActiveAruid();
+    auto* data = applet_resource->GetAruidData(aruid);
+
+    if (data == nullptr) {
+        return;
+    }
+
+    shared_memory = &data->shared_memory_format->gesture;
+
     if (!IsControllerActivated()) {
-        shared_memory.gesture_lifo.buffer_count = 0;
-        shared_memory.gesture_lifo.buffer_tail = 0;
+        shared_memory->gesture_lifo.buffer_count = 0;
+        shared_memory->gesture_lifo.buffer_tail = 0;
         return;
     }
 
@@ -46,7 +63,7 @@ void Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
 
     GestureProperties gesture = GetGestureProperties();
     f32 time_difference =
-        static_cast<f32>(shared_memory.gesture_lifo.timestamp - last_update_timestamp) /
+        static_cast<f32>(shared_memory->gesture_lifo.timestamp - last_update_timestamp) /
         (1000 * 1000 * 1000);
 
     // Only update if necessary
@@ -54,7 +71,7 @@ void Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         return;
     }
 
-    last_update_timestamp = shared_memory.gesture_lifo.timestamp;
+    last_update_timestamp = shared_memory->gesture_lifo.timestamp;
     UpdateGestureSharedMemory(gesture, time_difference);
 }
 
@@ -97,7 +114,7 @@ void Gesture::UpdateGestureSharedMemory(GestureProperties& gesture, f32 time_dif
     GestureType type = GestureType::Idle;
     GestureAttribute attributes{};
 
-    const auto& last_entry = shared_memory.gesture_lifo.ReadCurrentEntry().state;
+    const auto& last_entry = shared_memory->gesture_lifo.ReadCurrentEntry().state;
 
     // Reset next state to default
     next_state.sampling_number = last_entry.sampling_number + 1;
@@ -127,7 +144,7 @@ void Gesture::UpdateGestureSharedMemory(GestureProperties& gesture, f32 time_dif
     next_state.points = gesture.points;
     last_gesture = gesture;
 
-    shared_memory.gesture_lifo.WriteNextEntry(next_state);
+    shared_memory->gesture_lifo.WriteNextEntry(next_state);
 }
 
 void Gesture::NewGesture(GestureProperties& gesture, GestureType& type,
@@ -300,7 +317,7 @@ void Gesture::SetSwipeEvent(GestureProperties& gesture, GestureProperties& last_
 }
 
 const GestureState& Gesture::GetLastGestureEntry() const {
-    return shared_memory.gesture_lifo.ReadCurrentEntry().state;
+    return shared_memory->gesture_lifo.ReadCurrentEntry().state;
 }
 
 GestureProperties Gesture::GetGestureProperties() {

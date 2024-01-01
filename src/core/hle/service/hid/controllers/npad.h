@@ -30,14 +30,14 @@ class ServiceContext;
 union Result;
 
 namespace Service::HID {
+class AppletResource;
 struct NpadInternalState;
 struct NpadSixAxisSensorLifo;
 struct NpadSharedMemoryFormat;
 
 class NPad final : public ControllerBase {
 public:
-    explicit NPad(Core::HID::HIDCore& hid_core_, NpadSharedMemoryFormat& npad_shared_memory_format,
-                  KernelHelpers::ServiceContext& service_context_);
+    explicit NPad(Core::HID::HIDCore& hid_core_, KernelHelpers::ServiceContext& service_context_);
     ~NPad() override;
 
     // Called when the controller is initialized
@@ -105,13 +105,6 @@ public:
         const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool& is_firmware_available) const;
     Result ResetIsSixAxisSensorDeviceNewlyAssigned(
         const Core::HID::SixAxisSensorHandle& sixaxis_handle);
-
-    NpadSixAxisSensorLifo& GetSixAxisFullkeyLifo(Core::HID::NpadIdType npad_id);
-    NpadSixAxisSensorLifo& GetSixAxisHandheldLifo(Core::HID::NpadIdType npad_id);
-    NpadSixAxisSensorLifo& GetSixAxisDualLeftLifo(Core::HID::NpadIdType npad_id);
-    NpadSixAxisSensorLifo& GetSixAxisDualRightLifo(Core::HID::NpadIdType npad_id);
-    NpadSixAxisSensorLifo& GetSixAxisLeftLifo(Core::HID::NpadIdType npad_id);
-    NpadSixAxisSensorLifo& GetSixAxisRightLifo(Core::HID::NpadIdType npad_id);
 
     Result GetLedPattern(Core::HID::NpadIdType npad_id, Core::HID::LedPattern& pattern) const;
     Result IsUnintendedHomeButtonInputProtectionEnabled(Core::HID::NpadIdType npad_id,
