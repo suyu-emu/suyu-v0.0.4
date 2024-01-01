@@ -25,6 +25,7 @@ void LoopProcess(Core::System& system) {
     // TODO: Remove this hack until this service is emulated properly.
     const auto process_list = system.Kernel().GetProcessList();
     if (!process_list.empty()) {
+        resouce_manager->Initialize();
         resouce_manager->RegisterAppletResourceUserId(process_list[0]->GetId(), true);
     }
 

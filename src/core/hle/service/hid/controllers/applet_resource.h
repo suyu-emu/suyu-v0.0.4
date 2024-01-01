@@ -25,6 +25,7 @@ class AppletResource;
 class NPadResource;
 
 static constexpr std::size_t AruidIndexMax = 0x20;
+static constexpr u64 SystemAruid = 0;
 
 enum class RegistrationStatus : u32 {
     None,
