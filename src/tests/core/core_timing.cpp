@@ -16,20 +16,16 @@
 
 namespace {
 // Numbers are chosen randomly to make sure the correct one is given.
-constexpr std::array<u64, 5> CB_IDS{{42, 144, 93, 1026, UINT64_C(0xFFFF7FFFF7FFFF)}};
 constexpr std::array<u64, 5> calls_order{{2, 0, 1, 4, 3}};
 std::array<s64, 5> delays{};
-
-std::bitset<CB_IDS.size()> callbacks_ran_flags;
+std::bitset<5> callbacks_ran_flags;
 u64 expected_callback = 0;
 
 template <unsigned int IDX>
-std::optional<std::chrono::nanoseconds> HostCallbackTemplate(std::uintptr_t user_data, s64 time,
+std::optional<std::chrono::nanoseconds> HostCallbackTemplate(s64 time,
                                                              std::chrono::nanoseconds ns_late) {
-    static_assert(IDX < CB_IDS.size(), "IDX out of range");
+    static_assert(IDX < callbacks_ran_flags.size(), "IDX out of range");
     callbacks_ran_flags.set(IDX);
-    REQUIRE(CB_IDS[IDX] == user_data);
-    REQUIRE(CB_IDS[IDX] == CB_IDS[calls_order[expected_callback]]);
     delays[IDX] = ns_late.count();
     ++expected_callback;
     return std::nullopt;
@@ -76,7 +72,7 @@ TEST_CASE("CoreTiming[BasicOrder]", "[core]") {
         const u64 order = calls_order[i];
         const auto future_ns = std::chrono::nanoseconds{static_cast<s64>(i * one_micro + 100)};
 
-        core_timing.ScheduleEvent(future_ns, events[order], CB_IDS[order]);
+        core_timing.ScheduleEvent(future_ns, events[order]);
     }
     /// test pause
     REQUIRE(callbacks_ran_flags.none());
@@ -118,7 +114,7 @@ TEST_CASE("CoreTiming[BasicOrderNoPausing]", "[core]") {
     for (std::size_t i = 0; i < events.size(); i++) {
         const u64 order = calls_order[i];
         const auto future_ns = std::chrono::nanoseconds{static_cast<s64>(i * one_micro + 100)};
-        core_timing.ScheduleEvent(future_ns, events[order], CB_IDS[order]);
+        core_timing.ScheduleEvent(future_ns, events[order]);
     }
 
     const u64 end = core_timing.GetGlobalTimeNs().count();

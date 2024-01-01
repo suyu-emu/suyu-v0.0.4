@@ -238,7 +238,7 @@ struct KernelCore::Impl {
     void InitializePreemption(KernelCore& kernel) {
         preemption_event = Core::Timing::CreateEvent(
             "PreemptionCallback",
-            [this, &kernel](std::uintptr_t, s64 time,
+            [this, &kernel](s64 time,
                             std::chrono::nanoseconds) -> std::optional<std::chrono::nanoseconds> {
                 {
                     KScopedSchedulerLock lock(kernel);
