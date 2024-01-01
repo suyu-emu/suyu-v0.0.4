@@ -228,7 +228,7 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
 
     Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead> tmp_read_buffer(
         memory_manager, src_operand.address, src_size, &read_buffer);
-    Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+    Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::UnsafeReadCachedWrite>
         tmp_write_buffer(memory_manager, dst_operand.address, dst_size, &write_buffer);
 
     UnswizzleSubrect(tmp_write_buffer, tmp_read_buffer, bytes_per_pixel, width, height, depth,
@@ -292,7 +292,7 @@ void MaxwellDMA::CopyPitchToBlockLinear() {
     GPUVAddr dst_addr = regs.offset_out;
     Core::Memory::GpuGuestMemory<u8, Core::Memory::GuestMemoryFlags::SafeRead> tmp_read_buffer(
         memory_manager, src_addr, src_size, &read_buffer);
-    Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::SafeReadCachedWrite>
+    Core::Memory::GpuGuestMemoryScoped<u8, Core::Memory::GuestMemoryFlags::UnsafeReadCachedWrite>
         tmp_write_buffer(memory_manager, dst_addr, dst_size, &write_buffer);
 
     //  If the input is linear and the output is tiled, swizzle the input and copy it over.
