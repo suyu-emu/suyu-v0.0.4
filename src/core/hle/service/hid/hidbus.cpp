@@ -49,10 +49,10 @@ HidBus::HidBus(Core::System& system_)
     // Register update callbacks
     hidbus_update_event = Core::Timing::CreateEvent(
         "Hidbus::UpdateCallback",
-        [this](std::uintptr_t user_data, s64 time,
+        [this](s64 time,
                std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
             const auto guard = LockService();
-            UpdateHidbus(user_data, ns_late);
+            UpdateHidbus(ns_late);
             return std::nullopt;
         });
 
@@ -61,10 +61,10 @@ HidBus::HidBus(Core::System& system_)
 }
 
 HidBus::~HidBus() {
-    system.CoreTiming().UnscheduleEvent(hidbus_update_event, 0);
+    system.CoreTiming().UnscheduleEvent(hidbus_update_event);
 }
 
-void HidBus::UpdateHidbus(std::uintptr_t user_data, std::chrono::nanoseconds ns_late) {
+void HidBus::UpdateHidbus(std::chrono::nanoseconds ns_late) {
     if (is_hidbus_enabled) {
         for (std::size_t i = 0; i < devices.size(); ++i) {
             if (!devices[i].is_device_initializated) {
