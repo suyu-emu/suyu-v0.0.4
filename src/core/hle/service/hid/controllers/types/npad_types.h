@@ -9,7 +9,8 @@
 #include "core/hid/hid_types.h"
 
 namespace Service::HID {
-static constexpr std::size_t NpadCount = 10;
+static constexpr std::size_t MaxSupportedNpadIdTypes = 10;
+static constexpr std::size_t StyleIndexCount = 7;
 
 // This is nn::hid::NpadJoyHoldType
 enum class NpadJoyHoldType : u64 {

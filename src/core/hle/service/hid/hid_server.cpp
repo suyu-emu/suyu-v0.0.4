@@ -785,8 +785,8 @@ void IHidServer::IsFirmwareUpdateAvailableForSixAxisSensor(HLERequestContext& ct
 
     bool is_firmware_available{};
     auto controller = GetResourceManager()->GetNpad();
-    controller->IsFirmwareUpdateAvailableForSixAxisSensor(parameters.sixaxis_handle,
-                                                          is_firmware_available);
+    controller->IsFirmwareUpdateAvailableForSixAxisSensor(
+        parameters.applet_resource_user_id, parameters.sixaxis_handle, is_firmware_available);
 
     LOG_WARNING(
         Service_HID,
@@ -924,8 +924,8 @@ void IHidServer::ResetIsSixAxisSensorDeviceNewlyAssigned(HLERequestContext& ctx)
     const auto parameters{rp.PopRaw<Parameters>()};
 
     auto controller = GetResourceManager()->GetNpad();
-    const auto result =
-        controller->ResetIsSixAxisSensorDeviceNewlyAssigned(parameters.sixaxis_handle);
+    const auto result = controller->ResetIsSixAxisSensorDeviceNewlyAssigned(
+        parameters.applet_resource_user_id, parameters.sixaxis_handle);
 
     LOG_WARNING(
         Service_HID,
@@ -970,7 +970,7 @@ void IHidServer::ActivateGesture(HLERequestContext& ctx) {
 void IHidServer::SetSupportedNpadStyleSet(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        Core::HID::NpadStyleSet supported_styleset;
+        Core::HID::NpadStyleSet supported_style_set;
         INSERT_PADDING_WORDS_NOINIT(1);
         u64 applet_resource_user_id;
     };
@@ -978,13 +978,25 @@ void IHidServer::SetSupportedNpadStyleSet(HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    GetResourceManager()->GetNpad()->SetSupportedStyleSet({parameters.supported_styleset});
+    LOG_DEBUG(Service_HID, "called, supported_style_set={}, applet_resource_user_id={}",
+              parameters.supported_style_set, parameters.applet_resource_user_id);
 
-    LOG_DEBUG(Service_HID, "called, supported_styleset={}, applet_resource_user_id={}",
-              parameters.supported_styleset, parameters.applet_resource_user_id);
+    const auto npad = GetResourceManager()->GetNpad();
+    const Result result = npad->SetSupportedNpadStyleSet(parameters.applet_resource_user_id,
+                                                         parameters.supported_style_set);
+
+    if (result.IsSuccess()) {
+        Core::HID::NpadStyleTag style_tag{parameters.supported_style_set};
+        const auto revision = npad->GetRevision(parameters.applet_resource_user_id);
+
+        if (style_tag.palma != 0 && revision < NpadRevision::Revision3) {
+            // GetResourceManager()->GetPalma()->EnableBoostMode(parameters.applet_resource_user_id,
+            //                                                   true);
+        }
+    }
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::GetSupportedNpadStyleSet(HLERequestContext& ctx) {
@@ -993,18 +1005,30 @@ void IHidServer::GetSupportedNpadStyleSet(HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
+    Core::HID::NpadStyleSet supported_style_set{};
+    const auto npad = GetResourceManager()->GetNpad();
+    const auto result =
+        npad->GetSupportedNpadStyleSet(applet_resource_user_id, supported_style_set);
+
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.PushEnum(GetResourceManager()->GetNpad()->GetSupportedStyleSet().raw);
+    rb.Push(result);
+    rb.PushEnum(supported_style_set);
 }
 
 void IHidServer::SetSupportedNpadIdType(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
-
-    const auto result = GetResourceManager()->GetNpad()->SetSupportedNpadIdTypes(ctx.ReadBuffer());
+    const auto buffer = ctx.ReadBuffer();
+    const std::size_t elements = ctx.GetReadBufferNumElements<Core::HID::NpadIdType>();
 
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    std::vector<Core::HID::NpadIdType> supported_npad_list(elements);
+    memcpy(supported_npad_list.data(), buffer.data(), buffer.size());
+
+    const auto npad = GetResourceManager()->GetNpad();
+    const Result result =
+        npad->SetSupportedNpadIdType(applet_resource_user_id, supported_npad_list);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(result);
@@ -1018,7 +1042,7 @@ void IHidServer::ActivateNpad(HLERequestContext& ctx) {
 
     auto npad = GetResourceManager()->GetNpad();
 
-    // TODO: npad->SetRevision(applet_resource_user_id, NpadRevision::Revision0);
+    npad->SetRevision(applet_resource_user_id, NpadRevision::Revision0);
     const Result result = npad->Activate(applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -1052,13 +1076,13 @@ void IHidServer::AcquireNpadStyleSetUpdateEventHandle(HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, npad_id={}, applet_resource_user_id={}, unknown={}",
               parameters.npad_id, parameters.applet_resource_user_id, parameters.unknown);
 
-    // Games expect this event to be signaled after calling this function
-    GetResourceManager()->GetNpad()->SignalStyleSetChangedEvent(parameters.npad_id);
+    Kernel::KReadableEvent* style_set_update_event;
+    const auto result = GetResourceManager()->GetNpad()->AcquireNpadStyleSetUpdateEventHandle(
+        parameters.applet_resource_user_id, &style_set_update_event, parameters.npad_id);
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(
-        GetResourceManager()->GetNpad()->GetStyleSetChangedEvent(parameters.npad_id));
+    rb.Push(result);
+    rb.PushCopyObjects(style_set_update_event);
 }
 
 void IHidServer::DisconnectNpad(HLERequestContext& ctx) {
@@ -1073,7 +1097,7 @@ void IHidServer::DisconnectNpad(HLERequestContext& ctx) {
     const auto parameters{rp.PopRaw<Parameters>()};
 
     auto controller = GetResourceManager()->GetNpad();
-    controller->DisconnectNpad(parameters.npad_id);
+    controller->DisconnectNpad(parameters.applet_resource_user_id, parameters.npad_id);
 
     LOG_DEBUG(Service_HID, "called, npad_id={}, applet_resource_user_id={}", parameters.npad_id,
               parameters.applet_resource_user_id);
@@ -1113,7 +1137,7 @@ void IHidServer::ActivateNpadWithRevision(HLERequestContext& ctx) {
 
     auto npad = GetResourceManager()->GetNpad();
 
-    // TODO: npad->SetRevision(applet_resource_user_id, revision);
+    npad->SetRevision(parameters.applet_resource_user_id, parameters.revision);
     const auto result = npad->Activate(parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -1125,13 +1149,19 @@ void IHidServer::SetNpadJoyHoldType(HLERequestContext& ctx) {
     const auto applet_resource_user_id{rp.Pop<u64>()};
     const auto hold_type{rp.PopEnum<NpadJoyHoldType>()};
 
-    GetResourceManager()->GetNpad()->SetHoldType(hold_type);
-
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, hold_type={}",
               applet_resource_user_id, hold_type);
 
+    if (hold_type != NpadJoyHoldType::Horizontal && hold_type != NpadJoyHoldType::Vertical) {
+        // This should crash console
+        ASSERT_MSG(false, "Invalid npad joy hold type");
+    }
+
+    const auto npad = GetResourceManager()->GetNpad();
+    const auto result = npad->SetNpadJoyHoldType(applet_resource_user_id, hold_type);
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::GetNpadJoyHoldType(HLERequestContext& ctx) {
@@ -1140,9 +1170,13 @@ void IHidServer::GetNpadJoyHoldType(HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
+    NpadJoyHoldType hold_type{};
+    const auto npad = GetResourceManager()->GetNpad();
+    const auto result = npad->GetNpadJoyHoldType(applet_resource_user_id, hold_type);
+
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.PushEnum(GetResourceManager()->GetNpad()->GetHoldType());
+    rb.Push(result);
+    rb.PushEnum(hold_type);
 }
 
 void IHidServer::SetNpadJoyAssignmentModeSingleByDefault(HLERequestContext& ctx) {
@@ -1158,8 +1192,8 @@ void IHidServer::SetNpadJoyAssignmentModeSingleByDefault(HLERequestContext& ctx)
 
     Core::HID::NpadIdType new_npad_id{};
     auto controller = GetResourceManager()->GetNpad();
-    controller->SetNpadMode(new_npad_id, parameters.npad_id, NpadJoyDeviceType::Left,
-                            NpadJoyAssignmentMode::Single);
+    controller->SetNpadMode(parameters.applet_resource_user_id, new_npad_id, parameters.npad_id,
+                            NpadJoyDeviceType::Left, NpadJoyAssignmentMode::Single);
 
     LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}", parameters.npad_id,
              parameters.applet_resource_user_id);
@@ -1182,8 +1216,8 @@ void IHidServer::SetNpadJoyAssignmentModeSingle(HLERequestContext& ctx) {
 
     Core::HID::NpadIdType new_npad_id{};
     auto controller = GetResourceManager()->GetNpad();
-    controller->SetNpadMode(new_npad_id, parameters.npad_id, parameters.npad_joy_device_type,
-                            NpadJoyAssignmentMode::Single);
+    controller->SetNpadMode(parameters.applet_resource_user_id, new_npad_id, parameters.npad_id,
+                            parameters.npad_joy_device_type, NpadJoyAssignmentMode::Single);
 
     LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}, npad_joy_device_type={}",
              parameters.npad_id, parameters.applet_resource_user_id,
@@ -1206,7 +1240,8 @@ void IHidServer::SetNpadJoyAssignmentModeDual(HLERequestContext& ctx) {
 
     Core::HID::NpadIdType new_npad_id{};
     auto controller = GetResourceManager()->GetNpad();
-    controller->SetNpadMode(new_npad_id, parameters.npad_id, {}, NpadJoyAssignmentMode::Dual);
+    controller->SetNpadMode(parameters.applet_resource_user_id, new_npad_id, parameters.npad_id, {},
+                            NpadJoyAssignmentMode::Dual);
 
     LOG_DEBUG(Service_HID, "called, npad_id={}, applet_resource_user_id={}", parameters.npad_id,
               parameters.applet_resource_user_id); // Spams a lot when controller applet is open
@@ -1222,7 +1257,8 @@ void IHidServer::MergeSingleJoyAsDualJoy(HLERequestContext& ctx) {
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
     auto controller = GetResourceManager()->GetNpad();
-    const auto result = controller->MergeSingleJoyAsDualJoy(npad_id_1, npad_id_2);
+    const auto result =
+        controller->MergeSingleJoyAsDualJoy(applet_resource_user_id, npad_id_1, npad_id_2);
 
     LOG_DEBUG(Service_HID, "called, npad_id_1={}, npad_id_2={}, applet_resource_user_id={}",
               npad_id_1, npad_id_2, applet_resource_user_id);
@@ -1235,9 +1271,9 @@ void IHidServer::StartLrAssignmentMode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->GetNpad()->StartLRAssignmentMode();
-
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    GetResourceManager()->GetNpad()->StartLrAssignmentMode(applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -1247,9 +1283,9 @@ void IHidServer::StopLrAssignmentMode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->GetNpad()->StopLRAssignmentMode();
-
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    GetResourceManager()->GetNpad()->StopLrAssignmentMode(applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -1260,13 +1296,23 @@ void IHidServer::SetNpadHandheldActivationMode(HLERequestContext& ctx) {
     const auto applet_resource_user_id{rp.Pop<u64>()};
     const auto activation_mode{rp.PopEnum<NpadHandheldActivationMode>()};
 
-    GetResourceManager()->GetNpad()->SetNpadHandheldActivationMode(activation_mode);
-
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, activation_mode={}",
               applet_resource_user_id, activation_mode);
 
+    if (activation_mode >= NpadHandheldActivationMode::MaxActivationMode) {
+        // Console should crash here
+        ASSERT_MSG(false, "Activation mode should be always None, Single or Dual");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+        return;
+    }
+
+    const auto npad = GetResourceManager()->GetNpad();
+    const auto result =
+        npad->SetNpadHandheldActivationMode(applet_resource_user_id, activation_mode);
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::GetNpadHandheldActivationMode(HLERequestContext& ctx) {
@@ -1275,9 +1321,14 @@ void IHidServer::GetNpadHandheldActivationMode(HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
+    NpadHandheldActivationMode activation_mode{};
+    const auto npad = GetResourceManager()->GetNpad();
+    const auto result =
+        npad->GetNpadHandheldActivationMode(applet_resource_user_id, activation_mode);
+
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.PushEnum(GetResourceManager()->GetNpad()->GetNpadHandheldActivationMode());
+    rb.Push(result);
+    rb.PushEnum(activation_mode);
 }
 
 void IHidServer::SwapNpadAssignment(HLERequestContext& ctx) {
@@ -1286,11 +1337,11 @@ void IHidServer::SwapNpadAssignment(HLERequestContext& ctx) {
     const auto npad_id_2{rp.PopEnum<Core::HID::NpadIdType>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    auto controller = GetResourceManager()->GetNpad();
-    const auto result = controller->SwapNpadAssignment(npad_id_1, npad_id_2);
-
     LOG_DEBUG(Service_HID, "called, npad_id_1={}, npad_id_2={}, applet_resource_user_id={}",
               npad_id_1, npad_id_2, applet_resource_user_id);
+
+    const auto npad = GetResourceManager()->GetNpad();
+    const auto result = npad->SwapNpadAssignment(applet_resource_user_id, npad_id_1, npad_id_2);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(result);
@@ -1307,13 +1358,19 @@ void IHidServer::IsUnintendedHomeButtonInputProtectionEnabled(HLERequestContext&
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    bool is_enabled = false;
-    auto controller = GetResourceManager()->GetNpad();
-    const auto result =
-        controller->IsUnintendedHomeButtonInputProtectionEnabled(parameters.npad_id, is_enabled);
+    LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}", parameters.npad_id,
+             parameters.applet_resource_user_id);
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, npad_id={}, applet_resource_user_id={}",
-                parameters.npad_id, parameters.applet_resource_user_id);
+    if (!IsNpadIdValid(parameters.npad_id)) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultInvalidNpadId);
+        return;
+    }
+
+    bool is_enabled{};
+    const auto npad = GetResourceManager()->GetNpad();
+    const auto result = npad->IsUnintendedHomeButtonInputProtectionEnabled(
+        is_enabled, parameters.applet_resource_user_id, parameters.npad_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(result);
@@ -1332,13 +1389,18 @@ void IHidServer::EnableUnintendedHomeButtonInputProtection(HLERequestContext& ct
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    auto controller = GetResourceManager()->GetNpad();
-    const auto result = controller->SetUnintendedHomeButtonInputProtectionEnabled(
-        parameters.is_enabled, parameters.npad_id);
+    LOG_INFO(Service_HID, "called, is_enabled={}, npad_id={}, applet_resource_user_id={}",
+             parameters.is_enabled, parameters.npad_id, parameters.applet_resource_user_id);
 
-    LOG_DEBUG(Service_HID,
-              "(STUBBED) called, is_enabled={}, npad_id={}, applet_resource_user_id={}",
-              parameters.is_enabled, parameters.npad_id, parameters.applet_resource_user_id);
+    if (!IsNpadIdValid(parameters.npad_id)) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultInvalidNpadId);
+        return;
+    }
+
+    const auto npad = GetResourceManager()->GetNpad();
+    const auto result = npad->EnableUnintendedHomeButtonInputProtection(
+        parameters.applet_resource_user_id, parameters.npad_id, parameters.is_enabled);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(result);
@@ -1359,8 +1421,8 @@ void IHidServer::SetNpadJoyAssignmentModeSingleWithDestination(HLERequestContext
     Core::HID::NpadIdType new_npad_id{};
     auto controller = GetResourceManager()->GetNpad();
     const auto is_reassigned =
-        controller->SetNpadMode(new_npad_id, parameters.npad_id, parameters.npad_joy_device_type,
-                                NpadJoyAssignmentMode::Single);
+        controller->SetNpadMode(parameters.applet_resource_user_id, new_npad_id, parameters.npad_id,
+                                parameters.npad_joy_device_type, NpadJoyAssignmentMode::Single);
 
     LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}, npad_joy_device_type={}",
              parameters.npad_id, parameters.applet_resource_user_id,
@@ -1375,7 +1437,7 @@ void IHidServer::SetNpadJoyAssignmentModeSingleWithDestination(HLERequestContext
 void IHidServer::SetNpadAnalogStickUseCenterClamp(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        bool analog_stick_use_center_clamp;
+        bool use_center_clamp;
         INSERT_PADDING_BYTES_NOINIT(7);
         u64 applet_resource_user_id;
     };
@@ -1383,12 +1445,11 @@ void IHidServer::SetNpadAnalogStickUseCenterClamp(HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    GetResourceManager()->GetNpad()->SetAnalogStickUseCenterClamp(
-        parameters.analog_stick_use_center_clamp);
+    LOG_WARNING(Service_HID, "(STUBBED) called, use_center_clamp={}, applet_resource_user_id={}",
+                parameters.use_center_clamp, parameters.applet_resource_user_id);
 
-    LOG_WARNING(Service_HID,
-                "(STUBBED) called, analog_stick_use_center_clamp={}, applet_resource_user_id={}",
-                parameters.analog_stick_use_center_clamp, parameters.applet_resource_user_id);
+    GetResourceManager()->GetNpad()->SetNpadAnalogStickUseCenterClamp(
+        parameters.applet_resource_user_id, parameters.use_center_clamp);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -1496,7 +1557,8 @@ void IHidServer::SendVibrationValue(HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    GetResourceManager()->GetNpad()->VibrateController(parameters.vibration_device_handle,
+    GetResourceManager()->GetNpad()->VibrateController(parameters.applet_resource_user_id,
+                                                       parameters.vibration_device_handle,
                                                        parameters.vibration_value);
 
     LOG_DEBUG(Service_HID,
@@ -1528,8 +1590,8 @@ void IHidServer::GetActualVibrationValue(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
-    rb.PushRaw(
-        GetResourceManager()->GetNpad()->GetLastVibration(parameters.vibration_device_handle));
+    rb.PushRaw(GetResourceManager()->GetNpad()->GetLastVibration(
+        parameters.applet_resource_user_id, parameters.vibration_device_handle));
 }
 
 void IHidServer::CreateActiveVibrationDeviceList(HLERequestContext& ctx) {
@@ -1580,7 +1642,8 @@ void IHidServer::SendVibrationValues(HLERequestContext& ctx) {
     auto vibration_values = std::span(
         reinterpret_cast<const Core::HID::VibrationValue*>(vibration_data.data()), vibration_count);
 
-    GetResourceManager()->GetNpad()->VibrateControllers(vibration_device_handles, vibration_values);
+    GetResourceManager()->GetNpad()->VibrateControllers(applet_resource_user_id,
+                                                        vibration_device_handles, vibration_values);
 
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
@@ -1634,8 +1697,8 @@ void IHidServer::SendVibrationGcErmCommand(HLERequestContext& ctx) {
         }
     }();
 
-    GetResourceManager()->GetNpad()->VibrateController(parameters.vibration_device_handle,
-                                                       vibration_value);
+    GetResourceManager()->GetNpad()->VibrateController(
+        parameters.applet_resource_user_id, parameters.vibration_device_handle, vibration_value);
 
     LOG_DEBUG(Service_HID,
               "called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}, "
@@ -1659,8 +1722,8 @@ void IHidServer::GetActualVibrationGcErmCommand(HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    const auto last_vibration =
-        GetResourceManager()->GetNpad()->GetLastVibration(parameters.vibration_device_handle);
+    const auto last_vibration = GetResourceManager()->GetNpad()->GetLastVibration(
+        parameters.applet_resource_user_id, parameters.vibration_device_handle);
 
     const auto gc_erm_command = [last_vibration] {
         if (last_vibration.low_amplitude != 0.0f || last_vibration.high_amplitude != 0.0f) {
@@ -1732,7 +1795,7 @@ void IHidServer::IsVibrationDeviceMounted(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.Push(GetResourceManager()->GetNpad()->IsVibrationDeviceMounted(
-        parameters.vibration_device_handle));
+        parameters.applet_resource_user_id, parameters.vibration_device_handle));
 }
 
 void IHidServer::ActivateConsoleSixAxisSensor(HLERequestContext& ctx) {
@@ -2315,10 +2378,10 @@ void IHidServer::SetNpadCommunicationMode(HLERequestContext& ctx) {
     const auto applet_resource_user_id{rp.Pop<u64>()};
     const auto communication_mode{rp.PopEnum<NpadCommunicationMode>()};
 
-    GetResourceManager()->GetNpad()->SetNpadCommunicationMode(communication_mode);
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, communication_mode={}",
+              applet_resource_user_id, communication_mode);
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}, communication_mode={}",
-                applet_resource_user_id, communication_mode);
+    // This function has been stubbed since 2.0.0+
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -2326,12 +2389,15 @@ void IHidServer::SetNpadCommunicationMode(HLERequestContext& ctx) {
 
 void IHidServer::GetNpadCommunicationMode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called");
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    // This function has been stubbed since 2.0.0+
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
-    rb.PushEnum(GetResourceManager()->GetNpad()->GetNpadCommunicationMode());
+    rb.PushEnum(NpadCommunicationMode::Default);
 }
 
 void IHidServer::SetTouchScreenConfiguration(HLERequestContext& ctx) {

@@ -129,12 +129,12 @@ std::shared_ptr<UniquePad> ResourceManager::GetUniquePad() const {
 }
 
 Result ResourceManager::CreateAppletResource(u64 aruid) {
-    if (aruid == 0) {
+    if (aruid == SystemAruid) {
         const auto result = RegisterCoreAppletResource();
         if (result.IsError()) {
             return result;
         }
-        return GetNpad()->Activate();
+        return GetNpad()->ActivateNpadResource();
     }
 
     const auto result = CreateAppletResourceImpl(aruid);
@@ -147,7 +147,7 @@ Result ResourceManager::CreateAppletResource(u64 aruid) {
     six_axis->Activate();
     touch_screen->Activate();
 
-    return GetNpad()->Activate(aruid);
+    return GetNpad()->ActivateNpadResource(aruid);
 }
 
 Result ResourceManager::CreateAppletResourceImpl(u64 aruid) {
@@ -174,7 +174,7 @@ void ResourceManager::InitializeHidCommonSampler() {
     debug_pad->SetAppletResource(applet_resource);
     digitizer->SetAppletResource(applet_resource);
     keyboard->SetAppletResource(applet_resource);
-    npad->SetAppletResource(applet_resource);
+    npad->SetNpadExternals(applet_resource, &shared_mutex);
     six_axis->SetAppletResource(applet_resource);
     mouse->SetAppletResource(applet_resource);
     debug_mouse->SetAppletResource(applet_resource);
@@ -214,7 +214,11 @@ Result ResourceManager::UnregisterCoreAppletResource() {
 
 Result ResourceManager::RegisterAppletResourceUserId(u64 aruid, bool bool_value) {
     std::scoped_lock lock{shared_mutex};
-    return applet_resource->RegisterAppletResourceUserId(aruid, bool_value);
+    auto result = applet_resource->RegisterAppletResourceUserId(aruid, bool_value);
+    if (result.IsSuccess()) {
+        result = npad->RegisterAppletResourceUserId(aruid);
+    }
+    return result;
 }
 
 void ResourceManager::UnregisterAppletResourceUserId(u64 aruid) {

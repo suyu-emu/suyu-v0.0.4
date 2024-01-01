@@ -31,7 +31,7 @@ constexpr Result IsSixaxisHandleValid(const Core::HID::SixAxisSensorHandle& hand
     const bool device_index = handle.device_index < Core::HID::DeviceIndex::MaxDeviceIndex;
 
     if (!npad_id) {
-        return InvalidNpadId;
+        return ResultInvalidNpadId;
     }
     if (!device_index) {
         return NpadDeviceIndexOutOfRange;
@@ -54,15 +54,15 @@ constexpr Result IsVibrationHandleValid(const Core::HID::VibrationDeviceHandle& 
         // These support vibration
         break;
     default:
-        return VibrationInvalidStyleIndex;
+        return ResultVibrationInvalidStyleIndex;
     }
 
     if (!IsNpadIdValid(static_cast<Core::HID::NpadIdType>(handle.npad_id))) {
-        return VibrationInvalidNpadId;
+        return ResultVibrationInvalidNpadId;
     }
 
     if (handle.device_index >= Core::HID::DeviceIndex::MaxDeviceIndex) {
-        return VibrationDeviceIndexOutOfRange;
+        return ResultVibrationDeviceIndexOutOfRange;
     }
 
     return ResultSuccess;
