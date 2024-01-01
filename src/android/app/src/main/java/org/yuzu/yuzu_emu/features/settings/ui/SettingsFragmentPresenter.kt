@@ -3,10 +3,8 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
-import android.content.SharedPreferences
 import android.os.Build
 import android.widget.Toast
-import androidx.preference.PreferenceManager
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
@@ -28,9 +26,6 @@ class SettingsFragmentPresenter(
     private var menuTag: Settings.MenuTag
 ) {
     private var settingsList = ArrayList<SettingsItem>()
-
-    private val preferences: SharedPreferences
-        get() = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
     // Extension for altering settings list based on each setting's properties
     fun ArrayList<SettingsItem>.add(key: String) {
@@ -170,25 +165,19 @@ class SettingsFragmentPresenter(
     private fun addThemeSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
             val theme: AbstractIntSetting = object : AbstractIntSetting {
-                override fun getInt(needsGlobal: Boolean): Int =
-                    preferences.getInt(Settings.PREF_THEME, 0)
-
+                override fun getInt(needsGlobal: Boolean): Int = IntSetting.THEME.getInt()
                 override fun setInt(value: Int) {
-                    preferences.edit()
-                        .putInt(Settings.PREF_THEME, value)
-                        .apply()
+                    IntSetting.THEME.setInt(value)
                     settingsViewModel.setShouldRecreate(true)
                 }
 
-                override val key: String = Settings.PREF_THEME
-                override val isRuntimeModifiable: Boolean = false
-                override fun getValueAsString(needsGlobal: Boolean): String = getInt().toString()
-                override val defaultValue: Int = 0
-                override fun reset() {
-                    preferences.edit()
-                        .putInt(Settings.PREF_THEME, defaultValue)
-                        .apply()
-                }
+                override val key: String = IntSetting.THEME.key
+                override val isRuntimeModifiable: Boolean = IntSetting.THEME.isRuntimeModifiable
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    IntSetting.THEME.getValueAsString()
+
+                override val defaultValue: Int = IntSetting.THEME.defaultValue
+                override fun reset() = IntSetting.THEME.setInt(defaultValue)
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -214,24 +203,22 @@ class SettingsFragmentPresenter(
             }
 
             val themeMode: AbstractIntSetting = object : AbstractIntSetting {
-                override fun getInt(needsGlobal: Boolean): Int =
-                    preferences.getInt(Settings.PREF_THEME_MODE, -1)
-
+                override fun getInt(needsGlobal: Boolean): Int = IntSetting.THEME_MODE.getInt()
                 override fun setInt(value: Int) {
-                    preferences.edit()
-                        .putInt(Settings.PREF_THEME_MODE, value)
-                        .apply()
+                    IntSetting.THEME_MODE.setInt(value)
                     settingsViewModel.setShouldRecreate(true)
                 }
 
-                override val key: String = Settings.PREF_THEME_MODE
-                override val isRuntimeModifiable: Boolean = false
-                override fun getValueAsString(needsGlobal: Boolean): String = getInt().toString()
-                override val defaultValue: Int = -1
+                override val key: String = IntSetting.THEME_MODE.key
+                override val isRuntimeModifiable: Boolean =
+                    IntSetting.THEME_MODE.isRuntimeModifiable
+
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    IntSetting.THEME_MODE.getValueAsString()
+
+                override val defaultValue: Int = IntSetting.THEME_MODE.defaultValue
                 override fun reset() {
-                    preferences.edit()
-                        .putInt(Settings.PREF_BLACK_BACKGROUNDS, defaultValue)
-                        .apply()
+                    IntSetting.THEME_MODE.setInt(defaultValue)
                     settingsViewModel.setShouldRecreate(true)
                 }
             }
@@ -248,25 +235,24 @@ class SettingsFragmentPresenter(
 
             val blackBackgrounds: AbstractBooleanSetting = object : AbstractBooleanSetting {
                 override fun getBoolean(needsGlobal: Boolean): Boolean =
-                    preferences.getBoolean(Settings.PREF_BLACK_BACKGROUNDS, false)
+                    BooleanSetting.BLACK_BACKGROUNDS.getBoolean()
 
                 override fun setBoolean(value: Boolean) {
-                    preferences.edit()
-                        .putBoolean(Settings.PREF_BLACK_BACKGROUNDS, value)
-                        .apply()
+                    BooleanSetting.BLACK_BACKGROUNDS.setBoolean(value)
                     settingsViewModel.setShouldRecreate(true)
                 }
 
-                override val key: String = Settings.PREF_BLACK_BACKGROUNDS
-                override val isRuntimeModifiable: Boolean = false
-                override fun getValueAsString(needsGlobal: Boolean): String =
-                    getBoolean().toString()
+                override val key: String = BooleanSetting.BLACK_BACKGROUNDS.key
+                override val isRuntimeModifiable: Boolean =
+                    BooleanSetting.BLACK_BACKGROUNDS.isRuntimeModifiable
 
-                override val defaultValue: Boolean = false
+                override fun getValueAsString(needsGlobal: Boolean): String =
+                    BooleanSetting.BLACK_BACKGROUNDS.getValueAsString()
+
+                override val defaultValue: Boolean = BooleanSetting.BLACK_BACKGROUNDS.defaultValue
                 override fun reset() {
-                    preferences.edit()
-                        .putBoolean(Settings.PREF_BLACK_BACKGROUNDS, defaultValue)
-                        .apply()
+                    BooleanSetting.BLACK_BACKGROUNDS
+                        .setBoolean(BooleanSetting.BLACK_BACKGROUNDS.defaultValue)
                     settingsViewModel.setShouldRecreate(true)
                 }
             }

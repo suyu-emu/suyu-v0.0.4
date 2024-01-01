@@ -10,6 +10,7 @@ import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.view.MotionEvent
 import org.yuzu.yuzu_emu.NativeLibrary.ButtonState
+import org.yuzu.yuzu_emu.overlay.model.OverlayControlData
 
 /**
  * Custom [BitmapDrawable] that is capable
@@ -25,7 +26,7 @@ class InputOverlayDrawableButton(
     defaultStateBitmap: Bitmap,
     pressedStateBitmap: Bitmap,
     val buttonId: Int,
-    val prefId: String
+    val overlayControlData: OverlayControlData
 ) {
     // The ID value what motion event is tracking
     var trackId: Int

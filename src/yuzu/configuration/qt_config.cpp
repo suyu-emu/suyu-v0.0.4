@@ -348,43 +348,45 @@ void QtConfig::SaveQtPlayerValues(const std::size_t player_index) {
 
     for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
         const std::string default_param = InputCommon::GenerateKeyboardParam(default_buttons[i]);
-        WriteSetting(std::string(player_prefix).append(Settings::NativeButton::mapping[i]),
-                     player.buttons[i], std::make_optional(default_param));
+        WriteStringSetting(std::string(player_prefix).append(Settings::NativeButton::mapping[i]),
+                           player.buttons[i], std::make_optional(default_param));
     }
     for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
         const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
             default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
             default_analogs[i][3], default_stick_mod[i], 0.5f);
-        WriteSetting(std::string(player_prefix).append(Settings::NativeAnalog::mapping[i]),
-                     player.analogs[i], std::make_optional(default_param));
+        WriteStringSetting(std::string(player_prefix).append(Settings::NativeAnalog::mapping[i]),
+                           player.analogs[i], std::make_optional(default_param));
     }
     for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
         const std::string default_param = InputCommon::GenerateKeyboardParam(default_motions[i]);
-        WriteSetting(std::string(player_prefix).append(Settings::NativeMotion::mapping[i]),
-                     player.motions[i], std::make_optional(default_param));
+        WriteStringSetting(std::string(player_prefix).append(Settings::NativeMotion::mapping[i]),
+                           player.motions[i], std::make_optional(default_param));
     }
 }
 
 void QtConfig::SaveDebugControlValues() {
     for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
         const std::string default_param = InputCommon::GenerateKeyboardParam(default_buttons[i]);
-        WriteSetting(std::string("debug_pad_").append(Settings::NativeButton::mapping[i]),
-                     Settings::values.debug_pad_buttons[i], std::make_optional(default_param));
+        WriteStringSetting(std::string("debug_pad_").append(Settings::NativeButton::mapping[i]),
+                           Settings::values.debug_pad_buttons[i],
+                           std::make_optional(default_param));
     }
     for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
         const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
             default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
             default_analogs[i][3], default_stick_mod[i], 0.5f);
-        WriteSetting(std::string("debug_pad_").append(Settings::NativeAnalog::mapping[i]),
-                     Settings::values.debug_pad_analogs[i], std::make_optional(default_param));
+        WriteStringSetting(std::string("debug_pad_").append(Settings::NativeAnalog::mapping[i]),
+                           Settings::values.debug_pad_analogs[i],
+                           std::make_optional(default_param));
     }
 }
 
 void QtConfig::SaveHidbusValues() {
     const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
         0, 0, default_ringcon_analogs[0], default_ringcon_analogs[1], 0, 0.05f);
-    WriteSetting(std::string("ring_controller"), Settings::values.ringcon_analogs,
-                 std::make_optional(default_param));
+    WriteStringSetting(std::string("ring_controller"), Settings::values.ringcon_analogs,
+                       std::make_optional(default_param));
 }
 
 void QtConfig::SaveQtControlValues() {
@@ -409,19 +411,20 @@ void QtConfig::SavePathValues() {
 
     WriteCategory(Settings::Category::Paths);
 
-    WriteSetting(std::string("romsPath"), UISettings::values.roms_path);
+    WriteStringSetting(std::string("romsPath"), UISettings::values.roms_path);
     BeginArray(std::string("gamedirs"));
     for (int i = 0; i < UISettings::values.game_dirs.size(); ++i) {
         SetArrayIndex(i);
         const auto& game_dir = UISettings::values.game_dirs[i];
-        WriteSetting(std::string("path"), game_dir.path);
-        WriteSetting(std::string("deep_scan"), game_dir.deep_scan, std::make_optional(false));
-        WriteSetting(std::string("expanded"), game_dir.expanded, std::make_optional(true));
+        WriteStringSetting(std::string("path"), game_dir.path);
+        WriteBooleanSetting(std::string("deep_scan"), game_dir.deep_scan,
+                            std::make_optional(false));
+        WriteBooleanSetting(std::string("expanded"), game_dir.expanded, std::make_optional(true));
     }
     EndArray();
 
-    WriteSetting(std::string("recentFiles"),
-                 UISettings::values.recent_files.join(QStringLiteral(", ")).toStdString());
+    WriteStringSetting(std::string("recentFiles"),
+                       UISettings::values.recent_files.join(QStringLiteral(", ")).toStdString());
 
     EndGroup();
 }
@@ -438,14 +441,14 @@ void QtConfig::SaveShortcutValues() {
         BeginGroup(group);
         BeginGroup(name);
 
-        WriteSetting(std::string("KeySeq"), shortcut.keyseq,
-                     std::make_optional(default_hotkey.keyseq));
-        WriteSetting(std::string("Controller_KeySeq"), shortcut.controller_keyseq,
-                     std::make_optional(default_hotkey.controller_keyseq));
-        WriteSetting(std::string("Context"), shortcut.context,
-                     std::make_optional(default_hotkey.context));
-        WriteSetting(std::string("Repeat"), shortcut.repeat,
-                     std::make_optional(default_hotkey.repeat));
+        WriteStringSetting(std::string("KeySeq"), shortcut.keyseq,
+                           std::make_optional(default_hotkey.keyseq));
+        WriteStringSetting(std::string("Controller_KeySeq"), shortcut.controller_keyseq,
+                           std::make_optional(default_hotkey.controller_keyseq));
+        WriteIntegerSetting(std::string("Context"), shortcut.context,
+                            std::make_optional(default_hotkey.context));
+        WriteBooleanSetting(std::string("Repeat"), shortcut.repeat,
+                            std::make_optional(default_hotkey.repeat));
 
         EndGroup(); // name
         EndGroup(); // group
@@ -460,9 +463,10 @@ void QtConfig::SaveUIValues() {
     WriteCategory(Settings::Category::Ui);
     WriteCategory(Settings::Category::UiGeneral);
 
-    WriteSetting(std::string("theme"), UISettings::values.theme,
-                 std::make_optional(std::string(
-                     UISettings::themes[static_cast<size_t>(UISettings::default_theme)].second)));
+    WriteStringSetting(
+        std::string("theme"), UISettings::values.theme,
+        std::make_optional(std::string(
+            UISettings::themes[static_cast<size_t>(UISettings::default_theme)].second)));
 
     SaveUIGamelistValues();
     SaveUILayoutValues();
@@ -482,7 +486,7 @@ void QtConfig::SaveUIGamelistValues() {
     BeginArray(std::string("favorites"));
     for (int i = 0; i < UISettings::values.favorited_ids.size(); i++) {
         SetArrayIndex(i);
-        WriteSetting(std::string("program_id"), UISettings::values.favorited_ids[i]);
+        WriteIntegerSetting(std::string("program_id"), UISettings::values.favorited_ids[i]);
     }
     EndArray(); // favorites
 
@@ -506,14 +510,15 @@ void QtConfig::SaveMultiplayerValues() {
     BeginArray(std::string("username_ban_list"));
     for (std::size_t i = 0; i < UISettings::values.multiplayer_ban_list.first.size(); ++i) {
         SetArrayIndex(static_cast<int>(i));
-        WriteSetting(std::string("username"), UISettings::values.multiplayer_ban_list.first[i]);
+        WriteStringSetting(std::string("username"),
+                           UISettings::values.multiplayer_ban_list.first[i]);
     }
     EndArray(); // username_ban_list
 
     BeginArray(std::string("ip_ban_list"));
     for (std::size_t i = 0; i < UISettings::values.multiplayer_ban_list.second.size(); ++i) {
         SetArrayIndex(static_cast<int>(i));
-        WriteSetting(std::string("ip"), UISettings::values.multiplayer_ban_list.second[i]);
+        WriteStringSetting(std::string("ip"), UISettings::values.multiplayer_ban_list.second[i]);
     }
     EndArray(); // ip_ban_list
 

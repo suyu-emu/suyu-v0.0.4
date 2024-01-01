@@ -39,6 +39,11 @@
         android:checkable="true" />
 
     <item
+        android:id="@+id/menu_touchscreen"
+        android:title="@string/touchscreen"
+        android:checkable="true" />
+
+    <item
         android:id="@+id/menu_reset_overlay"
         android:title="@string/emulation_touch_overlay_reset" />
 

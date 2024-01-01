@@ -35,6 +35,18 @@ static jmethodID s_pair_constructor;
 static jfieldID s_pair_first_field;
 static jfieldID s_pair_second_field;
 
+static jclass s_overlay_control_data_class;
+static jmethodID s_overlay_control_data_constructor;
+static jfieldID s_overlay_control_data_id_field;
+static jfieldID s_overlay_control_data_enabled_field;
+static jfieldID s_overlay_control_data_landscape_position_field;
+static jfieldID s_overlay_control_data_portrait_position_field;
+static jfieldID s_overlay_control_data_foldable_position_field;
+
+static jclass s_double_class;
+static jmethodID s_double_constructor;
+static jfieldID s_double_value_field;
+
 static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
 
 namespace IDCache {
@@ -146,6 +158,46 @@ jfieldID GetPairSecondField() {
     return s_pair_second_field;
 }
 
+jclass GetOverlayControlDataClass() {
+    return s_overlay_control_data_class;
+}
+
+jmethodID GetOverlayControlDataConstructor() {
+    return s_overlay_control_data_constructor;
+}
+
+jfieldID GetOverlayControlDataIdField() {
+    return s_overlay_control_data_id_field;
+}
+
+jfieldID GetOverlayControlDataEnabledField() {
+    return s_overlay_control_data_enabled_field;
+}
+
+jfieldID GetOverlayControlDataLandscapePositionField() {
+    return s_overlay_control_data_landscape_position_field;
+}
+
+jfieldID GetOverlayControlDataPortraitPositionField() {
+    return s_overlay_control_data_portrait_position_field;
+}
+
+jfieldID GetOverlayControlDataFoldablePositionField() {
+    return s_overlay_control_data_foldable_position_field;
+}
+
+jclass GetDoubleClass() {
+    return s_double_class;
+}
+
+jmethodID GetDoubleConstructor() {
+    return s_double_constructor;
+}
+
+jfieldID GetDoubleValueField() {
+    return s_double_value_field;
+}
+
 } // namespace IDCache
 
 #ifdef __cplusplus
@@ -207,6 +259,31 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     s_pair_second_field = env->GetFieldID(pair_class, "second", "Ljava/lang/Object;");
     env->DeleteLocalRef(pair_class);
 
+    const jclass overlay_control_data_class =
+        env->FindClass("org/yuzu/yuzu_emu/overlay/model/OverlayControlData");
+    s_overlay_control_data_class =
+        reinterpret_cast<jclass>(env->NewGlobalRef(overlay_control_data_class));
+    s_overlay_control_data_constructor =
+        env->GetMethodID(overlay_control_data_class, "<init>",
+                         "(Ljava/lang/String;ZLkotlin/Pair;Lkotlin/Pair;Lkotlin/Pair;)V");
+    s_overlay_control_data_id_field =
+        env->GetFieldID(overlay_control_data_class, "id", "Ljava/lang/String;");
+    s_overlay_control_data_enabled_field =
+        env->GetFieldID(overlay_control_data_class, "enabled", "Z");
+    s_overlay_control_data_landscape_position_field =
+        env->GetFieldID(overlay_control_data_class, "landscapePosition", "Lkotlin/Pair;");
+    s_overlay_control_data_portrait_position_field =
+        env->GetFieldID(overlay_control_data_class, "portraitPosition", "Lkotlin/Pair;");
+    s_overlay_control_data_foldable_position_field =
+        env->GetFieldID(overlay_control_data_class, "foldablePosition", "Lkotlin/Pair;");
+    env->DeleteLocalRef(overlay_control_data_class);
+
+    const jclass double_class = env->FindClass("java/lang/Double");
+    s_double_class = reinterpret_cast<jclass>(env->NewGlobalRef(double_class));
+    s_double_constructor = env->GetMethodID(double_class, "<init>", "(D)V");
+    s_double_value_field = env->GetFieldID(double_class, "value", "D");
+    env->DeleteLocalRef(double_class);
+
     // Initialize Android Storage
     Common::FS::Android::RegisterCallbacks(env, s_native_library_class);
 
@@ -231,6 +308,8 @@ void JNI_OnUnload(JavaVM* vm, void* reserved) {
     env->DeleteGlobalRef(s_game_class);
     env->DeleteGlobalRef(s_string_class);
     env->DeleteGlobalRef(s_pair_class);
+    env->DeleteGlobalRef(s_overlay_control_data_class);
+    env->DeleteGlobalRef(s_double_class);
 
     // UnInitialize applets
     SoftwareKeyboard::CleanupJNI(env);

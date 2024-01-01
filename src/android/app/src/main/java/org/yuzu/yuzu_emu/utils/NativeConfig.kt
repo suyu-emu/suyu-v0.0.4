@@ -4,6 +4,7 @@
 package org.yuzu.yuzu_emu.utils
 
 import org.yuzu.yuzu_emu.model.GameDir
+import org.yuzu.yuzu_emu.overlay.model.OverlayControlData
 
 object NativeConfig {
     /**
@@ -150,4 +151,21 @@ object NativeConfig {
      */
     @Synchronized
     external fun setDisabledAddons(programId: String, disabledAddons: Array<String>)
+
+    /**
+     * Gets an array of [OverlayControlData] from settings
+     *
+     * @return An array of [OverlayControlData]
+     */
+    @Synchronized
+    external fun getOverlayControlData(): Array<OverlayControlData>
+
+    /**
+     * Clears the AndroidSettings::values.overlay_control_data array and replaces its values
+     * with [overlayControlData]
+     *
+     * @param overlayControlData Replacement array of [OverlayControlData]
+     */
+    @Synchronized
+    external fun setOverlayControlData(overlayControlData: Array<OverlayControlData>)
 }
