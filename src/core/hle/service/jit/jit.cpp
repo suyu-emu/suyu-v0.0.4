@@ -4,11 +4,11 @@
 #include "core/arm/debug.h"
 #include "core/arm/symbols.h"
 #include "core/core.h"
-#include "core/hle/kernel/k_code_memory.h"
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/result.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/jit/jit.h"
+#include "core/hle/service/jit/jit_code_memory.h"
 #include "core/hle/service/jit/jit_context.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/service.h"
@@ -23,10 +23,12 @@ struct CodeRange {
 
 class IJitEnvironment final : public ServiceFramework<IJitEnvironment> {
 public:
-    explicit IJitEnvironment(Core::System& system_, Kernel::KProcess& process_, CodeRange user_rx,
-                             CodeRange user_ro)
-        : ServiceFramework{system_, "IJitEnvironment"}, process{&process_},
-          context{process->GetMemory()} {
+    explicit IJitEnvironment(Core::System& system_,
+                             Kernel::KScopedAutoObject<Kernel::KProcess>&& process_,
+                             CodeMemory&& user_rx_, CodeMemory&& user_ro_)
+        : ServiceFramework{system_, "IJitEnvironment"}, process{std::move(process_)},
+          user_rx{std::move(user_rx_)}, user_ro{std::move(user_ro_)},
+          context{system_.ApplicationMemory()} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IJitEnvironment::GenerateCode, "GenerateCode"},
@@ -39,10 +41,13 @@ public:
         RegisterHandlers(functions);
 
         // Identity map user code range into sysmodule context
-        configuration.user_ro_memory = user_ro;
-        configuration.user_rx_memory = user_rx;
-        configuration.sys_ro_memory = user_ro;
-        configuration.sys_rx_memory = user_rx;
+        configuration.user_rx_memory.size = user_rx.GetSize();
+        configuration.user_rx_memory.offset = user_rx.GetAddress();
+        configuration.user_ro_memory.size = user_ro.GetSize();
+        configuration.user_ro_memory.offset = user_ro.GetAddress();
+
+        configuration.sys_rx_memory = configuration.user_rx_memory;
+        configuration.sys_ro_memory = configuration.user_ro_memory;
     }
 
     void GenerateCode(HLERequestContext& ctx) {
@@ -318,6 +323,8 @@ private:
     }
 
     Kernel::KScopedAutoObject<Kernel::KProcess> process;
+    CodeMemory user_rx;
+    CodeMemory user_ro;
     GuestCallbacks callbacks;
     JITConfiguration configuration;
     JITContext context;
@@ -335,6 +342,7 @@ public:
         RegisterHandlers(functions);
     }
 
+private:
     void CreateJitEnvironment(HLERequestContext& ctx) {
         LOG_DEBUG(Service_JIT, "called");
 
@@ -380,20 +388,35 @@ public:
             return;
         }
 
-        const CodeRange user_rx{
-            .offset = GetInteger(rx_mem->GetSourceAddress()),
-            .size = parameters.rx_size,
-        };
+        CodeMemory rx, ro;
+        Result res;
 
-        const CodeRange user_ro{
-            .offset = GetInteger(ro_mem->GetSourceAddress()),
-            .size = parameters.ro_size,
-        };
+        res = rx.Initialize(*process, *rx_mem, parameters.rx_size,
+                            Kernel::Svc::MemoryPermission::ReadExecute, generate_random);
+        if (R_FAILED(res)) {
+            LOG_ERROR(Service_JIT, "rx_mem could not be mapped for handle=0x{:08X}", rx_mem_handle);
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(res);
+            return;
+        }
+
+        res = ro.Initialize(*process, *ro_mem, parameters.ro_size,
+                            Kernel::Svc::MemoryPermission::Read, generate_random);
+        if (R_FAILED(res)) {
+            LOG_ERROR(Service_JIT, "ro_mem could not be mapped for handle=0x{:08X}", ro_mem_handle);
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(res);
+            return;
+        }
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IJitEnvironment>(system, *process, user_rx, user_ro);
+        rb.PushIpcInterface<IJitEnvironment>(system, std::move(process), std::move(rx),
+                                             std::move(ro));
     }
+
+private:
+    std::mt19937_64 generate_random{};
 };
 
 void LoopProcess(Core::System& system) {
