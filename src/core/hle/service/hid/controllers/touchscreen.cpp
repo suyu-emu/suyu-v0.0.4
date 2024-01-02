@@ -30,7 +30,7 @@ void TouchScreen::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
     const u64 aruid = applet_resource->GetActiveAruid();
     auto* data = applet_resource->GetAruidData(aruid);
 
-    if (data == nullptr) {
+    if (data == nullptr || !data->flag.is_assigned) {
         return;
     }
 

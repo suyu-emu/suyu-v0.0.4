@@ -171,31 +171,31 @@ void ResourceManager::InitializeHidCommonSampler() {
     palma = std::make_shared<Palma>(system.HIDCore(), service_context);
     six_axis = std::make_shared<SixAxis>(system.HIDCore(), npad);
 
-    debug_pad->SetAppletResource(applet_resource);
-    digitizer->SetAppletResource(applet_resource);
-    keyboard->SetAppletResource(applet_resource);
+    debug_pad->SetAppletResource(applet_resource, &shared_mutex);
+    digitizer->SetAppletResource(applet_resource, &shared_mutex);
+    keyboard->SetAppletResource(applet_resource, &shared_mutex);
     npad->SetNpadExternals(applet_resource, &shared_mutex);
-    six_axis->SetAppletResource(applet_resource);
-    mouse->SetAppletResource(applet_resource);
-    debug_mouse->SetAppletResource(applet_resource);
-    home_button->SetAppletResource(applet_resource);
-    sleep_button->SetAppletResource(applet_resource);
-    capture_button->SetAppletResource(applet_resource);
+    six_axis->SetAppletResource(applet_resource, &shared_mutex);
+    mouse->SetAppletResource(applet_resource, &shared_mutex);
+    debug_mouse->SetAppletResource(applet_resource, &shared_mutex);
+    home_button->SetAppletResource(applet_resource, &shared_mutex);
+    sleep_button->SetAppletResource(applet_resource, &shared_mutex);
+    capture_button->SetAppletResource(applet_resource, &shared_mutex);
 }
 
 void ResourceManager::InitializeTouchScreenSampler() {
     gesture = std::make_shared<Gesture>(system.HIDCore());
     touch_screen = std::make_shared<TouchScreen>(system.HIDCore());
 
-    touch_screen->SetAppletResource(applet_resource);
-    gesture->SetAppletResource(applet_resource);
+    touch_screen->SetAppletResource(applet_resource, &shared_mutex);
+    gesture->SetAppletResource(applet_resource, &shared_mutex);
 }
 
 void ResourceManager::InitializeConsoleSixAxisSampler() {
     console_six_axis = std::make_shared<ConsoleSixAxis>(system.HIDCore());
     seven_six_axis = std::make_shared<SevenSixAxis>(system);
 
-    console_six_axis->SetAppletResource(applet_resource);
+    console_six_axis->SetAppletResource(applet_resource, &shared_mutex);
 }
 
 void ResourceManager::InitializeAHidSampler() {
