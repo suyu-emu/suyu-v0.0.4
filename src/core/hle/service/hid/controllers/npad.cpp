@@ -128,7 +128,7 @@ void NPad::ControllerUpdate(Core::HID::ControllerTriggerType type, std::size_t c
 
         auto* data = applet_resource_holder.applet_resource->GetAruidDataByIndex(aruid_index);
 
-        if (data->flag.is_assigned) {
+        if (!data->flag.is_assigned) {
             continue;
         }
 

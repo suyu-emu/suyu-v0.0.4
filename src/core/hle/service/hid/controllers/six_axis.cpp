@@ -27,10 +27,11 @@ void SixAxis::OnInit() {}
 void SixAxis::OnRelease() {}
 
 void SixAxis::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+    std::scoped_lock shared_lock{*shared_mutex};
     const u64 aruid = applet_resource->GetActiveAruid();
     auto* data = applet_resource->GetAruidData(aruid);
 
-    if (data == nullptr) {
+    if (data == nullptr || !data->flag.is_assigned) {
         return;
     }
 

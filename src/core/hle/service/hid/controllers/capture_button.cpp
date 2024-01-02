@@ -21,10 +21,11 @@ void CaptureButton::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
         return;
     }
 
+    std::scoped_lock shared_lock{*shared_mutex};
     const u64 aruid = applet_resource->GetActiveAruid();
     auto* data = applet_resource->GetAruidData(aruid);
 
-    if (data == nullptr) {
+    if (data == nullptr || !data->flag.is_assigned) {
         return;
     }
 
