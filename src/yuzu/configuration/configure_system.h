@@ -27,6 +27,8 @@ class Builder;
 }
 
 class ConfigureSystem : public ConfigurationShared::Tab {
+    Q_OBJECT
+
 public:
     explicit ConfigureSystem(Core::System& system_,
                              std::shared_ptr<std::vector<ConfigurationShared::Tab*>> group,

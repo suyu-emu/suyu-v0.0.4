@@ -43,6 +43,8 @@ class Builder;
 }
 
 class ConfigureGraphics : public ConfigurationShared::Tab {
+    Q_OBJECT
+
 public:
     explicit ConfigureGraphics(
         const Core::System& system_, std::vector<VkDeviceInfo::Record>& records,

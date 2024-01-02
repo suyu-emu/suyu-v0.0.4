@@ -26,6 +26,7 @@ class ConfigureMotionTouch;
 /// A dialog for touchpad calibration configuration.
 class CalibrationConfigurationDialog : public QDialog {
     Q_OBJECT
+
 public:
     explicit CalibrationConfigurationDialog(QWidget* parent, const std::string& host, u16 port);
     ~CalibrationConfigurationDialog() override;
