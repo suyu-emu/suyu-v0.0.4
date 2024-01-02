@@ -280,6 +280,16 @@ void Config::ReadDebuggingValues() {
     EndGroup();
 }
 
+#ifdef __unix__
+void Config::ReadLinuxValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::Linux));
+
+    ReadCategory(Settings::Category::Linux);
+
+    EndGroup();
+}
+#endif
+
 void Config::ReadServiceValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Services));
 
@@ -386,6 +396,9 @@ void Config::ReadValues() {
     ReadControlValues();
     ReadCoreValues();
     ReadCpuValues();
+#ifdef __unix__
+    ReadLinuxValues();
+#endif
     ReadRendererValues();
     ReadAudioValues();
     ReadSystemValues();
@@ -478,6 +491,9 @@ void Config::SaveValues() {
     SaveControlValues();
     SaveCoreValues();
     SaveCpuValues();
+#ifdef __unix__
+    SaveLinuxValues();
+#endif
     SaveRendererValues();
     SaveAudioValues();
     SaveSystemValues();
@@ -551,6 +567,16 @@ void Config::SaveDebuggingValues() {
 
     EndGroup();
 }
+
+#ifdef __unix__
+void Config::SaveLinuxValues() {
+    BeginGroup(Settings::TranslateCategory(Settings::Category::Linux));
+
+    WriteCategory(Settings::Category::Linux);
+
+    EndGroup();
+}
+#endif
 
 void Config::SaveNetworkValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Services));
