@@ -30,7 +30,6 @@ import org.yuzu.yuzu_emu.NativeLibrary.StickType
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
-import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.overlay.model.OverlayControl
 import org.yuzu.yuzu_emu.overlay.model.OverlayControlData
 import org.yuzu.yuzu_emu.overlay.model.OverlayLayout
@@ -302,7 +301,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) :
                 MotionEvent.ACTION_POINTER_UP -> if (dpadBeingConfigured === dpad) {
                     // Persist button position by saving new place.
                     saveControlPosition(
-                        Settings.PREF_BUTTON_DPAD,
+                        OverlayControl.COMBINED_DPAD.id,
                         dpadBeingConfigured!!.bounds.centerX(),
                         dpadBeingConfigured!!.bounds.centerY(),
                         layout
