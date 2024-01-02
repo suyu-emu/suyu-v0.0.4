@@ -350,11 +350,12 @@ public:
                            u64 main_region_size);
 
     void SetFrontendAppletSet(Service::AM::Frontend::FrontendAppletSet&& set);
-    void SetDefaultAppletFrontendSet();
 
     [[nodiscard]] Service::AM::Frontend::FrontendAppletHolder& GetFrontendAppletHolder();
     [[nodiscard]] const Service::AM::Frontend::FrontendAppletHolder& GetFrontendAppletHolder()
         const;
+
+    [[nodiscard]] Service::AM::AppletManager& GetAppletManager();
 
     void SetContentProvider(std::unique_ptr<FileSys::ContentProviderUnion> provider);
 

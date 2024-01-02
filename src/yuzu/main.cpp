@@ -4783,36 +4783,12 @@ void GMainWindow::RequestGameExit() {
         return;
     }
 
-    auto& sm{system->ServiceManager()};
-    auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
-    auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
-    bool has_signalled = false;
-
     system->SetExitRequested(true);
-
-    if (applet_oe != nullptr) {
-        applet_oe->GetMessageQueue()->RequestExit();
-        has_signalled = true;
-    }
-
-    if (applet_ae != nullptr && !has_signalled) {
-        applet_ae->GetMessageQueue()->RequestExit();
-    }
+    system->GetAppletManager().RequestExit();
 }
 
 void GMainWindow::RequestGameResume() {
-    auto& sm{system->ServiceManager()};
-    auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
-    auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
-
-    if (applet_oe != nullptr) {
-        applet_oe->GetMessageQueue()->RequestResume();
-        return;
-    }
-
-    if (applet_ae != nullptr) {
-        applet_ae->GetMessageQueue()->RequestResume();
-    }
+    system->GetAppletManager().RequestResume();
 }
 
 void GMainWindow::filterBarSetChecked(bool state) {

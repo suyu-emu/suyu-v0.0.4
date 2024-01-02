@@ -8,9 +8,11 @@
 
 namespace Service::AM {
 
+struct Applet;
+
 class IApplicationFunctions final : public ServiceFramework<IApplicationFunctions> {
 public:
-    explicit IApplicationFunctions(Core::System& system_);
+    explicit IApplicationFunctions(Core::System& system_, std::shared_ptr<Applet> applet_);
     ~IApplicationFunctions() override;
 
 private:
@@ -50,14 +52,7 @@ private:
     void GetHealthWarningDisappearedSystemEvent(HLERequestContext& ctx);
     void PrepareForJit(HLERequestContext& ctx);
 
-    KernelHelpers::ServiceContext service_context;
-
-    bool launch_popped_account_preselect = false;
-    s32 previous_program_index{-1};
-    Kernel::KEvent* gpu_error_detected_event;
-    Kernel::KEvent* friend_invitation_storage_channel_event;
-    Kernel::KEvent* notification_storage_channel_event;
-    Kernel::KEvent* health_warning_disappeared_system_event;
+    const std::shared_ptr<Applet> applet;
 };
 
 } // namespace Service::AM

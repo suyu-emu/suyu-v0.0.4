@@ -1,13 +1,15 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/hle/service/am/applet.h"
 #include "core/hle/service/am/applet_common_functions.h"
 #include "core/hle/service/ipc_helpers.h"
 
 namespace Service::AM {
 
-IAppletCommonFunctions::IAppletCommonFunctions(Core::System& system_)
-    : ServiceFramework{system_, "IAppletCommonFunctions"} {
+IAppletCommonFunctions::IAppletCommonFunctions(Core::System& system_,
+                                               std::shared_ptr<Applet> applet_)
+    : ServiceFramework{system_, "IAppletCommonFunctions"}, applet{std::move(applet_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "SetTerminateResult"},
@@ -39,6 +41,11 @@ IAppletCommonFunctions::~IAppletCommonFunctions() = default;
 
 void IAppletCommonFunctions::SetCpuBoostRequestPriority(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::RequestParser rp{ctx};
+
+    std::scoped_lock lk{applet->lock};
+    applet->cpu_boost_request_priority = rp.Pop<s32>();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

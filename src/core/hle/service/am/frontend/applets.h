@@ -188,7 +188,6 @@ public:
     void SetFrontendAppletSet(FrontendAppletSet set);
     void SetCabinetMode(NFP::CabinetMode mode);
     void SetCurrentAppletId(AppletId applet_id);
-    void SetDefaultAppletFrontendSet();
     void SetDefaultAppletsIfMissing();
     void ClearAll();
 

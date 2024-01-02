@@ -26,11 +26,15 @@ Kernel::KReadableEvent& AppletMessageQueue::GetOperationModeChangedEvent() {
 }
 
 void AppletMessageQueue::PushMessage(AppletMessage msg) {
-    messages.push(msg);
+    {
+        std::scoped_lock lk{lock};
+        messages.push(msg);
+    }
     on_new_message->Signal();
 }
 
 AppletMessageQueue::AppletMessage AppletMessageQueue::PopMessage() {
+    std::scoped_lock lk{lock};
     if (messages.empty()) {
         on_new_message->Clear();
         return AppletMessage::None;
@@ -44,6 +48,7 @@ AppletMessageQueue::AppletMessage AppletMessageQueue::PopMessage() {
 }
 
 std::size_t AppletMessageQueue::GetMessageCount() const {
+    std::scoped_lock lk{lock};
     return messages.size();
 }
 

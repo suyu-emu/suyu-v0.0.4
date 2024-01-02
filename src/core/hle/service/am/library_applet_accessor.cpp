@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/scope_exit.h"
 #include "core/hle/service/am/am_results.h"
+#include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/am/library_applet_accessor.h"
 #include "core/hle/service/am/storage.h"
 #include "core/hle/service/ipc_helpers.h"
@@ -9,8 +11,10 @@
 namespace Service::AM {
 
 ILibraryAppletAccessor::ILibraryAppletAccessor(Core::System& system_,
-                                               std::shared_ptr<Frontend::FrontendApplet> applet_)
-    : ServiceFramework{system_, "ILibraryAppletAccessor"}, applet{std::move(applet_)} {
+                                               std::shared_ptr<AppletStorageHolder> storage_,
+                                               std::shared_ptr<Applet> applet_)
+    : ServiceFramework{system_, "ILibraryAppletAccessor"}, storage{std::move(storage_)},
+      applet{std::move(applet_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ILibraryAppletAccessor::GetAppletStateChangedEvent, "GetAppletStateChangedEvent"},
@@ -38,27 +42,31 @@ ILibraryAppletAccessor::ILibraryAppletAccessor(Core::System& system_,
     RegisterHandlers(functions);
 }
 
+ILibraryAppletAccessor::~ILibraryAppletAccessor() = default;
+
 void ILibraryAppletAccessor::GetAppletStateChangedEvent(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(applet->GetBroker().GetStateChangedEvent());
+    rb.PushCopyObjects(storage->state_changed_event.GetHandle());
 }
 
 void ILibraryAppletAccessor::IsCompleted(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
+    std::scoped_lock lk{applet->lock};
+
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push<u32>(applet->TransactionComplete());
+    rb.Push<u32>(applet->is_completed);
 }
 
 void ILibraryAppletAccessor::GetResult(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(applet->GetStatus());
+    rb.Push(applet->terminate_result);
 }
 
 void ILibraryAppletAccessor::PresetLibraryAppletGpuTimeSliceZero(HLERequestContext& ctx) {
@@ -71,10 +79,7 @@ void ILibraryAppletAccessor::PresetLibraryAppletGpuTimeSliceZero(HLERequestConte
 void ILibraryAppletAccessor::Start(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
-    ASSERT(applet != nullptr);
-
-    applet->Initialize();
-    applet->Execute();
+    applet->process->Run();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -84,16 +89,17 @@ void ILibraryAppletAccessor::RequestExit(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     ASSERT(applet != nullptr);
+    applet->message_queue.RequestExit();
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(applet->RequestExit());
+    rb.Push(ResultSuccess);
 }
 
 void ILibraryAppletAccessor::PushInData(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::RequestParser rp{ctx};
-    applet->GetBroker().PushNormalDataFromGame(rp.PopIpcInterface<IStorage>().lock());
+    storage->in_data.PushData(rp.PopIpcInterface<IStorage>().lock());
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -102,29 +108,24 @@ void ILibraryAppletAccessor::PushInData(HLERequestContext& ctx) {
 void ILibraryAppletAccessor::PopOutData(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
-    auto storage = applet->GetBroker().PopNormalDataToGame();
-    if (storage == nullptr) {
-        LOG_DEBUG(Service_AM,
-                  "storage is a nullptr. There is no data in the current normal channel");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(AM::ResultNoDataInChannel);
-        return;
-    }
+    std::shared_ptr<IStorage> data;
+    const auto res = storage->out_data.PopData(&data);
 
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IStorage>(std::move(storage));
+    if (res.IsSuccess()) {
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(res);
+        rb.PushIpcInterface(std::move(data));
+    } else {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(res);
+    }
 }
 
 void ILibraryAppletAccessor::PushInteractiveInData(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::RequestParser rp{ctx};
-    applet->GetBroker().PushInteractiveDataFromGame(rp.PopIpcInterface<IStorage>().lock());
-
-    ASSERT(applet->IsInitialized());
-    applet->ExecuteInteractive();
-    applet->Execute();
+    storage->interactive_in_data.PushData(rp.PopIpcInterface<IStorage>().lock());
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -133,18 +134,17 @@ void ILibraryAppletAccessor::PushInteractiveInData(HLERequestContext& ctx) {
 void ILibraryAppletAccessor::PopInteractiveOutData(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
-    auto storage = applet->GetBroker().PopInteractiveDataToGame();
-    if (storage == nullptr) {
-        LOG_DEBUG(Service_AM,
-                  "storage is a nullptr. There is no data in the current interactive channel");
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(AM::ResultNoDataInChannel);
-        return;
-    }
+    std::shared_ptr<IStorage> data;
+    const auto res = storage->interactive_out_data.PopData(&data);
 
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IStorage>(std::move(storage));
+    if (res.IsSuccess()) {
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(res);
+        rb.PushIpcInterface(std::move(data));
+    } else {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(res);
+    }
 }
 
 void ILibraryAppletAccessor::GetPopOutDataEvent(HLERequestContext& ctx) {
@@ -152,7 +152,7 @@ void ILibraryAppletAccessor::GetPopOutDataEvent(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(applet->GetBroker().GetNormalDataEvent());
+    rb.PushCopyObjects(storage->out_data.GetEvent());
 }
 
 void ILibraryAppletAccessor::GetPopInteractiveOutDataEvent(HLERequestContext& ctx) {
@@ -160,7 +160,7 @@ void ILibraryAppletAccessor::GetPopInteractiveOutDataEvent(HLERequestContext& ct
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(applet->GetBroker().GetInteractiveDataEvent());
+    rb.PushCopyObjects(storage->interactive_out_data.GetEvent());
 }
 
 void ILibraryAppletAccessor::GetIndirectLayerConsumerHandle(HLERequestContext& ctx) {

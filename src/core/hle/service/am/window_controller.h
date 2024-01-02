@@ -7,15 +7,19 @@
 
 namespace Service::AM {
 
+struct Applet;
+
 class IWindowController final : public ServiceFramework<IWindowController> {
 public:
-    explicit IWindowController(Core::System& system_);
+    explicit IWindowController(Core::System& system_, std::shared_ptr<Applet> applet_);
     ~IWindowController() override;
 
 private:
     void GetAppletResourceUserId(HLERequestContext& ctx);
     void GetAppletResourceUserIdOfCallerApplet(HLERequestContext& ctx);
     void AcquireForegroundRights(HLERequestContext& ctx);
+
+    const std::shared_ptr<Applet> applet;
 };
 
 } // namespace Service::AM

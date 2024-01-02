@@ -7,13 +7,17 @@
 
 namespace Service::AM {
 
+struct Applet;
+
 class IAppletCommonFunctions final : public ServiceFramework<IAppletCommonFunctions> {
 public:
-    explicit IAppletCommonFunctions(Core::System& system_);
+    explicit IAppletCommonFunctions(Core::System& system_, std::shared_ptr<Applet> applet_);
     ~IAppletCommonFunctions() override;
 
 private:
     void SetCpuBoostRequestPriority(HLERequestContext& ctx);
+
+    const std::shared_ptr<Applet> applet;
 };
 
 } // namespace Service::AM

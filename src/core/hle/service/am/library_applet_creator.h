@@ -7,9 +7,11 @@
 
 namespace Service::AM {
 
+struct Applet;
+
 class ILibraryAppletCreator final : public ServiceFramework<ILibraryAppletCreator> {
 public:
-    explicit ILibraryAppletCreator(Core::System& system_);
+    explicit ILibraryAppletCreator(Core::System& system_, std::shared_ptr<Applet> applet_);
     ~ILibraryAppletCreator() override;
 
 private:
@@ -17,6 +19,8 @@ private:
     void CreateStorage(HLERequestContext& ctx);
     void CreateTransferMemoryStorage(HLERequestContext& ctx);
     void CreateHandleStorage(HLERequestContext& ctx);
+
+    const std::shared_ptr<Applet> applet;
 };
 
 } // namespace Service::AM

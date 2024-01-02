@@ -10,10 +10,11 @@
 
 namespace Service::AM {
 
+struct Applet;
+
 class ICommonStateGetter final : public ServiceFramework<ICommonStateGetter> {
 public:
-    explicit ICommonStateGetter(Core::System& system_,
-                                std::shared_ptr<AppletMessageQueue> msg_queue_);
+    explicit ICommonStateGetter(Core::System& system_, std::shared_ptr<Applet> applet_);
     ~ICommonStateGetter() override;
 
 private:
@@ -69,10 +70,7 @@ private:
     void GetSettingsPlatformRegion(HLERequestContext& ctx);
     void SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled(HLERequestContext& ctx);
 
-    std::shared_ptr<AppletMessageQueue> msg_queue;
-    bool vr_mode_state{};
-    Kernel::KEvent* sleep_lock_event;
-    KernelHelpers::ServiceContext service_context;
+    const std::shared_ptr<Applet> applet;
 };
 
 } // namespace Service::AM

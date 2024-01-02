@@ -392,6 +392,7 @@ struct System::Impl {
         // All threads are started, begin main process execution, now that we're in the clear.
         main_process->Run(load_parameters->main_thread_priority,
                           load_parameters->main_thread_stack_size);
+        main_process->Close();
 
         if (Settings::values.gamecard_inserted) {
             if (Settings::values.gamecard_current_game) {
@@ -886,16 +887,16 @@ void System::SetFrontendAppletSet(Service::AM::Frontend::FrontendAppletSet&& set
     impl->frontend_applets.SetFrontendAppletSet(std::move(set));
 }
 
-void System::SetDefaultAppletFrontendSet() {
-    impl->frontend_applets.SetDefaultAppletFrontendSet();
-}
-
 Service::AM::Frontend::FrontendAppletHolder& System::GetFrontendAppletHolder() {
     return impl->frontend_applets;
 }
 
 const Service::AM::Frontend::FrontendAppletHolder& System::GetFrontendAppletHolder() const {
     return impl->frontend_applets;
+}
+
+Service::AM::AppletManager& System::GetAppletManager() {
+    return impl->applet_manager;
 }
 
 void System::SetContentProvider(std::unique_ptr<FileSys::ContentProviderUnion> provider) {

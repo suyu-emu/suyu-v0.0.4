@@ -19,10 +19,9 @@
 namespace Service::AM {
 
 ILibraryAppletProxy::ILibraryAppletProxy(Nvnflinger::Nvnflinger& nvnflinger_,
-                                         std::shared_ptr<AppletMessageQueue> msg_queue_,
-                                         Core::System& system_)
-    : ServiceFramework{system_, "ILibraryAppletProxy"}, nvnflinger{nvnflinger_},
-      msg_queue{std::move(msg_queue_)} {
+                                         std::shared_ptr<Applet> applet_, Core::System& system_)
+    : ServiceFramework{system_, "ILibraryAppletProxy"}, nvnflinger{nvnflinger_}, applet{std::move(
+                                                                                     applet_)} {
     // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ILibraryAppletProxy::GetCommonStateGetter, "GetCommonStateGetter"},
@@ -43,12 +42,14 @@ ILibraryAppletProxy::ILibraryAppletProxy(Nvnflinger::Nvnflinger& nvnflinger_,
     RegisterHandlers(functions);
 }
 
+ILibraryAppletProxy::~ILibraryAppletProxy() = default;
+
 void ILibraryAppletProxy::GetCommonStateGetter(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ICommonStateGetter>(system, msg_queue);
+    rb.PushIpcInterface<ICommonStateGetter>(system, applet);
 }
 
 void ILibraryAppletProxy::GetSelfController(HLERequestContext& ctx) {
@@ -56,7 +57,7 @@ void ILibraryAppletProxy::GetSelfController(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ISelfController>(system, nvnflinger);
+    rb.PushIpcInterface<ISelfController>(system, applet, nvnflinger);
 }
 
 void ILibraryAppletProxy::GetWindowController(HLERequestContext& ctx) {
@@ -64,7 +65,7 @@ void ILibraryAppletProxy::GetWindowController(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IWindowController>(system);
+    rb.PushIpcInterface<IWindowController>(system, applet);
 }
 
 void ILibraryAppletProxy::GetAudioController(HLERequestContext& ctx) {
@@ -88,7 +89,7 @@ void ILibraryAppletProxy::GetProcessWindingController(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IProcessWindingController>(system);
+    rb.PushIpcInterface<IProcessWindingController>(system, applet);
 }
 
 void ILibraryAppletProxy::GetLibraryAppletCreator(HLERequestContext& ctx) {
@@ -96,7 +97,7 @@ void ILibraryAppletProxy::GetLibraryAppletCreator(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ILibraryAppletCreator>(system);
+    rb.PushIpcInterface<ILibraryAppletCreator>(system, applet);
 }
 
 void ILibraryAppletProxy::OpenLibraryAppletSelfAccessor(HLERequestContext& ctx) {
@@ -104,7 +105,7 @@ void ILibraryAppletProxy::OpenLibraryAppletSelfAccessor(HLERequestContext& ctx) 
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ILibraryAppletSelfAccessor>(system);
+    rb.PushIpcInterface<ILibraryAppletSelfAccessor>(system, applet);
 }
 
 void ILibraryAppletProxy::GetAppletCommonFunctions(HLERequestContext& ctx) {
@@ -112,7 +113,7 @@ void ILibraryAppletProxy::GetAppletCommonFunctions(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IAppletCommonFunctions>(system);
+    rb.PushIpcInterface<IAppletCommonFunctions>(system, applet);
 }
 
 void ILibraryAppletProxy::GetHomeMenuFunctions(HLERequestContext& ctx) {

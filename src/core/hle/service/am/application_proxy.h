@@ -3,16 +3,17 @@
 
 #pragma once
 
-#include "core/hle/service/am/applet_message_queue.h"
 #include "core/hle/service/service.h"
 
 namespace Service::AM {
 
+struct Applet;
+
 class IApplicationProxy final : public ServiceFramework<IApplicationProxy> {
 public:
     explicit IApplicationProxy(Nvnflinger::Nvnflinger& nvnflinger_,
-                               std::shared_ptr<AppletMessageQueue> msg_queue_,
-                               Core::System& system_);
+                               std::shared_ptr<Applet> msg_queue_, Core::System& system_);
+    ~IApplicationProxy();
 
 private:
     void GetAudioController(HLERequestContext& ctx);
@@ -26,7 +27,7 @@ private:
     void GetApplicationFunctions(HLERequestContext& ctx);
 
     Nvnflinger::Nvnflinger& nvnflinger;
-    std::shared_ptr<AppletMessageQueue> msg_queue;
+    std::shared_ptr<Applet> applet;
 };
 
 } // namespace Service::AM

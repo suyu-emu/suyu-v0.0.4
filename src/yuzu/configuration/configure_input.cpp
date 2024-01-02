@@ -9,6 +9,7 @@
 #include "core/core.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
+#include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/applet_message_queue.h"
 #include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/sm/sm.h"
@@ -48,22 +49,8 @@ void OnDockedModeChanged(bool last_state, bool new_state, Core::System& system) 
     if (!system.IsPoweredOn()) {
         return;
     }
-    Service::SM::ServiceManager& sm = system.ServiceManager();
 
-    // Message queue is shared between these services, we just need to signal an operation
-    // change to one and it will handle both automatically
-    auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
-    auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
-    bool has_signalled = false;
-
-    if (applet_oe != nullptr) {
-        applet_oe->GetMessageQueue()->OperationModeChanged();
-        has_signalled = true;
-    }
-
-    if (applet_ae != nullptr && !has_signalled) {
-        applet_ae->GetMessageQueue()->OperationModeChanged();
-    }
+    system.GetAppletManager().OperationModeChanged();
 }
 
 ConfigureInput::ConfigureInput(Core::System& system_, QWidget* parent)

@@ -69,6 +69,7 @@ private:
     Kernel::KEvent* on_new_message;
     Kernel::KEvent* on_operation_mode_changed;
 
+    mutable std::mutex lock;
     std::queue<AppletMessage> messages;
 };
 

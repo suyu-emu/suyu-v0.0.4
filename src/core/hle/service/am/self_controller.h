@@ -8,9 +8,12 @@
 
 namespace Service::AM {
 
+struct Applet;
+
 class ISelfController final : public ServiceFramework<ISelfController> {
 public:
-    explicit ISelfController(Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger_);
+    explicit ISelfController(Core::System& system_, std::shared_ptr<Applet> applet_,
+                             Nvnflinger::Nvnflinger& nvnflinger_);
     ~ISelfController() override;
 
 private:
@@ -47,26 +50,8 @@ private:
 
     Result EnsureBufferSharingEnabled(Kernel::KProcess* process);
 
-    enum class ScreenshotPermission : u32 {
-        Inherit = 0,
-        Enable = 1,
-        Disable = 2,
-    };
-
     Nvnflinger::Nvnflinger& nvnflinger;
-
-    KernelHelpers::ServiceContext service_context;
-
-    Kernel::KEvent* launchable_event;
-    Kernel::KEvent* accumulated_suspended_tick_changed_event;
-
-    u32 idle_time_detection_extension = 0;
-    u64 num_fatal_sections_entered = 0;
-    u64 system_shared_buffer_id = 0;
-    u64 system_shared_layer_id = 0;
-    bool is_auto_sleep_disabled = false;
-    bool buffer_sharing_enabled = false;
-    ScreenshotPermission screenshot_permission = ScreenshotPermission::Inherit;
+    const std::shared_ptr<Applet> applet;
 };
 
 } // namespace Service::AM
