@@ -94,7 +94,7 @@ void DirectConnectWindow::Connect() {
     // Store settings
     UISettings::values.multiplayer_nickname = ui->nickname->text().toStdString();
     UISettings::values.multiplayer_ip = ui->ip->text().toStdString();
-    if (ui->port->isModified() && !ui->port->text().isEmpty()) {
+    if (!ui->port->text().isEmpty()) {
         UISettings::values.multiplayer_port = ui->port->text().toInt();
     } else {
         UISettings::values.multiplayer_port = UISettings::values.multiplayer_port.GetDefault();
