@@ -6,6 +6,7 @@
 #include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/am/library_applet_accessor.h"
 #include "core/hle/service/am/library_applet_creator.h"
+#include "core/hle/service/am/library_applet_storage.h"
 #include "core/hle/service/am/storage.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/sm/sm.h"
@@ -164,28 +165,28 @@ void ILibraryAppletCreator::CreateStorage(HLERequestContext& ctx) {
         return;
     }
 
-    std::vector<u8> buffer(size);
+    std::vector<u8> data(size);
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IStorage>(system, std::move(buffer));
+    rb.PushIpcInterface<IStorage>(system, AM::CreateStorage(std::move(data)));
 }
 
 void ILibraryAppletCreator::CreateTransferMemoryStorage(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
     struct Parameters {
-        u8 permissions;
+        bool is_writable;
         s64 size;
     };
 
-    const auto parameters{rp.PopRaw<Parameters>()};
+    const auto params{rp.PopRaw<Parameters>()};
     const auto handle{ctx.GetCopyHandle(0)};
 
-    LOG_DEBUG(Service_AM, "called, permissions={}, size={}, handle={:08X}", parameters.permissions,
-              parameters.size, handle);
+    LOG_DEBUG(Service_AM, "called, is_writable={}, size={}, handle={:08X}", params.is_writable,
+              params.size, handle);
 
-    if (parameters.size <= 0) {
+    if (params.size <= 0) {
         LOG_ERROR(Service_AM, "size is less than or equal to 0");
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultUnknown);
@@ -201,12 +202,11 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(HLERequestContext& ctx) 
         return;
     }
 
-    std::vector<u8> memory(transfer_mem->GetSize());
-    ctx.GetMemory().ReadBlock(transfer_mem->GetSourceAddress(), memory.data(), memory.size());
-
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IStorage>(system, std::move(memory));
+    rb.PushIpcInterface<IStorage>(
+        system, AM::CreateTransferMemoryStorage(ctx.GetMemory(), transfer_mem.GetPointerUnsafe(),
+                                                params.is_writable, params.size));
 }
 
 void ILibraryAppletCreator::CreateHandleStorage(HLERequestContext& ctx) {
@@ -233,12 +233,10 @@ void ILibraryAppletCreator::CreateHandleStorage(HLERequestContext& ctx) {
         return;
     }
 
-    std::vector<u8> memory(transfer_mem->GetSize());
-    ctx.GetMemory().ReadBlock(transfer_mem->GetSourceAddress(), memory.data(), memory.size());
-
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IStorage>(system, std::move(memory));
+    rb.PushIpcInterface<IStorage>(
+        system, AM::CreateHandleStorage(ctx.GetMemory(), transfer_mem.GetPointerUnsafe(), size));
 }
 
 } // namespace Service::AM
