@@ -45,8 +45,10 @@ public:
     const Core::PerfStatsResults& PerfStats();
     void ConfigureFilesystemProvider(const std::string& filepath);
     void InitializeSystem(bool reload);
+    void SetAppletId(int applet_id);
     Core::SystemResultStatus InitializeEmulation(const std::string& filepath,
-                                                 const std::size_t program_index = 0);
+                                                 const std::size_t program_index,
+                                                 const bool frontend_initiated);
 
     bool IsHandheldOnly();
     void SetDeviceType([[maybe_unused]] int index, int type);
@@ -79,6 +81,7 @@ private:
     std::atomic<bool> m_is_paused = false;
     SoftwareKeyboard::AndroidKeyboard* m_software_keyboard{};
     std::unique_ptr<FileSys::ManualContentProvider> m_manual_provider;
+    int m_applet_id{1};
 
     // GPU driver parameters
     std::shared_ptr<Common::DynamicLibrary> m_vulkan_library;

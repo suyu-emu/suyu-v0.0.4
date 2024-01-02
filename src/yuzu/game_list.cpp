@@ -596,14 +596,10 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     connect(open_save_location, &QAction::triggered, [this, program_id, path]() {
         emit OpenFolderRequested(program_id, GameListOpenTarget::SaveData, path);
     });
-    connect(start_game, &QAction::triggered, [this, path]() {
-        emit BootGame(QString::fromStdString(path), 0, 0, StartGameType::Normal,
-                      AmLaunchType::UserInitiated);
-    });
-    connect(start_game_global, &QAction::triggered, [this, path]() {
-        emit BootGame(QString::fromStdString(path), 0, 0, StartGameType::Global,
-                      AmLaunchType::UserInitiated);
-    });
+    connect(start_game, &QAction::triggered,
+            [this, path]() { emit BootGame(QString::fromStdString(path), StartGameType::Normal); });
+    connect(start_game_global, &QAction::triggered,
+            [this, path]() { emit BootGame(QString::fromStdString(path), StartGameType::Global); });
     connect(open_mod_location, &QAction::triggered, [this, program_id, path]() {
         emit OpenFolderRequested(program_id, GameListOpenTarget::ModData, path);
     });

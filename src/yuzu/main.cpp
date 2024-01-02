@@ -8,6 +8,7 @@
 #include <iostream>
 #include <memory>
 #include <thread>
+#include "core/hle/service/am/applet_manager.h"
 #include "core/loader/nca.h"
 #include "core/tools/renderdoc.h"
 
@@ -569,7 +570,7 @@ GMainWindow::GMainWindow(std::unique_ptr<QtConfig> config_, bool has_broken_vulk
     }
 
     if (!game_path.isEmpty()) {
-        BootGame(game_path);
+        BootGame(game_path, ApplicationAppletParameters());
     }
 }
 
@@ -1474,7 +1475,7 @@ void GMainWindow::OnAppFocusStateChanged(Qt::ApplicationState state) {
 }
 
 void GMainWindow::ConnectWidgetEvents() {
-    connect(game_list, &GameList::BootGame, this, &GMainWindow::BootGame);
+    connect(game_list, &GameList::BootGame, this, &GMainWindow::BootGameFromList);
     connect(game_list, &GameList::GameChosen, this, &GMainWindow::OnGameListLoadFile);
     connect(game_list, &GameList::OpenDirectory, this, &GMainWindow::OnGameListOpenDirectory);
     connect(game_list, &GameList::OpenFolderRequested, this, &GMainWindow::OnGameListOpenFolder);
@@ -1762,8 +1763,7 @@ void GMainWindow::AllowOSSleep() {
 #endif
 }
 
-bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t program_index,
-                          AmLaunchType launch_type) {
+bool GMainWindow::LoadROM(const QString& filename, Service::AM::FrontendAppletParameters params) {
     // Shutdown previous session if the emu thread is still active...
     if (emu_thread != nullptr) {
         ShutdownGame();
@@ -1775,7 +1775,7 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
 
     system->SetFilesystem(vfs);
 
-    if (launch_type == AmLaunchType::UserInitiated) {
+    if (params.launch_type == Service::AM::LaunchType::FrontendInitiated) {
         system->GetUserChannel().clear();
     }
 
@@ -1794,7 +1794,7 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
     });
 
     const Core::SystemResultStatus result{
-        system->Load(*render_window, filename.toStdString(), program_id, program_index)};
+        system->Load(*render_window, filename.toStdString(), params)};
 
     const auto drd_callout = (UISettings::values.callout_flags.GetValue() &
                               static_cast<u32>(CalloutFlag::DRDDeprecation)) == 0;
@@ -1917,12 +1917,12 @@ void GMainWindow::ConfigureFilesystemProvider(const std::string& filepath) {
     }
 }
 
-void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t program_index,
-                           StartGameType type, AmLaunchType launch_type) {
+void GMainWindow::BootGame(const QString& filename, Service::AM::FrontendAppletParameters params,
+                           StartGameType type) {
     LOG_INFO(Frontend, "yuzu starting...");
 
-    if (program_id == 0 ||
-        program_id > static_cast<u64>(Service::AM::AppletProgramId::MaxProgramId)) {
+    if (params.program_id == 0 ||
+        params.program_id > static_cast<u64>(Service::AM::AppletProgramId::MaxProgramId)) {
         StoreRecentFile(filename); // Put the filename on top of the list
     }
 
@@ -1937,7 +1937,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
 
     ConfigureFilesystemProvider(filename.toStdString());
     const auto v_file = Core::GetGameFileFromPath(vfs, filename.toUtf8().constData());
-    const auto loader = Loader::GetLoader(*system, v_file, program_id, program_index);
+    const auto loader = Loader::GetLoader(*system, v_file, params.program_id, params.program_index);
 
     if (loader != nullptr && loader->ReadProgramId(title_id) == Loader::ResultStatus::Success &&
         type == StartGameType::Normal) {
@@ -1971,7 +1971,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
     // behavior of asking.
     user_flag_cmd_line = false;
 
-    if (!LoadROM(filename, program_id, program_index, launch_type)) {
+    if (!LoadROM(filename, params)) {
         return;
     }
 
@@ -2059,6 +2059,10 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
         ShowFullscreen();
     }
     OnStartGame();
+}
+
+void GMainWindow::BootGameFromList(const QString& filename, StartGameType with_config) {
+    BootGame(filename, ApplicationAppletParameters(), with_config);
 }
 
 bool GMainWindow::OnShutdownBegin() {
@@ -2241,7 +2245,10 @@ void GMainWindow::UpdateRecentFiles() {
 }
 
 void GMainWindow::OnGameListLoadFile(QString game_path, u64 program_id) {
-    BootGame(game_path, program_id);
+    auto params = ApplicationAppletParameters();
+    params.program_id = program_id;
+
+    BootGame(game_path, params);
 }
 
 void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target,
@@ -3173,7 +3180,7 @@ void GMainWindow::OnMenuLoadFile() {
     }
 
     UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename);
+    BootGame(filename, ApplicationAppletParameters());
 }
 
 void GMainWindow::OnMenuLoadFolder() {
@@ -3187,7 +3194,7 @@ void GMainWindow::OnMenuLoadFolder() {
     const QDir dir{dir_path};
     const QStringList matching_main = dir.entryList({QStringLiteral("main")}, QDir::Files);
     if (matching_main.size() == 1) {
-        BootGame(dir.path() + QDir::separator() + matching_main[0]);
+        BootGame(dir.path() + QDir::separator() + matching_main[0], ApplicationAppletParameters());
     } else {
         QMessageBox::warning(this, tr("Invalid Directory Selected"),
                              tr("The directory you have selected does not contain a 'main' file."));
@@ -3381,7 +3388,7 @@ void GMainWindow::OnMenuRecentFile() {
 
     const QString filename = action->data().toString();
     if (QFileInfo::exists(filename)) {
-        BootGame(filename);
+        BootGame(filename, ApplicationAppletParameters());
     } else {
         // Display an error message and remove the file from the list.
         QMessageBox::information(this, tr("File not found"),
@@ -3419,7 +3426,7 @@ void GMainWindow::OnRestartGame() {
         // Make a copy since ShutdownGame edits game_path
         const auto current_game = QString(current_game_path);
         ShutdownGame();
-        BootGame(current_game);
+        BootGame(current_game, ApplicationAppletParameters());
     }
 }
 
@@ -3487,8 +3494,11 @@ void GMainWindow::OnLoadComplete() {
 
 void GMainWindow::OnExecuteProgram(std::size_t program_index) {
     ShutdownGame();
-    BootGame(last_filename_booted, 0, program_index, StartGameType::Normal,
-             AmLaunchType::ApplicationInitiated);
+
+    auto params = ApplicationAppletParameters();
+    params.program_index = static_cast<s32>(program_index);
+    params.launch_type = Service::AM::LaunchType::ApplicationInitiated;
+    BootGame(last_filename_booted, params);
 }
 
 void GMainWindow::OnExit() {
@@ -4174,7 +4184,7 @@ void GMainWindow::OnAlbum() {
 
     const auto filename = QString::fromStdString(album_nca->GetFullPath());
     UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename, AlbumId);
+    BootGame(filename, LibraryAppletParameters(AlbumId, Service::AM::AppletId::PhotoViewer));
 }
 
 void GMainWindow::OnCabinet(Service::NFP::CabinetMode mode) {
@@ -4198,7 +4208,7 @@ void GMainWindow::OnCabinet(Service::NFP::CabinetMode mode) {
 
     const auto filename = QString::fromStdString(cabinet_nca->GetFullPath());
     UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename, CabinetId);
+    BootGame(filename, LibraryAppletParameters(CabinetId, Service::AM::AppletId::Cabinet));
 }
 
 void GMainWindow::OnMiiEdit() {
@@ -4221,7 +4231,7 @@ void GMainWindow::OnMiiEdit() {
 
     const auto filename = QString::fromStdString((mii_applet_nca->GetFullPath()));
     UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename, MiiEditId);
+    BootGame(filename, LibraryAppletParameters(MiiEditId, Service::AM::AppletId::MiiEdit));
 }
 
 void GMainWindow::OnOpenControllerMenu() {
@@ -4245,7 +4255,8 @@ void GMainWindow::OnOpenControllerMenu() {
 
     const auto filename = QString::fromStdString((controller_applet_nca->GetFullPath()));
     UISettings::values.roms_path = QFileInfo(filename).path().toStdString();
-    BootGame(filename, ControllerAppletId);
+    BootGame(filename,
+             LibraryAppletParameters(ControllerAppletId, Service::AM::AppletId::Controller));
 }
 
 void GMainWindow::OnCaptureScreenshot() {
@@ -4728,7 +4739,7 @@ bool GMainWindow::DropAction(QDropEvent* event) {
     } else {
         // Game
         if (ConfirmChangeGame()) {
-            BootGame(filename);
+            BootGame(filename, ApplicationAppletParameters());
         }
     }
     return true;
@@ -4941,6 +4952,19 @@ void GMainWindow::changeEvent(QEvent* event) {
     }
 #endif // __unix__
     QWidget::changeEvent(event);
+}
+
+Service::AM::FrontendAppletParameters GMainWindow::ApplicationAppletParameters() {
+    return Service::AM::FrontendAppletParameters{};
+}
+
+Service::AM::FrontendAppletParameters GMainWindow::LibraryAppletParameters(
+    u64 program_id, Service::AM::AppletId applet_id) {
+    return Service::AM::FrontendAppletParameters{
+        .program_id = program_id,
+        .applet_id = applet_id,
+        .applet_type = Service::AM::AppletType::LibraryApplet,
+    };
 }
 
 void VolumeButton::wheelEvent(QWheelEvent* event) {

@@ -64,11 +64,6 @@ enum class StartGameType {
     Global, // Only uses global configuration
 };
 
-enum class AmLaunchType {
-    UserInitiated,
-    ApplicationInitiated,
-};
-
 namespace Core {
 enum class SystemResultStatus : u32;
 class System;
@@ -100,6 +95,11 @@ class VfsFilesystem;
 namespace InputCommon {
 class InputSubsystem;
 }
+
+namespace Service::AM {
+struct FrontendAppletParameters;
+enum class AppletId : u32;
+} // namespace Service::AM
 
 namespace Service::AM::Frontend {
 enum class SwkbdResult : u32;
@@ -268,11 +268,10 @@ private:
     void PreventOSSleep();
     void AllowOSSleep();
 
-    bool LoadROM(const QString& filename, u64 program_id, std::size_t program_index,
-                 AmLaunchType launch_type);
-    void BootGame(const QString& filename, u64 program_id = 0, std::size_t program_index = 0,
-                  StartGameType with_config = StartGameType::Normal,
-                  AmLaunchType launch_type = AmLaunchType::UserInitiated);
+    bool LoadROM(const QString& filename, Service::AM::FrontendAppletParameters params);
+    void BootGame(const QString& filename, Service::AM::FrontendAppletParameters params,
+                  StartGameType with_config = StartGameType::Normal);
+    void BootGameFromList(const QString& filename, StartGameType with_config);
     void ShutdownGame();
 
     void ShowTelemetryCallout();
@@ -324,6 +323,10 @@ private:
     void OnSigInterruptNotifierActivated();
     void SetGamemodeEnabled(bool state);
 #endif
+
+    Service::AM::FrontendAppletParameters ApplicationAppletParameters();
+    Service::AM::FrontendAppletParameters LibraryAppletParameters(u64 program_id,
+                                                                  Service::AM::AppletId applet_id);
 
 private slots:
     void OnStartGame();
