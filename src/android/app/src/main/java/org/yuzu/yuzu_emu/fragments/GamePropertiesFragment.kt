@@ -445,7 +445,8 @@ class GamePropertiesFragment : Fragment() {
             val zipResult = FileUtil.zipFromInternalStorage(
                 File(saveLocation),
                 saveLocation.replaceAfterLast("/", ""),
-                BufferedOutputStream(requireContext().contentResolver.openOutputStream(result))
+                BufferedOutputStream(requireContext().contentResolver.openOutputStream(result)),
+                compression = false
             )
             return@newInstance when (zipResult) {
                 TaskState.Completed -> getString(R.string.export_success)
