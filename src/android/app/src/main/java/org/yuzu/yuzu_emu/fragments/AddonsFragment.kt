@@ -149,7 +149,7 @@ class AddonsFragment : Fragment() {
             }
 
             val isValid = externalAddonDirectory.listFiles()
-                .any { AddonUtil.validAddonDirectories.contains(it.name) }
+                .any { AddonUtil.validAddonDirectories.contains(it.name?.lowercase()) }
             val errorMessage = MessageDialogFragment.newInstance(
                 requireActivity(),
                 titleId = R.string.invalid_directory,
