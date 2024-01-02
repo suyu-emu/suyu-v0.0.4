@@ -8,8 +8,9 @@
 
 namespace Service::AM {
 
-IProcessWindingController::IProcessWindingController(Core::System& system_)
-    : ServiceFramework{system_, "IProcessWindingController"} {
+IProcessWindingController::IProcessWindingController(Core::System& system_,
+                                                     std::shared_ptr<Applet> applet_)
+    : ServiceFramework{system_, "IProcessWindingController"}, applet{std::move(applet_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &IProcessWindingController::GetLaunchReason, "GetLaunchReason"},
@@ -31,34 +32,15 @@ IProcessWindingController::~IProcessWindingController() = default;
 void IProcessWindingController::GetLaunchReason(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    struct AppletProcessLaunchReason {
-        u8 flag;
-        INSERT_PADDING_BYTES(3);
-    };
-    static_assert(sizeof(AppletProcessLaunchReason) == 0x4,
-                  "AppletProcessLaunchReason is an invalid size");
-
-    AppletProcessLaunchReason reason{
-        .flag = 0,
-    };
-
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.PushRaw(reason);
+    rb.PushRaw(applet->launch_reason);
 }
 
 void IProcessWindingController::OpenCallingLibraryApplet(HLERequestContext& ctx) {
-    const auto applet_id = system.GetFrontendAppletHolder().GetCurrentAppletId();
-    const auto applet_mode = LibraryAppletMode::AllForeground;
-
-    LOG_WARNING(Service_AM, "(STUBBED) called with applet_id={:08X}, applet_mode={:08X}", applet_id,
-                applet_mode);
-
-    const auto& holder{system.GetFrontendAppletHolder()};
-    const auto applet = holder.GetApplet(applet_id, applet_mode);
-
-    if (applet == nullptr) {
-        LOG_ERROR(Service_AM, "Applet doesn't exist! applet_id={}", applet_id);
+    const auto caller_applet = applet->caller_applet.lock();
+    if (caller_applet == nullptr) {
+        LOG_ERROR(Service_AM, "No calling applet available");
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultUnknown);
@@ -67,7 +49,8 @@ void IProcessWindingController::OpenCallingLibraryApplet(HLERequestContext& ctx)
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ILibraryAppletAccessor>(system, applet);
+    rb.PushIpcInterface<ILibraryAppletAccessor>(system, applet->caller_applet_storage,
+                                                caller_applet);
 }
 
 } // namespace Service::AM

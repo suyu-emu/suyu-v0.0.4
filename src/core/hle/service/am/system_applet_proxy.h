@@ -8,11 +8,13 @@
 
 namespace Service::AM {
 
+struct Applet;
+
 class ISystemAppletProxy final : public ServiceFramework<ISystemAppletProxy> {
 public:
     explicit ISystemAppletProxy(Nvnflinger::Nvnflinger& nvnflinger_,
-                                std::shared_ptr<AppletMessageQueue> msg_queue_,
-                                Core::System& system_);
+                                std::shared_ptr<Applet> applet_, Core::System& system_);
+    ~ISystemAppletProxy();
 
 private:
     void GetCommonStateGetter(HLERequestContext& ctx);
@@ -28,7 +30,7 @@ private:
     void GetDebugFunctions(HLERequestContext& ctx);
 
     Nvnflinger::Nvnflinger& nvnflinger;
-    std::shared_ptr<AppletMessageQueue> msg_queue;
+    std::shared_ptr<Applet> applet;
 };
 
 } // namespace Service::AM

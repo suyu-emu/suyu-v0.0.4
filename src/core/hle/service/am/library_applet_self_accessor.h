@@ -10,14 +10,21 @@
 
 namespace Service::AM {
 
+struct AppletStorageHolder;
+struct Applet;
+
 class ILibraryAppletSelfAccessor final : public ServiceFramework<ILibraryAppletSelfAccessor> {
 public:
-    explicit ILibraryAppletSelfAccessor(Core::System& system_);
+    explicit ILibraryAppletSelfAccessor(Core::System& system_, std::shared_ptr<Applet> applet_);
     ~ILibraryAppletSelfAccessor() override;
 
 private:
     void PopInData(HLERequestContext& ctx);
     void PushOutData(HLERequestContext& ctx);
+    void PopInteractiveInData(HLERequestContext& ctx);
+    void PushInteractiveOutData(HLERequestContext& ctx);
+    void GetPopInDataEvent(HLERequestContext& ctx);
+    void GetPopInteractiveInDataEvent(HLERequestContext& ctx);
     void GetLibraryAppletInfo(HLERequestContext& ctx);
     void GetMainAppletIdentityInfo(HLERequestContext& ctx);
     void ExitProcessAndReturn(HLERequestContext& ctx);
@@ -26,13 +33,8 @@ private:
     void GetMainAppletAvailableUsers(HLERequestContext& ctx);
     void ShouldSetGpuTimeSliceManually(HLERequestContext& ctx);
 
-    void PushInShowAlbum();
-    void PushInShowCabinetData();
-    void PushInShowMiiEditData();
-    void PushInShowSoftwareKeyboard();
-    void PushInShowController();
-
-    std::deque<std::vector<u8>> queue_data;
+    const std::shared_ptr<Applet> applet;
+    const std::shared_ptr<AppletStorageHolder> storage;
 };
 
 } // namespace Service::AM

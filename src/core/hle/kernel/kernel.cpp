@@ -97,8 +97,14 @@ struct KernelCore::Impl {
         RegisterHostThread(nullptr);
     }
 
-    void TerminateApplicationProcess() {
-        application_process.load()->Terminate();
+    void TerminateAllProcesses() {
+        std::scoped_lock lk{process_list_lock};
+        for (auto& process : process_list) {
+            process->Terminate();
+            process->Close();
+            process = nullptr;
+        }
+        process_list.clear();
     }
 
     void Shutdown() {
@@ -107,18 +113,9 @@ struct KernelCore::Impl {
 
         CloseServices();
 
-        auto* old_process = application_process.exchange(nullptr);
-        if (old_process) {
-            old_process->Close();
-        }
-
-        {
-            std::scoped_lock lk{process_list_lock};
-            for (auto* const process : process_list) {
-                process->Terminate();
-                process->Close();
-            }
-            process_list.clear();
+        if (application_process) {
+            application_process->Close();
+            application_process = nullptr;
         }
 
         next_object_id = 0;
@@ -354,6 +351,7 @@ struct KernelCore::Impl {
 
     void MakeApplicationProcess(KProcess* process) {
         application_process = process;
+        application_process->Open();
     }
 
     static inline thread_local u8 host_thread_id = UINT8_MAX;
@@ -779,7 +777,7 @@ struct KernelCore::Impl {
     // Lists all processes that exist in the current session.
     std::mutex process_list_lock;
     std::vector<KProcess*> process_list;
-    std::atomic<KProcess*> application_process{};
+    KProcess* application_process{};
     std::unique_ptr<Kernel::GlobalSchedulerContext> global_scheduler_context;
     std::unique_ptr<Kernel::KHardwareTimer> hardware_timer;
 
@@ -1243,7 +1241,7 @@ void KernelCore::SuspendApplication(bool suspended) {
 }
 
 void KernelCore::ShutdownCores() {
-    impl->TerminateApplicationProcess();
+    impl->TerminateAllProcesses();
 
     KScopedSchedulerLock lk{*this};
 

@@ -9,6 +9,7 @@
 #include "core/file_sys/savedata_factory.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am_results.h"
+#include "core/hle/service/am/applet.h"
 #include "core/hle/service/am/application_functions.h"
 #include "core/hle/service/am/storage.h"
 #include "core/hle/service/filesystem/filesystem.h"
@@ -24,19 +25,8 @@ enum class LaunchParameterKind : u32 {
     AccountPreselectedUser = 2,
 };
 
-constexpr u32 LAUNCH_PARAMETER_ACCOUNT_PRESELECTED_USER_MAGIC = 0xC79497CA;
-
-struct LaunchParameterAccountPreselectedUser {
-    u32_le magic;
-    u32_le is_account_selected;
-    Common::UUID current_user;
-    INSERT_PADDING_BYTES(0x70);
-};
-static_assert(sizeof(LaunchParameterAccountPreselectedUser) == 0x88);
-
-IApplicationFunctions::IApplicationFunctions(Core::System& system_)
-    : ServiceFramework{system_, "IApplicationFunctions"},
-      service_context{system, "IApplicationFunctions"} {
+IApplicationFunctions::IApplicationFunctions(Core::System& system_, std::shared_ptr<Applet> applet_)
+    : ServiceFramework{system_, "IApplicationFunctions"}, applet{std::move(applet_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {1, &IApplicationFunctions::PopLaunchParameter, "PopLaunchParameter"},
@@ -105,26 +95,15 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
     // clang-format on
 
     RegisterHandlers(functions);
-
-    gpu_error_detected_event =
-        service_context.CreateEvent("IApplicationFunctions:GpuErrorDetectedSystemEvent");
-    friend_invitation_storage_channel_event =
-        service_context.CreateEvent("IApplicationFunctions:FriendInvitationStorageChannelEvent");
-    notification_storage_channel_event =
-        service_context.CreateEvent("IApplicationFunctions:NotificationStorageChannelEvent");
-    health_warning_disappeared_system_event =
-        service_context.CreateEvent("IApplicationFunctions:HealthWarningDisappearedSystemEvent");
 }
 
-IApplicationFunctions::~IApplicationFunctions() {
-    service_context.CloseEvent(gpu_error_detected_event);
-    service_context.CloseEvent(friend_invitation_storage_channel_event);
-    service_context.CloseEvent(notification_storage_channel_event);
-    service_context.CloseEvent(health_warning_disappeared_system_event);
-}
+IApplicationFunctions::~IApplicationFunctions() = default;
 
 void IApplicationFunctions::EnableApplicationCrashReport(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    std::scoped_lock lk{applet->lock};
+    applet->application_crash_report_enabled = true;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -157,12 +136,20 @@ void IApplicationFunctions::SetApplicationCopyrightVisibility(HLERequestContext&
 void IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
+    std::scoped_lock lk{applet->lock};
+    applet->home_button_long_pressed_blocked = true;
+    applet->home_button_short_pressed_blocked = true;
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void IApplicationFunctions::EndBlockingHomeButtonShortAndLongPressed(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    std::scoped_lock lk{applet->lock};
+    applet->home_button_long_pressed_blocked = false;
+    applet->home_button_short_pressed_blocked = false;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -171,12 +158,22 @@ void IApplicationFunctions::EndBlockingHomeButtonShortAndLongPressed(HLERequestC
 void IApplicationFunctions::BeginBlockingHomeButton(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
+    std::scoped_lock lk{applet->lock};
+    applet->home_button_long_pressed_blocked = true;
+    applet->home_button_short_pressed_blocked = true;
+    applet->home_button_double_click_enabled = true;
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void IApplicationFunctions::EndBlockingHomeButton(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    std::scoped_lock lk{applet->lock};
+    applet->home_button_long_pressed_blocked = false;
+    applet->home_button_short_pressed_blocked = false;
+    applet->home_button_double_click_enabled = false;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -188,47 +185,25 @@ void IApplicationFunctions::PopLaunchParameter(HLERequestContext& ctx) {
 
     LOG_INFO(Service_AM, "called, kind={:08X}", kind);
 
-    if (kind == LaunchParameterKind::UserChannel) {
-        auto channel = system.GetUserChannel();
-        if (channel.empty()) {
-            LOG_ERROR(Service_AM, "Attempted to load launch parameter but none was found!");
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(AM::ResultNoDataInChannel);
-            return;
-        }
+    std::scoped_lock lk{applet->lock};
 
-        auto data = channel.back();
-        channel.pop_back();
+    auto& channel = kind == LaunchParameterKind::UserChannel
+                        ? applet->user_channel_launch_parameter
+                        : applet->preselected_user_launch_parameter;
 
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IStorage>(system, std::move(data));
-    } else if (kind == LaunchParameterKind::AccountPreselectedUser &&
-               !launch_popped_account_preselect) {
-        // TODO: Verify this is hw-accurate
-        LaunchParameterAccountPreselectedUser params{};
-
-        params.magic = LAUNCH_PARAMETER_ACCOUNT_PRESELECTED_USER_MAGIC;
-        params.is_account_selected = 1;
-
-        Account::ProfileManager profile_manager{};
-        const auto uuid = profile_manager.GetUser(static_cast<s32>(Settings::values.current_user));
-        ASSERT(uuid.has_value() && uuid->IsValid());
-        params.current_user = *uuid;
-
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(ResultSuccess);
-
-        std::vector<u8> buffer(sizeof(LaunchParameterAccountPreselectedUser));
-        std::memcpy(buffer.data(), &params, buffer.size());
-
-        rb.PushIpcInterface<IStorage>(system, std::move(buffer));
-        launch_popped_account_preselect = true;
-    } else {
-        LOG_ERROR(Service_AM, "Unknown launch parameter kind.");
+    if (channel.empty()) {
+        LOG_WARNING(Service_AM, "Attempted to pop parameter {} but none was found!", kind);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(AM::ResultNoDataInChannel);
+        return;
     }
+
+    auto data = channel.back();
+    channel.pop_back();
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(ResultSuccess);
+    rb.PushIpcInterface<IStorage>(system, std::move(data));
 }
 
 void IApplicationFunctions::CreateApplicationAndRequestToStartForQuest(HLERequestContext& ctx) {
@@ -245,7 +220,7 @@ void IApplicationFunctions::EnsureSaveData(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called, uid={:016X}{:016X}", user_id[1], user_id[0]);
 
     FileSys::SaveDataAttribute attribute{};
-    attribute.title_id = system.GetApplicationProcessProgramID();
+    attribute.title_id = applet->program_id;
     attribute.user_id = user_id;
     attribute.type = FileSys::SaveDataType::SaveData;
 
@@ -267,6 +242,9 @@ void IApplicationFunctions::SetTerminateResult(HLERequestContext& ctx) {
     u32 result = rp.Pop<u32>();
     LOG_WARNING(Service_AM, "(STUBBED) called, result=0x{:08X}", result);
 
+    std::scoped_lock lk{applet->lock};
+    applet->terminate_result = Result(result);
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
@@ -277,16 +255,14 @@ void IApplicationFunctions::GetDisplayVersion(HLERequestContext& ctx) {
     std::array<u8, 0x10> version_string{};
 
     const auto res = [this] {
-        const auto title_id = system.GetApplicationProcessProgramID();
-
-        const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
+        const FileSys::PatchManager pm{applet->program_id, system.GetFileSystemController(),
                                        system.GetContentProvider()};
         auto metadata = pm.GetControlMetadata();
         if (metadata.first != nullptr) {
             return metadata;
         }
 
-        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(title_id),
+        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(applet->program_id),
                                               system.GetFileSystemController(),
                                               system.GetContentProvider()};
         return pm_update.GetControlMetadata();
@@ -314,16 +290,14 @@ void IApplicationFunctions::GetDesiredLanguage(HLERequestContext& ctx) {
     u32 supported_languages = 0;
 
     const auto res = [this] {
-        const auto title_id = system.GetApplicationProcessProgramID();
-
-        const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
+        const FileSys::PatchManager pm{applet->program_id, system.GetFileSystemController(),
                                        system.GetContentProvider()};
         auto metadata = pm.GetControlMetadata();
         if (metadata.first != nullptr) {
             return metadata;
         }
 
-        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(title_id),
+        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(applet->program_id),
                                               system.GetFileSystemController(),
                                               system.GetContentProvider()};
         return pm_update.GetControlMetadata();
@@ -368,11 +342,9 @@ void IApplicationFunctions::GetDesiredLanguage(HLERequestContext& ctx) {
 void IApplicationFunctions::IsGamePlayRecordingSupported(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    constexpr bool gameplay_recording_supported = false;
-
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(gameplay_recording_supported);
+    rb.Push(applet->gameplay_recording_supported);
 }
 
 void IApplicationFunctions::InitializeGamePlayRecording(HLERequestContext& ctx) {
@@ -385,12 +357,20 @@ void IApplicationFunctions::InitializeGamePlayRecording(HLERequestContext& ctx) 
 void IApplicationFunctions::SetGamePlayRecordingState(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
+    IPC::RequestParser rp{ctx};
+
+    std::scoped_lock lk{applet->lock};
+    applet->gameplay_recording_state = rp.PopRaw<GameplayRecordingState>();
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void IApplicationFunctions::NotifyRunning(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    std::scoped_lock lk{applet->lock};
+    applet->is_running = true;
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
@@ -426,8 +406,7 @@ void IApplicationFunctions::ExtendSaveData(HLERequestContext& ctx) {
               static_cast<u8>(type), user_id[1], user_id[0], new_normal_size, new_journal_size);
 
     system.GetFileSystemController().OpenSaveDataController()->WriteSaveDataSize(
-        type, system.GetApplicationProcessProgramID(), user_id,
-        {new_normal_size, new_journal_size});
+        type, applet->program_id, user_id, {new_normal_size, new_journal_size});
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
@@ -451,7 +430,7 @@ void IApplicationFunctions::GetSaveDataSize(HLERequestContext& ctx) {
               user_id[0]);
 
     const auto size = system.GetFileSystemController().OpenSaveDataController()->ReadSaveDataSize(
-        type, system.GetApplicationProcessProgramID(), user_id);
+        type, applet->program_id, user_id);
 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
@@ -528,13 +507,15 @@ void IApplicationFunctions::ExecuteProgram(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 
+    // Swap user channel ownership into the system so that it will be preserved
+    system.GetUserChannel().swap(applet->user_channel_launch_parameter);
     system.ExecuteProgram(program_index);
 }
 
 void IApplicationFunctions::ClearUserChannel(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
-    system.GetUserChannel().clear();
+    applet->user_channel_launch_parameter.clear();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -546,7 +527,7 @@ void IApplicationFunctions::UnpopToUserChannel(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto storage = rp.PopIpcInterface<IStorage>().lock();
     if (storage) {
-        system.GetUserChannel().push_back(storage->GetData());
+        applet->user_channel_launch_parameter.push_back(storage->GetData());
     }
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -558,7 +539,7 @@ void IApplicationFunctions::GetPreviousProgramIndex(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push<s32>(previous_program_index);
+    rb.Push<s32>(applet->previous_program_index);
 }
 
 void IApplicationFunctions::GetGpuErrorDetectedSystemEvent(HLERequestContext& ctx) {
@@ -566,7 +547,7 @@ void IApplicationFunctions::GetGpuErrorDetectedSystemEvent(HLERequestContext& ct
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(gpu_error_detected_event->GetReadableEvent());
+    rb.PushCopyObjects(applet->gpu_error_detected_event.GetHandle());
 }
 
 void IApplicationFunctions::GetFriendInvitationStorageChannelEvent(HLERequestContext& ctx) {
@@ -574,7 +555,7 @@ void IApplicationFunctions::GetFriendInvitationStorageChannelEvent(HLERequestCon
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(friend_invitation_storage_channel_event->GetReadableEvent());
+    rb.PushCopyObjects(applet->friend_invitation_storage_channel_event.GetHandle());
 }
 
 void IApplicationFunctions::TryPopFromFriendInvitationStorageChannel(HLERequestContext& ctx) {
@@ -589,7 +570,7 @@ void IApplicationFunctions::GetNotificationStorageChannelEvent(HLERequestContext
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(notification_storage_channel_event->GetReadableEvent());
+    rb.PushCopyObjects(applet->notification_storage_channel_event.GetHandle());
 }
 
 void IApplicationFunctions::GetHealthWarningDisappearedSystemEvent(HLERequestContext& ctx) {
@@ -597,11 +578,14 @@ void IApplicationFunctions::GetHealthWarningDisappearedSystemEvent(HLERequestCon
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(health_warning_disappeared_system_event->GetReadableEvent());
+    rb.PushCopyObjects(applet->health_warning_disappeared_system_event.GetHandle());
 }
 
 void IApplicationFunctions::PrepareForJit(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    std::scoped_lock lk{applet->lock};
+    applet->jit_service_launched = true;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

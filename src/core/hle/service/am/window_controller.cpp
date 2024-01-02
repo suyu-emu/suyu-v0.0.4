@@ -1,13 +1,14 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/hle/service/am/applet.h"
 #include "core/hle/service/am/window_controller.h"
 #include "core/hle/service/ipc_helpers.h"
 
 namespace Service::AM {
 
-IWindowController::IWindowController(Core::System& system_)
-    : ServiceFramework{system_, "IWindowController"} {
+IWindowController::IWindowController(Core::System& system_, std::shared_ptr<Applet> applet_)
+    : ServiceFramework{system_, "IWindowController"}, applet{std::move(applet_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "CreateWindow"},
@@ -27,23 +28,22 @@ IWindowController::IWindowController(Core::System& system_)
 IWindowController::~IWindowController() = default;
 
 void IWindowController::GetAppletResourceUserId(HLERequestContext& ctx) {
-    const u64 process_id = system.ApplicationProcess()->GetProcessId();
-
-    LOG_DEBUG(Service_AM, "called. Process ID=0x{:016X}", process_id);
-
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
-    rb.Push<u64>(process_id);
+    rb.Push<u64>(applet->aruid);
 }
 
 void IWindowController::GetAppletResourceUserIdOfCallerApplet(HLERequestContext& ctx) {
-    const u64 process_id = 0;
+    u64 aruid = 0;
+    if (auto caller = applet->caller_applet.lock(); caller) {
+        aruid = caller->aruid;
+    }
 
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
-    rb.Push<u64>(process_id);
+    rb.Push<u64>(aruid);
 }
 
 void IWindowController::AcquireForegroundRights(HLERequestContext& ctx) {

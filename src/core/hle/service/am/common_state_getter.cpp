@@ -3,6 +3,7 @@
 
 #include "common/settings.h"
 #include "core/hle/service/am/am_results.h"
+#include "core/hle/service/am/applet.h"
 #include "core/hle/service/am/common_state_getter.h"
 #include "core/hle/service/am/lock_accessor.h"
 #include "core/hle/service/apm/apm_controller.h"
@@ -14,10 +15,8 @@
 
 namespace Service::AM {
 
-ICommonStateGetter::ICommonStateGetter(Core::System& system_,
-                                       std::shared_ptr<AppletMessageQueue> msg_queue_)
-    : ServiceFramework{system_, "ICommonStateGetter"}, msg_queue{std::move(msg_queue_)},
-      service_context{system_, "ICommonStateGetter"} {
+ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Applet> applet_)
+    : ServiceFramework{system_, "ICommonStateGetter"}, applet{std::move(applet_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ICommonStateGetter::GetEventHandle, "GetEventHandle"},
@@ -75,17 +74,9 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_,
     // clang-format on
 
     RegisterHandlers(functions);
-
-    sleep_lock_event = service_context.CreateEvent("ICommonStateGetter::SleepLockEvent");
-
-    // Configure applets to be in foreground state
-    msg_queue->PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
-    msg_queue->PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
 }
 
-ICommonStateGetter::~ICommonStateGetter() {
-    service_context.CloseEvent(sleep_lock_event);
-};
+ICommonStateGetter::~ICommonStateGetter() = default;
 
 void ICommonStateGetter::GetBootMode(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
@@ -96,17 +87,17 @@ void ICommonStateGetter::GetBootMode(HLERequestContext& ctx) {
 }
 
 void ICommonStateGetter::GetEventHandle(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_AM, "called");
+    LOG_DEBUG(Service_AM, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(msg_queue->GetMessageReceiveEvent());
+    rb.PushCopyObjects(applet->message_queue.GetMessageReceiveEvent());
 }
 
 void ICommonStateGetter::ReceiveMessage(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
-    const auto message = msg_queue->PopMessage();
+    const auto message = applet->message_queue.PopMessage();
     IPC::ResponseBuilder rb{ctx, 3};
 
     if (message == AppletMessageQueue::AppletMessage::None) {
@@ -123,9 +114,11 @@ void ICommonStateGetter::ReceiveMessage(HLERequestContext& ctx) {
 void ICommonStateGetter::GetCurrentFocusState(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "(STUBBED) called");
 
+    std::scoped_lock lk{applet->lock};
+
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(static_cast<u8>(FocusState::InFocus));
+    rb.Push(static_cast<u8>(applet->focus_state));
 }
 
 void ICommonStateGetter::GetOperationMode(HLERequestContext& ctx) {
@@ -149,7 +142,7 @@ void ICommonStateGetter::RequestToAcquireSleepLock(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     // Sleep lock is acquired immediately.
-    sleep_lock_event->Signal();
+    applet->sleep_lock_event.Signal();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -172,22 +165,25 @@ void ICommonStateGetter::GetAcquiredSleepLockEvent(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(sleep_lock_event->GetReadableEvent());
+    rb.PushCopyObjects(applet->sleep_lock_event.GetHandle());
 }
 
 void ICommonStateGetter::IsVrModeEnabled(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
+    std::scoped_lock lk{applet->lock};
+
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(vr_mode_state);
+    rb.Push(applet->vr_mode_enabled);
 }
 
 void ICommonStateGetter::SetVrModeEnabled(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    vr_mode_state = rp.Pop<bool>();
 
-    LOG_WARNING(Service_AM, "VR Mode is {}", vr_mode_state ? "on" : "off");
+    std::scoped_lock lk{applet->lock};
+    applet->vr_mode_enabled = rp.Pop<bool>();
+    LOG_WARNING(Service_AM, "VR Mode is {}", applet->vr_mode_enabled ? "on" : "off");
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -207,12 +203,18 @@ void ICommonStateGetter::SetLcdBacklighOffEnabled(HLERequestContext& ctx) {
 void ICommonStateGetter::BeginVrModeEx(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
+    std::scoped_lock lk{applet->lock};
+    applet->vr_mode_enabled = true;
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void ICommonStateGetter::EndVrModeEx(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    std::scoped_lock lk{applet->lock};
+    applet->vr_mode_enabled = false;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -223,7 +225,7 @@ void ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent(HLERequestContex
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(msg_queue->GetOperationModeChangedEvent());
+    rb.PushCopyObjects(applet->message_queue.GetOperationModeChangedEvent());
 }
 
 void ICommonStateGetter::GetDefaultDisplayResolution(HLERequestContext& ctx) {
@@ -280,6 +282,9 @@ void ICommonStateGetter::GetSettingsPlatformRegion(HLERequestContext& ctx) {
 void ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled(
     HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    std::scoped_lock lk{applet->lock};
+    applet->request_exit_to_library_applet_at_execute_next_program_enabled = true;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

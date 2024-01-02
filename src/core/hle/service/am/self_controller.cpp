@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/hle/service/am/am_results.h"
 #include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/am/self_controller.h"
 #include "core/hle/service/caps/caps_su.h"
@@ -12,9 +13,10 @@
 
 namespace Service::AM {
 
-ISelfController::ISelfController(Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger_)
-    : ServiceFramework{system_, "ISelfController"}, nvnflinger{nvnflinger_},
-      service_context{system, "ISelfController"} {
+ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> applet_,
+                                 Nvnflinger::Nvnflinger& nvnflinger_)
+    : ServiceFramework{system_, "ISelfController"}, nvnflinger{nvnflinger_}, applet{std::move(
+                                                                                 applet_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ISelfController::Exit, "Exit"},
@@ -69,24 +71,9 @@ ISelfController::ISelfController(Core::System& system_, Nvnflinger::Nvnflinger& 
     // clang-format on
 
     RegisterHandlers(functions);
-
-    launchable_event = service_context.CreateEvent("ISelfController:LaunchableEvent");
-
-    // This event is created by AM on the first time GetAccumulatedSuspendedTickChangedEvent() is
-    // called. Yuzu can just create it unconditionally, since it doesn't need to support multiple
-    // ISelfControllers. The event is signaled on creation, and on transition from suspended -> not
-    // suspended if the event has previously been created by a call to
-    // GetAccumulatedSuspendedTickChangedEvent.
-
-    accumulated_suspended_tick_changed_event =
-        service_context.CreateEvent("ISelfController:AccumulatedSuspendedTickChangedEvent");
-    accumulated_suspended_tick_changed_event->Signal();
 }
 
-ISelfController::~ISelfController() {
-    service_context.CloseEvent(launchable_event);
-    service_context.CloseEvent(accumulated_suspended_tick_changed_event);
-}
+ISelfController::~ISelfController() = default;
 
 void ISelfController::Exit(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
@@ -94,6 +81,7 @@ void ISelfController::Exit(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 
+    // TODO
     system.Exit();
 }
 
@@ -120,8 +108,10 @@ void ISelfController::UnlockExit(HLERequestContext& ctx) {
 }
 
 void ISelfController::EnterFatalSection(HLERequestContext& ctx) {
-    ++num_fatal_sections_entered;
-    LOG_DEBUG(Service_AM, "called. Num fatal sections entered: {}", num_fatal_sections_entered);
+
+    std::scoped_lock lk{applet->lock};
+    applet->fatal_section_count++;
+    LOG_DEBUG(Service_AM, "called. Num fatal sections entered: {}", applet->fatal_section_count);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -131,13 +121,14 @@ void ISelfController::LeaveFatalSection(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called.");
 
     // Entry and exit of fatal sections must be balanced.
-    if (num_fatal_sections_entered == 0) {
+    std::scoped_lock lk{applet->lock};
+    if (applet->fatal_section_count == 0) {
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(Result{ErrorModule::AM, 512});
+        rb.Push(AM::ResultFatalSectionCountImbalance);
         return;
     }
 
-    --num_fatal_sections_entered;
+    applet->fatal_section_count--;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -146,11 +137,11 @@ void ISelfController::LeaveFatalSection(HLERequestContext& ctx) {
 void ISelfController::GetLibraryAppletLaunchableEvent(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    launchable_event->Signal();
+    applet->library_applet_launchable_event.Signal();
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(launchable_event->GetReadableEvent());
+    rb.PushCopyObjects(applet->library_applet_launchable_event.GetHandle());
 }
 
 void ISelfController::SetScreenShotPermission(HLERequestContext& ctx) {
@@ -158,7 +149,8 @@ void ISelfController::SetScreenShotPermission(HLERequestContext& ctx) {
     const auto permission = rp.PopEnum<ScreenshotPermission>();
     LOG_DEBUG(Service_AM, "called, permission={}", permission);
 
-    screenshot_permission = permission;
+    std::scoped_lock lk{applet->lock};
+    applet->screenshot_permission = permission;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -167,8 +159,11 @@ void ISelfController::SetScreenShotPermission(HLERequestContext& ctx) {
 void ISelfController::SetOperationModeChangedNotification(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
-    bool flag = rp.Pop<bool>();
-    LOG_WARNING(Service_AM, "(STUBBED) called flag={}", flag);
+    const bool notification_enabled = rp.Pop<bool>();
+    LOG_WARNING(Service_AM, "(STUBBED) called notification_enabled={}", notification_enabled);
+
+    std::scoped_lock lk{applet->lock};
+    applet->operation_mode_changed_notification_enabled = notification_enabled;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -177,27 +172,26 @@ void ISelfController::SetOperationModeChangedNotification(HLERequestContext& ctx
 void ISelfController::SetPerformanceModeChangedNotification(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
-    bool flag = rp.Pop<bool>();
-    LOG_WARNING(Service_AM, "(STUBBED) called flag={}", flag);
+    const bool notification_enabled = rp.Pop<bool>();
+    LOG_WARNING(Service_AM, "(STUBBED) called notification_enabled={}", notification_enabled);
+
+    std::scoped_lock lk{applet->lock};
+    applet->performance_mode_changed_notification_enabled = notification_enabled;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void ISelfController::SetFocusHandlingMode(HLERequestContext& ctx) {
-    // Takes 3 input u8s with each field located immediately after the previous
-    // u8, these are bool flags. No output.
     IPC::RequestParser rp{ctx};
 
-    struct FocusHandlingModeParams {
-        u8 unknown0;
-        u8 unknown1;
-        u8 unknown2;
-    };
-    const auto flags = rp.PopRaw<FocusHandlingModeParams>();
+    const auto flags = rp.PopRaw<FocusHandlingMode>();
 
     LOG_WARNING(Service_AM, "(STUBBED) called. unknown0={}, unknown1={}, unknown2={}",
                 flags.unknown0, flags.unknown1, flags.unknown2);
+
+    std::scoped_lock lk{applet->lock};
+    applet->focus_handling_mode = flags;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -206,24 +200,35 @@ void ISelfController::SetFocusHandlingMode(HLERequestContext& ctx) {
 void ISelfController::SetRestartMessageEnabled(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
+    std::scoped_lock lk{applet->lock};
+    applet->restart_message_enabled = true;
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void ISelfController::SetOutOfFocusSuspendingEnabled(HLERequestContext& ctx) {
-    // Takes 3 input u8s with each field located immediately after the previous
-    // u8, these are bool flags. No output.
     IPC::RequestParser rp{ctx};
 
-    bool enabled = rp.Pop<bool>();
+    const bool enabled = rp.Pop<bool>();
     LOG_WARNING(Service_AM, "(STUBBED) called enabled={}", enabled);
+
+    std::scoped_lock lk{applet->lock};
+    ASSERT(applet->type == AppletType::Application);
+    applet->out_of_focus_suspension_enabled = enabled;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void ISelfController::SetAlbumImageOrientation(HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+
+    const auto orientation = rp.PopRaw<Capture::AlbumImageOrientation>();
+    LOG_WARNING(Service_AM, "(STUBBED) called, orientation={}", static_cast<s32>(orientation));
+
+    std::scoped_lock lk{applet->lock};
+    applet->album_image_orientation = orientation;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -232,14 +237,13 @@ void ISelfController::SetAlbumImageOrientation(HLERequestContext& ctx) {
 void ISelfController::CreateManagedDisplayLayer(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    // TODO(Subv): Find out how AM determines the display to use, for now just
-    // create the layer in the Default display.
-    const auto display_id = nvnflinger.OpenDisplay("Default");
-    const auto layer_id = nvnflinger.CreateLayer(*display_id);
+    u64 layer_id{};
+    applet->managed_layer_holder.Initialize(&nvnflinger);
+    applet->managed_layer_holder.CreateManagedDisplayLayer(&layer_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
-    rb.Push(*layer_id);
+    rb.Push(layer_id);
 }
 
 void ISelfController::IsSystemBufferSharingEnabled(HLERequestContext& ctx) {
@@ -252,56 +256,46 @@ void ISelfController::IsSystemBufferSharingEnabled(HLERequestContext& ctx) {
 void ISelfController::GetSystemSharedLayerHandle(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
+    u64 buffer_id, layer_id;
+    applet->system_buffer_manager.GetSystemSharedLayerHandle(&buffer_id, &layer_id);
+
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(this->EnsureBufferSharingEnabled(ctx.GetThread().GetOwnerProcess()));
-    rb.Push<s64>(system_shared_buffer_id);
-    rb.Push<s64>(system_shared_layer_id);
+    rb.Push<s64>(buffer_id);
+    rb.Push<s64>(layer_id);
 }
 
 void ISelfController::GetSystemSharedBufferHandle(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
+    u64 buffer_id, layer_id;
+    applet->system_buffer_manager.GetSystemSharedLayerHandle(&buffer_id, &layer_id);
+
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(this->EnsureBufferSharingEnabled(ctx.GetThread().GetOwnerProcess()));
-    rb.Push<s64>(system_shared_buffer_id);
+    rb.Push<s64>(buffer_id);
 }
 
 Result ISelfController::EnsureBufferSharingEnabled(Kernel::KProcess* process) {
-    if (buffer_sharing_enabled) {
+    if (applet->system_buffer_manager.Initialize(&nvnflinger, process, applet->applet_id)) {
         return ResultSuccess;
     }
 
-    if (system.GetFrontendAppletHolder().GetCurrentAppletId() <= AppletId::Application) {
-        return VI::ResultOperationFailed;
-    }
-
-    const auto display_id = nvnflinger.OpenDisplay("Default");
-    const auto result = nvnflinger.GetSystemBufferManager().Initialize(
-        &system_shared_buffer_id, &system_shared_layer_id, *display_id);
-
-    if (result.IsSuccess()) {
-        buffer_sharing_enabled = true;
-    }
-
-    return result;
+    return VI::ResultOperationFailed;
 }
 
 void ISelfController::CreateManagedDisplaySeparableLayer(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    // TODO(Subv): Find out how AM determines the display to use, for now just
-    // create the layer in the Default display.
-    // This calls nn::vi::CreateRecordingLayer() which creates another layer.
-    // Currently we do not support more than 1 layer per display, output 1 layer id for now.
-    // Outputting 1 layer id instead of the expected 2 has not been observed to cause any adverse
-    // side effects.
-    // TODO: Support multiple layers
-    const auto display_id = nvnflinger.OpenDisplay("Default");
-    const auto layer_id = nvnflinger.CreateLayer(*display_id);
+    u64 layer_id{};
+    u64 recording_layer_id{};
+    applet->managed_layer_holder.Initialize(&nvnflinger);
+    applet->managed_layer_holder.CreateManagedDisplaySeparableLayer(&layer_id, &recording_layer_id);
 
-    IPC::ResponseBuilder rb{ctx, 4};
+    IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
-    rb.Push(*layer_id);
+    rb.Push(layer_id);
+    rb.Push(recording_layer_id);
 }
 
 void ISelfController::SetHandlesRequestToDisplay(HLERequestContext& ctx) {
@@ -320,9 +314,12 @@ void ISelfController::ApproveToDisplay(HLERequestContext& ctx) {
 
 void ISelfController::SetIdleTimeDetectionExtension(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    idle_time_detection_extension = rp.Pop<u32>();
-    LOG_DEBUG(Service_AM, "(STUBBED) called idle_time_detection_extension={}",
-              idle_time_detection_extension);
+
+    const auto extension = rp.PopRaw<IdleTimeDetectionExtension>();
+    LOG_DEBUG(Service_AM, "(STUBBED) called extension={}", extension);
+
+    std::scoped_lock lk{applet->lock};
+    applet->idle_time_detection_extension = extension;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -331,9 +328,11 @@ void ISelfController::SetIdleTimeDetectionExtension(HLERequestContext& ctx) {
 void ISelfController::GetIdleTimeDetectionExtension(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
+    std::scoped_lock lk{applet->lock};
+
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push<u32>(idle_time_detection_extension);
+    rb.PushRaw<IdleTimeDetectionExtension>(applet->idle_time_detection_extension);
 }
 
 void ISelfController::ReportUserIsActive(HLERequestContext& ctx) {
@@ -345,7 +344,9 @@ void ISelfController::ReportUserIsActive(HLERequestContext& ctx) {
 
 void ISelfController::SetAutoSleepDisabled(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    is_auto_sleep_disabled = rp.Pop<bool>();
+
+    std::scoped_lock lk{applet->lock};
+    applet->auto_sleep_disabled = rp.Pop<bool>();
 
     // On the system itself, if the previous state of is_auto_sleep_disabled
     // differed from the current value passed in, it'd signify the internal
@@ -357,7 +358,7 @@ void ISelfController::SetAutoSleepDisabled(HLERequestContext& ctx) {
     // and it's sufficient to simply set the member variable for querying via
     // IsAutoSleepDisabled().
 
-    LOG_DEBUG(Service_AM, "called. is_auto_sleep_disabled={}", is_auto_sleep_disabled);
+    LOG_DEBUG(Service_AM, "called. is_auto_sleep_disabled={}", applet->auto_sleep_disabled);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -366,20 +367,23 @@ void ISelfController::SetAutoSleepDisabled(HLERequestContext& ctx) {
 void ISelfController::IsAutoSleepDisabled(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called.");
 
+    std::scoped_lock lk{applet->lock};
+
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(is_auto_sleep_disabled);
+    rb.Push(applet->auto_sleep_disabled);
 }
 
 void ISelfController::GetAccumulatedSuspendedTickValue(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called.");
 
+    std::scoped_lock lk{applet->lock};
     // This command returns the total number of system ticks since ISelfController creation
     // where the game was suspended. Since Yuzu doesn't implement game suspension, this command
     // can just always return 0 ticks.
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
-    rb.Push<u64>(0);
+    rb.Push<u64>(applet->suspended_ticks);
 }
 
 void ISelfController::GetAccumulatedSuspendedTickChangedEvent(HLERequestContext& ctx) {
@@ -387,7 +391,7 @@ void ISelfController::GetAccumulatedSuspendedTickChangedEvent(HLERequestContext&
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(accumulated_suspended_tick_changed_event->GetReadableEvent());
+    rb.PushCopyObjects(applet->accumulated_suspended_tick_changed_event.GetHandle());
 }
 
 void ISelfController::SetAlbumImageTakenNotificationEnabled(HLERequestContext& ctx) {
@@ -396,10 +400,11 @@ void ISelfController::SetAlbumImageTakenNotificationEnabled(HLERequestContext& c
     // This service call sets an internal flag whether a notification is shown when an image is
     // captured. Currently we do not support capturing images via the capture button, so this can be
     // stubbed for now.
-    const bool album_image_taken_notification_enabled = rp.Pop<bool>();
+    const bool enabled = rp.Pop<bool>();
+    LOG_WARNING(Service_AM, "(STUBBED) called. enabled={}", enabled);
 
-    LOG_WARNING(Service_AM, "(STUBBED) called. album_image_taken_notification_enabled={}",
-                album_image_taken_notification_enabled);
+    std::scoped_lock lk{applet->lock};
+    applet->album_image_taken_notification_enabled = enabled;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -427,9 +432,11 @@ void ISelfController::SaveCurrentScreenshot(HLERequestContext& ctx) {
 void ISelfController::SetRecordVolumeMuted(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
-    const auto is_record_volume_muted = rp.Pop<bool>();
+    const auto enabled = rp.Pop<bool>();
+    LOG_WARNING(Service_AM, "(STUBBED) called. enabled={}", enabled);
 
-    LOG_WARNING(Service_AM, "(STUBBED) called. is_record_volume_muted={}", is_record_volume_muted);
+    std::scoped_lock lk{applet->lock};
+    applet->record_volume_muted = enabled;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

@@ -294,8 +294,8 @@ void AppletManager::CreateAndInsertByFrontendAppletParameters(
     }
 
     // Applet was started by frontend, so it is foreground.
-    applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
     applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
+    applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
     applet->focus_state = FocusState::InFocus;
 
     this->InsertApplet(std::move(applet));

@@ -7,14 +7,18 @@
 
 namespace Service::AM {
 
+struct Applet;
+
 class IProcessWindingController final : public ServiceFramework<IProcessWindingController> {
 public:
-    explicit IProcessWindingController(Core::System& system_);
+    explicit IProcessWindingController(Core::System& system_, std::shared_ptr<Applet> applet_);
     ~IProcessWindingController() override;
 
 private:
     void GetLaunchReason(HLERequestContext& ctx);
     void OpenCallingLibraryApplet(HLERequestContext& ctx);
+
+    const std::shared_ptr<Applet> applet;
 };
 
 } // namespace Service::AM

@@ -2,16 +2,112 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/kernel/k_transfer_memory.h"
+#include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/am/library_applet_accessor.h"
 #include "core/hle/service/am/library_applet_creator.h"
 #include "core/hle/service/am/storage.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/sm/sm.h"
 
 namespace Service::AM {
 
-ILibraryAppletCreator::ILibraryAppletCreator(Core::System& system_)
-    : ServiceFramework{system_, "ILibraryAppletCreator"} {
+namespace {
+
+AppletProgramId AppletIdToProgramId(AppletId applet_id) {
+    switch (applet_id) {
+    case AppletId::OverlayDisplay:
+        return AppletProgramId::OverlayDisplay;
+    case AppletId::QLaunch:
+        return AppletProgramId::QLaunch;
+    case AppletId::Starter:
+        return AppletProgramId::Starter;
+    case AppletId::Auth:
+        return AppletProgramId::Auth;
+    case AppletId::Cabinet:
+        return AppletProgramId::Cabinet;
+    case AppletId::Controller:
+        return AppletProgramId::Controller;
+    case AppletId::DataErase:
+        return AppletProgramId::DataErase;
+    case AppletId::Error:
+        return AppletProgramId::Error;
+    case AppletId::NetConnect:
+        return AppletProgramId::NetConnect;
+    case AppletId::ProfileSelect:
+        return AppletProgramId::ProfileSelect;
+    case AppletId::SoftwareKeyboard:
+        return AppletProgramId::SoftwareKeyboard;
+    case AppletId::MiiEdit:
+        return AppletProgramId::MiiEdit;
+    case AppletId::Web:
+        return AppletProgramId::Web;
+    case AppletId::Shop:
+        return AppletProgramId::Shop;
+    case AppletId::PhotoViewer:
+        return AppletProgramId::PhotoViewer;
+    case AppletId::Settings:
+        return AppletProgramId::Settings;
+    case AppletId::OfflineWeb:
+        return AppletProgramId::OfflineWeb;
+    case AppletId::LoginShare:
+        return AppletProgramId::LoginShare;
+    case AppletId::WebAuth:
+        return AppletProgramId::WebAuth;
+    case AppletId::MyPage:
+        return AppletProgramId::MyPage;
+    default:
+        return static_cast<AppletProgramId>(0);
+    }
+}
+
+std::shared_ptr<ILibraryAppletAccessor> CreateGuestApplet(Core::System& system,
+                                                          std::shared_ptr<Applet> caller_applet,
+                                                          AppletId applet_id,
+                                                          LibraryAppletMode mode) {
+    const auto program_id = static_cast<u64>(AppletIdToProgramId(applet_id));
+    if (program_id == 0) {
+        // Unknown applet
+        return {};
+    }
+
+    auto process = std::make_unique<Process>(system);
+    if (!process->Initialize(program_id)) {
+        // Couldn't initialize the guest process
+        return {};
+    }
+
+    const auto applet = std::make_shared<Applet>(system, std::move(process));
+    applet->program_id = program_id;
+    applet->applet_id = applet_id;
+    applet->type = AppletType::LibraryApplet;
+    applet->library_applet_mode = mode;
+
+    // Library applet should be foreground
+    applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
+    applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
+    applet->focus_state = FocusState::InFocus;
+
+    auto storage = std::make_shared<AppletStorageHolder>(system);
+    applet->caller_applet = caller_applet;
+    applet->caller_applet_storage = storage;
+
+    system.GetAppletManager().InsertApplet(applet);
+
+    return std::make_shared<ILibraryAppletAccessor>(system, storage, applet);
+}
+
+std::shared_ptr<ILibraryAppletAccessor> CreateFrontendApplet(Core::System& system,
+                                                             AppletId applet_id,
+                                                             LibraryAppletMode mode) {
+    UNREACHABLE();
+    return {};
+}
+
+} // namespace
+
+ILibraryAppletCreator::ILibraryAppletCreator(Core::System& system_, std::shared_ptr<Applet> applet_)
+    : ServiceFramework{system_, "ILibraryAppletCreator"}, applet{std::move(applet_)} {
     static const FunctionInfo functions[] = {
         {0, &ILibraryAppletCreator::CreateLibraryApplet, "CreateLibraryApplet"},
         {1, nullptr, "TerminateAllLibraryApplets"},
@@ -34,10 +130,11 @@ void ILibraryAppletCreator::CreateLibraryApplet(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called with applet_id={:08X}, applet_mode={:08X}", applet_id,
               applet_mode);
 
-    const auto& holder{system.GetFrontendAppletHolder()};
-    const auto applet = holder.GetApplet(applet_id, applet_mode);
-
-    if (applet == nullptr) {
+    auto library_applet = CreateGuestApplet(system, applet, applet_id, applet_mode);
+    if (!library_applet) {
+        library_applet = CreateFrontendApplet(system, applet_id, applet_mode);
+    }
+    if (!library_applet) {
         LOG_ERROR(Service_AM, "Applet doesn't exist! applet_id={}", applet_id);
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -45,10 +142,12 @@ void ILibraryAppletCreator::CreateLibraryApplet(HLERequestContext& ctx) {
         return;
     }
 
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    // Applet is created, can now be launched.
+    applet->library_applet_launchable_event.Signal();
 
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ILibraryAppletAccessor>(system, applet);
+    rb.PushIpcInterface<ILibraryAppletAccessor>(library_applet);
 }
 
 void ILibraryAppletCreator::CreateStorage(HLERequestContext& ctx) {

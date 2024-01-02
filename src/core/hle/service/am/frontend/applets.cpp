@@ -16,6 +16,7 @@
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
+#include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/applet_message_queue.h"
 #include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/am/frontend/applet_cabinet.h"
@@ -122,21 +123,11 @@ void AppletDataBroker::PushInteractiveDataFromApplet(std::shared_ptr<IStorage>&&
 void AppletDataBroker::SignalStateChanged() {
     state_changed_event->Signal();
 
+    // TODO proper window management
     switch (applet_mode) {
     case LibraryAppletMode::AllForeground:
     case LibraryAppletMode::AllForegroundInitiallyHidden: {
-        auto applet_oe = system.ServiceManager().GetService<AppletOE>("appletOE");
-        auto applet_ae = system.ServiceManager().GetService<AppletAE>("appletAE");
-
-        if (applet_oe) {
-            applet_oe->GetMessageQueue()->FocusStateChanged();
-            break;
-        }
-
-        if (applet_ae) {
-            applet_ae->GetMessageQueue()->FocusStateChanged();
-            break;
-        }
+        system.GetAppletManager().FocusStateChanged();
         break;
     }
     default:
@@ -253,11 +244,6 @@ void FrontendAppletHolder::SetCabinetMode(NFP::CabinetMode mode) {
 
 void FrontendAppletHolder::SetCurrentAppletId(AppletId applet_id) {
     current_applet_id = applet_id;
-}
-
-void FrontendAppletHolder::SetDefaultAppletFrontendSet() {
-    ClearAll();
-    SetDefaultAppletsIfMissing();
 }
 
 void FrontendAppletHolder::SetDefaultAppletsIfMissing() {

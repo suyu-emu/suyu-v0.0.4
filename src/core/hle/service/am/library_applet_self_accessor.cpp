@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/scope_exit.h"
 #include "core/core_timing.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am_results.h"
+#include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/frontend/applet_cabinet.h"
 #include "core/hle/service/am/frontend/applet_controller.h"
 #include "core/hle/service/am/frontend/applet_mii_edit_types.h"
@@ -16,16 +18,44 @@
 
 namespace Service::AM {
 
-ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
-    : ServiceFramework{system_, "ILibraryAppletSelfAccessor"} {
+namespace {
+
+struct AppletIdentityInfo {
+    AppletId applet_id;
+    INSERT_PADDING_BYTES(0x4);
+    u64 application_id;
+};
+static_assert(sizeof(AppletIdentityInfo) == 0x10, "AppletIdentityInfo has incorrect size.");
+
+AppletIdentityInfo GetCallerIdentity(std::shared_ptr<Applet> applet) {
+    if (const auto caller_applet = applet->caller_applet.lock(); caller_applet) {
+        // TODO: is this actually the application ID?
+        return {
+            .applet_id = applet->applet_id,
+            .application_id = applet->program_id,
+        };
+    } else {
+        return {
+            .applet_id = AppletId::QLaunch,
+            .application_id = 0x0100000000001000ull,
+        };
+    }
+}
+
+} // namespace
+
+ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_,
+                                                       std::shared_ptr<Applet> applet_)
+    : ServiceFramework{system_, "ILibraryAppletSelfAccessor"}, applet{std::move(applet_)},
+      storage{applet->caller_applet_storage} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ILibraryAppletSelfAccessor::PopInData, "PopInData"},
         {1, &ILibraryAppletSelfAccessor::PushOutData, "PushOutData"},
-        {2, nullptr, "PopInteractiveInData"},
-        {3, nullptr, "PushInteractiveOutData"},
-        {5, nullptr, "GetPopInDataEvent"},
-        {6, nullptr, "GetPopInteractiveInDataEvent"},
+        {2, &ILibraryAppletSelfAccessor::PopInteractiveInData, "PopInteractiveInData"},
+        {3, &ILibraryAppletSelfAccessor::PushInteractiveOutData, "PushInteractiveOutData"},
+        {5, &ILibraryAppletSelfAccessor::GetPopInDataEvent, "GetPopInDataEvent"},
+        {6, &ILibraryAppletSelfAccessor::GetPopInteractiveInDataEvent, "GetPopInteractiveInDataEvent"},
         {10, &ILibraryAppletSelfAccessor::ExitProcessAndReturn, "ExitProcessAndReturn"},
         {11, &ILibraryAppletSelfAccessor::GetLibraryAppletInfo, "GetLibraryAppletInfo"},
         {12, &ILibraryAppletSelfAccessor::GetMainAppletIdentityInfo, "GetMainAppletIdentityInfo"},
@@ -58,26 +88,6 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_)
     };
     // clang-format on
     RegisterHandlers(functions);
-
-    switch (system.GetFrontendAppletHolder().GetCurrentAppletId()) {
-    case AppletId::Cabinet:
-        PushInShowCabinetData();
-        break;
-    case AppletId::MiiEdit:
-        PushInShowMiiEditData();
-        break;
-    case AppletId::PhotoViewer:
-        PushInShowAlbum();
-        break;
-    case AppletId::SoftwareKeyboard:
-        PushInShowSoftwareKeyboard();
-        break;
-    case AppletId::Controller:
-        PushInShowController();
-        break;
-    default:
-        break;
-    }
 }
 
 ILibraryAppletSelfAccessor::~ILibraryAppletSelfAccessor() = default;
@@ -85,31 +95,81 @@ ILibraryAppletSelfAccessor::~ILibraryAppletSelfAccessor() = default;
 void ILibraryAppletSelfAccessor::PopInData(HLERequestContext& ctx) {
     LOG_INFO(Service_AM, "called");
 
-    if (queue_data.empty()) {
+    std::shared_ptr<IStorage> data;
+    const auto res = storage->in_data.PopData(&data);
+
+    if (res.IsSuccess()) {
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(res);
+        rb.PushIpcInterface(std::move(data));
+    } else {
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(AM::ResultNoDataInChannel);
-        return;
+        rb.Push(res);
     }
-
-    auto data = queue_data.front();
-    queue_data.pop_front();
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IStorage>(system, std::move(data));
 }
 
 void ILibraryAppletSelfAccessor::PushOutData(HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    LOG_INFO(Service_AM, "called");
+
+    IPC::RequestParser rp{ctx};
+    storage->out_data.PushData(rp.PopIpcInterface<IStorage>().lock());
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
-void ILibraryAppletSelfAccessor::ExitProcessAndReturn(HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+void ILibraryAppletSelfAccessor::PopInteractiveInData(HLERequestContext& ctx) {
+    LOG_INFO(Service_AM, "called");
 
-    system.Exit();
+    std::shared_ptr<IStorage> data;
+    const auto res = storage->interactive_in_data.PopData(&data);
+
+    if (res.IsSuccess()) {
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(res);
+        rb.PushIpcInterface(std::move(data));
+    } else {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(res);
+    }
+}
+
+void ILibraryAppletSelfAccessor::PushInteractiveOutData(HLERequestContext& ctx) {
+    LOG_INFO(Service_AM, "called");
+
+    IPC::RequestParser rp{ctx};
+    storage->interactive_out_data.PushData(rp.PopIpcInterface<IStorage>().lock());
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void ILibraryAppletSelfAccessor::GetPopInDataEvent(HLERequestContext& ctx) {
+    LOG_INFO(Service_AM, "called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(ResultSuccess);
+    rb.PushCopyObjects(storage->in_data.GetEvent());
+}
+
+void ILibraryAppletSelfAccessor::GetPopInteractiveInDataEvent(HLERequestContext& ctx) {
+    LOG_INFO(Service_AM, "called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(ResultSuccess);
+    rb.PushCopyObjects(storage->interactive_in_data.GetEvent());
+}
+
+void ILibraryAppletSelfAccessor::ExitProcessAndReturn(HLERequestContext& ctx) {
+    LOG_INFO(Service_AM, "called");
+
+    system.GetAppletManager().TerminateAndRemoveApplet(applet->aruid);
+
+    {
+        std::scoped_lock lk{applet->lock};
+        applet->is_completed = true;
+        storage->state_changed_event.Signal();
+    }
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -124,8 +184,8 @@ void ILibraryAppletSelfAccessor::GetLibraryAppletInfo(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     const LibraryAppletInfo applet_info{
-        .applet_id = system.GetFrontendAppletHolder().GetCurrentAppletId(),
-        .library_applet_mode = LibraryAppletMode::AllForeground,
+        .applet_id = applet->applet_id,
+        .library_applet_mode = applet->library_applet_mode,
     };
 
     IPC::ResponseBuilder rb{ctx, 4};
@@ -134,13 +194,6 @@ void ILibraryAppletSelfAccessor::GetLibraryAppletInfo(HLERequestContext& ctx) {
 }
 
 void ILibraryAppletSelfAccessor::GetMainAppletIdentityInfo(HLERequestContext& ctx) {
-    struct AppletIdentityInfo {
-        AppletId applet_id;
-        INSERT_PADDING_BYTES(0x4);
-        u64 application_id;
-    };
-    static_assert(sizeof(AppletIdentityInfo) == 0x10, "AppletIdentityInfo has incorrect size.");
-
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     const AppletIdentityInfo applet_info{
@@ -154,22 +207,11 @@ void ILibraryAppletSelfAccessor::GetMainAppletIdentityInfo(HLERequestContext& ct
 }
 
 void ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(HLERequestContext& ctx) {
-    struct AppletIdentityInfo {
-        AppletId applet_id;
-        INSERT_PADDING_BYTES(0x4);
-        u64 application_id;
-    };
-    static_assert(sizeof(AppletIdentityInfo) == 0x10, "AppletIdentityInfo has incorrect size.");
     LOG_WARNING(Service_AM, "(STUBBED) called");
-
-    const AppletIdentityInfo applet_info{
-        .applet_id = AppletId::QLaunch,
-        .application_id = 0x0100000000001000ull,
-    };
 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
-    rb.PushRaw(applet_info);
+    rb.PushRaw(GetCallerIdentity(applet));
 }
 
 void ILibraryAppletSelfAccessor::GetDesirableKeyboardLayout(HLERequestContext& ctx) {
@@ -205,178 +247,6 @@ void ILibraryAppletSelfAccessor::ShouldSetGpuTimeSliceManually(HLERequestContext
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.Push<u8>(0);
-}
-
-void ILibraryAppletSelfAccessor::PushInShowAlbum() {
-    const CommonArguments arguments{
-        .arguments_version = CommonArgumentVersion::Version3,
-        .size = CommonArgumentSize::Version3,
-        .library_version = 1,
-        .theme_color = ThemeColor::BasicBlack,
-        .play_startup_sound = true,
-        .system_tick = system.CoreTiming().GetClockTicks(),
-    };
-
-    std::vector<u8> argument_data(sizeof(arguments));
-    std::vector<u8> settings_data{2};
-    std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
-    queue_data.emplace_back(std::move(argument_data));
-    queue_data.emplace_back(std::move(settings_data));
-}
-
-void ILibraryAppletSelfAccessor::PushInShowController() {
-    const CommonArguments common_args = {
-        .arguments_version = CommonArgumentVersion::Version3,
-        .size = CommonArgumentSize::Version3,
-        .library_version = static_cast<u32>(Frontend::ControllerAppletVersion::Version8),
-        .theme_color = ThemeColor::BasicBlack,
-        .play_startup_sound = true,
-        .system_tick = system.CoreTiming().GetClockTicks(),
-    };
-
-    Frontend::ControllerSupportArgNew user_args = {
-        .header = {.player_count_min = 1,
-                   .player_count_max = 4,
-                   .enable_take_over_connection = true,
-                   .enable_left_justify = false,
-                   .enable_permit_joy_dual = true,
-                   .enable_single_mode = false,
-                   .enable_identification_color = false},
-        .identification_colors = {},
-        .enable_explain_text = false,
-        .explain_text = {},
-    };
-
-    Frontend::ControllerSupportArgPrivate private_args = {
-        .arg_private_size = sizeof(Frontend::ControllerSupportArgPrivate),
-        .arg_size = sizeof(Frontend::ControllerSupportArgNew),
-        .is_home_menu = true,
-        .flag_1 = true,
-        .mode = Frontend::ControllerSupportMode::ShowControllerSupport,
-        .caller = Frontend::ControllerSupportCaller::
-            Application, // switchbrew: Always zero except with
-                         // ShowControllerFirmwareUpdateForSystem/ShowControllerKeyRemappingForSystem,
-                         // which sets this to the input param
-        .style_set = Core::HID::NpadStyleSet::None,
-        .joy_hold_type = 0,
-    };
-    std::vector<u8> common_args_data(sizeof(common_args));
-    std::vector<u8> private_args_data(sizeof(private_args));
-    std::vector<u8> user_args_data(sizeof(user_args));
-
-    std::memcpy(common_args_data.data(), &common_args, sizeof(common_args));
-    std::memcpy(private_args_data.data(), &private_args, sizeof(private_args));
-    std::memcpy(user_args_data.data(), &user_args, sizeof(user_args));
-
-    queue_data.emplace_back(std::move(common_args_data));
-    queue_data.emplace_back(std::move(private_args_data));
-    queue_data.emplace_back(std::move(user_args_data));
-}
-
-void ILibraryAppletSelfAccessor::PushInShowCabinetData() {
-    const CommonArguments arguments{
-        .arguments_version = CommonArgumentVersion::Version3,
-        .size = CommonArgumentSize::Version3,
-        .library_version = static_cast<u32>(Frontend::CabinetAppletVersion::Version1),
-        .theme_color = ThemeColor::BasicBlack,
-        .play_startup_sound = true,
-        .system_tick = system.CoreTiming().GetClockTicks(),
-    };
-
-    const Frontend::StartParamForAmiiboSettings amiibo_settings{
-        .param_1 = 0,
-        .applet_mode = system.GetFrontendAppletHolder().GetCabinetMode(),
-        .flags = Frontend::CabinetFlags::None,
-        .amiibo_settings_1 = 0,
-        .device_handle = 0,
-        .tag_info{},
-        .register_info{},
-        .amiibo_settings_3{},
-    };
-
-    std::vector<u8> argument_data(sizeof(arguments));
-    std::vector<u8> settings_data(sizeof(amiibo_settings));
-    std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
-    std::memcpy(settings_data.data(), &amiibo_settings, sizeof(amiibo_settings));
-    queue_data.emplace_back(std::move(argument_data));
-    queue_data.emplace_back(std::move(settings_data));
-}
-
-void ILibraryAppletSelfAccessor::PushInShowMiiEditData() {
-    struct MiiEditV3 {
-        Frontend::MiiEditAppletInputCommon common;
-        Frontend::MiiEditAppletInputV3 input;
-    };
-    static_assert(sizeof(MiiEditV3) == 0x100, "MiiEditV3 has incorrect size.");
-
-    MiiEditV3 mii_arguments{
-        .common =
-            {
-                .version = Frontend::MiiEditAppletVersion::Version3,
-                .applet_mode = Frontend::MiiEditAppletMode::ShowMiiEdit,
-            },
-        .input{},
-    };
-
-    std::vector<u8> argument_data(sizeof(mii_arguments));
-    std::memcpy(argument_data.data(), &mii_arguments, sizeof(mii_arguments));
-
-    queue_data.emplace_back(std::move(argument_data));
-}
-
-void ILibraryAppletSelfAccessor::PushInShowSoftwareKeyboard() {
-    const CommonArguments arguments{
-        .arguments_version = CommonArgumentVersion::Version3,
-        .size = CommonArgumentSize::Version3,
-        .library_version = static_cast<u32>(Frontend::SwkbdAppletVersion::Version524301),
-        .theme_color = ThemeColor::BasicBlack,
-        .play_startup_sound = true,
-        .system_tick = system.CoreTiming().GetClockTicks(),
-    };
-
-    std::vector<char16_t> initial_string(0);
-
-    const Frontend::SwkbdConfigCommon swkbd_config{
-        .type = Frontend::SwkbdType::Qwerty,
-        .ok_text{},
-        .left_optional_symbol_key{},
-        .right_optional_symbol_key{},
-        .use_prediction = false,
-        .key_disable_flags{},
-        .initial_cursor_position = Frontend::SwkbdInitialCursorPosition::Start,
-        .header_text{},
-        .sub_text{},
-        .guide_text{},
-        .max_text_length = 500,
-        .min_text_length = 0,
-        .password_mode = Frontend::SwkbdPasswordMode::Disabled,
-        .text_draw_type = Frontend::SwkbdTextDrawType::Box,
-        .enable_return_button = true,
-        .use_utf8 = false,
-        .use_blur_background = true,
-        .initial_string_offset{},
-        .initial_string_length = static_cast<u32>(initial_string.size()),
-        .user_dictionary_offset{},
-        .user_dictionary_entries{},
-        .use_text_check = false,
-    };
-
-    Frontend::SwkbdConfigNew swkbd_config_new{};
-
-    std::vector<u8> argument_data(sizeof(arguments));
-    std::vector<u8> swkbd_data(sizeof(swkbd_config) + sizeof(swkbd_config_new));
-    std::vector<u8> work_buffer(swkbd_config.initial_string_length * sizeof(char16_t));
-
-    std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
-    std::memcpy(swkbd_data.data(), &swkbd_config, sizeof(swkbd_config));
-    std::memcpy(swkbd_data.data() + sizeof(swkbd_config), &swkbd_config_new,
-                sizeof(Frontend::SwkbdConfigNew));
-    std::memcpy(work_buffer.data(), initial_string.data(),
-                swkbd_config.initial_string_length * sizeof(char16_t));
-
-    queue_data.emplace_back(std::move(argument_data));
-    queue_data.emplace_back(std::move(swkbd_data));
-    queue_data.emplace_back(std::move(work_buffer));
 }
 
 } // namespace Service::AM
