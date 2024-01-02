@@ -625,7 +625,8 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 File(DirectoryInitialization.userDirectory!!),
                 DirectoryInitialization.userDirectory!!,
                 BufferedOutputStream(contentResolver.openOutputStream(result)),
-                taskViewModel.cancelled
+                taskViewModel.cancelled,
+                compression = false
             )
             return@newInstance when (zipResult) {
                 TaskState.Completed -> getString(R.string.user_data_export_success)
