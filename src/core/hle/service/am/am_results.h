@@ -10,6 +10,7 @@ namespace Service::AM {
 constexpr Result ResultNoDataInChannel{ErrorModule::AM, 2};
 constexpr Result ResultNoMessages{ErrorModule::AM, 3};
 constexpr Result ResultInvalidOffset{ErrorModule::AM, 503};
+constexpr Result ResultInvalidStorageType{ErrorModule::AM, 511};
 constexpr Result ResultFatalSectionCountImbalance{ErrorModule::AM, 512};
 
 } // namespace Service::AM

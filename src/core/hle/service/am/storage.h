@@ -7,36 +7,25 @@
 
 namespace Service::AM {
 
-class IStorageImpl {
-public:
-    virtual ~IStorageImpl();
-    virtual std::vector<u8>& GetData() = 0;
-    virtual const std::vector<u8>& GetData() const = 0;
-    virtual std::size_t GetSize() const = 0;
-};
+class LibraryAppletStorage;
 
 class IStorage final : public ServiceFramework<IStorage> {
 public:
+    explicit IStorage(Core::System& system_, std::shared_ptr<LibraryAppletStorage> impl_);
     explicit IStorage(Core::System& system_, std::vector<u8>&& buffer);
     ~IStorage() override;
 
-    std::vector<u8>& GetData() {
-        return impl->GetData();
+    std::shared_ptr<LibraryAppletStorage> GetImpl() const {
+        return impl;
     }
 
-    const std::vector<u8>& GetData() const {
-        return impl->GetData();
-    }
-
-    std::size_t GetSize() const {
-        return impl->GetSize();
-    }
+    std::vector<u8> GetData() const;
 
 private:
-    void Register();
     void Open(HLERequestContext& ctx);
+    void OpenTransferStorage(HLERequestContext& ctx);
 
-    std::shared_ptr<IStorageImpl> impl;
+    const std::shared_ptr<LibraryAppletStorage> impl;
 };
 
 } // namespace Service::AM

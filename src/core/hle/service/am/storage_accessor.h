@@ -10,7 +10,7 @@ namespace Service::AM {
 
 class IStorageAccessor final : public ServiceFramework<IStorageAccessor> {
 public:
-    explicit IStorageAccessor(Core::System& system_, IStorage& backing_);
+    explicit IStorageAccessor(Core::System& system_, std::shared_ptr<LibraryAppletStorage> impl_);
     ~IStorageAccessor() override;
 
 private:
@@ -18,7 +18,20 @@ private:
     void Write(HLERequestContext& ctx);
     void Read(HLERequestContext& ctx);
 
-    IStorage& backing;
+    const std::shared_ptr<LibraryAppletStorage> impl;
+};
+
+class ITransferStorageAccessor final : public ServiceFramework<ITransferStorageAccessor> {
+public:
+    explicit ITransferStorageAccessor(Core::System& system_,
+                                      std::shared_ptr<LibraryAppletStorage> impl_);
+    ~ITransferStorageAccessor() override;
+
+private:
+    void GetSize(HLERequestContext& ctx);
+    void GetHandle(HLERequestContext& ctx);
+
+    const std::shared_ptr<LibraryAppletStorage> impl;
 };
 
 } // namespace Service::AM
