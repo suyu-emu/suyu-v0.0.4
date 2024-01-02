@@ -112,7 +112,14 @@ struct KernelCore::Impl {
             old_process->Close();
         }
 
-        process_list.clear();
+        {
+            std::scoped_lock lk{process_list_lock};
+            for (auto* const process : process_list) {
+                process->Terminate();
+                process->Close();
+            }
+            process_list.clear();
+        }
 
         next_object_id = 0;
         next_kernel_process_id = KProcess::InitialProcessIdMin;
@@ -770,6 +777,7 @@ struct KernelCore::Impl {
     std::atomic<u64> next_thread_id{1};
 
     // Lists all processes that exist in the current session.
+    std::mutex process_list_lock;
     std::vector<KProcess*> process_list;
     std::atomic<KProcess*> application_process{};
     std::unique_ptr<Kernel::GlobalSchedulerContext> global_scheduler_context;
@@ -869,7 +877,17 @@ KResourceLimit* KernelCore::GetSystemResourceLimit() {
 }
 
 void KernelCore::AppendNewProcess(KProcess* process) {
+    process->Open();
+
+    std::scoped_lock lk{impl->process_list_lock};
     impl->process_list.push_back(process);
+}
+
+void KernelCore::RemoveProcess(KProcess* process) {
+    std::scoped_lock lk{impl->process_list_lock};
+    if (std::erase(impl->process_list, process)) {
+        process->Close();
+    }
 }
 
 void KernelCore::MakeApplicationProcess(KProcess* process) {
@@ -884,8 +902,15 @@ const KProcess* KernelCore::ApplicationProcess() const {
     return impl->application_process;
 }
 
-const std::vector<KProcess*>& KernelCore::GetProcessList() const {
-    return impl->process_list;
+std::list<KScopedAutoObject<KProcess>> KernelCore::GetProcessList() {
+    std::list<KScopedAutoObject<KProcess>> processes;
+    std::scoped_lock lk{impl->process_list_lock};
+
+    for (auto* const process : impl->process_list) {
+        processes.emplace_back(process);
+    }
+
+    return processes;
 }
 
 Kernel::GlobalSchedulerContext& KernelCore::GlobalSchedulerContext() {
