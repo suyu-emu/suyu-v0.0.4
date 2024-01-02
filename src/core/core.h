@@ -50,6 +50,11 @@ namespace Account {
 class ProfileManager;
 } // namespace Account
 
+namespace AM {
+struct FrontendAppletParameters;
+class AppletManager;
+} // namespace AM
+
 namespace AM::Frontend {
 struct FrontendAppletSet;
 class FrontendAppletHolder;
@@ -203,8 +208,8 @@ public:
      * @returns SystemResultStatus code, indicating if the operation succeeded.
      */
     [[nodiscard]] SystemResultStatus Load(Frontend::EmuWindow& emu_window,
-                                          const std::string& filepath, u64 program_id = 0,
-                                          std::size_t program_index = 0);
+                                          const std::string& filepath,
+                                          Service::AM::FrontendAppletParameters& params);
 
     /**
      * Indicates if the emulated system is powered on (all subsystems initialized and able to run an

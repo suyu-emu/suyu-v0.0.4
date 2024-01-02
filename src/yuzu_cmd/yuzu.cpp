@@ -26,6 +26,7 @@
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/vfs/vfs_real.h"
+#include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
 #include "core/telemetry_session.h"
@@ -366,7 +367,10 @@ int main(int argc, char** argv) {
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
     system.GetUserChannel().clear();
 
-    const Core::SystemResultStatus load_result{system.Load(*emu_window, filepath)};
+    Service::AM::FrontendAppletParameters load_parameters{
+        .applet_id = Service::AM::AppletId::Application,
+    };
+    const Core::SystemResultStatus load_result{system.Load(*emu_window, filepath, load_parameters)};
 
     switch (load_result) {
     case Core::SystemResultStatus::ErrorGetLoader:
