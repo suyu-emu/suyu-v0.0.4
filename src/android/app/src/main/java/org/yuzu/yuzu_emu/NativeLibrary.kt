@@ -548,6 +548,15 @@ object NativeLibrary {
     external fun getSavePath(programId: String): String
 
     /**
+     * Gets the root save directory for the default profile as either
+     * /user/save/account/<user id raw string> or /user/save/000...000/<user id>
+     *
+     * @param future If true, returns the /user/save/account/... directory
+     * @return Save data path that may not exist yet
+     */
+    external fun getDefaultProfileSaveDataRoot(future: Boolean): String
+
+    /**
      * Adds a file to the manual filesystem provider in our EmulationSession instance
      * @param path Path to the file we're adding. Can be a string representation of a [Uri] or
      * a normal path

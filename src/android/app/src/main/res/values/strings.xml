@@ -133,6 +133,15 @@
     <string name="add_game_folder">Add game folder</string>
     <string name="folder_already_added">This folder was already added!</string>
     <string name="game_folder_properties">Game folder properties</string>
+    <plurals name="saves_import_failed">
+        <item quantity="one">Failed to import %d save</item>
+        <item quantity="other">Failed to import %d saves</item>
+    </plurals>
+    <plurals name="saves_import_success">
+        <item quantity="one">Successfully imported %d save</item>
+        <item quantity="other">Successfully imported %d saves</item>
+    </plurals>
+    <string name="no_save_data_found">No save data found</string>
 
     <!-- Applet launcher strings -->
     <string name="applets">Applet launcher</string>
@@ -276,6 +285,7 @@
     <string name="global">Global</string>
     <string name="custom">Custom</string>
     <string name="notice">Notice</string>
+    <string name="import_complete">Import complete</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>
