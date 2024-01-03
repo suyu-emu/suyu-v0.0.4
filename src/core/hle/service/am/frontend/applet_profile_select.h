@@ -113,13 +113,13 @@ static_assert(sizeof(UiReturnArg) == 0x18, "UiReturnArg has incorrect size.");
 
 class ProfileSelect final : public FrontendApplet {
 public:
-    explicit ProfileSelect(Core::System& system_, LibraryAppletMode applet_mode_,
+    explicit ProfileSelect(Core::System& system_, std::shared_ptr<Applet> applet_,
+                           LibraryAppletMode applet_mode_,
                            const Core::Frontend::ProfileSelectApplet& frontend_);
     ~ProfileSelect() override;
 
     void Initialize() override;
 
-    bool TransactionComplete() const override;
     Result GetStatus() const override;
     void ExecuteInteractive() override;
     void Execute() override;
@@ -137,7 +137,6 @@ private:
     bool complete = false;
     Result status = ResultSuccess;
     std::vector<u8> final_data;
-    Core::System& system;
 };
 
 } // namespace Service::AM::Frontend

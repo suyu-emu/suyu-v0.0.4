@@ -49,7 +49,7 @@ void IProcessWindingController::OpenCallingLibraryApplet(HLERequestContext& ctx)
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<ILibraryAppletAccessor>(system, applet->caller_applet_storage,
+    rb.PushIpcInterface<ILibraryAppletAccessor>(system, applet->caller_applet_broker,
                                                 caller_applet);
 }
 

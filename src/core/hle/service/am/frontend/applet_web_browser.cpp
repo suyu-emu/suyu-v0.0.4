@@ -224,9 +224,10 @@ void ExtractSharedFonts(Core::System& system) {
 
 } // namespace
 
-WebBrowser::WebBrowser(Core::System& system_, LibraryAppletMode applet_mode_,
+WebBrowser::WebBrowser(Core::System& system_, std::shared_ptr<Applet> applet_,
+                       LibraryAppletMode applet_mode_,
                        const Core::Frontend::WebBrowserApplet& frontend_)
-    : FrontendApplet{system_, applet_mode_}, frontend(frontend_), system{system_} {}
+    : FrontendApplet{system_, applet_, applet_mode_}, frontend(frontend_) {}
 
 WebBrowser::~WebBrowser() = default;
 
@@ -244,7 +245,7 @@ void WebBrowser::Initialize() {
 
     web_applet_version = WebAppletVersion{common_args.library_version};
 
-    const auto web_arg_storage = broker.PopNormalDataToApplet();
+    const auto web_arg_storage = PopInData();
     ASSERT(web_arg_storage != nullptr);
 
     const auto& web_arg = web_arg_storage->GetData();
@@ -283,10 +284,6 @@ void WebBrowser::Initialize() {
         ASSERT_MSG(false, "Invalid ShimKind={}", web_arg_header.shim_kind);
         break;
     }
-}
-
-bool WebBrowser::TransactionComplete() const {
-    return complete;
 }
 
 Result WebBrowser::GetStatus() const {
@@ -359,8 +356,8 @@ void WebBrowser::WebBrowserExit(WebExitReason exit_reason, std::string last_url)
     complete = true;
     std::vector<u8> out_data(sizeof(WebCommonReturnValue));
     std::memcpy(out_data.data(), &web_common_return_value, out_data.size());
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(out_data)));
-    broker.SignalStateChanged();
+    PushOutData(std::make_shared<IStorage>(system, std::move(out_data)));
+    Exit();
 }
 
 Result WebBrowser::RequestExit() {

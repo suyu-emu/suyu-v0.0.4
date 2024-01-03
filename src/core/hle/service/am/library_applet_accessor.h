@@ -7,13 +7,13 @@
 
 namespace Service::AM {
 
-struct AppletStorageHolder;
+class AppletDataBroker;
 struct Applet;
 
 class ILibraryAppletAccessor final : public ServiceFramework<ILibraryAppletAccessor> {
 public:
     explicit ILibraryAppletAccessor(Core::System& system_,
-                                    std::shared_ptr<AppletStorageHolder> storage_,
+                                    std::shared_ptr<AppletDataBroker> broker_,
                                     std::shared_ptr<Applet> applet_);
     ~ILibraryAppletAccessor();
 
@@ -32,7 +32,11 @@ protected:
     void GetPopInteractiveOutDataEvent(HLERequestContext& ctx);
     void GetIndirectLayerConsumerHandle(HLERequestContext& ctx);
 
-    const std::shared_ptr<AppletStorageHolder> storage;
+    void FrontendExecute();
+    void FrontendExecuteInteractive();
+    void FrontendRequestExit();
+
+    const std::shared_ptr<AppletDataBroker> broker;
     const std::shared_ptr<Applet> applet;
 };
 

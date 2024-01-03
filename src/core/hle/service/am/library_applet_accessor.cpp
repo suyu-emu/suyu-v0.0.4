@@ -3,6 +3,7 @@
 
 #include "common/scope_exit.h"
 #include "core/hle/service/am/am_results.h"
+#include "core/hle/service/am/applet_data_broker.h"
 #include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/am/library_applet_accessor.h"
 #include "core/hle/service/am/storage.h"
@@ -11,9 +12,9 @@
 namespace Service::AM {
 
 ILibraryAppletAccessor::ILibraryAppletAccessor(Core::System& system_,
-                                               std::shared_ptr<AppletStorageHolder> storage_,
+                                               std::shared_ptr<AppletDataBroker> broker_,
                                                std::shared_ptr<Applet> applet_)
-    : ServiceFramework{system_, "ILibraryAppletAccessor"}, storage{std::move(storage_)},
+    : ServiceFramework{system_, "ILibraryAppletAccessor"}, broker{std::move(broker_)},
       applet{std::move(applet_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
@@ -49,7 +50,7 @@ void ILibraryAppletAccessor::GetAppletStateChangedEvent(HLERequestContext& ctx) 
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(storage->state_changed_event.GetHandle());
+    rb.PushCopyObjects(broker->GetStateChangedEvent().GetHandle());
 }
 
 void ILibraryAppletAccessor::IsCompleted(HLERequestContext& ctx) {
@@ -59,7 +60,7 @@ void ILibraryAppletAccessor::IsCompleted(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push<u32>(applet->is_completed);
+    rb.Push<u32>(broker->IsCompleted());
 }
 
 void ILibraryAppletAccessor::GetResult(HLERequestContext& ctx) {
@@ -80,6 +81,7 @@ void ILibraryAppletAccessor::Start(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     applet->process->Run();
+    FrontendExecute();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -90,6 +92,7 @@ void ILibraryAppletAccessor::RequestExit(HLERequestContext& ctx) {
 
     ASSERT(applet != nullptr);
     applet->message_queue.RequestExit();
+    FrontendRequestExit();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -99,7 +102,7 @@ void ILibraryAppletAccessor::PushInData(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::RequestParser rp{ctx};
-    storage->in_data.PushData(rp.PopIpcInterface<IStorage>().lock());
+    broker->GetInData().Push(rp.PopIpcInterface<IStorage>().lock());
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -109,7 +112,7 @@ void ILibraryAppletAccessor::PopOutData(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     std::shared_ptr<IStorage> data;
-    const auto res = storage->out_data.PopData(&data);
+    const auto res = broker->GetOutData().Pop(&data);
 
     if (res.IsSuccess()) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -125,7 +128,8 @@ void ILibraryAppletAccessor::PushInteractiveInData(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::RequestParser rp{ctx};
-    storage->interactive_in_data.PushData(rp.PopIpcInterface<IStorage>().lock());
+    broker->GetInteractiveInData().Push(rp.PopIpcInterface<IStorage>().lock());
+    FrontendExecuteInteractive();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -135,7 +139,7 @@ void ILibraryAppletAccessor::PopInteractiveOutData(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     std::shared_ptr<IStorage> data;
-    const auto res = storage->interactive_out_data.PopData(&data);
+    const auto res = broker->GetInteractiveOutData().Pop(&data);
 
     if (res.IsSuccess()) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -152,7 +156,7 @@ void ILibraryAppletAccessor::GetPopOutDataEvent(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(storage->out_data.GetEvent());
+    rb.PushCopyObjects(broker->GetOutData().GetEvent());
 }
 
 void ILibraryAppletAccessor::GetPopInteractiveOutDataEvent(HLERequestContext& ctx) {
@@ -160,7 +164,7 @@ void ILibraryAppletAccessor::GetPopInteractiveOutDataEvent(HLERequestContext& ct
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(storage->interactive_out_data.GetEvent());
+    rb.PushCopyObjects(broker->GetInteractiveOutData().GetEvent());
 }
 
 void ILibraryAppletAccessor::GetIndirectLayerConsumerHandle(HLERequestContext& ctx) {
@@ -173,6 +177,26 @@ void ILibraryAppletAccessor::GetIndirectLayerConsumerHandle(HLERequestContext& c
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
     rb.Push(handle);
+}
+
+void ILibraryAppletAccessor::FrontendExecute() {
+    if (applet->frontend) {
+        applet->frontend->Initialize();
+        applet->frontend->Execute();
+    }
+}
+
+void ILibraryAppletAccessor::FrontendExecuteInteractive() {
+    if (applet->frontend) {
+        applet->frontend->ExecuteInteractive();
+        applet->frontend->Execute();
+    }
+}
+
+void ILibraryAppletAccessor::FrontendRequestExit() {
+    if (applet->frontend) {
+        applet->frontend->RequestExit();
+    }
 }
 
 } // namespace Service::AM

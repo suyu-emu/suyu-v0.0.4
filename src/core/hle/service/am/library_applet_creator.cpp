@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/kernel/k_transfer_memory.h"
+#include "core/hle/service/am/applet_data_broker.h"
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/frontend/applets.h"
 #include "core/hle/service/am/library_applet_accessor.h"
@@ -62,10 +63,9 @@ AppletProgramId AppletIdToProgramId(AppletId applet_id) {
     }
 }
 
-std::shared_ptr<ILibraryAppletAccessor> CreateGuestApplet(Core::System& system,
-                                                          std::shared_ptr<Applet> caller_applet,
-                                                          AppletId applet_id,
-                                                          LibraryAppletMode mode) {
+[[maybe_unused]] std::shared_ptr<ILibraryAppletAccessor> CreateGuestApplet(
+    Core::System& system, std::shared_ptr<Applet> caller_applet, AppletId applet_id,
+    LibraryAppletMode mode) {
     const auto program_id = static_cast<u64>(AppletIdToProgramId(applet_id));
     if (program_id == 0) {
         // Unknown applet
@@ -89,20 +89,33 @@ std::shared_ptr<ILibraryAppletAccessor> CreateGuestApplet(Core::System& system,
     applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
     applet->focus_state = FocusState::InFocus;
 
-    auto storage = std::make_shared<AppletStorageHolder>(system);
+    auto broker = std::make_shared<AppletDataBroker>(system);
     applet->caller_applet = caller_applet;
-    applet->caller_applet_storage = storage;
+    applet->caller_applet_broker = broker;
 
     system.GetAppletManager().InsertApplet(applet);
 
-    return std::make_shared<ILibraryAppletAccessor>(system, storage, applet);
+    return std::make_shared<ILibraryAppletAccessor>(system, broker, applet);
 }
 
-std::shared_ptr<ILibraryAppletAccessor> CreateFrontendApplet(Core::System& system,
-                                                             AppletId applet_id,
-                                                             LibraryAppletMode mode) {
-    UNREACHABLE();
-    return {};
+[[maybe_unused]] std::shared_ptr<ILibraryAppletAccessor> CreateFrontendApplet(
+    Core::System& system, std::shared_ptr<Applet> caller_applet, AppletId applet_id,
+    LibraryAppletMode mode) {
+    const auto program_id = static_cast<u64>(AppletIdToProgramId(applet_id));
+
+    auto process = std::make_unique<Process>(system);
+    auto applet = std::make_shared<Applet>(system, std::move(process));
+    applet->program_id = program_id;
+    applet->applet_id = applet_id;
+    applet->type = AppletType::LibraryApplet;
+    applet->library_applet_mode = mode;
+
+    auto storage = std::make_shared<AppletDataBroker>(system);
+    applet->caller_applet = caller_applet;
+    applet->caller_applet_broker = storage;
+    applet->frontend = system.GetFrontendAppletHolder().GetApplet(applet, applet_id, mode);
+
+    return std::make_shared<ILibraryAppletAccessor>(system, storage, applet);
 }
 
 } // namespace
@@ -131,10 +144,7 @@ void ILibraryAppletCreator::CreateLibraryApplet(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called with applet_id={:08X}, applet_mode={:08X}", applet_id,
               applet_mode);
 
-    auto library_applet = CreateGuestApplet(system, applet, applet_id, applet_mode);
-    if (!library_applet) {
-        library_applet = CreateFrontendApplet(system, applet_id, applet_mode);
-    }
+    auto library_applet = CreateFrontendApplet(system, applet, applet_id, applet_mode);
     if (!library_applet) {
         LOG_ERROR(Service_AM, "Applet doesn't exist! applet_id={}", applet_id);
 

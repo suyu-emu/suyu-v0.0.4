@@ -16,10 +16,11 @@
 
 namespace Service::AM::Frontend {
 
-Cabinet::Cabinet(Core::System& system_, LibraryAppletMode applet_mode_,
-                 const Core::Frontend::CabinetApplet& frontend_)
-    : FrontendApplet{system_, applet_mode_}, frontend{frontend_},
-      system{system_}, service_context{system_, "CabinetApplet"} {
+Cabinet::Cabinet(Core::System& system_, std::shared_ptr<Applet> applet_,
+                 LibraryAppletMode applet_mode_, const Core::Frontend::CabinetApplet& frontend_)
+    : FrontendApplet{system_, applet_, applet_mode_}, frontend{frontend_}, service_context{
+                                                                               system_,
+                                                                               "CabinetApplet"} {
 
     availability_change_event =
         service_context.CreateEvent("CabinetApplet:AvailabilityChangeEvent");
@@ -41,7 +42,7 @@ void Cabinet::Initialize() {
               common_args.play_startup_sound, common_args.size, common_args.system_tick,
               common_args.theme_color);
 
-    const auto storage = broker.PopNormalDataToApplet();
+    std::shared_ptr<IStorage> storage = PopInData();
     ASSERT(storage != nullptr);
 
     const auto applet_input_data = storage->GetData();
@@ -49,10 +50,6 @@ void Cabinet::Initialize() {
 
     std::memcpy(&applet_input_common, applet_input_data.data(),
                 sizeof(StartParamForAmiiboSettings));
-}
-
-bool Cabinet::TransactionComplete() const {
-    return is_complete;
 }
 
 Result Cabinet::GetStatus() const {
@@ -160,8 +157,8 @@ void Cabinet::DisplayCompleted(bool apply_changes, std::string_view amiibo_name)
 
     is_complete = true;
 
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(out_data)));
-    broker.SignalStateChanged();
+    PushOutData(std::make_shared<IStorage>(system, std::move(out_data)));
+    Exit();
 }
 
 void Cabinet::Cancel() {
@@ -175,8 +172,8 @@ void Cabinet::Cancel() {
 
     is_complete = true;
 
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(out_data)));
-    broker.SignalStateChanged();
+    PushOutData(std::make_shared<IStorage>(system, std::move(out_data)));
+    Exit();
 }
 
 Result Cabinet::RequestExit() {

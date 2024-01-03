@@ -42,9 +42,10 @@ void SetReplyBase(std::vector<u8>& reply, SwkbdState state, SwkbdReplyType reply
 
 } // Anonymous namespace
 
-SoftwareKeyboard::SoftwareKeyboard(Core::System& system_, LibraryAppletMode applet_mode_,
+SoftwareKeyboard::SoftwareKeyboard(Core::System& system_, std::shared_ptr<Applet> applet_,
+                                   LibraryAppletMode applet_mode_,
                                    Core::Frontend::SoftwareKeyboardApplet& frontend_)
-    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+    : FrontendApplet{system_, applet_, applet_mode_}, frontend{frontend_} {}
 
 SoftwareKeyboard::~SoftwareKeyboard() = default;
 
@@ -75,10 +76,6 @@ void SoftwareKeyboard::Initialize() {
         ASSERT_MSG(false, "Invalid LibraryAppletMode={}", applet_mode);
         break;
     }
-}
-
-bool SoftwareKeyboard::TransactionComplete() const {
-    return complete;
 }
 
 Result SoftwareKeyboard::GetStatus() const {
@@ -185,7 +182,7 @@ void SoftwareKeyboard::InitializeForeground() {
 
     is_background = false;
 
-    const auto swkbd_config_storage = broker.PopNormalDataToApplet();
+    const auto swkbd_config_storage = PopInData();
     ASSERT(swkbd_config_storage != nullptr);
 
     const auto& swkbd_config_data = swkbd_config_storage->GetData();
@@ -222,7 +219,7 @@ void SoftwareKeyboard::InitializeForeground() {
         break;
     }
 
-    const auto work_buffer_storage = broker.PopNormalDataToApplet();
+    const auto work_buffer_storage = PopInData();
     ASSERT(work_buffer_storage != nullptr);
 
     if (swkbd_config_common.initial_string_length == 0) {
@@ -251,7 +248,7 @@ void SoftwareKeyboard::InitializeBackground(LibraryAppletMode library_applet_mod
 
     is_background = true;
 
-    const auto swkbd_inline_initialize_arg_storage = broker.PopNormalDataToApplet();
+    const auto swkbd_inline_initialize_arg_storage = PopInData();
     ASSERT(swkbd_inline_initialize_arg_storage != nullptr);
 
     const auto& swkbd_inline_initialize_arg = swkbd_inline_initialize_arg_storage->GetData();
@@ -268,7 +265,7 @@ void SoftwareKeyboard::InitializeBackground(LibraryAppletMode library_applet_mod
 }
 
 void SoftwareKeyboard::ProcessTextCheck() {
-    const auto text_check_storage = broker.PopInteractiveDataToApplet();
+    const auto text_check_storage = PopInteractiveInData();
     ASSERT(text_check_storage != nullptr);
 
     const auto& text_check_data = text_check_storage->GetData();
@@ -315,7 +312,7 @@ void SoftwareKeyboard::ProcessTextCheck() {
 }
 
 void SoftwareKeyboard::ProcessInlineKeyboardRequest() {
-    const auto request_data_storage = broker.PopInteractiveDataToApplet();
+    const auto request_data_storage = PopInteractiveInData();
     ASSERT(request_data_storage != nullptr);
 
     const auto& request_data = request_data_storage->GetData();
@@ -378,7 +375,7 @@ void SoftwareKeyboard::SubmitNormalOutputAndExit(SwkbdResult result,
                     submitted_text.size() * sizeof(char16_t));
     }
 
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(out_data)));
+    PushOutData(std::make_shared<IStorage>(system, std::move(out_data)));
 
     ExitKeyboard();
 }
@@ -411,7 +408,7 @@ void SoftwareKeyboard::SubmitForTextCheck(std::u16string submitted_text) {
                     current_text.size() * sizeof(char16_t));
     }
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(out_data)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(out_data)));
 }
 
 void SoftwareKeyboard::SendReply(SwkbdReplyType reply_type) {
@@ -768,7 +765,7 @@ void SoftwareKeyboard::ExitKeyboard() {
 
     frontend.ExitKeyboard();
 
-    broker.SignalStateChanged();
+    Exit();
 }
 
 Result SoftwareKeyboard::RequestExit() {
@@ -968,7 +965,7 @@ void SoftwareKeyboard::ReplyFinishedInitialize() {
 
     SetReplyBase(reply, swkbd_state, SwkbdReplyType::FinishedInitialize);
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 void SoftwareKeyboard::ReplyDefault() {
@@ -978,7 +975,7 @@ void SoftwareKeyboard::ReplyDefault() {
 
     SetReplyBase(reply, swkbd_state, SwkbdReplyType::Default);
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 void SoftwareKeyboard::ReplyChangedString() {
@@ -1000,7 +997,7 @@ void SoftwareKeyboard::ReplyChangedString() {
     std::memcpy(reply.data() + REPLY_BASE_SIZE + REPLY_UTF16_SIZE, &changed_string_arg,
                 sizeof(SwkbdChangedStringArg));
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 void SoftwareKeyboard::ReplyMovedCursor() {
@@ -1020,7 +1017,7 @@ void SoftwareKeyboard::ReplyMovedCursor() {
     std::memcpy(reply.data() + REPLY_BASE_SIZE + REPLY_UTF16_SIZE, &moved_cursor_arg,
                 sizeof(SwkbdMovedCursorArg));
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 void SoftwareKeyboard::ReplyMovedTab() {
@@ -1040,7 +1037,7 @@ void SoftwareKeyboard::ReplyMovedTab() {
     std::memcpy(reply.data() + REPLY_BASE_SIZE + REPLY_UTF16_SIZE, &moved_tab_arg,
                 sizeof(SwkbdMovedTabArg));
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 void SoftwareKeyboard::ReplyDecidedEnter() {
@@ -1059,7 +1056,7 @@ void SoftwareKeyboard::ReplyDecidedEnter() {
     std::memcpy(reply.data() + REPLY_BASE_SIZE + REPLY_UTF16_SIZE, &decided_enter_arg,
                 sizeof(SwkbdDecidedEnterArg));
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 
     HideInlineKeyboard();
 }
@@ -1071,7 +1068,7 @@ void SoftwareKeyboard::ReplyDecidedCancel() {
 
     SetReplyBase(reply, swkbd_state, SwkbdReplyType::DecidedCancel);
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 
     HideInlineKeyboard();
 }
@@ -1096,7 +1093,7 @@ void SoftwareKeyboard::ReplyChangedStringUtf8() {
     std::memcpy(reply.data() + REPLY_BASE_SIZE + REPLY_UTF8_SIZE, &changed_string_arg,
                 sizeof(SwkbdChangedStringArg));
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 void SoftwareKeyboard::ReplyMovedCursorUtf8() {
@@ -1117,7 +1114,7 @@ void SoftwareKeyboard::ReplyMovedCursorUtf8() {
     std::memcpy(reply.data() + REPLY_BASE_SIZE + REPLY_UTF8_SIZE, &moved_cursor_arg,
                 sizeof(SwkbdMovedCursorArg));
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 void SoftwareKeyboard::ReplyDecidedEnterUtf8() {
@@ -1137,7 +1134,7 @@ void SoftwareKeyboard::ReplyDecidedEnterUtf8() {
     std::memcpy(reply.data() + REPLY_BASE_SIZE + REPLY_UTF8_SIZE, &decided_enter_arg,
                 sizeof(SwkbdDecidedEnterArg));
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 
     HideInlineKeyboard();
 }
@@ -1149,7 +1146,7 @@ void SoftwareKeyboard::ReplyUnsetCustomizeDic() {
 
     SetReplyBase(reply, swkbd_state, SwkbdReplyType::UnsetCustomizeDic);
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 void SoftwareKeyboard::ReplyReleasedUserWordInfo() {
@@ -1159,7 +1156,7 @@ void SoftwareKeyboard::ReplyReleasedUserWordInfo() {
 
     SetReplyBase(reply, swkbd_state, SwkbdReplyType::ReleasedUserWordInfo);
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 void SoftwareKeyboard::ReplyUnsetCustomizedDictionaries() {
@@ -1169,7 +1166,7 @@ void SoftwareKeyboard::ReplyUnsetCustomizedDictionaries() {
 
     SetReplyBase(reply, swkbd_state, SwkbdReplyType::UnsetCustomizedDictionaries);
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 void SoftwareKeyboard::ReplyChangedStringV2() {
@@ -1195,7 +1192,7 @@ void SoftwareKeyboard::ReplyChangedStringV2() {
     std::memcpy(reply.data() + REPLY_BASE_SIZE + REPLY_UTF16_SIZE + sizeof(SwkbdChangedStringArg),
                 &flag, 1);
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 void SoftwareKeyboard::ReplyMovedCursorV2() {
@@ -1219,7 +1216,7 @@ void SoftwareKeyboard::ReplyMovedCursorV2() {
     std::memcpy(reply.data() + REPLY_BASE_SIZE + REPLY_UTF16_SIZE + sizeof(SwkbdMovedCursorArg),
                 &flag, 1);
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 void SoftwareKeyboard::ReplyChangedStringUtf8V2() {
@@ -1246,7 +1243,7 @@ void SoftwareKeyboard::ReplyChangedStringUtf8V2() {
     std::memcpy(reply.data() + REPLY_BASE_SIZE + REPLY_UTF8_SIZE + sizeof(SwkbdChangedStringArg),
                 &flag, 1);
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 void SoftwareKeyboard::ReplyMovedCursorUtf8V2() {
@@ -1271,7 +1268,7 @@ void SoftwareKeyboard::ReplyMovedCursorUtf8V2() {
     std::memcpy(reply.data() + REPLY_BASE_SIZE + REPLY_UTF8_SIZE + sizeof(SwkbdMovedCursorArg),
                 &flag, 1);
 
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::move(reply)));
 }
 
 } // namespace Service::AM::Frontend

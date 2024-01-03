@@ -24,14 +24,13 @@ namespace Service::AM::Frontend {
 
 class WebBrowser final : public FrontendApplet {
 public:
-    WebBrowser(Core::System& system_, LibraryAppletMode applet_mode_,
-               const Core::Frontend::WebBrowserApplet& frontend_);
+    WebBrowser(Core::System& system_, std::shared_ptr<Applet> applet_,
+               LibraryAppletMode applet_mode_, const Core::Frontend::WebBrowserApplet& frontend_);
 
     ~WebBrowser() override;
 
     void Initialize() override;
 
-    bool TransactionComplete() const override;
     Result GetStatus() const override;
     void ExecuteInteractive() override;
     void Execute() override;
@@ -80,8 +79,6 @@ private:
     FileSys::VirtualFile offline_romfs;
 
     std::string external_url;
-
-    Core::System& system;
 };
 
 } // namespace Service::AM::Frontend

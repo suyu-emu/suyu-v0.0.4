@@ -16,6 +16,7 @@
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
+#include "core/hle/service/am/applet_data_broker.h"
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/applet_message_queue.h"
 #include "core/hle/service/am/applet_oe.h"
@@ -33,135 +34,45 @@
 
 namespace Service::AM::Frontend {
 
-AppletDataBroker::AppletDataBroker(Core::System& system_, LibraryAppletMode applet_mode_)
-    : system{system_}, applet_mode{applet_mode_},
-      service_context{system, "ILibraryAppletAccessor"} {
-    state_changed_event = service_context.CreateEvent("ILibraryAppletAccessor:StateChangedEvent");
-    pop_out_data_event = service_context.CreateEvent("ILibraryAppletAccessor:PopDataOutEvent");
-    pop_interactive_out_data_event =
-        service_context.CreateEvent("ILibraryAppletAccessor:PopInteractiveDataOutEvent");
-}
-
-AppletDataBroker::~AppletDataBroker() {
-    service_context.CloseEvent(state_changed_event);
-    service_context.CloseEvent(pop_out_data_event);
-    service_context.CloseEvent(pop_interactive_out_data_event);
-}
-
-AppletDataBroker::RawChannelData AppletDataBroker::PeekDataToAppletForDebug() const {
-    std::vector<std::vector<u8>> out_normal;
-
-    for (const auto& storage : in_channel) {
-        out_normal.push_back(storage->GetData());
-    }
-
-    std::vector<std::vector<u8>> out_interactive;
-
-    for (const auto& storage : in_interactive_channel) {
-        out_interactive.push_back(storage->GetData());
-    }
-
-    return {std::move(out_normal), std::move(out_interactive)};
-}
-
-std::shared_ptr<IStorage> AppletDataBroker::PopNormalDataToGame() {
-    if (out_channel.empty())
-        return nullptr;
-
-    auto out = std::move(out_channel.front());
-    out_channel.pop_front();
-    pop_out_data_event->Clear();
-    return out;
-}
-
-std::shared_ptr<IStorage> AppletDataBroker::PopNormalDataToApplet() {
-    if (in_channel.empty())
-        return nullptr;
-
-    auto out = std::move(in_channel.front());
-    in_channel.pop_front();
-    return out;
-}
-
-std::shared_ptr<IStorage> AppletDataBroker::PopInteractiveDataToGame() {
-    if (out_interactive_channel.empty())
-        return nullptr;
-
-    auto out = std::move(out_interactive_channel.front());
-    out_interactive_channel.pop_front();
-    pop_interactive_out_data_event->Clear();
-    return out;
-}
-
-std::shared_ptr<IStorage> AppletDataBroker::PopInteractiveDataToApplet() {
-    if (in_interactive_channel.empty())
-        return nullptr;
-
-    auto out = std::move(in_interactive_channel.front());
-    in_interactive_channel.pop_front();
-    return out;
-}
-
-void AppletDataBroker::PushNormalDataFromGame(std::shared_ptr<IStorage>&& storage) {
-    in_channel.emplace_back(std::move(storage));
-}
-
-void AppletDataBroker::PushNormalDataFromApplet(std::shared_ptr<IStorage>&& storage) {
-    out_channel.emplace_back(std::move(storage));
-    pop_out_data_event->Signal();
-}
-
-void AppletDataBroker::PushInteractiveDataFromGame(std::shared_ptr<IStorage>&& storage) {
-    in_interactive_channel.emplace_back(std::move(storage));
-}
-
-void AppletDataBroker::PushInteractiveDataFromApplet(std::shared_ptr<IStorage>&& storage) {
-    out_interactive_channel.emplace_back(std::move(storage));
-    pop_interactive_out_data_event->Signal();
-}
-
-void AppletDataBroker::SignalStateChanged() {
-    state_changed_event->Signal();
-
-    // TODO proper window management
-    switch (applet_mode) {
-    case LibraryAppletMode::AllForeground:
-    case LibraryAppletMode::AllForegroundInitiallyHidden: {
-        system.GetAppletManager().FocusStateChanged();
-        break;
-    }
-    default:
-        break;
-    }
-}
-
-Kernel::KReadableEvent& AppletDataBroker::GetNormalDataEvent() {
-    return pop_out_data_event->GetReadableEvent();
-}
-
-Kernel::KReadableEvent& AppletDataBroker::GetInteractiveDataEvent() {
-    return pop_interactive_out_data_event->GetReadableEvent();
-}
-
-Kernel::KReadableEvent& AppletDataBroker::GetStateChangedEvent() {
-    return state_changed_event->GetReadableEvent();
-}
-
-FrontendApplet::FrontendApplet(Core::System& system_, LibraryAppletMode applet_mode_)
-    : broker{system_, applet_mode_}, applet_mode{applet_mode_} {}
+FrontendApplet::FrontendApplet(Core::System& system_, std::shared_ptr<Applet> applet_,
+                               LibraryAppletMode applet_mode_)
+    : system{system_}, applet{std::move(applet_)}, applet_mode{applet_mode_} {}
 
 FrontendApplet::~FrontendApplet() = default;
 
 void FrontendApplet::Initialize() {
-    const auto common = broker.PopNormalDataToApplet();
+    std::shared_ptr<IStorage> common = PopInData();
     ASSERT(common != nullptr);
-
     const auto common_data = common->GetData();
 
     ASSERT(common_data.size() >= sizeof(CommonArguments));
     std::memcpy(&common_args, common_data.data(), sizeof(CommonArguments));
 
     initialized = true;
+}
+
+std::shared_ptr<IStorage> FrontendApplet::PopInData() {
+    std::shared_ptr<IStorage> ret;
+    applet.lock()->caller_applet_broker->GetInData().Pop(&ret);
+    return ret;
+}
+
+std::shared_ptr<IStorage> FrontendApplet::PopInteractiveInData() {
+    std::shared_ptr<IStorage> ret;
+    applet.lock()->caller_applet_broker->GetInteractiveInData().Pop(&ret);
+    return ret;
+}
+
+void FrontendApplet::PushOutData(std::shared_ptr<IStorage> storage) {
+    applet.lock()->caller_applet_broker->GetOutData().Push(storage);
+}
+
+void FrontendApplet::PushInteractiveOutData(std::shared_ptr<IStorage> storage) {
+    applet.lock()->caller_applet_broker->GetInteractiveOutData().Push(storage);
+}
+
+void FrontendApplet::Exit() {
+    applet.lock()->caller_applet_broker->SignalCompletion();
 }
 
 FrontendAppletSet::FrontendAppletSet() = default;
@@ -291,36 +202,38 @@ void FrontendAppletHolder::ClearAll() {
     frontend = {};
 }
 
-std::shared_ptr<FrontendApplet> FrontendAppletHolder::GetApplet(AppletId id,
+std::shared_ptr<FrontendApplet> FrontendAppletHolder::GetApplet(std::shared_ptr<Applet> applet,
+                                                                AppletId id,
                                                                 LibraryAppletMode mode) const {
     switch (id) {
     case AppletId::Auth:
-        return std::make_shared<Auth>(system, mode, *frontend.parental_controls);
+        return std::make_shared<Auth>(system, applet, mode, *frontend.parental_controls);
     case AppletId::Cabinet:
-        return std::make_shared<Cabinet>(system, mode, *frontend.cabinet);
+        return std::make_shared<Cabinet>(system, applet, mode, *frontend.cabinet);
     case AppletId::Controller:
-        return std::make_shared<Controller>(system, mode, *frontend.controller);
+        return std::make_shared<Controller>(system, applet, mode, *frontend.controller);
     case AppletId::Error:
-        return std::make_shared<Error>(system, mode, *frontend.error);
+        return std::make_shared<Error>(system, applet, mode, *frontend.error);
     case AppletId::ProfileSelect:
-        return std::make_shared<ProfileSelect>(system, mode, *frontend.profile_select);
+        return std::make_shared<ProfileSelect>(system, applet, mode, *frontend.profile_select);
     case AppletId::SoftwareKeyboard:
-        return std::make_shared<SoftwareKeyboard>(system, mode, *frontend.software_keyboard);
+        return std::make_shared<SoftwareKeyboard>(system, applet, mode,
+                                                  *frontend.software_keyboard);
     case AppletId::MiiEdit:
-        return std::make_shared<MiiEdit>(system, mode, *frontend.mii_edit);
+        return std::make_shared<MiiEdit>(system, applet, mode, *frontend.mii_edit);
     case AppletId::Web:
     case AppletId::Shop:
     case AppletId::OfflineWeb:
     case AppletId::LoginShare:
     case AppletId::WebAuth:
-        return std::make_shared<WebBrowser>(system, mode, *frontend.web_browser);
+        return std::make_shared<WebBrowser>(system, applet, mode, *frontend.web_browser);
     case AppletId::PhotoViewer:
-        return std::make_shared<PhotoViewer>(system, mode, *frontend.photo_viewer);
+        return std::make_shared<PhotoViewer>(system, applet, mode, *frontend.photo_viewer);
     default:
         UNIMPLEMENTED_MSG(
             "No backend implementation exists for applet_id={:02X}! Falling back to stub applet.",
             static_cast<u8>(id));
-        return std::make_shared<StubApplet>(system, id, mode);
+        return std::make_shared<StubApplet>(system, applet, id, mode);
     }
 }
 

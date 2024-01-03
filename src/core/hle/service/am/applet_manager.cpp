@@ -6,6 +6,7 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hle/service/acc/profile_manager.h"
+#include "core/hle/service/am/applet_data_broker.h"
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/frontend/applet_cabinet.h"
 #include "core/hle/service/am/frontend/applet_controller.h"
@@ -29,8 +30,8 @@ static_assert(sizeof(LaunchParameterAccountPreselectedUser) == 0x88);
 
 AppletStorageChannel& InitializeFakeCallerApplet(Core::System& system,
                                                  std::shared_ptr<Applet>& applet) {
-    applet->caller_applet_storage = std::make_shared<AppletStorageHolder>(system);
-    return applet->caller_applet_storage->in_data;
+    applet->caller_applet_broker = std::make_shared<AppletDataBroker>(system);
+    return applet->caller_applet_broker->GetInData();
 }
 
 void PushInShowAlbum(Core::System& system, AppletStorageChannel& channel) {
@@ -46,8 +47,8 @@ void PushInShowAlbum(Core::System& system, AppletStorageChannel& channel) {
     std::vector<u8> argument_data(sizeof(arguments));
     std::vector<u8> settings_data{2};
     std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
-    channel.PushData(std::make_shared<IStorage>(system, std::move(argument_data)));
-    channel.PushData(std::make_shared<IStorage>(system, std::move(settings_data)));
+    channel.Push(std::make_shared<IStorage>(system, std::move(argument_data)));
+    channel.Push(std::make_shared<IStorage>(system, std::move(settings_data)));
 }
 
 void PushInShowController(Core::System& system, AppletStorageChannel& channel) {
@@ -94,9 +95,9 @@ void PushInShowController(Core::System& system, AppletStorageChannel& channel) {
     std::memcpy(private_args_data.data(), &private_args, sizeof(private_args));
     std::memcpy(user_args_data.data(), &user_args, sizeof(user_args));
 
-    channel.PushData(std::make_shared<IStorage>(system, std::move(common_args_data)));
-    channel.PushData(std::make_shared<IStorage>(system, std::move(private_args_data)));
-    channel.PushData(std::make_shared<IStorage>(system, std::move(user_args_data)));
+    channel.Push(std::make_shared<IStorage>(system, std::move(common_args_data)));
+    channel.Push(std::make_shared<IStorage>(system, std::move(private_args_data)));
+    channel.Push(std::make_shared<IStorage>(system, std::move(user_args_data)));
 }
 
 void PushInShowCabinetData(Core::System& system, AppletStorageChannel& channel) {
@@ -124,8 +125,8 @@ void PushInShowCabinetData(Core::System& system, AppletStorageChannel& channel) 
     std::vector<u8> settings_data(sizeof(amiibo_settings));
     std::memcpy(argument_data.data(), &arguments, sizeof(arguments));
     std::memcpy(settings_data.data(), &amiibo_settings, sizeof(amiibo_settings));
-    channel.PushData(std::make_shared<IStorage>(system, std::move(argument_data)));
-    channel.PushData(std::make_shared<IStorage>(system, std::move(settings_data)));
+    channel.Push(std::make_shared<IStorage>(system, std::move(argument_data)));
+    channel.Push(std::make_shared<IStorage>(system, std::move(settings_data)));
 }
 
 void PushInShowMiiEditData(Core::System& system, AppletStorageChannel& channel) {
@@ -147,7 +148,7 @@ void PushInShowMiiEditData(Core::System& system, AppletStorageChannel& channel) 
     std::vector<u8> argument_data(sizeof(mii_arguments));
     std::memcpy(argument_data.data(), &mii_arguments, sizeof(mii_arguments));
 
-    channel.PushData(std::make_shared<IStorage>(system, std::move(argument_data)));
+    channel.Push(std::make_shared<IStorage>(system, std::move(argument_data)));
 }
 
 void PushInShowSoftwareKeyboard(Core::System& system, AppletStorageChannel& channel) {
@@ -200,9 +201,9 @@ void PushInShowSoftwareKeyboard(Core::System& system, AppletStorageChannel& chan
     std::memcpy(work_buffer.data(), initial_string.data(),
                 swkbd_config.initial_string_length * sizeof(char16_t));
 
-    channel.PushData(std::make_shared<IStorage>(system, std::move(argument_data)));
-    channel.PushData(std::make_shared<IStorage>(system, std::move(swkbd_data)));
-    channel.PushData(std::make_shared<IStorage>(system, std::move(work_buffer)));
+    channel.Push(std::make_shared<IStorage>(system, std::move(argument_data)));
+    channel.Push(std::make_shared<IStorage>(system, std::move(swkbd_data)));
+    channel.Push(std::make_shared<IStorage>(system, std::move(work_buffer)));
 }
 
 } // namespace

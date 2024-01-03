@@ -14,9 +14,10 @@
 
 namespace Service::AM::Frontend {
 
-ProfileSelect::ProfileSelect(Core::System& system_, LibraryAppletMode applet_mode_,
+ProfileSelect::ProfileSelect(Core::System& system_, std::shared_ptr<Applet> applet_,
+                             LibraryAppletMode applet_mode_,
                              const Core::Frontend::ProfileSelectApplet& frontend_)
-    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+    : FrontendApplet{system_, applet_, applet_mode_}, frontend{frontend_} {}
 
 ProfileSelect::~ProfileSelect() = default;
 
@@ -28,7 +29,7 @@ void ProfileSelect::Initialize() {
     FrontendApplet::Initialize();
     profile_select_version = ProfileSelectAppletVersion{common_args.library_version};
 
-    const auto user_config_storage = broker.PopNormalDataToApplet();
+    const std::shared_ptr<IStorage> user_config_storage = PopInData();
     ASSERT(user_config_storage != nullptr);
     const auto& user_config = user_config_storage->GetData();
 
@@ -51,10 +52,6 @@ void ProfileSelect::Initialize() {
     }
 }
 
-bool ProfileSelect::TransactionComplete() const {
-    return complete;
-}
-
 Result ProfileSelect::GetStatus() const {
     return status;
 }
@@ -65,7 +62,8 @@ void ProfileSelect::ExecuteInteractive() {
 
 void ProfileSelect::Execute() {
     if (complete) {
-        broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(final_data)));
+        PushOutData(std::make_shared<IStorage>(system, std::move(final_data)));
+        Exit();
         return;
     }
 
@@ -112,8 +110,9 @@ void ProfileSelect::SelectionComplete(std::optional<Common::UUID> uuid) {
 
     final_data = std::vector<u8>(sizeof(UiReturnArg));
     std::memcpy(final_data.data(), &output, final_data.size());
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(final_data)));
-    broker.SignalStateChanged();
+
+    PushOutData(std::make_shared<IStorage>(system, std::move(final_data)));
+    Exit();
 }
 
 Result ProfileSelect::RequestExit() {

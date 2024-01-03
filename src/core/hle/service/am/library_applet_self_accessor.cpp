@@ -5,6 +5,7 @@
 #include "core/core_timing.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am_results.h"
+#include "core/hle/service/am/applet_data_broker.h"
 #include "core/hle/service/am/applet_manager.h"
 #include "core/hle/service/am/frontend/applet_cabinet.h"
 #include "core/hle/service/am/frontend/applet_controller.h"
@@ -47,7 +48,7 @@ AppletIdentityInfo GetCallerIdentity(std::shared_ptr<Applet> applet) {
 ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_,
                                                        std::shared_ptr<Applet> applet_)
     : ServiceFramework{system_, "ILibraryAppletSelfAccessor"}, applet{std::move(applet_)},
-      storage{applet->caller_applet_storage} {
+      broker{applet->caller_applet_broker} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ILibraryAppletSelfAccessor::PopInData, "PopInData"},
@@ -96,7 +97,7 @@ void ILibraryAppletSelfAccessor::PopInData(HLERequestContext& ctx) {
     LOG_INFO(Service_AM, "called");
 
     std::shared_ptr<IStorage> data;
-    const auto res = storage->in_data.PopData(&data);
+    const auto res = broker->GetInData().Pop(&data);
 
     if (res.IsSuccess()) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -112,7 +113,7 @@ void ILibraryAppletSelfAccessor::PushOutData(HLERequestContext& ctx) {
     LOG_INFO(Service_AM, "called");
 
     IPC::RequestParser rp{ctx};
-    storage->out_data.PushData(rp.PopIpcInterface<IStorage>().lock());
+    broker->GetOutData().Push(rp.PopIpcInterface<IStorage>().lock());
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -122,7 +123,7 @@ void ILibraryAppletSelfAccessor::PopInteractiveInData(HLERequestContext& ctx) {
     LOG_INFO(Service_AM, "called");
 
     std::shared_ptr<IStorage> data;
-    const auto res = storage->interactive_in_data.PopData(&data);
+    const auto res = broker->GetInteractiveInData().Pop(&data);
 
     if (res.IsSuccess()) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -138,7 +139,7 @@ void ILibraryAppletSelfAccessor::PushInteractiveOutData(HLERequestContext& ctx) 
     LOG_INFO(Service_AM, "called");
 
     IPC::RequestParser rp{ctx};
-    storage->interactive_out_data.PushData(rp.PopIpcInterface<IStorage>().lock());
+    broker->GetInteractiveOutData().Push(rp.PopIpcInterface<IStorage>().lock());
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -149,7 +150,7 @@ void ILibraryAppletSelfAccessor::GetPopInDataEvent(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(storage->in_data.GetEvent());
+    rb.PushCopyObjects(broker->GetInData().GetEvent());
 }
 
 void ILibraryAppletSelfAccessor::GetPopInteractiveInDataEvent(HLERequestContext& ctx) {
@@ -157,19 +158,14 @@ void ILibraryAppletSelfAccessor::GetPopInteractiveInDataEvent(HLERequestContext&
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(storage->interactive_in_data.GetEvent());
+    rb.PushCopyObjects(broker->GetInteractiveInData().GetEvent());
 }
 
 void ILibraryAppletSelfAccessor::ExitProcessAndReturn(HLERequestContext& ctx) {
     LOG_INFO(Service_AM, "called");
 
     system.GetAppletManager().TerminateAndRemoveApplet(applet->aruid);
-
-    {
-        std::scoped_lock lk{applet->lock};
-        applet->is_completed = true;
-        storage->state_changed_event.Signal();
-    }
+    broker->SignalCompletion();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

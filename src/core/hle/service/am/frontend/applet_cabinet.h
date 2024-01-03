@@ -86,13 +86,13 @@ static_assert(sizeof(ReturnValueForAmiiboSettings) == 0x188,
 
 class Cabinet final : public FrontendApplet {
 public:
-    explicit Cabinet(Core::System& system_, LibraryAppletMode applet_mode_,
+    explicit Cabinet(Core::System& system_, std::shared_ptr<Applet> applet_,
+                     LibraryAppletMode applet_mode_,
                      const Core::Frontend::CabinetApplet& frontend_);
     ~Cabinet() override;
 
     void Initialize() override;
 
-    bool TransactionComplete() const override;
     Result GetStatus() const override;
     void ExecuteInteractive() override;
     void Execute() override;
@@ -102,7 +102,6 @@ public:
 
 private:
     const Core::Frontend::CabinetApplet& frontend;
-    Core::System& system;
 
     bool is_complete{false};
     std::shared_ptr<Service::NFC::NfcDevice> nfp_device;
