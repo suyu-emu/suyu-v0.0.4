@@ -393,8 +393,13 @@ add_library(core STATIC
     hle/service/am/am.cpp
     hle/service/am/am.h
     hle/service/am/am_results.h
+    hle/service/am/am_types.h
+    hle/service/am/applet.cpp
+    hle/service/am/applet.h
     hle/service/am/applet_ae.cpp
     hle/service/am/applet_ae.h
+    hle/service/am/applet_manager.cpp
+    hle/service/am/applet_manager.h
     hle/service/am/applet_oe.cpp
     hle/service/am/applet_oe.h
     hle/service/am/applets/applet_cabinet.cpp
@@ -438,6 +443,8 @@ add_library(core STATIC
     hle/service/am/display_controller.h
     hle/service/am/global_state_controller.cpp
     hle/service/am/global_state_controller.h
+    hle/service/am/hid_registration.cpp
+    hle/service/am/hid_registration.h
     hle/service/am/home_menu_functions.cpp
     hle/service/am/home_menu_functions.h
     hle/service/am/idle.cpp
@@ -450,16 +457,24 @@ add_library(core STATIC
     hle/service/am/library_applet_proxy.h
     hle/service/am/library_applet_self_accessor.cpp
     hle/service/am/library_applet_self_accessor.h
+    hle/service/am/library_applet_storage.cpp
+    hle/service/am/library_applet_storage.h
     hle/service/am/lock_accessor.cpp
     hle/service/am/lock_accessor.h
+    hle/service/am/managed_layer_holder.cpp
+    hle/service/am/managed_layer_holder.h
     hle/service/am/omm.cpp
     hle/service/am/omm.h
     hle/service/am/process_winding_controller.cpp
     hle/service/am/process_winding_controller.h
+    hle/service/am/process.cpp
+    hle/service/am/process.h
     hle/service/am/self_controller.cpp
     hle/service/am/self_controller.h
     hle/service/am/system_applet_proxy.cpp
     hle/service/am/system_applet_proxy.h
+    hle/service/am/system_buffer_manager.cpp
+    hle/service/am/system_buffer_manager.h
     hle/service/am/spsm.cpp
     hle/service/am/spsm.h
     hle/service/am/storage_accessor.cpp
@@ -531,6 +546,8 @@ add_library(core STATIC
     hle/service/es/es.h
     hle/service/eupld/eupld.cpp
     hle/service/eupld/eupld.h
+    hle/service/event.cpp
+    hle/service/event.h
     hle/service/fatal/fatal.cpp
     hle/service/fatal/fatal.h
     hle/service/fatal/fatal_p.cpp
