@@ -19,7 +19,53 @@
 #include "core/arm/nce/patcher.h"
 #endif
 
+#ifndef HAS_NCE
+namespace Core::NCE {
+class Patcher {};
+} // namespace Core::NCE
+#endif
+
 namespace Loader {
+
+struct PatchCollection {
+    explicit PatchCollection(bool is_application_) : is_application{is_application_} {
+        module_patcher_indices.fill(-1);
+        patchers.emplace_back();
+    }
+
+    std::vector<Core::NCE::Patcher>* GetPatchers() {
+        if (is_application && Settings::IsNceEnabled()) {
+            return &patchers;
+        }
+        return nullptr;
+    }
+
+    size_t GetTotalPatchSize() const {
+        size_t total_size{};
+#ifdef HAS_NCE
+        for (auto& patcher : patchers) {
+            total_size += patcher.GetSectionSize();
+        }
+#endif
+        return total_size;
+    }
+
+    void SaveIndex(size_t module) {
+        module_patcher_indices[module] = static_cast<s32>(patchers.size() - 1);
+    }
+
+    s32 GetIndex(size_t module) const {
+        return module_patcher_indices[module];
+    }
+
+    s32 GetLastIndex() const {
+        return static_cast<s32>(patchers.size()) - 1;
+    }
+
+    bool is_application;
+    std::vector<Core::NCE::Patcher> patchers;
+    std::array<s32, 13> module_patcher_indices{};
+};
 
 AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys::VirtualFile file_,
                                                                          bool override_update_)
@@ -142,18 +188,7 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     std::size_t code_size{};
 
     // Define an nce patch context for each potential module.
-#ifdef HAS_NCE
-    std::array<Core::NCE::Patcher, 13> module_patchers;
-#endif
-
-    const auto GetPatcher = [&](size_t i) -> Core::NCE::Patcher* {
-#ifdef HAS_NCE
-        if (is_application && Settings::IsNceEnabled()) {
-            return &module_patchers[i];
-        }
-#endif
-        return nullptr;
-    };
+    PatchCollection patch_ctx{is_application};
 
     // Use the NSO module loader to figure out the code layout
     for (size_t i = 0; i < static_modules.size(); i++) {
@@ -164,13 +199,14 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
         }
 
         const bool should_pass_arguments = std::strcmp(module, "rtld") == 0;
-        const auto tentative_next_load_addr =
-            AppLoader_NSO::LoadModule(process, system, *module_file, code_size,
-                                      should_pass_arguments, false, {}, GetPatcher(i));
+        const auto tentative_next_load_addr = AppLoader_NSO::LoadModule(
+            process, system, *module_file, code_size, should_pass_arguments, false, {},
+            patch_ctx.GetPatchers(), patch_ctx.GetLastIndex());
         if (!tentative_next_load_addr) {
             return {ResultStatus::ErrorLoadingNSO, {}};
         }
 
+        patch_ctx.SaveIndex(i);
         code_size = *tentative_next_load_addr;
     }
 
@@ -183,6 +219,9 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
         }
         return 0;
     }();
+
+    // Add patch size to the total module size
+    code_size += patch_ctx.GetTotalPatchSize();
 
     // Setup the process code layout
     if (process.LoadFromMetadata(metadata, code_size, fastmem_base, is_hbl).IsError()) {
@@ -204,9 +243,9 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
 
         const VAddr load_addr{next_load_addr};
         const bool should_pass_arguments = std::strcmp(module, "rtld") == 0;
-        const auto tentative_next_load_addr =
-            AppLoader_NSO::LoadModule(process, system, *module_file, load_addr,
-                                      should_pass_arguments, true, pm, GetPatcher(i));
+        const auto tentative_next_load_addr = AppLoader_NSO::LoadModule(
+            process, system, *module_file, load_addr, should_pass_arguments, true, pm,
+            patch_ctx.GetPatchers(), patch_ctx.GetIndex(i));
         if (!tentative_next_load_addr) {
             return {ResultStatus::ErrorLoadingNSO, {}};
         }
