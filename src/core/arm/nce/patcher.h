@@ -31,9 +31,9 @@ public:
     explicit Patcher();
     ~Patcher();
 
-    void PatchText(const Kernel::PhysicalMemory& program_image,
+    bool PatchText(const Kernel::PhysicalMemory& program_image,
                    const Kernel::CodeSet::Segment& code);
-    void RelocateAndCopy(Common::ProcessAddress load_base, const Kernel::CodeSet::Segment& code,
+    bool RelocateAndCopy(Common::ProcessAddress load_base, const Kernel::CodeSet::Segment& code,
                          Kernel::PhysicalMemory& program_image, EntryTrampolines* out_trampolines);
     size_t GetSectionSize() const noexcept;
 
@@ -61,16 +61,16 @@ private:
 
 private:
     void BranchToPatch(uintptr_t module_dest) {
-        m_branch_to_patch_relocations.push_back({c.offset(), module_dest});
+        curr_patch->m_branch_to_patch_relocations.push_back({c.offset(), module_dest});
     }
 
     void BranchToModule(uintptr_t module_dest) {
-        m_branch_to_module_relocations.push_back({c.offset(), module_dest});
+        curr_patch->m_branch_to_module_relocations.push_back({c.offset(), module_dest});
         c.dw(0);
     }
 
     void WriteModulePc(uintptr_t module_dest) {
-        m_write_module_pc_relocations.push_back({c.offset(), module_dest});
+        curr_patch->m_write_module_pc_relocations.push_back({c.offset(), module_dest});
         c.dx(0);
     }
 
@@ -84,15 +84,22 @@ private:
         uintptr_t module_offset; ///< Offset in bytes from the start of the text section.
     };
 
+    struct ModulePatch {
+        std::vector<Trampoline> m_trampolines;
+        std::vector<Relocation> m_branch_to_patch_relocations{};
+        std::vector<Relocation> m_branch_to_module_relocations{};
+        std::vector<Relocation> m_write_module_pc_relocations{};
+        std::vector<ModuleTextAddress> m_exclusives{};
+    };
+
     oaknut::VectorCodeGenerator c;
-    std::vector<Trampoline> m_trampolines;
-    std::vector<Relocation> m_branch_to_patch_relocations{};
-    std::vector<Relocation> m_branch_to_module_relocations{};
-    std::vector<Relocation> m_write_module_pc_relocations{};
-    std::vector<ModuleTextAddress> m_exclusives{};
     oaknut::Label m_save_context{};
     oaknut::Label m_load_context{};
     PatchMode mode{PatchMode::None};
+    size_t total_program_size{};
+    size_t m_relocate_module_index{};
+    std::vector<ModulePatch> modules;
+    ModulePatch* curr_patch;
 };
 
 } // namespace Core::NCE
