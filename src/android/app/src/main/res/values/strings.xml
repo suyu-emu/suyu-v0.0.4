@@ -463,9 +463,13 @@
     <string name="anti_aliasing_smaa">SMAA</string>
 
     <!-- Screen Layouts -->
-    <string name="screen_layout_landscape">Landscape</string>
-    <string name="screen_layout_portrait">Portrait</string>
     <string name="screen_layout_auto">Auto</string>
+    <string name="screen_layout_sensor_landscape">Sensor landscape</string>
+    <string name="screen_layout_landscape">Landscape</string>
+    <string name="screen_layout_reverse_landscape">Reverse landscape</string>
+    <string name="screen_layout_sensor_portrait">Sensor portrait</string>
+    <string name="screen_layout_portrait">Portrait</string>
+    <string name="screen_layout_reverse_portrait">Reverse portrait</string>
 
     <!-- Aspect Ratios -->
     <string name="ratio_default">Default (16:9)</string>
