@@ -128,7 +128,7 @@ Result AllocateHandleForBuffer(u32* out_handle, Nvidia::Module& nvdrv, Nvidia::D
 
     // Ensure we maintain a clean state on failure.
     ON_RESULT_FAILURE {
-        ASSERT(R_SUCCEEDED(FreeNvMapHandle(*nvmap, *out_handle, nvmap_fd)));
+        R_ASSERT(FreeNvMapHandle(*nvmap, *out_handle, nvmap_fd));
     };
 
     // Assign the allocated memory to the handle.
