@@ -762,17 +762,6 @@ void Config::WriteBooleanSetting(const std::string& key, const bool& value,
     WritePreparedSetting(key, AdjustOutputString(ToString(value)), string_default, use_global);
 }
 
-template <typename T>
-std::enable_if_t<std::is_integral_v<T>> Config::WriteIntegerSetting(
-    const std::string& key, const T& value, const std::optional<T>& default_value,
-    const std::optional<bool>& use_global) {
-    std::optional<std::string> string_default = std::nullopt;
-    if (default_value.has_value()) {
-        string_default = std::make_optional(ToString(default_value.value()));
-    }
-    WritePreparedSetting(key, AdjustOutputString(ToString(value)), string_default, use_global);
-}
-
 void Config::WriteDoubleSetting(const std::string& key, const double& value,
                                 const std::optional<double>& default_value,
                                 const std::optional<bool>& use_global) {
