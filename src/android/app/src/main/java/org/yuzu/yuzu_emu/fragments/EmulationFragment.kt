@@ -100,6 +100,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        updateOrientation()
 
         val intentUri: Uri? = requireActivity().intent.data
         var intentGame: Game? = null
