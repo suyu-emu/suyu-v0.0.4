@@ -79,7 +79,18 @@ object Settings {
     const val PREF_THEME_MODE = "ThemeMode"
     const val PREF_BLACK_BACKGROUNDS = "BlackBackgrounds"
 
-    const val LayoutOption_Unspecified = 0
-    const val LayoutOption_MobilePortrait = 4
-    const val LayoutOption_MobileLandscape = 5
+    enum class EmulationOrientation(val int: Int) {
+        Unspecified(0),
+        SensorLandscape(5),
+        Landscape(1),
+        ReverseLandscape(2),
+        SensorPortrait(6),
+        Portrait(4),
+        ReversePortrait(3);
+
+        companion object {
+            fun from(int: Int): EmulationOrientation =
+                entries.firstOrNull { it.int == int } ?: Unspecified
+        }
+    }
 }

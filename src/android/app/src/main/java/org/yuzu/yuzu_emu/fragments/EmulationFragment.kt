@@ -50,6 +50,7 @@ import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.features.settings.model.Settings.EmulationOrientation
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.Game
@@ -458,13 +459,23 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     @SuppressLint("SourceLockedOrientationActivity")
     private fun updateOrientation() {
         emulationActivity?.let {
-            it.requestedOrientation = when (IntSetting.RENDERER_SCREEN_LAYOUT.getInt()) {
-                Settings.LayoutOption_MobileLandscape ->
+            val orientationSetting =
+                EmulationOrientation.from(IntSetting.RENDERER_SCREEN_LAYOUT.getInt())
+            it.requestedOrientation = when (orientationSetting) {
+                EmulationOrientation.Unspecified -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                EmulationOrientation.SensorLandscape ->
                     ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                Settings.LayoutOption_MobilePortrait ->
-                    ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
-                Settings.LayoutOption_Unspecified -> ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                else -> ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+
+                EmulationOrientation.Landscape -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                EmulationOrientation.ReverseLandscape ->
+                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+
+                EmulationOrientation.SensorPortrait ->
+                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+
+                EmulationOrientation.Portrait -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                EmulationOrientation.ReversePortrait ->
+                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
             }
         }
     }
@@ -651,7 +662,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     @SuppressLint("SourceLockedOrientationActivity")
     private fun startConfiguringControls() {
         // Lock the current orientation to prevent editing inconsistencies
-        if (IntSetting.RENDERER_SCREEN_LAYOUT.getInt() == Settings.LayoutOption_Unspecified) {
+        if (IntSetting.RENDERER_SCREEN_LAYOUT.getInt() == EmulationOrientation.Unspecified.int) {
             emulationActivity?.let {
                 it.requestedOrientation =
                     if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -669,7 +680,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         binding.doneControlConfig.visibility = View.GONE
         binding.surfaceInputOverlay.setIsInEditMode(false)
         // Unlock the orientation if it was locked for editing
-        if (IntSetting.RENDERER_SCREEN_LAYOUT.getInt() == Settings.LayoutOption_Unspecified) {
+        if (IntSetting.RENDERER_SCREEN_LAYOUT.getInt() == EmulationOrientation.Unspecified.int) {
             emulationActivity?.let {
                 it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
