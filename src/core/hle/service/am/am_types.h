@@ -166,6 +166,6 @@ using AppletResourceUserId = u64;
 using ProgramId = u64;
 
 struct Applet;
-struct AppletStorageHolder;
+class AppletDataBroker;
 
 } // namespace Service::AM

@@ -124,13 +124,13 @@ static_assert(sizeof(ControllerSupportResultInfo) == 0xC,
 
 class Controller final : public FrontendApplet {
 public:
-    explicit Controller(Core::System& system_, LibraryAppletMode applet_mode_,
+    explicit Controller(Core::System& system_, std::shared_ptr<Applet> applet_,
+                        LibraryAppletMode applet_mode_,
                         const Core::Frontend::ControllerApplet& frontend_);
     ~Controller() override;
 
     void Initialize() override;
 
-    bool TransactionComplete() const override;
     Result GetStatus() const override;
     void ExecuteInteractive() override;
     void Execute() override;
@@ -140,7 +140,6 @@ public:
 
 private:
     const Core::Frontend::ControllerApplet& frontend;
-    Core::System& system;
 
     ControllerAppletVersion controller_applet_version;
     ControllerSupportArgPrivate controller_private_arg;

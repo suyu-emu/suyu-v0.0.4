@@ -21,13 +21,13 @@ namespace Service::AM::Frontend {
 
 class SoftwareKeyboard final : public FrontendApplet {
 public:
-    explicit SoftwareKeyboard(Core::System& system_, LibraryAppletMode applet_mode_,
+    explicit SoftwareKeyboard(Core::System& system_, std::shared_ptr<Applet> applet_,
+                              LibraryAppletMode applet_mode_,
                               Core::Frontend::SoftwareKeyboardApplet& frontend_);
     ~SoftwareKeyboard() override;
 
     void Initialize() override;
 
-    bool TransactionComplete() const override;
     Result GetStatus() const override;
     void ExecuteInteractive() override;
     void Execute() override;
@@ -156,7 +156,6 @@ private:
     void ReplyMovedCursorUtf8V2();
 
     Core::Frontend::SoftwareKeyboardApplet& frontend;
-    Core::System& system;
 
     SwkbdAppletVersion swkbd_applet_version;
 

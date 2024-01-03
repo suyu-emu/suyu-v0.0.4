@@ -47,9 +47,10 @@ static Core::Frontend::ControllerParameters ConvertToFrontendParameters(
     };
 }
 
-Controller::Controller(Core::System& system_, LibraryAppletMode applet_mode_,
+Controller::Controller(Core::System& system_, std::shared_ptr<Applet> applet_,
+                       LibraryAppletMode applet_mode_,
                        const Core::Frontend::ControllerApplet& frontend_)
-    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+    : FrontendApplet{system_, applet_, applet_mode_}, frontend{frontend_} {}
 
 Controller::~Controller() = default;
 
@@ -67,7 +68,7 @@ void Controller::Initialize() {
 
     controller_applet_version = ControllerAppletVersion{common_args.library_version};
 
-    const auto private_arg_storage = broker.PopNormalDataToApplet();
+    const std::shared_ptr<IStorage> private_arg_storage = PopInData();
     ASSERT(private_arg_storage != nullptr);
 
     const auto& private_arg = private_arg_storage->GetData();
@@ -117,7 +118,7 @@ void Controller::Initialize() {
     switch (controller_private_arg.mode) {
     case ControllerSupportMode::ShowControllerSupport:
     case ControllerSupportMode::ShowControllerStrapGuide: {
-        const auto user_arg_storage = broker.PopNormalDataToApplet();
+        const std::shared_ptr<IStorage> user_arg_storage = PopInData();
         ASSERT(user_arg_storage != nullptr);
 
         const auto& user_arg = user_arg_storage->GetData();
@@ -143,7 +144,7 @@ void Controller::Initialize() {
         break;
     }
     case ControllerSupportMode::ShowControllerFirmwareUpdate: {
-        const auto update_arg_storage = broker.PopNormalDataToApplet();
+        const std::shared_ptr<IStorage> update_arg_storage = PopInData();
         ASSERT(update_arg_storage != nullptr);
 
         const auto& update_arg = update_arg_storage->GetData();
@@ -153,7 +154,7 @@ void Controller::Initialize() {
         break;
     }
     case ControllerSupportMode::ShowControllerKeyRemappingForSystem: {
-        const auto remapping_arg_storage = broker.PopNormalDataToApplet();
+        const std::shared_ptr<IStorage> remapping_arg_storage = PopInData();
         ASSERT(remapping_arg_storage != nullptr);
 
         const auto& remapping_arg = remapping_arg_storage->GetData();
@@ -167,10 +168,6 @@ void Controller::Initialize() {
         break;
     }
     }
-}
-
-bool Controller::TransactionComplete() const {
-    return complete;
 }
 
 Result Controller::GetStatus() const {
@@ -261,8 +258,9 @@ void Controller::ConfigurationComplete(bool is_success) {
     complete = true;
     out_data = std::vector<u8>(sizeof(ControllerSupportResultInfo));
     std::memcpy(out_data.data(), &result_info, out_data.size());
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(out_data)));
-    broker.SignalStateChanged();
+
+    PushOutData(std::make_shared<IStorage>(system, std::move(out_data)));
+    Exit();
 }
 
 Result Controller::RequestExit() {

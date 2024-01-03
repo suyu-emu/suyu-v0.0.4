@@ -420,6 +420,8 @@ add_library(core STATIC
     hle/service/am/applet_ae.cpp
     hle/service/am/applet_ae.h
     hle/service/am/applet_manager.cpp
+    hle/service/am/applet_data_broker.cpp
+    hle/service/am/applet_data_broker.h
     hle/service/am/applet_manager.h
     hle/service/am/applet_oe.cpp
     hle/service/am/applet_oe.h

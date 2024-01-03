@@ -8,6 +8,7 @@
 #include "core/frontend/applets/general.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/am.h"
+#include "core/hle/service/am/applet_data_broker.h"
 #include "core/hle/service/am/frontend/applet_general.h"
 #include "core/hle/service/am/storage.h"
 #include "core/reporter.h"
@@ -16,17 +17,16 @@ namespace Service::AM::Frontend {
 
 constexpr Result ERROR_INVALID_PIN{ErrorModule::PCTL, 221};
 
-static void LogCurrentStorage(AppletDataBroker& broker, std::string_view prefix) {
-    std::shared_ptr<IStorage> storage = broker.PopNormalDataToApplet();
-    for (; storage != nullptr; storage = broker.PopNormalDataToApplet()) {
+static void LogCurrentStorage(std::shared_ptr<Applet> applet, std::string_view prefix) {
+    std::shared_ptr<IStorage> storage;
+    while (R_SUCCEEDED(applet->caller_applet_broker->GetInData().Pop(&storage))) {
         const auto data = storage->GetData();
         LOG_INFO(Service_AM,
                  "called (STUBBED), during {} received normal data with size={:08X}, data={}",
                  prefix, data.size(), Common::HexToString(data));
     }
 
-    storage = broker.PopInteractiveDataToApplet();
-    for (; storage != nullptr; storage = broker.PopInteractiveDataToApplet()) {
+    while (R_SUCCEEDED(applet->caller_applet_broker->GetInteractiveInData().Pop(&storage))) {
         const auto data = storage->GetData();
         LOG_INFO(Service_AM,
                  "called (STUBBED), during {} received interactive data with size={:08X}, data={}",
@@ -34,9 +34,9 @@ static void LogCurrentStorage(AppletDataBroker& broker, std::string_view prefix)
     }
 }
 
-Auth::Auth(Core::System& system_, LibraryAppletMode applet_mode_,
+Auth::Auth(Core::System& system_, std::shared_ptr<Applet> applet_, LibraryAppletMode applet_mode_,
            Core::Frontend::ParentalControlsApplet& frontend_)
-    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+    : FrontendApplet{system_, applet_, applet_mode_}, frontend{frontend_} {}
 
 Auth::~Auth() = default;
 
@@ -44,7 +44,7 @@ void Auth::Initialize() {
     FrontendApplet::Initialize();
     complete = false;
 
-    const auto storage = broker.PopNormalDataToApplet();
+    const std::shared_ptr<IStorage> storage = PopInData();
     ASSERT(storage != nullptr);
     const auto data = storage->GetData();
     ASSERT(data.size() >= 0xC);
@@ -66,10 +66,6 @@ void Auth::Initialize() {
     arg0 = arg.arg0;
     arg1 = arg.arg1;
     arg2 = arg.arg2;
-}
-
-bool Auth::TransactionComplete() const {
-    return complete;
 }
 
 Result Auth::GetStatus() const {
@@ -147,8 +143,8 @@ void Auth::AuthFinished(bool is_successful) {
     std::vector<u8> out(sizeof(Return));
     std::memcpy(out.data(), &return_, sizeof(Return));
 
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(out)));
-    broker.SignalStateChanged();
+    PushOutData(std::make_shared<IStorage>(system, std::move(out)));
+    Exit();
 }
 
 Result Auth::RequestExit() {
@@ -156,9 +152,10 @@ Result Auth::RequestExit() {
     R_SUCCEED();
 }
 
-PhotoViewer::PhotoViewer(Core::System& system_, LibraryAppletMode applet_mode_,
+PhotoViewer::PhotoViewer(Core::System& system_, std::shared_ptr<Applet> applet_,
+                         LibraryAppletMode applet_mode_,
                          const Core::Frontend::PhotoViewerApplet& frontend_)
-    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+    : FrontendApplet{system_, applet_, applet_mode_}, frontend{frontend_} {}
 
 PhotoViewer::~PhotoViewer() = default;
 
@@ -166,15 +163,11 @@ void PhotoViewer::Initialize() {
     FrontendApplet::Initialize();
     complete = false;
 
-    const auto storage = broker.PopNormalDataToApplet();
+    const std::shared_ptr<IStorage> storage = PopInData();
     ASSERT(storage != nullptr);
     const auto data = storage->GetData();
     ASSERT(!data.empty());
     mode = static_cast<PhotoViewerAppletMode>(data[0]);
-}
-
-bool PhotoViewer::TransactionComplete() const {
-    return complete;
 }
 
 Result PhotoViewer::GetStatus() const {
@@ -204,8 +197,8 @@ void PhotoViewer::Execute() {
 }
 
 void PhotoViewer::ViewFinished() {
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::vector<u8>{}));
-    broker.SignalStateChanged();
+    PushOutData(std::make_shared<IStorage>(system, std::vector<u8>{}));
+    Exit();
 }
 
 Result PhotoViewer::RequestExit() {
@@ -213,8 +206,9 @@ Result PhotoViewer::RequestExit() {
     R_SUCCEED();
 }
 
-StubApplet::StubApplet(Core::System& system_, AppletId id_, LibraryAppletMode applet_mode_)
-    : FrontendApplet{system_, applet_mode_}, id{id_}, system{system_} {}
+StubApplet::StubApplet(Core::System& system_, std::shared_ptr<Applet> applet_, AppletId id_,
+                       LibraryAppletMode applet_mode_)
+    : FrontendApplet{system_, applet_, applet_mode_}, id{id_} {}
 
 StubApplet::~StubApplet() = default;
 
@@ -222,18 +216,7 @@ void StubApplet::Initialize() {
     LOG_WARNING(Service_AM, "called (STUBBED)");
     FrontendApplet::Initialize();
 
-    const auto data = broker.PeekDataToAppletForDebug();
-    system.GetReporter().SaveUnimplementedAppletReport(
-        static_cast<u32>(id), static_cast<u32>(common_args.arguments_version),
-        common_args.library_version, static_cast<u32>(common_args.theme_color),
-        common_args.play_startup_sound, common_args.system_tick, data.normal, data.interactive);
-
-    LogCurrentStorage(broker, "Initialize");
-}
-
-bool StubApplet::TransactionComplete() const {
-    LOG_WARNING(Service_AM, "called (STUBBED)");
-    return true;
+    LogCurrentStorage(applet.lock(), "Initialize");
 }
 
 Result StubApplet::GetStatus() const {
@@ -243,22 +226,20 @@ Result StubApplet::GetStatus() const {
 
 void StubApplet::ExecuteInteractive() {
     LOG_WARNING(Service_AM, "called (STUBBED)");
-    LogCurrentStorage(broker, "ExecuteInteractive");
+    LogCurrentStorage(applet.lock(), "ExecuteInteractive");
 
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
-    broker.PushInteractiveDataFromApplet(
-        std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
-    broker.SignalStateChanged();
+    PushOutData(std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
+    Exit();
 }
 
 void StubApplet::Execute() {
     LOG_WARNING(Service_AM, "called (STUBBED)");
-    LogCurrentStorage(broker, "Execute");
+    LogCurrentStorage(applet.lock(), "Execute");
 
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
-    broker.PushInteractiveDataFromApplet(
-        std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
-    broker.SignalStateChanged();
+    PushOutData(std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
+    PushInteractiveOutData(std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
+    Exit();
 }
 
 Result StubApplet::RequestExit() {

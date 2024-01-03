@@ -20,13 +20,13 @@ namespace Service::AM::Frontend {
 
 class MiiEdit final : public FrontendApplet {
 public:
-    explicit MiiEdit(Core::System& system_, LibraryAppletMode applet_mode_,
+    explicit MiiEdit(Core::System& system_, std::shared_ptr<Applet> applet_,
+                     LibraryAppletMode applet_mode_,
                      const Core::Frontend::MiiEditApplet& frontend_);
     ~MiiEdit() override;
 
     void Initialize() override;
 
-    bool TransactionComplete() const override;
     Result GetStatus() const override;
     void ExecuteInteractive() override;
     void Execute() override;
@@ -38,7 +38,6 @@ public:
 
 private:
     const Core::Frontend::MiiEditApplet& frontend;
-    Core::System& system;
 
     MiiEditAppletInputCommon applet_input_common{};
     MiiEditAppletInputV3 applet_input_v3{};

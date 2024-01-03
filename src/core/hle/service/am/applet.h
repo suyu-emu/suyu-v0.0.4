@@ -21,40 +21,7 @@
 #include "core/hle/service/am/storage.h"
 #include "core/hle/service/am/system_buffer_manager.h"
 
-namespace Service::Nvnflinger {
-class FbShareBufferManager;
-class Nvnflinger;
-} // namespace Service::Nvnflinger
-
 namespace Service::AM {
-
-class AppletStorageChannel {
-public:
-    explicit AppletStorageChannel(KernelHelpers::ServiceContext& ctx);
-    ~AppletStorageChannel();
-
-    void PushData(std::shared_ptr<IStorage> storage);
-    Result PopData(std::shared_ptr<IStorage>* out_storage);
-    Kernel::KReadableEvent* GetEvent();
-
-private:
-    std::mutex m_lock{};
-    std::deque<std::shared_ptr<IStorage>> m_data{};
-    Event m_event;
-};
-
-struct AppletStorageHolder {
-    explicit AppletStorageHolder(Core::System& system);
-    ~AppletStorageHolder();
-
-    KernelHelpers::ServiceContext context;
-
-    AppletStorageChannel in_data;
-    AppletStorageChannel interactive_in_data;
-    AppletStorageChannel out_data;
-    AppletStorageChannel interactive_out_data;
-    Event state_changed_event;
-};
 
 struct Applet {
     explicit Applet(Core::System& system, std::unique_ptr<Process> process_);
@@ -126,8 +93,7 @@ struct Applet {
 
     // Caller applet
     std::weak_ptr<Applet> caller_applet{};
-    std::shared_ptr<AppletStorageHolder> caller_applet_storage{};
-    bool is_completed{};
+    std::shared_ptr<AppletDataBroker> caller_applet_broker{};
 
     // Self state
     bool exit_locked{};

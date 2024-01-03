@@ -10,7 +10,7 @@
 
 namespace Service::AM {
 
-struct AppletStorageHolder;
+class AppletDataBroker;
 struct Applet;
 
 class ILibraryAppletSelfAccessor final : public ServiceFramework<ILibraryAppletSelfAccessor> {
@@ -34,7 +34,7 @@ private:
     void ShouldSetGpuTimeSliceManually(HLERequestContext& ctx);
 
     const std::shared_ptr<Applet> applet;
-    const std::shared_ptr<AppletStorageHolder> storage;
+    const std::shared_ptr<AppletDataBroker> broker;
 };
 
 } // namespace Service::AM

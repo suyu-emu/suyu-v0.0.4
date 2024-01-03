@@ -104,9 +104,9 @@ Result Decode64BitError(u64 error) {
 
 } // Anonymous namespace
 
-Error::Error(Core::System& system_, LibraryAppletMode applet_mode_,
+Error::Error(Core::System& system_, std::shared_ptr<Applet> applet_, LibraryAppletMode applet_mode_,
              const Core::Frontend::ErrorApplet& frontend_)
-    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+    : FrontendApplet{system_, applet_, applet_mode_}, frontend{frontend_} {}
 
 Error::~Error() = default;
 
@@ -115,7 +115,7 @@ void Error::Initialize() {
     args = std::make_unique<ErrorArguments>();
     complete = false;
 
-    const auto storage = broker.PopNormalDataToApplet();
+    const std::shared_ptr<IStorage> storage = PopInData();
     ASSERT(storage != nullptr);
     const auto data = storage->GetData();
 
@@ -151,10 +151,6 @@ void Error::Initialize() {
         UNIMPLEMENTED_MSG("Unimplemented LibAppletError mode={:02X}!", mode);
         break;
     }
-}
-
-bool Error::TransactionComplete() const {
-    return complete;
 }
 
 Result Error::GetStatus() const {
@@ -211,8 +207,8 @@ void Error::Execute() {
 
 void Error::DisplayCompleted() {
     complete = true;
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::vector<u8>{}));
-    broker.SignalStateChanged();
+    PushOutData(std::make_shared<IStorage>(system, std::vector<u8>()));
+    Exit();
 }
 
 Result Error::RequestExit() {

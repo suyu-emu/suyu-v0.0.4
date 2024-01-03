@@ -24,13 +24,12 @@ enum class ErrorAppletMode : u8 {
 
 class Error final : public FrontendApplet {
 public:
-    explicit Error(Core::System& system_, LibraryAppletMode applet_mode_,
-                   const Core::Frontend::ErrorApplet& frontend_);
+    explicit Error(Core::System& system_, std::shared_ptr<Applet> applet_,
+                   LibraryAppletMode applet_mode_, const Core::Frontend::ErrorApplet& frontend_);
     ~Error() override;
 
     void Initialize() override;
 
-    bool TransactionComplete() const override;
     Result GetStatus() const override;
     void ExecuteInteractive() override;
     void Execute() override;
@@ -47,7 +46,6 @@ private:
     std::unique_ptr<ErrorArguments> args;
 
     bool complete = false;
-    Core::System& system;
 };
 
 } // namespace Service::AM::Frontend

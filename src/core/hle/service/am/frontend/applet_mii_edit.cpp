@@ -14,9 +14,9 @@
 
 namespace Service::AM::Frontend {
 
-MiiEdit::MiiEdit(Core::System& system_, LibraryAppletMode applet_mode_,
-                 const Core::Frontend::MiiEditApplet& frontend_)
-    : FrontendApplet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
+MiiEdit::MiiEdit(Core::System& system_, std::shared_ptr<Applet> applet_,
+                 LibraryAppletMode applet_mode_, const Core::Frontend::MiiEditApplet& frontend_)
+    : FrontendApplet{system_, applet_, applet_mode_}, frontend{frontend_} {}
 
 MiiEdit::~MiiEdit() = default;
 
@@ -25,7 +25,7 @@ void MiiEdit::Initialize() {
     //       Instead, it is initialized by an AppletInput storage with size 0x100 bytes.
     //       Do NOT call Applet::Initialize() here.
 
-    const auto storage = broker.PopNormalDataToApplet();
+    const std::shared_ptr<IStorage> storage = PopInData();
     ASSERT(storage != nullptr);
 
     const auto applet_input_data = storage->GetData();
@@ -65,10 +65,6 @@ void MiiEdit::Initialize() {
         manager = std::make_shared<Mii::MiiManager>();
     }
     manager->Initialize(metadata);
-}
-
-bool MiiEdit::TransactionComplete() const {
-    return is_complete;
 }
 
 Result MiiEdit::GetStatus() const {
@@ -153,8 +149,8 @@ void MiiEdit::MiiEditOutput(MiiEditResult result, s32 index) {
 
     is_complete = true;
 
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(out_data)));
-    broker.SignalStateChanged();
+    PushOutData(std::make_shared<IStorage>(system, std::move(out_data)));
+    Exit();
 }
 
 void MiiEdit::MiiEditOutputForCharInfoEditing(MiiEditResult result,
@@ -169,8 +165,8 @@ void MiiEdit::MiiEditOutputForCharInfoEditing(MiiEditResult result,
 
     is_complete = true;
 
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(out_data)));
-    broker.SignalStateChanged();
+    PushOutData(std::make_shared<IStorage>(system, std::move(out_data)));
+    Exit();
 }
 
 Result MiiEdit::RequestExit() {
