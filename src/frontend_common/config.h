@@ -157,17 +157,23 @@ protected:
     void WriteBooleanSetting(const std::string& key, const bool& value,
                              const std::optional<bool>& default_value = std::nullopt,
                              const std::optional<bool>& use_global = std::nullopt);
-    template <typename T>
-    std::enable_if_t<std::is_integral_v<T>> WriteIntegerSetting(
-        const std::string& key, const T& value,
-        const std::optional<T>& default_value = std::nullopt,
-        const std::optional<bool>& use_global = std::nullopt);
     void WriteDoubleSetting(const std::string& key, const double& value,
                             const std::optional<double>& default_value = std::nullopt,
                             const std::optional<bool>& use_global = std::nullopt);
     void WriteStringSetting(const std::string& key, const std::string& value,
                             const std::optional<std::string>& default_value = std::nullopt,
                             const std::optional<bool>& use_global = std::nullopt);
+    template <typename T>
+    std::enable_if_t<std::is_integral_v<T>> WriteIntegerSetting(
+        const std::string& key, const T& value,
+        const std::optional<T>& default_value = std::nullopt,
+        const std::optional<bool>& use_global = std::nullopt) {
+        std::optional<std::string> string_default = std::nullopt;
+        if (default_value.has_value()) {
+            string_default = std::make_optional(ToString(default_value.value()));
+        }
+        WritePreparedSetting(key, AdjustOutputString(ToString(value)), string_default, use_global);
+    }
 
     void ReadCategory(Settings::Category category);
     void WriteCategory(Settings::Category category);
