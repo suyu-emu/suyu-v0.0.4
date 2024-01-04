@@ -894,9 +894,10 @@ void Config::WriteSettingGeneric(const Settings::BasicSetting* const setting) {
             WriteBooleanSetting(std::string(key).append("\\use_global"), setting->UsingGlobal());
         }
         if (global || !setting->UsingGlobal()) {
+            auto value = global ? setting->ToStringGlobal() : setting->ToString();
             WriteBooleanSetting(std::string(key).append("\\default"),
-                                setting->ToString() == setting->DefaultToString());
-            WriteStringSetting(key, setting->ToString());
+                                value == setting->DefaultToString());
+            WriteStringSetting(key, value);
         }
     } else if (global) {
         WriteBooleanSetting(std::string(key).append("\\default"),
