@@ -59,7 +59,7 @@ public:
 private:
     void Report() const;
 
-    void RenderScreenshot(const Tegra::FramebufferConfig& framebuffer, bool use_accelerated);
+    void RenderScreenshot(const Tegra::FramebufferConfig& framebuffer);
 
     Core::TelemetrySession& telemetry_session;
     Tegra::MaxwellDeviceMemoryManager& device_memory;
@@ -71,8 +71,6 @@ private:
     vk::Instance instance;
     vk::DebugUtilsMessenger debug_messenger;
     vk::SurfaceKHR surface;
-
-    ScreenInfo screen_info;
 
     Device device;
     MemoryAllocator memory_allocator;

@@ -124,11 +124,10 @@ struct BlitScreen::BufferData {
 BlitScreen::BlitScreen(Tegra::MaxwellDeviceMemoryManager& device_memory_,
                        Core::Frontend::EmuWindow& render_window_, const Device& device_,
                        MemoryAllocator& memory_allocator_, Swapchain& swapchain_,
-                       PresentManager& present_manager_, Scheduler& scheduler_,
-                       const ScreenInfo& screen_info_)
+                       PresentManager& present_manager_, Scheduler& scheduler_)
     : device_memory{device_memory_}, render_window{render_window_}, device{device_},
       memory_allocator{memory_allocator_}, swapchain{swapchain_}, present_manager{present_manager_},
-      scheduler{scheduler_}, image_count{swapchain.GetImageCount()}, screen_info{screen_info_} {
+      scheduler{scheduler_}, image_count{swapchain.GetImageCount()} {
     resource_ticks.resize(image_count);
     swapchain_view_format = swapchain.GetImageViewFormat();
 
@@ -138,56 +137,6 @@ BlitScreen::BlitScreen(Tegra::MaxwellDeviceMemoryManager& device_memory_,
 
 BlitScreen::~BlitScreen() = default;
 
-static Common::Rectangle<f32> NormalizeCrop(const Tegra::FramebufferConfig& framebuffer,
-                                            const ScreenInfo& screen_info) {
-    f32 left, top, right, bottom;
-
-    if (!framebuffer.crop_rect.IsEmpty()) {
-        // If crop rectangle is not empty, apply properties from rectangle.
-        left = static_cast<f32>(framebuffer.crop_rect.left);
-        top = static_cast<f32>(framebuffer.crop_rect.top);
-        right = static_cast<f32>(framebuffer.crop_rect.right);
-        bottom = static_cast<f32>(framebuffer.crop_rect.bottom);
-    } else {
-        // Otherwise, fall back to framebuffer dimensions.
-        left = 0;
-        top = 0;
-        right = static_cast<f32>(framebuffer.width);
-        bottom = static_cast<f32>(framebuffer.height);
-    }
-
-    // Apply transformation flags.
-    auto framebuffer_transform_flags = framebuffer.transform_flags;
-
-    if (True(framebuffer_transform_flags & Service::android::BufferTransformFlags::FlipH)) {
-        // Switch left and right.
-        std::swap(left, right);
-    }
-    if (True(framebuffer_transform_flags & Service::android::BufferTransformFlags::FlipV)) {
-        // Switch top and bottom.
-        std::swap(top, bottom);
-    }
-
-    framebuffer_transform_flags &= ~Service::android::BufferTransformFlags::FlipH;
-    framebuffer_transform_flags &= ~Service::android::BufferTransformFlags::FlipV;
-    if (True(framebuffer_transform_flags)) {
-        UNIMPLEMENTED_MSG("Unsupported framebuffer_transform_flags={}",
-                          static_cast<u32>(framebuffer_transform_flags));
-    }
-
-    // Get the screen properties.
-    const f32 screen_width = static_cast<f32>(screen_info.width);
-    const f32 screen_height = static_cast<f32>(screen_info.height);
-
-    // Normalize coordinate space.
-    left /= screen_width;
-    top /= screen_height;
-    right /= screen_width;
-    bottom /= screen_height;
-
-    return Common::Rectangle<f32>(left, top, right, bottom);
-}
-
 void BlitScreen::Recreate() {
     present_manager.WaitPresent();
     scheduler.Finish();
@@ -195,9 +144,16 @@ void BlitScreen::Recreate() {
     CreateDynamicResources();
 }
 
-void BlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
+void BlitScreen::Draw(RasterizerVulkan& rasterizer, const Tegra::FramebufferConfig& framebuffer,
                       const VkFramebuffer& host_framebuffer, const Layout::FramebufferLayout layout,
-                      VkExtent2D render_area, bool use_accelerated) {
+                      VkExtent2D render_area) {
+
+    const auto texture_info = rasterizer.AccelerateDisplay(
+        framebuffer, framebuffer.address + framebuffer.offset, framebuffer.stride);
+    const u32 texture_width = texture_info ? texture_info->width : framebuffer.width;
+    const u32 texture_height = texture_info ? texture_info->height : framebuffer.height;
+    const bool use_accelerated = texture_info.has_value();
+
     RefreshResources(framebuffer);
 
     // Finish any pending renderpass
@@ -206,13 +162,13 @@ void BlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
     scheduler.Wait(resource_ticks[image_index]);
     resource_ticks[image_index] = scheduler.CurrentTick();
 
-    VkImage source_image = use_accelerated ? screen_info.image : *raw_images[image_index];
+    VkImage source_image = texture_info ? texture_info->image : *raw_images[image_index];
     VkImageView source_image_view =
-        use_accelerated ? screen_info.image_view : *raw_image_views[image_index];
+        texture_info ? texture_info->image_view : *raw_image_views[image_index];
 
     BufferData data;
     SetUniformData(data, layout);
-    SetVertexData(data, framebuffer, layout);
+    SetVertexData(data, framebuffer, layout, texture_width, texture_height);
 
     const std::span<u8> mapped_span = buffer.Mapped();
     std::memcpy(mapped_span.data(), &data, sizeof(data));
@@ -405,10 +361,10 @@ void BlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
         source_image_view = smaa->Draw(scheduler, image_index, source_image, source_image_view);
     }
     if (fsr) {
-        const auto crop_rect = NormalizeCrop(framebuffer, screen_info);
+        const auto crop_rect = Tegra::NormalizeCrop(framebuffer, texture_width, texture_height);
         const VkExtent2D fsr_input_size{
-            .width = Settings::values.resolution_info.ScaleUp(screen_info.width),
-            .height = Settings::values.resolution_info.ScaleUp(screen_info.height),
+            .width = Settings::values.resolution_info.ScaleUp(texture_width),
+            .height = Settings::values.resolution_info.ScaleUp(texture_height),
         };
         VkImageView fsr_image_view =
             fsr->Draw(scheduler, image_index, source_image_view, fsr_input_size, crop_rect);
@@ -480,8 +436,8 @@ void BlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
     });
 }
 
-void BlitScreen::DrawToSwapchain(Frame* frame, const Tegra::FramebufferConfig& framebuffer,
-                                 bool use_accelerated) {
+void BlitScreen::DrawToSwapchain(RasterizerVulkan& rasterizer, Frame* frame,
+                                 const Tegra::FramebufferConfig& framebuffer) {
     // Recreate dynamic resources if the the image count or input format changed
     const VkFormat current_framebuffer_format =
         std::exchange(framebuffer_view_format, GetFormat(framebuffer));
@@ -500,7 +456,7 @@ void BlitScreen::DrawToSwapchain(Frame* frame, const Tegra::FramebufferConfig& f
     }
 
     const VkExtent2D render_area{frame->width, frame->height};
-    Draw(framebuffer, *frame->framebuffer, layout, render_area, use_accelerated);
+    Draw(rasterizer, framebuffer, *frame->framebuffer, layout, render_area);
     if (++image_index >= image_count) {
         image_index = 0;
     }
@@ -1434,7 +1390,8 @@ void BlitScreen::SetUniformData(BufferData& data, const Layout::FramebufferLayou
 }
 
 void BlitScreen::SetVertexData(BufferData& data, const Tegra::FramebufferConfig& framebuffer,
-                               const Layout::FramebufferLayout layout) const {
+                               const Layout::FramebufferLayout layout, u32 texture_width,
+                               u32 texture_height) const {
     f32 left, top, right, bottom;
 
     if (fsr) {
@@ -1446,7 +1403,7 @@ void BlitScreen::SetVertexData(BufferData& data, const Tegra::FramebufferConfig&
         bottom = 1;
     } else {
         // Get the normalized crop rectangle.
-        const auto crop = NormalizeCrop(framebuffer, screen_info);
+        const auto crop = Tegra::NormalizeCrop(framebuffer, texture_width, texture_height);
 
         // Apply the crop.
         left = crop.left;

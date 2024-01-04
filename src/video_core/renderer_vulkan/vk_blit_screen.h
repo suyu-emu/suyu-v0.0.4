@@ -32,8 +32,6 @@ enum class PixelFormat : u32;
 
 namespace Vulkan {
 
-struct ScreenInfo;
-
 class Device;
 class FSR;
 class RasterizerVulkan;
@@ -44,7 +42,7 @@ class PresentManager;
 
 struct Frame;
 
-struct ScreenInfo {
+struct FramebufferTextureInfo {
     VkImage image{};
     VkImageView image_view{};
     u32 width{};
@@ -56,17 +54,17 @@ public:
     explicit BlitScreen(Tegra::MaxwellDeviceMemoryManager& device_memory,
                         Core::Frontend::EmuWindow& render_window, const Device& device,
                         MemoryAllocator& memory_manager, Swapchain& swapchain,
-                        PresentManager& present_manager, Scheduler& scheduler,
-                        const ScreenInfo& screen_info);
+                        PresentManager& present_manager, Scheduler& scheduler);
     ~BlitScreen();
 
     void Recreate();
 
-    void Draw(const Tegra::FramebufferConfig& framebuffer, const VkFramebuffer& host_framebuffer,
-              const Layout::FramebufferLayout layout, VkExtent2D render_area, bool use_accelerated);
+    void Draw(RasterizerVulkan& rasterizer, const Tegra::FramebufferConfig& framebuffer,
+              const VkFramebuffer& host_framebuffer, const Layout::FramebufferLayout layout,
+              VkExtent2D render_area);
 
-    void DrawToSwapchain(Frame* frame, const Tegra::FramebufferConfig& framebuffer,
-                         bool use_accelerated);
+    void DrawToSwapchain(RasterizerVulkan& rasterizer, Frame* frame,
+                         const Tegra::FramebufferConfig& framebuffer);
 
     [[nodiscard]] vk::Framebuffer CreateFramebuffer(const VkImageView& image_view,
                                                     VkExtent2D extent);
@@ -99,7 +97,8 @@ private:
     void UpdateAADescriptorSet(VkImageView image_view, bool nn) const;
     void SetUniformData(BufferData& data, const Layout::FramebufferLayout layout) const;
     void SetVertexData(BufferData& data, const Tegra::FramebufferConfig& framebuffer,
-                       const Layout::FramebufferLayout layout) const;
+                       const Layout::FramebufferLayout layout, u32 texture_width,
+                       u32 texture_height) const;
 
     void CreateSMAA(VkExtent2D smaa_size);
     void CreateFSR();
@@ -116,7 +115,6 @@ private:
     Scheduler& scheduler;
     std::size_t image_count;
     std::size_t image_index{};
-    const ScreenInfo& screen_info;
 
     vk::ShaderModule vertex_shader;
     vk::ShaderModule fxaa_vertex_shader;

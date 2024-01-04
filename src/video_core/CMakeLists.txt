@@ -55,6 +55,7 @@ add_library(video_core STATIC
     engines/maxwell_dma.h
     engines/puller.cpp
     engines/puller.h
+    framebuffer_config.cpp
     framebuffer_config.h
     fsr.cpp
     fsr.h

@@ -148,8 +148,7 @@ RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
     : RendererBase{emu_window_, std::move(context_)}, telemetry_session{telemetry_session_},
       emu_window{emu_window_}, device_memory{device_memory_}, gpu{gpu_}, device{emu_window_},
       state_tracker{}, program_manager{device},
-      rasterizer(emu_window, gpu, device_memory, device, screen_info, program_manager,
-                 state_tracker) {
+      rasterizer(emu_window, gpu, device_memory, device, program_manager, state_tracker) {
     if (Settings::values.renderer_debug && GLAD_GL_KHR_debug) {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -184,11 +183,11 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     if (!framebuffer) {
         return;
     }
-    PrepareRendertarget(framebuffer);
-    RenderScreenshot();
+
+    RenderScreenshot(*framebuffer);
 
     state_tracker.BindFramebuffer(0);
-    DrawScreen(emu_window.GetFramebufferLayout());
+    DrawScreen(*framebuffer, emu_window.GetFramebufferLayout());
 
     ++m_current_frame;
 
@@ -199,41 +198,37 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     render_window.OnFrameDisplayed();
 }
 
-void RendererOpenGL::PrepareRendertarget(const Tegra::FramebufferConfig* framebuffer) {
-    if (!framebuffer) {
-        return;
-    }
+FramebufferTextureInfo RendererOpenGL::PrepareRenderTarget(
+    const Tegra::FramebufferConfig& framebuffer) {
     // If framebuffer is provided, reload it from memory to a texture
-    if (screen_info.texture.width != static_cast<GLsizei>(framebuffer->width) ||
-        screen_info.texture.height != static_cast<GLsizei>(framebuffer->height) ||
-        screen_info.texture.pixel_format != framebuffer->pixel_format ||
+    if (framebuffer_texture.width != static_cast<GLsizei>(framebuffer.width) ||
+        framebuffer_texture.height != static_cast<GLsizei>(framebuffer.height) ||
+        framebuffer_texture.pixel_format != framebuffer.pixel_format ||
         gl_framebuffer_data.empty()) {
         // Reallocate texture if the framebuffer size has changed.
         // This is expected to not happen very often and hence should not be a
         // performance problem.
-        ConfigureFramebufferTexture(screen_info.texture, *framebuffer);
+        ConfigureFramebufferTexture(framebuffer);
     }
 
-    // Load the framebuffer from memory, draw it to the screen, and swap buffers
-    LoadFBToScreenInfo(*framebuffer);
+    // Load the framebuffer from memory if needed
+    return LoadFBToScreenInfo(framebuffer);
 }
 
-void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuffer) {
-    // Framebuffer orientation handling
-    framebuffer_transform_flags = framebuffer.transform_flags;
-    framebuffer_crop_rect = framebuffer.crop_rect;
-    framebuffer_width = framebuffer.width;
-    framebuffer_height = framebuffer.height;
-
+FramebufferTextureInfo RendererOpenGL::LoadFBToScreenInfo(
+    const Tegra::FramebufferConfig& framebuffer) {
     const VAddr framebuffer_addr{framebuffer.address + framebuffer.offset};
-    screen_info.was_accelerated =
+    const auto accelerated_info =
         rasterizer.AccelerateDisplay(framebuffer, framebuffer_addr, framebuffer.stride);
-    if (screen_info.was_accelerated) {
-        return;
+    if (accelerated_info) {
+        return *accelerated_info;
     }
 
     // Reset the screen info's display texture to its own permanent texture
-    screen_info.display_texture = screen_info.texture.resource.handle;
+    FramebufferTextureInfo info{};
+    info.display_texture = framebuffer_texture.resource.handle;
+    info.width = framebuffer.width;
+    info.height = framebuffer.height;
 
     // TODO(Rodrigo): Read this from HLE
     constexpr u32 block_height_log2 = 4;
@@ -256,17 +251,13 @@ void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuf
     //       they differ from the LCD resolution.
     // TODO: Applications could theoretically crash yuzu here by specifying too large
     //       framebuffer sizes. We should make sure that this cannot happen.
-    glTextureSubImage2D(screen_info.texture.resource.handle, 0, 0, 0, framebuffer.width,
-                        framebuffer.height, screen_info.texture.gl_format,
-                        screen_info.texture.gl_type, gl_framebuffer_data.data());
+    glTextureSubImage2D(framebuffer_texture.resource.handle, 0, 0, 0, framebuffer.width,
+                        framebuffer.height, framebuffer_texture.gl_format,
+                        framebuffer_texture.gl_type, gl_framebuffer_data.data());
 
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-}
 
-void RendererOpenGL::LoadColorToActiveGLTexture(u8 color_r, u8 color_g, u8 color_b, u8 color_a,
-                                                const TextureInfo& texture) {
-    const u8 framebuffer_data[4] = {color_a, color_b, color_g, color_r};
-    glClearTexImage(texture.resource.handle, 0, GL_RGBA, GL_UNSIGNED_BYTE, framebuffer_data);
+    return info;
 }
 
 void RendererOpenGL::InitOpenGLObjects() {
@@ -343,15 +334,15 @@ void RendererOpenGL::InitOpenGLObjects() {
     glNamedBufferData(vertex_buffer.handle, sizeof(ScreenRectVertex) * 4, nullptr, GL_STREAM_DRAW);
 
     // Allocate textures for the screen
-    screen_info.texture.resource.Create(GL_TEXTURE_2D);
+    framebuffer_texture.resource.Create(GL_TEXTURE_2D);
 
-    const GLuint texture = screen_info.texture.resource.handle;
+    const GLuint texture = framebuffer_texture.resource.handle;
     glTextureStorage2D(texture, 1, GL_RGBA8, 1, 1);
 
-    screen_info.display_texture = screen_info.texture.resource.handle;
-
     // Clear screen to black
-    LoadColorToActiveGLTexture(0, 0, 0, 0, screen_info.texture);
+    const u8 framebuffer_data[4] = {0, 0, 0, 0};
+    glClearTexImage(framebuffer_texture.resource.handle, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                    framebuffer_data);
 
     aa_framebuffer.Create();
 
@@ -380,60 +371,65 @@ void RendererOpenGL::AddTelemetryFields() {
     telemetry_session.AddField(user_system, "GPU_OpenGL_Version", std::string(gl_version));
 }
 
-void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
-                                                 const Tegra::FramebufferConfig& framebuffer) {
-    texture.width = framebuffer.width;
-    texture.height = framebuffer.height;
-    texture.pixel_format = framebuffer.pixel_format;
+void RendererOpenGL::ConfigureFramebufferTexture(const Tegra::FramebufferConfig& framebuffer) {
+    framebuffer_texture.width = framebuffer.width;
+    framebuffer_texture.height = framebuffer.height;
+    framebuffer_texture.pixel_format = framebuffer.pixel_format;
 
     const auto pixel_format{
         VideoCore::Surface::PixelFormatFromGPUPixelFormat(framebuffer.pixel_format)};
     const u32 bytes_per_pixel{VideoCore::Surface::BytesPerBlock(pixel_format)};
-    gl_framebuffer_data.resize(texture.width * texture.height * bytes_per_pixel);
+    gl_framebuffer_data.resize(framebuffer_texture.width * framebuffer_texture.height *
+                               bytes_per_pixel);
 
     GLint internal_format;
     switch (framebuffer.pixel_format) {
     case Service::android::PixelFormat::Rgba8888:
         internal_format = GL_RGBA8;
-        texture.gl_format = GL_RGBA;
-        texture.gl_type = GL_UNSIGNED_INT_8_8_8_8_REV;
+        framebuffer_texture.gl_format = GL_RGBA;
+        framebuffer_texture.gl_type = GL_UNSIGNED_INT_8_8_8_8_REV;
         break;
     case Service::android::PixelFormat::Rgb565:
         internal_format = GL_RGB565;
-        texture.gl_format = GL_RGB;
-        texture.gl_type = GL_UNSIGNED_SHORT_5_6_5;
+        framebuffer_texture.gl_format = GL_RGB;
+        framebuffer_texture.gl_type = GL_UNSIGNED_SHORT_5_6_5;
         break;
     default:
         internal_format = GL_RGBA8;
-        texture.gl_format = GL_RGBA;
-        texture.gl_type = GL_UNSIGNED_INT_8_8_8_8_REV;
+        framebuffer_texture.gl_format = GL_RGBA;
+        framebuffer_texture.gl_type = GL_UNSIGNED_INT_8_8_8_8_REV;
         // UNIMPLEMENTED_MSG("Unknown framebuffer pixel format: {}",
         //                   static_cast<u32>(framebuffer.pixel_format));
         break;
     }
 
-    texture.resource.Release();
-    texture.resource.Create(GL_TEXTURE_2D);
-    glTextureStorage2D(texture.resource.handle, 1, internal_format, texture.width, texture.height);
+    framebuffer_texture.resource.Release();
+    framebuffer_texture.resource.Create(GL_TEXTURE_2D);
+    glTextureStorage2D(framebuffer_texture.resource.handle, 1, internal_format,
+                       framebuffer_texture.width, framebuffer_texture.height);
     aa_texture.Release();
     aa_texture.Create(GL_TEXTURE_2D);
     glTextureStorage2D(aa_texture.handle, 1, GL_RGBA16F,
-                       Settings::values.resolution_info.ScaleUp(screen_info.texture.width),
-                       Settings::values.resolution_info.ScaleUp(screen_info.texture.height));
+                       Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
+                       Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
     glNamedFramebufferTexture(aa_framebuffer.handle, GL_COLOR_ATTACHMENT0, aa_texture.handle, 0);
     smaa_edges_tex.Release();
     smaa_edges_tex.Create(GL_TEXTURE_2D);
     glTextureStorage2D(smaa_edges_tex.handle, 1, GL_RG16F,
-                       Settings::values.resolution_info.ScaleUp(screen_info.texture.width),
-                       Settings::values.resolution_info.ScaleUp(screen_info.texture.height));
+                       Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
+                       Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
     smaa_blend_tex.Release();
     smaa_blend_tex.Create(GL_TEXTURE_2D);
     glTextureStorage2D(smaa_blend_tex.handle, 1, GL_RGBA16F,
-                       Settings::values.resolution_info.ScaleUp(screen_info.texture.width),
-                       Settings::values.resolution_info.ScaleUp(screen_info.texture.height));
+                       Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
+                       Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
 }
 
-void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
+void RendererOpenGL::DrawScreen(const Tegra::FramebufferConfig& framebuffer,
+                                const Layout::FramebufferLayout& layout) {
+    FramebufferTextureInfo info = PrepareRenderTarget(framebuffer);
+    const auto crop = Tegra::NormalizeCrop(framebuffer, info.width, info.height);
+
     // TODO: Signal state tracker about these changes
     state_tracker.NotifyScreenDrawVertexArray();
     state_tracker.NotifyPolygonModes();
@@ -469,7 +465,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthRangeIndexed(0, 0.0, 0.0);
 
-    glBindTextureUnit(0, screen_info.display_texture);
+    glBindTextureUnit(0, info.display_texture);
 
     auto anti_aliasing = Settings::values.anti_aliasing.GetValue();
     if (anti_aliasing >= Settings::AntiAliasing::MaxEnum) {
@@ -480,22 +476,22 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
 
     if (anti_aliasing != Settings::AntiAliasing::None) {
         glEnablei(GL_SCISSOR_TEST, 0);
-        auto viewport_width = screen_info.texture.width;
-        auto scissor_width = framebuffer_crop_rect.GetWidth();
+        auto viewport_width = info.width;
+        auto scissor_width = static_cast<u32>(crop.GetWidth());
         if (scissor_width <= 0) {
             scissor_width = viewport_width;
         }
-        auto viewport_height = screen_info.texture.height;
-        auto scissor_height = framebuffer_crop_rect.GetHeight();
+        auto viewport_height = info.height;
+        auto scissor_height = static_cast<u32>(crop.GetHeight());
         if (scissor_height <= 0) {
             scissor_height = viewport_height;
         }
-        if (screen_info.was_accelerated) {
-            viewport_width = Settings::values.resolution_info.ScaleUp(viewport_width);
-            scissor_width = Settings::values.resolution_info.ScaleUp(scissor_width);
-            viewport_height = Settings::values.resolution_info.ScaleUp(viewport_height);
-            scissor_height = Settings::values.resolution_info.ScaleUp(scissor_height);
-        }
+
+        viewport_width = Settings::values.resolution_info.ScaleUp(viewport_width);
+        scissor_width = Settings::values.resolution_info.ScaleUp(scissor_width);
+        viewport_height = Settings::values.resolution_info.ScaleUp(viewport_height);
+        scissor_height = Settings::values.resolution_info.ScaleUp(scissor_height);
+
         glScissorIndexed(0, 0, 0, scissor_width, scissor_height);
         glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(viewport_width),
                            static_cast<GLfloat>(viewport_height));
@@ -536,7 +532,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
                                                 smaa_blending_weight_calculation_frag.handle);
             glDrawArrays(GL_TRIANGLES, 0, 3);
 
-            glBindTextureUnit(0, screen_info.display_texture);
+            glBindTextureUnit(0, info.display_texture);
             glBindTextureUnit(1, smaa_blend_tex.handle);
             glNamedFramebufferTexture(aa_framebuffer.handle, GL_COLOR_ATTACHMENT0,
                                       aa_texture.handle, 0);
@@ -561,18 +557,10 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
             fsr->InitBuffers();
         }
 
-        auto crop_rect = framebuffer_crop_rect;
-        if (crop_rect.GetWidth() == 0) {
-            crop_rect.right = framebuffer_width;
-        }
-        if (crop_rect.GetHeight() == 0) {
-            crop_rect.bottom = framebuffer_height;
-        }
-        crop_rect = crop_rect.Scale(Settings::values.resolution_info.up_factor);
-        const auto fsr_input_width = Settings::values.resolution_info.ScaleUp(framebuffer_width);
-        const auto fsr_input_height = Settings::values.resolution_info.ScaleUp(framebuffer_height);
+        const auto fsr_input_width = Settings::values.resolution_info.ScaleUp(info.width);
+        const auto fsr_input_height = Settings::values.resolution_info.ScaleUp(info.height);
         glBindSampler(0, present_sampler.handle);
-        fsr->Draw(program_manager, layout.screen, fsr_input_width, fsr_input_height, crop_rect);
+        fsr->Draw(program_manager, layout.screen, fsr_input_width, fsr_input_height, crop);
     } else {
         if (fsr->AreBuffersInitialized()) {
             fsr->ReleaseBuffers();
@@ -603,61 +591,34 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glProgramUniformMatrix3x2fv(present_vertex.handle, ModelViewMatrixLocation, 1, GL_FALSE,
                                 ortho_matrix.data());
 
-    const auto& texcoords = screen_info.display_texcoords;
-    auto left = texcoords.left;
-    auto right = texcoords.right;
-    if (framebuffer_transform_flags != Service::android::BufferTransformFlags::Unset) {
-        if (framebuffer_transform_flags == Service::android::BufferTransformFlags::FlipV) {
-            // Flip the framebuffer vertically
-            left = texcoords.right;
-            right = texcoords.left;
-        } else {
-            // Other transformations are unsupported
-            LOG_CRITICAL(Render_OpenGL, "Unsupported framebuffer_transform_flags={}",
-                         framebuffer_transform_flags);
-            UNIMPLEMENTED();
-        }
+    f32 left, top, right, bottom;
+    if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
+        // FSR has already applied the crop, so we just want to render the image
+        // it has produced.
+        left = 0;
+        top = 0;
+        right = 1;
+        bottom = 1;
+    } else {
+        // Apply the precomputed crop.
+        left = crop.left;
+        top = crop.top;
+        right = crop.right;
+        bottom = crop.bottom;
     }
 
-    ASSERT_MSG(framebuffer_crop_rect.left == 0, "Unimplemented");
-
-    f32 left_start{};
-    if (framebuffer_crop_rect.Top() > 0) {
-        left_start = static_cast<f32>(framebuffer_crop_rect.Top()) /
-                     static_cast<f32>(framebuffer_crop_rect.Bottom());
-    }
-    f32 scale_u = static_cast<f32>(framebuffer_width) / static_cast<f32>(screen_info.texture.width);
-    f32 scale_v =
-        static_cast<f32>(framebuffer_height) / static_cast<f32>(screen_info.texture.height);
-
-    if (Settings::values.scaling_filter.GetValue() != Settings::ScalingFilter::Fsr) {
-        // Scale the output by the crop width/height. This is commonly used with 1280x720 rendering
-        // (e.g. handheld mode) on a 1920x1080 framebuffer.
-        if (framebuffer_crop_rect.GetWidth() > 0) {
-            scale_u = static_cast<f32>(framebuffer_crop_rect.GetWidth()) /
-                      static_cast<f32>(screen_info.texture.width);
-        }
-        if (framebuffer_crop_rect.GetHeight() > 0) {
-            scale_v = static_cast<f32>(framebuffer_crop_rect.GetHeight()) /
-                      static_cast<f32>(screen_info.texture.height);
-        }
-    }
-    if (Settings::values.anti_aliasing.GetValue() == Settings::AntiAliasing::Fxaa &&
-        !screen_info.was_accelerated) {
-        scale_u /= Settings::values.resolution_info.up_factor;
-        scale_v /= Settings::values.resolution_info.up_factor;
-    }
-
+    // Map the coordinates to the screen.
     const auto& screen = layout.screen;
+    const auto x = screen.left;
+    const auto y = screen.top;
+    const auto w = screen.GetWidth();
+    const auto h = screen.GetHeight();
+
     const std::array vertices = {
-        ScreenRectVertex(screen.left, screen.top, texcoords.top * scale_u,
-                         left_start + left * scale_v),
-        ScreenRectVertex(screen.right, screen.top, texcoords.bottom * scale_u,
-                         left_start + left * scale_v),
-        ScreenRectVertex(screen.left, screen.bottom, texcoords.top * scale_u,
-                         left_start + right * scale_v),
-        ScreenRectVertex(screen.right, screen.bottom, texcoords.bottom * scale_u,
-                         left_start + right * scale_v),
+        ScreenRectVertex(x, y, left, top),
+        ScreenRectVertex(x + w, y, right, top),
+        ScreenRectVertex(x, y + h, left, bottom),
+        ScreenRectVertex(x + w, y + h, right, bottom),
     };
     glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
 
@@ -701,7 +662,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     // program_manager.RestoreGuestPipeline();
 }
 
-void RendererOpenGL::RenderScreenshot() {
+void RendererOpenGL::RenderScreenshot(const Tegra::FramebufferConfig& framebuffer) {
     if (!renderer_settings.screenshot_requested) {
         return;
     }
@@ -723,7 +684,7 @@ void RendererOpenGL::RenderScreenshot() {
     glRenderbufferStorage(GL_RENDERBUFFER, GL_SRGB8, layout.width, layout.height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuffer);
 
-    DrawScreen(layout);
+    DrawScreen(framebuffer, layout);
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     glPixelStorei(GL_PACK_ROW_LENGTH, 0);
