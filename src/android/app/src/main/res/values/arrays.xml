@@ -118,15 +118,23 @@
     </integer-array>
 
     <string-array name="rendererScreenLayoutNames">
-        <item>@string/screen_layout_landscape</item>
-        <item>@string/screen_layout_portrait</item>
         <item>@string/screen_layout_auto</item>
+        <item>@string/screen_layout_sensor_landscape</item>
+        <item>@string/screen_layout_landscape</item>
+        <item>@string/screen_layout_reverse_landscape</item>
+        <item>@string/screen_layout_sensor_portrait</item>
+        <item>@string/screen_layout_portrait</item>
+        <item>@string/screen_layout_reverse_portrait</item>
     </string-array>
 
     <integer-array name="rendererScreenLayoutValues">
-        <item>5</item>
-        <item>4</item>
         <item>0</item>
+        <item>5</item>
+        <item>1</item>
+        <item>2</item>
+        <item>6</item>
+        <item>4</item>
+        <item>3</item>
     </integer-array>
 
     <string-array name="rendererAspectRatioNames">
