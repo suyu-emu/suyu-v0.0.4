@@ -21,6 +21,7 @@ import org.yuzu.yuzu_emu.model.TaskState
 import java.io.BufferedOutputStream
 import java.lang.NullPointerException
 import java.nio.charset.StandardCharsets
+import java.util.zip.Deflater
 import java.util.zip.ZipOutputStream
 import kotlin.IllegalStateException
 
@@ -312,15 +313,23 @@ object FileUtil {
      * @param inputFile File representation of the item that will be zipped
      * @param rootDir Directory containing the inputFile
      * @param outputStream Stream where the zip file will be output
+     * @param cancelled [StateFlow] that reports whether this process has been cancelled
+     * @param compression Disables compression if true
      */
     fun zipFromInternalStorage(
         inputFile: File,
         rootDir: String,
         outputStream: BufferedOutputStream,
-        cancelled: StateFlow<Boolean>? = null
+        cancelled: StateFlow<Boolean>? = null,
+        compression: Boolean = true
     ): TaskState {
         try {
             ZipOutputStream(outputStream).use { zos ->
+                if (!compression) {
+                    zos.setMethod(ZipOutputStream.DEFLATED)
+                    zos.setLevel(Deflater.NO_COMPRESSION)
+                }
+
                 inputFile.walkTopDown().forEach { file ->
                     if (cancelled?.value == true) {
                         return TaskState.Cancelled
@@ -338,6 +347,7 @@ object FileUtil {
                 }
             }
         } catch (e: Exception) {
+            Log.error("[FileUtil] Failed creating zip file - ${e.message}")
             return TaskState.Failed
         }
         return TaskState.Completed
