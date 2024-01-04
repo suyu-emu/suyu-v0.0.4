@@ -195,9 +195,9 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
     has_texture_shadow_lod = HasExtension(extensions, "GL_EXT_texture_shadow_lod");
     has_astc = !has_slow_software_astc && IsASTCSupported();
     has_variable_aoffi = TestVariableAoffi();
-    has_component_indexing_bug = is_amd;
+    has_component_indexing_bug = false;
     has_precise_bug = TestPreciseBug();
-    has_broken_texture_view_formats = is_amd || (!is_linux && is_intel);
+    has_broken_texture_view_formats = (!is_linux && is_intel);
     has_nv_viewport_array2 = GLAD_GL_NV_viewport_array2;
     has_derivative_control = GLAD_GL_ARB_derivative_control;
     has_vertex_buffer_unified_memory = GLAD_GL_NV_vertex_buffer_unified_memory;
@@ -238,10 +238,11 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
     has_lmem_perf_bug = is_nvidia;
 
     strict_context_required = emu_window.StrictContextRequired();
-    // Blocks AMD and Intel OpenGL drivers on Windows from using asynchronous shader compilation.
+    // Blocks Intel OpenGL drivers on Windows from using asynchronous shader compilation.
     // Blocks EGL on Wayland from using asynchronous shader compilation.
-    use_asynchronous_shaders = Settings::values.use_asynchronous_shaders.GetValue() &&
-                               !(is_amd || (is_intel && !is_linux)) && !strict_context_required;
+    const bool blacklist_async_shaders = (is_intel && !is_linux) || strict_context_required;
+    use_asynchronous_shaders =
+        Settings::values.use_asynchronous_shaders.GetValue() && !blacklist_async_shaders;
     use_driver_cache = is_nvidia;
     supports_conditional_barriers = !is_intel;
 
