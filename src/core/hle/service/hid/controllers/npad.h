@@ -11,6 +11,7 @@
 #include "common/common_types.h"
 #include "core/hid/hid_types.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
+#include "core/hle/service/hid/controllers/npad/npad_resource.h"
 #include "core/hle/service/hid/controllers/types/npad_types.h"
 
 namespace Core::HID {
@@ -35,99 +36,116 @@ struct NpadInternalState;
 struct NpadSixAxisSensorLifo;
 struct NpadSharedMemoryFormat;
 
-class NPad final : public ControllerBase {
+class NPad final {
 public:
     explicit NPad(Core::HID::HIDCore& hid_core_, KernelHelpers::ServiceContext& service_context_);
-    ~NPad() override;
+    ~NPad();
 
-    // Called when the controller is initialized
-    void OnInit() override;
+    Result Activate();
+    Result Activate(u64 aruid);
 
-    // When the controller is released
-    void OnRelease() override;
+    Result ActivateNpadResource();
+    Result ActivateNpadResource(u64 aruid);
 
     // When the controller is requesting an update for the shared memory
-    void OnUpdate(const Core::Timing::CoreTiming& core_timing) override;
+    void OnUpdate(const Core::Timing::CoreTiming& core_timing);
 
-    void SetSupportedStyleSet(Core::HID::NpadStyleTag style_set);
-    Core::HID::NpadStyleTag GetSupportedStyleSet() const;
+    Result SetSupportedNpadStyleSet(u64 aruid, Core::HID::NpadStyleSet supported_style_set);
+    Result GetSupportedNpadStyleSet(u64 aruid,
+                                    Core::HID::NpadStyleSet& out_supported_style_set) const;
+    Result GetMaskedSupportedNpadStyleSet(u64 aruid,
+                                          Core::HID::NpadStyleSet& out_supported_style_set) const;
 
-    Result SetSupportedNpadIdTypes(std::span<const u8> data);
-    void GetSupportedNpadIdTypes(u32* data, std::size_t max_length);
-    std::size_t GetSupportedNpadIdTypesSize() const;
+    Result SetSupportedNpadIdType(u64 aruid,
+                                  std::span<const Core::HID::NpadIdType> supported_npad_list);
 
-    void SetHoldType(NpadJoyHoldType joy_hold_type);
-    NpadJoyHoldType GetHoldType() const;
+    Result SetNpadJoyHoldType(u64 aruid, NpadJoyHoldType hold_type);
+    Result GetNpadJoyHoldType(u64 aruid, NpadJoyHoldType& out_hold_type) const;
 
-    void SetNpadHandheldActivationMode(NpadHandheldActivationMode activation_mode);
-    NpadHandheldActivationMode GetNpadHandheldActivationMode() const;
+    Result SetNpadHandheldActivationMode(u64 aruid, NpadHandheldActivationMode mode);
+    Result GetNpadHandheldActivationMode(u64 aruid, NpadHandheldActivationMode& out_mode) const;
 
-    void SetNpadCommunicationMode(NpadCommunicationMode communication_mode_);
-    NpadCommunicationMode GetNpadCommunicationMode() const;
-
-    bool SetNpadMode(Core::HID::NpadIdType& new_npad_id, Core::HID::NpadIdType npad_id,
+    bool SetNpadMode(u64 aruid, Core::HID::NpadIdType& new_npad_id, Core::HID::NpadIdType npad_id,
                      NpadJoyDeviceType npad_device_type, NpadJoyAssignmentMode assignment_mode);
 
-    bool VibrateControllerAtIndex(Core::HID::NpadIdType npad_id, std::size_t device_index,
+    bool VibrateControllerAtIndex(u64 aruid, Core::HID::NpadIdType npad_id,
+                                  std::size_t device_index,
                                   const Core::HID::VibrationValue& vibration_value);
 
-    void VibrateController(const Core::HID::VibrationDeviceHandle& vibration_device_handle,
+    void VibrateController(u64 aruid,
+                           const Core::HID::VibrationDeviceHandle& vibration_device_handle,
                            const Core::HID::VibrationValue& vibration_value);
 
     void VibrateControllers(
-        std::span<const Core::HID::VibrationDeviceHandle> vibration_device_handles,
+        u64 aruid, std::span<const Core::HID::VibrationDeviceHandle> vibration_device_handles,
         std::span<const Core::HID::VibrationValue> vibration_values);
 
     Core::HID::VibrationValue GetLastVibration(
-        const Core::HID::VibrationDeviceHandle& vibration_device_handle) const;
+        u64 aruid, const Core::HID::VibrationDeviceHandle& vibration_device_handle) const;
 
     void InitializeVibrationDevice(const Core::HID::VibrationDeviceHandle& vibration_device_handle);
 
-    void InitializeVibrationDeviceAtIndex(Core::HID::NpadIdType npad_id, std::size_t device_index);
+    void InitializeVibrationDeviceAtIndex(u64 aruid, Core::HID::NpadIdType npad_id,
+                                          std::size_t device_index);
 
     void SetPermitVibrationSession(bool permit_vibration_session);
 
     bool IsVibrationDeviceMounted(
-        const Core::HID::VibrationDeviceHandle& vibration_device_handle) const;
+        u64 aruid, const Core::HID::VibrationDeviceHandle& vibration_device_handle) const;
 
-    Kernel::KReadableEvent& GetStyleSetChangedEvent(Core::HID::NpadIdType npad_id);
-    void SignalStyleSetChangedEvent(Core::HID::NpadIdType npad_id) const;
+    Result AcquireNpadStyleSetUpdateEventHandle(u64 aruid, Kernel::KReadableEvent** out_event,
+                                                Core::HID::NpadIdType npad_id);
 
     // Adds a new controller at an index.
-    void AddNewControllerAt(Core::HID::NpadStyleIndex controller, Core::HID::NpadIdType npad_id);
+    void AddNewControllerAt(u64 aruid, Core::HID::NpadStyleIndex controller,
+                            Core::HID::NpadIdType npad_id);
     // Adds a new controller at an index with connection status.
-    void UpdateControllerAt(Core::HID::NpadStyleIndex controller, Core::HID::NpadIdType npad_id,
-                            bool connected);
+    void UpdateControllerAt(u64 aruid, Core::HID::NpadStyleIndex controller,
+                            Core::HID::NpadIdType npad_id, bool connected);
 
-    Result DisconnectNpad(Core::HID::NpadIdType npad_id);
+    Result DisconnectNpad(u64 aruid, Core::HID::NpadIdType npad_id);
 
     Result IsFirmwareUpdateAvailableForSixAxisSensor(
-        const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool& is_firmware_available) const;
+        u64 aruid, const Core::HID::SixAxisSensorHandle& sixaxis_handle,
+        bool& is_firmware_available) const;
     Result ResetIsSixAxisSensorDeviceNewlyAssigned(
-        const Core::HID::SixAxisSensorHandle& sixaxis_handle);
+        u64 aruid, const Core::HID::SixAxisSensorHandle& sixaxis_handle);
 
     Result GetLedPattern(Core::HID::NpadIdType npad_id, Core::HID::LedPattern& pattern) const;
-    Result IsUnintendedHomeButtonInputProtectionEnabled(Core::HID::NpadIdType npad_id,
-                                                        bool& is_enabled) const;
-    Result SetUnintendedHomeButtonInputProtectionEnabled(bool is_protection_enabled,
-                                                         Core::HID::NpadIdType npad_id);
-    void SetAnalogStickUseCenterClamp(bool use_center_clamp);
+
+    Result IsUnintendedHomeButtonInputProtectionEnabled(bool& out_is_enabled, u64 aruid,
+                                                        Core::HID::NpadIdType npad_id) const;
+    Result EnableUnintendedHomeButtonInputProtection(u64 aruid, Core::HID::NpadIdType npad_id,
+                                                     bool is_enabled);
+
+    void SetNpadAnalogStickUseCenterClamp(u64 aruid, bool is_enabled);
     void ClearAllConnectedControllers();
     void DisconnectAllConnectedControllers();
     void ConnectAllDisconnectedControllers();
     void ClearAllControllers();
 
-    Result MergeSingleJoyAsDualJoy(Core::HID::NpadIdType npad_id_1,
+    Result MergeSingleJoyAsDualJoy(u64 aruid, Core::HID::NpadIdType npad_id_1,
                                    Core::HID::NpadIdType npad_id_2);
-    void StartLRAssignmentMode();
-    void StopLRAssignmentMode();
-    Result SwapNpadAssignment(Core::HID::NpadIdType npad_id_1, Core::HID::NpadIdType npad_id_2);
+    Result StartLrAssignmentMode(u64 aruid);
+    Result StopLrAssignmentMode(u64 aruid);
+    Result SwapNpadAssignment(u64 aruid, Core::HID::NpadIdType npad_id_1,
+                              Core::HID::NpadIdType npad_id_2);
 
     // Logical OR for all buttons presses on all controllers
     // Specifically for cheat engine and other features.
     Core::HID::NpadButton GetAndResetPressState();
 
-    void ApplyNpadSystemCommonPolicy();
+    Result ApplyNpadSystemCommonPolicy(u64 aruid);
+    Result ApplyNpadSystemCommonPolicyFull(u64 aruid);
+    Result ClearNpadSystemCommonPolicy(u64 aruid);
+
+    void SetRevision(u64 aruid, NpadRevision revision);
+    NpadRevision GetRevision(u64 aruid);
+
+    Result RegisterAppletResourceUserId(u64 aruid);
+    void UnregisterAppletResourceUserId(u64 aruid);
+    void SetNpadExternals(std::shared_ptr<AppletResource> resource,
+                          std::recursive_mutex* shared_mutex);
 
     AppletDetailedUiType GetAppletDetailedUiType(Core::HID::NpadIdType npad_id);
 
@@ -139,12 +157,10 @@ private:
     };
 
     struct NpadControllerData {
-        Kernel::KEvent* styleset_changed_event{};
         NpadInternalState* shared_memory = nullptr;
         Core::HID::EmulatedController* device = nullptr;
 
         std::array<VibrationData, 2> vibration{};
-        bool unintended_home_button_input_protection{};
         bool is_connected{};
 
         // Dual joycons can have only one side connected
@@ -159,39 +175,40 @@ private:
     };
 
     void ControllerUpdate(Core::HID::ControllerTriggerType type, std::size_t controller_idx);
-    void InitNewlyAddedController(Core::HID::NpadIdType npad_id);
-    bool IsControllerSupported(Core::HID::NpadStyleIndex controller) const;
-    void RequestPadStateUpdate(Core::HID::NpadIdType npad_id);
+    void InitNewlyAddedController(u64 aruid, Core::HID::NpadIdType npad_id);
+    void RequestPadStateUpdate(u64 aruid, Core::HID::NpadIdType npad_id);
     void WriteEmptyEntry(NpadInternalState* npad);
 
     NpadControllerData& GetControllerFromHandle(
-        const Core::HID::VibrationDeviceHandle& device_handle);
+        u64 aruid, const Core::HID::VibrationDeviceHandle& device_handle);
     const NpadControllerData& GetControllerFromHandle(
-        const Core::HID::VibrationDeviceHandle& device_handle) const;
+        u64 aruid, const Core::HID::VibrationDeviceHandle& device_handle) const;
     NpadControllerData& GetControllerFromHandle(
-        const Core::HID::SixAxisSensorHandle& device_handle);
+        u64 aruid, const Core::HID::SixAxisSensorHandle& device_handle);
     const NpadControllerData& GetControllerFromHandle(
-        const Core::HID::SixAxisSensorHandle& device_handle) const;
-    NpadControllerData& GetControllerFromNpadIdType(Core::HID::NpadIdType npad_id);
-    const NpadControllerData& GetControllerFromNpadIdType(Core::HID::NpadIdType npad_id) const;
+        u64 aruid, const Core::HID::SixAxisSensorHandle& device_handle) const;
+    NpadControllerData& GetControllerFromNpadIdType(u64 aruid, Core::HID::NpadIdType npad_id);
+    const NpadControllerData& GetControllerFromNpadIdType(u64 aruid,
+                                                          Core::HID::NpadIdType npad_id) const;
 
     Core::HID::SixAxisSensorProperties& GetSixaxisProperties(
-        const Core::HID::SixAxisSensorHandle& device_handle);
+        u64 aruid, const Core::HID::SixAxisSensorHandle& device_handle);
     const Core::HID::SixAxisSensorProperties& GetSixaxisProperties(
-        const Core::HID::SixAxisSensorHandle& device_handle) const;
+        u64 aruid, const Core::HID::SixAxisSensorHandle& device_handle) const;
+
+    Core::HID::HIDCore& hid_core;
+    KernelHelpers::ServiceContext& service_context;
+
+    s32 ref_counter{};
+    mutable std::mutex mutex;
+    NPadResource npad_resource;
+    AppletResourceHolder applet_resource_holder{};
+    Kernel::KEvent* input_event{nullptr};
+    std::mutex* input_mutex{nullptr};
 
     std::atomic<u64> press_state{};
-
-    std::array<NpadControllerData, NpadCount> controller_data{};
-    KernelHelpers::ServiceContext& service_context;
-    std::mutex mutex;
-    std::vector<Core::HID::NpadIdType> supported_npad_id_types{};
-    NpadJoyHoldType hold_type{NpadJoyHoldType::Vertical};
-    NpadHandheldActivationMode handheld_activation_mode{NpadHandheldActivationMode::Dual};
-    NpadCommunicationMode communication_mode{NpadCommunicationMode::Default};
-    bool permit_vibration_session_enabled{false};
-    bool analog_stick_use_center_clamp{false};
-    bool is_in_lr_assignment_mode{false};
-    bool is_controller_initialized{false};
+    bool permit_vibration_session_enabled;
+    std::array<std::array<NpadControllerData, MaxSupportedNpadIdTypes>, AruidIndexMax>
+        controller_data{};
 };
 } // namespace Service::HID

@@ -549,6 +549,10 @@ add_library(core STATIC
     hle/service/hid/xcd.cpp
     hle/service/hid/xcd.h
     hle/service/hid/errors.h
+    hle/service/hid/controllers/npad/npad_data.cpp
+    hle/service/hid/controllers/npad/npad_data.h
+    hle/service/hid/controllers/npad/npad_resource.cpp
+    hle/service/hid/controllers/npad/npad_resource.h
     hle/service/hid/controllers/types/debug_pad_types.h
     hle/service/hid/controllers/types/keyboard_types.h
     hle/service/hid/controllers/types/mouse_types.h

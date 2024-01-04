@@ -42,11 +42,13 @@ public:
 
     bool IsControllerActivated() const;
 
-    void SetAppletResource(std::shared_ptr<AppletResource> resource);
+    void SetAppletResource(std::shared_ptr<AppletResource> resource,
+                           std::recursive_mutex* resource_mutex);
 
 protected:
     bool is_activated{false};
     std::shared_ptr<AppletResource> applet_resource{nullptr};
+    std::recursive_mutex* shared_mutex{nullptr};
 
     Core::HID::HIDCore& hid_core;
 };

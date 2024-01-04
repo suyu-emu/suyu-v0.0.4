@@ -93,7 +93,7 @@ private:
 
     bool is_initialized{false};
 
-    mutable std::mutex shared_mutex;
+    mutable std::recursive_mutex shared_mutex;
     std::shared_ptr<AppletResource> applet_resource = nullptr;
 
     std::shared_ptr<CaptureButton> capture_button = nullptr;

@@ -129,12 +129,12 @@ std::shared_ptr<UniquePad> ResourceManager::GetUniquePad() const {
 }
 
 Result ResourceManager::CreateAppletResource(u64 aruid) {
-    if (aruid == 0) {
+    if (aruid == SystemAruid) {
         const auto result = RegisterCoreAppletResource();
         if (result.IsError()) {
             return result;
         }
-        return GetNpad()->Activate();
+        return GetNpad()->ActivateNpadResource();
     }
 
     const auto result = CreateAppletResourceImpl(aruid);
@@ -147,7 +147,7 @@ Result ResourceManager::CreateAppletResource(u64 aruid) {
     six_axis->Activate();
     touch_screen->Activate();
 
-    return GetNpad()->Activate(aruid);
+    return GetNpad()->ActivateNpadResource(aruid);
 }
 
 Result ResourceManager::CreateAppletResourceImpl(u64 aruid) {
@@ -171,31 +171,31 @@ void ResourceManager::InitializeHidCommonSampler() {
     palma = std::make_shared<Palma>(system.HIDCore(), service_context);
     six_axis = std::make_shared<SixAxis>(system.HIDCore(), npad);
 
-    debug_pad->SetAppletResource(applet_resource);
-    digitizer->SetAppletResource(applet_resource);
-    keyboard->SetAppletResource(applet_resource);
-    npad->SetAppletResource(applet_resource);
-    six_axis->SetAppletResource(applet_resource);
-    mouse->SetAppletResource(applet_resource);
-    debug_mouse->SetAppletResource(applet_resource);
-    home_button->SetAppletResource(applet_resource);
-    sleep_button->SetAppletResource(applet_resource);
-    capture_button->SetAppletResource(applet_resource);
+    debug_pad->SetAppletResource(applet_resource, &shared_mutex);
+    digitizer->SetAppletResource(applet_resource, &shared_mutex);
+    keyboard->SetAppletResource(applet_resource, &shared_mutex);
+    npad->SetNpadExternals(applet_resource, &shared_mutex);
+    six_axis->SetAppletResource(applet_resource, &shared_mutex);
+    mouse->SetAppletResource(applet_resource, &shared_mutex);
+    debug_mouse->SetAppletResource(applet_resource, &shared_mutex);
+    home_button->SetAppletResource(applet_resource, &shared_mutex);
+    sleep_button->SetAppletResource(applet_resource, &shared_mutex);
+    capture_button->SetAppletResource(applet_resource, &shared_mutex);
 }
 
 void ResourceManager::InitializeTouchScreenSampler() {
     gesture = std::make_shared<Gesture>(system.HIDCore());
     touch_screen = std::make_shared<TouchScreen>(system.HIDCore());
 
-    touch_screen->SetAppletResource(applet_resource);
-    gesture->SetAppletResource(applet_resource);
+    touch_screen->SetAppletResource(applet_resource, &shared_mutex);
+    gesture->SetAppletResource(applet_resource, &shared_mutex);
 }
 
 void ResourceManager::InitializeConsoleSixAxisSampler() {
     console_six_axis = std::make_shared<ConsoleSixAxis>(system.HIDCore());
     seven_six_axis = std::make_shared<SevenSixAxis>(system);
 
-    console_six_axis->SetAppletResource(applet_resource);
+    console_six_axis->SetAppletResource(applet_resource, &shared_mutex);
 }
 
 void ResourceManager::InitializeAHidSampler() {
@@ -214,7 +214,11 @@ Result ResourceManager::UnregisterCoreAppletResource() {
 
 Result ResourceManager::RegisterAppletResourceUserId(u64 aruid, bool bool_value) {
     std::scoped_lock lock{shared_mutex};
-    return applet_resource->RegisterAppletResourceUserId(aruid, bool_value);
+    auto result = applet_resource->RegisterAppletResourceUserId(aruid, bool_value);
+    if (result.IsSuccess()) {
+        result = npad->RegisterAppletResourceUserId(aruid);
+    }
+    return result;
 }
 
 void ResourceManager::UnregisterAppletResourceUserId(u64 aruid) {

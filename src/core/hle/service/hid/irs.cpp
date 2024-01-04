@@ -315,7 +315,7 @@ void IRS::GetNpadIrCameraHandle(HLERequestContext& ctx) {
     if (npad_id > Core::HID::NpadIdType::Player8 && npad_id != Core::HID::NpadIdType::Invalid &&
         npad_id != Core::HID::NpadIdType::Handheld) {
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(Service::HID::InvalidNpadId);
+        rb.Push(Service::HID::ResultInvalidNpadId);
         return;
     }
 
