@@ -167,13 +167,14 @@ class GamesViewModel : ViewModel() {
             }
         }
 
-    fun onCloseGameFoldersFragment() =
+    fun onCloseGameFoldersFragment() {
+        NativeConfig.saveGlobalConfig()
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                NativeConfig.saveGlobalConfig()
                 getGameDirs(true)
             }
         }
+    }
 
     private fun getGameDirs(reloadList: Boolean = false) {
         val gameDirs = NativeConfig.getGameDirs()
