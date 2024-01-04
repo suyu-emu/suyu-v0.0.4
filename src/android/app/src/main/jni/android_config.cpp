@@ -14,12 +14,6 @@ AndroidConfig::AndroidConfig(const std::string& config_name, ConfigType config_t
     }
 }
 
-AndroidConfig::~AndroidConfig() {
-    if (global) {
-        AndroidConfig::SaveAllValues();
-    }
-}
-
 void AndroidConfig::ReloadAllValues() {
     Reload();
     ReadAndroidValues();
