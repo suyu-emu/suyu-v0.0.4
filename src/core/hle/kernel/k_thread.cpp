@@ -1258,11 +1258,11 @@ ThreadState KThread::RequestTerminate() {
         // Change the thread's priority to be higher than any system thread's.
         this->IncreaseBasePriority(TerminatingThreadPriority);
 
-        // If the thread is runnable, send a termination interrupt to other cores.
+        // If the thread is runnable, send a termination interrupt to cores it may be running on.
         if (this->GetState() == ThreadState::Runnable) {
-            if (const u64 core_mask = m_physical_affinity_mask.GetAffinityMask() &
-                                      ~(1ULL << GetCurrentCoreId(m_kernel));
-                core_mask != 0) {
+            // NOTE: We do not mask the "current core", because this code may not actually be
+            //       executing from the thread representing the "current core".
+            if (const u64 core_mask = m_physical_affinity_mask.GetAffinityMask(); core_mask != 0) {
                 Kernel::KInterruptManager::SendInterProcessorInterrupt(m_kernel, core_mask);
             }
         }
