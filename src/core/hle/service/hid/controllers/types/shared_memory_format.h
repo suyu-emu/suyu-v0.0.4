@@ -171,7 +171,7 @@ static_assert(sizeof(NpadSharedMemoryEntry) == 0x5000, "NpadSharedMemoryEntry is
 
 // This is nn::hid::detail::NpadSharedMemoryFormat
 struct NpadSharedMemoryFormat {
-    std::array<NpadSharedMemoryEntry, NpadCount> npad_entry;
+    std::array<NpadSharedMemoryEntry, MaxSupportedNpadIdTypes> npad_entry;
 };
 static_assert(sizeof(NpadSharedMemoryFormat) == 0x32000,
               "NpadSharedMemoryFormat is an invalid size");

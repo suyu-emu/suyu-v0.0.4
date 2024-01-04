@@ -240,9 +240,12 @@ IHidSystemServer::~IHidSystemServer() {
 };
 
 void IHidSystemServer::ApplyNpadSystemCommonPolicy(HLERequestContext& ctx) {
-    LOG_WARNING(Service_HID, "called");
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->GetNpad()->ApplyNpadSystemCommonPolicy();
+    LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    GetResourceManager()->GetNpad()->ApplyNpadSystemCommonPolicy(applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -271,9 +274,12 @@ void IHidSystemServer::GetLastActiveNpad(HLERequestContext& ctx) {
 }
 
 void IHidSystemServer::ApplyNpadSystemCommonPolicyFull(HLERequestContext& ctx) {
-    LOG_WARNING(Service_HID, "called");
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    GetResourceManager()->GetNpad()->ApplyNpadSystemCommonPolicy();
+    LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    GetResourceManager()->GetNpad()->ApplyNpadSystemCommonPolicyFull(applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -298,28 +304,32 @@ void IHidSystemServer::GetNpadFullKeyGripColor(HLERequestContext& ctx) {
 
 void IHidSystemServer::GetMaskedSupportedNpadStyleSet(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_INFO(Service_HID, "(STUBBED) called");
+    LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
-    Core::HID::NpadStyleSet supported_styleset =
-        GetResourceManager()->GetNpad()->GetSupportedStyleSet().raw;
+    Core::HID::NpadStyleSet supported_styleset{};
+    const auto& npad = GetResourceManager()->GetNpad();
+    const Result result =
+        npad->GetMaskedSupportedNpadStyleSet(applet_resource_user_id, supported_styleset);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
     rb.PushEnum(supported_styleset);
 }
 
 void IHidSystemServer::SetSupportedNpadStyleSetAll(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_INFO(Service_HID, "(STUBBED) called");
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
-    Core::HID::NpadStyleSet supported_styleset =
-        GetResourceManager()->GetNpad()->GetSupportedStyleSet().raw;
+    const auto& npad = GetResourceManager()->GetNpad();
+    const auto result =
+        npad->SetSupportedNpadStyleSet(applet_resource_user_id, Core::HID::NpadStyleSet::All);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.PushEnum(supported_styleset);
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
 }
 
 void IHidSystemServer::GetAppletDetailedUiType(HLERequestContext& ctx) {

@@ -267,6 +267,7 @@ enum class NpadStyleSet : u32 {
     All = 0xFFFFFFFFU,
 };
 static_assert(sizeof(NpadStyleSet) == 4, "NpadStyleSet is an invalid size");
+DECLARE_ENUM_FLAG_OPERATORS(NpadStyleSet)
 
 // This is nn::hid::VibrationDevicePosition
 enum class VibrationDevicePosition : u32 {

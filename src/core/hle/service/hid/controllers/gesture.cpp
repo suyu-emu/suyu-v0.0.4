@@ -28,10 +28,11 @@ Gesture::Gesture(Core::HID::HIDCore& hid_core_) : ControllerBase(hid_core_) {
 Gesture::~Gesture() = default;
 
 void Gesture::OnInit() {
+    std::scoped_lock shared_lock{*shared_mutex};
     const u64 aruid = applet_resource->GetActiveAruid();
     auto* data = applet_resource->GetAruidData(aruid);
 
-    if (data == nullptr) {
+    if (data == nullptr || !data->flag.is_assigned) {
         return;
     }
 
@@ -44,10 +45,11 @@ void Gesture::OnInit() {
 void Gesture::OnRelease() {}
 
 void Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
+    std::scoped_lock shared_lock{*shared_mutex};
     const u64 aruid = applet_resource->GetActiveAruid();
     auto* data = applet_resource->GetAruidData(aruid);
 
-    if (data == nullptr) {
+    if (data == nullptr || !data->flag.is_assigned) {
         return;
     }
 

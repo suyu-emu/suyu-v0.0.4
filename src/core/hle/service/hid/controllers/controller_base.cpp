@@ -32,8 +32,10 @@ bool ControllerBase::IsControllerActivated() const {
     return is_activated;
 }
 
-void ControllerBase::SetAppletResource(std::shared_ptr<AppletResource> resource) {
+void ControllerBase::SetAppletResource(std::shared_ptr<AppletResource> resource,
+                                       std::recursive_mutex* resource_mutex) {
     applet_resource = resource;
+    shared_mutex = resource_mutex;
 }
 
 } // namespace Service::HID
