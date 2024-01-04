@@ -9,7 +9,6 @@ class AndroidConfig final : public Config {
 public:
     explicit AndroidConfig(const std::string& config_name = "config",
                            ConfigType config_type = ConfigType::GlobalConfig);
-    ~AndroidConfig() override;
 
     void ReloadAllValues() override;
     void SaveAllValues() override;
