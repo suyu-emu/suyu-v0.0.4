@@ -50,11 +50,10 @@ struct TextureInfo {
 };
 
 /// Structure used for storing information about the display target for the Switch screen
-struct ScreenInfo {
+struct FramebufferTextureInfo {
     GLuint display_texture{};
-    bool was_accelerated = false;
-    const Common::Rectangle<float> display_texcoords{0.0f, 0.0f, 1.0f, 1.0f};
-    TextureInfo texture;
+    u32 width;
+    u32 height;
 };
 
 class RendererOpenGL final : public VideoCore::RendererBase {
@@ -81,23 +80,18 @@ private:
 
     void AddTelemetryFields();
 
-    void ConfigureFramebufferTexture(TextureInfo& texture,
-                                     const Tegra::FramebufferConfig& framebuffer);
+    void ConfigureFramebufferTexture(const Tegra::FramebufferConfig& framebuffer);
 
     /// Draws the emulated screens to the emulator window.
-    void DrawScreen(const Layout::FramebufferLayout& layout);
+    void DrawScreen(const Tegra::FramebufferConfig& framebuffer,
+                    const Layout::FramebufferLayout& layout);
 
-    void RenderScreenshot();
+    void RenderScreenshot(const Tegra::FramebufferConfig& framebuffer);
 
     /// Loads framebuffer from emulated memory into the active OpenGL texture.
-    void LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuffer);
+    FramebufferTextureInfo LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuffer);
 
-    /// Fills active OpenGL texture with the given RGB color.Since the color is solid, the texture
-    /// can be 1x1 but will stretch across whatever it's rendered on.
-    void LoadColorToActiveGLTexture(u8 color_r, u8 color_g, u8 color_b, u8 color_a,
-                                    const TextureInfo& texture);
-
-    void PrepareRendertarget(const Tegra::FramebufferConfig* framebuffer);
+    FramebufferTextureInfo PrepareRenderTarget(const Tegra::FramebufferConfig& framebuffer);
 
     Core::TelemetrySession& telemetry_session;
     Core::Frontend::EmuWindow& emu_window;
@@ -126,7 +120,7 @@ private:
     GLuint64EXT vertex_buffer_address = 0;
 
     /// Display information for Switch screen
-    ScreenInfo screen_info;
+    TextureInfo framebuffer_texture;
     OGLTexture aa_texture;
     OGLFramebuffer aa_framebuffer;
 
@@ -145,12 +139,6 @@ private:
 
     /// OpenGL framebuffer data
     std::vector<u8> gl_framebuffer_data;
-
-    /// Used for transforming the framebuffer orientation
-    Service::android::BufferTransformFlags framebuffer_transform_flags{};
-    Common::Rectangle<int> framebuffer_crop_rect;
-    u32 framebuffer_width;
-    u32 framebuffer_height;
 };
 
 } // namespace OpenGL

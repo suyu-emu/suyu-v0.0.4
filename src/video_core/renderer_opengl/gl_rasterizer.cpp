@@ -71,10 +71,10 @@ std::optional<VideoCore::QueryType> MaxwellToVideoCoreQuery(VideoCommon::QueryTy
 
 RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                                    Tegra::MaxwellDeviceMemoryManager& device_memory_,
-                                   const Device& device_, ScreenInfo& screen_info_,
-                                   ProgramManager& program_manager_, StateTracker& state_tracker_)
-    : gpu(gpu_), device_memory(device_memory_), device(device_), screen_info(screen_info_),
-      program_manager(program_manager_), state_tracker(state_tracker_),
+                                   const Device& device_, ProgramManager& program_manager_,
+                                   StateTracker& state_tracker_)
+    : gpu(gpu_), device_memory(device_memory_), device(device_), program_manager(program_manager_),
+      state_tracker(state_tracker_),
       texture_cache_runtime(device, program_manager, state_tracker, staging_buffer_pool),
       texture_cache(texture_cache_runtime, device_memory_),
       buffer_cache_runtime(device, staging_buffer_pool),
@@ -739,10 +739,10 @@ void RasterizerOpenGL::AccelerateInlineToMemory(GPUVAddr address, size_t copy_si
     query_cache.InvalidateRegion(*cpu_addr, copy_size);
 }
 
-bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
-                                         DAddr framebuffer_addr, u32 pixel_stride) {
+std::optional<FramebufferTextureInfo> RasterizerOpenGL::AccelerateDisplay(
+    const Tegra::FramebufferConfig& config, DAddr framebuffer_addr, u32 pixel_stride) {
     if (framebuffer_addr == 0) {
-        return false;
+        return {};
     }
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
 
@@ -750,16 +750,14 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     ImageView* const image_view{
         texture_cache.TryFindFramebufferImageView(config, framebuffer_addr)};
     if (!image_view) {
-        return false;
+        return {};
     }
-    // Verify that the cached surface is the same size and format as the requested framebuffer
-    // ASSERT_MSG(image_view->size.width == config.width, "Framebuffer width is different");
-    // ASSERT_MSG(image_view->size.height == config.height, "Framebuffer height is different");
 
-    screen_info.texture.width = image_view->size.width;
-    screen_info.texture.height = image_view->size.height;
-    screen_info.display_texture = image_view->Handle(Shader::TextureType::Color2D);
-    return true;
+    FramebufferTextureInfo info{};
+    info.display_texture = image_view->Handle(Shader::TextureType::Color2D);
+    info.width = image_view->size.width;
+    info.height = image_view->size.height;
+    return info;
 }
 
 void RasterizerOpenGL::SyncState() {

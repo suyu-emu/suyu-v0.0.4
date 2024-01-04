@@ -24,4 +24,7 @@ struct FramebufferConfig {
     Common::Rectangle<int> crop_rect;
 };
 
+Common::Rectangle<f32> NormalizeCrop(const FramebufferConfig& framebuffer, u32 texture_width,
+                                     u32 texture_height);
+
 } // namespace Tegra

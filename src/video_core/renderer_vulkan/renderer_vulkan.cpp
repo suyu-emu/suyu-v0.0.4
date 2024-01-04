@@ -98,9 +98,9 @@ RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
       present_manager(instance, render_window, device, memory_allocator, scheduler, swapchain,
                       surface),
       blit_screen(device_memory, render_window, device, memory_allocator, swapchain,
-                  present_manager, scheduler, screen_info),
-      rasterizer(render_window, gpu, device_memory, screen_info, device, memory_allocator,
-                 state_tracker, scheduler) {
+                  present_manager, scheduler),
+      rasterizer(render_window, gpu, device_memory, device, memory_allocator, state_tracker,
+                 scheduler) {
     if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
         scheduler.RegisterOnSubmit([this] { turbo_mode->QueueSubmitted(); });
@@ -124,17 +124,10 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     if (!render_window.IsShown()) {
         return;
     }
-    // Update screen info if the framebuffer size has changed.
-    screen_info.width = framebuffer->width;
-    screen_info.height = framebuffer->height;
 
-    const DAddr framebuffer_addr = framebuffer->address + framebuffer->offset;
-    const bool use_accelerated =
-        rasterizer.AccelerateDisplay(*framebuffer, framebuffer_addr, framebuffer->stride);
-    RenderScreenshot(*framebuffer, use_accelerated);
-
+    RenderScreenshot(*framebuffer);
     Frame* frame = present_manager.GetRenderFrame();
-    blit_screen.DrawToSwapchain(frame, *framebuffer, use_accelerated);
+    blit_screen.DrawToSwapchain(rasterizer, frame, *framebuffer);
     scheduler.Flush(*frame->render_ready);
     present_manager.Present(frame);
 
@@ -168,8 +161,7 @@ void RendererVulkan::Report() const {
     telemetry_session.AddField(field, "GPU_Vulkan_Extensions", extensions);
 }
 
-void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& framebuffer,
-                                              bool use_accelerated) {
+void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& framebuffer) {
     if (!renderer_settings.screenshot_requested) {
         return;
     }
@@ -221,7 +213,7 @@ void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& fr
     });
     const VkExtent2D render_area{.width = layout.width, .height = layout.height};
     const vk::Framebuffer screenshot_fb = blit_screen.CreateFramebuffer(*dst_view, render_area);
-    blit_screen.Draw(framebuffer, *screenshot_fb, layout, render_area, use_accelerated);
+    blit_screen.Draw(rasterizer, framebuffer, *screenshot_fb, layout, render_area);
 
     const auto buffer_size = static_cast<VkDeviceSize>(layout.width * layout.height * 4);
     const VkBufferCreateInfo dst_buffer_info{

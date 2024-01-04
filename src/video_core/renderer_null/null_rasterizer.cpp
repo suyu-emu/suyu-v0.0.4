@@ -92,10 +92,6 @@ bool RasterizerNull::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surfac
 }
 void RasterizerNull::AccelerateInlineToMemory(GPUVAddr address, size_t copy_size,
                                               std::span<const u8> memory) {}
-bool RasterizerNull::AccelerateDisplay(const Tegra::FramebufferConfig& config,
-                                       DAddr framebuffer_addr, u32 pixel_stride) {
-    return true;
-}
 void RasterizerNull::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
                                        const VideoCore::DiskResourceLoadCallback& callback) {}
 void RasterizerNull::InitializeChannel(Tegra::Control::ChannelState& channel) {

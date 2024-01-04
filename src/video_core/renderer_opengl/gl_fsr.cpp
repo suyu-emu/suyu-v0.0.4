@@ -25,7 +25,7 @@ FSR::~FSR() = default;
 
 void FSR::Draw(ProgramManager& program_manager, const Common::Rectangle<u32>& screen,
                u32 input_image_width, u32 input_image_height,
-               const Common::Rectangle<int>& crop_rect) {
+               const Common::Rectangle<f32>& crop_rect) {
 
     const auto output_image_width = screen.GetWidth();
     const auto output_image_height = screen.GetHeight();
@@ -57,14 +57,19 @@ void FSR::Draw(ProgramManager& program_manager, const Common::Rectangle<u32>& sc
     glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(output_image_width),
                        static_cast<GLfloat>(output_image_height));
 
-    FsrConstants constants;
-    FsrEasuConOffset(
-        constants.data() + 0, constants.data() + 4, constants.data() + 8, constants.data() + 12,
+    const f32 input_width = static_cast<f32>(input_image_width);
+    const f32 input_height = static_cast<f32>(input_image_height);
+    const f32 output_width = static_cast<f32>(screen.GetWidth());
+    const f32 output_height = static_cast<f32>(screen.GetHeight());
+    const f32 viewport_width = (crop_rect.right - crop_rect.left) * input_width;
+    const f32 viewport_x = crop_rect.left * input_width;
+    const f32 viewport_height = (crop_rect.bottom - crop_rect.top) * input_height;
+    const f32 viewport_y = crop_rect.top * input_height;
 
-        static_cast<f32>(crop_rect.GetWidth()), static_cast<f32>(crop_rect.GetHeight()),
-        static_cast<f32>(input_image_width), static_cast<f32>(input_image_height),
-        static_cast<f32>(output_image_width), static_cast<f32>(output_image_height),
-        static_cast<f32>(crop_rect.left), static_cast<f32>(crop_rect.top));
+    FsrConstants constants;
+    FsrEasuConOffset(constants.data() + 0, constants.data() + 4, constants.data() + 8,
+                     constants.data() + 12, viewport_width, viewport_height, input_width,
+                     input_height, output_width, output_height, viewport_x, viewport_y);
 
     glProgramUniform4uiv(fsr_easu_frag.handle, 0, sizeof(constants), std::data(constants));
 

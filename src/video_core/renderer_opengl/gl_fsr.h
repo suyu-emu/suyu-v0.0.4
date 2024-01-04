@@ -22,7 +22,7 @@ public:
 
     void Draw(ProgramManager& program_manager, const Common::Rectangle<u32>& screen,
               u32 input_image_width, u32 input_image_height,
-              const Common::Rectangle<int>& crop_rect);
+              const Common::Rectangle<f32>& crop_rect);
 
     void InitBuffers();
 
