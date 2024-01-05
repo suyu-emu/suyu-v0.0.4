@@ -488,16 +488,25 @@ add_library(core STATIC
     hle/service/fatal/fatal_u.h
     hle/service/filesystem/filesystem.cpp
     hle/service/filesystem/filesystem.h
+    hle/service/filesystem/fsp/fs_i_directory.cpp
+    hle/service/filesystem/fsp/fs_i_directory.h
+    hle/service/filesystem/fsp/fs_i_file.cpp
+    hle/service/filesystem/fsp/fs_i_file.h
+    hle/service/filesystem/fsp/fs_i_filesystem.cpp
+    hle/service/filesystem/fsp/fs_i_filesystem.h
+    hle/service/filesystem/fsp/fs_i_storage.cpp
+    hle/service/filesystem/fsp/fs_i_storage.h
+    hle/service/filesystem/fsp/fsp_srv.cpp
+    hle/service/filesystem/fsp/fsp_srv.h
     hle/service/filesystem/fsp_ldr.cpp
     hle/service/filesystem/fsp_ldr.h
     hle/service/filesystem/fsp_pr.cpp
     hle/service/filesystem/fsp_pr.h
-    hle/service/filesystem/fsp_srv.cpp
-    hle/service/filesystem/fsp_srv.h
     hle/service/filesystem/romfs_controller.cpp
     hle/service/filesystem/romfs_controller.h
     hle/service/filesystem/save_data_controller.cpp
     hle/service/filesystem/save_data_controller.h
+    hle/service/filesystem/fsp_util.h
     hle/service/fgm/fgm.cpp
     hle/service/fgm/fgm.h
     hle/service/friend/friend.cpp
