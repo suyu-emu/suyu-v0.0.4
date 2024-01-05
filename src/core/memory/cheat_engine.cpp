@@ -9,12 +9,12 @@
 #include "core/core_timing.h"
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_process.h"
-#include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/hid_server.h"
-#include "core/hle/service/hid/resource_manager.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/memory.h"
 #include "core/memory/cheat_engine.h"
+#include "hid_core/resource_manager.h"
+#include "hid_core/resources/npad/npad.h"
 
 namespace Core::Memory {
 namespace {

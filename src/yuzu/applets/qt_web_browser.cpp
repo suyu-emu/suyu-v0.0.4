@@ -13,7 +13,7 @@
 #include <QWebEngineSettings>
 #include <QWebEngineUrlScheme>
 
-#include "core/hid/input_interpreter.h"
+#include "hid_core/frontend/input_interpreter.h"
 #include "yuzu/applets/qt_web_browser_scripts.h"
 #endif
 

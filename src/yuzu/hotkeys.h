@@ -7,7 +7,7 @@
 #include <QKeySequence>
 #include <QString>
 #include <QWidget>
-#include "core/hid/hid_types.h"
+#include "hid_core/hid_types.h"
 
 class QDialog;
 class QSettings;

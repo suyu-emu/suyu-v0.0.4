@@ -22,9 +22,6 @@
 #include "common/string_util.h"
 #include "common/tiny_mt.h"
 #include "core/core.h"
-#include "core/hid/emulated_controller.h"
-#include "core/hid/hid_core.h"
-#include "core/hid/hid_types.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/mii/mii_manager.h"
@@ -33,6 +30,9 @@
 #include "core/hle/service/nfc/mifare_result.h"
 #include "core/hle/service/nfc/nfc_result.h"
 #include "core/hle/service/time/time_manager.h"
+#include "hid_core/frontend/emulated_controller.h"
+#include "hid_core/hid_core.h"
+#include "hid_core/hid_types.h"
 
 namespace Service::NFC {
 NfcDevice::NfcDevice(Core::HID::NpadIdType npad_id_, Core::System& system_,

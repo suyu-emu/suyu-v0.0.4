@@ -5,14 +5,14 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/hle/service/hid/hid_debug_server.h"
-#include "core/hle/service/hid/hid_firmware_settings.h"
 #include "core/hle/service/hid/hid_server.h"
 #include "core/hle/service/hid/hid_system_server.h"
 #include "core/hle/service/hid/hidbus.h"
 #include "core/hle/service/hid/irs.h"
-#include "core/hle/service/hid/resource_manager.h"
 #include "core/hle/service/hid/xcd.h"
 #include "core/hle/service/server_manager.h"
+#include "hid_core/resource_manager.h"
+#include "hid_core/resources/hid_firmware_settings.h"
 
 namespace Service::HID {
 

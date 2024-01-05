@@ -6,7 +6,7 @@
 #include <QTreeWidgetItem>
 #include <QtGlobal>
 
-#include "core/hid/emulated_controller.h"
+#include "hid_core/frontend/emulated_controller.h"
 #include "yuzu/hotkeys.h"
 #include "yuzu/uisettings.h"
 
