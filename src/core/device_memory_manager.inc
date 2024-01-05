@@ -340,8 +340,8 @@ T* DeviceMemoryManager<Traits>::GetPointer(DAddr address) {
     if (phys_addr == 0) [[unlikely]] {
         return nullptr;
     }
-    return GetPointerFromRaw<T>(
-        static_cast<PAddr>(((phys_addr - 1) << Memory::YUZU_PAGEBITS) + offset));
+    return GetPointerFromRaw<T>((static_cast<PAddr>(phys_addr - 1) << Memory::YUZU_PAGEBITS) +
+                                offset);
 }
 
 template <typename Traits>
@@ -353,8 +353,8 @@ const T* DeviceMemoryManager<Traits>::GetPointer(DAddr address) const {
     if (phys_addr == 0) [[unlikely]] {
         return nullptr;
     }
-    return GetPointerFromRaw<T>(
-        static_cast<PAddr>(((phys_addr - 1) << Memory::YUZU_PAGEBITS) + offset));
+    return GetPointerFromRaw<T>((static_cast<PAddr>(phys_addr - 1) << Memory::YUZU_PAGEBITS) +
+                                offset);
 }
 
 template <typename Traits>
@@ -405,7 +405,7 @@ void DeviceMemoryManager<Traits>::WalkBlock(DAddr addr, std::size_t size, auto o
             continue;
         }
         auto* mem_ptr = GetPointerFromRaw<u8>(
-            static_cast<PAddr>(((phys_addr - 1) << Memory::YUZU_PAGEBITS) + page_offset));
+            (static_cast<PAddr>(phys_addr - 1) << Memory::YUZU_PAGEBITS) + page_offset);
         on_memory(copy_amount, mem_ptr);
     }
 }

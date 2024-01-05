@@ -762,6 +762,9 @@ void MemoryManager::FlushCaching() {
 }
 
 const u8* MemoryManager::GetSpan(const GPUVAddr src_addr, const std::size_t size) const {
+    if (!IsContinuousRange(src_addr, size)) {
+        return nullptr;
+    }
     auto dev_addr = GpuToCpuAddress(src_addr);
     if (dev_addr) {
         return memory.GetSpan(*dev_addr, size);
