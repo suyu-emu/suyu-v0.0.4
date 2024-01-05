@@ -8,13 +8,13 @@
 #include <optional>
 #include <span>
 
-#include "core/hid/hid_types.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/nfc/mifare_types.h"
 #include "core/hle/service/nfc/nfc_types.h"
 #include "core/hle/service/nfp/nfp_types.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/time/clock_types.h"
+#include "hid_core/hid_types.h"
 
 namespace Service::NFC {
 class NfcDevice;

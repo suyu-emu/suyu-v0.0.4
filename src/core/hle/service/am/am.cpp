@@ -13,7 +13,6 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/savedata_factory.h"
-#include "core/hid/hid_types.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/result.h"
@@ -37,7 +36,6 @@
 #include "core/hle/service/caps/caps_su.h"
 #include "core/hle/service/caps/caps_types.h"
 #include "core/hle/service/filesystem/filesystem.h"
-#include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
@@ -48,6 +46,8 @@
 #include "core/hle/service/vi/vi.h"
 #include "core/hle/service/vi/vi_results.h"
 #include "core/memory.h"
+#include "hid_core/hid_types.h"
+#include "hid_core/resources/npad/npad.h"
 
 namespace Service::AM {
 

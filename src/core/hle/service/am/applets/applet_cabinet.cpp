@@ -5,13 +5,13 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/frontend/applets/cabinet.h"
-#include "core/hid/hid_core.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applet_cabinet.h"
 #include "core/hle/service/mii/mii_manager.h"
 #include "core/hle/service/nfc/common/device.h"
+#include "hid_core/hid_core.h"
 
 namespace Service::AM::Applets {
 

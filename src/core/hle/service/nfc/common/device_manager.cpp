@@ -5,15 +5,15 @@
 
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/hid/hid_types.h"
 #include "core/hle/kernel/k_event.h"
-#include "core/hle/service/hid/hid_util.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/nfc/common/device.h"
 #include "core/hle/service/nfc/common/device_manager.h"
 #include "core/hle/service/nfc/nfc_result.h"
 #include "core/hle/service/time/clock_types.h"
 #include "core/hle/service/time/time_manager.h"
+#include "hid_core/hid_types.h"
+#include "hid_core/hid_util.h"
 
 namespace Service::NFC {
 

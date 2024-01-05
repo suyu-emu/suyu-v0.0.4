@@ -183,22 +183,6 @@ add_library(core STATIC
     frontend/framebuffer_layout.cpp
     frontend/framebuffer_layout.h
     frontend/graphics_context.h
-    hid/emulated_console.cpp
-    hid/emulated_console.h
-    hid/emulated_controller.cpp
-    hid/emulated_controller.h
-    hid/emulated_devices.cpp
-    hid/emulated_devices.h
-    hid/hid_core.cpp
-    hid/hid_core.h
-    hid/hid_types.h
-    hid/input_converter.cpp
-    hid/input_converter.h
-    hid/input_interpreter.cpp
-    hid/input_interpreter.h
-    hid/irs_types.h
-    hid/motion_input.cpp
-    hid/motion_input.h
     hle/api_version.h
     hle/ipc.h
     hle/kernel/board/nintendo/nx/k_memory_layout.cpp
@@ -531,94 +515,16 @@ add_library(core STATIC
     hle/service/hid/hid.h
     hle/service/hid/hid_debug_server.cpp
     hle/service/hid/hid_debug_server.h
-    hle/service/hid/hid_firmware_settings.cpp
-    hle/service/hid/hid_firmware_settings.h
     hle/service/hid/hid_server.cpp
     hle/service/hid/hid_server.h
     hle/service/hid/hid_system_server.cpp
     hle/service/hid/hid_system_server.h
-    hle/service/hid/hid_util.h
     hle/service/hid/hidbus.cpp
     hle/service/hid/hidbus.h
     hle/service/hid/irs.cpp
     hle/service/hid/irs.h
-    hle/service/hid/irs_ring_lifo.h
-    hle/service/hid/resource_manager.cpp
-    hle/service/hid/resource_manager.h
-    hle/service/hid/ring_lifo.h
     hle/service/hid/xcd.cpp
     hle/service/hid/xcd.h
-    hle/service/hid/errors.h
-    hle/service/hid/controllers/npad/npad_data.cpp
-    hle/service/hid/controllers/npad/npad_data.h
-    hle/service/hid/controllers/npad/npad_resource.cpp
-    hle/service/hid/controllers/npad/npad_resource.h
-    hle/service/hid/controllers/types/debug_pad_types.h
-    hle/service/hid/controllers/types/keyboard_types.h
-    hle/service/hid/controllers/types/mouse_types.h
-    hle/service/hid/controllers/types/npad_types.h
-    hle/service/hid/controllers/types/shared_memory_format.h
-    hle/service/hid/controllers/types/touch_types.h
-    hle/service/hid/controllers/applet_resource.cpp
-    hle/service/hid/controllers/applet_resource.h
-    hle/service/hid/controllers/capture_button.cpp
-    hle/service/hid/controllers/capture_button.h
-    hle/service/hid/controllers/console_six_axis.cpp
-    hle/service/hid/controllers/console_six_axis.h
-    hle/service/hid/controllers/controller_base.cpp
-    hle/service/hid/controllers/controller_base.h
-    hle/service/hid/controllers/debug_mouse.cpp
-    hle/service/hid/controllers/debug_mouse.h
-    hle/service/hid/controllers/debug_pad.cpp
-    hle/service/hid/controllers/debug_pad.h
-    hle/service/hid/controllers/digitizer.cpp
-    hle/service/hid/controllers/digitizer.h
-    hle/service/hid/controllers/gesture.cpp
-    hle/service/hid/controllers/gesture.h
-    hle/service/hid/controllers/home_button.cpp
-    hle/service/hid/controllers/home_button.h
-    hle/service/hid/controllers/keyboard.cpp
-    hle/service/hid/controllers/keyboard.h
-    hle/service/hid/controllers/mouse.cpp
-    hle/service/hid/controllers/mouse.h
-    hle/service/hid/controllers/npad.cpp
-    hle/service/hid/controllers/npad.h
-    hle/service/hid/controllers/palma.cpp
-    hle/service/hid/controllers/palma.h
-    hle/service/hid/controllers/seven_six_axis.cpp
-    hle/service/hid/controllers/seven_six_axis.h
-    hle/service/hid/controllers/shared_memory_holder.cpp
-    hle/service/hid/controllers/shared_memory_holder.h
-    hle/service/hid/controllers/six_axis.cpp
-    hle/service/hid/controllers/six_axis.h
-    hle/service/hid/controllers/sleep_button.cpp
-    hle/service/hid/controllers/sleep_button.h
-    hle/service/hid/controllers/touchscreen.cpp
-    hle/service/hid/controllers/touchscreen.h
-    hle/service/hid/controllers/unique_pad.cpp
-    hle/service/hid/controllers/unique_pad.h
-    hle/service/hid/hidbus/hidbus_base.cpp
-    hle/service/hid/hidbus/hidbus_base.h
-    hle/service/hid/hidbus/ringcon.cpp
-    hle/service/hid/hidbus/ringcon.h
-    hle/service/hid/hidbus/starlink.cpp
-    hle/service/hid/hidbus/starlink.h
-    hle/service/hid/hidbus/stubbed.cpp
-    hle/service/hid/hidbus/stubbed.h
-    hle/service/hid/irsensor/clustering_processor.cpp
-    hle/service/hid/irsensor/clustering_processor.h
-    hle/service/hid/irsensor/image_transfer_processor.cpp
-    hle/service/hid/irsensor/image_transfer_processor.h
-    hle/service/hid/irsensor/ir_led_processor.cpp
-    hle/service/hid/irsensor/ir_led_processor.h
-    hle/service/hid/irsensor/moment_processor.cpp
-    hle/service/hid/irsensor/moment_processor.h
-    hle/service/hid/irsensor/pointing_processor.cpp
-    hle/service/hid/irsensor/pointing_processor.h
-    hle/service/hid/irsensor/processor_base.cpp
-    hle/service/hid/irsensor/processor_base.h
-    hle/service/hid/irsensor/tera_plugin_processor.cpp
-    hle/service/hid/irsensor/tera_plugin_processor.h
     hle/service/lbl/lbl.cpp
     hle/service/lbl/lbl.h
     hle/service/ldn/lan_discovery.cpp
@@ -959,7 +865,7 @@ endif()
 
 create_target_directory_groups(core)
 
-target_link_libraries(core PUBLIC common PRIVATE audio_core network video_core nx_tzdb)
+target_link_libraries(core PUBLIC common PRIVATE audio_core hid_core network video_core nx_tzdb)
 target_link_libraries(core PUBLIC Boost::headers PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls RenderDoc::API)
 if (MINGW)
     target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})

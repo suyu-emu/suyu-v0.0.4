@@ -4,8 +4,8 @@
 #include <QColorDialog>
 #include "common/settings.h"
 #include "core/core.h"
-#include "core/hid/emulated_controller.h"
-#include "core/hid/hid_core.h"
+#include "hid_core/frontend/emulated_controller.h"
+#include "hid_core/hid_core.h"
 #include "ui_configure_input_advanced.h"
 #include "yuzu/configuration/configure_input_advanced.h"
 
