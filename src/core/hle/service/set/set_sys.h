@@ -47,10 +47,10 @@ static_assert(sizeof(FirmwareVersionFormat) == 0x100, "FirmwareVersionFormat is 
 Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System& system,
                               GetFirmwareVersionType type);
 
-class SET_SYS final : public ServiceFramework<SET_SYS> {
+class ISystemSettingsServer final : public ServiceFramework<ISystemSettingsServer> {
 public:
-    explicit SET_SYS(Core::System& system_);
-    ~SET_SYS() override;
+    explicit ISystemSettingsServer(Core::System& system_);
+    ~ISystemSettingsServer() override;
 
     Result GetSettingsItemValue(std::vector<u8>& out_value, const std::string& category,
                                 const std::string& name);

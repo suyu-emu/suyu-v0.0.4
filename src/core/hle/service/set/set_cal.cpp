@@ -5,7 +5,8 @@
 
 namespace Service::Set {
 
-SET_CAL::SET_CAL(Core::System& system_) : ServiceFramework{system_, "set:cal"} {
+IFactorySettingsServer::IFactorySettingsServer(Core::System& system_)
+    : ServiceFramework{system_, "set:cal"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetBluetoothBdAddress"},
@@ -57,6 +58,6 @@ SET_CAL::SET_CAL(Core::System& system_) : ServiceFramework{system_, "set:cal"} {
     RegisterHandlers(functions);
 }
 
-SET_CAL::~SET_CAL() = default;
+IFactorySettingsServer::~IFactorySettingsServer() = default;
 
 } // namespace Service::Set

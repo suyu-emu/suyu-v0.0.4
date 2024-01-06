@@ -13,10 +13,13 @@ namespace Service::Set {
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
-    server_manager->RegisterNamedService("set", std::make_shared<SET>(system));
-    server_manager->RegisterNamedService("set:cal", std::make_shared<SET_CAL>(system));
-    server_manager->RegisterNamedService("set:fd", std::make_shared<SET_FD>(system));
-    server_manager->RegisterNamedService("set:sys", std::make_shared<SET_SYS>(system));
+    server_manager->RegisterNamedService("set", std::make_shared<ISettingsServer>(system));
+    server_manager->RegisterNamedService("set:cal",
+                                         std::make_shared<IFactorySettingsServer>(system));
+    server_manager->RegisterNamedService("set:fd",
+                                         std::make_shared<IFirmwareDebugSettingsServer>(system));
+    server_manager->RegisterNamedService("set:sys",
+                                         std::make_shared<ISystemSettingsServer>(system));
     ServerManager::RunServer(std::move(server_manager));
 }
 
