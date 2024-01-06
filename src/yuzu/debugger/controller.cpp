@@ -5,8 +5,8 @@
 #include <QLayout>
 #include <QString>
 #include "common/settings.h"
-#include "core/hid/emulated_controller.h"
-#include "core/hid/hid_core.h"
+#include "hid_core/frontend/emulated_controller.h"
+#include "hid_core/hid_core.h"
 #include "input_common/drivers/tas_input.h"
 #include "input_common/main.h"
 #include "yuzu/configuration/configure_input_player_widget.h"

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "core/hle/service/hid/hid_debug_server.h"
-#include "core/hle/service/hid/resource_manager.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "hid_core/resource_manager.h"
 
 namespace Service::HID {
 

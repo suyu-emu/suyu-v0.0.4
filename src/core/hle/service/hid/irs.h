@@ -4,10 +4,10 @@
 #pragma once
 
 #include "core/core.h"
-#include "core/hid/hid_types.h"
-#include "core/hid/irs_types.h"
-#include "core/hle/service/hid/irsensor/processor_base.h"
 #include "core/hle/service/service.h"
+#include "hid_core/hid_types.h"
+#include "hid_core/irsensor/irs_types.h"
+#include "hid_core/irsensor/processor_base.h"
 
 namespace Core::HID {
 class EmulatedController;

@@ -10,8 +10,8 @@
 #include "common/input.h"
 #include "common/settings_input.h"
 #include "common/vector_math.h"
-#include "core/hid/emulated_controller.h"
-#include "core/hid/hid_types.h"
+#include "hid_core/frontend/emulated_controller.h"
+#include "hid_core/hid_types.h"
 
 class QLabel;
 

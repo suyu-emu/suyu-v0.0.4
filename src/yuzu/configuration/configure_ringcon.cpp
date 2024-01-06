@@ -9,8 +9,8 @@
 #include <fmt/format.h>
 
 #include "configuration/qt_config.h"
-#include "core/hid/emulated_controller.h"
-#include "core/hid/hid_core.h"
+#include "hid_core/frontend/emulated_controller.h"
+#include "hid_core/hid_core.h"
 #include "input_common/drivers/keyboard.h"
 #include "input_common/drivers/mouse.h"
 #include "input_common/main.h"

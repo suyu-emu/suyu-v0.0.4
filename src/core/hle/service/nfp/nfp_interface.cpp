@@ -3,7 +3,6 @@
 
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/hid/hid_types.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/nfc/common/device.h"
@@ -12,6 +11,7 @@
 #include "core/hle/service/nfp/nfp_interface.h"
 #include "core/hle/service/nfp/nfp_result.h"
 #include "core/hle/service/nfp/nfp_types.h"
+#include "hid_core/hid_types.h"
 
 namespace Service::NFP {
 

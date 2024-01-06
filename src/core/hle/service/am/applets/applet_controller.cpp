@@ -9,13 +9,13 @@
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/frontend/applets/controller.h"
-#include "core/hid/emulated_controller.h"
-#include "core/hid/hid_core.h"
-#include "core/hid/hid_types.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applet_controller.h"
-#include "core/hle/service/hid/controllers/npad.h"
+#include "hid_core/frontend/emulated_controller.h"
+#include "hid_core/hid_core.h"
+#include "hid_core/hid_types.h"
+#include "hid_core/resources/npad/npad.h"
 
 namespace Service::AM::Applets {
 

@@ -11,7 +11,7 @@
 #include "config.h"
 #include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
-#include "core/hle/service/hid/controllers/npad.h"
+#include "hid_core/resources/npad/npad.h"
 #include "network/network.h"
 
 #include <boost/algorithm/string/replace.hpp>
