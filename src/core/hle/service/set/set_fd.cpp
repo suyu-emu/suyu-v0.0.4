@@ -5,7 +5,8 @@
 
 namespace Service::Set {
 
-SET_FD::SET_FD(Core::System& system_) : ServiceFramework{system_, "set:fd"} {
+IFirmwareDebugSettingsServer::IFirmwareDebugSettingsServer(Core::System& system_)
+    : ServiceFramework{system_, "set:fd"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {2, nullptr, "SetSettingsItemValue"},
@@ -23,6 +24,6 @@ SET_FD::SET_FD(Core::System& system_) : ServiceFramework{system_, "set:fd"} {
     RegisterHandlers(functions);
 }
 
-SET_FD::~SET_FD() = default;
+IFirmwareDebugSettingsServer::~IFirmwareDebugSettingsServer() = default;
 
 } // namespace Service::Set

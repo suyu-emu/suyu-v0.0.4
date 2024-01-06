@@ -11,10 +11,10 @@ class System;
 
 namespace Service::Set {
 
-class SET_CAL final : public ServiceFramework<SET_CAL> {
+class IFactorySettingsServer final : public ServiceFramework<IFactorySettingsServer> {
 public:
-    explicit SET_CAL(Core::System& system_);
-    ~SET_CAL() override;
+    explicit IFactorySettingsServer(Core::System& system_);
+    ~IFactorySettingsServer() override;
 };
 
 } // namespace Service::Set

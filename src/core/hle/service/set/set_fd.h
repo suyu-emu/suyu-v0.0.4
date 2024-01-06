@@ -11,10 +11,10 @@ class System;
 
 namespace Service::Set {
 
-class SET_FD final : public ServiceFramework<SET_FD> {
+class IFirmwareDebugSettingsServer final : public ServiceFramework<IFirmwareDebugSettingsServer> {
 public:
-    explicit SET_FD(Core::System& system_);
-    ~SET_FD() override;
+    explicit IFirmwareDebugSettingsServer(Core::System& system_);
+    ~IFirmwareDebugSettingsServer() override;
 };
 
 } // namespace Service::Set
