@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/settings_input.h"
-#include "core/hid/emulated_controller.h"
-#include "core/hid/hid_core.h"
+#include "hid_core/frontend/emulated_controller.h"
+#include "hid_core/hid_core.h"
 #include "yuzu/util/controller_navigation.h"
 
 ControllerNavigation::ControllerNavigation(Core::HID::HIDCore& hid_core, QWidget* parent) {

@@ -6,8 +6,8 @@
 #include <QStandardItemModel>
 #include <QTimer>
 
-#include "core/hid/emulated_controller.h"
-#include "core/hid/hid_core.h"
+#include "hid_core/frontend/emulated_controller.h"
+#include "hid_core/hid_core.h"
 
 #include "frontend_common/config.h"
 #include "ui_configure_hotkeys.h"

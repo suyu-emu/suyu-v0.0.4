@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/settings.h"
-#include "core/hid/emulated_controller.h"
-#include "core/hid/hid_core.h"
-#include "core/hid/hid_types.h"
+#include "hid_core/frontend/emulated_controller.h"
+#include "hid_core/hid_core.h"
+#include "hid_core/hid_types.h"
 #include "ui_configure_vibration.h"
 #include "yuzu/configuration/configure_vibration.h"
 

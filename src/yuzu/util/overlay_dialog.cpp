@@ -6,8 +6,8 @@
 #include <QWindow>
 
 #include "core/core.h"
-#include "core/hid/hid_types.h"
-#include "core/hid/input_interpreter.h"
+#include "hid_core/frontend/input_interpreter.h"
+#include "hid_core/hid_types.h"
 #include "ui_overlay_dialog.h"
 #include "yuzu/util/overlay_dialog.h"
 

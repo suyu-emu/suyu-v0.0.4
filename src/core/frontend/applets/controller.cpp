@@ -6,9 +6,9 @@
 #include "common/settings.h"
 #include "common/settings_enums.h"
 #include "core/frontend/applets/controller.h"
-#include "core/hid/emulated_controller.h"
-#include "core/hid/hid_core.h"
-#include "core/hid/hid_types.h"
+#include "hid_core/frontend/emulated_controller.h"
+#include "hid_core/hid_core.h"
+#include "hid_core/hid_types.h"
 
 namespace Core::Frontend {
 

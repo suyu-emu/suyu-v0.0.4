@@ -1,15 +1,14 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "core/hid/hid_core.h"
-#include "core/hle/service/hid/controllers/npad.h"
-#include "core/hle/service/hid/controllers/palma.h"
-#include "core/hle/service/hid/controllers/touchscreen.h"
-#include "core/hle/service/hid/controllers/types/npad_types.h"
-#include "core/hle/service/hid/errors.h"
 #include "core/hle/service/hid/hid_system_server.h"
-#include "core/hle/service/hid/resource_manager.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "hid_core/hid_result.h"
+#include "hid_core/resource_manager.h"
+#include "hid_core/resources/npad/npad.h"
+#include "hid_core/resources/npad/npad_types.h"
+#include "hid_core/resources/palma/palma.h"
+#include "hid_core/resources/touch_screen/touch_screen.h"
 
 namespace Service::HID {
 
@@ -270,7 +269,7 @@ void IHidSystemServer::GetLastActiveNpad(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.PushEnum(system.HIDCore().GetLastActiveController());
+    rb.Push(0); // Dont forget to fix this
 }
 
 void IHidSystemServer::ApplyNpadSystemCommonPolicyFull(HLERequestContext& ctx) {
