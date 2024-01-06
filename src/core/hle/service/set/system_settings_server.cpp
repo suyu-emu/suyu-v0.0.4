@@ -19,8 +19,8 @@
 #include "core/file_sys/system_archive/system_archive.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ipc_helpers.h"
-#include "core/hle/service/set/set.h"
-#include "core/hle/service/set/set_sys.h"
+#include "core/hle/service/set/settings_server.h"
+#include "core/hle/service/set/system_settings_server.h"
 
 namespace Service::Set {
 

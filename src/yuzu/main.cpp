@@ -46,7 +46,7 @@
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/am/applets/applets.h"
-#include "core/hle/service/set/set_sys.h"
+#include "core/hle/service/set/system_settings_server.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_core.h"
 #include "yuzu/multiplayer/state.h"

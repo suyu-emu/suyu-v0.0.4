@@ -26,7 +26,7 @@
 #include "core/file_sys/vfs_vector.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ns/language.h"
-#include "core/hle/service/set/set.h"
+#include "core/hle/service/set/settings_server.h"
 #include "core/loader/loader.h"
 #include "core/loader/nso.h"
 #include "core/memory/cheat_engine.h"

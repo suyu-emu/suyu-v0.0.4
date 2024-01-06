@@ -16,7 +16,7 @@
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/ns/pdm_qry.h"
 #include "core/hle/service/server_manager.h"
-#include "core/hle/service/set/set.h"
+#include "core/hle/service/set/settings_server.h"
 
 namespace Service::NS {
 
