@@ -7,7 +7,7 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "core/hle/service/ipc_helpers.h"
-#include "core/hle/service/set/set.h"
+#include "core/hle/service/set/settings_server.h"
 
 namespace Service::Set {
 namespace {

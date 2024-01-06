@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/server_manager.h"
-#include "core/hle/service/set/set.h"
-#include "core/hle/service/set/set_cal.h"
-#include "core/hle/service/set/set_fd.h"
-#include "core/hle/service/set/set_sys.h"
+#include "core/hle/service/set/factory_settings_server.h"
+#include "core/hle/service/set/firmware_debug_settings_server.h"
 #include "core/hle/service/set/settings.h"
+#include "core/hle/service/set/settings_server.h"
+#include "core/hle/service/set/system_settings_server.h"
 
 namespace Service::Set {
 

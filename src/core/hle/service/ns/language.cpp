@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/hle/service/ns/language.h"
-#include "core/hle/service/set/set.h"
+#include "core/hle/service/set/settings_server.h"
 
 namespace Service::NS {
 
