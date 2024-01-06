@@ -46,7 +46,9 @@ Result NPadResource::RegisterAppletResourceUserId(u64 aruid) {
             data_index = i;
             break;
         }
-        if (registration_list.flag[i] == RegistrationStatus::None) {
+        // TODO: Don't Handle pending delete here
+        if (registration_list.flag[i] == RegistrationStatus::None ||
+            registration_list.flag[i] == RegistrationStatus::PendingDelete) {
             data_index = i;
             break;
         }
