@@ -1444,8 +1444,8 @@ void IHidServer::SetNpadAnalogStickUseCenterClamp(HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, use_center_clamp={}, applet_resource_user_id={}",
-                parameters.use_center_clamp, parameters.applet_resource_user_id);
+    LOG_INFO(Service_HID, "called, use_center_clamp={}, applet_resource_user_id={}",
+             parameters.use_center_clamp, parameters.applet_resource_user_id);
 
     GetResourceManager()->GetNpad()->SetNpadAnalogStickUseCenterClamp(
         parameters.applet_resource_user_id, parameters.use_center_clamp);

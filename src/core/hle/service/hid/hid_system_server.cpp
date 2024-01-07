@@ -54,8 +54,8 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {318, &IHidSystemServer::HasBattery, "HasBattery"},
         {319, &IHidSystemServer::HasLeftRightBattery, "HasLeftRightBattery"},
         {321, &IHidSystemServer::GetUniquePadsFromNpad, "GetUniquePadsFromNpad"},
-        {322, &IHidSystemServer::GetIrSensorState, "GetIrSensorState"},
-        {323, nullptr, "GetXcdHandleForNpadWithIrSensor"},
+        {322, &IHidSystemServer::SetNpadSystemExtStateEnabled, "SetNpadSystemExtStateEnabled"},
+        {323, nullptr, "GetLastActiveUniquePad"},
         {324, nullptr, "GetUniquePadButtonSet"},
         {325, nullptr, "GetUniquePadColor"},
         {326, nullptr, "GetUniquePadAppletDetailedUiType"},
@@ -444,13 +444,25 @@ void IHidSystemServer::GetUniquePadsFromNpad(HLERequestContext& ctx) {
     rb.Push(static_cast<u32>(unique_pads.size()));
 }
 
-void IHidSystemServer::GetIrSensorState(HLERequestContext& ctx) {
+void IHidSystemServer::SetNpadSystemExtStateEnabled(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
+    struct Parameters {
+        bool is_enabled;
+        INSERT_PADDING_BYTES_NOINIT(7);
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
 
-    LOG_WARNING(Service_HID, "(STUBBED) called");
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_INFO(Service_HID, "called, is_enabled={}, applet_resource_user_id={}",
+             parameters.is_enabled, parameters.applet_resource_user_id);
+
+    const auto result = GetResourceManager()->GetNpad()->SetNpadSystemExtStateEnabled(
+        parameters.applet_resource_user_id, parameters.is_enabled);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 void IHidSystemServer::RegisterAppletResourceUserId(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
