@@ -66,7 +66,7 @@ void ControllerNavigation::ControllerUpdateButton() {
     }
 
     switch (controller_type) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::JoyconDual:
     case Core::HID::NpadStyleIndex::Handheld:
     case Core::HID::NpadStyleIndex::GameCube:
@@ -116,7 +116,7 @@ void ControllerNavigation::ControllerUpdateStick() {
     }
 
     switch (controller_type) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::JoyconDual:
     case Core::HID::NpadStyleIndex::Handheld:
     case Core::HID::NpadStyleIndex::GameCube:

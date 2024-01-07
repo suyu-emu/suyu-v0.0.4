@@ -151,7 +151,7 @@ Core::HID::NpadStyleSet NPadData::GetSupportedNpadStyleSet() const {
 bool NPadData::IsNpadStyleIndexSupported(Core::HID::NpadStyleIndex style_index) const {
     Core::HID::NpadStyleTag style = {supported_npad_style_set};
     switch (style_index) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
         return style.fullkey.As<bool>();
     case Core::HID::NpadStyleIndex::Handheld:
         return style.handheld.As<bool>();
