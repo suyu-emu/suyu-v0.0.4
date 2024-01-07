@@ -1378,4 +1378,10 @@ Result NPad::AssigningSingleOnSlSrPress(u64 aruid, bool is_enabled) {
     return result;
 }
 
+Result NPad::GetLastActiveNpad(Core::HID::NpadIdType& out_npad_id) const {
+    std::scoped_lock lock{mutex};
+    out_npad_id = hid_core.GetLastActiveController();
+    return ResultSuccess;
+}
+
 } // namespace Service::HID

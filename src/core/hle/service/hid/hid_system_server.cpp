@@ -275,11 +275,14 @@ void IHidSystemServer::DisableAssigningSingleOnSlSrPress(HLERequestContext& ctx)
 }
 
 void IHidSystemServer::GetLastActiveNpad(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_HID, "(STUBBED) called"); // Spams a lot when controller applet is running
+    Core::HID::NpadIdType npad_id{};
+    const Result result = GetResourceManager()->GetNpad()->GetLastActiveNpad(npad_id);
+
+    LOG_DEBUG(Service_HID, "called, npad_id={}", npad_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(0); // Dont forget to fix this
+    rb.Push(result);
+    rb.PushEnum(npad_id);
 }
 
 void IHidSystemServer::ApplyNpadSystemCommonPolicyFull(HLERequestContext& ctx) {

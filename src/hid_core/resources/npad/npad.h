@@ -159,6 +159,8 @@ public:
 
     Result AssigningSingleOnSlSrPress(u64 aruid, bool is_enabled);
 
+    Result GetLastActiveNpad(Core::HID::NpadIdType& out_npad_id) const;
+
 private:
     struct VibrationData {
         bool device_mounted{};
