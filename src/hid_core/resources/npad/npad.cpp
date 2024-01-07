@@ -1356,4 +1356,16 @@ std::size_t NPad::GetNpadCaptureButtonAssignment(std::span<Core::HID::NpadButton
     return npad_resource.GetNpadCaptureButtonAssignment(out_list, aruid);
 }
 
+Result NPad::SetNpadSystemExtStateEnabled(u64 aruid, bool is_enabled) {
+    std::scoped_lock lock{mutex};
+    const auto result = npad_resource.SetNpadSystemExtStateEnabled(aruid, is_enabled);
+
+    if (result.IsSuccess()) {
+        std::scoped_lock shared_lock{*applet_resource_holder.shared_mutex};
+        // TODO: abstracted_pad->EnableAppletToGetInput(aruid);
+    }
+
+    return result;
+}
+
 } // namespace Service::HID
