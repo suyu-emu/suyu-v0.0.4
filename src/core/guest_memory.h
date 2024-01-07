@@ -9,8 +9,8 @@
 #include <span>
 #include <vector>
 
+#include "common/assert.h"
 #include "common/scratch_buffer.h"
-#include "core/memory.h"
 
 namespace Core::Memory {
 
@@ -210,10 +210,5 @@ public:
     }
 };
 } // namespace
-
-template <typename T, GuestMemoryFlags FLAGS>
-using CpuGuestMemory = GuestMemory<Core::Memory::Memory, T, FLAGS>;
-template <typename T, GuestMemoryFlags FLAGS>
-using CpuGuestMemoryScoped = GuestMemoryScoped<Core::Memory::Memory, T, FLAGS>;
 
 } // namespace Core::Memory

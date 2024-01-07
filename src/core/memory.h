@@ -12,6 +12,7 @@
 
 #include "common/scratch_buffer.h"
 #include "common/typed_address.h"
+#include "core/guest_memory.h"
 #include "core/hle/result.h"
 
 namespace Common {
@@ -497,5 +498,10 @@ private:
     struct Impl;
     std::unique_ptr<Impl> impl;
 };
+
+template <typename T, GuestMemoryFlags FLAGS>
+using CpuGuestMemory = GuestMemory<Core::Memory::Memory, T, FLAGS>;
+template <typename T, GuestMemoryFlags FLAGS>
+using CpuGuestMemoryScoped = GuestMemoryScoped<Core::Memory::Memory, T, FLAGS>;
 
 } // namespace Core::Memory
