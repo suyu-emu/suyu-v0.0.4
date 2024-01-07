@@ -87,7 +87,9 @@ Result AppletResource::RegisterAppletResourceUserId(u64 aruid, bool enable_input
             data_index = i;
             break;
         }
-        if (registration_list.flag[i] == RegistrationStatus::None) {
+        // TODO: Don't Handle pending delete here
+        if (registration_list.flag[i] == RegistrationStatus::None ||
+            registration_list.flag[i] == RegistrationStatus::PendingDelete) {
             data_index = i;
             break;
         }
@@ -104,30 +106,22 @@ Result AppletResource::RegisterAppletResourceUserId(u64 aruid, bool enable_input
 }
 
 void AppletResource::UnregisterAppletResourceUserId(u64 aruid) {
-    u64 index = GetIndexFromAruid(aruid);
+    const u64 index = GetIndexFromAruid(aruid);
 
-    if (index < AruidIndexMax) {
-        if (data[index].flag.is_assigned) {
-            data[index].shared_memory_format = nullptr;
-            data[index].flag.is_assigned.Assign(false);
-        }
+    if (index >= AruidIndexMax) {
+        return;
     }
 
-    index = GetIndexFromAruid(aruid);
-    if (index < AruidIndexMax) {
-        DestroySevenSixAxisTransferMemory();
-        data[index].flag.raw = 0;
-        data[index].aruid = 0;
+    FreeAppletResourceId(aruid);
+    DestroySevenSixAxisTransferMemory();
+    data[index].flag.raw = 0;
+    data[index].aruid = 0;
 
-        index = GetIndexFromAruid(aruid);
-        if (index < AruidIndexMax) {
-            registration_list.flag[index] = RegistrationStatus::PendingDelete;
-        }
-    }
+    registration_list.flag[index] = RegistrationStatus::PendingDelete;
 }
 
 void AppletResource::FreeAppletResourceId(u64 aruid) {
-    u64 index = GetIndexFromAruid(aruid);
+    const u64 index = GetIndexFromAruid(aruid);
     if (index >= AruidIndexMax) {
         return;
     }
@@ -144,7 +138,7 @@ u64 AppletResource::GetActiveAruid() {
 }
 
 Result AppletResource::GetSharedMemoryHandle(Kernel::KSharedMemory** out_handle, u64 aruid) {
-    u64 index = GetIndexFromAruid(aruid);
+    const u64 index = GetIndexFromAruid(aruid);
     if (index >= AruidIndexMax) {
         return ResultAruidNotRegistered;
     }
@@ -155,7 +149,7 @@ Result AppletResource::GetSharedMemoryHandle(Kernel::KSharedMemory** out_handle,
 
 Result AppletResource::GetSharedMemoryFormat(SharedMemoryFormat** out_shared_memory_format,
                                              u64 aruid) {
-    u64 index = GetIndexFromAruid(aruid);
+    const u64 index = GetIndexFromAruid(aruid);
     if (index >= AruidIndexMax) {
         return ResultAruidNotRegistered;
     }
