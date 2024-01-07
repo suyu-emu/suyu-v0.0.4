@@ -410,8 +410,8 @@ void EmulationSession::OnGamepadConnectEvent([[maybe_unused]] int index) {
         jauto handheld = m_system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
 
         if (controller->GetNpadStyleIndex() == Core::HID::NpadStyleIndex::Handheld) {
-            handheld->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
-            controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
+            handheld->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Fullkey);
+            controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Fullkey);
             handheld->Disconnect();
         }
     }

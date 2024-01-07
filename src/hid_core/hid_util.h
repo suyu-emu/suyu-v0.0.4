@@ -42,7 +42,7 @@ constexpr Result IsSixaxisHandleValid(const Core::HID::SixAxisSensorHandle& hand
 
 constexpr Result IsVibrationHandleValid(const Core::HID::VibrationDeviceHandle& handle) {
     switch (handle.npad_type) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::Handheld:
     case Core::HID::NpadStyleIndex::JoyconDual:
     case Core::HID::NpadStyleIndex::JoyconLeft:

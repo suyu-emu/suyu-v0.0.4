@@ -41,7 +41,7 @@ void UpdateController(Core::HID::EmulatedController* controller,
 bool IsControllerCompatible(Core::HID::NpadStyleIndex controller_type,
                             Core::Frontend::ControllerParameters parameters) {
     switch (controller_type) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
         return parameters.allow_pro_controller;
     case Core::HID::NpadStyleIndex::JoyconDual:
         return parameters.allow_dual_joycons;
@@ -462,7 +462,7 @@ void QtControllerSelectorDialog::SetEmulatedControllers(std::size_t player_index
     };
 
     if (npad_style_set.fullkey == 1) {
-        add_item(Core::HID::NpadStyleIndex::ProController, tr("Pro Controller"));
+        add_item(Core::HID::NpadStyleIndex::Fullkey, tr("Pro Controller"));
     }
 
     if (npad_style_set.joycon_dual == 1) {
@@ -519,7 +519,7 @@ Core::HID::NpadStyleIndex QtControllerSelectorDialog::GetControllerTypeFromIndex
                                  [index](const auto& pair) { return pair.first == index; });
 
     if (it == pairs.end()) {
-        return Core::HID::NpadStyleIndex::ProController;
+        return Core::HID::NpadStyleIndex::Fullkey;
     }
 
     return it->second;
@@ -549,7 +549,7 @@ void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) 
     const QString stylesheet = [this, player_index] {
         switch (GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex(),
                                            player_index)) {
-        case Core::HID::NpadStyleIndex::ProController:
+        case Core::HID::NpadStyleIndex::Fullkey:
         case Core::HID::NpadStyleIndex::GameCube:
             return QStringLiteral("image: url(:/controller/applet_pro_controller%0); ");
         case Core::HID::NpadStyleIndex::JoyconDual:

@@ -1498,7 +1498,7 @@ void IHidServer::GetVibrationDeviceInfo(HLERequestContext& ctx) {
     bool check_device_index = false;
 
     switch (vibration_device_handle.npad_type) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::Handheld:
     case Core::HID::NpadStyleIndex::JoyconDual:
     case Core::HID::NpadStyleIndex::JoyconLeft:

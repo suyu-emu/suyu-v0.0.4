@@ -3988,7 +3988,7 @@ void GMainWindow::OnToggleDockedMode() {
                              tr("Handheld controller can't be used on docked mode. Pro "
                                 "controller will be selected."));
         handheld->Disconnect();
-        player_1->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
+        player_1->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Fullkey);
         player_1->Connect();
         controller_dialog->refreshConfiguration();
     }
