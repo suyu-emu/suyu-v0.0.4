@@ -301,7 +301,7 @@ template <typename Traits>
 u8* DeviceMemoryManager<Traits>::GetSpan(const DAddr src_addr, const std::size_t size) {
     size_t page_index = src_addr >> page_bits;
     size_t subbits = src_addr & page_mask;
-    if ((continuity_tracker[page_index] << page_bits) >= size + subbits) {
+    if ((static_cast<size_t>(continuity_tracker[page_index]) << page_bits) >= size + subbits) {
         return GetPointer<u8>(src_addr);
     }
     return nullptr;
@@ -311,7 +311,7 @@ template <typename Traits>
 const u8* DeviceMemoryManager<Traits>::GetSpan(const DAddr src_addr, const std::size_t size) const {
     size_t page_index = src_addr >> page_bits;
     size_t subbits = src_addr & page_mask;
-    if ((continuity_tracker[page_index] << page_bits) >= size + subbits) {
+    if ((static_cast<size_t>(continuity_tracker[page_index]) << page_bits) >= size + subbits) {
         return GetPointer<u8>(src_addr);
     }
     return nullptr;

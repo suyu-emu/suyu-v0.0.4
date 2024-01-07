@@ -62,13 +62,13 @@ public:
         DAddr subbits = static_cast<DAddr>(address & page_mask);
         const u32 base = compressed_device_addr[(address >> page_bits)];
         if ((base >> MULTI_FLAG_BITS) == 0) [[likely]] {
-            const DAddr d_address = static_cast<DAddr>(base << page_bits) + subbits;
+            const DAddr d_address = (static_cast<DAddr>(base) << page_bits) + subbits;
             operation(d_address);
             return;
         }
         InnerGatherDeviceAddresses(buffer, address);
         for (u32 value : buffer) {
-            operation(static_cast<DAddr>(value << page_bits) + subbits);
+            operation((static_cast<DAddr>(value) << page_bits) + subbits);
         }
     }
 
