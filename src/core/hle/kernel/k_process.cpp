@@ -5,6 +5,7 @@
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "core/core.h"
+#include "core/gpu_dirty_memory_manager.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_shared_memory.h"
@@ -320,7 +321,7 @@ Result KProcess::Initialize(const Svc::CreateProcessParameter& params, const KPa
 
     // Ensure our memory is initialized.
     m_memory.SetCurrentPageTable(*this);
-    m_memory.SetGPUDirtyManagers(m_dirty_memory_managers);
+    m_memory.SetGPUDirtyManagers(m_kernel.System().GetGPUDirtyMemoryManager());
 
     // Ensure we can insert the code region.
     R_UNLESS(m_page_table.CanContain(params.code_address, params.code_num_pages * PageSize,
@@ -417,7 +418,7 @@ Result KProcess::Initialize(const Svc::CreateProcessParameter& params,
 
     // Ensure our memory is initialized.
     m_memory.SetCurrentPageTable(*this);
-    m_memory.SetGPUDirtyManagers(m_dirty_memory_managers);
+    m_memory.SetGPUDirtyManagers(m_kernel.System().GetGPUDirtyMemoryManager());
 
     // Ensure we can insert the code region.
     R_UNLESS(m_page_table.CanContain(params.code_address, code_size, KMemoryState::Code),
@@ -1141,8 +1142,7 @@ void KProcess::Switch(KProcess* cur_process, KProcess* next_process) {}
 KProcess::KProcess(KernelCore& kernel)
     : KAutoObjectWithSlabHeapAndContainer(kernel), m_page_table{kernel}, m_state_lock{kernel},
       m_list_lock{kernel}, m_cond_var{kernel.System()}, m_address_arbiter{kernel.System()},
-      m_handle_table{kernel}, m_dirty_memory_managers{},
-      m_exclusive_monitor{}, m_memory{kernel.System()} {}
+      m_handle_table{kernel}, m_exclusive_monitor{}, m_memory{kernel.System()} {}
 KProcess::~KProcess() = default;
 
 Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size,
@@ -1322,12 +1322,6 @@ bool KProcess::RemoveWatchpoint(KProcessAddress addr, u64 size, DebugWatchpointT
     }
 
     return true;
-}
-
-void KProcess::GatherGPUDirtyMemory(std::function<void(VAddr, size_t)>& callback) {
-    for (auto& manager : m_dirty_memory_managers) {
-        manager.Gather(callback);
-    }
 }
 
 } // namespace Kernel

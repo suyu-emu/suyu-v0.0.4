@@ -7,7 +7,6 @@
 
 #include "core/arm/arm_interface.h"
 #include "core/file_sys/program_metadata.h"
-#include "core/gpu_dirty_memory_manager.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/k_address_arbiter.h"
 #include "core/hle/kernel/k_capabilities.h"
@@ -128,7 +127,6 @@ private:
 #ifdef HAS_NCE
     std::unordered_map<u64, u64> m_post_handlers{};
 #endif
-    std::array<Core::GPUDirtyMemoryManager, Core::Hardware::NUM_CPU_CORES> m_dirty_memory_managers;
     std::unique_ptr<Core::ExclusiveMonitor> m_exclusive_monitor;
     Core::Memory::Memory m_memory;
 
@@ -510,8 +508,6 @@ public:
     Core::Memory::Memory& GetMemory() {
         return m_memory;
     }
-
-    void GatherGPUDirtyMemory(std::function<void(VAddr, size_t)>& callback);
 
     Core::ExclusiveMonitor& GetExclusiveMonitor() const {
         return *m_exclusive_monitor;

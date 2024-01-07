@@ -28,6 +28,7 @@
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_real.h"
+#include "core/gpu_dirty_memory_manager.h"
 #include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
@@ -565,6 +566,9 @@ struct System::Impl {
     std::array<u64, Core::Hardware::NUM_CPU_CORES> dynarmic_ticks{};
     std::array<MicroProfileToken, Core::Hardware::NUM_CPU_CORES> microprofile_cpu{};
 
+    std::array<Core::GPUDirtyMemoryManager, Core::Hardware::NUM_CPU_CORES>
+        gpu_dirty_memory_managers;
+
     std::deque<std::vector<u8>> user_channel;
 };
 
@@ -651,8 +655,14 @@ size_t System::GetCurrentHostThreadID() const {
     return impl->kernel.GetCurrentHostThreadID();
 }
 
+std::span<GPUDirtyMemoryManager> System::GetGPUDirtyMemoryManager() {
+    return impl->gpu_dirty_memory_managers;
+}
+
 void System::GatherGPUDirtyMemory(std::function<void(PAddr, size_t)>& callback) {
-    return this->ApplicationProcess()->GatherGPUDirtyMemory(callback);
+    for (auto& manager : impl->gpu_dirty_memory_managers) {
+        manager.Gather(callback);
+    }
 }
 
 PerfStatsResults System::GetAndResetPerfStats() {
