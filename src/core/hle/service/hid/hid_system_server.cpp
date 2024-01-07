@@ -81,7 +81,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {522, nullptr, "SetJoyConRailEnabled"},
         {523, nullptr, "IsJoyConRailEnabled"},
         {524, nullptr, "IsHandheldHidsEnabled"},
-        {525, nullptr, "IsJoyConAttachedOnAllRail"},
+        {525, &IHidSystemServer::IsJoyConAttachedOnAllRail, "IsJoyConAttachedOnAllRail"},
         {540, nullptr, "AcquirePlayReportControllerUsageUpdateEvent"},
         {541, nullptr, "GetPlayReportControllerUsages"},
         {542, nullptr, "AcquirePlayReportRegisteredDeviceUpdateEvent"},
@@ -131,7 +131,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1001, nullptr, "GetFirmwareVersion"},
         {1002, nullptr, "GetAvailableFirmwareVersion"},
         {1003, nullptr, "IsFirmwareUpdateAvailable"},
-        {1004, nullptr, "CheckFirmwareUpdateRequired"},
+        {1004, &IHidSystemServer::CheckFirmwareUpdateRequired, "CheckFirmwareUpdateRequired"},
         {1005, nullptr, "StartFirmwareUpdate"},
         {1006, nullptr, "AbortFirmwareUpdate"},
         {1007, nullptr, "GetFirmwareUpdateState"},
@@ -144,9 +144,9 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1052, nullptr, "CancelSixAxisSensorAccurateUserCalibration"},
         {1053, nullptr, "GetSixAxisSensorAccurateUserCalibrationState"},
         {1100, nullptr, "GetHidbusSystemServiceObject"},
-        {1120, nullptr, "SetFirmwareHotfixUpdateSkipEnabled"},
-        {1130, nullptr, "InitializeUsbFirmwareUpdate"},
-        {1131, nullptr, "FinalizeUsbFirmwareUpdate"},
+        {1120, &IHidSystemServer::SetFirmwareHotfixUpdateSkipEnabled, "SetFirmwareHotfixUpdateSkipEnabled"},
+        {1130, &IHidSystemServer::InitializeUsbFirmwareUpdate, "InitializeUsbFirmwareUpdate"},
+        {1131, &IHidSystemServer::FinalizeUsbFirmwareUpdate, "FinalizeUsbFirmwareUpdate"},
         {1132, nullptr, "CheckUsbFirmwareUpdateRequired"},
         {1133, nullptr, "StartUsbFirmwareUpdate"},
         {1134, nullptr, "GetUsbFirmwareUpdateState"},
@@ -196,7 +196,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1268, nullptr, "DeleteButtonConfigStorageFull"},
         {1269, nullptr, "DeleteButtonConfigStorageLeft"},
         {1270, nullptr, "DeleteButtonConfigStorageRight"},
-        {1271, nullptr, "IsUsingCustomButtonConfig"},
+        {1271, &IHidSystemServer::IsUsingCustomButtonConfig, "IsUsingCustomButtonConfig"},
         {1272, nullptr, "IsAnyCustomButtonConfigEnabled"},
         {1273, nullptr, "SetAllCustomButtonConfigEnabled"},
         {1274, nullptr, "SetDefaultButtonConfig"},
@@ -555,6 +555,16 @@ void IHidSystemServer::EnableAppletToGetTouchScreen(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
+void IHidSystemServer::IsJoyConAttachedOnAllRail(HLERequestContext& ctx) {
+    const bool is_attached = true;
+
+    LOG_DEBUG(Service_HID, "(STUBBED) called, is_attached={}", is_attached);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(is_attached);
+}
+
 void IHidSystemServer::AcquireConnectionTriggerTimeoutEvent(HLERequestContext& ctx) {
     LOG_INFO(Service_AM, "(STUBBED) called");
 
@@ -641,6 +651,34 @@ void IHidSystemServer::InitializeFirmwareUpdate(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
+void IHidSystemServer::CheckFirmwareUpdateRequired(HLERequestContext& ctx) {
+    LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::SetFirmwareHotfixUpdateSkipEnabled(HLERequestContext& ctx) {
+    LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::InitializeUsbFirmwareUpdate(HLERequestContext& ctx) {
+    LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::FinalizeUsbFirmwareUpdate(HLERequestContext& ctx) {
+    LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void IHidSystemServer::InitializeUsbFirmwareUpdateWithoutMemory(HLERequestContext& ctx) {
     LOG_WARNING(Service_HID, "(STUBBED) called");
 
@@ -663,6 +701,16 @@ void IHidSystemServer::GetTouchScreenDefaultConfiguration(HLERequestContext& ctx
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
     rb.PushRaw(touchscreen_config);
+}
+
+void IHidSystemServer::IsUsingCustomButtonConfig(HLERequestContext& ctx) {
+    const bool is_enabled = false;
+
+    LOG_DEBUG(Service_HID, "(STUBBED) called, is_enabled={}", is_enabled);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(is_enabled);
 }
 
 std::shared_ptr<ResourceManager> IHidSystemServer::GetResourceManager() {
