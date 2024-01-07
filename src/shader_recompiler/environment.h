@@ -59,8 +59,8 @@ public:
         return start_address;
     }
 
-    [[nodiscard]] bool IsPropietaryDriver() const noexcept {
-        return is_propietary_driver;
+    [[nodiscard]] bool IsProprietaryDriver() const noexcept {
+        return is_proprietary_driver;
     }
 
 protected:
@@ -68,7 +68,7 @@ protected:
     std::array<u32, 8> gp_passthrough_mask{};
     Stage stage{};
     u32 start_address{};
-    bool is_propietary_driver{};
+    bool is_proprietary_driver{};
 };
 
 } // namespace Shader
