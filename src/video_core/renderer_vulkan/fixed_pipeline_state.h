@@ -165,7 +165,7 @@ struct FixedPipelineState {
 
         void Refresh(const Maxwell& regs);
         void Refresh2(const Maxwell& regs, Maxwell::PrimitiveTopology topology,
-                      bool base_feautures_supported);
+                      bool base_features_supported);
         void Refresh3(const Maxwell& regs);
 
         Maxwell::ComparisonOp DepthTestFunc() const noexcept {

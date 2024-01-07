@@ -267,10 +267,10 @@ private:
         top_tier[page_index] = GetNewManager(base_cpu_addr);
     }
 
-    Manager* GetNewManager(VAddr base_cpu_addess) {
+    Manager* GetNewManager(VAddr base_cpu_address) {
         const auto on_return = [&] {
             auto* new_manager = free_managers.front();
-            new_manager->SetCpuAddress(base_cpu_addess);
+            new_manager->SetCpuAddress(base_cpu_address);
             free_managers.pop_front();
             return new_manager;
         };

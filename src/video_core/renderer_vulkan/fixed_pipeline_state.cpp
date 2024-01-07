@@ -231,10 +231,10 @@ void FixedPipelineState::DynamicState::Refresh(const Maxwell& regs) {
 
 void FixedPipelineState::DynamicState::Refresh2(const Maxwell& regs,
                                                 Maxwell::PrimitiveTopology topology_,
-                                                bool base_feautures_supported) {
+                                                bool base_features_supported) {
     logic_op.Assign(PackLogicOp(regs.logic_op.op));
 
-    if (base_feautures_supported) {
+    if (base_features_supported) {
         return;
     }
 

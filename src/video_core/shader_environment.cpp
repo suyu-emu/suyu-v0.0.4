@@ -322,7 +322,7 @@ GraphicsEnvironment::GraphicsEnvironment(Tegra::Engines::Maxwell3D& maxwell3d_,
     ASSERT(local_size <= std::numeric_limits<u32>::max());
     local_memory_size = static_cast<u32>(local_size) + sph.common3.shader_local_memory_crs_size;
     texture_bound = maxwell3d->regs.bindless_texture_const_buffer_slot;
-    is_propietary_driver = texture_bound == 2;
+    is_proprietary_driver = texture_bound == 2;
     has_hle_engine_state =
         maxwell3d->engine_state == Tegra::Engines::Maxwell3D::EngineHint::OnHLEMacro;
 }
@@ -404,7 +404,7 @@ ComputeEnvironment::ComputeEnvironment(Tegra::Engines::KeplerCompute& kepler_com
     stage = Shader::Stage::Compute;
     local_memory_size = qmd.local_pos_alloc + qmd.local_crs_alloc;
     texture_bound = kepler_compute->regs.tex_cb_index;
-    is_propietary_driver = texture_bound == 2;
+    is_proprietary_driver = texture_bound == 2;
     shared_memory_size = qmd.shared_alloc;
     workgroup_size = {qmd.block_dim_x, qmd.block_dim_y, qmd.block_dim_z};
 }
@@ -509,7 +509,7 @@ void FileEnvironment::Deserialize(std::ifstream& file) {
             file.read(reinterpret_cast<char*>(&gp_passthrough_mask), sizeof(gp_passthrough_mask));
         }
     }
-    is_propietary_driver = texture_bound == 2;
+    is_proprietary_driver = texture_bound == 2;
 }
 
 void FileEnvironment::Dump(u64 pipeline_hash, u64 shader_hash) {
