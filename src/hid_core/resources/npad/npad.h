@@ -149,6 +149,12 @@ public:
 
     AppletDetailedUiType GetAppletDetailedUiType(Core::HID::NpadIdType npad_id);
 
+    Result SetNpadCaptureButtonAssignment(u64 aruid, Core::HID::NpadStyleSet npad_style_set,
+                                          Core::HID::NpadButton button_assignment);
+    Result ClearNpadCaptureButtonAssignment(u64 aruid);
+    std::size_t GetNpadCaptureButtonAssignment(std::span<Core::HID::NpadButton> out_list,
+                                               u64 aruid) const;
+
 private:
     struct VibrationData {
         bool device_mounted{};

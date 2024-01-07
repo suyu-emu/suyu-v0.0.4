@@ -46,7 +46,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {310, &IHidSystemServer::GetMaskedSupportedNpadStyleSet, "GetMaskedSupportedNpadStyleSet"},
         {311, nullptr, "SetNpadPlayerLedBlinkingDevice"},
         {312, &IHidSystemServer::SetSupportedNpadStyleSetAll, "SetSupportedNpadStyleSetAll"},
-        {313, nullptr, "GetNpadCaptureButtonAssignment"},
+        {313, &IHidSystemServer::GetNpadCaptureButtonAssignment, "GetNpadCaptureButtonAssignment"},
         {314, nullptr, "GetAppletFooterUiType"},
         {315, &IHidSystemServer::GetAppletDetailedUiType, "GetAppletDetailedUiType"},
         {316, &IHidSystemServer::GetNpadInterfaceType, "GetNpadInterfaceType"},
@@ -329,6 +329,27 @@ void IHidSystemServer::SetSupportedNpadStyleSetAll(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(result);
+}
+
+void IHidSystemServer::GetNpadCaptureButtonAssignment(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+    const auto capture_button_list_size{ctx.GetWriteBufferNumElements<Core::HID::NpadButton>()};
+
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    std::vector<Core::HID::NpadButton> capture_button_list(capture_button_list_size);
+    const auto& npad = GetResourceManager()->GetNpad();
+    const u64 list_size =
+        npad->GetNpadCaptureButtonAssignment(capture_button_list, applet_resource_user_id);
+
+    if (list_size != 0) {
+        ctx.WriteBuffer(capture_button_list);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push(list_size);
 }
 
 void IHidSystemServer::GetAppletDetailedUiType(HLERequestContext& ctx) {
