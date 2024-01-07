@@ -125,7 +125,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, info.format);
     VkImageCreateFlags flags{};
     if (info.type == ImageType::e2D && info.resources.layers >= 6 &&
-        info.size.width == info.size.height && !device.HasBrokenCubeImageCompability()) {
+        info.size.width == info.size.height && !device.HasBrokenCubeImageCompatibility()) {
         flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
     }
     if (info.type == ImageType::e3D) {

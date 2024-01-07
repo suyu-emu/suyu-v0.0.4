@@ -958,7 +958,7 @@ public:
         enum class ClearReport : u32 {
             ZPassPixelCount = 0x01,
             ZCullStats = 0x02,
-            StreamingPrimitvesNeededMinusSucceeded = 0x03,
+            StreamingPrimitivesNeededMinusSucceeded = 0x03,
             AlphaBetaClocks = 0x04,
             StreamingPrimitivesSucceeded = 0x10,
             StreamingPrimitivesNeeded = 0x11,
@@ -2383,8 +2383,8 @@ public:
             };
 
             enum class Release : u32 {
-                AfterAllPreceedingReads = 0,
-                AfterAllPreceedingWrites = 1,
+                AfterAllPrecedingReads = 0,
+                AfterAllPrecedingWrites = 1,
             };
 
             enum class Acquire : u32 {
@@ -2869,7 +2869,7 @@ public:
                 u32 global_base_instance_index;                                        ///< 0x1438
                 INSERT_PADDING_BYTES_NOINIT(0x14);
                 RegisterWatermarks ps_warp_watermarks;                                 ///< 0x1450
-                RegisterWatermarks ps_regster_watermarks;                              ///< 0x1454
+                RegisterWatermarks ps_register_watermarks;                              ///< 0x1454
                 INSERT_PADDING_BYTES_NOINIT(0xC);
                 u32 store_zcull;                                                       ///< 0x1464
                 INSERT_PADDING_BYTES_NOINIT(0x18);
@@ -3444,7 +3444,7 @@ ASSERT_REG_POSITION(invalidate_texture_header_cache_no_wfi, 0x1428);
 ASSERT_REG_POSITION(global_base_vertex_index, 0x1434);
 ASSERT_REG_POSITION(global_base_instance_index, 0x1438);
 ASSERT_REG_POSITION(ps_warp_watermarks, 0x1450);
-ASSERT_REG_POSITION(ps_regster_watermarks, 0x1454);
+ASSERT_REG_POSITION(ps_register_watermarks, 0x1454);
 ASSERT_REG_POSITION(store_zcull, 0x1464);
 ASSERT_REG_POSITION(iterated_blend_constants, 0x1480);
 ASSERT_REG_POSITION(load_zcull, 0x1500);

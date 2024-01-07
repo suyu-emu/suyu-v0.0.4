@@ -803,7 +803,7 @@ void UnquantizeTexelWeights(uvec2 size, bool is_dual_plane) {
     }
 }
 
-uint GetUnquantizedTexelWieght(uint offset_base, uint plane, bool is_dual_plane) {
+uint GetUnquantizedTexelWeight(uint offset_base, uint plane, bool is_dual_plane) {
     const uint offset = is_dual_plane ? 2 * offset_base + plane : offset_base;
     return result_vector[offset];
 }
@@ -833,23 +833,23 @@ uvec4 GetUnquantizedWeightVector(uint t, uint s, uvec2 size, uint plane_index, b
 
     if (v0 < area) {
         const uint offset_base = v0;
-        p0.x = GetUnquantizedTexelWieght(offset_base, 0, is_dual_plane);
-        p1.x = GetUnquantizedTexelWieght(offset_base, 1, is_dual_plane);
+        p0.x = GetUnquantizedTexelWeight(offset_base, 0, is_dual_plane);
+        p1.x = GetUnquantizedTexelWeight(offset_base, 1, is_dual_plane);
     }
     if ((v0 + 1) < (area)) {
         const uint offset_base = v0 + 1;
-        p0.y = GetUnquantizedTexelWieght(offset_base, 0, is_dual_plane);
-        p1.y = GetUnquantizedTexelWieght(offset_base, 1, is_dual_plane);
+        p0.y = GetUnquantizedTexelWeight(offset_base, 0, is_dual_plane);
+        p1.y = GetUnquantizedTexelWeight(offset_base, 1, is_dual_plane);
     }
     if ((v0 + size.x) < (area)) {
         const uint offset_base = v0 + size.x;
-        p0.z = GetUnquantizedTexelWieght(offset_base, 0, is_dual_plane);
-        p1.z = GetUnquantizedTexelWieght(offset_base, 1, is_dual_plane);
+        p0.z = GetUnquantizedTexelWeight(offset_base, 0, is_dual_plane);
+        p1.z = GetUnquantizedTexelWeight(offset_base, 1, is_dual_plane);
     }
     if ((v0 + size.x + 1) < (area)) {
         const uint offset_base = v0 + size.x + 1;
-        p0.w = GetUnquantizedTexelWieght(offset_base, 0, is_dual_plane);
-        p1.w = GetUnquantizedTexelWieght(offset_base, 1, is_dual_plane);
+        p0.w = GetUnquantizedTexelWeight(offset_base, 0, is_dual_plane);
+        p1.w = GetUnquantizedTexelWeight(offset_base, 1, is_dual_plane);
     }
 
     const uint primary_weight = (uint(dot(p0, w)) + 8) >> 4;

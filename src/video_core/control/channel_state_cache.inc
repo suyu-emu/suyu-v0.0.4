@@ -38,7 +38,7 @@ void ChannelSetupCaches<P>::CreateChannel(struct Tegra::Control::ChannelState& c
         as_it->second.ref_count++;
         return;
     }
-    AddresSpaceRef new_gpu_mem_ref{
+    AddressSpaceRef new_gpu_mem_ref{
         .ref_count = 1,
         .storage_id = address_spaces.size(),
         .gpu_memory = channel.memory_manager.get(),

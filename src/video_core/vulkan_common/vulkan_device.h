@@ -596,7 +596,7 @@ public:
     }
 
     /// Returns true when the device does not properly support cube compatibility.
-    bool HasBrokenCubeImageCompability() const {
+    bool HasBrokenCubeImageCompatibility() const {
         return has_broken_cube_compatibility;
     }
 

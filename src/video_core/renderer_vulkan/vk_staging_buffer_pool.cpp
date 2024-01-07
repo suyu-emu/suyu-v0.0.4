@@ -236,14 +236,14 @@ void StagingBufferPool::ReleaseLevel(StagingBuffersCache& cache, size_t log2) {
     auto& entries = staging.entries;
     const size_t old_size = entries.size();
 
-    const auto is_deleteable = [this](const StagingBuffer& entry) {
+    const auto is_deletable = [this](const StagingBuffer& entry) {
         return scheduler.IsFree(entry.tick);
     };
     const size_t begin_offset = staging.delete_index;
     const size_t end_offset = std::min(begin_offset + deletions_per_tick, old_size);
     const auto begin = entries.begin() + begin_offset;
     const auto end = entries.begin() + end_offset;
-    entries.erase(std::remove_if(begin, end, is_deleteable), end);
+    entries.erase(std::remove_if(begin, end, is_deletable), end);
 
     const size_t new_size = entries.size();
     staging.delete_index += deletions_per_tick;
