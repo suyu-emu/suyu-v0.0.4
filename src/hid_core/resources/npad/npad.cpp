@@ -870,6 +870,11 @@ void NPad::InitializeVibrationDevice(
     const auto aruid = applet_resource_holder.applet_resource->GetActiveAruid();
     const auto npad_index = static_cast<Core::HID::NpadIdType>(vibration_device_handle.npad_id);
     const auto device_index = static_cast<std::size_t>(vibration_device_handle.device_index);
+
+    if (aruid == 0) {
+        return;
+    }
+
     InitializeVibrationDeviceAtIndex(aruid, npad_index, device_index);
 }
 
