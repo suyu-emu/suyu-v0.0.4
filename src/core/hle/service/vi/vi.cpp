@@ -808,6 +808,12 @@ private:
             rb.Push(result);
             return;
         }
+        if (vsync_event_fetched) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(VI::ResultPermissionDenied);
+            return;
+        }
+        vsync_event_fetched = true;
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(ResultSuccess);
@@ -901,6 +907,7 @@ private:
 
     Nvnflinger::Nvnflinger& nvnflinger;
     Nvnflinger::HosBinderDriverServer& hos_binder_driver_server;
+    bool vsync_event_fetched{false};
 };
 
 static bool IsValidServiceAccess(Permission permission, Policy policy) {
