@@ -28,6 +28,7 @@ private:
     void SetPerformanceModeChangedNotification(HLERequestContext& ctx);
     void SetFocusHandlingMode(HLERequestContext& ctx);
     void SetRestartMessageEnabled(HLERequestContext& ctx);
+    void SetScreenShotAppletIdentityInfo(HLERequestContext& ctx);
     void SetOutOfFocusSuspendingEnabled(HLERequestContext& ctx);
     void SetAlbumImageOrientation(HLERequestContext& ctx);
     void IsSystemBufferSharingEnabled(HLERequestContext& ctx);

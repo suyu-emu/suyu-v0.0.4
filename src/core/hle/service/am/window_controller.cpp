@@ -17,8 +17,8 @@ IWindowController::IWindowController(Core::System& system_, std::shared_ptr<Appl
         {10, &IWindowController::AcquireForegroundRights, "AcquireForegroundRights"},
         {11, nullptr, "ReleaseForegroundRights"},
         {12, nullptr, "RejectToChangeIntoBackground"},
-        {20, nullptr, "SetAppletWindowVisibility"},
-        {21, nullptr, "SetAppletGpuTimeSlice"},
+        {20, &IWindowController::SetAppletWindowVisibility, "SetAppletWindowVisibility"},
+        {21, &IWindowController::SetAppletGpuTimeSlice, "SetAppletGpuTimeSlice"},
     };
     // clang-format on
 
@@ -48,6 +48,37 @@ void IWindowController::GetAppletResourceUserIdOfCallerApplet(HLERequestContext&
 
 void IWindowController::AcquireForegroundRights(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IWindowController::SetAppletWindowVisibility(HLERequestContext& ctx) {
+    LOG_INFO(Service_AM, "called");
+
+    IPC::RequestParser rp{ctx};
+    const bool visible = rp.Pop<bool>();
+
+    applet->system_buffer_manager.SetWindowVisibility(visible);
+    applet->hid_registration.EnableAppletToGetInput(visible);
+
+    if (visible) {
+        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
+        applet->focus_state = FocusState::InFocus;
+    } else {
+        applet->focus_state = FocusState::NotInFocus;
+    }
+    applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IWindowController::SetAppletGpuTimeSlice(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto time_slice = rp.Pop<s64>();
+
+    LOG_WARNING(Service_AM, "(STUBBED) called, time_slice={}", time_slice);
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }

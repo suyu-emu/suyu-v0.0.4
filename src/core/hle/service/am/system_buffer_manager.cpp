@@ -4,6 +4,7 @@
 #include "core/hle/service/am/system_buffer_manager.h"
 #include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
 #include "core/hle/service/nvnflinger/nvnflinger.h"
+#include "core/hle/service/vi/vi_results.h"
 
 namespace Service::AM {
 
@@ -41,9 +42,28 @@ bool SystemBufferManager::Initialize(Nvnflinger::Nvnflinger* nvnflinger, Kernel:
 
     if (res.IsSuccess()) {
         m_buffer_sharing_enabled = true;
+        m_nvnflinger->SetLayerVisibility(m_system_shared_layer_id, m_visible);
     }
 
     return m_buffer_sharing_enabled;
+}
+
+void SystemBufferManager::SetWindowVisibility(bool visible) {
+    if (m_visible == visible) {
+        return;
+    }
+
+    m_visible = visible;
+
+    if (m_nvnflinger) {
+        m_nvnflinger->SetLayerVisibility(m_system_shared_layer_id, m_visible);
+    }
+}
+
+Result SystemBufferManager::WriteAppletCaptureBuffer(bool* out_was_written,
+                                                     s32* out_fbshare_layer_index) {
+    // TODO
+    R_SUCCEED();
 }
 
 } // namespace Service::AM

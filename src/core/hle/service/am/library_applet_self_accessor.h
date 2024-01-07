@@ -27,11 +27,15 @@ private:
     void GetPopInteractiveInDataEvent(HLERequestContext& ctx);
     void GetLibraryAppletInfo(HLERequestContext& ctx);
     void GetMainAppletIdentityInfo(HLERequestContext& ctx);
+    void CanUseApplicationCore(HLERequestContext& ctx);
     void ExitProcessAndReturn(HLERequestContext& ctx);
     void GetCallerAppletIdentityInfo(HLERequestContext& ctx);
     void GetDesirableKeyboardLayout(HLERequestContext& ctx);
+    void GetMainAppletApplicationDesiredLanguage(HLERequestContext& ctx);
+    void GetCurrentApplicationId(HLERequestContext& ctx);
     void GetMainAppletAvailableUsers(HLERequestContext& ctx);
     void ShouldSetGpuTimeSliceManually(HLERequestContext& ctx);
+    void Cmd160(HLERequestContext& ctx);
 
     const std::shared_ptr<Applet> applet;
     const std::shared_ptr<AppletDataBroker> broker;

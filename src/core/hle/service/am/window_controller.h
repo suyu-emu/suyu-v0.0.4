@@ -18,6 +18,8 @@ private:
     void GetAppletResourceUserId(HLERequestContext& ctx);
     void GetAppletResourceUserIdOfCallerApplet(HLERequestContext& ctx);
     void AcquireForegroundRights(HLERequestContext& ctx);
+    void SetAppletWindowVisibility(HLERequestContext& ctx);
+    void SetAppletGpuTimeSlice(HLERequestContext& ctx);
 
     const std::shared_ptr<Applet> applet;
 };

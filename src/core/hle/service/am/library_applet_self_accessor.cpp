@@ -3,6 +3,9 @@
 
 #include "common/scope_exit.h"
 #include "core/core_timing.h"
+#include "core/file_sys/control_metadata.h"
+#include "core/file_sys/patch_manager.h"
+#include "core/file_sys/registered_cache.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am_results.h"
 #include "core/hle/service/am/applet_data_broker.h"
@@ -15,25 +18,20 @@
 #include "core/hle/service/am/library_applet_self_accessor.h"
 #include "core/hle/service/am/storage.h"
 #include "core/hle/service/ipc_helpers.h"
+#include "core/hle/service/ns/ns.h"
+#include "core/hle/service/sm/sm.h"
 #include "hid_core/hid_types.h"
 
 namespace Service::AM {
 
 namespace {
 
-struct AppletIdentityInfo {
-    AppletId applet_id;
-    INSERT_PADDING_BYTES(0x4);
-    u64 application_id;
-};
-static_assert(sizeof(AppletIdentityInfo) == 0x10, "AppletIdentityInfo has incorrect size.");
-
 AppletIdentityInfo GetCallerIdentity(std::shared_ptr<Applet> applet) {
     if (const auto caller_applet = applet->caller_applet.lock(); caller_applet) {
         // TODO: is this actually the application ID?
         return {
-            .applet_id = applet->applet_id,
-            .application_id = applet->program_id,
+            .applet_id = caller_applet->applet_id,
+            .application_id = caller_applet->program_id,
         };
     } else {
         return {
@@ -60,7 +58,7 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_,
         {10, &ILibraryAppletSelfAccessor::ExitProcessAndReturn, "ExitProcessAndReturn"},
         {11, &ILibraryAppletSelfAccessor::GetLibraryAppletInfo, "GetLibraryAppletInfo"},
         {12, &ILibraryAppletSelfAccessor::GetMainAppletIdentityInfo, "GetMainAppletIdentityInfo"},
-        {13, nullptr, "CanUseApplicationCore"},
+        {13, &ILibraryAppletSelfAccessor::CanUseApplicationCore, "CanUseApplicationCore"},
         {14, &ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo, "GetCallerAppletIdentityInfo"},
         {15, nullptr, "GetMainAppletApplicationControlProperty"},
         {16, nullptr, "GetMainAppletStorageId"},
@@ -74,8 +72,8 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_,
         {40, nullptr, "GetIndirectLayerProducerHandle"},
         {50, nullptr, "ReportVisibleError"},
         {51, nullptr, "ReportVisibleErrorWithErrorContext"},
-        {60, nullptr, "GetMainAppletApplicationDesiredLanguage"},
-        {70, nullptr, "GetCurrentApplicationId"},
+        {60, &ILibraryAppletSelfAccessor::GetMainAppletApplicationDesiredLanguage, "GetMainAppletApplicationDesiredLanguage"},
+        {70, &ILibraryAppletSelfAccessor::GetCurrentApplicationId, "GetCurrentApplicationId"},
         {80, nullptr, "RequestExitToSelf"},
         {90, nullptr, "CreateApplicationAndPushAndRequestToLaunch"},
         {100, nullptr, "CreateGameMovieTrimmer"},
@@ -86,6 +84,7 @@ ILibraryAppletSelfAccessor::ILibraryAppletSelfAccessor(Core::System& system_,
         {130, nullptr, "GetGpuErrorDetectedSystemEvent"},
         {140, nullptr, "SetApplicationMemoryReservation"},
         {150, &ILibraryAppletSelfAccessor::ShouldSetGpuTimeSliceManually, "ShouldSetGpuTimeSliceManually"},
+        {160, &ILibraryAppletSelfAccessor::Cmd160, "Cmd160"},
     };
     // clang-format on
     RegisterHandlers(functions);
@@ -202,6 +201,15 @@ void ILibraryAppletSelfAccessor::GetMainAppletIdentityInfo(HLERequestContext& ct
     rb.PushRaw(applet_info);
 }
 
+void ILibraryAppletSelfAccessor::CanUseApplicationCore(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    // TODO: This appears to read the NPDM from state and check the core mask of the applet.
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u8>(0);
+}
+
 void ILibraryAppletSelfAccessor::GetCallerAppletIdentityInfo(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
@@ -216,6 +224,80 @@ void ILibraryAppletSelfAccessor::GetDesirableKeyboardLayout(HLERequestContext& c
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.Push<u32>(0);
+}
+
+void ILibraryAppletSelfAccessor::GetMainAppletApplicationDesiredLanguage(HLERequestContext& ctx) {
+    // FIXME: this is copied from IApplicationFunctions::GetDesiredLanguage
+    auto identity = GetCallerIdentity(applet);
+
+    // TODO(bunnei): This should be configurable
+    LOG_DEBUG(Service_AM, "called");
+
+    // Get supported languages from NACP, if possible
+    // Default to 0 (all languages supported)
+    u32 supported_languages = 0;
+
+    const auto res = [this, identity] {
+        const FileSys::PatchManager pm{identity.application_id, system.GetFileSystemController(),
+                                       system.GetContentProvider()};
+        auto metadata = pm.GetControlMetadata();
+        if (metadata.first != nullptr) {
+            return metadata;
+        }
+
+        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(identity.application_id),
+                                              system.GetFileSystemController(),
+                                              system.GetContentProvider()};
+        return pm_update.GetControlMetadata();
+    }();
+
+    if (res.first != nullptr) {
+        supported_languages = res.first->GetSupportedLanguages();
+    }
+
+    // Call IApplicationManagerInterface implementation.
+    auto& service_manager = system.ServiceManager();
+    auto ns_am2 = service_manager.GetService<NS::NS>("ns:am2");
+    auto app_man = ns_am2->GetApplicationManagerInterface();
+
+    // Get desired application language
+    u8 desired_language{};
+    const auto res_lang =
+        app_man->GetApplicationDesiredLanguage(&desired_language, supported_languages);
+    if (res_lang != ResultSuccess) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(res_lang);
+        return;
+    }
+
+    // Convert to settings language code.
+    u64 language_code{};
+    const auto res_code =
+        app_man->ConvertApplicationLanguageToLanguageCode(&language_code, desired_language);
+    if (res_code != ResultSuccess) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(res_code);
+        return;
+    }
+
+    LOG_DEBUG(Service_AM, "got desired_language={:016X}", language_code);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push(language_code);
+}
+
+void ILibraryAppletSelfAccessor::GetCurrentApplicationId(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    u64 application_id = 0;
+    if (auto caller_applet = applet->caller_applet.lock(); caller_applet) {
+        application_id = caller_applet->program_id;
+    }
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push(application_id);
 }
 
 void ILibraryAppletSelfAccessor::GetMainAppletAvailableUsers(HLERequestContext& ctx) {
@@ -243,6 +325,14 @@ void ILibraryAppletSelfAccessor::ShouldSetGpuTimeSliceManually(HLERequestContext
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
     rb.Push<u8>(0);
+}
+
+void ILibraryAppletSelfAccessor::Cmd160(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push<u64>(0);
 }
 
 } // namespace Service::AM

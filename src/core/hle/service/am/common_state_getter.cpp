@@ -60,7 +60,7 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_, std::shared_ptr<Ap
         {91, nullptr, "GetCurrentPerformanceConfiguration"},
         {100, nullptr, "SetHandlingHomeButtonShortPressedEnabled"},
         {110, nullptr, "OpenMyGpuErrorHandler"},
-        {120, nullptr, "GetAppletLaunchedHistory"},
+        {120, &ICommonStateGetter::GetAppletLaunchedHistory, "GetAppletLaunchedHistory"},
         {200, nullptr, "GetOperationModeSystemInfo"},
         {300, &ICommonStateGetter::GetSettingsPlatformRegion, "GetSettingsPlatformRegion"},
         {400, nullptr, "ActivateMigrationService"},
@@ -269,6 +269,27 @@ void ICommonStateGetter::PerformSystemButtonPressingIfInFocus(HLERequestContext&
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
+}
+
+void ICommonStateGetter::GetAppletLaunchedHistory(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    std::shared_ptr<Applet> current_applet = applet;
+    std::vector<AppletId> result;
+
+    const size_t count = ctx.GetWriteBufferNumElements<AppletId>();
+    size_t i;
+
+    for (i = 0; i < count && current_applet != nullptr; i++) {
+        result.push_back(current_applet->applet_id);
+        current_applet = current_applet->caller_applet.lock();
+    }
+
+    ctx.WriteBuffer(result);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(static_cast<u32>(i));
 }
 
 void ICommonStateGetter::GetSettingsPlatformRegion(HLERequestContext& ctx) {

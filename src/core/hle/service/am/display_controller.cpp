@@ -1,13 +1,23 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "core/hle/service/am/applet.h"
 #include "core/hle/service/am/display_controller.h"
 #include "core/hle/service/ipc_helpers.h"
 
 namespace Service::AM {
 
-IDisplayController::IDisplayController(Core::System& system_)
-    : ServiceFramework{system_, "IDisplayController"} {
+namespace {
+struct OutputParameters {
+    bool was_written;
+    s32 fbshare_layer_index;
+};
+
+static_assert(sizeof(OutputParameters) == 8, "OutputParameters has wrong size");
+} // namespace
+
+IDisplayController::IDisplayController(Core::System& system_, std::shared_ptr<Applet> applet_)
+    : ServiceFramework{system_, "IDisplayController"}, applet(std::move(applet_)) {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetLastForegroundCaptureImage"},
@@ -31,8 +41,8 @@ IDisplayController::IDisplayController(Core::System& system_)
         {18, nullptr, "AcquireCallerAppletCaptureBufferEx"},
         {20, nullptr, "ClearCaptureBuffer"},
         {21, nullptr, "ClearAppletTransitionBuffer"},
-        {22, nullptr, "AcquireLastApplicationCaptureSharedBuffer"},
-        {23, nullptr, "ReleaseLastApplicationCaptureSharedBuffer"},
+        {22, &IDisplayController::AcquireLastApplicationCaptureSharedBuffer, "AcquireLastApplicationCaptureSharedBuffer"},
+        {23, &IDisplayController::ReleaseLastApplicationCaptureSharedBuffer, "ReleaseLastApplicationCaptureSharedBuffer"},
         {24, &IDisplayController::AcquireLastForegroundCaptureSharedBuffer, "AcquireLastForegroundCaptureSharedBuffer"},
         {25, &IDisplayController::ReleaseLastForegroundCaptureSharedBuffer, "ReleaseLastForegroundCaptureSharedBuffer"},
         {26, &IDisplayController::AcquireCallerAppletCaptureSharedBuffer, "AcquireCallerAppletCaptureSharedBuffer"},
@@ -49,10 +59,13 @@ IDisplayController::~IDisplayController() = default;
 void IDisplayController::GetCallerAppletCaptureImageEx(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
+    OutputParameters params{};
+    const auto res = applet->system_buffer_manager.WriteAppletCaptureBuffer(
+        &params.was_written, &params.fbshare_layer_index);
+
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push(1u);
-    rb.Push(1);
+    rb.Push(res);
+    rb.PushRaw(params);
 }
 
 void IDisplayController::TakeScreenShotOfOwnLayer(HLERequestContext& ctx) {
@@ -62,13 +75,35 @@ void IDisplayController::TakeScreenShotOfOwnLayer(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
+void IDisplayController::AcquireLastApplicationCaptureSharedBuffer(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    OutputParameters params{};
+    const auto res = applet->system_buffer_manager.WriteAppletCaptureBuffer(
+        &params.was_written, &params.fbshare_layer_index);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(res);
+    rb.PushRaw(params);
+}
+
+void IDisplayController::ReleaseLastApplicationCaptureSharedBuffer(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void IDisplayController::AcquireLastForegroundCaptureSharedBuffer(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
+    OutputParameters params{};
+    const auto res = applet->system_buffer_manager.WriteAppletCaptureBuffer(
+        &params.was_written, &params.fbshare_layer_index);
+
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push(1U);
-    rb.Push(1);
+    rb.Push(res);
+    rb.PushRaw(params);
 }
 
 void IDisplayController::ReleaseLastForegroundCaptureSharedBuffer(HLERequestContext& ctx) {
@@ -81,10 +116,13 @@ void IDisplayController::ReleaseLastForegroundCaptureSharedBuffer(HLERequestCont
 void IDisplayController::AcquireCallerAppletCaptureSharedBuffer(HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
+    OutputParameters params{};
+    const auto res = applet->system_buffer_manager.WriteAppletCaptureBuffer(
+        &params.was_written, &params.fbshare_layer_index);
+
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(ResultSuccess);
-    rb.Push(1U);
-    rb.Push(1);
+    rb.Push(res);
+    rb.PushRaw(params);
 }
 
 void IDisplayController::ReleaseCallerAppletCaptureSharedBuffer(HLERequestContext& ctx) {

@@ -162,6 +162,13 @@ struct CommonArguments {
 };
 static_assert(sizeof(CommonArguments) == 0x20, "CommonArguments has incorrect size.");
 
+struct AppletIdentityInfo {
+    AppletId applet_id;
+    INSERT_PADDING_BYTES(0x4);
+    u64 application_id;
+};
+static_assert(sizeof(AppletIdentityInfo) == 0x10, "AppletIdentityInfo has incorrect size.");
+
 using AppletResourceUserId = u64;
 using ProgramId = u64;
 

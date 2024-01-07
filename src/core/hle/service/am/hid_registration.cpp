@@ -26,4 +26,10 @@ HidRegistration::~HidRegistration() {
     }
 }
 
+void HidRegistration::EnableAppletToGetInput(bool enable) {
+    if (m_process.IsInitialized()) {
+        m_hid_server->GetResourceManager()->EnableInput(m_process.GetProcessId(), enable);
+    }
+}
+
 } // namespace Service::AM
