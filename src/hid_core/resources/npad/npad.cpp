@@ -1368,4 +1368,14 @@ Result NPad::SetNpadSystemExtStateEnabled(u64 aruid, bool is_enabled) {
     return result;
 }
 
+Result NPad::AssigningSingleOnSlSrPress(u64 aruid, bool is_enabled) {
+    std::scoped_lock lock{mutex};
+    bool is_currently_enabled{};
+    Result result = npad_resource.IsAssigningSingleOnSlSrPressEnabled(is_currently_enabled, aruid);
+    if (result.IsSuccess() && is_enabled != is_currently_enabled) {
+        result = npad_resource.SetAssigningSingleOnSlSrPress(aruid, is_enabled);
+    }
+    return result;
+}
+
 } // namespace Service::HID
