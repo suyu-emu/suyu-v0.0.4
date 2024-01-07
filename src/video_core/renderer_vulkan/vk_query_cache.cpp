@@ -13,7 +13,6 @@
 
 #include "common/bit_util.h"
 #include "common/common_types.h"
-#include "core/memory.h"
 #include "video_core/engines/draw_manager.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
 #include "video_core/query_cache/query_cache.h"
@@ -1482,8 +1481,8 @@ void QueryCacheRuntime::SyncValues(std::span<SyncValuesType> values, VkBuffer ba
     for (auto& sync_val : values) {
         total_size += sync_val.size;
         bool found = false;
-        DAddr base = Common::AlignDown(sync_val.address, Core::Memory::YUZU_PAGESIZE);
-        DAddr base_end = base + Core::Memory::YUZU_PAGESIZE;
+        DAddr base = Common::AlignDown(sync_val.address, Core::DEVICE_PAGESIZE);
+        DAddr base_end = base + Core::DEVICE_PAGESIZE;
         for (size_t i = 0; i < impl->little_cache.size(); i++) {
             const auto set_found = [&] {
                 impl->redirect_cache.push_back(i);

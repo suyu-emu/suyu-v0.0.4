@@ -449,8 +449,8 @@ private:
     }
 
     static bool IsRangeGranular(DAddr device_addr, size_t size) {
-        return (device_addr & ~Core::Memory::YUZU_PAGEMASK) ==
-               ((device_addr + size) & ~Core::Memory::YUZU_PAGEMASK);
+        return (device_addr & ~Core::DEVICE_PAGEMASK) ==
+               ((device_addr + size) & ~Core::DEVICE_PAGEMASK);
     }
 
     void RunGarbageCollector();

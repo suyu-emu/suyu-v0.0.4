@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/alignment.h"
-#include "core/memory.h"
 #include "video_core/control/channel_state.h"
 #include "video_core/host1x/host1x.h"
 #include "video_core/memory_manager.h"
@@ -55,8 +54,8 @@ bool RasterizerNull::OnCPUWrite(PAddr addr, u64 size) {
 void RasterizerNull::OnCacheInvalidation(PAddr addr, u64 size) {}
 VideoCore::RasterizerDownloadArea RasterizerNull::GetFlushArea(PAddr addr, u64 size) {
     VideoCore::RasterizerDownloadArea new_area{
-        .start_address = Common::AlignDown(addr, Core::Memory::YUZU_PAGESIZE),
-        .end_address = Common::AlignUp(addr + size, Core::Memory::YUZU_PAGESIZE),
+        .start_address = Common::AlignDown(addr, Core::DEVICE_PAGESIZE),
+        .end_address = Common::AlignUp(addr + size, Core::DEVICE_PAGESIZE),
         .preemtive = true,
     };
     return new_area;

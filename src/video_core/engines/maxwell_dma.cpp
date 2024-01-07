@@ -8,7 +8,6 @@
 #include "common/polyfill_ranges.h"
 #include "common/settings.h"
 #include "core/core.h"
-#include "core/memory.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/maxwell_dma.h"
 #include "video_core/guest_memory.h"

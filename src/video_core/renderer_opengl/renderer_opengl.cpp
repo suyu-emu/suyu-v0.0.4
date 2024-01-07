@@ -15,7 +15,6 @@
 #include "common/telemetry.h"
 #include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
-#include "core/memory.h"
 #include "core/telemetry_session.h"
 #include "video_core/host_shaders/ffx_a_h.h"
 #include "video_core/host_shaders/ffx_fsr1_h.h"

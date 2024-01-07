@@ -15,7 +15,6 @@
 #include "common/logging/log.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
-#include "core/memory.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
@@ -253,8 +252,8 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
     query_location.stream_id.Assign(static_cast<u32>(streamer_id));
     query_location.query_id.Assign(static_cast<u32>(new_query_id));
     const auto gen_caching_indexing = [](VAddr cur_addr) {
-        return std::make_pair<u64, u32>(cur_addr >> Core::Memory::YUZU_PAGEBITS,
-                                        static_cast<u32>(cur_addr & Core::Memory::YUZU_PAGEMASK));
+        return std::make_pair<u64, u32>(cur_addr >> Core::DEVICE_PAGEBITS,
+                                        static_cast<u32>(cur_addr & Core::DEVICE_PAGEMASK));
     };
     u8* pointer = impl->device_memory.template GetPointer<u8>(cpu_addr);
     u8* pointer_timestamp = impl->device_memory.template GetPointer<u8>(cpu_addr + 8);
@@ -325,8 +324,8 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
 template <typename Traits>
 void QueryCacheBase<Traits>::UnregisterPending() {
     const auto gen_caching_indexing = [](VAddr cur_addr) {
-        return std::make_pair<u64, u32>(cur_addr >> Core::Memory::YUZU_PAGEBITS,
-                                        static_cast<u32>(cur_addr & Core::Memory::YUZU_PAGEMASK));
+        return std::make_pair<u64, u32>(cur_addr >> Core::DEVICE_PAGEBITS,
+                                        static_cast<u32>(cur_addr & Core::DEVICE_PAGEMASK));
     };
     std::scoped_lock lock(cache_mutex);
     for (QueryLocation loc : impl->pending_unregister) {
@@ -390,7 +389,7 @@ bool QueryCacheBase<Traits>::AccelerateHostConditionalRendering() {
         }
         VAddr cpu_addr = *cpu_addr_opt;
         std::scoped_lock lock(cache_mutex);
-        auto it1 = cached_queries.find(cpu_addr >> Core::Memory::YUZU_PAGEBITS);
+        auto it1 = cached_queries.find(cpu_addr >> Core::DEVICE_PAGEBITS);
         if (it1 == cached_queries.end()) {
             return VideoCommon::LookupData{
                 .address = cpu_addr,
@@ -398,10 +397,10 @@ bool QueryCacheBase<Traits>::AccelerateHostConditionalRendering() {
             };
         }
         auto& sub_container = it1->second;
-        auto it_current = sub_container.find(cpu_addr & Core::Memory::YUZU_PAGEMASK);
+        auto it_current = sub_container.find(cpu_addr & Core::DEVICE_PAGEMASK);
 
         if (it_current == sub_container.end()) {
-            auto it_current_2 = sub_container.find((cpu_addr & Core::Memory::YUZU_PAGEMASK) + 4);
+            auto it_current_2 = sub_container.find((cpu_addr & Core::DEVICE_PAGEMASK) + 4);
             if (it_current_2 == sub_container.end()) {
                 return VideoCommon::LookupData{
                     .address = cpu_addr,
