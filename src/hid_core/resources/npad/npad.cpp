@@ -1339,4 +1339,21 @@ AppletDetailedUiType NPad::GetAppletDetailedUiType(Core::HID::NpadIdType npad_id
     };
 }
 
+Result NPad::SetNpadCaptureButtonAssignment(u64 aruid, Core::HID::NpadStyleSet npad_style_set,
+                                            Core::HID::NpadButton button_assignment) {
+    std::scoped_lock lock{mutex};
+    return npad_resource.SetNpadCaptureButtonAssignment(aruid, npad_style_set, button_assignment);
+}
+
+Result NPad::ClearNpadCaptureButtonAssignment(u64 aruid) {
+    std::scoped_lock lock{mutex};
+    return npad_resource.ClearNpadCaptureButtonAssignment(aruid);
+}
+
+std::size_t NPad::GetNpadCaptureButtonAssignment(std::span<Core::HID::NpadButton> out_list,
+                                                 u64 aruid) const {
+    std::scoped_lock lock{mutex};
+    return npad_resource.GetNpadCaptureButtonAssignment(out_list, aruid);
+}
+
 } // namespace Service::HID

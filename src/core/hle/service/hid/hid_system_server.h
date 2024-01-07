@@ -31,6 +31,7 @@ private:
     void GetNpadFullKeyGripColor(HLERequestContext& ctx);
     void GetMaskedSupportedNpadStyleSet(HLERequestContext& ctx);
     void SetSupportedNpadStyleSetAll(HLERequestContext& ctx);
+    void GetNpadCaptureButtonAssignment(HLERequestContext& ctx);
     void GetAppletDetailedUiType(HLERequestContext& ctx);
     void GetNpadInterfaceType(HLERequestContext& ctx);
     void GetNpadLeftRightInterfaceType(HLERequestContext& ctx);
