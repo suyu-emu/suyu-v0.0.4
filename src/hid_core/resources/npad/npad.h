@@ -157,6 +157,8 @@ public:
 
     Result SetNpadSystemExtStateEnabled(u64 aruid, bool is_enabled);
 
+    Result AssigningSingleOnSlSrPress(u64 aruid, bool is_enabled);
+
 private:
     struct VibrationData {
         bool device_mounted{};
