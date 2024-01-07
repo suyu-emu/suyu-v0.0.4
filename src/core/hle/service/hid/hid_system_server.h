@@ -44,6 +44,7 @@ private:
     void EnableAppletToGetSixAxisSensor(HLERequestContext& ctx);
     void EnableAppletToGetPadInput(HLERequestContext& ctx);
     void EnableAppletToGetTouchScreen(HLERequestContext& ctx);
+    void IsJoyConAttachedOnAllRail(HLERequestContext& ctx);
     void AcquireConnectionTriggerTimeoutEvent(HLERequestContext& ctx);
     void AcquireDeviceRegisteredEventForControllerSupport(HLERequestContext& ctx);
     void GetRegisteredDevices(HLERequestContext& ctx);
@@ -53,8 +54,13 @@ private:
     void IsUsbFullKeyControllerEnabled(HLERequestContext& ctx);
     void IsHandheldButtonPressedOnConsoleMode(HLERequestContext& ctx);
     void InitializeFirmwareUpdate(HLERequestContext& ctx);
+    void CheckFirmwareUpdateRequired(HLERequestContext& ctx);
+    void SetFirmwareHotfixUpdateSkipEnabled(HLERequestContext& ctx);
+    void InitializeUsbFirmwareUpdate(HLERequestContext& ctx);
+    void FinalizeUsbFirmwareUpdate(HLERequestContext& ctx);
     void InitializeUsbFirmwareUpdateWithoutMemory(HLERequestContext& ctx);
     void GetTouchScreenDefaultConfiguration(HLERequestContext& ctx);
+    void IsUsingCustomButtonConfig(HLERequestContext& ctx);
 
     std::shared_ptr<ResourceManager> GetResourceManager();
 
