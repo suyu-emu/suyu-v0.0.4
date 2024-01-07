@@ -84,10 +84,29 @@ AppletProgramId AppletIdToProgramId(AppletId applet_id) {
     applet->type = AppletType::LibraryApplet;
     applet->library_applet_mode = mode;
 
-    // Library applet should be foreground
-    applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
-    applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
-    applet->focus_state = FocusState::InFocus;
+    // Set focus state
+    switch (mode) {
+    case LibraryAppletMode::AllForeground:
+    case LibraryAppletMode::NoUI:
+        applet->focus_state = FocusState::InFocus;
+        applet->hid_registration.EnableAppletToGetInput(true);
+        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::ChangeIntoForeground);
+        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
+        break;
+    case LibraryAppletMode::AllForegroundInitiallyHidden:
+        applet->system_buffer_manager.SetWindowVisibility(false);
+        applet->focus_state = FocusState::NotInFocus;
+        applet->hid_registration.EnableAppletToGetInput(false);
+        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
+        break;
+    case LibraryAppletMode::Background:
+    case LibraryAppletMode::BackgroundIndirectDisplay:
+    default:
+        applet->focus_state = FocusState::Background;
+        applet->hid_registration.EnableAppletToGetInput(true);
+        applet->message_queue.PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
+        break;
+    }
 
     auto broker = std::make_shared<AppletDataBroker>(system);
     applet->caller_applet = caller_applet;

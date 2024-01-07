@@ -4931,7 +4931,10 @@ void GMainWindow::changeEvent(QEvent* event) {
 }
 
 Service::AM::FrontendAppletParameters GMainWindow::ApplicationAppletParameters() {
-    return Service::AM::FrontendAppletParameters{};
+    return Service::AM::FrontendAppletParameters{
+        .applet_id = Service::AM::AppletId::Application,
+        .applet_type = Service::AM::AppletType::Application,
+    };
 }
 
 Service::AM::FrontendAppletParameters GMainWindow::LibraryAppletParameters(

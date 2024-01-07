@@ -58,6 +58,10 @@ class IDocumentInterface final : public ServiceFramework<IDocumentInterface> {
 public:
     explicit IDocumentInterface(Core::System& system_);
     ~IDocumentInterface() override;
+
+private:
+    void ResolveApplicationContentPath(HLERequestContext& ctx);
+    void GetRunningApplicationProgramId(HLERequestContext& ctx);
 };
 
 class IDownloadTaskInterface final : public ServiceFramework<IDownloadTaskInterface> {
@@ -76,6 +80,17 @@ class IFactoryResetInterface final : public ServiceFramework<IFactoryResetInterf
 public:
     explicit IFactoryResetInterface(Core::System& system_);
     ~IFactoryResetInterface() override;
+};
+
+class IReadOnlyApplicationRecordInterface final
+    : public ServiceFramework<IReadOnlyApplicationRecordInterface> {
+public:
+    explicit IReadOnlyApplicationRecordInterface(Core::System& system_);
+    ~IReadOnlyApplicationRecordInterface() override;
+
+private:
+    void HasApplicationRecord(HLERequestContext& ctx);
+    void IsDataCorruptedResult(HLERequestContext& ctx);
 };
 
 class IReadOnlyApplicationControlDataInterface final

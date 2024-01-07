@@ -72,6 +72,14 @@ public:
         return core;
     }
 
+    bool IsVisible() const {
+        return visible;
+    }
+
+    void SetVisibility(bool v) {
+        visible = v;
+    }
+
     bool IsOpen() const {
         return open;
     }
@@ -91,6 +99,7 @@ private:
     android::BufferQueueProducer& binder;
     std::shared_ptr<android::BufferItemConsumer> consumer;
     bool open;
+    bool visible;
 };
 
 } // namespace Service::VI

@@ -31,6 +31,7 @@ IAppletCommonFunctions::IAppletCommonFunctions(Core::System& system_,
         {90, nullptr, "OpenNamedChannelAsParent"},
         {91, nullptr, "OpenNamedChannelAsChild"},
         {100, nullptr, "SetApplicationCoreUsageMode"},
+        {300, &IAppletCommonFunctions::GetCurrentApplicationId, "GetCurrentApplicationId"},
     };
     // clang-format on
 
@@ -49,6 +50,14 @@ void IAppletCommonFunctions::SetCpuBoostRequestPriority(HLERequestContext& ctx) 
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
+}
+
+void IAppletCommonFunctions::GetCurrentApplicationId(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push<u64>(system.GetApplicationProcessProgramID() & ~0xFFFULL);
 }
 
 } // namespace Service::AM

@@ -18,6 +18,8 @@ namespace Service::Nvnflinger {
 class Nvnflinger;
 }
 
+union Result;
+
 namespace Service::AM {
 
 class SystemBufferManager {
@@ -33,10 +35,15 @@ public:
         *out_system_shared_layer_id = m_system_shared_layer_id;
     }
 
+    void SetWindowVisibility(bool visible);
+
+    Result WriteAppletCaptureBuffer(bool* out_was_written, s32* out_fbshare_layer_index);
+
 private:
     Kernel::KProcess* m_process{};
     Nvnflinger::Nvnflinger* m_nvnflinger{};
     bool m_buffer_sharing_enabled{};
+    bool m_visible{true};
     u64 m_system_shared_buffer_id{};
     u64 m_system_shared_layer_id{};
 };

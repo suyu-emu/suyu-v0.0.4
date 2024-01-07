@@ -67,6 +67,7 @@ private:
     void SetCpuBoostMode(HLERequestContext& ctx);
     void GetBuiltInDisplayType(HLERequestContext& ctx);
     void PerformSystemButtonPressingIfInFocus(HLERequestContext& ctx);
+    void GetAppletLaunchedHistory(HLERequestContext& ctx);
     void GetSettingsPlatformRegion(HLERequestContext& ctx);
     void SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled(HLERequestContext& ctx);
 

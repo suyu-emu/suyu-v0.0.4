@@ -30,7 +30,7 @@ ISelfController::ISelfController(Core::System& system_, std::shared_ptr<Applet> 
         {12, &ISelfController::SetPerformanceModeChangedNotification, "SetPerformanceModeChangedNotification"},
         {13, &ISelfController::SetFocusHandlingMode, "SetFocusHandlingMode"},
         {14, &ISelfController::SetRestartMessageEnabled, "SetRestartMessageEnabled"},
-        {15, nullptr, "SetScreenShotAppletIdentityInfo"},
+        {15, &ISelfController::SetScreenShotAppletIdentityInfo, "SetScreenShotAppletIdentityInfo"},
         {16, &ISelfController::SetOutOfFocusSuspendingEnabled, "SetOutOfFocusSuspendingEnabled"},
         {17, nullptr, "SetControllerFirmwareUpdateSection"},
         {18, nullptr, "SetRequiresCaptureButtonShortPressedMessage"},
@@ -202,6 +202,17 @@ void ISelfController::SetRestartMessageEnabled(HLERequestContext& ctx) {
 
     std::scoped_lock lk{applet->lock};
     applet->restart_message_enabled = true;
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void ISelfController::SetScreenShotAppletIdentityInfo(HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::RequestParser rp{ctx};
+    std::scoped_lock lk{applet->lock};
+    applet->screen_shot_identity = rp.PopRaw<AppletIdentityInfo>();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

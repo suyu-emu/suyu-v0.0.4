@@ -53,7 +53,7 @@ Display::~Display() {
 Layer& Display::GetLayer(std::size_t index) {
     size_t i = 0;
     for (auto& layer : layers) {
-        if (!layer->IsOpen()) {
+        if (!layer->IsOpen() || !layer->IsVisible()) {
             continue;
         }
 
@@ -68,7 +68,7 @@ Layer& Display::GetLayer(std::size_t index) {
 }
 
 size_t Display::GetNumLayers() const {
-    return std::ranges::count_if(layers, [](auto& l) { return l->IsOpen(); });
+    return std::ranges::count_if(layers, [](auto& l) { return l->IsOpen() && l->IsVisible(); });
 }
 
 Kernel::KReadableEvent* Display::GetVSyncEvent() {

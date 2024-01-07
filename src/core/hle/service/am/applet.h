@@ -49,6 +49,9 @@ struct Applet {
     s32 previous_program_index{-1};
     ScreenshotPermission previous_screenshot_permission{ScreenshotPermission::Enable};
 
+    // TODO: some fields above can be AppletIdentityInfo
+    AppletIdentityInfo screen_shot_identity;
+
     // hid state
     HidRegistration hid_registration;
 

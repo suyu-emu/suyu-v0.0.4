@@ -16,6 +16,7 @@ public:
 
 private:
     void SetCpuBoostRequestPriority(HLERequestContext& ctx);
+    void GetCurrentApplicationId(HLERequestContext& ctx);
 
     const std::shared_ptr<Applet> applet;
 };
