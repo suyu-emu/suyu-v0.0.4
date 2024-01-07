@@ -862,6 +862,9 @@ jobjectArray Java_org_yuzu_yuzu_1emu_NativeLibrary_getAddonsForFile(JNIEnv* env,
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getSavePath(JNIEnv* env, jobject jobj,
                                                           jstring jprogramId) {
     auto program_id = EmulationSession::GetProgramId(env, jprogramId);
+    if (program_id == 0) {
+        return ToJString(env, "");
+    }
 
     auto& system = EmulationSession::GetInstance().System();
 
@@ -878,6 +881,19 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getSavePath(JNIEnv* env, jobject j
         system, vfsNandDir, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::SaveData,
         program_id, user_id->AsU128(), 0);
     return ToJString(env, user_save_data_path);
+}
+
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getDefaultProfileSaveDataRoot(JNIEnv* env,
+                                                                            jobject jobj,
+                                                                            jboolean jfuture) {
+    Service::Account::ProfileManager manager;
+    // TODO: Pass in a selected user once we get the relevant UI working
+    const auto user_id = manager.GetUser(static_cast<std::size_t>(0));
+    ASSERT(user_id);
+
+    const auto user_save_data_root =
+        FileSys::SaveDataFactory::GetUserGameSaveDataRoot(user_id->AsU128(), jfuture);
+    return ToJString(env, user_save_data_root);
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_addFileToFilesystemProvider(JNIEnv* env, jobject jobj,

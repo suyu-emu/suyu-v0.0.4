@@ -189,6 +189,15 @@ std::string SaveDataFactory::GetFullPath(Core::System& system, VirtualDir dir,
     }
 }
 
+std::string SaveDataFactory::GetUserGameSaveDataRoot(u128 user_id, bool future) {
+    if (future) {
+        Common::UUID uuid;
+        std::memcpy(uuid.uuid.data(), user_id.data(), sizeof(Common::UUID));
+        return fmt::format("/user/save/account/{}", uuid.RawString());
+    }
+    return fmt::format("/user/save/{:016X}/{:016X}{:016X}", 0, user_id[1], user_id[0]);
+}
+
 SaveDataSize SaveDataFactory::ReadSaveDataSize(SaveDataType type, u64 title_id,
                                                u128 user_id) const {
     const auto path =
