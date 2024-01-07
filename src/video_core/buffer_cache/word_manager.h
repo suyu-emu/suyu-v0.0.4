@@ -13,12 +13,12 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/div_ceil.h"
-#include "core/memory.h"
+#include "video_core/host1x/gpu_device_memory_manager.h"
 
 namespace VideoCommon {
 
 constexpr u64 PAGES_PER_WORD = 64;
-constexpr u64 BYTES_PER_PAGE = Core::Memory::YUZU_PAGESIZE;
+constexpr u64 BYTES_PER_PAGE = Core::DEVICE_PAGESIZE;
 constexpr u64 BYTES_PER_WORD = PAGES_PER_WORD * BYTES_PER_PAGE;
 
 enum class Type {

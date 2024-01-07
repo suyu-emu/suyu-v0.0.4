@@ -606,14 +606,14 @@ bool MemoryManager::IsGranularRange(GPUVAddr gpu_addr, std::size_t size) const {
             const std::size_t page{(page_index & big_page_mask) + size};
             return page <= big_page_size;
         }
-        const std::size_t page{(gpu_addr & Core::Memory::YUZU_PAGEMASK) + size};
-        return page <= Core::Memory::YUZU_PAGESIZE;
+        const std::size_t page{(gpu_addr & Core::DEVICE_PAGEMASK) + size};
+        return page <= Core::DEVICE_PAGESIZE;
     }
     if (GetEntry<false>(gpu_addr) != EntryType::Mapped) {
         return false;
     }
-    const std::size_t page{(gpu_addr & Core::Memory::YUZU_PAGEMASK) + size};
-    return page <= Core::Memory::YUZU_PAGESIZE;
+    const std::size_t page{(gpu_addr & Core::DEVICE_PAGEMASK) + size};
+    return page <= Core::DEVICE_PAGESIZE;
 }
 
 bool MemoryManager::IsContinuousRange(GPUVAddr gpu_addr, std::size_t size) const {

@@ -15,6 +15,10 @@
 
 namespace Core {
 
+constexpr size_t DEVICE_PAGEBITS = 12ULL;
+constexpr size_t DEVICE_PAGESIZE = 1ULL << DEVICE_PAGEBITS;
+constexpr size_t DEVICE_PAGEMASK = DEVICE_PAGESIZE - 1ULL;
+
 class DeviceMemory;
 
 namespace Memory {

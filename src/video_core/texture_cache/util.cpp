@@ -20,7 +20,6 @@
 #include "common/div_ceil.h"
 #include "common/scratch_buffer.h"
 #include "common/settings.h"
-#include "core/memory.h"
 #include "video_core/compatible_formats.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/guest_memory.h"

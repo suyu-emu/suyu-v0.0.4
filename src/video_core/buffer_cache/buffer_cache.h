@@ -13,7 +13,7 @@
 
 namespace VideoCommon {
 
-using Core::Memory::YUZU_PAGESIZE;
+using Core::DEVICE_PAGESIZE;
 
 template <class P>
 BufferCache<P>::BufferCache(Tegra::MaxwellDeviceMemoryManager& device_memory_, Runtime& runtime_)
@@ -120,8 +120,8 @@ void BufferCache<P>::CachedWriteMemory(DAddr device_addr, u64 size) {
     if (!is_dirty) {
         return;
     }
-    DAddr aligned_start = Common::AlignDown(device_addr, YUZU_PAGESIZE);
-    DAddr aligned_end = Common::AlignUp(device_addr + size, YUZU_PAGESIZE);
+    DAddr aligned_start = Common::AlignDown(device_addr, DEVICE_PAGESIZE);
+    DAddr aligned_end = Common::AlignUp(device_addr + size, DEVICE_PAGESIZE);
     if (!IsRegionGpuModified(aligned_start, aligned_end - aligned_start)) {
         WriteMemory(device_addr, size);
         return;
@@ -151,9 +151,8 @@ std::optional<VideoCore::RasterizerDownloadArea> BufferCache<P>::GetFlushArea(DA
                                                                               u64 size) {
     std::optional<VideoCore::RasterizerDownloadArea> area{};
     area.emplace();
-    DAddr device_addr_start_aligned = Common::AlignDown(device_addr, Core::Memory::YUZU_PAGESIZE);
-    DAddr device_addr_end_aligned =
-        Common::AlignUp(device_addr + size, Core::Memory::YUZU_PAGESIZE);
+    DAddr device_addr_start_aligned = Common::AlignDown(device_addr, Core::DEVICE_PAGESIZE);
+    DAddr device_addr_end_aligned = Common::AlignUp(device_addr + size, Core::DEVICE_PAGESIZE);
     area->start_address = device_addr_start_aligned;
     area->end_address = device_addr_end_aligned;
     if (memory_tracker.IsRegionPreflushable(device_addr, size)) {
@@ -1354,10 +1353,10 @@ typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(DAddr dev
     int stream_score = 0;
     bool has_stream_leap = false;
     auto expand_begin = [&](DAddr add_value) {
-        static constexpr DAddr min_page = CACHING_PAGESIZE + Core::Memory::YUZU_PAGESIZE;
+        static constexpr DAddr min_page = CACHING_PAGESIZE + Core::DEVICE_PAGESIZE;
         if (add_value > begin - min_page) {
             begin = min_page;
-            device_addr = Core::Memory::YUZU_PAGESIZE;
+            device_addr = Core::DEVICE_PAGESIZE;
             return;
         }
         begin -= add_value;
@@ -1587,8 +1586,8 @@ bool BufferCache<P>::InlineMemory(DAddr dest_address, size_t copy_size,
     if (!is_dirty) {
         return false;
     }
-    DAddr aligned_start = Common::AlignDown(dest_address, YUZU_PAGESIZE);
-    DAddr aligned_end = Common::AlignUp(dest_address + copy_size, YUZU_PAGESIZE);
+    DAddr aligned_start = Common::AlignDown(dest_address, DEVICE_PAGESIZE);
+    DAddr aligned_end = Common::AlignUp(dest_address + copy_size, DEVICE_PAGESIZE);
     if (!IsRegionGpuModified(aligned_start, aligned_end - aligned_start)) {
         return false;
     }
@@ -1786,7 +1785,7 @@ Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index,
     ASSERT_MSG(device_addr, "Unaligned storage buffer address not found for cbuf index {}",
                cbuf_index);
     // The end address used for size calculation does not need to be aligned
-    const DAddr cpu_end = Common::AlignUp(*device_addr + size, Core::Memory::YUZU_PAGESIZE);
+    const DAddr cpu_end = Common::AlignUp(*device_addr + size, Core::DEVICE_PAGESIZE);
 
     const Binding binding{
         .device_addr = *aligned_device_addr,
