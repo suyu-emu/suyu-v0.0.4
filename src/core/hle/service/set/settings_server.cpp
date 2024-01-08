@@ -7,7 +7,7 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "core/hle/service/ipc_helpers.h"
-#include "core/hle/service/set/set.h"
+#include "core/hle/service/set/settings_server.h"
 
 namespace Service::Set {
 namespace {
@@ -58,13 +58,36 @@ LanguageCode GetLanguageCodeFromIndex(std::size_t index) {
     return available_language_codes.at(index);
 }
 
-void SET::GetAvailableLanguageCodes(HLERequestContext& ctx) {
+ISettingsServer::ISettingsServer(Core::System& system_) : ServiceFramework{system_, "set"} {
+    // clang-format off
+    static const FunctionInfo functions[] = {
+        {0, &ISettingsServer::GetLanguageCode, "GetLanguageCode"},
+        {1, &ISettingsServer::GetAvailableLanguageCodes, "GetAvailableLanguageCodes"},
+        {2, &ISettingsServer::MakeLanguageCode, "MakeLanguageCode"},
+        {3, &ISettingsServer::GetAvailableLanguageCodeCount, "GetAvailableLanguageCodeCount"},
+        {4, &ISettingsServer::GetRegionCode, "GetRegionCode"},
+        {5, &ISettingsServer::GetAvailableLanguageCodes2, "GetAvailableLanguageCodes2"},
+        {6, &ISettingsServer::GetAvailableLanguageCodeCount2, "GetAvailableLanguageCodeCount2"},
+        {7, &ISettingsServer::GetKeyCodeMap, "GetKeyCodeMap"},
+        {8, &ISettingsServer::GetQuestFlag, "GetQuestFlag"},
+        {9, &ISettingsServer::GetKeyCodeMap2, "GetKeyCodeMap2"},
+        {10, nullptr, "GetFirmwareVersionForDebug"},
+        {11, &ISettingsServer::GetDeviceNickName, "GetDeviceNickName"},
+    };
+    // clang-format on
+
+    RegisterHandlers(functions);
+}
+
+ISettingsServer::~ISettingsServer() = default;
+
+void ISettingsServer::GetAvailableLanguageCodes(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     GetAvailableLanguageCodesImpl(ctx, PRE_4_0_0_MAX_ENTRIES);
 }
 
-void SET::MakeLanguageCode(HLERequestContext& ctx) {
+void ISettingsServer::MakeLanguageCode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto index = rp.Pop<u32>();
 
@@ -80,25 +103,25 @@ void SET::MakeLanguageCode(HLERequestContext& ctx) {
     rb.PushEnum(available_language_codes[index]);
 }
 
-void SET::GetAvailableLanguageCodes2(HLERequestContext& ctx) {
+void ISettingsServer::GetAvailableLanguageCodes2(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     GetAvailableLanguageCodesImpl(ctx, POST_4_0_0_MAX_ENTRIES);
 }
 
-void SET::GetAvailableLanguageCodeCount(HLERequestContext& ctx) {
+void ISettingsServer::GetAvailableLanguageCodeCount(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     PushResponseLanguageCode(ctx, PRE_4_0_0_MAX_ENTRIES);
 }
 
-void SET::GetAvailableLanguageCodeCount2(HLERequestContext& ctx) {
+void ISettingsServer::GetAvailableLanguageCodeCount2(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     PushResponseLanguageCode(ctx, POST_4_0_0_MAX_ENTRIES);
 }
 
-void SET::GetQuestFlag(HLERequestContext& ctx) {
+void ISettingsServer::GetQuestFlag(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -106,7 +129,7 @@ void SET::GetQuestFlag(HLERequestContext& ctx) {
     rb.Push(static_cast<s32>(Settings::values.quest_flag.GetValue()));
 }
 
-void SET::GetLanguageCode(HLERequestContext& ctx) {
+void ISettingsServer::GetLanguageCode(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called {}", Settings::values.language_index.GetValue());
 
     IPC::ResponseBuilder rb{ctx, 4};
@@ -115,7 +138,7 @@ void SET::GetLanguageCode(HLERequestContext& ctx) {
         available_language_codes[static_cast<s32>(Settings::values.language_index.GetValue())]);
 }
 
-void SET::GetRegionCode(HLERequestContext& ctx) {
+void ISettingsServer::GetRegionCode(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -123,44 +146,21 @@ void SET::GetRegionCode(HLERequestContext& ctx) {
     rb.Push(static_cast<u32>(Settings::values.region_index.GetValue()));
 }
 
-void SET::GetKeyCodeMap(HLERequestContext& ctx) {
+void ISettingsServer::GetKeyCodeMap(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "Called {}", ctx.Description());
     GetKeyCodeMapImpl(ctx);
 }
 
-void SET::GetKeyCodeMap2(HLERequestContext& ctx) {
+void ISettingsServer::GetKeyCodeMap2(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "Called {}", ctx.Description());
     GetKeyCodeMapImpl(ctx);
 }
 
-void SET::GetDeviceNickName(HLERequestContext& ctx) {
+void ISettingsServer::GetDeviceNickName(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
     ctx.WriteBuffer(Settings::values.device_name.GetValue());
 }
-
-SET::SET(Core::System& system_) : ServiceFramework{system_, "set"} {
-    // clang-format off
-    static const FunctionInfo functions[] = {
-        {0, &SET::GetLanguageCode, "GetLanguageCode"},
-        {1, &SET::GetAvailableLanguageCodes, "GetAvailableLanguageCodes"},
-        {2, &SET::MakeLanguageCode, "MakeLanguageCode"},
-        {3, &SET::GetAvailableLanguageCodeCount, "GetAvailableLanguageCodeCount"},
-        {4, &SET::GetRegionCode, "GetRegionCode"},
-        {5, &SET::GetAvailableLanguageCodes2, "GetAvailableLanguageCodes2"},
-        {6, &SET::GetAvailableLanguageCodeCount2, "GetAvailableLanguageCodeCount2"},
-        {7, &SET::GetKeyCodeMap, "GetKeyCodeMap"},
-        {8, &SET::GetQuestFlag, "GetQuestFlag"},
-        {9, &SET::GetKeyCodeMap2, "GetKeyCodeMap2"},
-        {10, nullptr, "GetFirmwareVersionForDebug"},
-        {11, &SET::GetDeviceNickName, "GetDeviceNickName"},
-    };
-    // clang-format on
-
-    RegisterHandlers(functions);
-}
-
-SET::~SET() = default;
 
 } // namespace Service::Set

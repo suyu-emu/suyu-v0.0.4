@@ -708,24 +708,24 @@ add_library(core STATIC
     hle/service/server_manager.h
     hle/service/service.cpp
     hle/service/service.h
-    hle/service/set/set.cpp
-    hle/service/set/set.h
     hle/service/set/appln_settings.cpp
     hle/service/set/appln_settings.h
     hle/service/set/device_settings.cpp
     hle/service/set/device_settings.h
+    hle/service/set/factory_settings_server.cpp
+    hle/service/set/factory_settings_server.h
+    hle/service/set/firmware_debug_settings_server.cpp
+    hle/service/set/firmware_debug_settings_server.h
     hle/service/set/private_settings.cpp
     hle/service/set/private_settings.h
-    hle/service/set/set_cal.cpp
-    hle/service/set/set_cal.h
-    hle/service/set/set_fd.cpp
-    hle/service/set/set_fd.h
-    hle/service/set/set_sys.cpp
-    hle/service/set/set_sys.h
     hle/service/set/settings.cpp
     hle/service/set/settings.h
+    hle/service/set/settings_server.cpp
+    hle/service/set/settings_server.h
     hle/service/set/system_settings.cpp
     hle/service/set/system_settings.h
+    hle/service/set/system_settings_server.cpp
+    hle/service/set/system_settings_server.h
     hle/service/sm/sm.cpp
     hle/service/sm/sm.h
     hle/service/sm/sm_controller.cpp
