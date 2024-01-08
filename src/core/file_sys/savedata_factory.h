@@ -87,10 +87,13 @@ constexpr const char* GetSaveDataSizeFileName() {
     return ".yuzu_save_size";
 }
 
+using ProgramId = u64;
+
 /// File system interface to the SaveData archive
 class SaveDataFactory {
 public:
-    explicit SaveDataFactory(Core::System& system_, VirtualDir save_directory_);
+    explicit SaveDataFactory(Core::System& system_, ProgramId program_id_,
+                             VirtualDir save_directory_);
     ~SaveDataFactory();
 
     VirtualDir Create(SaveDataSpaceId space, const SaveDataAttribute& meta) const;
@@ -99,7 +102,7 @@ public:
     VirtualDir GetSaveDataSpaceDirectory(SaveDataSpaceId space) const;
 
     static std::string GetSaveDataSpaceIdPath(SaveDataSpaceId space);
-    static std::string GetFullPath(Core::System& system, VirtualDir dir, SaveDataSpaceId space,
+    static std::string GetFullPath(ProgramId program_id, VirtualDir dir, SaveDataSpaceId space,
                                    SaveDataType type, u64 title_id, u128 user_id, u64 save_id);
     static std::string GetUserGameSaveDataRoot(u128 user_id, bool future);
 
@@ -110,8 +113,9 @@ public:
     void SetAutoCreate(bool state);
 
 private:
-    VirtualDir dir;
     Core::System& system;
+    ProgramId program_id;
+    VirtualDir dir;
     bool auto_create{true};
 };
 

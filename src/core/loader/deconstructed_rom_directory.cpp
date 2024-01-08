@@ -216,20 +216,6 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
         LOG_DEBUG(Loader, "loaded module {} @ {:#X}", module, load_addr);
     }
 
-    // Find the RomFS by searching for a ".romfs" file in this directory
-    const auto& files = dir->GetFiles();
-    const auto romfs_iter =
-        std::find_if(files.begin(), files.end(), [](const FileSys::VirtualFile& f) {
-            return f->GetName().find(".romfs") != std::string::npos;
-        });
-
-    // Register the RomFS if a ".romfs" file was found
-    if (romfs_iter != files.end() && *romfs_iter != nullptr) {
-        romfs = *romfs_iter;
-        system.GetFileSystemController().RegisterRomFS(std::make_unique<FileSys::RomFSFactory>(
-            *this, system.GetContentProvider(), system.GetFileSystemController()));
-    }
-
     is_loaded = true;
     return {ResultStatus::Success,
             LoadParameters{metadata.GetMainThreadPriority(), metadata.GetMainThreadStackSize()}};

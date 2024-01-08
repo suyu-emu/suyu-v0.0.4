@@ -24,14 +24,12 @@
 #include "core/hle/service/filesystem/fsp_ldr.h"
 #include "core/hle/service/filesystem/fsp_pr.h"
 #include "core/hle/service/filesystem/fsp_srv.h"
+#include "core/hle/service/filesystem/romfs_controller.h"
+#include "core/hle/service/filesystem/save_data_controller.h"
 #include "core/hle/service/server_manager.h"
 #include "core/loader/loader.h"
 
 namespace Service::FileSystem {
-
-// A default size for normal/journal save data size if application control metadata cannot be found.
-// This should be large enough to satisfy even the most extreme requirements (~4.2GB)
-constexpr u64 SUFFICIENT_SAVE_DATA_SIZE = 0xF0000000;
 
 static FileSys::VirtualDir GetDirectoryRelativeWrapped(FileSys::VirtualDir base,
                                                        std::string_view dir_name_) {
@@ -297,145 +295,65 @@ FileSystemController::FileSystemController(Core::System& system_) : system{syste
 
 FileSystemController::~FileSystemController() = default;
 
-Result FileSystemController::RegisterRomFS(std::unique_ptr<FileSys::RomFSFactory>&& factory) {
-    romfs_factory = std::move(factory);
-    LOG_DEBUG(Service_FS, "Registered RomFS");
+Result FileSystemController::RegisterProcess(
+    ProcessId process_id, ProgramId program_id,
+    std::shared_ptr<FileSys::RomFSFactory>&& romfs_factory) {
+    std::scoped_lock lk{registration_lock};
+
+    registrations.emplace(process_id, Registration{
+                                          .program_id = program_id,
+                                          .romfs_factory = std::move(romfs_factory),
+                                          .save_data_factory = CreateSaveDataFactory(program_id),
+                                      });
+
+    LOG_DEBUG(Service_FS, "Registered for process {}", process_id);
     return ResultSuccess;
 }
 
-Result FileSystemController::RegisterSaveData(std::unique_ptr<FileSys::SaveDataFactory>&& factory) {
-    ASSERT_MSG(save_data_factory == nullptr, "Tried to register a second save data");
-    save_data_factory = std::move(factory);
-    LOG_DEBUG(Service_FS, "Registered save data");
+Result FileSystemController::OpenProcess(
+    ProgramId* out_program_id, std::shared_ptr<SaveDataController>* out_save_data_controller,
+    std::shared_ptr<RomFsController>* out_romfs_controller, ProcessId process_id) {
+    std::scoped_lock lk{registration_lock};
+
+    const auto it = registrations.find(process_id);
+    if (it == registrations.end()) {
+        return FileSys::ERROR_ENTITY_NOT_FOUND;
+    }
+
+    *out_program_id = it->second.program_id;
+    *out_save_data_controller =
+        std::make_shared<SaveDataController>(system, it->second.save_data_factory);
+    *out_romfs_controller =
+        std::make_shared<RomFsController>(it->second.romfs_factory, it->second.program_id);
     return ResultSuccess;
 }
 
-Result FileSystemController::RegisterSDMC(std::unique_ptr<FileSys::SDMCFactory>&& factory) {
-    ASSERT_MSG(sdmc_factory == nullptr, "Tried to register a second SDMC");
-    sdmc_factory = std::move(factory);
-    LOG_DEBUG(Service_FS, "Registered SDMC");
-    return ResultSuccess;
-}
-
-Result FileSystemController::RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory) {
-    ASSERT_MSG(bis_factory == nullptr, "Tried to register a second BIS");
-    bis_factory = std::move(factory);
-    LOG_DEBUG(Service_FS, "Registered BIS");
-    return ResultSuccess;
-}
-
-void FileSystemController::SetPackedUpdate(FileSys::VirtualFile update_raw) {
+void FileSystemController::SetPackedUpdate(ProcessId process_id, FileSys::VirtualFile update_raw) {
     LOG_TRACE(Service_FS, "Setting packed update for romfs");
 
-    if (romfs_factory == nullptr)
+    std::scoped_lock lk{registration_lock};
+    const auto it = registrations.find(process_id);
+    if (it == registrations.end()) {
         return;
+    }
 
-    romfs_factory->SetPackedUpdate(std::move(update_raw));
+    it->second.romfs_factory->SetPackedUpdate(std::move(update_raw));
 }
 
-FileSys::VirtualFile FileSystemController::OpenRomFSCurrentProcess() const {
-    LOG_TRACE(Service_FS, "Opening RomFS for current process");
-
-    if (romfs_factory == nullptr) {
-        return nullptr;
-    }
-
-    return romfs_factory->OpenCurrentProcess(system.GetApplicationProcessProgramID());
+std::shared_ptr<SaveDataController> FileSystemController::OpenSaveDataController() {
+    return std::make_shared<SaveDataController>(system, CreateSaveDataFactory(ProgramId{}));
 }
 
-FileSys::VirtualFile FileSystemController::OpenPatchedRomFS(u64 title_id,
-                                                            FileSys::ContentRecordType type) const {
-    LOG_TRACE(Service_FS, "Opening patched RomFS for title_id={:016X}", title_id);
+std::shared_ptr<FileSys::SaveDataFactory> FileSystemController::CreateSaveDataFactory(
+    ProgramId program_id) {
+    using YuzuPath = Common::FS::YuzuPath;
+    const auto rw_mode = FileSys::Mode::ReadWrite;
 
-    if (romfs_factory == nullptr) {
-        return nullptr;
-    }
-
-    return romfs_factory->OpenPatchedRomFS(title_id, type);
-}
-
-FileSys::VirtualFile FileSystemController::OpenPatchedRomFSWithProgramIndex(
-    u64 title_id, u8 program_index, FileSys::ContentRecordType type) const {
-    LOG_TRACE(Service_FS, "Opening patched RomFS for title_id={:016X}, program_index={}", title_id,
-              program_index);
-
-    if (romfs_factory == nullptr) {
-        return nullptr;
-    }
-
-    return romfs_factory->OpenPatchedRomFSWithProgramIndex(title_id, program_index, type);
-}
-
-FileSys::VirtualFile FileSystemController::OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
-                                                     FileSys::ContentRecordType type) const {
-    LOG_TRACE(Service_FS, "Opening RomFS for title_id={:016X}, storage_id={:02X}, type={:02X}",
-              title_id, storage_id, type);
-
-    if (romfs_factory == nullptr) {
-        return nullptr;
-    }
-
-    return romfs_factory->Open(title_id, storage_id, type);
-}
-
-std::shared_ptr<FileSys::NCA> FileSystemController::OpenBaseNca(
-    u64 title_id, FileSys::StorageId storage_id, FileSys::ContentRecordType type) const {
-    return romfs_factory->GetEntry(title_id, storage_id, type);
-}
-
-Result FileSystemController::CreateSaveData(FileSys::VirtualDir* out_save_data,
-                                            FileSys::SaveDataSpaceId space,
-                                            const FileSys::SaveDataAttribute& save_struct) const {
-    LOG_TRACE(Service_FS, "Creating Save Data for space_id={:01X}, save_struct={}", space,
-              save_struct.DebugInfo());
-
-    if (save_data_factory == nullptr) {
-        return FileSys::ERROR_ENTITY_NOT_FOUND;
-    }
-
-    auto save_data = save_data_factory->Create(space, save_struct);
-    if (save_data == nullptr) {
-        return FileSys::ERROR_ENTITY_NOT_FOUND;
-    }
-
-    *out_save_data = save_data;
-    return ResultSuccess;
-}
-
-Result FileSystemController::OpenSaveData(FileSys::VirtualDir* out_save_data,
-                                          FileSys::SaveDataSpaceId space,
-                                          const FileSys::SaveDataAttribute& attribute) const {
-    LOG_TRACE(Service_FS, "Opening Save Data for space_id={:01X}, save_struct={}", space,
-              attribute.DebugInfo());
-
-    if (save_data_factory == nullptr) {
-        return FileSys::ERROR_ENTITY_NOT_FOUND;
-    }
-
-    auto save_data = save_data_factory->Open(space, attribute);
-    if (save_data == nullptr) {
-        return FileSys::ERROR_ENTITY_NOT_FOUND;
-    }
-
-    *out_save_data = save_data;
-    return ResultSuccess;
-}
-
-Result FileSystemController::OpenSaveDataSpace(FileSys::VirtualDir* out_save_data_space,
-                                               FileSys::SaveDataSpaceId space) const {
-    LOG_TRACE(Service_FS, "Opening Save Data Space for space_id={:01X}", space);
-
-    if (save_data_factory == nullptr) {
-        return FileSys::ERROR_ENTITY_NOT_FOUND;
-    }
-
-    auto save_data_space = save_data_factory->GetSaveDataSpaceDirectory(space);
-    if (save_data_space == nullptr) {
-        return FileSys::ERROR_ENTITY_NOT_FOUND;
-    }
-
-    *out_save_data_space = save_data_space;
-    return ResultSuccess;
+    auto vfs = system.GetFilesystem();
+    const auto nand_directory =
+        vfs->OpenDirectory(Common::FS::GetYuzuPathString(YuzuPath::NANDDir), rw_mode);
+    return std::make_shared<FileSys::SaveDataFactory>(system, program_id,
+                                                      std::move(nand_directory));
 }
 
 Result FileSystemController::OpenSDMC(FileSys::VirtualDir* out_sdmc) const {
@@ -538,48 +456,6 @@ u64 FileSystemController::GetTotalSpaceSize(FileSys::StorageId id) const {
     }
 
     return 0;
-}
-
-FileSys::SaveDataSize FileSystemController::ReadSaveDataSize(FileSys::SaveDataType type,
-                                                             u64 title_id, u128 user_id) const {
-    if (save_data_factory == nullptr) {
-        return {0, 0};
-    }
-
-    const auto value = save_data_factory->ReadSaveDataSize(type, title_id, user_id);
-
-    if (value.normal == 0 && value.journal == 0) {
-        FileSys::SaveDataSize new_size{SUFFICIENT_SAVE_DATA_SIZE, SUFFICIENT_SAVE_DATA_SIZE};
-
-        FileSys::NACP nacp;
-        const auto res = system.GetAppLoader().ReadControlData(nacp);
-
-        if (res != Loader::ResultStatus::Success) {
-            const FileSys::PatchManager pm{system.GetApplicationProcessProgramID(),
-                                           system.GetFileSystemController(),
-                                           system.GetContentProvider()};
-            const auto metadata = pm.GetControlMetadata();
-            const auto& nacp_unique = metadata.first;
-
-            if (nacp_unique != nullptr) {
-                new_size = {nacp_unique->GetDefaultNormalSaveSize(),
-                            nacp_unique->GetDefaultJournalSaveSize()};
-            }
-        } else {
-            new_size = {nacp.GetDefaultNormalSaveSize(), nacp.GetDefaultJournalSaveSize()};
-        }
-
-        WriteSaveDataSize(type, title_id, user_id, new_size);
-        return new_size;
-    }
-
-    return value;
-}
-
-void FileSystemController::WriteSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id,
-                                             FileSys::SaveDataSize new_value) const {
-    if (save_data_factory != nullptr)
-        save_data_factory->WriteSaveDataSize(type, title_id, user_id, new_value);
 }
 
 void FileSystemController::SetGameCard(FileSys::VirtualFile file) {
@@ -801,14 +677,9 @@ FileSys::VirtualDir FileSystemController::GetBCATDirectory(u64 title_id) const {
     return bis_factory->GetBCATDirectory(title_id);
 }
 
-void FileSystemController::SetAutoSaveDataCreation(bool enable) {
-    save_data_factory->SetAutoCreate(enable);
-}
-
 void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite) {
     if (overwrite) {
         bis_factory = nullptr;
-        save_data_factory = nullptr;
         sdmc_factory = nullptr;
     }
 
@@ -836,11 +707,6 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
                                        bis_factory->GetUserNANDContents());
     }
 
-    if (save_data_factory == nullptr) {
-        save_data_factory =
-            std::make_unique<FileSys::SaveDataFactory>(system, std::move(nand_directory));
-    }
-
     if (sdmc_factory == nullptr) {
         sdmc_factory = std::make_unique<FileSys::SDMCFactory>(std::move(sd_directory),
                                                               std::move(sd_load_directory));
@@ -849,12 +715,19 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
     }
 }
 
+void FileSystemController::Reset() {
+    std::scoped_lock lk{registration_lock};
+    registrations.clear();
+}
+
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
+    const auto FileSystemProxyFactory = [&] { return std::make_shared<FSP_SRV>(system); };
+
     server_manager->RegisterNamedService("fsp-ldr", std::make_shared<FSP_LDR>(system));
     server_manager->RegisterNamedService("fsp:pr", std::make_shared<FSP_PR>(system));
-    server_manager->RegisterNamedService("fsp-srv", std::make_shared<FSP_SRV>(system));
+    server_manager->RegisterNamedService("fsp-srv", std::move(FileSystemProxyFactory));
     ServerManager::RunServer(std::move(server_manager));
 }
 
