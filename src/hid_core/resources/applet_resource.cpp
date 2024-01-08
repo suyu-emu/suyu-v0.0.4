@@ -130,6 +130,7 @@ void AppletResource::FreeAppletResourceId(u64 aruid) {
     if (aruid_data.flag.is_assigned) {
         aruid_data.shared_memory_format = nullptr;
         aruid_data.flag.is_assigned.Assign(false);
+        shared_memory_holder[index].Finalize();
     }
 }
 
