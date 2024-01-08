@@ -19,7 +19,7 @@ namespace Service::NFP::AmiiboCrypto {
 bool IsAmiiboValid(const EncryptedNTAG215File& ntag_file) {
     const auto& amiibo_data = ntag_file.user_memory;
     LOG_DEBUG(Service_NFP, "uuid_lock=0x{0:x}", ntag_file.static_lock);
-    LOG_DEBUG(Service_NFP, "compability_container=0x{0:x}", ntag_file.compability_container);
+    LOG_DEBUG(Service_NFP, "compatibility_container=0x{0:x}", ntag_file.compatibility_container);
     LOG_DEBUG(Service_NFP, "write_count={}", static_cast<u16>(amiibo_data.write_counter));
 
     LOG_DEBUG(Service_NFP, "character_id=0x{0:x}", amiibo_data.model_info.character_id);
@@ -49,7 +49,7 @@ bool IsAmiiboValid(const EncryptedNTAG215File& ntag_file) {
     if (ntag_file.static_lock != 0xE00F) {
         return false;
     }
-    if (ntag_file.compability_container != 0xEEFF10F1U) {
+    if (ntag_file.compatibility_container != 0xEEFF10F1U) {
         return false;
     }
     if (amiibo_data.model_info.tag_type != NFC::PackedTagType::Type2) {
@@ -78,7 +78,7 @@ NTAG215File NfcDataToEncodedData(const EncryptedNTAG215File& nfc_data) {
     encoded_data.uid_crc_check2 = nfc_data.uuid_crc_check2;
     encoded_data.internal_number = nfc_data.internal_number;
     encoded_data.static_lock = nfc_data.static_lock;
-    encoded_data.compability_container = nfc_data.compability_container;
+    encoded_data.compatibility_container = nfc_data.compatibility_container;
     encoded_data.hmac_data = nfc_data.user_memory.hmac_data;
     encoded_data.constant_value = nfc_data.user_memory.constant_value;
     encoded_data.write_counter = nfc_data.user_memory.write_counter;
@@ -112,7 +112,7 @@ EncryptedNTAG215File EncodedDataToNfcData(const NTAG215File& encoded_data) {
     nfc_data.uuid_crc_check2 = encoded_data.uid_crc_check2;
     nfc_data.internal_number = encoded_data.internal_number;
     nfc_data.static_lock = encoded_data.static_lock;
-    nfc_data.compability_container = encoded_data.compability_container;
+    nfc_data.compatibility_container = encoded_data.compatibility_container;
     nfc_data.user_memory.hmac_data = encoded_data.hmac_data;
     nfc_data.user_memory.constant_value = encoded_data.constant_value;
     nfc_data.user_memory.write_counter = encoded_data.write_counter;
@@ -257,7 +257,7 @@ void Cipher(const DerivedKeys& keys, const NTAG215File& in_data, NTAG215File& ou
     out_data.uid_crc_check2 = in_data.uid_crc_check2;
     out_data.internal_number = in_data.internal_number;
     out_data.static_lock = in_data.static_lock;
-    out_data.compability_container = in_data.compability_container;
+    out_data.compatibility_container = in_data.compatibility_container;
 
     out_data.constant_value = in_data.constant_value;
     out_data.write_counter = in_data.write_counter;

@@ -721,10 +721,10 @@ void ISystemSettingsServer::SetTvSettings(HLERequestContext& ctx) {
     SetSaveNeeded();
 
     LOG_INFO(Service_SET,
-             "called, flags={}, cmu_mode={}, constrast_ratio={}, hdmi_content_type={}, "
+             "called, flags={}, cmu_mode={}, contrast_ratio={}, hdmi_content_type={}, "
              "rgb_range={}, tv_gama={}, tv_resolution={}, tv_underscan={}",
              m_system_settings.tv_settings.flags.raw, m_system_settings.tv_settings.cmu_mode,
-             m_system_settings.tv_settings.constrast_ratio,
+             m_system_settings.tv_settings.contrast_ratio,
              m_system_settings.tv_settings.hdmi_content_type,
              m_system_settings.tv_settings.rgb_range, m_system_settings.tv_settings.tv_gama,
              m_system_settings.tv_settings.tv_resolution,
@@ -870,10 +870,10 @@ void ISystemSettingsServer::GetInitialLaunchSettings(HLERequestContext& ctx) {
 
 void ISystemSettingsServer::SetInitialLaunchSettings(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    auto inital_launch_settings = rp.PopRaw<InitialLaunchSettings>();
+    auto initial_launch_settings = rp.PopRaw<InitialLaunchSettings>();
 
-    m_system_settings.initial_launch_settings_packed.flags = inital_launch_settings.flags;
-    m_system_settings.initial_launch_settings_packed.timestamp = inital_launch_settings.timestamp;
+    m_system_settings.initial_launch_settings_packed.flags = initial_launch_settings.flags;
+    m_system_settings.initial_launch_settings_packed.timestamp = initial_launch_settings.timestamp;
     SetSaveNeeded();
 
     LOG_INFO(Service_SET, "called, flags={}, timestamp={}",

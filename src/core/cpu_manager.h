@@ -64,7 +64,7 @@ public:
         return [this] { ShutdownThreadFunction(); };
     }
 
-    void PreemptSingleCore(bool from_running_enviroment = true);
+    void PreemptSingleCore(bool from_running_environment = true);
 
     std::size_t CurrentCore() const {
         return current_core.load();

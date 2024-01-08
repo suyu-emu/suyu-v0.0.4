@@ -90,7 +90,7 @@ private:
             u64_le align;
         };
     };
-    static_assert(sizeof(IoctlAllocSpace) == 24, "IoctlInitalizeEx is incorrect size");
+    static_assert(sizeof(IoctlAllocSpace) == 24, "IoctlInitializeEx is incorrect size");
 
     struct IoctlFreeSpace {
         u64_le offset{};

@@ -232,19 +232,19 @@ public:
     }
 
     [[nodiscard]] const std::vector<IPC::BufferDescriptorX>& BufferDescriptorX() const {
-        return buffer_x_desciptors;
+        return buffer_x_descriptors;
     }
 
     [[nodiscard]] const std::vector<IPC::BufferDescriptorABW>& BufferDescriptorA() const {
-        return buffer_a_desciptors;
+        return buffer_a_descriptors;
     }
 
     [[nodiscard]] const std::vector<IPC::BufferDescriptorABW>& BufferDescriptorB() const {
-        return buffer_b_desciptors;
+        return buffer_b_descriptors;
     }
 
     [[nodiscard]] const std::vector<IPC::BufferDescriptorC>& BufferDescriptorC() const {
-        return buffer_c_desciptors;
+        return buffer_c_descriptors;
     }
 
     [[nodiscard]] const IPC::DomainMessageHeader& GetDomainMessageHeader() const {
@@ -406,11 +406,11 @@ private:
     std::optional<IPC::HandleDescriptorHeader> handle_descriptor_header;
     std::optional<IPC::DataPayloadHeader> data_payload_header;
     std::optional<IPC::DomainMessageHeader> domain_message_header;
-    std::vector<IPC::BufferDescriptorX> buffer_x_desciptors;
-    std::vector<IPC::BufferDescriptorABW> buffer_a_desciptors;
-    std::vector<IPC::BufferDescriptorABW> buffer_b_desciptors;
-    std::vector<IPC::BufferDescriptorABW> buffer_w_desciptors;
-    std::vector<IPC::BufferDescriptorC> buffer_c_desciptors;
+    std::vector<IPC::BufferDescriptorX> buffer_x_descriptors;
+    std::vector<IPC::BufferDescriptorABW> buffer_a_descriptors;
+    std::vector<IPC::BufferDescriptorABW> buffer_b_descriptors;
+    std::vector<IPC::BufferDescriptorABW> buffer_w_descriptors;
+    std::vector<IPC::BufferDescriptorC> buffer_c_descriptors;
 
     u32_le command{};
     u64 pid{};

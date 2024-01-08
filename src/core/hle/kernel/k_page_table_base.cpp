@@ -486,8 +486,8 @@ KProcessAddress KPageTableBase::GetRegionAddress(Svc::MemoryState state) const {
     case Svc::MemoryState::Shared:
     case Svc::MemoryState::AliasCode:
     case Svc::MemoryState::AliasCodeData:
-    case Svc::MemoryState::Transfered:
-    case Svc::MemoryState::SharedTransfered:
+    case Svc::MemoryState::Transferred:
+    case Svc::MemoryState::SharedTransferred:
     case Svc::MemoryState::SharedCode:
     case Svc::MemoryState::GeneratedCode:
     case Svc::MemoryState::CodeOut:
@@ -522,8 +522,8 @@ size_t KPageTableBase::GetRegionSize(Svc::MemoryState state) const {
     case Svc::MemoryState::Shared:
     case Svc::MemoryState::AliasCode:
     case Svc::MemoryState::AliasCodeData:
-    case Svc::MemoryState::Transfered:
-    case Svc::MemoryState::SharedTransfered:
+    case Svc::MemoryState::Transferred:
+    case Svc::MemoryState::SharedTransferred:
     case Svc::MemoryState::SharedCode:
     case Svc::MemoryState::GeneratedCode:
     case Svc::MemoryState::CodeOut:
@@ -564,8 +564,8 @@ bool KPageTableBase::CanContain(KProcessAddress addr, size_t size, Svc::MemorySt
     case Svc::MemoryState::AliasCodeData:
     case Svc::MemoryState::Stack:
     case Svc::MemoryState::ThreadLocal:
-    case Svc::MemoryState::Transfered:
-    case Svc::MemoryState::SharedTransfered:
+    case Svc::MemoryState::Transferred:
+    case Svc::MemoryState::SharedTransferred:
     case Svc::MemoryState::SharedCode:
     case Svc::MemoryState::GeneratedCode:
     case Svc::MemoryState::CodeOut:

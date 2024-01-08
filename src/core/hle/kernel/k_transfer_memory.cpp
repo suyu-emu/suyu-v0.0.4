@@ -76,8 +76,8 @@ Result KTransferMemory::Map(KProcessAddress address, size_t size, Svc::MemoryPer
 
     // Map the memory.
     const KMemoryState state = (m_owner_perm == Svc::MemoryPermission::None)
-                                   ? KMemoryState::Transfered
-                                   : KMemoryState::SharedTransfered;
+                                   ? KMemoryState::Transferred
+                                   : KMemoryState::SharedTransferred;
     R_TRY(GetCurrentProcess(m_kernel).GetPageTable().MapPageGroup(
         address, *m_page_group, state, KMemoryPermission::UserReadWrite));
 
@@ -96,8 +96,8 @@ Result KTransferMemory::Unmap(KProcessAddress address, size_t size) {
 
     // Unmap the memory.
     const KMemoryState state = (m_owner_perm == Svc::MemoryPermission::None)
-                                   ? KMemoryState::Transfered
-                                   : KMemoryState::SharedTransfered;
+                                   ? KMemoryState::Transferred
+                                   : KMemoryState::SharedTransferred;
     R_TRY(GetCurrentProcess(m_kernel).GetPageTable().UnmapPageGroup(address, *m_page_group, state));
 
     // Mark ourselves as unmapped.

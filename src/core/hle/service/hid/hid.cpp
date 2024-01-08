@@ -18,23 +18,23 @@ namespace Service::HID {
 
 void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
-    std::shared_ptr<ResourceManager> resouce_manager = std::make_shared<ResourceManager>(system);
+    std::shared_ptr<ResourceManager> resource_manager = std::make_shared<ResourceManager>(system);
     std::shared_ptr<HidFirmwareSettings> firmware_settings =
         std::make_shared<HidFirmwareSettings>();
 
     // TODO: Remove this hack until this service is emulated properly.
     const auto process_list = system.Kernel().GetProcessList();
     if (!process_list.empty()) {
-        resouce_manager->Initialize();
-        resouce_manager->RegisterAppletResourceUserId(process_list[0]->GetId(), true);
+        resource_manager->Initialize();
+        resource_manager->RegisterAppletResourceUserId(process_list[0]->GetId(), true);
     }
 
     server_manager->RegisterNamedService(
-        "hid", std::make_shared<IHidServer>(system, resouce_manager, firmware_settings));
+        "hid", std::make_shared<IHidServer>(system, resource_manager, firmware_settings));
     server_manager->RegisterNamedService(
-        "hid:dbg", std::make_shared<IHidDebugServer>(system, resouce_manager));
+        "hid:dbg", std::make_shared<IHidDebugServer>(system, resource_manager));
     server_manager->RegisterNamedService(
-        "hid:sys", std::make_shared<IHidSystemServer>(system, resouce_manager));
+        "hid:sys", std::make_shared<IHidSystemServer>(system, resource_manager));
 
     server_manager->RegisterNamedService("hidbus", std::make_shared<HidBus>(system));
 

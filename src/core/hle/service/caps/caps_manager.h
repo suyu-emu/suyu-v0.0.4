@@ -45,10 +45,10 @@ public:
     Result GetAlbumFileList(std::vector<AlbumEntry>& out_entries, AlbumStorage storage,
                             u8 flags) const;
     Result GetAlbumFileList(std::vector<ApplicationAlbumFileEntry>& out_entries,
-                            ContentType contex_type, s64 start_posix_time, s64 end_posix_time,
+                            ContentType content_type, s64 start_posix_time, s64 end_posix_time,
                             u64 aruid) const;
     Result GetAlbumFileList(std::vector<ApplicationAlbumEntry>& out_entries,
-                            ContentType contex_type, AlbumFileDateTime start_date,
+                            ContentType content_type, AlbumFileDateTime start_date,
                             AlbumFileDateTime end_date, u64 aruid) const;
     Result GetAutoSavingStorage(bool& out_is_autosaving) const;
     Result LoadAlbumScreenShotImage(LoadAlbumScreenShotImageOutput& out_image_output,
