@@ -73,10 +73,10 @@ static constexpr std::array<std::pair<LanguageCode, KeyboardLayout>, 18> languag
 
 LanguageCode GetLanguageCodeFromIndex(std::size_t idx);
 
-class SET final : public ServiceFramework<SET> {
+class ISettingsServer final : public ServiceFramework<ISettingsServer> {
 public:
-    explicit SET(Core::System& system_);
-    ~SET() override;
+    explicit ISettingsServer(Core::System& system_);
+    ~ISettingsServer() override;
 
 private:
     void GetLanguageCode(HLERequestContext& ctx);

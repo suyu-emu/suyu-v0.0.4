@@ -19,8 +19,8 @@
 #include "core/file_sys/system_archive/system_archive.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ipc_helpers.h"
-#include "core/hle/service/set/set.h"
-#include "core/hle/service/set/set_sys.h"
+#include "core/hle/service/set/settings_server.h"
+#include "core/hle/service/set/system_settings_server.h"
 
 namespace Service::Set {
 
@@ -87,7 +87,234 @@ Result GetFirmwareVersionImpl(FirmwareVersionFormat& out_firmware, Core::System&
     return ResultSuccess;
 }
 
-bool SET_SYS::LoadSettingsFile(std::filesystem::path& path, auto&& default_func) {
+ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
+    : ServiceFramework{system_, "set:sys"}, m_system{system} {
+    // clang-format off
+    static const FunctionInfo functions[] = {
+        {0, &ISystemSettingsServer::SetLanguageCode, "SetLanguageCode"},
+        {1, nullptr, "SetNetworkSettings"},
+        {2, nullptr, "GetNetworkSettings"},
+        {3, &ISystemSettingsServer::GetFirmwareVersion, "GetFirmwareVersion"},
+        {4, &ISystemSettingsServer::GetFirmwareVersion2, "GetFirmwareVersion2"},
+        {5, nullptr, "GetFirmwareVersionDigest"},
+        {7, nullptr, "GetLockScreenFlag"},
+        {8, nullptr, "SetLockScreenFlag"},
+        {9, nullptr, "GetBacklightSettings"},
+        {10, nullptr, "SetBacklightSettings"},
+        {11, nullptr, "SetBluetoothDevicesSettings"},
+        {12, nullptr, "GetBluetoothDevicesSettings"},
+        {13, &ISystemSettingsServer::GetExternalSteadyClockSourceId, "GetExternalSteadyClockSourceId"},
+        {14, &ISystemSettingsServer::SetExternalSteadyClockSourceId, "SetExternalSteadyClockSourceId"},
+        {15, &ISystemSettingsServer::GetUserSystemClockContext, "GetUserSystemClockContext"},
+        {16, &ISystemSettingsServer::SetUserSystemClockContext, "SetUserSystemClockContext"},
+        {17, &ISystemSettingsServer::GetAccountSettings, "GetAccountSettings"},
+        {18, &ISystemSettingsServer::SetAccountSettings, "SetAccountSettings"},
+        {19, nullptr, "GetAudioVolume"},
+        {20, nullptr, "SetAudioVolume"},
+        {21, &ISystemSettingsServer::GetEulaVersions, "GetEulaVersions"},
+        {22, &ISystemSettingsServer::SetEulaVersions, "SetEulaVersions"},
+        {23, &ISystemSettingsServer::GetColorSetId, "GetColorSetId"},
+        {24, &ISystemSettingsServer::SetColorSetId, "SetColorSetId"},
+        {25, nullptr, "GetConsoleInformationUploadFlag"},
+        {26, nullptr, "SetConsoleInformationUploadFlag"},
+        {27, nullptr, "GetAutomaticApplicationDownloadFlag"},
+        {28, nullptr, "SetAutomaticApplicationDownloadFlag"},
+        {29, &ISystemSettingsServer::GetNotificationSettings, "GetNotificationSettings"},
+        {30, &ISystemSettingsServer::SetNotificationSettings, "SetNotificationSettings"},
+        {31, &ISystemSettingsServer::GetAccountNotificationSettings, "GetAccountNotificationSettings"},
+        {32, &ISystemSettingsServer::SetAccountNotificationSettings, "SetAccountNotificationSettings"},
+        {35, nullptr, "GetVibrationMasterVolume"},
+        {36, nullptr, "SetVibrationMasterVolume"},
+        {37, &ISystemSettingsServer::GetSettingsItemValueSize, "GetSettingsItemValueSize"},
+        {38, &ISystemSettingsServer::GetSettingsItemValue, "GetSettingsItemValue"},
+        {39, &ISystemSettingsServer::GetTvSettings, "GetTvSettings"},
+        {40, &ISystemSettingsServer::SetTvSettings, "SetTvSettings"},
+        {41, nullptr, "GetEdid"},
+        {42, nullptr, "SetEdid"},
+        {43, nullptr, "GetAudioOutputMode"},
+        {44, nullptr, "SetAudioOutputMode"},
+        {45, nullptr, "IsForceMuteOnHeadphoneRemoved"},
+        {46, nullptr, "SetForceMuteOnHeadphoneRemoved"},
+        {47, &ISystemSettingsServer::GetQuestFlag, "GetQuestFlag"},
+        {48, nullptr, "SetQuestFlag"},
+        {49, nullptr, "GetDataDeletionSettings"},
+        {50, nullptr, "SetDataDeletionSettings"},
+        {51, nullptr, "GetInitialSystemAppletProgramId"},
+        {52, nullptr, "GetOverlayDispProgramId"},
+        {53, &ISystemSettingsServer::GetDeviceTimeZoneLocationName, "GetDeviceTimeZoneLocationName"},
+        {54, &ISystemSettingsServer::SetDeviceTimeZoneLocationName, "SetDeviceTimeZoneLocationName"},
+        {55, nullptr, "GetWirelessCertificationFileSize"},
+        {56, nullptr, "GetWirelessCertificationFile"},
+        {57, &ISystemSettingsServer::SetRegionCode, "SetRegionCode"},
+        {58, &ISystemSettingsServer::GetNetworkSystemClockContext, "GetNetworkSystemClockContext"},
+        {59, &ISystemSettingsServer::SetNetworkSystemClockContext, "SetNetworkSystemClockContext"},
+        {60, &ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled, "IsUserSystemClockAutomaticCorrectionEnabled"},
+        {61, &ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionEnabled, "SetUserSystemClockAutomaticCorrectionEnabled"},
+        {62, &ISystemSettingsServer::GetDebugModeFlag, "GetDebugModeFlag"},
+        {63, &ISystemSettingsServer::GetPrimaryAlbumStorage, "GetPrimaryAlbumStorage"},
+        {64, nullptr, "SetPrimaryAlbumStorage"},
+        {65, nullptr, "GetUsb30EnableFlag"},
+        {66, nullptr, "SetUsb30EnableFlag"},
+        {67, nullptr, "GetBatteryLot"},
+        {68, nullptr, "GetSerialNumber"},
+        {69, nullptr, "GetNfcEnableFlag"},
+        {70, nullptr, "SetNfcEnableFlag"},
+        {71, &ISystemSettingsServer::GetSleepSettings, "GetSleepSettings"},
+        {72, &ISystemSettingsServer::SetSleepSettings, "SetSleepSettings"},
+        {73, nullptr, "GetWirelessLanEnableFlag"},
+        {74, nullptr, "SetWirelessLanEnableFlag"},
+        {75, &ISystemSettingsServer::GetInitialLaunchSettings, "GetInitialLaunchSettings"},
+        {76, &ISystemSettingsServer::SetInitialLaunchSettings, "SetInitialLaunchSettings"},
+        {77, &ISystemSettingsServer::GetDeviceNickName, "GetDeviceNickName"},
+        {78, &ISystemSettingsServer::SetDeviceNickName, "SetDeviceNickName"},
+        {79, &ISystemSettingsServer::GetProductModel, "GetProductModel"},
+        {80, nullptr, "GetLdnChannel"},
+        {81, nullptr, "SetLdnChannel"},
+        {82, nullptr, "AcquireTelemetryDirtyFlagEventHandle"},
+        {83, nullptr, "GetTelemetryDirtyFlags"},
+        {84, nullptr, "GetPtmBatteryLot"},
+        {85, nullptr, "SetPtmBatteryLot"},
+        {86, nullptr, "GetPtmFuelGaugeParameter"},
+        {87, nullptr, "SetPtmFuelGaugeParameter"},
+        {88, nullptr, "GetBluetoothEnableFlag"},
+        {89, nullptr, "SetBluetoothEnableFlag"},
+        {90, &ISystemSettingsServer::GetMiiAuthorId, "GetMiiAuthorId"},
+        {91, nullptr, "SetShutdownRtcValue"},
+        {92, nullptr, "GetShutdownRtcValue"},
+        {93, nullptr, "AcquireFatalDirtyFlagEventHandle"},
+        {94, nullptr, "GetFatalDirtyFlags"},
+        {95, &ISystemSettingsServer::GetAutoUpdateEnableFlag, "GetAutoUpdateEnableFlag"},
+        {96, nullptr, "SetAutoUpdateEnableFlag"},
+        {97, nullptr, "GetNxControllerSettings"},
+        {98, nullptr, "SetNxControllerSettings"},
+        {99, &ISystemSettingsServer::GetBatteryPercentageFlag, "GetBatteryPercentageFlag"},
+        {100, nullptr, "SetBatteryPercentageFlag"},
+        {101, nullptr, "GetExternalRtcResetFlag"},
+        {102, nullptr, "SetExternalRtcResetFlag"},
+        {103, nullptr, "GetUsbFullKeyEnableFlag"},
+        {104, nullptr, "SetUsbFullKeyEnableFlag"},
+        {105, &ISystemSettingsServer::SetExternalSteadyClockInternalOffset, "SetExternalSteadyClockInternalOffset"},
+        {106, &ISystemSettingsServer::GetExternalSteadyClockInternalOffset, "GetExternalSteadyClockInternalOffset"},
+        {107, nullptr, "GetBacklightSettingsEx"},
+        {108, nullptr, "SetBacklightSettingsEx"},
+        {109, nullptr, "GetHeadphoneVolumeWarningCount"},
+        {110, nullptr, "SetHeadphoneVolumeWarningCount"},
+        {111, nullptr, "GetBluetoothAfhEnableFlag"},
+        {112, nullptr, "SetBluetoothAfhEnableFlag"},
+        {113, nullptr, "GetBluetoothBoostEnableFlag"},
+        {114, nullptr, "SetBluetoothBoostEnableFlag"},
+        {115, nullptr, "GetInRepairProcessEnableFlag"},
+        {116, nullptr, "SetInRepairProcessEnableFlag"},
+        {117, nullptr, "GetHeadphoneVolumeUpdateFlag"},
+        {118, nullptr, "SetHeadphoneVolumeUpdateFlag"},
+        {119, nullptr, "NeedsToUpdateHeadphoneVolume"},
+        {120, nullptr, "GetPushNotificationActivityModeOnSleep"},
+        {121, nullptr, "SetPushNotificationActivityModeOnSleep"},
+        {122, nullptr, "GetServiceDiscoveryControlSettings"},
+        {123, nullptr, "SetServiceDiscoveryControlSettings"},
+        {124, &ISystemSettingsServer::GetErrorReportSharePermission, "GetErrorReportSharePermission"},
+        {125, nullptr, "SetErrorReportSharePermission"},
+        {126, &ISystemSettingsServer::GetAppletLaunchFlags, "GetAppletLaunchFlags"},
+        {127, &ISystemSettingsServer::SetAppletLaunchFlags, "SetAppletLaunchFlags"},
+        {128, nullptr, "GetConsoleSixAxisSensorAccelerationBias"},
+        {129, nullptr, "SetConsoleSixAxisSensorAccelerationBias"},
+        {130, nullptr, "GetConsoleSixAxisSensorAngularVelocityBias"},
+        {131, nullptr, "SetConsoleSixAxisSensorAngularVelocityBias"},
+        {132, nullptr, "GetConsoleSixAxisSensorAccelerationGain"},
+        {133, nullptr, "SetConsoleSixAxisSensorAccelerationGain"},
+        {134, nullptr, "GetConsoleSixAxisSensorAngularVelocityGain"},
+        {135, nullptr, "SetConsoleSixAxisSensorAngularVelocityGain"},
+        {136, &ISystemSettingsServer::GetKeyboardLayout, "GetKeyboardLayout"},
+        {137, nullptr, "SetKeyboardLayout"},
+        {138, nullptr, "GetWebInspectorFlag"},
+        {139, nullptr, "GetAllowedSslHosts"},
+        {140, nullptr, "GetHostFsMountPoint"},
+        {141, nullptr, "GetRequiresRunRepairTimeReviser"},
+        {142, nullptr, "SetRequiresRunRepairTimeReviser"},
+        {143, nullptr, "SetBlePairingSettings"},
+        {144, nullptr, "GetBlePairingSettings"},
+        {145, nullptr, "GetConsoleSixAxisSensorAngularVelocityTimeBias"},
+        {146, nullptr, "SetConsoleSixAxisSensorAngularVelocityTimeBias"},
+        {147, nullptr, "GetConsoleSixAxisSensorAngularAcceleration"},
+        {148, nullptr, "SetConsoleSixAxisSensorAngularAcceleration"},
+        {149, nullptr, "GetRebootlessSystemUpdateVersion"},
+        {150, &ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime, "GetDeviceTimeZoneLocationUpdatedTime"},
+        {151, &ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime, "SetDeviceTimeZoneLocationUpdatedTime"},
+        {152, &ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime, "GetUserSystemClockAutomaticCorrectionUpdatedTime"},
+        {153, &ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime, "SetUserSystemClockAutomaticCorrectionUpdatedTime"},
+        {154, nullptr, "GetAccountOnlineStorageSettings"},
+        {155, nullptr, "SetAccountOnlineStorageSettings"},
+        {156, nullptr, "GetPctlReadyFlag"},
+        {157, nullptr, "SetPctlReadyFlag"},
+        {158, nullptr, "GetAnalogStickUserCalibrationL"},
+        {159, nullptr, "SetAnalogStickUserCalibrationL"},
+        {160, nullptr, "GetAnalogStickUserCalibrationR"},
+        {161, nullptr, "SetAnalogStickUserCalibrationR"},
+        {162, nullptr, "GetPtmBatteryVersion"},
+        {163, nullptr, "SetPtmBatteryVersion"},
+        {164, nullptr, "GetUsb30HostEnableFlag"},
+        {165, nullptr, "SetUsb30HostEnableFlag"},
+        {166, nullptr, "GetUsb30DeviceEnableFlag"},
+        {167, nullptr, "SetUsb30DeviceEnableFlag"},
+        {168, nullptr, "GetThemeId"},
+        {169, nullptr, "SetThemeId"},
+        {170, &ISystemSettingsServer::GetChineseTraditionalInputMethod, "GetChineseTraditionalInputMethod"},
+        {171, nullptr, "SetChineseTraditionalInputMethod"},
+        {172, nullptr, "GetPtmCycleCountReliability"},
+        {173, nullptr, "SetPtmCycleCountReliability"},
+        {174, &ISystemSettingsServer::GetHomeMenuScheme, "GetHomeMenuScheme"},
+        {175, nullptr, "GetThemeSettings"},
+        {176, nullptr, "SetThemeSettings"},
+        {177, nullptr, "GetThemeKey"},
+        {178, nullptr, "SetThemeKey"},
+        {179, nullptr, "GetZoomFlag"},
+        {180, nullptr, "SetZoomFlag"},
+        {181, nullptr, "GetT"},
+        {182, nullptr, "SetT"},
+        {183, nullptr, "GetPlatformRegion"},
+        {184, nullptr, "SetPlatformRegion"},
+        {185, &ISystemSettingsServer::GetHomeMenuSchemeModel, "GetHomeMenuSchemeModel"},
+        {186, nullptr, "GetMemoryUsageRateFlag"},
+        {187, nullptr, "GetTouchScreenMode"},
+        {188, nullptr, "SetTouchScreenMode"},
+        {189, nullptr, "GetButtonConfigSettingsFull"},
+        {190, nullptr, "SetButtonConfigSettingsFull"},
+        {191, nullptr, "GetButtonConfigSettingsEmbedded"},
+        {192, nullptr, "SetButtonConfigSettingsEmbedded"},
+        {193, nullptr, "GetButtonConfigSettingsLeft"},
+        {194, nullptr, "SetButtonConfigSettingsLeft"},
+        {195, nullptr, "GetButtonConfigSettingsRight"},
+        {196, nullptr, "SetButtonConfigSettingsRight"},
+        {197, nullptr, "GetButtonConfigRegisteredSettingsEmbedded"},
+        {198, nullptr, "SetButtonConfigRegisteredSettingsEmbedded"},
+        {199, nullptr, "GetButtonConfigRegisteredSettings"},
+        {200, nullptr, "SetButtonConfigRegisteredSettings"},
+        {201, &ISystemSettingsServer::GetFieldTestingFlag, "GetFieldTestingFlag"},
+        {202, nullptr, "SetFieldTestingFlag"},
+        {203, nullptr, "GetPanelCrcMode"},
+        {204, nullptr, "SetPanelCrcMode"},
+        {205, nullptr, "GetNxControllerSettingsEx"},
+        {206, nullptr, "SetNxControllerSettingsEx"},
+        {207, nullptr, "GetHearingProtectionSafeguardFlag"},
+        {208, nullptr, "SetHearingProtectionSafeguardFlag"},
+        {209, nullptr, "GetHearingProtectionSafeguardRemainingTime"},
+        {210, nullptr, "SetHearingProtectionSafeguardRemainingTime"},
+    };
+    // clang-format on
+
+    RegisterHandlers(functions);
+
+    SetupSettings();
+    m_save_thread =
+        std::jthread([this](std::stop_token stop_token) { StoreSettingsThreadFunc(stop_token); });
+}
+
+ISystemSettingsServer::~ISystemSettingsServer() {
+    SetSaveNeeded();
+    m_save_thread.request_stop();
+}
+
+bool ISystemSettingsServer::LoadSettingsFile(std::filesystem::path& path, auto&& default_func) {
     using settings_type = decltype(default_func());
 
     if (!Common::FS::CreateDirs(path)) {
@@ -155,7 +382,7 @@ bool SET_SYS::LoadSettingsFile(std::filesystem::path& path, auto&& default_func)
     return true;
 }
 
-bool SET_SYS::StoreSettingsFile(std::filesystem::path& path, auto& settings) {
+bool ISystemSettingsServer::StoreSettingsFile(std::filesystem::path& path, auto& settings) {
     using settings_type = std::decay_t<decltype(settings)>;
 
     if (!Common::FS::IsDir(path)) {
@@ -195,7 +422,7 @@ bool SET_SYS::StoreSettingsFile(std::filesystem::path& path, auto& settings) {
     return true;
 }
 
-void SET_SYS::SetLanguageCode(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetLanguageCode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     m_system_settings.language_code = rp.PopEnum<LanguageCode>();
     SetSaveNeeded();
@@ -206,7 +433,7 @@ void SET_SYS::SetLanguageCode(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void SET_SYS::GetFirmwareVersion(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetFirmwareVersion(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     FirmwareVersionFormat firmware_data{};
@@ -221,7 +448,7 @@ void SET_SYS::GetFirmwareVersion(HLERequestContext& ctx) {
     rb.Push(result);
 }
 
-void SET_SYS::GetFirmwareVersion2(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetFirmwareVersion2(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     FirmwareVersionFormat firmware_data{};
@@ -236,7 +463,7 @@ void SET_SYS::GetFirmwareVersion2(HLERequestContext& ctx) {
     rb.Push(result);
 }
 
-void SET_SYS::GetExternalSteadyClockSourceId(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetExternalSteadyClockSourceId(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     Common::UUID id{};
@@ -247,7 +474,7 @@ void SET_SYS::GetExternalSteadyClockSourceId(HLERequestContext& ctx) {
     rb.PushRaw(id);
 }
 
-void SET_SYS::SetExternalSteadyClockSourceId(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetExternalSteadyClockSourceId(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     IPC::RequestParser rp{ctx};
@@ -259,7 +486,7 @@ void SET_SYS::SetExternalSteadyClockSourceId(HLERequestContext& ctx) {
     rb.Push(res);
 }
 
-void SET_SYS::GetUserSystemClockContext(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetUserSystemClockContext(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     Service::Time::Clock::SystemClockContext context{};
@@ -271,7 +498,7 @@ void SET_SYS::GetUserSystemClockContext(HLERequestContext& ctx) {
     rb.PushRaw(context);
 }
 
-void SET_SYS::SetUserSystemClockContext(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetUserSystemClockContext(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     IPC::RequestParser rp{ctx};
@@ -283,7 +510,7 @@ void SET_SYS::SetUserSystemClockContext(HLERequestContext& ctx) {
     rb.Push(res);
 }
 
-void SET_SYS::GetAccountSettings(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetAccountSettings(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -291,7 +518,7 @@ void SET_SYS::GetAccountSettings(HLERequestContext& ctx) {
     rb.PushRaw(m_system_settings.account_settings);
 }
 
-void SET_SYS::SetAccountSettings(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetAccountSettings(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     m_system_settings.account_settings = rp.PopRaw<AccountSettings>();
     SetSaveNeeded();
@@ -303,7 +530,7 @@ void SET_SYS::SetAccountSettings(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void SET_SYS::GetEulaVersions(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetEulaVersions(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     ctx.WriteBuffer(m_system_settings.eula_versions);
@@ -313,7 +540,7 @@ void SET_SYS::GetEulaVersions(HLERequestContext& ctx) {
     rb.Push(m_system_settings.eula_version_count);
 }
 
-void SET_SYS::SetEulaVersions(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetEulaVersions(HLERequestContext& ctx) {
     const auto elements = ctx.GetReadBufferNumElements<EulaVersion>();
     const auto buffer_data = ctx.ReadBuffer();
 
@@ -329,7 +556,7 @@ void SET_SYS::SetEulaVersions(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void SET_SYS::GetColorSetId(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetColorSetId(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -337,7 +564,7 @@ void SET_SYS::GetColorSetId(HLERequestContext& ctx) {
     rb.PushEnum(m_system_settings.color_set_id);
 }
 
-void SET_SYS::SetColorSetId(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetColorSetId(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     m_system_settings.color_set_id = rp.PopEnum<ColorSet>();
     SetSaveNeeded();
@@ -348,7 +575,7 @@ void SET_SYS::SetColorSetId(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void SET_SYS::GetNotificationSettings(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetNotificationSettings(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     IPC::ResponseBuilder rb{ctx, 8};
@@ -356,7 +583,7 @@ void SET_SYS::GetNotificationSettings(HLERequestContext& ctx) {
     rb.PushRaw(m_system_settings.notification_settings);
 }
 
-void SET_SYS::SetNotificationSettings(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetNotificationSettings(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     m_system_settings.notification_settings = rp.PopRaw<NotificationSettings>();
     SetSaveNeeded();
@@ -373,7 +600,7 @@ void SET_SYS::SetNotificationSettings(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void SET_SYS::GetAccountNotificationSettings(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetAccountNotificationSettings(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     ctx.WriteBuffer(m_system_settings.account_notification_settings);
@@ -383,7 +610,7 @@ void SET_SYS::GetAccountNotificationSettings(HLERequestContext& ctx) {
     rb.Push(m_system_settings.account_notification_settings_count);
 }
 
-void SET_SYS::SetAccountNotificationSettings(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetAccountNotificationSettings(HLERequestContext& ctx) {
     const auto elements = ctx.GetReadBufferNumElements<AccountNotificationSettings>();
     const auto buffer_data = ctx.ReadBuffer();
 
@@ -432,7 +659,7 @@ static Settings GetSettings() {
     return ret;
 }
 
-void SET_SYS::GetSettingsItemValueSize(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetSettingsItemValueSize(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     // The category of the setting. This corresponds to the top-level keys of
@@ -457,7 +684,7 @@ void SET_SYS::GetSettingsItemValueSize(HLERequestContext& ctx) {
     rb.Push(response_size);
 }
 
-void SET_SYS::GetSettingsItemValue(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetSettingsItemValue(HLERequestContext& ctx) {
     // The category of the setting. This corresponds to the top-level keys of
     // system_settings.ini.
     const auto setting_category_buf{ctx.ReadBuffer(0)};
@@ -480,7 +707,7 @@ void SET_SYS::GetSettingsItemValue(HLERequestContext& ctx) {
     rb.Push(response);
 }
 
-void SET_SYS::GetTvSettings(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetTvSettings(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     IPC::ResponseBuilder rb{ctx, 10};
@@ -488,7 +715,7 @@ void SET_SYS::GetTvSettings(HLERequestContext& ctx) {
     rb.PushRaw(m_system_settings.tv_settings);
 }
 
-void SET_SYS::SetTvSettings(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetTvSettings(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     m_system_settings.tv_settings = rp.PopRaw<TvSettings>();
     SetSaveNeeded();
@@ -507,7 +734,7 @@ void SET_SYS::SetTvSettings(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void SET_SYS::GetDebugModeFlag(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetDebugModeFlag(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -515,7 +742,7 @@ void SET_SYS::GetDebugModeFlag(HLERequestContext& ctx) {
     rb.Push<u32>(0);
 }
 
-void SET_SYS::GetQuestFlag(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetQuestFlag(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -523,7 +750,7 @@ void SET_SYS::GetQuestFlag(HLERequestContext& ctx) {
     rb.PushEnum(QuestFlag::Retail);
 }
 
-void SET_SYS::GetDeviceTimeZoneLocationName(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetDeviceTimeZoneLocationName(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "called");
 
     Service::Time::TimeZone::LocationName name{};
@@ -534,7 +761,7 @@ void SET_SYS::GetDeviceTimeZoneLocationName(HLERequestContext& ctx) {
     rb.PushRaw<Service::Time::TimeZone::LocationName>(name);
 }
 
-void SET_SYS::SetDeviceTimeZoneLocationName(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetDeviceTimeZoneLocationName(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "called");
 
     IPC::RequestParser rp{ctx};
@@ -546,7 +773,7 @@ void SET_SYS::SetDeviceTimeZoneLocationName(HLERequestContext& ctx) {
     rb.Push(res);
 }
 
-void SET_SYS::SetRegionCode(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetRegionCode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     m_system_settings.region_code = rp.PopEnum<RegionCode>();
     SetSaveNeeded();
@@ -557,7 +784,7 @@ void SET_SYS::SetRegionCode(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void SET_SYS::GetNetworkSystemClockContext(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetNetworkSystemClockContext(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     Service::Time::Clock::SystemClockContext context{};
@@ -569,7 +796,7 @@ void SET_SYS::GetNetworkSystemClockContext(HLERequestContext& ctx) {
     rb.PushRaw(context);
 }
 
-void SET_SYS::SetNetworkSystemClockContext(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetNetworkSystemClockContext(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     IPC::RequestParser rp{ctx};
@@ -581,7 +808,7 @@ void SET_SYS::SetNetworkSystemClockContext(HLERequestContext& ctx) {
     rb.Push(res);
 }
 
-void SET_SYS::IsUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx) {
+void ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     bool enabled{};
@@ -592,7 +819,7 @@ void SET_SYS::IsUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx
     rb.PushRaw(enabled);
 }
 
-void SET_SYS::SetUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     IPC::RequestParser rp{ctx};
@@ -604,7 +831,7 @@ void SET_SYS::SetUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ct
     rb.Push(res);
 }
 
-void SET_SYS::GetPrimaryAlbumStorage(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetPrimaryAlbumStorage(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -612,7 +839,7 @@ void SET_SYS::GetPrimaryAlbumStorage(HLERequestContext& ctx) {
     rb.PushEnum(PrimaryAlbumStorage::SdCard);
 }
 
-void SET_SYS::GetSleepSettings(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetSleepSettings(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
 
     IPC::ResponseBuilder rb{ctx, 5};
@@ -620,7 +847,7 @@ void SET_SYS::GetSleepSettings(HLERequestContext& ctx) {
     rb.PushRaw(m_system_settings.sleep_settings);
 }
 
-void SET_SYS::SetSleepSettings(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetSleepSettings(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     m_system_settings.sleep_settings = rp.PopRaw<SleepSettings>();
     SetSaveNeeded();
@@ -634,14 +861,14 @@ void SET_SYS::SetSleepSettings(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void SET_SYS::GetInitialLaunchSettings(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetInitialLaunchSettings(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called");
     IPC::ResponseBuilder rb{ctx, 10};
     rb.Push(ResultSuccess);
     rb.PushRaw(m_system_settings.initial_launch_settings_packed);
 }
 
-void SET_SYS::SetInitialLaunchSettings(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetInitialLaunchSettings(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     auto inital_launch_settings = rp.PopRaw<InitialLaunchSettings>();
 
@@ -657,7 +884,7 @@ void SET_SYS::SetInitialLaunchSettings(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void SET_SYS::GetDeviceNickName(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetDeviceNickName(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     ctx.WriteBuffer(::Settings::values.device_name.GetValue());
@@ -666,7 +893,7 @@ void SET_SYS::GetDeviceNickName(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void SET_SYS::SetDeviceNickName(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetDeviceNickName(HLERequestContext& ctx) {
     const std::string device_name = Common::StringFromBuffer(ctx.ReadBuffer());
 
     LOG_INFO(Service_SET, "called, device_name={}", device_name);
@@ -677,7 +904,7 @@ void SET_SYS::SetDeviceNickName(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void SET_SYS::GetProductModel(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetProductModel(HLERequestContext& ctx) {
     const u32 product_model = 1;
 
     LOG_WARNING(Service_SET, "(STUBBED) called, product_model={}", product_model);
@@ -686,7 +913,7 @@ void SET_SYS::GetProductModel(HLERequestContext& ctx) {
     rb.Push(product_model);
 }
 
-void SET_SYS::GetMiiAuthorId(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetMiiAuthorId(HLERequestContext& ctx) {
     const auto author_id = Common::UUID::MakeDefault();
 
     LOG_WARNING(Service_SET, "(STUBBED) called, author_id={}", author_id.FormattedString());
@@ -696,7 +923,7 @@ void SET_SYS::GetMiiAuthorId(HLERequestContext& ctx) {
     rb.PushRaw(author_id);
 }
 
-void SET_SYS::GetAutoUpdateEnableFlag(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetAutoUpdateEnableFlag(HLERequestContext& ctx) {
     u8 auto_update_flag{};
 
     LOG_WARNING(Service_SET, "(STUBBED) called, auto_update_flag={}", auto_update_flag);
@@ -706,7 +933,7 @@ void SET_SYS::GetAutoUpdateEnableFlag(HLERequestContext& ctx) {
     rb.Push(auto_update_flag);
 }
 
-void SET_SYS::GetBatteryPercentageFlag(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetBatteryPercentageFlag(HLERequestContext& ctx) {
     u8 battery_percentage_flag{1};
 
     LOG_WARNING(Service_SET, "(STUBBED) called, battery_percentage_flag={}",
@@ -717,7 +944,7 @@ void SET_SYS::GetBatteryPercentageFlag(HLERequestContext& ctx) {
     rb.Push(battery_percentage_flag);
 }
 
-void SET_SYS::SetExternalSteadyClockInternalOffset(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetExternalSteadyClockInternalOffset(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called.");
 
     IPC::RequestParser rp{ctx};
@@ -729,7 +956,7 @@ void SET_SYS::SetExternalSteadyClockInternalOffset(HLERequestContext& ctx) {
     rb.Push(res);
 }
 
-void SET_SYS::GetExternalSteadyClockInternalOffset(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetExternalSteadyClockInternalOffset(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called.");
 
     s64 offset{};
@@ -740,7 +967,7 @@ void SET_SYS::GetExternalSteadyClockInternalOffset(HLERequestContext& ctx) {
     rb.Push(offset);
 }
 
-void SET_SYS::GetErrorReportSharePermission(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetErrorReportSharePermission(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -748,7 +975,7 @@ void SET_SYS::GetErrorReportSharePermission(HLERequestContext& ctx) {
     rb.PushEnum(ErrorReportSharePermission::Denied);
 }
 
-void SET_SYS::GetAppletLaunchFlags(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetAppletLaunchFlags(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called, applet_launch_flag={}", m_system_settings.applet_launch_flag);
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -756,7 +983,7 @@ void SET_SYS::GetAppletLaunchFlags(HLERequestContext& ctx) {
     rb.Push(m_system_settings.applet_launch_flag);
 }
 
-void SET_SYS::SetAppletLaunchFlags(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetAppletLaunchFlags(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     m_system_settings.applet_launch_flag = rp.Pop<u32>();
     SetSaveNeeded();
@@ -767,7 +994,7 @@ void SET_SYS::SetAppletLaunchFlags(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void SET_SYS::GetKeyboardLayout(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetKeyboardLayout(HLERequestContext& ctx) {
     const auto language_code =
         available_language_codes[static_cast<s32>(::Settings::values.language_index.GetValue())];
     const auto key_code =
@@ -786,7 +1013,7 @@ void SET_SYS::GetKeyboardLayout(HLERequestContext& ctx) {
     rb.Push(static_cast<u32>(selected_keyboard_layout));
 }
 
-void SET_SYS::GetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "called.");
 
     Service::Time::Clock::SteadyClockTimePoint time_point{};
@@ -797,7 +1024,7 @@ void SET_SYS::GetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx) {
     rb.PushRaw<Service::Time::Clock::SteadyClockTimePoint>(time_point);
 }
 
-void SET_SYS::SetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "called.");
 
     IPC::RequestParser rp{ctx};
@@ -809,7 +1036,8 @@ void SET_SYS::SetDeviceTimeZoneLocationUpdatedTime(HLERequestContext& ctx) {
     rb.Push(res);
 }
 
-void SET_SYS::GetUserSystemClockAutomaticCorrectionUpdatedTime(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
+    HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "called.");
 
     Service::Time::Clock::SteadyClockTimePoint time_point{};
@@ -820,7 +1048,8 @@ void SET_SYS::GetUserSystemClockAutomaticCorrectionUpdatedTime(HLERequestContext
     rb.PushRaw<Service::Time::Clock::SteadyClockTimePoint>(time_point);
 }
 
-void SET_SYS::SetUserSystemClockAutomaticCorrectionUpdatedTime(HLERequestContext& ctx) {
+void ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime(
+    HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "called.");
 
     IPC::RequestParser rp{ctx};
@@ -832,7 +1061,7 @@ void SET_SYS::SetUserSystemClockAutomaticCorrectionUpdatedTime(HLERequestContext
     rb.Push(res);
 }
 
-void SET_SYS::GetChineseTraditionalInputMethod(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetChineseTraditionalInputMethod(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -840,7 +1069,7 @@ void SET_SYS::GetChineseTraditionalInputMethod(HLERequestContext& ctx) {
     rb.PushEnum(ChineseTraditionalInputMethod::Unknown0);
 }
 
-void SET_SYS::GetHomeMenuScheme(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetHomeMenuScheme(HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "(STUBBED) called");
 
     const HomeMenuScheme default_color = {
@@ -856,7 +1085,7 @@ void SET_SYS::GetHomeMenuScheme(HLERequestContext& ctx) {
     rb.PushRaw(default_color);
 }
 
-void SET_SYS::GetHomeMenuSchemeModel(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetHomeMenuSchemeModel(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -864,7 +1093,7 @@ void SET_SYS::GetHomeMenuSchemeModel(HLERequestContext& ctx) {
     rb.Push(0);
 }
 
-void SET_SYS::GetFieldTestingFlag(HLERequestContext& ctx) {
+void ISystemSettingsServer::GetFieldTestingFlag(HLERequestContext& ctx) {
     LOG_WARNING(Service_SET, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -872,233 +1101,7 @@ void SET_SYS::GetFieldTestingFlag(HLERequestContext& ctx) {
     rb.Push<u8>(false);
 }
 
-SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"}, m_system{system} {
-    // clang-format off
-    static const FunctionInfo functions[] = {
-        {0, &SET_SYS::SetLanguageCode, "SetLanguageCode"},
-        {1, nullptr, "SetNetworkSettings"},
-        {2, nullptr, "GetNetworkSettings"},
-        {3, &SET_SYS::GetFirmwareVersion, "GetFirmwareVersion"},
-        {4, &SET_SYS::GetFirmwareVersion2, "GetFirmwareVersion2"},
-        {5, nullptr, "GetFirmwareVersionDigest"},
-        {7, nullptr, "GetLockScreenFlag"},
-        {8, nullptr, "SetLockScreenFlag"},
-        {9, nullptr, "GetBacklightSettings"},
-        {10, nullptr, "SetBacklightSettings"},
-        {11, nullptr, "SetBluetoothDevicesSettings"},
-        {12, nullptr, "GetBluetoothDevicesSettings"},
-        {13, &SET_SYS::GetExternalSteadyClockSourceId, "GetExternalSteadyClockSourceId"},
-        {14, &SET_SYS::SetExternalSteadyClockSourceId, "SetExternalSteadyClockSourceId"},
-        {15, &SET_SYS::GetUserSystemClockContext, "GetUserSystemClockContext"},
-        {16, &SET_SYS::SetUserSystemClockContext, "SetUserSystemClockContext"},
-        {17, &SET_SYS::GetAccountSettings, "GetAccountSettings"},
-        {18, &SET_SYS::SetAccountSettings, "SetAccountSettings"},
-        {19, nullptr, "GetAudioVolume"},
-        {20, nullptr, "SetAudioVolume"},
-        {21, &SET_SYS::GetEulaVersions, "GetEulaVersions"},
-        {22, &SET_SYS::SetEulaVersions, "SetEulaVersions"},
-        {23, &SET_SYS::GetColorSetId, "GetColorSetId"},
-        {24, &SET_SYS::SetColorSetId, "SetColorSetId"},
-        {25, nullptr, "GetConsoleInformationUploadFlag"},
-        {26, nullptr, "SetConsoleInformationUploadFlag"},
-        {27, nullptr, "GetAutomaticApplicationDownloadFlag"},
-        {28, nullptr, "SetAutomaticApplicationDownloadFlag"},
-        {29, &SET_SYS::GetNotificationSettings, "GetNotificationSettings"},
-        {30, &SET_SYS::SetNotificationSettings, "SetNotificationSettings"},
-        {31, &SET_SYS::GetAccountNotificationSettings, "GetAccountNotificationSettings"},
-        {32, &SET_SYS::SetAccountNotificationSettings, "SetAccountNotificationSettings"},
-        {35, nullptr, "GetVibrationMasterVolume"},
-        {36, nullptr, "SetVibrationMasterVolume"},
-        {37, &SET_SYS::GetSettingsItemValueSize, "GetSettingsItemValueSize"},
-        {38, &SET_SYS::GetSettingsItemValue, "GetSettingsItemValue"},
-        {39, &SET_SYS::GetTvSettings, "GetTvSettings"},
-        {40, &SET_SYS::SetTvSettings, "SetTvSettings"},
-        {41, nullptr, "GetEdid"},
-        {42, nullptr, "SetEdid"},
-        {43, nullptr, "GetAudioOutputMode"},
-        {44, nullptr, "SetAudioOutputMode"},
-        {45, nullptr, "IsForceMuteOnHeadphoneRemoved"},
-        {46, nullptr, "SetForceMuteOnHeadphoneRemoved"},
-        {47, &SET_SYS::GetQuestFlag, "GetQuestFlag"},
-        {48, nullptr, "SetQuestFlag"},
-        {49, nullptr, "GetDataDeletionSettings"},
-        {50, nullptr, "SetDataDeletionSettings"},
-        {51, nullptr, "GetInitialSystemAppletProgramId"},
-        {52, nullptr, "GetOverlayDispProgramId"},
-        {53, &SET_SYS::GetDeviceTimeZoneLocationName, "GetDeviceTimeZoneLocationName"},
-        {54, &SET_SYS::SetDeviceTimeZoneLocationName, "SetDeviceTimeZoneLocationName"},
-        {55, nullptr, "GetWirelessCertificationFileSize"},
-        {56, nullptr, "GetWirelessCertificationFile"},
-        {57, &SET_SYS::SetRegionCode, "SetRegionCode"},
-        {58, &SET_SYS::GetNetworkSystemClockContext, "GetNetworkSystemClockContext"},
-        {59, &SET_SYS::SetNetworkSystemClockContext, "SetNetworkSystemClockContext"},
-        {60, &SET_SYS::IsUserSystemClockAutomaticCorrectionEnabled, "IsUserSystemClockAutomaticCorrectionEnabled"},
-        {61, &SET_SYS::SetUserSystemClockAutomaticCorrectionEnabled, "SetUserSystemClockAutomaticCorrectionEnabled"},
-        {62, &SET_SYS::GetDebugModeFlag, "GetDebugModeFlag"},
-        {63, &SET_SYS::GetPrimaryAlbumStorage, "GetPrimaryAlbumStorage"},
-        {64, nullptr, "SetPrimaryAlbumStorage"},
-        {65, nullptr, "GetUsb30EnableFlag"},
-        {66, nullptr, "SetUsb30EnableFlag"},
-        {67, nullptr, "GetBatteryLot"},
-        {68, nullptr, "GetSerialNumber"},
-        {69, nullptr, "GetNfcEnableFlag"},
-        {70, nullptr, "SetNfcEnableFlag"},
-        {71, &SET_SYS::GetSleepSettings, "GetSleepSettings"},
-        {72, &SET_SYS::SetSleepSettings, "SetSleepSettings"},
-        {73, nullptr, "GetWirelessLanEnableFlag"},
-        {74, nullptr, "SetWirelessLanEnableFlag"},
-        {75, &SET_SYS::GetInitialLaunchSettings, "GetInitialLaunchSettings"},
-        {76, &SET_SYS::SetInitialLaunchSettings, "SetInitialLaunchSettings"},
-        {77, &SET_SYS::GetDeviceNickName, "GetDeviceNickName"},
-        {78, &SET_SYS::SetDeviceNickName, "SetDeviceNickName"},
-        {79, &SET_SYS::GetProductModel, "GetProductModel"},
-        {80, nullptr, "GetLdnChannel"},
-        {81, nullptr, "SetLdnChannel"},
-        {82, nullptr, "AcquireTelemetryDirtyFlagEventHandle"},
-        {83, nullptr, "GetTelemetryDirtyFlags"},
-        {84, nullptr, "GetPtmBatteryLot"},
-        {85, nullptr, "SetPtmBatteryLot"},
-        {86, nullptr, "GetPtmFuelGaugeParameter"},
-        {87, nullptr, "SetPtmFuelGaugeParameter"},
-        {88, nullptr, "GetBluetoothEnableFlag"},
-        {89, nullptr, "SetBluetoothEnableFlag"},
-        {90, &SET_SYS::GetMiiAuthorId, "GetMiiAuthorId"},
-        {91, nullptr, "SetShutdownRtcValue"},
-        {92, nullptr, "GetShutdownRtcValue"},
-        {93, nullptr, "AcquireFatalDirtyFlagEventHandle"},
-        {94, nullptr, "GetFatalDirtyFlags"},
-        {95, &SET_SYS::GetAutoUpdateEnableFlag, "GetAutoUpdateEnableFlag"},
-        {96, nullptr, "SetAutoUpdateEnableFlag"},
-        {97, nullptr, "GetNxControllerSettings"},
-        {98, nullptr, "SetNxControllerSettings"},
-        {99, &SET_SYS::GetBatteryPercentageFlag, "GetBatteryPercentageFlag"},
-        {100, nullptr, "SetBatteryPercentageFlag"},
-        {101, nullptr, "GetExternalRtcResetFlag"},
-        {102, nullptr, "SetExternalRtcResetFlag"},
-        {103, nullptr, "GetUsbFullKeyEnableFlag"},
-        {104, nullptr, "SetUsbFullKeyEnableFlag"},
-        {105, &SET_SYS::SetExternalSteadyClockInternalOffset, "SetExternalSteadyClockInternalOffset"},
-        {106, &SET_SYS::GetExternalSteadyClockInternalOffset, "GetExternalSteadyClockInternalOffset"},
-        {107, nullptr, "GetBacklightSettingsEx"},
-        {108, nullptr, "SetBacklightSettingsEx"},
-        {109, nullptr, "GetHeadphoneVolumeWarningCount"},
-        {110, nullptr, "SetHeadphoneVolumeWarningCount"},
-        {111, nullptr, "GetBluetoothAfhEnableFlag"},
-        {112, nullptr, "SetBluetoothAfhEnableFlag"},
-        {113, nullptr, "GetBluetoothBoostEnableFlag"},
-        {114, nullptr, "SetBluetoothBoostEnableFlag"},
-        {115, nullptr, "GetInRepairProcessEnableFlag"},
-        {116, nullptr, "SetInRepairProcessEnableFlag"},
-        {117, nullptr, "GetHeadphoneVolumeUpdateFlag"},
-        {118, nullptr, "SetHeadphoneVolumeUpdateFlag"},
-        {119, nullptr, "NeedsToUpdateHeadphoneVolume"},
-        {120, nullptr, "GetPushNotificationActivityModeOnSleep"},
-        {121, nullptr, "SetPushNotificationActivityModeOnSleep"},
-        {122, nullptr, "GetServiceDiscoveryControlSettings"},
-        {123, nullptr, "SetServiceDiscoveryControlSettings"},
-        {124, &SET_SYS::GetErrorReportSharePermission, "GetErrorReportSharePermission"},
-        {125, nullptr, "SetErrorReportSharePermission"},
-        {126, &SET_SYS::GetAppletLaunchFlags, "GetAppletLaunchFlags"},
-        {127, &SET_SYS::SetAppletLaunchFlags, "SetAppletLaunchFlags"},
-        {128, nullptr, "GetConsoleSixAxisSensorAccelerationBias"},
-        {129, nullptr, "SetConsoleSixAxisSensorAccelerationBias"},
-        {130, nullptr, "GetConsoleSixAxisSensorAngularVelocityBias"},
-        {131, nullptr, "SetConsoleSixAxisSensorAngularVelocityBias"},
-        {132, nullptr, "GetConsoleSixAxisSensorAccelerationGain"},
-        {133, nullptr, "SetConsoleSixAxisSensorAccelerationGain"},
-        {134, nullptr, "GetConsoleSixAxisSensorAngularVelocityGain"},
-        {135, nullptr, "SetConsoleSixAxisSensorAngularVelocityGain"},
-        {136, &SET_SYS::GetKeyboardLayout, "GetKeyboardLayout"},
-        {137, nullptr, "SetKeyboardLayout"},
-        {138, nullptr, "GetWebInspectorFlag"},
-        {139, nullptr, "GetAllowedSslHosts"},
-        {140, nullptr, "GetHostFsMountPoint"},
-        {141, nullptr, "GetRequiresRunRepairTimeReviser"},
-        {142, nullptr, "SetRequiresRunRepairTimeReviser"},
-        {143, nullptr, "SetBlePairingSettings"},
-        {144, nullptr, "GetBlePairingSettings"},
-        {145, nullptr, "GetConsoleSixAxisSensorAngularVelocityTimeBias"},
-        {146, nullptr, "SetConsoleSixAxisSensorAngularVelocityTimeBias"},
-        {147, nullptr, "GetConsoleSixAxisSensorAngularAcceleration"},
-        {148, nullptr, "SetConsoleSixAxisSensorAngularAcceleration"},
-        {149, nullptr, "GetRebootlessSystemUpdateVersion"},
-        {150, &SET_SYS::GetDeviceTimeZoneLocationUpdatedTime, "GetDeviceTimeZoneLocationUpdatedTime"},
-        {151, &SET_SYS::SetDeviceTimeZoneLocationUpdatedTime, "SetDeviceTimeZoneLocationUpdatedTime"},
-        {152, &SET_SYS::GetUserSystemClockAutomaticCorrectionUpdatedTime, "GetUserSystemClockAutomaticCorrectionUpdatedTime"},
-        {153, &SET_SYS::SetUserSystemClockAutomaticCorrectionUpdatedTime, "SetUserSystemClockAutomaticCorrectionUpdatedTime"},
-        {154, nullptr, "GetAccountOnlineStorageSettings"},
-        {155, nullptr, "SetAccountOnlineStorageSettings"},
-        {156, nullptr, "GetPctlReadyFlag"},
-        {157, nullptr, "SetPctlReadyFlag"},
-        {158, nullptr, "GetAnalogStickUserCalibrationL"},
-        {159, nullptr, "SetAnalogStickUserCalibrationL"},
-        {160, nullptr, "GetAnalogStickUserCalibrationR"},
-        {161, nullptr, "SetAnalogStickUserCalibrationR"},
-        {162, nullptr, "GetPtmBatteryVersion"},
-        {163, nullptr, "SetPtmBatteryVersion"},
-        {164, nullptr, "GetUsb30HostEnableFlag"},
-        {165, nullptr, "SetUsb30HostEnableFlag"},
-        {166, nullptr, "GetUsb30DeviceEnableFlag"},
-        {167, nullptr, "SetUsb30DeviceEnableFlag"},
-        {168, nullptr, "GetThemeId"},
-        {169, nullptr, "SetThemeId"},
-        {170, &SET_SYS::GetChineseTraditionalInputMethod, "GetChineseTraditionalInputMethod"},
-        {171, nullptr, "SetChineseTraditionalInputMethod"},
-        {172, nullptr, "GetPtmCycleCountReliability"},
-        {173, nullptr, "SetPtmCycleCountReliability"},
-        {174, &SET_SYS::GetHomeMenuScheme, "GetHomeMenuScheme"},
-        {175, nullptr, "GetThemeSettings"},
-        {176, nullptr, "SetThemeSettings"},
-        {177, nullptr, "GetThemeKey"},
-        {178, nullptr, "SetThemeKey"},
-        {179, nullptr, "GetZoomFlag"},
-        {180, nullptr, "SetZoomFlag"},
-        {181, nullptr, "GetT"},
-        {182, nullptr, "SetT"},
-        {183, nullptr, "GetPlatformRegion"},
-        {184, nullptr, "SetPlatformRegion"},
-        {185, &SET_SYS::GetHomeMenuSchemeModel, "GetHomeMenuSchemeModel"},
-        {186, nullptr, "GetMemoryUsageRateFlag"},
-        {187, nullptr, "GetTouchScreenMode"},
-        {188, nullptr, "SetTouchScreenMode"},
-        {189, nullptr, "GetButtonConfigSettingsFull"},
-        {190, nullptr, "SetButtonConfigSettingsFull"},
-        {191, nullptr, "GetButtonConfigSettingsEmbedded"},
-        {192, nullptr, "SetButtonConfigSettingsEmbedded"},
-        {193, nullptr, "GetButtonConfigSettingsLeft"},
-        {194, nullptr, "SetButtonConfigSettingsLeft"},
-        {195, nullptr, "GetButtonConfigSettingsRight"},
-        {196, nullptr, "SetButtonConfigSettingsRight"},
-        {197, nullptr, "GetButtonConfigRegisteredSettingsEmbedded"},
-        {198, nullptr, "SetButtonConfigRegisteredSettingsEmbedded"},
-        {199, nullptr, "GetButtonConfigRegisteredSettings"},
-        {200, nullptr, "SetButtonConfigRegisteredSettings"},
-        {201, &SET_SYS::GetFieldTestingFlag, "GetFieldTestingFlag"},
-        {202, nullptr, "SetFieldTestingFlag"},
-        {203, nullptr, "GetPanelCrcMode"},
-        {204, nullptr, "SetPanelCrcMode"},
-        {205, nullptr, "GetNxControllerSettingsEx"},
-        {206, nullptr, "SetNxControllerSettingsEx"},
-        {207, nullptr, "GetHearingProtectionSafeguardFlag"},
-        {208, nullptr, "SetHearingProtectionSafeguardFlag"},
-        {209, nullptr, "GetHearingProtectionSafeguardRemainingTime"},
-        {210, nullptr, "SetHearingProtectionSafeguardRemainingTime"},
-    };
-    // clang-format on
-
-    RegisterHandlers(functions);
-
-    SetupSettings();
-    m_save_thread =
-        std::jthread([this](std::stop_token stop_token) { StoreSettingsThreadFunc(stop_token); });
-}
-
-SET_SYS::~SET_SYS() {
-    SetSaveNeeded();
-    m_save_thread.request_stop();
-}
-
-void SET_SYS::SetupSettings() {
+void ISystemSettingsServer::SetupSettings() {
     auto system_dir =
         Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/8000000000000050";
     if (!LoadSettingsFile(system_dir, []() { return DefaultSystemSettings(); })) {
@@ -1124,7 +1127,7 @@ void SET_SYS::SetupSettings() {
     }
 }
 
-void SET_SYS::StoreSettings() {
+void ISystemSettingsServer::StoreSettings() {
     auto system_dir =
         Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) / "system/save/8000000000000050";
     if (!StoreSettingsFile(system_dir, m_system_settings)) {
@@ -1150,7 +1153,7 @@ void SET_SYS::StoreSettings() {
     }
 }
 
-void SET_SYS::StoreSettingsThreadFunc(std::stop_token stop_token) {
+void ISystemSettingsServer::StoreSettingsThreadFunc(std::stop_token stop_token) {
     Common::SetCurrentThreadName("SettingsStore");
 
     while (Common::StoppableTimedWait(stop_token, std::chrono::minutes(1))) {
@@ -1162,13 +1165,14 @@ void SET_SYS::StoreSettingsThreadFunc(std::stop_token stop_token) {
     }
 }
 
-void SET_SYS::SetSaveNeeded() {
+void ISystemSettingsServer::SetSaveNeeded() {
     std::scoped_lock l{m_save_needed_mutex};
     m_save_needed = true;
 }
 
-Result SET_SYS::GetSettingsItemValue(std::vector<u8>& out_value, const std::string& category,
-                                     const std::string& name) {
+Result ISystemSettingsServer::GetSettingsItemValue(std::vector<u8>& out_value,
+                                                   const std::string& category,
+                                                   const std::string& name) {
     auto settings{GetSettings()};
     R_UNLESS(settings.contains(category) && settings[category].contains(name), ResultUnknown);
 
@@ -1176,93 +1180,98 @@ Result SET_SYS::GetSettingsItemValue(std::vector<u8>& out_value, const std::stri
     R_SUCCEED();
 }
 
-Result SET_SYS::GetExternalSteadyClockSourceId(Common::UUID& out_id) {
+Result ISystemSettingsServer::GetExternalSteadyClockSourceId(Common::UUID& out_id) {
     out_id = m_private_settings.external_clock_source_id;
     R_SUCCEED();
 }
 
-Result SET_SYS::SetExternalSteadyClockSourceId(Common::UUID id) {
+Result ISystemSettingsServer::SetExternalSteadyClockSourceId(Common::UUID id) {
     m_private_settings.external_clock_source_id = id;
     SetSaveNeeded();
     R_SUCCEED();
 }
 
-Result SET_SYS::GetUserSystemClockContext(Service::Time::Clock::SystemClockContext& out_context) {
+Result ISystemSettingsServer::GetUserSystemClockContext(
+    Service::Time::Clock::SystemClockContext& out_context) {
     out_context = m_system_settings.user_system_clock_context;
     R_SUCCEED();
 }
 
-Result SET_SYS::SetUserSystemClockContext(Service::Time::Clock::SystemClockContext& context) {
+Result ISystemSettingsServer::SetUserSystemClockContext(
+    Service::Time::Clock::SystemClockContext& context) {
     m_system_settings.user_system_clock_context = context;
     SetSaveNeeded();
     R_SUCCEED();
 }
 
-Result SET_SYS::GetDeviceTimeZoneLocationName(Service::Time::TimeZone::LocationName& out_name) {
+Result ISystemSettingsServer::GetDeviceTimeZoneLocationName(
+    Service::Time::TimeZone::LocationName& out_name) {
     out_name = m_system_settings.device_time_zone_location_name;
     R_SUCCEED();
 }
 
-Result SET_SYS::SetDeviceTimeZoneLocationName(Service::Time::TimeZone::LocationName& name) {
+Result ISystemSettingsServer::SetDeviceTimeZoneLocationName(
+    Service::Time::TimeZone::LocationName& name) {
     m_system_settings.device_time_zone_location_name = name;
     SetSaveNeeded();
     R_SUCCEED();
 }
 
-Result SET_SYS::GetNetworkSystemClockContext(
+Result ISystemSettingsServer::GetNetworkSystemClockContext(
     Service::Time::Clock::SystemClockContext& out_context) {
     out_context = m_system_settings.network_system_clock_context;
     R_SUCCEED();
 }
 
-Result SET_SYS::SetNetworkSystemClockContext(Service::Time::Clock::SystemClockContext& context) {
+Result ISystemSettingsServer::SetNetworkSystemClockContext(
+    Service::Time::Clock::SystemClockContext& context) {
     m_system_settings.network_system_clock_context = context;
     SetSaveNeeded();
     R_SUCCEED();
 }
 
-Result SET_SYS::IsUserSystemClockAutomaticCorrectionEnabled(bool& out_enabled) {
+Result ISystemSettingsServer::IsUserSystemClockAutomaticCorrectionEnabled(bool& out_enabled) {
     out_enabled = m_system_settings.user_system_clock_automatic_correction_enabled;
     R_SUCCEED();
 }
 
-Result SET_SYS::SetUserSystemClockAutomaticCorrectionEnabled(bool enabled) {
+Result ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionEnabled(bool enabled) {
     m_system_settings.user_system_clock_automatic_correction_enabled = enabled;
     SetSaveNeeded();
     R_SUCCEED();
 }
 
-Result SET_SYS::SetExternalSteadyClockInternalOffset(s64 offset) {
+Result ISystemSettingsServer::SetExternalSteadyClockInternalOffset(s64 offset) {
     m_private_settings.external_steady_clock_internal_offset = offset;
     SetSaveNeeded();
     R_SUCCEED();
 }
 
-Result SET_SYS::GetExternalSteadyClockInternalOffset(s64& out_offset) {
+Result ISystemSettingsServer::GetExternalSteadyClockInternalOffset(s64& out_offset) {
     out_offset = m_private_settings.external_steady_clock_internal_offset;
     R_SUCCEED();
 }
 
-Result SET_SYS::GetDeviceTimeZoneLocationUpdatedTime(
+Result ISystemSettingsServer::GetDeviceTimeZoneLocationUpdatedTime(
     Service::Time::Clock::SteadyClockTimePoint& out_time_point) {
     out_time_point = m_system_settings.device_time_zone_location_updated_time;
     R_SUCCEED();
 }
 
-Result SET_SYS::SetDeviceTimeZoneLocationUpdatedTime(
+Result ISystemSettingsServer::SetDeviceTimeZoneLocationUpdatedTime(
     Service::Time::Clock::SteadyClockTimePoint& time_point) {
     m_system_settings.device_time_zone_location_updated_time = time_point;
     SetSaveNeeded();
     R_SUCCEED();
 }
 
-Result SET_SYS::GetUserSystemClockAutomaticCorrectionUpdatedTime(
+Result ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
     Service::Time::Clock::SteadyClockTimePoint& out_time_point) {
     out_time_point = m_system_settings.user_system_clock_automatic_correction_updated_time_point;
     R_SUCCEED();
 }
 
-Result SET_SYS::SetUserSystemClockAutomaticCorrectionUpdatedTime(
+Result ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime(
     Service::Time::Clock::SteadyClockTimePoint out_time_point) {
     m_system_settings.user_system_clock_automatic_correction_updated_time_point = out_time_point;
     SetSaveNeeded();
