@@ -131,7 +131,7 @@ private:
         u8 is_favorite;
         u8 same_app;
         u8 same_app_played;
-        u8 arbitary_app_played;
+        u8 arbitrary_app_played;
         u64 group_id;
     };
     static_assert(sizeof(SizedFriendFilter) == 0x10, "SizedFriendFilter is an invalid size");

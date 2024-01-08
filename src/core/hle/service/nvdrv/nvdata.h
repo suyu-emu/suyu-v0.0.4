@@ -51,7 +51,7 @@ enum class NvResult : u32 {
     DispNoDisplaysAttached = 0x20003,
     DispModeNotSupported = 0x20004,
     DispNotFound = 0x20005,
-    DispAttachDissallowed = 0x20006,
+    DispAttachDisallowed = 0x20006,
     DispTypeNotSupported = 0x20007,
     DispAuthenticationFailed = 0x20008,
     DispNotAttached = 0x20009,

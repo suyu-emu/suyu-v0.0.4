@@ -28,7 +28,7 @@ SystemSettings DefaultSystemSettings() {
         .cmu_mode = CmuMode::None,
         .tv_underscan = {},
         .tv_gama = 1.0f,
-        .constrast_ratio = 0.5f,
+        .contrast_ratio = 0.5f,
     };
 
     settings.initial_launch_settings_packed = {

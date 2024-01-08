@@ -76,7 +76,7 @@ struct UiSettingsDisplayOptions {
     bool is_system_or_launcher;
     bool is_registration_permitted;
     bool show_skip_button;
-    bool aditional_select;
+    bool additional_select;
     bool show_user_selector;
     bool is_unqualified_user_selectable;
 };

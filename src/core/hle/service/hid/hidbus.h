@@ -89,7 +89,7 @@ private:
     static_assert(sizeof(HidbusStatusManager) <= 0x1000, "HidbusStatusManager is an invalid size");
 
     struct HidbusDevice {
-        bool is_device_initializated{};
+        bool is_device_initialized{};
         BusHandle handle{};
         std::unique_ptr<HidbusBase> device{nullptr};
     };

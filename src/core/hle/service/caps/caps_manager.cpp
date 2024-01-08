@@ -85,7 +85,7 @@ Result AlbumManager::GetAlbumFileList(std::vector<AlbumEntry>& out_entries, Albu
 }
 
 Result AlbumManager::GetAlbumFileList(std::vector<ApplicationAlbumFileEntry>& out_entries,
-                                      ContentType contex_type, s64 start_posix_time,
+                                      ContentType content_type, s64 start_posix_time,
                                       s64 end_posix_time, u64 aruid) const {
     if (!is_mounted) {
         return ResultIsNotMounted;
@@ -94,7 +94,7 @@ Result AlbumManager::GetAlbumFileList(std::vector<ApplicationAlbumFileEntry>& ou
     std::vector<ApplicationAlbumEntry> album_entries;
     const auto start_date = ConvertToAlbumDateTime(start_posix_time);
     const auto end_date = ConvertToAlbumDateTime(end_posix_time);
-    const auto result = GetAlbumFileList(album_entries, contex_type, start_date, end_date, aruid);
+    const auto result = GetAlbumFileList(album_entries, content_type, start_date, end_date, aruid);
 
     if (result.IsError()) {
         return result;
@@ -113,14 +113,14 @@ Result AlbumManager::GetAlbumFileList(std::vector<ApplicationAlbumFileEntry>& ou
 }
 
 Result AlbumManager::GetAlbumFileList(std::vector<ApplicationAlbumEntry>& out_entries,
-                                      ContentType contex_type, AlbumFileDateTime start_date,
+                                      ContentType content_type, AlbumFileDateTime start_date,
                                       AlbumFileDateTime end_date, u64 aruid) const {
     if (!is_mounted) {
         return ResultIsNotMounted;
     }
 
     for (auto& [file_id, path] : album_files) {
-        if (file_id.type != contex_type) {
+        if (file_id.type != content_type) {
             continue;
         }
         if (file_id.date > start_date) {
@@ -139,7 +139,7 @@ Result AlbumManager::GetAlbumFileList(std::vector<ApplicationAlbumEntry>& out_en
             .hash{},
             .datetime = file_id.date,
             .storage = file_id.storage,
-            .content = contex_type,
+            .content = content_type,
             .unknown = 1,
         };
         out_entries.push_back(entry);

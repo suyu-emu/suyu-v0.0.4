@@ -181,22 +181,22 @@ void HLERequestContext::ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming) {
         }
     }
 
-    buffer_x_desciptors.reserve(command_header->num_buf_x_descriptors);
-    buffer_a_desciptors.reserve(command_header->num_buf_a_descriptors);
-    buffer_b_desciptors.reserve(command_header->num_buf_b_descriptors);
-    buffer_w_desciptors.reserve(command_header->num_buf_w_descriptors);
+    buffer_x_descriptors.reserve(command_header->num_buf_x_descriptors);
+    buffer_a_descriptors.reserve(command_header->num_buf_a_descriptors);
+    buffer_b_descriptors.reserve(command_header->num_buf_b_descriptors);
+    buffer_w_descriptors.reserve(command_header->num_buf_w_descriptors);
 
     for (u32 i = 0; i < command_header->num_buf_x_descriptors; ++i) {
-        buffer_x_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorX>());
+        buffer_x_descriptors.push_back(rp.PopRaw<IPC::BufferDescriptorX>());
     }
     for (u32 i = 0; i < command_header->num_buf_a_descriptors; ++i) {
-        buffer_a_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorABW>());
+        buffer_a_descriptors.push_back(rp.PopRaw<IPC::BufferDescriptorABW>());
     }
     for (u32 i = 0; i < command_header->num_buf_b_descriptors; ++i) {
-        buffer_b_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorABW>());
+        buffer_b_descriptors.push_back(rp.PopRaw<IPC::BufferDescriptorABW>());
     }
     for (u32 i = 0; i < command_header->num_buf_w_descriptors; ++i) {
-        buffer_w_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorABW>());
+        buffer_w_descriptors.push_back(rp.PopRaw<IPC::BufferDescriptorABW>());
     }
 
     const auto buffer_c_offset = rp.GetCurrentOffset() + command_header->data_size;
@@ -246,7 +246,7 @@ void HLERequestContext::ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming) {
         IPC::CommandHeader::BufferDescriptorCFlag::InlineDescriptor) {
         if (command_header->buf_c_descriptor_flags ==
             IPC::CommandHeader::BufferDescriptorCFlag::OneDescriptor) {
-            buffer_c_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorC>());
+            buffer_c_descriptors.push_back(rp.PopRaw<IPC::BufferDescriptorC>());
         } else {
             u32 num_buf_c_descriptors =
                 static_cast<u32>(command_header->buf_c_descriptor_flags.Value()) - 2;
@@ -256,7 +256,7 @@ void HLERequestContext::ParseCommandBuffer(u32_le* src_cmdbuf, bool incoming) {
             ASSERT(num_buf_c_descriptors < 14);
 
             for (u32 i = 0; i < num_buf_c_descriptors; ++i) {
-                buffer_c_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorC>());
+                buffer_c_descriptors.push_back(rp.PopRaw<IPC::BufferDescriptorC>());
             }
         }
     }

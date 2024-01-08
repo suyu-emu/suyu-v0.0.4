@@ -90,7 +90,7 @@ Result MapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t add
     // Verify that the mapping is in range.
     R_UNLESS(GetCurrentProcess(system.Kernel())
                  .GetPageTable()
-                 .CanContain(address, size, KMemoryState::Transfered),
+                 .CanContain(address, size, KMemoryState::Transferred),
              ResultInvalidMemoryRegion);
 
     // Map the transfer memory.
@@ -117,7 +117,7 @@ Result UnmapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t a
     // Verify that the mapping is in range.
     R_UNLESS(GetCurrentProcess(system.Kernel())
                  .GetPageTable()
-                 .CanContain(address, size, KMemoryState::Transfered),
+                 .CanContain(address, size, KMemoryState::Transferred),
              ResultInvalidMemoryRegion);
 
     // Unmap the transfer memory.

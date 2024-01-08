@@ -126,7 +126,7 @@ private:
     Kernel::KEvent* deactivate_event = nullptr;
     Kernel::KEvent* availability_change_event = nullptr;
 
-    bool is_initalized{};
+    bool is_initialized{};
     NfcProtocol allowed_protocols{};
     DeviceState device_state{DeviceState::Unavailable};
 

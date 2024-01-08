@@ -75,7 +75,7 @@ void NfcDevice::NpadUpdate(Core::HID::ControllerTriggerType type) {
         return;
     }
 
-    if (!is_initalized) {
+    if (!is_initialized) {
         return;
     }
 
@@ -207,7 +207,7 @@ void NfcDevice::Initialize() {
         return;
     }
 
-    is_initalized = npad_device->AddNfcHandle();
+    is_initialized = npad_device->AddNfcHandle();
 }
 
 void NfcDevice::Finalize() {
@@ -226,7 +226,7 @@ void NfcDevice::Finalize() {
     }
 
     device_state = DeviceState::Unavailable;
-    is_initalized = false;
+    is_initialized = false;
 }
 
 Result NfcDevice::StartDetection(NfcProtocol allowed_protocol) {

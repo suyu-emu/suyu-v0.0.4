@@ -67,7 +67,7 @@ HidBus::~HidBus() {
 void HidBus::UpdateHidbus(std::chrono::nanoseconds ns_late) {
     if (is_hidbus_enabled) {
         for (std::size_t i = 0; i < devices.size(); ++i) {
-            if (!devices[i].is_device_initializated) {
+            if (!devices[i].is_device_initialized) {
                 continue;
             }
             auto& device = devices[i].device;
@@ -213,7 +213,7 @@ void HidBus::Initialize(HLERequestContext& ctx) {
 
         if (bus_handle_.internal_index == 0 && Settings::values.enable_ring_controller) {
             MakeDevice<RingController>(bus_handle_);
-            devices[device_index.value()].is_device_initializated = true;
+            devices[device_index.value()].is_device_initialized = true;
             devices[device_index.value()].device->ActivateDevice();
             cur_entry.is_in_focus = true;
             cur_entry.is_connected = true;
@@ -222,7 +222,7 @@ void HidBus::Initialize(HLERequestContext& ctx) {
             cur_entry.is_polling_mode = false;
         } else {
             MakeDevice<HidbusStubbed>(bus_handle_);
-            devices[device_index.value()].is_device_initializated = true;
+            devices[device_index.value()].is_device_initialized = true;
             cur_entry.is_in_focus = true;
             cur_entry.is_connected = false;
             cur_entry.is_connected_result = ResultSuccess;
@@ -261,7 +261,7 @@ void HidBus::Finalize(HLERequestContext& ctx) {
         const auto entry_index = devices[device_index.value()].handle.internal_index;
         auto& cur_entry = hidbus_status.entries[entry_index];
         auto& device = devices[device_index.value()].device;
-        devices[device_index.value()].is_device_initializated = false;
+        devices[device_index.value()].is_device_initialized = false;
         device->DeactivateDevice();
 
         cur_entry.is_in_focus = true;

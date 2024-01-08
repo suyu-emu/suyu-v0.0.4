@@ -54,8 +54,8 @@ public:
 
 class IClkrstSession final : public ServiceFramework<IClkrstSession> {
 public:
-    explicit IClkrstSession(Core::System& system_, DeviceCode deivce_code_)
-        : ServiceFramework{system_, "IClkrstSession"}, deivce_code(deivce_code_) {
+    explicit IClkrstSession(Core::System& system_, DeviceCode device_code_)
+        : ServiceFramework{system_, "IClkrstSession"}, device_code(device_code_) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "SetClockEnabled"},
@@ -93,7 +93,7 @@ private:
         rb.Push<u32>(clock_rate);
     }
 
-    DeviceCode deivce_code;
+    DeviceCode device_code;
     u32 clock_rate{};
 };
 
@@ -118,9 +118,9 @@ private:
     void OpenSession(HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto device_code = static_cast<DeviceCode>(rp.Pop<u32>());
-        const auto unkonwn_input = rp.Pop<u32>();
+        const auto unknown_input = rp.Pop<u32>();
 
-        LOG_DEBUG(Service_PCV, "called, device_code={}, input={}", device_code, unkonwn_input);
+        LOG_DEBUG(Service_PCV, "called, device_code={}, input={}", device_code, unknown_input);
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);

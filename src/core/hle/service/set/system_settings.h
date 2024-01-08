@@ -208,7 +208,7 @@ struct TvSettings {
     CmuMode cmu_mode;
     u32 tv_underscan;
     f32 tv_gama;
-    f32 constrast_ratio;
+    f32 contrast_ratio;
 };
 static_assert(sizeof(TvSettings) == 0x20, "TvSettings is an invalid size");
 
@@ -341,7 +341,7 @@ struct SystemSettings {
     std::array<u8, 0x3C> reserved_09934;
 
     // nn::settings::system::ErrorReportSharePermission
-    ErrorReportSharePermission error_report_share_permssion;
+    ErrorReportSharePermission error_report_share_permission;
 
     std::array<u8, 0x3C> reserved_09974;
 
