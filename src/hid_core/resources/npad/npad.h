@@ -149,6 +149,18 @@ public:
 
     AppletDetailedUiType GetAppletDetailedUiType(Core::HID::NpadIdType npad_id);
 
+    Result SetNpadCaptureButtonAssignment(u64 aruid, Core::HID::NpadStyleSet npad_style_set,
+                                          Core::HID::NpadButton button_assignment);
+    Result ClearNpadCaptureButtonAssignment(u64 aruid);
+    std::size_t GetNpadCaptureButtonAssignment(std::span<Core::HID::NpadButton> out_list,
+                                               u64 aruid) const;
+
+    Result SetNpadSystemExtStateEnabled(u64 aruid, bool is_enabled);
+
+    Result AssigningSingleOnSlSrPress(u64 aruid, bool is_enabled);
+
+    Result GetLastActiveNpad(Core::HID::NpadIdType& out_npad_id) const;
+
 private:
     struct VibrationData {
         bool device_mounted{};
