@@ -1444,8 +1444,8 @@ void IHidServer::SetNpadAnalogStickUseCenterClamp(HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, use_center_clamp={}, applet_resource_user_id={}",
-                parameters.use_center_clamp, parameters.applet_resource_user_id);
+    LOG_INFO(Service_HID, "called, use_center_clamp={}, applet_resource_user_id={}",
+             parameters.use_center_clamp, parameters.applet_resource_user_id);
 
     GetResourceManager()->GetNpad()->SetNpadAnalogStickUseCenterClamp(
         parameters.applet_resource_user_id, parameters.use_center_clamp);
@@ -1466,23 +1466,27 @@ void IHidServer::SetNpadCaptureButtonAssignment(HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    LOG_WARNING(Service_HID,
-                "(STUBBED) called, npad_styleset={}, applet_resource_user_id={}, button={}",
-                parameters.npad_styleset, parameters.applet_resource_user_id, parameters.button);
+    LOG_INFO(Service_HID, "called, npad_styleset={}, applet_resource_user_id={}, button={}",
+             parameters.npad_styleset, parameters.applet_resource_user_id, parameters.button);
+
+    const auto result = GetResourceManager()->GetNpad()->SetNpadCaptureButtonAssignment(
+        parameters.applet_resource_user_id, parameters.npad_styleset, parameters.button);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::ClearNpadCaptureButtonAssignment(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
-                applet_resource_user_id);
+    LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    const auto result =
+        GetResourceManager()->GetNpad()->ClearNpadCaptureButtonAssignment(applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void IHidServer::GetVibrationDeviceInfo(HLERequestContext& ctx) {

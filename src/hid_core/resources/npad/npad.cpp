@@ -1344,4 +1344,49 @@ AppletDetailedUiType NPad::GetAppletDetailedUiType(Core::HID::NpadIdType npad_id
     };
 }
 
+Result NPad::SetNpadCaptureButtonAssignment(u64 aruid, Core::HID::NpadStyleSet npad_style_set,
+                                            Core::HID::NpadButton button_assignment) {
+    std::scoped_lock lock{mutex};
+    return npad_resource.SetNpadCaptureButtonAssignment(aruid, npad_style_set, button_assignment);
+}
+
+Result NPad::ClearNpadCaptureButtonAssignment(u64 aruid) {
+    std::scoped_lock lock{mutex};
+    return npad_resource.ClearNpadCaptureButtonAssignment(aruid);
+}
+
+std::size_t NPad::GetNpadCaptureButtonAssignment(std::span<Core::HID::NpadButton> out_list,
+                                                 u64 aruid) const {
+    std::scoped_lock lock{mutex};
+    return npad_resource.GetNpadCaptureButtonAssignment(out_list, aruid);
+}
+
+Result NPad::SetNpadSystemExtStateEnabled(u64 aruid, bool is_enabled) {
+    std::scoped_lock lock{mutex};
+    const auto result = npad_resource.SetNpadSystemExtStateEnabled(aruid, is_enabled);
+
+    if (result.IsSuccess()) {
+        std::scoped_lock shared_lock{*applet_resource_holder.shared_mutex};
+        // TODO: abstracted_pad->EnableAppletToGetInput(aruid);
+    }
+
+    return result;
+}
+
+Result NPad::AssigningSingleOnSlSrPress(u64 aruid, bool is_enabled) {
+    std::scoped_lock lock{mutex};
+    bool is_currently_enabled{};
+    Result result = npad_resource.IsAssigningSingleOnSlSrPressEnabled(is_currently_enabled, aruid);
+    if (result.IsSuccess() && is_enabled != is_currently_enabled) {
+        result = npad_resource.SetAssigningSingleOnSlSrPress(aruid, is_enabled);
+    }
+    return result;
+}
+
+Result NPad::GetLastActiveNpad(Core::HID::NpadIdType& out_npad_id) const {
+    std::scoped_lock lock{mutex};
+    out_npad_id = hid_core.GetLastActiveController();
+    return ResultSuccess;
+}
+
 } // namespace Service::HID

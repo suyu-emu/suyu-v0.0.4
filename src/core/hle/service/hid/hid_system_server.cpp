@@ -46,7 +46,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {310, &IHidSystemServer::GetMaskedSupportedNpadStyleSet, "GetMaskedSupportedNpadStyleSet"},
         {311, nullptr, "SetNpadPlayerLedBlinkingDevice"},
         {312, &IHidSystemServer::SetSupportedNpadStyleSetAll, "SetSupportedNpadStyleSetAll"},
-        {313, nullptr, "GetNpadCaptureButtonAssignment"},
+        {313, &IHidSystemServer::GetNpadCaptureButtonAssignment, "GetNpadCaptureButtonAssignment"},
         {314, nullptr, "GetAppletFooterUiType"},
         {315, &IHidSystemServer::GetAppletDetailedUiType, "GetAppletDetailedUiType"},
         {316, &IHidSystemServer::GetNpadInterfaceType, "GetNpadInterfaceType"},
@@ -54,8 +54,8 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {318, &IHidSystemServer::HasBattery, "HasBattery"},
         {319, &IHidSystemServer::HasLeftRightBattery, "HasLeftRightBattery"},
         {321, &IHidSystemServer::GetUniquePadsFromNpad, "GetUniquePadsFromNpad"},
-        {322, &IHidSystemServer::GetIrSensorState, "GetIrSensorState"},
-        {323, nullptr, "GetXcdHandleForNpadWithIrSensor"},
+        {322, &IHidSystemServer::SetNpadSystemExtStateEnabled, "SetNpadSystemExtStateEnabled"},
+        {323, nullptr, "GetLastActiveUniquePad"},
         {324, nullptr, "GetUniquePadButtonSet"},
         {325, nullptr, "GetUniquePadColor"},
         {326, nullptr, "GetUniquePadAppletDetailedUiType"},
@@ -251,25 +251,38 @@ void IHidSystemServer::ApplyNpadSystemCommonPolicy(HLERequestContext& ctx) {
 }
 
 void IHidSystemServer::EnableAssigningSingleOnSlSrPress(HLERequestContext& ctx) {
-    LOG_WARNING(Service_HID, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    GetResourceManager()->GetNpad()->AssigningSingleOnSlSrPress(applet_resource_user_id, true);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void IHidSystemServer::DisableAssigningSingleOnSlSrPress(HLERequestContext& ctx) {
-    LOG_WARNING(Service_HID, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    GetResourceManager()->GetNpad()->AssigningSingleOnSlSrPress(applet_resource_user_id, false);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void IHidSystemServer::GetLastActiveNpad(HLERequestContext& ctx) {
-    LOG_DEBUG(Service_HID, "(STUBBED) called"); // Spams a lot when controller applet is running
+    Core::HID::NpadIdType npad_id{};
+    const Result result = GetResourceManager()->GetNpad()->GetLastActiveNpad(npad_id);
+
+    LOG_DEBUG(Service_HID, "called, npad_id={}", npad_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push(0); // Dont forget to fix this
+    rb.Push(result);
+    rb.PushEnum(npad_id);
 }
 
 void IHidSystemServer::ApplyNpadSystemCommonPolicyFull(HLERequestContext& ctx) {
@@ -329,6 +342,27 @@ void IHidSystemServer::SetSupportedNpadStyleSetAll(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(result);
+}
+
+void IHidSystemServer::GetNpadCaptureButtonAssignment(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+    const auto capture_button_list_size{ctx.GetWriteBufferNumElements<Core::HID::NpadButton>()};
+
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    std::vector<Core::HID::NpadButton> capture_button_list(capture_button_list_size);
+    const auto& npad = GetResourceManager()->GetNpad();
+    const u64 list_size =
+        npad->GetNpadCaptureButtonAssignment(capture_button_list, applet_resource_user_id);
+
+    if (list_size != 0) {
+        ctx.WriteBuffer(capture_button_list);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(ResultSuccess);
+    rb.Push(list_size);
 }
 
 void IHidSystemServer::GetAppletDetailedUiType(HLERequestContext& ctx) {
@@ -423,13 +457,25 @@ void IHidSystemServer::GetUniquePadsFromNpad(HLERequestContext& ctx) {
     rb.Push(static_cast<u32>(unique_pads.size()));
 }
 
-void IHidSystemServer::GetIrSensorState(HLERequestContext& ctx) {
+void IHidSystemServer::SetNpadSystemExtStateEnabled(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
+    struct Parameters {
+        bool is_enabled;
+        INSERT_PADDING_BYTES_NOINIT(7);
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
 
-    LOG_WARNING(Service_HID, "(STUBBED) called");
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_INFO(Service_HID, "called, is_enabled={}, applet_resource_user_id={}",
+             parameters.is_enabled, parameters.applet_resource_user_id);
+
+    const auto result = GetResourceManager()->GetNpad()->SetNpadSystemExtStateEnabled(
+        parameters.applet_resource_user_id, parameters.is_enabled);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 void IHidSystemServer::RegisterAppletResourceUserId(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
