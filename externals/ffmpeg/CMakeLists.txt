@@ -138,7 +138,7 @@ if (NOT WIN32 AND NOT ANDROID)
             --cross-prefix=${TOOLCHAIN}/bin/aarch64-linux-android-
             --sysroot=${SYSROOT}
             --target-os=android
-            --extra-ldflags="--ld-path=${TOOLCHAIN}/bin/ld.lld" 
+            --extra-ldflags="--ld-path=${TOOLCHAIN}/bin/ld.lld"
             --extra-ldflags="-nostdlib"
         )
     endif()
