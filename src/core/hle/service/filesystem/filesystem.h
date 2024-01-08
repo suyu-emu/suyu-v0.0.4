@@ -43,6 +43,9 @@ class ServiceManager;
 
 namespace FileSystem {
 
+class RomFsController;
+class SaveDataController;
+
 enum class ContentStorageId : u32 {
     System,
     User,
@@ -61,32 +64,24 @@ enum class OpenDirectoryMode : u64 {
 };
 DECLARE_ENUM_FLAG_OPERATORS(OpenDirectoryMode);
 
+using ProcessId = u64;
+using ProgramId = u64;
+
 class FileSystemController {
 public:
     explicit FileSystemController(Core::System& system_);
     ~FileSystemController();
 
-    Result RegisterRomFS(std::unique_ptr<FileSys::RomFSFactory>&& factory);
-    Result RegisterSaveData(std::unique_ptr<FileSys::SaveDataFactory>&& factory);
-    Result RegisterSDMC(std::unique_ptr<FileSys::SDMCFactory>&& factory);
-    Result RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory);
+    Result RegisterProcess(ProcessId process_id, ProgramId program_id,
+                           std::shared_ptr<FileSys::RomFSFactory>&& factory);
+    Result OpenProcess(ProgramId* out_program_id,
+                       std::shared_ptr<SaveDataController>* out_save_data_controller,
+                       std::shared_ptr<RomFsController>* out_romfs_controller,
+                       ProcessId process_id);
+    void SetPackedUpdate(ProcessId process_id, FileSys::VirtualFile update_raw);
 
-    void SetPackedUpdate(FileSys::VirtualFile update_raw);
-    FileSys::VirtualFile OpenRomFSCurrentProcess() const;
-    FileSys::VirtualFile OpenPatchedRomFS(u64 title_id, FileSys::ContentRecordType type) const;
-    FileSys::VirtualFile OpenPatchedRomFSWithProgramIndex(u64 title_id, u8 program_index,
-                                                          FileSys::ContentRecordType type) const;
-    FileSys::VirtualFile OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
-                                   FileSys::ContentRecordType type) const;
-    std::shared_ptr<FileSys::NCA> OpenBaseNca(u64 title_id, FileSys::StorageId storage_id,
-                                              FileSys::ContentRecordType type) const;
+    std::shared_ptr<SaveDataController> OpenSaveDataController();
 
-    Result CreateSaveData(FileSys::VirtualDir* out_save_data, FileSys::SaveDataSpaceId space,
-                          const FileSys::SaveDataAttribute& save_struct) const;
-    Result OpenSaveData(FileSys::VirtualDir* out_save_data, FileSys::SaveDataSpaceId space,
-                        const FileSys::SaveDataAttribute& save_struct) const;
-    Result OpenSaveDataSpace(FileSys::VirtualDir* out_save_data_space,
-                             FileSys::SaveDataSpaceId space) const;
     Result OpenSDMC(FileSys::VirtualDir* out_sdmc) const;
     Result OpenBISPartition(FileSys::VirtualDir* out_bis_partition,
                             FileSys::BisPartitionId id) const;
@@ -95,11 +90,6 @@ public:
 
     u64 GetFreeSpaceSize(FileSys::StorageId id) const;
     u64 GetTotalSpaceSize(FileSys::StorageId id) const;
-
-    FileSys::SaveDataSize ReadSaveDataSize(FileSys::SaveDataType type, u64 title_id,
-                                           u128 user_id) const;
-    void WriteSaveDataSize(FileSys::SaveDataType type, u64 title_id, u128 user_id,
-                           FileSys::SaveDataSize new_value) const;
 
     void SetGameCard(FileSys::VirtualFile file);
     FileSys::XCI* GetGameCard() const;
@@ -133,15 +123,24 @@ public:
 
     FileSys::VirtualDir GetBCATDirectory(u64 title_id) const;
 
-    void SetAutoSaveDataCreation(bool enable);
-
     // Creates the SaveData, SDMC, and BIS Factories. Should be called once and before any function
     // above is called.
     void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite = true);
 
+    void Reset();
+
 private:
-    std::unique_ptr<FileSys::RomFSFactory> romfs_factory;
-    std::unique_ptr<FileSys::SaveDataFactory> save_data_factory;
+    std::shared_ptr<FileSys::SaveDataFactory> CreateSaveDataFactory(ProgramId program_id);
+
+    struct Registration {
+        ProgramId program_id;
+        std::shared_ptr<FileSys::RomFSFactory> romfs_factory;
+        std::shared_ptr<FileSys::SaveDataFactory> save_data_factory;
+    };
+
+    std::mutex registration_lock;
+    std::map<ProcessId, Registration> registrations;
+
     std::unique_ptr<FileSys::SDMCFactory> sdmc_factory;
     std::unique_ptr<FileSys::BISFactory> bis_factory;
 
