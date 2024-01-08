@@ -57,7 +57,7 @@ struct Range {
     return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 }
 
-[[nodiscard]] VkMemoryPropertyFlags MemoryUsagePreferedVmaFlags(MemoryUsage usage) {
+[[nodiscard]] VkMemoryPropertyFlags MemoryUsagePreferredVmaFlags(MemoryUsage usage) {
     return usage != MemoryUsage::DeviceLocal ? VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
                                              : VkMemoryPropertyFlagBits{};
 }
@@ -256,7 +256,7 @@ vk::Buffer MemoryAllocator::CreateBuffer(const VkBufferCreateInfo& ci, MemoryUsa
         .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT | MemoryUsageVmaFlags(usage),
         .usage = MemoryUsageVma(usage),
         .requiredFlags = 0,
-        .preferredFlags = MemoryUsagePreferedVmaFlags(usage),
+        .preferredFlags = MemoryUsagePreferredVmaFlags(usage),
         .memoryTypeBits = usage == MemoryUsage::Stream ? 0u : valid_memory_types,
         .pool = VK_NULL_HANDLE,
         .pUserData = nullptr,
