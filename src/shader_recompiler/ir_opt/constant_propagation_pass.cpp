@@ -1084,7 +1084,7 @@ void ConstantPropagation(Environment& env, IR::Block& block, IR::Inst& inst) {
         if (env.HasHLEMacroState()) {
             FoldConstBuffer(env, block, inst);
         }
-        if (env.IsPropietaryDriver()) {
+        if (env.IsProprietaryDriver()) {
             FoldDriverConstBuffer(env, block, inst, 1);
         }
         break;

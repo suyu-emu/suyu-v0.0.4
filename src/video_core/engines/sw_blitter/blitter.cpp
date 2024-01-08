@@ -171,12 +171,12 @@ bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
     const bool no_passthrough =
         src.format != dst.format || src_extent_x != dst_extent_x || src_extent_y != dst_extent_y;
 
-    const auto convertion_phase_same_format = [&]() {
+    const auto conversion_phase_same_format = [&]() {
         NearestNeighbor(impl->src_buffer, impl->dst_buffer, src_extent_x, src_extent_y,
                         dst_extent_x, dst_extent_y, dst_bytes_per_pixel);
     };
 
-    const auto convertion_phase_ir = [&]() {
+    const auto conversion_phase_ir = [&]() {
         auto* input_converter = impl->converter_factory.GetFormatConverter(src.format);
         impl->intermediate_src.resize_destructive((src_copy_size / src_bytes_per_pixel) *
                                                   ir_components);
@@ -211,9 +211,9 @@ bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
     // Conversion Phase
     if (no_passthrough) {
         if (src.format != dst.format || config.filter == Fermi2D::Filter::Bilinear) {
-            convertion_phase_ir();
+            conversion_phase_ir();
         } else {
-            convertion_phase_same_format();
+            conversion_phase_same_format();
         }
     } else {
         impl->dst_buffer.swap(impl->src_buffer);

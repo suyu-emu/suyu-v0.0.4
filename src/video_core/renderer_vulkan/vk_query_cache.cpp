@@ -120,8 +120,8 @@ public:
           scheduler{scheduler_}, memory_allocator{memory_allocator_} {
         current_bank = nullptr;
         current_query = nullptr;
-        ammend_value = 0;
-        acumulation_value = 0;
+        amend_value = 0;
+        accumulation_value = 0;
         queries_prefix_scan_pass = std::make_unique<QueriesPrefixScanPass>(
             device, scheduler, descriptor_pool, compute_pass_descriptor_queue);
 
@@ -176,8 +176,8 @@ public:
         }
         AbandonCurrentQuery();
         std::function<void()> func([this, counts = pending_flush_queries.size()] {
-            ammend_value = 0;
-            acumulation_value = 0;
+            amend_value = 0;
+            accumulation_value = 0;
         });
         rasterizer->SyncOperation(std::move(func));
         accumulation_since_last_sync = false;
@@ -307,7 +307,7 @@ public:
         }
 
         ReplicateCurrentQueryIfNeeded();
-        std::function<void()> func([this] { ammend_value = acumulation_value; });
+        std::function<void()> func([this] { amend_value = accumulation_value; });
         rasterizer->SyncOperation(std::move(func));
         AbandonCurrentQuery();
         num_slots_used = 0;
@@ -512,7 +512,7 @@ private:
         pending_flush_queries.push_back(index);
         std::function<void()> func([this, index] {
             auto* query = GetQuery(index);
-            query->value += GetAmmendValue();
+            query->value += GetAmendValue();
             SetAccumulationValue(query->value);
             Free(index);
         });
@@ -1169,7 +1169,7 @@ struct QueryCacheRuntimeImpl {
           primitives_succeeded_streamer(
               static_cast<size_t>(QueryType::StreamingPrimitivesSucceeded), runtime, tfb_streamer,
               cpu_memory_),
-          primitives_needed_minus_suceeded_streamer(
+          primitives_needed_minus_succeeded_streamer(
               static_cast<size_t>(QueryType::StreamingPrimitivesNeededMinusSucceeded), runtime, 0u),
           hcr_setup{}, hcr_is_set{}, is_hcr_running{}, maxwell3d{} {
 
@@ -1208,7 +1208,7 @@ struct QueryCacheRuntimeImpl {
     SamplesStreamer sample_streamer;
     TFBCounterStreamer tfb_streamer;
     PrimitivesSucceededStreamer primitives_succeeded_streamer;
-    VideoCommon::StubStreamer<QueryCacheParams> primitives_needed_minus_suceeded_streamer;
+    VideoCommon::StubStreamer<QueryCacheParams> primitives_needed_minus_succeeded_streamer;
 
     std::vector<std::pair<VAddr, VAddr>> little_cache;
     std::vector<std::pair<VkBuffer, VkDeviceSize>> buffers_to_upload_to;
@@ -1433,7 +1433,7 @@ VideoCommon::StreamerInterface* QueryCacheRuntime::GetStreamerInterface(QueryTyp
     case QueryType::StreamingPrimitivesSucceeded:
         return &impl->primitives_succeeded_streamer;
     case QueryType::StreamingPrimitivesNeededMinusSucceeded:
-        return &impl->primitives_needed_minus_suceeded_streamer;
+        return &impl->primitives_needed_minus_succeeded_streamer;
     default:
         return nullptr;
     }

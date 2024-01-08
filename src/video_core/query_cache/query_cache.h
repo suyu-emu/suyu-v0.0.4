@@ -269,7 +269,7 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
             ASSERT(false);
             return;
         }
-        query_base->value += streamer->GetAmmendValue();
+        query_base->value += streamer->GetAmendValue();
         streamer->SetAccumulationValue(query_base->value);
         if (True(query_base->flags & QueryFlagBits::HasTimestamp)) {
             u64 timestamp = impl->gpu.GetTicks();

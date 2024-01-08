@@ -130,7 +130,7 @@ private:
     vk::DescriptorPool descriptor_pool;
     vk::DescriptorSetLayout descriptor_set_layout;
     vk::PipelineLayout pipeline_layout;
-    vk::Pipeline nearest_neightbor_pipeline;
+    vk::Pipeline nearest_neighbor_pipeline;
     vk::Pipeline bilinear_pipeline;
     vk::Pipeline bicubic_pipeline;
     vk::Pipeline gaussian_pipeline;

@@ -42,7 +42,7 @@ private:
             u8 raw;
             BitField<0, 2, u8> tile_format;
             BitField<2, 3, u8> gob_height;
-            BitField<5, 3, u8> reserverd_surface_format;
+            BitField<5, 3, u8> reserved_surface_format;
         };
         u8 error_conceal_on;  // 1: error conceal on; 0: off
         u32 first_part_size;  // the size of first partition(frame header and mb header partition)

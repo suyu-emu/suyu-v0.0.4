@@ -78,12 +78,12 @@ public:
         return dependence_mask;
     }
 
-    u64 GetAmmendValue() const {
-        return ammend_value;
+    u64 GetAmendValue() const {
+        return amend_value;
     }
 
     void SetAccumulationValue(u64 new_value) {
-        acumulation_value = new_value;
+        accumulation_value = new_value;
     }
 
 protected:
@@ -95,8 +95,8 @@ protected:
     const size_t id;
     u64 dependence_mask;
     u64 dependent_mask;
-    u64 ammend_value{};
-    u64 acumulation_value{};
+    u64 amend_value{};
+    u64 accumulation_value{};
 };
 
 template <typename QueryType>
