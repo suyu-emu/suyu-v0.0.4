@@ -343,8 +343,8 @@ private:
 
 class IManagerDisplayService final : public ServiceFramework<IManagerDisplayService> {
 public:
-    explicit IManagerDisplayService(Core::System& system_, Nvnflinger::Nvnflinger& nv_flinger_)
-        : ServiceFramework{system_, "IManagerDisplayService"}, nv_flinger{nv_flinger_} {
+    explicit IManagerDisplayService(Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger_)
+        : ServiceFramework{system_, "IManagerDisplayService"}, nvnflinger{nvnflinger_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {200, nullptr, "AllocateProcessHeapBlock"},
@@ -440,7 +440,7 @@ private:
         IPC::RequestParser rp{ctx};
         const u64 display = rp.Pop<u64>();
 
-        const Result rc = nv_flinger.CloseDisplay(display) ? ResultSuccess : ResultUnknown;
+        const Result rc = nvnflinger.CloseDisplay(display) ? ResultSuccess : ResultUnknown;
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(rc);
@@ -457,7 +457,7 @@ private:
                     "(STUBBED) called. unknown=0x{:08X}, display=0x{:016X}, aruid=0x{:016X}",
                     unknown, display, aruid);
 
-        const auto layer_id = nv_flinger.CreateLayer(display);
+        const auto layer_id = nvnflinger.CreateLayer(display);
         if (!layer_id) {
             LOG_ERROR(Service_VI, "Layer not found! display=0x{:016X}", display);
             IPC::ResponseBuilder rb{ctx, 2};
@@ -494,14 +494,14 @@ private:
         rb.Push(ResultSuccess);
     }
 
-    Nvnflinger::Nvnflinger& nv_flinger;
+    Nvnflinger::Nvnflinger& nvnflinger;
 };
 
 class IApplicationDisplayService final : public ServiceFramework<IApplicationDisplayService> {
 public:
-    IApplicationDisplayService(Core::System& system_, Nvnflinger::Nvnflinger& nv_flinger_,
+    IApplicationDisplayService(Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger_,
                                Nvnflinger::HosBinderDriverServer& hos_binder_driver_server_)
-        : ServiceFramework{system_, "IApplicationDisplayService"}, nv_flinger{nv_flinger_},
+        : ServiceFramework{system_, "IApplicationDisplayService"}, nvnflinger{nvnflinger_},
           hos_binder_driver_server{hos_binder_driver_server_} {
 
         static const FunctionInfo functions[] = {
@@ -564,7 +564,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<ISystemDisplayService>(system, nv_flinger);
+        rb.PushIpcInterface<ISystemDisplayService>(system, nvnflinger);
     }
 
     void GetManagerDisplayService(HLERequestContext& ctx) {
@@ -572,7 +572,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IManagerDisplayService>(system, nv_flinger);
+        rb.PushIpcInterface<IManagerDisplayService>(system, nvnflinger);
     }
 
     void GetIndirectDisplayTransactionService(HLERequestContext& ctx) {
@@ -607,7 +607,7 @@ private:
 
         ASSERT_MSG(name == "Default", "Non-default displays aren't supported yet");
 
-        const auto display_id = nv_flinger.OpenDisplay(name);
+        const auto display_id = nvnflinger.OpenDisplay(name);
         if (!display_id) {
             LOG_ERROR(Service_VI, "Display not found! display_name={}", name);
             IPC::ResponseBuilder rb{ctx, 2};
@@ -624,7 +624,7 @@ private:
         IPC::RequestParser rp{ctx};
         const u64 display_id = rp.Pop<u64>();
 
-        const Result rc = nv_flinger.CloseDisplay(display_id) ? ResultSuccess : ResultUnknown;
+        const Result rc = nvnflinger.CloseDisplay(display_id) ? ResultSuccess : ResultUnknown;
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(rc);
@@ -703,7 +703,7 @@ private:
 
         LOG_DEBUG(Service_VI, "called. layer_id=0x{:016X}, aruid=0x{:016X}", layer_id, aruid);
 
-        const auto display_id = nv_flinger.OpenDisplay(display_name);
+        const auto display_id = nvnflinger.OpenDisplay(display_name);
         if (!display_id) {
             LOG_ERROR(Service_VI, "Layer not found! layer_id={}", layer_id);
             IPC::ResponseBuilder rb{ctx, 2};
@@ -711,7 +711,7 @@ private:
             return;
         }
 
-        const auto buffer_queue_id = nv_flinger.FindBufferQueueId(*display_id, layer_id);
+        const auto buffer_queue_id = nvnflinger.FindBufferQueueId(*display_id, layer_id);
         if (!buffer_queue_id) {
             LOG_ERROR(Service_VI, "Buffer queue id not found! display_id={}", *display_id);
             IPC::ResponseBuilder rb{ctx, 2};
@@ -719,7 +719,7 @@ private:
             return;
         }
 
-        nv_flinger.OpenLayer(layer_id);
+        nvnflinger.OpenLayer(layer_id);
 
         android::OutputParcel parcel;
         parcel.WriteInterface(NativeWindow{*buffer_queue_id});
@@ -737,7 +737,7 @@ private:
 
         LOG_DEBUG(Service_VI, "called. layer_id=0x{:016X}", layer_id);
 
-        nv_flinger.CloseLayer(layer_id);
+        nvnflinger.CloseLayer(layer_id);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
@@ -753,7 +753,7 @@ private:
 
         // TODO(Subv): What's the difference between a Stray and a Managed layer?
 
-        const auto layer_id = nv_flinger.CreateLayer(display_id);
+        const auto layer_id = nvnflinger.CreateLayer(display_id);
         if (!layer_id) {
             LOG_ERROR(Service_VI, "Layer not found! display_id={}", display_id);
             IPC::ResponseBuilder rb{ctx, 2};
@@ -761,7 +761,7 @@ private:
             return;
         }
 
-        const auto buffer_queue_id = nv_flinger.FindBufferQueueId(display_id, *layer_id);
+        const auto buffer_queue_id = nvnflinger.FindBufferQueueId(display_id, *layer_id);
         if (!buffer_queue_id) {
             LOG_ERROR(Service_VI, "Buffer queue id not found! display_id={}", display_id);
             IPC::ResponseBuilder rb{ctx, 2};
@@ -785,7 +785,7 @@ private:
         const u64 layer_id = rp.Pop<u64>();
 
         LOG_WARNING(Service_VI, "(STUBBED) called. layer_id=0x{:016X}", layer_id);
-        nv_flinger.DestroyLayer(layer_id);
+        nvnflinger.DestroyLayer(layer_id);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
@@ -798,7 +798,7 @@ private:
         LOG_DEBUG(Service_VI, "called. display_id={}", display_id);
 
         Kernel::KReadableEvent* vsync_event{};
-        const auto result = nv_flinger.FindVsyncEvent(&vsync_event, display_id);
+        const auto result = nvnflinger.FindVsyncEvent(&vsync_event, display_id);
         if (result != ResultSuccess) {
             if (result == ResultNotFound) {
                 LOG_ERROR(Service_VI, "Vsync event was not found for display_id={}", display_id);
@@ -808,6 +808,12 @@ private:
             rb.Push(result);
             return;
         }
+        if (vsync_event_fetched) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(VI::ResultPermissionDenied);
+            return;
+        }
+        vsync_event_fetched = true;
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(ResultSuccess);
@@ -899,8 +905,9 @@ private:
         }
     }
 
-    Nvnflinger::Nvnflinger& nv_flinger;
+    Nvnflinger::Nvnflinger& nvnflinger;
     Nvnflinger::HosBinderDriverServer& hos_binder_driver_server;
+    bool vsync_event_fetched{false};
 };
 
 static bool IsValidServiceAccess(Permission permission, Policy policy) {
@@ -916,7 +923,7 @@ static bool IsValidServiceAccess(Permission permission, Policy policy) {
 }
 
 void detail::GetDisplayServiceImpl(HLERequestContext& ctx, Core::System& system,
-                                   Nvnflinger::Nvnflinger& nv_flinger,
+                                   Nvnflinger::Nvnflinger& nvnflinger,
                                    Nvnflinger::HosBinderDriverServer& hos_binder_driver_server,
                                    Permission permission) {
     IPC::RequestParser rp{ctx};
@@ -931,19 +938,19 @@ void detail::GetDisplayServiceImpl(HLERequestContext& ctx, Core::System& system,
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IApplicationDisplayService>(system, nv_flinger, hos_binder_driver_server);
+    rb.PushIpcInterface<IApplicationDisplayService>(system, nvnflinger, hos_binder_driver_server);
 }
 
-void LoopProcess(Core::System& system, Nvnflinger::Nvnflinger& nv_flinger,
+void LoopProcess(Core::System& system, Nvnflinger::Nvnflinger& nvnflinger,
                  Nvnflinger::HosBinderDriverServer& hos_binder_driver_server) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
     server_manager->RegisterNamedService(
-        "vi:m", std::make_shared<VI_M>(system, nv_flinger, hos_binder_driver_server));
+        "vi:m", std::make_shared<VI_M>(system, nvnflinger, hos_binder_driver_server));
     server_manager->RegisterNamedService(
-        "vi:s", std::make_shared<VI_S>(system, nv_flinger, hos_binder_driver_server));
+        "vi:s", std::make_shared<VI_S>(system, nvnflinger, hos_binder_driver_server));
     server_manager->RegisterNamedService(
-        "vi:u", std::make_shared<VI_U>(system, nv_flinger, hos_binder_driver_server));
+        "vi:u", std::make_shared<VI_U>(system, nvnflinger, hos_binder_driver_server));
     ServerManager::RunServer(std::move(server_manager));
 }
 
