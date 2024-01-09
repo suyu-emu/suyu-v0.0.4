@@ -48,7 +48,7 @@ void GetDisplayServiceImpl(HLERequestContext& ctx, Core::System& system,
                            Permission permission);
 } // namespace detail
 
-void LoopProcess(Core::System& system, Nvnflinger::Nvnflinger& nv_flinger,
+void LoopProcess(Core::System& system, Nvnflinger::Nvnflinger& nvnflinger,
                  Nvnflinger::HosBinderDriverServer& hos_binder_driver_server);
 
 } // namespace Service::VI

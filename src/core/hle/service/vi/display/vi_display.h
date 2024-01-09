@@ -74,16 +74,8 @@ public:
 
     std::size_t GetNumLayers() const;
 
-    /**
-     * Gets the internal vsync event.
-     *
-     * @returns The internal Vsync event if it has not yet been retrieved,
-     *          VI::ResultPermissionDenied otherwise.
-     */
-    [[nodiscard]] Result GetVSyncEvent(Kernel::KReadableEvent** out_vsync_event);
-
     /// Gets the internal vsync event.
-    Kernel::KReadableEvent* GetVSyncEventUnchecked();
+    Kernel::KReadableEvent* GetVSyncEvent();
 
     /// Signals the internal vsync event.
     void SignalVSyncEvent();
@@ -104,7 +96,6 @@ public:
     /// Resets the display for a new connection.
     void Reset() {
         layers.clear();
-        got_vsync_event = false;
     }
 
     /// Attempts to find a layer with the given ID.
@@ -133,7 +124,6 @@ private:
 
     std::vector<std::unique_ptr<Layer>> layers;
     Kernel::KEvent* vsync_event{};
-    bool got_vsync_event{false};
 };
 
 } // namespace Service::VI
