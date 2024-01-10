@@ -6,43 +6,33 @@ package org.yuzu.yuzu_emu.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
 import org.yuzu.yuzu_emu.databinding.CardInstallableBinding
 import org.yuzu.yuzu_emu.model.Installable
+import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
-class InstallableAdapter(private val installables: List<Installable>) :
-    RecyclerView.Adapter<InstallableAdapter.InstallableViewHolder>() {
+class InstallableAdapter(installables: List<Installable>) :
+    AbstractListAdapter<Installable, InstallableAdapter.InstallableViewHolder>(installables) {
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
     ): InstallableAdapter.InstallableViewHolder {
-        val binding =
-            CardInstallableBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return InstallableViewHolder(binding)
+        CardInstallableBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            .also { return InstallableViewHolder(it) }
     }
 
-    override fun getItemCount(): Int = installables.size
-
-    override fun onBindViewHolder(holder: InstallableAdapter.InstallableViewHolder, position: Int) =
-        holder.bind(installables[position])
-
     inner class InstallableViewHolder(val binding: CardInstallableBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        lateinit var installable: Installable
+        AbstractViewHolder<Installable>(binding) {
+        override fun bind(model: Installable) {
+            binding.title.setText(model.titleId)
+            binding.description.setText(model.descriptionId)
 
-        fun bind(installable: Installable) {
-            this.installable = installable
-
-            binding.title.setText(installable.titleId)
-            binding.description.setText(installable.descriptionId)
-
-            if (installable.install != null) {
+            if (model.install != null) {
                 binding.buttonInstall.visibility = View.VISIBLE
-                binding.buttonInstall.setOnClickListener { installable.install.invoke() }
+                binding.buttonInstall.setOnClickListener { model.install.invoke() }
             }
-            if (installable.export != null) {
+            if (model.export != null) {
                 binding.buttonExport.visibility = View.VISIBLE
-                binding.buttonExport.setOnClickListener { installable.export.invoke() }
+                binding.buttonExport.setOnClickListener { model.export.invoke() }
             }
         }
     }
