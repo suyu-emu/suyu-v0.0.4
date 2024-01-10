@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import org.yuzu.yuzu_emu.databinding.CardDriverOptionBinding
+import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.model.Driver
 import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
@@ -27,13 +28,17 @@ class DriverAdapter(private val driverViewModel: DriverViewModel) :
             binding.apply {
                 radioButton.isChecked = model.selected
                 root.setOnClickListener {
-                    selectItem(bindingAdapterPosition) { driverViewModel.onDriverSelected(it) }
+                    selectItem(bindingAdapterPosition) {
+                        driverViewModel.onDriverSelected(it)
+                        driverViewModel.showClearButton(!StringSetting.DRIVER_PATH.global)
+                    }
                 }
                 buttonDelete.setOnClickListener {
                     removeSelectableItem(
                         bindingAdapterPosition
                     ) { removedPosition: Int, selectedPosition: Int ->
                         driverViewModel.onDriverRemoved(removedPosition, selectedPosition)
+                        driverViewModel.showClearButton(!StringSetting.DRIVER_PATH.global)
                     }
                 }
 
