@@ -41,6 +41,7 @@ import org.yuzu.yuzu_emu.fragments.AddGameFolderDialogFragment
 import org.yuzu.yuzu_emu.fragments.IndeterminateProgressDialogFragment
 import org.yuzu.yuzu_emu.fragments.MessageDialogFragment
 import org.yuzu.yuzu_emu.model.AddonViewModel
+import org.yuzu.yuzu_emu.model.DriverViewModel
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
 import org.yuzu.yuzu_emu.model.TaskState
@@ -58,6 +59,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
     private val gamesViewModel: GamesViewModel by viewModels()
     private val taskViewModel: TaskViewModel by viewModels()
     private val addonViewModel: AddonViewModel by viewModels()
+    private val driverViewModel: DriverViewModel by viewModels()
 
     override var themeId: Int = 0
 
@@ -689,6 +691,7 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
                 NativeLibrary.initializeSystem(true)
                 NativeConfig.initializeGlobalConfig()
                 gamesViewModel.reloadGames(false)
+                driverViewModel.reloadDriverData()
 
                 return@newInstance getString(R.string.user_data_import_success)
             }.show(supportFragmentManager, IndeterminateProgressDialogFragment.TAG)
