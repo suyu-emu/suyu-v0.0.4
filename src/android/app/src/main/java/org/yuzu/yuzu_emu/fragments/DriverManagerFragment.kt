@@ -179,7 +179,7 @@ class DriverManagerFragment : Fragment() {
                 false
             ) {
                 val driverPath =
-                    "${GpuDriverHelper.driverStoragePath}/${FileUtil.getFilename(result)}"
+                    "${GpuDriverHelper.driverStoragePath}${FileUtil.getFilename(result)}"
                 val driverFile = File(driverPath)
 
                 // Ignore file exceptions when a user selects an invalid zip
