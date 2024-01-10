@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -46,6 +47,9 @@ class DriverViewModel : ViewModel() {
     private val _selectedDriverTitle = MutableStateFlow("")
     val selectedDriverTitle: StateFlow<String> get() = _selectedDriverTitle
 
+    private val _showClearButton = MutableStateFlow(false)
+    val showClearButton = _showClearButton.asStateFlow()
+
     private val driversToDelete = mutableListOf<String>()
 
     init {
@@ -60,7 +64,7 @@ class DriverViewModel : ViewModel() {
         _areDriversLoading.value = false
     }
 
-    private fun updateDriverList() {
+    fun updateDriverList() {
         val selectedDriver = GpuDriverHelper.customDriverSettingData
         val newDriverList = mutableListOf(
             Driver(
@@ -79,6 +83,10 @@ class DriverViewModel : ViewModel() {
             SettingsFile.loadCustomConfig(game)
         }
         updateDriverList()
+    }
+
+    fun showClearButton(value: Boolean) {
+        _showClearButton.value = value
     }
 
     fun onDriverSelected(position: Int) {
