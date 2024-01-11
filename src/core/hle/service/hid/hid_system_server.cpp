@@ -7,6 +7,7 @@
 #include "hid_core/resource_manager.h"
 #include "hid_core/resources/npad/npad.h"
 #include "hid_core/resources/npad/npad_types.h"
+#include "hid_core/resources/npad/npad_vibration.h"
 #include "hid_core/resources/palma/palma.h"
 #include "hid_core/resources/touch_screen/touch_screen.h"
 
@@ -67,14 +68,14 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {501, &IHidSystemServer::RegisterAppletResourceUserId, "RegisterAppletResourceUserId"},
         {502, &IHidSystemServer::UnregisterAppletResourceUserId, "UnregisterAppletResourceUserId"},
         {503, &IHidSystemServer::EnableAppletToGetInput, "EnableAppletToGetInput"},
-        {504, nullptr, "SetAruidValidForVibration"},
+        {504, &IHidSystemServer::SetAruidValidForVibration, "SetAruidValidForVibration"},
         {505, &IHidSystemServer::EnableAppletToGetSixAxisSensor, "EnableAppletToGetSixAxisSensor"},
         {506, &IHidSystemServer::EnableAppletToGetPadInput, "EnableAppletToGetPadInput"},
         {507, &IHidSystemServer::EnableAppletToGetTouchScreen, "EnableAppletToGetTouchScreen"},
-        {510, nullptr, "SetVibrationMasterVolume"},
-        {511, nullptr, "GetVibrationMasterVolume"},
-        {512, nullptr, "BeginPermitVibrationSession"},
-        {513, nullptr, "EndPermitVibrationSession"},
+        {510, &IHidSystemServer::SetVibrationMasterVolume, "SetVibrationMasterVolume"},
+        {511, &IHidSystemServer::GetVibrationMasterVolume, "GetVibrationMasterVolume"},
+        {512, &IHidSystemServer::BeginPermitVibrationSession, "BeginPermitVibrationSession"},
+        {513, &IHidSystemServer::EndPermitVibrationSession, "EndPermitVibrationSession"},
         {514, nullptr, "Unknown514"},
         {520, nullptr, "EnableHandheldHids"},
         {521, nullptr, "DisableHandheldHids"},
@@ -156,7 +157,7 @@ IHidSystemServer::IHidSystemServer(Core::System& system_, std::shared_ptr<Resour
         {1152, nullptr, "SetTouchScreenDefaultConfiguration"},
         {1153, &IHidSystemServer::GetTouchScreenDefaultConfiguration, "GetTouchScreenDefaultConfiguration"},
         {1154, nullptr, "IsFirmwareAvailableForNotification"},
-        {1155, nullptr, "SetForceHandheldStyleVibration"},
+        {1155, &IHidSystemServer::SetForceHandheldStyleVibration, "SetForceHandheldStyleVibration"},
         {1156, nullptr, "SendConnectionTriggerWithoutTimeoutEvent"},
         {1157, nullptr, "CancelConnectionTrigger"},
         {1200, nullptr, "IsButtonConfigSupported"},
@@ -538,6 +539,27 @@ void IHidSystemServer::EnableAppletToGetInput(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
+void IHidSystemServer::SetAruidValidForVibration(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        bool is_enabled;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_INFO(Service_HID, "called, is_enabled={}, applet_resource_user_id={}",
+             parameters.is_enabled, parameters.applet_resource_user_id);
+
+    GetResourceManager()->SetAruidValidForVibration(parameters.applet_resource_user_id,
+                                                    parameters.is_enabled);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void IHidSystemServer::EnableAppletToGetSixAxisSensor(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
@@ -599,6 +621,57 @@ void IHidSystemServer::EnableAppletToGetTouchScreen(HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
+}
+
+void IHidSystemServer::SetVibrationMasterVolume(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto master_volume{rp.Pop<f32>()};
+
+    LOG_INFO(Service_HID, "called, volume={}", master_volume);
+
+    const auto result =
+        GetResourceManager()->GetNpad()->GetVibrationHandler()->SetVibrationMasterVolume(
+            master_volume);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void IHidSystemServer::GetVibrationMasterVolume(HLERequestContext& ctx) {
+    f32 master_volume{};
+    const auto result =
+        GetResourceManager()->GetNpad()->GetVibrationHandler()->GetVibrationMasterVolume(
+            master_volume);
+
+    LOG_INFO(Service_HID, "called, volume={}", master_volume);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(result);
+    rb.Push(master_volume);
+}
+
+void IHidSystemServer::BeginPermitVibrationSession(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_INFO(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
+
+    const auto result =
+        GetResourceManager()->GetNpad()->GetVibrationHandler()->BeginPermitVibrationSession(
+            applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void IHidSystemServer::EndPermitVibrationSession(HLERequestContext& ctx) {
+    LOG_INFO(Service_HID, "called");
+
+    const auto result =
+        GetResourceManager()->GetNpad()->GetVibrationHandler()->EndPermitVibrationSession();
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
 }
 
 void IHidSystemServer::IsJoyConAttachedOnAllRail(HLERequestContext& ctx) {
@@ -747,6 +820,19 @@ void IHidSystemServer::GetTouchScreenDefaultConfiguration(HLERequestContext& ctx
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
     rb.PushRaw(touchscreen_config);
+}
+
+void IHidSystemServer::SetForceHandheldStyleVibration(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto is_forced{rp.Pop<bool>()};
+
+    LOG_INFO(Service_HID, "called, is_forced={}", is_forced);
+
+    GetResourceManager()->SetForceHandheldStyleVibration(is_forced);
+    GetResourceManager()->GetNpad()->UpdateHandheldAbstractState();
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
 }
 
 void IHidSystemServer::IsUsingCustomButtonConfig(HLERequestContext& ctx) {

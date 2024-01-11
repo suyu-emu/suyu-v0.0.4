@@ -6,6 +6,10 @@
 #include "common/common_types.h"
 #include "core/hle/result.h"
 
+namespace Core::HID {
+class EmulatedController;
+}
+
 namespace Service::HID {
 class NpadVibration;
 
@@ -14,13 +18,13 @@ class NpadVibrationBase {
 public:
     explicit NpadVibrationBase();
 
-    virtual Result IncrementRefCounter();
-    virtual Result DecrementRefCounter();
+    virtual Result Activate();
+    virtual Result Deactivate();
 
     bool IsVibrationMounted() const;
 
 protected:
-    u64 xcd_handle{};
+    Core::HID::EmulatedController* xcd_handle{nullptr};
     s32 ref_counter{};
     bool is_mounted{};
     NpadVibration* vibration_handler{nullptr};

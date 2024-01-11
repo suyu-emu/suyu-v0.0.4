@@ -200,6 +200,25 @@ void AppletResource::EnableInput(u64 aruid, bool is_enabled) {
     data[index].flag.enable_touchscreen.Assign(is_enabled);
 }
 
+bool AppletResource::SetAruidValidForVibration(u64 aruid, bool is_enabled) {
+    const u64 index = GetIndexFromAruid(aruid);
+    if (index >= AruidIndexMax) {
+        return false;
+    }
+
+    if (!is_enabled && aruid == active_vibration_aruid) {
+        active_vibration_aruid = SystemAruid;
+        return true;
+    }
+
+    if (is_enabled && aruid != active_vibration_aruid) {
+        active_vibration_aruid = aruid;
+        return true;
+    }
+
+    return false;
+}
+
 void AppletResource::EnableSixAxisSensor(u64 aruid, bool is_enabled) {
     const u64 index = GetIndexFromAruid(aruid);
     if (index >= AruidIndexMax) {

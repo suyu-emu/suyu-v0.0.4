@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "hid_core/hid_core.h"
 #include "hid_core/hid_result.h"
 #include "hid_core/resources/abstracted_pad/abstract_pad.h"
 #include "hid_core/resources/applet_resource.h"
@@ -16,7 +17,7 @@ void AbstractPad::SetExternals(AppletResourceHolder* applet_resource,
                                CaptureButtonResource* capture_button_resource,
                                HomeButtonResource* home_button_resource,
                                SixAxisResource* sixaxis_resource, PalmaResource* palma_resource,
-                               VibrationHandler* vibration) {
+                               NpadVibration* vibration, Core::HID::HIDCore* core) {
     applet_resource_holder = applet_resource;
 
     properties_handler.SetAppletResource(applet_resource_holder);
@@ -35,13 +36,14 @@ void AbstractPad::SetExternals(AppletResourceHolder* applet_resource,
     mcu_handler.SetAbstractPadHolder(&abstract_pad_holder);
     mcu_handler.SetPropertiesHandler(&properties_handler);
 
-    std::array<NpadVibrationDevice*, 2> vibration_devices{&vibration_left, &vibration_right};
     vibration_handler.SetAppletResource(applet_resource_holder);
     vibration_handler.SetAbstractPadHolder(&abstract_pad_holder);
     vibration_handler.SetPropertiesHandler(&properties_handler);
     vibration_handler.SetN64Vibration(&vibration_n64);
-    vibration_handler.SetVibration(vibration_devices);
+    vibration_handler.SetVibration(&vibration_left, &vibration_right);
     vibration_handler.SetGcVibration(&vibration_gc);
+    vibration_handler.SetVibrationHandler(vibration);
+    vibration_handler.SetHidCore(core);
 
     sixaxis_handler.SetAppletResource(applet_resource_holder);
     sixaxis_handler.SetAbstractPadHolder(&abstract_pad_holder);
@@ -237,11 +239,6 @@ NpadVibrationDevice* AbstractPad::GetVibrationDevice(Core::HID::DeviceIndex devi
         return &vibration_right;
     }
     return &vibration_left;
-}
-
-void AbstractPad::GetLeftRightVibrationDevice(std::vector<NpadVibrationDevice*> list) {
-    list.emplace_back(&vibration_left);
-    list.emplace_back(&vibration_right);
 }
 
 NpadGcVibrationDevice* AbstractPad::GetGCVibrationDevice() {

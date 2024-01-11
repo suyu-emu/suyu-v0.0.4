@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/hid_result.h"
 #include "hid_core/resources/npad/npad_types.h"
 #include "hid_core/resources/npad/npad_vibration.h"
@@ -10,16 +11,73 @@ namespace Service::HID {
 
 NpadVibrationDevice::NpadVibrationDevice() {}
 
-Result NpadVibrationDevice::IncrementRefCounter() {
+Result NpadVibrationDevice::Activate() {
+    if (ref_counter == 0 && is_mounted) {
+        f32 volume = 1.0f;
+        const auto result = vibration_handler->GetVibrationVolume(volume);
+        if (result.IsSuccess()) {
+            xcd_handle->SetVibration(device_index, Core::HID::DEFAULT_VIBRATION_VALUE);
+            // TODO: SendNotificationPattern;
+        }
+    }
+
     ref_counter++;
     return ResultSuccess;
 }
 
-Result NpadVibrationDevice::DecrementRefCounter() {
+Result NpadVibrationDevice::Deactivate() {
+    if (ref_counter == 1 && is_mounted) {
+        f32 volume = 1.0f;
+        const auto result = vibration_handler->GetVibrationVolume(volume);
+        if (result.IsSuccess()) {
+            xcd_handle->SetVibration(device_index, Core::HID::DEFAULT_VIBRATION_VALUE);
+            // TODO: SendNotificationPattern;
+        }
+    }
+
     if (ref_counter > 0) {
         ref_counter--;
     }
 
+    return ResultSuccess;
+}
+
+Result NpadVibrationDevice::Mount(IAbstractedPad& abstracted_pad, Core::HID::DeviceIndex index,
+                                  NpadVibration* handler) {
+    if (!abstracted_pad.internal_flags.is_connected) {
+        return ResultSuccess;
+    }
+    xcd_handle = abstracted_pad.xcd_handle;
+    device_index = index;
+    vibration_handler = handler;
+    is_mounted = true;
+
+    if (ref_counter == 0) {
+        return ResultSuccess;
+    }
+
+    f32 volume{1.0f};
+    const auto result = vibration_handler->GetVibrationVolume(volume);
+    if (result.IsSuccess()) {
+        xcd_handle->SetVibration(false);
+    }
+
+    return ResultSuccess;
+}
+
+Result NpadVibrationDevice::Unmount() {
+    if (ref_counter == 0 || !is_mounted) {
+        is_mounted = false;
+        return ResultSuccess;
+    }
+
+    f32 volume{1.0f};
+    const auto result = vibration_handler->GetVibrationVolume(volume);
+    if (result.IsSuccess()) {
+        xcd_handle->SetVibration(device_index, Core::HID::DEFAULT_VIBRATION_VALUE);
+    }
+
+    is_mounted = false;
     return ResultSuccess;
 }
 
@@ -37,7 +95,7 @@ Result NpadVibrationDevice::SendVibrationValue(const Core::HID::VibrationValue& 
         return result;
     }
     if (volume <= 0.0f) {
-        // TODO: SendVibrationValue
+        xcd_handle->SetVibration(device_index, Core::HID::DEFAULT_VIBRATION_VALUE);
         return ResultSuccess;
     }
 
@@ -45,7 +103,7 @@ Result NpadVibrationDevice::SendVibrationValue(const Core::HID::VibrationValue& 
     vibration_value.high_amplitude *= volume;
     vibration_value.low_amplitude *= volume;
 
-    // TODO: SendVibrationValue
+    xcd_handle->SetVibration(device_index, vibration_value);
     return ResultSuccess;
 }
 
@@ -63,11 +121,11 @@ Result NpadVibrationDevice::SendVibrationNotificationPattern([[maybe_unused]] u3
         pattern = 0;
     }
 
-    // return xcd_handle->SendVibrationNotificationPattern(pattern);
+    // TODO: SendVibrationNotificationPattern;
     return ResultSuccess;
 }
 
-Result NpadVibrationDevice::GetActualVibrationValue(Core::HID::VibrationValue& out_value) {
+Result NpadVibrationDevice::GetActualVibrationValue(Core::HID::VibrationValue& out_value) const {
     if (ref_counter < 1) {
         return ResultVibrationNotInitialized;
     }
@@ -77,7 +135,7 @@ Result NpadVibrationDevice::GetActualVibrationValue(Core::HID::VibrationValue& o
         return ResultSuccess;
     }
 
-    // TODO: SendVibrationValue
+    out_value = xcd_handle->GetActualVibrationValue(device_index);
     return ResultSuccess;
 }
 

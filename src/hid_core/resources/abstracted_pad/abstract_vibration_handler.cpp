@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "hid_core/frontend/emulated_controller.h"
+#include "hid_core/hid_core.h"
 #include "hid_core/hid_result.h"
 #include "hid_core/hid_util.h"
 #include "hid_core/resources/abstracted_pad/abstract_pad_holder.h"
@@ -30,14 +32,22 @@ void NpadAbstractVibrationHandler::SetPropertiesHandler(NpadAbstractPropertiesHa
     properties_handler = handler;
 }
 
+void NpadAbstractVibrationHandler::SetVibrationHandler(NpadVibration* handler) {
+    vibration_handler = handler;
+}
+
+void NpadAbstractVibrationHandler::SetHidCore(Core::HID::HIDCore* core) {
+    hid_core = core;
+}
+
 void NpadAbstractVibrationHandler::SetN64Vibration(NpadN64VibrationDevice* n64_device) {
     n64_vibration_device = n64_device;
 }
 
-void NpadAbstractVibrationHandler::SetVibration(std::span<NpadVibrationDevice*> device) {
-    for (std::size_t i = 0; i < device.size() && i < vibration_device.size(); i++) {
-        vibration_device[i] = device[i];
-    }
+void NpadAbstractVibrationHandler::SetVibration(NpadVibrationDevice* left_device,
+                                                NpadVibrationDevice* right_device) {
+    left_vibration_device = left_device;
+    right_vibration_device = right_device;
 }
 
 void NpadAbstractVibrationHandler::SetGcVibration(NpadGcVibrationDevice* gc_device) {
@@ -69,5 +79,29 @@ void NpadAbstractVibrationHandler::UpdateVibrationState() {
     if (!is_handheld_hid_enabled && is_force_handheld_style_vibration) {
         // TODO
     }
+
+    // TODO: This function isn't accurate. It's supposed to get 5 abstracted pads from the
+    // NpadAbstractPropertiesHandler but this handler isn't fully implemented yet
+    IAbstractedPad abstracted_pad{};
+    const auto npad_id = properties_handler->GetNpadId();
+    abstracted_pad.xcd_handle = hid_core->GetEmulatedController(npad_id);
+    abstracted_pad.internal_flags.is_connected.Assign(abstracted_pad.xcd_handle->IsConnected());
+
+    if (abstracted_pad.internal_flags.is_connected) {
+        left_vibration_device->Mount(abstracted_pad, Core::HID::DeviceIndex::Left,
+                                     vibration_handler);
+        right_vibration_device->Mount(abstracted_pad, Core::HID::DeviceIndex::Right,
+                                      vibration_handler);
+        gc_vibration_device->Mount(abstracted_pad, 0, vibration_handler);
+        gc_vibration_device->Mount(abstracted_pad, 0, vibration_handler);
+        n64_vibration_device->Mount(abstracted_pad, vibration_handler);
+        return;
+    }
+
+    left_vibration_device->Unmount();
+    right_vibration_device->Unmount();
+    gc_vibration_device->Unmount();
+    gc_vibration_device->Unmount();
+    n64_vibration_device->Unmount();
 }
 } // namespace Service::HID

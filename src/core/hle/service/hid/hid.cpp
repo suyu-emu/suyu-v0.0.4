@@ -26,6 +26,7 @@ void LoopProcess(Core::System& system) {
     resource_manager->Initialize();
     resource_manager->RegisterAppletResourceUserId(system.ApplicationProcess()->GetProcessId(),
                                                    true);
+    resource_manager->SetAruidValidForVibration(system.ApplicationProcess()->GetProcessId(), true);
 
     server_manager->RegisterNamedService(
         "hid", std::make_shared<IHidServer>(system, resource_manager, firmware_settings));
