@@ -116,8 +116,8 @@ void ConfigureVibration::VibrateController(Core::HID::ControllerTriggerType type
         .high_amplitude = 1.0f,
         .high_frequency = 320.0f,
     };
-    controller->SetVibration(0, vibration);
-    controller->SetVibration(1, vibration);
+    controller->SetVibration(Core::HID::DeviceIndex::Left, vibration);
+    controller->SetVibration(Core::HID::DeviceIndex::Right, vibration);
 
     // Restore previous values
     player.vibration_enabled = old_vibration_enabled;
@@ -127,7 +127,7 @@ void ConfigureVibration::VibrateController(Core::HID::ControllerTriggerType type
 void ConfigureVibration::StopVibrations() {
     for (std::size_t i = 0; i < NUM_PLAYERS; ++i) {
         auto controller = hid_core.GetEmulatedControllerByIndex(i);
-        controller->SetVibration(0, Core::HID::DEFAULT_VIBRATION_VALUE);
-        controller->SetVibration(1, Core::HID::DEFAULT_VIBRATION_VALUE);
+        controller->SetVibration(Core::HID::DeviceIndex::Left, Core::HID::DEFAULT_VIBRATION_VALUE);
+        controller->SetVibration(Core::HID::DeviceIndex::Right, Core::HID::DEFAULT_VIBRATION_VALUE);
     }
 }

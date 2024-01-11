@@ -32,7 +32,6 @@ class AppletResource;
 class SixAxisResource;
 class PalmaResource;
 class NPadResource;
-class AbstractPad;
 class NpadLastActiveHandler;
 class NpadIrNfcHandler;
 class UniquePads;
@@ -44,7 +43,6 @@ class NpadGcVibration;
 
 class CaptureButtonResource;
 class HomeButtonResource;
-class VibrationHandler;
 
 struct HandheldConfig;
 
@@ -57,7 +55,8 @@ public:
     void SetExternals(AppletResourceHolder* applet_resource,
                       CaptureButtonResource* capture_button_resource,
                       HomeButtonResource* home_button_resource, SixAxisResource* sixaxis_resource,
-                      PalmaResource* palma_resource, VibrationHandler* vibration);
+                      PalmaResource* palma_resource, NpadVibration* vibration,
+                      Core::HID::HIDCore* core);
     void SetNpadId(Core::HID::NpadIdType npad_id);
 
     Result Activate();
@@ -78,7 +77,6 @@ public:
 
     NpadN64VibrationDevice* GetN64VibrationDevice();
     NpadVibrationDevice* GetVibrationDevice(Core::HID::DeviceIndex device_index);
-    void GetLeftRightVibrationDevice(std::vector<NpadVibrationDevice*> list);
     NpadGcVibrationDevice* GetGCVibrationDevice();
 
     Core::HID::NpadIdType GetLastActiveNpad();

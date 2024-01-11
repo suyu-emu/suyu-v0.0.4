@@ -144,8 +144,8 @@ void EmulatedController::ReloadColorsFromSettings() {
 
 void EmulatedController::LoadDevices() {
     // TODO(german77): Use more buttons to detect the correct device
-    const auto left_joycon = button_params[Settings::NativeButton::DRight];
-    const auto right_joycon = button_params[Settings::NativeButton::A];
+    const auto& left_joycon = button_params[Settings::NativeButton::DRight];
+    const auto& right_joycon = button_params[Settings::NativeButton::A];
 
     // Triggers for GC controllers
     trigger_params[LeftIndex] = button_params[Settings::NativeButton::ZL];
@@ -1208,19 +1208,42 @@ void EmulatedController::SetNfc(const Common::Input::CallbackStatus& callback) {
     controller.nfc_state = controller.nfc_values;
 }
 
-bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue vibration) {
+bool EmulatedController::SetVibration(bool should_vibrate) {
+    VibrationValue vibration_value = DEFAULT_VIBRATION_VALUE;
+    if (should_vibrate) {
+        vibration_value.high_amplitude = 1.0f;
+        vibration_value.low_amplitude = 1.0f;
+    }
+
+    return SetVibration(DeviceIndex::Left, vibration_value);
+}
+
+bool EmulatedController::SetVibration(u32 slot, Core::HID::VibrationGcErmCommand erm_command) {
+    VibrationValue vibration_value = DEFAULT_VIBRATION_VALUE;
+    if (erm_command == Core::HID::VibrationGcErmCommand::Start) {
+        vibration_value.high_amplitude = 1.0f;
+        vibration_value.low_amplitude = 1.0f;
+    }
+
+    return SetVibration(DeviceIndex::Left, vibration_value);
+}
+
+bool EmulatedController::SetVibration(DeviceIndex device_index, const VibrationValue& vibration) {
     if (!is_initialized) {
         return false;
     }
-    if (device_index >= output_devices.size()) {
+    if (device_index >= DeviceIndex::MaxDeviceIndex) {
         return false;
     }
-    if (!output_devices[device_index]) {
+    const std::size_t index = static_cast<std::size_t>(device_index);
+    if (!output_devices[index]) {
         return false;
     }
     const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
     const f32 strength = static_cast<f32>(player.vibration_strength) / 100.0f;
+
+    last_vibration_value = vibration;
 
     if (!player.vibration_enabled) {
         return false;
@@ -1239,8 +1262,11 @@ bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue v
         .high_frequency = vibration.high_frequency,
         .type = type,
     };
-    return output_devices[device_index]->SetVibration(status) ==
-           Common::Input::DriverResult::Success;
+    return output_devices[index]->SetVibration(status) == Common::Input::DriverResult::Success;
+}
+
+VibrationValue EmulatedController::GetActualVibrationValue(DeviceIndex device_index) const {
+    return last_vibration_value;
 }
 
 bool EmulatedController::IsVibrationEnabled(std::size_t device_index) {

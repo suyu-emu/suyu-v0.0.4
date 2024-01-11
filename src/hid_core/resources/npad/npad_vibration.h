@@ -25,6 +25,8 @@ public:
     Result BeginPermitVibrationSession(u64 aruid);
     Result EndPermitVibrationSession();
 
+    u64 GetSessionAruid() const;
+
 private:
     f32 volume{};
     u64 session_aruid{};

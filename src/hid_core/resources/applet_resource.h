@@ -101,6 +101,7 @@ public:
     Result DestroySevenSixAxisTransferMemory();
 
     void EnableInput(u64 aruid, bool is_enabled);
+    bool SetAruidValidForVibration(u64 aruid, bool is_enabled);
     void EnableSixAxisSensor(u64 aruid, bool is_enabled);
     void EnablePadInput(u64 aruid, bool is_enabled);
     void EnableTouchScreen(u64 aruid, bool is_enabled);
