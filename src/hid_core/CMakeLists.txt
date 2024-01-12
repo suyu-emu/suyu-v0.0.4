@@ -36,6 +36,30 @@ add_library(hid_core STATIC
     irsensor/processor_base.h
     irsensor/tera_plugin_processor.cpp
     irsensor/tera_plugin_processor.h
+    resources/abstracted_pad/abstract_battery_handler.cpp
+    resources/abstracted_pad/abstract_battery_handler.h
+    resources/abstracted_pad/abstract_button_handler.cpp
+    resources/abstracted_pad/abstract_button_handler.h
+    resources/abstracted_pad/abstract_ir_sensor_handler.cpp
+    resources/abstracted_pad/abstract_ir_sensor_handler.h
+    resources/abstracted_pad/abstract_led_handler.cpp
+    resources/abstracted_pad/abstract_led_handler.h
+    resources/abstracted_pad/abstract_mcu_handler.cpp
+    resources/abstracted_pad/abstract_mcu_handler.h
+    resources/abstracted_pad/abstract_nfc_handler.cpp
+    resources/abstracted_pad/abstract_nfc_handler.h
+    resources/abstracted_pad/abstract_pad.cpp
+    resources/abstracted_pad/abstract_pad.h
+    resources/abstracted_pad/abstract_pad_holder.cpp
+    resources/abstracted_pad/abstract_pad_holder.h
+    resources/abstracted_pad/abstract_palma_handler.cpp
+    resources/abstracted_pad/abstract_palma_handler.h
+    resources/abstracted_pad/abstract_properties_handler.cpp
+    resources/abstracted_pad/abstract_properties_handler.h
+    resources/abstracted_pad/abstract_sixaxis_handler.cpp
+    resources/abstracted_pad/abstract_sixaxis_handler.h
+    resources/abstracted_pad/abstract_vibration_handler.cpp
+    resources/abstracted_pad/abstract_vibration_handler.h
     resources/debug_pad/debug_pad.cpp
     resources/debug_pad/debug_pad.h
     resources/debug_pad/debug_pad_types.h
@@ -56,6 +80,8 @@ add_library(hid_core STATIC
     resources/npad/npad_resource.cpp
     resources/npad/npad_resource.h
     resources/npad/npad_types.h
+    resources/npad/npad_vibration.cpp
+    resources/npad/npad_vibration.h
     resources/palma/palma.cpp
     resources/palma/palma.h
     resources/six_axis/console_six_axis.cpp
@@ -78,6 +104,14 @@ add_library(hid_core STATIC
     resources/touch_screen/touch_types.h
     resources/unique_pad/unique_pad.cpp
     resources/unique_pad/unique_pad.h
+    resources/vibration/gc_vibration_device.h
+    resources/vibration/gc_vibration_device.cpp
+    resources/vibration/n64_vibration_device.h
+    resources/vibration/n64_vibration_device.cpp
+    resources/vibration/vibration_base.h
+    resources/vibration/vibration_base.cpp
+    resources/vibration/vibration_device.h
+    resources/vibration/vibration_device.cpp
     resources/applet_resource.cpp
     resources/applet_resource.h
     resources/controller_base.cpp
