@@ -20,6 +20,10 @@ struct EventType;
 } // namespace Timing
 } // namespace Core
 
+namespace Kernel {
+class KProcess;
+} // namespace Kernel
+
 namespace AudioCore {
 
 namespace Sink {
@@ -44,13 +48,13 @@ public:
      * @param sample_format           - Sample format for this device's output.
      * @param channel_count           - Number of channels for this device (2 or 6).
      * @param session_id              - This session's id.
-     * @param handle                  - Handle for this device session (unused).
+     * @param handle                  - Process handle for this device session.
      * @param applet_resource_user_id - Applet resource user id for this device session (unused).
      * @param type                    - Type of this stream (Render, In, Out).
      * @return Result code for this call.
      */
     Result Initialize(std::string_view name, SampleFormat sample_format, u16 channel_count,
-                      size_t session_id, u32 handle, u64 applet_resource_user_id,
+                      size_t session_id, Kernel::KProcess* handle, u64 applet_resource_user_id,
                       Sink::StreamType type);
 
     /**
@@ -137,8 +141,8 @@ private:
     u16 channel_count{};
     /// Session id of this device session
     size_t session_id{};
-    /// Handle of this device session
-    u32 handle{};
+    /// Process handle of device memory owner
+    Kernel::KProcess* handle{};
     /// Applet resource user id of this device session
     u64 applet_resource_user_id{};
     /// Total number of samples played by this device session
