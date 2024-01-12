@@ -62,9 +62,6 @@ object GpuDriverHelper {
                 ?.sortedByDescending { it: Pair<String, GpuDriverMetadata> -> it.second.name }
                 ?.distinct()
                 ?.toMutableList() ?: mutableListOf()
-
-        // TODO: Get system driver information
-        drivers.add(0, Pair("", GpuDriverMetadata()))
         return drivers
     }
 
