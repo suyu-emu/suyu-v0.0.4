@@ -118,6 +118,8 @@ add_library(video_core STATIC
     renderer_null/renderer_null.h
     renderer_opengl/blit_image.cpp
     renderer_opengl/blit_image.h
+    renderer_opengl/gl_blit_screen.cpp
+    renderer_opengl/gl_blit_screen.h
     renderer_opengl/gl_buffer_cache_base.cpp
     renderer_opengl/gl_buffer_cache.cpp
     renderer_opengl/gl_buffer_cache.h
