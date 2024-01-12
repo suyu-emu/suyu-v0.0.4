@@ -188,8 +188,15 @@ tasks.create<Delete>("ktlintReset") {
     delete(File(buildDir.path + File.separator + "intermediates/ktLint"))
 }
 
+val showFormatHelp = {
+    logger.lifecycle(
+        "If this check fails, please try running \"gradlew ktlintFormat\" for automatic " +
+            "codestyle fixes"
+    )
+}
+tasks.getByPath("ktlintKotlinScriptCheck").doFirst { showFormatHelp.invoke() }
+tasks.getByPath("ktlintMainSourceSetCheck").doFirst { showFormatHelp.invoke() }
 tasks.getByPath("loadKtlintReporters").dependsOn("ktlintReset")
-tasks.getByPath("preBuild").dependsOn("ktlintCheck")
 
 ktlint {
     version.set("0.47.1")
