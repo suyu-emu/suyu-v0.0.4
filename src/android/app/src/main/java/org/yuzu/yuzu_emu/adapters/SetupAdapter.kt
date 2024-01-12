@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import org.yuzu.yuzu_emu.databinding.PageSetupBinding
 import org.yuzu.yuzu_emu.model.HomeViewModel
@@ -18,31 +17,19 @@ import org.yuzu.yuzu_emu.model.SetupCallback
 import org.yuzu.yuzu_emu.model.SetupPage
 import org.yuzu.yuzu_emu.model.StepState
 import org.yuzu.yuzu_emu.utils.ViewUtils
+import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
-class SetupAdapter(val activity: AppCompatActivity, val pages: List<SetupPage>) :
-    RecyclerView.Adapter<SetupAdapter.SetupPageViewHolder>() {
+class SetupAdapter(val activity: AppCompatActivity, pages: List<SetupPage>) :
+    AbstractListAdapter<SetupPage, SetupAdapter.SetupPageViewHolder>(pages) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SetupPageViewHolder {
-        val binding = PageSetupBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return SetupPageViewHolder(binding)
+        PageSetupBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            .also { return SetupPageViewHolder(it) }
     }
 
-    override fun getItemCount(): Int = pages.size
-
-    override fun onBindViewHolder(holder: SetupPageViewHolder, position: Int) =
-        holder.bind(pages[position])
-
     inner class SetupPageViewHolder(val binding: PageSetupBinding) :
-        RecyclerView.ViewHolder(binding.root), SetupCallback {
-        lateinit var page: SetupPage
-
-        init {
-            itemView.tag = this
-        }
-
-        fun bind(page: SetupPage) {
-            this.page = page
-
-            if (page.stepCompleted.invoke() == StepState.COMPLETE) {
+        AbstractViewHolder<SetupPage>(binding), SetupCallback {
+        override fun bind(model: SetupPage) {
+            if (model.stepCompleted.invoke() == StepState.COMPLETE) {
                 binding.buttonAction.visibility = View.INVISIBLE
                 binding.textConfirmation.visibility = View.VISIBLE
             }
@@ -50,31 +37,31 @@ class SetupAdapter(val activity: AppCompatActivity, val pages: List<SetupPage>) 
             binding.icon.setImageDrawable(
                 ResourcesCompat.getDrawable(
                     activity.resources,
-                    page.iconId,
+                    model.iconId,
                     activity.theme
                 )
             )
-            binding.textTitle.text = activity.resources.getString(page.titleId)
+            binding.textTitle.text = activity.resources.getString(model.titleId)
             binding.textDescription.text =
-                Html.fromHtml(activity.resources.getString(page.descriptionId), 0)
+                Html.fromHtml(activity.resources.getString(model.descriptionId), 0)
 
             binding.buttonAction.apply {
-                text = activity.resources.getString(page.buttonTextId)
-                if (page.buttonIconId != 0) {
+                text = activity.resources.getString(model.buttonTextId)
+                if (model.buttonIconId != 0) {
                     icon = ResourcesCompat.getDrawable(
                         activity.resources,
-                        page.buttonIconId,
+                        model.buttonIconId,
                         activity.theme
                     )
                 }
                 iconGravity =
-                    if (page.leftAlignedIcon) {
+                    if (model.leftAlignedIcon) {
                         MaterialButton.ICON_GRAVITY_START
                     } else {
                         MaterialButton.ICON_GRAVITY_END
                     }
                 setOnClickListener {
-                    page.buttonAction.invoke(this@SetupPageViewHolder)
+                    model.buttonAction.invoke(this@SetupPageViewHolder)
                 }
             }
         }
