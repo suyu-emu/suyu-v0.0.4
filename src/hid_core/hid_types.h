@@ -220,6 +220,7 @@ enum class NpadIdType : u32 {
 };
 
 enum class NpadInterfaceType : u8 {
+    None = 0,
     Bluetooth = 1,
     Rail = 2,
     Usb = 3,
@@ -229,7 +230,7 @@ enum class NpadInterfaceType : u8 {
 // This is nn::hid::NpadStyleIndex
 enum class NpadStyleIndex : u8 {
     None = 0,
-    ProController = 3,
+    Fullkey = 3,
     Handheld = 4,
     HandheldNES = 4,
     JoyconDual = 5,

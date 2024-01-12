@@ -27,7 +27,7 @@ EmulatedController::~EmulatedController() = default;
 NpadStyleIndex EmulatedController::MapSettingsTypeToNPad(Settings::ControllerType type) {
     switch (type) {
     case Settings::ControllerType::ProController:
-        return NpadStyleIndex::ProController;
+        return NpadStyleIndex::Fullkey;
     case Settings::ControllerType::DualJoyconDetached:
         return NpadStyleIndex::JoyconDual;
     case Settings::ControllerType::LeftJoycon:
@@ -49,13 +49,13 @@ NpadStyleIndex EmulatedController::MapSettingsTypeToNPad(Settings::ControllerTyp
     case Settings::ControllerType::SegaGenesis:
         return NpadStyleIndex::SegaGenesis;
     default:
-        return NpadStyleIndex::ProController;
+        return NpadStyleIndex::Fullkey;
     }
 }
 
 Settings::ControllerType EmulatedController::MapNPadToSettingsType(NpadStyleIndex type) {
     switch (type) {
-    case NpadStyleIndex::ProController:
+    case NpadStyleIndex::Fullkey:
         return Settings::ControllerType::ProController;
     case NpadStyleIndex::JoyconDual:
         return Settings::ControllerType::DualJoyconDetached;
@@ -106,7 +106,7 @@ void EmulatedController::ReloadFromSettings() {
         SetNpadStyleIndex(MapSettingsTypeToNPad(player.controller_type));
         original_npad_type = npad_type;
     } else {
-        SetNpadStyleIndex(NpadStyleIndex::ProController);
+        SetNpadStyleIndex(NpadStyleIndex::Fullkey);
         original_npad_type = npad_type;
     }
 
@@ -1073,7 +1073,7 @@ void EmulatedController::SetColors(const Common::Input::CallbackStatus& callback
         .body = GetNpadColor(controller.color_values[index].body),
         .button = GetNpadColor(controller.color_values[index].buttons),
     };
-    if (npad_type == NpadStyleIndex::ProController) {
+    if (npad_type == NpadStyleIndex::Fullkey) {
         controller.colors_state.left = {
             .body = GetNpadColor(controller.color_values[index].left_grip),
             .button = GetNpadColor(controller.color_values[index].buttons),
@@ -1356,7 +1356,7 @@ bool EmulatedController::HasNfc() const {
     switch (npad_type) {
     case NpadStyleIndex::JoyconRight:
     case NpadStyleIndex::JoyconDual:
-    case NpadStyleIndex::ProController:
+    case NpadStyleIndex::Fullkey:
     case NpadStyleIndex::Handheld:
         break;
     default:
@@ -1548,7 +1548,7 @@ void EmulatedController::SetSupportedNpadStyleTag(NpadStyleTag supported_styles)
     // Fallback Fullkey controllers to Pro controllers
     if (IsControllerFullkey() && supported_style_tag.fullkey) {
         LOG_WARNING(Service_HID, "Reconnecting controller type {} as Pro controller", npad_type);
-        SetNpadStyleIndex(NpadStyleIndex::ProController);
+        SetNpadStyleIndex(NpadStyleIndex::Fullkey);
         Connect();
         return;
     }
@@ -1556,13 +1556,13 @@ void EmulatedController::SetSupportedNpadStyleTag(NpadStyleTag supported_styles)
     // Fallback Dual joycon controllers to Pro controllers
     if (npad_type == NpadStyleIndex::JoyconDual && supported_style_tag.fullkey) {
         LOG_WARNING(Service_HID, "Reconnecting controller type {} as Pro controller", npad_type);
-        SetNpadStyleIndex(NpadStyleIndex::ProController);
+        SetNpadStyleIndex(NpadStyleIndex::Fullkey);
         Connect();
         return;
     }
 
     // Fallback Pro controllers to Dual joycon
-    if (npad_type == NpadStyleIndex::ProController && supported_style_tag.joycon_dual) {
+    if (npad_type == NpadStyleIndex::Fullkey && supported_style_tag.joycon_dual) {
         LOG_WARNING(Service_HID, "Reconnecting controller type {} as Dual Joycons", npad_type);
         SetNpadStyleIndex(NpadStyleIndex::JoyconDual);
         Connect();
@@ -1577,7 +1577,7 @@ bool EmulatedController::IsControllerFullkey(bool use_temporary_value) const {
     std::scoped_lock lock{mutex};
     const auto type = is_configuring && use_temporary_value ? tmp_npad_type : npad_type;
     switch (type) {
-    case NpadStyleIndex::ProController:
+    case NpadStyleIndex::Fullkey:
     case NpadStyleIndex::GameCube:
     case NpadStyleIndex::NES:
     case NpadStyleIndex::SNES:
@@ -1593,7 +1593,7 @@ bool EmulatedController::IsControllerSupported(bool use_temporary_value) const {
     std::scoped_lock lock{mutex};
     const auto type = is_configuring && use_temporary_value ? tmp_npad_type : npad_type;
     switch (type) {
-    case NpadStyleIndex::ProController:
+    case NpadStyleIndex::Fullkey:
         return supported_style_tag.fullkey.As<bool>();
     case NpadStyleIndex::Handheld:
         return supported_style_tag.handheld.As<bool>();

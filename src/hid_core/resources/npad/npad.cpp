@@ -193,7 +193,7 @@ void NPad::InitNewlyAddedController(u64 aruid, Core::HID::NpadIdType npad_id) {
     case Core::HID::NpadStyleIndex::None:
         ASSERT(false);
         break;
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
         shared_memory->fullkey_color.attribute = ColorAttribute::Ok;
         shared_memory->fullkey_color.fullkey = body_colors.fullkey;
         shared_memory->battery_level_dual = battery_level.dual.battery_level;
@@ -491,7 +491,7 @@ void NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing) {
             case Core::HID::NpadStyleIndex::None:
                 ASSERT(false);
                 break;
-            case Core::HID::NpadStyleIndex::ProController:
+            case Core::HID::NpadStyleIndex::Fullkey:
             case Core::HID::NpadStyleIndex::NES:
             case Core::HID::NpadStyleIndex::SNES:
             case Core::HID::NpadStyleIndex::N64:
@@ -1292,7 +1292,7 @@ Core::HID::SixAxisSensorProperties& NPad::GetSixaxisProperties(
     u64 aruid, const Core::HID::SixAxisSensorHandle& sixaxis_handle) {
     auto& controller = GetControllerFromHandle(aruid, sixaxis_handle);
     switch (sixaxis_handle.npad_type) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::Pokeball:
         return controller.shared_memory->sixaxis_fullkey_properties;
     case Core::HID::NpadStyleIndex::Handheld:
@@ -1315,7 +1315,7 @@ const Core::HID::SixAxisSensorProperties& NPad::GetSixaxisProperties(
     u64 aruid, const Core::HID::SixAxisSensorHandle& sixaxis_handle) const {
     const auto& controller = GetControllerFromHandle(aruid, sixaxis_handle);
     switch (sixaxis_handle.npad_type) {
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     case Core::HID::NpadStyleIndex::Pokeball:
         return controller.shared_memory->sixaxis_fullkey_properties;
     case Core::HID::NpadStyleIndex::Handheld:
