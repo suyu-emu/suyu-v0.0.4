@@ -25,7 +25,7 @@ for f in $FILES_TO_LINT; do
     "$CLANG_FORMAT" -i "$f"
 done
 
-DIFF=$(git diff)
+DIFF=$(git -c core.fileMode=false diff)
 
 if [ ! -z "$DIFF" ]; then
     echo "!!! Not compliant to coding style, here is the fix:"
