@@ -103,6 +103,7 @@ private:
     std::optional<std::size_t> AddToProfiles(const ProfileInfo& profile);
     bool RemoveProfileAtIndex(std::size_t index);
 
+    bool is_save_needed{};
     std::array<ProfileInfo, MAX_USERS> profiles{};
     std::array<ProfileInfo, MAX_USERS> stored_opened_profiles{};
     std::size_t user_count{};
