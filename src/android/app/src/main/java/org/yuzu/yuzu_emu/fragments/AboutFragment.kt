@@ -76,8 +76,8 @@ class AboutFragment : Fragment() {
             binding.root.findNavController().navigate(R.id.action_aboutFragment_to_licensesFragment)
         }
 
-        binding.textBuildHash.text = BuildConfig.GIT_HASH
-        binding.buttonBuildHash.setOnClickListener {
+        binding.textVersionName.text = BuildConfig.VERSION_NAME
+        binding.textVersionName.setOnClickListener {
             val clipBoard =
                 requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText(getString(R.string.build), BuildConfig.GIT_HASH)
