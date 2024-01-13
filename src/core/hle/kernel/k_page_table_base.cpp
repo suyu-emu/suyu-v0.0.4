@@ -435,69 +435,14 @@ Result KPageTableBase::FinalizeProcess() {
     // Only process tables should be finalized.
     ASSERT(!this->IsKernel());
 
-    // HLE processes don't have memory mapped.
-    R_SUCCEED_IF(m_impl == nullptr);
-
     // NOTE: Here Nintendo calls an unknown OnFinalize function.
     // this->OnFinalize();
 
     // NOTE: Here Nintendo calls a second unknown OnFinalize function.
     // this->OnFinalize2();
 
-    // Get implementation objects.
-    auto& impl = this->GetImpl();
-    auto& mm = m_kernel.MemoryManager();
-
-    // Traverse, freeing all pages.
-    {
-        // Get the address space size.
-        const size_t as_size = this->GetAddressSpaceSize();
-
-        // Begin the traversal.
-        TraversalContext context;
-        TraversalEntry cur_entry = {
-            .phys_addr = 0,
-            .block_size = 0,
-        };
-
-        bool cur_valid = false;
-        TraversalEntry next_entry;
-        bool next_valid;
-        size_t tot_size = 0;
-
-        next_valid = impl.BeginTraversal(std::addressof(next_entry), std::addressof(context),
-                                         this->GetAddressSpaceStart());
-
-        // Iterate over entries.
-        while (true) {
-            if ((!next_valid && !cur_valid) ||
-                (next_valid && cur_valid &&
-                 next_entry.phys_addr == cur_entry.phys_addr + cur_entry.block_size)) {
-                cur_entry.block_size += next_entry.block_size;
-            } else {
-                if (cur_valid && IsHeapPhysicalAddressForFinalize(cur_entry.phys_addr)) {
-                    mm.Close(cur_entry.phys_addr, cur_entry.block_size / PageSize);
-                }
-
-                // Update tracking variables.
-                tot_size += cur_entry.block_size;
-                cur_entry = next_entry;
-                cur_valid = next_valid;
-            }
-
-            if (cur_entry.block_size + tot_size >= as_size) {
-                break;
-            }
-
-            next_valid =
-                impl.ContinueTraversal(std::addressof(next_entry), std::addressof(context));
-        }
-
-        // Handle the last block.
-        if (cur_valid && IsHeapPhysicalAddressForFinalize(cur_entry.phys_addr)) {
-            mm.Close(cur_entry.phys_addr, cur_entry.block_size / PageSize);
-        }
-    }
+    // NOTE: Here Nintendo does a page table walk to discover heap pages to free.
+    // We will use the block manager finalization below to free them.
 
     R_SUCCEED();
 }
@@ -505,14 +450,24 @@ Result KPageTableBase::FinalizeProcess() {
 void KPageTableBase::Finalize() {
     this->FinalizeProcess();
 
-    auto HostUnmapCallback = [&](KProcessAddress addr, u64 size) {
+    auto BlockCallback = [&](KProcessAddress addr, u64 size) {
         if (m_impl->fastmem_arena) {
             m_system.DeviceMemory().buffer.Unmap(GetInteger(addr), size, false);
         }
+
+        // Get physical pages.
+        KPageGroup pg(m_kernel, m_block_info_manager);
+        this->MakePageGroup(pg, addr, size / PageSize);
+
+        // Free the pages.
+        pg.CloseAndReset();
     };
 
     // Finalize memory blocks.
-    m_memory_block_manager.Finalize(m_memory_block_slab_manager, std::move(HostUnmapCallback));
+    {
+        KScopedLightLock lk(m_general_lock);
+        m_memory_block_manager.Finalize(m_memory_block_slab_manager, std::move(BlockCallback));
+    }
 
     // Free any unsafe mapped memory.
     if (m_mapped_unsafe_physical_memory) {
