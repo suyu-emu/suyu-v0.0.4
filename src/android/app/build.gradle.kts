@@ -228,71 +228,33 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
 }
 
-fun getGitVersion(): String {
-    var versionName = "0.0"
-
-    try {
-        versionName = ProcessBuilder("git", "describe", "--always", "--long")
+fun runGitCommand(command: List<String>): String {
+    return try {
+        ProcessBuilder(command)
             .directory(project.rootDir)
             .redirectOutput(ProcessBuilder.Redirect.PIPE)
             .redirectError(ProcessBuilder.Redirect.PIPE)
             .start().inputStream.bufferedReader().use { it.readText() }
             .trim()
+    } catch (e: Exception) {
+        logger.error("Cannot find git")
+        ""
+    }
+}
+
+fun getGitVersion(): String {
+    val versionName = if (System.getenv("GITHUB_ACTIONS") != null) {
+        val gitTag = System.getenv("GIT_TAG_NAME") ?: ""
+        gitTag
+    } else {
+        runGitCommand(listOf("git", "describe", "--always", "--long"))
             .replace(Regex("(-0)?-[^-]+$"), "")
-    } catch (e: Exception) {
-        logger.error("Cannot find git, defaulting to dummy version number")
     }
-
-    if (System.getenv("GITHUB_ACTIONS") != null) {
-        val gitTag = System.getenv("GIT_TAG_NAME")
-        versionName = gitTag ?: versionName
-    }
-
-    return versionName
+    return versionName.ifEmpty { "0.0" }
 }
 
-fun getGitHash(): String {
-    try {
-        val processBuilder = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
-        processBuilder.directory(project.rootDir)
-        val process = processBuilder.start()
-        val inputStream = process.inputStream
-        val errorStream = process.errorStream
-        process.waitFor()
+fun getGitHash(): String =
+    runGitCommand(listOf("git", "rev-parse", "--short", "HEAD")).ifEmpty { "dummy-hash" }
 
-        return if (process.exitValue() == 0) {
-            inputStream.bufferedReader()
-                .use { it.readText().trim() } // return the value of gitHash
-        } else {
-            val errorMessage = errorStream.bufferedReader().use { it.readText().trim() }
-            logger.error("Error running git command: $errorMessage")
-            "dummy-hash" // return a dummy hash value in case of an error
-        }
-    } catch (e: Exception) {
-        logger.error("$e: Cannot find git, defaulting to dummy build hash")
-        return "dummy-hash" // return a dummy hash value in case of an error
-    }
-}
-
-fun getBranch(): String {
-    try {
-        val processBuilder = ProcessBuilder("git", "rev-parse", "--abbrev-ref", "HEAD")
-        processBuilder.directory(project.rootDir)
-        val process = processBuilder.start()
-        val inputStream = process.inputStream
-        val errorStream = process.errorStream
-        process.waitFor()
-
-        return if (process.exitValue() == 0) {
-            inputStream.bufferedReader()
-                .use { it.readText().trim() } // return the value of gitHash
-        } else {
-            val errorMessage = errorStream.bufferedReader().use { it.readText().trim() }
-            logger.error("Error running git command: $errorMessage")
-            "dummy-hash" // return a dummy hash value in case of an error
-        }
-    } catch (e: Exception) {
-        logger.error("$e: Cannot find git, defaulting to dummy build hash")
-        return "dummy-hash" // return a dummy hash value in case of an error
-    }
-}
+fun getBranch(): String =
+    runGitCommand(listOf("git", "rev-parse", "--abbrev-ref", "HEAD")).ifEmpty { "dummy-hash" }
