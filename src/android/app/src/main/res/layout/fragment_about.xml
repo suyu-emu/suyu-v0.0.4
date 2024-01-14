@@ -148,7 +148,7 @@
                 android:layout_marginHorizontal="20dp" />
 
             <LinearLayout
-                android:id="@+id/button_build_hash"
+                android:id="@+id/button_version_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingVertical="16dp"
@@ -165,7 +165,7 @@
                     android:text="@string/build" />
 
                 <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/text_build_hash"
+                    android:id="@+id/text_version_name"
                     style="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
