@@ -158,6 +158,14 @@ add_library(video_core STATIC
     renderer_opengl/renderer_opengl.h
     renderer_opengl/util_shaders.cpp
     renderer_opengl/util_shaders.h
+    renderer_vulkan/present/fsr.cpp
+    renderer_vulkan/present/fsr.h
+    renderer_vulkan/present/fxaa.cpp
+    renderer_vulkan/present/fxaa.h
+    renderer_vulkan/present/smaa.cpp
+    renderer_vulkan/present/smaa.h
+    renderer_vulkan/present/util.cpp
+    renderer_vulkan/present/util.h
     renderer_vulkan/blit_image.cpp
     renderer_vulkan/blit_image.h
     renderer_vulkan/fixed_pipeline_state.cpp
@@ -184,8 +192,6 @@ add_library(video_core STATIC
     renderer_vulkan/vk_descriptor_pool.h
     renderer_vulkan/vk_fence_manager.cpp
     renderer_vulkan/vk_fence_manager.h
-    renderer_vulkan/vk_fsr.cpp
-    renderer_vulkan/vk_fsr.h
     renderer_vulkan/vk_graphics_pipeline.cpp
     renderer_vulkan/vk_graphics_pipeline.h
     renderer_vulkan/vk_master_semaphore.cpp
@@ -206,8 +212,6 @@ add_library(video_core STATIC
     renderer_vulkan/vk_scheduler.h
     renderer_vulkan/vk_shader_util.cpp
     renderer_vulkan/vk_shader_util.h
-    renderer_vulkan/vk_smaa.cpp
-    renderer_vulkan/vk_smaa.h
     renderer_vulkan/vk_staging_buffer_pool.cpp
     renderer_vulkan/vk_staging_buffer_pool.h
     renderer_vulkan/vk_state_tracker.cpp

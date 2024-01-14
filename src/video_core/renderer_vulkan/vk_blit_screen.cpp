@@ -16,20 +16,19 @@
 #include "core/frontend/emu_window.h"
 #include "video_core/gpu.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
-#include "video_core/host_shaders/fxaa_frag_spv.h"
-#include "video_core/host_shaders/fxaa_vert_spv.h"
 #include "video_core/host_shaders/present_bicubic_frag_spv.h"
 #include "video_core/host_shaders/present_gaussian_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_scaleforce_fp16_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_scaleforce_fp32_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_vert_spv.h"
+#include "video_core/renderer_vulkan/present/fsr.h"
+#include "video_core/renderer_vulkan/present/fxaa.h"
+#include "video_core/renderer_vulkan/present/smaa.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
-#include "video_core/renderer_vulkan/vk_fsr.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_shader_util.h"
-#include "video_core/renderer_vulkan/vk_smaa.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 #include "video_core/surface.h"
 #include "video_core/textures/decoders.h"
@@ -252,103 +251,17 @@ void BlitScreen::Draw(RasterizerVulkan& rasterizer, const Tegra::FramebufferConf
 
     const auto anti_alias_pass = Settings::values.anti_aliasing.GetValue();
     if (use_accelerated && anti_alias_pass == Settings::AntiAliasing::Fxaa) {
-        UpdateAADescriptorSet(source_image_view, false);
-        const u32 up_scale = Settings::values.resolution_info.up_scale;
-        const u32 down_shift = Settings::values.resolution_info.down_shift;
-        VkExtent2D size{
-            .width = (up_scale * framebuffer.width) >> down_shift,
-            .height = (up_scale * framebuffer.height) >> down_shift,
-        };
-        scheduler.Record([this, index = image_index, size,
-                          anti_alias_pass](vk::CommandBuffer cmdbuf) {
-            const VkImageMemoryBarrier base_barrier{
-                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                .pNext = nullptr,
-                .srcAccessMask = 0,
-                .dstAccessMask = 0,
-                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
-                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .image = {},
-                .subresourceRange =
-                    {
-                        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                        .baseMipLevel = 0,
-                        .levelCount = 1,
-                        .baseArrayLayer = 0,
-                        .layerCount = 1,
-                    },
+        if (!fxaa) {
+            const u32 up_scale = Settings::values.resolution_info.up_scale;
+            const u32 down_shift = Settings::values.resolution_info.down_shift;
+            const VkExtent2D fxaa_size{
+                .width = (up_scale * framebuffer.width) >> down_shift,
+                .height = (up_scale * framebuffer.height) >> down_shift,
             };
+            fxaa = std::make_unique<FXAA>(device, memory_allocator, image_count, fxaa_size);
+        }
 
-            {
-                VkImageMemoryBarrier fsr_write_barrier = base_barrier;
-                fsr_write_barrier.image = *aa_image;
-                fsr_write_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                                       VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, fsr_write_barrier);
-            }
-
-            const f32 bg_red = Settings::values.bg_red.GetValue() / 255.0f;
-            const f32 bg_green = Settings::values.bg_green.GetValue() / 255.0f;
-            const f32 bg_blue = Settings::values.bg_blue.GetValue() / 255.0f;
-            const VkClearValue clear_color{
-                .color = {.float32 = {bg_red, bg_green, bg_blue, 1.0f}},
-            };
-            const VkRenderPassBeginInfo renderpass_bi{
-                .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-                .pNext = nullptr,
-                .renderPass = *aa_renderpass,
-                .framebuffer = *aa_framebuffer,
-                .renderArea =
-                    {
-                        .offset = {0, 0},
-                        .extent = size,
-                    },
-                .clearValueCount = 1,
-                .pClearValues = &clear_color,
-            };
-            const VkViewport viewport{
-                .x = 0.0f,
-                .y = 0.0f,
-                .width = static_cast<float>(size.width),
-                .height = static_cast<float>(size.height),
-                .minDepth = 0.0f,
-                .maxDepth = 1.0f,
-            };
-            const VkRect2D scissor{
-                .offset = {0, 0},
-                .extent = size,
-            };
-            cmdbuf.BeginRenderPass(renderpass_bi, VK_SUBPASS_CONTENTS_INLINE);
-            switch (anti_alias_pass) {
-            case Settings::AntiAliasing::Fxaa:
-                cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *aa_pipeline);
-                break;
-            default:
-                cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *aa_pipeline);
-                break;
-            }
-            cmdbuf.SetViewport(0, viewport);
-            cmdbuf.SetScissor(0, scissor);
-
-            cmdbuf.BindVertexBuffer(0, *buffer, offsetof(BufferData, vertices));
-            cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *aa_pipeline_layout, 0,
-                                      aa_descriptor_sets[index], {});
-            cmdbuf.Draw(4, 1, 0, 0);
-            cmdbuf.EndRenderPass();
-
-            {
-                VkImageMemoryBarrier blit_read_barrier = base_barrier;
-                blit_read_barrier.image = *aa_image;
-                blit_read_barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                blit_read_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                                       VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, blit_read_barrier);
-            }
-        });
-        source_image_view = *aa_image_view;
+        source_image_view = fxaa->Draw(scheduler, image_index, source_image, source_image_view);
     }
     if (use_accelerated && anti_alias_pass == Settings::AntiAliasing::Smaa) {
         if (!smaa) {
@@ -496,6 +409,7 @@ void BlitScreen::CreateDynamicResources() {
     CreateRenderPass();
     CreateGraphicsPipeline();
     fsr.reset();
+    fxaa.reset();
     smaa.reset();
     if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
         CreateFSR();
@@ -520,6 +434,7 @@ void BlitScreen::RefreshResources(const Tegra::FramebufferConfig& framebuffer) {
     raw_height = framebuffer.height;
     pixel_format = framebuffer.pixel_format;
 
+    fxaa.reset();
     smaa.reset();
     ReleaseRawImages();
 
@@ -529,8 +444,6 @@ void BlitScreen::RefreshResources(const Tegra::FramebufferConfig& framebuffer) {
 
 void BlitScreen::CreateShaders() {
     vertex_shader = BuildShader(device, VULKAN_PRESENT_VERT_SPV);
-    fxaa_vertex_shader = BuildShader(device, FXAA_VERT_SPV);
-    fxaa_fragment_shader = BuildShader(device, FXAA_FRAG_SPV);
     bilinear_fragment_shader = BuildShader(device, VULKAN_PRESENT_FRAG_SPV);
     bicubic_fragment_shader = BuildShader(device, PRESENT_BICUBIC_FRAG_SPV);
     gaussian_fragment_shader = BuildShader(device, PRESENT_GAUSSIAN_FRAG_SPV);
@@ -553,13 +466,6 @@ void BlitScreen::CreateDescriptorPool() {
         },
     }};
 
-    const std::array<VkDescriptorPoolSize, 1> pool_sizes_aa{{
-        {
-            .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = static_cast<u32>(image_count * 2),
-        },
-    }};
-
     const VkDescriptorPoolCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .pNext = nullptr,
@@ -569,16 +475,6 @@ void BlitScreen::CreateDescriptorPool() {
         .pPoolSizes = pool_sizes.data(),
     };
     descriptor_pool = device.GetLogical().CreateDescriptorPool(ci);
-
-    const VkDescriptorPoolCreateInfo ci_aa{
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .maxSets = static_cast<u32>(image_count),
-        .poolSizeCount = static_cast<u32>(pool_sizes_aa.size()),
-        .pPoolSizes = pool_sizes_aa.data(),
-    };
-    aa_descriptor_pool = device.GetLogical().CreateDescriptorPool(ci_aa);
 }
 
 void BlitScreen::CreateRenderPass() {
@@ -659,23 +555,6 @@ void BlitScreen::CreateDescriptorSetLayout() {
         },
     }};
 
-    const std::array<VkDescriptorSetLayoutBinding, 2> layout_bindings_aa{{
-        {
-            .binding = 0,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-            .pImmutableSamplers = nullptr,
-        },
-        {
-            .binding = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .pImmutableSamplers = nullptr,
-        },
-    }};
-
     const VkDescriptorSetLayoutCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
         .pNext = nullptr,
@@ -684,21 +563,11 @@ void BlitScreen::CreateDescriptorSetLayout() {
         .pBindings = layout_bindings.data(),
     };
 
-    const VkDescriptorSetLayoutCreateInfo ci_aa{
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .bindingCount = static_cast<u32>(layout_bindings_aa.size()),
-        .pBindings = layout_bindings_aa.data(),
-    };
-
     descriptor_set_layout = device.GetLogical().CreateDescriptorSetLayout(ci);
-    aa_descriptor_set_layout = device.GetLogical().CreateDescriptorSetLayout(ci_aa);
 }
 
 void BlitScreen::CreateDescriptorSets() {
     const std::vector layouts(image_count, *descriptor_set_layout);
-    const std::vector layouts_aa(image_count, *aa_descriptor_set_layout);
 
     const VkDescriptorSetAllocateInfo ai{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -708,16 +577,7 @@ void BlitScreen::CreateDescriptorSets() {
         .pSetLayouts = layouts.data(),
     };
 
-    const VkDescriptorSetAllocateInfo ai_aa{
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .descriptorPool = *aa_descriptor_pool,
-        .descriptorSetCount = static_cast<u32>(image_count),
-        .pSetLayouts = layouts_aa.data(),
-    };
-
     descriptor_sets = descriptor_pool.Allocate(ai);
-    aa_descriptor_sets = aa_descriptor_pool.Allocate(ai_aa);
 }
 
 void BlitScreen::CreatePipelineLayout() {
@@ -730,17 +590,7 @@ void BlitScreen::CreatePipelineLayout() {
         .pushConstantRangeCount = 0,
         .pPushConstantRanges = nullptr,
     };
-    const VkPipelineLayoutCreateInfo ci_aa{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .setLayoutCount = 1,
-        .pSetLayouts = aa_descriptor_set_layout.address(),
-        .pushConstantRangeCount = 0,
-        .pPushConstantRanges = nullptr,
-    };
     pipeline_layout = device.GetLogical().CreatePipelineLayout(ci);
-    aa_pipeline_layout = device.GetLogical().CreatePipelineLayout(ci_aa);
 }
 
 void BlitScreen::CreateGraphicsPipeline() {
@@ -1068,8 +918,6 @@ void BlitScreen::ReleaseRawImages() {
         scheduler.Wait(tick);
     }
     raw_images.clear();
-    aa_image_view.reset();
-    aa_image.reset();
     buffer.reset();
 }
 
@@ -1150,198 +998,6 @@ void BlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
         raw_images[i] = create_image();
         raw_image_views[i] = create_image_view(raw_images[i]);
     }
-
-    // AA Resources
-    const u32 up_scale = Settings::values.resolution_info.up_scale;
-    const u32 down_shift = Settings::values.resolution_info.down_shift;
-    aa_image = create_image(true, up_scale, down_shift);
-    aa_image_view = create_image_view(aa_image, true);
-    VkExtent2D size{
-        .width = (up_scale * framebuffer.width) >> down_shift,
-        .height = (up_scale * framebuffer.height) >> down_shift,
-    };
-    if (aa_renderpass) {
-        aa_framebuffer = CreateFramebuffer(*aa_image_view, size, aa_renderpass);
-        return;
-    }
-    aa_renderpass = CreateRenderPassImpl(VK_FORMAT_R16G16B16A16_SFLOAT);
-    aa_framebuffer = CreateFramebuffer(*aa_image_view, size, aa_renderpass);
-
-    const std::array<VkPipelineShaderStageCreateInfo, 2> fxaa_shader_stages{{
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .stage = VK_SHADER_STAGE_VERTEX_BIT,
-            .module = *fxaa_vertex_shader,
-            .pName = "main",
-            .pSpecializationInfo = nullptr,
-        },
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .module = *fxaa_fragment_shader,
-            .pName = "main",
-            .pSpecializationInfo = nullptr,
-        },
-    }};
-
-    const auto vertex_binding_description = ScreenRectVertex::GetDescription();
-    const auto vertex_attrs_description = ScreenRectVertex::GetAttributes();
-
-    const VkPipelineVertexInputStateCreateInfo vertex_input_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .vertexBindingDescriptionCount = 1,
-        .pVertexBindingDescriptions = &vertex_binding_description,
-        .vertexAttributeDescriptionCount = u32{vertex_attrs_description.size()},
-        .pVertexAttributeDescriptions = vertex_attrs_description.data(),
-    };
-
-    const VkPipelineInputAssemblyStateCreateInfo input_assembly_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
-        .primitiveRestartEnable = VK_FALSE,
-    };
-
-    const VkPipelineViewportStateCreateInfo viewport_state_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .viewportCount = 1,
-        .pViewports = nullptr,
-        .scissorCount = 1,
-        .pScissors = nullptr,
-    };
-
-    const VkPipelineRasterizationStateCreateInfo rasterization_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .depthClampEnable = VK_FALSE,
-        .rasterizerDiscardEnable = VK_FALSE,
-        .polygonMode = VK_POLYGON_MODE_FILL,
-        .cullMode = VK_CULL_MODE_NONE,
-        .frontFace = VK_FRONT_FACE_CLOCKWISE,
-        .depthBiasEnable = VK_FALSE,
-        .depthBiasConstantFactor = 0.0f,
-        .depthBiasClamp = 0.0f,
-        .depthBiasSlopeFactor = 0.0f,
-        .lineWidth = 1.0f,
-    };
-
-    const VkPipelineMultisampleStateCreateInfo multisampling_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-        .sampleShadingEnable = VK_FALSE,
-        .minSampleShading = 0.0f,
-        .pSampleMask = nullptr,
-        .alphaToCoverageEnable = VK_FALSE,
-        .alphaToOneEnable = VK_FALSE,
-    };
-
-    const VkPipelineColorBlendAttachmentState color_blend_attachment{
-        .blendEnable = VK_FALSE,
-        .srcColorBlendFactor = VK_BLEND_FACTOR_ZERO,
-        .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
-        .colorBlendOp = VK_BLEND_OP_ADD,
-        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-        .alphaBlendOp = VK_BLEND_OP_ADD,
-        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                          VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-    };
-
-    const VkPipelineColorBlendStateCreateInfo color_blend_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .logicOpEnable = VK_FALSE,
-        .logicOp = VK_LOGIC_OP_COPY,
-        .attachmentCount = 1,
-        .pAttachments = &color_blend_attachment,
-        .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f},
-    };
-
-    static constexpr std::array dynamic_states{
-        VK_DYNAMIC_STATE_VIEWPORT,
-        VK_DYNAMIC_STATE_SCISSOR,
-    };
-    const VkPipelineDynamicStateCreateInfo dynamic_state_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .dynamicStateCount = static_cast<u32>(dynamic_states.size()),
-        .pDynamicStates = dynamic_states.data(),
-    };
-
-    const VkGraphicsPipelineCreateInfo fxaa_pipeline_ci{
-        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .stageCount = static_cast<u32>(fxaa_shader_stages.size()),
-        .pStages = fxaa_shader_stages.data(),
-        .pVertexInputState = &vertex_input_ci,
-        .pInputAssemblyState = &input_assembly_ci,
-        .pTessellationState = nullptr,
-        .pViewportState = &viewport_state_ci,
-        .pRasterizationState = &rasterization_ci,
-        .pMultisampleState = &multisampling_ci,
-        .pDepthStencilState = nullptr,
-        .pColorBlendState = &color_blend_ci,
-        .pDynamicState = &dynamic_state_ci,
-        .layout = *aa_pipeline_layout,
-        .renderPass = *aa_renderpass,
-        .subpass = 0,
-        .basePipelineHandle = 0,
-        .basePipelineIndex = 0,
-    };
-
-    // AA
-    aa_pipeline = device.GetLogical().CreateGraphicsPipeline(fxaa_pipeline_ci);
-}
-
-void BlitScreen::UpdateAADescriptorSet(VkImageView image_view, bool nn) const {
-    const VkDescriptorImageInfo image_info{
-        .sampler = nn ? *nn_sampler : *sampler,
-        .imageView = image_view,
-        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
-    };
-
-    const VkWriteDescriptorSet sampler_write{
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .pNext = nullptr,
-        .dstSet = aa_descriptor_sets[image_index],
-        .dstBinding = 0,
-        .dstArrayElement = 0,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        .pImageInfo = &image_info,
-        .pBufferInfo = nullptr,
-        .pTexelBufferView = nullptr,
-    };
-
-    const VkWriteDescriptorSet sampler_write_2{
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .pNext = nullptr,
-        .dstSet = aa_descriptor_sets[image_index],
-        .dstBinding = 1,
-        .dstArrayElement = 0,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        .pImageInfo = &image_info,
-        .pBufferInfo = nullptr,
-        .pTexelBufferView = nullptr,
-    };
-
-    device.GetLogical().UpdateDescriptorSets(std::array{sampler_write, sampler_write_2}, {});
 }
 
 void BlitScreen::UpdateDescriptorSet(VkImageView image_view, bool nn) const {
