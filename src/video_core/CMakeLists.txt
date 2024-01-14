@@ -158,6 +158,9 @@ add_library(video_core STATIC
     renderer_opengl/renderer_opengl.h
     renderer_opengl/util_shaders.cpp
     renderer_opengl/util_shaders.h
+    renderer_vulkan/present/anti_alias_pass.h
+    renderer_vulkan/present/filters.cpp
+    renderer_vulkan/present/filters.h
     renderer_vulkan/present/fsr.cpp
     renderer_vulkan/present/fsr.h
     renderer_vulkan/present/fxaa.cpp
@@ -166,6 +169,8 @@ add_library(video_core STATIC
     renderer_vulkan/present/smaa.h
     renderer_vulkan/present/util.cpp
     renderer_vulkan/present/util.h
+    renderer_vulkan/present/window_adapt_pass.cpp
+    renderer_vulkan/present/window_adapt_pass.h
     renderer_vulkan/blit_image.cpp
     renderer_vulkan/blit_image.h
     renderer_vulkan/fixed_pipeline_state.cpp

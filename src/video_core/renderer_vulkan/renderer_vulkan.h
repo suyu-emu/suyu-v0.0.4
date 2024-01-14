@@ -78,7 +78,8 @@ private:
     Scheduler scheduler;
     Swapchain swapchain;
     PresentManager present_manager;
-    BlitScreen blit_screen;
+    BlitScreen blit_swapchain;
+    BlitScreen blit_screenshot;
     RasterizerVulkan rasterizer;
     std::optional<TurboMode> turbo_mode;
 };
