@@ -39,6 +39,8 @@ vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderp
 VkWriteDescriptorSet CreateWriteDescriptorSet(std::vector<VkDescriptorImageInfo>& images,
                                               VkSampler sampler, VkImageView view,
                                               VkDescriptorSet set, u32 binding);
+vk::Sampler CreateBilinearSampler(const Device& device);
+vk::Sampler CreateNearestNeighborSampler(const Device& device);
 
 void BeginRenderPass(vk::CommandBuffer& cmdbuf, VkRenderPass render_pass, VkFramebuffer framebuffer,
                      VkExtent2D extent);

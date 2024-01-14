@@ -9,19 +9,12 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "common/math_util.h"
-#include "common/polyfill_ranges.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
 #include "video_core/gpu.h"
 #include "video_core/host1x/gpu_device_memory_manager.h"
-#include "video_core/host_shaders/present_bicubic_frag_spv.h"
-#include "video_core/host_shaders/present_gaussian_frag_spv.h"
-#include "video_core/host_shaders/vulkan_present_frag_spv.h"
-#include "video_core/host_shaders/vulkan_present_scaleforce_fp16_frag_spv.h"
-#include "video_core/host_shaders/vulkan_present_scaleforce_fp32_frag_spv.h"
-#include "video_core/host_shaders/vulkan_present_vert_spv.h"
+#include "video_core/renderer_vulkan/present/filters.h"
 #include "video_core/renderer_vulkan/present/fsr.h"
 #include "video_core/renderer_vulkan/present/fxaa.h"
 #include "video_core/renderer_vulkan/present/smaa.h"
@@ -29,7 +22,6 @@
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_shader_util.h"
-#include "video_core/renderer_vulkan/vk_swapchain.h"
 #include "video_core/surface.h"
 #include "video_core/textures/decoders.h"
 #include "video_core/vulkan_common/vulkan_device.h"
@@ -39,48 +31,6 @@
 namespace Vulkan {
 
 namespace {
-
-struct ScreenRectVertex {
-    ScreenRectVertex() = default;
-    explicit ScreenRectVertex(f32 x, f32 y, f32 u, f32 v) : position{{x, y}}, tex_coord{{u, v}} {}
-
-    std::array<f32, 2> position;
-    std::array<f32, 2> tex_coord;
-
-    static VkVertexInputBindingDescription GetDescription() {
-        return {
-            .binding = 0,
-            .stride = sizeof(ScreenRectVertex),
-            .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-        };
-    }
-
-    static std::array<VkVertexInputAttributeDescription, 2> GetAttributes() {
-        return {{
-            {
-                .location = 0,
-                .binding = 0,
-                .format = VK_FORMAT_R32G32_SFLOAT,
-                .offset = offsetof(ScreenRectVertex, position),
-            },
-            {
-                .location = 1,
-                .binding = 0,
-                .format = VK_FORMAT_R32G32_SFLOAT,
-                .offset = offsetof(ScreenRectVertex, tex_coord),
-            },
-        }};
-    }
-};
-
-std::array<f32, 4 * 4> MakeOrthographicMatrix(f32 width, f32 height) {
-    // clang-format off
-    return { 2.f / width, 0.f,          0.f, 0.f,
-             0.f,         2.f / height, 0.f, 0.f,
-             0.f,         0.f,          1.f, 0.f,
-            -1.f,        -1.f,          0.f, 1.f};
-    // clang-format on
-}
 
 u32 GetBytesPerPixel(const Tegra::FramebufferConfig& framebuffer) {
     using namespace VideoCore::Surface;
@@ -110,43 +60,82 @@ VkFormat GetFormat(const Tegra::FramebufferConfig& framebuffer) {
 
 } // Anonymous namespace
 
-struct BlitScreen::BufferData {
-    struct {
-        std::array<f32, 4 * 4> modelview_matrix;
-    } uniform;
-
-    std::array<ScreenRectVertex, 4> vertices;
-
-    // Unaligned image data goes here
-};
-
-BlitScreen::BlitScreen(Tegra::MaxwellDeviceMemoryManager& device_memory_,
-                       Core::Frontend::EmuWindow& render_window_, const Device& device_,
-                       MemoryAllocator& memory_allocator_, Swapchain& swapchain_,
-                       PresentManager& present_manager_, Scheduler& scheduler_)
-    : device_memory{device_memory_}, render_window{render_window_}, device{device_},
-      memory_allocator{memory_allocator_}, swapchain{swapchain_}, present_manager{present_manager_},
-      scheduler{scheduler_}, image_count{swapchain.GetImageCount()} {
-    resource_ticks.resize(image_count);
-    swapchain_view_format = swapchain.GetImageViewFormat();
-
-    CreateStaticResources();
-    CreateDynamicResources();
-}
+BlitScreen::BlitScreen(Tegra::MaxwellDeviceMemoryManager& device_memory_, const Device& device_,
+                       MemoryAllocator& memory_allocator_, PresentManager& present_manager_,
+                       Scheduler& scheduler_)
+    : device_memory{device_memory_}, device{device_}, memory_allocator{memory_allocator_},
+      present_manager{present_manager_}, scheduler{scheduler_}, image_count{1},
+      swapchain_view_format{VK_FORMAT_B8G8R8A8_UNORM} {}
 
 BlitScreen::~BlitScreen() = default;
 
-void BlitScreen::Recreate() {
+void BlitScreen::WaitIdle() {
     present_manager.WaitPresent();
     scheduler.Finish();
     device.GetLogical().WaitIdle();
-    CreateDynamicResources();
+}
+
+void BlitScreen::SetWindowAdaptPass(const Layout::FramebufferLayout& layout) {
+    scaling_filter = Settings::values.scaling_filter.GetValue();
+
+    const VkExtent2D adapt_size{
+        .width = layout.screen.GetWidth(),
+        .height = layout.screen.GetHeight(),
+    };
+
+    fsr.reset();
+
+    switch (scaling_filter) {
+    case Settings::ScalingFilter::NearestNeighbor:
+        window_adapt =
+            MakeNearestNeighbor(device, memory_allocator, image_count, swapchain_view_format);
+        break;
+    case Settings::ScalingFilter::Bicubic:
+        window_adapt = MakeBicubic(device, memory_allocator, image_count, swapchain_view_format);
+        break;
+    case Settings::ScalingFilter::Gaussian:
+        window_adapt = MakeGaussian(device, memory_allocator, image_count, swapchain_view_format);
+        break;
+    case Settings::ScalingFilter::ScaleForce:
+        window_adapt = MakeScaleForce(device, memory_allocator, image_count, swapchain_view_format);
+        break;
+    case Settings::ScalingFilter::Fsr:
+        fsr = std::make_unique<FSR>(device, memory_allocator, image_count, adapt_size);
+        [[fallthrough]];
+    case Settings::ScalingFilter::Bilinear:
+    default:
+        window_adapt = MakeBilinear(device, memory_allocator, image_count, swapchain_view_format);
+        break;
+    }
+}
+
+void BlitScreen::SetAntiAliasPass() {
+    if (anti_alias && anti_aliasing == Settings::values.anti_aliasing.GetValue()) {
+        return;
+    }
+
+    anti_aliasing = Settings::values.anti_aliasing.GetValue();
+
+    const VkExtent2D render_area{
+        .width = Settings::values.resolution_info.ScaleUp(raw_width),
+        .height = Settings::values.resolution_info.ScaleUp(raw_height),
+    };
+
+    switch (anti_aliasing) {
+    case Settings::AntiAliasing::Fxaa:
+        anti_alias = std::make_unique<FXAA>(device, memory_allocator, image_count, render_area);
+        break;
+    case Settings::AntiAliasing::Smaa:
+        anti_alias = std::make_unique<SMAA>(device, memory_allocator, image_count, render_area);
+        break;
+    default:
+        anti_alias = std::make_unique<NoAA>();
+        break;
+    }
 }
 
 void BlitScreen::Draw(RasterizerVulkan& rasterizer, const Tegra::FramebufferConfig& framebuffer,
-                      const VkFramebuffer& host_framebuffer, const Layout::FramebufferLayout layout,
-                      VkExtent2D render_area) {
-
+                      const Layout::FramebufferLayout& layout, Frame* dst) {
     const auto texture_info = rasterizer.AccelerateDisplay(
         framebuffer, framebuffer.address + framebuffer.offset, framebuffer.stride);
     const u32 texture_width = texture_info ? texture_info->width : framebuffer.width;
@@ -156,23 +145,19 @@ void BlitScreen::Draw(RasterizerVulkan& rasterizer, const Tegra::FramebufferConf
     const bool use_accelerated = texture_info.has_value();
 
     RefreshResources(framebuffer);
+    SetAntiAliasPass();
 
     // Finish any pending renderpass
     scheduler.RequestOutsideRenderPassOperationContext();
 
     scheduler.Wait(resource_ticks[image_index]);
-    resource_ticks[image_index] = scheduler.CurrentTick();
+    SCOPE_EXIT({ resource_ticks[image_index] = scheduler.CurrentTick(); });
 
     VkImage source_image = texture_info ? texture_info->image : *raw_images[image_index];
     VkImageView source_image_view =
         texture_info ? texture_info->image_view : *raw_image_views[image_index];
 
-    BufferData data;
-    SetUniformData(data, layout);
-    SetVertexData(data, framebuffer, layout, texture_width, texture_height);
-
     const std::span<u8> mapped_span = buffer.Mapped();
-    std::memcpy(mapped_span.data(), &data, sizeof(data));
 
     if (!use_accelerated) {
         const u64 image_offset = GetRawImageOffset(framebuffer);
@@ -249,145 +234,109 @@ void BlitScreen::Draw(RasterizerVulkan& rasterizer, const Tegra::FramebufferConf
         });
     }
 
-    const auto anti_alias_pass = Settings::values.anti_aliasing.GetValue();
-    if (use_accelerated && anti_alias_pass == Settings::AntiAliasing::Fxaa) {
-        if (!fxaa) {
-            const u32 up_scale = Settings::values.resolution_info.up_scale;
-            const u32 down_shift = Settings::values.resolution_info.down_shift;
-            const VkExtent2D fxaa_size{
-                .width = (up_scale * framebuffer.width) >> down_shift,
-                .height = (up_scale * framebuffer.height) >> down_shift,
-            };
-            fxaa = std::make_unique<FXAA>(device, memory_allocator, image_count, fxaa_size);
-        }
+    source_image_view = anti_alias->Draw(scheduler, image_index, source_image, source_image_view);
 
-        source_image_view = fxaa->Draw(scheduler, image_index, source_image, source_image_view);
-    }
-    if (use_accelerated && anti_alias_pass == Settings::AntiAliasing::Smaa) {
-        if (!smaa) {
-            const u32 up_scale = Settings::values.resolution_info.up_scale;
-            const u32 down_shift = Settings::values.resolution_info.down_shift;
-            const VkExtent2D smaa_size{
-                .width = (up_scale * framebuffer.width) >> down_shift,
-                .height = (up_scale * framebuffer.height) >> down_shift,
-            };
-            CreateSMAA(smaa_size);
-        }
-        source_image_view = smaa->Draw(scheduler, image_index, source_image, source_image_view);
-    }
+    const auto crop_rect = Tegra::NormalizeCrop(framebuffer, texture_width, texture_height);
+    const VkExtent2D render_extent{
+        .width = scaled_width,
+        .height = scaled_height,
+    };
+
     if (fsr) {
-        const auto crop_rect = Tegra::NormalizeCrop(framebuffer, texture_width, texture_height);
-        const VkExtent2D fsr_input_size{
-            .width = scaled_width,
-            .height = scaled_height,
+        const VkExtent2D adapt_size{
+            .width = layout.screen.GetWidth(),
+            .height = layout.screen.GetHeight(),
         };
-        VkImageView fsr_image_view =
-            fsr->Draw(scheduler, image_index, source_image_view, fsr_input_size, crop_rect);
-        UpdateDescriptorSet(fsr_image_view, true);
+
+        source_image_view =
+            fsr->Draw(scheduler, image_index, source_image_view, render_extent, crop_rect);
+
+        const Common::Rectangle<f32> output_crop{0, 0, 1, 1};
+        window_adapt->Draw(scheduler, image_index, source_image_view, adapt_size, output_crop,
+                           layout, dst);
     } else {
-        const bool is_nn =
-            Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::NearestNeighbor;
-        UpdateDescriptorSet(source_image_view, is_nn);
+        window_adapt->Draw(scheduler, image_index, source_image_view, render_extent, crop_rect,
+                           layout, dst);
     }
-
-    scheduler.Record([this, host_framebuffer, index = image_index,
-                      size = render_area](vk::CommandBuffer cmdbuf) {
-        const f32 bg_red = Settings::values.bg_red.GetValue() / 255.0f;
-        const f32 bg_green = Settings::values.bg_green.GetValue() / 255.0f;
-        const f32 bg_blue = Settings::values.bg_blue.GetValue() / 255.0f;
-        const VkClearValue clear_color{
-            .color = {.float32 = {bg_red, bg_green, bg_blue, 1.0f}},
-        };
-        const VkRenderPassBeginInfo renderpass_bi{
-            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-            .pNext = nullptr,
-            .renderPass = *renderpass,
-            .framebuffer = host_framebuffer,
-            .renderArea =
-                {
-                    .offset = {0, 0},
-                    .extent = size,
-                },
-            .clearValueCount = 1,
-            .pClearValues = &clear_color,
-        };
-        const VkViewport viewport{
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = static_cast<float>(size.width),
-            .height = static_cast<float>(size.height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f,
-        };
-        const VkRect2D scissor{
-            .offset = {0, 0},
-            .extent = size,
-        };
-        cmdbuf.BeginRenderPass(renderpass_bi, VK_SUBPASS_CONTENTS_INLINE);
-        auto graphics_pipeline = [this]() {
-            switch (Settings::values.scaling_filter.GetValue()) {
-            case Settings::ScalingFilter::NearestNeighbor:
-            case Settings::ScalingFilter::Bilinear:
-                return *bilinear_pipeline;
-            case Settings::ScalingFilter::Bicubic:
-                return *bicubic_pipeline;
-            case Settings::ScalingFilter::Gaussian:
-                return *gaussian_pipeline;
-            case Settings::ScalingFilter::ScaleForce:
-                return *scaleforce_pipeline;
-            default:
-                return *bilinear_pipeline;
-            }
-        }();
-        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline);
-        cmdbuf.SetViewport(0, viewport);
-        cmdbuf.SetScissor(0, scissor);
-
-        cmdbuf.BindVertexBuffer(0, *buffer, offsetof(BufferData, vertices));
-        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline_layout, 0,
-                                  descriptor_sets[index], {});
-        cmdbuf.Draw(4, 1, 0, 0);
-        cmdbuf.EndRenderPass();
-    });
 }
 
-void BlitScreen::DrawToSwapchain(RasterizerVulkan& rasterizer, Frame* frame,
-                                 const Tegra::FramebufferConfig& framebuffer) {
+void BlitScreen::DrawToFrame(RasterizerVulkan& rasterizer, Frame* frame,
+                             const Tegra::FramebufferConfig& framebuffer,
+                             const Layout::FramebufferLayout& layout, size_t swapchain_images,
+                             VkFormat current_swapchain_view_format) {
+    bool resource_update_required = false;
+    bool presentation_recreate_required = false;
+
+    // Recreate dynamic resources if the adapting filter changed
+    if (!window_adapt || scaling_filter != Settings::values.scaling_filter.GetValue()) {
+        resource_update_required = true;
+    }
+
     // Recreate dynamic resources if the the image count or input format changed
-    const VkFormat current_framebuffer_format =
+    const VkFormat old_framebuffer_format =
         std::exchange(framebuffer_view_format, GetFormat(framebuffer));
-    if (const std::size_t swapchain_images = swapchain.GetImageCount();
-        swapchain_images != image_count || current_framebuffer_format != framebuffer_view_format) {
+    if (swapchain_images != image_count || old_framebuffer_format != framebuffer_view_format) {
         image_count = swapchain_images;
-        Recreate();
+        resource_update_required = true;
     }
 
-    // Recreate the presentation frame if the dimensions of the window changed
-    const Layout::FramebufferLayout layout = render_window.GetFramebufferLayout();
-    if (layout.width != frame->width || layout.height != frame->height) {
-        Recreate();
-        present_manager.RecreateFrame(frame, layout.width, layout.height, swapchain_view_format,
-                                      *renderpass);
+    // Recreate the presentation frame if the format or dimensions of the window changed
+    const VkFormat old_swapchain_view_format =
+        std::exchange(swapchain_view_format, current_swapchain_view_format);
+    if (old_swapchain_view_format != current_swapchain_view_format ||
+        layout.width != frame->width || layout.height != frame->height) {
+        resource_update_required = true;
+        presentation_recreate_required = true;
     }
 
-    const VkExtent2D render_area{frame->width, frame->height};
-    Draw(rasterizer, framebuffer, *frame->framebuffer, layout, render_area);
+    // If we have a pending resource update, perform it
+    if (resource_update_required) {
+        // Wait for idle to ensure no resources are in use
+        WaitIdle();
+
+        // Set new number of resource ticks
+        resource_ticks.resize(swapchain_images);
+
+        // Update window adapt pass
+        SetWindowAdaptPass(layout);
+
+        // Update frame format if needed
+        if (presentation_recreate_required) {
+            present_manager.RecreateFrame(frame, layout.width, layout.height, swapchain_view_format,
+                                          window_adapt->GetRenderPass());
+        }
+    }
+
+    Draw(rasterizer, framebuffer, layout, frame);
     if (++image_index >= image_count) {
         image_index = 0;
     }
 }
 
-vk::Framebuffer BlitScreen::CreateFramebuffer(const VkImageView& image_view, VkExtent2D extent) {
-    return CreateFramebuffer(image_view, extent, renderpass);
+vk::Framebuffer BlitScreen::CreateFramebuffer(const Layout::FramebufferLayout& layout,
+                                              const VkImageView& image_view,
+                                              VkFormat current_view_format) {
+    const bool format_updated =
+        std::exchange(swapchain_view_format, current_view_format) != current_view_format;
+    if (!window_adapt || scaling_filter != Settings::values.scaling_filter.GetValue() ||
+        format_updated) {
+        WaitIdle();
+        SetWindowAdaptPass(layout);
+    }
+    const VkExtent2D extent{
+        .width = layout.width,
+        .height = layout.height,
+    };
+    return CreateFramebuffer(image_view, extent, window_adapt->GetRenderPass());
 }
 
 vk::Framebuffer BlitScreen::CreateFramebuffer(const VkImageView& image_view, VkExtent2D extent,
-                                              vk::RenderPass& rd) {
+                                              VkRenderPass render_pass) {
     return device.GetLogical().CreateFramebuffer(VkFramebufferCreateInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .renderPass = *rd,
+        .renderPass = render_pass,
         .attachmentCount = 1,
         .pAttachments = &image_view,
         .width = extent.width,
@@ -396,35 +345,7 @@ vk::Framebuffer BlitScreen::CreateFramebuffer(const VkImageView& image_view, VkE
     });
 }
 
-void BlitScreen::CreateStaticResources() {
-    CreateShaders();
-    CreateSampler();
-}
-
-void BlitScreen::CreateDynamicResources() {
-    CreateDescriptorPool();
-    CreateDescriptorSetLayout();
-    CreateDescriptorSets();
-    CreatePipelineLayout();
-    CreateRenderPass();
-    CreateGraphicsPipeline();
-    fsr.reset();
-    fxaa.reset();
-    smaa.reset();
-    if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
-        CreateFSR();
-    }
-}
-
 void BlitScreen::RefreshResources(const Tegra::FramebufferConfig& framebuffer) {
-    if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
-        if (!fsr) {
-            CreateFSR();
-        }
-    } else {
-        fsr.reset();
-    }
-
     if (framebuffer.width == raw_width && framebuffer.height == raw_height &&
         framebuffer.pixel_format == pixel_format && !raw_images.empty()) {
         return;
@@ -433,484 +354,11 @@ void BlitScreen::RefreshResources(const Tegra::FramebufferConfig& framebuffer) {
     raw_width = framebuffer.width;
     raw_height = framebuffer.height;
     pixel_format = framebuffer.pixel_format;
+    anti_alias.reset();
 
-    fxaa.reset();
-    smaa.reset();
     ReleaseRawImages();
-
     CreateStagingBuffer(framebuffer);
     CreateRawImages(framebuffer);
-}
-
-void BlitScreen::CreateShaders() {
-    vertex_shader = BuildShader(device, VULKAN_PRESENT_VERT_SPV);
-    bilinear_fragment_shader = BuildShader(device, VULKAN_PRESENT_FRAG_SPV);
-    bicubic_fragment_shader = BuildShader(device, PRESENT_BICUBIC_FRAG_SPV);
-    gaussian_fragment_shader = BuildShader(device, PRESENT_GAUSSIAN_FRAG_SPV);
-    if (device.IsFloat16Supported()) {
-        scaleforce_fragment_shader = BuildShader(device, VULKAN_PRESENT_SCALEFORCE_FP16_FRAG_SPV);
-    } else {
-        scaleforce_fragment_shader = BuildShader(device, VULKAN_PRESENT_SCALEFORCE_FP32_FRAG_SPV);
-    }
-}
-
-void BlitScreen::CreateDescriptorPool() {
-    const std::array<VkDescriptorPoolSize, 2> pool_sizes{{
-        {
-            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = static_cast<u32>(image_count),
-        },
-        {
-            .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = static_cast<u32>(image_count),
-        },
-    }};
-
-    const VkDescriptorPoolCreateInfo ci{
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .maxSets = static_cast<u32>(image_count),
-        .poolSizeCount = static_cast<u32>(pool_sizes.size()),
-        .pPoolSizes = pool_sizes.data(),
-    };
-    descriptor_pool = device.GetLogical().CreateDescriptorPool(ci);
-}
-
-void BlitScreen::CreateRenderPass() {
-    renderpass = CreateRenderPassImpl(swapchain_view_format);
-}
-
-vk::RenderPass BlitScreen::CreateRenderPassImpl(VkFormat format) {
-    const VkAttachmentDescription color_attachment{
-        .flags = 0,
-        .format = format,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
-    };
-
-    const VkAttachmentReference color_attachment_ref{
-        .attachment = 0,
-        .layout = VK_IMAGE_LAYOUT_GENERAL,
-    };
-
-    const VkSubpassDescription subpass_description{
-        .flags = 0,
-        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .inputAttachmentCount = 0,
-        .pInputAttachments = nullptr,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &color_attachment_ref,
-        .pResolveAttachments = nullptr,
-        .pDepthStencilAttachment = nullptr,
-        .preserveAttachmentCount = 0,
-        .pPreserveAttachments = nullptr,
-    };
-
-    const VkSubpassDependency dependency{
-        .srcSubpass = VK_SUBPASS_EXTERNAL,
-        .dstSubpass = 0,
-        .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        .srcAccessMask = 0,
-        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-        .dependencyFlags = 0,
-    };
-
-    const VkRenderPassCreateInfo renderpass_ci{
-        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .attachmentCount = 1,
-        .pAttachments = &color_attachment,
-        .subpassCount = 1,
-        .pSubpasses = &subpass_description,
-        .dependencyCount = 1,
-        .pDependencies = &dependency,
-    };
-
-    return device.GetLogical().CreateRenderPass(renderpass_ci);
-}
-
-void BlitScreen::CreateDescriptorSetLayout() {
-    const std::array<VkDescriptorSetLayoutBinding, 2> layout_bindings{{
-        {
-            .binding = 0,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-            .pImmutableSamplers = nullptr,
-        },
-        {
-            .binding = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .pImmutableSamplers = nullptr,
-        },
-    }};
-
-    const VkDescriptorSetLayoutCreateInfo ci{
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .bindingCount = static_cast<u32>(layout_bindings.size()),
-        .pBindings = layout_bindings.data(),
-    };
-
-    descriptor_set_layout = device.GetLogical().CreateDescriptorSetLayout(ci);
-}
-
-void BlitScreen::CreateDescriptorSets() {
-    const std::vector layouts(image_count, *descriptor_set_layout);
-
-    const VkDescriptorSetAllocateInfo ai{
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .descriptorPool = *descriptor_pool,
-        .descriptorSetCount = static_cast<u32>(image_count),
-        .pSetLayouts = layouts.data(),
-    };
-
-    descriptor_sets = descriptor_pool.Allocate(ai);
-}
-
-void BlitScreen::CreatePipelineLayout() {
-    const VkPipelineLayoutCreateInfo ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .setLayoutCount = 1,
-        .pSetLayouts = descriptor_set_layout.address(),
-        .pushConstantRangeCount = 0,
-        .pPushConstantRanges = nullptr,
-    };
-    pipeline_layout = device.GetLogical().CreatePipelineLayout(ci);
-}
-
-void BlitScreen::CreateGraphicsPipeline() {
-    const std::array<VkPipelineShaderStageCreateInfo, 2> bilinear_shader_stages{{
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .stage = VK_SHADER_STAGE_VERTEX_BIT,
-            .module = *vertex_shader,
-            .pName = "main",
-            .pSpecializationInfo = nullptr,
-        },
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .module = *bilinear_fragment_shader,
-            .pName = "main",
-            .pSpecializationInfo = nullptr,
-        },
-    }};
-
-    const std::array<VkPipelineShaderStageCreateInfo, 2> bicubic_shader_stages{{
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .stage = VK_SHADER_STAGE_VERTEX_BIT,
-            .module = *vertex_shader,
-            .pName = "main",
-            .pSpecializationInfo = nullptr,
-        },
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .module = *bicubic_fragment_shader,
-            .pName = "main",
-            .pSpecializationInfo = nullptr,
-        },
-    }};
-
-    const std::array<VkPipelineShaderStageCreateInfo, 2> gaussian_shader_stages{{
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .stage = VK_SHADER_STAGE_VERTEX_BIT,
-            .module = *vertex_shader,
-            .pName = "main",
-            .pSpecializationInfo = nullptr,
-        },
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .module = *gaussian_fragment_shader,
-            .pName = "main",
-            .pSpecializationInfo = nullptr,
-        },
-    }};
-
-    const std::array<VkPipelineShaderStageCreateInfo, 2> scaleforce_shader_stages{{
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .stage = VK_SHADER_STAGE_VERTEX_BIT,
-            .module = *vertex_shader,
-            .pName = "main",
-            .pSpecializationInfo = nullptr,
-        },
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .module = *scaleforce_fragment_shader,
-            .pName = "main",
-            .pSpecializationInfo = nullptr,
-        },
-    }};
-
-    const auto vertex_binding_description = ScreenRectVertex::GetDescription();
-    const auto vertex_attrs_description = ScreenRectVertex::GetAttributes();
-
-    const VkPipelineVertexInputStateCreateInfo vertex_input_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .vertexBindingDescriptionCount = 1,
-        .pVertexBindingDescriptions = &vertex_binding_description,
-        .vertexAttributeDescriptionCount = u32{vertex_attrs_description.size()},
-        .pVertexAttributeDescriptions = vertex_attrs_description.data(),
-    };
-
-    const VkPipelineInputAssemblyStateCreateInfo input_assembly_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
-        .primitiveRestartEnable = VK_FALSE,
-    };
-
-    const VkPipelineViewportStateCreateInfo viewport_state_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .viewportCount = 1,
-        .pViewports = nullptr,
-        .scissorCount = 1,
-        .pScissors = nullptr,
-    };
-
-    const VkPipelineRasterizationStateCreateInfo rasterization_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .depthClampEnable = VK_FALSE,
-        .rasterizerDiscardEnable = VK_FALSE,
-        .polygonMode = VK_POLYGON_MODE_FILL,
-        .cullMode = VK_CULL_MODE_NONE,
-        .frontFace = VK_FRONT_FACE_CLOCKWISE,
-        .depthBiasEnable = VK_FALSE,
-        .depthBiasConstantFactor = 0.0f,
-        .depthBiasClamp = 0.0f,
-        .depthBiasSlopeFactor = 0.0f,
-        .lineWidth = 1.0f,
-    };
-
-    const VkPipelineMultisampleStateCreateInfo multisampling_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-        .sampleShadingEnable = VK_FALSE,
-        .minSampleShading = 0.0f,
-        .pSampleMask = nullptr,
-        .alphaToCoverageEnable = VK_FALSE,
-        .alphaToOneEnable = VK_FALSE,
-    };
-
-    const VkPipelineColorBlendAttachmentState color_blend_attachment{
-        .blendEnable = VK_FALSE,
-        .srcColorBlendFactor = VK_BLEND_FACTOR_ZERO,
-        .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
-        .colorBlendOp = VK_BLEND_OP_ADD,
-        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-        .alphaBlendOp = VK_BLEND_OP_ADD,
-        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                          VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-    };
-
-    const VkPipelineColorBlendStateCreateInfo color_blend_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .logicOpEnable = VK_FALSE,
-        .logicOp = VK_LOGIC_OP_COPY,
-        .attachmentCount = 1,
-        .pAttachments = &color_blend_attachment,
-        .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f},
-    };
-
-    static constexpr std::array dynamic_states{
-        VK_DYNAMIC_STATE_VIEWPORT,
-        VK_DYNAMIC_STATE_SCISSOR,
-    };
-    const VkPipelineDynamicStateCreateInfo dynamic_state_ci{
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .dynamicStateCount = static_cast<u32>(dynamic_states.size()),
-        .pDynamicStates = dynamic_states.data(),
-    };
-
-    const VkGraphicsPipelineCreateInfo bilinear_pipeline_ci{
-        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .stageCount = static_cast<u32>(bilinear_shader_stages.size()),
-        .pStages = bilinear_shader_stages.data(),
-        .pVertexInputState = &vertex_input_ci,
-        .pInputAssemblyState = &input_assembly_ci,
-        .pTessellationState = nullptr,
-        .pViewportState = &viewport_state_ci,
-        .pRasterizationState = &rasterization_ci,
-        .pMultisampleState = &multisampling_ci,
-        .pDepthStencilState = nullptr,
-        .pColorBlendState = &color_blend_ci,
-        .pDynamicState = &dynamic_state_ci,
-        .layout = *pipeline_layout,
-        .renderPass = *renderpass,
-        .subpass = 0,
-        .basePipelineHandle = 0,
-        .basePipelineIndex = 0,
-    };
-
-    const VkGraphicsPipelineCreateInfo bicubic_pipeline_ci{
-        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .stageCount = static_cast<u32>(bicubic_shader_stages.size()),
-        .pStages = bicubic_shader_stages.data(),
-        .pVertexInputState = &vertex_input_ci,
-        .pInputAssemblyState = &input_assembly_ci,
-        .pTessellationState = nullptr,
-        .pViewportState = &viewport_state_ci,
-        .pRasterizationState = &rasterization_ci,
-        .pMultisampleState = &multisampling_ci,
-        .pDepthStencilState = nullptr,
-        .pColorBlendState = &color_blend_ci,
-        .pDynamicState = &dynamic_state_ci,
-        .layout = *pipeline_layout,
-        .renderPass = *renderpass,
-        .subpass = 0,
-        .basePipelineHandle = 0,
-        .basePipelineIndex = 0,
-    };
-
-    const VkGraphicsPipelineCreateInfo gaussian_pipeline_ci{
-        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .stageCount = static_cast<u32>(gaussian_shader_stages.size()),
-        .pStages = gaussian_shader_stages.data(),
-        .pVertexInputState = &vertex_input_ci,
-        .pInputAssemblyState = &input_assembly_ci,
-        .pTessellationState = nullptr,
-        .pViewportState = &viewport_state_ci,
-        .pRasterizationState = &rasterization_ci,
-        .pMultisampleState = &multisampling_ci,
-        .pDepthStencilState = nullptr,
-        .pColorBlendState = &color_blend_ci,
-        .pDynamicState = &dynamic_state_ci,
-        .layout = *pipeline_layout,
-        .renderPass = *renderpass,
-        .subpass = 0,
-        .basePipelineHandle = 0,
-        .basePipelineIndex = 0,
-    };
-
-    const VkGraphicsPipelineCreateInfo scaleforce_pipeline_ci{
-        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .stageCount = static_cast<u32>(scaleforce_shader_stages.size()),
-        .pStages = scaleforce_shader_stages.data(),
-        .pVertexInputState = &vertex_input_ci,
-        .pInputAssemblyState = &input_assembly_ci,
-        .pTessellationState = nullptr,
-        .pViewportState = &viewport_state_ci,
-        .pRasterizationState = &rasterization_ci,
-        .pMultisampleState = &multisampling_ci,
-        .pDepthStencilState = nullptr,
-        .pColorBlendState = &color_blend_ci,
-        .pDynamicState = &dynamic_state_ci,
-        .layout = *pipeline_layout,
-        .renderPass = *renderpass,
-        .subpass = 0,
-        .basePipelineHandle = 0,
-        .basePipelineIndex = 0,
-    };
-
-    bilinear_pipeline = device.GetLogical().CreateGraphicsPipeline(bilinear_pipeline_ci);
-    bicubic_pipeline = device.GetLogical().CreateGraphicsPipeline(bicubic_pipeline_ci);
-    gaussian_pipeline = device.GetLogical().CreateGraphicsPipeline(gaussian_pipeline_ci);
-    scaleforce_pipeline = device.GetLogical().CreateGraphicsPipeline(scaleforce_pipeline_ci);
-}
-
-void BlitScreen::CreateSampler() {
-    const VkSamplerCreateInfo ci{
-        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .magFilter = VK_FILTER_LINEAR,
-        .minFilter = VK_FILTER_LINEAR,
-        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
-        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-        .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-        .mipLodBias = 0.0f,
-        .anisotropyEnable = VK_FALSE,
-        .maxAnisotropy = 0.0f,
-        .compareEnable = VK_FALSE,
-        .compareOp = VK_COMPARE_OP_NEVER,
-        .minLod = 0.0f,
-        .maxLod = 0.0f,
-        .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
-        .unnormalizedCoordinates = VK_FALSE,
-    };
-
-    const VkSamplerCreateInfo ci_nn{
-        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .magFilter = VK_FILTER_NEAREST,
-        .minFilter = VK_FILTER_NEAREST,
-        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
-        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-        .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-        .mipLodBias = 0.0f,
-        .anisotropyEnable = VK_FALSE,
-        .maxAnisotropy = 0.0f,
-        .compareEnable = VK_FALSE,
-        .compareOp = VK_COMPARE_OP_NEVER,
-        .minLod = 0.0f,
-        .maxLod = 0.0f,
-        .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
-        .unnormalizedCoordinates = VK_FALSE,
-    };
-
-    sampler = device.GetLogical().CreateSampler(ci);
-    nn_sampler = device.GetLogical().CreateSampler(ci_nn);
 }
 
 void BlitScreen::ReleaseRawImages() {
@@ -1000,109 +448,12 @@ void BlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
     }
 }
 
-void BlitScreen::UpdateDescriptorSet(VkImageView image_view, bool nn) const {
-    const VkDescriptorBufferInfo buffer_info{
-        .buffer = *buffer,
-        .offset = offsetof(BufferData, uniform),
-        .range = sizeof(BufferData::uniform),
-    };
-
-    const VkWriteDescriptorSet ubo_write{
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .pNext = nullptr,
-        .dstSet = descriptor_sets[image_index],
-        .dstBinding = 0,
-        .dstArrayElement = 0,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .pImageInfo = nullptr,
-        .pBufferInfo = &buffer_info,
-        .pTexelBufferView = nullptr,
-    };
-
-    const VkDescriptorImageInfo image_info{
-        .sampler = nn ? *nn_sampler : *sampler,
-        .imageView = image_view,
-        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
-    };
-
-    const VkWriteDescriptorSet sampler_write{
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .pNext = nullptr,
-        .dstSet = descriptor_sets[image_index],
-        .dstBinding = 1,
-        .dstArrayElement = 0,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        .pImageInfo = &image_info,
-        .pBufferInfo = nullptr,
-        .pTexelBufferView = nullptr,
-    };
-
-    device.GetLogical().UpdateDescriptorSets(std::array{ubo_write, sampler_write}, {});
-}
-
-void BlitScreen::SetUniformData(BufferData& data, const Layout::FramebufferLayout layout) const {
-    data.uniform.modelview_matrix =
-        MakeOrthographicMatrix(static_cast<f32>(layout.width), static_cast<f32>(layout.height));
-}
-
-void BlitScreen::SetVertexData(BufferData& data, const Tegra::FramebufferConfig& framebuffer,
-                               const Layout::FramebufferLayout layout, u32 texture_width,
-                               u32 texture_height) const {
-    f32 left, top, right, bottom;
-
-    if (fsr) {
-        // FSR has already applied the crop, so we just want to render the image
-        // it has produced.
-        left = 0;
-        top = 0;
-        right = 1;
-        bottom = 1;
-    } else {
-        // Get the normalized crop rectangle.
-        const auto crop = Tegra::NormalizeCrop(framebuffer, texture_width, texture_height);
-
-        // Apply the crop.
-        left = crop.left;
-        top = crop.top;
-        right = crop.right;
-        bottom = crop.bottom;
-    }
-
-    // Map the coordinates to the screen.
-    const auto& screen = layout.screen;
-    const auto x = static_cast<f32>(screen.left);
-    const auto y = static_cast<f32>(screen.top);
-    const auto w = static_cast<f32>(screen.GetWidth());
-    const auto h = static_cast<f32>(screen.GetHeight());
-
-    data.vertices[0] = ScreenRectVertex(x, y, left, top);
-    data.vertices[1] = ScreenRectVertex(x + w, y, right, top);
-    data.vertices[2] = ScreenRectVertex(x, y + h, left, bottom);
-    data.vertices[3] = ScreenRectVertex(x + w, y + h, right, bottom);
-}
-
-void BlitScreen::CreateSMAA(VkExtent2D smaa_size) {
-    smaa = std::make_unique<SMAA>(device, memory_allocator, image_count, smaa_size);
-}
-
-void BlitScreen::CreateFSR() {
-    const auto& layout = render_window.GetFramebufferLayout();
-    const VkExtent2D fsr_size{
-        .width = layout.screen.GetWidth(),
-        .height = layout.screen.GetHeight(),
-    };
-    fsr = std::make_unique<FSR>(device, memory_allocator, image_count, fsr_size);
-}
-
 u64 BlitScreen::CalculateBufferSize(const Tegra::FramebufferConfig& framebuffer) const {
-    return sizeof(BufferData) + GetSizeInBytes(framebuffer) * image_count;
+    return GetSizeInBytes(framebuffer) * image_count;
 }
 
 u64 BlitScreen::GetRawImageOffset(const Tegra::FramebufferConfig& framebuffer) const {
-    constexpr auto first_image_offset = static_cast<u64>(sizeof(BufferData));
-    return first_image_offset + GetSizeInBytes(framebuffer) * image_index;
+    return GetSizeInBytes(framebuffer) * image_index;
 }
 
 } // namespace Vulkan
