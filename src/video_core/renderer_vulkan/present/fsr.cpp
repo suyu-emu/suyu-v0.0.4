@@ -10,7 +10,7 @@
 #include "video_core/host_shaders/vulkan_fidelityfx_fsr_easu_fp32_comp_spv.h"
 #include "video_core/host_shaders/vulkan_fidelityfx_fsr_rcas_fp16_comp_spv.h"
 #include "video_core/host_shaders/vulkan_fidelityfx_fsr_rcas_fp32_comp_spv.h"
-#include "video_core/renderer_vulkan/vk_fsr.h"
+#include "video_core/renderer_vulkan/present/fsr.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_shader_util.h"
 #include "video_core/vulkan_common/vulkan_device.h"

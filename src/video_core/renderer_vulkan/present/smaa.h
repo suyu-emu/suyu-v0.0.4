@@ -4,6 +4,7 @@
 #pragma once
 
 #include <array>
+#include "video_core/renderer_vulkan/present/anti_alias_pass.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
@@ -13,12 +14,14 @@ class Device;
 class Scheduler;
 class StagingBufferPool;
 
-class SMAA {
+class SMAA final : public AntiAliasPass {
 public:
     explicit SMAA(const Device& device, MemoryAllocator& allocator, size_t image_count,
                   VkExtent2D extent);
+    ~SMAA() override;
+
     VkImageView Draw(Scheduler& scheduler, size_t image_index, VkImage source_image,
-                     VkImageView source_image_view);
+                     VkImageView source_image_view) override;
 
 private:
     enum SMAAStage {

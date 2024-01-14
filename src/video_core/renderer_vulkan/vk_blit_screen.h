@@ -34,6 +34,7 @@ namespace Vulkan {
 
 class Device;
 class FSR;
+class FXAA;
 class RasterizerVulkan;
 class Scheduler;
 class SMAA;
@@ -96,7 +97,6 @@ private:
     void CreateRawImages(const Tegra::FramebufferConfig& framebuffer);
 
     void UpdateDescriptorSet(VkImageView image_view, bool nn) const;
-    void UpdateAADescriptorSet(VkImageView image_view, bool nn) const;
     void SetUniformData(BufferData& data, const Layout::FramebufferLayout layout) const;
     void SetVertexData(BufferData& data, const Tegra::FramebufferConfig& framebuffer,
                        const Layout::FramebufferLayout layout, u32 texture_width,
@@ -119,8 +119,6 @@ private:
     std::size_t image_index{};
 
     vk::ShaderModule vertex_shader;
-    vk::ShaderModule fxaa_vertex_shader;
-    vk::ShaderModule fxaa_fragment_shader;
     vk::ShaderModule bilinear_fragment_shader;
     vk::ShaderModule bicubic_fragment_shader;
     vk::ShaderModule gaussian_fragment_shader;
@@ -128,7 +126,6 @@ private:
     vk::DescriptorPool descriptor_pool;
     vk::DescriptorSetLayout descriptor_set_layout;
     vk::PipelineLayout pipeline_layout;
-    vk::Pipeline nearest_neighbor_pipeline;
     vk::Pipeline bilinear_pipeline;
     vk::Pipeline bicubic_pipeline;
     vk::Pipeline gaussian_pipeline;
@@ -145,16 +142,6 @@ private:
     std::vector<vk::Image> raw_images;
     std::vector<vk::ImageView> raw_image_views;
 
-    vk::DescriptorPool aa_descriptor_pool;
-    vk::DescriptorSetLayout aa_descriptor_set_layout;
-    vk::PipelineLayout aa_pipeline_layout;
-    vk::Pipeline aa_pipeline;
-    vk::RenderPass aa_renderpass;
-    vk::Framebuffer aa_framebuffer;
-    vk::DescriptorSets aa_descriptor_sets;
-    vk::Image aa_image;
-    vk::ImageView aa_image_view;
-
     u32 raw_width = 0;
     u32 raw_height = 0;
     Service::android::PixelFormat pixel_format{};
@@ -163,6 +150,7 @@ private:
 
     std::unique_ptr<FSR> fsr;
     std::unique_ptr<SMAA> smaa;
+    std::unique_ptr<FXAA> fxaa;
 };
 
 } // namespace Vulkan
