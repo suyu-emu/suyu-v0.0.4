@@ -228,10 +228,10 @@
         <item>R</item>
         <item>ZL</item>
         <item>ZR</item>
-        <item>@string/gamepad_left_stick</item>
-        <item>@string/gamepad_right_stick</item>
         <item>L3</item>
         <item>R3</item>
+        <item>@string/gamepad_left_stick</item>
+        <item>@string/gamepad_right_stick</item>
         <item>@string/gamepad_d_pad</item>
     </string-array>
 
