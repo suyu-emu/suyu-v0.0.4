@@ -16,8 +16,7 @@ class ProgramManager;
 
 class FSR {
 public:
-    explicit FSR(std::string_view fsr_vertex_source, std::string_view fsr_easu_source,
-                 std::string_view fsr_rcas_source);
+    explicit FSR();
     ~FSR();
 
     void Draw(ProgramManager& program_manager, const Common::Rectangle<u32>& screen,

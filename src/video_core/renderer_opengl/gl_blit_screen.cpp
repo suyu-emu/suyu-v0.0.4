@@ -66,14 +66,6 @@ BlitScreen::BlitScreen(RasterizerOpenGL& rasterizer_,
     : rasterizer(rasterizer_), device_memory(device_memory_), state_tracker(state_tracker_),
       program_manager(program_manager_), device(device_) {
     // Create shader programs
-    const auto replace_include = [](std::string& shader_source, std::string_view include_name,
-                                    std::string_view include_content) {
-        const std::string include_string = fmt::format("#include \"{}\"", include_name);
-        const std::size_t pos = shader_source.find(include_string);
-        ASSERT(pos != std::string::npos);
-        shader_source.replace(pos, include_string.size(), include_content);
-    };
-
     present_vertex = CreateProgram(HostShaders::OPENGL_PRESENT_VERT, GL_VERTEX_SHADER);
     present_bilinear_fragment = CreateProgram(HostShaders::OPENGL_PRESENT_FRAG, GL_FRAGMENT_SHADER);
     present_bicubic_fragment = CreateProgram(HostShaders::PRESENT_BICUBIC_FRAG, GL_FRAGMENT_SHADER);
@@ -83,17 +75,7 @@ BlitScreen::BlitScreen(RasterizerOpenGL& rasterizer_,
         CreateProgram(fmt::format("#version 460\n{}", HostShaders::OPENGL_PRESENT_SCALEFORCE_FRAG),
                       GL_FRAGMENT_SHADER);
 
-    std::string fsr_source{HostShaders::OPENGL_FIDELITYFX_FSR_FRAG};
-    replace_include(fsr_source, "ffx_a.h", HostShaders::FFX_A_H);
-    replace_include(fsr_source, "ffx_fsr1.h", HostShaders::FFX_FSR1_H);
-
-    std::string fsr_easu_frag_source{HostShaders::OPENGL_FIDELITYFX_FSR_EASU_FRAG};
-    std::string fsr_rcas_frag_source{HostShaders::OPENGL_FIDELITYFX_FSR_RCAS_FRAG};
-    replace_include(fsr_easu_frag_source, "opengl_fidelityfx_fsr.frag", fsr_source);
-    replace_include(fsr_rcas_frag_source, "opengl_fidelityfx_fsr.frag", fsr_source);
-
-    fsr = std::make_unique<FSR>(HostShaders::FULL_SCREEN_TRIANGLE_VERT, fsr_easu_frag_source,
-                                fsr_rcas_frag_source);
+    fsr = std::make_unique<FSR>();
 
     // Generate presentation sampler
     present_sampler.Create();
