@@ -186,7 +186,7 @@ public:
     /**
      * @returns true if the current setting can be changed while the guest is running.
      */
-    [[nodiscard]] bool RuntimeModfiable() const;
+    [[nodiscard]] bool RuntimeModifiable() const;
 
     /**
      * @returns A unique number corresponding to the setting.

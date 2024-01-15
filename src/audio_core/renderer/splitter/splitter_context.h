@@ -42,7 +42,7 @@ public:
      * @param destination_id - Destination index within the splitter.
      * @return Pointer to the found destination. May be nullptr.
      */
-    SplitterDestinationData* GetDesintationData(s32 splitter_id, s32 destination_id);
+    SplitterDestinationData* GetDestinationData(s32 splitter_id, s32 destination_id);
 
     /**
      * Get a splitter from the given index.

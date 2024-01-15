@@ -410,7 +410,7 @@
     <string name="language_japanese" translatable="false">日本語</string>
     <string name="language_english" translatable="false">English</string>
     <string name="language_french" translatable="false">Français</string>
-    <string name="langauge_german" translatable="false">Deutsch</string>
+    <string name="language_german" translatable="false">Deutsch</string>
     <string name="language_italian" translatable="false">Italiano</string>
     <string name="language_spanish" translatable="false">Español</string>
     <string name="language_chinese" translatable="false">简体中文</string>

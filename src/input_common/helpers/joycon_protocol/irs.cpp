@@ -236,9 +236,9 @@ Common::Input::DriverResult IrsProtocol::WriteRegistersStep2() {
         .number_of_registers = 0x8,
         .registers =
             {
-                IrsRegister{IrRegistersAddress::LedIntensitiyMSB,
+                IrsRegister{IrRegistersAddress::LedIntensityMSB,
                             static_cast<u8>(led_intensity >> 8)},
-                {IrRegistersAddress::LedIntensitiyLSB, static_cast<u8>(led_intensity & 0xff)},
+                {IrRegistersAddress::LedIntensityLSB, static_cast<u8>(led_intensity & 0xff)},
                 {IrRegistersAddress::ImageFlip, static_cast<u8>(image_flip)},
                 {IrRegistersAddress::DenoiseSmoothing, static_cast<u8>((denoise >> 16) & 0xff)},
                 {IrRegistersAddress::DenoiseEdge, static_cast<u8>((denoise >> 8) & 0xff)},

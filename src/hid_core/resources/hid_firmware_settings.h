@@ -33,7 +33,7 @@ public:
     FeaturesPerId FeaturesDisabledPerId();
 
 private:
-    bool is_initalized{};
+    bool is_initialized{};
 
     // Debug settings
     bool is_debug_pad_enabled{};

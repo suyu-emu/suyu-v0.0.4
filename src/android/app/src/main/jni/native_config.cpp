@@ -205,7 +205,7 @@ jboolean Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getIsRuntimeModifiable(JNIEn
                                                                            jstring jkey) {
     auto setting = getSetting<std::string>(env, jkey);
     if (setting != nullptr) {
-        return setting->RuntimeModfiable();
+        return setting->RuntimeModifiable();
     }
     return true;
 }

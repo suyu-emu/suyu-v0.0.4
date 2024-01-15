@@ -519,13 +519,13 @@ Common::Input::DriverResult NfcProtocol::GetMifareData(
         }
 
         if (output.mcu_report == MCUReport::NFCState && output.mcu_data[1] == 0x10) {
-            constexpr std::size_t DATA_LENGHT = 0x10 + 1;
+            constexpr std::size_t DATA_LENGTH = 0x10 + 1;
             constexpr std::size_t DATA_START = 11;
             const u8 number_of_elements = output.mcu_data[10];
             for (std::size_t i = 0; i < number_of_elements; i++) {
-                out_data[i].sector = output.mcu_data[DATA_START + (i * DATA_LENGHT)];
+                out_data[i].sector = output.mcu_data[DATA_START + (i * DATA_LENGTH)];
                 memcpy(out_data[i].data.data(),
-                       output.mcu_data.data() + DATA_START + 1 + (i * DATA_LENGHT),
+                       output.mcu_data.data() + DATA_START + 1 + (i * DATA_LENGTH),
                        sizeof(MifareReadData::data));
             }
             package_index++;
@@ -659,7 +659,7 @@ Common::Input::DriverResult NfcProtocol::SendStopPollingRequest(MCUCommandRespon
 Common::Input::DriverResult NfcProtocol::SendNextPackageRequest(MCUCommandResponse& output,
                                                                 u8 packet_id) {
     NFCRequestState request{
-        .command_argument = NFCCommand::StartWaitingRecieve,
+        .command_argument = NFCCommand::StartWaitingReceive,
         .block_id = {},
         .packet_id = packet_id,
         .packet_flag = MCUPacketFlag::LastCommandPacket,

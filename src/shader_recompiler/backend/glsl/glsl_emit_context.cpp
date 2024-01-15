@@ -608,8 +608,8 @@ std::string EmitContext::DefineGlobalMemoryFunctions() {
         const auto aligned_low_addr{fmt::format("{}&{}", addr_xy[0], ssbo_align_mask)};
         const auto aligned_addr{fmt::format("uvec2({},{})", aligned_low_addr, addr_xy[1])};
         const auto addr_pack{fmt::format("packUint2x32({})", aligned_addr)};
-        const auto addr_statment{fmt::format("uint64_t {}={};", ssbo_addr, addr_pack)};
-        func += addr_statment;
+        const auto addr_statement{fmt::format("uint64_t {}={};", ssbo_addr, addr_pack)};
+        func += addr_statement;
 
         const auto size_vec{fmt::format("uvec2({},{})", size_xy[0], size_xy[1])};
         const auto comp_lhs{fmt::format("(addr>={})", ssbo_addr)};

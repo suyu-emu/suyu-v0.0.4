@@ -93,7 +93,7 @@ bool MixInfo::UpdateConnection(EdgeMatrix& edge_matrix, const InParameter& in_pa
 
             for (u32 i = 0; i < destination_count; i++) {
                 auto destination{
-                    splitter_context.GetDesintationData(in_params.dest_splitter_id, i)};
+                    splitter_context.GetDestinationData(in_params.dest_splitter_id, i)};
 
                 if (destination) {
                     const auto destination_id{destination->GetMixId()};
