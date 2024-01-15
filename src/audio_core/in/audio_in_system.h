@@ -19,7 +19,8 @@ class System;
 
 namespace Kernel {
 class KEvent;
-}
+class KProcess;
+} // namespace Kernel
 
 namespace AudioCore::AudioIn {
 
@@ -93,12 +94,12 @@ public:
      *
      * @param device_name             - The name of the requested input device.
      * @param in_params               - Input parameters, see AudioInParameter.
-     * @param handle                  - Unused.
+     * @param handle                  - Process handle.
      * @param applet_resource_user_id - Unused.
      * @return Result code.
      */
-    Result Initialize(std::string device_name, const AudioInParameter& in_params, u32 handle,
-                      u64 applet_resource_user_id);
+    Result Initialize(std::string device_name, const AudioInParameter& in_params,
+                      Kernel::KProcess* handle, u64 applet_resource_user_id);
 
     /**
      * Start this system.
@@ -244,8 +245,8 @@ public:
 private:
     /// Core system
     Core::System& system;
-    /// (Unused)
-    u32 handle{};
+    /// Process handle
+    Kernel::KProcess* handle{};
     /// (Unused)
     u64 applet_resource_user_id{};
     /// Buffer event, signalled when a buffer is ready
