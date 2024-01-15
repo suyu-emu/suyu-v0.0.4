@@ -22,6 +22,7 @@ namespace OpenGL {
 
 class Device;
 class FSR;
+class FXAA;
 class ProgramManager;
 class RasterizerOpenGL;
 class SMAA;
@@ -77,8 +78,6 @@ private:
     OGLSampler present_sampler;
     OGLSampler present_sampler_nn;
     OGLBuffer vertex_buffer;
-    OGLProgram fxaa_vertex;
-    OGLProgram fxaa_fragment;
     OGLProgram present_vertex;
     OGLProgram present_bilinear_fragment;
     OGLProgram present_bicubic_fragment;
@@ -87,10 +86,9 @@ private:
 
     /// Display information for Switch screen
     TextureInfo framebuffer_texture;
-    OGLTexture aa_texture;
-    OGLFramebuffer aa_framebuffer;
 
     std::unique_ptr<FSR> fsr;
+    std::unique_ptr<FXAA> fxaa;
     std::unique_ptr<SMAA> smaa;
 
     /// OpenGL framebuffer data
