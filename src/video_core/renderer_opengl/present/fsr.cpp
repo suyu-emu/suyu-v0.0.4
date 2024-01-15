@@ -3,20 +3,36 @@
 
 #include "common/settings.h"
 #include "video_core/fsr.h"
+#include "video_core/host_shaders/ffx_a_h.h"
+#include "video_core/host_shaders/ffx_fsr1_h.h"
+#include "video_core/host_shaders/full_screen_triangle_vert.h"
+#include "video_core/host_shaders/opengl_fidelityfx_fsr_easu_frag.h"
+#include "video_core/host_shaders/opengl_fidelityfx_fsr_frag.h"
+#include "video_core/host_shaders/opengl_fidelityfx_fsr_rcas_frag.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
 #include "video_core/renderer_opengl/present/fsr.h"
+#include "video_core/renderer_opengl/present/util.h"
 
 namespace OpenGL {
 using namespace FSR;
 
 using FsrConstants = std::array<u32, 4 * 4>;
 
-FSR::FSR(std::string_view fsr_vertex_source, std::string_view fsr_easu_source,
-         std::string_view fsr_rcas_source)
-    : fsr_vertex{CreateProgram(fsr_vertex_source, GL_VERTEX_SHADER)},
-      fsr_easu_frag{CreateProgram(fsr_easu_source, GL_FRAGMENT_SHADER)},
-      fsr_rcas_frag{CreateProgram(fsr_rcas_source, GL_FRAGMENT_SHADER)} {
+FSR::FSR() {
+    std::string fsr_source{HostShaders::OPENGL_FIDELITYFX_FSR_FRAG};
+    ReplaceInclude(fsr_source, "ffx_a.h", HostShaders::FFX_A_H);
+    ReplaceInclude(fsr_source, "ffx_fsr1.h", HostShaders::FFX_FSR1_H);
+
+    std::string fsr_easu_source{HostShaders::OPENGL_FIDELITYFX_FSR_EASU_FRAG};
+    std::string fsr_rcas_source{HostShaders::OPENGL_FIDELITYFX_FSR_RCAS_FRAG};
+    ReplaceInclude(fsr_easu_source, "opengl_fidelityfx_fsr.frag", fsr_source);
+    ReplaceInclude(fsr_rcas_source, "opengl_fidelityfx_fsr.frag", fsr_source);
+
+    fsr_vertex = CreateProgram(HostShaders::FULL_SCREEN_TRIANGLE_VERT, GL_VERTEX_SHADER);
+    fsr_easu_frag = CreateProgram(fsr_easu_source, GL_FRAGMENT_SHADER);
+    fsr_rcas_frag = CreateProgram(fsr_rcas_source, GL_FRAGMENT_SHADER);
+
     glProgramUniform2f(fsr_vertex.handle, 0, 1.0f, 1.0f);
     glProgramUniform2f(fsr_vertex.handle, 1, 0.0f, 0.0f);
 }
