@@ -205,6 +205,7 @@ void ConfigureProfileManager::AddUser() {
 
     const auto uuid = Common::UUID::MakeRandom();
     profile_manager.CreateNewUser(uuid, username.toStdString());
+    profile_manager.WriteUserSaveFile();
 
     item_model->appendRow(new QStandardItem{GetIcon(uuid), FormatUserEntryText(username, uuid)});
 }
@@ -228,6 +229,7 @@ void ConfigureProfileManager::RenameUser() {
     std::copy(username_std.begin(), username_std.end(), profile.username.begin());
 
     profile_manager.SetProfileBase(*uuid, profile);
+    profile_manager.WriteUserSaveFile();
 
     item_model->setItem(
         user, 0,
@@ -255,6 +257,8 @@ void ConfigureProfileManager::DeleteUser(const Common::UUID& uuid) {
     if (!profile_manager.RemoveUser(uuid)) {
         return;
     }
+
+    profile_manager.WriteUserSaveFile();
 
     item_model->removeRows(tree_view->currentIndex().row(), 1);
     tree_view->clearSelection();
