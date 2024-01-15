@@ -122,10 +122,15 @@ void SMAA::CreateDescriptorPool() {
 }
 
 void SMAA::CreateDescriptorSetLayouts() {
-    m_descriptor_set_layouts[EdgeDetection] = CreateWrappedDescriptorSetLayout(m_device, 1);
+    m_descriptor_set_layouts[EdgeDetection] =
+        CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
     m_descriptor_set_layouts[BlendingWeightCalculation] =
-        CreateWrappedDescriptorSetLayout(m_device, 3);
-    m_descriptor_set_layouts[NeighborhoodBlending] = CreateWrappedDescriptorSetLayout(m_device, 2);
+        CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
+    m_descriptor_set_layouts[NeighborhoodBlending] =
+        CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
 }
 
 void SMAA::CreateDescriptorSets() {
@@ -204,10 +209,11 @@ void SMAA::UploadImages(Scheduler& scheduler) {
     m_images_ready = true;
 }
 
-VkImageView SMAA::Draw(Scheduler& scheduler, size_t image_index, VkImage source_image,
-                       VkImageView source_image_view) {
+void SMAA::Draw(Scheduler& scheduler, size_t image_index, VkImage* inout_image,
+                VkImageView* inout_image_view) {
     Images& images = m_dynamic_images[image_index];
 
+    VkImage input_image = *inout_image;
     VkImage output_image = *images.images[Output];
     VkImage edges_image = *images.images[Edges];
     VkImage blend_image = *images.images[Blend];
@@ -224,11 +230,11 @@ VkImageView SMAA::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
     VkFramebuffer neighborhood_blending_framebuffer = *images.framebuffers[NeighborhoodBlending];
 
     UploadImages(scheduler);
-    UpdateDescriptorSets(source_image_view, image_index);
+    UpdateDescriptorSets(*inout_image_view, image_index);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([=, this](vk::CommandBuffer cmdbuf) {
-        TransitionImageLayout(cmdbuf, source_image, VK_IMAGE_LAYOUT_GENERAL);
+        TransitionImageLayout(cmdbuf, input_image, VK_IMAGE_LAYOUT_GENERAL);
         TransitionImageLayout(cmdbuf, edges_image, VK_IMAGE_LAYOUT_GENERAL);
         BeginRenderPass(cmdbuf, *m_renderpasses[EdgeDetection], edge_detection_framebuffer,
                         m_extent);
@@ -264,7 +270,8 @@ VkImageView SMAA::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
         TransitionImageLayout(cmdbuf, output_image, VK_IMAGE_LAYOUT_GENERAL);
     });
 
-    return *images.image_views[Output];
+    *inout_image = *images.images[Output];
+    *inout_image_view = *images.image_views[Output];
 }
 
 } // namespace Vulkan

@@ -63,7 +63,9 @@ void FXAA::CreateDescriptorPool() {
 }
 
 void FXAA::CreateDescriptorSetLayouts() {
-    m_descriptor_set_layout = CreateWrappedDescriptorSetLayout(m_device, 2);
+    m_descriptor_set_layout =
+        CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
 }
 
 void FXAA::CreateDescriptorSets() {
@@ -112,9 +114,10 @@ void FXAA::UploadImages(Scheduler& scheduler) {
     m_images_ready = true;
 }
 
-VkImageView FXAA::Draw(Scheduler& scheduler, size_t image_index, VkImage source_image,
-                       VkImageView source_image_view) {
+void FXAA::Draw(Scheduler& scheduler, size_t image_index, VkImage* inout_image,
+                VkImageView* inout_image_view) {
     const Image& image{m_dynamic_images[image_index]};
+    const VkImage input_image{*inout_image};
     const VkImage output_image{*image.image};
     const VkDescriptorSet descriptor_set{image.descriptor_sets[0]};
     const VkFramebuffer framebuffer{*image.framebuffer};
@@ -124,11 +127,11 @@ VkImageView FXAA::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
     const VkExtent2D extent{m_extent};
 
     UploadImages(scheduler);
-    UpdateDescriptorSets(source_image_view, image_index);
+    UpdateDescriptorSets(*inout_image_view, image_index);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([=](vk::CommandBuffer cmdbuf) {
-        TransitionImageLayout(cmdbuf, source_image, VK_IMAGE_LAYOUT_GENERAL);
+        TransitionImageLayout(cmdbuf, input_image, VK_IMAGE_LAYOUT_GENERAL);
         TransitionImageLayout(cmdbuf, output_image, VK_IMAGE_LAYOUT_GENERAL);
         BeginRenderPass(cmdbuf, renderpass, framebuffer, extent);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
@@ -138,7 +141,8 @@ VkImageView FXAA::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
         TransitionImageLayout(cmdbuf, output_image, VK_IMAGE_LAYOUT_GENERAL);
     });
 
-    return *image.image_view;
+    *inout_image = *image.image;
+    *inout_image_view = *image.image_view;
 }
 
 } // namespace Vulkan

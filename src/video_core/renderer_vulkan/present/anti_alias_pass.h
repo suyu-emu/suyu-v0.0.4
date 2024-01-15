@@ -12,16 +12,14 @@ class Scheduler;
 class AntiAliasPass {
 public:
     virtual ~AntiAliasPass() = default;
-    virtual VkImageView Draw(Scheduler& scheduler, size_t image_index, VkImage source_image,
-                             VkImageView source_image_view) = 0;
+    virtual void Draw(Scheduler& scheduler, size_t image_index, VkImage* inout_image,
+                      VkImageView* inout_image_view) = 0;
 };
 
 class NoAA final : public AntiAliasPass {
 public:
-    virtual VkImageView Draw(Scheduler& scheduler, size_t image_index, VkImage source_image,
-                             VkImageView source_image_view) {
-        return source_image_view;
-    }
+    void Draw(Scheduler& scheduler, size_t image_index, VkImage* inout_image,
+              VkImageView* inout_image_view) override {}
 };
 
 } // namespace Vulkan
