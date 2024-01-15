@@ -22,14 +22,10 @@ using NativeExecutionParameters = Kernel::KThread::NativeExecutionParameters;
 constexpr size_t MaxRelativeBranch = 128_MiB;
 constexpr u32 ModuleCodeIndex = 0x24 / sizeof(u32);
 
-Patcher::Patcher() : c(m_patch_instructions) {}
-
-Patcher::~Patcher() = default;
-
-void Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
-                        const Kernel::CodeSet::Segment& code) {
-    // Branch to the first instruction of the module.
-    this->BranchToModule(0);
+Patcher::Patcher() : c(m_patch_instructions) {
+    // The first word of the patch section is always a branch to the first instruction of the
+    // module.
+    c.dw(0);
 
     // Write save context helper function.
     c.l(m_save_context);
@@ -38,6 +34,25 @@ void Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
     // Write load context helper function.
     c.l(m_load_context);
     WriteLoadContext();
+}
+
+Patcher::~Patcher() = default;
+
+bool Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
+                        const Kernel::CodeSet::Segment& code) {
+    // If we have patched modules but cannot reach the new module, then it needs its own patcher.
+    const size_t image_size = program_image.size();
+    if (total_program_size + image_size > MaxRelativeBranch && total_program_size > 0) {
+        return false;
+    }
+
+    // Add a new module patch to our list
+    modules.emplace_back();
+    curr_patch = &modules.back();
+
+    // The first word of the patch section is always a branch to the first instruction of the
+    // module.
+    curr_patch->m_branch_to_module_relocations.push_back({0, 0});
 
     // Retrieve text segment data.
     const auto text = std::span{program_image}.subspan(code.offset, code.size);
@@ -94,16 +109,17 @@ void Patcher::PatchText(const Kernel::PhysicalMemory& program_image,
         }
 
         if (auto exclusive = Exclusive{inst}; exclusive.Verify()) {
-            m_exclusives.push_back(i);
+            curr_patch->m_exclusives.push_back(i);
         }
     }
 
     // Determine patching mode for the final relocation step
-    const size_t image_size = program_image.size();
+    total_program_size += image_size;
     this->mode = image_size > MaxRelativeBranch ? PatchMode::PreText : PatchMode::PostData;
+    return true;
 }
 
-void Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
+bool Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
                               const Kernel::CodeSet::Segment& code,
                               Kernel::PhysicalMemory& program_image,
                               EntryTrampolines* out_trampolines) {
@@ -120,7 +136,7 @@ void Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
         if (mode == PatchMode::PreText) {
             rc.B(rel.patch_offset - patch_size - rel.module_offset);
         } else {
-            rc.B(image_size - rel.module_offset + rel.patch_offset);
+            rc.B(total_program_size - rel.module_offset + rel.patch_offset);
         }
     };
 
@@ -129,7 +145,7 @@ void Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
         if (mode == PatchMode::PreText) {
             rc.B(patch_size - rel.patch_offset + rel.module_offset);
         } else {
-            rc.B(rel.module_offset - image_size - rel.patch_offset);
+            rc.B(rel.module_offset - total_program_size - rel.patch_offset);
         }
     };
 
@@ -137,7 +153,7 @@ void Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
         if (mode == PatchMode::PreText) {
             return GetInteger(load_base) + patch_offset;
         } else {
-            return GetInteger(load_base) + image_size + patch_offset;
+            return GetInteger(load_base) + total_program_size + patch_offset;
         }
     };
 
@@ -150,39 +166,50 @@ void Patcher::RelocateAndCopy(Common::ProcessAddress load_base,
     };
 
     // We are now ready to relocate!
-    for (const Relocation& rel : m_branch_to_patch_relocations) {
+    auto& patch = modules[m_relocate_module_index++];
+    for (const Relocation& rel : patch.m_branch_to_patch_relocations) {
         ApplyBranchToPatchRelocation(text_words.data() + rel.module_offset / sizeof(u32), rel);
     }
-    for (const Relocation& rel : m_branch_to_module_relocations) {
+    for (const Relocation& rel : patch.m_branch_to_module_relocations) {
         ApplyBranchToModuleRelocation(m_patch_instructions.data() + rel.patch_offset / sizeof(u32),
                                       rel);
     }
 
     // Rewrite PC constants and record post trampolines
-    for (const Relocation& rel : m_write_module_pc_relocations) {
+    for (const Relocation& rel : patch.m_write_module_pc_relocations) {
         oaknut::CodeGenerator rc{m_patch_instructions.data() + rel.patch_offset / sizeof(u32)};
         rc.dx(RebasePc(rel.module_offset));
     }
-    for (const Trampoline& rel : m_trampolines) {
+    for (const Trampoline& rel : patch.m_trampolines) {
         out_trampolines->insert({RebasePc(rel.module_offset), RebasePatch(rel.patch_offset)});
     }
 
     // Cortex-A57 seems to treat all exclusives as ordered, but newer processors do not.
     // Convert to ordered to preserve this assumption.
-    for (const ModuleTextAddress i : m_exclusives) {
+    for (const ModuleTextAddress i : patch.m_exclusives) {
         auto exclusive = Exclusive{text_words[i]};
         text_words[i] = exclusive.AsOrdered();
     }
 
-    // Copy to program image
-    if (this->mode == PatchMode::PreText) {
-        std::memcpy(program_image.data(), m_patch_instructions.data(),
-                    m_patch_instructions.size() * sizeof(u32));
-    } else {
-        program_image.resize(image_size + patch_size);
-        std::memcpy(program_image.data() + image_size, m_patch_instructions.data(),
-                    m_patch_instructions.size() * sizeof(u32));
+    // Remove the patched module size from the total. This is done so total_program_size
+    // always represents the distance from the currently patched module to the patch section.
+    total_program_size -= image_size;
+
+    // Only copy to the program image of the last module
+    if (m_relocate_module_index == modules.size()) {
+        if (this->mode == PatchMode::PreText) {
+            ASSERT(image_size == total_program_size);
+            std::memcpy(program_image.data(), m_patch_instructions.data(),
+                        m_patch_instructions.size() * sizeof(u32));
+        } else {
+            program_image.resize(image_size + patch_size);
+            std::memcpy(program_image.data() + image_size, m_patch_instructions.data(),
+                        m_patch_instructions.size() * sizeof(u32));
+        }
+        return true;
     }
+
+    return false;
 }
 
 size_t Patcher::GetSectionSize() const noexcept {
@@ -322,7 +349,7 @@ void Patcher::WriteSvcTrampoline(ModuleDestLabel module_dest, u32 svc_id) {
 
     // Write the post-SVC trampoline address, which will jump back to the guest after restoring its
     // state.
-    m_trampolines.push_back({c.offset(), module_dest});
+    curr_patch->m_trampolines.push_back({c.offset(), module_dest});
 
     // Host called this location. Save the return address so we can
     // unwind the stack properly when jumping back.

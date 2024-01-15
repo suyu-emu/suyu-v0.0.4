@@ -77,7 +77,8 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
                                                const FileSys::VfsFile& nso_file, VAddr load_base,
                                                bool should_pass_arguments, bool load_into_process,
                                                std::optional<FileSys::PatchManager> pm,
-                                               Core::NCE::Patcher* patch) {
+                                               std::vector<Core::NCE::Patcher>* patches,
+                                               s32 patch_index) {
     if (nso_file.GetSize() < sizeof(NSOHeader)) {
         return std::nullopt;
     }
@@ -94,8 +95,11 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
     // Allocate some space at the beginning if we are patching in PreText mode.
     const size_t module_start = [&]() -> size_t {
 #ifdef HAS_NCE
-        if (patch && patch->GetPatchMode() == Core::NCE::PatchMode::PreText) {
-            return patch->GetSectionSize();
+        if (patches && load_into_process) {
+            auto* patch = &patches->operator[](patch_index);
+            if (patch->GetPatchMode() == Core::NCE::PatchMode::PreText) {
+                return patch->GetSectionSize();
+            }
         }
 #endif
         return 0;
@@ -160,27 +164,24 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
 #ifdef HAS_NCE
     // If we are computing the process code layout and using nce backend, patch.
     const auto& code = codeset.CodeSegment();
-    if (patch && patch->GetPatchMode() == Core::NCE::PatchMode::None) {
+    auto* patch = patches ? &patches->operator[](patch_index) : nullptr;
+    if (patch && !load_into_process) {
         // Patch SVCs and MRS calls in the guest code
-        patch->PatchText(program_image, code);
-
-        // Add patch section size to the module size.
-        image_size += static_cast<u32>(patch->GetSectionSize());
+        while (!patch->PatchText(program_image, code)) {
+            patch = &patches->emplace_back();
+        }
     } else if (patch) {
         // Relocate code patch and copy to the program_image.
-        patch->RelocateAndCopy(load_base, code, program_image, &process.GetPostHandlers());
-
-        // Update patch section.
-        auto& patch_segment = codeset.PatchSegment();
-        patch_segment.addr =
-            patch->GetPatchMode() == Core::NCE::PatchMode::PreText ? 0 : image_size;
-        patch_segment.size = static_cast<u32>(patch->GetSectionSize());
-
-        // Add patch section size to the module size. In PreText mode image_size
-        // already contains the patch segment as part of module_start.
-        if (patch->GetPatchMode() == Core::NCE::PatchMode::PostData) {
-            image_size += patch_segment.size;
+        if (patch->RelocateAndCopy(load_base, code, program_image, &process.GetPostHandlers())) {
+            // Update patch section.
+            auto& patch_segment = codeset.PatchSegment();
+            patch_segment.addr =
+                patch->GetPatchMode() == Core::NCE::PatchMode::PreText ? 0 : image_size;
+            patch_segment.size = static_cast<u32>(patch->GetSectionSize());
         }
+
+        // Refresh image_size to take account the patch section if it was added by RelocateAndCopy
+        image_size = static_cast<u32>(program_image.size());
     }
 #endif
 
