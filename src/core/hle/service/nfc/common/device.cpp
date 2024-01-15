@@ -441,7 +441,10 @@ Result NfcDevice::Mount(NFP::ModelType model_type, NFP::MountTarget mount_target
     device_state = DeviceState::TagMounted;
     mount_target = mount_target_;
 
-    if (!is_corrupted && mount_target != NFP::MountTarget::Rom) {
+    const bool create_backup =
+        mount_target == NFP::MountTarget::All || mount_target == NFP::MountTarget::Ram ||
+        (mount_target == NFP::MountTarget::Rom && HasBackup(encrypted_tag_data.uuid).IsError());
+    if (!is_corrupted && create_backup) {
         std::vector<u8> data(sizeof(NFP::EncryptedNTAG215File));
         memcpy(data.data(), &encrypted_tag_data, sizeof(encrypted_tag_data));
         WriteBackupData(encrypted_tag_data.uuid, data);
