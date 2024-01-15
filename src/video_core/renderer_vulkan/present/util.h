@@ -25,10 +25,12 @@ vk::Framebuffer CreateWrappedFramebuffer(const Device& device, vk::RenderPass& r
                                          vk::ImageView& dest_image, VkExtent2D extent);
 vk::Sampler CreateWrappedSampler(const Device& device, VkFilter filter = VK_FILTER_LINEAR);
 vk::ShaderModule CreateWrappedShaderModule(const Device& device, std::span<const u32> code);
-vk::DescriptorPool CreateWrappedDescriptorPool(const Device& device, u32 max_sampler_bindings,
-                                               u32 max_sets);
-vk::DescriptorSetLayout CreateWrappedDescriptorSetLayout(const Device& device,
-                                                         u32 max_sampler_bindings);
+vk::DescriptorPool CreateWrappedDescriptorPool(const Device& device, size_t max_descriptors,
+                                               size_t max_sets,
+                                               std::initializer_list<VkDescriptorType> types = {
+                                                   VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
+vk::DescriptorSetLayout CreateWrappedDescriptorSetLayout(
+    const Device& device, std::initializer_list<VkDescriptorType> types);
 vk::DescriptorSets CreateWrappedDescriptorSets(vk::DescriptorPool& pool,
                                                vk::Span<VkDescriptorSetLayout> layouts);
 vk::PipelineLayout CreateWrappedPipelineLayout(const Device& device,

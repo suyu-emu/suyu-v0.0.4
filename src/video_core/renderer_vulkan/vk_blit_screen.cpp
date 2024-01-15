@@ -234,7 +234,7 @@ void BlitScreen::Draw(RasterizerVulkan& rasterizer, const Tegra::FramebufferConf
         });
     }
 
-    source_image_view = anti_alias->Draw(scheduler, image_index, source_image, source_image_view);
+    anti_alias->Draw(scheduler, image_index, &source_image, &source_image_view);
 
     const auto crop_rect = Tegra::NormalizeCrop(framebuffer, texture_width, texture_height);
     const VkExtent2D render_extent{
@@ -248,8 +248,8 @@ void BlitScreen::Draw(RasterizerVulkan& rasterizer, const Tegra::FramebufferConf
             .height = layout.screen.GetHeight(),
         };
 
-        source_image_view =
-            fsr->Draw(scheduler, image_index, source_image_view, render_extent, crop_rect);
+        source_image_view = fsr->Draw(scheduler, image_index, source_image, source_image_view,
+                                      render_extent, crop_rect);
 
         const Common::Rectangle<f32> output_crop{0, 0, 1, 1};
         window_adapt->Draw(scheduler, image_index, source_image_view, adapt_size, output_crop,

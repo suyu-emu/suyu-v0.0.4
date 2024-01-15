@@ -215,32 +215,37 @@ vk::ShaderModule CreateWrappedShaderModule(const Device& device, std::span<const
     });
 }
 
-vk::DescriptorPool CreateWrappedDescriptorPool(const Device& device, u32 max_descriptors,
-                                               u32 max_sets) {
-    const VkDescriptorPoolSize pool_size{
-        .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        .descriptorCount = static_cast<u32>(max_descriptors),
-    };
+vk::DescriptorPool CreateWrappedDescriptorPool(const Device& device, size_t max_descriptors,
+                                               size_t max_sets,
+                                               std::initializer_list<VkDescriptorType> types) {
+    std::vector<VkDescriptorPoolSize> pool_sizes(types.size());
+    for (u32 i = 0; i < types.size(); i++) {
+        pool_sizes[i] = VkDescriptorPoolSize{
+            .type = std::data(types)[i],
+            .descriptorCount = static_cast<u32>(max_descriptors),
+        };
+    }
 
     return device.GetLogical().CreateDescriptorPool(VkDescriptorPoolCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .maxSets = max_sets,
-        .poolSizeCount = 1,
-        .pPoolSizes = &pool_size,
+        .maxSets = static_cast<u32>(max_sets),
+        .poolSizeCount = static_cast<u32>(pool_sizes.size()),
+        .pPoolSizes = pool_sizes.data(),
     });
 }
 
-vk::DescriptorSetLayout CreateWrappedDescriptorSetLayout(const Device& device,
-                                                         u32 max_sampler_bindings) {
-    std::vector<VkDescriptorSetLayoutBinding> bindings(max_sampler_bindings);
-    for (u32 i = 0; i < max_sampler_bindings; i++) {
+vk::DescriptorSetLayout CreateWrappedDescriptorSetLayout(
+    const Device& device, std::initializer_list<VkDescriptorType> types) {
+    std::vector<VkDescriptorSetLayoutBinding> bindings(types.size());
+    for (size_t i = 0; i < types.size(); i++) {
         bindings[i] = {
-            .binding = i,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .binding = static_cast<u32>(i),
+            .descriptorType = std::data(types)[i],
             .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT |
+                          VK_SHADER_STAGE_COMPUTE_BIT,
             .pImmutableSamplers = nullptr,
         };
     }

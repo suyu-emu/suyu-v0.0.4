@@ -20,8 +20,8 @@ public:
                   VkExtent2D extent);
     ~SMAA() override;
 
-    VkImageView Draw(Scheduler& scheduler, size_t image_index, VkImage source_image,
-                     VkImageView source_image_view) override;
+    void Draw(Scheduler& scheduler, size_t image_index, VkImage* inout_image,
+              VkImageView* inout_image_view) override;
 
 private:
     enum SMAAStage {
