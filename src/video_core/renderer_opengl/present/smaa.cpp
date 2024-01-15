@@ -36,13 +36,7 @@ SMAA::SMAA(u32 width, u32 height) {
         SmaaShader(HostShaders::SMAA_NEIGHBORHOOD_BLENDING_FRAG, GL_FRAGMENT_SHADER);
 
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, GL_FALSE);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, GL_FALSE);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
     area_tex.Create(GL_TEXTURE_2D);
     glTextureStorage2D(area_tex.handle, 1, GL_RG8, AREATEX_WIDTH, AREATEX_HEIGHT);

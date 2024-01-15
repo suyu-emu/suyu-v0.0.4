@@ -113,6 +113,12 @@ RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
     if (!GLAD_GL_ARB_seamless_cubemap_per_texture && !GLAD_GL_AMD_seamless_cubemap_per_texture) {
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     }
+
+    // Enable unified vertex attributes when the driver supports it
+    if (device.HasVertexBufferUnifiedMemory()) {
+        glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
+        glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
+    }
     blit_screen = std::make_unique<BlitScreen>(rasterizer, device_memory, state_tracker,
                                                program_manager, device);
 }

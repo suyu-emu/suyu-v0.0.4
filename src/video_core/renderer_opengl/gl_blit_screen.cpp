@@ -2,62 +2,19 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "video_core/framebuffer_config.h"
-#include "video_core/host_shaders/ffx_a_h.h"
-#include "video_core/host_shaders/ffx_fsr1_h.h"
-#include "video_core/host_shaders/full_screen_triangle_vert.h"
-#include "video_core/host_shaders/opengl_fidelityfx_fsr_easu_frag.h"
-#include "video_core/host_shaders/opengl_fidelityfx_fsr_frag.h"
-#include "video_core/host_shaders/opengl_fidelityfx_fsr_rcas_frag.h"
-#include "video_core/host_shaders/opengl_present_frag.h"
-#include "video_core/host_shaders/opengl_present_scaleforce_frag.h"
-#include "video_core/host_shaders/opengl_present_vert.h"
-#include "video_core/host_shaders/present_bicubic_frag.h"
-#include "video_core/host_shaders/present_gaussian_frag.h"
-
 #include "video_core/renderer_opengl/gl_blit_screen.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
+#include "video_core/renderer_opengl/present/filters.h"
 #include "video_core/renderer_opengl/present/fsr.h"
 #include "video_core/renderer_opengl/present/fxaa.h"
 #include "video_core/renderer_opengl/present/smaa.h"
+#include "video_core/renderer_opengl/present/window_adapt_pass.h"
 #include "video_core/textures/decoders.h"
 
 namespace OpenGL {
-
-namespace {
-constexpr GLint PositionLocation = 0;
-constexpr GLint TexCoordLocation = 1;
-constexpr GLint ModelViewMatrixLocation = 0;
-
-struct ScreenRectVertex {
-    constexpr ScreenRectVertex(u32 x, u32 y, GLfloat u, GLfloat v)
-        : position{{static_cast<GLfloat>(x), static_cast<GLfloat>(y)}}, tex_coord{{u, v}} {}
-
-    std::array<GLfloat, 2> position;
-    std::array<GLfloat, 2> tex_coord;
-};
-
-/**
- * Defines a 1:1 pixel ortographic projection matrix with (0,0) on the top-left
- * corner and (width, height) on the lower-bottom.
- *
- * The projection part of the matrix is trivial, hence these operations are represented
- * by a 3x2 matrix.
- */
-std::array<GLfloat, 3 * 2> MakeOrthographicMatrix(float width, float height) {
-    std::array<GLfloat, 3 * 2> matrix; // Laid out in column-major order
-
-    // clang-format off
-    matrix[0] = 2.f / width; matrix[2] =  0.f;          matrix[4] = -1.f;
-    matrix[1] = 0.f;         matrix[3] = -2.f / height; matrix[5] =  1.f;
-    // Last matrix row is implicitly assumed to be [0, 0, 1].
-    // clang-format on
-
-    return matrix;
-}
-} // namespace
 
 BlitScreen::BlitScreen(RasterizerOpenGL& rasterizer_,
                        Tegra::MaxwellDeviceMemoryManager& device_memory_,
@@ -65,37 +22,6 @@ BlitScreen::BlitScreen(RasterizerOpenGL& rasterizer_,
                        Device& device_)
     : rasterizer(rasterizer_), device_memory(device_memory_), state_tracker(state_tracker_),
       program_manager(program_manager_), device(device_) {
-    // Create shader programs
-    present_vertex = CreateProgram(HostShaders::OPENGL_PRESENT_VERT, GL_VERTEX_SHADER);
-    present_bilinear_fragment = CreateProgram(HostShaders::OPENGL_PRESENT_FRAG, GL_FRAGMENT_SHADER);
-    present_bicubic_fragment = CreateProgram(HostShaders::PRESENT_BICUBIC_FRAG, GL_FRAGMENT_SHADER);
-    present_gaussian_fragment =
-        CreateProgram(HostShaders::PRESENT_GAUSSIAN_FRAG, GL_FRAGMENT_SHADER);
-    present_scaleforce_fragment =
-        CreateProgram(fmt::format("#version 460\n{}", HostShaders::OPENGL_PRESENT_SCALEFORCE_FRAG),
-                      GL_FRAGMENT_SHADER);
-
-    // Generate presentation sampler
-    present_sampler.Create();
-    glSamplerParameteri(present_sampler.handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glSamplerParameteri(present_sampler.handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glSamplerParameteri(present_sampler.handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glSamplerParameteri(present_sampler.handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glSamplerParameteri(present_sampler.handle, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    present_sampler_nn.Create();
-    glSamplerParameteri(present_sampler_nn.handle, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glSamplerParameteri(present_sampler_nn.handle, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glSamplerParameteri(present_sampler_nn.handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glSamplerParameteri(present_sampler_nn.handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glSamplerParameteri(present_sampler_nn.handle, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    // Generate VBO handle for drawing
-    vertex_buffer.Create();
-
-    // Attach vertex data to VAO
-    glNamedBufferData(vertex_buffer.handle, sizeof(ScreenRectVertex) * 4, nullptr, GL_STREAM_DRAW);
-
     // Allocate textures for the screen
     framebuffer_texture.resource.Create(GL_TEXTURE_2D);
 
@@ -106,15 +32,6 @@ BlitScreen::BlitScreen(RasterizerOpenGL& rasterizer_,
     const u8 framebuffer_data[4] = {0, 0, 0, 0};
     glClearTexImage(framebuffer_texture.resource.handle, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                     framebuffer_data);
-
-    // Enable unified vertex attributes and query vertex buffer address when the driver supports it
-    if (device.HasVertexBufferUnifiedMemory()) {
-        glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
-        glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
-        glMakeNamedBufferResidentNV(vertex_buffer.handle, GL_READ_ONLY);
-        glGetNamedBufferParameterui64vNV(vertex_buffer.handle, GL_BUFFER_GPU_ADDRESS_NV,
-                                         &vertex_buffer_address);
-    }
 }
 
 BlitScreen::~BlitScreen() = default;
@@ -219,18 +136,14 @@ void BlitScreen::ConfigureFramebufferTexture(const Tegra::FramebufferConfig& fra
     glTextureStorage2D(framebuffer_texture.resource.handle, 1, internal_format,
                        framebuffer_texture.width, framebuffer_texture.height);
 
-    fxaa = std::make_unique<FXAA>(
-        Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
-        Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
-    smaa = std::make_unique<SMAA>(
-        Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
-        Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
+    fxaa.reset();
+    smaa.reset();
 }
 
 void BlitScreen::DrawScreen(const Tegra::FramebufferConfig& framebuffer,
                             const Layout::FramebufferLayout& layout) {
     FramebufferTextureInfo info = PrepareRenderTarget(framebuffer);
-    const auto crop = Tegra::NormalizeCrop(framebuffer, info.width, info.height);
+    auto crop = Tegra::NormalizeCrop(framebuffer, info.width, info.height);
 
     // TODO: Signal state tracker about these changes
     state_tracker.NotifyScreenDrawVertexArray();
@@ -267,15 +180,14 @@ void BlitScreen::DrawScreen(const Tegra::FramebufferConfig& framebuffer,
     glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthRangeIndexed(0, 0.0, 0.0);
 
+    GLint old_read_fb;
+    GLint old_draw_fb;
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_read_fb);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &old_draw_fb);
+
     GLuint texture = info.display_texture;
 
     auto anti_aliasing = Settings::values.anti_aliasing.GetValue();
-    if (anti_aliasing >= Settings::AntiAliasing::MaxEnum) {
-        LOG_ERROR(Render_OpenGL, "Invalid antialiasing option selected {}", anti_aliasing);
-        anti_aliasing = Settings::AntiAliasing::None;
-        Settings::values.anti_aliasing.SetValue(anti_aliasing);
-    }
-
     if (anti_aliasing != Settings::AntiAliasing::None) {
         glEnablei(GL_SCISSOR_TEST, 0);
         auto scissor_width = Settings::values.resolution_info.ScaleUp(framebuffer_texture.width);
@@ -286,137 +198,83 @@ void BlitScreen::DrawScreen(const Tegra::FramebufferConfig& framebuffer,
         glScissorIndexed(0, 0, 0, scissor_width, scissor_height);
         glViewportIndexedf(0, 0.0f, 0.0f, viewport_width, viewport_height);
 
-        glBindSampler(0, present_sampler.handle);
-        GLint old_read_fb;
-        GLint old_draw_fb;
-        glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_read_fb);
-        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &old_draw_fb);
-
         switch (anti_aliasing) {
-        case Settings::AntiAliasing::Fxaa: {
+        case Settings::AntiAliasing::Fxaa:
+            CreateFXAA();
             texture = fxaa->Draw(program_manager, info.display_texture);
-        } break;
-        case Settings::AntiAliasing::Smaa: {
-            texture = smaa->Draw(program_manager, info.display_texture);
-        } break;
+            break;
+        case Settings::AntiAliasing::Smaa:
         default:
-            UNREACHABLE();
+            CreateSMAA();
+            texture = smaa->Draw(program_manager, info.display_texture);
+            break;
         }
-
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, old_read_fb);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_draw_fb);
     }
+
     glDisablei(GL_SCISSOR_TEST, 0);
 
     if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
-        GLint old_read_fb;
-        GLint old_draw_fb;
-        glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_read_fb);
-        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &old_draw_fb);
-
         if (!fsr || fsr->NeedsRecreation(layout.screen)) {
             fsr = std::make_unique<FSR>(layout.screen.GetWidth(), layout.screen.GetHeight());
         }
 
         texture = fsr->Draw(program_manager, texture, info.scaled_width, info.scaled_height, crop);
-
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, old_read_fb);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_draw_fb);
+        crop = {0, 0, 1, 1};
     }
 
-    glBindTextureUnit(0, texture);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, old_read_fb);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_draw_fb);
 
-    const std::array ortho_matrix =
-        MakeOrthographicMatrix(static_cast<float>(layout.width), static_cast<float>(layout.height));
-
-    const auto fragment_handle = [this]() {
-        switch (Settings::values.scaling_filter.GetValue()) {
-        case Settings::ScalingFilter::Bicubic:
-            return present_bicubic_fragment.handle;
-        case Settings::ScalingFilter::Gaussian:
-            return present_gaussian_fragment.handle;
-        case Settings::ScalingFilter::ScaleForce:
-            return present_scaleforce_fragment.handle;
-        case Settings::ScalingFilter::NearestNeighbor:
-        case Settings::ScalingFilter::Bilinear:
-        case Settings::ScalingFilter::Fsr:
-        default:
-            return present_bilinear_fragment.handle;
-        }
-    }();
-    program_manager.BindPresentPrograms(present_vertex.handle, fragment_handle);
-    glProgramUniformMatrix3x2fv(present_vertex.handle, ModelViewMatrixLocation, 1, GL_FALSE,
-                                ortho_matrix.data());
-
-    f32 left, top, right, bottom;
-    if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
-        // FSR has already applied the crop, so we just want to render the image
-        // it has produced.
-        left = 0;
-        top = 0;
-        right = 1;
-        bottom = 1;
-    } else {
-        // Apply the precomputed crop.
-        left = crop.left;
-        top = crop.top;
-        right = crop.right;
-        bottom = crop.bottom;
-    }
-
-    // Map the coordinates to the screen.
-    const auto& screen = layout.screen;
-    const auto x = screen.left;
-    const auto y = screen.top;
-    const auto w = screen.GetWidth();
-    const auto h = screen.GetHeight();
-
-    const std::array vertices = {
-        ScreenRectVertex(x, y, left, top),
-        ScreenRectVertex(x + w, y, right, top),
-        ScreenRectVertex(x, y + h, left, bottom),
-        ScreenRectVertex(x + w, y + h, right, bottom),
-    };
-    glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
-
-    glDisable(GL_FRAMEBUFFER_SRGB);
-    glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(layout.width),
-                       static_cast<GLfloat>(layout.height));
-
-    glEnableVertexAttribArray(PositionLocation);
-    glEnableVertexAttribArray(TexCoordLocation);
-    glVertexAttribDivisor(PositionLocation, 0);
-    glVertexAttribDivisor(TexCoordLocation, 0);
-    glVertexAttribFormat(PositionLocation, 2, GL_FLOAT, GL_FALSE,
-                         offsetof(ScreenRectVertex, position));
-    glVertexAttribFormat(TexCoordLocation, 2, GL_FLOAT, GL_FALSE,
-                         offsetof(ScreenRectVertex, tex_coord));
-    glVertexAttribBinding(PositionLocation, 0);
-    glVertexAttribBinding(TexCoordLocation, 0);
-    if (device.HasVertexBufferUnifiedMemory()) {
-        glBindVertexBuffer(0, 0, 0, sizeof(ScreenRectVertex));
-        glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 0, vertex_buffer_address,
-                               sizeof(vertices));
-    } else {
-        glBindVertexBuffer(0, vertex_buffer.handle, 0, sizeof(ScreenRectVertex));
-    }
-
-    if (Settings::values.scaling_filter.GetValue() != Settings::ScalingFilter::NearestNeighbor) {
-        glBindSampler(0, present_sampler.handle);
-    } else {
-        glBindSampler(0, present_sampler_nn.handle);
-    }
-
-    // Update background color before drawing
-    glClearColor(Settings::values.bg_red.GetValue() / 255.0f,
-                 Settings::values.bg_green.GetValue() / 255.0f,
-                 Settings::values.bg_blue.GetValue() / 255.0f, 1.0f);
-
-    glClear(GL_COLOR_BUFFER_BIT);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    CreateWindowAdapt();
+    window_adapt->DrawToFramebuffer(program_manager, texture, layout, crop);
 
     // TODO
     // program_manager.RestoreGuestPipeline();
+}
+
+void BlitScreen::CreateFXAA() {
+    smaa.reset();
+    if (!fxaa) {
+        fxaa = std::make_unique<FXAA>(
+            Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
+            Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
+    }
+}
+
+void BlitScreen::CreateSMAA() {
+    fxaa.reset();
+    if (!smaa) {
+        smaa = std::make_unique<SMAA>(
+            Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
+            Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
+    }
+}
+
+void BlitScreen::CreateWindowAdapt() {
+    if (window_adapt && Settings::values.scaling_filter.GetValue() == current_window_adapt) {
+        return;
+    }
+
+    current_window_adapt = Settings::values.scaling_filter.GetValue();
+    switch (current_window_adapt) {
+    case Settings::ScalingFilter::NearestNeighbor:
+        window_adapt = MakeNearestNeighbor(device);
+        break;
+    case Settings::ScalingFilter::Bicubic:
+        window_adapt = MakeBicubic(device);
+        break;
+    case Settings::ScalingFilter::Gaussian:
+        window_adapt = MakeGaussian(device);
+        break;
+    case Settings::ScalingFilter::ScaleForce:
+        window_adapt = MakeScaleForce(device);
+        break;
+    case Settings::ScalingFilter::Fsr:
+    case Settings::ScalingFilter::Bilinear:
+    default:
+        window_adapt = MakeBilinear(device);
+        break;
+    }
 }
 
 } // namespace OpenGL
