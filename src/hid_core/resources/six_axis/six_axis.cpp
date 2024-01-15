@@ -249,7 +249,7 @@ Result SixAxis::EnableSixAxisSensorUnalteredPassthrough(
     }
 
     auto& sixaxis = GetSixaxisState(sixaxis_handle);
-    sixaxis.unaltered_passtrough = is_enabled;
+    sixaxis.unaltered_passthrough = is_enabled;
     return ResultSuccess;
 }
 
@@ -262,7 +262,7 @@ Result SixAxis::IsSixAxisSensorUnalteredPassthroughEnabled(
     }
 
     const auto& sixaxis = GetSixaxisState(sixaxis_handle);
-    is_enabled = sixaxis.unaltered_passtrough;
+    is_enabled = sixaxis.unaltered_passthrough;
     return ResultSuccess;
 }
 

@@ -11,7 +11,7 @@ ADSP::ADSP(Core::System& system, Sink::Sink& sink) {
     opus_decoder = std::make_unique<OpusDecoder::OpusDecoder>(system);
     opus_decoder->Send(Direction::DSP, OpusDecoder::Message::Start);
     if (opus_decoder->Receive(Direction::Host) != OpusDecoder::Message::StartOK) {
-        LOG_ERROR(Service_Audio, "OpusDeocder failed to initialize.");
+        LOG_ERROR(Service_Audio, "OpusDecoder failed to initialize.");
         return;
     }
 }

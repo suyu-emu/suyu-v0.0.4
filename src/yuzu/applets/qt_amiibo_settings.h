@@ -58,7 +58,7 @@ private:
     Core::Frontend::CabinetParameters parameters;
 
     // If false amiibo settings failed to load
-    bool is_initalized{};
+    bool is_initialized{};
 };
 
 class QtAmiiboSettings final : public QObject, public Core::Frontend::CabinetApplet {

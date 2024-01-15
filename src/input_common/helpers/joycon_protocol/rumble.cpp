@@ -67,7 +67,7 @@ u8 RumbleProtocol::EncodeHighAmplitude(f32 amplitude) const {
     // More information about these values can be found here:
     // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md
 
-    static constexpr std::array<std::pair<f32, int>, 101> high_fequency_amplitude{
+    static constexpr std::array<std::pair<f32, int>, 101> high_frequency_amplitude{
         std::pair<f32, int>{0.0f, 0x0},
         {0.01f, 0x2},
         {0.012f, 0x4},
@@ -171,20 +171,20 @@ u8 RumbleProtocol::EncodeHighAmplitude(f32 amplitude) const {
         {1.003f, 0xc8},
     };
 
-    for (const auto& [amplitude_value, code] : high_fequency_amplitude) {
+    for (const auto& [amplitude_value, code] : high_frequency_amplitude) {
         if (amplitude <= amplitude_value) {
             return static_cast<u8>(code);
         }
     }
 
-    return static_cast<u8>(high_fequency_amplitude[high_fequency_amplitude.size() - 1].second);
+    return static_cast<u8>(high_frequency_amplitude[high_frequency_amplitude.size() - 1].second);
 }
 
 u16 RumbleProtocol::EncodeLowAmplitude(f32 amplitude) const {
     // More information about these values can be found here:
     // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md
 
-    static constexpr std::array<std::pair<f32, int>, 101> high_fequency_amplitude{
+    static constexpr std::array<std::pair<f32, int>, 101> high_frequency_amplitude{
         std::pair<f32, int>{0.0f, 0x0040},
         {0.01f, 0x8040},
         {0.012f, 0x0041},
@@ -288,13 +288,13 @@ u16 RumbleProtocol::EncodeLowAmplitude(f32 amplitude) const {
         {1.003f, 0x0072},
     };
 
-    for (const auto& [amplitude_value, code] : high_fequency_amplitude) {
+    for (const auto& [amplitude_value, code] : high_frequency_amplitude) {
         if (amplitude <= amplitude_value) {
             return static_cast<u16>(code);
         }
     }
 
-    return static_cast<u16>(high_fequency_amplitude[high_fequency_amplitude.size() - 1].second);
+    return static_cast<u16>(high_frequency_amplitude[high_frequency_amplitude.size() - 1].second);
 }
 
 } // namespace InputCommon::Joycon

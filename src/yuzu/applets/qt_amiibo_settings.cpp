@@ -36,7 +36,7 @@ QtAmiiboSettingsDialog::QtAmiiboSettingsDialog(QWidget* parent,
 QtAmiiboSettingsDialog::~QtAmiiboSettingsDialog() = default;
 
 int QtAmiiboSettingsDialog::exec() {
-    if (!is_initalized) {
+    if (!is_initialized) {
         return QDialog::Rejected;
     }
     return QDialog::exec();
@@ -66,7 +66,7 @@ void QtAmiiboSettingsDialog::LoadInfo() {
         QString::fromStdString(input_subsystem->GetVirtualAmiibo()->GetLastFilePath()));
 
     SetSettingsDescription();
-    is_initalized = true;
+    is_initialized = true;
 }
 
 void QtAmiiboSettingsDialog::LoadAmiiboInfo() {

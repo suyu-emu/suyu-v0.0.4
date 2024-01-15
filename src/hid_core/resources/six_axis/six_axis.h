@@ -62,7 +62,7 @@ private:
 
     struct SixaxisParameters {
         bool is_fusion_enabled{true};
-        bool unaltered_passtrough{false};
+        bool unaltered_passthrough{false};
         Core::HID::SixAxisSensorFusionParameters fusion{};
         Core::HID::SixAxisSensorCalibrationParameter calibration{};
         Core::HID::SixAxisSensorIcInformation ic_information{};
