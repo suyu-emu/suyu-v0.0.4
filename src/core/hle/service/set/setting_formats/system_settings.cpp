@@ -11,6 +11,8 @@ SystemSettings DefaultSystemSettings() {
     settings.version = 0x140000;
     settings.flags = 7;
 
+    settings.mii_author_id = Common::UUID::MakeDefault();
+
     settings.color_set_id = ColorSet::BasicWhite;
 
     settings.notification_settings = {
@@ -44,6 +46,10 @@ SystemSettings DefaultSystemSettings() {
 
     settings.device_time_zone_location_name = {"UTC"};
     settings.user_system_clock_automatic_correction_enabled = false;
+
+    settings.primary_album_storage = PrimaryAlbumStorage::SdCard;
+    settings.battery_percentage_flag = true;
+    settings.chinese_traditional_input_method = ChineseTraditionalInputMethod::Unknown0;
 
     return settings;
 }

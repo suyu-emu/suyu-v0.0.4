@@ -37,6 +37,18 @@ public:
     Result GetSettingsItemValue(std::vector<u8>& out_value, const std::string& category,
                                 const std::string& name);
 
+    template <typename T>
+    Result GetSettingsItemValue(T& value, const std::string& category, const std::string& name) {
+        std::vector<u8> data;
+        const auto result = GetSettingsItemValue(data, category, name);
+        if (result.IsError()) {
+            return result;
+        }
+        ASSERT(data.size() >= sizeof(T));
+        std::memcpy(&value, data.data(), sizeof(T));
+        return result;
+    }
+
     Result GetExternalSteadyClockSourceId(Common::UUID& out_id);
     Result SetExternalSteadyClockSourceId(Common::UUID id);
     Result GetUserSystemClockContext(Service::Time::Clock::SystemClockContext& out_context);
@@ -62,6 +74,8 @@ private:
     void SetLanguageCode(HLERequestContext& ctx);
     void GetFirmwareVersion(HLERequestContext& ctx);
     void GetFirmwareVersion2(HLERequestContext& ctx);
+    void GetLockScreenFlag(HLERequestContext& ctx);
+    void SetLockScreenFlag(HLERequestContext& ctx);
     void GetExternalSteadyClockSourceId(HLERequestContext& ctx);
     void SetExternalSteadyClockSourceId(HLERequestContext& ctx);
     void GetUserSystemClockContext(HLERequestContext& ctx);
@@ -90,13 +104,19 @@ private:
     void IsUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx);
     void SetUserSystemClockAutomaticCorrectionEnabled(HLERequestContext& ctx);
     void GetPrimaryAlbumStorage(HLERequestContext& ctx);
+    void GetNfcEnableFlag(HLERequestContext& ctx);
+    void SetNfcEnableFlag(HLERequestContext& ctx);
     void GetSleepSettings(HLERequestContext& ctx);
     void SetSleepSettings(HLERequestContext& ctx);
+    void GetWirelessLanEnableFlag(HLERequestContext& ctx);
+    void SetWirelessLanEnableFlag(HLERequestContext& ctx);
     void GetInitialLaunchSettings(HLERequestContext& ctx);
     void SetInitialLaunchSettings(HLERequestContext& ctx);
     void GetDeviceNickName(HLERequestContext& ctx);
     void SetDeviceNickName(HLERequestContext& ctx);
     void GetProductModel(HLERequestContext& ctx);
+    void GetBluetoothEnableFlag(HLERequestContext& ctx);
+    void SetBluetoothEnableFlag(HLERequestContext& ctx);
     void GetMiiAuthorId(HLERequestContext& ctx);
     void GetAutoUpdateEnableFlag(HLERequestContext& ctx);
     void GetBatteryPercentageFlag(HLERequestContext& ctx);

@@ -5,6 +5,14 @@
 
 #include "common/common_types.h"
 
+namespace Core {
+class System;
+}
+
+namespace Service::Set {
+class ISystemSettingsServer;
+}
+
 namespace Service::HID {
 
 /// Loads firmware config from nn::settings::fwdbg
@@ -13,7 +21,7 @@ public:
     using FirmwareSetting = std::array<u8, 4>;
     using FeaturesPerId = std::array<bool, 0xA8>;
 
-    HidFirmwareSettings();
+    HidFirmwareSettings(Core::System& system);
 
     void Reload();
     void LoadSettings(bool reload_config);
@@ -49,6 +57,8 @@ private:
     bool is_touch_firmware_auto_update_disabled{};
     FirmwareSetting is_firmware_update_failure{};
     FeaturesPerId features_per_id_disabled{};
+
+    std::shared_ptr<Service::Set::ISystemSettingsServer> m_set_sys;
 };
 
 } // namespace Service::HID

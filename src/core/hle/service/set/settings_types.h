@@ -342,7 +342,7 @@ struct UserSelectorFlag {
         u32 raw{};
 
         BitField<0, 1, u32> SkipIfSingleUser;
-        BitField<31, 1, u32> Uknown;
+        BitField<31, 1, u32> Unknown;
     };
 };
 static_assert(sizeof(UserSelectorFlag) == 4, "UserSelectorFlag is an invalid size");

@@ -6,7 +6,11 @@
 namespace Service::Set {
 
 ApplnSettings DefaultApplnSettings() {
-    return {};
+    ApplnSettings settings{};
+
+    settings.mii_author_id = Common::UUID::MakeDefault();
+
+    return settings;
 }
 
 } // namespace Service::Set
