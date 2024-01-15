@@ -20,7 +20,7 @@ void LoopProcess(Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
     std::shared_ptr<ResourceManager> resource_manager = std::make_shared<ResourceManager>(system);
     std::shared_ptr<HidFirmwareSettings> firmware_settings =
-        std::make_shared<HidFirmwareSettings>();
+        std::make_shared<HidFirmwareSettings>(system);
 
     // TODO: Remove this hack when am is emulated properly.
     resource_manager->Initialize();

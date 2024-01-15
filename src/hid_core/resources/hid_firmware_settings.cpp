@@ -1,11 +1,14 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "core/hle/service/set/system_settings_server.h"
+#include "core/hle/service/sm/sm.h"
 #include "hid_core/resources/hid_firmware_settings.h"
 
 namespace Service::HID {
 
-HidFirmwareSettings::HidFirmwareSettings() {
+HidFirmwareSettings::HidFirmwareSettings(Core::System& system) {
+    m_set_sys = system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys");
     LoadSettings(true);
 }
 
@@ -18,21 +21,25 @@ void HidFirmwareSettings::LoadSettings(bool reload_config) {
         return;
     }
 
-    // TODO: Use nn::settings::fwdbg::GetSettingsItemValue to load config values
-
-    is_debug_pad_enabled = true;
-    is_device_managed = true;
-    is_touch_i2c_managed = is_device_managed;
-    is_future_devices_emulated = false;
-    is_mcu_hardware_error_emulated = false;
-    is_rail_enabled = true;
-    is_firmware_update_failure_emulated = false;
+    m_set_sys->GetSettingsItemValue<bool>(is_debug_pad_enabled, "hid_debug", "enables_debugpad");
+    m_set_sys->GetSettingsItemValue<bool>(is_device_managed, "hid_debug", "manages_devices");
+    m_set_sys->GetSettingsItemValue<bool>(is_touch_i2c_managed, "hid_debug",
+                                          "manages_touch_ic_i2c");
+    m_set_sys->GetSettingsItemValue<bool>(is_future_devices_emulated, "hid_debug",
+                                          "emulate_future_device");
+    m_set_sys->GetSettingsItemValue<bool>(is_mcu_hardware_error_emulated, "hid_debug",
+                                          "emulate_mcu_hardware_error");
+    m_set_sys->GetSettingsItemValue<bool>(is_rail_enabled, "hid_debug", "enables_rail");
+    m_set_sys->GetSettingsItemValue<bool>(is_firmware_update_failure_emulated, "hid_debug",
+                                          "emulate_firmware_update_failure");
     is_firmware_update_failure = {};
-    is_ble_disabled = false;
-    is_dscale_disabled = false;
-    is_handheld_forced = true;
+    m_set_sys->GetSettingsItemValue<bool>(is_ble_disabled, "hid_debug", "ble_disabled");
+    m_set_sys->GetSettingsItemValue<bool>(is_dscale_disabled, "hid_debug", "dscale_disabled");
+    m_set_sys->GetSettingsItemValue<bool>(is_handheld_forced, "hid_debug", "force_handheld");
     features_per_id_disabled = {};
-    is_touch_firmware_auto_update_disabled = false;
+    m_set_sys->GetSettingsItemValue<bool>(is_touch_firmware_auto_update_disabled, "hid_debug",
+                                          "touch_firmware_auto_update_disabled");
+
     is_initialized = true;
 }
 
