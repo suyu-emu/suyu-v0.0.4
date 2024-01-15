@@ -13,22 +13,16 @@
 #include "video_core/host_shaders/opengl_present_frag.h"
 #include "video_core/host_shaders/opengl_present_scaleforce_frag.h"
 #include "video_core/host_shaders/opengl_present_vert.h"
-#include "video_core/host_shaders/opengl_smaa_glsl.h"
 #include "video_core/host_shaders/present_bicubic_frag.h"
 #include "video_core/host_shaders/present_gaussian_frag.h"
-#include "video_core/host_shaders/smaa_blending_weight_calculation_frag.h"
-#include "video_core/host_shaders/smaa_blending_weight_calculation_vert.h"
-#include "video_core/host_shaders/smaa_edge_detection_frag.h"
-#include "video_core/host_shaders/smaa_edge_detection_vert.h"
-#include "video_core/host_shaders/smaa_neighborhood_blending_frag.h"
-#include "video_core/host_shaders/smaa_neighborhood_blending_vert.h"
+
 #include "video_core/renderer_opengl/gl_blit_screen.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
-#include "video_core/smaa_area_tex.h"
-#include "video_core/smaa_search_tex.h"
+#include "video_core/renderer_opengl/present/fsr.h"
+#include "video_core/renderer_opengl/present/smaa.h"
 #include "video_core/textures/decoders.h"
 
 namespace OpenGL {
@@ -83,24 +77,6 @@ BlitScreen::BlitScreen(RasterizerOpenGL& rasterizer_,
         ASSERT(pos != std::string::npos);
         shader_source.replace(pos, include_string.size(), include_content);
     };
-
-    const auto SmaaShader = [&](std::string_view specialized_source, GLenum stage) {
-        std::string shader_source{specialized_source};
-        replace_include(shader_source, "opengl_smaa.glsl", HostShaders::OPENGL_SMAA_GLSL);
-        return CreateProgram(shader_source, stage);
-    };
-
-    smaa_edge_detection_vert = SmaaShader(HostShaders::SMAA_EDGE_DETECTION_VERT, GL_VERTEX_SHADER);
-    smaa_edge_detection_frag =
-        SmaaShader(HostShaders::SMAA_EDGE_DETECTION_FRAG, GL_FRAGMENT_SHADER);
-    smaa_blending_weight_calculation_vert =
-        SmaaShader(HostShaders::SMAA_BLENDING_WEIGHT_CALCULATION_VERT, GL_VERTEX_SHADER);
-    smaa_blending_weight_calculation_frag =
-        SmaaShader(HostShaders::SMAA_BLENDING_WEIGHT_CALCULATION_FRAG, GL_FRAGMENT_SHADER);
-    smaa_neighborhood_blending_vert =
-        SmaaShader(HostShaders::SMAA_NEIGHBORHOOD_BLENDING_VERT, GL_VERTEX_SHADER);
-    smaa_neighborhood_blending_frag =
-        SmaaShader(HostShaders::SMAA_NEIGHBORHOOD_BLENDING_FRAG, GL_FRAGMENT_SHADER);
 
     present_vertex = CreateProgram(HostShaders::OPENGL_PRESENT_VERT, GL_VERTEX_SHADER);
     present_bilinear_fragment = CreateProgram(HostShaders::OPENGL_PRESENT_FRAG, GL_FRAGMENT_SHADER);
@@ -157,15 +133,6 @@ BlitScreen::BlitScreen(RasterizerOpenGL& rasterizer_,
 
     aa_framebuffer.Create();
 
-    smaa_area_tex.Create(GL_TEXTURE_2D);
-    glTextureStorage2D(smaa_area_tex.handle, 1, GL_RG8, AREATEX_WIDTH, AREATEX_HEIGHT);
-    glTextureSubImage2D(smaa_area_tex.handle, 0, 0, 0, AREATEX_WIDTH, AREATEX_HEIGHT, GL_RG,
-                        GL_UNSIGNED_BYTE, areaTexBytes);
-    smaa_search_tex.Create(GL_TEXTURE_2D);
-    glTextureStorage2D(smaa_search_tex.handle, 1, GL_R8, SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT);
-    glTextureSubImage2D(smaa_search_tex.handle, 0, 0, 0, SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, GL_RED,
-                        GL_UNSIGNED_BYTE, searchTexBytes);
-
     // Enable unified vertex attributes and query vertex buffer address when the driver supports it
     if (device.HasVertexBufferUnifiedMemory()) {
         glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
@@ -175,6 +142,8 @@ BlitScreen::BlitScreen(RasterizerOpenGL& rasterizer_,
                                          &vertex_buffer_address);
     }
 }
+
+BlitScreen::~BlitScreen() = default;
 
 FramebufferTextureInfo BlitScreen::PrepareRenderTarget(
     const Tegra::FramebufferConfig& framebuffer) {
@@ -281,16 +250,10 @@ void BlitScreen::ConfigureFramebufferTexture(const Tegra::FramebufferConfig& fra
                        Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
                        Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
     glNamedFramebufferTexture(aa_framebuffer.handle, GL_COLOR_ATTACHMENT0, aa_texture.handle, 0);
-    smaa_edges_tex.Release();
-    smaa_edges_tex.Create(GL_TEXTURE_2D);
-    glTextureStorage2D(smaa_edges_tex.handle, 1, GL_RG16F,
-                       Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
-                       Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
-    smaa_blend_tex.Release();
-    smaa_blend_tex.Create(GL_TEXTURE_2D);
-    glTextureStorage2D(smaa_blend_tex.handle, 1, GL_RGBA16F,
-                       Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
-                       Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
+
+    smaa = std::make_unique<SMAA>(
+        Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
+        Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
 }
 
 void BlitScreen::DrawScreen(const Tegra::FramebufferConfig& framebuffer,
@@ -363,39 +326,10 @@ void BlitScreen::DrawScreen(const Tegra::FramebufferConfig& framebuffer,
             program_manager.BindPresentPrograms(fxaa_vertex.handle, fxaa_fragment.handle);
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, aa_framebuffer.handle);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            glBindTextureUnit(0, aa_texture.handle);
         } break;
         case Settings::AntiAliasing::Smaa: {
-            glClearColor(0, 0, 0, 0);
-            glFrontFace(GL_CCW);
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, aa_framebuffer.handle);
-            glBindSampler(1, present_sampler.handle);
-            glBindSampler(2, present_sampler.handle);
-
-            glNamedFramebufferTexture(aa_framebuffer.handle, GL_COLOR_ATTACHMENT0,
-                                      smaa_edges_tex.handle, 0);
-            glClear(GL_COLOR_BUFFER_BIT);
-            program_manager.BindPresentPrograms(smaa_edge_detection_vert.handle,
-                                                smaa_edge_detection_frag.handle);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-
-            glBindTextureUnit(0, smaa_edges_tex.handle);
-            glBindTextureUnit(1, smaa_area_tex.handle);
-            glBindTextureUnit(2, smaa_search_tex.handle);
-            glNamedFramebufferTexture(aa_framebuffer.handle, GL_COLOR_ATTACHMENT0,
-                                      smaa_blend_tex.handle, 0);
-            glClear(GL_COLOR_BUFFER_BIT);
-            program_manager.BindPresentPrograms(smaa_blending_weight_calculation_vert.handle,
-                                                smaa_blending_weight_calculation_frag.handle);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-
-            glBindTextureUnit(0, info.display_texture);
-            glBindTextureUnit(1, smaa_blend_tex.handle);
-            glNamedFramebufferTexture(aa_framebuffer.handle, GL_COLOR_ATTACHMENT0,
-                                      aa_texture.handle, 0);
-            program_manager.BindPresentPrograms(smaa_neighborhood_blending_vert.handle,
-                                                smaa_neighborhood_blending_frag.handle);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-            glFrontFace(GL_CW);
+            glBindTextureUnit(0, smaa->Draw(program_manager, info.display_texture));
         } break;
         default:
             UNREACHABLE();
@@ -403,8 +337,6 @@ void BlitScreen::DrawScreen(const Tegra::FramebufferConfig& framebuffer,
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, old_read_fb);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_draw_fb);
-
-        glBindTextureUnit(0, aa_texture.handle);
     }
     glDisablei(GL_SCISSOR_TEST, 0);
 

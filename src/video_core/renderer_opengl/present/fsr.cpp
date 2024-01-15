@@ -3,9 +3,9 @@
 
 #include "common/settings.h"
 #include "video_core/fsr.h"
-#include "video_core/renderer_opengl/gl_fsr.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
+#include "video_core/renderer_opengl/present/fsr.h"
 
 namespace OpenGL {
 using namespace FSR;

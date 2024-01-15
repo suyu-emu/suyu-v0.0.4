@@ -116,6 +116,11 @@ add_library(video_core STATIC
     renderer_null/null_rasterizer.h
     renderer_null/renderer_null.cpp
     renderer_null/renderer_null.h
+    renderer_opengl/present/fsr.cpp
+    renderer_opengl/present/fsr.h
+    renderer_opengl/present/smaa.cpp
+    renderer_opengl/present/smaa.h
+    renderer_opengl/present/util.h
     renderer_opengl/blit_image.cpp
     renderer_opengl/blit_image.h
     renderer_opengl/gl_blit_screen.cpp
@@ -129,8 +134,6 @@ add_library(video_core STATIC
     renderer_opengl/gl_device.h
     renderer_opengl/gl_fence_manager.cpp
     renderer_opengl/gl_fence_manager.h
-    renderer_opengl/gl_fsr.cpp
-    renderer_opengl/gl_fsr.h
     renderer_opengl/gl_graphics_pipeline.cpp
     renderer_opengl/gl_graphics_pipeline.h
     renderer_opengl/gl_rasterizer.cpp
