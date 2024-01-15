@@ -16,27 +16,24 @@ class ProgramManager;
 
 class FSR {
 public:
-    explicit FSR();
+    explicit FSR(u32 output_width, u32 output_height);
     ~FSR();
 
-    void Draw(ProgramManager& program_manager, const Common::Rectangle<u32>& screen,
-              u32 input_image_width, u32 input_image_height,
-              const Common::Rectangle<f32>& crop_rect);
+    GLuint Draw(ProgramManager& program_manager, GLuint texture, u32 input_image_width,
+                u32 input_image_height, const Common::Rectangle<f32>& crop_rect);
 
-    void InitBuffers();
-
-    void ReleaseBuffers();
-
-    [[nodiscard]] const OGLProgram& GetPresentFragmentProgram() const noexcept;
-
-    [[nodiscard]] bool AreBuffersInitialized() const noexcept;
+    bool NeedsRecreation(const Common::Rectangle<u32>& screen);
 
 private:
-    OGLFramebuffer fsr_framebuffer;
-    OGLProgram fsr_vertex;
-    OGLProgram fsr_easu_frag;
-    OGLProgram fsr_rcas_frag;
-    OGLTexture fsr_intermediate_tex;
+    const u32 width;
+    const u32 height;
+    OGLFramebuffer framebuffer;
+    OGLSampler sampler;
+    OGLProgram vert;
+    OGLProgram easu_frag;
+    OGLProgram rcas_frag;
+    OGLTexture easu_tex;
+    OGLTexture rcas_tex;
 };
 
 } // namespace OpenGL

@@ -19,7 +19,7 @@ using namespace FSR;
 
 using FsrConstants = std::array<u32, 4 * 4>;
 
-FSR::FSR() {
+FSR::FSR(u32 output_width_, u32 output_height_) : width(output_width_), height(output_height_) {
     std::string fsr_source{HostShaders::OPENGL_FIDELITYFX_FSR_FRAG};
     ReplaceInclude(fsr_source, "ffx_a.h", HostShaders::FFX_A_H);
     ReplaceInclude(fsr_source, "ffx_fsr1.h", HostShaders::FFX_FSR1_H);
@@ -29,94 +29,70 @@ FSR::FSR() {
     ReplaceInclude(fsr_easu_source, "opengl_fidelityfx_fsr.frag", fsr_source);
     ReplaceInclude(fsr_rcas_source, "opengl_fidelityfx_fsr.frag", fsr_source);
 
-    fsr_vertex = CreateProgram(HostShaders::FULL_SCREEN_TRIANGLE_VERT, GL_VERTEX_SHADER);
-    fsr_easu_frag = CreateProgram(fsr_easu_source, GL_FRAGMENT_SHADER);
-    fsr_rcas_frag = CreateProgram(fsr_rcas_source, GL_FRAGMENT_SHADER);
+    vert = CreateProgram(HostShaders::FULL_SCREEN_TRIANGLE_VERT, GL_VERTEX_SHADER);
+    easu_frag = CreateProgram(fsr_easu_source, GL_FRAGMENT_SHADER);
+    rcas_frag = CreateProgram(fsr_rcas_source, GL_FRAGMENT_SHADER);
 
-    glProgramUniform2f(fsr_vertex.handle, 0, 1.0f, 1.0f);
-    glProgramUniform2f(fsr_vertex.handle, 1, 0.0f, 0.0f);
+    glProgramUniform2f(vert.handle, 0, 1.0f, -1.0f);
+    glProgramUniform2f(vert.handle, 1, 0.0f, 1.0f);
+
+    sampler = CreateBilinearSampler();
+    framebuffer.Create();
+
+    easu_tex.Create(GL_TEXTURE_2D);
+    glTextureStorage2D(easu_tex.handle, 1, GL_RGBA16F, width, height);
+
+    rcas_tex.Create(GL_TEXTURE_2D);
+    glTextureStorage2D(rcas_tex.handle, 1, GL_RGBA16F, width, height);
 }
 
 FSR::~FSR() = default;
 
-void FSR::Draw(ProgramManager& program_manager, const Common::Rectangle<u32>& screen,
-               u32 input_image_width, u32 input_image_height,
-               const Common::Rectangle<f32>& crop_rect) {
-
-    const auto output_image_width = screen.GetWidth();
-    const auto output_image_height = screen.GetHeight();
-
-    if (fsr_intermediate_tex.handle) {
-        GLint fsr_tex_width, fsr_tex_height;
-        glGetTextureLevelParameteriv(fsr_intermediate_tex.handle, 0, GL_TEXTURE_WIDTH,
-                                     &fsr_tex_width);
-        glGetTextureLevelParameteriv(fsr_intermediate_tex.handle, 0, GL_TEXTURE_HEIGHT,
-                                     &fsr_tex_height);
-        if (static_cast<u32>(fsr_tex_width) != output_image_width ||
-            static_cast<u32>(fsr_tex_height) != output_image_height) {
-            fsr_intermediate_tex.Release();
-        }
-    }
-    if (!fsr_intermediate_tex.handle) {
-        fsr_intermediate_tex.Create(GL_TEXTURE_2D);
-        glTextureStorage2D(fsr_intermediate_tex.handle, 1, GL_RGB16F, output_image_width,
-                           output_image_height);
-        glNamedFramebufferTexture(fsr_framebuffer.handle, GL_COLOR_ATTACHMENT0,
-                                  fsr_intermediate_tex.handle, 0);
-    }
-
-    GLint old_draw_fb;
-    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &old_draw_fb);
-
-    glFrontFace(GL_CW);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fsr_framebuffer.handle);
-    glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(output_image_width),
-                       static_cast<GLfloat>(output_image_height));
-
+GLuint FSR::Draw(ProgramManager& program_manager, GLuint texture, u32 input_image_width,
+                 u32 input_image_height, const Common::Rectangle<f32>& crop_rect) {
     const f32 input_width = static_cast<f32>(input_image_width);
     const f32 input_height = static_cast<f32>(input_image_height);
-    const f32 output_width = static_cast<f32>(screen.GetWidth());
-    const f32 output_height = static_cast<f32>(screen.GetHeight());
+    const f32 output_width = static_cast<f32>(width);
+    const f32 output_height = static_cast<f32>(height);
     const f32 viewport_width = (crop_rect.right - crop_rect.left) * input_width;
     const f32 viewport_x = crop_rect.left * input_width;
     const f32 viewport_height = (crop_rect.bottom - crop_rect.top) * input_height;
     const f32 viewport_y = crop_rect.top * input_height;
 
-    FsrConstants constants;
-    FsrEasuConOffset(constants.data() + 0, constants.data() + 4, constants.data() + 8,
-                     constants.data() + 12, viewport_width, viewport_height, input_width,
+    FsrConstants easu_con{};
+    FsrConstants rcas_con{};
+
+    FsrEasuConOffset(easu_con.data() + 0, easu_con.data() + 4, easu_con.data() + 8,
+                     easu_con.data() + 12, viewport_width, viewport_height, input_width,
                      input_height, output_width, output_height, viewport_x, viewport_y);
-
-    glProgramUniform4uiv(fsr_easu_frag.handle, 0, sizeof(constants), std::data(constants));
-
-    program_manager.BindPresentPrograms(fsr_vertex.handle, fsr_easu_frag.handle);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_draw_fb);
-    glBindTextureUnit(0, fsr_intermediate_tex.handle);
 
     const float sharpening =
         static_cast<float>(Settings::values.fsr_sharpening_slider.GetValue()) / 100.0f;
 
-    FsrRcasCon(constants.data(), sharpening);
-    glProgramUniform4uiv(fsr_rcas_frag.handle, 0, sizeof(constants), std::data(constants));
+    FsrRcasCon(rcas_con.data(), sharpening);
+
+    glProgramUniform4uiv(easu_frag.handle, 0, sizeof(easu_con), easu_con.data());
+    glProgramUniform4uiv(rcas_frag.handle, 0, sizeof(rcas_con), rcas_con.data());
+
+    glFrontFace(GL_CW);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer.handle);
+    glNamedFramebufferTexture(framebuffer.handle, GL_COLOR_ATTACHMENT0, easu_tex.handle, 0);
+    glViewportIndexedf(0, 0.0f, 0.0f, output_width, output_height);
+    program_manager.BindPresentPrograms(vert.handle, easu_frag.handle);
+    glBindTextureUnit(0, texture);
+    glBindSampler(0, sampler.handle);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    glNamedFramebufferTexture(framebuffer.handle, GL_COLOR_ATTACHMENT0, rcas_tex.handle, 0);
+    program_manager.BindPresentPrograms(vert.handle, rcas_frag.handle);
+    glBindTextureUnit(0, easu_tex.handle);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    return rcas_tex.handle;
 }
 
-void FSR::InitBuffers() {
-    fsr_framebuffer.Create();
-}
-
-void FSR::ReleaseBuffers() {
-    fsr_framebuffer.Release();
-    fsr_intermediate_tex.Release();
-}
-
-const OGLProgram& FSR::GetPresentFragmentProgram() const noexcept {
-    return fsr_rcas_frag;
-}
-
-bool FSR::AreBuffersInitialized() const noexcept {
-    return fsr_framebuffer.handle;
+bool FSR::NeedsRecreation(const Common::Rectangle<u32>& screen) {
+    return screen.GetWidth() != width || screen.GetHeight() != height;
 }
 
 } // namespace OpenGL
