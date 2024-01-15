@@ -17,7 +17,6 @@
 #include "core/frontend/emu_window.h"
 #include "core/telemetry_session.h"
 #include "video_core/renderer_opengl/gl_blit_screen.h"
-#include "video_core/renderer_opengl/gl_fsr.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
