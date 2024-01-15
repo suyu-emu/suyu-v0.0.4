@@ -97,8 +97,9 @@ std::string SaveDataAttribute::DebugInfo() const {
                        static_cast<u8>(rank), index);
 }
 
-SaveDataFactory::SaveDataFactory(Core::System& system_, VirtualDir save_directory_)
-    : dir{std::move(save_directory_)}, system{system_} {
+SaveDataFactory::SaveDataFactory(Core::System& system_, ProgramId program_id_,
+                                 VirtualDir save_directory_)
+    : system{system_}, program_id{program_id_}, dir{std::move(save_directory_)} {
     // Delete all temporary storages
     // On hardware, it is expected that temporary storage be empty at first use.
     dir->DeleteSubdirectoryRecursive("temp");
@@ -110,7 +111,7 @@ VirtualDir SaveDataFactory::Create(SaveDataSpaceId space, const SaveDataAttribut
     PrintSaveDataAttributeWarnings(meta);
 
     const auto save_directory =
-        GetFullPath(system, dir, space, meta.type, meta.title_id, meta.user_id, meta.save_id);
+        GetFullPath(program_id, dir, space, meta.type, meta.title_id, meta.user_id, meta.save_id);
 
     return dir->CreateDirectoryRelative(save_directory);
 }
@@ -118,7 +119,7 @@ VirtualDir SaveDataFactory::Create(SaveDataSpaceId space, const SaveDataAttribut
 VirtualDir SaveDataFactory::Open(SaveDataSpaceId space, const SaveDataAttribute& meta) const {
 
     const auto save_directory =
-        GetFullPath(system, dir, space, meta.type, meta.title_id, meta.user_id, meta.save_id);
+        GetFullPath(program_id, dir, space, meta.type, meta.title_id, meta.user_id, meta.save_id);
 
     auto out = dir->GetDirectoryRelative(save_directory);
 
@@ -147,14 +148,14 @@ std::string SaveDataFactory::GetSaveDataSpaceIdPath(SaveDataSpaceId space) {
     }
 }
 
-std::string SaveDataFactory::GetFullPath(Core::System& system, VirtualDir dir,
+std::string SaveDataFactory::GetFullPath(ProgramId program_id, VirtualDir dir,
                                          SaveDataSpaceId space, SaveDataType type, u64 title_id,
                                          u128 user_id, u64 save_id) {
     // According to switchbrew, if a save is of type SaveData and the title id field is 0, it should
     // be interpreted as the title id of the current process.
     if (type == SaveDataType::SaveData || type == SaveDataType::DeviceSaveData) {
         if (title_id == 0) {
-            title_id = system.GetApplicationProcessProgramID();
+            title_id = program_id;
         }
     }
 
@@ -201,7 +202,7 @@ std::string SaveDataFactory::GetUserGameSaveDataRoot(u128 user_id, bool future) 
 SaveDataSize SaveDataFactory::ReadSaveDataSize(SaveDataType type, u64 title_id,
                                                u128 user_id) const {
     const auto path =
-        GetFullPath(system, dir, SaveDataSpaceId::NandUser, type, title_id, user_id, 0);
+        GetFullPath(program_id, dir, SaveDataSpaceId::NandUser, type, title_id, user_id, 0);
     const auto relative_dir = GetOrCreateDirectoryRelative(dir, path);
 
     const auto size_file = relative_dir->GetFile(GetSaveDataSizeFileName());
@@ -220,7 +221,7 @@ SaveDataSize SaveDataFactory::ReadSaveDataSize(SaveDataType type, u64 title_id,
 void SaveDataFactory::WriteSaveDataSize(SaveDataType type, u64 title_id, u128 user_id,
                                         SaveDataSize new_value) const {
     const auto path =
-        GetFullPath(system, dir, SaveDataSpaceId::NandUser, type, title_id, user_id, 0);
+        GetFullPath(program_id, dir, SaveDataSpaceId::NandUser, type, title_id, user_id, 0);
     const auto relative_dir = GetOrCreateDirectoryRelative(dir, path);
 
     const auto size_file = relative_dir->CreateFile(GetSaveDataSizeFileName());

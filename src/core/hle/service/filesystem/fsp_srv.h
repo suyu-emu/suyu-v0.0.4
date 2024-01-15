@@ -17,6 +17,9 @@ class FileSystemBackend;
 
 namespace Service::FileSystem {
 
+class RomFsController;
+class SaveDataController;
+
 enum class AccessLogVersion : u32 {
     V7_0_0 = 2,
 
@@ -67,6 +70,9 @@ private:
     u64 current_process_id = 0;
     u32 access_log_program_index = 0;
     AccessLogMode access_log_mode = AccessLogMode::None;
+    u64 program_id = 0;
+    std::shared_ptr<SaveDataController> save_data_controller;
+    std::shared_ptr<RomFsController> romfs_controller;
 };
 
 } // namespace Service::FileSystem

@@ -78,7 +78,8 @@ AppLoader_XCI::LoadResult AppLoader_XCI::Load(Kernel::KProcess& process, Core::S
 
     FileSys::VirtualFile update_raw;
     if (ReadUpdateRaw(update_raw) == ResultStatus::Success && update_raw != nullptr) {
-        system.GetFileSystemController().SetPackedUpdate(std::move(update_raw));
+        system.GetFileSystemController().SetPackedUpdate(process.GetProcessId(),
+                                                         std::move(update_raw));
     }
 
     is_loaded = true;
