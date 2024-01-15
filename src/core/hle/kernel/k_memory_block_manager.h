@@ -85,11 +85,11 @@ public:
 public:
     KMemoryBlockManager();
 
-    using HostUnmapCallback = std::function<void(Common::ProcessAddress, u64)>;
+    using BlockCallback = std::function<void(Common::ProcessAddress, u64)>;
 
     Result Initialize(KProcessAddress st, KProcessAddress nd,
                       KMemoryBlockSlabManager* slab_manager);
-    void Finalize(KMemoryBlockSlabManager* slab_manager, HostUnmapCallback&& host_unmap_callback);
+    void Finalize(KMemoryBlockSlabManager* slab_manager, BlockCallback&& block_callback);
 
     iterator end() {
         return m_memory_block_tree.end();
