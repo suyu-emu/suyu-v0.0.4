@@ -241,6 +241,7 @@ public:
                                 KResourceLimit* resource_limit, Core::Memory::Memory& memory,
                                 KProcessAddress aslr_space_start);
 
+    Result FinalizeProcess();
     void Finalize();
 
     bool IsKernel() const {

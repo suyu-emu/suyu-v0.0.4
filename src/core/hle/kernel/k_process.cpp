@@ -171,6 +171,12 @@ void KProcess::Finalize() {
         m_resource_limit->Close();
     }
 
+    // Clear expensive resources, as the destructor is not called for guest objects.
+    for (auto& interface : m_arm_interfaces) {
+        interface.reset();
+    }
+    m_exclusive_monitor.reset();
+
     // Perform inherited finalization.
     KSynchronizationObject::Finalize();
 }
