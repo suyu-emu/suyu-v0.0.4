@@ -26,9 +26,10 @@ class IAudioOut final : public ServiceFramework<IAudioOut> {
 public:
     explicit IAudioOut(Core::System& system_, AudioCore::AudioOut::Manager& manager,
                        size_t session_id, const std::string& device_name,
-                       const AudioOutParameter& in_params, u32 handle, u64 applet_resource_user_id)
+                       const AudioOutParameter& in_params, Kernel::KProcess* handle,
+                       u64 applet_resource_user_id)
         : ServiceFramework{system_, "IAudioOut"}, service_context{system_, "IAudioOut"},
-          event{service_context.CreateEvent("AudioOutEvent")},
+          event{service_context.CreateEvent("AudioOutEvent")}, process{handle},
           impl{std::make_shared<AudioCore::AudioOut::Out>(system_, manager, event, session_id)} {
 
         // clang-format off
@@ -50,11 +51,14 @@ public:
         };
         // clang-format on
         RegisterHandlers(functions);
+
+        process->Open();
     }
 
     ~IAudioOut() override {
         impl->Free();
         service_context.CloseEvent(event);
+        process->Close();
     }
 
     [[nodiscard]] std::shared_ptr<AudioCore::AudioOut::Out> GetImpl() {
@@ -206,6 +210,7 @@ private:
 
     KernelHelpers::ServiceContext service_context;
     Kernel::KEvent* event;
+    Kernel::KProcess* process;
     std::shared_ptr<AudioCore::AudioOut::Out> impl;
     Common::ScratchBuffer<u64> released_buffer;
 };
@@ -257,6 +262,14 @@ void AudOutU::OpenAudioOut(HLERequestContext& ctx) {
     auto device_name = Common::StringFromBuffer(device_name_data);
     auto handle{ctx.GetCopyHandle(0)};
 
+    auto process{ctx.GetObjectFromHandle<Kernel::KProcess>(handle)};
+    if (process.IsNull()) {
+        LOG_ERROR(Service_Audio, "Failed to get process handle");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultUnknown);
+        return;
+    }
+
     auto link{impl->LinkToManager()};
     if (link.IsError()) {
         LOG_ERROR(Service_Audio, "Failed to link Audio Out to Audio Manager");
@@ -276,10 +289,11 @@ void AudOutU::OpenAudioOut(HLERequestContext& ctx) {
     LOG_DEBUG(Service_Audio, "Opening new AudioOut, sessionid={}, free sessions={}", new_session_id,
               impl->num_free_sessions);
 
-    auto audio_out = std::make_shared<IAudioOut>(system, *impl, new_session_id, device_name,
-                                                 in_params, handle, applet_resource_user_id);
-    result = audio_out->GetImpl()->GetSystem().Initialize(device_name, in_params, handle,
-                                                          applet_resource_user_id);
+    auto audio_out =
+        std::make_shared<IAudioOut>(system, *impl, new_session_id, device_name, in_params,
+                                    process.GetPointerUnsafe(), applet_resource_user_id);
+    result = audio_out->GetImpl()->GetSystem().Initialize(
+        device_name, in_params, process.GetPointerUnsafe(), applet_resource_user_id);
     if (result.IsError()) {
         LOG_ERROR(Service_Audio, "Failed to initialize the AudioOut System!");
         IPC::ResponseBuilder rb{ctx, 2};
