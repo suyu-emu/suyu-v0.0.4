@@ -5,8 +5,6 @@
 #include "video_core/host_shaders/ffx_a_h.h"
 #include "video_core/host_shaders/ffx_fsr1_h.h"
 #include "video_core/host_shaders/full_screen_triangle_vert.h"
-#include "video_core/host_shaders/fxaa_frag.h"
-#include "video_core/host_shaders/fxaa_vert.h"
 #include "video_core/host_shaders/opengl_fidelityfx_fsr_easu_frag.h"
 #include "video_core/host_shaders/opengl_fidelityfx_fsr_frag.h"
 #include "video_core/host_shaders/opengl_fidelityfx_fsr_rcas_frag.h"
@@ -22,6 +20,7 @@
 #include "video_core/renderer_opengl/gl_shader_util.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/renderer_opengl/present/fsr.h"
+#include "video_core/renderer_opengl/present/fxaa.h"
 #include "video_core/renderer_opengl/present/smaa.h"
 #include "video_core/textures/decoders.h"
 
@@ -67,9 +66,6 @@ BlitScreen::BlitScreen(RasterizerOpenGL& rasterizer_,
     : rasterizer(rasterizer_), device_memory(device_memory_), state_tracker(state_tracker_),
       program_manager(program_manager_), device(device_) {
     // Create shader programs
-    fxaa_vertex = CreateProgram(HostShaders::FXAA_VERT, GL_VERTEX_SHADER);
-    fxaa_fragment = CreateProgram(HostShaders::FXAA_FRAG, GL_FRAGMENT_SHADER);
-
     const auto replace_include = [](std::string& shader_source, std::string_view include_name,
                                     std::string_view include_content) {
         const std::string include_string = fmt::format("#include \"{}\"", include_name);
@@ -130,8 +126,6 @@ BlitScreen::BlitScreen(RasterizerOpenGL& rasterizer_,
     const u8 framebuffer_data[4] = {0, 0, 0, 0};
     glClearTexImage(framebuffer_texture.resource.handle, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                     framebuffer_data);
-
-    aa_framebuffer.Create();
 
     // Enable unified vertex attributes and query vertex buffer address when the driver supports it
     if (device.HasVertexBufferUnifiedMemory()) {
@@ -244,13 +238,10 @@ void BlitScreen::ConfigureFramebufferTexture(const Tegra::FramebufferConfig& fra
     framebuffer_texture.resource.Create(GL_TEXTURE_2D);
     glTextureStorage2D(framebuffer_texture.resource.handle, 1, internal_format,
                        framebuffer_texture.width, framebuffer_texture.height);
-    aa_texture.Release();
-    aa_texture.Create(GL_TEXTURE_2D);
-    glTextureStorage2D(aa_texture.handle, 1, GL_RGBA16F,
-                       Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
-                       Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
-    glNamedFramebufferTexture(aa_framebuffer.handle, GL_COLOR_ATTACHMENT0, aa_texture.handle, 0);
 
+    fxaa = std::make_unique<FXAA>(
+        Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
+        Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
     smaa = std::make_unique<SMAA>(
         Settings::values.resolution_info.ScaleUp(framebuffer_texture.width),
         Settings::values.resolution_info.ScaleUp(framebuffer_texture.height));
@@ -323,10 +314,7 @@ void BlitScreen::DrawScreen(const Tegra::FramebufferConfig& framebuffer,
 
         switch (anti_aliasing) {
         case Settings::AntiAliasing::Fxaa: {
-            program_manager.BindPresentPrograms(fxaa_vertex.handle, fxaa_fragment.handle);
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, aa_framebuffer.handle);
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            glBindTextureUnit(0, aa_texture.handle);
+            glBindTextureUnit(0, fxaa->Draw(program_manager, info.display_texture));
         } break;
         case Settings::AntiAliasing::Smaa: {
             glBindTextureUnit(0, smaa->Draw(program_manager, info.display_texture));

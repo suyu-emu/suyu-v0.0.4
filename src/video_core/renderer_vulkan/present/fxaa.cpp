@@ -133,7 +133,7 @@ VkImageView FXAA::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
         BeginRenderPass(cmdbuf, renderpass, framebuffer, extent);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, descriptor_set, {});
-        cmdbuf.Draw(4, 1, 0, 0);
+        cmdbuf.Draw(3, 1, 0, 0);
         cmdbuf.EndRenderPass();
         TransitionImageLayout(cmdbuf, output_image, VK_IMAGE_LAYOUT_GENERAL);
     });
