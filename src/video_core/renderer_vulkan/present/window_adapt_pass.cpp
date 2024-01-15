@@ -92,7 +92,9 @@ void WindowAdaptPass::Draw(Scheduler& scheduler, size_t image_index, VkImageView
     const VkFramebuffer host_framebuffer{*dst->framebuffer};
     const VkRenderPass renderpass{*render_pass};
     const VkPipeline graphics_pipeline{*pipeline};
+    const VkPipelineLayout graphics_pipeline_layout{*pipeline_layout};
     const VkDescriptorSet descriptor_set{descriptor_sets[image_index]};
+    const VkBuffer vertex_buffer{*buffer};
     const VkExtent2D render_area{
         .width = dst->width,
         .height = dst->height,
@@ -134,8 +136,8 @@ void WindowAdaptPass::Draw(Scheduler& scheduler, size_t image_index, VkImageView
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline);
         cmdbuf.SetViewport(0, viewport);
         cmdbuf.SetScissor(0, scissor);
-        cmdbuf.BindVertexBuffer(0, *buffer, offsetof(BufferData, vertices));
-        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline_layout, 0,
+        cmdbuf.BindVertexBuffer(0, vertex_buffer, offsetof(BufferData, vertices));
+        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline_layout, 0,
                                   descriptor_set, {});
         cmdbuf.Draw(4, 1, 0, 0);
         cmdbuf.EndRenderPass();

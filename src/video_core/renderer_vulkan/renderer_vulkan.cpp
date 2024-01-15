@@ -222,6 +222,9 @@ void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& fr
             .image = std::move(staging_image),
             .image_view = std::move(dst_view),
             .framebuffer = std::move(screenshot_fb),
+            .cmdbuf{},
+            .render_ready{},
+            .present_done{},
         };
     }();
 

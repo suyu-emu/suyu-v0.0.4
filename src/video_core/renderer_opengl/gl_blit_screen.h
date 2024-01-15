@@ -18,6 +18,10 @@ namespace Tegra {
 struct FramebufferConfig;
 }
 
+namespace Settings {
+enum class ScalingFilter : u32;
+}
+
 namespace OpenGL {
 
 class Device;
@@ -27,6 +31,7 @@ class ProgramManager;
 class RasterizerOpenGL;
 class SMAA;
 class StateTracker;
+class WindowAdaptPass;
 
 /// Structure used for storing information about the textures for the Switch screen
 struct TextureInfo {
@@ -61,28 +66,21 @@ public:
     void DrawScreen(const Tegra::FramebufferConfig& framebuffer,
                     const Layout::FramebufferLayout& layout);
 
-    void RenderScreenshot(const Tegra::FramebufferConfig& framebuffer);
-
     /// Loads framebuffer from emulated memory into the active OpenGL texture.
     FramebufferTextureInfo LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuffer);
 
     FramebufferTextureInfo PrepareRenderTarget(const Tegra::FramebufferConfig& framebuffer);
 
 private:
+    void CreateFXAA();
+    void CreateSMAA();
+    void CreateWindowAdapt();
+
     RasterizerOpenGL& rasterizer;
     Tegra::MaxwellDeviceMemoryManager& device_memory;
     StateTracker& state_tracker;
     ProgramManager& program_manager;
     Device& device;
-
-    OGLSampler present_sampler;
-    OGLSampler present_sampler_nn;
-    OGLBuffer vertex_buffer;
-    OGLProgram present_vertex;
-    OGLProgram present_bilinear_fragment;
-    OGLProgram present_bicubic_fragment;
-    OGLProgram present_gaussian_fragment;
-    OGLProgram present_scaleforce_fragment;
 
     /// Display information for Switch screen
     TextureInfo framebuffer_texture;
@@ -91,11 +89,11 @@ private:
     std::unique_ptr<FXAA> fxaa;
     std::unique_ptr<SMAA> smaa;
 
+    Settings::ScalingFilter current_window_adapt{};
+    std::unique_ptr<WindowAdaptPass> window_adapt;
+
     /// OpenGL framebuffer data
     std::vector<u8> gl_framebuffer_data;
-
-    // GPU address of the vertex buffer
-    GLuint64EXT vertex_buffer_address = 0;
 };
 
 } // namespace OpenGL

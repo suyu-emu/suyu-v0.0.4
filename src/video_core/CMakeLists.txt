@@ -116,6 +116,8 @@ add_library(video_core STATIC
     renderer_null/null_rasterizer.h
     renderer_null/renderer_null.cpp
     renderer_null/renderer_null.h
+    renderer_opengl/present/filters.cpp
+    renderer_opengl/present/filters.h
     renderer_opengl/present/fsr.cpp
     renderer_opengl/present/fsr.h
     renderer_opengl/present/fxaa.cpp
@@ -123,6 +125,8 @@ add_library(video_core STATIC
     renderer_opengl/present/smaa.cpp
     renderer_opengl/present/smaa.h
     renderer_opengl/present/util.h
+    renderer_opengl/present/window_adapt_pass.cpp
+    renderer_opengl/present/window_adapt_pass.h
     renderer_opengl/blit_image.cpp
     renderer_opengl/blit_image.h
     renderer_opengl/gl_blit_screen.cpp

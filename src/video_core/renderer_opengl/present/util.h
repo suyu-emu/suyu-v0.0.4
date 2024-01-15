@@ -29,4 +29,15 @@ static inline OGLSampler CreateBilinearSampler() {
     return sampler;
 }
 
+static inline OGLSampler CreateNearestNeighborSampler() {
+    OGLSampler sampler;
+    sampler.Create();
+    glSamplerParameteri(sampler.handle, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glSamplerParameteri(sampler.handle, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glSamplerParameteri(sampler.handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glSamplerParameteri(sampler.handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glSamplerParameteri(sampler.handle, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    return sampler;
+}
+
 } // namespace OpenGL

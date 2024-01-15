@@ -31,6 +31,7 @@ GLuint FXAA::Draw(ProgramManager& program_manager, GLuint input_texture) {
     program_manager.BindPresentPrograms(vert_shader.handle, frag_shader.handle);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer.handle);
     glBindTextureUnit(0, input_texture);
+    glBindSampler(0, sampler.handle);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glFrontFace(GL_CW);
 
