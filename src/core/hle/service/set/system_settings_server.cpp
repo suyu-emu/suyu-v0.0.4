@@ -775,7 +775,7 @@ void ISystemSettingsServer::SetDeviceTimeZoneLocationName(HLERequestContext& ctx
 
 void ISystemSettingsServer::SetRegionCode(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    m_system_settings.region_code = rp.PopEnum<RegionCode>();
+    m_system_settings.region_code = rp.PopEnum<SystemRegionCode>();
     SetSaveNeeded();
 
     LOG_INFO(Service_SET, "called, region_code={}", m_system_settings.region_code);
