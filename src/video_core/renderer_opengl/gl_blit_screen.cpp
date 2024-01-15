@@ -75,8 +75,6 @@ BlitScreen::BlitScreen(RasterizerOpenGL& rasterizer_,
         CreateProgram(fmt::format("#version 460\n{}", HostShaders::OPENGL_PRESENT_SCALEFORCE_FRAG),
                       GL_FRAGMENT_SHADER);
 
-    fsr = std::make_unique<FSR>();
-
     // Generate presentation sampler
     present_sampler.Create();
     glSamplerParameteri(present_sampler.handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -269,7 +267,7 @@ void BlitScreen::DrawScreen(const Tegra::FramebufferConfig& framebuffer,
     glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthRangeIndexed(0, 0.0, 0.0);
 
-    glBindTextureUnit(0, info.display_texture);
+    GLuint texture = info.display_texture;
 
     auto anti_aliasing = Settings::values.anti_aliasing.GetValue();
     if (anti_aliasing >= Settings::AntiAliasing::MaxEnum) {
@@ -296,10 +294,10 @@ void BlitScreen::DrawScreen(const Tegra::FramebufferConfig& framebuffer,
 
         switch (anti_aliasing) {
         case Settings::AntiAliasing::Fxaa: {
-            glBindTextureUnit(0, fxaa->Draw(program_manager, info.display_texture));
+            texture = fxaa->Draw(program_manager, info.display_texture);
         } break;
         case Settings::AntiAliasing::Smaa: {
-            glBindTextureUnit(0, smaa->Draw(program_manager, info.display_texture));
+            texture = smaa->Draw(program_manager, info.display_texture);
         } break;
         default:
             UNREACHABLE();
@@ -311,34 +309,37 @@ void BlitScreen::DrawScreen(const Tegra::FramebufferConfig& framebuffer,
     glDisablei(GL_SCISSOR_TEST, 0);
 
     if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
-        if (!fsr->AreBuffersInitialized()) {
-            fsr->InitBuffers();
+        GLint old_read_fb;
+        GLint old_draw_fb;
+        glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_read_fb);
+        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &old_draw_fb);
+
+        if (!fsr || fsr->NeedsRecreation(layout.screen)) {
+            fsr = std::make_unique<FSR>(layout.screen.GetWidth(), layout.screen.GetHeight());
         }
 
-        glBindSampler(0, present_sampler.handle);
-        fsr->Draw(program_manager, layout.screen, info.scaled_width, info.scaled_height, crop);
-    } else {
-        if (fsr->AreBuffersInitialized()) {
-            fsr->ReleaseBuffers();
-        }
+        texture = fsr->Draw(program_manager, texture, info.scaled_width, info.scaled_height, crop);
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, old_read_fb);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_draw_fb);
     }
+
+    glBindTextureUnit(0, texture);
 
     const std::array ortho_matrix =
         MakeOrthographicMatrix(static_cast<float>(layout.width), static_cast<float>(layout.height));
 
     const auto fragment_handle = [this]() {
         switch (Settings::values.scaling_filter.GetValue()) {
-        case Settings::ScalingFilter::NearestNeighbor:
-        case Settings::ScalingFilter::Bilinear:
-            return present_bilinear_fragment.handle;
         case Settings::ScalingFilter::Bicubic:
             return present_bicubic_fragment.handle;
         case Settings::ScalingFilter::Gaussian:
             return present_gaussian_fragment.handle;
         case Settings::ScalingFilter::ScaleForce:
             return present_scaleforce_fragment.handle;
+        case Settings::ScalingFilter::NearestNeighbor:
+        case Settings::ScalingFilter::Bilinear:
         case Settings::ScalingFilter::Fsr:
-            return fsr->GetPresentFragmentProgram().handle;
         default:
             return present_bilinear_fragment.handle;
         }
