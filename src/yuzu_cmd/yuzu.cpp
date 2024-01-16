@@ -401,7 +401,7 @@ int main(int argc, char** argv) {
 
     if (use_multiplayer) {
         if (auto member = system.GetRoomNetwork().GetRoomMember().lock()) {
-            member->BindOnChatMessageRecieved(OnMessageReceived);
+            member->BindOnChatMessageReceived(OnMessageReceived);
             member->BindOnStatusMessageReceived(OnStatusMessageReceived);
             member->BindOnStateChanged(OnStateChanged);
             member->BindOnError(OnNetworkError);

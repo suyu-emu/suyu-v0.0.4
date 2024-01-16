@@ -206,7 +206,7 @@ void ChatRoom::Initialize(Network::RoomNetwork* room_network_) {
     room_network = room_network_;
     // setup the callbacks for network updates
     if (auto member = room_network->GetRoomMember().lock()) {
-        member->BindOnChatMessageRecieved(
+        member->BindOnChatMessageReceived(
             [this](const Network::ChatEntry& chat) { emit ChatReceived(chat); });
         member->BindOnStatusMessageReceived(
             [this](const Network::StatusMessageEntry& status_message) {

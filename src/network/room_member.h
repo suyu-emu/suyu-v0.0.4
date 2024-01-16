@@ -254,7 +254,7 @@ public:
      * @param callback The function to call
      * @return A handle used for removing the function from the registered list
      */
-    CallbackHandle<ChatEntry> BindOnChatMessageRecieved(
+    CallbackHandle<ChatEntry> BindOnChatMessageReceived(
         std::function<void(const ChatEntry&)> callback);
 
     /**

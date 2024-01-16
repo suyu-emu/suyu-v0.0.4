@@ -121,7 +121,7 @@ void ConfigureSystem::Setup(const ConfigurationShared::Builder& builder) {
         }
 
         if (setting->Id() == Settings::values.region_index.Id()) {
-            // Keep track of the region_index (and langauge_index) combobox to validate the selected
+            // Keep track of the region_index (and language_index) combobox to validate the selected
             // settings
             combo_region = widget->combobox;
         } else if (setting->Id() == Settings::values.language_index.Id()) {

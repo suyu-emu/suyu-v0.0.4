@@ -845,12 +845,12 @@ void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) 
     DrawSymbol(p, face_center + QPoint(-face_distance, 1), Symbol::Y, text_size);
 
     // D-pad buttons
-    const QPointF dpad_postion = center + QPoint(-61, 0);
-    DrawArrowButton(p, dpad_postion, Direction::Up, button_values[DUp]);
-    DrawArrowButton(p, dpad_postion, Direction::Left, button_values[DLeft]);
-    DrawArrowButton(p, dpad_postion, Direction::Right, button_values[DRight]);
-    DrawArrowButton(p, dpad_postion, Direction::Down, button_values[DDown]);
-    DrawArrowButtonOutline(p, dpad_postion);
+    const QPointF dpad_position = center + QPoint(-61, 0);
+    DrawArrowButton(p, dpad_position, Direction::Up, button_values[DUp]);
+    DrawArrowButton(p, dpad_position, Direction::Left, button_values[DLeft]);
+    DrawArrowButton(p, dpad_position, Direction::Right, button_values[DRight]);
+    DrawArrowButton(p, dpad_position, Direction::Down, button_values[DDown]);
+    DrawArrowButtonOutline(p, dpad_position);
 
     // ZL and ZR buttons
     p.setPen(colors.outline);
@@ -935,13 +935,13 @@ void PlayerControlPreview::DrawGCController(QPainter& p, const QPointF center) {
     DrawSymbol(p, center + QPoint(100, -83), Symbol::Y, text_size);
 
     // D-pad buttons
-    const QPointF dpad_postion = center + QPoint(-61, 37);
+    const QPointF dpad_position = center + QPoint(-61, 37);
     const float dpad_size = 0.8f;
-    DrawArrowButton(p, dpad_postion, Direction::Up, button_values[DUp], dpad_size);
-    DrawArrowButton(p, dpad_postion, Direction::Left, button_values[DLeft], dpad_size);
-    DrawArrowButton(p, dpad_postion, Direction::Right, button_values[DRight], dpad_size);
-    DrawArrowButton(p, dpad_postion, Direction::Down, button_values[DDown], dpad_size);
-    DrawArrowButtonOutline(p, dpad_postion, dpad_size);
+    DrawArrowButton(p, dpad_position, Direction::Up, button_values[DUp], dpad_size);
+    DrawArrowButton(p, dpad_position, Direction::Left, button_values[DLeft], dpad_size);
+    DrawArrowButton(p, dpad_position, Direction::Right, button_values[DRight], dpad_size);
+    DrawArrowButton(p, dpad_position, Direction::Down, button_values[DDown], dpad_size);
+    DrawArrowButtonOutline(p, dpad_position, dpad_size);
 
     // Minus and Plus buttons
     p.setPen(colors.outline);

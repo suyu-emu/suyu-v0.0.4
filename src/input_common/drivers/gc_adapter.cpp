@@ -451,11 +451,11 @@ ButtonMapping GCAdapter::GetButtonMappingForDevice(const Common::ParamPackage& p
             std::tuple{Settings::NativeButton::ZL, PadButton::TriggerL, PadAxes::TriggerLeft},
             {Settings::NativeButton::ZR, PadButton::TriggerR, PadAxes::TriggerRight},
         };
-    for (const auto& [switch_button, gcadapter_buton, gcadapter_axis] : switch_to_gcadapter_axis) {
+    for (const auto& [switch_button, gcadapter_button, gcadapter_axis] : switch_to_gcadapter_axis) {
         Common::ParamPackage button_params{};
         button_params.Set("engine", GetEngineName());
         button_params.Set("port", params.Get("port", 0));
-        button_params.Set("button", static_cast<s32>(gcadapter_buton));
+        button_params.Set("button", static_cast<s32>(gcadapter_button));
         button_params.Set("axis", static_cast<s32>(gcadapter_axis));
         button_params.Set("threshold", 0.5f);
         button_params.Set("range", 1.9f);

@@ -106,8 +106,8 @@ enum class HandAnalysisMode : u32 {
     None,
     Silhouette,
     Image,
-    SilhoueteAndImage,
-    SilhuetteOnly,
+    SilhouetteAndImage,
+    SilhouetteOnly,
 };
 
 // This is nn::irsensor::IrSensorFunctionLevel

@@ -15,7 +15,7 @@ constexpr Result ResultVibrationNotInitialized{ErrorModule::HID, 121};
 constexpr Result ResultVibrationInvalidStyleIndex{ErrorModule::HID, 122};
 constexpr Result ResultVibrationInvalidNpadId{ErrorModule::HID, 123};
 constexpr Result ResultVibrationDeviceIndexOutOfRange{ErrorModule::HID, 124};
-constexpr Result ResultVibrationStrenghtOutOfRange{ErrorModule::HID, 126};
+constexpr Result ResultVibrationStrengthOutOfRange{ErrorModule::HID, 126};
 constexpr Result ResultVibrationArraySizeMismatch{ErrorModule::HID, 131};
 
 constexpr Result InvalidSixAxisFusionRange{ErrorModule::HID, 423};

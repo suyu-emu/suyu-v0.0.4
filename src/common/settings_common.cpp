@@ -35,7 +35,7 @@ bool BasicSetting::Save() const {
     return save;
 }
 
-bool BasicSetting::RuntimeModfiable() const {
+bool BasicSetting::RuntimeModifiable() const {
     return runtime_modifiable;
 }
 

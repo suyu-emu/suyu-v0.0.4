@@ -318,7 +318,7 @@ struct InternalFlags {
         BitField<1, 1, u32> is_connected;
         BitField<2, 1, u32> is_battery_low_ovln_required;
         BitField<3, 1, u32> is_battery_low_ovln_delay_required;
-        BitField<4, 1, u32> is_sample_recieved;
+        BitField<4, 1, u32> is_sample_received;
         BitField<5, 1, u32> is_virtual_input;
         BitField<6, 1, u32> is_wired;
         BitField<8, 1, u32> use_center_clamp;

@@ -750,12 +750,12 @@ Widget::Widget(Settings::BasicSetting* setting_, const TranslationMap& translati
     }
 
     apply_funcs.push_back([load_func, setting_](bool powered_on) {
-        if (setting_->RuntimeModfiable() || !powered_on) {
+        if (setting_->RuntimeModifiable() || !powered_on) {
             load_func();
         }
     });
 
-    bool enable = runtime_lock || setting.RuntimeModfiable();
+    bool enable = runtime_lock || setting.RuntimeModifiable();
     if (setting.Switchable() && Settings::IsConfiguringGlobal() && !runtime_lock) {
         enable &= setting.UsingGlobal();
     }

@@ -9,7 +9,7 @@
 
 namespace AudioCore::Renderer {
 
-SplitterDestinationData* SplitterContext::GetDesintationData(const s32 splitter_id,
+SplitterDestinationData* SplitterContext::GetDestinationData(const s32 splitter_id,
                                                              const s32 destination_id) {
     return splitter_infos[splitter_id].GetData(destination_id);
 }

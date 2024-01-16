@@ -170,7 +170,7 @@ public:
 
     void resizeEvent(QResizeEvent* event) override;
 
-    /// Converts a Qt keybard key into NativeKeyboard key
+    /// Converts a Qt keyboard key into NativeKeyboard key
     static int QtKeyToSwitchKey(Qt::Key qt_keys);
 
     /// Converts a Qt modifier keys into NativeKeyboard modifier keys
