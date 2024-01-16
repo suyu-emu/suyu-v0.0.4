@@ -93,7 +93,8 @@ public:
                                            const FileSys::VfsFile& nso_file, VAddr load_base,
                                            bool should_pass_arguments, bool load_into_process,
                                            std::optional<FileSys::PatchManager> pm = {},
-                                           Core::NCE::Patcher* patch = nullptr);
+                                           std::vector<Core::NCE::Patcher>* patches = nullptr,
+                                           s32 patch_index = -1);
 
     LoadResult Load(Kernel::KProcess& process, Core::System& system) override;
 

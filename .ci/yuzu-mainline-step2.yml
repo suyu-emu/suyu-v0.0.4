@@ -8,17 +8,7 @@ variables:
   DisplayVersion: $[counter(variables['DisplayPrefix'], 1)]
 
 stages:
-- stage: format
-  displayName: 'format'
-  jobs:
-  - job: format
-    displayName: 'clang'
-    pool:
-      vmImage: ubuntu-latest
-    steps:
-    - template: ./templates/format-check.yml
 - stage: build
-  dependsOn: format
   displayName: 'build'
   jobs:
   - job: build

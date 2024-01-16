@@ -36,6 +36,7 @@
 #include "core/hle/service/caps/caps_su.h"
 #include "core/hle/service/caps/caps_types.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "core/hle/service/filesystem/save_data_controller.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/nvnflinger/fb_share_buffer_manager.h"
@@ -2178,7 +2179,7 @@ void IApplicationFunctions::EnsureSaveData(HLERequestContext& ctx) {
     attribute.type = FileSys::SaveDataType::SaveData;
 
     FileSys::VirtualDir save_data{};
-    const auto res = system.GetFileSystemController().CreateSaveData(
+    const auto res = system.GetFileSystemController().OpenSaveDataController()->CreateSaveData(
         &save_data, FileSys::SaveDataSpaceId::NandUser, attribute);
 
     IPC::ResponseBuilder rb{ctx, 4};
@@ -2353,7 +2354,7 @@ void IApplicationFunctions::ExtendSaveData(HLERequestContext& ctx) {
               "new_journal={:016X}",
               static_cast<u8>(type), user_id[1], user_id[0], new_normal_size, new_journal_size);
 
-    system.GetFileSystemController().WriteSaveDataSize(
+    system.GetFileSystemController().OpenSaveDataController()->WriteSaveDataSize(
         type, system.GetApplicationProcessProgramID(), user_id,
         {new_normal_size, new_journal_size});
 
@@ -2378,7 +2379,7 @@ void IApplicationFunctions::GetSaveDataSize(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called with type={:02X}, user_id={:016X}{:016X}", type, user_id[1],
               user_id[0]);
 
-    const auto size = system.GetFileSystemController().ReadSaveDataSize(
+    const auto size = system.GetFileSystemController().OpenSaveDataController()->ReadSaveDataSize(
         type, system.GetApplicationProcessProgramID(), user_id);
 
     IPC::ResponseBuilder rb{ctx, 6};

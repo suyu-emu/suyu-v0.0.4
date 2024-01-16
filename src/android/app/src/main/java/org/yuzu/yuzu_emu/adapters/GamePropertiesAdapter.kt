@@ -12,23 +12,22 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import org.yuzu.yuzu_emu.databinding.CardInstallableIconBinding
 import org.yuzu.yuzu_emu.databinding.CardSimpleOutlinedBinding
 import org.yuzu.yuzu_emu.model.GameProperty
 import org.yuzu.yuzu_emu.model.InstallableProperty
 import org.yuzu.yuzu_emu.model.SubmenuProperty
+import org.yuzu.yuzu_emu.viewholder.AbstractViewHolder
 
 class GamePropertiesAdapter(
     private val viewLifecycle: LifecycleOwner,
     private var properties: List<GameProperty>
-) :
-    RecyclerView.Adapter<GamePropertiesAdapter.GamePropertyViewHolder>() {
+) : AbstractListAdapter<GameProperty, AbstractViewHolder<GameProperty>>(properties) {
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): GamePropertyViewHolder {
+    ): AbstractViewHolder<GameProperty> {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             PropertyType.Submenu.ordinal -> {
@@ -51,11 +50,6 @@ class GamePropertiesAdapter(
         }
     }
 
-    override fun getItemCount(): Int = properties.size
-
-    override fun onBindViewHolder(holder: GamePropertyViewHolder, position: Int) =
-        holder.bind(properties[position])
-
     override fun getItemViewType(position: Int): Int {
         return when (properties[position]) {
             is SubmenuProperty -> PropertyType.Submenu.ordinal
@@ -63,14 +57,10 @@ class GamePropertiesAdapter(
         }
     }
 
-    sealed class GamePropertyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        abstract fun bind(property: GameProperty)
-    }
-
     inner class SubmenuPropertyViewHolder(val binding: CardSimpleOutlinedBinding) :
-        GamePropertyViewHolder(binding.root) {
-        override fun bind(property: GameProperty) {
-            val submenuProperty = property as SubmenuProperty
+        AbstractViewHolder<GameProperty>(binding) {
+        override fun bind(model: GameProperty) {
+            val submenuProperty = model as SubmenuProperty
 
             binding.root.setOnClickListener {
                 submenuProperty.action.invoke()
@@ -108,9 +98,9 @@ class GamePropertiesAdapter(
     }
 
     inner class InstallablePropertyViewHolder(val binding: CardInstallableIconBinding) :
-        GamePropertyViewHolder(binding.root) {
-        override fun bind(property: GameProperty) {
-            val installableProperty = property as InstallableProperty
+        AbstractViewHolder<GameProperty>(binding) {
+        override fun bind(model: GameProperty) {
+            val installableProperty = model as InstallableProperty
 
             binding.title.setText(installableProperty.titleId)
             binding.description.setText(installableProperty.descriptionId)

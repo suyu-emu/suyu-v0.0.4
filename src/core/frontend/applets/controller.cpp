@@ -47,7 +47,7 @@ void DefaultControllerApplet::ReconfigureControllers(ReconfigureCallback callbac
         // Connect controllers based on the following priority list from highest to lowest priority:
         // Pro Controller -> Dual Joycons -> Left Joycon/Right Joycon -> Handheld
         if (parameters.allow_pro_controller) {
-            controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
+            controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::Fullkey);
             controller->Connect(true);
         } else if (parameters.allow_dual_joycons) {
             controller->SetNpadStyleIndex(Core::HID::NpadStyleIndex::JoyconDual);

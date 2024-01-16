@@ -244,7 +244,7 @@ void PlayerControlPreview::paintEvent(QPaintEvent* event) {
     case Core::HID::NpadStyleIndex::GameCube:
         DrawGCController(p, center);
         break;
-    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Fullkey:
     default:
         DrawProController(p, center);
         break;

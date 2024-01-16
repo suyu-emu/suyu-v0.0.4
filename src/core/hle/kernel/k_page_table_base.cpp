@@ -431,15 +431,43 @@ Result KPageTableBase::InitializeForProcess(Svc::CreateProcessFlag as_type, bool
                                                m_memory_block_slab_manager));
 }
 
+Result KPageTableBase::FinalizeProcess() {
+    // Only process tables should be finalized.
+    ASSERT(!this->IsKernel());
+
+    // NOTE: Here Nintendo calls an unknown OnFinalize function.
+    // this->OnFinalize();
+
+    // NOTE: Here Nintendo calls a second unknown OnFinalize function.
+    // this->OnFinalize2();
+
+    // NOTE: Here Nintendo does a page table walk to discover heap pages to free.
+    // We will use the block manager finalization below to free them.
+
+    R_SUCCEED();
+}
+
 void KPageTableBase::Finalize() {
-    auto HostUnmapCallback = [&](KProcessAddress addr, u64 size) {
-        if (Settings::IsFastmemEnabled()) {
+    this->FinalizeProcess();
+
+    auto BlockCallback = [&](KProcessAddress addr, u64 size) {
+        if (m_impl->fastmem_arena) {
             m_system.DeviceMemory().buffer.Unmap(GetInteger(addr), size, false);
         }
+
+        // Get physical pages.
+        KPageGroup pg(m_kernel, m_block_info_manager);
+        this->MakePageGroup(pg, addr, size / PageSize);
+
+        // Free the pages.
+        pg.CloseAndReset();
     };
 
     // Finalize memory blocks.
-    m_memory_block_manager.Finalize(m_memory_block_slab_manager, std::move(HostUnmapCallback));
+    {
+        KScopedLightLock lk(m_general_lock);
+        m_memory_block_manager.Finalize(m_memory_block_slab_manager, std::move(BlockCallback));
+    }
 
     // Free any unsafe mapped memory.
     if (m_mapped_unsafe_physical_memory) {

@@ -71,18 +71,7 @@ size_t Display::GetNumLayers() const {
     return std::ranges::count_if(layers, [](auto& l) { return l->IsOpen(); });
 }
 
-Result Display::GetVSyncEvent(Kernel::KReadableEvent** out_vsync_event) {
-    if (got_vsync_event) {
-        return ResultPermissionDenied;
-    }
-
-    got_vsync_event = true;
-
-    *out_vsync_event = GetVSyncEventUnchecked();
-    return ResultSuccess;
-}
-
-Kernel::KReadableEvent* Display::GetVSyncEventUnchecked() {
+Kernel::KReadableEvent* Display::GetVSyncEvent() {
     return &vsync_event->GetReadableEvent();
 }
 

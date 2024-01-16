@@ -28,14 +28,14 @@ Result KMemoryBlockManager::Initialize(KProcessAddress st, KProcessAddress nd,
 }
 
 void KMemoryBlockManager::Finalize(KMemoryBlockSlabManager* slab_manager,
-                                   HostUnmapCallback&& host_unmap_callback) {
+                                   BlockCallback&& block_callback) {
     // Erase every block until we have none left.
     auto it = m_memory_block_tree.begin();
     while (it != m_memory_block_tree.end()) {
         KMemoryBlock* block = std::addressof(*it);
         it = m_memory_block_tree.erase(it);
+        block_callback(block->GetAddress(), block->GetSize());
         slab_manager->Free(block);
-        host_unmap_callback(block->GetAddress(), block->GetSize());
     }
 
     ASSERT(m_memory_block_tree.empty());

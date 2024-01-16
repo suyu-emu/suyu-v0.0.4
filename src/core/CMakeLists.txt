@@ -490,6 +490,10 @@ add_library(core STATIC
     hle/service/filesystem/fsp_pr.h
     hle/service/filesystem/fsp_srv.cpp
     hle/service/filesystem/fsp_srv.h
+    hle/service/filesystem/romfs_controller.cpp
+    hle/service/filesystem/romfs_controller.h
+    hle/service/filesystem/save_data_controller.cpp
+    hle/service/filesystem/save_data_controller.h
     hle/service/fgm/fgm.cpp
     hle/service/fgm/fgm.h
     hle/service/friend/friend.cpp

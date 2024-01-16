@@ -275,10 +275,12 @@ AppLoader_NRO::LoadResult AppLoader_NRO::Load(Kernel::KProcess& process, Core::S
         return {ResultStatus::ErrorLoadingNRO, {}};
     }
 
-    if (romfs != nullptr) {
-        system.GetFileSystemController().RegisterRomFS(std::make_unique<FileSys::RomFSFactory>(
-            *this, system.GetContentProvider(), system.GetFileSystemController()));
-    }
+    u64 program_id{};
+    ReadProgramId(program_id);
+    system.GetFileSystemController().RegisterProcess(
+        process.GetProcessId(), program_id,
+        std::make_unique<FileSys::RomFSFactory>(*this, system.GetContentProvider(),
+                                                system.GetFileSystemController()));
 
     is_loaded = true;
     return {ResultStatus::Success, LoadParameters{Kernel::KThread::DefaultThreadPriority,

@@ -171,6 +171,12 @@ void KProcess::Finalize() {
         m_resource_limit->Close();
     }
 
+    // Clear expensive resources, as the destructor is not called for guest objects.
+    for (auto& interface : m_arm_interfaces) {
+        interface.reset();
+    }
+    m_exclusive_monitor.reset();
+
     // Perform inherited finalization.
     KSynchronizationObject::Finalize();
 }
@@ -1233,10 +1239,10 @@ void KProcess::LoadModule(CodeSet code_set, KProcessAddress base_addr) {
     ReprotectSegment(code_set.DataSegment(), Svc::MemoryPermission::ReadWrite);
 
 #ifdef HAS_NCE
-    if (this->IsApplication() && Settings::IsNceEnabled()) {
+    const auto& patch = code_set.PatchSegment();
+    if (this->IsApplication() && Settings::IsNceEnabled() && patch.size != 0) {
         auto& buffer = m_kernel.System().DeviceMemory().buffer;
         const auto& code = code_set.CodeSegment();
-        const auto& patch = code_set.PatchSegment();
         buffer.Protect(GetInteger(base_addr + code.addr), code.size,
                        Common::MemoryPermission::Read | Common::MemoryPermission::Execute);
         buffer.Protect(GetInteger(base_addr + patch.addr), patch.size,
