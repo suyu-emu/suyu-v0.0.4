@@ -509,11 +509,11 @@ void EmulatedController::ReloadInput() {
         });
     }
     turbo_button_state = 0;
-    is_initalized = true;
+    is_initialized = true;
 }
 
 void EmulatedController::UnloadInput() {
-    is_initalized = false;
+    is_initialized = false;
     for (auto& button : button_devices) {
         button.reset();
     }
@@ -1209,7 +1209,7 @@ void EmulatedController::SetNfc(const Common::Input::CallbackStatus& callback) {
 }
 
 bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue vibration) {
-    if (!is_initalized) {
+    if (!is_initialized) {
         return false;
     }
     if (device_index >= output_devices.size()) {
@@ -1247,7 +1247,7 @@ bool EmulatedController::IsVibrationEnabled(std::size_t device_index) {
     const auto player_index = Service::HID::NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
 
-    if (!is_initalized) {
+    if (!is_initialized) {
         return false;
     }
 
@@ -1270,7 +1270,7 @@ Common::Input::DriverResult EmulatedController::SetPollingMode(
     EmulatedDeviceIndex device_index, Common::Input::PollingMode polling_mode) {
     LOG_INFO(Service_HID, "Set polling mode {}, device_index={}", polling_mode, device_index);
 
-    if (!is_initalized) {
+    if (!is_initialized) {
         return Common::Input::DriverResult::InvalidHandle;
     }
 
@@ -1319,7 +1319,7 @@ bool EmulatedController::SetCameraFormat(
     Core::IrSensor::ImageTransferProcessorFormat camera_format) {
     LOG_INFO(Service_HID, "Set camera format {}", camera_format);
 
-    if (!is_initalized) {
+    if (!is_initialized) {
         return false;
     }
 
@@ -1347,7 +1347,7 @@ void EmulatedController::SetRingParam(Common::ParamPackage param) {
 
 bool EmulatedController::HasNfc() const {
 
-    if (!is_initalized) {
+    if (!is_initialized) {
         return false;
     }
 
@@ -1388,7 +1388,7 @@ bool EmulatedController::RemoveNfcHandle() {
 }
 
 bool EmulatedController::StartNfcPolling() {
-    if (!is_initalized) {
+    if (!is_initialized) {
         return false;
     }
 
@@ -1403,7 +1403,7 @@ bool EmulatedController::StartNfcPolling() {
 }
 
 bool EmulatedController::StopNfcPolling() {
-    if (!is_initalized) {
+    if (!is_initialized) {
         return false;
     }
 
@@ -1418,7 +1418,7 @@ bool EmulatedController::StopNfcPolling() {
 }
 
 bool EmulatedController::ReadAmiiboData(std::vector<u8>& data) {
-    if (!is_initalized) {
+    if (!is_initialized) {
         return false;
     }
 
@@ -1434,7 +1434,7 @@ bool EmulatedController::ReadAmiiboData(std::vector<u8>& data) {
 
 bool EmulatedController::ReadMifareData(const Common::Input::MifareRequest& request,
                                         Common::Input::MifareRequest& out_data) {
-    if (!is_initalized) {
+    if (!is_initialized) {
         return false;
     }
 
@@ -1450,7 +1450,7 @@ bool EmulatedController::ReadMifareData(const Common::Input::MifareRequest& requ
 }
 
 bool EmulatedController::WriteMifareData(const Common::Input::MifareRequest& request) {
-    if (!is_initalized) {
+    if (!is_initialized) {
         return false;
     }
 
@@ -1465,7 +1465,7 @@ bool EmulatedController::WriteMifareData(const Common::Input::MifareRequest& req
 }
 
 bool EmulatedController::WriteNfc(const std::vector<u8>& data) {
-    if (!is_initalized) {
+    if (!is_initialized) {
         return false;
     }
 
@@ -1480,7 +1480,7 @@ bool EmulatedController::WriteNfc(const std::vector<u8>& data) {
 }
 
 void EmulatedController::SetLedPattern() {
-    if (!is_initalized) {
+    if (!is_initialized) {
         return;
     }
 
@@ -1508,8 +1508,8 @@ void EmulatedController::SetGyroscopeZeroDriftMode(GyroscopeZeroDriftMode mode) 
             motion.emulated.SetGyroThreshold(motion.emulated.ThresholdLoose);
             break;
         case GyroscopeZeroDriftMode::Tight:
-            motion_sensitivity = motion.emulated.IsAtRestThight;
-            motion.emulated.SetGyroThreshold(motion.emulated.ThresholdThight);
+            motion_sensitivity = motion.emulated.IsAtRestTight;
+            motion.emulated.SetGyroThreshold(motion.emulated.ThresholdTight);
             break;
         case GyroscopeZeroDriftMode::Standard:
         default:

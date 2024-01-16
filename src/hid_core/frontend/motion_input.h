@@ -13,12 +13,12 @@ class MotionInput {
 public:
     static constexpr float ThresholdLoose = 0.01f;
     static constexpr float ThresholdStandard = 0.007f;
-    static constexpr float ThresholdThight = 0.002f;
+    static constexpr float ThresholdTight = 0.002f;
 
     static constexpr float IsAtRestRelaxed = 0.05f;
     static constexpr float IsAtRestLoose = 0.02f;
     static constexpr float IsAtRestStandard = 0.01f;
-    static constexpr float IsAtRestThight = 0.005f;
+    static constexpr float IsAtRestTight = 0.005f;
 
     static constexpr float GyroMaxValue = 5.0f;
     static constexpr float AccelMaxValue = 7.0f;

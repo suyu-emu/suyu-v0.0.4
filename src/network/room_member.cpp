@@ -724,7 +724,7 @@ RoomMember::CallbackHandle<RoomInformation> RoomMember::BindOnRoomInformationCha
     return room_member_impl->Bind(callback);
 }
 
-RoomMember::CallbackHandle<ChatEntry> RoomMember::BindOnChatMessageRecieved(
+RoomMember::CallbackHandle<ChatEntry> RoomMember::BindOnChatMessageReceived(
     std::function<void(const ChatEntry&)> callback) {
     return room_member_impl->Bind(callback);
 }

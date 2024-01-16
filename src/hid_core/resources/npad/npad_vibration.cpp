@@ -15,7 +15,7 @@ Result NpadVibration::Activate() {
 
     const f32 master_volume = 1.0f; // nn::settings::system::GetVibrationMasterVolume();
     // if (master_volume < 0.0f || master_volume > 1.0f) {
-    //     return ResultVibrationStrenghtOutOfRange;
+    //     return ResultVibrationStrengthOutOfRange;
     // }
 
     volume = master_volume;
@@ -30,7 +30,7 @@ Result NpadVibration::SetVibrationMasterVolume(f32 master_volume) {
     std::scoped_lock lock{mutex};
 
     if (master_volume < 0.0f && master_volume > 1.0f) {
-        return ResultVibrationStrenghtOutOfRange;
+        return ResultVibrationStrengthOutOfRange;
     }
 
     volume = master_volume;
@@ -50,7 +50,7 @@ Result NpadVibration::GetVibrationMasterVolume(f32& out_volume) const {
 
     const f32 master_volume = 1.0f; // nn::settings::system::GetVibrationMasterVolume();
     // if (master_volume < 0.0f || master_volume > 1.0f) {
-    //     return ResultVibrationStrenghtOutOfRange;
+    //     return ResultVibrationStrengthOutOfRange;
     // }
 
     out_volume = master_volume;
@@ -69,7 +69,7 @@ Result NpadVibration::EndPermitVibrationSession() {
 
     const f32 master_volume = 1.0f; // nn::settings::system::GetVibrationMasterVolume();
     // if (master_volume < 0.0f || master_volume > 1.0f) {
-    //     return ResultVibrationStrenghtOutOfRange;
+    //     return ResultVibrationStrengthOutOfRange;
     // }
 
     volume = master_volume;

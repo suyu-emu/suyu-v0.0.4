@@ -41,7 +41,7 @@ void CommandGenerator::GenerateDataSourceCommand(VoiceInfo& voice_info,
                                                  const VoiceState& voice_state, const s8 channel) {
     if (voice_info.mix_id == UnusedMixId) {
         if (voice_info.splitter_id != UnusedSplitterId) {
-            auto destination{splitter_context.GetDesintationData(voice_info.splitter_id, 0)};
+            auto destination{splitter_context.GetDestinationData(voice_info.splitter_id, 0)};
             u32 dest_id{0};
             while (destination != nullptr) {
                 if (destination->IsConfigured()) {
@@ -55,7 +55,7 @@ void CommandGenerator::GenerateDataSourceCommand(VoiceInfo& voice_info,
                     }
                 }
                 dest_id++;
-                destination = splitter_context.GetDesintationData(voice_info.splitter_id, dest_id);
+                destination = splitter_context.GetDestinationData(voice_info.splitter_id, dest_id);
             }
         }
     } else {
@@ -234,7 +234,7 @@ void CommandGenerator::GenerateVoiceCommand(VoiceInfo& voice_info) {
         if (voice_info.mix_id == UnusedMixId) {
             if (voice_info.splitter_id != UnusedSplitterId) {
                 auto i{channel};
-                auto destination{splitter_context.GetDesintationData(voice_info.splitter_id, i)};
+                auto destination{splitter_context.GetDestinationData(voice_info.splitter_id, i)};
                 while (destination != nullptr) {
                     if (destination->IsConfigured()) {
                         const auto mix_id{destination->GetMixId()};
@@ -249,7 +249,7 @@ void CommandGenerator::GenerateVoiceCommand(VoiceInfo& voice_info) {
                         }
                     }
                     i += voice_info.channel_count;
-                    destination = splitter_context.GetDesintationData(voice_info.splitter_id, i);
+                    destination = splitter_context.GetDestinationData(voice_info.splitter_id, i);
                 }
             }
         } else {
@@ -591,7 +591,7 @@ void CommandGenerator::GenerateMixCommands(MixInfo& mix_info) {
         if (mix_info.dst_splitter_id != UnusedSplitterId) {
             s16 dest_id{0};
             auto destination{
-                splitter_context.GetDesintationData(mix_info.dst_splitter_id, dest_id)};
+                splitter_context.GetDestinationData(mix_info.dst_splitter_id, dest_id)};
             while (destination != nullptr) {
                 if (destination->IsConfigured()) {
                     auto splitter_mix_id{destination->GetMixId()};
@@ -612,7 +612,7 @@ void CommandGenerator::GenerateMixCommands(MixInfo& mix_info) {
                 }
                 dest_id++;
                 destination =
-                    splitter_context.GetDesintationData(mix_info.dst_splitter_id, dest_id);
+                    splitter_context.GetDestinationData(mix_info.dst_splitter_id, dest_id);
             }
         }
     } else {

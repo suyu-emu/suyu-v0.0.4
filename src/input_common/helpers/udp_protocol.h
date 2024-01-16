@@ -78,7 +78,7 @@ namespace Request {
 enum RegisterFlags : u8 {
     AllPads,
     PadID,
-    PadMACAdddress,
+    PadMACAddress,
 };
 
 struct Version {};

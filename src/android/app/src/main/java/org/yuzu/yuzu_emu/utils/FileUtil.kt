@@ -104,7 +104,7 @@ object FileUtil {
 
     /**
      * Reference:  https://stackoverflow.com/questions/42186820/documentfile-is-very-slow
-     * This function will be faster than DoucmentFile.listFiles
+     * This function will be faster than DocumentFile.listFiles
      * @param uri Directory uri.
      * @return CheapDocument lists.
      */

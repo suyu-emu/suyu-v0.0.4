@@ -14,7 +14,7 @@ void HidFirmwareSettings::Reload() {
 }
 
 void HidFirmwareSettings::LoadSettings(bool reload_config) {
-    if (is_initalized && !reload_config) {
+    if (is_initialized && !reload_config) {
         return;
     }
 
@@ -33,7 +33,7 @@ void HidFirmwareSettings::LoadSettings(bool reload_config) {
     is_handheld_forced = true;
     features_per_id_disabled = {};
     is_touch_firmware_auto_update_disabled = false;
-    is_initalized = true;
+    is_initialized = true;
 }
 
 bool HidFirmwareSettings::IsDebugPadEnabled() {
