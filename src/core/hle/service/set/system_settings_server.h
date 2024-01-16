@@ -74,6 +74,8 @@ public:
         Service::PSC::Time::SteadyClockTimePoint& out_time_point) const;
     Result SetUserSystemClockAutomaticCorrectionUpdatedTime(
         const Service::PSC::Time::SteadyClockTimePoint& time_point);
+    Result GetTouchScreenMode(TouchScreenMode& touch_screen_mode) const;
+    Result SetTouchScreenMode(TouchScreenMode touch_screen_mode);
 
 private:
     void SetLanguageCode(HLERequestContext& ctx);
@@ -154,6 +156,8 @@ private:
     void GetChineseTraditionalInputMethod(HLERequestContext& ctx);
     void GetHomeMenuScheme(HLERequestContext& ctx);
     void GetHomeMenuSchemeModel(HLERequestContext& ctx);
+    void GetTouchScreenMode(HLERequestContext& ctx);
+    void SetTouchScreenMode(HLERequestContext& ctx);
     void GetFieldTestingFlag(HLERequestContext& ctx);
     void GetPanelCrcMode(HLERequestContext& ctx);
     void SetPanelCrcMode(HLERequestContext& ctx);

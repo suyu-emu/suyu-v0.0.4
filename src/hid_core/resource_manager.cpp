@@ -15,6 +15,7 @@
 #include "hid_core/resources/applet_resource.h"
 #include "hid_core/resources/debug_pad/debug_pad.h"
 #include "hid_core/resources/digitizer/digitizer.h"
+#include "hid_core/resources/hid_firmware_settings.h"
 #include "hid_core/resources/keyboard/keyboard.h"
 #include "hid_core/resources/mouse/debug_mouse.h"
 #include "hid_core/resources/mouse/mouse.h"
@@ -29,6 +30,8 @@
 #include "hid_core/resources/system_buttons/sleep_button.h"
 #include "hid_core/resources/touch_screen/gesture.h"
 #include "hid_core/resources/touch_screen/touch_screen.h"
+#include "hid_core/resources/touch_screen/touch_screen_driver.h"
+#include "hid_core/resources/touch_screen/touch_screen_resource.h"
 #include "hid_core/resources/unique_pad/unique_pad.h"
 #include "hid_core/resources/vibration/gc_vibration_device.h"
 #include "hid_core/resources/vibration/n64_vibration_device.h"
@@ -45,12 +48,16 @@ constexpr auto default_update_ns = std::chrono::nanoseconds{4 * 1000 * 1000}; //
 constexpr auto mouse_keyboard_update_ns = std::chrono::nanoseconds{8 * 1000 * 1000}; // (8ms, 125Hz)
 constexpr auto motion_update_ns = std::chrono::nanoseconds{5 * 1000 * 1000};         // (5ms, 200Hz)
 
-ResourceManager::ResourceManager(Core::System& system_)
-    : system{system_}, service_context{system_, "hid"} {
+ResourceManager::ResourceManager(Core::System& system_,
+                                 std::shared_ptr<HidFirmwareSettings> settings)
+    : firmware_settings{settings}, system{system_}, service_context{system_, "hid"} {
     applet_resource = std::make_shared<AppletResource>(system);
 }
 
-ResourceManager::~ResourceManager() = default;
+ResourceManager::~ResourceManager() {
+    system.CoreTiming().UnscheduleEvent(touch_update_event);
+    input_event->Finalize();
+};
 
 void ResourceManager::Initialize() {
     if (is_initialized) {
@@ -59,7 +66,9 @@ void ResourceManager::Initialize() {
 
     system.HIDCore().ReloadInputDevices();
 
-    handheld_config = std::make_shared<HandheldConfig>();
+    input_event = service_context.CreateEvent("ResourceManager:InputEvent");
+
+    InitializeHandheldConfig();
     InitializeHidCommonSampler();
     InitializeTouchScreenSampler();
     InitializeConsoleSixAxisSampler();
@@ -154,6 +163,7 @@ Result ResourceManager::CreateAppletResource(u64 aruid) {
     npad->Activate();
     six_axis->Activate();
     touch_screen->Activate();
+    gesture->Activate();
 
     return GetNpad()->ActivateNpadResource(aruid);
 }
@@ -163,6 +173,17 @@ Result ResourceManager::CreateAppletResourceImpl(u64 aruid) {
     return applet_resource->CreateAppletResource(aruid);
 }
 
+void ResourceManager::InitializeHandheldConfig() {
+    handheld_config = std::make_shared<HandheldConfig>();
+    handheld_config->is_handheld_hid_enabled = true;
+    handheld_config->is_joycon_rail_enabled = true;
+    handheld_config->is_force_handheld_style_vibration = false;
+    handheld_config->is_force_handheld = false;
+    if (firmware_settings->IsHandheldForced()) {
+        handheld_config->is_joycon_rail_enabled = false;
+    }
+}
+
 void ResourceManager::InitializeHidCommonSampler() {
     debug_pad = std::make_shared<DebugPad>(system.HIDCore());
     mouse = std::make_shared<Mouse>(system.HIDCore());
@@ -170,7 +191,6 @@ void ResourceManager::InitializeHidCommonSampler() {
     keyboard = std::make_shared<Keyboard>(system.HIDCore());
     unique_pad = std::make_shared<UniquePad>(system.HIDCore());
     npad = std::make_shared<NPad>(system.HIDCore(), service_context);
-    gesture = std::make_shared<Gesture>(system.HIDCore());
     home_button = std::make_shared<HomeButton>(system.HIDCore());
     sleep_button = std::make_shared<SleepButton>(system.HIDCore());
     capture_button = std::make_shared<CaptureButton>(system.HIDCore());
@@ -185,7 +205,8 @@ void ResourceManager::InitializeHidCommonSampler() {
 
     const auto settings =
         system.ServiceManager().GetService<Service::Set::ISystemSettingsServer>("set:sys", true);
-    npad->SetNpadExternals(applet_resource, &shared_mutex, handheld_config, settings);
+    npad->SetNpadExternals(applet_resource, &shared_mutex, handheld_config, input_event,
+                           &input_mutex, settings);
 
     six_axis->SetAppletResource(applet_resource, &shared_mutex);
     mouse->SetAppletResource(applet_resource, &shared_mutex);
@@ -196,11 +217,25 @@ void ResourceManager::InitializeHidCommonSampler() {
 }
 
 void ResourceManager::InitializeTouchScreenSampler() {
-    gesture = std::make_shared<Gesture>(system.HIDCore());
-    touch_screen = std::make_shared<TouchScreen>(system.HIDCore());
+    // This is nn.hid.TouchScreenSampler
+    touch_resource = std::make_shared<TouchResource>(system);
+    touch_driver = std::make_shared<TouchDriver>(system.HIDCore());
+    touch_screen = std::make_shared<TouchScreen>(touch_resource);
+    gesture = std::make_shared<Gesture>(touch_resource);
 
-    touch_screen->SetAppletResource(applet_resource, &shared_mutex);
-    gesture->SetAppletResource(applet_resource, &shared_mutex);
+    touch_update_event = Core::Timing::CreateEvent(
+        "HID::TouchUpdateCallback",
+        [this](s64 time,
+               std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+            touch_resource->OnTouchUpdate(time);
+            return std::nullopt;
+        });
+
+    touch_resource->SetTouchDriver(touch_driver);
+    touch_resource->SetAppletResource(applet_resource, &shared_mutex);
+    touch_resource->SetInputEvent(input_event, &input_mutex);
+    touch_resource->SetHandheldConfig(handheld_config);
+    touch_resource->SetTimerEvent(touch_update_event);
 }
 
 void ResourceManager::InitializeConsoleSixAxisSampler() {
@@ -388,13 +423,15 @@ Result ResourceManager::SendVibrationValue(u64 aruid,
     return result;
 }
 
+Result ResourceManager::GetTouchScreenFirmwareVersion(Core::HID::FirmwareVersion& firmware) const {
+    return ResultSuccess;
+}
+
 void ResourceManager::UpdateControllers(std::chrono::nanoseconds ns_late) {
     auto& core_timing = system.CoreTiming();
     debug_pad->OnUpdate(core_timing);
     digitizer->OnUpdate(core_timing);
     unique_pad->OnUpdate(core_timing);
-    gesture->OnUpdate(core_timing);
-    touch_screen->OnUpdate(core_timing);
     palma->OnUpdate(core_timing);
     home_button->OnUpdate(core_timing);
     sleep_button->OnUpdate(core_timing);

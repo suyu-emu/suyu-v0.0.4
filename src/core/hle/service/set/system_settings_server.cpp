@@ -275,8 +275,8 @@ ISystemSettingsServer::ISystemSettingsServer(Core::System& system_)
         {184, nullptr, "SetPlatformRegion"},
         {185, &ISystemSettingsServer::GetHomeMenuSchemeModel, "GetHomeMenuSchemeModel"},
         {186, nullptr, "GetMemoryUsageRateFlag"},
-        {187, nullptr, "GetTouchScreenMode"},
-        {188, nullptr, "SetTouchScreenMode"},
+        {187, &ISystemSettingsServer::GetTouchScreenMode, "GetTouchScreenMode"},
+        {188, &ISystemSettingsServer::SetTouchScreenMode, "SetTouchScreenMode"},
         {189, nullptr, "GetButtonConfigSettingsFull"},
         {190, nullptr, "SetButtonConfigSettingsFull"},
         {191, nullptr, "GetButtonConfigSettingsEmbedded"},
@@ -1395,6 +1395,28 @@ void ISystemSettingsServer::GetHomeMenuSchemeModel(HLERequestContext& ctx) {
     rb.Push(0);
 }
 
+void ISystemSettingsServer::GetTouchScreenMode(HLERequestContext& ctx) {
+    TouchScreenMode touch_screen_mode{};
+    auto res = GetTouchScreenMode(touch_screen_mode);
+
+    LOG_INFO(Service_SET, "called, touch_screen_mode={}", touch_screen_mode);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(res);
+    rb.PushEnum(touch_screen_mode);
+}
+
+void ISystemSettingsServer::SetTouchScreenMode(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto touch_screen_mode = rp.PopEnum<TouchScreenMode>();
+    auto res = SetTouchScreenMode(touch_screen_mode);
+
+    LOG_INFO(Service_SET, "called, touch_screen_mode={}", touch_screen_mode);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(res);
+}
+
 void ISystemSettingsServer::GetFieldTestingFlag(HLERequestContext& ctx) {
     LOG_INFO(Service_SET, "called, field_testing_flag={}", m_system_settings.field_testing_flag);
 
@@ -1666,6 +1688,17 @@ Result ISystemSettingsServer::GetUserSystemClockAutomaticCorrectionUpdatedTime(
 Result ISystemSettingsServer::SetUserSystemClockAutomaticCorrectionUpdatedTime(
     const Service::PSC::Time::SteadyClockTimePoint& out_time_point) {
     m_system_settings.user_system_clock_automatic_correction_updated_time_point = out_time_point;
+    SetSaveNeeded();
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::GetTouchScreenMode(TouchScreenMode& touch_screen_mode) const {
+    touch_screen_mode = m_system_settings.touch_screen_mode;
+    R_SUCCEED();
+}
+
+Result ISystemSettingsServer::SetTouchScreenMode(TouchScreenMode touch_screen_mode) {
+    m_system_settings.touch_screen_mode = touch_screen_mode;
     SetSaveNeeded();
     R_SUCCEED();
 }
