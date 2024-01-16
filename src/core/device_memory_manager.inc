@@ -509,18 +509,12 @@ void DeviceMemoryManager<Traits>::UnregisterProcess(Asid asid) {
 
 template <typename Traits>
 void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size, s32 delta) {
-    bool locked = false;
-    auto lock = [&] {
-        if (!locked) {
-            counter_guard.lock();
-            locked = true;
+    std::unique_lock<std::mutex> lk(counter_guard, std::defer_lock);
+    const auto Lock = [&] {
+        if (!lk) {
+            lk.lock();
         }
     };
-    SCOPE_EXIT({
-        if (locked) {
-            counter_guard.unlock();
-        }
-    });
     u64 uncache_begin = 0;
     u64 cache_begin = 0;
     u64 uncache_bytes = 0;
@@ -555,7 +549,7 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
             }
             uncache_bytes += Memory::YUZU_PAGESIZE;
         } else if (uncache_bytes > 0) {
-            lock();
+            Lock();
             MarkRegionCaching(memory_device_inter, uncache_begin << Memory::YUZU_PAGEBITS,
                               uncache_bytes, false);
             uncache_bytes = 0;
@@ -566,7 +560,7 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
             }
             cache_bytes += Memory::YUZU_PAGESIZE;
         } else if (cache_bytes > 0) {
-            lock();
+            Lock();
             MarkRegionCaching(memory_device_inter, cache_begin << Memory::YUZU_PAGEBITS, cache_bytes,
                               true);
             cache_bytes = 0;
@@ -574,12 +568,12 @@ void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size
         vpage++;
     }
     if (uncache_bytes > 0) {
-        lock();
+        Lock();
         MarkRegionCaching(memory_device_inter, uncache_begin << Memory::YUZU_PAGEBITS, uncache_bytes,
                           false);
     }
     if (cache_bytes > 0) {
-        lock();
+        Lock();
         MarkRegionCaching(memory_device_inter, cache_begin << Memory::YUZU_PAGEBITS, cache_bytes,
                           true);
     }
